@@ -1,0 +1,37 @@
+import Mathlib.Probability.Kernel.Invariance
+import Mathlib.MeasureTheory.Integral.Lebesgue.Countable
+
+/-!
+# Atomic balance implies kernel reversibility
+
+On a countable measurable-singleton space, singleton flux symmetry implies
+Mathlib's set-lintegral reversibility. No Markov or finite-measure hypothesis
+is needed: the proof only rearranges nonnegative countable sums.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal
+
+/-- Atomic detailed balance implies equality of the two set flux integrals.
+The given measure and kernel need not have finite total mass. -/
+theorem isReversible_of_singleton_balance {α : Type*} [MeasurableSpace α]
+    [Countable α] [MeasurableSingletonClass α] (κ : Kernel α α) (μ : Measure α)
+    (h : ∀ x y, μ {x} * κ x {y} = μ {y} * κ y {x}) :
+    Kernel.IsReversible κ μ := by
+  intro A B _ _
+  have hm (ν : Measure α) (s : Set α) : ν s = ∑' y : s, ν {(y : α)} := by
+    simpa using (lintegral_countable (μ := ν) (fun _ => 1) (Set.to_countable s))
+  rw [lintegral_countable _ (Set.to_countable A),
+    lintegral_countable _ (Set.to_countable B)]
+  conv_lhs => enter [1, x]; rw [hm (κ x) B, ← ENNReal.tsum_mul_right]
+  conv_rhs => enter [1, y]; rw [hm (κ y) A, ← ENNReal.tsum_mul_right]
+  rw [ENNReal.tsum_comm]
+  apply tsum_congr
+  intro y
+  apply tsum_congr
+  intro x
+  simpa only [mul_comm] using h (x : α) (y : α)
+
+end AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility

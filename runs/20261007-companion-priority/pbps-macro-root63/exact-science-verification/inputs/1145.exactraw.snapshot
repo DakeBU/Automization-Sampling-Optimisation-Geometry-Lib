@@ -1,0 +1,173 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.MarkovSemigroup
+import Mathlib.Probability.Kernel.Composition.MeasureComp
+import Mathlib.Probability.Kernel.Invariance
+
+/-!
+# Measure evolution for the canonical Markov-kernel contract
+
+This file extends the already-established `MarkovSemigroup.TransitionKernelContract`
+with its induced action on probability laws. It is deliberately independent
+of any concrete stochastic process: constructing `K t x` as the conditional
+law of an SDE solution is a downstream bridge and may consume the Section 1.1
+Markov/SDE work once that work lands.
+
+The definitions here provide the measure-level half of Chewi Proposition
+1.2.7 without introducing a second semigroup API.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace MarkovSemigroup
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal ProbabilityTheory
+
+noncomputable section
+
+variable {E : Type*} [MeasurableSpace E]
+
+/-- Evolve a measure by the transition kernel at elapsed time `t`. -/
+noncomputable def evolveMeasure
+    {K : ℝ≥0 → Kernel E E} (_hK : TransitionKernelContract K)
+    (t : ℝ≥0) (mu : Measure E) : Measure E :=
+  K t ∘ₘ mu
+
+/-- Measure-level Chapman--Kolmogorov: evolving for `s+t` is the same as
+first evolving for `s` and then for `t`. -/
+theorem evolveMeasure_add
+    {K : ℝ≥0 → Kernel E E} (hK : TransitionKernelContract K)
+    (mu : Measure E) (s t : ℝ≥0) :
+    evolveMeasure hK (s + t) mu =
+      evolveMeasure hK t (evolveMeasure hK s mu) := by
+  change K (s + t) ∘ₘ mu = K t ∘ₘ (K s ∘ₘ mu)
+  rw [hK.chapmanKolmogorov s t]
+  exact (Measure.comp_assoc
+    (μ := mu) (κ := K s) (η := K t)).symm
+
+/-- A Markov kernel sends a probability law to a probability law. -/
+theorem isProbabilityMeasure_evolveMeasure
+    {K : ℝ≥0 → Kernel E E} (hK : TransitionKernelContract K)
+    (mu : Measure E) [IsProbabilityMeasure mu] (t : ℝ≥0) :
+    IsProbabilityMeasure (evolveMeasure hK t mu) := by
+  letI : IsMarkovKernel (K t) := hK.isMarkov t
+  dsimp [evolveMeasure]
+  infer_instance
+
+/-- Integrating a Markov observable against the input law is the same as
+integrating the original observable against the evolved law.
+
+This is the measure/operator compatibility identity behind the usual formula
+`∫ P_t f dμ = ∫ f d(μ P_t)`. -/
+theorem lintegral_markovOperator_eq_lintegral_evolveMeasure
+    {K : ℝ≥0 → Kernel E E} (hK : TransitionKernelContract K)
+    (mu : Measure E) (t : ℝ≥0) (f : MeasurableENNReal E) :
+    (∫⁻ x, markovOperator hK t f x ∂mu) =
+      ∫⁻ y, f y ∂evolveMeasure hK t mu := by
+  change (∫⁻ x, (∫⁻ y, f y ∂K t x) ∂mu) =
+    ∫⁻ y, f y ∂(mu.bind (K t))
+  rw [Measure.lintegral_bind (K t).aemeasurable f.2.aemeasurable]
+
+/-- A measure is stationary for a transition-kernel semigroup when it is fixed
+by every nonnegative-time law evolution.
+
+This is the direct measure-level notion used in Chewi Proposition 1.2.7. The
+generator characterization `∫ L f dπ = 0` needs a semigroup-stable generator
+domain and is intentionally a separate theorem. -/
+def IsStationary
+    {K : ℝ≥0 → Kernel E E} (hK : TransitionKernelContract K)
+    (pi : Measure E) : Prop :=
+  ∀ t : ℝ≥0, evolveMeasure hK t pi = pi
+
+/-- Unfold the stationary-measure predicate. -/
+theorem isStationary_iff
+    {K : ℝ≥0 → Kernel E E} (hK : TransitionKernelContract K)
+    (pi : Measure E) :
+    IsStationary hK pi ↔ ∀ t : ℝ≥0, evolveMeasure hK t pi = pi :=
+  Iff.rfl
+
+/-- ASTIS semigroup stationarity is exactly Mathlib kernel invariance at every
+time. -/
+theorem isStationary_iff_kernel_invariant
+    {K : ℝ≥0 → Kernel E E} (hK : TransitionKernelContract K)
+    (pi : Measure E) :
+    IsStationary hK pi ↔ ∀ t : ℝ≥0, Kernel.Invariant (K t) pi := by
+  constructor
+  · intro hpi t
+    change K t ∘ₘ pi = pi
+    exact hpi t
+  · intro hpi t
+    change K t ∘ₘ pi = pi
+    exact (hpi t).def
+
+/-- Detailed balance for every transition kernel implies stationarity of the
+whole semigroup. -/
+theorem isStationary_of_kernel_reversible
+    {K : ℝ≥0 → Kernel E E} (hK : TransitionKernelContract K)
+    (pi : Measure E)
+    (hrev : ∀ t : ℝ≥0, Kernel.IsReversible (K t) pi) :
+    IsStationary hK pi := by
+  rw [isStationary_iff_kernel_invariant]
+  intro t
+  letI : IsMarkovKernel (K t) := hK.isMarkov t
+  exact (hrev t).invariant
+
+/-- Stationarity implies invariance of every measurable nonnegative expectation
+under the Markov operator. -/
+theorem IsStationary.lintegral_markovOperator_eq
+    {K : ℝ≥0 → Kernel E E} {hK : TransitionKernelContract K}
+    {pi : Measure E} (hpi : IsStationary hK pi)
+    (t : ℝ≥0) (f : MeasurableENNReal E) :
+    (∫⁻ x, markovOperator hK t f x ∂pi) = ∫⁻ x, f x ∂pi := by
+  rw [lintegral_markovOperator_eq_lintegral_evolveMeasure hK pi t f, hpi t]
+
+/-- Conversely, invariance of all measurable nonnegative expectations under
+every Markov operator determines the stationary measure. -/
+theorem isStationary_of_lintegral_markovOperator_eq
+    {K : ℝ≥0 → Kernel E E} (hK : TransitionKernelContract K)
+    (pi : Measure E)
+    (hinv : ∀ (t : ℝ≥0) (f : MeasurableENNReal E),
+      (∫⁻ x, markovOperator hK t f x ∂pi) = ∫⁻ x, f x ∂pi) :
+    IsStationary hK pi := by
+  intro t
+  ext s hs
+  let f : MeasurableENNReal E :=
+    ⟨s.indicator (fun _ => (1 : ℝ≥0∞)), measurable_const.indicator hs⟩
+  have h := hinv t f
+  rw [lintegral_markovOperator_eq_lintegral_evolveMeasure hK pi t f] at h
+  simpa [f, hs] using h
+
+/-- Measure stationarity is equivalent to expectation invariance for all
+measurable nonnegative observables. -/
+theorem isStationary_iff_lintegral_markovOperator_eq
+    {K : ℝ≥0 → Kernel E E} (hK : TransitionKernelContract K)
+    (pi : Measure E) :
+    IsStationary hK pi ↔
+      ∀ (t : ℝ≥0) (f : MeasurableENNReal E),
+        (∫⁻ x, markovOperator hK t f x ∂pi) = ∫⁻ x, f x ∂pi := by
+  constructor
+  · intro hpi t f
+    exact hpi.lintegral_markovOperator_eq t f
+  · exact isStationary_of_lintegral_markovOperator_eq hK pi
+
+/-- A stationary law remains unchanged at every named time. -/
+theorem IsStationary.evolveMeasure_eq
+    {K : ℝ≥0 → Kernel E E} {hK : TransitionKernelContract K}
+    {pi : Measure E} (hpi : IsStationary hK pi) (t : ℝ≥0) :
+    evolveMeasure hK t pi = pi :=
+  hpi t
+
+/-- Stationarity is preserved after any elapsed time. -/
+theorem IsStationary.after
+    {K : ℝ≥0 → Kernel E E} {hK : TransitionKernelContract K}
+    {pi : Measure E} (hpi : IsStationary hK pi) (s : ℝ≥0) :
+    IsStationary hK (evolveMeasure hK s pi) := by
+  rw [hpi s]
+  exact hpi
+
+end
+
+end MarkovSemigroup
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

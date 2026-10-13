@@ -1,0 +1,25 @@
+  have reflected_disintegration {E : Type u} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+      [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+      (ρ : Measure (E × E)) [IsFiniteMeasure ρ]
+      (R S : Kernel E E) [IsMarkovKernel R] [IsMarkovKernel S]
+      [ρ.IsCondKernel R]
+      (hS : ∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) :
+      let G := fun p : E × E => (p.1,(2:ℝ) • p.2-p.1)
+      (ρ.map G).fst = ρ.fst ∧ (ρ.map G).IsCondKernel S := by
+    let G := fun p : E × E => (p.1,(2:ℝ) • p.2-p.1)
+    have hG : Measurable G := by fun_prop
+    have hfst : (ρ.map G).fst = ρ.fst := by
+      exact Measure.fst_map_prodMk (by fun_prop)
+    have hmap : ρ.fst ⊗ₘ S = (ρ.fst ⊗ₘ R).map G := by
+      ext t ht
+      rw [Measure.compProd_apply ht, Measure.map_apply hG ht,
+        Measure.compProd_apply (hG ht)]
+      apply lintegral_congr_ae
+      filter_upwards with y
+      rw [hS y, Measure.map_apply (by fun_prop) (measurable_prodMk_left ht)]
+      rfl
+    refine ⟨hfst,⟨?_⟩⟩
+    rw [hfst,hmap,Measure.disintegrate ρ R]
+
+
+

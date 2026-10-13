@@ -1,0 +1,359 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GlobalStoppedItoMartingale
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.Localization
+
+/-!
+# Global gluing of the locally square-integrable Itô process
+
+This is the final analytic layer behind Chewi Proposition 1.1.16.
+
+For the dyadic global localizing ladder `tau_k ↑ ∞`, the previous module gives
+continuous martingales
+
+`M_k(t) = ∫₀ᵗ eta_s 1_{s ≤ tau_k} dB_s`
+
+which are coherent before the smaller localizer fires.  On one countable
+full-measure event we retain both divergence of `tau_k` and every pairwise
+overlap relation.  The raw global process is the pointwise `limUnder` of the
+`M_k`.  On a good path this sequence is eventually *constant* locally in time,
+so the raw limit locally equals one continuous `M_k`.  On the complementary
+null set we patch the process by zero.
+
+The resulting process is strongly adapted and continuous on every path.  Its
+stopped process at `tau_k` is almost surely the stopped `M_k`, hence is a
+martingale by the stopped-Itô theorem proved earlier.  This establishes the
+exact `Localization.IsLocalMartingale` contract without invoking optional
+stopping.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace GlobalItoProcessGluing
+
+open Filter MeasureTheory Set WithTop
+open scoped NNReal Topology
+
+open BrownianMotion DyadicGlobalHorizon GlobalLocalProgressiveL2
+  GlobalStoppedItoMartingale ProgressiveL2 RandomStoppingProcessConsistency
+  StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- The full-measure pathwise contract used for global gluing: the cofinal
+localizers diverge and all countably many localized martingale pairs agree
+before the smaller localizer fires. -/
+def globalItoGluingGoodSet
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) : Set Omega :=
+  {omega |
+    Tendsto
+      (fun k =>
+        (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0))
+      atTop (𝓝 (⊤ : WithTop ℝ≥0)) ∧
+    ∀ k ell, k ≤ ell → ∀ t : ℝ≥0,
+      t ≤ dyadicGlobalLocalizingTime hUsual eta k omega →
+        globalStoppedItoProcess hUsual eta hB k t omega =
+          globalStoppedItoProcess hUsual eta hB ell t omega}
+
+/-- The global gluing contract holds almost surely. -/
+theorem globalItoGluingGoodSet_ae
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    ∀ᵐ omega ∂mu, omega ∈ globalItoGluingGoodSet hUsual eta hB := by
+  have hoverlap : ∀ᵐ omega ∂mu,
+      ∀ k ell, k ≤ ell → ∀ t : ℝ≥0,
+        t ≤ dyadicGlobalLocalizingTime hUsual eta k omega →
+          globalStoppedItoProcess hUsual eta hB k t omega =
+            globalStoppedItoProcess hUsual eta hB ell t omega := by
+    apply ae_all_iff.2
+    intro k
+    apply ae_all_iff.2
+    intro ell
+    by_cases hkell : k ≤ ell
+    · filter_upwards [globalStoppedItoProcess_eq_of_le_localizer_ae
+        hUsual eta hB hkell] with omega homega
+      intro _
+      exact homega
+    · exact Filter.Eventually.of_forall fun _ hcontra => (hkell hcontra).elim
+  filter_upwards [dyadicGlobalLocalizingTime_tendsto_top_ae hUsual eta,
+    hoverlap] with omega hdiv hoverlapOmega
+  exact ⟨hdiv, hoverlapOmega⟩
+
+/-- The single exceptional set patched by zero in the global continuous
+version. -/
+def globalItoGluingBadSet
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) : Set Omega :=
+  (globalItoGluingGoodSet hUsual eta hB)ᶜ
+
+theorem measure_globalItoGluingBadSet_zero
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    mu (globalItoGluingBadSet hUsual eta hB) = 0 := by
+  exact ae_iff.1 (globalItoGluingGoodSet_ae hUsual eta hB)
+
+theorem measurableSet_globalItoGluingBadSet_at
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (t : ℝ≥0) :
+    MeasurableSet[filtration t] (globalItoGluingBadSet hUsual eta hB) :=
+  hUsual.completeAt t _ (measure_globalItoGluingBadSet_zero hUsual eta hB)
+
+/-- Pointwise candidate obtained from the coherent localized martingale family. -/
+noncomputable def rawGlobalItoProcess
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (t : ℝ≥0) (omega : Omega) : ℝ :=
+  atTop.limUnder (fun k => globalStoppedItoProcess hUsual eta hB k t omega)
+
+/-- The raw pointwise limit is measurable at every deterministic time. -/
+theorem rawGlobalItoProcess_stronglyMeasurable
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (t : ℝ≥0) :
+    StronglyMeasurable[filtration t]
+      (fun omega => rawGlobalItoProcess hUsual eta hB t omega) := by
+  let _ : MeasurableSpace Omega := filtration t
+  exact StronglyMeasurable.limUnder fun k =>
+    globalStoppedItoProcess_stronglyAdapted hUsual eta hB k t
+
+/-- On a good path, before `tau_k`, the localized martingale sequence is
+literally eventually constant at `M_k`. -/
+theorem tendsto_globalStoppedItoProcess_of_good_of_le_localizer
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {omega : Omega} (homega : omega ∈ globalItoGluingGoodSet hUsual eta hB)
+    {k : ℕ} {t : ℝ≥0}
+    (ht : t ≤ dyadicGlobalLocalizingTime hUsual eta k omega) :
+    Tendsto
+      (fun ell => globalStoppedItoProcess hUsual eta hB ell t omega)
+      atTop
+      (𝓝 (globalStoppedItoProcess hUsual eta hB k t omega)) := by
+  refine tendsto_const_nhds.congr' ?_
+  filter_upwards [eventually_ge_atTop k] with ell hell
+  exact homega.2 k ell hell t ht
+
+/-- Identification of the raw `limUnder` with any localized martingale before
+its localizer fires. -/
+theorem rawGlobalItoProcess_eq_globalStopped_of_good_of_le_localizer
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {omega : Omega} (homega : omega ∈ globalItoGluingGoodSet hUsual eta hB)
+    {k : ℕ} {t : ℝ≥0}
+    (ht : t ≤ dyadicGlobalLocalizingTime hUsual eta k omega) :
+    rawGlobalItoProcess hUsual eta hB t omega =
+      globalStoppedItoProcess hUsual eta hB k t omega := by
+  have htend := tendsto_globalStoppedItoProcess_of_good_of_le_localizer
+    hUsual eta hB homega ht
+  have hlim : Tendsto
+      (fun ell => globalStoppedItoProcess hUsual eta hB ell t omega)
+      atTop
+      (𝓝 (rawGlobalItoProcess hUsual eta hB t omega)) := by
+    unfold rawGlobalItoProcess
+    exact tendsto_nhds_limUnder ⟨_, htend⟩
+  exact tendsto_nhds_unique hlim htend
+
+/-- Everywhere-defined continuous version: keep the coherent limit on the good
+set and patch the single null exceptional set by zero. -/
+noncomputable def globalItoProcess
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    ℝ≥0 → Omega → ℝ := by
+  classical
+  exact fun t omega =>
+    if omega ∈ globalItoGluingBadSet hUsual eta hB then 0
+    else rawGlobalItoProcess hUsual eta hB t omega
+
+/-- On every good path, the patched global process agrees with `M_k` before
+`tau_k`. -/
+theorem globalItoProcess_eq_globalStopped_of_good_of_le_localizer
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {omega : Omega} (homega : omega ∈ globalItoGluingGoodSet hUsual eta hB)
+    {k : ℕ} {t : ℝ≥0}
+    (ht : t ≤ dyadicGlobalLocalizingTime hUsual eta k omega) :
+    globalItoProcess hUsual eta hB t omega =
+      globalStoppedItoProcess hUsual eta hB k t omega := by
+  have hnotbad : omega ∉ globalItoGluingBadSet hUsual eta hB := by
+    simpa only [globalItoGluingBadSet, mem_compl_iff, not_not] using homega
+  simp only [globalItoProcess, hnotbad, if_false]
+  exact rawGlobalItoProcess_eq_globalStopped_of_good_of_le_localizer
+    hUsual eta hB homega ht
+
+/-- The global process is strongly adapted. -/
+theorem globalItoProcess_stronglyAdapted
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    StronglyAdapted filtration (globalItoProcess hUsual eta hB) := by
+  intro t
+  classical
+  exact StronglyMeasurable.ite
+    (measurableSet_globalItoGluingBadSet_at hUsual eta hB t)
+    stronglyMeasurable_const
+    (rawGlobalItoProcess_stronglyMeasurable hUsual eta hB t)
+
+/-- On a good path the global process is continuous at an arbitrary time: choose
+a localizer strictly beyond that time, then the global process equals the
+corresponding continuous localized martingale throughout a neighborhood. -/
+theorem globalItoProcess_continuousAt_of_good
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {omega : Omega} (homega : omega ∈ globalItoGluingGoodSet hUsual eta hB)
+    (t0 : ℝ≥0) :
+    ContinuousAt (fun t => globalItoProcess hUsual eta hB t omega) t0 := by
+  have hev : ∀ᶠ k : ℕ in atTop,
+      (t0 : WithTop ℝ≥0) <
+        (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0) := by
+    exact homega.1.eventually_mem
+      (Ioi_mem_nhds (WithTop.coe_lt_top t0))
+  obtain ⟨k, hk⟩ := eventually_atTop.1 hev
+  have hltTop := hk k le_rfl
+  have hlt : t0 < dyadicGlobalLocalizingTime hUsual eta k omega :=
+    WithTop.coe_lt_coe.mp hltTop
+  have heq :
+      (fun t => globalItoProcess hUsual eta hB t omega) =ᶠ[𝓝 t0]
+        (fun t => globalStoppedItoProcess hUsual eta hB k t omega) := by
+    filter_upwards [Iio_mem_nhds hlt] with t ht
+    exact globalItoProcess_eq_globalStopped_of_good_of_le_localizer
+      hUsual eta hB homega ht.le
+  have hcont :
+      ContinuousAt
+        (fun t => globalStoppedItoProcess hUsual eta hB k t omega) t0 :=
+    (globalStoppedItoProcess_continuous hUsual eta hB k omega).continuousAt
+  exact hcont.congr heq.symm
+
+/-- The patched global Itô process has continuous paths for every sample point,
+including the exceptional null set where it is identically zero. -/
+theorem globalItoProcess_continuous
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (omega : Omega) :
+    Continuous (fun t => globalItoProcess hUsual eta hB t omega) := by
+  classical
+  by_cases hbad : omega ∈ globalItoGluingBadSet hUsual eta hB
+  · simp only [globalItoProcess, hbad, if_pos]
+    exact continuous_const
+  · have hgood : omega ∈ globalItoGluingGoodSet hUsual eta hB := by
+      simpa only [globalItoGluingBadSet, mem_compl_iff, not_not] using hbad
+    exact continuous_iff_continuousAt.2 fun t =>
+      globalItoProcess_continuousAt_of_good hUsual eta hB hgood t
+
+/-- The global Itô process starts at zero exactly, not merely almost surely. -/
+@[simp] theorem globalItoProcess_zero
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    globalItoProcess hUsual eta hB 0 = 0 := by
+  funext omega
+  classical
+  by_cases hbad : omega ∈ globalItoGluingBadSet hUsual eta hB
+  · simp [globalItoProcess, hbad]
+  · have hgood : omega ∈ globalItoGluingGoodSet hUsual eta hB := by
+      simpa only [globalItoGluingBadSet, mem_compl_iff, not_not] using hbad
+    have hEq := globalItoProcess_eq_globalStopped_of_good_of_le_localizer
+      hUsual eta hB hgood (k := 0) (t := 0) bot_le
+    rw [hEq]
+    exact congrFun (globalStoppedItoProcess_zero hUsual eta hB 0) omega
+
+/-- Every globally stopped version agrees almost surely, at every deterministic
+time, with the corresponding stopped localized martingale. -/
+theorem stopped_globalItoProcess_eq_stopped_globalStopped_ae
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (k : ℕ) (t : ℝ≥0) :
+    stoppedProcess (globalItoProcess hUsual eta hB)
+        (fun w =>
+          (dyadicGlobalLocalizingTime hUsual eta k w : WithTop ℝ≥0)) t =ᵐ[mu]
+      stoppedProcess (globalStoppedItoProcess hUsual eta hB k)
+        (fun w =>
+          (dyadicGlobalLocalizingTime hUsual eta k w : WithTop ℝ≥0)) t := by
+  filter_upwards [globalItoGluingGoodSet_ae hUsual eta hB] with omega homega
+  rw [stoppedProcess_coe_apply, stoppedProcess_coe_apply]
+  have hle : min t (dyadicGlobalLocalizingTime hUsual eta k omega) ≤
+      dyadicGlobalLocalizingTime hUsual eta k omega := min_le_right _ _
+  exact globalItoProcess_eq_globalStopped_of_good_of_le_localizer
+    hUsual eta hB homega hle
+
+/-- Stopping the glued global process at any member of the dyadic localizing
+sequence gives a genuine martingale. -/
+theorem stopped_globalItoProcess_martingale
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (k : ℕ) :
+    Martingale
+      (stoppedProcess (globalItoProcess hUsual eta hB)
+        (fun w =>
+          (dyadicGlobalLocalizingTime hUsual eta k w : WithTop ℝ≥0)))
+      filtration mu := by
+  have hsource := stopped_globalStoppedItoProcess_martingale hUsual eta hB k
+  have htargetAdapted : StronglyAdapted filtration
+      (stoppedProcess (globalItoProcess hUsual eta hB)
+        (fun w =>
+          (dyadicGlobalLocalizingTime hUsual eta k w : WithTop ℝ≥0))) :=
+    (globalItoProcess_stronglyAdapted hUsual eta hB).stoppedProcess
+      (globalItoProcess_continuous hUsual eta hB)
+      (dyadicGlobalLocalizingTime_isChewiStoppingTime hUsual eta k)
+  exact hsource.congr htargetAdapted fun t =>
+    (stopped_globalItoProcess_eq_stopped_globalStopped_ae
+      hUsual eta hB k t).symm
+
+/-- The glued process satisfies Chewi's exact local-martingale definition with
+the cofinal dyadic global localizers. -/
+theorem globalItoProcess_isLocalMartingale
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    Localization.IsLocalMartingale
+      (globalItoProcess hUsual eta hB) filtration mu := by
+  refine ⟨(globalItoProcess_stronglyAdapted hUsual eta hB).adapted, ?_⟩
+  refine ⟨(fun k omega =>
+    (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0)), ?_, ?_, ?_, ?_⟩
+  · exact fun k => dyadicGlobalLocalizingTime_isChewiStoppingTime hUsual eta k
+  · intro k ell hkell omega
+    exact WithTop.coe_le_coe.mpr
+      ((dyadicGlobalLocalizingTime_mono hUsual eta) hkell omega)
+  · exact dyadicGlobalLocalizingTime_tendsto_top_ae hUsual eta
+  · intro k
+    simpa [globalItoProcess_zero] using
+      stopped_globalItoProcess_martingale hUsual eta hB k
+
+end GlobalItoProcessGluing
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

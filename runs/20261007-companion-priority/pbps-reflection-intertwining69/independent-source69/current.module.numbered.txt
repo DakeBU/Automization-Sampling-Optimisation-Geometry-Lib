@@ -1,0 +1,446 @@
+0001 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation
+0002 
+0003 /-!
+0004 # Actual PBPS reflection intertwining
+0005 
+0006 Chen--Chewi--Lu--Zhang, arXiv:2609.06905v1, Appendix B.1 and B.3,
+0007 the full micro-space intertwining used in (B.21) and Lemma B.4.
+0008 The private literal statement preserves all original inputs and witnesses.
+0009 -/
+0010 namespace AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining
+0011 open MeasureTheory ProbabilityTheory InnerProductSpace
+0012 open scoped RealInnerProductSpace ContDiff NNReal Topology ENNReal
+0013 noncomputable section
+0014 set_option autoImplicit false
+0015 set_option maxHeartbeats 2000000
+0016 
+0017 private def actual_reflection_intertwining_statement
+0018     {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+0019     [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+0020     {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+0021     (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+0022     (hH : ∀ x v : E,
+0023       (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+0024       (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+0025     (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) : Prop :=
+0026     let μ := (volume : Measure E).tilted (fun x => -V x)
+0027     let J := (μ.prod (stdGaussian E)).map
+0028       (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+0029     let ν := J.snd
+0030     let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))
+0031     let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)
+0032     let mY := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)
+0033     letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace
+0034     letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) :=
+0035       ⟨measurable_snd.comap_le⟩
+0036     let HP := lpMeas ℝ ℝ mY 2 J
+0037     let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=
+0038       HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le
+0039     let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩
+0040     let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp
+0041     IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧
+0042     HP = P.toLinearMap.range ∧
+0043     (∀ f : HP, P (f : Lp ℝ 2 J) = f) ∧
+0044     ∃ S : Kernel E E, IsMarkovKernel S ∧
+0045       (∀ y, S y = (volume : Measure E).tilted
+0046         (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧
+0047       Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧
+0048       ∃ e : Lp ℝ 2 ν ≃ₗᵢ[ℝ] HP,
+0049         (∀ u : Lp ℝ 2 ν, (e u : Lp ℝ 2 J) = M u) ∧
+0050         ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,
+0051           (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧
+0052           Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧
+0053           ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,
+0054             IsSelfAdjoint T ∧
+0055             (∀ u : Lp ℝ 2 ν,
+0056               ‖T u‖ ≤ ‖u‖ ∧
+0057               (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧
+0058               (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧
+0059             let A : HP →L[ℝ] HP :=
+0060               HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL
+0061             let B : HP →L[ℝ] Lp ℝ 2 J :=
+0062               (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL
+0063             A = e.conjStarAlgEquiv T ∧ IsSelfAdjoint A ∧
+0064             (∀ f : HP, ‖A f‖ ≤ ‖f‖) ∧
+0065             (∀ f : HP, P (B f) = 0) ∧
+0066             ∃ Γ : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,
+0067               Γ.IsPositive ∧ Γ*Γ=(1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T ∧
+0068               Commute Γ T ∧
+0069               let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ
+0070               ΓP.IsPositive ∧ ΓP*ΓP=(1 : HP →L[ℝ] HP)-A*A ∧
+0071               Commute ΓP A ∧
+0072               B.adjoint ∘L B = ΓP*ΓP ∧
+0073               ∃ q : Lp ℝ 2 ν,
+0074                 (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧
+0075                 (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧
+0076                 let qP : HP := e q
+0077                 let HP0 := (innerSL ℝ qP).ker
+0078                 letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup
+0079                 letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace
+0080                 letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe
+0081                 let γ : ℝ := 2*Real.sqrt ((α : ℝ)*η)/(1+(α : ℝ)*η)
+0082                 (∀ f : HP, f ∈ HP0 ↔ (∫ y, (e.symm f) y ∂ν) = 0) ∧
+0083                 ΓP qP = 0 ∧ 0 < γ ∧
+0084                 ∃ ΓP0 : HP0 →L[ℝ] HP0,
+0085                   (∀ f : HP0, (ΓP0 f : HP) = ΓP (f : HP)) ∧
+0086                   ΓP0.IsPositive ∧ (ΓP0-γ • (1 : HP0 →L[ℝ] HP0)).IsPositive ∧
+0087                   IsUnit ΓP0 ∧
+0088                   ∃ Inv : HP0 →L[ℝ] HP0,
+0089                     Inv*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧
+0090                     ΓP0*Inv=(1 : HP0 →L[ℝ] HP0) ∧ ‖Inv‖ ≤ 1/γ ∧
+0091                     IsSelfAdjoint Inv ∧
+0092                     ∃ A0 : HP0 →L[ℝ] HP0,
+0093                       (∀ u : HP0, (A0 u : HP)=A (u : HP)) ∧
+0094                       IsSelfAdjoint A0 ∧ Commute A0 ΓP0 ∧
+0095                       A0*A0+ΓP0*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧
+0096                       Commute A0 Inv ∧
+0097                     let Hperp := P.ker
+0098                     letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup
+0099                     letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace
+0100                     letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe
+0101                     ∃ B0 : HP0 →L[ℝ] Hperp,
+0102                       (∀ f : HP0, (B0 f : Lp ℝ 2 J) = B (f : HP)) ∧
+0103                       ∃ V0 : HP0 →L[ℝ] Hperp,
+0104                         V0 = B0 ∘L Inv ∧ B0 = V0 ∘L ΓP0 ∧
+0105                         V0.adjoint ∘L V0 = (1 : HP0 →L[ℝ] HP0) ∧
+0106                         (∀ f : HP0, ‖V0 f‖ = ‖f‖) ∧
+0107                         ∃ R : Lp ℝ 2 J →L[ℝ] Hperp,
+0108                           (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) ∧
+0109                           (∀ g : Lp ℝ 2 J,
+0110                             B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) ∧
+0111                           let D : Hperp →L[ℝ] Hperp :=
+0112                             R ∘L U.toContinuousLinearMap ∘L Hperp.subtypeL
+0113                           (∀ h : Hperp, (D h : Lp ℝ 2 J)=
+0114                             U (h : Lp ℝ 2 J)-P (U (h : Lp ℝ 2 J))) ∧
+0115                           V0.adjoint ∘L D = -(A0 ∘L V0.adjoint) ∧
+0116                           (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →
+0117                             ∃ fP : HP0,
+0118                               HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧
+0119                               let fperp : Hperp := R f
+0120                               let fV : HP0 := V0.adjoint fperp
+0121                               B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧
+0122                               HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧
+0123                               ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖)
+0124 
+0125 theorem actual_reflection_intertwining
+0126     {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+0127     [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+0128     {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+0129     (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+0130     (hH : ∀ x v : E,
+0131       (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+0132       (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+0133     (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) : actual_reflection_intertwining_statement (E := E) (V := V) (α := α) (β := β) (η := η) hα hαβ hV hH hη hβη := by
+0134   classical
+0135   let μ := (volume : Measure E).tilted (fun x => -V x)
+0136   let J := (μ.prod (stdGaussian E)).map
+0137     (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+0138   let ν := J.snd
+0139   let mY : MeasurableSpace (E × E) := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)
+0140   letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace
+0141   letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) := ⟨measurable_snd.comap_le⟩
+0142   let HP := lpMeas ℝ ℝ mY 2 J
+0143   letI : NormedAddCommGroup HP := HP.normedAddCommGroup
+0144   letI : InnerProductSpace ℝ HP := HP.innerProductSpace
+0145   let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=
+0146     HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le
+0147   have hBase := AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation.actual_same_root_inverse_commutation
+0148     (E:=E) (V:=V) (α:=α) (β:=β) (η:=η) hα hαβ hV hH hη hβη
+0149   have parentSlice0 := hBase
+0150   have hμ := parentSlice0.1
+0151   have parentSlice1 := parentSlice0.2
+0152   have hJ := parentSlice1.1
+0153   have parentSlice2 := parentSlice1.2
+0154   have hν := parentSlice2.1
+0155   have parentSlice3 := parentSlice2.2
+0156   have hRange := parentSlice3.1
+0157   have parentSlice4 := parentSlice3.2
+0158   have hPf := parentSlice4.1
+0159   have parentSlice5 := parentSlice4.2
+0160   obtain ⟨S, parentSlice6⟩ := parentSlice5
+0161   have hS := parentSlice6.1
+0162   have parentSlice7 := parentSlice6.2
+0163   have hSd := parentSlice7.1
+0164   have parentSlice8 := parentSlice7.2
+0165   have hSc := parentSlice8.1
+0166   have parentSlice9 := parentSlice8.2
+0167   have hSf := parentSlice9.1
+0168   have parentSlice10 := parentSlice9.2
+0169   have hSs := parentSlice10.1
+0170   have parentSlice11 := parentSlice10.2
+0171   obtain ⟨e, parentSlice12⟩ := parentSlice11
+0172   have he := parentSlice12.1
+0173   have parentSlice13 := parentSlice12.2
+0174   obtain ⟨U, parentSlice14⟩ := parentSlice13
+0175   have hU := parentSlice14.1
+0176   have parentSlice15 := parentSlice14.2
+0177   have hUi := parentSlice15.1
+0178   have parentSlice16 := parentSlice15.2
+0179   have hUs := parentSlice16.1
+0180   have parentSlice17 := parentSlice16.2
+0181   obtain ⟨T, parentSlice18⟩ := parentSlice17
+0182   have hTs := parentSlice18.1
+0183   have parentSlice19 := parentSlice18.2
+0184   have hAll := parentSlice19.1
+0185   have parentSlice20 := parentSlice19.2
+0186   have hAeq := parentSlice20.1
+0187   have parentSlice21 := parentSlice20.2
+0188   have hAs := parentSlice21.1
+0189   have parentSlice22 := parentSlice21.2
+0190   have hAn := parentSlice22.1
+0191   have parentSlice23 := parentSlice22.2
+0192   have hPB := parentSlice23.1
+0193   have parentSlice24 := parentSlice23.2
+0194   obtain ⟨Γ, parentSlice25⟩ := parentSlice24
+0195   have hΓ := parentSlice25.1
+0196   have parentSlice26 := parentSlice25.2
+0197   have hΓSq := parentSlice26.1
+0198   have parentSlice27 := parentSlice26.2
+0199   have hCommRoot := parentSlice27.1
+0200   have parentSlice28 := parentSlice27.2
+0201   have hΓP := parentSlice28.1
+0202   have parentSlice29 := parentSlice28.2
+0203   have hΓPSq := parentSlice29.1
+0204   have parentSlice30 := parentSlice29.2
+0205   have hCommP := parentSlice30.1
+0206   have parentSlice31 := parentSlice30.2
+0207   have hGram := parentSlice31.1
+0208   have parentSlice32 := parentSlice31.2
+0209   obtain ⟨q, parentSlice33⟩ := parentSlice32
+0210   have hqa := parentSlice33.1
+0211   have parentSlice34 := parentSlice33.2
+0212   have hTq := parentSlice34.1
+0213   have parentSlice35 := parentSlice34.2
+0214   have hq := parentSlice35.1
+0215   have parentSlice36 := parentSlice35.2
+0216   have hCenter := parentSlice36.1
+0217   have parentSlice37 := parentSlice36.2
+0218   have hΓPq := parentSlice37.1
+0219   have parentSlice38 := parentSlice37.2
+0220   have hγ := parentSlice38.1
+0221   have parentSlice39 := parentSlice38.2
+0222   obtain ⟨ΓP0, parentSlice40⟩ := parentSlice39
+0223   have hΓP0 := parentSlice40.1
+0224   have parentSlice41 := parentSlice40.2
+0225   have hPos0 := parentSlice41.1
+0226   have parentSlice42 := parentSlice41.2
+0227   have hOrder0 := parentSlice42.1
+0228   have parentSlice43 := parentSlice42.2
+0229   have hUnit := parentSlice43.1
+0230   have parentSlice44 := parentSlice43.2
+0231   obtain ⟨Inv, parentSlice45⟩ := parentSlice44
+0232   have hLeft := parentSlice45.1
+0233   have parentSlice46 := parentSlice45.2
+0234   have hRight := parentSlice46.1
+0235   have parentSlice47 := parentSlice46.2
+0236   have hNormInv := parentSlice47.1
+0237   have parentSlice48 := parentSlice47.2
+0238   have hInvSelf := parentSlice48.1
+0239   have parentSlice49 := parentSlice48.2
+0240   obtain ⟨A0, parentSlice50⟩ := parentSlice49
+0241   have hA0 := parentSlice50.1
+0242   have parentSlice51 := parentSlice50.2
+0243   have hA0self := parentSlice51.1
+0244   have parentSlice52 := parentSlice51.2
+0245   have hComm0 := parentSlice52.1
+0246   have parentSlice53 := parentSlice52.2
+0247   have hSquare0 := parentSlice53.1
+0248   have parentSlice54 := parentSlice53.2
+0249   have hCommInv := parentSlice54.1
+0250   have parentSlice55 := parentSlice54.2
+0251   obtain ⟨B0, parentSlice56⟩ := parentSlice55
+0252   have hB0 := parentSlice56.1
+0253   have parentSlice57 := parentSlice56.2
+0254   obtain ⟨V0, parentSlice58⟩ := parentSlice57
+0255   have hVdef := parentSlice58.1
+0256   have parentSlice59 := parentSlice58.2
+0257   have hFactor := parentSlice59.1
+0258   have parentSlice60 := parentSlice59.2
+0259   have hVadj := parentSlice60.1
+0260   have parentSlice61 := parentSlice60.2
+0261   have hVnorm := parentSlice61.1
+0262   have parentSlice62 := parentSlice61.2
+0263   obtain ⟨R, parentSlice63⟩ := parentSlice62
+0264   have hR := parentSlice63.1
+0265   have parentSlice64 := parentSlice63.2
+0266   have hAmbient := parentSlice64.1
+0267   have parentSlice65 := parentSlice64.2
+0268   have hGlobal := parentSlice65
+0269   let A : HP →L[ℝ] HP := HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL
+0270   let B : HP →L[ℝ] Lp ℝ 2 J :=
+0271     (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL
+0272   let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ
+0273   let qP : HP := e q
+0274   let HP0 := (innerSL ℝ qP).ker
+0275   letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup
+0276   letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace
+0277   letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe
+0278   let Hperp := P.ker
+0279   letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup
+0280   letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace
+0281   letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe
+0282   change HP0 →L[ℝ] Hperp at B0 V0
+0283   change HP0 →L[ℝ] HP0 at ΓP0 Inv A0
+0284   change Lp ℝ 2 J →L[ℝ] Hperp at R
+0285   change (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) at hR
+0286   change (∀ g : Lp ℝ 2 J,
+0287     B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) at hAmbient
+0288   change (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →
+0289     ∃ fP : HP0,
+0290       HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧
+0291       let fperp : Hperp := R f
+0292       let fV : HP0 := V0.adjoint fperp
+0293       B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧
+0294       HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧
+0295       ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖) at hGlobal
+0296   let D : Hperp →L[ℝ] Hperp := R ∘L U.toContinuousLinearMap ∘L Hperp.subtypeL
+0297   have hD (h : Hperp) : (D h : Lp ℝ 2 J)=
+0298       U (h : Lp ℝ 2 J)-P (U (h : Lp ℝ 2 J)) := hR (U (h : Lp ℝ 2 J))
+0299   letI : IsProbabilityMeasure μ := hμ
+0300   obtain ⟨ρ,hρ,hρf,U2,hU2,hU2i,hU2s,hρp,hBB,hBD,hBE⟩ :=
+0301     AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionL2.actual_reflection_block_identities μ hη
+0302   have hU2eq : U2=U := by
+0303     apply LinearIsometry.ext
+0304     intro f
+0305     apply Lp.ext
+0306     exact (hU2 f).trans (hU f).symm
+0307   subst U2
+0308   let AJ : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J := P*U.toContinuousLinearMap*P
+0309   let BA : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J := (1-P)*U.toContinuousLinearMap*P
+0310   let DA : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J := (1-P)*U.toContinuousLinearMap*(1-P)
+0311   have hBDtyped : BA.adjoint ∘L DA= -(AJ ∘L BA.adjoint) := hBD
+0312   have hPself : IsSelfAdjoint P := isSelfAdjoint_starProjection HP
+0313   have hAJself : IsSelfAdjoint AJ := by
+0314     change star (P*U.toContinuousLinearMap*P)=P*U.toContinuousLinearMap*P
+0315     simp only [star_mul,hPself.star_eq,hUs.star_eq,mul_assoc]
+0316   let ι : HP0 →L[ℝ] Lp ℝ 2 J := HP.subtypeL ∘L HP0.subtypeL
+0317   have hBambient (u : HP0) : BA (ι u)=(B0 u : Lp ℝ 2 J) := (hB0 u).symm
+0318   have hAambient (u : HP0) : AJ (ι u)=ι (A0 u) := by
+0319     change P (U (P ((u : HP) : Lp ℝ 2 J)))=((A0 u : HP) : Lp ℝ 2 J)
+0320     rw [hPf]
+0321     change (A (u : HP) : Lp ℝ 2 J)=((A0 u : HP) : Lp ℝ 2 J)
+0322     exact congrArg (fun x : HP => (x : Lp ℝ 2 J)) (hA0 u).symm
+0323   have hDambient (h : Hperp) : DA (h : Lp ℝ 2 J)=(D h : Lp ℝ 2 J) := by
+0324     change U ((h : Lp ℝ 2 J)-P (h : Lp ℝ 2 J))-
+0325       P (U ((h : Lp ℝ 2 J)-P (h : Lp ℝ 2 J)))=(D h : Lp ℝ 2 J)
+0326     rw [show P (h : Lp ℝ 2 J)=0 from h.property,sub_zero]
+0327     exact (hD h).symm
+0328   have hB0intertwine : B0.adjoint ∘L D= -(A0 ∘L B0.adjoint) := by
+0329     apply ContinuousLinearMap.ext
+0330     intro h
+0331     apply ext_inner_left ℝ
+0332     intro u
+0333     change inner ℝ u (B0.adjoint (D h))=inner ℝ u (-(A0 (B0.adjoint h)))
+0334     calc
+0335       inner ℝ u (B0.adjoint (D h))=inner ℝ (B0 u) (D h) := B0.adjoint_inner_right u (D h)
+0336       _ = inner ℝ (BA (ι u)) (DA (h : Lp ℝ 2 J)) := by rw [hBambient,hDambient]; rfl
+0337       _ = inner ℝ (ι u) (BA.adjoint (DA (h : Lp ℝ 2 J))) := (BA.adjoint_inner_right _ _).symm
+0338       _ = inner ℝ (ι u) (-(AJ (BA.adjoint (h : Lp ℝ 2 J)))) := by
+0339         have hb := DFunLike.congr_fun hBDtyped (h : Lp ℝ 2 J)
+0340         change BA.adjoint (DA (h : Lp ℝ 2 J))= -(AJ (BA.adjoint (h : Lp ℝ 2 J))) at hb
+0341         rw [hb]
+0342       _ = -inner ℝ (AJ (ι u)) (BA.adjoint (h : Lp ℝ 2 J)) := by
+0343         simpa only [inner_neg_right,hAJself.adjoint_eq] using
+0344           congrArg Neg.neg (AJ.adjoint_inner_right (ι u) (BA.adjoint (h : Lp ℝ 2 J)))
+0345       _ = -inner ℝ (BA (AJ (ι u))) (h : Lp ℝ 2 J) := by rw [BA.adjoint_inner_right]
+0346       _ = -inner ℝ (B0 (A0 u)) h := by rw [hAambient,hBambient]; rfl
+0347       _ = -inner ℝ (A0 u) (B0.adjoint h) := by rw [B0.adjoint_inner_right]
+0348       _ = inner ℝ u (-(A0 (B0.adjoint h))) := by
+0349         simpa only [inner_neg_right,hA0self.adjoint_eq] using
+0350           (congrArg Neg.neg (A0.adjoint_inner_right u (B0.adjoint h))).symm
+0351   have hVdefTyped : V0=B0 ∘L Inv := hVdef
+0352   have hInvSelfTyped : IsSelfAdjoint Inv := hInvSelf
+0353   have hVadjEq : V0.adjoint=Inv ∘L B0.adjoint := by
+0354     calc
+0355       V0.adjoint=(B0 ∘L Inv).adjoint :=
+0356         congrArg (fun L : HP0 →L[ℝ] Hperp => L.adjoint) hVdefTyped
+0357       _ = Inv.adjoint ∘L B0.adjoint := ContinuousLinearMap.adjoint_comp B0 Inv
+0358       _ = Inv ∘L B0.adjoint := by rw [hInvSelfTyped.adjoint_eq]
+0359   have hIntertwine : V0.adjoint ∘L D= -(A0 ∘L V0.adjoint) := by
+0360     calc
+0361       V0.adjoint ∘L D=Inv ∘L (B0.adjoint ∘L D) := by rw [hVadjEq,ContinuousLinearMap.comp_assoc]
+0362       _ = Inv ∘L (-(A0 ∘L B0.adjoint)) := by rw [hB0intertwine]
+0363       _ = -(A0 ∘L V0.adjoint) := by
+0364         apply ContinuousLinearMap.ext
+0365         intro h
+0366         change Inv (-(A0 (B0.adjoint h)))= -(A0 (V0.adjoint h))
+0367         rw [map_neg,hVadjEq]
+0368         change -(Inv (A0 (B0.adjoint h)))= -(A0 (Inv (B0.adjoint h)))
+0369         exact congrArg Neg.neg (DFunLike.congr_fun hCommInv.eq (B0.adjoint h)).symm
+0370   have hFinal :
+0371       (∀ h : Hperp, (D h : Lp ℝ 2 J)=U (h : Lp ℝ 2 J)-P (U (h : Lp ℝ 2 J))) ∧
+0372       V0.adjoint ∘L D= -(A0 ∘L V0.adjoint) ∧
+0373       (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →
+0374         ∃ fP : HP0,
+0375           HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧
+0376           let fperp : Hperp := R f
+0377           let fV : HP0 := V0.adjoint fperp
+0378           B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧
+0379           HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧
+0380           ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖) := ⟨hD,hIntertwine,hGlobal⟩
+0381   unfold actual_reflection_intertwining_statement
+0382   refine ⟨hμ, ?_⟩
+0383   refine ⟨hJ, ?_⟩
+0384   refine ⟨hν, ?_⟩
+0385   refine ⟨hRange, ?_⟩
+0386   refine ⟨hPf, ?_⟩
+0387   refine ⟨S, ?_⟩
+0388   refine ⟨hS, ?_⟩
+0389   refine ⟨hSd, ?_⟩
+0390   refine ⟨hSc, ?_⟩
+0391   refine ⟨hSf, ?_⟩
+0392   refine ⟨hSs, ?_⟩
+0393   refine ⟨e, ?_⟩
+0394   refine ⟨he, ?_⟩
+0395   refine ⟨U, ?_⟩
+0396   refine ⟨hU, ?_⟩
+0397   refine ⟨hUi, ?_⟩
+0398   refine ⟨hUs, ?_⟩
+0399   refine ⟨T, ?_⟩
+0400   refine ⟨hTs, ?_⟩
+0401   refine ⟨hAll, ?_⟩
+0402   refine ⟨hAeq, ?_⟩
+0403   refine ⟨hAs, ?_⟩
+0404   refine ⟨hAn, ?_⟩
+0405   refine ⟨hPB, ?_⟩
+0406   refine ⟨Γ, ?_⟩
+0407   refine ⟨hΓ, ?_⟩
+0408   refine ⟨hΓSq, ?_⟩
+0409   refine ⟨hCommRoot, ?_⟩
+0410   refine ⟨hΓP, ?_⟩
+0411   refine ⟨hΓPSq, ?_⟩
+0412   refine ⟨hCommP, ?_⟩
+0413   refine ⟨hGram, ?_⟩
+0414   refine ⟨q, ?_⟩
+0415   refine ⟨hqa, ?_⟩
+0416   refine ⟨hTq, ?_⟩
+0417   refine ⟨hq, ?_⟩
+0418   refine ⟨hCenter, ?_⟩
+0419   refine ⟨hΓPq, ?_⟩
+0420   refine ⟨hγ, ?_⟩
+0421   refine ⟨ΓP0, ?_⟩
+0422   refine ⟨hΓP0, ?_⟩
+0423   refine ⟨hPos0, ?_⟩
+0424   refine ⟨hOrder0, ?_⟩
+0425   refine ⟨hUnit, ?_⟩
+0426   refine ⟨Inv, ?_⟩
+0427   refine ⟨hLeft, ?_⟩
+0428   refine ⟨hRight, ?_⟩
+0429   refine ⟨hNormInv, ?_⟩
+0430   refine ⟨hInvSelf,A0,hA0,hA0self,hComm0,hSquare0,hCommInv,?_⟩
+0431   refine ⟨B0, ?_⟩
+0432   refine ⟨hB0, ?_⟩
+0433   refine ⟨V0, ?_⟩
+0434   refine ⟨hVdef, ?_⟩
+0435   refine ⟨hFactor, ?_⟩
+0436   refine ⟨hVadj, ?_⟩
+0437   refine ⟨hVnorm, ?_⟩
+0438   refine ⟨R, ?_⟩
+0439   refine ⟨hR, ?_⟩
+0440   refine ⟨hAmbient, ?_⟩
+0441   exact hFinal
+0442 
+0443 end
+0444 end AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining
+0445 
+0446 #print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining.actual_reflection_intertwining

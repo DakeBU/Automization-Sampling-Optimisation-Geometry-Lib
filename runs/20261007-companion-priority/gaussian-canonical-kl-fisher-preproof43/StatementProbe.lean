@@ -1,0 +1,30 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGORelativeEntropy
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev
+
+noncomputable section
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped RealInnerProductSpace NNReal
+
+#check (∀
+    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}
+    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)
+    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
+    (hpos : ∀ s, 0 < eta s),
+    ∃ p : S → E, Measurable p ∧
+      (∀ s, p s+eta s • gradient V (p s)=y s) ∧
+      (∀ s z, z+eta s • gradient V z=y s → z=p s) ∧
+      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-
+        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u
+      let mu := (volume : Measure E).tilted (fun x => -V x)
+      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))
+      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))
+      let gamma := stdGaussian E
+      ∀ s, IsProbabilityMeasure (r s) ∧ r s ≪ gamma ∧
+        _root_.InformationTheory.klDiv (r s) gamma ≠ ⊤ ∧
+        MemLp (gradient (rho s)) 2 (r s) ∧
+        (_root_.InformationTheory.klDiv (r s) gamma).toReal ≤
+          (1/2 : ℝ)*(∫ u, ‖gradient (rho s) u‖^2 ∂r s))

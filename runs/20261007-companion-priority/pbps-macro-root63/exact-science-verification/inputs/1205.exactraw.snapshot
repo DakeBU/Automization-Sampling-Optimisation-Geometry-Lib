@@ -1,0 +1,35 @@
+# Weighted C1 original-gradient domain: proposal only
+
+2026-10-06. Root route discovery, not a compiled theorem or source admission.
+PBPS2609.06905v1 Section2.2/AppendixC.1 original conditional Poincare and
+SPHMC2609.06906v1 Section4.1 covariance-upper prerequisites are the consumers.
+
+Current weak-gradient-zero packet proves only zero implies AE constant.
+The next bounded route should avoid a constants-only wrapper: prove that an
+actual C1 function f and its genuine gradient, both L2 under a finite measure,
+belong to the SAME original compact-smooth gradient closure graph. Actual
+constants and already-constructed conditional score functions then consume it.
+
+Pinned Mathlib db584cd6d46c92f209a44c0f1c829460d327499d and existing ASTIS
+CompactC1GradientDomain.compact_c1_in_closed_gradient are the first APIs.
+1. Use genuine scaled smooth radial cutoffs chi_R, with pointwise convergence
+   to1, norm<=1 and genuine gradient bound C/R (including dimension0).
+2. chi_R*f is actual compact C1, so the accepted compact-C1 producer puts
+   (chi_R*f, gradient(chi_R*f)) into the SAME original closed graph.
+3. The actual product derivative is chi_R*gradientf + f*gradientchi_R.
+4. Genuine weighted L2 dominated convergence handles the first two factors;
+   C/R bounds the last term by the existing normf. No norm(x)*f moment.
+5. The actual closed graph admits the limits (f,gradientf).
+6. Finite-probability constants have actual zero gradient and enter this domain;
+   combined with the one-way kernel implication this can identify the kernel.
+7. Existing ConditionalScoreDomain gives actual noncompact C1 scores and L2
+   bounds. Identify S2_y with S_y ONLY through their explicit normalized density;
+   do not identify auxiliary R2/R kernels or separately chosen operators.
+
+Future linear observables still need actual Gibbs L2 moment evidence. Centered
+scaled residual epsilon*u needs a distinct weak-compactness/closed-graph/energy
+proof; pinned Lp second-countability from the genuine SFinite/CountablyGenerated
+measure may supply separability, but that is not a proved adapter here.
+No unscaled uniform-u bound, spectral gap, Poincare, BL, epsilon0/range/core,
+joint measurable fiber selector, main theorem or composition is certified.
+This is an interface proposal, not a conceptual mirror or formal dependency.

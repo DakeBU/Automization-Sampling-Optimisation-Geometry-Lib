@@ -1,0 +1,115 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScore
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance
+import Mathlib.Probability.Moments.Covariance
+import Mathlib.MeasureTheory.Function.L2Space
+
+/-! PBPS arXiv:2609.06905v1 Appendix C.1 (A3.Ex7): the actual reflected
+conditional mean has the printed pointwise gradient-variance estimate on smooth
+compactly supported observations. Outer integration, rough-domain closure and
+sampler/main/cost results remain separate. -/
+set_option autoImplicit false
+noncomputable section
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped ContDiff RealInnerProductSpace NNReal
+namespace AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance
+
+theorem reflected_conditional_gradient_variance
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x a : E,
+      (α : ℝ) * ‖a‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x a) a ∧
+      (fderiv ℝ (fderiv ℝ V) x a) a ≤ (β : ℝ) * ‖a‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := Measure.map (fun p : E × E => (p.1, p.1 + Real.sqrt η • p.2))
+      (μ.prod (stdGaussian E))
+    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      (J.map Prod.swap).IsCondKernel R ∧
+      (∀ y, S y = (R y).map (fun x => (2 : ℝ) • x - y)) ∧
+      (∀ y, S y = (volume : Measure E).tilted
+        (fun u => -V ((1/2 : ℝ) • (y+u)) - ‖y-u‖^2/(8*η))) ∧
+      ∀ (f : E → ℝ), ContDiff ℝ ∞ f → HasCompactSupport f →
+        ∀ y, DifferentiableAt ℝ (fun z => ∫ u, f u ∂S z) y ∧
+          ‖gradient (fun z => ∫ u, f u ∂S z) y‖^2 ≤
+            (1/η-(α : ℝ))^2/(4*((α : ℝ)+1/η)) *
+              AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance
+                (S y) f := by
+  dsimp only
+  obtain ⟨R, S, hR, hS, hcond, hSR, hSd, hder⟩ :=
+    ConditionalScore.reflected_conditional_covariance hα hV hH hη
+  obtain ⟨R', S', _, _, _, _, hvar⟩ :=
+    ConditionalScoreVariance.conditional_centered_domain_and_score_variance
+      hα hαβ hV hH hη hβη
+  have hSS : S' = S := by
+    ext y : 1
+    rw [(hvar y).1, hSd y]
+    congr 1
+    funext u
+    simp only [norm_sub_rev u y, neg_add_rev]
+    ring
+  subst S'
+  let : IsMarkovKernel S := hS
+  refine ⟨R, S, hR, hS, hcond, hSR, hSd, ?_⟩
+  intro f hf hfc y
+  obtain ⟨hsI, hfsI, hfd⟩ := hder f hf hfc y
+  refine ⟨hfd.differentiableAt, ?_⟩
+  let s := fun u : E => -(1/2:ℝ) • fderiv ℝ V ((1/2:ℝ) • (y+u)) -
+    (1/(4*η)) • innerSL ℝ (y-u)
+  let G := gradient (fun z => ∫ u, f u ∂S z) y
+  let Y := fun u => s u G
+  obtain ⟨_, _, _, _, D, _, _, _, _, _, hscore⟩ := hvar y
+  obtain ⟨hYad, hYvar⟩ := hscore G
+  obtain ⟨M, hM⟩ := hf.continuous.norm.bddAbove_range_of_hasCompactSupport hfc.norm
+  have hf2 : MemLp f 2 (S y) := MemLp.of_bound
+    hf.continuous.aestronglyMeasurable M (Filter.Eventually.of_forall
+      (fun u => hM (Set.mem_range_self u)))
+  let Xc := fun u => f u - ∫ v, f v ∂S y
+  let Yc := fun u => Y u - ∫ v, Y v ∂S y
+  have hXc2 : MemLp Xc 2 (S y) := hf2.sub (memLp_const _)
+  have hYc2 : MemLp Yc 2 (S y) :=
+    (memLp_two_iff_integrable_sq
+      (hYad.1.aestronglyMeasurable.sub aestronglyMeasurable_const)).mpr hYad.2.1
+  have hY2 : MemLp Y 2 (S y) := by
+    convert hYc2.add (memLp_const (∫ v, Y v ∂S y)) using 1
+    funext u
+    simp [Yc]
+  have hpair (a b : E → ℝ) (ha : MemLp a 2 (S y)) (hb : MemLp b 2 (S y)) :
+      ⟪ha.toLp a, hb.toLp b⟫_ℝ = ∫ u, a u * b u ∂S y := by
+    rw [L2.inner_def]
+    apply integral_congr_ae
+    filter_upwards [ha.coeFn_toLp, hb.coeFn_toLp] with u hua hub
+    simp [hua, hub, mul_comm]
+  have hcs := real_inner_mul_inner_self_le (hXc2.toLp Xc) (hYc2.toLp Yc)
+  rw [hpair Xc Yc hXc2 hYc2, hpair Xc Xc hXc2 hXc2,
+    hpair Yc Yc hYc2 hYc2] at hcs
+  have hcov : ProbabilityTheory.covariance f Y (S y) = ‖G‖^2 := by
+    rw [covariance_eq_sub hf2 hY2]
+    have hg := congrArg (fun L : E →L[ℝ] ℝ => L G) hfd.fderiv
+    have hgG : fderiv ℝ (fun z => ∫ u, f u ∂S z) y G = ‖G‖^2 := by
+      rw [← inner_gradient_left, real_inner_self_eq_norm_sq]
+    rw [hgG] at hg
+    simp only [sub_apply, smul_apply,
+      smul_eq_mul, ContinuousLinearMap.integral_apply hfsI G,
+      ContinuousLinearMap.integral_apply hsI G] at hg
+    exact hg.symm
+  have hnorm : (‖G‖^2)^2 ≤
+      AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) f *
+      AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) Y := by
+    have he : (∫ u, Xc u * Yc u ∂S y) = ‖G‖^2 := hcov
+    rw [he] at hcs
+    simpa only [← pow_two, Xc, Yc,
+      AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance] using hcs
+  have hbound := hnorm.trans (mul_le_mul_of_nonneg_left hYvar
+    (AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance_nonneg))
+  change ‖G‖^2 ≤ _
+  by_cases hz : ‖G‖^2 = 0
+  · rw [hz]
+    exact mul_nonneg (by positivity)
+      AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance_nonneg
+  · have hp : 0 < ‖G‖^2 := lt_of_le_of_ne (sq_nonneg _) (Ne.symm hz)
+    apply (mul_le_mul_iff_right₀ hp).mp
+    simpa only [pow_two, mul_assoc, mul_comm, mul_left_comm] using hbound
+
+end AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance

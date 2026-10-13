@@ -1,0 +1,56 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
+import Mathlib.MeasureTheory.Measure.Map
+
+/-!
+# Pulling marginal almost-everywhere properties to a coupling
+
+For a coupling `gamma` of `mu` and `nu`, any property holding `mu`-almost
+everywhere holds for the first coordinate `gamma`-almost everywhere; likewise
+for the second coordinate and `nu`.
+
+This is a small but reusable bridge between one-marginal analytic statements
+(for example almost-everywhere differentiability of a convex potential) and
+joint-law transport statements.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CouplingAEMarginals
+
+open MeasureTheory
+open Transport
+
+variable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+
+/-- Pull an arbitrary first-marginal almost-everywhere proposition back to the
+joint coupling. No measurability assumption on the proposition is required;
+`ae_of_ae_map` works directly at the filter level. -/
+theorem ae_fst_of_isCoupling
+    {gamma : Measure (α × β)} {mu : Measure α} {nu : Measure β}
+    (hgamma : IsCoupling gamma mu nu)
+    {P : α → Prop}
+    (hP : ∀ᵐ x ∂mu, P x) :
+    ∀ᵐ z ∂gamma, P z.1 := by
+  have hP' : ∀ᵐ x ∂gamma.fst, P x := by
+    simpa [hgamma.1] using hP
+  apply ae_of_ae_map measurable_fst.aemeasurable
+  simpa [Measure.fst] using hP'
+
+/-- Pull an arbitrary second-marginal almost-everywhere proposition back to the
+joint coupling. -/
+theorem ae_snd_of_isCoupling
+    {gamma : Measure (α × β)} {mu : Measure α} {nu : Measure β}
+    (hgamma : IsCoupling gamma mu nu)
+    {P : β → Prop}
+    (hP : ∀ᵐ y ∂nu, P y) :
+    ∀ᵐ z ∂gamma, P z.2 := by
+  have hP' : ∀ᵐ y ∂gamma.snd, P y := by
+    simpa [hgamma.2] using hP
+  apply ae_of_ae_map measurable_snd.aemeasurable
+  simpa [Measure.snd] using hP'
+
+end CouplingAEMarginals
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

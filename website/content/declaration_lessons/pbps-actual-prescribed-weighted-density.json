@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity.actual_prescribed_weighted_density_balance",
+      "title": "Actual PBPS weighted density under finite path reversal",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A1.E8",
+          "label": "Appendix A.1 Eq A7/A8 actual prescribed trajectory weighted-density matching, target energy Eq3.1",
+          "scope": "Pointwise unnormalized weighted-density matching only; no weighted integral/sector, invariant probability, restart/Markovness, hypocoercivity, implementation error, expected cost, main theorem or composition."
+        }
+      ],
+      "tests": [
+        "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity"
+      ],
+      "assumptions": [
+        "Finite-dimensional real inner-product Borel E, including rank zero.",
+        "alpha,beta>=0; alpha>0; alpha<=beta; V is C2; alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v; eta>0; beta*eta<=1.",
+        "Every finite n>=0,T>=0; the same produced event-time reversal works for all y,r,z,t. Zero rates and normals are allowed.",
+        "Exact actual rho=q*terminalweight, actual finite flow/reflection recursion and clamped path; no supplied reversal, product, energy, density or integrability assumption."
+      ],
+      "statement": "Let E be a finite-dimensional real inner-product space equipped with its Borel sigma algebra; zero dimension is allowed. Let alpha,beta>=0, eta be real, V:E->R. Assume exactly alpha>0, alpha<=beta, V is C2, alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v, eta>0 and beta*eta<=1. All conclusions hold for every y,r in E, initial phase z0=(x0,p0), integer n>=0 and finite T>=0.\nSet c=y-eta*grad V(r). For z=(x,p), define Phi_u(z)=(c+cos(u)(x-c)+sqrt(eta)sin(u)p, -sin(u)/sqrt(eta)(x-c)+cos(u)p). Define h_r(x)=grad V(x)-grad V(r), S_r(x,p)=(x,p-[2<p,h_r(x)>/||h_r(x)||^2]h_r(x)) with real division totalized by 0/0=0, lambda_r(x,p)=sqrt(eta)max(0,<p,h_r(x)>), and Lambda_z(u)=integral from0 to u of lambda_r(Phi_s(z)) ds for u>=0, using Lebesgue measure.\nA tagged record is either live(a,z), with a>=0, or stopped; Hist_n is the type of all n+1 records. Let Delta_n(T) be the strict simplex 0<t1<...<tn<T. Write a0=0, ai=ti (1<=i<=n), a_(n+1)=T. Given t in Delta_n(T), define z_i=S_r(Phi_(a_i-a_(i-1))(z_(i-1))) for1<=i<=n and K_n(t)_j=live(a_j,z_j). The literal Lean nonnegative conversions preserve these nonnegative times. Define qReal_n(t)=product_(i=1)^n [lambda_r(Phi_(a_i-a_(i-1))(z_(i-1))) exp(-Lambda_(z_(i-1))(a_i-a_(i-1)))], q_n=ofReal(qReal_n).\nFor arbitrary histories let readTime(live(a,z))=a and readTime(stopped)=0; d_n(T,h)=max(T-readTime(h_n),0). Put W(live(a,z),u)=ofReal(exp(-Lambda_z(u))) and W(stopped,u)=0. Define rho_n(T,t)=q_n(t) W(K_n(t)_n,d_n(T,K_n(t))). Here ofReal(x) is max(x,0) embedded into extended nonnegative reals; no probability law or normalization is assumed in this deterministic identity.\nDefine Path_T as all phase-valued functions on[0,T]. The total interpolation Psi_n(h)(s) starts at z0 and scans records j=0,...,n in order: a live(a,z) record with a<=s replaces the accumulator by Phi_(max(s-a,0))(z); otherwise it is unchanged. Set Gamma_n(t)=Psi_n(K_n(t)). Extend this particular prescribed path to all real times by gamma(s)=Gamma_n(t)(min(max(s,0),T)). This extension agrees with Gamma on[0,T]; no topology on an entire function space is asserted.\nDefine momentum reversal R(x,p)=(x,-p), target energy U_y(x,p)=V(x)+||x-y||^2/(2 eta)+||p||^2/2 and unnormalized Gibbs weight w_y(z)=exp(-U_y(z)). For any actual initial state z and strict event tuple t, let P_(y,r,z,n,T)(t)=product_(i=1)^n lambda_r(Phi_(a_i-a_(i-1))(z_(i-1))), I_(y,r,z,n,T)(t)=integral_0^T lambda_r(gamma(s)) ds and dReal_(y,r,z,n,T)(t)=exp(-I_(y,r,z,n,T)(t))*P_(y,r,z,n,T)(t). The incoming-rate product excludes the terminal arrival. The original ENNReal density rho_n(T,t) remains q_n times the terminal live survival factor defined above; it is not redefined as ofReal(dReal).\nFor each n>=0 and T>=0 there exists a single reversal map rho:Prefix_n(T)->Prefix_n(T), with (rho(t))_i=T-t_(n+1-i) in one-based coordinates. For every y,r,z and strict tuple t, let A=Gamma_(y,r,z,n,T,t)(T). Then both identities hold:\nw_y(z) dReal_(y,r,z,n,T)(t) = w_y(R(A)) dReal_(y,r,R(A),n,T)(rho(t)),\nofReal(w_y(z)) rho_(y,r,z,n,T)(t) = ofReal(w_y(R(A))) rho_(y,r,R(A),n,T)(rho(t)).\nThe reversal map and all internal identities are produced, not assumed. The six original analytic assumptions are the only analytic premises. There is no positivity/nonzero-rate premise and no cancellation of event rates. The conclusions include n=0 with empty product1, T=0, zero-dimensional phase space, zero normals and zero rates; for T=0 and n>0 the strict event subtype is empty. This is unnormalized pointwise weighted density matching in Appendix A.1, not a weighted integral/sector identity, normalized invariant probability, Markov property, hypocoercivity, implementation error, actual expected cost, paper main result or PBPS/SPHMC composition.",
+      "formula": "\\operatorname{ofReal}(w(z))\\rho_{z,t}=\\operatorname{ofReal}(w(RA))\\rho_{RA,\\rho(t)}.",
+      "boundary": "Pointwise unnormalized weighted-density matching only; no weighted integral/sector, invariant probability, restart/Markovness, hypocoercivity, implementation error, expected cost, main theorem or composition.",
+      "steps": [
+        {
+          "title": "Choose one reversed event tuple",
+          "text": "Using zero-based Fin n coordinates (i=0,...,n-1), the path and state reversal producers each return a map with the same exact coordinate formula. Function and subtype extensionality identify the two maps; the resulting witness serves every parameter and initial state.",
+          "formula": "\\rho(t)_i=T-t_{n-1-i},\\quad\\rho_{99}=\\rho_{100}.",
+          "lean": "theorem actual_prescribed_weighted_density_balance\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : actual_prescribed_weighted_density_statement hα hαβ hV hH hη hβη := by\n  classical\n  unfold actual_prescribed_weighted_density_statement\n  intro c Φ S rate Λ Rec Hist Δ Prefix zAt K qReal q liveTime d weight Path Ψ Γ ρ R U w P I dReal n T\n  obtain ⟨rho, hrho, h100⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal.actual_prescribed_path_reversal_and_survival\n      hα hαβ hV hH hη hβη n T\n  obtain ⟨rho99, hrho99, h99⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal.actual_prescribed_state_reversal_and_rate_product\n      hα hαβ hV hH hη hβη n T\n  -- The public coordinate equations identify the independently produced witnesses.\n  have halign : rho99 = rho := by\n    funext t\n    apply Subtype.ext\n    funext i\n    exact (hrho99 t i).trans (hrho t i).symm\n  subst rho99\n  refine ⟨rho, hrho, ?_⟩\n  intro y r z t A\n",
+          "detail": "Exact compiled region. Each producer premise is discharged by the original assumptions; no proof ingredient is a new public binder.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedWeightedDensity.lean",
+            "source_raw_sha256": "b9c6e8ed0655b9c607eff38ecf74eb3a4555ff90184475e8dfc554bb96dcb3c0",
+            "start_line": 106,
+            "end_line": 132,
+            "exact_code_raw_sha256": "a3ae27ede75fe8da622ece2282c094311c4e4d6e0b1ba2a44b735dc5dad78d1f"
+          }
+        },
+        {
+          "title": "Match the incoming event-rate product",
+          "text": "The finite state reversal result pairs incoming rates after reversing the event order. Simplifying the prepended/appended grid indices gives equality of the literal P products. Zero factors and the empty product remain valid.",
+          "formula": "P_{R A,\\rho(t)}=P_{z,t}.",
+          "lean": "  -- Incoming rates, including zero factors, pair under finite state reversal.\n  have hprod : P y r (R A) n T (rho t) = P y r z n T t := by\n    simpa only [P, Fin.succ_castSucc, Fin.snoc_castSucc, Fin.cons_succ] using\n      (h99 y r z t).2\n",
+          "detail": "Exact compiled region. Each producer premise is discharged by the original assumptions; no proof ingredient is a new public binder.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedWeightedDensity.lean",
+            "source_raw_sha256": "b9c6e8ed0655b9c607eff38ecf74eb3a4555ff90184475e8dfc554bb96dcb3c0",
+            "start_line": 133,
+            "end_line": 136,
+            "exact_code_raw_sha256": "df8c41913e9a1715baf6ab4253409dd185f81f832085c545610f6ce0eca8a0e9"
+          }
+        },
+        {
+          "title": "Identify the reversed survival integral",
+          "text": "Apply the actual off-event path reversal and its proved scalar integral substitution. Internal jumps form a finite null set; no pointwise equality at the jumps is needed in this integral identity.",
+          "formula": "I_{R A,\\rho(t)}=\\int_0^T\\lambda_r(R\\gamma(s))\\,ds.",
+          "lean": "  -- The reversed survival integral equals the momentum-flipped forward integral.\n  have hint : I y r (R A) n T (rho t) =\n      ∫ s in (0 : ℝ)..(T : ℝ), rate r (R (Γ y r z n T t\n        ⟨min (Real.toNNReal s) T, min_le_right _ _⟩)) :=\n    (h100 y r z t).2.2.2\n",
+          "detail": "Exact compiled region. Each producer premise is discharged by the original assumptions; no proof ingredient is a new public binder.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedWeightedDensity.lean",
+            "source_raw_sha256": "b9c6e8ed0655b9c607eff38ecf74eb3a4555ff90184475e8dfc554bb96dcb3c0",
+            "start_line": 137,
+            "end_line": 141,
+            "exact_code_raw_sha256": "d2171cf3e95ec74814459fa10e3f4e472975fef3a7467a3be780fa735bc38fbb"
+          }
+        },
+        {
+          "title": "Combine target energy and survival",
+          "text": "The Gibbs survival producer gives w(z) exp(-Iplus)=w(A) exp(-Iminus). Momentum reversal leaves position and squared momentum norm unchanged, so U(RA)=U(A). Substitute the reversed integral from the preceding step.",
+          "formula": "w(z)e^{-I_{z,t}}=w(RA)e^{-I_{RA,\\rho(t)}}.",
+          "lean": "  -- Gibbs survival balance and invariance of target energy under momentum flip.\n  have hbal :=\n    (AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival.actual_prescribed_gibbs_survival_balance\n      hα hαβ hV hH hη hβη y r z n T t).2.2.2\n  have hw : w y (R A) = w y A := by simp only [w, U, R, norm_neg]\n  have hs : w y z * Real.exp (-I y r z n T t) =\n      w y (R A) * Real.exp (-I y r (R A) n T (rho t)) := by\n    rw [hw, hint]\n    exact hbal\n",
+          "detail": "Exact compiled region. Each producer premise is discharged by the original assumptions; no proof ingredient is a new public binder.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedWeightedDensity.lean",
+            "source_raw_sha256": "b9c6e8ed0655b9c607eff38ecf74eb3a4555ff90184475e8dfc554bb96dcb3c0",
+            "start_line": 142,
+            "end_line": 150,
+            "exact_code_raw_sha256": "21ddf9aae18bdc4d6639cb8a3fef33333e4294a3155ae8b586bae7c646eff58e"
+          }
+        },
+        {
+          "title": "Attach the common rate product",
+          "text": "Multiply the survival identity by the incoming-rate product and reassociate multiplication. This proves the real weighted density identity without division or a positive-rate assumption.",
+          "formula": "w(z)d^{\\mathrm{real}}_{z,t}=w(RA)d^{\\mathrm{real}}_{RA,\\rho(t)}.",
+          "lean": "  -- Multiply by the common event product; no rate cancellation is used.\n  have hreal : w y z * dReal y r z n T t =\n      w y (R A) * dReal y r (R A) n T (rho t) := by\n    dsimp only [dReal]\n    rw [hprod, ← mul_assoc, ← mul_assoc, hs]\n  refine ⟨hreal, ?_⟩\n",
+          "detail": "Exact compiled region. Each producer premise is discharged by the original assumptions; no proof ingredient is a new public binder.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedWeightedDensity.lean",
+            "source_raw_sha256": "b9c6e8ed0655b9c607eff38ecf74eb3a4555ff90184475e8dfc554bb96dcb3c0",
+            "start_line": 151,
+            "end_line": 156,
+            "exact_code_raw_sha256": "2b25b619f15019d01e2f1bac96746c7b0cda6dbaeaf61daa05f5ed39789bc24a"
+          }
+        },
+        {
+          "title": "Recover the actual algorithmic density",
+          "text": "Apply the actual prescribed-density theorem at both inputs to rewrite q times terminal survival as ofReal(dReal). Apply ofReal to the real identity and distribute it over the products using nonnegativity of exp(-U). The final identity is about the original actual ENNReal density.",
+          "formula": "\\operatorname{ofReal}(w(z))\\rho_{z,t}=\\operatorname{ofReal}(w(RA))\\rho_{RA,\\rho(t)}.",
+          "lean": "  -- Reconnect both real densities to the original algorithmic ENNReal density.\n  have hd (a : E × E) (u : Prefix n T) :\n      ρ y r a n T u = ENNReal.ofReal (dReal y r a n T u) := by\n    simpa only [dReal, I, P, Fin.snoc_castSucc] using\n      (AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity.actual_prescribed_path_density_rewrite\n      hα hαβ hV hH hη hβη y r a n T u).2.2.2\n  rw [hd z t, hd (R A) (rho t), ← ENNReal.ofReal_mul (Real.exp_nonneg _),\n    ← ENNReal.ofReal_mul (Real.exp_nonneg _), hreal]\n",
+          "detail": "Exact compiled region. Each producer premise is discharged by the original assumptions; no proof ingredient is a new public binder.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedWeightedDensity.lean",
+            "source_raw_sha256": "b9c6e8ed0655b9c607eff38ecf74eb3a4555ff90184475e8dfc554bb96dcb3c0",
+            "start_line": 157,
+            "end_line": 164,
+            "exact_code_raw_sha256": "495b9cca63b6a0945de6dbb02b140621fcd5255cb162f010a6d7973db84b50cd"
+          }
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real inner-product space equipped with its Borel sigma algebra; zero dimension is allowed. Let alpha,beta>=0, eta be real, V:E->R. Assume exactly alpha>0, alpha<=beta, V is C2, alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v, eta>0 and beta*eta<=1. All conclusions hold for every y,r in E, initial phase z0=(x0,p0), integer n>=0 and finite T>=0.\nSet c=y-eta*grad V(r). For z=(x,p), define Phi_u(z)=(c+cos(u)(x-c)+sqrt(eta)sin(u)p, -sin(u)/sqrt(eta)(x-c)+cos(u)p). Define h_r(x)=grad V(x)-grad V(r), S_r(x,p)=(x,p-[2<p,h_r(x)>/||h_r(x)||^2]h_r(x)) with real division totalized by 0/0=0, lambda_r(x,p)=sqrt(eta)max(0,<p,h_r(x)>), and Lambda_z(u)=integral from0 to u of lambda_r(Phi_s(z)) ds for u>=0, using Lebesgue measure.\nA tagged record is either live(a,z), with a>=0, or stopped; Hist_n is the type of all n+1 records. Let Delta_n(T) be the strict simplex 0<t1<...<tn<T. Write a0=0, ai=ti (1<=i<=n), a_(n+1)=T. Given t in Delta_n(T), define z_i=S_r(Phi_(a_i-a_(i-1))(z_(i-1))) for1<=i<=n and K_n(t)_j=live(a_j,z_j). The literal Lean nonnegative conversions preserve these nonnegative times. Define qReal_n(t)=product_(i=1)^n [lambda_r(Phi_(a_i-a_(i-1))(z_(i-1))) exp(-Lambda_(z_(i-1))(a_i-a_(i-1)))], q_n=ofReal(qReal_n).\nFor arbitrary histories let readTime(live(a,z))=a and readTime(stopped)=0; d_n(T,h)=max(T-readTime(h_n),0). Put W(live(a,z),u)=ofReal(exp(-Lambda_z(u))) and W(stopped,u)=0. Define rho_n(T,t)=q_n(t) W(K_n(t)_n,d_n(T,K_n(t))). Here ofReal(x) is max(x,0) embedded into extended nonnegative reals; no probability law or normalization is assumed in this deterministic identity.\nDefine Path_T as all phase-valued functions on[0,T]. The total interpolation Psi_n(h)(s) starts at z0 and scans records j=0,...,n in order: a live(a,z) record with a<=s replaces the accumulator by Phi_(max(s-a,0))(z); otherwise it is unchanged. Set Gamma_n(t)=Psi_n(K_n(t)). Extend this particular prescribed path to all real times by gamma(s)=Gamma_n(t)(min(max(s,0),T)). This extension agrees with Gamma on[0,T]; no topology on an entire function space is asserted.\nDefine momentum reversal R(x,p)=(x,-p), target energy U_y(x,p)=V(x)+||x-y||^2/(2 eta)+||p||^2/2 and unnormalized Gibbs weight w_y(z)=exp(-U_y(z)). For any actual initial state z and strict event tuple t, let P_(y,r,z,n,T)(t)=product_(i=1)^n lambda_r(Phi_(a_i-a_(i-1))(z_(i-1))), I_(y,r,z,n,T)(t)=integral_0^T lambda_r(gamma(s)) ds and dReal_(y,r,z,n,T)(t)=exp(-I_(y,r,z,n,T)(t))*P_(y,r,z,n,T)(t). The incoming-rate product excludes the terminal arrival. The original ENNReal density rho_n(T,t) remains q_n times the terminal live survival factor defined above; it is not redefined as ofReal(dReal).\nFor each n>=0 and T>=0 there exists a single reversal map rho:Prefix_n(T)->Prefix_n(T), with (rho(t))_i=T-t_(n+1-i) in one-based coordinates. For every y,r,z and strict tuple t, let A=Gamma_(y,r,z,n,T,t)(T). Then both identities hold:\nw_y(z) dReal_(y,r,z,n,T)(t) = w_y(R(A)) dReal_(y,r,R(A),n,T)(rho(t)),\nofReal(w_y(z)) rho_(y,r,z,n,T)(t) = ofReal(w_y(R(A))) rho_(y,r,R(A),n,T)(rho(t)).\nThe reversal map and all internal identities are produced, not assumed. The six original analytic assumptions are the only analytic premises. There is no positivity/nonzero-rate premise and no cancellation of event rates. The conclusions include n=0 with empty product1, T=0, zero-dimensional phase space, zero normals and zero rates; for T=0 and n>0 the strict event subtype is empty. This is unnormalized pointwise weighted density matching in Appendix A.1, not a weighted integral/sector identity, normalized invariant probability, Markov property, hypocoercivity, implementation error, actual expected cost, paper main result or PBPS/SPHMC composition.",
+      "lean_proof": "Choose one reversed event tuple; Match the incoming event-rate product; Identify the reversed survival integral; Combine target energy and survival; Attach the common rate product; Recover the actual algorithmic density",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity.actual_prescribed_weighted_density_statement"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity.actual_prescribed_path_density_rewrite",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival.actual_prescribed_gibbs_survival_balance",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal.actual_prescribed_state_reversal_and_rate_product",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal.actual_prescribed_path_reversal_and_survival"
+      ],
+      "mathlib_dependencies": [
+        "Subtype.ext",
+        "Fin.snoc_castSucc",
+        "Fin.cons_succ",
+        "norm_neg",
+        "mul_assoc",
+        "Real.exp_nonneg",
+        "ENNReal.ofReal_mul"
+      ]
+    }
+  ]
+}

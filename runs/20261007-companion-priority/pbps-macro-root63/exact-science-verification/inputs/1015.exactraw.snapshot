@@ -1,0 +1,72 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCycleQuantitativeNeighborhood
+import AutoSamplingTheory.TechnicalLemmas.Measure.SupportLocalBlocks
+
+/-!
+# Quantitative bounded support-local blocks
+
+This module joins the quantitative cycle-neighborhood geometry with the generic
+support/restriction measure lemmas on the *same* rectangle family.
+
+A strict cycle violation at distinct support points therefore yields bounded,
+pairwise-disjoint open rectangles with one uniform positive cycle margin, and
+the ambient joint finite measure has a positive restriction to every rectangle;
+the sum of those restrictions is dominated by the ambient measure.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace QuantitativeSupportLocalBlocks
+
+open MeasureTheory Set
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCycleNeighborhood
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCycleQuantitativeNeighborhood
+open SupportLocalBlocks
+open scoped BigOperators Topology
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [MeasurableSpace E] [BorelSpace E]
+
+/-- A strict positive cycle through distinct support points yields one bounded
+rectangle family carrying simultaneously all topology and measure data needed
+by the later common-mass perturbation. -/
+theorem exists_quantitative_positive_local_blocks_of_cycleValue_pos
+    {n : ℕ} (rho : FiniteMeasure (E × E))
+    {p : Fin (n + 1) → E × E}
+    (hp : Function.Injective p)
+    (hcycle : 0 < cycleValue p)
+    (hsupp : ∀ i, p i ∈ (rho : Measure (E × E)).support)
+    {r : ℝ} (hr : 0 < r) :
+    ∃ ε : ℝ, 0 < ε ∧
+      ∃ U : Fin (n + 1) → Set E, ∃ V : Fin (n + 1) → Set E,
+        (∀ i, IsOpen (U i) ∧ (p i).1 ∈ U i ∧
+          U i ⊆ Metric.ball (p i).1 r) ∧
+        (∀ i, IsOpen (V i) ∧ (p i).2 ∈ V i ∧
+          V i ⊆ Metric.ball (p i).2 r) ∧
+        Set.Pairwise (Set.univ : Set (Fin (n + 1)))
+          (Function.onFun Disjoint fun i => U i ×ˢ V i) ∧
+        (∀ i, 0 < (rho.restrict (U i ×ˢ V i)).mass) ∧
+        (↑(∑ i, rho.restrict (U i ×ˢ V i)) : Measure (E × E)) ≤
+          (rho : Measure (E × E)) ∧
+        ∀ q : Fin (n + 1) → E × E,
+          (∀ i, q i ∈ U i ×ˢ V i) → ε < cycleValue q := by
+  obtain ⟨ε, hε, U, V, hU, hV, hpair, hstable⟩ :=
+    exists_pairwiseDisjoint_bounded_open_rectangles_of_cycleValue_pos
+      hp hcycle hr
+  refine ⟨ε, hε, U, V, hU, hV, hpair, ?_, ?_, hstable⟩
+  · intro i
+    exact rectangle_restrict_mass_pos rho (hsupp i)
+      (hU i).1 (hU i).2.1 (hV i).1 (hV i).2.1
+  · apply sum_restrict_le_of_pairwiseDisjoint_open rho
+      (fun i => U i ×ˢ V i)
+    · exact fun i => (hU i).1.prod (hV i).1
+    · exact hpair
+
+end
+
+end QuantitativeSupportLocalBlocks
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

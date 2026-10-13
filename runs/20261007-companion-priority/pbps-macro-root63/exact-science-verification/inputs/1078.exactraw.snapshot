@@ -1,0 +1,178 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EuclideanBrownianCoordinates
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteDimensionalNormBridge
+import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
+
+/-!
+# Chewi Definition 1.1.17: source-facing finite-dimensional Itô processes
+
+This module closes the representation gap between Chewi's textbook definition
+and the scalar stochastic-integral ABI used internally by ASTIS.
+
+The source data are genuinely finite-dimensional:
+
+* `initial` takes values in `R^d`;
+* `drift` takes values in `R^d` and is progressive, with locally integrable
+  sample paths;
+* `diffusion` is a `d x N` real matrix process. Its flattened Euclidean
+  process is progressive and its squared Frobenius norm is locally integrable;
+* the driver is one `R^N`-valued Brownian motion with one common filtration.
+
+Theorems below derive every scalar coordinate obligation needed by the
+previously compiled Itô integral. Thus no coordinatewise regularity is added
+as an extra source assumption.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ChewiItoProcess
+
+open MeasureTheory
+open scoped NNReal RealInnerProductSpace
+
+open BrownianMotion
+open EuclideanBrownianCoordinates
+open FiniteDimensionalItoProcess
+open FiniteDimensionalNormBridge
+open ProgressiveL2
+
+variable {Omega iota kappa : Type*} [MeasurableSpace Omega]
+  [Fintype iota] [DecidableEq iota]
+  [Fintype kappa] [DecidableEq kappa]
+  {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+
+/-- Source-shaped coefficient data for Chewi Definition 1.1.17.
+
+`driftIntegrable` is the Bochner formulation of the textbook's condition
+`∫ ‖b_s‖ ds < ∞`: for a progressive finite-dimensional process it records
+strong measurability together with local integrability of the norm.
+The diffusion condition is kept literally as the squared Euclidean/Frobenius
+norm through `MatrixLocallySquareIntegrableNormOn`. -/
+structure SourceData where
+  initial : Omega → EuclideanSpace ℝ iota
+  initialStronglyMeasurable : StronglyMeasurable[filtration 0] initial
+  drift : ℝ≥0 → Omega → EuclideanSpace ℝ iota
+  driftProgressive : IsStronglyProgressive filtration drift
+  driftIntegrable : ∀ T : ℝ≥0,
+    ∀ᵐ omega ∂mu,
+      Integrable (fun t => drift t omega) (TimeMeasure.upTo T)
+  diffusion : ℝ≥0 → Omega → iota → kappa → ℝ
+  diffusionProgressive :
+    IsStronglyProgressive filtration
+      (fun t omega => matrixAsEuclidean (diffusion t omega))
+  diffusionSquareIntegrable : ∀ T : ℝ≥0,
+    MatrixLocallySquareIntegrableNormOn diffusion mu T
+
+/-- Initial-value measurability descends from the Euclidean vector to each
+coordinate by the norm-one continuous coordinate functional. -/
+theorem SourceData.initial_coordinate_stronglyMeasurable
+    (data : SourceData (Omega := Omega) (iota := iota) (kappa := kappa)
+      (filtration := filtration) (mu := mu))
+    (i : iota) :
+    StronglyMeasurable[filtration 0] (fun omega => data.initial omega i) := by
+  simpa only [coordinateDual_apply] using
+    (coordinateDual i).continuous.comp_stronglyMeasurable
+      data.initialStronglyMeasurable
+
+/-- Progressive measurability of the vector drift descends to each scalar
+coordinate. -/
+theorem SourceData.drift_coordinate_progressive
+    (data : SourceData (Omega := Omega) (iota := iota) (kappa := kappa)
+      (filtration := filtration) (mu := mu))
+    (i : iota) :
+    IsStronglyProgressive filtration (fun t omega => data.drift t omega i) := by
+  intro T
+  simpa only [coordinateDual_apply] using
+    (coordinateDual i).continuous.comp_stronglyMeasurable
+      (data.driftProgressive T)
+
+/-- Local Bochner integrability of the vector drift implies local integrability
+of every scalar coordinate. This is a continuous-linear-map consequence, not
+an additional coordinatewise assumption. -/
+theorem SourceData.drift_coordinate_integrable
+    (data : SourceData (Omega := Omega) (iota := iota) (kappa := kappa)
+      (filtration := filtration) (mu := mu))
+    (i : iota) (T : ℝ≥0) :
+    ∀ᵐ omega ∂mu,
+      Integrable (fun t => data.drift t omega i) (TimeMeasure.upTo T) := by
+  filter_upwards [data.driftIntegrable T] with omega hOmega
+  simpa only [coordinateDual_apply] using
+    (coordinateDual i).integrable_comp hOmega
+
+/-- Progressive measurability of the flattened matrix process descends to each
+matrix entry. -/
+theorem SourceData.diffusion_entry_progressive
+    (data : SourceData (Omega := Omega) (iota := iota) (kappa := kappa)
+      (filtration := filtration) (mu := mu))
+    (i : iota) (j : kappa) :
+    IsStronglyProgressive filtration
+      (fun t omega => data.diffusion t omega i j) := by
+  intro T
+  have h :=
+    (coordinateDual (i, j)).continuous.comp_stronglyMeasurable
+      (data.diffusionProgressive T)
+  simpa [matrixAsEuclidean, coordinateDual_apply] using h
+
+/-- Compile Chewi's vector/matrix source coefficients into the scalar
+coordinate ABI used by the Chapter 1 Itô integral. -/
+noncomputable def SourceData.toCoordinateItoData
+    (data : SourceData (Omega := Omega) (iota := iota) (kappa := kappa)
+      (filtration := filtration) (mu := mu)) :
+    CoordinateItoData (filtration := filtration) (mu := mu) iota kappa where
+  initial omega i := data.initial omega i
+  initialStronglyMeasurable i := data.initial_coordinate_stronglyMeasurable i
+  drift i t omega := data.drift t omega i
+  driftProgressive i := data.drift_coordinate_progressive i
+  driftIntegrable i T := data.drift_coordinate_integrable i T
+  diffusion i j :=
+    entryGlobalLocalProgressiveL2
+      (fun i' j' => data.diffusion_entry_progressive i' j')
+      data.diffusionSquareIntegrable i j
+
+/-- The source-facing Itô process associated with `SourceData` and one
+Euclidean Brownian driver. Internally this is assembled coordinatewise from
+the scalar global Itô integral, then repackaged as one Euclidean vector. -/
+noncomputable def process
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (data : SourceData (Omega := Omega) (iota := iota) (kappa := kappa)
+      (filtration := filtration) (mu := mu))
+    {B : ℝ≥0 → Omega → EuclideanSpace ℝ kappa}
+    (hB : IsStandardBrownianMotionWithFiltration B filtration mu) :
+    ℝ≥0 → Omega → EuclideanSpace ℝ iota :=
+  fun t omega =>
+    WithLp.toLp 2
+      (coordinateItoProcess hUsual data.toCoordinateItoData
+        (coordinateFamily hB) t omega)
+
+/-- Chewi Definition 1.1.17, displayed at an arbitrary state coordinate.
+The stochastic term is a finite sum over coordinates of the same
+`R^N`-valued Brownian motion. -/
+theorem definition_1_1_17_coordinate_display
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (data : SourceData (Omega := Omega) (iota := iota) (kappa := kappa)
+      (filtration := filtration) (mu := mu))
+    {B : ℝ≥0 → Omega → EuclideanSpace ℝ kappa}
+    (hB : IsStandardBrownianMotionWithFiltration B filtration mu)
+    (t : ℝ≥0) (omega : Omega) (i : iota) :
+    process hUsual data hB t omega i =
+      data.initial omega i +
+        (∫ s, data.drift s omega i ∂(TimeMeasure.upTo t)) +
+        ∑ j,
+          GlobalItoProcessGluing.globalItoProcess hUsual
+            ((data.toCoordinateItoData).diffusion i j)
+            ((coordinateFamily hB).isBrownian j) t omega := by
+  rfl
+
+/-- Literal textbook dimensions: state space `R^d` and Brownian space `R^N`. -/
+abbrev ChewiSourceData (d N : ℕ)
+    (filtration : Filtration ℝ≥0 m) (mu : Measure Omega) :=
+  SourceData (Omega := Omega) (iota := Fin d) (kappa := Fin N)
+    (filtration := filtration) (mu := mu)
+
+end ChewiItoProcess
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

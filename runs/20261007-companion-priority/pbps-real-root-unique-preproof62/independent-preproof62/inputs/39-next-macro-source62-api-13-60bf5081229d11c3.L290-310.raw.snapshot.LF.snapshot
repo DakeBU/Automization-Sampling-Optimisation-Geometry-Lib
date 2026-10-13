@@ -1,0 +1,21 @@
+
+variable {F 𝕜 p μ}
+
+instance [hm : Fact (m ≤ m0)] [CompleteSpace F] [hp : Fact (1 ≤ p)] :
+    CompleteSpace (lpMeasSubgroup F m p μ) := by
+  rw [(lpMeasSubgroupToLpTrimIso F p μ hm.elim).completeSpace_iff]; infer_instance
+
+instance [hm : Fact (m ≤ m0)] [CompleteSpace F] [hp : Fact (1 ≤ p)] :
+    CompleteSpace (lpMeas F 𝕜 m p μ) := by
+  rw [(lpMeasSubgroupToLpMeasIso F 𝕜 p μ).symm.completeSpace_iff]; infer_instance
+
+theorem isComplete_aestronglyMeasurable [hp : Fact (1 ≤ p)] [CompleteSpace F] (hm : m ≤ m0) :
+    IsComplete {f : Lp F p μ | AEStronglyMeasurable[m] f μ} := by
+  rw [← completeSpace_coe_iff_isComplete]
+  have : Fact (m ≤ m0) := ⟨hm⟩
+  change CompleteSpace (lpMeasSubgroup F m p μ)
+  infer_instance
+
+theorem isClosed_aestronglyMeasurable [Fact (1 ≤ p)] [CompleteSpace F] (hm : m ≤ m0) :
+    IsClosed {f : Lp F p μ | AEStronglyMeasurable[m] f μ} :=
+  IsComplete.isClosed (isComplete_aestronglyMeasurable hm)

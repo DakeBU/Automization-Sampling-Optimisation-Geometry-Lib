@@ -1,0 +1,609 @@
+{
+  "status": "SEALED_BEFORE_PROOF_BODY_AFTER_INDEPENDENT_MATH_SOURCE_AND_TOPOLOGY_REVIEW",
+  "sealed_utc": "2026-10-11T08:40:31.922013+00:00",
+  "statement_version": 1,
+  "header": {
+    "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+    "raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+    "bytes": 10912
+  },
+  "expanded_literal_Prop": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let readTime : Rec → ℝ := fun r => match r with\n      | Sum.inl q => (q.1 : ℝ)\n      | Sum.inr _ => 0\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>\n      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧\n        StrictMono (fun j => readTime (h j)) ∧\n        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}\n    let eventTime : E → E → (E × E) → (ℕ → ℝ) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ w j => (record y xRef z₀ (ε w) j).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    let I : E → E → (E × E) → ℝ≥0 → ℕ → Set (ℕ → ℝ) :=\n      fun y xRef z₀ T n => {w | eventTime y xRef z₀ w n ≤ (T : WithTop ℝ≥0) ∧\n        (T : WithTop ℝ≥0) < eventTime y xRef z₀ w (n + 1)}\n    let N : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → ℕ := fun y xRef z₀ T w =>\n      if h : ∃ n, w ∈ I y xRef z₀ T n then Nat.find h else 0\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let survival : E → E → Rec → ℝ≥0 → ℝ → Prop :=\n      fun y xRef r u e => r.elim\n        (fun a => (u : WithTop ℝ≥0) < τ y xRef a.2 (Real.toNNReal e)) (fun _ => False)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let C : E → E → (E × E) → (n : ℕ) → ℝ≥0 → Set (ℕ → ℝ) :=\n      fun y xRef z₀ n T => {w | history y xRef z₀ n w ∈ A n T ∧\n        survival y xRef (record y xRef z₀ (ε w) n) (d n T (history y xRef z₀ n w)) (w n)}\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E), w ∈ I y xRef z₀ s n →\n          record y xRef z₀ (ε w) n = Sum.inl a →\n          Z y xRef z₀ s w = Φ y xRef ((s - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        (¬ ∃ n, w ∈ I y xRef z₀ s n) → Z y xRef z₀ s w = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ w ∂P, Z y xRef z₀ 0 w = z₀) ∧\n      (∀ n : ℕ, ∀ T : ℝ≥0,\n        Measurable (fun p : ((E × E) × (E × E)) × Hist n =>\n          Ψ p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧\n        Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>\n          Γ p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧\n        Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>\n          ρ p.1.1.1 p.1.1.2 p.1.2 n T p.2) ∧\n        (∀ y xRef : E, ∀ z₀ : E × E,\n          let H := history y xRef z₀ n\n          let ZT : (ℕ → ℝ) → Path T := fun w s => Z y xRef z₀ s.val w\n          Measurable H ∧ Measurable ZT ∧ Measurable (N y xRef z₀ T) ∧\n          MeasurableSet (C y xRef z₀ n T) ∧\n          (∀ t : Prefix n T, ∀ s : {s : ℝ≥0 // s ≤ T}, ∀ j : Fin (n + 1),\n            (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j ≤ (s.val : ℝ) →\n            (∀ k : Fin (n + 1), j < k → (s.val : ℝ) < (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) k) →\n            Γ y xRef z₀ n T t s =\n              Φ y xRef ((s.val : ℝ) - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j) (zAt y xRef z₀ n T t j)) ∧\n          (∀ w ∈ C y xRef z₀ n T, Ψ y xRef z₀ n T (H w) = ZT w) ∧\n          (∀ᵐ w ∂P, (∀ j : ℕ, 0 < j → eventTime y xRef z₀ w j ≠ (T : WithTop ℝ≥0)) ∧\n            (∀ k : ℕ, N y xRef z₀ T w = k ↔ w ∈ C y xRef z₀ k T) ∧\n            {j : ℕ | 0 < j ∧ eventTime y xRef z₀ w j < (T : WithTop ℝ≥0)}.Finite ∧\n            {j : ℕ | 0 < j ∧ eventTime y xRef z₀ w j ≤ (T : WithTop ℝ≥0)}.Finite ∧\n            N y xRef z₀ T w = {j : ℕ | 0 < j ∧ eventTime y xRef z₀ w j < (T : WithTop ℝ≥0)}.ncard ∧\n            N y xRef z₀ T w = {j : ℕ | 0 < j ∧ eventTime y xRef z₀ w j ≤ (T : WithTop ℝ≥0)}.ncard) ∧\n          (Pairwise fun i j : ℕ => Disjoint (C y xRef z₀ i T) (C y xRef z₀ j T)) ∧\n          P (⋃ k : ℕ, C y xRef z₀ k T) = 1 ∧\n          Measure.map (fun w => (H w, ZT w)) (P.restrict {w | N y xRef z₀ T w = n}) =\n            Measure.map (fun t => (K y xRef z₀ n T t, Γ y xRef z₀ n T t))\n              ((m n T).withDensity (ρ y xRef z₀ n T)) ∧\n          (∀ F : Hist n × Path T → ℝ≥0∞, Measurable F →\n            (∫⁻ w in {w | N y xRef z₀ T w = n}, F (H w, ZT w) ∂P) =\n              ∫⁻ t : Prefix n T, F (K y xRef z₀ n T t, Γ y xRef z₀ n T t) *\n                ρ y xRef z₀ n T t ∂m n T) ∧\n          (∫⁻ t : Prefix n T, ρ y xRef z₀ n T t ∂m n T) = P {w | N y xRef z₀ T w = n} ∧\n          P {w | N y xRef z₀ T w = n} ≤ 1))\n",
+  "public_theorem": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+  "production_name_visibility_change_only": true,
+  "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+  "primary": {
+    "path": "runs/20261007-companion-priority/phase-pbps-gamma-preread57/primary-pbps.exactraw.snapshot.html",
+    "raw_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+    "bytes": 1482128
+  },
+  "source_graph": {
+    "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/candidate-source-proof-graph93.v2.native.json",
+    "raw_sha256": "21b72b610f1abdaa5b54e04e00f40289f0437f26746b81fa3833f3b2e1bd6922",
+    "bytes": 54791
+  },
+  "source_coverage": {
+    "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/candidate-source-coverage93.v2.native.json",
+    "raw_sha256": "dcf8fba06f926ff9149920a997c95446b7693adaccabec3a388e4516a56147e6",
+    "bytes": 56037
+  },
+  "source_topology_review": {
+    "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/topology-crosscheck93.native.json",
+    "raw_sha256": "aaa2b09454968419994ed6dc72164155f6b4fcf18a9a9f45f8bf794af49f9bb7",
+    "bytes": 5576
+  },
+  "independent_math_header": {
+    "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/header-math-review93.native.json",
+    "raw_sha256": "3fcfe3724bce7e4a3ff340e289e669773fae65646ba44c19af9af2124a089163",
+    "bytes": 9615
+  },
+  "independent_source_header": {
+    "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-source93/source-decision93.native.json",
+    "raw_sha256": "17a81e8d3d9506a3931dd75b54c35c7efc06f36f9353f8526bdc50e1234051c8",
+    "bytes": 38203
+  },
+  "all_review_bound_inputs_rehashed": [
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "bytes": 10912
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/kernel.receipt.native.json",
+      "raw_sha256": "3e420465ee7bf9543381f722251a52150b989e5124f5001a9bc7f6cb15a1eeca",
+      "bytes": 1590
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/static-check93.native.json",
+      "raw_sha256": "00a06c7c157b23268efa1816b970637f10e2535e10390b2134a9bcad7aa81279",
+      "bytes": 823
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-source93/review-run93.native.json",
+      "raw_sha256": "e05ae8f34e9c5f9bb6607728c09c6102e009bb5143335273e7eec3c1f7969e0e",
+      "bytes": 1774
+    },
+    {
+      "path": "runs/20261007-companion-priority/phase-pbps-gamma-preread57/primary-pbps.exactraw.snapshot.html",
+      "raw_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+      "bytes": 1482128
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/candidate-source-proof-graph93.v2.native.json",
+      "raw_sha256": "21b72b610f1abdaa5b54e04e00f40289f0437f26746b81fa3833f3b2e1bd6922",
+      "bytes": 54791
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/candidate-source-coverage93.v2.native.json",
+      "raw_sha256": "dcf8fba06f926ff9149920a997c95446b7693adaccabec3a388e4516a56147e6",
+      "bytes": 56037
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 16,
+      "end_line": 20,
+      "raw_sha256": "391f072dfb4e547a74cab580165b64926fedf1648e9870e6f3d5dcf7290ba938"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 13,
+      "end_line": 20,
+      "raw_sha256": "bff087f9b05fc2abe24260434f35523b2bfb6e7bc1fee2e196d09356596f89df"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 23,
+      "end_line": 39,
+      "raw_sha256": "4c533aea7c3205c101ddf9333e005e89404567b0f4e93a6ee6b73d400db22df6"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 35,
+      "end_line": 50,
+      "raw_sha256": "fa986e287decd6936ca037d58c6217fe9a5b867fffeb1a0b4465f0db3f9a0d9c"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 40,
+      "end_line": 60,
+      "raw_sha256": "4ad627e6c9e6b4dad1fc6335c840acaf1e3f0ee2931db8ede072a33c668f12c3"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 51,
+      "end_line": 52,
+      "raw_sha256": "86543622ecec016d1c0b5ec783c73275862bd7ae33363f47fc5e96c1f60d9f75"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 147,
+      "end_line": 152,
+      "raw_sha256": "20d442d0a3cf3970a1ced74547df92f9e98c7986fc8e4c4063bd3bedf7b9d989"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 139,
+      "end_line": 140,
+      "raw_sha256": "e229aee3fdc1ebc0ae18e41b6b886b0fc264e9ea47b33a6ddd47abaaa6c16915"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 61,
+      "end_line": 65,
+      "raw_sha256": "32e746a38dd44617bce2afe6b600dc0e8f08e3091848410901acd0f30d6bda0e"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 66,
+      "end_line": 86,
+      "raw_sha256": "2234d9612f274c4eca8d4c32a4d53980024fd2c32e2048ad3e1020088b4ccb43"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 98,
+      "end_line": 106,
+      "raw_sha256": "2dd0cf6d2116382c5405fe24f6fb80bdc3cdc8ab9a83d9a33624938595e655f5"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 95,
+      "end_line": 106,
+      "raw_sha256": "9b22fbd45a8cef5ed9a9296e864ea4214180417025aad7a058c30451b29223a2"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 155,
+      "end_line": 164,
+      "raw_sha256": "b2d83c06548a446994fc1581d83619e8bb6597d22c7fb5b7e0942b3264d0d5f4"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 115,
+      "end_line": 118,
+      "raw_sha256": "9267feab4d943f156fc7ffd6f75654d3fa242606023a435079d11338d21475de"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 90,
+      "end_line": 94,
+      "raw_sha256": "5df45635520f028a9b86cc48130e3ebe1cd8dba253922ea5aa057a975f4e6401"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 119,
+      "end_line": 128,
+      "raw_sha256": "24a3fe666d433a795c163bd9b075188112f171a92ec7045724f619863a3c017a"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 147,
+      "end_line": 147,
+      "raw_sha256": "c74fd052000c57a93c175483c45b18719ec9782698e069dbe840b5a154891c03"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 147,
+      "end_line": 154,
+      "raw_sha256": "88ad4e15a04d02fdfe5e891dd3bfc9f7b8f17cd4856817297a6aab143493dffd"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 113,
+      "end_line": 114,
+      "raw_sha256": "c73fc7dc4e4c79493d4fa882393df76521e9939be358a8d804ac21674e56ea97"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 107,
+      "end_line": 107,
+      "raw_sha256": "320cd2f9f8842a326a89bc6312ed7ba445e1d9f9d38f279f03b64426f3edcdaf"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 129,
+      "end_line": 140,
+      "raw_sha256": "dea5a525c9e4e73a5e4d95a36bf604b66599b3346a10221c7cdafa56e20ac771"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 146,
+      "end_line": 146,
+      "raw_sha256": "1f3b3b0ff18094b974fd8c6819099d819196640c42934826e34ba33cc5d6afe6"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 108,
+      "end_line": 114,
+      "raw_sha256": "c293c2619643ea556f2315bfdd042e160ef9f3afee014a29143f5a10e7543a94"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/Header93.lean",
+      "header_raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "start_line": 158,
+      "end_line": 161,
+      "raw_sha256": "61b980d615dc51c3e77967c246c15aa2fa9bc1c231e25a65e3942cfbb108ebc0"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/header-math-review93.native.json",
+      "raw_sha256": "3fcfe3724bce7e4a3ff340e289e669773fae65646ba44c19af9af2124a089163",
+      "bytes": 9615
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/closed-RAW93.native.json",
+      "raw_sha256": "ee6ef15e43c4668cb9262c9260725db6eb8db9f004237369f5b59a8640b9c217",
+      "bytes": 5650
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/root.statement-seal92.json",
+      "raw_sha256": "3e7214b5bb38bae92efc0b1621bd5cf93eef6ba9853143af8fb1f5ade1e7a5e7",
+      "bytes": 31217
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-boundary-preread93/recommendation93.v2.native.json",
+      "raw_sha256": "f41f8a54f68b0aff4f208b99461beb065bd21c6f8f054aa3a2c62c73b0ffe6cd",
+      "bytes": 13876
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-boundary-math93/feasibility-review93.native.json",
+      "raw_sha256": "1a54415b0c0019f24a8c731f3014add4cd143ae08f5b4fec12f69b29c7831c61",
+      "bytes": 12797
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-boundary-math93/closed-RAW93.native.json",
+      "raw_sha256": "cc5fe867b1c434c6a34fcaea36cb3bc199df7952cae2d6e88b4e7932c0991a82",
+      "bytes": 4739
+    },
+    {
+      "path": ".astis/toolchain/lean-4.33.0-windows/src/lean/Init/Data/Fin/Fold.lean",
+      "raw_sha256": "01ffba5b2eff553776ddb78c7f91e357e98d9f2cd88f256a34511400199fff88",
+      "bytes": 12274
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/MeasurableSpace/Constructions.lean",
+      "raw_sha256": "64df94d69f05360cb37777f9992231ce1ef327882a97542a47852b33243c2a0d",
+      "bytes": 47969
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+      "bytes": 3234
+    },
+    {
+      "path": ".astis/toolchain/lean-4.33.0-windows/bin/lake.exe",
+      "raw_sha256": "a1aebb13fc502ae9190745c6b3bd2101d0fec39f030cfc07b1993799c2374644",
+      "bytes": 87552
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualOrderedPrefix.lean",
+      "raw_sha256": "4737e98180ad69da03ad8b68f72f996ebe265b1eda1fafaa0521f591b7644ead",
+      "bytes": 97453
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualConditionalNextWaitSurvival.lean",
+      "raw_sha256": "2f509ce49343d349f7a9fb21d2f7b1697c1a6de942353f6cd8ff16d522911569",
+      "bytes": 17290
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhysicalTimeMeasurability.lean",
+      "raw_sha256": "bf8f66a8484fa82c46b26ac6b66a6c8484e6dd6465ac8587d7e27b2489e73a5c",
+      "bytes": 14418
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhysicalTimeCover.lean",
+      "raw_sha256": "2f329dd32047f46adb81b65f51b9de56305021a944f7b8cdf62ae25665839c86",
+      "bytes": 11612
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteJumpRecursion.lean",
+      "raw_sha256": "1f1ebc187676e0481247bc2f58ec0bf94b2fc6f02a563b87009a0fe7bfb4910c",
+      "bytes": 22655
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+      "raw_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc",
+      "bytes": 10812
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Probability/UnitExponentialProduct.lean",
+      "raw_sha256": "c4a93999f287008d9ddb3f3624f52f302df122e5e007a54fd427a9985edc5ec0",
+      "bytes": 6411
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/check93.py",
+      "raw_sha256": "19a8c9b3130958537abe73cdfeb2fda62148bf12298e02a59c3f2dbae79fd41a",
+      "bytes": 2596
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/close93.py",
+      "raw_sha256": "1b1e2acb3117da9e55ab4ce2a498e1f62dba501c3e93392d9eac711d6e7f749e",
+      "bytes": 10567
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/FreshHeader93.lean",
+      "raw_sha256": "0c30e3f6a3bb34a8215eea0433ed1f467fd906c87e2e41d9d693b281907b4f7e",
+      "bytes": 11150
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/kernel.stderr.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/kernel.stdout.log",
+      "raw_sha256": "a22275c7a4a98df9434f4f239f01ed90eb725baa4deb0b9cdaeabca8dae4f6ed",
+      "bytes": 16375
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/source-first-provenance93.v2.native.json",
+      "raw_sha256": "f4cc6f3f967eec057b74caa184cf7cb3c7565d74c32af71580888f47d9a7fa4d",
+      "bytes": 1578
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-ordered-iteration-preread92/primary-first/candidate-source-coverage92.v2.native.json",
+      "raw_sha256": "78a1b9630e33ddd05186cf5b4e75c010d1f95c54987d1e49652985305b89b8bb",
+      "bytes": 40325
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/crosscheck93.py",
+      "raw_sha256": "092ace07937e0ed8d4f65b483cdfaf3277e2b413b21fc631c686daefc6275dbe",
+      "bytes": 8466
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-math93/topology-crosscheck93.native.json",
+      "raw_sha256": "aaa2b09454968419994ed6dc72164155f6b4fcf18a9a9f45f8bf794af49f9bb7",
+      "bytes": 5576
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/closed-RAW-source-graph93.v2.native.json",
+      "raw_sha256": "c393ca8009ed738b3a76e38ade01ad139ce97caeb0700a7b88955d6cfe6899ab",
+      "bytes": 4662
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+      "bytes": 26
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-source93/source-first-header-provenance93.native.json",
+      "raw_sha256": "ee86ac208c9c14f5a392c3b1719af8d8cbe999ea2295a54da196f34a39c17455",
+      "bytes": 1282
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-source93/source-decision93.native.json",
+      "raw_sha256": "17a81e8d3d9506a3931dd75b54c35c7efc06f36f9353f8526bdc50e1234051c8",
+      "bytes": 38203
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-source93/Header93.exactraw.snapshot.lean",
+      "raw_sha256": "90bca17fbb11d9a8fea226bd0dca6494ef9a61f3db31beaf52c0ef2999cf9cfe",
+      "bytes": 10912
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-source93/elaboration.receipt.native.json",
+      "raw_sha256": "abcba73071466e61a0a053eede45fba3d4d2e0fa2194cd1c3b01b729a76954e6",
+      "bytes": 1529
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-source93/elaboration.stdout.log",
+      "raw_sha256": "0fb3094b2e8008500d71c99c2b3d2931ea0f47e58bacea7dbfe810c4341475fc",
+      "bytes": 3102
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-source93/elaboration.stderr.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-source93/elaborate93.py",
+      "raw_sha256": "9a8853674d87d8672173ec85299fd46d7ec7634f0a150b6a238e8975aed8487c",
+      "bytes": 1434
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-finite-count-path-preread93/independent-header-source93/close-header-review93.py",
+      "raw_sha256": "085aacee4bbe7510d78cb8f96d167bc463fce28ffe55c6aadfae804c006e23e6",
+      "bytes": 16758
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-ordered-iteration-preread92/primary-first/candidate-source-proof-graph92.v2.native.json",
+      "raw_sha256": "df12d4968aeac69a0e0dce56adf75878a77c6f1942348363c702bc0e27ca4a7f",
+      "bytes": 40985
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-boundary-preread93/recommendation93.md",
+      "raw_sha256": "bd00ae195e299b20297e1965715ac1e6c1805f4425d9b8b6800e7186f71e70df",
+      "bytes": 10718
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-boundary-preread93/primary-first-expectation93.md",
+      "raw_sha256": "cb2964c2887089616ed5842bb2bc830fd50ae0ebccfa0fe4a7eed5bcec32605f",
+      "bytes": 3862
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-boundary-preread93/primary-first-chronology93.native.json",
+      "raw_sha256": "7642389d4b46f7d2f7f7d7cde92797ab77d108fa22a3f3510769ab7fb0e64025",
+      "bytes": 4888
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-boundary-preread93/closed-RAW93.v2.native.json",
+      "raw_sha256": "6d3834e53e88ec5517442e9c3867518c6b24d19f1b649c25a27755a68d117d43",
+      "bytes": 4552
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/source-first-provenance93.native.json",
+      "raw_sha256": "35d44c8c72fa23db6cddef03211e2a1e53c564dfb2cd7d837301ee28e3052814",
+      "bytes": 2318
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/candidate-source-proof-graph93.native.json",
+      "raw_sha256": "7c51194d7462cc9f886497f98da57df73e67c2af6a9b6ea9ab0357a1be15a7dd",
+      "bytes": 50142
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/candidate-source-coverage93.native.json",
+      "raw_sha256": "109f61b15cd9fad76502fd7b69a5fa911c573ace0ebf6ed417506c7db38f4b0d",
+      "bytes": 53150
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/build-candidate93.py",
+      "raw_sha256": "f104b5d7a2bd88b366a65f5735ca84f61e5277519b3d47c367dee337fe3ab8d9",
+      "bytes": 25909
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/closed-RAW-source-graph93.native.json",
+      "raw_sha256": "7bab09426238c66fe1e17157a0c76b0634aa9735377120a1d1fbe05ebdc89d23",
+      "bytes": 3411
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-ordered-prefix92/next-source-graph93/refine-history-adapter93.py",
+      "raw_sha256": "f4aaf2b8f7c16569599f40c359cfc5f1135c20a1a0aeded719893fb9b6ec095f",
+      "bytes": 7809
+    },
+    {
+      "path": "agent-briefs/mathlib_ready_leaf_packet.md",
+      "raw_sha256": "3b9ecdc3eed084233ab6e637faea6b6b203343e57b1c045c6f048827851dd32c",
+      "bytes": 856
+    },
+    {
+      "path": "agent-briefs/mathlib_ready_leaf_reviewer_checklist.md",
+      "raw_sha256": "9ec8ee392686b22e02cd649bb54df40a8506325ea3165341616be9e6483808d3",
+      "bytes": 2675
+    },
+    {
+      "path": "docs/assets/log_concave_sampling_foundation.mmd",
+      "raw_sha256": "d17741992ea3d6618a48d283c198de93a4808873ff86e3756033765f3e87c519",
+      "bytes": 1066
+    },
+    {
+      "path": "docs/assets/log_concave_sampling_status.mmd",
+      "raw_sha256": "28d9fe4b969383069f84eaa45f2e05ee13ceb5472133ab925caef4a4c52eae80",
+      "bytes": 4535
+    },
+    {
+      "path": "docs/assets/sampling_lemma_dag.mmd",
+      "raw_sha256": "3b7039dbf1efbc9f75f1138b62f02e0c5eeae5b9ef362e6e3b4d141b012ce251",
+      "bytes": 301
+    },
+    {
+      "path": "docs/mathlib_ready_leaf_protocol.md",
+      "raw_sha256": "bb011af5b8452fbbd20626f2fbf0337a7aaf944a790cbd9d8cc9390f3a0ab869",
+      "bytes": 3699
+    },
+    {
+      "path": "docs/mathlib_ready_leaf_reviewer_checklist.md",
+      "raw_sha256": "9ec8ee392686b22e02cd649bb54df40a8506325ea3165341616be9e6483808d3",
+      "bytes": 2675
+    },
+    {
+      "path": "research-wiki/external-lean-libraries/atlas-v1.md",
+      "raw_sha256": "901b4b2e0617624cb9edf993b227106dea89ee637869b075abe760387e637ea9",
+      "bytes": 2282
+    },
+    {
+      "path": "research-wiki/external-lean-libraries/lean-rademacher.md",
+      "raw_sha256": "c2d70764063802f86cb2b06a74a3562e700f440d584bf9f879f549b5ad6c8117",
+      "bytes": 439
+    },
+    {
+      "path": "research-wiki/external-lean-libraries/mathlib.md",
+      "raw_sha256": "578af6724a1f870b47c7104bbec9544d2c967321d35dc2af688b4dba4d2448cb",
+      "bytes": 514
+    },
+    {
+      "path": "research-wiki/lemma-dags/Pro_assimilated_leaf_targets.md",
+      "raw_sha256": "69c7f88a35f998e9a5df31b90c714295ba9a212efa49b0cd9995561ceed38c4c",
+      "bytes": 4301
+    },
+    {
+      "path": "research-wiki/lemma-dags/README.md",
+      "raw_sha256": "c653c09b0b36fcad3e4447277ed2f0ba1a34d157f8c7282da93527590f1a2574",
+      "bytes": 446
+    },
+    {
+      "path": "research-wiki/lemma-dags/SALD_weak_fp_leaf_dag.md",
+      "raw_sha256": "f9921b29c6f90611b19782017777fd243239ce43418d5b7f5d434ae18b012e4f",
+      "bytes": 4383
+    },
+    {
+      "path": "research-wiki/lemma-dags/SDE_Sampling_skill_tree.md",
+      "raw_sha256": "0ceae411e7ca66f0848ecf2681b819e15eb766469d0da1bf820fab5001560518",
+      "bytes": 4212
+    },
+    {
+      "path": "research-wiki/sampling-sde-library/index.md",
+      "raw_sha256": "ab2c44c2d3dc3a1e2ace1d4f4038ae047f7897a0f929e339872ecf4953f46b8f",
+      "bytes": 104
+    },
+    {
+      "path": "research-wiki/technical-lemma-memory/README.md",
+      "raw_sha256": "3b0bb2004f5b3fba492b5798748c81ab7b1f06c556fd93d870f06d04402cc638",
+      "bytes": 1700
+    },
+    {
+      "path": "research-wiki/technical-lemma-memory/hidden_regularities.md",
+      "raw_sha256": "417a883786b980be217d9d3258900dd70294c82f84a0b63dfc3c48e7046906b8",
+      "bytes": 1828
+    },
+    {
+      "path": "research-wiki/technical-lemma-memory/mathlib_ready_leaf_template.md",
+      "raw_sha256": "b784d17be152056c48c7de04460a6bf583ceb6bbe3da148698642e1db7cc9b7e",
+      "bytes": 1649
+    },
+    {
+      "path": "research-wiki/technical-lemmas/README.md",
+      "raw_sha256": "3b0bb2004f5b3fba492b5798748c81ab7b1f06c556fd93d870f06d04402cc638",
+      "bytes": 1700
+    },
+    {
+      "path": "research-wiki/technical-lemmas/hidden_regularities.md",
+      "raw_sha256": "417a883786b980be217d9d3258900dd70294c82f84a0b63dfc3c48e7046906b8",
+      "bytes": 1828
+    },
+    {
+      "path": "research-wiki/technical-lemmas/mathlib_ready_leaf_template.md",
+      "raw_sha256": "b784d17be152056c48c7de04460a6bf583ceb6bbe3da148698642e1db7cc9b7e",
+      "bytes": 1649
+    }
+  ],
+  "toolchain": {
+    "path": "lean-toolchain",
+    "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+    "bytes": 26
+  },
+  "lake_manifest": {
+    "path": "lake-manifest.json",
+    "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+    "bytes": 3234
+  },
+  "truth_boundary": "Exactly six source analytic hypotheses. Literal actual stopped recurrence and canonical iid Exp(1) product; all finite n and NNReal T including zero. One jointly measurable actual phase Z with pointwise covered-arc and explicit uncovered fallback semantics; fixed-T coordinate-product path carrier. Total count is Nat.find of the half-open interval index, with zero fallback. Total history interpolation is an increasing-index Fin.foldl; its measurability and path identification are conclusions. Density is the ordered-prefix q times terminal survival, with unnormalized joint history/path pushforward, all ENNReal tests and exact count-event mass. Fixed-T endpoint nullity and simultaneous all-count/cardinality interpretation are AE, not a common no-jump event over all T. Raw C events are disjoint and their union has full measure. No law, positivity, independence, nonexplosion, measurable witness or integrability provider is a public premise. Hazard stitching, pre-jump left limits, infinite full A7 assembly/absolute convergence, Skorokhod compatibility, restart/Markovness, invariance, hypocoercivity, implementation errors, expected costs, main results, actual-input composition and full papers remain OPEN.",
+  "proof_BODY_created": false,
+  "collaborator_RAW_preservation_count": 21,
+  "binder_audit": [
+    "hα,hαβ,hV,hH,hη,hβη are the six source assumptions.",
+    "Finite-dimensional real Hilbert/Borel structure includes the disclosed rank-zero extension.",
+    "Measurable F specifies the admissible nonnegative extended test class.",
+    "All process, count, density, endpoint, path and measurability obligations are conclusions or internal dependencies."
+  ],
+  "definition_kind": "36 literal lets: 34 outer objects plus local H and ZT. Existential Z retains proved covered/fallback characterization; no extra provider."
+}

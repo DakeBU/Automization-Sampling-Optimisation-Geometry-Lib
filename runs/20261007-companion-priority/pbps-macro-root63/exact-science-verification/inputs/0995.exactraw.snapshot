@@ -1,0 +1,52 @@
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+import Mathlib.MeasureTheory.Measure.Prod
+
+/-!
+# Kantorovich dual transport problem
+
+This module states the integrable-potential dual problem used in Chewi,
+Definition 1.3.6 and display (1.3.7).  Strong duality and existence of optimal
+potentials remain later theorems.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace KantorovichDual
+
+open MeasureTheory
+
+/-- A pair of integrable potentials is dual-feasible when its sum is bounded
+by the cost almost everywhere under the product of the marginals. -/
+def DualFeasible
+    {E F : Type*} [MeasurableSpace E] [MeasurableSpace F]
+    (cost : E × F → ℝ) (mu : Measure E) (nu : Measure F)
+    (f : E → ℝ) (g : F → ℝ) : Prop :=
+  Integrable f mu ∧ Integrable g nu ∧
+    ∀ᵐ z ∂mu.prod nu, f z.1 + g z.2 ≤ cost z
+
+/-- Chewi Definition 1.3.6: the value of the Kantorovich dual optimization
+problem.  At the source's finite-second-moment quadratic cost, the feasible
+objectives are nonempty and bounded above; those analytic facts are not hidden
+inside this definition. -/
+noncomputable def dualTransportValue
+    {E F : Type*} [MeasurableSpace E] [MeasurableSpace F]
+    (cost : E × F → ℝ) (mu : Measure E) (nu : Measure F) : ℝ :=
+  sSup {r : ℝ | ∃ (f : E → ℝ) (g : F → ℝ),
+    DualFeasible cost mu nu f g ∧
+      r = (∫ x, f x ∂mu) + ∫ y, g y ∂nu}
+
+/-- Chewi display (1.3.7): source-facing expansion of the dual value. -/
+theorem dualTransportValue_eq_sSup
+    {E F : Type*} [MeasurableSpace E] [MeasurableSpace F]
+    (cost : E × F → ℝ) (mu : Measure E) (nu : Measure F) :
+    dualTransportValue cost mu nu =
+      sSup {r : ℝ | ∃ (f : E → ℝ) (g : F → ℝ),
+        DualFeasible cost mu nu f g ∧
+          r = (∫ x, f x ∂mu) + ∫ y, g y ∂nu} :=
+  rfl
+
+end KantorovichDual
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

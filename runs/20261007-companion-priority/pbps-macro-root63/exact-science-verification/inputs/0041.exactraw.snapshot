@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-16ef3357fc9cc2f0",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : CompleteSpace E]\n  [inst_3 : FiniteDimensional ℝ E] [inst_4 : MeasurableSpace E] [inst_5 : BorelSpace E] {V : E → ℝ} {α β : NNReal},\n  0 < α →\n    α ≤ β →\n      ContDiff ℝ 2 V →\n        (∀ (x w : E), ↑α * ‖w‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) w) w ∧ ((fderiv ℝ (fderiv ℝ V) x) w) w ≤ ↑β * ‖w‖ ^ 2) →\n          0 < ↑(Module.finrank ℝ E) →\n            ∀ (η τ ε : NNReal × E × E × ℕ × (ℕ → E) → ℝ),\n              Measurable η →\n                Measurable τ →\n                  (∀ (s : NNReal × E × E × ℕ × (ℕ → E)), 0 < η s) →\n                    (∀ (s : NNReal × E × E × ℕ × (ℕ → E)), 0 < τ s) →\n                      ∀ (M : ProbabilityTheory.Kernel (NNReal × E × E × ℕ × (ℕ → E)) E)\n                        [ProbabilityTheory.IsMarkovKernel M] (threshold : NNReal),\n                        (∀ (s : NNReal × E × E × ℕ × (ℕ → E)),\n                            s.1 < threshold →\n                              (InfSet.sInf\n                                      {r |\n                                        ∃\n                                          γ ∈\n                                            {γ |\n                                              γ.fst = M s ∧\n                                                γ.snd =\n                                                  MeasureTheory.Measure.map (fun p => p.1 + p.2)\n                                                    ((MeasureTheory.MeasureSpace.volume.tilted fun x =>\n                                                          -(V x + ↑s.1 / 2 * ‖x - s.2.1‖ ^ 2)).prod\n                                                      (MeasureTheory.Measure.map (fun z => √(η s / (↑β + ↑s.1)) • z)\n                                                        (ProbabilityTheory.stdGaussian E)))},\n                                          r = ∫⁻ (z : E × E), ENNReal.ofReal (‖z.1 - z.2‖ ^ 2) ∂γ} ^\n                                    (1 / 2)) ^\n                                  2 ≤\n                                ENNReal.ofReal ((↑β + ↑s.1) / (↑α + ↑s.1) * ε s ^ 2 / (↑β + ↑s.1))) →\n                          have d := ↑(Module.finrank ℝ E);\n                          have bs := fun s => ↑β + ↑s.1;\n                          have a := fun s => ↑α + ↑s.1;\n                          have v := fun s => (η s + τ s) / bs s;\n                          have bp := fun s => s.1 + (v s)⁻¹.toNNReal;\n                          have obs := fun p => p.2.1 + √(τ p.1 / bs p.1) • p.2.2;\n                          have center := fun p => (↑(bp p.1))⁻¹ • (↑p.1.1 • p.1.2.1 + (v p.1)⁻¹ • obs p);\n                          have F := fun p x => V x + ↑(bp p.1) / 2 * ‖x - center p‖ ^ 2;\n                          have T := fun p x => x - (↑β + ↑(bp p.1))⁻¹ • gradient (F p) x;\n                          have q := fun n p => ‖gradient (F p) ((T p)^[n] p.2.1)‖ ^ 2;\n                          have N := fun p =>\n                            if h : ∃ n, q n p ≤ (fun p => (↑α + ↑(bp p.1)) * d) p then Nat.find h else 0;\n                          have C := fun p => if threshold ≤ p.1.1 then 0 else ↑(N p) + 1;\n                          have B := fun s =>\n                            if threshold ≤ s.1 then 0\n                            else\n                              2 +\n                                (↑β + ↑(bp s)) / (↑α + ↑(bp s)) *\n                                  Real.log\n                                    (1 + 4 * (η s + τ s) * (1 + η s) + 2 * (η s + τ s) * (bs s / a s) * ε s ^ 2 / d +\n                                      τ s / (η s + τ s));\n                          have K :=\n                            M.prod\n                              (ProbabilityTheory.Kernel.const (NNReal × E × E × ℕ × (ℕ → E))\n                                (ProbabilityTheory.stdGaussian E));\n                          Measurable C ∧\n                            (Measurable ε → Measurable B) ∧\n                              (∀ (p : (NNReal × E × E × ℕ × (ℕ → E)) × E × E), 0 ≤ C p) ∧\n                                (∀ (s : NNReal × E × E × ℕ × (ℕ → E)),\n                                    MeasureTheory.Integrable (fun z => C (s, z)) (K s) ∧\n                                      ∫ (z : E × E), C (s, z) ∂K s ≤ B s) ∧\n                                  ∀ (μ : MeasureTheory.Measure (NNReal × E × E × ℕ × (ℕ → E)))\n                                    [MeasureTheory.SFinite μ],\n                                    ∫⁻ (p : (NNReal × E × E × ℕ × (ℕ → E)) × E × E),\n                                          ENNReal.ofReal (C p) ∂μ.compProd K ≤\n                                        ∫⁻ (s : NNReal × E × E × ℕ × (ℕ → E)), ENNReal.ofReal (B s) ∂μ ∧\n                                      (MeasureTheory.Integrable B μ →\n                                        MeasureTheory.Integrable C (μ.compProd K) ∧\n                                          ∫ (p : (NNReal × E × E × ℕ × (ℕ → E)) × E × E), C p ∂μ.compProd K ≤\n                                            ∫ (s : NNReal × E × E × ℕ × (ℕ → E)), B s ∂μ)",
+    "statement_sha256": "16ef3357fc9cc2f0e64b8c7812c87b851109fdb8ae120d5e642870cb30ca17e2",
+    "compiled": true,
+    "approved_definition_context": [
+      "NNReal denotes nonnegative real numbers; upward arrows are real coercions. Real.toNNReal(r) is max(r,0) as a nonnegative real. Module.finrank is real vector-space dimension. ContDiff R 2 means C2 regularity. fderiv and gradient are genuine Frechet and inner-product derivatives in the displayed spatial variable, holding other parameters fixed.",
+      "A Kernel S X is a measurable family of measures on X indexed by S; IsMarkovKernel means each is a probability measure. Kernel.const supplies the same measure at each state. Kernel.prod is the pointwise product measure at the common index. Measure.map is pushforward; Measure.prod is product measure; fst and snd are measure marginals.",
+      "stdGaussian E is the centered standard Gaussian probability with identity covariance. volume is the finite-dimensional canonical real volume. The notation measure.tilted f is exponential tilting by exp(f), normalized by its integral with Mathlib total-inverse conventions; it is a defined measure, not an extra implicit premise about integrability.",
+      "ENNReal is the extended nonnegative reals. ENNReal.ofReal(r)=max(r,0). InfSet.sInf is infimum, with empty infimum equal to top in ENNReal. In the displayed infimum the admissible measures have exactly the two specified marginals. The exponent 1/2 is real ENNReal.rpow; the outer exponent2 is its natural square. The integral with superscript minus is Mathlib nonnegative extended integration.",
+      "A SFinite measure is a countable sum of finite measures; it need not be a probability or finite measure. mu.compProd K is the measure on state times outcome integrating each K(s) against mu. Integrable means Bochner integrable (including the required almost-everywhere strong measurability and finite norm integral). The ordinary integral is Mathlib total Bochner integral; general extended nonnegative integrals do not by themselves assert integrability or measurability of their integrands.",
+      "Nested products associate right. A Nat->E coordinate is an infinite sequence. A displayed have in this type is a local let binding. Function iteration T^[n] includes the identity at n=0. Nat.find takes the least natural satisfying the witnessed predicate; the dependent if uses zero if no witness exists. Real inverse/division are total; sqrt is the nonnegative real square root with Mathlib conventions. This context provides library definitions only, no source identity or additional theorem conclusions."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "97c6c8a86a01856d1d433d3c3b9e6ecb7cdca15339369893f36333487da2ee27"
+}

@@ -1,0 +1,86 @@
+import Mathlib.Analysis.InnerProductSpace.Adjoint
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Positivity
+import Mathlib.Tactic.Ring
+
+/-!
+# A sharp quadratic corrector bound
+
+ASTIS auxiliary Hilbert-space form of the two-component estimate used in
+Chen--Chewi--Lu--Zhang, arXiv:2609.06905v1, Appendix B.3, (B.23).
+The square identity and operator-norm bound are explicit here; the PBPS
+consumer produces both from the original algorithm inputs.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound
+noncomputable section
+open scoped RealInnerProductSpace
+set_option autoImplicit false
+set_option maxHeartbeats 2000000
+
+theorem quadratic_corrector_bound_of_square_identity
+    {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]
+    (K D : H →L[ℝ] H) (hK : IsSelfAdjoint K) (hD : IsSelfAdjoint D)
+    (hSquare : (1 : H →L[ℝ] H)+K*K=D*D)
+    (c : ℝ) (hc : 0 ≤ c) (hNorm : ‖D‖ ≤ c) (u v : H) :
+    |(1/2 : ℝ)*(‖u‖^2-‖v‖^2)-inner ℝ (K u) v| ≤
+      (c/2)*(‖u‖^2+‖v‖^2)
+ := by
+  have hEnergy (x : H) : ‖x‖^2+‖K x‖^2=‖D x‖^2 := by
+    have h := congrArg (fun A : H →L[ℝ] H => inner ℝ (A x) x) hSquare
+    simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.one_apply,
+      ContinuousLinearMap.mul_apply, inner_add_left] at h
+    have hk : inner ℝ (K (K x)) x=inner ℝ (K x) (K x) :=
+      hK.isSymmetric (K x) x
+    have hd : inner ℝ (D (D x)) x=inner ℝ (D x) (D x) :=
+      hD.isSymmetric (D x) x
+    rw [hk, hd] at h
+    simpa only [real_inner_self_eq_norm_sq] using h
+  have hSym : inner ℝ u (K v)=inner ℝ (K u) v :=
+    (hK.isSymmetric u v).symm
+  have hBlock : ‖u-K v‖^2+‖K u+v‖^2=‖D u‖^2+‖D v‖^2 := by
+    rw [norm_sub_sq_real, norm_add_sq_real, hSym]
+    nlinarith only [hEnergy u, hEnergy v]
+  have hForm : inner ℝ (u-K v) u-inner ℝ (K u+v) v =
+      ‖u‖^2-‖v‖^2-2*inner ℝ (K u) v := by
+    have hSwap : inner ℝ (K v) u=inner ℝ (K u) v :=
+      (hK.isSymmetric v u).trans (real_inner_comm v (K u)).symm
+    rw [inner_sub_left, inner_add_left, hSwap, real_inner_self_eq_norm_sq,
+      real_inner_self_eq_norm_sq]
+    ring
+  have hAbs : |‖u‖^2-‖v‖^2-2*inner ℝ (K u) v| ≤
+      ‖u-K v‖*‖u‖+‖K u+v‖*‖v‖ := by
+    rw [← hForm]
+    exact (abs_sub _ _).trans (add_le_add
+      (abs_real_inner_le_norm _ _) (abs_real_inner_le_norm _ _))
+  have hDx (x : H) : ‖D x‖^2 ≤ c^2*‖x‖^2 := by
+    have hb : ‖D x‖ ≤ c*‖x‖ :=
+      (D.le_opNorm x).trans (mul_le_mul_of_nonneg_right hNorm (norm_nonneg x))
+    have hs := (sq_le_sq₀ (norm_nonneg (D x)) (mul_nonneg hc (norm_nonneg x))).2 hb
+    nlinarith only [hs]
+  have hBlockBound : ‖u-K v‖^2+‖K u+v‖^2 ≤ c^2*(‖u‖^2+‖v‖^2) := by
+    rw [hBlock]
+    nlinarith only [hDx u, hDx v]
+  have hCS : (‖u-K v‖*‖u‖+‖K u+v‖*‖v‖)^2 ≤
+      (‖u‖^2+‖v‖^2)*(‖u-K v‖^2+‖K u+v‖^2) := by
+    nlinarith only [sq_nonneg (‖u-K v‖*‖v‖-‖K u+v‖*‖u‖)]
+  have hSquared : |‖u‖^2-‖v‖^2-2*inner ℝ (K u) v|^2 ≤
+      (c*(‖u‖^2+‖v‖^2))^2 := by
+    calc
+      _ ≤ (‖u-K v‖*‖u‖+‖K u+v‖*‖v‖)^2 :=
+        (sq_le_sq₀ (abs_nonneg _) (by positivity)).2 hAbs
+      _ ≤ (‖u‖^2+‖v‖^2)*(‖u-K v‖^2+‖K u+v‖^2) := hCS
+      _ ≤ (‖u‖^2+‖v‖^2)*(c^2*(‖u‖^2+‖v‖^2)) :=
+        mul_le_mul_of_nonneg_left hBlockBound (by positivity)
+      _ = _ := by ring
+  have hBound := (sq_le_sq₀ (abs_nonneg
+    (‖u‖^2-‖v‖^2-2*inner ℝ (K u) v)) (by positivity)).1 hSquared
+  have hHalf : (1/2 : ℝ)*(‖u‖^2-‖v‖^2)-inner ℝ (K u) v =
+      (1/2 : ℝ)*(‖u‖^2-‖v‖^2-2*inner ℝ (K u) v) := by ring
+  rw [hHalf, abs_mul, abs_of_nonneg (by norm_num : (0 : ℝ) ≤ 1/2)]
+  nlinarith only [hBound]
+
+end
+end AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound
+
+#print axioms AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound.quadratic_corrector_bound_of_square_identity

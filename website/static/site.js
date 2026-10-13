@@ -406,6 +406,34 @@
     document.body.appendChild(script);
   }
 
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest?.("[data-lean-copy]");
+    if (!button) return;
+    const panel = button.closest("[data-lean-code-panel]");
+    const code = panel?.querySelector(":scope > pre > code");
+    const status = button.parentElement.querySelector("[data-lean-copy-status]");
+    if (!code || !status) return;
+    button.disabled = true;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(code.textContent);
+      } else {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(code);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        if (!document.execCommand("copy")) throw new Error("Copy unavailable");
+        selection.removeAllRanges();
+      }
+      status.textContent = "Copied";
+    } catch {
+      status.textContent = "Copy failed; select the Lean code below.";
+    } finally {
+      button.disabled = false;
+    }
+  });
+
   filterCards();
   filterImplementation();
   globalSearch();

@@ -1,0 +1,7 @@
+/-- Measure defined by the exponential distribution -/
+@[wikidata Q237193]
+noncomputable
+def expMeasure (r : ℝ) : Measure ℝ := gammaMeasure 1 r
+
+lemma isProbabilityMeasure_expMeasure {r : ℝ} (hr : 0 < r) :
+    IsProbabilityMeasure (expMeasure r) := isProbabilityMeasure_gammaMeasure zero_lt_one hr

@@ -1,0 +1,153 @@
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.RNLogRatio
+import Mathlib.Analysis.Calculus.Gradient.Basic
+import Mathlib.Analysis.InnerProductSpace.Calculus
+import Mathlib.MeasureTheory.Measure.Tilted
+import Mathlib.Tactic
+
+/-!
+# Smooth representatives of log-density ratios between tilted measures
+
+Mathlib's `llr` is the canonical measurable Radon--Nikodym representative.  A
+paper calculation may instead differentiate an explicit smooth representative.
+This file keeps those two roles separate: it proves almost-everywhere agreement
+with the canonical `llr`, then differentiates the explicit representative.
+
+The quadratic specialization is equation (11) in Lee--Shen--Tian,
+arXiv:2010.03106v4, used by SPHMC Lemma 4.17.  It does not prove a
+log-Sobolev, Talagrand, Fisher-information, or Wasserstein inequality.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace TiltedLogRatio
+
+open MeasureTheory
+open scoped ENNReal NNReal
+
+noncomputable section
+
+variable {X : Type*} [MeasurableSpace X]
+
+/-- The explicit log-density-ratio representative between two exponential
+tilts of the same base measure. -/
+private def representative (mu : Measure X) (f g : X → ℝ) (x : X) : ℝ :=
+  f x - Real.log (∫ z, Real.exp (f z) ∂mu) - g x +
+    Real.log (∫ z, Real.exp (g z) ∂mu)
+
+/-- The canonical `llr` between two integrable tilts agrees almost everywhere
+with the explicit difference of exponents and log normalizers.
+
+The equality is stated under the left tilted law, which is the measure used by
+relative Fisher information. -/
+theorem llr_tilted_tilted_ae
+    (mu : Measure X) [SigmaFinite mu] (f g : X → ℝ)
+    (hf : Measurable f)
+    (hfi : Integrable (fun x => Real.exp (f x)) mu)
+    (hgi : Integrable (fun x => Real.exp (g x)) mu) :
+    MeasureTheory.llr (mu.tilted f) (mu.tilted g) =ᵐ[mu.tilted f]
+      fun x => f x - Real.log (∫ z, Real.exp (f z) ∂mu) - g x +
+        Real.log (∫ z, Real.exp (g z) ∂mu) := by
+  have hbase :
+      MeasureTheory.llr (mu.tilted f) (mu.tilted g) =ᵐ[mu]
+        representative mu f g := by
+    filter_upwards [
+      MeasureTheory.llr_tilted_left
+        (μ := mu) (ν := mu.tilted g) (f := f)
+        (absolutelyContinuous_tilted hgi) hfi hf.aemeasurable,
+      MeasureTheory.llr_tilted_right
+        (μ := mu) (ν := mu) (f := g)
+        Measure.AbsolutelyContinuous.rfl hgi,
+      MeasureTheory.llr_self mu] with x hleft hright hself
+    rw [hleft, hright, hself]
+    simp [representative]
+    ring
+  exact (tilted_absolutelyContinuous mu f).ae_eq hbase
+
+section Quadratic
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E]
+  [MeasurableSpace E] [BorelSpace E]
+
+/-- The negative quadratic exponent in a restricted Gaussian fiber. -/
+private def quadraticExponent (eta : ℝ) (y x : E) : ℝ :=
+  -(‖x - y‖ ^ 2 / (2 * eta))
+
+omit [InnerProductSpace ℝ E] [CompleteSpace E] in
+private theorem quadraticExponent_measurable (eta : ℝ) (y : E) :
+    Measurable (quadraticExponent eta y) := by
+  change Measurable (fun x : E => -(‖x - y‖ ^ 2 / (2 * eta)))
+  fun_prop
+
+omit [MeasurableSpace E] [BorelSpace E] in
+private theorem hasGradientAt_quadraticExponent
+    {eta : ℝ} (heta : eta ≠ 0) (y x : E) :
+    HasGradientAt (quadraticExponent eta y) (-eta⁻¹ • (x - y)) x := by
+  rw [hasGradientAt_iff_hasFDerivAt]
+  have hfun : quadraticExponent eta y =
+      fun t : E => (-eta⁻¹ / 2) * ‖t - y‖ ^ 2 := by
+    funext t
+    simp only [quadraticExponent]
+    field_simp [heta]
+  have hq : HasFDerivAt (fun t : E => (-eta⁻¹ / 2) * ‖t - y‖ ^ 2)
+      ((-eta⁻¹) • innerSL ℝ (x - y)) x := by
+    convert (((hasFDerivAt_id x).sub_const y).norm_sq).const_mul (-eta⁻¹ / 2)
+      using 1 <;> first | rfl | (ext v; simp; ring)
+  rw [hfun]
+  have hdual :
+      InnerProductSpace.toDual ℝ E (-eta⁻¹ • (x - y)) =
+        (-eta⁻¹) • innerSL ℝ (x - y) := by
+    ext v
+    simp [InnerProductSpace.toDual_apply_apply]
+  rw [hdual]
+  exact hq
+
+omit [BorelSpace E] in
+/-- The smooth representative of the log-density ratio between two restricted
+Gaussian fibers has the constant score `(y-y') / eta`.
+
+This is the differential identity in Lee--Shen--Tian equation (11).  The
+normalizing constants are retained in `representative`; they disappear only
+because they are constant in the spatial variable. -/
+theorem gradient_quadratic_representative
+    (mu : Measure E) {eta : ℝ} (heta : eta ≠ 0) (y y' x : E) :
+    gradient
+        (fun t =>
+          -(‖t - y‖ ^ 2 / (2 * eta)) -
+            Real.log (∫ z, Real.exp (-(‖z - y‖ ^ 2 / (2 * eta))) ∂mu) -
+          (-(‖t - y'‖ ^ 2 / (2 * eta))) +
+            Real.log (∫ z, Real.exp (-(‖z - y'‖ ^ 2 / (2 * eta))) ∂mu)) x =
+      eta⁻¹ • (y - y') := by
+  have hy := hasGradientAt_quadraticExponent heta y x
+  have hy' := hasGradientAt_quadraticExponent heta y' x
+  apply HasGradientAt.gradient
+  rw [hasGradientAt_iff_hasFDerivAt]
+  change HasFDerivAt
+    (fun t => quadraticExponent eta y t -
+      Real.log (∫ z, Real.exp (quadraticExponent eta y z) ∂mu) -
+      quadraticExponent eta y' t +
+      Real.log (∫ z, Real.exp (quadraticExponent eta y' z) ∂mu))
+    (InnerProductSpace.toDual ℝ E (eta⁻¹ • (y - y'))) x
+  let c := Real.log (∫ z, Real.exp (quadraticExponent eta y z) ∂mu)
+  let c' := Real.log (∫ z, Real.exp (quadraticExponent eta y' z) ∂mu)
+  have hderiv : HasFDerivAt
+      (fun t => quadraticExponent eta y t - c - quadraticExponent eta y' t + c')
+      ((InnerProductSpace.toDual ℝ E (-eta⁻¹ • (x - y))) -
+        InnerProductSpace.toDual ℝ E (-eta⁻¹ • (x - y'))) x :=
+    ((hy.hasFDerivAt.sub_const c).sub hy'.hasFDerivAt).add_const c'
+  have hvec :
+      (-eta⁻¹ • (x - y)) - (-eta⁻¹ • (x - y')) =
+        eta⁻¹ • (y - y') := by
+    module
+  rw [← hvec, map_sub]
+  simpa only [c, c'] using hderiv
+
+end Quadratic
+
+end
+
+end TiltedLogRatio
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory

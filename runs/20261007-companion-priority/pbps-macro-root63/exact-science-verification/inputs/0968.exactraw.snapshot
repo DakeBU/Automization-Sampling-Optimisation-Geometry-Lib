@@ -1,0 +1,60 @@
+import Mathlib.Analysis.Calculus.FDeriv.Symmetric
+import Mathlib.Analysis.InnerProductSpace.Dual
+import Mathlib.Analysis.InnerProductSpace.Positive
+
+/-!
+# Symmetry of derivatives of gradient fields
+
+For Chewi's displacement interpolation, positivity of the endpoint derivative
+must ultimately come from genuine gradient/Hessian structure rather than a
+coordinate-level PSD assumption.
+
+This module isolates the symmetry half of that statement.  If a scalar
+potential `phi` has Frechet derivative
+
+`D phi(y) = innerSL R (T y)`
+
+at every point and the vector field `T` is Frechet differentiable at `x` with
+derivative `A`, then `A` is symmetric.
+
+The proof sends the derivative of `T` through the continuous-linear Riesz map
+`innerSL R`, obtaining the second Frechet derivative of `phi`, and then invokes
+Mathlib's `second_derivative_symmetric`.  No convexity or monotonicity is needed
+for this symmetry leaf.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementGradientDerivativeSymmetry
+
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- The derivative of a globally represented gradient field is symmetric at
+every point where that vector field is Frechet differentiable. -/
+theorem isSymmetric_fderiv_of_gradient_field
+    {phi : E → ℝ} {T : E → E} {A : E →L[ℝ] E} {x : E}
+    (hphi : ∀ y, HasFDerivAt phi (innerSL ℝ (T y)) y)
+    (hT : HasFDerivAt T A x) :
+    A.IsSymmetric := by
+  have hdual :
+      HasFDerivAt (fun y => innerSL ℝ (T y)) ((innerSL ℝ).comp A) x := by
+    simpa [Function.comp_def] using
+      (innerSL ℝ).hasFDerivAt.comp x hT
+  intro v w
+  have hs := second_derivative_symmetric
+    (f := phi)
+    (f' := fun y => innerSL ℝ (T y))
+    (f'' := (innerSL ℝ).comp A)
+    hphi hdual v w
+  change ⟪A v, w⟫ = ⟪v, A w⟫
+  calc
+    ⟪A v, w⟫ = ⟪A w, v⟫ := by simpa using hs
+    _ = ⟪v, A w⟫ := real_inner_comm _ _
+
+end DisplacementGradientDerivativeSymmetry
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

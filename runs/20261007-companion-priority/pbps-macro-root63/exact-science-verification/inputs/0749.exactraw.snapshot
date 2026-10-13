@@ -1,0 +1,740 @@
+import Mathlib.Probability.Distributions.Poisson.Basic
+import Mathlib.MeasureTheory.Integral.Pi
+import Mathlib.Probability.Independence.InfinitePi
+import Mathlib.MeasureTheory.Measure.Tilted
+import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+import Mathlib.Tactic
+import Mathlib.Probability.Kernel.WithDensity
+/-!
+# Actual bounded Poisson rejection sampler
+
+Source: SPHMC arXiv:2609.06906v1 Appendix A.1 Lemma A.2; the full-batch
+Poisson rejection mechanism in arXiv:2608.05022v1 Algorithm 1.
+
+Each attempt samples an independent proposal, Poisson(2B) count, auxiliary iid
+stream and Uniform[0,1], reading exactly the first N auxiliary coordinates.
+The total first-success output has an explicit default on the null never-hit
+event. The actual output law is the exponential tilt and forms a measurable
+Markov kernel in the input parameter. Conditional acceptance, accepted
+submeasure, exact mass, failure tail, and full-batch expected count are public.
+
+Cost counts auxiliary estimator calls, including the successful attempt's N
+calls. Current count and current acceptance need not be independent. Fixed
+positive B, a fixed auxiliary probability law, and jointly measurable,
+everywhere bounded W are explicit. Gradient estimators, clipping, target
+identification, Renyi accuracy, initialization and full FORS cost are separate
+obligations; this bounded mechanism does not complete the paper's main results.
+-/
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal BigOperators
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection
+private theorem poisson_power_integral (r : ℝ≥0) (t : ℝ) :
+    ∫ n, t ^ n ∂poissonMeasure r = Real.exp ((r : ℝ) * (t - 1)) := by
+  rw [integral_poissonMeasure]
+  have hs := (NormedSpace.expSeries_div_hasSum_exp ((r : ℝ) * t)).mul_left
+    (Real.exp (-(r : ℝ)))
+  have he : Real.exp (-(r : ℝ)) * NormedSpace.exp ((r : ℝ) * t) =
+      Real.exp ((r : ℝ) * (t - 1)) := by
+    rw [← Real.exp_eq_exp_ℝ, ← Real.exp_add]
+    congr 1
+    ring
+  rw [he] at hs
+  convert hs.tsum_eq using 1
+  congr 1
+  funext n
+  simp only [smul_eq_mul, mul_pow]
+  ring
+
+private theorem finite_auxiliary_product_mean {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Integrable W ν) (B : ℝ) (n : ℕ) :
+    ∫ z : Fin n → A, ∏ i, (B + W (z i)) / (2 * B)
+      ∂Measure.pi (fun _ : Fin n => ν) =
+      ((B + ∫ z, W z ∂ν) / (2 * B)) ^ n := by
+  rw [integral_fintype_prod_eq_pow (ι := Fin n) (μ := ν) (fun z => (B + W z) / (2 * B))]
+  simp only [Fintype.card_fin]
+  congr 1
+  rw [integral_div, integral_add (integrable_const B) hW]
+  simp
+
+private theorem poisson_auxiliary_product_mean {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Integrable W ν) (B : ℝ) (hB : 0 < B) :
+    ∫ n, (∫ z : Fin n → A, ∏ i, (B + W (z i)) / (2 * B)
+      ∂Measure.pi (fun _ : Fin n => ν))
+      ∂poissonMeasure ⟨2 * B, by positivity⟩ = Real.exp ((∫ z, W z ∂ν) - B) := by
+  calc
+    _ = ∫ n, ((B + ∫ z, W z ∂ν) / (2 * B)) ^ n
+        ∂poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0) := by
+      apply integral_congr_ae
+      exact Filter.Eventually.of_forall (finite_auxiliary_product_mean ν W hW B)
+    _ = Real.exp ((2 * B) * (((B + ∫ z, W z ∂ν) / (2 * B)) - 1)) :=
+      poisson_power_integral (⟨2 * B, by positivity⟩ : ℝ≥0) _
+    _ = _ := by
+      congr 1
+      field_simp [ne_of_gt hB]
+      ring
+
+private theorem bounded_estimator_mean {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Measurable W) (B : ℝ) (hb : ∀ z, |W z| ≤ B) :
+    Integrable W ν ∧ -(B : ℝ) ≤ ∫ z, W z ∂ν ∧ (∫ z, W z ∂ν) ≤ B := by
+  have hi : Integrable W ν := (integrable_const B).mono'
+    hW.aestronglyMeasurable (Filter.Eventually.of_forall fun z => by simpa using hb z)
+  refine ⟨hi, ?_, ?_⟩
+  · have h := integral_mono (integrable_const (-B)) hi (fun z => (abs_le.mp (hb z)).1)
+    simpa using h
+  · have h := integral_mono hi (integrable_const B) (fun z => (abs_le.mp (hb z)).2)
+    simpa using h
+
+private theorem auxiliary_product_probability {A : Type*} (W : A → ℝ)
+    (B : ℝ) (hB : 0 < B) (hb : ∀ z, |W z| ≤ B)
+    (n : ℕ) (z : Fin n → A) :
+    (0 : ℝ) ≤ ∏ i, (B + W (z i)) / (2 * B) ∧
+      (∏ i, (B + W (z i)) / (2 * B)) ≤ 1 := by
+  have hn (i : Fin n) : 0 ≤ (B + W (z i)) / (2 * B) := by
+    apply div_nonneg
+    · linarith [(abs_le.mp (hb (z i))).1]
+    · positivity
+  refine ⟨Finset.prod_nonneg (fun i _ => hn i), ?_⟩
+  apply Finset.prod_le_one (fun i _ => hn i)
+  intro i _
+  apply (div_le_one (by positivity : 0 < 2 * B)).2
+  linarith [(abs_le.mp (hb (z i))).2]
+
+private noncomputable def unitUniform : Measure ℝ := volume.restrict (Set.Icc 0 1)
+
+private instance : IsProbabilityMeasure unitUniform := by
+  constructor
+  simp [unitUniform, Real.volume_Icc]
+
+private theorem unitUniform_Iic (t : ℝ) (_ht : 0 ≤ t) (ht' : t ≤ 1) :
+    unitUniform (Set.Iic t) = ENNReal.ofReal t := by
+  rw [unitUniform, Measure.restrict_apply measurableSet_Iic]
+  have he : Set.Iic t ∩ Set.Icc (0 : ℝ) 1 = Set.Icc 0 t := by
+    ext u
+    simp only [Set.mem_inter_iff, Set.mem_Iic, Set.mem_Icc]
+    constructor
+    · rintro ⟨hu, h0, _⟩
+      exact ⟨h0, hu⟩
+    · rintro ⟨h0, hu⟩
+      exact ⟨hu, h0, hu.trans ht'⟩
+  rw [he, Real.volume_Icc, sub_zero]
+
+private theorem uniform_acceptance_submeasure {X : Type*} [MeasurableSpace X]
+    (μ : Measure X) (f : X → ℝ) (hf : Measurable f)
+    (h0 : ∀ x, 0 ≤ f x) (h1 : ∀ x, f x ≤ 1) :
+    Measure.map Prod.fst ((μ.prod unitUniform).restrict
+      {p : X × ℝ | p.2 ≤ f p.1}) = μ.withDensity (fun x => ENNReal.ofReal (f x)) := by
+  have hA : MeasurableSet {p : X × ℝ | p.2 ≤ f p.1} :=
+    measurableSet_le measurable_snd (hf.comp measurable_fst)
+  ext s hs
+  rw [Measure.map_apply measurable_fst hs,
+    Measure.restrict_apply (hs.preimage measurable_fst),
+    Measure.prod_apply ((hs.preimage measurable_fst).inter hA),
+    withDensity_apply _ hs, ← lintegral_indicator hs]
+  apply lintegral_congr
+  intro x
+  by_cases hx : x ∈ s
+  · have he : Prod.mk x ⁻¹' (Prod.fst ⁻¹' s ∩ {p : X × ℝ | p.2 ≤ f p.1}) =
+        Set.Iic (f x) := by ext u; simp [hx]
+    rw [he, unitUniform_Iic _ (h0 x) (h1 x)]
+    simp [hx]
+  · have he : Prod.mk x ⁻¹' (Prod.fst ⁻¹' s ∩ {p : X × ℝ | p.2 ≤ f p.1}) =
+        ∅ := by ext u; simp [hx]
+    rw [he]
+    simp [hx]
+
+private theorem uniform_acceptance_mass {X : Type*} [MeasurableSpace X]
+    (μ : Measure X) (f : X → ℝ) (hf : Measurable f)
+    (h0 : ∀ x, 0 ≤ f x) (h1 : ∀ x, f x ≤ 1) :
+    (μ.prod unitUniform) {p : X × ℝ | p.2 ≤ f p.1} =
+      ∫⁻ x, ENNReal.ofReal (f x) ∂μ := by
+  have h := congrArg (fun ρ : Measure X => ρ Set.univ)
+    (uniform_acceptance_submeasure μ f hf h0 h1)
+  simpa [Measure.map_apply measurable_fst MeasurableSet.univ, withDensity_apply] using h
+
+private theorem finite_uniform_acceptance {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Measurable W) (B : ℝ) (hB : 0 < B) (hb : ∀ z, |W z| ≤ B) (n : ℕ) :
+    ((Measure.pi (fun _ : Fin n => ν)).prod unitUniform)
+      {p : (Fin n → A) × ℝ | p.2 ≤ ∏ i, (B + W (p.1 i)) / (2 * B)} =
+      ENNReal.ofReal (((B + ∫ z, W z ∂ν) / (2 * B)) ^ n) := by
+  let f : (Fin n → A) → ℝ := fun z => ∏ i, (B + W (z i)) / (2 * B)
+  have hf : Measurable f := by dsimp [f]; fun_prop
+  have hr z := auxiliary_product_probability W B hB hb n z
+  have hi : Integrable f (Measure.pi (fun _ : Fin n => ν)) :=
+    (integrable_const (1 : ℝ)).mono' hf.aestronglyMeasurable
+      (Filter.Eventually.of_forall fun z => by
+        rw [Real.norm_eq_abs, abs_of_nonneg (hr z).1]
+        exact (hr z).2)
+  change ((Measure.pi (fun _ : Fin n => ν)).prod unitUniform)
+    {p | p.2 ≤ f p.1} = _
+  rw [uniform_acceptance_mass _ f hf (fun z => (hr z).1) (fun z => (hr z).2),
+    ← ofReal_integral_eq_lintegral_ofReal hi (Filter.Eventually.of_forall fun z => (hr z).1)]
+  congr 1
+  exact finite_auxiliary_product_mean ν W (bounded_estimator_mean ν W hW B hb).1 B n
+
+private theorem poisson_uniform_acceptance {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Measurable W) (B : ℝ) (hB : 0 < B) (hb : ∀ z, |W z| ≤ B) :
+    ∫⁻ n, ((Measure.pi (fun _ : Fin n => ν)).prod unitUniform)
+      {p : (Fin n → A) × ℝ | p.2 ≤ ∏ i, (B + W (p.1 i)) / (2 * B)}
+      ∂poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0) =
+      ENNReal.ofReal (Real.exp ((∫ z, W z ∂ν) - B)) := by
+  let r : ℝ≥0 := ⟨2 * B, by positivity⟩
+  let : IsProbabilityMeasure (poissonMeasure r) := inferInstance
+  let t : ℝ := (B + ∫ z, W z ∂ν) / (2 * B)
+  have hm := bounded_estimator_mean ν W hW B hb
+  have ht0 : 0 ≤ t := by
+    apply div_nonneg
+    · linarith [hm.2.1]
+    · positivity
+  have ht1 : t ≤ 1 := by
+    apply (div_le_one (by positivity : 0 < 2 * B)).2
+    linarith [hm.2.2]
+  have hi : Integrable (fun n : ℕ => t ^ n)
+      (poissonMeasure r) :=
+    (integrable_const (1 : ℝ)).mono' Measurable.of_discrete.aestronglyMeasurable
+      (Filter.Eventually.of_forall fun n => by
+        rw [Real.norm_eq_abs, abs_of_nonneg (pow_nonneg ht0 n)]
+        exact pow_le_one₀ ht0 ht1)
+  calc
+    _ = ∫⁻ n, ENNReal.ofReal (t ^ n)
+        ∂poissonMeasure r := by
+      apply lintegral_congr
+      intro n
+      exact finite_uniform_acceptance ν W hW B hB hb n
+    _ = ENNReal.ofReal (∫ n, t ^ n
+        ∂poissonMeasure r) :=
+      (ofReal_integral_eq_lintegral_ofReal hi
+        (Filter.Eventually.of_forall fun n => pow_nonneg ht0 n)).symm
+    _ = _ := by
+      congr 1
+      rw [poisson_power_integral]
+      congr 1
+      change (2 * B) * ((B + ∫ z, W z ∂ν) / (2 * B) - 1) =
+        (∫ z, W z ∂ν) - B
+      field_simp [ne_of_gt hB]
+      ring
+
+private theorem iid_prefix_law {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (n : ℕ) :
+    (Measure.infinitePi (fun _ : ℕ => ν)).map
+      (fun z (i : Fin n) => z i.val) = Measure.pi (fun _ : Fin n => ν) := by
+  rw [Measure.map_infinitePi_infinitePi_of_inj Fin.val_injective,
+    Measure.infinitePi_eq_pi]
+
+private theorem infinite_uniform_acceptance {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Measurable W) (B : ℝ) (hB : 0 < B) (hb : ∀ z, |W z| ≤ B) (n : ℕ) :
+    ((Measure.infinitePi (fun _ : ℕ => ν)).prod unitUniform)
+      {p : (ℕ → A) × ℝ | p.2 ≤ ∏ i : Fin n, (B + W (p.1 i.val)) / (2 * B)} =
+      ENNReal.ofReal (((B + ∫ z, W z ∂ν) / (2 * B)) ^ n) := by
+  let f : (ℕ → A) → (Fin n → A) := fun z i => z i.val
+  have hf : Measurable f := by fun_prop
+  have hl : (((Measure.infinitePi (fun _ : ℕ => ν)).prod unitUniform).map
+      (Prod.map f id)) = (Measure.pi (fun _ : Fin n => ν)).prod unitUniform := by
+    rw [← Measure.map_prod_map _ _ hf measurable_id, Measure.map_id]
+    rw [iid_prefix_law]
+  have ha : MeasurableSet {p : (Fin n → A) × ℝ |
+      p.2 ≤ ∏ i, (B + W (p.1 i)) / (2 * B)} := by
+    apply measurableSet_le measurable_snd
+    fun_prop
+  have he := congrArg (fun ρ : Measure ((Fin n → A) × ℝ) =>
+    ρ {p | p.2 ≤ ∏ i, (B + W (p.1 i)) / (2 * B)}) hl
+  rw [Measure.map_apply (hf.prodMap measurable_id) ha] at he
+  exact he.trans (finite_uniform_acceptance ν W hW B hB hb n)
+
+private theorem actual_poisson_acceptance {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Measurable W) (B : ℝ) (hB : 0 < B) (hb : ∀ z, |W z| ≤ B) :
+    ((poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0)).prod
+      ((Measure.infinitePi (fun _ : ℕ => ν)).prod unitUniform))
+      {p : ℕ × ((ℕ → A) × ℝ) |
+        p.2.2 ≤ ∏ i : Fin p.1, (B + W (p.2.1 i.val)) / (2 * B)} =
+      ENNReal.ofReal (Real.exp ((∫ z, W z ∂ν) - B)) := by
+  have hf : Measurable (fun p : ℕ × ((ℕ → A) × ℝ) =>
+      ∏ i : Fin p.1, (B + W (p.2.1 i.val)) / (2 * B)) := by
+    apply measurable_from_prod_countable_right
+    intro n
+    change Measurable (fun p : (ℕ → A) × ℝ =>
+      ∏ i : Fin n, (B + W (p.1 i.val)) / (2 * B))
+    apply Finset.measurable_fun_prod
+    intro i _
+    fun_prop
+  rw [Measure.prod_apply (measurableSet_le (by fun_prop) hf)]
+  calc
+    _ = ∫⁻ n, ((Measure.pi (fun _ : Fin n => ν)).prod unitUniform)
+        {p : (Fin n → A) × ℝ | p.2 ≤ ∏ i, (B + W (p.1 i)) / (2 * B)}
+        ∂poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0) := by
+      apply lintegral_congr
+      intro n
+      exact (infinite_uniform_acceptance ν W hW B hB hb n).trans
+        (finite_uniform_acceptance ν W hW B hB hb n).symm
+    _ = _ := poisson_uniform_acceptance ν W hW B hB hb
+
+private theorem actual_accepted_proposal {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (μ : Measure X) (ν : Measure A) [IsProbabilityMeasure ν]
+    (W : X × A → ℝ) (hW : Measurable W)
+    (B : ℝ) (hB : 0 < B) (hb : ∀ x z, |W (x,z)| ≤ B) :
+    Measure.map Prod.fst
+      ((μ.prod ((poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0)).prod
+        ((Measure.infinitePi (fun _ : ℕ => ν)).prod unitUniform))).restrict
+        {p : X × (ℕ × ((ℕ → A) × ℝ)) |
+          p.2.2.2 ≤ ∏ i : Fin p.2.1, (B + W (p.1,p.2.2.1 i.val)) / (2 * B)}) =
+      μ.withDensity (fun x => ENNReal.ofReal (Real.exp ((∫ z, W (x,z) ∂ν) - B))) := by
+  have hf : Measurable (fun p : ℕ × (X × ((ℕ → A) × ℝ)) =>
+      ∏ i : Fin p.1, (B + W (p.2.1,p.2.2.1 i.val)) / (2 * B)) := by
+    apply measurable_from_prod_countable_right
+    intro n
+    change Measurable (fun p : X × ((ℕ → A) × ℝ) =>
+      ∏ i : Fin n, (B + W (p.1,p.2.1 i.val)) / (2 * B))
+    apply Finset.measurable_fun_prod
+    intro i _
+    fun_prop
+  have hA : MeasurableSet {p : X × (ℕ × ((ℕ → A) × ℝ)) |
+      p.2.2.2 ≤ ∏ i : Fin p.2.1, (B + W (p.1,p.2.2.1 i.val)) / (2 * B)} :=
+    measurableSet_le (by fun_prop) (hf.comp
+      (show Measurable (fun p : X × (ℕ × ((ℕ → A) × ℝ)) =>
+        (p.2.1, (p.1, p.2.2))) by fun_prop))
+  ext s hs
+  rw [Measure.map_apply measurable_fst hs,
+    Measure.restrict_apply (hs.preimage measurable_fst),
+    Measure.prod_apply ((hs.preimage measurable_fst).inter hA),
+    withDensity_apply _ hs, ← lintegral_indicator hs]
+  apply lintegral_congr
+  intro x
+  by_cases hx : x ∈ s
+  · simpa [Set.preimage, hx] using actual_poisson_acceptance ν (fun z => W (x,z))
+      (hW.comp (by fun_prop)) B hB (hb x)
+  · simp [Set.preimage, hx]
+
+private theorem failure_prefix_probability {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A : Set Y)
+    (hA : MeasurableSet A) (n : ℕ) :
+    (Measure.infinitePi (fun _ : ℕ => ν))
+      {ω | ∀ i < n, ω i ∉ A} = (ν Aᶜ)^n := by
+  have he : {ω : ℕ → Y | ∀ i < n, ω i ∉ A} =
+      Set.pi (Finset.range n) (fun _ => Aᶜ) := by
+    ext ω
+    simp
+  rw [he, Measure.infinitePi_pi _ (fun _ _ => hA.compl)]
+  simp
+
+private theorem first_hit_submeasure {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A E : Set Y)
+    (hA : MeasurableSet A) (hE : MeasurableSet E) (n : ℕ) :
+    (Measure.infinitePi (fun _ : ℕ => ν))
+      {ω | (∀ i < n, ω i ∉ A) ∧ ω n ∈ E} = (ν Aᶜ)^n * ν E := by
+  classical
+  have he : {ω : ℕ → Y | (∀ i < n, ω i ∉ A) ∧ ω n ∈ E} =
+      Set.pi (Finset.range (n+1)) (fun i => if i=n then E else Aᶜ) := by
+    ext ω
+    simp only [Set.mem_ofPred_eq, Set.mem_pi, Finset.mem_coe, Finset.mem_range]
+    constructor
+    · rintro ⟨h, hn⟩ i hi
+      by_cases hin : i=n
+      · simpa [hin] using hn
+      · simpa [hin] using h i (by omega)
+    · intro h
+      refine ⟨?_, ?_⟩
+      · intro i hi
+        simpa [show i≠n by omega] using h i (by omega)
+      · simpa using h n (by omega)
+  rw [he, Measure.infinitePi_pi _ (fun i _ => by split; exact hE; exact hA.compl)]
+  rw [Finset.prod_range_succ]
+  simp only [ite_true]
+  congr 1
+  calc
+    _ = ∏ _i ∈ Finset.range n, ν Aᶜ := by
+      apply Finset.prod_congr rfl
+      intro i hi
+      simp [show i≠n from Nat.ne_of_lt (Finset.mem_range.mp hi)]
+    _ = _ := by simp
+
+private theorem never_hit_null {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A : Set Y)
+    (hA : MeasurableSet A) (hp : 0 < ν A) :
+    (Measure.infinitePi (fun _ : ℕ => ν)) {ω | ∀ i, ω i ∉ A} = 0 := by
+  have hq : ν Aᶜ < 1 := by
+    rw [prob_compl_eq_one_sub hA]
+    exact ENNReal.sub_lt_self (by simp) (by simp) hp.ne'
+  apply le_antisymm ?_ bot_le
+  apply le_of_tendsto_of_tendsto tendsto_const_nhds
+    (ENNReal.tendsto_pow_atTop_nhds_zero_of_lt_one hq)
+  apply Filter.Eventually.of_forall
+  intro n
+  dsimp only
+  rw [← failure_prefix_probability ν A hA n]
+  exact measure_mono (fun ω h i _ => h i)
+
+private noncomputable def firstOutput {Y X : Type*} (A : Set Y) (g : Y → X) (x₀ : X)
+    (ω : ℕ → Y) : X := by
+  classical
+  exact if h : ∃ n, ω n ∈ A then g (ω (Nat.find h)) else x₀
+
+private theorem measurable_firstOutput {Y X : Type*} [MeasurableSpace Y] [MeasurableSpace X]
+    (A : Set Y) (hA : MeasurableSet A) (g : Y → X) (hg : Measurable g) (x₀ : X) :
+    Measurable (firstOutput A g x₀) := by
+  classical
+  let S : Set (ℕ → Y) := {ω | ∃ n, ω n ∈ A}
+  have hS : MeasurableSet S := by
+    convert MeasurableSet.iUnion (fun n : ℕ => hA.preimage (measurable_pi_apply n)) using 1
+    ext ω
+    simp [S]
+  have hf : Measurable (fun ω : S => g (ω.val (Nat.find ω.property))) := by
+    apply Measurable.find (f := fun n (ω : S) => g (ω.val n))
+      (p := fun n (ω : S) => ω.val n ∈ A)
+    · intro n
+      exact hg.comp ((measurable_pi_apply n).comp measurable_subtype_coe)
+    · intro n
+      exact hA.preimage ((measurable_pi_apply n).comp measurable_subtype_coe)
+  exact hf.dite measurable_const hS
+
+private theorem firstOutput_on_hit {Y X : Type*} (A : Set Y) (g : Y → X) (x₀ : X)
+    (ω : ℕ → Y) (n : ℕ) (hprev : ∀ i < n, ω i ∉ A) (hn : ω n ∈ A) :
+    firstOutput A g x₀ ω = g (ω n) := by
+  classical
+  have h : ∃ i, ω i ∈ A := ⟨n, hn⟩
+  have hfind : Nat.find h = n := by
+    apply le_antisymm (Nat.find_min' h hn)
+    exact Nat.le_of_not_gt (fun hlt => hprev _ hlt (Nat.find_spec h))
+  simp [firstOutput, h, hfind]
+
+private theorem firstOutput_law {Y X : Type*} [MeasurableSpace Y] [MeasurableSpace X]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A : Set Y) (hA : MeasurableSet A)
+    (hp : 0 < ν A) (g : Y → X) (hg : Measurable g) (x₀ : X) :
+    (Measure.infinitePi (fun _ : ℕ => ν)).map (firstOutput A g x₀) =
+      (ν A)⁻¹ • (ν.restrict A).map g := by
+  classical
+  let ρ := Measure.infinitePi (fun _ : ℕ => ν)
+  have has : ∀ᵐ ω ∂ρ, ∃ n, ω n ∈ A := by
+    rw [ae_iff]
+    simpa only [not_exists] using never_hit_null ν A hA hp
+  ext s hs
+  let E : ℕ → Set (ℕ → Y) := fun n =>
+    {ω | (∀ i < n, ω i ∉ A) ∧ ω n ∈ A ∩ g ⁻¹' s}
+  have hm (n : ℕ) : MeasurableSet (E n) := by
+    dsimp [E]
+    measurability
+  have hd : Pairwise (fun n m => Disjoint (E n) (E m)) := by
+    intro n m hnm
+    apply Set.disjoint_left.2
+    intro ω hn hm
+    rcases lt_or_gt_of_ne hnm with hlt | hgt
+    · exact hm.1 n hlt hn.2.1
+    · exact hn.1 m hgt hm.2.1
+  have he : firstOutput A g x₀ ⁻¹' s =ᵐ[ρ] ⋃ n, E n := by
+    filter_upwards [has] with ω h
+    apply propext
+    constructor
+    · intro hx
+      apply Set.mem_iUnion.2
+      refine ⟨Nat.find h, ?_⟩
+      refine ⟨fun i hi => Nat.find_min h hi, Nat.find_spec h, ?_⟩
+      change firstOutput A g x₀ ω ∈ s at hx
+      simpa [firstOutput, h] using hx
+    · intro hx
+      obtain ⟨n, hn⟩ := Set.mem_iUnion.1 hx
+      change firstOutput A g x₀ ω ∈ s
+      rw [firstOutput_on_hit A g x₀ ω n hn.1 hn.2.1]
+      exact hn.2.2
+  rw [Measure.map_apply (measurable_firstOutput A hA g hg x₀) hs,
+    measure_congr he, measure_iUnion hd hm]
+  simp only [Measure.smul_apply, smul_eq_mul,
+    Measure.map_apply hg hs, Measure.restrict_apply (hs.preimage hg)]
+  calc
+    _ = ∑' n : ℕ, (ν Aᶜ)^n * ν (A ∩ g ⁻¹' s) := by
+      apply tsum_congr
+      intro n
+      exact first_hit_submeasure ν A (A ∩ g ⁻¹' s)
+        hA (hA.inter (hs.preimage hg)) n
+    _ = (ν A)⁻¹ * ν (g ⁻¹' s ∩ A) := by
+      rw [ENNReal.tsum_mul_right, ENNReal.tsum_geometric,
+        ← prob_compl_eq_one_sub hA.compl, compl_compl, Set.inter_comm]
+
+private theorem surviving_current_law {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A : Set Y)
+    (hA : MeasurableSet A) (n : ℕ) :
+    ((Measure.infinitePi (fun _ : ℕ => ν)).restrict
+      {ω | ∀ i < n, ω i ∉ A}).map (fun ω => ω n) = (ν Aᶜ)^n • ν := by
+  ext E hE
+  rw [Measure.map_apply (measurable_pi_apply n) hE,
+    Measure.restrict_apply (hE.preimage (measurable_pi_apply n))]
+  simp only [Measure.smul_apply, smul_eq_mul]
+  have he : (fun ω : ℕ → Y => ω n) ⁻¹' E ∩ {ω | ∀ i < n, ω i ∉ A} =
+      {ω | (∀ i < n, ω i ∉ A) ∧ ω n ∈ E} := by
+    ext ω
+    simp [and_comm]
+  rw [he]
+  exact first_hit_submeasure ν A E hA hE n
+
+private noncomputable def totalCost {Y : Type*} (A : Set Y) (c : Y → ℝ≥0∞)
+    (ω : ℕ → Y) : ℝ≥0∞ := by
+  classical
+  exact ∑' n : ℕ, if ∀ i < n, ω i ∉ A then c (ω n) else 0
+
+private theorem expected_totalCost {Y : Type*} [MeasurableSpace Y]
+    (ν : Measure Y) [IsProbabilityMeasure ν] (A : Set Y)
+    (hA : MeasurableSet A) (c : Y → ℝ≥0∞) (hc : Measurable c) :
+    ∫⁻ ω, totalCost A c ω ∂Measure.infinitePi (fun _ : ℕ => ν) =
+      (ν A)⁻¹ * ∫⁻ y, c y ∂ν := by
+  classical
+  let ρ := Measure.infinitePi (fun _ : ℕ => ν)
+  have hS (n : ℕ) : MeasurableSet {ω : ℕ → Y | ∀ i < n, ω i ∉ A} := by
+    measurability
+  have hi (n : ℕ) :
+      ∫⁻ ω, (if ∀ i < n, ω i ∉ A then c (ω n) else 0) ∂ρ =
+      (ν Aᶜ)^n * ∫⁻ y, c y ∂ν := by
+    have he : (fun ω : ℕ → Y => if ∀ i < n, ω i ∉ A then c (ω n) else 0) =
+        Set.indicator {ω : ℕ → Y | ∀ i < n, ω i ∉ A} (fun ω => c (ω n)) := by
+      funext ω
+      simp [Set.indicator]
+    rw [he]
+    rw [lintegral_indicator (hS n)]
+    rw [← lintegral_map hc (measurable_pi_apply n), surviving_current_law ν A hA n,
+      lintegral_smul_measure, smul_eq_mul]
+  change (∫⁻ ω, ∑' n : ℕ, if ∀ i < n, ω i ∉ A then c (ω n) else 0 ∂ρ) = _
+  rw [lintegral_tsum]
+  · simp_rw [hi]
+    rw [ENNReal.tsum_mul_right, ENNReal.tsum_geometric,
+      ← prob_compl_eq_one_sub hA.compl, compl_compl]
+  · intro n
+    exact ((hc.comp (measurable_pi_apply n)).ite (hS n) measurable_const).aemeasurable
+
+private theorem bounded_acceptance_mass {X : Type*} [MeasurableSpace X]
+    (μ : Measure X) [IsProbabilityMeasure μ] (w : X → ℝ)
+    (B : ℝ) (hb : ∀ x, -B ≤ w x ∧ w x ≤ B) :
+    ENNReal.ofReal (Real.exp (-2 * B)) ≤
+      ∫⁻ x, ENNReal.ofReal (Real.exp (w x - B)) ∂μ ∧
+    (∫⁻ x, ENNReal.ofReal (Real.exp (w x - B)) ∂μ) ≤ 1 := by
+  constructor
+  · calc
+      _ = ∫⁻ _x, ENNReal.ofReal (Real.exp (-2 * B)) ∂μ := by simp
+      _ ≤ _ := lintegral_mono (fun x => ENNReal.ofReal_le_ofReal
+        (Real.exp_le_exp.mpr (by linarith [(hb x).1])))
+  · calc
+      _ ≤ ∫⁻ _x, (1 : ℝ≥0∞) ∂μ := lintegral_mono (fun x => by
+        rw [ENNReal.ofReal_le_one]
+        exact Real.exp_le_one_iff.mpr (by linarith [(hb x).2]))
+      _ = _ := by simp
+
+private theorem normalized_density_kernel {S X : Type*} [MeasurableSpace S] [MeasurableSpace X]
+    (Q : Kernel S X) [IsMarkovKernel Q] (f : S → X → ℝ≥0∞)
+    (hf : Measurable (Function.uncurry f))
+    (hp : ∀ s, 0 < ∫⁻ x, f s x ∂Q s)
+    (hfin : ∀ s, (∫⁻ x, f s x ∂Q s) ≠ ∞) :
+    ∃ R : Kernel S X, IsMarkovKernel R ∧
+      ∀ s, R s = (∫⁻ x, f s x ∂Q s)⁻¹ • (Q s).withDensity (f s) := by
+  let p : S → ℝ≥0∞ := fun s => ∫⁻ x, f s x ∂Q s
+  have hm : Measurable p := hf.lintegral_kernel_prod_right
+  let F : S → X → ℝ≥0∞ := fun s x => (p s)⁻¹ * f s x
+  have hF : Measurable (Function.uncurry F) := (hm.inv.comp measurable_fst).mul hf
+  let R := Q.withDensity F
+  have he (s : S) : R s = (p s)⁻¹ • (Q s).withDensity (f s) := by
+    rw [Kernel.withDensity_apply Q hF]
+    exact withDensity_smul _ hf.of_uncurry_left
+  refine ⟨R, ?_, he⟩
+  constructor
+  intro s
+  constructor
+  rw [he, Measure.smul_apply, withDensity_apply _ MeasurableSet.univ,
+    setLIntegral_univ, smul_eq_mul]
+  exact ENNReal.inv_mul_cancel (hp s).ne' (hfin s)
+
+private theorem bounded_estimator_output_kernel {S X A : Type*}
+    [MeasurableSpace S] [MeasurableSpace X] [MeasurableSpace A]
+    (Q : Kernel S X) [IsMarkovKernel Q]
+    (ν : Measure A) [IsProbabilityMeasure ν]
+    (W : (S × X) × A → ℝ) (hW : Measurable W)
+    (B : ℝ) (hb : ∀ s x z, |W ((s,x),z)| ≤ B) :
+    ∃ R : Kernel S X, IsMarkovKernel R ∧ ∀ s,
+      R s = (∫⁻ x, ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B)) ∂Q s)⁻¹ •
+        (Q s).withDensity (fun x => ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B))) := by
+  let w : S × X → ℝ := fun p => ∫ z, W (p,z) ∂ν
+  have hw : Measurable w := hW.stronglyMeasurable.integral_prod_right'.measurable
+  let f : S → X → ℝ≥0∞ := fun s x => ENNReal.ofReal (Real.exp (w (s,x) - B))
+  have hf : Measurable (Function.uncurry f) := by
+    exact (Real.measurable_exp.comp (hw.sub measurable_const)).ennreal_ofReal
+  have hbounds s := bounded_acceptance_mass (Q s) (fun x => w (s,x)) B (fun x => by
+    exact (bounded_estimator_mean ν (fun z => W ((s,x),z))
+      (hW.comp (by fun_prop)) B (hb s x)).2)
+  apply normalized_density_kernel Q f hf
+  · intro s
+    exact lt_of_lt_of_le (ENNReal.ofReal_pos.mpr (Real.exp_pos _)) (hbounds s).1
+  · intro s
+    exact ne_top_of_le_ne_top (by simp) (hbounds s).2
+
+private theorem poisson_nat_mean (r : ℝ≥0) :
+    ∫⁻ n : ℕ, (n : ℝ≥0∞) ∂poissonMeasure r = (r : ℝ≥0∞) := by
+  let a : ℕ → ℝ := fun n => Real.exp (-(r : ℝ)) * (r : ℝ)^n / n.factorial * n
+  have hs : HasSum (fun n => a (n+1)) (r : ℝ) := by
+    convert! (hasSum_one_poissonMeasure r).mul_left (r : ℝ) using 1
+    · funext n
+      dsimp [a]
+      rw [pow_succ, Nat.factorial_succ, Nat.cast_mul, Nat.cast_add, Nat.cast_one]
+      field_simp
+    · simp
+  have ha : HasSum a (r : ℝ) := by
+    rw [← hasSum_nat_add_iff' 1]
+    simpa [a] using hs
+  have hi : Integrable (fun n : ℕ => (n : ℝ)) (poissonMeasure r) := by
+    apply integrable_poissonMeasure_iff.mpr
+    simpa [a] using ha.summable
+  have hm : ∫ n : ℕ, (n : ℝ) ∂poissonMeasure r = (r : ℝ) := by
+    rw [integral_poissonMeasure]
+    simpa [smul_eq_mul, a] using ha.tsum_eq
+  have he := ofReal_integral_eq_lintegral_ofReal hi
+    (Filter.Eventually.of_forall (fun n : ℕ => (Nat.cast_nonneg n : (0 : ℝ) ≤ n)))
+  rw [hm] at he
+  simpa using he.symm
+
+private theorem normalized_exp_tilt {X : Type*} [MeasurableSpace X]
+    (μ : Measure X) [IsProbabilityMeasure μ] (w : X → ℝ) (hw : Measurable w)
+    (B : ℝ) (hb : ∀ x, w x ≤ B) :
+    (∫⁻ x, ENNReal.ofReal (Real.exp (w x - B)) ∂μ)⁻¹ •
+      μ.withDensity (fun x => ENNReal.ofReal (Real.exp (w x - B))) = μ.tilted w := by
+  have hi : Integrable (fun x => Real.exp (w x - B)) μ :=
+    (integrable_const (1 : ℝ)).mono' (by fun_prop)
+      (Filter.Eventually.of_forall (fun x => by
+        rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+        exact Real.exp_le_one_iff.mpr (sub_nonpos.mpr (hb x))))
+  have he := ofReal_integral_eq_lintegral_ofReal hi
+    (Filter.Eventually.of_forall (fun x => (Real.exp_pos (w x - B)).le))
+  rw [← he, ← withDensity_smul _ (by fun_prop), Measure.tilted]
+  congr 1
+  funext x
+  change (ENNReal.ofReal (∫ y, Real.exp (w y - B) ∂μ))⁻¹ *
+    ENNReal.ofReal (Real.exp (w x - B)) = _
+  rw [mul_comm, ← div_eq_mul_inv, ← ENNReal.ofReal_div_of_pos (integral_exp_pos hi)]
+  · congr 1
+    simp_rw [Real.exp_sub]
+    rw [integral_div]
+    exact div_div_div_cancel_right₀ (ne_of_gt (Real.exp_pos B)) _ _
+
+private abbrev Attempt (X A : Type*) := X × (ℕ × ((ℕ → A) × ℝ))
+
+private noncomputable def attemptLaw {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (μ : Measure X) (ν : Measure A) [IsProbabilityMeasure ν] (r : ℝ≥0) :
+    Measure (Attempt X A) :=
+  μ.prod ((poissonMeasure r).prod
+    ((Measure.infinitePi (fun _ : ℕ => ν)).prod unitUniform))
+
+private instance {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (μ : Measure X) [IsProbabilityMeasure μ] (ν : Measure A) [IsProbabilityMeasure ν]
+    (r : ℝ≥0) : IsProbabilityMeasure (attemptLaw μ ν r) := by
+  unfold attemptLaw
+  infer_instance
+
+private def accepted {X A : Type*} (W : X × A → ℝ) (B : ℝ) : Set (Attempt X A) :=
+  {p | p.2.2.2 ≤ ∏ i : Fin p.2.1, (B + W (p.1,p.2.2.1 i.val)) / (2 * B)}
+
+private theorem measurable_accepted {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (W : X × A → ℝ) (hW : Measurable W) (B : ℝ) : MeasurableSet (accepted W B) := by
+  have hf : Measurable (fun p : ℕ × (X × ((ℕ → A) × ℝ)) =>
+      ∏ i : Fin p.1, (B + W (p.2.1,p.2.2.1 i.val)) / (2 * B)) := by
+    apply measurable_from_prod_countable_right
+    intro n
+    change Measurable (fun p : X × ((ℕ → A) × ℝ) =>
+      ∏ i : Fin n, (B + W (p.1,p.2.1 i.val)) / (2 * B))
+    apply Finset.measurable_fun_prod
+    intro i _
+    fun_prop
+  exact measurableSet_le (by fun_prop) (hf.comp
+    (show Measurable (fun p : Attempt X A => (p.2.1, (p.1,p.2.2))) by fun_prop))
+
+private theorem attempt_count_mean {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (μ : Measure X) [IsProbabilityMeasure μ] (ν : Measure A) [IsProbabilityMeasure ν]
+    (r : ℝ≥0) : ∫⁻ p : Attempt X A, (p.2.1 : ℝ≥0∞) ∂attemptLaw μ ν r = r := by
+  unfold attemptLaw
+  rw [lintegral_prod _ (by fun_prop)]
+  simp only [lintegral_const, measure_univ, mul_one]
+  rw [lintegral_prod _ (by fun_prop)]
+  simp [poisson_nat_mean]
+
+theorem poisson_rejection_output {S X A : Type*}
+    [MeasurableSpace S] [MeasurableSpace X] [MeasurableSpace A]
+    (Q : Kernel S X) [IsMarkovKernel Q] (ν : Measure A) [IsProbabilityMeasure ν]
+    (W : (S × X) × A → ℝ) (hW : Measurable W)
+    (B : ℝ) (hB : 0 < B) (hb : ∀ s x z, |W ((s,x),z)| ≤ B) (x₀ : X) :
+    let Λ := fun s => attemptLaw (Q s) ν (⟨2 * B, by positivity⟩ : ℝ≥0)
+    let E := fun s => accepted (fun p : X × A => W ((s,p.1),p.2)) B
+    let ρ := fun s => Measure.infinitePi (fun _ : ℕ => Λ s)
+    let out := fun s => firstOutput (E s) Prod.fst x₀
+    ∃ R : Kernel S X, IsMarkovKernel R ∧ ∀ s,
+      Measurable (out s) ∧ (ρ s).map (out s) = R s ∧
+      R s = (Q s).tilted (fun x => ∫ z, W ((s,x),z) ∂ν) ∧
+      (∀ x, ((poissonMeasure (⟨2 * B, by positivity⟩ : ℝ≥0)).prod
+        ((Measure.infinitePi (fun _ : ℕ => ν)).prod unitUniform))
+        {p : ℕ × ((ℕ → A) × ℝ) |
+          p.2.2 ≤ ∏ i : Fin p.1, (B + W ((s,x),p.2.1 i.val)) / (2 * B)} =
+        ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B))) ∧
+      ((Λ s).restrict (E s)).map Prod.fst = (Q s).withDensity
+        (fun x => ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B))) ∧
+      Λ s (E s) = (∫⁻ x, ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B)) ∂Q s) ∧
+      ρ s {ω | ∀ n, ω n ∉ E s} = 0 ∧
+      (∀ n, ρ s {ω | ∀ i < n, ω i ∉ E s} = (1 - Λ s (E s))^n) ∧
+      ENNReal.ofReal (Real.exp (-2 * B)) ≤ Λ s (E s) ∧
+      (∫⁻ ω, totalCost (E s) (fun p => (p.2.1 : ℝ≥0∞)) ω ∂ρ s) =
+        (Λ s (E s))⁻¹ * ENNReal.ofReal (2 * B) ∧
+      (∫⁻ ω, totalCost (E s) (fun p => (p.2.1 : ℝ≥0∞)) ω ∂ρ s) ≤
+        ENNReal.ofReal (2 * B * Real.exp (2 * B)) := by
+  dsimp only
+  let r : ℝ≥0 := ⟨2 * B, by positivity⟩
+  let Λ := fun s => attemptLaw (Q s) ν r
+  let E := fun s => accepted (fun p : X × A => W ((s,p.1),p.2)) B
+  obtain ⟨R, hR, hReq⟩ := bounded_estimator_output_kernel Q ν W hW B hb
+  refine ⟨R, hR, ?_⟩
+  intro s
+  have hWs : Measurable (fun p : X × A => W ((s,p.1),p.2)) := hW.comp (by fun_prop)
+  have hE : MeasurableSet (E s) := measurable_accepted _ hWs B
+  have ha := actual_accepted_proposal (Q s) ν _ hWs B hB (hb s)
+  change ((Λ s).restrict (E s)).map Prod.fst =
+    (Q s).withDensity (fun x => ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B))) at ha
+  have hp : Λ s (E s) =
+      ∫⁻ x, ENNReal.ofReal (Real.exp ((∫ z, W ((s,x),z) ∂ν) - B)) ∂Q s := by
+    have ht := congrArg (fun μ : Measure X => μ Set.univ) ha
+    simpa [Measure.map_apply measurable_fst MeasurableSet.univ,
+      withDensity_apply, Λ, E, attemptLaw, accepted, r] using ht
+  have hbound := bounded_acceptance_mass (Q s)
+    (fun x => ∫ z, W ((s,x),z) ∂ν) B (fun x =>
+      (bounded_estimator_mean ν _ (hW.comp (by fun_prop)) B (hb s x)).2)
+  have hpos : 0 < Λ s (E s) := by
+    rw [hp]
+    exact lt_of_lt_of_le (ENNReal.ofReal_pos.mpr (Real.exp_pos _)) hbound.1
+  have hcost : (∫⁻ ω, totalCost (E s)
+      (fun p => (p.2.1 : ℝ≥0∞)) ω ∂Measure.infinitePi (fun _ : ℕ => Λ s)) =
+      (Λ s (E s))⁻¹ * ENNReal.ofReal (2 * B) := by
+    rw [expected_totalCost (Λ s) (E s) hE _ (by fun_prop),
+      attempt_count_mean]
+    congr 1
+    exact (ENNReal.ofReal_coe_nnreal (p := r)).symm
+  refine ⟨measurable_firstOutput _ hE _ measurable_fst x₀, ?_, ?_, ?_, ha, hp,
+    never_hit_null (Λ s) (E s) hE hpos, ?_, ?_, hcost, ?_⟩
+  · rw [firstOutput_law (Λ s) (E s) hE hpos _ measurable_fst x₀,
+      ha, hp, hReq s]
+  · rw [hReq s]
+    apply normalized_exp_tilt
+    · exact hWs.stronglyMeasurable.integral_prod_right'.measurable
+    · intro x
+      exact (bounded_estimator_mean ν _
+        (hW.comp (by fun_prop)) B (hb s x)).2.2
+  · intro x
+    exact actual_poisson_acceptance ν _ (hW.comp (by fun_prop)) B hB (hb s x)
+  · intro n
+    rw [failure_prefix_probability (Λ s) (E s) hE n,
+      prob_compl_eq_one_sub hE]
+  · rw [hp]
+    exact hbound.1
+  · rw [hcost]
+    calc
+      _ ≤ (ENNReal.ofReal (Real.exp (-2 * B)))⁻¹ * ENNReal.ofReal (2 * B) :=
+        mul_le_mul' (ENNReal.inv_le_inv.mpr (by rw [hp]; exact hbound.1)) le_rfl
+      _ = _ := by
+        rw [← ENNReal.ofReal_inv_of_pos (Real.exp_pos _),
+          ← ENNReal.ofReal_mul (by positivity), ← Real.exp_neg]
+        congr 1
+        ring_nf
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection

@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-7a3fabb04f0008c3",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) :\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s+eta s • gradient V (p s)=y s) ∧\n      (∀ s z, z+eta s • gradient V z=y s → z=p s) ∧\n      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-\n        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u\n      let mu := (volume : Measure E).tilted (fun x => -V x)\n      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))\n      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))\n      let gamma := stdGaussian E\n      let Z := fun s => ∫ u, Real.exp (-rho s u) ∂gamma\n      let q := fun s u => Real.exp (-rho s u)/Z s\n      ∀ s, r s ≪ gamma ∧\n        _root_.InformationTheory.klDiv (r s) gamma ≠ ⊤ ∧\n        Integrable (MeasureTheory.llr (r s) gamma) (r s) ∧\n        MeasureTheory.llr (r s) gamma =ᵐ[r s] (fun u => Real.log (q s u)) ∧\n        Integrable (rho s) (r s) ∧\n        (_root_.InformationTheory.klDiv (r s) gamma).toReal =\n          (∫ u, q s u*Real.log (q s u) ∂gamma) ∧\n        (_root_.InformationTheory.klDiv (r s) gamma).toReal =\n          -(∫ u, rho s u ∂r s)-Real.log (Z s)",
+    "statement_sha256": "7a3fabb04f0008c3b3075843c4815dfe2c2f982c73ed32f893cbdbdf0e383a32",
+    "compiled": true,
+    "approved_definition_context": [
+      "The carrier E is a complete finite-dimensional real Hilbert space with its Borel structure and canonical volume, including dimension zero. stdGaussian E is the actual centered covariance-identity Gaussian.",
+      "Measure.tilted is the normalized exponential tilt when integrable and the zero measure otherwise. Measure.map is the actual pushforward. Every R/r/rho/Z/q uses the same internally produced p. No stationary selector, probability, partition, integrability, mean, entropy or comparison certificate is a public input.",
+      "gradient is the Hilbert Riesz representative of the real Frechet derivative; the Hessian displayed is the actual iterated Frechet derivative. Integrable means genuine Bochner integrability under the indicated measure.",
+      "InformationTheory.klDiv is the canonical extended-nonnegative-real Kullback-Leibler divergence, with !=top meaning finite. MeasureTheory.llr is its canonical measurable Radon-Nikodym log-likelihood representative. Its equality to the literal positive-density log(q) is only almost everywhere under r; no pointwise derivative identity for llr follows.",
+      "All positive eta(s) are admitted. S is an arbitrary measurable parameter carrier with measurable eta/y; constant Unit families specialize fixed parameters. The stationary-point uniqueness quantifies over every z satisfying the same displayed equation. Both entropy identities use the same literal law and normalizer."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "9c4839d6d07eee8a1a4d83ddcbca49032191453213684038d36897ef225480e2"
+}

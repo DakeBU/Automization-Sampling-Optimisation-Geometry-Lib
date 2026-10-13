@@ -1,0 +1,230 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOProgram
+import Mathlib.InformationTheory.KullbackLeibler.ChainRule
+import Mathlib.InformationTheory.KullbackLeibler.DataProcessing
+import Mathlib.Probability.Kernel.RadonNikodym
+import Mathlib.Probability.Kernel.CompProdEqIff
+
+/-!
+# KL error accumulation for the actual finite recursive RGO program
+
+Source: SPHMC arXiv:2609.06906v1, Theorem 6.5 A1 recursion and (6.5).
+The ideal target and Gaussian observation kernels are constructed before all
+actual observation and terminal kernels. The explicit precision-center-history
+update and absorbing transition are those of FiniteRGOProgram. Ideal one-step
+posterior consistency is derived from that construction.
+
+The conclusion sums observation KL errors under actual visited state laws and
+retains the terminal residual. All quantities are extended nonnegative reals;
+no finite KL, moment, absolute-continuity or error-measurability assumption is
+added. Stopped states have zero observation error, not zero terminal error.
+
+This is the finite recursive error-transfer dependency, not the complete A1
+sampler theorem. Identifying the actual smoothed sampler and FORS, proving their
+stage accuracy, applying an adequate stopping cap, and bounding expected queries
+remain separate obligations. TV proximity is not used to transfer costs.
+-/
+
+open MeasureTheory ProbabilityTheory InformationTheory
+open scoped ENNReal NNReal
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOKLError
+
+universe u
+variable {E : Type u} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+local notation "PS" => ℝ≥0 × E × ℕ × (ℕ → E)
+open AutoSamplingTheory.TechnicalLemmas.Measure
+
+/-- The actual finite RGO output KL is bounded by accumulated observation error
+under its own state laws plus the terminal residual, including infinite values. -/
+theorem finite_rgo_kl_error (μ : Measure E) [IsProbabilityMeasure μ]
+    (a : PS → ℝ) (ha : Measurable a) (ha0 : ∀ s, 0 < a s) (threshold : ℝ≥0) :
+    let F : PS × E → PS := fun p =>
+      (⟨(p.1.1 : ℝ)+(a p.1)⁻¹, add_nonneg p.1.1.coe_nonneg (le_of_lt (inv_pos.mpr (ha0 p.1)))⟩,
+       ((p.1.1 : ℝ)+(a p.1)⁻¹)⁻¹ • ((p.1.1 : ℝ) • p.1.2.1+(a p.1)⁻¹ • p.2),
+       p.1.2.2.1+1, fun n => Nat.casesOn n p.2 p.1.2.2.2)
+    ∃ (T H : Kernel PS E), IsMarkovKernel T ∧ IsMarkovKernel H ∧
+      (∀ s, T s = μ.tilted (fun x => -((s.1 : ℝ)/2)*‖x-s.2.1‖^2)) ∧
+      (∀ s, H s = GaussianSmoothing.gaussianSmoothing (T s) (Real.sqrt (a s))) ∧
+      ∀ (Q L : Kernel PS E), IsMarkovKernel Q → IsMarkovKernel L →
+      ∃ (P : Kernel PS PS) (R : ℕ → Kernel PS E), IsMarkovKernel P ∧
+        (∀ n, IsMarkovKernel (R n)) ∧
+        (∀ s, P s = if threshold ≤ s.1 then Measure.dirac s else (Q s).map (fun y => F (s,y))) ∧
+        R 0 = L ∧
+        (∀ n s, R (n+1) s = if threshold ≤ s.1 then L s else
+          (Q s).bind (fun y => R n (F (s,y)))) ∧
+        let e : PS → ℝ≥0∞ := fun s => if threshold ≤ s.1 then 0 else klDiv (Q s) (H s)
+        let t : PS → ℝ≥0∞ := fun s => klDiv (L s) (T s)
+        Measurable e ∧ Measurable t ∧
+        ∀ n s, klDiv (R n s) (T s) ≤
+          (∑ j ∈ Finset.range n, ∫⁻ x, e x ∂(P^j) s) + ∫⁻ x, t x ∂(P^n) s := by
+  classical
+  have measurable_fiber_kl {A B : Type u} [MeasurableSpace A] [MeasurableSpace B] [MeasurableSpace.CountableOrCountablyGenerated A B] (L K : Kernel A B) [IsMarkovKernel L] [IsMarkovKernel K] :
+      Measurable (fun x => klDiv (L x) (K x)) := by
+    classical
+    have hf : Measurable (fun p : A × B =>
+        ENNReal.ofReal (klFun ((Kernel.rnDeriv L K p.1 p.2).toReal))) := by
+      exact ENNReal.measurable_ofReal.comp
+        (continuous_klFun.measurable.comp (Kernel.measurable_rnDeriv L K).ennreal_toReal)
+    have heq (x : A) : klDiv (L x) (K x) =
+        if L x ≪ K x then ∫⁻ y, ENNReal.ofReal (klFun ((Kernel.rnDeriv L K x y).toReal)) ∂K x
+        else ∞ := by
+      rw [klDiv_eq_lintegral_klFun]
+      split_ifs
+      · apply lintegral_congr_ae
+        filter_upwards [Kernel.rnDeriv_eq_rnDeriv_measure (κ := L) (η := K) (a := x)] with y hy
+        rw [hy]
+      · rfl
+    simp_rw [heq]
+    exact Measurable.ite (Kernel.measurableSet_absolutelyContinuous L K)
+      hf.lintegral_kernel_prod_right' measurable_const
+  have conditional_kl_integral {A B : Type u} [MeasurableSpace A] [MeasurableSpace B] [MeasurableSpace.CountableOrCountablyGenerated A B] (μ : Measure A) [IsProbabilityMeasure μ]
+      (L K : Kernel A B) [IsMarkovKernel L] [IsMarkovKernel K] :
+      klDiv (μ ⊗ₘ L) (μ ⊗ₘ K) = ∫⁻ x, klDiv (L x) (K x) ∂μ := by
+    classical
+    by_cases hac : μ ⊗ₘ L ≪ μ ⊗ₘ K
+    · have hfiber := hac.kernel_of_compProd
+      have hwd : (μ ⊗ₘ K).withDensity (fun p => Kernel.rnDeriv L K p.1 p.2) = μ ⊗ₘ L := by
+        rw [← Measure.compProd_withDensity (Kernel.measurable_rnDeriv L K)]
+        apply Measure.compProd_congr
+        filter_upwards [hfiber] with x hx
+        exact Kernel.withDensity_rnDeriv_eq hx
+      have hrn : (μ ⊗ₘ L).rnDeriv (μ ⊗ₘ K) =ᵐ[μ ⊗ₘ K]
+          (fun p => Kernel.rnDeriv L K p.1 p.2) := by
+        rw [← hwd]
+        exact Measure.rnDeriv_withDensity _ (Kernel.measurable_rnDeriv L K)
+      rw [klDiv_eq_lintegral_klFun_of_ac hac]
+      calc
+        _ = ∫⁻ p, ENNReal.ofReal (klFun ((Kernel.rnDeriv L K p.1 p.2).toReal)) ∂(μ ⊗ₘ K) := by
+          apply lintegral_congr_ae
+          filter_upwards [hrn] with p hp
+          rw [hp]
+        _ = ∫⁻ x, ∫⁻ y, ENNReal.ofReal (klFun ((Kernel.rnDeriv L K x y).toReal)) ∂K x ∂μ := by
+          apply Measure.lintegral_compProd
+          exact ENNReal.measurable_ofReal.comp
+            (continuous_klFun.measurable.comp (Kernel.measurable_rnDeriv L K).ennreal_toReal)
+        _ = _ := by
+          apply lintegral_congr_ae
+          filter_upwards [hfiber] with x hx
+          rw [klDiv_eq_lintegral_klFun_of_ac hx]
+          apply lintegral_congr_ae
+          filter_upwards [Kernel.rnDeriv_eq_rnDeriv_measure (κ := L) (η := K) (a := x)] with y hy
+          rw [hy]
+    · rw [klDiv_of_not_ac hac]
+      symm
+      by_contra hfinite
+      have hf := ae_lt_top (measurable_fiber_kl L K) hfinite
+      apply hac
+      apply Measure.AbsolutelyContinuous.compProd_right
+      filter_upwards [hf] with x hx
+      exact (klDiv_ne_top_iff.mp hx.ne).1
+  have composed_kl_bound {A B : Type u} [MeasurableSpace A] [MeasurableSpace B] [MeasurableSpace.CountableOrCountablyGenerated A B] (P Q : Measure A) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
+      (L K : Kernel A B) [IsMarkovKernel L] [IsMarkovKernel K] :
+      klDiv (L ∘ₘ P) (K ∘ₘ Q) ≤ klDiv P Q + ∫⁻ x, klDiv (L x) (K x) ∂P := by
+    calc
+      klDiv (L ∘ₘ P) (K ∘ₘ Q) = klDiv (P ⊗ₘ L).snd (Q ⊗ₘ K).snd := by
+        rw [Measure.snd_compProd, Measure.snd_compProd]
+      _ ≤ klDiv (P ⊗ₘ L) (Q ⊗ₘ K) := klDiv_map_le _ _ measurable_snd
+      _ = _ := by rw [klDiv_compProd_eq_add, conditional_kl_integral]
+  have kernel_error_sum {A : Type u} [MeasurableSpace A] (P : Kernel A A) [IsMarkovKernel P]
+      (e t : A → ℝ≥0∞) (he : Measurable e) (ht : Measurable t)
+      (f : ℕ → A → ℝ≥0∞) (hzero : ∀ s, f 0 s ≤ t s)
+      (hstep : ∀ n s, f (n+1) s ≤ e s + ∫⁻ x, f n x ∂P s) :
+      ∀ n s, f n s ≤ (∑ j ∈ Finset.range n, ∫⁻ x, e x ∂(P^j) s) + ∫⁻ x, t x ∂(P^n) s := by
+    have hp (n : ℕ) : IsMarkovKernel (P^n) := by
+      induction n with
+      | zero => change IsMarkovKernel Kernel.id; infer_instance
+      | succ n ih =>
+        let := ih
+        rw [pow_succ]
+        change IsMarkovKernel ((P^n) ∘ₖ P)
+        infer_instance
+    let := hp
+    have hi (n : ℕ) : Measurable (fun s => ∫⁻ x, e x ∂(P^n) s) := he.lintegral_kernel
+    intro n
+    induction n with
+    | zero =>
+      intro s
+      simp only [Finset.range_zero,Finset.sum_empty,zero_add,pow_zero]
+      change f 0 s ≤ ∫⁻ x, t x ∂Measure.dirac s
+      simpa only [lintegral_dirac' s ht] using hzero s
+    | succ n ih =>
+      intro s
+      calc
+        f (n+1) s ≤ e s + ∫⁻ x, f n x ∂P s := hstep n s
+        _ ≤ e s + ∫⁻ x, (∑ j ∈ Finset.range n, ∫⁻ y, e y ∂(P^j) x) +
+            ∫⁻ y, t y ∂(P^n) x ∂P s := add_le_add le_rfl (lintegral_mono ih)
+        _ = _ := by
+          rw [lintegral_add_left (Finset.measurable_sum _ (fun j _ => hi j))]
+          rw [lintegral_finsetSum _ (fun j _ => hi j)]
+          have hei (j : ℕ) : (∫⁻ x, ∫⁻ y, e y ∂(P^j) x ∂P s) = ∫⁻ y, e y ∂(P^(j+1)) s := by
+            rw [pow_succ]
+            exact (Kernel.lintegral_comp (P^j) P s he).symm
+          have hti : (∫⁻ x, ∫⁻ y, t y ∂(P^n) x ∂P s) = ∫⁻ y, t y ∂(P^(n+1)) s := by
+            rw [pow_succ]
+            exact (Kernel.lintegral_comp (P^n) P s ht).symm
+          simp_rw [hei]
+          rw [hti,Finset.sum_range_succ']
+          simp only [pow_zero]
+          rw [show (1 : Kernel A A) s = Measure.dirac s from rfl,lintegral_dirac' s he]
+          change e s + ((∑ j ∈ Finset.range n, ∫⁻ x, e x ∂(P^(j+1)) s) + _) =
+            ((∑ j ∈ Finset.range n, ∫⁻ x, e x ∂(P^(j+1)) s) + e s) + _
+          ac_rfl
+  intro F
+  have hF : Measurable F := by
+    apply Measurable.prodMk
+    · exact Measurable.subtype_mk (by fun_prop)
+    · apply Measurable.prodMk
+      · fun_prop
+      · apply Measurable.prodMk
+        · fun_prop
+        · apply measurable_pi_lambda
+          intro n
+          cases n <;> fun_prop
+  obtain ⟨T,H,hT,hH,hTf,hHf,hprog⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOProgram.finite_rgo_program μ a ha ha0 threshold
+  let := hT
+  let := hH
+  obtain ⟨PI,RI,hPI,hRI,hPIf,hRIzero,hRIrec,hRIstop,hRIpath,hRIideal⟩ := hprog H T hH hT
+  have hcons (s : PS) (hs : ¬threshold ≤ s.1) :
+      (H s).bind (fun y => T (F (s,y))) = T s := by
+    have hh := hRIrec 0 s
+    rw [hRIideal rfl rfl 1,hRIzero,if_neg hs] at hh
+    exact hh.symm
+  refine ⟨T,H,hT,hH,hTf,hHf,?_⟩
+  intro Q L hQ hL
+  let := hQ
+  let := hL
+  obtain ⟨P,R,hP,hR,hPf,hzero,hrec,hstop,hpath,hideal⟩ := hprog Q L hQ hL
+  let := hP
+  refine ⟨P,R,hP,hR,hPf,hzero,hrec,?_⟩
+  intro e t
+  have he : Measurable e := Measurable.ite
+    (measurableSet_le measurable_const measurable_fst) measurable_const (measurable_fiber_kl Q H)
+  have ht : Measurable t := measurable_fiber_kl L T
+  refine ⟨he,ht,?_⟩
+  apply kernel_error_sum P e t he ht (fun n s => klDiv (R n s) (T s))
+  · intro s
+    rw [hzero]
+  · intro n s
+    let := hR n
+    by_cases hs : threshold ≤ s.1
+    · rw [hstop (n+1) s hs,show e s = 0 from if_pos hs,hPf,if_pos hs,
+        lintegral_dirac' s (measurable_fiber_kl (R n) T),hstop n s hs,zero_add]
+    · have hFs : Measurable (fun y : E => F (s,y)) := hF.comp measurable_prodMk_left
+      let LR : Kernel E E := (R n).comap (fun y => F (s,y)) hFs
+      let KT : Kernel E E := T.comap (fun y => F (s,y)) hFs
+      have hLR : IsMarkovKernel LR := by dsimp [LR]; infer_instance
+      have hKT : IsMarkovKernel KT := by dsimp [KT]; infer_instance
+      let := hLR
+      let := hKT
+      have hc := composed_kl_bound (Q s) (H s) LR KT
+      change klDiv ((Q s).bind (fun y => R n (F (s,y)))) ((H s).bind (fun y => T (F (s,y)))) ≤
+        klDiv (Q s) (H s) + ∫⁻ y, klDiv (R n (F (s,y))) (T (F (s,y))) ∂Q s at hc
+      rw [hcons s hs] at hc
+      rw [hrec,if_neg hs,show e s = klDiv (Q s) (H s) from if_neg hs,hPf,if_neg hs,
+        lintegral_map (measurable_fiber_kl (R n) T) hFs]
+      exact hc
+
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOKLError

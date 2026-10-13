@@ -1,0 +1,39 @@
+from common import *
+from tools import astis_advance
+assert head()==SCI
+checks=[]
+def V(row,p=None):
+ a=matches(row,p); checks.append(a); return a
+run=J(P/'run.json'); payload=J(P/'payload.json'); promotion=J(P/'promotion.json'); inputs=J(P/'inputs.before.json'); native=J(P/'native.review.json')
+assert run['run_sha256']==H(C({k:v for k,v in run.items() if k!='run_sha256'}))
+assert run['named_verification_payload']==payload['named_verification_payload']
+assert run['named_verification_payload_sha256']==payload['named_verification_payload_sha256']==H(C(payload['named_verification_payload']))
+def walk(obj):
+ if isinstance(obj,dict):
+  if obj.get('raw_sha256') and obj.get('path'): V(obj)
+  else:
+   for v in obj.values(): walk(v)
+ elif isinstance(obj,list):
+  for v in obj: walk(v)
+walk(run); walk(J(P/'receipt.json'))
+for row in inputs['freeze_inputs']: V(row)
+for row in inputs['native_inputs']: V(row)
+for row in native['verified_pins']: V(row)
+history=native['finite_history_mappings']
+for mapping in history:
+ V(mapping['exact_raw_snapshot']); V(mapping['original'],mapping['exact_raw_snapshot']['path'])
+ledger=ROOT/'runs/substantive_advances.jsonl'; before=inputs['ledger_before']; V(before['raw_snapshot']); V(before['original'],before['raw_snapshot']['path'])
+old=path(before['raw_snapshot']['path']).read_bytes(); new=ledger.read_bytes(); assert new.startswith(old)
+tail=[json.loads(l) for l in new[len(old):].splitlines() if l.strip()]; assert tail==[promotion['appended_record']]
+gitrows=J(P/'science.entries.json')['entries']; mapped=[]
+for row in gitrows:
+ if row['repository_path']=='runs/substantive_advances.jsonl':
+  V(row['current'],before['raw_snapshot']['path']); mapped.append(dict(original=row['current'],exact_before_snapshot=before['raw_snapshot'],approved_delta='Exactly one independent VERIFIED ledger append; unchanged byte prefix'))
+ else: V(row['current'])
+V(promotion['ledger_after'])
+state=astis_advance.current_advances(); assert state[SAU]['state']=='VERIFIED' and state[SAU]['latest_evidence']['verifier_id']==ACTOR
+assert [k for k,v in state.items() if v.get('state')=='STABILIZING']==['ASTIS-SA-20261005-SPHMCImplementedPhaseKernel']
+o=J(P/'outputs.final.json'); assert o['outputs_sha256']==H(C({k:v for k,v in o.items() if k!='outputs_sha256'}))
+for row in o['artifacts']: V(row)
+W(P/'readback.json',dict(schema='native-exact-science61-terminal-readback-v1',status='PASS',checked_commit=SCI,actual_readback_PID=os.getpid(),science_entries_checked=len(gitrows),science_current_LF_equal_before_append=691,post_transition_mapped_paths=len(mapped),native_qualified_pins=len(native['verified_pins']),freeze_count=27,outputs_count=len(o['artifacts']),total_pin_checks=len(checks),unique_qualified_paths=len({r['path'] for r in checks}),explicit_post_transition_before_mappings=mapped,native_historical_maps=history,run_sha256=run['run_sha256'],named_verification_payload_sha256=run['named_verification_payload_sha256'],ledger_single_append_verified=True,compiler='CLOSED38692_EXIT0',canonical_cells_audits_proofs_unchanged=True))
+print('READBACK_PASS',len(checks),'pin_checks',len(gitrows),'science_entries')

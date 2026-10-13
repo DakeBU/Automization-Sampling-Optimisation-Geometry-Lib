@@ -1,0 +1,313 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TerminalReferenceGradientDescent
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOProgram
+import Mathlib.Tactic
+
+open MeasureTheory Set InnerProductSpace ProbabilityTheory
+open scoped RealInnerProductSpace NNReal
+/-!
+# Carry the actual reference through a recursive RGO state transition
+
+Source: Chen, Chewi, Lu and Zhang, arXiv:2609.06906v1, Algorithm 3.3
+and Section 6.3. The current Markov output M is interpreted in original
+coordinates before the fresh independent noise. The true next quadratic
+potential has the precision-weighted center, and its reference GD starts
+from the pre-noise output. A genuine constant-difference identity proves
+gradient and whole-trajectory agreement with the source quadratic update.
+
+The actual first inner hit is measurable jointly in precision, center,
+step and initial state. A stricter terminal hit supplies only a finite
+witness; its stopping time and output are not substituted. The new original-
+coordinate reference is stored with precision, center, count and history.
+Its scaled version satisfies the next normalized reference condition.
+An explicit product-kernel pushforward constructs the Markov transition.
+
+The supplied nonnegative precision threshold gives absorbing self-loops.
+For positive threshold this matches A<=Abar iff b>=1/Abar; the exact source
+threshold and finite-time reachability are not proved. Threshold zero is
+an immediate-absorption extension. Absorption does not run FORS or return
+a final sample. Previous reference admissibility and valid-history invariants
+are not assumed; arbitrary M,eta,tau may depend on that previous reference.
+
+Projection only identifies one-step marginals. It does not make the projected
+whole process Markov without a factorization assumption. M is a supplied
+actual Markov kernel, with no accuracy or moment guarantee. Full smoothed
+sampling, terminal kernels, conditional errors and expected query costs remain
+separate. General beta and coordinate-free positive dimension extend the
+normalized source setting; alpha,eta,tau are positive and current b may be zero.
+-/
+
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ReferenceCarryingKernel
+variable {E X : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [MeasurableSpace X]
+
+private theorem state_iterates {g : E → E} (hg : Measurable g)
+    {b step : X → ℝ} {u initial : X → E}
+    (hb : Measurable b) (hs : Measurable step) (hu : Measurable u)
+    (hi : Measurable initial) (n : ℕ) :
+    Measurable (fun s => (fun x => x-step s • (g x+b s • (x-u s)))^[n] (initial s)) := by
+  induction n with
+  | zero => simpa only [Function.iterate_zero,id_eq] using hi
+  | succ n ih =>
+    simp only [Function.iterate_succ_apply']
+    exact ih.sub (hs.smul ((hg.comp ih).add (hb.smul (ih.sub hu))))
+
+private def firstIndex (q : ℕ → X → ℝ) (b : X → ℝ) (s : X) : ℕ := by
+  classical
+  exact if h : ∃ n, q n s ≤ b s then Nat.find h else 0
+
+omit [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [BorelSpace E] in
+private theorem stopped_family (x : ℕ → X → E) (q : ℕ → X → ℝ) (b : X → ℝ)
+    (hx : ∀ n, Measurable (x n))
+    (hq : ∀ n, MeasurableSet {s | q n s ≤ b s})
+    (ht : ∀ s, ∃ n, q n s ≤ b s) :
+    let N := firstIndex q b
+    Measurable N ∧ Measurable (fun s => x (N s) s) ∧
+      ∀ s, q (N s) s ≤ b s ∧ ∀ j < N s, b s < q j s := by
+  classical
+  let N := firstIndex q b
+  have hn (s : X) : N s=Nat.find (ht s) := by
+    simp only [N,firstIndex,dif_pos (ht s)]
+  have hm : Measurable N := by
+    rw [show N=(fun s => Nat.find (ht s)) from funext hn]
+    exact measurable_find ht hq
+  have ho : Measurable (fun s => x (N s) s) := by
+    simp_rw [hn]
+    exact Measurable.find hx hq ht
+  refine ⟨hm,ho,fun s => ?_⟩
+  change q (N s) s ≤ b s ∧ ∀ j < N s, b s < q j s
+  rw [hn]
+  exact ⟨Nat.find_spec (ht s),fun j hj => lt_of_not_ge (Nat.find_min (ht s) hj)⟩
+
+private theorem variable_reference {V : E → ℝ} {α β : ℝ≥0}
+    (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ (β:ℝ)*‖v‖^2)
+    (hαβ : α ≤ β) (hd : 0 < (Module.finrank ℝ E : ℝ))
+    {b : X → ℝ} {u initial : X → E} (hb : Measurable b)
+    (hb0 : ∀ s, 0 < b s) (hu : Measurable u) (hi : Measurable initial) :
+    let d : ℝ := Module.finrank ℝ E
+    let F := fun s x => V x+b s/2*‖x-u s‖^2
+    let T := fun s x => x-((β:ℝ)+b s)⁻¹ • gradient (F s) x
+    let q := fun n s => ‖gradient (F s) ((T s)^[n] (initial s))‖^2
+    let N := firstIndex q (fun s => ((α:ℝ)+b s)*d)
+    Measurable N ∧ Measurable (fun s => (T s)^[N s] (initial s)) ∧
+      (∀ s x, gradient (F s) x=gradient V x+b s • (x-u s)) ∧
+      ∀ s, q (N s) s ≤ ((α:ℝ)+b s)*d ∧
+        ∀ j < N s, ((α:ℝ)+b s)*d < q j s := by
+  let d : ℝ := Module.finrank ℝ E
+  let F := fun s x => V x+b s/2*‖x-u s‖^2
+  let T := fun s x => x-((β:ℝ)+b s)⁻¹ • gradient (F s) x
+  let q := fun n s => ‖gradient (F s) ((T s)^[n] (initial s))‖^2
+  have hgrad (s : X) (x : E) : gradient (F s) x=gradient V x+b s • (x-u s) := by
+    have h := TerminalReferenceGradientDescent.terminal_reference_gradient_descent
+      hV hH hαβ (inv_pos.mpr (hb0 s)) hd rfl (u s)
+    simpa only [inv_inv] using h.2.2.2.1 x
+  have hgV : Measurable (gradient V) :=
+    (TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one
+      (hV.of_le (by norm_num))).measurable
+  have hTeq : T=(fun s x => x-((β:ℝ)+b s)⁻¹ • (gradient V x+b s • (x-u s))) := by
+    funext s x
+    dsimp [T]
+    rw [hgrad]
+  have hm (n : ℕ) : Measurable (fun s => (T s)^[n] (initial s)) := by
+    rw [hTeq]
+    exact state_iterates hgV hb ((measurable_const.add hb).inv) hu hi n
+  have hq (n : ℕ) : Measurable (q n) := by
+    change Measurable (fun s => ‖gradient (F s) ((T s)^[n] (initial s))‖^2)
+    simp_rw [hgrad]
+    exact ((hgV.comp (hm n)).add (hb.smul ((hm n).sub hu))).norm.pow_const 2
+  have hevent (n : ℕ) : MeasurableSet {s | q n s ≤ ((α:ℝ)+b s)*d} :=
+    measurableSet_le (hq n) ((measurable_const.add hb).mul_const d)
+  have ht (s : X) : ∃ n, q n s ≤ ((α:ℝ)+b s)*d := by
+    have h := TerminalReferenceGradientDescent.terminal_reference_gradient_descent
+      hV hH hαβ (inv_pos.mpr (hb0 s)) hd rfl (u s)
+    simp only [inv_inv] at h
+    have hp := h.2.2.2.2.2.2.1 (initial s)
+    have hle : d/(b s)⁻¹ ≤ ((α:ℝ)+b s)*d := by
+      rw [div_inv_eq_mul]
+      have ha := α.coe_nonneg
+      nlinarith
+    exact ⟨_,hp.1.trans hle⟩
+  have hs := stopped_family (fun n s => (T s)^[n] (initial s)) q
+    (fun s => ((α:ℝ)+b s)*d) hm hevent ht
+  exact ⟨hs.1,hs.2.1,hgrad,hs.2.2⟩
+
+omit [MeasurableSpace E] [BorelSpace E] [MeasurableSpace X] in
+private theorem quadratic_source_alignment (V : E → ℝ) {r t : ℝ}
+    (hr : 0 ≤ r) (ht : 0 < t) (u y : E) :
+    let w := (r+t)⁻¹ • (r • u+t • y)
+    let F := fun x => V x+r/2*‖x-u‖^2+t/2*‖x-y‖^2
+    let G := fun x => V x+(r+t)/2*‖x-w‖^2
+    (∀ x, F x=G x+r*t/(2*(r+t))*‖u-y‖^2) ∧
+      (∀ x, gradient F x=gradient G x) ∧
+      ∀ (h : ℝ) (n : ℕ) (x : E),
+        (fun z => z-h • gradient F z)^[n] x =
+          (fun z => z-h • gradient G z)^[n] x := by
+  let w := (r+t)⁻¹ • (r • u+t • y)
+  let F := fun x => V x+r/2*‖x-u‖^2+t/2*‖x-y‖^2
+  let G := fun x => V x+(r+t)/2*‖x-w‖^2
+  have hrt : 0 < r+t := add_pos_of_nonneg_of_pos hr ht
+  have he (x : E) : F x=G x+r*t/(2*(r+t))*‖u-y‖^2 := by
+    dsimp [F,G,w]
+    simp only [← real_inner_self_eq_norm_sq,inner_sub_left,inner_sub_right,
+      inner_add_left,inner_add_right,real_inner_smul_left,real_inner_smul_right]
+    rw [real_inner_comm y u,real_inner_comm u x,real_inner_comm y x]
+    field_simp
+    ring
+  have hg (x : E) : gradient F x=gradient G x := by
+    rw [show F=(fun x => G x+r*t/(2*(r+t))*‖u-y‖^2) from funext he]
+    simp only [gradient,fderiv_add_const]
+  refine ⟨he,hg,fun h n x => ?_⟩
+  have hh : (fun z => z-h • gradient F z)=(fun z => z-h • gradient G z) := by
+    funext z
+    rw [hg]
+  rw [hh]
+
+omit [MeasurableSpace E] [BorelSpace E] [MeasurableSpace X] in
+private theorem scaled_reference_bound {F : E → ℝ} (hF : Differentiable ℝ F)
+    {c a d : ℝ} (hc : 0 < c) {x : E} (hx : ‖gradient F x‖^2 ≤ a*d) :
+    ‖gradient (fun z => F ((Real.sqrt c)⁻¹ • z)) (Real.sqrt c • x)‖^2 ≤ d/(c/a) := by
+  let s := (Real.sqrt c)⁻¹
+  let L : E →L[ℝ] E := s • ContinuousLinearMap.id ℝ E
+  have hL (z : E) : HasFDerivAt (fun w : E => s • w) L z :=
+    (hasFDerivAt_id z).const_smul s
+  have hs : Real.sqrt c ≠ 0 := (Real.sqrt_pos.mpr hc).ne'
+  have hscale : s • (Real.sqrt c • x)=x := by
+    simp [s,smul_smul,inv_mul_cancel₀ hs]
+  have hg : gradient (fun z => F (s • z)) (Real.sqrt c • x)=s • gradient F x := by
+    apply HasGradientAt.gradient
+    rw [hasGradientAt_iff_hasFDerivAt]
+    have he : (InnerProductSpace.toDual ℝ E (gradient F x)).comp L =
+        InnerProductSpace.toDual ℝ E (s • gradient F x) := by
+      ext v
+      simp [L]
+    rw [← he]
+    have h : HasFDerivAt (fun z => F (s • z))
+        ((InnerProductSpace.toDual ℝ E (gradient F (s • (Real.sqrt c • x)))).comp L)
+        (Real.sqrt c • x) :=
+      (hF (s • (Real.sqrt c • x))).hasGradientAt.hasFDerivAt.comp _ (hL _)
+    simpa only [hscale] using h
+  rw [hg,norm_smul,Real.norm_eq_abs,mul_pow,sq_abs]
+  have he : s^2=c⁻¹ := by dsimp [s]; rw [inv_pow,Real.sq_sqrt hc.le]
+  rw [he]
+  calc
+    c⁻¹*‖gradient F x‖^2 ≤ c⁻¹*(a*d) := mul_le_mul_of_nonneg_left hx (inv_pos.mpr hc).le
+    _ = d/(c/a) := by field_simp
+
+local notation "RefState" E:arg => ℝ≥0 × E × E × ℕ × (ℕ → E)
+local notation "OldState" E:arg => ℝ≥0 × E × ℕ × (ℕ → E)
+
+theorem reference_carrying_kernel {V : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x w : E, (α:ℝ)*‖w‖^2 ≤ fderiv ℝ (fderiv ℝ V) x w w ∧
+      fderiv ℝ (fderiv ℝ V) x w w ≤ (β:ℝ)*‖w‖^2)
+    (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (η τ : RefState E → ℝ) (hη : Measurable η) (hτ : Measurable τ)
+    (hη0 : ∀ s, 0 < η s) (hτ0 : ∀ s, 0 < τ s)
+    (M : Kernel (RefState E) E) [IsMarkovKernel M] (threshold : ℝ≥0) :
+    let d : ℝ := Module.finrank ℝ E
+    let v := fun s : RefState E => (η s+τ s)/((β:ℝ)+s.1)
+    let bp := fun s : RefState E => s.1+Real.toNNReal (v s)⁻¹
+    let obs := fun p : RefState E × (E × E) => p.2.1+Real.sqrt (τ p.1/((β:ℝ)+p.1.1)) • p.2.2
+    let center := fun p : RefState E × (E × E) => (bp p.1:ℝ)⁻¹ •
+      ((p.1.1:ℝ) • p.1.2.1+(v p.1)⁻¹ • obs p)
+    let F := fun p x => V x+(bp p.1:ℝ)/2*‖x-center p‖^2
+    let W := fun p x => V x+(p.1.1:ℝ)/2*‖x-p.1.2.1‖^2+(v p.1)⁻¹/2*‖x-obs p‖^2
+    let T := fun p x => x-((β:ℝ)+bp p.1)⁻¹ • gradient (F p) x
+    let q := fun n p => ‖gradient (F p) ((T p)^[n] p.2.1)‖^2
+    let N := firstIndex q (fun p => ((α:ℝ)+bp p.1)*d)
+    let out := fun p => (T p)^[N p] p.2.1
+    let update := fun p : RefState E × (E × E) =>
+      (bp p.1,center p,out p,p.1.2.2.2.1+1,fun n => Nat.casesOn n (obs p) p.1.2.2.2.2)
+    let project := fun s : RefState E => (s.1,s.2.1,s.2.2.2.1,s.2.2.2.2)
+    let oldUpdate := fun p : RefState E × (E × E) =>
+      (bp p.1,center p,p.1.2.2.2.1+1,fun n => Nat.casesOn n (obs p) p.1.2.2.2.2)
+    (∀ s, 0 < v s ∧ (bp s:ℝ)=(s.1:ℝ)+(v s)⁻¹) ∧
+    Measurable N ∧ Measurable out ∧ Measurable update ∧
+    (∀ p, q (N p) p ≤ ((α:ℝ)+bp p.1)*d ∧
+      (∀ j < N p, ((α:ℝ)+bp p.1)*d < q j p) ∧
+      (∀ x, gradient (F p) x=gradient V x+(bp p.1:ℝ) • (x-center p)) ∧
+      (∀ x, W p x=F p x+
+        (p.1.1:ℝ)*(v p.1)⁻¹/(2*((p.1.1:ℝ)+(v p.1)⁻¹))*‖p.1.2.1-obs p‖^2) ∧
+      (∀ x, gradient (W p) x=gradient (F p) x) ∧
+      (∀ n, (fun x => x-((β:ℝ)+bp p.1)⁻¹ • gradient (W p) x)^[n] p.2.1 =
+        (T p)^[n] p.2.1) ∧
+      ‖gradient (fun x => F p ((Real.sqrt ((β:ℝ)+bp p.1))⁻¹ • x))
+          (Real.sqrt ((β:ℝ)+bp p.1) • out p)‖^2 ≤
+        d/(((β:ℝ)+bp p.1)/((α:ℝ)+bp p.1))) ∧
+    ∃ P : Kernel (RefState E) (RefState E), IsMarkovKernel P ∧
+      (∀ s, P s=if threshold ≤ s.1 then Measure.dirac s else
+        ((M s).prod (stdGaussian E)).map (fun z => update (s,z))) ∧
+      (∀ s, (P s).map project=if threshold ≤ s.1 then Measure.dirac (project s) else
+        ((M s).prod (stdGaussian E)).map (fun z => oldUpdate (s,z))) := by
+  classical
+  intro d v bp obs center F W T q N out update project oldUpdate
+  have hβ : 0 < (β:ℝ) := lt_of_lt_of_le (show 0 < (α:ℝ) from hα) (show (α:ℝ) ≤ β from hαβ)
+  have hv (s : RefState E) : 0 < v s :=
+    div_pos (add_pos (hη0 s) (hτ0 s)) (add_pos_of_pos_of_nonneg hβ s.1.coe_nonneg)
+  have hbp (s : RefState E) : (bp s:ℝ)=(s.1:ℝ)+(v s)⁻¹ := by
+    simp only [bp,NNReal.coe_add,Real.coe_toNNReal _ (inv_pos.mpr (hv s)).le]
+  have hbp0 (s : RefState E) : 0 < (bp s:ℝ) := by
+    rw [hbp]
+    exact add_pos_of_nonneg_of_pos s.1.coe_nonneg (inv_pos.mpr (hv s))
+  have hvm : Measurable v := by dsimp [v]; fun_prop
+  have hbpm : Measurable bp := by dsimp [bp]; fun_prop
+  have hobsm : Measurable obs := by dsimp [obs]; fun_prop
+  have hcm : Measurable center := by dsimp [center]; fun_prop
+  have hbpm' : Measurable (fun p : RefState E × (E × E) => (bp p.1:ℝ)) := by fun_prop
+  have href := variable_reference hV hH hαβ hd hbpm' (fun p => hbp0 p.1) hcm
+    (by fun_prop : Measurable (fun p : RefState E × (E × E) => p.2.1))
+  have hNm : Measurable N := href.1
+  have hom : Measurable out := href.2.1
+  have hum : Measurable update := by
+    dsimp [update]
+    apply Measurable.prodMk (by fun_prop)
+    apply Measurable.prodMk hcm
+    apply Measurable.prodMk hom
+    apply Measurable.prodMk (by fun_prop)
+    apply measurable_pi_lambda
+    intro n
+    cases n <;> fun_prop
+  have hproj : Measurable project := by dsimp [project]; fun_prop
+  refine ⟨fun s => ⟨hv s,hbp s⟩,hNm,hom,hum,?_,?_⟩
+  · intro p
+    have hp := href.2.2.2 p
+    have hs := quadratic_source_alignment V p.1.1.coe_nonneg (inv_pos.mpr (hv p.1)) p.1.2.1 (obs p)
+    have hsrc :
+        (∀ x, W p x=F p x+(p.1.1:ℝ)*(v p.1)⁻¹/(2*((p.1.1:ℝ)+(v p.1)⁻¹))*‖p.1.2.1-obs p‖^2) ∧
+        (∀ x, gradient (W p) x=gradient (F p) x) ∧
+        ∀ (h : ℝ) (n : ℕ) (x : E),
+          (fun z => z-h • gradient (W p) z)^[n] x=(fun z => z-h • gradient (F p) z)^[n] x := by
+      simpa only [F,W,center,hbp] using hs
+    refine ⟨hp.1,hp.2,href.2.2.1 p,hsrc.1,hsrc.2.1,fun n => hsrc.2.2 _ n _,?_⟩
+    have hFd : Differentiable ℝ (F p) :=
+      (hV.add (contDiff_const.mul ((contDiff_id.sub contDiff_const).norm_sq (𝕜:=ℝ)))).differentiable
+        (by norm_num)
+    exact scaled_reference_bound hFd (add_pos_of_pos_of_nonneg hβ (bp p.1).coe_nonneg) hp.1
+  · let Q : Kernel (RefState E) (E × E) := M ×ₖ Kernel.const _ (stdGaussian E)
+    have hQ : IsMarkovKernel Q := by dsimp [Q]; infer_instance
+    let C := (Kernel.id ×ₖ Q).map update
+    have hC : IsMarkovKernel C := Kernel.IsMarkovKernel.map _ hum
+    have hCs (s : RefState E) : C s=((M s).prod (stdGaussian E)).map (fun z => update (s,z)) := by
+      dsimp only [C]
+      rw [Kernel.map_apply _ hum,Kernel.prod_apply,Kernel.id_apply,Measure.dirac_prod,
+        Measure.map_map hum (by fun_prop)]
+      simp only [Q,Kernel.prod_apply,Kernel.const_apply]
+      rfl
+    let D : Set (RefState E) := {s | threshold ≤ s.1}
+    have hD : MeasurableSet D := measurableSet_le measurable_const (by fun_prop)
+    let P := Kernel.piecewise hD Kernel.id C
+    have hP : IsMarkovKernel P := by dsimp [P]; infer_instance
+    have hPs (s : RefState E) : P s=if threshold ≤ s.1 then Measure.dirac s else
+        ((M s).prod (stdGaussian E)).map (fun z => update (s,z)) := by
+      simp only [P,Kernel.piecewise_apply,D,mem_ofPred_eq,Kernel.id_apply,hCs]
+    refine ⟨P,hP,hPs,fun s => ?_⟩
+    rw [hPs]
+    by_cases hs : threshold ≤ s.1
+    · rw [if_pos hs,if_pos hs,Measure.map_dirac' hproj]
+    · have hm : Measurable (fun z : E × E => update (s,z)) := hum.comp measurable_prodMk_left
+      rw [if_neg hs,if_neg hs,Measure.map_map hproj hm]
+      rfl
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ReferenceCarryingKernel

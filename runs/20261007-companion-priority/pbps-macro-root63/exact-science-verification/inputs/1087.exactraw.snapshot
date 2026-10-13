@@ -1,0 +1,470 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoL2
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Density
+
+/-!
+# Common refinement of dyadic elementary processes
+
+Dyadic levels carry different finite index types. This file refines a coarse
+process to a finer dyadic grid, proves that neither its process-space nor its
+terminal Ito representative changes, and derives the distance isometry for
+processes initially represented on different dyadic grids.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace DyadicElementaryRefinement
+
+open MeasureTheory
+open scoped BigOperators NNReal
+
+open BrownianMotion ElementaryItoEmbedding ElementaryItoIntegral ElementaryItoIsometry ElementaryItoL2
+  FiniteTimeGrid ProgressiveL2 ProgressiveL2Density SampledElementaryApproximation
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- Number of fine cells inside one coarse cell. -/
+def refinementFactor (level targetLevel : ℕ) : ℕ :=
+  2 ^ (targetLevel - level)
+
+theorem refinementFactor_pos (level targetLevel : ℕ) :
+    0 < refinementFactor level targetLevel := by
+  simp [refinementFactor]
+
+theorem pow_mul_refinementFactor {level targetLevel : ℕ}
+    (hle : level ≤ targetLevel) :
+    2 ^ level * refinementFactor level targetLevel = 2 ^ targetLevel := by
+  rw [refinementFactor, mul_comm]
+  exact Nat.pow_sub_mul_pow 2 hle
+
+/-- Fine-cell index viewed in its containing coarse cell. -/
+def coarseCell {level targetLevel : ℕ} (hle : level ≤ targetLevel)
+    (j : Fin (2 ^ targetLevel)) : Fin (2 ^ level) :=
+  ⟨j.val / refinementFactor level targetLevel,
+    (Nat.div_lt_iff_lt_mul (refinementFactor_pos level targetLevel)).2 (by
+      rw [pow_mul_refinementFactor hle]
+      exact j.isLt)⟩
+
+@[simp] theorem coarseCell_val {level targetLevel : ℕ}
+    (hle : level ≤ targetLevel) (j : Fin (2 ^ targetLevel)) :
+    (coarseCell hle j).val = j.val / refinementFactor level targetLevel :=
+  rfl
+
+theorem coarseCell_block_left {level targetLevel : ℕ}
+    (hle : level ≤ targetLevel) (j : Fin (2 ^ targetLevel)) :
+    (coarseCell hle j).val * refinementFactor level targetLevel ≤ j.val := by
+  exact Nat.div_mul_le_self _ _
+
+theorem coarseCell_block_right {level targetLevel : ℕ}
+    (hle : level ≤ targetLevel) (j : Fin (2 ^ targetLevel)) :
+    j.val < ((coarseCell hle j).val + 1) * refinementFactor level targetLevel := by
+  simpa [mul_comm] using
+    Nat.lt_mul_div_succ j.val (refinementFactor_pos level targetLevel)
+
+theorem dyadicMesh_coarse_eq_factor_mul {level targetLevel : ℕ}
+    (hle : level ≤ targetLevel) :
+    dyadicMesh T level =
+      (refinementFactor level targetLevel : ℝ≥0) * dyadicMesh T targetLevel := by
+  unfold dyadicMesh
+  apply (div_eq_iff (by positivity : ((2 ^ level : ℕ) : ℝ≥0) ≠ 0)).2
+  calc
+    T = T / (2 ^ targetLevel : ℕ) * (2 ^ targetLevel : ℕ) := by
+      rw [div_mul_cancel₀]
+      positivity
+    _ = T / (2 ^ targetLevel : ℕ) *
+        ((refinementFactor level targetLevel : ℝ≥0) * (2 ^ level : ℕ)) := by
+      rw [← Nat.cast_mul, Nat.mul_comm (refinementFactor level targetLevel),
+        pow_mul_refinementFactor hle]
+    _ = ((refinementFactor level targetLevel : ℝ≥0) *
+        (T / (2 ^ targetLevel : ℕ))) * (2 ^ level : ℕ) := by
+      ac_rfl
+
+theorem coarse_left_endpoint_le_fine_left {level targetLevel : ℕ}
+    (hle : level ≤ targetLevel) (j : Fin (2 ^ targetLevel)) :
+    regularGridTimes (dyadicMesh T level) (2 ^ level) (coarseCell hle j).castSucc ≤
+      regularGridTimes (dyadicMesh T targetLevel) (2 ^ targetLevel) j.castSucc := by
+  rw [regularGridTimes, regularGridTimes, dyadicMesh_coarse_eq_factor_mul hle]
+  simp only [Fin.val_castSucc]
+  rw [← mul_assoc]
+  exact mul_le_mul_of_nonneg_right
+    (by exact_mod_cast coarseCell_block_left hle j)
+    (by positivity)
+
+theorem fine_right_endpoint_le_coarse_right {level targetLevel : ℕ}
+    (hle : level ≤ targetLevel) (j : Fin (2 ^ targetLevel)) :
+    regularGridTimes (dyadicMesh T targetLevel) (2 ^ targetLevel) j.succ ≤
+      regularGridTimes (dyadicMesh T level) (2 ^ level) (coarseCell hle j).succ := by
+  rw [regularGridTimes, regularGridTimes, dyadicMesh_coarse_eq_factor_mul hle]
+  simp only [Fin.val_succ, Nat.cast_add, Nat.cast_one]
+  rw [← mul_assoc]
+  exact mul_le_mul_of_nonneg_right
+    (by
+      have hnat : j.val + 1 ≤
+          ((coarseCell hle j).val + 1) * refinementFactor level targetLevel :=
+        Nat.succ_le_iff.2 (coarseCell_block_right hle j)
+      exact_mod_cast hnat)
+    (by positivity)
+
+theorem regularDyadic_last_time (T : ℝ≥0) (level : ℕ) :
+    regularGridTimes (dyadicMesh T level) (2 ^ level) (Fin.last (2 ^ level)) = T := by
+  simp only [regularGridTimes, Fin.val_last, Nat.cast_pow, Nat.cast_ofNat, dyadicMesh]
+  rw [mul_comm, div_mul_cancel₀]
+  positivity
+
+theorem DyadicElementaryProcess.horizon_pos
+    (eta : DyadicElementaryProcess filtration T) : 0 < T := by
+  have hindex : (0 : Fin (2 ^ eta.level + 1)) < Fin.last (2 ^ eta.level) := by
+    exact_mod_cast (show 0 < 2 ^ eta.level by positivity)
+  have htime := eta.process.times_strictMono hindex
+  rw [congrFun eta.times_eq 0,
+    congrFun eta.times_eq (Fin.last (2 ^ eta.level)),
+    regularDyadic_last_time] at htime
+  simpa [regularGridTimes] using htime
+
+/-- Refine a dyadic process to a finer dyadic level by repeating each coarse
+coefficient across the fine cells in its block. -/
+noncomputable def refineDyadic
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) :
+    DyadicElementaryProcess filtration T where
+  level := targetLevel
+  process :=
+    { times := regularGridTimes (dyadicMesh T targetLevel) (2 ^ targetLevel)
+      times_strictMono := regularGridTimes_strictMono
+        (dyadicMesh_pos (DyadicElementaryProcess.horizon_pos eta) targetLevel) _
+      coeff := fun j ↦ eta.process.coeff (coarseCell hle j)
+      coeff_stronglyMeasurable := fun j ↦ by
+        have hcoeff := eta.process.coeff_stronglyMeasurable (coarseCell hle j)
+        rw [congrFun eta.times_eq (coarseCell hle j).castSucc] at hcoeff
+        exact hcoeff.mono (filtration.mono (coarse_left_endpoint_le_fine_left hle j))
+      coeff_bounded := fun j ↦ eta.process.coeff_bounded (coarseCell hle j) }
+  times_eq := rfl
+
+@[simp] theorem refineDyadic_level
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) :
+    (refineDyadic eta targetLevel hle).level = targetLevel :=
+  rfl
+
+@[simp] theorem refineDyadic_times
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) :
+    (refineDyadic eta targetLevel hle).process.times =
+      regularGridTimes (dyadicMesh T targetLevel) (2 ^ targetLevel) :=
+  rfl
+
+@[simp] theorem refineDyadic_coeff
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) (j : Fin (2 ^ targetLevel)) (omega : Omega) :
+    (refineDyadic eta targetLevel hle).process.coeff j omega =
+      eta.process.coeff (coarseCell hle j) omega :=
+  rfl
+
+theorem refineDyadic_coeff_stronglyMeasurable
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) (j : Fin (2 ^ targetLevel)) :
+    StronglyMeasurable[filtration
+      ((refineDyadic eta targetLevel hle).process.times j.castSucc)]
+      ((refineDyadic eta targetLevel hle).process.coeff j) :=
+  (refineDyadic eta targetLevel hle).process.coeff_stronglyMeasurable j
+
+theorem refineDyadic_value_eq
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) (t : ℝ≥0) (omega : Omega) :
+    (refineDyadic eta targetLevel hle).process.value t omega =
+      eta.process.value t omega := by
+  by_cases ht0 : t = 0
+  · subst t
+    rw [ElementaryAdaptedProcess.value_eq_zero_of_le_first _ (by
+        simp [refineDyadic, regularGridTimes])]
+    rw [ElementaryAdaptedProcess.value_eq_zero_of_le_first _ (by
+        rw [congrFun eta.times_eq 0]
+        simp [regularGridTimes])]
+  · by_cases htT : t ≤ T
+    · have htpos : 0 < t := pos_of_ne_zero ht0
+      obtain ⟨j, hj, _⟩ := dyadic_activeCell
+        (DyadicElementaryProcess.horizon_pos eta) targetLevel htpos htT
+      have hcoarse :
+          regularGridTimes (dyadicMesh T eta.level) (2 ^ eta.level)
+              (coarseCell hle j).castSucc < t ∧
+            t ≤ regularGridTimes (dyadicMesh T eta.level) (2 ^ eta.level)
+              (coarseCell hle j).succ :=
+        ⟨(coarse_left_endpoint_le_fine_left hle j).trans_lt hj.1,
+          hj.2.trans (fine_right_endpoint_le_coarse_right hle j)⟩
+      have hfine :=
+        FiniteTimeGrid.ElementaryAdaptedProcess.value_eq_coeff_of_mem_cell
+          (refineDyadic eta targetLevel hle).process (omega := omega) hj
+      have hcoarseValue :=
+        FiniteTimeGrid.ElementaryAdaptedProcess.value_eq_coeff_of_mem_cell eta.process
+          (omega := omega) (by
+          simpa only [eta.times_eq] using hcoarse)
+      exact hfine.trans hcoarseValue.symm
+    · have hTt : T < t := lt_of_not_ge htT
+      rw [ElementaryAdaptedProcess.value_eq_zero_of_last_lt _ (by
+        simpa [refineDyadic, regularDyadic_last_time] using hTt)]
+      rw [ElementaryAdaptedProcess.value_eq_zero_of_last_lt _ (by
+        rw [congrFun eta.times_eq (Fin.last (2 ^ eta.level)),
+          regularDyadic_last_time]
+        exact hTt)]
+
+theorem refineDyadic_toLp_eq [IsFiniteMeasure mu]
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) :
+    (refineDyadic eta targetLevel hle).toLp mu = eta.toLp mu := by
+  apply Lp.ext
+  simp only [DyadicElementaryProcess.toLp, ProgressiveL2Integrand.toLp]
+  filter_upwards [
+    (ElementaryItoEmbedding.toProgressiveL2
+      (refineDyadic eta targetLevel hle).process mu T).memLp.coeFn_toLp,
+    (ElementaryItoEmbedding.toProgressiveL2 eta.process mu T).memLp.coeFn_toLp]
+      with z hfine hcoarse
+  rw [hfine, hcoarse]
+  exact refineDyadic_value_eq eta targetLevel hle z.2 z.1
+
+/-- Product indexing of a fine grid by coarse cell and within-cell offset. -/
+def refinementEquiv {level targetLevel : ℕ} (hle : level ≤ targetLevel) :
+    Fin (2 ^ level) × Fin (refinementFactor level targetLevel) ≃
+      Fin (2 ^ targetLevel) :=
+  finProdFinEquiv.trans (finCongr (pow_mul_refinementFactor hle))
+
+@[simp] theorem refinementEquiv_val {level targetLevel : ℕ}
+    (hle : level ≤ targetLevel)
+    (i : Fin (2 ^ level)) (r : Fin (refinementFactor level targetLevel)) :
+    (refinementEquiv hle (i, r)).val =
+      r.val + refinementFactor level targetLevel * i.val :=
+  rfl
+
+@[simp] theorem coarseCell_refinementEquiv {level targetLevel : ℕ}
+    (hle : level ≤ targetLevel)
+    (i : Fin (2 ^ level)) (r : Fin (refinementFactor level targetLevel)) :
+    coarseCell hle (refinementEquiv hle (i, r)) = i := by
+  apply Fin.ext
+  simp only [coarseCell_val, refinementEquiv_val]
+  rw [Nat.add_mul_div_left, Nat.div_eq_of_lt r.isLt, zero_add]
+  exact refinementFactor_pos level targetLevel
+
+/-- A finite block of consecutive increments telescopes. -/
+theorem sum_brownianIncrements_block
+    (q start : ℕ) (F : ℕ → ℝ) :
+    (∑ r : Fin q, (F (start + r.val + 1) - F (start + r.val))) =
+      F (start + q) - F start := by
+  change (∑ r : Fin q,
+      (fun k : ℕ ↦ F (start + k + 1) - F (start + k)) r) = _
+  calc
+    _ = ∑ r ∈ Finset.range q,
+        (F (start + r + 1) - F (start + r)) :=
+      Fin.sum_univ_eq_sum_range
+        (fun r ↦ F (start + r + 1) - F (start + r)) q
+    _ = F (start + q) - F start := by
+      simpa only [Nat.add_assoc, Nat.add_zero] using
+        (Finset.sum_range_sub (fun r ↦ F (start + r)) q)
+
+theorem fine_block_left_endpoint {level targetLevel : ℕ}
+    (hle : level ≤ targetLevel) (i : Fin (2 ^ level)) :
+    ((refinementFactor level targetLevel * i.val : ℕ) : ℝ≥0) *
+        dyadicMesh T targetLevel =
+      (i.val : ℝ≥0) * dyadicMesh T level := by
+  rw [dyadicMesh_coarse_eq_factor_mul hle]
+  simp only [Nat.cast_mul]
+  ac_rfl
+
+theorem fine_block_right_endpoint {level targetLevel : ℕ}
+    (hle : level ≤ targetLevel) (i : Fin (2 ^ level)) :
+    ((refinementFactor level targetLevel * i.val +
+        refinementFactor level targetLevel : ℕ) : ℝ≥0) *
+        dyadicMesh T targetLevel =
+      ((i.val + 1 : ℕ) : ℝ≥0) * dyadicMesh T level := by
+  rw [dyadicMesh_coarse_eq_factor_mul hle]
+  simp only [Nat.cast_add, Nat.cast_one, Nat.cast_mul]
+  ring
+
+theorem refineDyadic_elementaryItoIntegral_eq
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel)
+    (B : ℝ≥0 → Omega → ℝ) (S : ℝ≥0) (omega : Omega) :
+    elementaryItoIntegral (refineDyadic eta targetLevel hle).process B S omega =
+      elementaryItoIntegral eta.process B S omega := by
+  change (∑ j : Fin (2 ^ targetLevel), eta.process.coeff (coarseCell hle j) omega *
+      (B (min (regularGridTimes (dyadicMesh T targetLevel) (2 ^ targetLevel) j.succ) S) omega -
+        B (min (regularGridTimes (dyadicMesh T targetLevel) (2 ^ targetLevel) j.castSucc) S)
+          omega)) =
+    ∑ i : Fin (2 ^ eta.level), eta.process.coeff i omega *
+      (B (min (eta.process.times i.succ) S) omega -
+        B (min (eta.process.times i.castSucc) S) omega)
+  rw [← (refinementEquiv hle).sum_comp]
+  rw [Fintype.sum_prod_type]
+  simp only [coarseCell_refinementEquiv, regularGridTimes, refinementEquiv_val,
+    Fin.val_succ, Fin.val_castSucc]
+  simp_rw [congrFun eta.times_eq]
+  apply Finset.sum_congr rfl
+  intro i _
+  rw [← Finset.mul_sum]
+  congr 1
+  have htel := sum_brownianIncrements_block
+    (refinementFactor eta.level targetLevel)
+    (refinementFactor eta.level targetLevel * i.val)
+    (fun k ↦ B (min ((k : ℝ≥0) * dyadicMesh T targetLevel) S) omega)
+  have hright :
+      ((refinementFactor eta.level targetLevel +
+          refinementFactor eta.level targetLevel * i.val : ℕ) : ℝ≥0) *
+          dyadicMesh T targetLevel =
+        ((i.val + 1 : ℕ) : ℝ≥0) * dyadicMesh T eta.level := by
+    rw [Nat.add_comm]
+    exact fine_block_right_endpoint hle i
+  have hright' :
+      ((refinementFactor eta.level targetLevel : ℝ≥0) +
+          ((refinementFactor eta.level targetLevel * i.val : ℕ) : ℝ≥0)) *
+          dyadicMesh T targetLevel =
+        ((i.val : ℝ≥0) + 1) * dyadicMesh T eta.level := by
+    simpa only [Nat.cast_add, Nat.cast_one] using hright
+  simpa only [regularGridTimes, Fin.val_succ, Fin.val_castSucc,
+    Nat.cast_add, Nat.cast_one, Nat.add_assoc, Nat.add_comm,
+    Nat.add_left_comm, fine_block_left_endpoint hle i, hright'] using htel
+
+theorem refineDyadic_terminalToLp_eq
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (S : ℝ≥0) :
+    elementaryItoTerminalToLp (refineDyadic eta targetLevel hle).process hB S =
+      elementaryItoTerminalToLp eta.process hB S := by
+  apply Lp.ext
+  simp only [elementaryItoTerminalToLp]
+  filter_upwards [
+    (elementaryItoIntegral_memLp_two
+      (refineDyadic eta targetLevel hle).process hB S).coeFn_toLp,
+    (elementaryItoIntegral_memLp_two eta.process hB S).coeFn_toLp]
+      with omega hfine hcoarse
+  rw [hfine, hcoarse]
+  exact refineDyadic_elementaryItoIntegral_eq eta targetLevel hle B S omega
+
+/-- Terminal stochastic integral represented in `L2(mu)`. -/
+noncomputable def terminalToLp
+    (eta : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) : Lp ℝ 2 mu :=
+  elementaryItoTerminalToLp eta.process hB T
+
+/-- Product-space representative, with finiteness supplied by the Brownian
+probability contract rather than exposed as an extra theorem parameter. -/
+noncomputable def processToLp
+    (eta : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    Lp ℝ 2 (processTimeMeasure mu T) := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact eta.toLp mu
+
+theorem elementaryProcessToLp_eq_processToLp
+    (eta : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    elementaryProcessToLp eta.process hB T = processToLp eta hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  rfl
+
+/-- Least dyadic level containing the grids of both processes. -/
+def commonDyadicLevel
+    (eta xi : DyadicElementaryProcess filtration T) : ℕ :=
+  max eta.level xi.level
+
+noncomputable def commonRefinementLeft
+    (eta xi : DyadicElementaryProcess filtration T) :
+    DyadicElementaryProcess filtration T :=
+  refineDyadic eta (commonDyadicLevel eta xi) (le_max_left _ _)
+
+noncomputable def commonRefinementRight
+    (eta xi : DyadicElementaryProcess filtration T) :
+    DyadicElementaryProcess filtration T :=
+  refineDyadic xi (commonDyadicLevel eta xi) (le_max_right _ _)
+
+theorem commonRefinement_times_eq
+    (eta xi : DyadicElementaryProcess filtration T) :
+    (commonRefinementLeft eta xi).process.times =
+      (commonRefinementRight eta xi).process.times := by
+  rfl
+
+/-- Left common refinement with the shared cell count exposed in its type. -/
+noncomputable def commonRefinementLeftProcess
+    (eta xi : DyadicElementaryProcess filtration T) :
+    ElementaryAdaptedProcess filtration (2 ^ commonDyadicLevel eta xi) :=
+  (refineDyadic eta (commonDyadicLevel eta xi) (le_max_left _ _)).process
+
+/-- Right common refinement with the shared cell count exposed in its type. -/
+noncomputable def commonRefinementRightProcess
+    (eta xi : DyadicElementaryProcess filtration T) :
+    ElementaryAdaptedProcess filtration (2 ^ commonDyadicLevel eta xi) :=
+  (refineDyadic xi (commonDyadicLevel eta xi) (le_max_right _ _)).process
+
+theorem commonRefinementProcess_times_eq
+    (eta xi : DyadicElementaryProcess filtration T) :
+    (commonRefinementLeftProcess eta xi).times =
+      (commonRefinementRightProcess eta xi).times := by
+  rfl
+
+theorem commonRefinementLeft_toLp_eq [IsFiniteMeasure mu]
+    (eta xi : DyadicElementaryProcess filtration T) :
+    (commonRefinementLeft eta xi).toLp mu = eta.toLp mu :=
+  refineDyadic_toLp_eq eta (commonDyadicLevel eta xi) (le_max_left _ _)
+
+theorem commonRefinementRight_toLp_eq [IsFiniteMeasure mu]
+    (eta xi : DyadicElementaryProcess filtration T) :
+    (commonRefinementRight eta xi).toLp mu = xi.toLp mu :=
+  refineDyadic_toLp_eq xi (commonDyadicLevel eta xi) (le_max_right _ _)
+
+theorem commonRefinementLeft_processToLp_eq
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    processToLp (commonRefinementLeft eta xi) hB = processToLp eta hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact commonRefinementLeft_toLp_eq eta xi
+
+theorem commonRefinementRight_processToLp_eq
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    processToLp (commonRefinementRight eta xi) hB = processToLp xi hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact commonRefinementRight_toLp_eq eta xi
+
+theorem commonRefinementLeft_terminalToLp_eq
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    terminalToLp (commonRefinementLeft eta xi) hB = terminalToLp eta hB :=
+  refineDyadic_terminalToLp_eq eta (commonDyadicLevel eta xi)
+    (le_max_left _ _) hB T
+
+theorem commonRefinementRight_terminalToLp_eq
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    terminalToLp (commonRefinementRight eta xi) hB = terminalToLp xi hB :=
+  refineDyadic_terminalToLp_eq xi (commonDyadicLevel eta xi)
+    (le_max_right _ _) hB T
+
+/-- The elementary Ito terminal map is an exact distance isometry even when
+the two processes are initially represented on different dyadic grids. -/
+theorem norm_terminal_sub_eq_process_sub
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    ‖terminalToLp eta hB - terminalToLp xi hB‖ =
+      ‖processToLp eta hB - processToLp xi hB‖ := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  let eta' := commonRefinementLeft eta xi
+  let xi' := commonRefinementRight eta xi
+  calc
+    ‖terminalToLp eta hB - terminalToLp xi hB‖ =
+        ‖terminalToLp eta' hB - terminalToLp xi' hB‖ := by
+      rw [commonRefinementLeft_terminalToLp_eq eta xi hB,
+        commonRefinementRight_terminalToLp_eq eta xi hB]
+    _ = ‖elementaryProcessToLp eta'.process hB T -
+        elementaryProcessToLp xi'.process hB T‖ :=
+      norm_elementaryItoTerminalToLp_sub eta'.process xi'.process
+        (commonRefinement_times_eq eta xi) hB T
+    _ = ‖processToLp eta' hB - processToLp xi' hB‖ := by
+      rw [elementaryProcessToLp_eq_processToLp eta' hB,
+        elementaryProcessToLp_eq_processToLp xi' hB]
+    _ = ‖processToLp eta hB - processToLp xi hB‖ := by
+      rw [commonRefinementLeft_processToLp_eq eta xi hB,
+        commonRefinementRight_processToLp_eq eta xi hB]
+
+end DyadicElementaryRefinement
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

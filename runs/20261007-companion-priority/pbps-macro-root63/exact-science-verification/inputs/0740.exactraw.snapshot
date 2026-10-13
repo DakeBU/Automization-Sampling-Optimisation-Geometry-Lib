@@ -1,0 +1,257 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ReferenceCarryingKernel
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing
+import Mathlib.Probability.Kernel.Disintegration.StandardBorel
+import Mathlib.Tactic
+
+open MeasureTheory ProbabilityTheory
+open scoped NNReal ENNReal
+/-!
+# Condition the actual retained-state update on its noisy observation
+
+Source: SPHMC arXiv:2609.06906v1 Algorithm 3.3 and Section 6.3 after (6.5).
+The true reference is the first inner gradient-descent hit initialized at the
+pre-noise output x. Conditioning on y=x+sqrt(tau/(beta+b))*z must retain its
+conditional randomness. The joint kernel records y and the complete updated
+state from the same M times Gaussian draw, rather than reconstructing a
+reference as a deterministic function of y.
+
+The observation marginal is exactly Gaussian smoothing of the supplied actual
+M. Parameterized disintegration supplies a jointly measurable Markov conditional
+kernel. Precision and center have the source deterministic values for almost
+every observation and then almost every conditional updated state. The full
+reference/count/history remain specified by the joint pushforward law.
+
+Nonnegative integration gives the remaining-output factorization for any
+actual Markov output kernel R and measurable event. The actual absorbed state
+kernel P is constructed from ReferenceCarryingKernel; its composed output has
+this factorization only on b<threshold. J itself describes a hypothetical
+unabsorbed update on every state. It is not the stopped transition on terminal
+states. Threshold zero makes the active-state interface vacuous.
+
+Positive dimension, positive alpha<=beta and genuine C2 Hessian bounds support
+the actual GD reference construction. These strengthen source regularity;
+disintegration itself does not require curvature. Eta and tau are arbitrary
+positive measurable functions of the full state, with no schedule or depth
+claim. Initial reference/count/history need not be source-admissible. M and R
+have no approximation or moment guarantee. This theorem proves no ideal
+posterior identification, KL recurrence, full output accuracy or query cost.
+Conditional AE versions must be respected by subsequent error integration.
+-/
+
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ObservationConditionalKernel
+variable {E S : Type*} [MeasurableSpace E] [NormedAddCommGroup E]
+  [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [BorelSpace E]
+  [MeasurableSpace S] [StandardBorelSpace S] [Nonempty S]
+
+private theorem joint (M : Kernel S E) [IsMarkovKernel M]
+    (sigma : S → ℝ) (hsigma : Measurable sigma)
+    (update : S × (E × E) → S) (hu : Measurable update) :
+    ∃ J : Kernel S (E × S), ∃ hJ : IsMarkovKernel J,
+      letI := hJ
+      (∀ s, J s = ((M s).prod (stdGaussian E)).map
+        (fun z => (z.1+sigma s • z.2,update (s,z)))) ∧
+      (∀ s, J.fst s =
+        AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+          (M s) (sigma s)) ∧
+      J.fst ⊗ₖ J.condKernel = J := by
+  let Q : Kernel S (E × E) := M ×ₖ Kernel.const _ (stdGaussian E)
+  let f : S × (E × E) → E × S :=
+    fun p => (p.2.1+sigma p.1 • p.2.2,update p)
+  have hf : Measurable f := ((by fun_prop : Measurable
+    (fun p : S × (E × E) => p.2.1+sigma p.1 • p.2.2))).prodMk hu
+  let J := (Kernel.id ×ₖ Q).map f
+  have : IsMarkovKernel J := Kernel.IsMarkovKernel.map _ hf
+  have hJs (s : S) : J s = ((M s).prod (stdGaussian E)).map
+      (fun z => (z.1+sigma s • z.2,update (s,z))) := by
+    dsimp only [J]
+    rw [Kernel.map_apply _ hf,Kernel.prod_apply,Kernel.id_apply,Measure.dirac_prod,
+      Measure.map_map hf (by fun_prop)]
+    simp only [Q,Kernel.prod_apply,Kernel.const_apply]
+    rfl
+  refine ⟨J,inferInstance,hJs,?_,Kernel.disintegrate J J.condKernel⟩
+  intro s
+  have hfs : Measurable (fun z : E × E => (z.1+sigma s • z.2,update (s,z))) :=
+    hf.comp (measurable_const.prodMk measurable_id)
+  rw [Kernel.fst_apply,hJs,Measure.map_map measurable_fst hfs]
+  unfold AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+    AutoSamplingTheory.TechnicalLemmas.Measure.CommonNoiseContraction.addNoise
+    AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.scaledStdGaussian
+  have hp := Measure.map_prod_map (M s) (stdGaussian E) measurable_id
+    (by fun_prop : Measurable (fun z : E => sigma s • z))
+  rw [Measure.map_id] at hp
+  rw [hp,Measure.map_map (by fun_prop) (by fun_prop)]
+  rfl
+
+
+private def firstIndex (q : ℕ → S → ℝ) (b : S → ℝ) (s : S) : ℕ := by
+  classical
+  exact if h : ∃ n, q n s ≤ b s then Nat.find h else 0
+
+
+local notation "RefState" E:arg => ℝ≥0 × E × E × ℕ × (ℕ → E)
+
+private theorem actual_joint {V : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x w : E, (α:ℝ)*‖w‖^2 ≤ fderiv ℝ (fderiv ℝ V) x w w ∧
+      fderiv ℝ (fderiv ℝ V) x w w ≤ (β:ℝ)*‖w‖^2)
+    (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (η τ : RefState E → ℝ) (hη : Measurable η) (hτ : Measurable τ)
+    (hη0 : ∀ s, 0 < η s) (hτ0 : ∀ s, 0 < τ s)
+    (M : Kernel (RefState E) E) [IsMarkovKernel M] (threshold : ℝ≥0) :
+    let d : ℝ := Module.finrank ℝ E
+    let v := fun s : RefState E => (η s+τ s)/((β:ℝ)+s.1)
+    let bp := fun s : RefState E => s.1+Real.toNNReal (v s)⁻¹
+    let obs := fun p : RefState E × (E × E) => p.2.1+Real.sqrt (τ p.1/((β:ℝ)+p.1.1)) • p.2.2
+    let center := fun p : RefState E × (E × E) => (bp p.1:ℝ)⁻¹ •
+      ((p.1.1:ℝ) • p.1.2.1+(v p.1)⁻¹ • obs p)
+    let F := fun p x => V x+(bp p.1:ℝ)/2*‖x-center p‖^2
+    let T := fun p x => x-((β:ℝ)+bp p.1)⁻¹ • gradient (F p) x
+    let q := fun n p => ‖gradient (F p) ((T p)^[n] p.2.1)‖^2
+    let N := firstIndex q (fun p => ((α:ℝ)+bp p.1)*d)
+    let out := fun p => (T p)^[N p] p.2.1
+    let update := fun p : RefState E × (E × E) =>
+      (bp p.1,center p,out p,p.1.2.2.2.1+1,fun n => Nat.casesOn n (obs p) p.1.2.2.2.2)
+    ∃ J : Kernel (RefState E) (E × RefState E), ∃ hJ : IsMarkovKernel J,
+      letI := hJ
+      (∀ s, J s = ((M s).prod (stdGaussian E)).map
+        (fun z => (obs (s,z),update (s,z)))) ∧
+      (∀ s, J.fst s =
+        AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+          (M s) (Real.sqrt (τ s/((β:ℝ)+s.1)))) ∧
+      J.fst ⊗ₖ J.condKernel = J := by
+  classical
+  intro d v bp obs center F T q N out update
+  have href := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ReferenceCarryingKernel.reference_carrying_kernel
+    hα hαβ hV hH hd η τ hη hτ hη0 hτ0 M threshold
+  have hu : Measurable update := href.2.2.2.1
+  exact joint M (fun s => Real.sqrt (τ s/((β:ℝ)+s.1))) (by fun_prop) update hu
+
+
+private theorem actual_conditional {V : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x w : E, (α:ℝ)*‖w‖^2 ≤ fderiv ℝ (fderiv ℝ V) x w w ∧
+      fderiv ℝ (fderiv ℝ V) x w w ≤ (β:ℝ)*‖w‖^2)
+    (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (η τ : RefState E → ℝ) (hη : Measurable η) (hτ : Measurable τ)
+    (hη0 : ∀ s, 0 < η s) (hτ0 : ∀ s, 0 < τ s)
+    (M : Kernel (RefState E) E) [IsMarkovKernel M] (threshold : ℝ≥0) :
+    let d : ℝ := Module.finrank ℝ E
+    let v := fun s : RefState E => (η s+τ s)/((β:ℝ)+s.1)
+    let bp := fun s : RefState E => s.1+Real.toNNReal (v s)⁻¹
+    let obs := fun p : RefState E × (E × E) => p.2.1+Real.sqrt (τ p.1/((β:ℝ)+p.1.1)) • p.2.2
+    let center := fun p : RefState E × (E × E) => (bp p.1:ℝ)⁻¹ •
+      ((p.1.1:ℝ) • p.1.2.1+(v p.1)⁻¹ • obs p)
+    let F := fun p x => V x+(bp p.1:ℝ)/2*‖x-center p‖^2
+    let T := fun p x => x-((β:ℝ)+bp p.1)⁻¹ • gradient (F p) x
+    let q := fun n p => ‖gradient (F p) ((T p)^[n] p.2.1)‖^2
+    let N := firstIndex q (fun p => ((α:ℝ)+bp p.1)*d)
+    let out := fun p => (T p)^[N p] p.2.1
+    let update := fun p : RefState E × (E × E) =>
+      (bp p.1,center p,out p,p.1.2.2.2.1+1,fun n => Nat.casesOn n (obs p) p.1.2.2.2.2)
+    ∃ J : Kernel (RefState E) (E × RefState E), ∃ hJ : IsMarkovKernel J,
+      letI := hJ
+      (∀ s, J s = ((M s).prod (stdGaussian E)).map
+        (fun z => (obs (s,z),update (s,z)))) ∧
+      (∀ s, J.fst s =
+        AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+          (M s) (Real.sqrt (τ s/((β:ℝ)+s.1)))) ∧
+      J.fst ⊗ₖ J.condKernel = J ∧
+      (∀ s, ∀ᵐ y ∂J.fst s, ∀ᵐ t ∂J.condKernel (s,y),
+        t.1=bp s ∧ t.2.1=(bp s:ℝ)⁻¹ • ((s.1:ℝ) • s.2.1+(v s)⁻¹ • y)) ∧
+      (∀ (R : Kernel (RefState E) E) [IsMarkovKernel R] (s : RefState E)
+        (A : Set E), MeasurableSet A →
+        (∫⁻ z, R (update (s,z)) A ∂(M s).prod (stdGaussian E)) =
+        ∫⁻ y, ∫⁻ t, R t A ∂J.condKernel (s,y) ∂J.fst s) := by
+  classical
+  intro d v bp obs center F T q N out update
+  obtain ⟨J,hJ,hJs,hJfst,hdis⟩ := actual_joint hα hαβ hV hH hd η τ hη hτ hη0 hτ0 M threshold
+  let := hJ
+  have href := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ReferenceCarryingKernel.reference_carrying_kernel
+    hα hαβ hV hH hd η τ hη hτ hη0 hτ0 M threshold
+  have hu : Measurable update := href.2.2.2.1
+  have hobs : Measurable obs := by dsimp [obs]; fun_prop
+  have hf (s : RefState E) : Measurable (fun z => (obs (s,z),update (s,z))) :=
+    (hobs.prodMk hu).comp (measurable_const.prodMk measurable_id)
+  refine ⟨J,hJ,hJs,hJfst,hdis,?_,?_⟩
+  · intro s
+    apply Kernel.ae_ae_of_ae_compProd (κ := J.fst) (η := J.condKernel)
+      (p := fun p : E × RefState E =>
+        p.2.1=bp s ∧ p.2.2.1=(bp s:ℝ)⁻¹ • ((s.1:ℝ) • s.2.1+(v s)⁻¹ • p.1))
+    rw [hdis,hJs]
+    have hm : MeasurableSet {p : E × RefState E |
+        p.2.1=bp s ∧ p.2.2.1=(bp s:ℝ)⁻¹ • ((s.1:ℝ) • s.2.1+(v s)⁻¹ • p.1)} := by
+      apply MeasurableSet.inter <;> apply measurableSet_eq_fun <;> fun_prop
+    rw [ae_map_iff (hf s).aemeasurable hm]
+    exact Filter.Eventually.of_forall (fun z => ⟨rfl,rfl⟩)
+  · intro R hR s A hA
+    have hr : Measurable (fun p : E × RefState E => R p.2 A) :=
+      (R.measurable_coe hA).comp measurable_snd
+    have hi := Kernel.lintegral_compProd J.fst J.condKernel s hr
+    rw [hdis,hJs,lintegral_map hr (hf s)] at hi
+    exact hi
+
+
+theorem observation_conditional_kernel {V : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x w : E, (α:ℝ)*‖w‖^2 ≤ fderiv ℝ (fderiv ℝ V) x w w ∧
+      fderiv ℝ (fderiv ℝ V) x w w ≤ (β:ℝ)*‖w‖^2)
+    (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (η τ : RefState E → ℝ) (hη : Measurable η) (hτ : Measurable τ)
+    (hη0 : ∀ s, 0 < η s) (hτ0 : ∀ s, 0 < τ s)
+    (M : Kernel (RefState E) E) [IsMarkovKernel M] (threshold : ℝ≥0) :
+    let d : ℝ := Module.finrank ℝ E
+    let v := fun s : RefState E => (η s+τ s)/((β:ℝ)+s.1)
+    let bp := fun s : RefState E => s.1+Real.toNNReal (v s)⁻¹
+    let obs := fun p : RefState E × (E × E) => p.2.1+Real.sqrt (τ p.1/((β:ℝ)+p.1.1)) • p.2.2
+    let center := fun p : RefState E × (E × E) => (bp p.1:ℝ)⁻¹ •
+      ((p.1.1:ℝ) • p.1.2.1+(v p.1)⁻¹ • obs p)
+    let F := fun p x => V x+(bp p.1:ℝ)/2*‖x-center p‖^2
+    let T := fun p x => x-((β:ℝ)+bp p.1)⁻¹ • gradient (F p) x
+    let q := fun n p => ‖gradient (F p) ((T p)^[n] p.2.1)‖^2
+    let N := firstIndex q (fun p => ((α:ℝ)+bp p.1)*d)
+    let out := fun p => (T p)^[N p] p.2.1
+    let update := fun p : RefState E × (E × E) =>
+      (bp p.1,center p,out p,p.1.2.2.2.1+1,fun n => Nat.casesOn n (obs p) p.1.2.2.2.2)
+    ∃ J : Kernel (RefState E) (E × RefState E), ∃ hJ : IsMarkovKernel J,
+      letI := hJ
+      (∀ s, J s = ((M s).prod (stdGaussian E)).map
+        (fun z => (obs (s,z),update (s,z)))) ∧
+      (∀ s, J.fst s =
+        AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+          (M s) (Real.sqrt (τ s/((β:ℝ)+s.1)))) ∧
+      J.fst ⊗ₖ J.condKernel = J ∧
+      (∀ s, ∀ᵐ y ∂J.fst s, ∀ᵐ t ∂J.condKernel (s,y),
+        t.1=bp s ∧ t.2.1=(bp s:ℝ)⁻¹ • ((s.1:ℝ) • s.2.1+(v s)⁻¹ • y)) ∧
+      (∀ (R : Kernel (RefState E) E) [IsMarkovKernel R] (s : RefState E)
+        (A : Set E), MeasurableSet A →
+        (∫⁻ z, R (update (s,z)) A ∂(M s).prod (stdGaussian E)) =
+        ∫⁻ y, ∫⁻ t, R t A ∂J.condKernel (s,y) ∂J.fst s) ∧
+      ∃ P : Kernel (RefState E) (RefState E), ∃ hP : IsMarkovKernel P,
+        letI := hP
+        (∀ s, P s=if threshold ≤ s.1 then Measure.dirac s else
+          ((M s).prod (stdGaussian E)).map (fun z => update (s,z))) ∧
+        ∀ (R : Kernel (RefState E) E) [IsMarkovKernel R] (s : RefState E),
+          s.1 < threshold → ∀ A : Set E, MeasurableSet A →
+          (R ∘ₖ P) s A = ∫⁻ y, ∫⁻ t, R t A ∂J.condKernel (s,y) ∂J.fst s := by
+  classical
+  intro d v bp obs center F T q N out update
+  obtain ⟨J,hJ,hJs,hJfst,hdis,hsupp,hfactor⟩ :=
+    actual_conditional hα hαβ hV hH hd η τ hη hτ hη0 hτ0 M threshold
+  let := hJ
+  have href := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ReferenceCarryingKernel.reference_carrying_kernel
+    hα hαβ hV hH hd η τ hη hτ hη0 hτ0 M threshold
+  have hu : Measurable update := href.2.2.2.1
+  obtain ⟨P,hP,hPs,hproj⟩ := href.2.2.2.2.2
+  let := hP
+  refine ⟨J,hJ,hJs,hJfst,hdis,hsupp,hfactor,P,hP,hPs,?_⟩
+  intro R hR s hs A hA
+  rw [Kernel.comp_apply' R P s hA,hPs s,if_neg (not_le.mpr hs)]
+  change (∫⁻ t, R t A ∂(((M s).prod (stdGaussian E)).map
+    (fun z => update (s,z)))) = _
+  have hum : Measurable (fun z : E × E => update (s,z)) :=
+    hu.comp (measurable_const.prodMk measurable_id)
+  rw [lintegral_map (R.measurable_coe hA) hum]
+  exact hfactor R s A hA
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ObservationConditionalKernel

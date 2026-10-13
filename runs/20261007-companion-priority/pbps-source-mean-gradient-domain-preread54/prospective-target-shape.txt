@@ -1,0 +1,29 @@
+TEXT-ONLY prospective source/API recommendation; not a Lean declaration, typecheck or admission.
+Proposed namespace AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain
+Proposed name literal_source_mean_in_closed_gradient
+Proposed file AutoSamplingTheory/ExampleCases/ProximalBPS/SourceMeanGradientDomain.lean
+
+Bind finite real Hilbert/Borel E; V:E->R; alpha beta:R>=0; eta:R;
+alpha>0, alpha<=beta, ContDiff R 2 V,
+forall x a, alpha*norm(a)^2 <= D²V(x)[a,a] <= beta*norm(a)^2,
+eta>0 and beta*eta<=1. No extra Lp/probability/core/closure/derivative premises.
+
+let mu := volume.tilted(-V)
+let J := map (p->(p.1,p.1+sqrt(eta)*p.2)) (mu.prod (stdGaussian E))
+let nu := J.snd
+let sourceS := y->volume.tilted(u->-V(half*(y+u))-norm(y-u)^2/(8*eta))
+
+IsProbabilityMeasure nu AND exists G:Lp R 2 nu ->linear-partial Lp E 2 nu,
+  Dense G.domain AND G.IsClosable AND G.closure.IsClosed AND
+  (forall u v, (u,v) in G.graph IFF exists phi:E->R,
+      ContDiff R infinity phi AND HasCompactSupport phi AND
+      u =AE[nu] phi AND v =AE[nu] gradient phi) AND
+  forall f:E->R, ContDiff R infinity f -> HasCompactSupport f ->
+    let Tf := y->integral f(u) sourceS(y)(du)
+    exists hT:MemLp Tf 2 nu, exists hGrad:MemLp (gradient Tf) 2 nu,
+      (hT.toLp Tf, hGrad.toLp (gradient Tf)) in G.closure.graph.
+
+G is chosen once before forall f and is the true source compact-gradient core.
+It is distinct from50's lower-right block D. hT/hGrad are produced outputs,
+not public assumptions; their toLp pair is the actual canonical AE class pair.
+No compact support is required of Tf, no centering/positivity of f is assumed.

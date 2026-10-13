@@ -1,0 +1,79 @@
+import Mathlib.Analysis.Calculus.LocalExtr.Basic
+import Mathlib.Analysis.InnerProductSpace.Dual
+
+/-!
+# Uniqueness of convex subgradients at differentiability points
+
+This module is an optimal-transport-independent convex-analysis leaf for the
+Brenier/Monge frontier of Chewi Theorem 1.4.5.
+
+A vector `y` supports a real potential `phi` at `x` when
+
+`phi x + <y, z-x> <= phi z`
+
+for every `z`. If `phi` is Frechet differentiable at `x`, then such a
+supporting vector is unique and equals the Riesz vector representing the
+derivative.
+
+The proof is Fermat's theorem: the support inequality says that
+`z ↦ phi z - <y,z>` has a global (hence local) minimum at `x`; its derivative
+therefore vanishes.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace ConvexSubgradient
+
+open Filter
+open scoped RealInnerProductSpace
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- `y` is a global Hilbert-space subgradient/supporting vector of `phi` at
+`x`. This is deliberately a pointwise relation; an OT coupling can later be
+required to be concentrated on this graph without first choosing a transport
+map. -/
+def SupportsAt (phi : E → ℝ) (x y : E) : Prop :=
+  ∀ z, phi x + (innerSL ℝ y) (z - x) ≤ phi z
+
+/-- At a Frechet differentiability point, a supporting vector is the unique
+Riesz representative of the derivative. -/
+theorem eq_gradient_of_supportsAt_of_hasFDerivAt
+    {phi : E → ℝ} {x y g : E}
+    (hsupport : SupportsAt phi x y)
+    (hderiv : HasFDerivAt phi (innerSL ℝ g) x) :
+    y = g := by
+  have hmin : IsLocalMin (phi - fun z => (innerSL ℝ y) z) x := by
+    filter_upwards with z
+    have hz := hsupport z
+    rw [map_sub] at hz
+    change phi x - (innerSL ℝ y) x ≤ phi z - (innerSL ℝ y) z
+    calc
+      phi x - (innerSL ℝ y) x =
+          (phi x + ((innerSL ℝ y) z - (innerSL ℝ y) x)) - (innerSL ℝ y) z := by ring
+      _ ≤ phi z - (innerSL ℝ y) z := sub_le_sub_right hz _
+  have hpsi := hderiv.sub (innerSL ℝ y).hasFDerivAt
+  have hzero := hmin.hasFDerivAt_eq_zero hpsi
+  have heq : innerSL ℝ g = innerSL ℝ y := sub_eq_zero.mp hzero
+  exact (innerSL_inj.mp heq).symm
+
+/-- In particular, two supporting vectors at the same differentiability point
+coincide. -/
+theorem supportsAt_unique_of_hasFDerivAt
+    {phi : E → ℝ} {x y₁ y₂ g : E}
+    (h₁ : SupportsAt phi x y₁)
+    (h₂ : SupportsAt phi x y₂)
+    (hderiv : HasFDerivAt phi (innerSL ℝ g) x) :
+    y₁ = y₂ := by
+  rw [eq_gradient_of_supportsAt_of_hasFDerivAt h₁ hderiv,
+    eq_gradient_of_supportsAt_of_hasFDerivAt h₂ hderiv]
+
+end
+
+end ConvexSubgradient
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

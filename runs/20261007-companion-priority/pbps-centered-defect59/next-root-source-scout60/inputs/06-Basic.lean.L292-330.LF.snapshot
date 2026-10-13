@@ -1,0 +1,39 @@
+  ofRealLI.continuous
+
+theorem isUniformEmbedding_ofReal : IsUniformEmbedding ((↑) : ℝ → ℂ) :=
+  ofRealLI.isometry.isUniformEmbedding
+
+lemma _root_.RCLike.isUniformEmbedding_ofReal {𝕜 : Type*} [RCLike 𝕜] :
+    IsUniformEmbedding ((↑) : ℝ → 𝕜) :=
+  RCLike.ofRealLI.isometry.isUniformEmbedding
+
+theorem _root_.Filter.tendsto_ofReal_iff {α : Type*} {l : Filter α} {f : α → ℝ} {x : ℝ} :
+    Tendsto (fun x ↦ (f x : ℂ)) l (𝓝 (x : ℂ)) ↔ Tendsto f l (𝓝 x) :=
+  isUniformEmbedding_ofReal.isClosedEmbedding.tendsto_nhds_iff.symm
+
+lemma _root_.Filter.tendsto_ofReal_iff' {α 𝕜 : Type*} [RCLike 𝕜]
+    {l : Filter α} {f : α → ℝ} {x : ℝ} :
+    Tendsto (fun x ↦ (f x : 𝕜)) l (𝓝 (x : 𝕜)) ↔ Tendsto f l (𝓝 x) :=
+  RCLike.isUniformEmbedding_ofReal.isClosedEmbedding.tendsto_nhds_iff.symm
+
+lemma _root_.Filter.Tendsto.ofReal {α : Type*} {l : Filter α} {f : α → ℝ} {x : ℝ}
+    (hf : Tendsto f l (𝓝 x)) : Tendsto (fun x ↦ (f x : ℂ)) l (𝓝 (x : ℂ)) :=
+  tendsto_ofReal_iff.mpr hf
+
+/-- The only continuous ring homomorphism from `ℝ` to `ℂ` is the identity. -/
+theorem ringHom_eq_ofReal_of_continuous {f : ℝ →+* ℂ} (h : Continuous f) : f = ofRealHom := by
+  convert!
+    congr_arg AlgHom.toRingHom <|
+      Subsingleton.elim (AlgHom.mk' f <| map_real_smul f h) (Algebra.ofId ℝ ℂ)
+
+/-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
+def ofRealCLM : ℝ →L[ℝ] ℂ :=
+  ofRealLI.toContinuousLinearMap
+
+@[simp]
+theorem ofRealCLM_coe : (ofRealCLM : ℝ →ₗ[ℝ] ℂ) = ofRealAm.toLinearMap :=
+  rfl
+
+@[simp]
+theorem ofRealCLM_apply (x : ℝ) : ofRealCLM x = x :=
+  rfl

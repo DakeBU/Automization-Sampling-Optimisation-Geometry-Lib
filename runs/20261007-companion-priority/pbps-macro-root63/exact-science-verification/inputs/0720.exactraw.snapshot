@@ -1,0 +1,287 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StateDependentRGO
+import Mathlib.Probability.Kernel.IonescuTulcea.PartialTraj
+
+/-!
+# Finite capped RGO execution and ideal recovery
+
+Source: SPHMC arXiv:2609.06906v1, Algorithm 3.3 and the ideal comparison
+underlying Theorem 6.5. The state contains nonnegative precision, center,
+count and padded observation history. Each continuing transition uses the
+actual precision-weighted update; terminal states are absorbing.
+
+For arbitrary observation and terminal Markov kernels this constructs the
+finite path law and proves its terminal-output marginal equals the recursive
+output. StateDependentRGO supplies actual ideal kernels, whose finite capped
+output recovers the target at every depth. Recovery is derived, not assumed.
+
+A cap reached before the threshold still uses the supplied terminal kernel.
+This does not prove that the cap reaches the source stopping depth, construct
+FORS or the approximate smoothed sampler, or establish error/query-cost bounds.
+The source uses a positive precision threshold; zero is a valid immediate-stop
+generalization. Arbitrary count/history initialization carries no validity
+invariant, and the path is a state trajectory, not a query execution record.
+-/
+
+open MeasureTheory ProbabilityTheory Finset
+open scoped NNReal ENNReal
+open AutoSamplingTheory.ExampleCases.SmoothedPicardHMC
+open AutoSamplingTheory.TechnicalLemmas.Measure
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOProgram
+
+-- Precision, center, observation count, and padded most-recent-first history.
+local notation "ProgramState" E:arg => ℝ≥0 × E × ℕ × (ℕ → E)
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+/-- Construct finite threshold-absorbed RGO execution, identify its terminal-output
+marginal with recursive evaluation, and derive ideal recovery for every finite cap. -/
+theorem finite_rgo_program (μ : Measure E) [IsProbabilityMeasure μ]
+    (a : ProgramState E → ℝ) (ha : Measurable a) (ha0 : ∀ s, 0 < a s)
+    (threshold : ℝ≥0) :
+    let F : ProgramState E × E → ProgramState E := fun p =>
+      (⟨(p.1.1 : ℝ)+(a p.1)⁻¹, add_nonneg p.1.1.coe_nonneg (le_of_lt (inv_pos.mpr (ha0 p.1)))⟩,
+       ((p.1.1 : ℝ)+(a p.1)⁻¹)⁻¹ • ((p.1.1 : ℝ) • p.1.2.1+(a p.1)⁻¹ • p.2),
+       p.1.2.2.1+1, fun n => Nat.casesOn n p.2 p.1.2.2.2)
+    ∃ (T H : Kernel (ProgramState E) E), IsMarkovKernel T ∧ IsMarkovKernel H ∧
+      (∀ s, T s = μ.tilted (fun x => -((s.1 : ℝ)/2)*‖x-s.2.1‖^2)) ∧
+      (∀ s, H s = GaussianSmoothing.gaussianSmoothing (T s) (Real.sqrt (a s))) ∧
+      ∀ (Q L : Kernel (ProgramState E) E), IsMarkovKernel Q → IsMarkovKernel L →
+      ∃ (P : Kernel (ProgramState E) (ProgramState E)) (R : ℕ → Kernel (ProgramState E) E),
+        IsMarkovKernel P ∧ (∀ n, IsMarkovKernel (R n)) ∧
+        (∀ s, P s = if threshold ≤ s.1 then Measure.dirac s else (Q s).map (fun y => F (s,y))) ∧
+        R 0 = L ∧
+        (∀ n s, R (n+1) s = if threshold ≤ s.1 then L s else
+          (Q s).bind (fun y => R n (F (s,y)))) ∧
+        (∀ n s, threshold ≤ s.1 → R n s = L s) ∧
+        (∀ n : ℕ,
+          let κ : (k : ℕ) → Kernel (Π _ : Iic k, ProgramState E) (ProgramState E) := fun k =>
+            P.comap (fun h => h ⟨k, mem_Iic.mpr le_rfl⟩) (by fun_prop)
+          L ∘ₖ (((Kernel.partialTraj (X := fun _ => ProgramState E) κ 0 n).map
+            (fun h => h ⟨n, mem_Iic.mpr le_rfl⟩)).comap
+            (fun (s : ProgramState E) (_ : Iic 0) => s) (by fun_prop)) = R n) ∧
+        (Q = H → L = T → ∀ n, R n = T) := by
+  classical
+  have endpoint_path (C : Kernel (ProgramState E) (ProgramState E)) [IsMarkovKernel C] (n : ℕ) :
+      let κ : (k : ℕ) → Kernel (Π _ : Iic k, (ProgramState E)) (ProgramState E) := fun k =>
+        C.comap (fun h => h ⟨k, mem_Iic.mpr le_rfl⟩) (by fun_prop)
+      ((Kernel.partialTraj (X := fun _ => (ProgramState E)) κ 0 n).map (fun h => h ⟨n, mem_Iic.mpr le_rfl⟩)).comap
+        (fun (s : (ProgramState E)) (_ : Iic 0) => s) (by fun_prop) = C ^ n := by
+    intro κ
+    have hκ : ∀ k, IsMarkovKernel (κ k) := fun k => by dsimp [κ]; infer_instance
+    let := hκ
+    have hm (n : ℕ) : (Kernel.partialTraj (X := fun _ => (ProgramState E)) κ 0 n).map (fun h => h ⟨n, mem_Iic.mpr le_rfl⟩) =
+        (C ^ n) ∘ₖ Kernel.deterministic (fun h : Π _ : Iic 0, (ProgramState E) => h ⟨0, mem_Iic.mpr le_rfl⟩)
+          (by fun_prop) := by
+      induction n with
+      | zero =>
+        rw [Kernel.partialTraj_self, Kernel.id_map (by fun_prop), pow_zero]
+        exact (Kernel.id_comp _).symm
+      | succ n ih =>
+        rw [Kernel.partialTraj_succ_eq_comp (Nat.zero_le n), Kernel.map_comp,
+          Kernel.map_partialTraj_succ_self]
+        change (C.comap _ _) ∘ₖ Kernel.partialTraj (X := fun _ => (ProgramState E)) κ 0 n = _
+        rw [← Kernel.comp_map, ih, ← Kernel.comp_assoc, _root_.pow_succ']
+        rfl
+    rw [hm, ← Kernel.comp_deterministic_eq_comap, Kernel.comp_assoc,
+      Kernel.deterministic_comp_deterministic]
+    change (C ^ n) ∘ₖ Kernel.id = C ^ n
+    exact Kernel.comp_id _
+  have measurable_program_update (a : ProgramState E → ℝ) (ha : Measurable a)
+      (ha0 : ∀ s, 0 < a s) :
+      let F : ProgramState E × E → ProgramState E := fun p =>
+        (⟨(p.1.1 : ℝ)+(a p.1)⁻¹, add_nonneg p.1.1.coe_nonneg (le_of_lt (inv_pos.mpr (ha0 p.1)))⟩,
+         ((p.1.1 : ℝ)+(a p.1)⁻¹)⁻¹ • ((p.1.1 : ℝ) • p.1.2.1+(a p.1)⁻¹ • p.2),
+         p.1.2.2.1+1, fun n => Nat.casesOn n p.2 p.1.2.2.2)
+      Measurable F := by
+    intro F
+    apply Measurable.prodMk
+    · exact Measurable.subtype_mk (by fun_prop)
+    · apply Measurable.prodMk
+      · fun_prop
+      · apply Measurable.prodMk
+        · fun_prop
+        · apply measurable_pi_lambda
+          intro n
+          cases n <;> fun_prop
+  have absorbing_program (D : Set (ProgramState E)) [DecidablePred (· ∈ D)] (hD : MeasurableSet D)
+      (C : Kernel (ProgramState E) (ProgramState E)) [IsMarkovKernel C] (L : Kernel (ProgramState E) E) [IsMarkovKernel L] :
+      let P : Kernel (ProgramState E) (ProgramState E) := Kernel.piecewise hD Kernel.id C
+      let R : ℕ → Kernel (ProgramState E) E := fun n => L ∘ₖ (P ^ n)
+      (∀ n, IsMarkovKernel (R n)) ∧ R 0 = L ∧
+        (∀ n s, s ∈ D → R n s = L s) ∧
+        (∀ n s, R (n+1) s = if s ∈ D then L s else (C s).bind (R n)) := by
+    classical
+    intro P R
+    have hP : IsMarkovKernel P := by dsimp [P]; infer_instance
+    let := hP
+    have hp (n : ℕ) : IsMarkovKernel (P ^ n) := by
+      induction n with
+      | zero => change IsMarkovKernel Kernel.id; infer_instance
+      | succ n ih =>
+        let := ih
+        rw [pow_succ]
+        change IsMarkovKernel ((P ^ n) ∘ₖ P)
+        infer_instance
+    have hR (n : ℕ) : IsMarkovKernel (R n) := by
+      let := hp n
+      dsimp [R]
+      infer_instance
+    have hz : R 0 = L := by
+      change L ∘ₖ Kernel.id = L
+      exact Kernel.comp_id L
+    have hstep (n : ℕ) : R (n+1) = (R n) ∘ₖ P := by
+      dsimp only [R]
+      rw [pow_succ]
+      exact (Kernel.comp_assoc L (P ^ n) P).symm
+    have hstop (n : ℕ) (s : (ProgramState E)) (hs : s ∈ D) : R n s = L s := by
+      induction n with
+      | zero => rw [hz]
+      | succ n ih =>
+        rw [hstep, Kernel.comp_apply]
+        have hPs : P s = Measure.dirac s := by
+          dsimp only [P]
+          rw [Kernel.piecewise_apply, if_pos hs, Kernel.id_apply]
+        rw [hPs, Measure.dirac_bind (R n).measurable]
+        exact ih
+    refine ⟨hR,hz,hstop,?_⟩
+    intro n s
+    by_cases hs : s ∈ D
+    · rw [if_pos hs]
+      exact hstop (n+1) s hs
+    · rw [if_neg hs, hstep, Kernel.comp_apply]
+      have hPs : P s = C s := by
+        dsimp only [P]
+        rw [Kernel.piecewise_apply, if_neg hs]
+      rw [hPs]
+  have ideal_state_transition (μ : Measure E) [IsProbabilityMeasure μ]
+      (a : ProgramState E → ℝ) (ha : Measurable a) (ha0 : ∀ s, 0 < a s) :
+      let F : ProgramState E × E → ProgramState E := fun p =>
+        (⟨(p.1.1 : ℝ)+(a p.1)⁻¹, add_nonneg p.1.1.coe_nonneg (le_of_lt (inv_pos.mpr (ha0 p.1)))⟩,
+         ((p.1.1 : ℝ)+(a p.1)⁻¹)⁻¹ • ((p.1.1 : ℝ) • p.1.2.1+(a p.1)⁻¹ • p.2),
+         p.1.2.2.1+1, fun n => Nat.casesOn n p.2 p.1.2.2.2)
+      ∃ (T H : Kernel (ProgramState E) E) (C : Kernel (ProgramState E) (ProgramState E)),
+        IsMarkovKernel T ∧ IsMarkovKernel H ∧ IsMarkovKernel C ∧
+        (∀ s, T s = μ.tilted (fun x => -((s.1 : ℝ)/2)*‖x-s.2.1‖^2)) ∧
+        (∀ s, H s = GaussianSmoothing.gaussianSmoothing (T s) (Real.sqrt (a s))) ∧
+        (∀ s, C s = (H s).map (fun y => F (s,y))) ∧ T ∘ₖ C = T := by
+    intro F
+    have hF : Measurable F := measurable_program_update a ha ha0
+    obtain ⟨T,H,B,hT,hH,hB,hTf,hHf,hBpost,hBupd,hrec⟩ :=
+      StateDependentRGO.state_dependent_recovery μ (fun s : ProgramState E => (s.1 : ℝ)) a
+        (fun s => s.2.1) (by fun_prop) ha (by fun_prop) (fun s => s.1.coe_nonneg) ha0
+    let := hT
+    let := hH
+    let := hB
+    let C := (Kernel.id ×ₖ H).map F
+    have hC : IsMarkovKernel C := Kernel.IsMarkovKernel.map _ hF
+    let := hC
+    have hCf (s : ProgramState E) : C s = (H s).map (fun y => F (s,y)) := by
+      dsimp only [C]
+      rw [Kernel.map_apply _ hF, Kernel.prod_apply, Kernel.id_apply, Measure.dirac_prod,
+        Measure.map_map hF (by fun_prop)]
+      rfl
+    have hBf (s : ProgramState E) (y : E) : B (s,y) =
+        (T (F (s,y))).map (Prod.mk s) := by
+      rw [hBupd,hTf]
+      rfl
+    refine ⟨T,H,C,hT,hH,hC,hTf,hHf,hCf,?_⟩
+    ext s t ht
+    have hst : MeasurableSet (Prod.snd ⁻¹' t : Set (ProgramState E × E)) := ht.preimage measurable_snd
+    have heq := congrArg (fun m : Measure (ProgramState E × E) => m (Prod.snd ⁻¹' t))
+      (hrec (Measure.dirac s) inferInstance)
+    rw [Measure.bind_apply hst B.aemeasurable, Measure.lintegral_compProd (B.measurable_coe hst),
+      Measure.compProd_apply hst] at heq
+    simp only [lintegral_dirac] at heq
+    rw [Kernel.comp_apply' _ _ _ ht, hCf, lintegral_map (T.measurable_coe ht)
+      (show Measurable (fun y : E => F (s,y)) from hF.comp measurable_prodMk_left)]
+    convert heq using 1
+    · apply lintegral_congr
+      intro y
+      rw [hBf,Measure.map_apply (by fun_prop) hst]
+      rfl
+    · rfl
+  have absorbing_invariant (D : Set (ProgramState E)) [DecidablePred (· ∈ D)]
+      (hD : MeasurableSet D) (C : Kernel (ProgramState E) (ProgramState E)) [IsMarkovKernel C]
+      (T : Kernel (ProgramState E) E) [IsMarkovKernel T] (hTC : T ∘ₖ C = T) :
+      let P : Kernel (ProgramState E) (ProgramState E) := Kernel.piecewise hD Kernel.id C
+      ∀ n : ℕ, T ∘ₖ (P ^ n) = T := by
+    intro P
+    have hP : IsMarkovKernel P := by dsimp [P]; infer_instance
+    let := hP
+    have hTP : T ∘ₖ P = T := by
+      ext s t ht
+      rw [Kernel.comp_apply]
+      by_cases hs : s ∈ D
+      · have hPs : P s = Measure.dirac s := by
+          dsimp only [P]
+          rw [Kernel.piecewise_apply, if_pos hs, Kernel.id_apply]
+        rw [hPs, Measure.dirac_bind T.measurable]
+      · have hPs : P s = C s := by
+          dsimp only [P]
+          rw [Kernel.piecewise_apply, if_neg hs]
+        rw [hPs]
+        exact congrArg (fun K : Kernel (ProgramState E) E => K s t) hTC
+    intro n
+    induction n with
+    | zero => exact Kernel.comp_id T
+    | succ n ih =>
+      rw [pow_succ]
+      change T ∘ₖ ((P ^ n) ∘ₖ P) = T
+      rw [← Kernel.comp_assoc, ih, hTP]
+  intro F
+  have hF : Measurable F := measurable_program_update a ha ha0
+  obtain ⟨T,H,C,hT,hH,hC,hTf,hHf,hCf,hTC⟩ := ideal_state_transition μ a ha ha0
+  let := hT
+  let := hH
+  let := hC
+  refine ⟨T,H,hT,hH,hTf,hHf,?_⟩
+  intro Q L hQ hL
+  let := hQ
+  let := hL
+  let D : Set (ProgramState E) := {s | threshold ≤ s.1}
+  have hD : MeasurableSet D := measurableSet_le measurable_const measurable_fst
+  let CQ := (Kernel.id ×ₖ Q).map F
+  have hCQ : IsMarkovKernel CQ := Kernel.IsMarkovKernel.map _ hF
+  let := hCQ
+  have hCQf (s : ProgramState E) : CQ s = (Q s).map (fun y => F (s,y)) := by
+    dsimp only [CQ]
+    rw [Kernel.map_apply _ hF, Kernel.prod_apply, Kernel.id_apply, Measure.dirac_prod,
+      Measure.map_map hF (by fun_prop)]
+    rfl
+  let P := Kernel.piecewise hD Kernel.id CQ
+  let R : ℕ → Kernel (ProgramState E) E := fun n => L ∘ₖ (P ^ n)
+  have hP : IsMarkovKernel P := by dsimp [P]; infer_instance
+  let := hP
+  obtain ⟨hR,hzero,hstop,hstep⟩ := absorbing_program D hD CQ L
+  refine ⟨P,R,hP,hR,?_,hzero,?_,hstop,?_,?_⟩
+  · intro s
+    dsimp only [P]
+    rw [Kernel.piecewise_apply, Kernel.id_apply, hCQf]
+    rfl
+  · intro n s
+    change (L ∘ₖ (P ^ (n+1))) s = _
+    rw [hstep]
+    by_cases hs : threshold ≤ s.1
+    · rw [if_pos (show s ∈ D from hs), if_pos hs]
+    · rw [if_neg (show s ∉ D from hs), if_neg hs, hCQf]
+      apply Measure.ext
+      intro t ht
+      rw [Measure.bind_apply ht (R n).aemeasurable,
+        Measure.bind_apply ht (show AEMeasurable (fun y : E => R n (F (s,y))) (Q s) from ((R n).measurable.comp (hF.comp measurable_prodMk_left)).aemeasurable)]
+      exact lintegral_map ((R n).measurable_coe ht)
+        (show Measurable (fun y : E => F (s,y)) from hF.comp measurable_prodMk_left)
+  · intro n κ
+    rw [endpoint_path P n]
+  · intro hQeq hLeq n
+    have hCQeq : CQ = C := by
+      ext s t ht
+      rw [hCQf, hQeq, hCf]
+    change L ∘ₖ (P ^ n) = T
+    rw [hLeq]
+    exact absorbing_invariant D hD CQ T (by rw [hCQeq]; exact hTC) n
+
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOProgram
+

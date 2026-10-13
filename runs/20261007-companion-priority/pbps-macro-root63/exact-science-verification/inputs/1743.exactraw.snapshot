@@ -1,0 +1,23 @@
+# First scalar packet: scope correction, not a source error
+
+Independent reviewer: `companion_source_review`; anonymous decoder:
+`scalar_blind_decoder`; formalizer: `root-companion-writer`.
+
+Reviewer packet: `scalar.source-review.json`, canonical hash
+`bbb9491720dbcb3b0a620aa6047d527b80a58d94577b6ea9fd85cffcf2f4a255`.
+Its complete candidate code/source/proof explanation remain in that immutable
+packet. The independent decoding packet/result also remain unchanged.
+
+The reviewer returned `domain-mismatch`: the scalar inequality was correct,
+but the closed endpoints h=0 and h=1/4 were an unnecessary generalization of
+the pinned source range 0<h≤c0<1/4. Exact/equivalent source labeling was not
+approved. No source correction or extra mathematical hypothesis was proposed.
+Main revised the same packet to 0<h<1/4, removed the endpoint claim/test and
+requested a fresh round trip. No wrapper or new leaf was created by this change.
+
+The v1 target and Tests compiled with Lean4.33.0 (847 jobs); its root library
+also compiled (8944 jobs). The combined ASTIS gate was interrupted before its
+Tests/scans completed when source revision became necessary; it is not a final
+gate for v2. The reviewer's own initial compiler attempt selected inherited
+Lean4.29.1 and encountered incompatible headers. This was an environment error;
+no cache files were deleted and no independent compiler PASS was claimed.

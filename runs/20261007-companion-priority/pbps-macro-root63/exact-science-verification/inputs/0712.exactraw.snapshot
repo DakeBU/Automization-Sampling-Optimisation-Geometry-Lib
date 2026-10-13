@@ -1,0 +1,281 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection
+import Mathlib.Tactic
+
+/-! Actual clipped gradient-path Poisson retry program. Source: SPHMC
+arXiv:2609.06906v1 Appendix A.4(2), using arXiv:2602.01338v1 D.1 Eq18,
+and the actual full-batch Poisson mechanism of SPHMC A.1 Lemma A.2.
+
+The true source center, gradient arc, independent time/Gaussian auxiliary law,
+proposal law and clipped estimator are explicit. Integrability precedes the
+mean-error comparison. The clipped normalizer is positive and finite.
+First-success output and cost are definitionally the previously proved actual
+iid program; cost includes the successful batch. The null never-hit branch
+returns x0. Auxiliary time and acceptance uniform are different inputs.
+
+Coordinate-free, zero-dimensional and beta0 settings are disclosed extensions.
+No ideal Gibbs identification, Renyi accuracy, adaptive-parameter kernel,
+initialization or full gradient-oracle accounting is claimed. The bound is
+2B exp(2B) for estimator calls; uniform constant cost needs source parameter
+choices, and reference-gradient preparation remains a separate cost. -/
+
+open MeasureTheory ProbabilityTheory
+open scoped RealInnerProductSpace ENNReal NNReal BigOperators
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram
+
+private def clip (B t : ℝ) := min B (max (-B) t)
+
+private theorem clip_bounds (B t : ℝ) (hB : 0 ≤ B) : |clip B t| ≤ B := by
+  rw [abs_le]
+  constructor
+  · exact le_min (by linarith) (le_max_left _ _)
+  · exact min_le_left _ _
+
+private theorem clip_error (B t : ℝ) (hB : 0 ≤ B) :
+    |clip B t - t| = max (|t| - B) 0 := by
+  by_cases ht : t < -B
+  · have hneg : t ≤ 0 := by linarith
+    simp [clip, max_eq_left ht.le, min_eq_right (by linarith : -B ≤ B),
+      abs_of_nonpos hneg, abs_of_nonneg (by linarith : 0 ≤ -B-t),
+      max_eq_left (by linarith : 0 ≤ -t-B)]
+    ring
+  · have hl : -B ≤ t := le_of_not_gt ht
+    by_cases hu : t ≤ B
+    · have hab : |t| ≤ B := abs_le.mpr ⟨hl,hu⟩
+      simp [clip, max_eq_right hl, min_eq_right hu, max_eq_right (sub_nonpos.mpr hab)]
+    · have hb : B ≤ t := le_of_not_ge hu
+      simp [clip, max_eq_right hl, min_eq_left hb,
+        abs_of_nonneg (le_trans hB hb), abs_of_nonpos (sub_nonpos.mpr hb),
+        max_eq_left (sub_nonneg.mpr hb)]
+
+private theorem clipped_mean {A : Type*} [MeasurableSpace A]
+    (ν : Measure A) [IsProbabilityMeasure ν] (W : A → ℝ)
+    (hW : Measurable W) (hi : Integrable W ν) (B : ℝ) (hB : 0 ≤ B) :
+    Integrable (fun z => clip B (W z)) ν ∧
+    Integrable (fun z => max (|W z|-B) 0) ν ∧
+    |∫ z, clip B (W z) ∂ν| ≤ B ∧
+    |(∫ z, clip B (W z) ∂ν) - ∫ z, W z ∂ν| ≤
+      ∫ z, max (|W z|-B) 0 ∂ν := by
+  have hc : Measurable (fun z => clip B (W z)) := by
+    unfold clip
+    fun_prop
+  have hic : Integrable (fun z => clip B (W z)) ν :=
+    (integrable_const B).mono' hc.aestronglyMeasurable
+      (Filter.Eventually.of_forall (fun z => by
+        simpa [Real.norm_eq_abs] using clip_bounds B (W z) hB))
+  have he : Integrable (fun z => max (|W z|-B) 0) ν := by
+    have hh := (hic.sub hi).abs
+    simpa only [Pi.sub_apply, clip_error B _ hB] using hh
+  have hm : |∫ z, clip B (W z) ∂ν| ≤ B := by
+    apply abs_le.mpr
+    constructor
+    · have hh := integral_mono (integrable_const (-B)) hic
+        (fun z => (abs_le.mp (clip_bounds B (W z) hB)).1)
+      simpa using hh
+    · have hh := integral_mono hic (integrable_const B)
+        (fun z => (abs_le.mp (clip_bounds B (W z) hB)).2)
+      simpa using hh
+  refine ⟨hic, he, hm, ?_⟩
+  rw [← integral_sub hic hi]
+  simpa only [clip_error B _ hB] using
+    (abs_integral_le_integral_abs (f := fun z => clip B (W z)-W z) (μ := ν))
+
+private theorem clipped_normalizer {X : Type*} [MeasurableSpace X]
+    (q : Measure X) [IsProbabilityMeasure q] (m : X → ℝ)
+    (hm : Measurable m) (B : ℝ) (hb : ∀ x, |m x| ≤ B) :
+    Integrable (fun x => Real.exp (m x)) q ∧
+    Real.exp (-B) ≤ (∫ x, Real.exp (m x) ∂q) ∧
+    (∫ x, Real.exp (m x) ∂q) ≤ Real.exp B := by
+  have hi : Integrable (fun x => Real.exp (m x)) q :=
+    (integrable_const (Real.exp B)).mono' (by fun_prop)
+      (Filter.Eventually.of_forall (fun x => by
+        rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+        exact Real.exp_le_exp.mpr (abs_le.mp (hb x)).2))
+  refine ⟨hi, ?_, ?_⟩
+  · have hh := integral_mono (integrable_const (Real.exp (-B))) hi
+      (fun x => Real.exp_le_exp.mpr (abs_le.mp (hb x)).1)
+    simpa using hh
+  · have hh := integral_mono hi (integrable_const (Real.exp B))
+      (fun x => Real.exp_le_exp.mpr (abs_le.mp (hb x)).2)
+    simpa using hh
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  [SecondCountableTopology E]
+
+private def estimator (f : E → ℝ) (h xp : E) (p : E × (ℝ × E)) : ℝ :=
+  inner ℝ ((Real.pi / 2) • (Real.cos (Real.pi / 2 * p.2.1) • (p.1-h) -
+    Real.sin (Real.pi / 2 * p.2.1) • p.2.2))
+    (gradient f xp - gradient f (h + Real.sin (Real.pi / 2 * p.2.1) • (p.1-h) +
+      Real.cos (Real.pi / 2 * p.2.1) • p.2.2))
+
+private theorem actual_clipped_input (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta B : ℝ) (heta : 0 < eta) (hbeta : 0 ≤ beta) (hB : 0 < B)
+    (hlip : LipschitzWith ⟨beta,hbeta⟩ (gradient f)) (x0 xp : E) :
+    let h := x0 - eta • gradient f xp
+    let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+    let U := volume.restrict (Set.Ioc (0 : ℝ) 1)
+    let ν := U.prod P
+    let C := (∫ z, f (h+z) ∂P) - inner ℝ (gradient f xp) h
+    let W := estimator f h xp
+    let m := fun x => ∫ z, clip B (W (x,z)) ∂ν
+    IsProbabilityMeasure ν ∧ Measurable W ∧
+      Measurable (fun p : E × (ℝ × E) => clip B (W p)) ∧ Measurable m ∧
+      ∀ x, Integrable (fun z => W (x,z)) ν ∧
+        Integrable (fun z => clip B (W (x,z))) ν ∧
+        Integrable (fun z => max (|W (x,z)|-B) 0) ν ∧ |m x| ≤ B ∧
+        |m x - (inner ℝ (gradient f xp) x - f x + C)| ≤
+          ∫ z, max (|W (x,z)|-B) 0 ∂ν := by
+  dsimp only
+  let h := x0 - eta • gradient f xp
+  let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+  let U := volume.restrict (Set.Ioc (0 : ℝ) 1)
+  let ν := U.prod P
+  let W := estimator f h xp
+  obtain ⟨_, hu, _, hx⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.gradient_arc_mean
+      f hf eta beta heta hbeta hlip h xp
+  let : IsProbabilityMeasure U := hu
+  have hp : Measurable (fun z : E => Real.sqrt eta • z) := by fun_prop
+  let : IsProbabilityMeasure P := Measure.isProbabilityMeasure_map hp.aemeasurable
+  have hw : Measurable W := by
+    have hg := hlip.continuous
+    unfold W estimator
+    fun_prop
+  have hc : Measurable (fun p : E × (ℝ × E) => clip B (W p)) := by
+    unfold clip
+    fun_prop
+  refine ⟨inferInstance, hw, hc,
+    hc.stronglyMeasurable.integral_prod_right'.measurable, ?_⟩
+  intro x
+  have hix : Integrable (fun z => W (x,z)) ν := (hx x).2.1
+  obtain ⟨hic, hie, hm, herr⟩ := clipped_mean ν (fun z => W (x,z))
+    (hw.comp (by fun_prop)) hix B hB.le
+  refine ⟨hix, hic, hie, hm, ?_⟩
+  have hmean : (∫ z, W (x,z) ∂ν) = inner ℝ (gradient f xp) x - f x +
+      ((∫ z, f (h+z) ∂P) - inner ℝ (gradient f xp) h) := (hx x).2.2.2
+  rwa [hmean] at herr
+
+private abbrev Attempt (X A : Type*) := X × (ℕ × ((ℕ → A) × ℝ))
+
+private def attempts {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (q : Measure X) (ν : Measure A) (B : ℝ) (hB : 0 < B) : Measure (Attempt X A) :=
+  q.prod ((poissonMeasure (⟨2*B, by positivity⟩ : NNReal)).prod
+    ((Measure.infinitePi (fun _ : ℕ => ν)).prod (volume.restrict (Set.Icc 0 1))))
+
+private def accepted {X A : Type*} (W : X × A → ℝ) (B : ℝ) : Set (Attempt X A) :=
+  {p | p.2.2.2 ≤ ∏ i : Fin p.2.1, (B + W (p.1,p.2.2.1 i.val)) / (2*B)}
+
+private def output {X A : Type*} (W : X × A → ℝ) (B : ℝ) (x0 : X)
+    (ω : ℕ → Attempt X A) : X := by
+  classical
+  exact if h : ∃ n, ω n ∈ accepted W B then (ω (Nat.find h)).1 else x0
+
+private def queryCount {X A : Type*} (W : X × A → ℝ) (B : ℝ)
+    (ω : ℕ → Attempt X A) : ℝ≥0∞ := by
+  classical
+  exact ∑' n : ℕ, if ∀ i < n, ω i ∉ accepted W B then (ω n).2.1 else 0
+
+private theorem actual_retry {X A : Type*} [MeasurableSpace X] [MeasurableSpace A]
+    (q : Measure X) [IsProbabilityMeasure q] (ν : Measure A) [IsProbabilityMeasure ν]
+    (W : X × A → ℝ) (hW : Measurable W) (B : ℝ) (hB : 0 < B)
+    (hb : ∀ x z, |W (x,z)| ≤ B) (x0 : X) :
+    let m := fun x => ∫ z, W (x,z) ∂ν
+    let Z := ∫ x, Real.exp (m x) ∂q
+    let Λ := attempts q ν B hB
+    let ρ := Measure.infinitePi (fun _ : ℕ => Λ)
+    Measurable (output W B x0) ∧ ρ.map (output W B x0) = q.tilted m ∧
+      ρ {ω | ∀ n, ω n ∉ accepted W B} = 0 ∧
+      Λ (accepted W B) = ENNReal.ofReal (Real.exp (-B) * Z) ∧
+      ENNReal.ofReal (Real.exp (-2*B)) ≤ Λ (accepted W B) ∧
+      (∫⁻ ω, queryCount W B ω ∂ρ) =
+        (ENNReal.ofReal (Real.exp (-B) * Z))⁻¹ * ENNReal.ofReal (2*B) ∧
+      (∫⁻ ω, queryCount W B ω ∂ρ) ≤ ENNReal.ofReal (2*B*Real.exp (2*B)) := by
+  dsimp only
+  obtain ⟨R, hR, hr⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PoissonRejection.poisson_rejection_output
+      (Kernel.const ℝ q) ν (fun p : (ℝ × X) × A => W (p.1.2,p.2))
+      (hW.comp (by fun_prop)) B hB (fun _ x z => hb x z) x0
+  obtain ⟨hmeas, hlaw, htilt, _, _, hmass, hnever, _, hlow, hcost, hupper⟩ := hr 0
+  change Measurable (output W B x0) at hmeas
+  change (Measure.infinitePi (fun _ : ℕ => attempts q ν B hB)).map
+    (output W B x0) = R 0 at hlaw
+  change R 0 = q.tilted (fun x => ∫ z, W (x,z) ∂ν) at htilt
+  change attempts q ν B hB (accepted W B) =
+    ∫⁻ x, ENNReal.ofReal (Real.exp ((∫ z, W (x,z) ∂ν)-B)) ∂q at hmass
+  have hm : Measurable (fun x => ∫ z, W (x,z) ∂ν) :=
+    hW.stronglyMeasurable.integral_prod_right'.measurable
+  have hmb (x : X) : |∫ z, W (x,z) ∂ν| ≤ B := by
+    have hi : Integrable (fun z => W (x,z)) ν :=
+      (integrable_const B).mono' (hW.comp (by fun_prop)).aestronglyMeasurable
+        (Filter.Eventually.of_forall (fun z => by simpa [Real.norm_eq_abs] using hb x z))
+    rw [abs_le]
+    constructor
+    · simpa using integral_mono (integrable_const (-B)) hi
+        (fun z => (abs_le.mp (hb x z)).1)
+    · simpa using integral_mono hi (integrable_const B)
+        (fun z => (abs_le.mp (hb x z)).2)
+  have hi := (clipped_normalizer q _ hm B hmb).1
+  have hie : Integrable (fun x => Real.exp ((∫ z, W (x,z) ∂ν)-B)) q := by
+    simpa [Real.exp_sub, div_eq_mul_inv] using hi.mul_const (Real.exp B)⁻¹
+  have hp : attempts q ν B hB (accepted W B) =
+      ENNReal.ofReal (Real.exp (-B) * ∫ x, Real.exp (∫ z, W (x,z) ∂ν) ∂q) := by
+    rw [hmass, ← ofReal_integral_eq_lintegral_ofReal hie
+      (Filter.Eventually.of_forall (fun x => (Real.exp_pos _).le))]
+    congr 1
+    simp_rw [Real.exp_sub]
+    rw [integral_div, Real.exp_neg]
+    ring
+  change (∫⁻ ω, queryCount W B ω ∂Measure.infinitePi (fun _ : ℕ => attempts q ν B hB)) =
+    (attempts q ν B hB (accepted W B))⁻¹ * ENNReal.ofReal (2*B) at hcost
+  rw [hp] at hcost
+  exact ⟨hmeas, hlaw.trans htilt, hnever, hp, hlow, hcost, hupper⟩
+
+theorem clipped_gradient_program (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta B : ℝ) (heta : 0 < eta) (hbeta : 0 ≤ beta) (hB : 0 < B)
+    (hlip : LipschitzWith ⟨beta,hbeta⟩ (gradient f)) (x0 xp : E) :
+    let h := x0 - eta • gradient f xp
+    let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+    let U := volume.restrict (Set.Ioc (0 : ℝ) 1)
+    let ν := U.prod P
+    let q := (stdGaussian E).map (fun z => h + Real.sqrt eta • z)
+    let C := (∫ z, f (h+z) ∂P) - inner ℝ (gradient f xp) h
+    let W := estimator f h xp
+    let Wc := fun p => clip B (W p)
+    let m := fun x => ∫ z, Wc (x,z) ∂ν
+    let Z := ∫ x, Real.exp (m x) ∂q
+    let Λ := attempts q ν B hB
+    let ρ := Measure.infinitePi (fun _ : ℕ => Λ)
+    IsProbabilityMeasure ν ∧ IsProbabilityMeasure q ∧
+      Measurable W ∧ Measurable Wc ∧ Measurable m ∧
+      (∀ x, Integrable (fun z => W (x,z)) ν ∧
+        Integrable (fun z => Wc (x,z)) ν ∧
+        Integrable (fun z => max (|W (x,z)|-B) 0) ν ∧ |m x| ≤ B ∧
+        |m x - (inner ℝ (gradient f xp) x - f x + C)| ≤
+          ∫ z, max (|W (x,z)|-B) 0 ∂ν) ∧
+      Integrable (fun x => Real.exp (m x)) q ∧
+      Real.exp (-B) ≤ Z ∧ Z ≤ Real.exp B ∧
+      Measurable (output Wc B x0) ∧ ρ.map (output Wc B x0) = q.tilted m ∧
+      ρ {ω | ∀ n, ω n ∉ accepted Wc B} = 0 ∧
+      Λ (accepted Wc B) = ENNReal.ofReal (Real.exp (-B)*Z) ∧
+      ENNReal.ofReal (Real.exp (-2*B)) ≤ Λ (accepted Wc B) ∧
+      (∫⁻ ω, queryCount Wc B ω ∂ρ) =
+        (ENNReal.ofReal (Real.exp (-B)*Z))⁻¹ * ENNReal.ofReal (2*B) ∧
+      (∫⁻ ω, queryCount Wc B ω ∂ρ) ≤ ENNReal.ofReal (2*B*Real.exp (2*B)) := by
+  dsimp only
+  let h := x0 - eta • gradient f xp
+  let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+  let ν := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod P
+  let q := (stdGaussian E).map (fun z => h + Real.sqrt eta • z)
+  let W := estimator f h xp
+  let Wc := fun p => clip B (W p)
+  obtain ⟨hν, hw, hc, hm, hx⟩ := actual_clipped_input f hf eta beta B heta hbeta hB hlip x0 xp
+  let : IsProbabilityMeasure ν := hν
+  have hq : Measurable (fun z : E => h + Real.sqrt eta • z) := by fun_prop
+  let : IsProbabilityMeasure q := Measure.isProbabilityMeasure_map hq.aemeasurable
+  obtain ⟨hi, hzlow, hzup⟩ := clipped_normalizer q _ hm B (fun x => (hx x).2.2.2.1)
+  have hr := actual_retry q ν Wc hc B hB (fun x z => clip_bounds B (W (x,z)) hB.le) x0
+  exact ⟨hν, inferInstance, hw, hc, hm, hx, hi, hzlow, hzup, hr⟩
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram

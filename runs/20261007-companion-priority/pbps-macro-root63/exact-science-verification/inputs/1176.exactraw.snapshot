@@ -1,0 +1,122 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.OperatorGeneratorDomain
+
+/-!
+# Weak Kolmogorov forward equation for dual semigroup observables
+
+Chewi Proposition 1.2.6 writes the forward evolution of a law as
+`∂ₜ Pₜ* π₀ = L* Pₜ* π₀`.  Before constructing a concrete density or an adjoint
+measure-valued generator, the source calculation has an exact weak form:
+
+`d/dt ⟨f, Pₜ* ℓ⟩ = ⟨L f, Pₜ* ℓ⟩`.
+
+Here `ℓ` is any continuous linear functional on the observable space and
+`Pₜ* ℓ := ℓ ∘ Pₜ`.  The theorem is therefore purely operator-theoretic and
+uses no stochastic-calculus result from Section 1.1.  Identifying `ℓ` with
+integration against a probability law and identifying `L*` as a density PDE
+remain separate analytic bridges.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace WeakForwardEquation
+
+open Filter Set
+open scoped NNReal Topology
+
+open OperatorGenerator
+open OperatorGeneratorDomain
+
+noncomputable section
+
+variable {M : Type*} [NormedAddCommGroup M] [NormedSpace ℝ M]
+
+/-- The dual action of a semigroup on a continuous linear functional:
+`Pₜ* ℓ = ℓ ∘ Pₜ`. -/
+def dualAction
+    (S : ContinuousLinearSemigroup M) (t : ℝ≥0)
+    (ell : M →L[ℝ] ℝ) : M →L[ℝ] ℝ :=
+  ell.comp (S.op t)
+
+@[simp]
+theorem dualAction_apply
+    (S : ContinuousLinearSemigroup M) (t : ℝ≥0)
+    (ell : M →L[ℝ] ℝ) (f : M) :
+    dualAction S t ell f = ell (S.op t f) :=
+  rfl
+
+/-- The dual action starts at the identity. -/
+theorem dualAction_zero
+    (S : ContinuousLinearSemigroup M) (ell : M →L[ℝ] ℝ) :
+    dualAction S 0 ell = ell := by
+  ext f
+  rw [dualAction_apply, S.op_zero]
+  rfl
+
+/-- Dual Chapman--Kolmogorov law.  The order is reversed by composition, as
+expected for the adjoint action. -/
+theorem dualAction_add
+    (S : ContinuousLinearSemigroup M) (ell : M →L[ℝ] ℝ)
+    (s t : ℝ≥0) :
+    dualAction S (s + t) ell = dualAction S t (dualAction S s ell) := by
+  ext f
+  simp only [dualAction_apply]
+  rw [S.op_add_apply]
+
+/-- Right difference quotient of the weak pairing
+`⟨f, Pₜ* ell⟩ = ell (Pₜ f)`. -/
+def rightDualPairingDifferenceQuotient
+    (S : ContinuousLinearSemigroup M) (ell : M →L[ℝ] ℝ)
+    (t h : ℝ≥0) (f : M) : ℝ :=
+  ((h : ℝ)⁻¹) •
+    (dualAction S (t + h) ell f - dualAction S t ell f)
+
+/-- The weak dual quotient is obtained by applying the functional to the
+ordinary semigroup orbit quotient. -/
+theorem rightDualPairingDifferenceQuotient_eq
+    (S : ContinuousLinearSemigroup M) (ell : M →L[ℝ] ℝ)
+    (t h : ℝ≥0) (f : M) :
+    rightDualPairingDifferenceQuotient S ell t h f =
+      ell (rightOrbitDifferenceQuotient S t h f) := by
+  simp only [rightDualPairingDifferenceQuotient, dualAction_apply,
+    rightOrbitDifferenceQuotient]
+  rw [map_smul, map_sub]
+
+/-- Weak right-hand Kolmogorov forward equation.
+
+For an observable in the canonical generator domain, differentiating the dual
+pairing gives the evolved functional applied to the generator:
+
+`d⁺/dt (Pₜ* ell)(f) = (Pₜ* ell)(A f)`.
+
+This is the rigorous operator-level content of the calculation immediately
+preceding Chewi Proposition 1.2.6.  A measure-valued identity involving `A*`
+requires an additional adjoint-domain realization and is not claimed here. -/
+theorem kolmogorov_forward_weak_right
+    (S : ContinuousLinearSemigroup M) (ell : M →L[ℝ] ℝ)
+    (f : generatorDomainSubmodule S) (t : ℝ≥0) :
+    Tendsto
+      (fun h : ℝ≥0 =>
+        rightDualPairingDifferenceQuotient S ell t h (f : M))
+      (nhdsWithin 0 (Ioi 0))
+      (𝓝 (dualAction S t ell (rightGenerator S f))) := by
+  have hell :
+      Tendsto ell
+        (𝓝 (S.op t (rightGenerator S f)))
+        (𝓝 (ell (S.op t (rightGenerator S f)))) :=
+    ell.continuous.continuousAt
+  have hmap :
+      Tendsto
+        (fun h : ℝ≥0 =>
+          ell (rightOrbitDifferenceQuotient S t h (f : M)))
+        (nhdsWithin 0 (Ioi 0))
+        (𝓝 (ell (S.op t (rightGenerator S f)))) :=
+    hell.comp (kolmogorov_backward_right_generator S f t)
+  simpa only [rightDualPairingDifferenceQuotient_eq, dualAction_apply] using hmap
+
+end
+
+end WeakForwardEquation
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

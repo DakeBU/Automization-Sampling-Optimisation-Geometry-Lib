@@ -1,0 +1,31 @@
+  congr 1
+  simpa only [Z, integral_const_mul] using
+    (ofReal_integral_eq_lintegral_ofReal ((hI y).const_mul C)
+      (Filter.Eventually.of_forall (fun x => mul_nonneg hC (weight_bounds hη y x).1.le))).symm
+
+/-- The actual Gaussian-smoothed probability law has the displayed everywhere
+positive density; its normalizer and exact negative-log density are globally C2.
+No finite moments, input Lebesgue density or supplied regularity are required. -/
+theorem gaussian_convolution_potential_c2 (μ : Measure E) [IsProbabilityMeasure μ]
+    {η : ℝ} (hη : 0 < η) :
+    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E
+    let Z := fun y : E => ∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ
+    (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt η • p.2) =
+      (volume : Measure E).withDensity (fun y => ENNReal.ofReal (C*Z y)) ∧
+    (∀ y, 0 < C*Z y) ∧ ContDiff ℝ 2 Z ∧
+      ContDiff ℝ 2 (fun y => -Real.log (C*Z y)) := by
+  let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E
+  have hC : 0 < C := by dsimp [C]; positivity
+  obtain ⟨hZ,hZC,hV,_hdZ,_hdD⟩ := gaussianNormalizerRegularity μ hη
+  exact ⟨gaussianDensity μ hη,fun y => mul_pos hC (hZ y),hZC,hV C hC⟩
+
+private theorem normalizerDerivatives (μ : Measure E) [IsProbabilityMeasure μ]
+    {η : ℝ} (hη : 0 < η) :
+    let Z := fun y : E => ∫ x, gaussianWeight η y x ∂μ
+    let D := fun y : E => ∫ x, gaussianFirst η y x ∂μ
+    let H := fun y : E => ∫ x, gaussianSecond η y x ∂μ
+    (∀ y, 0 < Z y) ∧ (∀ y, HasFDerivAt Z (D y) y) ∧
+      (∀ y, HasFDerivAt D (H y) y) := by
+  obtain ⟨hZ,_hZC,_hVC,hdZ,hdD⟩ := gaussianNormalizerRegularity μ hη
+  exact ⟨hZ,hdZ,hdD⟩
+

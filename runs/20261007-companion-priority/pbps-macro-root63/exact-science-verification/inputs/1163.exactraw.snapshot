@@ -1,0 +1,198 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingProgressiveL2
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoL2
+
+/-!
+# Product-space L2 convergence for random stopping
+
+For a bounded nonnegative stopping time, the stopped dyadic refinements from
+`RandomStoppingProcessApprox` converge pointwise to Chewi's closed stopped
+integrand.  The previous module packages that target as a genuine progressive
+`L2` integrand and gives one deterministic bound for both the target and every
+approximant.
+
+This file performs the analytic passage that was still missing: dominated
+convergence for the squared product-space error, followed by the standard
+identity between that integral and the square of the `L2` norm.  No Brownian
+increment at a random time is estimated here; doing so before proving stopping
+consistency would be circular.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace RandomStoppingL2Convergence
+
+open Filter MeasureTheory
+open scoped NNReal Topology
+
+open ElementaryItoEmbedding ElementaryItoIntegral ElementaryItoL2 ProgressiveL2
+  ProgressiveL2Density RandomStoppingIntegrandLimit RandomStoppingProcessApprox
+  RandomStoppingProgressiveL2 StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- The deterministic coefficient-sum bound used below is nonnegative. -/
+theorem valueBound_nonneg
+    (eta : DyadicElementaryProcess filtration T) :
+    0 ≤ valueBound eta.process := by
+  unfold valueBound
+  exact Finset.sum_nonneg fun i _ => le_max_left 0 _
+
+/-- The pointwise error between a stopped refinement and its stopped target is
+bounded by twice the original elementary-process bound. -/
+theorem abs_stopRefinedDyadic_sub_stoppedIntegrand_le
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T)
+    (n : ℕ) (s : ℝ≥0) (omega : Omega) :
+    |(stopRefinedDyadic eta tau htau n).process.value s omega -
+        Localization.stoppedIntegrand eta.process.value
+          (fun w => (tau w : WithTop ℝ≥0)) s omega| ≤
+      2 * valueBound eta.process := by
+  calc
+    |(stopRefinedDyadic eta tau htau n).process.value s omega -
+        Localization.stoppedIntegrand eta.process.value
+          (fun w => (tau w : WithTop ℝ≥0)) s omega| ≤
+      |(stopRefinedDyadic eta tau htau n).process.value s omega| +
+        |Localization.stoppedIntegrand eta.process.value
+          (fun w => (tau w : WithTop ℝ≥0)) s omega| := abs_sub _ _
+    _ ≤ valueBound eta.process + valueBound eta.process :=
+      add_le_add
+        (abs_stopRefinedDyadic_value_le_valueBound eta tau htau htauT n s omega)
+        (abs_stoppedIntegrand_le_valueBound eta tau s omega)
+    _ = 2 * valueBound eta.process := by ring
+
+/-- Dominated convergence for the squared product-space error.  This is the
+measure-theoretic core of random-stopping convergence. -/
+theorem tendsto_integral_sq_stopRefinedDyadic_sub
+    [IsFiniteMeasure mu]
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T) :
+    Tendsto
+      (fun n =>
+        ∫ z,
+          ((stopRefinedDyadic eta tau htau n).process.value z.2 z.1 -
+            Localization.stoppedIntegrand eta.process.value
+              (fun w => (tau w : WithTop ℝ≥0)) z.2 z.1) ^ 2
+          ∂processTimeMeasure mu T)
+      atTop (𝓝 0) := by
+  let _ : IsFiniteMeasure (processTimeMeasure mu T) := by
+    unfold processTimeMeasure
+    infer_instance
+  let target := stoppedProgressiveL2 (mu := mu) eta tau htau htauT
+  let approximation : ℕ → ProgressiveL2Integrand filtration mu T := fun n =>
+    toProgressiveL2 (stopRefinedDyadic eta tau htau n).process mu T
+  let error : ℕ → Omega × ℝ≥0 → ℝ := fun n z =>
+    (approximation n).process z.2 z.1 - target.process z.2 z.1
+  have herrorMem : ∀ n, MemLp (error n) 2 (processTimeMeasure mu T) := by
+    intro n
+    exact (approximation n).memLp.sub target.memLp
+  have hmeas : ∀ n,
+      AEStronglyMeasurable (fun z => (error n z) ^ 2)
+        (processTimeMeasure mu T) := fun n =>
+    (herrorMem n).integrable_sq.aestronglyMeasurable
+  have hboundIntegrable :
+      Integrable (fun _ : Omega × ℝ≥0 =>
+        4 * (valueBound eta.process) ^ 2)
+        (processTimeMeasure mu T) :=
+    MeasureTheory.integrable_const
+      (μ := processTimeMeasure mu T) (4 * (valueBound eta.process) ^ 2)
+  have hbound : ∀ n, ∀ᵐ z ∂processTimeMeasure mu T,
+      ‖(error n z) ^ 2‖ ≤ 4 * (valueBound eta.process) ^ 2 := by
+    intro n
+    filter_upwards [] with z
+    have herr := abs_stopRefinedDyadic_sub_stoppedIntegrand_le
+      eta tau htau htauT n z.2 z.1
+    change |error n z| ≤ 2 * valueBound eta.process at herr
+    calc
+      ‖(error n z) ^ 2‖ = |error n z| ^ 2 := by
+        rw [Real.norm_eq_abs, abs_sq, sq_abs]
+      _ ≤ (2 * valueBound eta.process) ^ 2 :=
+        (sq_le_sq₀ (abs_nonneg _) (mul_nonneg (by norm_num) (valueBound_nonneg eta))).mpr herr
+      _ = 4 * (valueBound eta.process) ^ 2 := by ring
+  have hlim : ∀ᵐ z ∂processTimeMeasure mu T,
+      Tendsto (fun n => (error n z) ^ 2) atTop (𝓝 0) := by
+    filter_upwards [] with z
+    have hz := tendsto_stopRefinedDyadic_value_stoppedIntegrand
+      eta tau htau htauT z.2 z.1
+    have hzsub : Tendsto (fun n => error n z) atTop (𝓝 0) := by
+      change Tendsto
+        (fun n =>
+          (stopRefinedDyadic eta tau htau n).process.value z.2 z.1 -
+            Localization.stoppedIntegrand eta.process.value
+              (fun w => (tau w : WithTop ℝ≥0)) z.2 z.1)
+        atTop (𝓝 0)
+      exact tendsto_sub_nhds_zero_iff.mpr hz
+    simpa only [zero_pow (by norm_num : (2 : ℕ) ≠ 0)] using hzsub.pow 2
+  change Tendsto
+    (fun n => ∫ z, (error n z) ^ 2 ∂processTimeMeasure mu T)
+    atTop (𝓝 0)
+  simpa only [integral_zero] using
+    tendsto_integral_of_dominated_convergence
+      (fun _ : Omega × ℝ≥0 => 4 * (valueBound eta.process) ^ 2)
+      hmeas hboundIntegrable hbound hlim
+
+/-- The stopped dyadic refinements converge to the stopped elementary
+integrand in the actual product-space `L2` object. -/
+theorem tendsto_stopRefinedDyadic_toLp
+    [IsFiniteMeasure mu]
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T) :
+    Tendsto
+      (fun n => (stopRefinedDyadic eta tau htau n).toLp mu)
+      atTop
+      (𝓝 (stoppedProgressiveL2 (mu := mu) eta tau htau htauT).toLp) := by
+  let target := stoppedProgressiveL2 (mu := mu) eta tau htau htauT
+  let approximation : ℕ → ProgressiveL2Integrand filtration mu T := fun n =>
+    toProgressiveL2 (stopRefinedDyadic eta tau htau n).process mu T
+  have hnormSq (n : ℕ) :
+      ‖(approximation n).toLp - target.toLp‖ ^ 2 =
+        ∫ z,
+          ((stopRefinedDyadic eta tau htau n).process.value z.2 z.1 -
+            Localization.stoppedIntegrand eta.process.value
+              (fun w => (tau w : WithTop ℝ≥0)) z.2 z.1) ^ 2
+          ∂processTimeMeasure mu T := by
+    have h := norm_sq_toLp_eq_integral_sq
+      ((approximation n).memLp.sub target.memLp)
+    rw [MemLp.toLp_sub] at h
+    change
+      ‖(approximation n).toLp - target.toLp‖ ^ 2 =
+        ∫ z,
+          ((approximation n).process z.2 z.1 - target.process z.2 z.1) ^ 2
+          ∂processTimeMeasure mu T at h
+    simpa only [approximation, target, toProgressiveL2_process,
+      stoppedProgressiveL2_process] using h
+  have hsquares :
+      Tendsto
+        (fun n => ‖(approximation n).toLp - target.toLp‖ ^ 2)
+        atTop (𝓝 0) := by
+    refine Filter.tendsto_congr'
+      (Filter.Eventually.of_forall fun n => hnormSq n) |>.mpr ?_
+    exact tendsto_integral_sq_stopRefinedDyadic_sub eta tau htau htauT
+  have hnorms :
+      Tendsto
+        (fun n => ‖(approximation n).toLp - target.toLp‖)
+        atTop (𝓝 0) := by
+    have hsqrt := Real.continuous_sqrt.continuousAt.tendsto.comp hsquares
+    change Tendsto
+      (fun n => √(‖(approximation n).toLp - target.toLp‖ ^ 2))
+      atTop (𝓝 (√(0 : ℝ))) at hsqrt
+    simpa only [Real.sqrt_sq (norm_nonneg _), Real.sqrt_zero] using hsqrt
+  have happrox :
+      Tendsto (fun n => (approximation n).toLp) atTop (𝓝 target.toLp) :=
+    tendsto_iff_norm_sub_tendsto_zero.mpr hnorms
+  simpa only [approximation, target, DyadicElementaryProcess.toLp] using happrox
+
+end RandomStoppingL2Convergence
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

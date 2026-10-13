@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-79c106af5583c8f3",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let waitObs : E → E → (((ℝ≥0 × (E × E)) ⊕ Unit) × ℝ) → WithTop ℝ≥0 :=\n      fun y xRef q => match q.1 with\n        | Sum.inl a => τ y xRef a.2 (Real.toNNReal q.2)\n        | Sum.inr _ => 0\n    let timeObs : E → E → (((ℝ≥0 × (E × E)) ⊕ Unit) × ℝ) → ℝ :=\n      fun y xRef q => ((waitObs y xRef q).untopD 0 : ℝ≥0)\n    let density : E → E → (((ℝ≥0 × (E × E)) ⊕ Unit) × ℝ) → ℝ≥0∞ :=\n      fun y xRef q => match q.1 with\n        | Sum.inl a => ENNReal.ofReal (rate xRef (Φ y xRef q.2 a.2) *\n            Real.exp (-Λ y xRef a.2 (Real.toNNReal q.2)))\n        | Sum.inr _ => 0\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ n : ℕ,\n      let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n      let Hist := Fin (n + 1) → Rec\n      let HistNext := Fin (n + 2) → Rec\n      let last : Fin (n + 1) := ⟨n, Nat.lt_succ_self n⟩\n      let H : (ℕ → ℝ) → Hist := history y xRef z₀ n\n      let Hnext : (ℕ → ℝ) → HistNext := history y xRef z₀ (n + 1)\n      let append : Hist × ℝ → HistNext := fun p =>\n        Fin.snoc p.1 (match p.1 last with\n          | Sum.inl a => Sum.inl (a.1 + Real.toNNReal p.2,\n              S xRef (Φ y xRef p.2 a.2))\n          | Sum.inr _ => Sum.inr ())\n      let lift : Hist × ℝ → HistNext × ℝ := fun p => (append p, p.2)\n      Measurable Hnext ∧ Measurable append ∧ Measurable lift ∧\n      (∀ p : Hist × ℝ, ∀ j : Fin (n + 1), append p j.castSucc = p.1 j) ∧\n      (∀ d : Hist → ℝ≥0, Measurable d →\n        let μ : Measure Hist := Measure.map H P\n        let D : Hist → ℝ → ℝ≥0∞ := fun h s =>\n          if 0 < s ∧ s < (d h : ℝ) then density y xRef (h last, s) else 0\n        let B : Set (ℕ → ℝ) := {w |\n          (0 : WithTop ℝ≥0) < waitObs y xRef (record y xRef z₀ (ε w) n, w n) ∧\n          waitObs y xRef (record y xRef z₀ (ε w) n, w n) <\n            ((d (H w) : ℝ≥0) : WithTop ℝ≥0)}\n        let X : (ℕ → ℝ) → Hist × ℝ := fun w =>\n          (H w, timeObs y xRef (record y xRef z₀ (ε w) n, w n))\n        let Y : (ℕ → ℝ) → HistNext × ℝ := fun w =>\n          (Hnext w, timeObs y xRef (record y xRef z₀ (ε w) n, w n))\n        let ν : Measure (Hist × ℝ) := (μ.prod (volume : Measure ℝ)).withDensity\n          (fun p => D p.1 p.2)\n        MeasurableSet B ∧ Measurable Y ∧\n        (∀ w ∈ B, Hnext w = append (X w)) ∧\n        Measure.map Y (P.restrict B) = Measure.map lift ν ∧\n        Measure.map Hnext (P.restrict B) = Measure.map append ν ∧\n        (Measure.map lift ν) Set.univ ≤ 1 ∧\n        (∀ F : HistNext × ℝ → ℝ≥0∞, Measurable F →\n          Measurable (fun h => ∫⁻ s : ℝ, F (lift (h, s)) * D h s) ∧\n          (∀ A : Set Hist, MeasurableSet A →\n            (∫⁻ w in B ∩ H ⁻¹' A, F (Y w) ∂P) =\n              ∫⁻ h in A, (∫⁻ s : ℝ, F (lift (h, s)) * D h s) ∂μ)))",
+    "statement_sha256": "79c106af5583c8f3d50944ed43e5a9db90a295c79752b70de10b47d0534a686c",
+    "compiled": true,
+    "approved_definition_context": [
+      "All displayed functions are literal definitions on a finite-dimensional real inner-product Borel space, including rank zero. fderiv is Frechet derivative, gradient the inner-product gradient, and ContDiff real2 twice continuous differentiability.",
+      "expMeasure1 is the rate-one exponential law on real numbers; infinitePi is its canonical countable product. Real.toNNReal is max(x,0) represented as a nonnegative real.",
+      "WithTop NNReal includes infinity. hittingAfter is the infimum of nonnegative entry times, infinity if none exists. untopD0 returns the finite value with default zero at infinity. Sum.inl/inr are distinct Borel tags; Unit is a singleton; products associate right.",
+      "Fin(n+1) indexes0 through n. Fin.snoc h a appends a as the last coordinate and keeps all earlier coordinates. j.castSucc embeds an old Fin index in the larger tuple with the same value.",
+      "Measurable is Borel measurability. Measure.map is pushforward, restrict is unnormalized measure restriction, withDensity multiplies the reference measure by the indicated nonnegative density. Real volume is Lebesgue measure.",
+      "Real division is total with division by zero equal to zero. Interval integrals are real Bochner integrals; Nat.rec is the displayed finite recursion; ENNReal.ofReal embeds max(x,0). Nonnegative extended Lebesgue integrals need no integrability premise."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "49d6f3dadb0397f915fadaf4b73c95e22edf4440a92e3f5921cb37616ce44687"
+}

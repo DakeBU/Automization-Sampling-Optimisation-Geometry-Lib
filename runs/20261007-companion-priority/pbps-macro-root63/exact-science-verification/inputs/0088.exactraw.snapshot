@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-304904e866c4406d",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}\n    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)\n    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)\n    (hpos : ∀ s, 0 < eta s) :\n    let F := fun s x => V x + (eta s)⁻¹/2*‖x-y s‖^2\n    ∃ p : S → E, Measurable p ∧\n      (∀ s, p s + eta s • gradient V (p s) = y s) ∧\n      (∀ s z, F s (p s) + (κ⁻¹+(eta s)⁻¹)/2*‖z-p s‖^2 ≤ F s z ∧\n        (F s z ≤ F s (p s) ↔ z=p s)) ∧\n      (∀ s t, eta s = eta t → ‖p s-p t‖ ≤ ‖y s-y t‖) ∧\n      let G := fun q : S × E => gradient V (p q.1+Real.sqrt (eta q.1) • q.2)\n      Measurable G ∧\n      (∀ s t z w, eta s = eta t →\n        ‖G (s,z)-G (t,w)‖ ≤ ‖y s-y t‖+Real.sqrt (eta s)*‖z-w‖) ∧\n      ∃ K : ProbabilityTheory.Kernel S E, ProbabilityTheory.IsMarkovKernel K ∧\n        (∀ s, K s = (ProbabilityTheory.stdGaussian E).map (fun z => G (s,z))) ∧\n        ∀ s, MeasureTheory.Integrable (fun w : E => w) (K s) ∧\n          ∀ (a : E) (t : ℝ), MeasureTheory.Integrable\n            (fun w => Real.exp (t * inner ℝ a (w - ∫ v, v ∂K s))) (K s) ∧\n            (∫ w, Real.exp (t * inner ℝ a (w - ∫ v, v ∂K s)) ∂K s) ≤\n              Real.exp (eta s * t^2 * ‖a‖^2 / 2)",
+    "statement_sha256": "304904e866c4406dc223ee52b7dad2ff095ec258d2717f86689d38f152a23569",
+    "compiled": true,
+    "approved_definition_context": [
+      "ContDiff R2 is actual twice continuous Frechet differentiability. fderiv is the actual Frechet derivative. gradient f x=(InnerProductSpace.toDual R E).symm(fderiv R f x), the real Hilbert Riesz gradient.",
+      "ProbabilityTheory.stdGaussian E is the actual canonical centered covariance-identity Gaussian measure in the finite real Hilbert metric; Kernel S E is a measurable measure-valued family; IsMarkovKernel K means every K s is a probability measure. Measure.map is literal pushforward with its usual measurability requirement.",
+      "Measurable eta/y/p and Measurable G are genuine sigma-algebra measurability; no estimate-certificate bundle is hidden. All quantified points, directions and noise variables range over the full carrier. Equality eta s=eta t is required for the pair Lipschitz bound.",
+      "The F and G conclusions are the literal let bodies of the signature, not supplied witnesses. K is a Gaussian gradient-output kernel, not the posterior RGO/HMC transition. Finite Hilbert/Borel includes0; S is an arbitrary measurable space.",
+      "Integrable means actual Bochner integrability. The center integral v d(K s) is the own vector mean of the same actual output law. Every vector a and real t is quantified, including zero direction and negative parameter. The last displayed integral has the explicit exponential upper bound written in the statement."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "afdc9faff55e1c2a8da624bbb6e69407fffbc1c21a888a45f6674cefc1a72bf9"
+}

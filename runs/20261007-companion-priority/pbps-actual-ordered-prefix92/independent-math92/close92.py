@@ -1,0 +1,44 @@
+import pathlib,json,hashlib,re,subprocess
+R=pathlib.Path('E:/Samplinglib');B=R/'runs/20261007-companion-priority/pbps-actual-ordered-prefix92';D=B/'independent-math92'
+def bind(p):
+ b=p.read_bytes();return dict(path=p.as_posix(),raw_sha256=hashlib.sha256(b).hexdigest(),bytes=len(b))
+def put(n,v):
+ if (D/n).exists():
+  assert json.loads((D/n).read_text(encoding='utf-8'))==v
+  return
+ with (D/n).open('x',encoding='utf-8',newline='\n') as f:json.dump(v,f,ensure_ascii=False,indent=2);f.write('\n')
+log=(D/'kernel.stdout.log').read_text(encoding='utf-8');receipt=json.loads((D/'kernel.receipt.native.json').read_text());assert receipt['exit_code']==0
+assert 'depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]' in re.sub(r'\s+',' ',log)
+assert 'sorryAx' not in log and 'LOCAL_NO_VALUE' not in log and 'PROJECT_NO_VALUE' not in log
+assert 'PUBLIC_TYPE' in log and 'EXPANDED_PRIVATE_STATEMENT' in log
+deps=[line.split(' ',1)[1] for line in log.splitlines() if line.startswith('EXTERNAL_ASTIS_DEPENDENCY ')]
+publicdeps=[x for x in deps if not x.startswith('_private.')]
+assert len(publicdeps)==5
+edges=[line for line in log.splitlines() if line.startswith('LOCAL_EDGE ')]
+put('dependencies92.native.json',dict(extraction='Kernel environment traversal of every local reachable type and proof value, followed by transitive ASTIS constants; complete edges in stdout.',public_external_ASTIS_dependencies=publicdeps,external_constants_including_generated=deps,local_reachable_constants=53,transitive_ASTIS_constants=121,local_edges=edges,axioms=['propext','Classical.choice','Quot.sound'],missing_proof_values=False))
+src=R/'AutoSamplingTheory/ExampleCases/ProximalBPS/ActualOrderedPrefix.lean'
+assert bind(src)['raw_sha256']=='46c637205d601786472e789bf4706a77b18ea6dad423ab33d1ac39491e71e111'
+prior=[B/'independent-all-n-fragment92/closed-RAW92.native.json',B/'independent-measure-closure-fragment92/measure-closure-closed-RAW92.native.json',B/'independent-fragments92/fragment-review-closed-RAW92.native.json']
+report=dict(decision='ACCEPT_FROZEN_PRODUCTION_MATHEMATICS_AND_KERNEL',reviewer='/root/independent_math91',checked_base_HEAD=subprocess.check_output(['git','rev-parse','HEAD'],cwd=R,text=True).strip(),uncommitted_source=bind(src),seal=bind(B/'root.statement-seal92.json'),static_checks=bind(D/'static-check92.native.json'),kernel_receipt=bind(D/'kernel.receipt.native.json'),dependencies=bind(D/'dependencies92.native.json'),prior_native_reviews=[bind(p) for p in prior],scope='Entire actual_ordered_prefix_law including fully expanded actual_ordered_prefix_statement; independent mathematics/kernel review, not an independent source-roundtrip acceptance or exact science-commit verification.',findings=[
+'Expanded statement is textually identical to the sealed header after whitespace normalization; 25 lets including the inner H/B/obs preserve all measures, spaces and literal definitions. The original six analytic premises are the only substantive theorem hypotheses; no law, density, independence, rate cap, nonexplosion, measurability or positivity provider is added.',
+'Production is the frozen Complete92 prototype after namespace substitution and module exposition; the entire previously accepted Induction92 body and MeasureClosure92 proof are unchanged. No proof repair or mathematical change was made by the reviewer.',
+'The public conclusion derives joint Borel K and q for all ((y,xRef),z0,t) at every n,T, both Borel support sets, actual-history and observation measurability, and qReal nonnegativity from ordered_prefix_borel_data and actual91. Abstract A permits arbitrary initial time; its actual H pullback starts exactly at live (0,z0).',
+'Pointwise identification is consumed as an actual proved conclusion for every raw w in B. It reconstructs the entire history from observed ordered times via the literal reflection-after-flow recurrence. Equality of actual and prescribed histories is never an assumption.',
+'All-test law is produced by actual_prefix_all_integrals, internally proved by Nat induction with canonical P and epsilon. Actual91 provides the next-event full-history law and measurable J; IH J, strict-Ioo localization, subtype Tonelli, literal timed-history snoc and pre-bounce weight multiplication close the successor.',
+'The private all-test premise of law_and_mass_of_all_tests is actually filled with htest from that induction. Measurable K and q are obtained from joint Borel results by fixing parameters. UnitExponentialProduct supplies the probability instance for precisely the literal infinitePi Exp(1) P. The closure theorem then derives the actual pushforward equality, total density integral=P(B), and P(B)<=1.',
+'Every nonnegative measurable full-history ENNReal test is allowed, including infinity values. No finite-integral, bounded-test, endpoint-only, almost-everywhere-test restriction or unproved density normalization is used. Off-support indicator products vanish under ENNReal arithmetic; comap support domains are retained.',
+'Kernel traversal confirms the public theorem truly reaches geometry, actual identification, all-n induction and measure closure. The induction reaches the canonical base, actual91 recursion, subtype integration and literal snoc/weight adapters. Five direct external public ASTIS dependencies are recorded separately from their generated matchers and 121 transitive constants.'
+],binder_and_counterexample_audit=[
+'hα>0, α<=β, ContDiff 2 V, lower/upper Hessian quadratic bounds, η>0, βη<=1 retained, with finite-dimensional real inner-product and Borel structures. Rank zero is allowed.',
+'n=0: singleton empty-coordinate simplex, subtype-comap mass1, q0=1, H0=K0 constant, B0=univ for every T including0. No false univ subtype replacement.',
+'n>0,T=0: strict simplex and actual strict prefix event empty. Top/stopped and repeated/zero clock records do not satisfy B; no pointwise positivity claim on every raw sample.',
+'Strict first-n-prefix is not exactly-n. No terminal survival multiplier exp(-Lambda(last,T-last)) is present, as required by the target. The previously recorded raw zero-clock counterexample excludes an unconditional event-count gloss; such interpretation needs the almost-sure positive-clock restriction.',
+'Reflection at zero gradient difference follows Lean total division and gives identity, without a missing denominator premise. Hazard clock top and rank-zero/zero-rate paths remain within the exact literal recursion.',
+'The density rate is evaluated after deterministic flow and before the next reflection, at each prescribed previous post-bounce state. The complete record vector is retained, not compressed to final state.'
+],remaining_boundary=['No canonical VERIFIED or cell/ledger mutation; source is uncommitted at review time.','Independent decoder/source audit, publication/reader gates and later exact science-commit verification remain separate acceptance steps.','No full A7 path-functional expansion, exactly-n law, terminal survival result, nonaccumulation advance, invariance, mixing, implementation error or expected-cost claim.'],negative_evidence='One reviewer static-extraction assertion failed before Lean launch because it included an anonymous section end; original script and diagnostic retained. Corrected extraction finds unchanged closure body.',kernel_result={'exit_code':0,'duration_seconds':receipt['duration_seconds'],'axioms':['propext','Classical.choice','Quot.sound'],'fake_closure_scan':'PASS','warnings':'Unused binders/lets and routine linter suggestions only; no errors.'})
+put('production-math-review92.native.json',report)
+inputs=[src,B/'root.statement-seal92.json',B/'Complete92.lean',B/'Induction92.lean',B/'MeasureClosure92.lean',B/'focused/production1-sealed-law/receipt.json',R/'lake-manifest.json',R/'.astis/toolchain/lean-4.33.0-windows/bin/lake.exe']+prior
+for name in ['ActualAbsoluteNextEventTime','ActualHarmonicFlow','ActualBounceRate','ActualHazardClock']:inputs.append(R/f'AutoSamplingTheory/ExampleCases/ProximalBPS/{name}.lean')
+inputs.append(R/'AutoSamplingTheory/TechnicalLemmas/Probability/UnitExponentialProduct.lean')
+put('closed-RAW92.native.json',dict(inputs=[bind(p) for p in inputs],outputs=[bind(p) for p in sorted(D.iterdir()) if p.is_file()],closure='All listed raw bytes closed; manifest itself is externally hashed. No canonical state changed.'))
+print(json.dumps([bind(D/'production-math-review92.native.json'),bind(D/'closed-RAW92.native.json')],indent=2))

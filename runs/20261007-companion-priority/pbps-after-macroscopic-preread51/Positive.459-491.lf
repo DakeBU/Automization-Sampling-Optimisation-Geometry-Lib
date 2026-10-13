@@ -1,0 +1,33 @@
+`f ≤ g` if and only if `g - f` is a positive linear map (in the sense of
+`ContinuousLinearMap.IsPositive`). With this partial order, the continuous linear maps form a
+`StarOrderedRing`. -/
+instance instLoewnerPartialOrder : PartialOrder (E →L[𝕜] E) where
+  le f g := (g - f).IsPositive
+  le_refl _ := by simp
+  le_trans _ _ _ h₁ h₂ := by simpa using h₁.add h₂
+  le_antisymm _ _ h₁ h₂ := coe_inj.mp (le_antisymm h₁.toLinearMap h₂.toLinearMap)
+
+lemma le_def (f g : E →L[𝕜] E) : f ≤ g ↔ (g - f).IsPositive := Iff.rfl
+
+lemma coe_le_coe_iff (f g : E →L[𝕜] E) :
+    (f : E →ₗ[𝕜] E) ≤ g ↔ f ≤ g :=
+  isPositive_toLinearMap_iff (g - f)
+
+lemma nonneg_iff_isPositive (f : E →L[𝕜] E) : 0 ≤ f ↔ f.IsPositive := by
+  simpa using le_def 0 f
+
+end PartialOrder
+
+/-- An idempotent operator is positive if and only if it is self-adjoint. -/
+@[grind →]
+theorem IsIdempotentElem.isPositive_iff_isSelfAdjoint [CompleteSpace E]
+    {p : E →L[𝕜] E} (hp : IsIdempotentElem p) : p.IsPositive ↔ IsSelfAdjoint p := by
+  rw [← isPositive_toLinearMap_iff, IsIdempotentElem.isPositive_iff_isSymmetric hp.toLinearMap]
+  exact isSelfAdjoint_iff_isSymmetric.symm
+
+/-- A star projection operator is positive.
+
+The proof of this will soon be simplified to `IsStarProjection.nonneg` when we
+have `StarOrderedRing (E →L[𝕜] E)`. -/
+@[aesop 10% apply, grind →]
+theorem IsPositive.of_isStarProjection [CompleteSpace E] {p : E →L[𝕜] E}

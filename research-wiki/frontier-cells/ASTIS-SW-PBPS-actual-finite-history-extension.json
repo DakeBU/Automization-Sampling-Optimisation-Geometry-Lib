@@ -1,0 +1,258 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-finite-history-extension",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS one-step complete finite-history extension",
+  "mode": "faithfulPaper",
+  "source_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Appendix A.1 (A.1),(A.2), one density/update iteration ingredient of (A.7), and Appendix A.2 finite-recursion Borel paragraph; attributed ASTIS source-implicit completion.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitDensity\nimport Mathlib.Data.Fin.Tuple.Basic\n\n/-! Prospective statement only: actual one-step complete finite-history extension.\nSource: Chen--Chewi--Lu--Zhang, arXiv:2609.06905v1, Appendix A.1\n(A.1),(A.2), one iteration ingredient of (A.7), and Appendix A.2.\nThe append's negative-time and stopped branches are auxiliary totalizations.\nOnly the strict finite event 0<wait<d(H_n) is transported.\nOrdered-time iteration, final survival, full (A.7) and restart remain OPEN. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension\nopen InnerProductSpace MeasureTheory ProbabilityTheory\nopen scoped ContDiff NNReal ENNReal Topology Interval\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_finite_history_extension_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let waitObs : E → E → (((ℝ≥0 × (E × E)) ⊕ Unit) × ℝ) → WithTop ℝ≥0 :=\n      fun y xRef q => match q.1 with\n        | Sum.inl a => τ y xRef a.2 (Real.toNNReal q.2)\n        | Sum.inr _ => 0\n    let timeObs : E → E → (((ℝ≥0 × (E × E)) ⊕ Unit) × ℝ) → ℝ :=\n      fun y xRef q => ((waitObs y xRef q).untopD 0 : ℝ≥0)\n    let density : E → E → (((ℝ≥0 × (E × E)) ⊕ Unit) × ℝ) → ℝ≥0∞ :=\n      fun y xRef q => match q.1 with\n        | Sum.inl a => ENNReal.ofReal (rate xRef (Φ y xRef q.2 a.2) *\n            Real.exp (-Λ y xRef a.2 (Real.toNNReal q.2)))\n        | Sum.inr _ => 0\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ n : ℕ,\n      let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n      let Hist := Fin (n + 1) → Rec\n      let HistNext := Fin (n + 2) → Rec\n      let last : Fin (n + 1) := ⟨n, Nat.lt_succ_self n⟩\n      let H : (ℕ → ℝ) → Hist := history y xRef z₀ n\n      let Hnext : (ℕ → ℝ) → HistNext := history y xRef z₀ (n + 1)\n      let append : Hist × ℝ → HistNext := fun p =>\n        Fin.snoc p.1 (match p.1 last with\n          | Sum.inl a => Sum.inl (a.1 + Real.toNNReal p.2,\n              S xRef (Φ y xRef p.2 a.2))\n          | Sum.inr _ => Sum.inr ())\n      let lift : Hist × ℝ → HistNext × ℝ := fun p => (append p, p.2)\n      Measurable Hnext ∧ Measurable append ∧ Measurable lift ∧\n      (∀ p : Hist × ℝ, ∀ j : Fin (n + 1), append p j.castSucc = p.1 j) ∧\n      (∀ d : Hist → ℝ≥0, Measurable d →\n        let μ : Measure Hist := Measure.map H P\n        let D : Hist → ℝ → ℝ≥0∞ := fun h s =>\n          if 0 < s ∧ s < (d h : ℝ) then density y xRef (h last, s) else 0\n        let B : Set (ℕ → ℝ) := {w |\n          (0 : WithTop ℝ≥0) < waitObs y xRef (record y xRef z₀ (ε w) n, w n) ∧\n          waitObs y xRef (record y xRef z₀ (ε w) n, w n) <\n            ((d (H w) : ℝ≥0) : WithTop ℝ≥0)}\n        let X : (ℕ → ℝ) → Hist × ℝ := fun w =>\n          (H w, timeObs y xRef (record y xRef z₀ (ε w) n, w n))\n        let Y : (ℕ → ℝ) → HistNext × ℝ := fun w =>\n          (Hnext w, timeObs y xRef (record y xRef z₀ (ε w) n, w n))\n        let ν : Measure (Hist × ℝ) := (μ.prod (volume : Measure ℝ)).withDensity\n          (fun p => D p.1 p.2)\n        MeasurableSet B ∧ Measurable Y ∧\n        (∀ w ∈ B, Hnext w = append (X w)) ∧\n        Measure.map Y (P.restrict B) = Measure.map lift ν ∧\n        Measure.map Hnext (P.restrict B) = Measure.map append ν ∧\n        (Measure.map lift ν) Set.univ ≤ 1 ∧\n        (∀ F : HistNext × ℝ → ℝ≥0∞, Measurable F →\n          Measurable (fun h => ∫⁻ s : ℝ, F (lift (h, s)) * D h s) ∧\n          (∀ A : Set Hist, MeasurableSet A →\n            (∫⁻ w in B ∩ H ⁻¹' A, F (Y w) ∂P) =\n              ∫⁻ h in A, (∫⁻ s : ℝ, F (lift (h, s)) * D h s) ∂μ)))\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension\n",
+  "status": "independently_verified",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitDensity.actual_conditional_next_wait_density",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw.actual_finite_history_tail_law",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws"
+  ],
+  "consumers": [
+    "PBPS A.7 actual full-history density/update iteration within S87-I5/G86-11"
+  ],
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension.actual_finite_history_extension"
+  ],
+  "declaration_level": "source-anchor",
+  "blocked": {
+    "status": false,
+    "reason": "Focused compile and independent mathematics/blind/source accepted. Named exact-science commit verification and existing sole-lane aggregation pending."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261011-PBPSActualFiniteHistoryExtension",
+    "statement_seal": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-finite-history-extension90\\root.statement-seal90.json",
+    "focused_checks": [
+      {
+        "command": "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension",
+        "result": "PASS exact sealed declaration; independent whole BODY/source admission pending.",
+        "evidence": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-finite-history-extension90\\leaf-build90\\receipt.json"
+      }
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteHistoryExtension.lean"
+    ],
+    "truth_boundary": "Six original analytic hypotheses and literal stopped iid exponential-clock recursion unchanged. Every deterministic depth n, all abstract histories and rank-zero E included. A jointly Borel append preserves every old record and appends actual cumulative time/post-bounce state on the strict finite event B={0<W_n<d(H_n)}. Fixed Borel finite-valued d may be unbounded across histories; all jointly Borel extended nonnegative tests and null old-history events included without normalization or integrability/positive-mass premises. Negative-time/stopped append branches are auxiliary totalizations only. Joint and marginal n+1-history laws are restricted to B, never unrestricted laws or finite-wait guarantees. Only one actual history-extension edge within S87-I5/G86-11 closes if proved. Ordered absolute-time iteration, final survival/path assembly, full A7/global G86-11, physical-time residual memorylessness/random-depth restart/Markovness, invariance/nonexplosion/hypocoercivity/implementation errors/unbounded costs/main/composition/wholepaper/Goal remain OPEN. Survival88 and no-atom results are not AND parents.",
+    "proof_review": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-finite-history-extension90/independent-math90/decision90.json",
+    "source_review": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-finite-history-extension90/independent-source90/source-review90.decision.native.json",
+    "independent_verification": "runs/20261007-companion-priority/pbps-actual-finite-history-extension90/exact-commit-verification90/verified.json"
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-next-history-extension-preread90\\retrieval90.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-next-history-extension-preread90\\retrieval90.facade-memory-addendum.json",
+      "E:\\Samplinglib\\lean-toolchain",
+      "E:\\Samplinglib\\lake-manifest.json",
+      "E:\\Samplinglib\\AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualConditionalNextWaitDensity.lean",
+      "E:\\Samplinglib\\AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualFiniteHistoryTailLaw.lean",
+      "E:\\Samplinglib\\AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualFiniteJumpRecursion.lean",
+      "E:\\Samplinglib\\AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualHarmonicFlow.lean",
+      "E:\\Samplinglib\\AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualBounceRate.lean",
+      "E:\\Samplinglib\\AutoSamplingTheory\\TechnicalLemmas\\Probability.lean",
+      "E:\\Samplinglib\\research-wiki\\sampling-sde-library\\cards\\AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalKernel.md",
+      "E:\\Samplinglib\\research-wiki\\sampling-sde-library\\cards\\AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw.md",
+      "E:\\Samplinglib\\.lake\\packages\\mathlib\\Mathlib\\Data\\Fin\\Tuple\\Basic.lean",
+      "E:\\Samplinglib\\.lake\\packages\\mathlib\\Mathlib\\MeasureTheory\\MeasurableSpace\\Constructions.lean",
+      "E:\\Samplinglib\\.lake\\packages\\mathlib\\Mathlib\\MeasureTheory\\Measure\\Map.lean",
+      "E:\\Samplinglib\\.lake\\packages\\mathlib\\Mathlib\\MeasureTheory\\Measure\\Restrict.lean",
+      "E:\\Samplinglib\\.lake\\packages\\mathlib\\Mathlib\\MeasureTheory\\Integral\\Lebesgue\\Basic.lean"
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension.actual_finite_history_extension",
+    "canonical_shared_cell": "",
+    "reason": "Actual89 supplies the exact strict density/joint-test law; actual87 supplies actual next-history Borelness, actual flow/reflection supply the constructor. Generic finite tuple and measurable measure-map transport already belong to pinned Mathlib. No copied background leaf or external port."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-next-history-extension-preread90\\retrieval90.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-next-history-extension-preread90\\retrieval90.facade-memory-addendum.json",
+      "E:\\Samplinglib\\lean-toolchain",
+      "E:\\Samplinglib\\lake-manifest.json",
+      "E:\\Samplinglib\\AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualConditionalNextWaitDensity.lean",
+      "E:\\Samplinglib\\AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualFiniteHistoryTailLaw.lean",
+      "E:\\Samplinglib\\AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualFiniteJumpRecursion.lean",
+      "E:\\Samplinglib\\AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualHarmonicFlow.lean",
+      "E:\\Samplinglib\\AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualBounceRate.lean",
+      "E:\\Samplinglib\\AutoSamplingTheory\\TechnicalLemmas\\Probability.lean",
+      "E:\\Samplinglib\\research-wiki\\sampling-sde-library\\cards\\AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalKernel.md",
+      "E:\\Samplinglib\\research-wiki\\sampling-sde-library\\cards\\AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw.md",
+      "E:\\Samplinglib\\.lake\\packages\\mathlib\\Mathlib\\Data\\Fin\\Tuple\\Basic.lean",
+      "E:\\Samplinglib\\.lake\\packages\\mathlib\\Mathlib\\MeasureTheory\\MeasurableSpace\\Constructions.lean",
+      "E:\\Samplinglib\\.lake\\packages\\mathlib\\Mathlib\\MeasureTheory\\Measure\\Map.lean",
+      "E:\\Samplinglib\\.lake\\packages\\mathlib\\Mathlib\\MeasureTheory\\Measure\\Restrict.lean",
+      "E:\\Samplinglib\\.lake\\packages\\mathlib\\Mathlib\\MeasureTheory\\Integral\\Lebesgue\\Basic.lean"
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitDensity.actual_conditional_next_wait_density",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw.actual_finite_history_tail_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "PBPS A.7 actual full-history density/update iteration within S87-I5/G86-11"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Actual89 supplies the exact strict density/joint-test law; actual87 supplies actual next-history Borelness, actual flow/reflection supply the constructor. Generic finite tuple and measurable measure-map transport already belong to pinned Mathlib. No copied background leaf or external port."
+  },
+  "statement_seal": {
+    "evidence": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-finite-history-extension90\\root.statement-seal90.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "5c976dcfe91fe074db71ddbf13385086735c41c273e937b0c6ef432b7dba9037",
+    "binder_audit": [
+      "Six original analytic hypotheses unchanged.",
+      "Borel cutoff, history events and ENNReal functions are admissible tests.",
+      "All append, history and transport measurability and actual recursion identities are conclusions, never provider premises."
+    ],
+    "definition_kind": "28 literal model, complete-history/append/lift and restricted-law lets; auxiliary raw-negative/stopped append is identified as actual only on strict finite B."
+  },
+  "source_proof_coverage": {
+    "source_graph": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-next-history-extension-preread90\\source-proof-graph90.accepted-successor.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-actual-finite-first-event-law86/independent-source86/source-inventory86.exhaustive-successor.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-next-history-extension-preread90/independent-header-math90/decision90.json",
+    "reviewed_adapter_overlay": "runs/20261007-companion-priority/pbps-next-history-extension-preread90/independent-header-source90/header90.source-decision.v2.native.json",
+    "coverage_status": "Independent whole-source/kernel mathematics, blind decoder, primary-first anti-anchored source review7slots/28defs/6original analytic binders/6exactBODYregions accepted. Only one actual full-history extension edge of S87-I5/G86-11 closed; ordered-time iteration/final factor/fullA7 and all global source conclusions remain OPEN.",
+    "compiled_source_review": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-finite-history-extension90/independent-source90/source-review90.decision.native.json"
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Appendix A.1 (A.1),(A.2), one density/update iteration ingredient of (A.7), and Appendix A.2 finite-recursion Borel paragraph; attributed ASTIS source-implicit completion.",
+    "fidelity_boundary": "Six original analytic hypotheses and literal stopped iid exponential-clock recursion unchanged. Every deterministic depth n, all abstract histories and rank-zero E included. A jointly Borel append preserves every old record and appends actual cumulative time/post-bounce state on the strict finite event B={0<W_n<d(H_n)}. Fixed Borel finite-valued d may be unbounded across histories; all jointly Borel extended nonnegative tests and null old-history events included without normalization or integrability/positive-mass premises. Negative-time/stopped append branches are auxiliary totalizations only. Joint and marginal n+1-history laws are restricted to B, never unrestricted laws or finite-wait guarantees. Only one actual history-extension edge within S87-I5/G86-11 closes if proved. Ordered absolute-time iteration, final survival/path assembly, full A7/global G86-11, physical-time residual memorylessness/random-depth restart/Markovness, invariance/nonexplosion/hypocoercivity/implementation errors/unbounded costs/main/composition/wholepaper/Goal remain OPEN. Survival88 and no-atom results are not AND parents.",
+    "detail_status": "omitted",
+    "gap": "Source iterates density/update factors implicitly; explicit all-history Borel append and actual restricted next-history transport are needed. Full ordered-time/final-factor assembly remains separate.",
+    "consulted": [
+      {
+        "source": "Pinned primary A.1/A.2; compiled actual89/87/flow/reflection; pinned Mathlib",
+        "anchor": "A1.E1;A1.E2;A1.E7;A1.SS2.p3",
+        "hypothesis_adapter": "No new source premise; cutoff/joint tests/unnormalized restrictions explicit."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualConditionalNextWaitDensity.actual_conditional_next_wait_density",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw.actual_finite_history_tail_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws"
+    ],
+    "bookkeeping": [
+      "Construct jointly Borel append/lift and actual Hnext using exact verified producers.",
+      "Derive all-prefix preservation and actual guarded whole-history update from Nat.rec.",
+      "Transport verified89 joint measure and nonnegative-test identities, then marginalize."
+    ],
+    "new_reusable": [],
+    "new_topology": "Derive the jointly Borel full finite-history append, its actual guarded recursion identity, and the strict finite next-history/relative-wait joint and marginal laws with all nonnegative joint tests and old-history events."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Proof pending",
+    "duplicate_semantics_audit": "No existing actual full next-history extension law found.",
+    "canonicalization": "Actual89 supplies the exact strict density/joint-test law; actual87 supplies actual next-history Borelness, actual flow/reflection supply the constructor. Generic finite tuple and measurable measure-map transport already belong to pinned Mathlib. No copied background leaf or external port.",
+    "compressed_spine_delta": "Derive the jointly Borel full finite-history append, its actual guarded recursion identity, and the strict finite next-history/relative-wait joint and marginal laws with all nonnegative joint tests and old-history events.",
+    "reader_default_view": "Complete attributed statement and stepwise formula proof with exact folded Lean adjacent.",
+    "scope": "Six original analytic hypotheses and literal stopped iid exponential-clock recursion unchanged. Every deterministic depth n, all abstract histories and rank-zero E included. A jointly Borel append preserves every old record and appends actual cumulative time/post-bounce state on the strict finite event B={0<W_n<d(H_n)}. Fixed Borel finite-valued d may be unbounded across histories; all jointly Borel extended nonnegative tests and null old-history events included without normalization or integrability/positive-mass premises. Negative-time/stopped append branches are auxiliary totalizations only. Joint and marginal n+1-history laws are restricted to B, never unrestricted laws or finite-wait guarantees. Only one actual history-extension edge within S87-I5/G86-11 closes if proved. Ordered absolute-time iteration, final survival/path assembly, full A7/global G86-11, physical-time residual memorylessness/random-depth restart/Markovness, invariance/nonexplosion/hypocoercivity/implementation errors/unbounded costs/main/composition/wholepaper/Goal remain OPEN. Survival88 and no-atom results are not AND parents."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No BODY before Seal; V1 section-closure syntax failure and exact V2 correction retained.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-full-history/finite-append/strict-density-transport"
+      ],
+      "expected_information_gain": "One canonical writer; distinct independent proof/blind decoder/source review after focused compile.",
+      "shared_verified_context_digest": "d17be7c61b2f1e8173eea6c548b18f06c40414802ff3810b241d6659d760631e"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "S90-D1",
+        "S90-A1",
+        "S90-M1",
+        "S90-R1",
+        "S90-T:TARGET",
+        "S87-I5-ordered-assembly:OPEN"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension.actual_finite_history_extension"
+      ],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension.actual_finite_history_extension"
+    ],
+    "visual_review": "Pending exact proof/publication and inspectable affected branch. Conceptual overlays never formal credit."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "checked": [
+      {
+        "path": "Libraries/conceptual-mirror-protocol.json",
+        "raw_sha256": "e2042abcce0423e91a50898a929fed481163c9f079719c98c3311fe05ab3839f",
+        "bytes": 6193
+      },
+      {
+        "path": "website/content/graph_memory_index.json",
+        "raw_sha256": "751882b6649b2136cf80d7542fbe54e2c7d377c3c21a9058d6687117030f975b",
+        "bytes": 20758
+      },
+      {
+        "path": "website/content/functor_hypergraph.json",
+        "raw_sha256": "cb85e4a1c42e0d4afab1e2788b5c1c8666af8cc7c7e09d28a839e8bea9e8ba26",
+        "bytes": 75115
+      },
+      {
+        "path": "Libraries/frontloaded-shared-spine.json",
+        "raw_sha256": "053a267a079ca22da4c392fc0ae82a950682f37f03152d1a4fe5c1bd17b08692",
+        "bytes": 24277
+      }
+    ],
+    "unchanged89_audit_reused": true,
+    "reason": "The actual complete-history constructor and restricted law are an actual-model adapter of already compiled Borel recursion and generic Mathlib tuple/pushforward transport. No new cross-domain mechanism or reviewed transport certificate was discovered; survival88 is adjacent and never a formal parent.",
+    "utc": "2026-10-11T00:20:53.217836+00:00"
+  }
+}

@@ -1,5 +1,356 @@
 # Proximal BPS · formalization result window
 
+## Actual Gaussian position L2 averaging109 (2026-10-12)
+
+Independent science 86e2da02b6b1a855916adcd46363e34d8a6ecb5b. Under the original six assumptions, retain the same108 global actual process Z, phase family A and canonical flip J. Construct the position lift B and Gaussian adjoint M=B*. For every arbitrary MemLp phase representative, derive Gaussian section integrability, output L2 membership and the literal Gaussian mean class. Prove JB=B and MJ=M, then K_T=M A_T B is selfadjoint, norm at most1 and K_0=id. Identify its literal Gaussian-outer clock-inner position expectation, with both nested AE integrability statements. Rank0 included. No new source premise. Markov positivity/constants, strong continuity, restart/semigroup, separate kernel witnesses, independent-reference averaging, hypocoercivity, errors, actual expected costs, composition and all four complete papers remain open.
+
+Eight source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification remain separate.
+
+
+## Actual full real-L2 flip duality108 (2026-10-12)
+
+Independent science 25a3e47e3e171f2d5584a6568ce685c6f546e529. Under the original six assumptions, the same global actual PBPS process and the same real L2 expectation family from107 retain all path, Borel, Gibbs, bounded-duality, integrability, contraction and initialization conclusions. The canonical momentum-flip pullback J is an involutive L2 isometry and A_T.adjoint = J A_T J for every nonnegative T, on all real L2 classes. Gaussian reflection and product maps prove phase preservation. Bounded simple representatives give the signed pairing; continuity and two-variable density extend it to all L2, then adjoint uniqueness closes Eq A.3. No new source premise. Restart/Markov/semigroup, strong continuity, separate kernel witnesses, actual position averaging, hypocoercivity, errors, actual expected costs, composition and four complete papers remain open.
+
+Eight source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
+## Actual L2 expectation contraction107 (2026-10-12)
+
+Independent science 2b657840a2f21c5d8001c83e4625a1ab13ef70ba. Under the original six assumptions, the same global jointly measurable actual PBPS Z retains live arcs, fallback, parameterwise initialization, Gibbs preservation and bounded flip duality. Every Borel test has a joint Borel total clock expectation; a uniform finite bound proves every section L1. For each y,r an internally constructed real L2 contraction family A_T realizes the literal clock expectation of every MemLp representative, with almost-everywhere section L1, output L2 membership, exact quotient identity, square-integral contraction and A_0=id. Actual106, normalization103 and UnitExponentialProduct are the three producers. Adjoint pullbacks, product L1, signed Fubini and indicator uniqueness are internal dependencies. Representative independence is a consequence of universal quotient identification; the planned direct-AE route remains an unselected alternative. Full L2 flip identity A.3, restart/Markov/semigroup, separate kernel witness identification, strong continuity, hypocoercivity, errors, actual expected costs, composition and all four papers remain open.
+
+Ten source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
+## Actual bounded Gibbs duality106 (2026-10-12)
+
+Independent science edc917ec4c792bfe1308eee35a5d183c3768703c. Under the original six assumptions, one global jointly measurable actual PBPS process retains its exact arc/fallback/zero-time contract. For every y,r,T its endpoint pushes the actual Gibbs phase law times countable exponential clocks to the same Gibbs phase law. For every pair of bounded Borel real F,G, both outer tests are integrable and integral F op(G) equals integral (G composed R) op(F composed R). Actual105, actual normalization103 and UnitExponentialProduct are the three direct producers. Momentum symmetry and signed Fubini are internally discharged. The selected direct-marginal proof and printed F=1 route have separate independently admitted source graph alternatives. L2 operators/domains, restart/Markovness, separate kernel witness identification, hypocoercivity, errors, actual expected costs, full composition and all four full papers remain open.
+
+Eight source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
+## Actual countable endpoint law105 (2026-10-12)
+
+Independent science a6060928c393d3efe4c85d4cab2b9af166ab6b37. Under the original six assumptions, one global jointly measurable actual clock process Z retains the exact arc/fallback/zero-time contract. For every y,r,T, its Gibbs-initialized endpoint law Q is the countable sum of all actual normalized fixed-count endpoint sectors, is a probability, and is preserved by J(z0,zT)=(RzT,Rz0). Actual93, normalization103, UnitExponentialProduct and sector reversal104 are the four direct producers. Fixed-initial measurable count fibers, jointly measurable sector integrals and nonnegative Tonelli close assembly without a joint-count premise or signed uniform domination. Signed bilinear duality, marginal phase invariance, restart/Markovness, hypocoercivity, implementation errors, expected costs, full composition and all four full papers remain open.
+
+Eight source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
+## Actual normalized endpoint-pair sector104 (2026-10-12)
+
+Independent science 1a0fb58a061845fc5ac7623e4d62b5e301d7eb78. Under the original six assumptions and every y,r,n,T, the actual density q_n times terminal survival weights the product of the normalized phase law and strict-simplex measure. Its pushforward through B(z,t)=(z,Gamma(z,t)(T)) is preserved by J(z0,zT)=(RzT,Rz0). Four actual public parents supply finite-count density measurability, endpoint reversal, unnormalized weighted substitution and phase normalization. Same reversal witness, simplex sigma-finiteness and normalized-sector preservation are derived internally. No additional premise or claim that a fixed-count sector is a probability measure. Countable assembly, signed bilinear identity, process invariance, Markovness, hypocoercivity, errors, expected costs and whole-paper/composition remain open.
+
+Eight source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
+## Actual phase normalization103 (2026-10-12)
+
+Independent science 030f4f70feb3641cafca981ee81c48a2687db1ee. Under the original six analytic assumptions, for every y the actual position Gibbs factor is integrable with positive Zx, and the phase partition is Zphase=ofReal(Zx*(sqrt(2*pi))^dim), positive and finite. The normalized phase withDensity is a probability measure exactly equal to the canonical tilted position law times stdGaussian momentum. Includes rank zero; no minimizer, critical point, normalizer or integrability premise. Existing shared Hessian, Gibbs tail, Gaussian integral/density and Gibbs normalization producers are consumed. Analytically independent of weighted sector102; both are parents only of later normalized averaging. No process invariance, countable assembly, Markovness, hypocoercivity, error, expected cost, main result or composition.
+
+Seven source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
+## Actual weighted sector102 (2026-10-12)
+
+Independent science 320ad09ccfd3bc05a9ec3d909c9c19d236c9a232. Original six analytic assumptions and actual density rho=q*terminal survival. On the phase-first Lebesgue times strict-simplex measure mu, actual endpoint/time reversal Theta satisfies integral W(q)F(Theta(q)) dmu=integral W(q)F(q) dmu for every measurable ENNReal F, where W=ofReal(exp(-U))*rho. Three actual public parents93/97/101 supply joint density measurability, measure preservation and weight matching; all ingredients are derived internally. Explicit nonnegative-test extension permits infinite integrals and includes n=0,T=0,rank0,zero normals/rates. No normalization, invariant probability, Markovness, hypocoercivity, error, cost, main result or composition.
+
+Six source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
+## Actual prescribed weighted density101 (2026-10-12)
+
+Independent science 4713623d3edbc5d258e563e8521271c316f0dc8c. Original six analytic assumptions and exact actual density rho=q*terminalweight. One reversed event-time map yields both w(z)dReal(z,t)=w(RA)dReal(RA,rho(t)) and ofReal(w(z))*rho(z,t)=ofReal(w(RA))*rho(RA,rho(t)). Four public actual parents94/98/99/100 discharge density bridge, Gibbs survival, incoming product and reflected survival. Includes n=0,T=0,rank0,zero normals/rates; no rate division. No weighted sector/integral invariance, normalized invariant probability, Markovness, hypocoercivity, errors, costs, main results or composition.
+
+Six source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
+## Actual prescribed path reversal100 (2026-10-12)
+
+Independent science d9850090b15210e29ecd9b932f02c358d2c9e786. Original six analytic assumptions and literal actual path definitions. On 0<=s<=T away from finitely many reversed event times, barGamma(s)=R Gamma(T-s). Both actual scalar rates are interval integrable and their survival integrals agree. Actual state reversal, path interpolation, harmonic flow, phase reversal and prescribed-density integrability discharge all private premises. Endpoints, n=0,T=0,rank0,zero normals/rates included. No genuine-jump pointwise equality, weighted density/sector, invariant probability, Markovness, hypocoercivity, errors, costs, main results or composition.
+
+Six source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
+## Actual prescribed state reversal99 (2026-10-12)
+
+Independent science ce675a4cfad2d35cc8c4fec2c26979728742ac27. Original six analytic assumptions and actual path definitions. Reversing the strict event tuple gives barPost_j=R(arrive_(n-j)) and barArrive_j=R(post_(n-j)) on all n+1 arcs; products of the n incoming event rates agree. Actual phase reversal and endpoint laws discharge all private premises. Includes n=0,T=0,rank0,zero normals and rates. No all-time right-continuous path equality, survival time substitution, weighted density equality, invariant probability, Markovness, hypocoercivity, errors, expected costs, main results or composition.
+
+Six source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
+## Actual prescribed Gibbs and survival balance98 (2026-10-12)
+
+Independent science 530a58f7c036a67787956b20d2d390890ec2fec7. Under the original six analytic assumptions, both actual prescribed-path rate integrals are finite and U_y(A)-U_y(z)=Iplus-Iminus, hence exp(-U_y(z))*exp(-Iplus)=exp(-U_y(A))*exp(-Iminus). The reverse rate uses momentum reversal along the same path. Actual flow, bounce, finite-count path and endpoint laws discharge all private premises. Includes n=0,T=0,rank0,zero normals and zero rates. No reverse-event density matching, weighted Theta preservation, invariant probability, Markovness, hypocoercivity, errors, actual expected costs, main results or composition.
+
+Six source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
+## Actual endpoint and time reversal97 (2026-10-12)
+
+Independent science 7089dfb0698c50d3ffd0180fb58d06bb32e5d7dd. Under the original six analytic assumptions, rho(t)_i=T-t_(n-1-i) is a measurable involution preserving exact strict-simplex comap volume m. A=Gamma(T) equals the final flow after the recursive post-bounce state, is jointly Borel and preserves phase volume ell for each event tuple. A(R A(z,t),rho t)=Rz. Theta(z,t)=(R A(z,t),rho t) is jointly Borel, involutive and preserves ell tensor m. Includes n=0, T=0, rank0 and zero normals. Actual OrderedPrefix, FiniteCountPath and PhaseReversalVolume supply dependencies internally. Gibbs-weight balance, stationary averaging/invariance, restart/Markovness, hypocoercivity, implementation errors, expected costs, main results and actual-input composition remain open.
+
+Six source-reviewed formula/Lean regions. Aggregate/visual acceptance, main merge and purification retain separate evidence.
+
+
+## Actual phase-volume and reversal96 (2026-10-12)
+
+Independent science 2f2e2c01856c902b07406db87026c50639454d71. Under the original six analytic assumptions, the literal harmonic flow, state-dependent bounce and momentum reversal preserve canonical phase product volume. Joint Borel maps, both flow inverses, bounce/reversal involutions, R Phi_u R=Phi_-u, R S=S R, rate(R S z)=rate(z), and the real integrable-test A6 identity are proved. Covers rank0, zero normals and all real times without an unscaled isometry claim. Volume and regularity are derived, not provider assumptions. Finite prescribed endpoint/time reversal, stationary averaging, invariance, Markovness, hypocoercivity, implementation errors, expected costs, main results and actual-input composition remain open.
+
+Seven independently source-reviewed formula/Lean regions. Aggregate and visual checks, main merge and purification retain separate evidence.
+
+
+## Actual bounded path expansion95 (2026-10-11)
+
+Independent science 5df604f6c9ddab63e552272b2e9056752616621e. Under the six original analytic assumptions, the literal stopped-clock process satisfies the full A7 expectation expansion for every bounded real functional measurable for the coordinate-product path sigma algebra. Every weighted finite-simplex term is integrable and the signed component integrals are absolutely summable. Actual finite-count joint laws and the whole-path density identity are consumed internally. Covers n=0,T=0,rank0,zero rates and infinite waits. ASTIS uses countable probability-partition integration as an alternative to the printed rate-cap/factorial proof. No Skorokhod assertion, unbounded-test/cost transfer, restart/Markovness, invariance, hypocoercivity, implementation error, main result or actual-input composition completion.
+
+Five independently source-reviewed formula/Lean regions. Aggregate and visual checks, main merge and purification retain separate evidence.
+
+
+## Actual prescribed-path density94 (2026-10-11)
+
+Independent science ad3b80a339bf1cf0dd88685f202632a92eeb0797. Under exactly the six original analytic assumptions and the literal actual93 prescribed interpolation, every finite strict event tuple has integrable path rate, an exact n+1-arc hazard integral sum, incoming phase and rate left limits, and rho=ofReal(exp(-whole-path hazard integral) times product of incoming jump rates). Terminal survival, n=0, T=0, rank0 and zero rates are retained. No additional path/integrability/limit provider. This deterministic ingredient does not yet compose the actual finite-count measure with the printed density or sum full A7. Restart/Markovness, invariance, hypocoercivity, implementation errors, expected cost, paper mains, actual-input composition and four-paper completion remain OPEN.
+
+Seven source-reviewed formula/Lean proof regions; visual/main merge/purification remain distinct.
+
+
+## Actual finite-count complete-path93 (2026-10-11)
+
+Independent science 8ec33d055fb8a9b3ba376d4113e388b00882026f. Six source analytic assumptions and actual stopped iid exponential-clock recursion unchanged. For every finite n and deterministic finite nonnegative horizon T, the unnormalized joint complete-history/coordinate-product-path law on N(T)=n is the pushforward of ordered-prefix density times terminal survival. One jointly measurable actual phase supplies pointwise interpolation on raw survived events, fixed-T endpoint nullity, measurable count, AE finite cardinalities, raw disjointness and full-probability union. All nonnegative tests measurable for the stated sigma algebras and count-sector mass identities are proved. No extra probability, density, measurability, nonexplosion or integrability provider. Hazard stitching, pre-jump left limits, infinite full A7, Skorokhod compatibility, restart/Markovness, invariance/hypocoercivity, errors/cost/main/composition/four-paper completion remain OPEN.
+
+Nine source-reviewed adjacent formula/Lean regions. Aggregate/visual/main merge/purification acceptance remain distinct.
+
+
+## Actual ordered finite-prefix92 (2026-10-11)
+
+Independent science a4599f28131fcf91d6b0754003facbc46e23ad2e. With the six original analytic hypotheses, canonical iid Exp(1) product P and literal stopped recursion, every finite n and T>=0 has a strict ordered-prefix complete-history law. Delta_n(T) is the open ordered time simplex with actual subtype comap of product Lebesgue measure. K gives all n+1 live time/state records; q is the product of n pre-bounce rates and elapsed segment survivals. Derive joint Borel K/q, actual history/observer/guard measurability, nonnegative real product, pointwise full-history reconstruction, H_*(P restricted to B)=K_*(q m), all nonnegative extended Borel test identities and integral q=P(B)<=1. Covers n0/T0/rank0/stopped/top/zero-input boundaries without new density or integrability providers. No terminal survival: not an exactly-n count law or full A7. Terminal survival/path/count assembly, restart/Markovness, invariance/hypocoercivity/errors/unbounded costs/main/composition/four-paper Goal remain OPEN.
+
+Ten exact source-reviewed formula/Lean regions. Aggregate/rendered delivery/main merge/purification remain separate.
+
+
+## Actual next absolute-event-time91 (2026-10-11)
+
+Independent science d62f7b2c89e749953a36d8922124865a4651e55e. Under the six original analytic assumptions, actual U reads the next stopped/live record. For each deterministic depth and every Borel finite-valued history horizon b, derive Borel observers/absolute append, all-prefix preservation, strict event equality Brel=B, actual guarded U=a+wait and complete-history append. The actual old-history/U law restricted to B has density D(h,u)=1_(a(h)<u<b(h))*rho(h_last,u-a(h)) against mu_n product real Lebesgue. Every-history density integral and total mass are at most1. Derive next-history joint/marginal transport and all joint ENNReal tests on all old-history events, including null events, without normalization or integrability premises. Direct parents90,89 and canonical exponential-product probability. Fiberwise translation plus Tonelli implements the needed weighted law; no separate broad unweighted shear theorem is claimed. Ordered iteration, final survival/path/count/fullA7, restart/Markov/invariance/hypocoercivity/errors/unbounded costs/main/composition/wholepaper/Goal remain OPEN.
+
+Seven exact proof regions with independent source and mathematical acceptance. Whole integration/rendered delivery/merge/purification remain separate.
+
+
+## Actual complete finite-history extension90 (2026-10-11)
+
+Independent science e8d38b3002f4562ef254205135c0d213f9efe410. Same six original analytic hypotheses and literal stopped iid exponential-clock recursion. Derive Borel actual full next history H_(n+1), total complete-history append A(h,s) and lift L(h,s)=(A(h,s),s); preserve every old coordinate on every abstract history/real s. Live append uses cumulative T+max(s,0), raw-real harmonic flow and actual reflection; stopped append absorbs. Negative time is an auxiliary totalization only. On B={0<W_n<d(H_n)} for every fixed Borel finite-valued history cap d (possibly globally unbounded), derive pointwise actual H_(n+1)=A(H_n,finiteWait), restricted joint/marginal next-history pushforward laws and mass<=1, plus all jointly Borel ENNReal next-history/wait test identities localized to every Borel old-history event. No bounded/integrable test, positive event mass, normalization, density/finite-wait/no-atom/constructor provider. Four actual compiled public parents: conditional density89, history/tail87, harmonic flow and bounce rate; survival88 is not an AND dependency. Only one actual complete-history extension edge within S87-I5/G86-11 closes. Unrestricted next-history laws, ordered absolute-time iteration/final survival/path/count assembly/fullA7, physical-time residual restart/Markovness, global nonexplosion/invariance/hypocoercivity/errors/unbounded costs/main/composition/wholepaper/Goal remain OPEN.
+
+Six exact proof regions; separately reviewed two-field total-append formula correction. Existing sole lane; local aggregate/actual browser/main/PURIFIED/live remain distinct.
+
+
+## Actual conditional finite next-wait density89 (2026-10-11)
+
+Independent science 58ddf518b7c75537680526fa809624ac7fe0b4c7. Same six original analytic hypotheses and literal stopped actual recursion. For every deterministic event depth n, every fixed Borel finite-valued cutoff d on full histories (no global bound), derive jointly Borel strict finite next-wait density D(h,s), the genuine Mathlib withDensity kernel K(h)=D(h,s)ds on every abstract history, uniform mass<=1/IsFiniteKernel, actual joint history/time measure identity, and all jointly Borel nonnegative extended test identities on every Borel history event A. No positive event probability, normalization, finite-wait/no-atom/density provider or bounded/integrable test premise. Restrict actual86 Ioc law further by Iio; never equate endpoint masses. Stopped histories have zero finite kernel; infinite waits remain outside finite component. Actual87 history/tail product, actual86 deterministic density, actual75 hazard, actual flow/rate and actual77 product are six genuine compiled parents; adjacent survival88 is not an AND dependency. Only density component of S87-I5/G86-11 closes. Ordered-time iteration, final survival/path factor, fullA7, residual restart/Markovness, global nonexplosion/invariance/hypocoercivity, implementation/errors/unbounded costs/main/composition/wholepaper/Goal OPEN.
+
+Six exact proof regions; separately reviewed one-field exposition sequencing correction. Existing sole lane; local aggregate/actual browser/main/PURIFIED/live remain distinct.
+
+
+## Actual conditional next-wait survival88 (2026-10-11)
+
+Independent science 456e13f9561abcf01a285133e91b3951bf2ed892. Same six original analytic hypotheses and literal actual stopped recursion. For every deterministic event depth n, Borel duration d of complete history H_n and Borel event A, derive joint next-wait event measurability, Borel weight q_d in [0,1], and P(H_n in A and live next wait>d(H_n))=integral_A q_d d(map H_n P). Stopped histories have zero weight; live infinite waits survive all finite durations. No normalization, boundedness of d or law/measurability provider premise. Actual87 joint history/tail law, actual75 hazard survival and actual77 coordinate law are compiled parents. Only S87-I4 closes. S87-I5 conditional finite-wait density, ordered-time disintegration/iteration, final factor/fullA7, random-depth and physical-time residual restart/Markov/invariance/cost/main/composition/wholepaper/Goal remain OPEN.
+
+Five exact proof regions and adjacent folded Lean. Existing sole lane; local aggregate/actual browser/main/PURIFIED/live remain distinct.
+
+
+## Actual finite history and unused-clock tail law87 (2026-10-11)
+
+Independent science ada2d073d04a78493555b2ac35344b9c5a264bfc. Same six source analytic hypotheses and literal actual76 stopped recursion driven by actual77 iidExp1. For every deterministic n, actual history R0..Rn consumes raw coordinates k<n: derive ambient and F_n measurability, pointwise prefix causality, unchanged full infinite raw tail starting n, history-tail independence/product law and unnormalized restricted-tail pushforward, including n0/stopped/null A. Truncation is only a measurable proof factorization. Closes only probability substrate of G86-11/S87I1-I3; conditional random-hazard next-wait survival/density/final survival/iteration S87I4-I5/fullA7, random stopping/physical-time residual memorylessness/restart/Markov/invariance/allL2/main/error/unboundedcost/composition/wholepaper/Goal remain OPEN.
+
+Six exact proof regions and adjacent folded literal Lean are published. Existing sole lane; local aggregate/browser/main/PURIFIED/live remain separate.
+
+
+## Actual finite first-event density and marked law86 (2026-10-11)
+
+Independent science 0bb3cd64ba1235114feaeed99ba22e675b23db76. Original six analytic hypotheses and literal actual clocks/flow/reflection/hazard give the first finite waiting-time density on(0,T], its SAME post-bounce marked law, mass1-exp(-LambdaT)<=1 and three bounded Borel real-test L1 outputs plus weighted integral identity. No renormalization or added positive hazard/finite wait/regularity premise. Five keylemmas and six contiguous public BODY regions. Unused-tail conditioning/fullA7/path/reversal/invariance/Markov/allL2/main/implementation/error/unboundedcost/composition and actual browser/main/PURIFIED/live/wholepaper/Goal remain OPEN.
+
+
+## Actual jointly indexed full-phase law85 (2026-10-11)
+
+Independent science 6d7d42f996a4fbb159c518623fd35c1ac7717fe9. The retained actual80 phase and actual Exp1 clocks yield a jointly Borel full-phase probability kernel, exact pushforward/event law and Dirac0 initialization. Every bounded Borel real test has dual L1 integrability and exact expectation transfer. Six exact adjacent formula/BODY regions; probability fibers do not assert process Markovness. Source failed0 and total fallbackinitialphase remain distinct. Path-law/reversal/invariance/restart/Markov/allL2/main/implementation/error/unbounded cost/composition and actual browser/main/PURIFIED/live remain OPEN.
+
+
+## Actual bounded-test outer square-integral84 (2026-10-11)
+
+Independent science dd3a23011b91569acbcd591ccd7b06301147d339. Exact conditional Gibbs and Gaussian product probabilities are derived from the six original hypotheses. The same actual83 phase gives state-measurable clock expectations;4M² dominates their squared discrepancy, and finite-probability filter DCT yields the outer integral limit0 at NNReal0. Eight exact adjacent formula/BODY regions; source C_c to C_b extension explicitly attributed. Full all-L2/invariance/contraction/density/process/main/error/unbounded cost/composition and actual browser/main/PURIFIED/live remain OPEN.
+
+
+## Actual bounded-test expectation83 (2026-10-10)
+
+Independent science 43b698b4d8dbdb7c881ff41b9c26ca8f0135c781. Every globally bounded continuous real test of the actual physical phase is measurable and integrable under the actual clocks. The explicit2M phase-defect integral estimate yields pointwise clock-expectation continuity at NNReal0. Original six conditions and complete prior physical semantics retained. Eight formula/BODY regions authored once with adjacent folded Lean. C_b/2M are ASTIS elaborations of source C_c. Outer L2/invariance/Markov/semigroup/main/error/cost/composition and actual browser/main/PURIFIED/live remain OPEN.
+
+
+## Actual small-time stochastic continuity82 (2026-10-10)
+
+Independent science 8e182aeb384e5b9edb922c02fc14ceeca6f9b090. Actual phase-flow defect <=1-exp(-Lambda_t) and every positive-threshold norm-tail probability tend to0 at NNReal0, under actual clocks for each fixed initial tuple. Original six hypotheses and complete actual phase semantics retained. Nine formula/BODY regions authored once beside exact folded Lean. Source Ex22 fullL2/invariance/Markov/semigroup/main/error/cost/composition remain OPEN; local aggregate, actual reader visual, main/PURIFIED/live distinct.
+
+
+## Ideal initialized half-turn probability kernel81 (2026-10-10)
+
+Independent science 7f815975f0ac55a211af4a4ba8c446b0d7f69a9f. Exact conditional q_y normalization and jointly Borel ideal H_y at pi are internally constructed. The actual independent reference/Gaussian/clock product supports physical origin and terminal live arc; phase0 law is dirac(x) x Gaussian. Original six conditions, all actual definitions and previous phase semantics retained. Ten formula/BODY regions are authored once beside exact folded Lean. This is ideal exact-reference semantics, not reference implementation, phase Markov/invariance, mixing, error/cost/composition or full-paper completion. Aggregate, reader visual, main/live and purification remain separate.
+
+
+## Actual jointly measurable physical-time phase80 (2026-10-10)
+
+Independent science ac7cabf30e17a322ec187b7eb13e1a9d4a57695d. The actual finite recursion, harmonic flow and interval cover now produce a total jointly Borel phase, exact on every covering live interval, with explicit ASTIS fallback on uncovered exceptional inputs. For each fixed deterministic parameter tuple, one common-AE event gives all-time actual arc agreement and initialization at z0. No uniform parameter AE or arbitrary correlated random initialization is inferred. Complete original six-condition statement and nine formula/BODY steps are authored once in pbps-actual-physical-time-measurability lesson/publication beside folded exact Lean. Process regularity/adaptedness/Markov/kernel/invariance/main/cost/composition remain open. Aggregate, page visual, main/live and purification are separate.
+
+
+## Actual physical-time interval coverage79 (2026-10-10)
+
+Independent science 56e4b7e101a1016e03df2971018b1f018f03e6c1. Actual finite recursion plus actual nonaccumulation now give a common-AE unique half-open interval, unique live stored record and finite elapsed<nextwait for every finite physical time. The complete six-condition statement and nine formula/BODY steps are authored once in pbps-actual-physical-time-cover lesson/publication, beside initially folded exact Lean. Next is an actual jointly measurable phase representative with all-time AE arc agreement and input-derived initialization; global process regularity/Markov/invariance/main/cost/composition remain open. Aggregate, page visual, main/live and purification are separate.
+
+
+## Actual event-time nonaccumulation78 (2026-10-10)
+
+Independent science bbcad09376c51bbf27c0ed4c16be0dc053bb01c5. Actual finite recursion plus canonical Exp1 inputs now give almost-sure finite-horizon escape and finite event-index sets. The complete six-condition statement and seven formula/BODY steps are authored once in pbps-actual-event-time-nonaccumulation lesson/publication, with adjacent initially folded exact Lean. Next is actual physical-time state construction/measurability; global process/Markov/invariance/main/cost/composition remain open. Aggregate, page visual, main/live and purification remain independently evidence-bound.
+
+
+## Countable exponential input law77 (2026-10-10)
+
+Independent science commit 4f88383540a865aea304c63c40de5a699ea61611. The actual product/coordinate laws, mutual independence, simultaneous a.s. positivity and divergent clamped sums are verified. Statement and seven formula/BODY steps remain authored once in unit-exponential-product declaration lesson/publication, with exact adjacent folded Lean. The next actual consumer is recursion76 event-time nonaccumulation; process/invariance/main/cost/composition remain open. Aggregate/site/graph/visual/purification/main/live evidence are recorded separately in SAU77 integration notes.
+
+
+## Exact actual finite stopped recursion76 (2026-10-10)
+
+Independent science commit e1f1d85d34426954829a97a46b563ea8e1dab8f1. The complete attributed statement and ten
+formula/BODY steps are authored once in declaration_lessons/pbps-actual-finite-jump-recursion.json,
+with exact initially folded adjacent Lean. Actual73/74/75 provide the flow,
+bounce/rate and first clock; no phase at infinity. Joint Borel recursion,
+original initial energy, monotone/stopped times, uniform waiting increments
+and zero/strict-growth guards are proved. iid Exp1 thresholds, partial-sum
+divergence/nonaccumulation, global PDMP/Markov/invariance/kernel/main/errors/
+expected-query cost/composition remain open. Integration76 records aggregate,
+reader and graph gates separately; no Exposition/PURIFIED/main/live/Goal credit.
+
+
+## Exact actual first-clock checkpoint75 (2026-10-10)
+
+Independent science commit 51d3a65f65b189b0afaaf91a248f8c2f58162ef2. Complete attributed statement and nine-step
+formula proof are authored once in declaration_lessons/pbps-actual-hazard-clock.json;
+exact full Lean (literal specification and proved internal primitive included)
+is adjacent and initially folded. The actual Exp(1) pushforward is normalized,
+with strict survival exp(-Lambda_z(t)) including infinite waits. Finite threshold
+attainment, joint Borel measurability and original-state energy waiting bounds
+retain all original six callers and rank0/zero-energy/e0/alphaeta1 cases.
+Actual recursive PDMP/iid nonaccumulation/global path/Markov/invariance/main/errors/
+expected-query cost/composition remain open. Integration75 records aggregate and
+reader checks separately; no Exposition/PURIFIED/main/live/whole-paper/Goal credit.
+
+
+## Exact bounce-rate checkpoint74 (2026-10-10)
+
+Independent science commit d556a7550f0395d149720da6478bfdfff98368a7. Complete attributed statement and seven-step
+formula proof are authored once in declaration_lessons/pbps-actual-bounce-rate.json;
+exact full Lean including its complete private literal specification is adjacent
+and initially folded. Actual S is zero-safe Borel and preserves the weighted SUM H.
+Actual lambda is continuous, has the exact flipped-rate difference, and obeys the
+printed SAME-H-layer Lambda bound with internal beta-Lipschitz producer. Original
+six callers and legal zero-energy/rank0/zero-normal/alphaeta1 cases persist.
+Actual integrated hazard/clock/recursive PDMP/nonexplosion/invariance/main/errors/
+expected-querycost/actual-input composition remain open. Integration74 records
+aggregate and current-reader checks separately; no Exposition/PURIFIED/main/live
+or whole-paper/Goal completion follows.
+
+
+## Exact harmonic-flow checkpoint73 (2026-10-10)
+
+Independent science commit d7e00a7c0e8b0f37fcc2dbe99f6b646d3a7b1de6. The complete attributed statement and
+six-step formula proof are authored once in declaration_lessons/
+pbps-actual-harmonic-flow.json; the exact full Lean, including its private
+literal proposition specification, is adjacent and initially folded.
+For c=y-eta gradientV(xRef), the exact deterministic flow conserves
+(eta^-1 norm(x-c)^2+norm(p)^2)/2 and sends (x,p) to (2c-x,-p) at pi.
+All nine clauses and original six callers are retained with no extra premise.
+Actual bounce/rate/clocks/PDMP/nonexplosion/invariance/main/errors/expected
+cost and actual-input composition remain open. Integration73 records reader
+and aggregate checks separately; no full Exposition/PURIFIED/main/live or
+whole-paper/Goal badge is inferred.
+
+
+## Exact perturbation checkpoint72 (2026-10-10)
+
+Independent science commit 18183c58eee62145b6059ded11c7be05a4cb82de; canonical full statements and six/four-step
+formula proofs are authored once in declaration_lessons/pbps-hilbert-corrector-
+perturbation.json and declaration_lessons/pbps-actual-corrector-perturbation.json.
+Their complete exact Lean is adjacent and initially folded on the original
+companion page. One SAU joins the auxiliary Hilbert lemma to actual PBPS inputs.
+
+For the SAME C(u,v)=(norm(u)^2-norm(v)^2)/2-inner(A0(Invu),v),
+C(u+Gamma0 r,v-A0 r)-C(u,v)=inner(u,Inv r)+norm(r)^2/2.
+All original actual71 clauses persist. Arbitrary r is not actual r_rho;
+Algorithm1 H/K/B27/B28, full dynamics/main/errors/cost/composition remain open.
+Serialized reader/aggregate admission is recorded separately in integration72;
+this is not a full Exposition Seal, PURIFIED, main/live or whole-paper completion.
+
+
+## Current verified corrector checkpoint (2026-10-10)
+
+The historical source packets and earlier checkpoint paragraphs below are
+preserved. Current status is supplied by the handoff, live Frontier Cells and
+Harness capsule. `ASTIS-SW-PBPS-actual-corrector-change` has independent
+commit-bound verification at `4e7ce5d2996ffe1d1b0ab570778e02425c6be34e` for the discrete B21
+corrector change under the actual reflected observable.
+
+The complete attributed statement and eight-step formula proof are authored
+once in `website/content/declaration_lessons/pbps-actual-corrector-change.json`.
+The matching publication binds exact source obligations and assumption
+differences. `ActualCorrectorChange.actual_corrector_change`, its complete
+private literal proposition and all proof spans remain adjacent folded Lean
+on the original companion page.
+
+| Source ingredient | Exact current Lean meaning |
+|---|---|
+| Reflected observable and actual coordinates | Same `g = U (P f - (f - P f))`, actual conditional `gP`, and `gV = V0.adjoint (R g)` |
+| Corrector B20 | `C u v = (norm(u)^2-norm(v)^2)/2-inner(A0(Inv u),v)` on the SAME `HP0` |
+| Discrete corrector change B21 | `C gP gV-C fP fV = -norm(fP)^2+norm(fV)^2` |
+| Actual-update comparison B27/B28 | Subsequent obligation: half-turn/refreshment error components and perturbation |
+
+All six original analytic callers, twelve common witnesses and previous
+clauses persist. Exact half and signs, legal rank0/alphaeta1 and the same
+centered inverse are preserved. The local algebra supplies no extra
+regularity, onto-map, mean or sharp-bound premise.
+
+Full B4/H1/B2 dynamics, invariance/nonexplosion, PBPS/SPHMC mains,
+implementation errors/caps, initialization and actual-input expected-query
+costs/composition remain independent. TV proximity does not transfer
+unbounded cost. Aggregate/reader/remote CI, full Exposition/PURIFIED,
+main/live and whole-paper/Goal completion are separate admissions.
+
+## Current verified companion checkpoint (2026-10-10)
+
+The historical source packets below are preserved. Current theorem status and
+remaining dependencies come from `docs/companion-papers-handoff.md`, the live
+Frontier Cells and the Harness capsule, rather than the older dated paragraphs.
+
+`ASTIS-SW-PBPS-actual-projected-rotation` now has independent commit-bound
+verification at `c46af8a55e89419109f654c4553cf527993cbeed`. Its source anchor is Appendix B.3,
+the actual projected rotation used by (B.21) and Lemma B.4. The complete source
+conditions, notation and eight-step formula proof are authored once in
+`website/content/declaration_lessons/pbps-actual-projected-rotation.json`, with
+exact obligations and assumption differences in the matching publication file.
+The production declaration is
+`ActualProjectedRotation.actual_projected_rotation`; its full literal statement
+and exact proof remain adjacent folded Lean in the original companion page.
+
+| Source object or ingredient | Exact current Lean meaning |
+|---|---|
+| Actual reflected observable | `g = U (P f - (f - P f))` on the same joint law |
+| Global centering of the output | Proved internally from the actual reflection law and conditional expectation |
+| Output macroscopic coordinate | `gP` is the same conditional expectation in `HP0` |
+| Output polar coordinate | `gV = V0.adjoint (R g)` |
+| Rotation and energy | Exact formulas and pair-energy identity in the linked declaration lesson |
+| Printed corrector change (B.21) | Next sealed source target; not proved by pair-energy conservation |
+
+All six original analytic callers and twelve common witnesses persist. No new
+mean, regularity, onto-map or sharp-energy premise is added. Dimension zero and
+the endpoint alpha*eta=1 remain admitted. Shared aggregate/reader checks and
+remote CI are separate from this science verification. Full B4 dynamics,
+invariance/nonexplosion, PBPS/SPHMC main results, errors/caps, initialization and
+actual-input expected-query costs/composition remain separate obligations.
+TV proximity does not transfer unbounded costs. This is not a whole-paper,
+Exposition Seal, PURIFIED, main or live-deployment completion claim.
+
 Primary: [arXiv:2609.06905v1](https://arxiv.org/html/2609.06905v1).
 Public result entry: `example-cases/samplewiki/companions/proximal-bouncy-particle.html`.
 The canonical source/main-theorem contracts remain in

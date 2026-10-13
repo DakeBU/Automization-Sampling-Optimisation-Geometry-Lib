@@ -1,0 +1,24 @@
+theorem smoothed_score_posterior
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {κ η : ℝ} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2) (hη : 0 < η) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E
+    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)
+    let Vη := fun y : E => -Real.log (A y)
+    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))
+    IsProbabilityMeasure μ ∧ ContDiff ℝ 2 Vη ∧
+      (∀ y, IsProbabilityMeasure (R y) ∧ MemLp id 2 (R y) ∧
+        Integrable (gradient V) (R y) ∧
+        gradient Vη y = ∫ x, gradient V x ∂(R y)) ∧
+      ∃ p : E → E, Measurable p ∧ (∀ y, p y+η • gradient V (p y)=y) ∧
+        let rho := fun y u => V (p y+Real.sqrt η • u)-V (p y)-
+          Real.sqrt η*inner ℝ (gradient V (p y)) u
+        let r := fun y => (R y).map (fun x => (Real.sqrt η)⁻¹ • (x-p y))
+        ∀ y, r y=(volume : Measure E).tilted (fun u => -(‖u‖^2/2+rho y u)) ∧
+          IsProbabilityMeasure (r y) ∧ MemLp (gradient (rho y)) 2 (r y) ∧
+          gradient Vη y=gradient V (p y)+(Real.sqrt η)⁻¹ • (∫ u, gradient (rho y) u ∂(r y)) ∧
+          ∀ z, gradient V (p y+Real.sqrt η • z)=
+            gradient V (p y)+(Real.sqrt η)⁻¹ • gradient (rho y) z 

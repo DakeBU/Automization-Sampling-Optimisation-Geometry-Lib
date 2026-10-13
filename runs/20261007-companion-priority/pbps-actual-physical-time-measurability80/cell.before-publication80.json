@@ -1,0 +1,211 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-physical-time-measurability",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS jointly measurable physical-time phase",
+  "mode": "faithfulPaper",
+  "source_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Algorithm1 and AppendixA1 A.2/A1.E2/A1.SS1.p2.2 between-jump prescription; original six analytic conditions; actual source implicit measurable realization adapter.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover\nimport Mathlib.MeasureTheory.MeasurableSpace.Constructions\n\n/-! Prospective statement80 only. PBPS arXiv2609.06905v1 Appendix A.1.\nASTIS total measurable representative of literal actual harmonic interpolation.\nStanding V/alpha/beta/eta are fixed; phase map is jointly Borel in finite\nparameters, finite physical time and canonical threshold sample. Uncovered\npoints explicitly take initial phase; covered last-live infinite-wait arcs\nare not fallback points. Per-parameter AE event is common to all finite times;\nno uniform parameter event, random-initial law, Markov/invariance or main claim. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability\nopen InnerProductSpace MeasureTheory ProbabilityTheory Filter\nopen scoped ContDiff NNReal ENNReal Topology Interval BigOperators\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_physical_time_measurable_phase_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀)\n\nend\n#check actual_physical_time_measurable_phase_statement\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability\n",
+  "status": "claimed",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover",
+    "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+  ],
+  "consumers": [
+    "Algorithm1 later actual finite-time evaluation with conditional random reference/initial phase and horizon; law/independence adapters not yet proved."
+  ],
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase"
+  ],
+  "declaration_level": "source-anchor",
+  "blocked": {
+    "status": false,
+    "reason": "One independently reviewed sealed statement; sole writer root."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261010-PBPSActualPhysicalTimeMeasurability",
+    "statement_seal": "runs/20261007-companion-priority/pbps-actual-physical-time-measurability80/root.statement-seal80.json",
+    "focused_checks": [],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhysicalTimeMeasurability.lean"
+    ],
+    "truth_boundary": "Actual total jointly measurable finite-physical-time representative and common-AE all-time actual arc agreement/initialization per fixed parameter triple. V/alpha/beta/eta fixed. Uncovered fallback is explicit ASTIS convention. No uniform AE all parameters or arbitrary correlated random parameter substitution; path regularity/adaptedness/Markov/invariance/laws/kernel/hypocoercivity/full sampler errors/cost/composition, full Exposition Seal/main merge/PURIFIED/live/whole Goal remain open."
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib actual76 joint record/clocks, actual73 joint harmonic flow, actual79 common-AE interval cover and77 canonical actual thresholds/support; module cards and current Frontier Cells inspected, no existing actual physical-time phase representative.",
+      "Pinned Mathlib countable exists_measurable_piecewise, Sum elimination measurability, order comparison, NNReal subtraction and coordinate clamp.",
+      "Compatible upstream indexes inspected: LMC/SALD interpolation and law references are distinct; no OAI/SLT transplant used."
+    ],
+    "classification": "missing",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
+    "canonical_shared_cell": "",
+    "reason": "Generic measurable gluing already exists in pinned Mathlib. New theorem realizes the actual PBPS source recurrence, includes genuine measurable witness and actual-input AE origin/all-time semantics; no supplied selector/nonexplosion premise."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib actual76 joint record/clocks, actual73 joint harmonic flow, actual79 common-AE interval cover and77 canonical actual thresholds/support; module cards and current Frontier Cells inspected, no existing actual physical-time phase representative.",
+      "Pinned Mathlib countable exists_measurable_piecewise, Sum elimination measurability, order comparison, NNReal subtraction and coordinate clamp.",
+      "Compatible upstream indexes inspected: LMC/SALD interpolation and law references are distinct; no OAI/SLT transplant used."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "Algorithm1 later actual finite-time evaluation with conditional random reference/initial phase and horizon; law/independence adapters not yet proved."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Generic measurable gluing already exists in pinned Mathlib. New theorem realizes the actual PBPS source recurrence, includes genuine measurable witness and actual-input AE origin/all-time semantics; no supplied selector/nonexplosion premise."
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-actual-physical-time-measurability80/root.statement-seal80.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "1b51f58a987d8b59bcb1b5280a8817af984d7fad4b09962ad8a229198f9f5215",
+    "binder_audit": {
+      "six_original_analytic_conditions": [
+        "alpha>0",
+        "alpha<=beta",
+        "V C2",
+        "global Hessian alpha/beta quadratic bounds",
+        "eta>0",
+        "beta*eta<=1"
+      ],
+      "typing": "Finite-dimensional real Euclidean/inner-product phase carrier with canonical Borel structures.",
+      "source_fixed_data": "For every fixed y,xref,z0; joint finite t and sample for these fixed actual parameters.",
+      "new_public_premises_prohibited": [
+        "supplied measurable selector",
+        "supplied nonexplosion/support/cap/clock certificates",
+        "supplied joint flow/bounce measurability",
+        "extra derivative or integrability bounds"
+      ],
+      "quantifier_order": "Original analytic standing data -> each fixed y,xref,z0 -> a total jointly measurable finite-time/sample representative -> common AE sample, all finite t source active-arc agreement. Origin equality on actual positive-input event."
+    },
+    "definition_kind": "Original six analytic binders and eleven literal actual definitions. Joint parameter domain is separately reviewed source-implicit adapter; no extra source premise."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-physical-time-measurability-preread80/source-freeze80.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-physical-time-measurability-preread80/source-freeze80.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-physical-time-measurability-preread80/independent-scope-review80/independent-source-topology-review80.json",
+    "reviewed_adapter_overlay": "runs/20261007-companion-priority/pbps-physical-time-measurability-preread80/source-topology-clarification80.json",
+    "coverage_status": "Prospective scoped source topology reviewed; implementation and final fresh source coverage OPEN."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 Algorithm1 and AppendixA1 A.2/A1.E2/A1.SS1.p2.2 between-jump prescription; original six analytic conditions; actual source implicit measurable realization adapter.",
+    "fidelity_boundary": "Actual total jointly measurable finite-physical-time representative and common-AE all-time actual arc agreement/initialization per fixed parameter triple. V/alpha/beta/eta fixed. Uncovered fallback is explicit ASTIS convention. No uniform AE all parameters or arbitrary correlated random parameter substitution; path regularity/adaptedness/Markov/invariance/laws/kernel/hypocoercivity/full sampler errors/cost/composition, full Exposition Seal/main merge/PURIFIED/live/whole Goal remain open.",
+    "detail_status": "omitted",
+    "gap": "Source suppresses measurable assembly/exceptional representatives. ASTIS finite-time realization is current delta; process regularity/Markov/laws remain separate.",
+    "consulted": [
+      {
+        "source": "Samplinglib actual finite-recursion76/nonaccumulation78 and fixed Mathlib",
+        "anchor": "A1.E2;A1.SS1.p2.2;p3.7;Nat.find;WithTop/NNReal ordering",
+        "hypothesis_adapter": "Retain six source analytic binders. Initialized monotone clocks and actual horizon escape are obtained from existing parents; no crossing/index/live-record provider premise."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "bookkeeping": [
+      "All-input interval measurability and monotone disjointness are deterministic; actual coverage is common-AE per parameter.",
+      "Last live infinite-wait arc is covered, not fallback; actual positivity required for source origin."
+    ],
+    "new_reusable": [],
+    "new_topology": "Construct a total phase jointly Borel in y/reference/initial phase/finite physical time/actual threshold sample, exactly interpolate each actual covered live arc, explicitly take initial phase on uncovered pairs, and prove per-parameter common-AE all-time actual arc realization and initialization."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Pending proof",
+    "duplicate_semantics_audit": "Actual79 only proves interval/live-record coverage; no measurable phase witness.",
+    "canonicalization": "Actual PBPS consumer of exact finite recursion and actual nonaccumulation; no copied stochastic input foundation.",
+    "compressed_spine_delta": "Construct a total phase jointly Borel in y/reference/initial phase/finite physical time/actual threshold sample, exactly interpolate each actual covered live arc, explicitly take initial phase on uncovered pairs, and prove per-parameter common-AE all-time actual arc realization and initialization.",
+    "reader_default_view": "Full attributed statement/formula proof with adjacent folded exact Lean.",
+    "scope": "Actual total jointly measurable finite-physical-time representative and common-AE all-time actual arc agreement/initialization per fixed parameter triple. V/alpha/beta/eta fixed. Uncovered fallback is explicit ASTIS convention. No uniform AE all parameters or arbitrary correlated random parameter substitution; path regularity/adaptedness/Markov/invariance/laws/kernel/hypocoercivity/full sampler errors/cost/composition, full Exposition Seal/main merge/PURIFIED/live/whole Goal remain open."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No proof attempt before independently reviewed exact header seal.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-clock/countable-measurable-gluing/exceptional-initial-phase/common-AE-arc-and-origin"
+      ],
+      "expected_information_gain": "One canonical writer; distinct independent proof/blind decoder/source review after focused compile.",
+      "shared_verified_context_digest": "2e59d6c917887c1d1d58c1542f07da450d6739fd0557c1f49c4401f5e610bd33"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "joint-actual-record-clock",
+        "measurable-interval-partition",
+        "harmonic-branch",
+        "uncovered-complement",
+        "common-AE-all-time-realization",
+        "actual-positive-origin"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase"
+    ],
+    "visual_review": "Pending proof/publication/affected graph and page acceptance."
+  },
+  "conceptual_mirror_audit": {
+    "status": "pending",
+    "discovery_ids": [],
+    "reason": "Required before PROVED_LOCAL; source actual same-domain measurable assembly, no new conceptual transport."
+  }
+}

@@ -1,0 +1,207 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianRGOErrorBudget
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StoppedRGODepth
+/-!
+# Actual stopped Gaussian RGO output error
+
+Source: SPHMC arXiv:2609.06906v1 Theorem 6.5 A1, equations (6.2)-(6.5).
+The normalized smoothness-one schedule uses state-dependent K(b), not the
+baseline kappa, and fixes the terminal threshold and J from the initial state.
+The actual Gaussian error program is identified with the stopped program by
+proving equality of all update coordinates and transition fibers. Recursive
+output powers then transfer terminal support and cap stability.
+
+The unconditional error bound retains the integral over the actual terminal
+set. The total-Delta-squared conclusion additionally requires a terminal KL
+interface on that set only. It is first proved at J and then transferred to
+J+m by output stability, not by applying the linear budget at the larger cap.
+
+Supplied M accuracy and terminal L accuracy are interfaces, not proofs that
+Picard HMC and FORS implement them. Source baseline smoothness is normalized to
+one; C>=8 is a sufficient proved constant, and gamma's stated range ensures
+depth properties rather than FORS sufficiency. No initialization/reference-point
+validity, general curvature identification or expected query cost is proved.
+The auxiliary constant-c depth call only establishes threshold positivity;
+actual stopping comes from StoppedRGODepth. Its separate explicit upper bound
+on J is not an additional conclusion of this theorem.
+-/
+
+open MeasureTheory ProbabilityTheory InformationTheory
+open scoped ENNReal NNReal
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StoppedGaussianRGOError
+variable {E : Type*} [MeasurableSpace E] [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [BorelSpace E]
+local notation "PS" => ℝ≥0 × E × ℕ × (ℕ → E)
+open AutoSamplingTheory.TechnicalLemmas.Measure
+
+/-- Align the actual Gaussian error program with the stopped program, retain its
+terminal-set residual, and derive stopped output accuracy from terminal-only KL. -/
+theorem stopped_gaussian_rgo_error (μ : Measure E) [IsProbabilityMeasure μ]
+    (η : PS → ℝ) (hηm : Measurable η) (κ c Δ γ C : ℝ)
+    (hκ : 1 ≤ κ) (hc : 0 < c) (hc1 : c < 1/4)
+    (hη : ∀ s, 0 < η s ∧ η s ≤ c) (hd : 0 < Module.finrank ℝ E)
+    (hΔ : 0 < Δ) (hΔ1 : Δ ≤ 1/2) (hγ : 0 < γ) (hγ1 : γ ≤ 1) (hC : 8 ≤ C) (s0 : PS) :
+    let K := fun r : ℝ => (1+r)/(κ⁻¹+r)
+    let τ := fun r : ℝ => if 2 ≤ K r then K r else c
+    let a := fun s : PS => (η s+τ s.1)/(1+s.1)
+    let ell := 2+Real.log (K s0.1*Module.finrank ℝ E*2/Δ)
+    let B := γ/(Real.sqrt (Module.finrank ℝ E*ell)+ell)
+    let J := Nat.ceil (C*Real.log (Real.exp 1*K s0.1/B))
+    let D : Set PS := {s | B⁻¹ ≤ (s.1:ℝ)}
+    ∃ T H : Kernel PS E, IsMarkovKernel T ∧ IsMarkovKernel H ∧
+      (∀ s, T s = μ.tilted (fun x => -((s.1:ℝ)/2)*‖x-s.2.1‖^2)) ∧
+      (∀ s, H s = GaussianSmoothing.gaussianSmoothing (T s) (Real.sqrt (a s))) ∧
+      ∀ M L : Kernel PS E, IsMarkovKernel M → IsMarkovKernel L →
+      (∀ s, s ∉ D → WassersteinSpace.wassersteinDistance (M s)
+        (GaussianSmoothing.gaussianSmoothing (T s) (Real.sqrt (η s/(1+s.1))))^2 ≤
+        ENNReal.ofReal (K s.1*(2*τ s.1*Δ^2/(K s.1*((J:ℝ)+1)))/(1+s.1))) →
+      ∃ (F : PS × E → PS) (Q : Kernel PS E) (P : Kernel PS PS) (R : ℕ → Kernel PS E),
+        (∀ s y, ((F (s,y)).1:ℝ) = (s.1:ℝ)+(a s)⁻¹ ∧
+          (F (s,y)).2 = (((s.1:ℝ)+(a s)⁻¹)⁻¹ • ((s.1:ℝ) • s.2.1+(a s)⁻¹ • y),
+            s.2.2.1+1,fun n => Nat.casesOn n y s.2.2.2)) ∧
+        IsMarkovKernel Q ∧ IsMarkovKernel P ∧ (∀ n, IsMarkovKernel (R n)) ∧
+        (∀ s, Q s = GaussianSmoothing.gaussianSmoothing (M s) (Real.sqrt (τ s.1/(1+s.1)))) ∧
+        (∀ s, P s = if s ∈ D then Measure.dirac s else (Q s).map (fun y => F (s,y))) ∧
+        (∀ n, R n = L ∘ₖ (P^n)) ∧
+        0 < B ∧ (P^J) s0 D = 1 ∧
+        (∀ m, R (J+m) s0 = R J s0) ∧
+        klDiv (R J s0) (T s0) ≤ (J:ℝ≥0∞)*ENNReal.ofReal (Δ^2/((J:ℝ)+1)) +
+          ∫⁻ x in D, klDiv (L x) (T x) ∂(P^J) s0 ∧
+        ((∀ s ∈ D, klDiv (L s) (T s) ≤ ENNReal.ofReal (Δ^2/((J:ℝ)+1))) →
+          ∀ m, klDiv (R (J+m) s0) (T s0) ≤ ENNReal.ofReal (Δ^2)) := by
+  classical
+  have recursive_output_powers (Q L : Kernel (PS) E) [IsMarkovKernel Q] [IsMarkovKernel L]
+      (F : (PS) × E → (PS)) (hF : Measurable F) (D : Set (PS)) [DecidablePred (· ∈ D)]
+      (P : Kernel (PS) (PS)) (R : ℕ → Kernel (PS) E)
+      (hPf : ∀ s, P s = if s ∈ D then Measure.dirac s else (Q s).map (fun y => F (s,y)))
+      (hzero : R 0 = L)
+      (hrec : ∀ n s, R (n+1) s = if s ∈ D then L s else (Q s).bind (fun y => R n (F (s,y)))) :
+      ∀ n, R n = L ∘ₖ (P^n) := by
+    have hstop (n : ℕ) (s : (PS)) (hs : s ∈ D) : R n s = L s := by
+      cases n with
+      | zero => rw [hzero]
+      | succ n => rw [hrec,if_pos hs]
+    have hRstep (n : ℕ) : R (n+1) = R n ∘ₖ P := by
+      ext s t ht
+      rw [Kernel.comp_apply,hPf,hrec]
+      by_cases hs : s ∈ D
+      · rw [if_pos hs,if_pos hs,Measure.dirac_bind (R n).measurable,hstop n s hs]
+      · rw [if_neg hs,if_neg hs]
+        rw [Measure.bind_apply ht (show AEMeasurable (fun y : E => R n (F (s,y))) (Q s)
+            from ((R n).measurable.comp (hF.comp measurable_prodMk_left)).aemeasurable),
+          Measure.bind_apply ht (R n).aemeasurable]
+        exact (lintegral_map ((R n).measurable_coe ht)
+          (show Measurable (fun y : E => F (s,y)) from hF.comp measurable_prodMk_left)).symm
+    intro n
+    induction n with
+    | zero =>
+      change R 0 = L ∘ₖ Kernel.id
+      rw [Kernel.comp_id,hzero]
+    | succ n ih =>
+      rw [hRstep,ih,pow_succ]
+      exact Kernel.comp_assoc L (P^n) P
+  intro K τ a ell B J D
+  have hb : Measurable (fun s : PS => (s.1:ℝ)) := by fun_prop
+  have hKm : Measurable (fun s : PS => K s.1) := by dsimp [K]; fun_prop
+  have hKpos (s : PS) : 0 < K s.1 := by
+    exact div_pos (by positivity) (add_pos_of_pos_of_nonneg
+      (inv_pos.mpr (lt_of_lt_of_le zero_lt_one hκ)) s.1.coe_nonneg)
+  have htm : Measurable (fun s : PS => τ s.1) :=
+    Measurable.ite (measurableSet_le measurable_const hKm) hKm measurable_const
+  have htpos (s : PS) : 0 < τ s.1 := by
+    dsimp [τ]
+    split_ifs with hs
+    · linarith
+    · exact hc
+  have hdepth := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.LogarithmicDepth.terminal_depth
+    (r₀ := (s0.1:ℝ)) (η := fun _ => c) hκ hc hc1 s0.1.coe_nonneg
+    (fun _ => ⟨hc,le_rfl⟩) hd (show (2:ℝ) ≤ 2 from le_rfl) hΔ hΔ1 hγ hγ1 hC
+  change 2 ≤ ell ∧ (0 < B ∧ B ≤ 1) ∧ 0 < J ∧ _ ∧ _ ∧ _ at hdepth
+  have hB := hdepth.2.1.1
+  let θ : ℝ≥0 := ⟨B⁻¹,(inv_pos.mpr hB).le⟩
+  obtain ⟨T,H,hT,hH,hTf,hHf,hprog⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianRGOErrorBudget.gaussian_rgo_error_budget μ
+      (fun s : PS => 1+s.1) (fun s : PS => K s.1) η (fun s : PS => τ s.1)
+      (by fun_prop) hKm hηm htm (fun s => by positivity) hKpos (fun s => (hη s).1.le) htpos θ J Δ hΔ.le
+  let := hT
+  let := hH
+  refine ⟨T,H,hT,hH,hTf,hHf,?_⟩
+  intro M L hM hL hW
+  let := hM
+  let := hL
+  obtain ⟨F,Q,P,R,hFf,hQ,hP,hR,hQf,hPf,hzero,hrec,hlocal,hbound⟩ := hprog M L hM hL hW
+  let := hQ
+  let := hP
+  obtain ⟨F',P',R',hFf',hP',hR',hPf',hRp',hB',hmass,hstable,hJbound⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StoppedRGODepth.stopped_rgo_depth μ η hηm κ c 2 Δ γ C
+      hκ hc hc1 hη hd le_rfl hΔ hΔ1 hγ hγ1 hC s0 Q L
+  have hFeq : F = F' := by
+    funext p
+    apply Prod.ext
+    · apply Subtype.ext
+      exact (hFf p.1 p.2).1.trans (hFf' p.1 p.2).1.symm
+    · exact (hFf p.1 p.2).2.trans (hFf' p.1 p.2).2.symm
+  subst F'
+  have hPeq : P = P' := by
+    ext s t ht
+    rw [hPf,hPf']
+    rfl
+  subst P'
+  have ha0 (s : PS) : 0 < a s := div_pos (add_pos (hη s).1 (htpos s)) (by positivity)
+  have hFexact : F = fun p =>
+      (⟨(p.1.1:ℝ)+(a p.1)⁻¹,add_nonneg p.1.1.coe_nonneg (inv_pos.mpr (ha0 p.1)).le⟩,
+        ((p.1.1:ℝ)+(a p.1)⁻¹)⁻¹ • ((p.1.1:ℝ) • p.1.2.1+(a p.1)⁻¹ • p.2),
+        p.1.2.2.1+1,fun n => Nat.casesOn n p.2 p.1.2.2.2) := by
+    funext p
+    apply Prod.ext
+    · exact Subtype.ext (hFf p.1 p.2).1
+    · exact (hFf p.1 p.2).2
+  have ha : Measurable a := (hηm.add htm).div (by fun_prop)
+  have hFm : Measurable F := by
+    rw [hFexact]
+    apply Measurable.prodMk
+    · exact Measurable.subtype_mk (by fun_prop)
+    · apply Measurable.prodMk
+      · fun_prop
+      · apply Measurable.prodMk
+        · fun_prop
+        · apply measurable_pi_lambda
+          intro n
+          cases n <;> fun_prop
+  have hRp : ∀ n, R n = L ∘ₖ (P^n) := recursive_output_powers Q L F hFm D P R hPf hzero hrec
+  have hReq (n : ℕ) : R n = R' n := (hRp n).trans (hRp' n).symm
+  have hstable' (m : ℕ) : R (J+m) s0 = R J s0 := by rw [hReq,hReq]; exact hstable m
+  have hp (n : ℕ) : IsMarkovKernel (P^n) := by
+    induction n with
+    | zero => change IsMarkovKernel Kernel.id; infer_instance
+    | succ n ih =>
+      let := ih
+      rw [pow_succ]
+      change IsMarkovKernel ((P^n) ∘ₖ P)
+      infer_instance
+  let := hp J
+  have hDm : MeasurableSet D := measurableSet_le measurable_const hb
+  have hae : ∀ᵐ x ∂(P^J) s0, x ∈ D := (mem_ae_iff_prob_eq_one hDm).2 hmass
+  have hrestrict : ((P^J) s0).restrict D = (P^J) s0 := Measure.restrict_eq_self_of_ae_mem hae
+  refine ⟨F,Q,P,R,hFf,hQ,hP,hR,hQf,hPf,hRp,hB,hmass,hstable',?_,?_⟩
+  · rw [hrestrict]
+    exact hbound J s0
+  · intro hterminal m
+    rw [hstable']
+    apply (hbound J s0).trans
+    have htbound : (∫⁻ x, klDiv (L x) (T x) ∂(P^J) s0) ≤ ENNReal.ofReal (Δ^2/((J:ℝ)+1)) := by
+      calc
+        _ ≤ ∫⁻ x, ENNReal.ofReal (Δ^2/((J:ℝ)+1)) ∂(P^J) s0 := by
+          apply lintegral_mono_ae
+          filter_upwards [hae] with x hx
+          exact hterminal x hx
+        _ = _ := by simp
+    calc
+      _ ≤ (J:ℝ≥0∞)*ENNReal.ofReal (Δ^2/((J:ℝ)+1)) + ENNReal.ofReal (Δ^2/((J:ℝ)+1)) := add_le_add le_rfl htbound
+      _ = ENNReal.ofReal (Δ^2) := by
+        rw [← add_one_mul]
+        rw [← ENNReal.ofReal_natCast,← ENNReal.ofReal_one,← ENNReal.ofReal_add (by positivity) (by positivity),
+          ← ENNReal.ofReal_mul (by positivity)]
+        congr 1
+        field_simp
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StoppedGaussianRGOError

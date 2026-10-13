@@ -1,0 +1,798 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-finite-jump-recursion",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS finite stopped postjump recursion",
+  "mode": "faithfulPaper",
+  "source_anchor": "arXiv2609.06905v1 AppendixA.1 equation(A.2), Ex4-8, Algorithm1/Proposition3.1; deterministic finite skeleton feeding future iid/SLLN nonaccumulation.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock\nimport Mathlib.MeasureTheory.Constructions.BorelSpace.WithTop\n\n/-! Prospective header76 only: actual finite stopped postjump recursion.\nActive records are Sum.inl (finite time, phase); Sum.inr () means stopped,\nhas event time infinity and carries no phase at infinity. Threshold e n is\nsource E_(n+1). Zero thresholds are a deterministic extension; no global\nphysical-time phase or iid/nonexplosion/Markov/invariance is asserted. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion\nopen InnerProductSpace MeasureTheory\nopen scoped ContDiff NNReal ENNReal Topology Interval\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_fixed_reference_finite_jump_recursion_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    let C : E → E → (E × E) → ℝ := fun y xRef z =>\n      Real.sqrt η * (β : ℝ) * Real.sqrt (2 * H y xRef z) *\n        (Real.sqrt (2 * η * H y xRef z) + ‖c y xRef - xRef‖)\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0,\n      record y xRef z₀ e 0 = Sum.inl (0, z₀)) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0, ∀ n : ℕ,\n      record y xRef z₀ e (n + 1) = next y xRef (e n) (record y xRef z₀ e n) ∧\n      (∀ a : ℝ≥0 × (E × E), record y xRef z₀ e n = Sum.inl a →\n        (record y xRef z₀ e (n + 1) = Sum.inr () ↔ τ y xRef a.2 (e n) = ⊤) ∧\n        (τ y xRef a.2 (e n) ≠ ⊤ → record y xRef z₀ e (n + 1) =\n          Sum.inl (a.1 + (τ y xRef a.2 (e n)).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 (e n)).untopD 0 : ℝ≥0) : ℝ) a.2))))) ∧\n    Measurable (fun a : (E × E) × ℝ≥0 × ((ℝ≥0 × (E × E)) ⊕ Unit) =>\n      next a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    (∀ n : ℕ, Measurable (fun a : (E × E) × (E × E) × (ℕ → ℝ≥0) =>\n      record a.1.1 a.1.2 a.2.1 a.2.2 n)) ∧\n    (∀ n : ℕ, Measurable (fun a : (E × E) × (E × E) × (ℕ → ℝ≥0) =>\n      eventTime a.1.1 a.1.2 a.2.1 a.2.2 n)) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0,\n      eventTime y xRef z₀ e 0 = 0 ∧ Monotone (eventTime y xRef z₀ e)) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0, ∀ n k : ℕ,\n      record y xRef z₀ e n = Sum.inr () →\n        record y xRef z₀ e (n + k) = Sum.inr ()) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0, ∀ n : ℕ,\n      ∀ a : ℝ≥0 × (E × E), record y xRef z₀ e n = Sum.inl a →\n        H y xRef a.2 = H y xRef z₀ ∧\n        ∀ t : ℝ≥0, (t : WithTop ℝ≥0) < τ y xRef a.2 (e n) →\n          H y xRef (Φ y xRef (t : ℝ) a.2) = H y xRef z₀ ∧\n          0 ≤ rate xRef (Φ y xRef (t : ℝ) a.2) ∧\n          rate xRef (Φ y xRef (t : ℝ) a.2) ≤ C y xRef z₀) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0,\n      0 ≤ C y xRef z₀ ∧\n      (0 < C y xRef z₀ → ∀ n : ℕ,\n        eventTime y xRef z₀ e n +\n          (Real.toNNReal ((e n : ℝ) / C y xRef z₀) : WithTop ℝ≥0) ≤\n        eventTime y xRef z₀ e (n + 1)) ∧\n      (C y xRef z₀ = 0 → ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n        record y xRef z₀ e n = Sum.inl a → 0 < e n →\n          record y xRef z₀ e (n + 1) = Sum.inr ())) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0, ∀ n : ℕ,\n      ∀ a : ℝ≥0 × (E × E), record y xRef z₀ e n = Sum.inl a →\n        (e n = 0 → record y xRef z₀ e (n + 1) = Sum.inl (a.1, S xRef a.2)) ∧\n        (∀ b : ℝ≥0 × (E × E), 0 < e n →\n          record y xRef z₀ e (n + 1) = Sum.inl b → a.1 < b.1))\n\ntheorem actual_fixed_reference_finite_jump_recursion\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    actual_fixed_reference_finite_jump_recursion_statement hα hαβ hV hH hη hβη := by\n",
+  "status": "claimed",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws"
+  ],
+  "consumers": [
+    "AppendixA.1(A.2): actual measurable finite postjump state/time producer for the next actual A.1 clock.",
+    "Ex8 deterministic increment and Ex9 future iid/SLLN nonaccumulation use actual produced states and the original H(z0)/C(z0)."
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib actual73 harmonic flow, actual74 zero-safe bounce/rate and actual75 integrated hazard clock, plus fixed-reference finite recursion source-only CLOSED67 preread. No existing producer constructs the actual A.2 recursive states.",
+      "Pinned Mathlib WithTop.measurable_untopD, native sum measurable structure, MeasurableEquiv.prodSumDistrib, measurable_fun_sum, measurable_pi_apply, measurable conditional and Nat induction; original six callers only.",
+      "Current validated Frontier Cells and original Q_y/same-J retained; fixed-reference deterministic recursion needs no outer random initialization law."
+    ],
+    "classification": "missing",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+    "canonical_shared_cell": "",
+    "reason": "Produce the source algorithm states before applying a cap/wait/SLLN theorem. Native finite active or stopped Sum representation never evaluates phase at infinity; no arbitrary Phi/S/tau/state/cap or kernel provider."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib actual73 harmonic flow, actual74 zero-safe bounce/rate and actual75 integrated hazard clock, plus fixed-reference finite recursion source-only CLOSED67 preread. No existing producer constructs the actual A.2 recursive states.",
+      "Pinned Mathlib WithTop.measurable_untopD, native sum measurable structure, MeasurableEquiv.prodSumDistrib, measurable_fun_sum, measurable_pi_apply, measurable conditional and Nat induction; original six callers only.",
+      "Current validated Frontier Cells and original Q_y/same-J retained; fixed-reference deterministic recursion needs no outer random initialization law."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "AppendixA.1(A.2): actual measurable finite postjump state/time producer for the next actual A.1 clock.",
+      "Ex8 deterministic increment and Ex9 future iid/SLLN nonaccumulation use actual produced states and the original H(z0)/C(z0)."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Produce the source algorithm states before applying a cap/wait/SLLN theorem. Native finite active or stopped Sum representation never evaluates phase at infinity; no arbitrary Phi/S/tau/state/cap or kernel provider."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion"
+    ],
+    "visual_review": "Pending focused proof/reviews; actual73flow/74bounce/75clock are true parents."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261010-PBPSActualFiniteJumpRecursion",
+    "statement_seal": "runs/20261007-companion-priority/pbps-recursive-preproof76/root.statement-seal76.json",
+    "focused_checks": [],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteJumpRecursion.lean"
+    ],
+    "truth_boundary": "Only actual fixed-reference finite stopped recursion with joint Borel/energy/cap/wait laws. No iid exponential product realization, SLLN/nonaccumulation, all-time process/cadlag/Markov/invariance, Algorithm1 returned position kernel, hypocoercivity/main/error/expected costs/actual-input composition, full Exposition/PURIFIED/main/live/whole-paper/Goal credit. Arbitrary zero thresholds may repeat times; no physical-time phase at infinity is assigned."
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Source-first graph, distinct prospective math/source review and v3 Statement Seal accepted. Proof implementation pending."
+  },
+  "declaration_level": "source-anchor",
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "arXiv2609.06905v1 AppendixA.1 equation(A.2), Ex4-8, Algorithm1/Proposition3.1; deterministic finite skeleton feeding future iid/SLLN nonaccumulation.",
+    "fidelity_boundary": "Only actual fixed-reference finite stopped recursion with joint Borel/energy/cap/wait laws. No iid exponential product realization, SLLN/nonaccumulation, all-time process/cadlag/Markov/invariance, Algorithm1 returned position kernel, hypocoercivity/main/error/expected costs/actual-input composition, full Exposition/PURIFIED/main/live/whole-paper/Goal credit. Arbitrary zero thresholds may repeat times; no physical-time phase at infinity is assigned.",
+    "detail_status": "cites_external",
+    "gap": "Actual finite/top measurable recursion, inherited H(z0) and uniform waiting increment remain to implement. iid/SLLN/nonaccumulation/global path/Markov/invariance remain separate. Davis1984 bib.bib16 is corrected bibliographic context only; no Davis theorem text read or Lean dependency.",
+    "source_preread": "runs/20261007-companion-priority/pbps-recursive-path-preread76/selected.contract.json",
+    "consulted": [
+      {
+        "source": "Fixed PBPS v1 AppendixA1(A2)/Ex4-8, fixed Mathlib Sum/WithTop Borel APIs and actual73/74/75",
+        "anchor": "arXiv2609.06905v1 AppendixA.1 equation(A.2), Ex4-8, Algorithm1/Proposition3.1; deterministic finite skeleton feeding future iid/SLLN nonaccumulation.",
+        "hypothesis_adapter": "Original six analytic callers. Native Sum active finite time/state or stopped Unit; eventTime∞ carries no phase. Arbitrary zero thresholds remain legal; positive growth is conditional. Original energy cap is a producer invariant, never a supplied sequence/cap.",
+        "expanded_binder_audit": {
+          "callers": [
+            {
+              "header_RAW_range": [
+                976,
+                998
+              ],
+              "header_literal": "(hα : 0 < (α : ℝ))",
+              "id": "hα",
+              "source_items": [
+                "S1.p1.m4"
+              ],
+              "statement": "0 < α"
+            },
+            {
+              "header_RAW_range": [
+                999,
+                1018
+              ],
+              "header_literal": "(hαβ : α ≤ β)",
+              "id": "hαβ",
+              "source_items": [
+                "S1.p1.m4"
+              ],
+              "statement": "α ≤ β"
+            },
+            {
+              "header_RAW_range": [
+                1019,
+                1042
+              ],
+              "header_literal": "(hV : ContDiff ℝ 2 V)",
+              "id": "hV",
+              "source_items": [
+                "S1.p1.m3"
+              ],
+              "statement": "V ∈ C² on the whole finite-dimensional real inner-product space"
+            },
+            {
+              "header_RAW_range": [
+                1047,
+                1208
+              ],
+              "header_literal": "(hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)",
+              "id": "hH",
+              "source_items": [
+                "S1.E1.m1"
+              ],
+              "statement": "For every x and v, α * ‖v‖² ≤ inner (Hess V x v) v and inner (Hess V x v) v ≤ β * ‖v‖²"
+            },
+            {
+              "header_RAW_range": [
+                1213,
+                1227
+              ],
+              "header_literal": "(hη : 0 < η)",
+              "id": "hη",
+              "source_items": [
+                "S2.SS2.p1.m1"
+              ],
+              "statement": "0 < η"
+            },
+            {
+              "header_RAW_range": [
+                1228,
+                1259
+              ],
+              "header_literal": "(hβη : (β : ℝ) * η ≤ 1)",
+              "id": "hβη",
+              "source_items": [
+                "S2.SS2.p1.m1"
+              ],
+              "statement": "β * η ≤ 1"
+            }
+          ],
+          "conclusion_groups": [
+            {
+              "header_RAW_range": [
+                3508,
+                3627
+              ],
+              "id": "C01",
+              "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0,\n      record y xRef z₀ e 0 = Sum.inl (0, z₀)) ∧\n",
+              "title": "Base"
+            },
+            {
+              "header_RAW_range": [
+                3627,
+                4173
+              ],
+              "id": "C02",
+              "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0, ∀ n : ℕ,\n      record y xRef z₀ e (n + 1) = next y xRef (e n) (record y xRef z₀ e n) ∧\n      (∀ a : ℝ≥0 × (E × E), record y xRef z₀ e n = Sum.inl a →\n        (record y xRef z₀ e (n + 1) = Sum.inr () ↔ τ y xRef a.2 (e n) = ⊤) ∧\n        (τ y xRef a.2 (e n) ≠ ⊤ → record y xRef z₀ e (n + 1) =\n          Sum.inl (a.1 + (τ y xRef a.2 (e n)).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 (e n)).untopD 0 : ℝ≥0) : ℝ) a.2))))) ∧\n",
+              "title": "Recursion and finite/top update"
+            },
+            {
+              "header_RAW_range": [
+                4173,
+                4296
+              ],
+              "id": "C03",
+              "literal": "    Measurable (fun a : (E × E) × ℝ≥0 × ((ℝ≥0 × (E × E)) ⊕ Unit) =>\n      next a.1.1 a.1.2 a.2.1 a.2.2) ∧\n",
+              "title": "Joint Borel next"
+            },
+            {
+              "header_RAW_range": [
+                4296,
+                4424
+              ],
+              "id": "C04",
+              "literal": "    (∀ n : ℕ, Measurable (fun a : (E × E) × (E × E) × (ℕ → ℝ≥0) =>\n      record a.1.1 a.1.2 a.2.1 a.2.2 n)) ∧\n",
+              "title": "Joint Borel finite record"
+            },
+            {
+              "header_RAW_range": [
+                4424,
+                4555
+              ],
+              "id": "C05",
+              "literal": "    (∀ n : ℕ, Measurable (fun a : (E × E) × (E × E) × (ℕ → ℝ≥0) =>\n      eventTime a.1.1 a.1.2 a.2.1 a.2.2 n)) ∧\n",
+              "title": "Joint Borel event time"
+            },
+            {
+              "header_RAW_range": [
+                4555,
+                4700
+              ],
+              "id": "C06",
+              "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0,\n      eventTime y xRef z₀ e 0 = 0 ∧ Monotone (eventTime y xRef z₀ e)) ∧\n",
+              "title": "Initial and monotone event times"
+            },
+            {
+              "header_RAW_range": [
+                4700,
+                4881
+              ],
+              "id": "C07",
+              "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0, ∀ n k : ℕ,\n      record y xRef z₀ e n = Sum.inr () →\n        record y xRef z₀ e (n + k) = Sum.inr ()) ∧\n",
+              "title": "Absorbing stop"
+            },
+            {
+              "header_RAW_range": [
+                4881,
+                5337
+              ],
+              "id": "C08",
+              "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0, ∀ n : ℕ,\n      ∀ a : ℝ≥0 × (E × E), record y xRef z₀ e n = Sum.inl a →\n        H y xRef a.2 = H y xRef z₀ ∧\n        ∀ t : ℝ≥0, (t : WithTop ℝ≥0) < τ y xRef a.2 (e n) →\n          H y xRef (Φ y xRef (t : ℝ) a.2) = H y xRef z₀ ∧\n          0 ≤ rate xRef (Φ y xRef (t : ℝ) a.2) ∧\n          rate xRef (Φ y xRef (t : ℝ) a.2) ≤ C y xRef z₀) ∧\n",
+              "title": "Same original energy and outgoing arc cap"
+            },
+            {
+              "header_RAW_range": [
+                5337,
+                5821
+              ],
+              "id": "C09",
+              "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0,\n      0 ≤ C y xRef z₀ ∧\n      (0 < C y xRef z₀ → ∀ n : ℕ,\n        eventTime y xRef z₀ e n +\n          (Real.toNNReal ((e n : ℝ) / C y xRef z₀) : WithTop ℝ≥0) ≤\n        eventTime y xRef z₀ e (n + 1)) ∧\n      (C y xRef z₀ = 0 → ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n        record y xRef z₀ e n = Sum.inl a → 0 < e n →\n          record y xRef z₀ e (n + 1) = Sum.inr ())) ∧\n",
+              "title": "Uniform extended time increment and zero cap"
+            },
+            {
+              "header_RAW_range": [
+                5821,
+                6172
+              ],
+              "id": "C10",
+              "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0, ∀ n : ℕ,\n      ∀ a : ℝ≥0 × (E × E), record y xRef z₀ e n = Sum.inl a →\n        (e n = 0 → record y xRef z₀ e (n + 1) = Sum.inl (a.1, S xRef a.2)) ∧\n        (∀ b : ℝ≥0 × (E × E), 0 < e n →\n          record y xRef z₀ e (n + 1) = Sum.inl b → a.1 < b.1))",
+              "title": "Zero threshold and conditional strict growth"
+            }
+          ],
+          "counts": {
+            "callers": 6,
+            "conclusion_groups": 10,
+            "literal_definitions": 11,
+            "typing": 5
+          },
+          "data_quantifiers": {
+            "arc_variable": "t:NNReal or finite real t with t≥0; outgoing arc interpretation restricted to 0≤t<τ",
+            "fixed_analytic_data": "E,V,α,β,η with original six callers and five typing classes",
+            "joint_variables": "y,xRef:E; z0:E×E; e:Nat→NNReal; n:Nat",
+            "legal_degenerate_cases": [
+              "rank(E)=0",
+              "α*η=1",
+              "H(z0)=0",
+              "C0=0",
+              "e_n=0",
+              "τ=∞"
+            ]
+          },
+          "literal_definitions": [
+            {
+              "header_RAW_range": [
+                1270,
+                1340
+              ],
+              "id": "D01",
+              "literal": "    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n",
+              "name": "c"
+            },
+            {
+              "header_RAW_range": [
+                1340,
+                1594
+              ],
+              "id": "D02",
+              "literal": "    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n",
+              "name": "Φ"
+            },
+            {
+              "header_RAW_range": [
+                1594,
+                1817
+              ],
+              "id": "D03",
+              "literal": "    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n",
+              "name": "S"
+            },
+            {
+              "header_RAW_range": [
+                1817,
+                1950
+              ],
+              "id": "D04",
+              "literal": "    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n",
+              "name": "rate"
+            },
+            {
+              "header_RAW_range": [
+                1950,
+                2073
+              ],
+              "id": "D05",
+              "literal": "    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n",
+              "name": "H"
+            },
+            {
+              "header_RAW_range": [
+                2073,
+                2262
+              ],
+              "id": "D06",
+              "literal": "    let C : E → E → (E × E) → ℝ := fun y xRef z =>\n      Real.sqrt η * (β : ℝ) * Real.sqrt (2 * H y xRef z) *\n        (Real.sqrt (2 * η * H y xRef z) + ‖c y xRef - xRef‖)\n",
+              "name": "C"
+            },
+            {
+              "header_RAW_range": [
+                2262,
+                2400
+              ],
+              "id": "D07",
+              "literal": "    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n",
+              "name": "Λ"
+            },
+            {
+              "header_RAW_range": [
+                2400,
+                2689
+              ],
+              "id": "D08",
+              "literal": "    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n",
+              "name": "τ"
+            },
+            {
+              "header_RAW_range": [
+                2689,
+                3089
+              ],
+              "id": "D09",
+              "literal": "    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n",
+              "name": "next"
+            },
+            {
+              "header_RAW_range": [
+                3089,
+                3297
+              ],
+              "id": "D10",
+              "literal": "    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n",
+              "name": "record"
+            },
+            {
+              "header_RAW_range": [
+                3297,
+                3508
+              ],
+              "id": "D11",
+              "literal": "    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n",
+              "name": "eventTime"
+            }
+          ],
+          "no_additional_public_provider": true,
+          "schema": "neutral-expanded-binder-inventory-v1",
+          "typing": [
+            "NormedAddCommGroup E",
+            "InnerProductSpace ℝ E",
+            "FiniteDimensional ℝ E",
+            "MeasurableSpace E",
+            "BorelSpace E"
+          ]
+        }
+      }
+    ]
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No theorem proof attempt before claim. Original and default-only finite-wait type-ascription negatives retained; two explicit NNReal-to-Real casts independently accepted before v3 seal.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-finite-jump-recursion/finite-stopped-Sum/Borel/original-energy/uniform-wait"
+      ],
+      "expected_information_gain": "One canonical writer; distinct independent proof/blind decoder/source review after focused compile.",
+      "shared_verified_context_digest": "dab106a00ace8389a782a96b9ccc9bf556b5483e9ef6e71c5abf45363b51a563"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "actual-flow-bounce-clock",
+        "finite-top-guard",
+        "native-Sum-recursion",
+        "joint-Borel",
+        "original-energy-cap",
+        "uniform-wait",
+        "iid-nonaccumulation-open"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws"
+    ],
+    "bookkeeping": [
+      "Native Sum finite active or stopped records; deterministic finite skeleton, no probability law or terminal kernel."
+    ],
+    "new_reusable": [],
+    "new_topology": "Actual fixed-reference finite stopped postjump recursion(A.2): joint Borel record/time maps, inherited original-state energy and outgoing actual-rate cap, monotone event times, uniform original-energy waiting increment and legal finite/top/zero branches."
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-recursive-preproof76/root.statement-seal76.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 3,
+    "signature_digest": "996b8a89ffe84cfef8faf75551f962f2378db221841f5e1a38137eb81281d015",
+    "binder_audit": {
+      "callers": [
+        {
+          "header_RAW_range": [
+            976,
+            998
+          ],
+          "header_literal": "(hα : 0 < (α : ℝ))",
+          "id": "hα",
+          "source_items": [
+            "S1.p1.m4"
+          ],
+          "statement": "0 < α"
+        },
+        {
+          "header_RAW_range": [
+            999,
+            1018
+          ],
+          "header_literal": "(hαβ : α ≤ β)",
+          "id": "hαβ",
+          "source_items": [
+            "S1.p1.m4"
+          ],
+          "statement": "α ≤ β"
+        },
+        {
+          "header_RAW_range": [
+            1019,
+            1042
+          ],
+          "header_literal": "(hV : ContDiff ℝ 2 V)",
+          "id": "hV",
+          "source_items": [
+            "S1.p1.m3"
+          ],
+          "statement": "V ∈ C² on the whole finite-dimensional real inner-product space"
+        },
+        {
+          "header_RAW_range": [
+            1047,
+            1208
+          ],
+          "header_literal": "(hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)",
+          "id": "hH",
+          "source_items": [
+            "S1.E1.m1"
+          ],
+          "statement": "For every x and v, α * ‖v‖² ≤ inner (Hess V x v) v and inner (Hess V x v) v ≤ β * ‖v‖²"
+        },
+        {
+          "header_RAW_range": [
+            1213,
+            1227
+          ],
+          "header_literal": "(hη : 0 < η)",
+          "id": "hη",
+          "source_items": [
+            "S2.SS2.p1.m1"
+          ],
+          "statement": "0 < η"
+        },
+        {
+          "header_RAW_range": [
+            1228,
+            1259
+          ],
+          "header_literal": "(hβη : (β : ℝ) * η ≤ 1)",
+          "id": "hβη",
+          "source_items": [
+            "S2.SS2.p1.m1"
+          ],
+          "statement": "β * η ≤ 1"
+        }
+      ],
+      "conclusion_groups": [
+        {
+          "header_RAW_range": [
+            3508,
+            3627
+          ],
+          "id": "C01",
+          "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0,\n      record y xRef z₀ e 0 = Sum.inl (0, z₀)) ∧\n",
+          "title": "Base"
+        },
+        {
+          "header_RAW_range": [
+            3627,
+            4173
+          ],
+          "id": "C02",
+          "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0, ∀ n : ℕ,\n      record y xRef z₀ e (n + 1) = next y xRef (e n) (record y xRef z₀ e n) ∧\n      (∀ a : ℝ≥0 × (E × E), record y xRef z₀ e n = Sum.inl a →\n        (record y xRef z₀ e (n + 1) = Sum.inr () ↔ τ y xRef a.2 (e n) = ⊤) ∧\n        (τ y xRef a.2 (e n) ≠ ⊤ → record y xRef z₀ e (n + 1) =\n          Sum.inl (a.1 + (τ y xRef a.2 (e n)).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 (e n)).untopD 0 : ℝ≥0) : ℝ) a.2))))) ∧\n",
+          "title": "Recursion and finite/top update"
+        },
+        {
+          "header_RAW_range": [
+            4173,
+            4296
+          ],
+          "id": "C03",
+          "literal": "    Measurable (fun a : (E × E) × ℝ≥0 × ((ℝ≥0 × (E × E)) ⊕ Unit) =>\n      next a.1.1 a.1.2 a.2.1 a.2.2) ∧\n",
+          "title": "Joint Borel next"
+        },
+        {
+          "header_RAW_range": [
+            4296,
+            4424
+          ],
+          "id": "C04",
+          "literal": "    (∀ n : ℕ, Measurable (fun a : (E × E) × (E × E) × (ℕ → ℝ≥0) =>\n      record a.1.1 a.1.2 a.2.1 a.2.2 n)) ∧\n",
+          "title": "Joint Borel finite record"
+        },
+        {
+          "header_RAW_range": [
+            4424,
+            4555
+          ],
+          "id": "C05",
+          "literal": "    (∀ n : ℕ, Measurable (fun a : (E × E) × (E × E) × (ℕ → ℝ≥0) =>\n      eventTime a.1.1 a.1.2 a.2.1 a.2.2 n)) ∧\n",
+          "title": "Joint Borel event time"
+        },
+        {
+          "header_RAW_range": [
+            4555,
+            4700
+          ],
+          "id": "C06",
+          "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0,\n      eventTime y xRef z₀ e 0 = 0 ∧ Monotone (eventTime y xRef z₀ e)) ∧\n",
+          "title": "Initial and monotone event times"
+        },
+        {
+          "header_RAW_range": [
+            4700,
+            4881
+          ],
+          "id": "C07",
+          "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0, ∀ n k : ℕ,\n      record y xRef z₀ e n = Sum.inr () →\n        record y xRef z₀ e (n + k) = Sum.inr ()) ∧\n",
+          "title": "Absorbing stop"
+        },
+        {
+          "header_RAW_range": [
+            4881,
+            5337
+          ],
+          "id": "C08",
+          "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0, ∀ n : ℕ,\n      ∀ a : ℝ≥0 × (E × E), record y xRef z₀ e n = Sum.inl a →\n        H y xRef a.2 = H y xRef z₀ ∧\n        ∀ t : ℝ≥0, (t : WithTop ℝ≥0) < τ y xRef a.2 (e n) →\n          H y xRef (Φ y xRef (t : ℝ) a.2) = H y xRef z₀ ∧\n          0 ≤ rate xRef (Φ y xRef (t : ℝ) a.2) ∧\n          rate xRef (Φ y xRef (t : ℝ) a.2) ≤ C y xRef z₀) ∧\n",
+          "title": "Same original energy and outgoing arc cap"
+        },
+        {
+          "header_RAW_range": [
+            5337,
+            5821
+          ],
+          "id": "C09",
+          "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0,\n      0 ≤ C y xRef z₀ ∧\n      (0 < C y xRef z₀ → ∀ n : ℕ,\n        eventTime y xRef z₀ e n +\n          (Real.toNNReal ((e n : ℝ) / C y xRef z₀) : WithTop ℝ≥0) ≤\n        eventTime y xRef z₀ e (n + 1)) ∧\n      (C y xRef z₀ = 0 → ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n        record y xRef z₀ e n = Sum.inl a → 0 < e n →\n          record y xRef z₀ e (n + 1) = Sum.inr ())) ∧\n",
+          "title": "Uniform extended time increment and zero cap"
+        },
+        {
+          "header_RAW_range": [
+            5821,
+            6172
+          ],
+          "id": "C10",
+          "literal": "    (∀ y xRef : E, ∀ z₀ : E × E, ∀ e : ℕ → ℝ≥0, ∀ n : ℕ,\n      ∀ a : ℝ≥0 × (E × E), record y xRef z₀ e n = Sum.inl a →\n        (e n = 0 → record y xRef z₀ e (n + 1) = Sum.inl (a.1, S xRef a.2)) ∧\n        (∀ b : ℝ≥0 × (E × E), 0 < e n →\n          record y xRef z₀ e (n + 1) = Sum.inl b → a.1 < b.1))",
+          "title": "Zero threshold and conditional strict growth"
+        }
+      ],
+      "counts": {
+        "callers": 6,
+        "conclusion_groups": 10,
+        "literal_definitions": 11,
+        "typing": 5
+      },
+      "data_quantifiers": {
+        "arc_variable": "t:NNReal or finite real t with t≥0; outgoing arc interpretation restricted to 0≤t<τ",
+        "fixed_analytic_data": "E,V,α,β,η with original six callers and five typing classes",
+        "joint_variables": "y,xRef:E; z0:E×E; e:Nat→NNReal; n:Nat",
+        "legal_degenerate_cases": [
+          "rank(E)=0",
+          "α*η=1",
+          "H(z0)=0",
+          "C0=0",
+          "e_n=0",
+          "τ=∞"
+        ]
+      },
+      "literal_definitions": [
+        {
+          "header_RAW_range": [
+            1270,
+            1340
+          ],
+          "id": "D01",
+          "literal": "    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n",
+          "name": "c"
+        },
+        {
+          "header_RAW_range": [
+            1340,
+            1594
+          ],
+          "id": "D02",
+          "literal": "    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n",
+          "name": "Φ"
+        },
+        {
+          "header_RAW_range": [
+            1594,
+            1817
+          ],
+          "id": "D03",
+          "literal": "    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n",
+          "name": "S"
+        },
+        {
+          "header_RAW_range": [
+            1817,
+            1950
+          ],
+          "id": "D04",
+          "literal": "    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n",
+          "name": "rate"
+        },
+        {
+          "header_RAW_range": [
+            1950,
+            2073
+          ],
+          "id": "D05",
+          "literal": "    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n",
+          "name": "H"
+        },
+        {
+          "header_RAW_range": [
+            2073,
+            2262
+          ],
+          "id": "D06",
+          "literal": "    let C : E → E → (E × E) → ℝ := fun y xRef z =>\n      Real.sqrt η * (β : ℝ) * Real.sqrt (2 * H y xRef z) *\n        (Real.sqrt (2 * η * H y xRef z) + ‖c y xRef - xRef‖)\n",
+          "name": "C"
+        },
+        {
+          "header_RAW_range": [
+            2262,
+            2400
+          ],
+          "id": "D07",
+          "literal": "    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n",
+          "name": "Λ"
+        },
+        {
+          "header_RAW_range": [
+            2400,
+            2689
+          ],
+          "id": "D08",
+          "literal": "    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n",
+          "name": "τ"
+        },
+        {
+          "header_RAW_range": [
+            2689,
+            3089
+          ],
+          "id": "D09",
+          "literal": "    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n",
+          "name": "next"
+        },
+        {
+          "header_RAW_range": [
+            3089,
+            3297
+          ],
+          "id": "D10",
+          "literal": "    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n",
+          "name": "record"
+        },
+        {
+          "header_RAW_range": [
+            3297,
+            3508
+          ],
+          "id": "D11",
+          "literal": "    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n",
+          "name": "eventTime"
+        }
+      ],
+      "no_additional_public_provider": true,
+      "schema": "neutral-expanded-binder-inventory-v1",
+      "typing": [
+        "NormedAddCommGroup E",
+        "InnerProductSpace ℝ E",
+        "FiniteDimensional ℝ E",
+        "MeasurableSpace E",
+        "BorelSpace E"
+      ]
+    },
+    "definition_kind": "Complete private literal of eleven actual definitions including native Sum next/record/eventTime and ten clauses; original six analytic callers. Specification only, no provider."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-recursive-preproof76/independent-source76/source-proof-graph76.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-recursive-preproof76/independent-source76/source-coverage-inventory76.json",
+    "coverage_report": {
+      "source_graph": "runs/20261007-companion-priority/pbps-recursive-preproof76/independent-source76/source-proof-graph76.json",
+      "source_inventory": "runs/20261007-companion-priority/pbps-recursive-preproof76/independent-source76/source-coverage-inventory76.json",
+      "prospective_header_map": "runs/20261007-companion-priority/pbps-recursive-preproof76/independent-source76/header76.source-coverage-map.json",
+      "nodes": 34,
+      "edges": 75,
+      "source_items": 94,
+      "NODE": 70,
+      "EXCLUDED": 24,
+      "internal_bridges_OPEN": 13,
+      "status": "Prospective source/header topology only; finite recursion implementation coverage remains OPEN.",
+      "source_topology_or_classification_changed": false,
+      "not_Lean_dependency_graph": true
+    },
+    "coverage_status": "Source-only prospective coverage94items70NODE24EXCLUDED/34nodes75edges13internalbridgesOPEN; no body proof credit."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Pending actual theorem implementation; private literal is specification only.",
+    "duplicate_semantics_audit": "Actual73/74/75 provide one segment only and do not produce the actual recursive A.2 states.",
+    "canonicalization": "Reuse actual73flow/74bounce/75clock, native Sum/WithTop measurable APIs and Nat induction.",
+    "compressed_spine_delta": "Actual fixed-reference finite stopped postjump recursion(A.2): joint Borel record/time maps, inherited original-state energy and outgoing actual-rate cap, monotone event times, uniform original-energy waiting increment and legal finite/top/zero branches.",
+    "reader_default_view": "Complete attributed statement, stepwise formula proof and adjacent exact initially folded Lean.",
+    "scope": "Only actual fixed-reference finite stopped recursion with joint Borel/energy/cap/wait laws. No iid exponential product realization, SLLN/nonaccumulation, all-time process/cadlag/Markov/invariance, Algorithm1 returned position kernel, hypocoercivity/main/error/expected costs/actual-input composition, full Exposition/PURIFIED/main/live/whole-paper/Goal credit. Arbitrary zero thresholds may repeat times; no physical-time phase at infinity is assigned."
+  },
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion"
+  ],
+  "conceptual_mirror_audit": {
+    "status": "pending",
+    "discovery_ids": [],
+    "reason": "Required before PROVED_LOCAL; Finite deterministic recursion does not certify iid/nonaccumulation/global path/invariance."
+  }
+}

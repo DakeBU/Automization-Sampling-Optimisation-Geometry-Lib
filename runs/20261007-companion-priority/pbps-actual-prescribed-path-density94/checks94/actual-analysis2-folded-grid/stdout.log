@@ -1,0 +1,394 @@
+'PBPSFiniteArcAnalysis94.arc_integral' depends on axioms: [propext, Classical.choice, Quot.sound]
+'PBPSFiniteArcAnalysis94.incoming_left_limit' depends on axioms: [propext, Classical.choice, Quot.sound]
+'PBPSFiniteArcAnalysis94.finite_arc_integral' depends on axioms: [propext, Classical.choice, Quot.sound]
+runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/ActualAnalysis94.lean:207:6: warning: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/ActualAnalysis94.lean:86:51: warning: Variable name `n` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _n
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/ActualAnalysis94.lean:90:62: warning: Variable name `T` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _T
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/ActualAnalysis94.lean:114:22: warning: Variable name `T` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _T
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/ActualAnalysis94.lean:120:8: warning: Variable name `ρ` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _ρ
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+'PBPSActualArc94.actual_arc' depends on axioms: [propext, Classical.choice, Quot.sound]
+runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/ActualAnalysis94.lean:443:8: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  ∫ (x : ℝ) in ?m.1822..?m.1823, ?f (x - ?d)
+in the target expression
+  ∫ (s : ℝ) in grid j.castSucc..grid j.succ, rate xRef (Φ y xRef (s - grid j.castSucc) (zAt y xRef z₀ n T t j)) =
+    ∫ (s : ℝ) in 0..↑(grid j.succ - grid j.castSucc).toNNReal, rate xRef (Φ y xRef s (zAt y xRef z₀ n T t j))
+
+case refine_1
+E : Type u_1
+inst✝⁴ : NormedAddCommGroup E
+inst✝³ : InnerProductSpace ℝ E
+inst✝² : FiniteDimensional ℝ E
+inst✝¹ : MeasurableSpace E
+inst✝ : BorelSpace E
+V : E → ℝ
+α β : ℝ≥0
+η : ℝ
+hα : 0 < ↑α
+hαβ : α ≤ β
+hV : ContDiff ℝ 2 V
+hH : ∀ (x v : E), ↑α * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) v) v ∧ ((fderiv ℝ (fderiv ℝ V) x) v) v ≤ ↑β * ‖v‖ ^ 2
+hη : 0 < η
+hβη : ↑β * η ≤ 1
+c : E → E → E := fun y xRef => y - η • gradient V xRef
+Φ : E → E → ℝ → E × E → E × E :=
+  fun y xRef t z =>
+    (c y xRef + Real.cos t • (z.1 - c y xRef) + (√η * Real.sin t) • z.2,
+      (-Real.sin t / √η) • (z.1 - c y xRef) + Real.cos t • z.2)
+S : E → E × E → E × E :=
+  fun xRef z =>
+    (z.1,
+      z.2 -
+        (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) / ‖gradient V z.1 - gradient V xRef‖ ^ 2) •
+          (gradient V z.1 - gradient V xRef))
+rate : E → E × E → ℝ := fun xRef z => √η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))
+Λ : E → E → E × E → ℝ≥0 → ℝ := fun y xRef z t => ∫ (s : ℝ) in 0..↑t, rate xRef (Φ y xRef s z)
+Rec : Type (max u_1 0) := ℝ≥0 × E × E ⊕ Unit
+Hist : ℕ → Type u_1 := fun n => Fin (n + 1) → Rec
+Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T => {t | StrictMono (Fin.cons 0 t) ∧ ∀ (i : Fin n), t i < ↑T}
+Prefix : ℕ → ℝ≥0 → Type := fun n T => { t // t ∈ Δ n T }
+zAt : E → E → E × E → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Fin (n + 1) → E × E :=
+  fun y xRef z₀ n T t i => Fin.induction z₀ (fun i z => S xRef (Φ y xRef (↑t i - Fin.cons 0 (↑t) i.castSucc) z)) i
+K : E → E → E × E → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Hist n :=
+  fun y xRef z₀ n T t j => Sum.inl ((Fin.cons 0 (↑t) j).toNNReal, zAt y xRef z₀ n T t j)
+qReal : E → E → E × E → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ :=
+  fun y xRef z₀ n T t =>
+    ∏ i,
+      rate xRef (Φ y xRef (↑t i - Fin.cons 0 (↑t) i.castSucc) (zAt y xRef z₀ n T t i.castSucc)) *
+        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc) (↑t i - Fin.cons 0 (↑t) i.castSucc).toNNReal)
+q : E → E → E × E → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=
+  fun y xRef z₀ n T t => ENNReal.ofReal (qReal y xRef z₀ n T t)
+liveTime : Rec → ℝ≥0 := fun r => Sum.elim Prod.fst (fun x => 0) r
+d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 := fun n T h => T - liveTime (h ⟨n, ⋯⟩)
+weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=
+  fun y xRef r u => Sum.elim (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun x => 0) r
+Path : ℝ≥0 → Type u_1 := fun T => { s // s ≤ T } → E × E
+Ψ : E → E → E × E → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=
+  fun y xRef z₀ n T h s =>
+    Fin.foldl (n + 1)
+      (fun z j => Sum.elim (fun a => if a.1 ≤ ↑s then Φ y xRef (↑(↑s - a.1)) a.2 else z) (fun x => z) (h j)) z₀
+Γ : E → E → E × E → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=
+  fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)
+ρ : E → E → E × E → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=
+  fun y xRef z₀ n T t => q y xRef z₀ n T t * weight y xRef (K y xRef z₀ n T t ⟨n, ⋯⟩) (d n T (K y xRef z₀ n T t))
+y xRef : E
+z₀ : E × E
+n : ℕ
+T : ℝ≥0
+t : Prefix n T
+grid : Fin (n + 2) → ℝ := Fin.snoc (Fin.cons 0 ↑t) ↑T
+γ : ℝ → E × E := fun s => Γ y xRef z₀ n T t ⟨min s.toNNReal T, ⋯⟩
+hgrid : Monotone (Fin.snoc (Fin.cons 0 ↑t) ↑T)
+harc :
+  ∀ (j : Fin (n + 1)),
+    EqOn
+      (fun s =>
+        (fun y xRef z₀ n T t =>
+            (fun y xRef z₀ n T h s =>
+                Fin.foldl (n + 1)
+                  (fun z j =>
+                    Sum.elim
+                      (fun a =>
+                        if a.1 ≤ ↑s then
+                          (fun y xRef t z =>
+                              ((fun y xRef => y - η • gradient V xRef) y xRef +
+                                    Real.cos t • (z.1 - (fun y xRef => y - η • gradient V xRef) y xRef) +
+                                  (√η * Real.sin t) • z.2,
+                                (-Real.sin t / √η) • (z.1 - (fun y xRef => y - η • gradient V xRef) y xRef) +
+                                  Real.cos t • z.2))
+                            y xRef (↑(↑s - a.1)) a.2
+                        else z)
+                      (fun x => z) (h j))
+                  z₀)
+              y xRef z₀ n T
+              ((fun y xRef z₀ n T t j =>
+                  Sum.inl
+                    ((Fin.cons 0 (↑t) j).toNNReal,
+                      (fun y xRef z₀ n T t i =>
+                          Fin.induction z₀
+                            (fun i z =>
+                              (fun xRef z =>
+                                  (z.1,
+                                    z.2 -
+                                      (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+                                          ‖gradient V z.1 - gradient V xRef‖ ^ 2) •
+                                        (gradient V z.1 - gradient V xRef)))
+                                xRef
+                                ((fun y xRef t z =>
+                                    ((fun y xRef => y - η • gradient V xRef) y xRef +
+                                          Real.cos t • (z.1 - (fun y xRef => y - η • gradient V xRef) y xRef) +
+                                        (√η * Real.sin t) • z.2,
+                                      (-Real.sin t / √η) • (z.1 - (fun y xRef => y - η • gradient V xRef) y xRef) +
+                                        Real.cos t • z.2))
+                                  y xRef (↑t i - Fin.cons 0 (↑t) i.castSucc) z))
+                            i)
+                        y xRef z₀ n T t j))
+                y xRef z₀ n T t))
+          y xRef z₀ n T t ⟨min s.toNNReal T, ⋯⟩)
+      (fun s =>
+        (fun y xRef t z =>
+            ((fun y xRef => y - η • gradient V xRef) y xRef +
+                  Real.cos t • (z.1 - (fun y xRef => y - η • gradient V xRef) y xRef) +
+                (√η * Real.sin t) • z.2,
+              (-Real.sin t / √η) • (z.1 - (fun y xRef => y - η • gradient V xRef) y xRef) + Real.cos t • z.2))
+          y xRef (s - Fin.snoc (Fin.cons 0 ↑t) (↑T) j.castSucc)
+          ((fun y xRef z₀ n T t i =>
+              Fin.induction z₀
+                (fun i z =>
+                  (fun xRef z =>
+                      (z.1,
+                        z.2 -
+                          (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /
+                              ‖gradient V z.1 - gradient V xRef‖ ^ 2) •
+                            (gradient V z.1 - gradient V xRef)))
+                    xRef
+                    ((fun y xRef t z =>
+                        ((fun y xRef => y - η • gradient V xRef) y xRef +
+                              Real.cos t • (z.1 - (fun y xRef => y - η • gradient V xRef) y xRef) +
+                            (√η * Real.sin t) • z.2,
+                          (-Real.sin t / √η) • (z.1 - (fun y xRef => y - η • gradient V xRef) y xRef) +
+                            Real.cos t • z.2))
+                      y xRef (↑t i - Fin.cons 0 (↑t) i.castSucc) z))
+                i)
+            y xRef z₀ n T t j))
+      (Ioo (Fin.snoc (Fin.cons 0 ↑t) (↑T) j.castSucc) (Fin.snoc (Fin.cons 0 ↑t) (↑T) j.succ))
+hΦ : Continuous[instTopologicalSpaceProd, instTopologicalSpaceProd] fun a => Φ a.1.1 a.1.2 a.2.1 a.2.2
+hRate : Continuous[instTopologicalSpaceProd, _] fun a => rate a.1 a.2
+hphase :
+  ∀ (j : Fin (n + 1)),
+    Continuous[_, instTopologicalSpaceProd] fun s => Φ y xRef (s - grid j.castSucc) (zAt y xRef z₀ n T t j)
+hr : ∀ (j : Fin (n + 1)), Continuous fun s => rate xRef (Φ y xRef (s - grid j.castSucc) (zAt y xRef z₀ n T t j))
+heq :
+  ∀ (j : Fin (n + 1)),
+    EqOn (fun s => rate xRef (γ s)) (fun s => rate xRef (Φ y xRef (s - grid j.castSucc) (zAt y xRef z₀ n T t j)))
+      (Ioo (grid j.castSucc) (grid j.succ))
+hint :
+  IntervalIntegrable (fun s => rate xRef (γ s)) volume 0 ↑T ∧
+    ∫ (s : ℝ) in 0..↑T, rate xRef (γ s) =
+      ∑ j, ∫ (s : ℝ) in grid j.castSucc..grid j.succ, rate xRef (Φ y xRef (s - grid j.castSucc) (zAt y xRef z₀ n T t j))
+hg0 : grid 0 = 0
+hgT : grid (Fin.last (n + 1)) = ↑T
+j : Fin (n + 1)
+a✝ : j ∈ Finset.univ
+⊢ ∫ (s : ℝ) in grid j.castSucc..grid j.succ, rate xRef (Φ y xRef (s - grid j.castSucc) (zAt y xRef z₀ n T t j)) =
+    ∫ (s : ℝ) in 0..↑(grid j.succ - grid j.castSucc).toNNReal, rate xRef (Φ y xRef s (zAt y xRef z₀ n T t j))
+runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/ActualAnalysis94.lean:447:39: error: Function expected at
+  Fin.castSucc_lt_succ
+but this term has type
+  Fin.castSucc ?m.1845 < Fin.succ ?m.1845
+
+Note: Expected a function because this term is being applied to the argument
+  i
+runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/ActualAnalysis94.lean:449:18: warning: Possibly looping simp theorem: `Fin.succ_castSucc`
+
+Note: Possibly caused by: `Fin.castSucc_succ`
+
+Hint: You can disable a simp theorem from the default simp set by passing `- theoremName` to `simp`.
+runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/ActualAnalysis94.lean:449:6: error: Tactic `simp` failed with a nested error:
+maximum recursion depth has been reached
+use `set_option maxRecDepth <num>` to increase limit
+use `set_option diagnostics true` to get diagnostic information
+runs/20261007-companion-priority/pbps-actual-prescribed-path-density94/ActualAnalysis94.lean:454:12: error: Type mismatch: After simplification, term
+  harc i.castSucc
+ has type
+  EqOn
+    (fun s =>
+      Fin.foldl (n + 1)
+        (fun z j =>
+          Sum.elim
+            (fun a =>
+              if a.1 ≤ min s.toNNReal T then
+                (y - η • gradient V xRef + Real.cos ↑(min s.toNNReal T - a.1) • (a.2.1 - (y - η • gradient V xRef)) +
+                    (√η * Real.sin ↑(min s.toNNReal T - a.1)) • a.2.2,
+                  (-Real.sin ↑(min s.toNNReal T - a.1) / √η) • (a.2.1 - (y - η • gradient V xRef)) +
+                    Real.cos ↑(min s.toNNReal T - a.1) • a.2.2)
+              else z)
+            (fun x => z)
+            (Sum.inl
+              ((Fin.cons 0 (↑t) j).toNNReal,
+                Fin.induction z₀
+                  (fun i z =>
+                    (y - η • gradient V xRef +
+                          Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                        (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2,
+                      (-Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc) / √η) • (z.1 - (y - η • gradient V xRef)) +
+                          Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • z.2 -
+                        (2 *
+                              inner ℝ
+                                ((-Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc) / √η) •
+                                    (z.1 - (y - η • gradient V xRef)) +
+                                  Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • z.2)
+                                (gradient V
+                                    (y - η • gradient V xRef +
+                                        Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) •
+                                          (z.1 - (y - η • gradient V xRef)) +
+                                      (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                                  gradient V xRef) /
+                            ‖gradient V
+                                    (y - η • gradient V xRef +
+                                        Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) •
+                                          (z.1 - (y - η • gradient V xRef)) +
+                                      (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                                  gradient V xRef‖ ^
+                              2) •
+                          (gradient V
+                              (y - η • gradient V xRef +
+                                  Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                                (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                            gradient V xRef)))
+                  j)))
+        z₀)
+    (fun s =>
+      (y - η • gradient V xRef +
+            Real.cos (s - Fin.snoc (Fin.cons 0 ↑t) (↑T) i.castSucc.castSucc) •
+              ((Fin.induction z₀
+                    (fun i z =>
+                      (y - η • gradient V xRef +
+                            Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                          (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2,
+                        (-Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc) / √η) • (z.1 - (y - η • gradient V xRef)) +
+                            Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • z.2 -
+                          (2 *
+                                inner ℝ
+                                  ((-Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc) / √η) •
+                                      (z.1 - (y - η • gradient V xRef)) +
+                                    Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • z.2)
+                                  (gradient V
+                                      (y - η • gradient V xRef +
+                                          Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) •
+                                            (z.1 - (y - η • gradient V xRef)) +
+                                        (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                                    gradient V xRef) /
+                              ‖gradient V
+                                      (y - η • gradient V xRef +
+                                          Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) •
+                                            (z.1 - (y - η • gradient V xRef)) +
+                                        (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                                    gradient V xRef‖ ^
+                                2) •
+                            (gradient V
+                                (y - η • gradient V xRef +
+                                    Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                                  (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                              gradient V xRef)))
+                    i.castSucc).1 -
+                (y - η • gradient V xRef)) +
+          (√η * Real.sin (s - Fin.snoc (Fin.cons 0 ↑t) (↑T) i.castSucc.castSucc)) •
+            (Fin.induction z₀
+                (fun i z =>
+                  (y - η • gradient V xRef +
+                        Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                      (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2,
+                    (-Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc) / √η) • (z.1 - (y - η • gradient V xRef)) +
+                        Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • z.2 -
+                      (2 *
+                            inner ℝ
+                              ((-Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc) / √η) •
+                                  (z.1 - (y - η • gradient V xRef)) +
+                                Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • z.2)
+                              (gradient V
+                                  (y - η • gradient V xRef +
+                                      Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                                    (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                                gradient V xRef) /
+                          ‖gradient V
+                                  (y - η • gradient V xRef +
+                                      Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                                    (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                                gradient V xRef‖ ^
+                            2) •
+                        (gradient V
+                            (y - η • gradient V xRef +
+                                Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                              (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                          gradient V xRef)))
+                i.castSucc).2,
+        (-Real.sin (s - Fin.snoc (Fin.cons 0 ↑t) (↑T) i.castSucc.castSucc) / √η) •
+            ((Fin.induction z₀
+                  (fun i z =>
+                    (y - η • gradient V xRef +
+                          Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                        (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2,
+                      (-Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc) / √η) • (z.1 - (y - η • gradient V xRef)) +
+                          Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • z.2 -
+                        (2 *
+                              inner ℝ
+                                ((-Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc) / √η) •
+                                    (z.1 - (y - η • gradient V xRef)) +
+                                  Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • z.2)
+                                (gradient V
+                                    (y - η • gradient V xRef +
+                                        Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) •
+                                          (z.1 - (y - η • gradient V xRef)) +
+                                      (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                                  gradient V xRef) /
+                            ‖gradient V
+                                    (y - η • gradient V xRef +
+                                        Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) •
+                                          (z.1 - (y - η • gradient V xRef)) +
+                                      (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                                  gradient V xRef‖ ^
+                              2) •
+                          (gradient V
+                              (y - η • gradient V xRef +
+                                  Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                                (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                            gradient V xRef)))
+                  i.castSucc).1 -
+              (y - η • gradient V xRef)) +
+          Real.cos (s - Fin.snoc (Fin.cons 0 ↑t) (↑T) i.castSucc.castSucc) •
+            (Fin.induction z₀
+                (fun i z =>
+                  (y - η • gradient V xRef +
+                        Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                      (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2,
+                    (-Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc) / √η) • (z.1 - (y - η • gradient V xRef)) +
+                        Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • z.2 -
+                      (2 *
+                            inner ℝ
+                              ((-Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc) / √η) •
+                                  (z.1 - (y - η • gradient V xRef)) +
+                                Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • z.2)
+                              (gradient V
+                                  (y - η • gradient V xRef +
+                                      Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                                    (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                                gradient V xRef) /
+                          ‖gradient V
+                                  (y - η • gradient V xRef +
+                                      Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                                    (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                                gradient V xRef‖ ^
+                            2) •
+                        (gradient V
+                            (y - η • gradient V xRef +
+                                Real.cos (↑t i - Fin.cons 0 (↑t) i.castSucc) • (z.1 - (y - η • gradient V xRef)) +
+                              (√η * Real.sin (↑t i - Fin.cons 0 (↑t) i.castSucc)) • z.2) -
+                          gradient V xRef)))
+                i.castSucc).2))
+    (Ioo (Fin.snoc (Fin.cons 0 ↑t) (↑T) i.castSucc.castSucc) (Fin.snoc (Fin.cons 0 ↑t) (↑T) i.castSucc.succ))
+but is expected to have type
+  EqOn γ (fun s => Φ y xRef (s - grid i.castSucc.castSucc) (zAt y xRef z₀ n T t i.castSucc))
+    (Ioo (grid i.castSucc.castSucc) (↑t i))
+'PBPSActualAnalysis94.actual_analysis' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]

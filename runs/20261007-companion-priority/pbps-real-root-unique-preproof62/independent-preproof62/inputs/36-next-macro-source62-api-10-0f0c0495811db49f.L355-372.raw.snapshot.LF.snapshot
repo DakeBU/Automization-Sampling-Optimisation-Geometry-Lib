@@ -1,0 +1,18 @@
+theorem IsPositive.conj_adjoint [CompleteSpace E] [CompleteSpace F] {T : E →L[𝕜] E}
+    (hT : T.IsPositive) (S : E →L[𝕜] F) : (S ∘L T ∘L S†).IsPositive := by
+  refine isPositive_def'.mpr ⟨hT.isSelfAdjoint.conj_adjoint S, fun x => ?_⟩
+  rw [reApplyInnerSelf, comp_apply, ← adjoint_inner_right]
+  exact hT.re_inner_nonneg_left _
+
+theorem isPositive_self_comp_adjoint [CompleteSpace E] [CompleteSpace F] (S : E →L[𝕜] F) :
+    (S ∘L S†).IsPositive := by
+  simpa using! isPositive_one.conj_adjoint S
+
+@[aesop safe apply]
+theorem IsPositive.adjoint_conj [CompleteSpace E] [CompleteSpace F] {T : E →L[𝕜] E}
+    (hT : T.IsPositive) (S : F →L[𝕜] E) : (S† ∘L T ∘L S).IsPositive := by
+  convert! hT.conj_adjoint (S†)
+  rw [adjoint_adjoint]
+
+theorem isPositive_adjoint_comp_self [CompleteSpace E] [CompleteSpace F] (S : E →L[𝕜] F) :
+    (S† ∘L S).IsPositive := by

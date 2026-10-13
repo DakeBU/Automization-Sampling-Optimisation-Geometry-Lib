@@ -1,0 +1,551 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
+import AutoSamplingTheory.TechnicalLemmas.Analysis.HessianSecantOperator
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeightedPoissonCoercivity
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LocalizedWeakResolvent
+import Mathlib.MeasureTheory.Integral.DominatedConvergence
+
+set_option autoImplicit false
+noncomputable section
+open MeasureTheory Filter InnerProductSpace
+open scoped Topology RealInnerProductSpace ContDiff
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GlobalWeightedResolventCoercivity
+variable {E F : Type*} [MeasurableSpace E] [NormedAddCommGroup F]
+
+private theorem bounded_coefficient_memLp [NormedSpace ℝ F] (μ : Measure E) (c : E → ℝ)
+    (f : E → F) (hc : AEStronglyMeasurable c μ) (hf : MemLp f 2 μ)
+    (M : ℝ) (hb : ∀ᵐ x ∂μ, ‖c x‖ ≤ M) : MemLp (fun x => c x • f x) 2 μ := by
+  apply hf.of_le_mul (c := M) (hc.smul hf.aestronglyMeasurable)
+  filter_upwards [hb] with x hx
+  change ‖c x • f x‖ ≤ M * ‖f x‖
+  rw [norm_smul]
+  exact mul_le_mul_of_nonneg_right hx (norm_nonneg _)
+
+private theorem norm_sq_integral [InnerProductSpace ℝ F]
+    (μ : Measure E) (f : E → F) (hf : MemLp f 2 μ) :
+    ‖hf.toLp f‖^2 = ∫ x, ‖f x‖^2 ∂μ := by
+  rw [← real_inner_self_eq_norm_sq, L2.inner_def]
+  apply integral_congr_ae
+  filter_upwards [hf.coeFn_toLp] with x hx
+  rw [hx,real_inner_self_eq_norm_sq]
+
+private theorem bounded_coefficient_tendsto_zero [InnerProductSpace ℝ F]
+    (μ : Measure E) (cn : ℕ → E → ℝ) (f : E → F)
+    (hcn : ∀ n, AEStronglyMeasurable (cn n) μ) (hf : MemLp f 2 μ)
+    (M : ℝ) (hM : 0 ≤ M) (hb : ∀ n, ∀ᵐ x ∂μ, ‖cn n x‖ ≤ M)
+    (ht : ∀ᵐ x ∂μ, Tendsto (fun n => cn n x) atTop (𝓝 0)) :
+    ∃ hn : ∀ n, MemLp (fun x => cn n x • f x) 2 μ,
+      Tendsto (fun n => (hn n).toLp _) atTop (𝓝 0) := by
+  have hn (n : ℕ) := bounded_coefficient_memLp μ (cn n) f (hcn n) hf M (hb n)
+  refine ⟨hn,?_⟩
+  have hi : Integrable (fun x => ‖f x‖^2) μ :=
+    (memLp_two_iff_integrable_sq_norm hf.aestronglyMeasurable).mp hf
+  have hsq : Tendsto (fun n => ∫ x, ‖cn n x • f x‖^2 ∂μ) atTop (𝓝 0) := by
+    have hh := tendsto_integral_of_dominated_convergence (μ := μ)
+      (F := fun n x => ‖cn n x • f x‖^2) (f := fun _ => (0 : ℝ))
+      (fun x => M^2 * ‖f x‖^2)
+      (fun n => ((hn n).aestronglyMeasurable.norm.aemeasurable.pow_const 2).aestronglyMeasurable)
+      (hi.const_mul (M^2))
+      (fun n => by
+        filter_upwards [hb n] with x hx
+        rw [Real.norm_eq_abs,abs_of_nonneg (sq_nonneg _),norm_smul,mul_pow]
+        exact mul_le_mul_of_nonneg_right
+          ((sq_le_sq₀ (norm_nonneg _) hM).mpr hx) (sq_nonneg _))
+      (by
+        filter_upwards [ht] with x hx
+        have hh := (hx.smul (tendsto_const_nhds (x := f x))).norm.pow 2
+        simpa only [zero_smul,norm_zero,zero_pow (by norm_num : (2:ℕ)≠0)] using hh)
+    simpa only [integral_zero] using hh
+  have hsqN : Tendsto (fun n => ‖(hn n).toLp _‖^2) atTop (𝓝 0) := by
+    simpa only [norm_sq_integral] using hsq
+  have hsqrt := (Real.continuous_sqrt.tendsto (0 : ℝ)).comp hsqN
+  have hn0 : Tendsto (fun n => ‖(hn n).toLp _‖) atTop (𝓝 0) := by
+    simpa only [Function.comp_def,Real.sqrt_sq (norm_nonneg _),Real.sqrt_zero] using hsqrt
+  exact tendsto_zero_iff_norm_tendsto_zero.mpr hn0
+
+private theorem dominated_L2_tendsto_zero [InnerProductSpace ℝ F]
+    (μ : Measure E) (fn : ℕ → E → F) (f : E → ℝ)
+    (hfn : ∀ n, AEStronglyMeasurable (fn n) μ) (hf : MemLp f 2 μ)
+    (M : ℝ) (hM : 0 ≤ M) (hb : ∀ n, ∀ᵐ x ∂μ, ‖fn n x‖ ≤ M * ‖f x‖)
+    (ht : ∀ᵐ x ∂μ, Tendsto (fun n => fn n x) atTop (𝓝 0)) :
+    ∃ hn : ∀ n, MemLp (fn n) 2 μ,
+      Tendsto (fun n => (hn n).toLp _) atTop (𝓝 0) := by
+  have hn (n : ℕ) : MemLp (fn n) 2 μ := hf.of_le_mul (c := M) (hfn n) (hb n)
+  refine ⟨hn,?_⟩
+  have hi : Integrable (fun x => ‖f x‖^2) μ :=
+    (memLp_two_iff_integrable_sq_norm hf.aestronglyMeasurable).mp hf
+  have hsq : Tendsto (fun n => ∫ x, ‖fn n x‖^2 ∂μ) atTop (𝓝 0) := by
+    have hh := tendsto_integral_of_dominated_convergence (μ := μ)
+      (F := fun n x => ‖fn n x‖^2) (f := fun _ => (0 : ℝ))
+      (fun x => M^2 * ‖f x‖^2)
+      (fun n => ((hn n).aestronglyMeasurable.norm.aemeasurable.pow_const 2).aestronglyMeasurable)
+      (hi.const_mul (M^2))
+      (fun n => by
+        filter_upwards [hb n] with x hx
+        rw [Real.norm_eq_abs,abs_of_nonneg (sq_nonneg _),← mul_pow]
+        exact (sq_le_sq₀ (norm_nonneg _) (mul_nonneg hM (norm_nonneg _))).mpr hx)
+      (by
+        filter_upwards [ht] with x hx
+        simpa only [norm_zero,zero_pow (by norm_num : (2:ℕ)≠0)] using hx.norm.pow 2)
+    simpa only [integral_zero] using hh
+  have hsqN : Tendsto (fun n => ‖(hn n).toLp _‖^2) atTop (𝓝 0) := by
+    simpa only [norm_sq_integral] using hsq
+  have hsqrt := (Real.continuous_sqrt.tendsto (0 : ℝ)).comp hsqN
+  apply tendsto_zero_iff_norm_tendsto_zero.mpr
+  simpa only [Function.comp_def,Real.sqrt_sq (norm_nonneg _),Real.sqrt_zero] using hsqrt
+
+section Hilbert
+variable [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+
+omit [MeasurableSpace E] in
+private theorem actual_linear_drift (W : E → ℝ) (hW : ContDiff ℝ 2 W)
+    (m M : ℝ) (hm : 0 < m) (hmM : m ≤ M)
+    (hl : ∀ x a, m*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ W) x a a)
+    (hu : ∀ x a, fderiv ℝ (fderiv ℝ W) x a a ≤ M*‖a‖^2) :
+    ∀ x, ‖gradient W x‖ ≤ ‖gradient W 0‖ + M*‖x‖ := by
+  intro x
+  obtain ⟨_,hg,_,_,hn⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.Analysis.HessianSecantOperator.hessian_secant_operator
+      hW hl hu x 0
+  have hMp : 0 ≤ M := hm.le.trans hmM
+  rw [abs_of_pos hm,abs_of_nonneg hMp,max_eq_right hmM] at hn
+  rw [sub_zero] at hg hn
+  calc
+    ‖gradient W x‖ = ‖(gradient W x-gradient W 0)+gradient W 0‖ := by congr 1; abel
+    _ ≤ ‖gradient W x-gradient W 0‖+‖gradient W 0‖ := norm_add_le _ _
+    _ ≤ M*‖x‖+‖gradient W 0‖ := by
+      rw [hg]
+      gcongr
+      exact (ContinuousLinearMap.le_opNorm _ x).trans
+        (mul_le_mul_of_nonneg_right hn (norm_nonneg _))
+    _ = _ := by ring
+
+omit [MeasurableSpace E] [CompleteSpace E] in
+private theorem actual_cutoff_laplacian_bound [FiniteDimensional ℝ E] [Nontrivial E] :
+    ∃ C : ℝ, 0 < C ∧ ∀ R : ℝ, 0 < R → ∀ x : E,
+      ‖Laplacian.laplacian
+        (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff R : E → ℝ) x‖
+          ≤ C / R^2 := by
+  classical
+  obtain ⟨C,hC,hb⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_iteratedFDeriv_two_bound
+      (E := E)
+  let C' := max ((Module.finrank ℝ E : ℝ)*C) 1
+  refine ⟨C',lt_max_of_lt_right one_pos,?_⟩
+  intro R hR x
+  let f := AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff R
+    (E := E)
+  let b := stdOrthonormalBasis ℝ E
+  have hi (i : Fin (Module.finrank ℝ E)) :
+      ‖iteratedFDeriv ℝ 2 f x ![b i,b i]‖ ≤ C/R^2 := by
+    have hp : ∏ j : Fin 2, ‖(![b i,b i] : Fin 2 → E) j‖ = 1 := by
+      simp [Fin.prod_univ_two,b,OrthonormalBasis.norm_eq_one]
+    have hn := (iteratedFDeriv ℝ 2 f x).le_opNorm ![b i,b i]
+    rw [hp,mul_one] at hn
+    exact hn.trans (hb R hR x)
+  change ‖Laplacian.laplacian f x‖ ≤ C'/R^2
+  rw [InnerProductSpace.laplacian_eq_iteratedFDeriv_stdOrthonormalBasis]
+  calc
+    _ ≤ ∑ i, ‖iteratedFDeriv ℝ 2 f x ![b i,b i]‖ := norm_sum_le _ _
+    _ ≤ ∑ _i : Fin (Module.finrank ℝ E), C/R^2 := Finset.sum_le_sum (fun i _ => hi i)
+    _ = ((Module.finrank ℝ E : ℝ)*C)/R^2 := by simp; ring
+    _ ≤ _ := div_le_div_of_nonneg_right (le_max_left _ _) (sq_nonneg R)
+
+omit [CompleteSpace E] in
+private theorem actual_cutoff_function_convergence [BorelSpace E] [InnerProductSpace ℝ F]
+    (μ : Measure E) (f : E → F) (hf : MemLp f 2 μ) :
+    let χ := fun n : ℕ =>
+      (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff
+        ((n:ℝ)+1) : E → ℝ)
+    ∃ hn : ∀ n, MemLp (fun x => χ n x • f x) 2 μ,
+      Tendsto (fun n => (hn n).toLp _) atTop (𝓝 (hf.toLp f)) := by
+  let χ := fun n : ℕ =>
+    (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff
+      ((n:ℝ)+1) : E → ℝ)
+  have hχ (n : ℕ) : Continuous (χ n) :=
+    (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_contDiff
+      (by positivity : (0:ℝ)<(n:ℝ)+1)).continuous
+  have hχb (n : ℕ) (x : E) : χ n x ∈ Set.Icc (0:ℝ) 1 :=
+    AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_mem_Icc _ _
+  have hχabs (n : ℕ) (x : E) : ‖χ n x‖ ≤ (1:ℝ) := by
+    rw [Real.norm_eq_abs,abs_of_nonneg (hχb n x).1]
+    exact (hχb n x).2
+  have hn (n : ℕ) := bounded_coefficient_memLp μ (χ n) f
+    (hχ n).aestronglyMeasurable hf 1 (Eventually.of_forall (hχabs n))
+  let c := fun n x => χ n x-1
+  have hcb (n : ℕ) (x : E) : ‖c n x‖ ≤ (1:ℝ) := by
+    rw [Real.norm_eq_abs,abs_le]
+    exact ⟨by have h := (hχb n x).1; dsimp [c]; linarith,
+      by have h := (hχb n x).2; dsimp [c]; linarith⟩
+  have hct (x : E) : Tendsto (fun n => c n x) atTop (𝓝 0) := by
+    have hR : Tendsto (fun n : ℕ => (n:ℝ)+1) atTop atTop :=
+      tendsto_atTop_add_const_right atTop (1:ℝ) tendsto_natCast_atTop_atTop
+    have h :=
+      (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_tendsto_one x).comp hR
+    simpa only [Function.comp_def, c, χ, sub_self] using h.sub_const 1
+  obtain ⟨hd,hdt⟩ := bounded_coefficient_tendsto_zero μ c f
+    (fun n => ((hχ n).sub continuous_const).aestronglyMeasurable) hf 1 zero_le_one
+    (fun n => Eventually.of_forall (hcb n)) (Eventually.of_forall hct)
+  refine ⟨hn,tendsto_iff_norm_sub_tendsto_zero.mpr ?_⟩
+  have he (n : ℕ) : (hn n).toLp _-hf.toLp f = (hd n).toLp _ := by
+    apply Lp.ext
+    filter_upwards [(hn n).coeFn_toLp,hf.coeFn_toLp,(hd n).coeFn_toLp,
+      Lp.coeFn_sub ((hn n).toLp _) (hf.toLp f)] with x hx hy hz hw
+    rw [hw]
+    change ((hn n).toLp _) x-(hf.toLp f) x = ((hd n).toLp _) x
+    rw [hx,hy,hz]
+    dsimp [c]
+    simp [sub_smul]
+  have htNorm : Tendsto (fun n => ‖(hd n).toLp _‖) atTop (𝓝 0) := by
+    simpa only [norm_zero] using hdt.norm
+  change Tendsto (fun n => ‖(hn n).toLp _-hf.toLp f‖) atTop (𝓝 0)
+  exact (tendsto_congr (fun n => congrArg norm (he n))).mpr htNorm
+
+omit [MeasurableSpace E] in
+private theorem actual_cutoff_gradient_estimates :
+    ∃ C : ℝ, 0 < C ∧ ∀ R : ℝ, 0 < R → ∀ x : E,
+      ‖gradient (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff R
+        : E → ℝ) x‖ ≤ C/R ∧
+      (2*R ≤ ‖x‖ → gradient
+        (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff R
+          : E → ℝ) x = 0) := by
+  obtain ⟨C,hC,hb⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_fderiv_bound
+      (E := E)
+  refine ⟨C,hC,?_⟩
+  intro R hR x
+  constructor
+  · simpa only [gradient, LinearIsometryEquiv.norm_map] using hb R hR x
+  · intro hx
+    simp only [gradient,
+      AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_fderiv_eq_zero_of_two_mul_le_norm hR hx,
+      map_zero]
+
+omit [MeasurableSpace E] in
+private theorem actual_cutoff_generator_coefficient [FiniteDimensional ℝ E] [Nontrivial E]
+    (W : E → ℝ) (hW : ContDiff ℝ 2 W)
+    (m M : ℝ) (hm : 0 < m) (hmM : m ≤ M)
+    (hl : ∀ x a, m*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ W) x a a)
+    (hu : ∀ x a, fderiv ℝ (fderiv ℝ W) x a a ≤ M*‖a‖^2) :
+    let χ := fun n : ℕ =>
+      (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff
+        ((n:ℝ)+1) : E → ℝ)
+    let c := fun n x => inner ℝ (gradient W x) (gradient (χ n) x)-Laplacian.laplacian (χ n) x
+    ∃ C : ℝ, 0 ≤ C ∧ (∀ n x, ‖c n x‖ ≤ C) ∧
+      (∀ x, Tendsto (fun n => c n x) atTop (𝓝 0)) := by
+  let χ := fun n : ℕ =>
+    (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff
+      ((n:ℝ)+1) : E → ℝ)
+  let c := fun n x => inner ℝ (gradient W x) (gradient (χ n) x)-Laplacian.laplacian (χ n) x
+  obtain ⟨C1,hC1,hg⟩ := actual_cutoff_gradient_estimates (E := E)
+  obtain ⟨C2,hC2,hd⟩ := actual_cutoff_laplacian_bound (E := E)
+  have hMb : 0 ≤ M := hm.le.trans hmM
+  let b := ‖gradient W 0‖
+  have hgW := actual_linear_drift W hW m M hm hmM hl hu
+  have hgrad (n : ℕ) (x : E) :
+      ‖inner ℝ (gradient W x) (gradient (χ n) x)‖ ≤ C1*(b+2*M) := by
+    by_cases hx : 2*((n:ℝ)+1) ≤ ‖x‖
+    · rw [(hg _ (by positivity) x).2 hx]
+      simp only [inner_zero_right,norm_zero]
+      positivity
+    · have hx' : ‖x‖ ≤ 2*((n:ℝ)+1) := (not_le.mp hx).le
+      calc
+        _ ≤ ‖gradient W x‖ * ‖gradient (χ n) x‖ := norm_inner_le_norm _ _
+        _ ≤ (b+M*(2*((n:ℝ)+1))) * (C1/((n:ℝ)+1)) := by
+          gcongr
+          exact (hgW x).trans (by dsimp [b]; gcongr)
+          exact (hg _ (by positivity) x).1
+        _ = C1*(b/((n:ℝ)+1)+2*M) := by field_simp
+        _ ≤ C1*(b+2*M) := by
+          apply mul_le_mul_of_nonneg_left _ hC1.le
+          have hh := div_le_self (a := b) (b := (n:ℝ)+1) (norm_nonneg _)
+            (by linarith [Nat.cast_nonneg (α := ℝ) n])
+          linarith
+  refine ⟨C1*(b+2*M)+C2,by positivity,?_,?_⟩
+  · intro n x
+    calc
+      _ ≤ ‖inner ℝ (gradient W x) (gradient (χ n) x)‖+‖Laplacian.laplacian (χ n) x‖ := norm_sub_le _ _
+      _ ≤ C1*(b+2*M)+C2/((n:ℝ)+1)^2 := add_le_add (hgrad n x) (hd _ (by positivity) x)
+      _ ≤ C1*(b+2*M)+C2 := by
+        have hh := div_le_self (a := C2) (b := ((n:ℝ)+1)^2) hC2.le
+          (by nlinarith [Nat.cast_nonneg (α := ℝ) n])
+        linarith
+  · intro x
+    have hR : Tendsto (fun n : ℕ => (n:ℝ)+1) atTop atTop :=
+      tendsto_atTop_add_const_right atTop (1:ℝ) tendsto_natCast_atTop_atTop
+    have hgn : Tendsto (fun n => ‖gradient (χ n) x‖) atTop (𝓝 0) :=
+      squeeze_zero (fun _ => norm_nonneg _) (fun n => (hg _ (by positivity) x).1)
+        (hR.const_div_atTop C1)
+    have hgt : Tendsto (fun n => gradient (χ n) x) atTop (𝓝 0) :=
+      tendsto_zero_iff_norm_tendsto_zero.mpr hgn
+    have hln : Tendsto (fun n => ‖Laplacian.laplacian (χ n) x‖) atTop (𝓝 0) :=
+      squeeze_zero (fun _ => norm_nonneg _) (fun n => (hd _ (by positivity) x).trans
+        (div_le_div_of_nonneg_left hC2.le (by positivity) (by
+          nlinarith [Nat.cast_nonneg (α := ℝ) n]))) (hR.const_div_atTop C2)
+    have hlt : Tendsto (fun n => Laplacian.laplacian (χ n) x) atTop (𝓝 0) :=
+      tendsto_zero_iff_norm_tendsto_zero.mpr hln
+    simpa only [inner_zero_right,sub_zero] using
+      ((tendsto_const_nhds (x := gradient W x)).inner hgt).sub hlt
+
+private theorem actual_cutoff_commutators [BorelSpace E] [FiniteDimensional ℝ E] [Nontrivial E]
+    (μ : Measure E) (W : E → ℝ) (hW : ContDiff ℝ 2 W)
+    (m M : ℝ) (hm : 0 < m) (hmM : m ≤ M)
+    (hl : ∀ x a, m*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ W) x a a)
+    (hu : ∀ x a, fderiv ℝ (fderiv ℝ W) x a a ≤ M*‖a‖^2)
+    (u : E → ℝ) (G : E → E) (hu2 : MemLp u 2 μ) (hG2 : MemLp G 2 μ) :
+    let χ := fun n : ℕ =>
+      (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff
+        ((n:ℝ)+1) : E → ℝ)
+    let eG := fun n x => u x • gradient (χ n) x
+    let eA := fun n x => 2*inner ℝ (gradient (χ n) x) (G x)
+    let dA := fun n x =>
+      (inner ℝ (gradient W x) (gradient (χ n) x)-Laplacian.laplacian (χ n) x)*u x
+    ∃ hGe : ∀ n, MemLp (eG n) 2 μ,
+      ∃ hAe : ∀ n, MemLp (eA n) 2 μ,
+      ∃ hAd : ∀ n, MemLp (dA n) 2 μ,
+        Tendsto (fun n => (hGe n).toLp _) atTop (𝓝 0) ∧
+        Tendsto (fun n => (hAe n).toLp _) atTop (𝓝 0) ∧
+        Tendsto (fun n => (hAd n).toLp _) atTop (𝓝 0) := by
+  let χ := fun n : ℕ =>
+    (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff
+      ((n:ℝ)+1) : E → ℝ)
+  have hχ (n : ℕ) : ContDiff ℝ 2 (χ n) :=
+    (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_contDiff
+      (by positivity : (0:ℝ)<(n:ℝ)+1)).of_le
+        (WithTop.coe_le_coe.mpr (le_top : (2:ℕ∞)≤⊤))
+  have hgcont (n : ℕ) : Continuous (gradient (χ n)) :=
+    (toDual ℝ E).symm.continuous.comp
+      (((hχ n).of_le (by norm_num) : ContDiff ℝ 1 (χ n)).continuous_fderiv one_ne_zero)
+  obtain ⟨C1,hC1,hgb⟩ := actual_cutoff_gradient_estimates (E := E)
+  have hgsmall (n : ℕ) (x : E) : ‖gradient (χ n) x‖ ≤ C1 :=
+    ((hgb _ (by positivity) x).1).trans
+      (div_le_self hC1.le (by linarith [Nat.cast_nonneg (α := ℝ) n]))
+  have hR : Tendsto (fun n : ℕ => (n:ℝ)+1) atTop atTop :=
+    tendsto_atTop_add_const_right atTop (1:ℝ) tendsto_natCast_atTop_atTop
+  have hgt (x : E) : Tendsto (fun n => gradient (χ n) x) atTop (𝓝 0) :=
+    tendsto_zero_iff_norm_tendsto_zero.mpr
+      (squeeze_zero (fun _ => norm_nonneg _) (fun n => (hgb _ (by positivity) x).1)
+        (hR.const_div_atTop C1))
+  obtain ⟨hGe,hGet⟩ := dominated_L2_tendsto_zero μ
+    (fun n x => u x • gradient (χ n) x) u
+    (fun n => hu2.aestronglyMeasurable.smul (hgcont n).aestronglyMeasurable) hu2 C1 hC1.le
+    (fun n => Eventually.of_forall (fun x => by
+      rw [norm_smul]
+      calc
+        _ ≤ ‖u x‖*C1 := mul_le_mul_of_nonneg_left (hgsmall n x) (norm_nonneg _)
+        _ = C1*‖u x‖ := mul_comm _ _))
+    (Eventually.of_forall (fun x => by
+      simpa only [smul_zero] using (tendsto_const_nhds (x := u x)).smul (hgt x)))
+  obtain ⟨hAe,hAet⟩ := dominated_L2_tendsto_zero μ
+    (fun n x => 2*inner ℝ (gradient (χ n) x) (G x)) (fun x => ‖G x‖)
+    (fun n => ((hgcont n).aestronglyMeasurable.inner hG2.aestronglyMeasurable).const_mul 2)
+    hG2.norm (2*C1) (by positivity)
+    (fun n => Eventually.of_forall (fun x => by
+      rw [norm_mul,Real.norm_of_nonneg (by norm_num : (0:ℝ)≤2),norm_norm]
+      calc
+        _ ≤ 2*(‖gradient (χ n) x‖*‖G x‖) := mul_le_mul_of_nonneg_left (norm_inner_le_norm _ _) (by norm_num)
+        _ ≤ 2*(C1*‖G x‖) := by gcongr; exact hgsmall n x
+        _ = (2*C1)*‖G x‖ := by ring))
+    (Eventually.of_forall (fun x => by
+      simpa only [inner_zero_left,mul_zero] using
+        ((hgt x).inner (tendsto_const_nhds (x := G x))).const_mul (2:ℝ)))
+  obtain ⟨C,hC,hcb,hct⟩ := actual_cutoff_generator_coefficient W hW m M hm hmM hl hu
+  have hccont (n : ℕ) : Continuous (fun x =>
+      inner ℝ (gradient W x) (gradient (χ n) x)-Laplacian.laplacian (χ n) x) :=
+    (((toDual ℝ E).symm.continuous.comp
+      ((hW.of_le (by norm_num) : ContDiff ℝ 1 W).continuous_fderiv one_ne_zero)).inner
+        (hgcont n)).sub
+      (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Laplacian.continuous_laplacian_of_contDiff_two (hχ n))
+  obtain ⟨hAd,hAdt⟩ := bounded_coefficient_tendsto_zero μ
+    (fun n x => inner ℝ (gradient W x) (gradient (χ n) x)-Laplacian.laplacian (χ n) x)
+    u (fun n => (hccont n).aestronglyMeasurable) hu2 C hC
+    (fun n => Eventually.of_forall (hcb n)) (Eventually.of_forall hct)
+  exact ⟨hGe,hAe,hAd,hGet,hAet,hAdt⟩
+
+private theorem global_coercivity_from_localization [BorelSpace E] [FiniteDimensional ℝ E]
+    (W : E → ℝ) (hW : ContDiff ℝ 2 W)
+    (hI : Integrable (fun x => Real.exp (-W x))) (hZ : 0 < ∫ x, Real.exp (-W x))
+    (m M : ℝ) (hm : 0 < m) (hmM : m ≤ M)
+    (hl : ∀ x a, m*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ W) x a a)
+    (hu : ∀ x a, fderiv ℝ (fderiv ℝ W) x a a ≤ M*‖a‖^2)
+    (μ : Measure E) (hμ : μ = (volume : Measure E).tilted (fun x => -W x))
+    (D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E 2 μ) (hD : D.IsClosable)
+    (hgraph : ∀ a H, (a,H) ∈ D.graph ↔
+      ∃ ψ : E → ℝ, ContDiff ℝ ∞ ψ ∧ HasCompactSupport ψ ∧
+        a =ᵐ[μ] ψ ∧ H =ᵐ[μ] gradient ψ)
+    (u a : E → ℝ) (G : E → E)
+    (hu2 : MemLp u 2 μ) (ha2 : MemLp a 2 μ) (hG2 : MemLp G 2 μ)
+    (hlocal : ∀ χ : E → ℝ, ContDiff ℝ 2 χ → HasCompactSupport χ →
+      let v := fun x => χ x*u x
+      let Gχ := fun x => χ x • G x+u x • gradient χ x
+      let Fχ := fun x => χ x*(inner ℝ (gradient W x) (G x)-a x)+
+        2*inner ℝ (gradient χ x) (G x)+u x*Laplacian.laplacian χ x
+      MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧
+      tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧
+      (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ b : E,
+        Integrable (fun x => ψ x * inner ℝ (Gχ x) b) volume ∧
+        Integrable (fun x => v x * fderiv ℝ ψ x b) volume ∧
+        (∫ x, ψ x * inner ℝ (Gχ x) b) = -∫ x, v x * fderiv ℝ ψ x b) ∧
+      ∀ ψ : E → ℝ, ContDiff ℝ 2 ψ → HasCompactSupport ψ →
+        Integrable (fun x => v x * Laplacian.laplacian ψ x) volume ∧
+        Integrable (fun x => Fχ x * ψ x) volume ∧
+        (∫ x, v x * Laplacian.laplacian ψ x) = ∫ x, Fχ x * ψ x) :
+    m*‖hG2.toLp G‖^2 ≤ ‖ha2.toLp a‖^2 := by
+  classical
+  cases subsingleton_or_nontrivial E with
+  | inl hE =>
+    let := hE
+    have hzero : hG2.toLp G = 0 := by
+      apply Lp.ext
+      exact Eventually.of_forall (fun _ => Subsingleton.elim _ _)
+    rw [hzero,norm_zero,zero_pow (by norm_num : (2:ℕ)≠0),mul_zero]
+    exact sq_nonneg _
+  | inr hE =>
+    let := hE
+    let χ := fun n : ℕ =>
+      (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff
+        ((n:ℝ)+1) : E → ℝ)
+    have hχ (n : ℕ) : ContDiff ℝ 2 (χ n) :=
+      (AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_contDiff
+        (by positivity : (0:ℝ)<(n:ℝ)+1)).of_le
+          (WithTop.coe_le_coe.mpr (le_top : (2:ℕ∞)≤⊤))
+    have hc (n : ℕ) : HasCompactSupport (χ n) :=
+      AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_hasCompactSupport
+        (by positivity)
+    obtain ⟨hCG,hCGt⟩ := actual_cutoff_function_convergence μ G hG2
+    obtain ⟨hCA,hCAt⟩ := actual_cutoff_function_convergence μ a ha2
+    obtain ⟨hGe,hAe,hAd,hGet,hAet,hAdt⟩ :=
+      actual_cutoff_commutators μ W hW m M hm hmM hl hu u G hu2 hG2
+    let hGn := fun n => (hCG n).add (hGe n)
+    let hAn := fun n => ((hCA n).sub (hAe n)).add (hAd n)
+    have hGt : Tendsto (fun n => (hGn n).toLp _) atTop (𝓝 (hG2.toLp G)) := by
+      change Tendsto (fun n => (hCG n).toLp _+(hGe n).toLp _) atTop (𝓝 (hG2.toLp G))
+      simpa only [add_zero] using hCGt.add hGet
+    have hAt : Tendsto (fun n => (hAn n).toLp _) atTop (𝓝 (ha2.toLp a)) := by
+      change Tendsto (fun n => ((hCA n).toLp _-(hAe n).toLp _)+(hAd n).toLp _)
+        atTop (𝓝 (ha2.toLp a))
+      simpa only [sub_zero,add_zero] using (hCAt.sub hAet).add hAdt
+    apply le_of_tendsto_of_tendsto (hGt.norm.pow 2 |>.const_mul m) (hAt.norm.pow 2)
+    filter_upwards [] with n
+    obtain ⟨hv,hg,hF,hvs,hgs,hFs,hd,hp⟩ := hlocal (χ n) (hχ n) (hc n)
+    obtain ⟨_,_,_,vW,AW,GW,_,hAW,hGW,_,hb⟩ :=
+      AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeightedPoissonCoercivity.compact_weak_poisson_weighted_coercivity
+        W hW hI hZ m hl μ hμ D hD hgraph _ _ _ (tsupport (χ n)) (hc n) hvs hFs hgs hv hF hg hd hp
+    have hGid : GW = (hGn n).toLp _ := by
+      apply Lp.ext
+      filter_upwards [hGW,(hGn n).coeFn_toLp] with x hx hy
+      exact hx.trans hy.symm
+    have hAid : AW = (hAn n).toLp _ := by
+      apply Lp.ext
+      filter_upwards [hAW,(hAn n).coeFn_toLp] with x hx hy
+      rw [hx,hy]
+      simp only [Pi.add_apply,Pi.sub_apply,inner_add_right,real_inner_smul_right,
+        smul_eq_mul]
+      ring
+    rwa [hGid,hAid] at hb
+
+private theorem residual_norm_le {H K : Type*}
+    [NormedAddCommGroup H] [InnerProductSpace ℝ H]
+    [NormedAddCommGroup K] [InnerProductSpace ℝ K]
+    (f u : H) (G : K) (ε : ℝ) (hε : 0 < ε)
+    (he : ε*‖u‖^2+‖G‖^2=inner ℝ f u) :
+    ‖f-ε • u‖^2 ≤ ‖f‖^2 := by
+  rw [norm_sub_sq_real,real_inner_smul_right,norm_smul,
+    Real.norm_eq_abs,abs_of_pos hε,mul_pow]
+  nlinarith [sq_nonneg ‖u‖,sq_nonneg ‖G‖]
+
+end Hilbert
+
+variable [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [BorelSpace E]
+
+/-- Actual same-original-gradient positive-epsilon resolvent and global scalar coercivity,
+with all original ordinary weak/localized data retained. Weighted cutoff and
+commutator limits are proved; no final core or Poincare certificate is assumed. -/
+theorem global_weak_resolvent_coercivity (W : E → ℝ) (hW : ContDiff ℝ 2 W)
+    (hI : Integrable (fun x => Real.exp (-W x)))
+    (hZ : 0 < ∫ x, Real.exp (-W x))
+    (m M : ℝ) (hm : 0 < m) (hmM : m ≤ M)
+    (hlower : ∀ x a, m*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ W) x a a)
+    (hupper : ∀ x a, fderiv ℝ (fderiv ℝ W) x a a ≤ M*‖a‖^2)
+    (μ : Measure E) (hμ : μ = (volume : Measure E).tilted (fun x => -W x)) :
+    ∀ (D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E 2 μ), D.IsClosable →
+      (∀ (a : Lp ℝ 2 μ) (H : Lp E 2 μ), (a,H) ∈ D.graph ↔
+        ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
+          a =ᵐ[μ] φ ∧ H =ᵐ[μ] gradient φ) →
+      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 μ,
+      ∃ u : D.closure.domain,
+        (∀ v : D.closure.domain,
+          ε * ⟪(u : Lp ℝ 2 μ), (v : Lp ℝ 2 μ)⟫ +
+            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 μ)⟫) ∧
+        LocallyIntegrable (fun x => (u : Lp ℝ 2 μ) x) ∧
+        LocallyIntegrable (fun x => D.closure u x) ∧
+        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,
+          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧
+          Integrable (fun x => (u : Lp ℝ 2 μ) x * fderiv ℝ ψ x v) ∧
+          (∫ x, ψ x * inner ℝ (D.closure u x) v) =
+            - ∫ x, (u : Lp ℝ 2 μ) x * fderiv ℝ ψ x v) ∧
+        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 μ) x +
+          inner ℝ (gradient W x) (D.closure u x) - f x‖ ^ 2) ∧
+        (∀ K : Set E, IsCompact K →
+          MemLp (fun x => (u : Lp ℝ 2 μ) x) 2 (volume.restrict K) ∧
+          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧
+          MemLp (fun x => ε * (u : Lp ℝ 2 μ) x +
+            inner ℝ (gradient W x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧
+        (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+          Integrable (fun x => (u : Lp ℝ 2 μ) x * Laplacian.laplacian φ x) ∧
+          Integrable (fun x => (ε * (u : Lp ℝ 2 μ) x +
+            inner ℝ (gradient W x) (D.closure u x) - f x) * φ x) ∧
+          (∫ x, (u : Lp ℝ 2 μ) x * Laplacian.laplacian φ x) =
+            ∫ x, (ε * (u : Lp ℝ 2 μ) x +
+              inner ℝ (gradient W x) (D.closure u x) - f x) * φ x) ∧
+        m*‖D.closure u‖^2 ≤ ‖f-ε • (u : Lp ℝ 2 μ)‖^2 ∧
+        ‖f-ε • (u : Lp ℝ 2 μ)‖^2 ≤ ‖f‖^2 ∧
+        ∀ χ : E → ℝ, ContDiff ℝ 2 χ → HasCompactSupport χ →
+    let v := fun x => χ x * (u : Lp ℝ 2 μ) x
+    let Gχ := fun x => χ x • D.closure u x + (u : Lp ℝ 2 μ) x • gradient χ x
+    let Fχ := fun x => χ x * (ε * (u : Lp ℝ 2 μ) x + inner ℝ (gradient W x) (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +
+      (u : Lp ℝ 2 μ) x * Laplacian.laplacian χ x
+    MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧
+    tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧
+    (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,
+      Integrable (fun x => ψ x * inner ℝ (Gχ x) a) ∧
+      Integrable (fun x => v x * fderiv ℝ ψ x a) ∧
+      (∫ x, ψ x * inner ℝ (Gχ x) a) = -∫ x, v x * fderiv ℝ ψ x a) ∧
+    ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+      Integrable (fun x => v x * Laplacian.laplacian φ x) ∧
+      Integrable (fun x => Fχ x * φ x) ∧
+      (∫ x, v x * Laplacian.laplacian φ x) = ∫ x, Fχ x * φ x := by
+  subst μ
+  let μ := (volume : Measure E).tilted (fun x => -W x)
+  dsimp only
+  intro D hD hgraph ε hε f
+  obtain ⟨u,hu,huL,hGL,hd,hr2,hl,hp,hcut⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LocalizedWeakResolvent.localized_weak_resolvent
+      W (hW.of_le (by norm_num)) hI D hD hgraph ε hε f
+  let a := fun x => f x-ε*(u : Lp ℝ 2 μ) x
+  have ha : MemLp a 2 μ := (Lp.memLp f).sub ((Lp.memLp (u : Lp ℝ 2 μ)).const_mul ε)
+  have heq (x : E) : inner ℝ (gradient W x) (D.closure u x)-a x =
+      ε*(u : Lp ℝ 2 μ) x+inner ℝ (gradient W x) (D.closure u x)-f x := by
+    dsimp [a]; ring
+  have hg := global_coercivity_from_localization W hW hI hZ m M hm hmM hlower hupper
+    μ rfl D hD hgraph (fun x => (u : Lp ℝ 2 μ) x) a (fun x => D.closure u x)
+    (Lp.memLp (u : Lp ℝ 2 μ)) ha (Lp.memLp (D.closure u)) (by
+      intro χ hχ hc
+      dsimp only
+      simp_rw [heq]
+      exact hcut χ hχ hc)
+  have hgLp : (Lp.memLp (D.closure u)).toLp (fun x => D.closure u x) = D.closure u :=
+    Lp.ext ((Lp.memLp (D.closure u)).coeFn_toLp)
+  have haLp : ha.toLp a = f-ε • (u : Lp ℝ 2 μ) := by
+    apply Lp.ext
+    filter_upwards [ha.coeFn_toLp,Lp.coeFn_sub f (ε • (u : Lp ℝ 2 μ)),
+      Lp.coeFn_smul ε (u : Lp ℝ 2 μ)] with x hx hy hz
+    rw [hx,hy]
+    change a x = f x-(ε • (u : Lp ℝ 2 μ)) x
+    rw [hz]; rfl
+  rw [hgLp,haLp] at hg
+  have hen := hu u
+  rw [real_inner_self_eq_norm_sq,real_inner_self_eq_norm_sq] at hen
+  exact ⟨u,hu,huL,hGL,hd,hr2,hl,hp,hg,residual_norm_le f u (D.closure u) ε hε hen,hcut⟩
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GlobalWeightedResolventCoercivity

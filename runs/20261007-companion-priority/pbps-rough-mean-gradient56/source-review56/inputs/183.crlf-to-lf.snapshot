@@ -1,0 +1,6 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy
+import AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRepresentative
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionL2
+open MeasureTheory ProbabilityTheory
+open scoped ContDiff NNReal
+namespace AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy

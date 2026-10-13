@@ -1,0 +1,36 @@
+import Mathlib
+
+/-!
+# Linear growth from a one-step additive bound
+
+This is a small reusable algebraic leaf extracted while formalizing the final
+reciprocal-KL telescoping step in Chewi, *Log-Concave Sampling*, Theorem 8.4.1.
+It is source-independent: any sequence whose one-step increment is at least a
+fixed `delta` grows by at least `n * delta` after `n` steps.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Algebra
+
+/-- A uniform lower bound on every one-step increment telescopes linearly. -/
+theorem linear_growth_of_step_growth
+    (r : ℕ → ℝ) (delta : ℝ)
+    (hstep : ∀ n : ℕ, r n + delta ≤ r (n + 1)) :
+    ∀ n : ℕ, r 0 + (n : ℝ) * delta ≤ r n := by
+  intro n
+  induction n with
+  | zero => simp
+  | succ n ih =>
+      calc
+        r 0 + ((n + 1 : ℕ) : ℝ) * delta =
+            (r 0 + (n : ℝ) * delta) + delta := by
+              simp [Nat.cast_add]
+              ring
+        _ ≤ r n + delta := by
+          linarith [ih]
+        _ ≤ r (n + 1) := hstep n
+
+end Algebra
+end TechnicalLemmas
+end AutoSamplingTheory

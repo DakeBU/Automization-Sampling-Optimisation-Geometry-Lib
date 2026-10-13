@@ -1,0 +1,617 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-hazard-clock",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS integrated hazard and first-clock law",
+  "mode": "faithfulPaper",
+  "source_anchor": "arXiv2609.06905v1 Algorithm1, Proposition3.1, AppendixA.1 equation(A.1), Ex1-8; one-segment prerequisites for recursive equation(A.2).",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate\nimport Mathlib.MeasureTheory.Integral.DominatedConvergence\nimport Mathlib.Probability.Process.HittingTime\nimport Mathlib.Probability.Distributions.Exponential\nimport Mathlib.MeasureTheory.Constructions.BorelSpace.Order\n\n/-! Prospective actual PBPS integrated hazard and first-clock statement only.\nNo source/header admission or theorem proof is supplied by this file. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock\nopen InnerProductSpace MeasureTheory\nopen scoped ContDiff NNReal ENNReal Topology Interval\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_integrated_hazard_clock_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    let C : E → E → (E × E) → ℝ := fun y xRef z =>\n      Real.sqrt η * (β : ℝ) * Real.sqrt (2 * H y xRef z) *\n        (Real.sqrt (2 * η * H y xRef z) + ‖c y xRef - xRef‖)\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let W : E → E → (E × E) → Measure (WithTop ℝ≥0) := fun y xRef z =>\n      Measure.map (fun e : ℝ => τ y xRef z (Real.toNNReal e))\n        (ProbabilityTheory.expMeasure (1 : ℝ))\n    Continuous (fun a : ((E × E) × (E × E)) × ℝ≥0 =>\n      Λ a.1.1.1 a.1.1.2 a.1.2 a.2) ∧\n    Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 =>\n      Λ a.1.1.1 a.1.1.2 a.1.2 a.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, ∀ t : ℝ≥0,\n      IntervalIntegrable (fun s : ℝ => rate xRef (Φ y xRef s z)) volume 0 (t : ℝ)) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      Λ y xRef z 0 = 0 ∧ (∀ t : ℝ≥0, 0 ≤ Λ y xRef z t) ∧\n      Monotone (Λ y xRef z)) ∧\n    (∀ y xRef : E, ∀ z : E × E, ∀ e t : ℝ≥0,\n      τ y xRef z e ≤ (t : WithTop ℝ≥0) ↔ (e : ℝ) ≤ Λ y xRef z t) ∧\n    (∀ y xRef : E, ∀ z : E × E, ∀ e : ℝ≥0,\n      (τ y xRef z e = ⊤ ↔ ∀ t : ℝ≥0, Λ y xRef z t < (e : ℝ)) ∧\n      (τ y xRef z e ≠ ⊤ → Λ y xRef z (τ y xRef z e).untopA = (e : ℝ)) ∧\n      (0 < e → (0 : WithTop ℝ≥0) < τ y xRef z e) ∧ τ y xRef z 0 = 0) ∧\n    Measurable (fun a : (E × E) × (E × E) × ℝ≥0 =>\n      τ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, IsProbabilityMeasure (W y xRef z) ∧\n      ∀ t : ℝ≥0, (W y xRef z).real (Set.Ioi (t : WithTop ℝ≥0)) =\n        Real.exp (-Λ y xRef z t)) ∧\n    (∀ y xRef : E, ∀ z : E × E, 0 ≤ C y xRef z ∧\n      ∀ t : ℝ≥0, Λ y xRef z t ≤ C y xRef z * (t : ℝ)) ∧\n    (∀ y xRef : E, ∀ z : E × E, ∀ e : ℝ≥0,\n      (0 < C y xRef z →\n        (Real.toNNReal ((e : ℝ) / C y xRef z) : WithTop ℝ≥0) ≤ τ y xRef z e) ∧\n      (C y xRef z = 0 → 0 < e → τ y xRef z e = ⊤))\n\ntheorem actual_integrated_hazard_clock_laws\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    actual_integrated_hazard_clock_statement hα hαβ hV hH hη hβη := by\n",
+  "status": "claimed",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws"
+  ],
+  "consumers": [
+    "AppendixA.1 equation(A.1): first clock at an actual postjump state with the next Exp(1) threshold.",
+    "Equation(A.2) measurable recursive PDMP path and subsequent nonexplosion, separately open."
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Source-first CLOSED53 finite retrieval and original CLOSED86 prospective plan; corrected Exp(1) API separately source-reviewed.",
+      "Pinned Mathlib continuous_parametric_primitive_of_continuous, hittingAfter definition, IsClosed.csInf_mem, measurable_of_Iic, expMeasure/cdf_expMeasure_eq; no WellFoundedLT on continuous time.",
+      "Actual73 harmonic flow and actual74 bounce/rate/energy cap; existing Q_y disintegration retained."
+    ],
+    "classification": "missing",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws",
+    "canonical_shared_cell": "",
+    "reason": "One actual source clock consumer. Reuse canonical hittingAfter and Exp measure with actual73/74 inputs; no arbitrary hazard/provider/cap or duplicate probability reference law."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Source-first CLOSED53 finite retrieval and original CLOSED86 prospective plan; corrected Exp(1) API separately source-reviewed.",
+      "Pinned Mathlib continuous_parametric_primitive_of_continuous, hittingAfter definition, IsClosed.csInf_mem, measurable_of_Iic, expMeasure/cdf_expMeasure_eq; no WellFoundedLT on continuous time.",
+      "Actual73 harmonic flow and actual74 bounce/rate/energy cap; existing Q_y disintegration retained."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "AppendixA.1 equation(A.1): first clock at an actual postjump state with the next Exp(1) threshold.",
+      "Equation(A.2) measurable recursive PDMP path and subsequent nonexplosion, separately open."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "One actual source clock consumer. Reuse canonical hittingAfter and Exp measure with actual73/74 inputs; no arbitrary hazard/provider/cap or duplicate probability reference law."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws"
+    ],
+    "visual_review": "Pending focused proof/reviews; actual73 and actual74 are true parents."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261010-PBPSActualHazardClock",
+    "statement_seal": "runs/20261007-companion-priority/pbps-clock-preproof75/root.statement-seal75.json",
+    "focused_checks": [],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHazardClock.lean"
+    ],
+    "truth_boundary": "Only one actual flow-segment hazard and first waiting-time probability law, including infinite waits and e=0. No recursive PDMP path, iid recursion/SLLN/nonexplosion, Markov memorylessness, invariant/reversed or terminal kernel, hypocoercivity/main, implementation error, expected query cost, actual-input composition, full Exposition/PURIFIED/main/live/whole-paper/Goal completion credit."
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Source-first baseline, distinct full prospective math/source review and v2 Statement Seal accepted. Proof implementation pending."
+  },
+  "declaration_level": "source-anchor",
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "arXiv2609.06905v1 Algorithm1, Proposition3.1, AppendixA.1 equation(A.1), Ex1-8; one-segment prerequisites for recursive equation(A.2).",
+    "fidelity_boundary": "Only one actual flow-segment hazard and first waiting-time probability law, including infinite waits and e=0. No recursive PDMP path, iid recursion/SLLN/nonexplosion, Markov memorylessness, invariant/reversed or terminal kernel, hypocoercivity/main, implementation error, expected query cost, actual-input composition, full Exposition/PURIFIED/main/live/whole-paper/Goal completion credit.",
+    "detail_status": "cites_external",
+    "gap": "Continuous-time crossing/Borel/survival/integrated cap remain to implement. Recursive process, Davis nonexplosion/Markov and invariance are separately open.",
+    "source_preread": "runs/20261007-companion-priority/pbps-clock-construction-preread75/selected.contract.json",
+    "consulted": [
+      {
+        "source": "Fixed PBPS v1 AppendixA1, pinned Mathlib continuous primitives/closed infimum/Exp distribution, actual73/74",
+        "anchor": "arXiv2609.06905v1 Algorithm1, Proposition3.1, AppendixA.1 equation(A.1), Ex1-8; one-segment prerequisites for recursive equation(A.2).",
+        "hypothesis_adapter": "Retain original six analytic callers. NNReal continuous time and WithTop NNReal permit infinite waiting; no WellFoundedLT, positive energy, supplied cap or a.s.finite wait premise.",
+        "expanded_binder_audit": {
+          "blocking_count": 0,
+          "counts": {
+            "EXCLUDED": 60,
+            "NODE": 77,
+            "future_obligations": 32,
+            "header_lines": 83,
+            "internal_bridges_OPEN": 13,
+            "let_definitions": 8,
+            "private_and_public_typing_classes": 5,
+            "public_analytic_callers": 6,
+            "seven_semantic_slots": 7,
+            "source_edges": 67,
+            "source_items": 137,
+            "source_nodes": 32,
+            "top_conjunctions": 10
+          },
+          "deltas": [
+            {
+              "description": "Exact root API name overlay replaces descriptive/unresolved expMeasure1 with pinned expMeasure(1). Source unit-rate marginal unchanged.",
+              "evidence": "exact-API-overlay75.finite-map.json and fixed Exponential.lean96/98/165",
+              "severity": "informational",
+              "slot": "objects"
+            },
+            {
+              "description": "Finite real Hilbert/Borel type representation and NNReal/WithTop carriers encode source continuous nonnegative time/infinity; no dimension positivity.",
+              "evidence": "complete private/public binder and tau definition; StageA O02/O12/O14",
+              "severity": "informational",
+              "slot": "domains"
+            },
+            {
+              "description": "Twice real fderiv represents original Hessian quadratic bound; gradient completeness is finite-real typing consequence. Original six assumptions retained, no producer supplied as caller.",
+              "evidence": "binders and gradient/proper/complete fixed API fragments",
+              "severity": "informational",
+              "slot": "assumptions"
+            },
+            {
+              "description": "Ten conclusions make suppressed elementary crossing/Borel/probability completions explicit. This is no proof of those thirteen internal bridges.",
+              "evidence": "StageA source graph N09–N24 typed internal bridge projection; ten exact header clauses",
+              "severity": "informational",
+              "slot": "conclusion"
+            },
+            {
+              "description": "Measure.map/Measure.real default conventions are controlled by explicit measurability/probability conclusions; untopA equality is finite-guarded. No recursive process or a.s.finite clock claim.",
+              "evidence": "W,C06,C07,C08 and fixed map/real/untopA definitions",
+              "severity": "informational",
+              "slot": "scopes_senses"
+            },
+            {
+              "description": "max0 inner equals source positive part; real.toNNReal of e/C under C>0 preserves nonnegative ratio. Exact energy/cap/Exp constants unchanged.",
+              "evidence": "rate,C,C10 and NNReal coe_toNNReal definition",
+              "severity": "informational",
+              "slot": "constant_dependencies"
+            }
+          ],
+          "evidence": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/review75.json",
+          "required_repairs": [],
+          "review_run_sha256": "2a5e8e3ce15414148047fb8d893d4e91192b0f911a6df11e0c52e342d2d157c0",
+          "reviewer_id": "/root/independent_primary69",
+          "reviewer_independence": "Distinct from root candidate/proposal author; no independent-header-math75 verdict/decision/payload read. Before-header independent SOURCE baseline CLOSED53 reused unchanged.",
+          "run_artifact": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/decision75.json",
+          "semantic_slots": [
+            {
+              "baseline_criterion": "SAME actual original V,eta,center,residual,Phi,rate,H,C and Lambda/tau; actual fixed rate1 exponential marginal. No supplied operator/provider/cap/hazard, no extra refresh.",
+              "blocker": false,
+              "candidate_evidence": {
+                "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "RAW_bytes": 45962,
+                "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+              },
+              "independent_comparison": "All eight lets are exact SAME actual values; h residual is inlined in rate. No arbitrary hazard, cap or law supplied; W fixes actual rate1 Exp measure. c/Phi/rate/H/C/Lambda/tau/W preserve source meanings.",
+              "slot": "objects",
+              "source_anchors": [
+                "S3.E4",
+                "A1.Ex1",
+                "A1.Ex2",
+                "A1.Ex4",
+                "A1.Ex6",
+                "A1.E1"
+              ],
+              "verdict": "equivalent-after-definition-expansion (prospective header only)"
+            },
+            {
+              "baseline_criterion": "Same finite real Hilbert/Borel carrier, all y,xRef,z=(x,p); nonnegative continuous time and threshold including0; extended nonnegative waiting time includes infinity. Rank0 remains legal.",
+              "blocker": false,
+              "candidate_evidence": {
+                "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "RAW_bytes": 45962,
+                "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+              },
+              "independent_comparison": "Five ordinary typing classes on one finite real Hilbert/Borel carrier; alpha,beta NNReal are equivalent to source nonnegative constants under0<alpha<=beta. y,xRef,z arbitrary. Continuous-time NNReal, threshold including0, WithTop NNReal wait includingtop; rank0 legal.",
+              "slot": "domains",
+              "source_anchors": [
+                "S1.p1.1",
+                "S2.SS2.p1.1",
+                "A1.SS1.p1.1",
+                "A1.SS1.p2.2"
+              ],
+              "verdict": "equivalent-after-definition-expansion (prospective header only)"
+            },
+            {
+              "baseline_criterion": "Exactly original six analytic callers. For every original fixed parameter/state, every e>=0 and finite t>=0; source flow/rate/cap/regularity/probability facts internally produced. Conditional positive-C branches are not caller hypotheses.",
+              "blocker": false,
+              "candidate_evidence": {
+                "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "RAW_bytes": 45962,
+                "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+              },
+              "independent_comparison": "Private/public six analytic binder strings identical. All ten conclusions quantify original y,xRef,z; e,t are nonnegative inputs under conclusions. Positive C, positive e and finite tau are scoped antecedents, not extra public hypotheses; no independence/probability/integrability/provider binder.",
+              "slot": "quantifiers",
+              "source_anchors": [
+                "A1.SS1.p1.1",
+                "S3.Thmtheorem1",
+                "A1.E1"
+              ],
+              "verdict": "equivalent-after-definition-expansion (prospective header only)"
+            },
+            {
+              "baseline_criterion": "Original C2/Hessian/0<alpha<=beta/0<eta/betaeta<=1 only. No unbounded hazard, positive energy/nontrivial carrier, finite/a.s. finite wait, iid, integrability, extra smoothness, arbitrary law, proof certificate or WellFoundedLT time premise.",
+              "blocker": false,
+              "candidate_evidence": {
+                "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "RAW_bytes": 45962,
+                "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+              },
+              "independent_comparison": "Source C2, whole Hessian quadratic bounds,0<alpha<=beta,eta>0,betaeta<=1 exactly retained. Twice fderiv V applied v,v is the real source Hessian quadratic form, not an extra regularity assumption. Completeness follows finite real dimension internally. No Nontrivial, positive energy, unbounded hazard, finite wait or WellFoundedLT premise.",
+              "slot": "assumptions",
+              "source_anchors": [
+                "S1.p1.1",
+                "S1.E1",
+                "S2.SS2.p1.1"
+              ],
+              "verdict": "equivalent-after-definition-expansion (prospective header only)"
+            },
+            {
+              "baseline_criterion": "Exact actual primitive laws and clock sublevel/empty-top/finite equality/e0/positive-threshold laws, joint Borel clock, actual Exp1 survival and SAME-start-energy integrated cap/extended wait bound. This list is not a75 theorem statement or semantic verdict.",
+              "blocker": false,
+              "candidate_evidence": {
+                "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "RAW_bytes": 45962,
+                "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+              },
+              "independent_comparison": "Ten top conjuncts exactly express frozen prospective primitive/clock/survival/bound contract. Finite wait equality uses untopA only under tau!=top. Empty crossing top iff every finite Lambda<e is equivalent; e0=0 and zero cap positive threshold infinity both explicit. This accepts statement meaning only; all proofs remain absent.",
+              "slot": "conclusion",
+              "source_anchors": [
+                "A1.E1",
+                "A1.SS1.p2.2",
+                "A1.Ex7",
+                "A1.Ex8"
+              ],
+              "verdict": "equivalent-after-definition-expansion (prospective header only)"
+            },
+            {
+              "baseline_criterion": "Source literal (A.1), integral cap and finite-wait lower bound are separated from required continuous-time closure/measurability/probability completions. Only one flow-segment clock law; no recursive process/Markov/nonexplosion/invariance/kernel or reader admission. Real probability versus ENNReal measure explicit.",
+              "blocker": false,
+              "candidate_evidence": {
+                "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "RAW_bytes": 45962,
+                "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+              },
+              "independent_comparison": "Generic hittingAfter definition instantiated on NNReal continuous time and actualLambda-e, not discrete theorem. Tuple parameter projections exact. Measure.map default0 cannot legalize nonmeasurability: joint Measurable tau and IsProbabilityMeasure W are conclusions. W.real is probability toReal under finite probability, strict Ioi includes possible infinity. No recursive path, Markov/nonexplosion/kernel/stationarity or reader claim.",
+              "slot": "scopes_senses",
+              "source_anchors": [
+                "A1.E1",
+                "A1.E2",
+                "A1.Ex9",
+                "A1.SS1.p3.7"
+              ],
+              "verdict": "equivalent-after-definition-expansion (prospective header only)"
+            },
+            {
+              "baseline_criterion": "Exact source sqrteta, beta, sqrt(2H), sqrt(2etaH), norm(c-xRef), weighted energy half and eta inverse; Exp unit rate. C is evaluated at SAME actual H(z), not a caller or unspecified universal constant. alphaeta=1 allowed.",
+              "blocker": false,
+              "candidate_evidence": {
+                "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "RAW_bytes": 45962,
+                "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+                "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+              },
+              "independent_comparison": "Exact sqrteta, -sin/sqrteta, eta inverse, energy half, max0 actual residual, beta and sqrt2 energy radii retained; C uses SAME H(z). Exp rate exactly1, survival exp(-Lambda); lower wait uses e/C only within C>0, with exact toNNReal nonnegative ratio. No refresh, extra2, arbitrary C, cost or source rho.",
+              "slot": "constant_dependencies",
+              "source_anchors": [
+                "A1.Ex1",
+                "A1.Ex2",
+                "A1.Ex4",
+                "A1.Ex6",
+                "A1.Ex7",
+                "A1.Ex8"
+              ],
+              "verdict": "equivalent-after-definition-expansion (prospective header only)"
+            }
+          ],
+          "source_before_candidate_freeze": {
+            "LF_sha256": "199d43bb9cbd342e6795f1bcb19c520e09821263ad5fca4797049000cd8c74c7",
+            "RAW_bytes": 6510,
+            "RAW_sha256": "199d43bb9cbd342e6795f1bcb19c520e09821263ad5fca4797049000cd8c74c7",
+            "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-source-baseline75/stageA.freeze75.json"
+          },
+          "state": "accepted-prospective-source-header-only",
+          "verdict": "equivalent-after-definition-expansion; no implementation/elaboration credit"
+        }
+      }
+    ]
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No theorem proof attempt before claim. Original unresolved API negative retained; one exact Exp API expression independently accepted before v2 seal.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-hazard-clock/continuous-first-crossing/Exp-survival/cap"
+      ],
+      "expected_information_gain": "One canonical writer; distinct independent proof/blind decoder/source review after focused compile.",
+      "shared_verified_context_digest": "2a5e8e3ce15414148047fb8d893d4e91192b0f911a6df11e0c52e342d2d157c0"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "actual-flow-rate",
+        "continuous-primitive",
+        "closed-first-crossing",
+        "Borel-clock",
+        "Exp-survival",
+        "energy-cap",
+        "recursive-path-open"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws"
+    ],
+    "bookkeeping": [
+      "Literal actual hazard and unit-rate Exp first waiting-time law, not a terminal kernel."
+    ],
+    "new_reusable": [],
+    "new_topology": "Actual rate along actual harmonic flow: continuous/Borel integrated hazard; continuous-time first crossing including infinity; joint Borel first clock and exact Exp(1) survival; original-state energy cap, extended waiting lower bound and zero-cap branch."
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-clock-preproof75/root.statement-seal75.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 2,
+    "signature_digest": "00c9f04ff2d9ed037e3d8eab926a1cddc9fe3679a8b320267c641b86a0c243ee",
+    "binder_audit": {
+      "blocking_count": 0,
+      "counts": {
+        "EXCLUDED": 60,
+        "NODE": 77,
+        "future_obligations": 32,
+        "header_lines": 83,
+        "internal_bridges_OPEN": 13,
+        "let_definitions": 8,
+        "private_and_public_typing_classes": 5,
+        "public_analytic_callers": 6,
+        "seven_semantic_slots": 7,
+        "source_edges": 67,
+        "source_items": 137,
+        "source_nodes": 32,
+        "top_conjunctions": 10
+      },
+      "deltas": [
+        {
+          "description": "Exact root API name overlay replaces descriptive/unresolved expMeasure1 with pinned expMeasure(1). Source unit-rate marginal unchanged.",
+          "evidence": "exact-API-overlay75.finite-map.json and fixed Exponential.lean96/98/165",
+          "severity": "informational",
+          "slot": "objects"
+        },
+        {
+          "description": "Finite real Hilbert/Borel type representation and NNReal/WithTop carriers encode source continuous nonnegative time/infinity; no dimension positivity.",
+          "evidence": "complete private/public binder and tau definition; StageA O02/O12/O14",
+          "severity": "informational",
+          "slot": "domains"
+        },
+        {
+          "description": "Twice real fderiv represents original Hessian quadratic bound; gradient completeness is finite-real typing consequence. Original six assumptions retained, no producer supplied as caller.",
+          "evidence": "binders and gradient/proper/complete fixed API fragments",
+          "severity": "informational",
+          "slot": "assumptions"
+        },
+        {
+          "description": "Ten conclusions make suppressed elementary crossing/Borel/probability completions explicit. This is no proof of those thirteen internal bridges.",
+          "evidence": "StageA source graph N09–N24 typed internal bridge projection; ten exact header clauses",
+          "severity": "informational",
+          "slot": "conclusion"
+        },
+        {
+          "description": "Measure.map/Measure.real default conventions are controlled by explicit measurability/probability conclusions; untopA equality is finite-guarded. No recursive process or a.s.finite clock claim.",
+          "evidence": "W,C06,C07,C08 and fixed map/real/untopA definitions",
+          "severity": "informational",
+          "slot": "scopes_senses"
+        },
+        {
+          "description": "max0 inner equals source positive part; real.toNNReal of e/C under C>0 preserves nonnegative ratio. Exact energy/cap/Exp constants unchanged.",
+          "evidence": "rate,C,C10 and NNReal coe_toNNReal definition",
+          "severity": "informational",
+          "slot": "constant_dependencies"
+        }
+      ],
+      "evidence": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/review75.json",
+      "required_repairs": [],
+      "review_run_sha256": "2a5e8e3ce15414148047fb8d893d4e91192b0f911a6df11e0c52e342d2d157c0",
+      "reviewer_id": "/root/independent_primary69",
+      "reviewer_independence": "Distinct from root candidate/proposal author; no independent-header-math75 verdict/decision/payload read. Before-header independent SOURCE baseline CLOSED53 reused unchanged.",
+      "run_artifact": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/decision75.json",
+      "semantic_slots": [
+        {
+          "baseline_criterion": "SAME actual original V,eta,center,residual,Phi,rate,H,C and Lambda/tau; actual fixed rate1 exponential marginal. No supplied operator/provider/cap/hazard, no extra refresh.",
+          "blocker": false,
+          "candidate_evidence": {
+            "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "RAW_bytes": 45962,
+            "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+          },
+          "independent_comparison": "All eight lets are exact SAME actual values; h residual is inlined in rate. No arbitrary hazard, cap or law supplied; W fixes actual rate1 Exp measure. c/Phi/rate/H/C/Lambda/tau/W preserve source meanings.",
+          "slot": "objects",
+          "source_anchors": [
+            "S3.E4",
+            "A1.Ex1",
+            "A1.Ex2",
+            "A1.Ex4",
+            "A1.Ex6",
+            "A1.E1"
+          ],
+          "verdict": "equivalent-after-definition-expansion (prospective header only)"
+        },
+        {
+          "baseline_criterion": "Same finite real Hilbert/Borel carrier, all y,xRef,z=(x,p); nonnegative continuous time and threshold including0; extended nonnegative waiting time includes infinity. Rank0 remains legal.",
+          "blocker": false,
+          "candidate_evidence": {
+            "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "RAW_bytes": 45962,
+            "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+          },
+          "independent_comparison": "Five ordinary typing classes on one finite real Hilbert/Borel carrier; alpha,beta NNReal are equivalent to source nonnegative constants under0<alpha<=beta. y,xRef,z arbitrary. Continuous-time NNReal, threshold including0, WithTop NNReal wait includingtop; rank0 legal.",
+          "slot": "domains",
+          "source_anchors": [
+            "S1.p1.1",
+            "S2.SS2.p1.1",
+            "A1.SS1.p1.1",
+            "A1.SS1.p2.2"
+          ],
+          "verdict": "equivalent-after-definition-expansion (prospective header only)"
+        },
+        {
+          "baseline_criterion": "Exactly original six analytic callers. For every original fixed parameter/state, every e>=0 and finite t>=0; source flow/rate/cap/regularity/probability facts internally produced. Conditional positive-C branches are not caller hypotheses.",
+          "blocker": false,
+          "candidate_evidence": {
+            "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "RAW_bytes": 45962,
+            "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+          },
+          "independent_comparison": "Private/public six analytic binder strings identical. All ten conclusions quantify original y,xRef,z; e,t are nonnegative inputs under conclusions. Positive C, positive e and finite tau are scoped antecedents, not extra public hypotheses; no independence/probability/integrability/provider binder.",
+          "slot": "quantifiers",
+          "source_anchors": [
+            "A1.SS1.p1.1",
+            "S3.Thmtheorem1",
+            "A1.E1"
+          ],
+          "verdict": "equivalent-after-definition-expansion (prospective header only)"
+        },
+        {
+          "baseline_criterion": "Original C2/Hessian/0<alpha<=beta/0<eta/betaeta<=1 only. No unbounded hazard, positive energy/nontrivial carrier, finite/a.s. finite wait, iid, integrability, extra smoothness, arbitrary law, proof certificate or WellFoundedLT time premise.",
+          "blocker": false,
+          "candidate_evidence": {
+            "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "RAW_bytes": 45962,
+            "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+          },
+          "independent_comparison": "Source C2, whole Hessian quadratic bounds,0<alpha<=beta,eta>0,betaeta<=1 exactly retained. Twice fderiv V applied v,v is the real source Hessian quadratic form, not an extra regularity assumption. Completeness follows finite real dimension internally. No Nontrivial, positive energy, unbounded hazard, finite wait or WellFoundedLT premise.",
+          "slot": "assumptions",
+          "source_anchors": [
+            "S1.p1.1",
+            "S1.E1",
+            "S2.SS2.p1.1"
+          ],
+          "verdict": "equivalent-after-definition-expansion (prospective header only)"
+        },
+        {
+          "baseline_criterion": "Exact actual primitive laws and clock sublevel/empty-top/finite equality/e0/positive-threshold laws, joint Borel clock, actual Exp1 survival and SAME-start-energy integrated cap/extended wait bound. This list is not a75 theorem statement or semantic verdict.",
+          "blocker": false,
+          "candidate_evidence": {
+            "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "RAW_bytes": 45962,
+            "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+          },
+          "independent_comparison": "Ten top conjuncts exactly express frozen prospective primitive/clock/survival/bound contract. Finite wait equality uses untopA only under tau!=top. Empty crossing top iff every finite Lambda<e is equivalent; e0=0 and zero cap positive threshold infinity both explicit. This accepts statement meaning only; all proofs remain absent.",
+          "slot": "conclusion",
+          "source_anchors": [
+            "A1.E1",
+            "A1.SS1.p2.2",
+            "A1.Ex7",
+            "A1.Ex8"
+          ],
+          "verdict": "equivalent-after-definition-expansion (prospective header only)"
+        },
+        {
+          "baseline_criterion": "Source literal (A.1), integral cap and finite-wait lower bound are separated from required continuous-time closure/measurability/probability completions. Only one flow-segment clock law; no recursive process/Markov/nonexplosion/invariance/kernel or reader admission. Real probability versus ENNReal measure explicit.",
+          "blocker": false,
+          "candidate_evidence": {
+            "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "RAW_bytes": 45962,
+            "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+          },
+          "independent_comparison": "Generic hittingAfter definition instantiated on NNReal continuous time and actualLambda-e, not discrete theorem. Tuple parameter projections exact. Measure.map default0 cannot legalize nonmeasurability: joint Measurable tau and IsProbabilityMeasure W are conclusions. W.real is probability toReal under finite probability, strict Ioi includes possible infinity. No recursive path, Markov/nonexplosion/kernel/stationarity or reader claim.",
+          "slot": "scopes_senses",
+          "source_anchors": [
+            "A1.E1",
+            "A1.E2",
+            "A1.Ex9",
+            "A1.SS1.p3.7"
+          ],
+          "verdict": "equivalent-after-definition-expansion (prospective header only)"
+        },
+        {
+          "baseline_criterion": "Exact source sqrteta, beta, sqrt(2H), sqrt(2etaH), norm(c-xRef), weighted energy half and eta inverse; Exp unit rate. C is evaluated at SAME actual H(z), not a caller or unspecified universal constant. alphaeta=1 allowed.",
+          "blocker": false,
+          "candidate_evidence": {
+            "LF_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "RAW_bytes": 45962,
+            "RAW_sha256": "6791fde121dee3b066c0eae770d3c6abdb89b0746ae5890237de8b8772774e50",
+            "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json"
+          },
+          "independent_comparison": "Exact sqrteta, -sin/sqrteta, eta inverse, energy half, max0 actual residual, beta and sqrt2 energy radii retained; C uses SAME H(z). Exp rate exactly1, survival exp(-Lambda); lower wait uses e/C only within C>0, with exact toNNReal nonnegative ratio. No refresh, extra2, arbitrary C, cost or source rho.",
+          "slot": "constant_dependencies",
+          "source_anchors": [
+            "A1.Ex1",
+            "A1.Ex2",
+            "A1.Ex4",
+            "A1.Ex6",
+            "A1.Ex7",
+            "A1.Ex8"
+          ],
+          "verdict": "equivalent-after-definition-expansion (prospective header only)"
+        }
+      ],
+      "source_before_candidate_freeze": {
+        "LF_sha256": "199d43bb9cbd342e6795f1bcb19c520e09821263ad5fca4797049000cd8c74c7",
+        "RAW_bytes": 6510,
+        "RAW_sha256": "199d43bb9cbd342e6795f1bcb19c520e09821263ad5fca4797049000cd8c74c7",
+        "path": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-source-baseline75/stageA.freeze75.json"
+      },
+      "state": "accepted-prospective-source-header-only",
+      "verdict": "equivalent-after-definition-expansion; no implementation/elaboration credit"
+    },
+    "definition_kind": "Complete private literal of actual c/Phi/rate/H/C/Lambda/tau/W and ten clauses; original six analytic callers. Specification only, no provider."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-source-baseline75/source-proof-graph75.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-source-baseline75/source-coverage-inventory75.json",
+    "coverage_report": {
+      "EXCLUDED": 60,
+      "NODE": 77,
+      "complete_literal_and_header": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/complete-header-expansion75.json",
+      "edges": 67,
+      "future_obligations": 32,
+      "header_projection": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-source75/header-source-coverage75.json",
+      "internal_bridges_OPEN": 13,
+      "nodes": 32,
+      "not_Lean_dependency_graph": true,
+      "source_graph": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-source-baseline75/source-proof-graph75.json",
+      "source_inventory": "runs/20261007-companion-priority/pbps-clock-preproof75/independent-source-baseline75/source-coverage-inventory75.json",
+      "source_items": 137,
+      "source_topology_or_classification_changed": false,
+      "status": "source-only prospective header projection; all75 proof gaps remainOPEN"
+    },
+    "coverage_status": "Independent prospective source/header topology only:137items77NODE60EXCLUDED;32nodes67edges32obligations13internalbridgesOPEN. Implementation coverage pending."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Pending actual theorem implementation; private literal is specification only.",
+    "duplicate_semantics_audit": "Existing actual flow and bounce/rate do not construct the continuous-time first clock.",
+    "canonicalization": "Reuse hittingAfter/expMeasure and actual73/74.",
+    "compressed_spine_delta": "Actual rate along actual harmonic flow: continuous/Borel integrated hazard; continuous-time first crossing including infinity; joint Borel first clock and exact Exp(1) survival; original-state energy cap, extended waiting lower bound and zero-cap branch.",
+    "reader_default_view": "Complete attributed statement, stepwise formula proof and adjacent exact initially folded Lean.",
+    "scope": "Only one actual flow-segment hazard and first waiting-time probability law, including infinite waits and e=0. No recursive PDMP path, iid recursion/SLLN/nonexplosion, Markov memorylessness, invariant/reversed or terminal kernel, hypocoercivity/main, implementation error, expected query cost, actual-input composition, full Exposition/PURIFIED/main/live/whole-paper/Goal completion credit."
+  },
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws"
+  ],
+  "conceptual_mirror_audit": {
+    "status": "pending",
+    "discovery_ids": [],
+    "reason": "Required before PROVED_LOCAL; one-clock law does not certify recursive path/nonexplosion/invariance."
+  }
+}

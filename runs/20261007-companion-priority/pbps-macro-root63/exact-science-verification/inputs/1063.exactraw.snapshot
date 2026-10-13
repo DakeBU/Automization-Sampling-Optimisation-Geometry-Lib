@@ -1,0 +1,48 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CarreDuChamp
+
+/-!
+# The algebraic Bakry--Émery interpolation bound
+
+For a linear generator, the definition of the iterated carré du champ gives
+
+`2 Γ₂(f) = L Γ(f) - 2 Γ(f, Lf)`.
+
+Combining this identity with `CD(κ, ∞)` supplies the lower derivative bound
+used in the standard backward semigroup interpolation.  This file proves that
+algebraic implication without assuming a concrete semigroup or its derivative
+formula.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+
+open CarreDuChamp
+
+variable {X : Type*}
+
+/-- The fully expanded diagonal `CD(alpha, infinity)` inequality gives the
+generator expression used in backward interpolation.
+
+To keep the public interface directly inspectable, the statement exposes
+positivity of `alpha`, every curvature quantifier, and the exact one-half
+normalization of the iterated carré du champ in its signature. -/
+theorem interpolationDerivative_lower_bound_of_expandedBakryEmery
+    (generator : (X → ℝ) →ₗ[ℝ] (X → ℝ))
+    {alpha : ℝ} (_halpha : 0 < alpha)
+    (hcurvature : ∀ (g : X → ℝ) (y : X),
+      alpha * carreDuChamp generator g g y ≤
+        (2 : ℝ)⁻¹ *
+          (generator (carreDuChamp generator g g) y -
+            carreDuChamp generator g (generator g) y -
+            carreDuChamp generator g (generator g) y))
+    (f : X → ℝ) (x : X) :
+    2 * alpha * carreDuChamp generator f f x ≤
+      generator (carreDuChamp generator f f) x -
+        2 * carreDuChamp generator f (generator f) x := by
+  have h := hcurvature f x
+  nlinarith
+
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

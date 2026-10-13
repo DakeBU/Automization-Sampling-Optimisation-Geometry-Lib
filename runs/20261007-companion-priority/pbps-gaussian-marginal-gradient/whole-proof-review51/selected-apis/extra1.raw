@@ -1,0 +1,16 @@
+open scoped Classical in
+/-- If `f` is closable, then `f.closure` is the closure. Otherwise it is defined
+as `f.closure = f`. -/
+noncomputable def closure (f : E →ₗ.[R] F) : E →ₗ.[R] F :=
+  if hf : f.IsClosable then hf.choose else f
+
+theorem closure_def {f : E →ₗ.[R] F} (hf : f.IsClosable) : f.closure = hf.choose := by
+  simp [closure, hf]
+
+theorem closure_def' {f : E →ₗ.[R] F} (hf : ¬f.IsClosable) : f.closure = f := by simp [closure, hf]
+
+/-- The closure (as a submodule) of the graph is equal to the graph of the closure
+  (as a `LinearPMap`). -/
+theorem IsClosable.graph_closure_eq_closure_graph {f : E →ₗ.[R] F} (hf : f.IsClosable) :
+    f.graph.topologicalClosure = f.closure.graph := by
+  rw [closure_def hf]

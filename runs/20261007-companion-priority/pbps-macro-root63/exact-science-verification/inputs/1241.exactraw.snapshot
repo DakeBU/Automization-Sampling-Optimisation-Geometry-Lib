@@ -1,0 +1,84 @@
+{
+  "schema_version": 2,
+  "cell_id": "ASTIS-SHARED-conditional-resampling-law",
+  "route": "shared",
+  "title": "Recover a joint law from a marginal and conditional distribution",
+  "mode": "faithfulPaper",
+  "source_anchor": "Fearnhead–Nemeth–Oates–Sherlock arXiv:2407.12751v1 §2.1.1 Component-wise updates and Gibbs moves, printed p.48 / PDF p.54; Chen–Štefankovič–Vigoda arXiv:2307.13826v4 §1.3 Glauber dynamics/Gibbs sampler",
+  "target_statement": "For measurable spaces α and nonempty Standard-Borel β, a finite measure μ on α × β is recovered exactly by the composition-product of its first marginal and the regular conditional law of the second coordinate given the first.",
+  "status": "independently_verified",
+  "parents": [
+    "ProbabilityTheory.compProd_map_condDistrib"
+  ],
+  "consumers": [
+    "mcmc",
+    "discrete-sampling"
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib TechnicalLemmas/Probability/ConditionalKernel.lean",
+      "Mathlib Probability.Kernel.CondDistrib",
+      "Mathlib Probability.Kernel.Composition.MeasureCompProd",
+      "active shared Frontier Cells"
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "ProbabilityTheory.compProd_map_condDistrib",
+    "canonical_shared_cell": "ASTIS-SHARED-conditional-resampling-law",
+    "notes": "Mathlib already proves the general random-variable disintegration identity. ASTIS only supplies the product-state specialization needed as a stable Gibbs/heat-bath shared interface; no second disintegration proof is introduced."
+  },
+  "evidence": {
+    "focused_checks": ["2026-09-08: lake build Tests.ConditionalResampling passed; Lean 4.33.0, Mathlib db584cd6d46c92f209a44c0f1c829460d327499d"],
+    "independent_verification": "2026-09-08: kernel_packet_review independently checked commit 51dbfae5089e163b7e28195591df7010d5850ada. Tests.ConditionalResampling passed (2973 jobs), Frontier Cell check passed, scoped fake-closure scan clean, and compiled signatures/axioms checked. Accepted only as a source-neutral reusable interface; root build and stabilization remain pending. See runs/20260908-samplewiki-resume/independent-review.md.",
+    "root_build": "",
+    "graph_regeneration": "",
+    "pr": "https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep/pull/247"
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "source_detail_audit": {
+    "primary_edition": "Fearnhead–Nemeth–Oates–Sherlock arXiv:2407.12751v1; Chen–Štefankovič–Vigoda arXiv:2307.13826v4",
+    "primary_anchor": "MCMC §2.1.1 component-wise/Gibbs moves; Discrete Sampling §1.3 Glauber dynamics/Gibbs sampler.",
+    "detail_status": "omitted",
+    "gap": "The textbook Gibbs-update motivation does not state the finite-measure regular-conditional-distribution disintegration contract, including standard-Borel and nonempty resampled space and marginal-a.e. representative choice.",
+    "consulted": [{
+      "source": "Mathlib db584cd6d46c92f209a44c0f1c829460d327499d, Mathlib/Probability/Kernel/CondDistrib.lean",
+      "anchor": "condDistrib definition and compProd_map_condDistrib, lines 54-85",
+      "hypothesis_adapter": "Use X=Prod.fst and Y=Prod.snd on α×β, finite μ, nonempty Standard-Borel β, and measurable_snd.aemeasurable; instantiate the ordinary implicit mβ with the existing measurable space on α, then simplify the identity pushforward. No pointwise conditional law or null-fiber support claim."
+    }],
+    "fidelity_boundary": "This cell proves only the joint-law disintegration identity. Constructing a state-to-state heat-bath kernel, proving its invariance/reversibility, choosing random or deterministic scan order, and proving ergodicity/mixing are separate downstream obligations."
+  },
+  "mcmc_contract": {
+    "state_space": "Product measurable state α × β; β is nonempty and Standard Borel, with no topological or nonempty requirement on α.",
+    "target": "The original finite joint measure μ on α × β.",
+    "support": "No density or positivity assumption is introduced. The selected conditional distribution is specified only marginal-almost-everywhere; null-fiber representatives have no asserted conditional-support property. Downstream Gibbs updates retain feasible conditional-support contracts.",
+    "operator": "No state-to-state MCMC transition kernel yet; the object is the measure composition-product of the first marginal with condDistrib(snd | fst).",
+    "clock": "Static law identity; no update clock is claimed.",
+    "invariance": "Not yet a kernel-invariance theorem. The identity is the law-level substrate used to prove such a theorem after a heat-bath kernel is constructed.",
+    "ergodicity": "Not applicable; no convergence theorem.",
+    "initialization": "Not applicable; equality is an identity for μ itself.",
+    "metric": "Exact equality of measures; no approximation metric.",
+    "cost": "No computational-cost statement.",
+    "objective": "Expose the conditional-resampling law identity shared by Gibbs/heat-bath constructions.",
+    "source_proof_status": "The textbooks motivate conditional/component updates; the exact measure identity is adapted from Mathlib's compiled regular-conditional-distribution theorem.",
+    "time_model": "static",
+    "periodicity": "Not applicable because this cell does not define or iterate a Markov chain.",
+    "invariance_class": "exact-target"
+  },
+  "discrete_state_contract": {
+    "state_space": "Shared product measurable space; Discrete Sampling specializes it to a finite configuration split into retained and resampled blocks.",
+    "support": "Finite consumers must specify feasible configurations and conditioning events; this shared identity introduces no new support convention.",
+    "target": "Joint measure μ, specialized downstream to a Gibbs law.",
+    "operator": "Static disintegration identity, not yet a Glauber transition matrix/kernel.",
+    "time_model": "static",
+    "clock": "Not applicable until a concrete update kernel and scan rule are defined.",
+    "reversibility": "Not claimed. Conditional resampling will require a separate kernel-level detailed-balance or invariance proof.",
+    "pinning": "Downstream finite Gibbs consumers must quantify only over feasible positive-probability pinnings; this theorem itself is regular-conditional-law based.",
+    "regime": "All finite μ, including zero, on a product with nonempty Standard-Borel resampled coordinate.",
+    "metric": "Exact measure identity, not TV/KL/mixing.",
+    "cost": "No update/sweep complexity claim.",
+    "source_proof_status": "Source-facing Gibbs motivation plus compiled Mathlib disintegration identity; no discrete mixing theorem is inferred."
+  }
+}

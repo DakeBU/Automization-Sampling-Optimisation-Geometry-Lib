@@ -1,0 +1,177 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyLocalizer
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompletedIntegrand
+
+/-!
+# Energy-stopped progressive integrands
+
+A completed integrand is stopped by the progressive threshold
+`completedEnergy t < level`. Continuity and monotonicity identify this
+threshold, away from the null terminal endpoint, with stopping before the
+canonical equality-level localizer. This yields the exact pathwise energy
+bound needed for global `L2` stochastic integration.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace EnergyStoppedIntegrand
+
+open MeasureTheory Set
+open scoped NNReal
+
+open ProgressiveL2 LocalProgressiveL2 CompletedEnergy CompletedIntegrand
+  CanonicalEnergyLocalizer
+open TechnicalLemmas.Analysis.PrefixIntegral
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- Completed integrand stopped immediately when completed energy reaches the
+specified level. -/
+noncomputable def energyStoppedIntegrand
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (level : ℝ) (t : ℝ≥0) (omega : Omega) : ℝ :=
+  if completedEnergy hUsual eta t omega < level then
+    completedIntegrand hUsual eta t omega
+  else
+    0
+
+/-- Energy thresholding preserves strong progressiveness. -/
+theorem energyStoppedIntegrand_stronglyProgressive
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (level : ℝ) :
+    IsStronglyProgressive filtration
+      (energyStoppedIntegrand hUsual eta level) := by
+  intro terminal
+  have henergy := completedEnergy_stronglyProgressive hUsual eta terminal
+  have hset : @MeasurableSet (Set.Iic terminal × Omega)
+      (Subtype.instMeasurableSpace.prod (filtration terminal))
+      {p | completedEnergy hUsual eta p.1 p.2 < level} :=
+    measurableSet_Iio.preimage henergy.measurable
+  exact StronglyMeasurable.ite hset
+    (completedIntegrand_stronglyProgressive hUsual eta terminal)
+    stronglyMeasurable_const
+
+/-- Before terminal time, being below the energy level is equivalent to being
+strictly before the canonical equality-level localizer. -/
+theorem completedEnergy_lt_iff_lt_canonicalEnergyLocalizer
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    {level : ℝ} (hlevel : 0 ≤ level) (omega : Omega)
+    {s : ℝ≥0} (hsT : s < T) :
+    completedEnergy hUsual eta s omega < level ↔
+      s < canonicalEnergyLocalizer hUsual eta level omega := by
+  constructor
+  · intro hbelow
+    by_contra hnot
+    have hstop : canonicalEnergyLocalizer hUsual eta level omega ≤ s :=
+      le_of_not_gt hnot
+    by_cases hne : (energyLevelSet hUsual eta level omega).Nonempty
+    · have hmem := canonicalEnergyLocalizer_mem hUsual eta level omega hne
+      have hmono := monotone_completedEnergy hUsual eta omega hstop
+      have hlevel_le_s : level ≤ completedEnergy hUsual eta s omega := by
+        calc
+          level = completedEnergy hUsual eta
+              (canonicalEnergyLocalizer hUsual eta level omega) omega := hmem.2.symm
+          _ ≤ completedEnergy hUsual eta s omega := hmono
+      exact (not_le_of_gt hbelow) hlevel_le_s
+    · have heq : canonicalEnergyLocalizer hUsual eta level omega = T := by
+        simp [canonicalEnergyLocalizer, hne]
+      rw [heq] at hstop
+      exact (not_le_of_gt hsT) hstop
+  · intro hbefore
+    by_contra hnot
+    have hcross : level ≤ completedEnergy hUsual eta s omega :=
+      le_of_not_gt hnot
+    rcases exists_level_time_of_le hUsual eta hlevel hsT.le hcross with
+      ⟨u, hu, hvalue⟩
+    have humem : u ∈ energyLevelSet hUsual eta level omega :=
+      ⟨⟨hu.1, hu.2.trans hsT.le⟩, hvalue⟩
+    have hlocal := canonicalEnergyLocalizer_le_of_mem
+      hUsual eta level omega humem
+    exact (not_le_of_gt hbefore) (hlocal.trans hu.2)
+
+/-- On every sample path, the stopped square is time-integrable. -/
+theorem sectionSquare_integrable
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (level : ℝ) (omega : Omega) :
+    Integrable
+      (fun s => (energyStoppedIntegrand hUsual eta level s omega) ^ 2)
+      (TimeMeasure.upTo T) := by
+  have hbase := CompletedIntegrand.sectionSquare_integrable hUsual eta omega
+  have hset : MeasurableSet
+      {s : ℝ≥0 | completedEnergy hUsual eta s omega < level} :=
+    measurableSet_Iio.preimage
+      (continuous_completedEnergy hUsual eta omega).measurable
+  have hmeas : AEStronglyMeasurable
+      (fun s => (energyStoppedIntegrand hUsual eta level s omega) ^ 2)
+      (TimeMeasure.upTo T) := by
+    have hind : AEStronglyMeasurable
+        ({s : ℝ≥0 | completedEnergy hUsual eta s omega < level}.indicator
+          (fun s => (completedIntegrand hUsual eta s omega) ^ 2))
+        (TimeMeasure.upTo T) :=
+      hbase.1.indicator hset
+    refine hind.congr (ae_of_all _ fun s => ?_)
+    by_cases hs : completedEnergy hUsual eta s omega < level
+    · simp [energyStoppedIntegrand, Set.indicator, hs]
+    · simp [energyStoppedIntegrand, Set.indicator, hs]
+  exact hbase.mono' hmeas (ae_of_all _ fun s => by
+    by_cases hs : completedEnergy hUsual eta s omega < level
+    · simp [energyStoppedIntegrand, hs]
+    · have hsq : 0 ≤ (completedIntegrand hUsual eta s omega) ^ 2 :=
+        sq_nonneg _
+      simpa [energyStoppedIntegrand, hs, Real.norm_eq_abs,
+        abs_of_nonneg hsq] using hsq)
+
+/-- The real time integral of the stopped square is the completed energy at
+its canonical localizer. -/
+theorem integral_energyStoppedIntegrand_sq
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    {level : ℝ} (hlevel : 0 ≤ level) (omega : Omega) :
+    ∫ s, (energyStoppedIntegrand hUsual eta level s omega) ^ 2
+        ∂(TimeMeasure.upTo T) =
+      completedEnergy hUsual eta
+        (canonicalEnergyLocalizer hUsual eta level omega) omega := by
+  rw [completedEnergy_eq_prefixIntegral]
+  unfold prefixIntegral
+  apply integral_congr_ae
+  have hterminal : ∀ᵐ s ∂(TimeMeasure.upTo T), s ≠ T := by
+    rw [ae_iff]
+    simpa using TimeMeasure.upTo_singleton T T
+  filter_upwards [TimeMeasure.ae_le_terminal T, hterminal] with s hsT hsne
+  have hsTlt : s < T := lt_of_le_of_ne hsT hsne
+  have hstopT := canonicalEnergyLocalizer_le_terminal
+    hUsual eta level omega
+  have hmin : min (canonicalEnergyLocalizer hUsual eta level omega) T =
+      canonicalEnergyLocalizer hUsual eta level omega :=
+    min_eq_left hstopT
+  rw [hmin]
+  have hiff := completedEnergy_lt_iff_lt_canonicalEnergyLocalizer
+    hUsual eta hlevel omega hsTlt
+  by_cases hbelow : completedEnergy hUsual eta s omega < level
+  · have hbefore : s < canonicalEnergyLocalizer hUsual eta level omega :=
+      hiff.mp hbelow
+    simp [energyStoppedIntegrand, hbelow, hbefore]
+  · have hnotbefore : ¬s < canonicalEnergyLocalizer hUsual eta level omega :=
+      fun h => hbelow (hiff.mpr h)
+    simp [energyStoppedIntegrand, hbelow, hnotbefore]
+
+/-- Stopping at a nonnegative energy level bounds the pathwise square energy
+by that level. -/
+theorem integral_energyStoppedIntegrand_sq_le
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    {level : ℝ} (hlevel : 0 ≤ level) (omega : Omega) :
+    ∫ s, (energyStoppedIntegrand hUsual eta level s omega) ^ 2
+        ∂(TimeMeasure.upTo T) ≤ level := by
+  rw [integral_energyStoppedIntegrand_sq hUsual eta hlevel omega]
+  exact completedEnergy_at_canonical_le hUsual eta hlevel omega
+
+end EnergyStoppedIntegrand
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

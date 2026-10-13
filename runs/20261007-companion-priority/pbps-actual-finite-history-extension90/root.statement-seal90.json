@@ -1,0 +1,58 @@
+{
+  "status": "SEALED_BEFORE_BODY_AFTER_DISTINCT_PREPROOF_MATH_SOURCE_AND_TOPOLOGY_ACCEPTANCE",
+  "sealed_utc": "2026-10-11T00:12:34.636009+00:00",
+  "statement_version": 1,
+  "header": {
+    "path": "runs/20261007-companion-priority/pbps-next-history-extension-preread90/header90.v2.proposed.lean",
+    "raw_sha256": "5c976dcfe91fe074db71ddbf13385086735c41c273e937b0c6ef432b7dba9037",
+    "bytes": 6443
+  },
+  "expanded_literal_Prop": "actual_finite_history_extension_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let waitObs : E → E → (((ℝ≥0 × (E × E)) ⊕ Unit) × ℝ) → WithTop ℝ≥0 :=\n      fun y xRef q => match q.1 with\n        | Sum.inl a => τ y xRef a.2 (Real.toNNReal q.2)\n        | Sum.inr _ => 0\n    let timeObs : E → E → (((ℝ≥0 × (E × E)) ⊕ Unit) × ℝ) → ℝ :=\n      fun y xRef q => ((waitObs y xRef q).untopD 0 : ℝ≥0)\n    let density : E → E → (((ℝ≥0 × (E × E)) ⊕ Unit) × ℝ) → ℝ≥0∞ :=\n      fun y xRef q => match q.1 with\n        | Sum.inl a => ENNReal.ofReal (rate xRef (Φ y xRef q.2 a.2) *\n            Real.exp (-Λ y xRef a.2 (Real.toNNReal q.2)))\n        | Sum.inr _ => 0\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ n : ℕ,\n      let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n      let Hist := Fin (n + 1) → Rec\n      let HistNext := Fin (n + 2) → Rec\n      let last : Fin (n + 1) := ⟨n, Nat.lt_succ_self n⟩\n      let H : (ℕ → ℝ) → Hist := history y xRef z₀ n\n      let Hnext : (ℕ → ℝ) → HistNext := history y xRef z₀ (n + 1)\n      let append : Hist × ℝ → HistNext := fun p =>\n        Fin.snoc p.1 (match p.1 last with\n          | Sum.inl a => Sum.inl (a.1 + Real.toNNReal p.2,\n              S xRef (Φ y xRef p.2 a.2))\n          | Sum.inr _ => Sum.inr ())\n      let lift : Hist × ℝ → HistNext × ℝ := fun p => (append p, p.2)\n      Measurable Hnext ∧ Measurable append ∧ Measurable lift ∧\n      (∀ p : Hist × ℝ, ∀ j : Fin (n + 1), append p j.castSucc = p.1 j) ∧\n      (∀ d : Hist → ℝ≥0, Measurable d →\n        let μ : Measure Hist := Measure.map H P\n        let D : Hist → ℝ → ℝ≥0∞ := fun h s =>\n          if 0 < s ∧ s < (d h : ℝ) then density y xRef (h last, s) else 0\n        let B : Set (ℕ → ℝ) := {w |\n          (0 : WithTop ℝ≥0) < waitObs y xRef (record y xRef z₀ (ε w) n, w n) ∧\n          waitObs y xRef (record y xRef z₀ (ε w) n, w n) <\n            ((d (H w) : ℝ≥0) : WithTop ℝ≥0)}\n        let X : (ℕ → ℝ) → Hist × ℝ := fun w =>\n          (H w, timeObs y xRef (record y xRef z₀ (ε w) n, w n))\n        let Y : (ℕ → ℝ) → HistNext × ℝ := fun w =>\n          (Hnext w, timeObs y xRef (record y xRef z₀ (ε w) n, w n))\n        let ν : Measure (Hist × ℝ) := (μ.prod (volume : Measure ℝ)).withDensity\n          (fun p => D p.1 p.2)\n        MeasurableSet B ∧ Measurable Y ∧\n        (∀ w ∈ B, Hnext w = append (X w)) ∧\n        Measure.map Y (P.restrict B) = Measure.map lift ν ∧\n        Measure.map Hnext (P.restrict B) = Measure.map append ν ∧\n        (Measure.map lift ν) Set.univ ≤ 1 ∧\n        (∀ F : HistNext × ℝ → ℝ≥0∞, Measurable F →\n          Measurable (fun h => ∫⁻ s : ℝ, F (lift (h, s)) * D h s) ∧\n          (∀ A : Set Hist, MeasurableSet A →\n            (∫⁻ w in B ∩ H ⁻¹' A, F (Y w) ∂P) =\n              ∫⁻ h in A, (∫⁻ s : ℝ, F (lift (h, s)) * D h s) ∂μ)))\n",
+  "public_theorem": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension.actual_finite_history_extension",
+  "primary_first_freeze": {
+    "path": "runs/20261007-companion-priority/pbps-next-history-extension-preread90/independent-source-first90/source-first90.native.json",
+    "raw_sha256": "d17be7c61b2f1e8173eea6c548b18f06c40414802ff3810b241d6659d760631e",
+    "bytes": 18781
+  },
+  "source_graph": {
+    "path": "runs/20261007-companion-priority/pbps-next-history-extension-preread90/source-proof-graph90.accepted-successor.json",
+    "raw_sha256": "b39b8b3c26758d0787ded303c14c3c927c95033d3ff75bdc1a534431bf1fa8b7",
+    "bytes": 11708
+  },
+  "source_coverage": {
+    "path": "runs/20261007-companion-priority/pbps-next-history-extension-preread90/independent-source-first90/source-coverage90.native.json",
+    "raw_sha256": "a8e026e8cea330e34ca620561fe1208e219ad810e565d5757b2e8e913cd2e2de",
+    "bytes": 8779
+  },
+  "independent_authorization": {
+    "path": "runs/20261007-companion-priority/pbps-next-history-extension-preread90/root.preproof90.authorization.json",
+    "raw_sha256": "0cc69d0d2715fb366778e5f81eeb80421e91c14274f6ab91b531eea8ae2a6993",
+    "bytes": 26448
+  },
+  "reuse_search": [
+    {
+      "path": "runs/20261007-companion-priority/pbps-next-history-extension-preread90/retrieval90.json",
+      "raw_sha256": "170dd1b315a6b4fbb33c2095123818cf77cd143ce18796e9a0dba513f03b9bc2",
+      "bytes": 8700
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-next-history-extension-preread90/retrieval90.facade-memory-addendum.json",
+      "raw_sha256": "6990040438ea6234e35d324bfefc988e4b6fa6f563b8918f035044ea30db4907",
+      "bytes": 1002
+    }
+  ],
+  "toolchain": {
+    "path": "lean-toolchain",
+    "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+    "bytes": 26
+  },
+  "lake_manifest": {
+    "path": "lake-manifest.json",
+    "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+    "bytes": 3234
+  },
+  "truth_boundary": "Six original analytic hypotheses and literal stopped iid exponential-clock recursion unchanged. Every deterministic depth n, all abstract histories and rank-zero E included. A jointly Borel append preserves every old record and appends actual cumulative time/post-bounce state on the strict finite event B={0<W_n<d(H_n)}. Fixed Borel finite-valued d may be unbounded across histories; all jointly Borel extended nonnegative tests and null old-history events included without normalization or integrability/positive-mass premises. Negative-time/stopped append branches are auxiliary totalizations only. Joint and marginal n+1-history laws are restricted to B, never unrestricted laws or finite-wait guarantees. Only one actual history-extension edge within S87-I5/G86-11 closes if proved. Ordered absolute-time iteration, final survival/path assembly, full A7/global G86-11, physical-time residual memorylessness/random-depth restart/Markovness, invariance/nonexplosion/hypocoercivity/implementation errors/unbounded costs/main/composition/wholepaper/Goal remain OPEN. Survival88 and no-atom results are not AND parents.",
+  "proof_BODY_created": false,
+  "collaborator_RAW_preservation_count": 21,
+  "chronology_disclosure": "Primary-first creator and distinct source-topology reconstruction preceded every90 candidate/header. Two source-topology scope strings were distinctly reviewed and adopted before header review; original source files remain immutable. V1 section-end syntax failure and V2 correction preserved. Whole V2 header independently reviewed before this Seal; no proof BODY exists."
+}

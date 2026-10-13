@@ -12,6 +12,7 @@ import AutoSamplingTheory.TechnicalLemmas.Probability.NormalizedFiniteMeasure
 import AutoSamplingTheory.TechnicalLemmas.Probability.NormalizedFiniteMeasureIntegral
 import AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment
 import AutoSamplingTheory.TechnicalLemmas.Probability.UniformExpectationGap
+import AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct
 
 /-!
 # Probability technical lemma arsenal

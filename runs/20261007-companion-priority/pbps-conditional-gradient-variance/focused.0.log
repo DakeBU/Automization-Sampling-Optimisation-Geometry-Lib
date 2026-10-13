@@ -1,0 +1,181 @@
+AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGradientVariance.lean:53:2: warning: Try this: 
+  letI̵
+
+The goal is a proposition, so `let` is preferred over `letI`.
+The difference between `let` and `letI` is that `letI` inlines the value.
+But this is not relevant for proofs because of proof irrelevance.
+
+Note: This linter can be disabled with `set_option linter.style.haveILetI false`
+AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGradientVariance.lean:79:56: error: unsolved goals
+E : Type u_1
+inst✝⁴ : NormedAddCommGroup E
+inst✝³ : InnerProductSpace ℝ E
+inst✝² : FiniteDimensional ℝ E
+inst✝¹ : MeasurableSpace E
+inst✝ : BorelSpace E
+V : E → ℝ
+α β : ℝ≥0
+η : ℝ
+hα : 0 < ↑α
+hαβ : α ≤ β
+hV : ContDiff ℝ 2 V
+hH : ∀ (x a : E), ↑α * ‖a‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) a) a ∧ ((fderiv ℝ (fderiv ℝ V) x) a) a ≤ ↑β * ‖a‖ ^ 2
+hη : 0 < η
+hβη : ↑β * η ≤ 1
+R S : Kernel E E
+hR : IsMarkovKernel R
+hS : IsMarkovKernel S
+hcond :
+  (Measure.map Prod.swap
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).IsCondKernel
+    R
+hSR : ∀ (y : E), S y = Measure.map (fun x => 2 • x - y) (R y)
+hSd : ∀ (y : E), S y = ℙ.tilted fun u => -V ((1 / 2) • (y + u)) - ‖y - u‖ ^ 2 / (8 * η)
+hder :
+  ∀ (f : E → ℝ),
+    ContDiff ℝ ∞ f →
+      HasCompactSupport f →
+        ∀ (y : E),
+          Integrable ((fun y u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)) y)
+              (S y) ∧
+            Integrable
+                (fun u =>
+                  f u •
+                    (fun y u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)) y u)
+                (S y) ∧
+              HasFDerivAt (fun z => ∫ (u : E), f u ∂S z)
+                (∫ (u : E),
+                    f u •
+                      (fun y u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)) y
+                        u ∂S y -
+                  (∫ (u : E), f u ∂S y) •
+                    ∫ (u : E),
+                      (fun y u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)) y
+                        u ∂S y)
+                y
+R' : Kernel E E
+left✝¹² : IsMarkovKernel R'
+left✝¹¹ :
+  (Measure.map Prod.swap
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).IsCondKernel
+    R'
+left✝¹⁰ : IsMarkovKernel S
+left✝⁹ : ∀ (y : E), S y = Measure.map (fun x => 2 • x - y) (R' y)
+hvar :
+  ∀ (y : E),
+    (S y = ℙ.tilted fun u => -(fun y u => V ((1 / 2) • (y + u)) + ‖u - y‖ ^ 2 / (8 * η)) y u) ∧
+      ContDiff ℝ 2 ((fun y u => V ((1 / 2) • (y + u)) + ‖u - y‖ ^ 2 / (8 * η)) y) ∧
+        Integrable (fun u => Real.exp (-(fun y u => V ((1 / 2) • (y + u)) + ‖u - y‖ ^ 2 / (8 * η)) y u)) ℙ ∧
+          0 < ∫ (u : E), Real.exp (-(fun y u => V ((1 / 2) • (y + u)) + ‖u - y‖ ^ 2 / (8 * η)) y u) ∧
+            ∃ D,
+              Dense ↑D.domain ∧
+                D.IsClosable ∧
+                  D.closure.IsClosed ∧
+                    (∀ (a : ↥(Lp ℝ 2 (S y))) (G : ↥(Lp E 2 (S y))),
+                        (a, G) ∈ D.graph ↔
+                          ∃ φ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧ ↑↑a =ᵐ[S y] φ ∧ ↑↑G =ᵐ[S y] gradient φ) ∧
+                      (∀ (z : ↥D.closure.domain),
+                          ∫ (x : E), ↑↑↑z x ∂S y = 0 → (↑α + 1 / η) / 4 * ‖↑z‖ ^ 2 ≤ ‖↑D.closure z‖ ^ 2) ∧
+                        ∀ (a : E),
+                          (TechnicalLemmas.FunctionalInequalities.Poincare.Admissible (S y) fun u =>
+                              ((fun y u =>
+                                    -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u))
+                                  y u)
+                                a) ∧
+                            (TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) fun u =>
+                                ((fun y u =>
+                                      -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u))
+                                    y u)
+                                  a) ≤
+                              (1 / η - ↑α) ^ 2 / (4 * (↑α + 1 / η)) * ‖a‖ ^ 2
+this : IsMarkovKernel S := hS
+f : E → ℝ
+hf : ContDiff ℝ ∞ f
+hfc : HasCompactSupport f
+y : E
+hsI : Integrable ((fun y u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)) y) (S y)
+hfsI :
+  Integrable
+    (fun u => f u • (fun y u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)) y u)
+    (S y)
+hfd :
+  HasFDerivAt (fun z => ∫ (u : E), f u ∂S z)
+    (∫ (u : E),
+        f u • (fun y u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)) y u ∂S y -
+      (∫ (u : E), f u ∂S y) •
+        ∫ (u : E),
+          (fun y u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)) y u ∂S y)
+    y
+s : E → E →L[ℝ] ℝ := fun u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)
+G : E := gradient (fun z => ∫ (u : E), f u ∂S z) y
+Y : E → ℝ := fun u => (s u) G
+left✝⁸ : S y = ℙ.tilted fun u => -(fun y u => V ((1 / 2) • (y + u)) + ‖u - y‖ ^ 2 / (8 * η)) y u
+left✝⁷ : ContDiff ℝ 2 ((fun y u => V ((1 / 2) • (y + u)) + ‖u - y‖ ^ 2 / (8 * η)) y)
+left✝⁶ : Integrable (fun u => Real.exp (-(fun y u => V ((1 / 2) • (y + u)) + ‖u - y‖ ^ 2 / (8 * η)) y u)) ℙ
+left✝⁵ : 0 < ∫ (u : E), Real.exp (-(fun y u => V ((1 / 2) • (y + u)) + ‖u - y‖ ^ 2 / (8 * η)) y u)
+D : ↥(Lp ℝ 2 (S y)) →ₗ.[ℝ] ↥(Lp E 2 (S y))
+left✝⁴ : Dense ↑D.domain
+left✝³ : D.IsClosable
+left✝² : D.closure.IsClosed
+left✝¹ :
+  ∀ (a : ↥(Lp ℝ 2 (S y))) (G : ↥(Lp E 2 (S y))),
+    (a, G) ∈ D.graph ↔ ∃ φ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧ ↑↑a =ᵐ[S y] φ ∧ ↑↑G =ᵐ[S y] gradient φ
+left✝ : ∀ (z : ↥D.closure.domain), ∫ (x : E), ↑↑↑z x ∂S y = 0 → (↑α + 1 / η) / 4 * ‖↑z‖ ^ 2 ≤ ‖↑D.closure z‖ ^ 2
+hscore :
+  ∀ (a : E),
+    (TechnicalLemmas.FunctionalInequalities.Poincare.Admissible (S y) fun u =>
+        ((fun y u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)) y u) a) ∧
+      (TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) fun u =>
+          ((fun y u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)) y u) a) ≤
+        (1 / η - ↑α) ^ 2 / (4 * (↑α + 1 / η)) * ‖a‖ ^ 2
+hYad :
+  TechnicalLemmas.FunctionalInequalities.Poincare.Admissible (S y) fun u =>
+    ((fun y u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)) y u) G
+hYvar :
+  (TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) fun u =>
+      ((fun y u => -(1 / 2) • fderiv ℝ V ((1 / 2) • (y + u)) - (1 / (4 * η)) • (innerSL ℝ) (y - u)) y u) G) ≤
+    (1 / η - ↑α) ^ 2 / (4 * (↑α + 1 / η)) * ‖G‖ ^ 2
+M : ℝ
+hM : M ∈ upperBounds (Set.range fun x => ‖f x‖)
+hf2 : MemLp f 2 (S y)
+Xc : E → ℝ := fun u => f u - ∫ (v : E), f v ∂S y
+Yc : E → ℝ := fun u => Y u - ∫ (v : E), Y v ∂S y
+hXc2 : MemLp Xc 2 (S y)
+hYc2 : MemLp Yc 2 (S y)
+hY2 : MemLp Y 2 (S y)
+a b : E → ℝ
+ha : MemLp a 2 (S y)
+hb : MemLp b 2 (S y)
+u : E
+hua : ↑↑(MemLp.toLp a ha) u = a u
+hub : ↑↑(MemLp.toLp b hb) u = b u
+⊢ b u * a u = a u * b u
+AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGradientVariance.lean:93:15: warning: `ContinuousLinearMap.sub_apply` has been deprecated: Use `sub_apply` instead
+
+Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.sub_apply` to `sub_apply x`).
+AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGradientVariance.lean:93:46: warning: `ContinuousLinearMap.smul_apply` has been deprecated: Use `smul_apply` instead
+
+Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.smul_apply` to `smul_apply x`).
+AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGradientVariance.lean:102:6: error: Invalid `←` modifier: `covariance` is a declaration name to be unfolded
+
+Hint: The simplifier cannot "refold" definitions by name. Use `rw` for this instead,
+                      or use the `←` simp modifier with an equational lemma for `covariance`.
+AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGradientVariance.lean:100:4: error: Type mismatch: After simplification, term
+  hcs
+ has type
+  (∫ (u : E), (f u - ∫ (v : E), f v ∂S y) * (Y u - ∫ (v : E), Y v ∂S y) ∂S y) ^ 2 ≤
+    (∫ (u : E), (f u - ∫ (v : E), f v ∂S y) ^ 2 ∂S y) * ∫ (u : E), (Y u - ∫ (v : E), Y v ∂S y) ^ 2 ∂S y
+but is expected to have type
+  (‖G‖ ^ 2) ^ 2 ≤ (∫ (x : E), (f x - ∫ (y : E), f y ∂S y) ^ 2 ∂S y) * ∫ (x : E), (Y x - ∫ (y : E), Y y ∂S y) ^ 2 ∂S y
+AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGradientVariance.lean:111:32: error(lean.invalidField): Invalid field `mp`: The environment does not contain `Function.mp`, so it is not possible to project the field `mp` from an expression
+  mul_le_mul_right ?m.1644
+of type
+  ∀ (a : ?m.1638), a * ?m.1642 ≤ a * ?m.1643
+AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGradientVariance.lean:111:28: error: Application type mismatch: The argument
+  hp
+has type
+  0 < ‖G‖ ^ 2
+but is expected to have type
+  ?m.1642 ≤ ?m.1643
+in the application
+  mul_le_mul_right hp

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-0991dbeebcce50c6",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let U : E → E × E → ℝ := fun y z =>\n      V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2\n    let w : E → E × E → ℝ := fun y z => Real.exp (-U y z)\n    let P : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ :=\n      fun y r z n T t => ∏ i : Fin n,\n        rate r (Φ y r (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n+1) → ℝ) i.castSucc)\n          (zAt y r z n T t i.castSucc))\n    let I : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ :=\n      fun y r z n T t => ∫ s in (0 : ℝ)..(T : ℝ),\n        rate r (Γ y r z n T t ⟨min (Real.toNNReal s) T, min_le_right _ _⟩)\n    let dReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ :=\n      fun y r z n T t => Real.exp (-I y r z n T t) * P y r z n T t\n    ∀ n : ℕ, ∀ T : ℝ≥0, ∃ rho : Prefix n T → Prefix n T,\n      (∀ t : Prefix n T, ∀ i : Fin n, (rho t).val i = (T : ℝ) - t.val i.rev) ∧\n      ∀ y r : E, ∀ z : E × E, ∀ t : Prefix n T,\n        let A : E × E := Γ y r z n T t ⟨T, le_rfl⟩\n        w y z * dReal y r z n T t = w y (R A) * dReal y r (R A) n T (rho t) ∧\n        ENNReal.ofReal (w y z) * ρ y r z n T t =\n          ENNReal.ofReal (w y (R A)) * ρ y r (R A) n T (rho t)",
+    "statement_sha256": "0991dbeebcce50c676fc3c14e8a73867ee0efe3251848b18b446326701b6b3cf",
+    "compiled": true,
+    "approved_definition_context": [
+      "Finite-dimensional real inner-product Borel space, including rank zero; real Hilbert gradient and Frechet derivative.",
+      "Fin n is zero-based; Fin.rev sends i to n-1-i; Fin.cons prepends and Fin.induction recursively constructs a finite sequence; Fin.foldl visits ascending indices.",
+      "Real division by zero is zero; Real.toNNReal is positive part; nonnegative subtraction is truncated; Sum.inl is a live record and Unit is cemetery.",
+      "The real path extension is clamped to the closed nonnegative horizon; interval integrals use real Lebesgue measure. ENNReal.ofReal maps a real to its positive part in extended nonnegative reals. Literal let definitions are definitions, not supplied hypotheses."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "faa90f1a71cfb874c39137598c2e6a3ad24665c2130ac5089de086c26db6870e"
+}

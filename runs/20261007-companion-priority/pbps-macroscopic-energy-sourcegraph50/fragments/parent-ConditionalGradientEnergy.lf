@@ -1,0 +1,31 @@
+theorem reflected_conditional_gradient_energy
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x a : E,
+      (α : ℝ) * ‖a‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x a) a ∧
+      (fderiv ℝ (fderiv ℝ V) x a) a ≤ (β : ℝ) * ‖a‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := Measure.map (fun p : E × E => (p.1, p.1 + Real.sqrt η • p.2))
+      (μ.prod (stdGaussian E))
+    let ν := J.snd
+    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧
+    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      (J.map Prod.swap).IsCondKernel R ∧
+      (∀ y, S y = (R y).map (fun x => (2 : ℝ) • x - y)) ∧
+      (∀ y, S y = (volume : Measure E).tilted
+        (fun u => -V ((1/2 : ℝ) • (y+u)) - ‖y-u‖^2/(8*η))) ∧
+      ∀ (f : E → ℝ), ContDiff ℝ ∞ f → HasCompactSupport f →
+        let Tf := fun y => ∫ u, f u ∂S y
+        Differentiable ℝ Tf ∧ MemLp f 2 ν ∧ MemLp Tf 2 ν ∧
+        MemLp (gradient Tf) 2 ν ∧
+        Integrable (fun y =>
+          AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance
+            (S y) f) ν ∧
+        (∫ y, AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance
+          (S y) f ∂ν) = (∫ y, (f y)^2 ∂ν) - (∫ y, (Tf y)^2 ∂ν) ∧
+        η * (∫ y, ‖gradient Tf y‖^2 ∂ν) ≤
+          (1-(α : ℝ)*η)^2/(4*(1+(α : ℝ)*η)) *
+            ((∫ y, (f y)^2 ∂ν) - (∫ y, (Tf y)^2 ∂ν)) 

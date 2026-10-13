@@ -1,0 +1,40 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import http from 'node:http';
+import {spawn} from 'node:child_process';
+const root=process.cwd(), site=path.resolve('_site'), output=path.resolve('.astis/pbps-perturbation72/visual72-cdp');
+const gate=JSON.parse(fs.readFileSync('runs/20261007-companion-priority/pbps-b4-corrector-perturbation72/integration72/mandatory-astis-check-final/receipt.json','utf8'));if(!gate.terminal_closed||gate.exit_code!==0)throw Error('Actual mandatory72 gate not closed PASS');fs.mkdirSync(output);const delay=ms=>new Promise(r=>setTimeout(r,ms));
+const mime={'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.svg':'image/svg+xml','.woff':'font/woff'};
+const server=http.createServer((req,res)=>{let p=path.resolve(site,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));if(!p.startsWith(site+path.sep)){res.writeHead(403);res.end();return;}try{if(fs.statSync(p).isDirectory())p=path.join(p,'index.html');res.setHeader('Content-Type',mime[path.extname(p)]||'application/octet-stream');res.end(fs.readFileSync(p));}catch{res.writeHead(404);res.end();}});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}/`;
+const profile=path.join(output,'chrome-profile'), err=fs.openSync(path.join(output,'chrome.stderr.log'),'w');
+const child=spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',['--headless=new','--disable-extensions','--disable-default-apps','--disable-gpu','--no-first-run','--no-default-browser-check','--disable-background-timer-throttling','--disable-renderer-backgrounding','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore',err],windowsHide:true});
+const exit=new Promise(r=>child.once('exit',(code,signal)=>r({code,signal})));let ws;
+const records=[];let nextId=0;const pending=new Map();
+function call(method,params={},sessionId){const id=++nextId;return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(id);reject(new Error('CDP timeout '+method));},45000);pending.set(id,{resolve:v=>{clearTimeout(timer);resolve(v);},reject:e=>{clearTimeout(timer);reject(e);}});ws.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));});}
+try{
+ let portInfo;for(let i=0;i<150;i++){try{portInfo=fs.readFileSync(path.join(profile,'DevToolsActivePort'),'utf8').trim().split('\n');break;}catch{await delay(100);}}
+ if(!portInfo)throw new Error('Owned Chrome DevTools port unavailable');
+ ws=new WebSocket(`ws://127.0.0.1:${portInfo[0]}${portInfo[1]}`);await new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=reject;});
+ ws.onmessage=event=>{const m=JSON.parse(event.data);if(m.id&&pending.has(m.id)){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(new Error(JSON.stringify(m.error))):p.resolve(m.result);}};
+ const t=await call('Target.createTarget',{url:'about:blank'});const {sessionId}=await call('Target.attachToTarget',{targetId:t.targetId,flatten:true});
+ await call('Page.enable',{},sessionId);await call('Runtime.enable',{},sessionId);await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1800,deviceScaleFactor:1,mobile:false},sessionId);
+ const plan=JSON.parse(fs.readFileSync('runs/20261007-companion-priority/pbps-b4-corrector-perturbation72/publication-plan.json','utf8'));
+ const pages=[];
+ for(const [i,slug] of plan.slugs.entries()){
+  const unit=JSON.parse(fs.readFileSync(`website/content/declaration_lessons/${slug}.json`,'utf8')).units[0];
+  pages.push([`unit${i}-statement`,'example-cases/samplewiki/companions/proximal-bouncy-particle.html',`document.getElementById('${slug}')`]);
+  for(let j=0;j<unit.steps.length;j++)pages.push([`unit${i}-proof-${j+1}`,'example-cases/samplewiki/companions/proximal-bouncy-particle.html',`document.getElementById('${slug}').querySelectorAll(".proof-reader-step")[${j}]`]);
+ }
+ pages.push(['branch-actual-consumer','lean-foundations.html?view=lean&focus=decl%3AAutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation.actual_corrector_perturbation',"document.querySelector('[data-underlying-lean-graph]')"]);
+ for(const [label,rel,selector] of pages){
+  const name="AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation.actual_corrector_perturbation";
+  console.log('Actual CDP inspect '+label);await call('Page.navigate',{url:base+rel},sessionId);await call('Page.bringToFront',{},sessionId);
+  const expression=`(async()=>{const until=async(test)=>{for(let i=0;i<300;i++){if(test())return;await new Promise(r=>setTimeout(r,100));}throw Error('readiness timeout');};await until(()=>document.readyState==='complete');if(window.MathJax?.startup?.promise)await window.MathJax.startup.promise;await document.fonts.ready;${label.startsWith('branch')?`await until(()=>document.querySelector('[data-graph-detail]')?.textContent.includes(${JSON.stringify(name)}));`:''}const el=${selector};if(!el)throw Error('exact target absent');el.scrollIntoView({block:'start',behavior:'instant'});await new Promise(r=>setTimeout(r,300));return {url:location.href,scrollY,bodyHeight:document.body.scrollHeight,targetRect:el.getBoundingClientRect().toJSON(),targetText:el.textContent.slice(0,800),bodyVisibility:getComputedStyle(document.body).visibility,bodyDisplay:getComputedStyle(document.body).display,closedLeanDetails:[...el.querySelectorAll('details')].filter(x=>!x.open).length,mathContainers:el.querySelectorAll('mjx-container').length};})()`;
+  const result=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true},sessionId);if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));
+  const png=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true},sessionId);fs.writeFileSync(path.join(output,label+'.png'),Buffer.from(png.data,'base64'));
+  fs.writeFileSync(path.join(output,label+'.inspect.json'),JSON.stringify(result.result.value,null,2)+'\n');records.push({label,...result.result.value,png_path:path.join(output,label+'.png')});
+ }
+ await call('Browser.close');ws.close();ws=undefined;const closed=await exit;fs.writeFileSync(path.join(output,'capture.json'),JSON.stringify({status:'ACTUAL_CDP_LOCAL_DESKTOP_CAPTURE_REQUIRES_VISUAL_REVIEW',records,ownedBrowserExit:closed,pid:child.pid,scope:'Foreground bounded isolated headless browser/local HTTP; mathematical/physical-device/live/full-reader acceptance separate.'},null,2)+'\n');
+}finally{if(ws){try{await call('Browser.close');}catch{child.kill();}ws.close();}else if(child.exitCode===null)child.kill();await exit;fs.closeSync(err);await new Promise(r=>server.close(r));}
+console.log('Owned Chrome and local server CLOSED; captures available.');

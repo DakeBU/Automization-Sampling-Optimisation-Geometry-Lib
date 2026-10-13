@@ -1,0 +1,9 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry
+
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped RealInnerProductSpace ContDiff NNReal Topology ENNReal
+namespace AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector
+noncomputable section
+set_option autoImplicit false
+set_option maxHeartbeats 2000000
+

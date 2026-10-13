@@ -1,0 +1,77 @@
+{
+  "copyProbeUsesIsolatedPageClipboardCallback": true,
+  "physicalOSClipboardTest": false,
+  "initialFolded": true,
+  "panels": [
+    {
+      "code": "theorem quadratic_corrector_perturbation\n    {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]\n    [CompleteSpace H]\n    (A G Inv : H →L[ℝ] H)\n    (hA : IsSelfAdjoint A) (hG : IsSelfAdjoint G)\n    (hInv : IsSelfAdjoint Inv) (hAInv : Commute A Inv)\n    (hInvG : Inv * G = 1) (hGInv : G * Inv = 1)\n    (hSquares : A * A + G * G = 1)\n    (u v r : H) :\n    let C : H → H → ℝ := fun u v =>\n      (‖u‖^2 - ‖v‖^2)/2 - inner ℝ (A (Inv u)) v\n    C (u + G r) (v - A r) - C u v =\n      inner ℝ u (Inv r) + ‖r‖^2/2",
+      "callbackCalled": true,
+      "copiedExactly": true,
+      "status": "Copied"
+    },
+    {
+      "code": "theorem quadratic_corrector_perturbation\n    {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]\n    [CompleteSpace H]\n    (A G Inv : H →L[ℝ] H)\n    (hA : IsSelfAdjoint A) (hG : IsSelfAdjoint G)\n    (hInv : IsSelfAdjoint Inv) (hAInv : Commute A Inv)\n    (hInvG : Inv * G = 1) (hGInv : G * Inv = 1)\n    (hSquares : A * A + G * G = 1)\n    (u v r : H) :\n    let C : H → H → ℝ := fun u v =>\n      (‖u‖^2 - ‖v‖^2)/2 - inner ℝ (A (Inv u)) v\n    C (u + G r) (v - A r) - C u v =\n      inner ℝ u (Inv r) + ‖r‖^2/2\n := by\n  dsimp only\n  have ha (x y : H) : inner ℝ (A x) y=inner ℝ x (A y) := hA.isSymmetric x y\n  have hg (x y : H) : inner ℝ (G x) y=inner ℝ x (G y) := hG.isSymmetric x y\n  have hi (x y : H) : inner ℝ (Inv x) y=inner ℝ x (Inv y) := hInv.isSymmetric x y\n  have hIG (x : H) : Inv (G x)=x := by\n    have h := congrArg (fun L : H →L[ℝ] H => L x) hInvG\n    simpa only [ContinuousLinearMap.mul_apply,ContinuousLinearMap.one_apply] using h\n  have hSq (x : H) : A (A x)+G (G x)=x := by\n    have h := congrArg (fun L : H →L[ℝ] H => L x) hSquares\n    simpa only [ContinuousLinearMap.add_apply,ContinuousLinearMap.mul_apply,\n      ContinuousLinearMap.one_apply] using h\n  have hEnergy (x : H) : ‖A x‖^2+‖G x‖^2=‖x‖^2 := by\n    have h := congrArg (fun z : H => inner ℝ z x) (hSq x)\n    rw [inner_add_left,ha (A x) x,hg (G x) x] at h\n    simpa only [real_inner_self_eq_norm_sq] using h\n  have hLinear (x : H) : Inv (A (A x))+G x=Inv x := by\n    calc\n      Inv (A (A x))+G x=Inv (A (A x))+Inv (G (G x)) := by rw [hIG]\n      _ = Inv (A (A x)+G (G x)) := by rw [map_add]\n      _ = Inv x := congrArg Inv (hSq x)\n  have hMixed : inner ℝ (A (Inv u)) (A r)+inner ℝ u (G r)=inner ℝ u (Inv r) := by\n    rw [ha (Inv u) (A r),hi u (A (A r)),\n      ← inner_add_right,hLinear r]\n  rw [norm_add_sq_real,norm_sub_sq_real]\n  simp only [map_add,hIG,inner_add_left,inner_sub_right,real_inner_self_eq_norm_sq]\n  rw [real_inner_comm v (A r)]\n  nlinarith only [hEnergy r,hMixed]\n\nend\nend AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation\n\n#print axioms AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation.quadratic_corrector_perturbation",
+      "callbackCalled": true,
+      "copiedExactly": true,
+      "status": "Copied"
+    }
+  ],
+  "downloads": [
+    {
+      "href": "../../../downloads/lean/AutoSamplingTheory/TechnicalLemmas/Analysis/HilbertCorrectorPerturbation.lean",
+      "status": 200,
+      "bytes": 2413,
+      "text": "import Mathlib.Analysis.InnerProductSpace.Adjoint\nimport Mathlib.Tactic.Linarith\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation\nnoncomputable section\nopen scoped RealInnerProductSpace\nset_option autoImplicit false\n\ntheorem quadratic_corrector_perturbation\n    {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]\n    [CompleteSpace H]\n    (A G Inv : H →L[ℝ] H)\n    (hA : IsSelfAdjoint A) (hG : IsSelfAdjoint G)\n    (hInv : IsSelfAdjoint Inv) (hAInv : Commute A Inv)\n    (hInvG : Inv * G = 1) (hGInv : G * Inv = 1)\n    (hSquares : A * A + G * G = 1)\n    (u v r : H) :\n    let C : H → H → ℝ := fun u v =>\n      (‖u‖^2 - ‖v‖^2)/2 - inner ℝ (A (Inv u)) v\n    C (u + G r) (v - A r) - C u v =\n      inner ℝ u (Inv r) + ‖r‖^2/2\n := by\n  dsimp only\n  have ha (x y : H) : inner ℝ (A x) y=inner ℝ x (A y) := hA.isSymmetric x y\n  have hg (x y : H) : inner ℝ (G x) y=inner ℝ x (G y) := hG.isSymmetric x y\n  have hi (x y : H) : inner ℝ (Inv x) y=inner ℝ x (Inv y) := hInv.isSymmetric x y\n  have hIG (x : H) : Inv (G x)=x := by\n    have h := congrArg (fun L : H →L[ℝ] H => L x) hInvG\n    simpa only [ContinuousLinearMap.mul_apply,ContinuousLinearMap.one_apply] using h\n  have hSq (x : H) : A (A x)+G (G x)=x := by\n    have h := congrArg (fun L : H →L[ℝ] H => L x) hSquares\n    simpa only [ContinuousLinearMap.add_apply,ContinuousLinearMap.mul_apply,\n      ContinuousLinearMap.one_apply] using h\n  have hEnergy (x : H) : ‖A x‖^2+‖G x‖^2=‖x‖^2 := by\n    have h := congrArg (fun z : H => inner ℝ z x) (hSq x)\n    rw [inner_add_left,ha (A x) x,hg (G x) x] at h\n    simpa only [real_inner_self_eq_norm_sq] using h\n  have hLinear (x : H) : Inv (A (A x))+G x=Inv x := by\n    calc\n      Inv (A (A x))+G x=Inv (A (A x))+Inv (G (G x)) := by rw [hIG]\n      _ = Inv (A (A x)+G (G x)) := by rw [map_add]\n      _ = Inv x := congrArg Inv (hSq x)\n  have hMixed : inner ℝ (A (Inv u)) (A r)+inner ℝ u (G r)=inner ℝ u (Inv r) := by\n    rw [ha (Inv u) (A r),hi u (A (A r)),\n      ← inner_add_right,hLinear r]\n  rw [norm_add_sq_real,norm_sub_sq_real]\n  simp only [map_add,hIG,inner_add_left,inner_sub_right,real_inner_self_eq_norm_sq]\n  rw [real_inner_comm v (A r)]\n  nlinarith only [hEnergy r,hMixed]\n\nend\nend AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation\n\n#print axioms AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation.quadratic_corrector_perturbation\n"
+    },
+    {
+      "href": "../../../downloads/lean/AutoSamplingTheory/TechnicalLemmas/Analysis/HilbertCorrectorPerturbation.lean",
+      "status": 200,
+      "bytes": 2413,
+      "text": "import Mathlib.Analysis.InnerProductSpace.Adjoint\nimport Mathlib.Tactic.Linarith\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation\nnoncomputable section\nopen scoped RealInnerProductSpace\nset_option autoImplicit false\n\ntheorem quadratic_corrector_perturbation\n    {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]\n    [CompleteSpace H]\n    (A G Inv : H →L[ℝ] H)\n    (hA : IsSelfAdjoint A) (hG : IsSelfAdjoint G)\n    (hInv : IsSelfAdjoint Inv) (hAInv : Commute A Inv)\n    (hInvG : Inv * G = 1) (hGInv : G * Inv = 1)\n    (hSquares : A * A + G * G = 1)\n    (u v r : H) :\n    let C : H → H → ℝ := fun u v =>\n      (‖u‖^2 - ‖v‖^2)/2 - inner ℝ (A (Inv u)) v\n    C (u + G r) (v - A r) - C u v =\n      inner ℝ u (Inv r) + ‖r‖^2/2\n := by\n  dsimp only\n  have ha (x y : H) : inner ℝ (A x) y=inner ℝ x (A y) := hA.isSymmetric x y\n  have hg (x y : H) : inner ℝ (G x) y=inner ℝ x (G y) := hG.isSymmetric x y\n  have hi (x y : H) : inner ℝ (Inv x) y=inner ℝ x (Inv y) := hInv.isSymmetric x y\n  have hIG (x : H) : Inv (G x)=x := by\n    have h := congrArg (fun L : H →L[ℝ] H => L x) hInvG\n    simpa only [ContinuousLinearMap.mul_apply,ContinuousLinearMap.one_apply] using h\n  have hSq (x : H) : A (A x)+G (G x)=x := by\n    have h := congrArg (fun L : H →L[ℝ] H => L x) hSquares\n    simpa only [ContinuousLinearMap.add_apply,ContinuousLinearMap.mul_apply,\n      ContinuousLinearMap.one_apply] using h\n  have hEnergy (x : H) : ‖A x‖^2+‖G x‖^2=‖x‖^2 := by\n    have h := congrArg (fun z : H => inner ℝ z x) (hSq x)\n    rw [inner_add_left,ha (A x) x,hg (G x) x] at h\n    simpa only [real_inner_self_eq_norm_sq] using h\n  have hLinear (x : H) : Inv (A (A x))+G x=Inv x := by\n    calc\n      Inv (A (A x))+G x=Inv (A (A x))+Inv (G (G x)) := by rw [hIG]\n      _ = Inv (A (A x)+G (G x)) := by rw [map_add]\n      _ = Inv x := congrArg Inv (hSq x)\n  have hMixed : inner ℝ (A (Inv u)) (A r)+inner ℝ u (G r)=inner ℝ u (Inv r) := by\n    rw [ha (Inv u) (A r),hi u (A (A r)),\n      ← inner_add_right,hLinear r]\n  rw [norm_add_sq_real,norm_sub_sq_real]\n  simp only [map_add,hIG,inner_add_left,inner_sub_right,real_inner_self_eq_norm_sq]\n  rw [real_inner_comm v (A r)]\n  nlinarith only [hEnergy r,hMixed]\n\nend\nend AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation\n\n#print axioms AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation.quadratic_corrector_perturbation\n"
+    }
+  ],
+  "steps": [
+    {
+      "lean": "  dsimp only\n  have ha (x y : H) : inner ℝ (A x) y=inner ℝ x (A y) := hA.isSymmetric x y\n  have hg (x y : H) : inner ℝ (G x) y=inner ℝ x (G y) := hG.isSymmetric x y\n  have hi (x y : H) : inner ℝ (Inv x) y=inner ℝ x (Inv y) := hInv.isSymmetric x y\n",
+      "initiallyFolded": true
+    },
+    {
+      "lean": "  have hIG (x : H) : Inv (G x)=x := by\n    have h := congrArg (fun L : H →L[ℝ] H => L x) hInvG\n    simpa only [ContinuousLinearMap.mul_apply,ContinuousLinearMap.one_apply] using h\n  have hSq (x : H) : A (A x)+G (G x)=x := by\n    have h := congrArg (fun L : H →L[ℝ] H => L x) hSquares\n    simpa only [ContinuousLinearMap.add_apply,ContinuousLinearMap.mul_apply,\n      ContinuousLinearMap.one_apply] using h\n",
+      "initiallyFolded": true
+    },
+    {
+      "lean": "  have hEnergy (x : H) : ‖A x‖^2+‖G x‖^2=‖x‖^2 := by\n    have h := congrArg (fun z : H => inner ℝ z x) (hSq x)\n    rw [inner_add_left,ha (A x) x,hg (G x) x] at h\n    simpa only [real_inner_self_eq_norm_sq] using h\n",
+      "initiallyFolded": true
+    },
+    {
+      "lean": "  have hLinear (x : H) : Inv (A (A x))+G x=Inv x := by\n    calc\n      Inv (A (A x))+G x=Inv (A (A x))+Inv (G (G x)) := by rw [hIG]\n      _ = Inv (A (A x)+G (G x)) := by rw [map_add]\n      _ = Inv x := congrArg Inv (hSq x)\n",
+      "initiallyFolded": true
+    },
+    {
+      "lean": "  have hMixed : inner ℝ (A (Inv u)) (A r)+inner ℝ u (G r)=inner ℝ u (Inv r) := by\n    rw [ha (Inv u) (A r),hi u (A (A r)),\n      ← inner_add_right,hLinear r]\n",
+      "initiallyFolded": true
+    },
+    {
+      "lean": "  rw [norm_add_sq_real,norm_sub_sq_real]\n  simp only [map_add,hIG,inner_add_left,inner_sub_right,real_inner_self_eq_norm_sq]\n  rw [real_inner_comm v (A r)]\n  nlinarith only [hEnergy r,hMixed]\n",
+      "initiallyFolded": true
+    }
+  ],
+  "url": "http://127.0.0.1:61957/example-cases/samplewiki/companions/proximal-bouncy-particle.html",
+  "scrollY": 359476,
+  "bodyHeight": 484760,
+  "targetRect": {
+    "x": 328.5,
+    "y": 0.1875,
+    "width": 1036,
+    "height": 5501.09375,
+    "top": 0.1875,
+    "right": 1364.5,
+    "bottom": 5501.28125,
+    "left": 328.5
+  },
+  "targetText": "Hilbert corrector perturbation identityFan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang, arXiv:2609.06905v1, B20 and Lemma B4 perturbation expansion Ex28–Ex34. ASTIS auxiliary real Hilbert generalization with all structural assumptions explicit; not a verbatim source theorem.arXiv:2609.06905v1; Lean4.33.0; fixed Mathlib db584cd6d46c92f209a44c0f1c829460d327499d · PBPS B20 and Appendix B4 Ex28--Ex34 perturbation algebra; future actual B27/B28 adapter · faithful paraphraseComplete source statement (Samplinglib restatement)Let H be a complete real Hilbert space, allowing the zero space. Let A,G,Inv:H→H be bounded real-linear endomorphisms. Assume A,G,Inv are selfadjoint, A commutes with Inv, Inv G=G Inv=I, and A²+G²=I. Every one of these structural conditions is an explicit hypothesis o",
+  "bodyVisibility": "visible",
+  "bodyDisplay": "block",
+  "closedLeanDetails": 11,
+  "mathContainers": 8
+}

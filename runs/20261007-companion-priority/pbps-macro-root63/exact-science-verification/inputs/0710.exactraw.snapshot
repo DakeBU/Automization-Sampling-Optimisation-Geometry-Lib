@@ -1,0 +1,344 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.GibbsGradientMoment
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing
+import AutoSamplingTheory.TechnicalLemmas.Measure.CouplingQuadraticIntegrability
+import Mathlib.MeasureTheory.Function.L2Space
+import Mathlib.MeasureTheory.Integral.Prod
+import Mathlib.Tactic
+
+/-!
+# Actual approximate initialization gradient moments
+
+The initial-gradient estimates in Section 6.3 of Chen, Chewi, Lu and Zhang,
+arXiv:2609.06906v1, are derived for the actual approximate input law. Genuine
+curvature supplies the normalized Gibbs moment, actual independent Gaussian
+smoothing supplies its smoothed counterpart, and finite-cost near-optimal
+couplings transfer integrability and the moment bound to the actual output.
+
+The regularized potential uses the same pair (Y,Z) as its starting point and
+random center. Absolute integrability is established before eliminating its
+Gaussian cross term. The final constant 5 is a sufficient constant derived
+here, not a numerical constant quoted from the paper. General beta and a
+coordinate-free finite-dimensional domain, including dimension zero, are
+explicit extensions. The nonnegative r hypothesis is retained publicly.
+
+This fixed-call moment theorem does not construct a jointly measurable stopped
+gradient-descent program for the random center, establish conditional history
+invariants, or sum reference-query costs. Neither paper is completed here.
+-/
+
+noncomputable section
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped NNReal ENNReal RealInnerProductSpace
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateInitialGradientMoment
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private theorem gaussian_square :
+    Integrable (fun x : E => ‖x‖^2) (stdGaussian E) ∧
+      (∫ x : E, ‖x‖^2 ∂stdGaussian E) = Module.finrank ℝ E := by
+  classical
+  have hi : Integrable (fun x : E => ‖x‖^2) (stdGaussian E) :=
+    (memLp_two_iff_integrable_sq_norm (by fun_prop)).1 IsGaussian.memLp_two_id
+  let b := stdOrthonormalBasis ℝ E
+  have hdir (i) : (∫ x : E, (inner ℝ (b i) x)^2 ∂stdGaussian E) = 1 := by
+    have hh := covarianceBilin_apply (μ := stdGaussian E) IsGaussian.memLp_two_id (b i) (b i)
+    rw [covarianceBilin_stdGaussian] at hh
+    change inner ℝ (b i) (b i) = _ at hh
+    simpa [integral_id_stdGaussian, real_inner_self_eq_norm_sq,
+      b.orthonormal.norm_eq_one, pow_two] using hh.symm
+  have hL1 (i) : Integrable (fun x : E => (inner ℝ (b i) x)^2) (stdGaussian E) := by
+    apply hi.mono' (by fun_prop)
+    filter_upwards with x
+    rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]
+    have hb := norm_inner_le_norm (𝕜 := ℝ) (b i) x
+    rw [b.orthonormal.norm_eq_one, one_mul] at hb
+    have hsq := sq_le_sq₀ (norm_nonneg (inner ℝ (b i) x)) (norm_nonneg x) |>.2 hb
+    simpa [Real.norm_eq_abs, sq_abs] using hsq
+  refine ⟨hi, ?_⟩
+  calc
+    (∫ x : E, ‖x‖^2 ∂stdGaussian E) =
+        ∫ x : E, ∑ i, (inner ℝ (b i) x)^2 ∂stdGaussian E := by
+      apply integral_congr_ae
+      filter_upwards with x
+      simpa [Real.norm_eq_abs, sq_abs] using (b.sum_sq_norm_inner_right x).symm
+    _ = ∑ i, ∫ x : E, (inner ℝ (b i) x)^2 ∂stdGaussian E :=
+      integral_finsetSum _ (fun i _ => hL1 i)
+    _ = Module.finrank ℝ E := by simp [hdir]
+
+private theorem gaussian_perturbation_square {μ : Measure E} [IsProbabilityMeasure μ]
+    {g : E → E} (hg : Continuous g)
+    (hi : Integrable (fun x => ‖g x‖^2) μ) (c : ℝ) :
+    Integrable (fun p : E × E => ‖g p.1 - c • p.2‖^2) (μ.prod (stdGaussian E)) ∧
+      (∫ p : E × E, ‖g p.1 - c • p.2‖^2 ∂μ.prod (stdGaussian E)) =
+        (∫ x, ‖g x‖^2 ∂μ) + c^2 * Module.finrank ℝ E := by
+  have hg1 : Integrable g μ := MemLp.integrable (by norm_num : 1 ≤ (2 : ℝ≥0∞))
+    ((memLp_two_iff_integrable_sq_norm hg.aestronglyMeasurable).2 hi)
+  have hz1 : Integrable (fun z : E => z) (stdGaussian E) := IsGaussian.integrable_id
+  have hcross : Integrable (fun p : E × E => inner ℝ (g p.1) p.2)
+      (μ.prod (stdGaussian E)) :=
+    hg1.op_fst_snd (by fun_prop) ⟨1, by intro x y; simpa using norm_inner_le_norm (𝕜 := ℝ) x y⟩ hz1
+  have hcross0 : (∫ p : E × E, inner ℝ (g p.1) p.2 ∂μ.prod (stdGaussian E)) = 0 := by
+    rw [integral_prod _ hcross]
+    have hz (x : E) : (∫ z : E, inner ℝ (g x) z ∂stdGaussian E) = 0 :=
+      integral_strongDual_stdGaussian (innerSL ℝ (g x))
+    simp only [hz, integral_zero]
+  have hp := hi.comp_fst (stdGaussian E)
+  have hq := (gaussian_square (E := E)).1.comp_snd μ
+  have hqc : Integrable (fun p : E × E => c^2 * ‖p.2‖^2)
+      (μ.prod (stdGaussian E)) := hq.const_mul (c^2)
+  have hcc : Integrable (fun p : E × E => (2*c) * inner ℝ (g p.1) p.2)
+      (μ.prod (stdGaussian E)) := hcross.const_mul (2*c)
+  have hsum : Integrable (fun p : E × E => ‖g p.1‖^2 + c^2 * ‖p.2‖^2)
+      (μ.prod (stdGaussian E)) := hp.add hqc
+  have hexpand (p : E × E) : ‖g p.1 - c • p.2‖^2 =
+      ‖g p.1‖^2 + c^2 * ‖p.2‖^2 - (2*c) * inner ℝ (g p.1) p.2 := by
+    rw [norm_sub_sq_real, norm_smul, real_inner_smul_right]
+    simp only [Real.norm_eq_abs, mul_pow, sq_abs]
+    ring
+  have hwhole : Integrable (fun p : E × E => ‖g p.1 - c • p.2‖^2)
+      (μ.prod (stdGaussian E)) := by
+    have hd : Integrable (fun p : E × E =>
+        ‖g p.1‖^2 + c^2 * ‖p.2‖^2 - (2*c) * inner ℝ (g p.1) p.2)
+        (μ.prod (stdGaussian E)) := hsum.sub hcc
+    simpa only [hexpand] using hd
+  refine ⟨hwhole, ?_⟩
+  simp_rw [hexpand]
+  rw [integral_sub hsum hcc, integral_add hp hqc,
+    integral_const_mul, integral_const_mul, hcross0]
+  simp only [mul_zero, sub_zero]
+  rw [integral_prod _ hp, integral_prod _ hq]
+  simp [(gaussian_square (E := E)).2]
+
+omit [InnerProductSpace ℝ E] [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
+private theorem lipschitz_square_bound {g : E → E} {b : ℝ≥0}
+    (hg : LipschitzWith b g) (x y : E) :
+    ‖g x‖^2 ≤ 2 * ‖g y‖^2 + 2 * (b : ℝ)^2 * ‖x-y‖^2 := by
+  have hLip : ‖g x - g y‖ ≤ (b : ℝ) * ‖x-y‖ := by
+    simpa only [dist_eq_norm] using hg.dist_le_mul x y
+  have htri := norm_sub_norm_le (g x) (g y)
+  have hnorm : ‖g x‖ ≤ ‖g y‖ + (b : ℝ) * ‖x-y‖ := by linarith
+  have hnonneg : 0 ≤ (b : ℝ) * ‖x-y‖ := mul_nonneg b.coe_nonneg (norm_nonneg _)
+  nlinarith [norm_nonneg (g x), norm_nonneg (g y),
+    sq_nonneg (‖g y‖ - (b : ℝ) * ‖x-y‖)]
+
+private theorem smoothing_square {μ : Measure E} [IsProbabilityMeasure μ]
+    {g : E → E} {b : ℝ≥0} (hg : LipschitzWith b g)
+    (hi : Integrable (fun x => ‖g x‖^2) μ) (σ : ℝ) :
+    let ρ := TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing μ σ
+    Integrable (fun x => ‖g x‖^2) ρ ∧
+      (∫ x, ‖g x‖^2 ∂ρ) ≤ 2 * (∫ x, ‖g x‖^2 ∂μ) +
+        2 * (b : ℝ)^2 * σ^2 * Module.finrank ℝ E := by
+  let ρ := TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing μ σ
+  let A : E × E → E := fun p => p.1 + σ • p.2
+  have hA : Measurable A := by fun_prop
+  have hc : Continuous (fun x => ‖g x‖^2) := hg.continuous.norm.pow 2
+  have hprod : μ.prod (TechnicalLemmas.Measure.GaussianSmoothing.scaledStdGaussian (E := E) σ) =
+      (μ.prod (stdGaussian E)).map (Prod.map id (fun z : E => σ • z)) := by
+    simpa only [Measure.map_id, TechnicalLemmas.Measure.GaussianSmoothing.scaledStdGaussian] using
+      Measure.map_prod_map μ (stdGaussian E) measurable_id (by fun_prop : Measurable (fun z : E => σ • z))
+  have hρ : ρ = (μ.prod (stdGaussian E)).map A := by
+    dsimp [ρ, TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing,
+      TechnicalLemmas.Measure.CommonNoiseContraction.addNoise]
+    rw [hprod, Measure.map_map (by fun_prop) (by fun_prop)]
+    rfl
+  have hp := hi.comp_fst (stdGaussian E)
+  have hq := (gaussian_square (E := E)).1.comp_snd μ
+  have hdom : Integrable (fun p : E × E =>
+      2 * ‖g p.1‖^2 + (2 * (b : ℝ)^2 * σ^2) * ‖p.2‖^2)
+      (μ.prod (stdGaussian E)) := (hp.const_mul 2).add (hq.const_mul _)
+  have hbound (p : E × E) : ‖g (A p)‖^2 ≤
+      2 * ‖g p.1‖^2 + (2 * (b : ℝ)^2 * σ^2) * ‖p.2‖^2 := by
+    have hb := lipschitz_square_bound hg (A p) p.1
+    have hd : A p - p.1 = σ • p.2 := by dsimp [A]; abel
+    rw [hd, norm_smul] at hb
+    simpa only [Real.norm_eq_abs, mul_pow, sq_abs, mul_assoc] using hb
+  have hcomp : Integrable (fun p => ‖g (A p)‖^2) (μ.prod (stdGaussian E)) := by
+    apply hdom.mono' (hc.comp (by fun_prop : Continuous A)).aestronglyMeasurable
+    filter_upwards with p
+    change ‖(‖g (A p)‖^2 : ℝ)‖ ≤ _
+    rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg ‖g (A p)‖)]
+    exact hbound p
+  have hρi : Integrable (fun x => ‖g x‖^2) ρ := by
+    rw [hρ]
+    exact (integrable_map_measure hc.aestronglyMeasurable hA.aemeasurable).2 hcomp
+  refine ⟨hρi, ?_⟩
+  change (∫ x, ‖g x‖^2 ∂ρ) ≤ _
+  rw [hρ, integral_map hA.aemeasurable hc.aestronglyMeasurable]
+  have hm := integral_mono hcomp hdom hbound
+  have hsum : (∫ p : E × E, 2 * ‖g p.1‖^2 + (2 * (b : ℝ)^2 * σ^2) * ‖p.2‖^2
+      ∂μ.prod (stdGaussian E)) =
+      2 * (∫ x, ‖g x‖^2 ∂μ) + 2 * (b : ℝ)^2 * σ^2 * Module.finrank ℝ E := by
+    rw [integral_add (hp.const_mul 2) (hq.const_mul _), integral_const_mul, integral_const_mul,
+      integral_prod _ hp, integral_prod _ hq]
+    simp [(gaussian_square (E := E)).2]
+  exact hm.trans_eq hsum
+
+omit [CompleteSpace E] in
+private theorem coupling_square {μ ν : Measure E} {γ : Measure (E × E)}
+    {g : E → E} {b : ℝ≥0} {s : ℝ} (hg : LipschitzWith b g)
+    (hi : Integrable (fun x => ‖g x‖^2) ν)
+    (hγ : TechnicalLemmas.Measure.Transport.IsCoupling γ μ ν) (hs : 0 ≤ s)
+    (hcost : (∫⁻ p, TechnicalLemmas.Measure.WassersteinSpace.quadraticCost p ∂γ) ≤ ENNReal.ofReal s) :
+    Integrable (fun x => ‖g x‖^2) μ ∧
+      (∫ x, ‖g x‖^2 ∂μ) ≤ 2 * (∫ x, ‖g x‖^2 ∂ν) + 2 * (b : ℝ)^2 * s := by
+  have hc : Continuous (fun x => ‖g x‖^2) := hg.continuous.norm.pow 2
+  have hmp1 := TechnicalLemmas.Measure.CouplingQuadraticIntegrability.measurePreserving_fst_of_isCoupling hγ
+  have hmp2 := TechnicalLemmas.Measure.CouplingQuadraticIntegrability.measurePreserving_snd_of_isCoupling hγ
+  have hq : Integrable (fun p : E × E => ‖g p.2‖^2) γ :=
+    hmp2.integrable_comp_of_integrable hi
+  have hd : Integrable (fun p : E × E => ‖p.1-p.2‖^2) γ := by
+    have hm : AEMeasurable (fun p : E × E =>
+        TechnicalLemmas.Measure.WassersteinSpace.quadraticCost p) γ := by
+      unfold TechnicalLemmas.Measure.WassersteinSpace.quadraticCost
+      fun_prop
+    have ht := integrable_toReal_of_lintegral_ne_top hm
+      (lt_of_le_of_lt hcost ENNReal.ofReal_lt_top).ne
+    simpa [TechnicalLemmas.Measure.WassersteinSpace.quadraticCost] using ht
+  have hdint : (∫ p : E × E, ‖p.1-p.2‖^2 ∂γ) ≤ s := by
+    apply (ENNReal.ofReal_le_ofReal_iff hs).1
+    rw [ofReal_integral_eq_lintegral_ofReal hd (Filter.Eventually.of_forall (fun p => sq_nonneg _))]
+    exact hcost
+  have hdom : Integrable (fun p : E × E => 2 * ‖g p.2‖^2 + 2 * (b : ℝ)^2 * ‖p.1-p.2‖^2) γ :=
+    (hq.const_mul 2).add (hd.const_mul _)
+  have hp : Integrable (fun p : E × E => ‖g p.1‖^2) γ := by
+    apply hdom.mono' (hc.comp continuous_fst).aestronglyMeasurable
+    filter_upwards with p
+    change ‖(‖g p.1‖^2 : ℝ)‖ ≤ _
+    rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg ‖g p.1‖)]
+    exact lipschitz_square_bound hg p.1 p.2
+  have hμ : Integrable (fun x => ‖g x‖^2) μ := by
+    rw [← hmp1.map_eq]
+    exact (integrable_map_measure hc.aestronglyMeasurable measurable_fst.aemeasurable).2 hp
+  have hpint : (∫ p : E × E, ‖g p.1‖^2 ∂γ) = ∫ x, ‖g x‖^2 ∂μ := by
+    rw [← hmp1.map_eq, integral_map measurable_fst.aemeasurable hc.aestronglyMeasurable]
+  have hqint : (∫ p : E × E, ‖g p.2‖^2 ∂γ) = ∫ x, ‖g x‖^2 ∂ν := by
+    rw [← hmp2.map_eq, integral_map measurable_snd.aemeasurable hc.aestronglyMeasurable]
+  have hm := integral_mono hp hdom (fun p => lipschitz_square_bound hg p.1 p.2)
+  rw [integral_add (hq.const_mul 2) (hd.const_mul _), integral_const_mul,
+    integral_const_mul, hpint, hqint] at hm
+  refine ⟨hμ, hm.trans ?_⟩
+  gcongr
+
+omit [CompleteSpace E] in
+private theorem wasserstein_square {μ ν : Measure E}
+    {g : E → E} {b : ℝ≥0} {r : ℝ} (hg : LipschitzWith b g)
+    (hi : Integrable (fun x => ‖g x‖^2) ν)
+    (hw : TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance μ ν ^ 2 ≤
+      ENNReal.ofReal (r^2)) :
+    Integrable (fun x => ‖g x‖^2) μ ∧
+      (∫ x, ‖g x‖^2 ∂μ) ≤ 2 * (∫ x, ‖g x‖^2 ∂ν) + 2 * (b : ℝ)^2 * r^2 := by
+  have hall (s : ℝ) (hs : r^2 < s) :
+      Integrable (fun x => ‖g x‖^2) μ ∧
+        (∫ x, ‖g x‖^2 ∂μ) ≤ 2 * (∫ x, ‖g x‖^2 ∂ν) + 2 * (b : ℝ)^2 * s := by
+    have hs0 : 0 < s := (sq_nonneg r).trans_lt hs
+    have hcost : TechnicalLemmas.Measure.Transport.transportCost
+        (TechnicalLemmas.Measure.WassersteinSpace.quadraticCost (E := E)) μ ν < ENNReal.ofReal s := by
+      rw [← TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance_sq]
+      exact hw.trans_lt ((ENNReal.ofReal_lt_ofReal_iff hs0).2 hs)
+    obtain ⟨γ, hγ, hc⟩ :=
+      TechnicalLemmas.Measure.Transport.exists_isCoupling_lintegral_lt_of_transportCost_lt
+        (TechnicalLemmas.Measure.WassersteinSpace.quadraticCost (E := E)) μ ν hcost
+    exact coupling_square hg hi hγ hs0.le hc.le
+  refine ⟨(hall (r^2+1) (by linarith)).1, ?_⟩
+  apply le_of_forall_pos_le_add
+  intro ε hε
+  have hden : 0 < 2 * (b : ℝ)^2 + 1 := by positivity
+  have hδ : 0 < ε / (2 * (b : ℝ)^2 + 1) := div_pos hε hden
+  have hbound := (hall (r^2 + ε/(2*(b : ℝ)^2+1)) (by linarith)).2
+  have heq := div_mul_cancel₀ ε hden.ne'
+  nlinarith
+
+omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
+private theorem regularized_gradient {U : E → ℝ} (hU : ContDiff ℝ 2 U)
+    {A : ℝ} (hA : 0 < A) (u x : E) :
+    gradient (fun t => U t + ‖t-u‖^2/(2*A)) x = gradient U x + A⁻¹ • (x-u) := by
+  have heq : (fun t => U t + ‖t-u‖^2/(2*A)) =
+      (fun t => U t + (A⁻¹/2)*‖t-u‖^2) := by
+    funext t
+    field_simp
+  rw [heq]
+  have hq : HasFDerivAt (fun t => (A⁻¹/2)*‖t-u‖^2)
+      (A⁻¹ • innerSL ℝ (x-u)) x := by
+    convert (((hasFDerivAt_id x).sub_const u).norm_sq).const_mul (A⁻¹/2)
+      using 1 <;> first | rfl | (ext v; simp; ring)
+  apply HasGradientAt.gradient
+  rw [hasGradientAt_iff_hasFDerivAt]
+  change HasFDerivAt (fun t => U t+(A⁻¹/2)*‖t-u‖^2)
+    ((toDual ℝ E) (gradient U x + A⁻¹ • (x-u))) x
+  convert! ((hU.differentiable (by norm_num)) x).hasGradientAt.hasFDerivAt.add hq using 1
+  simp only [map_add, map_smul]
+  rfl
+
+theorem approximate_initial_gradient_moment {U : E → ℝ} {α β : ℝ≥0}
+    (hα : 0 < α) (hαβ : α ≤ β) (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E, (α : ℝ)*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ U) x v v ∧
+      fderiv ℝ (fderiv ℝ U) x v v ≤ (β : ℝ)*‖v‖^2)
+    {η τ r : ℝ} (hη : 0 ≤ η) (hτ : 0 < τ) (_hr : 0 ≤ r)
+    (ν : Measure E) [IsProbabilityMeasure ν]
+    (hw : TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance ν
+      (TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing
+        ((volume : Measure E).tilted (fun x => -U x)) (Real.sqrt η)) ^ 2 ≤ ENNReal.ofReal (r^2)) :
+    let d : ℝ := Module.finrank ℝ E
+    let M := 4*(β : ℝ)*d + 4*(β : ℝ)^2*η*d + 2*(β : ℝ)^2*r^2
+    let F := fun y z x : E => U x + ‖x-(y+Real.sqrt τ • z)‖^2/(2*(η+τ))
+    Integrable (fun y => ‖gradient U y‖^2) ν ∧
+      (∫ y, ‖gradient U y‖^2 ∂ν) ≤ M ∧
+      (∀ y z, gradient (F y z) y = gradient U y - (Real.sqrt τ/(η+τ)) • z) ∧
+      Integrable (fun p : E × E => ‖gradient (F p.1 p.2) p.1‖^2) (ν.prod (stdGaussian E)) ∧
+      (∫ p : E × E, ‖gradient (F p.1 p.2) p.1‖^2 ∂ν.prod (stdGaussian E)) =
+        (∫ y, ‖gradient U y‖^2 ∂ν) + τ*d/(η+τ)^2 ∧
+      (∫ p : E × E, ‖gradient (F p.1 p.2) p.1‖^2 ∂ν.prod (stdGaussian E)) ≤ M + τ*d/(η+τ)^2 ∧
+      (β=1 → η≤1/4 → (∫ p : E × E, ‖gradient (F p.1 p.2) p.1‖^2 ∂ν.prod (stdGaussian E)) ≤
+        5*(d+r^2+τ*d/(η+τ)^2)) := by
+  let d : ℝ := Module.finrank ℝ E
+  let μ := (volume : Measure E).tilted (fun x => -U x)
+  let ρ := TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing μ (Real.sqrt η)
+  let M := 4*(β : ℝ)*d + 4*(β : ℝ)^2*η*d + 2*(β : ℝ)^2*r^2
+  let F := fun y z x : E => U x + ‖x-(y+Real.sqrt τ • z)‖^2/(2*(η+τ))
+  have hG := TechnicalLemmas.Analysis.GibbsGradientMoment.gibbs_gradient_moment hα hαβ hU hH
+  have : IsProbabilityMeasure μ := hG.1
+  have hbase := TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic
+    (r := 0) hU hH (0 : E)
+  have hLip : LipschitzWith β (gradient U) := by simpa using hbase.2
+  have hSm := smoothing_square hLip hG.2.1 (Real.sqrt η)
+  have hW := wasserstein_square hLip hSm.1 hw
+  have hbound : (∫ y, ‖gradient U y‖^2 ∂ν) ≤ M := by
+    have h1 := hG.2.2.2.2
+    have h2 := hSm.2
+    have h3 := hW.2
+    rw [Real.sq_sqrt hη] at h2
+    dsimp [M, d, μ, ρ] at *
+    linarith
+  have hA : 0 < η+τ := add_pos_of_nonneg_of_pos hη hτ
+  have hgrad (y z : E) : gradient (F y z) y =
+      gradient U y - (Real.sqrt τ/(η+τ)) • z := by
+    rw [regularized_gradient hU hA]
+    have he : y-(y+Real.sqrt τ • z) = -(Real.sqrt τ • z) := by abel
+    rw [he]
+    simp only [smul_neg, smul_smul, sub_eq_add_neg, div_eq_mul_inv, mul_comm]
+  have hP := gaussian_perturbation_square hLip.continuous hW.1 (Real.sqrt τ/(η+τ))
+  have hnoise : (Real.sqrt τ/(η+τ))^2 * d = τ*d/(η+τ)^2 := by
+    rw [div_pow, Real.sq_sqrt hτ.le]
+    ring
+  have hEq : (∫ p : E × E, ‖gradient (F p.1 p.2) p.1‖^2 ∂ν.prod (stdGaussian E)) =
+      (∫ y, ‖gradient U y‖^2 ∂ν) + τ*d/(η+τ)^2 := by
+    simp_rw [hgrad]
+    exact hP.2.trans (by rw [show (Module.finrank ℝ E : ℝ)=d from rfl, hnoise])
+  refine ⟨hW.1, hbound, hgrad, ?_, hEq, ?_, ?_⟩
+  · change Integrable (fun p : E × E => ‖gradient (F p.1 p.2) p.1‖^2) (ν.prod (stdGaussian E))
+    simpa only [hgrad] using hP.1
+  · rw [hEq]
+    change (∫ y, ‖gradient U y‖^2 ∂ν) + τ*d/(η+τ)^2 ≤ M + τ*d/(η+τ)^2
+    linarith
+  · intro hβ hηsmall
+    rw [hEq]
+    have hd : 0 ≤ d := Nat.cast_nonneg _
+    have hn : 0 ≤ τ*d/(η+τ)^2 := div_nonneg (mul_nonneg hτ.le hd) (sq_nonneg _)
+    have hηd : 4*η*d ≤ d := by nlinarith [mul_le_mul_of_nonneg_right hηsmall hd]
+    simp only [M, hβ, NNReal.coe_one, one_pow, mul_one] at hbound
+    nlinarith [sq_nonneg r]
+
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateInitialGradientMoment

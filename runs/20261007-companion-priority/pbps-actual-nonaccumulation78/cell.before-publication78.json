@@ -1,0 +1,217 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-event-time-nonaccumulation",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS event-time nonaccumulation",
+  "mode": "faithfulPaper",
+  "source_anchor": "arXiv2609.06905v1 Appendix A.1 (A.2), Ex8-Ex9 and following SLLN/nonaccumulation clauses; Algorithm1 actual flow/bounce/rate and standing six analytic conditions.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion\nimport AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct\nimport Mathlib.Topology.Order.WithTop\n\n/-! Prospective statement only, PBPS arXiv2609.06905v1 Appendix A.1 Ex9.\nSource standing analytic conditions and exact stopped recurrence are retained.\nActual inputs use the canonical Exp(1) product. No supplied stochastic/cap/time\ncertificate and no global physical-time process, Markov or invariance claim. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation\nopen InnerProductSpace MeasureTheory ProbabilityTheory Filter\nopen scoped ContDiff NNReal ENNReal Topology Interval BigOperators\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_fixed_reference_event_time_nonaccumulation_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n      (∀ t : ℝ≥0, ∀ᶠ n : ℕ in atTop,\n        (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) n) ∧\n      (∀ t : ℝ≥0, {n : ℕ | eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0)}.Finite)\n\nend\n\n#check actual_fixed_reference_event_time_nonaccumulation_statement\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation\n",
+  "status": "claimed",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+    "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+  ],
+  "consumers": [
+    "PBPS AppendixA.1 all-physical-time path construction requires actual finite-horizon nonaccumulation before measurable path/Markov/invariance proofs."
+  ],
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation"
+  ],
+  "declaration_level": "source-anchor",
+  "blocked": {
+    "status": false,
+    "reason": "Sealed reviewed exact statement; sole writer implementing the source dependency-ready integration."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261010-PBPSActualNonaccumulation",
+    "statement_seal": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/root.statement-seal78.json",
+    "focused_checks": [],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean"
+    ],
+    "truth_boundary": "Only actual fixed-reference recursion nonaccumulation and finite bounded-horizon indices. No global physical-time path existence/uniqueness/measurability, Markov/invariance/kernel/hypocoercivity, PBPS main accuracy/implementation error/expected queries or PBPS-SPHMC composition. Author direct Exp mean-one SLLN remains an alternative open route; ASTIS uses verified bounded-indicator divergence. No merged/stabilized/purified/live/full-paper/Goal credit."
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib ActualFiniteJumpRecursion and UnitExponentialProduct actual parents; source-consumer nonaccumulation is not yet present. Related abstract SLLN/clock consumers cannot replace actual A.2 inputs.",
+      "Pinned Mathlib NNReal coe_sum / Real.toNNReal_div / WithTop coe_add / Filter eventually_atTop and finite Iio set; no upstream transplant needed.",
+      "Current shared Frontier Cells, Registry and module cards reuse Probability canonical exponential product; no new stochastic foundation copy."
+    ],
+    "classification": "missing",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation",
+    "canonical_shared_cell": "",
+    "reason": "Actual PBPS consumer joining two compiled parents; no supplied cap/probability/SLLN/recurrence witness."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib ActualFiniteJumpRecursion and UnitExponentialProduct actual parents; source-consumer nonaccumulation is not yet present. Related abstract SLLN/clock consumers cannot replace actual A.2 inputs.",
+      "Pinned Mathlib NNReal coe_sum / Real.toNNReal_div / WithTop coe_add / Filter eventually_atTop and finite Iio set; no upstream transplant needed.",
+      "Current shared Frontier Cells, Registry and module cards reuse Probability canonical exponential product; no new stochastic foundation copy."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "PBPS AppendixA.1 all-physical-time path construction requires actual finite-horizon nonaccumulation before measurable path/Markov/invariance proofs."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Actual PBPS consumer joining two compiled parents; no supplied cap/probability/SLLN/recurrence witness."
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/root.statement-seal78.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "b94c3c35220873d034467b16d0ebd4c618cfbfc96b6ef26318a8f4e88d7b9c43",
+    "binder_audit": [
+      {
+        "binder": "d and Rd phase carrier",
+        "class": "TYPING",
+        "source": "Euclidean finite dimension, x,p,y,xref real finite vectors; no positivity of dimension is used by this edge."
+      },
+      {
+        "binder": "V C2, 0<alpha<=beta, Hessian bounds",
+        "class": "STANDING",
+        "source": "S1.p1.1;S1.E1. Strong convex lower bound and alpha are paper standing context, not analytical needs of this local nonaccumulation mechanism."
+      },
+      {
+        "binder": "0<eta<=1/beta",
+        "class": "STANDING",
+        "source": "S2.SS2.p1.1. Local mechanism uses eta>0; retain source restriction or explicitly mark a generalized leaf."
+      },
+      {
+        "binder": "fixed y,xref and arbitrary x0,p0",
+        "class": "SOURCE",
+        "source": "S3.Thmtheorem1;A1.SS1.p1.1;p2.1. No stationary/warm/Gaussian law required."
+      },
+      {
+        "binder": "iid Exp1 inputs",
+        "class": "SOURCE sampling specification",
+        "source": "A1.SS1.p2.1; construct with existing actual product rather than requiring producer conclusion as added source-facing hypothesis."
+      },
+      {
+        "binder": "finite cap/Lipschitz certificate/crossing witness/sum divergence",
+        "class": "EXCESS if public in source anchor",
+        "source": "Must be internal dependency edges derived from standing data and actual inputs; allowed as hypotheses only for honestly named generic library lemmas, not the source Anchor."
+      }
+    ],
+    "definition_kind": "Private complete literal Prop, eleven actual definitions, original six analytic binders, two almost-sure conclusions; specification only."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/source-preread78/source-freeze78.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/source-preread78/source-freeze78.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/header-review78/independent-source-topology-review78.json",
+    "reviewed_adapter_overlay": "runs/20261007-companion-priority/pbps-actual-nonaccumulation78/reviewed-source-adapter-overlay78.json",
+    "coverage_status": "Prospective complete scoped source inventory and reviewed adapters only. Actual proof coverage OPEN."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "arXiv2609.06905v1 Appendix A.1 (A.2), Ex8-Ex9 and following SLLN/nonaccumulation clauses; Algorithm1 actual flow/bounce/rate and standing six analytic conditions.",
+    "fidelity_boundary": "Only actual fixed-reference recursion nonaccumulation and finite bounded-horizon indices. No global physical-time path existence/uniqueness/measurability, Markov/invariance/kernel/hypocoercivity, PBPS main accuracy/implementation error/expected queries or PBPS-SPHMC composition. Author direct Exp mean-one SLLN remains an alternative open route; ASTIS uses verified bounded-indicator divergence. No merged/stabilized/purified/live/full-paper/Goal credit.",
+    "detail_status": "omitted",
+    "gap": "Partial sum clock comparison, C0 stopping and finite-index adapter are background source steps to close. Direct author Exp moment route remains distinct from the verified indicator route.",
+    "consulted": [
+      {
+        "source": "Fixed Mathlib and actual PBPS finite recursion/Exp product local parents",
+        "anchor": "A1.Ex8-Ex9; WithTop/NNReal/Filter/Nat finite sets",
+        "hypothesis_adapter": "Six source analytic binders only; positive cap and good input event are derived internally. Stopped records have eventTime top, no phase at infinity."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion.actual_fixed_reference_finite_jump_recursion",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "bookkeeping": [
+      "Stopped-as-top representation; source E1 is coordinate0; initial event index0 counts in the finite sublevel set."
+    ],
+    "new_reusable": [],
+    "new_topology": "Actual fixed-reference PBPS A.2 event times with canonical countable Exp1 thresholds: almost surely escape every finite horizon, and only finitely many event indices lie below each finite horizon, including initialization index0."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Pending proof",
+    "duplicate_semantics_audit": "Two parents do not themselves prove actual source clock nonaccumulation.",
+    "canonicalization": "Actual PBPS consumer of shared canonical exponential product.",
+    "compressed_spine_delta": "Actual fixed-reference PBPS A.2 event times with canonical countable Exp1 thresholds: almost surely escape every finite horizon, and only finitely many event indices lie below each finite horizon, including initialization index0.",
+    "reader_default_view": "Full attributed statement/formula proof with adjacent folded exact Lean.",
+    "scope": "Only actual fixed-reference recursion nonaccumulation and finite bounded-horizon indices. No global physical-time path existence/uniqueness/measurability, Markov/invariance/kernel/hypocoercivity, PBPS main accuracy/implementation error/expected queries or PBPS-SPHMC composition. Author direct Exp mean-one SLLN remains an alternative open route; ASTIS uses verified bounded-indicator divergence. No merged/stabilized/purified/live/full-paper/Goal credit."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No mathematical proof attempt before seal. Syntax/name/private overlays independently reviewed; original negatives preserved.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-clock/zero-cap-or-positive-cap/Exp1-product/finite-horizon"
+      ],
+      "expected_information_gain": "One canonical writer; distinct independent proof/blind decoder/source review after focused compile.",
+      "shared_verified_context_digest": "e61716072be6f95420594e513116277f4313214587d2eedab68e26a4bdc5f211"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "actual-recursion",
+        "actual-Exp1-inputs",
+        "zero-cap-stop",
+        "scaled-partial-sums",
+        "finite-horizon-escape",
+        "finite-index-set"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation.actual_fixed_reference_event_time_nonaccumulation"
+    ],
+    "visual_review": "Pending proof/publication/local graph checks."
+  },
+  "conceptual_mirror_audit": {
+    "status": "pending",
+    "discovery_ids": [],
+    "reason": "Required before PROVED_LOCAL; no new transport claim from combining actual parents."
+  }
+}

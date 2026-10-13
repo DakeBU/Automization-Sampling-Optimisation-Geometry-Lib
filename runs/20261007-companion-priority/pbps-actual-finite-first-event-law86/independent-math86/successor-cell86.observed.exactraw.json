@@ -1,0 +1,232 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-finite-first-event-law",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS finite first-event density and post-bounce marked law",
+  "mode": "faithfulPaper",
+  "source_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 AppendixA.1 (A.1),(A.2), actual iidExp1 inputs and first finite density factor implicit in (A.7). Explicit finite subprobability/marked Borel-test packaging and CDF/FTC justification are ASTIS completion.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock\nimport AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct\nimport Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus\nimport Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap\n\n/-! Prospective statement only. Actual first finite PBPS event, Appendix A.1\n(A.1),(A.2) and the first density factor implicit in (A.7), arXiv2609.06905v1.\nThe finite subprobability and marked-test packaging is attributed ASTIS completion.\nLiteral actual Exp1 coordinate0, stopped wait and zero-normal identity reflection\nare retained. F defaults to0 only outside the restricted positive finite event;\nmissing probability includes waits beyond T or infinite, without renormalization.\nFull path law, unused-tail conditioning, reversal, invariance, semigroup/allL2,\nimplementation, error, unbounded expected query cost, main/composition remain OPEN. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw\nopen InnerProductSpace MeasureTheory ProbabilityTheory Filter\nopen scoped ContDiff NNReal ENNReal Topology Interval\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_finite_first_event_law_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let U : E → E → (E × E) → (ℕ → ℝ) → WithTop ℝ≥0 :=\n      fun y xRef z sample => τ y xRef z (ε sample 0)\n    let F : E → E → (E × E) → (ℕ → ℝ) → ℝ :=\n      fun y xRef z sample => ((U y xRef z sample).untopD 0 : ℝ≥0)\n    let A : E → E → (E × E) → ℝ≥0 → Set (ℕ → ℝ) :=\n      fun y xRef z T => {sample | (0 : WithTop ℝ≥0) < U y xRef z sample ∧\n        U y xRef z sample ≤ (T : WithTop ℝ≥0)}\n    let d : E → E → (E × E) → ℝ → ℝ := fun y xRef z s =>\n      rate xRef (Φ y xRef s z) * Real.exp (-Λ y xRef z (Real.toNNReal s))\n    let ρ : E → E → (E × E) → ℝ≥0 → Measure ℝ := fun y xRef z T =>\n      (volume.restrict (Set.Ioc (0 : ℝ) (T : ℝ))).withDensity\n        (fun s => ENNReal.ofReal (d y xRef z s))\n    let J : E → E → (E × E) → ℝ → (ℝ≥0 × (E × E)) :=\n      fun y xRef z s => (Real.toNNReal s, S xRef (Φ y xRef s z))\n    ∀ y xRef : E, ∀ z : E × E,\n      Measurable (U y xRef z) ∧ Measurable (F y xRef z) ∧\n      Measurable (J y xRef z) ∧\n      (∀ T : ℝ≥0,\n        MeasurableSet (A y xRef z T) ∧\n        Measure.map (F y xRef z) (P.restrict (A y xRef z T)) = ρ y xRef z T ∧\n        Measure.map (fun sample => J y xRef z (F y xRef z sample))\n          (P.restrict (A y xRef z T)) = Measure.map (J y xRef z) (ρ y xRef z T) ∧\n        IsFiniteMeasure (ρ y xRef z T) ∧\n        (ρ y xRef z T).real Set.univ = 1 - Real.exp (-Λ y xRef z T) ∧\n        ρ y xRef z T Set.univ ≤ 1 ∧\n        (∀ h : (ℝ≥0 × (E × E)) → ℝ, Measurable h →\n          ∀ M : ℝ, 0 ≤ M → (∀ a, |h a| ≤ M) →\n            Integrable h (Measure.map (J y xRef z) (ρ y xRef z T)) ∧\n            Integrable (fun sample => h (J y xRef z (F y xRef z sample)))\n              (P.restrict (A y xRef z T)) ∧\n            Integrable (fun s => h (J y xRef z s) * d y xRef z s)\n              (volume.restrict (Set.Ioc (0 : ℝ) (T : ℝ))) ∧\n            (∫ sample, h (J y xRef z (F y xRef z sample))\n                ∂P.restrict (A y xRef z T)) =\n              ∫ s, h (J y xRef z s) * d y xRef z s\n                ∂volume.restrict (Set.Ioc (0 : ℝ) (T : ℝ))))\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw\n",
+  "status": "claimed",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+    "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+  ],
+  "consumers": [
+    "AppendixA.1(A.7) first finite-wait density factor and actual post-bounce marked tests. Successive factors/final survival additionally require independent unused-tail conditioning; fullA7 remains OPEN."
+  ],
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw.actual_finite_first_event_law"
+  ],
+  "declaration_level": "source-anchor",
+  "blocked": {
+    "status": false,
+    "reason": "Whole-header mathematics/type/source and distinctly reviewed source topology accepted. Exact seal fixed; sole writer BODY pending."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261011-PBPSActualFiniteFirstEventLaw",
+    "statement_seal": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-finite-first-event-law86\\root.statement-seal86.json",
+    "focused_checks": [
+      {
+        "command": "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw",
+        "result": "PASS whole sealed public anchor and five internal ingredients; independent BODY/source review pending.",
+        "evidence": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-finite-first-event-law86/focused-complete86.attempt1/receipt.json"
+      }
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteFirstEventLaw.lean"
+    ],
+    "truth_boundary": "Original six analytic source hypotheses and literal P/epsilon/c/Phi/S/rate/Lambda/tau; U uses actual coordinate0. Positive finite A={0<U<=T} excludes infinity/default0 and null zero thresholds. No strict hazard increase, positive rate, finite wait, uniform cap, density/law/regularity/invariance/normalizer provider premise. Finite-event density and actual marked law have mass1-exp(-LambdaT), without renormalization; T0/M0/rank0/zero normal/flat hazard/infinite waits retained. Bounded Borel real tests derive three L1 outputs and weighted integral. This is a strict producer beyond75CDF. Unused-tail conditioning/fullA7/path sigma/reversal/A8/outerTonelli/invariance/AE-safeJensen/density/allL2/Markov/restart/semigroup/hypocoercivity/implementation/error/unboundedcost/main/composition, stabilization/main/PURIFIED/live/fullpaper/Goal remain OPEN."
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib: AutoSamplingTheory and shared Frontier Cells searched in runs/20261007-companion-priority/pbps-path-law-preread86/root-retrieval86/local-density.txt and shared-frontiers.txt; fixed Mathlib API search in mathlib-cdf.txt and mathlib-maps.txt.",
+      "runs/20261007-companion-priority/pbps-path-law-preread86/root-retrieval86/local-density.txt",
+      "runs/20261007-companion-priority/pbps-path-law-preread86/root-retrieval86/mathlib-cdf.txt",
+      "runs/20261007-companion-priority/pbps-path-law-preread86/root-retrieval86/shared-frontiers.txt",
+      "runs/20261007-companion-priority/pbps-path-law-preread86/root-retrieval86/upstream-compatibility.txt",
+      "runs/20261007-companion-priority/pbps-path-law-preread86/root-retrieval86/mathlib-maps.txt"
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw.actual_finite_first_event_law",
+    "canonical_shared_cell": "",
+    "reason": "Candidate actual density is strictly beyond actual75 tail/CDF. Generic fixed Mathlib FTC, finite-measure interval extensionality, withDensity and map APIs should be adapted internally. Do not duplicate CDF wrapper or add density/regularity hypotheses to source anchor; independent topology review still pending."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib: AutoSamplingTheory and shared Frontier Cells searched in runs/20261007-companion-priority/pbps-path-law-preread86/root-retrieval86/local-density.txt and shared-frontiers.txt; fixed Mathlib API search in mathlib-cdf.txt and mathlib-maps.txt.",
+      "runs/20261007-companion-priority/pbps-path-law-preread86/root-retrieval86/local-density.txt",
+      "runs/20261007-companion-priority/pbps-path-law-preread86/root-retrieval86/mathlib-cdf.txt",
+      "runs/20261007-companion-priority/pbps-path-law-preread86/root-retrieval86/shared-frontiers.txt",
+      "runs/20261007-companion-priority/pbps-path-law-preread86/root-retrieval86/upstream-compatibility.txt",
+      "runs/20261007-companion-priority/pbps-path-law-preread86/root-retrieval86/mathlib-maps.txt"
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "AppendixA.1(A.7) first finite-wait density factor and actual post-bounce marked tests. Successive factors/final survival additionally require independent unused-tail conditioning; fullA7 remains OPEN."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Actual75 survival is reused without recredit. Fixed Mathlib FTC, finite-left CDF uniqueness, withDensity and map APIs derive the strictly new finite density and post-bounce law; source topology independently accepted before BODY."
+  },
+  "statement_seal": {
+    "evidence": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-finite-first-event-law86\\root.statement-seal86.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "51e925d7a7874083c0802682e7157fcaa2adf6961c2f1ba711d1646ab35e32d8",
+    "binder_audit": [
+      "Original six analytic source binders unchanged.",
+      "P/clock/flow/bounce/hazard/wait are literal definitions, not supplied providers.",
+      "Rate continuity/FTC/density/Borel/finite mass/integrability are derived dependencies.",
+      "Bounded Borel h and nonnegative bound M specify test class, not dynamics."
+    ],
+    "definition_kind": "Eight unchanged actual definitions, six derived U/F/A/d/rho/J; finite positive event restriction before default finite projection use. Source E1 reindexed as actual coordinate0."
+  },
+  "source_proof_coverage": {
+    "source_graph": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-path-law-preread86\\source-proof-graph86.reviewed-effective.json",
+    "source_inventory": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-path-law-preread86\\source-inventory86.reviewed-effective.json",
+    "coverage_report": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-finite-first-event-law86\\independent-review-adoption86.json",
+    "reviewed_adapter_overlay": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-path-law-preread86\\root.topology-adoption86.json",
+    "coverage_status": "Distinct primary-first exact overlay40inventory/37nodes/71relations:68dependencies+3excludedassociations,56anchors mapped. CDF and inverse routes OR, internallyAND with common Borel mark. Conditional tail, bounce density-value adapter and all futureOPEN retained. BODY/source review pending."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 AppendixA.1 (A.1),(A.2), actual iidExp1 inputs and first finite density factor implicit in (A.7). Explicit finite subprobability/marked Borel-test packaging and CDF/FTC justification are ASTIS completion.",
+    "fidelity_boundary": "Original six analytic source hypotheses and literal P/epsilon/c/Phi/S/rate/Lambda/tau; U uses actual coordinate0. Positive finite A={0<U<=T} excludes infinity/default0 and null zero thresholds. No strict hazard increase, positive rate, finite wait, uniform cap, density/law/regularity/invariance/normalizer provider premise. Finite-event density and actual marked law have mass1-exp(-LambdaT), without renormalization; T0/M0/rank0/zero normal/flat hazard/infinite waits retained. Bounded Borel real tests derive three L1 outputs and weighted integral. This is a strict producer beyond75CDF. Unused-tail conditioning/fullA7/path sigma/reversal/A8/outerTonelli/invariance/AE-safeJensen/density/allL2/Markov/restart/semigroup/hypocoercivity/implementation/error/unboundedcost/main/composition, stabilization/main/PURIFIED/live/fullpaper/Goal remain OPEN.",
+    "detail_status": "omitted",
+    "gap": "Authors iterate actual exponential clocks inA7 without explicit first-event density/CDF-FTC and Borel marked finite-subprobability proof. Future conditional tail and path/reversal/Tonelli steps remain separate.",
+    "consulted": [
+      {
+        "source": "Pinned AppendixA.1 plus exact local actual75/73/74/UnitExp and fixed Mathlib FTC/finite-measure/map/density APIs",
+        "anchor": "A1.E1;A1.E2;A1.SS1.p2.1;A1.E7;A1.SS1.SSS0.Px1.p4.2",
+        "hypothesis_adapter": "No new dynamics assumptions; derive finite density and marked bounded-test transfer."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock.actual_integrated_hazard_clock_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "bookkeeping": [
+      "Retain actual stopped clock and positive finite restriction.",
+      "Derive continuous actual arc rate/FTC density.",
+      "Establish finite measure equality by CDF extensionality.",
+      "Map through actual Borel bounce/flow mark; derive three bounded-test L1 statements and integral."
+    ],
+    "new_reusable": [],
+    "new_topology": "Derive exact actual finite first-event time density and post-bounce marked law on (0,T], with subprobability mass and bounded Borel test integrability/weighted integral, from literal actual Exp1 coordinate0 and original dynamics."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Pending proof",
+    "duplicate_semantics_audit": "Actual75 CDF/survival already proved; not recredited. No local actual finite density/marked law found by bounded retrieval.",
+    "canonicalization": "Use existing fixed Mathlib FTC/withDensity/map/ext APIs; no generic duplicate wrapper or new external port.",
+    "compressed_spine_delta": "Derive exact actual finite first-event time density and post-bounce marked law on (0,T], with subprobability mass and bounded Borel test integrability/weighted integral, from literal actual Exp1 coordinate0 and original dynamics.",
+    "reader_default_view": "Attributed complete mathematical statement and formula proof, exact initially folded Lean adjacent.",
+    "scope": "Original six analytic source hypotheses and literal P/epsilon/c/Phi/S/rate/Lambda/tau; U uses actual coordinate0. Positive finite A={0<U<=T} excludes infinity/default0 and null zero thresholds. No strict hazard increase, positive rate, finite wait, uniform cap, density/law/regularity/invariance/normalizer provider premise. Finite-event density and actual marked law have mass1-exp(-LambdaT), without renormalization; T0/M0/rank0/zero normal/flat hazard/infinite waits retained. Bounded Borel real tests derive three L1 outputs and weighted integral. This is a strict producer beyond75CDF. Unused-tail conditioning/fullA7/path sigma/reversal/A8/outerTonelli/invariance/AE-safeJensen/density/allL2/Markov/restart/semigroup/hypocoercivity/implementation/error/unboundedcost/main/composition, stabilization/main/PURIFIED/live/fullpaper/Goal remain OPEN."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No BODY before exact independently accepted whole header and distinct source topology repair review.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-clock0/CDF-FTC/finite-density/Borel-postbounce-mark/bounded-test-integral"
+      ],
+      "expected_information_gain": "One canonical writer; distinct independent proof/blind decoder/source review after focused compile.",
+      "shared_verified_context_digest": "970af1319bc7b7d20333b2e2309d8a7f332a169e0b6ce63317f11a7dacbb2ea6"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "actual-firstclock",
+        "positive-finite-restriction",
+        "CDF-FTC-density",
+        "Borel-postbounce-mark",
+        "finite-subprobability",
+        "bounded-Borel-integral"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw.actual_finite_first_event_law"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteFirstEventLaw.actual_finite_first_event_law"
+    ],
+    "visual_review": "Pending proof/publication/affected branch inspection. Conceptual source topology is not compiled dependency certification."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "checked": [
+      {
+        "path": "Libraries/conceptual-mirror-protocol.json",
+        "RAW_bytes": 6193,
+        "RAW_sha256": "e2042abcce0423e91a50898a929fed481163c9f079719c98c3311fe05ab3839f"
+      },
+      {
+        "path": "website/content/graph_memory_index.json",
+        "RAW_bytes": 20758,
+        "RAW_sha256": "751882b6649b2136cf80d7542fbe54e2c7d377c3c21a9058d6687117030f975b"
+      },
+      {
+        "path": "website/content/functor_hypergraph.json",
+        "RAW_bytes": 75115,
+        "RAW_sha256": "cb85e4a1c42e0d4afab1e2788b5c1c8666af8cc7c7e09d28a839e8bea9e8ba26"
+      },
+      {
+        "path": "Libraries/frontloaded-shared-spine.json",
+        "RAW_bytes": 24277,
+        "RAW_sha256": "053a267a079ca22da4c392fc0ae82a950682f37f03152d1a4fe5c1bd17b08692"
+      }
+    ],
+    "reason": "The existing integrated hazard/survival/density and measurable pushforward mechanisms suffice; no new conceptual transport discovered or rendered as a formal dependency."
+  }
+}

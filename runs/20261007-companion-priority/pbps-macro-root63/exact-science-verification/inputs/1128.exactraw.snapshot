@@ -1,0 +1,150 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicHorizonIto
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoTerminalCompletion
+
+/-!
+# Completed Itô consistency across dyadic horizons
+
+The finite algebra in `DyadicHorizonIto` says that zero-extending a dyadic
+adapted process from `H_a = 2^a` to `H_b = 2^b` leaves its terminal Itô sum
+unchanged pathwise.  The analytic zero-extension map is an isometry in the
+product-space `L²` domain.  Combining these two facts with the universal
+completion theorem shows that the completed terminal Itô integral itself is
+independent of the chosen larger dyadic horizon.
+
+No optional-stopping theorem is used here: both completions are identified as
+limits of the same terminal `L²(mu)` sequence.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ItoHorizonConsistency
+
+open Filter MeasureTheory
+open scoped NNReal Topology
+
+open BrownianMotion DyadicElementaryRefinement DyadicGlobalHorizon
+  DyadicHorizonExtension DyadicHorizonIto ElementaryItoEmbedding
+  ItoTerminalCompletion ProgressiveL2 ProgressiveL2Density
+  ProgressiveL2HorizonExtension
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- Canonical small-horizon approximants, represented exactly on a larger
+cofinal dyadic horizon. -/
+noncomputable def extendedCanonicalApprox
+    [IsFiniteMeasure mu]
+    {a b : ℕ} (hab : a ≤ b)
+    (eta : ProgressiveL2Integrand filtration mu (dyadicHorizon a))
+    (n : ℕ) : DyadicElementaryProcess filtration (dyadicHorizon b) :=
+  extendDyadicHorizon hab
+    (canonicalElementaryApprox eta (dyadicHorizon_pos a) n)
+
+/-- The extended canonical approximants converge to analytic zero extension in
+product-space `L²` on the larger horizon. -/
+theorem tendsto_extendedCanonicalApprox_toLp
+    [IsFiniteMeasure mu]
+    {a b : ℕ} (hab : a ≤ b)
+    (eta : ProgressiveL2Integrand filtration mu (dyadicHorizon a)) :
+    Tendsto
+      (fun n => (extendedCanonicalApprox hab eta n).toLp mu)
+      atTop
+      (𝓝 (extendByZero eta (dyadicHorizon_mono hab)).toLp) := by
+  apply tendsto_iff_norm_sub_tendsto_zero.mpr
+  have hsmall := tendsto_iff_norm_sub_tendsto_zero.mp
+    (tendsto_canonicalElementaryApprox_toLp eta (dyadicHorizon_pos a))
+  have hnorm : ∀ n,
+      ‖(extendedCanonicalApprox hab eta n).toLp mu -
+          (extendByZero eta (dyadicHorizon_mono hab)).toLp‖ =
+        ‖(canonicalElementaryApprox eta (dyadicHorizon_pos a) n).toLp mu -
+          eta.toLp‖ := by
+    intro n
+    rw [show (extendedCanonicalApprox hab eta n).toLp mu =
+        (extendByZero
+          (toProgressiveL2
+            (canonicalElementaryApprox eta (dyadicHorizon_pos a) n).process
+            mu (dyadicHorizon a))
+          (dyadicHorizon_mono hab)).toLp by
+      exact extendDyadicHorizon_toLp_eq_extendByZero hab
+        (canonicalElementaryApprox eta (dyadicHorizon_pos a) n)]
+    simpa only [DyadicElementaryProcess.toLp] using
+      norm_extendByZero_sub_extendByZero_eq
+        (toProgressiveL2
+          (canonicalElementaryApprox eta (dyadicHorizon_pos a) n).process
+          mu (dyadicHorizon a))
+        eta (dyadicHorizon_mono hab)
+  simpa only [hnorm] using hsmall
+
+/-- The large-horizon process-space representatives of the extended canonical
+approximants converge to the completed zero extension. -/
+theorem tendsto_extendedCanonicalApprox_processToLp
+    [IsProbabilityMeasure mu]
+    {a b : ℕ} (hab : a ≤ b)
+    (eta : ProgressiveL2Integrand filtration mu (dyadicHorizon a))
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    Tendsto
+      (fun n => processToLp (extendedCanonicalApprox hab eta n) hB)
+      atTop
+      (𝓝 (integrandToLp
+        (extendByZero eta (dyadicHorizon_mono hab)) hB)) := by
+  change Tendsto
+    (fun n => (extendedCanonicalApprox hab eta n).toLp mu)
+    atTop (𝓝 (extendByZero eta (dyadicHorizon_mono hab)).toLp)
+  exact tendsto_extendedCanonicalApprox_toLp hab eta
+
+/-- The terminal sequence obtained after exact horizon extension is literally
+the canonical small-horizon terminal approximation sequence. -/
+theorem extendedCanonicalApprox_terminal_eq
+    [IsProbabilityMeasure mu]
+    {a b : ℕ} (hab : a ≤ b)
+    (eta : ProgressiveL2Integrand filtration mu (dyadicHorizon a))
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (n : ℕ) :
+    terminalToLp (extendedCanonicalApprox hab eta n) hB =
+      terminalApprox eta (dyadicHorizon_pos a) hB n := by
+  unfold extendedCanonicalApprox terminalApprox
+  exact extendDyadicHorizon_terminalToLp_eq hab
+    (canonicalElementaryApprox eta (dyadicHorizon_pos a) n) hB
+
+/-- **Completed terminal cross-horizon identity.**  Integrating an `L²`
+integrand on `H_a` gives exactly the same terminal `L²(mu)` element as first
+zero-extending it to any larger dyadic horizon `H_b` and integrating there. -/
+theorem itoIntegralTerminal_extendByZero_eq
+    [IsProbabilityMeasure mu]
+    {a b : ℕ} (hab : a ≤ b)
+    (eta : ProgressiveL2Integrand filtration mu (dyadicHorizon a))
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    itoIntegralTerminal
+        (extendByZero eta (dyadicHorizon_mono hab))
+        (dyadicHorizon_pos b) hB =
+      itoIntegralTerminal eta (dyadicHorizon_pos a) hB := by
+  have hlarge : Tendsto
+      (fun n => terminalToLp (extendedCanonicalApprox hab eta n) hB)
+      atTop
+      (𝓝 (itoIntegralTerminal
+        (extendByZero eta (dyadicHorizon_mono hab))
+        (dyadicHorizon_pos b) hB)) :=
+    tendsto_terminal_of_tendsto_elementary
+      (extendByZero eta (dyadicHorizon_mono hab))
+      (dyadicHorizon_pos b) hB
+      (extendedCanonicalApprox hab eta)
+      (tendsto_extendedCanonicalApprox_processToLp hab eta hB)
+  have hsmall : Tendsto
+      (terminalApprox eta (dyadicHorizon_pos a) hB)
+      atTop
+      (𝓝 (itoIntegralTerminal eta (dyadicHorizon_pos a) hB)) :=
+    tendsto_terminalApprox eta (dyadicHorizon_pos a) hB
+  have hseq :
+      (fun n => terminalToLp (extendedCanonicalApprox hab eta n) hB) =
+        terminalApprox eta (dyadicHorizon_pos a) hB := by
+    funext n
+    exact extendedCanonicalApprox_terminal_eq hab eta hB n
+  rw [hseq] at hlarge
+  exact tendsto_nhds_unique hlarge hsmall
+
+end ItoHorizonConsistency
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

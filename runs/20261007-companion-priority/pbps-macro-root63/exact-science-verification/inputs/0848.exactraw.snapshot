@@ -1,0 +1,143 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarPotential
+import Mathlib.Analysis.Convex.Basic
+import Mathlib.Tactic
+
+/-!
+# Convex effective domain of the list-based Rockafellar potential
+
+This node is independent of cyclic monotonicity.  Once a root belongs to the
+relation, every admissible rooted chain contributes an affine function of the
+terminal point.  The pointwise supremum of those affine functions therefore has
+a convex finite domain.
+
+We keep the result in the honest extended-real representation.  No
+all-space-finiteness assumption and no differentiability theorem is used here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PairingRockafellarConvexDomain
+
+open PairingClosedChain PairingRockafellarPotential
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- Every fixed rooted-chain functional is affine in its terminal point. -/
+theorem chainValue_convexCombination :
+    ∀ (l : List (E × E)) (x y : E) (a b : ℝ), a + b = 1 →
+      chainValue l (a • x + b • y) =
+        a * chainValue l x + b * chainValue l y
+  | [], x, y, a, b, hab => by
+      simp [chainValue]
+  | [p], x, y, a, b, hab => by
+      have hp : p.1 = a • p.1 + b • p.1 := by
+        calc
+          p.1 = (a + b) • p.1 := by rw [hab, one_smul]
+          _ = a • p.1 + b • p.1 := by rw [add_smul]
+      have hvec :
+          a • x + b • y - p.1 =
+            a • (x - p.1) + b • (y - p.1) := by
+        rw [hp]
+        module
+      simp only [chainValue]
+      rw [hvec, inner_add_right, real_inner_smul_right,
+        real_inner_smul_right]
+  | p :: q :: rest, x, y, a, b, hab => by
+      simp only [chainValue]
+      rw [chainValue_convexCombination (q :: rest) x y a b hab]
+      ring
+
+private theorem bddAbove_properValueSet
+    (base : E × E) (Gamma : Set (E × E)) (x : E) :
+    BddAbove (properRockafellarValueSet base Gamma x) :=
+  ⟨⊤, fun _ _ => le_top⟩
+
+private theorem coe_chainValue_le_potential
+    {base : E × E} {Gamma : Set (E × E)} {x : E}
+    {r : ℝ} (hr : r ∈ rockafellarValueSet base Gamma x) :
+    ((r : ℝ) : WithTop ℝ) ≤ properRockafellarPotential base Gamma x := by
+  rw [properRockafellarPotential]
+  exact le_csSup (bddAbove_properValueSet base Gamma x)
+    (Set.mem_image_of_mem ((↑) : ℝ → WithTop ℝ) hr)
+
+/-- If the proper potential is finite at `x` and `y`, then its value at any
+convex combination is bounded above by the same convex combination of the two
+finite endpoint values. -/
+theorem properRockafellarPotential_combo_le
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    {x y : E}
+    (hx : properRockafellarPotential base Gamma x < ⊤)
+    (hy : properRockafellarPotential base Gamma y < ⊤)
+    {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
+    properRockafellarPotential base Gamma (a • x + b • y) ≤
+      (((a *
+          (properRockafellarPotential base Gamma x).untop (ne_of_lt hx) +
+        b *
+          (properRockafellarPotential base Gamma y).untop (ne_of_lt hy) : ℝ) : ℝ) :
+        WithTop ℝ) := by
+  let rx : ℝ :=
+    (properRockafellarPotential base Gamma x).untop (ne_of_lt hx)
+  let ry : ℝ :=
+    (properRockafellarPotential base Gamma y).untop (ne_of_lt hy)
+  have hxcoe :
+      properRockafellarPotential base Gamma x = ((rx : ℝ) : WithTop ℝ) := by
+    exact (WithTop.coe_untop _ (ne_of_lt hx)).symm
+  have hycoe :
+      properRockafellarPotential base Gamma y = ((ry : ℝ) : WithTop ℝ) := by
+    exact (WithTop.coe_untop _ (ne_of_lt hy)).symm
+  rw [properRockafellarPotential]
+  refine csSup_le
+    (properRockafellarValueSet_nonempty hbase (a • x + b • y)) ?_
+  intro u hu
+  rcases hu with ⟨r, hr, rfl⟩
+  rcases hr with ⟨l, hlne, hhead, hforall, rfl⟩
+  have hxmem : chainValue l x ∈ rockafellarValueSet base Gamma x :=
+    ⟨l, hlne, hhead, hforall, rfl⟩
+  have hymem : chainValue l y ∈ rockafellarValueSet base Gamma y :=
+    ⟨l, hlne, hhead, hforall, rfl⟩
+  have hxle := coe_chainValue_le_potential hxmem
+  have hyle := coe_chainValue_le_potential hymem
+  rw [hxcoe] at hxle
+  rw [hycoe] at hyle
+  have hxreal : chainValue l x ≤ rx := WithTop.coe_le_coe.mp hxle
+  have hyreal : chainValue l y ≤ ry := WithTop.coe_le_coe.mp hyle
+  rw [chainValue_convexCombination l x y a b hab]
+  exact WithTop.coe_le_coe.mpr
+    (add_le_add
+      (mul_le_mul_of_nonneg_left hxreal ha)
+      (mul_le_mul_of_nonneg_left hyreal hb))
+
+/-- Convex combinations of finite-domain points remain finite. -/
+theorem properRockafellarPotential_combo_lt_top
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    {x y : E}
+    (hx : properRockafellarPotential base Gamma x < ⊤)
+    (hy : properRockafellarPotential base Gamma y < ⊤)
+    {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
+    properRockafellarPotential base Gamma (a • x + b • y) < ⊤ := by
+  have hle := properRockafellarPotential_combo_le hbase hx hy ha hb hab
+  exact lt_of_le_of_lt hle (WithTop.coe_lt_top _)
+
+/-- The effective domain of the list-based proper Rockafellar candidate is a
+convex set. -/
+theorem convex_effectiveDomain
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma) :
+    Convex ℝ (EffectiveDomain (properRockafellarPotential base Gamma)) := by
+  intro x hx y hy a b ha hb hab
+  change properRockafellarPotential base Gamma x < ⊤ at hx
+  change properRockafellarPotential base Gamma y < ⊤ at hy
+  change properRockafellarPotential base Gamma (a • x + b • y) < ⊤
+  exact properRockafellarPotential_combo_lt_top hbase hx hy ha hb hab
+
+end
+
+end PairingRockafellarConvexDomain
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

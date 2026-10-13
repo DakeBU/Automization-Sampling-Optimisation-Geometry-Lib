@@ -1,0 +1,228 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-phase-transition-kernel",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS finite-time full-phase probability kernel",
+  "mode": "faithfulPaper",
+  "source_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 AppendixA.1 actual transition operators and bounded measurable tests p3.1/p5.2/p6.1. ASTIS all-finite jointly indexed full-phase probability-kernel elaboration.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability\nimport Mathlib.Probability.Kernel.Composition.Prod\nimport Mathlib.Probability.Kernel.Composition.MapComap\n\n/-! Prospective statement85 only. PBPS arXiv2609.06905v1 AppendixA.1 actual\ntransition laws and bounded measurable tests. ASTIS all-finite jointly indexed\nprobability-kernel packaging; the six original analytic conditions and eleven\nliteral algorithm definitions, actual iidExp1 P and full actual80 Z contract remain.\nThe SAME actual Z supplies every fiber law, zero-time Dirac initialization and\nbounded Borel real-test integrability/expectation transfer. IsMarkovKernel means\nprobability fibers only, not process Markov/restart/Chapman-Kolmogorov.\nInvariance/path-reversal/fullL2/hypocoercivity/implementation/cost/main remain OPEN. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel\nopen InnerProductSpace MeasureTheory ProbabilityTheory Filter\nopen scoped ContDiff NNReal ENNReal Topology Interval BigOperators\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_phase_transition_kernel_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀)\n      ∧ (∃ K : Kernel (((E × E) × (E × E)) × ℝ≥0) (E × E),\n        IsMarkovKernel K ∧\n        (∀ y xRef : E, ∀ z₀ : E × E, ∀ t : ℝ≥0,\n          K (((y, xRef), z₀), t) = Measure.map (Z y xRef z₀ t) P) ∧\n        (∀ y xRef : E, ∀ z₀ : E × E, ∀ t : ℝ≥0,\n          ∀ B : Set (E × E), MeasurableSet B →\n            K (((y, xRef), z₀), t) B = P ((Z y xRef z₀ t) ⁻¹' B)) ∧\n        (∀ y xRef : E, ∀ z₀ : E × E,\n          K (((y, xRef), z₀), 0) = Measure.dirac z₀) ∧\n        (∀ y xRef : E, ∀ z₀ : E × E, ∀ t : ℝ≥0,\n          ∀ g : (E × E) → ℝ, Measurable g →\n            ∀ M : ℝ, 0 ≤ M → (∀ z : E × E, |g z| ≤ M) →\n              Integrable g (K (((y, xRef), z₀), t)) ∧\n              Integrable (fun sample => g (Z y xRef z₀ t sample)) P ∧\n              (∫ z, g z ∂K (((y, xRef), z₀), t)) =\n                ∫ sample, g (Z y xRef z₀ t sample) ∂P))\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel\n",
+  "status": "proved_locally",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
+    "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+  ],
+  "consumers": [
+    "AppendixA.1 actual transition-law/test interface: represent literal-clock bounded Borel expectations as the same full-phase law, with zero-time Dirac initialization. Future invariance may use this representation or direct pushforwards; neither representation alone proves invariance."
+  ],
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel.actual_phase_transition_kernel"
+  ],
+  "declaration_level": "source-anchor",
+  "blocked": {
+    "status": false,
+    "reason": "Focused compile and independent mathematics/blind/source accepted. Exact-commit verification and sole-lane aggregation pending."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261011-PBPSActualPhaseTransitionKernel",
+    "statement_seal": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-phase-transition-kernel85/root.statement-seal85.json",
+    "focused_checks": [
+      {
+        "command": "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel",
+        "result": "PASS sealed Prop unchanged; independent BODY/kernel/source review pending.",
+        "evidence": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-phase-transition-kernel85/focused85-attempt2/receipt.json"
+      }
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseTransitionKernel.lean"
+    ],
+    "truth_boundary": "Original six analytic hypotheses and all eleven literal actual algorithm definitions/fullactual80 phase clauses retained. Same actual Z precedes the jointly indexed K and every bounded Borel real test. Exact iidExp1 fiber laws, measurable-event identity, probability fibers, Dirac0 and both clock/law integrability with exact expectation transfer only. Source failed-limit0 versus uncovered-z0 conventions agree only at each fixed-parameter AE law. No uniform-parameter AE or arbitrary correlated input substitution. IsMarkovKernel is a probability-fiber class, not process Markov/restart/Chapman-Kolmogorov. Invariance/path-law reversal/fullL2/Jensen contraction/density/hypocoercivity/implemented sampler/error/unbounded expected cost/composition/main/PURIFIED/live/fullpaper/Goal remain OPEN.",
+    "proof_review": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-phase-transition-kernel85/independent-math85/decision85.json",
+    "source_review": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-phase-transition-kernel85/independent-source85/source-review.result85.json"
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/retrieval85/local-law.txt",
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/retrieval85/local-duplicate.txt",
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/retrieval85/mathlib-kernel.txt",
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/retrieval85/mathlib-integral.txt",
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/retrieval85/shared-cells.txt",
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/retrieval85/upstream-index.txt"
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel.actual_phase_transition_kernel",
+    "canonical_shared_cell": "",
+    "reason": "Generic kernel construction APIs already exist in fixed Mathlib. Existing81 is ideal random-reference/momentum position law at pi, not this full-phase arbitrary-time law. Use actual80 directly; no reproof of actual84 outer convergence and no generic duplicate wrapper. Generic semigroup contracts include unproved Chapman-Kolmogorov and cannot be used as actual producers."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/retrieval85/local-law.txt",
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/retrieval85/local-duplicate.txt",
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/retrieval85/mathlib-kernel.txt",
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/retrieval85/mathlib-integral.txt",
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/retrieval85/shared-cells.txt",
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/retrieval85/upstream-index.txt"
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "AppendixA.1 actual transition-law/test interface: represent literal-clock bounded Borel expectations as the same full-phase law, with zero-time Dirac initialization. Future invariance may use this representation or direct pushforwards; neither representation alone proves invariance."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Generic kernel construction APIs already exist in fixed Mathlib. Existing81 is ideal random-reference/momentum position law at pi, not this full-phase arbitrary-time law. Use actual80 directly; no reproof of actual84 outer convergence and no generic duplicate wrapper. Generic semigroup contracts include unproved Chapman-Kolmogorov and cannot be used as actual producers."
+  },
+  "statement_seal": {
+    "evidence": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-phase-transition-kernel85/root.statement-seal85.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "b2e1c43e0f7d3877096546181f06e10177486cf126bc98df16d201d5b040bb04",
+    "binder_audit": [
+      "Original six analytic standing source binders unchanged.",
+      "Actual P/Z/joint measurability/init and K probability are derived outputs, never added premises.",
+      "Bounded Borel real g with explicit nonnegative M are test variables, not hidden dynamics regularity."
+    ],
+    "definition_kind": "Eleven literal actual algorithm definitions and fullactual80 phase contract retained; same iidExp1 input and explicit exceptional fallback. Joint kernel packaging is an attributed ASTIS elaboration."
+  },
+  "source_proof_coverage": {
+    "source_graph": "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/source-proof-graph85.reviewed-effective.json",
+    "source_inventory": "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/source-inventory85.reviewed-effective.json",
+    "coverage_report": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-phase-transition-kernel85/independent-review-adoption85.json",
+    "reviewed_adapter_overlay": "E:/Samplinglib/runs/20261007-companion-priority/pbps-transition-kernel-preread85/root.topology-adoption85.json",
+    "coverage_status": "Independent inventory16/node21/relation29 (26dependencies including6futureOPEN and3excluded associations), original28/effective31anchors and all six exact formula/BODY regions accepted. Actual jointly indexed full-phase probability kernel, exact law/events, Dirac0 and bounded Borel dual L1/expectation transfer only. Process Markov/restart/CK, path-law/reversal/invariance/fullL2/hypocoercivity/implemented/main/error/unbounded cost/composition remain OPEN.",
+    "compiled_source_review": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-phase-transition-kernel85/independent-source85/source-review.result85.json",
+    "fresh_source_graph": "runs/20261007-companion-priority/pbps-transition-kernel-preread85/source-proof-graph85.reviewed-effective.json",
+    "fresh_source_inventory": "runs/20261007-companion-priority/pbps-transition-kernel-preread85/source-inventory85.reviewed-effective.json"
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Chen-Chewi-Lu-Zhang arXiv2609.06905v1 AppendixA.1 actual transition operators and bounded measurable tests p3.1/p5.2/p6.1. ASTIS all-finite jointly indexed full-phase probability-kernel elaboration.",
+    "fidelity_boundary": "Original six analytic hypotheses and all eleven literal actual algorithm definitions/fullactual80 phase clauses retained. Same actual Z precedes the jointly indexed K and every bounded Borel real test. Exact iidExp1 fiber laws, measurable-event identity, probability fibers, Dirac0 and both clock/law integrability with exact expectation transfer only. Source failed-limit0 versus uncovered-z0 conventions agree only at each fixed-parameter AE law. No uniform-parameter AE or arbitrary correlated input substitution. IsMarkovKernel is a probability-fiber class, not process Markov/restart/Chapman-Kolmogorov. Invariance/path-law reversal/fullL2/Jensen contraction/density/hypocoercivity/implemented sampler/error/unbounded expected cost/composition/main/PURIFIED/live/fullpaper/Goal remain OPEN.",
+    "detail_status": "omitted",
+    "gap": "Source transition tests suppress the explicit joint kernel packaging, fixed-parameter exceptional-law handling and bounded Borel integrability. Actual n-jump path law/reversal/invariance and AE-safe fullL2 extension remain future obligations.",
+    "consulted": [
+      {
+        "source": "Pinned primary AppendixA.1, actual80/UnitExp and pinned Mathlib kernel/measure/integral APIs",
+        "anchor": "A1.SS2.p3.1;A1.SS1.SSS0.Px1.p5.2;A1.SS1.SSS0.Px1.p6.1",
+        "hypothesis_adapter": "Retain source dynamics hypotheses; derive literal-clock law, Dirac0 and integrability from actual producer. No supplied measurable arbitrary process premise."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "bookkeeping": [
+      "Retain actual phase and fixed-parameter commonAE/init clauses.",
+      "Derive jointly indexed actual full-phase law via existing generic kernel APIs.",
+      "Derive Dirac0 and bounded Borel dual integrability/expectation transfer."
+    ],
+    "new_reusable": [],
+    "new_topology": "Derive one jointly indexed actual finite-physical-time full-phase probability kernel from the same actual80 phase Z and literal iidExp1 clocks, exact pushforward/event laws, zero-time Dirac initialization and bounded Borel real-test dual integrability and expectation transfer."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Pending proof",
+    "duplicate_semantics_audit": "Existing81 is ideal random-reference/momentum position law at pi. Actual80/83/84 provide Z/expectations, no exported actual full-phase kernel.",
+    "canonicalization": "Reuse fixed generic Mathlib kernel and integration APIs; no new generic wrappers.",
+    "compressed_spine_delta": "Derive one jointly indexed actual finite-physical-time full-phase probability kernel from the same actual80 phase Z and literal iidExp1 clocks, exact pushforward/event laws, zero-time Dirac initialization and bounded Borel real-test dual integrability and expectation transfer.",
+    "reader_default_view": "Attributed full statement/formula proof, exact initially folded Lean adjacent.",
+    "scope": "Original six analytic hypotheses and all eleven literal actual algorithm definitions/fullactual80 phase clauses retained. Same actual Z precedes the jointly indexed K and every bounded Borel real test. Exact iidExp1 fiber laws, measurable-event identity, probability fibers, Dirac0 and both clock/law integrability with exact expectation transfer only. Source failed-limit0 versus uncovered-z0 conventions agree only at each fixed-parameter AE law. No uniform-parameter AE or arbitrary correlated input substitution. IsMarkovKernel is a probability-fiber class, not process Markov/restart/Chapman-Kolmogorov. Invariance/path-law reversal/fullL2/Jensen contraction/density/hypocoercivity/implemented sampler/error/unbounded expected cost/composition/main/PURIFIED/live/fullpaper/Goal remain OPEN."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No BODY search before full independently accepted source topology/overlay and whole-header/type/source review.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual80-Z/actual-Exp1/id-const-map/Dirac0/bounded-Borel-transfer"
+      ],
+      "expected_information_gain": "One canonical writer; distinct independent proof/blind decoder/source review after focused compile.",
+      "shared_verified_context_digest": "e2685c8e1b1ebf4ab292367526da053471100107dd60c32afc418125202d6ef0"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "actual80-phase",
+        "actual-joint-law-kernel",
+        "fixed-parameter-AE-Dirac0",
+        "bounded-Borel-integrability",
+        "actual-expectation-transfer"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel.actual_phase_transition_kernel"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel.actual_phase_transition_kernel"
+    ],
+    "visual_review": "Pending proof/publication/affected reference graph coverage and actual page acceptance. Source-name scanning is not an elaborated dependency certificate."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "checked": [
+      {
+        "path": "Libraries/conceptual-mirror-protocol.json",
+        "RAW_bytes": 6193,
+        "RAW_sha256": "e2042abcce0423e91a50898a929fed481163c9f079719c98c3311fe05ab3839f"
+      },
+      {
+        "path": "website/content/graph_memory_index.json",
+        "RAW_bytes": 20758,
+        "RAW_sha256": "751882b6649b2136cf80d7542fbe54e2c7d377c3c21a9058d6687117030f975b"
+      },
+      {
+        "path": "website/content/functor_hypergraph.json",
+        "RAW_bytes": 75115,
+        "RAW_sha256": "cb85e4a1c42e0d4afab1e2788b5c1c8666af8cc7c7e09d28a839e8bea9e8ba26"
+      },
+      {
+        "path": "Libraries/frontloaded-shared-spine.json",
+        "RAW_bytes": 24277,
+        "RAW_sha256": "053a267a079ca22da4c392fc0ae82a950682f37f03152d1a4fe5c1bd17b08692"
+      }
+    ],
+    "reason": "Reuse existing measurable pushforward/probability law mechanism; no new conceptual transport discovered or promoted into formal dependencies."
+  }
+}

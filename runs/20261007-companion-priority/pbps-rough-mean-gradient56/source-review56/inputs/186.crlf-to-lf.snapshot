@@ -1,0 +1,5 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient
+open MeasureTheory ProbabilityTheory
+open scoped ContDiff NNReal Topology
+namespace AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean

@@ -1,0 +1,39 @@
+
+/-!
+### Continuous functional calculus for selfadjoint elements
+-/
+
+section SelfAdjointNonUnital
+
+variable {A : Type*} [TopologicalSpace A] [NonUnitalRing A] [StarRing A] [Module ℂ A]
+  [IsScalarTower ℂ A A] [SMulCommClass ℂ A A]
+  [NonUnitalContinuousFunctionalCalculus ℂ A IsStarNormal]
+
+/-- An element in a non-unital C⋆-algebra is selfadjoint if and only if it is normal and its
+quasispectrum is contained in `ℝ`. -/
+lemma isSelfAdjoint_iff_isStarNormal_and_quasispectrumRestricts {a : A} :
+    IsSelfAdjoint a ↔ IsStarNormal a ∧ QuasispectrumRestricts a Complex.reCLM := by
+  refine ⟨fun ha ↦ ⟨ha.isStarNormal, ⟨fun x hx ↦ ?_, Complex.ofReal_re⟩⟩, ?_⟩
+  · have := eqOn_of_cfcₙ_eq_cfcₙ <|
+      (cfcₙ_star (id : ℂ → ℂ) a).symm ▸ (cfcₙ_id ℂ a).symm ▸ ha.star_eq
+    exact Complex.conj_eq_iff_re.mp (by simpa using this hx)
+  · rintro ⟨ha₁, ha₂⟩
+    rw [isSelfAdjoint_iff]
+    nth_rw 2 [← cfcₙ_id ℂ a]
+    rw [← cfcₙ_star_id a (R := ℂ)]
+    refine cfcₙ_congr fun x hx ↦ ?_
+    obtain ⟨x, -, rfl⟩ := ha₂.algebraMap_image.symm ▸ hx
+    exact Complex.conj_ofReal _
+
+lemma IsSelfAdjoint.quasispectrumRestricts {a : A} (ha : IsSelfAdjoint a) :
+    QuasispectrumRestricts a Complex.reCLM :=
+  isSelfAdjoint_iff_isStarNormal_and_quasispectrumRestricts |>.mp ha |>.2
+
+/-- A normal element whose `ℂ`-quasispectrum is contained in `ℝ` is selfadjoint. -/
+lemma QuasispectrumRestricts.isSelfAdjoint (a : A) (ha : QuasispectrumRestricts a Complex.reCLM)
+    [IsStarNormal a] : IsSelfAdjoint a :=
+  isSelfAdjoint_iff_isStarNormal_and_quasispectrumRestricts.mpr ⟨‹_›, ha⟩
+
+instance IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus :
+    NonUnitalContinuousFunctionalCalculus ℝ A IsSelfAdjoint :=
+  QuasispectrumRestricts.cfc (q := IsStarNormal) (p := IsSelfAdjoint) Complex.reCLM

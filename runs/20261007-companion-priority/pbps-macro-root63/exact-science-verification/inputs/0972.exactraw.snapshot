@@ -1,0 +1,76 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolation
+
+/-!
+# Couplings between two times of a displacement interpolation
+
+The constant-speed part of Chewi Theorem 1.3.23 starts from one endpoint
+coupling `γ` and pushes it forward simultaneously through the two affine
+interpolation maps at times `s` and `t`.
+
+This file proves only the measure-theoretic edge: the resulting joint law is a
+coupling of the two interpolated marginals.  Its quadratic-cost scaling and the
+metric lower bound are separate topology nodes.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementInterpolationCoupling
+
+open MeasureTheory
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+/-- The affine point map used by displacement interpolation. -/
+def pointMap (t : ℝ) : E × E → E :=
+  fun z => (1 - t) • z.1 + t • z.2
+
+@[fun_prop]
+theorem measurable_pointMap (t : ℝ) : Measurable (pointMap (E := E) t) := by
+  unfold pointMap
+  fun_prop
+
+/-- Push the original endpoint coupling through the interpolation maps at two
+times. -/
+noncomputable def interpolationCoupling
+    (γ : Measure (E × E)) (s t : ℝ) : Measure (E × E) :=
+  γ.map fun z => (pointMap (E := E) s z, pointMap (E := E) t z)
+
+@[fun_prop]
+theorem measurable_pairPointMap (s t : ℝ) :
+    Measurable
+      (fun z : E × E =>
+        (pointMap (E := E) s z, pointMap (E := E) t z)) := by
+  exact (measurable_pointMap s).prodMk (measurable_pointMap t)
+
+/-- The two-time pushforward has the displacement law at time `s` as its first
+marginal and the displacement law at time `t` as its second marginal. -/
+theorem isCoupling_interpolationCoupling
+    (γ : Measure (E × E)) (s t : ℝ) :
+    Transport.IsCoupling
+      (interpolationCoupling γ s t)
+      (DisplacementInterpolation.displacementInterpolation γ s)
+      (DisplacementInterpolation.displacementInterpolation γ t) := by
+  constructor
+  · rw [Measure.fst, interpolationCoupling]
+    rw [Measure.map_map measurable_fst (measurable_pairPointMap s t)]
+    unfold DisplacementInterpolation.displacementInterpolation
+    apply congrArg (fun f : E × E → E => Measure.map f γ)
+    funext z
+    rfl
+  · rw [Measure.snd, interpolationCoupling]
+    rw [Measure.map_map measurable_snd (measurable_pairPointMap s t)]
+    unfold DisplacementInterpolation.displacementInterpolation
+    apply congrArg (fun f : E × E → E => Measure.map f γ)
+    funext z
+    rfl
+
+end
+
+end DisplacementInterpolationCoupling
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

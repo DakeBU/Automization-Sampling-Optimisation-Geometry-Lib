@@ -1,0 +1,34 @@
+import AutoSamplingTheory.Core
+
+namespace AutoSamplingTheory
+
+structure OpenProblem where
+  id : String
+  title : String
+  mode : String
+  acceptancePredicate : String
+  source : SourceAnchor
+  status : ProofStatus := ProofStatus.planned
+deriving Repr, DecidableEq
+
+def openProblems : List OpenProblem :=
+  [
+    {
+      id := "ASTIS-OPEN-SDE-MEASURE-BACKEND"
+      title := "Port or prove the measure-theoretic backend for KL/FI/LSI/Fokker--Planck SALD arguments"
+      mode := "shared"
+      acceptancePredicate := "Lean declarations for KL/FI/LSI and the differentiation identities used by SALD build without fake proof closures."
+      source := {
+        key := "sald-original"
+        kind := SourceKind.localTex
+        pathOrUrl := "/home/nitanda_sub/mark/repos/sald/paper"
+        label := "SALD analytic proof backend"
+        note := "Use Mathlib and SLT ports where possible."
+      }
+      status := ProofStatus.planned
+    }
+  ]
+
+def openProblemCount : Nat := openProblems.length
+
+end AutoSamplingTheory

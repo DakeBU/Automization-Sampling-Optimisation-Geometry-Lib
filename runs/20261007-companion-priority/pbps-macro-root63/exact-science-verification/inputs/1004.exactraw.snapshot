@@ -1,0 +1,67 @@
+import Mathlib.MeasureTheory.Measure.AbsolutelyContinuous
+
+/-!
+# Positive components inherit almost-everywhere properties from mixtures
+
+If a measure appears with a nonzero nonnegative coefficient in a sum, then it
+is absolutely continuous with respect to that sum.  Consequently every almost
+everywhere property of the mixture holds almost everywhere for the component.
+
+This is independent of optimal transport; it is the generic measure bridge
+needed when a midpoint coupling is proved to lie on one graph.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace PositiveComponentAE
+
+open MeasureTheory
+
+noncomputable section
+
+/-- A measure is absolutely continuous with respect to any mixture containing
+it with nonzero `ENNReal` weight. -/
+theorem absolutelyContinuous_smul_add_left
+    {α : Type*} [MeasurableSpace α]
+    {μ ν : Measure α} {c : ℝ≥0∞} (hc : c ≠ 0) :
+    μ ≪ c • μ + ν := by
+  intro s hs
+  have hparts : c * μ s = 0 ∧ ν s = 0 := by
+    simpa [Measure.smul_apply] using hs
+  exact (mul_eq_zero.mp hparts.1).resolve_left hc
+
+/-- Symmetric version for the right component. -/
+theorem absolutelyContinuous_add_smul_right
+    {α : Type*} [MeasurableSpace α]
+    {μ ν : Measure α} {c : ℝ≥0∞} (hc : c ≠ 0) :
+    ν ≪ μ + c • ν := by
+  simpa [add_comm] using
+    (absolutelyContinuous_smul_add_left (μ := ν) (ν := μ) hc)
+
+/-- Any property holding almost everywhere under a positive mixture also holds
+almost everywhere under its left component. -/
+theorem ae_of_ae_smul_add_left
+    {α : Type*} [MeasurableSpace α]
+    {μ ν : Measure α} {c : ℝ≥0∞} (hc : c ≠ 0)
+    {P : α → Prop}
+    (hP : ∀ᵐ x ∂(c • μ + ν), P x) :
+    ∀ᵐ x ∂μ, P x :=
+  (absolutelyContinuous_smul_add_left (μ := μ) (ν := ν) hc).ae_le hP
+
+/-- Any property holding almost everywhere under a positive mixture also holds
+almost everywhere under its right component. -/
+theorem ae_of_ae_add_smul_right
+    {α : Type*} [MeasurableSpace α]
+    {μ ν : Measure α} {c : ℝ≥0∞} (hc : c ≠ 0)
+    {P : α → Prop}
+    (hP : ∀ᵐ x ∂(μ + c • ν), P x) :
+    ∀ᵐ x ∂ν, P x :=
+  (absolutelyContinuous_add_smul_right (μ := μ) (ν := ν) hc).ae_le hP
+
+end
+
+end PositiveComponentAE
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

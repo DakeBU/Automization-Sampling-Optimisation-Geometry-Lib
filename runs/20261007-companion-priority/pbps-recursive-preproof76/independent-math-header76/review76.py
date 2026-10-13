@@ -1,0 +1,57 @@
+from pathlib import Path
+import ctypes,datetime,hashlib,json,os,re,subprocess,sys
+sys.dont_write_bytecode=True
+ROOT=Path('E:/Samplinglib');PRE=ROOT/'runs/20261007-companion-priority/pbps-recursive-preproof76';OWN=PRE/'independent-math-header76';ACTOR='/root/header_math72';HEADER=PRE/'header76.proposed.lean';EXPECTED='d076b2712eafb04f22540a54c06cc0f79660042e6dba068de54c64fb6074962b';NS='AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion';SPEC='actual_fixed_reference_finite_jump_recursion_statement';PUBLIC='actual_fixed_reference_finite_jump_recursion';PY=Path('C:/Users/admin/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe');ENV=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONUTF8='1')
+sha=lambda b:hashlib.sha256(b).hexdigest();can=lambda j:json.dumps(j,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode('utf8');load=lambda p:json.loads(Path(p).read_bytes())
+def pin(p):
+ p=Path(p);b=p.read_bytes();lf=b.replace(b'\r\n',b'\n');return dict(path=p.as_posix(),RAW_bytes=len(b),RAW_sha256=sha(b),LF_bytes=len(lf),LF_sha256=sha(lf))
+def check(z):
+ b=Path(z['path']).read_bytes();assert len(b)==z['RAW_bytes'] and sha(b)==z['RAW_sha256'] and sha(b.replace(b'\r\n',b'\n'))==z['LF_sha256'];return b
+def save(n,j):
+ assert not (OWN/'lease.final.json').exists();p=OWN/n;p.parent.mkdir(parents=True,exist_ok=True);assert not p.exists();p.write_bytes((json.dumps(j,ensure_ascii=False,indent=2,allow_nan=False)+'\n').encode('utf8'))
+def command(label,args,env=None):
+ assert not (OWN/'lease.final.json').exists();d=OWN/'terminals';d.mkdir(exist_ok=True);start=datetime.datetime.now(datetime.timezone.utc).isoformat();p=subprocess.Popen([str(x) for x in args],cwd=ROOT,env=env or ENV,stdout=subprocess.PIPE,stderr=subprocess.PIPE);print(json.dumps(dict(START=label,actual_foreground_PID=p.pid,driver_PID=os.getpid())),flush=True);out,err=p.communicate();(d/(label+'.stdout.RAW')).write_bytes(out);(d/(label+'.stderr.RAW')).write_bytes(err);rec=dict(label=label,actual_foreground_PID=p.pid,driver_PID=os.getpid(),command=[str(x) for x in args],terminal_EXIT=p.returncode,terminal_closed=True,started_UTC=start,finished_UTC=datetime.datetime.now(datetime.timezone.utc).isoformat(),stdout=pin(d/(label+'.stdout.RAW')),stderr=pin(d/(label+'.stderr.RAW')));save('terminals/'+label+'.receipt.json',rec);print(json.dumps(dict(END=label,actual_foreground_PID=p.pid,terminal_EXIT=p.returncode)),flush=True);return out,rec
+def prepare():
+ assert sha(HEADER.read_bytes())==EXPECTED and len(HEADER.read_bytes())==6763
+ proposal=load(PRE/'header76.proposal.json');assert proposal['header']['RAW_sha256']==EXPECTED and proposal['definitions']==11 and proposal['original_analytic_callers']==6 and proposal['conclusion_groups']==10
+ paths=[HEADER,PRE/'header76.proposal.json',ROOT/'runs/20261007-companion-priority/pbps-recursive-path-preread76/selected.contract.json',ROOT/'lean-toolchain',ROOT/'lake-manifest.json',ROOT/'AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHazardClock.lean',ROOT/'AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean',ROOT/'AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean',ROOT/'.lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/BorelSpace/WithTop.lean',ROOT/'.lake/packages/mathlib/Mathlib/MeasureTheory/MeasurableSpace/Constructions.lean',ROOT/'.lake/packages/mathlib/Mathlib/MeasureTheory/MeasurableSpace/Basic.lean',ROOT/'.lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/BorelSpace/Basic.lean',ROOT/'.lake/build/lib/lean/AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHazardClock.olean']
+ rows=[];(OWN/'inputs').mkdir(exist_ok=True)
+ for i,p in enumerate(paths):
+  q=OWN/'inputs'/f'{i:02d}.exactRAW.snapshot';assert not q.exists();q.write_bytes(p.read_bytes());rows.append(dict(original=pin(p),snapshot=pin(q)))
+ assert rows[5]['original']['RAW_sha256']=='fd93d01583eec206285573c1f1631b94739f95471c50e1ff940e66080238e23d'
+ out,rec=command('checked-parent',['git','rev-parse','HEAD']);assert rec['terminal_EXIT']==0
+ assert (ROOT/'lean-toolchain').read_bytes().replace(b'\r\n',b'\n')==b'leanprover/lean4:v4.33.0\n';assert next(p for p in load(ROOT/'lake-manifest.json')['packages'] if p['name']=='mathlib')['rev']=='db584cd6d46c92f209a44c0f1c829460d327499d'
+ save('inputs.manifest.json',dict(input_count=len(rows),inputs=rows,checked_parent=out.decode().strip(),RAW_LF_recipe='Replace CRLF byte pairs with LF ONLY; RAW authoritative.',actual_prepare_PID=os.getpid(),no_source_decoder_or_final_admission_verdict_inputs=True))
+ source=HEADER.read_bytes().decode();start=source.index('\ntheorem '+PUBLIC)+1;prefix=source[:start];tail=source[start:];assert tail.endswith(' := by\n')
+ predicate=prefix+'\n#check @'+SPEC+'\n\nend\nend '+NS+'\n'
+ binders=tail[len('theorem '+PUBLIC):];args,result=binders.rsplit(' :\n',1);assert result.endswith(' := by\n');result=result[:-len(' := by\n')]
+ public=prefix+'\n-- TYPE ONLY: this definition is the full proposed public telescope as a proposition.\n-- It does not prove or assume that proposition.\ndef independent_public_telescope_TYPEONLY : Prop :=\n  ∀'+args+',\n'+result+'\n\n#print independent_public_telescope_TYPEONLY\n#check WithTop.measurable_untopD\n#check Measurable.sumElim\n#check measurable_fun_sum\n#check measurable_pi_apply\n#check Measurable.ite\n\nend\nend '+NS+'\n'
+ (OWN/'header76.predicate.TYPEONLY.lean').write_bytes(predicate.encode());(OWN/'header76.public-telescope.TYPEONLY.lean').write_bytes(public.encode())
+ assert prefix.count('    let ')==11
+ save('type-driver-construction.json',dict(exact_header=pin(HEADER),predicate_driver=pin(OWN/'header76.predicate.TYPEONLY.lean'),public_driver=pin(OWN/'header76.public-telescope.TYPEONLY.lean'),private_predicate_prefix_exact=True,public_all_binders_exact=True,only_public_declaration_keyword_name_and_colon_to_forall_changed=True,full_target_proof=False,assumed_provider=False,actual_PID=os.getpid()))
+ save('retrieval-negative.preserved.json',dict(classification='Optional historical helper filename lookup failure, unrelated to frozen76 inputs or Lean mathematics.',command='Get-Content runs/20261007-companion-priority/pbps-clock-preproof75/independent-header-math75/header75.full-public-telescope.TYPEONLY.lean -Raw',terminal_EXIT=1,actual_foreground_PID=None,PID_capture='Not printed by that optional initial shell read; no reconstructed or invented PID.',exact_error="Cannot find path 'E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-clock-preproof75\\independent-header-math75\\header75.full-public-telescope.TYPEONLY.lean' because it does not exist.",consequence='No dependency; current76 drivers generated directly from the exact76 candidate. No retry or historical CLOSED write.'))
+ print(json.dumps(dict(status='PREPARED',PID=os.getpid(),input_count=len(rows),header_SHA256=EXPECTED)))
+def typechecks():
+ for row in load(OWN/'inputs.manifest.json')['inputs']:assert check(row['original'])==check(row['snapshot'])
+ out,a=command('fixed-lake-selected-env',['lake','env',PY,'-B','-X','utf8','-c',"import os,json;print(json.dumps({k:os.environ.get(k,'') for k in ['LEAN_PATH','LEAN_SRC_PATH']}))"]);assert a['terminal_EXIT']==0
+ prefix,b=command('fixed-lean-prefix',['lake','env','lean','--print-prefix']);assert b['terminal_EXIT']==0;exe=Path(prefix.decode().strip())/'bin/lean.exe';env=dict(ENV,**json.loads(out));v,c=command('fixed-lean-version',[exe,'--version'],env);assert c['terminal_EXIT']==0 and '4.33.0' in v.decode()
+ results=[]
+ for name in ['predicate','public-telescope']:
+  driver=OWN/('header76.'+name+'.TYPEONLY.lean');_,r=command('fresh-'+name+'-TYPEONLY',[exe,driver],env);results.append(dict(kind=name,driver=pin(driver),receipt=pin(OWN/'terminals'/('fresh-'+name+'-TYPEONLY.receipt.json')),PID=r['actual_foreground_PID'],terminal_EXIT=r['terminal_EXIT']))
+ status='PASS' if all(r['terminal_EXIT']==0 for r in results) else 'FAIL_TYPE_CONTRACT'
+ save('typechecks.json',dict(status=status,results=results,fresh_direct_type_elaboration=True,Lake_build_cache_replay=False,full_target_proof=False,real_Lean_executable=pin(exe),LEAN_PATH=env['LEAN_PATH'],LEAN_SRC_PATH=env['LEAN_SRC_PATH'],no_canonical_output_written=True,driver_PID=os.getpid()))
+ print(json.dumps(dict(status=status,results=results)),flush=True)
+ if status!='PASS':sys.exit(1)
+def readonly():
+ lease=load(OWN/'lease.final.json');assert lease['status']=='CLOSED_LAST' and lease['actor']==ACTOR and lease['final_owned_write'] and lease['postclose_owned_writes_forbidden'];check(lease['manifest']);manifest=load(OWN/'native.manifest.json');entries=manifest['entries'];assert len(entries)==manifest['entry_count'] and len(entries)+2==lease['file_count_including_lease'] and sha(can(entries))==manifest['logical_entries_sha256'];assert sha(can(lease['files']))==lease['closure_logical_sha256'] and len(lease['files'])+1==lease['file_count_including_lease'];assert {z['path'] for z in lease['files']}=={z['path'] for z in entries}|{lease['manifest']['path']}
+ assert {p.resolve() for p in OWN.rglob('*') if p.is_file()}=={Path(z['path']).resolve() for z in entries}|{(OWN/'native.manifest.json').resolve(),(OWN/'lease.final.json').resolve()}
+ for z in entries:check(z);assert Path(z['path']).stat().st_mtime_ns<=(OWN/'lease.final.json').stat().st_mtime_ns
+ run=load(OWN/'run.json');assert sha(can({k:v for k,v in run.items() if k!='run_sha256'}))==run['run_sha256']==lease['run_sha256'];payload=load(run['complete_named_RAW_payload']['path']);check(run['complete_named_RAW_payload']);assert payload['decision']==run['decision'] and payload['input_manifest']==run['input_manifest'] and payload['full_exact_header_UTF8']==check(run['accepted_header']).decode()
+ for z in run['input_manifest']['inputs']:assert check(z['original'])==check(z['snapshot'])
+ assert run['decision']['accepted_prospective_header_only'] and not run['decision']['minimum_mathematical_repair'] and not run['decision']['full_target_proved'] and not run['decision']['VERIFIED'];assert run['decision']['original_header_typecheck_failed'] and check(run['original_header'])==HEADER.read_bytes();assert sha(check(run['accepted_header']))==run['decision']['accepted_header_SHA256']
+ for z in run['typechecks']['results']:r=load(z['receipt']['path']);check(z['receipt']);assert r['terminal_closed'] and r['terminal_EXIT']==z['terminal_EXIT']==0
+ kernel=ctypes.WinDLL('kernel32',use_last_error=True);kernel.OpenProcess.restype=ctypes.c_void_p;h=kernel.OpenProcess(0x00100000,False,lease['writer_PID'])
+ if h:kernel.WaitForSingleObject.argtypes=[ctypes.c_void_p,ctypes.c_ulong];kernel.CloseHandle.argtypes=[ctypes.c_void_p];assert kernel.WaitForSingleObject(h,0)==0;kernel.CloseHandle(h)
+ else:assert ctypes.get_last_error()==87
+ print(json.dumps(dict(status='PASS',actual_external_readonly_PID=os.getpid(),writer_PID=lease['writer_PID'],writer_terminated=True,no_owned_writes=True,file_count_including_lease=lease['file_count_including_lease'],input_count=run['input_manifest']['input_count'],run_sha256=run['run_sha256'],lease_RAW_sha256=sha((OWN/'lease.final.json').read_bytes()),complete_named_RAW_sha256=run['complete_named_RAW_payload']['RAW_sha256'],closure_logical_sha256=lease['closure_logical_sha256'],accepted_header_SHA256=run['decision']['accepted_header_SHA256'],full_target_proved=False,VERIFIED=False,terminal_EXIT_contract=0)))
+if __name__=='__main__':{'prepare':prepare,'typechecks':typechecks,'readonly':readonly}[sys.argv[1]]()

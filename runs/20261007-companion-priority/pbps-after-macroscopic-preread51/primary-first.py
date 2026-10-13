@@ -1,0 +1,6 @@
+# coding: utf-8
+import pathlib,hashlib,json,re,sys
+sys.stdout.reconfigure(encoding='utf-8');R=pathlib.Path('E:/Samplinglib');O=R/'runs/20261007-companion-priority/pbps-after-macroscopic-preread51';p=R/'runs/20261007-companion-priority/next-ready-preread47/primary-pbps.raw.snapshot.html';b=p.read_bytes();assert hashlib.sha256(b).hexdigest()=='d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760';ls=b.splitlines(keepends=True);rows=[]
+for label,a,z in [('primary-B10-B13',3736,3787),('primary-compact-closure',4573,4576),('primary-integrated-consumer',4662,4664)]:
+ f=b''.join(ls[a-1:z]);(O/(label+'.raw')).write_bytes(f);(O/(label+'.lf')).write_bytes(f.replace(b'\r\n',b'\n'));rows.append(dict(path=str(p),physical_lines1=[a,z],start_utf8_byte0=sum(map(len,ls[:a-1])),end_utf8_byte0_exclusive=sum(map(len,ls[:z])),raw_sha256=hashlib.sha256(f).hexdigest(),lf_sha256=hashlib.sha256(f.replace(b'\r\n',b'\n')).hexdigest(),snapshot=label));print(label);print(re.sub('<[^>]*>',' ',f.decode()))
+(O/'primary-before-api.json').write_bytes((json.dumps(dict(primary_path=str(p),whole_raw_sha256=hashlib.sha256(b).hexdigest(),whole_lf_sha256=hashlib.sha256(b.replace(b'\r\n',b'\n')).hexdigest(),whole_bytes=len(b),fragments=rows,primary_before_api=True,compiler=False),ensure_ascii=False,indent=2)+'\n').encode())

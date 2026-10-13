@@ -1,0 +1,280 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Truncation
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation
+import Mathlib.MeasureTheory.Integral.Prod
+
+/-!
+# Lagged dyadic approximations
+
+This file starts the adapted density argument for the general Ito integral.
+Instead of sampling a progressive process at a single time, it averages the
+clipped process over the preceding time cell.  The resulting coefficient is
+measurable at the left endpoint of the cell on which it is used.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace LaggedDyadicApproximation
+
+open MeasureTheory Set
+open scoped NNReal
+
+open ElementaryItoIntegral ProgressiveL2 ProgressiveL2Truncation
+  SampledElementaryApproximation
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- Zero extension of a clipped progressive process from `[0,b] x Omega`.
+The target measurable space on `Omega` is the filtration at time `b`. -/
+noncomputable def clippedExtensionAt
+    (eta : ProgressiveL2Integrand filtration mu T) (truncationLevel : ℕ)
+    (b : ℝ≥0) : ℝ≥0 × Omega → ℝ :=
+  Function.extend
+    (Prod.map ((↑) : Set.Iic b → ℝ≥0) id)
+    (fun p : Set.Iic b × Omega =>
+      (clipped eta truncationLevel).process p.1 p.2)
+    0
+
+theorem clippedExtensionAt_stronglyMeasurable
+    (eta : ProgressiveL2Integrand filtration mu T) (truncationLevel : ℕ)
+    (b : ℝ≥0) :
+    @StronglyMeasurable (ℝ≥0 × Omega) ℝ inferInstance
+      (MeasurableSpace.prod inferInstance (filtration b))
+      (clippedExtensionAt eta truncationLevel b) := by
+  apply ((MeasurableEmbedding.subtype_coe measurableSet_Iic).prodMap
+    MeasurableEmbedding.id).stronglyMeasurable_extend
+  · exact (clipped eta truncationLevel).progressive b
+  · exact stronglyMeasurable_const
+
+@[simp] theorem clippedExtensionAt_apply_of_le
+    (eta : ProgressiveL2Integrand filtration mu T) (truncationLevel : ℕ)
+    {s b : ℝ≥0} (hsb : s ≤ b) (omega : Omega) :
+    clippedExtensionAt eta truncationLevel b (s, omega) =
+      (clipped eta truncationLevel).process s omega := by
+  let p : Set.Iic b × Omega := (⟨s, hsb⟩, omega)
+  exact ((MeasurableEmbedding.subtype_coe measurableSet_Iic).prodMap
+    MeasurableEmbedding.id).injective.extend_apply
+      (fun q : Set.Iic b × Omega =>
+        (clipped eta truncationLevel).process q.1 q.2) 0 p
+
+theorem clippedExtensionAt_abs_le
+    (eta : ProgressiveL2Integrand filtration mu T) (truncationLevel : ℕ)
+    (b s : ℝ≥0) (omega : Omega) :
+    |clippedExtensionAt eta truncationLevel b (s, omega)| ≤
+      (truncationLevel : ℝ) := by
+  by_cases hsb : s ≤ b
+  · rw [clippedExtensionAt_apply_of_le eta truncationLevel hsb]
+    exact clipped_abs_le eta truncationLevel s omega
+  · rw [clippedExtensionAt, Function.extend_apply']
+    · simp
+    · rintro ⟨u, hu⟩
+      apply hsb
+      have hsu := congrArg Prod.fst hu
+      change (u.1 : ℝ≥0) = s at hsu
+      have hub : (u.1 : ℝ≥0) ≤ b := by
+        exact Set.mem_Iic.mp u.1.property
+      rwa [hsu] at hub
+
+/-- Average of the clipped process over `(a,b]`, normalized by `delta`.
+The extension makes the joint measurability used by parameterized Bochner
+integration explicit. -/
+noncomputable def laggedCellAverage
+    (eta : ProgressiveL2Integrand filtration mu T) (truncationLevel : ℕ)
+    (delta a b : ℝ≥0) (omega : Omega) : ℝ :=
+  (delta : ℝ)⁻¹ *
+    ∫ s, clippedExtensionAt eta truncationLevel b (s, omega)
+      ∂((TimeMeasure.upTo T).restrict (Set.Ioc a b))
+
+theorem laggedCellAverage_stronglyMeasurable
+    (eta : ProgressiveL2Integrand filtration mu T) (truncationLevel : ℕ)
+    (delta a b : ℝ≥0) :
+    @StronglyMeasurable Omega ℝ inferInstance (filtration b)
+      (laggedCellAverage eta truncationLevel delta a b) := by
+  have hintegral :
+      @StronglyMeasurable Omega ℝ inferInstance (filtration b)
+        (fun omega =>
+          ∫ s, clippedExtensionAt eta truncationLevel b (s, omega)
+            ∂((TimeMeasure.upTo T).restrict (Set.Ioc a b))) :=
+    @StronglyMeasurable.integral_prod_left'
+      ℝ≥0 Omega ℝ inferInstance (filtration b)
+      ((TimeMeasure.upTo T).restrict (Set.Ioc a b)) inferInstance inferInstance inferInstance
+      (clippedExtensionAt eta truncationLevel b)
+      (clippedExtensionAt_stronglyMeasurable eta truncationLevel b)
+  exact stronglyMeasurable_const.mul hintegral
+
+theorem laggedCellAverage_zero
+    (eta : ProgressiveL2Integrand filtration mu T) (truncationLevel : ℕ)
+    (delta a : ℝ≥0) :
+    laggedCellAverage eta truncationLevel delta a a = 0 := by
+  funext omega
+  simp [laggedCellAverage]
+
+theorem laggedCellAverage_abs_le
+    (eta : ProgressiveL2Integrand filtration mu T) (truncationLevel : ℕ)
+    {delta a b : ℝ≥0} (hdelta : 0 < delta) (hab : a ≤ b)
+    (hbT : b ≤ T) (hcell : b - a = delta) (omega : Omega) :
+    |laggedCellAverage eta truncationLevel delta a b omega| ≤
+      (truncationLevel : ℝ) := by
+  have hmeasure :
+      ((TimeMeasure.upTo T).restrict (Set.Ioc a b)).real Set.univ =
+        (delta : ℝ) := by
+    rw [Measure.real, Measure.restrict_apply MeasurableSet.univ]
+    simp only [Set.univ_inter]
+    rw [TimeMeasure.upTo_Ioc T a b hab]
+    rw [min_eq_left hbT, min_eq_left (hab.trans hbT), hcell]
+    simp
+  have hintegral :
+      |∫ s, clippedExtensionAt eta truncationLevel b (s, omega)
+          ∂((TimeMeasure.upTo T).restrict (Set.Ioc a b))| ≤
+        (truncationLevel : ℝ) * (delta : ℝ) := by
+    have hbound := norm_integral_le_of_norm_le_const
+      (μ := (TimeMeasure.upTo T).restrict (Set.Ioc a b))
+      (f := fun s => clippedExtensionAt eta truncationLevel b (s, omega))
+      (Filter.Eventually.of_forall fun s => by
+        simpa only [Real.norm_eq_abs] using
+          clippedExtensionAt_abs_le eta truncationLevel b s omega)
+    simpa only [Real.norm_eq_abs, hmeasure] using hbound
+  have hdeltaReal : 0 < (delta : ℝ) := by exact_mod_cast hdelta
+  rw [laggedCellAverage, abs_mul, abs_inv, abs_of_pos hdeltaReal]
+  calc
+    (delta : ℝ)⁻¹ *
+        |∫ s, clippedExtensionAt eta truncationLevel b (s, omega)
+          ∂((TimeMeasure.upTo T).restrict (Set.Ioc a b))| ≤
+        (delta : ℝ)⁻¹ * ((truncationLevel : ℝ) * (delta : ℝ)) :=
+      mul_le_mul_of_nonneg_left hintegral (inv_nonneg.mpr hdeltaReal.le)
+    _ = (truncationLevel : ℝ) := by
+      field_simp
+
+/-- The left endpoint of the dyadic cell indexed by `i`. -/
+noncomputable def dyadicLeftTime (T : ℝ≥0) (level : ℕ) (i : ℕ) : ℝ≥0 :=
+  (i : ℝ≥0) * dyadicMesh T level
+
+/-- The lagged coefficient used on dyadic cell `i`.  Cell zero has coefficient
+zero; every later cell uses the average over the immediately preceding cell. -/
+noncomputable def laggedDyadicCoeff
+    (eta : ProgressiveL2Integrand filtration mu T) (level truncationLevel : ℕ)
+    (i : Fin (2 ^ level)) (omega : Omega) : ℝ :=
+  if _hi : i.val = 0 then 0 else
+    laggedCellAverage eta truncationLevel (dyadicMesh T level)
+      (dyadicLeftTime T level i.val - dyadicMesh T level)
+      (dyadicLeftTime T level i.val) omega
+
+theorem dyadicMesh_le_leftTime_of_ne_zero
+    {T : ℝ≥0} (level : ℕ) {i : ℕ} (hi : i ≠ 0) :
+    dyadicMesh T level ≤ dyadicLeftTime T level i := by
+  have hiOne : 1 ≤ i := Nat.one_le_iff_ne_zero.mpr hi
+  have hiOneNN : (1 : ℝ≥0) ≤ (i : ℝ≥0) := by exact_mod_cast hiOne
+  simpa only [dyadicLeftTime, one_mul] using
+    mul_le_mul_of_nonneg_right hiOneNN (by positivity)
+
+private theorem dyadicLeftTime_le_terminal
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (level truncationLevel : ℕ) (i : Fin (2 ^ level)) :
+    dyadicLeftTime T level i.val ≤ T := by
+  have hmono : Monotone (regularGridTimes (dyadicMesh T level) (2 ^ level)) :=
+    (regularGridTimes_strictMono (dyadicMesh_pos hT level) (2 ^ level)).monotone
+  have hle := hmono (Fin.le_last i.castSucc)
+  have hlast := sampledClippedDyadic_last_time eta hT level truncationLevel
+  rw [sampledClippedDyadic, sampledClipped_times] at hlast
+  change dyadicLeftTime T level i.val ≤
+    regularGridTimes (dyadicMesh T level) (2 ^ level) (Fin.last (2 ^ level)) at hle
+  exact hle.trans_eq hlast
+
+theorem laggedDyadicCoeff_stronglyMeasurable
+    (eta : ProgressiveL2Integrand filtration mu T) (level truncationLevel : ℕ)
+    (i : Fin (2 ^ level)) :
+    StronglyMeasurable[filtration (dyadicLeftTime T level i.val)]
+      (laggedDyadicCoeff eta level truncationLevel i) := by
+  by_cases hi : i.val = 0
+  · have hzero :
+        @StronglyMeasurable Omega ℝ inferInstance
+          (filtration (dyadicLeftTime T level i.val)) (fun _ => 0) :=
+      stronglyMeasurable_const
+    convert hzero using 1
+    funext omega
+    simp [laggedDyadicCoeff, hi]
+  · convert laggedCellAverage_stronglyMeasurable eta truncationLevel
+      (dyadicMesh T level)
+      (dyadicLeftTime T level i.val - dyadicMesh T level)
+      (dyadicLeftTime T level i.val) using 1
+    funext omega
+    simp [laggedDyadicCoeff, hi]
+
+theorem laggedDyadicCoeff_abs_le
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (level truncationLevel : ℕ) (i : Fin (2 ^ level)) (omega : Omega) :
+    |laggedDyadicCoeff eta level truncationLevel i omega| ≤
+      (truncationLevel : ℝ) := by
+  by_cases hi : i.val = 0
+  · simp [laggedDyadicCoeff, hi]
+  · simp only [laggedDyadicCoeff, hi, ↓reduceDIte]
+    let delta := dyadicMesh T level
+    let b := dyadicLeftTime T level i.val
+    have hdelta : 0 < delta := dyadicMesh_pos hT level
+    have hdelta_b : delta ≤ b :=
+      dyadicMesh_le_leftTime_of_ne_zero level hi
+    have hcell : b - (b - delta) = delta :=
+      tsub_tsub_cancel_of_le hdelta_b
+    exact laggedCellAverage_abs_le eta truncationLevel hdelta
+      (tsub_le_self) (dyadicLeftTime_le_terminal eta hT level truncationLevel i)
+      hcell omega
+
+/-- The bounded elementary adapted process obtained by lagging dyadic cell
+averages by one cell. -/
+noncomputable def laggedDyadicApprox
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (level truncationLevel : ℕ) :
+    ElementaryAdaptedProcess filtration (2 ^ level) where
+  times := regularGridTimes (dyadicMesh T level) (2 ^ level)
+  times_strictMono := regularGridTimes_strictMono (dyadicMesh_pos hT level) _
+  coeff := laggedDyadicCoeff eta level truncationLevel
+  coeff_stronglyMeasurable := fun i => by
+    change StronglyMeasurable[filtration (dyadicLeftTime T level i.val)]
+      (laggedDyadicCoeff eta level truncationLevel i)
+    exact laggedDyadicCoeff_stronglyMeasurable eta level truncationLevel i
+  coeff_bounded := fun i =>
+    ⟨truncationLevel, laggedDyadicCoeff_abs_le eta hT level truncationLevel i⟩
+
+@[simp] theorem laggedDyadicApprox_times
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (level truncationLevel : ℕ) :
+    (laggedDyadicApprox eta hT level truncationLevel).times =
+      regularGridTimes (dyadicMesh T level) (2 ^ level) :=
+  rfl
+
+@[simp] theorem laggedDyadicApprox_coeff
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (level truncationLevel : ℕ) (i : Fin (2 ^ level)) (omega : Omega) :
+    (laggedDyadicApprox eta hT level truncationLevel).coeff i omega =
+      laggedDyadicCoeff eta level truncationLevel i omega :=
+  rfl
+
+theorem laggedDyadicApprox_last_time
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (level truncationLevel : ℕ) :
+    (laggedDyadicApprox eta hT level truncationLevel).times
+        (Fin.last (2 ^ level)) = T := by
+  have hlast := sampledClippedDyadic_last_time eta hT level truncationLevel
+  simpa only [sampledClippedDyadic, sampledClipped_times,
+    laggedDyadicApprox_times] using hlast
+
+/-- The two obligations that matter downstream: each coefficient is known at
+its cell's left endpoint and remains bounded by the clipping level. -/
+theorem laggedDyadicApprox_isElementaryAdapted
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (level truncationLevel : ℕ) :
+    (∀ i, StronglyMeasurable[
+        filtration ((laggedDyadicApprox eta hT level truncationLevel).times i.castSucc)]
+        ((laggedDyadicApprox eta hT level truncationLevel).coeff i)) ∧
+      (∀ i omega,
+        |(laggedDyadicApprox eta hT level truncationLevel).coeff i omega| ≤
+          (truncationLevel : ℝ)) := by
+  constructor
+  · exact (laggedDyadicApprox eta hT level truncationLevel).coeff_stronglyMeasurable
+  · exact laggedDyadicCoeff_abs_le eta hT level truncationLevel
+
+end LaggedDyadicApproximation
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,95 @@
+{
+  "objects": {
+    "phase_space": "E x E, ordered as position then velocity",
+    "c": "c(y,r)=y-eta grad V(r)",
+    "flow": "Phi_u(x,v)=(c+cos(u)(x-c)+sqrt(eta)sin(u)v, -sin(u)/sqrt(eta)(x-c)+cos(u)v)",
+    "reflection": "g_r(x)=grad V(x)-grad V(r); S_r(x,v)=(x,v-2<v,g_r(x)>/||g_r(x)||^2 g_r(x)); zero denominator gives identity",
+    "rate": "sqrt(eta) max(0,<v,g_r(x)>)",
+    "cumulative_rate": "Lambda(y,r,z,h)=integral_0^h rate_r(Phi(y,r,u,z)) du",
+    "prefix": "ordered simplex 0<t_1<...<t_n<T, represented as subtype; singleton when n=0",
+    "states": "t_0=0; b_j=Phi(y,r,t_j-t_(j-1),z_(j-1)); z_j=S_r(b_j)",
+    "records_and_histories": "Rec=(NNReal x (E x E)) disjoint-union Unit; Hist(n)=Fin(n+1)->Rec; K_j=live(t_j,z_j)",
+    "liveTime_and_d": "liveTime(live(a,z))=a, liveTime(cemetery)=0; d=T truncated-subtract liveTime(h_n)",
+    "weight": "live record -> ofReal(exp(-Lambda(y,r,z,u))); cemetery -> 0",
+    "path": "Psi visits records in ascending index order, replacing value with Phi(y,r,s-a,z) for eligible live records a<=s; Gamma=Psi(K)",
+    "qReal_and_q": "qReal=product_j rate_r(b_j) exp(-Lambda(y,r,z_(j-1),t_j-t_(j-1))); q=ofReal(qReal)",
+    "density": "rho=q * ofReal(exp(-Lambda(y,r,z_n,T-t_n)))",
+    "energy_weight": "U_y(x,v)=V(x)+||x-y||^2/(2 eta)+||v||^2/2; w_y=exp(-U_y)",
+    "reversal": "R(x,v)=(x,-v); revTimes(t)_j=T-t_(n+1-j)",
+    "integral_maps": "A(z_0,t)=Gamma(T); Theta(z_0,t)=(R(A(z_0,t)),revTimes(t)); W=ofReal(w_y(z_0))*rho",
+    "measures": "ell=volume_E.prod(volume_E); m=comap(prefix inclusion)(volume_R^n); final measure=ell.prod(m)"
+  },
+  "domains": {
+    "ambient": "finite-dimensional real inner-product Borel space, including dimension zero",
+    "potential": "V:E->R",
+    "curvature": "alpha,beta:NNReal",
+    "step": "eta:R",
+    "count_and_horizon": "n:Nat, T:NNReal (finite)",
+    "center_and_reference": "y,r:E unrestricted",
+    "initial_state": "z_0:E x E unrestricted",
+    "flow_time": "u:R; cumulative-rate duration h:NNReal",
+    "paths": "[0,T] in NNReal -> E x E",
+    "test": "measurable F:((E x E) x Prefix(n,T))->ENNReal",
+    "integrals": "ENNReal-valued nonnegative Lebesgue integrals; real interval integral only inside Lambda"
+  },
+  "quantifiers": [
+    "For every admissible E,V,alpha,beta,eta satisfying all listed hypotheses",
+    "For every n:Nat and T:NNReal",
+    "There exists revTimes:Prefix(n,T)->Prefix(n,T)",
+    "For every prefix t and coordinate i:Fin n, revTimes(t)_i=T-t_(n-1-i)",
+    "For every y,r:E using that same revTimes",
+    "For every F of the stated type, Measurable F implies the integral equality",
+    "Initial phase states and prefixes are integration variables under ell.prod(m)"
+  ],
+  "assumptions": [
+    "NormedAddCommGroup E; InnerProductSpace R E; FiniteDimensional R E",
+    "MeasurableSpace E; BorelSpace E",
+    "alpha,beta nonnegative; alpha>0; alpha<=beta",
+    "ContDiff R 2 V",
+    "For every x,v:E, alpha||v||^2 <= D(DV)(x)[v][v] <= beta||v||^2",
+    "eta>0; beta eta<=1",
+    "Measurable F; no boundedness or integrability assumption"
+  ],
+  "conclusion": {
+    "existence": "Coordinate-reversing reflected time map exists on each prefix simplex",
+    "identity": "lintegral W(p)*F(Theta(p)) d(ell.prod(m)) = lintegral W(p)*F(p) d(ell.prod(m))",
+    "value_domain": "Extended nonnegative reals, with infinite values permitted and 0*infinity=0",
+    "measure_order": "First phase state, whose components are position then velocity; second prefix times"
+  },
+  "scopes": {
+    "definitions_not_hypotheses": "All let-bound objects are fixed explicitly by ambient parameters",
+    "fixed_count": "Each identity is for one n and T; no sum over n, normalized law, or stochastic process claim",
+    "endpoint_only": "F is a test on initial phase state plus prefix; Theta uses terminal path value and reversed prefix, not a path-valued test",
+    "not_separately_asserted": [
+      "Theta measurability",
+      "Theta involution or bijection",
+      "unweighted volume preservation",
+      "finite total mass",
+      "non-explosion",
+      "query-cost estimates"
+    ],
+    "zero_count": "Singleton prefix, q=1, terminal survival exp(-Lambda(z_0,T)), terminal flow Phi_T(z_0)",
+    "zero_horizon": "For n>0 empty prefix and zero integrals; for n=0 singleton prefix, density 1 and Theta=velocity flip",
+    "zero_dimension": "Allowed; rates zero and positive-count densities zero",
+    "zero_gradient_difference": "Reflection is identity by totalized real division; rate zero",
+    "cemetery": "Defined on generic histories but never occurs in K used for the final identity",
+    "unbounded_test": "F may take infinity; no signed or real-integrable-test extension is stated"
+  },
+  "constant_dependencies": {
+    "ambient": [
+      "E",
+      "V",
+      "alpha",
+      "beta",
+      "eta"
+    ],
+    "rho_time_reversal": "Chosen for n,T before y,r; formula depends only on n,T and prefix t",
+    "flow": "V,eta,y,r,u,z",
+    "reflection": "V,r,z",
+    "rate": "V,eta,r,z",
+    "cumulative_density_path": "V,eta,y,r,z_0,n,T,t as explicitly defined",
+    "energy": "V,eta,y,z",
+    "curvature_constants": "alpha,beta occur in hypotheses, not as extra multiplicative factors in definitions or conclusion",
+    "new_constants": "None; no hidden normalization, factorial, dimension factor, or estimate constant"
+  }
+}

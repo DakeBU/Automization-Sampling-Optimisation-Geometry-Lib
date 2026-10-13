@@ -1,0 +1,14 @@
+from pathlib import Path
+r=Path(__file__).parent;source=r.parent/'pbps-actual-conditional-next-wait-survival88/adopt_source_and_prove88.py'
+s=source.read_text(encoding='utf8')
+for a,b in [('independent-source88','independent-source89'),('source-review88','source-review89'),('source88','source89'),('math88','math89'),('decoder88','decoder89'),('local88','local89'),('before-source88','before-source89'),('decision88.json','decision89.json'),('ActualConditionalNextWaitSurvival','ActualConditionalNextWaitDensity'),('actual-conditional-next-wait-survival','actual-conditional-next-wait-density'),('production6-sum-observable-equality','production6-explicit-order-comparisons'),('13defs','23defs'),('five BODY','six BODY'),('==13','==23'),('==5','==6'),('S87-I4','density component of S87-I5'),('S87-I5/density/ordered-time iteration','ordered-time iteration'),('history-dependent conditional next-wait survival','conditional finite next-wait density'),('deterministic-depth history-dependent conditional next-wait survival','conditional strict finite next-wait density'),('thirteen definitions','twenty-three definitions'),('five BODY/exposition','six BODY/exposition')]:s=s.replace(a,b)
+s=s.replace("assert sha(dp.read_bytes())=='aa702e1bc0972f90b77b3527ba6e3c68e4ba6e45760cd0221e683548f1bf9da6'","assert sha(dp.read_bytes())==sys.argv[1]")
+s=s.replace("assert sha(mp.read_bytes())=='e9c1c450aa255b65dba3ac3f8423ee02463165d54ed383b8b38328c80fcea332'","assert sha(mp.read_bytes())==sys.argv[2]")
+s=s.replace("=='dd99702bb970341f85f740bfcaaac30286d086d82c3f38ba6d1afadd74b011a7'","==sys.argv[3]")
+s=s.replace("assert n['accepted_truth_boundary']['target_source_node']=='density component of S87-I5'","assert 'density' in str(n['accepted_truth_boundary']).lower()")
+s=s.replace("assert 'S87-I5' in n['accepted_truth_boundary']['open'] and 'full A.7' in n['accepted_truth_boundary']['open']","assert 'full A.7' in str(n['accepted_truth_boundary']['open'])")
+s=s.replace("Only density component of S87-I5 history-dependent conditional next-wait survival closed;","Only density component of S87-I5/G86-11 closed;")
+s=s.replace("Actual deterministic-depth conditional finite next-wait density, joint event/Borel bounded weight and unnormalized null-event identity.","Actual jointly Borel strict finite next-wait density, genuine all-history subprobability kernel, joint measure identity and all nonnegative extended joint tests on all history events.")
+s=s.replace("Only density component of S87-I5 closes; density/final factor/ordered-time iteration/fullA7","Only density component of S87-I5/G86-11 closes; final factor/ordered-time iteration/fullA7")
+p=r/'adopt_source_and_prove89.py';assert not p.exists();p.write_text(s,encoding='utf8',newline='\n')
+print('Prepared final source-adoption helper; requires exact reviewer-returned SHA arguments; not executed.')

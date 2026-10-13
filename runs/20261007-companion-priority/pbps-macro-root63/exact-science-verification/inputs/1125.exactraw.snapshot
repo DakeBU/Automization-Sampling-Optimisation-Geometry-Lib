@@ -1,0 +1,134 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GlobalStoppedProgressiveL2
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2HorizonExtension
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingProcessConsistency
+
+/-!
+# Nested global stopped integrands across dyadic horizons
+
+The global `k`-th integrand is the literal closed stop
+
+`eta_s * 1_{s <= tau_k}`.
+
+Since the dyadic global localizers are pointwise increasing, stopping the
+`ell`-th integrand again at `tau_k` (for `k <= ell`) is pointwise exactly the
+`k`-th raw stopped integrand.  When the latter is transported from horizon
+`H_k` to `H_ell`, deterministic zero extension differs only at the old terminal
+slice `s = H_k`; that slice is product-null.  Hence the two completed `L²`
+representatives are exactly equal.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace GlobalStoppedL2Overlap
+
+open Filter MeasureTheory Set WithTop
+open scoped NNReal Topology
+
+open DyadicGlobalHorizon GlobalStoppedProgressiveL2 ProgressiveL2
+  ProgressiveL2HorizonExtension ProgressiveL2Stopping
+  RandomStoppingProcessConsistency StoppingTime
+open AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.Localization
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+
+/-- Pointwise monotonicity of the dyadic global localizers, coerced to
+`WithTop NNReal`. -/
+theorem dyadicGlobalLocalizingTime_coe_le
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2.GlobalLocalProgressiveL2Integrand filtration mu)
+    {k ell : ℕ} (hkell : k ≤ ell) (omega : Omega) :
+    (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0) ≤
+      (dyadicGlobalLocalizingTime hUsual eta ell omega : WithTop ℝ≥0) := by
+  exact WithTop.coe_le_coe.mpr
+    ((dyadicGlobalLocalizingTime_mono hUsual eta) hkell omega)
+
+/-- Re-stopping the larger raw stopped integrand at the smaller localizer gives
+exactly the smaller raw stopped integrand, pointwise in time and sample path. -/
+theorem stopped_globalStoppedIntegrand_eq
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2.GlobalLocalProgressiveL2Integrand filtration mu)
+    {k ell : ℕ} (hkell : k ≤ ell) :
+    stoppedIntegrand (globalStoppedIntegrand hUsual eta ell)
+        (fun omega =>
+          (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0)) =
+      globalStoppedIntegrand hUsual eta k := by
+  funext t omega
+  have hτ := dyadicGlobalLocalizingTime_coe_le hUsual eta hkell omega
+  by_cases htk : (t : WithTop ℝ≥0) ≤
+      (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0)
+  · have htell := htk.trans hτ
+    simp only [globalStoppedIntegrand, stoppedIntegrand]
+    rw [if_pos htk, if_pos htell, if_pos htk]
+  · simp only [globalStoppedIntegrand, stoppedIntegrand]
+    rw [if_neg htk, if_neg htk]
+
+/-- The direct progressive-`L²` stop of the larger finite-horizon package has
+exactly the smaller raw stopped process as its process field. -/
+theorem stop_globalStoppedProgressiveL2_process
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2.GlobalLocalProgressiveL2Integrand filtration mu)
+    {k ell : ℕ} (hkell : k ≤ ell) :
+    (stop (globalStoppedProgressiveL2 hUsual eta ell)
+      (fun omega =>
+        (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0))
+      (dyadicGlobalLocalizingTime_isChewiStoppingTime hUsual eta k)).process =
+      globalStoppedIntegrand hUsual eta k := by
+  rw [ProgressiveL2Stopping.stop_process]
+  exact stopped_globalStoppedIntegrand_eq hUsual eta hkell
+
+/-- **Cross-horizon nested `L²` identity.**
+
+Stopping the `ell`-th package at `tau_k` is the same element of
+`L²(P ⊗ dt|[0,H_ell])` as zero-extending the `k`-th package from `H_k` to
+`H_ell`. -/
+theorem stop_globalStopped_toLp_eq_extendByZero
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2.GlobalLocalProgressiveL2Integrand filtration mu)
+    {k ell : ℕ} (hkell : k ≤ ell) :
+    (stop (globalStoppedProgressiveL2 hUsual eta ell)
+      (fun omega =>
+        (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0))
+      (dyadicGlobalLocalizingTime_isChewiStoppingTime hUsual eta k)).toLp =
+      (extendByZero
+        (globalStoppedProgressiveL2 hUsual eta k)
+        (by
+          unfold dyadicHorizon
+          exact_mod_cast Nat.pow_le_pow_right (by decide : 0 < (2 : ℕ)) hkell)).toLp := by
+  unfold ProgressiveL2Integrand.toLp
+  apply MemLp.toLp_congr
+  filter_upwards [
+      RandomStoppingProcessConsistency.ae_time_ne
+        (mu := mu) (T := dyadicHorizon ell) (dyadicHorizon k)]
+    with z hz
+  rw [stop_globalStoppedProgressiveL2_process hUsual eta hkell]
+  change globalStoppedIntegrand hUsual eta k z.2 z.1 =
+    ProgressiveL2Integrand.restrictProcess (dyadicHorizon k)
+      (globalStoppedProgressiveL2 hUsual eta k).process z.2 z.1
+  rw [globalStoppedProgressiveL2_process]
+  by_cases hzt : z.2 < dyadicHorizon k
+  · rw [ProgressiveL2Integrand.restrictProcess, if_pos hzt]
+  · have htkz : dyadicHorizon k < z.2 :=
+      lt_of_le_of_ne (le_of_not_gt hzt) (Ne.symm hz)
+    have hτk :
+        (dyadicGlobalLocalizingTime hUsual eta k z.1 : WithTop ℝ≥0) ≤
+          (dyadicHorizon k : WithTop ℝ≥0) :=
+      WithTop.coe_le_coe.mpr
+        (dyadicGlobalLocalizingTime_le_horizon hUsual eta k z.1)
+    have hnot : ¬ (z.2 : WithTop ℝ≥0) ≤
+        (dyadicGlobalLocalizingTime hUsual eta k z.1 : WithTop ℝ≥0) := by
+      intro hle
+      have : (z.2 : WithTop ℝ≥0) ≤ (dyadicHorizon k : WithTop ℝ≥0) :=
+        hle.trans hτk
+      exact (not_le.mpr (WithTop.coe_lt_coe.mpr htkz)) this
+    rw [ProgressiveL2Integrand.restrictProcess, if_neg hzt]
+    simp only [globalStoppedIntegrand, stoppedIntegrand]
+    rw [if_neg hnot]
+
+end GlobalStoppedL2Overlap
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

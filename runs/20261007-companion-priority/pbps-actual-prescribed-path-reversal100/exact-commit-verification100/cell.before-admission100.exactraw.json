@@ -1,0 +1,204 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-prescribed-path-reversal",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS off-event finite path reversal and survival integral",
+  "mode": "faithfulPaper",
+  "declaration_level": "source-anchor",
+  "source_anchor": "Appendix A.1 actual prescribed trajectories and A8 off-event reversal, survival integral matching",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity\n\n/- Type-only proposal for independent prospective source and mathematical review.\nNo theorem proof, sealed statement, claim or completion is asserted. -/\nnamespace PBPSFinitePathReversalCandidate100\nopen MeasureTheory InnerProductSpace\nopen scoped ContDiff NNReal ENNReal Classical\nnoncomputable section\nset_option autoImplicit false\n\ndef candidate\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let rate : E → E × E → ℝ := fun r z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V r))\n    ∀ n : ℕ, ∀ T : ℝ≥0, ∃ rho : Prefix n T → Prefix n T,\n      (∀ t : Prefix n T, ∀ i : Fin n, (rho t).val i = (T : ℝ) - t.val i.rev) ∧\n      ∀ y r : E, ∀ z : E × E, ∀ t : Prefix n T,\n        let A : E × E := Γ y r z n T t ⟨T, le_rfl⟩\n        let gamma : ℝ → E × E := fun s =>\n          Γ y r z n T t ⟨min (Real.toNNReal s) T, min_le_right _ _⟩\n        let barGamma : ℝ → E × E := fun s =>\n          Γ y r (R A) n T (rho t) ⟨min (Real.toNNReal s) T, min_le_right _ _⟩\n        (∀ s : ℝ, 0 ≤ s → s ≤ (T : ℝ) →\n          (∀ i : Fin n, s ≠ (rho t).val i) →\n          barGamma s = R (gamma ((T : ℝ) - s))) ∧\n        IntervalIntegrable (fun s => rate r (barGamma s)) volume 0 (T : ℝ) ∧\n        IntervalIntegrable (fun s => rate r (R (gamma s))) volume 0 (T : ℝ) ∧\n        (∫ s in (0 : ℝ)..(T : ℝ), rate r (barGamma s)) =\n          ∫ s in (0 : ℝ)..(T : ℝ), rate r (R (gamma s))\n\n\n#check candidate\nend\nend PBPSFinitePathReversalCandidate100\n",
+  "status": "proved_locally",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal.actual_prescribed_state_reversal_and_rate_product",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity.actual_prescribed_path_density_rewrite"
+  ],
+  "consumers": [
+    "Combine with98 Gibbs survival and99 incoming product to close weighted actual density underTheta97; then normalized stationary averaging. Later nodes not assumed."
+  ],
+  "target_declarations": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal.actual_prescribed_path_reversal_and_survival"
+  ],
+  "evidence": {
+    "owner": "companion_root_20261005",
+    "statement_seal": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-finite-path-reversal-preread100\\root.statement-seal100.json",
+    "focused_checks": [
+      "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/focused100/production1-sealed-target/receipt.json"
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedPathReversal.lean"
+    ],
+    "truth_boundary": "No all-time equality at genuine jumps or outside closed horizon; no weighted density/sector, invariant probability, restart/Markovness, hypocoercivity, implementation error, expected cost, main theorem or composition.",
+    "whole_target_compiled": {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedPathReversal.lean",
+      "raw_sha256": "59d3131209605d2df34e74abb098f42d41338ae44f7e4f4bee4d75ac7bc0a3c8",
+      "bytes": 14327
+    },
+    "independent_whole_mathematics": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/independent-whole-math100/whole-math-decision100.native.json",
+    "independent_source_review": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/final-source100/source-review100.native.json"
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib, fixed Mathlib/core and compatible catalog: E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-prescribed-state-reversal99\\next-primary100\\retrieval100.native.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-finite-path-reversal-preread100\\independent-header-math100\\reuse-api-audit100.native.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-finite-path-reversal-preread100\\independent-header-math100\\api-name-erratum100\\erratum100.native.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-finite-path-reversal-preread100\\independent-header-math100\\topology-overlay100\\source-topology-admission100.native.json"
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal.actual_prescribed_path_reversal_and_survival",
+    "canonical_shared_cell": "",
+    "reason": "Actual99 state reversal,93 path arcs,96 reversal, harmonic group law and94 integrability; finite-null-set/time-substitution Mathlib APIs."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib, fixed Mathlib/core and compatible catalog: E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-prescribed-state-reversal99\\next-primary100\\retrieval100.native.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-finite-path-reversal-preread100\\independent-header-math100\\reuse-api-audit100.native.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-finite-path-reversal-preread100\\independent-header-math100\\api-name-erratum100\\erratum100.native.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-finite-path-reversal-preread100\\independent-header-math100\\topology-overlay100\\source-topology-admission100.native.json"
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal.actual_prescribed_state_reversal_and_rate_product",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity.actual_prescribed_path_density_rewrite"
+    ],
+    "planned_dependencies": [],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "Combine with98 Gibbs survival and99 incoming product to close weighted actual density underTheta97; then normalized stationary averaging. Later nodes not assumed."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "New actual off-event path identity and survival integral equality; no assumed path reversal or integrability."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Reviewed sealed theorem; exact-commit verification, sole-lane aggregate integration and actual reader visual acceptance pending."
+  },
+  "statement_seal": {
+    "evidence": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-finite-path-reversal-preread100\\root.statement-seal100.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "94ada767874180a727bfa7627c4e40629da5a77f523895ca30e0d5e0e74008b9",
+    "binder_audit": [
+      "Original six analytic assumptions and finite real Hilbert Borel typing; no excess."
+    ],
+    "definition_kind": "Exact actual c/Phi/S/Rec/Hist/Delta/Prefix/m/zAt/K/Path/Psi/Gamma/R/rate from99. Clamped real-time gamma and barGamma on actual reversed tuple and R(actual terminal). rho exists with coordinate equation; all reversals, regularities and integrability are conclusions/internal dependencies."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-actual-prescribed-state-reversal99/next-primary100/source-slice-delta100.native.json",
+    "source_graph_overlay": "runs/20261007-companion-priority/pbps-actual-prescribed-state-reversal99/next-primary100/graph-refinement100/source-graph-overlay100.native.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-actual-prescribed-gibbs-survival98/next-primary99-source-completion/source-coverage99.native.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/final-source100/compiled-source-coverage100.native.json",
+    "coverage_status": "Independent current-production source review accepted: all 21 regions and effective graph nodes disposed; actual off-event closed-horizon path reversal and scalar survival substitution proved. Weighted density/invariance remains open."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Appendix A.1 actual prescribed trajectories and A8 off-event reversal, survival integral matching",
+    "fidelity_boundary": "No all-time equality at genuine jumps or outside closed horizon; no weighted density/sector, invariant probability, restart/Markovness, hypocoercivity, implementation error, expected cost, main theorem or composition.",
+    "detail_status": "omitted",
+    "gap": "Printed reversal notation requires off-event reading at genuine jumps; endpoints and finite-null-set passage remain explicit.",
+    "consulted": [
+      {
+        "source": "Pinned PBPS v1 and fixed Mathlib/core",
+        "anchor": "Appendix A1 prescribed trajectories, A8 reversal and survival matching",
+        "hypothesis_adapter": "Original actual folded path and clamp on the closed horizon; no supplied reversal, joint regularity or integral provider."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal.actual_prescribed_state_reversal_and_rate_product",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume.actual_phase_reversal_volume_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity.actual_prescribed_path_density_rewrite"
+    ],
+    "bookkeeping": [
+      "Active finite arc and reverse-grid identities",
+      "Closed-horizon clamp/endpoint identities",
+      "Finite event nullity and interval time substitution"
+    ],
+    "new_reusable": [],
+    "new_topology": "Actual reversed finite prescribed path equals momentum reversal of the time-reflected original off the finite event set on the whole closed horizon; both scalar rates are interval integrable and their survival integrals equal."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Private active-arc, path-reversal and scalar-reflection helpers are all consumed. Actual99 states, actual93 path arcs, flow group, actual96 momentum conjugacy and actual94 integrability discharge internal premises. No mangled private API used.",
+    "duplicate_semantics_audit": "Independent local/Mathlib/compatible catalog retrieval complete.",
+    "canonicalization": "Consume public actual producers and pinned Mathlib AE/interval APIs; no mangled private cross-module calls.",
+    "compressed_spine_delta": "Actual reversed finite prescribed path equals momentum reversal of the time-reflected original off the finite event set on the whole closed horizon; both scalar rates are interval integrable and their survival integrals equal.",
+    "reader_default_view": "Complete attributed statement and formula proof with adjacent folded Lean.",
+    "scope": "No all-time equality at genuine jumps or outside closed horizon; no weighted density/sector, invariant probability, restart/Markovness, hypocoercivity, implementation error, expected cost, main theorem or composition."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "Full sealed target compiled; no mathematical fragment discarded. Initial elaboration failures retained with corrected unfold and explicit finite-grid types.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-off-event-path-reversal/survival-time-reflection"
+      ],
+      "expected_information_gain": "One implementation owner; separate header source/math/topology reviews complete.",
+      "shared_verified_context_digest": "94ada767874180a727bfa7627c4e40629da5a77f523895ca30e0d5e0e74008b9"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Single source-faithful implementation route."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "A1.E8"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal.actual_prescribed_path_reversal_and_survival"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal.actual_prescribed_path_reversal_and_survival"
+    ],
+    "visual_review": "Pending implementation and publication."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "reason": "Source-specific actual PBPS arc reversal and scalar integral substitution; no new cross-domain adapter claimed.",
+    "discovery_ids": []
+  }
+}

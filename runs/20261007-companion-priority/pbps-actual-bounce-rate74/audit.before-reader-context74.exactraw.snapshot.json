@@ -1,0 +1,273 @@
+{
+  "id": "ASTIS-RT-20261010-PBPSActualBounceRate",
+  "state": "blind-reconstructed",
+  "source": {
+    "source_id": "companion-domain:pbps-actual-bounce-rate",
+    "anchor": "arXiv2609.06905v1 Section2 Eq(2.4),Section3 Eq(3.4),Algorithm1 steps6-7/eq(3.9),AppendixA.1 Ex4-6 and A1.SS2.p3; deterministic prerequisites for Proposition3.1.",
+    "url": "https://arxiv.org/html/2609.06905v1#A1",
+    "original_text": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang, arXiv:2609.06905v1, Section2 Eq2.4, Section3 Eq3.4, Algorithm1 steps6–7 and AppendixA.1 Ex4–6. ASTIS proves omitted deterministic/Borel estimates; Proposition3.1 stochastic construction is a later consumer.\nLet E be a finite-dimensional real inner-product Borel space, including rank zero. Let V:E→ℝ be C² on all E, let α,β≥0 satisfy 0<α≤β and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, and let η>0 with βη≤1. For all y,xRef∈E define c=y−η∇V(xRef), h(xRef,x)=∇V(x)−∇V(xRef), R(n,p)=p−(2⟨p,n⟩/‖n‖²)n with total real division, S(xRef,(x,p))=(x,R(h(xRef,x),p)), λ(xRef,(x,p))=√η max(0,⟨p,h(xRef,x)⟩) and H(y,xRef,(x,p))=(η⁻¹‖x−c‖²+‖p‖²)/2. Then: (1) S is jointly Borel measurable in (xRef,x,p); (2) λ is jointly continuous; (3) λ is jointly Borel measurable; (4) R(0,p)=p for every p; (5) for every n,p, R(n,R(n,p))=p, ‖R(n,p)‖=‖p‖ and ⟨R(n,p),n⟩=−⟨p,n⟩; (6) for every xRef,z, S fixes the position coordinate and S(xRef,S(xRef,z))=z; (7) H(y,xRef,S(xRef,z))=H(y,xRef,z) for all y,xRef,z; (8) λ(xRef,z)≥0, λ(xRef,S(xRef,z))=√η max(0,−⟨p,h(xRef,x)⟩) and λ(xRef,z)−λ(xRef,S(xRef,z))=√η⟨p,h(xRef,x)⟩; (9) h(xRef,x)=0 implies both S(xRef,(x,p))=(x,p) and λ(xRef,(x,p))=0; (10) for every y,xRef,z₀ put ℰ=H(y,xRef,z₀). Then ℰ≥0, and every z=(x,p) with H(y,xRef,z)=ℰ obeys ‖p‖≤√(2ℰ), ‖x−c‖≤√(2ηℰ) and λ(xRef,z)≤√η β√(2ℰ)(√(2ηℰ)+‖c−xRef‖). The gradient β-Lipschitz bound is derived internally from the canonical Hessian producer, never supplied as a new premise. The original six callers persist. Positive α, α≤β and βη≤1 remain standing conditions unused by this bounded deterministic BODY; C², the global Hessian bounds and η>0 supply the proof. No joint continuity of S is claimed at its zero-normal locus. This result supplies actual jump/rate prerequisites for Algorithm1/AppendixA.1 Proposition3.1; random clocks, path construction, nonexplosion, invariant and terminal kernels, convergence and costs remain open.\narXiv2609.06905v1 Section2 Eq(2.4),Section3 Eq(3.4),Algorithm1 steps6-7/eq(3.9),AppendixA.1 Ex4-6 and A1.SS2.p3; deterministic prerequisites for Proposition3.1.",
+    "text_sha256": "9ed5bbd0b19f26cfa1f66ea200316d9b64b0dbaec0d6535752f1e2af34ff2981"
+  },
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let h : E → E → E := fun xRef x => gradient V x - gradient V xRef\n    let R : E → E → E := fun n p =>\n      p - (2 * inner ℝ p n / ‖n‖ ^ 2) • n\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, R (h xRef z.1) z.2)\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (h xRef z.1))\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    Measurable (fun a : E × (E × E) => S a.1 a.2) ∧\n    Continuous (fun a : E × (E × E) => rate a.1 a.2) ∧\n    Measurable (fun a : E × (E × E) => rate a.1 a.2) ∧\n    (∀ p : E, R 0 p = p) ∧\n    (∀ n p : E, R n (R n p) = p ∧ ‖R n p‖ = ‖p‖ ∧\n      inner ℝ (R n p) n = -inner ℝ p n) ∧\n    (∀ xRef : E, ∀ z : E × E,\n      (S xRef z).1 = z.1 ∧ S xRef (S xRef z) = z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      H y xRef (S xRef z) = H y xRef z) ∧\n    (∀ xRef : E, ∀ z : E × E, 0 ≤ rate xRef z ∧\n      rate xRef (S xRef z) =\n        Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) ∧\n      rate xRef z - rate xRef (S xRef z) =\n        Real.sqrt η * inner ℝ z.2 (h xRef z.1)) ∧\n    (∀ xRef x p : E, h xRef x = 0 →\n      S xRef (x,p) = (x,p) ∧ rate xRef (x,p) = 0) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E,\n      0 ≤ H y xRef z₀ ∧\n      ∀ z : E × E, H y xRef z = H y xRef z₀ →\n        ‖z.2‖ ≤ Real.sqrt (2 * H y xRef z₀) ∧\n        ‖z.1 - c y xRef‖ ≤ Real.sqrt (2 * η * H y xRef z₀) ∧\n        rate xRef z ≤ Real.sqrt η * (β : ℝ) *\n          Real.sqrt (2 * H y xRef z₀) *\n          (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖))",
+    "statement_sha256": "a45315d3546b221fa4576ec12e916d8f32b7c051074f93a005d78123b2aa8058",
+    "compiled": true,
+    "decoder_context": [
+      "The ambient space is finite-dimensional over the reals with its compatible norm and real inner product; its given measurable structure is Borel. Product spaces use product topology and measurable structure. Rank zero is allowed.",
+      "gradient is the Hilbert gradient represented by the Frechet derivative. The displayed iterated Frechet derivative applied twice to v is the Hessian quadratic form. ContDiff order 2 means twice continuously Frechet differentiable.",
+      "Every c,h,R,S,rate,H is exactly the displayed let definition. Real division is total, including division by zero; max is the ordinary real maximum. The two norms in H are separate vector norms and form a weighted sum. No stochastic interpretation is supplied."
+    ],
+    "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+    "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean",
+    "formalizer": "root-samplinglib-writer",
+    "compiler_evidence": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/focused-reflection-order-repair/receipt.json",
+    "statement_representation": {
+      "kind": "exact-literal-private-Prop-expansion",
+      "actual_header": "theorem actual_bounce_rate_energy_laws\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    actual_bounce_rate_energy_statement hα hαβ hV hH hη hβη\n",
+      "private_definition": "private def actual_bounce_rate_energy_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let h : E → E → E := fun xRef x => gradient V x - gradient V xRef\n    let R : E → E → E := fun n p =>\n      p - (2 * inner ℝ p n / ‖n‖ ^ 2) • n\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, R (h xRef z.1) z.2)\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (h xRef z.1))\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    Measurable (fun a : E × (E × E) => S a.1 a.2) ∧\n    Continuous (fun a : E × (E × E) => rate a.1 a.2) ∧\n    Measurable (fun a : E × (E × E) => rate a.1 a.2) ∧\n    (∀ p : E, R 0 p = p) ∧\n    (∀ n p : E, R n (R n p) = p ∧ ‖R n p‖ = ‖p‖ ∧\n      inner ℝ (R n p) n = -inner ℝ p n) ∧\n    (∀ xRef : E, ∀ z : E × E,\n      (S xRef z).1 = z.1 ∧ S xRef (S xRef z) = z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      H y xRef (S xRef z) = H y xRef z) ∧\n    (∀ xRef : E, ∀ z : E × E, 0 ≤ rate xRef z ∧\n      rate xRef (S xRef z) =\n        Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) ∧\n      rate xRef z - rate xRef (S xRef z) =\n        Real.sqrt η * inner ℝ z.2 (h xRef z.1)) ∧\n    (∀ xRef x p : E, h xRef x = 0 →\n      S xRef (x,p) = (x,p) ∧ rate xRef (x,p) = 0) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E,\n      0 ≤ H y xRef z₀ ∧\n      ∀ z : E × E, H y xRef z = H y xRef z₀ →\n        ‖z.2‖ ≤ Real.sqrt (2 * H y xRef z₀) ∧\n        ‖z.1 - c y xRef‖ ≤ Real.sqrt (2 * η * H y xRef z₀) ∧\n        rate xRef z ≤ Real.sqrt η * (β : ℝ) *\n          Real.sqrt (2 * H y xRef z₀) *\n          (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖))\n",
+      "expanded_header": "theorem actual_bounce_rate_energy_laws\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let h : E → E → E := fun xRef x => gradient V x - gradient V xRef\n    let R : E → E → E := fun n p =>\n      p - (2 * inner ℝ p n / ‖n‖ ^ 2) • n\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, R (h xRef z.1) z.2)\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (h xRef z.1))\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    Measurable (fun a : E × (E × E) => S a.1 a.2) ∧\n    Continuous (fun a : E × (E × E) => rate a.1 a.2) ∧\n    Measurable (fun a : E × (E × E) => rate a.1 a.2) ∧\n    (∀ p : E, R 0 p = p) ∧\n    (∀ n p : E, R n (R n p) = p ∧ ‖R n p‖ = ‖p‖ ∧\n      inner ℝ (R n p) n = -inner ℝ p n) ∧\n    (∀ xRef : E, ∀ z : E × E,\n      (S xRef z).1 = z.1 ∧ S xRef (S xRef z) = z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      H y xRef (S xRef z) = H y xRef z) ∧\n    (∀ xRef : E, ∀ z : E × E, 0 ≤ rate xRef z ∧\n      rate xRef (S xRef z) =\n        Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) ∧\n      rate xRef z - rate xRef (S xRef z) =\n        Real.sqrt η * inner ℝ z.2 (h xRef z.1)) ∧\n    (∀ xRef x p : E, h xRef x = 0 →\n      S xRef (x,p) = (x,p) ∧ rate xRef (x,p) = 0) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E,\n      0 ≤ H y xRef z₀ ∧\n      ∀ z : E × E, H y xRef z = H y xRef z₀ →\n        ‖z.2‖ ≤ Real.sqrt (2 * H y xRef z₀) ∧\n        ‖z.1 - c y xRef‖ ≤ Real.sqrt (2 * η * H y xRef z₀) ∧\n        rate xRef z ≤ Real.sqrt η * (β : ℝ) *\n          Real.sqrt (2 * H y xRef z₀) *\n          (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖))\n",
+      "source_approved_overlay": "runs/20261007-companion-priority/pbps-bounce-rate-preproof74/root.statement-seal74.json",
+      "kernel_header_and_literal_expansion_checked": true
+    }
+  },
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "599d4550f863962f6ef74dd0821ef433ebe7c8f5ead8d907d8a5f409fb0feeca",
+  "publication_context": {
+    "file": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization\nimport Mathlib.Analysis.InnerProductSpace.Projection.Reflection\nimport Mathlib.MeasureTheory.Constructions.BorelSpace.Basic\n\n/-!\nChen--Chewi--Lu--Zhang arXiv:2609.06905v1, Section2 (reflection), Algorithm1,\nAppendixA.1 Ex4--6. Actual zero-safe Borel bounce and energy-layer rate bound.\nThis statement asserts no random path, clock, Markov kernel or nonexplosion.\n-/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate\nopen InnerProductSpace\nopen scoped ContDiff NNReal Topology\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_bounce_rate_energy_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let h : E → E → E := fun xRef x => gradient V x - gradient V xRef\n    let R : E → E → E := fun n p =>\n      p - (2 * inner ℝ p n / ‖n‖ ^ 2) • n\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, R (h xRef z.1) z.2)\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (h xRef z.1))\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    Measurable (fun a : E × (E × E) => S a.1 a.2) ∧\n    Continuous (fun a : E × (E × E) => rate a.1 a.2) ∧\n    Measurable (fun a : E × (E × E) => rate a.1 a.2) ∧\n    (∀ p : E, R 0 p = p) ∧\n    (∀ n p : E, R n (R n p) = p ∧ ‖R n p‖ = ‖p‖ ∧\n      inner ℝ (R n p) n = -inner ℝ p n) ∧\n    (∀ xRef : E, ∀ z : E × E,\n      (S xRef z).1 = z.1 ∧ S xRef (S xRef z) = z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      H y xRef (S xRef z) = H y xRef z) ∧\n    (∀ xRef : E, ∀ z : E × E, 0 ≤ rate xRef z ∧\n      rate xRef (S xRef z) =\n        Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) ∧\n      rate xRef z - rate xRef (S xRef z) =\n        Real.sqrt η * inner ℝ z.2 (h xRef z.1)) ∧\n    (∀ xRef x p : E, h xRef x = 0 →\n      S xRef (x,p) = (x,p) ∧ rate xRef (x,p) = 0) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E,\n      0 ≤ H y xRef z₀ ∧\n      ∀ z : E × E, H y xRef z = H y xRef z₀ →\n        ‖z.2‖ ≤ Real.sqrt (2 * H y xRef z₀) ∧\n        ‖z.1 - c y xRef‖ ≤ Real.sqrt (2 * η * H y xRef z₀) ∧\n        rate xRef z ≤ Real.sqrt η * (β : ℝ) *\n          Real.sqrt (2 * H y xRef z₀) *\n          (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖))\n\ntheorem actual_bounce_rate_energy_laws\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    actual_bounce_rate_energy_statement hα hαβ hV hH hη hβη := by\n\n  let c : E → E → E := fun y xRef => y - η • gradient V xRef\n  let h : E → E → E := fun xRef x => gradient V x - gradient V xRef\n  let R : E → E → E := fun n p => p - (2 * inner ℝ p n / ‖n‖ ^ 2) • n\n  let S : E → (E × E) → (E × E) := fun xRef z => (z.1, R (h xRef z.1) z.2)\n  let rate : E → (E × E) → ℝ := fun xRef z =>\n    Real.sqrt η * max 0 (inner ℝ z.2 (h xRef z.1))\n  let H : E → E → (E × E) → ℝ := fun y xRef z =>\n    (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n  change\n    Measurable (fun a : E × (E × E) => S a.1 a.2) ∧\n    Continuous (fun a : E × (E × E) => rate a.1 a.2) ∧\n    Measurable (fun a : E × (E × E) => rate a.1 a.2) ∧\n    (∀ p : E, R 0 p = p) ∧\n    (∀ n p : E, R n (R n p) = p ∧ ‖R n p‖ = ‖p‖ ∧\n      inner ℝ (R n p) n = -inner ℝ p n) ∧\n    (∀ xRef : E, ∀ z : E × E,\n      (S xRef z).1 = z.1 ∧ S xRef (S xRef z) = z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      H y xRef (S xRef z) = H y xRef z) ∧\n    (∀ xRef : E, ∀ z : E × E, 0 ≤ rate xRef z ∧\n      rate xRef (S xRef z) =\n        Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) ∧\n      rate xRef z - rate xRef (S xRef z) =\n        Real.sqrt η * inner ℝ z.2 (h xRef z.1)) ∧\n    (∀ xRef x p : E, h xRef x = 0 →\n      S xRef (x,p) = (x,p) ∧ rate xRef (x,p) = 0) ∧\n    (∀ y xRef : E, ∀ z₀ : E × E,\n      0 ≤ H y xRef z₀ ∧\n      ∀ z : E × E, H y xRef z = H y xRef z₀ →\n        ‖z.2‖ ≤ Real.sqrt (2 * H y xRef z₀) ∧\n        ‖z.1 - c y xRef‖ ≤ Real.sqrt (2 * η * H y xRef z₀) ∧\n        rate xRef z ≤ Real.sqrt η * (β : ℝ) *\n          Real.sqrt (2 * H y xRef z₀) *\n          (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖))\n  letI : CompleteSpace E := FiniteDimensional.complete ℝ E\n  have hLip : LipschitzWith β (gradient V) := by\n    simpa using\n      (AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n        (m := α) (L := β) (r := 0) hV hH (0 : E)).2\n  have hgrad : Continuous (gradient V) := hLip.continuous\n  have hRzero (p : E) : R 0 p = p := by simp [R]\n  have hRreflect (n p : E) : R n p = (ℝ ∙ n)ᗮ.reflection p := by\n    rw [Submodule.reflection_orthogonal_apply, Submodule.reflection_singleton_apply]\n    simp only [two_smul, neg_sub]\n    dsimp [R]\n    simp only [div_eq_mul_inv, mul_smul]\n    rw [real_inner_comm n p]\n    module\n  have hRlaws (n p : E) : R n (R n p) = p ∧ ‖R n p‖ = ‖p‖ ∧\n      inner ℝ (R n p) n = -inner ℝ p n := by\n    refine ⟨?_, ?_, ?_⟩\n    · simp only [hRreflect, Submodule.reflection_reflection]\n    · rw [hRreflect]; exact LinearIsometryEquiv.norm_map _ _\n    · by_cases hn : n = 0\n      · simp [hn]\n      · have hn2 : ‖n‖ ^ 2 ≠ 0 := pow_ne_zero _ (norm_ne_zero_iff.mpr hn)\n        dsimp [R]\n        rw [inner_sub_left, real_inner_smul_left, real_inner_self_eq_norm_sq]\n        field_simp [hn2] <;> ring\n  have hSmeas : Measurable (fun a : E × (E × E) => S a.1 a.2) := by\n    dsimp [S, R, h]\n    fun_prop\n  have hratecont : Continuous (fun a : E × (E × E) => rate a.1 a.2) := by\n    dsimp [rate, h]\n    fun_prop\n  have hSlaws (xRef : E) (z : E × E) :\n      (S xRef z).1 = z.1 ∧ S xRef (S xRef z) = z := by\n    refine ⟨rfl, ?_⟩\n    exact Prod.ext rfl (hRlaws (h xRef z.1) z.2).1\n  have hHbounce (y xRef : E) (z : E × E) : H y xRef (S xRef z) = H y xRef z := by\n    dsimp [H, S]\n    rw [(hRlaws (h xRef z.1) z.2).2.1]\n  have hrateflip (xRef : E) (z : E × E) :\n      rate xRef (S xRef z) = Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) := by\n    dsimp [rate, S]\n    rw [(hRlaws (h xRef z.1) z.2).2.2]\n  have hratelaws (xRef : E) (z : E × E) : 0 ≤ rate xRef z ∧\n      rate xRef (S xRef z) = Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) ∧\n      rate xRef z - rate xRef (S xRef z) = Real.sqrt η * inner ℝ z.2 (h xRef z.1) := by\n    refine ⟨mul_nonneg (Real.sqrt_nonneg _) (le_max_left _ _), hrateflip xRef z, ?_⟩\n    rw [hrateflip]\n    dsimp [rate]\n    by_cases hi : 0 ≤ inner ℝ z.2 (h xRef z.1)\n    · rw [max_eq_right hi, max_eq_left (by linarith)]\n      ring\n    · rw [max_eq_left (le_of_not_ge hi), max_eq_right (by linarith)]\n      ring\n  have hzero (xRef x p : E) (hh : h xRef x = 0) :\n      S xRef (x,p) = (x,p) ∧ rate xRef (x,p) = 0 := by\n    simp [S, rate, hh, hRzero]\n  have hHnonneg (y xRef : E) (z : E × E) : 0 ≤ H y xRef z := by\n    exact div_nonneg (add_nonneg (mul_nonneg (inv_nonneg.mpr hη.le) (sq_nonneg _))\n      (sq_nonneg _)) (by norm_num)\n  refine ⟨hSmeas, hratecont, hratecont.measurable, hRzero, hRlaws,\n    hSlaws, hHbounce, hratelaws, hzero, ?_⟩\n  intro y xRef z₀\n  refine ⟨hHnonneg y xRef z₀, ?_⟩\n  intro z heq\n  have hsum : η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2 = 2 * H y xRef z₀ := by\n    change (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2 = _ at heq\n    linarith\n  have hp2 : ‖z.2‖ ^ 2 ≤ 2 * H y xRef z₀ := by\n    have := mul_nonneg (inv_nonneg.mpr hη.le) (sq_nonneg ‖z.1 - c y xRef‖)\n    linarith\n  have hxweighted : η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 ≤ 2 * H y xRef z₀ := by\n    nlinarith [sq_nonneg ‖z.2‖]\n  have hx2 : ‖z.1 - c y xRef‖ ^ 2 ≤ 2 * η * H y xRef z₀ := by\n    calc\n      ‖z.1 - c y xRef‖ ^ 2 = η * (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2) := by\n        rw [← mul_assoc, mul_inv_cancel₀ (ne_of_gt hη), one_mul]\n      _ ≤ η * (2 * H y xRef z₀) := mul_le_mul_of_nonneg_left hxweighted hη.le\n      _ = _ := by ring\n  have hp : ‖z.2‖ ≤ Real.sqrt (2 * H y xRef z₀) := Real.le_sqrt_of_sq_le hp2\n  have hx : ‖z.1 - c y xRef‖ ≤ Real.sqrt (2 * η * H y xRef z₀) :=\n    Real.le_sqrt_of_sq_le hx2\n  refine ⟨hp, hx, ?_⟩\n  have htriangle : ‖z.1 - xRef‖ ≤ ‖z.1 - c y xRef‖ + ‖c y xRef - xRef‖ := by\n    calc\n      ‖z.1 - xRef‖ = ‖(z.1 - c y xRef) + (c y xRef - xRef)‖ := by\n        congr 1\n        abel\n      _ ≤ _ := norm_add_le _ _\n  have hnormal : ‖h xRef z.1‖ ≤ (β : ℝ) *\n      (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖) := by\n    calc\n      ‖h xRef z.1‖ ≤ (β : ℝ) * ‖z.1 - xRef‖ := hLip.norm_sub_le z.1 xRef\n      _ ≤ _ := mul_le_mul_of_nonneg_left (htriangle.trans (add_le_add hx le_rfl)) β.coe_nonneg\n  have hpair : max 0 (inner ℝ z.2 (h xRef z.1)) ≤ ‖z.2‖ * ‖h xRef z.1‖ :=\n    max_le (mul_nonneg (norm_nonneg _) (norm_nonneg _)) (real_inner_le_norm _ _)\n  calc\n    rate xRef z ≤ Real.sqrt η * (‖z.2‖ * ‖h xRef z.1‖) :=\n      mul_le_mul_of_nonneg_left hpair (Real.sqrt_nonneg _)\n    _ ≤ Real.sqrt η * (Real.sqrt (2 * H y xRef z₀) *\n        ((β : ℝ) * (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖))) :=\n      mul_le_mul_of_nonneg_left\n        (mul_le_mul hp hnormal (norm_nonneg _) (Real.sqrt_nonneg _)) (Real.sqrt_nonneg _)\n    _ = _ := by ring\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A1",
+      "edition": "arXiv2609.06905v1",
+      "anchor": "arXiv2609.06905v1 Section2 Eq(2.4),Section3 Eq(3.4),Algorithm1 steps6-7/eq(3.9),AppendixA.1 Ex4-6 and A1.SS2.p3; deterministic prerequisites for Proposition3.1.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang, arXiv:2609.06905v1, Section2 Eq2.4, Section3 Eq3.4, Algorithm1 steps6–7 and AppendixA.1 Ex4–6. ASTIS proves omitted deterministic/Borel estimates; Proposition3.1 stochastic construction is a later consumer."
+    },
+    "statement": "Let E be a finite-dimensional real inner-product Borel space, including rank zero. Let V:E→ℝ be C² on all E, let α,β≥0 satisfy 0<α≤β and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, and let η>0 with βη≤1. For all y,xRef∈E define c=y−η∇V(xRef), h(xRef,x)=∇V(x)−∇V(xRef), R(n,p)=p−(2⟨p,n⟩/‖n‖²)n with total real division, S(xRef,(x,p))=(x,R(h(xRef,x),p)), λ(xRef,(x,p))=√η max(0,⟨p,h(xRef,x)⟩) and H(y,xRef,(x,p))=(η⁻¹‖x−c‖²+‖p‖²)/2. Then: (1) S is jointly Borel measurable in (xRef,x,p); (2) λ is jointly continuous; (3) λ is jointly Borel measurable; (4) R(0,p)=p for every p; (5) for every n,p, R(n,R(n,p))=p, ‖R(n,p)‖=‖p‖ and ⟨R(n,p),n⟩=−⟨p,n⟩; (6) for every xRef,z, S fixes the position coordinate and S(xRef,S(xRef,z))=z; (7) H(y,xRef,S(xRef,z))=H(y,xRef,z) for all y,xRef,z; (8) λ(xRef,z)≥0, λ(xRef,S(xRef,z))=√η max(0,−⟨p,h(xRef,x)⟩) and λ(xRef,z)−λ(xRef,S(xRef,z))=√η⟨p,h(xRef,x)⟩; (9) h(xRef,x)=0 implies both S(xRef,(x,p))=(x,p) and λ(xRef,(x,p))=0; (10) for every y,xRef,z₀ put ℰ=H(y,xRef,z₀). Then ℰ≥0, and every z=(x,p) with H(y,xRef,z)=ℰ obeys ‖p‖≤√(2ℰ), ‖x−c‖≤√(2ηℰ) and λ(xRef,z)≤√η β√(2ℰ)(√(2ηℰ)+‖c−xRef‖). The gradient β-Lipschitz bound is derived internally from the canonical Hessian producer, never supplied as a new premise. The original six callers persist. Positive α, α≤β and βη≤1 remain standing conditions unused by this bounded deterministic BODY; C², the global Hessian bounds and η>0 supply the proof. No joint continuity of S is claimed at its zero-normal locus. This result supplies actual jump/rate prerequisites for Algorithm1/AppendixA.1 Proposition3.1; random clocks, path construction, nonexplosion, invariant and terminal kernels, convergence and costs remain open.",
+    "formulae": [
+      {
+        "label": "Zero-safe reflection",
+        "tex": "c=y-\\eta\\nabla V(x_{\\rm ref}),\\quad h=\\nabla V(x)-\\nabla V(x_{\\rm ref}),\\quad R(n,p)=p-\\frac{2\\langle p,n\\rangle}{\\|n\\|^2}n,\\quad R(0,p)=p."
+      },
+      {
+        "label": "Actual bounce, rate and energy",
+        "tex": "S(x_{\\rm ref},(x,p))=(x,R(h,p)),\\quad\\lambda(x_{\\rm ref},(x,p))=\\sqrt\\eta\\max\\{0,\\langle p,h\\rangle\\},\\quad H=\\tfrac12(\\eta^{-1}\\|x-c\\|^2+\\|p\\|^2)."
+      },
+      {
+        "label": "Identities and majorant",
+        "tex": "H(Sz)=H(z),\\quad\\lambda(z)-\\lambda(Sz)=\\sqrt\\eta\\langle p,h\\rangle,\\quad\\lambda(z)\\le\\Lambda_{\\mathcal E}=\\sqrt\\eta\\,\\beta\\sqrt{2\\mathcal E}\\bigl(\\sqrt{2\\eta\\mathcal E}+\\|c-x_{\\rm ref}\\|\\bigr)\\quad(H(z)=\\mathcal E)."
+      }
+    ],
+    "assumptions": [
+      "E is a finite-dimensional real inner-product space with compatible norm and its Borel measurable structure; products have product structures. Rank zero is allowed.",
+      "V:E→ℝ is C² on all E. The nonnegative α,β satisfy 0<α and α≤β, with α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E.",
+      "η is real, η>0 and βη≤1. These are the original six analytic callers. No gradient-Lipschitz, nonzero-normal, positive-energy, positive-dimension, flow or stochastic-law certificate is a caller.",
+      "All y,xRef,x,p are independent arbitrary points of E. Define c,h,R,S,λ,H exactly as displayed. Real division is total, so R(0,p)=p. H is a weighted sum of separate vector squared norms.",
+      "The final bound quantifies each z₀ and each z in the SAME actual H energy layer. It assumes no strictly positive energy or positive majorant; no division by either occurs."
+    ],
+    "obligations": [
+      {
+        "id": "actual-bounce-rate",
+        "label": "Actual deterministic bounce/rate/energy-layer laws"
+      },
+      {
+        "id": "stochastic-and-paper",
+        "label": "Stochastic construction and full paper/cost/composition"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+      "title": "Actual PBPS zero-safe bounce, rate and energy-layer bound",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A1",
+          "label": "arXiv2609.06905v1 Section2 Eq(2.4),Section3 Eq(3.4),Algorithm1 steps6-7/eq(3.9),AppendixA.1 Ex4-6 and A1.SS2.p3; deterministic prerequisites for Proposition3.1.",
+          "scope": "Only actual deterministic bounce/rate/pointwise same-H energy-layer envelope. No random path/clock, Exp iid law, nonaccumulation/nonexplosion, measurable PDMP recursion, terminal Markov kernel, invariance/reversal, hypocoercivity/main, implementation error/expected query cost/actual-input composition, full paper/Exposition/PURIFIED/main/live/Goal credit. Focused compilation is local evidence; independent proof/source/decoder review, serialized aggregate and reader delivery remain separate."
+        }
+      ],
+      "tests": [
+        "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space with compatible norm and its Borel measurable structure; products have product structures. Rank zero is allowed.",
+        "V:E→ℝ is C² on all E. The nonnegative α,β satisfy 0<α and α≤β, with α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E.",
+        "η is real, η>0 and βη≤1. These are the original six analytic callers. No gradient-Lipschitz, nonzero-normal, positive-energy, positive-dimension, flow or stochastic-law certificate is a caller.",
+        "All y,xRef,x,p are independent arbitrary points of E. Define c,h,R,S,λ,H exactly as displayed. Real division is total, so R(0,p)=p. H is a weighted sum of separate vector squared norms.",
+        "The final bound quantifies each z₀ and each z in the SAME actual H energy layer. It assumes no strictly positive energy or positive majorant; no division by either occurs."
+      ],
+      "statement": "Let E be a finite-dimensional real inner-product Borel space, including rank zero. Let V:E→ℝ be C² on all E, let α,β≥0 satisfy 0<α≤β and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, and let η>0 with βη≤1. For all y,xRef∈E define c=y−η∇V(xRef), h(xRef,x)=∇V(x)−∇V(xRef), R(n,p)=p−(2⟨p,n⟩/‖n‖²)n with total real division, S(xRef,(x,p))=(x,R(h(xRef,x),p)), λ(xRef,(x,p))=√η max(0,⟨p,h(xRef,x)⟩) and H(y,xRef,(x,p))=(η⁻¹‖x−c‖²+‖p‖²)/2. Then: (1) S is jointly Borel measurable in (xRef,x,p); (2) λ is jointly continuous; (3) λ is jointly Borel measurable; (4) R(0,p)=p for every p; (5) for every n,p, R(n,R(n,p))=p, ‖R(n,p)‖=‖p‖ and ⟨R(n,p),n⟩=−⟨p,n⟩; (6) for every xRef,z, S fixes the position coordinate and S(xRef,S(xRef,z))=z; (7) H(y,xRef,S(xRef,z))=H(y,xRef,z) for all y,xRef,z; (8) λ(xRef,z)≥0, λ(xRef,S(xRef,z))=√η max(0,−⟨p,h(xRef,x)⟩) and λ(xRef,z)−λ(xRef,S(xRef,z))=√η⟨p,h(xRef,x)⟩; (9) h(xRef,x)=0 implies both S(xRef,(x,p))=(x,p) and λ(xRef,(x,p))=0; (10) for every y,xRef,z₀ put ℰ=H(y,xRef,z₀). Then ℰ≥0, and every z=(x,p) with H(y,xRef,z)=ℰ obeys ‖p‖≤√(2ℰ), ‖x−c‖≤√(2ηℰ) and λ(xRef,z)≤√η β√(2ℰ)(√(2ηℰ)+‖c−xRef‖). The gradient β-Lipschitz bound is derived internally from the canonical Hessian producer, never supplied as a new premise. The original six callers persist. Positive α, α≤β and βη≤1 remain standing conditions unused by this bounded deterministic BODY; C², the global Hessian bounds and η>0 supply the proof. No joint continuity of S is claimed at its zero-normal locus. This result supplies actual jump/rate prerequisites for Algorithm1/AppendixA.1 Proposition3.1; random clocks, path construction, nonexplosion, invariant and terminal kernels, convergence and costs remain open.",
+      "formula": "c=y-\\eta\\nabla V(x_{\\rm ref}),\\quad h=\\nabla V(x)-\\nabla V(x_{\\rm ref}),\\quad R(n,p)=p-\\frac{2\\langle p,n\\rangle}{\\|n\\|^2}n,\\quad R(0,p)=p.\\quad S(x_{\\rm ref},(x,p))=(x,R(h,p)),\\quad\\lambda(x_{\\rm ref},(x,p))=\\sqrt\\eta\\max\\{0,\\langle p,h\\rangle\\},\\quad H=\\tfrac12(\\eta^{-1}\\|x-c\\|^2+\\|p\\|^2).\\quad H(Sz)=H(z),\\quad\\lambda(z)-\\lambda(Sz)=\\sqrt\\eta\\langle p,h\\rangle,\\quad\\lambda(z)\\le\\Lambda_{\\mathcal E}=\\sqrt\\eta\\,\\beta\\sqrt{2\\mathcal E}\\bigl(\\sqrt{2\\eta\\mathcal E}+\\|c-x_{\\rm ref}\\|\\bigr)\\quad(H(z)=\\mathcal E).",
+      "steps": [
+        {
+          "title": "Derive the gradient bound internally",
+          "text": "Finite dimension supplies completeness. Apply the existing quadratic-regularization Hessian theorem with r=0 to obtain LipschitzWith β (gradient V), hence continuity of the actual gradient. This closes a proof ingredient without adding a caller.",
+          "formula": "\\|\\nabla V(x)-\\nabla V(u)\\|\\le\\beta\\|x-u\\|.",
+          "lean": "  letI : CompleteSpace E := FiniteDimensional.complete ℝ E\n  have hLip : LipschitzWith β (gradient V) := by\n    simpa using\n      (AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic\n        (m := α) (L := β) (r := 0) hV hH (0 : E)).2\n  have hgrad : Continuous (gradient V) := hLip.continuous\n",
+          "detail": "Exact contiguous compiled BODY; literal c,h,R,S,rate,H and preceding facts stay in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean",
+            "source_raw_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+            "start_line": 106,
+            "end_line": 111,
+            "exact_code_raw_sha256": "6d8e01485130b776cfbf394a19b5c4f22ba5c4e748c5f71417aface0f5b84383"
+          }
+        },
+        {
+          "title": "Identify the zero-safe orthogonal reflection",
+          "text": "Total division gives R(0,p)=p. For all n, R is the existing isometric reflection in the orthogonal complement of span(n). Its square is identity and it preserves norm. Expanding the inner product gives its sign reversal; the nonzero branch uses ‖n‖²≠0, while n=0 is handled separately.",
+          "formula": "R_n=(\\operatorname{span}\\{n\\}^{\\perp})\\text{-reflection},\\quad R_n^2=I,\\quad\\|R_np\\|=\\|p\\|,\\quad\\langle R_np,n\\rangle=-\\langle p,n\\rangle.",
+          "lean": "  have hRzero (p : E) : R 0 p = p := by simp [R]\n  have hRreflect (n p : E) : R n p = (ℝ ∙ n)ᗮ.reflection p := by\n    rw [Submodule.reflection_orthogonal_apply, Submodule.reflection_singleton_apply]\n    simp only [two_smul, neg_sub]\n    dsimp [R]\n    simp only [div_eq_mul_inv, mul_smul]\n    rw [real_inner_comm n p]\n    module\n  have hRlaws (n p : E) : R n (R n p) = p ∧ ‖R n p‖ = ‖p‖ ∧\n      inner ℝ (R n p) n = -inner ℝ p n := by\n    refine ⟨?_, ?_, ?_⟩\n    · simp only [hRreflect, Submodule.reflection_reflection]\n    · rw [hRreflect]; exact LinearIsometryEquiv.norm_map _ _\n    · by_cases hn : n = 0\n      · simp [hn]\n      · have hn2 : ‖n‖ ^ 2 ≠ 0 := pow_ne_zero _ (norm_ne_zero_iff.mpr hn)\n        dsimp [R]\n        rw [inner_sub_left, real_inner_smul_left, real_inner_self_eq_norm_sq]\n        field_simp [hn2] <;> ring\n",
+          "detail": "Exact contiguous compiled BODY; literal c,h,R,S,rate,H and preceding facts stay in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean",
+            "source_raw_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+            "start_line": 112,
+            "end_line": 130,
+            "exact_code_raw_sha256": "7d71f4da5285d52ce4f45190d3ed39a87c9c09ff300a15b61d8508f38c42a19c"
+          }
+        },
+        {
+          "title": "Check Borel and continuous operations",
+          "text": "The state-dependent reflection uses continuous gradients, inner products and norms, together with total real division, which is Borel. Thus S is jointly Borel, including h=0. The positive-part rate uses no quotient, so it is jointly continuous and consequently Borel. Joint continuity of S is not required or asserted.",
+          "formula": "S\\text{ is Borel},\\qquad\\lambda=\\sqrt\\eta\\max(0,\\langle p,h\\rangle)\\text{ is continuous}.",
+          "lean": "  have hSmeas : Measurable (fun a : E × (E × E) => S a.1 a.2) := by\n    dsimp [S, R, h]\n    fun_prop\n  have hratecont : Continuous (fun a : E × (E × E) => rate a.1 a.2) := by\n    dsimp [rate, h]\n    fun_prop\n",
+          "detail": "Exact contiguous compiled BODY; literal c,h,R,S,rate,H and preceding facts stay in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean",
+            "source_raw_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+            "start_line": 131,
+            "end_line": 136,
+            "exact_code_raw_sha256": "7a0b8be7b0658694a9245858ab7420b596c14f92876477c4894167dca09a7a84"
+          }
+        },
+        {
+          "title": "Prove the actual bounce and rate identities",
+          "text": "The position stays fixed, so its residual h stays fixed. Reflection involution proves S²=I and norm preservation proves exact H conservation. Its pairing sign reversal gives the flipped rate. For a=⟨p,h⟩, the two sign cases prove max(0,a)−max(0,−a)=a. The zero-residual case gives identity and zero rate.",
+          "formula": "S^2=I,\\quad H(Sz)=H(z),\\quad\\lambda(Sz)=\\sqrt\\eta\\max(0,-a),\\quad\\lambda(z)-\\lambda(Sz)=\\sqrt\\eta a.",
+          "lean": "  have hSlaws (xRef : E) (z : E × E) :\n      (S xRef z).1 = z.1 ∧ S xRef (S xRef z) = z := by\n    refine ⟨rfl, ?_⟩\n    exact Prod.ext rfl (hRlaws (h xRef z.1) z.2).1\n  have hHbounce (y xRef : E) (z : E × E) : H y xRef (S xRef z) = H y xRef z := by\n    dsimp [H, S]\n    rw [(hRlaws (h xRef z.1) z.2).2.1]\n  have hrateflip (xRef : E) (z : E × E) :\n      rate xRef (S xRef z) = Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) := by\n    dsimp [rate, S]\n    rw [(hRlaws (h xRef z.1) z.2).2.2]\n  have hratelaws (xRef : E) (z : E × E) : 0 ≤ rate xRef z ∧\n      rate xRef (S xRef z) = Real.sqrt η * max 0 (-inner ℝ z.2 (h xRef z.1)) ∧\n      rate xRef z - rate xRef (S xRef z) = Real.sqrt η * inner ℝ z.2 (h xRef z.1) := by\n    refine ⟨mul_nonneg (Real.sqrt_nonneg _) (le_max_left _ _), hrateflip xRef z, ?_⟩\n    rw [hrateflip]\n    dsimp [rate]\n    by_cases hi : 0 ≤ inner ℝ z.2 (h xRef z.1)\n    · rw [max_eq_right hi, max_eq_left (by linarith)]\n      ring\n    · rw [max_eq_left (le_of_not_ge hi), max_eq_right (by linarith)]\n      ring\n  have hzero (xRef x p : E) (hh : h xRef x = 0) :\n      S xRef (x,p) = (x,p) ∧ rate xRef (x,p) = 0 := by\n    simp [S, rate, hh, hRzero]\n",
+          "detail": "Exact contiguous compiled BODY; literal c,h,R,S,rate,H and preceding facts stay in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean",
+            "source_raw_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+            "start_line": 137,
+            "end_line": 161,
+            "exact_code_raw_sha256": "aaaec4dece4b294e347a4b087f0fc150745e28c923b82a365fde95301a5a2daf"
+          }
+        },
+        {
+          "title": "Keep zero energy and collect the first nine laws",
+          "text": "η>0 makes η⁻¹ nonnegative, so H is nonnegative as the weighted sum of two squared vector norms divided by two. Collect the first nine laws, then fix arbitrary y,xRef,z₀ and z on its actual energy layer.",
+          "formula": "\\mathcal E=H(y,x_{\\rm ref},z_0)\\ge0.",
+          "lean": "  have hHnonneg (y xRef : E) (z : E × E) : 0 ≤ H y xRef z := by\n    exact div_nonneg (add_nonneg (mul_nonneg (inv_nonneg.mpr hη.le) (sq_nonneg _))\n      (sq_nonneg _)) (by norm_num)\n  refine ⟨hSmeas, hratecont, hratecont.measurable, hRzero, hRlaws,\n    hSlaws, hHbounce, hratelaws, hzero, ?_⟩\n  intro y xRef z₀\n  refine ⟨hHnonneg y xRef z₀, ?_⟩\n  intro z heq\n",
+          "detail": "Exact contiguous compiled BODY; literal c,h,R,S,rate,H and preceding facts stay in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean",
+            "source_raw_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+            "start_line": 162,
+            "end_line": 169,
+            "exact_code_raw_sha256": "8812537fb901c83a0c24f2f1f1003c0c95528dbb65b6921bd665aab95187eef1"
+          }
+        },
+        {
+          "title": "Extract the two energy-layer radii",
+          "text": "The equality H(z)=ℰ gives η⁻¹‖x−c‖²+‖p‖²=2ℰ. Dropping each nonnegative summand gives the momentum radius and, after multiplication by positive η, the position radius. Taking square roots requires no ℰ>0 and no division by ℰ.",
+          "formula": "\\|p\\|^2\\le2\\mathcal E,\\quad\\|x-c\\|^2\\le2\\eta\\mathcal E,\\quad\\|p\\|\\le\\sqrt{2\\mathcal E},\\quad\\|x-c\\|\\le\\sqrt{2\\eta\\mathcal E}.",
+          "lean": "  have hsum : η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2 = 2 * H y xRef z₀ := by\n    change (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2 = _ at heq\n    linarith\n  have hp2 : ‖z.2‖ ^ 2 ≤ 2 * H y xRef z₀ := by\n    have := mul_nonneg (inv_nonneg.mpr hη.le) (sq_nonneg ‖z.1 - c y xRef‖)\n    linarith\n  have hxweighted : η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 ≤ 2 * H y xRef z₀ := by\n    nlinarith [sq_nonneg ‖z.2‖]\n  have hx2 : ‖z.1 - c y xRef‖ ^ 2 ≤ 2 * η * H y xRef z₀ := by\n    calc\n      ‖z.1 - c y xRef‖ ^ 2 = η * (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2) := by\n        rw [← mul_assoc, mul_inv_cancel₀ (ne_of_gt hη), one_mul]\n      _ ≤ η * (2 * H y xRef z₀) := mul_le_mul_of_nonneg_left hxweighted hη.le\n      _ = _ := by ring\n  have hp : ‖z.2‖ ≤ Real.sqrt (2 * H y xRef z₀) := Real.le_sqrt_of_sq_le hp2\n  have hx : ‖z.1 - c y xRef‖ ≤ Real.sqrt (2 * η * H y xRef z₀) :=\n    Real.le_sqrt_of_sq_le hx2\n  refine ⟨hp, hx, ?_⟩\n",
+          "detail": "Exact contiguous compiled BODY; literal c,h,R,S,rate,H and preceding facts stay in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean",
+            "source_raw_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+            "start_line": 170,
+            "end_line": 187,
+            "exact_code_raw_sha256": "e79dcea715c69802df39c95056052be9a37ed8b9c31d0779380a6e54ae9648b7"
+          }
+        },
+        {
+          "title": "Derive the exact pointwise majorant",
+          "text": "The triangle inequality bounds ‖x−xRef‖ by ‖x−c‖+‖c−xRef‖. Apply the internally derived β-Lipschitz estimate to h, then Cauchy–Schwarz and max(0,⟨p,h⟩)≤‖p‖‖h‖. Insert both radii and multiply by √η≥0. The resulting Λ is the printed same-energy-layer majorant, not a stochastic path or cost bound.",
+          "formula": "\\lambda(z)\\le\\sqrt\\eta\\|p\\|\\|h\\|\\le\\sqrt\\eta\\,\\beta\\sqrt{2\\mathcal E}\\bigl(\\sqrt{2\\eta\\mathcal E}+\\|c-x_{\\rm ref}\\|\\bigr).",
+          "lean": "  have htriangle : ‖z.1 - xRef‖ ≤ ‖z.1 - c y xRef‖ + ‖c y xRef - xRef‖ := by\n    calc\n      ‖z.1 - xRef‖ = ‖(z.1 - c y xRef) + (c y xRef - xRef)‖ := by\n        congr 1\n        abel\n      _ ≤ _ := norm_add_le _ _\n  have hnormal : ‖h xRef z.1‖ ≤ (β : ℝ) *\n      (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖) := by\n    calc\n      ‖h xRef z.1‖ ≤ (β : ℝ) * ‖z.1 - xRef‖ := hLip.norm_sub_le z.1 xRef\n      _ ≤ _ := mul_le_mul_of_nonneg_left (htriangle.trans (add_le_add hx le_rfl)) β.coe_nonneg\n  have hpair : max 0 (inner ℝ z.2 (h xRef z.1)) ≤ ‖z.2‖ * ‖h xRef z.1‖ :=\n    max_le (mul_nonneg (norm_nonneg _) (norm_nonneg _)) (real_inner_le_norm _ _)\n  calc\n    rate xRef z ≤ Real.sqrt η * (‖z.2‖ * ‖h xRef z.1‖) :=\n      mul_le_mul_of_nonneg_left hpair (Real.sqrt_nonneg _)\n    _ ≤ Real.sqrt η * (Real.sqrt (2 * H y xRef z₀) *\n        ((β : ℝ) * (Real.sqrt (2 * η * H y xRef z₀) + ‖c y xRef - xRef‖))) :=\n      mul_le_mul_of_nonneg_left\n        (mul_le_mul hp hnormal (norm_nonneg _) (Real.sqrt_nonneg _)) (Real.sqrt_nonneg _)\n    _ = _ := by ring\n",
+          "detail": "Exact contiguous compiled BODY; literal c,h,R,S,rate,H and preceding facts stay in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBounceRate.lean",
+            "source_raw_sha256": "fcec688033797683b44f279a4d22971598926e6af3e9682ad76493d37580937c",
+            "start_line": 188,
+            "end_line": 208,
+            "exact_code_raw_sha256": "61d3566cf98137637c988d0ea605c00d5d9dd15d96a11de932d59bf8b83b0f82"
+          }
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real inner-product Borel space, including rank zero. Let V:E→ℝ be C² on all E, let α,β≥0 satisfy 0<α≤β and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, and let η>0 with βη≤1. For all y,xRef∈E define c=y−η∇V(xRef), h(xRef,x)=∇V(x)−∇V(xRef), R(n,p)=p−(2⟨p,n⟩/‖n‖²)n with total real division, S(xRef,(x,p))=(x,R(h(xRef,x),p)), λ(xRef,(x,p))=√η max(0,⟨p,h(xRef,x)⟩) and H(y,xRef,(x,p))=(η⁻¹‖x−c‖²+‖p‖²)/2. Then: (1) S is jointly Borel measurable in (xRef,x,p); (2) λ is jointly continuous; (3) λ is jointly Borel measurable; (4) R(0,p)=p for every p; (5) for every n,p, R(n,R(n,p))=p, ‖R(n,p)‖=‖p‖ and ⟨R(n,p),n⟩=−⟨p,n⟩; (6) for every xRef,z, S fixes the position coordinate and S(xRef,S(xRef,z))=z; (7) H(y,xRef,S(xRef,z))=H(y,xRef,z) for all y,xRef,z; (8) λ(xRef,z)≥0, λ(xRef,S(xRef,z))=√η max(0,−⟨p,h(xRef,x)⟩) and λ(xRef,z)−λ(xRef,S(xRef,z))=√η⟨p,h(xRef,x)⟩; (9) h(xRef,x)=0 implies both S(xRef,(x,p))=(x,p) and λ(xRef,(x,p))=0; (10) for every y,xRef,z₀ put ℰ=H(y,xRef,z₀). Then ℰ≥0, and every z=(x,p) with H(y,xRef,z)=ℰ obeys ‖p‖≤√(2ℰ), ‖x−c‖≤√(2ηℰ) and λ(xRef,z)≤√η β√(2ℰ)(√(2ηℰ)+‖c−xRef‖). The gradient β-Lipschitz bound is derived internally from the canonical Hessian producer, never supplied as a new premise. The original six callers persist. Positive α, α≤β and βη≤1 remain standing conditions unused by this bounded deterministic BODY; C², the global Hessian bounds and η>0 supply the proof. No joint continuity of S is claimed at its zero-normal locus. This result supplies actual jump/rate prerequisites for Algorithm1/AppendixA.1 Proposition3.1; random clocks, path construction, nonexplosion, invariant and terminal kernels, convergence and costs remain open.",
+      "lean_proof": "Derive the gradient bound internally; Identify the zero-safe orthogonal reflection; Check Borel and continuous operations; Prove the actual bounce and rate identities; Keep zero energy and collect the first nine laws; Extract the two energy-layer radii; Derive the exact pointwise majorant",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_statement"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic"
+      ],
+      "mathlib_dependencies": [
+        "Submodule.reflection_orthogonal_apply",
+        "Submodule.reflection_singleton_apply",
+        "Submodule.reflection_reflection",
+        "LinearIsometryEquiv.norm_map",
+        "Continuous.measurable",
+        "LipschitzWith.norm_sub_le",
+        "Real.le_sqrt_of_sq_le",
+        "real_inner_le_norm",
+        "norm_add_le"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+      "role": "proof-edge",
+      "supports": [
+        "actual-bounce-rate"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Euclidean finite-dimensional state, C² potential, positive lower modulus, ordered nonnegative moduli, both global Hessian bounds, η>0 and βη≤1.",
+        "lean": "E is a finite-dimensional real inner-product space with compatible norm and its Borel measurable structure; products have product structures. Rank zero is allowed. V:E→ℝ is C² on all E. The nonnegative α,β satisfy 0<α and α≤β, with α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E. η is real, η>0 and βη≤1. These are the original six analytic callers. No gradient-Lipschitz, nonzero-normal, positive-energy, positive-dimension, flow or stochastic-law certificate is a caller."
+      },
+      {
+        "source": "Actual zero-safe reflection, positive-part rate, preserved weighted energy and printed energy-layer majorant.",
+        "lean": "Let E be a finite-dimensional real inner-product Borel space, including rank zero. Let V:E→ℝ be C² on all E, let α,β≥0 satisfy 0<α≤β and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E, and let η>0 with βη≤1. For all y,xRef∈E define c=y−η∇V(xRef), h(xRef,x)=∇V(x)−∇V(xRef), R(n,p)=p−(2⟨p,n⟩/‖n‖²)n with total real division, S(xRef,(x,p))=(x,R(h(xRef,x),p)), λ(xRef,(x,p))=√η max(0,⟨p,h(xRef,x)⟩) and H(y,xRef,(x,p))=(η⁻¹‖x−c‖²+‖p‖²)/2. Then: (1) S is jointly Borel measurable in (xRef,x,p); (2) λ is jointly continuous; (3) λ is jointly Borel measurable; (4) R(0,p)=p for every p; (5) for every n,p, R(n,R(n,p))=p, ‖R(n,p)‖=‖p‖ and ⟨R(n,p),n⟩=−⟨p,n⟩; (6) for every xRef,z, S fixes the position coordinate and S(xRef,S(xRef,z))=z; (7) H(y,xRef,S(xRef,z))=H(y,xRef,z) for all y,xRef,z; (8) λ(xRef,z)≥0, λ(xRef,S(xRef,z))=√η max(0,−⟨p,h(xRef,x)⟩) and λ(xRef,z)−λ(xRef,S(xRef,z))=√η⟨p,h(xRef,x)⟩; (9) h(xRef,x)=0 implies both S(xRef,(x,p))=(x,p) and λ(xRef,(x,p))=0; (10) for every y,xRef,z₀ put ℰ=H(y,xRef,z₀). Then ℰ≥0, and every z=(x,p) with H(y,xRef,z)=ℰ obeys ‖p‖≤√(2ℰ), ‖x−c‖≤√(2ηℰ) and λ(xRef,z)≤√η β√(2ℰ)(√(2ηℰ)+‖c−xRef‖). The gradient β-Lipschitz bound is derived internally from the canonical Hessian producer, never supplied as a new premise. The original six callers persist. Positive α, α≤β and βη≤1 remain standing conditions unused by this bounded deterministic BODY; C², the global Hessian bounds and η>0 supply the proof. No joint continuity of S is claimed at its zero-normal locus. This result supplies actual jump/rate prerequisites for Algorithm1/AppendixA.1 Proposition3.1; random clocks, path construction, nonexplosion, invariant and terminal kernels, convergence and costs remain open."
+      },
+      {
+        "source": "Actual random clocks/path construction, nonexplosion, invariance, terminal kernel, convergence and expected query costs.",
+        "lean": "Only actual deterministic bounce/rate/pointwise same-H energy-layer envelope. No random path/clock, Exp iid law, nonaccumulation/nonexplosion, measurable PDMP recursion, terminal Markov kernel, invariance/reversal, hypocoercivity/main, implementation error/expected query cost/actual-input composition, full paper/Exposition/PURIFIED/main/live/Goal credit. Focused compilation is local evidence; independent proof/source/decoder review, serialized aggregate and reader delivery remain separate."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "Let E be any finite-dimensional real inner product space with its compatible norm, equipped with a measurable structure equal to its Borel structure. The zero-dimensional space is allowed; products have the product topology and measurable structure. Let V : E → ℝ be twice continuously Fréchet differentiable, let α, β be nonnegative real numbers, and let η be real. Assume\n\n0 < α,  α ≤ β,  0 < η,  βη ≤ 1,\n\nand, for every x, v ∈ E,\n\nα‖v‖² ≤ D(DV)(x)[v][v] ≤ β‖v‖².\n\nHere ∇V is the Hilbert gradient representing the Fréchet derivative, and D(DV)(x)[v][v] is the displayed Hessian quadratic form. Inner products, norms, scalar multiplication, reciprocals, maxima, and square roots are real. Square roots denote the nonnegative real square root. Real division is total, with division by zero equal to zero.\n\nFor arbitrary y, a, x, n, p ∈ E and z = (x,p) ∈ E × E, define exactly\n\nc(y,a) = y − η ∇V(a),\nh(a,x) = ∇V(x) − ∇V(a),\nR(n,p) = p − (2⟨p,n⟩ / ‖n‖²)n,\nS(a,(x,p)) = (x, R(h(a,x),p)),\nrate(a,(x,p)) = √η max{0, ⟨p,h(a,x)⟩},\nH(y,a,(x,p)) = (η⁻¹‖x − c(y,a)‖² + ‖p‖²) / 2.\n\nThe following statements all hold jointly.\n\n1. The map (a,z) ↦ S(a,z) from E × (E × E) to E × E is measurable. The map (a,z) ↦ rate(a,z) from E × (E × E) to ℝ is continuous and measurable.\n\n2. For every p ∈ E, R(0,p) = p. For every n,p ∈ E,\n\nR(n,R(n,p)) = p,\n‖R(n,p)‖ = ‖p‖,\n⟨R(n,p),n⟩ = −⟨p,n⟩.\n\nThese identities include n = 0 under the total-division convention.\n\n3. For every a ∈ E and every z = (x,p) ∈ E × E,\n\n(S(a,z))₁ = x,\nS(a,S(a,z)) = z.\n\n4. For every y,a ∈ E and every z ∈ E × E,\n\nH(y,a,S(a,z)) = H(y,a,z).\n\n5. For every a ∈ E and every z = (x,p) ∈ E × E,\n\n0 ≤ rate(a,z),\nrate(a,S(a,z)) = √η max{0, −⟨p,h(a,x)⟩},\nrate(a,z) − rate(a,S(a,z)) = √η ⟨p,h(a,x)⟩.\n\n6. For every a,x,p ∈ E, if h(a,x) = 0, then both\n\nS(a,(x,p)) = (x,p)\nand rate(a,(x,p)) = 0.\n\n7. For every y,a ∈ E and every z₀ ∈ E × E, set H₀ = H(y,a,z₀). Then 0 ≤ H₀. For every z = (x,p) ∈ E × E satisfying H(y,a,z) = H₀, all three bounds hold:\n\n‖p‖ ≤ √(2H₀),\n‖x − c(y,a)‖ ≤ √(2ηH₀),\nrate(a,z) ≤ √η · β · √(2H₀) · (√(2ηH₀) + ‖c(y,a) − a‖).\n\nAll assertions are universal over the ambient space and parameters satisfying the stated assumptions. In item 7, y, a, and z₀ are fixed before z is quantified, and the rate bound uses those same y and a. There are no additional existential constants or stochastic objects.",
+    "text_sha256": "0b0e4375553f971614117e3be2ac102c8e5f7fd0d12f1195ffdd4bfcaadb00ab",
+    "decoder": "/root/anonymous_decoder74",
+    "decoder_run_sha256": "934e71a88a74cbf9bbc70df3c62ac5ece867aba99771fc0fac909bad92706228",
+    "decoder_packet_sha256": "b43c51283f346775bc4e9ba0c98cf4d24e78eefbbfccf60896871fc68da460b6",
+    "source_text_visible": false,
+    "lean_statement_sha256": "a45315d3546b221fa4576ec12e916d8f32b7c051074f93a005d78123b2aa8058",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "observed_input_artifacts": [
+      {
+        "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-bounce-rate74/anonymous-decoder/parent-packet.json",
+        "RAW_bytes": 4355,
+        "RAW_sha256": "6857680527e776a103fef6b01d8a423fb890a9d4350da913d36d50a8b7156930",
+        "LF_sha256": "6857680527e776a103fef6b01d8a423fb890a9d4350da913d36d50a8b7156930"
+      }
+    ],
+    "run_artifact": "runs/20261007-companion-priority/pbps-actual-bounce-rate74/anonymous-decoder/decoded.root-adapter.json",
+    "run_binding": "runs/20261007-companion-priority/pbps-actual-bounce-rate74/anonymous-decoder/CLOSED_LAST.json",
+    "native_named_payload_sha256": "7cd807f917381e74f9d5e926b638ca0c860a2865fbad2f83240f01c63153f86e",
+    "unresolved_semantics": [],
+    "run_hash_recipe": "SHA256(UTF8(json.dumps(logical_run_payload, sort_keys=True, separators=(\",\", \":\"), ensure_ascii=False)))"
+  }
+}

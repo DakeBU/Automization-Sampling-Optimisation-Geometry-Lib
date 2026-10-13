@@ -1,0 +1,303 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-centered-root-order-inverse",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS centered root order and bounded inverse",
+  "mode": "faithfulPaper",
+  "source_anchor": "PBPS arXiv2609.06905v1 AppendixB15, genuine next B16 consumer; C2/C3/C4; exact original C2 and both Hessian bounds, eta cap; D1 real Hilbert order.",
+  "target_statement": "theorem actual_centered_root_order_inverse\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let mY := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)\n    letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace\n    letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) :=\n      ⟨measurable_snd.comap_le⟩\n    let HP := lpMeas ℝ ℝ mY 2 J\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le\n    let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩\n    let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    HP = P.toLinearMap.range ∧\n    (∀ f : HP, P (f : Lp ℝ 2 J) = f) ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ e : Lp ℝ 2 ν ≃ₗᵢ[ℝ] HP,\n        (∀ u : Lp ℝ 2 ν, (e u : Lp ℝ 2 J) = M u) ∧\n        ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n          (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n          Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n            IsSelfAdjoint T ∧\n            (∀ u : Lp ℝ 2 ν,\n              ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n            let A : HP →L[ℝ] HP :=\n              HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL\n            let B : HP →L[ℝ] Lp ℝ 2 J :=\n              (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL\n            A = e.conjStarAlgEquiv T ∧ IsSelfAdjoint A ∧\n            (∀ f : HP, ‖A f‖ ≤ ‖f‖) ∧\n            (∀ f : HP, P (B f) = 0) ∧\n            ∃ Γ : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n              Γ.IsPositive ∧ Γ*Γ=(1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T ∧\n              let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ\n              ΓP.IsPositive ∧ ΓP*ΓP=(1 : HP →L[ℝ] HP)-A*A ∧\n              B.adjoint ∘L B = ΓP*ΓP ∧\n              ∃ q : Lp ℝ 2 ν,\n                (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧\n                (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧\n                let qP : HP := e q\n                let HP0 := (innerSL ℝ qP).ker\n                letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup\n                letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace\n                let γ : ℝ := 2*Real.sqrt ((α : ℝ)*η)/(1+(α : ℝ)*η)\n                (∀ f : HP, f ∈ HP0 ↔ (∫ y, (e.symm f) y ∂ν) = 0) ∧\n                ΓP qP = 0 ∧ 0 < γ ∧\n                ∃ ΓP0 : HP0 →L[ℝ] HP0,\n                  (∀ f : HP0, (ΓP0 f : HP) = ΓP (f : HP)) ∧\n                  ΓP0.IsPositive ∧ (ΓP0-γ • (1 : HP0 →L[ℝ] HP0)).IsPositive ∧\n                  IsUnit ΓP0 ∧\n                  ∃ Inv : HP0 →L[ℝ] HP0,\n                    Inv*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧\n                    ΓP0*Inv=(1 : HP0 →L[ℝ] HP0) ∧ ‖Inv‖ ≤ 1/γ\n",
+  "status": "claimed",
+  "parents": [
+    "ASTIS-SW-PBPS-unique-macroscopic-defect-root",
+    "ASTIS-SW-PBPS-rough-mean-gradient",
+    "ASTIS-SHARED-gaussian-marginal-poincare",
+    "ASTIS-SW-PBPS-centered-selfadjoint-defect",
+    "ASTIS-SHARED-l2-real-complex-positive-lift"
+  ],
+  "consumers": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse.actual_centered_root_order_inverse",
+    "Printed B16 normalized leakage V=B0 GammaP0 inverse and polar isometry; next actual consumer, unproved."
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Pinned Mathlib CFC sqrt monotonicity, positivity, norm/inner coercivity units; existing arbitrary-L2 real/complex lift and actual63 canonical macro root; actual RoughMeanGradient/GaussianMarginalPoincare; module cards/source-first independent64 1086-item graph/coverage."
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator.exists_positive_complex_lift",
+    "canonical_shared_cell": "ASTIS-SHARED-l2-real-complex-positive-lift",
+    "reason": "Minimal arbitrary-real-L2 order leaf supplies actual printed B15 and same-root inverse for B16; no ambient-subtype CFC assumption."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Pinned Mathlib CFC sqrt monotonicity, positivity, norm/inner coercivity units; existing arbitrary-L2 real/complex lift and actual63 canonical macro root; actual RoughMeanGradient/GaussianMarginalPoincare; module cards/source-first independent64 1086-item graph/coverage."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot.actual_unique_positive_macroscopic_defect_root",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient.actual_rough_mean_gradient",
+      "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalPoincare.actual_gaussian_marginal_centered_poincare",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect",
+      "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator.exists_positive_complex_lift"
+    ],
+    "new_shared_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareOrder.positive_square_order"
+    ],
+    "known_consumers": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse.actual_centered_root_order_inverse"
+    ],
+    "planned_consumers": [
+      "Printed B16 normalized leakage V=B0 GammaP0 inverse and polar isometry; next actual consumer, unproved."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Minimal arbitrary-real-L2 order leaf supplies actual printed B15 and same-root inverse for B16; no ambient-subtype CFC assumption."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareOrder.positive_square_order",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse.actual_centered_root_order_inverse"
+    ],
+    "visual_review": "Pending64 proof/publication; no graph work blocks correctness."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261009-PBPSCenteredRootOrderInverse",
+    "statement_seal": "E:/Samplinglib/runs/20261007-companion-priority/pbps-centered-root-preproof64/root.statement-seal64.json",
+    "focused_checks": [],
+    "owned_files": [
+      "AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareOrder.lean",
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/CenteredRootOrderInverse.lean",
+      "Tests/ProximalBPSCenteredRootOrderInverse.lean"
+    ],
+    "truth_boundary": "Same actual centered macro GammaP0 has printed B15 operator order gamma I, derived unit/bounded inverse/norm with gamma=2sqrt(alpha eta)/(1+alpha eta). No full-space inverse, extra gap/onto/unit/root premise, Test import, nontriviality or higher derivative. B16 polar, B13 H1, B14 independent branch, dynamics/main/errors/query cost and actual-input composition remain open."
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Exact source-first independently reviewed and TYPE-elaborated Statement Seal; no64 proof yet."
+  },
+  "declaration_level": "source-anchor",
+  "source_detail_audit": {
+    "primary_edition": "PBPS2609.06905v1; Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "PBPS arXiv2609.06905v1 AppendixB15, genuine next B16 consumer; C2/C3/C4; exact original C2 and both Hessian bounds, eta cap; D1 real Hilbert order.",
+    "fidelity_boundary": "Same actual centered macro GammaP0 has printed B15 operator order gamma I, derived unit/bounded inverse/norm with gamma=2sqrt(alpha eta)/(1+alpha eta). No full-space inverse, extra gap/onto/unit/root premise, Test import, nontriviality or higher derivative. B16 polar, B13 H1, B14 independent branch, dynamics/main/errors/query cost and actual-input composition remain open.",
+    "detail_status": "cites_external",
+    "gap": "C4 production join and same-root order/inverse unproved; three-lift real adapter needed rather than extra public CFC/gap hypothesis.",
+    "consulted": [
+      {
+        "source": "Exact PBPSv1 primary and pinned Mathlib; source-first independent64",
+        "anchor": "B15; C2/C3/C4 and B16 actual-input consumer",
+        "hypothesis_adapter": "Only original C2/two Hessian/positive capped eta; derived subtype norm/inner/complete and quantitative inverse.",
+        "expanded_binder_audit": {
+          "header0": [
+            {
+              "binders": [
+                "Omega",
+                "MeasurableSpace Omega",
+                "mu",
+                "A",
+                "B"
+              ],
+              "classification": "STANDING_GENERIC_DOMAIN"
+            },
+            {
+              "binders": [
+                "hA",
+                "hB",
+                "hSquareOrder"
+              ],
+              "classification": "SOURCE_BACKED_GENERIC_BACKGROUND_DOMAIN",
+              "paper_public_binders": false
+            }
+          ],
+          "header1": [
+            {
+              "binders": [
+                "E",
+                "NormedAddCommGroup E",
+                "InnerProductSpace R E",
+                "FiniteDimensional R E",
+                "MeasurableSpace E",
+                "BorelSpace E"
+              ],
+              "classification": "STANDING_EUCLIDEAN_MODEL",
+              "disclosure": "Coordinate-free finite-dimensional Euclidean presentation includes rank zero."
+            },
+            {
+              "binders": [
+                "V",
+                "alpha",
+                "beta",
+                "eta",
+                "hAlpha",
+                "hAlphaBeta",
+                "hV",
+                "hH",
+                "hEta",
+                "hBetaEta"
+              ],
+              "classification": "SOURCE",
+              "anchors": [
+                "S1.E1",
+                "S2.E6",
+                "S2.E7"
+              ]
+            },
+            {
+              "binders": [
+                "mY<=product Fact",
+                "MeasurableSpace product",
+                "hp",
+                "HP0 inherited NormedAddCommGroup",
+                "HP0 inherited InnerProductSpace"
+              ],
+              "classification": "TYPING_OR_RULED_INTERNAL_DEFINITION",
+              "new_public_math_premise": false
+            },
+            {
+              "binders": [
+                "S",
+                "e",
+                "U",
+                "T",
+                "Gamma",
+                "q",
+                "GammaP0",
+                "Inv"
+              ],
+              "classification": "CONCLUSION_WITNESS",
+              "caller_certificate": false
+            }
+          ],
+          "EXCESS_binders": [],
+          "forbidden_public_certificate_binders_absent": [
+            "CFC",
+            "finite-L2",
+            "Nontrivial",
+            "hGap",
+            "hRoot",
+            "hOnto",
+            "hUnit"
+          ]
+        }
+      }
+    ],
+    "source_preread": "runs/20261007-companion-priority/pbps-real-complex-lift60/next-real-root-source61/next-target.source-contract.json"
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "Preproof TYPE1 inferred nested-subtype instances repaired internally; original theorem assumptions and conclusions unchanged; all negative receipts preserved.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "real-L2-square-order/actual-C4/constant-projection/centered-inverse"
+      ],
+      "expected_information_gain": "Sole production writer; mandatory independent review modes remain distinct.",
+      "shared_verified_context_digest": "b213a9fc385d4b548e7d3168ee73dbe3306088e5ba3ddc88bbe5141e6c264223"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "standing-model",
+        "real-L2-order-root",
+        "P-U-blocks",
+        "actual-gamma",
+        "gamma-leakage-identity",
+        "B12-sharp-scalars",
+        "C1-score",
+        "C2-sharp-gradient",
+        "conditional-Poincare",
+        "marginal-Poincare",
+        "B13-Sobolev",
+        "center-invariance",
+        "C3-centered-Poincare",
+        "C4-sharp-contraction",
+        "B14-sharp-norm",
+        "B14-uniform-floor",
+        "same-root-centered",
+        "B15-square-gap",
+        "positive-square-order-adapter",
+        "B15-operator-order",
+        "centered-bounded-inverse",
+        "B16-normalized-leakage",
+        "B17-consumer"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareOrder.positive_square_order",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse.actual_centered_root_order_inverse"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot.actual_unique_positive_macroscopic_defect_root",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient.actual_rough_mean_gradient",
+      "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalPoincare.actual_gaussian_marginal_centered_poincare",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect",
+      "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator.exists_positive_complex_lift"
+    ],
+    "bookkeeping": [
+      "Canonical actual roots, constants and closed centered mean kernel; SAME witnesses and quantitative gamma."
+    ],
+    "new_reusable": [
+      "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareOrder.positive_square_order"
+    ],
+    "new_topology": "Exact real order adapter joins C4 sharp contraction to B15 root order and internally derived bounded inverse for B16."
+  },
+  "statement_seal": {
+    "evidence": "E:/Samplinglib/runs/20261007-companion-priority/pbps-centered-root-preproof64/root.statement-seal64.json",
+    "source_revision": "2609.06905v1/Lean4.33.0/Mathlibdb584cd6",
+    "statement_version": 1,
+    "signature_digest": "28460b7230b6122deb9ef57020e82cf34cecfeb6cc908bf03eee2ef96b717f89",
+    "binder_audit": "E:/Samplinglib/runs/20261007-companion-priority/pbps-centered-root-preproof64/independent-header64/independent-header64.review.json",
+    "definition_kind": "Same63 actual root; exact mean kernel HP0; inherited subtype instances; gamma positive derived; bounded inverse only HP0."
+  },
+  "source_proof_coverage": {
+    "source_graph": "E:/Samplinglib/runs/20261007-companion-priority/pbps-centered-root-preproof64/independent-primary64/source-proof-graph.json",
+    "source_inventory": "E:/Samplinglib/runs/20261007-companion-priority/pbps-centered-root-preproof64/independent-primary64/source-coverage-inventory.json",
+    "coverage_report": "E:/Samplinglib/runs/20261007-companion-priority/pbps-centered-root-preproof64/independent-header64/independent-header64.review.json",
+    "coverage_status": "1086 literal items classified, ten primary regions, no missing alttext; independent source topology sealed before exact headers."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "No new proof yet.",
+    "duplicate_semantics_audit": "Minimal real-L2 order leaf; existing parents reused.",
+    "canonicalization": "Same actual63 GammaP and exact mean kernel.",
+    "compressed_spine_delta": "Exact real order adapter joins C4 sharp contraction to B15 root order and internally derived bounded inverse for B16.",
+    "reader_default_view": "Existing companion formula steps and adjacent folded exact Lean.",
+    "scope": "Same actual centered macro GammaP0 has printed B15 operator order gamma I, derived unit/bounded inverse/norm with gamma=2sqrt(alpha eta)/(1+alpha eta). No full-space inverse, extra gap/onto/unit/root premise, Test import, nontriviality or higher derivative. B16 polar, B13 H1, B14 independent branch, dynamics/main/errors/query cost and actual-input composition remain open."
+  }
+}

@@ -1,0 +1,6 @@
+from pathlib import Path
+import json,hashlib,os,datetime,subprocess,sys
+O=Path('E:/Samplinglib/runs/20261007-companion-priority/pbps-sharp-energy-preproof68/independent-header-source68')
+def write(n,o):(O/n).write_text(json.dumps(o,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
+write('foreground-finalizer.terminal.json',{'status':'AUTHORITATIVE_TOOL_EXIT_0','actual_pid':36256,'tool_chunk_id':'984162','tool_exit_code':0,'script':'finalize-review68.py','script_raw_sha256':hashlib.sha256((O/'finalize-review68.py').read_bytes()).hexdigest(),'canonical_writes':False,'compiler_started':False})
+a=[sys.executable,'-X','utf8',str(O/'readback-review68.py')];p=subprocess.Popen(a,cwd='E:/Samplinglib',stdout=subprocess.PIPE,stderr=subprocess.PIPE);out,err=p.communicate();(O/'readback.stdout.RAW.txt').write_bytes(out);(O/'readback.stderr.RAW.txt').write_bytes(err);write('foreground-readback.terminal.json',{'schema':1,'foreground':True,'detached':False,'wrapper_pid':os.getpid(),'actual_pid':p.pid,'actual_exit':p.returncode,'command':a,'stdout_raw_sha256':hashlib.sha256(out).hexdigest(),'stderr_raw_sha256':hashlib.sha256(err).hexdigest(),'ended_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()});print(out.decode('utf8'));print(err.decode('utf8'));sys.exit(p.returncode)

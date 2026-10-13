@@ -1,0 +1,85 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOPositionFisher
+
+/-!
+# Actual standardized RGO square-root density and energy domains
+
+SPHMC arXiv:2609.06906v1 S4.Ex8 / FIRST S4.E6 analytic prerequisites.
+The posterior is the true RGO, standardized by its genuine proximal stationary
+point. All positive step sizes are admitted. The measurable family is an
+explicit authored extension; Unit specialization recovers fixed parameters.
+Gaussian LSI/T2, weak Sobolev/KL adapters, W2 and bias bounds remain open.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOSqrtDensity
+open MeasureTheory InnerProductSpace ProbabilityTheory
+open scoped RealInnerProductSpace NNReal
+noncomputable section
+set_option autoImplicit false
+set_option backward.isDefEq.respectTransparency false
+
+theorem standardized_rgo_sqrt_density_domain
+    {E S : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [MeasurableSpace S] {V : E → ℝ} {κ : ℝ}
+    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2)
+    {eta : S → ℝ} {y : S → E} (heta : Measurable eta) (hy : Measurable y)
+    (hpos : ∀ s, 0 < eta s) :
+    ∃ p : S → E, Measurable p ∧
+      (∀ s, p s+eta s • gradient V (p s)=y s) ∧
+      let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-
+        Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u
+      let mu := (volume : Measure E).tilted (fun x => -V x)
+      let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))
+      let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))
+      let gamma := stdGaussian E
+      let Z := fun s => ∫ u, Real.exp (-rho s u) ∂gamma
+      let q := fun s u => Real.exp (-rho s u)/Z s
+      let f := fun s u => Real.exp (-rho s u/2)/Real.sqrt (Z s)
+      ∀ s, 0 < Z s ∧ Z s ≤ 1 ∧
+        r s = gamma.tilted (fun u => -rho s u) ∧
+        r s = gamma.withDensity (fun u => ENNReal.ofReal (q s u)) ∧
+        IsProbabilityMeasure (r s) ∧
+        (∀ u, 0 < q s u ∧ f s u^2 = q s u) ∧
+        (∫ u, q s u ∂gamma) = 1 ∧
+        ContDiff ℝ 2 (f s) ∧ MemLp (f s) 2 gamma ∧
+        MemLp (gradient (f s)) 2 gamma ∧ MemLp (gradient (rho s)) 2 (r s) ∧
+        Integrable (fun u => q s u*Real.log (q s u)) gamma ∧
+        (∀ u, gradient (f s) u = -(f s u/2) • gradient (rho s) u) ∧
+        (∀ u, gradient (fun z => Real.log (q s z)) u = -gradient (rho s) u) ∧
+        (∫ u, ‖gradient (f s) u‖^2 ∂gamma) =
+          (1/4 : ℝ)*(∫ u, ‖gradient (rho s) u‖^2 ∂r s) := by
+  obtain ⟨p,hpm,heq,hparent⟩ :=
+    StandardizedRGOPositionFisher.standardized_rgo_position_and_fisher hκ hV hH heta hy hpos
+  let rho := fun s u => V (p s+Real.sqrt (eta s) • u)-V (p s)-
+    Real.sqrt (eta s)*inner ℝ (gradient V (p s)) u
+  let mu := (volume : Measure E).tilted (fun x => -V x)
+  let R := fun s => mu.tilted (fun x => -‖x-y s‖^2/(2*eta s))
+  let r := fun s => (R s).map (fun x => (Real.sqrt (eta s))⁻¹ • (x-p s))
+  let gamma := stdGaussian E
+  let Z := fun s => ∫ u, Real.exp (-rho s u) ∂gamma
+  let q := fun s u => Real.exp (-rho s u)/Z s
+  let f := fun s u => Real.exp (-rho s u/2)/Real.sqrt (Z s)
+  refine ⟨p,hpm,heq,?_⟩
+  change ∀ s, 0 < Z s ∧ Z s ≤ 1 ∧ _
+  intro s
+  obtain ⟨_hRp,hρ,_hQ,hρgrad,_hQgrad,hρH,_hQH,hlaw,_hrest⟩ := hparent.2 s
+  have hρzero : rho s 0 = 0 := by simp [rho]
+  let L : ℝ≥0 := ⟨eta s,(hpos s).le⟩
+  have hHρ : ∀ u v : E, 0 ≤ fderiv ℝ (fderiv ℝ (rho s)) u v v ∧
+      fderiv ℝ (fderiv ℝ (rho s)) u v v ≤ (L : ℝ)*‖v‖^2 := hρH
+  have hg := AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain.gaussian_sqrt_density_domain
+    hρ hρzero hρgrad hHρ
+  obtain ⟨hZ,hZone,hvolume,hdensity,hprob,hfq,hqone,hf,hflp,hfglp,hρlp,he,hdf,hdlog,henergy⟩ := hg
+  have htrue : r s=gamma.tilted (fun u => -rho s u) := hlaw.trans hvolume.symm
+  have hprob' : IsProbabilityMeasure (r s) := htrue.symm ▸ hprob
+  have hρlp' : MemLp (gradient (rho s)) 2 (r s) := htrue.symm ▸ hρlp
+  have henergy' : (∫ u, ‖gradient (f s) u‖^2 ∂gamma) =
+      (1/4 : ℝ)*(∫ u, ‖gradient (rho s) u‖^2 ∂r s) := htrue.symm ▸ henergy
+  exact ⟨hZ,hZone,htrue,htrue.trans hdensity,hprob',hfq,hqone,hf,hflp,hfglp,hρlp',
+    he,hdf,hdlog,henergy'⟩
+
+end
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOSqrtDensity

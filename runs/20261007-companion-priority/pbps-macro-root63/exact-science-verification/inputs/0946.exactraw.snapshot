@@ -1,0 +1,95 @@
+import Mathlib.MeasureTheory.Measure.FiniteMeasureProd
+
+/-!
+# Equal-mass product measures
+
+This module isolates the finite-measure algebra needed by the direct Brenier
+perturbation argument.  It is deliberately independent of topology, transport
+costs, couplings, and optimality.
+
+If `mu` and `nu` are nonzero finite measures with the same total mass `m`, then
+
+`m⁻¹ • (mu.prod nu)`
+
+has total mass `m`, first marginal exactly `mu`, and second marginal exactly
+`nu`.  Thus two equal positive finite masses can be joined on the product space
+without first converting them into probability measures.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CommonMass
+
+open MeasureTheory
+open scoped NNReal
+
+noncomputable section
+
+variable {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
+
+/-- Scaling a finite measure scales its total mass by the same nonnegative
+scalar. -/
+theorem mass_smul_nnreal (c : ℝ≥0) (mu : FiniteMeasure X) :
+    (c • mu).mass = c * mu.mass := by
+  simp [FiniteMeasure.mass]
+
+/-- Canonical product-space measure associated with two finite measures after
+normalizing by the total mass of the first measure.  The useful marginal
+identities require that the two masses agree and that this common mass is
+positive. -/
+noncomputable def commonMassProduct (mu : FiniteMeasure X) (nu : FiniteMeasure Y) :
+    FiniteMeasure (X × Y) :=
+  mu.mass⁻¹ • mu.prod nu
+
+/-- If the two input finite measures have the same positive mass, the common
+mass product has exactly that mass. -/
+theorem commonMassProduct_mass
+    (mu : FiniteMeasure X) (nu : FiniteMeasure Y)
+    (hmass : mu.mass = nu.mass) (hpos : 0 < mu.mass) :
+    (commonMassProduct mu nu).mass = mu.mass := by
+  have hne : mu.mass ≠ 0 := ne_of_gt hpos
+  rw [commonMassProduct, mass_smul_nnreal, FiniteMeasure.mass_prod, ← hmass]
+  simp [hne, mul_assoc]
+
+/-- The first marginal of the common mass product is the first input measure. -/
+theorem commonMassProduct_map_fst
+    (mu : FiniteMeasure X) (nu : FiniteMeasure Y)
+    (hmass : mu.mass = nu.mass) (hpos : 0 < mu.mass) :
+    (commonMassProduct mu nu).map Prod.fst = mu := by
+  have hne : mu.mass ≠ 0 := ne_of_gt hpos
+  rw [commonMassProduct, FiniteMeasure.map_smul, FiniteMeasure.map_fst_prod]
+  change mu.mass⁻¹ • (nu.mass • mu) = mu
+  rw [← hmass, ← mul_smul]
+  simp [hne]
+
+/-- The second marginal of the common mass product is the second input measure. -/
+theorem commonMassProduct_map_snd
+    (mu : FiniteMeasure X) (nu : FiniteMeasure Y)
+    (hmass : mu.mass = nu.mass) (hpos : 0 < mu.mass) :
+    (commonMassProduct mu nu).map Prod.snd = nu := by
+  have hne : mu.mass ≠ 0 := ne_of_gt hpos
+  rw [commonMassProduct, FiniteMeasure.map_smul, FiniteMeasure.map_snd_prod]
+  change mu.mass⁻¹ • (mu.mass • nu) = nu
+  rw [← mul_smul]
+  simp [hne]
+
+/-- Existence wrapper: two finite measures with the same positive total mass
+admit a finite measure on the product space with exactly those two marginals
+and the same total mass. -/
+theorem exists_joint_of_eq_positive_mass
+    (mu : FiniteMeasure X) (nu : FiniteMeasure Y)
+    (hmass : mu.mass = nu.mass) (hpos : 0 < mu.mass) :
+    ∃ xi : FiniteMeasure (X × Y),
+      xi.mass = mu.mass ∧ xi.map Prod.fst = mu ∧ xi.map Prod.snd = nu := by
+  exact ⟨commonMassProduct mu nu,
+    commonMassProduct_mass mu nu hmass hpos,
+    commonMassProduct_map_fst mu nu hmass hpos,
+    commonMassProduct_map_snd mu nu hmass hpos⟩
+
+end
+
+end CommonMass
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

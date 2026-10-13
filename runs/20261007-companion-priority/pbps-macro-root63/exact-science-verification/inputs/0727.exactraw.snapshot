@@ -1,0 +1,175 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOKLError
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TwoNoiseRGO
+/-!
+# Actual Gaussian observation and finite recursive A1 error budget
+
+Source: SPHMC arXiv:2609.06906v1 Theorem 6.5, A1 branch and equation (6.5).
+Construct the actual measurable observation kernel by adding an independent
+Gaussian of variance tau/beta to the supplied smoothed output. Gaussian reverse
+transport and the two-noise semigroup turn the stated squared-W2 accuracy into
+observation KL at most Delta^2/(J+1). Consume FiniteRGOKLError to propagate this
+bound through the actual finite recursive program, retaining terminal residual.
+
+The positive algebraic parameter kappa cancels; this theorem does not identify
+it with a curvature ratio. Its measurable premise is retained as an input
+contract but is not used to construct a sampler or precision selector. The
+source positive-precision regime is included in Delta>=0; eta=0 and J=0 are
+also allowed. J is a budget parameter, not a proved stopping bound here.
+
+The supplied Markov M must satisfy the displayed A1 Wasserstein guarantee.
+This does not construct Picard HMC, prove that guarantee, identify FORS, remove
+the terminal residual, validate initial histories or bound expected queries.
+No separate marginal second moments or TV-to-cost transfer are assumed.
+-/
+
+open MeasureTheory ProbabilityTheory InformationTheory
+open AutoSamplingTheory.TechnicalLemmas.Measure
+open scoped ENNReal NNReal
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianRGOErrorBudget
+universe u
+variable {E : Type u} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+local notation "PS" => ℝ≥0 × E × ℕ × (ℕ → E)
+
+/-- Source-scaled Wasserstein accuracy implies an actual Gaussian observation KL
+budget and its finite recursive accumulation, with terminal error retained. -/
+theorem gaussian_rgo_error_budget (μ : Measure E) [IsProbabilityMeasure μ]
+    (β κ η τ : PS → ℝ) (hβm : Measurable β) (_hκm : Measurable κ)
+    (hηm : Measurable η) (hτm : Measurable τ)
+    (hβ : ∀ s, 0 < β s) (hκ : ∀ s, 0 < κ s) (hη : ∀ s, 0 ≤ η s) (hτ : ∀ s, 0 < τ s)
+    (threshold : ℝ≥0) (J : ℕ) (Δ : ℝ) (_hΔ : 0 ≤ Δ) :
+    let a := fun s => (η s+τ s)/β s
+    ∃ (T H : Kernel PS E), IsMarkovKernel T ∧ IsMarkovKernel H ∧
+      (∀ s, T s = μ.tilted (fun x => -((s.1:ℝ)/2)*‖x-s.2.1‖^2)) ∧
+      (∀ s, H s = GaussianSmoothing.gaussianSmoothing (T s) (Real.sqrt (a s))) ∧
+      ∀ (M L : Kernel PS E), IsMarkovKernel M → IsMarkovKernel L →
+      (∀ s, ¬threshold ≤ s.1 → WassersteinSpace.wassersteinDistance (M s)
+        (GaussianSmoothing.gaussianSmoothing (T s) (Real.sqrt (η s/β s)))^2 ≤
+        ENNReal.ofReal (κ s*(2*τ s*Δ^2/(κ s*((J:ℝ)+1)))/β s)) →
+      ∃ (F : PS × E → PS) (Q : Kernel PS E) (P : Kernel PS PS) (R : ℕ → Kernel PS E),
+        (∀ s y, ((F (s,y)).1:ℝ) = (s.1:ℝ)+(a s)⁻¹ ∧
+          (F (s,y)).2 = (((s.1:ℝ)+(a s)⁻¹)⁻¹ • ((s.1:ℝ) • s.2.1+(a s)⁻¹ • y),
+            s.2.2.1+1,fun n => Nat.casesOn n y s.2.2.2)) ∧
+        IsMarkovKernel Q ∧ IsMarkovKernel P ∧ (∀ n, IsMarkovKernel (R n)) ∧
+        (∀ s, Q s = GaussianSmoothing.gaussianSmoothing (M s) (Real.sqrt (τ s/β s))) ∧
+        (∀ s, P s = if threshold ≤ s.1 then Measure.dirac s else (Q s).map (fun y => F (s,y))) ∧
+        R 0 = L ∧
+        (∀ n s, R (n+1) s = if threshold ≤ s.1 then L s else (Q s).bind (fun y => R n (F (s,y)))) ∧
+        (∀ s, ¬threshold ≤ s.1 → klDiv (Q s) (H s) ≤ ENNReal.ofReal (Δ^2/((J:ℝ)+1))) ∧
+        ∀ n s, klDiv (R n s) (T s) ≤
+          (n:ℝ≥0∞)*ENNReal.ofReal (Δ^2/((J:ℝ)+1)) + ∫⁻ x, klDiv (L x) (T x) ∂(P^n) s := by
+  classical
+  have gaussian_kernel {S : Type u} [MeasurableSpace S] (M : Kernel S E) [IsMarkovKernel M]
+      (v : S → ℝ) (hv : Measurable v) :
+      ∃ Q : Kernel S E, IsMarkovKernel Q ∧
+        ∀ s, Q s = GaussianSmoothing.gaussianSmoothing (M s) (Real.sqrt (v s)) := by
+    let N : Kernel S E :=
+      ((Kernel.deterministic (id : S → S) measurable_id) ×ₖ Kernel.const S (stdGaussian E)).map
+        (fun p : S × E => Real.sqrt (v p.1) • p.2)
+    have hN : IsMarkovKernel N := by
+      dsimp only [N]
+      exact Kernel.IsMarkovKernel.map _ (by fun_prop)
+    let := hN
+    have hNf (s : S) : N s = GaussianSmoothing.scaledStdGaussian (E := E) (Real.sqrt (v s)) := by
+      dsimp only [N]
+      rw [Kernel.map_apply _ (by fun_prop), Kernel.prod_apply, Kernel.deterministic_apply,
+        Kernel.const_apply, Measure.dirac_prod, Measure.map_map (by fun_prop) (by fun_prop)]
+      rfl
+    let Q := (M ×ₖ N).map (fun p : E × E => p.1+p.2)
+    have hQ : IsMarkovKernel Q := by
+      dsimp only [Q]
+      exact Kernel.IsMarkovKernel.map _ (by fun_prop)
+    refine ⟨Q,hQ,?_⟩
+    intro s
+    dsimp only [Q]
+    rw [Kernel.map_apply _ (by fun_prop), Kernel.prod_apply, hNf]
+    rfl
+  have gaussian_stage (μ ν : Measure E) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+      (b : ℝ) (hb : 0 ≤ b) (u : E) (β κ η τ Δ : ℝ)
+      (hβ : 0 < β) (hκ : 0 < κ) (hη : 0 ≤ η) (hτ : 0 < τ) (J : ℕ)
+      (hW : WassersteinSpace.wassersteinDistance ν
+        (GaussianSmoothing.gaussianSmoothing (μ.tilted (fun x => -(b/2)*‖x-u‖^2)) (Real.sqrt (η/β))) ^ 2 ≤
+        ENNReal.ofReal (κ * (2*τ*Δ^2/(κ*((J:ℝ)+1))) / β)) :
+      klDiv (GaussianSmoothing.gaussianSmoothing ν (Real.sqrt (τ/β)))
+        (GaussianSmoothing.gaussianSmoothing (μ.tilted (fun x => -(b/2)*‖x-u‖^2))
+          (Real.sqrt ((η+τ)/β))) ≤ ENNReal.ofReal (Δ^2/((J:ℝ)+1)) := by
+    have hj : 0 < (J:ℝ)+1 := by positivity
+    have heta : 0 ≤ η/β := div_nonneg hη hβ.le
+    have htau : 0 < τ/β := div_pos hτ hβ
+    obtain ⟨hρ,hsem,K,hK,hKf,hrec,herr⟩ :=
+      AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TwoNoiseRGO.two_noise_rgo μ b (η/β) (τ/β) hb heta htau u
+    let ρ := μ.tilted (fun x => -(b/2)*‖x-u‖^2)
+    let := hρ
+    have hsm : IsProbabilityMeasure (GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt (η/β))) := by
+      unfold GaussianSmoothing.gaussianSmoothing CommonNoiseContraction.addNoise
+      exact Measure.isProbabilityMeasure_map (by fun_prop)
+    let := hsm
+    let r := Real.sqrt (κ * (2*τ*Δ^2/(κ*((J:ℝ)+1))) / β)
+    have hrad : 0 ≤ κ * (2*τ*Δ^2/(κ*((J:ℝ)+1))) / β := by positivity
+    have hr2 : r^2 = κ * (2*τ*Δ^2/(κ*((J:ℝ)+1))) / β := Real.sq_sqrt hrad
+    have hcost : Transport.transportCost (fun z : E × E => ENNReal.ofReal (‖z.1-z.2‖^2)) ν
+        (GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt (η/β))) ≤ ENNReal.ofReal (r^2) := by
+      rw [hr2]
+      rw [WassersteinSpace.wassersteinDistance_sq] at hW
+      exact hW
+    have hg := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianKL.gaussian_kl_reverse_transport ν
+      (GaussianSmoothing.gaussianSmoothing ρ (Real.sqrt (η/β))) r (τ/β)
+      (Real.sqrt_nonneg _) htau hcost
+    have hscale : r^2/(2*(τ/β)) = Δ^2/((J:ℝ)+1) := by
+      rw [hr2]
+      field_simp
+    rw [hscale,hsem,← add_div] at hg
+    exact hg
+  intro a
+  have ha : Measurable a := (hηm.add hτm).div hβm
+  have ha0 : ∀ s, 0 < a s := fun s => div_pos (add_pos_of_nonneg_of_pos (hη s) (hτ s)) (hβ s)
+  let F : PS × E → PS := fun p =>
+    (⟨(p.1.1:ℝ)+(a p.1)⁻¹,add_nonneg p.1.1.coe_nonneg (le_of_lt (inv_pos.mpr (ha0 p.1)))⟩,
+     ((p.1.1:ℝ)+(a p.1)⁻¹)⁻¹ • ((p.1.1:ℝ) • p.1.2.1+(a p.1)⁻¹ • p.2),
+     p.1.2.2.1+1,fun n => Nat.casesOn n p.2 p.1.2.2.2)
+  obtain ⟨T,H,hT,hH,hTf,hHf,hprog⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOKLError.finite_rgo_kl_error μ a ha ha0 threshold
+  let := hT
+  let := hH
+  refine ⟨T,H,hT,hH,hTf,hHf,?_⟩
+  intro M L hM hL hW
+  let := hM
+  let := hL
+  obtain ⟨Q,hQ,hQf⟩ := gaussian_kernel M (fun s => τ s/β s) (hτm.div hβm)
+  let := hQ
+  have hlocal (s : PS) (hs : ¬threshold ≤ s.1) :
+      klDiv (Q s) (H s) ≤ ENNReal.ofReal (Δ^2/((J:ℝ)+1)) := by
+    rw [hQf,hHf,hTf]
+    apply gaussian_stage μ (M s) (s.1:ℝ) s.1.coe_nonneg s.2.1 (β s) (κ s) (η s) (τ s) Δ
+      (hβ s) (hκ s) (hη s) (hτ s) J
+    simpa only [hTf] using hW s hs
+  obtain ⟨P,R,hP,hR,hPf,hzero,hrec,he,ht,hbound⟩ := hprog Q L hQ hL
+  let := hP
+  refine ⟨F,Q,P,R,?_,hQ,hP,hR,hQf,hPf,hzero,hrec,hlocal,?_⟩
+  · intro s y
+    exact ⟨rfl,rfl⟩
+  · have hp (n : ℕ) : IsMarkovKernel (P^n) := by
+      induction n with
+      | zero => change IsMarkovKernel Kernel.id; infer_instance
+      | succ n ih =>
+        let := ih
+        rw [pow_succ]
+        change IsMarkovKernel ((P^n) ∘ₖ P)
+        infer_instance
+    let := hp
+    have herror (x : PS) : (if threshold ≤ x.1 then 0 else klDiv (Q x) (H x)) ≤
+        ENNReal.ofReal (Δ^2/((J:ℝ)+1)) := by
+      split_ifs with hs
+      · positivity
+      · exact hlocal x hs
+    intro n s
+    apply (hbound n s).trans
+    apply add_le_add _ le_rfl
+    calc
+      _ ≤ ∑ j ∈ Finset.range n, ENNReal.ofReal (Δ^2/((J:ℝ)+1)) := by
+        apply Finset.sum_le_sum
+        intro j hj
+        exact (lintegral_mono herror).trans_eq (by simp)
+      _ = _ := by simp
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianRGOErrorBudget

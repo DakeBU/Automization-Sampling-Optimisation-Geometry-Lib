@@ -1,0 +1,90 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingGeneralIto
+
+/-!
+# Mean of a completed Itô process at a bounded stopping time
+
+For a progressive square-integrable integrand on a finite horizon, the
+completed Itô process evaluated at a stopping time bounded by that horizon is
+integrable and has mean zero.
+
+The proof applies the martingale mean identity to the completed Itô process of
+the stopped integrand.  The completed random-stopping theorem then identifies
+its terminal value with evaluation of the original continuous process at the
+stopping time.  No optional-sampling theorem beyond the deterministic-time
+martingale identity is required.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace BoundedStoppedItoMean
+
+open MeasureTheory Set
+open scoped NNReal
+
+open BrownianMotion ItoIntegralProcess ProgressiveL2 ProgressiveL2Stopping
+  RandomStoppingGeneralIto StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- The completed Itô process is integrable when evaluated at a stopping time
+that is pointwise bounded by its construction horizon. -/
+theorem itoIntegralProcess_at_boundedStopping_integrable
+    [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (hUsual : SatisfiesUsualConditions filtration mu) :
+    Integrable
+      (fun omega => itoIntegralProcess eta hT hB hUsual (tau omega) omega) mu := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  let stoppedEta := stop eta (fun omega => (tau omega : WithTop ℝ≥0)) htau
+  have hterminal :
+      terminalRepresentative stoppedEta hT hB =ᵐ[mu]
+        (fun omega => itoIntegralProcess eta hT hB hUsual (tau omega) omega) := by
+    exact (itoIntegralTerminal_stop_ae eta hT tau htau htauT hB hUsual)
+  exact (terminalRepresentative_integrable stoppedEta hT hB).congr hterminal
+
+/-- The completed Itô process has mean zero when evaluated at a stopping time
+that is pointwise bounded by its construction horizon. -/
+theorem integral_itoIntegralProcess_at_boundedStopping_eq_zero
+    [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (hUsual : SatisfiesUsualConditions filtration mu) :
+    ∫ omega, itoIntegralProcess eta hT hB hUsual (tau omega) omega ∂mu = 0 := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  let stoppedEta := stop eta (fun omega => (tau omega : WithTop ℝ≥0)) htau
+  have hmartingale :
+      Martingale (itoIntegralProcess stoppedEta hT hB hUsual) filtration mu :=
+    itoIntegralProcess_martingale stoppedEta hT hB hUsual
+  have hterminalMean :
+      ∫ omega, terminalRepresentative stoppedEta hT hB omega ∂mu = 0 := by
+    have hmean := hmartingale.setIntegral_eq (show (0 : ℝ≥0) ≤ T from bot_le)
+      (MeasurableSet.univ : MeasurableSet[filtration 0] Set.univ)
+    have hprocessMean :
+        ∫ omega, itoIntegralProcess stoppedEta hT hB hUsual T omega ∂mu = 0 := by
+      simpa only [Measure.restrict_univ, itoIntegralProcess_at_zero,
+        Pi.zero_apply, integral_zero] using hmean.symm
+    exact integral_congr_ae
+      (terminalRepresentative_ae_eq_actual stoppedEta hT hB hUsual) |>.trans hprocessMean
+  calc
+    ∫ omega, itoIntegralProcess eta hT hB hUsual (tau omega) omega ∂mu =
+        ∫ omega, terminalRepresentative stoppedEta hT hB omega ∂mu := by
+          apply integral_congr_ae
+          exact (itoIntegralTerminal_stop_ae eta hT tau htau htauT hB hUsual).symm
+    _ = 0 := hterminalMean
+
+end BoundedStoppedItoMean
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

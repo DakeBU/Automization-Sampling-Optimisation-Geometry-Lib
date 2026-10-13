@@ -1,0 +1,108 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCyclicMonotonicity
+import Mathlib.Analysis.InnerProductSpace.Calculus
+import Mathlib.Topology.Constructions.SumProd
+import Mathlib.Topology.Separation.Hausdorff
+import Mathlib.Tactic
+
+/-!
+# Stable local violations of pairing cyclic monotonicity
+
+This is the first topology-only node on the hard implication
+
+`quadratic optimality -> cyclic monotonicity of the support`.
+
+If finitely many distinct points form a strict positive pairing-cycle gap,
+continuity lets us choose a product neighborhood of the whole tuple on which
+the gap stays positive. Hausdorff separation of the finite range then lets us
+shrink the coordinate neighborhoods to pairwise disjoint open sets. Finally,
+the product-neighborhood basis refines each set in `E × E` to an open
+rectangle `U_i × V_i`.
+
+The result is exactly the local geometry needed by the later equal-mass
+competitor construction. No measure, coupling, support, or optimality theorem
+is used here.
+
+The proof architecture was cross-checked against the public
+`mbrc12/brenier-lean` project, but this ASTIS implementation is written
+independently against pinned Mathlib 4.33 and does not copy source from that
+unlicensed-at-audit repository.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PairingCycleNeighborhood
+
+open Filter Set
+open scoped BigOperators Topology
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- The signed pairing increment around a finite nonempty cycle. Positive
+values are strict violations of `PairingCycleMonotone`. -/
+def cycleValue {n : ℕ} (p : Fin (n + 1) → E × E) : ℝ :=
+  ∑ i, inner ℝ (p i).2 ((p (i + 1)).1 - (p i).1)
+
+/-- The pairing cycle value varies continuously with all points of the finite
+tuple. -/
+theorem continuous_cycleValue {n : ℕ} :
+    Continuous (cycleValue (E := E) : (Fin (n + 1) → E × E) → ℝ) := by
+  unfold cycleValue
+  fun_prop
+
+/-- A strict violation at distinct points persists on pairwise disjoint open
+rectangles around those points. -/
+theorem exists_pairwiseDisjoint_open_rectangles_of_cycleValue_pos
+    {n : ℕ} {p : Fin (n + 1) → E × E}
+    (hp : Function.Injective p)
+    (hpos : 0 < cycleValue p) :
+    ∃ U : Fin (n + 1) → Set E, ∃ V : Fin (n + 1) → Set E,
+      (∀ i, IsOpen (U i) ∧ (p i).1 ∈ U i) ∧
+      (∀ i, IsOpen (V i) ∧ (p i).2 ∈ V i) ∧
+      Set.Pairwise (Set.univ : Set (Fin (n + 1)))
+        (Function.onFun Disjoint fun i => U i ×ˢ V i) ∧
+      ∀ q : Fin (n + 1) → E × E,
+        (∀ i, q i ∈ U i ×ˢ V i) → 0 < cycleValue q := by
+  let good : Set (Fin (n + 1) → E × E) := {q | 0 < cycleValue q}
+  have hgoodOpen : IsOpen good :=
+    isOpen_lt continuous_const continuous_cycleValue
+  have hpGood : p ∈ good := hpos
+  obtain ⟨C, hC, hCgood⟩ :=
+    (isOpen_pi_iff' (s := good)).mp hgoodOpen p hpGood
+
+  let R : Set (E × E) := Set.range p
+  have hR : R.Finite := Set.finite_range p
+  obtain ⟨W, hW, hWpair⟩ := hR.t2_separation
+
+  have hcoordNhds : ∀ i, C i ∩ W (p i) ∈ 𝓝 (p i) := by
+    intro i
+    apply inter_mem
+    · exact IsOpen.mem_nhds (hC i).1 (hC i).2
+    · exact IsOpen.mem_nhds (hW (p i)).2 (hW (p i)).1
+
+  choose U V hUopen hpU hVopen hpV hrect using
+    fun i => mem_nhds_prod_iff'.mp (hcoordNhds i)
+
+  refine ⟨U, V, ?_, ?_, ?_, ?_⟩
+  · exact fun i => ⟨hUopen i, hpU i⟩
+  · exact fun i => ⟨hVopen i, hpV i⟩
+  · intro i _hi j _hj hij
+    have hpi : p i ∈ R := ⟨i, rfl⟩
+    have hpj : p j ∈ R := ⟨j, rfl⟩
+    have hpneq : p i ≠ p j := fun h => hij (hp h)
+    exact (hWpair hpi hpj hpneq).mono
+      ((hrect i).trans inter_subset_right)
+      ((hrect j).trans inter_subset_right)
+  · intro q hq
+    apply hCgood
+    intro i _hi
+    exact ((hrect i) (hq i)).1
+
+end
+
+end PairingCycleNeighborhood
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

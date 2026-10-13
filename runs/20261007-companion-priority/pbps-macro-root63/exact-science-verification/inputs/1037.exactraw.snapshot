@@ -1,0 +1,60 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath
+import Mathlib.Probability.ConditionalProbability
+
+/-!
+# Positive-fiber coordinate heat-bath law
+
+The existing coordinate update is the target restricted and normalized on a
+positive retained-coordinate fiber. This is a fixed selected-site law, not a
+scan-selection, reversibility, or mixing theorem. Null fibers are excluded.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath
+
+open MeasureTheory ProbabilityTheory
+
+/-- On a positive retained-coordinate fiber, the actual coordinate heat-bath
+kernel equals the normalized restriction of the finite target to that fiber.
+Only the selected coordinate is required to be nonempty and Standard Borel;
+the retained product needs measurable singletons for the atomic conditional
+law. No finiteness of the individual coordinate spaces is assumed. -/
+theorem heatBath_eq_cond (X : Fin (n + 1) → Type*) [∀ j, MeasurableSpace (X j)]
+    (μ : Measure (∀ j, X j)) [IsFiniteMeasure μ]
+    (i : Fin (n + 1)) [StandardBorelSpace (X i)] [Nonempty (X i)]
+    [MeasurableSingletonClass (∀ j : Fin n, X (i.succAbove j))]
+    (x : ∀ j, X j)
+    (hx : μ {y | (fun j => y (i.succAbove j)) = (fun j => x (i.succAbove j))} ≠ 0) :
+    heatBath X μ i x =
+      cond μ {y | (fun j => y (i.succAbove j)) = (fun j => x (i.succAbove j))} := by
+  let e := (MeasurableEquiv.piFinSuccAbove X i).trans MeasurableEquiv.prodComm
+  have hm : (μ.map e).map Prod.fst {(e x).1} ≠ 0 := by
+    rwa [Measure.map_apply measurable_fst (measurableSet_singleton _),
+      Measure.map_apply e.measurable (measurable_fst (measurableSet_singleton _))]
+  apply Measure.ext
+  intro s hs
+  change (((HeatBath.heatBathSnd (μ.map e)).comap e e.measurable).map e.symm x) s = _
+  rw [Kernel.map_apply _ e.symm.measurable, Kernel.comap_apply,
+    HeatBath.heatBathSnd_apply, Measure.dirac_prod,
+    Measure.map_map e.symm.measurable measurable_prodMk_left,
+    Measure.map_apply (e.symm.measurable.comp measurable_prodMk_left) hs,
+    condDistrib_apply_of_ne_zero measurable_snd _ hm]
+  simp only [Prod.eta, Measure.map_id']
+  rw [Measure.map_apply e.measurable
+    ((measurableSet_singleton _).prod ((e.symm.measurable.comp measurable_prodMk_left) hs)),
+    Measure.map_apply measurable_fst (measurableSet_singleton _),
+    Measure.map_apply e.measurable (measurable_fst (measurableSet_singleton _)),
+    cond_apply' hs]
+  congr 1
+  congr 1
+  ext y
+  change ((e y).1 = (e x).1 ∧ e.symm ((e x).1, (e y).2) ∈ s) ↔
+    ((e y).1 = (e x).1 ∧ y ∈ s)
+  constructor
+  · rintro ⟨hy, hys⟩
+    refine ⟨hy, ?_⟩
+    simpa only [← hy, Prod.eta, e.symm_apply_apply] using hys
+  · rintro ⟨hy, hys⟩
+    refine ⟨hy, ?_⟩
+    simpa only [← hy, Prod.eta, e.symm_apply_apply] using hys
+
+end AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath

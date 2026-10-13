@@ -1,0 +1,1883 @@
+AutoSamplingTheory\ExampleCases\ProximalBPS\L2MacroscopicMean.lean:131:31: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd
+in the target expression
+  (ν ⊗ₘ S).snd = ν
+
+E : Type u_1
+inst✝⁴ : NormedAddCommGroup E
+inst✝³ : InnerProductSpace ℝ E
+inst✝² : FiniteDimensional ℝ E
+inst✝¹ : MeasurableSpace E
+inst✝ : BorelSpace E
+V : E → ℝ
+α β : ℝ≥0
+η : ℝ
+hα : 0 < ↑α
+hαβ : α ≤ β
+hV : ContDiff ℝ 2 V
+hH : ∀ (x v : E), ↑α * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) v) v ∧ ((fderiv ℝ (fderiv ℝ V) x) v) v ≤ ↑β * ‖v‖ ^ 2
+hη : 0 < η
+hβη : ↑β * η ≤ 1
+μ : Measure E := ℙ.tilted fun x => -V x
+J : Measure (E × E) := Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))
+ν : Measure E := J.snd
+Λ : Measure (E × E) := Measure.map (fun p => (p.2, 2 • p.1 - p.2)) J
+F : E × E → E × E := fun p => (p.1, 2 • p.1 - p.2)
+P : ↥(Lp ℝ 2 J) →L[ℝ] ↥(Lp ℝ 2 J) :=
+  (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2 J).subtypeL ∘SL condExpL2 ℝ ℝ ⋯
+hμ : IsProbabilityMeasure (ℙ.tilted fun x => -V x)
+hJ : IsProbabilityMeasure (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))
+hν :
+  IsProbabilityMeasure
+    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd
+R S : Kernel E E
+hR : IsMarkovKernel R
+hS : IsMarkovKernel S
+hRc :
+  (Measure.map Prod.swap
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).IsCondKernel
+    R
+hSr : ∀ (y : E), S y = Measure.map (fun x => 2 • x - y) (R y)
+hSd : ∀ (y : E), S y = ℙ.tilted fun u => -V ((1 / 2) • (y + u)) - ‖y - u‖ ^ 2 / (8 * η)
+hSc :
+  (Measure.map (fun p => (p.2, 2 • p.1 - p.2))
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).IsCondKernel
+    S
+hSf :
+  (Measure.map (fun p => (p.2, 2 • p.1 - p.2))
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).fst =
+    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd
+U :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))) →ₗᵢ[ℝ]
+    ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))
+hU :
+  ∀ (g : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))),
+    ↑↑(U g) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+      ↑↑g ∘ fun p => (p.1, 2 • p.1 - p.2)
+hUi : Function.Involutive ⇑U
+hUs : IsSelfAdjoint U.toContinuousLinearMap
+this✝⁵ : IsProbabilityMeasure μ := hμ
+this✝⁴ : IsProbabilityMeasure J := hJ
+this✝³ : IsProbabilityMeasure ν := hν
+hBA :
+  star
+        ((1 -
+              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯) *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+      ((1 -
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯) *
+          U.toContinuousLinearMap *
+        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯) =
+    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯ -
+      ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯ *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) ^
+        2
+hBD :
+  star
+        ((1 -
+              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯) *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+      ((1 -
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯) *
+          U.toContinuousLinearMap *
+        (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯)) =
+    -((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯ *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯ *
+        star
+          ((1 -
+                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                  condExpL2 ℝ ℝ ⋯) *
+              U.toContinuousLinearMap *
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯))
+hdef :
+  ∀ (g : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))),
+    ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯)
+          g =
+        g →
+      ‖((1 -
+                    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                      condExpL2 ℝ ℝ ⋯) *
+                  U.toContinuousLinearMap *
+                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                  condExpL2 ℝ ℝ ⋯)
+              g‖ ^
+          2 =
+        ‖g‖ ^ 2 -
+          ‖((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                      condExpL2 ℝ ℝ ⋯ *
+                    U.toContinuousLinearMap *
+                  (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                        (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                    condExpL2 ℝ ℝ ⋯)
+                g‖ ^
+            2
+hcompact :
+  ∀ (f : E → ℝ),
+    ContDiff ℝ ∞ f →
+      HasCompactSupport f →
+        have Tf := fun y => ∫ (u : E), f u ∂S y;
+        Differentiable ℝ Tf ∧
+          MemLp f 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+            MemLp Tf 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+              MemLp (gradient Tf) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                Integrable (fun y => TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) f)
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                  ∃ g,
+                    (↑↑g =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+                        fun p => f p.2) ∧
+                      ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                              condExpL2 ℝ ℝ ⋯)
+                            g =
+                          g ∧
+                        (↑↑(((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                            (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                              ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                        condExpL2 ℝ ℝ ⋯ *
+                                      U.toContinuousLinearMap *
+                                    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                      condExpL2 ℝ ℝ ⋯)
+                                  g) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                              ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+                            fun p => Tf p.2) ∧
+                          ‖g‖ ^ 2 =
+                              ∫ (y : E),
+                                f y ^
+                                  2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                            ‖((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                            condExpL2 ℝ ℝ ⋯ *
+                                          U.toContinuousLinearMap *
+                                        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                              (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                          condExpL2 ℝ ℝ ⋯)
+                                      g‖ ^
+                                  2 =
+                                ∫ (y : E),
+                                  Tf y ^
+                                    2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                              ∫ (y : E),
+                                    TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y)
+                                      f ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd =
+                                  ‖((1 -
+                                              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                                condExpL2 ℝ ℝ ⋯) *
+                                            U.toContinuousLinearMap *
+                                          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                            condExpL2 ℝ ℝ ⋯)
+                                        g‖ ^
+                                    2 ∧
+                                η *
+                                    ∫ (y : E),
+                                      ‖gradient Tf y‖ ^
+                                        2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ≤
+                                  (1 - ↑α * η) ^ 2 / (4 * (1 + ↑α * η)) *
+                                    ‖((1 -
+                                                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                                  condExpL2 ℝ ℝ ⋯) *
+                                              U.toContinuousLinearMap *
+                                            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                              condExpL2 ℝ ℝ ⋯)
+                                          g‖ ^
+                                      2
+A : ↥(Lp ℝ 2 J) →L[ℝ] ↥(Lp ℝ 2 J) := P * U.toContinuousLinearMap * P
+hp : MeasurePreserving Prod.snd J ν
+M : ↥(Lp ℝ 2 ν) →ₗᵢ[ℝ] ↥(Lp ℝ 2 J) := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp
+hM : ∀ (u : ↥(Lp ℝ 2 ν)), ↑↑(M u) =ᵐ[J] ↑↑u ∘ Prod.snd
+D :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd) →ₗ.[ℝ]
+    ↥(Lp E 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd)
+hDense : Dense ↑D.domain
+hClose : D.IsClosable
+hClosed : D.closure.IsClosed
+hGraph :
+  ∀ (u : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd))
+    (v : ↥(Lp E 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd)),
+    (u, v) ∈ D.graph ↔
+      ∃ f,
+        ContDiff ℝ ∞ f ∧
+          HasCompactSupport f ∧
+            ↑↑u =ᵐ[(Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd] f ∧
+              ↑↑v =ᵐ[(Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd] gradient f
+hCore : ∀ u ∈ D.domain, P (M u) = M u ∧ A (M u) ∈ M.range
+hPM : ∀ (u : ↥(Lp ℝ 2 ν)), P (M u) = M u
+hAM : ∀ (u : ↥(Lp ℝ 2 ν)), A (M u) ∈ M.range
+Ar : ↥(Lp ℝ 2 ν) →L[ℝ] ↥M.range := (A ∘SL M.toContinuousLinearMap).codRestrict M.range hAM
+T : ↥(Lp ℝ 2 ν) →L[ℝ] ↥(Lp ℝ 2 ν) := ↑↑M.equivRange.symm ∘SL Ar
+hMT : ∀ (u : ↥(Lp ℝ 2 ν)), M (T u) = A (M u)
+hPn : ∀ (v : ↥(Lp ℝ 2 J)), ‖P v‖ ≤ ‖v‖
+hTn : ∀ (u : ↥(Lp ℝ 2 ν)), ‖T u‖ ≤ ‖u‖
+this✝² : IsMarkovKernel R := hR
+this✝¹ : IsMarkovKernel S := hS
+this✝ : (Measure.map Prod.swap J).IsCondKernel R := hRc
+this : Λ.IsCondKernel S := hSc
+hFi : Function.Involutive fun p => (p.1, 2 • p.1 - p.2)
+hFmap :
+  Measure.map (fun p => (p.1, 2 • p.1 - p.2)) (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))) =
+    Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))
+hFm : Measurable F
+hFp : MeasurePreserving F J J
+hΛsnd : Λ.snd = ν
+⊢ (ν ⊗ₘ S).snd = ν
+AutoSamplingTheory\ExampleCases\ProximalBPS\L2MacroscopicMean.lean:144:4: error: Type mismatch: After simplification, term
+  Eq.trans h₀ (Eq.symm hr)
+ has type
+  J.snd {x | R₀ x = (Measure.map Prod.swap J).condKernel x}ᶜ = J.snd {x | R x = (Measure.map Prod.swap J).condKernel x}ᶜ
+but is expected to have type
+  ⇑R₀ =ᵐ[ν] ⇑R
+AutoSamplingTheory\ExampleCases\ProximalBPS\L2MacroscopicMean.lean:157:10: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  ae (Measure.map ⇑MeasurableEquiv.prodComm ?μ)
+in the target expression
+  (fun p => ↑↑(U (M u)) (p.2, p.1)) =ᵐ[Measure.map Prod.swap J] fun p => ↑↑u (2 • p.2 - p.1)
+
+E : Type u_1
+inst✝⁴ : NormedAddCommGroup E
+inst✝³ : InnerProductSpace ℝ E
+inst✝² : FiniteDimensional ℝ E
+inst✝¹ : MeasurableSpace E
+inst✝ : BorelSpace E
+V : E → ℝ
+α β : ℝ≥0
+η : ℝ
+hα : 0 < ↑α
+hαβ : α ≤ β
+hV : ContDiff ℝ 2 V
+hH : ∀ (x v : E), ↑α * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) v) v ∧ ((fderiv ℝ (fderiv ℝ V) x) v) v ≤ ↑β * ‖v‖ ^ 2
+hη : 0 < η
+hβη : ↑β * η ≤ 1
+μ : Measure E := ℙ.tilted fun x => -V x
+J : Measure (E × E) := Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))
+ν : Measure E := J.snd
+Λ : Measure (E × E) := Measure.map (fun p => (p.2, 2 • p.1 - p.2)) J
+F : E × E → E × E := fun p => (p.1, 2 • p.1 - p.2)
+P : ↥(Lp ℝ 2 J) →L[ℝ] ↥(Lp ℝ 2 J) :=
+  (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2 J).subtypeL ∘SL condExpL2 ℝ ℝ ⋯
+hμ : IsProbabilityMeasure (ℙ.tilted fun x => -V x)
+hJ : IsProbabilityMeasure (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))
+hν :
+  IsProbabilityMeasure
+    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd
+R S : Kernel E E
+hR : IsMarkovKernel R
+hS : IsMarkovKernel S
+hRc :
+  (Measure.map Prod.swap
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).IsCondKernel
+    R
+hSr : ∀ (y : E), S y = Measure.map (fun x => 2 • x - y) (R y)
+hSd : ∀ (y : E), S y = ℙ.tilted fun u => -V ((1 / 2) • (y + u)) - ‖y - u‖ ^ 2 / (8 * η)
+hSc :
+  (Measure.map (fun p => (p.2, 2 • p.1 - p.2))
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).IsCondKernel
+    S
+hSf :
+  (Measure.map (fun p => (p.2, 2 • p.1 - p.2))
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).fst =
+    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd
+U :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))) →ₗᵢ[ℝ]
+    ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))
+hU :
+  ∀ (g : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))),
+    ↑↑(U g) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+      ↑↑g ∘ fun p => (p.1, 2 • p.1 - p.2)
+hUi : Function.Involutive ⇑U
+hUs : IsSelfAdjoint U.toContinuousLinearMap
+this✝⁷ : IsProbabilityMeasure μ := hμ
+this✝⁶ : IsProbabilityMeasure J := hJ
+this✝⁵ : IsProbabilityMeasure ν := hν
+hBA :
+  star
+        ((1 -
+              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯) *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+      ((1 -
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯) *
+          U.toContinuousLinearMap *
+        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯) =
+    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯ -
+      ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯ *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) ^
+        2
+hBD :
+  star
+        ((1 -
+              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯) *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+      ((1 -
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯) *
+          U.toContinuousLinearMap *
+        (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯)) =
+    -((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯ *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯ *
+        star
+          ((1 -
+                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                  condExpL2 ℝ ℝ ⋯) *
+              U.toContinuousLinearMap *
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯))
+hdef :
+  ∀ (g : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))),
+    ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯)
+          g =
+        g →
+      ‖((1 -
+                    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                      condExpL2 ℝ ℝ ⋯) *
+                  U.toContinuousLinearMap *
+                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                  condExpL2 ℝ ℝ ⋯)
+              g‖ ^
+          2 =
+        ‖g‖ ^ 2 -
+          ‖((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                      condExpL2 ℝ ℝ ⋯ *
+                    U.toContinuousLinearMap *
+                  (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                        (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                    condExpL2 ℝ ℝ ⋯)
+                g‖ ^
+            2
+hcompact :
+  ∀ (f : E → ℝ),
+    ContDiff ℝ ∞ f →
+      HasCompactSupport f →
+        have Tf := fun y => ∫ (u : E), f u ∂S y;
+        Differentiable ℝ Tf ∧
+          MemLp f 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+            MemLp Tf 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+              MemLp (gradient Tf) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                Integrable (fun y => TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) f)
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                  ∃ g,
+                    (↑↑g =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+                        fun p => f p.2) ∧
+                      ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                              condExpL2 ℝ ℝ ⋯)
+                            g =
+                          g ∧
+                        (↑↑(((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                            (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                              ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                        condExpL2 ℝ ℝ ⋯ *
+                                      U.toContinuousLinearMap *
+                                    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                      condExpL2 ℝ ℝ ⋯)
+                                  g) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                              ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+                            fun p => Tf p.2) ∧
+                          ‖g‖ ^ 2 =
+                              ∫ (y : E),
+                                f y ^
+                                  2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                            ‖((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                            condExpL2 ℝ ℝ ⋯ *
+                                          U.toContinuousLinearMap *
+                                        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                              (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                          condExpL2 ℝ ℝ ⋯)
+                                      g‖ ^
+                                  2 =
+                                ∫ (y : E),
+                                  Tf y ^
+                                    2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                              ∫ (y : E),
+                                    TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y)
+                                      f ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd =
+                                  ‖((1 -
+                                              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                                condExpL2 ℝ ℝ ⋯) *
+                                            U.toContinuousLinearMap *
+                                          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                            condExpL2 ℝ ℝ ⋯)
+                                        g‖ ^
+                                    2 ∧
+                                η *
+                                    ∫ (y : E),
+                                      ‖gradient Tf y‖ ^
+                                        2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ≤
+                                  (1 - ↑α * η) ^ 2 / (4 * (1 + ↑α * η)) *
+                                    ‖((1 -
+                                                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                                  condExpL2 ℝ ℝ ⋯) *
+                                              U.toContinuousLinearMap *
+                                            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                              condExpL2 ℝ ℝ ⋯)
+                                          g‖ ^
+                                      2
+A : ↥(Lp ℝ 2 J) →L[ℝ] ↥(Lp ℝ 2 J) := P * U.toContinuousLinearMap * P
+hp : MeasurePreserving Prod.snd J ν
+M : ↥(Lp ℝ 2 ν) →ₗᵢ[ℝ] ↥(Lp ℝ 2 J) := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp
+hM : ∀ (u : ↥(Lp ℝ 2 ν)), ↑↑(M u) =ᵐ[J] ↑↑u ∘ Prod.snd
+D :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd) →ₗ.[ℝ]
+    ↥(Lp E 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd)
+hDense : Dense ↑D.domain
+hClose : D.IsClosable
+hClosed : D.closure.IsClosed
+hGraph :
+  ∀ (u : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd))
+    (v : ↥(Lp E 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd)),
+    (u, v) ∈ D.graph ↔
+      ∃ f,
+        ContDiff ℝ ∞ f ∧
+          HasCompactSupport f ∧
+            ↑↑u =ᵐ[(Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd] f ∧
+              ↑↑v =ᵐ[(Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd] gradient f
+hCore : ∀ u ∈ D.domain, P (M u) = M u ∧ A (M u) ∈ M.range
+hPM : ∀ (u : ↥(Lp ℝ 2 ν)), P (M u) = M u
+hAM : ∀ (u : ↥(Lp ℝ 2 ν)), A (M u) ∈ M.range
+Ar : ↥(Lp ℝ 2 ν) →L[ℝ] ↥M.range := (A ∘SL M.toContinuousLinearMap).codRestrict M.range hAM
+T : ↥(Lp ℝ 2 ν) →L[ℝ] ↥(Lp ℝ 2 ν) := ↑↑M.equivRange.symm ∘SL Ar
+hMT : ∀ (u : ↥(Lp ℝ 2 ν)), M (T u) = A (M u)
+hPn : ∀ (v : ↥(Lp ℝ 2 J)), ‖P v‖ ≤ ‖v‖
+hTn : ∀ (u : ↥(Lp ℝ 2 ν)), ‖T u‖ ≤ ‖u‖
+this✝⁴ : IsMarkovKernel R := hR
+this✝³ : IsMarkovKernel S := hS
+this✝² : (Measure.map Prod.swap J).IsCondKernel R := hRc
+this✝¹ : Λ.IsCondKernel S := hSc
+hFi : Function.Involutive fun p => (p.1, 2 • p.1 - p.2)
+hFmap :
+  Measure.map (fun p => (p.1, 2 • p.1 - p.2)) (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))) =
+    Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))
+hFm : Measurable F
+hFp : MeasurePreserving F J J
+hΛsnd : Λ.snd = ν
+hstation : ⇑S ∘ₘ ν = ν
+R₀ : Kernel E E
+hR₀ : IsMarkovKernel R₀
+hR₀d : ∀ (y : E), R₀ y = μ.tilted fun x => -‖x - y‖ ^ 2 / (2 * η)
+hR₀c : (Measure.map Prod.swap (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).IsCondKernel R₀
+this✝ : IsMarkovKernel R₀ := hR₀
+this : (Measure.map Prod.swap J).IsCondKernel R₀ := hR₀c
+R₁ : Kernel E E
+hR₁ : IsMarkovKernel R₁
+hR₁d : ∀ (y : E), R₁ y = μ.tilted fun x => -‖x - y‖ ^ 2 / (2 * η)
+U₁ :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))) →ₗᵢ[ℝ]
+    ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))
+hU₁ :
+  ∀ (f : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))),
+    ↑↑(U₁ f) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))]
+      ↑↑f ∘ fun p => (p.1, 2 • p.1 - p.2)
+hUi₁ : Function.Involutive ⇑U₁
+hUs₁ : IsSelfAdjoint U₁.toContinuousLinearMap
+hPk :
+  ∀ (f : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))),
+    ↑↑(((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯)
+            f) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))]
+      fun p => ∫ (x : E), ↑↑f (x, p.2) ∂R₁ p.2
+hAlgebra₁ :
+  have A :=
+    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯ *
+        U₁.toContinuousLinearMap *
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯;
+  have B :=
+    (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+        U₁.toContinuousLinearMap *
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯;
+  have D :=
+    (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+        U₁.toContinuousLinearMap *
+      (1 -
+        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯);
+  star B * B =
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯ -
+        A ^ 2 ∧
+    star B * D = -(A * star B) ∧
+      ∀ (f : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))),
+        ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯)
+              f =
+            f →
+          ‖B f‖ ^ 2 = ‖f‖ ^ 2 - ‖A f‖ ^ 2
+hR₁₀ : R₁ = R₀
+hR₀R : ⇑R₀ =ᵐ[ν] ⇑R
+hR₁R : ⇑R₁ =ᵐ[ν] ⇑R
+u : ↥(Lp ℝ 2 ν)
+huS : Integrable (↑↑u) (⇑S ∘ₘ ν)
+hfiberS : ∀ᵐ (x : E) ∂ν, Integrable (↑↑u) (S x)
+hUM : ↑↑(U (M u)) =ᵐ[J] fun p => ↑↑u (2 • p.1 - p.2)
+⊢ (fun p => ↑↑(U (M u)) (p.2, p.1)) =ᵐ[Measure.map Prod.swap J] fun p => ↑↑u (2 • p.2 - p.1)
+AutoSamplingTheory\ExampleCases\ProximalBPS\L2MacroscopicMean.lean:161:33: error: Invalid argument name `μ` for function `Measure.fst_map_swap`
+
+Hint: Perhaps you meant one of the following parameter names:
+  • `α`: μ̵α̲
+  • `β`: μ̵β̲
+  • `ρ`: μ̵ρ̲
+AutoSamplingTheory\ExampleCases\ProximalBPS\L2MacroscopicMean.lean:176:10: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  (↑↑(T u) ∘ Prod.snd) p
+in the target expression
+  ↑↑(T u) p.2 = ∫ (x : E), ↑↑u x ∂S p.2
+
+E : Type u_1
+inst✝⁴ : NormedAddCommGroup E
+inst✝³ : InnerProductSpace ℝ E
+inst✝² : FiniteDimensional ℝ E
+inst✝¹ : MeasurableSpace E
+inst✝ : BorelSpace E
+V : E → ℝ
+α β : ℝ≥0
+η : ℝ
+hα : 0 < ↑α
+hαβ : α ≤ β
+hV : ContDiff ℝ 2 V
+hH : ∀ (x v : E), ↑α * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) v) v ∧ ((fderiv ℝ (fderiv ℝ V) x) v) v ≤ ↑β * ‖v‖ ^ 2
+hη : 0 < η
+hβη : ↑β * η ≤ 1
+μ : Measure E := ℙ.tilted fun x => -V x
+J : Measure (E × E) := Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))
+ν : Measure E := J.snd
+Λ : Measure (E × E) := Measure.map (fun p => (p.2, 2 • p.1 - p.2)) J
+F : E × E → E × E := fun p => (p.1, 2 • p.1 - p.2)
+P : ↥(Lp ℝ 2 J) →L[ℝ] ↥(Lp ℝ 2 J) :=
+  (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2 J).subtypeL ∘SL condExpL2 ℝ ℝ ⋯
+hμ : IsProbabilityMeasure (ℙ.tilted fun x => -V x)
+hJ : IsProbabilityMeasure (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))
+hν :
+  IsProbabilityMeasure
+    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd
+R S : Kernel E E
+hR : IsMarkovKernel R
+hS : IsMarkovKernel S
+hRc :
+  (Measure.map Prod.swap
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).IsCondKernel
+    R
+hSr : ∀ (y : E), S y = Measure.map (fun x => 2 • x - y) (R y)
+hSd : ∀ (y : E), S y = ℙ.tilted fun u => -V ((1 / 2) • (y + u)) - ‖y - u‖ ^ 2 / (8 * η)
+hSc :
+  (Measure.map (fun p => (p.2, 2 • p.1 - p.2))
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).IsCondKernel
+    S
+hSf :
+  (Measure.map (fun p => (p.2, 2 • p.1 - p.2))
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).fst =
+    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd
+U :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))) →ₗᵢ[ℝ]
+    ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))
+hU :
+  ∀ (g : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))),
+    ↑↑(U g) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+      ↑↑g ∘ fun p => (p.1, 2 • p.1 - p.2)
+hUi : Function.Involutive ⇑U
+hUs : IsSelfAdjoint U.toContinuousLinearMap
+this✝⁷ : IsProbabilityMeasure μ := hμ
+this✝⁶ : IsProbabilityMeasure J := hJ
+this✝⁵ : IsProbabilityMeasure ν := hν
+hBA :
+  star
+        ((1 -
+              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯) *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+      ((1 -
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯) *
+          U.toContinuousLinearMap *
+        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯) =
+    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯ -
+      ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯ *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) ^
+        2
+hBD :
+  star
+        ((1 -
+              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯) *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+      ((1 -
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯) *
+          U.toContinuousLinearMap *
+        (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯)) =
+    -((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯ *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯ *
+        star
+          ((1 -
+                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                  condExpL2 ℝ ℝ ⋯) *
+              U.toContinuousLinearMap *
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯))
+hdef :
+  ∀ (g : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))),
+    ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯)
+          g =
+        g →
+      ‖((1 -
+                    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                      condExpL2 ℝ ℝ ⋯) *
+                  U.toContinuousLinearMap *
+                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                  condExpL2 ℝ ℝ ⋯)
+              g‖ ^
+          2 =
+        ‖g‖ ^ 2 -
+          ‖((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                      condExpL2 ℝ ℝ ⋯ *
+                    U.toContinuousLinearMap *
+                  (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                        (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                    condExpL2 ℝ ℝ ⋯)
+                g‖ ^
+            2
+hcompact :
+  ∀ (f : E → ℝ),
+    ContDiff ℝ ∞ f →
+      HasCompactSupport f →
+        have Tf := fun y => ∫ (u : E), f u ∂S y;
+        Differentiable ℝ Tf ∧
+          MemLp f 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+            MemLp Tf 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+              MemLp (gradient Tf) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                Integrable (fun y => TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) f)
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                  ∃ g,
+                    (↑↑g =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+                        fun p => f p.2) ∧
+                      ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                              condExpL2 ℝ ℝ ⋯)
+                            g =
+                          g ∧
+                        (↑↑(((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                            (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                              ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                        condExpL2 ℝ ℝ ⋯ *
+                                      U.toContinuousLinearMap *
+                                    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                      condExpL2 ℝ ℝ ⋯)
+                                  g) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                              ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+                            fun p => Tf p.2) ∧
+                          ‖g‖ ^ 2 =
+                              ∫ (y : E),
+                                f y ^
+                                  2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                            ‖((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                            condExpL2 ℝ ℝ ⋯ *
+                                          U.toContinuousLinearMap *
+                                        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                              (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                          condExpL2 ℝ ℝ ⋯)
+                                      g‖ ^
+                                  2 =
+                                ∫ (y : E),
+                                  Tf y ^
+                                    2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                              ∫ (y : E),
+                                    TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y)
+                                      f ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd =
+                                  ‖((1 -
+                                              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                                condExpL2 ℝ ℝ ⋯) *
+                                            U.toContinuousLinearMap *
+                                          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                            condExpL2 ℝ ℝ ⋯)
+                                        g‖ ^
+                                    2 ∧
+                                η *
+                                    ∫ (y : E),
+                                      ‖gradient Tf y‖ ^
+                                        2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ≤
+                                  (1 - ↑α * η) ^ 2 / (4 * (1 + ↑α * η)) *
+                                    ‖((1 -
+                                                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                                  condExpL2 ℝ ℝ ⋯) *
+                                              U.toContinuousLinearMap *
+                                            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                              condExpL2 ℝ ℝ ⋯)
+                                          g‖ ^
+                                      2
+A : ↥(Lp ℝ 2 J) →L[ℝ] ↥(Lp ℝ 2 J) := P * U.toContinuousLinearMap * P
+hp : MeasurePreserving Prod.snd J ν
+M : ↥(Lp ℝ 2 ν) →ₗᵢ[ℝ] ↥(Lp ℝ 2 J) := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp
+hM : ∀ (u : ↥(Lp ℝ 2 ν)), ↑↑(M u) =ᵐ[J] ↑↑u ∘ Prod.snd
+D :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd) →ₗ.[ℝ]
+    ↥(Lp E 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd)
+hDense : Dense ↑D.domain
+hClose : D.IsClosable
+hClosed : D.closure.IsClosed
+hGraph :
+  ∀ (u : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd))
+    (v : ↥(Lp E 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd)),
+    (u, v) ∈ D.graph ↔
+      ∃ f,
+        ContDiff ℝ ∞ f ∧
+          HasCompactSupport f ∧
+            ↑↑u =ᵐ[(Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd] f ∧
+              ↑↑v =ᵐ[(Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd] gradient f
+hCore : ∀ u ∈ D.domain, P (M u) = M u ∧ A (M u) ∈ M.range
+hPM : ∀ (u : ↥(Lp ℝ 2 ν)), P (M u) = M u
+hAM : ∀ (u : ↥(Lp ℝ 2 ν)), A (M u) ∈ M.range
+Ar : ↥(Lp ℝ 2 ν) →L[ℝ] ↥M.range := (A ∘SL M.toContinuousLinearMap).codRestrict M.range hAM
+T : ↥(Lp ℝ 2 ν) →L[ℝ] ↥(Lp ℝ 2 ν) := ↑↑M.equivRange.symm ∘SL Ar
+hMT : ∀ (u : ↥(Lp ℝ 2 ν)), M (T u) = A (M u)
+hPn : ∀ (v : ↥(Lp ℝ 2 J)), ‖P v‖ ≤ ‖v‖
+hTn : ∀ (u : ↥(Lp ℝ 2 ν)), ‖T u‖ ≤ ‖u‖
+this✝⁴ : IsMarkovKernel R := hR
+this✝³ : IsMarkovKernel S := hS
+this✝² : (Measure.map Prod.swap J).IsCondKernel R := hRc
+this✝¹ : Λ.IsCondKernel S := hSc
+hFi : Function.Involutive fun p => (p.1, 2 • p.1 - p.2)
+hFmap :
+  Measure.map (fun p => (p.1, 2 • p.1 - p.2)) (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))) =
+    Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))
+hFm : Measurable F
+hFp : MeasurePreserving F J J
+hΛsnd : Λ.snd = ν
+hstation : ⇑S ∘ₘ ν = ν
+R₀ : Kernel E E
+hR₀ : IsMarkovKernel R₀
+hR₀d : ∀ (y : E), R₀ y = μ.tilted fun x => -‖x - y‖ ^ 2 / (2 * η)
+hR₀c : (Measure.map Prod.swap (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).IsCondKernel R₀
+this✝ : IsMarkovKernel R₀ := hR₀
+this : (Measure.map Prod.swap J).IsCondKernel R₀ := hR₀c
+R₁ : Kernel E E
+hR₁ : IsMarkovKernel R₁
+hR₁d : ∀ (y : E), R₁ y = μ.tilted fun x => -‖x - y‖ ^ 2 / (2 * η)
+U₁ :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))) →ₗᵢ[ℝ]
+    ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))
+hU₁ :
+  ∀ (f : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))),
+    ↑↑(U₁ f) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))]
+      ↑↑f ∘ fun p => (p.1, 2 • p.1 - p.2)
+hUi₁ : Function.Involutive ⇑U₁
+hUs₁ : IsSelfAdjoint U₁.toContinuousLinearMap
+hPk :
+  ∀ (f : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))),
+    ↑↑(((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯)
+            f) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))]
+      fun p => ∫ (x : E), ↑↑f (x, p.2) ∂R₁ p.2
+hAlgebra₁ :
+  have A :=
+    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯ *
+        U₁.toContinuousLinearMap *
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯;
+  have B :=
+    (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+        U₁.toContinuousLinearMap *
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯;
+  have D :=
+    (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+        U₁.toContinuousLinearMap *
+      (1 -
+        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯);
+  star B * B =
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯ -
+        A ^ 2 ∧
+    star B * D = -(A * star B) ∧
+      ∀ (f : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))),
+        ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯)
+              f =
+            f →
+          ‖B f‖ ^ 2 = ‖f‖ ^ 2 - ‖A f‖ ^ 2
+hR₁₀ : R₁ = R₀
+hR₀R : ⇑R₀ =ᵐ[ν] ⇑R
+hR₁R : ⇑R₁ =ᵐ[ν] ⇑R
+u : ↥(Lp ℝ 2 ν)
+huS : Integrable (↑↑u) (⇑S ∘ₘ ν)
+hfiberS : ∀ᵐ (x : E) ∂ν, Integrable (↑↑u) (S x)
+hUM : ↑↑(U (M u)) =ᵐ[J] fun p => ↑↑u (2 • p.1 - p.2)
+hswap : (fun p => ↑↑(U (M u)) (p.2, p.1)) =ᵐ[Measure.map Prod.swap J] fun p => ↑↑u (2 • p.2 - p.1)
+hswap' : (fun p => ↑↑(U (M u)) (p.2, p.1)) =ᵐ[ν ⊗ₘ R] fun p => ↑↑u (2 • p.2 - p.1)
+hfiberR :
+  ∀ᵐ (a : E) ∂ν, ∀ᵐ (b : E) ∂R a, (fun p => ↑↑(U (M u)) (p.2, p.1)) (a, b) = (fun p => ↑↑u (2 • p.2 - p.1)) (a, b)
+hMTae : ↑↑(M (T u)) =ᵐ[J] fun p => ∫ (x : E), ↑↑(U (M u)) (x, p.2) ∂R₁ p.2
+hkJ : ∀ᵐ (x : E × E) ∂J, R₁ x.2 = R x.2
+hfJ :
+  ∀ᵐ (x : E × E) ∂J,
+    ∀ᵐ (b : E) ∂R x.2, (fun p => ↑↑(U (M u)) (p.2, p.1)) (x.2, b) = (fun p => ↑↑u (2 • p.2 - p.1)) (x.2, b)
+hfiJ : ∀ᵐ (x : E × E) ∂J, Integrable (↑↑u) (S x.2)
+p : E × E
+hmean : (↑↑(T u) ∘ Prod.snd) p = ∫ (x : E), ↑↑(U (M u)) (x, p.2) ∂R₁ p.2
+hk : R₁ p.2 = R p.2
+hf : ∀ᵐ (b : E) ∂R p.2, ↑↑(U (M u)) (b, p.2) = ↑↑u (2 • b - p.2)
+hfi : Integrable (↑↑u) (S p.2)
+⊢ ↑↑(T u) p.2 = ∫ (x : E), ↑↑u x ∂S p.2
+AutoSamplingTheory\ExampleCases\ProximalBPS\L2MacroscopicMean.lean:179:34: error(lean.invalidField): Invalid field `stronglyMeasurable`: The environment does not contain `Subtype.stronglyMeasurable`, so it is not possible to project the field `stronglyMeasurable` from an expression
+  T u
+of type `↥(Lp ℝ 2 ν)`
+AutoSamplingTheory\ExampleCases\ProximalBPS\L2MacroscopicMean.lean:180:11: error(lean.invalidField): Invalid field `stronglyMeasurable`: The environment does not contain `Subtype.stronglyMeasurable`, so it is not possible to project the field `stronglyMeasurable` from an expression
+  u
+of type `↥(Lp ℝ 2 ν)`
+AutoSamplingTheory\ExampleCases\ProximalBPS\L2MacroscopicMean.lean:196:46: error(lean.invalidField): Invalid field `congr`: The environment does not contain `And.congr`, so it is not possible to project the field `congr` from an expression
+  Lp.memLp (T u)
+of type
+  AEStronglyMeasurable (↑↑(T u)) ν ∧ eLpNorm (↑↑(T u)) 2 ν < ⊤
+AutoSamplingTheory\ExampleCases\ProximalBPS\L2MacroscopicMean.lean:203:48: error(lean.invalidField): Invalid field `stronglyMeasurable`: The environment does not contain `Subtype.stronglyMeasurable`, so it is not possible to project the field `stronglyMeasurable` from an expression
+  u
+of type
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd)
+AutoSamplingTheory\ExampleCases\ProximalBPS\L2MacroscopicMean.lean:212:10: error: Tactic `rewrite` failed: motive is not type correct:
+  fun _a => Integrable (fun p => ↑↑u p.2 ^ 2) (ν ⊗ₘ S)
+Error: Application type mismatch: The argument
+  u
+has type
+  { x : E →ₘ[(Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd] ℝ //
+    x ∈ Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd }
+but is expected to have type
+  { x : E →ₘ[_a] ℝ // x ∈ Lp ℝ 2 _a }
+in the application
+  ↑u
+
+Explanation: The rewrite tactic rewrites an expression 'e' using an equality 'a = b' by the following process. First, it looks for all 'a' in 'e'. Second, it tries to abstract these occurrences of 'a' to create a function 'm := fun _a => ...', called the *motive*, with the property that 'm a' is definitionally equal to 'e'. Third, we observe that 'congrArg' implies that 'm a = m b', which can be used with lemmas such as 'Eq.mpr' to change the goal. However, if 'e' depends on specific properties of 'a', then the motive 'm' might not typecheck.
+
+Possible solutions: use rewrite's 'occs' configuration option to limit which occurrences are rewritten, or use 'simp' or 'conv' mode, which have strategies for certain kinds of dependencies (these tactics can handle proofs and 'Decidable' instances whose types depend on the rewritten term, and 'simp' can apply user-defined '@[congr]' theorems as well).
+
+E : Type u_1
+inst✝⁴ : NormedAddCommGroup E
+inst✝³ : InnerProductSpace ℝ E
+inst✝² : FiniteDimensional ℝ E
+inst✝¹ : MeasurableSpace E
+inst✝ : BorelSpace E
+V : E → ℝ
+α β : ℝ≥0
+η : ℝ
+hα : 0 < ↑α
+hαβ : α ≤ β
+hV : ContDiff ℝ 2 V
+hH : ∀ (x v : E), ↑α * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) v) v ∧ ((fderiv ℝ (fderiv ℝ V) x) v) v ≤ ↑β * ‖v‖ ^ 2
+hη : 0 < η
+hβη : ↑β * η ≤ 1
+μ : Measure E := ℙ.tilted fun x => -V x
+J : Measure (E × E) := Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))
+ν : Measure E := J.snd
+Λ : Measure (E × E) := Measure.map (fun p => (p.2, 2 • p.1 - p.2)) J
+F : E × E → E × E := fun p => (p.1, 2 • p.1 - p.2)
+P : ↥(Lp ℝ 2 J) →L[ℝ] ↥(Lp ℝ 2 J) :=
+  (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2 J).subtypeL ∘SL condExpL2 ℝ ℝ ⋯
+hμ : IsProbabilityMeasure (ℙ.tilted fun x => -V x)
+hJ : IsProbabilityMeasure (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))
+hν :
+  IsProbabilityMeasure
+    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd
+R S : Kernel E E
+hR : IsMarkovKernel R
+hS : IsMarkovKernel S
+hRc :
+  (Measure.map Prod.swap
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).IsCondKernel
+    R
+hSr : ∀ (y : E), S y = Measure.map (fun x => 2 • x - y) (R y)
+hSd : ∀ (y : E), S y = ℙ.tilted fun u => -V ((1 / 2) • (y + u)) - ‖y - u‖ ^ 2 / (8 * η)
+hSc :
+  (Measure.map (fun p => (p.2, 2 • p.1 - p.2))
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).IsCondKernel
+    S
+hSf :
+  (Measure.map (fun p => (p.2, 2 • p.1 - p.2))
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).fst =
+    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd
+U :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))) →ₗᵢ[ℝ]
+    ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))
+hU :
+  ∀ (g : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))),
+    ↑↑(U g) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+      ↑↑g ∘ fun p => (p.1, 2 • p.1 - p.2)
+hUi : Function.Involutive ⇑U
+hUs : IsSelfAdjoint U.toContinuousLinearMap
+this✝⁷ : IsProbabilityMeasure μ := hμ
+this✝⁶ : IsProbabilityMeasure J := hJ
+this✝⁵ : IsProbabilityMeasure ν := hν
+hBA :
+  star
+        ((1 -
+              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯) *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+      ((1 -
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯) *
+          U.toContinuousLinearMap *
+        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯) =
+    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯ -
+      ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯ *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) ^
+        2
+hBD :
+  star
+        ((1 -
+              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯) *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+      ((1 -
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯) *
+          U.toContinuousLinearMap *
+        (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯)) =
+    -((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯ *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯ *
+        star
+          ((1 -
+                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                  condExpL2 ℝ ℝ ⋯) *
+              U.toContinuousLinearMap *
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯))
+hdef :
+  ∀ (g : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))),
+    ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯)
+          g =
+        g →
+      ‖((1 -
+                    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                      condExpL2 ℝ ℝ ⋯) *
+                  U.toContinuousLinearMap *
+                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                  condExpL2 ℝ ℝ ⋯)
+              g‖ ^
+          2 =
+        ‖g‖ ^ 2 -
+          ‖((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                      condExpL2 ℝ ℝ ⋯ *
+                    U.toContinuousLinearMap *
+                  (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                        (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                    condExpL2 ℝ ℝ ⋯)
+                g‖ ^
+            2
+hcompact :
+  ∀ (f : E → ℝ),
+    ContDiff ℝ ∞ f →
+      HasCompactSupport f →
+        have Tf := fun y => ∫ (u : E), f u ∂S y;
+        Differentiable ℝ Tf ∧
+          MemLp f 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+            MemLp Tf 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+              MemLp (gradient Tf) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                Integrable (fun y => TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) f)
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                  ∃ g,
+                    (↑↑g =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+                        fun p => f p.2) ∧
+                      ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                              condExpL2 ℝ ℝ ⋯)
+                            g =
+                          g ∧
+                        (↑↑(((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                            (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                              ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                        condExpL2 ℝ ℝ ⋯ *
+                                      U.toContinuousLinearMap *
+                                    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                      condExpL2 ℝ ℝ ⋯)
+                                  g) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                              ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+                            fun p => Tf p.2) ∧
+                          ‖g‖ ^ 2 =
+                              ∫ (y : E),
+                                f y ^
+                                  2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                            ‖((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                            condExpL2 ℝ ℝ ⋯ *
+                                          U.toContinuousLinearMap *
+                                        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                              (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                          condExpL2 ℝ ℝ ⋯)
+                                      g‖ ^
+                                  2 =
+                                ∫ (y : E),
+                                  Tf y ^
+                                    2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                              ∫ (y : E),
+                                    TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y)
+                                      f ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd =
+                                  ‖((1 -
+                                              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                                condExpL2 ℝ ℝ ⋯) *
+                                            U.toContinuousLinearMap *
+                                          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                            condExpL2 ℝ ℝ ⋯)
+                                        g‖ ^
+                                    2 ∧
+                                η *
+                                    ∫ (y : E),
+                                      ‖gradient Tf y‖ ^
+                                        2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ≤
+                                  (1 - ↑α * η) ^ 2 / (4 * (1 + ↑α * η)) *
+                                    ‖((1 -
+                                                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                                  condExpL2 ℝ ℝ ⋯) *
+                                              U.toContinuousLinearMap *
+                                            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                              condExpL2 ℝ ℝ ⋯)
+                                          g‖ ^
+                                      2
+A : ↥(Lp ℝ 2 J) →L[ℝ] ↥(Lp ℝ 2 J) := P * U.toContinuousLinearMap * P
+hp : MeasurePreserving Prod.snd J ν
+M : ↥(Lp ℝ 2 ν) →ₗᵢ[ℝ] ↥(Lp ℝ 2 J) := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp
+hM : ∀ (u : ↥(Lp ℝ 2 ν)), ↑↑(M u) =ᵐ[J] ↑↑u ∘ Prod.snd
+D :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd) →ₗ.[ℝ]
+    ↥(Lp E 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd)
+hDense : Dense ↑D.domain
+hClose : D.IsClosable
+hClosed : D.closure.IsClosed
+hGraph :
+  ∀ (u : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd))
+    (v : ↥(Lp E 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd)),
+    (u, v) ∈ D.graph ↔
+      ∃ f,
+        ContDiff ℝ ∞ f ∧
+          HasCompactSupport f ∧
+            ↑↑u =ᵐ[(Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd] f ∧
+              ↑↑v =ᵐ[(Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd] gradient f
+hCore : ∀ u ∈ D.domain, P (M u) = M u ∧ A (M u) ∈ M.range
+hPM : ∀ (u : ↥(Lp ℝ 2 ν)), P (M u) = M u
+hAM : ∀ (u : ↥(Lp ℝ 2 ν)), A (M u) ∈ M.range
+Ar : ↥(Lp ℝ 2 ν) →L[ℝ] ↥M.range := (A ∘SL M.toContinuousLinearMap).codRestrict M.range hAM
+T : ↥(Lp ℝ 2 ν) →L[ℝ] ↥(Lp ℝ 2 ν) := ↑↑M.equivRange.symm ∘SL Ar
+hMT : ∀ (u : ↥(Lp ℝ 2 ν)), M (T u) = A (M u)
+hPn : ∀ (v : ↥(Lp ℝ 2 J)), ‖P v‖ ≤ ‖v‖
+hTn : ∀ (u : ↥(Lp ℝ 2 ν)), ‖T u‖ ≤ ‖u‖
+this✝⁴ : IsMarkovKernel R := hR
+this✝³ : IsMarkovKernel S := hS
+this✝² : (Measure.map Prod.swap J).IsCondKernel R := hRc
+this✝¹ : Λ.IsCondKernel S := hSc
+hFi : Function.Involutive fun p => (p.1, 2 • p.1 - p.2)
+hFmap :
+  Measure.map (fun p => (p.1, 2 • p.1 - p.2)) (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))) =
+    Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))
+hFm : Measurable F
+hFp : MeasurePreserving F J J
+hΛsnd : Λ.snd = ν
+hstation : ⇑S ∘ₘ ν = ν
+R₀ : Kernel E E
+hR₀ : IsMarkovKernel R₀
+hR₀d : ∀ (y : E), R₀ y = μ.tilted fun x => -‖x - y‖ ^ 2 / (2 * η)
+hR₀c : (Measure.map Prod.swap (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).IsCondKernel R₀
+this✝ : IsMarkovKernel R₀ := hR₀
+this : (Measure.map Prod.swap J).IsCondKernel R₀ := hR₀c
+R₁ : Kernel E E
+hR₁ : IsMarkovKernel R₁
+hR₁d : ∀ (y : E), R₁ y = μ.tilted fun x => -‖x - y‖ ^ 2 / (2 * η)
+U₁ :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))) →ₗᵢ[ℝ]
+    ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))
+hU₁ :
+  ∀ (f : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))),
+    ↑↑(U₁ f) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))]
+      ↑↑f ∘ fun p => (p.1, 2 • p.1 - p.2)
+hUi₁ : Function.Involutive ⇑U₁
+hUs₁ : IsSelfAdjoint U₁.toContinuousLinearMap
+hPk :
+  ∀ (f : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))),
+    ↑↑(((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯)
+            f) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))]
+      fun p => ∫ (x : E), ↑↑f (x, p.2) ∂R₁ p.2
+hAlgebra₁ :
+  have A :=
+    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯ *
+        U₁.toContinuousLinearMap *
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯;
+  have B :=
+    (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+        U₁.toContinuousLinearMap *
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯;
+  have D :=
+    (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+        U₁.toContinuousLinearMap *
+      (1 -
+        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯);
+  star B * B =
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯ -
+        A ^ 2 ∧
+    star B * D = -(A * star B) ∧
+      ∀ (f : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))),
+        ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯)
+              f =
+            f →
+          ‖B f‖ ^ 2 = ‖f‖ ^ 2 - ‖A f‖ ^ 2
+hR₁₀ : R₁ = R₀
+hR₀R : ⇑R₀ =ᵐ[ν] ⇑R
+hR₁R : ⇑R₁ =ᵐ[ν] ⇑R
+hSource : ∀ (u : ↥(Lp ℝ 2 ν)), ↑↑(T u) =ᵐ[ν] fun y => ∫ (x : E), ↑↑u x ∂S y
+B : ↥(Lp ℝ 2 J) →L[ℝ] ↥(Lp ℝ 2 J) := (1 - P) * U.toContinuousLinearMap * P
+u : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd)
+huS : Integrable (↑↑u) (⇑S ∘ₘ ν)
+huSqS : Integrable (fun x => ↑↑u x ^ 2) (⇑S ∘ₘ ν)
+hfS : ∀ᵐ (x : E) ∂ν, Integrable (↑↑u) (S x)
+hfSqS : ∀ᵐ (x : E) ∂ν, Integrable (fun x => ↑↑u x ^ 2) (S x)
+hfs : ∀ᵐ (y : E) ∂ν, Integrable (↑↑u) (S y) ∧ Integrable (fun x => ↑↑u x ^ 2) (S y)
+hmean : ↑↑(T u) =ᵐ[ν] fun y => ∫ (x : E), ↑↑u x ∂S y
+m : E → ℝ := fun y => ∫ (x : E), ↑↑u x ∂S y
+hmLp : MemLp m 2 ν
+hsqI : Integrable (fun y => ∫ (x : E), ↑↑u x ^ 2 ∂S y) ν
+hvarEq :
+  (fun y => TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) ↑↑u) =ᵐ[ν] fun y =>
+    ∫ (x : E), ↑↑u x ^ 2 ∂S y - m y ^ 2
+hvarI : Integrable (fun y => TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) ↑↑u) ν
+⊢ Integrable (fun p => ↑↑u p.2 ^ 2) (ν ⊗ₘ S)
+AutoSamplingTheory\ExampleCases\ProximalBPS\L2MacroscopicMean.lean:215:39: error: Tactic `rewrite` failed: motive is not type correct:
+  fun _a => ∫ (x : E × E), ↑↑u x.2 ^ 2 ∂ν ⊗ₘ S = ∫ (x : E), ↑↑u x ^ 2 ∂ν
+Error: Application type mismatch: The argument
+  u
+has type
+  { x : E →ₘ[(Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd] ℝ //
+    x ∈ Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd }
+but is expected to have type
+  { x : E →ₘ[_a] ℝ // x ∈ Lp ℝ 2 _a }
+in the application
+  ↑u
+
+Explanation: The rewrite tactic rewrites an expression 'e' using an equality 'a = b' by the following process. First, it looks for all 'a' in 'e'. Second, it tries to abstract these occurrences of 'a' to create a function 'm := fun _a => ...', called the *motive*, with the property that 'm a' is definitionally equal to 'e'. Third, we observe that 'congrArg' implies that 'm a = m b', which can be used with lemmas such as 'Eq.mpr' to change the goal. However, if 'e' depends on specific properties of 'a', then the motive 'm' might not typecheck.
+
+Possible solutions: use rewrite's 'occs' configuration option to limit which occurrences are rewritten, or use 'simp' or 'conv' mode, which have strategies for certain kinds of dependencies (these tactics can handle proofs and 'Decidable' instances whose types depend on the rewritten term, and 'simp' can apply user-defined '@[congr]' theorems as well).
+
+E : Type u_1
+inst✝⁴ : NormedAddCommGroup E
+inst✝³ : InnerProductSpace ℝ E
+inst✝² : FiniteDimensional ℝ E
+inst✝¹ : MeasurableSpace E
+inst✝ : BorelSpace E
+V : E → ℝ
+α β : ℝ≥0
+η : ℝ
+hα : 0 < ↑α
+hαβ : α ≤ β
+hV : ContDiff ℝ 2 V
+hH : ∀ (x v : E), ↑α * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) v) v ∧ ((fderiv ℝ (fderiv ℝ V) x) v) v ≤ ↑β * ‖v‖ ^ 2
+hη : 0 < η
+hβη : ↑β * η ≤ 1
+μ : Measure E := ℙ.tilted fun x => -V x
+J : Measure (E × E) := Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))
+ν : Measure E := J.snd
+Λ : Measure (E × E) := Measure.map (fun p => (p.2, 2 • p.1 - p.2)) J
+F : E × E → E × E := fun p => (p.1, 2 • p.1 - p.2)
+P : ↥(Lp ℝ 2 J) →L[ℝ] ↥(Lp ℝ 2 J) :=
+  (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2 J).subtypeL ∘SL condExpL2 ℝ ℝ ⋯
+hμ : IsProbabilityMeasure (ℙ.tilted fun x => -V x)
+hJ : IsProbabilityMeasure (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))
+hν :
+  IsProbabilityMeasure
+    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd
+R S : Kernel E E
+hR : IsMarkovKernel R
+hS : IsMarkovKernel S
+hRc :
+  (Measure.map Prod.swap
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).IsCondKernel
+    R
+hSr : ∀ (y : E), S y = Measure.map (fun x => 2 • x - y) (R y)
+hSd : ∀ (y : E), S y = ℙ.tilted fun u => -V ((1 / 2) • (y + u)) - ‖y - u‖ ^ 2 / (8 * η)
+hSc :
+  (Measure.map (fun p => (p.2, 2 • p.1 - p.2))
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).IsCondKernel
+    S
+hSf :
+  (Measure.map (fun p => (p.2, 2 • p.1 - p.2))
+        (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).fst =
+    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd
+U :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))) →ₗᵢ[ℝ]
+    ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))
+hU :
+  ∀ (g : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))),
+    ↑↑(U g) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+      ↑↑g ∘ fun p => (p.1, 2 • p.1 - p.2)
+hUi : Function.Involutive ⇑U
+hUs : IsSelfAdjoint U.toContinuousLinearMap
+this✝⁷ : IsProbabilityMeasure μ := hμ
+this✝⁶ : IsProbabilityMeasure J := hJ
+this✝⁵ : IsProbabilityMeasure ν := hν
+hBA :
+  star
+        ((1 -
+              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯) *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+      ((1 -
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯) *
+          U.toContinuousLinearMap *
+        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯) =
+    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯ -
+      ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯ *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) ^
+        2
+hBD :
+  star
+        ((1 -
+              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯) *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+      ((1 -
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯) *
+          U.toContinuousLinearMap *
+        (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯)) =
+    -((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯ *
+            U.toContinuousLinearMap *
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯ *
+        star
+          ((1 -
+                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                  condExpL2 ℝ ℝ ⋯) *
+              U.toContinuousLinearMap *
+            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯))
+hdef :
+  ∀ (g : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))))),
+    ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯)
+          g =
+        g →
+      ‖((1 -
+                    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                      condExpL2 ℝ ℝ ⋯) *
+                  U.toContinuousLinearMap *
+                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                  condExpL2 ℝ ℝ ⋯)
+              g‖ ^
+          2 =
+        ‖g‖ ^ 2 -
+          ‖((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                      condExpL2 ℝ ℝ ⋯ *
+                    U.toContinuousLinearMap *
+                  (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                        (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                    condExpL2 ℝ ℝ ⋯)
+                g‖ ^
+            2
+hcompact :
+  ∀ (f : E → ℝ),
+    ContDiff ℝ ∞ f →
+      HasCompactSupport f →
+        have Tf := fun y => ∫ (u : E), f u ∂S y;
+        Differentiable ℝ Tf ∧
+          MemLp f 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+            MemLp Tf 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+              MemLp (gradient Tf) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                Integrable (fun y => TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) f)
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                  ∃ g,
+                    (↑↑g =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+                        fun p => f p.2) ∧
+                      ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                              condExpL2 ℝ ℝ ⋯)
+                            g =
+                          g ∧
+                        (↑↑(((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                            (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                              ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                        condExpL2 ℝ ℝ ⋯ *
+                                      U.toContinuousLinearMap *
+                                    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                          (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                            ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                      condExpL2 ℝ ℝ ⋯)
+                                  g) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                              ((ℙ.tilted fun x => -V x).prod (stdGaussian E))]
+                            fun p => Tf p.2) ∧
+                          ‖g‖ ^ 2 =
+                              ∫ (y : E),
+                                f y ^
+                                  2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                            ‖((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                            condExpL2 ℝ ℝ ⋯ *
+                                          U.toContinuousLinearMap *
+                                        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                              (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                          condExpL2 ℝ ℝ ⋯)
+                                      g‖ ^
+                                  2 =
+                                ∫ (y : E),
+                                  Tf y ^
+                                    2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ∧
+                              ∫ (y : E),
+                                    TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y)
+                                      f ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd =
+                                  ‖((1 -
+                                              (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                    (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                      ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                                condExpL2 ℝ ℝ ⋯) *
+                                            U.toContinuousLinearMap *
+                                          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                  ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                            condExpL2 ℝ ℝ ⋯)
+                                        g‖ ^
+                                    2 ∧
+                                η *
+                                    ∫ (y : E),
+                                      ‖gradient Tf y‖ ^
+                                        2 ∂(Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                          ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd ≤
+                                  (1 - ↑α * η) ^ 2 / (4 * (1 + ↑α * η)) *
+                                    ‖((1 -
+                                                (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                      (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                        ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                                  condExpL2 ℝ ℝ ⋯) *
+                                              U.toContinuousLinearMap *
+                                            (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                                                  (Measure.map (fun p => (p.1, p.1 + √η • p.2))
+                                                    ((ℙ.tilted fun x => -V x).prod (stdGaussian E)))).subtypeL ∘SL
+                                              condExpL2 ℝ ℝ ⋯)
+                                          g‖ ^
+                                      2
+A : ↥(Lp ℝ 2 J) →L[ℝ] ↥(Lp ℝ 2 J) := P * U.toContinuousLinearMap * P
+hp : MeasurePreserving Prod.snd J ν
+M : ↥(Lp ℝ 2 ν) →ₗᵢ[ℝ] ↥(Lp ℝ 2 J) := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp
+hM : ∀ (u : ↥(Lp ℝ 2 ν)), ↑↑(M u) =ᵐ[J] ↑↑u ∘ Prod.snd
+D :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd) →ₗ.[ℝ]
+    ↥(Lp E 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd)
+hDense : Dense ↑D.domain
+hClose : D.IsClosable
+hClosed : D.closure.IsClosed
+hGraph :
+  ∀ (u : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd))
+    (v : ↥(Lp E 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd)),
+    (u, v) ∈ D.graph ↔
+      ∃ f,
+        ContDiff ℝ ∞ f ∧
+          HasCompactSupport f ∧
+            ↑↑u =ᵐ[(Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd] f ∧
+              ↑↑v =ᵐ[(Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))).snd] gradient f
+hCore : ∀ u ∈ D.domain, P (M u) = M u ∧ A (M u) ∈ M.range
+hPM : ∀ (u : ↥(Lp ℝ 2 ν)), P (M u) = M u
+hAM : ∀ (u : ↥(Lp ℝ 2 ν)), A (M u) ∈ M.range
+Ar : ↥(Lp ℝ 2 ν) →L[ℝ] ↥M.range := (A ∘SL M.toContinuousLinearMap).codRestrict M.range hAM
+T : ↥(Lp ℝ 2 ν) →L[ℝ] ↥(Lp ℝ 2 ν) := ↑↑M.equivRange.symm ∘SL Ar
+hMT : ∀ (u : ↥(Lp ℝ 2 ν)), M (T u) = A (M u)
+hPn : ∀ (v : ↥(Lp ℝ 2 J)), ‖P v‖ ≤ ‖v‖
+hTn : ∀ (u : ↥(Lp ℝ 2 ν)), ‖T u‖ ≤ ‖u‖
+this✝⁴ : IsMarkovKernel R := hR
+this✝³ : IsMarkovKernel S := hS
+this✝² : (Measure.map Prod.swap J).IsCondKernel R := hRc
+this✝¹ : Λ.IsCondKernel S := hSc
+hFi : Function.Involutive fun p => (p.1, 2 • p.1 - p.2)
+hFmap :
+  Measure.map (fun p => (p.1, 2 • p.1 - p.2)) (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))) =
+    Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))
+hFm : Measurable F
+hFp : MeasurePreserving F J J
+hΛsnd : Λ.snd = ν
+hstation : ⇑S ∘ₘ ν = ν
+R₀ : Kernel E E
+hR₀ : IsMarkovKernel R₀
+hR₀d : ∀ (y : E), R₀ y = μ.tilted fun x => -‖x - y‖ ^ 2 / (2 * η)
+hR₀c : (Measure.map Prod.swap (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).IsCondKernel R₀
+this✝ : IsMarkovKernel R₀ := hR₀
+this : (Measure.map Prod.swap J).IsCondKernel R₀ := hR₀c
+R₁ : Kernel E E
+hR₁ : IsMarkovKernel R₁
+hR₁d : ∀ (y : E), R₁ y = μ.tilted fun x => -‖x - y‖ ^ 2 / (2 * η)
+U₁ :
+  ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))) →ₗᵢ[ℝ]
+    ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))
+hU₁ :
+  ∀ (f : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))),
+    ↑↑(U₁ f) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))]
+      ↑↑f ∘ fun p => (p.1, 2 • p.1 - p.2)
+hUi₁ : Function.Involutive ⇑U₁
+hUs₁ : IsSelfAdjoint U₁.toContinuousLinearMap
+hPk :
+  ∀ (f : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))),
+    ↑↑(((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                  (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+              condExpL2 ℝ ℝ ⋯)
+            f) =ᵐ[Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))]
+      fun p => ∫ (x : E), ↑↑f (x, p.2) ∂R₁ p.2
+hAlgebra₁ :
+  have A :=
+    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯ *
+        U₁.toContinuousLinearMap *
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯;
+  have B :=
+    (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+        U₁.toContinuousLinearMap *
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+            (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+        condExpL2 ℝ ℝ ⋯;
+  have D :=
+    (1 -
+          (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+            condExpL2 ℝ ℝ ⋯) *
+        U₁.toContinuousLinearMap *
+      (1 -
+        (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯);
+  star B * B =
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+              (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+          condExpL2 ℝ ℝ ⋯ -
+        A ^ 2 ∧
+    star B * D = -(A * star B) ∧
+      ∀ (f : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))))),
+        ((lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd inferInstance) 2
+                    (Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E)))).subtypeL ∘SL
+                condExpL2 ℝ ℝ ⋯)
+              f =
+            f →
+          ‖B f‖ ^ 2 = ‖f‖ ^ 2 - ‖A f‖ ^ 2
+hR₁₀ : R₁ = R₀
+hR₀R : ⇑R₀ =ᵐ[ν] ⇑R
+hR₁R : ⇑R₁ =ᵐ[ν] ⇑R
+hSource : ∀ (u : ↥(Lp ℝ 2 ν)), ↑↑(T u) =ᵐ[ν] fun y => ∫ (x : E), ↑↑u x ∂S y
+B : ↥(Lp ℝ 2 J) →L[ℝ] ↥(Lp ℝ 2 J) := (1 - P) * U.toContinuousLinearMap * P
+u : ↥(Lp ℝ 2 (Measure.map (fun p => (p.1, p.1 + √η • p.2)) ((ℙ.tilted fun x => -V x).prod (stdGaussian E))).snd)
+huS : Integrable (↑↑u) (⇑S ∘ₘ ν)
+huSqS : Integrable (fun x => ↑↑u x ^ 2) (⇑S ∘ₘ ν)
+hfS : ∀ᵐ (x : E) ∂ν, Integrable (↑↑u) (S x)
+hfSqS : ∀ᵐ (x : E) ∂ν, Integrable (fun x => ↑↑u x ^ 2) (S x)
+hfs : ∀ᵐ (y : E) ∂ν, Integrable (↑↑u) (S y) ∧ Integrable (fun x => ↑↑u x ^ 2) (S y)
+hmean : ↑↑(T u) =ᵐ[ν] fun y => ∫ (x : E), ↑↑u x ∂S y
+m : E → ℝ := fun y => ∫ (x : E), ↑↑u x ∂S y
+hmLp : MemLp m 2 ν
+hsqI : Integrable (fun y => ∫ (x : E), ↑↑u x ^ 2 ∂S y) ν
+hvarEq :
+  (fun y => TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) ↑↑u) =ᵐ[ν] fun y =>
+    ∫ (x : E), ↑↑u x ^ 2 ∂S y - m y ^ 2
+hvarI : Integrable (fun y => TechnicalLemmas.FunctionalInequalities.Poincare.variance (S y) ↑↑u) ν
+hj : Integrable (fun p => ↑↑u p.2 ^ 2) (ν ⊗ₘ S)
+⊢ ∫ (x : E × E), ↑↑u x.2 ^ 2 ∂ν ⊗ₘ S = ∫ (x : E), ↑↑u x ^ 2 ∂ν
+AutoSamplingTheory\ExampleCases\ProximalBPS\L2MacroscopicMean.lean:231:36: error(lean.invalidField): Invalid field `fun_pow`: The environment does not contain `Eq.fun_pow`, so it is not possible to project the field `fun_pow` from an expression
+  hmean
+of type
+  ν {x | (fun x => ↑↑(T u) x = (fun y => ∫ (x : E), ↑↑u x ∂S y) x) x}ᶜ = 0

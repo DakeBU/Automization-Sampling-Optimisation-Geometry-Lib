@@ -1,0 +1,69 @@
+AutoSamplingTheory\TechnicalLemmas\FunctionalInequalities\GaussianMarginalGradient.lean:63:29: error(lean.unknownIdentifier): Unknown identifier `lintegral_univ`
+AutoSamplingTheory\TechnicalLemmas\FunctionalInequalities\GaussianMarginalGradient.lean:63:4: error: Type mismatch: After simplification, term
+  Eq.symm hm
+ has type
+  ∫⁻ (a : E) in Set.univ, ENNReal.ofReal (ρ a) = 1
+but is expected to have type
+  ∫⁻ (y : E), ENNReal.ofReal (ρ y) = 1
+AutoSamplingTheory\TechnicalLemmas\FunctionalInequalities\GaussianMarginalGradient.lean:79:6: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  ν
+in the target expression
+  let J := Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E));
+  let ν := J.snd;
+  ∃ D,
+    Dense ↑D.domain ∧
+      D.IsClosable ∧
+        D.closure.IsClosed ∧
+          ∀ (u : ↥(Lp ℝ 2 ν)) (v : ↥(Lp E 2 ν)),
+            (u, v) ∈ D.graph ↔ ∃ f, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧ ↑↑u =ᵐ[ν] f ∧ ↑↑v =ᵐ[ν] gradient f
+
+E : Type u_1
+inst✝⁵ : NormedAddCommGroup E
+inst✝⁴ : InnerProductSpace ℝ E
+inst✝³ : FiniteDimensional ℝ E
+inst✝² : MeasurableSpace E
+inst✝¹ : BorelSpace E
+μ : Measure E
+inst✝ : IsProbabilityMeasure μ
+η : ℝ
+hη : 0 < η
+J : Measure (E × E) := Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E))
+ν : Measure E := J.snd
+C : ℝ := (√(2 * Real.pi * η))⁻¹ ^ Module.finrank ℝ E
+Z : E → ℝ := fun y => ∫ (x : E), Real.exp (-‖y - x‖ ^ 2 / (2 * η)) ∂μ
+ρ : E → ℝ := fun y => C * Z y
+W : E → ℝ := fun y => -Real.log (ρ y)
+hpair : Measurable fun p => (p.1, p.1 + √η • p.2)
+this✝ : IsProbabilityMeasure J := Measure.isProbabilityMeasure_map (Measurable.aemeasurable hpair)
+this : IsProbabilityMeasure ν := Measure.isProbabilityMeasure_map (Measurable.aemeasurable measurable_snd)
+hmap : ν = Measure.map (fun p => p.1 + √η • p.2) (μ.prod (stdGaussian E))
+hdensity :
+  Measure.map (fun p => p.1 + √η • p.2) (μ.prod (stdGaussian E)) =
+    ℙ.withDensity fun y =>
+      ENNReal.ofReal
+        ((√(2 * Real.pi * η))⁻¹ ^ Module.finrank ℝ E * (fun y => ∫ (x : E), Real.exp (-‖y - x‖ ^ 2 / (2 * η)) ∂μ) y)
+hpos :
+  ∀ (y : E),
+    0 < (√(2 * Real.pi * η))⁻¹ ^ Module.finrank ℝ E * (fun y => ∫ (x : E), Real.exp (-‖y - x‖ ^ 2 / (2 * η)) ∂μ) y
+hZ : ContDiff ℝ 2 fun y => ∫ (x : E), Real.exp (-‖y - x‖ ^ 2 / (2 * η)) ∂μ
+hW :
+  ContDiff ℝ 2 fun y =>
+    -Real.log
+        ((√(2 * Real.pi * η))⁻¹ ^ Module.finrank ℝ E * (fun y => ∫ (x : E), Real.exp (-‖y - x‖ ^ 2 / (2 * η)) ∂μ) y)
+hνdensity : ν = ℙ.withDensity fun y => ENNReal.ofReal (ρ y)
+hρ : Continuous[PseudoMetricSpace.toUniformSpace.toTopologicalSpace, _] ρ
+hnn : 0 ≤ᵐ[ℙ] ρ
+hmass : ∫⁻ (y : E), ENNReal.ofReal (ρ y) = 1
+hI : Integrable ρ ℙ
+hnorm : ∫ (y : E), ρ y = 1
+hexp : ∀ (y : E), Real.exp (-W y) = ρ y
+hWI : Integrable (fun y => Real.exp (-W y)) ℙ
+htilt : (ℙ.tilted fun y => -W y) = ν
+⊢ let J := Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (stdGaussian E));
+  let ν := J.snd;
+  ∃ D,
+    Dense ↑D.domain ∧
+      D.IsClosable ∧
+        D.closure.IsClosed ∧
+          ∀ (u : ↥(Lp ℝ 2 ν)) (v : ↥(Lp E 2 ν)),
+            (u, v) ∈ D.graph ↔ ∃ f, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧ ↑↑u =ᵐ[ν] f ∧ ↑↑v =ᵐ[ν] gradient f

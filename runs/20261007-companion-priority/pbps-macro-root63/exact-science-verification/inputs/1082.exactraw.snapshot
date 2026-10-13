@@ -1,0 +1,166 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EnergyPathContinuity
+
+/-!
+# Completed accumulated-energy process
+
+Almost-sure path integrability is enough for localization, but a stopping-time
+construction needs a representative whose paths are continuous and monotone
+for every sample point.  Under the usual completeness condition, the null set
+of bad paths is measurable at every time, so replacing those paths by zero
+preserves adaptedness.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace CompletedEnergy
+
+open MeasureTheory Set
+open scoped NNReal
+
+open ProgressiveL2 LocalProgressiveL2 EnergyPathContinuity
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- Sample points whose squared integrand is not time-integrable. -/
+def badEnergySet
+    (eta : LocalProgressiveL2Integrand filtration mu T) : Set Omega :=
+  {omega | ¬Integrable (fun s => (eta.process s omega) ^ 2)
+    (TimeMeasure.upTo T)}
+
+/-- The bad path set is null by the source local-square-integrability
+assumption. -/
+theorem measure_badEnergySet_zero
+    (eta : LocalProgressiveL2Integrand filtration mu T) :
+    mu (badEnergySet eta) = 0 := by
+  have hgood := sectionSquare_integrable_ae eta
+  rw [ae_iff] at hgood
+  simpa [badEnergySet] using hgood
+
+/-- The bad set belongs to every time sigma-algebra under the usual
+completeness condition. -/
+theorem measurableSet_badEnergySet
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T) (t : ℝ≥0) :
+    MeasurableSet[filtration t] (badEnergySet eta) :=
+  hUsual.completeAt t (badEnergySet eta) (measure_badEnergySet_zero eta)
+
+/-- Accumulated energy with all bad paths replaced by the zero path. -/
+noncomputable def completedEnergy
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (t : ℝ≥0) : Omega → ℝ := by
+  classical
+  exact fun omega =>
+    if omega ∈ badEnergySet eta then 0 else accumulatedEnergyReal eta t omega
+
+/-- Fixed-time completed energy is strongly measurable at the observation
+time. -/
+theorem completedEnergy_stronglyMeasurable
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T) (t : ℝ≥0) :
+    StronglyMeasurable[filtration t] (completedEnergy hUsual eta t) := by
+  classical
+  have henergy : StronglyMeasurable[filtration t]
+      (accumulatedEnergyReal eta t) :=
+    (accumulatedEnergyReal_stronglyMeasurable eta t).mono
+      (filtration.mono (min_le_left t T))
+  change StronglyMeasurable[filtration t]
+    (fun omega =>
+      if omega ∈ badEnergySet eta then 0 else accumulatedEnergyReal eta t omega)
+  exact StronglyMeasurable.ite
+    (measurableSet_badEnergySet hUsual eta t)
+    stronglyMeasurable_const henergy
+
+/-- Every completed energy path is continuous. -/
+theorem continuous_completedEnergy
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (omega : Omega) :
+    Continuous (fun t => completedEnergy hUsual eta t omega) := by
+  classical
+  by_cases hbad : omega ∈ badEnergySet eta
+  · have hzero :
+        (fun t => completedEnergy hUsual eta t omega) =
+          fun _ : ℝ≥0 => (0 : ℝ) := by
+      funext t
+      simp [completedEnergy, hbad]
+    rw [hzero]
+    exact continuous_const
+  · have homega : Integrable (fun s => (eta.process s omega) ^ 2)
+        (TimeMeasure.upTo T) := by
+      change ¬ ¬Integrable (fun s => (eta.process s omega) ^ 2)
+        (TimeMeasure.upTo T) at hbad
+      exact Classical.not_not.mp hbad
+    have hcontinuous :=
+      continuous_accumulatedEnergyReal_of_integrable eta omega homega
+    convert hcontinuous using 1
+    funext t
+    simp [completedEnergy, hbad]
+
+/-- Every completed energy path is monotone. -/
+theorem monotone_completedEnergy
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (omega : Omega) :
+    Monotone (fun t => completedEnergy hUsual eta t omega) := by
+  classical
+  intro s t hst
+  by_cases hbad : omega ∈ badEnergySet eta
+  · simp [completedEnergy, hbad]
+  · have homega : Integrable (fun u => (eta.process u omega) ^ 2)
+        (TimeMeasure.upTo T) := by
+      change ¬ ¬Integrable (fun u => (eta.process u omega) ^ 2)
+        (TimeMeasure.upTo T) at hbad
+      exact Classical.not_not.mp hbad
+    simpa only [completedEnergy, if_neg hbad] using
+      accumulatedEnergyReal_mono_of_integrable eta omega homega hst
+
+@[simp] theorem completedEnergy_zero
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (omega : Omega) :
+    completedEnergy hUsual eta 0 omega = 0 := by
+  classical
+  by_cases hbad : omega ∈ badEnergySet eta
+  · simp [completedEnergy, hbad]
+  · simp [completedEnergy, hbad, accumulatedEnergyReal_zero]
+
+/-- Completed energy is nonnegative. -/
+theorem completedEnergy_nonneg
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (t : ℝ≥0) (omega : Omega) :
+    0 ≤ completedEnergy hUsual eta t omega := by
+  rw [← completedEnergy_zero hUsual eta omega]
+  exact monotone_completedEnergy hUsual eta omega zero_le
+
+/-- Completed energy stabilizes after the terminal horizon. -/
+theorem completedEnergy_eq_terminal_of_le
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (omega : Omega) {t : ℝ≥0} (hTt : T ≤ t) :
+    completedEnergy hUsual eta t omega =
+      completedEnergy hUsual eta T omega := by
+  classical
+  by_cases hbad : omega ∈ badEnergySet eta
+  · simp [completedEnergy, hbad]
+  · simpa only [completedEnergy, if_neg hbad] using
+      accumulatedEnergyReal_eq_terminal_of_le eta omega hTt
+
+/-- Fixed-time threshold events for completed energy are measurable at the
+observation time. -/
+theorem measurableSet_completedEnergy_ge
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (c : ℝ) (t : ℝ≥0) :
+    MeasurableSet[filtration t]
+      {omega | c ≤ completedEnergy hUsual eta t omega} :=
+  measurableSet_Ici.preimage
+    (completedEnergy_stronglyMeasurable hUsual eta t).measurable
+
+end CompletedEnergy
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

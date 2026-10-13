@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-56a67d92e1333792",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let U : E → E → (E × E) → (ℕ → ℝ) → WithTop ℝ≥0 :=\n      fun y xRef z sample => τ y xRef z (ε sample 0)\n    let F : E → E → (E × E) → (ℕ → ℝ) → ℝ :=\n      fun y xRef z sample => ((U y xRef z sample).untopD 0 : ℝ≥0)\n    let A : E → E → (E × E) → ℝ≥0 → Set (ℕ → ℝ) :=\n      fun y xRef z T => {sample | (0 : WithTop ℝ≥0) < U y xRef z sample ∧\n        U y xRef z sample ≤ (T : WithTop ℝ≥0)}\n    let d : E → E → (E × E) → ℝ → ℝ := fun y xRef z s =>\n      rate xRef (Φ y xRef s z) * Real.exp (-Λ y xRef z (Real.toNNReal s))\n    let ρ : E → E → (E × E) → ℝ≥0 → Measure ℝ := fun y xRef z T =>\n      (volume.restrict (Set.Ioc (0 : ℝ) (T : ℝ))).withDensity\n        (fun s => ENNReal.ofReal (d y xRef z s))\n    let J : E → E → (E × E) → ℝ → (ℝ≥0 × (E × E)) :=\n      fun y xRef z s => (Real.toNNReal s, S xRef (Φ y xRef s z))\n    ∀ y xRef : E, ∀ z : E × E,\n      Measurable (U y xRef z) ∧ Measurable (F y xRef z) ∧\n      Measurable (J y xRef z) ∧\n      (∀ T : ℝ≥0,\n        MeasurableSet (A y xRef z T) ∧\n        Measure.map (F y xRef z) (P.restrict (A y xRef z T)) = ρ y xRef z T ∧\n        Measure.map (fun sample => J y xRef z (F y xRef z sample))\n          (P.restrict (A y xRef z T)) = Measure.map (J y xRef z) (ρ y xRef z T) ∧\n        IsFiniteMeasure (ρ y xRef z T) ∧\n        (ρ y xRef z T).real Set.univ = 1 - Real.exp (-Λ y xRef z T) ∧\n        ρ y xRef z T Set.univ ≤ 1 ∧\n        (∀ h : (ℝ≥0 × (E × E)) → ℝ, Measurable h →\n          ∀ M : ℝ, 0 ≤ M → (∀ a, |h a| ≤ M) →\n            Integrable h (Measure.map (J y xRef z) (ρ y xRef z T)) ∧\n            Integrable (fun sample => h (J y xRef z (F y xRef z sample)))\n              (P.restrict (A y xRef z T)) ∧\n            Integrable (fun s => h (J y xRef z s) * d y xRef z s)\n              (volume.restrict (Set.Ioc (0 : ℝ) (T : ℝ))) ∧\n            (∫ sample, h (J y xRef z (F y xRef z sample))\n                ∂P.restrict (A y xRef z T)) =\n              ∫ s, h (J y xRef z s) * d y xRef z s\n                ∂volume.restrict (Set.Ioc (0 : ℝ) (T : ℝ))))\n",
+    "statement_sha256": "56a67d92e1333792bf0b914b093b344ce8b029b07bb1aa6a9bbd9701470f59ed",
+    "compiled": true,
+    "approved_definition_context": [
+      "The displayed functions are literal definitions on a finite-dimensional real inner-product space with its Borel measurable structure; dimension zero is allowed. fderiv means Frechet derivative, gradient means the real inner-product gradient, and ContDiff real 2 means twice continuously differentiable.",
+      "expMeasure 1 is the rate-one exponential measure on the real line. infinitePi is the canonical countable product on all real sequences. toNNReal is max(x,0) as a nonnegative real. WithTop NNReal includes infinity; untopD 0 returns the finite value when finite and zero at infinity.",
+      "hittingAfter f C 0 a is the infimum of nonnegative times when f(t)(a) belongs to C, with infinity for an empty hit set. Real division is total, with division by zero equal to zero. Products associate to the right.",
+      "Measure.restrict keeps the indicated event without dividing by its mass. Measure.map is measurable pushforward. volume is Lebesgue measure on the real line; withDensity weights a measure by an extended nonnegative density. ENNReal.ofReal is max(x,0) represented as an extended nonnegative real.",
+      "Measure.real evaluates measure and converts its mass to a real number; IsFiniteMeasure asserts finite total mass. Integrable denotes Bochner L1 integrability, and the real integrals are Bochner integrals under the explicitly displayed measures. Measurable means Borel measurable for the displayed spaces."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "eaeaa3182a52d5323b6a90cb8d1d0b9130907f387577936d534147cd6237e21c"
+}

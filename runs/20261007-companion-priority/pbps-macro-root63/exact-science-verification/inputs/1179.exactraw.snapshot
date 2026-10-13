@@ -1,0 +1,86 @@
+import Mathlib.Analysis.Calculus.FDeriv.Basic
+import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
+import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Analysis.Normed.Module.Multilinear.Basic
+import Mathlib.LinearAlgebra.FiniteDimensional.Basic
+
+/-!
+# ASTIS-native Taylor and Hessian technical lemmas
+
+These are small reusable bridges for translating paper-level smoothness fields
+into Lean-facing derivative and normalization facts.  They are local ASTIS
+lemmas, not imports from an external project.
+
+New code should prefer the Mathlib-style re-export path
+`AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Taylor`.  This file
+remains the compatibility source for the compiled declarations.
+-/
+
+noncomputable section
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Taylor
+
+open scoped BigOperators
+
+/-- A source-backed Hessian representative supplies the operator-norm bound on
+`fderiv (fderiv f)`.
+
+This is the reusable version of a SALD Brownian/Ito bridge: once source
+correspondence gives a Hessian field and a uniform bound for it, downstream
+proofs should consume this lemma rather than re-assuming the final operator
+bound.
+-/
+theorem hessianOpNormOfSourceHessianField
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (f : E → ℝ)
+    (sourceHessian : E → E →L[ℝ] (E →L[ℝ] ℝ))
+    (C : ℝ)
+    (hSourceHasHessian :
+      ∀ z : E, HasFDerivAt (fderiv ℝ f) (sourceHessian z) z)
+    (hSourceHessianBound :
+      ∀ z : E, ‖sourceHessian z‖ ≤ C) :
+    ∀ z : E, ‖fderiv ℝ (fderiv ℝ f) z‖ ≤ C := by
+  intro z
+  rw [(hSourceHasHessian z).fderiv]
+  exact hSourceHessianBound z
+
+/-- Convert an operator-norm bound on `fderiv (fderiv f)` to the corresponding
+Mathlib `iteratedFDeriv` bound of order two. -/
+theorem iteratedFDerivTwoOpNormOfFDerivFDerivOpNorm
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (f : E → ℝ) (C : ℝ)
+    (hHessianOpNorm :
+      ∀ z : E, ‖fderiv ℝ (fderiv ℝ f) z‖ ≤ C) :
+    ∀ z : E, ‖iteratedFDeriv ℝ 2 f z‖ ≤ C := by
+  intro z
+  have hnorm :
+      ‖iteratedFDeriv ℝ 2 f z‖ =
+        ‖fderiv ℝ (fderiv ℝ f) z‖ := by
+    rw [← one_add_one_eq_two]
+    rw [← norm_iteratedFDeriv_fderiv (𝕜 := ℝ) (f := f) (x := z) (n := 1)]
+    rw [norm_iteratedFDeriv_one]
+  rw [hnorm]
+  exact hHessianOpNorm z
+
+/-- Standard orthonormal-basis vectors are unit directions. -/
+theorem stdOrthonormalBasisUnit
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] (i : Fin (Module.finrank ℝ E)) :
+    ‖(stdOrthonormalBasis ℝ E) i‖ ≤ (1 : ℝ) := by
+  rw [OrthonormalBasis.norm_eq_one]
+
+/-- Algebraic packaging for quadratic-variation normalization. -/
+theorem quadraticVariationNormalizationOfCoeffDefAndVarianceOne
+    {α : Type*}
+    (quadraticCoeff variance generator : α → ℝ)
+    (hQuadraticCoeffDef : ∀ a, quadraticCoeff a = generator a)
+    (hVarianceOne : ∀ a, variance a = 1) :
+    ∀ a, quadraticCoeff a * variance a = generator a := by
+  intro a
+  rw [hQuadraticCoeffDef a, hVarianceOne a, mul_one]
+
+end Taylor
+end TechnicalLemmas
+end AutoSamplingTheory

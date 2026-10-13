@@ -1,0 +1,71 @@
+SOURCE-BLIND THEOREM RECONSTRUCTION
+
+Ambient data and assumptions.
+Let E be any normed additive commutative group with a real inner-product space structure, finite dimension over R, and a measurable structure identified with its Borel sigma-algebra. Let V:E→R, α,β∈R≥0 and η∈R. Assume α>0, α≤β, V is twice continuously differentiable, and for every x,v∈E,
+ α||v||² ≤ D²V(x)[v,v] ≤ β||v||².
+The expression D²V means the Frechet derivative of the derivative-valued map evaluated successively on v and v. Assume η>0 and βη≤1. Dimension zero is allowed; no third or higher derivative hypothesis is present. These are all the outer hypotheses.
+
+Mechanical definitions.
+Write r for xRef and g=∇V. For y,r∈E define c=y−ηg(r). For every a∈R and z=(x,v)∈E×E set
+ Φ(y,r,a,z)=(c+cos(a)(x−c)+sqrt(η)sin(a)v,
+             −sin(a)/sqrt(η)(x−c)+cos(a)v).
+For δ=g(x)−g(r), define
+ S(r,z)=(x,v−[2<v,δ>/||δ||²]δ),
+ λ(r,z)=sqrt(η)max(0,<v,δ>).
+Division is total with zero denominator giving zero, hence S(z)=z when δ=0. The flow denominator sqrt(η) is positive by hypothesis. The intensity contains exactly sqrt(η); the trigonometric frequency in displayed time is exactly one.
+For u∈R≥0 define the real interval integral Λ(y,r,z,u)=∫_0^u λ(r,Φ(y,r,a,z)) da. For e∈R≥0 define τ(y,r,z,e)∈WithTop(R≥0) as the infimum of all u≥0 such that Λ(y,r,z,u)−e≥0, with infinity if this hitting set is empty. The threshold inequality is non-strict.
+Let Rec=(R≥0×(E×E))⊕Unit. Denote its left elements by Live(a,z) and the unique right element by Dead. Define next(y,r,e,Dead)=Dead. For Live(a,z), next is Dead if τ(y,r,z,e)=infinity; otherwise it is Live(a+τ,S(r,Φ(y,r,τ,z))). In the formal finite branch τ is extracted with untopD 0. For any e:N→R≥0 define the finite recursion R_0=Live(0,z0), R_(k+1)=next(y,r,e_k,R_k).
+The probability space is Ω=N→R with its coordinate-product sigma-algebra and P=⊗_(k∈N)Exp(rate=1). Define ε_k(w)=Real.toNNReal(w_k)=max(w_k,0), represented in R≥0. All raw real sequences remain in Ω, even sequences with zero or negative coordinates. Unless indicated otherwise R_j(w) is the recursion with e=ε(w). Define eventTime_j(w) to be the time a embedded in WithTop(R≥0) if R_j(w)=Live(a,z), and infinity if R_j(w)=Dead. Define
+ I_(T,n)={w:eventTime_n(w)≤T<eventTime_(n+1)(w)}.
+In particular eventTime_0=0 exactly. There is no event-count function in the displayed definitions.
+
+Finite-prefix objects.
+Hist_n=Fin(n+1)→Rec. For n∈N,T∈R≥0 let Prefix_(n,T) be the subtype of t∈R^n for which (0,t_0,...,t_(n−1)) is strictly increasing and every t_i<T. When n>0 this means 0<t_0<...<t_(n−1)<T. For n=0 both conditions are vacuous. Let m_(n,T) be the comap of finite-product Lebesgue measure on R^n under the subtype inclusion, i.e. Lebesgue measure restricted to this region and pulled back to the subtype. It is not a normalized probability measure.
+Write u_0=0 and u_(i+1)=t_i, 0≤i<n. For each admissible prefix set
+ z_0=z0,
+ z_(i+1)=S(r,Φ(y,r,u_(i+1)−u_i,z_i)), 0≤i<n.
+Thus z_j is the post-reflection state at positive event index j. Define K_n(t)_j=Live(Real.toNNReal(u_j),z_j), 0≤j≤n. On this domain u_j≥0, so clipping has no effect, and K_n(t)_0=Live(0,z0).
+Path_T is the full function space {s∈R≥0:s≤T}→E×E with its coordinate-product sigma-algebra. No path-space topology is supplied. For any h∈Hist_n define Ψ(y,r,z0,n,T,h)(s) by scanning indices j=0,...,n in order, starting with accumulator z0. At Live(a,z) with a≤s replace the accumulator by Φ(y,r,((s−a):R≥0),z), where subtraction truncates at zero; at all other records leave the accumulator unchanged. The last eligible index wins, which for an unordered arbitrary history need not be the greatest recorded time. Define Γ(y,r,z0,n,T,t)=Ψ(y,r,z0,n,T,K_n(t)).
+For use under the real time integral define the clamped evaluation γ_t(s)=Γ(t)(min(Real.toNNReal(s),T)); its argument carries the proof of being ≤T. It agrees with Γ on [0,T] and is constant outside that interval. For a valid prefix, Γ selects the most recent supplied event, using its post-reflection state at the event instant. Before event t_i the preceding flow state is Φ(y,r,t_i−u_i,z_i).
+Define the REAL weight
+ wgt_n(t)=exp(−∫_0^T λ(r,γ_t(s)) ds)
+           ×∏_(i=0)^(n−1) λ(r,Φ(y,r,t_i−u_i,z_i)).
+The product is over pre-event intensities, and the exponent is the rate integrated over the whole finite-horizon reconstructed path, including its final interval after the last supplied event. Empty finite products equal one. The weight is a finite nonnegative real by the literal operations; the real integral is a Lean totalized integral operation. This statement does not separately state IntervalIntegrable for its time integrand, so no such additional conjunct is silently inserted here.
+
+Existential trajectory and raw laws.
+For every admissible outer E,V,α,β,η there exists ONE function
+ Z:E→E→(E×E)→R≥0→Ω→E×E
+satisfying all the following simultaneously:
+(1) Z is jointly measurable in the complete tuple (y,r,z0,s,w) for the stated product measurable structures.
+(2) For EVERY y,r∈E,z0∈E×E,w∈Ω,s∈R≥0,n∈N and a∈R≥0×(E×E), if w∈I_(s,n) and R_n(w)=Live(a.time,a.state), then
+ Z(y,r,z0,s,w)=Φ(y,r,((s−a.time):R≥0),a.state).
+This is a raw pointwise implication for all inputs, with nonnegative truncated subtraction coerced to real flow time.
+(3) For EVERY y,r,z0,w,s, if no n satisfies w∈I_(s,n), then Z(y,r,z0,s,w)=z0.
+(4) For EVERY fixed y,r,z0, Z(y,r,z0,0,w)=z0 for P-almost every w. This initialization is not stated pointwise on all raw w.
+
+Bounded path-functional series theorem.
+For EVERY fixed y,r∈E,z0∈E×E and T∈R≥0, define ZT:Ω→Path_T by ZT(w)(s)=Z(y,r,z0,s,w). For EVERY F:Path_T→R with Measurable F, and for EVERY M∈R satisfying M≥0 and |F(p)|≤M for EVERY p∈Path_T, all four of the following hold:
+(5) w↦F(ZT(w)) is Bochner integrable with respect to P.
+(6) For EVERY n∈N, t↦F(Γ(y,r,z0,n,T,t))wgt_n(t) is Bochner integrable with respect to m_(n,T).
+(7) The real sequence
+ n↦|∫_(Prefix_(n,T)) F(Γ(y,r,z0,n,T,t))wgt_n(t) dm_(n,T)(t)|
+is Summable. This explicitly gives absolute convergence of the SERIES OF THE SIGNED COMPONENT INTEGRALS.
+(8) The expectation equals the unconditional real sum
+ ∫_Ω F(ZT(w)) dP(w)
+ = Σ'_(n∈N) ∫_(Prefix_(n,T)) F(Γ(y,r,z0,n,T,t))wgt_n(t) dm_(n,T)(t).
+These are real Bochner integrals, not extended-nonnegative integrals. F may have either sign; no nonnegativity assumption is made. The global bound is on ALL paths in Path_T, not merely on sampled paths, almost surely, or on the images of Γ. The constant M is quantified after F and its measurability; the claim holds for every bound M satisfying the premises. There is no numerical remainder/error bound in this sum formula.
+
+Quantifier order, measurable structures and scope.
+Outer data and their hypotheses come first; all displayed local definitions follow; one Z is chosen; then raw rules, fixed-parameter AE initialization, and the universal y,r,z0,T,F,M conclusion follow. The n quantifier in (6) is internal to that conclusion; the summation in (7) and (8) ranges over all natural n. There is no choice of a different Z for each horizon or each F. Joint measurability in (1) and fixed-coordinate evaluation imply measurability of each ZT into the coordinate-product path sigma-algebra, but the statement does not list this as a separate conjunct.
+Measurable F is relative to that coordinate-product sigma-algebra, not an unstated uniform or Skorokhod path topology. No arbitrary uncountable-time event or general jointly measurable evaluation map on an arbitrary path function space is assumed. The BorelSpace assumption is on E; all function spaces use their supplied coordinate-product structure.
+The only AE assertion explicitly displayed is initialization (4), with y,r,z0 outside the AE quantifier. No common full-measure set for uncountably many initial parameters is asserted. The expectation formula is a measure integral identity, not an equality holding for each raw input sequence. No finite-count partition, count-cardinality equality, count law, no-event-at-T clause, or nonexplosion assertion is stated as a separate conclusion. An event-count probabilistic interpretation of individual n terms must not be imported from elsewhere.
+The statement guarantees absolute integrability of each real integrand in (5) and (6), and summability of absolute values of component integrals in (7). It does not literally display summability of the integrals of absolute values, nor an unbounded-functional extension. Such additional deductions would need an argument using the asserted bounded-functional theorem; they are not substituted for its exact wording. Taking F=1,M=1 does yield, as a corollary of this theorem and P being a probability measure, that the nonnegative component masses ∫wgt_n dm_(n,T) sum to one. Individual m_(n,T) remains unnormalized; no conditioning or division by a component probability appears.
+
+Raw totalizations and boundary cases.
+An infinite τ produces a dead next record and all later records remain dead. It does not stop the physical flow: at any finite s between the last live event and its infinite successor, I brackets s and (2) continues Φ from that last state. On any raw input/time lacking a bracket, (3) sets Z=z0. Zero or negative raw exponential coordinates clip to zero and can cause immediate coincident transitions. There is no raw strict-increase premise or universal raw nonexplosion guarantee. The finite-prefix integration variables, by contrast, are strictly ordered interior times. Thresholds e=0 satisfy τ=0 because Λ(0)=0; if the hazard is identically zero, positive e gives τ=infinity.
+Zero events: Prefix_(0,T) is a singleton for every T; its zero-dimensional product-volume mass is one. K_0 is Live(0,z0), Γ_0(s)=Φ(y,r,s,z0), the event product is one, and wgt_0=exp(−∫_0^T λ(r,Φ(y,r,s,z0)) ds). The n=0 series term is that weight times F of the deterministic no-supplied-event path. This does not by itself assert a named count-event probability.
+Zero horizon: for n>0, Prefix_(n,0) is empty; all corresponding integrals are zero. For n=0,T=0 the sole reconstructed prefix path is the function on the one-point time domain taking value z0, the integral in the exponent is zero, wgt_0=1, and the n=0 contribution is F of that path. The asserted AE initialization makes F(ZT)=that value almost surely. All degenerate-domain integrability statements remain meaningful.
+Zero dimension: E and E×E each have one point; all gradients, rates and hazards vanish, and flow/reflection preserve that point. Scalar assumptions still hold. wgt_0=1 and wgt_n=0 for n>0; Path_T is a singleton, and the expectation is F of the unique path. For positive thresholds waits are infinite; raw zero thresholds have wait zero. Almost surely all countably many exponential coordinates are positive, but this is a consequence of the defined input law rather than a separately displayed theorem conjunct.
+Zero rate or zero gradient difference: any vanishing pre-event rate factor forces wgt_n=0 even if the prefix remains admissible. When δ=0, reflection is identity by total division. No positivity of each event factor is assumed. A future rate need not remain zero merely because it vanishes at one instant.
+M=0 forces F identically zero on the full path space; all integrands, component integrals and both sides of the series identity then vanish. Negative M is excluded. Zero-valued or signed F is permitted for any valid nonnegative bound.
+η=0 and α=0 are excluded, and β>0 follows from α≤β and α>0. A zero horizon remains allowed. Infinite horizons are not in R≥0; finite n prefixes cannot contain infinitely many supplied events. No invariant distribution, mixing/accuracy bound, expected-query cost, random initial distribution, or source-equivalence claim is present.

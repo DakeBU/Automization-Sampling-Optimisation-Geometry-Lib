@@ -1,0 +1,49 @@
+AutoSamplingTheory\ExampleCases\ProximalBPS\LiteralReflectedMean.lean:50:2: warning: Try this: 
+  letI̵
+
+The goal is a proposition, so `let` is preferred over `letI`.
+The difference between `let` and `letI` is that `letI` inlines the value.
+But this is not relevant for proofs because of proof irrelevance.
+
+Note: This linter can be disabled with `set_option linter.style.haveILetI false`
+AutoSamplingTheory\ExampleCases\ProximalBPS\LiteralReflectedMean.lean:73:14: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  ‖2⁻¹ • (u - -y) - y‖ ^ 2 / (2 * η)
+in the target expression
+  V ((1 / 2) • (y + u)) + ‖(1 / 2) • (y + u) - y‖ ^ 2 / (2 * η) = V ((1 / 2) • (y + u)) + ‖y - u‖ ^ 2 / (8 * η)
+
+E : Type u_1
+inst✝⁴ : NormedAddCommGroup E
+inst✝³ : InnerProductSpace ℝ E
+inst✝² : FiniteDimensional ℝ E
+inst✝¹ : MeasurableSpace E
+inst✝ : BorelSpace E
+V : E → ℝ
+α η : ℝ
+hα : 0 < α
+hV : ContDiff ℝ 2 V
+hH : ∀ (x v : E), α * ‖v‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) v) v
+hη : 0 < η
+f : E → ℝ
+hf : ContDiff ℝ 1 f
+hc : HasCompactSupport f
+μ : Measure E := volume.tilted fun x => -V x
+R : E → Measure E := fun y => μ.tilted fun x => -‖x - y‖ ^ 2 / (2 * η)
+S : E → Measure E := fun y => volume.tilted fun u => -V ((1 / 2) • (y + u)) - ‖y - u‖ ^ 2 / (8 * η)
+hG :
+  have ZV := ∫ (x : E), Real.exp (-V x);
+  have μ := volume.tilted fun x => -V x;
+  have joint := Measure.map (fun p => (p.1, p.1 + √η • p.2)) (μ.prod (ProbabilityTheory.stdGaussian E));
+  0 < ZV ∧
+    IsProbabilityMeasure joint ∧
+      joint =
+        (volume.prod volume).withDensity fun p =>
+          ENNReal.ofReal
+            ((√(2 * Real.pi * η))⁻¹ ^ Module.finrank ℝ E / ZV * Real.exp (-V p.1 - ‖p.2 - p.1‖ ^ 2 / (2 * η)))
+hI : Integrable (fun x => Real.exp (-V x)) volume
+this : IsProbabilityMeasure μ := isProbabilityMeasure_tilted hI
+hR : ∀ (y : E), R y = volume.tilted fun x => -(V x + ‖x - y‖ ^ 2 / (2 * η))
+y u : E
+ha : 2⁻¹ • (u - -y) = (1 / 2) • (y + u)
+hb : 2⁻¹ • (u - -y) - y = (1 / 2) • (u - y)
+hq : ‖2⁻¹ • (u - -y) - y‖ ^ 2 / (2 * η) = ‖y - u‖ ^ 2 / (8 * η)
+⊢ V ((1 / 2) • (y + u)) + ‖(1 / 2) • (y + u) - y‖ ^ 2 / (2 * η) = V ((1 / 2) • (y + u)) + ‖y - u‖ ^ 2 / (8 * η)

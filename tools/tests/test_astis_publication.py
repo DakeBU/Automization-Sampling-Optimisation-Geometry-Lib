@@ -281,13 +281,44 @@ class PublicationTest(unittest.TestCase):
             self.assertEqual(block.count('data-source-comparison='), 1)
             self.assertIn(f'data-source-comparison="{name}"', block)
             markers = ['Mathematical statement', 'Lean statement ·', 'Proof roadmap',
-                       'Mathematical proof', 'Lean proof ·',
+                       'Full assumptions and notation', 'Mathematical proof', 'Lean proof ·',
                        'Source assumptions versus formal assumptions',
                        'proof-reader-provenance', 'Mathlib API called (external library)']
             positions = [block.index(marker) for marker in markers]
             self.assertEqual(positions, sorted(positions))
             self.assertNotRegex(block, r'<details\b[^>]*\bopen(?:\s|=|>)')
             self.assertNotIn('<summary>Source and reuse</summary>', block)
+
+    def test_literal_proposition_and_proof_helpers_keep_distinct_reader_positions(self):
+        import declaration_lessons as lessons
+        import inline_lean
+        import re
+        name = ('AutoSamplingTheory.ExampleCases.ProximalBPS.'
+                'ActualFiniteFirstEventLaw.actual_finite_first_event_law')
+        unit = next(u for u in lessons.load_units() if u['declaration'] == name)
+        text = lessons.render_unit(unit, lessons.lesson_path(name))
+        statement = f'class="inline-lean inline-lean-statement" data-inline-lean="{name}"'
+        proof = f'class="inline-lean inline-lean-proof" data-inline-lean="{name}"'
+        literal = name + '_statement'
+        literal_panel = f'class="inline-lean inline-lean-proof" data-inline-lean="{literal}"'
+        positions = [text.index(statement), text.index(literal_panel),
+                     text.index('Proof roadmap'), text.index('Mathematical proof'),
+                     text.index(proof)]
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn('Full Lean proposition (definition)', text)
+        # The full proposition is a sibling of the signature, so it is
+        # independently reachable before the roadmap, without opening a proof.
+        signature_end = text.index('</details>', text.index(statement))
+        self.assertLess(signature_end, text.index(literal_panel))
+        self.assertEqual(text.count(literal_panel), 1)
+        for helper in unit['helpers']:
+            panel = f'class="inline-lean inline-lean-proof" data-inline-lean="{helper}"'
+            self.assertEqual(text.count(panel), 1)
+            if helper != literal:
+                self.assertGreater(text.index(panel), text.index(proof))
+        self.assertEqual(text.count('<summary>Corresponding Lean step</summary>'),
+                         len(unit['steps']))
+        self.assertNotRegex(text, r'<details\b[^>]*\bopen(?:\s|=|>)')
 
     def test_chapter_map_keeps_curve_progress_and_full_source_boundaries(self):
         import library_shelves

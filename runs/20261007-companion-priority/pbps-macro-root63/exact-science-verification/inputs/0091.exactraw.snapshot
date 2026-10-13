@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-de01bb158b9b1797",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {κ η : ℝ} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧\n      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2) (hη : 0 < η) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E\n    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)\n    let Vη := fun y : E => -Real.log (A y)\n    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n    IsProbabilityMeasure μ ∧ ContDiff ℝ 2 Vη ∧\n      (∀ y, IsProbabilityMeasure (R y) ∧ MemLp id 2 (R y) ∧\n        Integrable (gradient V) (R y) ∧\n        gradient Vη y = ∫ x, gradient V x ∂(R y)) ∧\n      ∃ p : E → E, Measurable p ∧ (∀ y, p y+η • gradient V (p y)=y) ∧\n        let rho := fun y u => V (p y+Real.sqrt η • u)-V (p y)-\n          Real.sqrt η*inner ℝ (gradient V (p y)) u\n        let r := fun y => (R y).map (fun x => (Real.sqrt η)⁻¹ • (x-p y))\n        ∀ y, r y=(volume : Measure E).tilted (fun u => -(‖u‖^2/2+rho y u)) ∧\n          IsProbabilityMeasure (r y) ∧ MemLp (gradient (rho y)) 2 (r y) ∧\n          gradient Vη y=gradient V (p y)+(Real.sqrt η)⁻¹ • (∫ u, gradient (rho y) u ∂(r y)) ∧\n          ∀ z, gradient V (p y+Real.sqrt η • z)=\n            gradient V (p y)+(Real.sqrt η)⁻¹ • gradient (rho y) z",
+    "statement_sha256": "de01bb158b9b17979738c28eafb1d98980bd51b0facf61c52d443f837e1a5a74",
+    "compiled": true,
+    "approved_definition_context": [
+      "Measure.tilted is the actual normalized exponential tilt against its indicated base. Measure.map is the actual measurable pushforward. All displayed integrals are Bochner integrals.",
+      "volume is the canonical finite real Hilbert Haar/Lebesgue measure with its Borel structure. Dimension zero is included. gradient is the real Riesz representative of the Frechet derivative.",
+      "The potential defined by minus log A uses the literal unnormalized volume convolution with the displayed Gaussian prefactor. It is not defined by an assumed gradient identity.",
+      "The second tilt retains the original potential and the quadratic denominator exactly. Its affine pushforward uses the same produced measurable stationary point p and square-root scale. No selector, normalizer, moment or mean identity is supplied.",
+      "MemLp at exponent two means actual square-integrability. Integrable means actual Bochner first integrability. The positive real eta has no upper cap."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "21b83ac18ac2d3d4a0831724248480a718ed0538f63ff045f7839b1579e29239"
+}

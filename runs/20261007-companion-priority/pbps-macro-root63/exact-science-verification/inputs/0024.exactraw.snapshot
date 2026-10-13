@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-e3c94b5385ecc55a",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {S : Type u_1} {X : Type u_2} {A : Type u_3} [inst : MeasurableSpace S] [inst_1 : MeasurableSpace X]\n  [inst_2 : MeasurableSpace A] (Q : ProbabilityTheory.Kernel S X) [ProbabilityTheory.IsMarkovKernel Q]\n  (ν : MeasureTheory.Measure A) [MeasureTheory.IsProbabilityMeasure ν] (W : (S × X) × A → ℝ),\n  Measurable W →\n    ∀ (B : ℝ) (hB : 0 < B),\n      (∀ (s : S) (x : X) (z : A), |W ((s, x), z)| ≤ B) →\n        ∀ (x₀ : X),\n          have Λ := fun s =>\n            (Q s).prod\n              ((ProbabilityTheory.poissonMeasure\n                    ⟨2 * B,\n                      le_of_lt\n                        (mul_pos\n                          (Mathlib.Meta.Positivity.pos_of_isNat (Mathlib.Meta.NormNum.isNat_ofNat ℝ (Eq.refl 2))\n                            (Eq.refl (Nat.ble 1 2)))\n                          hB)⟩).prod\n                ((MeasureTheory.Measure.infinitePi fun x => ν).prod\n                  (MeasureTheory.MeasureSpace.volume.restrict (Set.Icc 0 1))));\n          have E := fun s => {p | p.2.2.2 ≤ ∏ i, (B + (fun p => W ((s, p.1), p.2)) (p.1, p.2.2.1 ↑i)) / (2 * B)};\n          have ρ := fun s => MeasureTheory.Measure.infinitePi fun x => Λ s;\n          have out := fun s ω => if h : ∃ n, ω n ∈ E s then (ω (Nat.find h)).1 else x₀;\n          ∃ R,\n            ProbabilityTheory.IsMarkovKernel R ∧\n              ∀ (s : S),\n                Measurable (out s) ∧\n                  MeasureTheory.Measure.map (out s) (ρ s) = R s ∧\n                    (R s = (Q s).tilted fun x => ∫ (z : A), W ((s, x), z) ∂ν) ∧\n                      (∀ (x : X),\n                          ((ProbabilityTheory.poissonMeasure\n                                    ⟨2 * B,\n                                      le_of_lt\n                                        (mul_pos\n                                          (Mathlib.Meta.Positivity.pos_of_isNat\n                                            (Mathlib.Meta.NormNum.isNat_ofNat ℝ (Eq.refl 2)) (Eq.refl (Nat.ble 1 2)))\n                                          hB)⟩).prod\n                                ((MeasureTheory.Measure.infinitePi fun x => ν).prod\n                                  (MeasureTheory.MeasureSpace.volume.restrict (Set.Icc 0 1))))\n                              {p | p.2.2 ≤ ∏ i, (B + W ((s, x), p.2.1 ↑i)) / (2 * B)} =\n                            ENNReal.ofReal (Real.exp (∫ (z : A), W ((s, x), z) ∂ν - B))) ∧\n                        (MeasureTheory.Measure.map Prod.fst ((Λ s).restrict (E s)) =\n                            (Q s).withDensity fun x => ENNReal.ofReal (Real.exp (∫ (z : A), W ((s, x), z) ∂ν - B))) ∧\n                          (Λ s) (E s) = ∫⁻ (x : X), ENNReal.ofReal (Real.exp (∫ (z : A), W ((s, x), z) ∂ν - B)) ∂Q s ∧\n                            (ρ s) {ω | ∀ (n : ℕ), ω n ∉ E s} = 0 ∧\n                              (∀ (n : ℕ), (ρ s) {ω | ∀ i < n, ω i ∉ E s} = (1 - (Λ s) (E s)) ^ n) ∧\n                                ENNReal.ofReal (Real.exp (-2 * B)) ≤ (Λ s) (E s) ∧\n                                  ∫⁻ (ω : ℕ → X × ℕ × (ℕ → A) × ℝ),\n                                        ∑' (n : ℕ), if ∀ i < n, ω i ∉ E s then (fun p => ↑p.2.1) (ω n) else 0 ∂ρ s =\n                                      ((Λ s) (E s))⁻¹ * ENNReal.ofReal (2 * B) ∧\n                                    ∫⁻ (ω : ℕ → X × ℕ × (ℕ → A) × ℝ),\n                                        ∑' (n : ℕ), if ∀ i < n, ω i ∉ E s then (fun p => ↑p.2.1) (ω n) else 0 ∂ρ s ≤\n                                      ENNReal.ofReal (2 * B * Real.exp (2 * B))",
+    "statement_sha256": "e3c94b5385ecc55a260eb606c05e17f6a1b3bc088e69c2f56c77d0009a724bf0",
+    "compiled": true,
+    "approved_definition_context": [
+      "A measure is countably additive; IsProbabilityMeasure means total mass one. A Markov kernel is a measurable family of probability measures.",
+      "Measure.prod forms an independent product measure. Measure.infinitePi forms the product of the displayed probability measures on an entire coordinate sequence. ProbabilityTheory.poissonMeasure r is the actual Poisson law of NNReal rate r.",
+      "The four attempt coordinates are p.1 in X, p.2.1 in Nat, p.2.2.1 in Nat->A, and p.2.2.2 in Real. The unit interval uniform law is volume.restrict(Icc 0 1).",
+      "The product in E is indexed by Fin p.2.1; the product in the conditional acceptance statement is indexed by Fin p.1. Coercing an index i:Fin n to Nat accesses the corresponding auxiliary coordinate. The empty product is one.",
+      "Nat.find h is the least natural index satisfying the predicate witnessed by h. The output conditional uses the displayed default when no such index exists.",
+      "Measure.map is pushforward; measure restriction keeps only mass in the indicated event; withDensity multiplies a measure by the displayed nonnegative density. Measure.tilted mu w has density ofReal(exp(w)/integral exp(w)) relative to mu.",
+      "ENNReal denotes extended nonnegative reals; ofReal sends negative reals to zero and agrees with the usual embedding on nonnegative reals. Nonnegative integrals and sums can be infinite; multiplication uses infinity times zero equal to zero. The total-cost summation condition checks only indices earlier than the current index.",
+      "NNReal is the nonnegative real subtype. Expressions inside the displayed subtype constructors prove nonnegativity of the rate; they add no probabilistic assumption. The private semantic definitions in the compiled type were delta-expanded and Lean checked definitional equality of the expanded and original theorem types."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "365bbf974b6fb4076b5350ca113a4fab6a2464dd83589203e6f7606f5f133236"
+}

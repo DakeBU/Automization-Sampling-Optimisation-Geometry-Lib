@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-b38fdd6d39654f8a",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let tail : ℕ → (ℕ → ℝ) → (ℕ → ℝ) := fun n w k => w (n + k)\n    let past : ℕ → MeasurableSpace (ℕ → ℝ) := fun n =>\n      ⨆ k ∈ Set.Iio n, MeasurableSpace.comap (fun w : ℕ → ℝ => w k) inferInstance\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ n : ℕ,\n      Measurable (history y xRef z₀ n) ∧ Measurable (tail n) ∧\n      (∀ (w w' : ℕ → ℝ), (∀ k < n, w k = w' k) →\n        history y xRef z₀ n w = history y xRef z₀ n w') ∧\n      Measurable[past n] (history y xRef z₀ n) ∧\n      Measure.map (tail n) P = P ∧\n      IndepFun (history y xRef z₀ n) (tail n) P ∧\n      Measure.map (fun w => (history y xRef z₀ n w, tail n w)) P =\n        (Measure.map (history y xRef z₀ n) P).prod P ∧\n      (∀ A : Set (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)), MeasurableSet A →\n        Measure.map (tail n) (P.restrict (history y xRef z₀ n ⁻¹' A)) =\n          (P (history y xRef z₀ n ⁻¹' A)) • P)\n",
+    "statement_sha256": "b38fdd6d39654f8a7eec983b84d05e8fb68b14353c607f96f1cda0198d8454fa",
+    "compiled": true,
+    "approved_definition_context": [
+      "The displayed functions are literal definitions on a finite-dimensional real inner-product Borel space, including dimension zero. fderiv is the Frechet derivative; gradient is the real inner-product gradient; ContDiff real 2 is twice continuous differentiability.",
+      "expMeasure 1 is the rate-one exponential law on the real line. infinitePi is its canonical countable product on real sequences. Real.toNNReal is max(x,0) represented as a nonnegative real.",
+      "WithTop NNReal includes infinity. hittingAfter is the infimum of nonnegative times entering the indicated target set, with infinity for an empty hit set. untopD 0 returns the finite value and defaults to zero at infinity. Sum.inl and Sum.inr are distinct Borel tags. Unit has one element. Products associate to the right.",
+      "Fin(n+1) indexes integers zero through n. The coordinate product measurable structure is the Borel product sigma algebra. Measurable[m] explicitly chooses m as the domain sigma algebra. comap generates a sigma algebra from a function; indexed supremum joins these sigma algebras.",
+      "IndepFun means independence of the sigma algebras generated by the two functions. Measure.map is measurable pushforward, Measure.restrict keeps an event without normalization, Measure.prod is product measure, and scalar multiplication weights a measure by an extended nonnegative scalar. All measure equalities are whole-measure identities.",
+      "Real division is total, including division by zero equal to zero. The displayed integrals over real intervals are Bochner integrals. Nat.rec is the indicated finite recursion with starting value and successor map."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "e6bdf8d74d843becffd9302e8c1597c2727f7b0305d9b3a941be6b31f7defe3f"
+}

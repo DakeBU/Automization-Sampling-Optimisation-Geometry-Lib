@@ -1,0 +1,50 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PermutedQuadraticCost
+import Mathlib.MeasureTheory.Integral.Pi
+
+/-!
+# Diagonal quadratic cost under a finite product law
+
+This module identifies the expectation of the finite diagonal quadratic cost
+with the sum of the corresponding one-coordinate expectations.  It is a pure
+finite-product integration node: no cyclic inequality, common-mass scaling, or
+transport optimality enters here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace DiagonalProductCostIntegral
+
+open MeasureTheory
+open PermutedQuadraticCost
+open scoped BigOperators
+
+noncomputable section
+
+variable {E I : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [MeasurableSpace E] [Fintype I]
+
+/-- Under a finite product of probability laws on pairs, the expected diagonal
+quadratic cost is the sum of the expected one-coordinate quadratic costs. -/
+theorem integral_diagonalQuadraticCost_eq_sum
+    (mu : I → ProbabilityMeasure (E × E))
+    (hcost : ∀ i, Integrable (fun z : E × E => ‖z.1 - z.2‖ ^ 2)
+      (mu i : Measure (E × E))) :
+    (∫ q : I → E × E, diagonalQuadraticCost q
+        ∂Measure.pi (fun i => (mu i : Measure (E × E)))) =
+      ∑ i, ∫ z : E × E, ‖z.1 - z.2‖ ^ 2 ∂(mu i : Measure (E × E)) := by
+  classical
+  rw [diagonalQuadraticCost]
+  rw [integral_finset_sum]
+  · apply Finset.sum_congr rfl
+    intro i _hi
+    exact integral_comp_eval (hcost i).aestronglyMeasurable
+  · intro i _hi
+    exact integrable_comp_eval (hcost i)
+
+end
+
+end DiagonalProductCostIntegral
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

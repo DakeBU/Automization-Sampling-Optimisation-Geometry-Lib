@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-613c9a91358fc2c1",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let mY := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)\n    letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace\n    letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) :=\n      ⟨measurable_snd.comap_le⟩\n    let HP := lpMeas ℝ ℝ mY 2 J\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le\n    let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩\n    let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    HP = P.toLinearMap.range ∧\n    (∀ f : HP, P (f : Lp ℝ 2 J) = f) ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ e : Lp ℝ 2 ν ≃ₗᵢ[ℝ] HP,\n        (∀ u : Lp ℝ 2 ν, (e u : Lp ℝ 2 J) = M u) ∧\n        ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n          (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n          Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n            IsSelfAdjoint T ∧\n            (∀ u : Lp ℝ 2 ν,\n              ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n            let A : HP →L[ℝ] HP :=\n              HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL\n            let B : HP →L[ℝ] Lp ℝ 2 J :=\n              (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL\n            A = e.conjStarAlgEquiv T ∧ IsSelfAdjoint A ∧\n            (∀ f : HP, ‖A f‖ ≤ ‖f‖) ∧\n            (∀ f : HP, P (B f) = 0) ∧\n            ∃ Γ : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n              Γ.IsPositive ∧ Γ*Γ=(1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T ∧\n              let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ\n              ΓP.IsPositive ∧ ΓP*ΓP=(1 : HP →L[ℝ] HP)-A*A ∧\n              B.adjoint ∘L B = ΓP*ΓP ∧\n              (∀ f : HP, ‖B f‖ = ‖ΓP f‖ ∧\n                ‖ΓP f‖^2 = ‖f‖^2-‖A f‖^2) ∧\n              (∀ G : HP →L[ℝ] HP,\n                G.IsPositive → G*G=(1 : HP →L[ℝ] HP)-A*A → G=ΓP)",
+    "statement_sha256": "613c9a91358fc2c1f8d4dbc9abfd6efda6c69f2290d486d6a8b91faed4a29fed",
+    "compiled": true,
+    "approved_definition_context": [
+      "The base is a finite-dimensional real Hilbert Borel space, including zero dimension. Both global Hessian bounds, ContDiff order2, positive eta and beta eta≤1 are the displayed input assumptions.",
+      "Measure.tilted is normalized exponential tilting. The displayed joint law is an independent-product Gaussian pushforward; its marginals, reflected pushforward, every-state normalized kernel and stationary disintegration are conclusions.",
+      "Lp exponent2 is the complete real space of measurable square-integrable almost-everywhere classes. lpMeas consists of classes measurable with respect to the displayed comap sigma algebra. The displayed Fact(comap≤product) is derived internally from measurable_snd and supplies closedness; it is not a public binder.",
+      "condExpL2 is L² conditional expectation. HP.subtypeL is inclusion, HP.orthogonalProjectionOnto takes an ambient class into the closed subspace, and range equality and the canonical pullback isometric equivalence are conclusions.",
+      "Operator multiplication is composition; adjoint composition B.adjoint∘L B acts on the domain of B. IsPositive means selfadjointness and nonnegative quadratic form. conjStarAlgEquiv by an isometry e sends C to e C e.symm. Full-joint identity and identity on HP have different domains.",
+      "Scalar root and the SAME transported macro root are internally produced. Their energy equalities quantify over every macro class; the later EVERY positive same-square macro alternative equals the root with no alternative energy premise. Literal reflection and conditional action are per-observable AE, while normalized kernel density holds every state."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "8d7462dcd1a9d5d1473eae8e1d54e181ea2a60a8d0af61ec4e0b0dc712805ff6"
+}

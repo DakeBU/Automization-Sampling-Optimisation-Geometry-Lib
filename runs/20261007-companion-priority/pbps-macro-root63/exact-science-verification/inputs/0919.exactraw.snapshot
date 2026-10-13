@@ -1,0 +1,43 @@
+import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+import Mathlib.Topology.MetricSpace.Basic
+
+/-!
+# Metric derivatives of curves
+
+This is the metric-space interface behind Chewi's informal Definition 1.3.16.
+It does not presuppose a linear tangent space or a Wasserstein velocity field.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Geometry
+namespace MetricCurve
+
+open Filter MeasureTheory Set
+open scoped Topology
+
+/-- A curve has metric derivative `speed` at `t` when its distance quotient
+converges to that finite nonnegative real along punctured times. -/
+def HasMetricDerivativeAt
+    {M : Type*} [PseudoMetricSpace M]
+    (curve : ℝ → M) (speed t : ℝ) : Prop :=
+  0 ≤ speed ∧
+    Tendsto
+      (fun s => dist (curve s) (curve t) / |s - t|)
+      (𝓝[≠] t) (𝓝 speed)
+
+/-- Chewi Definition 1.3.16 (informal): a measure-valued curve is absolutely
+continuous when a finite metric derivative exists for almost every time.
+
+The name is intentionally source-facing: the stronger standard metric-space
+definition using an integrable upper gradient is a later refinement. -/
+def IsAbsolutelyContinuousMetricCurve
+    {M : Type*} [PseudoMetricSpace M]
+    (curve : ℝ → M) : Prop :=
+  ∀ᵐ t ∂(by volume_tac : Measure ℝ),
+    ∃ speed : ℝ, HasMetricDerivativeAt curve speed t
+
+end MetricCurve
+end Geometry
+end TechnicalLemmas
+end AutoSamplingTheory

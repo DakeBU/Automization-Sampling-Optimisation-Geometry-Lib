@@ -1,0 +1,60 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.CouplingGraph
+
+/-!
+# Graph-supported couplings are determined by the first marginal
+
+The existing `CouplingGraph` bridge proves that a coupling concentrated on
+`y = T x` has second marginal `T # mu`.  For uniqueness arguments we need the
+stronger joint-law identity: the whole coupling is the pushforward of its first
+marginal by `x ↦ (x, T x)`.
+
+This is a purely measure-theoretic node.  No optimality, convexity, or
+regularity beyond measurability of `T` is used.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CouplingGraphIdentity
+
+open MeasureTheory
+open CouplingGraph
+
+noncomputable section
+
+/-- A coupling concentrated almost everywhere on the graph of a measurable map
+is exactly the graph pushforward of its first marginal. -/
+theorem eq_map_graph_of_isCoupling_of_ae_snd_eq
+    {E F : Type*} [MeasurableSpace E] [MeasurableSpace F]
+    {gamma : Measure (E × F)} {mu : Measure E} {nu : Measure F}
+    {T : E → F}
+    (hgamma : Transport.IsCoupling gamma mu nu)
+    (hT : Measurable T)
+    (hgraph : ∀ᵐ z ∂gamma, z.2 = T z.1) :
+    gamma = Measure.map (fun x => (x, T x)) mu := by
+  have hGraph : Measurable (fun x : E => (x, T x)) :=
+    measurable_id.prod_mk hT
+  have hjoint :
+      Measure.map (fun z : E × F => (z.1, T z.1)) gamma = gamma := by
+    calc
+      Measure.map (fun z : E × F => (z.1, T z.1)) gamma =
+          Measure.map id gamma := by
+        apply Measure.map_congr
+        filter_upwards [hgraph] with z hz
+        exact Prod.ext rfl hz.symm
+      _ = gamma := by simp
+  symm
+  calc
+    Measure.map (fun x : E => (x, T x)) mu =
+        Measure.map (fun x : E => (x, T x)) gamma.fst := by rw [hgamma.1]
+    _ = Measure.map (fun z : E × F => (z.1, T z.1)) gamma := by
+      rw [Measure.fst, Measure.map_map hGraph measurable_fst]
+      rfl
+    _ = gamma := hjoint
+
+end
+
+end CouplingGraphIdentity
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

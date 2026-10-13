@@ -1,0 +1,272 @@
+{
+  "id": "ASTIS-RT-20261008-PBPSCenteredSelfadjointDefect",
+  "state": "accepted",
+  "source": {
+    "source_id": "companion-background:pbps-centered-selfadjoint-defect",
+    "anchor": "PBPS2609.06905v1 AppendixB B1-B5, D1-D2 real L2 stationarity/centering, C4/B15 squared-defect precursor; exact31regions/54items source inventory independently covered.",
+    "url": "https://arxiv.org/html/2609.06905v1#A2",
+    "original_text": "Attributed ASTIS-authored scoped mathematical completion, not a verbatim numbered source theorem.\nE is a finite-dimensional real Hilbert Borel space with canonical volume; rank zero is an explicit extension of the source Euclidean convention. V:E→ℝ is C²; 0<α≤β; α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v; η>0 and βη≤1. μ=volume.tilted(−V), J=Law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), and ν=J.snd. Finite dimensionality of E does not imply finite dimensionality of L²(ν). Let Λ be the law of (Y,2X−Y) under J, F(x,y)=(x,2x−y), and P the L²(J) conditional-expectation orthogonal projection onto the second-coordinate sigma algebra. The laws μ,J,ν are probabilities. There exist a Markov kernel S with, for every y, S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)), Λ disintegrated by S and both marginals equal to ν; an involutive selfadjoint linear isometry U with Ug=g∘F J-a.e.; an isometric pullback M with Mu=u∘snd J-a.e.; and a selfadjoint T on L²(ν) such that for every u, PMu=Mu, MTu=PUPMu, ‖Tu‖≤‖u‖, Tu(y)=∫u(x)S(y,dx) ν-a.e. and ∫Tu dν=∫u dν. There is a constant class q=1 ν-a.e. with Tq=q and ⟨q,u⟩=∫u dν for all u. Its exact closed orthogonal kernel H₀ is all of L²₀(ν). The full defect D=I−T² is positive, Dq=0 and ⟨Du,u⟩=‖u‖²−‖Tu‖² for all u. The actual restriction T₀:H₀→H₀ agrees with T on every u∈H₀, is selfadjoint and contractive. D₀=I_H₀−T₀² is positive, agrees with D as an ambient L² class on H₀, and satisfies ⟨D₀u,u⟩=‖u‖²−‖T₀u‖² for all u∈H₀.\nExact source anchor: PBPS2609.06905v1 AppendixB B1-B5, D1-D2 real L2 stationarity/centering, C4/B15 squared-defect precursor; exact31regions/54items source inventory independently covered.\nSource-route distinction: The selected implementation route proves the squared-defect quadratic identity using selfadjoint contraction. The printed B5 joint P/U block identity has its independent source edges retained; it is not claimed proved by this scalar argument.\nRemaining: SAME actual55 T on L2(nu), selfadjoint/mean preserving/constant fixed, exact complete mean-zero restriction T0, full and centered positive squared defects; real Test uses actual58 rho/delta to prove IsUnit centered squared defect. No Gamma/root/polar/full weakH1/hypocoercivity/dynamics/main/implementation error/cost/composition/fullpaper/Goal admission.",
+    "text_sha256": "fe2ce6c58f1806cb8fbbcb998f04558d096ebe8f4d78cdfce207c1c13f261856"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect",
+    "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/CenteredDefectOperator.lean",
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))\n        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n        (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n        Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n        ∃ M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J,\n          (∀ u : Lp ℝ 2 ν, (M u : E × E → ℝ) =ᵐ[J] u ∘ Prod.snd) ∧\n          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n            IsSelfAdjoint T ∧\n            (∀ u : Lp ℝ 2 ν,\n              P (M u) = M u ∧\n              M (T u) = (P * U.toContinuousLinearMap * P) (M u) ∧\n              ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n            ∃ q : Lp ℝ 2 ν,\n              (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧\n              (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧\n              (∀ u : Lp ℝ 2 ν, u ∈ ((innerSL ℝ q).ker) ↔ (∫ y, u y ∂ν) = 0) ∧\n              ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T).IsPositive ∧ ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) q = 0 ∧\n              (∀ u : Lp ℝ 2 ν,\n                inner ℝ (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) u) u = ‖u‖^2-‖T u‖^2) ∧\n              ∃ T0 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker),\n                (∀ u : ((innerSL ℝ q).ker), (T0 u : Lp ℝ 2 ν) = T u) ∧\n                IsSelfAdjoint T0 ∧ (∀ u : ((innerSL ℝ q).ker), ‖T0 u‖ ≤ ‖u‖) ∧\n                ((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0).IsPositive ∧\n                (∀ u : ((innerSL ℝ q).ker), (((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0) u : Lp ℝ 2 ν) = ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) u) ∧\n                (∀ u : ((innerSL ℝ q).ker),\n                  inner ℝ (((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0) u) u = ‖u‖^2-‖T0 u‖^2)",
+    "statement_sha256": "f5ecb505f3c704880d6687569096a5ff9297ad38b725ab44a4eb26acd5533ed8",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "The underlying space is a finite-dimensional real Hilbert Borel space with canonical volume, including zero dimension. The potential is C2 with positive alpha<=beta, both displayed global Hessian bounds, eta>0 and beta*eta<=1.",
+      "Measure.tilted is normalized exponential tilting. The displayed joint is the pushforward of the independent product of the tilted law and the standard Gaussian; the marginal is its second-coordinate law. Lp real exponent 2 denotes AE classes of measurable square-integrable real functions. Its dimension need not be finite.",
+      "The displayed conditional projection is the L2 conditional expectation onto the second-coordinate sigma algebra. Operator multiplication denotes composition; the typed identity acts on the displayed entire domain. The kernel of innerSL(q) is the full closed real subspace orthogonal to q. An inverse expressed by IsUnit belongs to the algebra of bounded continuous linear endomorphisms of exactly that domain.",
+      "The existential kernel is produced as a Markov kernel with the every-state displayed normalized density. Its conditional joint law and both marginals, the AE reflection/isometry, the actual pullback, the operator, constant and centered restriction are conclusions, not caller-supplied certificates.",
+      "IsPositive is positivity of a selfadjoint quadratic form on the displayed Hilbert domain. The full defect annihilates the constant, while the centered defect is its actual restriction. The squared defect is not a chosen positive square root."
+    ],
+    "compiler_evidence": "runs/20261007-companion-priority/pbps-centered-defect59/focused/final-consumer-v3/receipt.json PASS3911; two exact v3 headers; standard3."
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/next_primary59",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "primary-boundary.before-packets.json ->31 raw primary slice checks ->fresh anti-anchored packet ->actual full declaration body ->current lesson/publication formula steps and exact binding. Authored restatement and blind reconstruction were each compared to primary, never substituted for primary.",
+    "review_run_sha256": "d45799c838b8adfae6b2340c58afb002dd3c89443e9f0eb0f7371c8da4ae7be2",
+    "reviewer_packet_sha256": "4666576e031b2123250a56cffd22cf8750dc9f8e0060618e68070f1b3e2832c4",
+    "run_artifact": "runs/20261007-companion-priority/pbps-centered-defect59/source-review59/source.0.review.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "0a7239afc96012d3c6c6c36b16e5c4bb1156886146b91d7159a1ca3962b2cf91",
+  "publication_context": {
+    "file": "86a7a748127ecd28cb687e64bf6413a0373b1d11601a8edb357ebf8e2cb5bb90",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean\nimport AutoSamplingTheory.TechnicalLemmas.Measure.L2Expectation\nimport Mathlib.Analysis.InnerProductSpace.Positive\n\nopen MeasureTheory ProbabilityTheory\nopen scoped ContDiff NNReal ENNReal Topology\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator\nnoncomputable section\nset_option autoImplicit false\nset_option maxHeartbeats 1600000\n\ntheorem actual_centered_selfadjoint_defect\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))\n        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n        (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n        Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n        ∃ M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J,\n          (∀ u : Lp ℝ 2 ν, (M u : E × E → ℝ) =ᵐ[J] u ∘ Prod.snd) ∧\n          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n            IsSelfAdjoint T ∧\n            (∀ u : Lp ℝ 2 ν,\n              P (M u) = M u ∧\n              M (T u) = (P * U.toContinuousLinearMap * P) (M u) ∧\n              ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n            ∃ q : Lp ℝ 2 ν,\n              (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧\n              (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧\n              (∀ u : Lp ℝ 2 ν, u ∈ ((innerSL ℝ q).ker) ↔ (∫ y, u y ∂ν) = 0) ∧\n              ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T).IsPositive ∧ ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) q = 0 ∧\n              (∀ u : Lp ℝ 2 ν,\n                inner ℝ (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) u) u = ‖u‖^2-‖T u‖^2) ∧\n              ∃ T0 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker),\n                (∀ u : ((innerSL ℝ q).ker), (T0 u : Lp ℝ 2 ν) = T u) ∧\n                IsSelfAdjoint T0 ∧ (∀ u : ((innerSL ℝ q).ker), ‖T0 u‖ ≤ ‖u‖) ∧\n                ((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0).IsPositive ∧\n                (∀ u : ((innerSL ℝ q).ker), (((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0) u : Lp ℝ 2 ν) = ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) u) ∧\n                (∀ u : ((innerSL ℝ q).ker),\n                  inner ℝ (((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0) u) u = ‖u‖^2-‖T0 u‖^2) := by\n  classical\n  dsimp only\n  let μ := (volume : Measure E).tilted (fun x => -V x)\n  let J := (μ.prod (stdGaussian E)).map\n    (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n  let ν := J.snd\n  let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n  let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))\n      2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le\n  have hBase := L2MacroscopicMean.actual_macroscopic_l2_mean hα hαβ hV hH hη hβη\n  rcases hBase with ⟨hμ,hJ,hν,S,hS,hSd,hSc,hSf,hSs,U,hU,hUi,hUs,M,hM,T,hAll⟩\n  letI : IsProbabilityMeasure μ := hμ\n  letI : IsProbabilityMeasure J := hJ\n  letI : IsProbabilityMeasure ν := hν\n  letI : IsMarkovKernel S := hS\n  letI : Λ.IsCondKernel S := hSc\n  have hPs (f g : Lp ℝ 2 J) : inner ℝ (P f) g = inner ℝ f (P g) :=\n    inner_condExpL2_left_eq_right measurable_snd.comap_le\n  have hTs : IsSelfAdjoint T := by\n    apply ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric.mpr\n    intro u v\n    change inner ℝ (T u) v = inner ℝ u (T v)\n    rw [← M.inner_map_map (T u) v, ← M.inner_map_map u (T v)]\n    rw [(hAll u).2.1, (hAll v).2.1]\n    change inner ℝ (P (U (P (M u)))) (M v) =\n      inner ℝ (M u) (P (U (P (M v))))\n    rw [hPs, (hAll u).1, (hAll v).1]\n    calc\n      inner ℝ (U (M u)) (M v) = inner ℝ (M u) (U (M v)) :=\n        hUs.isSymmetric (M u) (M v)\n      _ = inner ℝ (M u) (P (U (M v))) := by\n        rw [← hPs, (hAll u).1]\n  have hcompS : ν ⊗ₘ S = Λ := by\n    calc\n      ν ⊗ₘ S = Λ.fst ⊗ₘ S := congrArg (fun ρ => ρ ⊗ₘ S) hSf.symm\n      _ = Λ := Measure.disintegrate Λ S\n  have hPreserve (u : Lp ℝ 2 ν) : (∫ y, T u y ∂ν)=∫ y, u y ∂ν := by\n    have hi : Integrable (fun p : E × E => u p.2) (ν ⊗ₘ S) := by\n      rw [hcompS]\n      exact ((Lp.memLp u).comp_measurePreserving\n        (show MeasurePreserving (Prod.snd : E × E → E) Λ ν from\n          ⟨measurable_snd,hSs⟩)).integrable (by norm_num)\n    rw [integral_congr_ae (hAll u).2.2.2.1, ← Measure.integral_compProd hi, hcompS]\n    calc\n      (∫ p : E × E, u p.2 ∂Λ) = ∫ y, u y ∂Λ.snd :=\n        (integral_map (μ:=Λ) measurable_snd.aemeasurable\n          (Lp.stronglyMeasurable u).aestronglyMeasurable).symm\n      _ = ∫ y, u y ∂ν := by rw [hSs]\n  let q : Lp ℝ 2 ν := AutoSamplingTheory.TechnicalLemmas.Measure.L2Expectation.one ν\n  have hq (u : Lp ℝ 2 ν) : inner ℝ q u = ∫ y, u y ∂ν :=\n    AutoSamplingTheory.TechnicalLemmas.Measure.L2Expectation.inner_one_eq_integral ν u\n  have hTq : T q=q := by\n    apply ext_inner_right ℝ\n    intro u\n    calc\n      inner ℝ (T q) u = inner ℝ q (T u) := hTs.isSymmetric q u\n      _ = ∫ y, T u y ∂ν := hq _\n      _ = ∫ y, u y ∂ν := hPreserve u\n      _ = inner ℝ q u := (hq _).symm\n  let H0 : Submodule ℝ (Lp ℝ 2 ν) := (innerSL ℝ q).ker\n  have hH0 (u : Lp ℝ 2 ν) : u ∈ H0 ↔ (∫ y, u y ∂ν)=0 := by\n    change inner ℝ q u = 0 ↔ _\n    rw [hq]\n  have hInv (u : H0) : T u ∈ H0 :=\n    (hH0 _).mpr ((hPreserve u).trans ((hH0 _).mp u.property))\n  let T0 : H0 →L[ℝ] H0 := (T.comp H0.subtypeL).codRestrict H0 hInv\n  have hT0 (u : H0) : (T0 u : Lp ℝ 2 ν)=T u := rfl\n  have hT0s : IsSelfAdjoint T0 := by\n    apply ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric.mpr\n    intro u v\n    exact hTs.isSymmetric (u : Lp ℝ 2 ν) (v : Lp ℝ 2 ν)\n  have hTn (u : Lp ℝ 2 ν) : ‖T u‖ ≤ ‖u‖ := (hAll u).2.2.1\n  have hT0n (u : H0) : ‖T0 u‖ ≤ ‖u‖ := hTn u\n  have hDef (u : Lp ℝ 2 ν) : inner ℝ (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) u) u = ‖u‖^2-‖T u‖^2 := by\n    simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.one_apply,\n      ContinuousLinearMap.mul_apply, inner_sub_left]\n    have hs : inner ℝ (T (T u)) u = inner ℝ (T u) (T u) := hTs.isSymmetric (T u) u\n    rw [hs, real_inner_self_eq_norm_sq, real_inner_self_eq_norm_sq]\n  have hD : ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T).IsPositive := by\n    apply (ContinuousLinearMap.isPositive_iff' _).mpr\n    refine ⟨((IsSelfAdjoint.one (Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)).sub (by simpa only [pow_two] using hTs.pow 2)),?_⟩\n    intro u\n    rw [hDef]\n    exact sub_nonneg.mpr ((sq_le_sq₀ (norm_nonneg _) (norm_nonneg _)).mpr (hTn u))\n  have hDef0 (u : H0) : inner ℝ (((1 : H0 →L[ℝ] H0)-T0*T0) u) u = ‖u‖^2-‖T0 u‖^2 := by\n    simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.one_apply,\n      ContinuousLinearMap.mul_apply, inner_sub_left]\n    have hs : inner ℝ (T0 (T0 u)) u = inner ℝ (T0 u) (T0 u) := hT0s.isSymmetric (T0 u) u\n    rw [hs, real_inner_self_eq_norm_sq, real_inner_self_eq_norm_sq]\n  have hD0 : ((1 : H0 →L[ℝ] H0)-T0*T0).IsPositive := by\n    apply (ContinuousLinearMap.isPositive_iff' _).mpr\n    refine ⟨(IsSelfAdjoint.one (H0 →L[ℝ] H0)).sub (by simpa only [pow_two] using hT0s.pow 2),?_⟩\n    intro u\n    rw [hDef0]\n    exact sub_nonneg.mpr ((sq_le_sq₀ (norm_nonneg _) (norm_nonneg _)).mpr (hT0n u))\n  have hqa : (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) :=\n    Lp.coeFn_const (α:=E) (μ:=ν) (p:=(2 : ℝ≥0∞)) (c:=(1 : ℝ))\n  refine ⟨hμ,hJ,hν,S,hS,hSd,hSc,hSf,hSs,U,hU,hUi,hUs,M,hM,T,hTs,?_,\n    q,hqa,hTq,hq,?_⟩\n  · intro u\n    exact ⟨(hAll u).1,(hAll u).2.1,hTn u,(hAll u).2.2.2.1,hPreserve u⟩\n  · refine ⟨hH0,hD,?_,hDef,T0,hT0,hT0s,hT0n,hD0,?_,hDef0⟩\n    · simp only [ContinuousLinearMap.sub_apply,ContinuousLinearMap.one_apply,\n        ContinuousLinearMap.mul_apply,hTq,sub_self]\n    · intro u\n      rfl\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator\n\n#print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A2",
+      "edition": "arXiv:2609.06905v1; Lean4.33.0/fixedMathlib",
+      "anchor": "PBPS2609.06905v1 AppendixB B1-B5, D1-D2 real L2 stationarity/centering, C4/B15 squared-defect precursor; exact31regions/54items source inventory independently covered.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Attributed ASTIS background completion/consumer of Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang Appendix B/D. This is a scoped squared-defect result; it is not the printed Γ theorem or a main mixing theorem."
+    },
+    "statement": "E is a finite-dimensional real Hilbert Borel space with canonical volume; rank zero is an explicit extension of the source Euclidean convention. V:E→ℝ is C²; 0<α≤β; α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v; η>0 and βη≤1. μ=volume.tilted(−V), J=Law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), and ν=J.snd. Finite dimensionality of E does not imply finite dimensionality of L²(ν). Let Λ be the law of (Y,2X−Y) under J, F(x,y)=(x,2x−y), and P the L²(J) conditional-expectation orthogonal projection onto the second-coordinate sigma algebra. The laws μ,J,ν are probabilities. There exist a Markov kernel S with, for every y, S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)), Λ disintegrated by S and both marginals equal to ν; an involutive selfadjoint linear isometry U with Ug=g∘F J-a.e.; an isometric pullback M with Mu=u∘snd J-a.e.; and a selfadjoint T on L²(ν) such that for every u, PMu=Mu, MTu=PUPMu, ‖Tu‖≤‖u‖, Tu(y)=∫u(x)S(y,dx) ν-a.e. and ∫Tu dν=∫u dν. There is a constant class q=1 ν-a.e. with Tq=q and ⟨q,u⟩=∫u dν for all u. Its exact closed orthogonal kernel H₀ is all of L²₀(ν). The full defect D=I−T² is positive, Dq=0 and ⟨Du,u⟩=‖u‖²−‖Tu‖² for all u. The actual restriction T₀:H₀→H₀ agrees with T on every u∈H₀, is selfadjoint and contractive. D₀=I_H₀−T₀² is positive, agrees with D as an ambient L² class on H₀, and satisfies ⟨D₀u,u⟩=‖u‖²−‖T₀u‖² for all u∈H₀.",
+    "formulae": [
+      {
+        "label": "Actual centered selfadjoint operator and positive squared defect",
+        "tex": "H_0=\\ker\\langle1,\\cdot\\rangle=L^2_0(\\nu),\\quad T_0=T|_{H_0},\\quad D=I-T^2\\ge0,\\quad D_0=D|_{H_0},\\quad\\langle D_0u,u\\rangle=\\|u\\|^2-\\|T_0u\\|^2."
+      }
+    ],
+    "assumptions": [
+      "The complete potential, curvature, initialization law and step conditions are stated above. No operator, probability, stationarity, mean-zero preservation or coercivity certificate is supplied by the caller.",
+      "L² consists of AE classes; finite dimension of E does not make L² finite dimensional. The whole closed mean-zero subspace is used.",
+      "Zero-dimensional E is explicitly included as an extension of the source Euclidean convention; αη=1 is retained."
+    ],
+    "obligations": [
+      {
+        "id": "scoped-centered-defect",
+        "label": "Actual centered selfadjoint operator and positive squared defect"
+      },
+      {
+        "id": "remaining-paper",
+        "label": "Γ/root/polar/fullH1/dynamics/main/errors/cost/composition remain open"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect",
+      "title": "Actual centered selfadjoint operator and positive squared defect",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A2",
+          "label": "PBPS2609.06905v1 AppendixB B1-B5, D1-D2 real L2 stationarity/centering, C4/B15 squared-defect precursor; exact31regions/54items source inventory independently covered.",
+          "scope": "SAME actual55 T on L2(nu), selfadjoint/mean preserving/constant fixed, exact complete mean-zero restriction T0, full and centered positive squared defects; real Test uses actual58 rho/delta to prove IsUnit centered squared defect. No Gamma/root/polar/full weakH1/hypocoercivity/dynamics/main/implementation error/cost/composition/fullpaper/Goal admission."
+        }
+      ],
+      "tests": [
+        "lake build Tests.ProximalBPSCenteredDefect"
+      ],
+      "assumptions": [
+        "The complete potential, curvature, initialization law and step conditions are stated above. No operator, probability, stationarity, mean-zero preservation or coercivity certificate is supplied by the caller.",
+        "L² consists of AE classes; finite dimension of E does not make L² finite dimensional. The whole closed mean-zero subspace is used.",
+        "Zero-dimensional E is explicitly included as an extension of the source Euclidean convention; αη=1 is retained."
+      ],
+      "statement": "E is a finite-dimensional real Hilbert Borel space with canonical volume; rank zero is an explicit extension of the source Euclidean convention. V:E→ℝ is C²; 0<α≤β; α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v; η>0 and βη≤1. μ=volume.tilted(−V), J=Law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), and ν=J.snd. Finite dimensionality of E does not imply finite dimensionality of L²(ν). Let Λ be the law of (Y,2X−Y) under J, F(x,y)=(x,2x−y), and P the L²(J) conditional-expectation orthogonal projection onto the second-coordinate sigma algebra. The laws μ,J,ν are probabilities. There exist a Markov kernel S with, for every y, S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)), Λ disintegrated by S and both marginals equal to ν; an involutive selfadjoint linear isometry U with Ug=g∘F J-a.e.; an isometric pullback M with Mu=u∘snd J-a.e.; and a selfadjoint T on L²(ν) such that for every u, PMu=Mu, MTu=PUPMu, ‖Tu‖≤‖u‖, Tu(y)=∫u(x)S(y,dx) ν-a.e. and ∫Tu dν=∫u dν. There is a constant class q=1 ν-a.e. with Tq=q and ⟨q,u⟩=∫u dν for all u. Its exact closed orthogonal kernel H₀ is all of L²₀(ν). The full defect D=I−T² is positive, Dq=0 and ⟨Du,u⟩=‖u‖²−‖Tu‖² for all u. The actual restriction T₀:H₀→H₀ agrees with T on every u∈H₀, is selfadjoint and contractive. D₀=I_H₀−T₀² is positive, agrees with D as an ambient L² class on H₀, and satisfies ⟨D₀u,u⟩=‖u‖²−‖T₀u‖² for all u∈H₀.",
+      "formula": "H_0=\\ker\\langle1,\\cdot\\rangle=L^2_0(\\nu),\\quad T_0=T|_{H_0},\\quad D=I-T^2\\ge0,\\quad D_0=D|_{H_0},\\quad\\langle D_0u,u\\rangle=\\|u\\|^2-\\|T_0u\\|^2.",
+      "steps": [
+        {
+          "title": "Recover the actual kernel and Hilbert operators",
+          "text": "Reuse the compiled actual Gaussian augmentation, reflected conditional kernel S, isometric reflection U, second-coordinate pullback M, and operator T. The kernel has the literal normalized density exp(−V((y+x)/2)−‖y−x‖²/(8η)); its stationary law and probability normalization are conclusions, not supplied premises.",
+          "formula": "Tu(y)=\\int u(x)\\,S(y,dx),\\quad MT=PUPM.",
+          "lean": "L2MacroscopicMean.actual_macroscopic_l2_mean; hBase"
+        },
+        {
+          "title": "Transport selfadjointness",
+          "text": "The actual conditional expectation P is an orthogonal projection and U is selfadjoint. Move P across the inner product and use PM=M; the isometry M transfers the resulting symmetry to T.",
+          "formula": "\\langle Tu,v\\rangle=\\langle PUPMu,Mv\\rangle=\\langle Mu,PUPMv\\rangle=\\langle u,Tv\\rangle.",
+          "lean": "hPs; M.inner_map_map; hTs"
+        },
+        {
+          "title": "Prove mean preservation with the actual joint law",
+          "text": "The reflected joint law Λ disintegrates as ν⊗S and has second marginal ν. Each L² function is integrable because ν is a probability. The actual AE formula for T and Fubini therefore give mean preservation.",
+          "formula": "\\int Tu\\,d\\nu=\\int u(x)\\,d(\\nu\\otimes S)(y,x)=\\int u\\,d\\nu.",
+          "lean": "Measure.disintegrate; integral_compProd; integral_map; hPreserve"
+        },
+        {
+          "title": "Identify the constant and the entire centered space",
+          "text": "Take the canonical L² constant q=1. Its inner product is the mean. Selfadjointness and mean preservation imply Tq=q. The kernel of the continuous functional inner(q,·) is exactly all mean-zero classes, is closed, and is preserved by T.",
+          "formula": "q=1,\\quad Tq=q,\\quad H_0=\\ker\\langle q,\\cdot\\rangle=L^2_0(\\nu).",
+          "lean": "L2Expectation.one; inner_one_eq_integral; hTq; hH0"
+        },
+        {
+          "title": "Restrict the actual operator",
+          "text": "Restrict T to the closed invariant subspace H₀. Its action as an ambient L² class is exactly T; symmetry and the norm bound transfer to this same restriction T₀.",
+          "formula": "T_0u=Tu,\\quad T_0=T_0^*,\\quad\\|T_0u\\|\\le\\|u\\|.",
+          "lean": "codRestrict; hInv; hT0; hT0s; hT0n"
+        },
+        {
+          "title": "Compute both squared defects",
+          "text": "For either selfadjoint contraction, move one copy of T across the inner product. The result is nonnegative, so D=I−T² and D₀=I−T₀² are positive. Dq=0, and the centered defect is the actual restriction of D.",
+          "formula": "\\langle (I-T^2)u,u\\rangle=\\|u\\|^2-\\|Tu\\|^2\\ge0,\\quad Dq=0,\\quad D_0u=Du.",
+          "lean": "hDef; hD; hDef0; hD0"
+        }
+      ],
+      "lean_statement": "E is a finite-dimensional real Hilbert Borel space with canonical volume; rank zero is an explicit extension of the source Euclidean convention. V:E→ℝ is C²; 0<α≤β; α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v; η>0 and βη≤1. μ=volume.tilted(−V), J=Law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), and ν=J.snd. Finite dimensionality of E does not imply finite dimensionality of L²(ν). Let Λ be the law of (Y,2X−Y) under J, F(x,y)=(x,2x−y), and P the L²(J) conditional-expectation orthogonal projection onto the second-coordinate sigma algebra. The laws μ,J,ν are probabilities. There exist a Markov kernel S with, for every y, S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)), Λ disintegrated by S and both marginals equal to ν; an involutive selfadjoint linear isometry U with Ug=g∘F J-a.e.; an isometric pullback M with Mu=u∘snd J-a.e.; and a selfadjoint T on L²(ν) such that for every u, PMu=Mu, MTu=PUPMu, ‖Tu‖≤‖u‖, Tu(y)=∫u(x)S(y,dx) ν-a.e. and ∫Tu dν=∫u dν. There is a constant class q=1 ν-a.e. with Tq=q and ⟨q,u⟩=∫u dν for all u. Its exact closed orthogonal kernel H₀ is all of L²₀(ν). The full defect D=I−T² is positive, Dq=0 and ⟨Du,u⟩=‖u‖²−‖Tu‖² for all u. The actual restriction T₀:H₀→H₀ agrees with T on every u∈H₀, is selfadjoint and contractive. D₀=I_H₀−T₀² is positive, agrees with D as an ambient L² class on H₀, and satisfies ⟨D₀u,u⟩=‖u‖²−‖T₀u‖² for all u∈H₀.",
+      "lean_proof": "Recover the actual kernel and Hilbert operators; Transport selfadjointness; Prove mean preservation with the actual joint law; Identify the constant and the entire centered space; Restrict the actual operator; Compute both squared defects",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean.actual_macroscopic_l2_mean",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.L2Expectation.inner_one_eq_integral"
+      ],
+      "mathlib_dependencies": [
+        "inner_condExpL2_left_eq_right",
+        "LinearIsometry.inner_map_map",
+        "Measure.disintegrate",
+        "Measure.integral_compProd",
+        "integral_map",
+        "ContinuousLinearMap.isPositive_iff'",
+        "ContinuousLinearMap.completeSpace_ker"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect",
+      "role": "proof-edge",
+      "supports": [
+        "scoped-centered-defect"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Finite Euclidean real base and source standing C2, global lower/upper Hessian bounds and positive capped η.",
+        "lean": "E is a finite-dimensional real Hilbert Borel space with canonical volume; rank zero is an explicit extension of the source Euclidean convention. V:E→ℝ is C²; 0<α≤β; α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v; η>0 and βη≤1. μ=volume.tilted(−V), J=Law(X,X+√ηZ) for independent X∼μ and Z∼N(0,I), and ν=J.snd. Finite dimensionality of E does not imply finite dimensionality of L²(ν)."
+      },
+      {
+        "source": "Actual normalized augmentation and reflected conditional kernel/operator.",
+        "lean": "μ,J,ν,Λ,S,U,M,T and all Markov/disintegration/stationarity witnesses are produced under original inputs; S has the every-y displayed normalized density."
+      },
+      {
+        "source": "Constant/mean-zero real L2 domain and squared defect precursor to Γ.",
+        "lean": "q is AE1, the full H0 is ker inner(q); T0 is the actual restriction and D0 the restricted squared defect. The consumer proves exact rho/delta and IsUnit D0 on H0."
+      },
+      {
+        "source": "Ordinary let abbreviation H0 and operator identity notation.",
+        "lean": "Explicit typed operator identities and exact inline ker inner(q) in public header; local H0 remains that definition in proof."
+      },
+      {
+        "source": "Positive Γ/root and inverse/polar, weakH1, dynamics, mixing, implementation errors, costs and composition.",
+        "lean": "SAME actual55 T on L2(nu), selfadjoint/mean preserving/constant fixed, exact complete mean-zero restriction T0, full and centered positive squared defects; real Test uses actual58 rho/delta to prove IsUnit centered squared defect. No Gamma/root/polar/full weakH1/hypocoercivity/dynamics/main/implementation error/cost/composition/fullpaper/Goal admission."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "For every finite-dimensional real inner-product normed vector space E with its Borel measurable structure and canonical volume (dimension zero is allowed), every V:E->R, every alpha,beta in the nonnegative reals, and every eta in R, assume alpha>0, alpha<=beta, V is C^2, eta>0, beta*eta<=1, and for all x,v in E, alpha*||v||^2 <= D^2 V(x)[v,v] <= beta*||v||^2. The Hessian is precisely the iterated Frechet derivative evaluated twice at v. There are no extra kernel, operator, invariance, spectral, or regularity inputs.\n\nSet mu=vol_E.tilted(-V), namely normalized exponential tilting with weight exp(-V(x)). Let J be the pushforward of mu tensor gamma_E under (x,z)->(x,x+sqrt(eta) z), with gamma_E the standard Gaussian on E. Put nu=J.snd. Write H=L^2(nu;R) and K=L^2(J;R), spaces of almost-everywhere equivalence classes of measurable square-integrable real functions, with their real Hilbert norms and inner products. Finite dimension of E does not make H or K finite-dimensional.\n\nFor every E,V,alpha,beta,eta satisfying the stated assumptions, use the measures mu,J,nu and Hilbert spaces H,K defined above. Define Lambda to be the pushforward of J under (x,y)->(y,2x-y), and define F(x,y)=(x,2x-y). Let P:K->K be conditional expectation in L^2(J) onto the sigma algebra generated by the second coordinate, followed by inclusion into K; equivalently P is the orthogonal projection onto the closed subspace of second-coordinate-measurable L^2 classes.\n\nThen mu,J,nu are probability measures. There exists a Markov kernel S:E->E such that, for every y in E, S(y,dx) is exactly the normalized exponential tilt of canonical volume with exponent -V((y+x)/2)-||y-x||^2/(8 eta). Thus S(y,dx)=[exp(-V((y+x)/2)-||y-x||^2/(8 eta))/Z_y] vol_E(dx), with Z_y the integral of this numerator. The formula holds for every state y, not merely almost everywhere. Lambda has S as a conditional kernel of its second coordinate given its first, so its disintegration is nu(dy) S(y,dx). Both marginals of Lambda equal nu.\n\nThere exists a real linear isometry U:K->K such that Ug=g composed with F, J-almost everywhere, for every g in K. U is involutive, meaning U(Ug)=g for every g, and its bounded continuous linear map is selfadjoint. There exists a real linear isometry M:H->K such that Mu(x,y)=u(y), J-almost everywhere, for every u in H. These maps and their properties are produced witnesses. In particular, M is an isometric embedding into K; the statement does not claim M maps onto all of K.\n\nThere exists a bounded continuous real linear operator T:H->H, selfadjoint, for which every u in H satisfies P(Mu)=Mu, M(Tu)=(P composed with U composed with P)(Mu), ||Tu||<=||u||, and Tu(y)=integral u(x) S(y,dx) for nu-almost every y. In addition, integral Tu dnu=integral u dnu for every u in H.\n\nThere exists q in H whose representative equals 1 nu-almost everywhere, with Tq=q. For every u in H, <q,u>=integral u dnu, and u belongs to ker(u-><q,u>) if and only if integral u dnu=0. This kernel H0 is the entire closed real subspace of H orthogonal to q, equivalently the entire mean-zero subspace, with the inherited Hilbert structure; it is not an arbitrary selected subspace.\n\nOn the entire space H define A=I_H-T composed with T. A is positive (its selfadjoint quadratic form is nonnegative), Aq=0, and <Au,u>=||u||^2-||Tu||^2 for every u in H. There exists a bounded continuous real linear endomorphism T0:H0->H0 whose value, included into H, equals Tu for every u in H0. T0 is selfadjoint and ||T0u||<=||u|| for every u in H0. With A0=I_H0-T0 composed with T0, A0 is positive, its value included into H equals Au for every u in H0, and <A0u,u>=||u||^2-||T0u||^2 for every u in H0. Thus both centered operators are actual restrictions of the corresponding full operators. All identities and positivity claims use the identity of their displayed full domain. No invertibility or quantitative strict contraction is asserted here.",
+    "text_sha256": "d149980173184e1be086396ab58f80161cd365abb228ed66e4fc8d887e3642b2",
+    "decoder": "independent-anonymous-decoder-59",
+    "decoder_run_sha256": "9c255d213052e4f83b040861865efa430fa96a7c33f39c6c039929926ec55ea7",
+    "decoder_packet_sha256": "cb12966a066a1ef18b741235fc8b239def63de32f19b6090d712a544bfb5dd4c",
+    "source_text_visible": false,
+    "lean_statement_sha256": "f5ecb505f3c704880d6687569096a5ff9297ad38b725ab44a4eb26acd5533ed8",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "observed_input_artifacts": [
+      {
+        "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-centered-defect59/anonymous-decoder/packet0.json",
+        "raw_bytes": 6173,
+        "raw_sha256": "19d9736b1d44083192a84f7070ea5f58eda11c487ae10f31989a09f0e48d96e4",
+        "lf_sha256": "19d9736b1d44083192a84f7070ea5f58eda11c487ae10f31989a09f0e48d96e4"
+      }
+    ],
+    "run_artifact": "runs/20261007-companion-priority/pbps-centered-defect59/anonymous-decoder/reconstruction0.json",
+    "run_binding": "runs/20261007-companion-priority/pbps-centered-defect59/anonymous-decoder/decoder-run.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Source normalized mu/joint J, real H, conditional P onto y-functions, reflection U, A=PUP; conditional Y_minus|Y_plus density with denominator8eta.",
+      "reconstructed": "Same actual55 S,U,M,T under actual J and nu; Lambda=(Y,2X-Y), literal normalized S every y, AE U reflection and M snd pullback, PM=M,MT=PUPM, bounded scalarT and canonical q.",
+      "relation": "explicit-elaboration",
+      "evidence": "(2.6)-(2.7), B1-B4,B8-B9,C1 density. Actual hBase witness tuple reused rather than duplicate operator construction; no claim M onto all joint L2. Canonical L2Expectation.one supplies q; source generic B3 mathsfT is not confused with scalarT."
+    },
+    "domains": {
+      "original": "Source S1.p1 uses R^d; D1-D2 use real complete L2 AE Hilbert classes, macro range and full centered space.",
+      "reconstructed": "Finite real Hilbert/Borel E with canonical volume; Lp real 2 of actual laws can be infinite-dimensional; H0 is the whole closed kernel of continuous inner(q), inherited norm/inner. Rank0 allowed and explicitly labelled extension.",
+      "relation": "explicit-elaboration",
+      "evidence": "S1.p1; A4.SS1; source header finite-dimensional E only; no finite-dimensional L2 or Nontrivial binder. Mean pairing identifies entire H0, continuous kernel completeness supplies unit domain."
+    },
+    "quantifiers": {
+      "original": "All positions satisfy global Hessian bounds; beta eta<=1 includes equality. All observables in real L2; centered rho bound applies to every centered macroscopic class. Conditional density version may be fixed pointwise, operator identities AE.",
+      "reconstructed": "The input binders universally quantify E,V,alpha,beta,eta and all x,v; witnesses are existentially produced, and each displayed operator/mean/quadratic identity has its full-domain universal u. AE for representatives; every-y S formula in producer. Consumer literal operator action is nu-AE.",
+      "relation": "equivalent",
+      "evidence": "S1.p1; A2.E9; A3.SS1.p2; A3.E4; actual header forall and AE binders. Both eta positivity and betaeta<=1 unchanged; no restriction to a dense smooth core or selected subspace."
+    },
+    "assumptions": {
+      "original": "V C2,0<alpha<=beta, two global Hessian bounds,eta>0,betaeta<=1, normalized Gibbs and Gaussian augmentation are source standing model. No independent CFC/operator/probability/centering premise.",
+      "reconstructed": "NNReal alpha/beta with alpha>0,alpha<=beta, iterated Frechet Hessian inequalities, ContDiff real2,eta>0,betaeta<=1; actual laws and all needed witnesses proved internally. Measurable/Borel and finite real Hilbert structures type the Euclidean model.",
+      "relation": "explicit-elaboration",
+      "evidence": "S1.p1;(2.6)-(2.7); source D1-D2. Original Hessian diagonal convention matches C2 Frechet derivative. Actual55 produces probability/Markov/disintegration; proof hcompS/hPreserve obtains integrability from L2 and true marginal, never a caller certificate."
+    },
+    "conclusion": {
+      "original": "B1-B5/D1-D2 give selfadjoint macro compression and centered real L2 background; B5 is a squared-defect precursor, not a scalar inverse/root theorem.",
+      "reconstructed": "T selfadjoint contraction, true mean preservation and constant fixed point; exact H0=all meanzero; actual T0 restriction selfadjoint contractive; full D positive killsq, D0 positive actual restriction, both exact quadratic norm defects.",
+      "relation": "explicit-elaboration",
+      "evidence": "Current hTs uses real inner transport; hcompS,hPreserve use disintegration/actual marginal and integrability; hH0/hInv/codRestrict use whole kernel. hDef/hD/hDef0/hD0 give scalar completion, not B5 block proof or Gamma construction."
+    },
+    "scopes": {
+      "original": "B5 printed joint macro/micro block identity derives from U^2=I and P. B10-B11/B15-B16 construct Gamma positive root/Loewner gap/polar inverse; these printed root claims are outside this bounded ASTIS completion.",
+      "reconstructed": "Current declarations admit only actual scalar selfadjoint/restriction/positive squared defect and centered squared-defect coercivity/unit. Consumer is Test-only. No Gamma/root/B5 block theorem/full weakH1/dynamics/main/errors/cost/composition/fullpaper/Goal credit.",
+      "relation": "explicit-elaboration",
+      "evidence": "A2.SS1.p3,B5; B10-B11,B15-B16. Repaired graph retains S:U,S:P,S:A ->S:D; S:D->A:D0 is correspondence-only. Actual selected scalar route and coercivity background are distinguished. Publication attribution explicitly says ASTIS background completion, not printed Gamma theorem."
+    },
+    "constant_dependencies": {
+      "original": "rho=(1-alphaeta)/(1+alphaeta); gamma=2sqrt(alphaeta)/(1+alphaeta) with gamma^2=delta=4alphaeta/(1+alphaeta)^2. No eta root prefactor. Source cap implies 0<alphaeta<=1.",
+      "reconstructed": "Identity operators use exact ambient or centered domain. Consumer rho/delta unchanged; delta=1-rho^2>0, includes alphaeta=1. At that endpoint T0=0,D0=I; valid for zero H0. Full D kills constant q; inverse conclusion only centered.",
+      "relation": "equivalent",
+      "evidence": "A2.E12; C4; B15 precursor. Current hρ/hδ/hGap scalar algebra and hUnit use exact 4 coefficient and squared denominator; no CFC/finite dimension/Nontrivial or weakened gap coefficient."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "description": "Finite real Hilbert/Borel model is explicit Euclidean elaboration; rank-zero case is a disclosed ASTIS extension, not claimed source text. L2 may be infinite-dimensional.",
+      "evidence": "Independent native generalization nonblocking classification retained in runs/20261007-companion-priority/pbps-centered-defect59/source-review59/source.0.review.json"
+    },
+    {
+      "slot": "objects",
+      "severity": "informational",
+      "description": "Explicit operator identity domains and exact inline kernel are definition notation only. Current entire statement independently checked; old syntax acceptance is not a source verdict substitute.",
+      "evidence": "Independent native API-limitation nonblocking classification retained in runs/20261007-companion-priority/pbps-centered-defect59/source-review59/source.0.review.json"
+    },
+    {
+      "slot": "conclusion",
+      "severity": "informational",
+      "description": "Actual selfadjointness/means/constant/closed restriction and positive scalar squared defects complete source background; not printed joint B5 identity.",
+      "evidence": "Independent native source-implicit nonblocking classification retained in runs/20261007-companion-priority/pbps-centered-defect59/source-review59/source.0.review.json"
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "Gamma positive root/Loewner inverse/polar/fullweakH1/dynamics/main/errors/cost/composition remain outside admitted scope. Printed B5 source edges retained independently; pending whole-paper obligations are not failures of this scoped background statement.",
+      "evidence": "Independent native unresolved nonblocking classification retained in runs/20261007-companion-priority/pbps-centered-defect59/source-review59/source.0.review.json"
+    }
+  ],
+  "verdict": "equivalent-after-elaboration"
+}

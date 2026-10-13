@@ -1,0 +1,116 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.StrongConvexity
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolationCoupling
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+import Mathlib.Tactic
+
+/-!
+# Potential energy along displacement interpolation
+
+This is the easy, reusable half of the KL geodesic-convexity proof in Chewi
+Theorem 1.4.5.  Strong convexity of the potential is first applied pointwise to
+one affine displacement segment and then integrated against the endpoint
+coupling.
+
+The entropy/Jacobian half of KL displacement convexity is deliberately not in
+this file.  Integrability of the two sides is also kept explicit rather than
+being hidden by Mathlib's totalized Bochner integral.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementPotentialEnergy
+
+open MeasureTheory Set
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+open DisplacementInterpolation DisplacementInterpolationCoupling
+
+/-- Pointwise strong-convexity estimate along the affine displacement map. -/
+theorem potential_pointMap_le
+    {V : E → ℝ} {alpha t : ℝ}
+    (hV : StrongConvexOn (Set.univ : Set E) alpha V)
+    (ht : t ∈ Icc (0 : ℝ) 1) (z : E × E) :
+    V (pointMap (E := E) t z) ≤
+      (1 - t) * V z.1 + t * V z.2 -
+        (alpha * t * (1 - t) / 2) * ‖z.1 - z.2‖ ^ 2 := by
+  change UniformConvexOn (Set.univ : Set E)
+    (fun r : ℝ => alpha / 2 * r ^ 2) V at hV
+  rcases hV with ⟨_, hVineq⟩
+  have h := hVineq
+    (x := z.1) (by simp)
+    (y := z.2) (by simp)
+    (a := 1 - t) (b := t)
+    (sub_nonneg.mpr ht.2) ht.1 (by ring)
+  change V ((1 - t) • z.1 + t • z.2) ≤
+    (1 - t) * V z.1 + t * V z.2 -
+      (alpha * t * (1 - t) / 2) * ‖z.1 - z.2‖ ^ 2
+  calc
+    V ((1 - t) • z.1 + t • z.2) ≤
+        (1 - t) * V z.1 + t * V z.2 -
+          (1 - t) * t * (alpha / 2 * ‖z.1 - z.2‖ ^ 2) := by
+      simpa only [smul_eq_mul] using h
+    _ = (1 - t) * V z.1 + t * V z.2 -
+          (alpha * t * (1 - t) / 2) * ‖z.1 - z.2‖ ^ 2 := by
+      ring
+
+/-- Integrating the pointwise strong-convexity estimate preserves the same
+upper bound when both real-valued sides are explicitly integrable. -/
+theorem integral_potential_pointMap_le
+    {V : E → ℝ} {alpha t : ℝ} (gamma : Measure (E × E))
+    (hV : StrongConvexOn (Set.univ : Set E) alpha V)
+    (ht : t ∈ Icc (0 : ℝ) 1)
+    (hleft : Integrable (fun z => V (pointMap (E := E) t z)) gamma)
+    (hright : Integrable
+      (fun z =>
+        (1 - t) * V z.1 + t * V z.2 -
+          (alpha * t * (1 - t) / 2) * ‖z.1 - z.2‖ ^ 2) gamma) :
+    (∫ z, V (pointMap (E := E) t z) ∂gamma) ≤
+      ∫ z,
+        ((1 - t) * V z.1 + t * V z.2 -
+          (alpha * t * (1 - t) / 2) * ‖z.1 - z.2‖ ^ 2) ∂gamma := by
+  exact integral_mono hleft hright (fun z => potential_pointMap_le hV ht z)
+
+/-- Integrating a strongly measurable potential against the displacement
+marginal is exactly integrating the potential along the affine point map under
+the original coupling. -/
+theorem integral_displacementInterpolation_eq_integral_pointMap
+    {V : E → ℝ} (gamma : Measure (E × E)) (t : ℝ)
+    (hV : StronglyMeasurable V) :
+    (∫ x, V x ∂displacementInterpolation gamma t) =
+      ∫ z, V (pointMap (E := E) t z) ∂gamma := by
+  unfold displacementInterpolation
+  exact integral_map_of_stronglyMeasurable
+    (measurable_pointMap (E := E) t) hV
+
+/-- Source-oriented potential-energy inequality for a displacement marginal.
+The right side is intentionally still written on the endpoint coupling; a
+later bookkeeping node may rewrite its three integrals using the two marginals
+and the quadratic transport cost. -/
+theorem integral_potential_displacementInterpolation_le
+    {V : E → ℝ} {alpha t : ℝ} (gamma : Measure (E × E))
+    (hVstrong : StrongConvexOn (Set.univ : Set E) alpha V)
+    (hVmeas : StronglyMeasurable V)
+    (ht : t ∈ Icc (0 : ℝ) 1)
+    (hleft : Integrable (fun z => V (pointMap (E := E) t z)) gamma)
+    (hright : Integrable
+      (fun z =>
+        (1 - t) * V z.1 + t * V z.2 -
+          (alpha * t * (1 - t) / 2) * ‖z.1 - z.2‖ ^ 2) gamma) :
+    (∫ x, V x ∂displacementInterpolation gamma t) ≤
+      ∫ z,
+        ((1 - t) * V z.1 + t * V z.2 -
+          (alpha * t * (1 - t) / 2) * ‖z.1 - z.2‖ ^ 2) ∂gamma := by
+  rw [integral_displacementInterpolation_eq_integral_pointMap gamma t hVmeas]
+  exact integral_potential_pointMap_le gamma hVstrong ht hleft hright
+
+end
+
+end DisplacementPotentialEnergy
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

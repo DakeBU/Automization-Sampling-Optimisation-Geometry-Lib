@@ -1,0 +1,31 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsLinearCovarianceUpper
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedGibbsPotential
+
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped RealInnerProductSpace ContDiff NNReal Topology
+set_option autoImplicit false
+
+#check fun
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) =>
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := (μ.prod (stdGaussian E)).map
+      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+    let ν := J.snd
+    IsProbabilityMeasure ν ∧
+      ∃ G : Lp ℝ 2 ν →ₗ.[ℝ] Lp E 2 ν,
+        Dense (G.domain : Set (Lp ℝ 2 ν)) ∧ G.IsClosable ∧ G.closure.IsClosed ∧
+        (∀ (u : Lp ℝ 2 ν) (v : Lp E 2 ν), (u,v) ∈ G.graph ↔
+          ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
+            u =ᵐ[ν] φ ∧ v =ᵐ[ν] gradient φ) ∧
+        ∀ z : G.closure.domain,
+          (∫ x, (z : Lp ℝ 2 ν) x ∂ν) = 0 →
+          ((α : ℝ)/(1+(α : ℝ)*η))*‖(z : Lp ℝ 2 ν)‖^2 ≤ ‖G.closure z‖^2

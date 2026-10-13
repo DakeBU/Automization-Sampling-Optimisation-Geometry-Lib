@@ -1,0 +1,56 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ChewiDefinition1_1_17
+
+/-!
+# Chewi display (1.1.18): differential notation
+
+Chewi writes an Itô process in the compact differential notation
+
+`dX_t = b_t dt + sigma_t dB_t`.
+
+Display (1.1.18) is notation for the integral equation of Definition 1.1.17;
+it does not introduce a second notion of stochastic differential.  This module
+therefore exposes the exact already-compiled integral meaning under a source
+name, so downstream Itô-formula and SDE statements can cite the display without
+creating an opaque `dX` object.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ChewiDisplay1_1_18
+
+open MeasureTheory
+open scoped NNReal RealInnerProductSpace
+
+open ProgressiveL2
+
+variable {Omega iota kappa : Type*} [MeasurableSpace Omega]
+  [Fintype iota] [DecidableEq iota]
+  [Fintype kappa] [DecidableEq kappa]
+  {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+
+/-- Source-faithful meaning of Chewi display (1.1.18).
+
+The notation `dX_t = b_t dt + sigma_t dB_t` means exactly that the source
+finite-dimensional Itô process satisfies the vector integral equation from
+Definition 1.1.17 at every deterministic time, almost surely. -/
+theorem chewi_display_1_1_18_integral_meaning
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (data : ChewiItoProcess.SourceData
+      (Omega := Omega) (iota := iota) (kappa := kappa)
+      (filtration := filtration) (mu := mu))
+    {B : ℝ≥0 → Omega → EuclideanSpace ℝ kappa}
+    (hB : BrownianMotion.IsStandardBrownianMotionWithFiltration B filtration mu)
+    (t : ℝ≥0) :
+    ChewiItoProcess.process hUsual data hB t =ᵐ[mu] fun omega =>
+      data.initial omega +
+        (∫ s, data.drift s omega ∂(TimeMeasure.upTo t)) +
+        ChewiDefinition1_1_17.stochasticIntegral hUsual data hB t omega :=
+  ChewiDefinition1_1_17.definition_1_1_17_vector_display hUsual data hB t
+
+end ChewiDisplay1_1_18
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,51 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonMass
+
+/-!
+# Naturality of the common-mass product under measurable maps
+
+The canonical equal-mass product is compatible with measurable pushforwards.
+This is the measure-algebra bridge needed to turn a product law on two local
+pair blocks into the source-target replacement block used by the Brenier
+competitor.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CommonMassProductMap
+
+open MeasureTheory
+open CommonMass
+
+noncomputable section
+
+variable {X Y X' Y' : Type*}
+  [MeasurableSpace X] [MeasurableSpace Y]
+  [MeasurableSpace X'] [MeasurableSpace Y']
+
+/-- A measurable pushforward of a finite measure preserves its total mass. -/
+theorem mass_map_eq
+    (mu : FiniteMeasure X) (f : X → X') (hf : Measurable f) :
+    (mu.map f).mass = mu.mass := by
+  unfold FiniteMeasure.mass
+  rw [FiniteMeasure.map_apply mu hf MeasurableSet.univ]
+  simp
+
+/-- `commonMassProduct` commutes with applying measurable maps to its two
+coordinates. -/
+theorem commonMassProduct_map_prodMap
+    (mu : FiniteMeasure X) (nu : FiniteMeasure Y)
+    (f : X → X') (g : Y → Y')
+    (hf : Measurable f) (hg : Measurable g) :
+    (commonMassProduct mu nu).map (Prod.map f g) =
+      commonMassProduct (mu.map f) (nu.map g) := by
+  rw [commonMassProduct, commonMassProduct, FiniteMeasure.map_smul,
+    mass_map_eq mu f hf]
+  rw [FiniteMeasure.map_prod_map mu nu hf hg]
+
+end
+
+end CommonMassProductMap
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

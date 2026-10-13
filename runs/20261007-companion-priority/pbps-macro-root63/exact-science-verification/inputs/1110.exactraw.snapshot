@@ -1,0 +1,145 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ChewiProposition1_1_16
+
+/-!
+# Finite-dimensional Itô-process coordinate ABI
+
+Chewi Definition 1.1.17 is finite-dimensional: the state lies in `R^d`, the
+Brownian driver in `R^N`, and the diffusion coefficient is a `d x N` matrix.
+The stochastic-integration foundation compiled earlier in Chapter 1 is scalar.
+Rather than duplicate that theory for matrices, this module records the exact
+finite-coordinate assembly used to bridge the two layers.
+
+This file is deliberately a *technical ABI*, not yet the completion claim for
+Definition 1.1.17.  In particular, `CoordinateBrownianFamilyWithFiltration`
+records the scalar coordinate contracts needed by the already-compiled Itô
+integral.  A later bridge will derive these coordinate contracts from the
+source-level `N`-dimensional Brownian-motion hypothesis, including the joint
+finite-dimensional law.  Until that bridge is compiled, the source item must
+not be promoted merely because this coordinate display compiles.
+
+The regularity hidden in Chewi's prose is made explicit here:
+
+* `X_0` is `F_0`-strongly measurable coordinatewise;
+* every drift coordinate is progressive and pathwise locally `L^1`;
+* every diffusion-matrix entry is progressive and pathwise locally `L^2` on
+  every finite horizon;
+* the stochastic term is the finite sum of the scalar global local Itô
+  integrals constructed in Proposition 1.1.16.
+
+For finite `d,N`, the componentwise `L^1/L^2` conditions are the coordinate
+form of the usual Euclidean/Hilbert--Schmidt conditions.  The corresponding
+norm-equivalence lemmas are kept as a separate foundation task so that the
+source-facing theorem can later state Chewi's matrix norm literally.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace FiniteDimensionalItoProcess
+
+open MeasureTheory
+open scoped BigOperators NNReal
+
+open BrownianMotion GlobalItoProcessGluing GlobalLocalProgressiveL2 ProgressiveL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+
+/-- Scalar Brownian coordinates equipped with the filtration contract required
+by the Chapter 1 stochastic-integral construction.
+
+This is an integration-facing interface.  It intentionally does not claim that
+coordinatewise Brownianity alone is the full source definition of an
+`N`-dimensional Brownian motion; the joint-law bridge is a separate theorem. -/
+structure CoordinateBrownianFamilyWithFiltration (kappa : Type*) where
+  process : kappa → ℝ≥0 → Omega → ℝ
+  isBrownian : ∀ j,
+    IsBrownianMotionWithFiltration (process j) filtration mu
+
+/-- Coordinate data behind a finite-dimensional Itô process.
+
+`iota` indexes state coordinates and `kappa` indexes Brownian coordinates.
+The diffusion field stores one already-audited globally locally square
+integrable progressive scalar process for every matrix entry `sigma^{i,j}`. -/
+structure CoordinateItoData (iota kappa : Type*) where
+  initial : Omega → iota → ℝ
+  initialStronglyMeasurable : ∀ i,
+    StronglyMeasurable[filtration 0] (fun omega => initial omega i)
+  drift : iota → ℝ≥0 → Omega → ℝ
+  driftProgressive : ∀ i, IsStronglyProgressive filtration (drift i)
+  driftIntegrable : ∀ i (T : ℝ≥0),
+    ∀ᵐ omega ∂mu,
+      Integrable (fun t => drift i t omega) (TimeMeasure.upTo T)
+  diffusion : iota → kappa → GlobalLocalProgressiveL2Integrand filtration mu
+
+/-- The finite-coordinate stochastic integral
+`sum_j integral sigma^{i,j} dB^j` built exclusively from the scalar global
+local Itô integral already proved in Chewi Proposition 1.1.16. -/
+noncomputable def coordinateStochasticTerm
+    {iota kappa : Type*} [Fintype kappa]
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (data : CoordinateItoData (filtration := filtration) (mu := mu) iota kappa)
+    (brownian : CoordinateBrownianFamilyWithFiltration
+      (filtration := filtration) (mu := mu) kappa)
+    (t : ℝ≥0) (omega : Omega) (i : iota) : ℝ :=
+  ∑ j,
+    globalItoProcess hUsual (data.diffusion i j) (brownian.isBrownian j) t omega
+
+/-- The coordinatewise finite-dimensional Itô process associated with the
+source data.  Lebesgue time integration uses exactly the same `TimeMeasure.upTo`
+measure as the stochastic-integration foundation, so endpoint conventions stay
+consistent across both terms. -/
+noncomputable def coordinateItoProcess
+    {iota kappa : Type*} [Fintype kappa]
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (data : CoordinateItoData (filtration := filtration) (mu := mu) iota kappa)
+    (brownian : CoordinateBrownianFamilyWithFiltration
+      (filtration := filtration) (mu := mu) kappa) :
+    ℝ≥0 → Omega → iota → ℝ :=
+  fun t omega i =>
+    data.initial omega i +
+      (∫ s, data.drift i s omega ∂(TimeMeasure.upTo t)) +
+      coordinateStochasticTerm hUsual data brownian t omega i
+
+/-- Coordinate display behind Chewi Definition 1.1.17.
+
+This theorem is intentionally named `coordinate_display`: it certifies the
+finite-sum assembly but does not by itself close the source item.  Source
+completion additionally needs the vector-Brownian-to-coordinate bridge and the
+finite-dimensional Hilbert--Schmidt/local-`L^2` equivalence. -/
+theorem chewi_definition_1_1_17_coordinate_display
+    {iota kappa : Type*} [Fintype kappa]
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (data : CoordinateItoData (filtration := filtration) (mu := mu) iota kappa)
+    (brownian : CoordinateBrownianFamilyWithFiltration
+      (filtration := filtration) (mu := mu) kappa)
+    (t : ℝ≥0) (omega : Omega) (i : iota) :
+    coordinateItoProcess hUsual data brownian t omega i =
+      data.initial omega i +
+        (∫ s, data.drift i s omega ∂(TimeMeasure.upTo t)) +
+        ∑ j,
+          globalItoProcess hUsual (data.diffusion i j)
+            (brownian.isBrownian j) t omega :=
+  rfl
+
+/-- Chewi's literal finite dimensions are obtained by taking state coordinates
+`Fin d` and Brownian coordinates `Fin N`. -/
+abbrev ChewiItoData (d N : ℕ)
+    (filtration : Filtration ℝ≥0 m) (mu : Measure Omega) :=
+  CoordinateItoData (Omega := Omega) (filtration := filtration) (mu := mu)
+    (Fin d) (Fin N)
+
+/-- Integration-facing Brownian-coordinate contract for the literal `N`
+coordinates in Chewi Definition 1.1.17. -/
+abbrev ChewiBrownianCoordinates (N : ℕ)
+    (filtration : Filtration ℝ≥0 m) (mu : Measure Omega) :=
+  CoordinateBrownianFamilyWithFiltration (Omega := Omega)
+    (filtration := filtration) (mu := mu) (Fin N)
+
+end FiniteDimensionalItoProcess
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

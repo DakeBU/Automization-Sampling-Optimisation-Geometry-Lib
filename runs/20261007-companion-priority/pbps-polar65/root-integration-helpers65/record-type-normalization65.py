@@ -1,0 +1,11 @@
+from pathlib import Path
+import hashlib,json,sys
+r=Path('runs/20261007-companion-priority/pbps-polar65');receipt=json.loads((r/'focused65-v2/receipt.json').read_bytes())
+assert receipt['exit_code']==1 and receipt['terminal_closed']
+failed=next(x for x in receipt['input_snapshots'] if x['original']['path'].endswith('/Tests/ProximalBPSPolarIsometry.lean'))
+p=Path(failed['exact_raw_snapshot']['path']);b=p.read_bytes();assert hashlib.sha256(b).hexdigest()==failed['original']['raw_sha256']
+out=r/'test-local-types65.diagnosis.json';assert not out.exists()
+out.write_text(json.dumps(dict(kind='LEAN_ELABORATION_LOCAL_TYPE_NORMALIZATION',failed_receipt=(r/'focused65-v2/receipt.json').as_posix(),actual_compiler_pid=receipt['actual_foreground_pid'],actual_compiler_exit=1,failed_Test_RAW_sha256=hashlib.sha256(b).hexdigest(),diagnosis='Production declaration compiled; original-input Test timed out while inferring adjoint types over the expanded nested canonical-law/subspace witness expressions. This is not accepted mathematical evidence for the Test.',correction='Explicitly change the extracted B0,V0 types to HP0->L Hperp and Gamma0,Inv types to HP0->L HP0 before the adjoint consumer proof.',statement_or_source_assumption_changed=False,failed_input_snapshot=failed['exact_raw_snapshot'],next_check='focused65-v3',remaining='Full Test compiler EXIT0 and independent mathematical/source/publication admission remain required.'),indent=2)+'\n',encoding='utf-8',newline='\n')
+sys.path.insert(0,'tools');import astis_advance as adv
+adv.checkpoint_advance('ASTIS-SA-20261009-PBPSActualPolarIsometry',worker_id='companion_root_20261005',route_fingerprint='same-root-typed-kernel-polar/consumer-local-type-normalization',progress_signature='production-compiled-consumer-adjoint-type-timeout-diagnosed',mathematical_delta='Production normalized polar/factorization/isometry compiled. Consumer timeout localized at adjoint type inference; explicit local type normalization added, sealed headers unchanged.',exact_residual='Original-input adjoint corrector Test still compiling; no focused PASS/PROVED_LOCAL/source or whole-paper credit.')
+print('Recorded typed negative v2 and internal local-type correction; no Test proof credit.')

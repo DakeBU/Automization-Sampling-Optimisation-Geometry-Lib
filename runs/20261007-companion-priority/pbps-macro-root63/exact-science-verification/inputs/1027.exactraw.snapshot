@@ -1,0 +1,106 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinTriangleMarginals
+import Mathlib.Tactic
+
+/-!
+# Symmetry of the quadratic Wasserstein distance
+
+The symmetry proof is kept at the coupling level.  A coupling of `μ,ν` is
+pushed forward by coordinate swap; the swapped plan couples `ν,μ` and has
+exactly the same quadratic cost.  Near-optimal selection then transfers the
+inequality between the two Wasserstein values without assuming existence of an
+optimal plan.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace WassersteinSymmetry
+
+open MeasureTheory
+open scoped ENNReal
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+
+/-- Coordinate swap on a pair. -/
+def swapPair : E × E → E × E := fun z => (z.2, z.1)
+
+@[fun_prop]
+theorem measurable_swapPair : Measurable (swapPair (E := E)) := by
+  exact measurable_snd.prodMk measurable_fst
+
+/-- Swapping a coupling exchanges its two marginals. -/
+theorem isCoupling_map_swapPair
+    {μ ν : Measure E} {γ : Measure (E × E)}
+    (hγ : Transport.IsCoupling γ μ ν) :
+    Transport.IsCoupling (Measure.map (swapPair (E := E)) γ) ν μ := by
+  constructor
+  · rw [Measure.fst,
+      Measure.map_map measurable_fst measurable_swapPair]
+    change Measure.map Prod.snd γ = ν
+    simpa [Measure.snd] using hγ.2
+  · rw [Measure.snd,
+      Measure.map_map measurable_snd measurable_swapPair]
+    change Measure.map Prod.fst γ = μ
+    simpa [Measure.fst] using hγ.1
+
+/-- Quadratic transport cost is invariant under coordinate swap. -/
+theorem lintegral_quadraticCost_map_swapPair
+    (γ : Measure (E × E)) :
+    (∫⁻ z, WassersteinSpace.quadraticCost (E := E) z
+      ∂Measure.map (swapPair (E := E)) γ) =
+      ∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂γ := by
+  rw [lintegral_map
+    WassersteinTriangleMarginals.measurable_quadraticCost measurable_swapPair]
+  apply lintegral_congr
+  intro z
+  simp [WassersteinSpace.quadraticCost, swapPair, norm_sub_rev]
+
+/-- One half of Wasserstein symmetry, obtained from swapped near-optimal
+couplings. -/
+theorem wassersteinDistance_le_reverse
+    (μ ν : Measure E) :
+    WassersteinSpace.wassersteinDistance μ ν ≤
+      WassersteinSpace.wassersteinDistance ν μ := by
+  apply ENNReal.le_of_forall_pos_le_add
+  intro ε hε hfinite
+  have hεne : (ε : ℝ≥0∞) ≠ 0 := by
+    exact_mod_cast (ne_of_gt hε)
+  have hstrict :
+      WassersteinSpace.wassersteinDistance ν μ <
+        WassersteinSpace.wassersteinDistance ν μ + (ε : ℝ≥0∞) :=
+    ENNReal.lt_add_right hfinite.ne hεne
+  rcases
+      WassersteinSpace.exists_isCoupling_sqrt_lintegral_lt_of_wassersteinDistance_lt
+        ν μ hstrict with
+    ⟨γ, hγ, hcost⟩
+  have hswap := isCoupling_map_swapPair (E := E) hγ
+  calc
+    WassersteinSpace.wassersteinDistance μ ν ≤
+        (∫⁻ z, WassersteinSpace.quadraticCost (E := E) z
+          ∂Measure.map (swapPair (E := E)) γ) ^ (1 / (2 : ℝ)) :=
+      WassersteinSpace.wassersteinDistance_le_sqrt_lintegral_of_isCoupling
+        μ ν (Measure.map (swapPair (E := E)) γ) hswap
+    _ = (∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂γ) ^
+          (1 / (2 : ℝ)) := by
+      rw [lintegral_quadraticCost_map_swapPair]
+    _ ≤ WassersteinSpace.wassersteinDistance ν μ + (ε : ℝ≥0∞) := hcost.le
+
+/-- The quadratic Wasserstein distance is symmetric. -/
+theorem wassersteinDistance_comm
+    (μ ν : Measure E) :
+    WassersteinSpace.wassersteinDistance μ ν =
+      WassersteinSpace.wassersteinDistance ν μ := by
+  apply le_antisymm
+  · exact wassersteinDistance_le_reverse μ ν
+  · exact wassersteinDistance_le_reverse ν μ
+
+end
+
+end WassersteinSymmetry
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

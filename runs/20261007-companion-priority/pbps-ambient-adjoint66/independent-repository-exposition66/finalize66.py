@@ -1,0 +1,32 @@
+import os,json,pathlib,hashlib,datetime,subprocess
+O=pathlib.Path(__file__).resolve().parent;ROOT=pathlib.Path('E:/Samplinglib')
+def sha(b):return hashlib.sha256(b).hexdigest()
+def canon(j):return json.dumps(j,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode()
+def load(p):return json.loads(pathlib.Path(p).read_bytes())
+def pin(p):
+ b=p.read_bytes();n=b.replace(b'\r\n',b'\n');return {'name':p.relative_to(O).as_posix(),'RAW_bytes':len(b),'RAW_sha256':sha(b),'LF_bytes':len(n),'LF_sha256':sha(n)}
+def write(n,j):(O/n).write_bytes(json.dumps(j,sort_keys=True,ensure_ascii=False,indent=2).encode()+b'\n')
+decision=load(O/'complete-RAW-decision.json');assert decision==load(O/'decision.json')
+assert decision['current_graph_freshness_admission'] is False and decision['source_mathematical_repair'] is False
+manifests=[load(O/'inputs.manifest.json'),load(O/'reader-inputs.manifest.json')]
+inputs=[]
+for m in manifests:
+ for z in m['inputs']:
+  p=pathlib.Path(z['RAW_snapshot']['path']);b=p.read_bytes();assert sha(b)==z['original']['RAW_sha256'];q=pathlib.Path(z['LF_snapshot']['path']);assert q.read_bytes()==b.replace(b'\r\n',b'\n')
+  inputs.append({'finite_original_RAW_LF_map':z,'complete_exact_RAW_UTF8_text':b.decode('utf-8')})
+ledger='runs/substantive_advances.jsonl';base=subprocess.check_output(['git','show',decision['checked_INT_commit']+':'+ledger],cwd=ROOT);cur=(ROOT/ledger).read_bytes();assert cur.startswith(base);suffix=cur[len(base):];events=[json.loads(x) for x in suffix.splitlines() if x.strip()];assert all(x.get('advance_id')=='ASTIS-SA-20261009-PBPSActualRootInverseCommutation' for x in events)
+(O/'future67.closing-ledger-suffix.RAW.jsonl').write_bytes(suffix)
+closingmap={'schema':'repo66-explicit-current-ledger-prefix-map-v1','observed_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'INT66_prefix_RAW_sha256':sha(base),'INT66_prefix_RAW_bytes':len(base),'observed_current_RAW_sha256':sha(cur),'observed_current_RAW_bytes':len(cur),'exact_future67_suffix':pin(O/'future67.closing-ledger-suffix.RAW.jsonl'),'suffix_event_count':len(events),'suffix_events':events,'outside_INT66_mathematical_publication_admission':True,'no_current_equality_assumption_for_frozen_historical_inputs':True}
+write('finite-closing-ledger-map.json',closingmap)
+inputpayload={'schema':'repo66-SEPARATE-COMPLETE-RAW-INPUT-v1','scope':'Complete selected original input text plus finite complete exact commit/source/receipt maps; immutable parent full payloads reused by exact pins, no broad history copies.','original_inputs':inputs,'all1484_commit_RAW_LF_map':load(O/'exact-commit-files.RAW-LF-map.json'),'all340_receipt_snapshot_RAW_LF_maps':load(O/'root-gates-and-finite-snapshot-maps.json'),'whole_native_parents_pinned':load(O/'native-parent-closures.json'),'complete_tracked_source_inventory_and_finite_generated_context':load(O/'graph-finite-freshness-diagnosis.json'),'final_observed_current_prefix_map':closingmap}
+write('RAW-input-payload.json',inputpayload)
+names=['audit66.result.json','science-unchanged.json','python296-exact-reuse.json','whitespace-typed.json','native-parent-closures.json','nonowner-VERIFIED-binding.json','reader-and-native-decoder.json','graph-finite-freshness-diagnosis.json','prior64-and-four-paper-priority.json','graph-freshness-repair-proposal.json','observed-foreground-audits.json','prepare66.result.json','finite-closing-ledger-map.json']
+evidence={n:load(O/n) for n in names}
+negatives={p.name:load(p) for p in sorted(O.glob('negative.*.json'))}
+pending={'foreground-finalizer.stdout.RAW.log','foreground-finalizer.stderr.RAW.log'}
+pre=[pin(p) for p in sorted(O.rglob('*')) if p.is_file() and p.relative_to(O).as_posix() not in pending]
+run={'schema':'repo66-COMPLETE-RAW-REVIEW-run-v1','reviewer':'/root/independent_source64','actual_finalizer_PID':os.getpid(),'finalized_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checked_INT_commit':decision['checked_INT_commit'],'exact_parent_SCI_commit':decision['exact_parent_SCI_commit'],'decisions':[decision],'complete_named_RAW_INPUT_payload':{'file':'RAW-input-payload.json','binding':pin(O/'RAW-input-payload.json'),'complete_payload':inputpayload},'analytical_evidence':evidence,'preserved_observer_and_process_negatives':negatives,'pre_finalization_owned_RAW_LF_bindings':pre,'run_hash_rule':'SHA256 of complete parsed logical object after deleting ONLY top-level run_sha256; recursively sorted UTF8 compact JSON, ensure_ascii=false, no canonical newline. No field projection.','closure_contract':{'finalizer_currently_open_exact_pending_files':sorted(pending),'subsequent_terminal_self_layers':'foreground-finalizer/readback/close-validator stdout,stderr,receipts; readback/close-validator results; complete payload bindings; owned manifest; CLOSED_LAST final lease. Every owned file including all negatives/scripts/snapshots/self/terminals is bound by final manifest and last lease; lease self RAW hash is returned externally.','COMPLETE_RAW_REVIEW':'Whole exact review-run.json bytes, no deletion; distinct from logical run hash.','COMPLETE_RAW_DECISION':'Whole complete-RAW-decision.json bytes, no deletion.','SEPARATE_COMPLETE_RAW_INPUT':'Whole RAW-input-payload.json bytes, no deletion.','postclose':'Strictly read-only; external postclose PID/EXIT readback in final capsule; no owned postclose receipt.'},'full_Exposition':False,'PURIFIED':False,'Goal_complete':False,'canonical_Git_ledger_Lean_writes':False}
+run['run_sha256']=sha(canon(run));write('review-run.json',run)
+bindings={'schema':'repo66-distinct-complete-named-RAW-payload-bindings-v1','whole_logical_run_sha256':run['run_sha256'],'COMPLETE_RAW_REVIEW':pin(O/'review-run.json'),'COMPLETE_RAW_DECISION':pin(O/'complete-RAW-decision.json'),'SEPARATE_COMPLETE_RAW_INPUT':pin(O/'RAW-input-payload.json')}
+write('raw-payload-bindings.json',bindings);write('finalizer.result.json',{'schema':'repo66-foreground-finalizer-result-v1','actual_foreground_PID':os.getpid(),'status':'SCOPED_ADMISSION_CURRENT_FRESHNESS_WITHHELD','logical_and_distinct_RAW_bindings':bindings,'exit_observation':'Parent foreground runner must observe actual EXIT0; self status is not an exit.'})
+print(json.dumps({'actual_foreground_PID':os.getpid(),'whole_logical_run_sha256':run['run_sha256'],'COMPLETE_RAW_REVIEW_sha256':bindings['COMPLETE_RAW_REVIEW']['RAW_sha256'],'COMPLETE_RAW_DECISION_sha256':bindings['COMPLETE_RAW_DECISION']['RAW_sha256'],'SEPARATE_COMPLETE_RAW_INPUT_sha256':bindings['SEPARATE_COMPLETE_RAW_INPUT']['RAW_sha256']}))

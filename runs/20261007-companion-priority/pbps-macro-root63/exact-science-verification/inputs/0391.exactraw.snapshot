@@ -1,0 +1,52 @@
+from pathlib import Path
+import hashlib,json,sys
+sys.path.insert(0,str(Path('tools').resolve()))
+import astis_semantic_roundtrip as rt, astis_publication as pub
+r=Path('runs/20261007-companion-priority/pbps-real-defect-root61');n=Path('.astis/decoder-61');d=n/'independent'
+load=lambda p:json.loads(Path(p).read_bytes());sha=lambda b:hashlib.sha256(b).hexdigest()
+def w(p,x):
+ p=Path(p);assert not p.exists(),p;p.write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
+def pin(p):
+ p=Path(p);b=p.read_bytes();return dict(path=p.resolve().as_posix(),raw_bytes=len(b),raw_sha256=sha(b),lf_sha256=sha(b.replace(b'\r\n',b'\n')))
+seen=set();history=[]
+def walk(x):
+ if isinstance(x,dict):
+  if {'path','raw_sha256'}<=x.keys():
+   p=Path(x['path']);key=(p.resolve().as_posix(),x['raw_sha256'],x.get('lf_sha256'))
+   if key not in seen:
+    q=pin(p)
+    if q['raw_sha256']!=x['raw_sha256']:
+     assert p.resolve()==(n/'lease.json').resolve();q=pin(n/'initial-lease.raw.snapshot.json');assert q['raw_sha256']==x['raw_sha256'];history.append(dict(original=x,exact_raw_snapshot=q))
+    assert q['raw_sha256']==x['raw_sha256']
+    if 'lf_sha256' in x:assert q['lf_sha256']==x['lf_sha256']
+    for k in ['bytes','raw_bytes','raw_byte_count']:
+     if k in x:assert q['raw_bytes']==x[k]
+    seen.add(key)
+  for v in x.values():walk(v)
+ elif isinstance(x,list):
+  for v in x:walk(v)
+dr=load(d/'decoder-native-run.json');payload=(d/'decoder-native-run.payload.json').read_bytes();dl=load(n/'lease.json');closed=load(d/'CLOSED_LAST.json')
+assert dr['decoder_payload_sha256']==sha(payload)=='66a4628e2324ce5c726b5c454fb871b66c33994be7410d4d4c91d208b2294f44'
+assert dr['decoder_run_sha256']==sha(b'ASTIS-ANONYMOUS-DECODER-NATIVE-RUN-v1\0'+payload)=='893efec62d0219bed4e6ec4ed0103556b8b82c6dcc425d56e95e5779912922ea'
+assert dl['status']=='CLOSED' and closed['closed_last'] and closed['actual_foreground_readback']['exit_code']==0
+assert not any(dr[k] for k in ['source_text_visible','source_identity_visible','compiler_started'])
+for p in d.glob('*.json'):walk(load(p))
+plan=load(r/'publication-plan.json');audits=[];pub.inputs.cache_clear();pub.load.cache_clear();data=pub.inputs()
+for i,(aid,slug) in enumerate(zip(plan['audit_ids'],plan['slugs'])):
+ packet=load(n/f'packet{i}.json');assert packet==load(r/f'anonymous.{i}.decoder.json');assert rt.sha256_json({k:v for k,v in packet.items() if k!='packet_sha256'})==packet['packet_sha256']
+ q=load(d/f'decoded{i}.json');assert q['decoder_run_sha256']==dr['decoder_run_sha256'] and q['decoder_payload_sha256']==dr['decoder_payload_sha256']
+ assert q['source_text_visible']==q['source_identity_visible']==False
+ assert sha((d/f'reconstructed{i}.txt').read_bytes())==q['reconstructed_text_sha256']==sha(q['reconstructed_theorem_text'].encode())
+ assert q['statement_sha256']==packet['lean']['statement_sha256'] and all(q[k] for k in ['objects','domains','quantifiers','assumptions','conclusion','scopes','constant_dependencies'])
+ p=Path('research-wiki/semantic-roundtrip/audits')/(aid+'.json');a=load(p);assert a['state']=='draft' and rt.decoder_packet(a)==packet
+ item=next(x for x in pub.load() if x['id']==slug);assert pub.binding_digest(item,item['bindings'][0],data)==a['publication_binding_sha256'];audits.append((p,a,packet,q))
+dest=r/'anonymous-decoder';assert not dest.exists();dest.mkdir();mappings=[]
+for p in [*d.iterdir(),n/'packet0.json',n/'packet1.json',n/'lease.json',n/'initial-lease.raw.snapshot.json']:
+ if p.is_file():
+  target=dest/('input-lease.json' if p==n/'lease.json' else p.name);assert not target.exists();target.write_bytes(p.read_bytes());mappings.append(dict(original=pin(p),exact_raw_snapshot=pin(target)))
+w(r/'root.decoder61.adoption.json',dict(status='ACTUAL_CLOSED_ANONYMOUS_DECODER_ADOPTED',decoder=dr['decoder'],native_run_sha256=dr['decoder_run_sha256'],named_decoder_payload_sha256=dr['decoder_payload_sha256'],run_hash_recipe=dr['decoder_run_digest_recipe'],payload_hash_recipe=dr['decoder_payload_digest_recipe'],qualified_pin_readbacks=len(seen),historical_lease_resolution=history,source_text_visible=False,source_identity_visible=False,raw_snapshot_mappings=mappings))
+for i,(p,a,packet,q) in enumerate(audits):
+ (r/f'audit.{i}.before-decoder.raw.snapshot.json').write_bytes(p.read_bytes())
+ a.update(state='blind-reconstructed',reconstruction=dict(text=q['reconstructed_theorem_text'],text_sha256=q['reconstructed_text_sha256'],decoder=dr['decoder'],decoder_run_sha256=q['decoder_run_sha256'],decoder_packet_sha256=packet['packet_sha256'],source_text_visible=False,lean_statement_sha256=a['lean']['statement_sha256'],input_artifacts=['lean-statement','approved-definition-context'],observed_input_artifacts=[pin(dest/f'packet{i}.json')],run_artifact=(dest/f'decoded{i}.json').as_posix(),run_binding=(dest/'decoder-native-run.json').as_posix(),native_named_payload_sha256=dr['decoder_payload_sha256'],run_hash_recipe=dr['decoder_run_digest_recipe']))
+ p.write_text(json.dumps(a,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n');w(r/f'source.{i}.reviewer-packet.json',rt.semantic_reviewer_packet(a))
+print('Native anonymous61 exact bytes/digest recipes adopted;',len(seen),'qualified pins; two semantic reviewer packets ready. No source verdict or verification.')

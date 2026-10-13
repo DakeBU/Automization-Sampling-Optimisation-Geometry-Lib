@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-5fe7fef55b2f85b4",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))\n        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n        (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n        Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n        ∃ M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J,\n          (∀ u : Lp ℝ 2 ν, (M u : E × E → ℝ) =ᵐ[J] u ∘ Prod.snd) ∧\n          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n            let A := P * U.toContinuousLinearMap * P\n            let B := (1-P) * U.toContinuousLinearMap * P\n            ∀ u : Lp ℝ 2 ν,\n              P (M u) = M u ∧ M (T u) = A (M u) ∧ ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∀ᵐ y ∂ν, Integrable (u : E → ℝ) (S y) ∧\n                Integrable (fun x => (u x)^2) (S y)) ∧\n              Integrable (fun y =>\n                AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n                  (S y) (u : E → ℝ)) ν ∧\n              (∫ y, AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n                (S y) (u : E → ℝ) ∂ν) = ‖B (M u)‖^2 ∧\n              ‖B (M u)‖^2 = ‖u‖^2-‖T u‖^2",
+    "statement_sha256": "5fe7fef55b2f85b4a47f724f2d25029c23631ba536de3b226d7f73ef3b5d8aaf",
+    "compiled": true,
+    "approved_definition_context": [
+      "E is a finite-dimensional real inner-product Borel space with canonical volume; rank zero allowed. V is C2; positive alpha<=beta, both exact displayed global Hessian bounds, eta>0 and beta*eta<=1 are original source hypotheses.",
+      "Measure.tilted denotes normalized exponential tilt. mu is exactly volume.tilted(-V); J is the actual independent pushforward of mu.prod(stdGaussian E) by (x,z)->(x,x+sqrt(eta)*z); nu=J.snd. Lambda is the actual map by (x,y)->(y,2x-y); F(x,y)=(x,2x-y).",
+      "Kernel S is one genuine measurable Markov probability kernel, with the exact displayed normalized source-volume law at EVERY y. Lambda.IsCondKernel S means Lambda=Lambda.fst compProd S, not a caller certificate. Both Lambda marginals are the same nu.",
+      "Lp F2rho denotes AE classes of strongly measurable square-integrable functions under rho. Its chosen coercion is a strongly measurable representative. Finite dimension of E does not make any Lp space finite dimensional.",
+      "P is exactly the displayed actual L2 conditional orthogonal projection onto the comap-snd measurable subspace, not a caller operator. U is an actual linear isometric reflection involution/self-adjoint operator and its representative equality is AE under J.",
+      "M is a genuine real linear isometry from L2nu into L2J, with actual AE-snd pullback representatives. One M and one bounded real linear T are chosen BEFORE every arbitrary rough L2 input u. PM=M; MT=A M; A=P U P; B=(1-P) U P.",
+      "For each u, Tu is the literal S conditional integral AE nu; norm(Tu)<=norm(u). Fiber integrability of u and u squared is AE nu, not every y. Integrable variance and the exact integrated variance=norm(BMu)^2=norm(u)^2-norm(Tu)^2 are conclusions.",
+      "The displayed qualified variance definition is the integral of the squared centered real observable under S(y). No centering, compact support, pointwise rough smoothness, weak-H1/gradient, quantitative mixing, algorithm implementation, complexity or unbounded-cost conclusion occurs."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "6a8143bc0ecac7f64bb4cca8383cdbfaed3e2f379badef8288b6a92da77487b3"
+}

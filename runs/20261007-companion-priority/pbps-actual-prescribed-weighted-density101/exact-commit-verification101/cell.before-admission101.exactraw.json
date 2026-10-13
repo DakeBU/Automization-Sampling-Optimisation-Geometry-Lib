@@ -1,0 +1,198 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-prescribed-weighted-density",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS prescribed weighted density matching",
+  "mode": "faithfulPaper",
+  "declaration_level": "source-anchor",
+  "source_anchor": "Appendix A.1 Eq A7/A8 actual prescribed trajectory weighted-density matching, target energy Eq3.1",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival\n\n/- Type-only proposal for independent prospective source and mathematics review.\nNo theorem proof, Statement Seal, SAU claim or completion is asserted. -/\nnamespace PBPSWeightedDensityCandidate101\nopen MeasureTheory InnerProductSpace\nopen scoped ContDiff NNReal ENNReal Classical\nnoncomputable section\nset_option autoImplicit false\n\ndef candidate\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let U : E → E × E → ℝ := fun y z =>\n      V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2\n    let w : E → E × E → ℝ := fun y z => Real.exp (-U y z)\n    let P : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ :=\n      fun y r z n T t => ∏ i : Fin n,\n        rate r (Φ y r (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n+1) → ℝ) i.castSucc)\n          (zAt y r z n T t i.castSucc))\n    let I : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ :=\n      fun y r z n T t => ∫ s in (0 : ℝ)..(T : ℝ),\n        rate r (Γ y r z n T t ⟨min (Real.toNNReal s) T, min_le_right _ _⟩)\n    let dReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ :=\n      fun y r z n T t => Real.exp (-I y r z n T t) * P y r z n T t\n    ∀ n : ℕ, ∀ T : ℝ≥0, ∃ rho : Prefix n T → Prefix n T,\n      (∀ t : Prefix n T, ∀ i : Fin n, (rho t).val i = (T : ℝ) - t.val i.rev) ∧\n      ∀ y r : E, ∀ z : E × E, ∀ t : Prefix n T,\n        let A : E × E := Γ y r z n T t ⟨T, le_rfl⟩\n        w y z * dReal y r z n T t = w y (R A) * dReal y r (R A) n T (rho t) ∧\n        ENNReal.ofReal (w y z) * ρ y r z n T t =\n          ENNReal.ofReal (w y (R A)) * ρ y r (R A) n T (rho t)\n\n#check candidate\nend\nend PBPSWeightedDensityCandidate101\n",
+  "status": "claimed",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity.actual_prescribed_path_density_rewrite",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival.actual_prescribed_gibbs_survival_balance",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal.actual_prescribed_state_reversal_and_rate_product",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal.actual_prescribed_path_reversal_and_survival"
+  ],
+  "consumers": [
+    "Actual weighted-sector substitution using97 measure-preserving endpoint/time map; later normalized stationary averaging. Neither later node is assumed or claimed."
+  ],
+  "target_declarations": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity.actual_prescribed_weighted_density_balance"
+  ],
+  "evidence": {
+    "owner": "companion_root_20261005",
+    "statement_seal": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-weighted-density-preread101\\root.statement-seal101.json",
+    "focused_checks": [
+      "runs/20261007-companion-priority/pbps-actual-prescribed-weighted-density101/focused101/production2-private/receipt.json"
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedWeightedDensity.lean"
+    ],
+    "truth_boundary": "Pointwise unnormalized weighted-density matching only; no weighted integral/sector, invariant probability, restart/Markovness, hypocoercivity, implementation error, expected cost, main theorem or composition.",
+    "whole_target_compiled": {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedWeightedDensity.lean",
+      "raw_sha256": "b9c6e8ed0655b9c607eff38ecf74eb3a4555ff90184475e8dfc554bb96dcb3c0",
+      "bytes": 9854
+    }
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-prescribed-path-reversal100\\next-primary101\\retrieval101.native.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-weighted-density-preread101\\retrieval101.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-weighted-density-preread101\\independent-header-math101\\reuse-api-audit101.native.json",
+      "Samplinglib and pinned Mathlib retrieval: runs/20261007-companion-priority/pbps-weighted-density-preread101/retrieval101.json; ENNReal.ofReal_mul/ofReal_mul' in fixed Mathlib/Data/ENNReal/Real.lean:297/301; independent contract audit in independent-header-math101/reuse-api-audit101.native.json."
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity.actual_prescribed_weighted_density_balance",
+    "canonical_shared_cell": "",
+    "reason": "Actual94 density,98 Gibbs survival,99 product,100 integral reversal; elementary energy flip and ofReal_mul."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-prescribed-path-reversal100\\next-primary101\\retrieval101.native.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-weighted-density-preread101\\retrieval101.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-weighted-density-preread101\\independent-header-math101\\reuse-api-audit101.native.json",
+      "Samplinglib and pinned Mathlib retrieval: runs/20261007-companion-priority/pbps-weighted-density-preread101/retrieval101.json; ENNReal.ofReal_mul/ofReal_mul' in fixed Mathlib/Data/ENNReal/Real.lean:297/301; independent contract audit in independent-header-math101/reuse-api-audit101.native.json."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity.actual_prescribed_path_density_rewrite",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival.actual_prescribed_gibbs_survival_balance",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal.actual_prescribed_state_reversal_and_rate_product",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal.actual_prescribed_path_reversal_and_survival"
+    ],
+    "planned_dependencies": [],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "Actual weighted-sector substitution using97 measure-preserving endpoint/time map; later normalized stationary averaging. Neither later node is assumed or claimed."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "New actual weighted real/ENNReal density matching, no supplied provider premises."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Full sealed actual target compiles; independent whole math, anonymous decoding and source/exposition reviews pending."
+  },
+  "statement_seal": {
+    "evidence": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-weighted-density-preread101\\root.statement-seal101.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "95693f5ab9b8da50fabdc4da9deeaf6f4950cc4cdd4d60e0a53e0412bfa31c27",
+    "binder_audit": [
+      "Original six analytic assumptions and finite real Hilbert Borel typing; no excess."
+    ],
+    "definition_kind": "First20 literal actual definitions from94 including rho=q*terminalweight. Six explicit definitions R,U,w,P,I,dReal; actual target U, unnormalized w. No supplied density, reversal, product identity or integrability."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/source-proof-graph-delta101.native.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-actual-prescribed-path-reversal100/next-primary101/source-coverage-delta101.native.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-actual-prescribed-weighted-density101/final-source101/compiled-source-coverage101.native.json",
+    "coverage_status": "Independently accepted compiled source coverage; full paper boundaries remain open."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Appendix A.1 Eq A7/A8 actual prescribed trajectory weighted-density matching, target energy Eq3.1",
+    "fidelity_boundary": "Pointwise unnormalized weighted-density matching only; no weighted integral/sector, invariant probability, restart/Markovness, hypocoercivity, implementation error, expected cost, main theorem or composition.",
+    "detail_status": "omitted",
+    "gap": "Pointwise weight matching requires actual density bridge, common reversal witness and incoming rate product; normalization is separate.",
+    "consulted": [
+      {
+        "source": "Pinned PBPS v1 and fixed Mathlib/core",
+        "anchor": "Eq3.1 and Appendix A1 A7/A8",
+        "hypothesis_adapter": "Retain exact actual rho=q*terminalweight and target U; no extra regularity/positivity."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity.actual_prescribed_path_density_rewrite",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival.actual_prescribed_gibbs_survival_balance",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedStateReversal.actual_prescribed_state_reversal_and_rate_product",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathReversal.actual_prescribed_path_reversal_and_survival"
+    ],
+    "bookkeeping": [
+      "Reversal witness uniqueness",
+      "Momentum-flip target energy equality",
+      "Multiplication and ofReal nonnegative product"
+    ],
+    "new_reusable": [],
+    "new_topology": "Actual finite prescribed trajectory weighted real density and actual ENNReal density match under reversed event times and momentum-reversed terminal state."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Single public theorem consumes four public actual producers94/98/99/100 and its literal private statement; no unused helper or mangled private API.",
+    "duplicate_semantics_audit": "Local Mathlib compatible catalog search complete.",
+    "canonicalization": "Consume four public actual producers; no private cross-module calls.",
+    "compressed_spine_delta": "Actual finite prescribed trajectory weighted real density and actual ENNReal density match under reversed event times and momentum-reversed terminal state.",
+    "reader_default_view": "Full attributed statement/formula proof and adjacent folded Lean.",
+    "scope": "Pointwise unnormalized weighted-density matching only; no weighted integral/sector, invariant probability, restart/Markovness, hypocoercivity, implementation error, expected cost, main theorem or composition."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "Full sealed target compiled; no mathematical fragment discarded. Initial elaboration failures retained with corrected unfold and explicit finite-grid types.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-weighted-density-matching"
+      ],
+      "expected_information_gain": "One implementation owner and independent source/math audits.",
+      "shared_verified_context_digest": "95693f5ab9b8da50fabdc4da9deeaf6f4950cc4cdd4d60e0a53e0412bfa31c27"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Single source-faithful implementation route."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "WEIGHT100"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity.actual_prescribed_weighted_density_balance"
+      ],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity.actual_prescribed_weighted_density_balance"
+    ],
+    "visual_review": "Pending implementation and publication."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "reason": "Source-specific actual PBPS weighted-density integration; no new cross-domain bridge.",
+    "discovery_ids": []
+  }
+}

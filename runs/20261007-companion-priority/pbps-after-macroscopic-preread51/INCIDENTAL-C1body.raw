@@ -1,0 +1,44 @@
+    simpa only [gradient, LinearIsometryEquiv.norm_map] using
+      hCb ((n:ℝ)+1) (by positivity) x
+  have hgradt (x : E) : Tendsto (fun n => gradient (χ n) x) atTop (𝓝 0) := by
+    apply tendsto_zero_iff_norm_tendsto_zero.mpr
+    apply squeeze_zero (fun n => norm_nonneg _) (fun n => hgb n x)
+    simpa only [div_eq_mul_inv,mul_zero,Function.comp_def] using
+      (tendsto_inv_atTop_zero.comp
+        (tendsto_atTop_add_const_right atTop (1:ℝ) tendsto_natCast_atTop_atTop)).const_mul C
+  obtain ⟨hen,hent⟩ := dominated_L2_tendsto_zero μ
+    (fun n x => f x • gradient (χ n) x) f
+    (fun n => hf.continuous.aestronglyMeasurable.smul (hgrad n).aestronglyMeasurable)
+    hp C hC.le (fun n => Eventually.of_forall (fun x => by
+      rw [norm_smul]
+      have hb : C/((n:ℝ)+1) ≤ C := by
+        apply (div_le_iff₀ (by positivity : (0:ℝ)<(n:ℝ)+1)).mpr
+        nlinarith [Nat.cast_nonneg (α:=ℝ) n]
+      calc ‖f x‖*‖gradient (χ n) x‖ ≤ ‖f x‖*C :=
+             mul_le_mul_of_nonneg_left ((hgb n x).trans hb) (norm_nonneg _)
+           _ = C*‖f x‖ := mul_comm _ _))
+    (Eventually.of_forall (fun x => by
+      simpa only [smul_zero] using (hgradt x).const_smul (f x)))
+  let hqn := fun n => (hGn n).add (hen n)
+  have hqnt : Tendsto (fun n => (hqn n).toLp _) atTop (𝓝 (hq.toLp (gradient f))) := by
+    change Tendsto (fun n => (hGn n).toLp _+(hen n).toLp _)
+      atTop (𝓝 (hq.toLp (gradient f)))
+    simpa only [add_zero] using hGnt.add hent
+  have hproduct (n : ℕ) (x : E) :
+      gradient (fun z => χ n z*f z) x = χ n x • gradient f x+f x • gradient (χ n) x := by
+    rw [gradient, fderiv_fun_mul ((hχ n).differentiable_one x) (hf.differentiable_one x)]
+    simp only [map_add,map_smul,gradient]
+  have hgn (n : ℕ) : ((hfn n).toLp _,(hqn n).toLp _) ∈ D.closure.graph := by
+    obtain ⟨hnp,hnq,hn⟩ :=
+      AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactC1GradientDomain.compact_c1_in_closed_gradient
+        μ D hD hgraph ((hχ n).mul hf) (hc n).mul_right
+    have hidp : hnp.toLp (fun z => χ n z*f z) = (hfn n).toLp _ := by
+      apply Lp.ext
+      filter_upwards [hnp.coeFn_toLp,(hfn n).coeFn_toLp] with x hx hy
+      rw [hx,hy]; rfl
+    have hidq : hnq.toLp (gradient (fun z => χ n z*f z)) = (hqn n).toLp _ := by
+      apply Lp.ext
+      filter_upwards [hnq.coeFn_toLp,(hqn n).coeFn_toLp] with x hx hy
+      rw [hx,hy,hproduct]; rfl
+    rwa [hidp,hidq] at hn
+  have hclosed : IsClosed (D.closure.graph : Set (Lp ℝ 2 μ × Lp E 2 μ)) := by

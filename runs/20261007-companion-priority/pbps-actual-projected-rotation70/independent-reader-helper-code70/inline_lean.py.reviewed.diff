@@ -1,0 +1,16 @@
+--- E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-projected-rotation70/reader-helper-contract70/inline_lean.py.before.exactraw.snapshot
++++ E:/Samplinglib/website/scripts/inline_lean.py
+@@ -80,6 +80,13 @@
+     signature, body = split_statement(exact_source)
+     code = signature if role == 'statement' else exact_source
+     label = 'Lean statement' if role == 'statement' else 'Lean proof / instance' if declaration.kind == 'instance' else 'Lean proof' if declaration.kind in {'theorem', 'lemma'} else 'Lean construction'
++    literal_statement = (declaration.kind == 'def'
++                         and declaration.short_name.endswith('_statement')
++                         and re.search(r':\s*Prop\s*$', base.sanitize_lean(signature)) is not None)
++    if role == 'proof' and literal_statement:
++        label = 'Full Lean proposition (definition)'
++        explanation = ('This literal definition stores the complete proposition asserted above. '
++                       'It supplies no mathematical proof or additional hypothesis; the theorem proof must establish its value.')
+     if role == 'statement' and not body and declaration.kind in {'theorem', 'lemma'}:
+         label = 'Complete Lean declaration (unsplit)'
+     href, _ = base.source_href(declaration, from_path=page)

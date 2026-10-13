@@ -1,0 +1,310 @@
+diff --git a/AutoSamplingTheory/ExampleCases.lean b/AutoSamplingTheory/ExampleCases.lean
+index 51ca56ca..dab7ebb5 100644
+--- a/AutoSamplingTheory/ExampleCases.lean
++++ b/AutoSamplingTheory/ExampleCases.lean
+@@ -20,6 +20,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRootUnique
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry
++import AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient
+ import AutoSamplingTheory.ExampleCases.SampleWiki
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection
+diff --git a/AutoSamplingTheory/TechnicalLemmas/Registry.lean b/AutoSamplingTheory/TechnicalLemmas/Registry.lean
+index 34b49d16..e9702925 100644
+--- a/AutoSamplingTheory/TechnicalLemmas/Registry.lean
++++ b/AutoSamplingTheory/TechnicalLemmas/Registry.lean
+@@ -2098,6 +2098,16 @@ def calculusMemory : List LemmaMemoryEntry := [
+ ]
+ 
+ def measureMemory : List LemmaMemoryEntry := [
++  {
++    key := "pbps.ambientAdjointCorrector"
++    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition"
++    upstreamDecl := "Actual PBPS ambient adjoint and globally centered corrector"
++    upstreamFile := "arXiv2609.06905v1 Appendix B3 first corrector after B16 before B20"
++    status := LemmaMemoryStatus.formalizedLocal
++    tags := ["PBPS", "L2", "ambient-adjoint", "centering", "corrector"]
++    saldUse := "Actual PBPS consumer; no SALD admission"
++    note := "Independently exact-science66 VERIFIED a115115d42b3fa2b67885d87fe4d5300af36fcd1. SAME original C2/two Hessians/positive capped eta inputs produce canonical R:L2(J)->kerP with inclusion Rg=g-Pg and all-vector Bambient*=i0 B0*R. Every actual globally centered input produces fP in HP0,fperp=Rf,fV=V0*fperp with B* fperp=i0 Gamma0 fV=GammaP i0 fV, exact Pythagoras and contraction. Genuine Test gives original-input reconstruction,B*f=GammaP i0 fV and squared norm budget. Rank0/alphaeta1 retained. Two literal private Prop expansions are representations only; no extra premise/provider. Full B20/B21,halfturn/H1/dynamics/main/errors/expected costs/composition remain open."
++  },
+   {
+     key := "pbps.actualPolarIsometry"
+     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry.actual_centered_polar_isometry"
+diff --git a/Tests.lean b/Tests.lean
+index 876b9f6e..ced4a0bc 100644
+--- a/Tests.lean
++++ b/Tests.lean
+@@ -218,6 +218,7 @@ import Tests.ProximalBPSRealDefectRootUnique
+ import Tests.ProximalBPSMacroscopicDefectRoot
+ import Tests.ProximalBPSCenteredRootOrderInverse
+ import Tests.ProximalBPSPolarIsometry
++import Tests.ProximalBPSAmbientAdjointCorrector
+ import Tests.ProximalBPSMacroscopicRepresentative
+ import Tests.ProximalBPSConditionalScoreDomain
+ import Tests.ProximalBPSConditionalBochner
+diff --git a/Tests/Basic.lean b/Tests/Basic.lean
+index 143e950b..4edde427 100644
+--- a/Tests/Basic.lean
++++ b/Tests/Basic.lean
+@@ -44,7 +44,7 @@ example : openProblemCount = 1 := rfl
+ 
+ example : forbiddenProofPatterns.length = 5 := rfl
+ 
+-example : TechnicalLemmas.formalizedTechnicalLemmaCount = 511 := by native_decide
++example : TechnicalLemmas.formalizedTechnicalLemmaCount = 512 := by native_decide
+ 
+ example (x : ℝ) :
+     TechnicalLemmas.Analysis.Calculus.Cutoff.smoothUnitCutoff x =
+diff --git a/docs/assets/astis_lean_arsenal_module_graph.svg b/docs/assets/astis_lean_arsenal_module_graph.svg
+index 9750d4db..961eadcc 100644
+--- a/docs/assets/astis_lean_arsenal_module_graph.svg
++++ b/docs/assets/astis_lean_arsenal_module_graph.svg
+@@ -320,6 +320,6 @@
+   <rect x="78" y="883" width="18" height="12" fill="#dff0e4" stroke="#2e7d59"/><text x="104" y="894" font-family="Helvetica,Arial,sans-serif" font-size="11">Canonical Mathlib-ready candidate module: compiled local reusable leaves</text>
+   <rect x="78" y="905" width="18" height="12" fill="#eaf2ff" stroke="#2563eb"/><text x="104" y="916" font-family="Helvetica,Arial,sans-serif" font-size="11">Root public import surface</text>
+   <text x="78" y="938" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#475569">Omitted from the main graph: SALD/RMFLD consumers, SALDExtracted quarantine, compatibility files, registry metadata, and external references.</text>
+-  <text x="1260" y="955" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#64748b">Generated 2026-10-09 14:53:08 by tools/astis.py module-graph-refresh</text>
++  <text x="1260" y="955" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#64748b">Generated 2026-10-09 17:11:30 by tools/astis.py module-graph-refresh</text>
+ </g>
+ </svg>
+diff --git a/docs/companion-papers-handoff.md b/docs/companion-papers-handoff.md
+index 9ee98742..42d82a8b 100644
+--- a/docs/companion-papers-handoff.md
++++ b/docs/companion-papers-handoff.md
+@@ -1,5 +1,45 @@
+ # Companion-paper formalization handoff
+ 
++## Actual PBPS ambient adjoint and globally centered corrector (2026-10-09)
++
++Independently VERIFIED science commit a115115d42b3fa2b67885d87fe4d5300af36fcd1. SAME original finite real Hilbert
++C2/two Hessian/positive capped eta inputs now produce canonical R:L2(J)->kerP
++with inclusion Rg=g-Pg and Bambient* g=i0 B0* Rg for every joint g.
++For every joint input with zero integral, the actual conditional mean belongs
++to SAME HP0. Its fperp=Rf and fV=V0* fperp satisfy the exact Gamma action,
++orthogonal squared-norm decomposition and contraction. The genuine Test gives
++f=i0 fP+fperp, B*f=GammaP i0 fV and ||fV||^2<=||f||^2-||fP||^2.
++Rank0 and alphaeta=1 remain legal; no premise/provider was added.
++
++Two private full literal Prop definitions preserve the sealed public statements
++and exact caller conditions; both whole modules and their expansions were
++independently reviewed. Six exact BODY formula steps, blind decoder and full
++seven-slot source review accepted the bounded source-derived domain adapter.
++Printed B20 defines the first corrector; the sharp energy estimate is B23 in
++Lemma B.3. Next dependency-ready candidate is SAME actual root/centered-inverse
++commutation, a real printed proof ingredient for B23 and B21 rotation. Existing
++commutation retrieval is RAW and unvalidated, not a public premise or proof.
++Reflection U and conditional half-turn H remain distinct.
++B17/H1/B13/B14, event process/nonexplosion/invariance,hypocoercivity/main,
++implementation errors and actual-input expected queries/composition are open.
++TV proximity transfers no unbounded expected cost. Gaussian Cloud then midpoint
++follow the existing four-paper priority; all older frontiers are preserved.
++
++Previous INT65 31ce36e has scoped independent repository/reader acceptance and
++all four remote formal/site/contributor workflows SUCCESS. The reviewed64
++two-field shared-cell overlay is already applied and is not reapplied here.
++Serialized Registry512/imports/Tests and affected reader/graph gates are pending.
++No merged/live, full Exposition/PURIFIED, whole-paper or Goal claim is made.
++
++Serialized local aggregate66:root9174,Tests9472,Registry512;233
++publication items and contributor/semantic/frontier/site/affected graph PASS.
++Unchanged tools/site-script Python296 regression evidence is reused from exact
++INT64 rather than reported as rerun. One complete statement,all6 formula steps
++and actual branch inspected;two copy callbacks/two RAW source downloads exact.
++Independent repository/exposition admission,remoteCI/main/live/PURIFIED and
++whole-paper results remain separate.
++
++
+ ## Actual PBPS typed polar isometry and adjoint corrector (2026-10-09)
+ 
+ Independently VERIFIED science commit ecd9d1f10ad0241312492cefacd5fe48c317e9c2. SAME original finite real Hilbert
+diff --git a/docs/module-graph.svg b/docs/module-graph.svg
+index 9750d4db..961eadcc 100644
+--- a/docs/module-graph.svg
++++ b/docs/module-graph.svg
+@@ -320,6 +320,6 @@
+   <rect x="78" y="883" width="18" height="12" fill="#dff0e4" stroke="#2e7d59"/><text x="104" y="894" font-family="Helvetica,Arial,sans-serif" font-size="11">Canonical Mathlib-ready candidate module: compiled local reusable leaves</text>
+   <rect x="78" y="905" width="18" height="12" fill="#eaf2ff" stroke="#2563eb"/><text x="104" y="916" font-family="Helvetica,Arial,sans-serif" font-size="11">Root public import surface</text>
+   <text x="78" y="938" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#475569">Omitted from the main graph: SALD/RMFLD consumers, SALDExtracted quarantine, compatibility files, registry metadata, and external references.</text>
+-  <text x="1260" y="955" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#64748b">Generated 2026-10-09 14:53:08 by tools/astis.py module-graph-refresh</text>
++  <text x="1260" y="955" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#64748b">Generated 2026-10-09 17:11:30 by tools/astis.py module-graph-refresh</text>
+ </g>
+ </svg>
+diff --git a/research-wiki/frontier-cells/ASTIS-SW-PBPS-ambient-adjoint-corrector.json b/research-wiki/frontier-cells/ASTIS-SW-PBPS-ambient-adjoint-corrector.json
+index a0cd4043..70af76a1 100644
+--- a/research-wiki/frontier-cells/ASTIS-SW-PBPS-ambient-adjoint-corrector.json
++++ b/research-wiki/frontier-cells/ASTIS-SW-PBPS-ambient-adjoint-corrector.json
+@@ -6,7 +6,7 @@
+   "mode": "faithfulPaper",
+   "source_anchor": "PBPS2609.06905v1 Appendix B3 first-corrector paragraph after B16, before B20/B21; intrinsic block adjoint versus canonical ambient extension; original inputs and actual jointly centered observable.",
+   "target_statement": "theorem actual_ambient_adjoint_centered_decomposition\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let mY := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)\n    letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace\n    letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) :=\n      ⟨measurable_snd.comap_le⟩\n    let HP := lpMeas ℝ ℝ mY 2 J\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le\n    let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩\n    let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    HP = P.toLinearMap.range ∧\n    (∀ f : HP, P (f : Lp ℝ 2 J) = f) ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ e : Lp ℝ 2 ν ≃ₗᵢ[ℝ] HP,\n        (∀ u : Lp ℝ 2 ν, (e u : Lp ℝ 2 J) = M u) ∧\n        ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n          (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n          Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n            IsSelfAdjoint T ∧\n            (∀ u : Lp ℝ 2 ν,\n              ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n            let A : HP →L[ℝ] HP :=\n              HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL\n            let B : HP →L[ℝ] Lp ℝ 2 J :=\n              (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL\n            A = e.conjStarAlgEquiv T ∧ IsSelfAdjoint A ∧\n            (∀ f : HP, ‖A f‖ ≤ ‖f‖) ∧\n            (∀ f : HP, P (B f) = 0) ∧\n            ∃ Γ : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n              Γ.IsPositive ∧ Γ*Γ=(1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T ∧\n              let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ\n              ΓP.IsPositive ∧ ΓP*ΓP=(1 : HP →L[ℝ] HP)-A*A ∧\n              B.adjoint ∘L B = ΓP*ΓP ∧\n              ∃ q : Lp ℝ 2 ν,\n                (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧\n                (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧\n                let qP : HP := e q\n                let HP0 := (innerSL ℝ qP).ker\n                letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup\n                letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace\n                letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe\n                let γ : ℝ := 2*Real.sqrt ((α : ℝ)*η)/(1+(α : ℝ)*η)\n                (∀ f : HP, f ∈ HP0 ↔ (∫ y, (e.symm f) y ∂ν) = 0) ∧\n                ΓP qP = 0 ∧ 0 < γ ∧\n                ∃ ΓP0 : HP0 →L[ℝ] HP0,\n                  (∀ f : HP0, (ΓP0 f : HP) = ΓP (f : HP)) ∧\n                  ΓP0.IsPositive ∧ (ΓP0-γ • (1 : HP0 →L[ℝ] HP0)).IsPositive ∧\n                  IsUnit ΓP0 ∧\n                  ∃ Inv : HP0 →L[ℝ] HP0,\n                    Inv*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧\n                    ΓP0*Inv=(1 : HP0 →L[ℝ] HP0) ∧ ‖Inv‖ ≤ 1/γ ∧\n                    let Hperp := P.ker\n                    letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup\n                    letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace\n                    letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe\n                    ∃ B0 : HP0 →L[ℝ] Hperp,\n                      (∀ f : HP0, (B0 f : Lp ℝ 2 J) = B (f : HP)) ∧\n                      ∃ V0 : HP0 →L[ℝ] Hperp,\n                        V0 = B0 ∘L Inv ∧ B0 = V0 ∘L ΓP0 ∧\n                        V0.adjoint ∘L V0 = (1 : HP0 →L[ℝ] HP0) ∧\n                        (∀ f : HP0, ‖V0 f‖ = ‖f‖) ∧\n                        ∃ R : Lp ℝ 2 J →L[ℝ] Hperp,\n                          (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) ∧\n                          (∀ g : Lp ℝ 2 J,\n                            B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) ∧\n                          (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →\n                            ∃ fP : HP0,\n                              HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧\n                              let fperp : Hperp := R f\n                              let fV : HP0 := V0.adjoint fperp\n                              B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧\n                              HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧\n                              ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖)\n",
+-  "status": "proved_locally",
++  "status": "independently_verified",
+   "parents": [
+     "ASTIS-SW-PBPS-actual-polar-isometry"
+   ],
+@@ -61,7 +61,7 @@
+     "focus_targets": [
+       "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition"
+     ],
+-    "visual_review": "Pending exact66 publication and branch inspection; graph styling does not block proof."
++    "visual_review": "runs/20261007-companion-priority/pbps-ambient-adjoint66/visual.inspection.json"
+   },
+   "evidence": {
+     "substantive_advance": "ASTIS-SA-20261009-PBPSAmbientAdjointCorrector",
+@@ -81,11 +81,21 @@
+     "statement_representation": "runs/20261007-companion-priority/pbps-ambient-adjoint-preproof66/root.type-representation66.adoption.json",
+     "proof_review": "runs/20261007-companion-priority/pbps-ambient-adjoint66/independent-math66/mathematical-review.named.raw.json",
+     "source_review": "runs/20261007-companion-priority/pbps-ambient-adjoint66/source.1.review.root-adapter.json",
+-    "execution_boundary": "Original C2/two Hessians/positive capped eta only,rank0/alphaeta1 retained. All constant-annihilation/adjoint range/centering/projection/complete structures are internal. This is the actual-input domain adapter and first-corrector geometry; no full B20 bound,root commutation/B21,halfturn,H1/operator inequalities,dynamics/main/errors/expected-query-cost/actual-input composition,onto or reverse-product claim. Independent precommit mathematics,fresh blind reconstruction and primary-first whole-module seven-slot source review accepted. The original private literal proposition expansions preserve all callers and conclusions. Exactly four catalogue fields were independently corrected to list two already used ASTIS APIs; formulas and Lean unchanged. Exact SCI66 verification and serialized aggregate/reader admission remain pending."
++    "execution_boundary": "Original C2/two Hessians/positive capped eta only,rank0/alphaeta1 retained. All constant-annihilation/adjoint range/centering/projection/complete structures are internal. This is the actual-input domain adapter and first-corrector geometry; no full B20 bound,root commutation/B21,halfturn,H1/operator inequalities,dynamics/main/errors/expected-query-cost/actual-input composition,onto or reverse-product claim. Independent precommit mathematics,fresh blind reconstruction and primary-first whole-module seven-slot source review accepted. The original private literal proposition expansions preserve all callers and conclusions. Exactly four catalogue fields were independently corrected to list two already used ASTIS APIs; formulas and Lean unchanged. Exact SCI66 verification and serialized aggregate/reader admission remain pending.",
++    "independent_verification": "runs/20261007-companion-priority/pbps-ambient-adjoint66/verified.json",
++    "serialized_shared_gate": {
++      "evidence": "runs/20261007-companion-priority/pbps-ambient-adjoint66/integration66/mandatory-astis-check-final/receipt.json",
++      "root_jobs": 9174,
++      "test_jobs": 9472,
++      "registry_count": 512,
++      "status": "PASS",
++      "proof_commit": "a115115d42b3fa2b67885d87fe4d5300af36fcd1",
++      "scope": "Exact66 plus serialized local aggregate only; independent repository/reader,remoteCI,main/live/PURIFIED remain distinct."
++    }
+   },
+   "blocked": {
+     "status": false,
+-    "reason": "Focused66 EXIT0; independent mathematics,blind decoder and anti-anchored whole-module source/publication review pending."
++    "reason": "Focused and independent math/decoder/source/exact-commit, reviewed dependency catalogues, publication and local aggregate accepted within ambient-adjoint/global-centering scope."
+   },
+   "declaration_level": "source-anchor",
+   "source_detail_audit": {
+diff --git a/research-wiki/retrieval-index/astis-lean-arsenal-module-graph.json b/research-wiki/retrieval-index/astis-lean-arsenal-module-graph.json
+index e1145854..7981f223 100644
+--- a/research-wiki/retrieval-index/astis-lean-arsenal-module-graph.json
++++ b/research-wiki/retrieval-index/astis-lean-arsenal-module-graph.json
+@@ -1,5 +1,5 @@
+ {
+-  "generated": "2026-10-09 14:52:06",
++  "generated": "2026-10-09 17:09:50",
+   "ledger": "research-wiki/sampling-sde-library/lean-leaf-module-graph.md",
+   "module_graph_svg": "docs/module-graph.svg",
+   "modules": [
+@@ -153,6 +153,30 @@
+       "status": "ASTIS infrastructure; not Mathlib material",
+       "summary": "source anchors, proof obligations, theorem contracts, DAG records"
+     },
++    {
++      "declarations": [
++        {
++          "kind": "def",
++          "name": "actual_ambient_adjoint_centered_decomposition_statement"
++        },
++        {
++          "kind": "theorem",
++          "name": "actual_ambient_adjoint_centered_decomposition"
++        }
++      ],
++      "exports": [],
++      "imports": [
++        "AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry"
++      ],
++      "layer": "SampleWiki paper route",
++      "local_imports": [
++        "AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry"
++      ],
++      "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector",
++      "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\AmbientAdjointCorrector.lean",
++      "status": "Independent exact-science66 verified at a115115d42b3fa2b67885d87fe4d5300af36fcd1. Bounded ambient adjoint and globally centered corrector input geometry only; whole-paper, merged/live/PURIFIED and full Exposition remain separate.",
++      "summary": "Original C2/two Hessians/positive capped eta produce SAME actual laws/operators/centered root/inverse and polar isometry. Canonical R:L2(J)->kerP, all-vector ambient adjoint identity and actual globally centered input decomposition; genuine corrector norm budget. Two literal private Prop representations add no premise/provider. No full B20/B21,dynamics/main/cost/composition,full Exposition/PURIFIED or whole-paper claim."
++    },
+     {
+       "declarations": [
+         {
+@@ -4214,6 +4238,7 @@
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry",
++        "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient",
+         "AutoSamplingTheory.ExampleCases.SampleWiki",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection",
+@@ -4333,6 +4358,7 @@
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry",
++        "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient",
+         "AutoSamplingTheory.ExampleCases.SampleWiki",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection",
+diff --git a/research-wiki/sampling-sde-library/cards/AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.md b/research-wiki/sampling-sde-library/cards/AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.md
+new file mode 100644
+index 00000000..8c725870
+--- /dev/null
++++ b/research-wiki/sampling-sde-library/cards/AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.md
+@@ -0,0 +1,25 @@
++# AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector
++
++- File: `AutoSamplingTheory\ExampleCases\ProximalBPS\AmbientAdjointCorrector.lean`
++- Layer: SampleWiki paper route
++- Purpose: Original C2/two Hessians/positive capped eta produce SAME actual laws/operators/centered root/inverse and polar isometry. Canonical R:L2(J)->kerP, all-vector ambient adjoint identity and actual globally centered input decomposition; genuine corrector norm budget. Two literal private Prop representations add no premise/provider. No full B20/B21,dynamics/main/cost/composition,full Exposition/PURIFIED or whole-paper claim.
++- Mathlib-quality status: Independent exact-science66 verified at a115115d42b3fa2b67885d87fe4d5300af36fcd1. Bounded ambient adjoint and globally centered corrector input geometry only; whole-paper, merged/live/PURIFIED and full Exposition remain separate.
++
++## Imports
++
++- `AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry`
++
++## Representative Declarations And Exports
++
++- `actual_ambient_adjoint_centered_decomposition_statement`
++- `actual_ambient_adjoint_centered_decomposition`
++
++## Curated Formalized Memory Entries
++
++- `pbps.ambientAdjointCorrector` -> `actual_ambient_adjoint_centered_decomposition` (arXiv2609.06905v1 Appendix B3 first corrector after B16 before B20)
++
++## Agent Usage
++
++Search this card before inventing a nearby technical lemma.  If the needed fact
++is generic and missing, create a Mathlib-ready leaf packet rather than hiding
++the requirement inside a paper-specific theorem.
+diff --git a/research-wiki/sampling-sde-library/lean-leaf-module-graph.md b/research-wiki/sampling-sde-library/lean-leaf-module-graph.md
+index 23ea2071..15435423 100644
+--- a/research-wiki/sampling-sde-library/lean-leaf-module-graph.md
++++ b/research-wiki/sampling-sde-library/lean-leaf-module-graph.md
+@@ -174,6 +174,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
+ | Module | Memory key | Local declaration | Upstream or source orientation |
+ | --- | --- | --- | --- |
+ | `AutoSamplingTheory` | `lsi.sqrt-density.fisher-chain` | `lsiKlFiSqrtDensityFisherChainIntegralHandoffScalar` | Mathlib/SLT-inspired entropy and LSI proof shape |
++| `AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector` | `pbps.ambientAdjointCorrector` | `actual_ambient_adjoint_centered_decomposition` | arXiv2609.06905v1 Appendix B3 first corrector after B16 before B20 |
+ | `AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator` | `pbps.actualCenteredSelfadjointDefect` | `actual_centered_selfadjoint_defect` | arXiv2609.06905v1 AppendixB B1-B5/D1-D2 |
+ | `AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse` | `pbps.actualCenteredRootOrderInverse` | `actual_centered_root_order_inverse` | arXiv2609.06905v1 B15; C2/C3/C4; B16 actual input |
+ | `AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy` | `pbps.reflectedConditional.outerGradientEnergy` | `reflected_conditional_gradient_energy` | arXiv2609.06905v1 |
+diff --git a/research-wiki/technical-lemma-memory/technical_lemma_registry.jsonl b/research-wiki/technical-lemma-memory/technical_lemma_registry.jsonl
+index 4a2a15c6..9522b5bb 100644
+--- a/research-wiki/technical-lemma-memory/technical_lemma_registry.jsonl
++++ b/research-wiki/technical-lemma-memory/technical_lemma_registry.jsonl
+@@ -151,3 +151,4 @@
+ {"key": "measure.realL2PositiveSquareOrder", "local_decl": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareOrder.positive_square_order", "local_file": "AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareOrder.lean", "status": "formalized-local", "sald_use": "Actual PBPS consumer; no SALD change", "tags": ["L2", "positive", "operator", "square-order"], "upstream_decl": "Arbitrary real L2 positive square order", "upstream_file": "PBPS arXiv2609.06905v1 D1 order/root background; ASTIS internal complexification completion", "verified_commit": "59fff63d320aa5e3dc4b45e81e40e2029ce42734", "evidence": "runs/20261007-companion-priority/pbps-centered-root64/verified.json", "next_action": "Independently exact-science64 verified 59fff63d320aa5e3dc4b45e81e40e2029ce42734. Arbitrary measure and real scalar-valued L2: positive A,B with positive B squared-A squared internally yield positive B-A, using three canonical complex lifts and internal complex CFC. No caller CFC/nontriviality/finite-L2 premise; zero/trivial case included. Genuine consumer is actual PBPS B15 centered root order."}
+ {"key": "pbps.actualCenteredRootOrderInverse", "local_decl": "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse.actual_centered_root_order_inverse", "local_file": "AutoSamplingTheory/ExampleCases/ProximalBPS/CenteredRootOrderInverse.lean", "status": "formalized-local", "sald_use": "Actual PBPS consumer; no SALD change", "tags": ["PBPS", "L2", "centered", "root-order", "bounded-inverse"], "upstream_decl": "Actual PBPS centered root order and bounded inverse", "upstream_file": "arXiv2609.06905v1 B15; C2/C3/C4; B16 actual input", "verified_commit": "59fff63d320aa5e3dc4b45e81e40e2029ce42734", "evidence": "runs/20261007-companion-priority/pbps-centered-root64/verified.json", "next_action": "Independently exact-science64 verified 59fff63d320aa5e3dc4b45e81e40e2029ce42734. Original C2/two global Hessian bounds,0<alpha<=beta,eta>0,betaeta<=1. SAME actual laws/e/U/T/GammaP, compact-gradient closure and literal conditional action internally give C4 sharp contraction, GammaP0 >= gamma I with gamma=2sqrt(alphaeta)/(1+alphaeta), exact HP0=ker inner(e1,.), unit, both inverse cancellations and norm inverse<=1/gamma. Rank0/alphaeta=1 retained. Full-space inverse excluded; completed polar, H1/B13/B14, dynamics/main/error/cost/composition remain open."}
+ {"key": "pbps.actualPolarIsometry", "local_decl": "AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry.actual_centered_polar_isometry", "local_file": "AutoSamplingTheory/ExampleCases/ProximalBPS/PolarIsometry.lean", "status": "formalized-local", "sald_use": "Actual PBPS consumer; no SALD change", "tags": ["PBPS", "L2", "polar", "isometry", "adjoint-corrector"], "upstream_decl": "Actual PBPS typed polar isometry and adjoint corrector", "upstream_file": "arXiv2609.06905v1 B16 and B3 first corrector", "verified_commit": "ecd9d1f10ad0241312492cefacd5fe48c317e9c2", "evidence": "runs/20261007-companion-priority/pbps-polar65/verified.json", "next_action": "Independently exact-science65 VERIFIED ecd9d1f10ad0241312492cefacd5fe48c317e9c2. Original C2/two Hessians/positive capped eta produce SAME actual laws/e/U/T/root/centered inverse. Exact B0:HP0->kerP and V0=B0 Inv satisfy B0=V0 Gamma0,V0.adjoint composed V0=I and all-vector norm equality. Genuine original-input Test gives B0.adjoint=Gamma0 V0.adjoint, adjoint contraction and residual annihilation. No onto/reverse product. Rank0/alphaeta1 retained. B21 root commutation/rotation, B17/H1/operator inequalities,dynamics/main/errors/expected costs/composition remain open."}
++{"key": "pbps.ambientAdjointCorrector", "local_decl": "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition", "local_file": "AutoSamplingTheory/ExampleCases/ProximalBPS/AmbientAdjointCorrector.lean", "status": "formalized-local", "sald_use": "Actual PBPS consumer; no SALD change", "tags": ["PBPS", "L2", "ambient-adjoint", "centering", "corrector"], "upstream_decl": "Actual PBPS ambient adjoint and globally centered corrector", "upstream_file": "arXiv2609.06905v1 Appendix B3 first corrector after B16 before B20", "verified_commit": "a115115d42b3fa2b67885d87fe4d5300af36fcd1", "evidence": "runs/20261007-companion-priority/pbps-ambient-adjoint66/verified.json", "next_action": "Independently exact-science66 VERIFIED a115115d42b3fa2b67885d87fe4d5300af36fcd1. SAME original C2/two Hessians/positive capped eta inputs produce canonical R:L2(J)->kerP with inclusion Rg=g-Pg and all-vector Bambient*=i0 B0*R. Every actual globally centered input produces fP in HP0,fperp=Rf,fV=V0*fperp with B* fperp=i0 Gamma0 fV=GammaP i0 fV, exact Pythagoras and contraction. Genuine Test gives original-input reconstruction,B*f=GammaP i0 fV and squared norm budget. Rank0/alphaeta1 retained. Two literal private Prop expansions are representations only; no extra premise/provider. Full B20/B21,halfturn/H1/dynamics/main/errors/expected costs/composition remain open."}
+diff --git a/runs/substantive_advances.jsonl b/runs/substantive_advances.jsonl
+index fe79af24..cf7d14a7 100644
+--- a/runs/substantive_advances.jsonl
++++ b/runs/substantive_advances.jsonl
+@@ -1157,3 +1157,4 @@
+ {"advance_id":"ASTIS-SA-20261009-PBPSAmbientAdjointCorrector","context_characters":0,"created_at":"2026-10-09T07:58:50+00:00","event":"checkpoint","exact_residual":"Compile the genuine global corrector consumer by changing reconstruction elaboration; independent math/source and publication remain pending.","mathematical_delta":"Actual ambient adjoint main compiled; no Test closure credit. Operator/global-input typing and residual identity passed before outer reconstruction.","needs_diagnosis":false,"no_progress_streak":1,"progress_signature":"production-compiled-Test-outer-constructor-timeout-localized","route_fingerprint":"same-actual-global-consumer/staged-existing-witness-constructors","schema_version":4,"worker_id":"companion_root_20261005"}
+ {"advance_id":"ASTIS-SA-20261009-PBPSAmbientAdjointCorrector","context_characters":0,"created_at":"2026-10-09T08:05:24+00:00","event":"checkpoint","exact_residual":"Independent math,blind decoder,anti-anchored whole-module source/publication admission and serialized integration pending;full paper/cost/composition open.","mathematical_delta":"Produce canonical R:L2(J)->kerP with inclusion Rg=g-Pg; prove ambient B* g=i0 B0* Rg for every joint g. For every globally centered actual input construct fP in SAME HP0,fperp=Rf,fV=V0* fperp in HP0; derive full first-corrector Gamma action, orthogonal norm decomposition and genuine global norm budget.","needs_diagnosis":false,"no_progress_streak":1,"progress_signature":"3946EXIT0-original-input-production-Test-standard3","route_fingerprint":"same-actual-ambient-adjoint/global-centered-input/literal-private-statement","schema_version":4,"worker_id":"companion_root_20261005"}
+ {"advance_id":"ASTIS-SA-20261009-PBPSAmbientAdjointCorrector","created_at":"2026-10-09T08:38:03+00:00","event":"transition","evidence":{"active_cells":["ASTIS-SW-PBPS-ambient-adjoint-corrector"],"conceptual_mirror_audit":{"discovery_ids":[],"reason":"Direct SAME actual Hilbert projection/adjoint/root/polar domain integration; no new cross-domain source mechanism/hypothesis map. Private statement staging is an implementation obstruction, not a conceptual mathematical bridge.","status":"none-found"},"focused_checks":[{"command":"lake build Tests.ProximalBPSAmbientAdjointCorrector","result":"Root48268 EXIT0/3946,standard3 for both exact public declarations. Independent Lake12908 replay classified; fresh main35940 and Test50788 EXIT0/standard3."},{"command":"Independent primary-first source review and blind decoder","result":"CLOSED math133/source172/decoder20;310 selected source math items,all6 literal BODY spans,seven slots equivalent-after-elaboration;no source mathematical repair."}],"integration_notes":"SAME actual root/inverse/polar and exact centered macroscopic/conditional-zero subspaces. Canonical ambient adjoint and every globally centered actual input now have genuine decomposition/norm budget. Private literal Prop definitions supply no mathematical provider or premise. Next live target is full B20 corrector energy; RAW B21 commutation remains unvalidated. Sole existing PhaseKernel stabilization lane; full Exposition/PURIFIED/main/expected costs/composition/Goal unclaimed.","lean_declarations":["AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition"],"lean_files":["AutoSamplingTheory/ExampleCases/ProximalBPS/AmbientAdjointCorrector.lean","Tests/ProximalBPSAmbientAdjointCorrector.lean"],"proof_digestion":[{"declaration":"AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition","declaration_level":"source-anchor","report":{"bookkeeping":["Exact intrinsic/ambient domain distinction; internally produced R,fP,fperp,fV."],"existing_substrate":["AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry.actual_centered_polar_isometry","AutoSamplingTheory.TechnicalLemmas.Measure.L2Expectation.one","AutoSamplingTheory.TechnicalLemmas.Measure.L2Expectation.inner_one_eq_integral"],"new_reusable":[],"new_topology":"Produce canonical R:L2(J)->kerP with inclusion Rg=g-Pg; prove ambient B* g=i0 B0* Rg for every joint g. For every globally centered actual input construct fP in SAME HP0,fperp=Rf,fV=V0* fperp in HP0; derive full first-corrector Gamma action, orthogonal norm decomposition and genuine global norm budget."}}],"publication_declarations":["AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition"],"purification":[{"declaration":"AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition","declaration_level":"source-anchor","report":{"canonicalization":"SAME actual65 data/HP0/kerP/root/inverse/polar.","compressed_spine_delta":"Produce canonical R:L2(J)->kerP with inclusion Rg=g-Pg; prove ambient B* g=i0 B0* Rg for every joint g. For every globally centered actual input construct fP in SAME HP0,fperp=Rf,fV=V0* fperp in HP0; derive full first-corrector Gamma action, orthogonal norm decomposition and genuine global norm budget.","dead_code_audit":"One public actual theorem,one genuine Test and one private literal statement in each file. Private definitions receive only enclosing whole-module review; no separate mathematical provider/edge. Postmerge/full Exposition pending.","duplicate_semantics_audit":"Canonical65 reused; no new generic wrapper.","reader_default_view":"Existing companion formula proof with adjacent folded exact Lean.","scope":"Original C2/two Hessians/positive capped eta only,rank0/alphaeta1 retained. All constant-annihilation/adjoint range/centering/projection/complete structures are internal. This is the actual-input domain adapter and first-corrector geometry; no full B20 bound,root commutation/B21,halfturn,H1/operator inequalities,dynamics/main/errors/expected-query-cost/actual-input composition,onto or reverse-product claim.","status":"pending"}}],"reader_lesson":["website/content/declaration_lessons/pbps-ambient-adjoint-corrector.json"],"result_kind":"integration-node","source_proof_coverage":[{"declaration":"AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition","declaration_level":"source-anchor","report":{"coverage_report":"runs/20261007-companion-priority/pbps-ambient-adjoint-preproof66/independent-header66/source-ingredient-DAG-audit.json","coverage_status":"310/310 exact literal math items over6 primary regions;0 missing/mismatch; graph before candidate/header.","source_graph":"runs/20261007-companion-priority/pbps-ambient-adjoint-preproof66/independent-primary66/source-proof-graph.json","source_inventory":"runs/20261007-companion-priority/pbps-ambient-adjoint-preproof66/independent-primary66/source-coverage-inventory.json"}}],"statement_seal":[{"declaration":"AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition","declaration_level":"source-anchor","report":{"binder_audit":"runs/20261007-companion-priority/pbps-ambient-adjoint-preproof66/independent-header66/binder-definition-audit.json","definition_kind":"Literal private proposition adapter with independently approved exact expansion to original full header; identical callers, no mathematical provider.","evidence":"runs/20261007-companion-priority/pbps-ambient-adjoint-preproof66/root.statement-representation-seal66.json","signature_digest":"1552e3a356452ed9fb2295d9c6f74f8aa50ee816281c4cbd0af0a48295c662e0","source_revision":"2609.06905v1/Lean4.33.0/Mathlibdb584cd6","statement_version":2}}],"theorem_delta":"Produce canonical R:L2(J)->kerP with inclusion Rg=g-Pg; prove ambient B* g=i0 B0* Rg for every joint g. For every globally centered actual input construct fP in SAME HP0,fperp=Rf,fV=V0* fperp in HP0; derive full first-corrector Gamma action, orthogonal norm decomposition and genuine global norm budget.","truth_boundary":"Original C2/two Hessians/positive capped eta only,rank0/alphaeta1 retained. All constant-annihilation/adjoint range/centering/projection/complete structures are internal. This is the actual-input domain adapter and first-corrector geometry; no full B20 bound,root commutation/B21,halfturn,H1/operator inequalities,dynamics/main/errors/expected-query-cost/actual-input composition,onto or reverse-product claim. Independent precommit mathematics,fresh blind reconstruction and primary-first whole-module seven-slot source review accepted. The original private literal proposition expansions preserve all callers and conclusions. Exactly four catalogue fields were independently corrected to list two already used ASTIS APIs; formulas and Lean unchanged. Exact SCI66 verification and serialized aggregate/reader admission remain pending.","useful_discoveries":["ASTIS-DISC-20261009-DependentPropStatementStaging"]},"from_state":"EXPLORING","modes":[],"schema_version":4,"to_state":"PROVED_LOCAL","worker_id":"companion_root_20261005"}
++{"advance_id":"ASTIS-SA-20261009-PBPSAmbientAdjointCorrector","created_at":"2026-10-09T08:59:55+00:00","event":"transition","evidence":{"fake_closure_scan":{"forbidden_hits":[],"private_mathematical_providers":0,"receipt":{"lf_bytes":1230,"lf_sha256":"722be4f7b52dd14c5178fa7835e5de8451794e9aba25f005814e97fb786881c0","path":"E:/Samplinglib/runs/20261007-companion-priority/pbps-ambient-adjoint66/exact-science-verification66/reviewed-fakeclosure.result.json","raw_bytes":1230,"raw_sha256":"722be4f7b52dd14c5178fa7835e5de8451794e9aba25f005814e97fb786881c0"},"standard_axioms":["propext","Classical.choice","Quot.sound"],"status":"PASS"},"gate":{"checked_scope":"Exact SCI66 main and genuine Test, fresh focused build plus fresh Test compiler, reviewed publication/source/semantic/frontier/contributor checks; no aggregate/site/Registry integration claim","focused_compiler":{"lf_bytes":3572,"lf_sha256":"dfd302c7b771467f48fe1a59cbfd29c48dce9f918b143cc025aececdcd26d362","path":"E:/Samplinglib/runs/20261007-companion-priority/pbps-ambient-adjoint66/exact-science-verification66/focused.result.json","raw_bytes":3572,"raw_sha256":"dfd302c7b771467f48fe1a59cbfd29c48dce9f918b143cc025aececdcd26d362"},"fresh_required_admission_gates":{"lf_bytes":7640,"lf_sha256":"13605f14aabcf902f5d35ca834f10f09eff16950624ee93235308d48df05892b","path":"E:/Samplinglib/runs/20261007-companion-priority/pbps-ambient-adjoint66/exact-science-verification66/gates.result.json","raw_bytes":7640,"raw_sha256":"13605f14aabcf902f5d35ca834f10f09eff16950624ee93235308d48df05892b"},"status":"PASS"},"independent_actor_not_proving_owner":true,"publication_declarations":["AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition"],"remaining_boundary":"Canonical ambient adjoint and globally centered actual-input decomposition/norm budget only. No full B20/B21,root commutation,H1,onto,reverse product,dynamics/main/errors/expected cost/actual-input composition,aggregate/reader/full Exposition/PURIFIED/whole paper/Goal credit.","source_audit":{"literal_BODY_steps":6,"native_bindings":{"lf_bytes":12702,"lf_sha256":"70b17ff1d16cb0a9a2c41c2994f537eec32a8369e08362b8bb6615dc57720f9c","path":"E:/Samplinglib/runs/20261007-companion-priority/pbps-ambient-adjoint66/exact-science-verification66/bindings.result.json","raw_bytes":12702,"raw_sha256":"70b17ff1d16cb0a9a2c41c2994f537eec32a8369e08362b8bb6615dc57720f9c"},"no_mathematical_repair":true,"private_literal_Prop_expansions_whole_module_reviewed":true,"selected_primary_items":310,"semantic_slots":7,"status":"PASS"},"verified_commit":"a115115d42b3fa2b67885d87fe4d5300af36fcd1","verifier_id":"/root/exact_science63"},"from_state":"PROVED_LOCAL","modes":[],"schema_version":4,"to_state":"VERIFIED","worker_id":"/root/exact_science63"}
+diff --git a/website/content/samplewiki_companion_frontiers.json b/website/content/samplewiki_companion_frontiers.json
+index 751b2f8f..9388b166 100644
+--- a/website/content/samplewiki_companion_frontiers.json
++++ b/website/content/samplewiki_companion_frontiers.json
+@@ -7,7 +7,7 @@
+   "status": "source-pinned-plan",
+   "execution": {
+     "updated": "2026-10-08",
+-    "current_checkpoint": "docs/companion-papers-handoff.md#actual-pbps-typed-polar-isometry-and-adjoint-corrector-2026-10-09",
++    "current_checkpoint": "docs/companion-papers-handoff.md#actual-pbps-ambient-adjoint-and-globally-centered-corrector-2026-10-09",
+     "current_state_authority": "Read tools/astis_advance.py capsule and current research-wiki/frontier-cells records. first_cell and result_cells below preserve the historical September10 checkpoint; they are not the current count or scheduling frontier.",
+     "priority": "first-mathematical-priority",
+     "authorization": "The existing unbudgeted Goal in this thread was expanded on2026-10-08 to four complete faithful papers, without reset or parallel Goal. Phase1 PBPS/SPHMC and their actual-input composition; Phase2 Gaussian Cloud; Phase3 midpoint. These are scheduling priorities, not invented mathematical dependencies or completion badges.",

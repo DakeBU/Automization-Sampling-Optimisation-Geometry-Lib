@@ -1,0 +1,33 @@
+import AutoSamplingTheory.Probability
+
+/-!
+# Donsker--Varadhan technical lemmas
+
+Small compiled one-sided consequences and scaled-test energy bounds around
+the Donsker--Varadhan variational principle.
+
+The full analytic DV theorem remains a cited-result/port target.  This module
+contains only ASTIS-owned Lean declarations that already compile locally.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace DonskerVaradhan
+
+export AutoSamplingTheory (
+  dvVariationalOneSidedConsequenceScalar
+  dvVariationalOneSidedFromSupremumScalar
+  dvFiniteLogMgfOfLeAlpha
+  dvVariationalOneSidedOfTiltedRight
+  dvVariationalOneSidedOfScaledTest
+  dvVariationalScaledTestEnergyBound
+  dvVariationalScaledTestEnergyBoundWithCoeff
+  dvVariationalTiltedRightOneSidedConsequence
+)
+
+end DonskerVaradhan
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory
+

@@ -1,0 +1,217 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolationCost
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinFiniteSecondMoment
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinTriangleExact
+import Mathlib.Tactic
+
+/-!
+# Constant speed of displacement interpolation: ordered times
+
+This module closes the metric half of Chewi's displacement-interpolation
+argument for ordered times `0 ≤ s ≤ t ≤ 1`.
+
+The upper bound comes from the canonical two-time coupling and its exact cost
+scaling.  The lower bound uses the endpoint triangle inequality together with
+finite-second-moment finiteness, so the finite prefix and suffix terms can be
+cancelled in `ℝ≥0∞` without introducing any source-external finiteness
+assumption.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementInterpolationConstantSpeed
+
+open MeasureTheory Set
+open scoped ENNReal
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  [SecondCountableTopology E] [StandardBorelSpace E] [Nonempty E]
+
+open DisplacementInterpolation DisplacementInterpolationCoupling
+
+/-- A displacement marginal of a probability coupling is again a probability
+measure. -/
+theorem isProbabilityMeasure_displacementInterpolation
+    {γ : Measure (E × E)} {μ₀ μ₁ : Measure E}
+    [IsProbabilityMeasure μ₀]
+    (hγ : Transport.IsCoupling γ μ₀ μ₁) (t : ℝ) :
+    IsProbabilityMeasure (displacementInterpolation γ t) := by
+  letI : IsProbabilityMeasure γ :=
+    Transport.isProbabilityMeasure_of_isCoupling_left hγ
+  unfold displacementInterpolation
+  exact Measure.isProbabilityMeasure_map (measurable_pointMap (E := E) t).aemeasurable
+
+/-- The canonical two-time interpolation coupling gives the sharp linear upper
+bound when the times are ordered. -/
+theorem wassersteinDistance_interpolation_le
+    {γ : Measure (E × E)} {μ₀ μ₁ : Measure E}
+    (hγ : IsQuadraticOptimalCoupling γ μ₀ μ₁)
+    {s t : ℝ} (hst : s ≤ t) :
+    WassersteinSpace.wassersteinDistance
+        (displacementInterpolation γ s)
+        (displacementInterpolation γ t) ≤
+      ENNReal.ofReal (t - s) *
+        WassersteinSpace.wassersteinDistance μ₀ μ₁ := by
+  have hsquare :=
+    DisplacementInterpolationCost.wassersteinDistance_sq_interpolation_le
+      (E := E) γ s t
+  rw [hγ.2, ← WassersteinSpace.wassersteinDistance_sq] at hsquare
+  have habs : |s - t| = t - s := by
+    rw [abs_sub_comm, abs_of_nonneg (sub_nonneg.mpr hst)]
+  rw [habs, ENNReal.ofReal_pow (sub_nonneg.mpr hst) 2, ← mul_pow] at hsquare
+  have hsquare' :
+      WassersteinSpace.wassersteinDistance
+          (displacementInterpolation γ s)
+          (displacementInterpolation γ t) ^ (2 : ℝ) ≤
+        (ENNReal.ofReal (t - s) *
+          WassersteinSpace.wassersteinDistance μ₀ μ₁) ^ (2 : ℝ) := by
+    simpa [ENNReal.rpow_two] using hsquare
+  exact (ENNReal.rpow_le_rpow_iff (by norm_num : (0 : ℝ) < 2)).mp hsquare'
+
+/-- Ordered times partition the unit interval into the three nonnegative pieces
+`s`, `t-s`, and `1-t`. -/
+theorem interpolation_coefficients_sum_one
+    {s t : ℝ} (hs0 : 0 ≤ s) (hst : s ≤ t) (ht1 : t ≤ 1) :
+    ENNReal.ofReal s + ENNReal.ofReal (t - s) + ENNReal.ofReal (1 - t) = 1 := by
+  have hts0 : 0 ≤ t - s := sub_nonneg.mpr hst
+  have h1t0 : 0 ≤ 1 - t := sub_nonneg.mpr ht1
+  rw [← ENNReal.ofReal_add hs0 hts0]
+  rw [← ENNReal.ofReal_add (add_nonneg hs0 hts0) h1t0]
+  norm_num
+
+/-- Chewi's constant-speed identity for ordered interpolation times.
+
+The endpoint laws carry the source `P₂,ac` assumptions.  Absolute continuity
+is not used in the metric argument itself; its role here is to keep the theorem
+aligned with the source geodesic predicate, while finite second moments provide
+the exact `W₂ < ∞` fact needed for cancellation. -/
+theorem wassersteinDistance_interpolation_eq_of_le
+    {γ : Measure (E × E)} {μ₀ μ₁ : Measure E}
+    (hμ₀ : WassersteinSpace.IsAbsolutelyContinuousFiniteSecondMoment μ₀)
+    (hμ₁ : WassersteinSpace.IsAbsolutelyContinuousFiniteSecondMoment μ₁)
+    (hγ : IsQuadraticOptimalCoupling γ μ₀ μ₁)
+    {s t : ℝ} (hs0 : 0 ≤ s) (hst : s ≤ t) (ht1 : t ≤ 1) :
+    WassersteinSpace.wassersteinDistance
+        (displacementInterpolation γ s)
+        (displacementInterpolation γ t) =
+      ENNReal.ofReal (t - s) *
+        WassersteinSpace.wassersteinDistance μ₀ μ₁ := by
+  letI : IsProbabilityMeasure μ₀ := hμ₀.1
+  letI : IsProbabilityMeasure μ₁ := hμ₁.1
+  let μs : Measure E := displacementInterpolation γ s
+  let μt : Measure E := displacementInterpolation γ t
+  letI : IsProbabilityMeasure μs := by
+    dsimp [μs]
+    exact isProbabilityMeasure_displacementInterpolation hγ.1 s
+  letI : IsProbabilityMeasure μt := by
+    dsimp [μt]
+    exact isProbabilityMeasure_displacementInterpolation hγ.1 t
+
+  have hupper :
+      WassersteinSpace.wassersteinDistance μs μt ≤
+        ENNReal.ofReal (t - s) * WassersteinSpace.wassersteinDistance μ₀ μ₁ := by
+    simpa [μs, μt] using wassersteinDistance_interpolation_le (E := E) hγ hst
+
+  have h0s :
+      WassersteinSpace.wassersteinDistance μ₀ μs ≤
+        ENNReal.ofReal s * WassersteinSpace.wassersteinDistance μ₀ μ₁ := by
+    have h := wassersteinDistance_interpolation_le (E := E) hγ hs0
+    rw [displacementInterpolation_zero hγ.1] at h
+    simpa [μs] using h
+
+  have ht1' :
+      WassersteinSpace.wassersteinDistance μt μ₁ ≤
+        ENNReal.ofReal (1 - t) * WassersteinSpace.wassersteinDistance μ₀ μ₁ := by
+    have h := wassersteinDistance_interpolation_le (E := E) hγ ht1
+    rw [displacementInterpolation_one hγ.1] at h
+    simpa [μt] using h
+
+  have htri_left :=
+    WassersteinTriangleExact.wassersteinDistance_triangle μ₀ μs μ₁
+  have htri_right :=
+    WassersteinTriangleExact.wassersteinDistance_triangle μs μt μ₁
+  have hchain :
+      WassersteinSpace.wassersteinDistance μ₀ μ₁ ≤
+        WassersteinSpace.wassersteinDistance μ₀ μs +
+          WassersteinSpace.wassersteinDistance μs μt +
+            WassersteinSpace.wassersteinDistance μt μ₁ := by
+    calc
+      WassersteinSpace.wassersteinDistance μ₀ μ₁ ≤
+          WassersteinSpace.wassersteinDistance μ₀ μs +
+            WassersteinSpace.wassersteinDistance μs μ₁ := htri_left
+      _ ≤ WassersteinSpace.wassersteinDistance μ₀ μs +
+            (WassersteinSpace.wassersteinDistance μs μt +
+              WassersteinSpace.wassersteinDistance μt μ₁) := by
+        exact add_le_add le_rfl htri_right
+      _ = WassersteinSpace.wassersteinDistance μ₀ μs +
+            WassersteinSpace.wassersteinDistance μs μt +
+              WassersteinSpace.wassersteinDistance μt μ₁ := by
+        simp [add_assoc]
+
+  have hchain' :
+      WassersteinSpace.wassersteinDistance μ₀ μ₁ ≤
+        ENNReal.ofReal s * WassersteinSpace.wassersteinDistance μ₀ μ₁ +
+          WassersteinSpace.wassersteinDistance μs μt +
+            ENNReal.ofReal (1 - t) * WassersteinSpace.wassersteinDistance μ₀ μ₁ := by
+    exact hchain.trans (add_le_add (add_le_add h0s le_rfl) ht1')
+
+  have hcoeff := interpolation_coefficients_sum_one hs0 hst ht1
+  have hpartition :
+      WassersteinSpace.wassersteinDistance μ₀ μ₁ =
+        ENNReal.ofReal s * WassersteinSpace.wassersteinDistance μ₀ μ₁ +
+          ENNReal.ofReal (t - s) * WassersteinSpace.wassersteinDistance μ₀ μ₁ +
+            ENNReal.ofReal (1 - t) * WassersteinSpace.wassersteinDistance μ₀ μ₁ := by
+    calc
+      WassersteinSpace.wassersteinDistance μ₀ μ₁ =
+          1 * WassersteinSpace.wassersteinDistance μ₀ μ₁ := by simp
+      _ = (ENNReal.ofReal s + ENNReal.ofReal (t - s) + ENNReal.ofReal (1 - t)) *
+            WassersteinSpace.wassersteinDistance μ₀ μ₁ := by rw [hcoeff]
+      _ = ENNReal.ofReal s * WassersteinSpace.wassersteinDistance μ₀ μ₁ +
+            ENNReal.ofReal (t - s) * WassersteinSpace.wassersteinDistance μ₀ μ₁ +
+              ENNReal.ofReal (1 - t) * WassersteinSpace.wassersteinDistance μ₀ μ₁ := by
+        simp [add_mul, add_assoc]
+
+  have hcancelInput :
+      ENNReal.ofReal s * WassersteinSpace.wassersteinDistance μ₀ μ₁ +
+          ENNReal.ofReal (t - s) * WassersteinSpace.wassersteinDistance μ₀ μ₁ +
+            ENNReal.ofReal (1 - t) * WassersteinSpace.wassersteinDistance μ₀ μ₁ ≤
+        ENNReal.ofReal s * WassersteinSpace.wassersteinDistance μ₀ μ₁ +
+          WassersteinSpace.wassersteinDistance μs μt +
+            ENNReal.ofReal (1 - t) * WassersteinSpace.wassersteinDistance μ₀ μ₁ := by
+    rw [← hpartition]
+    exact hchain'
+
+  have hd : WassersteinSpace.wassersteinDistance μ₀ μ₁ < ∞ :=
+    WassersteinFiniteSecondMoment.wassersteinDistance_lt_top_of_p2ac μ₀ μ₁ hμ₀ hμ₁
+  have hprefix :
+      ENNReal.ofReal s * WassersteinSpace.wassersteinDistance μ₀ μ₁ < ∞ :=
+    ENNReal.mul_lt_top ENNReal.ofReal_lt_top hd
+  have hsuffix :
+      ENNReal.ofReal (1 - t) * WassersteinSpace.wassersteinDistance μ₀ μ₁ < ∞ :=
+    ENNReal.mul_lt_top ENNReal.ofReal_lt_top hd
+
+  have hcancelSuffix :
+      ENNReal.ofReal s * WassersteinSpace.wassersteinDistance μ₀ μ₁ +
+          ENNReal.ofReal (t - s) * WassersteinSpace.wassersteinDistance μ₀ μ₁ ≤
+        ENNReal.ofReal s * WassersteinSpace.wassersteinDistance μ₀ μ₁ +
+          WassersteinSpace.wassersteinDistance μs μt := by
+    exact (ENNReal.add_le_add_iff_right hsuffix.ne).mp
+      (by simpa [add_assoc] using hcancelInput)
+  have hlower :
+      ENNReal.ofReal (t - s) * WassersteinSpace.wassersteinDistance μ₀ μ₁ ≤
+        WassersteinSpace.wassersteinDistance μs μt :=
+    (ENNReal.add_le_add_iff_left hprefix.ne).mp hcancelSuffix
+
+  change WassersteinSpace.wassersteinDistance μs μt =
+    ENNReal.ofReal (t - s) * WassersteinSpace.wassersteinDistance μ₀ μ₁
+  exact le_antisymm hupper hlower
+
+end
+
+end DisplacementInterpolationConstantSpeed
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,66 @@
+import Mathlib.Tactic
+
+/-!
+# Fisher--transport algebra leaves
+
+Pure real-field consequences of the source inequality
+
+`KL^2 ≤ FI * W2^2`.
+
+This file deliberately does **not** define relative Fisher information or
+Wasserstein distance.  Those analytic objects have regularity and measure-level
+contracts owned by the corresponding shared ASTIS layers.  The leaves here are
+reusable once those layers supply non-negative real values satisfying the
+source inequality.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace FisherTransport
+
+/-- Divide a Fisher--transport inequality by a positive squared transport
+radius.
+
+This is the algebraic step used in Chewi Theorem 8.4.1 after Wasserstein
+geodesic convexity and Cauchy--Schwarz establish
+`kl^2 ≤ fi * R2`. -/
+theorem sq_div_le_fisher_of_sq_le_mul
+    {kl fi R2 : ℝ}
+    (hR2 : 0 < R2)
+    (hbridge : kl ^ 2 ≤ fi * R2) :
+    kl ^ 2 / R2 ≤ fi := by
+  rw [div_le_iff₀ hR2]
+  exact hbridge
+
+/-- Combine Fisher--transport control with the negative one-half factor from
+heat-flow KL dissipation.
+
+The conclusion is written as `-((kl^2 / R2) / 2)` to keep this lemma purely
+order-algebraic; source-facing assembly may rewrite it as
+`-kl^2 / (2 * R2)`. -/
+theorem neg_half_fisher_le_neg_half_sq_div
+    {kl fi R2 : ℝ}
+    (hR2 : 0 < R2)
+    (hbridge : kl ^ 2 ≤ fi * R2) :
+    -(fi / 2) ≤ -((kl ^ 2 / R2) / 2) := by
+  have hratio : kl ^ 2 / R2 ≤ fi :=
+    sq_div_le_fisher_of_sq_le_mul hR2 hbridge
+  linarith
+
+/-- Source-shaped algebraic composition: if the KL derivative is exactly
+`-FI/2`, then the Fisher--transport inequality gives the reciprocal-KL style
+differential upper bound used in the proximal proof. -/
+theorem kl_derivative_upper_bound_of_fisher_transport
+    {kl fi R2 kdot : ℝ}
+    (hR2 : 0 < R2)
+    (hbridge : kl ^ 2 ≤ fi * R2)
+    (hdiss : kdot = -(fi / 2)) :
+    kdot ≤ -((kl ^ 2 / R2) / 2) := by
+  rw [hdiss]
+  exact neg_half_fisher_le_neg_half_sq_div hR2 hbridge
+
+end FisherTransport
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory

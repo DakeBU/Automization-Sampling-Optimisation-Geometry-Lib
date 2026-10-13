@@ -1,0 +1,228 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.LaggedDyadicConvergence
+
+/-!
+# Dyadic elementary density in progressive L2
+
+This file diagonalizes clipping and lagged dyadic approximation while keeping
+the heterogeneous number of cells in the type of each elementary process.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ProgressiveL2Density
+
+open Filter MeasureTheory
+open scoped NNReal Topology
+
+open ElementaryItoEmbedding ElementaryItoIntegral LaggedDyadicApproximation
+  LaggedDyadicConvergence ProgressiveL2 ProgressiveL2Truncation
+  SampledElementaryApproximation
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- Rapid geometric tolerance used for all diagonal choices. -/
+noncomputable def fastTolerance (n : ℕ) : ℝ :=
+  ((2 : ℝ) ^ (4 * n + 12))⁻¹
+
+theorem fastTolerance_eq (n : ℕ) :
+    fastTolerance n = ((2 : ℝ) ^ 12)⁻¹ * (((2 : ℝ) ^ 4)⁻¹) ^ n := by
+  simp only [fastTolerance, pow_add, pow_mul, mul_inv_rev, inv_pow]
+
+theorem fastTolerance_pos (n : ℕ) : 0 < fastTolerance n := by
+  simp [fastTolerance]
+
+theorem fastTolerance_tendsto_zero :
+    Tendsto fastTolerance atTop (𝓝 0) := by
+  rw [show fastTolerance = fun n ↦ ((2 : ℝ) ^ 12)⁻¹ * (((2 : ℝ) ^ 4)⁻¹) ^ n by
+    funext n
+    exact fastTolerance_eq n]
+  have hgeom := tendsto_pow_atTop_nhds_zero_of_lt_one
+    (r := (((2 : ℝ) ^ 4)⁻¹)) (by positivity) (by norm_num)
+  have hconst : Tendsto (fun _ : ℕ ↦ ((2 : ℝ) ^ 12)⁻¹) atTop
+      (𝓝 ((2 : ℝ) ^ 12)⁻¹) := tendsto_const_nhds
+  simpa only [mul_zero] using hconst.mul hgeom
+
+theorem summable_fastTolerance : Summable fastTolerance := by
+  rw [show fastTolerance = fun n ↦ ((2 : ℝ) ^ 12)⁻¹ * (((2 : ℝ) ^ 4)⁻¹) ^ n by
+    funext n
+    exact fastTolerance_eq n]
+  exact (summable_geometric_of_lt_one (by positivity) (by norm_num)).mul_left _
+
+theorem summable_scaled_fastTolerance_sq (c : ℝ) :
+    Summable (fun n ↦ c * (fastTolerance n) ^ 2) := by
+  have hgeom : Summable (fun n : ℕ ↦ ((((2 : ℝ) ^ 4)⁻¹) ^ 2) ^ n) :=
+    summable_geometric_of_lt_one (by positivity) (by norm_num)
+  have hscaled := hgeom.mul_left (c * (((2 : ℝ) ^ 12)⁻¹) ^ 2)
+  refine hscaled.congr fun n ↦ ?_
+  rw [fastTolerance_eq, mul_pow]
+  simp only [mul_assoc]
+  congr 2
+  rw [← pow_mul, ← pow_mul, Nat.mul_comm]
+
+/-- A threshold beyond which an eventual predicate always holds. -/
+noncomputable def eventualThreshold
+    (P : ℕ → ℕ → Prop) (hP : ∀ n, ∀ᶠ k in atTop, P n k) (n : ℕ) : ℕ :=
+  Classical.choose (eventually_atTop.1 (hP n))
+
+theorem eventualThreshold_spec
+    (P : ℕ → ℕ → Prop) (hP : ∀ n, ∀ᶠ k in atTop, P n k)
+    (n k : ℕ) (hk : eventualThreshold P hP n ≤ k) :
+    P n k :=
+  (Classical.choose_spec (eventually_atTop.1 (hP n))) k hk
+
+/-- Recursively strictify eventual thresholds without losing their bounds. -/
+noncomputable def strictSelection
+    (P : ℕ → ℕ → Prop) (hP : ∀ n, ∀ᶠ k in atTop, P n k) : ℕ → ℕ
+  | 0 => eventualThreshold P hP 0
+  | n + 1 => max (eventualThreshold P hP (n + 1)) (strictSelection P hP n + 1)
+
+theorem eventualThreshold_le_strictSelection
+    (P : ℕ → ℕ → Prop) (hP : ∀ n, ∀ᶠ k in atTop, P n k) :
+    ∀ n, eventualThreshold P hP n ≤ strictSelection P hP n
+  | 0 => le_rfl
+  | _n + 1 => le_max_left _ _
+
+theorem strictSelection_spec
+    (P : ℕ → ℕ → Prop) (hP : ∀ n, ∀ᶠ k in atTop, P n k) (n : ℕ) :
+    P n (strictSelection P hP n) :=
+  eventualThreshold_spec P hP n _ (eventualThreshold_le_strictSelection P hP n)
+
+theorem strictMono_strictSelection
+    (P : ℕ → ℕ → Prop) (hP : ∀ n, ∀ᶠ k in atTop, P n k) :
+    StrictMono (strictSelection P hP) := by
+  apply strictMono_nat_of_lt_succ
+  intro n
+  rw [strictSelection]
+  exact lt_of_lt_of_le (Nat.lt_succ_self _) (le_max_right _ _)
+
+/-- Truncation levels meeting the `n`th fast tolerance. -/
+def TruncationGood
+    (eta : ProgressiveL2Integrand filtration mu T) (n k : ℕ) : Prop :=
+  ‖(clipped eta k).toLp - eta.toLp‖ < fastTolerance n
+
+theorem eventually_truncationGood
+    (eta : ProgressiveL2Integrand filtration mu T) (n : ℕ) :
+    ∀ᶠ k in atTop, TruncationGood eta n k := by
+  have hnorm :
+      Tendsto (fun k ↦ ‖(clipped eta k).toLp - eta.toLp‖) atTop (𝓝 0) :=
+    tendsto_iff_norm_sub_tendsto_zero.mp (tendsto_clipped_toLp eta)
+  exact (tendsto_order.1 hnorm).2 (fastTolerance n) (fastTolerance_pos n)
+
+/-- Strictly increasing clipping index selected from clipping convergence. -/
+noncomputable def truncationIndex
+    (eta : ProgressiveL2Integrand filtration mu T) : ℕ → ℕ :=
+  strictSelection (TruncationGood eta) (eventually_truncationGood eta)
+
+theorem truncationIndex_spec
+    (eta : ProgressiveL2Integrand filtration mu T) (n : ℕ) :
+    ‖(clipped eta (truncationIndex eta n)).toLp - eta.toLp‖ < fastTolerance n :=
+  strictSelection_spec (TruncationGood eta) (eventually_truncationGood eta) n
+
+theorem truncationIndex_strictMono
+    (eta : ProgressiveL2Integrand filtration mu T) :
+    StrictMono (truncationIndex eta) :=
+  strictMono_strictSelection (TruncationGood eta) (eventually_truncationGood eta)
+
+/-- Dyadic levels meeting the discretization half of the `n`th tolerance. -/
+def DyadicGood [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (n level : ℕ) : Prop :=
+  ‖(toProgressiveL2
+      (laggedDyadicApprox eta hT level (truncationIndex eta n)) mu T).toLp -
+      (clipped eta (truncationIndex eta n)).toLp‖ < fastTolerance n
+
+theorem eventually_dyadicGood [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T) (n : ℕ) :
+    ∀ᶠ level in atTop, DyadicGood eta hT n level := by
+  have hnorm :
+      Tendsto
+        (fun level ↦
+          ‖(toProgressiveL2
+              (laggedDyadicApprox eta hT level (truncationIndex eta n)) mu T).toLp -
+            (clipped eta (truncationIndex eta n)).toLp‖)
+        atTop (𝓝 0) :=
+    tendsto_iff_norm_sub_tendsto_zero.mp
+      (tendsto_laggedDyadicApprox_toLp_clipped eta hT (truncationIndex eta n))
+  exact (tendsto_order.1 hnorm).2 (fastTolerance n) (fastTolerance_pos n)
+
+/-- Strictly increasing dyadic level selected after clipping has been fixed. -/
+noncomputable def dyadicLevel [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T) : ℕ → ℕ :=
+  strictSelection (DyadicGood eta hT) (eventually_dyadicGood eta hT)
+
+theorem dyadicLevel_spec [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T) (n : ℕ) :
+    DyadicGood eta hT n (dyadicLevel eta hT n) :=
+  strictSelection_spec (DyadicGood eta hT) (eventually_dyadicGood eta hT) n
+
+theorem dyadicLevel_strictMono [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T) :
+    StrictMono (dyadicLevel eta hT) :=
+  strictMono_strictSelection (DyadicGood eta hT) (eventually_dyadicGood eta hT)
+
+/-- A dyadic elementary process with its level recorded in the type. -/
+structure DyadicElementaryProcess
+    (filtration : Filtration ℝ≥0 m) (T : ℝ≥0) where
+  level : ℕ
+  process : ElementaryAdaptedProcess filtration (2 ^ level)
+  times_eq : process.times =
+    regularGridTimes (dyadicMesh T level) (2 ^ level)
+
+/-- Canonical fast diagonal approximation. -/
+noncomputable def canonicalElementaryApprox [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T) (n : ℕ) :
+    DyadicElementaryProcess filtration T where
+  level := dyadicLevel eta hT n
+  process := laggedDyadicApprox eta hT (dyadicLevel eta hT n)
+    (truncationIndex eta n)
+  times_eq := laggedDyadicApprox_times _ _ _ _
+
+/-- Product-space `L2` embedding of a heterogeneous dyadic process. -/
+noncomputable def DyadicElementaryProcess.toLp
+    (approx : DyadicElementaryProcess filtration T) (mu : Measure Omega)
+    [IsFiniteMeasure mu] :
+    Lp ℝ 2 (processTimeMeasure mu T) :=
+  (toProgressiveL2 approx.process mu T).toLp
+
+theorem norm_canonicalElementaryApprox_sub_lt [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T) (n : ℕ) :
+    ‖(canonicalElementaryApprox eta hT n).toLp mu - eta.toLp‖ <
+      2 * fastTolerance n := by
+  let middle := (clipped eta (truncationIndex eta n)).toLp
+  calc
+    ‖(canonicalElementaryApprox eta hT n).toLp mu - eta.toLp‖ ≤
+        ‖(canonicalElementaryApprox eta hT n).toLp mu - middle‖ +
+          ‖middle - eta.toLp‖ := norm_sub_le_norm_sub_add_norm_sub _ _ _
+    _ < fastTolerance n + fastTolerance n := add_lt_add
+      (by
+        simpa only [canonicalElementaryApprox, DyadicElementaryProcess.toLp,
+          DyadicGood] using dyadicLevel_spec eta hT n)
+      (truncationIndex_spec eta n)
+    _ = 2 * fastTolerance n := by ring
+
+theorem tendsto_canonicalElementaryApprox_toLp [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T) :
+    Tendsto (fun n ↦ (canonicalElementaryApprox eta hT n).toLp mu)
+      atTop (𝓝 eta.toLp) := by
+  apply tendsto_iff_norm_sub_tendsto_zero.mpr
+  apply squeeze_zero (fun _ ↦ norm_nonneg _)
+    (fun n ↦ (norm_canonicalElementaryApprox_sub_lt eta hT n).le)
+  simpa only [mul_zero] using fastTolerance_tendsto_zero.const_mul 2
+
+/-- Genuine density of bounded dyadic elementary adapted processes in the
+progressive product-space `L2` domain. -/
+theorem progressiveL2_elementary_dense [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T) :
+    ∃ approx : ℕ → DyadicElementaryProcess filtration T,
+      StrictMono (fun n ↦ (approx n).level) ∧
+      Tendsto (fun n ↦ (approx n).toLp mu) atTop (𝓝 eta.toLp) := by
+  exact ⟨canonicalElementaryApprox eta hT,
+    dyadicLevel_strictMono eta hT,
+    tendsto_canonicalElementaryApprox_toLp eta hT⟩
+
+end ProgressiveL2Density
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,165 @@
+{"schema": "prospective-header71-stageB-exact-candidate-inputs-v1", "actual_pid": 15592, "first_header_read_utc": "2026-10-09T16:16:04.472867+00:00", "expectations_frozen_before_header_read": true, "expectation_RAW_sha256": "858e56e10208c57130ae4a15efdf90206b62f50810419292bcbce6d20e85e761", "inputs": [{"original_path": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-corrector-change-preproof71\\header71.named-literal.proposed.lean", "snapshot": "candidate71.header.exactraw.lean", "RAW_bytes": 8727, "RAW_sha256": "2bef0d5cf364270b6f580288e966d9bb78310f646a7fe13b6f8855807e70f42c", "LF_snapshot": "candidate71.header.exactraw.lean.LF", "LF_bytes": 8727, "LF_sha256": "2bef0d5cf364270b6f580288e966d9bb78310f646a7fe13b6f8855807e70f42c", "LF_recipe": "replace ONLY CRLF byte pairs with LF", "original_mtime_ns": 1791561763028356000}, {"original_path": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-corrector-change-preproof71\\header71.proposal.json", "snapshot": "candidate71.proposal.exactraw.json", "RAW_bytes": 777, "RAW_sha256": "84dab5549baa3899229e3a735d70b6ea4f09213121063e75153e76ae5a0256ea", "LF_snapshot": "candidate71.proposal.exactraw.json.LF", "LF_bytes": 777, "LF_sha256": "84dab5549baa3899229e3a735d70b6ea4f09213121063e75153e76ae5a0256ea", "LF_recipe": "replace ONLY CRLF byte pairs with LF", "original_mtime_ns": 1791561763034471700}, {"original_path": "E:\\Samplinglib\\AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualProjectedRotation.lean", "snapshot": "parent70.compiled-module.exactraw.lean", "RAW_bytes": 26615, "RAW_sha256": "03a0721ae952f744d0bfdf568039b77f7035bec0a50642f8bc8ebc895273b998", "LF_snapshot": "parent70.compiled-module.exactraw.lean.LF", "LF_bytes": 26615, "LF_sha256": "03a0721ae952f744d0bfdf568039b77f7035bec0a50642f8bc8ebc895273b998", "LF_recipe": "replace ONLY CRLF byte pairs with LF", "original_mtime_ns": 1791560310435081100}], "input_count": 3, "no71_proof_or_compile": true}
+CANDIDATE HEADER
+1: import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation
+2: 
+3: /-!
+4: # Actual PBPS corrector change under the actual reflection step
+5: 
+6: Chen--Chewi--Lu--Zhang, arXiv:2609.06905v1, Appendix B.3, the actual
+7: projected rotation and two-component energy used in (B.21) and Lemma B.4.
+8: The reflected observable and its conditional/polar components are actual
+9: inputs and outputs. Mean preservation is proved internally from the same law.
+10: -/
+11: namespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorChange
+12: open MeasureTheory ProbabilityTheory InnerProductSpace
+13: open scoped RealInnerProductSpace ContDiff NNReal Topology ENNReal
+14: noncomputable section
+15: set_option autoImplicit false
+16: set_option maxHeartbeats 4000000
+17: 
+18: private def actual_corrector_change_statement
+19:     {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+20:     [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+21:     {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+22:     (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+23:     (hH : ∀ x v : E,
+24:       (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+25:       (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+26:     (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) : Prop :=
+27:     let μ := (volume : Measure E).tilted (fun x => -V x)
+28:     let J := (μ.prod (stdGaussian E)).map
+29:       (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+30:     let ν := J.snd
+31:     let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))
+32:     let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)
+33:     let mY := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)
+34:     letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace
+35:     letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) :=
+36:       ⟨measurable_snd.comap_le⟩
+37:     let HP := lpMeas ℝ ℝ mY 2 J
+38:     let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=
+39:       HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le
+40:     let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩
+41:     let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp
+42:     IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧
+43:     HP = P.toLinearMap.range ∧
+44:     (∀ f : HP, P (f : Lp ℝ 2 J) = f) ∧
+45:     ∃ S : Kernel E E, IsMarkovKernel S ∧
+46:       (∀ y, S y = (volume : Measure E).tilted
+47:         (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧
+48:       Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧
+49:       ∃ e : Lp ℝ 2 ν ≃ₗᵢ[ℝ] HP,
+50:         (∀ u : Lp ℝ 2 ν, (e u : Lp ℝ 2 J) = M u) ∧
+51:         ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,
+52:           (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧
+53:           Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧
+54:           ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,
+55:             IsSelfAdjoint T ∧
+56:             (∀ u : Lp ℝ 2 ν,
+57:               ‖T u‖ ≤ ‖u‖ ∧
+58:               (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧
+59:               (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧
+60:             let A : HP →L[ℝ] HP :=
+61:               HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL
+62:             let B : HP →L[ℝ] Lp ℝ 2 J :=
+63:               (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL
+64:             A = e.conjStarAlgEquiv T ∧ IsSelfAdjoint A ∧
+65:             (∀ f : HP, ‖A f‖ ≤ ‖f‖) ∧
+66:             (∀ f : HP, P (B f) = 0) ∧
+67:             ∃ Γ : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,
+68:               Γ.IsPositive ∧ Γ*Γ=(1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T ∧
+69:               Commute Γ T ∧
+70:               let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ
+71:               ΓP.IsPositive ∧ ΓP*ΓP=(1 : HP →L[ℝ] HP)-A*A ∧
+72:               Commute ΓP A ∧
+73:               B.adjoint ∘L B = ΓP*ΓP ∧
+74:               ∃ q : Lp ℝ 2 ν,
+75:                 (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧
+76:                 (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧
+77:                 let qP : HP := e q
+78:                 let HP0 := (innerSL ℝ qP).ker
+79:                 letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup
+80:                 letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace
+81:                 letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe
+82:                 let γ : ℝ := 2*Real.sqrt ((α : ℝ)*η)/(1+(α : ℝ)*η)
+83:                 (∀ f : HP, f ∈ HP0 ↔ (∫ y, (e.symm f) y ∂ν) = 0) ∧
+84:                 ΓP qP = 0 ∧ 0 < γ ∧
+85:                 ∃ ΓP0 : HP0 →L[ℝ] HP0,
+86:                   (∀ f : HP0, (ΓP0 f : HP) = ΓP (f : HP)) ∧
+87:                   ΓP0.IsPositive ∧ (ΓP0-γ • (1 : HP0 →L[ℝ] HP0)).IsPositive ∧
+88:                   IsUnit ΓP0 ∧
+89:                   ∃ Inv : HP0 →L[ℝ] HP0,
+90:                     Inv*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧
+91:                     ΓP0*Inv=(1 : HP0 →L[ℝ] HP0) ∧ ‖Inv‖ ≤ 1/γ ∧
+92:                     IsSelfAdjoint Inv ∧
+93:                     ∃ A0 : HP0 →L[ℝ] HP0,
+94:                       (∀ u : HP0, (A0 u : HP)=A (u : HP)) ∧
+95:                       IsSelfAdjoint A0 ∧ Commute A0 ΓP0 ∧
+96:                       A0*A0+ΓP0*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧
+97:                       Commute A0 Inv ∧
+98:                     let Hperp := P.ker
+99:                     letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup
+100:                     letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace
+101:                     letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe
+102:                     ∃ B0 : HP0 →L[ℝ] Hperp,
+103:                       (∀ f : HP0, (B0 f : Lp ℝ 2 J) = B (f : HP)) ∧
+104:                       ∃ V0 : HP0 →L[ℝ] Hperp,
+105:                         V0 = B0 ∘L Inv ∧ B0 = V0 ∘L ΓP0 ∧
+106:                         V0.adjoint ∘L V0 = (1 : HP0 →L[ℝ] HP0) ∧
+107:                         (∀ f : HP0, ‖V0 f‖ = ‖f‖) ∧
+108:                         ∃ R : Lp ℝ 2 J →L[ℝ] Hperp,
+109:                           (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) ∧
+110:                           (∀ g : Lp ℝ 2 J,
+111:                             B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) ∧
+112:                           let D : Hperp →L[ℝ] Hperp :=
+113:                             R ∘L U.toContinuousLinearMap ∘L Hperp.subtypeL
+114:                           (∀ h : Hperp, (D h : Lp ℝ 2 J)=
+115:                             U (h : Lp ℝ 2 J)-P (U (h : Lp ℝ 2 J))) ∧
+116:                           V0.adjoint ∘L D = -(A0 ∘L V0.adjoint) ∧
+117:                           (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →
+118:                             ∃ fP : HP0,
+119:                               HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧
+120:                               let fperp : Hperp := R f
+121:                               let fV : HP0 := V0.adjoint fperp
+122:                               B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧
+123:                               HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧
+124:                               ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖ ∧
+125:                               let g : Lp ℝ 2 J := U (P f-(f-P f))
+126:                               (∫ z, g z ∂J)=0 ∧
+127:                               ∃ gP : HP0,
+128:                                 HP0.subtypeL gP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le g ∧
+129:                                 let gperp : Hperp := R g
+130:                                 let gV : HP0 := V0.adjoint gperp
+131:                                 gP=A0 fP-ΓP0 fV ∧
+132:                                 gV=ΓP0 fP+A0 fV ∧
+133:                                 ‖gP‖^2+‖gV‖^2=‖fP‖^2+‖fV‖^2 ∧
+134:                                 let C : HP0 → HP0 → ℝ := fun u v =>
+135:                                   (‖u‖^2-‖v‖^2)/2-inner ℝ (A0 (Inv u)) v
+136:                                 C gP gV-C fP fV= -‖fP‖^2+‖fV‖^2)
+137: 
+138: theorem actual_corrector_change
+139:     {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+140:     [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+141:     {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+142:     (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+143:     (hH : ∀ x v : E,
+144:       (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+145:       (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+146:     (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) : actual_corrector_change_statement (E:=E) (V:=V) (α:=α) (β:=β) (η:=η) hα hαβ hV hH hη hβη := by
+147:   unfold actual_corrector_change_statement
+PROPOSAL
+{
+  "status": "PROSPECTIVE_HEADER_ONLY_NOT_CLAIMED_NOT_PROVED",
+  "actual_root_PID": 53752,
+  "proposed_header": "runs/20261007-companion-priority/pbps-corrector-change-preproof71/header71.named-literal.proposed.lean",
+  "RAW_sha256": "2bef0d5cf364270b6f580288e966d9bb78310f646a7fe13b6f8855807e70f42c",
+  "prospective_parent": "ASTIS-SW-PBPS-actual-projected-rotation",
+  "parent_status": "independent math/blind accepted; whole source/SCI verification pending",
+  "added_callers": [],
+  "added_witnesses": [],
+  "only_added_conclusion": "C(gP,gV)-C(fP,fV)=-norm(fP)^2+norm(fV)^2 for exact SAME actual components and C(u,v)=(norm(u)^2-norm(v)^2)/2-inner(A0(Inv u),v)",
+  "proof_search_started": false,
+  "statement_sealed": false,
+  "independent_header_review_pending": true
+}
+

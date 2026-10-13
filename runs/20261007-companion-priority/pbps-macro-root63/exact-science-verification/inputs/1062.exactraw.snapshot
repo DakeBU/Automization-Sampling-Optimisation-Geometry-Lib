@@ -1,0 +1,82 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2
+
+/-!
+# Accumulated pathwise energy
+
+This file isolates the monotone nonnegative energy process used by Chewi's
+canonical localization.  The exact `ENNReal` integral is kept separate from
+its later finite-energy real-valued representative: stopping-time events use
+the former, while path continuity is proved downstream on the almost-sure
+finite-energy set.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace AccumulatedEnergy
+
+open MeasureTheory Set
+open scoped ENNReal NNReal
+
+open ElementaryItoIntegral ProgressiveL2
+
+/-- Squared energy accumulated strictly before `min t T`.  The strict endpoint
+choice differs from the closed-interval convention only on a time-null
+singleton and makes monotonicity pointwise. -/
+noncomputable def accumulatedEnergy
+    {Omega : Type*} [MeasurableSpace Omega]
+    (eta : ℝ≥0 → Omega → ℝ) (T t : ℝ≥0) (omega : Omega) : ℝ≥0∞ :=
+  ∫⁻ s, if s < min t T then ENNReal.ofReal ((eta s omega) ^ 2) else 0
+    ∂(TimeMeasure.upTo T)
+
+@[simp] theorem accumulatedEnergy_zero
+    {Omega : Type*} [MeasurableSpace Omega]
+    (eta : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (omega : Omega) :
+    accumulatedEnergy eta T 0 omega = 0 := by
+  simp [accumulatedEnergy]
+
+/-- Accumulated energy is monotone in the observation time. -/
+theorem accumulatedEnergy_mono
+    {Omega : Type*} [MeasurableSpace Omega]
+    (eta : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (omega : Omega)
+    {s t : ℝ≥0} (hst : s ≤ t) :
+    accumulatedEnergy eta T s omega ≤ accumulatedEnergy eta T t omega := by
+  unfold accumulatedEnergy
+  apply lintegral_mono
+  intro u
+  by_cases hu : u < min s T
+  · have hus : u < s := (lt_min_iff.mp hu).1
+    have huT : u < T := (lt_min_iff.mp hu).2
+    have hut : u < min t T := lt_min (hus.trans_le hst) huT
+    simp [hu, hut]
+  · simp [hu]
+
+/-- Once the observation time is beyond the terminal horizon, the accumulated
+energy no longer changes. -/
+theorem accumulatedEnergy_eq_terminal_of_le
+    {Omega : Type*} [MeasurableSpace Omega]
+    (eta : ℝ≥0 → Omega → ℝ) (T t : ℝ≥0) (omega : Omega)
+    (hTt : T ≤ t) :
+    accumulatedEnergy eta T t omega = accumulatedEnergy eta T T omega := by
+  simp [accumulatedEnergy, min_eq_right hTt]
+
+/-- Energy at any time before the horizon is bounded by terminal energy. -/
+theorem accumulatedEnergy_le_terminal
+    {Omega : Type*} [MeasurableSpace Omega]
+    (eta : ℝ≥0 → Omega → ℝ) (T t : ℝ≥0) (omega : Omega)
+    (htT : t ≤ T) :
+    accumulatedEnergy eta T t omega ≤ accumulatedEnergy eta T T omega :=
+  accumulatedEnergy_mono eta T omega htT
+
+/-- Accumulated energy is nonnegative (recorded as an explicit reusable leaf
+for order-theoretic stopping-time arguments). -/
+theorem accumulatedEnergy_nonneg
+    {Omega : Type*} [MeasurableSpace Omega]
+    (eta : ℝ≥0 → Omega → ℝ) (T t : ℝ≥0) (omega : Omega) :
+    0 ≤ accumulatedEnergy eta T t omega :=
+  bot_le
+
+end AccumulatedEnergy
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

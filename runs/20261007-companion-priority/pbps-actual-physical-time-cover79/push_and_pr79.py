@@ -1,0 +1,22 @@
+from pathlib import Path
+import json,subprocess,datetime
+r=Path('runs/20261007-companion-priority/pbps-actual-physical-time-cover79');out=r/'integration79'
+head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip();assert head==json.loads((out/'commit-observed79.json').read_bytes())['commit']
+admin=json.loads((out/'final-admin.json').read_bytes());note=json.loads((r/'integration.notes.json').read_bytes());assert note['state_distinctions']['local_aggregate_and_generated_site_gates']
+push=subprocess.run(['git','push','origin','HEAD:refs/heads/codex/sphmc-standardized-rgo'],capture_output=True);(out/'push79.stdout.log').write_bytes(push.stdout);(out/'push79.stderr.log').write_bytes(push.stderr);assert push.returncode==0,push.stderr.decode('utf8',errors='replace')
+remote=subprocess.check_output(['git','ls-remote','origin','refs/heads/codex/sphmc-standardized-rgo'],text=True).strip();assert remote.split()[0]==head
+(out/'push-observed79.json').write_text(json.dumps(dict(local_commit=head,remote_observed=remote,exit_code=0,utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),force=False,Goal_complete=False),indent=2)+'\n',encoding='utf8',newline='\n')
+body=Path('.astis/pr315-sau79.md')
+body.write_text(f"""Construct actual PBPS finite stopped jump records, canonical countable Exp(1) inputs and almost-sure event-time nonaccumulation. The new physical-time edge proves that every finite time almost surely lies in one unique actual half-open event interval, with one unique live stored record whose time is at most t and whose finite nonnegative elapsed offset is below its actual next wait. This includes an infinite next wait: the last live arc remains available. No strict positive-wait, selector, cap, recurrence or nonaccumulation certificate is added as a premise; the original six analytic source hypotheses are retained.
+
+The new edge genuinely consumes actual finite-recursion76 and actual nonaccumulation78. Source-blind reconstruction and a fresh source-first inventory/graph review checked the exact full private statement, full module and nine contiguous formula/BODY regions. All 28 independent source items and 20 ingredient edges were compared. Initialization/interpolation residuals stay PARTIAL/OPEN; this interval result does not construct a jointly measurable process or prove path regularity, Markov/invariance, hypocoercivity, full sampler error/query costs or PBPS-SPHMC actual-input composition. The direct author Exp mean-one SLLN remains a separately visible open upstream alternative to ASTIS's verified sufficient indicator route.
+
+Science commit 56e4b7e101a1016e03df2971018b1f018f03e6c1 is independently VERIFIED, with standard3 axioms and kernel dependencies checked. Local serialized integration {head} passed root{admin['root_jobs']}/Tests{admin['test_jobs']}, Registry{admin['registry_count']}, canonical astis.py check with ATLAS/fake-closure scans, contributor/publication/semantic/frontier, affected graph/site build/site checks, py_compile and diff check. Statements, conditions and natural-language formulas sit beside initially folded exact Lean.
+
+The existing sole stabilization lane carries this independently VERIFIED child. The affected coarse SVG was actually viewed; generated HTML proof regions and folding were checked. Actual browser page/interactive-branch visual acceptance remains pending because the available bound browser has no inspectable tab. Main merge, full Exposition Seal/PURIFIED, live deployment and four-paper Goal completion remain separate. Remote CI is reported separately from these local gates.
+
+Next bounded source target: a total jointly measurable actual finite-physical-time phase representative, with common-almost-sure agreement at all finite times and initialization derived from actual positive inputs. Its source-only preread is frozen; no proof is claimed. Exceptional extension semantics must be explicit. Preserve all prior collaborator work, sources, cycles and the existing four-paper Goal.
+""",encoding='utf8',newline='\n')
+subprocess.run(['gh','pr','edit','315','--repo','DakeBU/Automization-Sampling-Optimisation-Geometry-Lib','--title','Construct actual PBPS finite physical-time interval coverage','--body-file',str(body)],check=True)
+(out/'pr315-observed79.json').write_bytes(subprocess.check_output(['gh','pr','view','315','--repo','DakeBU/Automization-Sampling-Optimisation-Geometry-Lib','--json','url,state,headRefOid,statusCheckRollup']))
+print('Normal push and existing PR315 updated',head)

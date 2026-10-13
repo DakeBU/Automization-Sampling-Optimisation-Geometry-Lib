@@ -1,0 +1,11 @@
+# Actual Gaussian outer-marginal gradient
+Exact697 sealed statement. Authored full-space background for fixed PBPS C.1 physical4573-4576, toward B.13 physical3779-3786. Generic probability input and finite real Hilbert/rank0 extensions disclosed. No supplied moment/density/potential/integrability/normalizer/closed-gradient certificate.
+1. Actual J is the independent Gaussian augmentation and ν=J.snd; measurable maps give actual probabilities. map_map identifies the true add-noise marginal.
+2. Genuine GaussianConvolutionRegularity gives positive density ρ=CZ and C2 W=-logρ. C is the exact Gaussian dimensional prefactor, including rank0.
+3. Actual ν mass1 and withDensity_apply give lintegral(ofRealρ)=1. Continuous ρ and positivity give the precise AEStrong/nonnegative contracts for lintegral_ofReal_ne_top_iff_integrable.
+4. Thus ρ is actually L1; ofReal_integral_eq_lintegral_ofReal plus ofReal_eq_one give the real integral1. No totalized integral is treated as normalization before L1.
+5. Positivity gives exp(-W)=ρ. The genuine tilted denominator1 then identifies volume.tilted(-W)=ν exactly.
+6. Rewrite the whole measure-indexed Lp target, apply actual WeightedGradient with C1 W/derived exponential integrability, obtaining D with dense domain, closability, closed closure and exact genuine smooth-compact graph.
+7. Actual PBPS consumer uses same actual50 μ/J/ν and internally produced probabilities under unchanged source Hessian/step bounds. Every smooth compact f yields true scalar/vector L2 classes belonging to D.graph; existing canonical continuous_gradient_of_contDiff_one is reused in Test only. Rank0 noncentered constant1 has real mean1 and pairs with actual zero gradient in the same graph. Three printed closures contain only standard3 axioms.
+Focused production0/1 original API/indexed-goal negatives and snapshots are preserved. Production2 EXIT0; tests0 PASS3893. No public/private extra theorem, no wrapper-only production leaf, no hidden hypothesis or changed697 signature.
+Boundary: actual outer dense closable gradient only. Literal Tf closure membership, arbitrary rough allL2 smoothing bound, Gamma/spectrum/halfturn/full samplers/cost/composition and four-paper Goal remain open.

@@ -1,0 +1,85 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.QuadraticOptimalMap
+
+/-!
+# Almost-everywhere uniqueness of quadratic optimal maps
+
+This module isolates the theorem-graph edge from **optimal-plan uniqueness** to
+**optimal-map uniqueness**.
+
+If two measurable maps `T` and `S` both push `mu` to `nu` and their graph laws
+are quadratic-optimal couplings, then any uniqueness principle for the
+quadratic-optimal coupling immediately identifies those graph laws. Equality of
+graph laws then identifies `T` and `S` `mu`-almost everywhere.
+
+## Source boundary
+
+This is a reusable technical edge consumed by the uniqueness part of Chewi,
+*Log-Concave Sampling*, Theorem 1.3.8(4) (Brenier's theorem). It is **not** the
+source theorem itself. In particular, this module does not prove:
+
+* existence of an optimal coupling;
+* uniqueness of that optimal coupling from absolute continuity;
+* existence of an inducing map;
+* identification of the map with the gradient of a proper convex l.s.c.
+  potential.
+
+Those are separate theorem-DAG nodes. The full source-facing Brenier assembly
+must carry the exact source statement through the ASTIS semantic round-trip
+gate. This module deliberately takes optimal-plan uniqueness as an explicit
+input rather than importing an unverified construction branch merely to make a
+stronger-looking statement compile.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace QuadraticOptimalMapUniqueness
+
+open MeasureTheory
+open QuadraticOptimalMap DisplacementInterpolation
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E]
+  [MeasurableSpace E] [MeasurableEq E]
+
+/-- A uniqueness principle for quadratic-optimal couplings with fixed
+marginals. This interface is intentionally proposition-level: any later
+Brenier uniqueness theorem can discharge it without the map layer depending on
+how that theorem was proved. -/
+def HasUniqueQuadraticOptimalCoupling (mu nu : Measure E) : Prop :=
+  ∀ ⦃gamma₀ gamma₁ : Measure (E × E)⦄,
+    IsQuadraticOptimalCoupling gamma₀ mu nu →
+    IsQuadraticOptimalCoupling gamma₁ mu nu →
+    gamma₀ = gamma₁
+
+/-- If the quadratic-optimal coupling between `mu` and `nu` is unique, then any
+two quadratic-optimal transport maps are equal `mu`-almost everywhere. -/
+theorem ae_eq_of_quadraticOptimalMap_of_uniqueCoupling
+    {T S : E → E} {mu nu : Measure E}
+    (hT : IsQuadraticOptimalMap T mu nu)
+    (hS : IsQuadraticOptimalMap S mu nu)
+    (hUnique : HasUniqueQuadraticOptimalCoupling mu nu) :
+    T =ᵐ[mu] S := by
+  apply ae_eq_of_graphCoupling_eq hT.1 hS.1
+  exact hUnique hT.2.2 hS.2.2
+
+/-- The same bridge with the coupling-uniqueness hypothesis written directly,
+useful when a consumer already has a theorem rather than the named predicate. -/
+theorem ae_eq_of_quadraticOptimalMap_of_forall_optimal_eq
+    {T S : E → E} {mu nu : Measure E}
+    (hT : IsQuadraticOptimalMap T mu nu)
+    (hS : IsQuadraticOptimalMap S mu nu)
+    (hUnique : ∀ ⦃gamma₀ gamma₁ : Measure (E × E)⦄,
+      IsQuadraticOptimalCoupling gamma₀ mu nu →
+      IsQuadraticOptimalCoupling gamma₁ mu nu →
+      gamma₀ = gamma₁) :
+    T =ᵐ[mu] S :=
+  ae_eq_of_quadraticOptimalMap_of_uniqueCoupling hT hS hUnique
+
+end
+
+end QuadraticOptimalMapUniqueness
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-c6f7321d29175853",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let hp : MeasurePreserving (Prod.snd : E × E → E) J ν :=\n      ⟨measurable_snd,rfl⟩\n    let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J :=\n      Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))\n        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le\n    IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n      M.toLinearMap.range = P.toLinearMap.range ∧\n      (∀ u : Lp ℝ 2 ν, (∫ p, (M u) p ∂J) = ∫ y, u y ∂ν) ∧\n      M '' {u : Lp ℝ 2 ν | (∫ y, u y ∂ν)=0} =\n        {f : Lp ℝ 2 J | f ∈ P.toLinearMap.range ∧ (∫ p, f p ∂J)=0}",
+    "statement_sha256": "c6f7321d29175853e9ee09202aa4c7852116c7535f3276edafde397b9eea5c1f",
+    "compiled": true,
+    "approved_definition_context": [
+      "The underlying space is a finite-dimensional real Hilbert Borel space with canonical volume, including zero dimension. The potential is C2, positive alpha<=beta, both displayed global Hessian bounds, eta>0, beta*eta<=1.",
+      "Measure.tilted is normalized exponential tilting. The first law is volume tilted by the negative potential, the joint is the pushforward of its product with the standard Gaussian under the displayed add-noise map, and the marginal is the second coordinate law.",
+      "The displayed canonical pullback maps a real marginal L2 class to its second-coordinate joint L2 class. The displayed projection is conditional expectation onto the second-coordinate sigma algebra. LinearMap.range is the actual image submodule; image of the zero-integral set denotes all centered classes, not an input onto certificate."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "66e5690c7c29f746113f9c44500b6f739f9f00bbce56969f847da6f8a61f37ac"
+}

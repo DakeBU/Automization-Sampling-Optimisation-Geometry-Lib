@@ -1,0 +1,5 @@
+PBPS source-first next57: the paper Gamma_P is the unique nonnegative bounded root of I-U_PP² on the actual macroscopic L2 subspace. Its norm identity has no eta prefactor. B13 uses4eta; sharp C2 useseta*c. Gamma inverse is only asserted after the centered gap, never on full macro space with constants. No weighted Laplacian, gradient-adjoint domain or resolvent Gamma is defined in the pinned source.
+
+Narrow next consumer: internally derive actual outer-nu centered compact-closure Poincare with m=alpha/(1+alphaeta), feeding C3/C4. Existing positive C2 Gaussian convolution/Hessian/covariance and centered-domain Gibbs Poincare contracts are appropriate reuse candidates. Resolvent existence already exists and is background; it is not this Gamma. Weak weighted IBP is only closure-to-weak direction.
+
+Separate remaining edges: exact macro/snd-M range identification and same adjoints, actual positive defect-root construction/B11, source weak-H1 equivalence, centered gap/inverse/polar, positive-band A inverse and halfturn. No candidate/header/SAU/proof/compile or mathematical admission. Root56 integration remains independent.

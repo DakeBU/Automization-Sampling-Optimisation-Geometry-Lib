@@ -1,0 +1,113 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianLikelihood
+import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+
+/-!
+# Exact Gaussian RN power moment for SPHMC
+
+Expanded equal-covariance Gaussian prerequisite to arXiv:2609.06906v1
+Lemma6.3(ii). Actual translated/scaled standard Gaussian laws, the genuine RN
+derivative, its qth-power integrability and integral, and the exact normalized
+log-moment are proved for tau>0 and real q>1. Finite-dimensional inner-product
+Borel spaces include zero dimension. No likelihood formula or integrability
+is assumed. The joint-mixture/data-processing inequality remains independent;
+this result alone is not general reverse transport, proxy warmness or a sampler
+cost guarantee. The logarithmic expression is explicit, not a new divergence API.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianPowerMoment
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal RealInnerProductSpace
+open AutoSamplingTheory.TechnicalLemmas.Measure
+
+/-- The actual Gaussian likelihood has finite qth moment with exact coefficient
+q(q-1)/(2 tau), and its normalized log-moment is q norm(x-y)^2/(2 tau). -/
+theorem gaussian_power_moment {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (x y : E) (τ q : ℝ) (hτ : 0 < τ) (hq : 1 < q) :
+    let G := fun a : E => (stdGaussian E).map (fun z => a + Real.sqrt τ • z)
+    let L := fun z : E => Real.exp (inner ℝ (x-y) (z-y) / τ - ‖x-y‖ ^ 2 / (2*τ))
+    Measurable L ∧ G x = (G y).withDensity (fun z => ENNReal.ofReal (L z)) ∧
+      G x ≪ G y ∧ (G x).rnDeriv (G y) =ᵐ[G y] (fun z => ENNReal.ofReal (L z)) ∧
+      Integrable (fun z => ((G x).rnDeriv (G y) z).toReal ^ q) (G y) ∧
+      (∫ z, ((G x).rnDeriv (G y) z).toReal ^ q ∂G y) =
+        Real.exp (q*(q-1)*‖x-y‖^2/(2*τ)) ∧
+      Real.log (∫ z, ((G x).rnDeriv (G y) z).toReal ^ q ∂G y) / (q-1) =
+        q*‖x-y‖^2/(2*τ) := by
+  have linear_exp
+      (h : E) (a : ℝ) :
+      Integrable (fun z : E => Real.exp (a * inner ℝ h z)) (stdGaussian E) ∧
+      (∫ z : E, Real.exp (a * inner ℝ h z) ∂stdGaussian E) =
+        Real.exp (a^2 * ‖h‖^2 / 2) := by
+    let l : StrongDual ℝ E := innerSL ℝ h
+    have hmap : (stdGaussian E).map l = gaussianReal 0 (‖h‖^2).toNNReal := by
+      rw [IsGaussian.map_eq_gaussianReal l,integral_strongDual_stdGaussian,
+        variance_dual_stdGaussian]
+      simp only [l,innerSL_apply_norm]
+    have hI := integrable_exp_mul_gaussianReal (μ := 0) (v := (‖h‖^2).toNNReal) a
+    rw [← hmap] at hI
+    have hI' := (integrable_map_measure (by fun_prop) (by fun_prop : AEMeasurable l (stdGaussian E))).mp hI
+    refine ⟨hI',?_⟩
+    have hm := mgf_gaussianReal hmap a
+    simpa [mgf,l,Real.toNNReal_of_nonneg (sq_nonneg ‖h‖),mul_comm] using hm
+  have power_moment
+      (x y : E) (τ q : ℝ) (hτ : 0 < τ) (hq : 1 < q) :
+      let G := (stdGaussian E).map (fun z => y + Real.sqrt τ • z)
+      let L := fun z : E => Real.exp (inner ℝ (x-y) (z-y) / τ - ‖x-y‖ ^ 2 / (2*τ))
+      Integrable (fun z => L z ^ q) G ∧
+        (∫ z, L z ^ q ∂G) = Real.exp (q*(q-1)*‖x-y‖^2/(2*τ)) := by
+    let G := (stdGaussian E).map (fun z => y + Real.sqrt τ • z)
+    let L := fun z : E => Real.exp (inner ℝ (x-y) (z-y) / τ - ‖x-y‖ ^ 2 / (2*τ))
+    let s := Real.sqrt τ
+    have hs : 0 < s := Real.sqrt_pos.mpr hτ
+    have hs2 : s^2 = τ := Real.sq_sqrt hτ.le
+    let a := q / s
+    let b := -q * ‖x-y‖^2 / (2*τ)
+    have hq0 : 0 ≤ q := by linarith
+    have hfunc : (fun z : E => L (y + Real.sqrt τ • z)^q) =
+        (fun z => Real.exp b * Real.exp (a * inner ℝ (x-y) z)) := by
+      funext z
+      dsimp only [L]
+      rw [← Real.exp_mul,← Real.exp_add]
+      congr 1
+      simp only [add_sub_cancel_left,inner_smul_right]
+      change (s * inner ℝ (x-y) z / τ - ‖x-y‖^2/(2*τ))*q = b + a * inner ℝ (x-y) z
+      dsimp only [a,b]
+      rw [← hs2]
+      field_simp
+      ring
+    obtain ⟨hI,hm⟩ := linear_exp (x-y) a
+    have hpull : Integrable (fun z : E => L (y + Real.sqrt τ • z)^q) (stdGaussian E) := by
+      rw [hfunc]
+      exact hI.const_mul _
+    have hLG : Integrable (fun z : E => L z ^ q) G :=
+      (integrable_map_measure (by fun_prop) (by fun_prop)).mpr hpull
+    refine ⟨hLG,?_⟩
+    change (∫ z, L z ^ q ∂G) = _
+    dsimp only [G]
+    rw [integral_map (by fun_prop) (by fun_prop)]
+    change (∫ z : E, L (y + Real.sqrt τ • z)^q ∂stdGaussian E) = _
+    rw [hfunc,integral_const_mul,hm,← Real.exp_add]
+    congr 1
+    dsimp only [a,b]
+    rw [← hs2]
+    field_simp
+    ring
+  let G := fun a : E => (stdGaussian E).map (fun z => a + Real.sqrt τ • z)
+  let L := fun z : E => Real.exp (inner ℝ (x-y) (z-y) / τ - ‖x-y‖ ^ 2 / (2*τ))
+  obtain ⟨hL,heq,hAC,hRN⟩ := GaussianLikelihood.translated_gaussian_likelihood x y τ hτ
+  change (G x).rnDeriv (G y) =ᵐ[G y] (fun z => ENNReal.ofReal (L z)) at hRN
+  obtain ⟨hI,hm⟩ := power_moment x y τ q hτ hq
+  have hpow : (fun z => ((G x).rnDeriv (G y) z).toReal ^ q) =ᵐ[G y] (fun z => L z ^ q) := by
+    filter_upwards [hRN] with z hz
+    rw [hz,ENNReal.toReal_ofReal (Real.exp_nonneg _)]
+  have hIRN : Integrable (fun z => ((G x).rnDeriv (G y) z).toReal ^ q) (G y) := hI.congr hpow.symm
+  have hval : (∫ z, ((G x).rnDeriv (G y) z).toReal ^ q ∂G y) =
+      Real.exp (q*(q-1)*‖x-y‖^2/(2*τ)) := (integral_congr_ae hpow).trans hm
+  refine ⟨hL,heq,hAC,hRN,hIRN,hval,?_⟩
+  change Real.log (∫ z, ((G x).rnDeriv (G y) z).toReal ^ q ∂G y) / (q-1) = _
+  rw [hval,Real.log_exp]
+  have hq1 : q-1 ≠ 0 := by linarith
+  field_simp
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianPowerMoment

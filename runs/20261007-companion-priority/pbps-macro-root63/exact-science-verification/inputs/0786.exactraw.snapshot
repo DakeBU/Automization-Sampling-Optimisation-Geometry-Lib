@@ -1,0 +1,81 @@
+import AutoSamplingTheory.Core
+
+namespace AutoSamplingTheory
+
+inductive ImplementationStatus where
+  | planned
+  | indexed
+  | skeleton
+  | statementsPorted
+  | formalized
+deriving Repr, DecidableEq
+
+inductive PaperMode where
+  | faithfulPaper
+  | exploratoryProof
+  | externalReference
+deriving Repr, DecidableEq
+
+structure PaperEntry where
+  key : String
+  title : String
+  authors : String
+  year : Nat
+  mode : PaperMode
+  status : ImplementationStatus
+  targetFile : String
+  urlOrPath : String
+  note : String
+deriving Repr, DecidableEq
+
+def literature : List PaperEntry :=
+  [
+    {
+      key := "sald-original-va-sald"
+      title := "Slowly Annealed Langevin Dynamics: Theory and Applications to Training-Free Guided Generation"
+      authors := "Atsushi Nitanda, Dake Bu, Yueming Lyu, Tanya Veeravalli"
+      year := 2026
+      mode := PaperMode.faithfulPaper
+      status := ImplementationStatus.skeleton
+      targetFile := "AutoSamplingTheory/SALD.lean"
+      urlOrPath := "/home/nitanda_sub/mark/repos/sald/paper"
+      note := "First faithful target. Excludes sald_version_2.tex."
+    },
+    {
+      key := "rmfld-current-paper"
+      title := "RMFLD current exploratory paper"
+      authors := "local RMFLD collaborators"
+      year := 2026
+      mode := PaperMode.exploratoryProof
+      status := ImplementationStatus.planned
+      targetFile := "AutoSamplingTheory/RMFLD.lean"
+      urlOrPath := "/home/nitanda_sub/mark/repos/RMFLD/RMFLD_paper"
+      note := "Exploratory mode: validate evolving proof routes without silently weakening targets."
+    },
+    {
+      key := "yuanhe-zhang-lee-liu-2026-slt"
+      title := "Statistical Learning Theory in Lean 4: Empirical Processes from Scratch"
+      authors := "Yuanhe Zhang, Jason D. Lee, Fanghui Liu"
+      year := 2026
+      mode := PaperMode.externalReference
+      status := ImplementationStatus.planned
+      targetFile := "research-wiki/cited-results/SLT_reuse_audit.md"
+      urlOrPath := "https://github.com/YuanheZ/lean-stat-learning-theory"
+      note := "Mathlib-based SLT formalization to port/adapt; upstream toolchain is Lean 4.27.0-rc1."
+    },
+    {
+      key := "yuanhe-zhang-etal-2026-leanmarathon"
+      title := "LeanMarathon: Toward Reliable AI Co-Mathematicians through Long-Horizon Lean Autoformalization"
+      authors := "Yuanhe Zhang, Yuekai Sun, Taiji Suzuki, Jason D. Lee, Fanghui Liu"
+      year := 2026
+      mode := PaperMode.externalReference
+      status := ImplementationStatus.planned
+      targetFile := "docs/leanmarathon_reference_notes.md"
+      urlOrPath := "https://github.com/YuanheZ/LeanMarathon"
+      note := "Lean-specific blueprint/DAG/CI/refiner orchestration reference. ASTIS borrows the control ideas while keeping local sleep-run and SDE/Sampling proof-obligation workflow."
+    }
+  ]
+
+def literatureCount : Nat := literature.length
+
+end AutoSamplingTheory

@@ -1,0 +1,37 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange
+import AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean
+import Tests.GaussianMarginalPoincare
+
+open MeasureTheory ProbabilityTheory
+open scoped ContDiff NNReal Topology
+namespace Tests.ProximalBPSMacroscopicRange
+open AutoSamplingTheory.ExampleCases.ProximalBPS
+noncomputable section
+set_option autoImplicit false
+set_option maxHeartbeats 1600000
+
+-- Real paper consumer: all true centered macro inputs, not only a supplied image.
+theorem actual_centered_macro_contraction_and_defect_gap
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := (μ.prod (stdGaussian E)).map
+      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)
+    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))
+        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le
+    ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,
+      (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧
+      Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧
+      let A := P * U.toContinuousLinearMap * P
+      let B := (1-P) * U.toContinuousLinearMap * P
+      ∀ f : Lp ℝ 2 J, f ∈ P.toLinearMap.range → (∫ p, f p ∂J)=0 →
+        ‖A f‖ ≤ ((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖f‖ ∧
+        (4*(α : ℝ)*η/(1+(α : ℝ)*η)^2)*‖f‖^2 ≤ ‖B f‖^2 := by

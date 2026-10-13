@@ -1,0 +1,23 @@
+9:public import Mathlib.FieldTheory.IsAlgClosed.Basic
+28:* `spectrum.subset_polynomial_aeval`, `spectrum.map_polynomial_aeval_of_degree_pos`,
+29:  `spectrum.map_polynomial_aeval_of_nonempty`: variations on the **spectral mapping theorem**.
+79:because it holds over any field, whereas `spectrum.map_polynomial_aeval_of_degree_pos` and
+80:`spectrum.map_polynomial_aeval_of_nonempty` need the field to be algebraically closed. -/
+81:theorem subset_polynomial_aeval (a : A) (p : 𝕜[X]) : (eval · p) '' σ a ⊆ σ (aeval a p) := by
+96:theorem map_polynomial_aeval_of_degree_pos [IsAlgClosed 𝕜] (a : A) (p : 𝕜[X])
+98:  -- handle the easy direction via `spectrum.subset_polynomial_aeval`
+99:  refine Set.eq_of_subset_of_subset (fun k hk => ?_) (subset_polynomial_aeval a p)
+101:  have hprod := (IsAlgClosed.splits (C k - p)).eq_prod_roots
+118:theorem map_polynomial_aeval_of_nonempty [IsAlgClosed 𝕜] (a : A) (p : 𝕜[X])
+121:  refine Or.elim (le_or_gt (degree p) 0) (fun h => ?_) (map_polynomial_aeval_of_degree_pos a p)
+125:/-- A specialization of `spectrum.subset_polynomial_aeval` to monic monomials for convenience. -/
+127:  simpa only [eval_X_pow, aeval_X_pow] using subset_polynomial_aeval a (X ^ n : 𝕜[X])
+132:/-- A specialization of `spectrum.map_polynomial_aeval_of_nonempty` to monic monomials for
+134:theorem map_pow_of_pos [IsAlgClosed 𝕜] (a : A) {n : ℕ} (hn : 0 < n) :
+137:    using map_polynomial_aeval_of_degree_pos a (X ^ n : 𝕜[X]) (by rwa [degree_X_pow, Nat.cast_pos])
+139:/-- A specialization of `spectrum.map_polynomial_aeval_of_nonempty` to monic monomials for
+141:theorem map_pow_of_nonempty [IsAlgClosed 𝕜] {a : A} (ha : (σ a).Nonempty) (n : ℕ) :
+143:  simpa only [aeval_X_pow, eval_X_pow] using map_polynomial_aeval_of_nonempty a (X ^ n) ha
+150:theorem nonempty_of_isAlgClosed_of_finiteDimensional [IsAlgClosed 𝕜] [Nontrivial A]
+154:  rw [(IsAlgClosed.splits p).eq_prod_roots_of_monic h_mon] at nu
+166:  apply Set.image_subset_iff.mp (spectrum.subset_polynomial_aeval p (X ^ 2 - X)) |>.trans

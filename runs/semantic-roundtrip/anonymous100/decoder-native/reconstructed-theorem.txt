@@ -1,0 +1,65 @@
+Anonymous mathematical reconstruction
+
+This reconstruction is derived solely from the anonymous Lean statement and its approved definition context. It gives no source-fidelity verdict and does not independently verify compilation or supply a proof.
+
+Ambient data and assumptions
+Let E be any finite-dimensional real inner-product space, equipped with its Borel measurable structure. Let V:E -> R be twice continuously Frechet differentiable. Let alpha,beta be nonnegative real numbers satisfying 0 < alpha and alpha <= beta. For every x,v in E suppose
+  alpha ||v||^2 <= D(DV)(x)[v][v] <= beta ||v||^2.
+Here DV(x):E -> R is the real Frechet derivative, and grad V is the real Hilbert-space gradient. Let eta be a real number with 0 < eta and beta eta <= 1. No positive-dimension requirement is imposed on E; the zero-dimensional space is allowed. The assumptions imply beta > 0. There are no additional restrictions on the centers or initial states quantified below.
+
+Deterministic state transformations
+For y,r in E set c(y,r)=y-eta grad V(r). For t in R and z=(x,v) in E x E define
+  Phi_{y,r}(t,(x,v)) =
+    ( c(y,r) + cos(t)(x-c(y,r)) + sqrt(eta) sin(t) v,
+      -sin(t)/sqrt(eta) (x-c(y,r)) + cos(t) v ).
+The parameter t is exactly the argument of the trigonometric functions; no additional time rescaling is implicit. Scalar multiples are the real vector-space action.
+Define g_r(x)=grad V(x)-grad V(r) and
+  S_r(x,v)=(x, v-[2 <v,g_r(x)>/||g_r(x)||^2] g_r(x)).
+Real division by zero is defined to be zero. Thus S_r(x,v)=(x,v) when g_r(x)=0, and no nonvanishing-gradient-difference assumption is present.
+Define momentum reversal R(x,v)=(x,-v), and the nonnegative real rate
+  lambda_r(x,v)=sqrt(eta) max(0, <v,g_r(x)>).
+The displayed rate has no denominator and no further factor.
+
+Event prefixes, histories, and auxiliary measure
+For each natural number n and nonnegative real T, the prefix set is
+  P_n(T)={ (tau_1,...,tau_n) in R^n : 0 < tau_1 < ... < tau_n < T }.
+For n=0 this is the singleton empty vector for every T, including T=0. The Lean indices are 0,...,n-1; tau_k corresponds to coordinate k-1. The strict inequalities are encoded by StrictMono of the vector obtained by prepending 0, together with the separate upper bounds tau_k<T. Write tau_0=0.
+An auxiliary measure m_n,T on P_n(T) is defined as Measure.comap of ordinary volume on R^n along the subtype-value inclusion. It is unnormalized. It is unused in the conclusion and imposes no measure-theoretic assumption or property of the reversal map.
+A record is either a live pair (a,w), with a in R_{≥0} and w in E x E, or the single cemetery value. A history of order n is a list indexed by 0,...,n of such records; it therefore has n+1 slots.
+
+Recursive post-event states and histories
+Given y,r,z_0,n,T and tau in P_n(T), define states z_k for k=0,...,n recursively by
+  z_0 = the given initial state,
+  z_k = S_r(Phi_{y,r}(tau_k-tau_{k-1},z_{k-1})) for k=1,...,n.
+Thus each z_k with k>=1 is the state after applying the event reflection at tau_k. The generated history K has exactly the live records (tau_k,z_k), k=0,...,n, with no cemetery records. The Lean conversion Real.toNNReal leaves these timestamps unchanged, since all are nonnegative.
+
+Path reconstruction, including arbitrary-history convention
+A path of duration T is a function from the closed nonnegative interval [0,T] to E x E. For an arbitrary history h with n+1 slots, the operator Psi at observation time s in [0,T] starts with accumulator z_0, visits j=0,...,n in that order, and does the following. A cemetery record leaves the accumulator unchanged. A live record (a,w) with a>s leaves it unchanged. A live record (a,w) with a<=s overwrites the accumulator with Phi_{y,r}(s-a,w), where subtraction is first nonnegative-real truncated subtraction and then coerced to a real. Since a<=s in the overwrite branch, this equals ordinary real subtraction. Thus for arbitrary histories the last qualifying slot in index order wins, not necessarily the record with the greatest timestamp. If no slot qualifies, the value is z_0.
+Let Gamma_{y,r,z_0,tau} be Psi applied to the generated history K. Its sorted records imply the simpler formula
+  Gamma(s)=Phi_{y,r}(s-tau_k,z_k),
+where k is the largest index in {0,...,n} for which tau_k<=s. In particular Gamma(0)=z_0, Gamma(tau_k)=z_k, and an event time uses the post-reflection state. For k<n this formula governs tau_k<=s<tau_{k+1}; for k=n it governs tau_n<=s<=T. There is no event at T. For n=0 the entire path is Phi_{y,r}(s,z_0).
+
+Exact quantified claim
+For every n in N and T in R_{≥0}, there exists a function rho:P_n(T)->P_n(T) such that for all tau in P_n(T) and all k=1,...,n,
+  (rho(tau))_k = T - tau_{n+1-k}.
+The function rho is chosen before and works simultaneously for every y,r in E, every z in E x E, and every tau in P_n(T). For each such choice set
+  A=Gamma_{y,r,z,tau}(T),
+  clamp_T(s)=min(max(s,0),T) for real s,
+  gamma(s)=Gamma_{y,r,z,tau}(clamp_T(s)),
+  barGamma(s)=Gamma_{y,r,R(A),rho(tau)}(clamp_T(s)).
+Thus the backward construction uses the same y and r, the reversed prefix, and the momentum-reversed terminal state as its initial condition.
+The following three kinds of assertion then hold jointly:
+1. For every real s with 0<=s<=T and s unequal to every coordinate of rho(tau),
+     barGamma(s)=R(gamma(T-s)).
+   The equality is of full position-velocity states. Exactly the reversed interior event times are excluded from this pointwise claim. The interval endpoints 0 and T are included, because strict prefixes contain neither endpoint.
+2. Both real functions s |-> lambda_r(barGamma(s)) and s |-> lambda_r(R(gamma(s))) are interval-integrable with respect to real Lebesgue measure between 0 and T.
+3. Their interval integrals are equal:
+     integral_0^T lambda_r(barGamma(s)) ds
+       = integral_0^T lambda_r(R(gamma(s))) ds.
+   The right integrand here uses forward time s, with momentum reversal; it is not the unreversed forward rate. The reflected argument T-s occurs in assertion 1, and not in the written right side of assertion 3. These are ordinary real-valued interval integrals, not expectations, path-measure integrals, or normalized averages.
+
+Empty, zero, and boundary cases
+If n>0 and T=0, P_n(T) is empty. A map rho from it to itself exists and all assertions quantified over tau are vacuous. If n=0, the prefix space is a singleton, rho is its unique self-map, there are no excluded event times, and pointwise reversal is asserted everywhere on [0,T]. In particular for n=0 and T=0, A=z, gamma is constantly z, barGamma is constantly R(z), the pointwise claim is required at s=0, and both interval integrals are zero. Although clamping defines gamma and barGamma for every real s, no pointwise time-reversal identity outside [0,T] is claimed. For nonempty prefixes, repeated times and events at either 0 or T are excluded by the strict inequalities. The reflection formula remains defined at zero gradient difference and at zero velocity. No randomness, positive event rate, general-position assumption, nonzero velocity, positive dimension, or positive T is imposed.
+
+Scope and nonclaims
+All constructions use the fixed E,V,alpha,beta,eta above; rho is independent of the later y,r,z,tau arguments. Its coordinate specification makes its action unique wherever prefixes exist and mathematically implies that applying it twice returns the original prefix, but involutivity is not a separate conjunct of the displayed conclusion. The declaration does not assert preservation of m_n,T, measurability of rho, a path law, a probability distribution, stochastic reversibility, invariance of a measure, or equality of rates pointwise at reversed event times. The auxiliary measure and cemetery record type are definitions, not extra hypotheses. There are no unspecified constants: the numerical constants are 0,1,2, the scale is sqrt(eta), and alpha and beta appear as ambient Hessian bounds and in the step-size restriction. The theorem gives no estimate involving n or T. Compilation is labeled true in the supplied packet; this decoder has not checked Lean compilation or external source correspondence.

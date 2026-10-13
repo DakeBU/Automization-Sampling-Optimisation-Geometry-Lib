@@ -1,0 +1,148 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.LocalProgressiveL2
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PrefixIntegral
+
+/-!
+# Path continuity of accumulated square energy
+
+The canonical localizer is a first-hitting time of accumulated energy.  This
+file identifies the fixed-time measurable energy representative with a moving
+prefix integral and proves continuity on every path whose squared integrand is
+integrable.  The local-`L2` hypothesis supplies this integrability almost
+surely.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace EnergyPathContinuity
+
+open MeasureTheory Set
+open scoped ENNReal NNReal
+
+open LocalProgressiveL2
+open TechnicalLemmas.Analysis.PrefixIntegral
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+private theorem enorm_sq_eq_ofReal_sq (x : ℝ) :
+    ‖x ^ 2‖ₑ = ENNReal.ofReal (x ^ 2) :=
+  Real.enorm_eq_ofReal (sq_nonneg x)
+
+/-- The measurable fixed-time representative agrees with the ordinary prefix
+integral; the only pointwise discrepancy is the null upper endpoint. -/
+theorem accumulatedEnergyReal_eq_prefixIntegral
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (t : ℝ≥0) (omega : Omega) :
+    accumulatedEnergyReal eta t omega =
+      prefixIntegral (fun s => (eta.process s omega) ^ 2) T t := by
+  change (∫ s, squaredExtensionAt eta (min t T) (s, omega)
+      ∂(TimeMeasure.upTo T)) =
+    ∫ s, (if s < min t T then (eta.process s omega) ^ 2 else 0)
+      ∂(TimeMeasure.upTo T)
+  apply integral_congr_ae
+  have hneq : ∀ᵐ s ∂(TimeMeasure.upTo T), s ≠ min t T := by
+    rw [ae_iff]
+    simpa using TimeMeasure.upTo_singleton T (min t T)
+  filter_upwards [hneq] with s hs
+  by_cases hle : s ≤ min t T
+  · have hlt : s < min t T := lt_of_le_of_ne hle hs
+    rw [squaredExtensionAt_apply_of_le eta hle]
+    simp [hlt]
+  · rw [squaredExtensionAt_apply_of_not_le eta hle]
+    have hnot : ¬s < min t T := not_lt_of_ge (le_of_not_ge hle)
+    simp [hnot]
+
+/-- A time section of the squared process is strongly measurable under the
+finite time measure. -/
+theorem sectionSquare_aestronglyMeasurable
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (omega : Omega) :
+    AEStronglyMeasurable (fun s => (eta.process s omega) ^ 2)
+      (TimeMeasure.upTo T) := by
+  have hext : StronglyMeasurable
+      (fun s => squaredExtensionAt eta T (s, omega)) :=
+    (squaredExtensionAt_stronglyMeasurable eta T).comp_measurable
+      (measurable_id.prodMk measurable_const)
+  refine hext.aestronglyMeasurable.congr ?_
+  filter_upwards [TimeMeasure.ae_le_terminal T] with s hs
+  exact squaredExtensionAt_apply_of_le eta hs omega
+
+/-- The source local-square-integrability assumption is exactly almost-sure
+Bochner integrability of the squared time section. -/
+theorem sectionSquare_integrable_ae
+    (eta : LocalProgressiveL2Integrand filtration mu T) :
+    ∀ᵐ omega ∂mu,
+      Integrable (fun s => (eta.process s omega) ^ 2) (TimeMeasure.upTo T) := by
+  filter_upwards [eta.finiteEnergy] with omega hfinite
+  refine ⟨sectionSquare_aestronglyMeasurable eta omega, ?_⟩
+  rw [hasFiniteIntegral_iff_enorm]
+  have heq :
+      (fun s : ℝ≥0 => ‖(eta.process s omega) ^ 2‖ₑ) =
+        fun s => ENNReal.ofReal ((eta.process s omega) ^ 2) := by
+    funext s
+    exact enorm_sq_eq_ofReal_sq (eta.process s omega)
+  rw [heq]
+  exact hfinite
+
+/-- Every finite-energy sample path has continuous accumulated energy. -/
+theorem continuous_accumulatedEnergyReal_of_integrable
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (omega : Omega)
+    (homega : Integrable (fun s => (eta.process s omega) ^ 2)
+      (TimeMeasure.upTo T)) :
+    Continuous (fun t => accumulatedEnergyReal eta t omega) := by
+  have hprefix := continuous_prefixIntegral homega
+  simpa only [accumulatedEnergyReal_eq_prefixIntegral eta] using hprefix
+
+/-- Accumulated energy is continuous for almost every sample point. -/
+theorem continuous_accumulatedEnergyReal_ae
+    (eta : LocalProgressiveL2Integrand filtration mu T) :
+    ∀ᵐ omega ∂mu,
+      Continuous (fun t => accumulatedEnergyReal eta t omega) := by
+  filter_upwards [sectionSquare_integrable_ae eta] with omega homega
+  exact continuous_accumulatedEnergyReal_of_integrable eta omega homega
+
+@[simp] theorem accumulatedEnergyReal_zero
+    (eta : LocalProgressiveL2Integrand filtration mu T) (omega : Omega) :
+    accumulatedEnergyReal eta 0 omega = 0 := by
+  rw [accumulatedEnergyReal_eq_prefixIntegral]
+  exact prefixIntegral_zero _ _
+
+/-- On every finite-energy path, accumulated energy is monotone. -/
+theorem accumulatedEnergyReal_mono_of_integrable
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (omega : Omega)
+    (homega : Integrable (fun u => (eta.process u omega) ^ 2)
+      (TimeMeasure.upTo T)) {s t : ℝ≥0} (hst : s ≤ t) :
+    accumulatedEnergyReal eta s omega ≤ accumulatedEnergyReal eta t omega := by
+  rw [accumulatedEnergyReal_eq_prefixIntegral, accumulatedEnergyReal_eq_prefixIntegral]
+  exact prefixIntegral_mono homega (fun u => sq_nonneg _) hst
+
+/-- Accumulated energy stabilizes at the terminal horizon. -/
+theorem accumulatedEnergyReal_eq_terminal_of_le
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (omega : Omega) {t : ℝ≥0} (hTt : T ≤ t) :
+    accumulatedEnergyReal eta t omega = accumulatedEnergyReal eta T omega := by
+  rw [accumulatedEnergyReal_eq_prefixIntegral, accumulatedEnergyReal_eq_prefixIntegral]
+  exact prefixIntegral_eq_terminal_of_le _ _ _ hTt
+
+/-- Threshold events for fixed-time accumulated energy are measurable at that
+time. -/
+theorem measurableSet_accumulatedEnergyReal_ge
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (c : ℝ) (t : ℝ≥0) :
+    MeasurableSet[filtration t]
+      {omega | c ≤ accumulatedEnergyReal eta t omega} := by
+  have hmeas : Measurable[filtration (min t T)]
+      (accumulatedEnergyReal eta t) :=
+    (accumulatedEnergyReal_stronglyMeasurable eta t).measurable
+  have hset : MeasurableSet[filtration (min t T)]
+      {omega | c ≤ accumulatedEnergyReal eta t omega} :=
+    measurableSet_Ici.preimage hmeas
+  exact (filtration.mono (min_le_left t T)) _ hset
+
+end EnergyPathContinuity
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,220 @@
+ConvexOpen--ae_differentiableAt_of_convexOn_isOpen [40-43]
+theorem ae_differentiableAt_of_convexOn_isOpen
+    {phi : E → ℝ} {s : Set E}
+    (hs : IsOpen s) (hconv : ConvexOn ℝ s phi) :
+    ∀ᵐ x ∂m, x ∈ s → DifferentiableAt ℝ phi x
+
+ConvexAC--ae_differentiableAt_of_convexOn_of_absolutelyContinuous [35-41]
+theorem ae_differentiableAt_of_convexOn_of_absolutelyContinuous
+    {phi : E → ℝ} {s : Set E}
+    (hs : Convex ℝ s)
+    (hconv : ConvexOn ℝ s phi)
+    (hμm : Measure.AbsolutelyContinuous μ m)
+    (hmem : ∀ᵐ x ∂μ, x ∈ s) :
+    ∀ᵐ x ∂μ, DifferentiableAt ℝ phi x
+
+CouplingAE--ae_fst_mem_interior_and_differentiableAt [42-50]
+theorem ae_fst_mem_interior_and_differentiableAt
+    {s : Set E} {phi : E → ℝ}
+    (hgamma : IsCoupling gamma μ ν)
+    (hs : Convex ℝ s)
+    (hconv : ConvexOn ℝ s phi)
+    (hμm : μ ≪ m)
+    (hmem : ∀ᵐ z ∂gamma, z.1 ∈ s) :
+    ∀ᵐ z ∂gamma,
+      z.1 ∈ interior s ∧ DifferentiableAt ℝ phi z.1
+
+RockafellarSupportGradient--eq_gradient_of_properSupportsAt_of_mem_interior [37-42]
+theorem eq_gradient_of_properSupportsAt_of_mem_interior
+    {Phi : E → WithTop ℝ} {x y : E}
+    (hsupport : ProperSupportsAt Phi x y)
+    (hx : x ∈ interior (EffectiveDomain Phi))
+    (hdiff : DifferentiableAt ℝ (finitePart Phi) x) :
+    y = gradient (finitePart Phi) x
+
+RockafellarSupportGradient--snd_eq_gradient_of_mem_of_mem_interior [55-64]
+theorem snd_eq_gradient_of_mem_of_mem_interior
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma)
+    (hclosed : PairingClosedChain.PairingClosedChainMonotone Gamma)
+    {x y : E} (hxy : (x, y) ∈ Gamma)
+    (hx : x ∈ interior
+      (EffectiveDomain (properRockafellarPotential base Gamma)))
+    (hdiff : DifferentiableAt ℝ
+      (finitePart (properRockafellarPotential base Gamma)) x) :
+    y = gradient (finitePart (properRockafellarPotential base Gamma)) x
+
+RockafellarRealDomain--convexOn_finitePart_effectiveDomain [68-73]
+theorem convexOn_finitePart_effectiveDomain
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma) :
+    ConvexOn ℝ
+      (EffectiveDomain (properRockafellarPotential base Gamma))
+      (finitePart (properRockafellarPotential base Gamma))
+
+MeasurableGradient--measurable_gradient [32-33]
+theorem measurable_gradient (phi : E → ℝ) :
+    Measurable (fun x : E => gradient phi x)
+
+Brenier--ae_snd_eq_gradient_of_quadraticOptimal_of_base [63-73]
+theorem ae_snd_eq_gradient_of_quadraticOptimal_of_base
+    {gamma : Measure (E × E)} {mu0 mu1 : Measure E}
+    [IsProbabilityMeasure mu0]
+    (hopt : IsQuadraticOptimalCoupling gamma mu0 mu1)
+    (hmu0ac : mu0 ≪ (volume : Measure E))
+    (hmu0 : Integrable (fun x : E => ‖x‖ ^ 2) mu0)
+    (hmu1 : Integrable (fun y : E => ‖y‖ ^ 2) mu1)
+    {base : E × E} (hbase : base ∈ gamma.support) :
+    ∀ᵐ z ∂gamma,
+      z.2 = gradient
+        (finitePart (properRockafellarPotential base gamma.support)) z.1
+
+Brenier--exists_base_map_gradient_eq_of_quadraticOptimal [132-144]
+theorem exists_base_map_gradient_eq_of_quadraticOptimal
+    {gamma : Measure (E × E)} {mu0 mu1 : Measure E}
+    [IsProbabilityMeasure mu0]
+    (hopt : IsQuadraticOptimalCoupling gamma mu0 mu1)
+    (hmu0ac : mu0 ≪ (volume : Measure E))
+    (hmu0 : Integrable (fun x : E => ‖x‖ ^ 2) mu0)
+    (hmu1 : Integrable (fun y : E => ‖y‖ ^ 2) mu1) :
+    ∃ base : E × E,
+      base ∈ gamma.support ∧
+        Measure.map
+            (gradient
+              (finitePart (properRockafellarPotential base gamma.support))) mu0 =
+          mu1
+
+Brenier--exists_base_map_gradient_eq_of_quadraticOptimal_p2ac [158-168]
+theorem exists_base_map_gradient_eq_of_quadraticOptimal_p2ac
+    {gamma : Measure (E × E)} {mu0 mu1 : Measure E}
+    (hmu0 : IsAbsolutelyContinuousFiniteSecondMoment mu0)
+    (hmu1 : IsAbsolutelyContinuousFiniteSecondMoment mu1)
+    (hopt : IsQuadraticOptimalCoupling gamma mu0 mu1) :
+    ∃ base : E × E,
+      base ∈ gamma.support ∧
+        Measure.map
+            (gradient
+              (finitePart (properRockafellarPotential base gamma.support))) mu0 =
+          mu1
+
+PSD--isPositive_fderiv_of_convex_gradient_field [39-44]
+theorem isPositive_fderiv_of_convex_gradient_field
+    {phi : E → ℝ} {T : E → E} {A : E →L[ℝ] E} {x : E}
+    (hconv : ConvexOn ℝ Set.univ phi)
+    (hphi : ∀ y, HasFDerivAt phi (innerSL ℝ (T y)) y)
+    (hT : HasFDerivAt T A x) :
+    A.IsPositive
+
+PSD--toMatrix_fderiv_posSemidef_of_convex_gradient_field [65-71]
+theorem toMatrix_fderiv_posSemidef_of_convex_gradient_field
+    (b : OrthonormalBasis ι ℝ E)
+    {phi : E → ℝ} {T : E → E} {A : E →L[ℝ] E} {x : E}
+    (hconv : ConvexOn ℝ Set.univ phi)
+    (hphi : ∀ y, HasFDerivAt phi (innerSL ℝ (T y)) y)
+    (hT : HasFDerivAt T A x) :
+    (LinearMap.toMatrix b.toBasis b.toBasis A.toLinearMap).PosSemidef
+
+MonotoneDerivative--inner_fderiv_nonneg_of_monotone [41-44]
+theorem inner_fderiv_nonneg_of_monotone
+    {T : E → E} {A : E →L[ℝ] E} {x : E}
+    (hmono : IsMonotoneMap T) (hderiv : HasFDerivAt T A x) (v : E) :
+    0 ≤ ⟪A v, v⟫
+
+MonotoneDerivative--isPositive_fderiv_of_monotone_of_isSymmetric [90-94]
+theorem isPositive_fderiv_of_monotone_of_isSymmetric
+    {T : E → E} {A : E →L[ℝ] E} {x : E}
+    (hmono : IsMonotoneMap T) (hderiv : HasFDerivAt T A x)
+    (hsymm : A.IsSymmetric) :
+    A.IsPositive
+
+DerivativeSymmetry--isSymmetric_fderiv_of_gradient_field [37-41]
+theorem isSymmetric_fderiv_of_gradient_field
+    {phi : E → ℝ} {T : E → E} {A : E →L[ℝ] E} {x : E}
+    (hphi : ∀ y, HasFDerivAt phi (innerSL ℝ (T y)) y)
+    (hT : HasFDerivAt T A x) :
+    A.IsSymmetric
+
+MapInjectivity--injective_affineDisplacementMap_of_monotone [62-65]
+theorem injective_affineDisplacementMap_of_monotone
+    {T : E → E} (hT : IsMonotoneMap T) (t : ℝ)
+    (ht0 : 0 ≤ t) (ht1 : t < 1) :
+    Function.Injective (affineDisplacementMap T t)
+
+ChangeOfVariables--integral_image_affineDisplacementMap_eq_integral_det_smul [49-63]
+theorem integral_image_affineDisplacementMap_eq_integral_det_smul
+    (μ : Measure E) [MeasureTheory.Measure.IsAddHaarMeasure μ]
+    (b : Module.Basis ι ℝ E)
+    {s : Set E} {T : E → E} {T' : E → E →L[ℝ] E}
+    (hs : MeasurableSet s)
+    (hderiv : ∀ x ∈ s, HasFDerivWithinAt T (T' x) s x)
+    (hmono : IsMonotoneMap T)
+    (hpsd : ∀ x ∈ s,
+      (LinearMap.toMatrix b b (T' x).toLinearMap).PosSemidef)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t < 1) (g : E → F) :
+    ∫ y in affineDisplacementMap T t '' s, g y ∂μ =
+      ∫ x in s,
+        LinearMap.det
+            (affineDisplacementDerivative (T' x) t).toLinearMap •
+          g (affineDisplacementMap T t x) ∂μ
+
+Rademacher--ae_differentiableAt_of_real [322-323]
+theorem ae_differentiableAt_of_real (hf : LipschitzWith C f) :
+    ∀ᵐ x ∂μ, DifferentiableAt ℝ f x
+
+Rademacher--ae_differentiableWithinAt_of_mem [363-364]
+theorem ae_differentiableWithinAt_of_mem {f : E → F} (hf : LipschitzOnWith C f s) :
+    ∀ᵐ x ∂μ, x ∈ s → DifferentiableWithinAt ℝ f s x
+
+Rademacher--ae_differentiableWithinAt [377-379]
+theorem ae_differentiableWithinAt {f : E → F} (hf : LipschitzOnWith C f s)
+    (hs : MeasurableSet s) :
+    ∀ᵐ x ∂(μ.restrict s), DifferentiableWithinAt ℝ f s x
+
+Rademacher--LipschitzWith_ae_differentiableAt [387-388]
+theorem LipschitzWith.ae_differentiableAt {f : E → F} (h : LipschitzWith C f) :
+    ∀ᵐ x ∂μ, DifferentiableAt ℝ f x
+
+Monotone--Monotone_ae_hasDerivAt [133-134]
+theorem Monotone.ae_hasDerivAt {f : ℝ → ℝ} (hf : Monotone f) :
+    ∀ᵐ x, HasDerivAt f (rnDeriv hf.stieltjesFunction.measure volume x).toReal x
+
+Monotone--Monotone_ae_differentiableAt [209-210]
+theorem Monotone.ae_differentiableAt {f : ℝ → ℝ} (hf : Monotone f) :
+    ∀ᵐ x, DifferentiableAt ℝ f x
+
+Monotone--MonotoneOn_ae_differentiableWithinAt_of_mem [217-218]
+theorem MonotoneOn.ae_differentiableWithinAt_of_mem {f : ℝ → ℝ} {s : Set ℝ} (hf : MonotoneOn f s) :
+    ∀ᵐ x, x ∈ s → DifferentiableWithinAt ℝ f s x
+
+Monotone--MonotoneOn_ae_differentiableWithinAt [239-240]
+theorem MonotoneOn.ae_differentiableWithinAt {f : ℝ → ℝ} {s : Set ℝ} (hf : MonotoneOn f s)
+    (hs : MeasurableSet s) : ∀ᵐ x ∂volume.restrict s, DifferentiableWithinAt ℝ f s x
+
+Gradient--gradient_eq_zero_of_not_differentiableAt [118-118]
+theorem gradient_eq_zero_of_not_differentiableAt (h : ¬DifferentiableAt 𝕜 f x) : ∇ f x = 0
+
+Gradient--Filter_EventuallyEq_gradient_eq [343-343]
+theorem Filter.EventuallyEq.gradient_eq (hL : f₁ =ᶠ[𝓝 x] f) : ∇ f₁ x = ∇ f x
+
+Gradient--HasGradientWithinAt_congr [323-324]
+theorem HasGradientWithinAt.congr (h : HasGradientWithinAt f f' s x) (hs : ∀ x ∈ s, f₁ x = f x)
+    (hx : f₁ x = f x) : HasGradientWithinAt f₁ f' s x
+
+ConvexContinuous--ConvexOn_lipschitzOnWith_of_abs_le [25-27]
+lemma ConvexOn.lipschitzOnWith_of_abs_le (hf : ConvexOn ℝ (ball x₀ r) f) (hε : 0 < ε)
+    (hM : ∀ a, dist a x₀ < r → |f a| ≤ M) :
+    LipschitzOnWith (2 * M / ε).toNNReal f (ball x₀ (r - ε))
+
+ConvexContinuous--ConvexOn_exists_lipschitzOnWith_of_isBounded [74-75]
+lemma ConvexOn.exists_lipschitzOnWith_of_isBounded (hf : ConvexOn ℝ (ball x₀ r) f) (hr : r' < r)
+    (hf' : IsBounded (f '' ball x₀ r)) : ∃ K, LipschitzOnWith K f (ball x₀ r')
+
+ConvexDeriv--monotoneOn_derivWithin [673-674]
+lemma monotoneOn_derivWithin (hfc : ConvexOn ℝ S f) (hfd : DifferentiableOn ℝ f S) :
+    MonotoneOn (derivWithin f S) S
+
+ConvexDeriv--monotoneOn_deriv [683-684]
+theorem monotoneOn_deriv (hfc : ConvexOn ℝ S f) (hfd : ∀ x ∈ S, DifferentiableAt ℝ f x) :
+    MonotoneOn (deriv f) S
+
+PINNED 61 inputs; 32 public headers; compiler NOT USED

@@ -1,0 +1,213 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoEmbedding
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIsometry
+import Mathlib.MeasureTheory.Function.L2Space
+
+/-!
+# The elementary Ito map in L2
+
+This file turns the finite stochastic sum into an actual `Lp ℝ 2 mu` element
+and upgrades the expectation-level elementary Ito isometry to a norm equality.
+It does not extend the map beyond elementary adapted processes.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ElementaryItoL2
+
+open MeasureTheory
+open scoped BigOperators ENNReal NNReal InnerProductSpace
+
+open BrownianMotion ElementaryItoIntegral ElementaryItoAlgebra ElementaryItoEmbedding
+  ElementaryItoIsometry ProgressiveL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+  {B : ℝ≥0 → Omega → ℝ} {n : ℕ}
+
+/-- The square of the `L2` norm of a real representative is its second
+moment. -/
+theorem norm_sq_toLp_eq_integral_sq {f : Omega → ℝ} (hf : MemLp f 2 mu) :
+    ‖hf.toLp f‖ ^ 2 = ∫ omega, f omega ^ 2 ∂mu := by
+  rw [← real_inner_self_eq_norm_sq, L2.inner_def]
+  apply integral_congr_ae
+  filter_upwards [hf.coeFn_toLp] with omega homega
+  rw [homega]
+  simp [pow_two]
+
+/-- The finite elementary stochastic sum is square integrable. -/
+theorem elementaryItoIntegral_memLp_two
+    (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    MemLp (elementaryItoIntegral eta B T) 2 mu := by
+  change MemLp (fun omega => ∑ i, weightedIncrement eta B T i omega) 2 mu
+  exact memLp_finsetSum Finset.univ fun i _ => weightedIncrement_memLp_two eta hB T i
+
+/-- The elementary terminal Ito integral as an actual element of `L2(mu)`. -/
+noncomputable def elementaryItoTerminalToLp
+    (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    Lp ℝ 2 mu :=
+  (elementaryItoIntegral_memLp_two eta hB T).toLp
+    (elementaryItoIntegral eta B T)
+
+theorem norm_sq_elementaryItoTerminalToLp
+    (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    ‖elementaryItoTerminalToLp eta hB T‖ ^ 2 =
+      ∫ omega, elementaryItoIntegral eta B T omega ^ 2 ∂mu :=
+  norm_sq_toLp_eq_integral_sq (elementaryItoIntegral_memLp_two eta hB T)
+
+/-- The elementary integrand as a product-space `L2` element in the Brownian
+probability environment. -/
+noncomputable def elementaryProcessToLp
+    (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    Lp ℝ 2 (processTimeMeasure mu T) := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact (toProgressiveL2 eta mu T).toLp
+
+private theorem ofReal_norm_sq_elementaryProcessToLp_eq_energy
+    (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    ENNReal.ofReal (‖elementaryProcessToLp eta hB T‖ ^ 2) =
+      processL2Energy eta.value mu T := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  unfold elementaryProcessToLp
+  dsimp only
+  have hnorm := norm_sq_toLp_eq_integral_sq (toProgressiveL2 eta mu T).memLp
+  change ‖(toProgressiveL2 eta mu T).toLp‖ ^ 2 =
+    ∫ z, processFunction (toProgressiveL2 eta mu T).process z ^ 2
+      ∂(processTimeMeasure mu T) at hnorm
+  rw [hnorm]
+  simp only [toProgressiveL2_process]
+  have henergy := ofReal_integral_eq_lintegral_ofReal
+    (value_memLp_two eta mu T).integrable_sq
+    (ae_of_all (processTimeMeasure mu T) fun _ => sq_nonneg _)
+  simpa [processL2Energy, processFunction] using henergy
+
+/-- The elementary terminal map is an isometry between the product-space
+integrand `L2` norm and the terminal random-variable `L2` norm. -/
+theorem norm_elementaryItoTerminalToLp
+    (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    ‖elementaryItoTerminalToLp eta hB T‖ =
+      ‖elementaryProcessToLp eta hB T‖ := by
+  have hterminal : ENNReal.ofReal (‖elementaryItoTerminalToLp eta hB T‖ ^ 2) =
+      processL2Energy eta.value mu T := by
+    rw [norm_sq_elementaryItoTerminalToLp eta hB T]
+    exact chewi_display_1_1_6 eta hB T
+  have hprocess := ofReal_norm_sq_elementaryProcessToLp_eq_energy eta hB T
+  have hsquares : ‖elementaryItoTerminalToLp eta hB T‖ ^ 2 =
+      ‖elementaryProcessToLp eta hB T‖ ^ 2 :=
+    (ENNReal.ofReal_eq_ofReal_iff (sq_nonneg _) (sq_nonneg _)).mp
+      (hterminal.trans hprocess.symm)
+  nlinarith [norm_nonneg (elementaryItoTerminalToLp eta hB T),
+    norm_nonneg (elementaryProcessToLp eta hB T)]
+
+/-- On a fixed grid, the terminal `L2` representative respects addition. -/
+theorem elementaryItoTerminalToLp_add
+    (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    elementaryItoTerminalToLp (add eta xi hgrid) hB T =
+      elementaryItoTerminalToLp eta hB T + elementaryItoTerminalToLp xi hB T := by
+  apply Lp.ext
+  simp only [elementaryItoTerminalToLp]
+  filter_upwards [
+    (elementaryItoIntegral_memLp_two (add eta xi hgrid) hB T).coeFn_toLp,
+    Lp.coeFn_add
+      ((elementaryItoIntegral_memLp_two eta hB T).toLp
+        (elementaryItoIntegral eta B T))
+      ((elementaryItoIntegral_memLp_two xi hB T).toLp
+        (elementaryItoIntegral xi B T)),
+    (elementaryItoIntegral_memLp_two eta hB T).coeFn_toLp,
+    (elementaryItoIntegral_memLp_two xi hB T).coeFn_toLp] with omega hsum hadd heta hxi
+  rw [hsum, hadd]
+  simp only [Pi.add_apply]
+  rw [heta, hxi]
+  exact elementaryItoIntegral_add eta xi hgrid B T omega
+
+/-- The Brownian-environment product-space representatives respect same-grid
+addition. -/
+theorem elementaryProcessToLp_add
+    (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    elementaryProcessToLp (add eta xi hgrid) hB T =
+      elementaryProcessToLp eta hB T + elementaryProcessToLp xi hB T := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  unfold elementaryProcessToLp
+  dsimp only
+  exact toLp_add eta xi hgrid mu T
+
+/-- On a common grid, the elementary terminal map preserves the real Hilbert
+inner product, not only norms. -/
+theorem inner_elementaryItoTerminalToLp
+    (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    ⟪elementaryItoTerminalToLp eta hB T,
+        elementaryItoTerminalToLp xi hB T⟫_ℝ =
+      ⟪elementaryProcessToLp eta hB T,
+        elementaryProcessToLp xi hB T⟫_ℝ := by
+  rw [real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two,
+    real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two,
+    ← elementaryItoTerminalToLp_add eta xi hgrid hB T,
+    ← elementaryProcessToLp_add eta xi hgrid hB T,
+    norm_elementaryItoTerminalToLp (add eta xi hgrid) hB T,
+    norm_elementaryItoTerminalToLp eta hB T,
+    norm_elementaryItoTerminalToLp xi hB T]
+
+/-- On a fixed grid, the terminal `L2` representative respects subtraction. -/
+theorem elementaryItoTerminalToLp_sub
+    (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    elementaryItoTerminalToLp (sub eta xi hgrid) hB T =
+      elementaryItoTerminalToLp eta hB T - elementaryItoTerminalToLp xi hB T := by
+  apply Lp.ext
+  simp only [elementaryItoTerminalToLp]
+  filter_upwards [
+    (elementaryItoIntegral_memLp_two (sub eta xi hgrid) hB T).coeFn_toLp,
+    Lp.coeFn_sub
+      ((elementaryItoIntegral_memLp_two eta hB T).toLp
+        (elementaryItoIntegral eta B T))
+      ((elementaryItoIntegral_memLp_two xi hB T).toLp
+        (elementaryItoIntegral xi B T)),
+    (elementaryItoIntegral_memLp_two eta hB T).coeFn_toLp,
+    (elementaryItoIntegral_memLp_two xi hB T).coeFn_toLp] with omega hsub hdiff heta hxi
+  rw [hsub, hdiff]
+  simp only [Pi.sub_apply]
+  rw [heta, hxi]
+  exact elementaryItoIntegral_sub eta xi hgrid B T omega
+
+/-- The Brownian-environment product-space representatives respect same-grid
+subtraction. -/
+theorem elementaryProcessToLp_sub
+    (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    elementaryProcessToLp (sub eta xi hgrid) hB T =
+      elementaryProcessToLp eta hB T - elementaryProcessToLp xi hB T := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  unfold elementaryProcessToLp
+  dsimp only
+  exact toLp_sub eta xi hgrid mu T
+
+/-- Same-grid differences satisfy the exact distance form of the elementary
+Ito isometry. -/
+theorem norm_elementaryItoTerminalToLp_sub
+    (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    ‖elementaryItoTerminalToLp eta hB T - elementaryItoTerminalToLp xi hB T‖ =
+      ‖elementaryProcessToLp eta hB T - elementaryProcessToLp xi hB T‖ := by
+  rw [← elementaryItoTerminalToLp_sub eta xi hgrid hB T,
+    ← elementaryProcessToLp_sub eta xi hgrid hB T]
+  exact norm_elementaryItoTerminalToLp (sub eta xi hgrid) hB T
+
+end ElementaryItoL2
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

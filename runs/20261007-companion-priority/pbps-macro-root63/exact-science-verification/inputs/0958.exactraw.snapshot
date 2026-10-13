@@ -1,0 +1,48 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
+
+/-!
+# Couplings concentrated on graphs induce pushforwards
+
+This module isolates the pure measure-theoretic bottom edge of a Monge
+transport argument.  If a coupling of `mu` and `nu` is almost everywhere
+concentrated on the graph `y = T x`, then `T` pushes `mu` forward to `nu`.
+
+No optimality, convexity, or differentiability is involved.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CouplingGraph
+
+open MeasureTheory
+
+noncomputable section
+
+/-- A measurable map whose graph supports a coupling transports the first
+marginal exactly to the second marginal. -/
+theorem map_eq_of_isCoupling_of_ae_snd_eq
+    {E F : Type*} [MeasurableSpace E] [MeasurableSpace F]
+    {gamma : Measure (E × F)} {mu : Measure E} {nu : Measure F}
+    {T : E → F}
+    (hgamma : Transport.IsCoupling gamma mu nu)
+    (hT : Measurable T)
+    (hgraph : ∀ᵐ z ∂gamma, z.2 = T z.1) :
+    Measure.map T mu = nu := by
+  calc
+    Measure.map T mu = Measure.map T gamma.fst := by rw [hgamma.1]
+    _ = Measure.map (T ∘ Prod.fst) gamma := by
+      rw [Measure.fst, Measure.map_map hT measurable_fst]
+    _ = Measure.map Prod.snd gamma := by
+      apply Measure.map_congr
+      filter_upwards [hgraph] with z hz
+      exact hz.symm
+    _ = gamma.snd := by rw [Measure.snd]
+    _ = nu := hgamma.2
+
+end
+
+end CouplingGraph
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

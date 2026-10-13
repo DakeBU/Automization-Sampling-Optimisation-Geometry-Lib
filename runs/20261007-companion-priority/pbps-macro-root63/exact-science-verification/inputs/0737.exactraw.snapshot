@@ -1,0 +1,125 @@
+import Mathlib.Analysis.InnerProductSpace.Spectrum
+import Mathlib.Tactic
+
+/-!
+# Actual kinetic M_kappa drift dissipation
+
+Chen--Chewi--Lu--Zhang, arXiv:2609.06906v1, (4.14)-(4.15).
+The full finite-dimensional real inequality follows from actual symmetric
+quadratic Hessian bounds, with no supplied eigenbasis or matrix coercivity.
+This is a necessary drift edge for Proposition4.7, not exact-gradient kernel
+contraction: its source H construction, positive quadrature weights and
+first-order remainder/step-size adapters remain separate.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.KineticDissipation
+
+noncomputable section
+private theorem scalar_dissipation {α ell : ℝ} (hα : 0 < α) (hαh : α ≤ 1/2)
+    (hαell : α ≤ ell) (hell : ell ≤ 1) (u v : ℝ) :
+    α / 4 * ((α + 1/2) * u^2 + u*v + v^2) ≤
+      ell*u^2 + 2*(ell-α)*u*v + v^2 := by
+  have hd : α ≤ ell - (ell-α)^2 := by
+    nlinarith [mul_nonneg (sub_nonneg.mpr hαell) (by linarith : 0 ≤ 1+α-ell)]
+  have ht : 0 < 1-α/2 := by linarith
+  have hdet : 0 ≤ (ell-α/2)*(1-α/2)-(ell-α)^2 := by
+    have hm := mul_nonneg (le_of_lt hα) (by linarith : 0 ≤ 1-ell)
+    nlinarith [sq_nonneg α]
+  have hprod := mul_nonneg hdet (sq_nonneg u)
+  have hsq := sq_nonneg ((1-α/2)*v+(ell-α)*u)
+  have hid : (1-α/2)*((ell-α/2)*u^2+2*(ell-α)*u*v+(1-α/2)*v^2) =
+      ((1-α/2)*v+(ell-α)*u)^2 + ((ell-α/2)*(1-α/2)-(ell-α)^2)*u^2 := by ring
+  have hp : 0 ≤ (ell-α/2)*u^2+2*(ell-α)*u*v+(1-α/2)*v^2 := by
+    exact (mul_nonneg_iff_of_pos_left ht).mp (by rw [hid]; exact add_nonneg hsq hprod)
+  have hM : (α+1/2)*u^2+u*v+v^2 ≤ 2*(u^2+v^2) := by
+    nlinarith [sq_nonneg (u-v), mul_nonneg (by linarith : 0 ≤ 1/2-α) (sq_nonneg u)]
+  have hMα := mul_le_mul_of_nonneg_left hM (by positivity : 0 ≤ α/4)
+  nlinarith
+
+
+open scoped BigOperators
+
+private theorem full_dissipation {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+    (H : E →ₗ[ℝ] E) (hH : H.IsSymmetric) {α : ℝ}
+    (hα : 0 < α) (hαh : α ≤ 1/2)
+    (hlower : ∀ x, α * ‖x‖^2 ≤ inner ℝ x (H x))
+    (hupper : ∀ x, inner ℝ x (H x) ≤ ‖x‖^2) (x p : E) :
+    α/4 * ((α+1/2)*‖x‖^2 + inner ℝ x p + ‖p‖^2) ≤
+      inner ℝ x (H x) + 2*inner ℝ p (H x) - 2*α*inner ℝ x p + ‖p‖^2 := by
+  let b := hH.eigenvectorBasis rfl
+  let ell := hH.eigenvalues rfl
+  have heig (i : Fin (Module.finrank ℝ E)) : H (b i) = ell i • b i :=
+    hH.apply_eigenvectorBasis rfl i
+  have hbounds (i : Fin (Module.finrank ℝ E)) : α ≤ ell i ∧ ell i ≤ 1 := by
+    have hlo := hlower (b i)
+    have hup := hupper (b i)
+    rw [heig, real_inner_smul_right, real_inner_self_eq_norm_sq, b.norm_eq_one] at hlo hup
+    norm_num at hlo hup
+    exact ⟨hlo,hup⟩
+  have hc (y : E) (i : Fin (Module.finrank ℝ E)) :
+      inner ℝ (b i) (H y) = ell i * inner ℝ (b i) y := by
+    calc
+      inner ℝ (b i) (H y) = inner ℝ (H (b i)) y := (hH (b i) y).symm
+      _ = ell i * inner ℝ (b i) y := by rw [heig, real_inner_smul_left]
+  have hs (y z : E) : ∑ i, inner ℝ (b i) y * inner ℝ (b i) z = inner ℝ y z := by
+    simpa only [real_inner_comm y] using b.sum_inner_mul_inner y z
+  have hn (y : E) : ∑ i, (inner ℝ (b i) y)^2 = ‖y‖^2 := by
+    simpa only [pow_two, real_inner_self_eq_norm_sq] using hs y y
+  have hsum := Finset.sum_le_sum (s := Finset.univ) (fun i _ =>
+    scalar_dissipation hα hαh (hbounds i).1 (hbounds i).2
+      (inner ℝ (b i) x) (inner ℝ (b i) p))
+  have hxx : ∑ i, ell i * (inner ℝ (b i) x)^2 = inner ℝ x (H x) := by
+    rw [← hs x (H x)]
+    apply Finset.sum_congr rfl
+    intro i _
+    rw [hc]
+    ring
+  have hpx : ∑ i, ell i * inner ℝ (b i) x * inner ℝ (b i) p = inner ℝ p (H x) := by
+    rw [← hs p (H x)]
+    apply Finset.sum_congr rfl
+    intro i _
+    rw [hc]
+    ring
+  have hleft : (∑ i, α / 4 * ((α + 1/2) * (inner ℝ (b i) x)^2 +
+      inner ℝ (b i) x * inner ℝ (b i) p + (inner ℝ (b i) p)^2)) =
+      α/4 * ((α+1/2)*‖x‖^2+inner ℝ x p+‖p‖^2) := by
+    rw [← Finset.mul_sum, Finset.sum_add_distrib, Finset.sum_add_distrib,
+      ← Finset.mul_sum, hn, hn, hs]
+  have hright : (∑ i, (ell i * (inner ℝ (b i) x)^2 +
+      2*(ell i-α)*inner ℝ (b i) x*inner ℝ (b i) p + (inner ℝ (b i) p)^2)) =
+      inner ℝ x (H x)+2*inner ℝ p (H x)-2*α*inner ℝ x p+‖p‖^2 := by
+    simp_rw [show ∀ i : Fin (Module.finrank ℝ E),
+      2*(ell i-α)*inner ℝ (b i) x*inner ℝ (b i) p =
+      2*(ell i*inner ℝ (b i) x*inner ℝ (b i) p) -
+      (2*α)*(inner ℝ (b i) x*inner ℝ (b i) p) by intro i; ring]
+    rw [Finset.sum_add_distrib, Finset.sum_add_distrib, Finset.sum_sub_distrib,
+      ← Finset.mul_sum, ← Finset.mul_sum, hxx, hpx, hs, hn]
+    ring
+  rw [hleft,hright] at hsum
+  exact hsum
+/-- The actual full-space source drift inequality (4.15), expressed as a real
+quadratic form. For A_H(x,p)=(p,-Hx-p), the right-hand D_H below equals
+-2<M_kappa(x,p),A_H(x,p)>. The source matrix LHS quadratic form equals
++2<M_kappa(x,p),A_H(x,p)>. All source constants and symmetric quadratic bounds
+are explicit. No actual-kernel or stochastic-proximal contraction is assumed. -/
+theorem source_kinetic_dissipation {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+    {kappa : ℝ} (hkappa : 1 ≤ kappa) (H : E →ₗ[ℝ] E) (hH : H.IsSymmetric)
+    (hlower : ∀ v, 1/(2*kappa) * ‖v‖^2 ≤ inner ℝ v (H v))
+    (hupper : ∀ v, inner ℝ v (H v) ≤ ‖v‖^2) (x p : E) :
+    1/(8*kappa) * ((1/(2*kappa)+1/2)*‖x‖^2 + inner ℝ x p + ‖p‖^2) ≤
+      inner ℝ x (H x) + 2*inner ℝ p (H x) - 1/kappa*inner ℝ x p + ‖p‖^2 := by
+  have hk0 : 0 < kappa := lt_of_lt_of_le zero_lt_one hkappa
+  have ha : 0 < 1/(2*kappa) := by positivity
+  have hah : 1/(2*kappa) ≤ (1/2 : ℝ) := by
+    apply (div_le_iff₀ (by positivity : 0 < 2*kappa)).mpr
+    linarith
+  have h := full_dissipation H hH ha hah hlower hupper x p
+  have hc : (1/(2*kappa))/4 = (1/(8*kappa) : ℝ) := by field_simp; ring
+  have hd : 2*(1/(2*kappa)) = (1/kappa : ℝ) := by field_simp
+  simpa only [hc,hd] using h
+
+end
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.KineticDissipation

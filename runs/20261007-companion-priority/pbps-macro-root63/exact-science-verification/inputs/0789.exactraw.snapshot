@@ -1,0 +1,44 @@
+import AutoSamplingTheory.SDE
+
+/-!
+# RMFLD exploratory proof-validation contracts
+-/
+
+namespace AutoSamplingTheory
+namespace RMFLD
+
+def rmfldPaperRoot : String := "/home/nitanda_sub/mark/repos/RMFLD/RMFLD_paper"
+
+def rmfldSource : SourceAnchor :=
+  localTexAnchor "rmfld-current" rmfldPaperRoot "RMFLD_paper"
+    "Current exploratory RMFLD paper; use exploratoryProof mode and keep conjectural proof routes honest."
+
+def exploratorySeedLabels : List String :=
+  [
+    "thm:general_RMFLD_finite_particle_convergence",
+    "thm:SIM_main",
+    "thm:finite_particle_postwarmup_convergence",
+    "thm:main_theorem_ABCD",
+    "thm:actual_expem_one_step_recursion_new"
+  ]
+
+def rmfldExploratoryContract : TheoremContract where
+  id := "ASTIS.RMFLD.exploratory_seed"
+  title := "RMFLD exploratory proof-validation seed"
+  mode := "exploratoryProof"
+  source := rmfldSource
+  targetLean := "AutoSamplingTheory/RMFLD.lean"
+  statementSummary := "Index current RMFLD proof targets and maintain proof-route candidates without weakening the paper statements."
+  proofStatus := ProofStatus.planned
+
+def rmfldProofDag : List ProofDagBlock :=
+  exploratorySeedLabels.map fun label => {
+    id := "ASTIS.RMFLD." ++ label
+    interface := "Build source-index, obligations, and candidate proof routes for `" ++ label ++ "`."
+    source := rmfldSource
+    targetLean := "AutoSamplingTheory/RMFLD.lean"
+    status := ProofStatus.planned
+  }
+
+end RMFLD
+end AutoSamplingTheory

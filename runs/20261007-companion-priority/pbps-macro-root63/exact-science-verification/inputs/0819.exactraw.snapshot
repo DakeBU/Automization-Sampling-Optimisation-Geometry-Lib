@@ -1,0 +1,154 @@
+import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
+import Mathlib.Tactic
+
+/-!
+# Finite power series: exact derivatives and coefficient budgets
+
+This file packages a small analytic tool used throughout statistics and
+numerical analysis.  A finitely supported real power series has an exact
+`iteratedDeriv` formula at every order.  On the interval `[-1, 1]`, the
+absolute value of that derivative is bounded by the corresponding weighted
+absolute coefficient mass.
+
+The formulation uses `Nat.descFactorial`, so one theorem handles every order,
+including exponents below the requested order: their descending factorial is
+zero.  The final lemma records the scalar fourth-order chain-rule estimate
+with the exact one-dimensional Faà di Bruno coefficients.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries
+
+open scoped BigOperators
+
+/-- A real polynomial written as a sum over an arbitrary finite set of
+exponents.  Repeated exponents are impossible because the support is a
+`Finset`; coefficients outside the support play no role. -/
+def finitePowerSeries (support : Finset ℕ) (a : ℕ → ℝ) (u : ℝ) : ℝ :=
+  ∑ j ∈ support, a j * u ^ j
+
+/-- The closed form for the `order`-th derivative of a finite power series. -/
+def finitePowerSeriesDerivative
+    (order : ℕ) (support : Finset ℕ) (a : ℕ → ℝ) (u : ℝ) : ℝ :=
+  ∑ j ∈ support,
+    (j.descFactorial order : ℝ) * a j * u ^ (j - order)
+
+/-- Absolute coefficient mass controlling the `order`-th derivative on
+`[-1, 1]`. -/
+def finitePowerSeriesDerivativeMass
+    (order : ℕ) (support : Finset ℕ) (a : ℕ → ℝ) : ℝ :=
+  ∑ j ∈ support, (j.descFactorial order : ℝ) * |a j|
+
+/-- A finite real power series is smooth to every finite order. -/
+theorem finitePowerSeries_contDiff
+    (support : Finset ℕ) (a : ℕ → ℝ) :
+    ContDiff ℝ ⊤ (finitePowerSeries support a) := by
+  unfold finitePowerSeries
+  fun_prop
+
+/-- Mathlib's iterated derivative of a finite power series equals the usual
+descending-factorial formula. -/
+theorem iteratedDeriv_finitePowerSeries
+    (order : ℕ) (support : Finset ℕ) (a : ℕ → ℝ) (u : ℝ) :
+    iteratedDeriv order (finitePowerSeries support a) u =
+      finitePowerSeriesDerivative order support a u := by
+  unfold finitePowerSeries finitePowerSeriesDerivative
+  rw [iteratedDeriv_fun_sum]
+  · apply Finset.sum_congr rfl
+    intro j hj
+    simp [iteratedDeriv_pow]
+    ring
+  · intro j hj
+    fun_prop
+
+/-- On the full correlation interval, every iterated derivative is controlled
+by its weighted absolute coefficient mass.  No sign condition on the
+coefficients is required. -/
+theorem abs_iteratedDeriv_finitePowerSeries_le_mass
+    (order : ℕ) (support : Finset ℕ) (a : ℕ → ℝ) {u : ℝ}
+    (hu : |u| ≤ 1) :
+    |iteratedDeriv order (finitePowerSeries support a) u| ≤
+      finitePowerSeriesDerivativeMass order support a := by
+  rw [iteratedDeriv_finitePowerSeries]
+  unfold finitePowerSeriesDerivative finitePowerSeriesDerivativeMass
+  calc
+    |∑ j ∈ support,
+        (j.descFactorial order : ℝ) * a j * u ^ (j - order)| ≤
+        ∑ j ∈ support,
+          |(j.descFactorial order : ℝ) * a j * u ^ (j - order)| :=
+      Finset.abs_sum_le_sum_abs _ _
+    _ = ∑ j ∈ support,
+        (j.descFactorial order : ℝ) * |a j| * |u| ^ (j - order) := by
+      apply Finset.sum_congr rfl
+      intro j hj
+      rw [abs_mul, abs_mul, abs_pow,
+        abs_of_nonneg (show 0 ≤ (j.descFactorial order : ℝ) by positivity)]
+    _ ≤ ∑ j ∈ support, (j.descFactorial order : ℝ) * |a j| := by
+      apply Finset.sum_le_sum
+      intro j hj
+      exact mul_le_of_le_one_right
+        (mul_nonneg (by positivity) (abs_nonneg (a j)))
+        (pow_le_one₀ (abs_nonneg u) hu)
+
+/-- Termwise control of the scalar fourth-order chain-rule expression.
+
+For smooth scalar functions `k` and `u`, the left side is the absolute value
+of the formal expression for `(k ∘ u)⁽⁴⁾`.  The numerical coefficients
+`1, 6, 3, 4, 1` are the exact one-dimensional Faà di Bruno coefficients. -/
+theorem fourthOrderCompositionExpression_abs_le
+    {k1 k2 k3 k4 u1 u2 u3 u4 A1 A2 A3 A4 : ℝ}
+    (hk1 : |k1| ≤ A1) (hk2 : |k2| ≤ A2)
+    (hk3 : |k3| ≤ A3) (hk4 : |k4| ≤ A4) :
+    |k4 * u1 ^ (4 : ℕ) +
+        6 * k3 * u1 ^ (2 : ℕ) * u2 +
+        3 * k2 * u2 ^ (2 : ℕ) +
+        4 * k2 * u1 * u3 + k1 * u4| ≤
+      A4 * |u1| ^ (4 : ℕ) +
+        6 * A3 * |u1| ^ (2 : ℕ) * |u2| +
+        3 * A2 * |u2| ^ (2 : ℕ) +
+        4 * A2 * |u1| * |u3| + A1 * |u4| := by
+  let t1 := k4 * u1 ^ (4 : ℕ)
+  let t2 := 6 * k3 * u1 ^ (2 : ℕ) * u2
+  let t3 := 3 * k2 * u2 ^ (2 : ℕ)
+  let t4 := 4 * k2 * u1 * u3
+  let t5 := k1 * u4
+  have htri : |t1 + t2 + t3 + t4 + t5| ≤
+      |t1| + |t2| + |t3| + |t4| + |t5| := by
+    calc
+      |t1 + t2 + t3 + t4 + t5| ≤ |t1 + t2 + t3 + t4| + |t5| :=
+        abs_add_le _ _
+      _ ≤ (|t1 + t2 + t3| + |t4|) + |t5| := by
+        gcongr
+        exact abs_add_le _ _
+      _ ≤ ((|t1 + t2| + |t3|) + |t4|) + |t5| := by
+        gcongr
+        exact abs_add_le _ _
+      _ ≤ (((|t1| + |t2|) + |t3|) + |t4|) + |t5| := by
+        gcongr
+        exact abs_add_le _ _
+  have ht1 : |t1| ≤ A4 * |u1| ^ (4 : ℕ) := by
+    dsimp [t1]
+    rw [abs_mul, abs_pow]
+    exact mul_le_mul_of_nonneg_right hk4 (by positivity)
+  have ht2 : |t2| ≤ 6 * A3 * |u1| ^ (2 : ℕ) * |u2| := by
+    dsimp [t2]
+    rw [abs_mul, abs_mul, abs_mul, abs_pow]
+    norm_num
+    gcongr
+  have ht3 : |t3| ≤ 3 * A2 * |u2| ^ (2 : ℕ) := by
+    dsimp [t3]
+    rw [abs_mul, abs_mul, abs_pow]
+    norm_num
+    gcongr
+  have ht4 : |t4| ≤ 4 * A2 * |u1| * |u3| := by
+    dsimp [t4]
+    rw [abs_mul, abs_mul, abs_mul]
+    norm_num
+    gcongr
+  have ht5 : |t5| ≤ A1 * |u4| := by
+    dsimp [t5]
+    rw [abs_mul]
+    exact mul_le_mul_of_nonneg_right hk1 (abs_nonneg _)
+  dsimp [t1, t2, t3, t4, t5] at htri
+  linarith
+
+end AutoSamplingTheory.TechnicalLemmas.Analysis.FinitePowerSeries

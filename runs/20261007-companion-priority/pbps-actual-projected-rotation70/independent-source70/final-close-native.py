@@ -1,0 +1,29 @@
+import sys
+sys.dont_write_bytecode=True
+sys.stdout.reconfigure(encoding='utf-8')
+import pathlib,json,hashlib,os,datetime
+O=pathlib.Path(__file__).resolve().parent
+def H(b):return hashlib.sha256(b).hexdigest()
+def C(x):return json.dumps(x,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
+def J(n):return json.loads((O/n).read_bytes())
+def put(n,x):assert not (O/n).exists();(O/n).write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
+assert not (O/'lease.final.json').exists() and not (O/'owned-manifest.json').exists()
+pre=J('final-preclose-check-v2.terminal-receipt.json');assert pre['actual_pid']==25248 and pre['exit_code']==0
+run=J('source.0.review-run.json');assert H(C({k:v for k,v in run.items() if k!='run_sha256'}))==run['run_sha256']
+for x in J('complete-exact-input-manifest.json')['inputs']:
+ if x['assert_original_still_current_at_finalization']:assert pathlib.Path(x['original_path']).read_bytes()==(O/x['snapshot']).read_bytes()
+put('final.validation-addendum.json',{'schema':'source70-native-closure-validation-addendum-v1','actual_writer_pid':os.getpid(),'final_preclose_success':{'actual_PID':25248,'actual_EXIT':0,'receipt':'final-preclose-check-v2.terminal-receipt.json'},'retained_preclose_failure':{'actual_PID':39388,'actual_EXIT':1,'receipt':'final-preclose-check.terminal-receipt.json','reason':'reviewer packaging checker assumed checkpoint entries used path; native StageA schema uses name. Corrected adapter reads native name without changing any frozen bytes; all108original checkpoint entries verified.'},'other_retained_failures':'Exact input wrong-path4588EXIT1; terminal-LF assertion47340EXIT1; nested-repr false formula assertion14512EXIT1. All logs/helpers/receipts retained; corrected alternatives EXIT0. Exploratory GBK and absent-key console failures without captured child PIDs explicitly disclosed; no PID invented.','complete_named_payload_scope':'Twenty exact RAW named mathematical review/decision/run/input/coverage/reader layers; later packaging validation/addendum and ALL helpers/terminal receipts additionally bound by final owned manifest/lease. Native run is immutable and whole logical recipe deletes ONLY top-level run_sha256.','no_math_source_decision_change_after_run':True,'all_current_final_inputs_still_exact':True,'source_admission_only':'equivalent-after-elaboration for bounded actual projected rotation and pair energy; no B21/B4/wholepaper/VERIFIED/PURIFIED/full Exposition/main/live credit.'})
+files=[]
+for p in sorted(O.rglob('*')):
+ if not p.is_file():continue
+ assert p.resolve().is_relative_to(O.resolve()) and not p.is_symlink()
+ b=p.read_bytes();l=b.replace(b'\r\n',b'\n');files.append({'path':p.relative_to(O).as_posix(),'RAW_bytes':len(b),'RAW_sha256':H(b),'LF_bytes':len(l),'LF_sha256':H(l),'LF_recipe':'replace ONLY CRLF bytes with LF; preserve all other bytes','mtime_ns_at_close':p.stat().st_mtime_ns})
+count=len(files)
+manifest={'schema':'independent-source70-finite-complete-owned-native-manifest-v1','scope':str(O),'file_count':count,'owned_count_including_manifest_and_final_lease':count+2,'files':files,'entries_canonical_sha256':H(C(files)),'whole_logical_run_sha256':run['run_sha256'],'exact_input_count':74,'complete_named_payload':{'path':'complete-named-review-decision-input-payload.json','RAW_bytes':(O/'complete-named-review-decision-input-payload.json').stat().st_size,'RAW_sha256':H((O/'complete-named-review-decision-input-payload.json').read_bytes())},'schema_semantic_slots':7,'coverage':{'source_math_items':419,'source_NODE':175,'source_EXCLUDED':244,'module_lines':544,'module_NODE':521,'module_EXCLUDED':23,'nodes':22,'edges':49,'obligations':24,'BODY_steps':8},'all_helpers_failed_attempts_and_terminal_receipts_included':True,'self_and_lease_policy':'Manifest excludes only itself and the future final lease to avoid recursive self hashes; lease binds this manifest and every regular owned file; lease is last owned write.'}
+put('owned-manifest.json',manifest)
+mb=(O/'owned-manifest.json').read_bytes()
+lease={'schema':'independent-source70-CLOSED-LAST-native-lease-v1','status':'CLOSED_LAST','owned_directory':str(O),'owned_count':count+2,'bound_layer_count':count+1,'native_manifest_path':'owned-manifest.json','native_manifest_RAW_bytes':len(mb),'native_manifest_RAW_sha256':H(mb),'entries_canonical_sha256':manifest['entries_canonical_sha256'],'bindings':files+[{'path':'owned-manifest.json','RAW_bytes':len(mb),'RAW_sha256':H(mb),'LF_bytes':len(mb.replace(b'\r\n',b'\n')),'LF_sha256':H(mb.replace(b'\r\n',b'\n'))}],'whole_logical_run_sha256':run['run_sha256'],'complete_named_payload':manifest['complete_named_payload'],'decision_RAW_sha256':H((O/'source.0.decision.json').read_bytes()),'reviewer_packet_sha256':J('source.0.decision.json')['reviewer_packet_sha256'],'final_preclose_actual_PID':25248,'final_preclose_actual_EXIT':0,'seal_actual_python_PID':os.getpid(),'seal_exit_policy':'Actual EXIT0 is established by the authoritative foreground terminal return after this last write; it is not assumed from this lease.','last_owned_write':'lease.final.json','no_further_owned_writes':True,'no_self_hash_policy':True,'closed_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'no_old_CLOSED_or_canonical_Git_ledger_Goal_writes':True,'source_only_no_VERIFIED_fullpaper_or_Exposition_credit':True}
+put('lease.final.json',lease)
+# Only read operations after the final lease.
+lb=(O/'lease.final.json').read_bytes()
+print(json.dumps({'actual_pid':os.getpid(),'status':'CLOSED_LAST','owned_count':count+2,'manifest_file_count':count,'manifest_RAW_sha256':H(mb),'entries_canonical_sha256':manifest['entries_canonical_sha256'],'lease_RAW_sha256':H(lb),'whole_logical_run_sha256':run['run_sha256'],'decision_RAW_sha256':lease['decision_RAW_sha256'],'named_payload':manifest['complete_named_payload'],'exact_inputs':74},ensure_ascii=False))

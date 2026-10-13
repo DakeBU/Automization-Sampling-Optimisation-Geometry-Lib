@@ -1,0 +1,48 @@
+* results about scalar multiplication are stated not only for `ℝ` but also for `𝕜` if we happen to
+  have `NormedSpace 𝕜 F`.
+
+-/
+
+@[expose] public section
+
+
+open TopologicalSpace Filter ContinuousLinearMap
+
+open scoped ENNReal Topology MeasureTheory
+
+namespace MeasureTheory
+
+variable {α E E' F G G' 𝕜 : Type*} [RCLike 𝕜]
+  -- 𝕜 for ℝ or ℂ
+  -- E for an inner product space
+  [NormedAddCommGroup E]
+  [InnerProductSpace 𝕜 E] [CompleteSpace E]
+  -- E' for an inner product space on which we compute integrals
+  [NormedAddCommGroup E']
+  [InnerProductSpace 𝕜 E'] [CompleteSpace E'] [NormedSpace ℝ E']
+  -- F for a Lp submodule
+  [NormedAddCommGroup F]
+  [NormedSpace 𝕜 F]
+  -- G for a Lp add_subgroup
+  [NormedAddCommGroup G]
+  -- G' for integrals on a Lp add_subgroup
+  [NormedAddCommGroup G']
+  [NormedSpace ℝ G'] [CompleteSpace G']
+
+variable {m m0 : MeasurableSpace α} {μ : Measure α} {s t : Set α}
+
+local notation "⟪" x ", " y "⟫" => inner 𝕜 x y
+
+variable (E 𝕜)
+
+/-- Conditional expectation of a function in L2 with respect to a sigma-algebra -/
+noncomputable def condExpL2 (hm : m ≤ m0) : (α →₂[μ] E) →L[𝕜] lpMeas E 𝕜 m 2 μ :=
+  haveI : Fact (m ≤ m0) := ⟨hm⟩
+  (lpMeas E 𝕜 m 2 μ).orthogonalProjectionOnto
+
+variable {E 𝕜}
+
+theorem aestronglyMeasurable_condExpL2 (hm : m ≤ m0) (f : α →₂[μ] E) :
+    AEStronglyMeasurable[m] (condExpL2 E 𝕜 hm f : α → E) μ :=
+  lpMeas.aestronglyMeasurable _
+

@@ -1,0 +1,49 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsGradientKernel
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradient
+
+/-! Actual PBPS common Gaussian/disintegrating/reflected conditional law, positive partition and SAME dense closable original gradient before ALL domain elements. Closed-gradient zero implies AE constant; the reverse domain/kernel equality, Poincare/BL and full papers remain open. Source curvature/eta cap and dimension0 retained. -/
+set_option autoImplicit false
+noncomputable section
+open MeasureTheory Filter ContinuousLinearMap
+open scoped Topology Convolution ContDiff
+open ProbabilityTheory
+open scoped NNReal
+namespace AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientKernel
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+theorem conditional_gradient_zero_ae_constant
+    {V : E → ℝ} {α β : NNReal} {η : ℝ}
+    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)
+    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))
+    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)
+    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      (J.map Prod.swap).IsCondKernel R ∧
+      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧
+      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧
+        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧
+        0 < (∫ u, Real.exp (-W y u)) ∧
+        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),
+          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧
+          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔
+            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧
+              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧
+          ∀ u : D.closure.domain, D.closure u = 0 →
+            ∃ c : ℝ, (u : Lp ℝ 2 (S y)) =ᵐ[S y] (fun _ => c) := by
+  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradient.conditional_gradient_closable
+      hα hαβ hV hH hη hβη
+  dsimp only
+  refine ⟨R,S,hR,hS,hcond,hSR,?_⟩
+  intro y
+  obtain ⟨hSy,hW,hI,hZ,D,hd,hD,hDc,hgraph⟩ := hfiber y
+  refine ⟨hSy,hW,hI,hZ,D,hd,hD,hDc,hgraph,?_⟩
+  have hk := AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsGradientKernel.closed_gradient_zero_ae_constant _ (hW.of_le (by norm_num)) hI
+  rw [← hSy] at hk
+  exact hk D hD hgraph
+
+end AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientKernel

@@ -1,0 +1,108 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsC1Poincare
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreClosedDomain
+/-! Actual common Gaussian J/R/S, true reflected conditional W_y and SAME original D_y before ALL centered z/score directions. Source C2 alpha-beta/eta cap/positive partitions yield both exact quarter curvatures, true original-domain Poincare and actual normalized variance of the unnormalized parameter-y directional score with source constant. No R2=R/alternateD/jointselector/normalized-density derivative/marginal Poincare/sampler/main/composition claim. -/
+set_option autoImplicit false
+noncomputable section
+open Filter InnerProductSpace MeasureTheory
+open scoped Topology RealInnerProductSpace ContDiff
+open ProbabilityTheory
+open scoped NNReal
+namespace AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance
+theorem conditional_centered_domain_and_score_variance
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : NNReal} {η : ℝ}
+    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x a : E, (α:ℝ)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a ∧
+      fderiv ℝ (fderiv ℝ V) x a a ≤ (β:ℝ)*‖a‖^2)
+    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+      (μ.prod (stdGaussian E))
+    let W := fun y u : E => V ((1/2:ℝ) • (y+u))+‖u-y‖^2/(8*η)
+    let s := fun y u : E => -(1/2:ℝ) • fderiv ℝ V ((1/2:ℝ) • (y+u)) -
+      (1/(4*η)) • innerSL ℝ (y-u)
+    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      (J.map Prod.swap).IsCondKernel R ∧
+      (∀ y, S y=(R y).map (fun x => (2:ℝ) • x-y)) ∧
+      ∀ y, S y=(volume : Measure E).tilted (fun u => -W y u) ∧
+        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧
+        0 < ∫ u, Real.exp (-W y u) ∧
+        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),
+          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧
+          (∀ (a : Lp ℝ 2 (S y)) (G : Lp E 2 (S y)), (a,G) ∈ D.graph ↔
+            ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
+              a =ᵐ[S y] φ ∧ G =ᵐ[S y] gradient φ) ∧
+          (∀ z : D.closure.domain, (∫ x, (z : Lp ℝ 2 (S y)) x ∂S y)=0 →
+            (((α:ℝ)+1/η)/4)*‖(z : Lp ℝ 2 (S y))‖^2 ≤ ‖D.closure z‖^2) ∧
+          ∀ a : E,
+            AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.Admissible
+              (S y) (fun u => s y u a) ∧
+            AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance
+              (S y) (fun u => s y u a) ≤
+                (1/η-(α:ℝ))^2/(4*((α:ℝ)+1/η))*‖a‖^2 := by
+  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreClosedDomain.conditional_score_closed_gradient_domain
+      hα hαβ hV hH hη hβη
+  obtain ⟨R2,S2,_,_,_,_,hfiber2⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreDomain.conditional_curvature_and_score_domain
+      hα hαβ hV hH hη hβη
+  dsimp only
+  refine ⟨R,S,hR,hS,hcond,hSR,?_⟩
+  intro y
+  obtain ⟨hSy,hW,hI,hZ,D,hd,hD,hDc,hgraph,_,_,hscore⟩ := hfiber y
+  obtain ⟨_,_,_,hderiv,hlower,_,_⟩ := hfiber2 y
+  have hupper : ∀ x a : E,
+      fderiv ℝ (fderiv ℝ (fun u => V ((1/2:ℝ) • (y+u))+‖u-y‖^2/(8*η))) x a a
+        ≤ (((β:ℝ)+1/η)/4)*‖a‖^2 := by
+    intro x a
+    rw [(hderiv x a a).1,real_inner_self_eq_norm_sq]
+    have hv := (hH ((1/2:ℝ) • (y+x)) a).2
+    have hc : (1:ℝ)/(4*η)=(1/η)/4 := by ring
+    rw [hc]
+    nlinarith
+  have hm : 0 < ((α:ℝ)+1/η)/4 := by positivity
+  have hmM : ((α:ℝ)+1/η)/4 ≤ ((β:ℝ)+1/η)/4 := by
+    have hab : (α:ℝ) ≤ (β:ℝ) := NNReal.coe_le_coe.mpr hαβ
+    linarith
+  refine ⟨hSy,hW,hI,hZ,D,hd,hD,hDc,hgraph,?_,?_⟩
+  · have hg := AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare.gibbs_centered_domain_poincare _ hW hI hZ
+      (((α:ℝ)+1/η)/4) (((β:ℝ)+1/η)/4) hm hmM hlower hupper
+    rw [← hSy] at hg
+    exact hg D hD hgraph
+  · let : IsMarkovKernel S := hS
+    intro a
+    obtain ⟨hqa,hga,hp,hq,_⟩ := hscore a
+    have hi := AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsC1Poincare.gibbs_c1_variance_poincare _ hW hI hZ
+      (((α:ℝ)+1/η)/4) (((β:ℝ)+1/η)/4) hm hmM hlower hupper
+    rw [← hSy] at hi
+    obtain ⟨had,hvar⟩ := hi _ hqa hp hq
+    refine ⟨had,?_⟩
+    have hab : (α:ℝ) ≤ (β:ℝ) := NNReal.coe_le_coe.mpr hαβ
+    have hαη : (α:ℝ)*η ≤ 1 :=
+      (mul_le_mul_of_nonneg_right hab hη.le).trans hβη
+    have hc : 0 ≤ (1/η-(α:ℝ))/4 := by
+      have ha : (α:ℝ) ≤ 1/η := (le_div_iff₀ hη).mpr hαη
+      linarith
+    have hener : AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.dirichletEnergy
+        (S y) (fun u =>
+          (-(1/2:ℝ) • fderiv ℝ V ((1/2:ℝ) • (y+u)) -
+            (1/(4*η)) • innerSL ℝ (y-u)) a)
+        ≤ (((1/η-(α:ℝ))/4)*‖a‖)^2 := by
+      unfold AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.dirichletEnergy
+      have hpoint (u:E) :=
+        (sq_le_sq₀ (norm_nonneg _) (mul_nonneg hc (norm_nonneg a))).mpr (hga u)
+      have hint := integral_mono_ae had.2.2
+        (integrable_const ((((1/η-(α:ℝ))/4)*‖a‖)^2)) (Eventually.of_forall hpoint)
+      simpa [integral_const,measureReal_def] using hint
+    have hv : AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance
+        (S y) (fun u =>
+          (-(1/2:ℝ) • fderiv ℝ V ((1/2:ℝ) • (y+u)) -
+            (1/(4*η)) • innerSL ℝ (y-u)) a) ≤
+        (((1/η-(α:ℝ))/4)*‖a‖)^2 / (((α:ℝ)+1/η)/4) :=
+      (le_div_iff₀ hm).mpr (by rw [mul_comm]; exact hvar.trans hener)
+    convert hv using 1
+    have hden : (α:ℝ)+1/η ≠ 0 := ne_of_gt (by positivity : (0:ℝ)<(α:ℝ)+1/η)
+    field_simp [hden,hη.ne']
+
+end AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance

@@ -1,0 +1,321 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoL2
+import Mathlib.Probability.Martingale.Basic
+
+/-!
+# Elementary Ito integral processes
+
+This file upgrades the terminal elementary Ito sum to a time-indexed process.
+The process is stopped at a deterministic horizon.  Its adaptedness,
+integrability, martingale property, and almost-sure path continuity are proved
+from the filtration-relative Brownian hypotheses.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ElementaryItoProcess
+
+open MeasureTheory ProbabilityTheory Set
+open scoped BigOperators ENNReal NNReal ProbabilityTheory
+
+open BrownianMotion ElementaryItoIntegral ElementaryItoIsometry ElementaryItoL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+  {B : ℝ≥0 → Omega → ℝ} {n : ℕ}
+
+/-- The elementary Ito integral accumulated up to `t` and stopped at `T`. -/
+noncomputable def elementaryItoProcess
+    (eta : ElementaryAdaptedProcess filtration n)
+    (B : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (t : ℝ≥0) (omega : Omega) : ℝ :=
+  elementaryItoIntegral eta B (min t T) omega
+
+/-- An elementary Ito process starts at zero. -/
+theorem elementaryItoProcess_zero
+    (eta : ElementaryAdaptedProcess filtration n)
+    (B : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) :
+    elementaryItoProcess eta B T 0 = 0 := by
+  funext omega
+  simp [elementaryItoProcess, elementaryItoIntegral]
+
+/-- Every elementary Ito value is measurable with respect to the information
+available at that time. -/
+theorem elementaryItoProcess_stronglyAdapted
+    (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    StronglyAdapted filtration (elementaryItoProcess eta B T) := by
+  intro t
+  unfold elementaryItoProcess elementaryItoIntegral
+  have hsum : StronglyMeasurable[filtration t]
+      (∑ i : Fin n, fun omega => eta.coeff i omega *
+        (B (min (eta.times i.succ) (min t T)) omega -
+          B (min (eta.times i.castSucc) (min t T)) omega)) := by
+    apply Finset.stronglyMeasurable_sum Finset.univ
+    intro i _
+    by_cases hait : eta.times i.castSucc ≤ t
+    · have hleft : min (eta.times i.castSucc) (min t T) ≤ t :=
+        (min_le_left _ _).trans hait
+      have hright : min (eta.times i.succ) (min t T) ≤ t :=
+        (min_le_right _ _).trans (min_le_left _ _)
+      exact ((eta.coeff_stronglyMeasurable i).mono (filtration.mono hait)).mul
+        (((hB.stronglyAdapted _).mono (filtration.mono hright)).sub
+          ((hB.stronglyAdapted _).mono (filtration.mono hleft)))
+    · have hta : t ≤ eta.times i.castSucc := le_of_not_ge hait
+      have htb : t ≤ eta.times i.succ :=
+        hta.trans (eta.times_strictMono Fin.castSucc_lt_succ).le
+      have hminA : min (eta.times i.castSucc) (min t T) = min t T :=
+        min_eq_right ((min_le_left t T).trans hta)
+      have hminB : min (eta.times i.succ) (min t T) = min t T :=
+        min_eq_right ((min_le_left t T).trans htb)
+      simpa [hminA, hminB] using
+        (stronglyMeasurable_const : StronglyMeasurable[filtration t] (fun _ : Omega => (0 : ℝ)))
+  have heq :
+      (fun omega => ∑ i, eta.coeff i omega *
+        (B (min (eta.times i.succ) (min t T)) omega -
+          B (min (eta.times i.castSucc) (min t T)) omega)) =
+      ∑ i : Fin n, fun omega => eta.coeff i omega *
+        (B (min (eta.times i.succ) (min t T)) omega -
+          B (min (eta.times i.castSucc) (min t T)) omega) := by
+    funext omega
+    simp
+  rw [heq]
+  exact hsum
+
+/-- Every elementary Ito value is integrable (in fact square integrable). -/
+theorem elementaryItoProcess_integrable
+    (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T t : ℝ≥0) :
+    Integrable (elementaryItoProcess eta B T t) mu := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact (elementaryItoIntegral_memLp_two eta hB (min t T)).integrable one_le_two
+
+/-! ## A reusable stopped weighted Brownian increment -/
+
+private noncomputable def stoppedWeightedIncrement
+    (Z : Omega → ℝ) (B : ℝ≥0 → Omega → ℝ)
+    (a c t : ℝ≥0) (omega : Omega) : ℝ :=
+  Z omega * (B (min t c) omega - B (min t a) omega)
+
+private theorem stoppedWeightedIncrement_memLp_two
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {Z : Omega → ℝ} (hZ : MemLp Z ∞ mu) (a c t : ℝ≥0) :
+    MemLp (stoppedWeightedIncrement Z B a c t) 2 mu := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  have hpre := hB.isBrownian.toIsPreBrownianReal
+  have hinc : MemLp (fun omega => B (min t c) omega - B (min t a) omega) 2 mu :=
+    (hpre.isGaussianProcess.hasGaussianLaw_eval (min t c) |>.memLp_two).sub
+      (hpre.isGaussianProcess.hasGaussianLaw_eval (min t a) |>.memLp_two)
+  exact hinc.mul' hZ
+
+private theorem stoppedWeightedIncrement_stronglyAdapted
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {Z : Omega → ℝ} {a c : ℝ≥0} (hac : a ≤ c)
+    (hZ : StronglyMeasurable[filtration a] Z) :
+    StronglyAdapted filtration (stoppedWeightedIncrement Z B a c) := by
+  intro t
+  by_cases hat : a ≤ t
+  · exact (hZ.mono (filtration.mono hat)).mul
+      (((hB.stronglyAdapted _).mono (filtration.mono (min_le_left _ _))).sub
+        ((hB.stronglyAdapted _).mono (filtration.mono (min_le_left _ _))))
+  · have hta : t ≤ a := le_of_not_ge hat
+    have htc : t ≤ c := hta.trans hac
+    have heq : stoppedWeightedIncrement Z B a c t = (fun _ : Omega => 0) := by
+      funext omega
+      simp [stoppedWeightedIncrement, min_eq_left hta, min_eq_left htc]
+    rw [heq]
+    exact stronglyMeasurable_const
+
+private theorem stoppedWeightedIncrement_martingale
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {Z : Omega → ℝ} {a c : ℝ≥0} (hac : a ≤ c)
+    (hZmeas : StronglyMeasurable[filtration a] Z) (hZLp : MemLp Z ∞ mu) :
+    Martingale (stoppedWeightedIncrement Z B a c) filtration mu := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  have hadapt := stoppedWeightedIncrement_stronglyAdapted hB hac hZmeas
+  refine ⟨hadapt, ?_⟩
+  intro s t hst
+  have hInt (u : ℝ≥0) : Integrable (stoppedWeightedIncrement Z B a c u) mu :=
+    (stoppedWeightedIncrement_memLp_two hB hZLp a c u).integrable one_le_two
+  by_cases hta : t ≤ a
+  · have hsa : s ≤ a := hst.trans hta
+    have htc : t ≤ c := hta.trans hac
+    have hsc : s ≤ c := hsa.trans hac
+    have htEq : stoppedWeightedIncrement Z B a c t = 0 := by
+      funext omega
+      simp [stoppedWeightedIncrement, min_eq_left hta, min_eq_left htc]
+    have hsEq : stoppedWeightedIncrement Z B a c s = 0 := by
+      funext omega
+      simp [stoppedWeightedIncrement, min_eq_left hsa, min_eq_left hsc]
+    rw [htEq, hsEq]
+    simp
+  by_cases has : a ≤ s
+  · by_cases hcs : c ≤ s
+    · have hct : c ≤ t := hcs.trans hst
+      have hat : a ≤ t := has.trans hst
+      have heq : stoppedWeightedIncrement Z B a c t =
+          stoppedWeightedIncrement Z B a c s := by
+        funext omega
+        simp [stoppedWeightedIncrement, min_eq_right hct, min_eq_right hcs,
+          min_eq_right hat, min_eq_right has]
+      rw [heq]
+      rw [condExp_of_stronglyMeasurable (filtration.le s) (hadapt s) (hInt s)]
+    · have hsc : s ≤ c := le_of_not_ge hcs
+      have hat : a ≤ t := has.trans hst
+      have hsd : s ≤ min t c := le_min hst hsc
+      let future : Omega → ℝ := fun omega => B (min t c) omega - B s omega
+      have hfutureInt : Integrable future mu :=
+        (hB.isBrownian.integrable_eval (min t c)).sub
+          (hB.isBrownian.integrable_eval s)
+      have hZs : StronglyMeasurable[filtration s] Z :=
+        hZmeas.mono (filtration.mono has)
+      have hprodInt : Integrable (Z * future) mu := by
+        have hfutureLp : MemLp future 2 mu := by
+          exact (hB.isBrownian.toIsPreBrownianReal.isGaussianProcess
+            |>.hasGaussianLaw_eval (min t c) |>.memLp_two).sub
+            (hB.isBrownian.toIsPreBrownianReal.isGaussianProcess
+              |>.hasGaussianLaw_eval s |>.memLp_two)
+        exact (hfutureLp.mul' hZLp).integrable one_le_two
+      have hdecomp : stoppedWeightedIncrement Z B a c t =
+          stoppedWeightedIncrement Z B a c s + Z * future := by
+        funext omega
+        simp [stoppedWeightedIncrement, future, min_eq_right hat, min_eq_right has,
+          min_eq_left hsc]
+        ring
+      rw [hdecomp]
+      refine (condExp_add (hInt s) hprodInt (filtration s)).trans ?_
+      have hpull := condExp_mul_of_stronglyMeasurable_left
+        hZs hprodInt hfutureInt
+      have hzero := hB.condExp_increment_eq_zero hsd
+      change mu[future | filtration s] =ᵐ[mu] (fun _ => 0) at hzero
+      rw [condExp_of_stronglyMeasurable (filtration.le s) (hadapt s) (hInt s)]
+      filter_upwards [hpull, hzero] with omega hpull hzero
+      simp only [Pi.add_apply, Pi.mul_apply] at hpull ⊢
+      rw [hpull, hzero, mul_zero, add_zero]
+  · have hsa : s ≤ a := le_of_not_ge has
+    have hat : a ≤ t := le_of_not_ge hta
+    have had : a ≤ min t c := le_min hat hac
+    let future : Omega → ℝ := fun omega => B (min t c) omega - B a omega
+    have hfutureInt : Integrable future mu :=
+      (hB.isBrownian.integrable_eval (min t c)).sub
+        (hB.isBrownian.integrable_eval a)
+    have hprodInt : Integrable (Z * future) mu := by
+      have hfutureLp : MemLp future 2 mu := by
+        exact (hB.isBrownian.toIsPreBrownianReal.isGaussianProcess
+          |>.hasGaussianLaw_eval (min t c) |>.memLp_two).sub
+          (hB.isBrownian.toIsPreBrownianReal.isGaussianProcess
+            |>.hasGaussianLaw_eval a |>.memLp_two)
+      exact (hfutureLp.mul' hZLp).integrable one_le_two
+    have htEq : stoppedWeightedIncrement Z B a c t = Z * future := by
+      funext omega
+      simp [stoppedWeightedIncrement, future, min_eq_right hat]
+    have hsEq : stoppedWeightedIncrement Z B a c s = 0 := by
+      funext omega
+      simp [stoppedWeightedIncrement, min_eq_left hsa,
+        min_eq_left (hsa.trans hac)]
+    have hpull := condExp_mul_of_stronglyMeasurable_left
+      hZmeas hprodInt hfutureInt
+    have hzero := hB.condExp_increment_eq_zero had
+    change mu[future | filtration a] =ᵐ[mu] (fun _ => 0) at hzero
+    have hAtA : mu[stoppedWeightedIncrement Z B a c t | filtration a] =ᵐ[mu]
+        (fun _ => 0) := by
+      rw [htEq]
+      filter_upwards [hpull, hzero] with omega hpull hzero
+      simp only [Pi.mul_apply] at hpull ⊢
+      rw [hpull, hzero, mul_zero]
+    have htower := condExp_condExp_of_le (filtration.mono hsa) (filtration.le a)
+      (f := stoppedWeightedIncrement Z B a c t) (μ := mu)
+    have houter :
+        mu[mu[stoppedWeightedIncrement Z B a c t | filtration a] | filtration s] =ᵐ[mu]
+          (fun _ => 0) :=
+      (condExp_congr_ae hAtA).trans (by simp)
+    rw [hsEq]
+    exact htower.symm.trans houter
+
+/-- One grid-cell contribution to the elementary Ito process. -/
+private noncomputable def elementaryItoSummand
+    (eta : ElementaryAdaptedProcess filtration n)
+    (B : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (i : Fin n)
+    (t : ℝ≥0) (omega : Omega) : ℝ :=
+  eta.coeff i omega *
+    (B (min (eta.times i.succ) (min t T)) omega -
+      B (min (eta.times i.castSucc) (min t T)) omega)
+
+private theorem elementaryItoSummand_martingale
+    (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (T : ℝ≥0) (i : Fin n) :
+    Martingale (elementaryItoSummand eta B T i) filtration mu := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  let a := eta.times i.castSucc
+  let b := eta.times i.succ
+  have hab : a ≤ b := eta.times_strictMono Fin.castSucc_lt_succ |>.le
+  by_cases hTa : T ≤ a
+  · have hTb : T ≤ b := hTa.trans hab
+    have heq : elementaryItoSummand eta B T i = 0 := by
+      funext t omega
+      have htA : min t T ≤ a := (min_le_right t T).trans hTa
+      have htB : min t T ≤ b := (min_le_right t T).trans hTb
+      simp [elementaryItoSummand, a, b, min_eq_right htA, min_eq_right htB]
+    rw [heq]
+    exact martingale_zero ℝ filtration mu
+  · have haT : a ≤ T := le_of_not_ge hTa
+    let c := min b T
+    have hac : a ≤ c := le_min hab haT
+    have hbase := stoppedWeightedIncrement_martingale hB hac
+      (eta.coeff_stronglyMeasurable i) (coeff_memLp eta mu i ∞)
+    have heq : elementaryItoSummand eta B T i =
+        stoppedWeightedIncrement (eta.coeff i) B a c := by
+      funext t omega
+      have hminT : min t a ≤ T := (min_le_right t a).trans haT
+      simp [elementaryItoSummand, stoppedWeightedIncrement, a, b, c,
+        min_assoc, min_left_comm, min_comm, min_eq_right hminT]
+    rw [heq]
+    exact hbase
+
+/-- The elementary Ito integral process is a genuine martingale, obtained as
+a finite sum of stopped weighted Brownian-increment martingales. -/
+theorem elementaryItoProcess_martingale
+    (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    Martingale (elementaryItoProcess eta B T) filtration mu := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  have hsum : Martingale
+      (∑ i : Fin n, elementaryItoSummand eta B T i) filtration mu := by
+    classical
+    induction (Finset.univ : Finset (Fin n)) using Finset.induction_on with
+    | empty => simpa using (martingale_zero ℝ filtration mu)
+    | @insert i s hi ih =>
+        simpa [hi] using (elementaryItoSummand_martingale eta hB T i).add ih
+  have heq : elementaryItoProcess eta B T =
+      ∑ i : Fin n, elementaryItoSummand eta B T i := by
+    funext t omega
+    simp [elementaryItoProcess, elementaryItoIntegral, elementaryItoSummand]
+  rw [heq]
+  exact hsum
+
+/-- At the stopping horizon, the process agrees definitionally with the
+terminal elementary Ito integral. -/
+theorem elementaryItoProcess_terminal
+    (eta : ElementaryAdaptedProcess filtration n)
+    (B : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) :
+    elementaryItoProcess eta B T T = elementaryItoIntegral eta B T := by
+  change elementaryItoIntegral eta B (min T T) = elementaryItoIntegral eta B T
+  rw [min_self]
+
+/-- Elementary Ito paths are continuous outside the Brownian null set. -/
+theorem elementaryItoProcess_continuous_ae
+    (eta : ElementaryAdaptedProcess filtration n)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (T : ℝ≥0) :
+    ∀ᵐ omega ∂mu, Continuous (fun t => elementaryItoProcess eta B T t omega) := by
+  filter_upwards [hB.isBrownian.cont] with omega hcont
+  unfold elementaryItoProcess elementaryItoIntegral
+  apply continuous_finsetSum
+  intro i _
+  exact continuous_const.mul
+    ((hcont.comp (continuous_const.min (continuous_id.min continuous_const))).sub
+      (hcont.comp (continuous_const.min (continuous_id.min continuous_const))))
+
+end ElementaryItoProcess
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

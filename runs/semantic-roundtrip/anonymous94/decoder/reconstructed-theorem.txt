@@ -1,0 +1,71 @@
+SOURCE-BLIND MATHEMATICAL RECONSTRUCTION
+
+Assumptions and outer quantifiers.
+For every type E with a normed additive commutative group structure, a real inner-product space structure, finite dimension over R, and a measurable structure identified with its Borel sigma-algebra, let V:E→R, α,β∈R≥0 and η∈R. Assume α>0, α≤β, V is twice continuously differentiable over R, and for every x,v∈E,
+ α||v||² ≤ D²V(x)[v,v] ≤ β||v||².
+Assume also η>0 and βη≤1. The second Frechet derivative here is the derivative of the Frechet-derivative-valued map, evaluated successively on v and v. No third or higher derivative hypothesis appears. Dimension zero is allowed. For all such data the constructions and conclusions below hold.
+
+Literal dynamical definitions.
+Write r for xRef and g=∇V. For any y,r∈E let c(y,r)=y−ηg(r). For all real a and z=(x,v)∈E×E define
+ Φ(y,r,a,z)=(c+cos(a)(x−c)+sqrt(η)sin(a)v,
+             −sin(a)/sqrt(η)(x−c)+cos(a)v).
+For δ=g(x)−g(r), define
+ S(r,z)=(x,v−(2<v,δ>/||δ||²)δ),
+ λ(r,z)=sqrt(η)max(0,<v,δ>).
+Real division is total and division by zero is zero, hence S is the identity at δ=0. Since η>0, the sqrt(η) denominator in Φ is positive. λ contains exactly sqrt(η), while the trigonometric argument is exactly a. For u∈R≥0 define the real cumulative rate
+ Λ(y,r,z,u)=∫_0^u λ(r,Φ(y,r,a,z)) da,
+where the integral is the oriented real Bochner interval integral against Lebesgue measure. Its endpoints are nonnegatively ordered.
+
+Finite records, grids, states and factors.
+Rec=(R≥0×(E×E))⊕Unit. Write Live(a,z) for a left-tag record and Dead for the unique right-tag record. Hist_n=Fin(n+1)→Rec. The tags are formal alternatives; the theorem does not assert any stochastic generation of these records.
+For n∈N,T∈R≥0, define Prefix_(n,T) as the subtype of t=(t_0,...,t_(n−1))∈R^n such that the tuple (0,t_0,...,t_(n−1)) is strictly increasing and each t_i<T. Thus for n>0 the prefix is exactly 0<t_0<...<t_(n−1)<T. For n=0 these requirements are vacuous.
+For each prefix put u_0=0 and u_(i+1)=t_i for 0≤i<n. The reconstructed states are the finite recursion
+ z_0=z0,
+ z_(i+1)=S(r,Φ(y,r,u_(i+1)−u_i,z_i)) for 0≤i<n.
+These z_j are post-reflection states at positive event indices. Define
+ K_n(t)_j=Live(Real.toNNReal(u_j),z_j), 0≤j≤n.
+Here Real.toNNReal(a)=max(a,0) as a nonnegative real; on valid prefixes u_j≥0, so the clipping has no effect. Every K record is live and the initial record is exactly Live(0,z0).
+Define the real finite product
+ qReal_n(t)=∏_(i=0)^(n−1) [λ(r,Φ(y,r,t_i−u_i,z_i)) exp(−Λ(y,r,z_i,Real.toNNReal(t_i−u_i)))],
+and q_n(t)=ENNReal.ofReal(qReal_n(t)). ENNReal.ofReal embeds max(value,0) in the extended nonnegative reals. The product is nonnegative and finite because each factor is so. All event gaps t_i−u_i are positive. The intensity factors are evaluated before reflection.
+Define liveTime(Live(a,z))=a and liveTime(Dead)=0. For any h∈Hist_n define d_(n,T)(h)=T−liveTime(h_n), using truncated nonnegative subtraction. For u∈R≥0 define weight(y,r,Live(a,z),u)=ENNReal.ofReal(exp(−Λ(y,r,z,u))) and weight(y,r,Dead,u)=0. The stored time a does not otherwise enter weight.
+
+Paths and density.
+Path_T is the full set of functions {s∈R≥0:s≤T}→E×E. No topology on this function space is asserted. Given any h∈Hist_n, define Ψ(y,r,z0,n,T,h)(s) by a left fold over indices 0,...,n, initially z0. At Live(a,z) with a≤s it overwrites the accumulator by Φ(y,r,((s−a):R≥0),z), with truncated subtraction; otherwise it preserves the accumulator. Dead records do nothing. The last eligible index wins; on arbitrary unordered histories this need not be the largest eligible time. Define
+ Γ(y,r,z0,n,T,t)=Ψ(y,r,z0,n,T,K_n(t)),
+ ρ(y,r,z0,n,T,t)=q_n(t) weight(y,r,K_n(t)_n,d_(n,T)(K_n(t))).
+On valid prefixes, the final interval is T−u_n≥0, all records are live, and ρ is the product of all displayed event factors and the final exponential survival factor. The word density here is only a name for this formula: the statement supplies no measure identity or normalization theorem.
+
+Additional objects in the conclusion.
+For EVERY y,r∈E, EVERY z0∈E×E, EVERY n∈N, EVERY T∈R≥0 and EVERY t∈Prefix_(n,T), append the final endpoint T to form
+ grid=(0,t_0,...,t_(n−1),T)∈R^(n+2).
+Write u_(n+1)=T so that grid_j=u_j for all 0≤j≤n+1. The occurrences of i.castSucc.castSucc preserve the numeric index i, hence grid_(i.castSucc.castSucc)=u_i, not t_i.
+Define γ:R→E×E by γ(s)=Γ(t)(min(Real.toNNReal(s),T)). The implicit argument also carries its proof of being ≤T. In ordinary notation γ(s)=Γ(t)(clamp(s,0,T)). This extends the finite-horizon path constantly before zero and after T. Within [0,T] it is just Γ(t). On each segment [u_j,u_(j+1)) it is Φ(y,r,s−u_j,z_j), and at T it is Φ(y,r,T−u_n,z_n). At event time t_i=u_(i+1) the fold selects z_(i+1), the post-event state. These segment descriptions unpack the definitions; they are not additional probabilistic assertions.
+
+All four conclusions, simultaneously and pointwise.
+For every choice quantified above:
+(1) The real-valued function s↦λ(r,γ(s)) is IntervalIntegrable with respect to real Lebesgue measure from 0 to T. IntervalIntegrable means integrable over the unordered interval; here 0≤T. In particular the displayed real integral exists in the integrable sense, not merely as a totalized integral symbol.
+(2) The integrated rate along the complete path is the sum of all n+1 segment hazards:
+ ∫_0^T λ(r,γ(s)) ds
+ = Σ_(j=0)^n Λ(y,r,z_j,Real.toNNReal(u_(j+1)−u_j)).
+This includes the final post-event-to-T interval. The nonnegative clipping is retained in the literal formula; the grid differences are nonnegative, and for n>0 are strictly positive. For n=0 the sole difference is T, possibly zero.
+(3) For EVERY i∈{0,...,n−1}, BOTH left limits hold:
+ lim_(s→t_i, s<t_i) γ(s) = Φ(y,r,t_i−u_i,z_i),
+ lim_(s→t_i, s<t_i) λ(r,γ(s)) = λ(r,Φ(y,r,t_i−u_i,z_i)).
+These are limits in real time approaching strictly from below. The phase limit uses the product norm topology on E×E; the rate limit uses the real topology. They concern pre-event values. They do not assert equality of the left limit with the path's post-event value at t_i, nor continuity across reflection. Every t_i lies strictly inside (0,T).
+(4) The factor ρ has the exact integrated-rate representation
+ ρ(y,r,z0,n,T,t)
+ = ENNReal.ofReal( exp(−∫_0^T λ(r,γ(s)) ds)
+                  × ∏_(i=0)^(n−1) λ(r,Φ(y,r,t_i−u_i,z_i)) ).
+There is one exponential of minus the full integrated rate and one product of n pre-event intensities. The exponent includes final survival to T through conclusion (2). The outer ENNReal.ofReal applies to the entire real product. Empty event products equal one. No normalization constant, probability denominator, integral over the prefix domain, factorial, dimensional volume factor or asymptotic constant is present.
+
+Scopes and limitations.
+The quantifier order is fixed ambient structures and V,α,β,η with their hypotheses, followed by the displayed local definitions, followed by universal y,r,z0,n,T,t and a conjunction of (1)–(4), with universal i internal to (3). All claims are deterministic and pointwise for every admissible finite prefix. There is no probability space, random threshold sequence, event-count random variable, waiting time, infinite-wait mechanism, raw/AE exceptional-set qualification, or existential trajectory in this theorem. There is no fixed-time versus all-time AE issue: no AE quantifier occurs. The path is explicitly supplied by a finite fold, and the left limits are at the finitely many supplied events. The ambient Borel assumption is retained, but the conclusions do not assert path-space measurability. No function-space topology or function-space Borel claim is implicit. Left limits are ordinary limits of an E×E-valued function of one real variable.
+The theorem does not assert the events are realized by any process, that ρ is a probability density of anything, that its integral is one, or that a stochastic system is nonexplosive. It asserts the specified formulas and integrability/left-limit properties. No stationarity, mixing, accuracy or expected-query-cost conclusion appears.
+
+Degenerate and boundary cases.
+Zero dimension: E and E×E each have a unique point. All gradients, displacements, phase rates and hazards vanish. Reflection and flow preserve that point. The Hessian inequalities in v are vacuous, but scalar α>0, α≤β, η>0 and βη≤1 remain required. The integral and every segment hazard are zero. For n>0, each pre-event intensity is zero, so ρ=0. For n=0, the empty product is one and ρ=1. All asserted limits are limits of constant functions.
+Zero events: for n=0, Prefix_(0,T) is a singleton, grid=(0,T), zAt has only z0, K has one initial live record, qReal=q=1 and Γ(s)=Φ(y,r,s,z0). Thus γ is the clamped version of this flow, the sum in (2) has ONE term Λ(y,r,z0,T), (3) has no instances, and ρ=ENNReal.ofReal(exp(−Λ(y,r,z0,T))). This requires no normalization or reference measure.
+Zero horizon: if T=0 and n>0, Prefix_(n,0) is empty because its first event would have to be positive and below zero. The universal statement over t is vacuous in those cases. If T=0 and n=0, the path has its only time coordinate at zero and γ is constantly z0 on all real inputs. The integral over the degenerate interval and its single zero-duration hazard term are zero. The event-limit clause is empty and ρ=1. IntervalIntegrable over the degenerate interval holds even if λ(r,z0) itself is nonzero.
+Zero pre-event rate: at any event with λ(r,Φ(...))=0 the corresponding product factor vanishes and ρ=0, but the prescribed reflection recursion and all four conclusions remain defined. A positive-rate assumption is not required. If the pre-event gradient difference is zero, reflection is identity by total division and that rate factor is zero. Zero velocity also gives a zero instantaneous rate and no velocity change at that reflection. None of these facts asserts that the rate stays zero during future flow.
+The α=0,β=0 and η=0 parameter cases are excluded by the scalar assumptions (β≥α>0). A zero horizon is allowed independently of these restrictions. Infinite horizons, infinitely many supplied events and infinite waits are not in the theorem's domains. Events coincident with zero, T, or each other are excluded by the prefix inequalities when n>0. Pre/post-event values can differ, so no event-time continuity is silently imposed. Integrals do not distinguish changing finitely many event-time values, but the theorem states explicit left limits and explicit fold values separately.

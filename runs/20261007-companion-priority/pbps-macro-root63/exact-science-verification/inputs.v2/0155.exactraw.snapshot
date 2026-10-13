@@ -1,0 +1,231 @@
+{
+  "id": "ASTIS-RT-20261008-PBPSPositiveDefectComplexLift",
+  "state": "accepted",
+  "source": {
+    "source_id": "companion-background:pbps-positive-defect-complex-lift",
+    "anchor": "Appendix D.1 real Hilbert conventions and positive square-root background; B.10-B.11 actual all-macro square-root prerequisite, attributed ASTIS complexification completion, not a printed paper theorem.",
+    "url": "https://arxiv.org/html/2609.06905v1#A2",
+    "original_text": "Attributed ASTIS-authored background completion, not a verbatim numbered paper theorem.\nLet E be a finite-dimensional real Hilbert Borel space with canonical volume, including the explicit rank-zero extension. Let V:E→ℝ be C², let 0<α≤β, and assume α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v. Assume η>0 and βη≤1. Define μ(dx) proportional to exp(−V(x))dx, J as the law of (X,X+√η Z) for independent X∼μ,Z∼N(0,I), ν=J.snd, and Λ as the law of (Y,2X−Y) under J. The laws μ,J,ν are probabilities. There exists a Markov kernel S with, for every y, S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)), Λ.IsCondKernel S, Λ.fst=ν and Λ.snd=ν. There exists a selfadjoint bounded T on L²(ν;ℝ) such that for every u, ‖Tu‖≤‖u‖, Tu(y)=∫u(x)S(y,dx) ν-almost everywhere, and ∫Tu dν=∫u dν. Set D=I−T²; this exact full-domain squared defect is positive. Define the actual quotient maps ιu=u+0i, Rg=Re g, Qg=Im g and Cg=conj(g). Then ι preserves norm, Cg=g iff g=ιu for some real u, and there exists a bounded complex-linear positive Dc on L²(ν;ℂ) such that Dc g=ιD(Rg)+iιD(Qg), Dc(ιu)=ι(Du), and C(Dc g)=Dc(Cg), universally on their displayed domains. The operator T, positivity, kernel/law certificates and Dc are produced conclusions. No real Γ/root/descent/inverse is asserted.\nExact source anchor: Appendix D.1 real Hilbert conventions and positive square-root background; B.10-B.11 actual all-macro square-root prerequisite, attributed ASTIS complexification completion, not a printed paper theorem.\nSource-route distinction: Attributed ASTIS complexification background completion supporting the real Appendix D/B.10-B.11 route. Printed B.5 joint block P/U proof and scalar actual-T route are distinguished by the independently reconstructed source graph; this lift is not a printed main theorem or Γ.\nRemaining: No root, real descent of complex CFC root, uniqueness, Gamma0/B15/B16, weakH1/dynamics/main/error/querycost/composition, paper or Goal closure.",
+    "text_sha256": "cb9b0c3e5e2e7453dbb1620c59c137e0079120e69a7cda14933878cf263ead33"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift.actual_positive_defect_complex_lift",
+    "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/DefectComplexLift.lean",
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let ι : Lp ℝ 2 ν →L[ℝ] Lp ℂ 2 ν := Complex.ofRealCLM.compLpL 2 ν\n    let R : Lp ℂ 2 ν →L[ℝ] Lp ℝ 2 ν := Complex.reCLM.compLpL 2 ν\n    let Q : Lp ℂ 2 ν →L[ℝ] Lp ℝ 2 ν := Complex.imCLM.compLpL 2 ν\n    let C : Lp ℂ 2 ν →L[ℝ] Lp ℂ 2 ν := Complex.conjCLE.toContinuousLinearMap.compLpL 2 ν\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n        IsSelfAdjoint T ∧\n        (∀ u : Lp ℝ 2 ν, ‖T u‖ ≤ ‖u‖ ∧\n          (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n          (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n        ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T).IsPositive ∧\n        (∀ u : Lp ℝ 2 ν, ‖ι u‖ = ‖u‖) ∧\n        (∀ g : Lp ℂ 2 ν, C g = g ↔ ∃ u : Lp ℝ 2 ν, ι u = g) ∧\n        ∃ Dc : Lp ℂ 2 ν →L[ℂ] Lp ℂ 2 ν,\n          Dc.IsPositive ∧\n          (∀ g : Lp ℂ 2 ν, Dc g =\n            ι (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) (R g)) +\n            Complex.I • ι (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) (Q g))) ∧\n          (∀ u : Lp ℝ 2 ν, Dc (ι u) = ι (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) u)) ∧\n          (∀ g : Lp ℂ 2 ν, C (Dc g) = Dc (C g))",
+    "statement_sha256": "967721ee8c829b9e5f0db17c71ac28540efccc0345d212e491f680e18f0739d1",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "The underlying base is a finite-dimensional real Hilbert Borel space with canonical volume, including zero dimension. The displayed potential is C2 with the two global Hessian bounds; positive ordered curvature and positive capped step are the entire analytic hypotheses.",
+      "Measure.tilted denotes normalized exponential tilting. The displayed joint is the pushforward of an independent product with the standard Gaussian; the marginal is its second-coordinate law. Kernel normalization, Markov measurability, disintegration and both stationary marginals are produced conclusions.",
+      "Lp exponent 2 denotes AE square-integrable quotient functions on the displayed marginal. Conditional operator action is an AE conclusion, while the displayed kernel density identity holds at every state. Operator multiplication is composition.",
+      "compLpL lifts the displayed scalar embedding/real part/imaginary part/pointwise conjugation to quotient classes. Positivity includes selfadjointness. The real operator and its positive squared defect are produced internally; the complex positive lift is a conclusion. No square root or inverse is asserted."
+    ],
+    "compiler_evidence": "runs/20261007-companion-priority/pbps-real-complex-lift-preproof60/cfc-real-module-exact-type/receipt.json Actual PID16704 EXIT0 PASS3915; exact signatures; standard3."
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/next_primary59",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "Fresh primary-first source reconstruction and exact current bodies/provider scopes, reader formulas and publication bindings independently checked; see native input.manifest.json/body-publication.scope-review.json.",
+    "review_run_sha256": "e66691ba13678e7eec7f8b213e819880c23d97255f77bb2660a65b639637a272",
+    "reviewer_packet_sha256": "93d6fdbd343bef53f49346354d83ece0ecaaf96a4270da4847a8efd9054ea445",
+    "run_artifact": "runs/20261007-companion-priority/pbps-real-complex-lift60/source-review60/source.1.review.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "92c9a4af22df1d3aaccaf366796301be83c39e8188a52ce0f4d2440cbce87228",
+  "publication_context": {
+    "file": "5cbec38ef7b487acc93410cee42c48c26bf67fb8ec3f54400498790d4f50e1e6",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator\nimport AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator\n\nopen MeasureTheory ProbabilityTheory\nopen scoped ContDiff NNReal ENNReal Topology\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift\nnoncomputable section\nset_option autoImplicit false\nset_option maxHeartbeats 1600000\n\ntheorem actual_positive_defect_complex_lift\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let ι : Lp ℝ 2 ν →L[ℝ] Lp ℂ 2 ν := Complex.ofRealCLM.compLpL 2 ν\n    let R : Lp ℂ 2 ν →L[ℝ] Lp ℝ 2 ν := Complex.reCLM.compLpL 2 ν\n    let Q : Lp ℂ 2 ν →L[ℝ] Lp ℝ 2 ν := Complex.imCLM.compLpL 2 ν\n    let C : Lp ℂ 2 ν →L[ℝ] Lp ℂ 2 ν := Complex.conjCLE.toContinuousLinearMap.compLpL 2 ν\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n        IsSelfAdjoint T ∧\n        (∀ u : Lp ℝ 2 ν, ‖T u‖ ≤ ‖u‖ ∧\n          (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n          (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n        ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T).IsPositive ∧\n        (∀ u : Lp ℝ 2 ν, ‖ι u‖ = ‖u‖) ∧\n        (∀ g : Lp ℂ 2 ν, C g = g ↔ ∃ u : Lp ℝ 2 ν, ι u = g) ∧\n        ∃ Dc : Lp ℂ 2 ν →L[ℂ] Lp ℂ 2 ν,\n          Dc.IsPositive ∧\n          (∀ g : Lp ℂ 2 ν, Dc g =\n            ι (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) (R g)) +\n            Complex.I • ι (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) (Q g))) ∧\n          (∀ u : Lp ℝ 2 ν, Dc (ι u) = ι (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) u)) ∧\n          (∀ g : Lp ℂ 2 ν, C (Dc g) = Dc (C g)) := by\n  classical\n  dsimp only\n  let μ := (volume : Measure E).tilted (fun x => -V x)\n  let J := (μ.prod (stdGaussian E)).map\n    (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n  let ν := J.snd\n  have hBase := CenteredDefectOperator.actual_centered_selfadjoint_defect\n    hα hαβ hV hH hη hβη\n  rcases hBase with ⟨hμ,hJ,hν,S,hS,hSd,hSc,hSf,hSs,U,hU,hUi,hUs,M,hM,T,hTs,hAll,\n    q,hq,hTq,hqi,hzero,hD,hRest⟩\n  obtain ⟨hι,hfixed,Dc,hpos,hformula,hintertwine,hconj⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator.exists_positive_complex_lift\n      ν ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) hD\n  refine ⟨hμ,hJ,hν,S,hS,hSd,hSc,hSf,hSs,T,hTs,?_,hD,hι,hfixed,Dc,hpos,\n    hformula,hintertwine,hconj⟩\n  intro u\n  exact (hAll u).2.2\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift\n\n#print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift.actual_positive_defect_complex_lift\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A2",
+      "edition": "arXiv:2609.06905v1; Lean4.33.0/fixedMathlib",
+      "anchor": "Appendix D.1 real Hilbert conventions and positive square-root background; B.10-B.11 actual all-macro square-root prerequisite, attributed ASTIS complexification completion, not a printed paper theorem.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Attributed ASTIS background completion supporting Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang real positive-root prerequisite. This exact complexification is ASTIS-authored and is not a printed Γ/main theorem."
+    },
+    "statement": "Let E be a finite-dimensional real Hilbert Borel space with canonical volume, including the explicit rank-zero extension. Let V:E→ℝ be C², let 0<α≤β, and assume α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v. Assume η>0 and βη≤1. Define μ(dx) proportional to exp(−V(x))dx, J as the law of (X,X+√η Z) for independent X∼μ,Z∼N(0,I), ν=J.snd, and Λ as the law of (Y,2X−Y) under J. The laws μ,J,ν are probabilities. There exists a Markov kernel S with, for every y, S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)), Λ.IsCondKernel S, Λ.fst=ν and Λ.snd=ν. There exists a selfadjoint bounded T on L²(ν;ℝ) such that for every u, ‖Tu‖≤‖u‖, Tu(y)=∫u(x)S(y,dx) ν-almost everywhere, and ∫Tu dν=∫u dν. Set D=I−T²; this exact full-domain squared defect is positive. Define the actual quotient maps ιu=u+0i, Rg=Re g, Qg=Im g and Cg=conj(g). Then ι preserves norm, Cg=g iff g=ιu for some real u, and there exists a bounded complex-linear positive Dc on L²(ν;ℂ) such that Dc g=ιD(Rg)+iιD(Qg), Dc(ιu)=ι(Du), and C(Dc g)=Dc(Cg), universally on their displayed domains. The operator T, positivity, kernel/law certificates and Dc are produced conclusions. No real Γ/root/descent/inverse is asserted.",
+    "formulae": [
+      {
+        "label": "Actual PBPS squared defect: positive complex lift",
+        "tex": "D=I-T^2\\ge0\\text{ on actual }L^2(\\nu;\\mathbb R),\\quad D_{\\mathbb C}g=\\iota D(\\operatorname{Re}g)+i\\iota D(\\operatorname{Im}g),\\quad D_{\\mathbb C}\\ge0,\\quad D_{\\mathbb C}\\iota=\\iota D,\\quad CD_{\\mathbb C}=D_{\\mathbb C}C."
+      }
+    ],
+    "assumptions": [
+      "Let E be a finite-dimensional real Hilbert Borel space with canonical volume, including the explicit rank-zero extension. Let V:E→ℝ be C², let 0<α≤β, and assume α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v. Assume η>0 and βη≤1. Define μ(dx) proportional to exp(−V(x))dx, J as the law of (X,X+√η Z) for independent X∼μ,Z∼N(0,I), ν=J.snd, and Λ as the law of (Y,2X−Y) under J.",
+      "All kernel, probability, T and D certificates are conclusions. Finite E does not imply finite L2; rank-zero E and αη=1 are explicitly retained.",
+      "Pointwise conjugation C is real linear; it is distinct from operator adjoint. Complex-root preservation and descent remain separate obligations."
+    ],
+    "obligations": [
+      {
+        "id": "scoped-complex-lift",
+        "label": "Actual PBPS squared defect: positive complex lift"
+      },
+      {
+        "id": "remaining-paper",
+        "label": "Real root/descent/Γ/B11/polar/H1/dynamics/main/error/cost/composition remain open"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift.actual_positive_defect_complex_lift",
+      "title": "Actual PBPS squared defect: positive complex lift",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A2",
+          "label": "Appendix D.1 real Hilbert conventions and positive square-root background; B.10-B.11 actual all-macro square-root prerequisite, attributed ASTIS complexification completion, not a printed paper theorem.",
+          "scope": "No root, real descent of complex CFC root, uniqueness, Gamma0/B15/B16, weakH1/dynamics/main/error/querycost/composition, paper or Goal closure."
+        }
+      ],
+      "tests": [
+        "lake build Tests.ProximalBPSDefectComplexLift"
+      ],
+      "assumptions": [
+        "Let E be a finite-dimensional real Hilbert Borel space with canonical volume, including the explicit rank-zero extension. Let V:E→ℝ be C², let 0<α≤β, and assume α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v. Assume η>0 and βη≤1. Define μ(dx) proportional to exp(−V(x))dx, J as the law of (X,X+√η Z) for independent X∼μ,Z∼N(0,I), ν=J.snd, and Λ as the law of (Y,2X−Y) under J.",
+        "All kernel, probability, T and D certificates are conclusions. Finite E does not imply finite L2; rank-zero E and αη=1 are explicitly retained.",
+        "Pointwise conjugation C is real linear; it is distinct from operator adjoint. Complex-root preservation and descent remain separate obligations."
+      ],
+      "statement": "Let E be a finite-dimensional real Hilbert Borel space with canonical volume, including the explicit rank-zero extension. Let V:E→ℝ be C², let 0<α≤β, and assume α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v. Assume η>0 and βη≤1. Define μ(dx) proportional to exp(−V(x))dx, J as the law of (X,X+√η Z) for independent X∼μ,Z∼N(0,I), ν=J.snd, and Λ as the law of (Y,2X−Y) under J. The laws μ,J,ν are probabilities. There exists a Markov kernel S with, for every y, S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)), Λ.IsCondKernel S, Λ.fst=ν and Λ.snd=ν. There exists a selfadjoint bounded T on L²(ν;ℝ) such that for every u, ‖Tu‖≤‖u‖, Tu(y)=∫u(x)S(y,dx) ν-almost everywhere, and ∫Tu dν=∫u dν. Set D=I−T²; this exact full-domain squared defect is positive. Define the actual quotient maps ιu=u+0i, Rg=Re g, Qg=Im g and Cg=conj(g). Then ι preserves norm, Cg=g iff g=ιu for some real u, and there exists a bounded complex-linear positive Dc on L²(ν;ℂ) such that Dc g=ιD(Rg)+iιD(Qg), Dc(ιu)=ι(Du), and C(Dc g)=Dc(Cg), universally on their displayed domains. The operator T, positivity, kernel/law certificates and Dc are produced conclusions. No real Γ/root/descent/inverse is asserted.",
+      "formula": "D=I-T^2\\ge0\\text{ on actual }L^2(\\nu;\\mathbb R),\\quad D_{\\mathbb C}g=\\iota D(\\operatorname{Re}g)+i\\iota D(\\operatorname{Im}g),\\quad D_{\\mathbb C}\\ge0,\\quad D_{\\mathbb C}\\iota=\\iota D,\\quad CD_{\\mathbb C}=D_{\\mathbb C}C.",
+      "steps": [
+        {
+          "title": "Produce the actual stationary operator",
+          "text": "Invoke the independently verified centered-defect producer under exactly the displayed potential and step assumptions. It supplies the probability laws, a Markov kernel S with the every-state normalized reflection density, Λ.IsCondKernel S, both stationary marginals, and the same selfadjoint contraction T with its AE conditional-integral action and preserved mean. These are conclusions, not caller certificates.",
+          "formula": "S(y,dx)\\propto\\exp\\!\\left[-V\\!\\left(\\frac{y+x}{2}\\right)-\\frac{\\|y-x\\|^2}{8\\eta}\\right]dx,\\quad Tu(y)=\\int u(x)S(y,dx).",
+          "lean": "CenteredDefectOperator.actual_centered_selfadjoint_defect; hBase; hAll"
+        },
+        {
+          "title": "Use the produced positive defect",
+          "text": "The same producer proves D=I−T² positive on the full real L²(ν), even though it vanishes on the constant class. Apply the canonical complexification theorem to this D and the actual ν. The resulting embedding, fixed range and complex operator have exactly the displayed formulas; no new positivity or CFC premise is introduced.",
+          "formula": "D=I-T^2\\ge0,\\quad D_{\\mathbb C}g=\\iota D(Rg)+i\\iota D(Qg),\\quad D_{\\mathbb C}\\iota=\\iota D,\\quad CD_{\\mathbb C}=D_{\\mathbb C}C.",
+          "lean": "L2RealComplexOperator.exists_positive_complex_lift; hD; hformula; hintertwine; hconj"
+        },
+        {
+          "title": "Keep the next theorem boundary explicit",
+          "text": "This constructs the genuine complex lift needed for a positive-root route. It does not construct the real Γ, prove that a complex root preserves Fix(C), descend that root, establish B.11, or supply centered inverse/polar/dynamics/error/cost conclusions. A separate test of the complex CFC API, if compiled, remains only a complex-root interface check.",
+          "formula": "\\text{complex positive lift}\\longrightarrow\\text{pending real-root preservation and descent}.",
+          "lean": "actual_positive_defect_complex_lift"
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real Hilbert Borel space with canonical volume, including the explicit rank-zero extension. Let V:E→ℝ be C², let 0<α≤β, and assume α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v. Assume η>0 and βη≤1. Define μ(dx) proportional to exp(−V(x))dx, J as the law of (X,X+√η Z) for independent X∼μ,Z∼N(0,I), ν=J.snd, and Λ as the law of (Y,2X−Y) under J. The laws μ,J,ν are probabilities. There exists a Markov kernel S with, for every y, S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)), Λ.IsCondKernel S, Λ.fst=ν and Λ.snd=ν. There exists a selfadjoint bounded T on L²(ν;ℝ) such that for every u, ‖Tu‖≤‖u‖, Tu(y)=∫u(x)S(y,dx) ν-almost everywhere, and ∫Tu dν=∫u dν. Set D=I−T²; this exact full-domain squared defect is positive. Define the actual quotient maps ιu=u+0i, Rg=Re g, Qg=Im g and Cg=conj(g). Then ι preserves norm, Cg=g iff g=ιu for some real u, and there exists a bounded complex-linear positive Dc on L²(ν;ℂ) such that Dc g=ιD(Rg)+iιD(Qg), Dc(ιu)=ι(Du), and C(Dc g)=Dc(Cg), universally on their displayed domains. The operator T, positivity, kernel/law certificates and Dc are produced conclusions. No real Γ/root/descent/inverse is asserted.",
+      "lean_proof": "Produce the actual stationary operator; Use the produced positive defect; Keep the next theorem boundary explicit",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator.actual_centered_selfadjoint_defect",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator.exists_positive_complex_lift"
+      ],
+      "mathlib_dependencies": []
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift.actual_positive_defect_complex_lift",
+      "role": "proof-edge",
+      "supports": [
+        "scoped-complex-lift"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Real complete L2 and positive operator background for the paper square-root route.",
+        "lean": "Let E be a finite-dimensional real Hilbert Borel space with canonical volume, including the explicit rank-zero extension. Let V:E→ℝ be C², let 0<α≤β, and assume α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v. Assume η>0 and βη≤1. Define μ(dx) proportional to exp(−V(x))dx, J as the law of (X,X+√η Z) for independent X∼μ,Z∼N(0,I), ν=J.snd, and Λ as the law of (Y,2X−Y) under J."
+      },
+      {
+        "source": "Canonical AE quotient observables; actual stationary conditional operator.",
+        "lean": "Every stated map is the literal bounded scalar compLpL map; fixed range is onto the full real observable image. Actual S is every-y normalized reflection density with disintegration and both stationary marginals; actual T has AE integral action and preserves mean."
+      },
+      {
+        "source": "Source Euclidean finite dimension convention.",
+        "lean": "Finite real Hilbert/Borel form including rank-zero extension."
+      },
+      {
+        "source": "Real positive Γ and B.11, centered inverse/polar and full algorithms/complexities.",
+        "lean": "No root, real descent of complex CFC root, uniqueness, Gamma0/B15/B16, weakH1/dynamics/main/error/querycost/composition, paper or Goal closure."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "Let E be a finite-dimensional real inner-product normed space equipped with its Borel measurable structure and canonical volume measure, with dimension zero allowed. Let V : E → ℝ be C², let α, β be nonnegative real parameters with 0 < α ≤ β, and let η > 0 satisfy βη ≤ 1. Assume for every x,v ∈ E the global two-sided second-derivative bound\nα‖v‖² ≤ ((D(DV)(x))(v))(v) ≤ β‖v‖².\nHere the derivative is the iterated real Fréchet derivative appearing in the statement. Define μ as normalized exponential tilting of volume by −V. Define J as the pushforward of μ ⊗ γ_E, where γ_E is the standard Gaussian on E, under (z,w) ↦ (z,z+√η w). Let ν = J.snd. Define Λ as the pushforward of J under (z,y) ↦ (y,2z−y). On H_R = L²(E,ν;ℝ) and H_C = L²(E,ν;ℂ), let ι, R, Q and C be the actual compLpL lifts of scalar real inclusion, real part, imaginary part and conjugation.\nThen μ, J and ν are probability measures, and there exists a measurable Markov kernel S : E → measures on E such that, at every y ∈ E,\nS(y) = volume.tilted(x ↦ −V((y+x)/2) − ‖y−x‖²/(8η)).\nThe kernel S is a conditional kernel of Λ given its first coordinate, and Λ.fst = ν and Λ.snd = ν. Within this existential choice of S, there exists a bounded real-linear operator T : H_R → H_R such that T is selfadjoint and for every u ∈ H_R,\n‖Tu‖ ≤ ‖u‖,\n(Tu)(y) = ∫ u(x) S(y,dx) for ν-almost every y,\nand ∫ Tu(y) ν(dy) = ∫ u(y) ν(dy).\nThe bounded real-linear squared defect D = Id − T∘T is positive (selfadjoint with nonnegative quadratic form). Moreover, ‖ιu‖ = ‖u‖ for every u ∈ H_R, and for every g ∈ H_C,\nCg = g ⇔ there exists u ∈ H_R with ιu = g.\nWithin the choices of S and T there exists a bounded complex-linear positive operator D_c : H_C → H_C satisfying for every g ∈ H_C,\nD_c g = ι(D(Rg)) + i · ι(D(Qg)),\nfor every u ∈ H_R,\nD_c(ιu) = ι(Du),\nand for every g ∈ H_C,\nC(D_c g) = D_c(Cg).\nKernel normalization, Markov measurability, disintegration, stationary marginals, T and its positive squared defect, and the complex lift are conclusions rather than extra caller hypotheses. The conditional-action identity is almost everywhere; the displayed tilted-kernel identity is for every state. No positivity of T, square root of D, inverse of D, strict positive lower bound for D, spectral gap, higher-derivative hypothesis, or convergence-rate claim is asserted.",
+    "text_sha256": "c619dcb33a079025dfa6349ffbed1430871fc75c254f52a2a98e7a5ce35ae358",
+    "decoder": "/root/anonymous_decoder60",
+    "decoder_run_sha256": "d3a6e3dd1faa57f0c8242e1305e36c86a1fca54024025af1a88304ab82eed4d9",
+    "decoder_packet_sha256": "5b7b4629800e2e063cd26c870d14f0e6db69bfdd646b76302eb6c279be48c424",
+    "source_text_visible": false,
+    "lean_statement_sha256": "967721ee8c829b9e5f0db17c71ac28540efccc0345d212e491f680e18f0739d1",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "observed_input_artifacts": [
+      {
+        "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-real-complex-lift60/anonymous-decoder/packet1.json",
+        "raw_bytes": 4736,
+        "raw_sha256": "cde959568bd31d670750510cc5053c86eb6502385cf8fe14683f41dfc373fe4b",
+        "lf_sha256": "cde959568bd31d670750510cc5053c86eb6502385cf8fe14683f41dfc373fe4b"
+      }
+    ],
+    "run_artifact": "runs/20261007-companion-priority/pbps-real-complex-lift60/anonymous-decoder/decoded1.json",
+    "run_binding": "runs/20261007-companion-priority/pbps-real-complex-lift60/anonymous-decoder/run.json",
+    "native_whole_run_sha256": "5f24bed1022150105b9c2eebb93ec1a975203a81ffced3ae1e9afb8aa52539c7",
+    "run_hash_recipe": "decoder_run_sha256 is named decoder payload; native_whole_run_sha256 is complete native run minus ONLY run_sha256."
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual normalized Gibbs mu, Gaussian J, marginal nu, reflected pair Lambda, normalized conditional S and scalar macro T/D",
+      "reconstructed": "Identical lets; genuine59 witnesses S,T reused; actual D is typed identity minus T*T; canonical maps at same nu",
+      "relation": "explicit-elaboration",
+      "evidence": "Source2.6/2.7/B8/B9/C1 and actual code rcases hBase then generic nu D hD."
+    },
+    "domains": {
+      "original": "Source Euclidean finite E; explicit ASTIS finite real Hilbert/Borel and rank-zero extension; full real marginal L2",
+      "reconstructed": "FiniteDimensional applies to E only; arbitrary-dimension real/complex Lp nu, rank0 permitted; no Nontrivial",
+      "relation": "explicit-elaboration",
+      "evidence": "Same actual sealed binders, no finite L2 inference, generic proof arbitrary measure."
+    },
+    "quantifiers": {
+      "original": "Every x,v Hessian bounds, every y normalized kernel, each u AE action and mean preservation; exists actual S,T,Dc with all compatibility identities",
+      "reconstructed": "Exactly every-y S formula vs nu-AE T u action; full fixed range iff exists real u; universal complex g",
+      "relation": "equivalent",
+      "evidence": "Source C1 density vs B9 conditional action; actual forall scopes and body returns same hAll(u).2.2."
+    },
+    "assumptions": {
+      "original": "Original C2,0<alpha<=beta,two global Hessian bounds,eta>0,beta eta<=1; probabilities/operators/positivity are produced",
+      "reconstructed": "No caller D or hD, S,T,probability,selfadjoint,CFC/root certificates; all derived from59 then generic hD is discharged internally",
+      "relation": "equivalent",
+      "evidence": "Literal cap paragraph rechecked; body passes hα hαβ hV hH hη hβη to parent59 and consumes returned hD."
+    },
+    "conclusion": {
+      "original": "Produced law normalization/Markov disintegration and stationary marginals; actual selfadjoint contraction preserves mean; positive D and canonical full complex lift",
+      "reconstructed": "Exactly same produced conclusions and Dc formula for I-T², embedding norm/full fixed range/positive Dc/both compatibilities",
+      "relation": "equivalent",
+      "evidence": "Actual refine returns hμ,hJ,hν,S,hS,hSd,hSc,hSf,hSs,T,hTs,hD and complete generic outputs."
+    },
+    "scopes": {
+      "original": "Full all-macro scalar marginal adapter supplies a root prerequisite; normalized kernel every y, integrals action AE with real L2/L1 integrability",
+      "reconstructed": "No printed B5 block identity completion by this theorem; no actual Gamma or B11 norm/polar claimed",
+      "relation": "explicit-elaboration",
+      "evidence": "Parent59 establishes actual same T through U/M and conditional action; sourcegraph printed block route preserved separately from scalar positivity. Parent normalization and disintegration prevent default-integral closure."
+    },
+    "constant_dependencies": {
+      "original": "sqrt eta Gaussian augmentation, reflection2X-Y, midpoint(y+x)/2,8eta conditional denominator; unscaled D=I-T²",
+      "reconstructed": "Exact all constants and original non-strict cap; alpha eta=1 and rank0 legal; no eta prefactor or gamma/rho assertion",
+      "relation": "same",
+      "evidence": "Raw source2.7/B4/B8/C1/B10 and literalcap versus exact public lets/formula; no centered inverse assumption."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "description": "Finite real Hilbert/Borel form with disclosed rank-zero extension; no finite L2 assumption.",
+      "evidence": "Independent native explicit-source-domain-extension nonblocking classification retained in runs/20261007-companion-priority/pbps-real-complex-lift60/source-review60/source.1.review.json"
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "Complex lift only; printed real Gamma/B11 and centered inverse/polar/full paper remain open. Test-only complex CFC is a separate API consumer. No source theorem weakening is used to pretend to close them.",
+      "evidence": "Independent native unresolved-source-boundary nonblocking classification retained in runs/20261007-companion-priority/pbps-real-complex-lift60/source-review60/source.1.review.json"
+    }
+  ],
+  "verdict": "equivalent-after-elaboration"
+}

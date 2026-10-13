@@ -1,0 +1,191 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-bounded-gibbs-duality",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS bounded Gibbs duality and fixed-time invariance",
+  "mode": "faithfulPaper",
+  "declaration_level": "source-anchor",
+  "source_anchor": "Appendix A.1 final bounded signed bilinear identity (A8 averaging) and F=1 fixed-time Gibbs stationarity.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw\nimport AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct\n\n/- Prospective type-only statement. No proof, seal or claim yet. -/\nnamespace PBPSBoundedGibbsDualityCandidate106\nopen MeasureTheory InnerProductSpace ProbabilityTheory\nopen scoped ContDiff NNReal ENNReal Classical\nnoncomputable section\nset_option autoImplicit false\n\ndef candidate\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let readTime : Rec → ℝ := fun r => match r with\n      | Sum.inl q => (q.1 : ℝ)\n      | Sum.inr _ => 0\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>\n      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧\n        StrictMono (fun j => readTime (h j)) ∧\n        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}\n    let eventTime : E → E → (E × E) → (ℕ → ℝ) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ w j => (record y xRef z₀ (ε w) j).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    let I : E → E → (E × E) → ℝ≥0 → ℕ → Set (ℕ → ℝ) :=\n      fun y xRef z₀ T n => {w | eventTime y xRef z₀ w n ≤ (T : WithTop ℝ≥0) ∧\n        (T : WithTop ℝ≥0) < eventTime y xRef z₀ w (n + 1)}\n    let N : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → ℕ := fun y xRef z₀ T w =>\n      if h : ∃ n, w ∈ I y xRef z₀ T n then Nat.find h else 0\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let survival : E → E → Rec → ℝ≥0 → ℝ → Prop :=\n      fun y xRef r u e => r.elim\n        (fun a => (u : WithTop ℝ≥0) < τ y xRef a.2 (Real.toNNReal e)) (fun _ => False)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let C : E → E → (E × E) → (n : ℕ) → ℝ≥0 → Set (ℕ → ℝ) :=\n      fun y xRef z₀ n T => {w | history y xRef z₀ n w ∈ A n T ∧\n        survival y xRef (record y xRef z₀ (ε w) n) (d n T (history y xRef z₀ n w)) (w n)}\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let Vy : E → E → ℝ := fun y x => V x + ‖x - y‖ ^ 2 / (2 * η)\n    let nu : E → Measure (E × E) := fun y =>\n      ((volume : Measure E).tilted (fun x => -Vy y x)).prod\n        (ProbabilityTheory.stdGaussian E)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E), w ∈ I y xRef z₀ s n →\n          record y xRef z₀ (ε w) n = Sum.inl a →\n          Z y xRef z₀ s w = Φ y xRef ((s - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        (¬ ∃ n, w ∈ I y xRef z₀ s n) → Z y xRef z₀ s w = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ w ∂P, Z y xRef z₀ 0 w = z₀) ∧\n      (∀ y xRef : E, ∀ T : ℝ≥0,\n        let op : ((E × E) → ℝ) → (E × E) → ℝ :=\n          fun G z => ∫ w, G (Z y xRef z T w) ∂P\n        let endpoint : (E × E) × (ℕ → ℝ) → E × E :=\n          fun a => Z y xRef a.1 T a.2\n        MeasurePreserving endpoint ((nu y).prod P) (nu y) ∧\n        ∀ F G : (E × E) → ℝ, ∀ C_F C_G : ℝ,\n          Measurable F → Measurable G → 0 ≤ C_F → 0 ≤ C_G →\n          (∀ z, |F z| ≤ C_F) → (∀ z, |G z| ≤ C_G) →\n          Integrable (fun z => F z * op G z) (nu y) ∧\n          Integrable (fun z => G (R z) * op (fun a => F (R a)) z) (nu y) ∧\n          (∫ z, F z * op G z ∂nu y) =\n            ∫ z, G (R z) * op (fun a => F (R a)) z ∂nu y)\n\n#check candidate\nend\nend PBPSBoundedGibbsDualityCandidate106\n",
+  "status": "claimed",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw.actual_countable_endpoint_law",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization",
+    "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+  ],
+  "consumers": [
+    "Printed Appendix A.1 bounded duality and fixed-time Gibbs stationarity; future actual L2 and kernel-invariance consumers require their separate representation and same-witness adapters."
+  ],
+  "target_declarations": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality.actual_bounded_gibbs_duality"
+  ],
+  "evidence": {
+    "owner": "companion_root_20261005",
+    "statement_seal": "runs\\20261007-companion-priority\\pbps-bounded-gibbs-duality-preread106\\root.statement-seal106.json",
+    "focused_checks": [
+      "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality"
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBoundedGibbsDuality.lean"
+    ],
+    "truth_boundary": "Bounded signed Gibbs duality and fixed-time actual phase invariance only. L2 operator/domain identity, restart/Markovness, kernel-witness identification, hypocoercivity, simulation errors, actual expected costs, composition and all four full papers remain open."
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "runs\\20261007-companion-priority\\pbps-actual-countable-endpoint105\\next-primary106\\retrieval106.native.json",
+      "runs\\20261007-companion-priority\\pbps-bounded-gibbs-duality-preread106\\independent-header-math106\\header-math-decision106.native.json",
+      "Samplinglib actual105/103 and UnitExponentialProduct; fixed Mathlib Gaussian negation, bounded-integrability, signed Fubini, integral-map and bounded indicator extensionality; compatible upstream screened in source retrieval."
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality.actual_bounded_gibbs_duality",
+    "canonical_shared_cell": "",
+    "reason": "Derive bounded signed Gibbs duality and actual fixed-time phase invariance from the same global actual endpoint witness and its flipped reversal."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "runs\\20261007-companion-priority\\pbps-actual-countable-endpoint105\\next-primary106\\retrieval106.native.json",
+      "runs\\20261007-companion-priority\\pbps-bounded-gibbs-duality-preread106\\independent-header-math106\\header-math-decision106.native.json",
+      "Samplinglib actual105/103 and UnitExponentialProduct; fixed Mathlib Gaussian negation, bounded-integrability, signed Fubini, integral-map and bounded indicator extensionality; compatible upstream screened in source retrieval."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw.actual_countable_endpoint_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "planned_dependencies": [],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "Printed Appendix A.1 bounded duality and fixed-time Gibbs stationarity; future actual L2 and kernel-invariance consumers require their separate representation and same-witness adapters."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Actual bounded signed averaging and fixed-time phase invariance; finite signed integrability, momentum symmetry and normalization are internally proved. No arbitrary process or kernel provider."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Exact header and source topology independently accepted;105 delivered. New sphere-Rayleigh main changes await safe shared-surface integration."
+  },
+  "statement_seal": {
+    "evidence": "runs\\20261007-companion-priority\\pbps-bounded-gibbs-duality-preread106\\root.statement-seal106.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "6e995eb9308bf5c6d09fcd15b6ebb0e120b3fced62202572a4041cbfe19e7b9d",
+    "binder_audit": [
+      "Six original analytic assumptions; finite real Hilbert Borel typing; no extra premises."
+    ],
+    "definition_kind": "37 literal actual algorithm/clock/path/phase definitions of105, exactly the same global Z arc/fallback/zero contract; two new internal let definitions op and endpoint. No arbitrary process/kernel provider, signed-integrability, mass or momentum-symmetry premise."
+  },
+  "source_proof_coverage": {
+    "source_graph": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/source-proof-graph-delta106.native.json",
+    "source_inventory": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/source-coverage-delta106.native.json",
+    "coverage_report": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/topology-admission106.native.json",
+    "coverage_status": "Prospective source graph independently accepted with counts {'nodes': 62, 'edges': 122, 'primary_regions': 21, 'new_nodes': 2, 'new_edges': 10, 'proposed_direct_public_parents': 3};106 theorem unproved."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Appendix A.1 final bounded signed bilinear identity (A8 averaging) and F=1 fixed-time Gibbs stationarity.",
+    "fidelity_boundary": "Bounded signed Gibbs duality and fixed-time actual phase invariance only. L2 operator/domain identity, restart/Markovness, kernel-witness identification, hypocoercivity, simulation errors, actual expected costs, composition and all four full papers remain open.",
+    "detail_status": "omitted",
+    "gap": "Expand the final Appendix A.1 bounded signed bilinear identity and F=1 fixed-time stationarity argument with explicit signed integrability and phase-flip normalization.",
+    "consulted": [
+      {
+        "source": "Pinned PBPS v1, actual Samplinglib producers and fixed Mathlib",
+        "anchor": "Appendix A.1 averaging/change of variables and Eq3.1",
+        "hypothesis_adapter": "Original six assumptions and all actual algorithm definitions retained. Same actual global Z is retained; bounded observable integrability, signed Fubini and actual Gaussian momentum symmetry are internally derived."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw.actual_countable_endpoint_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+    ],
+    "bookkeeping": [
+      "Actual normalized phase and clock probability plus Gaussian momentum flip",
+      "Bounded section/product/outer integrability and signed Fubini for actual Z",
+      "Use105 flipped endpoint law for bounded duality; F=1 and bounded indicators identify actual fixed-time marginal"
+    ],
+    "new_reusable": [],
+    "new_topology": "Under the original six assumptions, one global actual jointly measurable Z satisfies the inherited arc/fallback/zero-time contract. Every y,r,T endpoint pushes nu_y times P to nu_y; every pair of bounded Borel real F,G yields both outer integrability conclusions and integral F*(op G) = integral (G composed R)*(op(F composed R))."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "No implementation yet.",
+    "duplicate_semantics_audit": "No existing theorem gives this same actual Z bounded signed duality and Gibbs invariance;105 supplies endpoint measure reversal only. Separate83 existential witness is not substituted.",
+    "canonicalization": "Consume actual public105/103 and UnitExponentialProduct producers and fixed Mathlib; no duplicate generic lemmas.",
+    "compressed_spine_delta": "Under the original six assumptions, one global actual jointly measurable Z satisfies the inherited arc/fallback/zero-time contract. Every y,r,T endpoint pushes nu_y times P to nu_y; every pair of bounded Borel real F,G yields both outer integrability conclusions and integral F*(op G) = integral (G composed R)*(op(F composed R)).",
+    "reader_default_view": "Full attributed measure statement and adjacent folded Lean; stepwise formula proof.",
+    "scope": "Bounded signed Gibbs duality and fixed-time actual phase invariance only. L2 operator/domain identity, restart/Markovness, kernel-witness identification, hypocoercivity, simulation errors, actual expected costs, composition and all four full papers remain open."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "Full sealed target compiled; no mathematical fragment discarded. Initial elaboration failures retained with corrected unfold and explicit finite-grid types.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-bounded-gibbs-duality"
+      ],
+      "expected_information_gain": "One proving owner and independent mathematics, source-blind decoder and source reviewers.",
+      "shared_verified_context_digest": "6e995eb9308bf5c6d09fcd15b6ebb0e120b3fced62202572a4041cbfe19e7b9d"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Single source-faithful implementation route."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "PHASE-FLIP106",
+        "SIGNED-FUBINI106",
+        "AVG100",
+        "INV100"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality.actual_bounded_gibbs_duality"
+      ],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality.actual_bounded_gibbs_duality"
+    ],
+    "visual_review": "Pending implementation and publication."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "reason": "Bounded expectation duality and momentum symmetry are existing measure mechanisms; no new conceptual mirror claimed before proof.",
+    "discovery_ids": []
+  }
+}

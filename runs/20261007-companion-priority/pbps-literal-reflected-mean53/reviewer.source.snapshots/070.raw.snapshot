@@ -1,0 +1,14 @@
+theorem normalized_augmentation_density {V : E → ℝ} {α η : ℝ}
+    (hα : 0 < α) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, α * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v)
+    (hη : 0 < η) :
+    let ZV := ∫ x, Real.exp (-V x) ∂(volume : Measure E)
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let joint := Measure.map (fun p : E × E => (p.1, p.1 + Real.sqrt η • p.2))
+      (μ.prod (stdGaussian E))
+    0 < ZV ∧ IsProbabilityMeasure joint ∧
+      joint = ((volume : Measure E).prod volume).withDensity (fun p =>
+        ENNReal.ofReal
+          (((((Real.sqrt (2 * Real.pi * η))⁻¹) ^ Module.finrank ℝ E) / ZV) *
+            Real.exp (-V p.1 - ‖p.2 - p.1‖ ^ 2 / (2 * η)))) := by
+  let ZV 

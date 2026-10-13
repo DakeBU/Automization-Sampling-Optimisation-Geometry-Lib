@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-a7fc0537587b6252",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let S := fun y : E => (volume : Measure E).tilted\n      (fun u => -V ((1/2:ℝ) • (y+u)) - ‖y-u‖^2/(8*η))\n    IsProbabilityMeasure ν ∧\n      ∃ G : Lp ℝ 2 ν →ₗ.[ℝ] Lp E 2 ν,\n        Dense (G.domain : Set (Lp ℝ 2 ν)) ∧ G.IsClosable ∧ G.closure.IsClosed ∧\n        (∀ (u : Lp ℝ 2 ν) (v : Lp E 2 ν), (u,v) ∈ G.graph ↔\n          ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧\n            u =ᵐ[ν] φ ∧ v =ᵐ[ν] gradient φ) ∧\n        ∀ f : E → ℝ, ContDiff ℝ ∞ f → HasCompactSupport f →\n          let Tf := fun y : E => ∫ u, f u ∂S y\n          ∃ hTf : MemLp Tf 2 ν, ∃ hGrad : MemLp (gradient Tf) 2 ν,\n            (hTf.toLp Tf,hGrad.toLp (gradient Tf)) ∈ G.closure.graph",
+    "statement_sha256": "a7fc0537587b6252daf06645154b96a42b77edf671cc600dfce4329e298c69dd",
+    "compiled": true,
+    "approved_definition_context": [
+      "E is a finite-dimensional real inner-product space with canonical volume and Borel measurable structure; rank zero is allowed. V is globally C2, alpha and beta are nonnegative real numbers with alpha>0 and alpha<=beta. The actual directional Hessian has the two displayed global bounds. eta>0 and beta*eta<=1.",
+      "Measure.tilted is normalized exponential tilt. The reference volume is canonical; mu is exactly volume.tilted(-V). J is the measurable pushforward of mu.prod(stdGaussian E) under (x,z)->(x,x+sqrt(eta)*z); nu is its actual second marginal. stdGaussian is the standard Gaussian law.",
+      "For every y, S(y) is exactly the displayed normalized volume tilt with half-position potential and quadratic denominator8eta. Tf(y) is its real Bochner mean of f. No arbitrary conditional representative or caller law/normalizer certificate occurs.",
+      "Lp F2nu is the space of AE-equivalence classes of strongly measurable square-integrable F-valued functions under the same nu. MemLp f2nu supplies measurability and finite L2 seminorm. h.toLp f is the canonical class, independent of the proof witness. Position E finite-dimensional does not make these Lp spaces finite-dimensional.",
+      "LinearPMap is a linear partial map with a linear subspace domain. Its graph contains pairs of actual input/output Lp classes. Dense refers to its domain being dense in the entire Lp space. IsClosable means closure of its graph has no nonzero vertical fiber over zero; its closure is the genuine closed extension and IsClosed states graph closedness.",
+      "The full displayed graph characterization requires actual smooth compact representatives phi with input=AE phi and output=AE gradient(phi); it is not a certificate supplied by a caller. G is chosen uniformly before every observer f. Gradient is the genuine real Hilbert Frechet-gradient field.",
+      "Each f is globally smooth and compactly supported, with either sign and no centering requirement. The statement produces both actual Tf and gradient(Tf) MemLp witnesses and puts their canonical pair in G.closure.graph. It does not assume Tf compactly supported. No separate weak-H1 equivalence, arbitrary rough observer regularity, dynamics, convergence, numerical error or cost conclusion is asserted."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "8ad4d3437661e78f0f0367757b0764afc203ae560b386ca2bf2993e709ebd5bb"
+}

@@ -1,0 +1,77 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalEnergyStoppingTime
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EnergyStoppedProgressiveL2
+
+/-!
+# Chewi's canonical localizing sequence
+
+This file assembles the independently proved stopping-time, monotonicity,
+terminal convergence, pathwise energy, and global product-`L2` leaves into the
+source-facing statement of Proposition 1.1.13.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace CanonicalLocalizationTheorem
+
+open Filter MeasureTheory
+open scoped NNReal Topology
+
+open ProgressiveL2 LocalProgressiveL2 CanonicalEnergyLocalizer
+  CanonicalEnergyStoppingTime EnergyStoppedIntegrand EnergyStoppedProgressiveL2
+open StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- The globally square-integrable stopped integrand at the `n`-th canonical
+energy level. -/
+noncomputable def canonicalStoppedProgressiveL2
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (n : ℕ) : ProgressiveL2Integrand filtration mu T :=
+  stoppedProgressiveL2 hUsual eta (level := (n + 1 : ℝ)) (by positivity)
+
+@[simp] theorem canonicalStoppedProgressiveL2_process
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (n : ℕ) :
+    (canonicalStoppedProgressiveL2 hUsual eta n).process =
+      energyStoppedIntegrand hUsual eta (n + 1 : ℝ) :=
+  rfl
+
+/-- Chewi, Proposition 1.1.13: the energy-level first-hitting times form a
+canonical localizing sequence, and every stopped integrand is globally square
+integrable with its exact pathwise energy bound. -/
+theorem chewi_proposition_1_1_13
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T) :
+    (∀ n, IsChewiStoppingTime filtration
+      (fun omega =>
+        (canonicalLocalizingTime hUsual eta n omega : WithTop ℝ≥0))) ∧
+    (∀ omega, Monotone
+      (fun n => canonicalLocalizingTime hUsual eta n omega)) ∧
+    (∀ omega, Tendsto
+      (fun n => canonicalLocalizingTime hUsual eta n omega)
+      atTop (𝓝 T)) ∧
+    (∀ n omega,
+      ∫ s,
+        ((canonicalStoppedProgressiveL2 hUsual eta n).process s omega) ^ 2
+          ∂(TimeMeasure.upTo T) ≤ (n + 1 : ℝ)) := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · exact fun n => canonicalLocalizingTime_isChewiStoppingTime hUsual eta n
+  · exact fun omega => canonicalLocalizingTime_mono hUsual eta omega
+  · exact fun omega => tendsto_canonicalLocalizingTime hUsual eta omega
+  · intro n omega
+    change ∫ s,
+        (energyStoppedIntegrand hUsual eta (n + 1 : ℝ) s omega) ^ 2
+          ∂(TimeMeasure.upTo T) ≤ (n + 1 : ℝ)
+    exact integral_energyStoppedIntegrand_sq_le hUsual eta (by positivity) omega
+
+end CanonicalLocalizationTheorem
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

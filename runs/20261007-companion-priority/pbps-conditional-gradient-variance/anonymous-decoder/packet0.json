@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-48b1fde06ff41fb1",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x a : E,\n      (α : ℝ) * ‖a‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x a) a ∧\n      (fderiv ℝ (fderiv ℝ V) x a) a ≤ (β : ℝ) * ‖a‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1, p.1 + Real.sqrt η • p.2))\n      (μ.prod (stdGaussian E))\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2 : ℝ) • x - y)) ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun u => -V ((1/2 : ℝ) • (y+u)) - ‖y-u‖^2/(8*η))) ∧\n      ∀ (f : E → ℝ), ContDiff ℝ ∞ f → HasCompactSupport f →\n        ∀ y, DifferentiableAt ℝ (fun z => ∫ u, f u ∂S z) y ∧\n          ‖gradient (fun z => ∫ u, f u ∂S z) y‖^2 ≤\n            (1/η-(α : ℝ))^2/(4*((α : ℝ)+1/η)) *\n              AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n                (S y) f",
+    "statement_sha256": "48b1fde06ff41fb147eb269aadca607a76105a814d743d9847ce974836175316",
+    "compiled": true,
+    "approved_definition_context": [
+      "E is any finite-dimensional real inner-product space with its norm and Borel measurable structure, including rank zero.",
+      "V is globally twice continuously real Frechet differentiable. Evaluated second derivative is its genuine Hessian; alpha and beta are nonnegative reals with 0<alpha<=beta. For every x,a, alpha norm(a)^2<=D²V(x)[a,a]<=beta norm(a)^2.",
+      "eta is a positive real with beta*eta<=1. volume is canonical volume. Measure.tilted normalizes the exponential of the displayed function.",
+      "stdGaussian E is the canonical centered identity-covariance Gaussian. J is the literal pushforward of mu product Gaussian by (x,g)->(x,x+sqrt(eta)g).",
+      "Kernel E E is a measurable probability-transition kernel; IsMarkovKernel asserts every fiber is a probability. IsCondKernel for swapped J asserts the actual regular conditional disintegration. R and S are produced, not supplied; every-y reflection and explicit normalized S density are outputs.",
+      "Tests f are real-valued globally smooth (ContDiff order infinity) with compact support; expectations are literal Bochner integrals against S(z). Actual DifferentiableAt is an output at every y.",
+      "gradient is the Riesz inverse of the genuine real Frechet derivative; the theorem separately proves differentiability so the bound cannot be a fake totalization. Poincare.variance(S y)f is the actual integral of (f(u)-integral f dS y)^2.",
+      "The squared norm of that gradient is bounded by exactly (1/eta-alpha)^2/[4(alpha+1/eta)] times that actual variance. No covariance/domain/Poincare/desired-bound certificate appears among public assumptions."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "11e4ef58597c921131ebbe83ef8cf2bcb5ea9029c5acd741e7649c67382f8916"
+}

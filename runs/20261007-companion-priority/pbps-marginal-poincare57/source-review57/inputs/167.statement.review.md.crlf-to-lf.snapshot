@@ -1,0 +1,3 @@
+Accepted scoped StatementSeal57 only. Original C2/two Hessian bounds/positive ordered curvature/capped eta retained. Same actualmu/J/nu; genuine uniform compact-gradient G precedes all centered closure-domainz. Exactalpha/(1+alphaeta) Poincare coefficient. No EXCESS binder or mathematical repair.
+
+FiniteHilbert/Borel/rank0 is explicit extension; separate weakH1 equivalence remains open. Future true56 consumer must identify sameG by exact graph, derive actualmean centeredness by stationary law and combine sharpenergy. Neither C4/Gamma nor macro-range/H1/fullB13/main/cost is admitted. Root existing #check is Prop-only EXIT0/CLOSED; reviewer ran no compiler/proof and read no candidatebody or sourcegraph.

@@ -1,0 +1,114 @@
+{
+  "status": "SEALED_BEFORE_PROOF_AFTER_INDEPENDENT_HEADER_AND_SOURCE_TOPOLOGY_REVIEW",
+  "sealed_utc": "2026-10-10T06:24:22.852416+00:00",
+  "actual_root_PID": 28316,
+  "statement_version": 1,
+  "header": {
+    "path": "runs/20261007-companion-priority/pbps-actual-physical-time-cover79/header79.proposed.lean",
+    "RAW_bytes": 4199,
+    "RAW_sha256": "4b3b12a9e83195cfca5c02466b51f838b0e175fad23a9665ab32df7553968a1a"
+  },
+  "public_theorem": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeCover.actual_fixed_reference_physical_time_cover",
+  "expanded_literal_Prop": "actual_fixed_reference_physical_time_cover_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n      (∀ t : ℝ≥0, ∃! n : ℕ,\n        eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n        (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) ∧\n      (∀ t : ℝ≥0, ∀ n : ℕ,\n        eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n        (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n        ∃! a : ℝ≥0 × (E × E),\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n))\n",
+  "primary": {
+    "path": "runs/20261007-companion-priority/phase-pbps-gamma-preread57/primary-pbps.exactraw.snapshot.html",
+    "RAW_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760"
+  },
+  "source_first_freeze": {
+    "path": "runs/20261007-companion-priority/pbps-physical-time-preread79/source-freeze79.json",
+    "RAW_bytes": 25276,
+    "RAW_sha256": "73511f78e36675ded6166d837477173ea06d10f3f71936055852d8219816e38b"
+  },
+  "source_graph_overlay": {
+    "path": "runs/20261007-companion-priority/pbps-actual-physical-time-cover79/header-review79/reviewer-source-topology-overlay79.json",
+    "RAW_bytes": 2235,
+    "RAW_sha256": "f9802405ad1b9aab5a660e48c4bdb716db98ebdefb9e52e91b3077acb43962e4"
+  },
+  "header_math": {
+    "path": "runs/20261007-companion-priority/pbps-actual-physical-time-cover79/header-review79/header-math-review79.json",
+    "RAW_bytes": 5186,
+    "RAW_sha256": "99620b21e21fbfac9f6c42db5db96716be4fbfb28ef07922d387d25d6409d2b9"
+  },
+  "source_topology_review": {
+    "path": "runs/20261007-companion-priority/pbps-actual-physical-time-cover79/header-review79/independent-source-topology-review79.json",
+    "RAW_bytes": 9877,
+    "RAW_sha256": "7a61c7b66534aacb51b90d97abcd8e0952a002113c3081bcda3976c7ec53fd48"
+  },
+  "definition_audit": {
+    "path": "runs/20261007-companion-priority/pbps-actual-physical-time-cover79/header-review79/signature-definition-readback79.json",
+    "RAW_bytes": 1224,
+    "RAW_sha256": "03104298f853b000075fa14548b528f318d7fdb37f636c8357ed1ba41839a67b"
+  },
+  "typecheck": {
+    "path": "runs/20261007-companion-priority/pbps-actual-physical-time-cover79/header-review79/typecheck.receipt.json",
+    "RAW_bytes": 2812,
+    "RAW_sha256": "eef25a9b14907aeb93d71905ea0eddffae72021ebc63f4661e3a444b9b531792"
+  },
+  "binder_inventory": [
+    {
+      "input": "Euclidean finite-dimensional phase carrier",
+      "class": "TYPING",
+      "detail": "Source Rd×Rd. Existing generalized finite-dimensional real inner product space may be a separately audited elaboration."
+    },
+    {
+      "input": "V C2, alpha>0, alpha<=beta, Hessian lower/upper bounds",
+      "class": "STANDING",
+      "anchor": "S1.p1.1;S1.E1",
+      "detail": "Retain exact source standing conditions; interval-index combinatorics itself does not need convexity or derivative facts."
+    },
+    {
+      "input": "0<eta<=1/beta",
+      "class": "STANDING",
+      "anchor": "S2.SS2.p1.1",
+      "detail": "Finite positive eta makes literal flow meaningful; no stronger derivative assumption or strictly positive energy/cap is authorized."
+    },
+    {
+      "input": "each fixed y,xref and arbitrary initial(x0,p0)",
+      "class": "SOURCE",
+      "anchor": "S3.Thmtheorem1;A1.SS1.p1.1;p2.1",
+      "detail": "No stationary/warm/Gaussian initialization needed."
+    },
+    {
+      "input": "iid unit exponential inputs",
+      "class": "SOURCE sampling specification",
+      "anchor": "A1.SS1.p2.1",
+      "detail": "Must use actual constructed input law as internal dependency; avoid public support/nonexplosion certificates in source Anchor."
+    },
+    {
+      "input": "finite physical t>=0",
+      "class": "SOURCE target quantifier",
+      "anchor": "A1.SS1.p3.7",
+      "detail": "For each fixed deterministic data, AE inputs, all finite t. Do not replace with forall t separately AE without the needed common event."
+    },
+    {
+      "input": "clock escape/finite-count/active-index witness/measurability",
+      "class": "EXCESS if added as source Anchor premise",
+      "detail": "These are proved dependencies/conclusions. Generic internal library lemmas may honestly quantify them, but cannot supply new source-facing assumptions."
+    }
+  ],
+  "dag_parents": [
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteJumpRecursion.lean",
+      "RAW_bytes": 22655,
+      "RAW_sha256": "1f1ebc187676e0481247bc2f58ec0bf94b2fc6f02a563b87009a0fe7bfb4910c"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNonaccumulation.lean",
+      "RAW_bytes": 10812,
+      "RAW_sha256": "e6d71cb969b30f6ac8e6be65e5cd067166b4f29213d9328ed9edc0971fd026fc"
+    }
+  ],
+  "toolchain": {
+    "path": "lean-toolchain",
+    "RAW_bytes": 26,
+    "RAW_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477"
+  },
+  "lake_manifest": {
+    "path": "lake-manifest.json",
+    "RAW_bytes": 3234,
+    "RAW_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2"
+  },
+  "truth_boundary": "Only actual interval/live-record/elapsed coverage on a common AE actual-input event per fixed deterministic parameter triple. No measurable index or interpolated process, explicit index0 initialization, global path uniqueness/regularity, Markov/invariance/kernel/hypocoercivity/main/errors/cost/composition. Stopped next jump leaves last live arc; no phase at infinity. No full-paper/Goal, stabilized, merged, purified or live credit.",
+  "proof_BODY_created": false,
+  "VERIFIED": false
+}

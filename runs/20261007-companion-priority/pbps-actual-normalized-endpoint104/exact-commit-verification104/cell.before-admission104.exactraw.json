@@ -1,0 +1,199 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-normalized-endpoint-sector",
+  "route": "samplewiki-route",
+  "title": "Actual normalized PBPS endpoint-pair sector reversal",
+  "mode": "faithfulPaper",
+  "declaration_level": "source-anchor",
+  "source_anchor": "Appendix A.1 fixed-count change of variables and initial Eq3.1 Gibbs averaging; actual normalized endpoint-pair sector measure reversal.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization\n\n/- Prospective type-only header. No proof, Statement Seal or SAU claim. -/\nnamespace PBPSNormalizedEndpointCandidate104\nopen MeasureTheory InnerProductSpace ProbabilityTheory\nopen scoped ContDiff NNReal ENNReal Classical\nnoncomputable section\nset_option autoImplicit false\n\ndef candidate\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let Vy : E → E → ℝ := fun y x => V x + ‖x - y‖ ^ 2 / (2 * η)\n    let piY : E → Measure E := fun y => (volume : Measure E).tilted (fun x => -Vy y x)\n    let gamma : Measure E := ProbabilityTheory.stdGaussian E\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    ∀ y r : E, ∀ n : ℕ, ∀ T : ℝ≥0,\n      let A : (E × E) × Prefix n T → E × E :=\n        fun q => Γ y r q.1 n T q.2 ⟨T, le_rfl⟩\n      let B : (E × E) × Prefix n T → (E × E) × (E × E) := fun q => (q.1, A q)\n      let sigma : Measure ((E × E) × Prefix n T) :=\n        (((piY y).prod gamma).prod (m n T)).withDensity (fun q => ρ y r q.1 n T q.2)\n      let L : Measure ((E × E) × (E × E)) := Measure.map B sigma\n      let J : (E × E) × (E × E) → (E × E) × (E × E) :=\n        fun p => (R p.2, R p.1)\n      MeasurePreserving J L L\n\n#check candidate\nend\nend PBPSNormalizedEndpointCandidate104\n",
+  "status": "proved_locally",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector.actual_weighted_sector_lintegral",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization"
+  ],
+  "consumers": [
+    "AVG100 can apply this measure equality to endpoint tests F(z0)G(zT), then assemble actual count sectors. The target supplies actual normalized initial-law integration and endpoint transport, which102 alone does not export."
+  ],
+  "target_declarations": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector.actual_normalized_endpoint_sector_reversal"
+  ],
+  "evidence": {
+    "owner": "companion_root_20261005",
+    "statement_seal": "runs\\20261007-companion-priority\\pbps-normalized-endpoint-preread104\\root.statement-seal104.json",
+    "focused_checks": [
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-normalized-endpoint104\\focused104\\production1\\receipt.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-normalized-endpoint104\\checks104\\science-focused\\receipt.json"
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNormalizedEndpointSector.lean"
+    ],
+    "truth_boundary": "Actual normalized fixed-count endpoint-pair measure reversal only. Countable assembly, signed bilinear identity, process invariance, Markovness, hypocoercivity, implementation error, actual expected costs and all full paper/composition results remain open.",
+    "whole_target_compiled": {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualNormalizedEndpointSector.lean",
+      "raw_sha256": "c2a980f6397528f818120ca6163bf9b286f5c2ef5d4c730d9608267271b03074",
+      "bytes": 13032
+    },
+    "independent_whole_math": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-normalized-endpoint104\\independent-whole-math104\\whole-math-decision104.native.json"
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "runs\\20261007-companion-priority\\pbps-actual-phase-normalization103\\next-primary104\\retrieval104.native.json",
+      "runs\\20261007-companion-priority\\pbps-normalized-endpoint-preread104\\independent-header-math104\\header-math-decision104.native.json",
+      "Samplinglib actual93/97/102/103 and fixed Mathlib density-product, sigma-finiteness, lintegral/map and measure extensionality APIs; compatible upstream searched in retrieval."
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector.actual_normalized_endpoint_sector_reversal",
+    "canonical_shared_cell": "",
+    "reason": "Integrate actual finite-sector density, endpoint reversal, unnormalized substitution and actual normalized initial phase law."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "runs\\20261007-companion-priority\\pbps-actual-phase-normalization103\\next-primary104\\retrieval104.native.json",
+      "runs\\20261007-companion-priority\\pbps-normalized-endpoint-preread104\\independent-header-math104\\header-math-decision104.native.json",
+      "Samplinglib actual93/97/102/103 and fixed Mathlib density-product, sigma-finiteness, lintegral/map and measure extensionality APIs; compatible upstream searched in retrieval."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector.actual_weighted_sector_lintegral",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization"
+    ],
+    "planned_dependencies": [],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "AVG100 can apply this measure equality to endpoint tests F(z0)G(zT), then assemble actual count sectors. The target supplies actual normalized initial-law integration and endpoint transport, which102 alone does not export."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "New actual endpoint-pair measure interface. Density/product conversion, same-witness alignment and endpoint intertwining are internal proof obligations."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Final source verdict, independent exact-commit verification, sole-lane aggregate integration and reader delivery."
+  },
+  "statement_seal": {
+    "evidence": "runs\\20261007-companion-priority\\pbps-normalized-endpoint-preread104\\root.statement-seal104.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "4fc65e051233c07d0d2272b3371fad1c1164546b51a4c313c0ec0d314b805be4",
+    "binder_audit": [
+      "Six original analytic assumptions; finite real Hilbert Borel typing; no extra premises."
+    ],
+    "definition_kind": "Thirty literal lets: unchanged20 actual algorithm definitions; R, proximal position energy, tilted law, standard Gaussian, simplex measure; terminal endpoint, endpoint-pair map, density-weighted sector, pushed-forward measure and flipped swap. Correct position-first and phase-first product orders."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-actual-phase-normalization103/next-primary104/source-proof-graph-delta104.native.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-actual-phase-normalization103/next-primary104/source-coverage-delta104.native.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-actual-normalized-endpoint104/final-source104/compiled-source-coverage104.native.json",
+    "coverage_status": "Independently accepted compiled source coverage; full paper boundaries remain open."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Appendix A.1 fixed-count change of variables and initial Eq3.1 Gibbs averaging; actual normalized endpoint-pair sector measure reversal.",
+    "fidelity_boundary": "Actual normalized fixed-count endpoint-pair measure reversal only. Countable assembly, signed bilinear identity, process invariance, Markovness, hypocoercivity, implementation error, actual expected costs and all full paper/composition results remain open.",
+    "detail_status": "omitted",
+    "gap": "Expand the source fixed-count change of variables into actual normalized endpoint-pair measure transport.",
+    "consulted": [
+      {
+        "source": "Pinned PBPS v1, actual Samplinglib producers and fixed Mathlib",
+        "anchor": "Appendix A.1 averaging/change of variables and Eq3.1",
+        "hypothesis_adapter": "Original six assumptions and all actual algorithm definitions retained. Measurability, sigma-finiteness, density rewriting and reversal-witness alignment are internally derived."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector.actual_weighted_sector_lintegral",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization"
+    ],
+    "bookkeeping": [
+      "Simplex sigma-finiteness and actual endpoint/density measurability",
+      "Normalize the actual sector using103 and align97/102 reversal witnesses",
+      "Transport to actual endpoint pairs through the flipped-swap intertwining"
+    ],
+    "new_reusable": [],
+    "new_topology": "For every n:Nat, T:NNReal, y r:E, MeasurePreserving J (L(y,r,n,T)) (L(y,r,n,T)). Equivalently, the globally measurable flipped swap pushes the actual normalized endpoint-pair sector measure to itself."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "One public endpoint-pair sector theorem and one literal private proposition; four actual public parents reused, no private dependency calls or duplicate analytic helpers.",
+    "duplicate_semantics_audit": "No existing actual normalized endpoint-pair measure theorem found.",
+    "canonicalization": "Consume actual public93/97/102/103 producers and fixed Mathlib; no duplicate generic lemmas.",
+    "compressed_spine_delta": "For every n:Nat, T:NNReal, y r:E, MeasurePreserving J (L(y,r,n,T)) (L(y,r,n,T)). Equivalently, the globally measurable flipped swap pushes the actual normalized endpoint-pair sector measure to itself.",
+    "reader_default_view": "Full attributed measure statement and adjacent folded Lean; stepwise formula proof.",
+    "scope": "Actual normalized fixed-count endpoint-pair measure reversal only. Countable assembly, signed bilinear identity, process invariance, Markovness, hypocoercivity, implementation error, actual expected costs and all full paper/composition results remain open."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "Full sealed target compiled; no mathematical fragment discarded. Initial elaboration failures retained with corrected unfold and explicit finite-grid types.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-normalized-endpoint-pair-reversal"
+      ],
+      "expected_information_gain": "One proving owner and independent mathematics, source-blind decoder and source reviewers.",
+      "shared_verified_context_digest": "4fc65e051233c07d0d2272b3371fad1c1164546b51a4c313c0ec0d314b805be4"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Single source-faithful implementation route."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "SECTOR100",
+        "ENDPOINT104"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector.actual_normalized_endpoint_sector_reversal"
+      ],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector.actual_normalized_endpoint_sector_reversal"
+    ],
+    "visual_review": "Pending implementation and publication."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "reason": "Concrete measure transport composition of already canonical probability and reversal mechanisms.",
+    "discovery_ids": []
+  }
+}

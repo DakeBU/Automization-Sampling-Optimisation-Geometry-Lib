@@ -1,0 +1,2 @@
+class Module (R : Type u) (M : Type v) [Semiring R] [AddCommMonoid M] extends
+  DistribMulAction R M where

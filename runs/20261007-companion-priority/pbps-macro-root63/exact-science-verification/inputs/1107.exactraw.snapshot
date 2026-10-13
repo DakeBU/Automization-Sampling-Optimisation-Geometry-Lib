@@ -1,0 +1,211 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.VectorBrownianFiltration
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteDimensionalItoProcess
+import Mathlib.Analysis.InnerProductSpace.Dual
+import Mathlib.Tactic
+
+/-!
+# Euclidean Brownian coordinates from one source vector process
+
+Chewi Definition 1.1.17 is driven by one `ℝ^N`-valued Brownian motion, while
+our stochastic integral from Proposition 1.1.16 consumes a real Brownian
+motion relative to a specified filtration.  This file proves the missing
+coordinate bridge.
+
+The important modeling point is that the coordinates are *derived* from one
+vector Brownian motion and one common filtration.  We never replace the source
+hypothesis by an unrelated family of scalar Brownian motions.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace EuclideanBrownianCoordinates
+
+open MeasureTheory ProbabilityTheory
+open scoped NNReal RealInnerProductSpace Topology
+
+open BrownianMotion FiniteDimensionalItoProcess
+
+variable {Omega kappa : Type*} [MeasurableSpace Omega]
+  [Fintype kappa] [DecidableEq kappa]
+
+/-- The continuous linear functional selecting the `j`-th Euclidean
+coordinate.  It is represented through the standard orthonormal basis so that
+its norm and its action are inherited from the inner-product-space API. -/
+noncomputable def coordinateDual (j : kappa) :
+    StrongDual ℝ (EuclideanSpace ℝ kappa) :=
+  InnerProductSpace.toDualMap ℝ _ (EuclideanSpace.basisFun kappa ℝ j)
+
+@[simp]
+theorem coordinateDual_apply (j : kappa) (x : EuclideanSpace ℝ kappa) :
+    coordinateDual j x = x j := by
+  change inner ℝ (EuclideanSpace.basisFun kappa ℝ j) x = x j
+  exact EuclideanSpace.basisFun_inner (𝕜 := ℝ) (ι := kappa) x j
+
+@[simp]
+theorem norm_coordinateDual (j : kappa) :
+    ‖coordinateDual j‖ = 1 := by
+  simp [coordinateDual]
+
+@[simp]
+theorem projectedIncrementVariance_coordinateDual
+    (s t : ℝ≥0) (j : kappa) :
+    BrownianMotion.projectedIncrementVariance s t (coordinateDual j) = t - s := by
+  simp [BrownianMotion.projectedIncrementVariance]
+
+/-- A coordinate increment has exactly the one-dimensional Gaussian law with
+variance equal to elapsed time. -/
+theorem coordinate_increment_hasLaw
+    {B : ℝ≥0 → Omega → EuclideanSpace ℝ kappa} {mu : Measure Omega}
+    (hB : IsStandardBrownianMotion B mu) (j : kappa)
+    {s t : ℝ≥0} (hst : s < t) :
+    HasLaw (fun omega => B t omega j - B s omega j)
+      (gaussianReal 0 (t - s)) mu := by
+  have h := hB.2.2.1 s t hst (coordinateDual j)
+  simpa only [map_sub, coordinateDual_apply,
+    projectedIncrementVariance_coordinateDual] using h
+
+/-- Each coordinate has the correct Brownian one-time law.  The `t = 0`
+case is discharged from the source's pointwise `B₀ = 0` clause; positive times
+come from the increment law over `[0,t]`. -/
+theorem coordinate_eval_hasLaw
+    {B : ℝ≥0 → Omega → EuclideanSpace ℝ kappa} {mu : Measure Omega}
+    (hB : IsStandardBrownianMotion B mu) (j : kappa) (t : ℝ≥0) :
+    HasLaw (fun omega => B t omega j) (gaussianReal 0 t) mu := by
+  have hOne :
+      HasLaw (fun omega => B 1 omega j - B 0 omega j)
+        (gaussianReal 0 (1 - 0 : ℝ≥0)) mu :=
+    coordinate_increment_hasLaw hB j (by norm_num)
+  let _ : IsProbabilityMeasure mu := hOne.isProbabilityMeasure
+  by_cases ht : t = 0
+  · subst t
+    have hzero :
+        (fun omega => B 0 omega j) =ᵐ[mu] (fun _ => (0 : ℝ)) :=
+      Filter.Eventually.of_forall fun omega => by
+        simp [hB.1 omega]
+    simpa using (hasLaw_dirac_of_ae_eq hzero :
+      HasLaw (fun omega => B 0 omega j) (Measure.dirac 0) mu)
+  · have h0t : 0 < t := pos_iff_ne_zero.mpr ht
+    have h := coordinate_increment_hasLaw hB j h0t
+    have hzero : ∀ omega, B 0 omega j = 0 := fun omega => by
+      simp [hB.1 omega]
+    simpa only [hzero, sub_zero, tsub_zero] using h
+
+/-- The `j`-th coordinate of a Chewi-standard Euclidean Brownian motion is a
+Mathlib real Brownian motion. -/
+theorem IsStandardBrownianMotion.coordinate_isBrownianReal
+    {B : ℝ≥0 → Omega → EuclideanSpace ℝ kappa} {mu : Measure Omega}
+    (hB : IsStandardBrownianMotion B mu) (j : kappa) :
+    IsBrownianReal (fun t omega => B t omega j) mu := by
+  refine
+    { toIsPreBrownianReal := ?_
+      cont := ?_ }
+  · apply HasIndepIncrements.isPreBrownianReal_of_hasLaw
+      (coordinate_eval_hasLaw hB j)
+    simpa only [coordinateDual_apply] using
+      hB.projected_hasIndepIncrements (coordinateDual j)
+  · filter_upwards [hB.2.2.2] with omega hcont
+    have hprojected :
+        Continuous ((coordinateDual j) ∘ fun t => B t omega) :=
+      (coordinateDual j).continuous.comp hcont
+    have hfun :
+        (fun t => B t omega j) =
+          (coordinateDual j) ∘ (fun t => B t omega) := by
+      funext t
+      simp
+    rw [hfun]
+    exact hprojected
+
+variable {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+  {B : ℝ≥0 → Omega → EuclideanSpace ℝ kappa}
+
+/-- Strong adaptedness passes from the vector process to each coordinate by
+composition with the continuous coordinate functional. -/
+theorem IsStandardBrownianMotionWithFiltration.coordinate_stronglyAdapted
+    (hB : IsStandardBrownianMotionWithFiltration B filtration mu)
+    (j : kappa) :
+    StronglyAdapted filtration (fun t omega => B t omega j) := by
+  intro t
+  simpa only [coordinateDual_apply] using
+    (coordinateDual j).continuous.comp_stronglyMeasurable
+      (hB.stronglyAdapted t)
+
+/-- Independence of a future vector increment from the whole past filtration
+passes to every coordinate increment by shrinking the second sigma-algebra
+along the measurable coordinate projection. -/
+theorem IsStandardBrownianMotionWithFiltration.coordinate_incrementIndependent
+    (hB : IsStandardBrownianMotionWithFiltration B filtration mu)
+    (j : kappa) {s t : ℝ≥0} (hst : s ≤ t) :
+    Indep (filtration s)
+      (MeasurableSpace.comap
+        (fun omega => B t omega j - B s omega j) (borel ℝ)) mu := by
+  let vectorIncrement : Omega → EuclideanSpace ℝ kappa :=
+    fun omega => B t omega - B s omega
+  let scalarIncrement : Omega → ℝ :=
+    fun omega => B t omega j - B s omega j
+  have hBorelE :
+      (inferInstance : MeasurableSpace (EuclideanSpace ℝ kappa)) =
+        borel (EuclideanSpace ℝ kappa) :=
+    BorelSpace.measurable_eq
+  have hBorelR :
+      (inferInstance : MeasurableSpace ℝ) = borel ℝ :=
+    BorelSpace.measurable_eq
+  have hcompInst :
+      @Measurable Omega ℝ
+        (MeasurableSpace.comap vectorIncrement
+          (inferInstance : MeasurableSpace (EuclideanSpace ℝ kappa)))
+        (inferInstance : MeasurableSpace ℝ)
+        ((coordinateDual j) ∘ vectorIncrement) :=
+    (coordinateDual j).measurable.comp (comap_measurable vectorIncrement)
+  have hcomp :
+      @Measurable Omega ℝ
+        (MeasurableSpace.comap vectorIncrement (borel (EuclideanSpace ℝ kappa)))
+        (borel ℝ)
+        ((coordinateDual j) ∘ vectorIncrement) := by
+    rw [← hBorelE, ← hBorelR]
+    exact hcompInst
+  have hfun : scalarIncrement = (coordinateDual j) ∘ vectorIncrement := by
+    funext omega
+    simp [scalarIncrement, vectorIncrement, Function.comp_def, map_sub]
+  have hscalarMeas :
+      @Measurable Omega ℝ
+        (MeasurableSpace.comap vectorIncrement (borel (EuclideanSpace ℝ kappa)))
+        (borel ℝ) scalarIncrement := by
+    rw [hfun]
+    exact hcomp
+  have hle :
+      MeasurableSpace.comap scalarIncrement (borel ℝ) ≤
+        MeasurableSpace.comap vectorIncrement
+          (borel (EuclideanSpace ℝ kappa)) :=
+    measurable_iff_comap_le.mp hscalarMeas
+  exact indep_of_indep_of_le
+    (hB.incrementIndependent s t hst) le_rfl hle
+
+/-- The exact scalar Brownian-filtration contract consumed by the Chapter 1
+Itô integral, derived from one source Euclidean Brownian motion. -/
+theorem IsStandardBrownianMotionWithFiltration.coordinate
+    (hB : IsStandardBrownianMotionWithFiltration B filtration mu)
+    (j : kappa) :
+    IsBrownianMotionWithFiltration
+      (fun t omega => B t omega j) filtration mu where
+  isBrownian := IsStandardBrownianMotion.coordinate_isBrownianReal hB.isStandard j
+  stronglyAdapted :=
+    IsStandardBrownianMotionWithFiltration.coordinate_stronglyAdapted hB j
+  incrementIndependent := fun s t hst =>
+    IsStandardBrownianMotionWithFiltration.coordinate_incrementIndependent hB j hst
+
+/-- Package all coordinates as the integration-facing family used by the
+finite-dimensional Itô-process ABI.  Every member comes from the same vector
+Brownian motion and common filtration. -/
+noncomputable def coordinateFamily
+    (hB : IsStandardBrownianMotionWithFiltration B filtration mu) :
+    CoordinateBrownianFamilyWithFiltration
+      (Omega := Omega) (filtration := filtration) (mu := mu) kappa where
+  process j t omega := B t omega j
+  isBrownian j := IsStandardBrownianMotionWithFiltration.coordinate hB j
+
+end EuclideanBrownianCoordinates
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,22 @@
+import Mathlib.Probability.Distributions.Gaussian.Real
+import Mathlib.MeasureTheory.Measure.Count
+import Mathlib.Analysis.Calculus.ContDiff.Deriv
+import Mathlib.Analysis.Calculus.Deriv.Support
+open MeasureTheory ProbabilityTheory Filter
+open scoped ENNReal Topology BigOperators
+noncomputable section
+#check (∀ (f : ℝ → ℝ), ContDiff ℝ 2 f → HasCompactSupport f →
+    let μ : (n : ℕ) → Measure (Fin n → Bool) := fun n =>
+      (Fintype.card (Fin n → Bool) : ℝ≥0∞)⁻¹ • Measure.count
+    let S : (n : ℕ) → (Fin n → Bool) → ℝ := fun n ε =>
+      (Real.sqrt (n : ℝ))⁻¹ * ∑ j : Fin n, if ε j then (1 : ℝ) else -1
+    let γ : Measure ℝ := gaussianReal 0 1
+    Integrable (fun x => (deriv f x)^2) γ ∧
+    (∀ n : ℕ, Integrable
+      (fun ε : Fin n → Bool => ∑ j : Fin n,
+        (f (S n (Function.update ε j (!ε j))) - f (S n ε))^2) (μ n)) ∧
+    Tendsto (fun n : ℕ => ∫ ε : Fin (n+1) → Bool,
+      (∑ j : Fin (n+1),
+        (f (S (n+1) (Function.update ε j (!ε j))) - f (S (n+1) ε))^2)
+      ∂μ (n+1)) atTop (𝓝 (4 * ∫ x, (deriv f x)^2 ∂γ))
+ : Prop)

@@ -1,0 +1,123 @@
+{
+  "schema_version": 2,
+  "cell_id": "ASTIS-SW-SPHMC-finite-rgo-program",
+  "route": "samplewiki-route",
+  "title": "Finite RGO program with absorbing terminal states and actual trajectories",
+  "mode": "faithfulPaper",
+  "source_anchor": "arXiv:2609.06906v1 Algorithm3.3 terminal branch and recursive update; Theorem6.5 stagewise execution",
+  "target_statement": "On explicit states (b,u,k,h) with nonnegative precision b,center u,step count k and a sequence h storing the k most recent observations, take a measurable positive current-state variance a and a positive terminal precision threshold. Construct the actual precision-weighted update, increment k and prepend the observation. For arbitrary actual observation and terminal Markov kernels Q,L, construct a Markov state transition which is identity on terminal states and is the Q-pushforward under that explicit update elsewhere. Construct measurable probability output kernels R_n with R_0=L and R_(n+1)(s)=L(s) on terminal states, otherwise the integral of R_n(updated(s,y)) against Q(s). Construct the finite full trajectory law and prove its terminal-output marginal equals this recursive output. Use StateDependentRGO to construct actual target and ideal observation kernels; for Q=H and L=T prove every finite output R_n(s)=T(s), deriving posterior consistency from the actual update rather than assuming recovery. No deterministic schedule is imposed.",
+  "status": "independently_verified",
+  "parents": [
+    "ASTIS-SW-SPHMC-state-dependent-rgo"
+  ],
+  "consumers": [
+    "Algorithm3.3 capped recursive execution and Theorem6.5 ideal comparison law"
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib StateDependentRGO actual joint posterior recovery",
+      "Samplinglib recursive/log-depth source cells: scalar depth facts do not construct program laws",
+      "Mathlib Kernel.partialTraj, map_partialTraj_succ_self and partialTraj_comp_partialTraj",
+      "Mathlib Kernel.piecewise, composition and powers; measurable product and countable function-space coordinates"
+    ],
+    "classification": "missing",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FiniteRGOProgram.finite_rgo_program",
+    "canonical_shared_cell": ""
+  },
+  "evidence": {
+    "focused_checks": [
+      {
+        "command": "lake build Tests.SmoothedPicardHMCFiniteRGOProgram",
+        "result": "PASS3752, exit0, only existing parent lint",
+        "hashes": {
+          "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/FiniteRGOProgram.lean": "ec3f050f15e82fc77248dcc4eec66c55998f883df33db2e732b7c3019030e5ac",
+          "Tests/SmoothedPicardHMCFiniteRGOProgram.lean": "0e3991dd9fc8a5ca32a43b6b6e3cc18cdaa0ffe4b36c3e755cc4afdb1318f381"
+        }
+      }
+    ],
+    "proof_plan": "proof-blueprints/SPHMC-finite-rgo-program.md",
+    "planning_review": "Independent source review requires explicit actual state update and trajectory consumer, not only abstract recovery. Include terminal absorbing branch to avoid identifying forced recursion with source stopping.",
+    "execution_boundary": "FiniteRGOProgram actually merged PR271; stabilization lane released. StoppedRGODepth remains EXPLORING.",
+    "independent_proof_review": "runs/20260911-companion-priority/finite-rgo-program.independent-proof-review.json",
+    "admission_boundary": "VERIFIED at 13a8921; no aggregate or reader integration admission yet.",
+    "independent_verification": "runs/20260911-companion-priority/finite-rgo-program.verified-admission.json",
+    "integration_merge": {
+      "pr": "https://github.com/DakeBU/Auto-Sampling-Theory-In-Sleep/pull/271",
+      "commit": "5157526e0824d4f20b1687f97cc4b4acf096853c",
+      "candidate": "045fbd548f5d2342d4790325392f02f9b6f09781",
+      "merged_at": "2026-09-11T06:44:30Z",
+      "candidate_ci": {
+        "lean": "34569959193 SUCCESS",
+        "site": "34569959072 SUCCESS; PR deploy skipped"
+      },
+      "fixed_local_qa": {
+        "commit": "045fbd548f5d2342d4790325392f02f9b6f09781",
+        "aggregate": {
+          "status": "passed",
+          "jobs": 9132,
+          "source_digest": "7ff4690d15ec90efb2c9a8e433cc97b81da87b30b32bf81863a6d7df0aa3e8a1",
+          "log": ".astis/finite-rgo-aggregate.log"
+        },
+        "site": {
+          "status": "passed",
+          "modules": 602,
+          "declarations": 3681,
+          "reviewed_teaching": 77
+        },
+        "graph": {
+          "status": "checked",
+          "report": ".astis/finite-rgo-graph-check.json",
+          "boundary": "Reference/correspondence edges are not elaborated dependency certificates."
+        },
+        "browser": {
+          "entry": "example-cases/samplewiki/companions/smoothed-picard-hmc.html#sphmc-finite-rgo-program",
+          "steps": 5,
+          "initially_closed_disclosures": 8,
+          "clicked": [
+            "Lean statement",
+            "Lean proof",
+            "Source and reuse"
+          ],
+          "statement_characters": 1620,
+          "proof_characters": 11361,
+          "math_errors": 0,
+          "screenshot": "Entry title, attribution and statement visually inspected in actual browser screenshot.",
+          "card": "modules/autosamplingtheory-examplecases-smoothedpicardhmc-finitergoprogram.html#decl-autosamplingtheory-examplecases-smoothedpicardhmc-finitergoprogram-finit-cc53ecdb85",
+          "card_labels": [
+            "Compiled",
+            "Not mapped"
+          ],
+          "displayed_commit": "045fbd548f5d",
+          "boundary": "Local fixed-source QA; no deployed provenance claim."
+        }
+      },
+      "independent_merge_review": "depth_commit_verifier independently accepted the exact candidate, canonical gate9132 and source digest, unchanged VERIFIED production/test, reviewed source binding, preserved root imports, site and graph evidence, and same-head completed Lean/Site CI. Root rechecked MERGEABLE and candidate before match-head merge.",
+      "post_merge": "Merge CI and deployed provenance pending; local QA and candidate CI are not deployment evidence.",
+      "truth_boundary": "Finite capped state execution with a supplied terminal kernel even when the cap is reached before the threshold. No claim that the cap reaches the source stopping depth, that arbitrary initial count/history is valid, or that the state path is a query execution record. Concrete smoothed sampler and FORS, source parameter selection, approximation errors and expected query costs remain separate. Ideal terminal L=T is an oracle comparison."
+    }
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv:2609.06906v1",
+    "primary_anchor": "Algorithm3.3 and Theorem6.5",
+    "detail_status": "omitted",
+    "gap": "Actual measurable capped recursive program, finite path law and ideal recovery under the changing target.",
+    "consulted": [
+      {
+        "source": "https://arxiv.org/html/2609.06906v1#S6.SS3",
+        "anchor": "Recursive stages and terminal FORS call",
+        "hypothesis_adapter": "Terminal A<=Aunderline becomes precision b>=1/Aunderline. Current-state positive variance may depend on history; finite cap retains unresolved continuation."
+      }
+    ],
+    "fidelity_boundary": "Finite capped unfolding with explicit absorbing terminal branch. At the cap the remaining call is represented by supplied L. The theorem does not prove that the cap exceeds the source stopping depth, implement FORS or the approximate smoothed sampler, or prove accuracy or expected query cost. Ideal L=T is an oracle comparison only. State stores finite history via count and padded sequence; source reference-point and accuracy parameter validity, and a=(eta+tau)/beta_A, remain explicit later instantiations."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "reason": "Actual recursive program/trajectory semantics with source posterior consistency; no new conceptual transport claimed."
+  }
+}

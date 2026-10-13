@@ -1,0 +1,19 @@
+from pathlib import Path
+import json,hashlib,datetime
+R=Path('E:/Samplinglib');r=Path(__file__).parent;pre=r.parent/'pbps-conditional-next-wait-preread88'
+load=lambda p:json.loads(p.read_bytes());sha=lambda b:hashlib.sha256(b).hexdigest()
+def pin(p):return dict(path=p.relative_to(R).as_posix(),raw_sha256=sha(p.read_bytes()),bytes=p.stat().st_size)
+def new(p,x):assert not p.exists(),p;p.write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
+paths=['Libraries/conceptual-mirror-protocol.json','website/content/graph_memory_index.json','website/content/functor_hypergraph.json','Libraries/frontloaded-shared-spine.json']
+docs=[load(R/p) for p in paths]
+audit=dict(status='none-found',discovery_ids=[],checked=[pin(R/p) for p in paths],reason='History-dependent survival is an actual PBPS adapter of existing measurable pushforward/product-section integration and deterministic hazard survival. The generic integration mechanism already exists in pinned Mathlib; no new source-backed transport between distinct metrics, energies, oracles or domains was discovered. No conceptual analogy is promoted to a formal dependency.',utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
+new(r/'conceptual-mirror-audit88.json',audit)
+cp=R/'research-wiki/frontier-cells/ASTIS-SW-PBPS-actual-conditional-next-wait-survival.json';c=load(cp);new(r/'cell.before-conceptual-audit88.json',c);c['conceptual_mirror_audit']=audit;cp.write_text(json.dumps(c,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
+baseline=load(pre/'pre-fetch88.workspace-RAW.json')['tracked_modified']
+for p,h in baseline.items():assert sha((R/p).read_bytes())==h,p
+checks=[]
+for p in sorted((r/'focused').glob('*/receipt.json')):
+ x=load(p);checks.append(dict(receipt=pin(p),exit_code=x['exit_code']))
+new(r/'compiler-diagnosis88.json',dict(failure_class='API_BLOCKED',resolved=True,seal_changed=False,checks=checks,diagnoses=['Attempts1/2: elaborator attempted inversion/unfolding of long literal hittingAfter under implicit Measurable.comp input, deterministic heartbeat timeout.','Attempt3 explicitly supplied wrong implicit parameter g; pinned signature showed inner function parameter is f. This attempt is retained without progress credit.','Attempts4/5: product-distributed sum recursion required explicit function equality; NNReal.zero_le takes implicit value; strict stopped comparison and composition simplification required explicit reductions. Attempt5 fixed only fiber definitional equality before complete diagnostic read; remaining errors retained.','Attempt6: explicit inner composition f, casewise equality for sum-product observable, nonnegative strict endpoint, Function.comp_def and exact fiber set equality closed all errors. No higher heartbeat increase, source mutation or repeated unchanged fourth route.'],salvage=dict(status='completed',promoted_fragments=['All corrected event/weight/fiber/integration derivations included in compiled public88.'],discarded_fragments=[],reason='No mathematical route or source claim retired by elaboration errors.'),final_receipt=pin(r/'focused/production6-sum-observable-equality/receipt.json')))
+new(r/'checkpoint.compiled88.json',dict(status='WHOLE_SEALED_PUBLIC_ANCHOR_COMPILED_INDEPENDENT_BODY_REVIEWS_PENDING',utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),module=pin(R/'AutoSamplingTheory/ExampleCases/ProximalBPS/ActualConditionalNextWaitSurvival.lean'),reader_publication_draft=True,exact_BODY_regions=5,independent_math='/root/exact_verify77 pending',source_blind_decoder='/root/blind_decoder88 pending',source_review='/root/fresh_source87 pending',collaborator_RAW_preservation_count=len(baseline),PROVED_LOCAL=False,VERIFIED=False,stabilized=False,purified=False,Goal_complete=False))
+print('88 compiled checkpoint, conceptual audit and resolved API diagnosis recorded;21 RAWs preserved.')

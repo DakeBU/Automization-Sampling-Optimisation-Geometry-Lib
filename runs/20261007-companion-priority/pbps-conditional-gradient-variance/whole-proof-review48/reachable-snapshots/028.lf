@@ -1,0 +1,169 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedGradient
+import Mathlib.Analysis.Calculus.ContDiff.Convolution
+import Mathlib.Analysis.Calculus.BumpFunction.Convolution
+import Mathlib.MeasureTheory.Integral.DominatedConvergence
+
+/-!
+# Compact C1 functions belong to the same closed gradient graph
+
+Analytic prerequisite for PBPS arXiv:2609.06905v1 Appendix C.1 and the
+SPHMC2609.06906v1 Section4.1 BL route. Actual normalized compact mollifiers
+jointly approximate a function and its genuine gradient. A finite measure
+allows bounded dominated convergence; no uniform support/domain certificate
+is assumed. The original exact compact smooth graph is retained.
+
+Finite-dimensional real Borel Hilbert spaces include dimension zero.
+This is not local H2, a generator core, global Bochner, Poincare or BL.
+-/
+set_option autoImplicit false
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactC1GradientDomain
+open MeasureTheory ContinuousLinearMap Filter InnerProductSpace ProbabilityTheory
+open scoped Convolution Topology ContDiff RealInnerProductSpace NNReal
+noncomputable section
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private theorem mollifier_fderiv {f : E → ℝ} (hf : ContDiff ℝ 1 f)
+    (hc : HasCompactSupport f) (φ : ContDiffBump (0:E)) :
+    let g := (φ.normed volume ⋆[lsmul ℝ ℝ, volume] f)
+    ContDiff ℝ ∞ g ∧ HasCompactSupport g ∧
+      fderiv ℝ g = φ.normed volume ⋆[lsmul ℝ ℝ, volume] (fderiv ℝ f) := by
+  let g := (φ.normed volume ⋆[lsmul ℝ ℝ, volume] f)
+  refine ⟨φ.hasCompactSupport_normed.contDiff_convolution_left (lsmul ℝ ℝ)
+      φ.contDiff_normed hf.continuous.locallyIntegrable,
+    φ.hasCompactSupport_normed.convolution (lsmul ℝ ℝ) hc,?_⟩
+  funext x
+  have hd := hc.hasFDerivAt_convolution_right (μ := (volume : Measure E)) (lsmul ℝ ℝ)
+    (φ.integrable_normed (μ := (volume : Measure E))).locallyIntegrable hf x
+  rw [hd.fderiv]
+  congr 1
+
+
+private theorem mollifier_squared_error {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] [CompleteSpace F] (μ : Measure E) [IsFiniteMeasure μ]
+    {h : E → F} (hh : Continuous h) {C : ℝ} (hC : ∀ x, ‖h x‖≤C)
+    (φ : ℕ → ContDiffBump (0:E))
+    (hφ : Tendsto (fun n => (φ n).rOut) atTop (𝓝 0)) :
+    Tendsto (fun n => ∫ x, ‖((φ n).normed volume ⋆[lsmul ℝ ℝ, volume] h) x-h x‖^2 ∂μ)
+      atTop (𝓝 0) := by
+  let g := fun n => (φ n).normed volume ⋆[lsmul ℝ ℝ, volume] h
+  have hc : 0≤C := (norm_nonneg (h (0:E))).trans (hC _)
+  have hg (n : ℕ) : Continuous (g n) :=
+    (φ n).hasCompactSupport_normed.continuous_convolution_left (lsmul ℝ ℝ)
+      (φ n).continuous_normed hh.locallyIntegrable
+  have hb (n : ℕ) (x : E) : ‖g n x‖≤C := by
+    have ht := dist_convolution_le (μ := (volume : Measure E)) (x₀ := x) (z₀ := (0:F)) hc
+      (φ n).support_normed_eq.subset (φ n).nonneg_normed (φ n).integral_normed
+      hh.aestronglyMeasurable (fun t _ => by simpa only [dist_zero_right] using hC t)
+    simpa only [dist_zero_right] using ht
+  have he := tendsto_integral_of_dominated_convergence (μ := μ)
+    (F := fun n x => ‖g n x-h x‖^2) (f := fun _ => (0:ℝ))
+    (fun _ => (2*C)^2)
+    (fun n => ((hg n).sub hh).norm.pow 2 |>.aestronglyMeasurable)
+    (integrable_const _) (fun n => by
+      filter_upwards with x
+      rw [Real.norm_eq_abs,abs_of_nonneg (sq_nonneg _)]
+      apply (sq_le_sq₀ (norm_nonneg _) (by positivity)).2
+      exact (norm_sub_le _ _).trans (by linarith [hb n x,hC x])) (by
+      filter_upwards with x
+      have ht := ContDiffBump.convolution_tendsto_right_of_continuous
+        (μ := (volume : Measure E)) hφ hh x
+      simpa only [g,sub_self,norm_zero,zero_pow (by norm_num : (2:ℕ)≠0)] using
+        ((ht.sub (tendsto_const_nhds : Tendsto (fun _ : ℕ => h x) atTop (𝓝 (h x)))).norm.pow 2))
+  simpa only [integral_zero] using he
+
+
+private theorem compact_c1_approximation (μ : Measure E) [IsFiniteMeasure μ]
+    {f : E → ℝ} (hf : ContDiff ℝ 1 f) (hc : HasCompactSupport f)
+    (φ : ℕ → ContDiffBump (0:E))
+    (hφ : Tendsto (fun n => (φ n).rOut) atTop (𝓝 0)) :
+    let g := fun n => (φ n).normed volume ⋆[lsmul ℝ ℝ, volume] f
+    (∀ n, ContDiff ℝ ∞ (g n) ∧ HasCompactSupport (g n)) ∧
+      Tendsto (fun n => ∫ x, ‖g n x-f x‖^2 ∂μ) atTop (𝓝 0) ∧
+      Tendsto (fun n => ∫ x, ‖fderiv ℝ (g n) x-fderiv ℝ f x‖^2 ∂μ) atTop (𝓝 0) := by
+  let g := fun n => (φ n).normed volume ⋆[lsmul ℝ ℝ, volume] f
+  obtain ⟨C,hC⟩ := hf.continuous.norm.bddAbove_range_of_hasCompactSupport hc.norm
+  have hCb (x : E) : ‖f x‖≤C := hC ⟨x,rfl⟩
+  have hd := hf.continuous_fderiv one_ne_zero
+  obtain ⟨B,hB⟩ := hd.norm.bddAbove_range_of_hasCompactSupport (hc.fderiv ℝ).norm
+  have hBb (x : E) : ‖fderiv ℝ f x‖≤B := hB ⟨x,rfl⟩
+  have hgi (n : ℕ) := mollifier_fderiv hf hc (φ n)
+  refine ⟨fun n => ⟨(hgi n).1,(hgi n).2.1⟩,
+    mollifier_squared_error μ hf.continuous hCb φ hφ,?_⟩
+  have he := mollifier_squared_error μ hd hBb φ hφ
+  convert he using 1
+  funext n
+  dsimp only [g]
+  rw [(hgi n).2.2]
+
+
+private theorem l2_convergence {F : Type*} [NormedAddCommGroup F]
+    [InnerProductSpace ℝ F] [CompleteSpace F] (μ : Measure E)
+    (g : ℕ → E → F) (f : E → F) (hg : ∀ n, MemLp (g n) 2 μ) (hf : MemLp f 2 μ)
+    (he : Tendsto (fun n => ∫ x, ‖g n x-f x‖^2 ∂μ) atTop (𝓝 0)) :
+    Tendsto (fun n => (hg n).toLp (g n)) atTop (𝓝 (hf.toLp f)) := by
+  have hn (n : ℕ) : ‖(hg n).toLp (g n)-hf.toLp f‖ =
+      Real.sqrt (∫ x, ‖g n x-f x‖^2 ∂μ) := by
+    rw [norm_eq_sqrt_re_inner (𝕜 := ℝ), L2.inner_def]
+    congr 1
+    apply integral_congr_ae
+    filter_upwards [Lp.coeFn_sub ((hg n).toLp (g n)) (hf.toLp f),
+      (hg n).coeFn_toLp, hf.coeFn_toLp] with x hs hx hy
+    simp only [hs,Pi.sub_apply,hx,hy,real_inner_self_eq_norm_sq]
+  rw [tendsto_iff_dist_tendsto_zero]
+  simp_rw [dist_eq_norm,hn]
+  simpa only [Real.sqrt_zero] using he.sqrt
+
+
+theorem compact_c1_in_closed_gradient (μ : Measure E) [IsFiniteMeasure μ]
+    (D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E 2 μ) (hD : D.IsClosable)
+    (hgraph : ∀ (a : Lp ℝ 2 μ) (H : Lp E 2 μ), (a,H) ∈ D.graph ↔
+      ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
+        a =ᵐ[μ] φ ∧ H =ᵐ[μ] gradient φ)
+    {f : E → ℝ} (hf : ContDiff ℝ 1 f) (hc : HasCompactSupport f) :
+    ∃ hp : MemLp f 2 μ, ∃ hq : MemLp (gradient f) 2 μ,
+      (hp.toLp f,hq.toLp (gradient f)) ∈ D.closure.graph := by
+  let φ : ℕ → ContDiffBump (0:E) := fun n =>
+    { rIn := ((n:ℝ)+1)⁻¹, rOut := 2*((n:ℝ)+1)⁻¹,
+      rIn_pos := by positivity,
+      rIn_lt_rOut := by
+        have h : 0<((n:ℝ)+1)⁻¹ := by positivity
+        linarith }
+  have hφ : Tendsto (fun n => (φ n).rOut) atTop (𝓝 0) := by
+    have ht : Tendsto (fun n : ℕ => ((n:ℝ)+1)⁻¹) atTop (𝓝 0) :=
+      tendsto_inv_atTop_zero.comp
+        (tendsto_atTop_add_const_right atTop (1:ℝ) tendsto_natCast_atTop_atTop)
+    simpa only [mul_zero] using ht.const_mul 2
+  let g := fun n => (φ n).normed volume ⋆[lsmul ℝ ℝ, volume] f
+  obtain ⟨hgi,hgf,hgd⟩ := compact_c1_approximation μ hf hc φ hφ
+  have gradCont (a : E → ℝ) (ha : ContDiff ℝ 1 a) : Continuous (gradient a) :=
+    (toDual ℝ E).symm.continuous.comp (ha.continuous_fderiv one_ne_zero)
+  have gradComp (a : E → ℝ) (ha : HasCompactSupport a) : HasCompactSupport (gradient a) := by
+    refine HasCompactSupport.of_support_subset_isCompact ha.isCompact ?_
+    intro x hx
+    by_contra hn
+    exact hx (by simp [gradient,fderiv_of_notMem_tsupport ℝ hn])
+  have hp := hf.continuous.memLp_of_hasCompactSupport (μ := μ) hc (p := 2)
+  have hq := (gradCont f hf).memLp_of_hasCompactSupport (μ := μ) (gradComp f hc) (p := 2)
+  have hgp (n) := (hgi n).1.continuous.memLp_of_hasCompactSupport (μ := μ) (hgi n).2 (p := 2)
+  have hgq (n) := (gradCont (g n) (contDiff_infty.mp (hgi n).1 1)).memLp_of_hasCompactSupport
+    (μ := μ) (gradComp (g n) (hgi n).2) (p := 2)
+  have htq : Tendsto (fun n => ∫ x, ‖gradient (g n) x-gradient f x‖^2 ∂μ) atTop (𝓝 0) := by
+    convert hgd using 1
+    funext n
+    apply integral_congr_ae
+    filter_upwards [] with x
+    simp only [gradient,← map_sub,(toDual ℝ E).symm.norm_map]
+    rfl
+  have htp := l2_convergence μ g f hgp hp hgf
+  have htq' := l2_convergence μ (fun n => gradient (g n)) (gradient f) hgq hq htq
+  refine ⟨hp,hq,?_⟩
+  rw [← hD.graph_closure_eq_closure_graph]
+  apply D.graph.isClosed_topologicalClosure.mem_of_tendsto (htp.prodMk_nhds htq')
+  filter_upwards [] with n
+  apply D.graph.le_topologicalClosure
+  exact (hgraph _ _).mpr ⟨g n,(hgi n).1,(hgi n).2,(hgp n).coeFn_toLp,(hgq n).coeFn_toLp⟩
+
+
+end
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactC1GradientDomain

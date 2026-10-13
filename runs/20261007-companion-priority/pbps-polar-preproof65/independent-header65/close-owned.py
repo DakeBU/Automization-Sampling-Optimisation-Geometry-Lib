@@ -1,0 +1,13 @@
+import os,json,hashlib,datetime
+from pathlib import Path
+O=Path(__file__).resolve().parent
+def sha(b):return hashlib.sha256(b).hexdigest()
+def load(n):return json.loads((O/n).read_text(encoding='utf-8-sig'))
+def write(n,v):(O/n).write_bytes((json.dumps(v,ensure_ascii=False,sort_keys=True,indent=2)+'\n').encode())
+assert not (O/'lease.final.json').exists();fr=load('foreground-finalizer.receipt.json');rr=load('foreground-readback.receipt.json');assert fr['exit_code']==rr['exit_code']==0 and fr['foreground_waited'] and rr['foreground_waited'];run=load('review-run.json');z=dict(run);del z['run_sha256'];assert sha(json.dumps(z,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode())==run['run_sha256'];rb=load('raw-review-binding.json');assert sha((O/'review-run.json').read_bytes())==rb['raw_sha256']
+files=[]
+for p in sorted(O.iterdir()):
+ assert p.is_file();b=p.read_bytes();lf=b.replace(b'\r\n',b'\n').replace(b'\r',b'\n');files.append({'filename':p.name,'raw_bytes':len(b),'raw_sha256':sha(b),'lf_bytes':len(lf),'lf_sha256':sha(lf)})
+m={'schema':'header65-exhaustive-owned-manifest-v1','all_preclosure_owned_files':files,'final_owned_file_count':len(files)+2,'closure_files':[{'filename':'owned-manifest.json','role':'This complete manifest; exact bytes externally pinned by read-only postclose terminal capsule; no impossible self-hash claimed.'},{'filename':'lease.final.json','role':'Last owned write; pins manifest RAW hash and actual close PID; exact bytes externally pinned by postclose capsule.'}],'all_negatives_included':True,'whole_logical_run_sha256':run['run_sha256'],'complete_named_RAW_REVIEW_payload':rb,'actual_close_pid':os.getpid(),'actual_finalizer_pid':fr['actual_pid'],'actual_readback_pid':rr['actual_pid']};write('owned-manifest.json',m)
+l={'schema':'header65-owned-lease-v1','status':'CLOSED_LAST','owner':'/root/independent_source64','owned_root':O.as_posix(),'closed_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'actual_close_pid':os.getpid(),'actual_close_parent_pid':os.getppid(),'actual_finalizer_pid':fr['actual_pid'],'actual_readback_pid':rr['actual_pid'],'finalizer_and_readback_exit_code':0,'run_sha256':run['run_sha256'],'complete_RAW_REVIEW_sha256':rb['raw_sha256'],'owned_manifest_RAW_sha256':sha((O/'owned-manifest.json').read_bytes()),'final_owned_file_count':len(files)+2,'last_owned_write':True,'postclose_policy':'READ_ONLY'};write('lease.final.json',l)
+print(json.dumps({'status':'CLOSED_LAST','actual_close_pid':os.getpid(),'actual_close_parent_pid':os.getppid(),'owned_file_count':len(files)+2,'manifest_RAW_sha256':sha((O/'owned-manifest.json').read_bytes()),'lease_RAW_sha256':sha((O/'lease.final.json').read_bytes())},sort_keys=True))

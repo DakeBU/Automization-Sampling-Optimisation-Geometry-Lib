@@ -1,0 +1,63 @@
+from pathlib import Path
+import copy,hashlib,json,sys
+root=Path.cwd();r=Path(__file__).resolve().parent.relative_to(root.resolve());pre=r.parent/'pbps-weighted-density-preread101'
+sys.path.insert(0,str(root/'tools'))
+import astis_semantic_roundtrip as rt
+import astis_publication as pub
+load=lambda p:json.loads(Path(p).read_bytes())
+sha=lambda b:hashlib.sha256(b).hexdigest()
+def save(p,v):
+ p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(v,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
+def fresh(p,v):
+ assert not p.exists(),p
+ save(p,v)
+def pin(p):
+ p=Path(p);b=p.read_bytes();return dict(path=p.as_posix(),raw_sha256=sha(b),bytes=len(b))
+claim=load(r/'claim.json');decl=claim['target_declarations'][0];file=claim['proposed_files'][0];cid=claim['frontier_cell']
+module=Path(file);s=module.read_text(encoding='utf8');raw=module.read_bytes();receipt=r/'focused101/production2-private/receipt.json'
+check=load(receipt);assert check['exit_code']==0 and check['input_raw_sha256']==sha(raw)
+literal=s.split('private def actual_prescribed_weighted_density_statement',1)[1].split('/-- Weight matching',1)[0].strip()
+seal=load(pre/'root.statement-seal101.json');assert literal==seal['expanded_literal_Prop'].strip()
+binders,body=literal.split(' : Prop :=',1);body=body.removeprefix(' by\n  classical\n  exact\n');statement_lean=binders+' :\n'+body
+old=load(r.parent/'pbps-actual-prescribed-path-density94/authored-statement94.json')['statement']
+restatement=old.split('Then lambda_r')[0]+"""Define momentum reversal R(x,p)=(x,-p), target energy U_y(x,p)=V(x)+||x-y||^2/(2 eta)+||p||^2/2 and unnormalized Gibbs weight w_y(z)=exp(-U_y(z)). For any actual initial state z and strict event tuple t, let P_(y,r,z,n,T)(t)=product_(i=1)^n lambda_r(Phi_(a_i-a_(i-1))(z_(i-1))), I_(y,r,z,n,T)(t)=integral_0^T lambda_r(gamma(s)) ds and dReal_(y,r,z,n,T)(t)=exp(-I_(y,r,z,n,T)(t))*P_(y,r,z,n,T)(t). The incoming-rate product excludes the terminal arrival. The original ENNReal density rho_n(T,t) remains q_n times the terminal live survival factor defined above; it is not redefined as ofReal(dReal).
+For each n>=0 and T>=0 there exists a single reversal map rho:Prefix_n(T)->Prefix_n(T), with (rho(t))_i=T-t_(n+1-i) in one-based coordinates. For every y,r,z and strict tuple t, let A=Gamma_(y,r,z,n,T,t)(T). Then both identities hold:
+w_y(z) dReal_(y,r,z,n,T)(t) = w_y(R(A)) dReal_(y,r,R(A),n,T)(rho(t)),
+ofReal(w_y(z)) rho_(y,r,z,n,T)(t) = ofReal(w_y(R(A))) rho_(y,r,R(A),n,T)(rho(t)).
+The reversal map and all internal identities are produced, not assumed. The six original analytic assumptions are the only analytic premises. There is no positivity/nonzero-rate premise and no cancellation of event rates. The conclusions include n=0 with empty product1, T=0, zero-dimensional phase space, zero normals and zero rates; for T=0 and n>0 the strict event subtype is empty. This is unnormalized pointwise weighted density matching in Appendix A.1, not a weighted integral/sector identity, normalized invariant probability, Markov property, hypocoercivity, implementation error, actual expected cost, paper main result or PBPS/SPHMC composition."""
+attribution='Chen, Chewi, Lu and Zhang, arXiv:2609.06905v1, Eq3.1 and Appendix A.1 Eqs A7/A8. Complete attributed faithful mathematical restatement; explicit actual-density bridge and witness alignment are ASTIS completion, not verbatim source text.'
+context=['Finite-dimensional real inner-product Borel space, including rank zero; real Hilbert gradient and Frechet derivative.', 'Fin n is zero-based; Fin.rev sends i to n-1-i; Fin.cons prepends and Fin.induction recursively constructs a finite sequence; Fin.foldl visits ascending indices.', 'Real division by zero is zero; Real.toNNReal is positive part; nonnegative subtraction is truncated; Sum.inl is a live record and Unit is cemetery.', 'The real path extension is clamped to the closed nonnegative horizon; interval integrals use real Lebesgue measure. ENNReal.ofReal maps a real to its positive part in extended nonnegative reals. Literal let definitions are definitions, not supplied hypotheses.']
+aid='ASTIS-RT-20261012-PBPSActualPrescribedWeightedDensity';slug='pbps-actual-prescribed-weighted-density';title='Actual PBPS weighted density under finite path reversal'
+audit=dict(id=aid,state='draft',source=dict(source_id='companion-domain:'+slug,anchor=claim['source_anchor'],url='https://arxiv.org/html/2609.06905v1#A1.E8',original_text=restatement,text_sha256=sha(restatement.encode())),lean=dict(statement=statement_lean.strip(),statement_sha256=sha(statement_lean.strip().encode()),compiled=True,decoder_context=context,declaration=decl,file=file,formalizer='companion_root_20261005',compiler_evidence=receipt.as_posix()),source_review=dict(state='pending'),repairs=[])
+ap=Path('research-wiki/semantic-roundtrip/audits')/f'{aid}.json';fresh(ap,audit)
+packet=rt.decoder_packet(audit);out=Path('runs/semantic-roundtrip/anonymous101/input.json');fresh(out,packet)
+fresh(r/'authored-statement101.json',dict(statement=restatement,attribution=attribution))
+cp=Path('research-wiki/frontier-cells')/f'{cid}.json';cell=load(cp);parents=cell['parents']
+cell['evidence']['whole_target_compiled']=pin(module);cell['evidence']['focused_checks']=[receipt.as_posix()]
+cell['blocked']['reason']='Full sealed actual target compiles; independent whole math, anonymous decoding and source/exposition reviews pending.'
+cell['purification']['dead_code_audit']='Single public theorem consumes four public actual producers94/98/99/100 and its literal private statement; no unused helper or mangled private API.'
+save(cp,cell)
+def step(title,text,formula,start,end):
+ a=s.index(start);b=s.index(end,a);code=s[a:b]
+ return dict(title=title,text=text,formula=formula,lean=code,detail='Exact compiled region. Each producer premise is discharged by the original assumptions; no proof ingredient is a new public binder.',lean_source_region=dict(path=file,source_raw_sha256=sha(raw),start_line=s[:a].count('\n')+1,end_line=s[:b].count('\n'),exact_code_raw_sha256=sha(code.encode())))
+steps=[
+ step('Choose one reversed event tuple','The path and state reversal producers each return a map with the same exact coordinate formula. Function and subtype extensionality identify the two maps; the resulting witness serves every parameter and initial state.',r'\rho(t)_i=T-t_{n-1-i},\quad\rho_{99}=\rho_{100}.','theorem actual_prescribed_weighted_density_balance','  -- Incoming rates'),
+ step('Match the incoming event-rate product','The finite state reversal result pairs incoming rates after reversing the event order. Simplifying the prepended/appended grid indices gives equality of the literal P products. Zero factors and the empty product remain valid.',r'P_{R A,\rho(t)}=P_{z,t}.','  -- Incoming rates','  -- The reversed survival'),
+ step('Identify the reversed survival integral','Apply the actual off-event path reversal and its proved scalar integral substitution. Internal jumps form a finite null set; no pointwise equality at the jumps is needed in this integral identity.',r'I_{R A,\rho(t)}=\int_0^T\lambda_r(R\gamma(s))\,ds.','  -- The reversed survival','  -- Gibbs survival'),
+ step('Combine target energy and survival','The Gibbs survival producer gives w(z) exp(-Iplus)=w(A) exp(-Iminus). Momentum reversal leaves position and squared momentum norm unchanged, so U(RA)=U(A). Substitute the reversed integral from the preceding step.',r'w(z)e^{-I_{z,t}}=w(RA)e^{-I_{RA,\rho(t)}}.','  -- Gibbs survival','  -- Multiply by'),
+ step('Attach the common rate product','Multiply the survival identity by the incoming-rate product and reassociate multiplication. This proves the real weighted density identity without division or a positive-rate assumption.',r'w(z)d^{\mathrm{real}}_{z,t}=w(RA)d^{\mathrm{real}}_{RA,\rho(t)}.','  -- Multiply by','  -- Reconnect both'),
+ step('Recover the actual algorithmic density','Apply the actual prescribed-density theorem at both inputs to rewrite q times terminal survival as ofReal(dReal). Apply ofReal to the real identity and distribute it over the products using nonnegativity of exp(-U). The final identity is about the original actual ENNReal density.',r'\operatorname{ofReal}(w(z))\rho_{z,t}=\operatorname{ofReal}(w(RA))\rho_{RA,\rho(t)}.','  -- Reconnect both','\n#print axioms')]
+assumptions=['Finite-dimensional real inner-product Borel E, including rank zero.','alpha,beta>=0; alpha>0; alpha<=beta; V is C2; alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v; eta>0; beta*eta<=1.','Every finite n>=0,T>=0; the same produced event-time reversal works for all y,r,z,t. Zero rates and normals are allowed.','Exact actual rho=q*terminalweight, actual finite flow/reflection recursion and clamped path; no supplied reversal, product, energy, density or integrability assumption.']
+source=dict(url=audit['source']['url'],edition='arXiv2609.06905v1',anchor=claim['source_anchor'],wording_status='faithful paraphrase',attribution=attribution)
+deltas=[dict(source='Appendix A1 A7/A8 weighted prescribed density.',lean='Real weighted density and original ENNReal density match under actual reversal.',classification='source-implicit',reason='Explicit actual bridge, witness alignment and zero-rate handling.'),dict(source='Finite Euclidean phase.',lean='Finite real Hilbert Borel E including rank zero.',classification='generalization',reason='Coordinate-free source formulation.'),dict(source='Original sampler assumptions.',lean='All six analytic assumptions retained.',classification='same',reason='All producer ingredients are proved internally.'),dict(source='Full stationary integral and normalized invariant law.',lean='Only pointwise unnormalized weighted-density matching.',classification='unresolved',reason=claim['truth_boundary'])]
+item=dict(id=slug,library='pbps',chapter='pbps-01',chapter_path='example-cases/samplewiki/companions/proximal-bouncy-particle.html',title=title,source=source,statement=restatement,assumptions=assumptions,formulae=[dict(label='Actual weighted density matching',tex=steps[-1]['formula'])],obligations=[dict(id='weighted-density-matching',label='Actual weighted density matching'),dict(id='weighted-invariance',label='Weighted reversal and invariant probability')],bindings=[dict(declaration=decl,cell=cid,role='proof-edge',supports=['weighted-density-matching'],audit_id=aid,boundary=claim['truth_boundary'],assumption_deltas=deltas)])
+for key in ['declaration_level','statement_seal','source_proof_coverage','proof_digestion','purification']:item[key]=copy.deepcopy(cell[key])
+unit=dict(kind='theorem',declaration=decl,title=title,sources=[dict(url=source['url'],label=source['anchor'],scope=claim['truth_boundary'])],tests=claim['focused_checks'],assumptions=assumptions,statement=restatement,formula=steps[-1]['formula'],boundary=claim['truth_boundary'],steps=steps,lean_statement=restatement,lean_proof='; '.join(x['title'] for x in steps),helpers=[decl.rsplit('.',1)[0]+'.actual_prescribed_weighted_density_statement'],astis_dependencies=parents,mathlib_dependencies=['Subtype.ext','Fin.snoc_castSucc','Fin.cons_succ','norm_neg','mul_assoc','Real.exp_nonneg','ENNReal.ofReal_mul'])
+pp=Path('website/content/publications')/f'{slug}.json';lp=Path('website/content/declaration_lessons')/f'{slug}.json';fresh(pp,dict(schema_version=1,items=[item]));fresh(lp,dict(schema_version=1,units=[unit]))
+pub.inputs.cache_clear();pub.load.cache_clear();audit['publication_binding_sha256']=pub.binding_digest(item,item['bindings'][0],pub.inputs());audit['publication_context']=pub.review_context(item,item['bindings'][0],pub.inputs())
+start=s.index('theorem actual_prescribed_weighted_density_balance');stop=s.index(':= by\n',start)
+audit['lean']['statement_representation']=dict(kind='exact-literal-Prop-expansion',actual_header=s[start:stop],private_definition='def actual_prescribed_weighted_density_statement'+literal,expanded_header='theorem actual_prescribed_weighted_density_balance'+statement_lean,source_approved_overlay=(pre/'root.statement-seal101.json').as_posix(),kernel_header_and_literal_expansion_checked=False)
+assert rt.decoder_packet(audit)==packet;save(ap,audit)
+fresh(r/'publication-freeze101.json',dict(status='DRAFT_PENDING_INDEPENDENT_MATH_DECODER_SOURCE_EXPOSITION',module=pin(module),inputs=[pin(x) for x in [pp,lp,ap]],packet=pin(out),canonical_packet_sha256=packet['packet_sha256'],steps=len(steps),conceptual_mirror_audit=cell['conceptual_mirror_audit'],PROVED_LOCAL=False,VERIFIED=False))
+pub.check_advance([decl],reviewed=False)
+print(json.dumps(dict(packet=pin(out),steps=len(steps),publication_binding_sha256=audit['publication_binding_sha256'])))

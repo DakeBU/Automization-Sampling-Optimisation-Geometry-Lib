@@ -1,0 +1,38 @@
+
+end TypeclassMeasurableSpace
+
+variable {m : MeasurableSpace α}
+
+@[fun_prop]
+theorem Measurable.iterate {f : α → α} (hf : Measurable f) : ∀ n, Measurable f^[n]
+  | 0 => measurable_id
+  | n + 1 => (Measurable.iterate hf n).comp hf
+
+variable {mβ : MeasurableSpace β}
+
+@[measurability]
+theorem measurableSet_preimage {t : Set β} (hf : Measurable f) (ht : MeasurableSet t) :
+    MeasurableSet (f ⁻¹' t) :=
+  hf ht
+
+protected theorem MeasurableSet.preimage {t : Set β} (ht : MeasurableSet t) (hf : Measurable f) :
+    MeasurableSet (f ⁻¹' t) :=
+  hf ht
+
+@[fun_prop]
+protected theorem Measurable.piecewise {_ : DecidablePred (· ∈ s)} (hs : MeasurableSet s)
+    (hf : Measurable f) (hg : Measurable g) : Measurable (piecewise s f g) :=
+  fun t ht => by simpa [piecewise_preimage] using hs.ite (hf ht) (hg ht)
+
+/-- This is slightly different from `Measurable.piecewise`. It can be used to show
+`Measurable (ite (x=0) 0 1)` by
+`exact Measurable.ite (measurableSet_singleton 0) measurable_const measurable_const`,
+but replacing `Measurable.ite` by `Measurable.piecewise` in that example proof does not work. -/
+theorem Measurable.ite {p : α → Prop} {_ : DecidablePred p} (hp : MeasurableSet { a : α | p a })
+    (hf : Measurable f) (hg : Measurable g) : Measurable fun x => ite (p x) (f x) (g x) :=
+  Measurable.piecewise hp hf hg
+
+@[fun_prop]
+theorem Measurable.indicator [Zero β] (hf : Measurable f) (hs : MeasurableSet s) :
+    Measurable (s.indicator f) :=
+  hf.piecewise hs measurable_const

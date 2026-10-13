@@ -1,0 +1,99 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementDerivativeDetPos
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementMapInjectivity
+import Mathlib.MeasureTheory.Function.Jacobian
+
+/-!
+# Change of variables for the interior displacement map
+
+This module is the thin join between three already isolated ASTIS edges and
+Mathlib's higher-dimensional change-of-variables theorem:
+
+* `DisplacementMapDerivative`: the within-set Fréchet derivative of
+  `S_t(x) = (1-t)x + t T(x)`;
+* `DisplacementMapInjectivity`: monotonicity of `T` implies injectivity of
+  `S_t` for `0 <= t < 1`;
+* `DisplacementDerivativeDetPos`: a PSD endpoint derivative makes the interior
+  affine derivative positive definite, so the absolute Jacobian determinant
+  used by Mathlib equals the positive determinant used in the entropy formula.
+
+No change-of-variables theorem is reproved here.  In particular, this file does
+not assert Brenier existence, a.e. differentiability, or PSD Jacobians for an
+optimal transport map; those are source-specific inputs to be supplied later.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementChangeOfVariables
+
+noncomputable section
+
+open MeasureTheory
+open DisplacementMapDerivative
+open DisplacementDerivativeDetPos
+open DisplacementMapInjectivity
+
+variable {E F ι : Type*}
+  [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+  [MeasurableSpace E] [BorelSpace E]
+  [NormedAddCommGroup F] [NormedSpace ℝ F]
+  [Fintype ι] [DecidableEq ι]
+
+/-- Interior displacement change of variables with the absolute Jacobian
+removed.
+
+The endpoint derivative may be only positive semidefinite.  The strict
+`(1-t) I` contribution at `t < 1` makes the displacement derivative positive
+definite, which is exactly enough to rewrite Mathlib's `|det DS_t|` as the
+positive determinant appearing below. -/
+theorem integral_image_affineDisplacementMap_eq_integral_det_smul
+    (μ : Measure E) [MeasureTheory.Measure.IsAddHaarMeasure μ]
+    (b : Module.Basis ι ℝ E)
+    {s : Set E} {T : E → E} {T' : E → E →L[ℝ] E}
+    (hs : MeasurableSet s)
+    (hderiv : ∀ x ∈ s, HasFDerivWithinAt T (T' x) s x)
+    (hmono : IsMonotoneMap T)
+    (hpsd : ∀ x ∈ s,
+      (LinearMap.toMatrix b b (T' x).toLinearMap).PosSemidef)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t < 1) (g : E → F) :
+    ∫ y in affineDisplacementMap T t '' s, g y ∂μ =
+      ∫ x in s,
+        LinearMap.det
+            (affineDisplacementDerivative (T' x) t).toLinearMap •
+          g (affineDisplacementMap T t x) ∂μ := by
+  have hfderiv : ∀ x ∈ s,
+      HasFDerivWithinAt (affineDisplacementMap T t)
+        (affineDisplacementDerivative (T' x) t) s x := by
+    intro x hx
+    exact hasFDerivWithinAt_affineDisplacementMap (hderiv x hx) t
+  have hinj : Set.InjOn (affineDisplacementMap T t) s :=
+    (injective_affineDisplacementMap_of_monotone hmono t ht0 ht1).injOn
+  calc
+    ∫ y in affineDisplacementMap T t '' s, g y ∂μ =
+        ∫ x in s,
+          |(affineDisplacementDerivative (T' x) t).det| •
+            g (affineDisplacementMap T t x) ∂μ :=
+      MeasureTheory.integral_image_eq_integral_abs_det_fderiv_smul
+        (μ := μ) hs hfderiv hinj g
+    _ = ∫ x in s,
+        LinearMap.det
+            (affineDisplacementDerivative (T' x) t).toLinearMap •
+          g (affineDisplacementMap T t x) ∂μ := by
+      apply MeasureTheory.setIntegral_congr_fun hs
+      intro x hx
+      change
+        |LinearMap.det
+            (affineDisplacementDerivative (T' x) t).toLinearMap| •
+              g (affineDisplacementMap T t x) =
+          LinearMap.det
+              (affineDisplacementDerivative (T' x) t).toLinearMap •
+            g (affineDisplacementMap T t x)
+      rw [abs_det_affineDisplacementDerivative_eq_of_posSemidef
+        b (T' x) (hpsd x hx) t ht0 ht1]
+
+end
+
+end DisplacementChangeOfVariables
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

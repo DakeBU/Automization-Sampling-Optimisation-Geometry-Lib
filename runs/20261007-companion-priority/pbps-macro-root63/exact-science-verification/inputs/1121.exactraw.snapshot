@@ -1,0 +1,42 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GlobalItoProcessGluing
+
+/-!
+# Progressive version of the global Itô integral
+
+Chewi's Itô-process definition needs the stochastic integral as a progressive
+process, while Proposition 1.1.16 already gives ASTIS a strongly adapted
+version with continuous paths everywhere. Mathlib's standard adapted +
+continuous theorem closes this bridge without changing the stochastic
+integral construction.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace GlobalItoProcessProgressive
+
+open MeasureTheory
+open scoped NNReal
+
+open BrownianMotion GlobalItoProcessGluing GlobalLocalProgressiveL2 ProgressiveL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- The everywhere-continuous, strongly adapted global Itô integral built for
+Chewi Proposition 1.1.16 is strongly progressive. -/
+theorem globalItoProcess_stronglyProgressive
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    IsStronglyProgressive filtration
+      (globalItoProcess hUsual eta hB) :=
+  (globalItoProcess_stronglyAdapted hUsual eta hB).isStronglyProgressive_of_continuous
+    (globalItoProcess_continuous hUsual eta hB)
+
+end GlobalItoProcessProgressive
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

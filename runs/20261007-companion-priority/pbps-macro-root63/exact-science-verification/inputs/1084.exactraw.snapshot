@@ -1,0 +1,291 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoDoobL2
+import Mathlib.MeasureTheory.Function.LpSeminorm.ChebyshevMarkov
+
+/-!
+# Continuous-time Doob control through dyadic observations
+
+The measurable object in this file is the union of finite dyadic maximal
+events.  For continuous sample paths this event is exactly the event that the
+path exceeds the same threshold somewhere on the compact time interval.  This
+countable presentation avoids assuming that a path-valued Brownian random
+variable has already been constructed.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ContinuousDoobL2
+
+open Filter
+open MeasureTheory Set
+open scoped ENNReal NNReal
+
+open DiscreteDoobL2 ElementaryItoDoobL2
+open FiniteTimeGrid SampledElementaryApproximation
+
+variable {Omega : Type*} {m : MeasurableSpace Omega} {mu : Measure Omega}
+
+/-- The path exceeds `a` on the finite level-`level` dyadic grid. -/
+def dyadicMaxEvent (M : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (a : ℝ) (level : ℕ) :
+    Set Omega :=
+  {omega | a ≤ runningAbsMax
+    (fun k => M (dyadicObservationTime T level k)) (2 ^ level) omega}
+
+/-- The path exceeds `a` on at least one finite dyadic grid. -/
+def dyadicMaxEventAll (M : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (a : ℝ) : Set Omega :=
+  ⋃ level, dyadicMaxEvent M T a level
+
+theorem measurableSet_dyadicMaxEvent
+    {filtration : Filtration ℝ≥0 m} {M : ℝ≥0 → Omega → ℝ}
+    (hM : StronglyAdapted filtration M) (T : ℝ≥0) (a : ℝ) (level : ℕ) :
+    MeasurableSet (dyadicMaxEvent M T a level) := by
+  exact measurableSet_le measurable_const
+    (measurable_runningAbsMax_dyadic hM T level)
+
+theorem measurableSet_dyadicMaxEventAll
+    {filtration : Filtration ℝ≥0 m} {M : ℝ≥0 → Omega → ℝ}
+    (hM : StronglyAdapted filtration M) (T : ℝ≥0) (a : ℝ) :
+    MeasurableSet (dyadicMaxEventAll M T a) := by
+  exact MeasurableSet.iUnion fun level => measurableSet_dyadicMaxEvent hM T a level
+
+theorem monotone_dyadicMaxEvent
+    (M : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (a : ℝ) :
+    Monotone (dyadicMaxEvent M T a) := by
+  apply monotone_nat_of_le_succ
+  intro level omega homega
+  exact homega.trans (runningAbsMax_dyadic_mono_level M T level omega)
+
+private theorem runningAbsMax_nonneg
+    (M : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (level : ℕ) (omega : Omega) :
+    0 ≤ runningAbsMax (fun k => M (dyadicObservationTime T level k))
+      (2 ^ level) omega := by
+  unfold runningAbsMax
+  exact (abs_nonneg (M (dyadicObservationTime T level 0) omega)).trans
+    (Finset.le_sup'
+      (fun k : ℕ => |M (dyadicObservationTime T level k) omega|)
+      (show 0 ∈ Finset.range (2 ^ level + 1) by simp))
+
+/-- Chebyshev combined with finite-grid Doob, in a form stable under taking
+the increasing union of dyadic grids. -/
+theorem pow_mul_measure_dyadicMaxEvent_le
+    [IsFiniteMeasure mu] {filtration : Filtration ℝ≥0 m}
+    {M : ℝ≥0 → Omega → ℝ} (hM : Martingale M filtration mu)
+    (T : ℝ≥0) (a : ℝ) (level : ℕ) :
+    ENNReal.ofReal a ^ (2 : ℝ) * mu (dyadicMaxEvent M T a level) ≤
+      4 * eLpNorm (M T) 2 mu ^ (2 : ℝ) := by
+  let X := runningAbsMax
+    (fun k => M (dyadicObservationTime T level k)) (2 ^ level)
+  have hcheb := mul_meas_ge_le_pow_eLpNorm' mu
+    (p := (2 : ℝ≥0∞)) (by norm_num) (by norm_num)
+    (measurable_runningAbsMax_dyadic hM.stronglyAdapted T level).aestronglyMeasurable
+    (ENNReal.ofReal a)
+  have hset : {omega | ENNReal.ofReal a ≤ ‖X omega‖ₑ} =
+      dyadicMaxEvent M T a level := by
+    ext omega
+    change ENNReal.ofReal a ≤ ‖X omega‖ₑ ↔ a ≤ X omega
+    rw [← ofReal_norm, Real.norm_eq_abs,
+      abs_of_nonneg (runningAbsMax_nonneg M T level omega),
+      ENNReal.ofReal_le_ofReal_iff (runningAbsMax_nonneg M T level omega)]
+  rw [hset] at hcheb
+  calc
+    ENNReal.ofReal a ^ (2 : ℝ) * mu (dyadicMaxEvent M T a level) ≤
+        eLpNorm X 2 mu ^ (2 : ℝ) := by simpa using hcheb
+    _ ≤ (2 * eLpNorm (M T) 2 mu) ^ (2 : ℝ) := by
+      have hdoob : eLpNorm X 2 mu ≤ 2 * eLpNorm (M T) 2 mu := by
+        simpa only [X, dyadicObservationTime_terminal] using
+          doobL2_sampled hM (dyadicObservationTime T level)
+            (dyadicObservationTime_monotone T level) (2 ^ level)
+      exact ENNReal.rpow_le_rpow hdoob (by norm_num)
+    _ = 4 * eLpNorm (M T) 2 mu ^ (2 : ℝ) := by
+      rw [ENNReal.mul_rpow_of_nonneg 2 (eLpNorm (M T) 2 mu) (by norm_num)]
+      norm_num
+
+/-- The same probability bound for exceedance on the union of all dyadic
+observation grids. -/
+theorem pow_mul_measure_dyadicMaxEventAll_le
+    [IsFiniteMeasure mu] {filtration : Filtration ℝ≥0 m}
+    {M : ℝ≥0 → Omega → ℝ} (hM : Martingale M filtration mu)
+    (T : ℝ≥0) (a : ℝ) :
+    ENNReal.ofReal a ^ (2 : ℝ) * mu (dyadicMaxEventAll M T a) ≤
+      4 * eLpNorm (M T) 2 mu ^ (2 : ℝ) := by
+  rw [dyadicMaxEventAll, (monotone_dyadicMaxEvent M T a).measure_iUnion]
+  rw [ENNReal.mul_iSup]
+  exact iSup_le fun level => pow_mul_measure_dyadicMaxEvent_le hM T a level
+
+/-- Divided form of the all-dyadic-grid estimate for a positive threshold. -/
+theorem measure_dyadicMaxEventAll_le
+    [IsFiniteMeasure mu] {filtration : Filtration ℝ≥0 m}
+    {M : ℝ≥0 → Omega → ℝ} (hM : Martingale M filtration mu)
+    (T : ℝ≥0) {a : ℝ} (ha : 0 < a) :
+    mu (dyadicMaxEventAll M T a) ≤
+      (ENNReal.ofReal a ^ (2 : ℝ))⁻¹ *
+        (4 * eLpNorm (M T) 2 mu ^ (2 : ℝ)) := by
+  have hpow0 : ENNReal.ofReal a ^ (2 : ℝ) ≠ 0 := by
+    exact (ENNReal.rpow_pos (ENNReal.ofReal_pos.2 ha) (by simp)).ne'
+  have hpowTop : ENNReal.ofReal a ^ (2 : ℝ) ≠ ∞ := by finiteness
+  have hdiv : mu (dyadicMaxEventAll M T a) ≤
+      (4 * eLpNorm (M T) 2 mu ^ (2 : ℝ)) /
+        (ENNReal.ofReal a ^ (2 : ℝ)) := by
+    apply (ENNReal.le_div_iff_mul_le
+      (a := mu (dyadicMaxEventAll M T a))
+      (b := ENNReal.ofReal a ^ (2 : ℝ))
+      (c := 4 * eLpNorm (M T) 2 mu ^ (2 : ℝ))
+      (Or.inl hpow0) (Or.inl hpowTop)).2
+    simpa only [mul_comm] using pow_mul_measure_dyadicMaxEventAll_le hM T a
+  simpa only [div_eq_mul_inv, mul_comm] using hdiv
+
+/-! ## Continuous paths are detected by the dyadic grids -/
+
+/-- The dyadic cell containing a positive time `t`. -/
+noncomputable def activeCellIndex
+    {T t : ℝ≥0} (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) (level : ℕ) :
+    Fin (2 ^ level) :=
+  Classical.choose (dyadic_activeCell hT level ht htT)
+
+theorem activeCellIndex_spec
+    {T t : ℝ≥0} (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) (level : ℕ) :
+    regularGridTimes (dyadicMesh T level) (2 ^ level)
+        (activeCellIndex hT ht htT level).castSucc < t ∧
+      t ≤ regularGridTimes (dyadicMesh T level) (2 ^ level)
+        (activeCellIndex hT ht htT level).succ :=
+  (Classical.choose_spec (dyadic_activeCell hT level ht htT)).1
+
+/-- Right endpoint of the dyadic cell containing `t`. -/
+noncomputable def rightApproxTime
+    {T t : ℝ≥0} (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) (level : ℕ) : ℝ≥0 :=
+  dyadicObservationTime T level (activeCellIndex hT ht htT level).succ
+
+theorem rightApproxTime_eq_grid
+    {T t : ℝ≥0} (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) (level : ℕ) :
+    rightApproxTime hT ht htT level =
+      regularGridTimes (dyadicMesh T level) (2 ^ level)
+        (activeCellIndex hT ht htT level).succ := by
+  rfl
+
+theorem rightApproxTime_mem_Icc
+    {T t : ℝ≥0} (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) (level : ℕ) :
+    rightApproxTime hT ht htT level ∈ Icc 0 T := by
+  refine ⟨bot_le, ?_⟩
+  rw [rightApproxTime_eq_grid]
+  have hmono := regularGridTimes_strictMono (dyadicMesh_pos hT level) (2 ^ level)
+  have hlast : regularGridTimes (dyadicMesh T level) (2 ^ level)
+      (Fin.last (2 ^ level)) = T := by
+    simp only [regularGridTimes, Fin.val_last, Nat.cast_pow, Nat.cast_ofNat, dyadicMesh]
+    rw [mul_comm, div_mul_cancel₀]
+    positivity
+  calc
+    regularGridTimes (dyadicMesh T level) (2 ^ level)
+        (activeCellIndex hT ht htT level).succ ≤
+        regularGridTimes (dyadicMesh T level) (2 ^ level)
+          (Fin.last (2 ^ level)) := hmono.monotone (Fin.le_last _)
+    _ = T := hlast
+
+theorem rightApproxTime_le_add_mesh
+    {T t : ℝ≥0} (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) (level : ℕ) :
+    rightApproxTime hT ht htT level ≤ t + dyadicMesh T level := by
+  rw [rightApproxTime_eq_grid, dyadic_activeCell_right]
+  simpa only [add_comm] using
+    add_le_add_right (activeCellIndex_spec hT ht htT level).1.le
+      (dyadicMesh T level)
+
+theorem tendsto_rightApproxTime
+    {T t : ℝ≥0} (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) :
+    Tendsto (rightApproxTime hT ht htT) atTop (nhds t) := by
+  apply tendsto_order.2
+  constructor
+  · intro a ha
+    exact Filter.Eventually.of_forall fun level =>
+      ha.trans_le (by
+        rw [rightApproxTime_eq_grid]
+        exact (activeCellIndex_spec hT ht htT level).2)
+  · intro b htb
+    have hevent := eventually_dyadicMesh_lt T (sub_pos.mpr htb)
+    filter_upwards [hevent] with level hmesh
+    have hcoerce : (rightApproxTime hT ht htT level : ℝ) ≤
+        (t : ℝ) + (dyadicMesh T level : ℝ) := by
+      exact_mod_cast rightApproxTime_le_add_mesh hT ht htT level
+    have hadd : (t : ℝ) + (dyadicMesh T level : ℝ) < (b : ℝ) := by
+      rw [add_comm]
+      exact (lt_sub_iff_add_lt).mp hmesh
+    exact_mod_cast hcoerce.trans_lt hadd
+
+/-- On a continuous path, exceeding a threshold anywhere on `[0,T]` is
+detected on one of the finite dyadic observation grids. -/
+theorem continuousOn_mem_dyadicMaxEventAll
+    {M : ℝ≥0 → Omega → ℝ} {T t : ℝ≥0} {a : ℝ} {omega : Omega}
+    (hT : 0 < T) (hcont : ContinuousOn (fun s => M s omega) (Icc 0 T))
+    (htIcc : t ∈ Icc 0 T) (ha : a < |M t omega|) :
+    omega ∈ dyadicMaxEventAll M T a := by
+  by_cases ht0 : t = 0
+  · subst t
+    refine mem_iUnion.2 ⟨0, ?_⟩
+    change a ≤ runningAbsMax
+      (fun k => M (dyadicObservationTime T 0 k)) (2 ^ 0) omega
+    have hmax := Finset.le_sup'
+      (fun k : ℕ => |M (dyadicObservationTime T 0 k) omega|)
+      (show 0 ∈ Finset.range (2 ^ 0 + 1) by simp)
+    have hbase : |M 0 omega| ≤ runningAbsMax
+        (fun k => M (dyadicObservationTime T 0 k)) (2 ^ 0) omega := by
+      simpa [runningAbsMax, dyadicObservationTime] using hmax
+    exact ha.le.trans hbase
+  · have ht : 0 < t := lt_of_le_of_ne htIcc.1 (Ne.symm ht0)
+    have hright := tendsto_rightApproxTime hT ht htIcc.2
+    have hwithin : Tendsto (rightApproxTime hT ht htIcc.2) atTop
+        (nhdsWithin t (Icc 0 T)) :=
+      tendsto_nhdsWithin_iff.2
+        ⟨hright, Filter.Eventually.of_forall
+          (rightApproxTime_mem_Icc hT ht htIcc.2)⟩
+    have hvalues := (hcont t htIcc).tendsto.comp hwithin
+    have habs : Tendsto
+        (fun level => |M (rightApproxTime hT ht htIcc.2 level) omega|)
+        atTop (nhds |M t omega|) := hvalues.abs
+    obtain ⟨level, hlevel⟩ := (Filter.eventually_atTop.1
+      ((tendsto_order.1 habs).1 a ha))
+    refine mem_iUnion.2 ⟨level, ?_⟩
+    change a ≤ runningAbsMax
+      (fun k => M (dyadicObservationTime T level k)) (2 ^ level) omega
+    let k : ℕ := (activeCellIndex hT ht htIcc.2 level).succ
+    have hk : k ∈ Finset.range (2 ^ level + 1) := by
+      simp only [Finset.mem_range, k, Fin.val_succ]
+      omega
+    have hmax := Finset.le_sup'
+      (fun j : ℕ => |M (dyadicObservationTime T level j) omega|) hk
+    have hpoint : |M (rightApproxTime hT ht htIcc.2 level) omega| ≤
+        runningAbsMax (fun j => M (dyadicObservationTime T level j))
+          (2 ^ level) omega := by
+      simpa only [rightApproxTime, k, runningAbsMax] using hmax
+    exact (hlevel level le_rfl).le.trans hpoint
+
+/-- Exceedance somewhere on the whole compact interval.  It need not be
+declared measurable: the following theorem controls its outer measure through
+the source-derived countable dyadic event. -/
+def continuousExceedEvent (M : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (a : ℝ) : Set Omega :=
+  {omega | ∃ t ∈ Icc (0 : ℝ≥0) T, a < |M t omega|}
+
+/-- Continuous-time Doob `L2` maximal inequality in threshold/outer-measure
+form.  The right side is the usual constant-four terminal second-moment
+bound. -/
+theorem doobL2_continuous
+    [IsFiniteMeasure mu] {filtration : Filtration ℝ≥0 m}
+    {M : ℝ≥0 → Omega → ℝ} (hM : Martingale M filtration mu)
+    {T : ℝ≥0} (hT : 0 < T)
+    (hcont : ∀ᵐ omega ∂mu, ContinuousOn (fun t => M t omega) (Icc 0 T))
+    (a : ℝ) :
+    ENNReal.ofReal a ^ (2 : ℝ) * mu (continuousExceedEvent M T a) ≤
+      4 * eLpNorm (M T) 2 mu ^ (2 : ℝ) := by
+  have hsubset : continuousExceedEvent M T a ≤ᵐ[mu]
+      dyadicMaxEventAll M T a := by
+    filter_upwards [hcont] with omega hcontinuous homega
+    obtain ⟨t, ht, hexceed⟩ := homega
+    exact continuousOn_mem_dyadicMaxEventAll hT hcontinuous ht hexceed
+  calc
+    ENNReal.ofReal a ^ (2 : ℝ) * mu (continuousExceedEvent M T a) ≤
+        ENNReal.ofReal a ^ (2 : ℝ) * mu (dyadicMaxEventAll M T a) :=
+      mul_le_mul_of_nonneg_left (MeasureTheory.measure_mono_ae hsubset) bot_le
+    _ ≤ 4 * eLpNorm (M T) 2 mu ^ (2 : ℝ) :=
+      pow_mul_measure_dyadicMaxEventAll_le hM T a
+
+end ContinuousDoobL2
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

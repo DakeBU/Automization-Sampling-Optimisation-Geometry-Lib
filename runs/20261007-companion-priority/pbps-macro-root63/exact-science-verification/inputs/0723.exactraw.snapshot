@@ -1,0 +1,111 @@
+import Mathlib.Probability.Distributions.Gaussian.Multivariate
+import Mathlib.Probability.Distributions.Gaussian.Fernique
+
+/-! Actual Gaussian gradient arc used by the SPHMC terminal gradient estimator.
+This proves its product pushforward, derivative and endpoints; no exponential-moment,
+clipping, target-accuracy or complete-sampler claim is bundled into this theorem. -/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianArcLaw
+
+open MeasureTheory ProbabilityTheory
+noncomputable section
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  [SecondCountableTopology E]
+
+private theorem centered_arc_rotation (theta : ℝ) :
+    ((stdGaussian E).prod (stdGaussian E)).map
+      (fun p : E × E => (Real.sin theta • p.1 + Real.cos theta • p.2,
+        Real.cos theta • p.1 - Real.sin theta • p.2)) =
+      (stdGaussian E).prod (stdGaussian E) := by
+  have hr := IsGaussian.map_rotation_eq_self_of_forall_strongDual_eq_zero
+    (μ := stdGaussian E) (fun L => integral_strongDual_stdGaussian L) theta
+  calc
+    _ = (((stdGaussian E).prod (stdGaussian E)).map Prod.swap).map
+        (ContinuousLinearMap.rotation theta) := by
+      rw [Measure.map_map (by fun_prop) measurable_swap]
+      congr 1
+      funext p
+      simp [ContinuousLinearMap.rotation_apply, sub_eq_add_neg, add_comm]
+    _ = _ := by rw [Measure.prod_swap]; exact hr
+
+private theorem affine_arc_law (h : E) (sigma theta : ℝ) :
+    (((stdGaussian E).map (fun x => h + sigma • x)).prod
+      ((stdGaussian E).map (fun z => sigma • z))).map
+      (fun p : E × E =>
+        (h + Real.sin theta • (p.1 - h) + Real.cos theta • p.2,
+         (Real.pi / 2) • (Real.cos theta • (p.1 - h) - Real.sin theta • p.2))) =
+    ((stdGaussian E).map (fun x => h + sigma • x)).prod
+      ((stdGaussian E).map (fun z => ((Real.pi / 2) * sigma) • z)) := by
+  rw [Measure.map_prod_map _ _ (by fun_prop) (by fun_prop)]
+  rw [Measure.map_map (by fun_prop) (by fun_prop)]
+  rw [Measure.map_prod_map _ _ (by fun_prop) (by fun_prop)]
+  have hr := congrArg
+    (fun m : Measure (E × E) => m.map
+      (Prod.map (fun x => h + sigma • x) (fun z => ((Real.pi / 2) * sigma) • z)))
+    (centered_arc_rotation (E := E) theta)
+  rw [Measure.map_map (by fun_prop) (by fun_prop)] at hr
+  convert hr using 1
+  congr 1
+  funext p
+  simp only [Function.comp_apply, Prod.map_apply]
+  simp [add_sub_cancel_left, smul_add, smul_sub, smul_smul, mul_comm, mul_left_comm,
+    mul_assoc, add_assoc]
+
+omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] in
+private theorem arc_derivative (h x z : E) (r : ℝ) :
+    HasDerivAt (fun t : ℝ => h + Real.sin (Real.pi / 2 * t) • (x-h) +
+      Real.cos (Real.pi / 2 * t) • z)
+      ((Real.pi / 2) • (Real.cos (Real.pi / 2 * r) • (x-h) -
+        Real.sin (Real.pi / 2 * r) • z)) r := by
+  have ht : HasDerivAt (fun t : ℝ => Real.pi / 2 * t) (Real.pi / 2) r := by
+    simpa using (hasDerivAt_id r).const_mul (Real.pi / 2)
+  convert (((ht.sin).smul_const (x-h)).const_add h).add ((ht.cos).smul_const z) using 1
+  all_goals simp [Pi.add_def, smul_smul, sub_eq_add_neg, mul_comm]
+
+private def arc (h : E) (r : ℝ) (p : E × E) : E :=
+  h + Real.sin (Real.pi / 2 * r) • (p.1 - h) + Real.cos (Real.pi / 2 * r) • p.2
+
+private def velocity (h : E) (r : ℝ) (p : E × E) : E :=
+  (Real.pi / 2) • (Real.cos (Real.pi / 2 * r) • (p.1 - h) -
+    Real.sin (Real.pi / 2 * r) • p.2)
+
+omit [FiniteDimensional ℝ E] in
+private theorem arc_joint_measurable :
+    Measurable (fun q : (E × ℝ) × (E × E) =>
+      (arc q.1.1 q.1.2 q.2, velocity q.1.1 q.1.2 q.2)) := by
+  unfold arc velocity
+  fun_prop
+
+omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] in
+private theorem arc_endpoints (h : E) (p : E × E) :
+    arc h 0 p = h + p.2 ∧ arc h 1 p = p.1 ∧
+    velocity h 0 p = (Real.pi / 2) • (p.1 - h) ∧
+    velocity h 1 p = -(Real.pi / 2) • p.2 := by
+  simp [arc, velocity, Real.sin_pi_div_two, Real.cos_pi_div_two]
+
+/-- Actual isotropic Gaussian arc law and calculus, at the source variance scale.
+The joint product equality proves independence of position and velocity. -/
+theorem gaussian_arc_law (eta : ℝ) (heta : 0 < eta) (h : E) :
+    (Real.sqrt eta) ^ 2 = eta ∧
+    Measurable (fun q : (E × ℝ) × (E × E) =>
+      (arc q.1.1 q.1.2 q.2, velocity q.1.1 q.1.2 q.2)) ∧
+    (∀ r : ℝ,
+      (((stdGaussian E).map (fun x => h + Real.sqrt eta • x)).prod
+        ((stdGaussian E).map (fun z => Real.sqrt eta • z))).map
+        (fun p => (arc h r p, velocity h r p)) =
+      ((stdGaussian E).map (fun x => h + Real.sqrt eta • x)).prod
+        ((stdGaussian E).map (fun z => ((Real.pi / 2) * Real.sqrt eta) • z))) ∧
+    (∀ (p : E × E) (r : ℝ), HasDerivAt (fun t => arc h t p) (velocity h r p) r) ∧
+    (∀ p : E × E, arc h 0 p = h + p.2 ∧ arc h 1 p = p.1 ∧
+      velocity h 0 p = (Real.pi / 2) • (p.1 - h) ∧
+      velocity h 1 p = -(Real.pi / 2) • p.2) := by
+  refine ⟨Real.sq_sqrt heta.le, arc_joint_measurable, ?_, ?_, arc_endpoints h⟩
+  · intro r
+    exact affine_arc_law h (Real.sqrt eta) (Real.pi / 2 * r)
+  · intro p r
+    exact arc_derivative h p.1 p.2 r
+
+
+end
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianArcLaw

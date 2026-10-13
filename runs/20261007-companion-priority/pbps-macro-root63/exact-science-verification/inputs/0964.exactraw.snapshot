@@ -1,0 +1,108 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementDerivativeMatrix
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementJacobianEntropy
+import Mathlib.Analysis.Matrix.PosDef
+
+/-!
+# Positivity of the displacement derivative determinant
+
+Mathlib's higher-dimensional change-of-variables formula uses the absolute
+value of the Fréchet derivative determinant, whereas Chewi's entropy formula
+uses `log det`.  This module closes that sign interface.
+
+For an SPD endpoint Jacobian matrix, the affine derivative is SPD for every
+`0 <= t <= 1`.  More importantly for a future Brenier bridge, an endpoint
+matrix that is only positive semidefinite still gives an SPD affine derivative
+for every interior time `0 <= t < 1` because of the `(1-t) I` term.
+
+Consequently the determinant is strictly positive and the absolute value in
+the change-of-variables formula can be removed.  No claim is made here that a
+Brenier derivative is actually PSD; this module only consumes that matrix-level
+hypothesis once it is available.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementDerivativeDetPos
+
+noncomputable section
+
+open DisplacementMapDerivative
+open DisplacementDerivativeMatrix
+open DisplacementJacobianEntropy
+
+variable {E ι : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [Fintype ι] [DecidableEq ι]
+
+/-- An SPD matrix representation of the endpoint derivative gives an SPD matrix
+representation of the affine displacement derivative on the full segment. -/
+theorem toMatrix_affineDisplacementDerivative_posDef
+    (b : Module.Basis ι ℝ E) (T' : E →L[ℝ] E)
+    (hT : (LinearMap.toMatrix b b T'.toLinearMap).PosDef)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t ≤ 1) :
+    (LinearMap.toMatrix b b
+      (affineDisplacementDerivative T' t).toLinearMap).PosDef := by
+  rw [toMatrix_affineDisplacementDerivative]
+  exact affineIdentityMatrix_posDef
+    (LinearMap.toMatrix b b T'.toLinearMap) hT t ht0 ht1
+
+/-- A PSD endpoint derivative is already enough for strict positivity of the
+interior affine derivative matrix. -/
+theorem toMatrix_affineDisplacementDerivative_posDef_of_posSemidef
+    (b : Module.Basis ι ℝ E) (T' : E →L[ℝ] E)
+    (hT : (LinearMap.toMatrix b b T'.toLinearMap).PosSemidef)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t < 1) :
+    (LinearMap.toMatrix b b
+      (affineDisplacementDerivative T' t).toLinearMap).PosDef := by
+  rw [toMatrix_affineDisplacementDerivative]
+  exact affineIdentityMatrix_posDef_of_posSemidef
+    (LinearMap.toMatrix b b T'.toLinearMap) hT t ht0 ht1
+
+/-- Under an SPD endpoint derivative, the continuous-linear determinant of the
+affine displacement derivative is strictly positive. -/
+theorem det_affineDisplacementDerivative_pos
+    (b : Module.Basis ι ℝ E) (T' : E →L[ℝ] E)
+    (hT : (LinearMap.toMatrix b b T'.toLinearMap).PosDef)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t ≤ 1) :
+    0 < LinearMap.det (affineDisplacementDerivative T' t).toLinearMap := by
+  rw [det_affineDisplacementDerivative_eq_matrix_det b T' t]
+  exact (affineIdentityMatrix_posDef
+    (LinearMap.toMatrix b b T'.toLinearMap) hT t ht0 ht1).det_pos
+
+/-- Interior-time determinant positivity from the weaker PSD endpoint
+hypothesis. -/
+theorem det_affineDisplacementDerivative_pos_of_posSemidef
+    (b : Module.Basis ι ℝ E) (T' : E →L[ℝ] E)
+    (hT : (LinearMap.toMatrix b b T'.toLinearMap).PosSemidef)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t < 1) :
+    0 < LinearMap.det (affineDisplacementDerivative T' t).toLinearMap := by
+  rw [det_affineDisplacementDerivative_eq_matrix_det b T' t]
+  exact (affineIdentityMatrix_posDef_of_posSemidef
+    (LinearMap.toMatrix b b T'.toLinearMap) hT t ht0 ht1).det_pos
+
+/-- The absolute determinant in change of variables is redundant under an SPD
+endpoint derivative. -/
+theorem abs_det_affineDisplacementDerivative_eq
+    (b : Module.Basis ι ℝ E) (T' : E →L[ℝ] E)
+    (hT : (LinearMap.toMatrix b b T'.toLinearMap).PosDef)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t ≤ 1) :
+    |LinearMap.det (affineDisplacementDerivative T' t).toLinearMap| =
+      LinearMap.det (affineDisplacementDerivative T' t).toLinearMap :=
+  abs_of_pos (det_affineDisplacementDerivative_pos b T' hT t ht0 ht1)
+
+/-- Interior-time absolute-determinant removal from a PSD endpoint derivative. -/
+theorem abs_det_affineDisplacementDerivative_eq_of_posSemidef
+    (b : Module.Basis ι ℝ E) (T' : E →L[ℝ] E)
+    (hT : (LinearMap.toMatrix b b T'.toLinearMap).PosSemidef)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t < 1) :
+    |LinearMap.det (affineDisplacementDerivative T' t).toLinearMap| =
+      LinearMap.det (affineDisplacementDerivative T' t).toLinearMap :=
+  abs_of_pos
+    (det_affineDisplacementDerivative_pos_of_posSemidef b T' hT t ht0 ht1)
+
+end
+
+end DisplacementDerivativeDetPos
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound.quadratic_corrector_bound_of_square_identity",
+      "title": "Sharp quadratic corrector bound on a real Hilbert space",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A2",
+          "label": "PBPS2609.06905v1 AppendixB3 LemmaB.3 and B19/B20/B22/B23/B24; exact sharp two-component Hilbert energy bound and actual centered PBPS consumer.",
+          "scope": "ASTIS sharp quadratic-form auxiliary on an arbitrary complete real Hilbert space; explicit selfadjoint square identity and norm bound. Actual PBPS inputs and these internal hypotheses are supplied by the actual production consumer. No full dynamics, mixing or cost result."
+        }
+      ],
+      "tests": [
+        "lake build Tests.ProximalBPSSharpCorrectorEnergy"
+      ],
+      "assumptions": [
+        "Complete real inner-product space H; bounded selfadjoint real operators K,D; I+K²=D²; c≥0 and ‖D‖≤c. Zero H is legal."
+      ],
+      "statement": "Let H be any complete real inner-product space, including the zero space. Let K,D:H→H be bounded real-linear selfadjoint operators with I+K²=D². Let c≥0 and ‖D‖≤c. Then for every u,v∈H, |(‖u‖²−‖v‖²)/2−⟨Ku,v⟩|≤(c/2)(‖u‖²+‖v‖²). No finite-dimensionality, nontriviality, c≥1, positivity of K or D, or commutation is assumed. This ASTIS auxiliary Hilbert-space lemma supplies the sharp two-component estimate in the PBPS B23 proof; its actual consumer internally produces K,D,c and all hypotheses.",
+      "formula": "\\left|\\tfrac12(\\|u\\|^2-\\|v\\|^2)-\\langle Ku,v\\rangle\\right|\\le\\tfrac c2(\\|u\\|^2+\\|v\\|^2).",
+      "boundary": "ASTIS sharp quadratic-form auxiliary on an arbitrary complete real Hilbert space; explicit selfadjoint square identity and norm bound. Actual PBPS inputs and these internal hypotheses are supplied by the actual production consumer. No full dynamics, mixing or cost result.",
+      "steps": [
+        {
+          "title": "Turn the operator square into a norm identity",
+          "text": "Evaluate I+K²=D² against x. Selfadjointness moves the outer K and D across the inner product.",
+          "formula": "\\|x\\|^2+\\|Kx\\|^2=\\|Dx\\|^2.",
+          "lean": "  have hEnergy (x : H) : ‖x‖^2+‖K x‖^2=‖D x‖^2 := by\n    have h := congrArg (fun A : H →L[ℝ] H => inner ℝ (A x) x) hSquare\n    simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.one_apply,\n      ContinuousLinearMap.mul_apply, inner_add_left] at h\n    have hk : inner ℝ (K (K x)) x=inner ℝ (K x) (K x) :=\n      hK.isSymmetric (K x) x\n    have hd : inner ℝ (D (D x)) x=inner ℝ (D x) (D x) :=\n      hD.isSymmetric (D x) x\n    rw [hk, hd] at h\n    simpa only [real_inner_self_eq_norm_sq] using h\n",
+          "detail": "Literal compiled BODY span; exact preceding locals remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/HilbertCorrectorBound.lean",
+            "source_raw_sha256": "832e68d649c4f6a0c342a476a9d5a7bc5c95d3098abfe41c077cbabc5d51158a",
+            "start_line": 29,
+            "end_line": 38,
+            "exact_code_raw_sha256": "49b2427ff3ad0df9fbc373dabc9a557064dd2419cfcd84494111e45ea0d36c33"
+          }
+        },
+        {
+          "title": "Cancel the two block cross terms",
+          "text": "Use the sum of the two squared component norms. Symmetry cancels the mixed terms; this is the Hilbert sum energy, without a product max-norm assertion.",
+          "formula": "\\|u-Kv\\|^2+\\|Ku+v\\|^2=\\|Du\\|^2+\\|Dv\\|^2,\\quad E=\\langle u-Kv,u\\rangle-\\langle Ku+v,v\\rangle.",
+          "lean": "  have hSym : inner ℝ u (K v)=inner ℝ (K u) v :=\n    (hK.isSymmetric u v).symm\n  have hBlock : ‖u-K v‖^2+‖K u+v‖^2=‖D u‖^2+‖D v‖^2 := by\n    rw [norm_sub_sq_real, norm_add_sq_real, hSym]\n    nlinarith only [hEnergy u, hEnergy v]\n  have hForm : inner ℝ (u-K v) u-inner ℝ (K u+v) v =\n      ‖u‖^2-‖v‖^2-2*inner ℝ (K u) v := by\n    have hSwap : inner ℝ (K v) u=inner ℝ (K u) v :=\n      (hK.isSymmetric v u).trans (real_inner_comm v (K u)).symm\n    rw [inner_sub_left, inner_add_left, hSwap, real_inner_self_eq_norm_sq,\n      real_inner_self_eq_norm_sq]\n    ring\n",
+          "detail": "Literal compiled BODY span; exact preceding locals remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/HilbertCorrectorBound.lean",
+            "source_raw_sha256": "832e68d649c4f6a0c342a476a9d5a7bc5c95d3098abfe41c077cbabc5d51158a",
+            "start_line": 39,
+            "end_line": 50,
+            "exact_code_raw_sha256": "9f867c93bb6aedab9ba178fd1922f2dd9bb3a89cd9441682609167d73178ab84"
+          }
+        },
+        {
+          "title": "Bound the quadratic form and block energy",
+          "text": "Set S=‖u‖²+‖v‖² and T=‖u-Kv‖²+‖Ku+v‖²=‖Du‖²+‖Dv‖² throughout this five-step proof. Triangle inequality and the inner-product bound control E. The operator norm controls each D component.",
+          "formula": "|E|\\le\\|u-Kv\\|\\|u\\|+\\|Ku+v\\|\\|v\\|,\\quad T\\le c^2 S.",
+          "lean": "  have hAbs : |‖u‖^2-‖v‖^2-2*inner ℝ (K u) v| ≤\n      ‖u-K v‖*‖u‖+‖K u+v‖*‖v‖ := by\n    rw [← hForm]\n    exact (abs_sub _ _).trans (add_le_add\n      (abs_real_inner_le_norm _ _) (abs_real_inner_le_norm _ _))\n  have hDx (x : H) : ‖D x‖^2 ≤ c^2*‖x‖^2 := by\n    have hb : ‖D x‖ ≤ c*‖x‖ :=\n      (D.le_opNorm x).trans (mul_le_mul_of_nonneg_right hNorm (norm_nonneg x))\n    have hs := (sq_le_sq₀ (norm_nonneg (D x)) (mul_nonneg hc (norm_nonneg x))).2 hb\n    nlinarith only [hs]\n  have hBlockBound : ‖u-K v‖^2+‖K u+v‖^2 ≤ c^2*(‖u‖^2+‖v‖^2) := by\n    rw [hBlock]\n    nlinarith only [hDx u, hDx v]\n",
+          "detail": "Literal compiled BODY span; exact preceding locals remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/HilbertCorrectorBound.lean",
+            "source_raw_sha256": "832e68d649c4f6a0c342a476a9d5a7bc5c95d3098abfe41c077cbabc5d51158a",
+            "start_line": 51,
+            "end_line": 63,
+            "exact_code_raw_sha256": "86718d728669a29444e103a04b1e6c2b4004d7c4dc19704e4e4207952fc6c8cd"
+          }
+        },
+        {
+          "title": "Apply two-component Cauchy-Schwarz",
+          "text": "The scalar inequality follows from a single nonnegative square. Combine with the block energy bound, keeping S nonnegative.",
+          "formula": "(ab+de)^2\\le(a^2+d^2)(b^2+e^2),\\quad E^2\\le S T\\le c^2S^2.",
+          "lean": "  have hCS : (‖u-K v‖*‖u‖+‖K u+v‖*‖v‖)^2 ≤\n      (‖u‖^2+‖v‖^2)*(‖u-K v‖^2+‖K u+v‖^2) := by\n    nlinarith only [sq_nonneg (‖u-K v‖*‖v‖-‖K u+v‖*‖u‖)]\n  have hSquared : |‖u‖^2-‖v‖^2-2*inner ℝ (K u) v|^2 ≤\n      (c*(‖u‖^2+‖v‖^2))^2 := by\n    calc\n      _ ≤ (‖u-K v‖*‖u‖+‖K u+v‖*‖v‖)^2 :=\n        (sq_le_sq₀ (abs_nonneg _) (by positivity)).2 hAbs\n      _ ≤ (‖u‖^2+‖v‖^2)*(‖u-K v‖^2+‖K u+v‖^2) := hCS\n      _ ≤ (‖u‖^2+‖v‖^2)*(c^2*(‖u‖^2+‖v‖^2)) :=\n        mul_le_mul_of_nonneg_left hBlockBound (by positivity)\n      _ = _ := by ring\n",
+          "detail": "Literal compiled BODY span; exact preceding locals remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/HilbertCorrectorBound.lean",
+            "source_raw_sha256": "832e68d649c4f6a0c342a476a9d5a7bc5c95d3098abfe41c077cbabc5d51158a",
+            "start_line": 64,
+            "end_line": 75,
+            "exact_code_raw_sha256": "92436031b474a6512a8e872f49c541cb010770dc1b196df96782448a033c0a5b"
+          }
+        },
+        {
+          "title": "Take the nonnegative square root and divide by two",
+          "text": "Both |E| and cS are nonnegative, so their square inequality gives |E|≤cS. The corrector is E/2.",
+          "formula": "|E|\\le cS\\quad\\Longrightarrow\\quad\\left|\\frac{\\|u\\|^2-\\|v\\|^2}{2}-\\langle Ku,v\\rangle\\right|\\le\\frac c2S.",
+          "lean": "  have hBound := (sq_le_sq₀ (abs_nonneg\n    (‖u‖^2-‖v‖^2-2*inner ℝ (K u) v)) (by positivity)).1 hSquared\n  have hHalf : (1/2 : ℝ)*(‖u‖^2-‖v‖^2)-inner ℝ (K u) v =\n      (1/2 : ℝ)*(‖u‖^2-‖v‖^2-2*inner ℝ (K u) v) := by ring\n  rw [hHalf, abs_mul, abs_of_nonneg (by norm_num : (0 : ℝ) ≤ 1/2)]\n  nlinarith only [hBound]\n",
+          "detail": "Literal compiled BODY span; exact preceding locals remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/HilbertCorrectorBound.lean",
+            "source_raw_sha256": "832e68d649c4f6a0c342a476a9d5a7bc5c95d3098abfe41c077cbabc5d51158a",
+            "start_line": 76,
+            "end_line": 81,
+            "exact_code_raw_sha256": "0b0fe5736aabe70a55a7368aaff5e859c6b702082d780ea5843e09459ddfae38"
+          }
+        }
+      ],
+      "lean_statement": "Let H be any complete real inner-product space, including the zero space. Let K,D:H→H be bounded real-linear selfadjoint operators with I+K²=D². Let c≥0 and ‖D‖≤c. Then for every u,v∈H, |(‖u‖²−‖v‖²)/2−⟨Ku,v⟩|≤(c/2)(‖u‖²+‖v‖²). No finite-dimensionality, nontriviality, c≥1, positivity of K or D, or commutation is assumed. This ASTIS auxiliary Hilbert-space lemma supplies the sharp two-component estimate in the PBPS B23 proof; its actual consumer internally produces K,D,c and all hypotheses.",
+      "lean_proof": "Turn the operator square into a norm identity; Cancel the two block cross terms; Bound the quadratic form and block energy; Apply two-component Cauchy-Schwarz; Take the nonnegative square root and divide by two",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "IsSelfAdjoint.isSymmetric",
+        "norm_add_sq_real",
+        "norm_sub_sq_real",
+        "abs_real_inner_le_norm",
+        "ContinuousLinearMap.le_opNorm",
+        "sq_le_sq₀"
+      ]
+    }
+  ]
+}

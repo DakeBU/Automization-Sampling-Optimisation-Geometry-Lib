@@ -1,0 +1,141 @@
+import Mathlib.Analysis.InnerProductSpace.Dual
+import Mathlib.Analysis.InnerProductSpace.ProdL2
+import Mathlib.Analysis.Normed.Module.WeakDual
+import Mathlib.Topology.Algebra.Module.LinearPMap
+/-! Actual scaled positive-epsilon closed-graph variational norm limit. Explicit separability supplies genuine Riesz weak-star subsequences; actual WithLp2 graph double-orthogonal, domain scaling and energy yield strong zero for forcing orthogonal to EVERY kernel. No Poincare, uniform unscaled solution or supplied graph/limit certificate. Authored analytic prerequisite toward PBPS background, not source theorem completion. -/
+set_option autoImplicit false
+noncomputable section
+open Filter InnerProductSpace
+open scoped Topology RealInnerProductSpace
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.ScaledClosedGraphResolvent
+variable {H K : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]
+  [NormedAddCommGroup K] [InnerProductSpace ℝ K] [CompleteSpace K]
+
+private theorem weak_strong_closed_graph (D : H →ₗ.[ℝ] K) (hD : D.IsClosed)
+    (u : ℕ → D.domain) (v : H)
+    (hw : ∀ a : H, Tendsto (fun n => inner ℝ (u n : H) a) atTop (𝓝 (inner ℝ v a)))
+    (hz : Tendsto (fun n => D (u n)) atTop (𝓝 0)) :
+    ∃ w : D.domain, (w : H)=v ∧ D w=0 := by
+  let G : Submodule ℝ (WithLp 2 (H × K)) :=
+    D.graph.comap (WithLp.linearEquiv 2 ℝ (H × K)).toLinearMap
+  have hGc : IsClosed (G : Set (WithLp 2 (H × K))) :=
+    hD.preimage (WithLp.prod_continuous_ofLp 2 H K)
+  have heq : Gᗮᗮ=G := by
+    rw [G.orthogonal_orthogonal_eq_closure]
+    exact hGc.submodule_topologicalClosure_eq
+  have hn (n : ℕ) : WithLp.toLp 2 ((u n : H),D (u n)) ∈ G := D.mem_graph (u n)
+  have hin : WithLp.toLp 2 (v,(0:K)) ∈ G := by
+    rw [← heq]
+    apply ((Gᗮ).mem_orthogonal' (WithLp.toLp 2 (v,(0:K)))).mpr
+    intro q hq
+    have hzero (n : ℕ) : inner ℝ (u n : H) q.fst+inner ℝ (D (u n)) q.snd=0 :=
+      G.inner_right_of_mem_orthogonal (hn n) hq
+    have ht : Tendsto
+        (fun n => inner ℝ (u n : H) q.fst+inner ℝ (D (u n)) q.snd)
+        atTop (𝓝 (inner ℝ v q.fst)) := by
+      simpa only [inner_zero_left,add_zero] using
+        (hw q.fst).add (hz.inner (tendsto_const_nhds (x:=q.snd)))
+    have hc : Tendsto (fun _ : ℕ => (0:ℝ)) atTop (𝓝 (inner ℝ v q.fst)) :=
+      (tendsto_congr hzero).mp ht
+    have hid : inner ℝ v q.fst=0 :=
+      (tendsto_nhds_unique (tendsto_const_nhds (x:=(0:ℝ))) hc).symm
+    simpa only [WithLp.prod_inner_apply,WithLp.toLp_fst,WithLp.toLp_snd,WithLp.fst,
+      inner_zero_left,add_zero] using hid
+  exact (D.mem_graph_iff).mp hin
+
+private theorem bounded_weak_subsequence [TopologicalSpace.SeparableSpace H]
+    (r : ℕ → H) (C : ℝ) (hb : ∀ n, ‖r n‖ ≤ C) :
+    ∃ v : H, ∃ φ : ℕ → ℕ, StrictMono φ ∧
+      ∀ a : H, Tendsto (fun n => inner ℝ (r (φ n)) a) atTop (𝓝 (inner ℝ v a)) := by
+  let d : ℕ → WeakDual ℝ H := fun n => (toDual ℝ H (r n)).toWeakDual
+  have hd (n : ℕ) : d n ∈ WeakDual.toStrongDual ⁻¹' Metric.closedBall 0 C := by
+    simpa only [Set.mem_preimage,d,StrongDual.toStrongDual_toWeakDual,
+      Metric.mem_closedBall,dist_zero_right,LinearIsometryEquiv.norm_map] using hb n
+  obtain ⟨a,ha,φ,hφ,ht⟩ := (WeakDual.isSeqCompact_closedBall ℝ H (0 : StrongDual ℝ H) C) hd
+  let v : H := (toDual ℝ H).symm a.toStrongDual
+  refine ⟨v,φ,hφ,?_⟩
+  intro b
+  have he := ((WeakDual.eval_continuous b).tendsto a).comp ht
+  simpa only [Function.comp_def,d,StrongDual.toWeakDual_apply,
+    toDual_apply_apply,v,toDual_symm_apply,WeakDual.toStrongDual_apply] using he
+
+private theorem bounded_kernel_orthogonal_sequence_tendsto_zero
+    [TopologicalSpace.SeparableSpace H]
+    (D : H →ₗ.[ℝ] K) (hD : D.IsClosed) (r : ℕ → D.domain) (f : H)
+    (hb : ∀ n, ‖(r n : H)‖ ≤ ‖f‖)
+    (hz : Tendsto (fun n => D (r n)) atTop (𝓝 0))
+    (he : ∀ n, ‖(r n : H)‖^2 ≤ inner ℝ f (r n : H))
+    (hk : ∀ v : D.domain, D v=0 → inner ℝ f (v : H)=0) :
+    Tendsto (fun n => (r n : H)) atTop (𝓝 0) := by
+  apply Filter.tendsto_of_subseq_tendsto
+  intro ns hns
+  obtain ⟨v,φ,hφ,hw⟩ := bounded_weak_subsequence
+    (fun n => (r (ns n) : H)) ‖f‖ (fun n => hb (ns n))
+  have hnsφ : Tendsto (fun n => ns (φ n)) atTop atTop := hns.comp hφ.tendsto_atTop
+  obtain ⟨w,hwv,hwz⟩ := weak_strong_closed_graph D hD
+    (fun n => r (ns (φ n))) v hw (hz.comp hnsφ)
+  have hfv : inner ℝ f v=0 := by
+    rw [← hwv]
+    exact hk w hwz
+  have hi : Tendsto (fun n => inner ℝ f (r (ns (φ n)) : H)) atTop (𝓝 0) := by
+    have h := hw f
+    have hfvs : inner ℝ v f=0 := (real_inner_comm v f).symm.trans hfv
+    rw [hfvs] at h
+    exact (tendsto_congr (fun n => real_inner_comm f (r (ns (φ n)) : H))).mp h
+  have hsq : Tendsto (fun n => ‖(r (ns (φ n)) : H)‖^2) atTop (𝓝 0) :=
+    squeeze_zero (fun n => sq_nonneg _) (fun n => he (ns (φ n))) hi
+  have hn : Tendsto (fun n => ‖(r (ns (φ n)) : H)‖) atTop (𝓝 0) := by
+    simpa only [Function.comp_def,Real.sqrt_sq (norm_nonneg _),Real.sqrt_zero] using
+      Real.continuous_sqrt.continuousAt.tendsto.comp hsq
+  exact ⟨φ,tendsto_zero_iff_norm_tendsto_zero.mpr hn⟩
+
+
+private theorem scaled_energy_bounds (ε : ℝ) (hε : 0 < ε) (f u : H) (G : K)
+    (he : ε*‖u‖^2+‖G‖^2=inner ℝ f u) :
+    ‖ε • u‖ ≤ ‖f‖ ∧ ‖ε • u‖^2 ≤ inner ℝ f (ε • u) ∧
+      ‖ε • G‖^2 ≤ ε*‖f‖^2 := by
+  have hs : ‖ε • u‖^2+ε*‖G‖^2=inner ℝ f (ε • u) := by
+    calc
+      _ = ε*(ε*‖u‖^2+‖G‖^2) := by
+        rw [norm_smul,Real.norm_of_nonneg hε.le];ring
+      _ = inner ℝ f (ε • u) := by rw [he,real_inner_smul_right]
+  have hle : ‖ε • u‖^2 ≤ inner ℝ f (ε • u) := by
+    nlinarith [mul_nonneg hε.le (sq_nonneg ‖G‖)]
+  have hn : ‖ε • u‖ ≤ ‖f‖ := by
+    nlinarith [real_inner_le_norm f (ε • u),norm_nonneg (ε • u),norm_nonneg f]
+  have hi : inner ℝ f (ε • u) ≤ ‖f‖^2 :=
+    (real_inner_le_norm f (ε • u)).trans (by nlinarith [norm_nonneg f])
+  refine ⟨hn,hle,?_⟩
+  rw [norm_smul,Real.norm_of_nonneg hε.le,mul_pow]
+  have hprod := mul_le_mul_of_nonneg_left
+    (show ε*‖G‖^2 ≤ ‖f‖^2 by nlinarith [sq_nonneg ‖ε • u‖]) hε.le
+  nlinarith
+
+theorem scaled_resolvent_sequence_tendsto_zero
+    [TopologicalSpace.SeparableSpace H]
+    (D : H →ₗ.[ℝ] K) (hD : D.IsClosed) (f : H)
+    (ε : ℕ → ℝ) (hε : ∀ n, 0 < ε n) (hε0 : Tendsto ε atTop (𝓝 0))
+    (u : ℕ → D.domain)
+    (hv : ∀ n, ∀ v : D.domain,
+      ε n*inner ℝ (u n : H) (v : H)+inner ℝ (D (u n)) (D v)=inner ℝ f (v : H))
+    (hk : ∀ v : D.domain, D v=0 → inner ℝ f (v : H)=0) :
+    Tendsto (fun n => ε n • (u n : H)) atTop (𝓝 0) ∧
+    Tendsto (fun n => ε n • D (u n)) atTop (𝓝 0) := by
+  let r : ℕ → D.domain := fun n => ε n • u n
+  have he (n : ℕ) : ε n*‖(u n : H)‖^2+‖D (u n)‖^2=inner ℝ f (u n : H) := by
+    simpa only [real_inner_self_eq_norm_sq] using hv n (u n)
+  have hb (n : ℕ) := scaled_energy_bounds (ε n) (hε n) f (u n) (D (u n)) (he n)
+  have hDsq : Tendsto (fun n => ‖D (r n)‖^2) atTop (𝓝 0) := by
+    apply squeeze_zero (fun n => sq_nonneg _) (fun n => ?_)
+      (by simpa only [zero_mul] using hε0.mul_const (‖f‖^2))
+    simpa only [r,D.map_smul] using (hb n).2.2
+  have hDz : Tendsto (fun n => D (r n)) atTop (𝓝 0) := by
+    apply tendsto_zero_iff_norm_tendsto_zero.mpr
+    simpa only [Function.comp_def,Real.sqrt_sq (norm_nonneg _),Real.sqrt_zero] using
+      Real.continuous_sqrt.continuousAt.tendsto.comp hDsq
+  exact ⟨bounded_kernel_orthogonal_sequence_tendsto_zero D hD r f
+    (fun n => (hb n).1) hDz (fun n => (hb n).2.1) hk,by
+      simpa only [r,D.map_smul] using hDz⟩
+
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.ScaledClosedGraphResolvent

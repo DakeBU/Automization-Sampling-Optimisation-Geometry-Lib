@@ -1,0 +1,12 @@
+# Actual PBPS smooth outer gradient energy
+Exact1795 sealed statement. Finite real Hilbert/Borel including rank0; globalC2 positivealpha<=beta genuineHessian bounds; eta>0,betaeta<=1. Genuine normalizedmu/J/nu probability, sameR/S conditionalreflection/density, actualTf differentiation/fL2/TfL2/gradientL2, outervarianceL1 and exactvariance-defect identity produced internally.
+1. PositiveGibbsnormalizer from genuine parent gives expintegrability and mu/J/nu probability.
+2. Same48 trueR/S pointwisebound retained beforeall smoothcompactf.
+3. Private reflected_second_moment uses actualdisintegration,Fubini,swap/reflection maps and trueGaussianjoint invariance; no arbitrarylaw-match certificate in public target.
+4. Compactcontinuousf bounded supplies all actualfiber/outerL2 and meansquaredomains. Genuinevariance_eq_integral/variance_eq_sub gives outerdefect identity.
+5. Measurable fderiv composedwithcontinuousinverseRiesz gives truegradientmeasurability; pointwisebound dominates gradientsquare byintegrable actualvariance, supplyinggradientL2.
+6. Integrate boundandmultiplyeta; exactpositive-denominator algebra yields (1-alphaeta)^2/[4(1+alphaeta)].
+7. Tests actualGaussian precision step eta=alpha=beta=1 zeroenergy WITH domains/varianceidentity and rankzero actualsameoutputs; three standard3 closures.
+Privatecompiled interface: ConditionalGradientEnergy.reflected_second_moment, consumed exactlyby49. No genericproducer certificates exposed publicly.
+Actualproduction0 three API/parser issues ->production1 only projectionnamenotation ->production2 PASS; tests0 explicitrankzero theoremtype syntax ->tests1 PASS3888. Originals/snapshots/logs preserved; no source/mathematicalstatement change or unchangedretryloop.
+Boundary: smoothcompact(C.2) only, not full B.13 roughL2-H1/closedgradient/literalGamma/operatoradapters, halfturn/main/implementation/querycost/composition.

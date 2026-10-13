@@ -1,0 +1,66 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonMass
+import Mathlib.Data.Fintype.Order
+
+/-!
+# A common removable mass for a finite family
+
+The direct Brenier perturbation starts from finitely many positive local finite
+measures. Before changing their pairings, one must remove exactly the same
+amount of mass from every local piece.
+
+This module isolates that finite-order argument. For a nonempty cycle indexed
+by `Fin (n+1)`, the common removable mass is the finite infimum of the local
+total masses. It is no larger than any local mass, is attained by one local
+piece, and is strictly positive whenever every local mass is strictly positive.
+
+No topology, transport cost, coupling, support, or optimality appears here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CommonRemovableMass
+
+open MeasureTheory
+open scoped NNReal
+
+noncomputable section
+
+variable {X : Type*} [MeasurableSpace X]
+
+/-- Minimum total mass among a nonempty finite family of local measures. -/
+noncomputable def commonRemovableMass {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure X) : ℝ≥0 :=
+  ⨅ i, (mu i).mass
+
+/-- The common removable mass is bounded above by every local total mass. -/
+theorem commonRemovableMass_le {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure X) (i : Fin (n + 1)) :
+    commonRemovableMass mu ≤ (mu i).mass := by
+  unfold commonRemovableMass
+  exact Finite.ciInf_le (fun j : Fin (n + 1) => (mu j).mass) i
+
+/-- One local piece attains the common removable mass. -/
+theorem exists_mass_eq_commonRemovableMass {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure X) :
+    ∃ i : Fin (n + 1), (mu i).mass = commonRemovableMass mu := by
+  obtain ⟨i, hi⟩ :=
+    exists_eq_ciInf_of_finite (f := fun j : Fin (n + 1) => (mu j).mass)
+  exact ⟨i, by simpa [commonRemovableMass] using hi⟩
+
+/-- If every local finite measure has positive total mass, then their common
+removable mass is positive. -/
+theorem commonRemovableMass_pos {n : ℕ}
+    (mu : Fin (n + 1) → FiniteMeasure X)
+    (hpos : ∀ i, 0 < (mu i).mass) :
+    0 < commonRemovableMass mu := by
+  obtain ⟨i, hi⟩ := exists_mass_eq_commonRemovableMass mu
+  rw [← hi]
+  exact hpos i
+
+end
+
+end CommonRemovableMass
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

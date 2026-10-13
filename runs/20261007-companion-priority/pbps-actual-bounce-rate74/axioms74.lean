@@ -1,0 +1,2 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate
+#print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws

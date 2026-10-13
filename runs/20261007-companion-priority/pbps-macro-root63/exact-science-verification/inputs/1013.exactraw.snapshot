@@ -1,0 +1,196 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCyclicMonotonicity
+import AutoSamplingTheory.TechnicalLemmas.Measure.CanonicalGlobalCompetitor
+import AutoSamplingTheory.TechnicalLemmas.Measure.CouplingQuadraticIntegrability
+import AutoSamplingTheory.TechnicalLemmas.Measure.QuadraticOptimalRealMinimality
+import AutoSamplingTheory.TechnicalLemmas.Measure.ReplacementCompetitorQuadraticCost
+import AutoSamplingTheory.TechnicalLemmas.Measure.StrictCycleCheaperLocalReplacement
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace
+
+/-!
+# Quadratic optimal couplings have pairing-cyclically-monotone support
+
+This is the endpoint of the direct perturbation branch of the Brenier proof.
+For an optimal quadratic coupling, a strict positive pairing cycle through
+distinct support points would produce a canonical local common-mass
+replacement with lower cost.  Adding the unchanged remainder gives a global
+same-marginal competitor with strictly lower cost, contradicting optimality.
+
+The core theorem is first stated for a bundled `FiniteMeasure` coupling.  Two
+thin wrappers then expose the ordinary `Measure` version and the source-facing
+`P₂,ac` specialization.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace QuadraticOptimalSupportCyclic
+
+open MeasureTheory
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCyclicMonotonicity
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCycleNeighborhood
+open AutoSamplingTheory.TechnicalLemmas.Analysis.CyclicQuadraticCost
+open DisplacementInterpolation
+open Transport
+open WassersteinSpace
+open CommonSlicePermutationReplacement
+open CanonicalGlobalCompetitor FiniteRemainder
+open PermutedReplacementQuadraticCost
+open ReplacementCompetitor ReplacementCompetitorQuadraticCost
+open StrictCycleCheaperLocalReplacement
+open CouplingQuadraticIntegrability QuadraticOptimalRealMinimality
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  [SecondCountableTopology E]
+
+/-- Finite-measure core of the direct Brenier perturbation: an optimal
+quadratic coupling between two finite-second-moment marginals has support
+satisfying every distinct finite pairing-cycle inequality. -/
+theorem pairingDistinctCycleMonotone_support_of_quadraticOptimal_finite
+    (gamma : FiniteMeasure (E × E))
+    {mu0 mu1 : Measure E}
+    (hopt : IsQuadraticOptimalCoupling (gamma : Measure (E × E)) mu0 mu1)
+    (hmu0 : Integrable (fun x : E => ‖x‖ ^ 2) mu0)
+    (hmu1 : Integrable (fun y : E => ‖y‖ ^ 2) mu1) :
+    PairingDistinctCycleMonotone ((gamma : Measure (E × E)).support) := by
+  intro n p hp hsupp
+  change cycleValue p ≤ 0
+  by_contra hnot
+  have hcycle : 0 < cycleValue p := lt_of_not_ge hnot
+  obtain ⟨localBlock, hlocalPos, hlocalLe, hlocalCost⟩ :=
+    exists_localBlocks_cyclicReplacement_lt_of_cycleValue_pos
+      gamma hp hcycle hsupp
+  let sigmaInv : Equiv.Perm (Fin (n + 1)) :=
+    (cycleSuccessorPerm (n := n)).symm
+  let removed : FiniteMeasure (E × E) := commonSliceRemoved localBlock
+  let replacement : FiniteMeasure (E × E) :=
+    commonSlicePermutationReplacement localBlock sigmaInv
+  let remainder : FiniteMeasure (E × E) :=
+    finiteRemainder gamma removed
+  let xi : FiniteMeasure (E × E) :=
+    canonicalGlobalCompetitor gamma localBlock sigmaInv
+
+  have hpres := canonicalGlobalCompetitor_preserves_marginals
+    gamma localBlock hlocalPos hlocalLe sigmaInv
+  have hxiCoupling : IsCoupling (xi : Measure (E × E)) mu0 mu1 := by
+    constructor
+    · change (xi : Measure (E × E)).map Prod.fst = mu0
+      calc
+        (xi : Measure (E × E)).map Prod.fst =
+            (gamma : Measure (E × E)).map Prod.fst := by
+          have hmap := congrArg
+            (fun eta : FiniteMeasure E => (eta : Measure E)) hpres.1
+          simpa [xi] using hmap
+        _ = mu0 := by
+          simpa [Measure.fst] using hopt.1.1
+    · change (xi : Measure (E × E)).map Prod.snd = mu1
+      calc
+        (xi : Measure (E × E)).map Prod.snd =
+            (gamma : Measure (E × E)).map Prod.snd := by
+          have hmap := congrArg
+            (fun eta : FiniteMeasure E => (eta : Measure E)) hpres.2
+          simpa [xi] using hmap
+        _ = mu1 := by
+          simpa [Measure.snd] using hopt.1.2
+
+  have hgammaIntRaw :
+      Integrable (fun z : E × E => ‖z.1 - z.2‖ ^ 2)
+        (gamma : Measure (E × E)) :=
+    integrable_norm_sub_sq_of_isCoupling hopt.1 hmu0 hmu1
+  have hxiIntRaw :
+      Integrable (fun z : E × E => ‖z.1 - z.2‖ ^ 2)
+        (xi : Measure (E × E)) :=
+    integrable_norm_sub_sq_of_isCoupling hxiCoupling hmu0 hmu1
+  have hgammaInt : Integrable realQuadraticCost
+      (gamma : Measure (E × E)) := by
+    simpa [realQuadraticCost] using hgammaIntRaw
+  have hxiInt : Integrable realQuadraticCost
+      (xi : Measure (E × E)) := by
+    simpa [realQuadraticCost] using hxiIntRaw
+
+  have hdecomp : gamma = remainder + removed := by
+    simpa [remainder, removed] using
+      ambient_eq_remainder_add_commonSliceRemoved
+        gamma localBlock hlocalPos hlocalLe
+  have hambientParts :
+      Integrable realQuadraticCost (remainder : Measure (E × E)) ∧
+        Integrable realQuadraticCost (removed : Measure (E × E)) := by
+    have hsum : Integrable realQuadraticCost
+        ((remainder : Measure (E × E)) + (removed : Measure (E × E))) := by
+      have h := hgammaInt
+      rw [hdecomp] at h
+      simpa using h
+    exact integrable_add_measure.mp hsum
+  have hcompetitorParts :
+      Integrable realQuadraticCost (remainder : Measure (E × E)) ∧
+        Integrable realQuadraticCost (replacement : Measure (E × E)) := by
+    have hsum : Integrable realQuadraticCost
+        ((remainder : Measure (E × E)) + (replacement : Measure (E × E))) := by
+      simpa [xi, canonicalGlobalCompetitor, replacementCompetitor,
+        remainder, removed, replacement] using hxiInt
+    exact integrable_add_measure.mp hsum
+  have hlocalCost' :
+      (∫ z : E × E, realQuadraticCost z
+          ∂(replacement : Measure (E × E))) <
+        ∫ z : E × E, realQuadraticCost z
+          ∂(removed : Measure (E × E)) := by
+    simpa [replacement, removed, sigmaInv] using hlocalCost
+  have hglobalCost :
+      (∫ z : E × E, realQuadraticCost z
+          ∂(xi : Measure (E × E))) <
+        ∫ z : E × E, realQuadraticCost z
+          ∂(gamma : Measure (E × E)) := by
+    have h := integral_replacementCompetitor_lt_ambient
+      gamma remainder removed replacement hdecomp
+      hambientParts.1 hambientParts.2 hcompetitorParts.2 hlocalCost'
+    simpa [xi, canonicalGlobalCompetitor, remainder, removed, replacement] using h
+  have hminimalRaw := integral_norm_sq_le_of_quadraticOptimal
+    hopt hxiCoupling hgammaIntRaw hxiIntRaw
+  have hminimal :
+      (∫ z : E × E, realQuadraticCost z
+          ∂(gamma : Measure (E × E))) ≤
+        ∫ z : E × E, realQuadraticCost z
+          ∂(xi : Measure (E × E)) := by
+    simpa [realQuadraticCost] using hminimalRaw
+  exact (not_lt_of_ge hminimal) hglobalCost
+
+/-- Ordinary-measure wrapper.  A probability first marginal forces an optimal
+coupling to be a probability measure and hence a finite measure, after which
+the finite-measure core applies. -/
+theorem pairingDistinctCycleMonotone_support_of_quadraticOptimal
+    {gamma : Measure (E × E)} {mu0 mu1 : Measure E}
+    [IsProbabilityMeasure mu0]
+    (hopt : IsQuadraticOptimalCoupling gamma mu0 mu1)
+    (hmu0 : Integrable (fun x : E => ‖x‖ ^ 2) mu0)
+    (hmu1 : Integrable (fun y : E => ‖y‖ ^ 2) mu1) :
+    PairingDistinctCycleMonotone gamma.support := by
+  letI : IsProbabilityMeasure gamma :=
+    isProbabilityMeasure_of_isCoupling_left hopt.1
+  let gammaFinite : FiniteMeasure (E × E) := ⟨gamma, by infer_instance⟩
+  simpa [gammaFinite] using
+    pairingDistinctCycleMonotone_support_of_quadraticOptimal_finite
+      gammaFinite hopt hmu0 hmu1
+
+/-- Source-facing `P₂,ac` specialization.  Absolute continuity is not used by
+the support-cyclical-monotonicity perturbation itself, but this is the endpoint
+shape consumed by the later Brenier/Rockafellar construction in Chewi's
+Euclidean setting. -/
+theorem pairingDistinctCycleMonotone_support_of_quadraticOptimal_p2ac
+    {gamma : Measure (E × E)} {mu0 mu1 : Measure E}
+    (hmu0 : IsAbsolutelyContinuousFiniteSecondMoment mu0)
+    (hmu1 : IsAbsolutelyContinuousFiniteSecondMoment mu1)
+    (hopt : IsQuadraticOptimalCoupling gamma mu0 mu1) :
+    PairingDistinctCycleMonotone gamma.support := by
+  letI : IsProbabilityMeasure mu0 := hmu0.1
+  letI : IsProbabilityMeasure mu1 := hmu1.1
+  exact pairingDistinctCycleMonotone_support_of_quadraticOptimal
+    hopt hmu0.2.2 hmu1.2.2
+
+end
+
+end QuadraticOptimalSupportCyclic
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

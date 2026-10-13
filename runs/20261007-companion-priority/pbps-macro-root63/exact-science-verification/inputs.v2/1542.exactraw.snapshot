@@ -1,0 +1,24 @@
+"identity" equivalence between `p` and `E`. -/
+@[simps! toLinearEquiv apply symm_apply_coe]
+def ofTop {R : Type*} [Ring R] [Module R E] (p : Submodule R E) (hp : p = ⊤) : p ≃ₗᵢ[R] E :=
+  { p.subtypeₗᵢ with toLinearEquiv := LinearEquiv.ofTop p hp }
+
+variable {R E E₂ E₃} {R' : Type*} [Ring R']
+variable [Module R' E] (p q : Submodule R' E)
+
+/-- `LinearEquiv.ofEq` as a `LinearIsometryEquiv`. -/
+def ofEq (hpq : p = q) : p ≃ₗᵢ[R'] q :=
+  { LinearEquiv.ofEq p q hpq with norm_map' := fun _ => rfl }
+
+variable {p q}
+
+@[simp]
+theorem coe_ofEq_apply (h : p = q) (x : p) : (ofEq p q h x : E) = x :=
+  rfl
+
+@[simp]
+theorem ofEq_symm (h : p = q) : (ofEq p q h).symm = ofEq q p h.symm :=
+  rfl
+
+@[simp]
+theorem ofEq_rfl : ofEq p p rfl = LinearIsometryEquiv.refl R' p := rfl

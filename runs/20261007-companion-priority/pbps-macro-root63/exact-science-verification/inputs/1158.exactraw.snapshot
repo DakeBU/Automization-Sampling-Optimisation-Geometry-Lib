@@ -1,0 +1,212 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicGridStoppingIto
+
+/-!
+# Dyadic right approximations of a bounded stopping time
+
+The stochastic integral is still stopped by the *original* stopping time.
+For a fixed sample point `omega`, however, the active coefficients on a fine
+dyadic refinement are exactly the coefficients retained by the deterministic
+right endpoint of the cell containing `tau omega`.  This observation avoids
+introducing a second approximating stopping-time theory merely for
+measurability: `stopElementary` already inherits measurability from the
+original stopping time.
+
+The comparison is first proved coefficientwise, then lifted to the exact
+finite Itô sum.  The selected right endpoints converge to the stopping value.
+The convergence is also packaged inside the construction interval so that a
+continuous sample path can be evaluated along the same right endpoints.  The
+later L² passage remains downstream.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace RandomStoppingDyadicApprox
+
+open Filter MeasureTheory Set
+open scoped BigOperators NNReal Topology
+
+open ContinuousDoobL2 DyadicElementaryRefinement DyadicElementaryStopping
+  ElementaryItoIntegral ElementaryStoppingTime FiniteTimeGrid ProgressiveL2Density
+  SampledElementaryApproximation StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {T : ℝ≥0}
+
+/-- A finite nonnegative stopping time bounded by the construction horizon. -/
+def IsBoundedNNRealStoppingTime
+    (tau : Omega → ℝ≥0) : Prop :=
+  IsChewiStoppingTime filtration (fun omega => (tau omega : WithTop ℝ≥0)) ∧
+    ∀ omega, tau omega ≤ T
+
+/-- At a sample point where `tau` is positive, stopping the refined elementary
+integrand by the original stopping time retains exactly the same coefficients
+as the deterministic right-grid cutoff of the cell containing `tau omega`. -/
+theorem stopRefined_coeff_eq_rightCutoff
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T)
+    (n : ℕ) (omega : Omega) (homega : 0 < tau omega)
+    (j : Fin (2 ^ stoppingLevel eta n)) :
+    (stopElementary
+        (refineDyadic eta (stoppingLevel eta n)
+          (level_le_stoppingLevel eta n)).process
+        (fun w => (tau w : WithTop ℝ≥0)) htau).coeff j omega =
+      (stopAtRightApprox eta (DyadicElementaryProcess.horizon_pos eta)
+        homega (htauT omega) n).process.coeff j omega := by
+  let fine : ElementaryAdaptedProcess filtration (2 ^ stoppingLevel eta n) :=
+    (refineDyadic eta (stoppingLevel eta n)
+      (level_le_stoppingLevel eta n)).process
+  let grid : Fin (2 ^ stoppingLevel eta n + 1) → ℝ≥0 :=
+    regularGridTimes (dyadicMesh T (stoppingLevel eta n))
+      (2 ^ stoppingLevel eta n)
+  let i := activeCellIndex (DyadicElementaryProcess.horizon_pos eta)
+    homega (htauT omega) (stoppingLevel eta n)
+  have hfineTimes : fine.times = grid := by
+    rfl
+  have hi : grid i.castSucc < tau omega ∧ tau omega ≤ grid i.succ := by
+    simpa only [grid, i] using
+      activeCellIndex_spec (DyadicElementaryProcess.horizon_pos eta)
+        homega (htauT omega) (stoppingLevel eta n)
+  have hmono : StrictMono grid :=
+    regularGridTimes_strictMono
+      (dyadicMesh_pos (DyadicElementaryProcess.horizon_pos eta)
+        (stoppingLevel eta n)) _
+  change
+    (stopElementary fine (fun w => (tau w : WithTop ℝ≥0)) htau).coeff j omega = _
+  have hstop := stopElementary_coeff
+    fine (fun w => (tau w : WithTop ℝ≥0)) htau j omega
+  rw [hstop]
+  change
+    (if (fine.times j.castSucc : WithTop ℝ≥0) < (tau omega : WithTop ℝ≥0)
+      then fine.coeff j omega else 0) =
+      if j.castSucc < i.succ then fine.coeff j omega else 0
+  simp only [hfineTimes, WithTop.coe_lt_coe]
+  by_cases hj : j.castSucc < i.succ
+  · have hji : j ≤ i := (Fin.castSucc_lt_succ_iff).mp hj
+    have hidx : j.castSucc ≤ i.castSucc := by
+      exact_mod_cast hji
+    have htime : grid j.castSucc < tau omega :=
+      (hmono.monotone hidx).trans_lt hi.1
+    simp [hj, htime]
+  · have hij : i.succ ≤ j.castSucc := le_of_not_gt hj
+    have htimeLe : tau omega ≤ grid j.castSucc :=
+      hi.2.trans (hmono.monotone hij)
+    have htime : ¬ grid j.castSucc < tau omega :=
+      not_lt_of_ge htimeLe
+    simp [hj, htime]
+
+/-- At a positive sample value of the bounded stopping time, the *whole*
+finite Itô sum of the refined process stopped by the original random time is
+exactly the original elementary Itô sum evaluated at the deterministic right
+endpoint of the fine cell containing that sample value.  Thus no Brownian
+increment beyond that right endpoint is hidden in the comparison. -/
+theorem stopRefined_elementaryItoIntegral_eq_rightApprox
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T)
+    (n : ℕ) (B : ℝ≥0 → Omega → ℝ)
+    (omega : Omega) (homega : 0 < tau omega) :
+    elementaryItoIntegral
+        (stopElementary
+          (refineDyadic eta (stoppingLevel eta n)
+            (level_le_stoppingLevel eta n)).process
+          (fun w => (tau w : WithTop ℝ≥0)) htau)
+        B T omega =
+      elementaryItoIntegral eta.process B
+        (rightApproxTime (DyadicElementaryProcess.horizon_pos eta)
+          homega (htauT omega) (stoppingLevel eta n)) omega := by
+  calc
+    elementaryItoIntegral
+        (stopElementary
+          (refineDyadic eta (stoppingLevel eta n)
+            (level_le_stoppingLevel eta n)).process
+          (fun w => (tau w : WithTop ℝ≥0)) htau)
+        B T omega =
+      elementaryItoIntegral
+        (stopAtRightApprox eta (DyadicElementaryProcess.horizon_pos eta)
+          homega (htauT omega) n).process B T omega := by
+      unfold elementaryItoIntegral
+      apply Finset.sum_congr rfl
+      intro j _hj
+      rw [stopRefined_coeff_eq_rightCutoff eta tau htau htauT n omega homega j]
+      rfl
+    _ = elementaryItoIntegral eta.process B
+        (cutoffTime (T := T) (stoppingLevel eta n)
+          (rightCutoffIndex eta (DyadicElementaryProcess.horizon_pos eta)
+            homega (htauT omega) n)) omega := by
+      change elementaryItoIntegral
+        (stopDyadicAtGridIndex eta (stoppingLevel eta n)
+          (level_le_stoppingLevel eta n)
+          (rightCutoffIndex eta (DyadicElementaryProcess.horizon_pos eta)
+            homega (htauT omega) n)).process B T omega = _
+      exact stopDyadicAtGridIndex_elementaryItoIntegral
+        eta (stoppingLevel eta n) (level_le_stoppingLevel eta n)
+          (rightCutoffIndex eta (DyadicElementaryProcess.horizon_pos eta)
+            homega (htauT omega) n) B omega
+    _ = elementaryItoIntegral eta.process B
+        (rightApproxTime (DyadicElementaryProcess.horizon_pos eta)
+          homega (htauT omega) (stoppingLevel eta n)) omega := by
+      rw [cutoffTime_rightCutoffIndex]
+
+/-- For every positive sample value of the bounded stopping time, the right
+endpoints chosen on successively finer dyadic refinements converge to that
+sample value. -/
+theorem tendsto_rightApproxTime_stoppingValue
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0) (htauT : ∀ omega, tau omega ≤ T)
+    (omega : Omega) (homega : 0 < tau omega) :
+    Tendsto
+      (fun n => rightApproxTime (DyadicElementaryProcess.horizon_pos eta)
+        homega (htauT omega) (stoppingLevel eta n))
+      atTop (𝓝 (tau omega)) :=
+  tendsto_rightApproxTime_stoppingLevel eta
+    (DyadicElementaryProcess.horizon_pos eta) homega (htauT omega)
+
+/-- The same convergence, recorded in the subspace topology of the construction
+interval.  This is the exact interface needed to compose with a path that is
+known to be continuous only on `[0,T]`. -/
+theorem tendsto_rightApproxTime_stoppingValue_nhdsWithin
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0) (htauT : ∀ omega, tau omega ≤ T)
+    (omega : Omega) (homega : 0 < tau omega) :
+    Tendsto
+      (fun n => rightApproxTime (DyadicElementaryProcess.horizon_pos eta)
+        homega (htauT omega) (stoppingLevel eta n))
+      atTop (nhdsWithin (tau omega) (Icc (0 : ℝ≥0) T)) := by
+  apply tendsto_nhdsWithin_iff.2
+  refine ⟨tendsto_rightApproxTime_stoppingValue eta tau htauT omega homega, ?_⟩
+  exact Filter.Eventually.of_forall fun n =>
+    rightApproxTime_mem_Icc (DyadicElementaryProcess.horizon_pos eta)
+      homega (htauT omega) (stoppingLevel eta n)
+
+/-- Continuous paths may be evaluated along the dyadic right approximations:
+if the path is continuous on the construction interval, its values at the
+selected right endpoints converge to its value at the original stopping time.
+This isolates the only topological limit needed after the exact finite-sum
+identity above. -/
+theorem tendsto_continuousOn_rightApproxTime_stoppingValue
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0) (htauT : ∀ omega, tau omega ≤ T)
+    (M : ℝ≥0 → Omega → ℝ)
+    (omega : Omega) (homega : 0 < tau omega)
+    (hcont : ContinuousOn (fun t => M t omega) (Icc (0 : ℝ≥0) T)) :
+    Tendsto
+      (fun n => M
+        (rightApproxTime (DyadicElementaryProcess.horizon_pos eta)
+          homega (htauT omega) (stoppingLevel eta n)) omega)
+      atTop (𝓝 (M (tau omega) omega)) := by
+  have htauIcc : tau omega ∈ Icc (0 : ℝ≥0) T :=
+    ⟨bot_le, htauT omega⟩
+  exact (hcont (tau omega) htauIcc).tendsto.comp
+    (tendsto_rightApproxTime_stoppingValue_nhdsWithin
+      eta tau htauT omega homega)
+
+end RandomStoppingDyadicApprox
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

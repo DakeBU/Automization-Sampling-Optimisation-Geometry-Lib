@@ -30,7 +30,10 @@ Primary mathematical sources are the exact primary papers behind the relevant Sa
 ## Boundary between textbook and frontier work
 
 First apply `execution` in `website/content/samplewiki_companion_frontiers.json`.
-The two September 2026 companion papers now precede unrelated textbook work;
+The four fixed-v1 paper Goal proceeds PBPS/SPHMC+composition, then Gaussian
+Cloud Section6/errors/costs, then midpoint upper/lower/finitestep results, ahead
+of unrelated textbook work. A later shared dependency may come first only to
+remove an identified current blocker with a real consumer;
 the dependency and fidelity rules below remain mandatory. Preserve older cells.
 Do not let new graph/citation/download features delay correct paper lemmas.
 

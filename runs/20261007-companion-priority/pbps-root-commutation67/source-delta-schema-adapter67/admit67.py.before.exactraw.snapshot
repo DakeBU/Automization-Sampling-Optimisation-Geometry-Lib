@@ -1,0 +1,48 @@
+from pathlib import Path
+import copy,json,sys
+root=Path.cwd();sys.path.insert(0,'tools')
+import astis_publication as pub,astis_semantic_roundtrip as rt,astis_advance as adv
+r=root/'runs/20261007-companion-priority/pbps-root-commutation67';load=lambda p:json.loads(p.read_bytes())
+def replace(p,x):p.write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
+def new(p,x):assert not p.exists(),p;replace(p,x)
+assert load(r/'root.math67.adoption.json')['native_owned_files']==164
+source=load(r/'root.source67.adoption.json');assert source['status']=='INDEPENDENT_SOURCE67_ACCEPTED_SELECTED_BOUNDARIES'
+assert load(r/'root.decoder67.adoption.json')['native_owned_files']==25
+assert load(r/'root.attribution-overlay67.adoption.json')['status']=='INDEPENDENTLY_APPROVED_ATTRIBUTION_ONLY_OVERLAY_APPLIED'
+assert load(r/'applied-reviewed-citation-catalogue67/applied.json')['status']=='EXACT_INDEPENDENTLY_REVIEWED_CITATION_AND_CATALOGUE_FIELDS_APPLIED'
+plan=load(r/'publication-plan.json');claim=load(r/'claim.json');registry=rt.load_registry();accepted_records=[]
+pub.inputs.cache_clear();pub.load.cache_clear();data=pub.inputs()
+for i,(aid,slug) in enumerate(zip(plan['audit_ids'],plan['slugs'])):
+ ap=root/'research-wiki/semantic-roundtrip/audits'/f'{aid}.json';audit=load(ap)
+ decision=load(r/'independent-source67'/f'source.{i}.decision.json');packet=load(r/f'source.{i}.reviewer-packet.json')
+ assert audit['state']=='blind-reconstructed' and rt.semantic_reviewer_packet(audit)==packet
+ assert packet['packet_sha256']==decision['reviewer_packet_sha256']
+ item=next(x for x in pub.load() if x['id']==slug)
+ assert pub.binding_digest(item,item['bindings'][0],data)==audit['publication_binding_sha256']==decision['publication_binding_sha256']
+ assert decision['verdict']=='equivalent-after-elaboration' and not decision['repairs'] and not decision['deltas']
+ assert set(decision['semantic_slots'])==set(rt.SEMANTIC_SLOTS)
+ adapter=copy.deepcopy(decision)
+ assert adapter['review_run_sha256'] in ['',source['native_whole_logical_run_sha256']]
+ adapter['review_run_sha256']=source['native_whole_logical_run_sha256']
+ adapter.update(native_complete_RAW_review_sha256=source['native_complete_RAW_review_sha256'],native_review_bytes_preserved=True,external_whole_run_binding='root.source67.adoption.json; native logical run removes only top-level run_sha256')
+ target=r/f'source.{i}.review.root-adapter.json';new(target,adapter)
+ accepted=copy.deepcopy(audit);accepted.update(state='accepted',semantic_slots=decision['semantic_slots'],deltas=[],verdict=decision['verdict'],repairs=[])
+ accepted['source_review']=dict(state='accepted',reviewer=decision['reviewer'],independent_from_formalizer=True,independent_from_decoder=True,evidence=decision['review_evidence'],review_run_sha256=adapter['review_run_sha256'],reviewer_packet_sha256=decision['reviewer_packet_sha256'],run_artifact=target.relative_to(root).as_posix())
+ registry['audits']=[accepted if x['id']==aid else x for x in registry['audits']]
+ accepted_records.append((i,ap,accepted))
+errors=rt.validate_registry(registry);assert not errors,errors
+for i,ap,accepted in accepted_records:
+ before=r/f'audit.{i}.before-source-admission.exactraw.snapshot.json';assert not before.exists();before.write_bytes(ap.read_bytes());replace(ap,accepted)
+pub.inputs.cache_clear();pub.load.cache_clear();pub.check_advance(plan['mathematical_declarations'],reviewed=True)
+mirror=load(r/'conceptual-mirror-audit67.json');mirror={k:mirror[k] for k in ['status','discovery_ids','reason']}
+boundary=claim['truth_boundary']+' Independent precommit math, fresh blind reconstructions and primary-first whole-module source review accepted. The two literal private Prop definitions preserve all original callers and conclusions. Exact reviewed attribution/citation/catalogue changes add no mathematics. Exact SCI67 verification and serialized aggregate/reader admission remain pending.'
+cells=[(root/'research-wiki/frontier-cells'/f'{cid}.json',cid) for cid in plan['active_cells']]
+e=dict(result_kind='integration-node',theorem_delta=claim['theorem_delta'],lean_declarations=plan['mathematical_declarations'],publication_declarations=plan['mathematical_declarations'],lean_files=claim['proposed_files'],focused_checks=[dict(command='lake build Tests.ProximalBPSActualRootCommutation',result='Root37308 EXIT0/3948 and all3 standard axioms. Independent Lake51368 EXIT0/3948 replay classified separately; fresh leaf15964/main36824/Test12608 EXIT0 with exactly standard3.'),dict(command='Independent primary-first whole-module source review and blind decoder',result=f'CLOSED math164/source{source["native_owned_files"]}/decoder25;344 source math items/all10 literal BODY spans/seven slots per2 packets equivalent-after-elaboration; no mathematical repair.')],truth_boundary=boundary,conceptual_mirror_audit=mirror,useful_discoveries=[],active_cells=plan['active_cells'],reader_lesson=['website/content/declaration_lessons/'+s+'.json' for s in plan['slugs']],integration_notes='One general real-L2 positive-square commutation leaf and same actual PBPS root/inverse integration. No positivity of T/A/A0, new caller premise, root/inverse replacement or extra nontriviality; rank0/alphaeta1 retained. Genuine coefficient Test proves K selfadjoint and I+K²=Inv². Next mathematical consumer is sharp B23 and LemmaB3 energy equivalence. Sole existing stabilization lane; no whole main/cost/composition/Exposition/PURIFIED/Goal claim.')
+for key in ['statement_seal','source_proof_coverage','proof_digestion','purification']:
+ e[key]=[dict(declaration=decl,declaration_level=load(p)['declaration_level'],report=load(p)[key]) for (p,cid),decl in zip(cells,plan['mathematical_declarations'])]
+adv.transition_advance(claim['advance_id'],'PROVED_LOCAL',worker_id=claim['created_by'],evidence=e)
+for i,(p,cid) in enumerate(cells):
+ cell=load(p);assert cell['status']=='claimed';(r/f'cell.{i}.before-proved.exactraw.snapshot.json').write_bytes(p.read_bytes())
+ cell['status']='proved_locally';cell['conceptual_mirror_audit']=mirror;cell['evidence'].update(proof_review=(r/'independent-math67/mathematical-review.named.raw.json').relative_to(root).as_posix(),source_review=(r/f'source.{i}.review.root-adapter.json').relative_to(root).as_posix(),execution_boundary=boundary);replace(p,cell)
+new(r/'proved-local.json',e)
+print('PASS67 PROVED_LOCAL: independent math/decoder/source and real reviewed publication admission;2 production declarations/10 BODY steps. Exact commit verification and aggregate pending.')

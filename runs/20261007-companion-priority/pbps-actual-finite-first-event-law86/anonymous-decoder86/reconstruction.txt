@@ -1,0 +1,88 @@
+Anonymous theorem reconstruction
+
+Let E be any finite-dimensional real inner-product space, equipped with its normed additive commutative group structure and a measurable space whose measurable sets are the Borel sets. The dimension may be zero. Let V : E -> R, let alpha and beta be nonnegative real numbers, and let eta be a real number. Assume:
+(1) alpha > 0, where alpha is coerced to R;
+(2) alpha <= beta in the nonnegative reals;
+(3) V is twice continuously Frechet differentiable over R;
+(4) for every x,v in E, alpha * ||v||^2 <= ((D(DV)(x))(v))(v) <= beta * ||v||^2, where D denotes the real Frechet derivative and alpha,beta are coerced to R;
+(5) eta > 0;
+(6) beta * eta <= 1 in R.
+The two Hessian inequalities in (4) are a conjunction for every x,v; they are not assumptions only along a particular trajectory.
+
+Use the following literal definitions. All inner products are real, all vector multiplications by real numbers are scalar multiplications, and all measures and integrals are those explicitly specified below.
+
+Let Omega = (N -> R), the space of all real sequences, and let
+P = infinitePi(k in N, expMeasure(1)),
+the countable product of rate-one exponential measures on R. For every sample in Omega and k in N, define epsilon(sample,k) = toNNReal(sample(k)) = max(sample(k),0), viewed as a nonnegative real.
+
+For y,xRef in E, define
+c(y,xRef) = y - eta * gradient V(xRef).
+For t in R and z=(q,p) in E x E, define
+Phi(y,xRef,t,z) =
+( c(y,xRef) + cos(t) * (q-c(y,xRef)) + (sqrt(eta)*sin(t)) * p,
+  (-sin(t)/sqrt(eta)) * (q-c(y,xRef)) + cos(t) * p ).
+This definition is for every real t, not just nonnegative t.
+
+For xRef in E and z=(q,p) in E x E, put g = gradient V(q)-gradient V(xRef), and define
+S(xRef,z) = (q, p - (2*<p,g>/||g||^2) * g),
+rate(xRef,z) = sqrt(eta) * max(0,<p,g>).
+The division in S is Lean's total real division, so the quotient is zero when ||g||^2 = 0; in particular, when g=0, S(xRef,z)=z and rate(xRef,z)=0. No nonzero-gradient-difference assumption is present.
+
+For y,xRef in E, z in E x E, and t in the nonnegative reals, define the real number
+Lambda(y,xRef,z,t) = integral from 0 to (t:R) of rate(xRef,Phi(y,xRef,s,z)) ds.
+This is the real interval integral displayed in the statement, with real variable s.
+
+For e in the nonnegative reals define tau(y,xRef,z,e) in WithTop(nonnegative reals) by
+inf { t >= 0 : Lambda(y,xRef,z,t) - (e:R) belongs to [0,infinity) }.
+The infimum is taken in the nonnegative reals with an added top element, and is infinity when the hit set is empty. This is precisely hittingAfter applied to the function of t and parameter a=((y,xRef),(z,e)), to the target Set.Ici(0:R), and to initial time 0. Because products associate to the right, a.1=(y,xRef), a.2.1=z, and a.2.2=e. Membership in the target means Lambda(y,xRef,z,t) >= e. The definition specifies the infimum, and does not separately assert a minimum or a finite hitting time.
+
+For sample in Omega define
+U(y,xRef,z,sample) = tau(y,xRef,z,epsilon(sample,0)),
+F(y,xRef,z,sample) = (untopD(0,U(y,xRef,z,sample)):R).
+Thus U takes values in nonnegative reals with infinity, while F takes values in R, returns the finite time coerced to R when U is finite, and returns 0 when U is infinity. Only the zeroth coordinate of the sequence is used by U and F.
+
+For T in the nonnegative reals define
+A(y,xRef,z,T) = {sample in Omega : 0 < U(y,xRef,z,sample) and U(y,xRef,z,sample) <= T},
+where the inequalities are in WithTop(nonnegative reals), and T is embedded as a finite value.
+
+For s in R define
+d(y,xRef,z,s) = rate(xRef,Phi(y,xRef,s,z)) * exp(-Lambda(y,xRef,z,toNNReal(s))).
+The argument of Lambda here is toNNReal(s), not s; negative real inputs to d therefore use Lambda at time 0 while Phi still uses the negative real time s.
+
+For T in the nonnegative reals define a measure on R by
+rho(y,xRef,z,T) = (Lebesgue measure restricted to (0,(T:R)]).withDensity(s -> ENNReal.ofReal(d(y,xRef,z,s))).
+Here ENNReal.ofReal takes the nonnegative part as an extended nonnegative real, and measure restriction keeps the original mass without normalization.
+
+For s in R define
+J(y,xRef,z,s) = (toNNReal(s), S(xRef,Phi(y,xRef,s,z)))
+in (nonnegative reals) x (E x E).
+The time coordinate is truncated at zero for negative s, while the state coordinate uses Phi at the original s and then S. These definitions are defined globally on the displayed domains; the conclusion below uses rho only on (0,T].
+
+Conclusion: For every y,xRef in E and every z in E x E, the following all hold simultaneously:
+(a) U(y,xRef,z,.) is measurable from Omega to WithTop(nonnegative reals).
+(b) F(y,xRef,z,.) is measurable from Omega to R.
+(c) J(y,xRef,z,.) is measurable from R to (nonnegative reals) x (E x E).
+(d) For every finite T in the nonnegative reals:
+  (d1) A(y,xRef,z,T) is a measurable subset of Omega.
+  (d2) The pushforward by F(y,xRef,z,.) of P restricted to A(y,xRef,z,T) equals rho(y,xRef,z,T), as measures on R:
+       map(F, P restricted to A) = rho.
+  (d3) The pushforward by sample -> J(y,xRef,z,F(y,xRef,z,sample)) of P restricted to A equals the pushforward by J(y,xRef,z,.) of rho, as measures on (nonnegative reals) x (E x E):
+       map(J composed with F, P restricted to A) = map(J,rho).
+  (d4) rho(y,xRef,z,T) is a finite measure.
+  (d5) Its total mass, converted to a real number by Measure.real, is
+       rho(y,xRef,z,T).real(univ) = 1 - exp(-Lambda(y,xRef,z,T)).
+  (d6) Its total mass as an extended nonnegative real satisfies
+       rho(y,xRef,z,T)(univ) <= 1.
+  (d7) For every h : ((nonnegative reals) x (E x E)) -> R, if h is measurable, then for every M in R satisfying M >= 0 and |h(a)| <= M for every a in the entire domain of h, all of the following hold:
+       h is Bochner integrable with respect to map(J,rho);
+       sample -> h(J(y,xRef,z,F(y,xRef,z,sample))) is Bochner integrable with respect to P restricted to A;
+       s -> h(J(y,xRef,z,s))*d(y,xRef,z,s) is Bochner integrable with respect to Lebesgue measure restricted to (0,(T:R)];
+       integral h(J(y,xRef,z,F(y,xRef,z,sample))) d(P restricted to A)(sample)
+       = integral h(J(y,xRef,z,s))*d(y,xRef,z,s) d(Lebesgue restricted to (0,(T:R)])(s).
+In (d2)-(d7), F, A, rho, and J all use the same fixed y,xRef,z,T whenever those arguments are applicable. Every integral in (d7) is the real Bochner integral under the displayed measure. The bound on h is pointwise everywhere, not merely almost everywhere. No continuity of h is assumed.
+
+Scopes, constants, and boundary cases:
+The assumptions precede all the let definitions, and all definitions precede the universal conclusion in y,xRef,z. There is no hypothesis relating y, xRef, q, or p, and no initialization, nonzero-velocity, nonzero-gradient, dimension-lower-bound, or finite-hit assumption. The conclusions are for every such pair and state, every finite nonnegative T, and every measurable globally bounded h with every admissible nonnegative bound M. No existential or unspecified estimate constant occurs. All numerical constants are literal: exponential rate 1, coordinate 0, start time and threshold 0, Hessian exponent 2, reflection factor 2, step bound 1, mass bound 1, and defaults/truncations at 0. The parameters alpha,beta,eta,V,E are fixed by the outer quantification; the density and mappings contain eta and V explicitly and contain no separately chosen alpha- or beta-dependent constant.
+At T=0 the interval (0,T] and event A are empty, rho is the zero measure, Lambda at 0 is 0, and the asserted mass and integrals are zero. For e=0 the hit set contains time 0 and tau=0; such a sample is excluded by the strict lower inequality in A. Infinite U is also excluded from A for every finite T despite F being defined as 0 there. When the rate vanishes along the entire nonnegative trajectory, positive thresholds have no hit and tau is infinity, while the threshold-zero case remains tau=0. Dimension zero is allowed with the same literal formulas and zero-gradient convention. No assertion about an eventual hit, normalized conditional law, later sequence coordinates, repeated events, or successive transitions is part of the conclusion.
+
+Unresolved semantics: No mathematical symbol in the statement remains unresolved given the approved definition context. In particular, the first-hit convention is an infimum including time 0, total division handles zero denominators, and restriction is not normalization. The anonymous packet's compiled flag is input metadata only; this decoding does not independently establish compilation, source fidelity, verification, or completion.

@@ -1,0 +1,61 @@
+end Unique
+
+/- ## `sqrt` -/
+
+section sqrt
+
+/-- Square roots of operators, based on the non-unital continuous functional calculus. -/
+noncomputable def sqrt (a : A) : A := cfcₙ NNReal.sqrt a
+
+@[simp]
+lemma sqrt_nonneg (a : A) : 0 ≤ sqrt a := cfcₙ_predicate _ a
+
+grind_pattern sqrt_nonneg => NonnegSpectrumClass ℝ A, sqrt a
+
+lemma sqrt_eq_nnrpow (a : A) : sqrt a = a ^ (1 / 2 : ℝ≥0) := by
+  simp only [sqrt]
+  congr
+  ext
+  exact_mod_cast NNReal.sqrt_eq_rpow _
+
+lemma sqrt_of_not_nonneg {a : A} (ha : ¬0 ≤ a) : sqrt a = 0 :=
+  cfcₙ_apply_of_not_predicate a ha
+
+@[simp]
+lemma sqrt_zero : sqrt (0 : A) = 0 := by simp [sqrt]
+
+variable [IsSemitopologicalRing A] [T2Space A]
+
+@[simp]
+lemma nnrpow_sqrt {a : A} {x : ℝ≥0} : (sqrt a) ^ x = a ^ (x / 2) := by
+  rw [sqrt_eq_nnrpow, nnrpow_nnrpow, one_div_mul_eq_div 2 x]
+
+lemma nnrpow_sqrt_two (a : A) (ha : 0 ≤ a := by cfc_tac) : (sqrt a) ^ (2 : ℝ≥0) = a := by
+  simp only [nnrpow_sqrt, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, div_self]
+  rw [nnrpow_one a]
+
+lemma sqrt_mul_sqrt_self (a : A) (ha : 0 ≤ a := by cfc_tac) : sqrt a * sqrt a = a := by
+  rw [← nnrpow_two _, nnrpow_sqrt_two _]
+
+@[simp]
+lemma sqrt_nnrpow {a : A} {x : ℝ≥0} : sqrt (a ^ x) = a ^ (x / 2) := by
+  simp [sqrt_eq_nnrpow, div_eq_mul_inv]
+
+lemma sqrt_nnrpow_two (a : A) (ha : 0 ≤ a := by cfc_tac) : sqrt (a ^ (2 : ℝ≥0)) = a := by
+  simp only [sqrt_nnrpow, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, div_self]
+  rw [nnrpow_one _]
+
+lemma sqrt_mul_self (a : A) (ha : 0 ≤ a := by cfc_tac) : sqrt (a * a) = a := by
+  rw [← nnrpow_two _, sqrt_nnrpow_two _]
+
+lemma mul_self_eq {a b : A} (h : sqrt a = b) (ha : 0 ≤ a := by cfc_tac) :
+    b * b = a :=
+  h ▸ sqrt_mul_sqrt_self _ ha
+
+lemma sqrt_unique {a b : A} (h : b * b = a) (hb : 0 ≤ b := by cfc_tac) :
+    sqrt a = b :=
+  h ▸ sqrt_mul_self b
+
+lemma sqrt_eq_iff (a b : A) (ha : 0 ≤ a := by cfc_tac) (hb : 0 ≤ b := by cfc_tac) :
+    sqrt a = b ↔ b * b = a :=
+  ⟨(mul_self_eq ·), (sqrt_unique ·)⟩

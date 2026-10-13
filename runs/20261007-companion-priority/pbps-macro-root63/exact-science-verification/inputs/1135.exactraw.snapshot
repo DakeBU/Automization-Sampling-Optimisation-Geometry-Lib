@@ -1,0 +1,75 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.L2Expectation
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GeneratorStationarity
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ReversibleGenerator
+
+/-!
+# Generator identities in L2 integral form
+
+This file is a representation join, not a new semigroup theorem.  The abstract
+operator facts are already formalized:
+
+* semigroup-invariant continuous linear functionals annihilate the generator;
+* the generator of a reversible semigroup is symmetric on its domain.
+
+On Mathlib's `Lp ℝ 2 pi`, `L2Expectation` identifies the expectation functional
+with integration and `L2.inner_def` identifies the Hilbert inner product with
+the integral of the pointwise inner product.  The theorems below therefore
+rewrite the abstract operator statements into the integral formulas used by
+Chewi's Dirichlet-form calculus.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace L2GeneratorIdentities
+
+open MeasureTheory
+open scoped ENNReal InnerProductSpace
+
+noncomputable section
+
+open OperatorGenerator OperatorGeneratorDomain
+
+variable {α : Type*} [MeasurableSpace α]
+
+/-- If expectation under `pi` is invariant under an `L²(pi)` semigroup, then
+its generator integrates to zero on the generator domain. -/
+theorem integral_rightGenerator_eq_zero_of_expectation_invariant
+    (pi : Measure α) [IsFiniteMeasure pi]
+    (S : ContinuousLinearSemigroup (Lp ℝ 2 pi))
+    (hinv : ∀ (t : ℝ≥0) (f : Lp ℝ 2 pi),
+      TechnicalLemmas.Measure.L2Expectation.expectation pi (S.op t f) =
+        TechnicalLemmas.Measure.L2Expectation.expectation pi f)
+    (f : generatorDomainSubmodule S) :
+    (∫ x, rightGenerator S f x ∂pi) = 0 := by
+  have h :=
+    GeneratorStationarity.invariantFunctional_rightGenerator_eq_zero
+      S (TechnicalLemmas.Measure.L2Expectation.expectation pi) hinv f
+  simpa [TechnicalLemmas.Measure.L2Expectation.expectation_apply_eq_integral]
+    using h
+
+/-- Reversibility of an `L²(pi)` semigroup gives the generator pair symmetry in
+source-facing integral form:
+
+`integral (Lf) g dpi = integral f (Lg) dpi`.
+
+The actual construction of the Markov/Langevin semigroup on `L²(pi)` and
+membership of canonical density/log-ratio observables in its generator domain
+remain separate analytic nodes. -/
+theorem integral_rightGenerator_mul_eq_integral_mul_rightGenerator
+    (pi : Measure α) [IsFiniteMeasure pi]
+    (S : ContinuousLinearSemigroup (Lp ℝ 2 pi))
+    (hrev : Reversibility.IsReversible S)
+    (f g : generatorDomainSubmodule S) :
+    (∫ x, rightGenerator S f x * (g : Lp ℝ 2 pi) x ∂pi) =
+      ∫ x, (f : Lp ℝ 2 pi) x * rightGenerator S g x ∂pi := by
+  have h := ReversibleGenerator.inner_rightGenerator_eq S hrev f g
+  rw [MeasureTheory.L2.inner_def, MeasureTheory.L2.inner_def] at h
+  simpa using h
+
+end
+
+end L2GeneratorIdentities
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

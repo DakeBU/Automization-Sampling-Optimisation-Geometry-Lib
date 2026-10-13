@@ -1,0 +1,175 @@
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalRelativeFisher
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CarreDuChamp
+import Mathlib.Tactic
+
+/-!
+# Canonical Dirichlet--Fisher bridge
+
+This file is the shared Chapter 1.2 edge between Chewi's generator-level
+integration-by-parts theorem and the canonical measure-level relative Fisher
+information.
+
+For the canonical Radon--Nikodym density
+
+`rho = d mu / d pi`
+
+and canonical log-ratio
+
+`r = log (d mu / d pi)`,
+
+Chewi's Theorem 1.2.14 gives
+
+`E_pi(rho,r) = integral Gamma(rho,r) dpi`
+
+once the relevant generator terms are integrable and stationarity/symmetry are
+available.  If the concrete diffusion additionally identifies
+
+`Gamma(rho,r) = rho * ||grad r||^2`,
+
+then the right-hand side is exactly the canonical relative Fisher information.
+
+The theorem below keeps each analytic obligation explicit.  In particular it
+does not infer stationarity, reversibility, generator-domain membership, or
+smoothness of the Radon--Nikodym representative from absolute continuity.
+Those are separate topology nodes and must be proved by the concrete Langevin
+or semigroup layer.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace CanonicalDirichletFisher
+
+open MeasureTheory
+open scoped RealInnerProductSpace
+
+noncomputable section
+
+variable {ι : Type*} [Fintype ι]
+
+abbrev State := EuclideanSpace ℝ ι
+
+/-- The canonical density/log-ratio pair is in the generator integration-by-
+parts domain needed to invoke Chewi Theorem 1.2.14.
+
+The fields are exactly the three integrability terms, stationarity of the
+product observable, and generator symmetry for this pair.  This is a local
+pair contract, not a global reversibility claim. -/
+structure DirichletPairDomain
+    (mu pi : Measure (State (ι := ι)))
+    (generator :
+      (State (ι := ι) → ℝ) →ₗ[ℝ] (State (ι := ι) → ℝ)) : Prop where
+  generator_product_integrable :
+    Integrable
+      (generator
+        (RNLogRatio.density mu pi * RNLogRatio.logRatio mu pi)) pi
+  density_mul_generator_logRatio_integrable :
+    Integrable
+      (fun x => RNLogRatio.density mu pi x *
+        generator (RNLogRatio.logRatio mu pi) x) pi
+  logRatio_mul_generator_density_integrable :
+    Integrable
+      (fun x => RNLogRatio.logRatio mu pi x *
+        generator (RNLogRatio.density mu pi) x) pi
+  stationary_product :
+    (∫ x,
+      generator
+        (RNLogRatio.density mu pi * RNLogRatio.logRatio mu pi) x ∂pi) = 0
+  symmetric_pair :
+    (∫ x, RNLogRatio.density mu pi x *
+      generator (RNLogRatio.logRatio mu pi) x ∂pi) =
+      ∫ x, RNLogRatio.logRatio mu pi x *
+        generator (RNLogRatio.density mu pi) x ∂pi
+
+/-- The concrete carré-du-champ identification required to turn the abstract
+Dirichlet form into canonical relative Fisher information.
+
+For overdamped Langevin this is the measure-domain version of
+`Gamma(f,g)=inner (grad f) (grad g)` together with the score chain rule for the
+canonical density.  It is kept as a separate contract because absolute
+continuity alone gives no differentiability of an RN representative. -/
+def HasCanonicalFisherGamma
+    (mu pi : Measure (State (ι := ι)))
+    (generator :
+      (State (ι := ι) → ℝ) →ₗ[ℝ] (State (ι := ι) → ℝ)) : Prop :=
+  ∀ᵐ x ∂pi,
+    StochasticProcesses.CarreDuChamp.carreDuChamp generator
+      (RNLogRatio.density mu pi) (RNLogRatio.logRatio mu pi) x =
+      RNLogRatio.density mu pi x *
+        CanonicalRelativeFisher.scoreSq mu pi x
+
+/-- Chewi Theorem 1.2.14 plus the concrete Gamma/score identification gives
+exactly the canonical relative Fisher information:
+
+`E_pi(dmu/dpi, log(dmu/dpi)) = FI(mu || pi)`.
+
+This is the reusable Dirichlet--Fisher edge consumed by KL dissipation and by
+the generator form of log-Sobolev inequalities. -/
+theorem dirichletForm_density_logRatio_eq_information
+    (mu pi : Measure (State (ι := ι)))
+    [SigmaFinite mu] [Measure.HaveLebesgueDecomposition mu pi]
+    (generator :
+      (State (ι := ι) → ℝ) →ₗ[ℝ] (State (ι := ι) → ℝ))
+    (hscore : CanonicalRelativeFisher.SmoothFiniteScoreDomain mu pi)
+    (hpair : DirichletPairDomain mu pi generator)
+    (hgamma : HasCanonicalFisherGamma mu pi generator) :
+    FunctionalInequalities.Generator.dirichletForm pi generator
+        (RNLogRatio.density mu pi) (RNLogRatio.logRatio mu pi) =
+      CanonicalRelativeFisher.information mu pi hscore := by
+  have hibp :=
+    StochasticProcesses.CarreDuChamp.fundamental_integration_by_parts
+      pi generator (RNLogRatio.density mu pi) (RNLogRatio.logRatio mu pi)
+      hpair.generator_product_integrable
+      hpair.density_mul_generator_logRatio_integrable
+      hpair.logRatio_mul_generator_density_integrable
+      hpair.stationary_product hpair.symmetric_pair
+  rw [hibp.2]
+  rw [CanonicalRelativeFisher.information_eq_integral_density_mul_scoreSq
+    mu pi hscore]
+  exact integral_congr_ae hgamma
+
+/-- Equivalent source-facing integral form of the same bridge. -/
+theorem dirichletForm_density_logRatio_eq_integral_scoreSq
+    (mu pi : Measure (State (ι := ι)))
+    [SigmaFinite mu] [Measure.HaveLebesgueDecomposition mu pi]
+    (generator :
+      (State (ι := ι) → ℝ) →ₗ[ℝ] (State (ι := ι) → ℝ))
+    (hscore : CanonicalRelativeFisher.SmoothFiniteScoreDomain mu pi)
+    (hpair : DirichletPairDomain mu pi generator)
+    (hgamma : HasCanonicalFisherGamma mu pi generator) :
+    FunctionalInequalities.Generator.dirichletForm pi generator
+        (RNLogRatio.density mu pi) (RNLogRatio.logRatio mu pi) =
+      ∫ x, CanonicalRelativeFisher.scoreSq mu pi x ∂mu := by
+  rw [dirichletForm_density_logRatio_eq_information
+    mu pi generator hscore hpair hgamma]
+  exact CanonicalRelativeFisher.information_eq_integral_scoreSq mu pi hscore
+
+/-- A supplied KL derivative written as minus the canonical density/log-ratio
+Dirichlet form immediately becomes the standard dissipation rate `-FI`.
+
+This theorem intentionally starts *after* the analytic law-evolution /
+differentiation-under-the-integral step.  The next topology node must prove that
+step for the Langevin measure flow rather than hiding it inside this algebraic
+handoff. -/
+theorem hasDerivAt_eq_neg_information_of_eq_neg_dirichlet
+    (mu pi : Measure (State (ι := ι)))
+    [SigmaFinite mu] [Measure.HaveLebesgueDecomposition mu pi]
+    (generator :
+      (State (ι := ι) → ℝ) →ₗ[ℝ] (State (ι := ι) → ℝ))
+    (hscore : CanonicalRelativeFisher.SmoothFiniteScoreDomain mu pi)
+    (hpair : DirichletPairDomain mu pi generator)
+    (hgamma : HasCanonicalFisherGamma mu pi generator)
+    {K : ℝ → ℝ} {t : ℝ}
+    (hK : HasDerivAt K
+      (-FunctionalInequalities.Generator.dirichletForm pi generator
+        (RNLogRatio.density mu pi) (RNLogRatio.logRatio mu pi)) t) :
+    HasDerivAt K (-CanonicalRelativeFisher.information mu pi hscore) t := by
+  simpa [dirichletForm_density_logRatio_eq_information
+    mu pi generator hscore hpair hgamma] using hK
+
+end
+
+end CanonicalDirichletFisher
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory

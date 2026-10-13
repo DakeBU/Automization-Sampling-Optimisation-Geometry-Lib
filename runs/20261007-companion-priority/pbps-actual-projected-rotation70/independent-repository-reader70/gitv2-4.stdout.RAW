@@ -1,0 +1,849 @@
+diff --git a/AutoSamplingTheory/ExampleCases.lean b/AutoSamplingTheory/ExampleCases.lean
+index 1fff06f7..5bc0e68a 100644
+--- a/AutoSamplingTheory/ExampleCases.lean
++++ b/AutoSamplingTheory/ExampleCases.lean
+@@ -23,6 +23,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining
++import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.SharpCorrectorEnergy
+ import AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient
+ import AutoSamplingTheory.ExampleCases.SampleWiki
+diff --git a/AutoSamplingTheory/TechnicalLemmas/Registry.lean b/AutoSamplingTheory/TechnicalLemmas/Registry.lean
+index 15e89d61..4dbb94fd 100644
+--- a/AutoSamplingTheory/TechnicalLemmas/Registry.lean
++++ b/AutoSamplingTheory/TechnicalLemmas/Registry.lean
+@@ -2108,6 +2108,16 @@ def calculusMemory : List LemmaMemoryEntry := [
+ ]
+ 
+ def measureMemory : List LemmaMemoryEntry := [
++  {
++    key := "pbps.actualProjectedRotation"
++    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation.actual_projected_rotation"
++    upstreamDecl := "Actual PBPS projected reflection rotation and two-component energy"
++    upstreamFile := "arXiv2609.06905v1 Appendix B1/B3; B21 and Lemma B4 prerequisites"
++    status := LemmaMemoryStatus.formalizedLocal
++    tags := ["PBPS", "L2", "reflection", "conditional-expectation", "projected-rotation"]
++    saldUse := "PBPS consumer; no SALD admission"
++    note := "Independently exact-science70 VERIFIED c46af8a55e89419109f654c4553cf527993cbeed. Same six original analytic callers and twelve witnesses yield actual g=U(P-Pperp)f, internally mean(g)=0, actual conditional gP and polar gV, gP=A0fP-Gamma0fV and gV=Gamma0fP+A0fV, with exact pair-energy conservation. No right-hand-side-defined output, mean premise, extra regularity or sharp-energy68 premise. Rank0/alphaeta1 remain legal. B21 corrector change, B4 dynamics, main, invariance/nonexplosion, errors/caps, expected-query costs/composition and full Exposition/PURIFIED remain open."
++  },
+   {
+     key := "pbps.actualReflectionIntertwining"
+     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining.actual_reflection_intertwining"
+diff --git a/Tests/Basic.lean b/Tests/Basic.lean
+index 4f46f267..2ac10d9f 100644
+--- a/Tests/Basic.lean
++++ b/Tests/Basic.lean
+@@ -44,7 +44,7 @@ example : openProblemCount = 1 := rfl
+ 
+ example : forbiddenProofPatterns.length = 5 := rfl
+ 
+-example : TechnicalLemmas.formalizedTechnicalLemmaCount = 517 := by native_decide
++example : TechnicalLemmas.formalizedTechnicalLemmaCount = 518 := by native_decide
+ 
+ example (x : ℝ) :
+     TechnicalLemmas.Analysis.Calculus.Cutoff.smoothUnitCutoff x =
+diff --git a/conversion-windows/ASTIS-SW-PBPS-2026.md b/conversion-windows/ASTIS-SW-PBPS-2026.md
+index 28fcfaae..b510a139 100644
+--- a/conversion-windows/ASTIS-SW-PBPS-2026.md
++++ b/conversion-windows/ASTIS-SW-PBPS-2026.md
+@@ -1,5 +1,39 @@
+ # Proximal BPS · formalization result window
+ 
++## Current verified companion checkpoint (2026-10-10)
++
++The historical source packets below are preserved. Current theorem status and
++remaining dependencies come from `docs/companion-papers-handoff.md`, the live
++Frontier Cells and the Harness capsule, rather than the older dated paragraphs.
++
++`ASTIS-SW-PBPS-actual-projected-rotation` now has independent commit-bound
++verification at `c46af8a55e89419109f654c4553cf527993cbeed`. Its source anchor is Appendix B.3,
++the actual projected rotation used by (B.21) and Lemma B.4. The complete source
++conditions, notation and eight-step formula proof are authored once in
++`website/content/declaration_lessons/pbps-actual-projected-rotation.json`, with
++exact obligations and assumption differences in the matching publication file.
++The production declaration is
++`ActualProjectedRotation.actual_projected_rotation`; its full literal statement
++and exact proof remain adjacent folded Lean in the original companion page.
++
++| Source object or ingredient | Exact current Lean meaning |
++|---|---|
++| Actual reflected observable | `g = U (P f - (f - P f))` on the same joint law |
++| Global centering of the output | Proved internally from the actual reflection law and conditional expectation |
++| Output macroscopic coordinate | `gP` is the same conditional expectation in `HP0` |
++| Output polar coordinate | `gV = V0.adjoint (R g)` |
++| Rotation and energy | Exact formulas and pair-energy identity in the linked declaration lesson |
++| Printed corrector change (B.21) | Next sealed source target; not proved by pair-energy conservation |
++
++All six original analytic callers and twelve common witnesses persist. No new
++mean, regularity, onto-map or sharp-energy premise is added. Dimension zero and
++the endpoint alpha*eta=1 remain admitted. Shared aggregate/reader checks and
++remote CI are separate from this science verification. Full B4 dynamics,
++invariance/nonexplosion, PBPS/SPHMC main results, errors/caps, initialization and
++actual-input expected-query costs/composition remain separate obligations.
++TV proximity does not transfer unbounded costs. This is not a whole-paper,
++Exposition Seal, PURIFIED, main or live-deployment completion claim.
++
+ Primary: [arXiv:2609.06905v1](https://arxiv.org/html/2609.06905v1).
+ Public result entry: `example-cases/samplewiki/companions/proximal-bouncy-particle.html`.
+ The canonical source/main-theorem contracts remain in
+diff --git a/docs/assets/astis_lean_arsenal_module_graph.svg b/docs/assets/astis_lean_arsenal_module_graph.svg
+index 5c50e305..c8032cf8 100644
+--- a/docs/assets/astis_lean_arsenal_module_graph.svg
++++ b/docs/assets/astis_lean_arsenal_module_graph.svg
+@@ -320,6 +320,6 @@
+   <rect x="78" y="883" width="18" height="12" fill="#dff0e4" stroke="#2e7d59"/><text x="104" y="894" font-family="Helvetica,Arial,sans-serif" font-size="11">Canonical Mathlib-ready candidate module: compiled local reusable leaves</text>
+   <rect x="78" y="905" width="18" height="12" fill="#eaf2ff" stroke="#2563eb"/><text x="104" y="916" font-family="Helvetica,Arial,sans-serif" font-size="11">Root public import surface</text>
+   <text x="78" y="938" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#475569">Omitted from the main graph: SALD/RMFLD consumers, SALDExtracted quarantine, compatibility files, registry metadata, and external references.</text>
+-  <text x="1260" y="955" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#64748b">Generated 2026-10-09 22:38:16 by tools/astis.py module-graph-refresh</text>
++  <text x="1260" y="955" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#64748b">Generated 2026-10-10 00:58:23 by tools/astis.py module-graph-refresh</text>
+ </g>
+ </svg>
+diff --git a/docs/companion-papers-handoff.md b/docs/companion-papers-handoff.md
+index 5516da96..d446304d 100644
+--- a/docs/companion-papers-handoff.md
++++ b/docs/companion-papers-handoff.md
+@@ -1,5 +1,34 @@
+ # Companion-paper formalization handoff
+ 
++## Actual PBPS projected rotation (2026-10-10)
++
++Independently VERIFIED science commit c46af8a55e89419109f654c4553cf527993cbeed. For SAME actual original globally
++centered f and actual g=U(P-Pperp)f, mean(g)=0 is proved internally. The actual
++conditional gP and polar gV satisfy gP=A0fP-Gamma0fV and gV=Gamma0fP+A0fV,
++with exact sum-of-squared-norm preservation. All six original analytic callers
++and twelve witnesses persist; rank0 and alphaeta=1 remain legal. There is no
++extra mean premise, RHS-defined output or sharp-energy68 proof dependency.
++The whole544-line module, expanded private literal Prop, eight exact formula/BODY
++steps and seven decoder/source slots have independent math and source review.
++The full private Prop is exposed adjacent to the proof as a proposition definition.
++
++This closes actual projected rotation and pair energy only. Next is the actual
++B21 corrector change on SAME witnesses, then Lemma B4. B4/H1/B2 dynamics,
++invariance/nonexplosion, PBPS/SPHMC mains, implementation errors/caps and actual-input
++expected-query costs/composition remain open. TV proximity does not transfer
++unbounded expected cost. Four-paper priority and all older frontiers/cycles/memory
++persist. Full Exposition/PURIFIED, main/live and whole-paper/Goal completion remain
++unearned. INT69 site CI failed its old helper-panel count; the helper-aware gate
++repair is a separate reviewed code change; fresh local browser checks passed. Remote70 CI remains pending.
++
++Serialized local aggregate70: root9180, Tests9480, Registry518;239 publication units.
++One complete statement, eight formula/BODY steps, full private-Prop helper and actual
++branch inspected; three isolated copy callbacks and three RAW downloads exact.
++Current graph regeneration follows these final cell writes; final gates are recorded
++in existing70 integration.notes.json. Current full Python regression and real-browser
++checks use the reviewed helper-aware scripts. Independent repository/reader, remoteCI/main/live and
++full Exposition/PURIFIED remain separate.
++
+ ## Actual PBPS reflection intertwining (2026-10-09)
+ 
+ Independently VERIFIED science commit 2d286c283a6fb5dfc13180204bb0da54531a5c67. The SAME actual reflection,
+diff --git a/docs/module-graph.svg b/docs/module-graph.svg
+index 5c50e305..c8032cf8 100644
+--- a/docs/module-graph.svg
++++ b/docs/module-graph.svg
+@@ -320,6 +320,6 @@
+   <rect x="78" y="883" width="18" height="12" fill="#dff0e4" stroke="#2e7d59"/><text x="104" y="894" font-family="Helvetica,Arial,sans-serif" font-size="11">Canonical Mathlib-ready candidate module: compiled local reusable leaves</text>
+   <rect x="78" y="905" width="18" height="12" fill="#eaf2ff" stroke="#2563eb"/><text x="104" y="916" font-family="Helvetica,Arial,sans-serif" font-size="11">Root public import surface</text>
+   <text x="78" y="938" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#475569">Omitted from the main graph: SALD/RMFLD consumers, SALDExtracted quarantine, compatibility files, registry metadata, and external references.</text>
+-  <text x="1260" y="955" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#64748b">Generated 2026-10-09 22:38:16 by tools/astis.py module-graph-refresh</text>
++  <text x="1260" y="955" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#64748b">Generated 2026-10-10 00:58:23 by tools/astis.py module-graph-refresh</text>
+ </g>
+ </svg>
+diff --git a/research-wiki/frontier-cells/ASTIS-SW-PBPS-actual-projected-rotation.json b/research-wiki/frontier-cells/ASTIS-SW-PBPS-actual-projected-rotation.json
+index 803ffac4..2ae9c4f1 100644
+--- a/research-wiki/frontier-cells/ASTIS-SW-PBPS-actual-projected-rotation.json
++++ b/research-wiki/frontier-cells/ASTIS-SW-PBPS-actual-projected-rotation.json
+@@ -6,7 +6,7 @@
+   "mode": "faithfulPaper",
+   "source_anchor": "PBPS2609.06905v1 Appendix B3 B21 A2.Ex15.m2; independent source graph P12/P13/P14 actual projected rotation and pair energy; P16/P17 corrector change and P19 B4 consumers. Mean(g)=0 is an internal completion from actual reflection-law preservation and conditional-expectation integral preservation.",
+   "target_statement": "theorem actual_projected_rotation\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let mY := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)\n    letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace\n    letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) :=\n      ⟨measurable_snd.comap_le⟩\n    let HP := lpMeas ℝ ℝ mY 2 J\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le\n    let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩\n    let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    HP = P.toLinearMap.range ∧\n    (∀ f : HP, P (f : Lp ℝ 2 J) = f) ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ e : Lp ℝ 2 ν ≃ₗᵢ[ℝ] HP,\n        (∀ u : Lp ℝ 2 ν, (e u : Lp ℝ 2 J) = M u) ∧\n        ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n          (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n          Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n            IsSelfAdjoint T ∧\n            (∀ u : Lp ℝ 2 ν,\n              ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n            let A : HP →L[ℝ] HP :=\n              HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL\n            let B : HP →L[ℝ] Lp ℝ 2 J :=\n              (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL\n            A = e.conjStarAlgEquiv T ∧ IsSelfAdjoint A ∧\n            (∀ f : HP, ‖A f‖ ≤ ‖f‖) ∧\n            (∀ f : HP, P (B f) = 0) ∧\n            ∃ Γ : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n              Γ.IsPositive ∧ Γ*Γ=(1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T ∧\n              Commute Γ T ∧\n              let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ\n              ΓP.IsPositive ∧ ΓP*ΓP=(1 : HP →L[ℝ] HP)-A*A ∧\n              Commute ΓP A ∧\n              B.adjoint ∘L B = ΓP*ΓP ∧\n              ∃ q : Lp ℝ 2 ν,\n                (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧\n                (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧\n                let qP : HP := e q\n                let HP0 := (innerSL ℝ qP).ker\n                letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup\n                letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace\n                letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe\n                let γ : ℝ := 2*Real.sqrt ((α : ℝ)*η)/(1+(α : ℝ)*η)\n                (∀ f : HP, f ∈ HP0 ↔ (∫ y, (e.symm f) y ∂ν) = 0) ∧\n                ΓP qP = 0 ∧ 0 < γ ∧\n                ∃ ΓP0 : HP0 →L[ℝ] HP0,\n                  (∀ f : HP0, (ΓP0 f : HP) = ΓP (f : HP)) ∧\n                  ΓP0.IsPositive ∧ (ΓP0-γ • (1 : HP0 →L[ℝ] HP0)).IsPositive ∧\n                  IsUnit ΓP0 ∧\n                  ∃ Inv : HP0 →L[ℝ] HP0,\n                    Inv*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧\n                    ΓP0*Inv=(1 : HP0 →L[ℝ] HP0) ∧ ‖Inv‖ ≤ 1/γ ∧\n                    IsSelfAdjoint Inv ∧\n                    ∃ A0 : HP0 →L[ℝ] HP0,\n                      (∀ u : HP0, (A0 u : HP)=A (u : HP)) ∧\n                      IsSelfAdjoint A0 ∧ Commute A0 ΓP0 ∧\n                      A0*A0+ΓP0*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧\n                      Commute A0 Inv ∧\n                    let Hperp := P.ker\n                    letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup\n                    letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace\n                    letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe\n                    ∃ B0 : HP0 →L[ℝ] Hperp,\n                      (∀ f : HP0, (B0 f : Lp ℝ 2 J) = B (f : HP)) ∧\n                      ∃ V0 : HP0 →L[ℝ] Hperp,\n                        V0 = B0 ∘L Inv ∧ B0 = V0 ∘L ΓP0 ∧\n                        V0.adjoint ∘L V0 = (1 : HP0 →L[ℝ] HP0) ∧\n                        (∀ f : HP0, ‖V0 f‖ = ‖f‖) ∧\n                        ∃ R : Lp ℝ 2 J →L[ℝ] Hperp,\n                          (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) ∧\n                          (∀ g : Lp ℝ 2 J,\n                            B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) ∧\n                          let D : Hperp →L[ℝ] Hperp :=\n                            R ∘L U.toContinuousLinearMap ∘L Hperp.subtypeL\n                          (∀ h : Hperp, (D h : Lp ℝ 2 J)=\n                            U (h : Lp ℝ 2 J)-P (U (h : Lp ℝ 2 J))) ∧\n                          V0.adjoint ∘L D = -(A0 ∘L V0.adjoint) ∧\n                          (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →\n                            ∃ fP : HP0,\n                              HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧\n                              let fperp : Hperp := R f\n                              let fV : HP0 := V0.adjoint fperp\n                              B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧\n                              HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧\n                              ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖ ∧\n                              let g : Lp ℝ 2 J := U (P f-(f-P f))\n                              (∫ z, g z ∂J)=0 ∧\n                              ∃ gP : HP0,\n                                HP0.subtypeL gP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le g ∧\n                                let gperp : Hperp := R g\n                                let gV : HP0 := V0.adjoint gperp\n                                gP=A0 fP-ΓP0 fV ∧\n                                gV=ΓP0 fP+A0 fV ∧\n                                ‖gP‖^2+‖gV‖^2=‖fP‖^2+‖fV‖^2)\n",
+-  "status": "proved_locally",
++  "status": "independently_verified",
+   "parents": [
+     "ASTIS-SW-PBPS-actual-reflection-intertwining",
+     "ASTIS-SW-PBPS-gaussian-augmentation-reflection"
+@@ -63,7 +63,7 @@
+     "focus_targets": [
+       "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation.actual_projected_rotation"
+     ],
+-    "visual_review": "Pending70 proof and independent review; graph features do not precede mathematics."
++    "visual_review": "runs/20261007-companion-priority/pbps-actual-projected-rotation70/visual.inspection.json"
+   },
+   "evidence": {
+     "substantive_advance": "ASTIS-SA-20261009-PBPSActualProjectedRotation",
+@@ -81,11 +81,21 @@
+     "truth_boundary": "P16 same corrector algebra and actual B21 change remain next; B4/H1/dynamics/main/errors/cost/composition independent.",
+     "proof_review": "runs/20261007-companion-priority/pbps-actual-projected-rotation70/independent-math70/named-review.payload.json",
+     "source_review": "runs/20261007-companion-priority/pbps-actual-projected-rotation70/independent-source70/source.0.decision.json",
+-    "execution_boundary": "P16 same corrector algebra and actual B21 change remain next; B4/H1/dynamics/main/errors/cost/composition independent. Independent math121/blind12/source319 plus portable14 accepted:419 source items,544 lines,eight literal BODY steps,seven slots,13 informational deltas,zero mathematical repairs. Exact SCI70 and serialized aggregate/reader remain pending."
++    "execution_boundary": "Independently exact-science70 VERIFIED c46af8a55e89419109f654c4553cf527993cbeed. Same six original analytic callers and twelve witnesses yield actual g=U(P-Pperp)f, internally mean(g)=0, actual conditional gP and polar gV, gP=A0fP-Gamma0fV and gV=Gamma0fP+A0fV, with exact pair-energy conservation. No right-hand-side-defined output, mean premise, extra regularity or sharp-energy68 premise. Rank0/alphaeta1 remain legal. B21 corrector change, B4 dynamics, main, invariance/nonexplosion, errors/caps, expected-query costs/composition and full Exposition/PURIFIED remain open.",
++    "independent_verification": "runs/20261007-companion-priority/pbps-actual-projected-rotation70/verified.json",
++    "serialized_shared_gate": {
++      "evidence": "runs/20261007-companion-priority/pbps-actual-projected-rotation70/integration70/mandatory-astis-check-final/receipt.json",
++      "root_jobs": 9180,
++      "test_jobs": 9480,
++      "registry_count": 518,
++      "status": "PASS",
++      "proof_commit": "c46af8a55e89419109f654c4553cf527993cbeed",
++      "scope": "Exact SCI70 and serialized local aggregate only; independent repository/reader, remoteCI, main/live/PURIFIED remain distinct."
++    }
+   },
+   "blocked": {
+     "status": false,
+-    "reason": "Focused canonical target compiled; independent theorem/decoder/source/publication review and integration pending."
++    "reason": "Focused and independent math/decoder/source/exact-commit, reviewed metadata and local aggregate accepted within actual projected rotation/pair energy scope."
+   },
+   "declaration_level": "source-anchor",
+   "source_detail_audit": {
+@@ -93,7 +103,7 @@
+     "primary_anchor": "PBPS2609.06905v1 Appendix B3 B21 A2.Ex15.m2; independent source graph P12/P13/P14 actual projected rotation and pair energy; P16/P17 corrector change and P19 B4 consumers. Mean(g)=0 is an internal completion from actual reflection-law preservation and conditional-expectation integral preservation.",
+     "fidelity_boundary": "P16 same corrector algebra and actual B21 change remain next; B4/H1/dynamics/main/errors/cost/composition independent.",
+     "detail_status": "cites_external",
+-    "gap": "Actual mean(g), projected coordinates and pair-energy identity not yet proved.",
++    "gap": "Actual projected rotation and pair energy independently verified. B21 corrector change, B4/H1/dynamics/main/errors/cost/composition remain open.",
+     "consulted": [
+       {
+         "source": "PBPSv1 pinned primary and fixed Mathlib",
+diff --git a/research-wiki/retrieval-index/astis-lean-arsenal-module-graph.json b/research-wiki/retrieval-index/astis-lean-arsenal-module-graph.json
+index a5789747..b441c210 100644
+--- a/research-wiki/retrieval-index/astis-lean-arsenal-module-graph.json
++++ b/research-wiki/retrieval-index/astis-lean-arsenal-module-graph.json
+@@ -1,6 +1,6 @@
+ {
+-  "generated": "2026-10-09 22:37:00",
+-  "ledger": "research-wiki/sampling-sde-library/lean-leaf-module-graph.md",
++  "generated": "2026-10-10 00:58:23",
++  "ledger": "research-wiki\\sampling-sde-library\\lean-leaf-module-graph.md",
+   "module_graph_svg": "docs/module-graph.svg",
+   "modules": [
+     {
+@@ -153,6 +153,30 @@
+       "status": "ASTIS infrastructure; not Mathlib material",
+       "summary": "source anchors, proof obligations, theorem contracts, DAG records"
+     },
++    {
++      "declarations": [
++        {
++          "kind": "def",
++          "name": "actual_projected_rotation_statement"
++        },
++        {
++          "kind": "theorem",
++          "name": "actual_projected_rotation"
++        }
++      ],
++      "exports": [],
++      "imports": [
++        "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining"
++      ],
++      "layer": "uncategorized",
++      "local_imports": [
++        "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining"
++      ],
++      "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation",
++      "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualProjectedRotation.lean",
++      "status": "",
++      "summary": ""
++    },
+     {
+       "declarations": [
+         {
+@@ -169,15 +193,15 @@
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector",
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute"
+       ],
+-      "layer": "SampleWiki paper route",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector",
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute"
+       ],
+       "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation",
+       "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ActualRootCommutation.lean",
+-      "status": "Independent exact-science67 verified at 3da29415011a971a65f749502a625e416213f487. Bounded root/inverse commutation and corrector coefficient geometry only; whole-paper, merged/live/PURIFIED and full Exposition remain separate.",
+-      "summary": "Original C2/two Hessians/positive capped eta produce SAME actual root/centered inverse commutations, inverse selfadjoint and A0 square identity. Genuine coefficient Test gives selfadjoint K and I+K²=Inv²; no positive T/A/A0 premise. Two literal Props are representations only. SharpB23/B21/H1/dynamics/main/errors/cost/composition remain open."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -194,14 +218,14 @@
+       "imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry"
+       ],
+-      "layer": "SampleWiki paper route",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry"
+       ],
+       "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector",
+       "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\AmbientAdjointCorrector.lean",
+-      "status": "Independent exact-science66 verified at a115115d42b3fa2b67885d87fe4d5300af36fcd1. Bounded ambient adjoint and globally centered corrector input geometry only; whole-paper, merged/live/PURIFIED and full Exposition remain separate.",
+-      "summary": "Original C2/two Hessians/positive capped eta produce SAME actual laws/operators/centered root/inverse and polar isometry. Canonical R:L2(J)->kerP, all-vector ambient adjoint identity and actual globally centered input decomposition; genuine corrector norm budget. Two literal private Prop representations add no premise/provider. No full B20/B21,dynamics/main/cost/composition,full Exposition/PURIFIED or whole-paper claim."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -216,15 +240,15 @@
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2Expectation",
+         "Mathlib.Analysis.InnerProductSpace.Positive"
+       ],
+-      "layer": "SampleWiki paper route",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean",
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2Expectation"
+       ],
+       "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator",
+       "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\CenteredDefectOperator.lean",
+-      "status": "Independent exact-science59 verified at 2d6cd016; sharp coercivity and centered squared-defect unit are exercised in the real Test. Gamma/root/dynamics/main/error/cost/composition remain open.",
+-      "summary": "Actual stationary reflected Gaussian kernel yields the same selfadjoint real L2 mean operator, canonical constant and closed mean-zero restriction; full and centered squared defects are positive."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -241,7 +265,7 @@
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareOrder",
+         "Mathlib.Analysis.Normed.Operator.Banach"
+       ],
+-      "layer": "SampleWiki paper route",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient",
+@@ -250,8 +274,8 @@
+       ],
+       "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse",
+       "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\CenteredRootOrderInverse.lean",
+-      "status": "Independent exact-science64 verified at 59fff63d320aa5e3dc4b45e81e40e2029ce42734. Bounded auxiliary square-order and actual centered root order/inverse only; whole-paper, merged/live/PURIFIED and full Exposition remain separate.",
+-      "summary": "Original C2/two Hessians/positive capped eta internally produce SAME actual GammaP and exact HP0=ker inner(e1,.). SAME rough/marginal-Poincare gradient closure yields C4; real L2 order gives printed B15 Gamma0>=gammaI, internally derived unit/both inverse cancellations/norm bound. Rank0 and alphaeta=1 retained; public typed polar/H1/dynamics/main/cost/composition separate."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -695,15 +719,15 @@
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator",
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator"
+       ],
+-      "layer": "SampleWiki paper route",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator",
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator"
+       ],
+       "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.DefectComplexLift",
+       "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\DefectComplexLift.lean",
+-      "status": "Independent exact-science60 verified at 0a77416f. Auxiliary Test constructs complex CFC root only; real preservation/descent/Gamma/B11/polar/H1/dynamics/main/error/cost/composition remain open.",
+-      "summary": "Original C2/global Hessians/positive capped eta produce the same actual59 stationary conditional T and positive D=I-T*T; genuine positive complex lift is proved internally without caller positivity/root/embedding certificates."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -833,7 +857,7 @@
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRoot",
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRootUnique"
+       ],
+-      "layer": "SampleWiki paper route",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange",
+@@ -843,8 +867,8 @@
+       ],
+       "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicDefectRoot",
+       "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\MacroscopicDefectRoot.lean",
+-      "status": "Independent exact-science63 verified at 4d026223. Actual unique positive macroscopic root and first typed Gram identity only; other B5, centered order/inverse/polar/H1/dynamics/main/error/cost/composition remain open.",
+-      "summary": "Original C2/two global Hessians/positive capped eta internally produce the SAME actual stationary reflected kernel and U/T, canonical onto e onto exact complete HP=lpMeas=ran(P). Typed leakage B:HP-to-joint satisfies GammaP squared=I_HP-A squared=B.adjoint composed B; every-macro energy and ALL positive same-square macro uniqueness require no extra public certificate."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -928,14 +952,14 @@
+       "imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse"
+       ],
+-      "layer": "SampleWiki paper route",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredRootOrderInverse"
+       ],
+       "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry",
+       "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\PolarIsometry.lean",
+-      "status": "Independent exact-science65 verified at ecd9d1f10ad0241312492cefacd5fe48c317e9c2. Bounded typed polar isometry and adjoint corrector only; whole-paper, merged/live/PURIFIED and full Exposition remain separate.",
+-      "summary": "Original C2/two Hessians/positive capped eta produce SAME actual HP0 root/inverse and B0:HP0->kerP,V0=B0 Inv. B0=V0 Gamma0,V0*V0=I and all-vector norm preservation; genuine typed adjoint corrector/contraction/residual consumer. No onto,ambient-adjoint extraction,full Exposition/PURIFIED or whole-paper claim."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -949,15 +973,15 @@
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator",
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRoot"
+       ],
+-      "layer": "SampleWiki paper route",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator",
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRoot"
+       ],
+       "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRoot",
+       "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\RealDefectRoot.lean",
+-      "status": "Independent exact-science61 verified at bcd245d. Positive real scalar root, square and energy only; exported real uniqueness, joint GammaP/ontoM/typed B*B, centered inverse/polar/H1/dynamics/main/error/cost/composition remain open.",
+-      "summary": "Original C2/two global Hessians/positive capped eta produce the same actual stationary conditional T and D=I-T*T; the positive REAL root and full-domain energy are proved internally, with genuine actual-input contractivity test."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -971,15 +995,15 @@
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRoot",
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRootUnique"
+       ],
+-      "layer": "SampleWiki paper route",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRoot",
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRootUnique"
+       ],
+       "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.RealDefectRootUnique",
+       "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\RealDefectRootUnique.lean",
+-      "status": "Independent exact-science62 verified at 9d7f7b6. Scalar positive real root uniqueness only; joint GammaP/ontoM/typed B*B, centered inverse/polar/H1/dynamics/main/error/cost/composition remain open.",
+-      "summary": "Original C2/two global Hessians/positive capped eta produce the same actual stationary conditional T and D=I-T*T with positive REAL Gamma. ALL positive same-square alternatives equal Gamma, without alternative energy premise; actual-input Test derives alternative-root contractivity."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -996,14 +1020,14 @@
+       "imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation"
+       ],
+-      "layer": "SampleWiki paper route",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation"
+       ],
+       "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining",
+       "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\ReflectionIntertwining.lean",
+-      "status": "Independent exact-science69 verified at 2d286c283a6fb5dfc13180204bb0da54531a5c67. Bounded actual full-micro reflection intertwining only; whole-paper, merged/live/PURIFIED and full Exposition remain separate.",
+-      "summary": "Same original six callers and twelve actual witnesses give D=R U inclusion and V0*D=-A0V0* on all kerP. Same U is identified by exact AE pullback actions before consuming the ambient block identity. No ontoV, range restriction, extra regularity or sharp-energy68 dependency. Actual projected rotation/B21 corrector change, B4/H1/dynamics/main/errors/cost/composition remain open."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -1070,15 +1094,15 @@
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation",
+         "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound"
+       ],
+-      "layer": "SampleWiki paper route",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation",
+         "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound"
+       ],
+       "module": "AutoSamplingTheory.ExampleCases.ProximalBPS.SharpCorrectorEnergy",
+       "path": "AutoSamplingTheory\\ExampleCases\\ProximalBPS\\SharpCorrectorEnergy.lean",
+-      "status": "Independent exact-science68 verified at 3ad3b127b5a645be9cf71b3d14520b2d8fea3122. Bounded sharp corrector energy and modified-energy equivalence only; whole-paper, merged/live/PURIFIED and full Exposition remain separate.",
+-      "summary": "Same original PBPS inputs/root/inverse yield sharp B23 pair and actual centered-f corrector bounds. Genuine original-input Test proves exact half/three-halves modified energy and perturbation bounds for every0<omegaWeight<=gamma. Literal private Props preserve original statements. B21/H1/B4/dynamics/main/errors/cost/composition remain open."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -2626,14 +2650,14 @@
+         "Mathlib.MeasureTheory.Integral.Prod",
+         "Mathlib.Tactic"
+       ],
+-      "layer": "SampleWiki paper route",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment"
+       ],
+       "module": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PartialMomentumRefresh",
+       "path": "AutoSamplingTheory\\ExampleCases\\SmoothedPicardHMC\\PartialMomentumRefresh.lean",
+-      "status": "Compiled route theorem; source-reviewed boundary excludes repeated history, D.7 and the paper main theorem.",
+-      "summary": "Actual product-law semantics and second-moment bookkeeping for Algorithm 3.1's first OU momentum half-refresh."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -4317,6 +4341,7 @@
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining",
++        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.SharpCorrectorEnergy",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient",
+         "AutoSamplingTheory.ExampleCases.SampleWiki",
+@@ -4440,6 +4465,7 @@
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining",
++        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.SharpCorrectorEnergy",
+         "AutoSamplingTheory.ExampleCases.ProximalBPS.RoughMeanGradient",
+         "AutoSamplingTheory.ExampleCases.SampleWiki",
+@@ -11422,7 +11448,7 @@
+       "module": "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Analysis\\Calculus\\Cutoff.lean",
+       "status": "compiled ANALYSIS/REG/SDE base through O(R^-1) fderiv and O(R^-2) second iterated derivative; the finite-dimensional Laplacian trace consumer is compiled in Laplacian",
+-      "summary": "smooth unit and radial cutoffs, range bounds, support control, compact support, pointwise exhaustion, compact-in-open plateaus, scale-uniform radial first-derivative control, and closed outer-region totalized-fderiv vanishing"
++      "summary": "smooth unit and radial cutoffs, range bounds, support control, compact support, pointwise exhaustion, compact-in-open plateaus, and scale-uniform first- and second-derivative control"
+     },
+     {
+       "declarations": [
+@@ -13029,12 +13055,12 @@
+         "Mathlib.Tactic.Positivity",
+         "Mathlib.Tactic.Ring"
+       ],
+-      "layer": "Canonical reusable Hilbert operator lemma",
++      "layer": "uncategorized",
+       "local_imports": [],
+       "module": "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Analysis\\HilbertCorrectorBound.lean",
+-      "status": "Independent exact-science68 verified at 3ad3b127b5a645be9cf71b3d14520b2d8fea3122. Bounded sharp corrector energy and modified-energy equivalence only; whole-paper, merged/live/PURIFIED and full Exposition remain separate.",
+-      "summary": "Arbitrary complete real Hilbert H, selfadjoint K,D and I+K²=D² with norm(D)<=c and c>=0 give the sharp c/2 quadratic corrector bound. No finite dimension, nontriviality, positivity or commutation premise. Only the PBPS route presently has evidenced consumers; the genuine modified-energy Test is a transitive consumer in that same route."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -19440,12 +19466,12 @@
+         "Mathlib.Analysis.Complex.Basic",
+         "Mathlib.Analysis.InnerProductSpace.Positive"
+       ],
+-      "layer": "Reusable Measure/L2 substrate",
++      "layer": "uncategorized",
+       "local_imports": [],
+       "module": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Measure\\L2RealComplexOperator.lean",
+-      "status": "Independent exact-science60 verified at 0a77416f. Auxiliary Test constructs complex CFC root only; real preservation/descent/Gamma/B11/polar/H1/dynamics/main/error/cost/composition remain open.",
+-      "summary": "Actual quotient real/complex scalar maps yield isometric embedding, exact conjugation-fixed range and a positive bounded complex lift with literal formula/intertwining/conjugation; generic arbitrary measure, internally consumed by PBPS."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -19461,14 +19487,14 @@
+         "Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Commute",
+         "Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.Basic"
+       ],
+-      "layer": "Canonical shared real-L2 operator lemma",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator"
+       ],
+       "module": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Measure\\L2RealSquareCommute.lean",
+-      "status": "Independent exact-science67 verified at 3da29415011a971a65f749502a625e416213f487. Bounded root/inverse commutation and corrector coefficient geometry only; whole-paper, merged/live/PURIFIED and full Exposition remain separate.",
+-      "summary": "Arbitrary measure and positive real-L2 G,D: square commutation implies commutation, using same positive complexified CFC root; genuine actual PBPS consumer internally produces positive I+T. No finiteness/nontriviality/CFC caller premise or paper main claim."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -19484,14 +19510,14 @@
+         "Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Instances",
+         "Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.Order"
+       ],
+-      "layer": "Canonical shared measure core",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator"
+       ],
+       "module": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareOrder",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Measure\\L2RealSquareOrder.lean",
+-      "status": "Independent exact-science64 verified at 59fff63d320aa5e3dc4b45e81e40e2029ce42734. Bounded auxiliary square-order and actual centered root order/inverse only; whole-paper, merged/live/PURIFIED and full Exposition remain separate.",
+-      "summary": "For arbitrary measure and real scalar-valued L2, positive A,B with B squared-A squared positive imply B-A positive. Three canonical complex lifts and internal CFC supply the genuine actual PBPS B15 consumer, without caller nontriviality/finiteness/commutation/CFC premises."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -19535,14 +19561,14 @@
+         "Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Instances",
+         "Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.Basic"
+       ],
+-      "layer": "Reusable Measure/L2 substrate",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator"
+       ],
+       "module": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRoot",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Measure\\L2RealSquareRoot.lean",
+-      "status": "Independent exact-science61 verified at bcd245d. Positive real scalar root, square and energy only; exported real uniqueness, joint GammaP/ontoM/typed B*B, centered inverse/polar/H1/dynamics/main/error/cost/composition remain open.",
+-      "summary": "An internally constructed complex positive root preserves the entire real conjugation-fixed space; descent gives a positive bounded REAL square root for arbitrary measure, with exact square and every-vector quadratic energy, consumed by PBPS."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -19558,14 +19584,14 @@
+         "Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Instances",
+         "Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.Basic"
+       ],
+-      "layer": "Reusable Measure/L2 substrate",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator"
+       ],
+       "module": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRootUnique",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Measure\\L2RealSquareRootUnique.lean",
+-      "status": "Independent exact-science62 verified at 9d7f7b6. Scalar positive real root uniqueness only; joint GammaP/ontoM/typed B*B, centered inverse/polar/H1/dynamics/main/error/cost/composition remain open.",
+-      "summary": "Bounded positive REAL A/B on arbitrary-measure L2 with equal squares are equal. Canonical complex lifts, complex positive-root uniqueness and real embedding injectivity prove the result; actual PBPS fixes the same scalar defect."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -21058,12 +21084,12 @@
+       "imports": [
+         "Mathlib.Probability.Kernel.CondDistrib"
+       ],
+-      "layer": "shared KERN/MEAS adapter",
++      "layer": "uncategorized",
+       "local_imports": [],
+       "module": "AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalResampling",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Probability\\ConditionalResampling.lean",
+       "status": "",
+-      "summary": "recover a joint finite measure from its first marginal and conditional second-coordinate law."
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -21089,7 +21115,7 @@
+         "AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath",
+         "AutoSamplingTheory.TechnicalLemmas.Probability.KernelTransport"
+       ],
+-      "layer": "shared KERN/MEAS operational integration.",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath",
+         "AutoSamplingTheory.TechnicalLemmas.Probability.KernelTransport"
+@@ -21111,7 +21137,7 @@
+         "AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath",
+         "Mathlib.Probability.ConditionalProbability"
+       ],
+-      "layer": "shared KERN/MEAS conditional-law integration.",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath"
+       ],
+@@ -21494,7 +21520,7 @@
+         "AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalResampling",
+         "Mathlib.Probability.Kernel.Invariance"
+       ],
+-      "layer": "shared KERN/MEAS integration node.",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalResampling"
+       ],
+@@ -21547,12 +21573,12 @@
+         "Mathlib.Probability.Kernel.Invariance",
+         "Mathlib.Probability.Kernel.Composition.Comp"
+       ],
+-      "layer": "shared KERN interface",
++      "layer": "uncategorized",
+       "local_imports": [],
+       "module": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelInvariance",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Probability\\KernelInvariance.lean",
+       "status": "",
+-      "summary": "propagate a supplied invariant measure through finite kernel powers."
++      "summary": ""
+     },
+     {
+       "declarations": [
+@@ -21579,7 +21605,7 @@
+         "Mathlib.Probability.Kernel.Invariance",
+         "Mathlib.Data.ENNReal.BigOperators"
+       ],
+-      "layer": "shared KERN/MEAS fixed-mixture interface.",
++      "layer": "uncategorized",
+       "local_imports": [],
+       "module": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Probability\\KernelMixture.lean",
+@@ -21598,7 +21624,7 @@
+         "Mathlib.Probability.Kernel.Invariance",
+         "Mathlib.MeasureTheory.Integral.Lebesgue.Countable"
+       ],
+-      "layer": "shared KERN/MEAS countable integration.",
++      "layer": "uncategorized",
+       "local_imports": [],
+       "module": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Probability\\KernelReversibility.lean",
+@@ -21635,7 +21661,7 @@
+       "imports": [
+         "Mathlib.Probability.Kernel.Invariance"
+       ],
+-      "layer": "shared KERN/MEAS transport interface.",
++      "layer": "uncategorized",
+       "local_imports": [],
+       "module": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelTransport",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Probability\\KernelTransport.lean",
+@@ -21739,7 +21765,7 @@
+         "AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBathConditional",
+         "AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture"
+       ],
+-      "layer": "shared KERN/MEAS finite-state operational integration.",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBathConditional",
+         "AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture"
+@@ -21765,7 +21791,7 @@
+         "AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath",
+         "AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility"
+       ],
+-      "layer": "shared KERN/MEAS finite conditional-update consumer.",
++      "layer": "uncategorized",
+       "local_imports": [
+         "AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath",
+         "AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility"
+@@ -21788,12 +21814,12 @@
+         "Mathlib.Probability.Distributions.Gaussian.Multivariate",
+         "Mathlib.Tactic"
+       ],
+-      "layer": "shared probability foundation",
++      "layer": "uncategorized",
+       "local_imports": [],
+       "module": "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment",
+       "path": "AutoSamplingTheory\\TechnicalLemmas\\Probability\\StdGaussianMoment.lean",
+-      "status": "Compiled reusable leaf assembled from Mathlib Gaussian L2/covariance and Parseval APIs.",
+-      "summary": "Canonical finite-dimensional standard-Gaussian squared-norm integrability and exact dimension moment."
++      "status": "",
++      "summary": ""
+     },
+     {
+       "declarations": [
+diff --git a/research-wiki/sampling-sde-library/lean-leaf-module-graph.md b/research-wiki/sampling-sde-library/lean-leaf-module-graph.md
+index a1c77b0b..caf31a62 100644
+--- a/research-wiki/sampling-sde-library/lean-leaf-module-graph.md
++++ b/research-wiki/sampling-sde-library/lean-leaf-module-graph.md
+@@ -128,7 +128,7 @@ coercive Gibbs envelopes, with Mathlib searched first and
+ | Module | File | Layer | Purpose | Representative compiled leaves/exports | Curated memory entries | Mathlib-quality status |
+ | --- | --- | --- | --- | --- | --- | --- |
+ | `AutoSamplingTheory.Probability` | `AutoSamplingTheory\Probability.lean` | generic technical core | law-map rewrites, dominated law derivatives, conditional-law bridges, KL/DV/LSI bookkeeping | `lawMapEqOfAEEq`, `lawMapIntegral`, `lawMapIntegralHasDerivAtOfSample`, `lawIntegralHasDerivAtOfMeasureMapEqAndSample`, `lawMapIntegralHasDerivAtOfDominated`, `lawIntegralHasDerivAtOfMeasureMapEqAndDominated`, `lawMapProdEqOfAEEq`, `lawMapProdFst`, ... | 0 | main Mathlib-ready adapter surface after naming/generalization cleanup |
+-| `AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff` | `AutoSamplingTheory\TechnicalLemmas\Analysis\Calculus\Cutoff.lean` | Mathlib-ready technical lemma | smooth unit and radial cutoffs, range bounds, support control, compact support, pointwise exhaustion, compact-in-open plateaus, scale-uniform radial first-derivative control, and closed outer-region totalized-fderiv vanishing | `smoothUnitCutoff`, `smoothUnitCutoff_eq_smoothTransition`, `smoothUnitCutoff_contDiff`, `smoothUnitCutoff_eq_one_of_abs_le_one`, `smoothUnitCutoff_eq_zero_of_two_le_abs`, `smoothUnitCutoff_mem_Icc`, `smoothUnitCutoff_hasCompactSupport`, `smoothUnitCutoff_deriv_bounded`, ... | 22 | compiled ANALYSIS/REG/SDE base through O(R^-1) fderiv and O(R^-2) second iterated derivative; the finite-dimensional Laplacian trace consumer is compiled in Laplacian |
++| `AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff` | `AutoSamplingTheory\TechnicalLemmas\Analysis\Calculus\Cutoff.lean` | Mathlib-ready technical lemma | smooth unit and radial cutoffs, range bounds, support control, compact support, pointwise exhaustion, compact-in-open plateaus, and scale-uniform first- and second-derivative control | `smoothUnitCutoff`, `smoothUnitCutoff_eq_smoothTransition`, `smoothUnitCutoff_contDiff`, `smoothUnitCutoff_eq_one_of_abs_le_one`, `smoothUnitCutoff_eq_zero_of_two_le_abs`, `smoothUnitCutoff_mem_Icc`, `smoothUnitCutoff_hasCompactSupport`, `smoothUnitCutoff_deriv_bounded`, ... | 22 | compiled ANALYSIS/REG/SDE base through O(R^-1) fderiv and O(R^-2) second iterated derivative; the finite-dimensional Laplacian trace consumer is compiled in Laplacian |
+ | `AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Divergence` | `AutoSamplingTheory\TechnicalLemmas\Analysis\Calculus\Divergence.lean` | Mathlib-ready technical lemma | finite-dimensional pointwise coordinate-divergence convention, fderiv trace bridges, radial-cutoff PiLp derivative producer, smulRight basis-trace identity, the generic L1 cutoff-gradient limit and generic cutoff main-term dominated convergence for Integrable fields, a.e. trace transfer, finite-box signed face-term wrappers, and the inner-closed-Pi-box/outer-open-Pi-box plateau specialization | `coordinateDivergence`, `coordinateDivergence_eq_sum_lineDeriv`, `coordinateDivergence_eq_sum_fderiv_apply_of_hasFDerivAt`, `coordinateDivergence_eq_sum_fderiv_apply_of_differentiableAt`, `continuousLinearEquiv_apply_euclideanSpace_single`, `hasFDerivAt_radialSmoothCutoff_comp_toLp`, `tendsto_integral_norm_fderiv_radialSmoothCutoff_comp_toLp_apply`, `tendsto_integral_radialSmoothCutoff_comp_toLp_smul`, ... | 58 | preferred ANALYSIS/SDE bridge for finite-box cancellation and the compiled generic cutoff cross-term/main-term/tail limits; concrete compact-test generator-display integrability and Gibbs-tail convergence are compiled in Langevin, while whole-space IBP, no-boundary passage, and invariant law remain separate |
+ | `AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient` | `AutoSamplingTheory\TechnicalLemmas\Analysis\Calculus\Gradient.lean` | Mathlib-ready technical lemma | Mathlib gradient bridges for Langevin calculus: Gibbs-weight chain rule `∇ exp(-V) = -exp(-V) • ∇V` from `HasGradientAt` or `DifferentiableAt`, coordinate displays, finite-dimensional coordinate-unit line derivatives, and pointwise `fderiv`-to-`gradient` inner-product/coordinate bridges | `hasGradientAt_expNegPotential_of_hasGradientAt`, `gradient_expNegPotential_eq_of_hasGradientAt`, `gradient_expNegPotential_coordinate_eq_of_hasGradientAt`, `gradient_expNegPotential_eq_of_differentiableAt`, `gradient_expNegPotential_coordinate_eq_of_differentiableAt`, `continuous_gradient_of_contDiff_one`, `fderiv_apply_eq_inner_of_hasGradientAt`, `fderiv_apply_eq_inner_gradient_of_differentiableAt`, ... | 10 | preferred ANALYSIS/SDE bridge from Mathlib gradient API to finite-coordinate Langevin algebra; pointwise only, with no divergence, IBP, or invariant-law claims |
+ | `AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Laplacian` | `AutoSamplingTheory\TechnicalLemmas\Analysis\Calculus\Laplacian.lean` | Mathlib-ready technical lemma | finite-dimensional real inner-product-space Laplacian coordinate bridges: Mathlib Laplacian equals the standard orthonormal-basis second-derivative sum, plus source-functional handoff | `laplacian_eq_sum_stdOrthonormalBasis`, `laplacianFunctional_eq_of_stdOrthonormalBasis_sum`, `continuous_laplacian_of_contDiff_two`, `norm_laplacian_le_finrank_mul_norm_iteratedFDeriv_two`, `radialSmoothCutoff_laplacian_bound` | 5 | preferred ANALYSIS/SDE bridge for Langevin generator displays; does not prove IBP, boundary decay, stationarity, or invariant laws |
+@@ -174,6 +174,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
+ | Module | Memory key | Local declaration | Upstream or source orientation |
+ | --- | --- | --- | --- |
+ | `AutoSamplingTheory` | `lsi.sqrt-density.fisher-chain` | `lsiKlFiSqrtDensityFisherChainIntegralHandoffScalar` | Mathlib/SLT-inspired entropy and LSI proof shape |
++| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation` | `pbps.actualProjectedRotation` | `actual_projected_rotation` | arXiv2609.06905v1 Appendix B1/B3; B21 and Lemma B4 prerequisites |
+ | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation` | `pbps.actualRootInverseCommutation` | `actual_same_root_inverse_commutation` | arXiv2609.06905v1 Appendix B3 proof ingredient for Lemma B3/B23 and B21 |
+ | `AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector` | `pbps.ambientAdjointCorrector` | `actual_ambient_adjoint_centered_decomposition` | arXiv2609.06905v1 Appendix B3 first corrector after B16 before B20 |
+ | `AutoSamplingTheory.ExampleCases.ProximalBPS.CenteredDefectOperator` | `pbps.actualCenteredSelfadjointDefect` | `actual_centered_selfadjoint_defect` | arXiv2609.06905v1 AppendixB B1-B5/D1-D2 |
+diff --git a/research-wiki/technical-lemma-memory/technical_lemma_registry.jsonl b/research-wiki/technical-lemma-memory/technical_lemma_registry.jsonl
+index b388f682..97ee7651 100644
+--- a/research-wiki/technical-lemma-memory/technical_lemma_registry.jsonl
++++ b/research-wiki/technical-lemma-memory/technical_lemma_registry.jsonl
+@@ -157,3 +157,4 @@
+ {"key": "analysis.hilbertSharpQuadraticCorrectorBound", "local_decl": "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound.quadratic_corrector_bound_of_square_identity", "local_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/HilbertCorrectorBound.lean", "status": "formalized-local", "sald_use": "PBPS consumer; no SALD change", "tags": ["Hilbert", "selfadjoint", "quadratic-form", "sharp-corrector"], "upstream_decl": "Sharp quadratic corrector bound from a selfadjoint square identity", "upstream_file": "arXiv2609.06905v1 Appendix B3 (B23); ASTIS auxiliary Hilbert-space estimate", "verified_commit": "3ad3b127b5a645be9cf71b3d14520b2d8fea3122", "evidence": "runs/20261007-companion-priority/pbps-sharp-energy68/verified.json", "next_action": "Independently exact-science68 VERIFIED 3ad3b127b5a645be9cf71b3d14520b2d8fea3122. Arbitrary complete real Hilbert space including zero: selfadjoint K,D, I+K²=D² and norm(D)<=c with c>=0 yield the exact c/2 two-component bound. Uses the sum of squared component norms. No c>=1, finite dimension, nontriviality, operator positivity or K,D commutation premise. Actual PBPS supplies D=Inv and K=A0 Inv. Not a separately printed paper theorem."}
+ {"key": "pbps.actualSharpCorrectorEnergy", "local_decl": "AutoSamplingTheory.ExampleCases.ProximalBPS.SharpCorrectorEnergy.actual_sharp_corrector_bound", "local_file": "AutoSamplingTheory/ExampleCases/ProximalBPS/SharpCorrectorEnergy.lean", "status": "formalized-local", "sald_use": "PBPS consumer; no SALD change", "tags": ["PBPS", "L2", "same-root", "corrector", "modified-energy"], "upstream_decl": "Sharp corrector bound and actual PBPS modified energy equivalence", "upstream_file": "arXiv2609.06905v1 Appendix B3 Lemma B3; B19,B20,B22,B23,B24", "verified_commit": "3ad3b127b5a645be9cf71b3d14520b2d8fea3122", "evidence": "runs/20261007-companion-priority/pbps-sharp-energy68/verified.json", "next_action": "Independently exact-science68 VERIFIED 3ad3b127b5a645be9cf71b3d14520b2d8fea3122. Original finite real Hilbert/Borel/C2/two Hessians/positive capped eta inputs produce SAME actual root/inverse/coefficient and sharp |C(u,v)|<=(norm(u)²+norm(v)²)/(2gamma). Every globally centered actual f has SAME fP/fV, the actual norm budget and |C(fP,fV)|<=norm(f)²/(2gamma). Genuine original-input Test proves half/three-halves energy equivalence and exact perturbation bounds for every0<omegaWeight<=gamma. Rank0/alphaeta1 retained; literal private Props are representations only. B21 reflection rotation, H1/B2, B4 dynamics, main results, implementation errors, costs and composition remain open."}
+ {"key": "pbps.actualReflectionIntertwining", "local_decl": "AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining.actual_reflection_intertwining", "local_file": "AutoSamplingTheory/ExampleCases/ProximalBPS/ReflectionIntertwining.lean", "status": "formalized-local", "sald_use": "PBPS consumer; no SALD change", "tags": ["PBPS", "L2", "reflection", "adjoint", "full-micro-space"], "upstream_decl": "Actual PBPS reflection intertwining on the full conditional complement", "upstream_file": "arXiv2609.06905v1 Appendix B1/B3; B21 and Lemma B4 prerequisites", "verified_commit": "2d286c283a6fb5dfc13180204bb0da54531a5c67", "evidence": "runs/20261007-companion-priority/pbps-reflection-intertwining69/verified.json", "next_action": "Independently exact-science69 VERIFIED 2d286c283a6fb5dfc13180204bb0da54531a5c67. Same six original analytic callers and twelve witnesses yield D=R U inclusion and V0*D=-A0V0* on ALL ker P. Equality of actual AE reflection actions identifies U2=U before consuming the ambient block theorem. No range-V0 restriction, surjectivity, extra regularity or sharp-energy68 premise. Rank0/alphaeta1 remain legal. Next actual projected rotation/mean preservation, B21 corrector change and B4 dynamics remain unproved; main, invariance/nonexplosion, errors/caps, expected-query costs/composition and full Exposition/PURIFIED remain open."}
++{"key": "pbps.actualProjectedRotation", "local_decl": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation.actual_projected_rotation", "local_file": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualProjectedRotation.lean", "status": "formalized-local", "sald_use": "PBPS consumer; no SALD change", "tags": ["PBPS", "L2", "reflection", "conditional-expectation", "projected-rotation"], "upstream_decl": "Actual PBPS projected reflection rotation and two-component energy", "upstream_file": "arXiv2609.06905v1 Appendix B1/B3; B21 and Lemma B4 prerequisites", "verified_commit": "c46af8a55e89419109f654c4553cf527993cbeed", "evidence": "runs/20261007-companion-priority/pbps-actual-projected-rotation70/verified.json", "next_action": "Independently exact-science70 VERIFIED c46af8a55e89419109f654c4553cf527993cbeed. Same six original analytic callers and twelve witnesses yield actual g=U(P-Pperp)f, internally mean(g)=0, actual conditional gP and polar gV, gP=A0fP-Gamma0fV and gV=Gamma0fP+A0fV, with exact pair-energy conservation. No right-hand-side-defined output, mean premise, extra regularity or sharp-energy68 premise. Rank0/alphaeta1 remain legal. B21 corrector change, B4 dynamics, main, invariance/nonexplosion, errors/caps, expected-query costs/composition and full Exposition/PURIFIED remain open."}
+diff --git a/runs/substantive_advances.jsonl b/runs/substantive_advances.jsonl
+index 7f36b9e0..81557675 100644
+--- a/runs/substantive_advances.jsonl
++++ b/runs/substantive_advances.jsonl
+@@ -1182,3 +1182,4 @@
+ {"advance_id":"ASTIS-SA-20261009-PBPSActualProjectedRotation","context_characters":0,"created_at":"2026-10-09T15:31:55+00:00","event":"checkpoint","exact_residual":"Admit reviewed exact literal representation and compile actual reflected-input mean/rotation/energy theorem BODY.","mathematical_delta":"Exact70 statement and proof route preserved; header failures isolated before BODY, no theorem credit.","needs_diagnosis":false,"no_progress_streak":1,"progress_signature":"three-negative-type-only-receipts-prior66-diagnosis-reused-literal-prop-candidate","route_fingerprint":"actual-projected-rotation/inline-dependent-type-route-retired","schema_version":4,"worker_id":"companion_root_20261005"}
+ {"advance_id":"ASTIS-SA-20261009-PBPSActualProjectedRotation","context_characters":0,"created_at":"2026-10-09T15:44:40+00:00","event":"checkpoint","exact_residual":"Independent theorem mathematics,blind reconstruction,primary-first whole-module source/publication review and serialized integration; B21 corrector/B4/main/cost/composition remain.","mathematical_delta":"For SAME actual original globally centered f and SAME g=U(P-Pperp)f, derive mean(g)=0, actual conditional gP and polar gV with gP=A0fP-Gamma0fV and gV=Gamma0fP+A0fV, plus the exact two-component energy identity.","needs_diagnosis":false,"no_progress_streak":1,"progress_signature":"3949EXIT0-standard3-original6callers-actual-output-components","route_fingerprint":"same-actual-law-mean/conditional-output/orthogonal-rotation/pair-energy","schema_version":4,"worker_id":"companion_root_20261005"}
+ {"advance_id":"ASTIS-SA-20261009-PBPSActualProjectedRotation","created_at":"2026-10-09T16:12:39+00:00","event":"transition","evidence":{"active_cells":["ASTIS-SW-PBPS-actual-projected-rotation"],"conceptual_mirror_audit":{"discovery_ids":[],"reason":"The actual macro/polar rotation and pair-energy cancellation instantiate the existing reflection/modified-L2 family. No new source-backed cross-domain hypothesis/conclusion transport or recurring mechanism beyond this retained family was found. Gaussian coordinate-law rotation is already separately retained and has a distinct law-level truth contract. No conceptual edge is promoted to a Lean dependency.","status":"none-found"},"focused_checks":[{"command":"lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation","result":"Root9524 EXIT0/3949; independent fresh Lean42936 EXIT0; exactly propext,Classical.choice,Quot.sound. Retired inline-header/compiler API negatives retained."},{"command":"Independent math,blind decoder,primary-first source/publication review","result":"CLOSED121/12/319+portable14;419 source items,544lines,8literal BODY spans,7slots;13 informational nonblocking deltas;0 mathematical repairs."}],"integration_notes":"Same actual g,internally mean(g)=0,actual conditional gP and polar gV,correct-sign rotation and exact pair energy. Next B21 corrector/B4; no sharp-energy68 proof dependency. Sole stabilization lane. No main/cost/composition/fullExposition/PURIFIED/Goal claim.","lean_declarations":["AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation.actual_projected_rotation"],"lean_files":["AutoSamplingTheory/ExampleCases/ProximalBPS/ActualProjectedRotation.lean"],"proof_digestion":[{"declaration":"AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation.actual_projected_rotation","declaration_level":"source-anchor","report":{"bookkeeping":["Actual g=U(Pf-(f-Pf)); gP from conditional expectation, gV from V0*Rg."],"existing_substrate":["AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionIntertwining.actual_reflection_intertwining","AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection.reflection_preserves_augmentation"],"new_reusable":[],"new_topology":"For SAME actual original globally centered f and SAME g=U(P-Pperp)f, derive mean(g)=0, actual conditional gP and polar gV with gP=A0fP-Gamma0fV and gV=Gamma0fP+A0fV, plus the exact two-component energy identity."}}],"publication_declarations":["AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation.actual_projected_rotation"],"purification":[{"declaration":"AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation.actual_projected_rotation","declaration_level":"source-anchor","report":{"canonicalization":"Actual projected reflection coordinates.","compressed_spine_delta":"For SAME actual original globally centered f and SAME g=U(P-Pperp)f, derive mean(g)=0, actual conditional gP and polar gV with gP=A0fP-Gamma0fV and gV=Gamma0fP+A0fV, plus the exact two-component energy identity.","dead_code_audit":"One public production theorem with an exact private literal statement definition; no proof provider or wrapper Test.","duplicate_semantics_audit":"Extend same verified actual69 objects.","reader_default_view":"Complete attributed formulas with adjacent exact folded Lean.","scope":"P16 same corrector algebra and actual B21 change remain next; B4/H1/dynamics/main/errors/cost/composition independent.","status":"pending"}}],"reader_lesson":["website/content/declaration_lessons/pbps-actual-projected-rotation.json"],"result_kind":"theorem-edge","source_proof_coverage":[{"declaration":"AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation.actual_projected_rotation","declaration_level":"source-anchor","report":{"coverage_report":"runs/20261007-companion-priority/pbps-actual-projected-rotation70/independent-source70/stageB.all24-obligation-decisions.json","coverage_status":"Independent primary-first whole current544-line/source419/seven-slot/eight-exact-BODY review accepted equivalent-after-elaboration:175NODE244EXCLUDED,7RAWregions,22source nodes49edges,24finite obligations,13informational0blocking0mathematical repairs. Exact complete69 parent and six callers/12witnesses preserved; internal mean(g),actual condExp gP,V*Rg gV,correct-sign actual rotation and pair energy. B21/B4/main/errors/cost/composition/full Exposition/PURIFIED/wholepaper remain outside admission.","source_graph":"runs/20261007-companion-priority/pbps-actual-projected-rotation70/independent-source70/stageA.source-proof-graph70.frozen.json","source_inventory":"runs/20261007-companion-priority/pbps-actual-projected-rotation70/independent-source70/stageB.primary419-current-exhaustive-decisions.json"}}],"statement_seal":[{"declaration":"AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation.actual_projected_rotation","declaration_level":"source-anchor","report":{"binder_audit":"E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-projected-rotation-preproof70/independent-header-source70/parent69-retention-and-binder-audit.json","definition_kind":"Exact literal Prop expansion; six original analytic callers and same twelve witnesses. Independent representation overlay only; mean(g)=0 is a conclusion.","evidence":"runs/20261007-companion-priority/pbps-actual-projected-rotation-preproof70/root.statement-seal70.json","representation_overlay":"runs/20261007-companion-priority/pbps-actual-projected-rotation70/root.named-literal70.adoption.json","signature_digest":"9261f488432664370ae1b1146b098bf86c17dfd476bfe2e149d3024a77529e19","source_revision":"2609.06905v1/Lean4.33.0/Mathlibdb584cd6","statement_version":1}}],"theorem_delta":"For SAME actual original globally centered f and SAME g=U(P-Pperp)f, derive mean(g)=0, actual conditional gP and polar gV with gP=A0fP-Gamma0fV and gV=Gamma0fP+A0fV, plus the exact two-component energy identity.","truth_boundary":"P16 same corrector algebra and actual B21 change remain next; B4/H1/dynamics/main/errors/cost/composition independent. Independent math121/blind12/source319 plus portable14 accepted:419 source items,544 lines,eight literal BODY steps,seven slots,13 informational deltas,zero mathematical repairs. Exact SCI70 and serialized aggregate/reader remain pending.","useful_discoveries":[]},"from_state":"EXPLORING","modes":[],"schema_version":4,"to_state":"PROVED_LOCAL","worker_id":"companion_root_20261005"}
++{"advance_id":"ASTIS-SA-20261009-PBPSActualProjectedRotation","created_at":"2026-10-09T16:56:11+00:00","event":"transition","evidence":{"fake_closure_scan":{"artifact":{"lf_bytes":949,"lf_sha256":"04e17aed20bef395f3509685391f4252fbf035a00fe525e8b02c756855d89228","path":"E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-projected-rotation70/exact-science-verification70-label-supplement/fake-closure-scan.json","raw_bytes":949,"raw_sha256":"04e17aed20bef395f3509685391f4252fbf035a00fe525e8b02c756855d89228"},"exact_standard3":true,"hits":0,"private_literal_full_Props":1,"private_mathematical_providers":0,"status":"PASS"},"gate":{"exact_commit_binding":{"lf_bytes":19286,"lf_sha256":"9b0543ac32779feeb317b9688c26b9a44332895baa35617596decd559cc2edf4","path":"E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-projected-rotation70/exact-science-verification70-label-supplement/bindings.result.json","raw_bytes":19286,"raw_sha256":"9b0543ac32779feeb317b9688c26b9a44332895baa35617596decd559cc2edf4"},"prior_independent_fresh_Lean_EXIT":0,"prior_independent_fresh_Lean_PID":42936,"required_fresh_gates":{"lf_bytes":6342,"lf_sha256":"055ee21940c7926184abb3eedeb61b37ea96a911d1fecdf7ecf31debdc1b2af5","path":"E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-projected-rotation70/exact-science-verification70-label-supplement/gates.result.json","raw_bytes":6342,"raw_sha256":"055ee21940c7926184abb3eedeb61b37ea96a911d1fecdf7ecf31debdc1b2af5"},"reused_unchanged_focused_Lake_EXIT":0,"reused_unchanged_focused_Lake_PID":25452,"scope":"Independent exact corrected SCI70 local science; aggregate/reader pending."},"native_independent_verdict_path":"runs/20261007-companion-priority/pbps-actual-projected-rotation70/exact-science-verification70-label-supplement/verification-verdict.json","old_frontier_failure_preserved":true,"original_SCI70_not_VERIFIED":true,"parent_commit":"e44b6b1e08c8a259a1f48006d822b53efd3fecb8","publication_declarations":["AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation.actual_projected_rotation"],"remaining_boundary":"P16 same corrector algebra and actual B21 change remain next; B4/H1/dynamics/main/errors/cost/composition independent. Independent math121/blind12/source319 plus portable14 accepted:419 source items,544 lines,eight literal BODY steps,seven slots,13 informational deltas,zero mathematical repairs. Exact SCI70 and serialized aggregate/reader remain pending.","source_audit":{"all7slots_13informational_deltas_8BODY_preserved":true,"artifact":{"lf_bytes":19286,"lf_sha256":"9b0543ac32779feeb317b9688c26b9a44332895baa35617596decd559cc2edf4","path":"E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-projected-rotation70/exact-science-verification70-label-supplement/bindings.result.json","raw_bytes":19286,"raw_sha256":"9b0543ac32779feeb317b9688c26b9a44332895baa35617596decd559cc2edf4"},"audit_id":"ASTIS-RT-20261009-PBPSActualProjectedRotation","native_source_whole_logical":"828e2f967924bdd4f35941c540623bb202051850621276bda8f6e19e550f672b","prior_native_source_binding":{"lf_bytes":59797,"lf_sha256":"4471ae6546f55a197d590e8635b877b27088906fa131eee7c33582529896e6f6","path":"E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-projected-rotation70/exact-science-verification70/source-bindings.result.json","raw_bytes":59797,"raw_sha256":"4471ae6546f55a197d590e8635b877b27088906fa131eee7c33582529896e6f6"},"source319_math121_blind12_portable14_native_Git_unchanged":true},"verified_commit":"c46af8a55e89419109f654c4553cf527993cbeed","verifier_id":"/root/exact_science63"},"from_state":"PROVED_LOCAL","modes":["independent-exact-science-verification"],"schema_version":4,"to_state":"VERIFIED","worker_id":"/root/exact_science63"}
+diff --git a/website/content/samplewiki_companion_frontiers.json b/website/content/samplewiki_companion_frontiers.json
+index 7f188e23..90628a93 100644
+--- a/website/content/samplewiki_companion_frontiers.json
++++ b/website/content/samplewiki_companion_frontiers.json
+@@ -7,7 +7,7 @@
+   "status": "source-pinned-plan",
+   "execution": {
+     "updated": "2026-10-08",
+-    "current_checkpoint": "docs/companion-papers-handoff.md#actual-pbps-reflection-intertwining-2026-10-09",
++    "current_checkpoint": "docs/companion-papers-handoff.md#actual-pbps-projected-rotation-2026-10-10",
+     "current_state_authority": "Read tools/astis_advance.py capsule and current research-wiki/frontier-cells records. first_cell and result_cells below preserve the historical September10 checkpoint; they are not the current count or scheduling frontier.",
+     "priority": "first-mathematical-priority",
+     "authorization": "The existing unbudgeted Goal in this thread was expanded on2026-10-08 to four complete faithful papers, without reset or parallel Goal. Phase1 PBPS/SPHMC and their actual-input composition; Phase2 Gaussian Cloud; Phase3 midpoint. These are scheduling priorities, not invented mathematical dependencies or completion badges.",
+diff --git a/website/scripts/check_cross_domain_browser.py b/website/scripts/check_cross_domain_browser.py
+index 7b331390..754e9068 100644
+--- a/website/scripts/check_cross_domain_browser.py
++++ b/website/scripts/check_cross_domain_browser.py
+@@ -12,6 +12,7 @@ import json
+ import re
+ import shutil
+ import threading
++from collections import Counter
+ from pathlib import Path
+ from urllib.parse import parse_qs, urlsplit, quote
+ from playwright.sync_api import sync_playwright
+@@ -226,13 +227,25 @@ def main() -> None:
+             items = [i for f in (ROOT/'website/content/publications').glob('*.json')
+                      for i in json.loads(f.read_text(encoding='utf-8'))['items']
+                      if i['chapter_path'].startswith('example-cases/samplewiki/companions/')]
++            lesson_units = {u['declaration']: u
++                            for f in (ROOT/'website/content/declaration_lessons').glob('*.json')
++                            for u in json.loads(f.read_text(encoding='utf-8'))['units']}
+             report['companion_publications'] = []
+             for rel in sorted({i['chapter_path'] for i in items}):
+                 goto(rel)
+                 expected = sum(len(i['bindings']) for i in items if i['chapter_path'] == rel)
++                proof_names = [name for i in items if i['chapter_path'] == rel
++                               for b in i['bindings']
++                               for name in [b['declaration'], *lesson_units[b['declaration']].get('helpers', [])]]
++                expected_proof_panels = len(proof_names)
+                 assert page.locator('[data-authored-declaration]').count() == expected, rel
++                assert page.locator('details.inline-lean-statement').count() == expected, rel
+                 assert page.locator('details.inline-lean-statement:not([open])').count() == expected, rel
+-                assert page.locator('details.inline-lean-proof:not([open])').count() == expected, rel
++                proof_panels = page.locator('details.inline-lean-proof')
++                assert proof_panels.count() == expected_proof_panels, rel
++                assert page.locator('details.inline-lean-proof[open]').count() == 0, rel
++                assert Counter(proof_panels.evaluate_all(
++                    "nodes => nodes.map(node => node.getAttribute('data-inline-lean'))")) == Counter(proof_names), rel
+                 if not args.offline_dom:
+                     page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
+                     page.evaluate('() => MathJax.startup.promise')
+@@ -241,11 +254,12 @@ def main() -> None:
+                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1'), rel
+                 for summary in page.locator('details.inline-lean-proof > summary').all():
+                     summary.click()
+-                assert page.locator('details.inline-lean-proof[open] code.language-lean').count() == expected, rel
++                assert page.locator('details.inline-lean-proof[open]').count() == expected_proof_panels, rel
++                assert page.locator('details.inline-lean-proof[open] code.language-lean').count() == expected_proof_panels, rel
+                 page.locator('[data-authored-declaration]').last.scroll_into_view_if_needed()
+                 page.screenshot(path=str(evidence/(Path(rel).stem+'-proof-mobile.png')))
+                 report['companion_publications'].append({'path': rel, 'declarations': expected,
+-                    'adjacent_lean': True, 'mobile_overflow': False})
++                    'proof_panels': expected_proof_panels, 'adjacent_lean': True, 'mobile_overflow': False})
+             assert not report['runtime_errors'],report['runtime_errors']
+             browser.close()
+     except Exception as error:
+diff --git a/website/scripts/inline_lean.py b/website/scripts/inline_lean.py
+index ef7485fa..6352423e 100644
+--- a/website/scripts/inline_lean.py
++++ b/website/scripts/inline_lean.py
+@@ -80,6 +80,13 @@ def disclosure(name: str, *, role: str, explanation: str,
+     signature, body = split_statement(exact_source)
+     code = signature if role == 'statement' else exact_source
+     label = 'Lean statement' if role == 'statement' else 'Lean proof / instance' if declaration.kind == 'instance' else 'Lean proof' if declaration.kind in {'theorem', 'lemma'} else 'Lean construction'
++    literal_statement = (declaration.kind == 'def'
++                         and declaration.short_name.endswith('_statement')
++                         and re.search(r':\s*Prop\s*$', base.sanitize_lean(signature)) is not None)
++    if role == 'proof' and literal_statement:
++        label = 'Full Lean proposition (definition)'
++        explanation = ('This literal definition stores the complete proposition asserted above. '
++                       'It supplies no mathematical proof or additional hypothesis; the theorem proof must establish its value.')
+     if role == 'statement' and not body and declaration.kind in {'theorem', 'lemma'}:
+         label = 'Complete Lean declaration (unsplit)'
+     href, _ = base.source_href(declaration, from_path=page)

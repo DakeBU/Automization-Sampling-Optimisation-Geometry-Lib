@@ -1,0 +1,100 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredGibbsResolventLimit
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GlobalWeightedResolventCoercivity
+/-! Actual SAME-original centered-domain Poincare. Identify genuine residual/coercivity variational witnesses by SAME closed D/epsilon/forcing uniqueness; test centered z and pass actual scaled residual strongzero, using zero-norm split before positive cancellation. BOTH curvature bounds and true C2/exponential integrability/positive normalizer are explicit: this is narrower than lower-only source D6 but exact companion inputs supply upper curvature. No input Poincare/unscaled uniform bound/range/core/epsilon0 certificate. -/
+set_option autoImplicit false
+noncomputable section
+open Filter InnerProductSpace MeasureTheory
+open scoped Topology RealInnerProductSpace ContDiff
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare
+private theorem poincare_from_actual_variational_limits
+    {H K : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]
+    [NormedAddCommGroup K] [InnerProductSpace ℝ K]
+    (D : H →ₗ.[ℝ] K) (m : ℝ) (hm : 0 < m) (z : D.domain)
+    (ε : ℕ → ℝ) (u : ℕ → D.domain)
+    (hu : ∀ n, ∀ v : D.domain,
+      ε n*inner ℝ (u n : H) (v : H)+inner ℝ (D (u n)) (D v)=inner ℝ (z:H) (v:H))
+    (hb : ∀ n, m*‖D (u n)‖^2 ≤ ‖(z:H)‖^2)
+    (ht : Tendsto (fun n => ε n • (u n:H)) atTop (𝓝 0)) :
+    m*‖(z:H)‖^2 ≤ ‖D z‖^2 := by
+  have hs : 0 < Real.sqrt m := Real.sqrt_pos.mpr hm
+  have hn (n : ℕ) : Real.sqrt m*‖D (u n)‖ ≤ ‖(z:H)‖ := by
+    apply (sq_le_sq₀ (mul_nonneg hs.le (norm_nonneg _)) (norm_nonneg _)).mp
+    simpa only [mul_pow,Real.sq_sqrt hm.le] using hb n
+  have he (n : ℕ) : ‖(z:H)‖^2=
+      inner ℝ (ε n • (u n:H)) (z:H)+inner ℝ (D (u n)) (D z) := by
+    rw [real_inner_smul_left]
+    simpa only [real_inner_self_eq_norm_sq] using (hu n z).symm
+  have hineq (n : ℕ) : Real.sqrt m*‖(z:H)‖^2 ≤
+      Real.sqrt m*inner ℝ (ε n • (u n:H)) (z:H)+‖(z:H)‖*‖D z‖ := by
+    calc
+      _ = Real.sqrt m*inner ℝ (ε n • (u n:H)) (z:H)+
+          Real.sqrt m*inner ℝ (D (u n)) (D z) := by rw [he];ring
+      _ ≤ Real.sqrt m*inner ℝ (ε n • (u n:H)) (z:H)+
+          Real.sqrt m*(‖D (u n)‖*‖D z‖) :=
+        add_le_add le_rfl (mul_le_mul_of_nonneg_left
+          (real_inner_le_norm (D (u n)) (D z)) hs.le)
+      _ ≤ _ := add_le_add le_rfl (by
+        simpa only [mul_assoc] using
+          mul_le_mul_of_nonneg_right (hn n) (norm_nonneg (D z)))
+  have hterm : Tendsto
+      (fun n => Real.sqrt m*inner ℝ (ε n • (u n:H)) (z:H)+‖(z:H)‖*‖D z‖)
+      atTop (𝓝 (‖(z:H)‖*‖D z‖)) := by
+    simpa only [inner_zero_left,mul_zero,zero_add] using
+      ((ht.inner (tendsto_const_nhds (x:=(z:H)))).const_mul (Real.sqrt m)).add_const
+        (‖(z:H)‖*‖D z‖)
+  have hlim : Real.sqrt m*‖(z:H)‖^2 ≤ ‖(z:H)‖*‖D z‖ :=
+    le_of_tendsto_of_tendsto tendsto_const_nhds hterm (Eventually.of_forall hineq)
+  by_cases hz : ‖(z:H)‖=0
+  · simpa only [hz,zero_pow (by norm_num : (2:ℕ)≠0),mul_zero] using sq_nonneg ‖D z‖
+  · have hp : 0 < ‖(z:H)‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm hz)
+    have hl : Real.sqrt m*‖(z:H)‖ ≤ ‖D z‖ :=
+      (mul_le_mul_iff_right₀ hp).mp (by simpa only [pow_two,mul_assoc,mul_comm] using hlim)
+    have hsq := (sq_le_sq₀ (mul_nonneg hs.le (norm_nonneg _)) (norm_nonneg _)).mpr hl
+    simpa only [mul_pow,Real.sq_sqrt hm.le] using hsq
+
+theorem gibbs_centered_domain_poincare
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (W : E → ℝ) (hW : ContDiff ℝ 2 W)
+    (hI : Integrable (fun x => Real.exp (-W x)))
+    (hZ : 0 < ∫ x, Real.exp (-W x))
+    (m M : ℝ) (hm : 0 < m) (hmM : m ≤ M)
+    (hlower : ∀ x a, m*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ W) x a a)
+    (hupper : ∀ x a, fderiv ℝ (fderiv ℝ W) x a a ≤ M*‖a‖^2) :
+    let μ := (volume : Measure E).tilted (fun x => -W x)
+    ∀ (D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E 2 μ), D.IsClosable →
+      (∀ (a : Lp ℝ 2 μ) (G : Lp E 2 μ), (a,G) ∈ D.graph ↔
+        ∃ φ : E → ℝ, ContDiff ℝ ∞ φ ∧ HasCompactSupport φ ∧
+          a =ᵐ[μ] φ ∧ G =ᵐ[μ] gradient φ) →
+      ∀ z : D.closure.domain, (∫ x, (z : Lp ℝ 2 μ) x ∂μ)=0 →
+        m*‖(z : Lp ℝ 2 μ)‖^2 ≤ ‖D.closure z‖^2 := by
+  let μ := (volume : Measure E).tilted (fun x => -W x)
+  dsimp only
+  intro D hD hgraph z hz
+  let ε : ℕ → ℝ := fun n => 1/((n:ℝ)+1)
+  have hε (n : ℕ) : 0 < ε n := by dsimp [ε];positivity
+  have hε0 : Tendsto ε atTop (𝓝 0) := by
+    have hinf : Tendsto (fun n : ℕ => (n : ℝ) + 1) atTop atTop :=
+      tendsto_atTop_add_const_right atTop (1:ℝ) tendsto_natCast_atTop_atTop
+    have hinv : Tendsto (fun n : ℕ => ((n : ℝ) + 1)⁻¹) atTop (𝓝 (0 : ℝ)) :=
+      tendsto_inv_atTop_zero.comp hinf
+    convert hinv using 1
+    funext n
+    exact one_div _
+  obtain ⟨_,u,hu,ht⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredGibbsResolventLimit.gibbs_centered_resolvent_sequence
+      W (hW.of_le (by norm_num)) hI D hD hgraph (z:Lp ℝ 2 μ) hz ε hε hε0
+  have hb (n : ℕ) : m*‖D.closure (u n)‖^2 ≤ ‖(z:Lp ℝ 2 μ)‖^2 := by
+    obtain ⟨v,hv,_,_,_,_,_,_,hg,hr,_⟩ :=
+      AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GlobalWeightedResolventCoercivity.global_weak_resolvent_coercivity
+        W hW hI hZ m M hm hmM hlower hupper μ rfl D hD hgraph (ε n) (hε n) (z:Lp ℝ 2 μ)
+    obtain ⟨w,_,_,_,_,hwunique⟩ :=
+      AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.ClosedGraphResolvent.weak_resolvent
+        D.closure hD.closure_isClosed (ε n) (hε n) (z:Lp ℝ 2 μ)
+    have hid : u n=v := (hwunique (u n) (hu n).1).trans (hwunique v hv).symm
+    rw [hid]
+    exact hg.trans hr
+  exact poincare_from_actual_variational_limits D.closure m hm z ε u
+    (fun n => (hu n).1) hb ht
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CenteredDomainPoincare

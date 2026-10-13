@@ -1,0 +1,126 @@
+import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
+
+/-!
+# Finite-dimensional Girsanov cylinders
+
+This module contains the first Mathlib-facing PATH/Girsanov leaves used by the
+Chewi log-concave sampling tree.  The statements are deliberately cylindrical:
+they package the finite-dimensional Gaussian Esscher change of measure as a
+`EuclideanSpace` path-coordinate theorem.
+
+They do not assert a continuous-time Brownian path-space theorem, martingale
+property, filtration regularity, Novikov condition, or Ito construction.
+-/
+
+noncomputable section
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace Girsanov
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal
+
+/-- The finite-dimensional shifted Gaussian cylinder measure obtained by
+pushing shifted product coordinates into `EuclideanSpace`. -/
+noncomputable def finiteShiftedGaussianPathMeasure
+    {ι : Type*} [Fintype ι] (h : ι → ℝ) : Measure (EuclideanSpace ℝ ι) :=
+  (Measure.pi (fun i : ι => gaussianReal (h i) (1 : NNReal))).map (WithLp.toLp 2)
+
+/-- The finite-dimensional Girsanov/Esscher likelihood ratio against
+`stdGaussian (EuclideanSpace ℝ ι)`. -/
+noncomputable def finiteGaussianGirsanovWeight
+    {ι : Type*} [Fintype ι] (h : ι → ℝ) (z : EuclideanSpace ℝ ι) : ℝ :=
+  Real.exp (inner ℝ (WithLp.toLp 2 h : EuclideanSpace ℝ ι) z -
+    ‖(WithLp.toLp 2 h : EuclideanSpace ℝ ι)‖ ^ 2 / 2)
+
+/-- Finite-dimensional cylindrical Girsanov change of measure.
+
+This is the PATH-facing wrapper around the Gaussian
+`stdGaussian_shift_integral_map_toLp` leaf.  It is the right finite-dimensional
+base case for later Brownian path-space RN derivative statements.
+-/
+theorem finiteGaussianGirsanovCylinderIntegral
+    {ι : Type*} [Fintype ι] (h : ι → ℝ) {F : EuclideanSpace ℝ ι → ℝ}
+    (hF : Measurable F) :
+    ∫ z : EuclideanSpace ℝ ι, F z ∂finiteShiftedGaussianPathMeasure h =
+      ∫ z : EuclideanSpace ℝ ι,
+        finiteGaussianGirsanovWeight h z * F z
+          ∂stdGaussian (EuclideanSpace ℝ ι) := by
+  simpa [finiteShiftedGaussianPathMeasure, finiteGaussianGirsanovWeight] using
+    _root_.AutoSamplingTheory.TechnicalLemmas.Gaussian.stdGaussian_shift_integral_map_toLp
+      (ι := ι) h hF
+
+/-- Measure-level finite-dimensional cylindrical Girsanov density identity. -/
+theorem finiteGaussianGirsanovCylinderMeasure_eq_withDensity
+    {ι : Type*} [Fintype ι] (h : ι → ℝ) :
+    finiteShiftedGaussianPathMeasure h =
+      (stdGaussian (EuclideanSpace ℝ ι)).withDensity
+        (fun z => ENNReal.ofReal (finiteGaussianGirsanovWeight h z)) := by
+  classical
+  let μ0 : Measure (ι → ℝ) :=
+    Measure.pi (fun _ : ι => gaussianReal 0 (1 : NNReal))
+  let coordDensity : (ι → ℝ) → ℝ≥0∞ :=
+    fun x => ENNReal.ofReal
+      (Real.exp ((∑ i, h i * x i) - (∑ i, (h i) ^ 2) / 2))
+  let e : (ι → ℝ) ≃ᵐ EuclideanSpace ℝ ι :=
+    MeasurableEquiv.toLp 2 (ι → ℝ)
+  have hProduct :
+      Measure.pi (fun i : ι => gaussianReal (h i) (1 : NNReal)) =
+        μ0.withDensity coordDensity := by
+    simpa [μ0, coordDensity] using
+      (_root_.AutoSamplingTheory.TechnicalLemmas.Gaussian.pi_gaussianReal_withDensity_exp_shift h).symm
+  have hMapDensity :
+      (μ0.withDensity coordDensity).map e =
+        (μ0.map e).withDensity (fun z => coordDensity (e.symm z)) :=
+    AutoSamplingTheory.TechnicalLemmas.Measure.RadonNikodym.measurableEquiv_map_withDensity
+      e μ0 (by fun_prop)
+  have hStd : μ0.map e = stdGaussian (EuclideanSpace ℝ ι) := by
+    simpa [μ0, e, MeasurableEquiv.coe_toLp] using
+      ProbabilityTheory.map_pi_eq_stdGaussian (ι := ι)
+  have hDensityEq :
+      (fun z : EuclideanSpace ℝ ι => coordDensity (e.symm z)) =
+        fun z => ENNReal.ofReal (finiteGaussianGirsanovWeight h z) := by
+    funext z
+    have hInner :
+        inner ℝ (WithLp.toLp 2 h : EuclideanSpace ℝ ι) z =
+          ∑ i, h i * (WithLp.ofLp z) i := by
+      simpa using
+        _root_.AutoSamplingTheory.TechnicalLemmas.Gaussian.inner_toLp_toLp_eq_sum_mul
+          h (WithLp.ofLp z)
+    have hNorm :
+        ‖(WithLp.toLp 2 h : EuclideanSpace ℝ ι)‖ ^ 2 =
+          ∑ i, (h i) ^ 2 :=
+      _root_.AutoSamplingTheory.TechnicalLemmas.Gaussian.norm_sq_toLp_eq_sum_sq h
+    simp [coordDensity, finiteGaussianGirsanovWeight, e, hInner, hNorm]
+  calc
+    finiteShiftedGaussianPathMeasure h
+        = (μ0.withDensity coordDensity).map e := by
+          simpa [finiteShiftedGaussianPathMeasure, e, μ0,
+            MeasurableEquiv.coe_toLp] using congrArg (fun ν => ν.map e) hProduct
+    _ = (μ0.map e).withDensity (fun z => coordDensity (e.symm z)) := hMapDensity
+    _ = (stdGaussian (EuclideanSpace ℝ ι)).withDensity
+          (fun z => ENNReal.ofReal (finiteGaussianGirsanovWeight h z)) := by
+          rw [hDensityEq, hStd]
+
+/-- The finite-dimensional Girsanov weight has unit mass under the centered
+`stdGaussian` cylinder. -/
+theorem integral_finiteGaussianGirsanovWeight_eq_one
+    {ι : Type*} [Fintype ι] (h : ι → ℝ) :
+    ∫ z : EuclideanSpace ℝ ι,
+        finiteGaussianGirsanovWeight h z
+          ∂stdGaussian (EuclideanSpace ℝ ι) = 1 := by
+  have hChange :=
+    finiteGaussianGirsanovCylinderIntegral (ι := ι) h
+      (F := fun _ : EuclideanSpace ℝ ι => (1 : ℝ)) measurable_const
+  have hMass : (finiteShiftedGaussianPathMeasure h).real Set.univ = 1 := by
+    rw [finiteShiftedGaussianPathMeasure, Measure.real]
+    rw [Measure.map_apply (by fun_prop) MeasurableSet.univ]
+    simp
+  simpa [hMass] using hChange.symm
+
+end Girsanov
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,50 @@
+{
+  "status": "SEALED_BEFORE_PROOF_AFTER_INDEPENDENT_EXACT_HEADER_REVIEW",
+  "sealed_utc": "2026-10-10T12:09:41.563941+00:00",
+  "actual_root_PID": 46464,
+  "statement_version": 1,
+  "header": {
+    "path": "runs/20261007-companion-priority/pbps-actual-physical-time-measurability80/header80.proposed.lean",
+    "RAW_bytes": 5233,
+    "RAW_sha256": "1b51f58a987d8b59bcb1b5280a8817af984d7fad4b09962ad8a229198f9f5215"
+  },
+  "expanded_literal_Prop": "actual_physical_time_measurable_phase_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀)\n",
+  "public_theorem": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhysicalTimeMeasurability.actual_physical_time_measurable_phase",
+  "source_first_freeze": {
+    "path": "runs/20261007-companion-priority/pbps-physical-time-measurability-preread80/source-freeze80.json",
+    "RAW_bytes": 24478,
+    "RAW_sha256": "2e59d6c917887c1d1d58c1542f07da450d6739fd0557c1f49c4401f5e610bd33"
+  },
+  "source_topology_clarification": {
+    "path": "runs/20261007-companion-priority/pbps-physical-time-measurability-preread80/source-topology-clarification80.json",
+    "RAW_bytes": 1187,
+    "RAW_sha256": "9aa3c6e219637f193b71be6a3e9c1cd0f018cc12048bd16bef488e80aeafb9dd"
+  },
+  "independent_scope": {
+    "path": "runs/20261007-companion-priority/pbps-physical-time-measurability-preread80/independent-scope-review80/review-manifest80-final.json",
+    "RAW_bytes": 11756,
+    "RAW_sha256": "9d537ef2b0da03114e3adaaee7d1fa1f4ee3bfd790c18499ee53e8a9ddfa768e"
+  },
+  "exact_header_review": {
+    "path": "runs/20261007-companion-priority/pbps-actual-physical-time-measurability80/independent-review-adoption80.json",
+    "RAW_bytes": 454,
+    "RAW_sha256": "285cedea9b60c81cf5fd47f11baaad6b521f255ab0727d7af8098517cf193aaa"
+  },
+  "reuse_search": {
+    "path": "runs/20261007-companion-priority/pbps-actual-physical-time-measurability80/retrieval80/reuse-decision80.json",
+    "RAW_bytes": 2250,
+    "RAW_sha256": "de846d8f27a6119adde37cb9bed29486fe90127f8f214f4beb6853da28d1e661"
+  },
+  "toolchain": {
+    "path": "lean-toolchain",
+    "RAW_bytes": 26,
+    "RAW_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477"
+  },
+  "lake_manifest": {
+    "path": "lake-manifest.json",
+    "RAW_bytes": 3234,
+    "RAW_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2"
+  },
+  "truth_boundary": "Actual total jointly measurable finite-physical-time representative and common-AE all-time actual arc agreement/initialization per fixed parameter triple. V/alpha/beta/eta fixed. Uncovered fallback is explicit ASTIS convention. No uniform AE all parameters or arbitrary correlated random parameter substitution; path regularity/adaptedness/Markov/invariance/laws/kernel/hypocoercivity/full sampler errors/cost/composition, full Exposition Seal/main merge/PURIFIED/live/whole Goal remain open.",
+  "proof_BODY_created": false
+}

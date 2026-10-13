@@ -1,0 +1,221 @@
+{
+  "id": "ASTIS-RT-20260918-GibbsLocalL2",
+  "state": "accepted",
+  "source": {
+    "source_id": "companion:gibbs-local-l2-prerequisite",
+    "anchor": "Appendix C.1 authored analytic prerequisite; background1310.2526v7 §2.5",
+    "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+    "original_text": "Samplinglib-authored elementary Euclidean analytic prerequisite, not a quoted paper theorem. PBPS arXiv2609.06905v1 Appendix C.1 uses gradient closedness and conditional Poincare; its weighted-Sobolev route needs actual local square integrability before L2 weak-PDE regularity. Let E be a finite-dimensional real inner-product space with Borel structure and volume dx, W:E→R continuous with integrable exp(-W), and mu its normalized exponential tilt. For every normed additive commutative group F and every a in L2(mu;F), the selected representative has squared norm locally integrable for volume and belongs to L2(volume restricted to K;F) for every compact K, including the required almost-everywhere strong measurability. No completeness or real scalar structure is required on F. The paper's C2 scalar/vector setting is a specialization. Background1310.2526v7 section2.5 provides weighted Sobolev context only; no compact-manifold regularity theorem is transferred. No global unweighted L2 estimate, quantitative constant, H2, Poincare, domain characterization or paper completion is asserted.",
+    "text_sha256": "095ca80e996669996c0d9d094856a7852ac5df35d907077d3ca881db449381bb"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2.lp_locallyMemLp_volume",
+    "file": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/WeightedLocalL2.lean",
+    "statement": "∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : FiniteDimensional ℝ E]\r\n  [inst_3 : MeasurableSpace E] [inst_4 : BorelSpace E] {F : Type u_2} [inst_5 : NormedAddCommGroup F] (W : E → ℝ),\r\n  Continuous W →\r\n    MeasureTheory.Integrable (fun x => Real.exp (-W x)) MeasureTheory.volume →\r\n      ∀ (a : ↥(MeasureTheory.Lp F 2 (MeasureTheory.volume.tilted fun x => -W x))),\r\n        MeasureTheory.LocallyIntegrable (fun x => ‖↑↑a x‖ ^ 2) MeasureTheory.volume ∧\r\n          ∀ (K : Set E), IsCompact K → MeasureTheory.MemLp (fun x => ↑↑a x) 2 (MeasureTheory.volume.restrict K)",
+    "statement_sha256": "f48608395951d77ebd3d2b9224a14e15a797e856efd7f063a8e429cc60080569",
+    "compiled": true,
+    "formalizer": "root",
+    "compiler_evidence": "lake build Tests.WeightedLocalL2 PASS3036; standard3 axioms; actual resolvent consumer with same u,G,f.",
+    "decoder_context": [
+      "Lp functions are equivalence classes modulo almost-everywhere equality; displayed coercions select representative functions.",
+      "The tilted measure normalizes the exponential of the displayed potential relative to the base measure.",
+      "LocallyIntegrable means integrability on some neighborhood of each point. A restricted measure measures intersections with the indicated set.",
+      "MemLp at exponent two includes almost-everywhere strong measurability and finite squared-norm integral."
+    ]
+  },
+  "publication_binding_sha256": "a20887e48ab5420e9879bab533fd6ea1a8a0a1d21918961e7739e82708eaf06f",
+  "publication_context": {
+    "file": "a61421bdad21ef0ebf65dce11738f20146a7f53107ad6c355e31f7f973c14bb8",
+    "current_lean_module": "import Mathlib.MeasureTheory.Function.L2Space\nimport Mathlib.MeasureTheory.Function.LocallyIntegrable\nimport Mathlib.MeasureTheory.Measure.Tilted\nimport Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar\n\n/-!\n# Local square integrability of Gibbs L2 representatives\n\nAn elementary analytic prerequisite for arXiv:2609.06905v1 Appendix C.1:\ncontinuous positive Gibbs weights allow local unweighted L2 control. This is\nnot elliptic regularity, a domain characterization, or a Poincare inequality.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2\n\nopen MeasureTheory\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n\n/-- A Gibbs L2 representative has locally integrable squared norm for volume,\nand is L2 on each compact volume restriction. Only continuity of the potential\nis required; the target needs no scalar structure or completeness. -/\ntheorem lp_locallyMemLp_volume {F : Type*} [NormedAddCommGroup F]\n    (W : E → ℝ) (hW : Continuous W)\n    (hI : Integrable (fun x => Real.exp (-W x)))\n    (a : Lp F 2 ((volume : Measure E).tilted (fun x => -W x))) :\n    LocallyIntegrable (fun x => ‖a x‖ ^ 2) (volume : Measure E) ∧\n      ∀ K : Set E, IsCompact K → MemLp (fun x => a x) 2 (volume.restrict K) := by\n  have hs := (memLp_two_iff_integrable_sq_norm (Lp.memLp a).aestronglyMeasurable).mp\n    (Lp.memLp a)\n  have hw : Integrable (fun x => Real.exp (-W x) * ‖a x‖ ^ 2) := by\n    simpa only [smul_eq_mul] using (integrable_tilted_iff hI _).mp hs\n  have hl : LocallyIntegrable (fun x => ‖a x‖ ^ 2) (volume : Measure E) := by\n    have h := hw.locallyIntegrable.continuous_mul (Real.continuous_exp.comp hW)\n    simpa only [Function.comp_apply, ← mul_assoc, ← Real.exp_add, add_neg_cancel,\n      Real.exp_zero, one_mul]\n      using h\n  refine ⟨hl, ?_⟩\n  intro K hK\n  have hm : AEStronglyMeasurable (fun x => a x) (volume : Measure E) :=\n    (Lp.memLp a).aestronglyMeasurable.mono_ac (absolutelyContinuous_tilted hI)\n  exact (memLp_two_iff_integrable_sq_norm hm.restrict).mpr\n    (hl.integrableOn_isCompact hK)\n\nend AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "arXiv:2609.06905v1",
+      "anchor": "Appendix C.1 analytic prerequisite; background1310.2526v7 §2.5",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Samplinglib-authored elementary prerequisite for the analytic route underlying Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang; not original wording or a full paper theorem."
+    },
+    "statement": "The squared norm of the selected representative a is locally integrable with respect to volume. For every compact K⊆E, that same representative belongs to L²(dx restricted to K), including its required almost-everywhere strong measurability.",
+    "formulae": [
+      {
+        "label": "Local L2",
+        "tex": "a\\in L^2(\\mu;F)\\quad\\Longrightarrow\\quad \\|a\\|^2\\in L^1_{\\mathrm{loc}}(dx),\\qquad \\forall K\\Subset E,\\ a\\in L^2(K,dx;F)."
+      }
+    ],
+    "assumptions": [
+      "E is a finite-dimensional real inner-product space, including dimension zero, with its Borel measurable structure and canonical volume dx. F is any normed additive commutative group; no scalar structure or completeness of F is assumed.",
+      "W:E→R is continuous and exp(-W) is volume-integrable. Let Z=∫exp(-W)dx and μ=Z⁻¹exp(-W)dx. The positive finite normalization is justified, not an unspecified density constant.",
+      "a is an arbitrary element of L²(μ;F). Its function coercion denotes the selected almost-everywhere representative. There is no continuity, differentiability or initially assumed volume measurability of a."
+    ],
+    "obligations": [
+      {
+        "id": "local-square",
+        "label": "Squared norm local integrability and compact L2 with representative measurability"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2.lp_locallyMemLp_volume",
+      "title": "A Gibbs L2 representative is locally Lebesgue L2",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "PBPS Appendix C.1: authored analytic prerequisite",
+          "scope": "Elementary localization supporting the closed-gradient/weighted-Poisson route, not a quoted paper theorem."
+        },
+        {
+          "url": "https://arxiv.org/html/1310.2526v7#S2.SS5",
+          "label": "Kolesnikov–Milman §2.5: weighted Sobolev background",
+          "scope": "Background only; no compact-manifold regularity theorem is imported."
+        }
+      ],
+      "tests": [
+        "lake build Tests.WeightedLocalL2"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space, including dimension zero, with its Borel measurable structure and canonical volume dx. F is any normed additive commutative group; no scalar structure or completeness of F is assumed.",
+        "W:E→R is continuous and exp(-W) is volume-integrable. Let Z=∫exp(-W)dx and μ=Z⁻¹exp(-W)dx. The positive finite normalization is justified, not an unspecified density constant.",
+        "a is an arbitrary element of L²(μ;F). Its function coercion denotes the selected almost-everywhere representative. There is no continuity, differentiability or initially assumed volume measurability of a."
+      ],
+      "statement": "The squared norm of the selected representative a is locally integrable with respect to volume. For every compact K⊆E, that same representative belongs to L²(dx restricted to K), including its required almost-everywhere strong measurability.",
+      "formula": "a\\in L^2(\\mu;F)\\quad\\Longrightarrow\\quad \\|a\\|^2\\in L^1_{\\mathrm{loc}}(dx),\\qquad \\forall K\\Subset E,\\ a\\in L^2(K,dx;F).",
+      "steps": [
+        {
+          "title": "Use the squared-norm characterization of L2",
+          "text": "Membership in Gibbs L2 supplies almost-everywhere strong measurability and integrability of the real-valued squared norm. Even if F has no real scalar action, this norm-squared function is a real function, so change of density can be applied to it.",
+          "formula": "\\int \\|a(x)\\|^2\\,d\\mu(x)<\\infty.",
+          "lean": "hs via memLp_two_iff_integrable_sq_norm and Lp.memLp"
+        },
+        {
+          "title": "Remove only the Gibbs normalization",
+          "text": "The tilted-measure integrability equivalence gives integrability of exp(-W) times the squared norm for volume. The assumption on exp(-W) makes the normalization finite; positivity prevents a degenerate normalized measure. No uniform bound on W is needed.",
+          "formula": "e^{-W}\\|a\\|^2\\in L^1(dx).",
+          "lean": "hw via integrable_tilted_iff hI; smul_eq_mul"
+        },
+        {
+          "title": "Invert the weight locally",
+          "text": "The inverse weight exp(W) is continuous. A continuous multiplier preserves local integrability. Multiplying the preceding integrable function locally and cancelling the two exponentials proves the local squared-norm assertion. This step is local: the inverse weight may be unbounded on the whole space.",
+          "formula": "e^W(e^{-W}\\|a\\|^2)=\\|a\\|^2\\in L^1_{\\mathrm{loc}}(dx).",
+          "lean": "hw.locallyIntegrable.continuous_mul; Real.exp_add; hl"
+        },
+        {
+          "title": "Transfer measurability to volume",
+          "text": "Gibbs L2 initially gives strong measurability only almost everywhere for μ. The positive exponential density and finite normalization imply dx is absolutely continuous with respect to μ. Thus any exceptional μ-null set is also volume-null, and the same representative is strongly measurable almost everywhere for volume and its restrictions.",
+          "formula": "dx\\ll\\mu,\\qquad a\\text{ is a.e. strongly measurable for }dx|_K.",
+          "lean": "hm via AEStronglyMeasurable.mono_ac (absolutelyContinuous_tilted hI); hm.restrict"
+        },
+        {
+          "title": "Restrict to an arbitrary compact set",
+          "text": "Local integrability implies integrability on every compact K. Combine this squared-norm integral with the restricted strong measurability and apply the L2 characterization in reverse. The consumer test applies exactly this conclusion to an existing resolvent solution, its gradient, and its forcing, retaining the same weak PDE.",
+          "formula": "\\forall K\\Subset E,\\quad\\int_K\\|a(x)\\|^2\\,dx<\\infty\\quad\\Longrightarrow\\quad a\\in L^2(dx|_K;F).",
+          "lean": "hl.integrableOn_isCompact hK; memLp_two_iff_integrable_sq_norm hm.restrict"
+        }
+      ],
+      "lean_statement": "Exact spaces, representative coercion and compact-set quantifiers are shown in the closed disclosure.",
+      "lean_proof": "Squared norm → remove weight → invert locally → transfer measurability → compact restriction.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "MeasureTheory.memLp_two_iff_integrable_sq_norm",
+        "MeasureTheory.Lp.memLp",
+        "MeasureTheory.integrable_tilted_iff",
+        "MeasureTheory.LocallyIntegrable.continuous_mul",
+        "MeasureTheory.absolutelyContinuous_tilted",
+        "MeasureTheory.AEStronglyMeasurable.mono_ac",
+        "MeasureTheory.LocallyIntegrable.integrableOn_isCompact"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedLocalL2.lp_locallyMemLp_volume",
+      "role": "prerequisite",
+      "supports": [
+        "local-square"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The paper's conditional Gibbs potentials have C2 regularity and curvature bounds.",
+        "lean": "Continuous W and integrable exp(-W) suffice for the elementary local L2 transfer."
+      },
+      {
+        "source": "Weighted Sobolev arguments use integrability and representatives implicitly.",
+        "lean": "Positive finite Gibbs normalization, local squared norm integrability, explicit reverse absolute continuity, and every compact volume restriction."
+      },
+      {
+        "source": "The paper uses real functions and finite-dimensional vector gradients.",
+        "lean": "F is any normed additive commutative group, without scalar structure or completeness."
+      }
+    ]
+  },
+  "reconstruction": {
+  "text": "Let E be any finite-dimensional real inner-product space, equipped with its Borel measurable structure, and let F be any normed additive commutative group. Let W : E → ℝ be continuous, and suppose that x ↦ exp(-W(x)) is integrable with respect to volume on E. Write μ for the tilted volume measure with potential -W, that is, volume weighted by exp(-W) and normalized. For every equivalence class a in L²(μ; F), let f : E → F be the representative selected by the displayed coercions from a. Then x ↦ ‖f(x)‖² is locally integrable with respect to volume on E: at every point it is integrable on some neighborhood. Moreover, for every compact set K ⊆ E, f belongs to MemLp with exponent 2 for volume restricted to K; in particular, f is almost-everywhere strongly measurable for that restricted measure and has finite squared-norm integral there. No global unweighted L² integrability of f is asserted.",
+  "decoder": "/root/anonymous_20260918_01 (source-blind mathematical decoder)",
+  "source_text_visible": false,
+  "decoder_packet_sha256": "7b0ebfb10aa5b8aab8c0ba03f7015e061a572a7e9b22ecc38b46b90bc88ba84b",
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "text_sha256": "28ed475a649c5c8b25afc4e58604a3a71858d8be379309d94a19daf3e9ca8b53",
+  "decoder_run_sha256": "159ff2b4e64ec21857d1294105f5b93d8660539e59e8dc4dd4c76aefc10a7fb7",
+  "lean_statement_sha256": "f48608395951d77ebd3d2b9224a14e15a797e856efd7f063a8e429cc60080569",
+  "run_artifact": "runs/20260918-companion-priority/gibbs-local-l2.decoder-result.json"
+},
+  "semantic_slots": {
+  "objects": {
+    "original": "Finite-dimensional real inner-product space E, canonical volume dx, continuous potential W, normalized Gibbs measure mu, normed additive commutative group F, and selected representative of a in L2(mu;F).",
+    "reconstructed": "The Lean statement has precisely these objects, with mu expressed as volume.tilted (-W) and the representative expressed through the Lp function coercion.",
+    "relation": "equivalent",
+    "evidence": "The displayed declaration, embedded current_lean_module, authored statement, and blind reconstruction agree on the measure, target structure, and representative."
+  },
+  "domains": {
+    "original": "Euclidean finite-dimensional E with Borel structure; arbitrary normed additive commutative F, without completeness or scalar structure; every compact subset K of E.",
+    "reconstructed": "NormedAddCommGroup E, InnerProductSpace real E, FiniteDimensional real E, MeasurableSpace E, BorelSpace E; only NormedAddCommGroup F; arbitrary K subject to IsCompact K.",
+    "relation": "equivalent",
+    "evidence": "There is no positive-dimension, boundary, manifold, completeness-of-F, or real-vector-space-F restriction in the declaration. Dimension zero is included and has nonzero canonical volume."
+  },
+  "quantifiers": {
+    "original": "For every admissible E, F, W and every a in L2(mu;F), local squared-norm integrability holds and the same representative is L2 on every compact restriction.",
+    "reconstructed": "Universal type and structure parameters, universal W under two hypotheses, universal a, followed by a conjunction and forall K, IsCompact K implies MemLp.",
+    "relation": "same",
+    "evidence": "Neither a nor its representative is chosen separately for each K. The declaration uses the same a in both conjuncts and throughout the compact-set quantifier."
+  },
+  "assumptions": {
+    "original": "W is continuous and exp(-W) is volume-integrable. Membership of a in L2(mu;F) is given; volume measurability of its representative is not separately assumed.",
+    "reconstructed": "Continuous W, Integrable exp(-W), and a : Lp F 2 (volume.tilted (-W)); no further regularity or measurability assumption on a.",
+    "relation": "equivalent",
+    "evidence": "Strict positivity of exp(-W), nonzero Euclidean volume, and integrability imply 0 < Z < infinity; this is derived rather than an omitted hypothesis. The embedded proof transfers almost-everywhere strong measurability using volume absolutely continuous with respect to the tilted measure."
+  },
+  "conclusion": {
+    "original": "Squared norm of the selected representative is locally volume-integrable, and the representative is L2 for volume restricted to each compact K, including almost-everywhere strong measurability.",
+    "reconstructed": "LocallyIntegrable (fun x => norm(a x)^2) volume and MemLp (fun x => a x) 2 (volume.restrict K) for every compact K.",
+    "relation": "equivalent",
+    "evidence": "hs and hw establish weighted squared-norm integrability; multiplication locally by continuous exp(W) establishes hl. hm transfers strong measurability and the final L2 characterization combines it with hl.integrableOn_isCompact. All five mathematical reader-proof steps match this proof structure."
+  },
+  "scopes": {
+    "original": "Samplinglib-authored elementary prerequisite motivated by PBPS Appendix C.1, with weighted Sobolev background only; not a quoted paper theorem or a regularity, coercivity, domain-characterization, or paper-completion result.",
+    "reconstructed": "A local integrability theorem only. It proves neither gradient closedness nor conditional Poincare nor H2 regularity, and does not import a compact-manifold theorem.",
+    "relation": "equivalent",
+    "evidence": "The module header and publication attribution explicitly preserve the authored-prerequisite boundary. [PBPS Appendix C.1](https://arxiv.org/html/2609.06905v1#A3.SS1) uses density, gradient closedness, and conditional Poincare; it does not state this generalized arbitrary-F theorem. [Kolesnikov–Milman section 2.5](https://arxiv.org/html/1310.2526v7#S2.SS5) discusses weighted Sobolev spaces and spectral gaps, so background-only attribution is appropriate. The reader-proof sentence about a consumer test is not verified by this bounded no-tests review."
+  },
+  "constant_dependencies": {
+    "original": "No quantitative constant or global unweighted L2 estimate is asserted.",
+    "reconstructed": "The declaration concludes qualitative local and compact integrability without an estimate or named constant.",
+    "relation": "same",
+    "evidence": "The local inverse weight exp(W) can be unbounded globally. Compact local control depends on W and the compact region, but neither source prerequisite nor Lean exports a uniform bound or hidden paper-specific constant."
+  }
+},
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+  "state": "accepted",
+  "reviewer": "/root/local_l2_source_review",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "evidence": "Accepted for the explicitly scoped Samplinglib-authored elementary prerequisite only. Re-read the same packet and verified its embedded packet_sha256 field; recomputed exact-file SHA-256 and confirmed unchanged bytes. I authorize recording the verified embedded value as canonical packet identity under the clarified schema. This does not claim independent recomputation of the canonical serialization digest.",
+  "reviewer_packet_sha256": "e8ab387fe47e7d8cbe241cc2360343ed49f9bb83d1336b6da1533fc20b8a2b95",
+  "exact_file_sha256": "b596f9c310489cb1863668aff6cc06b52e4bd205cec65202f57e595fa254f1d9",
+  "review_run_sha256": "3695f61826e8a7749436f0e0adbddae043ab0e02cd62e88c5ce3fae72429974b"
+},
+  "repairs": []
+}

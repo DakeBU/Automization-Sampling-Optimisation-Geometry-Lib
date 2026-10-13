@@ -1,0 +1,60 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzMoment
+import Mathlib.Tactic
+
+/-!
+# SPHMC phase-state moment from an ordinary Wasserstein bound
+
+This is the metric-neutral part of the first step in the proof of Lemma D.4
+of Chen--Chewi--Lu--Zhang, arXiv:2609.06906v1.  A quadratic Wasserstein bound
+to a reference phase law transfers the position and momentum second moments.
+
+The paper's estimate (D.3) is stated for the twisted `M_kappa` phase metric.
+Lean's default product norm is the max norm, so the theorem below deliberately
+assumes the corresponding ordinary `wassersteinDistance` bound.  It does not
+claim (D.3), the metric comparison, the run-wide uniform estimate, (D.7), or
+the expected query bound (D.8).
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseStateMoment
+
+open MeasureTheory
+open AutoSamplingTheory.TechnicalLemmas.Measure
+open scoped ENNReal NNReal
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+omit [CompleteSpace E] in
+/-- Transfer separate reference position and momentum moments to an incoming
+phase law under an ordinary quadratic Wasserstein bound. -/
+theorem phase_state_second_moment_of_wasserstein
+    (nu reference : Measure (E × E)) (xstar : E) {r Mx Mp : ℝ}
+    (hX : Integrable (fun z : E × E => ‖z.1 - xstar‖ ^ 2) reference)
+    (hP : Integrable (fun z : E × E => ‖z.2‖ ^ 2) reference)
+    (hXbound : (∫ z : E × E, ‖z.1 - xstar‖ ^ 2 ∂reference) ≤ Mx)
+    (hPbound : (∫ z : E × E, ‖z.2‖ ^ 2 ∂reference) ≤ Mp)
+    (hW : WassersteinSpace.wassersteinDistance nu reference ^ 2 ≤
+      ENNReal.ofReal (r ^ 2)) :
+    Integrable (fun z : E × E => ‖z.1 - xstar‖ ^ 2 + ‖z.2‖ ^ 2) nu ∧
+      (∫ z : E × E, ‖z.1 - xstar‖ ^ 2 + ‖z.2‖ ^ 2 ∂nu) ≤
+        2 * (Mx + Mp) + 4 * r ^ 2 := by
+  have hXlip : LipschitzWith 1 (fun z : E × E => z.1 - xstar) := by
+    refine LipschitzWith.of_dist_le_mul ?_
+    intro a b
+    rw [NNReal.coe_one, one_mul, Prod.dist_eq]
+    simpa only [dist_eq_norm, sub_sub_sub_cancel_right] using
+      (le_max_left (dist a.1 b.1) (dist a.2 b.2))
+  have hPlip : LipschitzWith 1 (fun z : E × E => z.2) :=
+    LipschitzWith.prod_snd
+  have hXt := WassersteinLipschitzMoment.of_wassersteinDistance_sq_le hXlip hX hW
+  have hPt := WassersteinLipschitzMoment.of_wassersteinDistance_sq_le hPlip hP hW
+  refine ⟨hXt.1.add hPt.1, ?_⟩
+  rw [integral_add hXt.1 hPt.1]
+  norm_num at hXt hPt
+  linarith
+
+end
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseStateMoment

@@ -1,0 +1,266 @@
+{
+  "id": "ASTIS-RT-20261010-PBPSActualHarmonicFlow",
+  "state": "blind-reconstructed",
+  "source": {
+    "source_id": "companion-domain:pbps-actual-harmonic-flow",
+    "anchor": "PBPS Algorithm1 harmonic arcs, Section3 exact dynamics and AppendixA.1 ODE/weighted-energy formulas; deterministic construction prerequisite for Proposition3.1",
+    "url": "https://arxiv.org/html/2609.06905v1#A1",
+    "original_text": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang, arXiv:2609.06905v1, Algorithm1, Section3 and AppendixA.1. ASTIS completes the deterministic explicit-flow/weighted-energy details; stochastic Proposition3.1 is a separate consumer, not a theorem proved here.\nLet E be a finite-dimensional real inner-product Borel space, including rank zero. Let V:E→ℝ be C² on all E, let α,β≥0 satisfy 0<α≤β and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for all x,v∈E, and assume η>0 and βη≤1. For every y,xRef∈E set c=y−η∇V(xRef), and for t∈ℝ, z=(x,p)∈E×E define Φ_t(z)=(c+cos(t)(x−c)+√η sin(t)p,−sin(t)(x−c)/√η+cos(t)p) and H(z)=(η⁻¹‖x−c‖²+‖p‖²)/2. Then (1) the map (y,xRef,t,z)↦Φ_t(z) is jointly continuous on (E×E)×ℝ×(E×E); (2) it is jointly Borel measurable; (3) Φ_0(z)=z; (4) Φ_{s+t}(z)=Φ_s(Φ_t(z)) for all real s,t; (5) Φ_{−t}(Φ_t(z))=Φ_t(Φ_{−t}(z))=z; (6) writing (X_t,P_t)=Φ_t(z), both time derivatives exist at every real t and satisfy dX_t/dt=√η P_t and dP_t/dt=−(X_t−y)/√η−√η∇V(xRef); (7) H(z)≥0; (8) H(Φ_t(z))=H(z); and (9) Φ_π(z)=(2c−x,−p). These conclusions quantify every displayed parameter and state. The original six source-standing callers persist; the deterministic calculation invokes C² through gradient continuity and η>0, while the two Hessian bounds, positive lower modulus and step cap are retained rather than used in its BODY. No energy positivity, positive dimension, strict endpoint or higher derivative assumption is added. This is the actual deterministic arc ingredient of the cited algorithm, with ASTIS supplying the omitted elementary continuity, group, differentiation and norm-cancellation bridges. It does not construct the stochastic trajectory, prove nonexplosion or identify an invariant/terminal sampling law.\nPBPS Algorithm1 harmonic arcs, Section3 exact dynamics and AppendixA.1 ODE/weighted-energy formulas; deterministic construction prerequisite for Proposition3.1",
+    "text_sha256": "082601cdadcdd2d48f8878adf71214324a6c7b5a2fd2667fac5bdc7e4be138ba"
+  },
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    Continuous (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    Measurable (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, Φ y xRef 0 z = z) ∧\n    (∀ y xRef : E, ∀ s t : ℝ, ∀ z : E × E,\n      Φ y xRef (s + t) z = Φ y xRef s (Φ y xRef t z)) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      Φ y xRef (-t) (Φ y xRef t z) = z ∧\n      Φ y xRef t (Φ y xRef (-t) z) = z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).1)\n        (Real.sqrt η • (Φ y xRef t z).2) t ∧\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).2)\n        (-(Real.sqrt η)⁻¹ • ((Φ y xRef t z).1 - y) -\n          Real.sqrt η • gradient V xRef) t) ∧\n    (∀ y xRef : E, ∀ z : E × E, 0 ≤ H y xRef z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      H y xRef (Φ y xRef t z) = H y xRef z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      Φ y xRef Real.pi z = ((2 : ℝ) • c y xRef - z.1, -z.2))",
+    "statement_sha256": "0c4f96eeb6f609d14ff7ea34e64fd91c1b6611dbd98b829a2a7f6f315e5251fd",
+    "compiled": true,
+    "decoder_context": [
+      "The ambient space is finite dimensional over the reals with its norm and real inner product, and its given measurable structure is Borel. Products have the product topology and measurable structure.",
+      "gradient is the real Hilbert-space gradient obtained from the Frechet derivative through the Riesz isometry. The iterated Frechet derivative evaluated on v twice is the displayed Hessian quadratic form. ContDiff with order2 means twice continuously Frechet differentiable.",
+      "All local c, Phi and H are exactly the displayed let definitions. The product coordinates z.1 and z.2 are independent vector coordinates; the norm terms in H are separate vector norms. HasDerivAt specifies the derivative at each real time."
+    ],
+    "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+    "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean",
+    "formalizer": "root-samplinglib-writer",
+    "compiler_evidence": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-harmonic-flow73/focused-derivative-congruence-repair/receipt.json",
+    "statement_representation": {
+      "kind": "exact-literal-private-Prop-expansion",
+      "actual_header": "theorem actual_harmonic_flow_laws\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    actual_harmonic_flow_statement hα hαβ hV hH hη hβη\n",
+      "private_definition": "private def actual_harmonic_flow_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    Continuous (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    Measurable (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, Φ y xRef 0 z = z) ∧\n    (∀ y xRef : E, ∀ s t : ℝ, ∀ z : E × E,\n      Φ y xRef (s + t) z = Φ y xRef s (Φ y xRef t z)) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      Φ y xRef (-t) (Φ y xRef t z) = z ∧\n      Φ y xRef t (Φ y xRef (-t) z) = z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).1)\n        (Real.sqrt η • (Φ y xRef t z).2) t ∧\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).2)\n        (-(Real.sqrt η)⁻¹ • ((Φ y xRef t z).1 - y) -\n          Real.sqrt η • gradient V xRef) t) ∧\n    (∀ y xRef : E, ∀ z : E × E, 0 ≤ H y xRef z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      H y xRef (Φ y xRef t z) = H y xRef z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      Φ y xRef Real.pi z = ((2 : ℝ) • c y xRef - z.1, -z.2))\n",
+      "expanded_header": "theorem actual_harmonic_flow_laws\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    Continuous (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    Measurable (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, Φ y xRef 0 z = z) ∧\n    (∀ y xRef : E, ∀ s t : ℝ, ∀ z : E × E,\n      Φ y xRef (s + t) z = Φ y xRef s (Φ y xRef t z)) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      Φ y xRef (-t) (Φ y xRef t z) = z ∧\n      Φ y xRef t (Φ y xRef (-t) z) = z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).1)\n        (Real.sqrt η • (Φ y xRef t z).2) t ∧\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).2)\n        (-(Real.sqrt η)⁻¹ • ((Φ y xRef t z).1 - y) -\n          Real.sqrt η • gradient V xRef) t) ∧\n    (∀ y xRef : E, ∀ z : E × E, 0 ≤ H y xRef z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      H y xRef (Φ y xRef t z) = H y xRef z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      Φ y xRef Real.pi z = ((2 : ℝ) • c y xRef - z.1, -z.2))\n",
+      "source_approved_overlay": "runs/20261007-companion-priority/pbps-harmonic-flow-preproof73/root.statement-seal73.json",
+      "kernel_header_and_literal_expansion_checked": true
+    }
+  },
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "627cae79b09fa7c73f90020fcc85081a9ba134ac778d47871f3a10f4a18250ea",
+  "publication_context": {
+    "file": "506c1d57b3c9133db1cfc0515dccbd8759aaec3e1dbf4a128f6a73d3aeb73c8c",
+    "current_lean_module": "import Mathlib.Tactic.Module\nimport Mathlib.Tactic.FieldSimp\nimport Mathlib.Tactic.FunProp\nimport Mathlib.Tactic.LinearCombination\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient\nimport Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv\nimport Mathlib.MeasureTheory.Constructions.BorelSpace.Basic\n\n/-!\nChen--Chewi--Lu--Zhang, arXiv:2609.06905v1, Algorithm 1 and Appendix A.1:\nthe literal deterministic harmonic arcs, their ODE and conserved energy.\nThis deterministic statement asserts no stochastic process or probability kernel.\n-/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow\nopen InnerProductSpace\nopen scoped ContDiff NNReal Topology\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_harmonic_flow_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    Continuous (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    Measurable (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, Φ y xRef 0 z = z) ∧\n    (∀ y xRef : E, ∀ s t : ℝ, ∀ z : E × E,\n      Φ y xRef (s + t) z = Φ y xRef s (Φ y xRef t z)) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      Φ y xRef (-t) (Φ y xRef t z) = z ∧\n      Φ y xRef t (Φ y xRef (-t) z) = z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).1)\n        (Real.sqrt η • (Φ y xRef t z).2) t ∧\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).2)\n        (-(Real.sqrt η)⁻¹ • ((Φ y xRef t z).1 - y) -\n          Real.sqrt η • gradient V xRef) t) ∧\n    (∀ y xRef : E, ∀ z : E × E, 0 ≤ H y xRef z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      H y xRef (Φ y xRef t z) = H y xRef z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      Φ y xRef Real.pi z = ((2 : ℝ) • c y xRef - z.1, -z.2))\n\ntheorem actual_harmonic_flow_laws\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    actual_harmonic_flow_statement hα hαβ hV hH hη hβη := by\n\n  let c : E → E → E := fun y xRef => y - η • gradient V xRef\n  let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n    (c y xRef + Real.cos t • (z.1 - c y xRef) +\n        (Real.sqrt η * Real.sin t) • z.2,\n     (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n  let H : E → E → (E × E) → ℝ := fun y xRef z =>\n    (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n  change\n    Continuous (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    Measurable (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, Φ y xRef 0 z = z) ∧\n    (∀ y xRef : E, ∀ s t : ℝ, ∀ z : E × E,\n      Φ y xRef (s + t) z = Φ y xRef s (Φ y xRef t z)) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      Φ y xRef (-t) (Φ y xRef t z) = z ∧\n      Φ y xRef t (Φ y xRef (-t) z) = z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).1)\n        (Real.sqrt η • (Φ y xRef t z).2) t ∧\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).2)\n        (-(Real.sqrt η)⁻¹ • ((Φ y xRef t z).1 - y) -\n          Real.sqrt η • gradient V xRef) t) ∧\n    (∀ y xRef : E, ∀ z : E × E, 0 ≤ H y xRef z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      H y xRef (Φ y xRef t z) = H y xRef z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      Φ y xRef Real.pi z = ((2 : ℝ) • c y xRef - z.1, -z.2))\n  have hr : 0 < Real.sqrt η := Real.sqrt_pos.2 hη\n  have hr0 : Real.sqrt η ≠ 0 := ne_of_gt hr\n  have hr2 : (Real.sqrt η) ^ 2 = η := Real.sq_sqrt hη.le\n  have hgrad : Continuous (fun x : E => gradient V x) :=\n    AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one\n      (hV.of_le (by norm_num))\n  have hc : Continuous (fun a : E × E => c a.1 a.2) := by\n    dsimp [c]\n    fun_prop\n  have hcont : Continuous (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) := by\n    dsimp [Φ]\n    fun_prop\n  have hzero (y xRef : E) (z : E × E) : Φ y xRef 0 z = z := by\n    apply Prod.ext <;> dsimp [Φ]\n    · simp only [Real.cos_zero, Real.sin_zero, one_smul, mul_zero, zero_smul, add_zero]\n      module\n    · simp\n  have hgroup (y xRef : E) (s t : ℝ) (z : E × E) :\n      Φ y xRef (s + t) z = Φ y xRef s (Φ y xRef t z) := by\n    apply Prod.ext <;> dsimp [Φ]\n    all_goals\n      rw [Real.cos_add, Real.sin_add]\n      match_scalars <;> (try field_simp [hr0]) <;> ring\n  have hinverse (y xRef : E) (t : ℝ) (z : E × E) :\n      Φ y xRef (-t) (Φ y xRef t z) = z ∧\n      Φ y xRef t (Φ y xRef (-t) z) = z := by\n    constructor\n    · rw [← hgroup, neg_add_cancel, hzero]\n    · rw [← hgroup, add_neg_cancel, hzero]\n  have hode (y xRef : E) (t : ℝ) (z : E × E) :\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).1)\n        (Real.sqrt η • (Φ y xRef t z).2) t ∧\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).2)\n        (-(Real.sqrt η)⁻¹ • ((Φ y xRef t z).1 - y) -\n          Real.sqrt η • gradient V xRef) t := by\n    constructor\n    · have hx := ((hasDerivAt_const t (c y xRef)).add\n          ((Real.hasDerivAt_cos t).smul_const (z.1 - c y xRef))).add\n          (((Real.hasDerivAt_sin t).const_mul (Real.sqrt η)).smul_const z.2)\n      apply hx.congr_deriv\n      dsimp [Φ]\n      match_scalars <;> (try field_simp [hr0]) <;> ring\n    · have hp := (((Real.hasDerivAt_sin t).neg.div_const (Real.sqrt η)).smul_const\n          (z.1 - c y xRef)).add ((Real.hasDerivAt_cos t).smul_const z.2)\n      apply hp.congr_deriv\n      dsimp [Φ, c]\n      match_scalars <;> (try field_simp [hr0]) <;> nlinarith only [hr2]\n  have hnonneg (y xRef : E) (z : E × E) : 0 ≤ H y xRef z := by\n    exact div_nonneg (add_nonneg (mul_nonneg (inv_nonneg.2 hη.le) (sq_nonneg _))\n      (sq_nonneg _)) (by norm_num)\n  have henergy (y xRef : E) (t : ℝ) (z : E × E) :\n      H y xRef (Φ y xRef t z) = H y xRef z := by\n    have hcenter : (Φ y xRef t z).1 - c y xRef =\n        Real.cos t • (z.1 - c y xRef) + (Real.sqrt η * Real.sin t) • z.2 := by\n      dsimp [Φ]\n      module\n    dsimp only [H]\n    rw [hcenter]\n    dsimp only [Φ]\n    congr 1\n    rw [norm_add_sq_real, norm_add_sq_real]\n    simp only [norm_smul, Real.norm_eq_abs, mul_pow, sq_abs,\n      real_inner_smul_left, real_inner_smul_right, div_pow, neg_sq]\n    rw [show η⁻¹ = ((Real.sqrt η) ^ 2)⁻¹ by rw [hr2]]\n    field_simp [hr0]\n    linear_combination (‖z.1 - c y xRef‖ ^ 2 + (Real.sqrt η) ^ 2 * ‖z.2‖ ^ 2) *\n      Real.sin_sq_add_cos_sq t\n  have hpi (y xRef : E) (z : E × E) :\n      Φ y xRef Real.pi z = ((2 : ℝ) • c y xRef - z.1, -z.2) := by\n    apply Prod.ext <;> dsimp [Φ]\n    · simp only [Real.cos_pi, Real.sin_pi, mul_zero, zero_smul, add_zero, neg_smul,\n        one_smul]\n      module\n    · simp\n  exact ⟨hcont, hcont.measurable, hzero, hgroup, hinverse, hode, hnonneg, henergy, hpi⟩\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow\n\n#print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A1",
+      "edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+      "anchor": "PBPS Algorithm1 harmonic arcs, Section3 exact dynamics and AppendixA.1 ODE/weighted-energy formulas; deterministic construction prerequisite for Proposition3.1",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang, arXiv:2609.06905v1, Algorithm1, Section3 and AppendixA.1. ASTIS completes the deterministic explicit-flow/weighted-energy details; stochastic Proposition3.1 is a separate consumer, not a theorem proved here."
+    },
+    "statement": "Let E be a finite-dimensional real inner-product Borel space, including rank zero. Let V:E→ℝ be C² on all E, let α,β≥0 satisfy 0<α≤β and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for all x,v∈E, and assume η>0 and βη≤1. For every y,xRef∈E set c=y−η∇V(xRef), and for t∈ℝ, z=(x,p)∈E×E define Φ_t(z)=(c+cos(t)(x−c)+√η sin(t)p,−sin(t)(x−c)/√η+cos(t)p) and H(z)=(η⁻¹‖x−c‖²+‖p‖²)/2. Then (1) the map (y,xRef,t,z)↦Φ_t(z) is jointly continuous on (E×E)×ℝ×(E×E); (2) it is jointly Borel measurable; (3) Φ_0(z)=z; (4) Φ_{s+t}(z)=Φ_s(Φ_t(z)) for all real s,t; (5) Φ_{−t}(Φ_t(z))=Φ_t(Φ_{−t}(z))=z; (6) writing (X_t,P_t)=Φ_t(z), both time derivatives exist at every real t and satisfy dX_t/dt=√η P_t and dP_t/dt=−(X_t−y)/√η−√η∇V(xRef); (7) H(z)≥0; (8) H(Φ_t(z))=H(z); and (9) Φ_π(z)=(2c−x,−p). These conclusions quantify every displayed parameter and state. The original six source-standing callers persist; the deterministic calculation invokes C² through gradient continuity and η>0, while the two Hessian bounds, positive lower modulus and step cap are retained rather than used in its BODY. No energy positivity, positive dimension, strict endpoint or higher derivative assumption is added. This is the actual deterministic arc ingredient of the cited algorithm, with ASTIS supplying the omitted elementary continuity, group, differentiation and norm-cancellation bridges. It does not construct the stochastic trajectory, prove nonexplosion or identify an invariant/terminal sampling law.",
+    "formulae": [
+      {
+        "label": "Actual arc",
+        "tex": "c=y-\\eta\\nabla V(x_{\\rm ref}),\\quad\\Phi_t(x,p)=\\left(c+\\cos t\\,(x-c)+\\sqrt\\eta\\sin t\\,p,\\,-\\frac{\\sin t}{\\sqrt\\eta}(x-c)+\\cos t\\,p\\right)."
+      },
+      {
+        "label": "Group and ODE",
+        "tex": "\\Phi_0=\\mathrm{id},\\quad\\Phi_{s+t}=\\Phi_s\\circ\\Phi_t,\\quad\\Phi_{-t}=\\Phi_t^{-1},\\qquad\\dot X_t=\\sqrt\\eta P_t,\\quad\\dot P_t=-\\frac{X_t-y}{\\sqrt\\eta}-\\sqrt\\eta\\nabla V(x_{\\rm ref})."
+      },
+      {
+        "label": "Energy and half-turn",
+        "tex": "H(x,p)=\\frac{\\eta^{-1}\\|x-c\\|^2+\\|p\\|^2}{2}\\ge0,\\quad H(\\Phi_tz)=H(z),\\qquad\\Phi_\\pi(x,p)=(2c-x,-p)."
+      }
+    ],
+    "assumptions": [
+      "E is a finite-dimensional real inner-product space with its norm and a measurable structure equal to its Borel structure. Rank zero is allowed; the product space uses its usual product structures.",
+      "V:E→ℝ is twice continuously Frechet differentiable on all E. The nonnegative moduli α,β satisfy 0<α and α≤β, and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E.",
+      "The real step η satisfies η>0 and βη≤1. The endpoint αη=1 is allowed. The original six analytic callers are retained; only C² for gradient continuity and η>0 are invoked in this deterministic proof.",
+      "The parameters y,xRef range independently over E, the time variable over all real numbers, and z=(x,p) over E×E. The gradient is the Hilbert gradient of V; c,Φ,H are the exact displayed definitions.",
+      "H is a weighted SUM of the two individual squared vector norms, not the square of a product-space max norm. No nonzero energy, positive dimension, stochastic kernel, supplied flow certificate or higher derivative bound is assumed."
+    ],
+    "obligations": [
+      {
+        "id": "actual-harmonic-flow",
+        "label": "Actual deterministic harmonic laws with internal omitted bridges"
+      },
+      {
+        "id": "stochastic-and-paper",
+        "label": "Stochastic construction and full sampling/cost/composition"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "title": "Actual PBPS harmonic flow and conserved weighted energy",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A1",
+          "label": "PBPS Algorithm1 harmonic arcs, Section3 exact dynamics and AppendixA.1 ODE/weighted-energy formulas; deterministic construction prerequisite for Proposition3.1",
+          "scope": "Only the actual deterministic harmonic segment and its nine stated laws are focused-compiled. The measurable stochastic bounce/rate/clock recursion, nonexplosion, actual half-turn H_y and terminal Markov kernel, reversal, invariance, same-J lift, actual K/r_rho/B27/B28, full PBPS/SPHMC main results, implementation errors/caps, expected-query costs and actual-input composition remain open. Independent review, serialized integration, full Exposition Seal, PURIFIED, main/live and whole-Goal completion are separate admissions."
+        }
+      ],
+      "tests": [
+        "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space with its norm and a measurable structure equal to its Borel structure. Rank zero is allowed; the product space uses its usual product structures.",
+        "V:E→ℝ is twice continuously Frechet differentiable on all E. The nonnegative moduli α,β satisfy 0<α and α≤β, and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E.",
+        "The real step η satisfies η>0 and βη≤1. The endpoint αη=1 is allowed. The original six analytic callers are retained; only C² for gradient continuity and η>0 are invoked in this deterministic proof.",
+        "The parameters y,xRef range independently over E, the time variable over all real numbers, and z=(x,p) over E×E. The gradient is the Hilbert gradient of V; c,Φ,H are the exact displayed definitions.",
+        "H is a weighted SUM of the two individual squared vector norms, not the square of a product-space max norm. No nonzero energy, positive dimension, stochastic kernel, supplied flow certificate or higher derivative bound is assumed."
+      ],
+      "statement": "Let E be a finite-dimensional real inner-product Borel space, including rank zero. Let V:E→ℝ be C² on all E, let α,β≥0 satisfy 0<α≤β and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for all x,v∈E, and assume η>0 and βη≤1. For every y,xRef∈E set c=y−η∇V(xRef), and for t∈ℝ, z=(x,p)∈E×E define Φ_t(z)=(c+cos(t)(x−c)+√η sin(t)p,−sin(t)(x−c)/√η+cos(t)p) and H(z)=(η⁻¹‖x−c‖²+‖p‖²)/2. Then (1) the map (y,xRef,t,z)↦Φ_t(z) is jointly continuous on (E×E)×ℝ×(E×E); (2) it is jointly Borel measurable; (3) Φ_0(z)=z; (4) Φ_{s+t}(z)=Φ_s(Φ_t(z)) for all real s,t; (5) Φ_{−t}(Φ_t(z))=Φ_t(Φ_{−t}(z))=z; (6) writing (X_t,P_t)=Φ_t(z), both time derivatives exist at every real t and satisfy dX_t/dt=√η P_t and dP_t/dt=−(X_t−y)/√η−√η∇V(xRef); (7) H(z)≥0; (8) H(Φ_t(z))=H(z); and (9) Φ_π(z)=(2c−x,−p). These conclusions quantify every displayed parameter and state. The original six source-standing callers persist; the deterministic calculation invokes C² through gradient continuity and η>0, while the two Hessian bounds, positive lower modulus and step cap are retained rather than used in its BODY. No energy positivity, positive dimension, strict endpoint or higher derivative assumption is added. This is the actual deterministic arc ingredient of the cited algorithm, with ASTIS supplying the omitted elementary continuity, group, differentiation and norm-cancellation bridges. It does not construct the stochastic trajectory, prove nonexplosion or identify an invariant/terminal sampling law.",
+      "formula": "c=y-\\eta\\nabla V(x_{\\rm ref}),\\quad\\Phi_t(x,p)=\\left(c+\\cos t\\,(x-c)+\\sqrt\\eta\\sin t\\,p,\\,-\\frac{\\sin t}{\\sqrt\\eta}(x-c)+\\cos t\\,p\\right).\\quad H(x,p)=\\frac{\\eta^{-1}\\|x-c\\|^2+\\|p\\|^2}{2}\\ge0,\\quad H(\\Phi_tz)=H(z),\\qquad\\Phi_\\pi(x,p)=(2c-x,-p).",
+      "steps": [
+        {
+          "title": "Establish the scale and joint continuity",
+          "text": "Since η>0, r=√η is positive, nonzero and r²=η. The canonical ASTIS gradient-continuity theorem applies to V∈C² after lowering its differentiability order to one. Hence c depends continuously on (y,xRef), and the displayed trigonometric and scalar operations make Φ jointly continuous in all four inputs. Joint Borel measurability follows for the actual product Borel spaces; it is used when reassembling the conclusions.",
+          "formula": "r=\\sqrt\\eta>0,\\quad r^2=\\eta,\\quad c(y,x_{\\rm ref})=y-\\eta\\nabla V(x_{\\rm ref})\\ \\text{is continuous}.",
+          "lean": "  have hr : 0 < Real.sqrt η := Real.sqrt_pos.2 hη\n  have hr0 : Real.sqrt η ≠ 0 := ne_of_gt hr\n  have hr2 : (Real.sqrt η) ^ 2 = η := Real.sq_sqrt hη.le\n  have hgrad : Continuous (fun x : E => gradient V x) :=\n    AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one\n      (hV.of_le (by norm_num))\n  have hc : Continuous (fun a : E × E => c a.1 a.2) := by\n    dsimp [c]\n    fun_prop\n  have hcont : Continuous (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) := by\n    dsimp [Φ]\n    fun_prop\n",
+          "detail": "Exact compiled contiguous proof BODY; local literal c,Φ,H and preceding facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean",
+            "source_raw_sha256": "506c1d57b3c9133db1cfc0515dccbd8759aaec3e1dbf4a128f6a73d3aeb73c8c",
+            "start_line": 98,
+            "end_line": 110,
+            "exact_code_raw_sha256": "e6d20ee63469a72e4d126dd2453151750cb903db599d9697e308e53a55d4d1e2"
+          }
+        },
+        {
+          "title": "Verify identity, group composition and inverse",
+          "text": "At time zero the sine vanishes and cosine is one. Expanding Φ_s(Φ_tz), the cosine and sine addition formulas identify both coordinates with Φ_{s+t}z; division is legitimate because √η≠0. Taking s=−t or t=−s yields both inverse identities. All times are real, with no domain restriction.",
+          "formula": "\\cos(s+t)=\\cos s\\cos t-\\sin s\\sin t,\\quad\\sin(s+t)=\\sin s\\cos t+\\cos s\\sin t,\\quad\\Phi_{-t}\\Phi_t=\\Phi_t\\Phi_{-t}=\\mathrm{id}.",
+          "lean": "  have hzero (y xRef : E) (z : E × E) : Φ y xRef 0 z = z := by\n    apply Prod.ext <;> dsimp [Φ]\n    · simp only [Real.cos_zero, Real.sin_zero, one_smul, mul_zero, zero_smul, add_zero]\n      module\n    · simp\n  have hgroup (y xRef : E) (s t : ℝ) (z : E × E) :\n      Φ y xRef (s + t) z = Φ y xRef s (Φ y xRef t z) := by\n    apply Prod.ext <;> dsimp [Φ]\n    all_goals\n      rw [Real.cos_add, Real.sin_add]\n      match_scalars <;> (try field_simp [hr0]) <;> ring\n  have hinverse (y xRef : E) (t : ℝ) (z : E × E) :\n      Φ y xRef (-t) (Φ y xRef t z) = z ∧\n      Φ y xRef t (Φ y xRef (-t) z) = z := by\n    constructor\n    · rw [← hgroup, neg_add_cancel, hzero]\n    · rw [← hgroup, add_neg_cancel, hzero]\n",
+          "detail": "Exact compiled contiguous proof BODY; local literal c,Φ,H and preceding facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean",
+            "source_raw_sha256": "506c1d57b3c9133db1cfc0515dccbd8759aaec3e1dbf4a128f6a73d3aeb73c8c",
+            "start_line": 111,
+            "end_line": 127,
+            "exact_code_raw_sha256": "560e4e73027a7639ee6f70d3fa9f35d5a24cff1d2b3c6b5350f55e8a7f324842"
+          }
+        },
+        {
+          "title": "Differentiate the two actual coordinates",
+          "text": "Differentiate the sine and cosine expressions while fixing y,xRef and the initial state. The position derivative is −sin(t)(x−c)+r cos(t)p=rP_t. For momentum, −cos(t)(x−c)/r−sin(t)p equals −(X_t−y)/r−r∇V(xRef), using c=y−η∇V(xRef) and r²=η. HasDerivAt.congr_deriv changes only the vector derivative expression; it supplies no ODE hypothesis.",
+          "formula": "\\dot X_t=-\\sin t\\,(x-c)+r\\cos t\\,p=rP_t,\\quad\\dot P_t=-\\frac{\\cos t}{r}(x-c)-\\sin t\\,p=-\\frac{X_t-y}{r}-r\\nabla V(x_{\\rm ref}).",
+          "lean": "  have hode (y xRef : E) (t : ℝ) (z : E × E) :\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).1)\n        (Real.sqrt η • (Φ y xRef t z).2) t ∧\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).2)\n        (-(Real.sqrt η)⁻¹ • ((Φ y xRef t z).1 - y) -\n          Real.sqrt η • gradient V xRef) t := by\n    constructor\n    · have hx := ((hasDerivAt_const t (c y xRef)).add\n          ((Real.hasDerivAt_cos t).smul_const (z.1 - c y xRef))).add\n          (((Real.hasDerivAt_sin t).const_mul (Real.sqrt η)).smul_const z.2)\n      apply hx.congr_deriv\n      dsimp [Φ]\n      match_scalars <;> (try field_simp [hr0]) <;> ring\n    · have hp := (((Real.hasDerivAt_sin t).neg.div_const (Real.sqrt η)).smul_const\n          (z.1 - c y xRef)).add ((Real.hasDerivAt_cos t).smul_const z.2)\n      apply hp.congr_deriv\n      dsimp [Φ, c]\n      match_scalars <;> (try field_simp [hr0]) <;> nlinarith only [hr2]\n",
+          "detail": "Exact compiled contiguous proof BODY; local literal c,Φ,H and preceding facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean",
+            "source_raw_sha256": "506c1d57b3c9133db1cfc0515dccbd8759aaec3e1dbf4a128f6a73d3aeb73c8c",
+            "start_line": 128,
+            "end_line": 145,
+            "exact_code_raw_sha256": "cdb85b6b46266e04a6997f106714dc8602b610d0c384f7aa3e8e8b78d96363b7"
+          }
+        },
+        {
+          "title": "Keep the weighted energy nonnegative",
+          "text": "Both squared norms are nonnegative. Since η>0, its inverse is nonnegative, and dividing their weighted sum by two preserves nonnegativity. Zero initial energy is included.",
+          "formula": "H(z)=\\tfrac12(\\eta^{-1}\\|x-c\\|^2+\\|p\\|^2)\\ge0.",
+          "lean": "  have hnonneg (y xRef : E) (z : E × E) : 0 ≤ H y xRef z := by\n    exact div_nonneg (add_nonneg (mul_nonneg (inv_nonneg.2 hη.le) (sq_nonneg _))\n      (sq_nonneg _)) (by norm_num)\n",
+          "detail": "Exact compiled contiguous proof BODY; local literal c,Φ,H and preceding facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean",
+            "source_raw_sha256": "506c1d57b3c9133db1cfc0515dccbd8759aaec3e1dbf4a128f6a73d3aeb73c8c",
+            "start_line": 146,
+            "end_line": 148,
+            "exact_code_raw_sha256": "100a2c56cb537a18785fd95e8ba7d155469c9317fc5c594bd64ab6d4e6df2692"
+          }
+        },
+        {
+          "title": "Cancel the mixed terms in the conserved energy",
+          "text": "Put q=x−c, C=cos t and S=sin t. Translate the first coordinate back by c and expand each individual squared norm. The mixed terms are +2CS⟨q,p⟩/r and −2CS⟨q,p⟩/r, which cancel. The remaining sum is (C²+S²)(r⁻²‖q‖²+‖p‖²). Using C²+S²=1 and r²=η gives H(Φ_tz)=H(z), with the exact factor one half retained.",
+          "formula": "r^{-2}\\|Cq+rSp\\|^2+\\|-S q/r+Cp\\|^2=(C^2+S^2)(r^{-2}\\|q\\|^2+\\|p\\|^2)=r^{-2}\\|q\\|^2+\\|p\\|^2.",
+          "lean": "  have henergy (y xRef : E) (t : ℝ) (z : E × E) :\n      H y xRef (Φ y xRef t z) = H y xRef z := by\n    have hcenter : (Φ y xRef t z).1 - c y xRef =\n        Real.cos t • (z.1 - c y xRef) + (Real.sqrt η * Real.sin t) • z.2 := by\n      dsimp [Φ]\n      module\n    dsimp only [H]\n    rw [hcenter]\n    dsimp only [Φ]\n    congr 1\n    rw [norm_add_sq_real, norm_add_sq_real]\n    simp only [norm_smul, Real.norm_eq_abs, mul_pow, sq_abs,\n      real_inner_smul_left, real_inner_smul_right, div_pow, neg_sq]\n    rw [show η⁻¹ = ((Real.sqrt η) ^ 2)⁻¹ by rw [hr2]]\n    field_simp [hr0]\n    linear_combination (‖z.1 - c y xRef‖ ^ 2 + (Real.sqrt η) ^ 2 * ‖z.2‖ ^ 2) *\n      Real.sin_sq_add_cos_sq t\n",
+          "detail": "Exact compiled contiguous proof BODY; local literal c,Φ,H and preceding facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean",
+            "source_raw_sha256": "506c1d57b3c9133db1cfc0515dccbd8759aaec3e1dbf4a128f6a73d3aeb73c8c",
+            "start_line": 149,
+            "end_line": 165,
+            "exact_code_raw_sha256": "e74557e0bc6b9c3e8e425207238b012ea41f7f992759f9afd63f9c3a6082800f"
+          }
+        },
+        {
+          "title": "Evaluate the half-turn and collect the nine laws",
+          "text": "At t=π, sin π=0 and cos π=−1, so X_π=c−(x−c)=2c−x and P_π=−p. Collect the continuity/Borel, initial, group, two inverse, ODE, nonnegative-energy, conservation and half-turn conclusions. This endpoint belongs to a deterministic arc only; stochastic bounces may change the eventual terminal law.",
+          "formula": "\\Phi_\\pi(x,p)=(c-(x-c),-p)=(2c-x,-p).",
+          "lean": "  have hpi (y xRef : E) (z : E × E) :\n      Φ y xRef Real.pi z = ((2 : ℝ) • c y xRef - z.1, -z.2) := by\n    apply Prod.ext <;> dsimp [Φ]\n    · simp only [Real.cos_pi, Real.sin_pi, mul_zero, zero_smul, add_zero, neg_smul,\n        one_smul]\n      module\n    · simp\n  exact ⟨hcont, hcont.measurable, hzero, hgroup, hinverse, hode, hnonneg, henergy, hpi⟩\n",
+          "detail": "Exact compiled contiguous proof BODY; local literal c,Φ,H and preceding facts remain in scope.",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean",
+            "source_raw_sha256": "506c1d57b3c9133db1cfc0515dccbd8759aaec3e1dbf4a128f6a73d3aeb73c8c",
+            "start_line": 166,
+            "end_line": 173,
+            "exact_code_raw_sha256": "fe980b8cfbf887765c66906d59f840865dcc066a77433401eb8c6ed082bd01d6"
+          }
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real inner-product Borel space, including rank zero. Let V:E→ℝ be C² on all E, let α,β≥0 satisfy 0<α≤β and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for all x,v∈E, and assume η>0 and βη≤1. For every y,xRef∈E set c=y−η∇V(xRef), and for t∈ℝ, z=(x,p)∈E×E define Φ_t(z)=(c+cos(t)(x−c)+√η sin(t)p,−sin(t)(x−c)/√η+cos(t)p) and H(z)=(η⁻¹‖x−c‖²+‖p‖²)/2. Then (1) the map (y,xRef,t,z)↦Φ_t(z) is jointly continuous on (E×E)×ℝ×(E×E); (2) it is jointly Borel measurable; (3) Φ_0(z)=z; (4) Φ_{s+t}(z)=Φ_s(Φ_t(z)) for all real s,t; (5) Φ_{−t}(Φ_t(z))=Φ_t(Φ_{−t}(z))=z; (6) writing (X_t,P_t)=Φ_t(z), both time derivatives exist at every real t and satisfy dX_t/dt=√η P_t and dP_t/dt=−(X_t−y)/√η−√η∇V(xRef); (7) H(z)≥0; (8) H(Φ_t(z))=H(z); and (9) Φ_π(z)=(2c−x,−p). These conclusions quantify every displayed parameter and state. The original six source-standing callers persist; the deterministic calculation invokes C² through gradient continuity and η>0, while the two Hessian bounds, positive lower modulus and step cap are retained rather than used in its BODY. No energy positivity, positive dimension, strict endpoint or higher derivative assumption is added. This is the actual deterministic arc ingredient of the cited algorithm, with ASTIS supplying the omitted elementary continuity, group, differentiation and norm-cancellation bridges. It does not construct the stochastic trajectory, prove nonexplosion or identify an invariant/terminal sampling law.",
+      "lean_proof": "Establish the scale and joint continuity; Verify identity, group composition and inverse; Differentiate the two actual coordinates; Keep the weighted energy nonnegative; Cancel the mixed terms in the conserved energy; Evaluate the half-turn and collect the nine laws",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_statement"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one"
+      ],
+      "mathlib_dependencies": [
+        "Real.sqrt_pos",
+        "Real.sq_sqrt",
+        "Real.cos_add",
+        "Real.sin_add",
+        "Real.hasDerivAt_cos",
+        "Real.hasDerivAt_sin",
+        "HasDerivAt.smul_const",
+        "HasDerivAt.congr_deriv",
+        "norm_add_sq_real",
+        "norm_smul",
+        "real_inner_smul_left",
+        "real_inner_smul_right",
+        "Real.sin_sq_add_cos_sq",
+        "Continuous.measurable",
+        "Real.sin_pi",
+        "Real.cos_pi"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "role": "proof-edge",
+      "supports": [
+        "actual-harmonic-flow"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Finite-dimensional Euclidean state with source C² potential, 0<α≤β, both global Hessian bounds, η>0 and βη≤1.",
+        "lean": "E is a finite-dimensional real inner-product space with its norm and a measurable structure equal to its Borel structure. Rank zero is allowed; the product space uses its usual product structures. V:E→ℝ is twice continuously Frechet differentiable on all E. The nonnegative moduli α,β satisfy 0<α and α≤β, and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v∈E. The real step η satisfies η>0 and βη≤1. The endpoint αη=1 is allowed. The original six analytic callers are retained; only C² for gradient continuity and η>0 are invoked in this deterministic proof."
+      },
+      {
+        "source": "Printed deterministic harmonic arc and preserved weighted energy; elementary continuity/group/differentiation details are implicit.",
+        "lean": "Let E be a finite-dimensional real inner-product Borel space, including rank zero. Let V:E→ℝ be C² on all E, let α,β≥0 satisfy 0<α≤β and α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for all x,v∈E, and assume η>0 and βη≤1. For every y,xRef∈E set c=y−η∇V(xRef), and for t∈ℝ, z=(x,p)∈E×E define Φ_t(z)=(c+cos(t)(x−c)+√η sin(t)p,−sin(t)(x−c)/√η+cos(t)p) and H(z)=(η⁻¹‖x−c‖²+‖p‖²)/2. Then (1) the map (y,xRef,t,z)↦Φ_t(z) is jointly continuous on (E×E)×ℝ×(E×E); (2) it is jointly Borel measurable; (3) Φ_0(z)=z; (4) Φ_{s+t}(z)=Φ_s(Φ_t(z)) for all real s,t; (5) Φ_{−t}(Φ_t(z))=Φ_t(Φ_{−t}(z))=z; (6) writing (X_t,P_t)=Φ_t(z), both time derivatives exist at every real t and satisfy dX_t/dt=√η P_t and dP_t/dt=−(X_t−y)/√η−√η∇V(xRef); (7) H(z)≥0; (8) H(Φ_t(z))=H(z); and (9) Φ_π(z)=(2c−x,−p). These conclusions quantify every displayed parameter and state. The original six source-standing callers persist; the deterministic calculation invokes C² through gradient continuity and η>0, while the two Hessian bounds, positive lower modulus and step cap are retained rather than used in its BODY. No energy positivity, positive dimension, strict endpoint or higher derivative assumption is added. This is the actual deterministic arc ingredient of the cited algorithm, with ASTIS supplying the omitted elementary continuity, group, differentiation and norm-cancellation bridges. It does not construct the stochastic trajectory, prove nonexplosion or identify an invariant/terminal sampling law."
+      },
+      {
+        "source": "Stochastic trajectory/nonexplosion/invariance/actual terminal kernel and sampling complexity.",
+        "lean": "Only the actual deterministic harmonic segment and its nine stated laws are focused-compiled. The measurable stochastic bounce/rate/clock recursion, nonexplosion, actual half-turn H_y and terminal Markov kernel, reversal, invariance, same-J lift, actual K/r_rho/B27/B28, full PBPS/SPHMC main results, implementation errors/caps, expected-query costs and actual-input composition remain open. Independent review, serialized integration, full Exposition Seal, PURIFIED, main/live and whole-Goal completion are separate admissions."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "# Anonymous reconstruction of the visible statement\n\nLet E be a finite-dimensional real inner-product space, with its compatible norm, its norm topology, and a measurable structure equal to the Borel measurable structure. The zero-dimensional space is allowed. Let V : E -> R and let alpha, beta be nonnegative real scalars. Write alpha and beta also for their real coercions. Let eta be real. Assume:\n\n1. 0 < alpha and alpha <= beta.\n2. V is twice continuously Frechet differentiable over R.\n3. For every x, v in E, alpha ||v||^2 <= D(DV)(x)[v](v) <= beta ||v||^2. Here DV(x) is a continuous real linear functional and D(DV)(x)[v] is such a functional, then evaluated at v. Both inequalities hold for all vectors, including v = 0, with the same global alpha and beta.\n4. 0 < eta and beta eta <= 1. Equality in the last inequality is permitted.\n\nThe gradient grad V(x) is the real Hilbert-space gradient representing DV(x) under the Riesz isometry. Scalar multiplication below is real scalar multiplication on E. Every displayed norm is the given norm of an individual E-vector. No norm of an ordered pair occurs in the definitions or conclusions.\n\nFor y, xRef in E, t in R, and z = (q,p) in E x E, define, exactly:\n\n    c(y,xRef) = y - eta grad V(xRef),\n\n    Phi(y,xRef,t,(q,p)) =\n      ( c(y,xRef) + cos(t)(q-c(y,xRef)) + sqrt(eta) sin(t) p,\n        (-sin(t)/sqrt(eta))(q-c(y,xRef)) + cos(t) p ),\n\n    H(y,xRef,(q,p)) = (eta^(-1) ||q-c(y,xRef)||^2 + ||p||^2)/2.\n\nThus c : E -> E -> E, Phi : E -> E -> R -> (E x E) -> (E x E), and H : E -> E -> (E x E) -> R. These are the local definitions whose conclusions are conjoined in the statement. They introduce no further hypotheses or existential choices. The two vector coordinates q and p are independently quantified. The parameters y and xRef, and therefore grad V(xRef) and c(y,xRef), are held fixed when time is composed or differentiated.\n\nThe square root is the nonnegative real square root. Because eta > 0, sqrt(eta) > 0, eta^(-1) = 1/eta, and (sqrt(eta))^(-1) = 1/sqrt(eta). The coefficient -sin(t)/sqrt(eta) is a negative real quotient. In the derivative below, -(sqrt(eta))^(-1) means the negative of the reciprocal of sqrt(eta). Time and both composition times range over all real numbers, including zero and negative times; they are not restricted to a nonnegative interval.\n\nAll nine following conclusions hold simultaneously.\n\n1. **Joint continuity.** The map F : (E x E) x (R x (E x E)) -> E x E given by F((y,xRef),(t,z)) = Phi(y,xRef,t,z) is continuous for the product topologies.\n\n2. **Joint measurability.** The same F is measurable for the product measurable structures and the product measurable structure on E x E. The given measurable structure on E is Borel. This is measurability of a deterministic map, with no probability measure supplied.\n\n3. **Identity at zero time.** For every y, xRef in E and every z in E x E, Phi(y,xRef,0,z) = z.\n\n4. **Composition law.** For every y, xRef in E, s,t in R, and z in E x E,\n\n       Phi(y,xRef,s+t,z) = Phi(y,xRef,s,Phi(y,xRef,t,z)).\n\n   Both maps on the right have the same y and xRef, and the outer map is at time s.\n\n5. **Both inverse identities.** For every y, xRef in E, t in R, and z in E x E,\n\n       Phi(y,xRef,-t,Phi(y,xRef,t,z)) = z,\n       Phi(y,xRef,t,Phi(y,xRef,-t,z)) = z.\n\n6. **The two time derivatives.** Fix any y, xRef in E and z in E x E. Put q_t = (Phi(y,xRef,t,z)).1 and p_t = (Phi(y,xRef,t,z)).2. At every t in R, the E-valued functions of real time have derivatives in the norm sense specified by HasDerivAt:\n\n       (d/ds at s=t) (Phi(y,xRef,s,z)).1 = sqrt(eta) p_t,\n       (d/ds at s=t) (Phi(y,xRef,s,z)).2\n         = -(sqrt(eta))^(-1) (q_t-y) - sqrt(eta) grad V(xRef).\n\n   Both derivative assertions hold at the same arbitrary t. The first coordinate derivative is scaled by sqrt(eta), not by 1. The gradient in the second derivative is evaluated at the fixed xRef. The reciprocal coefficient acts on q_t-y, with the separate displayed gradient term.\n\n7. **Nonnegativity.** For every y, xRef in E and z in E x E, 0 <= H(y,xRef,z).\n\n8. **Conservation.** For every y, xRef in E, t in R, and z in E x E,\n\n       H(y,xRef,Phi(y,xRef,t,z)) = H(y,xRef,z).\n\n9. **Time-pi identity.** For every y, xRef in E and z=(q,p) in E x E,\n\n       Phi(y,xRef,pi,z) = (2 c(y,xRef)-q,-p).\n\n   Here pi is the usual real pi, 2 c denotes real scalar multiplication, and -p is additive negation in E.\n\nThe ambient structure, V, alpha, beta and eta are outer parameters, subject to the assumptions above. Each universal quantifier inside a numbered conclusion is local to that conclusion. There is no restriction on y or xRef, no relation required between them, and no restriction on either component of z. No positive-dimensional or nonzero-coordinate condition is assumed. The only strict scalar positivity assumptions are alpha > 0 and eta > 0; beta > 0 follows from alpha <= beta. All formulas depend on the given V through grad V(xRef), and on eta; alpha and beta enter as global hypothesis constants and do not occur in c, Phi or H. No additional constants are existentially asserted. The conclusions specify no stochastic process, distributional preservation, sampling statement, numerical discretization error, or quantitative convergence rate.\n",
+    "text_sha256": "54e81501e842a70e8aaccbdec25e2c66442b815ee4468fa22bb7c19d08d0bd52",
+    "decoder": "/root/anonymous_decoder73",
+    "decoder_run_sha256": "14a2f94fc0a24d4011e23362b9bbe052ba8c4ed77fe47628728281756e61d273",
+    "decoder_packet_sha256": "7d1601aa496e3c7bbc056bf408a7180a9135cbe64302ff5a383775e7de98291a",
+    "source_text_visible": false,
+    "lean_statement_sha256": "0c4f96eeb6f609d14ff7ea34e64fd91c1b6611dbd98b829a2a7f6f315e5251fd",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "observed_input_artifacts": [
+      {
+        "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-harmonic-flow73/anonymous-decoder/parent-packet.json",
+        "RAW_bytes": 4059,
+        "RAW_sha256": "1c6b56b58d5eab322c151a9851b6e337f4e92c11db4a59e216c66d16dae7b609",
+        "LF_sha256": "1c6b56b58d5eab322c151a9851b6e337f4e92c11db4a59e216c66d16dae7b609"
+      }
+    ],
+    "run_artifact": "runs/20261007-companion-priority/pbps-actual-harmonic-flow73/anonymous-decoder/decoded.root-adapter.json",
+    "run_binding": "runs/20261007-companion-priority/pbps-actual-harmonic-flow73/anonymous-decoder/CLOSED_LAST.json",
+    "native_named_payload_sha256": "42be74679b2d1a422a800e89ac5845c6b56abb155d206fb10c891eecaa3a1305",
+    "unresolved_semantics": [],
+    "run_hash_recipe": "astis-decoder-logical-run-v1: recursively sort object keys by ordinal ascending order, preserve array order, serialize compact JSON using PowerShell 7.6.5 ConvertTo-Json default string escaping and invariant integer formatting, then SHA256 the UTF-8 bytes without BOM or trailing newline. Hash logical_run_payload exactly. Its complete reconstruction object excludes only the decoder_run_sha256 field to avoid self-reference. The payload pins sole packet RAW/LF hashes, statement hash, all seven semantic slots and complete reconstructed theorem text, output paths and markdown hash, actual observed reader and writer identities/PIDs, and the closure/no-further-writes rule. run.json stores both that payload and its exact canonical preimage string. File byte hashes are separately sealed by CLOSED_LAST.json; neither run.json nor CLOSED_LAST.json is recursively hashed into its own preimage."
+  }
+}

@@ -1,0 +1,104 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange
+import AutoSamplingTheory.ExampleCases.ProximalBPS.L2MacroscopicMean
+import Tests.GaussianMarginalPoincare
+
+open MeasureTheory ProbabilityTheory
+open scoped ContDiff NNReal Topology
+namespace Tests.ProximalBPSMacroscopicRange
+open AutoSamplingTheory.ExampleCases.ProximalBPS
+noncomputable section
+set_option autoImplicit false
+set_option maxHeartbeats 1600000
+
+-- Real paper consumer: all true centered macro inputs, not only a supplied image.
+theorem actual_centered_macro_contraction_and_defect_gap
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := (μ.prod (stdGaussian E)).map
+      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)
+    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))
+        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le
+    ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,
+      (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧
+      Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧
+      let A := P * U.toContinuousLinearMap * P
+      let B := (1-P) * U.toContinuousLinearMap * P
+      ∀ f : Lp ℝ 2 J, f ∈ P.toLinearMap.range → (∫ p, f p ∂J)=0 →
+        ‖A f‖ ≤ ((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖f‖ ∧
+        (4*(α : ℝ)*η/(1+(α : ℝ)*η)^2)*‖f‖^2 ≤ ‖B f‖^2 := by
+  classical
+  dsimp only
+  let μ := (volume : Measure E).tilted (fun x => -V x)
+  let J := (μ.prod (stdGaussian E)).map
+    (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+  let ν := J.snd
+  let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩
+  let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp
+  let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=
+    (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))
+      2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le
+  obtain ⟨hμ,hJ,hν,S,hS,hSd,hSc,hSf,hSs,U,hU,hUi,hUs,M55,hM55,T55,hAll⟩ :=
+    L2MacroscopicMean.actual_macroscopic_l2_mean hα hαβ hV hH hη hβη
+  letI : IsProbabilityMeasure J := hJ
+  letI : IsProbabilityMeasure ν := hν
+  have hSameM : M55=M := LinearIsometry.ext (fun u =>
+    Lp.ext ((hM55 u).trans (Lp.coeFn_compMeasurePreserving u hp).symm))
+  subst M55
+  obtain ⟨_,_,hRange,hMean,hCentered⟩ :=
+    MacroscopicRange.actual_macroscopic_centered_range hα hαβ hV hH hη hβη
+  obtain ⟨G,hClose,hClosed,T57,K,h57⟩ :=
+    Tests.GaussianMarginalPoincare.actual_same_mean_centered_contraction hα hαβ hV hH hη hβη
+  have hSameT (u : Lp ℝ 2 ν) : T55 u=T57 u := by
+    rcases hAll u with ⟨_,_,_,hTa,_,_,_,_⟩
+    rcases h57 u with ⟨_,hTb,_,_⟩
+    apply Lp.ext
+    exact hTa.trans ((Filter.Eventually.of_forall (fun y => by rw [hSd y])).trans hTb.symm)
+  refine ⟨U,hU,hUi,hUs,?_⟩
+  intro f hf hf0
+  have hfimage : f ∈ M '' {u : Lp ℝ 2 ν | (∫ y, u y ∂ν)=0} := by
+    rw [hCentered]
+    exact ⟨hf,hf0⟩
+  obtain ⟨u,hu,huf⟩ := hfimage
+  subst f
+  rcases hAll u with ⟨hPM,hMT,hTn,hTa,hFiber,hIv,hVar,hDef⟩
+  rcases h57 u with ⟨hGraph,hT57,hMean57,hCn⟩
+  have hCon : ‖T55 u‖ ≤ ((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖u‖ := by
+    rw [hSameT u]
+    exact (hCn hu).2
+  constructor
+  · calc
+      ‖(P * U.toContinuousLinearMap * P) (M u)‖ = ‖M (T55 u)‖ :=
+        congrArg norm hMT.symm
+      _ = ‖T55 u‖ := M.norm_map _
+      _ ≤ ((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖u‖ := hCon
+      _ = ((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖M u‖ := by rw [M.norm_map]
+  · have ha0 : 0 ≤ (α : ℝ)*η := mul_nonneg hα.le hη.le
+    have ha1 : (α : ℝ)*η ≤ 1 :=
+      (mul_le_mul_of_nonneg_right (by exact_mod_cast hαβ) hη.le).trans hβη
+    have hd : 0 < 1+(α : ℝ)*η := by positivity
+    have hρ : 0 ≤ (1-(α : ℝ)*η)/(1+(α : ℝ)*η) :=
+      div_nonneg (sub_nonneg.mpr ha1) hd.le
+    have hs : ‖T55 u‖^2 ≤ (((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖u‖)^2 :=
+      (sq_le_sq₀ (norm_nonneg _) (mul_nonneg hρ (norm_nonneg _))).mpr hCon
+    have hr : 4*(α : ℝ)*η/(1+(α : ℝ)*η)^2 =
+        1-((1-(α : ℝ)*η)/(1+(α : ℝ)*η))^2 := by
+      field_simp [ne_of_gt hd]
+      ring
+    rw [M.norm_map,hDef,hr]
+    nlinarith [hs]
+
+end
+end Tests.ProximalBPSMacroscopicRange
+
+#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.L2PullbackRange.l2_pullback_range_eq_lpMeas
+#print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRange.actual_macroscopic_centered_range
+#print axioms Tests.ProximalBPSMacroscopicRange.actual_centered_macro_contraction_and_defect_gap

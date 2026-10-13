@@ -1,0 +1,18 @@
+      hittingBtwn_mem_set h_exists⟩
+  · have h'' : ∃ k ∈ Set.Icc n (min m i), u k ω ∈ s := by
+      obtain ⟨k₁, hk₁_mem, hk₁_s⟩ := h_exists
+      obtain ⟨k₂, hk₂_mem, hk₂_s⟩ := h'
+      refine ⟨min k₁ k₂, ⟨le_min hk₁_mem.1 hk₂_mem.1, min_le_min hk₁_mem.2 hk₂_mem.2⟩, ?_⟩
+      exact min_rec' (fun j => u j ω ∈ s) hk₁_s hk₂_s
+    obtain ⟨k, hk₁, hk₂⟩ := h''
+    refine le_trans ?_ (hk₁.2.trans (min_le_right _ _))
+    exact hittingBtwn_le_of_mem hk₁.1 (hk₁.2.trans (min_le_left _ _)) hk₂
+
+lemma hittingAfter_le_iff [WellFoundedLT ι] :
+    hittingAfter u s n ω ≤ i ↔ ∃ j ∈ Set.Icc n i, u j ω ∈ s := by
+  constructor <;> intro h'
+  · have h_top : hittingAfter u s n ω ≠ ⊤ := fun h ↦ by simp [h] at h'
+    have h_le := le_hittingAfter (u := u) (s := s) (n := n) ω
+    refine ⟨(hittingAfter u s n ω).untopA, ?_, hittingAfter_mem_set_of_ne_top h_top⟩
+    lift (hittingAfter u s n ω) to ι using h_top with i'
+    norm_cast at h' h_le

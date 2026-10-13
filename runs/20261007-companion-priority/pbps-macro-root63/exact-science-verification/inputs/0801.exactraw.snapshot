@@ -1,0 +1,32 @@
+import AutoSamplingTheory.TechnicalLemmas.Taylor
+
+/-!
+# Taylor and Hessian technical lemmas
+
+Preferred Mathlib-style import path for ASTIS-owned calculus leaves:
+Hessian representative handoffs, iterated derivative norm conversion,
+orthonormal-basis unit directions, and quadratic-variation algebra.
+
+The original `TechnicalLemmas.Taylor` module remains as a compatibility
+surface.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace Calculus
+namespace Taylor
+
+export AutoSamplingTheory.TechnicalLemmas.Taylor (
+  hessianOpNormOfSourceHessianField
+  iteratedFDerivTwoOpNormOfFDerivFDerivOpNorm
+  stdOrthonormalBasisUnit
+  quadraticVariationNormalizationOfCoeffDefAndVarianceOne
+)
+
+end Taylor
+end Calculus
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory
+

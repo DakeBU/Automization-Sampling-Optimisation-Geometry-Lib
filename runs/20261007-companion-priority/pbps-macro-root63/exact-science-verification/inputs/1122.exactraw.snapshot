@@ -1,0 +1,66 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.LocalProgressiveL2
+
+/-!
+# Global locally square-integrable progressive integrands
+
+Chewi's display (1.1.10) is written on a finite horizon `[0,T]`, while
+Proposition 1.1.16 immediately forms the process
+`t ↦ ∫₀ᵗ eta_s dB_s` for all `t ≥ 0` and Definition 1.1.15 asks for a
+localizing sequence tending to infinity.  The mathematically precise global
+hypothesis is therefore local square integrability on every finite horizon.
+
+This module records that implicit quantifier explicitly.  It is intentionally a
+thin source-domain wrapper: every finite horizon recovers the already compiled
+`LocalProgressiveL2Integrand`, so the canonical energy-localization machinery
+can be reused without duplication.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace GlobalLocalProgressiveL2
+
+open MeasureTheory
+open scoped NNReal
+
+open ElementaryItoIntegral LocalProgressiveL2
+
+/-- A progressive process satisfying Chewi's local square-integrability
+condition (1.1.10) on every finite horizon.  This is the rigorous global domain
+needed by Proposition 1.1.16. -/
+structure GlobalLocalProgressiveL2Integrand
+    {Omega : Type*} {m : MeasurableSpace Omega}
+    (filtration : Filtration ℝ≥0 m) (mu : Measure Omega) where
+  process : ℝ≥0 → Omega → ℝ
+  progressive : IsStronglyProgressive filtration process
+  finiteEnergy : ∀ T : ℝ≥0, IsLocallySquareIntegrableOn process mu T
+
+namespace GlobalLocalProgressiveL2Integrand
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+
+/-- Restrict the global source domain to a finite horizon, recovering the
+existing localization input type exactly. -/
+def onHorizon (eta : GlobalLocalProgressiveL2Integrand filtration mu) (T : ℝ≥0) :
+    LocalProgressiveL2Integrand filtration mu T where
+  process := eta.process
+  progressive := eta.progressive
+  finiteEnergy := eta.finiteEnergy T
+
+@[simp]
+theorem onHorizon_process
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu) (T : ℝ≥0) :
+    (eta.onHorizon T).process = eta.process := rfl
+
+/-- Source-facing restatement of the implicit global form of (1.1.10). -/
+theorem chewi_global_condition_1_1_10
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu) :
+    ∀ T : ℝ≥0, IsLocallySquareIntegrableOn eta.process mu T :=
+  eta.finiteEnergy
+
+end GlobalLocalProgressiveL2Integrand
+end GlobalLocalProgressiveL2
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

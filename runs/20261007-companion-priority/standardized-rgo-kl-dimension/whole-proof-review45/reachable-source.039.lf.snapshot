@@ -1,0 +1,289 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity
+import AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment
+import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization
+import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
+import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
+import Mathlib.MeasureTheory.Measure.Tilted
+
+/-!
+# Actual Gaussian-Gibbs relative-density domains
+
+Authored analytic background for SPHMC arXiv:2609.06906v1 S4.Ex8 and the
+Gaussian LSI/T2 invocation for FIRST(4.6). Exact statements were independently
+sealed before implementation. The actual relative normalizer, positive density,
+square-root gradients, integrability and energy are internal conclusions.
+Gaussian LSI/T2, weak Sobolev/KL adapters and the W2 inequality remain separate.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain
+
+open MeasureTheory InnerProductSpace ProbabilityTheory Set
+open scoped RealInnerProductSpace NNReal
+noncomputable section
+set_option autoImplicit false
+set_option backward.isDefEq.respectTransparency false
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E]
+
+private theorem rho_nonneg_and_gradient_growth
+    {rho : E → ℝ} {L : ℝ≥0} (hrho : ContDiff ℝ 2 rho)
+    (hrho0 : rho 0 = 0) (hgrad0 : gradient rho 0 = 0)
+    (hH : ∀ u v : E, 0 ≤ fderiv ℝ (fderiv ℝ rho) u v v ∧
+      fderiv ℝ (fderiv ℝ rho) u v v ≤ (L : ℝ)*‖v‖^2) :
+    (∀ u, 0 ≤ rho u) ∧ ∀ u, ‖gradient rho u‖ ≤ (L : ℝ)*‖u‖ := by
+  have hs := Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic
+    (m := 0) (r := 0) (L := L) hrho
+    (by intro u v; simpa using hH u v) (0 : E)
+  simp only [NNReal.coe_zero, zero_div, zero_mul, add_zero] at hs
+  refine ⟨?_, ?_⟩
+  · intro u
+    have hfirst := Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn
+      hs.1 (fun z _ => (hrho.differentiable (by norm_num) z).hasGradientAt)
+      (x := 0) (y := u) (mem_univ _) (mem_univ _)
+    simpa [hrho0, hgrad0] using hfirst
+  · intro u
+    simpa [hgrad0, dist_eq_norm] using hs.2.dist_le_mul u 0
+
+omit [CompleteSpace E] in
+private theorem weight_normalization [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E]
+    {rho : E → ℝ} (hrho : Continuous rho) (hn : ∀ u, 0 ≤ rho u) :
+    Integrable (fun u => Real.exp (-rho u)) (stdGaussian E) ∧
+      0 < (∫ u, Real.exp (-rho u) ∂stdGaussian E) ∧
+      (∫ u, Real.exp (-rho u) ∂stdGaussian E) ≤ 1 := by
+  have hbound (u : E) : Real.exp (-rho u) ≤ 1 :=
+    Real.exp_le_one_iff.mpr (neg_nonpos.mpr (hn u))
+  have hi : Integrable (fun u => Real.exp (-rho u)) (stdGaussian E) :=
+    (integrable_const (1 : ℝ)).mono' hrho.neg.rexp.aestronglyMeasurable
+      (ae_of_all _ (fun u => by simpa only [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)] using hbound u))
+  refine ⟨hi, integral_exp_pos hi, ?_⟩
+  simpa using integral_mono_ae hi (integrable_const (1 : ℝ)) (ae_of_all _ hbound)
+
+private theorem density_calculus {rho : E → ℝ} {Z : ℝ}
+    (hrho : ContDiff ℝ 2 rho) (hZ : 0 < Z) :
+    let q := fun u => Real.exp (-rho u)/Z
+    let f := fun u => Real.exp (-rho u/2)/Real.sqrt Z
+    ContDiff ℝ 2 f ∧ (∀ u, 0 < q u ∧ f u^2 = q u) ∧
+      (∀ u, gradient f u = -(f u/2) • gradient rho u) ∧
+      (∀ u, gradient (fun z => Real.log (q z)) u = -gradient rho u) := by
+  let q := fun u => Real.exp (-rho u)/Z
+  let f := fun u => Real.exp (-rho u/2)/Real.sqrt Z
+  have hd : Differentiable ℝ rho := hrho.differentiable (by norm_num)
+  refine ⟨(hrho.neg.div_const 2).exp.div_const _, ?_, ?_, ?_⟩
+  · intro u
+    refine ⟨div_pos (Real.exp_pos _) hZ, ?_⟩
+    dsimp only [f, q]
+    rw [div_pow, Real.sq_sqrt hZ.le]
+    congr 1
+    rw [pow_two, ← Real.exp_add]
+    congr 1
+    ring
+  · intro u
+    have hfun : f = fun z => (Real.sqrt Z)⁻¹ • Real.exp ((-1/2 : ℝ) • rho z) := by
+      funext z
+      simp only [f, smul_eq_mul, div_eq_inv_mul]
+      congr 1
+      congr 1
+      ring
+    have hfd := ((hd u).hasFDerivAt.const_smul (-1/2 : ℝ)).exp.const_smul
+      ((Real.sqrt Z)⁻¹)
+    apply HasGradientAt.gradient
+    rw [hasGradientAt_iff_hasFDerivAt]
+    change HasFDerivAt f ((toDual ℝ E) (-(f u/2) • gradient rho u)) u
+    rw [hfun]
+    convert hfd using 1 <;> try rfl
+    ext v
+    simp [← inner_gradient_left, div_eq_inv_mul]
+    ring
+  · intro u
+    have hlog : (fun z => Real.log (q z)) = fun z => -rho z-Real.log Z := by
+      funext z
+      dsimp only [q]
+      rw [Real.log_div (Real.exp_ne_zero _) hZ.ne', Real.log_exp]
+    rw [hlog]
+    apply HasGradientAt.gradient
+    rw [hasGradientAt_iff_hasFDerivAt]
+    convert (hd u).hasFDerivAt.neg.sub_const (Real.log Z) using 1 <;> try rfl
+    ext v
+    simp [← inner_gradient_left]
+
+omit [CompleteSpace E] in
+private theorem actual_standard_gaussian_gibbs_law [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E] :
+    Integrable (fun u : E => Real.exp (-‖u‖^2/2)) (volume : Measure E) ∧
+      stdGaussian E = (volume : Measure E).tilted (fun u => -‖u‖^2/2) := by
+  let c : ℝ := ((Real.sqrt (2*Real.pi))⁻¹)^Module.finrank ℝ E
+  let w := fun u : E => Real.exp (-‖u‖^2/2)
+  have hc : 0 < c := pow_pos (inv_pos.mpr
+    (Real.sqrt_pos.mpr (mul_pos zero_lt_two Real.pi_pos))) _
+  have hgamma : stdGaussian E = (volume : Measure E).withDensity
+      (fun u => ENNReal.ofReal (c*w u)) := by
+    have h := IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity
+      (E := E) 1 (by norm_num)
+    simpa only [Real.sqrt_one, one_smul, mul_one, Measure.map_id', c, w] using h
+  have hreal (u : E) : (ENNReal.ofReal (c*w u)).toReal = c*w u :=
+    ENNReal.toReal_ofReal (mul_nonneg hc.le (Real.exp_pos _).le)
+  have hmass : c*(∫ u, w u ∂(volume : Measure E)) = 1 := by
+    have hone : (∫ u : E, (1 : ℝ) ∂stdGaussian E) = 1 := by simp
+    rw [hgamma, integral_withDensity_eq_integral_toReal_smul
+      (by fun_prop) (by simp)] at hone
+    simpa only [hreal, smul_eq_mul, mul_one, integral_const_mul] using hone
+  have hw : Integrable w (volume : Measure E) := by
+    by_contra hn
+    rw [integral_undef hn, mul_zero] at hmass
+    norm_num at hmass
+  have hI : 0 < (∫ u, w u ∂(volume : Measure E)) := integral_exp_pos hw
+  refine ⟨hw, ?_⟩
+  rw [hgamma, Measure.tilted]
+  congr 1
+  funext u
+  congr 1
+  change c*w u = w u/(∫ z, w z ∂(volume : Measure E))
+  apply (eq_div_iff hI.ne').mpr
+  calc
+    (c*w u)*(∫ z, w z ∂(volume : Measure E)) =
+        (c*(∫ z, w z ∂(volume : Measure E)))*w u := by ring
+    _ = w u := by rw [hmass, one_mul]
+
+omit [CompleteSpace E] in
+private theorem actual_gaussian_tilt_volume [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E] (rho : E → ℝ) :
+    (stdGaussian E).tilted (fun u => -rho u) =
+      (volume : Measure E).tilted (fun u => -(‖u‖^2/2+rho u)) := by
+  obtain ⟨hw, hgamma⟩ := actual_standard_gaussian_gibbs_law (E := E)
+  rw [hgamma, tilted_tilted hw]
+  congr 1
+  funext u
+  simp only [Pi.add_apply]
+  ring
+
+private theorem weighted_gradient_square_integrable [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E]
+    {rho : E → ℝ} {L : ℝ≥0} (hrho : ContDiff ℝ 2 rho)
+    (hn : ∀ u, 0 ≤ rho u) (hg : ∀ u, ‖gradient rho u‖ ≤ (L : ℝ)*‖u‖) :
+    Integrable (fun u => Real.exp (-rho u)*‖gradient rho u‖^2) (stdGaussian E) := by
+  have hm := Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian
+    (E := E)
+  have hc := Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one
+    (hrho.of_le (by norm_num))
+  apply (hm.1.const_mul ((L : ℝ)^2)).mono'
+    (hrho.continuous.neg.rexp.mul (hc.norm.pow 2)).aestronglyMeasurable
+  exact ae_of_all _ (fun u => by
+    change ‖Real.exp (-rho u)*‖gradient rho u‖^2‖ ≤ (L : ℝ)^2*‖u‖^2
+    rw [Real.norm_eq_abs, abs_of_nonneg (mul_nonneg (Real.exp_nonneg _) (sq_nonneg _))]
+    calc
+      Real.exp (-rho u)*‖gradient rho u‖^2 ≤ 1*‖gradient rho u‖^2 :=
+        mul_le_mul_of_nonneg_right (Real.exp_le_one_iff.mpr (neg_nonpos.mpr (hn u)))
+          (sq_nonneg _)
+      _ ≤ (L : ℝ)^2*‖u‖^2 := by
+        have hs := (sq_le_sq₀ (norm_nonneg _) (mul_nonneg L.2 (norm_nonneg u))).mpr (hg u)
+        convert! hs using 1 <;> simp only [one_mul, mul_pow] <;> rfl)
+
+omit [CompleteSpace E] in
+private theorem entropy_integrable [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E]
+    {rho : E → ℝ} {Z : ℝ} (hrho : Continuous rho)
+    (hn : ∀ u, 0 ≤ rho u) (hZ : 0 < Z) :
+    Integrable (fun u => (Real.exp (-rho u)/Z)*Real.log (Real.exp (-rho u)/Z))
+      (stdGaussian E) := by
+  have hq := (weight_normalization hrho hn).1.div_const Z
+  have hbound (u : E) : rho u*Real.exp (-rho u) ≤ 1 := by
+    have hlinear : rho u ≤ Real.exp (rho u) := by
+      linarith [Real.add_one_le_exp (rho u)]
+    have h := mul_le_mul_of_nonneg_right hlinear (Real.exp_nonneg (-rho u))
+    simpa only [← Real.exp_add, add_neg_cancel, Real.exp_zero] using h
+  have hp : Integrable (fun u => rho u*Real.exp (-rho u)) (stdGaussian E) :=
+    (integrable_const (1 : ℝ)).mono'
+      (hrho.mul hrho.neg.rexp).aestronglyMeasurable
+      (ae_of_all _ (fun u => by
+        simpa only [Real.norm_eq_abs, abs_of_nonneg
+          (mul_nonneg (hn u) (Real.exp_nonneg _))] using hbound u))
+  apply ((hp.const_mul (-Z⁻¹)).sub (hq.const_mul (Real.log Z))).congr
+  exact ae_of_all _ (fun u => by
+    change -Z⁻¹*(rho u*Real.exp (-rho u))-Real.log Z*(Real.exp (-rho u)/Z) =
+      (Real.exp (-rho u)/Z)*Real.log (Real.exp (-rho u)/Z)
+    rw [Real.log_div (Real.exp_ne_zero _) hZ.ne', Real.log_exp]
+    simp only [div_eq_inv_mul]
+    ring)
+
+theorem gaussian_sqrt_density_domain
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {rho : E → ℝ} {L : ℝ≥0} (hrho : ContDiff ℝ 2 rho)
+    (hrho0 : rho 0 = 0) (hgrad0 : gradient rho 0 = 0)
+    (hH : ∀ u v : E, 0 ≤ fderiv ℝ (fderiv ℝ rho) u v v ∧
+      fderiv ℝ (fderiv ℝ rho) u v v ≤ (L : ℝ)*‖v‖^2) :
+    let gamma := stdGaussian E
+    let Z := ∫ u, Real.exp (-rho u) ∂gamma
+    let q := fun u => Real.exp (-rho u)/Z
+    let f := fun u => Real.exp (-rho u/2)/Real.sqrt Z
+    let r := gamma.tilted (fun u => -rho u)
+    0 < Z ∧ Z ≤ 1 ∧
+      r = (volume : Measure E).tilted (fun u => -(‖u‖^2/2+rho u)) ∧
+      r = gamma.withDensity (fun u => ENNReal.ofReal (q u)) ∧
+      IsProbabilityMeasure r ∧
+      (∀ u, 0 < q u ∧ f u^2 = q u) ∧
+      (∫ u, q u ∂gamma) = 1 ∧
+      ContDiff ℝ 2 f ∧ MemLp f 2 gamma ∧
+      MemLp (gradient f) 2 gamma ∧ MemLp (gradient rho) 2 r ∧
+      Integrable (fun u => q u*Real.log (q u)) gamma ∧
+      (∀ u, gradient f u = -(f u/2) • gradient rho u) ∧
+      (∀ u, gradient (fun z => Real.log (q z)) u = -gradient rho u) ∧
+      (∫ u, ‖gradient f u‖^2 ∂gamma) =
+        (1/4 : ℝ)*(∫ u, ‖gradient rho u‖^2 ∂r) := by
+  let gamma := stdGaussian E
+  let Z := ∫ u, Real.exp (-rho u) ∂gamma
+  let q := fun u => Real.exp (-rho u)/Z
+  let f := fun u => Real.exp (-rho u/2)/Real.sqrt Z
+  let r := gamma.tilted (fun u => -rho u)
+  obtain ⟨hn,hg⟩ := rho_nonneg_and_gradient_growth hrho hrho0 hgrad0 hH
+  obtain ⟨hw,hZ,hZone⟩ := weight_normalization hrho.continuous hn
+  obtain ⟨hf,hfq,hdf,hdlog⟩ := density_calculus hrho hZ
+  have hprob : IsProbabilityMeasure r := isProbabilityMeasure_tilted hw
+  have hq : Integrable q gamma := hw.div_const Z
+  have hqone : (∫ u, q u ∂gamma) = 1 := by
+    rw [integral_div]
+    exact div_self hZ.ne'
+  have hflp : MemLp f 2 gamma := by
+    apply (memLp_two_iff_integrable_sq_norm hf.continuous.aestronglyMeasurable).mpr
+    apply hq.congr
+    exact ae_of_all _ (fun u => by
+      change q u = ‖f u‖^2
+      rw [Real.norm_eq_abs,sq_abs]
+      exact (hfq u).2.symm)
+  have hwg := weighted_gradient_square_integrable hrho hn hg
+  have hgc := Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one
+    (hrho.of_le (by norm_num))
+  have hir : Integrable (fun u => ‖gradient rho u‖^2) r :=
+    (integrable_tilted_iff hw (fun u => ‖gradient rho u‖^2)).mpr
+      (by simpa only [smul_eq_mul] using hwg)
+  have hrlp : MemLp (gradient rho) 2 r :=
+    (memLp_two_iff_integrable_sq_norm hgc.aestronglyMeasurable).mpr hir
+  have hpoint (u : E) : ‖gradient f u‖^2 =
+      (1/(4*Z))*(Real.exp (-rho u)*‖gradient rho u‖^2) := by
+    rw [hdf u,norm_smul,mul_pow,Real.norm_eq_abs,sq_abs,neg_sq,div_pow,(hfq u).2]
+    change (Real.exp (-rho u)/Z)/(2:ℝ)^2*‖gradient rho u‖^2 = _
+    ring
+  have hfg : Integrable (fun u => ‖gradient f u‖^2) gamma :=
+    (hwg.const_mul (1/(4*Z))).congr (ae_of_all _ (fun u => (hpoint u).symm))
+  have hfgc := Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one
+    (hf.of_le (by norm_num))
+  have hfglp : MemLp (gradient f) 2 gamma :=
+    (memLp_two_iff_integrable_sq_norm hfgc.aestronglyMeasurable).mpr hfg
+  have he := entropy_integrable hrho.continuous hn hZ
+  have henergy : (∫ u, ‖gradient f u‖^2 ∂gamma) =
+      (1/4 : ℝ)*(∫ u, ‖gradient rho u‖^2 ∂r) := by
+    rw [integral_tilted,← integral_const_mul]
+    apply integral_congr_ae
+    exact ae_of_all _ (fun u => by
+      change ‖gradient f u‖^2 = (1/4 : ℝ)*(Real.exp (-rho u)/Z) • ‖gradient rho u‖^2
+      rw [hpoint u]
+      simp only [smul_eq_mul]
+      ring)
+  exact ⟨hZ,hZone,actual_gaussian_tilt_volume rho,rfl,hprob,hfq,hqone,hf,hflp,
+    hfglp,hrlp,he,hdf,hdlog,henergy⟩
+
+end
+end AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSqrtDensityDomain

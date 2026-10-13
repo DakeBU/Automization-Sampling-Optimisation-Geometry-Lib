@@ -1,0 +1,54 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy
+import AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicRepresentative
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ReflectionL2
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped RealInnerProductSpace NNReal ContDiff
+set_option autoImplicit false
+#check (∀ {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x a : E,
+      (α : ℝ) * ‖a‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x a) a ∧
+      (fderiv ℝ (fderiv ℝ V) x a) a ≤ (β : ℝ) * ‖a‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1),
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := Measure.map (fun p : E × E => (p.1, p.1 + Real.sqrt η • p.2))
+      (μ.prod (stdGaussian E))
+    let ν := J.snd
+    let Λ := J.map (fun p : E × E => (p.2, (2 : ℝ) • p.1 - p.2))
+    let F := fun p : E × E => (p.1, (2 : ℝ) • p.1 - p.2)
+    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))
+        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le
+    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧
+    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      (J.map Prod.swap).IsCondKernel R ∧
+      (∀ y, S y = (R y).map (fun x => (2 : ℝ) • x - y)) ∧
+      (∀ y, S y = (volume : Measure E).tilted
+        (fun u => -V ((1/2 : ℝ) • (y+u)) - ‖y-u‖^2/(8*η))) ∧
+      Λ.IsCondKernel S ∧ Λ.fst = ν ∧
+      ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,
+        (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧
+        Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧
+        let A := P * U.toContinuousLinearMap * P
+        let B := (1-P) * U.toContinuousLinearMap * P
+        let D := (1-P) * U.toContinuousLinearMap * (1-P)
+        star B * B = P - A^2 ∧ star B * D = -(A * star B) ∧
+        (∀ g : Lp ℝ 2 J, P g = g → ‖B g‖^2 = ‖g‖^2 - ‖A g‖^2) ∧
+        ∀ (f : E → ℝ), ContDiff ℝ ∞ f → HasCompactSupport f →
+          let Tf := fun y => ∫ u, f u ∂S y
+          Differentiable ℝ Tf ∧ MemLp f 2 ν ∧ MemLp Tf 2 ν ∧
+          MemLp (gradient Tf) 2 ν ∧
+          Integrable (fun y =>
+            AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance
+              (S y) f) ν ∧
+          ∃ g : Lp ℝ 2 J,
+            (g : E × E → ℝ) =ᵐ[J] (fun p => f p.2) ∧ P g = g ∧
+            (A g : E × E → ℝ) =ᵐ[J] (fun p => Tf p.2) ∧
+            ‖g‖^2 = (∫ y, (f y)^2 ∂ν) ∧
+            ‖A g‖^2 = (∫ y, (Tf y)^2 ∂ν) ∧
+            (∫ y, AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance
+              (S y) f ∂ν) = ‖B g‖^2 ∧
+            η * (∫ y, ‖gradient Tf y‖^2 ∂ν) ≤
+              (1-(α : ℝ)*η)^2/(4*(1+(α : ℝ)*η)) * ‖B g‖^2)

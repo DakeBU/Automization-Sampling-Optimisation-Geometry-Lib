@@ -1,0 +1,147 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingL2Contraction
+
+/-!
+# Closed stopping on progressive `L²` integrands
+
+Chewi's localization convention uses the closed stopped integrand
+`eta_t * 1_{t <= tau}`.  The elementary random-stopping construction proves
+this object is legitimate by approximation.  For the completed theory it is
+useful to package the operation directly on `ProgressiveL2Integrand`.
+
+The only nontrivial measurability point is progressiveness of the event
+`{(t, omega) | t <= tau(omega)}`.  On a bounded progressive rectangle
+`[0,i] × Omega`, this event is the inequality between the time coordinate and
+the bounded stopping time `tau ∧ i`.  Mathlib makes `tau ∧ i` measurable at
+time `i`, so no pathwise encoding of `WithTop.untopA` is needed.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ProgressiveL2Stopping
+
+open Filter MeasureTheory Set
+open scoped NNReal Topology
+
+open ElementaryItoIntegral ProgressiveL2 RandomStoppingL2Contraction
+open AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.Localization
+open AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- The product-space closed stopping event is measurable. -/
+theorem measurableSet_stoppingSet
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau) :
+    MeasurableSet (stoppingSet tau) := by
+  have ht : Measurable (fun z : Omega × ℝ≥0 => (z.2 : WithTop ℝ≥0)) :=
+    (measurable_snd : Measurable (fun z : Omega × ℝ≥0 => z.2)).withTop_coe
+  have htau' : MeasureTheory.IsStoppingTime filtration tau := htau
+  have hτ : Measurable (fun z : Omega × ℝ≥0 => tau z.1) :=
+    htau'.measurable'.comp measurable_fst
+  simpa only [stoppingSet] using measurableSet_le ht hτ
+
+/-- Chewi's closed stopping convention preserves strong progressiveness. -/
+theorem stoppedIntegrand_stronglyProgressive
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau) :
+    IsStronglyProgressive filtration (stoppedIntegrand eta.process tau) := by
+  have htau' : MeasureTheory.IsStoppingTime filtration tau := htau
+  intro i
+  have hτmin : Measurable[filtration i]
+      (fun omega => min (tau omega) (i : WithTop ℝ≥0)) :=
+    (htau'.min_const i).measurable_of_le (fun omega => min_le_right _ _)
+  have htime : Measurable[Subtype.instMeasurableSpace.prod (filtration i)]
+      (fun p : Set.Iic i × Omega => ((p.1 : ℝ≥0) : WithTop ℝ≥0)) :=
+    (measurable_subtype_coe.comp measurable_fst).withTop_coe
+  have hτprod : Measurable[Subtype.instMeasurableSpace.prod (filtration i)]
+      (fun p : Set.Iic i × Omega => min (tau p.2) (i : WithTop ℝ≥0)) :=
+    hτmin.comp measurable_snd
+  have hsetMin : @MeasurableSet (Set.Iic i × Omega)
+      (Subtype.instMeasurableSpace.prod (filtration i))
+      {p | ((p.1 : ℝ≥0) : WithTop ℝ≥0) ≤
+        min (tau p.2) (i : WithTop ℝ≥0)} :=
+    measurableSet_le htime hτprod
+  have heq :
+      {p : Set.Iic i × Omega |
+        ((p.1 : ℝ≥0) : WithTop ℝ≥0) ≤ tau p.2} =
+      {p : Set.Iic i × Omega |
+        ((p.1 : ℝ≥0) : WithTop ℝ≥0) ≤
+          min (tau p.2) (i : WithTop ℝ≥0)} := by
+    ext p
+    change
+      (((p.1 : ℝ≥0) : WithTop ℝ≥0) ≤ tau p.2) ↔
+        ((p.1 : ℝ≥0) : WithTop ℝ≥0) ≤
+          min (tau p.2) (i : WithTop ℝ≥0)
+    constructor
+    · intro hptau
+      apply le_min hptau
+      exact_mod_cast p.1.property
+    · intro hpmin
+      exact hpmin.trans (min_le_left _ _)
+  have hset : @MeasurableSet (Set.Iic i × Omega)
+      (Subtype.instMeasurableSpace.prod (filtration i))
+      {p | ((p.1 : ℝ≥0) : WithTop ℝ≥0) ≤ tau p.2} := by
+    rw [heq]
+    exact hsetMin
+  exact StronglyMeasurable.ite hset (eta.progressive i) stronglyMeasurable_const
+
+/-- The closed stopped integrand remains in product-space `L²`. -/
+theorem stoppedIntegrand_memLp
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau) :
+    MemLp (processFunction (stoppedIntegrand eta.process tau)) 2
+      (processTimeMeasure mu T) := by
+  rw [processFunction_stoppedIntegrand_eq_indicator]
+  exact eta.memLp.indicator (measurableSet_stoppingSet tau htau)
+
+/-- Generic closed stopping operator on completed progressive `L²` integrands. -/
+noncomputable def stop
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau) :
+    ProgressiveL2Integrand filtration mu T where
+  process := stoppedIntegrand eta.process tau
+  progressive := stoppedIntegrand_stronglyProgressive eta tau htau
+  memLp := stoppedIntegrand_memLp eta tau htau
+
+@[simp]
+theorem stop_process
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau) :
+    (stop eta tau htau).process = stoppedIntegrand eta.process tau := rfl
+
+/-- Closed stopping is a contraction on the completed progressive `L²` space. -/
+theorem norm_stop_sub_stop_le
+    (eta xi : ProgressiveL2Integrand filtration mu T)
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau) :
+    ‖(stop eta tau htau).toLp - (stop xi tau htau).toLp‖ ≤
+      ‖eta.toLp - xi.toLp‖ := by
+  apply norm_stopped_sub_le eta xi (stop eta tau htau) (stop xi tau htau) tau
+  · exact Filter.Eventually.of_forall fun _ => rfl
+  · exact Filter.Eventually.of_forall fun _ => rfl
+
+/-- Stopping preserves convergence in the completed progressive `L²` space. -/
+theorem tendsto_stop_toLp_of_tendsto
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (approx : ℕ → ProgressiveL2Integrand filtration mu T)
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau)
+    (happrox : Tendsto (fun n => (approx n).toLp) atTop (𝓝 eta.toLp)) :
+    Tendsto (fun n => (stop (approx n) tau htau).toLp) atTop
+      (𝓝 (stop eta tau htau).toLp) := by
+  apply tendsto_iff_norm_sub_tendsto_zero.mpr
+  apply squeeze_zero
+    (fun n => norm_nonneg ((stop (approx n) tau htau).toLp - (stop eta tau htau).toLp))
+    (fun n => norm_stop_sub_stop_le (approx n) eta tau htau)
+  exact tendsto_iff_norm_sub_tendsto_zero.mp happrox
+
+end ProgressiveL2Stopping
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

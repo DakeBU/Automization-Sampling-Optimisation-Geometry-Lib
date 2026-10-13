@@ -1,0 +1,227 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral
+
+/-!
+# Algebra of elementary adapted processes
+
+The `L2` completion of the elementary Ito integral needs differences of
+approximants to remain elementary.  This file establishes the required
+pointwise algebra on a fixed strict time grid and proves that the finite-sum
+integral respects it.  Common-grid refinement is deliberately kept separate.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ElementaryItoAlgebra
+
+open MeasureTheory
+open scoped BigOperators NNReal
+
+open ElementaryItoIntegral
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {n : ℕ}
+
+/-- The zero process carried by the strict grid of `eta`. -/
+def zeroLike (eta : ElementaryAdaptedProcess filtration n) :
+    ElementaryAdaptedProcess filtration n where
+  times := eta.times
+  times_strictMono := eta.times_strictMono
+  coeff := fun _ _ => 0
+  coeff_stronglyMeasurable := fun _ => stronglyMeasurable_const
+  coeff_bounded := fun _ => ⟨0, fun _ => by simp⟩
+
+/-- Pointwise negation preserves elementary adaptedness and the time grid. -/
+def neg (eta : ElementaryAdaptedProcess filtration n) :
+    ElementaryAdaptedProcess filtration n where
+  times := eta.times
+  times_strictMono := eta.times_strictMono
+  coeff := fun i omega => -eta.coeff i omega
+  coeff_stronglyMeasurable := fun i => (eta.coeff_stronglyMeasurable i).neg
+  coeff_bounded := fun i => by
+    obtain ⟨C, hC⟩ := eta.coeff_bounded i
+    exact ⟨C, fun omega => by simpa using hC omega⟩
+
+/-- Scalar multiplication preserves elementary adaptedness and the time grid. -/
+def smul (c : ℝ) (eta : ElementaryAdaptedProcess filtration n) :
+    ElementaryAdaptedProcess filtration n where
+  times := eta.times
+  times_strictMono := eta.times_strictMono
+  coeff := fun i omega => c * eta.coeff i omega
+  coeff_stronglyMeasurable := fun i =>
+    stronglyMeasurable_const.mul (eta.coeff_stronglyMeasurable i)
+  coeff_bounded := fun i => by
+    obtain ⟨C, hC⟩ := eta.coeff_bounded i
+    refine ⟨|c| * C, fun omega => ?_⟩
+    rw [abs_mul]
+    exact mul_le_mul_of_nonneg_left (hC omega) (abs_nonneg c)
+
+/-- Addition of elementary processes represented on the same strict grid. -/
+def add (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times) : ElementaryAdaptedProcess filtration n where
+  times := eta.times
+  times_strictMono := eta.times_strictMono
+  coeff := fun i omega => eta.coeff i omega + xi.coeff i omega
+  coeff_stronglyMeasurable := fun i => by
+    have hxi := xi.coeff_stronglyMeasurable i
+    rw [← hgrid] at hxi
+    exact (eta.coeff_stronglyMeasurable i).add hxi
+  coeff_bounded := fun i => by
+    obtain ⟨Ceta, hCeta⟩ := eta.coeff_bounded i
+    obtain ⟨Cxi, hCxi⟩ := xi.coeff_bounded i
+    refine ⟨Ceta + Cxi, fun omega => ?_⟩
+    exact (abs_add_le _ _).trans (add_le_add (hCeta omega) (hCxi omega))
+
+/-- Subtraction of elementary processes represented on the same strict grid. -/
+def sub (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times) : ElementaryAdaptedProcess filtration n where
+  times := eta.times
+  times_strictMono := eta.times_strictMono
+  coeff := fun i omega => eta.coeff i omega - xi.coeff i omega
+  coeff_stronglyMeasurable := fun i => by
+    have hxi := xi.coeff_stronglyMeasurable i
+    rw [← hgrid] at hxi
+    exact (eta.coeff_stronglyMeasurable i).sub hxi
+  coeff_bounded := fun i => by
+    obtain ⟨Ceta, hCeta⟩ := eta.coeff_bounded i
+    obtain ⟨Cxi, hCxi⟩ := xi.coeff_bounded i
+    refine ⟨Ceta + Cxi, fun omega => ?_⟩
+    exact (abs_sub _ _).trans (add_le_add (hCeta omega) (hCxi omega))
+
+@[simp] theorem zeroLike_value (eta : ElementaryAdaptedProcess filtration n)
+    (t : ℝ≥0) (omega : Omega) :
+    (zeroLike eta).value t omega = 0 := by
+  change (∑ i : Fin n, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+    then 0 else 0) = 0
+  simp
+
+@[simp] theorem neg_value (eta : ElementaryAdaptedProcess filtration n)
+    (t : ℝ≥0) (omega : Omega) :
+    (neg eta).value t omega = -eta.value t omega := by
+  change (∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+      then -eta.coeff i omega else 0) =
+    -∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+      then eta.coeff i omega else 0
+  calc
+    (∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+        then -eta.coeff i omega else 0) =
+        ∑ i, -(if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+          then eta.coeff i omega else 0) := by
+      apply Finset.sum_congr rfl
+      intro i _
+      split_ifs <;> simp
+    _ = -∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+          then eta.coeff i omega else 0 := by simp
+
+@[simp] theorem smul_value (c : ℝ)
+    (eta : ElementaryAdaptedProcess filtration n) (t : ℝ≥0) (omega : Omega) :
+    (smul c eta).value t omega = c * eta.value t omega := by
+  change (∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+      then c * eta.coeff i omega else 0) =
+    c * ∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+      then eta.coeff i omega else 0
+  rw [Finset.mul_sum]
+  apply Finset.sum_congr rfl
+  intro i _
+  split_ifs <;> simp
+
+theorem add_value (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times) (t : ℝ≥0) (omega : Omega) :
+    (add eta xi hgrid).value t omega = eta.value t omega + xi.value t omega := by
+  change (∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+      then eta.coeff i omega + xi.coeff i omega else 0) =
+    (∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+      then eta.coeff i omega else 0) +
+    ∑ i, if xi.times i.castSucc < t ∧ t ≤ xi.times i.succ
+      then xi.coeff i omega else 0
+  have hxi : (∑ i, if xi.times i.castSucc < t ∧ t ≤ xi.times i.succ
+      then xi.coeff i omega else 0) =
+      ∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+        then xi.coeff i omega else 0 := by
+    apply Finset.sum_congr rfl
+    intro i _
+    rw [congrFun hgrid.symm i.castSucc, congrFun hgrid.symm i.succ]
+  rw [hxi, ← Finset.sum_add_distrib]
+  apply Finset.sum_congr rfl
+  intro i _
+  by_cases hi : eta.times i.castSucc < t ∧ t ≤ eta.times i.succ <;> simp [hi]
+
+theorem sub_value (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times) (t : ℝ≥0) (omega : Omega) :
+    (sub eta xi hgrid).value t omega = eta.value t omega - xi.value t omega := by
+  change (∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+      then eta.coeff i omega - xi.coeff i omega else 0) =
+    (∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+      then eta.coeff i omega else 0) -
+    ∑ i, if xi.times i.castSucc < t ∧ t ≤ xi.times i.succ
+      then xi.coeff i omega else 0
+  have hxi : (∑ i, if xi.times i.castSucc < t ∧ t ≤ xi.times i.succ
+      then xi.coeff i omega else 0) =
+      ∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+        then xi.coeff i omega else 0 := by
+    apply Finset.sum_congr rfl
+    intro i _
+    rw [congrFun hgrid.symm i.castSucc, congrFun hgrid.symm i.succ]
+  rw [hxi, ← Finset.sum_sub_distrib]
+  apply Finset.sum_congr rfl
+  intro i _
+  by_cases hi : eta.times i.castSucc < t ∧ t ≤ eta.times i.succ <;> simp [hi]
+
+@[simp] theorem elementaryItoIntegral_zeroLike
+    (eta : ElementaryAdaptedProcess filtration n)
+    (B : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (omega : Omega) :
+    elementaryItoIntegral (zeroLike eta) B T omega = 0 := by
+  simp [elementaryItoIntegral, zeroLike]
+
+@[simp] theorem elementaryItoIntegral_neg
+    (eta : ElementaryAdaptedProcess filtration n)
+    (B : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (omega : Omega) :
+    elementaryItoIntegral (neg eta) B T omega =
+      -elementaryItoIntegral eta B T omega := by
+  simp [elementaryItoIntegral, neg, Finset.sum_neg_distrib]
+
+@[simp] theorem elementaryItoIntegral_smul
+    (c : ℝ) (eta : ElementaryAdaptedProcess filtration n)
+    (B : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (omega : Omega) :
+    elementaryItoIntegral (smul c eta) B T omega =
+      c * elementaryItoIntegral eta B T omega := by
+  simp [elementaryItoIntegral, smul, Finset.mul_sum, mul_assoc]
+
+theorem elementaryItoIntegral_add
+    (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times)
+    (B : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (omega : Omega) :
+    elementaryItoIntegral (add eta xi hgrid) B T omega =
+      elementaryItoIntegral eta B T omega + elementaryItoIntegral xi B T omega := by
+  simp only [elementaryItoIntegral, add]
+  rw [← Finset.sum_add_distrib]
+  apply Finset.sum_congr rfl
+  intro i _
+  have hleft : xi.times i.castSucc = eta.times i.castSucc :=
+    congrFun hgrid.symm i.castSucc
+  have hright : xi.times i.succ = eta.times i.succ :=
+    congrFun hgrid.symm i.succ
+  rw [hleft, hright]
+  ring
+
+theorem elementaryItoIntegral_sub
+    (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times)
+    (B : ℝ≥0 → Omega → ℝ) (T : ℝ≥0) (omega : Omega) :
+    elementaryItoIntegral (sub eta xi hgrid) B T omega =
+      elementaryItoIntegral eta B T omega - elementaryItoIntegral xi B T omega := by
+  simp only [elementaryItoIntegral, sub]
+  rw [← Finset.sum_sub_distrib]
+  apply Finset.sum_congr rfl
+  intro i _
+  have hleft : xi.times i.castSucc = eta.times i.castSucc :=
+    congrFun hgrid.symm i.castSucc
+  have hright : xi.times i.succ = eta.times i.succ :=
+    congrFun hgrid.symm i.succ
+  rw [hleft, hright]
+  ring
+
+end ElementaryItoAlgebra
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

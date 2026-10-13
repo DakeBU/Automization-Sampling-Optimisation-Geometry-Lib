@@ -1,0 +1,106 @@
+from pathlib import Path
+from datetime import datetime, timezone
+import hashlib,json,os,re,subprocess,sys
+ROOT=Path('E:/Samplinglib');R=ROOT/'runs/20261007-companion-priority/pbps-actual-harmonic-flow73';OWN=R/'exact-science-verification73';SELF=Path(__file__)
+PY='C:/Users/admin/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe'
+SCI='63319104ccad4e81e3a2c59da23ec0009be5e17f';PARENT='bc3dca8d76432f71e3abbfdbce2c3b2161ec8d19'
+ID='ASTIS-SA-20261010-PBPSActualHarmonicFlow';ACTOR='/root/exact_science63';DECL='AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws'
+MODULE=ROOT/'AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean'
+CELL=ROOT/'research-wiki/frontier-cells/ASTIS-SW-PBPS-actual-harmonic-flow.json'
+AUDIT=ROOT/'research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261010-PBPSActualHarmonicFlow.json'
+PUB=ROOT/'website/content/publications/pbps-actual-harmonic-flow.json';LESSON=ROOT/'website/content/declaration_lessons/pbps-actual-harmonic-flow.json'
+LEDGER=ROOT/'runs/substantive_advances.jsonl'
+RECIPE='CRLF byte pairs -> LF only; preserve bare CR and every other byte; binary LF is mechanical only'
+def now():return datetime.now(timezone.utc).isoformat()
+def sha(b):return hashlib.sha256(b).hexdigest()
+def canon(x):return json.dumps(x,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
+def load(p):return json.loads(p.read_bytes())
+def read(n):return load(OWN/n)
+def write(n,x):(OWN/n).write_bytes(json.dumps(x,ensure_ascii=False,sort_keys=True,indent=2).encode()+b'\n')
+def pin(p):
+ b=p.read_bytes();return dict(path=p.relative_to(ROOT).as_posix(),RAW_bytes=len(b),RAW_sha256=sha(b),LF_sha256=sha(b.replace(b'\r\n',b'\n')))
+def check(row,base=ROOT):
+ p=Path(row['path']);p=p if p.is_absolute() else base/p
+ q=pin(p)
+ for k,alts in [('RAW_bytes',['RAW_bytes','bytes','raw_bytes']),('RAW_sha256',['RAW_sha256','raw_sha256']),('LF_sha256',['LF_sha256','lf_sha256'])]:
+  key=next((x for x in alts if x in row),None)
+  if key:assert q[k]==row[key],(p,k,q[k],row[key])
+ return q
+def git(args):return subprocess.run(['git',*args],cwd=ROOT,capture_output=True,check=True).stdout
+def state():
+ sys.path[:0]=[str(ROOT),str(ROOT/'tools')];import astis_advance
+ return astis_advance._replay_advances([json.loads(x) for x in LEDGER.read_bytes().splitlines() if x.strip()])[ID]
+def recheck():
+ for row in read('inputs.manifest.json')['inputs']:check(row)
+ assert git(['rev-parse','HEAD']).decode().strip()==SCI
+def freeze():
+ assert git(['rev-parse','HEAD']).decode().strip()==SCI
+ assert git(['rev-list','--parents','-n','1',SCI]).decode().strip().split()==[SCI,PARENT]
+ paths=[MODULE,PUB,LESSON,AUDIT,CELL,ROOT/'lean-toolchain',ROOT/'lake-manifest.json']
+ paths += [R/x for x in ['claim.json','proved-local.json','mathematics-freeze73.json','source-review.freeze73.json','source-review.packet.json',
+      'root.math73.adoption.json','root.source73.adoption.json','root.decoder73.adoption.json','root.reader-metadata-overlay73.adoption.json',
+      'audit.before-decoder73.exactraw.snapshot.json','audit.before-source-admission73.exactraw.json','cell.before-source-admission73.exactraw.json','publication.before-source-admission73.exactraw.json',
+      'independent-math73/lease.final.json','independent-math73/native.manifest.json','independent-math73/run.json','independent-math73/decision.json',
+      'independent-source73/lease.final.json','independent-source73/whole-owned.manifest.json','independent-source73/source.0.run.json','independent-source73/source.0.decision.json',
+      'independent-source73/StageB.finite-current-inputs73.json','independent-source73/final-current-input-version-map73.json',
+      'independent-reader-metadata-repair73/lease.final.json','independent-reader-metadata-repair73/decision.json','independent-reader-metadata-repair73/native.manifest.json','independent-reader-metadata-repair73/run.json']]
+ paths += [ROOT/'.astis/decoder-73/result'/x for x in ['CLOSED_LAST.json','run.json','reconstruction.json','reconstruction.md']]
+ paths += [ROOT/'tools'/x for x in ['astis.py','astis_advance.py','astis_publication.py','astis_semantic_roundtrip.py','astis_frontier_cells.py','astis_contributor_contract.py']]
+ paths += [ROOT/'docs'/x for x in ['contributor-codex-contract.md','theorem-publication-protocol.md','proof-digestion-protocol.md','evidence-routed-memory-protocol.md']]
+ paths += [ROOT/'runs/20261007-companion-priority/pbps-harmonic-flow-preproof73/root.statement-seal73.json']
+ rows=[pin(p) for p in paths];assert len({x['path'] for x in rows})==len(rows)
+ write('inputs.manifest.json',dict(input_count=len(rows),inputs=rows,LF_recipe=RECIPE,storage='finite exact immutable/native references; only core current bytes copied, no recursive history/ledger payload'))
+ snapshots=[]
+ for i,p in enumerate([MODULE,PUB,LESSON,AUDIT,CELL]):
+  q=OWN/f'core.{i}.exactraw.snapshot';q.write_bytes(p.read_bytes());snapshots.append(dict(original=pin(p),snapshot=pin(q)))
+ write('core.snapshots.json',dict(snapshots=snapshots))
+ st=state();assert st['state']=='PROVED_LOCAL' and st['owner_id']=='companion_root_20261005'
+ assert st['publication_declarations']==[DECL]
+ write('ledger.before-prefix.json',dict(path=LEDGER.relative_to(ROOT).as_posix(),RAW_bytes=LEDGER.stat().st_size,RAW_sha256=sha(LEDGER.read_bytes()),target_advance=st))
+ write('lease.open.json',dict(status='OPEN_EXACT_SCI73_VERIFICATION',actor=ACTOR,actual_PID=os.getpid(),checked_commit=SCI,parent=PARENT,
+       owned_scope=OWN.relative_to(ROOT).as_posix(),allowed_shared_writes='one nonowner VERIFIED append and r73/verified.json only after all required gates PASS',no_aggregate_site_Git_or_Lean_writes=True))
+ print(json.dumps(dict(status='FROZEN',actual_PID=os.getpid(),input_count=len(rows),checked_commit=SCI,module=pin(MODULE))))
+def process(label,argv,env=None,accepted=(0,)):
+ folder=OWN/'terminals';folder.mkdir(exist_ok=True);out=folder/(label+'.stdout.RAW');err=folder/(label+'.stderr.RAW');start=now()
+ pre=pin(MODULE)
+ with out.open('wb') as o,err.open('wb') as e:
+  proc=subprocess.Popen(argv,cwd=ROOT,env=env,stdout=o,stderr=e)
+  print(json.dumps(dict(status='FOREGROUND_RUNNING',label=label,actual_PID=proc.pid)),flush=True);code=proc.wait()
+ receipt=dict(label=label,actual_PID=proc.pid,command=argv,started_utc=start,ended_utc=now(),exit_code=code,terminal_closed=True,
+       stdout=pin(out),stderr=pin(err),module_pre=pre,module_post=pin(MODULE))
+ write('terminals/'+label+'.receipt.json',receipt)
+ assert pre==receipt['module_post'];assert code in accepted,(label,code,err.read_text(encoding='utf-8')[-1000:])
+ return receipt
+def fresh_lean():
+ recheck();meta=load(R/'root.math73.adoption.json')['fresh_compiler'];exe=Path(meta['real_Lean_executable']['path']);check(meta['real_Lean_executable'])
+ env=dict(os.environ);env.update(LEAN_PATH=meta['LEAN_PATH'],LEAN_SRC_PATH=meta['LEAN_SRC_PATH'])
+ version=process('fixed-lean-version',[str(exe),'--version'],env);assert '4.33.0' in (ROOT/version['stdout']['path']).read_text()
+ output=OWN/'output';output.mkdir(exist_ok=True)
+ rec=process('fresh-direct-Lean',[str(exe),'-o',str(output/'ActualHarmonicFlow.olean'),str(MODULE)],env)
+ text=(ROOT/rec['stdout']['path']).read_text(encoding='utf-8');matches=re.findall(r'depends on axioms:\s*\[([^\]]*)\]',text)
+ assert len(matches)==1 and {x.strip() for x in matches[0].split(',')}=={'propext','Classical.choice','Quot.sound'}
+ assert 'sorryAx' not in text and 'error:' not in text
+ write('fresh-lean.result.json',dict(status='PASS',actual_direct_Lean_PID=rec['actual_PID'],terminal_EXIT=0,checked_commit=SCI,
+      module=pin(MODULE),fresh_source_elaboration=True,Lake_cache_replay=False,canonical_olean_written=False,
+      owned_olean=pin(output/'ActualHarmonicFlow.olean'),standard_axioms=['propext','Classical.choice','Quot.sound'],version=version,compiler=rec))
+ print(json.dumps(dict(status='FRESH_LEAN_PASS',actual_PID=rec['actual_PID'],standard3=True)))
+def gates():
+ recheck();checks=[('publication',['tools/astis_publication.py','check','--base',PARENT]),
+       ('contributor',['tools/astis_contributor_contract.py','check','--base',PARENT]),
+       ('semantic',['tools/astis_semantic_roundtrip.py','check']),('frontier',['tools/astis_frontier_cells.py','check']),
+       ('bounded-publication-packet',['tools/astis_publication.py','packet','--cell','ASTIS-SW-PBPS-actual-harmonic-flow'])]
+ rows=[]
+ for label,args in checks:rows.append(process(label,[PY,'-B','-X','utf8',*args]))
+ write('gates.result.json',dict(status='PASS',checked_commit=SCI,diff_base=PARENT,receipts=rows,aggregate_full_library_or_site_run=False))
+ print(json.dumps(dict(status='FRESH_GATES_PASS',actual_PID=os.getpid(),gate_count=len(rows))))
+def launch(action):
+ assert not (OWN/'lease.final.json').exists();(OWN/f'{action}.executed-helper.RAW.py').write_bytes(SELF.read_bytes());argv=[PY,'-B','-X','utf8',str(SELF),'_child',action]
+ with (OWN/f'{action}.stdout.log').open('wb') as out,(OWN/f'{action}.stderr.log').open('wb') as err:
+  p=subprocess.Popen(argv,cwd=ROOT,stdout=out,stderr=err);print(json.dumps(dict(status='RUNNING',actual_PID=p.pid,action=action,runner_PID=os.getpid())),flush=True);code=p.wait()
+ write(action+'.receipt.json',dict(action=action,actual_PID=p.pid,runner_PID=os.getpid(),command=argv,exit_code=code,terminal_closed=True,
+       stdout=pin(OWN/f'{action}.stdout.log'),stderr=pin(OWN/f'{action}.stderr.log'),executed_helper=pin(OWN/f'{action}.executed-helper.RAW.py')))
+ print(json.dumps(dict(status='TERMINAL',actual_PID=p.pid,action=action,exit_code=code)));return code
+if __name__=='__main__':
+ action=sys.argv[-1]
+ if sys.argv[1]=='_child':sys.exit(globals()[action]() or 0)
+ else:sys.exit(launch(action))

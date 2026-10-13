@@ -1,0 +1,102 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOKLFisher
+
+namespace Tests.StandardizedRGOKLFisher
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped RealInnerProductSpace NNReal
+noncomputable section
+set_option autoImplicit false
+set_option backward.isDefEq.respectTransparency false
+
+-- Actual fixed paper parameters, eta=2 exercises absence of an eta<=1 premise.
+theorem actual_fixed_posterior
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {κ : ℝ} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2) (y : E) :
+    ∃ p : E, p+(2 : ℝ) • gradient V p=y ∧
+      (∀ z, z+(2 : ℝ) • gradient V z=y → z=p) ∧
+      let rho := fun u => V (p+Real.sqrt 2 • u)-V p-
+        Real.sqrt 2*inner ℝ (gradient V p) u
+      let mu := (volume : Measure E).tilted (fun x => -V x)
+      let R := mu.tilted (fun x => -‖x-y‖^2/(2*2))
+      let r := R.map (fun x => (Real.sqrt 2)⁻¹ • (x-p))
+      IsProbabilityMeasure r ∧ r ≪ stdGaussian E ∧
+        _root_.InformationTheory.klDiv r (stdGaussian E) ≠ ⊤ ∧
+        MemLp (gradient rho) 2 r ∧
+        (_root_.InformationTheory.klDiv r (stdGaussian E)).toReal ≤
+          (1/2 : ℝ)*(∫ u, ‖gradient rho u‖^2 ∂r) := by
+  obtain ⟨p, hpm, hstat, huniq, hd⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOKLFisher.standardized_rgo_unique_prox_and_kl_le_fisher
+      (S := Unit) hκ hV hH (eta := fun _ => 2) (y := fun _ => y)
+      measurable_const measurable_const (by intro s; norm_num)
+  exact ⟨p (), hstat (), huniq (), hd ()⟩
+
+-- Actual measurable family; eta is positive and unbounded.
+theorem actual_variable_step_family
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {κ : ℝ} (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, κ⁻¹*‖v‖^2 ≤ fderiv ℝ (fderiv ℝ V) x v v ∧
+      fderiv ℝ (fderiv ℝ V) x v v ≤ ‖v‖^2) (v : E) :
+    ∃ p : ℝ → E, Measurable p ∧ ∀ s,
+      let eta := s^2+1
+      let rho := fun u => V (p s+Real.sqrt eta • u)-V (p s)-
+        Real.sqrt eta*inner ℝ (gradient V (p s)) u
+      let mu := (volume : Measure E).tilted (fun x => -V x)
+      let R := mu.tilted (fun x => -‖x-s • v‖^2/(2*eta))
+      let r := R.map (fun x => (Real.sqrt eta)⁻¹ • (x-p s))
+      IsProbabilityMeasure r ∧ r ≪ stdGaussian E ∧
+        _root_.InformationTheory.klDiv r (stdGaussian E) ≠ ⊤ ∧
+        MemLp (gradient rho) 2 r ∧
+        (_root_.InformationTheory.klDiv r (stdGaussian E)).toReal ≤
+          (1/2 : ℝ)*(∫ u, ‖gradient rho u‖^2 ∂r) := by
+  have he : Measurable (fun s : ℝ => s^2+1) :=
+    (by fun_prop : Continuous (fun s : ℝ => s^2+1)).measurable
+  have hy : Measurable (fun s : ℝ => s • v) :=
+    (by fun_prop : Continuous (fun s : ℝ => s • v)).measurable
+  obtain ⟨p, hpm, hstat, huniq, hd⟩ :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOKLFisher.standardized_rgo_unique_prox_and_kl_le_fisher
+      hκ hV hH he hy (by intro s; nlinarith [sq_nonneg s])
+  exact ⟨p, hpm, hd⟩
+
+-- Rank0 true law, finite canonical KL, and actual KL.toReal=0.
+theorem rank_zero_actual_canonical_kl :
+    let E := EuclideanSpace ℝ (Fin 0)
+    ∃ p : E,
+      let mu := (volume : Measure E).tilted (fun _ => -(3 : ℝ))
+      let R := mu.tilted (fun x => -‖x‖^2/(2*2))
+      let r := R.map (fun x => (Real.sqrt 2)⁻¹ • (x-p))
+      IsProbabilityMeasure r ∧ r ≪ stdGaussian E ∧
+        _root_.InformationTheory.klDiv r (stdGaussian E) ≠ ⊤ ∧
+        (_root_.InformationTheory.klDiv r (stdGaussian E)).toReal=0 := by
+  let E := EuclideanSpace ℝ (Fin 0)
+  have hH : ∀ x v : E, (1 : ℝ)⁻¹*‖v‖^2 ≤
+      fderiv ℝ (fderiv ℝ (fun _ : E => (3 : ℝ))) x v v ∧
+      fderiv ℝ (fderiv ℝ (fun _ : E => (3 : ℝ))) x v v ≤ ‖v‖^2 := by
+    intro x v
+    have hv : v=0 := Subsingleton.elim _ _
+    subst v
+    simp
+  obtain ⟨p, hstat, huniq, hd⟩ :=
+    actual_fixed_posterior (E := E) (V := fun _ => (3 : ℝ))
+      (κ := 1) (by norm_num) contDiff_const hH 0
+  simp only [sub_zero] at hd
+  refine ⟨p, hd.1, hd.2.1, hd.2.2.1, ?_⟩
+  have hzero : ∀ u : E, gradient
+      (fun u => (3 : ℝ)-3-Real.sqrt 2*inner ℝ (gradient (fun _ : E => (3 : ℝ)) p) u) u=0 :=
+    fun u => Subsingleton.elim _ _
+  have hle := hd.2.2.2.2
+  have hle0 : (_root_.InformationTheory.klDiv
+      ((((volume : Measure E).tilted (fun _ => -(3 : ℝ))).tilted
+        (fun x => -‖x‖^2/(2*2))).map
+          (fun x => (Real.sqrt 2)⁻¹ • (x-p))) (stdGaussian E)).toReal ≤ 0 := by
+    simpa only [hzero, norm_zero, zero_pow (by decide : 2≠0), integral_zero, mul_zero] using hle
+  exact le_antisymm hle0 ENNReal.toReal_nonneg
+
+#print axioms AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.StandardizedRGOKLFisher.standardized_rgo_unique_prox_and_kl_le_fisher
+#print axioms actual_fixed_posterior
+#print axioms actual_variable_step_family
+#print axioms rank_zero_actual_canonical_kl
+end
+end Tests.StandardizedRGOKLFisher

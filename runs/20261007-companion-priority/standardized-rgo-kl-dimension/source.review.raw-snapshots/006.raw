@@ -1,0 +1,12 @@
+# Actual numerical canonical KL for standardized RGO
+Exact1357 public signature, normalized globally C2 source V/Hessian, measurable eta/y and every eta>0, finite real Hilbert/Borel including rank0. Unique measurable stationaryprox, literal volume tilt/quadratic second tilt/affine pushforward, actual probability/AC/finitecanonicalKL/scoreL2 and numerical KL<=eta²realfinrank/2 are produced internally. No caller law/coherence/domain/moment/numericbound certificate.
+Reuse exactly43canonicalhalfFisher and31actualpositionFisher; no repeated GaussianLSI, entropy or position moment proof. Same true smoothrho and literalposterior must be established internally. Canonical llr is not pointwise differentiated and finiteKL precedes toReal.
+1. Obtain43 actual unique stationary proximal witness and canonical finiteKL domains.
+2. Obtain31 actual stationary witness and genuine numerical Fisher output.
+3. Use43uniqueness at31stationarity and function extensionality for SAMEp.
+4. Rewrite the entire31output, transporting all actualrho/Q/r definitions.
+5. Retain43actualprobability/AC/finiteKL/truegradientL2 and canonicalhalfFisher.
+6. Scale31numericFisher by nonnegative half and retain exact realfinrank/2 constant.
+7. Exercise actual eta2, positiveunbounded measurablefamily, andrank0 finiteKL=0 consumers.
+Failure policy: freeze afterthree identical route/progress signatures; type/API/math/source changes require concrete diagnosis. Anonymous typeprobe syntax failure is retained separately;1357 unchanged. No mathematical failed route sofar.
+Boundary: authored omitted numerical-KL integration ingredient for FIRST4.6. GenuineGaussianT2/W2/restFIRST/bothmain/algorithms/error/work/expectedcostcomposition and fullreader/PURIFIED remain OPEN.

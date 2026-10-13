@@ -1,0 +1,101 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingRockafellarConvexDomain
+import Mathlib.Analysis.Convex.Function
+
+/-!
+# Real-valued representative on the proper Rockafellar effective domain
+
+The list-based Rockafellar potential is intentionally `WithTop ℝ`-valued: it may
+be `⊤` away from its effective domain.  Downstream Rademacher and gradient
+arguments, however, require an ordinary real-valued function on the region where
+the proper potential is finite.
+
+This module supplies exactly that bridge.  We use `WithTop.untopD 0` only as a
+total ambient representative; every mathematical theorem is restricted to the
+finite effective domain, where the default value is irrelevant.  The main
+result proves that this real representative is convex on the same effective
+domain.
+
+No claim is made here about the boundary of the domain, differentiability, or
+conversion of the extended-real support relation to a gradient graph.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PairingRockafellarRealDomain
+
+open PairingRockafellarPotential PairingRockafellarConvexDomain
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- A total real representative of an extended-real potential.  Its value at
+`⊤` is an arbitrary default and is never used as mathematical data. -/
+def finitePart (Phi : E → WithTop ℝ) (x : E) : ℝ :=
+  (Phi x).untopD 0
+
+/-- On a finite point, `finitePart` is exactly the unique real value represented
+by the extended-real potential. -/
+theorem finitePart_eq_untop_of_lt_top
+    {Phi : E → WithTop ℝ} {x : E} (hx : Phi x < ⊤) :
+    finitePart Phi x = (Phi x).untop (ne_of_lt hx) := by
+  induction hPhi : Phi x with
+  | top =>
+      simp [hPhi] at hx
+  | coe r =>
+      simp [finitePart, hPhi]
+
+/-- Re-embedding the finite real representative recovers the original
+extended-real value. -/
+theorem coe_finitePart_of_lt_top
+    {Phi : E → WithTop ℝ} {x : E} (hx : Phi x < ⊤) :
+    ((finitePart Phi x : ℝ) : WithTop ℝ) = Phi x := by
+  rw [finitePart_eq_untop_of_lt_top hx]
+  exact WithTop.coe_untop _ (ne_of_lt hx)
+
+/-- The total representative agrees with the proper potential throughout its
+finite/effective domain. -/
+theorem coe_finitePart_on_effectiveDomain
+    {Phi : E → WithTop ℝ} {x : E}
+    (hx : x ∈ EffectiveDomain Phi) :
+    ((finitePart Phi x : ℝ) : WithTop ℝ) = Phi x := by
+  exact coe_finitePart_of_lt_top hx
+
+/-- The finite real representative of the proper list-based Rockafellar
+potential is convex on its effective domain.  This is the domain-aware real
+convexity interface needed by the later a.e.-differentiability step. -/
+theorem convexOn_finitePart_effectiveDomain
+    {base : E × E} {Gamma : Set (E × E)}
+    (hbase : base ∈ Gamma) :
+    ConvexOn ℝ
+      (EffectiveDomain (properRockafellarPotential base Gamma))
+      (finitePart (properRockafellarPotential base Gamma)) := by
+  let Phi : E → WithTop ℝ := properRockafellarPotential base Gamma
+  have hD : Convex ℝ (EffectiveDomain Phi) := by
+    simpa [Phi] using convex_effectiveDomain (base := base) (Gamma := Gamma) hbase
+  refine ⟨hD, ?_⟩
+  intro x hx y hy a b ha hb hab
+  have hcombo : a • x + b • y ∈ EffectiveDomain Phi :=
+    hD hx hy ha hb hab
+  have hxlt : Phi x < ⊤ := hx
+  have hylt : Phi y < ⊤ := hy
+  have hcombolt : Phi (a • x + b • y) < ⊤ := hcombo
+  have hle :=
+    properRockafellarPotential_combo_le
+      (base := base) (Gamma := Gamma) hbase hxlt hylt ha hb hab
+  have hcoe :
+      ((finitePart Phi (a • x + b • y) : ℝ) : WithTop ℝ) ≤
+        ((a * finitePart Phi x + b * finitePart Phi y : ℝ) : WithTop ℝ) := by
+    rw [coe_finitePart_of_lt_top hcombolt]
+    simpa [Phi,
+      finitePart_eq_untop_of_lt_top hxlt,
+      finitePart_eq_untop_of_lt_top hylt] using hle
+  simpa [smul_eq_mul] using WithTop.coe_le_coe.mp hcoe
+
+end
+
+end PairingRockafellarRealDomain
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

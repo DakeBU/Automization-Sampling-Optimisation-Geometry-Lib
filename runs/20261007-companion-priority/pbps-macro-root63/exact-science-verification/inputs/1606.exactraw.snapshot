@@ -1,0 +1,214 @@
+{
+  "id": "ASTIS-RT-20261006-RandomizedMapTransport",
+  "state": "accepted",
+  "source": {
+    "source_id": "companion:randomized-map-transport",
+    "anchor": "Theorem4.5 proof, HTML529-545; Proposition4.7 (4.13), HTML590-615; shared raw-infimum prerequisite",
+    "url": "https://arxiv.org/html/2609.06906v1#S4.SS2",
+    "original_text": "Attributed scoped prerequisite/interface restatement:\nE is a normed additive Borel group with second-countable topology. These topological/algebraic conditions are exposed API requirements of the reused shared marginal interface, not hidden moment or optimizer assumptions. State and noise use this same space.\nPhi:E×E->E and the extended nonnegative cost c:E×E->ENNReal are jointly measurable. The noise Gamma and both input laws mu,nu are probability measures. 0<A<infinity in extended reals.\nFor every x,y,zeta, c(Phi(x,zeta),Phi(y,zeta))<=A c(x,y). This is the explicit general lifting premise; the actual source algorithm consumer proves it from its genuine normalized potential, not a supplied kernel certificate.\nThe true randomized output laws map(Phi,mu×Gamma) and map(Phi,nu×Gamma) obey T_c(output_mu,output_nu)<=A T_c(mu,nu). Here T_c is the raw Kantorovich infimum over actual couplings. Input/output costs may be infinite and no optimizer or finite moments are assumed.\nActual Gaussian exact-gradient numerical K at the explicit normalized global C2 curvature interface. Actual f=V_eta smoothing/C2/curvature remains separate. No target invariance/stationarity, numerical target bias, stochastic Khat/Kbar, local errors/history/expected query cost, Wp/proxy-warmness/initialization, PBPS or either complete main/composition result. TV proximity does not transfer unbounded cost.",
+    "text_sha256": "6c8234914d02a6b6a77012acdcc4ca17972585c6be34ffb8eca76950a50e4f13"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.RandomizedMapTransport.transportCost_randomized_map_le",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Measure/RandomizedMapTransport.lean",
+    "statement": "(Φ : E × E → E) (hΦ : Measurable Φ) (c : E × E → ℝ≥0∞) (hc : Measurable c)\n    (A : ℝ≥0∞) (hA0 : A ≠ 0) (hAtop : A ≠ ⊤)\n    (hcost : ∀ x y ζ, c (Φ (x,ζ),Φ (y,ζ)) ≤ A*c (x,y))\n    (μ ν Γ : Measure E) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]\n    [IsProbabilityMeasure Γ] :\n    Transport.transportCost c ((μ.prod Γ).map Φ) ((ν.prod Γ).map Φ) ≤\n      A * Transport.transportCost c μ ν",
+    "statement_sha256": "4fe483ebc11b807a50a5cce009ae1f588fbede052d509393975b4619b93b5cd7",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "E is a normed additive group with its Borel measurable space and second-countable topology. Phi is a measurable map from E×E to E; c is a measurable extended nonnegative cost on endpoint pairs. The three displayed laws are probability measures.",
+      "Transport.transportCost c mu nu is sInf {r | exists a measure gamma on E×E with gamma.fst=mu and gamma.snd=nu and r=lintegral c gamma}. No optimizer or finite-cost convention is imposed. Measure.prod is the independent product measure; Measure.map is measurable pushforward.",
+      "A is an extended nonnegative real, nonzero and different from infinity. The cost premise is pointwise for every pair and every shared noise sample. Products/multiplication use extended-real conventions."
+    ],
+    "compiler_evidence": "Focused3717 actual nonconstant-Hessian full Gaussian numerical kernel/all probability-law test; standard3 only. Independent mathematics/source review pending."
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "phase_source_reviewer_20261005",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "Fresh anti-anchored source review from this packet/current primary source. Independently read both entire new production modules and entire Test, all selected authored formula proof steps, publication assumptions/differences and current cell snapshots. Checked real synchronous marginal construction, ENNReal arbitrary/infinite-cost infimum reasoning, genuine kernel/Markov/integrated-law identities, actual source Q and actual two-refresh/two-Picard Phi. Source constants/indexing/curvature scope verified against versioned source. Matching parent whole-proof freeze reused only after raw/LF checks; current called interfaces and relevant producer code reread. Canonical packet/source/statement/reconstruction/decoder and complete selected publication binding independently recomputed. Fresh direct production/production/Test elaboration passed as auxiliary evidence, not fidelity evidence. No source, theorem, exposure or whole-module mismatch identified for this scoped component.",
+    "review_run_sha256": "27ac380e0c0cb4ccc0a5f53f550074d5fd06d440961dc8e9196ca724428706da",
+    "reviewer_packet_sha256": "86712b994476b4d8f10c8a961f1836ee34650de26f3019601cb95fd6d36a01fa",
+    "run_artifact": "runs/20261006-companion-priority/actual-kernel-transport/source-review1.result.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "7b19985efd4a1af1c5ce2a57caf3bb9f4b4d12e023788654f35331006a7f9d53",
+  "publication_context": {
+    "file": "003ccf9747141436cf441613561333eea3dca5c4fd8ca5710a00f93be8b80a9d",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Measure.CommonNoiseContraction\n\n/-! # Nonlinear randomized-map transport contraction\n\nConstruct a genuine synchronous common-noise coupling, without assuming an\noptimal plan or finite moments. The positive finite factor commutes with the\nraw extended transport infimum. State and noise inhabit the same Borel space;\nthe actual SPHMC phase/noise and additive-noise consumers both satisfy this.\n-/\nnamespace AutoSamplingTheory.TechnicalLemmas.Measure.RandomizedMapTransport\nopen MeasureTheory\nopen scoped ENNReal\nnoncomputable section\nvariable {E : Type*} [NormedAddCommGroup E] [MeasurableSpace E]\n  [BorelSpace E] [SecondCountableTopology E]\n\n/-- Lift a measurable same-noise pointwise cost bound to actual randomized\noutput laws, for arbitrary probability inputs, including infinite costs. -/\ntheorem transportCost_randomized_map_le\n    (Φ : E × E → E) (hΦ : Measurable Φ) (c : E × E → ℝ≥0∞) (hc : Measurable c)\n    (A : ℝ≥0∞) (hA0 : A ≠ 0) (hAtop : A ≠ ⊤)\n    (hcost : ∀ x y ζ, c (Φ (x,ζ),Φ (y,ζ)) ≤ A*c (x,y))\n    (μ ν Γ : Measure E) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]\n    [IsProbabilityMeasure Γ] :\n    Transport.transportCost c ((μ.prod Γ).map Φ) ((ν.prod Γ).map Φ) ≤\n      A * Transport.transportCost c μ ν := by\n  classical\n  have candidate (γ : Measure (E × E)) (hγ : Transport.IsCoupling γ μ ν) :\n      Transport.transportCost c ((μ.prod Γ).map Φ) ((ν.prod Γ).map Φ) ≤\n        A * ∫⁻ z, c z ∂γ := by\n    letI : IsProbabilityMeasure γ := Transport.isProbabilityMeasure_of_isCoupling_left hγ\n    let S : ((E × E) × E) → E × E := fun w => (Φ (w.1.1,w.2),Φ (w.1.2,w.2))\n    have hS : Measurable S := hΦ.comp (by fun_prop) |>.prodMk (hΦ.comp (by fun_prop))\n    let ρ := (γ.prod Γ).map S\n    have hleft : (γ.prod Γ).map (fun w : ((E × E) × E) => (w.1.1,w.2)) = μ.prod Γ :=\n      CommonNoiseContraction.map_pairLeft_prod_eq hγ\n    have hright : (γ.prod Γ).map (fun w : ((E × E) × E) => (w.1.2,w.2)) = ν.prod Γ :=\n      CommonNoiseContraction.map_pairRight_prod_eq hγ\n    have hρ : Transport.IsCoupling ρ ((μ.prod Γ).map Φ) ((ν.prod Γ).map Φ) := by\n      constructor\n      · rw [Measure.fst, show ρ = (γ.prod Γ).map S from rfl,\n          Measure.map_map measurable_fst hS]\n        rw [← hleft, Measure.map_map hΦ (by fun_prop)]\n        rfl\n      · rw [Measure.snd, show ρ = (γ.prod Γ).map S from rfl,\n          Measure.map_map measurable_snd hS]\n        rw [← hright, Measure.map_map hΦ (by fun_prop)]\n        rfl\n    calc\n      Transport.transportCost c ((μ.prod Γ).map Φ) ((ν.prod Γ).map Φ) ≤\n          ∫⁻ z, c z ∂ρ := Transport.transportCost_le_lintegral_of_isCoupling _ _ _ _ hρ\n      _ = ∫⁻ w, c (S w) ∂γ.prod Γ := lintegral_map hc hS\n      _ ≤ ∫⁻ w : (E × E) × E, A*c w.1 ∂γ.prod Γ := by\n        apply lintegral_mono\n        intro w\n        exact hcost _ _ _\n      _ = A * ∫⁻ w : (E × E) × E, c w.1 ∂γ.prod Γ :=\n        lintegral_const_mul _ (hc.comp measurable_fst)\n      _ = A * ∫⁻ z, c z ∂γ := by\n        rw [← lintegral_map hc measurable_fst, Measure.map_fst_prod, measure_univ, one_smul]\n  conv_rhs => rw [Transport.transportCost_eq_sInf, sInf_eq_iInf,\n    ENNReal.mul_iInf_of_ne hA0 hAtop]\n  apply le_iInf\n  intro r\n  rw [ENNReal.mul_iInf_of_ne hA0 hAtop]\n  apply le_iInf\n  intro hrmem\n  rcases hrmem with ⟨γ,hγ,hr⟩\n  simpa only [hr] using candidate γ hγ\nend\nend AutoSamplingTheory.TechnicalLemmas.Measure.RandomizedMapTransport\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "arxiv-2609.06906v1",
+      "url": "https://arxiv.org/html/2609.06906v1#S4.SS2",
+      "anchor": "Theorem4.5 proof, HTML529-545; Proposition4.7 (4.13), HTML590-615; shared raw-infimum prerequisite",
+      "edition": "arXiv:2609.06906v1",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu, Matthew S. Zhang; ASTIS explicit transport prerequisite/actual-kernel interface, not the full local-error or main result."
+    },
+    "statement": "The true randomized output laws map(Phi,mu×Gamma) and map(Phi,nu×Gamma) obey T_c(output_mu,output_nu)<=A T_c(mu,nu). Here T_c is the raw Kantorovich infimum over actual couplings. Input/output costs may be infinite and no optimizer or finite moments are assumed.",
+    "formulae": [
+      {
+        "label": "Genuine randomized law and raw transport",
+        "tex": "\\mathcal T_c(\\Phi_\\#(\\mu\\otimes\\Gamma),\\Phi_\\#(\\nu\\otimes\\Gamma))\\le A\\mathcal T_c(\\mu,\\nu),\\qquad0<A<\\infty."
+      }
+    ],
+    "assumptions": [
+      "E is a normed additive Borel group with second-countable topology. These topological/algebraic conditions are exposed API requirements of the reused shared marginal interface, not hidden moment or optimizer assumptions. State and noise use this same space.",
+      "Phi:E×E->E and the extended nonnegative cost c:E×E->ENNReal are jointly measurable. The noise Gamma and both input laws mu,nu are probability measures. 0<A<infinity in extended reals.",
+      "For every x,y,zeta, c(Phi(x,zeta),Phi(y,zeta))<=A c(x,y). This is the explicit general lifting premise; the actual source algorithm consumer proves it from its genuine normalized potential, not a supplied kernel certificate."
+    ],
+    "obligations": [
+      {
+        "id": "actual-transport-input",
+        "label": "Actual common-noise law/transport prerequisite"
+      },
+      {
+        "id": "smoothed-producer",
+        "label": "Actual f=V_eta smoothing/C2/curvature (remaining)"
+      },
+      {
+        "id": "remaining-main",
+        "label": "Local errors/invariance/history/cost and full main/composition (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.RandomizedMapTransport.transportCost_randomized_map_le",
+      "title": "Genuine nonlinear common-noise coupling and raw transport cost",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS2",
+          "label": "SPHMC actual common-noise transport prerequisite",
+          "scope": "Actual Gaussian exact-gradient numerical K at the explicit normalized global C2 curvature interface. Actual f=V_eta smoothing/C2/curvature remains separate. No target invariance/stationarity, numerical target bias, stochastic Khat/Kbar, local errors/history/expected query cost, Wp/proxy-warmness/initialization, PBPS or either complete main/composition result. TV proximity does not transfer unbounded cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCActualKernelTransport"
+      ],
+      "assumptions": [
+        "E is a normed additive Borel group with second-countable topology. These topological/algebraic conditions are exposed API requirements of the reused shared marginal interface, not hidden moment or optimizer assumptions. State and noise use this same space.",
+        "Phi:E×E->E and the extended nonnegative cost c:E×E->ENNReal are jointly measurable. The noise Gamma and both input laws mu,nu are probability measures. 0<A<infinity in extended reals.",
+        "For every x,y,zeta, c(Phi(x,zeta),Phi(y,zeta))<=A c(x,y). This is the explicit general lifting premise; the actual source algorithm consumer proves it from its genuine normalized potential, not a supplied kernel certificate."
+      ],
+      "statement": "The true randomized output laws map(Phi,mu×Gamma) and map(Phi,nu×Gamma) obey T_c(output_mu,output_nu)<=A T_c(mu,nu). Here T_c is the raw Kantorovich infimum over actual couplings. Input/output costs may be infinite and no optimizer or finite moments are assumed.",
+      "formula": "\\mathcal T_c(\\Phi_\\#(\\mu\\otimes\\Gamma),\\Phi_\\#(\\nu\\otimes\\Gamma))\\le A\\mathcal T_c(\\mu,\\nu),\\qquad0<A<\\infty.",
+      "steps": [
+        {
+          "title": "Construct the actual common-noise coupling",
+          "text": "Start with any gamma coupling mu and nu. Normalization follows from its prescribed probability left marginal. Put rho=S#(gamma×Gamma), where S((x,y),zeta)=(Phi(x,zeta),Phi(y,zeta)). Joint measurability gives a genuine pushforward. Reuse the existing public left/right joint-noise marginal lemmas: (x,zeta) and (y,zeta) have laws mu×Gamma and nu×Gamma. Map composition therefore proves rho has exactly the two randomized output marginals.",
+          "formula": "\\rho=S_\\#(\\gamma\\otimes\\Gamma),\\quad\\rho_1=\\Phi_\\#(\\mu\\otimes\\Gamma),\\quad\\rho_2=\\Phi_\\#(\\nu\\otimes\\Gamma).",
+          "lean": "candidate; hS; hleft; hright; hρ; map_pairLeft_prod_eq; map_pairRight_prod_eq"
+        },
+        {
+          "title": "Integrate the explicit pointwise cost",
+          "text": "The canonical feasible-coupling bound gives T_c(outputs)<=integral c d rho. The measurable map formula and assumed pointwise bound give at most A integral c(x,y) d(gamma×Gamma). Since Gamma has mass one, mapping the product to its first coordinate reduces this exactly to A integral c d gamma. This uses nonnegative extended integrals, not an unproved finite expectation.",
+          "formula": "\\mathcal T_c(\\mathrm{outputs})\\le\\int c\\,d\\rho\\le A\\int c\\,d\\gamma.",
+          "lean": "transportCost_le_lintegral_of_isCoupling; lintegral_map; lintegral_mono; lintegral_const_mul; Measure.map_fst_prod"
+        },
+        {
+          "title": "Take the raw infimum",
+          "text": "A finite nonzero multiplier commutes with the raw extended-real infimum. Rewrite the input transport infimum as an indexed infimum over each feasible cost, and apply the already constructed candidate bound to every one. No existence of a minimizing coupling or continuity of c is required.",
+          "formula": "\\mathcal T_c(\\mathrm{outputs})\\le\\inf_{\\gamma\\in\\mathrm{Coupl}(\\mu,\\nu)}A\\int c\\,d\\gamma=A\\mathcal T_c(\\mu,\\nu).",
+          "lean": "Transport.transportCost_eq_sInf; sInf_eq_iInf; ENNReal.mul_iInf_of_ne; le_iInf"
+        }
+      ],
+      "lean_statement": "Exact randomized law/actual Phi and Markov semantics, canonical raw source cost.",
+      "lean_proof": "Genuine synchronous coupling / actual kernel-law producer, measurable nonnegative integrals and positive finite scaled raw infimum.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.CommonNoiseContraction.map_pairLeft_prod_eq",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.CommonNoiseContraction.map_pairRight_prod_eq",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost_le_lintegral_of_isCoupling",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.isProbabilityMeasure_of_isCoupling_left"
+      ],
+      "mathlib_dependencies": [
+        "Measure.map_map",
+        "lintegral_map",
+        "lintegral_mono",
+        "lintegral_const_mul",
+        "Measure.map_fst_prod",
+        "ENNReal.mul_iInf_of_ne",
+        "sInf_eq_iInf",
+        "le_iInf"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.RandomizedMapTransport.transportCost_randomized_map_le",
+      "role": "prerequisite",
+      "supports": [
+        "actual-transport-input"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Common-noise coupling of the source phase and its induced law.",
+        "lean": "E is a normed additive Borel group with second-countable topology. These topological/algebraic conditions are exposed API requirements of the reused shared marginal interface, not hidden moment or optimizer assumptions. State and noise use this same space.\nPhi:E×E->E and the extended nonnegative cost c:E×E->ENNReal are jointly measurable. The noise Gamma and both input laws mu,nu are probability measures. 0<A<infinity in extended reals.\nFor every x,y,zeta, c(Phi(x,zeta),Phi(y,zeta))<=A c(x,y). This is the explicit general lifting premise; the actual source algorithm consumer proves it from its genuine normalized potential, not a supplied kernel certificate."
+      },
+      {
+        "source": "Source universal constant c and squared source metric costs.",
+        "lean": "The true randomized output laws map(Phi,mu×Gamma) and map(Phi,nu×Gamma) obey T_c(output_mu,output_nu)<=A T_c(mu,nu). Here T_c is the raw Kantorovich infimum over actual couplings. Input/output costs may be infinite and no optimizer or finite moments are assumed."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "Let E be a normed additive group with its Borel measurable space and second-countable topology. Fix a measurable map Phi:E x E->E,a measurable cost c:E x E->ENNReal,and an extended nonnegative factor A with A!=0 and A!=infinity. Assume the following inequality pointwise for every x,y,zeta in E:\n  c(Phi(x,zeta),Phi(y,zeta))<=A c(x,y).\nFor every three probability measures mu,nu,Gamma on E,let the two updated laws be the measurable pushforwards\n  muOut=(mu x Gamma)_*Phi,\n  nuOut=(nu x Gamma)_*Phi.\nThus in each law the input and noise are sampled independently,and both laws use the same noise law Gamma. Define the raw extended-nonnegative transport cost\n  T_c(alpha,beta)=inf{integral^- c dpi : pi is a measure on E x E,\n                     pi.fst=alpha and pi.snd=beta}.\nThe infimum is over the lower-integral values of all measures having the two specified marginals. Then\n  T_c(muOut,nuOut)<=A T_c(mu,nu).\nThe pointwise premise uses the same zeta on both compared outputs and holds for every noise value,not only almost everywhere. A is positive and finite in ENNReal but is not assumed less than one. The cost c may take infinite values and is not required to be a metric,quadratic cost or finite cost. Transport values and their products use extended-nonnegative conventions;there is no finite-cost replacement,optimal-coupling or attainment assumption. Probability normalization applies to all three laws. No Gaussian law,noise distribution beyond Gamma,iteration history,invariant law or root/power conversion is included.",
+    "text_sha256": "a219520bd9e599db199cc42ee728a7e3578f0e3faf78a96e421b19b74476e871",
+    "decoder": "anonymous_decoder_20261006",
+    "decoder_run_sha256": "40d3906c096b6ce7301d1e703c767713c625e4ce9d4de976f5f16b792824b4e5",
+    "decoder_packet_sha256": "14efce142236b0807ef1527219524b97338b678fa6a85fa4bf76dd76fd723bb9",
+    "source_text_visible": false,
+    "lean_statement_sha256": "4fe483ebc11b807a50a5cce009ae1f588fbede052d509393975b4619b93b5cd7",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/20261006-companion-priority/actual-kernel-transport/anonymous1.reconstruction.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "A genuine measurable random map Phi, extended cost c, independent noise Gamma and raw coupling infimum T_c.",
+      "reconstructed": "Exactly these pushforward laws and raw lower-integral infimum; cost need not be metric.",
+      "relation": "equivalent",
+      "evidence": "RandomizedMapTransport.lean19-26; Transport.lean22-38. The coupling is built rather than assumed as an output certificate."
+    },
+    "domains": {
+      "original": "Same normed additive Borel second-countable space for state and noise; extended costs and factor.",
+      "reconstructed": "Same space and topology/API requirements with ENNReal costs.",
+      "relation": "explicit-elaboration",
+      "evidence": "RandomizedMapTransport.lean14-15. This is an exposed shared API restriction/generalization of the finite Euclidean application, not an assertion that the paper states a generic normed-group theorem."
+    },
+    "quantifiers": {
+      "original": "Every x,y,zeta pointwise; every three probability measures mu,nu,Gamma.",
+      "reconstructed": "Same universal common-noise premise and arbitrary probability inputs.",
+      "relation": "equivalent",
+      "evidence": "RandomizedMapTransport.lean22-24 and candidate28-38. Noise is independent of each input; the two compared outputs use one shared noise value."
+    },
+    "assumptions": {
+      "original": "Joint measurable Phi/c, probability laws, positive finite A and explicit pointwise cost lifting premise.",
+      "reconstructed": "Same assumptions; no optimizer, moments or finite costs.",
+      "relation": "equivalent",
+      "evidence": "Measurability33 enables pushforward/marginals39-48; probability joint recovered31; lower integrals49-60 need no integrability."
+    },
+    "conclusion": {
+      "original": "T_c(Phi#(mu x Gamma),Phi#(nu x Gamma)) <= A T_c(mu,nu).",
+      "reconstructed": "Identical raw extended-nonnegative inequality, including infinite input/output costs.",
+      "relation": "equivalent",
+      "evidence": "Candidate bound49-60 then61-69 distributes positive finite multiplication across both infima. ENNReal.mul_iInf_of_ne covers empty index families without a finite-cost convention."
+    },
+    "scopes": {
+      "original": "Shared common-noise transport prerequisite, with actual SPHMC application separate; no numbered source theorem or main completion.",
+      "reconstructed": "General measurable-map law lift; no Gaussian, invariance, history, queries or powered/rooted distance result.",
+      "relation": "explicit-elaboration",
+      "evidence": "Selected publication binding role prerequisite; authored3-step proof matches. Source Theorem4.5 common-noise argument motivates abstraction; source-neutral generalization is openly scoped."
+    },
+    "constant_dependencies": {
+      "original": "Only arbitrary nonzero finite ENNReal A; no restriction A<1.",
+      "reconstructed": "Same A!=0,A!=infinity and multiplicative factor.",
+      "relation": "equivalent",
+      "evidence": "Lines21,62,65; pinned ENNReal/Inv.lean855-860. Positivity and finiteness are explicit, including top input cost, and no dimension/moment constants occur."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration"
+}

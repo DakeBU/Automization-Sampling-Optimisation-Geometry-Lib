@@ -1,0 +1,79 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBathConditional
+import AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture
+
+/-!
+# Uniform random-scan heat-bath transition law
+
+One step chooses one coordinate uniformly and uses the existing coordinate
+heat-bath kernel. The exact singleton law is stated at a positive-mass start;
+the ambient Boolean cube may contain forbidden zero-mass configurations.
+This is a noncomputable law interface, not a sweep or a mixing/cost theorem.
+The source copy-index discrepancy remains a separate semantic review boundary.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal
+
+/-- One uniform random-site update of a finite Boolean probability target.
+The conditional versions at null fibers are inherited from `heatBath`. -/
+noncomputable def randomScan {n : ℕ} (μ : Measure (Fin (n + 1) → Bool))
+    [IsProbabilityMeasure μ] : Kernel (Fin (n + 1) → Bool) (Fin (n + 1) → Bool) :=
+  KernelMixture.finiteMixture (fun _ : Fin (n + 1) => ((n + 1 : ℝ≥0)⁻¹))
+    (fun i => CoordinateHeatBath.heatBath (fun _ => Bool) μ i)
+
+/-- The uniform weights and the existing Markov components give mass one at
+every input, independently of the positive-start condition in the law below. -/
+instance randomScan_isMarkovKernel {n : ℕ} (μ : Measure (Fin (n + 1) → Bool))
+    [IsProbabilityMeasure μ] : IsMarkovKernel (randomScan μ) := by
+  apply KernelMixture.finiteMixture_isMarkovKernel
+  simp [Finset.sum_const, nsmul_eq_mul, Nat.cast_add, Nat.cast_one]
+
+open Classical in
+/-- Exact probability of a singleton after one uniformly selected coordinate
+update. Every positive fiber is derived from the positive starting atom.
+The retained-coordinate test is literal equality at every unselected site;
+`succAbove` only enumerates that same fiber in the denominator. -/
+theorem randomScan_apply_singleton {n : ℕ} (μ : Measure (Fin (n + 1) → Bool))
+    [IsProbabilityMeasure μ] (x y : Fin (n + 1) → Bool) (hx : μ {x} ≠ 0) :
+    randomScan μ x {y} = (n + 1 : ℝ≥0∞)⁻¹ *
+      ∑ i : Fin (n + 1),
+        if ∀ j, j ≠ i → y j = x j then
+          (μ {z | (fun j => z (i.succAbove j)) =
+            (fun j => x (i.succAbove j))})⁻¹ * μ {y}
+        else 0 := by
+  classical
+  rw [randomScan, KernelMixture.finiteMixture_apply, Measure.finsetSum_apply,
+    Finset.mul_sum]
+  apply Finset.sum_congr rfl
+  intro i _
+  have hpos : μ {z | (fun j => z (i.succAbove j)) =
+      (fun j => x (i.succAbove j))} ≠ 0 := by
+    have hle : μ {x} ≤ μ {z | (fun j => z (i.succAbove j)) =
+        (fun j => x (i.succAbove j))} :=
+      measure_mono (Set.singleton_subset_iff.mpr rfl)
+    intro hzero
+    exact hx (le_antisymm (hzero ▸ hle) bot_le)
+  have hret : (∀ j, j ≠ i → y j = x j) ↔
+      (fun j => y (i.succAbove j)) = (fun j => x (i.succAbove j)) := by
+    constructor
+    · intro h
+      exact funext (fun j => h _ (Fin.succAbove_ne _ _))
+    · intro h j hji
+      obtain ⟨k, rfl⟩ := Fin.exists_succAbove_eq hji
+      exact congrFun h k
+  simp only [Measure.smul_apply, smul_eq_mul]
+  apply congrArg₂ (· * ·)
+  · simpa only [ENNReal.coe_add, ENNReal.coe_natCast, ENNReal.coe_one] using
+      (ENNReal.coe_inv (r := (n + 1 : ℝ≥0)) (by positivity))
+  · rw [CoordinateHeatBath.heatBath_eq_cond _ μ i x hpos,
+      cond_apply' (measurableSet_singleton _)]
+    split_ifs with hy
+    · rw [Set.inter_singleton_of_mem (show y ∈ {z |
+        (fun j => z (i.succAbove j)) = (fun j => x (i.succAbove j))} from hret.mp hy)]
+    · rw [Set.inter_singleton_of_notMem (show y ∉ {z |
+        (fun j => z (i.succAbove j)) = (fun j => x (i.succAbove j))} from mt hret.mpr hy),
+        measure_empty, mul_zero]
+
+end AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath

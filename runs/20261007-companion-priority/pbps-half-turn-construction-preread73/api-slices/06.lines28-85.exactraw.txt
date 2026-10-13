@@ -1,0 +1,58 @@
+variable [NormedAddCommGroup E] [NormedAddCommGroup F]
+variable [InnerProductSpace 𝕜 E] [InnerProductSpace ℝ F]
+
+local notation "⟪" x ", " y "⟫" => inner 𝕜 x y
+
+variable (K : Submodule 𝕜 E)
+variable [K.HasOrthogonalProjection]
+
+/-- Auxiliary definition for `reflection`: the reflection as a linear equivalence. -/
+def reflectionLinearEquiv : E ≃ₗ[𝕜] E :=
+  LinearEquiv.ofInvolutive
+    (2 • (K.starProjection.toLinearMap) - LinearMap.id) fun x => by
+    simp [two_smul, starProjection_eq_self_iff.mpr]
+
+set_option backward.isDefEq.respectTransparency false in
+/-- Reflection in a complete subspace of an inner product space.  The word "reflection" is
+sometimes understood to mean specifically reflection in a codimension-one subspace, and sometimes
+more generally to cover operations such as reflection in a point.  The definition here, of
+reflection in a subspace, is a more general sense of the word that includes both those common
+cases. -/
+def reflection : E ≃ₗᵢ[𝕜] E :=
+  { K.reflectionLinearEquiv with
+    norm_map' := by
+      intro x
+      let w : K := K.orthogonalProjectionOnto x
+      let v := x - w
+      have : ⟪v, w⟫ = 0 := starProjection_inner_eq_zero x w w.2
+      convert norm_sub_eq_norm_add this
+      · dsimp [reflectionLinearEquiv, v, w]
+        abel
+      · simp only [v, add_sub_cancel] }
+
+variable {K}
+
+/-- The result of reflecting. -/
+theorem reflection_apply (p : E) : K.reflection p = 2 • K.starProjection p - p :=
+  rfl
+
+/-- Reflection is its own inverse. -/
+@[simp]
+theorem reflection_symm : K.reflection.symm = K.reflection :=
+  rfl
+
+/-- Reflection is its own inverse. -/
+@[simp]
+theorem reflection_inv : K.reflection⁻¹ = K.reflection :=
+  rfl
+
+variable (K)
+
+/-- Reflecting twice in the same subspace. -/
+@[simp]
+theorem reflection_reflection (p : E) : K.reflection (K.reflection p) = p :=
+  K.reflection.left_inv p
+
+/-- Reflection is involutive. -/
+theorem reflection_involutive : Function.Involutive K.reflection :=
+  K.reflection_reflection

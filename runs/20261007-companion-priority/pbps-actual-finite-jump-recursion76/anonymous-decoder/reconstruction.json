@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "anonymous-statement-reconstruction",
+  "reconstructed_theorem_text": "Anonymous deterministic recursive-event proposition\n\nAmbient data and assumptions.\nE is an arbitrary type carrying a normed additive commutative group structure, a real inner-product-space structure, finite dimension over ℝ, a measurable-space structure, and the Borel-space compatibility instance. Dimension zero is allowed. V : E → ℝ, α, β : ℝ≥0, and η : ℝ are arbitrary subject to all of the following:\n  0 < (α : ℝ);\n  α ≤ β;\n  V is twice continuously Fréchet differentiable over ℝ;\n  for every x, v ∈ E,\n    (α : ℝ) ‖v‖² ≤ (D(DV)(x)[v])[v]\n    and (D(DV)(x)[v])[v] ≤ (β : ℝ) ‖v‖²;\n  0 < η;\n  (β : ℝ) η ≤ 1.\nHere (D(DV)(x)[v])[v] is exactly the displayed iterated Fréchet derivative, and ∇V is the real Hilbert gradient.\n\nNotation and meanings.\nA phase z ∈ E × E has position z.1 and velocity z.2. Write R for the disjoint union (ℝ≥0 × (E × E)) ⊕ Unit. Its left tag inl(T,z) contains a finite nonnegative time and a phase. Its right tag inr() contains no phase and represents the stopped branch. Extended times lie in WithTop ℝ≥0, written ℝ≥0 ∪ {∞}; ∞ is the largest element. Nonnegative times are embedded into that extended-time order where indicated. Real division is total, including at a zero denominator. sqrt is the nonnegative real square root. untopD(0) returns a finite extended time's nonnegative value and has default zero at ∞. Real.toNNReal(r) is the nonnegative part of a real number. Scalar multiplication is denoted by •, and ⟨·,·⟩ is the real inner product.\n\nThe eleven literal local definitions, in their displayed order, are:\n\n1. c : E → E → E,\n   c(y,xRef) = y − η • ∇V(xRef).\n\n2. Φ : E → E → ℝ → (E × E) → (E × E),\n   Φ(y,xRef,t,z) =\n     ( c(y,xRef) + cos(t) • (z.1 − c(y,xRef))\n         + (sqrt(η) sin(t)) • z.2,\n       (−sin(t) / sqrt(η)) • (z.1 − c(y,xRef))\n         + cos(t) • z.2 ).\n   The time argument of Φ is a real number.\n\n3. S : E → (E × E) → (E × E),\n   S(xRef,z) =\n     ( z.1,\n       z.2 −\n         (2 ⟨z.2, ∇V(z.1) − ∇V(xRef)⟩ /\n           ‖∇V(z.1) − ∇V(xRef)‖²)\n         • (∇V(z.1) − ∇V(xRef)) ).\n   This definition has no nonzero-gradient-difference premise.\n\n4. rate : E → (E × E) → ℝ,\n   rate(xRef,z) =\n     sqrt(η) max(0, ⟨z.2, ∇V(z.1) − ∇V(xRef)⟩).\n\n5. H : E → E → (E × E) → ℝ,\n   H(y,xRef,z) =\n     (η⁻¹ ‖z.1 − c(y,xRef)‖² + ‖z.2‖²) / 2.\n   The two squared norms are separate vector norms exactly as displayed.\n\n6. C : E → E → (E × E) → ℝ,\n   C(y,xRef,z) =\n     sqrt(η) (β : ℝ) sqrt(2 H(y,xRef,z))\n       (sqrt(2 η H(y,xRef,z)) + ‖c(y,xRef) − xRef‖).\n\n7. Λ : E → E → (E × E) → ℝ≥0 → ℝ,\n   Λ(y,xRef,z,t) =\n     ∫ from s = 0 to s = (t : ℝ) rate(xRef, Φ(y,xRef,s,z)) ds.\n   This is the real Lebesgue interval integral with its oriented-interval convention.\n\n8. τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0.\n   On the parameter space (E × E) × (E × E) × ℝ≥0, define the displayed process\n     F(t,a) = Λ(a.1.1,a.1.2,a.2.1,t) − (a.2.2 : ℝ),\n   where t ∈ ℝ≥0 and a = ((y,xRef),z,e) has the displayed product projections. Then\n     τ(y,xRef,z,e) =\n       hittingAfter(F, [0,+∞) ⊆ ℝ, start = 0, parameter = ((y,xRef),z,e)).\n   Thus τ is the extended nonnegative infimum of times t at or after zero with\n     Λ(y,xRef,z,t) − (e : ℝ) ≥ 0;\n   it is ∞ when that set is empty.\n\n9. next : E → E → ℝ≥0 → R → R,\n   next(y,xRef,e,inr()) = inr().\n   If r = inl(a) with a = (T,z) ∈ ℝ≥0 × (E × E), then:\n     if τ(y,xRef,z,e) = ∞,\n       next(y,xRef,e,inl(a)) = inr();\n     otherwise, putting θ = untopD(0)(τ(y,xRef,z,e)) ∈ ℝ≥0,\n       next(y,xRef,e,inl(a)) =\n         inl(T + θ, S(xRef, Φ(y,xRef,(θ : ℝ),z))).\n   The finite-time use of untopD(0) in this active branch is guarded by τ ≠ ∞.\n\n10. record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → R,\n    record(y,xRef,z₀,e,n) =\n      Nat.rec(inl(0,z₀), (k,r) ↦ next(y,xRef,e(k),r), n).\n    Here e is an arbitrary sequence of nonnegative thresholds, including sequences with zero entries or all entries zero. The entry e(k) is used in the transition from record k to record k+1.\n\n11. eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0,\n    eventTime(y,xRef,z₀,e,n) =\n      if record(y,xRef,z₀,e,n) = inl(T,z), then (T : WithTop ℝ≥0);\n      if record(y,xRef,z₀,e,n) = inr(), then ∞.\n    Equivalently, this is the displayed Sum.elim of the record, with left function (T,z) ↦ (T : WithTop ℝ≥0) and right function () ↦ ∞.\n\nConclusion.\nWith those definitions in scope, the following ten groups hold as one conjunction.\n\n(1) For every y,xRef ∈ E, z₀ ∈ E × E, and e : ℕ → ℝ≥0,\n    record(y,xRef,z₀,e,0) = inl(0,z₀).\n\n(2) For every y,xRef ∈ E, z₀ ∈ E × E, e : ℕ → ℝ≥0, and n ∈ ℕ,\n    record(y,xRef,z₀,e,n+1) =\n      next(y,xRef,e(n),record(y,xRef,z₀,e,n)),\n    and, for every a = (T,z) ∈ ℝ≥0 × (E × E),\n    if record(y,xRef,z₀,e,n) = inl(a), then both:\n      record(y,xRef,z₀,e,n+1) = inr()\n        if and only if τ(y,xRef,z,e(n)) = ∞;\n      if τ(y,xRef,z,e(n)) ≠ ∞, then\n        record(y,xRef,z₀,e,n+1) =\n          inl(T + θ, S(xRef, Φ(y,xRef,(θ : ℝ),z))),\n        where θ = untopD(0)(τ(y,xRef,z,e(n))).\n\n(3) The single map\n      ((y,xRef),u,r) ↦ next(y,xRef,u,r)\n    from (E × E) × ℝ≥0 × R to R is measurable jointly in all its displayed parameters.\n\n(4) For every fixed n ∈ ℕ, the map\n      ((y,xRef),z₀,e) ↦ record(y,xRef,z₀,e,n)\n    from (E × E) × (E × E) × (ℕ → ℝ≥0) to R is measurable jointly in y,xRef,z₀ and the entire threshold sequence e. The sequence space has its product measurable structure.\n\n(5) For every fixed n ∈ ℕ, the map\n      ((y,xRef),z₀,e) ↦ eventTime(y,xRef,z₀,e,n)\n    from (E × E) × (E × E) × (ℕ → ℝ≥0) to WithTop ℝ≥0 is measurable jointly in y,xRef,z₀ and the entire threshold sequence e.\n\n(6) For every y,xRef ∈ E, z₀ ∈ E × E, and e : ℕ → ℝ≥0,\n    eventTime(y,xRef,z₀,e,0) = 0,\n    and n ↦ eventTime(y,xRef,z₀,e,n) is monotone:\n    for all n,m ∈ ℕ, n ≤ m implies\n      eventTime(y,xRef,z₀,e,n) ≤ eventTime(y,xRef,z₀,e,m).\n\n(7) For every y,xRef ∈ E, z₀ ∈ E × E, e : ℕ → ℝ≥0, and n,k ∈ ℕ,\n    record(y,xRef,z₀,e,n) = inr()\n      implies record(y,xRef,z₀,e,n+k) = inr().\n\n(8) For every y,xRef ∈ E, z₀ ∈ E × E, e : ℕ → ℝ≥0, n ∈ ℕ, and a = (T,z) ∈ ℝ≥0 × (E × E),\n    record(y,xRef,z₀,e,n) = inl(a) implies:\n      H(y,xRef,z) = H(y,xRef,z₀),\n      and for every t ∈ ℝ≥0,\n        (t : WithTop ℝ≥0) < τ(y,xRef,z,e(n))\n      implies all three conclusions\n        H(y,xRef,Φ(y,xRef,(t : ℝ),z)) = H(y,xRef,z₀),\n        0 ≤ rate(xRef,Φ(y,xRef,(t : ℝ),z)),\n        rate(xRef,Φ(y,xRef,(t : ℝ),z)) ≤ C(y,xRef,z₀).\n    The trajectory assertions are explicitly guarded by strict inequality before this transition's hitting time.\n\n(9) For every y,xRef ∈ E, z₀ ∈ E × E, and e : ℕ → ℝ≥0, all three assertions hold:\n    0 ≤ C(y,xRef,z₀);\n    if 0 < C(y,xRef,z₀), then for every n ∈ ℕ,\n      eventTime(y,xRef,z₀,e,n)\n        + (Real.toNNReal((e(n) : ℝ) / C(y,xRef,z₀)) : WithTop ℝ≥0)\n        ≤ eventTime(y,xRef,z₀,e,n+1);\n    if C(y,xRef,z₀) = 0, then for every n ∈ ℕ and a ∈ ℝ≥0 × (E × E),\n      record(y,xRef,z₀,e,n) = inl(a)\n        implies [0 < e(n) implies record(y,xRef,z₀,e,n+1) = inr()].\n    The spacing inequality uses extended-time addition and is guarded by a strictly positive cap. The zero-cap stopping assertion requires both a finite current record and a strictly positive threshold.\n\n(10) For every y,xRef ∈ E, z₀ ∈ E × E, e : ℕ → ℝ≥0, n ∈ ℕ, and a = (T,z) ∈ ℝ≥0 × (E × E),\n     record(y,xRef,z₀,e,n) = inl(a) implies both:\n       if e(n) = 0, then\n         record(y,xRef,z₀,e,n+1) = inl(T,S(xRef,z));\n       for every b = (T',z') ∈ ℝ≥0 × (E × E),\n         0 < e(n) implies\n           [record(y,xRef,z₀,e,n+1) = inl(b) implies T < T'].\n\nScope of the assertion.\nThe data e are arbitrary nonnegative inputs. Measurability concerns the displayed jointly parameterized maps, with n fixed in groups (4) and (5). The stopped tag carries no phase. Conservation and the rate cap in group (8) have exactly the finite-record and strict-before-hitting-time guards written there. Groups (9) and (10) retain their distinct positive-cap, zero-cap, zero-threshold, positive-threshold, and finite-successor guards. The conclusion contains no distributional assumption, stochastic-process existence claim, limit statement that eventTime(n) tends to infinity, or computational/query-cost bound.\n",
+  "reconstructed_text_sha256": "90fd327951fba3980ddfe3fd8d21ea37e611956ae5b50545d9ae30843aba26ca",
+  "semantic_slot_count": 7,
+  "semantic_slot_names": [
+    "objects",
+    "domains",
+    "quantifiers",
+    "assumptions",
+    "conclusion",
+    "scopes_senses",
+    "constant_dependencies"
+  ],
+  "objects": {
+    "evidence": "The anonymous statement binds E,V,α,β,η and introduces c,Φ,S,rate,H,C,Λ,τ,next,record,eventTime in that order.",
+    "decoded": [
+      "finite-dimensional real inner-product space E",
+      "twice continuously differentiable real potential V",
+      "nonnegative constants α and β, positive real η",
+      "phase z=(position,velocity)",
+      "finite record inl(T,z) and stopped record inr()",
+      "arbitrary nonnegative threshold sequence e",
+      "quadratic phase quantity H and initial-phase cap C",
+      "integrated rate Λ and extended hitting time τ",
+      "deterministic update next, recursion record and extended eventTime"
+    ]
+  },
+  "domains": {
+    "evidence": "The statement displays all eleven function signatures, the product and sum domains, and the WithTop ℝ≥0 codomains.",
+    "ambient": "E has NormedAddCommGroup, InnerProductSpace ℝ, FiniteDimensional ℝ, MeasurableSpace, and BorelSpace instances; zero dimension is allowed.",
+    "parameters": "V:E→ℝ; α,β∈ℝ≥0; η∈ℝ; y,xRef∈E; phases∈E×E; thresholds∈ℝ≥0; sequences∈ℕ→ℝ≥0.",
+    "domains_by_definition": {
+      "c": "E→E→E",
+      "Φ": "E→E→ℝ→(E×E)→(E×E)",
+      "S": "E→(E×E)→(E×E)",
+      "rate": "E→(E×E)→ℝ",
+      "H": "E→E→(E×E)→ℝ",
+      "C": "E→E→(E×E)→ℝ",
+      "Λ": "E→E→(E×E)→ℝ≥0→ℝ",
+      "τ": "E→E→(E×E)→ℝ≥0→WithTop ℝ≥0",
+      "next": "E→E→ℝ≥0→((ℝ≥0×(E×E))⊕Unit)→((ℝ≥0×(E×E))⊕Unit)",
+      "record": "E→E→(E×E)→(ℕ→ℝ≥0)→ℕ→((ℝ≥0×(E×E))⊕Unit)",
+      "eventTime": "E→E→(E×E)→(ℕ→ℝ≥0)→ℕ→WithTop ℝ≥0"
+    },
+    "measurable_structures": "Borel-compatible finite-dimensional structure, product structures, disjoint-union structure, product measurable sequence structure, and the displayed extended-time measurable structure."
+  },
+  "quantifiers": {
+    "evidence": "The Hessian assumption has ∀ x v:E. The conclusion quantifiers occur separately in each of its ten outer conjunction groups.",
+    "ambient": "Universal implicit E,V,α,β,η, structures and displayed hypotheses.",
+    "groups": {
+      "1": "∀ y,xRef:E; z₀:E×E; e:ℕ→ℝ≥0.",
+      "2": "∀ y,xRef:E; z₀:E×E; e:ℕ→ℝ≥0; n:ℕ; then ∀ a:ℝ≥0×(E×E) under its finite-record implication.",
+      "3": "One Measurable assertion on ((y,xRef),scalar threshold,record).",
+      "4": "∀ n:ℕ, Measurable on ((y,xRef),z₀,e), with e the entire sequence.",
+      "5": "∀ n:ℕ, Measurable on ((y,xRef),z₀,e), with e the entire sequence.",
+      "6": "∀ y,xRef:E; z₀:E×E; e:ℕ→ℝ≥0; Monotone quantifies ordered natural indices.",
+      "7": "∀ y,xRef:E; z₀:E×E; e:ℕ→ℝ≥0; n,k:ℕ.",
+      "8": "∀ y,xRef:E; z₀:E×E; e:ℕ→ℝ≥0; n:ℕ; a:ℝ≥0×(E×E); inside the finite-record implication ∀ t:ℝ≥0.",
+      "9": "∀ y,xRef:E; z₀:E×E; e:ℕ→ℝ≥0; positive-cap branch ∀ n:ℕ; zero-cap branch ∀ n:ℕ and a:ℝ≥0×(E×E).",
+      "10": "∀ y,xRef:E; z₀:E×E; e:ℕ→ℝ≥0; n:ℕ; a:ℝ≥0×(E×E); inside the finite-record implication ∀ b:ℝ≥0×(E×E) in the positive-threshold finite-successor branch."
+    }
+  },
+  "assumptions": {
+    "evidence": "hα,hαβ,hV,hH,hη,hβη are the displayed proposition hypotheses; all later finite/stopped/positive conditions are conclusion guards.",
+    "items": [
+      "0 < (α:ℝ)",
+      "α ≤ β",
+      "ContDiff ℝ 2 V",
+      "∀ x v:E, (α:ℝ)‖v‖² ≤ (D(DV)(x)[v])[v] and (D(DV)(x)[v])[v] ≤ (β:ℝ)‖v‖²",
+      "0 < η",
+      "(β:ℝ)η ≤ 1"
+    ],
+    "threshold_contract": "e:ℕ→ℝ≥0 is arbitrary, including all-zero input; no probability law or strict positivity assumption.",
+    "division_contract": "Real division is total. S does not require its gradient-difference denominator to be nonzero."
+  },
+  "conclusion": {
+    "evidence": "The complete reconstructed_theorem_text contains each group with all quantifiers, formulas, branch conditions, equivalence, and implication guards.",
+    "top_level_connective": "conjunction",
+    "groups": [
+      "initial record",
+      "successor identity plus finite-input stopping iff infinite τ and guarded finite successor formula",
+      "joint measurability of next",
+      "joint measurability of record for every fixed n",
+      "joint measurability of eventTime for every fixed n",
+      "initial zero event time and monotonicity",
+      "absorbing stopped record at every n+k",
+      "finite-record energy conservation and strict-before-τ flow conservation, nonnegative rate, initial-phase rate cap",
+      "nonnegative cap, positive-cap extended-time spacing, zero-cap positive-threshold finite-input stopping",
+      "finite-input zero-threshold reflection at unchanged time and positive-threshold strict time growth conditional on a finite successor"
+    ],
+    "group_count": 10
+  },
+  "scopes": [
+    "All eleven local definitions and all ten conclusion groups are under the same ambient E, V, α, β, η and the six displayed hypothesis families.",
+    "Φ has real time; Λ and its hitting-time parameter use nonnegative time; record times are nonnegative and eventTime and τ are extended nonnegative times.",
+    "next is jointly measurable in ((y,xRef),scalar threshold,record). For each fixed n, record and eventTime are jointly measurable in ((y,xRef),initial phase,whole threshold sequence).",
+    "The right sum tag is stopped and has no phase; its event time is infinity. Every energy assertion about a record is conditioned on its left tag.",
+    "The flow conservation and rate inequalities in conclusion group 8 are conditioned on a finite current record and a strict t < τ guard.",
+    "The event-time spacing bound has the guard 0 < C; zero-cap stopping has C = 0, a finite current record, and 0 < e(n); the zero-threshold update has a finite current record and e(n) = 0.",
+    "Strict finite-time growth additionally requires 0 < e(n) and a finite successor. General monotonicity allows equal times and infinity.",
+    "No randomness, threshold distribution, global nonaccumulation limit, path reconstruction, or cost result is a conclusion of this statement."
+  ],
+  "scopes_senses": [
+    "All eleven local definitions and all ten conclusion groups are under the same ambient E, V, α, β, η and the six displayed hypothesis families.",
+    "Φ has real time; Λ and its hitting-time parameter use nonnegative time; record times are nonnegative and eventTime and τ are extended nonnegative times.",
+    "next is jointly measurable in ((y,xRef),scalar threshold,record). For each fixed n, record and eventTime are jointly measurable in ((y,xRef),initial phase,whole threshold sequence).",
+    "The right sum tag is stopped and has no phase; its event time is infinity. Every energy assertion about a record is conditioned on its left tag.",
+    "The flow conservation and rate inequalities in conclusion group 8 are conditioned on a finite current record and a strict t < τ guard.",
+    "The event-time spacing bound has the guard 0 < C; zero-cap stopping has C = 0, a finite current record, and 0 < e(n); the zero-threshold update has a finite current record and e(n) = 0.",
+    "Strict finite-time growth additionally requires 0 < e(n) and a finite successor. General monotonicity allows equal times and infinity.",
+    "No randomness, threshold distribution, global nonaccumulation limit, path reconstruction, or cost result is a conclusion of this statement."
+  ],
+  "constant_dependencies": {
+    "evidence": "Literal formulas show the parameters each definition uses; in conclusion groups 8 and 9 the cap is C(y,xRef,z₀).",
+    "c": "Depends on V through its gradient, η, y and xRef.",
+    "Φ": "Depends on V,η,y,xRef,real time t and phase z via c.",
+    "S": "Depends on V,xRef,z; its literal formula contains neither η nor α nor β.",
+    "rate": "Depends on V,η,xRef,z.",
+    "H": "Depends on V,η,y,xRef,z via c and the separate squared norms.",
+    "C": "Depends on V,η,β,y,xRef,z via H and c; α is absent from its formula.",
+    "Λ_τ_next_record_eventTime": "Depend on V and η and their displayed local parameters via the earlier definitions. Their literal formulas do not use α or β.",
+    "initial_cap": "For fixed y,xRef,z₀, C(y,xRef,z₀) is independent of n, the entire threshold sequence e, and the later finite record phase.",
+    "assumption_only_role": "α occurs in the global positivity and Hessian hypotheses, not in any literal local definition. β occurs in the assumptions and the cap C."
+  },
+  "literal_let_count": 11,
+  "conclusion_group_count": 10,
+  "count_evidence": {
+    "literal_let_names": [
+      "c",
+      "Φ",
+      "S",
+      "rate",
+      "H",
+      "C",
+      "Λ",
+      "τ",
+      "next",
+      "record",
+      "eventTime"
+    ],
+    "literal_let_count_method": "Count literal let-name-colon occurrences in the authorized anonymous statement.",
+    "conclusion_group_count_method": "After the eventTime definition, count conjunction symbols at delimiter nesting depth zero, then add one."
+  },
+  "semantic_ambiguities": [],
+  "semantic_ambiguity_audit": "No unresolved semantic ambiguity was identified within the authorized anonymous statement and approved definition context.",
+  "decoder": {
+    "agent_identity": "/root/anonymous_decoder76",
+    "repository_search_performed": false,
+    "compiler_used": false,
+    "web_used": false,
+    "other_agents_consulted": false,
+    "source_text_visible": false,
+    "source_identity_visible": false,
+    "proof_visible": false
+  },
+  "source_text_visible": false,
+  "source_identity_visible": false,
+  "proof_visible": false,
+  "sole_input_receipt": {
+    "path": "E:/Samplinglib/.astis/decoder-76/packet.json",
+    "raw_bytes": 8818,
+    "raw_sha256": "a80b279ce972545ff97c8d94c7c9d5dd3b5adb78caa12bcc875cf4728f16a35c",
+    "lf_sha256": "a80b279ce972545ff97c8d94c7c9d5dd3b5adb78caa12bcc875cf4728f16a35c",
+    "embedded_official_packet_sha256": "4ca7940d58f4b6ab8a2142584b048628fbf7000566bf8f1406ef2398c6122cf6"
+  },
+  "decoder_run_sha256": "d563440f1fa8e079ebf72a93af345e26817df67157f70c41a3a46ea1859f79dc"
+}

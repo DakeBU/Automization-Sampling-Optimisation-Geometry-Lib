@@ -1,0 +1,327 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothGradientArcClipping
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram
+import Mathlib.Analysis.Convex.Integral
+import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+import Mathlib.MeasureTheory.Measure.Tilted
+import Mathlib.Tactic
+
+/-! Actual clipped-output exponential moment of the gradient mean error.
+Source: SPHMC arXiv:2609.06906v1 Appendix A.4(2), through
+arXiv:2602.01338v1 Appendix D.1 Claim2/Eq18 and Lemma B.12.
+
+Fixed-time clipping bounds are integrated under the actual uniform/Gaussian
+product, with true joint L1 before product reordering and a.e. Jensen.
+The actual clipped normalizer gives the exp(2B) density domination. The
+proposal bound is 2exp(-K); the actual clipped-output bounds are 2exp(2B-K).
+All three displayed exponential-minus-one functions have proved L1.
+
+Parameters and dimension are positive and the source residual/step conditions
+are retained. qhat is the clipped tilt already identified with the actual
+program output by ClippedGradientProgram; this theorem does not return that
+pushforward equality again. No two RN-power identities, normalized Renyi bound,
+joint adaptive kernel, initialization or oracle-cost result is asserted.
+The factor2 is preserved; no logarithmic bound is asserted. -/
+
+open MeasureTheory ProbabilityTheory
+open scoped RealInnerProductSpace ENNReal NNReal
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedMeanExponential
+
+private theorem product_bound {A : Type*} [MeasurableSpace A]
+    (mu : Measure ℝ) (nu : Measure A) [IsProbabilityMeasure mu] [IsProbabilityMeasure nu]
+    (F : ℝ × A → ℝ) (hF : Measurable F) (hpos : ∀ p, 0 ≤ F p)
+    (hi : ∀ r, Integrable (fun a => F (r,a)) nu) (M : ℝ)
+    (hb : ∀ r, (∫ a, F (r,a) ∂nu) ≤ M) :
+    Integrable F (mu.prod nu) ∧ (∫ p, F p ∂mu.prod nu) ≤ M := by
+  have hn (r : ℝ) : (∫ a, ‖F (r,a)‖ ∂nu) = ∫ a, F (r,a) ∂nu := by
+    apply integral_congr_ae
+    exact Filter.Eventually.of_forall (fun a => Real.norm_of_nonneg (hpos (r,a)))
+  have ho : Integrable (fun r => ∫ a, ‖F (r,a)‖ ∂nu) mu := by
+    apply (integrable_const M).mono' hF.stronglyMeasurable.norm.integral_prod_right'.aestronglyMeasurable
+    apply Filter.Eventually.of_forall
+    intro r
+    rw [Real.norm_eq_abs, abs_of_nonneg (integral_nonneg (fun a => norm_nonneg (F (r,a)))), hn]
+    exact hb r
+  have hp : Integrable F (mu.prod nu) :=
+    (integrable_prod_iff hF.aestronglyMeasurable).mpr
+      ⟨Filter.Eventually.of_forall hi, ho⟩
+  refine ⟨hp, ?_⟩
+  rw [integral_prod F hp]
+  simpa using integral_mono hp.integral_prod_left (integrable_const M) hb
+
+private theorem exponential_mean_bound {A : Type*} [MeasurableSpace A]
+    (nu : Measure A) [IsProbabilityMeasure nu] (f : A → ℝ) (c : ℝ)
+    (hi : Integrable f nu) (he : Integrable (fun a => Real.exp (c*f a)-1) nu) :
+    Real.exp (c*∫ a, f a ∂nu)-1 ≤ ∫ a, Real.exp (c*f a)-1 ∂nu := by
+  have hexp : Integrable (fun a => Real.exp (c*f a)) nu := by
+    convert! he.add (integrable_const (1 : ℝ)) using 1
+    funext a
+    simp only [Pi.add_apply]
+    ring
+  have hj := convexOn_exp.map_integral_le Real.continuous_exp.continuousOn
+    isClosed_univ (Filter.Eventually.of_forall (fun a => Set.mem_univ (c*f a)))
+    (hi.const_mul c) hexp
+  rw [integral_const_mul] at hj
+  rw [integral_sub hexp (integrable_const (1 : ℝ)), integral_const]
+  simpa using sub_le_sub_right hj 1
+
+private theorem integrated_exponential_mean {X A : Type*}
+    [MeasurableSpace X] [MeasurableSpace A]
+    (q : Measure X) (nu : Measure A) [IsProbabilityMeasure q] [IsProbabilityMeasure nu]
+    (D : X × A → ℝ) (hD : Measurable D) (hpos : ∀ p, 0 ≤ D p)
+    (hi : ∀ x, Integrable (fun a => D (x,a)) nu) (c : ℝ) (hc : 0 ≤ c)
+    (he : Integrable (fun p => Real.exp (c*D p)-1) (q.prod nu)) :
+    let V := fun x => ∫ a, D (x,a) ∂nu
+    Measurable V ∧ Integrable (fun x => Real.exp (c*V x)-1) q ∧
+      (∫ x, Real.exp (c*V x)-1 ∂q) ≤ ∫ p, Real.exp (c*D p)-1 ∂q.prod nu := by
+  let V := fun x => ∫ a, D (x,a) ∂nu
+  have hV : Measurable V := hD.stronglyMeasurable.integral_prod_right'.measurable
+  have hVp (x) : 0 ≤ V x := integral_nonneg (fun a => hpos (x,a))
+  have hJp (x) : 0 ≤ Real.exp (c*V x)-1 :=
+    sub_nonneg.mpr (Real.one_le_exp_iff.mpr (mul_nonneg hc (hVp x)))
+  have hJ : (fun x => Real.exp (c*V x)-1) ≤ᵐ[q]
+      (fun x => ∫ a, Real.exp (c*D (x,a))-1 ∂nu) := by
+    filter_upwards [he.prod_right_ae] with x hx
+    exact exponential_mean_bound nu (fun a => D (x,a)) c (hi x) hx
+  have hJi : Integrable (fun x => Real.exp (c*V x)-1) q := by
+    apply he.integral_prod_left.mono' (by fun_prop)
+    filter_upwards [hJ] with x hx
+    simpa only [Real.norm_eq_abs, abs_of_nonneg (hJp x)] using hx
+  refine ⟨hV, hJi, ?_⟩
+  rw [integral_prod _ he]
+  exact integral_mono_ae hJi he.integral_prod_left hJ
+
+private theorem clipped_density_transfer {X : Type*} [MeasurableSpace X]
+    (q : Measure X) (m J : X → ℝ) (hm : Measurable m) (hJ : Measurable J)
+    (hJpos : ∀ x, 0 ≤ J x) (hJi : Integrable J q) (B : ℝ)
+    (hmB : ∀ x, m x ≤ B) (hZ : Real.exp (-B) ≤ ∫ x, Real.exp (m x) ∂q) :
+    Integrable J (q.tilted m) ∧
+      (∫ x, J x ∂q.tilted m) ≤ Real.exp (2*B) * ∫ x, J x ∂q := by
+  let Z := ∫ x, Real.exp (m x) ∂q
+  let w := fun x => Real.exp (m x)/Z
+  have hZpos : 0 < Z := lt_of_lt_of_le (Real.exp_pos (-B)) hZ
+  have hw : Measurable w := hm.exp.div_const Z
+  have hwpos (x) : 0 ≤ w x := (div_pos (Real.exp_pos _) hZpos).le
+  have hwb (x) : w x ≤ Real.exp (2*B) := by
+    apply (div_le_iff₀ hZpos).mpr
+    calc
+      Real.exp (m x) ≤ Real.exp B := Real.exp_le_exp.mpr (hmB x)
+      _ = Real.exp (2*B) * Real.exp (-B) := by
+        rw [← Real.exp_add]
+        congr 1
+        ring
+      _ ≤ Real.exp (2*B)*Z := mul_le_mul_of_nonneg_left hZ (Real.exp_nonneg _)
+  have hi : Integrable (fun x => w x * J x) q := by
+    apply (hJi.const_mul (Real.exp (2*B))).mono' (hw.mul hJ).aestronglyMeasurable
+    apply Filter.Eventually.of_forall
+    intro x
+    simp only [Pi.mul_apply]
+    rw [Real.norm_eq_abs, abs_of_nonneg (mul_nonneg (hwpos x) (hJpos x))]
+    exact mul_le_mul_of_nonneg_right (hwb x) (hJpos x)
+  have he : (fun x => (ENNReal.ofReal (w x)).toReal • J x) = fun x => w x * J x := by
+    funext x
+    rw [ENNReal.toReal_ofReal (hwpos x), smul_eq_mul]
+  constructor
+  · change Integrable J (q.withDensity (fun x => ENNReal.ofReal (w x)))
+    rw [integrable_withDensity_iff_integrable_smul' hw.ennreal_ofReal
+      (Filter.Eventually.of_forall (fun _ => ENNReal.ofReal_lt_top)), he]
+    exact hi
+  · change (∫ x, J x ∂q.withDensity (fun x => ENNReal.ofReal (w x))) ≤ _
+    rw [integral_withDensity_eq_integral_toReal_smul hw.ennreal_ofReal
+      (Filter.Eventually.of_forall (fun _ => ENNReal.ofReal_lt_top)), he,
+      ← integral_const_mul]
+    exact integral_mono hi (hJi.const_mul _) (fun x =>
+      mul_le_mul_of_nonneg_right (hwb x) (hJpos x))
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+private def estimator (f : E → ℝ) (h xp : E) (p : E × (ℝ × E)) : ℝ :=
+  inner ℝ ((Real.pi / 2) • (Real.cos (Real.pi / 2 * p.2.1) • (p.1-h) -
+    Real.sin (Real.pi / 2 * p.2.1) • p.2.2))
+    (gradient f xp - gradient f (h + Real.sin (Real.pi / 2 * p.2.1) • (p.1-h) +
+      Real.cos (Real.pi / 2 * p.2.1) • p.2.2))
+
+private theorem actual_time_product (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta B ell : ℝ) (heta : 0 < eta) (hbeta : 0 < beta) (hB : 0 < B)
+    (hell : 2 ≤ ell) (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (hlip : LipschitzWith ⟨beta,hbeta.le⟩ (gradient f)) (h xp : E)
+    (hcenter : ‖h-xp‖ ≤ Real.sqrt ((Module.finrank ℝ E : ℝ)*eta))
+    (hstep : 64*beta^2*(ell*(Module.finrank ℝ E : ℝ)/B+ell^2) ≤ 1/eta^2) :
+    let q := (stdGaussian E).map (fun z => h+Real.sqrt eta • z)
+    let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+    let U := volume.restrict (Set.Ioc (0 : ℝ) 1)
+    let F := fun p : ℝ × (E × E) =>
+      Real.exp (2*ell*max (|estimator f h xp (p.2.1,(p.1,p.2.2))|-B) 0)-1
+    Measurable F ∧ (∀ p, 0 ≤ F p) ∧ Integrable F (U.prod (q.prod P)) ∧
+      (∫ p, F p ∂U.prod (q.prod P)) ≤ 2*Real.exp (-min
+        (B^2/(40*beta^2*(Module.finrank ℝ E : ℝ)*eta^2)) (B/(8*beta*eta))) := by
+  let q := (stdGaussian E).map (fun z => h+Real.sqrt eta • z)
+  let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+  let U := volume.restrict (Set.Ioc (0 : ℝ) 1)
+  let F := fun p : ℝ × (E × E) =>
+    Real.exp (2*ell*max (|estimator f h xp (p.2.1,(p.1,p.2.2))|-B) 0)-1
+  let : IsProbabilityMeasure q := Measure.isProbabilityMeasure_map (by fun_prop)
+  let : IsProbabilityMeasure P := Measure.isProbabilityMeasure_map (by fun_prop)
+  let : IsProbabilityMeasure U := ⟨by simp [U]⟩
+  have hF : Measurable F := by
+    have hg := hlip.continuous.measurable
+    dsimp [F, estimator]
+    fun_prop
+  have hp (p) : 0 ≤ F p := by
+    dsimp [F]
+    apply sub_nonneg.mpr
+    apply Real.one_le_exp_iff.mpr
+    have he : 0 ≤ ell := by linarith
+    positivity
+  have hs (r : ℝ) :=
+    AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothGradientArcClipping.smooth_gradient_arc_clipping
+      f hf eta beta B ell heta hbeta hB hell hd hlip h xp r hcenter hstep
+  have hb := product_bound U (q.prod P) F hF hp
+    (fun r => (hs r).2.2.1) _ (fun r => (hs r).2.2.2)
+  exact ⟨hF, hp, hb.1, hb.2⟩
+
+omit [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [BorelSpace E] in
+private theorem swap_time_preserving (q P : Measure E) (U : Measure ℝ)
+    [IsProbabilityMeasure q] [IsProbabilityMeasure P] [IsProbabilityMeasure U] :
+    MeasurePreserving (fun p : E × (ℝ × E) => (p.2.1,(p.1,p.2.2)))
+      (q.prod (U.prod P)) (U.prod (q.prod P)) := by
+  exact ((measurePreserving_prodAssoc U q P).comp
+    ((Measure.measurePreserving_swap (μ := q) (ν := U)).prod (MeasurePreserving.id P))).comp
+      (MeasurePreserving.symm MeasurableEquiv.prodAssoc (measurePreserving_prodAssoc q U P))
+
+omit [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [BorelSpace E] in
+private theorem swap_time_integrable (q P : Measure E) (U : Measure ℝ)
+    [IsProbabilityMeasure q] [IsProbabilityMeasure P] [IsProbabilityMeasure U]
+    (F : ℝ × (E × E) → ℝ) (hF : Integrable F (U.prod (q.prod P))) :
+    Integrable (fun p : E × (ℝ × E) => F (p.2.1,(p.1,p.2.2))) (q.prod (U.prod P)) ∧
+      (∫ p : E × (ℝ × E), F (p.2.1,(p.1,p.2.2)) ∂q.prod (U.prod P)) =
+        ∫ p, F p ∂U.prod (q.prod P) := by
+  let T : E × (ℝ × E) ≃ᵐ ℝ × (E × E) :=
+    (MeasurableEquiv.prodAssoc.symm.trans
+      (MeasurableEquiv.prodComm.prodCongr (MeasurableEquiv.refl E))).trans
+        MeasurableEquiv.prodAssoc
+  have hT : MeasurePreserving T (q.prod (U.prod P)) (U.prod (q.prod P)) :=
+    swap_time_preserving q P U
+  exact ⟨hT.integrable_comp_of_integrable hF, hT.integral_comp' F⟩
+
+private theorem actual_proposal_bound (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta B ell : ℝ) (heta : 0 < eta) (hbeta : 0 < beta) (hB : 0 < B)
+    (hell : 2 ≤ ell) (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (hlip : LipschitzWith ⟨beta,hbeta.le⟩ (gradient f)) (x0 xp : E)
+    (hcenter : ‖(x0-eta • gradient f xp)-xp‖ ≤ Real.sqrt ((Module.finrank ℝ E : ℝ)*eta))
+    (hstep : 64*beta^2*(ell*(Module.finrank ℝ E : ℝ)/B+ell^2) ≤ 1/eta^2) :
+    let h := x0-eta • gradient f xp
+    let q := (stdGaussian E).map (fun z => h+Real.sqrt eta • z)
+    let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+    let nu := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod P
+    let V := fun x => ∫ a, max (|estimator f h xp (x,a)|-B) 0 ∂nu
+    Measurable V ∧ (∀ x, 0 ≤ V x) ∧
+      Integrable (fun x => Real.exp (2*ell*V x)-1) q ∧
+      (∫ x, Real.exp (2*ell*V x)-1 ∂q) ≤ 2*Real.exp (-min
+        (B^2/(40*beta^2*(Module.finrank ℝ E : ℝ)*eta^2)) (B/(8*beta*eta))) := by
+  let h := x0-eta • gradient f xp
+  let q := (stdGaussian E).map (fun z => h+Real.sqrt eta • z)
+  let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+  let U := volume.restrict (Set.Ioc (0 : ℝ) 1)
+  let nu := U.prod P
+  let D := fun p : E × (ℝ × E) => max (|estimator f h xp p|-B) 0
+  let : IsProbabilityMeasure q := Measure.isProbabilityMeasure_map (by fun_prop)
+  let : IsProbabilityMeasure P := Measure.isProbabilityMeasure_map (by fun_prop)
+  let : IsProbabilityMeasure U := ⟨by simp [U]⟩
+  have hD : Measurable D := by
+    have hg := hlip.continuous.measurable
+    dsimp [D, estimator]
+    fun_prop
+  have hp := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.clipped_gradient_program
+    f hf eta beta B heta hbeta.le hB hlip x0 xp
+  have hDi (x : E) : Integrable (fun a => D (x,a)) nu :=
+    (hp.2.2.2.2.2.1 x).2.2.1
+  have ht := actual_time_product f hf eta beta B ell heta hbeta hB hell hd hlip h xp hcenter hstep
+  have hs := swap_time_integrable q P U _ ht.2.2.1
+  have he : Integrable (fun p => Real.exp (2*ell*D p)-1) (q.prod nu) := hs.1
+  have hj := integrated_exponential_mean q nu D hD (fun p => le_max_right _ _)
+    hDi (2*ell) (by linarith) he
+  refine ⟨hj.1, fun x => integral_nonneg (fun a => le_max_right _ _), hj.2.1, ?_⟩
+  exact hj.2.2.trans (hs.2.le.trans ht.2.2.2)
+
+/-- Actual proposal and clipped-output exponential mean-error bounds. -/
+theorem clipped_mean_exponential (f : E → ℝ) (hf : Differentiable ℝ f)
+    (eta beta B ell : ℝ) (heta : 0 < eta) (hbeta : 0 < beta) (hB : 0 < B)
+    (hell : 2 ≤ ell) (hd : 0 < (Module.finrank ℝ E : ℝ))
+    (hlip : LipschitzWith ⟨beta,hbeta.le⟩ (gradient f)) (x0 xp : E)
+    (hcenter : ‖(x0-eta • gradient f xp)-xp‖ ≤ Real.sqrt ((Module.finrank ℝ E : ℝ)*eta))
+    (hstep : 64*beta^2*(ell*(Module.finrank ℝ E : ℝ)/B+ell^2) ≤ 1/eta^2) :
+    let h := x0-eta • gradient f xp
+    let q := (stdGaussian E).map (fun z => h+Real.sqrt eta • z)
+    let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+    let nu := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod P
+    let m := fun x => ∫ a, estimator f h xp (x,a) ∂nu
+    let mB := fun x => ∫ a, min B (max (-B) (estimator f h xp (x,a))) ∂nu
+    let V := fun x => ∫ a, max (|estimator f h xp (x,a)|-B) 0 ∂nu
+    let qhat := q.tilted mB
+    let K := min (B^2/(40*beta^2*(Module.finrank ℝ E : ℝ)*eta^2)) (B/(8*beta*eta))
+    Measurable m ∧ Measurable mB ∧ Measurable V ∧
+      (∀ x, 0 ≤ V x ∧ |m x-mB x| ≤ V x) ∧
+      Integrable (fun x => Real.exp (2*ell*V x)-1) q ∧
+      (∫ x, Real.exp (2*ell*V x)-1 ∂q) ≤ 2*Real.exp (-K) ∧
+      Integrable (fun x => Real.exp (2*ell*V x)-1) qhat ∧
+      (∫ x, Real.exp (2*ell*V x)-1 ∂qhat) ≤ 2*Real.exp (2*B-K) ∧
+      Integrable (fun x => Real.exp (2*ell*|m x-mB x|)-1) qhat ∧
+      (∫ x, Real.exp (2*ell*|m x-mB x|)-1 ∂qhat) ≤ 2*Real.exp (2*B-K) := by
+  let h := x0-eta • gradient f xp
+  let q := (stdGaussian E).map (fun z => h+Real.sqrt eta • z)
+  let P := (stdGaussian E).map (fun z => Real.sqrt eta • z)
+  let nu := (volume.restrict (Set.Ioc (0 : ℝ) 1)).prod P
+  let m := fun x => ∫ a, estimator f h xp (x,a) ∂nu
+  let mB := fun x => ∫ a, min B (max (-B) (estimator f h xp (x,a))) ∂nu
+  let V := fun x => ∫ a, max (|estimator f h xp (x,a)|-B) 0 ∂nu
+  let K := min (B^2/(40*beta^2*(Module.finrank ℝ E : ℝ)*eta^2)) (B/(8*beta*eta))
+  have hp := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram.clipped_gradient_program
+    f hf eta beta B heta hbeta.le hB hlip x0 xp
+  have hmB : Measurable mB := hp.2.2.2.2.1
+  have hx := hp.2.2.2.2.2.1
+  have hmean := AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GradientArcMean.gradient_arc_mean
+    f hf eta beta heta hbeta.le hlip h xp
+  let C := (∫ z, f (h+z) ∂P)-inner ℝ (gradient f xp) h
+  have hme (x : E) : m x = inner ℝ (gradient f xp) x-f x+C :=
+    (hmean.2.2.2 x).2.2.2
+  have hm : Measurable m := by
+    have heq : m = fun x => inner ℝ (gradient f xp) x-f x+C := funext hme
+    rw [heq]
+    exact ((by fun_prop : Measurable (fun x => inner ℝ (gradient f xp) x)).sub
+      hf.continuous.measurable).add_const C
+  have herr (x : E) : |m x-mB x| ≤ V x := by
+    rw [abs_sub_comm, hme]
+    exact (hx x).2.2.2.2
+  have hv := actual_proposal_bound f hf eta beta B ell heta hbeta hB hell hd hlip x0 xp hcenter hstep
+  have hV : Measurable V := hv.1
+  have he : 0 ≤ 2*ell := by linarith
+  have hJpos (x : E) : 0 ≤ Real.exp (2*ell*V x)-1 :=
+    sub_nonneg.mpr (Real.one_le_exp_iff.mpr (mul_nonneg he (hv.2.1 x)))
+  have ht := clipped_density_transfer q mB (fun x => Real.exp (2*ell*V x)-1)
+    hmB (by fun_prop) hJpos hv.2.2.1 B (fun x => (abs_le.mp ((hx x).2.2.2.1)).2)
+      hp.2.2.2.2.2.2.2.1
+  have hbound : (∫ x, Real.exp (2*ell*V x)-1 ∂q.tilted mB) ≤ 2*Real.exp (2*B-K) := by
+    calc
+      _ ≤ Real.exp (2*B)*(2*Real.exp (-K)) :=
+        ht.2.trans (mul_le_mul_of_nonneg_left hv.2.2.2 (Real.exp_nonneg _))
+      _ = _ := by
+        rw [← mul_assoc, mul_comm (Real.exp (2*B)) 2, mul_assoc, ← Real.exp_add]
+        congr 2
+  have hpoint (x : E) : Real.exp (2*ell*|m x-mB x|)-1 ≤ Real.exp (2*ell*V x)-1 := by
+    exact sub_le_sub_right (Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_left (herr x) he)) 1
+  have hEpos (x : E) : 0 ≤ Real.exp (2*ell*|m x-mB x|)-1 :=
+    sub_nonneg.mpr (Real.one_le_exp_iff.mpr (mul_nonneg he (abs_nonneg _)))
+  have hEi : Integrable (fun x => Real.exp (2*ell*|m x-mB x|)-1) (q.tilted mB) := by
+    apply ht.1.mono' (by fun_prop)
+    exact Filter.Eventually.of_forall (fun x => by
+      simpa only [Real.norm_eq_abs, abs_of_nonneg (hEpos x)] using hpoint x)
+  exact ⟨hm, hmB, hV, fun x => ⟨hv.2.1 x, herr x⟩, hv.2.2.1, hv.2.2.2,
+    ht.1, hbound, hEi, (integral_mono hEi ht.1 hpoint).trans hbound⟩
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedMeanExponential
+
+
+
+

@@ -1,0 +1,32 @@
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ApproximateProximalExecution
+
+/-! Deterministic identity of successful Algorithm D.2 executions.
+Source: arXiv:2609.06906v1 Appendix D.2, used to join the actual phase kernel,
+two-layer center moments and realized query cost. Fuel is an external proof
+resource; no success, termination or accuracy is asserted without a run certificate.
+-/
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExecutionIdentity
+
+/-- Two successful runs from the same state/input return the same point and
+actual gradient-test count, independently of their supplied sufficient fuel. -/
+theorem successful_query_unique {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] (g : E → E) (eta eps : ℝ) (y : E)
+    {n m : ℕ} {x : E} {r s : E × ℕ}
+    (hr : ApproximateProximalExecution.proximalQuery g eta eps y n x = some r)
+    (hs : ApproximateProximalExecution.proximalQuery g eta eps y m x = some s) : r = s := by
+  classical
+  induction n generalizing m x r s with
+  | zero => simp [ApproximateProximalExecution.proximalQuery] at hr
+  | succ n ih =>
+    cases m with
+    | zero => simp [ApproximateProximalExecution.proximalQuery] at hs
+    | succ m =>
+      rw [ApproximateProximalExecution.proximalQuery] at hr hs
+      split_ifs at hr hs with hstop
+      · exact Option.some.inj (hr.symm.trans hs)
+      · obtain ⟨r', hr', hrr⟩ := Option.map_eq_some_iff.mp hr
+        obtain ⟨s', hs', hss⟩ := Option.map_eq_some_iff.mp hs
+        have heq := ih hr' hs'
+        simpa [← hrr, ← hss] using congrArg (fun z : E × ℕ => (z.1, z.2 + 1)) heq
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ProximalExecutionIdentity

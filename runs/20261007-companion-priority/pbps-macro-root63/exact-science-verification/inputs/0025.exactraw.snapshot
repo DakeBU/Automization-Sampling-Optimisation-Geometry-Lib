@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-4f459c5c4615a589",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {S : Type u_1} {X : Type u_2} {A : Type u_3} [inst : MeasurableSpace S] [inst_1 : MeasurableSpace X]\n  [inst_2 : MeasurableSpace A] (Q : ProbabilityTheory.Kernel S X) [ProbabilityTheory.IsMarkovKernel Q]\n  (ν : MeasureTheory.Measure A) [MeasureTheory.IsProbabilityMeasure ν] (W : (S × X) × A → ℝ),\n  Measurable W →\n    ∀ (B : ℝ) (hB : 0 < B),\n      (∀ (s : S) (x : X) (z : A), |W ((s, x), z)| ≤ B) →\n        ∀ (x₀ : X) (s : S) (δ : ℝ),\n          0 < δ →\n            δ < 1 →\n              have Λ :=\n                (Q s).prod\n                  ((ProbabilityTheory.poissonMeasure\n                        ⟨2 * B,\n                          le_of_lt\n                            (mul_pos\n                              (Mathlib.Meta.Positivity.pos_of_isNat (Mathlib.Meta.NormNum.isNat_ofNat ℝ (Eq.refl 2))\n                                (Eq.refl (Nat.ble 1 2)))\n                              hB)⟩).prod\n                    ((MeasureTheory.Measure.infinitePi fun x => ν).prod\n                      (MeasureTheory.MeasureSpace.volume.restrict (Set.Icc 0 1))));\n              have E := {p | p.2.2.2 ≤ ∏ i, (B + (fun p => W ((s, p.1), p.2)) (p.1, p.2.2.1 ↑i)) / (2 * B)};\n              have ρ := MeasureTheory.Measure.infinitePi fun x => Λ;\n              have C := fun ω => ∑' (n : ℕ), if ∀ i < n, ω i ∉ E then (fun p => ↑p.2.1) (ω n) else 0;\n              have L := Real.log (2 / δ);\n              have m := ⌈Real.exp (2 * B) * L⌉₊;\n              ρ {ω | ENNReal.ofReal (2 * B * (Real.exp 1 - 1) * ↑m + L) < C ω} ≤ ENNReal.ofReal δ ∧\n                ρ\n                    {ω |\n                      ENNReal.ofReal ((2 * B * (Real.exp 1 - 1) * (Real.exp (2 * B) + 1 / Real.log 2) + 1) * L) < C ω} ≤\n                  ENNReal.ofReal δ",
+    "statement_sha256": "4f459c5c4615a58900b0317c9a84e272c66b86a36f099b37bc64b03da356f21f",
+    "compiled": true,
+    "approved_definition_context": [
+      "A Markov kernel is a measurable family of probability measures. IsProbabilityMeasure means total mass one.",
+      "Measure.prod is independent product; Measure.infinitePi is the probability law of the entire sequence of independent displayed coordinates. poissonMeasure r is the actual Poisson law of nonnegative real rate r.",
+      "Attempt coordinates p.1, p.2.1, p.2.2.1 and p.2.2.2 belong respectively to X, Nat, Nat->A and Real. volume.restrict(Icc 0 1) is the probability law uniform on the closed unit interval.",
+      "Fin n indexes 0 through n-1; the empty product is one. Natural ceiling ceil(x) is the least nonnegative integer at least x.",
+      "ENNReal is the extended nonnegative real line. ofReal agrees with real embedding on nonnegative inputs and sends negative inputs to zero. Infinite sums and costs can be infinite. The indicator condition in the displayed sum checks earlier attempt indices only.",
+      "The semantic definitions were expanded from the compiled type and Lean checked definitional equality. Subtype constructor proof terms assert nonnegativity and do not add a probabilistic assumption. The quantified default x0 need not occur in the tail expression.",
+      "In the displayed E definition, the implicit finite product domain is Fin p.2.1. Thus it uses exactly the first p.2.1 auxiliary coordinates; the outer cost summation is over all natural n."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "5f00bdde253cb795042cf508f2557bc6793ecaa5fab916ee9a7a0517b65233bf"
+}

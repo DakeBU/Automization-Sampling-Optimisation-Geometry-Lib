@@ -1,0 +1,201 @@
+{
+  "id": "ASTIS-RT-20261006-SPHMCActualContraction2",
+  "state": "accepted",
+  "source": {
+    "source_id": "sphmc-actual-contraction-2",
+    "anchor": "Proposition4.7 HTML590-620; exact M_kappa display preceding Theorem4.5",
+    "url": "https://arxiv.org/html/2609.06906v1#S4.SS3",
+    "original_text": "Attributed scoped source restatement:\nFor every real kappa and phase point, define the exact source block-matrix quadratic form Q_kappa. Valid norm use is restricted to kappa>=1 by the compiled comparisons.\nArbitrary real inner-product E, with no finite-dimension or measurability premise. Kappa>=1 for the comparisons; the total definition accepts every real kappa.\nExisting source Q/API promotion with unchanged proof, no separate mathematical progress credit. Actual deterministic exact-gradient numerical phase contraction at the explicit normalized C2 curvature interface. Actual f=V_eta smoothing/C2/curvature producer remains independently open. No Khat/Kbar substitution, increment/logLambda/B2, invariant law/local errors/history/query work, PBPS, either full main theorem or actual-input expected-cost composition. TV proximity does not transfer unbounded expected cost.",
+    "text_sha256": "425b349933321572ffd1d52b6b7966fa05afd9d15f27a7b971529c99453d622b"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseQuadraticForm",
+    "file": "AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/PhaseMetric.lean",
+    "statement": "def phaseQuadraticForm (kappa : ℝ) (z : E × E) : ℝ :=\n  (1 / (2 * kappa) + 1 / 2) * ‖z.1‖ ^ 2 + inner ℝ z.1 z.2 + ‖z.2‖ ^ 2",
+    "statement_sha256": "4b40a695efd6ce18fe5897503b0c1ae339e97c39a2306be781ce9251729f3ee4",
+    "compiled": true,
+    "formalizer": "root-samplinglib-writer",
+    "decoder_context": [
+      "E is a real inner-product space. In the nonlinear phase declaration it additionally has CompleteSpace, FiniteDimensional, MeasurableSpace and BorelSpace instances; the metric definition/energy comparisons do not assume these extra structures. Each theorem argument supplies its own parameter assumptions.",
+      "phaseQuadraticForm kappa (x,p)=(1/(2*kappa)+1/2)*norm(x)^2+inner_R(x,p)+norm(p)^2. phaseCost kappa (z,zprime)=ENNReal.ofReal(phaseQuadraticForm kappa (z-zprime)). phaseWassersteinSq is the infimum of the lintegral of phaseCost over all couplings of its measure inputs; it stores the square in ENNReal.",
+      "fderiv is the genuine Frechet derivative; gradient is its Riesz vector. ContDiff R 2 f is global twice continuous differentiability. Lagrange.basis is the true cardinal polynomial, sSup is real supremum, intervalIntegral is ordinary Lebesgue Bochner integration, Fin J indexes0..J-1.",
+      "WithLp2(E x E) has true Euclidean norm sqrt(norm(x)^2+norm(p)^2), with unchanged coordinates. The ordinary product norm used by WassersteinSpace is the default max norm. They are different norms; exact coordinate-sum energy is explicit in the metric comparisons.",
+      "The two coordinates of zeta are the two common vectors in the displayed numerical map. Each quantifier ranges over all points, with no noise-law/a.e. restriction. Real.sqrt is the nonnegative real square root. In the transport/moment declarations Measure/ENNReal integrability and inequality domains retain their usual Mathlib meaning; no actual sampler history is implicit."
+    ],
+    "compiler_evidence": "Actual production3666 and genuine nonconstant-Hessian full numerical Test3667 PASS. Original PhaseMetric APIs promoted with unchanged proofs; all old public module declarations reviewed afresh."
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "phase_source_reviewer_20261005",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "Fresh three provenance packets read first; complete current186-line production module re-read, including both private implementations. Independently checked the three corrected selected dependencies against the actual declaration/proof. Fresh current lesson/fullpublication binding digests independently recomputed. Compared old INPUT packets only to establish that lesson.mathlib_dependencies is the sole context change; no previous verdict or math-verifier receipt used as decision evidence. Primary source M_kappa display and norm-equivalence boundary re-read live. Definition lines29-30 is exactly the total scalar/inner-product expression. It invokes no named Mathlib proof theorem, no WithLp.prod_norm_sq_eq_of_L2, no Real.sq_sqrt or sq_le_sq_0. Empty selected proof-dependency list is correct; basic norm/inner-product/division notation does not claim those consumer proof dependencies.",
+    "review_run_sha256": "2f3807204fd3ca87aeaaa80171c098bac873a21873e962c1110f03ee93da42d2",
+    "reviewer_packet_sha256": "10df0504b82a1d0c2c9a2149ae3029a542d2152e62b15bb418d5d1682334340d",
+    "run_artifact": "runs/20261006-companion-priority/actual-contraction/p02.provenance.source-review.result.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "57634cf058623f644e0debb57ba7383ef5ae7aff650b93832e3160bb133669e1",
+  "publication_context": {
+    "file": "e237f031fa1413c33f0a6f823ac05802646aebb9cece9d823b507b665d24565c",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseStateMoment\nimport Mathlib.Tactic\n\n/-!\n# The twisted phase metric used by Smoothed Picard HMC\n\nChen--Chewi--Lu--Zhang, arXiv:2609.06906v1, display preceding Theorem 4.5,\nuse the block matrix\n\n`M_kappa = [[1/(2*kappa)+1/2, 1/2], [1/2, 1]] tensor I`.\n\nThis file records its quadratic form and explicit comparison with the ordinary\nposition--momentum energy.  The constants are dimension-free.  No contraction,\nkernel error, or paper estimate (D.3) is asserted here.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric\n\nopen MeasureTheory\nopen AutoSamplingTheory.TechnicalLemmas.Measure\nopen scoped ENNReal\n\nnoncomputable section\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n\n/-- The real quadratic form induced by the paper's `M_kappa` block matrix. -/\ndef phaseQuadraticForm (kappa : ℝ) (z : E × E) : ℝ :=\n  (1 / (2 * kappa) + 1 / 2) * ‖z.1‖ ^ 2 + inner ℝ z.1 z.2 + ‖z.2‖ ^ 2\n\n/-- The `M_kappa` transport cost on two phase-space points. -/\ndef phaseCost (kappa : ℝ) : (E × E) × (E × E) → ℝ≥0∞ :=\n  fun z => ENNReal.ofReal (phaseQuadraticForm kappa (z.1 - z.2))\n\n/-- The squared paper-specific Wasserstein quantity, defined directly as its\nKantorovich value. -/\ndef phaseWassersteinSq [MeasurableSpace E] (kappa : ℝ)\n    (mu nu : Measure (E × E)) : ℝ≥0∞ :=\n  Transport.transportCost (phaseCost (E := E) kappa) mu nu\n\n/-- For `kappa >= 1`, the twisted quadratic form controls the ordinary sum of\nthe squared position and momentum norms. -/\ntheorem ordinary_energy_le_phaseQuadraticForm {kappa : ℝ} (hkappa : 1 ≤ kappa)\n    (z : E × E) :\n    ‖z.1‖ ^ 2 + ‖z.2‖ ^ 2 ≤ 6 * phaseQuadraticForm kappa z := by\n  have hkappa0 : 0 < kappa := lt_of_lt_of_le zero_lt_one hkappa\n  have hinner : -(‖z.1‖ * ‖z.2‖) ≤ inner ℝ z.1 z.2 :=\n    (abs_le.mp (abs_real_inner_le_norm z.1 z.2)).1\n  have hcoef0 : 0 ≤ 1 / (2 * kappa) := by positivity\n  rw [phaseQuadraticForm]\n  nlinarith [mul_nonneg hcoef0 (sq_nonneg ‖z.1‖),\n    sq_nonneg (2 * ‖z.1‖ - 3 * ‖z.2‖)]\n\n/-- The twisted quadratic form is bounded above by `3/2` times the ordinary\nsum of squares, uniformly over `kappa >= 1`. -/\ntheorem phaseQuadraticForm_le_ordinary_energy {kappa : ℝ} (hkappa : 1 ≤ kappa)\n    (z : E × E) :\n    phaseQuadraticForm kappa z ≤ (3 / 2 : ℝ) * (‖z.1‖ ^ 2 + ‖z.2‖ ^ 2) := by\n  have hkappa0 : 0 < kappa := lt_of_lt_of_le zero_lt_one hkappa\n  have hinv : 1 / kappa ≤ 1 := (div_le_one hkappa0).2 hkappa\n  have hhalf : (1 / kappa) * (1 / 2 : ℝ) ≤ 1 / 2 := by\n    simpa using mul_le_mul_of_nonneg_right hinv (by norm_num : (0 : ℝ) ≤ 1 / 2)\n  have hcoef : 1 / (2 * kappa) + 1 / 2 ≤ (1 : ℝ) := by\n    rw [one_div, mul_inv_rev, show (2 : ℝ)⁻¹ = 1 / 2 by norm_num]\n    convert add_le_add_right hhalf (1 / 2) using 1 <;> norm_num <;> ring\n  have hinner : inner ℝ z.1 z.2 ≤ ‖z.1‖ * ‖z.2‖ :=\n    real_inner_le_norm z.1 z.2\n  have hsquare : 2 * (‖z.1‖ * ‖z.2‖) ≤ ‖z.1‖ ^ 2 + ‖z.2‖ ^ 2 := by\n    nlinarith [sq_nonneg (‖z.1‖ - ‖z.2‖)]\n  rw [phaseQuadraticForm]\n  nlinarith [mul_nonneg (sub_nonneg.mpr hcoef) (sq_nonneg ‖z.1‖),\n    sq_nonneg ‖z.1‖, sq_nonneg ‖z.2‖]\n\n/-- Positivity of the paper quadratic form is a consequence of the explicit\nlower comparison, rather than an untracked matrix-positivity assertion. -/\nprivate theorem phaseQuadraticForm_nonneg {kappa : ℝ} (hkappa : 1 ≤ kappa)\n    (z : E × E) : 0 ≤ phaseQuadraticForm kappa z := by\n  have hkappa0 : 0 < kappa := lt_of_lt_of_le zero_lt_one hkappa\n  have h := ordinary_energy_le_phaseQuadraticForm hkappa z\n  have henergy : 0 ≤ ‖z.1‖ ^ 2 + ‖z.2‖ ^ 2 := by positivity\n  nlinarith\n\n/-- Pointwise comparison between ordinary squared product distance and the\npaper's twisted transport cost. -/\nprivate theorem quadraticCost_le_phaseCost {kappa : ℝ} (hkappa : 1 ≤ kappa)\n    (z : (E × E) × (E × E)) :\n    WassersteinSpace.quadraticCost (E := E × E) z ≤\n      ENNReal.ofReal 6 * phaseCost (E := E) kappa z := by\n  let d : E × E := z.1 - z.2\n  have hnorm : ‖d‖ ^ 2 ≤ ‖d.1‖ ^ 2 + ‖d.2‖ ^ 2 := by\n    rw [Prod.norm_def]\n    rcases le_total ‖d.1‖ ‖d.2‖ with h | h <;>\n      simp [max_eq_right h, max_eq_left h]\n  have hreal : ‖d‖ ^ 2 ≤ 6 * phaseQuadraticForm kappa d :=\n    hnorm.trans (ordinary_energy_le_phaseQuadraticForm hkappa d)\n  change ENNReal.ofReal (‖d‖ ^ 2) ≤\n    ENNReal.ofReal 6 * ENNReal.ofReal (phaseQuadraticForm kappa d)\n  rw [← ENNReal.ofReal_mul (by norm_num : (0 : ℝ) ≤ 6)]\n  exact ENNReal.ofReal_le_ofReal hreal\n\n/-- A twisted quadratic transport bound controls the ordinary product\nWasserstein distance.  The infimum comparison uses near-optimal couplings and\ndoes not assume that either transport problem has an optimizer. -/\ntheorem wassersteinDistance_sq_le_phaseWassersteinSq\n    [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]\n    {kappa : ℝ} (hkappa : 1 ≤ kappa) (mu nu : Measure (E × E)) :\n    WassersteinSpace.wassersteinDistance mu nu ^ 2 ≤\n      ENNReal.ofReal 6 * phaseWassersteinSq kappa mu nu := by\n  rw [WassersteinSpace.wassersteinDistance_sq]\n  apply ENNReal.le_of_forall_pos_le_add\n  intro epsilon hepsilon hfinite\n  let A : ℝ≥0∞ := ENNReal.ofReal 6\n  let C : ℝ≥0∞ := phaseWassersteinSq kappa mu nu\n  have hA0 : A ≠ 0 := by\n    simp [A]\n  have hAtop : A ≠ ⊤ := ENNReal.ofReal_ne_top\n  have hCtop : C < ⊤ := by\n    rcases ENNReal.mul_lt_top_iff.mp hfinite with h | h | h\n    · exact h.2\n    · exact (hA0 h).elim\n    · simpa [C, h]\n  let delta : ℝ≥0∞ := (epsilon : ℝ≥0∞) / A\n  have hdelta0 : delta ≠ 0 := by\n    have hepsilon0 : (epsilon : ℝ≥0∞) ≠ 0 := by exact_mod_cast hepsilon.ne'\n    exact (ENNReal.div_pos hepsilon0 hAtop).ne'\n  have hstrict : C < C + delta :=\n    ENNReal.lt_add_right hCtop.ne hdelta0\n  obtain ⟨gamma, hgamma, hgammaCost⟩ :=\n    Transport.exists_isCoupling_lintegral_lt_of_transportCost_lt\n      (phaseCost (E := E) kappa) mu nu hstrict\n  have hphaseMeas : Measurable (phaseCost (E := E) kappa) := by\n    unfold phaseCost phaseQuadraticForm\n    fun_prop\n  calc\n    Transport.transportCost (WassersteinSpace.quadraticCost (E := E × E)) mu nu ≤\n        ∫⁻ z, WassersteinSpace.quadraticCost (E := E × E) z ∂gamma :=\n      Transport.transportCost_le_lintegral_of_isCoupling _ mu nu gamma hgamma\n    _ ≤ ∫⁻ z, A * phaseCost (E := E) kappa z ∂gamma := by\n      apply lintegral_mono\n      intro z\n      exact quadraticCost_le_phaseCost hkappa z\n    _ = A * ∫⁻ z, phaseCost (E := E) kappa z ∂gamma := by\n      exact lintegral_const_mul _ hphaseMeas\n    _ ≤ A * (C + delta) := by\n      gcongr\n    _ = A * C + (epsilon : ℝ≥0∞) := by\n      rw [mul_add, show A * delta = (epsilon : ℝ≥0∞) by\n        exact ENNReal.mul_div_cancel hA0 hAtop]\n    _ = ENNReal.ofReal 6 * phaseWassersteinSq kappa mu nu +\n        (epsilon : ℝ≥0∞) := rfl\n\n/-- Source-specific adapter from the paper's twisted `M_kappa` Wasserstein\nquantity to the ordinary phase-state second moment.  This is the metric step in\nthe proof of Lemma D.4; the run-wide estimate (D.3) remains an input. -/\ntheorem phase_state_second_moment_of_phaseWasserstein\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (nu reference : Measure (E × E)) (xstar : E) {kappa r Mx Mp : ℝ}\n    (hkappa : 1 ≤ kappa)\n    (hX : Integrable (fun z : E × E => ‖z.1 - xstar‖ ^ 2) reference)\n    (hP : Integrable (fun z : E × E => ‖z.2‖ ^ 2) reference)\n    (hXbound : (∫ z : E × E, ‖z.1 - xstar‖ ^ 2 ∂reference) ≤ Mx)\n    (hPbound : (∫ z : E × E, ‖z.2‖ ^ 2 ∂reference) ≤ Mp)\n    (hW : phaseWassersteinSq kappa nu reference ≤ ENNReal.ofReal (r ^ 2)) :\n    Integrable (fun z : E × E => ‖z.1 - xstar‖ ^ 2 + ‖z.2‖ ^ 2) nu ∧\n      (∫ z : E × E, ‖z.1 - xstar‖ ^ 2 + ‖z.2‖ ^ 2 ∂nu) ≤\n        2 * (Mx + Mp) + 24 * r ^ 2 := by\n  have hsqrt : Real.sqrt 6 ^ 2 = 6 := Real.sq_sqrt (by norm_num)\n  have hordinary : WassersteinSpace.wassersteinDistance nu reference ^ 2 ≤\n      ENNReal.ofReal ((Real.sqrt 6 * r) ^ 2) := by\n    refine (wassersteinDistance_sq_le_phaseWassersteinSq hkappa nu reference).trans ?_\n    calc\n      ENNReal.ofReal 6 * phaseWassersteinSq kappa nu reference ≤\n          ENNReal.ofReal 6 * ENNReal.ofReal (r ^ 2) := by gcongr\n      _ = ENNReal.ofReal ((Real.sqrt 6 * r) ^ 2) := by\n        rw [← ENNReal.ofReal_mul (by norm_num : (0 : ℝ) ≤ 6)]\n        congr 1\n        rw [mul_pow, hsqrt]\n  have h := PhaseStateMoment.phase_state_second_moment_of_wasserstein\n    nu reference xstar hX hP hXbound hPbound hordinary\n  refine ⟨h.1, h.2.trans_eq ?_⟩\n  rw [mul_pow, hsqrt]\n  ring\n\nend\n\nend AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06906v1#S4.SS3",
+      "edition": "arXiv:2609.06906v1",
+      "anchor": "Proposition4.7 HTML590-620; exact M_kappa display preceding Theorem4.5",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. Exact source numerical phase/metric, explicit constant elaboration, actual normalized-curvature producer boundary."
+    },
+    "statement": "For every real kappa and phase point, define the exact source block-matrix quadratic form Q_kappa. Valid norm use is restricted to kappa>=1 by the compiled comparisons.",
+    "formulae": [
+      {
+        "label": "Exact source metric/actual contraction",
+        "tex": "Q_\\kappa(x,p)=\\left(\\frac1{2\\kappa}+\\frac12\\right)\\|x\\|^2+\\langle x,p\\rangle+\\|p\\|^2."
+      }
+    ],
+    "assumptions": [
+      "Arbitrary real inner-product E, with no finite-dimension or measurability premise. Kappa>=1 for the comparisons; the total definition accepts every real kappa."
+    ],
+    "obligations": [
+      {
+        "id": "scoped-edge",
+        "label": "For every real kappa and phase point, define the exact source block-matrix quadratic form Q_kappa. Valid norm use is restricted to kappa>=1 by the compiled comparisons."
+      },
+      {
+        "id": "remaining-producer",
+        "label": "Actual smoothed potential and full main result (remaining)"
+      }
+    ],
+    "lesson": {
+      "kind": "def",
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseQuadraticForm",
+      "title": "For every real kappa and phase point, define the exact source block-matrix quadratic form Q_kappa",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06906v1#S4.SS3",
+          "label": "SPHMC actual numerical contraction and M_kappa",
+          "scope": "Existing source Q/API promotion with unchanged proof, no separate mathematical progress credit. Actual deterministic exact-gradient numerical phase contraction at the explicit normalized C2 curvature interface. Actual f=V_eta smoothing/C2/curvature producer remains independently open. No Khat/Kbar substitution, increment/logLambda/B2, invariant law/local errors/history/query work, PBPS, either full main theorem or actual-input expected-cost composition. TV proximity does not transfer unbounded expected cost."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SmoothedPicardHMCActualContraction"
+      ],
+      "assumptions": [
+        "Arbitrary real inner-product E, with no finite-dimension or measurability premise. Kappa>=1 for the comparisons; the total definition accepts every real kappa."
+      ],
+      "statement": "For every real kappa and phase point, define the exact source block-matrix quadratic form Q_kappa. Valid norm use is restricted to kappa>=1 by the compiled comparisons.",
+      "formula": "Q_\\kappa(x,p)=\\left(\\frac1{2\\kappa}+\\frac12\\right)\\|x\\|^2+\\langle x,p\\rangle+\\|p\\|^2.",
+      "steps": [
+        {
+          "title": "Evaluate the source block matrix",
+          "text": "Both off-diagonal entries are1/2, so their sum is the cross inner product. This reuses the existing definition unchanged; public visibility enables the actual numerical contraction consumer.",
+          "formula": "\\tfrac12\\langle x,p\\rangle+\\tfrac12\\langle p,x\\rangle=\\langle x,p\\rangle.",
+          "lean": "phaseQuadraticForm"
+        }
+      ],
+      "lean_statement": "For every real kappa and phase point, define the exact source block-matrix quadratic form Q_kappa. Valid norm use is restricted to kappa>=1 by the compiled comparisons.",
+      "lean_proof": "Exact source form and compiled parent composition, with all source domains/constant absorption and zero cases explicit. Existing Q/comparison proofs unchanged.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": []
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.PhaseMetric.phaseQuadraticForm",
+      "role": "prerequisite",
+      "supports": [
+        "scoped-edge"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Finite Euclidean source domain with the exact M_kappa block form.",
+        "lean": "Arbitrary real inner-product E, with no finite-dimension or measurability premise. Kappa>=1 for the comparisons; the total definition accepts every real kappa."
+      },
+      {
+        "source": "Universal c and C in the source Proposition4.7 step/contraction.",
+        "lean": "For every real kappa and phase point, define the exact source block-matrix quadratic form Q_kappa. Valid norm use is restricted to kappa>=1 by the compiled comparisons."
+      },
+      {
+        "source": "Actual V_eta from Lemma4.1.",
+        "lean": "Genuine global C2 f with explicit normalized curvature for the nonlinear consumer."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "For any real inner-product space E,any real kappa and any pair z=(x,p) in E x E,define the real-valued function\n  Q_kappa(x,p)=(1/(2kappa)+1/2)||x||^2+<x,p>+||p||^2.\nThis is a definition with unrestricted real kappa,not a theorem assuming kappa>=1. The norms and inner product are those of E. The cross coefficient is exactly 1. No positivity,coercivity,metric or probability property is asserted by the definition.",
+    "text_sha256": "2cfdaf81241d5cdb2ed2d42fb686d644d907db8187c5b12fdf1730eeaa612d9f",
+    "decoder": "anonymous_decoder_20261006",
+    "decoder_run_sha256": "01681256b490cffbd76d11e39c2788fe20e84138121f849e181525a76d29081c",
+    "decoder_packet_sha256": "62e897e5cb59fca020b58d5f982af0deda0b1b63d1716485a9055d16ea4741bb",
+    "source_text_visible": false,
+    "lean_statement_sha256": "4b40a695efd6ce18fe5897503b0c1ae339e97c39a2306be781ce9251729f3ee4",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/20261006-companion-priority/actual-contraction/p02.reconstruction.json"
+  },
+  "source_review_history": [
+    {
+      "reason": "Per-declaration Mathlib use-list provenance corrected; code/statements/source/formulas/decoder unchanged.",
+      "source_review": {
+        "state": "accepted",
+        "reviewer": "phase_source_reviewer_20261005",
+        "independent_from_formalizer": true,
+        "independent_from_decoder": true,
+        "evidence": "Full current PhaseMetric module read (186 lines), every public definition/theorem and private phaseQuadraticForm_nonneg/quadraticCost_le_phaseCost covered. Exact source matrix, lower6 and upper3/2 proofs independently checked. Transport comparison uses current raw coupling infimum, measurable phaseCost, finite epsilon threshold and near-optimal coupling, with arbitrary/infinite measures handled by ENNReal. Product max norm is explicitly retained for old ordinary transport; coordinate sum/true L2 is retained for new contraction. Moment adapter explicitly composes current PhaseStateMoment/WassersteinLipschitzMoment actual coupling domination and integrability arguments, with radius sqrt6*r and constant24. Definitions are prerequisites and existing APIs acquire no new progress credit. Current source/statement/reconstruction digests, module normalized text, complete lesson and complete publication binding independently recomputed; all pass. Fresh decoder components are exactly lean-statement and approved-definition-context, source invisible and identity independent.",
+        "review_run_sha256": "15c3a5dcd417e97b609d0c300c3060ac16fe67db81fd8939a75bd10bba3a8318",
+        "reviewer_packet_sha256": "24827964f03d192678b628ce4ad70577b3cbc249a04579838bbb2c9c0ad31955",
+        "run_artifact": "runs/20261006-companion-priority/actual-contraction/p02.source-review.result.json"
+      },
+      "previous_binding_sha256": "e823b14ab92451ff22a9c6b6cd1176958c14441f1f15f62b5614b3cb77a34e97"
+    }
+  ],
+  "semantic_slots": {
+    "objects": {
+      "original": "Exact source M_kappa block form and its scoped coordinate energy comparison.",
+      "reconstructed": "Q_kappa(x,p)=(1/(2kappa)+1/2)||x||^2+<x,p>+||p||^2.",
+      "relation": "equivalent",
+      "evidence": "Primary display HTML515-516 has xx1/(2kappa)+1/2,mixed halves,pp1; cross coefficient is1. Current code/lesson formula match."
+    },
+    "domains": {
+      "original": "Arbitrary real inner-product normed additive E, including zero dimension; no measure/completeness/finite-dimensional premise.",
+      "reconstructed": "Arbitrary real inner-product normed additive E, including zero dimension; no measure/completeness/finite-dimensional premise.",
+      "relation": "equivalent",
+      "evidence": "All section typeclasses and declaration context re-read from the entire current module; zero cases included."
+    },
+    "quantifiers": {
+      "original": "Every real kappa and phase point for definition; every kappa>=1 and point for comparisons.",
+      "reconstructed": "Same definition/theorem quantifiers with arbitrary E.",
+      "relation": "equivalent",
+      "evidence": "Fresh statement and anonymous reconstruction hashes verified unchanged; no hidden probability or noise quantifier."
+    },
+    "assumptions": {
+      "original": "Total definition for every real kappa; positivity/metric use deferred to kappa>=1 consumers.",
+      "reconstructed": "Total definition for every real kappa; positivity/metric use deferred to kappa>=1 consumers.",
+      "relation": "equivalent",
+      "evidence": "Current prose, scoped ledger and code agree; kappa>=1 is not silently imposed on the total definition."
+    },
+    "conclusion": {
+      "original": "Q_kappa(x,p)=(1/(2kappa)+1/2)||x||^2+<x,p>+||p||^2.",
+      "reconstructed": "Q_kappa(x,p)=(1/(2kappa)+1/2)||x||^2+<x,p>+||p||^2.",
+      "relation": "equivalent",
+      "evidence": "Definition lines29-30 is exactly the total scalar/inner-product expression. It invokes no named Mathlib proof theorem, no WithLp.prod_norm_sq_eq_of_L2, no Real.sq_sqrt or sq_le_sq_0. Empty selected proof-dependency list is correct; basic norm/inner-product/division notation does not claim those consumer proof dependencies."
+    },
+    "scopes": {
+      "original": "Existing Q prerequisite/API promotion only; no new mathematical progress credit, no nonlinear contraction/measure/history/cost claim. Actual V_eta producer remains independently open.",
+      "reconstructed": "Existing Q prerequisite/API promotion only; no new mathematical progress credit, no nonlinear contraction/measure/history/cost claim. Actual V_eta producer remains independently open.",
+      "relation": "equivalent",
+      "evidence": "Definition role is prerequisite; comparison APIs expose already proved uniform equivalence. Source finite Euclidean case is contained in the explicitly scoped arbitrary-inner-product elaboration."
+    },
+    "constant_dependencies": {
+      "original": "Exact source coefficients; universal comparison constants6 and3/2 where applicable.",
+      "reconstructed": "Q_kappa(x,p)=(1/(2kappa)+1/2)||x||^2+<x,p>+||p||^2. Current selected Mathlib ingredients: []",
+      "relation": "explicit-elaboration",
+      "evidence": "Only the provenance list changed. No source hypothesis,formula,proof,coefficient,quantifier or truth boundary changed. Definition lines29-30 is exactly the total scalar/inner-product expression. It invokes no named Mathlib proof theorem, no WithLp.prod_norm_sq_eq_of_L2, no Real.sq_sqrt or sq_le_sq_0. Empty selected proof-dependency list is correct; basic norm/inner-product/division notation does not claim those consumer proof dependencies."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration"
+}

@@ -1,0 +1,164 @@
+actual_pid=23080
+382:   have hGlobal70 :
+383:       (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →
+384:                             ∃ fP : HP0,
+385:                               HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧
+386:                               let fperp : Hperp := R f
+387:                               let fV : HP0 := V0.adjoint fperp
+388:                               B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧
+389:                               HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧
+390:                               ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖ ∧
+391:                               let g : Lp ℝ 2 J := U (P f-(f-P f))
+392:                               (∫ z, g z ∂J)=0 ∧
+393:                               ∃ gP : HP0,
+394:                                 HP0.subtypeL gP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le g ∧
+395:                                 let gperp : Hperp := R g
+396:                                 let gV : HP0 := V0.adjoint gperp
+397:                                 gP=A0 fP-ΓP0 fV ∧
+398:                                 gV=ΓP0 fP+A0 fV ∧
+399:                                 ‖gP‖^2+‖gV‖^2=‖fP‖^2+‖fV‖^2) := by
+400:     intro f hf
+401:     obtain ⟨fP,hfP,hBf,hΓf,hBudget,hVBudget⟩ := hGlobal f hf
+402:     let fperp : Hperp := R f
+403:     let fV : HP0 := V0.adjoint fperp
+404:     change B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) at hBf
+405:     have hPfp : P f=ι fP :=
+406:       (congrArg (fun x : HP => (x : Lp ℝ 2 J)) hfP).symm
+407:     have hB0adjMicro : B0.adjoint fperp=ΓP0 fV := by
+408:       apply Subtype.ext
+409:       have h := (hAmbient (fperp : Lp ℝ 2 J)).symm.trans hBf
+410:       rw [hRmicro] at h
+411:       exact h
+412:     let g : Lp ℝ 2 J := U (P f-(f-P f))
+413:     have hgMean : (∫ z, g z ∂J)=0 := by
+414:       change (∫ z, U (P f-(f-P f)) z ∂J)=0
+415:       rw [hUIntegral]
+416:       simp only [hSubIntegral,hPIntegral,hf,sub_self]
+417:     obtain ⟨gP,hgP,hgtail⟩ := hGlobal g hgMean
+418:     have hPgp : P g=ι gP :=
+419:       (congrArg (fun x : HP => (x : Lp ℝ 2 J)) hgP).symm
+420:     have hInput : P f-(f-P f)=ι fP-(fperp : Lp ℝ 2 J) := by
+421:       change P f-(f-P f)=ι fP-(R f : Lp ℝ 2 J)
+422:       rw [hR f,hPfp]
+423:     have hgPformula : gP=A0 fP-ΓP0 fV := by
+424:       apply ext_inner_left ℝ
+425:       intro u
+426:       calc
+427:         inner ℝ u gP=inner ℝ (ι u) (ι gP) := rfl
+428:         _ = inner ℝ (ι u) (P g) := by rw [hPgp]
+429:         _ = inner ℝ (P (ι u)) g := (hPself.isSymmetric _ _).symm
+430:         _ = inner ℝ (ι u) g := by rw [hPι]
+431:         _ = inner ℝ (U (ι u)) (ι fP-(fperp : Lp ℝ 2 J)) := by
+432:           change inner ℝ (ι u) (U (P f-(f-P f)))=_
+433:           rw [hInput]
+434:           exact (hUs.isSymmetric _ _).symm
+435:         _ = inner ℝ (A0 u) fP-inner ℝ (B0 u) fperp := by
+436:           rw [hUι,inner_add_left,inner_sub_right,inner_sub_right,
+437:             hOrth (A0 u) fperp,
+438:             show inner ℝ (B0 u : Lp ℝ 2 J) (ι fP)=0 from
+439:               (real_inner_comm _ _).trans (hOrth fP (B0 u))]
+440:           change (inner ℝ (A0 u) fP-0)+(0-inner ℝ (B0 u) fperp)=_
+441:           ring
+442:         _ = inner ℝ u (A0 fP)-inner ℝ u (ΓP0 fV) := by
+443:           have ha : inner ℝ (A0 u) fP=inner ℝ u (A0 fP) := hA0self.isSymmetric u fP
+444:           have hb : inner ℝ (B0 u) fperp=inner ℝ u (ΓP0 fV) :=
+445:             (B0.adjoint_inner_right u fperp).symm.trans
+446:               (congrArg (fun z : HP0 => inner ℝ u z) hB0adjMicro)
+447:           exact congrArg₂ (fun x y : ℝ => x-y) ha hb
+448:         _ = inner ℝ u (A0 fP-ΓP0 fV) := (inner_sub_right _ _ _).symm
+449:     have hgVformula : V0.adjoint (R g)=ΓP0 fP+A0 fV := by
+450:       change V0.adjoint (R (U (P f-(f-P f))))=_
+451:       rw [hInput,map_sub,map_sub,hRUm,map_sub,hVadjB]
+452:       have hd := DFunLike.congr_fun hIntertwine fperp
+453:       change V0.adjoint (D fperp)= -(A0 fV) at hd
+454:       change ΓP0 fP-V0.adjoint (D fperp)=_
+455:       rw [hd,sub_neg_eq_add]
+456:     have hgEnergy : ‖gP‖^2+‖V0.adjoint (R g)‖^2=‖fP‖^2+‖fV‖^2 := by
+457:       rw [hgPformula,hgVformula,norm_sub_sq_real,norm_add_sq_real,hCross]
+458:       nlinarith only [hEnergy fP,hEnergy fV]
+459:     exact ⟨fP,hfP,hBf,hΓf,hBudget,hVBudget,hgMean,gP,hgP,hgPformula,hgVformula,hgEnergy⟩
+460:   have hFinal :
+461:       (∀ h : Hperp, (D h : Lp ℝ 2 J)=U (h : Lp ℝ 2 J)-P (U (h : Lp ℝ 2 J))) ∧
+462:       V0.adjoint ∘L D= -(A0 ∘L V0.adjoint) ∧
+463:       (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →
+464:                             ∃ fP : HP0,
+465:                               HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧
+466:                               let fperp : Hperp := R f
+467:                               let fV : HP0 := V0.adjoint fperp
+468:                               B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧
+469:                               HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧
+470:                               ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖ ∧
+471:                               let g : Lp ℝ 2 J := U (P f-(f-P f))
+472:                               (∫ z, g z ∂J)=0 ∧
+473:                               ∃ gP : HP0,
+474:                                 HP0.subtypeL gP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le g ∧
+475:                                 let gperp : Hperp := R g
+476:                                 let gV : HP0 := V0.adjoint gperp
+477:                                 gP=A0 fP-ΓP0 fV ∧
+478:                                 gV=ΓP0 fP+A0 fV ∧
+479:                                 ‖gP‖^2+‖gV‖^2=‖fP‖^2+‖fV‖^2) := ⟨hD,hIntertwine,hGlobal70⟩
+480:   refine ⟨hμ, ?_⟩
+481:   refine ⟨hJ, ?_⟩
+482:   refine ⟨hν, ?_⟩
+483:   refine ⟨hRange, ?_⟩
+484:   refine ⟨hPf, ?_⟩
+485:   refine ⟨S, ?_⟩
+486:   refine ⟨hS, ?_⟩
+487:   refine ⟨hSd, ?_⟩
+488:   refine ⟨hSc, ?_⟩
+489:   refine ⟨hSf, ?_⟩
+490:   refine ⟨hSs, ?_⟩
+491:   refine ⟨e, ?_⟩
+492:   refine ⟨he, ?_⟩
+493:   refine ⟨U, ?_⟩
+494:   refine ⟨hU, ?_⟩
+495:   refine ⟨hUi, ?_⟩
+496:   refine ⟨hUs, ?_⟩
+497:   refine ⟨T, ?_⟩
+498:   refine ⟨hTs, ?_⟩
+499:   refine ⟨hAll, ?_⟩
+500:   refine ⟨hAeq, ?_⟩
+501:   refine ⟨hAs, ?_⟩
+502:   refine ⟨hAn, ?_⟩
+503:   refine ⟨hPB, ?_⟩
+504:   refine ⟨Γ, ?_⟩
+505:   refine ⟨hΓ, ?_⟩
+506:   refine ⟨hΓSq, ?_⟩
+507:   refine ⟨hCommRoot, ?_⟩
+508:   refine ⟨hΓP, ?_⟩
+509:   refine ⟨hΓPSq, ?_⟩
+510:   refine ⟨hCommP, ?_⟩
+511:   refine ⟨hGram, ?_⟩
+512:   refine ⟨q, ?_⟩
+513:   refine ⟨hqa, ?_⟩
+514:   refine ⟨hTq, ?_⟩
+515:   refine ⟨hq, ?_⟩
+516:   refine ⟨hCenter, ?_⟩
+517:   refine ⟨hΓPq, ?_⟩
+518:   refine ⟨hγ, ?_⟩
+519:   refine ⟨ΓP0, ?_⟩
+520:   refine ⟨hΓP0, ?_⟩
+521:   refine ⟨hPos0, ?_⟩
+522:   refine ⟨hOrder0, ?_⟩
+523:   refine ⟨hUnit, ?_⟩
+524:   refine ⟨Inv, ?_⟩
+525:   refine ⟨hLeft, ?_⟩
+526:   refine ⟨hRight, ?_⟩
+527:   refine ⟨hNormInv, ?_⟩
+528:   refine ⟨hInvSelf,A0,hA0,hA0self,hComm0,hSquare0,hCommInv,?_⟩
+529:   refine ⟨B0, ?_⟩
+530:   refine ⟨hB0, ?_⟩
+531:   refine ⟨V0, ?_⟩
+532:   refine ⟨hVdef, ?_⟩
+533:   refine ⟨hFactor, ?_⟩
+534:   refine ⟨hVadj, ?_⟩
+535:   refine ⟨hVnorm, ?_⟩
+536:   refine ⟨R, ?_⟩
+537:   refine ⟨hR, ?_⟩
+538:   refine ⟨hAmbient, ?_⟩
+539:   exact hFinal
+540: 
+541: end
+542: end AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation
+543: 
+544: #print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.ActualProjectedRotation.actual_projected_rotation

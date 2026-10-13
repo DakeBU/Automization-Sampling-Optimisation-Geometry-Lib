@@ -1,0 +1,115 @@
+import datetime,gzip,hashlib,json,os,pathlib,re,subprocess,sys,traceback
+R=pathlib.Path('E:/Samplinglib');O=pathlib.Path(__file__).resolve().parent;D=R/'runs/20261007-companion-priority/pbps-polar65';I=D/'integration65'
+C='31ce36e7ca01b203696918672c33d29a337550c3';P='ecd9d1f10ad0241312492cefacd5fe48c317e9c2';INT64='0aef19ca2711159eeaec86d42c9be142a94fa402';ACTOR='/root/exact_science63'
+def now():return datetime.datetime.now(datetime.timezone.utc).isoformat()
+def sha(b):return hashlib.sha256(b).hexdigest()
+def canon(j):return json.dumps(j,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
+def read(p):return json.loads(pathlib.Path(p).read_text(encoding='utf-8-sig'))
+def write(f,j):
+ assert not (O/'lease.final.json').exists()
+ p=O/f;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((json.dumps(j,ensure_ascii=False,sort_keys=True,indent=2)+'\n').encode())
+def pin(p):
+ p=pathlib.Path(p);b=p.read_bytes();return {'path':p.as_posix(),'bytes':len(b),'raw_sha256':sha(b),'lf_sha256':sha(b.replace(b'\r\n',b'\n'))}
+def blob(p,c=C):return subprocess.check_output(['git','show',c+':'+p],cwd=R)
+def gitpin(p,c=C):
+ b=blob(p,c);return {'path':p,'commit':c,'git_blob':subprocess.check_output(['git','rev-parse',c+':'+p],cwd=R).decode().strip(),'bytes':len(b),'raw_sha256':sha(b),'lf_sha256':sha(b.replace(b'\r\n',b'\n')),'qualification':'Exact Git blob RAW, not mutable worktree RAW'}
+def relative(p):return pathlib.Path(p).relative_to(R).as_posix()
+def equalpin(x):assert pin(x['path'])==x,(x['path'],'RAW/LF drift')
+def owned(exclude=()):return [pin(p) for p in sorted(O.rglob('*')) if p.is_file() and p.relative_to(O).as_posix() not in exclude]
+def inputcheck():
+ j=read(O/'inputs.manifest.json')
+ for x in j['immutable_external_files']:equalpin(x)
+ for x in j['exact_Git_blobs']:assert gitpin(x['path'],x['commit'])==x
+ return j
+GATES=['mandatory-astis-check-final','python-compile','publication','frontier','contributor','semantic','website-ci-build','official-graph-ci-output','cell-graph-check-actual','local-site-check','reader-cdp-capture','reader-copy-download','publication-final-admin','frontier-final-admin','contributor-final-admin','commit-integration65']
+CAN=['AutoSamplingTheory/ExampleCases/ProximalBPS/PolarIsometry.lean','Tests/ProximalBPSPolarIsometry.lean','AutoSamplingTheory/ExampleCases/ProximalBPS/CenteredRootOrderInverse.lean','lean-toolchain','lake-manifest.json','AutoSamplingTheory/ExampleCases.lean','AutoSamplingTheory/TechnicalLemmas/Registry.lean','Tests.lean','Tests/Basic.lean','research-wiki/frontier-cells/ASTIS-SHARED-l2-real-positive-square-order.json','research-wiki/frontier-cells/ASTIS-SW-PBPS-actual-polar-isometry.json','website/content/publications/pbps-actual-polar-isometry.json','website/content/declaration_lessons/pbps-actual-polar-isometry.json','research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261009-PBPSActualPolarIsometry.json','website/content/samplewiki_companion_frontiers.json','research-wiki/retrieval-index/astis-lean-arsenal-module-graph.json','research-wiki/sampling-sde-library/cards/AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry.md','docs/companion-papers-handoff.md']
+def freeze():
+ assert not (O/'lease.open.json').exists();write('lease.open.json',{'schema':'independent-INT65-repository-reader-lease-v1','status':'OPEN','actor':ACTOR,'checked_commit':C,'parent':P,'owned_prefix':O.as_posix(),'opened_utc':now(),'actual_open_pid':os.getpid(),'canonical_Git_ledger_Lean_writes':False,'future66':'Excluded; exact INT65 Git blobs only','no_VERIFIED_transition':True})
+ assert subprocess.check_output(['git','rev-parse',C+'^'],cwd=R).decode().strip()==P
+ fs=[D/f for f in ['integration.notes.json','visual.inspection.json','root.exact-verification65.adoption.json','verified.json','root.math65.adoption.json','root.source65.adoption.json','root.decoder65.adoption.json']]
+ fs += [I/f for f in ['owned-before.json','generated-card-cache65.json','generated-context-preservation-data/manifest.json','stale-cell-overlay64.applied.json','newline-preservation-final.json','cell.0.before-final-admin.exactraw.snapshot.json','staging-whitespace/diagnosis.json']]
+ fs += list((I/'visual65').glob('*.json'))+list((I/'visual65').glob('*.png'))
+ for g in GATES:fs += [I/g/f for f in ['receipt.json','stdout.log','stderr.log']]
+ for f in ['run.json','lease.final.json','named-verification.payload.json','verdict.json','final.manifest.json']:fs.append(D/'exact-science-verification-v2'/f)
+ for d,files in [('independent-math65',['run.json','lease.final.json','mathematical-review.named.raw.json']),('independent-source65',['review-run.json','lease.final.json','decision.json']),('anonymous-decoder',['review-run.json','lease.final.json'])]:
+  for f in files:
+   p=D/d/f
+   if p.exists():fs.append(p)
+ ov=D.parent/'pbps-centered-root64';fs+=[ov/'root.stale-cell-overlay64.adoption.json']
+ fs += [ov/'independent-stale-cell-overlay64'/f for f in ['decision.json','review-run.json','lease.final.json','before.raw.json','proposed-after.raw.json']]
+ prior=read(D/'integration.notes.json')['reused_python_tests']['prior_receipt'];pr=R/prior['path'];fs += [pr,pr.parent/'stdout.log',pr.parent/'stderr.log']
+ write('early-query-diagnostics.json',{'not_acceptance_evidence':True,'retained_tool_queries':[{'exit_code':1,'cause':'Inspection query attempted nonexistent exact-science-verification-v2/lease.json; corrected to actual lease.final.json; no repository change.','tool_chunk':'219881'},{'exit_code':0,'cause':'Earlier combined visual/staging inventory print was unnecessarily large and truncated; selected scalar reads used for decisions.','effect':'No proof replay or canonical mutation.'}]})
+ write('inputs.manifest.json',{'schema':'bounded-INT65-Git-and-immutable-receipt-inputs-v1','checked_commit':C,'parent':P,'frozen_utc':now(),'actual_freezer_pid':os.getpid(),'exact_Git_blobs':[gitpin(p) for p in CAN],'immutable_external_files':[pin(p) for p in sorted(set(fs))],'finite_historical_mapping':{'actual65_cell_before_final_admin':pin(I/'cell.0.before-final-admin.exactraw.snapshot.json'),'scope':'Only this explicitly named old gate cell snapshot; no arbitrary snapshot fallback. Exact committed final cell is separately pinned.'},'binary_policy':'PNG only RAW is semantically meaningful; LF digest is mechanical byte replacement, not image normalization.','no_recursive_native_history_or_ledger_snapshot':True})
+ print(json.dumps({'status':'FROZEN','actual_pid':os.getpid(),'Git_blobs':len(CAN),'immutable_external_files':len(set(fs))}),flush=True)
+def review():
+ m=inputcheck();notes=read(D/'integration.notes.json');assert notes['root_jobs']==9173 and notes['test_jobs']==9470 and notes['registry_count']==511 and notes['publication_units']==232
+ changes=subprocess.check_output(['git','diff','--name-only',P,C],cwd=R).decode().splitlines();canonical=[p for p in changes if not p.startswith('runs/')];assert len(changes)==1172
+ for p in CAN[:3]+CAN[11:14]:assert blob(p)==blob(p,P),(p,'science/publication/source bytes changed')
+ root=blob(CAN[5]).decode();reg=blob(CAN[6]).decode();tests=blob(CAN[7]).decode();basic=blob(CAN[8]).decode()
+ assert root.count('import AutoSamplingTheory.ExampleCases.ProximalBPS.PolarIsometry')==1 and tests.count('import Tests.ProximalBPSPolarIsometry')==1
+ assert reg.count('key := "pbps.actualPolarIsometry"')==1 and 'formalizedTechnicalLemmaCount = 511' in basic and P in reg
+ assert 'leanprover/lean4:v4.33.0' in blob('lean-toolchain').decode()
+ snapshots=[];receipts=[];old=pin(I/'cell.0.before-final-admin.exactraw.snapshot.json')
+ for g in GATES:
+  p=I/g/'receipt.json';j=read(p);assert j['exit_code']==0 and j['terminal_closed'] and j['actual_foreground_pid']>0 and j['checked_science_parent']==P
+  for k in ['stdout','stderr']:equalpin(j[k])
+  q=pin(p);row={'label':g,'receipt':q,'actual_pid':j['actual_foreground_pid'],'exit_code':0,'terminal_closed':True,'command':j['command'],'stdout':j['stdout'],'stderr':j['stderr'],'precommit_receipt_binding':'Captured on science parent while integrating; independently related to exact committed blobs below, not falsely labeled postcommit rerun'}
+  for s in j['input_snapshots']:
+   orig=s['original'];equalpin(s['exact_raw_snapshot']);equalpin(s['LF_snapshot']);assert s['exact_raw_snapshot']['raw_sha256']==orig['raw_sha256']
+   rel=relative(orig['path']);gb=blob(rel);raw=sha(gb);lf=sha(gb.replace(b'\r\n',b'\n'))
+   if raw==orig['raw_sha256']:qual='Exact Git RAW'
+   elif lf==orig['lf_sha256']:qual='Explicit Git/worktree RAW differ only CRLF; same LF, exact original snapshot retained'
+   else:
+    assert rel==CAN[10] and orig['raw_sha256']==old['raw_sha256'];qual='Explicit before-final-admin cell RAW snapshot; final administration only STABILIZING evidence state, committed final cell bound separately'
+   snapshots.append({'gate':g,'path':rel,'qualification':qual,'original_RAW':orig['raw_sha256'],'Git_RAW':raw})
+  receipts.append(row)
+ gateout=(I/GATES[0]/'stdout.log').read_text(encoding='utf-8');assert 'Build completed successfully (9173 jobs).' in gateout and 'Build completed successfully (9470 jobs).' in gateout and 'ASTIS check passed' in gateout
+ assert '232 source items' in (I/'publication-final-admin/stdout.log').read_text() and '295 registered cells' in (I/'frontier-final-admin/stdout.log').read_text()
+ py=notes['reused_python_tests'];assert py['count']==296 and not py['rerun'] and py['exact_unchanged_tools_and_site_scripts'];pr=R/py['prior_receipt']['path'];j=read(pr);assert pin(pr)['raw_sha256']==py['prior_receipt']['raw_sha256'] and j['exit_code']==0 and j['terminal_closed']
+ pylog=(pr.parent/'stdout.log').read_text(encoding='utf-8',errors='replace')+(pr.parent/'stderr.log').read_text(encoding='utf-8',errors='replace');assert 'Ran 296 tests' in pylog and 'OK' in pylog
+ scriptdelta=subprocess.check_output(['git','diff','--name-only',INT64,C,'--','tools','website/scripts'],cwd=R).decode().splitlines();assert scriptdelta==[]
+ reuse=read(D/'root.exact-verification65.adoption.json');v=D/'exact-science-verification-v2';run=read(v/'run.json');h=run.pop('run_sha256');assert sha(canon(run))==h==reuse['native_whole_logical_run_sha256'];assert pin(v/'named-verification.payload.json')['raw_sha256']==reuse['native_complete_RAW_verdict_sha256'];assert pin(v/'lease.final.json')['raw_sha256']==reuse['native_lease_RAW_sha256'];lease=read(v/'lease.final.json');assert lease['status']=='CLOSED_LAST' and lease['checked_commit']==P and lease['final_owned_file_count']==62
+ for x in lease['all_owned_except_this_final_lease']:equalpin(x)
+ assert read(D/'verified.json')['verified_commit']==P
+ science_reuse={'CLOSED62':{'whole_logical_run_sha256':h,'complete_named_RAW_payload':pin(v/'named-verification.payload.json'),'lease':pin(v/'lease.final.json'),'all62_owned_RAW_LF_bindings_rechecked':True},'math40_source117_decoder20':'Reused via already verified native exact-science bindings and unchanged root adoption pins; no replay of proof or source transcripts','exact_two_Lean_and_parent_and_publication_lesson_audit_Git_RAW_equality':True,'independent_VERIFIED_transition_already_at':P,'no_new_VERIFIED_or_ledger_write':True}
+ lesson=json.loads(blob(CAN[12]))['units'][0];copy=read(I/'visual65/copy-actual-copy-and-download.inspect.json');main=blob(CAN[0]).decode();literal=[]
+ assert len(lesson['steps'])==len(copy['steps'])==5 and copy['initialFolded'] and not copy['physicalOSClipboardTest'] and copy['copyProbeUsesIsolatedPageClipboardCallback']
+ for n,(step,shown) in enumerate(zip(lesson['steps'],copy['steps']),1):
+  region=step['lean_source_region'];b=blob(region['path']);excerpt=b''.join(b.splitlines(keepends=True)[region['start_line']-1:region['end_line']]);assert sha(b)==region['source_raw_sha256'] and sha(excerpt)==region['exact_code_raw_sha256'] and excerpt.decode()==step['lean']==shown['lean'] and shown['initiallyFolded']
+  assert region['start_line']>= (92 if region['path']==CAN[0] else 133);literal.append({'step':n,'region':region,'BODY_literal_and_rendered_literal':True})
+ for p in copy['panels']:assert p['callbackCalled'] and p['copiedExactly'] and p['status']=='Copied' and p['code'] in main
+ for d in copy['downloads']:assert d['status']==200 and d['text']==main and d['bytes']==len(main)
+ assert len(copy['panels'])==len(copy['downloads'])==2
+ images=[pin(p) for p in sorted((I/'visual65').glob('*.png'))];assert len(images)==8
+ for label in ['render','copy']:
+  cap=read(I/'visual65'/f'{label}-capture.json');assert cap['ownedBrowserExit']['code']==0 and cap['pid']>0
+ reader={'all8_actual_PNGs_independently_viewed':images,'all5_literal_BODY_steps':literal,'two_actual_isolated_page_copy_callbacks':True,'two_exact_full_source_RAW_downloads':True,'download_count_field_correction':{'capture_field':'bytes=8175 is text-character length, not UTF8 byte count','exact_source_RAW_bytes':len(main.encode()),'RAW_sha256':sha(main.encode()),'rendered_text_characters':len(main),'source_content_equal':True},'physical_clipboard_or_device_or_live_test':False,'folded5_adjacent_Lean_steps':True,'complete_Lean_statement_placement':'Folded full statement/proof follows all5 steps in verification section; not immediately beside initial complete source restatement; retained Exposition debt','notation':'Rendered formulas legible. Long source restatement retains plaintext Unicode/underscores, explicitly not full Exposition Seal.','graph':'Actual compiled polar focus and actual64 reference visible. Incomplete reference scanner/dashed relationships remain labeled; dense small labels/wrapped long names are reader debt.'}
+ ov=read(I/'stale-cell-overlay64.applied.json');op=D.parent/'pbps-centered-root64/independent-stale-cell-overlay64';decision=read(op/'decision.json');oa=read(D.parent/'pbps-centered-root64/root.stale-cell-overlay64.adoption.json');orun=read(op/'review-run.json');oh=orun.pop('run_sha256');assert sha(canon(orun))==oh==oa['native_whole_logical_run_sha256'];assert pin(op/'decision.json')['raw_sha256']==oa['native_complete_RAW_decision_sha256']
+ before=read(op/'before.raw.json');after=read(op/'proposed-after.raw.json');actual=json.loads(blob(ov['canonical_path']));assert actual==after and sha(blob(ov['canonical_path']))==ov['canonical_after_RAW_sha256'];diff=[]
+ def rec(a,b,path=''):
+  if isinstance(a,dict) and isinstance(b,dict):
+   for k in sorted(set(a)|set(b)):rec(a.get(k),b.get(k),path+'.'+k)
+  elif a!=b:diff.append(path)
+ rec(before,after);assert set(diff)=={'.source_anchor','.evidence.truth_boundary'} and not decision['source_mathematical_repair'];assert set(decision['semantic_slots'])=={'objects','domains','assumptions','quantifiers','conclusion','constant_dependencies','scopes_senses'}
+ ovresult={'exact_two_fields':diff,'native_review_whole':oh,'complete_RAW_decision':pin(op/'decision.json'),'actual_Git_RAW_equals_reviewed_proposed_after':True,'source_Lean_publication_lesson_audit_unchanged':True,'remaining':decision['out_of_scope_remaining_metadata_debt']}
+ preservation=read(I/'generated-context-preservation-data/manifest.json');prs=[]
+ for x in preservation['emitted_snapshots']:
+  b=gzip.decompress((R/x['emitted_snapshot']).read_bytes());assert sha(b)==x['emitted_raw_sha256'];assert sha(blob(x['path'],P))==x['baseline_raw_sha256'] and blob(x['path'])==blob(x['path'],P);prs.append({'path':x['path'],'restored_exact_HEAD_RAW':x['baseline_raw_sha256'],'lossless_emitted_snapshot':pin(R/x['emitted_snapshot'])})
+ cache=read(I/'generated-card-cache65.json');crs=[]
+ for x in cache['moved']:
+  p=R/x['cache'];q=pin(p);assert q['bytes']==x['bytes'] and q['raw_sha256']==x['raw_sha256'];crs.append(q)
+ assert len(crs)==443 and len(cache['skipped'])==1
+ oldcards=[]
+ for x in preservation['preserved_canonical_metadata']:
+  p=x['canonical_card'];assert sha(blob(p))==x['card_raw_sha256'] and blob(p)==blob(p,P);oldcards.append(gitpin(p))
+ ws=read(I/'staging-whitespace/diagnosis.json');assert ws['full_staged_exit']==2 and not ws['full_staged_called_PASS'] and ws['authored_complement_exit']==0 and len(ws['findings'])==374 and ws['future66_not_staged']
+ # Independent exact cr-at-eol authored complement, excluding only the exact three immutable RAW files.
+ excl={x['path'] for x in ws['exact_immutable_raw_paths']};authored=[p for p in changes if p not in excl];cmd=['git','-c','core.whitespace=cr-at-eol','diff','--check',P,C,'--']+authored;q=subprocess.run(cmd,cwd=R,stdout=subprocess.PIPE,stderr=subprocess.PIPE);(O/'authored-whitespace.stdout.log').write_bytes(q.stdout);(O/'authored-whitespace.stderr.log').write_bytes(q.stderr);assert q.returncode==0
+ write('bounded-review.result.json',{'schema':'independent-INT65-repository-reader-reviewed-delta-v1','status':'ACCEPTED_WITH_EXPLICIT_READER_DEBT','checked_commit':C,'parent':P,'actual_review_pid':os.getpid(),'fresh_independent_review':'Exact committed Git/raw/finite receipt/copy/5BODY/cache/preservation/overlay/whitespace checks; aggregate gates below are actual owner foreground integration receipts, not verifier reruns','exact_shared_integration':{'root_jobs':9173,'Tests_jobs':9470,'registry_leaves':511,'publication_items':232,'actual_staged_files':len(changes),'canonical_changed_paths':canonical,'exact_imports_Registry_Test_smoke_delta':True},'actual_gate_receipts':receipts,'all_gate_input_snapshot_bindings':snapshots,'reused_python_regressions':{'count':296,'rerun':False,'original_actual_receipt':pin(pr),'INT64_to_INT65_tools_and_website_scripts_Git_diff':scriptdelta,'scope':'Infrastructure regression suite reused; not a fresh INT65 regression run or mathematical proof'},'science_source_reuse':science_reuse,'reader':reader,'reviewed64_overlay':ovresult,'preservation':{'unrelated_exact_restorations':prs,'restoration_count':len(prs),'preserved_existing_card_count':len(oldcards),'preserved_existing_cards_Git_pins':oldcards,'reversible_cached_default_card_count':len(crs),'cache_manifest':pin(I/'generated-card-cache65.json'),'cached_RAW_pin_manifest':crs},'whitespace':{'policy':'core.whitespace=cr-at-eol','actual_independent_authored_exit':q.returncode,'exact_three_immutable_RAW_exclusions':list(excl),'retained_immutable_findings':374,'full_staged_PASS':False,'diagnosis':pin(I/'staging-whitespace/diagnosis.json')},'truth_boundary':{'accepted':'Locally compiled and independently science-reviewed B16 typed polar+typed-adjoint Test, now serialized into exact INT65 shared imports/Registry511/Tests and bounded local reader/graph delivery','ambient_extension_global_input66':False,'onto_or_coisometry':False,'full_ExpositionSeal':False,'PURIFIED':False,'remote_CI':False,'main_merged_live':False,'whole_paper_Goal':False,'source_mirror_creator_self_promotion':False,'canonical_shared_Git_ledger_Lean_edits_by_reviewer':False},'remaining':['Complete statement-adjacent Lean placement and plain notation Exposition debt','Dense graph labels and inherited spacing','Unchanged nested64 attribution/purification metadata outside reviewed two fields','Ambient B* transport/global-centered decomposition/projector66 not credited','B17/B20/B21/H1/full corrector/dynamics/main/errors/expected-query costs/actual-input composition open'],'utc':now()})
+ print(json.dumps({'status':'ACCEPTED_WITH_EXPLICIT_READER_DEBT','actual_pid':os.getpid(),'checked_commit':C,'gates':len(receipts),'5_BODY':True,'8_PNG':True,'preserved':len(prs),'cached':len(crs),'regressions_reused_not_rerun':296}),flush=True)
+if __name__=='__main__':
+ mode=sys.argv[1]
+ try:globals()[mode]()
+ except Exception as e:
+  if not (O/'lease.final.json').exists():write(mode+'.failure.json',{'status':'FAIL','actual_pid':os.getpid(),'exception':repr(e),'traceback':traceback.format_exc(),'utc':now()})
+  raise

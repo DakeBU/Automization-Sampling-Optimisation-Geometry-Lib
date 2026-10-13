@@ -1,0 +1,58 @@
+import pathlib,json,hashlib
+ROOT=pathlib.Path('E:/Samplinglib');OUT=pathlib.Path(__file__).resolve().parent
+def sha(b):return hashlib.sha256(b).hexdigest()
+def save(p,x):(OUT/p).write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+header=(OUT.parent/'Header95.lean').read_bytes();assert sha(header)=='2a9d3052c353ab8aab448de05a05beeadab320def15ee31b1d353abbb063d002'
+audit={
+ 'status':'ACCEPTED_PROSPECTIVE_MATHEMATICAL_STATEMENT_NO_REQUIRED_CORRECTION',
+ 'reviewer':'/root/independent_whole_math93',
+ 'header_raw_sha256':sha(header),
+ 'scope':'Independent mathematical truth, quantifier, literal-interface and degeneracy audit before Statement Seal and proof search. Not source-review acceptance, proof implementation, theorem verification, SAU admission or whole-A7/Goal completion.',
+ 'typecheck_evidence':'Root-owned pinned-toolchain type-only check EXIT0, stdout prints candidate_statement : ... -> Prop and only propext, Classical.choice, Quot.sound. This checks formation of a proposition, not its truth; no fresh Lean invocation or proof search was performed in this audit.',
+ 'hypotheses':{
+  'ambient':'Finite-dimensional real inner-product E with its Borel measurable structure. No Nontrivial E, no positive dimension assumption. Same ambient instances as93/94.',
+  'six_original':'alpha>0; alpha<=beta; V C2; two-sided Hessian bounds; eta>0; beta*eta<=1. hH is one original two-sided bound binder. No density, nonexplosion, rate-integrability, path-law, Markov or continuity provider added.',
+  'observable':'For every deterministic y,xRef,z0,T and every real F measurable for the coordinate-product path sigma algebra, every nonnegative M that bounds |F| everywhere supplies the conclusions. Measurability and boundedness restrict the chosen observable, not the source dynamics.',
+  'not_asserted':'No arbitrary unbounded integrable-observable extension, no Skorokhod/supremum-topology Borel identification, no random-parameter substitution, no single AE event uniform over all parameters.'},
+ 'literal_definitions':{
+  'checked':'22 inherited definitions c,Phi,S,rate,Lambda,tau,next,record,P,epsilon,Rec,Hist,Delta,Prefix,m,zAt,K,eventTime,I,Path,Psi,Gamma agree with93 after whitespace removal; exact comparison saved separately.',
+  'simplex':'StrictMono(Fin.cons 0 t) enforces 0<t0<...<t_(n-1); all t_i<T. Prefix is its subtype. m is comap of Fin n product Lebesgue along subtype inclusion, the accepted ordered-simplex measure; there is no factorial or change of time normalization.',
+  'indices':'For i:Fin n, i.castSucc is the previous post-bounce state z_i and index i of (0,t0,...,t_(n-1)); t_i minus that grid coordinate is its strictly positive incoming duration. zAt uses Fin.induction, so no successor/pred boundary is hidden.',
+  'path':'Fin.foldl chooses the last live history index at or before s; at an event it uses the reflected/post-jump state. The new product separately uses the incoming pre-reflection flow. Endpoint values thus agree with93/94 conventions.',
+  'clamp':'min(toNNReal s,T) agrees with real s on [0,T], providing exactly94 real extension for its interval integral. The integral covers every one of the n+1 arcs, including terminal survival.',
+  'density':'94 has grid=Fin.snoc(Fin.cons 0 t) T. For i:Fin n, grid i.castSucc.castSucc=(Fin.cons 0 t) i.castSucc. Substituting this identity gives exactly the candidate wgt; rho=ENNReal.ofReal(wgt) pointwise. The factor is exp(-whole-path hazard) times all n incoming rates. No missing terminal factor or use of post-reflection rate.'},
+ 'witness_and_quantifiers':[
+  'One existential Z is jointly measurable in all displayed parameters, physical time and raw clock stream. The entire joint measurability, raw covered-arc identity, uncovered fallback and fixed-parameter AE initialization block is identical to93.',
+  'A raw stream can contain zero clocks, repeated instantaneous jumps, top waiting time, or uncovered times. The candidate preserves93 raw arc formula when I holds and initial-state fallback when no I holds; it does not assert that every raw stream is nonexplosive.',
+  'AE initialization is forall deterministic y,xRef,z0, AE w, Z(...,0,w)=z0. The expectation theorem fixes parameters and T before integrating. It does not exchange forall T AE with AE forall T or demand all positive-index event times avoid every deterministic T on one event.',
+  'ZT is measurable into the coordinate product by measurable coordinate evaluation of jointly measurable Z. No BorelSpace instance for an uncountable product topology is required.',
+  'Use93 raw equality Psi(H(w))=ZT(w) as an equality of complete functions on the full-probability sector representation. This supplies all coordinates simultaneously; taking an uncountable intersection of individual AE coordinate identities would be invalid and is unnecessary.'
+ ],
+ 'independent_mathematical_reconstruction':[
+  'Each rate is nonnegative because sqrt(eta)>=0 and max(0,inner)>=0. Each incoming product and exp(-hazard) are nonnegative and finite, hence wgt>=0 and rho is finite pointwise. 94 interval integrability ensures the displayed interval integral is genuine, rather than relying on the integral default for a nonintegrable function.',
+  '93 gives measurable Gamma and rho and integral rho = P(N(T)=n). Since rho=ofReal(wgt) and wgt>=0, wgt=rho.toReal is measurable. Therefore wgt is integrable and its real integral p_n is the finite sector probability. This route does not silently assume independent parameterized hazard-integral measurability.',
+  'The actual probability measure P and |F|<=M make F composed with ZT integrable. On each simplex, |F(Gamma(t))*wgt(t)|<=M*wgt(t), so each signed weighted integrand is integrable. This holds on an empty simplex and also for M=0.',
+  'The sector probabilities p_n sum to1 because the measurable natural-valued N(T) partitions the probability space. Equivalently93 supplies raw disjoint survived sectors with full-probability union. Thus sum_n integral |F(Gamma)*wgt| <= M, which is stronger than the requested sum_n |integral F(Gamma)*wgt|<infinity.',
+  'Apply93 nonnegative test identity to the positive and negative parts of F on the path coordinate (ignoring history), then94 rho=ofReal(wgt). Finite bounds justify converting the two nonnegative integrals to real sector integrals and subtracting. Summing the disjoint measurable count partition and using absolute convergence gives exactly the stated real tsum equality.',
+  'This is a mathematical reconstruction of why the proposed statement should be true; it is not Lean proof code and does not claim the future implementation or source-facing admission has passed.'
+ ],
+ 'degenerate_cases':{
+  'n_zero':'Fin0 event tuple space is a singleton and the positivity/order test is vacuous. Its zero-dimensional product-Lebesgue/comap mass is1. K contains only time0,z0; Gamma is the initial harmonic arc; the empty incoming-rate product is1. The weight is exactly no-jump survival exp(-integral_0^T rate).',
+  'T_zero':'All positive-count simplices are empty because 0<t0<T=0 is impossible. n0 has weight1, one coordinate at0 and path z0. AE initialization identifies the left integral with F of that unique one-point path. No division by T or positive-horizon premise occurs.',
+  'rank_zero':'The zero-dimensional real inner-product space is allowed. Every phase equals the unique phase; all rates vanish. Positive-count terms vanish and n0 gives the entire expectation.',
+  'zero_rates':'If rate vanishes along the initial harmonic trajectory, positive clocks give infinite next wait AE and no bounce; n0 survival is1. Any prescribed history whose incoming factor vanishes has wgt0, including histories with otherwise nonzero rates. There is no division by a rate.',
+  'zero_clocks':'Raw nonpositive real clock coordinates map to0 and may create instantaneous jumps or eventual fallback. Under the independent Exp(1) product all coordinates are positive AE, so these exceptional raw behaviors do not require a universal raw initialization/path-count assertion.',
+  'infinite_waits':'The top wait leads to stopped next record while the current covering interval extends to every finite physical time. The sector weight includes terminal survival. No finite next-event assumption is supplied.',
+  'events_at_T':'The closed actual path includes its value at T while simplex times are strictly below T. For each fixed T,93 excludes positive-index events at T AE, including all indices by a countable statement; this suffices even when F reads the endpoint.'},
+ 'required_corrections':[],
+ 'counterexample_search_result':'No counterexample found within the stated bounded-real coordinate-measurable and deterministic-parameter scope. Examined n0, T0, zero dimension, identically zero rates, individual zero incoming factors, top waits, raw zero clocks, endpoint observations and sign-changing bounded F.',
+ 'remaining_boundary':'The header remains a prospective Prop. A proof must derive real integrability, sector conversion and countable signed expansion from93/94. Independent source-graph/source-statement audit, Statement Seal, implementation, kernel verification and later reader delivery remain separate.',
+ 'production_modified':False,'SAU_or_ledger_transition':False,'Goal_complete':False}
+save('decision.native.json',audit)
+inputs=json.loads((OUT/'inputs.native.json').read_text())
+manifest={'status':'CLOSED_INDEPENDENT_PROSPECTIVE_HEADER_RAW','header_raw_sha256':sha(header),'inputs':inputs,'owned_evidence':[],'self_hash_intentionally_omitted':True}
+for p in sorted(OUT.rglob('*')):
+ if p.is_file() and p.name!='closed-RAW-manifest.native.json':
+  b=p.read_bytes();manifest['owned_evidence'].append({'path':p.relative_to(ROOT).as_posix(),'raw_sha256':sha(b),'bytes':len(b)})
+save('closed-RAW-manifest.native.json',manifest)
+print(json.dumps({p:sha((OUT/p).read_bytes()) for p in ['decision.native.json','closed-RAW-manifest.native.json']},indent=2))

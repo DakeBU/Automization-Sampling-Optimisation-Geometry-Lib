@@ -1,0 +1,86 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexOpenAEDifferentiable
+import AutoSamplingTheory.TechnicalLemmas.Measure.CouplingAEMarginals
+import Mathlib.Analysis.Convex.Measure
+import Mathlib.MeasureTheory.Measure.AbsolutelyContinuous
+
+/-!
+# Coupling-level interior and differentiability bridge
+
+A Brenier/Rockafellar argument often knows domain membership first under the
+joint coupling, not as an independently stated marginal theorem.  If the first
+marginal is absolutely continuous with respect to Haar measure, convex-frontier
+nullity can be pulled back to the coupling and combined directly with that
+joint-law domain membership.
+
+This avoids introducing a measurability assumption on the whole convex domain:
+the frontier is null, while differentiability is proved on the open interior.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CouplingConvexDomainAE
+
+open MeasureTheory Set Topology
+open CouplingAEMarginals Transport
+open AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexOpenAEDifferentiable
+
+noncomputable section
+
+variable {E F : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [MeasurableSpace E] [BorelSpace E]
+  [MeasurableSpace F]
+  {m μ : Measure E} [Measure.IsAddHaarMeasure m]
+  {ν : Measure F} {gamma : Measure (E × F)}
+
+/-- If a coupling is almost everywhere concentrated over a convex source
+domain, and its first marginal is absolutely continuous with respect to Haar
+measure, then the first coordinate lies in the domain interior and a real
+convex function on that domain is Frechet differentiable there, jointly
+`gamma`-almost everywhere. -/
+theorem ae_fst_mem_interior_and_differentiableAt
+    {s : Set E} {phi : E → ℝ}
+    (hgamma : IsCoupling gamma μ ν)
+    (hs : Convex ℝ s)
+    (hconv : ConvexOn ℝ s phi)
+    (hμm : μ ≪ m)
+    (hmem : ∀ᵐ z ∂gamma, z.1 ∈ s) :
+    ∀ᵐ z ∂gamma,
+      z.1 ∈ interior s ∧ DifferentiableAt ℝ phi z.1 := by
+  have hfront_m : m (frontier s) = 0 :=
+    hs.addHaar_frontier m
+  have hfront_μ : μ (frontier s) = 0 :=
+    hμm hfront_m
+  have hnotfront_μ : ∀ᵐ x ∂μ, x ∉ frontier s :=
+    measure_eq_zero_iff_ae_notMem.mp hfront_μ
+  have hnotfront_gamma : ∀ᵐ z ∂gamma, z.1 ∉ frontier s :=
+    ae_fst_of_isCoupling hgamma hnotfront_μ
+
+  have hsInterior : Convex ℝ (interior s) := hs.interior
+  have hconvInterior : ConvexOn ℝ (interior s) phi :=
+    hconv.subset interior_subset hsInterior
+  have hdiff_m : ∀ᵐ x ∂m,
+      x ∈ interior s → DifferentiableAt ℝ phi x :=
+    ae_differentiableAt_of_convexOn_isOpen isOpen_interior hconvInterior
+  have hdiff_μ : ∀ᵐ x ∂μ,
+      x ∈ interior s → DifferentiableAt ℝ phi x :=
+    hμm.ae_le hdiff_m
+  have hdiff_gamma : ∀ᵐ z ∂gamma,
+      z.1 ∈ interior s → DifferentiableAt ℝ phi z.1 :=
+    ae_fst_of_isCoupling hgamma hdiff_μ
+
+  filter_upwards [hmem, hnotfront_gamma, hdiff_gamma] with z hzs hzfront hdiff
+  have hzclosure : z.1 ∈ closure s := subset_closure hzs
+  have hzinterior : z.1 ∈ interior s := by
+    by_contra hznot
+    apply hzfront
+    simp [frontier, hzclosure, hznot]
+  exact ⟨hzinterior, hdiff hzinterior⟩
+
+end
+
+end CouplingConvexDomainAE
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

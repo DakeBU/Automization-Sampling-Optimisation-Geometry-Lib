@@ -1,0 +1,325 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicGlobalHorizon
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalRawLocalizationL2
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Stopping
+import Mathlib.MeasureTheory.Function.L2Space
+
+/-!
+# The global raw stopped integrand in finite-horizon progressive `L²`
+
+For the global proof of Chewi Proposition 1.1.16 we must keep one literal
+source-facing process
+
+`eta_s * 1_{s <= tau_k}`
+
+rather than changing representatives each time the ambient finite horizon is
+enlarged.  The dyadic global localizer `tau_k` is bounded by `H_k = 2^k`.
+This file proves that the raw closed stop belongs to progressive product `L²`
+on `H_k`.
+
+The proof is deliberately direct.  On the shared global exceptional set the
+localizer is zero, hence the stopped path vanishes away from the time singleton
+`{0}`.  Off that null set, the global localizer is exactly the finite-horizon
+canonical raw localizer, so the already-compiled pathwise energy estimate
+`rawStoppedTimeLintegral_le` applies.  Integrating the uniform finite bound over
+a probability space yields product `L²` membership.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace GlobalStoppedProgressiveL2
+
+open Filter MeasureTheory Set WithTop
+open scoped ENNReal NNReal Topology
+
+open CanonicalEnergyLocalizer CanonicalRawLocalization CanonicalRawLocalizationL2
+  CompletedEnergy DyadicGlobalHorizon ElementaryItoIntegral
+  GlobalCanonicalLocalizer GlobalLocalProgressiveL2 ProgressiveL2 StoppingTime
+open AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.Localization
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+
+/-- The literal globally stopped source integrand at the `k`-th dyadic
+localizing time. -/
+noncomputable def globalStoppedIntegrand
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) : ℝ≥0 → Omega → ℝ :=
+  stoppedIntegrand eta.process
+    (fun omega =>
+      (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0))
+
+/-- Closed stopping preserves strong progressiveness for the global source
+process.  This is the same measurable-event argument used by
+`ProgressiveL2Stopping`, but it only needs progressiveness of the source, not a
+pre-existing global `L²` certificate. -/
+theorem globalStoppedIntegrand_stronglyProgressive
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) :
+    IsStronglyProgressive filtration (globalStoppedIntegrand hUsual eta k) := by
+  let tau : Omega → WithTop ℝ≥0 := fun omega =>
+    (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0)
+  have htau : IsChewiStoppingTime filtration tau := by
+    simpa only [tau] using
+      dyadicGlobalLocalizingTime_isChewiStoppingTime hUsual eta k
+  have htau' : MeasureTheory.IsStoppingTime filtration tau := htau
+  intro i
+  have hτmin : Measurable[filtration i]
+      (fun omega => min (tau omega) (i : WithTop ℝ≥0)) :=
+    (htau'.min_const i).measurable_of_le (fun omega => min_le_right _ _)
+  have htime : Measurable[Subtype.instMeasurableSpace.prod (filtration i)]
+      (fun p : Set.Iic i × Omega => ((p.1 : ℝ≥0) : WithTop ℝ≥0)) :=
+    (measurable_subtype_coe.comp measurable_fst).withTop_coe
+  have hτprod : Measurable[Subtype.instMeasurableSpace.prod (filtration i)]
+      (fun p : Set.Iic i × Omega => min (tau p.2) (i : WithTop ℝ≥0)) :=
+    hτmin.comp measurable_snd
+  have hsetMin : @MeasurableSet (Set.Iic i × Omega)
+      (Subtype.instMeasurableSpace.prod (filtration i))
+      {p | ((p.1 : ℝ≥0) : WithTop ℝ≥0) ≤
+        min (tau p.2) (i : WithTop ℝ≥0)} :=
+    measurableSet_le htime hτprod
+  have heq :
+      {p : Set.Iic i × Omega |
+        ((p.1 : ℝ≥0) : WithTop ℝ≥0) ≤ tau p.2} =
+      {p : Set.Iic i × Omega |
+        ((p.1 : ℝ≥0) : WithTop ℝ≥0) ≤
+          min (tau p.2) (i : WithTop ℝ≥0)} := by
+    ext p
+    change
+      (((p.1 : ℝ≥0) : WithTop ℝ≥0) ≤ tau p.2) ↔
+        (((p.1 : ℝ≥0) : WithTop ℝ≥0) ≤
+          min (tau p.2) (i : WithTop ℝ≥0))
+    constructor
+    · intro hp
+      have hpi : (p.1 : ℝ≥0) ≤ i := p.1.property
+      exact le_min hp (WithTop.coe_le_coe.mpr hpi)
+    · intro hp
+      exact hp.trans (min_le_left _ _)
+  have hset : @MeasurableSet (Set.Iic i × Omega)
+      (Subtype.instMeasurableSpace.prod (filtration i))
+      {p | ((p.1 : ℝ≥0) : WithTop ℝ≥0) ≤ tau p.2} := by
+    rw [heq]
+    exact hsetMin
+  simpa only [globalStoppedIntegrand, stoppedIntegrand, tau] using
+    (StronglyMeasurable.ite hset (eta.progressive i) stronglyMeasurable_const)
+
+/-- On a globally good sample path, the dyadic global time is literally the
+finite-horizon canonical raw localizer at the matching index. -/
+theorem dyadicGlobalLocalizingTime_eq_canonicalRaw_of_good
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) {omega : Omega} (homega : omega ∉ globalBadSet eta) :
+    dyadicGlobalLocalizingTime hUsual eta k omega =
+      canonicalRawLocalizingTime hUsual
+        (eta.onHorizon (dyadicHorizon k)) (dyadicGlobalIndex k) omega := by
+  have hlocal :
+      omega ∉ badEnergySet
+        (eta.onHorizon (integerHorizon (dyadicGlobalIndex k))) :=
+    not_bad_on_integerHorizon eta homega (dyadicGlobalIndex k)
+  have hlocal' :
+      omega ∉ badEnergySet (eta.onHorizon (dyadicHorizon k)) := by
+    rw [← integerHorizon_dyadicGlobalIndex k]
+    exact hlocal
+  unfold dyadicGlobalLocalizingTime
+  rw [globalLocalizingTime_of_good hUsual eta (dyadicGlobalIndex k) homega]
+  rw [canonicalRawLocalizingTime_of_good hUsual
+    (eta.onHorizon (dyadicHorizon k)) (dyadicGlobalIndex k)]
+  · simp only [canonicalLocalizingTime]
+    rw [integerHorizon_dyadicGlobalIndex k]
+  · exact hlocal'
+
+/-- Pathwise stopped energy is bounded by the matching finite canonical level.
+The statement uses exactly the stopped time measure `upTo H_k` used by the
+completed Itô domain. -/
+theorem globalStoppedTimeLintegral_le
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) (omega : Omega) :
+    (∫⁻ t,
+      ENNReal.ofReal ((globalStoppedIntegrand hUsual eta k t omega) ^ 2)
+        ∂TimeMeasure.upTo (dyadicHorizon k)) ≤
+      ENNReal.ofReal (dyadicGlobalIndex k + 1 : ℝ) := by
+  by_cases homega : omega ∈ globalBadSet eta
+  · have hτ0 : dyadicGlobalLocalizingTime hUsual eta k omega = 0 := by
+      unfold dyadicGlobalLocalizingTime
+      exact globalLocalizingTime_of_bad hUsual eta (dyadicGlobalIndex k) homega
+    have hae :
+        (fun t =>
+          ENNReal.ofReal ((globalStoppedIntegrand hUsual eta k t omega) ^ 2)) =ᵐ[
+            TimeMeasure.upTo (dyadicHorizon k)]
+          (fun _ => 0) := by
+      filter_upwards [TimeMeasure.ae_mem_Ioc_zero_upTo (dyadicHorizon k)]
+        with t ht
+      have hnot : ¬ (t : WithTop ℝ≥0) ≤ (0 : ℝ≥0) :=
+        not_le.mpr (WithTop.coe_lt_coe.mpr ht.1)
+      change ENNReal.ofReal
+          ((if (t : WithTop ℝ≥0) ≤
+              (dyadicGlobalLocalizingTime hUsual eta k omega : WithTop ℝ≥0)
+            then eta.process t omega else 0) ^ 2) = 0
+      rw [hτ0, if_neg hnot]
+      simp
+    rw [lintegral_congr_ae hae]
+    simp
+  · have hτ := dyadicGlobalLocalizingTime_eq_canonicalRaw_of_good
+      hUsual eta k homega
+    have hlocal := rawStoppedTimeLintegral_le hUsual
+      (eta.onHorizon (dyadicHorizon k)) (dyadicGlobalIndex k) omega
+    change
+      (∫⁻ t,
+        ENNReal.ofReal
+          ((stoppedIntegrand eta.process
+            (fun w =>
+              (dyadicGlobalLocalizingTime hUsual eta k w : WithTop ℝ≥0))
+            t omega) ^ 2)
+          ∂TimeMeasure.upTo (dyadicHorizon k)) ≤
+        ENNReal.ofReal (dyadicGlobalIndex k + 1 : ℝ)
+    rw [TimeMeasure.upTo_eq_restrict_nnrealLebesgue (dyadicHorizon k)]
+    simpa only [GlobalLocalProgressiveL2Integrand.onHorizon_process,
+      stoppedIntegrand, hτ] using hlocal
+
+/-- A strongly measurable ambient extension of the stopped source process from
+`[0,H_k] × Omega`. -/
+noncomputable def globalStoppedExtension
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) : ℝ≥0 × Omega → ℝ :=
+  Function.extend
+    (Prod.map ((↑) : Set.Iic (dyadicHorizon k) → ℝ≥0) id)
+    (fun p : Set.Iic (dyadicHorizon k) × Omega =>
+      globalStoppedIntegrand hUsual eta k p.1 p.2)
+    0
+
+theorem globalStoppedExtension_stronglyMeasurable
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) :
+    StronglyMeasurable (globalStoppedExtension hUsual eta k) := by
+  have hrel : @StronglyMeasurable (ℝ≥0 × Omega) ℝ inferInstance
+      (MeasurableSpace.prod inferInstance (filtration (dyadicHorizon k)))
+      (globalStoppedExtension hUsual eta k) := by
+    apply ((MeasurableEmbedding.subtype_coe measurableSet_Iic).prodMap
+      MeasurableEmbedding.id).stronglyMeasurable_extend
+    · exact globalStoppedIntegrand_stronglyProgressive hUsual eta k
+        (dyadicHorizon k)
+    · exact stronglyMeasurable_const
+  apply hrel.mono
+  change
+    ((inferInstance : MeasurableSpace ℝ≥0).comap Prod.fst ⊔
+        (filtration (dyadicHorizon k)).comap Prod.snd) ≤
+      ((inferInstance : MeasurableSpace ℝ≥0).comap Prod.fst ⊔
+        m.comap Prod.snd)
+  exact sup_le_sup le_rfl
+    (MeasurableSpace.comap_mono (filtration.le (dyadicHorizon k)))
+
+@[simp] theorem globalStoppedExtension_apply_of_le
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) {s : ℝ≥0} (hs : s ≤ dyadicHorizon k) (omega : Omega) :
+    globalStoppedExtension hUsual eta k (s, omega) =
+      globalStoppedIntegrand hUsual eta k s omega := by
+  let p : Set.Iic (dyadicHorizon k) × Omega := (⟨s, hs⟩, omega)
+  exact ((MeasurableEmbedding.subtype_coe measurableSet_Iic).prodMap
+    MeasurableEmbedding.id).injective.extend_apply
+      (fun q : Set.Iic (dyadicHorizon k) × Omega =>
+        globalStoppedIntegrand hUsual eta k q.1 q.2) 0 p
+
+/-- Product-space strong measurability of the literal globally stopped source
+integrand on its matching finite horizon. -/
+theorem globalStoppedProcessFunction_aestronglyMeasurable
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) :
+    AEStronglyMeasurable
+      (processFunction (globalStoppedIntegrand hUsual eta k))
+      (processTimeMeasure mu (dyadicHorizon k)) := by
+  let extSwap : Omega × ℝ≥0 → ℝ := fun z =>
+    globalStoppedExtension hUsual eta k (z.2, z.1)
+  have hext : StronglyMeasurable extSwap :=
+    (globalStoppedExtension_stronglyMeasurable hUsual eta k).comp_measurable
+      (measurable_snd.prodMk measurable_fst)
+  refine hext.aestronglyMeasurable.congr ?_
+  have hprod :
+      ∀ᵐ z ∂processTimeMeasure mu (dyadicHorizon k),
+        z.2 ≤ dyadicHorizon k := by
+    rw [ae_iff]
+    have hset :
+        {z : Omega × ℝ≥0 | ¬ z.2 ≤ dyadicHorizon k} =
+          Set.univ ×ˢ Set.Ioi (dyadicHorizon k) := by
+      ext z
+      simp only [Set.mem_ofPred_eq, Set.mem_prod, Set.mem_univ, true_and,
+        Set.mem_Ioi, not_le]
+    rw [hset]
+    simp [processTimeMeasure, TimeMeasure.upTo_Ioi_terminal]
+  filter_upwards [hprod] with z hz
+  exact globalStoppedExtension_apply_of_le hUsual eta k hz z.1
+
+/-- The squared globally stopped process is integrable on its matching finite
+horizon. -/
+theorem globalStoppedProcessFunction_sq_integrable
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) :
+    Integrable
+      (fun z => (processFunction (globalStoppedIntegrand hUsual eta k) z) ^ 2)
+      (processTimeMeasure mu (dyadicHorizon k)) := by
+  let F : Omega × ℝ≥0 → ℝ := fun z =>
+    (processFunction (globalStoppedIntegrand hUsual eta k) z) ^ 2
+  have hmeas : AEStronglyMeasurable F
+      (processTimeMeasure mu (dyadicHorizon k)) :=
+    (globalStoppedProcessFunction_aestronglyMeasurable hUsual eta k).pow 2
+  refine ⟨hmeas, ?_⟩
+  rw [hasFiniteIntegral_iff_enorm]
+  have hnonneg : ∀ z, 0 ≤ F z := fun z => sq_nonneg _
+  have hnorm : (fun z => ‖F z‖ₑ) = fun z => ENNReal.ofReal (F z) := by
+    funext z
+    exact Real.enorm_eq_ofReal (hnonneg z)
+  rw [hnorm]
+  have hENN : AEMeasurable
+      (fun z : Omega × ℝ≥0 =>
+        ENNReal.ofReal ((globalStoppedIntegrand hUsual eta k z.2 z.1) ^ 2))
+      (processTimeMeasure mu (dyadicHorizon k)) := by
+    simpa only [F, processFunction] using hmeas.aemeasurable.ennreal_ofReal
+  change processL2Energy (globalStoppedIntegrand hUsual eta k) mu
+    (dyadicHorizon k) < ∞
+  rw [chewi_display_1_1_7
+    (globalStoppedIntegrand hUsual eta k) mu (dyadicHorizon k) hENN]
+  calc
+    (∫⁻ omega, ∫⁻ t,
+        ENNReal.ofReal ((globalStoppedIntegrand hUsual eta k t omega) ^ 2)
+          ∂TimeMeasure.upTo (dyadicHorizon k) ∂mu) ≤
+      ∫⁻ _omega, ENNReal.ofReal (dyadicGlobalIndex k + 1 : ℝ) ∂mu := by
+        apply lintegral_mono
+        intro omega
+        exact globalStoppedTimeLintegral_le hUsual eta k omega
+    _ = ENNReal.ofReal (dyadicGlobalIndex k + 1 : ℝ) := by simp
+    _ < ∞ := ENNReal.ofReal_lt_top
+
+/-- The literal source process `eta * 1_{s <= tau_k}` packaged in the finite
+progressive `L²` domain on `H_k`. -/
+noncomputable def globalStoppedProgressiveL2
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) : ProgressiveL2Integrand filtration mu (dyadicHorizon k) where
+  process := globalStoppedIntegrand hUsual eta k
+  progressive := globalStoppedIntegrand_stronglyProgressive hUsual eta k
+  memLp := (memLp_two_iff_integrable_sq
+      (globalStoppedProcessFunction_aestronglyMeasurable hUsual eta k)).2
+    (globalStoppedProcessFunction_sq_integrable hUsual eta k)
+
+@[simp] theorem globalStoppedProgressiveL2_process
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (k : ℕ) :
+    (globalStoppedProgressiveL2 hUsual eta k).process =
+      globalStoppedIntegrand hUsual eta k :=
+  rfl
+
+end GlobalStoppedProgressiveL2
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,134 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseReversalVolume
+import Mathlib.Data.Fin.Rev
+import Mathlib.Data.Fin.Tuple.Basic
+
+namespace PBPSWordWork97
+open MeasureTheory
+open scoped Classical
+noncomputable section
+set_option autoImplicit false
+
+/-- Cancellation of a finite word against its reverse under a common reversing map. -/
+theorem reverse_fold_cancel {X : Type*} (C : X → X) (n : ℕ)
+    (f : Fin n → X → X) (hf : ∀ i x, f i (C (f i x)) = C x) (x : X) :
+    Fin.foldr n f (C (Fin.foldl n (fun z i => f i z) x)) = C x := by
+  induction n generalizing x with
+  | zero => simp
+  | succ n ih =>
+    rw [Fin.foldl_succ, Fin.foldr_succ]
+    rw [ih (fun i => f i.succ) (fun i => hf i.succ)]
+    exact hf 0 x
+
+/-- Finite recursion is the corresponding left fold, without assuming an endpoint. -/
+theorem fold_of_sequence {X : Type*} (n : ℕ) (f : Fin n → X → X)
+    (r : Fin (n + 1) → X) (x : X) (hzero : r 0 = x)
+    (hstep : ∀ i : Fin n, r i.succ = f i (r i.castSucc)) :
+    Fin.foldl n (fun z i => f i z) x = r (Fin.last n) := by
+  induction n with
+  | zero => simpa using hzero.symm
+  | succ n ih =>
+    rw [Fin.foldl_succ_last]
+    have ht := ih (fun i => f i.castSucc) (fun i => r i.castSucc) hzero
+      (fun i => hstep i.castSucc)
+    rw [ht]
+    exact (hstep (Fin.last n)).symm
+
+def gaps {n : ℕ} (T : ℝ) (t : Fin n → ℝ) (i : Fin (n + 1)) : ℝ :=
+  (Fin.snoc t T : Fin (n + 1) → ℝ) i - (Fin.cons (0 : ℝ) t : Fin (n + 1) → ℝ) i
+
+theorem gaps_reversed (n : ℕ) (T : ℝ) (t : Fin n → ℝ) (i : Fin (n + 1)) :
+    gaps T (fun j => T - t j.rev) i = gaps T t i.rev := by
+  have hl : (Fin.cons (0 : ℝ) (fun j : Fin n => T - t j.rev) : Fin (n + 1) → ℝ) i = T - (Fin.snoc t T : Fin (n + 1) → ℝ) i.rev := by
+    induction i using Fin.cases with
+    | zero => simp
+    | succ j => simp [Fin.rev_succ]
+  have hr : (Fin.snoc (fun j : Fin n => T - t j.rev) T : Fin (n + 1) → ℝ) i = T - (Fin.cons (0 : ℝ) t : Fin (n + 1) → ℝ) i.rev := by
+    induction i using Fin.lastCases with
+    | last => simp
+    | cast j => simp [Fin.rev_castSucc]
+  unfold gaps
+  rw [hl, hr]
+  ring
+
+def post {X : Type*} (Φ : ℝ → X → X) (S : X → X) (n : ℕ)
+    (t : Fin n → ℝ) (z : X) : Fin (n + 1) → X :=
+  Fin.induction z (fun i x => S (Φ (t i -
+    (Fin.cons (0 : ℝ) t : Fin (n + 1) → ℝ) i.castSucc) x))
+
+def endpoint {X : Type*} (Φ : ℝ → X → X) (S : X → X) (n : ℕ)
+    (T : ℝ) (t : Fin n → ℝ) (z : X) : X :=
+  Φ (T - (Fin.cons (0 : ℝ) t : Fin (n + 1) → ℝ) (Fin.last n))
+    (post Φ S n t z (Fin.last n))
+
+theorem endpoint_as_word {X : Type*} (Φ : ℝ → X → X) (S : X → X)
+    (hS : Function.Involutive S) (n : ℕ) (T : ℝ) (t : Fin n → ℝ) (z : X) :
+    endpoint Φ S n T t z =
+      Fin.foldl (n + 1) (fun x i => Φ (gaps T t i) (S x)) (S z) := by
+  have hSS (x : X) : S (S x) = x := hS x
+  let r : Fin (n + 2) → X := Fin.snoc (fun i => S (post Φ S n t z i))
+    (endpoint Φ S n T t z)
+  have hzero : r 0 = S z := by
+    change S (post Φ S n t z 0) = S z
+    rfl
+  have hstep (i : Fin (n + 1)) : r i.succ = Φ (gaps T t i) (S (r i.castSucc)) := by
+    induction i using Fin.lastCases with
+    | last =>
+      simp only [r, Fin.succ_last, Fin.snoc_last, Fin.snoc_castSucc, endpoint, gaps, hSS]
+    | cast j =>
+      simp only [r, Fin.succ_castSucc, Fin.snoc_castSucc, post, Fin.induction_succ, gaps, hSS]
+  have hf := fold_of_sequence (n + 1) (fun i x => Φ (gaps T t i) (S x)) r (S z) hzero hstep
+  simpa only [r, Fin.snoc_last] using hf.symm
+
+theorem endpoint_reversed {X : Type*} (Φ : ℝ → X → X) (S R : X → X)
+    (hS : Function.Involutive S) (hR : Function.Involutive R)
+    (hRS : ∀ x, R (S x) = S (R x))
+    (hInv : ∀ u x, Φ u (Φ (-u) x) = x)
+    (hRev : ∀ u x, R (Φ u (R x)) = Φ (-u) x)
+    (n : ℕ) (T : ℝ) (t : Fin n → ℝ) (z : X) :
+    endpoint Φ S n T (fun i => T - t i.rev) (R (endpoint Φ S n T t z)) = R z := by
+  have hSS (x : X) : S (S x) = x := hS x
+  have hRR (x : X) : R (R x) = x := hR x
+  have hcomm (u : ℝ) (x : X) : R (Φ u x) = Φ (-u) (R x) := by
+    simpa only [hRR] using hRev u (R x)
+  let C : X → X := fun x => S (R x)
+  let f : Fin (n + 1) → X → X := fun i x => Φ (gaps T t i) (S x)
+  have hf (i : Fin (n + 1)) (x : X) : f i (C (f i x)) = C x := by
+    dsimp [f, C]
+    rw [hSS, hcomm, hInv, hRS]
+  rw [endpoint_as_word Φ S hS]
+  simp_rw [gaps_reversed]
+  change Fin.foldl (n + 1) (fun x i => f i.rev x) (C (endpoint Φ S n T t z)) = R z
+  rw [Fin.foldl_rev, endpoint_as_word Φ S hS]
+  exact (reverse_fold_cancel C (n + 1) f hf (S z)).trans (by dsimp [C]; rw [hRS, hSS])
+
+theorem preserving_fold {X : Type*} [MeasurableSpace X] (μ : Measure X)
+    (n : ℕ) (f : Fin n → X → X) (hf : ∀ i, MeasurePreserving (f i) μ μ) :
+    MeasurePreserving (fun x => Fin.foldl n (fun z i => f i z) x) μ μ := by
+  induction n with
+  | zero =>
+    simp only [Fin.foldl_zero]
+    exact ⟨measurable_id, Measure.map_id'⟩
+  | succ n ih =>
+    simpa only [Fin.foldl_succ_last, Function.comp_def] using
+      (hf (Fin.last n)).comp (ih (fun i => f i.castSucc) (fun i => hf i.castSucc))
+
+theorem endpoint_volume {X : Type*} [MeasurableSpace X] (μ : Measure X)
+    (Φ : ℝ → X → X) (S : X → X) (hS : Function.Involutive S)
+    (hSM : MeasurePreserving S μ μ) (hΦ : ∀ u, MeasurePreserving (Φ u) μ μ)
+    (n : ℕ) (T : ℝ) (t : Fin n → ℝ) : MeasurePreserving (endpoint Φ S n T t) μ μ := by
+  have he : endpoint Φ S n T t =
+      (fun x => Fin.foldl (n + 1) (fun z i => Φ (gaps T t i) (S z)) x) ∘ S := by
+    funext z
+    exact endpoint_as_word Φ S hS n T t z
+  rw [he]
+  exact (preserving_fold μ (n + 1) (fun i z => Φ (gaps T t i) (S z))
+    (fun i => (hΦ _).comp hSM)).comp hSM
+
+#print axioms endpoint_reversed
+#print axioms endpoint_volume
+#print axioms endpoint_as_word
+#print axioms gaps_reversed
+#print axioms fold_of_sequence
+#print axioms reverse_fold_cancel
+end
+end PBPSWordWork97

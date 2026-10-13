@@ -1,0 +1,211 @@
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalDirichletFisher
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.KLDensity
+import Mathlib.Tactic
+
+/-!
+# Canonical KL-flow derivative to Dirichlet dissipation
+
+This file isolates the time-evolution half of Chewi's Chapter 1.2 entropy
+calculus.  It is deliberately independent of the concrete Langevin
+carre-du-champ calculation.
+
+For a measure curve `mu_t` with canonical density
+
+`rho_t = d mu_t / d pi`
+
+and a supplied density velocity `rhoDot`, the analytic differentiation step is
+recorded explicitly as
+
+`d/dt KL(mu_t || pi)
+   = integral rhoDot * (1 + log rho_t) dpi`.
+
+We then use only:
+
+* conservation of total mass: `integral rhoDot dpi = 0`;
+* the forward equation at the selected time: `rhoDot = L rho_t` `pi`-a.e.;
+* the density/log-ratio generator symmetry already exposed by the Dirichlet
+  pair domain.
+
+The conclusion is
+
+`d/dt KL(mu_t || pi) = - E_pi(rho_t, log rho_t)`.
+
+Combining this with `CanonicalDirichletFisher` gives `KL' = -FI`.  The concrete
+Langevin Gamma identification is a sibling topology branch and is not assumed
+inside the derivative calculation itself.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace CanonicalKLDissipation
+
+open MeasureTheory Filter
+open scoped Topology ENNReal RealInnerProductSpace
+
+noncomputable section
+
+variable {ι : Type*} [Fintype ι]
+
+abbrev State := EuclideanSpace ℝ ι
+
+/-- Explicit analytic contract for differentiating the *actual* Mathlib KL
+curve at one time and identifying the density velocity.
+
+`kl_finite_near` prevents the totalized `ENNReal.toReal` convention from being
+silently used as a finite entropy curve around the differentiation point.
+The derivative-under-the-integral theorem itself remains an explicit field:
+this structure does not manufacture dominated convergence or PDE regularity. -/
+structure FlowDerivativeDomain
+    (mu : ℝ → Measure (State (ι := ι)))
+    (pi : Measure (State (ι := ι)))
+    (generator :
+      (State (ι := ι) → ℝ) →ₗ[ℝ] (State (ι := ι) → ℝ))
+    (rhoDot : State (ι := ι) → ℝ)
+    (t : ℝ) : Prop where
+  kl_finite_near :
+    ∀ᶠ s in 𝓝 t, (_root_.InformationTheory.klDiv (mu s) pi) ≠ ∞
+  rhoDot_integrable : Integrable rhoDot pi
+  rhoDot_mul_logRatio_integrable :
+    Integrable
+      (fun x => rhoDot x * RNLogRatio.logRatio (mu t) pi x) pi
+  kl_hasDerivAt :
+    HasDerivAt
+      (fun s => (_root_.InformationTheory.klDiv (mu s) pi).toReal)
+      (∫ x,
+        rhoDot x * (1 + RNLogRatio.logRatio (mu t) pi x) ∂pi) t
+  mass_derivative_zero :
+    (∫ x, rhoDot x ∂pi) = 0
+  forwardEquation_ae :
+    rhoDot =ᵐ[pi]
+      generator (RNLogRatio.density (mu t) pi)
+
+/-- The analytic KL derivative formula loses its `+1` term exactly by mass
+conservation. -/
+theorem kl_hasDerivAt_integral_rhoDot_mul_logRatio
+    (mu : ℝ → Measure (State (ι := ι)))
+    (pi : Measure (State (ι := ι)))
+    (generator :
+      (State (ι := ι) → ℝ) →ₗ[ℝ] (State (ι := ι) → ℝ))
+    (rhoDot : State (ι := ι) → ℝ) (t : ℝ)
+    (h : FlowDerivativeDomain mu pi generator rhoDot t) :
+    HasDerivAt
+      (fun s => (_root_.InformationTheory.klDiv (mu s) pi).toReal)
+      (∫ x, rhoDot x * RNLogRatio.logRatio (mu t) pi x ∂pi) t := by
+  have hsplit :
+      (∫ x,
+          rhoDot x * (1 + RNLogRatio.logRatio (mu t) pi x) ∂pi) =
+        (∫ x, rhoDot x ∂pi) +
+          ∫ x, rhoDot x * RNLogRatio.logRatio (mu t) pi x ∂pi := by
+    calc
+      (∫ x,
+          rhoDot x * (1 + RNLogRatio.logRatio (mu t) pi x) ∂pi) =
+        ∫ x,
+          (rhoDot x +
+            rhoDot x * RNLogRatio.logRatio (mu t) pi x) ∂pi := by
+              apply integral_congr_ae
+              filter_upwards with x
+              ring
+      _ = (∫ x, rhoDot x ∂pi) +
+          ∫ x, rhoDot x * RNLogRatio.logRatio (mu t) pi x ∂pi := by
+            rw [integral_add h.rhoDot_integrable
+              h.rhoDot_mul_logRatio_integrable]
+  have hderiv := h.kl_hasDerivAt
+  rw [hsplit, h.mass_derivative_zero, zero_add] at hderiv
+  exact hderiv
+
+/-- The forward equation and the pairwise generator symmetry turn the remaining
+KL derivative into minus the canonical density/log-ratio Dirichlet form. -/
+theorem kl_hasDerivAt_eq_neg_dirichletForm
+    (mu : ℝ → Measure (State (ι := ι)))
+    (pi : Measure (State (ι := ι)))
+    (generator :
+      (State (ι := ι) → ℝ) →ₗ[ℝ] (State (ι := ι) → ℝ))
+    (rhoDot : State (ι := ι) → ℝ) (t : ℝ)
+    (hflow : FlowDerivativeDomain mu pi generator rhoDot t)
+    (hpair : CanonicalDirichletFisher.DirichletPairDomain
+      (mu t) pi generator) :
+    HasDerivAt
+      (fun s => (_root_.InformationTheory.klDiv (mu s) pi).toReal)
+      (-FunctionalInequalities.Generator.dirichletForm pi generator
+        (RNLogRatio.density (mu t) pi)
+        (RNLogRatio.logRatio (mu t) pi)) t := by
+  have hderiv :=
+    kl_hasDerivAt_integral_rhoDot_mul_logRatio
+      mu pi generator rhoDot t hflow
+  have hforward :
+      (∫ x,
+          rhoDot x * RNLogRatio.logRatio (mu t) pi x ∂pi) =
+        ∫ x,
+          generator (RNLogRatio.density (mu t) pi) x *
+            RNLogRatio.logRatio (mu t) pi x ∂pi := by
+    apply integral_congr_ae
+    filter_upwards [hflow.forwardEquation_ae] with x hx
+    rw [hx]
+  have hcomm :
+      (∫ x,
+          generator (RNLogRatio.density (mu t) pi) x *
+            RNLogRatio.logRatio (mu t) pi x ∂pi) =
+        ∫ x,
+          RNLogRatio.logRatio (mu t) pi x *
+            generator (RNLogRatio.density (mu t) pi) x ∂pi := by
+    apply integral_congr_ae
+    filter_upwards with x
+    exact mul_comm _ _
+  have hdirichlet :
+      (∫ x,
+          rhoDot x * RNLogRatio.logRatio (mu t) pi x ∂pi) =
+        -FunctionalInequalities.Generator.dirichletForm pi generator
+          (RNLogRatio.density (mu t) pi)
+          (RNLogRatio.logRatio (mu t) pi) := by
+    calc
+      (∫ x,
+          rhoDot x * RNLogRatio.logRatio (mu t) pi x ∂pi) =
+        ∫ x,
+          generator (RNLogRatio.density (mu t) pi) x *
+            RNLogRatio.logRatio (mu t) pi x ∂pi := hforward
+      _ = ∫ x,
+          RNLogRatio.logRatio (mu t) pi x *
+            generator (RNLogRatio.density (mu t) pi) x ∂pi := hcomm
+      _ = ∫ x,
+          RNLogRatio.density (mu t) pi x *
+            generator (RNLogRatio.logRatio (mu t) pi) x ∂pi :=
+              hpair.symmetric_pair.symm
+      _ = -FunctionalInequalities.Generator.dirichletForm pi generator
+          (RNLogRatio.density (mu t) pi)
+          (RNLogRatio.logRatio (mu t) pi) := by
+            simp [FunctionalInequalities.Generator.dirichletForm]
+  rw [hdirichlet] at hderiv
+  exact hderiv
+
+/-- Abstract Chapter 1.2 KL/Fisher dissipation join: once the law-evolution
+contract and the Dirichlet--Fisher Gamma contract are both available, the
+actual Mathlib KL curve has derivative `-FI`. -/
+theorem kl_hasDerivAt_eq_neg_information
+    (mu : ℝ → Measure (State (ι := ι)))
+    (pi : Measure (State (ι := ι)))
+    (generator :
+      (State (ι := ι) → ℝ) →ₗ[ℝ] (State (ι := ι) → ℝ))
+    (rhoDot : State (ι := ι) → ℝ) (t : ℝ)
+    [SigmaFinite (mu t)] [Measure.HaveLebesgueDecomposition (mu t) pi]
+    (hscore : CanonicalRelativeFisher.SmoothFiniteScoreDomain (mu t) pi)
+    (hflow : FlowDerivativeDomain mu pi generator rhoDot t)
+    (hpair : CanonicalDirichletFisher.DirichletPairDomain
+      (mu t) pi generator)
+    (hgamma : CanonicalDirichletFisher.HasCanonicalFisherGamma
+      (mu t) pi generator) :
+    HasDerivAt
+      (fun s => (_root_.InformationTheory.klDiv (mu s) pi).toReal)
+      (-CanonicalRelativeFisher.information (mu t) pi hscore) t := by
+  exact
+    CanonicalDirichletFisher.hasDerivAt_eq_neg_information_of_eq_neg_dirichlet
+      (mu t) pi generator hscore hpair hgamma
+      (kl_hasDerivAt_eq_neg_dirichletForm
+        mu pi generator rhoDot t hflow hpair)
+
+end
+
+end CanonicalKLDissipation
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory

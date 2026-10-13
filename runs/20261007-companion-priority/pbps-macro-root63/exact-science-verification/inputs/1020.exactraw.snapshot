@@ -1,0 +1,185 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.BoundedQuadraticCostIntegrability
+import AutoSamplingTheory.TechnicalLemmas.Analysis.CycleSuccessorDistinct
+import AutoSamplingTheory.TechnicalLemmas.Analysis.CyclicCostExpectation
+import AutoSamplingTheory.TechnicalLemmas.Analysis.DiagonalProductCostIntegral
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PermutedProductCostIntegral
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonMassSliceFamily
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonSlicePermutationReplacement
+import AutoSamplingTheory.TechnicalLemmas.Measure.PermutedReplacementQuadraticCost
+import AutoSamplingTheory.TechnicalLemmas.Measure.QuantitativeSupportLocalBlocks
+import AutoSamplingTheory.TechnicalLemmas.Probability.NormalizedFiniteMeasure
+import Mathlib.MeasureTheory.Function.L1Space.Integrable
+
+/-!
+# Strict support cycles produce cheaper canonical local replacements
+
+This module is the local perturbation composition node of the direct Brenier
+argument.  A strict positive pairing cycle through distinct support points is
+localized to one bounded family of positive joint blocks, sliced to a common
+mass, normalized, and re-paired cyclically.  The canonical cyclic replacement
+has strictly smaller real quadratic cost than the removed common-mass sum.
+
+The theorem intentionally stops before adding the untouched ambient remainder
+or invoking optimality.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace StrictCycleCheaperLocalReplacement
+
+open MeasureTheory Set
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PairingCycleNeighborhood
+open AutoSamplingTheory.TechnicalLemmas.Analysis.CyclicQuadraticCost
+open AutoSamplingTheory.TechnicalLemmas.Analysis.CycleSuccessorDistinct
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PermutedQuadraticCost
+open AutoSamplingTheory.TechnicalLemmas.Analysis.CyclicCostExpectation
+open AutoSamplingTheory.TechnicalLemmas.Analysis.DiagonalProductCostIntegral
+open AutoSamplingTheory.TechnicalLemmas.Analysis.PermutedProductCostIntegral
+open AutoSamplingTheory.TechnicalLemmas.Analysis.BoundedQuadraticCostIntegrability
+open AutoSamplingTheory.TechnicalLemmas.Probability.NormalizedFiniteMeasure
+open CommonRemovableMass CommonMassSliceFamily CommonSlicePermutationReplacement
+open PermutedReplacementQuadraticCost QuantitativeSupportLocalBlocks
+open scoped BigOperators Topology NNReal
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+
+/-- A strict positive cycle through distinct support points yields positive
+local blocks whose canonical inverse-successor marginal replacement is
+strictly cheaper than the common-mass slice sum removed from those blocks. -/
+theorem exists_localBlocks_cyclicReplacement_lt_of_cycleValue_pos
+    {n : ℕ} (gamma : FiniteMeasure (E × E))
+    {p : Fin (n + 1) → E × E}
+    (hp : Function.Injective p)
+    (hcycle : 0 < cycleValue p)
+    (hsupp : ∀ i, p i ∈ (gamma : Measure (E × E)).support) :
+    ∃ localBlock : Fin (n + 1) → FiniteMeasure (E × E),
+      (∀ i, 0 < (localBlock i).mass) ∧
+      ((↑(∑ i, localBlock i) : Measure (E × E)) ≤
+        (gamma : Measure (E × E))) ∧
+      (∫ z : E × E, realQuadraticCost z
+          ∂(commonSlicePermutationReplacement localBlock
+            (cycleSuccessorPerm (n := n)).symm : Measure (E × E))) <
+        ∫ z : E × E, realQuadraticCost z
+          ∂(commonSliceRemoved localBlock : Measure (E × E)) := by
+  obtain ⟨ε, hε, U, V, hU, hV, _hpair, hlocalPos, hlocalLe, hstable⟩ :=
+    exists_quantitative_positive_local_blocks_of_cycleValue_pos
+      gamma hp hcycle hsupp (r := (1 : ℝ)) zero_lt_one
+  let localBlock : Fin (n + 1) → FiniteMeasure (E × E) :=
+    fun i => gamma.restrict (U i ×ˢ V i)
+  let slice : Fin (n + 1) → FiniteMeasure (E × E) :=
+    fun i => commonMassSliceFamily localBlock i
+  have hlocalPos' : ∀ i, 0 < (localBlock i).mass := by
+    intro i
+    simpa [localBlock] using hlocalPos i
+  have hlocalLe' :
+      (↑(∑ i, localBlock i) : Measure (E × E)) ≤
+        (gamma : Measure (E × E)) := by
+    simpa [localBlock] using hlocalLe
+  have hsliceMass : ∀ i, (slice i).mass = commonRemovableMass localBlock := by
+    intro i
+    simpa [slice] using commonMassSliceFamily_mass localBlock hlocalPos' i
+  have hslicePos : ∀ i, 0 < (slice i).mass := by
+    intro i
+    simpa [slice] using commonMassSliceFamily_mass_pos localBlock hlocalPos' i
+  have hprobMeasure : ∀ i,
+      ((slice i).normalize : Measure (E × E)) (U i ×ˢ V i) = 1 := by
+    intro i
+    have hle : (slice i : Measure (E × E)) ≤
+        (gamma : Measure (E × E)).restrict (U i ×ˢ V i) := by
+      simpa [slice, localBlock] using
+        commonMassSliceFamily_toMeasure_le localBlock hlocalPos' i
+    exact normalize_apply_eq_one_of_toMeasure_le_restrict
+      (slice i) gamma ((hU i).1.measurableSet.prod (hV i).1.measurableSet)
+      (hslicePos i) hle
+  have hprob : ∀ i, (slice i).normalize (U i ×ˢ V i) = 1 := by
+    intro i
+    have h := congrArg ENNReal.toNNReal (hprobMeasure i)
+    simpa [ProbabilityMeasure.coeFn_def] using h
+  have hnorm : ∀ i, Integrable realQuadraticCost
+      ((slice i).normalize : Measure (E × E)) := by
+    intro i
+    simpa [realQuadraticCost] using
+      integrable_norm_sub_sq_of_prob_one_bounded_rectangle
+        (mu := (slice i).normalize)
+        (U := U i) (V := V i)
+        (a := (p i).1) (b := (p i).2) (r := (1 : ℝ))
+        zero_lt_one (hU i).1.measurableSet (hV i).1.measurableSet
+        (hprob i) (hU i).2.2 (hV i).2.2
+  have hn : 0 < n := cycleLength_pos_of_cycleValue_pos p hcycle
+  let σ : Equiv.Perm (Fin (n + 1)) := cycleSuccessorPerm (n := n)
+  have hσ : ∀ i, σ i ≠ i := by
+    intro i
+    simpa [σ] using cycleSuccessorPerm_ne_self_of_pos hn i
+  have hcross : ∀ i, Integrable crossQuadraticCost
+      (((slice (σ i)).normalize : Measure (E × E)).prod
+        ((slice i).normalize : Measure (E × E))) := by
+    intro i
+    simpa [crossQuadraticCost] using
+      integrable_cross_norm_sub_sq_of_prob_one_bounded_rectangles
+        (muA := (slice (σ i)).normalize) (muB := (slice i).normalize)
+        (UA := U (σ i)) (VA := V (σ i)) (UB := U i) (VB := V i)
+        (aA := (p (σ i)).1) (bA := (p (σ i)).2)
+        (aB := (p i).1) (bB := (p i).2) (r := (1 : ℝ))
+        zero_lt_one
+        (hU (σ i)).1.measurableSet (hV (σ i)).1.measurableSet
+        (hU i).1.measurableSet (hV i).1.measurableSet
+        (hprob (σ i)) (hprob i)
+        (hU (σ i)).2.2 (hV (σ i)).2.2
+        (hU i).2.2 (hV i).2.2
+  have hdiag : Integrable diagonalQuadraticCost
+      (ProbabilityMeasure.pi (fun i => (slice i).normalize) :
+        Measure (Fin (n + 1) → E × E)) := by
+    change Integrable diagonalQuadraticCost
+      (Measure.pi (fun i => ((slice i).normalize : Measure (E × E))))
+    rw [diagonalQuadraticCost]
+    apply integrable_finsetSum Finset.univ
+    intro i _hi
+    exact integrable_comp_eval (by simpa [realQuadraticCost] using hnorm i)
+  have hcyc : Integrable (fun q => permutedQuadraticCost q σ)
+      (ProbabilityMeasure.pi (fun i => (slice i).normalize) :
+        Measure (Fin (n + 1) → E × E)) := by
+    change Integrable (fun q => permutedQuadraticCost q σ)
+      (Measure.pi (fun i => ((slice i).normalize : Measure (E × E))))
+    rw [permutedQuadraticCost]
+    apply integrable_finsetSum Finset.univ
+    intro i _hi
+    have hmp := measurePreserving_pair_eval
+      (mu := fun i => (slice i).normalize) (hσ i)
+    simpa [Function.comp_def, crossQuadraticCost] using
+      hmp.integrable_comp_of_integrable (hcross i)
+  have hproductGap :
+      (∫ q : Fin (n + 1) → E × E, permutedQuadraticCost q σ
+          ∂Measure.pi (fun i => ((slice i).normalize : Measure (E × E)))) <
+        ∫ q : Fin (n + 1) → E × E, diagonalQuadraticCost q
+          ∂Measure.pi (fun i => ((slice i).normalize : Measure (E × E))) := by
+    have hgap := integral_cyclicCost_lt_diagonal_of_uniform_cycleValue
+      (mu := fun i => (slice i).normalize)
+      (s := fun i => U i ×ˢ V i)
+      (hsMeas := fun i => (hU i).1.measurableSet.prod (hV i).1.measurableSet)
+      (hsProb := hprob) hε hstable
+      (by simpa [σ] using hdiag) (by simpa [σ] using hcyc)
+    simpa [σ] using hgap
+  have hsliceCommonPos : 0 < commonRemovableMass localBlock :=
+    commonRemovableMass_pos localBlock hlocalPos'
+  have hlocalCost :
+      (∫ z : E × E, realQuadraticCost z
+          ∂(permutedMarginalReplacement slice σ.symm : Measure (E × E))) <
+        ∫ z : E × E, realQuadraticCost z
+          ∂((∑ i, slice i : FiniteMeasure (E × E)) : Measure (E × E)) := by
+    exact integral_permutedReplacement_symm_lt_sum_of_productGap
+      slice σ (commonRemovableMass localBlock) hsliceMass hsliceCommonPos hσ
+      hnorm hcross hproductGap
+  refine ⟨localBlock, hlocalPos', hlocalLe', ?_⟩
+  simpa [CommonSlicePermutationReplacement.commonSlicePermutationReplacement,
+    CommonSlicePermutationReplacement.commonSliceRemoved, slice, σ] using hlocalCost
+
+end
+
+end StrictCycleCheaperLocalReplacement
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

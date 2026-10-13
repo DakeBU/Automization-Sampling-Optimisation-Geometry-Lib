@@ -1,0 +1,500 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicElementaryRefinement
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Algebra
+
+/-!
+# Terminal Ito integral by L2 completion
+
+The terminal map is defined as the limit of the canonical bounded dyadic
+approximants.  A universal approximation theorem then removes any dependence
+of the public API on that particular noncomputable diagonal choice.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ItoTerminalCompletion
+
+open Filter MeasureTheory
+open scoped InnerProductSpace NNReal Topology
+
+open BrownianMotion DyadicElementaryRefinement ElementaryItoAlgebra
+  ElementaryItoEmbedding ElementaryItoL2 ProgressiveL2 ProgressiveL2Density
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- Product-space representative of a progressive integrand, with finiteness
+obtained from the Brownian probability contract. -/
+noncomputable def integrandToLp
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    Lp ℝ 2 (ElementaryItoIntegral.processTimeMeasure mu T) := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact eta.toLp
+
+/-- Canonical elementary terminal approximation. -/
+noncomputable def terminalApprox
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (n : ℕ) :
+    Lp ℝ 2 mu := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact terminalToLp (canonicalElementaryApprox eta hT n) hB
+
+/-- Canonical elementary process approximation in product-space `L2`. -/
+noncomputable def processApprox
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (n : ℕ) :
+    Lp ℝ 2 (ElementaryItoIntegral.processTimeMeasure mu T) := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact processToLp (canonicalElementaryApprox eta hT n) hB
+
+theorem tendsto_processApprox
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    Tendsto (processApprox eta hT hB) atTop (nhds (integrandToLp eta hB)) := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  change Tendsto (fun n ↦ (canonicalElementaryApprox eta hT n).toLp mu)
+    atTop (nhds eta.toLp)
+  exact tendsto_canonicalElementaryApprox_toLp eta hT
+
+theorem norm_terminalApprox_sub
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) (n k : ℕ) :
+    ‖terminalApprox eta hT hB n - terminalApprox eta hT hB k‖ =
+      ‖processApprox eta hT hB n - processApprox eta hT hB k‖ := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  simpa only [terminalApprox, processApprox] using
+    norm_terminal_sub_eq_process_sub
+      (canonicalElementaryApprox eta hT n)
+      (canonicalElementaryApprox eta hT k) hB
+
+theorem terminalApprox_cauchy
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    CauchySeq (terminalApprox eta hT hB) := by
+  rw [Metric.cauchySeq_iff]
+  intro epsilon hepsilon
+  obtain ⟨N, hN⟩ :=
+    (Metric.cauchySeq_iff.mp (tendsto_processApprox eta hT hB).cauchySeq)
+      epsilon hepsilon
+  exact ⟨N, fun n hn k hk ↦ by
+    simpa only [dist_eq_norm, norm_terminalApprox_sub] using hN n hn k hk⟩
+
+/-- Terminal Ito integral as the complete-space limit of elementary terminal
+integrals. -/
+noncomputable def itoIntegralTerminal
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) : Lp ℝ 2 mu :=
+  atTop.limUnder (terminalApprox eta hT hB)
+
+theorem tendsto_terminalApprox
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    Tendsto (terminalApprox eta hT hB) atTop
+      (nhds (itoIntegralTerminal eta hT hB)) := by
+  apply tendsto_nhds_limUnder
+  exact cauchySeq_tendsto_of_complete (terminalApprox_cauchy eta hT hB)
+
+/-- Every elementary approximation converging to the integrand in product
+`L2` has terminal integrals converging to the completed terminal integral. -/
+theorem tendsto_terminal_of_tendsto_elementary
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (approx : ℕ → DyadicElementaryProcess filtration T)
+    (happrox : Tendsto (fun n ↦ processToLp (approx n) hB) atTop
+      (nhds (integrandToLp eta hB))) :
+    Tendsto (fun n ↦ terminalToLp (approx n) hB) atTop
+      (nhds (itoIntegralTerminal eta hT hB)) := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  rw [Metric.tendsto_atTop]
+  intro epsilon hepsilon
+  obtain ⟨Nterminal, hNterminal⟩ :=
+    (Metric.tendsto_atTop.mp (tendsto_terminalApprox eta hT hB))
+      (epsilon / 2) (by positivity)
+  obtain ⟨Napprox, hNapprox⟩ :=
+    (Metric.tendsto_atTop.mp happrox) (epsilon / 4) (by positivity)
+  obtain ⟨Ncanonical, hNcanonical⟩ :=
+    (Metric.tendsto_atTop.mp (tendsto_processApprox eta hT hB))
+      (epsilon / 4) (by positivity)
+  refine ⟨max Nterminal (max Napprox Ncanonical), fun n hn ↦ ?_⟩
+  have hnTerminal : Nterminal ≤ n := (le_max_left _ _).trans hn
+  have hnApprox : Napprox ≤ n :=
+    (le_max_left _ _).trans ((le_max_right _ _).trans hn)
+  have hnCanonical : Ncanonical ≤ n :=
+    (le_max_right _ _).trans ((le_max_right _ _).trans hn)
+  have hterminal := hNterminal n hnTerminal
+  have happrox' := hNapprox n hnApprox
+  have hcanonical := hNcanonical n hnCanonical
+  calc
+    dist (terminalToLp (approx n) hB) (itoIntegralTerminal eta hT hB) ≤
+        dist (terminalToLp (approx n) hB) (terminalApprox eta hT hB n) +
+          dist (terminalApprox eta hT hB n) (itoIntegralTerminal eta hT hB) :=
+      dist_triangle _ _ _
+    _ = dist (processToLp (approx n) hB) (processApprox eta hT hB n) +
+          dist (terminalApprox eta hT hB n) (itoIntegralTerminal eta hT hB) := by
+      congr 1
+      rw [dist_eq_norm, dist_eq_norm]
+      simpa only [terminalApprox, processApprox] using
+        norm_terminal_sub_eq_process_sub (approx n)
+          (canonicalElementaryApprox eta hT n) hB
+    _ ≤ (dist (processToLp (approx n) hB) (integrandToLp eta hB) +
+          dist (integrandToLp eta hB) (processApprox eta hT hB n)) +
+          dist (terminalApprox eta hT hB n) (itoIntegralTerminal eta hT hB) :=
+      add_le_add (dist_triangle _ _ _) le_rfl
+    _ < epsilon := by
+      have hcanonical' :
+          dist (integrandToLp eta hB) (processApprox eta hT hB n) < epsilon / 4 := by
+        simpa only [dist_comm] using hcanonical
+      linarith
+
+theorem norm_terminalToLp_eq_processToLp
+    (eta : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    ‖terminalToLp eta hB‖ = ‖processToLp eta hB‖ := by
+  rw [terminalToLp, ← elementaryProcessToLp_eq_processToLp eta hB]
+  exact ElementaryItoL2.norm_elementaryItoTerminalToLp eta.process hB T
+
+/-- Completed terminal Ito isometry. -/
+theorem itoIntegralTerminal_norm
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    ‖itoIntegralTerminal eta hT hB‖ = ‖integrandToLp eta hB‖ := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  have hterminal := (tendsto_terminalApprox eta hT hB).norm
+  have hprocess := (tendsto_processApprox eta hT hB).norm
+  have heq : (fun n ↦ ‖terminalApprox eta hT hB n‖) =
+      fun n ↦ ‖processApprox eta hT hB n‖ := by
+    funext n
+    exact norm_terminalToLp_eq_processToLp
+      (canonicalElementaryApprox eta hT n) hB
+  rw [heq] at hterminal
+  exact tendsto_nhds_unique hterminal hprocess
+
+/-- Same-grid sum after refining both operands to their least common dyadic
+level. -/
+noncomputable def commonLeftProcess
+    (eta xi : DyadicElementaryProcess filtration T) :
+    ElementaryItoIntegral.ElementaryAdaptedProcess filtration
+      (2 ^ commonDyadicLevel eta xi) :=
+  (refineDyadic eta (commonDyadicLevel eta xi) (le_max_left _ _)).process
+
+noncomputable def commonRightProcess
+    (eta xi : DyadicElementaryProcess filtration T) :
+    ElementaryItoIntegral.ElementaryAdaptedProcess filtration
+      (2 ^ commonDyadicLevel eta xi) :=
+  (refineDyadic xi (commonDyadicLevel eta xi) (le_max_right _ _)).process
+
+theorem commonProcess_times_eq
+    (eta xi : DyadicElementaryProcess filtration T) :
+    (commonLeftProcess eta xi).times = (commonRightProcess eta xi).times := by
+  rfl
+
+theorem commonLeftProcess_terminalToLp_eq
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    elementaryItoTerminalToLp (commonLeftProcess eta xi) hB T = terminalToLp eta hB := by
+  unfold commonLeftProcess terminalToLp
+  exact refineDyadic_terminalToLp_eq eta (commonDyadicLevel eta xi)
+    (le_max_left _ _) hB T
+
+theorem commonRightProcess_terminalToLp_eq
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    elementaryItoTerminalToLp (commonRightProcess eta xi) hB T = terminalToLp xi hB := by
+  unfold commonRightProcess terminalToLp
+  exact refineDyadic_terminalToLp_eq xi (commonDyadicLevel eta xi)
+    (le_max_right _ _) hB T
+
+theorem commonLeftProcess_processToLp_eq
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    elementaryProcessToLp (commonLeftProcess eta xi) hB T = processToLp eta hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  unfold commonLeftProcess elementaryProcessToLp processToLp
+  dsimp only
+  exact refineDyadic_toLp_eq eta (commonDyadicLevel eta xi) (le_max_left _ _)
+
+theorem commonRightProcess_processToLp_eq
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    elementaryProcessToLp (commonRightProcess eta xi) hB T = processToLp xi hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  unfold commonRightProcess elementaryProcessToLp processToLp
+  dsimp only
+  exact refineDyadic_toLp_eq xi (commonDyadicLevel eta xi) (le_max_right _ _)
+
+noncomputable def addDyadic
+    (eta xi : DyadicElementaryProcess filtration T) :
+    DyadicElementaryProcess filtration T where
+  level := commonDyadicLevel eta xi
+  process := ElementaryItoAlgebra.add
+    (commonLeftProcess eta xi) (commonRightProcess eta xi)
+    (commonProcess_times_eq eta xi)
+  times_eq := (refineDyadic eta (commonDyadicLevel eta xi) (le_max_left _ _)).times_eq
+
+/-- Scalar multiple on the same dyadic grid. -/
+noncomputable def smulDyadic (c : ℝ)
+    (eta : DyadicElementaryProcess filtration T) :
+    DyadicElementaryProcess filtration T where
+  level := eta.level
+  process := ElementaryItoAlgebra.smul c eta.process
+  times_eq := eta.times_eq
+
+theorem terminalToLp_addDyadic
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    terminalToLp (addDyadic eta xi) hB =
+      terminalToLp eta hB + terminalToLp xi hB := by
+  unfold terminalToLp addDyadic
+  dsimp only
+  rw [elementaryItoTerminalToLp_add]
+  rw [commonLeftProcess_terminalToLp_eq eta xi hB,
+    commonRightProcess_terminalToLp_eq eta xi hB]
+  rfl
+
+theorem processToLp_addDyadic
+    (eta xi : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    processToLp (addDyadic eta xi) hB =
+      processToLp eta hB + processToLp xi hB := by
+  rw [← elementaryProcessToLp_eq_processToLp (addDyadic eta xi) hB]
+  unfold addDyadic
+  dsimp only
+  rw [elementaryProcessToLp_add]
+  rw [commonLeftProcess_processToLp_eq eta xi hB,
+    commonRightProcess_processToLp_eq eta xi hB]
+
+theorem terminalToLp_smulDyadic
+    (c : ℝ) (eta : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    terminalToLp (smulDyadic c eta) hB = c • terminalToLp eta hB := by
+  change elementaryItoTerminalToLp (ElementaryItoAlgebra.smul c eta.process) hB T =
+    c • elementaryItoTerminalToLp eta.process hB T
+  apply Lp.ext
+  filter_upwards [
+    (elementaryItoIntegral_memLp_two
+      (ElementaryItoAlgebra.smul c eta.process) hB T).coeFn_toLp,
+    Lp.coeFn_smul c (elementaryItoTerminalToLp eta.process hB T),
+    (elementaryItoIntegral_memLp_two eta.process hB T).coeFn_toLp]
+      with omega hsmul hscale heta
+  simp only [elementaryItoTerminalToLp] at hscale ⊢
+  rw [hsmul, hscale]
+  simp only [Pi.smul_apply, smul_eq_mul]
+  rw [heta]
+  exact ElementaryItoAlgebra.elementaryItoIntegral_smul c eta.process B T omega
+
+theorem processToLp_smulDyadic
+    (c : ℝ) (eta : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    processToLp (smulDyadic c eta) hB = c • processToLp eta hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  change (toProgressiveL2 (ElementaryItoAlgebra.smul c eta.process) mu T).toLp =
+    c • (toProgressiveL2 eta.process mu T).toLp
+  exact toLp_smul c eta.process mu T
+
+theorem integrandToLp_add
+    (eta xi : ProgressiveL2Integrand filtration mu T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    integrandToLp (ProgressiveL2Algebra.add eta xi) hB =
+      integrandToLp eta hB + integrandToLp xi hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact ProgressiveL2Algebra.toLp_add eta xi
+
+theorem integrandToLp_neg
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    integrandToLp (ProgressiveL2Algebra.neg eta) hB = -integrandToLp eta hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact ProgressiveL2Algebra.toLp_neg eta
+
+theorem integrandToLp_sub
+    (eta xi : ProgressiveL2Integrand filtration mu T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    integrandToLp (ProgressiveL2Algebra.sub eta xi) hB =
+      integrandToLp eta hB - integrandToLp xi hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact ProgressiveL2Algebra.toLp_sub eta xi
+
+theorem integrandToLp_smul
+    (c : ℝ) (eta : ProgressiveL2Integrand filtration mu T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    integrandToLp (ProgressiveL2Algebra.smul c eta) hB = c • integrandToLp eta hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact ProgressiveL2Algebra.toLp_smul c eta
+
+theorem itoIntegralTerminal_congr_toLp
+    (eta xi : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (hEq : integrandToLp eta hB = integrandToLp xi hB) :
+    itoIntegralTerminal eta hT hB = itoIntegralTerminal xi hT hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  have hxi := tendsto_terminal_of_tendsto_elementary xi hT hB
+    (canonicalElementaryApprox eta hT) (by
+      change Tendsto (processApprox eta hT hB) atTop (nhds (integrandToLp xi hB))
+      simpa only [hEq] using tendsto_processApprox eta hT hB)
+  exact tendsto_nhds_unique (tendsto_terminalApprox eta hT hB) hxi
+
+theorem itoIntegralTerminal_add
+    (eta xi : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    itoIntegralTerminal (ProgressiveL2Algebra.add eta xi) hT hB =
+      itoIntegralTerminal eta hT hB + itoIntegralTerminal xi hT hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  let approx : ℕ → DyadicElementaryProcess filtration T := fun n ↦
+    addDyadic (canonicalElementaryApprox eta hT n)
+      (canonicalElementaryApprox xi hT n)
+  have hprocess : Tendsto (fun n ↦ processToLp (approx n) hB) atTop
+      (nhds (integrandToLp (ProgressiveL2Algebra.add eta xi) hB)) := by
+    have hsum := (tendsto_processApprox eta hT hB).add
+      (tendsto_processApprox xi hT hB)
+    rw [integrandToLp_add eta xi hB]
+    convert hsum using 1
+    funext n
+    simpa only [approx, processApprox] using
+      processToLp_addDyadic (canonicalElementaryApprox eta hT n)
+        (canonicalElementaryApprox xi hT n) hB
+  have hcompleted := tendsto_terminal_of_tendsto_elementary
+    (ProgressiveL2Algebra.add eta xi) hT hB approx hprocess
+  have hsum := (tendsto_terminalApprox eta hT hB).add
+    (tendsto_terminalApprox xi hT hB)
+  have hsequence : (fun n ↦ terminalToLp (approx n) hB) =
+      fun n ↦ terminalApprox eta hT hB n + terminalApprox xi hT hB n := by
+    funext n
+    simpa only [approx, terminalApprox] using
+      terminalToLp_addDyadic (canonicalElementaryApprox eta hT n)
+        (canonicalElementaryApprox xi hT n) hB
+  rw [hsequence] at hcompleted
+  exact tendsto_nhds_unique hcompleted hsum
+
+theorem itoIntegralTerminal_smul
+    (c : ℝ) (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    itoIntegralTerminal (ProgressiveL2Algebra.smul c eta) hT hB =
+      c • itoIntegralTerminal eta hT hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  let approx : ℕ → DyadicElementaryProcess filtration T := fun n ↦
+    smulDyadic c (canonicalElementaryApprox eta hT n)
+  have hprocess : Tendsto (fun n ↦ processToLp (approx n) hB) atTop
+      (nhds (integrandToLp (ProgressiveL2Algebra.smul c eta) hB)) := by
+    have hsmul := (tendsto_processApprox eta hT hB).const_smul c
+    rw [integrandToLp_smul c eta hB]
+    convert hsmul using 1
+    funext n
+    simpa only [approx, processApprox] using
+      processToLp_smulDyadic c (canonicalElementaryApprox eta hT n) hB
+  have hcompleted := tendsto_terminal_of_tendsto_elementary
+    (ProgressiveL2Algebra.smul c eta) hT hB approx hprocess
+  have hsmul := (tendsto_terminalApprox eta hT hB).const_smul c
+  have hsequence : (fun n ↦ terminalToLp (approx n) hB) =
+      fun n ↦ c • terminalApprox eta hT hB n := by
+    funext n
+    simpa only [approx, terminalApprox] using
+      terminalToLp_smulDyadic c (canonicalElementaryApprox eta hT n) hB
+  rw [hsequence] at hcompleted
+  exact tendsto_nhds_unique hcompleted hsmul
+
+theorem itoIntegralTerminal_zero
+    (hT : 0 < T) (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    itoIntegralTerminal
+      (ProgressiveL2Algebra.zero : ProgressiveL2Integrand filtration mu T) hT hB = 0 := by
+  apply norm_eq_zero.mp
+  rw [itoIntegralTerminal_norm]
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact norm_zero
+
+theorem itoIntegralTerminal_neg
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    itoIntegralTerminal (ProgressiveL2Algebra.neg eta) hT hB =
+      -itoIntegralTerminal eta hT hB := by
+  have hcongr := itoIntegralTerminal_congr_toLp
+    (ProgressiveL2Algebra.neg eta) (ProgressiveL2Algebra.smul (-1) eta) hT hB (by
+      rw [integrandToLp_neg, integrandToLp_smul]
+      simp)
+  rw [hcongr, itoIntegralTerminal_smul]
+  simp
+
+theorem itoIntegralTerminal_sub
+    (eta xi : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    itoIntegralTerminal (ProgressiveL2Algebra.sub eta xi) hT hB =
+      itoIntegralTerminal eta hT hB - itoIntegralTerminal xi hT hB := by
+  have hcongr := itoIntegralTerminal_congr_toLp
+    (ProgressiveL2Algebra.sub eta xi)
+    (ProgressiveL2Algebra.add eta (ProgressiveL2Algebra.neg xi)) hT hB (by
+      rw [integrandToLp_sub, integrandToLp_add, integrandToLp_neg]
+      rfl)
+  rw [hcongr, itoIntegralTerminal_add, itoIntegralTerminal_neg]
+  simp only [sub_eq_add_neg]
+
+/-- Progressive integrand induced by an elementary process in the Brownian
+probability environment. -/
+noncomputable def elementaryIntegrand
+    (eta : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    ProgressiveL2Integrand filtration mu T := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  exact toProgressiveL2 eta.process mu T
+
+theorem itoIntegralTerminal_elementary
+    (eta : DyadicElementaryProcess filtration T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    itoIntegralTerminal (elementaryIntegrand eta hB)
+        (DyadicElementaryProcess.horizon_pos eta) hB = terminalToLp eta hB := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  have hprocess : Tendsto (fun _ : ℕ ↦ processToLp eta hB) atTop
+      (nhds (integrandToLp (elementaryIntegrand eta hB) hB)) := by
+    have heq : processToLp eta hB =
+        integrandToLp (elementaryIntegrand eta hB) hB := rfl
+    simpa only [heq] using
+      (tendsto_const_nhds : Tendsto (fun _ : ℕ ↦ processToLp eta hB) atTop
+        (nhds (processToLp eta hB)))
+  have hcompleted := tendsto_terminal_of_tendsto_elementary
+    (elementaryIntegrand eta hB) (DyadicElementaryProcess.horizon_pos eta)
+      hB (fun _ ↦ eta) hprocess
+  exact tendsto_nhds_unique hcompleted tendsto_const_nhds
+
+/-- Distance form of the completed Ito isometry. -/
+theorem itoIntegralTerminal_isometry_sub
+    (eta xi : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    ‖itoIntegralTerminal eta hT hB - itoIntegralTerminal xi hT hB‖ =
+      ‖integrandToLp eta hB - integrandToLp xi hB‖ := by
+  rw [← itoIntegralTerminal_sub, itoIntegralTerminal_norm, integrandToLp_sub]
+
+/-- The completed terminal map preserves the real Hilbert inner product. -/
+theorem itoIntegralTerminal_inner
+    (eta xi : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    ⟪itoIntegralTerminal eta hT hB, itoIntegralTerminal xi hT hB⟫_ℝ =
+      ⟪integrandToLp eta hB, integrandToLp xi hB⟫_ℝ := by
+  rw [real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two,
+    real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two,
+    ← itoIntegralTerminal_add, ← integrandToLp_add,
+    itoIntegralTerminal_norm, itoIntegralTerminal_norm, itoIntegralTerminal_norm]
+
+/-- Total horizon interface: the positive-horizon completion and the unique
+zero integral on a degenerate horizon. -/
+noncomputable def itoIntegralTerminalOnHorizon
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) : Lp ℝ 2 mu :=
+  if hT : 0 < T then itoIntegralTerminal eta hT hB else 0
+
+theorem itoIntegralTerminalOnHorizon_of_pos
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    itoIntegralTerminalOnHorizon eta hB = itoIntegralTerminal eta hT hB := by
+  simp [itoIntegralTerminalOnHorizon, hT]
+
+theorem itoIntegralTerminal_zero_horizon
+    (eta : ProgressiveL2Integrand filtration mu T) (hzero : T = 0)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    itoIntegralTerminalOnHorizon eta hB = 0 := by
+  subst T
+  simp [itoIntegralTerminalOnHorizon]
+
+end ItoTerminalCompletion
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

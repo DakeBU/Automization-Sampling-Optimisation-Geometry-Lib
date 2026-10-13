@@ -1,0 +1,175 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator
+import Mathlib.Analysis.InnerProductSpace.StarOrder
+import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Instances
+import Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.Basic
+
+open MeasureTheory
+open scoped ENNReal ComplexConjugate
+
+namespace AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRoot
+noncomputable section
+set_option autoImplicit false
+set_option maxHeartbeats 1000000
+
+variable {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
+
+private abbrev embed : Lp ℝ 2 μ →L[ℝ] Lp ℂ 2 μ := Complex.ofRealCLM.compLpL 2 μ
+private abbrev realPart : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.reCLM.compLpL 2 μ
+private abbrev conjugate : Lp ℂ 2 μ →L[ℝ] Lp ℂ 2 μ :=
+  Complex.conjCLE.toContinuousLinearMap.compLpL 2 μ
+
+private theorem real_embed (u : Lp ℝ 2 μ) : realPart μ (embed μ u) = u := by
+  apply Lp.ext
+  filter_upwards [Complex.reCLM.coeFn_compLpL (embed μ u),
+    Complex.ofRealCLM.coeFn_compLpL u] with x hr he
+  change (realPart μ (embed μ u)) x = u x
+  rw [hr, he]
+  simp
+
+private theorem inner_embed (u v : Lp ℝ 2 μ) :
+    inner ℂ (embed μ u) (embed μ v) = (inner ℝ u v : ℂ) := by
+  rw [L2.inner_def, L2.inner_def, ← integral_complex_ofReal]
+  apply integral_congr_ae
+  filter_upwards [Complex.ofRealCLM.coeFn_compLpL u,
+    Complex.ofRealCLM.coeFn_compLpL v] with x hu hv
+  rw [hu, hv]
+  simp [RCLike.inner_apply, mul_comm]
+
+private theorem conjugate_involutive (g : Lp ℂ 2 μ) :
+    conjugate μ (conjugate μ g) = g := by
+  apply Lp.ext
+  filter_upwards [Complex.conjCLE.toContinuousLinearMap.coeFn_compLpL (conjugate μ g),
+    Complex.conjCLE.toContinuousLinearMap.coeFn_compLpL g] with x h1 h2
+  rw [h1, h2]
+  simp
+
+private theorem conjugate_smul (c : ℂ) (g : Lp ℂ 2 μ) :
+    conjugate μ (c • g) = conj c • conjugate μ g := by
+  apply Lp.ext
+  filter_upwards [Complex.conjCLE.toContinuousLinearMap.coeFn_compLpL (c • g),
+    Complex.conjCLE.toContinuousLinearMap.coeFn_compLpL g,
+    Lp.coeFn_smul c g, Lp.coeFn_smul (conj c) (conjugate μ g)] with x h1 h2 hs ht
+  rw [h1, ht, Pi.smul_apply, h2, hs, Pi.smul_apply]
+  simp [smul_eq_mul]
+
+private theorem inner_conjugate (g h : Lp ℂ 2 μ) :
+    inner ℂ (conjugate μ g) (conjugate μ h) = conj (inner ℂ g h) := by
+  rw [L2.inner_def, L2.inner_def]
+  change (∫ x, inner ℂ (conjugate μ g x) (conjugate μ h x) ∂μ) =
+    Complex.conjCLE (∫ x, inner ℂ (g x) (h x) ∂μ)
+  rw [← Complex.conjCLE.integral_comp_comm]
+  apply integral_congr_ae
+  filter_upwards [Complex.conjCLE.toContinuousLinearMap.coeFn_compLpL g,
+    Complex.conjCLE.toContinuousLinearMap.coeFn_compLpL h] with x hg hh
+  rw [hg, hh]
+  simp [RCLike.inner_apply]
+
+private def conjugateOperator (A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) :
+    Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ where
+  toFun g := conjugate μ (A (conjugate μ g))
+  map_add' g h := by simp only [map_add]
+  map_smul' c g := by
+    change conjugate μ (A (conjugate μ (c • g))) = c • conjugate μ (A (conjugate μ g))
+    rw [conjugate_smul, map_smul, conjugate_smul, Complex.conj_conj]
+  cont := (conjugate μ).continuous.comp (A.continuous.comp (conjugate μ).continuous)
+
+private theorem conjugateOperator_positive
+    (A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) (hA : A.IsPositive) :
+    (conjugateOperator μ A).IsPositive := by
+  apply (ContinuousLinearMap.isPositive_iff_complex _).mpr
+  intro g
+  have he := inner_conjugate μ (A (conjugate μ g)) (conjugate μ g)
+  rw [conjugate_involutive] at he
+  change ((inner ℂ (conjugate μ (A (conjugate μ g))) g).re : ℂ) =
+      inner ℂ (conjugate μ (A (conjugate μ g))) g ∧
+    0 ≤ (inner ℂ (conjugate μ (A (conjugate μ g))) g).re
+  rw [he]
+  constructor
+  · have hr := ((ContinuousLinearMap.isPositive_iff_complex A).mp hA (conjugate μ g)).1
+    simp only [RCLike.re_to_complex] at hr
+    simpa only [Complex.conj_ofReal, Complex.conj_re] using congrArg conj hr
+  · simpa only [Complex.conj_re, RCLike.re_to_complex] using
+      hA.re_inner_nonneg_left (conjugate μ g)
+
+theorem exists_positive_real_square_root
+    {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
+    (D : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ) (hD : D.IsPositive) :
+    ∃ Γ : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ,
+      Γ.IsPositive ∧ Γ*Γ = D ∧
+      ∀ u : Lp ℝ 2 μ, ‖Γ u‖^2 = inner ℝ (D u) u := by
+  letI := IsStarNormal.instNonUnitalContinuousFunctionalCalculus
+    (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)
+  letI : NonUnitalContinuousFunctionalCalculus ℂ
+      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsStarNormal :=
+    NonUnitalClosedEmbeddingContinuousFunctionalCalculus.toNonUnitalContinuousFunctionalCalculus
+  letI : NonUnitalContinuousFunctionalCalculus ℝ
+      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsSelfAdjoint :=
+    IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus
+    (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)
+  obtain ⟨hnorm,hfixed,Dc,hDc,hformula,hintertwine,hconj⟩ :=
+    L2RealComplexOperator.exists_positive_complex_lift μ D hD
+  let Rc : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ := CFC.sqrt Dc
+  have hDcNonneg : 0 ≤ Dc := (ContinuousLinearMap.nonneg_iff_isPositive Dc).mpr hDc
+  have hRcNonneg : 0 ≤ Rc := CFC.sqrt_nonneg Dc
+  have hRc : Rc.IsPositive := (ContinuousLinearMap.nonneg_iff_isPositive Rc).mp hRcNonneg
+  have hRcSq : Rc*Rc = Dc := CFC.sqrt_mul_sqrt_self Dc hDcNonneg
+  have hKSq : conjugateOperator μ Rc * conjugateOperator μ Rc = Dc := by
+    apply ContinuousLinearMap.ext
+    intro g
+    change conjugate μ (Rc (conjugate μ (conjugate μ (Rc (conjugate μ g))))) = Dc g
+    rw [conjugate_involutive]
+    have hpoint : Rc (Rc (conjugate μ g)) = Dc (conjugate μ g) :=
+      congrArg (fun A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ => A (conjugate μ g)) hRcSq
+    rw [hpoint, hconj, conjugate_involutive]
+  have hKNonneg : 0 ≤ conjugateOperator μ Rc :=
+    (ContinuousLinearMap.nonneg_iff_isPositive _).mpr (conjugateOperator_positive μ Rc hRc)
+  have hK : conjugateOperator μ Rc = Rc := (CFC.sqrt_unique hKSq hKNonneg).symm
+  have hrootConj (g : Lp ℂ 2 μ) : conjugate μ (Rc g) = Rc (conjugate μ g) := by
+    have hh := congrArg (fun A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ => A (conjugate μ g)) hK
+    change conjugate μ (Rc (conjugate μ (conjugate μ g))) = Rc (conjugate μ g) at hh
+    simpa only [conjugate_involutive] using hh
+  let Γ : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ :=
+    realPart μ ∘L Rc.restrictScalars ℝ ∘L embed μ
+  have hbridge (u : Lp ℝ 2 μ) : embed μ (Γ u) = Rc (embed μ u) := by
+    have hf : conjugate μ (embed μ u) = embed μ u := (hfixed _).mpr ⟨u,rfl⟩
+    have hr : conjugate μ (Rc (embed μ u)) = Rc (embed μ u) := by rw [hrootConj, hf]
+    obtain ⟨v,hv⟩ := (hfixed _).mp hr
+    change embed μ (realPart μ (Rc (embed μ u))) = Rc (embed μ u)
+    rw [← hv, real_embed]
+  have hinj : Function.Injective (embed μ) := by
+    intro u v h
+    have hh := congrArg (realPart μ) h
+    simpa only [real_embed] using hh
+  have hΓSq : Γ*Γ = D := by
+    apply ContinuousLinearMap.ext
+    intro u
+    apply hinj
+    change embed μ (Γ (Γ u)) = embed μ (D u)
+    rw [hbridge (Γ u),hbridge u]
+    have hp : Rc (Rc (embed μ u)) = Dc (embed μ u) :=
+      congrArg (fun A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ => A (embed μ u)) hRcSq
+    exact hp.trans (hintertwine u)
+  have hΓ : Γ.IsPositive := by
+    constructor
+    · intro u v
+      have hh := hRc.inner_left_eq_inner_right (embed μ u) (embed μ v)
+      rw [← hbridge u, ← hbridge v, inner_embed, inner_embed] at hh
+      exact Complex.ofReal_injective hh
+    · intro u
+      have hh := hRc.re_inner_nonneg_left (embed μ u)
+      rw [← hbridge u, inner_embed] at hh
+      simpa [ContinuousLinearMap.reApplyInnerSelf] using hh
+  refine ⟨Γ,hΓ,hΓSq,?_⟩
+  intro u
+  calc
+    ‖Γ u‖^2 = inner ℝ (Γ u) (Γ u) := (real_inner_self_eq_norm_sq _).symm
+    _ = inner ℝ (Γ (Γ u)) u := (hΓ.inner_left_eq_inner_right (Γ u) u).symm
+    _ = inner ℝ (D u) u := by
+      change inner ℝ ((Γ*Γ) u) u = inner ℝ (D u) u
+      rw [hΓSq]
+
+
+end
+end AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRoot
+
+#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareRoot.exists_positive_real_square_root

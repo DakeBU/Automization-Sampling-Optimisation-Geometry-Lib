@@ -1,0 +1,153 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Stopping
+
+/-!
+# Random stopping consistency for completed Ito integrals
+
+The elementary random-stopping theorem and the `L²` stopping contraction now
+combine to give the completed statement: for any progressive square-integrable
+integrand on a finite horizon, integrating the closed stopped integrand agrees
+almost surely with evaluating the continuous Ito process at the bounded
+stopping time.
+
+The proof uses only density, the Ito isometry, pathwise convergence of the
+canonical elementary Ito processes, and uniqueness of convergence in measure.
+It does not invoke optional stopping.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace RandomStoppingGeneralIto
+
+open Filter MeasureTheory Set
+open scoped NNReal Topology
+
+open BrownianMotion ElementaryItoIntegral ElementaryItoProcess ItoIntegralProcess
+  ItoTerminalCompletion ProgressiveL2 ProgressiveL2Density ProgressiveL2Stopping
+  RandomStoppingItoTerminal RandomStoppingL2Contraction
+  RandomStoppingProgressiveL2 StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- The stopped canonical elementary approximants converge to the generic
+closed stop of the completed integrand. -/
+theorem tendsto_stoppedCanonical_toLp [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T) :
+    Tendsto
+      (fun n =>
+        (stoppedProgressiveL2 (mu := mu)
+          (canonicalElementaryApprox eta hT n) tau htau htauT).toLp)
+      atTop
+      (𝓝 (stop eta (fun omega => (tau omega : WithTop ℝ≥0)) htau).toLp) := by
+  apply tendsto_stoppedCanonicalApprox_toLp eta
+    (stop eta (fun omega => (tau omega : WithTop ℝ≥0)) htau)
+    hT tau htau htauT
+  exact Filter.Eventually.of_forall fun _ => rfl
+
+/-- Ito isometry transfers stopped-integrand convergence to terminal `L²`
+convergence. -/
+theorem tendsto_stoppedCanonical_terminal [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    Tendsto
+      (fun n =>
+        itoIntegralTerminal
+          (stoppedProgressiveL2 (mu := mu)
+            (canonicalElementaryApprox eta hT n) tau htau htauT)
+          hT hB)
+      atTop
+      (𝓝 (itoIntegralTerminal
+        (stop eta (fun omega => (tau omega : WithTop ℝ≥0)) htau)
+        hT hB)) := by
+  apply tendsto_iff_norm_sub_tendsto_zero.mpr
+  have hstop := tendsto_stoppedCanonical_toLp eta hT tau htau htauT
+  have hnorm := tendsto_iff_norm_sub_tendsto_zero.mp hstop
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  simpa only [itoIntegralTerminal_isometry_sub, integrandToLp] using hnorm
+
+/-- **General bounded random-stopping identity.**
+
+For `tau ≤ T`, the completed Ito integral of `eta_s 1_{s ≤ tau}` equals the
+continuous Ito process of `eta` evaluated at `tau`, almost surely. -/
+theorem itoIntegralTerminal_stop_ae [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (hUsual : SatisfiesUsualConditions filtration mu) :
+    (fun omega =>
+      itoIntegralTerminal
+        (stop eta (fun w => (tau w : WithTop ℝ≥0)) htau) hT hB omega) =ᵐ[mu]
+      (fun omega => itoIntegralProcess eta hT hB hUsual (tau omega) omega) := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  let q : ℕ → DyadicElementaryProcess filtration T :=
+    fun n => canonicalElementaryApprox eta hT n
+  let stoppedQ : ℕ → ProgressiveL2Integrand filtration mu T := fun n =>
+    stoppedProgressiveL2 (mu := mu) (q n) tau htau htauT
+  let target := stop eta (fun w => (tau w : WithTop ℝ≥0)) htau
+  have hterminal :
+      Tendsto (fun n => itoIntegralTerminal (stoppedQ n) hT hB) atTop
+        (𝓝 (itoIntegralTerminal target hT hB)) := by
+    simpa only [q, stoppedQ, target] using
+      tendsto_stoppedCanonical_terminal eta hT tau htau htauT hB
+  have hcompletion : TendstoInMeasure mu
+      (fun n omega => itoIntegralTerminal (stoppedQ n) hT hB omega) atTop
+      (fun omega => itoIntegralTerminal target hT hB omega) :=
+    tendstoInMeasure_of_tendsto_Lp hterminal
+  have hElem (n : ℕ) :
+      (fun omega => itoIntegralTerminal (stoppedQ n) hT hB omega) =ᵐ[mu]
+        (fun omega => elementaryItoIntegral (q n).process B (tau omega) omega) := by
+    simpa only [q, stoppedQ] using
+      itoIntegralTerminal_stopped_elementary_ae
+        (q n) tau htau htauT hT hB
+  have hcompletion' : TendstoInMeasure mu
+      (fun n omega => elementaryItoIntegral (q n).process B (tau omega) omega)
+      atTop (fun omega => itoIntegralTerminal target hT hB omega) :=
+    hcompletion.congr hElem Filter.EventuallyEq.rfl
+  have haetendsto : ∀ᵐ omega ∂mu,
+      Tendsto
+        (fun n => elementaryItoIntegral (q n).process B (tau omega) omega)
+        atTop
+        (𝓝 (itoIntegralProcess eta hT hB hUsual (tau omega) omega)) := by
+    filter_upwards [uniformCauchyEvent_ae eta hT hB] with omega homega
+    have hnot : omega ∉ uniformBadSet eta hT B := by
+      simpa only [uniformBadSet, Set.mem_compl_iff, not_not] using homega
+    have hconv := tendsto_canonicalItoProcess_canonicalPathLimit
+      eta hT B homega (show tau omega ∈ Icc (0 : ℝ≥0) T from ⟨bot_le, htauT omega⟩)
+    have hconv' : Tendsto
+        (fun n => canonicalItoProcess eta hT B n (tau omega) omega)
+        atTop
+        (𝓝 (itoIntegralProcess eta hT hB hUsual (tau omega) omega)) := by
+      simpa only [itoIntegralProcess, hnot, if_false] using hconv
+    refine hconv'.congr' ?_
+    filter_upwards [] with n
+    simp only [q, canonicalItoProcess, elementaryItoProcess,
+      min_eq_left (htauT omega)]
+  have hpath : TendstoInMeasure mu
+      (fun n omega => elementaryItoIntegral (q n).process B (tau omega) omega)
+      atTop (fun omega => itoIntegralProcess eta hT hB hUsual (tau omega) omega) := by
+    apply tendstoInMeasure_of_tendsto_ae
+    · intro n
+      have hmem : MemLp
+          (fun omega => itoIntegralTerminal (stoppedQ n) hT hB omega) 2 mu :=
+        Lp.memLp (itoIntegralTerminal (stoppedQ n) hT hB)
+      exact ((memLp_congr_ae (hElem n)).1 hmem).1
+    · exact haetendsto
+  simpa only [target] using tendstoInMeasure_ae_unique hcompletion' hpath
+
+end RandomStoppingGeneralIto
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

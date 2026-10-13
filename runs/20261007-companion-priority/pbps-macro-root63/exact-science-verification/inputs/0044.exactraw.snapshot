@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-b97f548aa346d3c3",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {E : Type u_1} [inst : MeasurableSpace E] [inst_1 : NormedAddCommGroup E] [inst_2 : InnerProductSpace ℝ E]\n  [inst_3 : FiniteDimensional ℝ E] [inst_4 : BorelSpace E] {V : E → ℝ} {α β : NNReal},\n  0 < α →\n    α ≤ β →\n      ContDiff ℝ 2 V →\n        (∀ (x w : E), ↑α * ‖w‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) w) w ∧ ((fderiv ℝ (fderiv ℝ V) x) w) w ≤ ↑β * ‖w‖ ^ 2) →\n          0 < ↑(Module.finrank ℝ E) →\n            ∀ (η τ : NNReal × E × E × ℕ × (ℕ → E) → ℝ),\n              Measurable η →\n                Measurable τ →\n                  (∀ (s : NNReal × E × E × ℕ × (ℕ → E)), 0 < η s) →\n                    (∀ (s : NNReal × E × E × ℕ × (ℕ → E)), 0 < τ s) →\n                      ∀ (M : ProbabilityTheory.Kernel (NNReal × E × E × ℕ × (ℕ → E)) E)\n                        [ProbabilityTheory.IsMarkovKernel M] (threshold : NNReal),\n                        have d := ↑(Module.finrank ℝ E);\n                        have v := fun s => (η s + τ s) / (↑β + ↑s.1);\n                        have bp := fun s => s.1 + (v s)⁻¹.toNNReal;\n                        have obs := fun p => p.2.1 + √(τ p.1 / (↑β + ↑p.1.1)) • p.2.2;\n                        have center := fun p => (↑(bp p.1))⁻¹ • (↑p.1.1 • p.1.2.1 + (v p.1)⁻¹ • obs p);\n                        have F := fun p x => V x + ↑(bp p.1) / 2 * ‖x - center p‖ ^ 2;\n                        have T := fun p x => x - (↑β + ↑(bp p.1))⁻¹ • gradient (F p) x;\n                        have q := fun n p => ‖gradient (F p) ((T p)^[n] p.2.1)‖ ^ 2;\n                        have N := fun s => if h : ∃ n, q n s ≤ (fun p => (↑α + ↑(bp p.1)) * d) s then Nat.find h else 0;\n                        have out := fun p => (T p)^[N p] p.2.1;\n                        have update := fun p =>\n                          (bp p.1, center p, out p, p.1.2.2.2.1 + 1, fun n => Nat.casesOn n (obs p) p.1.2.2.2.2);\n                        ∃ J,\n                          ∃ (hJ : ProbabilityTheory.IsMarkovKernel J),\n                            (∀ (s : NNReal × E × E × ℕ × (ℕ → E)),\n                                J s =\n                                  MeasureTheory.Measure.map (fun z => (obs (s, z), update (s, z)))\n                                    ((M s).prod (ProbabilityTheory.stdGaussian E))) ∧\n                              (∀ (s : NNReal × E × E × ℕ × (ℕ → E)),\n                                  J.fst s =\n                                    MeasureTheory.Measure.map (fun p => p.1 + p.2)\n                                      ((M s).prod\n                                        (MeasureTheory.Measure.map (fun z => √(τ s / (↑β + ↑s.1)) • z)\n                                          (ProbabilityTheory.stdGaussian E)))) ∧\n                                J.fst.compProd J.condKernel = J ∧\n                                  (∀ (s : NNReal × E × E × ℕ × (ℕ → E)),\n                                      ∀ᵐ (y : E) ∂J.fst s,\n                                        ∀ᵐ (t : NNReal × E × E × ℕ × (ℕ → E)) ∂J.condKernel (s, y),\n                                          t.1 = bp s ∧ t.2.1 = (↑(bp s))⁻¹ • (↑s.1 • s.2.1 + (v s)⁻¹ • y)) ∧\n                                    (∀ (R : ProbabilityTheory.Kernel (NNReal × E × E × ℕ × (ℕ → E)) E)\n                                        [ProbabilityTheory.IsMarkovKernel R] (s : NNReal × E × E × ℕ × (ℕ → E))\n                                        (A : Set E),\n                                        MeasurableSet A →\n                                          ∫⁻ (z : E × E),\n                                              (R (update (s, z))) A ∂(M s).prod (ProbabilityTheory.stdGaussian E) =\n                                            ∫⁻ (y : E),\n                                              ∫⁻ (t : NNReal × E × E × ℕ × (ℕ → E)),\n                                                (R t) A ∂J.condKernel (s, y) ∂J.fst s) ∧\n                                      ∃ P,\n                                        ∃ (_ : ProbabilityTheory.IsMarkovKernel P),\n                                          (∀ (s : NNReal × E × E × ℕ × (ℕ → E)),\n                                              P s =\n                                                if threshold ≤ s.1 then MeasureTheory.Measure.dirac s\n                                                else\n                                                  MeasureTheory.Measure.map (fun z => update (s, z))\n                                                    ((M s).prod (ProbabilityTheory.stdGaussian E))) ∧\n                                            ∀ (R : ProbabilityTheory.Kernel (NNReal × E × E × ℕ × (ℕ → E)) E)\n                                              [ProbabilityTheory.IsMarkovKernel R] (s : NNReal × E × E × ℕ × (ℕ → E)),\n                                              s.1 < threshold →\n                                                ∀ (A : Set E),\n                                                  MeasurableSet A →\n                                                    ((R.comp P) s) A =\n                                                      ∫⁻ (y : E),\n                                                        ∫⁻ (t : NNReal × E × E × ℕ × (ℕ → E)),\n                                                          (R t) A ∂J.condKernel (s, y) ∂J.fst s",
+    "statement_sha256": "b97f548aa346d3c3e98ddaf00086c08c90b44462cc5f4931f165afebfc9c8bc8",
+    "compiled": true,
+    "approved_definition_context": [
+      "NNReal is the type of nonnegative real numbers. Real.toNNReal truncates a real below at zero. Module.finrank is finite real vector-space dimension. fderiv is the Frechet derivative; gradient is the real inner-product gradient. Function.iterate applies its function the displayed natural number of times. Nat.find is the least natural satisfying the displayed existential predicate. Nat.casesOn defines a sequence by its zeroth value and shifted tail.",
+      "ProbabilityTheory.Kernel is a jointly measurable probability-transition interface when IsMarkovKernel holds. Kernel.fst is the first-coordinate marginal. Kernel.condKernel is a parameterized Markov conditional kernel of a finite joint kernel into a nonempty standard Borel second space. compProd first draws the first coordinate, then the second conditional on the input and first coordinate. Kernel.comp R P first draws a state from P then an output from R. All displayed nonnegative integrals take values in extended nonnegative reals. Nested almost-everywhere quantifiers retain their displayed order and measures.",
+      "Measure.map is pushforward and Measure.prod is independent product. stdGaussian is standard Gaussian on the displayed finite-dimensional inner-product space. MeasurableSet is with respect to the displayed Borel/measurable structure. The product type is right-associated; Nat-to-E is a full infinite sequence."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "549c3fb5aa2db39058c8373ba545c3bb32dcafe1198d9449d0f21c14d069ffb9"
+}

@@ -1,0 +1,7 @@
+
+namespace MemLp
+
+/-- make an element of Lp from a function verifying `MemLp` -/
+def toLp (f : α → E) (h_mem_ℒp : MemLp f p μ) : Lp E p μ :=
+  ⟨AEEqFun.mk f h_mem_ℒp.1, h_mem_ℒp.eLpNorm_mk_lt_top⟩
+

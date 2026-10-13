@@ -1,0 +1,215 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianLikelihood
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing
+import AutoSamplingTheory.TechnicalLemmas.Measure.OptimalContinuousCost
+import Mathlib.InformationTheory.KullbackLeibler.DataProcessing
+
+/-!
+# Actual Gaussian KL reverse transport
+
+Expanded proof of arXiv:2609.06906v1 Lemma6.3(i), used by the A1 branch of
+Theorem6.5. The actual infimum quadratic displacement budget yields an optimal
+coupling. Its joint Gaussian laws have a proved likelihood and integrable LLR;
+KL data processing then gives the actual GaussianSmoothing bound.
+
+Finite-dimensional real inner-product Borel spaces, including dimension zero,
+and the raw-cost budget explicitly generalize the source Euclidean P2/W2
+presentation. Finite displacement cost does not imply marginal second moments.
+Full W2 API identification, recursive kernels, sampler errors and query costs
+remain separate. No exponential displacement moment or Gaussian KL premise is
+assumed, and no totalized real integral substitutes for integrability.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianKL
+open MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.TechnicalLemmas.Measure
+open scoped ENNReal NNReal RealInnerProductSpace
+
+/-- Actual ENNReal KL smoothing bound from the genuine quadratic transport budget. -/
+theorem gaussian_kl_reverse_transport {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (P Q : Measure E) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
+    (r τ : ℝ) (_hr : 0 ≤ r) (hτ : 0 < τ)
+    (hcost : Transport.transportCost (fun z : E × E => ENNReal.ofReal (‖z.1-z.2‖^2)) P Q ≤
+      ENNReal.ofReal (r^2)) :
+    InformationTheory.klDiv (GaussianSmoothing.gaussianSmoothing P (Real.sqrt τ))
+      (GaussianSmoothing.gaussianSmoothing Q (Real.sqrt τ)) ≤ ENNReal.ofReal (r^2/(2*τ)) := by
+  have crossMoment (γ : Measure (E × E)) [IsProbabilityMeasure γ]
+      (h2 : Integrable (fun c : E × E => ‖c.1-c.2‖^2) γ) :
+      Integrable (fun z : (E × E) × E => inner ℝ (z.1.1-z.1.2) z.2)
+        (γ.prod (stdGaussian E)) ∧
+      (∫ z : (E × E) × E, inner ℝ (z.1.1-z.1.2) z.2 ∂γ.prod (stdGaussian E)) = 0 := by
+    have hd : Integrable (fun c : E × E => c.1-c.2) γ := by
+      apply Integrable.mono' ((integrable_const (1 : ℝ)).add h2) (by fun_prop)
+      filter_upwards [] with c
+      change ‖c.1-c.2‖ ≤ 1 + ‖c.1-c.2‖^2
+      have hn := norm_nonneg (c.1-c.2)
+      nlinarith [sq_nonneg (‖c.1-c.2‖-1)]
+    have hz : Integrable (fun z : E => z) (stdGaussian E) := IsGaussian.integrable_id
+    have hi : Integrable (fun z : (E × E) × E => inner ℝ (z.1.1-z.1.2) z.2)
+        (γ.prod (stdGaussian E)) :=
+      hd.op_fst_snd (by fun_prop) ⟨1, by intro x y; simpa using abs_real_inner_le_norm x y⟩ hz
+    refine ⟨hi, ?_⟩
+    rw [integral_prod _ hi]
+    have hm (c : E × E) : (∫ z : E, inner ℝ (c.1-c.2) z ∂stdGaussian E) = 0 := by
+      change (∫ z : E, (innerSL ℝ (c.1-c.2)) z ∂stdGaussian E) = 0
+      rw [(innerSL ℝ (c.1-c.2)).integral_comp_comm hz]
+      simp [integral_id_stdGaussian]
+    simp_rw [hm]
+    simp
+  have jointLikelihood (γ : Measure (E × E)) [IsProbabilityMeasure γ]
+      (a b : E × E → E) (ha : Measurable a) (hb : Measurable b)
+      (τ : ℝ) (hτ : 0 < τ) :
+      let A := (γ.prod (stdGaussian E)).map (fun w => (w.1,a w.1+Real.sqrt τ • w.2))
+      let B := (γ.prod (stdGaussian E)).map (fun w => (w.1,b w.1+Real.sqrt τ • w.2))
+      let L := fun w : (E × E) × E => ENNReal.ofReal (Real.exp
+        (inner ℝ (a w.1-b w.1) (w.2-b w.1)/τ-‖a w.1-b w.1‖^2/(2*τ)))
+      Measurable L ∧ A = B.withDensity L := by
+    dsimp only
+    let L := fun w : (E × E) × E => ENNReal.ofReal (Real.exp
+      (inner ℝ (a w.1-b w.1) (w.2-b w.1)/τ-‖a w.1-b w.1‖^2/(2*τ)))
+    have hL : Measurable L := by unfold L; fun_prop
+    refine ⟨hL, ?_⟩
+    apply Measure.ext_of_lintegral
+    intro f hf
+    rw [lintegral_map hf (by fun_prop),lintegral_prod _ (by fun_prop),
+      lintegral_withDensity_eq_lintegral_mul _ hL hf,
+      lintegral_map (hL.mul hf) (by fun_prop),lintegral_prod _ (by fun_prop)]
+    apply lintegral_congr
+    intro c
+    change (∫⁻ z, f (c,a c+Real.sqrt τ • z) ∂stdGaussian E) =
+      ∫⁻ z, L (c,b c+Real.sqrt τ • z) * f (c,b c+Real.sqrt τ • z) ∂stdGaussian E
+    have hf' : Measurable (fun z : E => f (c,z)) := hf.comp (measurable_const.prodMk measurable_id)
+    have hLc : Measurable (fun z : E => L (c,z)) := hL.comp (measurable_const.prodMk measurable_id)
+    have hlaw := (GaussianLikelihood.translated_gaussian_likelihood (a c) (b c) τ hτ).2.1
+    dsimp only at hlaw
+    calc
+      _ = ∫⁻ z, f (c,z) ∂(stdGaussian E).map (fun z => a c+Real.sqrt τ • z) :=
+        (lintegral_map hf' (by fun_prop)).symm
+      _ = ∫⁻ z, L (c,z)*f (c,z) ∂(stdGaussian E).map (fun z => b c+Real.sqrt τ • z) := by
+        rw [hlaw,lintegral_withDensity_eq_lintegral_mul _ (by fun_prop) hf']
+        rfl
+      _ = _ := lintegral_map (show Measurable (fun z => L (c,z)*f (c,z)) from hLc.mul hf') (by fun_prop)
+  have llrAlgebra (x y z : E) (τ : ℝ) (hτ : 0 < τ) :
+      inner ℝ (x-y) (x+Real.sqrt τ • z-y)/τ-‖x-y‖^2/(2*τ) =
+        ‖x-y‖^2/(2*τ)+inner ℝ (x-y) z/Real.sqrt τ := by
+    have hs : Real.sqrt τ ≠ 0 := (Real.sqrt_pos.mpr hτ).ne'
+    rw [show x+Real.sqrt τ • z-y = (x-y)+Real.sqrt τ • z by abel,
+      inner_add_right,real_inner_smul_right,real_inner_self_eq_norm_sq]
+    have ht : τ = (Real.sqrt τ)^2 := (Real.sq_sqrt hτ.le).symm
+    rw [ht]
+    rw [Real.sqrt_sq (Real.sqrt_nonneg τ)]
+    field_simp
+    ring
+  have jointKL (γ : Measure (E × E)) [IsProbabilityMeasure γ]
+      (h2 : Integrable (fun c : E × E => ‖c.1-c.2‖^2) γ)
+      (τ : ℝ) (hτ : 0 < τ) :
+      let A := (γ.prod (stdGaussian E)).map (fun w => (w.1,w.1.1+Real.sqrt τ • w.2))
+      let B := (γ.prod (stdGaussian E)).map (fun w => (w.1,w.1.2+Real.sqrt τ • w.2))
+      InformationTheory.klDiv A B = ENNReal.ofReal ((∫ c, ‖c.1-c.2‖^2 ∂γ)/(2*τ)) := by
+    let F := fun w : (E × E) × E => (w.1,w.1.1+Real.sqrt τ • w.2)
+    let G := fun w : (E × E) × E => (w.1,w.1.2+Real.sqrt τ • w.2)
+    let A := (γ.prod (stdGaussian E)).map F
+    let B := (γ.prod (stdGaussian E)).map G
+    let ℓ := fun w : (E × E) × E => inner ℝ (w.1.1-w.1.2) (w.2-w.1.2)/τ-‖w.1.1-w.1.2‖^2/(2*τ)
+    let L := fun w => ENNReal.ofReal (Real.exp (ℓ w))
+    have hF : Measurable F := by unfold F; fun_prop
+    have hG : Measurable G := by unfold G; fun_prop
+    have hℓ : Measurable ℓ := by unfold ℓ; fun_prop
+    have hL : Measurable L := by unfold L; fun_prop
+    have hA : IsProbabilityMeasure A := Measure.isProbabilityMeasure_map hF.aemeasurable
+    have hB : IsProbabilityMeasure B := Measure.isProbabilityMeasure_map hG.aemeasurable
+    let := hA
+    let := hB
+    have hab : A = B.withDensity L :=
+      (jointLikelihood γ Prod.fst Prod.snd measurable_fst measurable_snd τ hτ).2
+    have hac : A ≪ B := by rw [hab]; exact withDensity_absolutelyContinuous _ _
+    have hrn : A.rnDeriv B =ᵐ[B] L := by rw [hab]; exact Measure.rnDeriv_withDensity _ hL
+    have hlog : llr A B =ᵐ[A] ℓ := by
+      filter_upwards [hac.ae_eq hrn] with w hw
+      simp only [llr,hw,L,ENNReal.toReal_ofReal (Real.exp_pos _).le,Real.log_exp]
+    have hpull : (fun w => ℓ (F w)) = fun w : (E × E) × E =>
+        ‖w.1.1-w.1.2‖^2/(2*τ)+inner ℝ (w.1.1-w.1.2) w.2/Real.sqrt τ := by
+      funext w
+      exact llrAlgebra w.1.1 w.1.2 w.2 τ hτ
+    obtain ⟨hc,hcz⟩ := crossMoment γ h2
+    have hip : Integrable (fun w => ℓ (F w)) (γ.prod (stdGaussian E)) := by
+      rw [hpull]
+      exact ((h2.comp_fst (stdGaussian E)).div_const _).add (hc.div_const _)
+    have hiℓ : Integrable ℓ A := (integrable_map_measure hℓ.aestronglyMeasurable hF.aemeasurable).mpr hip
+    have hillr : Integrable (llr A B) A := hiℓ.congr hlog.symm
+    have hfstint : (∫ w : (E × E) × E, ‖w.1.1-w.1.2‖^2 ∂γ.prod (stdGaussian E)) =
+        ∫ c : E × E, ‖c.1-c.2‖^2 ∂γ := by
+      simpa using (integral_fun_fst (μ := γ) (ν := stdGaussian E) (fun c : E × E => ‖c.1-c.2‖^2))
+    have hint : (∫ w, ℓ w ∂A) = (∫ c, ‖c.1-c.2‖^2 ∂γ)/(2*τ) := by
+      rw [show A = (γ.prod (stdGaussian E)).map F from rfl,
+        integral_map hF.aemeasurable hℓ.aestronglyMeasurable]
+      change (∫ w, (fun w => ℓ (F w)) w ∂γ.prod (stdGaussian E)) = _
+      rw [hpull,integral_add ((h2.comp_fst _).div_const _) (hc.div_const _),
+        integral_div,integral_div,hcz]
+      rw [hfstint]
+      simp
+    change InformationTheory.klDiv A B = _
+    rw [InformationTheory.klDiv_of_ac_of_integrable hac hillr,integral_congr_ae hlog,hint]
+    simp
+  have gaussianMarginal (γ : Measure (E × E)) [IsProbabilityMeasure γ]
+      (a : E × E → E) (ha : Measurable a) (τ : ℝ) :
+      ((γ.prod (stdGaussian E)).map (fun w => (w.1,a w.1+Real.sqrt τ • w.2))).map Prod.snd =
+        GaussianSmoothing.gaussianSmoothing (γ.map a) (Real.sqrt τ) := by
+    have hprob : IsProbabilityMeasure (γ.map a) := Measure.isProbabilityMeasure_map ha.aemeasurable
+    let := hprob
+    have smoothing_law (μ : Measure E) [IsProbabilityMeasure μ] :
+        GaussianSmoothing.gaussianSmoothing μ (Real.sqrt τ) =
+          (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt τ • p.2) := by
+      unfold GaussianSmoothing.gaussianSmoothing CommonNoiseContraction.addNoise
+        GaussianSmoothing.scaledStdGaussian
+      have hp := Measure.map_prod_map μ (stdGaussian E) measurable_id
+        (by fun_prop : Measurable (fun z : E => Real.sqrt τ • z))
+      simp only [Measure.map_id] at hp
+      rw [hp,Measure.map_map (by fun_prop) (by fun_prop)]
+      rfl
+    rw [smoothing_law,Measure.map_map measurable_snd (by fun_prop)]
+    have hp := Measure.map_prod_map γ (stdGaussian E) ha measurable_id
+    simp only [Measure.map_id] at hp
+    rw [hp,Measure.map_map (by fun_prop) (by fun_prop)]
+    rfl
+  have hn (z : E × E) : 0 ≤ ‖z.1-z.2‖^2 := sq_nonneg _
+  let c : E × E → ℝ≥0 := fun z => ⟨‖z.1-z.2‖^2,hn z⟩
+  have hf : Continuous (fun z : E × E => ‖z.1-z.2‖^2) := by fun_prop
+  have hc : Continuous c := hf.subtype_mk _
+  obtain ⟨γ,hprob,hcouple,hopt⟩ := OptimalContinuousCost.exists_optimal_coupling P Q c hc
+  let : IsProbabilityMeasure γ := hprob
+  have heq : (fun z => (c z : ℝ≥0∞)) = (fun z : E × E => ENNReal.ofReal (‖z.1-z.2‖^2)) := by
+    funext z
+    exact (ENNReal.ofReal_eq_coe_nnreal (hn z)).symm
+  rw [heq] at hopt
+  have hfinite : (∫⁻ z, ENNReal.ofReal (‖z.1-z.2‖^2) ∂γ) ≠ ∞ :=
+    ne_of_lt (lt_of_le_of_lt (hopt.le.trans hcost) ENNReal.ofReal_lt_top)
+  have hnon : 0 ≤ᵐ[γ] (fun z : E × E => ‖z.1-z.2‖^2) := Filter.Eventually.of_forall hn
+  have hI := (lintegral_ofReal_ne_top_iff_integrable hf.aestronglyMeasurable hnon).mp hfinite
+  have hbudget : (∫ z, ‖z.1-z.2‖^2 ∂γ) ≤ r^2 := by
+    rw [integral_eq_lintegral_of_nonneg_ae hnon hf.aestronglyMeasurable]
+    have hh := ENNReal.toReal_mono ENNReal.ofReal_ne_top (hopt.le.trans hcost)
+    simpa [ENNReal.toReal_ofReal (sq_nonneg r)] using hh
+  let A := (γ.prod (stdGaussian E)).map (fun w => (w.1,w.1.1+Real.sqrt τ • w.2))
+  let B := (γ.prod (stdGaussian E)).map (fun w => (w.1,w.1.2+Real.sqrt τ • w.2))
+  have hA : IsProbabilityMeasure A := Measure.isProbabilityMeasure_map (by fun_prop)
+  have hB : IsProbabilityMeasure B := Measure.isProbabilityMeasure_map (by fun_prop)
+  let := hA
+  let := hB
+  have hfst : γ.map Prod.fst = P := hcouple.1
+  have hsnd : γ.map Prod.snd = Q := hcouple.2
+  have hAP : A.map Prod.snd = GaussianSmoothing.gaussianSmoothing P (Real.sqrt τ) := by
+    have hh := gaussianMarginal γ Prod.fst measurable_fst τ
+    rw [hfst] at hh
+    exact hh
+  have hBQ : B.map Prod.snd = GaussianSmoothing.gaussianSmoothing Q (Real.sqrt τ) := by
+    have hh := gaussianMarginal γ Prod.snd measurable_snd τ
+    rw [hsnd] at hh
+    exact hh
+  have hd := InformationTheory.klDiv_map_le A B measurable_snd
+  have hj : InformationTheory.klDiv A B = ENNReal.ofReal ((∫ c, ‖c.1-c.2‖^2 ∂γ)/(2*τ)) :=
+    jointKL γ hI τ hτ
+  rw [hAP,hBQ,hj] at hd
+  exact hd.trans (ENNReal.ofReal_le_ofReal (div_le_div_of_nonneg_right hbudget (by positivity)))
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianKL

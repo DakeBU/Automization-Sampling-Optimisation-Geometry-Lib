@@ -1,0 +1,97 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.StoppingTime
+
+/-!
+# Elementary integrands stopped by a stopping time
+
+This file begins the stopped-Ito consistency route needed for Chewi
+Proposition 1.1.16. For an elementary adapted integrand on cells
+`(t_i,t_{i+1}]`, stopping at `tau` keeps the coefficient on cell `i` precisely
+on the event `t_i < tau`. The stopping-time property makes that event
+measurable at the left endpoint, so the stopped coefficients remain adapted.
+
+No stochastic-integral stopping identity is asserted here; this file only
+constructs the legal elementary adapted integrand that will be used to prove
+that identity.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ElementaryStoppingTime
+
+open MeasureTheory Set
+open scoped NNReal
+
+open ElementaryItoIntegral StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m}
+
+/-- The event on which the coefficient attached to the cell beginning at `t`
+remains active after stopping at `tau`. -/
+def activeBefore
+    (tau : Omega → WithTop ℝ≥0) (t : ℝ≥0) : Set Omega :=
+  {omega | (t : WithTop ℝ≥0) < tau omega}
+
+/-- A stopping time makes every left-endpoint activity event measurable at
+that left endpoint. -/
+theorem measurableSet_activeBefore
+    {tau : Omega → WithTop ℝ≥0}
+    (htau : IsChewiStoppingTime filtration tau) (t : ℝ≥0) :
+    MeasurableSet[filtration t] (activeBefore tau t) := by
+  exact htau.measurableSet_gt t
+
+/-- Stop an elementary adapted integrand by a stopping time. On cell `i`, its
+left-endpoint coefficient is retained exactly when the stopping time is still
+strictly after that left endpoint. -/
+noncomputable def stopElementary
+    {n : ℕ} (eta : ElementaryAdaptedProcess filtration n)
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau) :
+    ElementaryAdaptedProcess filtration n where
+  times := eta.times
+  times_strictMono := eta.times_strictMono
+  coeff := fun i => (activeBefore tau (eta.times i.castSucc)).indicator (eta.coeff i)
+  coeff_stronglyMeasurable := fun i => by
+    exact (eta.coeff_stronglyMeasurable i).indicator
+      (measurableSet_activeBefore htau (eta.times i.castSucc))
+  coeff_bounded := fun i => by
+    obtain ⟨C, hC⟩ := eta.coeff_bounded i
+    refine ⟨max C 0, fun omega => ?_⟩
+    by_cases homega : omega ∈ activeBefore tau (eta.times i.castSucc)
+    · rw [Set.indicator_of_mem homega]
+      exact (hC omega).trans (le_max_left _ _)
+    · rw [Set.indicator_of_notMem homega]
+      simpa using (le_max_right C 0)
+
+@[simp] theorem stopElementary_times
+    {n : ℕ} (eta : ElementaryAdaptedProcess filtration n)
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau) :
+    (stopElementary eta tau htau).times = eta.times :=
+  rfl
+
+@[simp] theorem stopElementary_coeff
+    {n : ℕ} (eta : ElementaryAdaptedProcess filtration n)
+    (tau : Omega → WithTop ℝ≥0)
+    (htau : IsChewiStoppingTime filtration tau)
+    (i : Fin n) (omega : Omega) :
+    (stopElementary eta tau htau).coeff i omega =
+      if (eta.times i.castSucc : WithTop ℝ≥0) < tau omega
+      then eta.coeff i omega else 0 := by
+  classical
+  change (activeBefore tau (eta.times i.castSucc)).indicator (eta.coeff i) omega = _
+  by_cases hmem : omega ∈ activeBefore tau (eta.times i.castSucc)
+  · have hlt : (eta.times i.castSucc : WithTop ℝ≥0) < tau omega := by
+      simpa [activeBefore] using hmem
+    rw [Set.indicator_of_mem hmem, if_pos hlt]
+  · have hnlt : ¬(eta.times i.castSucc : WithTop ℝ≥0) < tau omega := by
+      intro hlt
+      exact hmem (by simpa [activeBefore] using hlt)
+    rw [Set.indicator_of_notMem hmem, if_neg hnlt]
+
+end ElementaryStoppingTime
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

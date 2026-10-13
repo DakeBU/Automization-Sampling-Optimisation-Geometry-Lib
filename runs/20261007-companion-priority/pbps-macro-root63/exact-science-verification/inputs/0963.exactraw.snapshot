@@ -1,0 +1,94 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementSupportingPotential
+import Mathlib.Analysis.Calculus.Deriv.AffineMap
+import Mathlib.Analysis.Convex.Deriv
+import Mathlib.Analysis.InnerProductSpace.Dual
+
+/-!
+# Convex potentials produce supporting transport fields
+
+This module closes the convex-analysis edge left explicit by
+`DisplacementSupportingPotential`.
+
+If a real potential `phi` is convex on the whole Hilbert space and its Frechet
+derivative at `x` is the Riesz functional
+
+`v |-> <T(x), v>`,
+
+then the tangent hyperplane at `x` supports `phi` globally:
+
+`phi(x) + <T(x), y-x> <= phi(y)`.
+
+The proof is intentionally one-dimensional.  Restrict `phi` to the affine line
+from `x` to `y`, use Mathlib's convex derivative-versus-secant inequality at
+parameters `0` and `1`, and identify the line derivative by the Frechet chain
+rule.  No optimal-transport theorem, Brenier existence theorem, or hidden
+monotonicity assumption is used.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementConvexPotentialSupport
+
+open DisplacementMapInjectivity
+open DisplacementSupportingPotential
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- A globally convex differentiable potential whose derivative is represented
+by `T` through the inner product makes `T` a global supporting field. -/
+theorem isSupportingField_of_convexOn_univ_hasFDerivAt_inner
+    {phi : E → ℝ} {T : E → E}
+    (hconv : ConvexOn ℝ Set.univ phi)
+    (hderiv : ∀ x, HasFDerivAt phi (innerSL ℝ (T x)) x) :
+    IsSupportingField phi T := by
+  intro x y
+  let g : ℝ → ℝ := phi ∘ (AffineMap.lineMap x y : ℝ →ᵃ[ℝ] E)
+  have hgconv : ConvexOn ℝ Set.univ g := by
+    simpa [g] using
+      hconv.comp_affineMap (AffineMap.lineMap x y : ℝ →ᵃ[ℝ] E)
+  have hgderiv : HasDerivAt g ⟪T x, y - x⟫ 0 := by
+    change HasDerivAt
+      (phi ∘ (AffineMap.lineMap x y : ℝ →ᵃ[ℝ] E))
+      ⟪T x, y - x⟫ 0
+    simpa using
+      (hderiv x).comp_hasDerivAt_of_eq
+        (0 : ℝ)
+        (AffineMap.hasDerivAt_lineMap (a := x) (b := y) (x := (0 : ℝ)))
+        (by simp)
+  have hslope := hgconv.deriv_le_slope
+    (x := (0 : ℝ)) (y := 1) (by simp) (by simp) zero_lt_one hgderiv.differentiableAt
+  rw [hgderiv.deriv] at hslope
+  have hfirst : ⟪T x, y - x⟫ ≤ phi y - phi x := by
+    simpa [g, slope] using hslope
+  linarith
+
+/-- The gradient field of a globally convex differentiable potential is
+monotone, obtained by composing the explicit supporting-field theorem with the
+already verified algebraic monotonicity edge. -/
+theorem isMonotoneMap_of_convexOn_univ_hasFDerivAt_inner
+    {phi : E → ℝ} {T : E → E}
+    (hconv : ConvexOn ℝ Set.univ phi)
+    (hderiv : ∀ x, HasFDerivAt phi (innerSL ℝ (T x)) x) :
+    IsMonotoneMap T :=
+  isMonotoneMap_of_isSupportingField
+    (isSupportingField_of_convexOn_univ_hasFDerivAt_inner hconv hderiv)
+
+/-- Consequently, every interior displacement map
+`S_t(x) = (1-t)x + t T(x)` is injective for `0 <= t < 1`. -/
+theorem injective_affineDisplacementMap_of_convexOn_univ_hasFDerivAt_inner
+    {phi : E → ℝ} {T : E → E}
+    (hconv : ConvexOn ℝ Set.univ phi)
+    (hderiv : ∀ x, HasFDerivAt phi (innerSL ℝ (T x)) x)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t < 1) :
+    Function.Injective
+      (DisplacementMapDerivative.affineDisplacementMap T t) :=
+  injective_affineDisplacementMap_of_monotone
+    (isMonotoneMap_of_convexOn_univ_hasFDerivAt_inner hconv hderiv)
+    t ht0 ht1
+
+end DisplacementConvexPotentialSupport
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

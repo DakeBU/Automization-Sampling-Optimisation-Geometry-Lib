@@ -1,0 +1,349 @@
+import Mathlib.Tactic
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicElementaryRefinement
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicGlobalHorizon
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteTimeGrid
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2HorizonExtension
+
+/-!
+# Exact extension of dyadic elementary processes across dyadic horizons
+
+For dyadic global horizons `H_a = 2^a ≤ H_b = 2^b`, a dyadic elementary
+process on `H_a` can be represented on `H_b` without changing its mesh: if its
+old dyadic level is `L`, use the new level `L + (b-a)`.  The first `2^L`
+coefficients are copied and every later coefficient is zero.
+
+This is the finite algebraic heart of cross-horizon Itô consistency.  The
+resulting larger-horizon process is the zero extension of the old one away
+from the single old terminal slice; that slice is product-null and is kept
+explicit rather than silently identified.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace DyadicHorizonExtension
+
+open MeasureTheory
+open scoped BigOperators NNReal
+
+open BrownianMotion DyadicElementaryRefinement DyadicGlobalHorizon
+  ElementaryItoEmbedding ElementaryItoIntegral FiniteTimeGrid ProgressiveL2
+  ProgressiveL2Density ProgressiveL2HorizonExtension SampledElementaryApproximation
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- New dyadic level after enlarging the horizon from `2^a` to `2^b` while
+keeping the physical mesh fixed. -/
+def extensionLevel {a : ℕ}
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a)) (b : ℕ) : ℕ :=
+  q.level + (b - a)
+
+/-- Dyadic horizons are monotone in their exponent. -/
+theorem dyadicHorizon_mono {a b : ℕ} (hab : a ≤ b) :
+    dyadicHorizon a ≤ dyadicHorizon b := by
+  have hnat : (2 : ℕ) ^ a ≤ (2 : ℕ) ^ b :=
+    Nat.pow_le_pow_right (by decide : 0 < (2 : ℕ)) hab
+  unfold dyadicHorizon
+  exact_mod_cast hnat
+
+/-- Exact mesh alignment under the level shift `L ↦ L + (b-a)`. -/
+theorem dyadicMesh_dyadicHorizon_align
+    (level a b : ℕ) (hab : a ≤ b) :
+    dyadicMesh (dyadicHorizon a) level =
+      dyadicMesh (dyadicHorizon b) (level + (b - a)) := by
+  unfold dyadicMesh dyadicHorizon
+  apply (div_eq_div_iff (by positivity) (by positivity)).2
+  norm_cast
+  have hba : a + (b - a) = b := Nat.add_sub_of_le hab
+  calc
+    2 ^ a * 2 ^ (level + (b - a)) =
+        2 ^ a * (2 ^ level * 2 ^ (b - a)) := by rw [pow_add]
+    _ = 2 ^ (a + (b - a)) * 2 ^ level := by
+      rw [pow_add]
+      ac_rfl
+    _ = 2 ^ b * 2 ^ level := by rw [hba]
+
+/-- The old cell count embeds into the enlarged dyadic cell count. -/
+theorem oldCellCount_le_extension {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a)) :
+    2 ^ q.level ≤ 2 ^ extensionLevel q b := by
+  apply Nat.pow_le_pow_right (by decide)
+  unfold extensionLevel
+  omega
+
+/-- Old cell index regarded as a prefix index of the enlarged grid. -/
+def prefixIndex {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a))
+    (i : Fin (2 ^ q.level)) : Fin (2 ^ extensionLevel q b) :=
+  i.castLE (oldCellCount_le_extension hab q)
+
+@[simp] theorem prefixIndex_val {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a))
+    (i : Fin (2 ^ q.level)) :
+    (prefixIndex hab q i).val = i.val :=
+  rfl
+
+/-- Prefix grid times are exactly preserved by the horizon extension. -/
+theorem prefix_time_eq {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a))
+    (i : Fin (2 ^ q.level + 1)) :
+    q.process.times i =
+      regularGridTimes
+        (dyadicMesh (dyadicHorizon b) (extensionLevel q b))
+        (2 ^ extensionLevel q b)
+        ⟨i.val,
+          lt_of_lt_of_le i.isLt
+            (Nat.add_le_add_right (oldCellCount_le_extension hab q) 1)⟩ := by
+  rw [congrFun q.times_eq i]
+  simp only [regularGridTimes, extensionLevel]
+  rw [← dyadicMesh_dyadicHorizon_align q.level a b hab]
+
+/-- Dyadic zero extension from `H_a` to `H_b`. -/
+noncomputable def extendDyadicHorizon {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a)) :
+    DyadicElementaryProcess filtration (dyadicHorizon b) where
+  level := extensionLevel q b
+  process :=
+    { times := regularGridTimes
+        (dyadicMesh (dyadicHorizon b) (extensionLevel q b))
+        (2 ^ extensionLevel q b)
+      times_strictMono := regularGridTimes_strictMono
+        (dyadicMesh_pos (dyadicHorizon_pos b) (extensionLevel q b)) _
+      coeff := fun j omega =>
+        if hj : j.val < 2 ^ q.level then
+          q.process.coeff ⟨j.val, hj⟩ omega
+        else 0
+      coeff_stronglyMeasurable := fun j => by
+        classical
+        by_cases hj : j.val < 2 ^ q.level
+        · have hq := q.process.coeff_stronglyMeasurable
+            (⟨j.val, hj⟩ : Fin (2 ^ q.level))
+          have htime :
+              q.process.times
+                  (⟨j.val, hj⟩ : Fin (2 ^ q.level)).castSucc =
+                regularGridTimes
+                  (dyadicMesh (dyadicHorizon b) (extensionLevel q b))
+                  (2 ^ extensionLevel q b) j.castSucc := by
+            let iEnd : Fin (2 ^ q.level + 1) :=
+              ⟨j.val, Nat.lt_succ_of_lt hj⟩
+            have hiEnd :
+                iEnd = (⟨j.val, hj⟩ : Fin (2 ^ q.level)).castSucc := by
+              apply Fin.ext
+              rfl
+            have hp := prefix_time_eq hab q iEnd
+            rw [hiEnd] at hp
+            simpa only [regularGridTimes, Fin.val_castSucc] using hp
+          rw [htime] at hq
+          simpa [hj] using hq
+        · simp only [hj, dite_false]
+          exact stronglyMeasurable_const
+      coeff_bounded := fun j => by
+        classical
+        by_cases hj : j.val < 2 ^ q.level
+        · obtain ⟨C, hC⟩ := q.process.coeff_bounded
+            (⟨j.val, hj⟩ : Fin (2 ^ q.level))
+          exact ⟨C, by simpa [hj] using hC⟩
+        · exact ⟨0, by simp [hj]⟩ }
+  times_eq := rfl
+
+@[simp] theorem extendDyadicHorizon_level {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a)) :
+    (extendDyadicHorizon hab q).level = extensionLevel q b :=
+  rfl
+
+@[simp] theorem extendDyadicHorizon_times {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a)) :
+    (extendDyadicHorizon hab q).process.times =
+      regularGridTimes
+        (dyadicMesh (dyadicHorizon b) (extensionLevel q b))
+        (2 ^ extensionLevel q b) :=
+  rfl
+
+/-- Prefix coefficients are copied exactly. -/
+theorem extendDyadicHorizon_coeff_prefix {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a))
+    (j : Fin (2 ^ extensionLevel q b))
+    (hj : j.val < 2 ^ q.level) (omega : Omega) :
+    (extendDyadicHorizon hab q).process.coeff j omega =
+      q.process.coeff ⟨j.val, hj⟩ omega := by
+  simp [extendDyadicHorizon, hj]
+
+/-- Every new tail coefficient is exactly zero. -/
+theorem extendDyadicHorizon_coeff_tail {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a))
+    (j : Fin (2 ^ extensionLevel q b))
+    (hj : 2 ^ q.level ≤ j.val) (omega : Omega) :
+    (extendDyadicHorizon hab q).process.coeff j omega = 0 := by
+  simp [extendDyadicHorizon, not_lt.mpr hj]
+
+/-- The enlarged process agrees with the old elementary process on the whole
+old closed horizon. -/
+theorem extendDyadicHorizon_value_eq_of_le {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a))
+    {t : ℝ≥0} (ht : t ≤ dyadicHorizon a) (omega : Omega) :
+    (extendDyadicHorizon hab q).process.value t omega =
+      q.process.value t omega := by
+  by_cases ht0 : t = 0
+  · subst t
+    have hq0 : q.process.times 0 = 0 := by
+      rw [congrFun q.times_eq 0]
+      simp [regularGridTimes]
+    have he0 : (extendDyadicHorizon hab q).process.times 0 = 0 := by
+      simp [extendDyadicHorizon, regularGridTimes]
+    rw [FiniteTimeGrid.ElementaryAdaptedProcess.value_eq_zero_of_le_first
+        q.process (by simp [hq0]) omega,
+      FiniteTimeGrid.ElementaryAdaptedProcess.value_eq_zero_of_le_first
+        (extendDyadicHorizon hab q).process (by simp [he0]) omega]
+  · have htpos : 0 < t := pos_of_ne_zero ht0
+    obtain ⟨i, hi, _⟩ :=
+      dyadic_activeCell (DyadicElementaryProcess.horizon_pos q) q.level htpos ht
+    have hqcell :
+        q.process.times i.castSucc < t ∧ t ≤ q.process.times i.succ := by
+      rw [congrFun q.times_eq i.castSucc, congrFun q.times_eq i.succ]
+      exact hi
+    rw [FiniteTimeGrid.ElementaryAdaptedProcess.value_eq_coeff_of_mem_cell
+      q.process hqcell]
+    let j : Fin (2 ^ extensionLevel q b) := prefixIndex hab q i
+    have hjval : j.val = i.val := by
+      simpa only [j] using prefixIndex_val hab q i
+    have hjcell :
+        (extendDyadicHorizon hab q).process.times j.castSucc < t ∧
+          t ≤ (extendDyadicHorizon hab q).process.times j.succ := by
+      change
+        regularGridTimes
+              (dyadicMesh (dyadicHorizon b) (extensionLevel q b))
+              (2 ^ extensionLevel q b) j.castSucc < t ∧
+          t ≤ regularGridTimes
+              (dyadicMesh (dyadicHorizon b) (extensionLevel q b))
+              (2 ^ extensionLevel q b) j.succ
+      simp only [regularGridTimes, Fin.val_castSucc, Fin.val_succ, hjval,
+        extensionLevel]
+      rw [← dyadicMesh_dyadicHorizon_align q.level a b hab]
+      exact hi
+    rw [FiniteTimeGrid.ElementaryAdaptedProcess.value_eq_coeff_of_mem_cell
+      (extendDyadicHorizon hab q).process hjcell]
+    have hjlt : j.val < 2 ^ q.level := by
+      rw [hjval]
+      exact i.isLt
+    exact extendDyadicHorizon_coeff_prefix hab q j hjlt omega
+
+/-- The enlarged process is zero strictly after the old horizon. -/
+theorem extendDyadicHorizon_value_eq_zero_of_old_lt {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a))
+    {t : ℝ≥0} (ht : dyadicHorizon a < t) (omega : Omega) :
+    (extendDyadicHorizon hab q).process.value t omega = 0 := by
+  by_cases htb : t ≤ dyadicHorizon b
+  · obtain ⟨j, hj, _⟩ :=
+      dyadic_activeCell (dyadicHorizon_pos b) (extensionLevel q b)
+        (lt_of_le_of_lt (by simp) ht) htb
+    have hjcell :
+        (extendDyadicHorizon hab q).process.times j.castSucc < t ∧
+          t ≤ (extendDyadicHorizon hab q).process.times j.succ := by
+      simpa only [extendDyadicHorizon_times] using hj
+    rw [FiniteTimeGrid.ElementaryAdaptedProcess.value_eq_coeff_of_mem_cell
+      (extendDyadicHorizon hab q).process hjcell]
+    apply extendDyadicHorizon_coeff_tail hab q j
+    by_contra htail
+    have hjlt : j.val < 2 ^ q.level := Nat.lt_of_not_ge htail
+    have hrightOld :
+        (extendDyadicHorizon hab q).process.times j.succ ≤ dyadicHorizon a := by
+      change
+        regularGridTimes
+            (dyadicMesh (dyadicHorizon b) (extensionLevel q b))
+            (2 ^ extensionLevel q b) j.succ ≤ dyadicHorizon a
+      simp only [extensionLevel]
+      rw [← dyadicMesh_dyadicHorizon_align q.level a b hab]
+      simp only [regularGridTimes]
+      have hjSucc : j.val + 1 ≤ 2 ^ q.level := Nat.succ_le_iff.2 hjlt
+      calc
+        ((j.val + 1 : ℕ) : ℝ≥0) * dyadicMesh (dyadicHorizon a) q.level ≤
+            ((2 ^ q.level : ℕ) : ℝ≥0) *
+              dyadicMesh (dyadicHorizon a) q.level := by
+                gcongr
+        _ = dyadicHorizon a := by
+              rw [dyadicMesh]
+              have hden : ((2 ^ q.level : ℕ) : ℝ≥0) ≠ 0 := by positivity
+              calc
+                ((2 ^ q.level : ℕ) : ℝ≥0) *
+                    (dyadicHorizon a / ((2 ^ q.level : ℕ) : ℝ≥0)) =
+                    (dyadicHorizon a / ((2 ^ q.level : ℕ) : ℝ≥0)) *
+                      ((2 ^ q.level : ℕ) : ℝ≥0) := mul_comm _ _
+                _ = dyadicHorizon a := div_mul_cancel₀ _ hden
+    exact (not_lt_of_ge (hj.2.trans hrightOld)) ht
+  · have hlast :
+        (extendDyadicHorizon hab q).process.times
+          (Fin.last (2 ^ extensionLevel q b)) = dyadicHorizon b := by
+      simpa only [extendDyadicHorizon_times] using
+        regularDyadic_last_time (dyadicHorizon b) (extensionLevel q b)
+    have hlast' :
+        (extendDyadicHorizon hab q).process.times
+          (Fin.last (2 ^ (extendDyadicHorizon hab q).level)) = dyadicHorizon b := by
+      simpa only [extendDyadicHorizon_level] using hlast
+    exact FiniteTimeGrid.ElementaryAdaptedProcess.value_eq_zero_of_last_lt
+      (extendDyadicHorizon hab q).process
+      (by rw [hlast']; exact lt_of_not_ge htb) omega
+
+/-- Away from the old terminal slice, the enlarged elementary process is
+pointwise the strict zero extension used by `ProgressiveL2Integrand.restrictProcess`. -/
+theorem extendDyadicHorizon_value_eq_restrictProcess_of_ne_terminal
+    {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a))
+    {t : ℝ≥0} (htne : t ≠ dyadicHorizon a) (omega : Omega) :
+    (extendDyadicHorizon hab q).process.value t omega =
+      ProgressiveL2Integrand.restrictProcess (dyadicHorizon a)
+        q.process.value t omega := by
+  by_cases ht : t < dyadicHorizon a
+  · rw [ProgressiveL2Integrand.restrictProcess, if_pos ht]
+    exact extendDyadicHorizon_value_eq_of_le hab q ht.le omega
+  · have hlt : dyadicHorizon a < t :=
+      lt_of_le_of_ne (le_of_not_gt ht) (Ne.symm htne)
+    rw [ProgressiveL2Integrand.restrictProcess, if_neg ht]
+    exact extendDyadicHorizon_value_eq_zero_of_old_lt hab q hlt omega
+
+/-- The enlarged elementary process and the strict zero extension agree almost
+everywhere for the larger product process-time measure.  The only possible
+disagreement is the old deterministic terminal slice. -/
+theorem processFunction_extendDyadicHorizon_ae_eq_restrictProcess
+    {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a)) :
+    processFunction (extendDyadicHorizon hab q).process.value =ᵐ[
+      processTimeMeasure mu (dyadicHorizon b)]
+      processFunction
+        (ProgressiveL2Integrand.restrictProcess (dyadicHorizon a)
+          q.process.value) := by
+  have hne :
+      ∀ᵐ z : Omega × ℝ≥0 ∂processTimeMeasure mu (dyadicHorizon b),
+        z.2 ≠ dyadicHorizon a := by
+    rw [ae_iff]
+    have hset :
+        {z : Omega × ℝ≥0 | ¬ z.2 ≠ dyadicHorizon a} =
+          Set.univ ×ˢ ({dyadicHorizon a} : Set ℝ≥0) := by
+      ext z
+      simp
+    rw [hset]
+    simp [processTimeMeasure, TimeMeasure.upTo_singleton]
+  filter_upwards [hne] with z hz
+  exact extendDyadicHorizon_value_eq_restrictProcess_of_ne_terminal
+    hab q hz z.1
+
+/-- At the `L²` level, dyadic horizon extension is exactly the general
+zero-extension isometry. -/
+theorem extendDyadicHorizon_toLp_eq_extendByZero
+    [IsFiniteMeasure mu]
+    {a b : ℕ} (hab : a ≤ b)
+    (q : DyadicElementaryProcess filtration (dyadicHorizon a)) :
+    (extendDyadicHorizon hab q).toLp mu =
+      (extendByZero
+        (ElementaryItoEmbedding.toProgressiveL2 q.process mu (dyadicHorizon a))
+        (dyadicHorizon_mono hab)).toLp := by
+  unfold DyadicElementaryProcess.toLp ProgressiveL2Integrand.toLp
+  apply MemLp.toLp_congr
+  exact processFunction_extendDyadicHorizon_ae_eq_restrictProcess
+    (mu := mu) hab q
+
+end DyadicHorizonExtension
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

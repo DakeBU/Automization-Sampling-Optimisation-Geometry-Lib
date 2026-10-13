@@ -1,0 +1,82 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient
+
+/-!
+# Local supporting-vector uniqueness
+
+The global `ConvexSubgradient.SupportsAt` interface is appropriate for an
+everywhere real-valued convex function.  Proper convex potentials may instead
+be finite only on a domain.  At an interior point, it is enough that the support
+inequality hold on any neighborhood of that point.
+
+This module packages that local fact.  It is independent of optimal transport:
+a supporting vector on a neighborhood of a Frechet differentiability point is
+the Riesz vector of the derivative, hence is unique.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace ConvexLocalSubgradient
+
+open Filter
+open scoped RealInnerProductSpace
+open ConvexSubgradient
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- `y` supports `phi` at `x` relative to a set `s`.  Downstream proper-potential
+arguments will use `s` equal to the finite effective domain. -/
+def SupportsOn (s : Set E) (phi : E → ℝ) (x y : E) : Prop :=
+  ∀ z, z ∈ s → phi x + (innerSL ℝ y) (z - x) ≤ phi z
+
+/-- A global support inequality restricts to any set. -/
+theorem supportsOn_of_supportsAt
+    {s : Set E} {phi : E → ℝ} {x y : E}
+    (h : SupportsAt phi x y) :
+    SupportsOn s phi x y := by
+  intro z _hz
+  exact h z
+
+/-- If the relative support set is a neighborhood of `x`, then at a Frechet
+point the supporting vector is exactly the Riesz representative of the
+derivative. -/
+theorem eq_gradient_of_supportsOn_of_hasFDerivAt
+    {s : Set E} {phi : E → ℝ} {x y g : E}
+    (hsupport : SupportsOn s phi x y)
+    (hs : s ∈ 𝓝 x)
+    (hderiv : HasFDerivAt phi (innerSL ℝ g) x) :
+    y = g := by
+  have hmin : IsLocalMin (phi - fun z => (innerSL ℝ y) z) x := by
+    filter_upwards [hs] with z hz
+    have h := hsupport z hz
+    rw [map_sub] at h
+    change phi x - (innerSL ℝ y) x ≤ phi z - (innerSL ℝ y) z
+    calc
+      phi x - (innerSL ℝ y) x =
+          (phi x + ((innerSL ℝ y) z - (innerSL ℝ y) x)) - (innerSL ℝ y) z := by ring
+      _ ≤ phi z - (innerSL ℝ y) z := sub_le_sub_right h _
+  have hpsi := hderiv.sub (innerSL ℝ y).hasFDerivAt
+  have hzero := hmin.hasFDerivAt_eq_zero hpsi
+  have heq : innerSL ℝ g = innerSL ℝ y := sub_eq_zero.mp hzero
+  exact (innerSL_inj.mp heq).symm
+
+/-- Consequently, two vectors supporting the same real function on a
+neighborhood of a differentiability point coincide. -/
+theorem supportsOn_unique_of_hasFDerivAt
+    {s : Set E} {phi : E → ℝ} {x y₁ y₂ g : E}
+    (h₁ : SupportsOn s phi x y₁)
+    (h₂ : SupportsOn s phi x y₂)
+    (hs : s ∈ 𝓝 x)
+    (hderiv : HasFDerivAt phi (innerSL ℝ g) x) :
+    y₁ = y₂ := by
+  rw [eq_gradient_of_supportsOn_of_hasFDerivAt h₁ hs hderiv,
+    eq_gradient_of_supportsOn_of_hasFDerivAt h₂ hs hderiv]
+
+end
+
+end ConvexLocalSubgradient
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,30 @@
+∀ (f : ℝ → ℝ),
+  ContDiff ℝ 2 f →
+    HasCompactSupport f →
+      let μ := fun n => (↑(Fintype.card (Fin n → Bool)))⁻¹ • Measure.count;
+      let S := fun n ε => (√↑n)⁻¹ * ∑ j, if ε j = true then 1 else -1;
+      let γ := gaussianReal 0 1;
+      Integrable (fun x => f x ^ 2) γ ∧
+        Integrable (fun x => f x ^ 2 * Real.log (f x ^ 2)) γ ∧
+          Integrable (fun x => deriv f x ^ 2) γ ∧
+            (∀ (n : ℕ),
+                Integrable (fun ε => f (S n ε) ^ 2) (μ n) ∧
+                  Integrable (fun ε => f (S n ε) ^ 2 * Real.log (f (S n ε) ^ 2)) (μ n) ∧
+                    Integrable (fun ε => deriv f (S n ε) ^ 2) (μ n)) ∧
+              Tendsto (fun n => ∫ (ε : Fin (n + 1) → Bool), f (S (n + 1) ε) ^ 2 ∂μ (n + 1)) atTop
+                  (𝓝 (∫ (x : ℝ), f x ^ 2 ∂γ)) ∧
+                Tendsto
+                    (fun n =>
+                      ∫ (ε : Fin (n + 1) → Bool), f (S (n + 1) ε) ^ 2 * Real.log (f (S (n + 1) ε) ^ 2) ∂μ (n + 1))
+                    atTop (𝓝 (∫ (x : ℝ), f x ^ 2 * Real.log (f x ^ 2) ∂γ)) ∧
+                  Tendsto (fun n => ∫ (ε : Fin (n + 1) → Bool), deriv f (S (n + 1) ε) ^ 2 ∂μ (n + 1)) atTop
+                      (𝓝 (∫ (x : ℝ), deriv f x ^ 2 ∂γ)) ∧
+                    Tendsto
+                      (fun n =>
+                        ∫ (ε : Fin (n + 1) → Bool), f (S (n + 1) ε) ^ 2 * Real.log (f (S (n + 1) ε) ^ 2) ∂μ (n + 1) -
+                          (∫ (ε : Fin (n + 1) → Bool), f (S (n + 1) ε) ^ 2 ∂μ (n + 1)) *
+                            Real.log (∫ (ε : Fin (n + 1) → Bool), f (S (n + 1) ε) ^ 2 ∂μ (n + 1)))
+                      atTop
+                      (𝓝
+                        (∫ (x : ℝ), f x ^ 2 * Real.log (f x ^ 2) ∂γ -
+                          (∫ (x : ℝ), f x ^ 2 ∂γ) * Real.log (∫ (x : ℝ), f x ^ 2 ∂γ))) : Prop

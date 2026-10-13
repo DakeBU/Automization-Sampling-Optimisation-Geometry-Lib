@@ -1,0 +1,77 @@
+{
+  "status": "SEALED_BEFORE_PROOF_AFTER_DISTINCT_WHOLE_HEADER_MATH_SOURCE_AND_SOURCE_SLICE_REVIEW",
+  "sealed_utc": "2026-10-10T20:32:06.455778+00:00",
+  "statement_version": 1,
+  "header": {
+    "path": "runs/20261007-companion-priority/pbps-actual-finite-history-tail-law87/header87.proposed.lean",
+    "raw_sha256": "1048a4bf0d171d52a2eb834f4281621e0101c8d4700c7eae60edc5e64cd3c39b",
+    "bytes": 4447
+  },
+  "expanded_literal_Prop": "actual_finite_history_tail_law_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let tail : ℕ → (ℕ → ℝ) → (ℕ → ℝ) := fun n w k => w (n + k)\n    let past : ℕ → MeasurableSpace (ℕ → ℝ) := fun n =>\n      ⨆ k ∈ Set.Iio n, MeasurableSpace.comap (fun w : ℕ → ℝ => w k) inferInstance\n    ∀ y xRef : E, ∀ z₀ : E × E, ∀ n : ℕ,\n      Measurable (history y xRef z₀ n) ∧ Measurable (tail n) ∧\n      (∀ (w w' : ℕ → ℝ), (∀ k < n, w k = w' k) →\n        history y xRef z₀ n w = history y xRef z₀ n w') ∧\n      Measurable[past n] (history y xRef z₀ n) ∧\n      Measure.map (tail n) P = P ∧\n      IndepFun (history y xRef z₀ n) (tail n) P ∧\n      Measure.map (fun w => (history y xRef z₀ n w, tail n w)) P =\n        (Measure.map (history y xRef z₀ n) P).prod P ∧\n      (∀ A : Set (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)), MeasurableSet A →\n        Measure.map (tail n) (P.restrict (history y xRef z₀ n ⁻¹' A)) =\n          (P (history y xRef z₀ n ⁻¹' A)) • P)\n",
+  "public_theorem": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw.actual_finite_history_tail_law",
+  "primary_first_freeze": {
+    "path": "runs/20261007-companion-priority/pbps-clock-tail-preread87/independent-source-first87/source-first.freeze.native.json",
+    "raw_sha256": "d8e37422b5597b0a5761282bcf88b94453a7b21a5176ef0cb71c2363f5ab87d7",
+    "bytes": 11593
+  },
+  "source_graph": {
+    "path": "runs/20261007-companion-priority/pbps-clock-tail-preread87/source-slice87.v2.json",
+    "raw_sha256": "7c9873ef87bfb75c7a2ec86ecbb40b589384bc41bc197030acf7fa088fd611d9",
+    "bytes": 3435
+  },
+  "source_inventory_reused": {
+    "path": "runs/20261007-companion-priority/pbps-actual-finite-first-event-law86/independent-source86/source-inventory86.exhaustive-successor.json",
+    "raw_sha256": "cd5f487c3091946ab0699c4c50203a1703ff8b6e0f44a67cfa86920c9a26db3f",
+    "bytes": 51520
+  },
+  "global_source_graph_reused": {
+    "path": "runs/20261007-companion-priority/pbps-actual-finite-first-event-law86/topology-repair-review86/source-proof-graph86.single-edge-proposed-successor.json",
+    "raw_sha256": "c7ed4b13d3471c42d2e516edfef3009345ce156e961685a0ad6f11344aa0f7d8",
+    "bytes": 32678
+  },
+  "independent_reviews": [
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-finite-history-tail-law87/header-math87/decision87.json",
+      "raw_sha256": "3e2f917922bbc3de7aa759205be42dd4b3738033350881110600952a9245f23f",
+      "bytes": 1962
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-finite-history-tail-law87/header-math87/closed-RAW-manifest87.json",
+      "raw_sha256": "03373ac3972009c5268a14ecbef91bc8990af97433d4b662ba2ca66feece640e",
+      "bytes": 6846
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-finite-history-tail-law87/header-source87/exact-header.source-decision.native.json",
+      "raw_sha256": "743a74a62e0a6cd54800e98c04c208a8915322138022f1aee6586a9bbcf46102",
+      "bytes": 10125
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-finite-history-tail-law87/header-source87/closed-raw-manifest.header-source87.native.json",
+      "raw_sha256": "fc16c22a0557768866d972f5a1891cd62e9cc629dbd2a8a7827393276bcf74ee",
+      "bytes": 7996
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-finite-history-tail-law87/header-source87/source-slice87.v2.topology-decision.native.json",
+      "raw_sha256": "f570b1f52260f4d34852d0a688c3f715001598e05aac477c0f3cbf06b53f4b64",
+      "bytes": 3358
+    }
+  ],
+  "reuse_search": {
+    "path": "runs/20261007-companion-priority/pbps-clock-tail-preread87/retrieval87.json",
+    "raw_sha256": "0a02832774ace196ca334effb904678ad813fa64b20d2db515d67f1350e01a63",
+    "bytes": 5542
+  },
+  "toolchain": {
+    "path": "lean-toolchain",
+    "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477",
+    "bytes": 26
+  },
+  "lake_manifest": {
+    "path": "lake-manifest.json",
+    "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2",
+    "bytes": 3234
+  },
+  "truth_boundary": "Retain original six analytic hypotheses and literal actual stopped recursion; deterministic y/reference/initial state and n. History includes records0..n, consumes raw coordinates k<n; raw tail starts at n=source E_(n+1). Full countable product tail, not only finite cylinder events. Prefix measurability/independence/laws are derived, never provider premises. Real.toNNReal extends coordinates on a P-null nonpositive-clock set; guarded infinity carries no fictitious phase state. n0/stopped/zero probability A included via unnormalized restriction identity. Only probability substrate of G86-11 is closed by proposed theorem; conditional random-hazard next-wait survival, finite-event iteration/final survival/fullA7/path reversal/invariance/physical-time residual memorylessness/random stopping/restart/Markovness/allL2/hypocoercivity/implemented errors/unbounded cost/main/composition/wholepaper/Goal remain OPEN. No proof credit at seal.",
+  "proof_BODY_created": false,
+  "collaborator_RAW_preservation_count": 21
+}

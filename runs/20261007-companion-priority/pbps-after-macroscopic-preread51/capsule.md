@@ -1,0 +1,9 @@
+Recommendation: produce the actual Gaussian outer marginal's dense closable smooth-compact gradient, with its closed graph closure. This is a substantive missing normalization/law-to-domain join, not a restatement of the smooth energy bound.
+
+Primary fixed PBPSv1: C.1 lines4573–4576 explicitly uses density and gradient closedness for B.13 lines3779–3786. Existing gaussian_convolution_potential_c2 produces the actual marginal's positive C² potential for any probability μ, η>0. Existing compact_gradient_closable produces the true compact-gradient graph for an integrable C¹ Gibbs potential. Derive mass1, exp(-W)=ρ and tilted(-W)=ν internally; invoke those parents. Six-step source route and exact binders are in source-contract.json and prospective-shape.txt. No compiler or proof work was run.
+
+This supplies an actual outer ν-domain, whereas old conditional_gradient_closable supplies fiber S_y domains. Actual50's μ/J/ν binds the immediate paper consumer. It does not yet put literal Tf into the closed graph, extend the estimate to rough all-L² input, or prove fullB.13.
+
+The Γ option is larger: actual joint real L² operators have CStarRing and positivity, but the inspected pinned CFC producer chain requires a real CFC instance not supplied by its complex-Hilbert CStarAlgebra instance. Position dimension cannot make L²(J) finite-dimensional. The rough-domain option also remains incomplete: c1_in_closed_gradient needs C¹, while50 yields Differentiable+gradientL²; AE kernel agreement does not transfer pointwise derivatives.
+
+Selected source/API raw/LF fragments and whole-file identity hashes are bound separately. Prior49/50 body exposure, current incidental parent snippets and accidental historical metadata output are disclosed. No new51 implementation exists. Generic probability input/finiteHilbert/rank0 are authored background extensions with the exactPBPS actual50 consumer, not new paper premises. FullΓ/H¹/halfturn/main/cost are excluded.

@@ -1,0 +1,8 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.MacroscopicEnergy
+import AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.WeightedC1GradientDomain
+namespace AutoSamplingTheory.ExampleCases.ProximalBPS.SourceMeanGradientDomain
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped RealInnerProductSpace ContDiff NNReal Topology
+noncomputable section

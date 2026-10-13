@@ -1,0 +1,3 @@
+/-- A kernel is a Markov kernel if every measure in its image is a probability measure. -/
+class IsMarkovKernel (κ : Kernel α β) : Prop where
+  isProbabilityMeasure : ∀ a, IsProbabilityMeasure (κ a)

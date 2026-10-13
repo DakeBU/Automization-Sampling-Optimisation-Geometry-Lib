@@ -1,0 +1,51 @@
+theorem actual_centered_selfadjoint_defect
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := (μ.prod (stdGaussian E)).map
+      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+    let ν := J.snd
+    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))
+    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)
+    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=
+      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))
+        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le
+    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧
+    ∃ S : Kernel E E, IsMarkovKernel S ∧
+      (∀ y, S y = (volume : Measure E).tilted
+        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧
+      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧
+      ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,
+        (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧
+        Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧
+        ∃ M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J,
+          (∀ u : Lp ℝ 2 ν, (M u : E × E → ℝ) =ᵐ[J] u ∘ Prod.snd) ∧
+          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,
+            IsSelfAdjoint T ∧
+            (∀ u : Lp ℝ 2 ν,
+              P (M u) = M u ∧
+              M (T u) = (P * U.toContinuousLinearMap * P) (M u) ∧
+              ‖T u‖ ≤ ‖u‖ ∧
+              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧
+              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧
+            ∃ q : Lp ℝ 2 ν,
+              (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧
+              (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧
+              let H0 : Submodule ℝ (Lp ℝ 2 ν) := (innerSL ℝ q).ker
+              (∀ u : Lp ℝ 2 ν, u ∈ H0 ↔ (∫ y, u y ∂ν) = 0) ∧
+              ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T).IsPositive ∧ ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) q = 0 ∧
+              (∀ u : Lp ℝ 2 ν,
+                inner ℝ (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) u) u = ‖u‖^2-‖T u‖^2) ∧
+              ∃ T0 : H0 →L[ℝ] H0,
+                (∀ u : H0, (T0 u : Lp ℝ 2 ν) = T u) ∧
+                IsSelfAdjoint T0 ∧ (∀ u : H0, ‖T0 u‖ ≤ ‖u‖) ∧
+                ((1 : H0 →L[ℝ] H0)-T0*T0).IsPositive ∧
+                (∀ u : H0, (((1 : H0 →L[ℝ] H0)-T0*T0) u : Lp ℝ 2 ν) = ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) u) ∧
+                (∀ u : H0,
+                  inner ℝ (((1 : H0 →L[ℝ] H0)-T0*T0) u) u = ‖u‖^2-‖T0 u‖^2)

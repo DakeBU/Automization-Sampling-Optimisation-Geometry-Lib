@@ -1,0 +1,78 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity
+
+/-!
+# Actual translated Gaussian likelihood
+
+The equal-covariance Gaussian ingredient of arXiv:2609.06906v1 Lemma6.3(ii).
+For the actual law of x+sqrt(tau)Z, prove the withDensity equality relative to
+the law centered at y, absolute continuity and an a.e. RN derivative identity.
+The finite-dimensional real inner-product Borel domain includes dimension zero;
+strictly positive tau excludes singular positive-dimensional zero-variance laws.
+This is not yet the mixture reverse-transport or proxy-warmness theorem.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Measure.GaussianLikelihood
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal RealInnerProductSpace
+open AutoSamplingTheory.TechnicalLemmas.Measure
+
+/-- Exact likelihood ratio for actual translated isotropic Gaussians.
+The explicit likelihood is measurable and the RN identity is almost everywhere. -/
+theorem translated_gaussian_likelihood {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (x y : E) (τ : ℝ) (hτ : 0 < τ) :
+    let G := fun a : E => (stdGaussian E).map (fun z => a + Real.sqrt τ • z)
+    let L := fun z : E => Real.exp (inner ℝ (x-y) (z-y) / τ - ‖x-y‖ ^ 2 / (2*τ))
+    Measurable L ∧ G x = (G y).withDensity (fun z => ENNReal.ofReal (L z)) ∧
+      G x ≪ G y ∧ (G x).rnDeriv (G y) =ᵐ[G y] (fun z => ENNReal.ofReal (L z)) := by
+  have translated_density
+      (a : E) (τ : ℝ) (hτ : 0 < τ) :
+      (stdGaussian E).map (fun z => a + Real.sqrt τ • z) =
+        (volume : Measure E).withDensity (fun z => ENNReal.ofReal
+          (((Real.sqrt (2 * Real.pi * τ))⁻¹) ^ Module.finrank ℝ E *
+            Real.exp (-‖z-a‖ ^ 2 / (2 * τ)))) := by
+    have hmap : (stdGaussian E).map (fun z => a + Real.sqrt τ • z) =
+        ((stdGaussian E).map (fun z : E => Real.sqrt τ • z)).map (MeasurableEquiv.addLeft a) := by
+      rw [Measure.map_map (by fun_prop) (by fun_prop)]
+      rfl
+    rw [hmap,IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity τ hτ,
+      RadonNikodym.measurableEquiv_map_withDensity (MeasurableEquiv.addLeft a) _ (by fun_prop)]
+    have hvol : (volume : Measure E).map (MeasurableEquiv.addLeft a) = volume :=
+      Measure.IsAddLeftInvariant.map_add_left_eq_self a
+    rw [hvol]
+    congr 1
+    funext z
+    simp [MeasurableEquiv.addLeft,sub_eq_add_neg,add_comm]
+  let G := fun a : E => (stdGaussian E).map (fun z => a + Real.sqrt τ • z)
+  let L := fun z : E => Real.exp (inner ℝ (x-y) (z-y) / τ - ‖x-y‖ ^ 2 / (2*τ))
+  have hL : Measurable L := by fun_prop
+  have heq : G x = (G y).withDensity (fun z => ENNReal.ofReal (L z)) := by
+    dsimp only [G]
+    rw [translated_density x τ hτ,translated_density y τ hτ,
+      ← withDensity_mul _ (by fun_prop) (by fun_prop)]
+    congr 1
+    funext z
+    change ENNReal.ofReal (_ * Real.exp _) = ENNReal.ofReal (_ * Real.exp _) * ENNReal.ofReal (L z)
+    rw [← ENNReal.ofReal_mul (by positivity)]
+    congr 1
+    dsimp only [L]
+    simp only [mul_assoc]
+    rw [← Real.exp_add]
+    congr 2
+    have hnorm : ‖z-x‖ ^ 2 = ‖z-y‖ ^ 2 - 2 * inner ℝ (x-y) (z-y) + ‖x-y‖ ^ 2 := by
+      have hz : z-x = (z-y)-(x-y) := by abel
+      rw [hz,norm_sub_sq_real,real_inner_comm]
+    rw [hnorm]
+    field_simp
+    ring
+  let : IsProbabilityMeasure (G y) := Measure.isProbabilityMeasure_map (by fun_prop)
+  refine ⟨hL,heq,?_,?_⟩
+  · change G x ≪ G y
+    rw [heq]
+    exact withDensity_absolutelyContinuous _ _
+  · change (G x).rnDeriv (G y) =ᵐ[G y] (fun z => ENNReal.ofReal (L z))
+    rw [heq]
+    exact Measure.rnDeriv_withDensity _ (by fun_prop)
+
+end AutoSamplingTheory.TechnicalLemmas.Measure.GaussianLikelihood

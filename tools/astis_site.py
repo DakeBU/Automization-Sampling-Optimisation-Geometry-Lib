@@ -830,6 +830,15 @@ def code_html(code: str, language: str = "lean") -> str:
     return f'<pre class="code-block"><code class="language-{esc(language)}">{esc(code)}</code></pre>'
 
 
+def lean_source_actions(source_file: str, *, page: str, copy_label: str) -> str:
+    """Copy the adjacent displayed Lean; download its complete checkout module."""
+    href = relative_prefix(page) + 'downloads/lean/' + source_file
+    return (f'<div class="lean-source-actions"><button type="button" data-lean-copy>'
+            f'{esc(copy_label)}</button><a href="{esc(href)}" '
+            f'download="{esc(Path(source_file).name)}">Download module (.lean)</a>'
+            '<span role="status" aria-live="polite" data-lean-copy-status></span></div>')
+
+
 SIDEBAR_GROUPS = (
     ("Start", (
         ("Overview", "index.html", "Overview"),
@@ -2658,7 +2667,8 @@ def render_source_module(
 </section>
 <section><h2>Declarations</h2><div class="declaration-list">{''.join(declaration_blocks) if declaration_blocks else '<p class="muted">This aggregator contains no named declarations.</p>'}</div></section>
 <section id="complete-module-source"><h2>Complete Lean source</h2>
-<details><summary><code>{esc(module.source_file)}</code> — full module with imports and context</summary>
+<details data-lean-code-panel><summary><code>{esc(module.source_file)}</code> — full module with imports and context</summary>
+{lean_source_actions(module.source_file, page=f"modules/{slugify(module.name)}.html", copy_label="Copy complete module")}
 {code_html(complete_source)}
 </details></section>
 """
@@ -3194,6 +3204,10 @@ def build_site(output: Path = DEFAULT_OUTPUT) -> dict[str, object]:
         for imported in module.imports:
             reverse_imports[imported].append(module.name)
     for module in modules:
+        # Preserve exact checkout bytes, including its imports, context and newline convention.
+        source_download = output / 'downloads' / 'lean' / module.source_file
+        source_download.parent.mkdir(parents=True, exist_ok=True)
+        source_download.write_bytes((ROOT / module.source_file).read_bytes())
         write_page(
             output,
             f"modules/{slugify(module.name)}.html",

@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-f5ecb505f3c70488",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))\n        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n        (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n        Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n        ∃ M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J,\n          (∀ u : Lp ℝ 2 ν, (M u : E × E → ℝ) =ᵐ[J] u ∘ Prod.snd) ∧\n          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n            IsSelfAdjoint T ∧\n            (∀ u : Lp ℝ 2 ν,\n              P (M u) = M u ∧\n              M (T u) = (P * U.toContinuousLinearMap * P) (M u) ∧\n              ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n            ∃ q : Lp ℝ 2 ν,\n              (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧\n              (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧\n              (∀ u : Lp ℝ 2 ν, u ∈ ((innerSL ℝ q).ker) ↔ (∫ y, u y ∂ν) = 0) ∧\n              ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T).IsPositive ∧ ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) q = 0 ∧\n              (∀ u : Lp ℝ 2 ν,\n                inner ℝ (((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) u) u = ‖u‖^2-‖T u‖^2) ∧\n              ∃ T0 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker),\n                (∀ u : ((innerSL ℝ q).ker), (T0 u : Lp ℝ 2 ν) = T u) ∧\n                IsSelfAdjoint T0 ∧ (∀ u : ((innerSL ℝ q).ker), ‖T0 u‖ ≤ ‖u‖) ∧\n                ((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0).IsPositive ∧\n                (∀ u : ((innerSL ℝ q).ker), (((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0) u : Lp ℝ 2 ν) = ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T) u) ∧\n                (∀ u : ((innerSL ℝ q).ker),\n                  inner ℝ (((1 : ((innerSL ℝ q).ker) →L[ℝ] ((innerSL ℝ q).ker))-T0*T0) u) u = ‖u‖^2-‖T0 u‖^2)",
+    "statement_sha256": "f5ecb505f3c704880d6687569096a5ff9297ad38b725ab44a4eb26acd5533ed8",
+    "compiled": true,
+    "approved_definition_context": [
+      "The underlying space is a finite-dimensional real Hilbert Borel space with canonical volume, including zero dimension. The potential is C2 with positive alpha<=beta, both displayed global Hessian bounds, eta>0 and beta*eta<=1.",
+      "Measure.tilted is normalized exponential tilting. The displayed joint is the pushforward of the independent product of the tilted law and the standard Gaussian; the marginal is its second-coordinate law. Lp real exponent 2 denotes AE classes of measurable square-integrable real functions. Its dimension need not be finite.",
+      "The displayed conditional projection is the L2 conditional expectation onto the second-coordinate sigma algebra. Operator multiplication denotes composition; the typed identity acts on the displayed entire domain. The kernel of innerSL(q) is the full closed real subspace orthogonal to q. An inverse expressed by IsUnit belongs to the algebra of bounded continuous linear endomorphisms of exactly that domain.",
+      "The existential kernel is produced as a Markov kernel with the every-state displayed normalized density. Its conditional joint law and both marginals, the AE reflection/isometry, the actual pullback, the operator, constant and centered restriction are conclusions, not caller-supplied certificates.",
+      "IsPositive is positivity of a selfadjoint quadratic form on the displayed Hilbert domain. The full defect annihilates the constant, while the centered defect is its actual restriction. The squared defect is not a chosen positive square root."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "cb12966a066a1ef18b741235fc8b239def63de32f19b6090d712a544bfb5dd4c"
+}

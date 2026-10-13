@@ -1,0 +1,54 @@
+{
+  "status": "SEALED_BEFORE_PROOF_AFTER_INDEPENDENT_HEADER_MATH_SOURCE_AND_TOPOLOGY_REVIEW",
+  "sealed_utc": "2026-10-10T16:27:28.141186+00:00",
+  "statement_version": 1,
+  "header": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-outer-bounded-l2-continuity84/header84.reviewed.lean",
+    "RAW_bytes": 7616,
+    "RAW_sha256": "5c4e379caa337d1ac903d509eca30ef7db7b1905715c7a65b878afb33f9d2ded"
+  },
+  "expanded_literal_Prop": "actual_outer_bounded_l2_continuity_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀)\n ∧\n      (∀ y xRef : E, ∀ z₀ : E × E,\n        (∀ t : ℝ≥0,\n          MeasurableSet {sample : ℕ → ℝ |\n            Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ∧\n          P.real {sample : ℕ → ℝ |\n            Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ≤\n              1 - Real.exp (-Λ y xRef z₀ t)) ∧\n        (∀ δ : ℝ, 0 < δ →\n          (∀ t : ℝ≥0, MeasurableSet {sample : ℕ → ℝ |\n            δ ≤ ‖Z y xRef z₀ t sample - z₀‖}) ∧\n          Tendsto (fun t : ℝ≥0 => P.real {sample : ℕ → ℝ |\n            δ ≤ ‖Z y xRef z₀ t sample - z₀‖}) (𝓝 0) (𝓝 0)))\n\n ∧\n      (∀ y xRef : E, ∀ z₀ : E × E,\n        ∀ f : (E × E) → ℝ, Continuous f →\n        ∀ M : ℝ, 0 ≤ M → (∀ z : E × E, |f z| ≤ M) →\n          (∀ t : ℝ≥0,\n            Measurable (fun sample : ℕ → ℝ => f (Z y xRef z₀ t sample)) ∧\n            Integrable (fun sample : ℕ → ℝ => f (Z y xRef z₀ t sample)) P ∧\n            |(∫ sample, f (Z y xRef z₀ t sample) ∂P) -\n                f (Φ y xRef (t : ℝ) z₀)| ≤\n              2 * M * (1 - Real.exp (-Λ y xRef z₀ t))) ∧\n          Tendsto (fun t : ℝ≥0 => ∫ sample, f (Z y xRef z₀ t sample) ∂P)\n            (𝓝 0) (𝓝 (f z₀)))\n\n\n ∧\n      (let q : E → Measure E := fun y =>\n         (volume : Measure E).tilted (fun x => -V x - ‖x - y‖ ^ 2 / (2 * η))\n       let ν : E → Measure (E × E) := fun y => (q y).prod (stdGaussian E)\n       (∀ y : E, IsProbabilityMeasure (q y) ∧ IsProbabilityMeasure (ν y)) ∧\n       (∀ y xRef : E, ∀ f : (E × E) → ℝ, Continuous f →\n         ∀ M : ℝ, 0 ≤ M → (∀ z : E × E, |f z| ≤ M) →\n           let A : ℝ≥0 → (E × E) → ℝ := fun t z₀ =>\n             ∫ sample, f (Z y xRef z₀ t sample) ∂P\n           (∀ t : ℝ≥0, Measurable (A t) ∧\n             Integrable (fun z₀ : E × E => (A t z₀ - f z₀) ^ 2) (ν y) ∧\n             (∀ z₀ : E × E, (A t z₀ - f z₀) ^ 2 ≤ 4 * M ^ 2)) ∧\n           Tendsto (fun t : ℝ≥0 =>\n             ∫ z₀, (A t z₀ - f z₀) ^ 2 ∂(ν y)) (𝓝 0) (𝓝 0)))\n",
+  "public_theorem": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity.actual_outer_bounded_l2_continuity",
+  "source_first_freeze": {
+    "path": "runs/20261007-companion-priority/pbps-outer-bounded-l2-preread84/source_freeze84.raw-manifest.json",
+    "RAW_bytes": 4173,
+    "RAW_sha256": "b5ebfdb08166f55881ee2eadc4b9faf7844e97608b79abb5a07116b095e47c1b"
+  },
+  "source_graph": {
+    "path": "runs/20261007-companion-priority/pbps-outer-bounded-l2-preread84/source_proof_graph84.reviewed-effective.json",
+    "RAW_bytes": 27674,
+    "RAW_sha256": "65306373dad98344a7cab842ceeb0105125efa69bfcdab09a2bd9b5b10f3e213"
+  },
+  "source_inventory": {
+    "path": "runs/20261007-companion-priority/pbps-outer-bounded-l2-preread84/source_inventory84.reviewed-effective.json",
+    "RAW_bytes": 31309,
+    "RAW_sha256": "5ac25472d2e3b78944ee1d52093d945230c5f3163ffc253a57713f2e0f02ff09"
+  },
+  "reviewed_topology_overlay": {
+    "path": "runs/20261007-companion-priority/pbps-outer-bounded-l2-preread84/root.topology-adoption84.json",
+    "RAW_bytes": 2028,
+    "RAW_sha256": "46b43f9bf7107557f870d239a5aacc4084e815f1c7abe177e8919b5881775a3c"
+  },
+  "independent_header_adoption": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-outer-bounded-l2-continuity84/independent-review-adoption84.json",
+    "RAW_bytes": 1603,
+    "RAW_sha256": "43c815b1469aee42b04c6be06dbe0f72bb8bae4528769229bc388523c7284a02"
+  },
+  "reuse_search": {
+    "path": "runs/20261007-companion-priority/pbps-outer-bounded-l2-preread84/retrieval84-v2/reuse-decision84.json",
+    "RAW_bytes": 7056,
+    "RAW_sha256": "03e982eef9dc121c7b247c173b32844d01e8c615043aa7925873900dd7f86e26"
+  },
+  "toolchain": {
+    "path": "lean-toolchain",
+    "RAW_bytes": 26,
+    "RAW_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477"
+  },
+  "lake_manifest": {
+    "path": "lake-manifest.json",
+    "RAW_bytes": 3234,
+    "RAW_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2"
+  },
+  "truth_boundary": "Retains actual83 full joint measurable physical phase, covered/fallback/commonAE/init/defect/smalltime/test clauses and literal eleven definitions. Exact q_y=volume.tilted(-V-quadratic), nu_y=q_y.prod(stdGaussian) probability derived internally. Fixed y and xRef; actual independent Exp1 clock expectation, state measurability,4M2 domination and bounded-test outer square-integral zero-time limit. No invariant-law, contraction or density premise. All-L2 AE operator/Jensen/contraction/density, phase invariance, restart/Markov/semigroup/hypocoercivity, implementation/error/unbounded cost/composition/main/PURIFIED/live/whole-Goal remain OPEN.",
+  "proof_BODY_created": false
+}

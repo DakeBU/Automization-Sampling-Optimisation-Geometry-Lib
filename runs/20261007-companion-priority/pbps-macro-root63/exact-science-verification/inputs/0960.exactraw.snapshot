@@ -1,0 +1,93 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+import Mathlib.Tactic
+
+/-!
+# Quadratic integrability from finite-second-moment marginals
+
+For an arbitrary coupling, the first and second coordinate projections are
+measure-preserving onto the prescribed marginals.  Finite second moments of the
+marginals therefore imply integrability of both coordinate norm squares and,
+by the elementary quadratic triangle bound, integrability of squared
+displacement under the coupling itself.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CouplingQuadraticIntegrability
+
+open MeasureTheory
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+
+/-- The first coordinate of a coupling is measure-preserving onto its first
+marginal. -/
+theorem measurePreserving_fst_of_isCoupling
+    {gamma : Measure (E × E)} {mu nu : Measure E}
+    (hgamma : Transport.IsCoupling gamma mu nu) :
+    MeasurePreserving Prod.fst gamma mu := by
+  refine ⟨measurable_fst, ?_⟩
+  simpa [Measure.fst] using hgamma.1
+
+/-- The second coordinate of a coupling is measure-preserving onto its second
+marginal. -/
+theorem measurePreserving_snd_of_isCoupling
+    {gamma : Measure (E × E)} {mu nu : Measure E}
+    (hgamma : Transport.IsCoupling gamma mu nu) :
+    MeasurePreserving Prod.snd gamma nu := by
+  refine ⟨measurable_snd, ?_⟩
+  simpa [Measure.snd] using hgamma.2
+
+/-- Finite second moment of the first marginal pulls back to the first
+coordinate under any coupling. -/
+theorem integrable_norm_sq_fst_of_isCoupling
+    {gamma : Measure (E × E)} {mu nu : Measure E}
+    (hgamma : Transport.IsCoupling gamma mu nu)
+    (hmu : Integrable (fun x : E => ‖x‖ ^ 2) mu) :
+    Integrable (fun z : E × E => ‖z.1‖ ^ 2) gamma := by
+  simpa [Function.comp_def] using
+    (measurePreserving_fst_of_isCoupling hgamma).integrable_comp_of_integrable hmu
+
+/-- Finite second moment of the second marginal pulls back to the second
+coordinate under any coupling. -/
+theorem integrable_norm_sq_snd_of_isCoupling
+    {gamma : Measure (E × E)} {mu nu : Measure E}
+    (hgamma : Transport.IsCoupling gamma mu nu)
+    (hnu : Integrable (fun y : E => ‖y‖ ^ 2) nu) :
+    Integrable (fun z : E × E => ‖z.2‖ ^ 2) gamma := by
+  simpa [Function.comp_def] using
+    (measurePreserving_snd_of_isCoupling hgamma).integrable_comp_of_integrable hnu
+
+/-- Any coupling of two finite-second-moment marginals has integrable squared
+displacement. -/
+theorem integrable_norm_sub_sq_of_isCoupling
+    {gamma : Measure (E × E)} {mu nu : Measure E}
+    (hgamma : Transport.IsCoupling gamma mu nu)
+    (hmu : Integrable (fun x : E => ‖x‖ ^ 2) mu)
+    (hnu : Integrable (fun y : E => ‖y‖ ^ 2) nu) :
+    Integrable (fun z : E × E => ‖z.1 - z.2‖ ^ 2) gamma := by
+  have hx := integrable_norm_sq_fst_of_isCoupling hgamma hmu
+  have hy := integrable_norm_sq_snd_of_isCoupling hgamma hnu
+  have hdom :
+      Integrable (fun z : E × E => 2 * ‖z.1‖ ^ 2 + 2 * ‖z.2‖ ^ 2) gamma :=
+    (hx.const_mul 2).add (hy.const_mul 2)
+  apply hdom.mono'
+  · fun_prop
+  · filter_upwards with z
+    have htri : ‖z.1 - z.2‖ ≤ ‖z.1‖ + ‖z.2‖ := norm_sub_le z.1 z.2
+    have hx0 : 0 ≤ ‖z.1‖ := norm_nonneg _
+    have hy0 : 0 ≤ ‖z.2‖ := norm_nonneg _
+    have hxy0 : 0 ≤ ‖z.1 - z.2‖ := norm_nonneg _
+    rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]
+    nlinarith [sq_nonneg (‖z.1‖ - ‖z.2‖)]
+
+end
+
+end CouplingQuadraticIntegrability
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

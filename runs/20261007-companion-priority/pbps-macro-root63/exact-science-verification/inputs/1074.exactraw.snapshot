@@ -1,0 +1,130 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CanonicalLocalizationTheorem
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess
+
+/-!
+# Canonical stopped Itô martingales
+
+Chewi display (1.1.14) applies the global `L2` Itô construction to every
+canonical energy-stopped integrand. Proposition 1.1.13 supplies the genuine
+progressive `L2` integrand, and the process-level construction from Theorem
+1.1.8 then gives an adapted continuous martingale. No second stochastic
+integral is introduced here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace CanonicalStoppedItoIntegral
+
+open MeasureTheory Set
+open scoped NNReal
+
+open BrownianMotion ProgressiveL2 LocalProgressiveL2
+  CanonicalLocalizationTheorem EnergyStoppedIntegrand
+  EnergyStoppedProgressiveL2 ItoIntegralProcess
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+  {B : ℝ≥0 → Omega → ℝ}
+variable [IsProbabilityMeasure mu]
+
+/-- The `n`-th globally square-integrable stopped Itô martingale. -/
+noncomputable def canonicalStoppedItoProcess
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (n : ℕ) : ℝ≥0 → Omega → ℝ :=
+  itoIntegralProcess
+    (canonicalStoppedProgressiveL2 hUsual eta n) hT hB hUsual
+
+/-- The stopped Itô process is strongly adapted. -/
+theorem canonicalStoppedItoProcess_stronglyAdapted
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (n : ℕ) :
+    StronglyAdapted filtration
+      (canonicalStoppedItoProcess hUsual eta hT hB n) :=
+  itoIntegralProcess_stronglyAdapted
+    (canonicalStoppedProgressiveL2 hUsual eta n) hT hB hUsual
+
+/-- The stopped Itô process is a genuine martingale. -/
+theorem canonicalStoppedItoProcess_martingale
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (n : ℕ) :
+    Martingale (canonicalStoppedItoProcess hUsual eta hT hB n)
+      filtration mu :=
+  itoIntegralProcess_martingale
+    (canonicalStoppedProgressiveL2 hUsual eta n) hT hB hUsual
+
+/-- The process has continuous paths on the construction horizon, including
+on the completed exceptional set where it is patched by zero. -/
+theorem canonicalStoppedItoProcess_continuousOn
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (n : ℕ) (omega : Omega) :
+    ContinuousOn
+      (fun t => canonicalStoppedItoProcess hUsual eta hT hB n t omega)
+      (Icc (0 : ℝ≥0) T) :=
+  itoIntegralProcess_continuousOn
+    (canonicalStoppedProgressiveL2 hUsual eta n) hT hB hUsual omega
+
+/-- At every deterministic time, the stopped process represents the terminal
+`L2` Itô integral of the correspondingly restricted stopped integrand. -/
+theorem canonicalStoppedItoProcess_at_eq_terminal
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (n : ℕ) {t : ℝ≥0} (htT : t ≤ T) :
+    canonicalStoppedItoProcess hUsual eta hT hB n t =ᵐ[mu]
+      (fun omega =>
+        ItoTerminalCompletion.itoIntegralTerminal
+          ((canonicalStoppedProgressiveL2 hUsual eta n).restrictAt t)
+          hT hB omega) :=
+  itoIntegralProcess_at_eq_terminal
+    (canonicalStoppedProgressiveL2 hUsual eta n) hT hB hUsual htT
+
+/-- Chewi display (1.1.14): every canonical energy truncation is fed into the
+already-constructed global Itô map and yields an adapted continuous
+martingale, with the exact deterministic-time restriction compatibility. -/
+theorem chewi_display_1_1_14
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (n : ℕ) :
+    StronglyAdapted filtration
+        (canonicalStoppedItoProcess hUsual eta hT hB n) ∧
+      Martingale (canonicalStoppedItoProcess hUsual eta hT hB n)
+        filtration mu ∧
+      (∀ omega,
+        ContinuousOn
+          (fun t => canonicalStoppedItoProcess hUsual eta hT hB n t omega)
+          (Icc (0 : ℝ≥0) T)) ∧
+      (canonicalStoppedProgressiveL2 hUsual eta n).process =
+        energyStoppedIntegrand hUsual eta (n + 1 : ℝ) ∧
+      ∀ t : ℝ≥0, t ≤ T →
+        canonicalStoppedItoProcess hUsual eta hT hB n t =ᵐ[mu]
+          (fun omega =>
+            ItoTerminalCompletion.itoIntegralTerminal
+              ((canonicalStoppedProgressiveL2 hUsual eta n).restrictAt t)
+              hT hB omega) := by
+  refine ⟨canonicalStoppedItoProcess_stronglyAdapted hUsual eta hT hB n,
+    canonicalStoppedItoProcess_martingale hUsual eta hT hB n,
+    canonicalStoppedItoProcess_continuousOn hUsual eta hT hB n,
+    canonicalStoppedProgressiveL2_process hUsual eta n, ?_⟩
+  intro t htT
+  exact canonicalStoppedItoProcess_at_eq_terminal hUsual eta hT hB n htT
+
+end CanonicalStoppedItoIntegral
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

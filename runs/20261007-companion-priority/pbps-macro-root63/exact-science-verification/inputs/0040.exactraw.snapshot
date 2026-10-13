@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-3e2d552fff7913fc",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : FiniteDimensional ℝ E]\n  [inst_3 : MeasurableSpace E] [BorelSpace E] {V : E → ℝ} {α β : NNReal},\n  0 < α →\n    α ≤ β →\n      ContDiff ℝ 2 V →\n        (∀ (x w : E), ↑α * ‖w‖ ^ 2 ≤ ((fderiv ℝ (fderiv ℝ V) x) w) w ∧ ((fderiv ℝ (fderiv ℝ V) x) w) w ≤ ↑β * ‖w‖ ^ 2) →\n          0 < ↑(Module.finrank ℝ E) →\n            ∀ (η τ : NNReal × E × E × ℕ × (ℕ → E) → ℝ),\n              Measurable η →\n                Measurable τ →\n                  (∀ (s : NNReal × E × E × ℕ × (ℕ → E)), 0 < η s) →\n                    (∀ (s : NNReal × E × E × ℕ × (ℕ → E)), 0 < τ s) →\n                      ∀ (M : ProbabilityTheory.Kernel (NNReal × E × E × ℕ × (ℕ → E)) E)\n                        [ProbabilityTheory.IsMarkovKernel M] (threshold : NNReal),\n                        have d := ↑(Module.finrank ℝ E);\n                        have v := fun s => (η s + τ s) / (↑β + ↑s.1);\n                        have bp := fun s => s.1 + (v s)⁻¹.toNNReal;\n                        have obs := fun p => p.2.1 + √(τ p.1 / (↑β + ↑p.1.1)) • p.2.2;\n                        have center := fun p => (↑(bp p.1))⁻¹ • (↑p.1.1 • p.1.2.1 + (v p.1)⁻¹ • obs p);\n                        have F := fun p x => V x + ↑(bp p.1) / 2 * ‖x - center p‖ ^ 2;\n                        have W := fun p x => V x + ↑p.1.1 / 2 * ‖x - p.1.2.1‖ ^ 2 + (v p.1)⁻¹ / 2 * ‖x - obs p‖ ^ 2;\n                        have T := fun p x => x - (↑β + ↑(bp p.1))⁻¹ • gradient (F p) x;\n                        have q := fun n p => ‖gradient (F p) ((T p)^[n] p.2.1)‖ ^ 2;\n                        have N := fun s => if h : ∃ n, q n s ≤ (fun p => (↑α + ↑(bp p.1)) * d) s then Nat.find h else 0;\n                        have out := fun p => (T p)^[N p] p.2.1;\n                        have update := fun p =>\n                          (bp p.1, center p, out p, p.1.2.2.2.1 + 1, fun n => Nat.casesOn n (obs p) p.1.2.2.2.2);\n                        have project := fun s => (s.1, s.2.1, s.2.2.2.1, s.2.2.2.2);\n                        have oldUpdate := fun p =>\n                          (bp p.1, center p, p.1.2.2.2.1 + 1, fun n => Nat.casesOn n (obs p) p.1.2.2.2.2);\n                        (∀ (s : NNReal × E × E × ℕ × (ℕ → E)), 0 < v s ∧ ↑(bp s) = ↑s.1 + (v s)⁻¹) ∧\n                          Measurable N ∧\n                            Measurable out ∧\n                              Measurable update ∧\n                                (∀ (p : (NNReal × E × E × ℕ × (ℕ → E)) × E × E),\n                                    q (N p) p ≤ (↑α + ↑(bp p.1)) * d ∧\n                                      (∀ j < N p, (↑α + ↑(bp p.1)) * d < q j p) ∧\n                                        (∀ (x : E), gradient (F p) x = gradient V x + ↑(bp p.1) • (x - center p)) ∧\n                                          (∀ (x : E),\n                                              W p x =\n                                                F p x +\n                                                  ↑p.1.1 * (v p.1)⁻¹ / (2 * (↑p.1.1 + (v p.1)⁻¹)) *\n                                                    ‖p.1.2.1 - obs p‖ ^ 2) ∧\n                                            (∀ (x : E), gradient (W p) x = gradient (F p) x) ∧\n                                              (∀ (n : ℕ),\n                                                  (fun x => x - (↑β + ↑(bp p.1))⁻¹ • gradient (W p) x)^[n] p.2.1 =\n                                                    (T p)^[n] p.2.1) ∧\n                                                ‖gradient (fun x => F p ((√(↑β + ↑(bp p.1)))⁻¹ • x))\n                                                        (√(↑β + ↑(bp p.1)) • out p)‖ ^\n                                                    2 ≤\n                                                  d / ((↑β + ↑(bp p.1)) / (↑α + ↑(bp p.1)))) ∧\n                                  ∃ P,\n                                    ProbabilityTheory.IsMarkovKernel P ∧\n                                      (∀ (s : NNReal × E × E × ℕ × (ℕ → E)),\n                                          P s =\n                                            if threshold ≤ s.1 then MeasureTheory.Measure.dirac s\n                                            else\n                                              MeasureTheory.Measure.map (fun z => update (s, z))\n                                                ((M s).prod (ProbabilityTheory.stdGaussian E))) ∧\n                                        ∀ (s : NNReal × E × E × ℕ × (ℕ → E)),\n                                          MeasureTheory.Measure.map project (P s) =\n                                            if threshold ≤ s.1 then MeasureTheory.Measure.dirac (project s)\n                                            else\n                                              MeasureTheory.Measure.map (fun z => oldUpdate (s, z))\n                                                ((M s).prod (ProbabilityTheory.stdGaussian E))",
+    "statement_sha256": "3e2d552fff7913fc2f9cd37cd0f2d4f22d2f443f15035fff9c03be144b61e896",
+    "compiled": true,
+    "approved_definition_context": [
+      "NNReal denotes nonnegative reals; upward arrows are coercions to real numbers. Real.toNNReal(r) is max(r,0) as a nonnegative real. Module.finrank is real vector-space dimension. ContDiff R 2 means C2 regularity. fderiv is the genuine Frechet derivative; gradient is the real inner-product gradient.",
+      "A Kernel A B is a measurable family of measures on B indexed by A: for every measurable B-set,its assigned mass is measurable in the index. IsMarkovKernel means every indexed measure is a probability measure. Measure.map means pushforward,Measure.prod is the actual product measure,and Measure.dirac is unit point mass.",
+      "ProbabilityTheory.stdGaussian E is the centered standard Gaussian probability with identity covariance on the finite-dimensional real inner-product space. Smul is real scalar multiplication; Real.sqrt is the nonnegative square root with Mathlib real-domain conventions; real inversion and division are total and give zero when the denominator is zero.",
+      "Nested products associate to the right; p.1 and p.2 denote the first and second projections. Nat is the nonnegative integers. A function Nat->E is a sequence. Nat.casesOn n a h equals a if n=0 and h(m) if n=m+1.",
+      "Displayed have bindings in the type are local let bindings. Function iteration T^[n] is n-fold composition,including the identity when n=0. Nat.find h is the least natural number satisfying the predicate whose existence is witnessed by h. The dependent if chooses that least number when a witness exists,and zero otherwise.",
+      "BorelSpace identifies the measurable structure with the topology. Measurable refers to the full displayed domain,including every product coordinate. Gradients with a fixed parameter p differentiate the state argument,not p. The expanded type is definitionally equal to the compiled theorem type; all local project definition names have been removed. This supplies only library definitions,no source identity or extra conclusions."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "8ba10d6ab1b63287a4c5e4cf3bf243dc1411de21e91af17df2aa82d85ccc0e19"
+}

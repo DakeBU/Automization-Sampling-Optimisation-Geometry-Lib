@@ -1,0 +1,131 @@
+import Mathlib.Probability.CentralLimitTheorem
+import Mathlib.MeasureTheory.Measure.Count
+import Mathlib.Algebra.BigOperators.Ring.Finset
+
+/-!
+# Actual finite balanced-count normalized sums
+
+The finite laws are literal normalized counting measures. The characteristic
+function adapter below is authored for these laws; the scalar CLT and Levy
+convergence are reused from the repository-pinned Mathlib. Weak convergence
+alone provides no entropy, coordinate-energy, LSI, T2 or cost conclusion.
+-/
+
+open MeasureTheory ProbabilityTheory Filter
+open scoped ENNReal NNReal BigOperators Topology
+noncomputable section
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.BalancedRademacherCLT
+
+private def countLaw (α : Type*) [Fintype α] [MeasurableSpace α] : Measure α :=
+  (Fintype.card α : ℝ≥0∞)⁻¹ • Measure.count
+
+private instance countLaw_probability (α : Type*) [Fintype α] [Nonempty α]
+    [MeasurableSpace α] [MeasurableSingletonClass α] : IsProbabilityMeasure (countLaw α) := by
+  constructor
+  unfold countLaw
+  simp only [Measure.smul_apply, smul_eq_mul]
+  rw [Measure.count_apply_finite Set.univ Set.finite_univ]
+  simp only [Set.Finite.toFinset_univ, Finset.card_univ]
+  exact ENNReal.inv_mul_cancel (by exact_mod_cast Fintype.card_ne_zero)
+    (by simp)
+
+private theorem countLaw_integral {α : Type*} [Fintype α] [MeasurableSpace α]
+    [MeasurableSingletonClass α] {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [CompleteSpace E] (f : α → E) :
+    (∫ a, f a ∂countLaw α) = (Fintype.card α : ℝ)⁻¹ • ∑ a : α, f a := by
+  unfold countLaw
+  rw [integral_smul_measure, integral_fintype (Integrable.of_finite : Integrable f Measure.count)]
+  simp
+
+private def sign (b : Bool) : ℝ := if b then 1 else -1
+
+private theorem sign_mean : (∫ b, sign b ∂countLaw Bool) = 0 := by
+  rw [countLaw_integral]
+  norm_num [Fintype.sum_bool, sign]
+
+private theorem sign_second_moment : (∫ b, (sign b) ^ 2 ∂countLaw Bool) = 1 := by
+  rw [countLaw_integral]
+  norm_num [Fintype.sum_bool, sign]
+
+private def coordinateLaw : Measure ℝ := (countLaw Bool).map sign
+
+private theorem coordinate_charFun (t : ℝ) :
+    charFun coordinateLaw t =
+      (2 : ℂ)⁻¹ * ∑ b : Bool, Complex.exp ((t : ℂ) * (sign b : ℂ) * Complex.I) := by
+  rw [coordinateLaw, charFun_apply_real,
+    integral_map (measurable_of_countable sign).aemeasurable (by fun_prop),
+    countLaw_integral]
+  simp only [Fintype.card_bool, Nat.cast_ofNat, Complex.real_smul, Complex.ofReal_inv,
+    Complex.ofReal_ofNat]
+
+private theorem unscaled_charFun (n : ℕ) (t : ℝ) :
+    charFun ((countLaw (Fin n → Bool)).map (fun ε => ∑ j : Fin n, sign (ε j))) t =
+      (charFun coordinateLaw t) ^ n := by
+  rw [charFun_apply_real,
+    integral_map (measurable_of_countable _).aemeasurable (by fun_prop),
+    countLaw_integral, coordinate_charFun]
+  have hexp (ε : Fin n → Bool) :
+      Complex.exp ((t : ℂ) * ((∑ j : Fin n, sign (ε j) : ℝ) : ℂ) * Complex.I) =
+        ∏ j : Fin n, Complex.exp ((t : ℂ) * (sign (ε j) : ℂ) * Complex.I) := by
+    rw [← Complex.exp_sum]
+    congr 1
+    simp only [Complex.ofReal_sum, Finset.mul_sum,
+      Finset.sum_mul]
+  simp_rw [hexp]
+  rw [← Fintype.sum_pow
+    (fun b : Bool => Complex.exp ((t : ℂ) * (sign b : ℂ) * Complex.I)) n]
+  simp only [Fintype.card_fun, Fintype.card_fin, Fintype.card_bool, Nat.cast_pow,
+    Nat.cast_ofNat, Complex.real_smul, Complex.ofReal_inv, Complex.ofReal_pow,
+    Complex.ofReal_ofNat, inv_pow, mul_pow]
+
+private def normalizedSum (n : ℕ) (ε : Fin n → Bool) : ℝ :=
+  (Real.sqrt (n : ℝ))⁻¹ * ∑ j : Fin n, sign (ε j)
+
+private def actualLaw (n : ℕ) : ProbabilityMeasure ℝ :=
+  ⟨(countLaw (Fin n → Bool)).map (normalizedSum n),
+    (countLaw (Fin n → Bool)).isProbabilityMeasure_map
+      (measurable_of_countable (normalizedSum n)).aemeasurable⟩
+
+private theorem actualLaw_zero : (actualLaw 0 : Measure ℝ) = Measure.dirac 0 := by
+  have hzero : normalizedSum 0 = fun _ => 0 := by
+    funext ε
+    simp [normalizedSum]
+  change (countLaw (Fin 0 → Bool)).map (normalizedSum 0) = Measure.dirac 0
+  rw [hzero]
+  simp
+
+private theorem normalized_charFun (n : ℕ) (t : ℝ) :
+    charFun (actualLaw n) t =
+      (charFun coordinateLaw ((Real.sqrt (n : ℝ))⁻¹ * t)) ^ n := by
+  change charFun ((countLaw (Fin n → Bool)).map
+    (fun ε => (Real.sqrt (n : ℝ))⁻¹ * ∑ j : Fin n, sign (ε j))) t = _
+  rw [charFun_map_mul_comp (measurable_of_countable _).aemeasurable]
+  exact unscaled_charFun n _
+
+private theorem actualLaw_tendsto :
+    Tendsto actualLaw atTop
+      (𝓝 (⟨gaussianReal 0 1, inferInstance⟩ : ProbabilityMeasure ℝ)) := by
+  apply ProbabilityMeasure.tendsto_iff_tendsto_charFun.mpr
+  intro t
+  simp_rw [normalized_charFun]
+  have hlim := tendsto_charFun_inv_sqrt_mul_pow
+    (measurable_of_countable sign).aemeasurable sign_mean
+    (by simpa only [Pi.pow_apply] using sign_second_moment) t
+  simpa [coordinateLaw, charFun_gaussianReal, neg_div] using hlim
+
+theorem balanced_count_sum_tendsto_gaussian :
+    ∃ laws : ℕ → ProbabilityMeasure ℝ,
+      (∀ n : ℕ, (laws n : Measure ℝ) =
+        (((Fintype.card (Fin n → Bool) : ℝ≥0∞)⁻¹ •
+          (Measure.count : Measure (Fin n → Bool))).map
+          (fun ε : Fin n → Bool => (Real.sqrt (n : ℝ))⁻¹ *
+            ∑ j : Fin n, if ε j then (1 : ℝ) else -1))) ∧
+      (laws 0 : Measure ℝ) = Measure.dirac 0 ∧
+      Tendsto (fun n : ℕ => laws (n + 1)) atTop
+        (𝓝 (⟨gaussianReal 0 1, inferInstance⟩ : ProbabilityMeasure ℝ)) := by
+  refine ⟨actualLaw, ?_, actualLaw_zero, ?_⟩
+  · intro n
+    rfl
+  · exact actualLaw_tendsto.comp (tendsto_add_atTop_nat 1)
+
+end AutoSamplingTheory.TechnicalLemmas.Probability.BalancedRademacherCLT

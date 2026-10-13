@@ -1,0 +1,822 @@
+{
+  "agent_execution_pack": "agent-briefs/log_concave_sampling_6h_execution_pack.md",
+  "api_audit": [
+    {
+      "area": "convex/log-concave base",
+      "external": "`ForMathlib/PrekopaLeindler.lean`, `Brunn1D.lean`, `Anderson.lean`",
+      "gap": "No direct Mathlib Prekopa-Leindler/Brunn-Minkowski package observed.",
+      "mathlib": "`Analysis/Convex/*`, `ConvexOn`, `ConcaveOn`, log convexity examples"
+    },
+    {
+      "area": "density/RN/withDensity",
+      "external": "`RnDerivSqrt.lean`, `HellingerProduct.lean`, `L2.lean`",
+      "gap": "Gibbs nonzero, finite-by-envelope, finite-measure bounded-below, exact quadratic Lebesgue, and exact one-dimensional Laplace normalization contracts are compiled; need general coercivity/growth leaves proving tail-integrable envelopes.",
+      "mathlib": "`Probability/Density.lean`, `Measure/Decomposition/*`, `withDensity`, `rnDeriv`"
+    },
+    {
+      "area": "Gaussian/product Gaussian",
+      "external": "`PiGaussian.lean`, `GaussianMGF.lean`, `GaussianShift.lean`, `PiWithDensity.lean`",
+      "gap": "Product Gaussian MGF, normalizer, shifted withDensity identity, product integral change-of-measure, EuclideanSpace pushforward bridge, and stdGaussian inner-product form are compiled; Brownian/path packaging remains.",
+      "mathlib": "`Probability.Distributions.Gaussian.Real`, CLT/charFun support"
+    },
+    {
+      "area": "conditional kernels",
+      "external": "`CondExpL2.lean`, Markov-kernel/selection files",
+      "gap": "Need fixed representative policy for conditional drifts in algorithm proofs.",
+      "mathlib": "`Probability.Kernel.CondDistrib`, conditional expectation APIs"
+    },
+    {
+      "area": "SDE/semigroup/Langevin",
+      "external": "ASTIS WeakGenerator/FokkerPlanckAlgebra, source-cited textbook route",
+      "gap": "Finite-dimensional cylindrical Girsanov integral and RN/withDensity identity are compiled; Ito, generator domains, invariant Gibbs proof, and full Brownian path-space change of measure remain real analytic leaves.",
+      "mathlib": "general topology/calculus/integration; no full finite-dimensional Ito/SDE library observed"
+    },
+    {
+      "area": "information theory",
+      "external": "ASTIS `KLDensity`, `DonskerVaradhan`, external Hellinger/RN files",
+      "gap": "Renyi divergence and derivative identities need new local leaves.",
+      "mathlib": "`InformationTheory/KullbackLeibler/KLFun.lean`, convexity of KL integrand"
+    },
+    {
+      "area": "algorithms",
+      "external": "AST Gaussian/conditional references and textbook algorithm proof routes",
+      "gap": "LMC/HMC/MALA/proximal trees should be consumers until shared roots compile.",
+      "mathlib": "kernel/measure infrastructure; search per algorithm before local coding"
+    }
+  ],
+  "blue_red_lean_tree": [
+    {
+      "family": "MEAS/KERN",
+      "node": "Probability.LawMap",
+      "role": "law-map and weak-test integral rewrites",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Probability/LawMap.lean"
+    },
+    {
+      "family": "MEAS/KERN",
+      "node": "Probability.ConditionalKernel",
+      "role": "condDistrib and conditional-integral representatives",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Probability/ConditionalKernel.lean"
+    },
+    {
+      "family": "MEAS/KERN",
+      "node": "Measure.Transport",
+      "role": "transport/coupling/Wasserstein interfaces",
+      "status": "todo-red",
+      "target": "TechnicalLemmas/Measure/Transport.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Geometry.LogConcavity",
+      "role": "positive log-concavity, norm-square and absolute-value convexity, and convex-potential Gibbs shape",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Geometry/LogConcavity.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Log-concavity algebra/tensorization",
+      "role": "pointwise products, nonnegative real powers, and Cartesian-product density factors preserve log-concavity",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Geometry/LogConcavity.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Log-concavity under maps",
+      "role": "linear and affine precomposition preserve log-concavity on preimage domains",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Geometry/LogConcavity.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Log-concavity level sets",
+      "role": "positive log-concave functions are quasiconcave; convex superlevel restrictions remain log-concave",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Geometry/LogConcavity.lean"
+    },
+    {
+      "family": "GEOM/GAUSS/SDE",
+      "node": "EuclideanSpace coordinate inner products",
+      "role": "finite-dimensional coordinate formulas for `inner ℝ u v`, including direct `EuclideanSpace` vectors and `WithLp.toLp 2` coordinate functions",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Geometry/EuclideanSpaceCoordinates.lean"
+    },
+    {
+      "family": "ANALYSIS/SDE",
+      "node": "Laplacian standard-basis formula",
+      "role": "Mathlib `Laplacian.laplacian` equals the finite standard-orthonormal-basis second-derivative sum; no IBP or invariant-law proof",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Analysis/Calculus/Laplacian.lean"
+    },
+    {
+      "family": "ANALYSIS/SDE",
+      "node": "Gradient coordinate-unit line derivative",
+      "role": "a supplied Mathlib gradient gives the coordinate-unit line derivative equal to the corresponding gradient coordinate; no divergence or IBP proof",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Analysis/Calculus/Gradient.lean"
+    },
+    {
+      "family": "ANALYSIS/SDE",
+      "node": "Gibbs-weight gradient chain rule",
+      "role": "a supplied `HasGradientAt V gradV x` or `DifferentiableAt ℝ V x` gives Mathlib `gradient (exp(-V))` and coordinate chain-rule displays; no weighted divergence, coordinate product-rule, or IBP proof",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Analysis/Calculus/Gradient.lean"
+    },
+    {
+      "family": "ANALYSIS/SDE",
+      "node": "Line-derivative product rule",
+      "role": "Mathlib `HasDerivAt.mul` exposed as real-valued `HasLineDerivAt` and `lineDeriv` product rules, explicit coordinate `lineDeriv (exp(-V) * g)` leaves, and `fderiv`-to-`iteratedFDeriv` coordinate wiring; no divergence or IBP proof",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Analysis/Calculus/LineDeriv.lean"
+    },
+    {
+      "family": "DENS/CONV/SDE",
+      "node": "Negative-log potential geometry",
+      "role": "positive log-concave densities have convex negative-log potentials and convex energy sublevels",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Geometry/LogConcavity.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Quadratic Gibbs log-concavity",
+      "role": "nonnegative quadratic norm potentials and explicit normalized quadratic Gibbs densities are log-concave",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Geometry/LogConcavity.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Absolute-linear Laplace geometry",
+      "role": "one-dimensional potentials `a|x|+b` and positive rescaled Laplace shapes are log-concave",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Geometry/LogConcavity.lean"
+    },
+    {
+      "family": "DENS/CONV/GAUSS",
+      "node": "Shifted quadratic Gibbs geometry",
+      "role": "shifted potentials `a‖x-m‖^2+b` and explicit shifted quadratic densities are log-concave",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Geometry/LogConcavity.lean"
+    },
+    {
+      "family": "DENS/CONV/GAUSS/DISC",
+      "node": "Two-point Gaussian/proximal kernel geometry",
+      "role": "two-point potentials `a‖x-y‖^2+b` and Gaussian-kernel shapes are log-concave on product space",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Geometry/LogConcavity.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Measure.RadonNikodym",
+      "role": "withDensity, reciprocal-lintegral normalization, RN wrappers",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Measure/RadonNikodym.lean"
+    },
+    {
+      "family": "DENS/MEAS",
+      "node": "Measure.pi withDensity product",
+      "role": "finite-product ENNReal Fubini and coordinatewise density-tilt decomposition",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Measure/RadonNikodym.lean"
+    },
+    {
+      "family": "MEAS/FI/SDE",
+      "node": "Measure.Product coordinate update",
+      "role": "finite product-law coordinate replacement map, measure-preserving wrapper, Bochner integral rewrite, and a.e. slice integrability",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Measure/Product.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Measure.Gibbs",
+      "role": "Gibbs ENNReal density, measurability, envelope comparison, and normalization",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Measure/Gibbs.lean"
+    },
+    {
+      "family": "DENS/MEAS/SDE",
+      "node": "Gibbs withDensity Bochner integral rewrite",
+      "role": "Bochner integrals under `Z⁻¹ exp(-V)` withDensity rewrite to density-weighted base-measure integrals",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Measure/GibbsIntegral.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Normalized Gibbs real-density bridge",
+      "role": "finite nonzero ENNReal normalizer plus convex or strongly convex potential gives a real-valued normalized Gibbs density shape that is log-concave",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Measure/GibbsLogConcavity.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Potential lower-bound envelope",
+      "role": "`W ≤ V` a.e. and finite `∫ exp(-W)` imply finite `∫ exp(-V)` and normalized Gibbs law",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Measure/Gibbs.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Finite-measure Gibbs envelope",
+      "role": "finite base measure plus a.e. constant lower bound on `V` gives finite Gibbs normalizer and normalized target law",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Measure/Gibbs.lean"
+    },
+    {
+      "family": "DENS/CONV/ANALYSIS",
+      "node": "Quadratic Lebesgue Gibbs envelope",
+      "role": "finite-dimensional Lebesgue quadratic tails have exact ENNReal normalizers, and quadratic lower bounds give normalized Gibbs target laws",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Analysis/Integrability.lean"
+    },
+    {
+      "family": "DENS/CONV/ANALYSIS",
+      "node": "One-dimensional Laplace normalizer",
+      "role": "exact `∫ exp (-(a|x|+b)) = 2 exp(-b)/a`, exact ENNReal normalizer, and explicit normalized Laplace law on `ℝ`",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Analysis/Integrability.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "InformationTheory.KLDensity/DV",
+      "role": "KL pointwise algebra and DV energy leaves",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/InformationTheory/{KLDensity,DonskerVaradhan}.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Prekopa/Brunn/Convex",
+      "role": "finite-dimensional PL/BM and convex-measure preservation",
+      "status": "todo-red",
+      "target": "TechnicalLemmas/Geometry/{Convex,PrekopaLeindler,BrunnMinkowski}.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Concrete Gibbs envelope",
+      "role": "general nonquadratic Lebesgue coercivity/growth assumptions beyond finite-dimensional quadratic and one-dimensional Laplace envelopes",
+      "status": "todo-red",
+      "target": "TechnicalLemmas/Measure/Gibbs.lean or Analysis/Integrability.lean"
+    },
+    {
+      "family": "DENS/CONV",
+      "node": "Renyi density calculus",
+      "role": "Renyi integrand positivity, measurability, finite-envelope, and pointwise derivative leaves",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/InformationTheory/Renyi.lean"
+    },
+    {
+      "family": "GAUSS",
+      "node": "ProbabilityDistributions.Gaussian",
+      "role": "Gaussian moments, coordinate laws, finite linear forms, MGF normalizers, shifted densities, and variance packaging",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "family": "GAUSS",
+      "node": "Product Gaussian linear forms",
+      "role": "finite product-Gaussian linear-form integrability and zero mean",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "family": "GAUSS",
+      "node": "Product Gaussian MGF / normalizer",
+      "role": "finite product-Gaussian linear-form MGF and centered Esscher mass-one normalizer",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "family": "GAUSS",
+      "node": "Scalar Gaussian Esscher shift",
+      "role": "one-dimensional Gaussian exponential tilt shifts the mean",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "family": "GAUSS",
+      "node": "Product Gaussian shifted density",
+      "role": "finite product standard Gaussian withDensity tilt equals shifted product Gaussian",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "family": "GAUSS",
+      "node": "Product Gaussian change of measure",
+      "role": "finite shifted product-Gaussian integrals rewrite as centered weighted integrals",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "family": "GAUSS",
+      "node": "EuclideanSpace Gaussian pushforward",
+      "role": "transport finite product-Gaussian Esscher change-of-measure through `WithLp.toLp 2`",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "family": "GAUSS",
+      "node": "stdGaussian inner-product change of measure",
+      "role": "rewrite the Euclidean change-of-measure against Mathlib `stdGaussian` with inner-product/norm exponent",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "family": "GAUSS",
+      "node": "Full path-space Gaussian / Girsanov",
+      "role": "Brownian/path-space RN derivative beyond finite-dimensional cylinders",
+      "status": "todo-red",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "family": "FI",
+      "node": "FunctionalInequalities.LogSobolev",
+      "role": "LSI to KL/FI bookkeeping and sqrt-density handoffs",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/FunctionalInequalities/LogSobolev.lean"
+    },
+    {
+      "family": "FI",
+      "node": "PI/TI/Isoperimetry",
+      "role": "Poincare, transport inequalities, concentration, isoperimetry",
+      "status": "todo-red",
+      "target": "TechnicalLemmas/FunctionalInequalities/{Poincare,Transport,Isoperimetry}.lean"
+    },
+    {
+      "family": "FI",
+      "node": "Preservation/tensorization",
+      "role": "tensorization and preservation under log-concavity operations",
+      "status": "todo-red",
+      "target": "TechnicalLemmas/FunctionalInequalities/Preservation.lean"
+    },
+    {
+      "family": "SDE/PATH",
+      "node": "StochasticProcesses.WeakGenerator",
+      "role": "sample-to-law weak-generator rewrite",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/StochasticProcesses/WeakGenerator.lean"
+    },
+    {
+      "family": "SDE/PATH",
+      "node": "StochasticProcesses.FokkerPlanckAlgebra",
+      "role": "weak-FP and Fisher/IBP scalar algebra",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/StochasticProcesses/FokkerPlanckAlgebra.lean"
+    },
+    {
+      "family": "SDE/PATH",
+      "node": "StochasticProcesses.Langevin",
+      "role": "Finite Euclidean pointwise display and supplied-hypothesis Langevin algebra: basis/coordinate display for the formal expression `Δ f - <∇V, ∇f>`, supplied coordinate-to-Mathlib weighted-divergence handoffs, `exp(-V)` handoffs discharging only the Gibbs-weight gradient premise, pointwise coordinateDivergence display, finite-box signed face-term wrapper with explicit assumptions, 1D pointwise derivative, finite-coordinate aggregation, and EuclideanSpace inner-product notation wrappers; no box-integrability discharge, semigroup-generator, IBP, stationarity, or invariant-law proof",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/StochasticProcesses/Langevin.lean"
+    },
+    {
+      "family": "ANALYSIS/SDE",
+      "node": "Reusable smooth cutoffs and plateaus",
+      "role": "unit and radial smooth cutoffs, support/tsupport and compact-support bounds, pointwise exhaustion, compact-in-open plateau, and finite Pi-box plateau",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Analysis/Calculus/{Cutoff,Divergence}.lean"
+    },
+    {
+      "family": "ANALYSIS/SDE",
+      "node": "Scale-uniform cutoff first derivative",
+      "role": "one unit-cutoff constant controls every positive-scale radial fderiv by C/R; the totalized fderiv vanishes on the closed outer region; PiLp chain-rule and standard-basis trace bridges expose the cutoff cross term",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Analysis/Calculus/{Cutoff,Divergence}.lean"
+    },
+    {
+      "family": "ANALYSIS/SDE",
+      "node": "Generic L1 cutoff-gradient limit",
+      "role": "for every Integrable finite-Pi vector field, the norm integral of the PiLp-wrapped radial cutoff derivative applied to the field tends to zero",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Analysis/Calculus/Divergence.lean"
+    },
+    {
+      "family": "ANALYSIS/SDE",
+      "node": "Generic cutoff main-term dominated convergence",
+      "role": "for every Integrable normed-space-valued field, multiplication by the PiLp-wrapped radial cutoff converges under the integral to the original field",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/Analysis/Calculus/Divergence.lean"
+    },
+    {
+      "family": "ANALYSIS/SDE",
+      "node": "Gibbs source and generator-display integrability",
+      "role": "finite Gibbs mass plus bounded genuine first derivative gives Integrable exp(-V)-weighted coordinate fields; compact C_c^2 tests give both the concrete Integrable generator display and the compiled whole-space identity integral exp(-V) Lf = 0",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/StochasticProcesses/Langevin.lean plus on-demand cutoff leaves"
+    },
+    {
+      "family": "SDE/PATH",
+      "node": "StochasticProcesses.Girsanov finite cylinder",
+      "role": "finite-dimensional cylindrical Gaussian Girsanov weight, RN density, and integral change-of-measure",
+      "status": "compiled-blue",
+      "target": "TechnicalLemmas/StochasticProcesses/Girsanov.lean"
+    },
+    {
+      "family": "SDE/PATH",
+      "node": "Semigroup/Ito/invariant Gibbs law",
+      "role": "semigroup domains, invariant Gibbs law, Ito interfaces",
+      "status": "todo-red",
+      "target": "TechnicalLemmas/StochasticProcesses/{MarkovSemigroup,Ito}.lean plus stronger Langevin analytic leaves"
+    },
+    {
+      "family": "SDE/PATH",
+      "node": "Girsanov/Doob/Follmer",
+      "role": "path-space RN derivatives and bridge transforms",
+      "status": "todo-red",
+      "target": "TechnicalLemmas/StochasticProcesses/{Girsanov,DoobTransform,FollmerDrift}.lean"
+    },
+    {
+      "family": "DISC",
+      "node": "LMC interpolation",
+      "role": "LMC interpolation, coupling, KL/FI derivative consumers",
+      "status": "todo-red",
+      "target": "SamplingAlgorithms/LangevinMonteCarlo.lean"
+    },
+    {
+      "family": "DISC",
+      "node": "HMC/underdamped/RM",
+      "role": "faster low-accuracy sampler transition/generator contracts",
+      "status": "todo-red",
+      "target": "SamplingAlgorithms/{HamiltonianMonteCarlo,UnderdampedLangevin,RandomizedMidpoint}.lean"
+    },
+    {
+      "family": "DISC",
+      "node": "MALA/proximal/high-accuracy",
+      "role": "acceptance kernels, detailed balance, restricted Gaussian oracles",
+      "status": "todo-red",
+      "target": "SamplingAlgorithms/{MetropolisAdjustedLangevin,ProximalSampler}.lean"
+    }
+  ],
+  "chapter_map": [
+    {
+      "chapter": "1. Langevin diffusion in continuous time",
+      "lean_plan": "Build Gaussian increments and generator algebra, then close the explicit cutoff -> tail -> weighted-IBP -> generator-domain -> invariant-Gibbs chain before KL/FI and Wasserstein-gradient-flow consumers.",
+      "part": "Part I",
+      "reader_summary": "The continuous-time backbone: stochastic calculus, Markov semigroups, optimal-transport geometry, Langevin dynamics, and convergence viewpoints.",
+      "shared": "MEAS, GAUSS, DENS, FI, SDE, REG",
+      "status": "partial-local-compiled"
+    },
+    {
+      "chapter": "2. Functional inequalities",
+      "lean_plan": "Separate definitions and bookkeeping from preservation theorems; reuse log-concavity, Prekopa-Leindler/Brunn-Minkowski, and LSI/KL/FI leaves.",
+      "part": "Part I",
+      "reader_summary": "The inequality toolkit that turns geometry of the target into convergence rates: PI, LSI, transport, concentration, isoperimetry, and preservation operations.",
+      "shared": "CONV, DENS, FI, REG",
+      "status": "partial-local-compiled"
+    },
+    {
+      "chapter": "3. Stochastic analysis topics",
+      "lean_plan": "Keep finite-dimensional Gaussian change of measure as the compiled base; only then lift to Brownian/path-space RN derivatives and bridge transforms.",
+      "part": "Part I",
+      "reader_summary": "Path-space tools used repeatedly later: quadratic variation, Girsanov change of measure, Doob transforms, Follmer drift, and Schrodinger bridges.",
+      "shared": "GAUSS, PATH, DENS, SDE, REG",
+      "status": "finite-girsanov-rn-cylinder-compiled"
+    },
+    {
+      "chapter": "4. Analysis of Langevin Monte Carlo",
+      "lean_plan": "Treat LMC as a consumer of law-map, conditional-kernel, weak-FP, KL/FI, Girsanov, and Gaussian-transition geometry leaves.",
+      "part": "Part II",
+      "reader_summary": "The first algorithmic convergence chapter, presenting coupling, interpolation, convex-optimization, and Girsanov proof routes for LMC.",
+      "shared": "MEAS, KERN, SDE, DENS, PATH, DISC, REG",
+      "status": "partial-local-compiled"
+    },
+    {
+      "chapter": "5. Faster low-accuracy samplers",
+      "lean_plan": "Delay algorithm theorems until transition kernels, Hamiltonian/underdamped generators, and Gaussian-noise update contracts are local.",
+      "part": "Part II",
+      "reader_summary": "Randomized midpoint, Hamiltonian Monte Carlo, and underdamped Langevin methods, organized around better discretizations and dynamics.",
+      "shared": "GAUSS, SDE, DISC, REG",
+      "status": "planned"
+    },
+    {
+      "chapter": "6. Convergence in Renyi divergence",
+      "lean_plan": "Extend compiled Renyi integrand algebra toward full divergence, log-normalizer, and path-derivative contracts.",
+      "part": "Part II",
+      "reader_summary": "Stronger divergence control for LMC and underdamped methods, using interpolation and Girsanov routes.",
+      "shared": "DENS, FI, SDE, PATH, REG",
+      "status": "first algebra leaves compiled"
+    },
+    {
+      "chapter": "7. High-accuracy samplers",
+      "lean_plan": "Formalize proposal kernels, acceptance probabilities, reversibility/detailed balance, and warm-start density comparisons after kernel infrastructure is stable.",
+      "part": "Part II",
+      "reader_summary": "Rejection sampling, Metropolis-Hastings filters, discrete-time Markov chains, and MALA cold/warm start analyses.",
+      "shared": "KERN, DENS, GAUSS, DISC, REG",
+      "status": "planned"
+    },
+    {
+      "chapter": "8. Proximal sampler",
+      "lean_plan": "Use two-point Gaussian/proximal kernel log-concavity as the compiled start; add restricted Gaussian conditional laws and time-reversal flow interfaces.",
+      "part": "Part II",
+      "reader_summary": "Restricted Gaussian oracles and proximal transitions, with convergence under strong log-concavity, log-concavity, and functional inequalities.",
+      "shared": "CONV, GAUSS, KERN, FI, DISC, REG",
+      "status": "kernel-geometry-compiled"
+    },
+    {
+      "chapter": "9. Lower bounds for sampling",
+      "lean_plan": "Treat as a consumer of oracle models, information lower bounds, Gaussian comparison, and dimension-specific construction lemmas.",
+      "part": "Part II",
+      "reader_summary": "Oracle/query lower bounds in one dimension, constant dimension, and Gaussian families.",
+      "shared": "MEAS, GAUSS, DENS, DISC, REG",
+      "status": "deferred-consumer"
+    },
+    {
+      "chapter": "10. Structured sampling",
+      "lean_plan": "Introduce oracle/noisy-gradient and coordinate-update interfaces only after base kernels and mirror-geometry assumptions are explicit.",
+      "part": "Part II",
+      "reader_summary": "Sampling with stochastic gradients, coordinate methods, and mirror Langevin geometry.",
+      "shared": "MEAS, CONV, SDE, DISC, REG",
+      "status": "deferred-consumer"
+    },
+    {
+      "chapter": "11. Non-log-concave sampling",
+      "lean_plan": "Reuse FI, KL, weak-FP, and score/Fisher algebra; do not assume convexity roots unless the theorem explicitly requires them.",
+      "part": "Part II",
+      "reader_summary": "Approximate stationarity and nonconvex behavior controlled through Fisher information bounds and applications.",
+      "shared": "DENS, FI, SDE, DISC, REG",
+      "status": "deferred-consumer"
+    },
+    {
+      "chapter": "12. Diffusion generative models",
+      "lean_plan": "Use path-space change of measure, score-drift regularity, weak-FP, and discretization leaves after the SDE/PATH foundation is mature.",
+      "part": "Part II",
+      "reader_summary": "Score matching and discretization analysis for diffusion generative modeling.",
+      "shared": "MEAS, DENS, SDE, PATH, DISC, REG",
+      "status": "deferred-consumer"
+    }
+  ],
+  "chapter_subtrees": [
+    {
+      "chapter": "1.1 stochastic calculus",
+      "dag": "Ito/quadratic-variation/Taylor local-error subtree",
+      "first_leaf": "quadratic variation normalization and finite-dimensional Ito test identity",
+      "shared": "MEAS, GAUSS, REG",
+      "status": "partial-local-compiled"
+    },
+    {
+      "chapter": "1.2 Markov semigroups",
+      "dag": "semigroup -> generator-domain -> weak-test derivative subtree",
+      "first_leaf": "semigroup test-function pairing under generator-domain hypotheses",
+      "shared": "MEAS, SDE, REG",
+      "status": "planned"
+    },
+    {
+      "chapter": "1.3 optimal transport geometry",
+      "dag": "couplings -> Wasserstein distance -> geodesic convexity subtree",
+      "first_leaf": "law-map/coupling measurable pushforward interface",
+      "shared": "MEAS, CONV, REG",
+      "status": "planned"
+    },
+    {
+      "chapter": "1.4 Langevin as gradient flow",
+      "dag": "Gibbs density -> generator -> KL/FI dissipation -> WGF contract",
+      "first_leaf": "Whole-space IBP, the C_c^2 core-domain contract, normalized-Gibbs core annihilation, and the abstract semigroup/domain-to-invariance bridge compile; concrete Langevin semigroup instantiation and domain extension remain",
+      "shared": "DENS, FI, SDE, REG",
+      "status": "abstract-semigroup-invariance-bridge-compiled"
+    },
+    {
+      "chapter": "2 functional inequalities",
+      "dag": "PI/LSI/TI/isoperimetry plus preservation-operation subtrees",
+      "first_leaf": "log-concavity products, nonnegative powers, product-domain tensorization, linear/affine precomposition, negative-log potential convexity, superlevel convexity, plus Prekopa-Leindler preservation audit",
+      "shared": "CONV, DENS, FI, REG",
+      "status": "partial-local-compiled"
+    },
+    {
+      "chapter": "3 stochastic analysis topics",
+      "dag": "Girsanov -> Doob transform -> Follmer drift -> Schrodinger bridge",
+      "first_leaf": "finite-dimensional Gaussian Esscher density, stdGaussian inner-product form, cylindrical Girsanov integral, and RN/withDensity identity compiled; full Brownian path packaging remains",
+      "shared": "PATH, DENS, SDE, REG",
+      "status": "finite-girsanov-rn-cylinder-compiled"
+    },
+    {
+      "chapter": "4 Langevin Monte Carlo",
+      "dag": "coupling/interpolation/convex-optimization/Girsanov proof subtrees",
+      "first_leaf": "LMC interpolation weak-test law derivative under domination; two-point Gaussian transition-kernel geometry compiled",
+      "shared": "MEAS, KERN, SDE, DENS, REG, DISC",
+      "status": "partial-local-compiled"
+    },
+    {
+      "chapter": "5 faster low-accuracy samplers",
+      "dag": "randomized midpoint, HMC, underdamped generator subtrees",
+      "first_leaf": "Hamiltonian/underdamped transition-kernel regularity contract",
+      "shared": "GAUSS, SDE, DISC, REG",
+      "status": "planned"
+    },
+    {
+      "chapter": "6 Renyi divergence",
+      "dag": "Renyi density algebra -> interpolation/Girsanov derivative subtrees",
+      "first_leaf": "Renyi density algebra with positivity and finite-integral contracts",
+      "shared": "DENS, FI, SDE, REG",
+      "status": "first algebra leaves compiled"
+    },
+    {
+      "chapter": "7 high-accuracy samplers",
+      "dag": "rejection/MH/MALA kernels, detailed balance, warm-start subtrees",
+      "first_leaf": "proposal/acceptance Markov-kernel mass and reversibility contract",
+      "shared": "KERN, DENS, DISC, REG",
+      "status": "planned"
+    },
+    {
+      "chapter": "8 proximal sampler",
+      "dag": "restricted Gaussian oracle -> conditional laws -> proximal transition subtree",
+      "first_leaf": "two-point Gaussian/proximal kernel log-concavity and log-concave superlevel restriction compiled; restricted Gaussian conditional law remains",
+      "shared": "CONV, GAUSS, KERN, DISC, REG",
+      "status": "kernel-geometry-compiled"
+    },
+    {
+      "chapter": "9-12 lower bounds, structure, non-log-concave, diffusion models",
+      "dag": "consumer subtrees after core log-concave foundation stabilizes",
+      "first_leaf": "source-specific leaf only after shared roots are compiled",
+      "shared": "MEAS, DENS, SDE, PATH, DISC, REG",
+      "status": "deferred-consumer"
+    }
+  ],
+  "foundation_dag": "research-wiki/lemma-dags/log_concave_sampling_foundation.md",
+  "foundation_mmd": "docs/assets/log_concave_sampling_foundation.mmd",
+  "foundation_svg": "docs/assets/log_concave_sampling_foundation.svg",
+  "generated": "2026-08-02 02:28:33",
+  "library_overview": "research-wiki/sampling-sde-library/log_concave_sampling_overview.md",
+  "open_leaf_queue": [
+    {
+      "borrow": "Mathlib `ConcaveOn`, `ConcaveOn.subset`, `strictConcaveOn_log_Ioi`; AST Prekopa files for next statement style",
+      "label": "CONV/DENS",
+      "leaf": "logConcaveOn_density_def",
+      "status": "core API, negative-log potential extraction, quasiconcavity/superlevel convexity and restriction, linear/affine precomposition, product/power/product-domain tensorization, norm-square convexity, centered/shifted/two-point quadratic Gibbs log-concavity, and Gibbs positive-rescale leaves compiled; next Prekopa/RN integration",
+      "target": "TechnicalLemmas/Geometry/LogConcavity.lean"
+    },
+    {
+      "borrow": "external `AsymptoticStatistics/ForMathlib/PrekopaLeindler.lean`; Mathlib lacks direct PL package",
+      "label": "CONV/MEAS",
+      "leaf": "prekopaLeindler_finiteDimensional",
+      "status": "external-port-audit",
+      "target": "TechnicalLemmas/Geometry/PrekopaLeindler.lean"
+    },
+    {
+      "borrow": "external `Brunn1D.lean`; Mathlib convex/volume APIs",
+      "label": "CONV/MEAS",
+      "leaf": "brunnMinkowski_oneDim_outerMeasure",
+      "status": "external-port-audit",
+      "target": "TechnicalLemmas/Geometry/BrunnMinkowski.lean"
+    },
+    {
+      "borrow": "compiled `logConcaveOn_const_mul_exp_neg_of_convexOn`, log-concavity linear/affine precomposition and product/rpow/tensorization leaves, centered/shifted/two-point quadratic and one-dimensional Laplace normalized-density log-concavity, `gibbsDensityENNReal`, nonzero/finite envelope leaves, finite-measure lower-bound normalization, and `Analysis.Integrability` exact quadratic plus exact one-dimensional Laplace Lebesgue Gibbs normalizers; next generalize beyond finite-dimensional quadratic and one-dimensional Laplace tails",
+      "label": "DENS/CONV",
+      "leaf": "gibbsDensity_withDensity_normalized",
+      "status": "convex shape plus map pullbacks, product/power tensorization, centered/shifted/two-point quadratic and one-dimensional Laplace Gibbs log-concavity, Gibbs density, measurability, nonzero integral, finite-by-envelope, finite-measure lower-bound envelope, exact quadratic and exact one-dimensional Laplace Lebesgue normalizers, and normalized withDensity probability bridges compiled; general coercivity envelopes remain",
+      "target": "TechnicalLemmas/Geometry/LogConcavity.lean; then TechnicalLemmas/Measure/{Gibbs,RadonNikodym}.lean"
+    },
+    {
+      "borrow": "compiled Langevin algebra and IBP, explicit C_c^2 core/domain agreement, normalized-Gibbs core annihilation, and the abstract integrated-semigroup-generator invariance bridge; ASTIS WeakGenerator, LangevinGenerator, and GibbsIntegral supply the interfaces",
+      "label": "SDE/DENS/FI",
+      "leaf": "langevinGenerator_invariant_gibbs_weak",
+      "status": "analytic core, core-domain contract, normalized core mean-zero, and abstract semigroup bridge compile; concrete Langevin semigroup construction plus extension to a semigroup-stable domain remain red before invariant Gibbs law",
+      "target": "TechnicalLemmas/StochasticProcesses/Langevin.lean"
+    },
+    {
+      "borrow": "Mathlib convex/Jensen APIs; SLT/AST reference style for functional inequality statements",
+      "label": "FI/CONV",
+      "leaf": "lsi_tensorization_or_preservation_contract",
+      "status": "planned",
+      "target": "TechnicalLemmas/FunctionalInequalities/Preservation.lean"
+    },
+    {
+      "borrow": "external `GaussianMGF.lean`, `PiWithDensity.lean`, `GaussianShift.lean`",
+      "label": "GAUSS/PATH",
+      "leaf": "gaussianEsscher_shift_density",
+      "status": "formalized-local-density-half",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "borrow": "external `GaussianShift.lean`; local `stdGaussianPi_withDensity_exp_shift`",
+      "label": "GAUSS/PATH",
+      "leaf": "gaussianShift_change_of_measure",
+      "status": "formalized-local-product-measure",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "borrow": "Mathlib `EuclideanSpace`/`WithLp.toLp`; local `stdGaussianPi_shift_integral`",
+      "label": "GAUSS/PATH",
+      "leaf": "gaussianShift_euclidean_pushforward",
+      "status": "formalized-local-euclidean-pushforward",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "borrow": "Mathlib `map_pi_eq_stdGaussian`, `PiLp.inner_apply`, `EuclideanSpace.real_norm_sq_eq`",
+      "label": "GAUSS/PATH",
+      "leaf": "gaussianShift_stdGaussian_inner",
+      "status": "formalized-local-stdGaussian-inner",
+      "target": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean"
+    },
+    {
+      "borrow": "compiled `stdGaussian_shift_integral_map_toLp`; finite-dimensional cylindrical path-coordinate packaging",
+      "label": "PATH/GAUSS",
+      "leaf": "finiteGaussianGirsanov_cylinder",
+      "status": "formalized-local-cylinder",
+      "target": "TechnicalLemmas/StochasticProcesses/Girsanov.lean"
+    },
+    {
+      "borrow": "compiled `measurableEquiv_map_withDensity`, product Gaussian withDensity shift, and `map_pi_eq_stdGaussian`",
+      "label": "PATH/MEAS/GAUSS",
+      "leaf": "finiteGaussianGirsanov_rn_density",
+      "status": "formalized-local-rn-density",
+      "target": "TechnicalLemmas/StochasticProcesses/Girsanov.lean"
+    },
+    {
+      "borrow": "ASTIS LawMap/ConditionalKernel/WeakGenerator; textbook LMC interpolation as the consumer route",
+      "label": "DISC/SDE/KERN",
+      "leaf": "lmcInterpolation_weakGenerator",
+      "status": "planned-generalization",
+      "target": "SamplingAlgorithms/LangevinMonteCarlo.lean"
+    },
+    {
+      "borrow": "compiled `renyiIntegrand`, positivity, measurability, finite-envelope, and `HasDerivAt` rpow-product leaves; next add full divergence/log-normalization and path derivative contracts",
+      "label": "DENS/FI",
+      "leaf": "renyiDensity_pointwiseDerivative",
+      "status": "first-leaves-compiled",
+      "target": "TechnicalLemmas/InformationTheory/Renyi.lean"
+    },
+    {
+      "borrow": "Mathlib probability kernels/Markov-chain APIs if present; otherwise local kernel contracts",
+      "label": "DISC/KERN",
+      "leaf": "mhKernel_detailedBalance",
+      "status": "mathlib-search-required",
+      "target": "SamplingAlgorithms/MetropolisAdjustedLangevin.lean"
+    }
+  ],
+  "public_pdf": "https://chewisinho.github.io/main.pdf",
+  "roadmap": "research-wiki/sampling-sde-library/roadmap/log_concave_sampling_to_lean_tree.md",
+  "shared_roots": [
+    {
+      "label": "MEAS",
+      "module": "TechnicalLemmas/Probability/LawMap.lean",
+      "role": "push forward laws, weak-test integrals, map/withDensity/RN bridges",
+      "root": "measure-space and law transport",
+      "status": "partial-compiled-local"
+    },
+    {
+      "label": "KERN",
+      "module": "TechnicalLemmas/Probability/ConditionalKernel.lean",
+      "role": "condDistrib pairings, conditional drifts, a.e. representative discipline",
+      "root": "conditional kernels and representatives",
+      "status": "partial-compiled-local"
+    },
+    {
+      "label": "DENS",
+      "module": "TechnicalLemmas/Geometry/LogConcavity.lean; Measure/{Gibbs,RadonNikodym}.lean; InformationTheory/*",
+      "role": "positive density APIs, density-to-potential extraction, log-concavity algebra/tensorization, level-set quasiconcavity/restriction, linear/affine precomposition, centered/shifted/two-point quadratic and one-dimensional Laplace Gibbs log-concavity, Gibbs ENNReal density, finite-measure, exact quadratic, and exact one-dimensional Laplace Lebesgue normalization, absolute continuity, withDensity, pointwise entropy algebra",
+      "root": "densities, RN derivative, KL/Renyi integrands",
+      "status": "partial-compiled-local"
+    },
+    {
+      "label": "GAUSS",
+      "module": "TechnicalLemmas/ProbabilityDistributions/Gaussian.lean",
+      "role": "standard Gaussian laws, moments, MGF, finite-dimensional tilts, shifted and two-point quadratic density geometry",
+      "root": "Gaussian and product Gaussian infrastructure",
+      "status": "partial-compiled-local"
+    },
+    {
+      "label": "CONV",
+      "module": "TechnicalLemmas/Geometry/{Convex,LogConcavity,PrekopaLeindler}.lean",
+      "role": "convex functions/sets, negative-log potentials, log-concave superlevels, quadratic norm potentials, log-concavity products/powers and linear/affine pullbacks, Prekopa-Leindler, Brunn-Minkowski",
+      "root": "convex and log-concave geometry",
+      "status": "partial-compiled-local"
+    },
+    {
+      "label": "FI",
+      "module": "TechnicalLemmas/FunctionalInequalities/*",
+      "role": "PI, LSI, transport, concentration, isoperimetry, preservation",
+      "root": "functional inequalities",
+      "status": "planned-plus-LSI-bookkeeping-compiled"
+    },
+    {
+      "label": "SDE",
+      "module": "TechnicalLemmas/StochasticProcesses/*",
+      "role": "Markov semigroups, invariant Gibbs law, generator/KL dissipation",
+      "root": "semigroup, generator, weak-FP, Langevin",
+      "status": "partial-compiled-local"
+    },
+    {
+      "label": "PATH",
+      "module": "TechnicalLemmas/StochasticProcesses/{Girsanov,DoobTransform,FollmerDrift}.lean",
+      "role": "Girsanov, Doob transform, Follmer drift, Schrodinger bridge",
+      "root": "path-space change of measure",
+      "status": "planned"
+    },
+    {
+      "label": "DISC",
+      "module": "SamplingAlgorithms/*",
+      "role": "LMC, randomized midpoint, HMC, underdamped, MALA, proximal sampler",
+      "root": "algorithm discretization layer",
+      "status": "planned-consumer"
+    },
+    {
+      "label": "REG",
+      "module": "research-wiki/technical-lemmas/hidden_regularities.md",
+      "role": "measurability, integrability, domination, smoothness, boundary, positivity",
+      "root": "hidden regularity contracts",
+      "status": "protocol"
+    }
+  ],
+  "source_pdf": "/home/nitanda_sub/mark/repos/outer_papers/sampling_theory_sde/Chewi-Log-Concave-Sampling/main.pdf",
+  "status_tree_mmd": "docs/assets/log_concave_sampling_status.mmd",
+  "status_tree_svg": "docs/assets/log_concave_sampling_status.svg",
+  "task": "ASTIS-CHEWI-001"
+}

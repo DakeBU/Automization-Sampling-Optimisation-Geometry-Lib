@@ -1,0 +1,43 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.ProbabilityCouplingCompactness
+import AutoSamplingTheory.TechnicalLemmas.Measure.ContinuousCostWeakLowerSemicontinuity
+
+open MeasureTheory
+open scoped ENNReal NNReal
+open AutoSamplingTheory.TechnicalLemmas.Measure
+open ProbabilityCouplingCompactness
+
+namespace AutoSamplingTheory.TechnicalLemmas.Measure.OptimalContinuousCost
+
+/-- A continuous nonnegative cost attains its actual infimum over couplings of
+probabilities on complete second-countable metric Borel spaces. The minimum
+may be infinite; no finite moment or optimizer is assumed. -/
+theorem exists_optimal_coupling {E F : Type*}
+    [MetricSpace E] [CompleteSpace E] [SecondCountableTopology E]
+    [MeasurableSpace E] [BorelSpace E]
+    [MetricSpace F] [CompleteSpace F] [SecondCountableTopology F]
+    [MeasurableSpace F] [BorelSpace F]
+    (μ : Measure E) (ν : Measure F) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (c : E × F → ℝ≥0) (hc : Continuous c) :
+    ∃ γ : Measure (E × F), IsProbabilityMeasure γ ∧ Transport.IsCoupling γ μ ν ∧
+      (∫⁻ z, (c z : ℝ≥0∞) ∂γ) = Transport.transportCost (fun z => (c z : ℝ≥0∞)) μ ν := by
+  let P : ProbabilityMeasure E := ⟨μ,inferInstance⟩
+  let Q : ProbabilityMeasure F := ⟨ν,inferInstance⟩
+  have hn : (probabilityCouplingSet P Q).Nonempty := by
+    refine ⟨⟨μ.prod ν,inferInstance⟩, ?_⟩
+    exact isProbabilityCoupling_iff_isCoupling_toMeasure.mpr (Transport.isCoupling_prod μ ν)
+  have hcompact := isCompact_probabilityCouplingSet P Q
+  have hlsc := ContinuousCostWeakLowerSemicontinuity.lowerSemicontinuous_lintegral_continuous_nnreal c hc
+  obtain ⟨γ,hγ,hmin⟩ := LowerSemicontinuousOn.exists_isMinOn hn hcompact (hlsc.lowerSemicontinuousOn _)
+  have hγ' : Transport.IsCoupling (γ : Measure (E × F)) μ ν :=
+    isProbabilityCoupling_iff_isCoupling_toMeasure.mp hγ
+  refine ⟨γ,inferInstance,hγ',le_antisymm ?_ ?_⟩
+  · rw [Transport.transportCost_eq_sInf]
+    apply le_sInf
+    rintro r ⟨ρ,hρ,rfl⟩
+    let : IsProbabilityMeasure ρ := Transport.isProbabilityMeasure_of_isCoupling_left hρ
+    let R : ProbabilityMeasure (E × F) := ⟨ρ,inferInstance⟩
+    have hR : IsProbabilityCoupling R P Q := isProbabilityCoupling_iff_isCoupling_toMeasure.mpr hρ
+    exact hmin hR
+  · exact Transport.transportCost_le_lintegral_of_isCoupling _ μ ν γ hγ'
+
+end AutoSamplingTheory.TechnicalLemmas.Measure.OptimalContinuousCost

@@ -1,0 +1,278 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GlobalStoppedL2Overlap
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoHorizonProcessConsistency
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcessCongruence
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcessAfterHorizon
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingProcessConsistency
+
+/-!
+# Coherent stopped Itô martingales for the global localization ladder
+
+For the global local-`L²` source integrand `eta`, let `tau_k` be the cofinal
+dyadic global localizers and `H_k = 2^k`.  The literal source-facing stopped
+integrand
+
+`eta_s * 1_{s <= tau_k}`
+
+belongs to progressive `L²` on `H_k`.  This file applies the already-built
+finite-horizon Itô construction to obtain a continuous martingale `M_k` and
+proves that the family is coherent:
+
+`M_k = (M_ell)^{tau_k}` on `[0,H_k]`, almost surely, whenever `k <= ell`.
+
+The proof factors through three compiled compatibility theorems:
+
+* nested closed stopping in product `L²`;
+* congruence of the completed Itô map under `L²` equality;
+* exact consistency of completed Itô processes under dyadic horizon extension.
+
+Finally we prove that stopping `M_k` again at `tau_k` is a martingale.  This is
+*not* optional stopping: it follows because the stopped process is almost
+surely the Itô process of the stopped `L²` integrand, which is a martingale by
+the finite-horizon Itô theorem itself.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace GlobalStoppedItoMartingale
+
+open Filter MeasureTheory Set
+open scoped NNReal Topology
+
+open BrownianMotion DyadicGlobalHorizon GlobalLocalProgressiveL2
+  GlobalStoppedL2Overlap GlobalStoppedProgressiveL2 ItoHorizonProcessConsistency
+  ItoIntegralProcess ItoIntegralProcessAfterHorizon ItoIntegralProcessCongruence
+  ProgressiveL2 ProgressiveL2HorizonExtension ProgressiveL2Stopping
+  RandomStoppingProcessConsistency StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- The `k`-th genuine martingale obtained by integrating the literal globally
+stopped source integrand on its matching dyadic horizon. -/
+noncomputable def globalStoppedItoProcess
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (k : ℕ) : ℝ≥0 → Omega → ℝ :=
+  itoIntegralProcess
+    (globalStoppedProgressiveL2 hUsual eta k)
+    (dyadicHorizon_pos k) hB hUsual
+
+/-- Every localized Itô process is strongly adapted. -/
+theorem globalStoppedItoProcess_stronglyAdapted
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (k : ℕ) :
+    StronglyAdapted filtration (globalStoppedItoProcess hUsual eta hB k) := by
+  simpa only [globalStoppedItoProcess] using
+    itoIntegralProcess_stronglyAdapted
+      (globalStoppedProgressiveL2 hUsual eta k)
+      (dyadicHorizon_pos k) hB hUsual
+
+/-- Every localized Itô process is a genuine martingale on the whole
+nonnegative time axis (constant after its construction horizon). -/
+theorem globalStoppedItoProcess_martingale
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (k : ℕ) :
+    Martingale (globalStoppedItoProcess hUsual eta hB k) filtration mu := by
+  simpa only [globalStoppedItoProcess] using
+    itoIntegralProcess_martingale
+      (globalStoppedProgressiveL2 hUsual eta k)
+      (dyadicHorizon_pos k) hB hUsual
+
+/-- Every localized Itô process has an everywhere-continuous path on all
+nonnegative times. -/
+theorem globalStoppedItoProcess_continuous
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (k : ℕ) (omega : Omega) :
+    Continuous (fun t => globalStoppedItoProcess hUsual eta hB k t omega) := by
+  simpa only [globalStoppedItoProcess] using
+    itoIntegralProcess_continuous
+      (globalStoppedProgressiveL2 hUsual eta k)
+      (dyadicHorizon_pos k) hB hUsual omega
+
+/-- Every localized Itô process starts at zero exactly. -/
+@[simp] theorem globalStoppedItoProcess_zero
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (k : ℕ) :
+    globalStoppedItoProcess hUsual eta hB k 0 = 0 := by
+  simpa only [globalStoppedItoProcess] using
+    itoIntegralProcess_at_zero
+      (globalStoppedProgressiveL2 hUsual eta k)
+      (dyadicHorizon_pos k) hB hUsual
+
+/-- The `k`-th process is exactly constant after `H_k`. -/
+theorem globalStoppedItoProcess_eq_horizon_of_le
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (k : ℕ) {t : ℝ≥0} (ht : dyadicHorizon k ≤ t) :
+    globalStoppedItoProcess hUsual eta hB k t =
+      globalStoppedItoProcess hUsual eta hB k (dyadicHorizon k) := by
+  simpa only [globalStoppedItoProcess] using
+    itoIntegralProcess_eq_terminal_of_le
+      (globalStoppedProgressiveL2 hUsual eta k)
+      (dyadicHorizon_pos k) hB hUsual ht
+
+/-- **Compact-path coherence of the global localized martingales.**
+
+For `k <= ell`, on one full-measure event the lower process is the larger
+process stopped at `tau_k`, simultaneously at every time of `[0,H_k]`. -/
+theorem globalStoppedItoProcess_overlap_pathwise_ae
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {k ell : ℕ} (hkell : k ≤ ell) :
+    ∀ᵐ omega ∂mu, ∀ t ∈ Icc (0 : ℝ≥0) (dyadicHorizon k),
+      globalStoppedItoProcess hUsual eta hB k t omega =
+        stoppedProcess (globalStoppedItoProcess hUsual eta hB ell)
+          (fun w =>
+            (dyadicGlobalLocalizingTime hUsual eta k w : WithTop ℝ≥0))
+          t omega := by
+  let low := globalStoppedProgressiveL2 hUsual eta k
+  let high := globalStoppedProgressiveL2 hUsual eta ell
+  let tau : Omega → ℝ≥0 := dyadicGlobalLocalizingTime hUsual eta k
+  let stoppedHigh := stop high
+    (fun w => (tau w : WithTop ℝ≥0))
+    (dyadicGlobalLocalizingTime_isChewiStoppingTime hUsual eta k)
+  let extendedLow := extendByZero low
+    (DyadicHorizonExtension.dyadicHorizon_mono hkell)
+  have htauHigh : ∀ omega, tau omega ≤ dyadicHorizon ell := by
+    intro omega
+    exact (dyadicGlobalLocalizingTime_le_horizon hUsual eta k omega).trans
+      (DyadicHorizonExtension.dyadicHorizon_mono hkell)
+  have hLp : stoppedHigh.toLp = extendedLow.toLp := by
+    simpa only [low, high, tau, stoppedHigh, extendedLow] using
+      stop_globalStopped_toLp_eq_extendByZero hUsual eta hkell
+  have hcongr := itoIntegralProcess_congr_toLp_pathwise_ae
+    stoppedHigh extendedLow (dyadicHorizon_pos ell) hB hUsual hLp
+  have hstop := itoIntegralProcess_stop_eq_stoppedProcess_pathwise_ae
+    high (dyadicHorizon_pos ell) tau
+    (dyadicGlobalLocalizingTime_isChewiStoppingTime hUsual eta k)
+    htauHigh hB hUsual
+  have hhorizon := itoIntegralProcess_extendByZero_pathwise_ae
+    hkell low hB hUsual
+  filter_upwards [hcongr, hstop, hhorizon] with omega hcongrOmega hstopOmega hhorizonOmega
+  intro t ht
+  have htHigh : t ∈ Icc (0 : ℝ≥0) (dyadicHorizon ell) :=
+    ⟨ht.1, ht.2.trans (DyadicHorizonExtension.dyadicHorizon_mono hkell)⟩
+  have hc := hcongrOmega t htHigh
+  have hs := hstopOmega t htHigh
+  have hh := hhorizonOmega t ht
+  change
+    itoIntegralProcess low (dyadicHorizon_pos k) hB hUsual t omega =
+      stoppedProcess
+        (itoIntegralProcess high (dyadicHorizon_pos ell) hB hUsual)
+        (fun w => (tau w : WithTop ℝ≥0)) t omega
+  exact hh.symm.trans (hc.symm.trans hs)
+
+/-- Before the lower localizer has fired, all later localized martingales agree
+with the lower one.  This is the eventual pathwise stability used in global
+gluing. -/
+theorem globalStoppedItoProcess_eq_of_le_localizer_ae
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    {k ell : ℕ} (hkell : k ≤ ell) :
+    ∀ᵐ omega ∂mu, ∀ t : ℝ≥0,
+      t ≤ dyadicGlobalLocalizingTime hUsual eta k omega →
+      globalStoppedItoProcess hUsual eta hB k t omega =
+        globalStoppedItoProcess hUsual eta hB ell t omega := by
+  filter_upwards [globalStoppedItoProcess_overlap_pathwise_ae
+    hUsual eta hB hkell] with omega hoverlap
+  intro t htTau
+  have htH : t ≤ dyadicHorizon k :=
+    htTau.trans (dyadicGlobalLocalizingTime_le_horizon hUsual eta k omega)
+  have hEq := hoverlap t ⟨bot_le, htH⟩
+  rw [stoppedProcess_coe_apply] at hEq
+  rw [min_eq_left htTau] at hEq
+  exact hEq
+
+/-- Stopping one localized martingale at its own global localizer is again a
+martingale, proved by identifying it with the Itô process of the correspondingly
+stopped progressive-`L²` integrand. -/
+theorem stopped_globalStoppedItoProcess_martingale
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : GlobalLocalProgressiveL2Integrand filtration mu)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (k : ℕ) :
+    Martingale
+      (stoppedProcess (globalStoppedItoProcess hUsual eta hB k)
+        (fun w =>
+          (dyadicGlobalLocalizingTime hUsual eta k w : WithTop ℝ≥0)))
+      filtration mu := by
+  let base := globalStoppedProgressiveL2 hUsual eta k
+  let tau : Omega → ℝ≥0 := dyadicGlobalLocalizingTime hUsual eta k
+  let htau : IsChewiStoppingTime filtration
+      (fun w => (tau w : WithTop ℝ≥0)) :=
+    dyadicGlobalLocalizingTime_isChewiStoppingTime hUsual eta k
+  let stoppedBase := stop base (fun w => (tau w : WithTop ℝ≥0)) htau
+  let P : ℝ≥0 → Omega → ℝ :=
+    itoIntegralProcess stoppedBase (dyadicHorizon_pos k) hB hUsual
+  let S : ℝ≥0 → Omega → ℝ :=
+    stoppedProcess (globalStoppedItoProcess hUsual eta hB k)
+      (fun w => (tau w : WithTop ℝ≥0))
+  have hPmart : Martingale P filtration mu := by
+    simpa only [P] using
+      itoIntegralProcess_martingale stoppedBase (dyadicHorizon_pos k) hB hUsual
+  have hBaseContinuous : ∀ omega,
+      Continuous (fun t => globalStoppedItoProcess hUsual eta hB k t omega) :=
+    globalStoppedItoProcess_continuous hUsual eta hB k
+  have hSadapted : StronglyAdapted filtration S := by
+    have hbaseAdapted := globalStoppedItoProcess_stronglyAdapted hUsual eta hB k
+    simpa only [S, tau, htau] using
+      hbaseAdapted.stoppedProcess hBaseContinuous htau
+  have htauH : ∀ omega,
+      (tau omega : WithTop ℝ≥0) ≤ (dyadicHorizon k : WithTop ℝ≥0) := by
+    intro omega
+    exact WithTop.coe_le_coe.mpr
+      (dyadicGlobalLocalizingTime_le_horizon hUsual eta k omega)
+  have hEq : ∀ t, P t =ᵐ[mu] S t := by
+    intro t
+    rcases le_total t (dyadicHorizon k) with ht | ht
+    · simpa only [P, S, base, stoppedBase, tau, htau, globalStoppedItoProcess] using
+        itoIntegralProcess_stop_eq_stoppedProcess_ae
+          base (dyadicHorizon_pos k) tau htau
+          (dyadicGlobalLocalizingTime_le_horizon hUsual eta k)
+          hB hUsual ht
+    · have hterminal :=
+        itoIntegralProcess_stop_eq_stoppedProcess_ae
+          base (dyadicHorizon_pos k) tau htau
+          (dyadicGlobalLocalizingTime_le_horizon hUsual eta k)
+          hB hUsual (le_refl (dyadicHorizon k))
+      have hPconst : P t = P (dyadicHorizon k) := by
+        simpa only [P] using
+          itoIntegralProcess_eq_terminal_of_le
+            stoppedBase (dyadicHorizon_pos k) hB hUsual ht
+      have hSconst : S t = S (dyadicHorizon k) := by
+        simpa only [S] using
+          stoppedProcess_eq_terminal_of_le
+            (globalStoppedItoProcess hUsual eta hB k)
+            (fun w => (tau w : WithTop ℝ≥0)) htauH ht
+      rw [hPconst, hSconst]
+      simpa only [P, S, base, stoppedBase, tau, htau, globalStoppedItoProcess] using
+        hterminal
+  exact hPmart.congr hSadapted hEq
+
+end GlobalStoppedItoMartingale
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

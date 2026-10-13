@@ -1,0 +1,267 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-conditional-gradient-energy",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS reflected conditional outer gradient energy",
+  "mode": "faithfulPaper",
+  "source_anchor": "PBPS arXiv2609.06905v1 Appendix C.1 formula(C.2) A3.E2 physical4654-4665; B.9 variance defect3714-3735; B.13 smooth test-class ingredient3777-3786; standing348-363/laws616-650. Full L2-H1 extension4575-4576 is excluded.",
+  "target_statement": "theorem reflected_conditional_gradient_energy\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x a : E,\n      (α : ℝ) * ‖a‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x a) a ∧\n      (fderiv ℝ (fderiv ℝ V) x a) a ≤ (β : ℝ) * ‖a‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1, p.1 + Real.sqrt η • p.2))\n      (μ.prod (stdGaussian E))\n    let ν := J.snd\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2 : ℝ) • x - y)) ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun u => -V ((1/2 : ℝ) • (y+u)) - ‖y-u‖^2/(8*η))) ∧\n      ∀ (f : E → ℝ), ContDiff ℝ ∞ f → HasCompactSupport f →\n        let Tf := fun y => ∫ u, f u ∂S y\n        Differentiable ℝ Tf ∧ MemLp f 2 ν ∧ MemLp Tf 2 ν ∧\n        MemLp (gradient Tf) 2 ν ∧\n        Integrable (fun y =>\n          AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n            (S y) f) ν ∧\n        (∫ y, AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n          (S y) f ∂ν) = (∫ y, (f y)^2 ∂ν) - (∫ y, (Tf y)^2 ∂ν) ∧\n        η * (∫ y, ‖gradient Tf y‖^2 ∂ν) ≤\n          (1-(α : ℝ)*η)^2/(4*(1+(α : ℝ)*η)) *\n            ((∫ y, (f y)^2 ∂ν) - (∫ y, (Tf y)^2 ∂ν))\n",
+  "status": "claimed",
+  "parents": [
+    "ASTIS-SW-PBPS-conditional-gradient-variance",
+    "ASTIS-SW-PBPS-gibbs-augmentation",
+    "ASTIS-SW-PBPS-gaussian-augmentation-reflection"
+  ],
+  "consumers": [
+    "PBPS Appendix C.1 exact outer formula(C.2); actual smooth-compact B.13 energy ingredient. Full rough L2-to-H1, literal Gamma/operator adapters, half-turn and main costs remain separate."
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Existing Samplinglib ASTIS FunctionalInequalities/Probability/SDE shared substrate and technical-lemma memory; verified true ConditionalGradientVariance, GibbsAugmentation and GaussianReflection producers.",
+      "Pinned Mathlib db584cd6 disintegration, compProd Fubini, kernel integrals, compact bounded L2, genuine variance expansion, measurable fderiv/Riesz and L1 domination."
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy.reflected_conditional_gradient_energy",
+    "canonical_shared_cell": "ASTIS-SW-PBPS-conditional-gradient-variance",
+    "reason": "Integrate actual pointwise bound under genuine outer law; derive actual reflected conditional variance defect with all domains internal."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Existing Samplinglib ASTIS FunctionalInequalities/Probability/SDE shared substrate and technical-lemma memory; verified true ConditionalGradientVariance, GibbsAugmentation and GaussianReflection producers.",
+      "Pinned Mathlib db584cd6 disintegration, compProd Fubini, kernel integrals, compact bounded L2, genuine variance expansion, measurable fderiv/Riesz and L1 domination."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance.reflected_conditional_gradient_variance",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.GibbsAugmentation.normalized_augmentation_density",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection.reflection_preserves_augmentation",
+      "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "PBPS Appendix C.1 exact outer formula(C.2); actual smooth-compact B.13 energy ingredient. Full rough L2-to-H1, literal Gamma/operator adapters, half-turn and main costs remain separate."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Missing real outer energy/variance identity, not a bound/domain-certificate wrapper; same48 R/S throughout."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy.reflected_conditional_gradient_energy"
+    ],
+    "visual_review": "Pending actual outer energy branch from3 true producerparents and actualvariance definition. No fullroughH1/operator/main edge."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261007-PBPSConditionalGradientEnergy",
+    "execution_boundary": "Smooth compact outer(C.2) exact coefficient and actual conditional variance-defect identity with all probability/measurability/L2/integrability domains internal. FiniteHilbert/rank0 authored extension. Full L2-to-H1/closed outer gradient/B.13 literal operator norm-square adapters/spectral C.3/halfturn/full mains/errors/cost/composition remain separate. Actual focused3888PASS; independent wholeproof/blind/source/exactcommit/shared admission pending.",
+    "focused_checks": [
+      {
+        "command": "lake build Tests.ProximalBPSConditionalGradientEnergy",
+        "result": "PASS3888 tests.1; actual Gaussianprecision zeroenergy WITH true differentiation/all domains/variance-defect and rank0;3 standard3 axiom sets"
+      }
+    ],
+    "statement_seal": "runs/20261007-companion-priority/pbps-outer-gradient-preproof49/statement-seals.accepted.json",
+    "source_topology_status": "Original negative preserved; distinct creator/reviewer accepted T1 exposure/T2 sixteen references/T3 compact-reduction boundary."
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Exact1795 StatementSeal and independently accepted source-only topology overlay admitted before proof."
+  },
+  "declaration_level": "source-anchor",
+  "source_detail_audit": {
+    "primary_edition": "PBPS arXiv2609.06905v1 / pinned Mathlib db584cd6",
+    "primary_anchor": "PBPS arXiv2609.06905v1 Appendix C.1 formula(C.2) A3.E2 physical4654-4665; B.9 variance defect3714-3735; B.13 smooth test-class ingredient3777-3786; standing348-363/laws616-650. Full L2-H1 extension4575-4576 is excluded.",
+    "fidelity_boundary": "Smooth compact outer(C.2) exact coefficient and actual conditional variance-defect identity with all probability/measurability/L2/integrability domains internal. FiniteHilbert/rank0 authored extension. Full L2-to-H1/closed outer gradient/B.13 literal operator norm-square adapters/spectral C.3/halfturn/full mains/errors/cost/composition remain separate.",
+    "detail_status": "cites_external",
+    "gap": "Smooth compact outer(C.2) only; full B.13 rough closure/operator adapters excluded.",
+    "consulted": [
+      {
+        "source": "Independent primary-first49 source contract and three genuine public producer interfaces; independently reviewed source-only topology.",
+        "anchor": "78 nodes296 edges229 selected rows146 NODE83 EXCLUDED;16 exact missing references; raw incidental proof1/semantic0.",
+        "hypothesis_adapter": "Unchanged48 source hypotheses; actual probability/law/gradient/L2/varianceL1/defect outputs, finiteHilbert/rank0 authored extension."
+      }
+    ],
+    "source_preread": "runs/20261007-companion-priority/pbps-outer-gradient-preread49/source-detail.md"
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No mathematical route started; unchanged original representation negatives preserved.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "pbps-actual-reflected-conditional-outer-gradient-energy"
+      ],
+      "expected_information_gain": "Root sole mathematical writer; independent primary/statement/topology/math/blind/source/exact review uncertainties.",
+      "shared_verified_context_digest": "9d6868f7bf5dcd269093a894a9177ab0d29c62a0c28ef059e2a21729538e97f0"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "pbps-source-disintegration-reflection-variance-energy",
+      "selection_reason": "Dependency-ready actual consumer(C.2); no unrelated parallel mathematical lane."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "S.model",
+        "S.curvature",
+        "S.eta",
+        "S.J",
+        "S.nu",
+        "S.R",
+        "S.reflection",
+        "S.T",
+        "S.var-defect",
+        "S.compact",
+        "S.S",
+        "S.pointwise",
+        "S.integration",
+        "S.C2",
+        "R.rough",
+        "R.operator",
+        "A.Gibbs",
+        "A.reflection",
+        "A.48",
+        "D.tilt",
+        "D.variance",
+        "D.gradient",
+        "I.mu-prob",
+        "I.Jnu-prob",
+        "I.S-prob",
+        "I.same",
+        "I.bound",
+        "I.T-domain",
+        "I.moment-meas",
+        "I.disintegrate",
+        "I.inner-map",
+        "I.second-moment",
+        "I.fiber-var",
+        "I.defect",
+        "I.derivative",
+        "I.grad-meas",
+        "I.grad-domain",
+        "I.integrate",
+        "I.algebra",
+        "I.target",
+        "I.rankzero",
+        "P.disintegration",
+        "P.disintegrate",
+        "P.fubini-domain",
+        "P.fubini",
+        "P.kernel-meas",
+        "P.kernel-prod-meas",
+        "P.fderiv-meas",
+        "P.domination",
+        "P.integral-order",
+        "P.map-integral",
+        "P.bounded-Lp",
+        "P.gradient-L2",
+        "P.var-integral",
+        "P.var-sub",
+        "P.tilt-prob",
+        "P.markov",
+        "P.markov-instance",
+        "P.integral",
+        "P.map",
+        "P.prod",
+        "P.snd",
+        "P.stdGauss",
+        "P.exp",
+        "P.withDensity",
+        "P.ofReal",
+        "P.Riesz",
+        "P.fderiv",
+        "P.typing",
+        "P.prob",
+        "P.sqrt",
+        "P.norm",
+        "P.volume",
+        "P.mathlib-variance",
+        "P.compact-bound",
+        "P.mean-bound",
+        "P.map-prob",
+        "P.fst"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy.reflected_conditional_gradient_energy"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientVariance.reflected_conditional_gradient_variance",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.GibbsAugmentation.normalized_augmentation_density",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection.reflection_preserves_augmentation"
+    ],
+    "bookkeeping": [
+      "Use same48 R/S disintegration and true reflection map; no pointwise conditional uniqueness shortcut.",
+      "Produce all probability/measurability/integrability/L2/variance defect/gradient-domain internally."
+    ],
+    "new_reusable": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGradientEnergy.reflected_conditional_gradient_energy"
+    ],
+    "new_topology": "Actual reflected conditional mean pointwise gradient bound + genuine joint invariance/Fubini => outer variance defect and sharp energy inequality."
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-outer-gradient-preproof49/statement-seals.accepted.json",
+    "source_revision": "PBPS arXiv2609.06905v1; Mathlib db584cd6 Lean4.33.0",
+    "statement_version": 1,
+    "signature_digest": "f37b4a07e62e16d22f4ecbc1fba9c38fd80d42f947011b38ded7c5153e0bea1d",
+    "binder_audit": "runs/20261007-companion-priority/pbps-outer-gradient-preproof-review49/statement.review.json",
+    "definition_kind": {
+      "law": "Literal actual augmentation J and its outer Y marginal nu=J.snd; true reflected conditional S every-y density. Probability of mu/J/nu is an output.",
+      "gradient": "True Mathlib gradient of the actual integral Tf; all-point differentiability and true gradient L2 produced internally.",
+      "variance": "Actual integral centered square Poincare.variance in the same S, integrated against actual outer nu; its defect identity is an output."
+    }
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-outer-gradient-topology-overlay49/source-proof-graph.after.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-outer-gradient-topology-overlay49/caller-inventory.after.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-outer-gradient-source-topology-review49/source-topology-review.repaired.json",
+    "coverage_status": "Independent exhaustive229 selected-source rows; original negative and raw input recipes unchanged; no wholepaper coverage claim."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "reason": "Implementedaudit: jointGaussianreflection/disintegration identifies a conditionalvariance projectiondefect; measurable truegradient domination integrates existing pointwise estimate. Existing family:discrete-hypocoercivity/family:gaussian-law-symmetry already preserve these mechanisms; no new space/metric/oracle/domain transport, theorem equivalence or certifiedfunctor discovered. This upperenergy bound is not a Poincare/coercivity inequality."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "One public1795 theorem and one private reflected_second_moment, consumed directly by the public theorem; Gaussian/zero-dimensional actual-law Tests. Independent complete reachability audit pending.",
+    "duplicate_semantics_audit": "Reuse three genuine parents; no second unrelated conditional witness.",
+    "canonicalization": "PBPS ConditionalGradientEnergy exact smooth(C.2).",
+    "compressed_spine_delta": "Same R/S -> actual reflected second-moment marginal -> conditional variance defect -> measurable gradient domination -> exact outer energy.",
+    "reader_default_view": "Existing PBPS companion formulas/proof/foldedLean/sourceTests/remaining B13 rough/operator/main/cost.",
+    "scope": "Smooth compact outer(C.2) exact coefficient and actual conditional variance-defect identity with all probability/measurability/L2/integrability domains internal. FiniteHilbert/rank0 authored extension. Full L2-to-H1/closed outer gradient/B.13 literal operator norm-square adapters/spectral C.3/halfturn/full mains/errors/cost/composition remain separate. Actual focused3888PASS; independent wholeproof/blind/source/exactcommit/shared admission pending."
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-l2-flip-duality",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS full real-L2 momentum-flip adjoint identity",
+  "mode": "faithfulPaper",
+  "declaration_level": "source-anchor",
+  "source_anchor": "Appendix A.1 Eq A.3 (A1.E3 lines3000-3014), density extension (A1.Ex21 lines3210-3227), phase law Eq3.1 lines1411-1422.",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation\nimport AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct\nimport Mathlib.MeasureTheory.Function.L2Space\n\n/- Prospective type-only statement. No proof, seal or claim yet. -/\nnamespace PBPSActualL2FlipDualityCandidate108\nopen MeasureTheory InnerProductSpace ProbabilityTheory\nopen scoped ContDiff NNReal ENNReal Classical\nnoncomputable section\nset_option autoImplicit false\n\ndef candidate\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let readTime : Rec → ℝ := fun r => match r with\n      | Sum.inl q => (q.1 : ℝ)\n      | Sum.inr _ => 0\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>\n      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧\n        StrictMono (fun j => readTime (h j)) ∧\n        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}\n    let eventTime : E → E → (E × E) → (ℕ → ℝ) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ w j => (record y xRef z₀ (ε w) j).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    let I : E → E → (E × E) → ℝ≥0 → ℕ → Set (ℕ → ℝ) :=\n      fun y xRef z₀ T n => {w | eventTime y xRef z₀ w n ≤ (T : WithTop ℝ≥0) ∧\n        (T : WithTop ℝ≥0) < eventTime y xRef z₀ w (n + 1)}\n    let N : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → ℕ := fun y xRef z₀ T w =>\n      if h : ∃ n, w ∈ I y xRef z₀ T n then Nat.find h else 0\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let survival : E → E → Rec → ℝ≥0 → ℝ → Prop :=\n      fun y xRef r u e => r.elim\n        (fun a => (u : WithTop ℝ≥0) < τ y xRef a.2 (Real.toNNReal e)) (fun _ => False)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let C : E → E → (E × E) → (n : ℕ) → ℝ≥0 → Set (ℕ → ℝ) :=\n      fun y xRef z₀ n T => {w | history y xRef z₀ n w ∈ A n T ∧\n        survival y xRef (record y xRef z₀ (ε w) n) (d n T (history y xRef z₀ n w)) (w n)}\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let Vy : E → E → ℝ := fun y x => V x + ‖x - y‖ ^ 2 / (2 * η)\n    let nu : E → Measure (E × E) := fun y =>\n      ((volume : Measure E).tilted (fun x => -Vy y x)).prod\n        (ProbabilityTheory.stdGaussian E)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E), w ∈ I y xRef z₀ s n →\n          record y xRef z₀ (ε w) n = Sum.inl a →\n          Z y xRef z₀ s w = Φ y xRef ((s - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        (¬ ∃ n, w ∈ I y xRef z₀ s n) → Z y xRef z₀ s w = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ w ∂P, Z y xRef z₀ 0 w = z₀) ∧\n      (∀ y xRef : E, ∀ T : ℝ≥0,\n        let op : ((E × E) → ℝ) → (E × E) → ℝ :=\n          fun G z => ∫ w, G (Z y xRef z T w) ∂P\n        let endpoint : (E × E) × (ℕ → ℝ) → E × E :=\n          fun a => Z y xRef a.1 T a.2\n        MeasurePreserving endpoint ((nu y).prod P) (nu y) ∧\n        ∀ F G : (E × E) → ℝ, ∀ C_F C_G : ℝ,\n          Measurable F → Measurable G → 0 ≤ C_F → 0 ≤ C_G →\n          (∀ z, |F z| ≤ C_F) → (∀ z, |G z| ≤ C_G) →\n          Integrable (fun z => F z * op G z) (nu y) ∧\n          Integrable (fun z => G (R z) * op (fun a => F (R a)) z) (nu y) ∧\n          (∫ z, F z * op G z ∂nu y) =\n            ∫ z, G (R z) * op (fun a => F (R a)) z ∂nu y) ∧\n      (∀ G : (E × E) → ℝ, Measurable G →\n        Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 =>\n          ∫ w, G (Z a.1.1.1 a.1.1.2 a.1.2 a.2 w) ∂P) ∧\n        ∀ C : ℝ, 0 ≤ C → (∀ z, |G z| ≤ C) →\n          ∀ y xRef : E, ∀ z : E × E, ∀ T : ℝ≥0,\n            Integrable (fun w => G (Z y xRef z T w)) P ∧\n            |∫ w, G (Z y xRef z T w) ∂P| ≤ C) ∧\n      (∀ y xRef : E,\n        ∃ A : ℝ≥0 → (Lp ℝ 2 (nu y) →L[ℝ] Lp ℝ 2 (nu y)),\n          A 0 = ContinuousLinearMap.id ℝ (Lp ℝ 2 (nu y)) ∧\n          (∀ T : ℝ≥0, ‖A T‖ ≤ 1 ∧\n            ∀ G : (E × E) → ℝ, ∀ hG : MemLp G 2 (nu y),\n              let opG : (E × E) → ℝ := fun z => ∫ w, G (Z y xRef z T w) ∂P\n              (∀ᵐ z ∂nu y, Integrable (fun w => G (Z y xRef z T w)) P) ∧\n              (∃ hOp : MemLp opG 2 (nu y), A T (hG.toLp G) = hOp.toLp opG) ∧\n              (∫ z, |opG z| ^ 2 ∂nu y) ≤ ∫ z, |G z| ^ 2 ∂nu y) ∧\n          ∃ hR : MeasurePreserving R (nu y) (nu y),\n            let J : Lp ℝ 2 (nu y) →ₗᵢ[ℝ] Lp ℝ 2 (nu y) :=\n              Lp.compMeasurePreservingₗᵢ ℝ R hR\n            (∀ f : Lp ℝ 2 (nu y),\n              (J f : (E × E) → ℝ) =ᵐ[nu y] fun z => f (R z)) ∧\n            (∀ f : Lp ℝ 2 (nu y), J (J f) = f) ∧\n            ∀ T : ℝ≥0, (A T).adjoint =\n              J.toContinuousLinearMap.comp ((A T).comp J.toContinuousLinearMap))\n\n\n#check candidate\nend\nend PBPSActualL2FlipDualityCandidate108\n",
+  "status": "proved_locally",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation.actual_l2_expectation_contraction"
+  ],
+  "consumers": [
+    "Actual momentum-averaged position self-adjointness; future hypocoercive operator analysis also requires separately proved domain, continuity and semigroup facts."
+  ],
+  "target_declarations": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality.actual_l2_flip_duality"
+  ],
+  "evidence": {
+    "owner": "companion_root_20261005",
+    "statement_seal": "runs\\20261007-companion-priority\\pbps-actual-l2-flip-preread108\\root.statement-seal108.json",
+    "focused_checks": [
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-l2-flip-duality108/focused108/full2/receipt.json"
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2FlipDuality.lean"
+    ],
+    "truth_boundary": "Full fixed-time real L2 flip adjoint identity with all107 conclusions. Strong continuity, restart/Markov/semigroup, separate kernel-witness identification, momentum-averaged position operator, hypocoercivity, implementation errors, actual expected costs, composition and all four full papers remain open.",
+    "whole_target_compiled": {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2FlipDuality.lean",
+      "raw_sha256": "2358ce3e7a74b5d1ebdf857be873588db3ffdefd08239b7f2df37bf6b72349cd",
+      "bytes": 16657
+    },
+    "independent_whole_math": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-l2-flip-duality108/independent-whole-math108/whole-math-decision108.native.json"
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "runs\\20261007-companion-priority\\pbps-actual-l2-expectation107\\next-primary108\\retrieval108.native.json",
+      "runs\\20261007-companion-priority\\pbps-actual-l2-expectation107\\next-primary108\\route-policy-repair108\\route-policy-repair108.proposal.native.json",
+      "runs\\20261007-companion-priority\\pbps-actual-l2-flip-preread108\\independent-header-math108\\header-math-decision108.native.json",
+      "Samplinglib actual107 and distinct-witness L2 kernels; pinned Mathlib Gaussian symmetry, product measure maps, L2 pullback isometry, simple-function density and adjoints; compatible upstream screened in source retrieval."
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality.actual_l2_flip_duality",
+    "canonical_shared_cell": "",
+    "reason": "Prove the full real-L2 adjoint identity for the same107 process and family; existing separately existential kernel witnesses cannot be silently substituted."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "runs\\20261007-companion-priority\\pbps-actual-l2-expectation107\\next-primary108\\retrieval108.native.json",
+      "runs\\20261007-companion-priority\\pbps-actual-l2-expectation107\\next-primary108\\route-policy-repair108\\route-policy-repair108.proposal.native.json",
+      "runs\\20261007-companion-priority\\pbps-actual-l2-flip-preread108\\independent-header-math108\\header-math-decision108.native.json",
+      "Samplinglib actual107 and distinct-witness L2 kernels; pinned Mathlib Gaussian symmetry, product measure maps, L2 pullback isometry, simple-function density and adjoints; compatible upstream screened in source retrieval."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation.actual_l2_expectation_contraction"
+    ],
+    "planned_dependencies": [],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "Actual momentum-averaged position self-adjointness; future hypocoercive operator analysis also requires separately proved domain, continuity and semigroup facts."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Canonical flip isometry and involution, bounded simple pairings, continuous density extension, and full real-L2 adjoint identity; all107 outputs retained."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Final source verdict, independent exact-commit verification, sole-lane aggregate integration and reader delivery."
+  },
+  "statement_seal": {
+    "evidence": "runs\\20261007-companion-priority\\pbps-actual-l2-flip-preread108\\root.statement-seal108.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "72b87d59ed60dbe26c4174c949289d07b8328b72224ce3fb3a8fd21b5f0775ae",
+    "binder_audit": [
+      "Six original analytic assumptions; finite real Hilbert Borel typing; test/MemLp hypotheses are universally quantified observable conditions only. No extra process/operator premises."
+    ],
+    "definition_kind": "37 literal global actual algorithm/clock/path/phase definitions retained, inherited op/endpoint/opG lets and canonical J pullback (41 total). Same global Z and same A family retain all107 conclusions. Measure preservation of R is an output; no supplied process/operator/duality premise."
+  },
+  "source_proof_coverage": {
+    "source_graph": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-l2-expectation107/next-primary108/route-policy-repair108/source-proof-graph-delta108.v2.native.json",
+    "source_inventory": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-l2-expectation107/next-primary108/route-policy-repair108/source-coverage108.v2-overlay.native.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-actual-l2-flip-duality108/final-source108/compiled-source-coverage108.native.json",
+    "coverage_status": "Independently accepted compiled source coverage; full paper boundaries remain open."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Appendix A.1 Eq A.3 (A1.E3 lines3000-3014), density extension (A1.Ex21 lines3210-3227), phase law Eq3.1 lines1411-1422.",
+    "fidelity_boundary": "Full fixed-time real L2 flip adjoint identity with all107 conclusions. Strong continuity, restart/Markov/semigroup, separate kernel-witness identification, momentum-averaged position operator, hypocoercivity, implementation errors, actual expected costs, composition and all four full papers remain open.",
+    "detail_status": "omitted",
+    "gap": "Expand the source density sentence into simple representatives, bounded pairings, two-variable continuity and full adjoint uniqueness.",
+    "consulted": [
+      {
+        "source": "Pinned PBPS v1, actual Samplinglib producers and fixed Mathlib",
+        "anchor": "Appendix A.1 Eq A.3 and final density extension",
+        "hypothesis_adapter": "Original six assumptions and literal actual algorithm retained; flip measure preservation, L2 isometry, density and adjoint identity are internal dependencies, not premises."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation.actual_l2_expectation_contraction"
+    ],
+    "bookkeeping": [
+      "One107 invocation retains the same global process and family",
+      "Actual phase-flip measure preservation and canonical L2 involution",
+      "Bounded simple representatives identify both signed pairings",
+      "Continuous two-variable density and adjoint uniqueness"
+    ],
+    "new_reusable": [],
+    "new_topology": "For the same actual global Z and real L2 expectation family A from107, prove the canonical momentum-flip pullback J is an involutive L2 isometry and every fixed-time adjoint satisfies A_T.adjoint = J composed A_T composed J, by bounded simple representatives and continuous two-variable density extension."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "One public actual full real-L2 flip theorem and one literal private proposition. Same-process public107 is the only direct actual producer. Canonical flip, simple representative pairings, two-variable density and adjoint uniqueness are local blocks using pinned Mathlib. No private producer calls or semigroup assertion.",
+    "duplicate_semantics_audit": "Existing107 provides actual expectation contraction; full all-L2 flip identity remains a new edge. Distinct kernel witnesses remain separate.",
+    "canonicalization": "Reuse actual107 and pinned Mathlib without duplicate wrappers.",
+    "compressed_spine_delta": "For the same actual global Z and real L2 expectation family A from107, prove the canonical momentum-flip pullback J is an involutive L2 isometry and every fixed-time adjoint satisfies A_T.adjoint = J composed A_T composed J, by bounded simple representatives and continuous two-variable density extension.",
+    "reader_default_view": "Full attributed statement and adjacent folded Lean with stepwise formula proof.",
+    "scope": "Full fixed-time real L2 flip adjoint identity with all107 conclusions. Strong continuity, restart/Markov/semigroup, separate kernel-witness identification, momentum-averaged position operator, hypocoercivity, implementation errors, actual expected costs, composition and all four full papers remain open."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "Full sealed target compiled. No mathematical fragment discarded. The joint-expectation and generic adjoint/L2 scratch proofs are retained; failed probes record explicit embedding types, missing integral-uniqueness import, indicator AE transport, local universe specialization and the zero-time filter annotation.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-l2-flip-duality"
+      ],
+      "expected_information_gain": "One proving owner and independent mathematical/source/decoder audits.",
+      "shared_verified_context_digest": "72b87d59ed60dbe26c4174c949289d07b8328b72224ce3fb3a8fd21b5f0775ae"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Single source-faithful implementation route."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "PHASE-FLIP106",
+        "FLIP-L2-108",
+        "SIMPLE-REP108",
+        "BOUNDED-PAIR108",
+        "FULL-PAIR108",
+        "L2A3"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality.actual_l2_flip_duality"
+      ],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality.actual_l2_flip_duality"
+    ],
+    "visual_review": "Pending implementation and publication."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "reason": "Post-proof audit: canonical pullback by a measure-preserving involution and extension of continuous bilinear identities from a dense subset reuse existing probability/Hilbert mechanisms. No new cross-domain mechanism or formal transport certificate is claimed.",
+    "discovery_ids": []
+  }
+}

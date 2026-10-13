@@ -1,0 +1,58 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath
+import AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility
+
+/-!
+# Reversibility of the existing uniform random-scan kernel
+
+The finite conditional-update balance argument is integrated into Mathlib's
+set-lintegral notion of reversibility. Zero target atoms are allowed. The
+positive-start singleton law is never applied at an unsupported start.
+This is a standard derivation for the general update, not an attribution of
+the hard-core ergodicity discussion to every Boolean target. Reversibility
+does not supply irreducibility, convergence, or a computational cost bound.
+-/
+
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal
+
+private theorem singleton_balance {n : ℕ} (μ : Measure (Fin (n + 1) → Bool))
+    [IsProbabilityMeasure μ] (x y : Fin (n + 1) → Bool) :
+    μ {x} * randomScan μ x {y} = μ {y} * randomScan μ y {x} := by
+  classical
+  have hz (a b : Fin (n + 1) → Bool) (ha : μ {a} = 0) :
+      μ {a} * randomScan μ a {b} = μ {b} * randomScan μ b {a} := by
+    by_cases hb : μ {b} = 0
+    · simp only [ha, hb, zero_mul]
+    · rw [randomScan_apply_singleton μ b a hb]
+      simp only [ha, zero_mul, mul_zero, ite_self, Finset.sum_const_zero]
+  by_cases hx : μ {x} = 0
+  · exact hz x y hx
+  by_cases hy : μ {y} = 0
+  · exact (hz y x hy).symm
+  rw [randomScan_apply_singleton μ x y hx, randomScan_apply_singleton μ y x hy]
+  simp only [← mul_assoc]
+  rw [mul_comm (μ {x}) (n + 1 : ℝ≥0∞)⁻¹,
+    mul_comm (μ {y}) (n + 1 : ℝ≥0∞)⁻¹, mul_assoc, mul_assoc]
+  congr 1
+  rw [Finset.mul_sum, Finset.mul_sum]
+  apply Finset.sum_congr rfl
+  intro i _
+  have hsym : (∀ j, j ≠ i → y j = x j) ↔ (∀ j, j ≠ i → x j = y j) :=
+    ⟨fun h j hj => (h j hj).symm, fun h j hj => (h j hj).symm⟩
+  by_cases h : ∀ j, j ≠ i → y j = x j
+  · have hf : (fun j => y (i.succAbove j)) = (fun j => x (i.succAbove j)) :=
+      funext (fun j => h _ (Fin.succAbove_ne _ _))
+    simp only [if_pos h, if_pos (hsym.mp h), hf]
+    ac_rfl
+  · simp only [if_neg h, if_neg (mt hsym.mpr h), mul_zero]
+
+/-- The actual uniform random-site heat-bath kernel is reversible for every
+Boolean probability target, without a full-support or starting-atom premise.
+Conditional versions at target-null inputs are immaterial to the flux. -/
+theorem randomScan_isReversible {n : ℕ} (μ : Measure (Fin (n + 1) → Bool))
+    [IsProbabilityMeasure μ] : Kernel.IsReversible (randomScan μ) μ :=
+  KernelReversibility.isReversible_of_singleton_balance _ μ (singleton_balance μ)
+
+end AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath

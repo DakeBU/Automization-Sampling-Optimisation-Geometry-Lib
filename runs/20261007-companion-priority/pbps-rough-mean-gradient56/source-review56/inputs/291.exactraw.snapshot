@@ -1,0 +1,98 @@
+from pathlib import Path
+import json,hashlib,datetime,re
+exec((Path(__file__).parent/'source_first_extract.py').read_text(encoding='utf-8-sig').split('metadata=')[0])
+def write_json(name,obj):
+ with (T/name).open('w',encoding='utf-8',newline='\n') as f:json.dump(obj,f,indent=2,ensure_ascii=False);f.write('\n')
+def rec(k,disposition,reason):
+ a=p.ids[k];b=s[a.start:a.end].encode('utf-8')
+ with (T/(k+'.balanced.html')).open('wb') as f:f.write(b)
+ return {'anchor':k,'source_id':'PBPS2609.06905v1','disposition':disposition,'reason':reason,'line_start':s.count('\n',0,a.start)+1,'line_end':s.count('\n',0,a.end)+1,'byte_start':len(s[:a.start].encode('utf-8')),'byte_end':len(s[:a.end].encode('utf-8')),'balanced_fragment':k+'.balanced.html','raw_sha256':sha(b),'source_text_with_math_alttext':txt(a).strip()}
+inventory=[]
+for k,a in p.ids.items():
+ if a.tag not in ('p','table'):continue
+ if a.start>=p.ids['A3.SS1'].start and a.end<=p.ids['A3.SS1'].end:
+  if a.start<=p.ids['A3.SS1.p3.7'].end: disposition='NODE';reason='compact-smooth C.1/C.2 and unnamed rough-input density/closedness route'
+  elif a.start<p.ids['A3.SS1.p7.1'].start:disposition='EXCLUDED';reason='B.14/B.15 spectral-coercivity continuation; distinct conclusion outside rough-gradient56 slice'
+  else:disposition='EXCLUDED';reason='Lemma C.1/C.8 derivative identity for H1 input; distinct half-turn consumer, not a premise of rough-L2 B.13'
+  inventory.append(rec(k,disposition,reason))
+for k in ['S1.p1','S1.E1','S2.SS2.p1.1','S2.E6','S2.E7','S2.SS2.p1.3','S2.E8','S2.E9','S2.E10','S2.E11','S2.E13','S2.E14','S2.SS2.p3.1','A2.E1','A2.E2','A2.E3','A2.E4','A2.E5','A2.SS2.p2.2','A2.E8','A2.E9','A2.E10','A2.SS2.p3.2','A2.E11','A2.Thmtheorem1.p1.1','A2.E12','A2.Thmtheorem1.p2.1','A2.E13','A4.E6']:
+ inventory.append(rec(k,'NODE','source standing objects, actual-law operator/variance contract, or explicit downstream boundary'))
+write_json('primary-source-anchor-inventory.json',{'schema_version':1,'independent_source_only':True,'source_proof_scope':'C.1 compact smooth C.2 and density/closedness toward B.13; actual B.1/B.9 law contracts','inventory':inventory,'coverage_review_status':'PENDING_INDEPENDENT_REVIEW','implementation_topology_used':False})
+nodes=[
+('pbps:standing-curvature','STANDING','V in C2(R^d), 0<alpha<=beta, alpha I<=Hess V<=beta I everywhere; eta in (0,1/beta]',['S1.p1','S1.E1','S2.SS2.p1.1']),
+('pbps:joint-and-marginal','SOURCE_DEFINITION','pi_eta(dx dy) proportional exp(-V(x)-|x-y|²/(2eta)); X~mu, independent Z~N(0,I), Y+=X+sqrt(eta)Z; nu=pi_eta^Y',['S2.E6','S2.E7','S2.SS2.p1.3']),
+('pbps:conditional-kernel','SOURCE_DEFINITION','p_y is actual law of Y- given Y+=y; p_y(u) proportional exp(-V((y+u)/2)-|y-u|²/(8eta))',['A2.E8','A3.Ex1']),
+('pbps:actual-conditional-mean','SOURCE_DEFINITION','T=U_PP=PUP identified with L2(nu); Tf(y)=E[f(Y-)|Y+=y], P is actual conditional expectation, not arbitrary linear function',['A2.E1','A2.E3','A2.E4','A2.E9']),
+('pbps:actual-conditional-variance','SUBSTANTIVE_STEP','Vf(y)=Var(f(Y-)|Y+=y), integral Vf dnu=|U_perpP f|²; exchangeable Y± share marginal nu',['A2.SS2.p2.2','A2.E9']),
+('pbps:normalized-density-derivative','SUBSTANTIVE_STEP','For compact smooth f, gradient Tf=Cov_p_y(f,s_y), s_y=-1/2 grad V((y+u)/2)-(y-u)/(4eta)',['A3.Ex2','A3.E1']),
+('pbps:conditional-curvature','SUBSTANTIVE_STEP','Hess_u(-log p_y)=1/4(Hess V((y+u)/2)+eta^-1 I)>= (alpha+eta^-1)I/4',['A3.Ex3']),
+('external:strong-logconcave-poincare','DEEP_EXTERNAL_BOUNDARY','For normalized C2 density exp(-W), Hess W>=mI,m>0, Var_nu(h)<=m^-1 integral |grad h|²; domain/closure extension must be established, no compilation claim',['A4.E6','S2.SS2.p3.1']),
+('pbps:score-jacobian','SUBSTANTIVE_STEP','D_u s_y=(eta^-1 I-Hess V((y+u)/2))/4, op norm<= (eta^-1-alpha)/4 because beta eta<=1',['A3.Ex5']),
+('pbps:score-variance','SUBSTANTIVE_STEP','For unit a, Var_p_y(a·s_y)<= (eta^-1-alpha)²/[4(alpha+eta^-1)]',['A3.EGx24','A3.Ex6']),
+('external:covariance-cauchy-schwarz','DEEP_EXTERNAL_BOUNDARY','Scalar-vector covariance bound via scalar Cauchy-Schwarz and unit-vector duality; finite square moments required and derived on this law',['A3.SS1.p3.5']),
+('pbps:pointwise-gradient','SUBSTANTIVE_STEP','|grad Tf(y)|²<= [(eta^-1-alpha)²/(4(alpha+eta^-1))] Vf(y)',['A3.Ex7']),
+('pbps:C2-smooth','REUSED_DISPLAY','eta |grad Tf|²<= [(1-alpha eta)²/(4(1+alpha eta))] integral Vf dnu for compact smooth f',['A3.SS1.p3.6','A3.EGx25','A2.E9']),
+('external:weighted-smooth-density','SOURCE_GAP_DEEP_EXTERNAL_BOUNDARY','Choose compact smooth f_n -> f in L2(nu) for every f in L2(nu); exact weighted density theorem and nu regularity not expanded by author',['A3.SS1.p1.1']),
+('external:conditional-expectation-contraction','DEEP_EXTERNAL_BOUNDARY','Actual mean T is L2 contraction by Jensen/disintegration and same Y± marginal; difference inputs remain on same law',['A2.E1','A2.E9','A2.SS2.p2.2']),
+('pbps:gradient-cauchy','UNNAMED_SOURCE_BRIDGE','Apply smooth C.2 to f_n-f_m, variance integral<=|f_n-f_m|² to make grad Tf_n Cauchy in L2(nu;R^d); eta>0',['A3.SS1.p1.1','A3.EGx25','A2.E9']),
+('external:weighted-closed-gradient','SOURCE_GAP_DEEP_EXTERNAL_BOUNDARY','Weak weighted gradient is closed: Tf_n -> Tf and gradients ->G in respective L2 spaces imply Tf in H1(nu), grad Tf=G. Author cites closedness without construction',['A3.SS1.p1.1']),
+('pbps:C2-rough','UNNAMED_SOURCE_BRIDGE','Pass to limit in L2 gradient norms and variance energy; eta |grad Tf|²<=c integral Vf for every f in L2(nu); H1 regularity is output',['A3.SS1.p1.1','A3.EGx25']),
+('pbps:quarter-coefficient','UNNAMED_SOURCE_BRIDGE','0<alpha eta<=1 implies (1-alpha eta)²/(4(1+alpha eta))<=1/4; obtain 4eta |grad Tf|²<=integral Vf',['A2.Thmtheorem1.p1.1','A3.SS1.p3.7','A2.E13']),
+('pbps:norm-defect','SUBSTANTIVE_STEP','integral Vf=|f|²-|Tf|² via actual conditional mean, total variance and same-law marginal; also |U_perpP f|² from B.9',['A2.E9','A3.SS1.p3.7']),
+('pbps:gamma-identification','SEPARATE_OPERATOR_BOUNDARY','Gamma_P=(I-T²)^(1/2); |Gamma_P f|²=|U_perpP f|²=|f|²-|Tf|² requires actual selfadjoint unitary U and P orthogonal projection plus square-root functional calculus',['A2.E5','A2.E10','A2.E11']),
+('pbps:B13','SOURCE_ANCHOR','Every f in L2(nu): Tf in H1(nu); 4eta |grad Tf|²<=|f|²-|Tf|²=|Gamma_P f|²=|U_perpP f|²',['A2.Thmtheorem1.p2.1','A2.E13'])]
+edges=[]
+def edge(frm,to,use,kind='AND_ROUTE'):edges.append({'parents':frm,'child':to,'consumer_use_site':use,'semantics':kind,'status':'SOURCE_ONLY_NOT_LEAN_CERTIFIED'})
+edge(['pbps:joint-and-marginal'],'pbps:conditional-kernel','A3.SS1.p2.1')
+edge(['pbps:conditional-kernel'],'pbps:normalized-density-derivative','A3.SS1.p2.3')
+edge(['pbps:standing-curvature','pbps:conditional-kernel'],'pbps:conditional-curvature','A3.SS1.p3.1')
+edge(['pbps:standing-curvature'],'pbps:score-jacobian','A3.SS1.p3.3')
+edge(['pbps:conditional-curvature','external:strong-logconcave-poincare','pbps:score-jacobian'],'pbps:score-variance','A3.SS1.p3.2-A3.SS1.p3.4')
+edge(['pbps:normalized-density-derivative','pbps:score-variance','external:covariance-cauchy-schwarz'],'pbps:pointwise-gradient','A3.SS1.p3.5')
+edge(['pbps:pointwise-gradient','pbps:actual-conditional-variance'],'pbps:C2-smooth','A3.SS1.p3.6')
+edge(['external:weighted-smooth-density','pbps:C2-smooth','pbps:actual-conditional-variance'],'pbps:gradient-cauchy','A3.SS1.p1.1')
+edge(['pbps:gradient-cauchy','external:conditional-expectation-contraction','external:weighted-closed-gradient'],'pbps:C2-rough','A3.SS1.p1.1')
+edge(['pbps:C2-rough','pbps:standing-curvature'],'pbps:quarter-coefficient','A3.SS1.p3.7')
+edge(['pbps:actual-conditional-mean','pbps:actual-conditional-variance','pbps:joint-and-marginal'],'pbps:norm-defect','A3.SS1.p3.7')
+edge(['pbps:quarter-coefficient','pbps:norm-defect','pbps:gamma-identification'],'pbps:B13','A3.SS1.p3.7')
+write_json('source-first-proof-graph.json',{'schema_version':1,'status':'DRAFT_SOURCE_ONLY','creator':'/root/sourcegraph_creator56','candidate_statement_seen':False,'implementation_body_seen':False,'prior_target_verdict_seen':False,'source_snapshot_raw_sha256':sha(raw),'nodes':[{'id':i,'kind':k,'mathematics':m,'source_anchors':a,'compiled_truth':False} for i,k,m,a in nodes],'edges':edges,'independent_topology_review':'PENDING','public_hypothesis_rule':'All estimates, densities, closedness, kernel properties and norm identities are proof edges, never extra B.13 public binders.'})
+blueprint=r'''# PBPS source-first reconstruction 56
+
+This stage reads only the pinned primary paper and governance, before any candidate signature/API/body or prior target review. It creates source topology, not a proof or source-fidelity verdict. Compiler: NOT_STARTED_CLOSED.
+
+The source law is mu(dx)=Z^{-1}exp(-V(x))dx on R^d, V in C2, 0<alpha<=beta and alpha I<=Hess V<=beta I everywhere (1.1); eta is in (0,1/beta]. Let X~mu and independent Z~N(0,I), Y±=X±sqrt(eta)Z. Both Y laws are nu=pi_eta^Y=mu*N(0,eta I). The conditional kernel p_y is the actual Y-|Y+=y law, not an arbitrary witness. In macroscopic coordinates T=U_PP=PUP is the actual conditional mean Tf(y)=integral f(u)p_y(du). Variance Vf(y)=integral (f(u)-Tf(y))²p_y(du). Actual same-law identity gives integral Vf dnu=norm(f)²-norm(Tf)²=norm(U_perpP f)² (B.1/B.8/B.9).
+
+## Compact-smooth route in source order
+
+1. Cc∞ input, actual p_y(u) proportional exp[-V((y+u)/2)-|y-u|²/(8eta)]. Differentiating the normalized density introduces the centering of the y-score s_y(u)=-grad V((y+u)/2)/2-(y-u)/(4eta). Thus grad Tf(y)=Cov_p_y(f,s_y) (C.1). Domination, normalization positivity, and score integrability are analytical proof dependencies; the author does not expand them in this paragraph.
+2. Hess_u(-log p_y)= [Hess V((y+u)/2)+eta^-1 I]/4 >=(alpha+eta^-1)I/4. Apply strong-logconcave Poincare (D.6) with m=(alpha+eta^-1)/4.
+3. D_u s_y=[eta^-1 I-Hess V((y+u)/2)]/4 is positive semidefinite because beta eta<=1 and has norm <=(eta^-1-alpha)/4. For every unit a, Var_p_y(a·s_y) <= (eta^-1-alpha)²/[4(alpha+eta^-1)]. The domain extension of Poincare to this unbounded score is a real analytical provider, not a source premise.
+4. Conditional Cauchy-Schwarz and vector duality give |grad Tf(y)|² <= (eta^-1-alpha)²/[4(alpha+eta^-1)] Vf(y).
+5. Integrate in nu and multiply by eta: eta norm(grad Tf)² <= (1-alpha eta)²/[4(1+alpha eta)] integral Vf dnu. This is exactly C.2, using B.9. No universal adjustable constant appears.
+
+## Rough-input passage unpacking the unnamed source step
+
+For arbitrary f in L2(nu), take f_n in Cc∞ with f_n -> f in L2(nu). T is an L2 contraction on this same law, hence Tf_n -> Tf. Apply compact-smooth C.2 to f_n-f_m; integral V(f_n-f_m)<=norm(f_n-f_m)². Because eta>0, gradients form a Cauchy sequence in L2(nu;R^d). Closedness of the weak gradient identifies its limit with grad Tf and supplies Tf in H1(nu). Pass to the norm limit, using the actual norm-defect identity or continuity of the microscopic projection, to retain C.2 on L2 input. These are source-author omitted bridges; their exact library implementations remain unopened at this stage.
+
+Since 0<alpha eta<=1, (1-alpha eta)²/(1+alpha eta)<=1. Therefore C.2 implies 4eta norm(grad Tf)²<=integral Vf dnu. This is the rough mean/variance boundary toward B.13. The full B.13 additionally includes equality with Gamma_P and the microscopic reflection block; these require B.5/B.10/B.11 and actual operator semantics. They cannot be supplied by renaming variance energy as Gamma energy.
+
+## Domain and semantic boundaries
+
+B.13 input is every L2(nu) observable; H1(nu) regularity of Tf is an output. Mean zero is not required here: the mean-zero subspace enters B.14/B.15 only. Compact smooth is only the proving core, not the final public input restriction. The weighted weak gradient is an L2 equivalence class; rough conditional means are understood nu-a.e. Pointwise p_y and smooth derivatives must be reconciled with that quotient semantics. The measure in gradient/norm integrals is nu, the same Y marginal; p_y is the conditional Y- law; mu is the X law. A separately normalized law or a different forward/reverse kernel is not interchangeable.
+
+Lemma C.1 (C.8) is separate: its INPUT already lies in H1(nu), and grad Tf=E[grad f(Y-)|Y+]-Cov(f(Y-),grad V(X)|Y+). Its compact-core integration by parts, cutoff-to-1, and covariance-continuity argument does not replace the L2-to-H1 passage for B.13. Section C.2 is a half-turn section, whereas equation C.2 is the compact gradient estimate. Neither half-turn mathematics nor B.14/B.15 spectral conclusions are part of this bounded target.
+
+## Exhaustive source inventory and unresolved external depth
+
+The inventory assigns every paragraph/display in all of C.1 either NODE for the bounded compact/rough route or EXCLUDED with an explicit B.14/B.15 or Lemma C.1 reason. Exact balanced raw fragments, byte offsets, lines and SHA256 accompany every item. Supporting standing-law/operator/Gamma/D.6 anchors are separately retained. Source topology and coverage await a distinct reviewer; no self-approval occurs.
+
+Deep boundaries remain explicit: normalized-density differentiation with domination and score moments; weighted Cc∞ density in L2; probability-kernel/disintegration/Jensen contraction; covariance Cauchy-Schwarz and vector duality; Poincare domain extension under weighted C2 strongly convex potential; weighted weak-gradient closedness; actual operator projection/adjoint/unitarity and positive-operator square root. There is no claim that the paper expands those proofs, nor that they are compiled locally. No candidate/API or prior proof has yet influenced this blueprint.
+'''
+with (T/'source-first-proof-blueprint.md').open('w',encoding='utf-8',newline='\n') as f:f.write(blueprint)
+freeze={'schema_version':1,'stage':'PRIMARY_BEFORE_SIGNATURE_FROZEN','creator':'/root/sourcegraph_creator56','created_utc':utc(),'source_read_metadata':json.loads((T/'primary-read-metadata.json').read_text(encoding='utf-8')),'chronology':[{'event':'governance reads and lightweight memory index search','order':1,'note':'No target candidate, implementation or target source verdict inspected.'},{'event':'exclusive directory created and actual primary bytes read/copied and parsed','order':2,'utc':'2026-10-08T04:01:22.216176+00:00'},{'event':'primary C.1 and B.1 read through balanced raw-derived math-alttext extraction','order':3},{'event':'primary S2, B.2/B.13 and D.6 supporting anchors read','order':4},{'event':'source inventory, formula blueprint and source graph frozen before candidate signature/API task','order':5}],'forbidden_material_read':{'Statement56':False,'preproof56':False,'proof55_or54_Lean_bodies':False,'other_review_verdict':False,'candidate_statement_API_body':False},'compiler_state':'NOT_STARTED_CLOSED','resource_state':{'first_stage_python_runs':'synchronous foreground; prior extractors exited 0','file_handles':'All first-stage read/write operations use context managers; Path.read_text is closed on return.','background_jobs':'NONE','compiler_processes_started':0,'persistent_sessions':'NONE'},'first_stage_artifacts':{}}
+for q in sorted(T.iterdir()):
+ if q.is_file():
+  with q.open('rb') as f:b=f.read()
+  freeze['first_stage_artifacts'][q.name]={'bytes':len(b),'raw_sha256':sha(b),'crlf_to_lf_bytes':len(b.replace(b'\r\n',b'\n')),'crlf_to_lf_sha256':sha(b.replace(b'\r\n',b'\n'))}
+write_json('primary-before-signature.freeze.json',freeze)
+print('FIRST_STAGE_PACKET_WRITTEN',len(inventory),'inventory items;',len(nodes),'nodes;',len(edges),'routes; compiler NOT_STARTED_CLOSED')

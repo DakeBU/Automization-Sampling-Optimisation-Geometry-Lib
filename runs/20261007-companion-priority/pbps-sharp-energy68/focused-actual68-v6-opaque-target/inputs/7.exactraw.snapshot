@@ -1,0 +1,334 @@
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation
+import AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound
+
+/-!
+# The actual PBPS sharp first-corrector estimate
+
+Chen--Chewi--Lu--Zhang, arXiv:2609.06905v1, Appendix B.3, (B.20)--(B.24).
+The private literal statement expands every original input and every witness;
+it introduces no mathematical provider. Production uses production parents.
+-/
+namespace AutoSamplingTheory.ExampleCases.ProximalBPS.SharpCorrectorEnergy
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped RealInnerProductSpace ContDiff NNReal Topology ENNReal
+noncomputable section
+set_option autoImplicit false
+set_option maxHeartbeats 2000000
+
+private def actual_sharp_corrector_bound_statement
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) : Prop :=
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := (μ.prod (stdGaussian E)).map
+      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+    let ν := J.snd
+    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))
+    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)
+    let mY := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)
+    letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace
+    letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) :=
+      ⟨measurable_snd.comap_le⟩
+    let HP := lpMeas ℝ ℝ mY 2 J
+    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=
+      HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le
+    let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩
+    let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp
+    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧
+    HP = P.toLinearMap.range ∧
+    (∀ f : HP, P (f : Lp ℝ 2 J) = f) ∧
+    ∃ S : Kernel E E, IsMarkovKernel S ∧
+      (∀ y, S y = (volume : Measure E).tilted
+        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧
+      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧
+      ∃ e : Lp ℝ 2 ν ≃ₗᵢ[ℝ] HP,
+        (∀ u : Lp ℝ 2 ν, (e u : Lp ℝ 2 J) = M u) ∧
+        ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,
+          (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧
+          Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧
+          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,
+            IsSelfAdjoint T ∧
+            (∀ u : Lp ℝ 2 ν,
+              ‖T u‖ ≤ ‖u‖ ∧
+              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧
+              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧
+            let A : HP →L[ℝ] HP :=
+              HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL
+            let B : HP →L[ℝ] Lp ℝ 2 J :=
+              (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL
+            A = e.conjStarAlgEquiv T ∧ IsSelfAdjoint A ∧
+            (∀ f : HP, ‖A f‖ ≤ ‖f‖) ∧
+            (∀ f : HP, P (B f) = 0) ∧
+            ∃ Γ : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,
+              Γ.IsPositive ∧ Γ*Γ=(1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T ∧
+              Commute Γ T ∧
+              let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ
+              ΓP.IsPositive ∧ ΓP*ΓP=(1 : HP →L[ℝ] HP)-A*A ∧
+              Commute ΓP A ∧
+              B.adjoint ∘L B = ΓP*ΓP ∧
+              ∃ q : Lp ℝ 2 ν,
+                (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧
+                (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧
+                let qP : HP := e q
+                let HP0 := (innerSL ℝ qP).ker
+                letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup
+                letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace
+                letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe
+                let γ : ℝ := 2*Real.sqrt ((α : ℝ)*η)/(1+(α : ℝ)*η)
+                (∀ f : HP, f ∈ HP0 ↔ (∫ y, (e.symm f) y ∂ν) = 0) ∧
+                ΓP qP = 0 ∧ 0 < γ ∧
+                ∃ ΓP0 : HP0 →L[ℝ] HP0,
+                  (∀ f : HP0, (ΓP0 f : HP) = ΓP (f : HP)) ∧
+                  ΓP0.IsPositive ∧ (ΓP0-γ • (1 : HP0 →L[ℝ] HP0)).IsPositive ∧
+                  IsUnit ΓP0 ∧
+                  ∃ Inv : HP0 →L[ℝ] HP0,
+                    Inv*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧
+                    ΓP0*Inv=(1 : HP0 →L[ℝ] HP0) ∧ ‖Inv‖ ≤ 1/γ ∧
+                    IsSelfAdjoint Inv ∧
+                    ∃ A0 : HP0 →L[ℝ] HP0,
+                      (∀ u : HP0, (A0 u : HP)=A (u : HP)) ∧
+                      IsSelfAdjoint A0 ∧ Commute A0 ΓP0 ∧
+                      A0*A0+ΓP0*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧
+                      Commute A0 Inv ∧
+                      IsSelfAdjoint (A0*Inv) ∧
+                      (1 : HP0 →L[ℝ] HP0)+(A0*Inv)*(A0*Inv)=Inv*Inv ∧
+                    let C : HP0 → HP0 → ℝ := fun u v =>
+                      (1/2 : ℝ)*(‖u‖^2-‖v‖^2)-inner ℝ ((A0*Inv) u) v
+                    (∀ u v : HP0, |C u v| ≤ (‖u‖^2+‖v‖^2)/(2*γ)) ∧
+                    let Hperp := P.ker
+                    letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup
+                    letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace
+                    letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe
+                    ∃ B0 : HP0 →L[ℝ] Hperp,
+                      (∀ f : HP0, (B0 f : Lp ℝ 2 J) = B (f : HP)) ∧
+                      ∃ V0 : HP0 →L[ℝ] Hperp,
+                        V0 = B0 ∘L Inv ∧ B0 = V0 ∘L ΓP0 ∧
+                        V0.adjoint ∘L V0 = (1 : HP0 →L[ℝ] HP0) ∧
+                        (∀ f : HP0, ‖V0 f‖ = ‖f‖) ∧
+                        ∃ R : Lp ℝ 2 J →L[ℝ] Hperp,
+                          (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) ∧
+                          (∀ g : Lp ℝ 2 J,
+                            B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) ∧
+                          (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →
+                            ∃ fP : HP0,
+                              HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧
+                              let fperp : Hperp := R f
+                              let fV : HP0 := V0.adjoint fperp
+                              B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧
+                              HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧
+                              ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖ ∧
+                              ‖fP‖^2+‖fV‖^2≤‖f‖^2 ∧
+                              |C fP fV|≤‖f‖^2/(2*γ))
+
+
+theorem actual_sharp_corrector_bound
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)
+    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) : actual_sharp_corrector_bound_statement (E := E) (V := V) (α := α) (β := β) (η := η) hα hαβ hV hH hη hβη := by
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-00.log" "proof-entry\n"
+    pure ()
+  classical
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-01.log" "before-unfold\n"
+    pure ()
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-02.log" "after-unfold\n"
+    pure ()
+  let μ := (volume : Measure E).tilted (fun x => -V x)
+  let J := (μ.prod (stdGaussian E)).map
+    (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))
+  let ν := J.snd
+  let mY : MeasurableSpace (E × E) := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)
+  letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace
+  letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) := ⟨measurable_snd.comap_le⟩
+  let HP := lpMeas ℝ ℝ mY 2 J
+  letI : NormedAddCommGroup HP := HP.normedAddCommGroup
+  letI : InnerProductSpace ℝ HP := HP.innerProductSpace
+  let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=
+    HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-03.log" "before-parent-call\n"
+    pure ()
+  have hBase := AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation.actual_same_root_inverse_commutation
+    (E:=E) (V:=V) (α:=α) (β:=β) (η:=η) hα hαβ hV hH hη hβη
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-04.log" "before-parent-rcases\n"
+    pure ()
+  rcases hBase with
+    ⟨hμ,hJ,hν,hRange,hPf,S,hS,hSd,hSc,hSf,hSs,e,he,U,hU,hUi,hUs,
+      T,hTs,hAll,hAeq,hAs,hAn,hPB,Γ,hΓ,hΓSq,hCommRoot,hΓP,hΓPSq,hCommP,hGram,
+      q,hqa,hTq,hq,hCenter,hΓPq,hγ,ΓP0,hΓP0,hPos0,hOrder0,hUnit,
+      Inv,hLeft,hRight,hNormInv,hInvSelf,A0,hA0,hA0self,hComm0,hSquare0,hCommInv,B0,hB0,V0,hVdef,hFactor,hVadj,hVnorm,R,hR,hAmbient,hGlobal⟩
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-05.log" "after-parent-rcases\n"
+    pure ()
+  let A : HP →L[ℝ] HP := HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL
+  let B : HP →L[ℝ] Lp ℝ 2 J :=
+    (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL
+  let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ
+  let qP : HP := e q
+  let HP0 := (innerSL ℝ qP).ker
+  letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup
+  letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace
+  letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe
+  let Hperp := P.ker
+  letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup
+  letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace
+  letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe
+  change HP0 →L[ℝ] Hperp at B0 V0
+  change HP0 →L[ℝ] HP0 at ΓP0 Inv A0
+  change Lp ℝ 2 J →L[ℝ] Hperp at R
+  change (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) at hR
+  change (∀ g : Lp ℝ 2 J,
+    B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) at hAmbient
+  change (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →
+    ∃ fP : HP0,
+      HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧
+      let fperp : Hperp := R f
+      let fV : HP0 := V0.adjoint fperp
+      B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧
+      HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧
+      ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖) at hGlobal
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-06.log" "before-coefficient\n"
+    pure ()
+  have hKself : IsSelfAdjoint (A0*Inv) := (hA0self.commute_iff hInvSelf).mp hCommInv
+  have hCoefficient : (1 : HP0 →L[ℝ] HP0)+(A0*Inv)*(A0*Inv)=Inv*Inv := by
+    have hFirst : (ΓP0*ΓP0)*(Inv*Inv)=(1 : HP0 →L[ℝ] HP0) := by
+      calc
+        (ΓP0*ΓP0)*(Inv*Inv)=ΓP0*((ΓP0*Inv)*Inv) := by noncomm_ring
+        _ = (1 : HP0 →L[ℝ] HP0) := by rw [hRight,one_mul,hRight]
+    have hSecond : (A0*Inv)*(A0*Inv)=(A0*A0)*(Inv*Inv) := by
+      calc
+        (A0*Inv)*(A0*Inv)=A0*((Inv*A0)*Inv) := by noncomm_ring
+        _ = A0*((A0*Inv)*Inv) := by rw [hCommInv.eq.symm]
+        _ = (A0*A0)*(Inv*Inv) := by noncomm_ring
+    calc
+      (1 : HP0 →L[ℝ] HP0)+(A0*Inv)*(A0*Inv)=
+          (ΓP0*ΓP0)*(Inv*Inv)+(A0*A0)*(Inv*Inv) := by rw [hFirst,hSecond]
+      _ = (ΓP0*ΓP0+A0*A0)*(Inv*Inv) := by rw [add_mul]
+      _ = Inv*Inv := by rw [add_comm,hSquare0,one_mul]
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-07.log" "after-coefficient\n"
+    pure ()
+  let γ : ℝ := 2*Real.sqrt ((α : ℝ)*η)/(1+(α : ℝ)*η)
+  change 0 < γ at hγ
+  change ‖Inv‖ ≤ 1/γ at hNormInv
+  let C : HP0 → HP0 → ℝ := fun u v =>
+    (1/2 : ℝ)*(‖u‖^2-‖v‖^2)-inner ℝ ((A0*Inv) u) v
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-08.log" "before-pair\n"
+    pure ()
+  have hPair (u v : HP0) : |C u v| ≤ (‖u‖^2+‖v‖^2)/(2*γ) := by
+    have h := AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorBound.quadratic_corrector_bound_of_square_identity
+      (A0*Inv) Inv hKself hInvSelf hCoefficient (1/γ) (by positivity) hNormInv u v
+    run_tac do
+      let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-09.log" "after-generic-leaf\n"
+      pure ()
+    change |C u v| ≤ ((1/γ)/2)*(‖u‖^2+‖v‖^2) at h
+    calc
+      |C u v| ≤ ((1/γ)/2)*(‖u‖^2+‖v‖^2) := h
+      _ = (‖u‖^2+‖v‖^2)/(2*γ) := by
+        run_tac do
+          let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-10.log" "before-ratio-simplification\n"
+          pure ()
+        field_simp
+        ring
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-11.log" "after-pair\n"
+    pure ()
+  unfold actual_sharp_corrector_bound_statement
+  refine ⟨hμ, ?_⟩
+  refine ⟨hJ, ?_⟩
+  refine ⟨hν, ?_⟩
+  refine ⟨hRange, ?_⟩
+  refine ⟨hPf, ?_⟩
+  refine ⟨S, ?_⟩
+  refine ⟨hS, ?_⟩
+  refine ⟨hSd, ?_⟩
+  refine ⟨hSc, ?_⟩
+  refine ⟨hSf, ?_⟩
+  refine ⟨hSs, ?_⟩
+  refine ⟨e, ?_⟩
+  refine ⟨he, ?_⟩
+  refine ⟨U, ?_⟩
+  refine ⟨hU, ?_⟩
+  refine ⟨hUi, ?_⟩
+  refine ⟨hUs, ?_⟩
+  refine ⟨T, ?_⟩
+  refine ⟨hTs, ?_⟩
+  refine ⟨hAll, ?_⟩
+  refine ⟨hAeq, ?_⟩
+  refine ⟨hAs, ?_⟩
+  refine ⟨hAn, ?_⟩
+  refine ⟨hPB, ?_⟩
+  refine ⟨Γ, ?_⟩
+  refine ⟨hΓ, ?_⟩
+  refine ⟨hΓSq, ?_⟩
+  refine ⟨hCommRoot, ?_⟩
+  refine ⟨hΓP, ?_⟩
+  refine ⟨hΓPSq, ?_⟩
+  refine ⟨hCommP, ?_⟩
+  refine ⟨hGram, ?_⟩
+  refine ⟨q, ?_⟩
+  refine ⟨hqa, ?_⟩
+  refine ⟨hTq, ?_⟩
+  refine ⟨hq, ?_⟩
+  refine ⟨hCenter, ?_⟩
+  refine ⟨hΓPq, ?_⟩
+  refine ⟨hγ, ?_⟩
+  refine ⟨ΓP0, ?_⟩
+  refine ⟨hΓP0, ?_⟩
+  refine ⟨hPos0, ?_⟩
+  refine ⟨hOrder0, ?_⟩
+  refine ⟨hUnit, ?_⟩
+  refine ⟨Inv, ?_⟩
+  refine ⟨hLeft, ?_⟩
+  refine ⟨hRight, ?_⟩
+  refine ⟨hNormInv, ?_⟩
+  refine ⟨hInvSelf,A0,hA0,hA0self,hComm0,hSquare0,hCommInv,hKself,hCoefficient,hPair,?_⟩
+  refine ⟨B0, ?_⟩
+  refine ⟨hB0, ?_⟩
+  refine ⟨V0, ?_⟩
+  refine ⟨hVdef, ?_⟩
+  refine ⟨hFactor, ?_⟩
+  refine ⟨hVadj, ?_⟩
+  refine ⟨hVnorm, ?_⟩
+  refine ⟨R, ?_⟩
+  refine ⟨hR, ?_⟩
+  refine ⟨hAmbient, ?_⟩
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-12.log" "after-witness-reassembly\n"
+    pure ()
+  intro f hf
+  obtain ⟨fP,hfP,hBf,hΓf,hPyth,hNormV⟩ := hGlobal f hf
+  let fperp : Hperp := R f
+  let fV : HP0 := V0.adjoint fperp
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-13.log" "before-budget\n"
+    pure ()
+  have hBudget : ‖fP‖^2+‖fV‖^2 ≤ ‖f‖^2 := by
+    have hs := (sq_le_sq₀ (norm_nonneg fV) (norm_nonneg fperp)).2 hNormV
+    nlinarith only [hPyth, hs]
+  run_tac do
+    let _ ← IO.FS.writeFile ".astis/pbps-sharp-energy68/stage6-14.log" "after-budget\n"
+    pure ()
+  refine ⟨fP,hfP,hBf,hΓf,hPyth,hNormV,hBudget,?_⟩
+  exact (hPair fP fV).trans (div_le_div_of_nonneg_right hBudget (by positivity))
+
+
+end
+end AutoSamplingTheory.ExampleCases.ProximalBPS.SharpCorrectorEnergy
+
+#print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.SharpCorrectorEnergy.actual_sharp_corrector_bound

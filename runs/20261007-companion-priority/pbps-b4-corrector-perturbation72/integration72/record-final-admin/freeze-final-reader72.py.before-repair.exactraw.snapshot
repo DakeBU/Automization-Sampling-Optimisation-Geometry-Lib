@@ -1,0 +1,21 @@
+from pathlib import Path
+import hashlib,json,os,subprocess
+r=Path('runs/20261007-companion-priority/pbps-b4-corrector-perturbation72');load=lambda p:json.loads(Path(p).read_bytes());sha=lambda b:hashlib.sha256(b).hexdigest()
+def pin(p):
+ p=Path(p);b=p.read_bytes();return dict(path=p.resolve().as_posix(),RAW_bytes=len(b),RAW_sha256=sha(b),LF_sha256=sha(b.replace(b'\r\n',b'\n')))
+notes=load(r/'integration.notes.json');assert notes['status']=='SERIALIZED_SHARED_AGGREGATE72_AND_CURRENT_GRAPH_PASS_NOT_MAIN_NOT_PURIFIED'
+head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip();assert head==notes['proof_commit']==load(r/'root.exact-verification72.adoption.json')['verified_commit']
+plan=load(r/'publication-plan.json');claim=load(r/'claim.json')
+paths=[Path(p) for p in ['lean-toolchain','lake-manifest.json','AutoSamplingTheory/ExampleCases.lean','AutoSamplingTheory/TechnicalLemmas/Registry.lean','Tests/Basic.lean','docs/companion-papers-handoff.md','website/content/samplewiki_companion_frontiers.json','research-wiki/technical-lemma-memory/technical_lemma_registry.jsonl','runs/substantive_advances.jsonl','docs/module-graph.svg','docs/assets/astis_lean_arsenal_module_graph.svg','research-wiki/retrieval-index/astis-lean-arsenal-module-graph.json','research-wiki/sampling-sde-library/lean-leaf-module-graph.md','AutoSamplingTheory/ExampleCases/ProximalBPS/ActualCorrectorChange.lean','website/scripts/inline_lean.py','website/scripts/check_cross_domain_browser.py','_site/data/underlying-lean-graph.json','_site/example-cases/samplewiki/companions/proximal-bouncy-particle.html','conversion-windows/ASTIS-SW-PBPS-2026.md']]
+paths.extend(Path(p) for p in claim['proposed_files'])
+for slug,aid,cid,decl in zip(plan['slugs'],plan['audit_ids'],plan['active_cells'],plan['mathematical_declarations']):
+ paths.extend([Path('website/content/publications')/(slug+'.json'),Path('website/content/declaration_lessons')/(slug+'.json'),Path('research-wiki/semantic-roundtrip/audits')/(aid+'.json'),Path('research-wiki/frontier-cells')/(cid+'.json'),Path('research-wiki/sampling-sde-library/cards')/(decl.rsplit('.',1)[0]+'.md')])
+paths.extend(r/p for p in ['claim.json','publication-plan.json','integration.notes.json','visual.inspection.json','integration72/final-admin.json','root.source72.adoption.json','root.math72.adoption.json','root.decoder72.adoption.json','root.exact-verification72.adoption.json','verified.json','integration72/owned-before.json','integration72/before-generator-state.json','integration72/generator-sideeffects/receipt.json','integration72/pr315-body72.md','independent-math72/lease.final.json','anonymous-decoder/CLOSED_LAST.json'])
+for adoption in ['root.source72.adoption.json','root.exact-verification72.adoption.json']:
+ x=load(r/adoption);paths.append(Path(x['native_lease']['path']))
+for check in notes['checks']:paths.extend(r/'integration72'/check['label']/p for p in ['receipt.json','stdout.log','stderr.log'])
+paths.extend(p for p in (r/'integration72/visual72').iterdir() if p.is_file());paths.extend((r/'integration72').glob('cell.*.before-final-admin.exactraw.snapshot.json'))
+paths=list(dict.fromkeys(paths));assert all(p.is_file() for p in paths),[p.as_posix() for p in paths if not p.is_file()]
+expected=dict(registry_count=521,root_jobs=notes['root_jobs'],test_jobs=notes['test_jobs'],publication_units=242,statements=2,formula_BODY_steps=[6,4],module_lines=[54,440],actual_captures=13,copy_callbacks=6,RAW_downloads=6)
+p=r/'final-reader-repository-packet72.json';assert not p.exists();p.write_text(json.dumps(dict(status='FROZEN_FINAL72_FOR_INDEPENDENT_REPOSITORY_AND_SCOPED_READER',actual_root_PID=os.getpid(),checked_science_commit=head,inputs=[pin(p) for p in paths],RAW_authority=True,LF_rule='CRLF to LF only',expected=expected,native_math_source_decoder_reviews_reused=True,current_helper_logic_reused=True,fresh_full_python_and_real_browser=True,independent_aggregate_reader_verdict_pending=True,full_Exposition_Seal=False,PURIFIED=False,main_live=False,wholepaper_or_Goal_complete=False),ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
+print('PASS final72 reader freeze',len(paths),'finite inputs',sha(p.read_bytes()))

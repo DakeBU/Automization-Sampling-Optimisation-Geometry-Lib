@@ -1,0 +1,34 @@
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace Transport
+
+open MeasureTheory
+open scoped ENNReal
+
+/-- A measure on a product space couples two marginals when its first and
+second marginals are the specified measures. Probability normalization remains
+visible through the marginal measures' typeclass assumptions at consumers. -/
+def IsCoupling {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    (γ : Measure (α × β)) (μ : Measure α) (ν : Measure β) : Prop :=
+  γ.fst = μ ∧ γ.snd = ν
+
+/-- The feasible set of couplings with prescribed marginals. -/
+def couplingSet {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    (μ : Measure α) (ν : Measure β) : Set (Measure (α × β)) :=
+  {γ | IsCoupling γ μ ν}
+
+/-- Chewi Definition 1.3.1 and display (1.3.2): the Kantorovich
+transport cost for an extended nonnegative cost function.
+
+Measurability and lower semicontinuity of `c` are not needed to state the
+extended-real infimum.  They enter the later existence theorem. -/
+noncomputable def transportCost {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    (c : α × β → ℝ≥0∞) (μ : Measure α) (ν : Measure β) : ℝ≥0∞ :=
+  sInf {r : ℝ≥0∞ | ∃ γ ∈ couplingSet μ ν, r = ∫⁻ z, c z ∂γ}
+theorem transportCost_le_lintegral_of_isCoupling
+    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    (c : α × β → ℝ≥0∞) (μ : Measure α) (ν : Measure β)
+    (γ : Measure (α × β)) (hγ : IsCoupling γ μ ν) :
+    transportCost c μ ν ≤ ∫⁻ z, c z ∂γ := by
+  rw [transportCost_eq_sInf]

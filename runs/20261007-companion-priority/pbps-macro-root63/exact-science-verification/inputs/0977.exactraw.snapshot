@@ -1,0 +1,70 @@
+import Mathlib.Analysis.Calculus.FDeriv.Add
+
+/-!
+# Fréchet derivative of the displacement transport map
+
+Chewi's entropy calculation for Theorem 1.4.5 uses the interpolation map
+
+`S_t(x) = (1-t) x + t T(x)`
+
+and its Jacobian
+
+`DS_t(x) = (1-t) I + t DT(x)`.
+
+This file isolates that calculus edge in the exact `HasFDerivWithinAt` form
+expected by Mathlib's higher-dimensional change-of-variables theorems.  It does
+not assume that `T` is a Brenier map and makes no positivity, injectivity, or
+measure-transport claim.  The companion `DisplacementDerivativeMatrix` module
+then sends this continuous-linear derivative to an arbitrary finite basis,
+without making coordinates part of the theorem's assumptions.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementMapDerivative
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+
+/-- The point map whose pushforward gives displacement interpolation when an
+endpoint transport map `T` is available. -/
+def affineDisplacementMap (T : E → E) (t : ℝ) : E → E :=
+  fun x => (1 - t) • x + t • T x
+
+/-- The affine continuous-linear map predicted by differentiating the
+displacement point map. -/
+def affineDisplacementDerivative (T' : E →L[ℝ] E) (t : ℝ) : E →L[ℝ] E :=
+  (1 - t) • ContinuousLinearMap.id ℝ E + t • T'
+
+/-- Pointwise Fréchet derivative of the displacement map. -/
+theorem hasFDerivAt_affineDisplacementMap
+    {T : E → E} {T' : E →L[ℝ] E} {x : E} (hT : HasFDerivAt T T' x)
+    (t : ℝ) :
+    HasFDerivAt (affineDisplacementMap T t)
+      (affineDisplacementDerivative T' t) x := by
+  change HasFDerivAt
+    ((1 - t) • (id : E → E) + t • T)
+    ((1 - t) • ContinuousLinearMap.id ℝ E + t • T') x
+  exact ((hasFDerivAt_id x).const_smul (1 - t)).add (hT.const_smul t)
+
+/-- Within-set Fréchet derivative in the form consumed by Mathlib's
+change-of-variables API. -/
+theorem hasFDerivWithinAt_affineDisplacementMap
+    {T : E → E} {T' : E →L[ℝ] E} {s : Set E} {x : E}
+    (hT : HasFDerivWithinAt T T' s x) (t : ℝ) :
+    HasFDerivWithinAt (affineDisplacementMap T t)
+      (affineDisplacementDerivative T' t) s x := by
+  change HasFDerivWithinAt
+    ((1 - t) • (id : E → E) + t • T)
+    ((1 - t) • ContinuousLinearMap.id ℝ E + t • T') s x
+  exact ((hasFDerivAt_id x).hasFDerivWithinAt.const_smul (1 - t)).add
+    (hT.const_smul t)
+
+end
+
+end DisplacementMapDerivative
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,562 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.HessianSecantOperator
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoPositiveWeights
+import Mathlib.Analysis.InnerProductSpace.ProdL2
+import Mathlib.Probability.Distributions.Gaussian.Multivariate
+import Mathlib.Probability.Kernel.Composition.Prod
+import Mathlib.Tactic.Module
+import Mathlib.Tactic.Abel
+
+/-!
+# Actual exact-gradient phase difference
+
+SPHMC arXiv:2609.06906v1 Lemma 4.6, at the explicit normalized C²
+smoothed-potential curvature interface. The actual two-layer source algorithm,
+ordinary cardinal integrals and genuine Hessian secants are retained.
+Construction/regularity/curvature of V_eta and the contraction theorem are
+separate obligations. Private implementation helpers have no progress credit.
+-/
+
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FirstOrderDifference
+
+open Set MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped BigOperators RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+
+private def S (f : E → ℝ) (x y : E) : E →L[ℝ] E :=
+  ∫ t : ℝ in 0..1, continuousLinearMapOfBilin
+    (fderiv ℝ (fderiv ℝ f) (y + t • (x - y)))
+
+private theorem secant_data {f : E → ℝ} {κ : ℝ} (hκ : 1 ≤ κ)
+    (hf : ContDiff ℝ 2 f)
+    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧
+      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2) (x y : E) :
+    gradient f x - gradient f y = S f x y (x - y) ∧
+      (S f x y).IsSymmetric ∧
+      (∀ v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ inner ℝ (S f x y v) v ∧
+        inner ℝ (S f x y v) v ≤ ‖v‖ ^ 2) ∧ ‖S f x y‖ ≤ 1 := by
+  have hd := AutoSamplingTheory.TechnicalLemmas.Analysis.HessianSecantOperator.hessian_secant_operator
+    hf (fun z v => (hH z v).1) (β := 1) (by intro z v; simpa using (hH z v).2) x y
+  have hk : 0 < κ := lt_of_lt_of_le zero_lt_one hκ
+  have hm : 0 ≤ 1 / (2 * κ) := by positivity
+  have hm1 : 1 / (2 * κ) ≤ 1 := (div_le_one (by positivity)).mpr (by linarith)
+  refine ⟨hd.2.1, hd.2.2.1, ?_, ?_⟩
+  · intro v
+    simpa only [S, one_mul] using hd.2.2.2.1 v
+  · simpa only [S, abs_of_nonneg hm, abs_one, max_eq_right hm1] using hd.2.2.2.2
+
+set_option backward.isDefEq.respectTransparency false in
+private theorem actual_averaged_hessian {f : E → ℝ} {κ h : ℝ} {J : ℕ}
+    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)
+    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧
+      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)
+    (hJ : 2 ≤ J) (hh : 0 < h) (x y : Fin J → E) :
+    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))
+    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j
+    let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s
+    let H := h⁻¹ • ∑ j : Fin J, b j • S f (x j) (y j)
+    H.IsSymmetric ∧
+      (∀ v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ inner ℝ (H v) v ∧
+        inner ℝ (H v) v ≤ ‖v‖ ^ 2) ∧ ‖H‖ ≤ 1 := by
+  classical
+  let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))
+  let ell := fun j : Fin J => Lagrange.basis Finset.univ t j
+  let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s
+  let H := h⁻¹ • ∑ j : Fin J, b j • S f (x j) (y j)
+  change H.IsSymmetric ∧ _
+  have hb : ∀ j, 0 ≤ b j :=
+    AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoPositiveWeights.nonnegative_momentum_weights hJ hh
+  have hbs : (∑ j, b j) = h :=
+    (AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients hJ hh).2.2.2.2.2.2.2
+  have hs (j) := secant_data hκ hf hH (x j) (y j)
+  have happly (v : E) : H v = h⁻¹ • ∑ j : Fin J, b j • (S f (x j) (y j) v) := by
+    simp [H]
+  have hip (v w : E) : inner ℝ (H v) w =
+      h⁻¹ * ∑ j : Fin J, b j * inner ℝ (S f (x j) (y j) v) w := by
+    rw [happly, real_inner_smul_left, sum_inner]
+    simp only [real_inner_smul_left]
+  have hscale (c : ℝ) : h⁻¹ * (∑ j, b j * c) = c := by
+    rw [← Finset.sum_mul, hbs, ← mul_assoc, inv_mul_cancel₀ (ne_of_gt hh), one_mul]
+  refine ⟨?_, ?_, ?_⟩
+  · intro v w
+    change inner ℝ (H v) w = inner ℝ v (H w)
+    rw [hip, ← real_inner_comm v (H w), hip]
+    congr 1
+    apply Finset.sum_congr rfl
+    intro j _
+    have hj : inner ℝ (S f (x j) (y j) v) w =
+        inner ℝ (S f (x j) (y j) w) v := by
+      exact ((hs j).2.1 v w).trans (real_inner_comm v (S f (x j) (y j) w)).symm
+    rw [hj]
+  · intro v
+    rw [hip]
+    constructor
+    · rw [← hscale ((1 / (2 * κ)) * ‖v‖ ^ 2)]
+      apply mul_le_mul_of_nonneg_left _ (inv_nonneg.mpr hh.le)
+      exact Finset.sum_le_sum (fun j _ =>
+        mul_le_mul_of_nonneg_left ((hs j).2.2.1 v).1 (hb j))
+    · rw [← hscale (‖v‖ ^ 2)]
+      apply mul_le_mul_of_nonneg_left _ (inv_nonneg.mpr hh.le)
+      exact Finset.sum_le_sum (fun j _ =>
+        mul_le_mul_of_nonneg_left ((hs j).2.2.1 v).2 (hb j))
+  · calc
+      ‖H‖ = h⁻¹ * ‖∑ j : Fin J, b j • S f (x j) (y j)‖ := by
+        dsimp only [H]
+        rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hh)]
+      _ ≤ h⁻¹ * (∑ j : Fin J, b j * ‖S f (x j) (y j)‖) := by
+        apply mul_le_mul_of_nonneg_left _ (inv_nonneg.mpr hh.le)
+        simpa only [norm_smul, Real.norm_eq_abs, abs_of_nonneg (hb _)] using
+          norm_sum_le Finset.univ (fun j => b j • S f (x j) (y j))
+      _ ≤ h⁻¹ * (∑ j : Fin J, b j * 1) := by
+        apply mul_le_mul_of_nonneg_left _ (inv_nonneg.mpr hh.le)
+        exact Finset.sum_le_sum (fun j _ =>
+          mul_le_mul_of_nonneg_left ((hs j).2.2.2) (hb j))
+      _ = 1 := hscale 1
+
+private theorem refresh_scalar_bounds {h : ℝ} (hh : 0 ≤ h) (hh1 : h ≤ 1) :
+    let a := Real.exp (-h / 2)
+    0 < a ∧ a ≤ 1 ∧ |1 - a| ≤ h / 2 ∧ |a ^ 2 - 1 + h| ≤ h ^ 2 := by
+  let a := Real.exp (-h / 2)
+  have ha : 0 < a := Real.exp_pos _
+  have ha1 : a ≤ 1 := Real.exp_le_one_iff.mpr (by linarith)
+  have hlin : |1 - a| ≤ h / 2 := by
+    rw [abs_of_nonneg (sub_nonneg.mpr ha1)]
+    have hl := Real.add_one_le_exp (-h / 2)
+    change 1 - Real.exp (-h / 2) ≤ h / 2
+    linarith
+  have haeq : a ^ 2 = Real.exp (-h) := by
+    dsimp only [a]
+    rw [pow_two, ← Real.exp_add]
+    congr 1
+    ring
+  refine ⟨ha, ha1, hlin, ?_⟩
+  rw [haeq]
+  simpa only [sub_neg_eq_add, neg_sq] using Real.abs_exp_sub_one_sub_id_le
+    (x := -h) (by simpa [abs_of_nonneg hh] using hh1)
+
+set_option backward.isDefEq.respectTransparency false in
+private theorem first_picard_error {f : E → ℝ} {κ h Λ : ℝ} {J : ℕ}
+    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)
+    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧
+      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)
+    (hh : 0 ≤ h) (hh1 : h ≤ 1) (hstep : h ^ 2 * Λ ≤ 1)
+    (t : Fin J → ℝ) (ω : Fin J → Fin J → ℝ)
+    (ht : ∀ i, t i ∈ Icc 0 h)
+    (hw : ∀ i, (∑ j, |ω i j|) ≤ h ^ 2 * Λ / 2)
+    (z z' : E × E) (u : E) :
+    let a := Real.exp (-h / 2)
+    let P0 := a • z.2 + u
+    let P0' := a • z'.2 + u
+    let Y0 := fun j => z.1 + t j • P0
+    let Y0' := fun j => z'.1 + t j • P0'
+    let Y1 := fun i => Y0 i - ∑ j, ω i j • gradient f (Y0 j)
+    let Y1' := fun i => Y0' i - ∑ j, ω i j • gradient f (Y0' j)
+    let D := ‖z.1 - z'.1‖ + ‖z.2 - z'.2‖
+    let E1 := fun i => (Y1 i - Y1' i) -
+      ((z.1 - z'.1) + (a * t i) • (z.2 - z'.2))
+    (∀ i, ‖E1 i‖ ≤ h ^ 2 * Λ / 2 * D) ∧
+      (∀ i, ‖Y1 i - Y1' i‖ ≤ 2 * D) := by
+  classical
+  dsimp only
+  let a := Real.exp (-h / 2)
+  let P0 := a • z.2 + u
+  let P0' := a • z'.2 + u
+  let Y0 := fun j => z.1 + t j • P0
+  let Y0' := fun j => z'.1 + t j • P0'
+  let Y1 := fun i => Y0 i - ∑ j, ω i j • gradient f (Y0 j)
+  let Y1' := fun i => Y0' i - ∑ j, ω i j • gradient f (Y0' j)
+  let D := ‖z.1 - z'.1‖ + ‖z.2 - z'.2‖
+  let E1 := fun i => (Y1 i - Y1' i) -
+    ((z.1 - z'.1) + (a * t i) • (z.2 - z'.2))
+  change (∀ i, ‖E1 i‖ ≤ h ^ 2 * Λ / 2 * D) ∧ _
+  have ha := refresh_scalar_bounds hh hh1
+  have hD : 0 ≤ D := add_nonneg (norm_nonneg _) (norm_nonneg _)
+  have hg (x y : E) : ‖gradient f x - gradient f y‖ ≤ ‖x - y‖ := by
+    rw [(secant_data hκ hf hH x y).1]
+    exact ((S f x y).le_opNorm _).trans (by
+      simpa using mul_le_mul_of_nonneg_right
+        (secant_data hκ hf hH x y).2.2.2 (norm_nonneg (x - y)))
+  have hd0 (i) : Y0 i - Y0' i =
+      (z.1 - z'.1) + (a * t i) • (z.2 - z'.2) := by
+    dsimp only [Y0, Y0', P0, P0']
+    module
+  have hn0 (i) : ‖Y0 i - Y0' i‖ ≤ D := by
+    have hpos : 0 ≤ a * t i := mul_nonneg ha.1.le (ht i).1
+    have hle : a * t i ≤ 1 := by
+      have hi := mul_le_mul_of_nonneg_left (ht i).2 ha.1.le
+      have hj := mul_le_mul_of_nonneg_right ha.2.1 hh
+      exact hi.trans (hj.trans (by simpa using hh1))
+    rw [hd0]
+    calc
+      _ ≤ ‖z.1-z'.1‖ + ‖(a*t i) • (z.2-z'.2)‖ := norm_add_le _ _
+      _ = ‖z.1-z'.1‖ + (a*t i)*‖z.2-z'.2‖ := by
+        rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg hpos]
+      _ ≤ D := by
+        dsimp only [D]
+        exact add_le_add_right (by
+          simpa using mul_le_mul_of_nonneg_right hle (norm_nonneg (z.2-z'.2))) _
+  have herr (i) : E1 i =
+      -(∑ j, ω i j • (gradient f (Y0 j) - gradient f (Y0' j))) := by
+    have hs : (∑ j, ω i j • gradient f (Y0 j)) -
+        (∑ j, ω i j • gradient f (Y0' j)) =
+        ∑ j, ω i j • (gradient f (Y0 j) - gradient f (Y0' j)) := by
+      simp only [smul_sub, Finset.sum_sub_distrib]
+    dsimp only [E1, Y1, Y1']
+    rw [← hd0, ← hs]
+    abel
+  have he (i) : ‖E1 i‖ ≤ h ^ 2 * Λ / 2 * D := by
+    rw [herr, norm_neg]
+    calc
+      _ ≤ ∑ j, ‖ω i j • (gradient f (Y0 j) - gradient f (Y0' j))‖ :=
+        norm_sum_le Finset.univ _
+      _ ≤ ∑ j, |ω i j| * D := by
+        apply Finset.sum_le_sum
+        intro j _
+        rw [norm_smul, Real.norm_eq_abs]
+        exact mul_le_mul_of_nonneg_left ((hg _ _).trans (hn0 j)) (abs_nonneg _)
+      _ = (∑ j, |ω i j|) * D := (Finset.sum_mul _ _ _).symm
+      _ ≤ _ := mul_le_mul_of_nonneg_right (hw i) hD
+  refine ⟨he, ?_⟩
+  intro i
+  have hid : Y1 i - Y1' i = (Y0 i - Y0' i) + E1 i := by
+    dsimp only [E1]
+    rw [← hd0]
+    abel
+  rw [hid]
+  calc
+    _ ≤ ‖Y0 i-Y0' i‖+‖E1 i‖ := norm_add_le _ _
+    _ ≤ D + h^2*Λ/2*D := add_le_add (hn0 i) (he i)
+    _ ≤ 2*D := by nlinarith [mul_nonneg (sub_nonneg.mpr hstep) hD]
+
+
+set_option backward.isDefEq.respectTransparency false in
+private theorem endpoint_error {f : E → ℝ} {κ h Λ : ℝ} {J : ℕ}
+    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)
+    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧
+      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)
+    (hh : 0 < h) (hh1 : h ≤ 1) (hΛ : 1 ≤ Λ) (hstep : h ^ 2 * Λ ≤ 1)
+    (t : Fin J → ℝ) (ω : Fin J → Fin J → ℝ) (b c : Fin J → ℝ)
+    (ht : ∀ i, t i ∈ Icc 0 h)
+    (hw : ∀ i, (∑ j, |ω i j|) ≤ h ^ 2 * Λ / 2)
+    (hb : ∀ j, 0 ≤ b j) (hbs : ∑ j, b j = h)
+    (hc : ∑ j, |c j| ≤ h ^ 2 * Λ / 2)
+    (z z' : E × E) (u v : E) :
+    let a := Real.exp (-h / 2)
+    let P0 := a • z.2 + u
+    let P0' := a • z'.2 + u
+    let Y0 := fun j => z.1 + t j • P0
+    let Y0' := fun j => z'.1 + t j • P0'
+    let Y1 := fun i => Y0 i - ∑ j, ω i j • gradient f (Y0 j)
+    let Y1' := fun i => Y0' i - ∑ j, ω i j • gradient f (Y0' j)
+    let H := h⁻¹ • ∑ j, b j • S f (Y1 j) (Y1' j)
+    let x1 := z.1 + h • P0 - ∑ j, c j • gradient f (Y1 j)
+    let x1' := z'.1 + h • P0' - ∑ j, c j • gradient f (Y1' j)
+    let p1 := a • (P0 - ∑ j, b j • gradient f (Y1 j)) + v
+    let p1' := a • (P0' - ∑ j, b j • gradient f (Y1' j)) + v
+    let dx := z.1 - z'.1
+    let dp := z.2 - z'.2
+    ‖WithLp.toLp 2 ((x1 - x1') - (dx + h • dp),
+      (p1 - p1') - (dp + h • (-H dx - dp)))‖ ≤
+        8 * Λ * h ^ 2 * ‖WithLp.toLp 2 (dx, dp)‖ := by
+  classical
+  dsimp only
+  let a := Real.exp (-h / 2)
+  let P0 := a • z.2 + u
+  let P0' := a • z'.2 + u
+  let Y0 := fun j => z.1 + t j • P0
+  let Y0' := fun j => z'.1 + t j • P0'
+  let Y1 := fun i => Y0 i - ∑ j, ω i j • gradient f (Y0 j)
+  let Y1' := fun i => Y0' i - ∑ j, ω i j • gradient f (Y0' j)
+  let Sj := fun j => S f (Y1 j) (Y1' j)
+  let H := h⁻¹ • ∑ j, b j • Sj j
+  let dx := z.1 - z'.1
+  let dp := z.2 - z'.2
+  let D := ‖dx‖ + ‖dp‖
+  let e := h ^ 2 * Λ / 2
+  let E1 := fun j => (Y1 j - Y1' j) - (dx + (a * t j) • dp)
+  have ha := refresh_scalar_bounds hh.le hh1
+  have hD : 0 ≤ D := add_nonneg (norm_nonneg _) (norm_nonneg _)
+  have he : 0 ≤ e := by dsimp only [e]; positivity
+  have hpic := first_picard_error hκ hf hH hh.le hh1 hstep t ω ht hw z z' u
+  change (∀ i, ‖E1 i‖ ≤ e * D) ∧ (∀ i, ‖Y1 i - Y1' i‖ ≤ 2 * D) at hpic
+  have hs (j) := secant_data hκ hf hH (Y1 j) (Y1' j)
+  have hSn (j) (w : E) : ‖Sj j w‖ ≤ ‖w‖ :=
+    ((Sj j).le_opNorm w).trans (by
+      simpa using mul_le_mul_of_nonneg_right (hs j).2.2.2 (norm_nonneg w))
+  have hgap (j) : gradient f (Y1 j) - gradient f (Y1' j) =
+      Sj j (dx + (a * t j) • dp + E1 j) := by
+    rw [(hs j).1]
+    congr 1
+    dsimp only [E1]
+    abel
+  have hHt : h • H dx = ∑ j, b j • Sj j dx := by
+    simp only [H, smul_apply, sum_apply, smul_smul]
+    rw [mul_inv_cancel₀ hh.ne']
+    simp
+  have hHd : ‖h • H dx‖ ≤ h * ‖dx‖ := by
+    rw [hHt]
+    calc
+      _ ≤ ∑ j, ‖b j • Sj j dx‖ := norm_sum_le _ _
+      _ ≤ ∑ j, b j * ‖dx‖ := by
+        apply Finset.sum_le_sum
+        intro j _
+        rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (hb j)]
+        exact mul_le_mul_of_nonneg_left (hSn j dx) (hb j)
+      _ = h * ‖dx‖ := by rw [← Finset.sum_mul, hbs]
+  let G := ∑ j, b j • (gradient f (Y1 j) - gradient f (Y1' j))
+  have hG : G - h • H dx = ∑ j, b j • Sj j ((a*t j) • dp + E1 j) := by
+    simp only [G, hgap, map_add, smul_add, Finset.sum_add_distrib]
+    rw [hHt]
+    abel
+  have hGn : ‖G - h • H dx‖ ≤ h * (h * ‖dp‖ + e * D) := by
+    rw [hG]
+    calc
+      _ ≤ ∑ j, ‖b j • Sj j ((a*t j) • dp + E1 j)‖ := norm_sum_le _ _
+      _ ≤ ∑ j, b j * (h * ‖dp‖ + e * D) := by
+        apply Finset.sum_le_sum
+        intro j _
+        rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (hb j)]
+        apply mul_le_mul_of_nonneg_left _ (hb j)
+        apply (hSn j _).trans
+        apply (norm_add_le _ _).trans
+        apply add_le_add _ (hpic.1 j)
+        rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg
+          (mul_nonneg ha.1.le (ht j).1)]
+        apply mul_le_mul_of_nonneg_right _ (norm_nonneg dp)
+        calc
+          a * t j ≤ 1 * t j := mul_le_mul_of_nonneg_right ha.2.1 (ht j).1
+          _ ≤ h := by simpa using (ht j).2
+      _ = _ := by rw [← Finset.sum_mul, hbs]
+  let C := ∑ j, c j • (gradient f (Y1 j) - gradient f (Y1' j))
+  have hCn : ‖C‖ ≤ h ^ 2 * Λ * D := by
+    calc
+      _ ≤ ∑ j, ‖c j • (gradient f (Y1 j) - gradient f (Y1' j))‖ :=
+        norm_sum_le _ _
+      _ ≤ ∑ j, |c j| * (2 * D) := by
+        apply Finset.sum_le_sum
+        intro j _
+        rw [norm_smul, Real.norm_eq_abs, (hs j).1]
+        exact mul_le_mul_of_nonneg_left ((hSn j _).trans (hpic.2 j)) (abs_nonneg _)
+      _ = (∑ j, |c j|) * (2 * D) := (Finset.sum_mul _ _ _).symm
+      _ ≤ (h ^ 2 * Λ / 2) * (2 * D) :=
+        mul_le_mul_of_nonneg_right hc (by positivity)
+      _ = _ := by ring
+  let rx := ((a-1)*h) • dp - C
+  let rp := (a^2-1+h) • dp + (1-a) • (h • H dx) - a • (G - h • H dx)
+  have hrx : ‖rx‖ ≤ h^2/2*‖dp‖ + h^2*Λ*D := by
+    apply (norm_sub_le _ _).trans
+    apply add_le_add _ hCn
+    rw [norm_smul, Real.norm_eq_abs, abs_mul, abs_of_pos hh, abs_sub_comm a 1]
+    exact mul_le_mul_of_nonneg_right
+      (mul_le_mul_of_nonneg_right ha.2.2.1 hh.le) (norm_nonneg dp)
+      |>.trans (by ring_nf; rfl)
+  have hrp : ‖rp‖ ≤ h^2*‖dp‖ + h^2/2*‖dx‖ + h*(h*‖dp‖+e*D) := by
+    apply (norm_sub_le _ _).trans
+    apply add_le_add _ _
+    · apply (norm_add_le _ _).trans
+      apply add_le_add
+      · rw [norm_smul, Real.norm_eq_abs]
+        exact mul_le_mul_of_nonneg_right ha.2.2.2 (norm_nonneg dp)
+      · rw [norm_smul, Real.norm_eq_abs]
+        calc
+          _ ≤ (h/2) * (h*‖dx‖) :=
+            mul_le_mul ha.2.2.1 hHd (norm_nonneg _) (by positivity)
+          _ = _ := by ring
+    · rw [norm_smul, Real.norm_eq_abs, abs_of_pos ha.1]
+      calc
+        _ ≤ 1 * ‖G-h • H dx‖ :=
+          mul_le_mul_of_nonneg_right ha.2.1 (norm_nonneg _)
+        _ ≤ _ := by simpa using hGn
+  have hsum : ‖rx‖+‖rp‖ ≤ 4*h^2*Λ*D := by
+    have hx : 0 ≤ ‖dx‖ := norm_nonneg _
+    have hp : 0 ≤ ‖dp‖ := norm_nonneg _
+    have hmod : h^2 * D ≤ h^2*Λ*D := by
+      exact mul_le_mul_of_nonneg_right
+        (by nlinarith [sq_nonneg h]) hD
+    have heterm : h*e*D ≤ h^2*Λ*D/2 := by
+      dsimp only [e]
+      have hn : 0 ≤ h^2*Λ*D := by positivity
+      nlinarith [mul_nonneg (sub_nonneg.mpr hh1) hn]
+    dsimp only [D] at hD hmod heterm ⊢
+    dsimp only [e] at hrp
+    nlinarith [sq_nonneg h, mul_nonneg (sq_nonneg h) hx,
+      mul_nonneg (sq_nonneg h) hp]
+  have hvector :
+      WithLp.toLp 2
+        (((z.1 + h • P0 - ∑ j, c j • gradient f (Y1 j)) -
+            (z'.1 + h • P0' - ∑ j, c j • gradient f (Y1' j))) - (dx+h • dp),
+          ((a • (P0 - ∑ j, b j • gradient f (Y1 j)) + v) -
+            (a • (P0' - ∑ j, b j • gradient f (Y1' j)) + v)) -
+              (dp+h • (-H dx-dp))) = WithLp.toLp 2 (rx,rp) := by
+    congr 1
+    apply Prod.ext
+    · dsimp only [rx, C, P0, P0', dx, dp]
+      simp only [smul_sub, Finset.sum_sub_distrib]
+      module
+    · dsimp only [rp, G, P0, P0', dp]
+      simp only [smul_sub, Finset.sum_sub_distrib]
+      dsimp only [dx]
+      module
+  change ‖WithLp.toLp 2 _‖ ≤ 8*Λ*h^2*‖WithLp.toLp 2 (dx,dp)‖
+  rw [hvector]
+  calc
+    _ ≤ ‖rx‖+‖rp‖ := by
+      have ht := norm_add_le (WithLp.toLp 2 (rx,(0:E))) (WithLp.toLp 2 ((0:E),rp))
+      simpa only [← WithLp.toLp_add, Prod.mk_add_mk, add_zero, zero_add,
+        WithLp.norm_toLp_fst, WithLp.norm_toLp_snd] using ht
+    _ ≤ 4*h^2*Λ*D := hsum
+    _ ≤ 8*Λ*h^2*‖WithLp.toLp 2 (dx,dp)‖ := by
+      have hx := WithLp.norm_fst_le (p := 2) E (WithLp.toLp 2 (dx,dp))
+      have hp := WithLp.norm_snd_le (p := 2) E (WithLp.toLp 2 (dx,dp))
+      change ‖dx‖ ≤ ‖WithLp.toLp 2 (dx,dp)‖ at hx
+      change ‖dp‖ ≤ ‖WithLp.toLp 2 (dx,dp)‖ at hp
+      dsimp only [D]
+      nlinarith [mul_nonneg (by positivity : 0 ≤ h^2*Λ)
+        (sub_nonneg.mpr (add_le_add hx hp))]
+
+
+variable [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+set_option maxHeartbeats 800000 in
+set_option backward.isDefEq.respectTransparency false in
+/-- The actual exact-gradient two-Picard phase is a measurable two-Gaussian
+Markov kernel. Its synchronous difference has the source integral-averaged
+Hessian and a genuine linear remainder with explicit Euclidean bound 8 Λ h².
+The construction of the normalized smoothed potential remains separate. -/
+theorem source_first_order_difference {f : E → ℝ} {κ h : ℝ} {J : ℕ}
+    (hκ : 1 ≤ κ) (hf : ContDiff ℝ 2 f)
+    (hH : ∀ z v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ f) z v) v ∧
+      (fderiv ℝ (fderiv ℝ f) z v) v ≤ ‖v‖ ^ 2)
+    (hJ : 2 ≤ J) (hh : 0 < h) :
+    let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))
+    let ell := fun j : Fin J => Lagrange.basis Finset.univ t j
+    let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)
+    let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s
+    let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s
+    let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s
+    h ^ 2 * Λ ≤ 1 →
+    let a := Real.exp (-h / 2)
+    let sigma := Real.sqrt (1 - Real.exp (-h))
+    let Γ := (stdGaussian E).prod (stdGaussian E)
+    let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1
+    let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ
+    let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)
+    let Φ := fun w : (E × E) × (E × E) =>
+      (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),
+        a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)
+    Measurable Φ ∧
+      (∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧
+        ∀ z, K z = Γ.map (fun ζ => Φ (z, ζ))) ∧
+      ∀ z z' ζ : E × E,
+        let H := h⁻¹ • ∑ j, b j •
+          (∫ u in (0 : ℝ)..1, InnerProductSpace.continuousLinearMapOfBilin
+            (fderiv ℝ (fderiv ℝ f)
+              (Y1 z' ζ j + u • (Y1 z ζ j - Y1 z' ζ j))))
+        let d := WithLp.toLp 2 (z.1 - z'.1, z.2 - z'.2)
+        H.toLinearMap.IsSymmetric ∧
+          (∀ v, (1 / (2 * κ)) * ‖v‖ ^ 2 ≤ inner ℝ (H v) v ∧
+            inner ℝ (H v) v ≤ ‖v‖ ^ 2) ∧ ‖H‖ ≤ 1 ∧
+          ∃ R : WithLp 2 (E × E) →L[ℝ] WithLp 2 (E × E),
+            ‖R‖ ≤ 8 * Λ * h ^ 2 ∧
+            WithLp.toLp 2 ((Φ (z,ζ)).1 - (Φ (z',ζ)).1,
+              (Φ (z,ζ)).2 - (Φ (z',ζ)).2) =
+                d + h • WithLp.toLp 2 (z.2-z'.2, -H (z.1-z'.1)-(z.2-z'.2)) + R d := by
+  classical
+  dsimp only
+  let t := fun i : Fin J => h/2*(1-Real.cos ((i : ℝ)/(J-1 : ℝ)*Real.pi))
+  let ell := fun j : Fin J => Lagrange.basis Finset.univ t j
+  let Λ := sSup ((fun s : ℝ => ∑ j : Fin J, |(ell j).eval s|) '' Icc 0 h)
+  let ω := fun i j : Fin J => ∫ s in 0..t i, (t i-s)*(ell j).eval s
+  let b := fun j : Fin J => ∫ s in 0..h, (ell j).eval s
+  let c := fun j : Fin J => ∫ s in 0..h, (h-s)*(ell j).eval s
+  intro hstep
+  change h^2*Λ ≤ 1 at hstep
+  have hcoeff := TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature.chebyshev_lobatto_coefficients hJ hh
+  change (∀ i, t i ∈ Icc 0 h) ∧ Function.Injective t ∧
+    t ⟨J-1,by omega⟩ = h ∧
+    (∀ i j, (ell i).eval (t j) = if i=j then 1 else 0) ∧
+    (∀ s : ℝ, ∑ j : Fin J, (ell j).eval s = 1) ∧
+    1 ≤ Λ ∧
+    (∀ i, (∑ j : Fin J, |ω i j|) ≤ (t i)^2/2*Λ ∧
+      (∑ j : Fin J, |ω i j|) ≤ h^2/2*Λ) ∧ (∑ j : Fin J, b j) = h at hcoeff
+  rcases hcoeff with ⟨ht, _, hlast, _, _, hΛ, hw, hbs⟩
+  have hb : ∀ j, 0 ≤ b j :=
+    TechnicalLemmas.Analysis.ChebyshevLobattoPositiveWeights.nonnegative_momentum_weights hJ hh
+  have hc : ∑ j, |c j| ≤ h^2*Λ/2 := by
+    have hr := (hw ⟨J-1,by omega⟩).2
+    change ∑ j, |∫ s in 0..t ⟨J-1,by omega⟩, (t ⟨J-1,by omega⟩-s)*(ell j).eval s|
+      ≤ h^2/2*Λ at hr
+    rw [hlast] at hr
+    simpa only [c, div_mul_eq_mul_div] using hr
+  have hh1 : h ≤ 1 := by
+    have hsq : h^2 ≤ 1 := by nlinarith [sq_nonneg h]
+    nlinarith
+  let a := Real.exp (-h / 2)
+  let sigma := Real.sqrt (1 - Real.exp (-h))
+  let Γ := (stdGaussian E).prod (stdGaussian E)
+  let P0 := fun (z ζ : E × E) => a • z.2 + sigma • ζ.1
+  let Y0 := fun (z ζ : E × E) j => z.1 + t j • P0 z ζ
+  let Y1 := fun (z ζ : E × E) i => Y0 z ζ i - ∑ j, ω i j • gradient f (Y0 z ζ j)
+  let Φ := fun w : (E × E) × (E × E) =>
+    (w.1.1 + h • P0 w.1 w.2 - ∑ j, c j • gradient f (Y1 w.1 w.2 j),
+      a • (P0 w.1 w.2 - ∑ j, b j • gradient f (Y1 w.1 w.2 j)) + sigma • w.2.2)
+  change Measurable Φ ∧ (∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧
+    ∀ z, K z = Γ.map (fun ζ => Φ (z,ζ))) ∧ _
+  have hg : Measurable (gradient f) := by
+    unfold gradient
+    exact ((InnerProductSpace.toDual ℝ E).symm.continuous.comp
+      (hf.continuous_fderiv (by norm_num))).measurable
+  have hΦ : Measurable Φ := by
+    dsimp only [Φ, Y1, Y0, P0]
+    fun_prop
+  let K := (Kernel.id ×ₖ Kernel.const (E × E) Γ).map Φ
+  have hK : IsMarkovKernel K := Kernel.IsMarkovKernel.map _ hΦ
+  refine ⟨hΦ, ⟨K,hK,fun z => ?_⟩, ?_⟩
+  · dsimp only [K]
+    rw [Kernel.map_apply _ hΦ, Kernel.prod_apply, Kernel.id_apply, Kernel.const_apply,
+      Measure.dirac_prod, Measure.map_map hΦ (by fun_prop)]
+    rfl
+  · intro z z' ζ
+    let H := h⁻¹ • ∑ j, b j • S f (Y1 z ζ j) (Y1 z' ζ j)
+    let d := WithLp.toLp 2 (z.1-z'.1,z.2-z'.2)
+    let A := WithLp.toLp 2 (z.2-z'.2,-H (z.1-z'.1)-(z.2-z'.2))
+    let q := WithLp.toLp 2 ((Φ (z,ζ)).1-(Φ (z',ζ)).1,(Φ (z,ζ)).2-(Φ (z',ζ)).2)
+    let r := q - (d + h • A)
+    change H.toLinearMap.IsSymmetric ∧ (∀ v, (1/(2*κ))*‖v‖^2 ≤ inner ℝ (H v) v ∧
+      inner ℝ (H v) v ≤ ‖v‖^2) ∧ ‖H‖ ≤ 1 ∧
+      ∃ R : WithLp 2 (E × E) →L[ℝ] WithLp 2 (E × E),
+        ‖R‖ ≤ 8*Λ*h^2 ∧ q = d+h • A+R d
+    have hHd := actual_averaged_hessian hκ hf hH hJ hh (Y1 z ζ) (Y1 z' ζ)
+    change H.toLinearMap.IsSymmetric ∧ (∀ v, (1/(2*κ))*‖v‖^2 ≤ inner ℝ (H v) v ∧
+      inner ℝ (H v) v ≤ ‖v‖^2) ∧ ‖H‖ ≤ 1 at hHd
+    have hr : ‖r‖ ≤ 8*Λ*h^2*‖d‖ := by
+      exact endpoint_error hκ hf hH hh hh1 hΛ hstep t ω b c ht
+        (fun i => by simpa only [div_mul_eq_mul_div] using (hw i).2)
+        hb hbs hc z z' (sigma • ζ.1) (sigma • ζ.2)
+    refine ⟨hHd.1, hHd.2.1, hHd.2.2, ?_⟩
+    by_cases hd : d = 0
+    · have hr0 : r = 0 := norm_eq_zero.mp (by simpa [hd] using hr)
+      refine ⟨0, ?_, ?_⟩
+      · simpa only [ContinuousLinearMap.opNorm_zero] using (show (0:ℝ) ≤ 8*Λ*h^2 from by positivity)
+      simp only [zero_apply, add_zero]
+      exact sub_eq_zero.mp hr0
+    · have hn : 0 < ‖d‖ := norm_pos_iff.mpr hd
+      let R : WithLp 2 (E × E) →L[ℝ] WithLp 2 (E × E) :=
+        (‖d‖^2)⁻¹ • InnerProductSpace.rankOne ℝ r d
+      have hRd : R d = r := by
+        simp only [R, smul_apply, InnerProductSpace.rankOne_apply,
+          real_inner_self_eq_norm_sq, smul_smul]
+        rw [inv_mul_cancel₀ (by positivity : ‖d‖^2 ≠ 0), one_smul]
+      refine ⟨R, ?_, ?_⟩
+      · calc
+          ‖R‖ ≤ ‖(‖d‖^2)⁻¹‖ * ‖InnerProductSpace.rankOne ℝ r d‖ := ContinuousLinearMap.opNorm_smul_le _ _
+          _ = ‖r‖/‖d‖ := by
+            rw [Real.norm_eq_abs, abs_of_pos (by positivity), InnerProductSpace.norm_rankOne]
+            field_simp
+          _ ≤ 8*Λ*h^2 := (div_le_iff₀ hn).mpr hr
+      · rw [hRd]
+        dsimp only [r]
+        abel
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.FirstOrderDifference

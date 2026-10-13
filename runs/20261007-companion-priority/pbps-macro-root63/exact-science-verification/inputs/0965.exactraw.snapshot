@@ -1,0 +1,80 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementDerivativeMatrix
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementJacobianMatrixLogDet
+
+/-!
+# Continuous-linear-map log-determinant convexity for displacement entropy
+
+The Fréchet/change-of-variables layer represents a Jacobian as a continuous
+linear endomorphism, while the finite-dimensional entropy calculation is stated
+for matrices.  `DisplacementDerivativeMatrix` identifies the determinants of
+these two representations in any finite basis.  The matrix theorem
+`neg_log_det_affineIdentity_le` is already verified independently.
+
+This module composes those two edges, obtaining the exact `LinearMap.det`
+statement that can later be attached pointwise to the derivative of the
+transport map.  The basis appears only as a witness used to state the SPD
+hypothesis on the endpoint derivative; the determinant itself is
+basis-independent.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementDerivativeLogDet
+
+noncomputable section
+
+open DisplacementMapDerivative
+open DisplacementDerivativeMatrix
+open DisplacementJacobianMatrixLogDet
+
+variable {E ι : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [Fintype ι] [DecidableEq ι]
+
+/-- Continuous-linear-map form of the affine `-log det` convexity inequality.
+
+This is the direct representation-level bridge from the Fréchet derivative used
+by change of variables to the matrix log-determinant theorem. -/
+theorem neg_log_det_affineDisplacementDerivative_le
+    (b : Module.Basis ι ℝ E) (T' : E →L[ℝ] E)
+    (hT : (LinearMap.toMatrix b b T'.toLinearMap).PosDef)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t ≤ 1) :
+    -Real.log (LinearMap.det (affineDisplacementDerivative T' t).toLinearMap) ≤
+      t * (-Real.log (LinearMap.det T'.toLinearMap)) := by
+  calc
+    -Real.log (LinearMap.det (affineDisplacementDerivative T' t).toLinearMap) =
+        -Real.log (Matrix.det
+          ((1 - t) • (1 : Matrix ι ι ℝ) +
+            t • LinearMap.toMatrix b b T'.toLinearMap)) := by
+      rw [det_affineDisplacementDerivative_eq_matrix_det b T' t]
+    _ ≤ t * (-Real.log (Matrix.det
+          (LinearMap.toMatrix b b T'.toLinearMap))) :=
+      neg_log_det_affineIdentity_le
+        (LinearMap.toMatrix b b T'.toLinearMap) hT t ht0 ht1
+    _ = t * (-Real.log (LinearMap.det T'.toLinearMap)) := by
+      rw [LinearMap.det_toMatrix]
+
+/-- Pointwise derivative package: if `T` has derivative `T'` at `x` and the
+matrix of `T'` is SPD, then the displacement map has the expected affine
+Fréchet derivative and that derivative satisfies the literal log-det inequality.
+
+This still does not assert that an optimal transport map has such an SPD
+derivative; that is the future Brenier regularity edge. -/
+theorem hasFDerivAt_affineDisplacementMap_and_neg_log_det
+    (b : Module.Basis ι ℝ E) {T : E → E} {T' : E →L[ℝ] E} {x : E}
+    (hderiv : HasFDerivAt T T' x)
+    (hT : (LinearMap.toMatrix b b T'.toLinearMap).PosDef)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t ≤ 1) :
+    HasFDerivAt (affineDisplacementMap T t)
+        (affineDisplacementDerivative T' t) x ∧
+      -Real.log (LinearMap.det (affineDisplacementDerivative T' t).toLinearMap) ≤
+        t * (-Real.log (LinearMap.det T'.toLinearMap)) := by
+  exact ⟨hasFDerivAt_affineDisplacementMap hderiv t,
+    neg_log_det_affineDisplacementDerivative_le b T' hT t ht0 ht1⟩
+
+end
+
+end DisplacementDerivativeLogDet
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

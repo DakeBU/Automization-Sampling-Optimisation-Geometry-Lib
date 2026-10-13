@@ -1,0 +1,1121 @@
+{
+  "PURIFIED": false,
+  "complete_seven_slots_each": true,
+  "decisions": [
+    {
+      "PURIFIED": false,
+      "canonical_Git_ledger_Lean_writes": false,
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation",
+      "deltas": [
+        {
+          "blocking": false,
+          "classification": "explicit-elaboration",
+          "description": "ASTIS auxiliary expands D1 spectral background to arbitrary real L2;not printed standalone PBPS.",
+          "id": "ASTIS-background-expansion",
+          "slot": "scopes"
+        }
+      ],
+      "full_Exposition": false,
+      "independent_from_decoder": true,
+      "independent_from_formalizer": true,
+      "packet_index": 0,
+      "publication_binding_sha256": "34ba0bb3a85f58c9dff1405301b46ac15dace416a0dcbc28673f5739adb8742f",
+      "publication_context": {
+        "assumptions": [
+          "Arbitrary measurable space and measure;bounded positive real operators G,D on real L²;Commute(G²,D). No CFC/finiteness/nontriviality premise."
+        ],
+        "binding": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation",
+          "role": "proof-edge",
+          "supports": [
+            "commutation"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "lean": "Arbitrary measurable space and measure;bounded positive real operators G,D on real L²;Commute(G²,D). No CFC/finiteness/nontriviality premise.",
+            "source": "Arbitrary measurable space and measure;bounded positive real operators G,D on real L²;Commute(G²,D). No CFC/finiteness/nontriviality premise."
+          },
+          {
+            "lean": "ASTIS auxiliary on arbitrary real L2;positivity of D is not a PBPS caller premise. Actual D=I+T positivity is internally produced.",
+            "source": "Remaining sharp B23/B21/full dynamics and expected costs/composition."
+          }
+        ],
+        "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator\nimport Mathlib.Analysis.InnerProductSpace.StarOrder\nimport Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Commute\nimport Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.Basic\n\nopen MeasureTheory\nopen scoped ENNReal\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute\nnoncomputable section\nset_option autoImplicit false\nset_option maxHeartbeats 1000000\n\ntheorem positive_square_commutation\n    {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)\n    (G D : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ)\n    (hG : G.IsPositive) (hD : D.IsPositive)\n    (hCommute : Commute (G*G) D) : Commute G D\n := by\n  letI := IsStarNormal.instNonUnitalContinuousFunctionalCalculus\n    (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  letI : NonUnitalContinuousFunctionalCalculus ℂ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsStarNormal :=\n    NonUnitalClosedEmbeddingContinuousFunctionalCalculus.toNonUnitalContinuousFunctionalCalculus\n  letI : NonUnitalContinuousFunctionalCalculus ℝ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsSelfAdjoint :=\n    IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus\n      (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  let ι : Lp ℝ 2 μ →L[ℝ] Lp ℂ 2 μ := Complex.ofRealCLM.compLpL 2 μ\n  let R : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.reCLM.compLpL 2 μ\n  let Q : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.imCLM.compLpL 2 μ\n  obtain ⟨hNorm,_,Gc,hGc,hGf,hGi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ G hG\n  obtain ⟨_,_,Dc,hDc,hDf,hDi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ D hD\n  have hReal (u : Lp ℝ 2 μ) : G (G (D u)) = D (G (G u)) :=\n    congrArg (fun A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ => A u) hCommute.eq\n  have hComplex : Commute (Gc*Gc) Dc := by\n    apply ContinuousLinearMap.ext\n    intro g\n    change Gc (Gc (Dc g)) = Dc (Gc (Gc g))\n    calc\n      Gc (Gc (Dc g)) = ι (G (G (D (R g)))) + Complex.I • ι (G (G (D (Q g)))) := by\n        rw [hDf g, map_add, map_smul, hGi, hGi, map_add, map_smul, hGi, hGi]\n      _ = ι (D (G (G (R g)))) + Complex.I • ι (D (G (G (Q g)))) := by\n        rw [hReal (R g),hReal (Q g)]\n      _ = Dc (Gc (Gc g)) := by\n        rw [hGf g,map_add,map_smul,hGi,hGi,map_add,map_smul,hDi,hDi]\n  have hGcNonneg : 0 ≤ Gc := (ContinuousLinearMap.nonneg_iff_isPositive Gc).mpr hGc\n  have hRoot : CFC.sqrt (Gc*Gc)=Gc := CFC.sqrt_unique rfl hGcNonneg\n  have hLift : Commute Gc Dc := by\n    have h := hComplex.cfcₙ_nnreal NNReal.sqrt\n    change Commute (CFC.sqrt (Gc*Gc)) Dc at h\n    rwa [hRoot] at h\n  let e : Lp ℝ 2 μ →ₗᵢ[ℝ] Lp ℂ 2 μ :=\n    { toLinearMap := ι.toLinearMap, norm_map' := hNorm }\n  apply ContinuousLinearMap.ext\n  intro u\n  apply e.injective\n  change ι (G (D u))=ι (D (G u))\n  rw [← hGi (D u), ← hDi u, ← hDi (G u), ← hGi u]\n  exact congrArg (fun A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ => A (ι u)) hLift.eq\n\nend\nend AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute\n\n#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation\n",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "file": "3c2e4892a24890f0c007ca6ecf9806baa42f0b50f62fc0484066e6643e2b303c",
+        "formulae": [
+          {
+            "label": "Positive square commutation on arbitrary real L²",
+            "tex": "G,D\\ge0,\\quad[G^2,D]=0\\Longrightarrow[G,D]=0."
+          }
+        ],
+        "lesson": {
+          "assumptions": [
+            "Arbitrary measurable space and measure;bounded positive real operators G,D on real L²;Commute(G²,D). No CFC/finiteness/nontriviality premise."
+          ],
+          "astis_dependencies": [
+            "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator.exists_positive_complex_lift"
+          ],
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation",
+          "formula": "G,D\\ge0,\\quad[G^2,D]=0\\Longrightarrow[G,D]=0.",
+          "kind": "theorem",
+          "lean_proof": "Complexify the positive operators; Lift square commutation; Commute with the same positive square root; Descend by injectivity",
+          "lean_statement": "For every measurable space Ω and every measure μ,let G,D be bounded real linear operators on real L²(μ). Assume G,D positive:selfadjoint with nonnegative quadratic form. If G²D=DG²,then GD=DG. No probability,finite measure,finite-dimensional L²,nontriviality or caller CFC instance is required. This ASTIS auxiliary consequence of unique positive-root functional calculus is not a separately printed PBPS theorem. Its actual paper consumer internally proves D=I+T positive and G² commuting with D;these are not extra paper premises.",
+          "mathlib_dependencies": [
+            "Commute.cfcₙ_nnreal",
+            "CFC.sqrt_unique",
+            "ContinuousLinearMap.ext"
+          ],
+          "sources": [
+            {
+              "label": "PBPS2609.06905v1 Appendix D.1 spectral calculus background;ASTIS positive real-L2 square commutation corollary for B23/B21.",
+              "scope": "ASTIS auxiliary on arbitrary real L2;positivity of D is not a PBPS caller premise. Actual D=I+T positivity is internally produced.",
+              "url": "https://arxiv.org/html/2609.06905v1#A4.SS1"
+            }
+          ],
+          "statement": "For every measurable space Ω and every measure μ,let G,D be bounded real linear operators on real L²(μ). Assume G,D positive:selfadjoint with nonnegative quadratic form. If G²D=DG²,then GD=DG. No probability,finite measure,finite-dimensional L²,nontriviality or caller CFC instance is required. This ASTIS auxiliary consequence of unique positive-root functional calculus is not a separately printed PBPS theorem. Its actual paper consumer internally proves D=I+T positive and G² commuting with D;these are not extra paper premises.",
+          "steps": [
+            {
+              "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+              "formula": "G_{\\mathbb C}\\iota u=\\iota Gu,\\quad D_{\\mathbb C}\\iota u=\\iota Du,\\quad\\|\\iota u\\|=\\|u\\|.",
+              "lean": "  letI := IsStarNormal.instNonUnitalContinuousFunctionalCalculus\n    (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  letI : NonUnitalContinuousFunctionalCalculus ℂ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsStarNormal :=\n    NonUnitalClosedEmbeddingContinuousFunctionalCalculus.toNonUnitalContinuousFunctionalCalculus\n  letI : NonUnitalContinuousFunctionalCalculus ℝ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsSelfAdjoint :=\n    IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus\n      (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  let ι : Lp ℝ 2 μ →L[ℝ] Lp ℂ 2 μ := Complex.ofRealCLM.compLpL 2 μ\n  let R : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.reCLM.compLpL 2 μ\n  let Q : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.imCLM.compLpL 2 μ\n  obtain ⟨hNorm,_,Gc,hGc,hGf,hGi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ G hG\n  obtain ⟨_,_,Dc,hDc,hDf,hDi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ D hD\n",
+              "lean_source_region": {
+                "end_line": 35,
+                "exact_code_raw_sha256": "1a6605affa880255debd31099d40aa7359ab9414546ea5f62f01c0592a2c0d98",
+                "path": "AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareCommute.lean",
+                "source_raw_sha256": "3c2e4892a24890f0c007ca6ecf9806baa42f0b50f62fc0484066e6643e2b303c",
+                "start_line": 20
+              },
+              "text": "Use the existing canonical complex lift,its action on every complex vector and the norm-preserving real embedding.",
+              "title": "Complexify the positive operators"
+            },
+            {
+              "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+              "formula": "G^2D=DG^2\\Rightarrow G_{\\mathbb C}^2D_{\\mathbb C}=D_{\\mathbb C}G_{\\mathbb C}^2.",
+              "lean": "  have hReal (u : Lp ℝ 2 μ) : G (G (D u)) = D (G (G u)) :=\n    congrArg (fun A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ => A u) hCommute.eq\n  have hComplex : Commute (Gc*Gc) Dc := by\n    apply ContinuousLinearMap.ext\n    intro g\n    change Gc (Gc (Dc g)) = Dc (Gc (Gc g))\n    calc\n      Gc (Gc (Dc g)) = ι (G (G (D (R g)))) + Complex.I • ι (G (G (D (Q g)))) := by\n        rw [hDf g, map_add, map_smul, hGi, hGi, map_add, map_smul, hGi, hGi]\n      _ = ι (D (G (G (R g)))) + Complex.I • ι (D (G (G (Q g)))) := by\n        rw [hReal (R g),hReal (Q g)]\n      _ = Dc (Gc (Gc g)) := by\n        rw [hGf g,map_add,map_smul,hGi,hGi,map_add,map_smul,hDi,hDi]\n",
+              "lean_source_region": {
+                "end_line": 48,
+                "exact_code_raw_sha256": "0f59158fa5920f24e93859f4954a0ca677cbcaea2ed822a194d39bb11397c702",
+                "path": "AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareCommute.lean",
+                "source_raw_sha256": "3c2e4892a24890f0c007ca6ecf9806baa42f0b50f62fc0484066e6643e2b303c",
+                "start_line": 36
+              },
+              "text": "Apply the real identity separately to real and imaginary parts and use complex linearity;this proves equality of full complex operators.",
+              "title": "Lift square commutation"
+            },
+            {
+              "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+              "formula": "\\sqrt{G_{\\mathbb C}^2}=G_{\\mathbb C},\\quad[G_{\\mathbb C}^2,D_{\\mathbb C}]=0\\Rightarrow[G_{\\mathbb C},D_{\\mathbb C}]=0.",
+              "lean": "  have hGcNonneg : 0 ≤ Gc := (ContinuousLinearMap.nonneg_iff_isPositive Gc).mpr hGc\n  have hRoot : CFC.sqrt (Gc*Gc)=Gc := CFC.sqrt_unique rfl hGcNonneg\n  have hLift : Commute Gc Dc := by\n    have h := hComplex.cfcₙ_nnreal NNReal.sqrt\n    change Commute (CFC.sqrt (Gc*Gc)) Dc at h\n    rwa [hRoot] at h\n",
+              "lean_source_region": {
+                "end_line": 54,
+                "exact_code_raw_sha256": "0aed1a1c745c6fba4f07be084e287d4ae89d5c6b4d3b36a17e5e2ab3ce2860a3",
+                "path": "AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareCommute.lean",
+                "source_raw_sha256": "3c2e4892a24890f0c007ca6ecf9806baa42f0b50f62fc0484066e6643e2b303c",
+                "start_line": 49
+              },
+              "text": "The unique positive root of Gc² is Gc. Commutation with the argument passes to its continuous functional calculus.",
+              "title": "Commute with the same positive square root"
+            },
+            {
+              "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+              "formula": "\\iota GD u=G_{\\mathbb C}D_{\\mathbb C}\\iota u=D_{\\mathbb C}G_{\\mathbb C}\\iota u=\\iota DG u\\Rightarrow GD=DG.",
+              "lean": "  let e : Lp ℝ 2 μ →ₗᵢ[ℝ] Lp ℂ 2 μ :=\n    { toLinearMap := ι.toLinearMap, norm_map' := hNorm }\n  apply ContinuousLinearMap.ext\n  intro u\n  apply e.injective\n  change ι (G (D u))=ι (D (G u))\n  rw [← hGi (D u), ← hDi u, ← hDi (G u), ← hGi u]\n  exact congrArg (fun A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ => A (ι u)) hLift.eq\n",
+              "lean_source_region": {
+                "end_line": 62,
+                "exact_code_raw_sha256": "522440335f0989eb689ea07cf0b908bcc16cc40477ed0156745bb6b12a21935d",
+                "path": "AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareCommute.lean",
+                "source_raw_sha256": "3c2e4892a24890f0c007ca6ecf9806baa42f0b50f62fc0484066e6643e2b303c",
+                "start_line": 55
+              },
+              "text": "Evaluate on the embedded real vector;exact intertwining and norm-injectivity recover real commutation.",
+              "title": "Descend by injectivity"
+            }
+          ],
+          "tests": [
+            "lake build Tests.ProximalBPSActualRootCommutation"
+          ],
+          "title": "Positive square commutation on arbitrary real L²"
+        },
+        "obligations": [
+          {
+            "id": "commutation",
+            "label": "Positive square commutation on arbitrary real L²"
+          },
+          {
+            "id": "remaining-paper",
+            "label": "Remaining sharp energy,rotation,dynamics,mixing,errors and expected costs/composition"
+          }
+        ],
+        "source": {
+          "anchor": "PBPS2609.06905v1 Appendix D.1 spectral calculus background;ASTIS positive real-L2 square commutation corollary for B23/B21.",
+          "attribution": "Fan Chen,Sinho Chewi,Jianfeng Lu and Matthew S. Zhang supply Appendix D.1 spectral-calculus background. This ASTIS auxiliary real-L2 corollary uses pinned Mathlib CFC and local complexification;it is not a separately printed theorem.",
+          "edition": "arXiv:2609.06905v1;Lean4.33.0/fixedMathlib",
+          "url": "https://arxiv.org/html/2609.06905v1#A4.SS1",
+          "wording_status": "faithful paraphrase"
+        },
+        "statement": "For every measurable space Ω and every measure μ,let G,D be bounded real linear operators on real L²(μ). Assume G,D positive:selfadjoint with nonnegative quadratic form. If G²D=DG²,then GD=DG. No probability,finite measure,finite-dimensional L²,nontriviality or caller CFC instance is required. This ASTIS auxiliary consequence of unique positive-root functional calculus is not a separately printed PBPS theorem. Its actual paper consumer internally proves D=I+T positive and G² commuting with D;these are not extra paper premises.",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b"
+      },
+      "publication_context_sha256": "97ce8a2857b1ada5ad38293e2f2a344c9b878ff6f8037dd69c102c94f1d3ceea",
+      "reader_metadata_findings_resolved_by_separately_reviewed_exact_overlays": true,
+      "repairs": [],
+      "review_evidence": "Source-first pinned primary d81e9294... and pre-candidate graph be9c9a8c...;344/344 literal math items with exact alt/annotation coverage;3 complete modules;2 literal private expansions;10 BODY RAW/line/span hashes;final binding/context recomputed. See source-coverage-audit.json,whole-module-representation-and-source-contracts.json,ten-literal-BODY-excerpt-audit.json,source-graph-current-boundary-comparison.json,final-publication-binding-context-audit.json and exact finite metadata resolutions.",
+      "review_run_sha256": "",
+      "review_run_sha256_external_binding": {
+        "file": "raw-payload-bindings.json",
+        "key": "whole_logical_run_sha256",
+        "reason": "Complete logical run embeds full decisions. To avoid impossible self-hash cycle, native decision leaves standard field empty; external verified finite adapter fills it without modifying native bytes. Only top-level run_sha256 is deleted for whole logical hash."
+      },
+      "reviewer": "/root/independent_source64",
+      "reviewer_packet_RAW": {
+        "LF_bytes": 21275,
+        "LF_sha256": "93b8728d1ba894ce20f15cc5a337ffc12792824a16f9d60a3bf45c2af6cccd91",
+        "RAW_bytes": 21275,
+        "RAW_sha256": "93b8728d1ba894ce20f15cc5a337ffc12792824a16f9d60a3bf45c2af6cccd91",
+        "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-root-commutation67/source.0.reviewer-packet.json"
+      },
+      "reviewer_packet_sha256": "cb62a377623e885e6d760cac7b195e99f2b4ecede5efc8d8328b70d34663780f",
+      "schema": "source67-canonical-semantic-source-decision-v1",
+      "selected_source_mathematics_accepted": true,
+      "semantic_slots": {
+        "assumptions": {
+          "evidence": "Exact public binders hG,hD,hCommute. D positivity is a generic background condition; actual paper internally constructs D=I+T.",
+          "original": "G,D positive (selfadjoint and nonnegative quadratic form), Commute(G²,D).",
+          "reconstructed": "Both positivity hypotheses and square commutation retained.",
+          "relation": "equivalent"
+        },
+        "conclusion": {
+          "evidence": "Complex lift intertwining, CFC unique positive root of Gc², then descend using injective real embedding.",
+          "original": "GD=DG.",
+          "reconstructed": "Commute G D.",
+          "relation": "equivalent"
+        },
+        "constant_dependencies": {
+          "evidence": "Zero measure/zero-space and admissible zero operators legal; no norm=1 assertion.",
+          "original": "No numeric constants or spectral gap.",
+          "reconstructed": "No numeric constants/finiteness/inverse/gap.",
+          "relation": "equivalent"
+        },
+        "domains": {
+          "evidence": "CFC instances and complex lifts internal; real domain retained; D1 probability conventions expanded explicitly for ASTIS background.",
+          "original": "Arbitrary measurable Ω and any μ; complete real L2 of AE classes.",
+          "reconstructed": "Arbitrary measurable Ω,μ; no probability/finite mass/finite dimensionality/nontriviality.",
+          "relation": "explicit-elaboration"
+        },
+        "objects": {
+          "evidence": "Exact leaf header/full BODY and blind packet0; Γ is not a scalar.",
+          "original": "Bounded positive G,D on real scalar-valued L2(μ), squares and products are operator composition.",
+          "reconstructed": "Same bounded real-linear positive G,D and composition square.",
+          "relation": "equivalent"
+        },
+        "quantifiers": {
+          "evidence": "No hidden section binder, output witness or link to actual PBPS in generic proposition.",
+          "original": "For every Ω,μ and G,D satisfying the stated hypotheses.",
+          "reconstructed": "Every Ω,μ,G,D universal.",
+          "relation": "equivalent"
+        },
+        "scopes": {
+          "evidence": "D1 spectral calculus/unique positive root accurately attributed; exact source URL corrected separately; no source mathematical repair.",
+          "original": "ASTIS auxiliary corollary from spectral calculus, not a separately printed PBPS theorem; genuine actual-root consumer downstream.",
+          "reconstructed": "Generic bounded-operator assertion only; no source/proof/certification claim from decoder.",
+          "relation": "explicit-elaboration"
+        }
+      },
+      "source_mathematical_repair": false,
+      "source_reviewer_mathematical_verification_claim": false,
+      "verdict": "equivalent-after-elaboration",
+      "whole_paper_main_dynamics_query_cost_composition_accepted": false
+    },
+    {
+      "PURIFIED": false,
+      "canonical_Git_ledger_Lean_writes": false,
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation.actual_same_root_inverse_commutation",
+      "deltas": [
+        {
+          "blocking": false,
+          "classification": "explicit-elaboration",
+          "description": "Original Euclidean conditions represented on finite real Hilbert Borel space,rank-zero disclosed;closed centered and microscopic domains and literal private propositions explicitly elaborated without new premises.",
+          "id": "explicit-finite-Hilbert-centered-domain-adapters",
+          "slot": "domains"
+        }
+      ],
+      "full_Exposition": false,
+      "independent_from_decoder": true,
+      "independent_from_formalizer": true,
+      "packet_index": 1,
+      "publication_binding_sha256": "6c74b343fa8d19b0c2a032d0396306c8ff7a406485c0ab3a087ce366bdb8d8ac",
+      "publication_context": {
+        "assumptions": [
+          "Finite-dimensional real Hilbert Borel base E with canonical volume, including the disclosed rank-zero extension; V is C²; 0<α≤β; both global Hessian bounds; η>0 and βη≤1.",
+          "Canonical normalized laws/kernel, onto pullback e, SAME U/T, full and centered roots, exact centering, gap, unit and bounded inverse are conclusions. Conditional actions are per-observable AE. L² is not assumed finite-dimensional.",
+          "γ=2√(αη)/(1+αη); the inverse acts only on H_P^0=ker⟨e1,·⟩ with inherited Hilbert structure; the legal endpoint αη=1 is retained.",
+          "H_perp is exactly ker P (conditional expectation given Y), while H_P^0 is the zero ν-mean macroscopic space. Their complete Hilbert structures, B_0 and V_0 are internally constructed; no onto-kerP or coisometry assumption is introduced.",
+          "The concluded global-input implication quantifies every f∈L²(J) with integral zero. R,conditional centering,constant annihilation,adjoint range and norm decomposition are derived internally. Private statement definitions expand literally to the original sealed propositions and add no premise."
+        ],
+        "binding": {
+          "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation.actual_same_root_inverse_commutation",
+          "role": "proof-edge",
+          "supports": [
+            "commutation"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "lean": "Finite-dimensional real Hilbert Borel base E with canonical volume, including the disclosed rank-zero extension; V is C²; 0<α≤β; both global Hessian bounds; η>0 and βη≤1.",
+            "source": "Finite-dimensional real Hilbert Borel base E with canonical volume, including the disclosed rank-zero extension; V is C²; 0<α≤β; both global Hessian bounds; η>0 and βη≤1."
+          },
+          {
+            "lean": "Same-root and actual centered inverse commutation plus B23 coefficient square identity only. Sharp B23 norm estimate/B21 rotation/full energy/H1/dynamics/errors/cost/composition not yet proved. All original finite Hilbert/Borel/C2/both Hessians/positive capped eta callers preserved. D=I+T positivity and all commutations are internally proved, never extra public paper premises.",
+            "source": "Remaining sharp B23/B21/full dynamics and expected costs/composition."
+          }
+        ],
+        "current_lean_module": "import AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector\nimport AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute\n\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped RealInnerProductSpace ContDiff NNReal Topology ENNReal\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation\nnoncomputable section\nset_option autoImplicit false\nset_option maxHeartbeats 2000000\n\nprivate def actual_same_root_inverse_commutation_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) : Prop :=\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let mY := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)\n    letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace\n    letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) :=\n      ⟨measurable_snd.comap_le⟩\n    let HP := lpMeas ℝ ℝ mY 2 J\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le\n    let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩\n    let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    HP = P.toLinearMap.range ∧\n    (∀ f : HP, P (f : Lp ℝ 2 J) = f) ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ e : Lp ℝ 2 ν ≃ₗᵢ[ℝ] HP,\n        (∀ u : Lp ℝ 2 ν, (e u : Lp ℝ 2 J) = M u) ∧\n        ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n          (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n          Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n            IsSelfAdjoint T ∧\n            (∀ u : Lp ℝ 2 ν,\n              ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n            let A : HP →L[ℝ] HP :=\n              HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL\n            let B : HP →L[ℝ] Lp ℝ 2 J :=\n              (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL\n            A = e.conjStarAlgEquiv T ∧ IsSelfAdjoint A ∧\n            (∀ f : HP, ‖A f‖ ≤ ‖f‖) ∧\n            (∀ f : HP, P (B f) = 0) ∧\n            ∃ Γ : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n              Γ.IsPositive ∧ Γ*Γ=(1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T ∧\n              Commute Γ T ∧\n              let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ\n              ΓP.IsPositive ∧ ΓP*ΓP=(1 : HP →L[ℝ] HP)-A*A ∧\n              Commute ΓP A ∧\n              B.adjoint ∘L B = ΓP*ΓP ∧\n              ∃ q : Lp ℝ 2 ν,\n                (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧\n                (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧\n                let qP : HP := e q\n                let HP0 := (innerSL ℝ qP).ker\n                letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup\n                letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace\n                letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe\n                let γ : ℝ := 2*Real.sqrt ((α : ℝ)*η)/(1+(α : ℝ)*η)\n                (∀ f : HP, f ∈ HP0 ↔ (∫ y, (e.symm f) y ∂ν) = 0) ∧\n                ΓP qP = 0 ∧ 0 < γ ∧\n                ∃ ΓP0 : HP0 →L[ℝ] HP0,\n                  (∀ f : HP0, (ΓP0 f : HP) = ΓP (f : HP)) ∧\n                  ΓP0.IsPositive ∧ (ΓP0-γ • (1 : HP0 →L[ℝ] HP0)).IsPositive ∧\n                  IsUnit ΓP0 ∧\n                  ∃ Inv : HP0 →L[ℝ] HP0,\n                    Inv*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧\n                    ΓP0*Inv=(1 : HP0 →L[ℝ] HP0) ∧ ‖Inv‖ ≤ 1/γ ∧\n                    IsSelfAdjoint Inv ∧\n                    ∃ A0 : HP0 →L[ℝ] HP0,\n                      (∀ u : HP0, (A0 u : HP)=A (u : HP)) ∧\n                      IsSelfAdjoint A0 ∧ Commute A0 ΓP0 ∧\n                      A0*A0+ΓP0*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧\n                      Commute A0 Inv ∧\n                    let Hperp := P.ker\n                    letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup\n                    letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace\n                    letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe\n                    ∃ B0 : HP0 →L[ℝ] Hperp,\n                      (∀ f : HP0, (B0 f : Lp ℝ 2 J) = B (f : HP)) ∧\n                      ∃ V0 : HP0 →L[ℝ] Hperp,\n                        V0 = B0 ∘L Inv ∧ B0 = V0 ∘L ΓP0 ∧\n                        V0.adjoint ∘L V0 = (1 : HP0 →L[ℝ] HP0) ∧\n                        (∀ f : HP0, ‖V0 f‖ = ‖f‖) ∧\n                        ∃ R : Lp ℝ 2 J →L[ℝ] Hperp,\n                          (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) ∧\n                          (∀ g : Lp ℝ 2 J,\n                            B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) ∧\n                          (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →\n                            ∃ fP : HP0,\n                              HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧\n                              let fperp : Hperp := R f\n                              let fV : HP0 := V0.adjoint fperp\n                              B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧\n                              HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧\n                              ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖)\n\n\ntheorem actual_same_root_inverse_commutation\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) : actual_same_root_inverse_commutation_statement (E := E) (V := V) (α := α) (β := β) (η := η) hα hαβ hV hH hη hβη := by\n  classical\n  unfold actual_same_root_inverse_commutation_statement\n  dsimp only\n  let μ := (volume : Measure E).tilted (fun x => -V x)\n  let J := (μ.prod (stdGaussian E)).map\n    (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n  let ν := J.snd\n  let mY : MeasurableSpace (E × E) := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)\n  letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace\n  letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) := ⟨measurable_snd.comap_le⟩\n  let HP := lpMeas ℝ ℝ mY 2 J\n  letI : NormedAddCommGroup HP := HP.normedAddCommGroup\n  letI : InnerProductSpace ℝ HP := HP.innerProductSpace\n  let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n    HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le\n  have hBase := AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition\n    (E:=E) (V:=V) (α:=α) (β:=β) (η:=η) hα hαβ hV hH hη hβη\n  rcases hBase with\n    ⟨hμ,hJ,hν,hRange,hPf,S,hS,hSd,hSc,hSf,hSs,e,he,U,hU,hUi,hUs,\n      T,hTs,hAll,hAeq,hAs,hAn,hPB,Γ,hΓ,hΓSq,hΓP,hΓPSq,hGram,\n      q,hqa,hTq,hq,hCenter,hΓPq,hγ,ΓP0,hΓP0,hPos0,hOrder0,hUnit,\n      Inv,hLeft,hRight,hNormInv,B0,hB0,V0,hVdef,hFactor,hVadj,hVnorm,R,hR,hAmbient,hGlobal⟩\n  let A : HP →L[ℝ] HP := HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL\n  let B : HP →L[ℝ] Lp ℝ 2 J :=\n    (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL\n  let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ\n  let qP : HP := e q\n  let HP0 := (innerSL ℝ qP).ker\n  letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup\n  letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace\n  letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe\n  let Hperp := P.ker\n  letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup\n  letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace\n  letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe\n  change HP0 →L[ℝ] Hperp at B0 V0\n  change HP0 →L[ℝ] HP0 at ΓP0 Inv\n  change Lp ℝ 2 J →L[ℝ] Hperp at R\n  change (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) at hR\n  change (∀ g : Lp ℝ 2 J,\n    B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) at hAmbient\n  change (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →\n    ∃ fP : HP0,\n      HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧\n      let fperp : Hperp := R f\n      let fV : HP0 := V0.adjoint fperp\n      B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧\n      HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧\n      ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖) at hGlobal\n  have hAeqLocal : A=e.conjStarAlgEquiv T := hAeq\n  have hAsLocal : IsSelfAdjoint A := hAs\n  have hLeftLocal : Inv*ΓP0=(1 : HP0 →L[ℝ] HP0) := hLeft\n  have hPosLocal : ΓP0.IsPositive := hPos0\n  have hDpos : ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)+T).IsPositive := by\n    refine ⟨((IsSelfAdjoint.one (Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)).add hTs).isSymmetric,?_⟩\n    intro u\n    change 0 ≤ inner ℝ (u+T u) u\n    rw [inner_add_left,real_inner_self_eq_norm_sq]\n    have hn : ‖T u‖≤‖u‖ := (hAll u).1\n    have hi := (abs_le.mp (abs_real_inner_le_norm (T u) u)).1\n    nlinarith only [hn,hi,norm_nonneg u]\n  have hCommSquare : Commute (Γ*Γ) ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)+T) := by\n    rw [hΓSq]\n    show (1-T*T)*(1+T)=(1+T)*(1-T*T)\n    noncomm_ring\n  have hCommRootPlus := AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation\n    ν Γ (1+T) hΓ hDpos hCommSquare\n  have hCommRoot : Commute Γ T := by\n    have h := hCommRootPlus.eq\n    simp only [mul_add,add_mul,mul_one,one_mul] at h\n    exact add_left_cancel h\n  have hCommP : Commute ΓP A := by\n    change ΓP*A=A*ΓP\n    change (e.conjStarAlgEquiv Γ)*A=A*(e.conjStarAlgEquiv Γ)\n    rw [hAeqLocal,← map_mul,← map_mul,hCommRoot.eq]\n  have hAq : A qP=qP := by\n    rw [hAeqLocal]\n    change e (T (e.symm (e q)))=e q\n    rw [e.symm_apply_apply,hTq]\n  have hAPreserves (u : HP0) : A (u : HP) ∈ HP0 := by\n    change inner ℝ qP (A (u : HP))=0\n    calc\n      inner ℝ qP (A (u : HP))=inner ℝ (A qP) (u : HP) :=\n        (hAsLocal.isSymmetric qP (u : HP)).symm\n      _ = inner ℝ qP (u : HP) := by rw [hAq]\n      _ = 0 := u.property\n  let A0 : HP0 →L[ℝ] HP0 := (A.comp HP0.subtypeL).codRestrict HP0 hAPreserves\n  have hA0 (u : HP0) : (A0 u : HP)=A (u : HP) := rfl\n  have hA0self : IsSelfAdjoint A0 := by\n    apply ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric.mpr\n    intro u v\n    exact hAsLocal.isSymmetric (u : HP) (v : HP)\n  have hComm0 : Commute A0 ΓP0 := by\n    apply ContinuousLinearMap.ext\n    intro u\n    apply Subtype.ext\n    change (A0 (ΓP0 u) : HP)=(ΓP0 (A0 u) : HP)\n    rw [hA0,hΓP0,hΓP0,hA0]\n    exact congrArg (fun D : HP →L[ℝ] HP => D (u : HP)) hCommP.eq.symm\n  have hSquare0 : A0*A0+ΓP0*ΓP0=(1 : HP0 →L[ℝ] HP0) := by\n    apply ContinuousLinearMap.ext\n    intro u\n    apply Subtype.ext\n    change (A0 (A0 u) : HP)+(ΓP0 (ΓP0 u) : HP)=(u : HP)\n    rw [hA0,hA0,hΓP0,hΓP0]\n    have h : ΓP (ΓP (u : HP))=(u : HP)-A (A (u : HP)) :=\n      congrArg (fun D : HP →L[ℝ] HP => D (u : HP)) hΓPSq\n    rw [h]\n    abel\n  have hStarInv : ΓP0*star Inv=(1 : HP0 →L[ℝ] HP0) := by\n    have h := congrArg (fun D : HP0 →L[ℝ] HP0 => star D) hLeftLocal\n    simpa only [star_mul,hPosLocal.isSelfAdjoint.star_eq,star_one] using h\n  have hInvSelf : IsSelfAdjoint Inv := by\n    change star Inv=Inv\n    calc\n      star Inv=(Inv*ΓP0)*star Inv := by rw [hLeft,one_mul]\n      _ = Inv*(ΓP0*star Inv) := mul_assoc _ _ _\n      _ = Inv := by rw [hStarInv,mul_one]\n  have hCommInv : Commute A0 Inv := by\n    change A0*Inv=Inv*A0\n    calc\n      A0*Inv=(Inv*ΓP0)*(A0*Inv) := by rw [hLeft,one_mul]\n      _ = Inv*((ΓP0*A0)*Inv) := by noncomm_ring\n      _ = Inv*((A0*ΓP0)*Inv) := by rw [hComm0.eq.symm]\n      _ = Inv*A0 := by simp only [mul_assoc,hRight,mul_one]\n  refine ⟨hμ, ?_⟩\n  refine ⟨hJ, ?_⟩\n  refine ⟨hν, ?_⟩\n  refine ⟨hRange, ?_⟩\n  refine ⟨hPf, ?_⟩\n  refine ⟨S, ?_⟩\n  refine ⟨hS, ?_⟩\n  refine ⟨hSd, ?_⟩\n  refine ⟨hSc, ?_⟩\n  refine ⟨hSf, ?_⟩\n  refine ⟨hSs, ?_⟩\n  refine ⟨e, ?_⟩\n  refine ⟨he, ?_⟩\n  refine ⟨U, ?_⟩\n  refine ⟨hU, ?_⟩\n  refine ⟨hUi, ?_⟩\n  refine ⟨hUs, ?_⟩\n  refine ⟨T, ?_⟩\n  refine ⟨hTs, ?_⟩\n  refine ⟨hAll, ?_⟩\n  refine ⟨hAeq, ?_⟩\n  refine ⟨hAs, ?_⟩\n  refine ⟨hAn, ?_⟩\n  refine ⟨hPB, ?_⟩\n  refine ⟨Γ, ?_⟩\n  refine ⟨hΓ, ?_⟩\n  refine ⟨hΓSq, ?_⟩\n  refine ⟨hCommRoot, ?_⟩\n  refine ⟨hΓP, ?_⟩\n  refine ⟨hΓPSq, ?_⟩\n  refine ⟨hCommP, ?_⟩\n  refine ⟨hGram, ?_⟩\n  refine ⟨q, ?_⟩\n  refine ⟨hqa, ?_⟩\n  refine ⟨hTq, ?_⟩\n  refine ⟨hq, ?_⟩\n  refine ⟨hCenter, ?_⟩\n  refine ⟨hΓPq, ?_⟩\n  refine ⟨hγ, ?_⟩\n  refine ⟨ΓP0, ?_⟩\n  refine ⟨hΓP0, ?_⟩\n  refine ⟨hPos0, ?_⟩\n  refine ⟨hOrder0, ?_⟩\n  refine ⟨hUnit, ?_⟩\n  refine ⟨Inv, ?_⟩\n  refine ⟨hLeft, ?_⟩\n  refine ⟨hRight, ?_⟩\n  refine ⟨hNormInv, ?_⟩\n  refine ⟨hInvSelf,A0,hA0,hA0self,hComm0,hSquare0,hCommInv,?_⟩\n  refine ⟨B0, ?_⟩\n  refine ⟨hB0, ?_⟩\n  refine ⟨V0, ?_⟩\n  refine ⟨hVdef, ?_⟩\n  refine ⟨hFactor, ?_⟩\n  refine ⟨hVadj, ?_⟩\n  refine ⟨hVnorm, ?_⟩\n  refine ⟨R, ?_⟩\n  refine ⟨hR, ?_⟩\n  refine ⟨hAmbient, ?_⟩\n  exact hGlobal\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation\n\n#print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation.actual_same_root_inverse_commutation\n",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "file": "8567673eba335e7c1209f8bd90ce510954426bd5bbcdef6ff53ea97889762748",
+        "formulae": [
+          {
+            "label": "Same actual PBPS root and centered inverse commutation",
+            "tex": "[\\Gamma,T]=[\\Gamma_P,A]=[A_0,\\Gamma_0]=[A_0,\\mathrm{Inv}]=0,\\quad\\mathrm{Inv}^*=\\mathrm{Inv},\\quad I+(A_0\\mathrm{Inv})^2=\\mathrm{Inv}^2."
+          }
+        ],
+        "lesson": {
+          "assumptions": [
+            "Finite-dimensional real Hilbert Borel base E with canonical volume, including the disclosed rank-zero extension; V is C²; 0<α≤β; both global Hessian bounds; η>0 and βη≤1.",
+            "Canonical normalized laws/kernel, onto pullback e, SAME U/T, full and centered roots, exact centering, gap, unit and bounded inverse are conclusions. Conditional actions are per-observable AE. L² is not assumed finite-dimensional.",
+            "γ=2√(αη)/(1+αη); the inverse acts only on H_P^0=ker⟨e1,·⟩ with inherited Hilbert structure; the legal endpoint αη=1 is retained.",
+            "H_perp is exactly ker P (conditional expectation given Y), while H_P^0 is the zero ν-mean macroscopic space. Their complete Hilbert structures, B_0 and V_0 are internally constructed; no onto-kerP or coisometry assumption is introduced.",
+            "The concluded global-input implication quantifies every f∈L²(J) with integral zero. R,conditional centering,constant annihilation,adjoint range and norm decomposition are derived internally. Private statement definitions expand literally to the original sealed propositions and add no premise."
+          ],
+          "astis_dependencies": [
+            "AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition",
+            "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator.exists_positive_complex_lift",
+            "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation"
+          ],
+          "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualRootCommutation.actual_same_root_inverse_commutation",
+          "formula": "[\\Gamma,T]=[\\Gamma_P,A]=[A_0,\\Gamma_0]=[A_0,\\mathrm{Inv}]=0,\\quad\\mathrm{Inv}^*=\\mathrm{Inv},\\quad I+(A_0\\mathrm{Inv})^2=\\mathrm{Inv}^2.",
+          "kind": "theorem",
+          "lean_proof": "Retain the exact actual witnesses; Produce positivity and root commutation internally; Transport and construct the exact centered restriction; Restrict the square identity and commutation; Cancel with the same inverse; Consume the B23 coefficient identity at original inputs",
+          "lean_statement": "Let E be a finite-dimensional real Hilbert Borel space with canonical volume, including the explicit rank-zero extension. Let V:E→ℝ be C², 0<α≤β, and assume α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v. Assume η>0 and βη≤1. Define μ(dx) proportional to exp(−V(x))dx, J as the law of (X,X+√η Z) for independent X~μ and Z~N(0,I), ν=J.snd, and Λ as the law of (Y,2X−Y) under J. These are probability laws. Put mY=comap(snd), H_P=L² classes measurable with respect to mY, P=i∘E[·|Y] and the canonical M:u↦u∘snd. Then H_P=ran(P), P is identity on H_P, and there exists an onto linear isometry e:L²(ν;ℝ)≃H_P with i e=M. There is a Markov kernel S whose every-state normalized law is S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)); Λ.IsCondKernel S and both Λ marginals equal ν. The same joint reflection F(x,y)=(x,2x−y) gives the involutive selfadjoint isometry U, with Uf=f∘F J-almost everywhere for every f. There is a bounded selfadjoint T on the full real L²(ν), with ‖Tu‖≤‖u‖, Tu(y)=∫u(x)S(y,dx) ν-almost everywhere for each u, and preserved integral. On H_P put A=PUP restricted via i and orthogonal projection, and B=(I_J−P)UPi:H_P→L²(J). Then A=eTe⁻¹ is selfadjoint and contractive, PB=0. There is a bounded positive operator Γ on the real scalar-valued L² space with Γ²=I−T². For the SAME transported Γ_P=eΓe⁻¹, positivity holds and Γ_P²=I_H_P−A²=B*B. There is q∈L²(ν;ℝ) equal to one ν-almost everywhere, with Tq=q and ⟨q,u⟩=∫u dν for every u. Set q_P=e q and H_P^0=ker⟨q_P,·⟩, with its inherited Hilbert structure. Membership is exactly zero ν-mean after e⁻¹. The SAME Γ_P annihilates q_P. Put γ=2√(αη)/(1+αη)>0. There exists Γ_0:H_P^0→H_P^0 equal under inclusion to the restriction of Γ_P, positive with Γ_0−γ I positive. Γ_0 is a unit in the algebra of bounded real operators. There exists a bounded real Inv on this SAME centered space with Inv Γ_0=Γ_0 Inv=I and ‖Inv‖≤1/γ. All probability, normalization, range, root, centering, spectral-gap, unit and inverse facts are internally derived from the original inputs; none is an additional public premise. αη=1 and rank-zero E remain legal. No inverse on full H_P is asserted. Define the actual closed conditional-mean-zero space H_perp=ker P in L²(J;ℝ), with its inherited complete Hilbert structure; this is not merely the globally zero-mean joint space. There exists B_0:H_P^0→H_perp whose inclusion equals B i_0. There exists V_0:H_P^0→H_perp with V_0=B_0 Inv, B_0=V_0 Γ_0, V_0* V_0=I and ‖V_0 f‖=‖f‖ for every f∈H_P^0. All these objects and identities are conclusions from the same original inputs. There exists the canonical bounded residual map R:L²(J;ℝ)→H_perp with i_perp Rg=g−Pg for every joint g. The SAME ambient adjoint satisfies B* g=i_0 B_0* Rg for every joint g; the printed intrinsic block adjoint is recovered on H_perp. For every actual joint f∈L²(J;ℝ) with ∫f dJ=0, there exists f_P∈H_P^0 whose inclusion is E[f|Y]. Put f_perp=Rf and f_V=V_0* f_perp∈the SAME H_P^0. Then B* i_perp f_perp=i_0 Γ_0 f_V=Γ_P i_0 f_V, ‖f‖²=‖f_P‖²+‖f_perp‖² and ‖f_V‖≤‖f_perp‖. The preceding independently reviewed ambient-adjoint Test derives f=i i_0 f_P+i_perp f_perp, B* f=Γ_P i_0 f_V and ‖f_V‖²≤‖f‖²−‖f_P‖². The global zero-mean condition is a quantified input restriction to this concluded implication, not an extra assumption on the potential or an operator certificate. The SAME root commutes with T and its transport commutes with A. The SAME Inv on H_P^0 is selfadjoint. There exists an internally constructed A_0:H_P^0→H_P^0 whose inclusion equals A after inclusion; it is selfadjoint,commutes with Γ_0,satisfies A_0²+Γ_0²=I,and commutes with the SAME Inv. The genuine original-input Test proves K=A_0 Inv selfadjoint and I+K²=Inv². All old ambient-adjoint/global-centered-observable conclusions persist. These are ingredients for sharp B23 and B21;neither estimate/rotation nor full dynamics,expected costs or composition is asserted. Private literal proposition definitions store the complete original statements and add no premise or provider.",
+          "mathlib_dependencies": [
+            "Commute.cfcₙ_nnreal",
+            "CFC.sqrt_unique",
+            "ContinuousLinearMap.ext",
+            "ContinuousLinearMap.codRestrict",
+            "ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric",
+            "IsSelfAdjoint.commute_iff",
+            "LinearIsometryEquiv.conjStarAlgEquiv",
+            "abs_real_inner_le_norm"
+          ],
+          "sources": [
+            {
+              "label": "PBPS2609.06905v1 Appendix B3: B20 corrector definition, Lemma B.3 sharp B23 estimate and B21 rotation. Same spectral square root, actual centered restriction and inverse commutation; ASTIS positive-square commutation background adapter.",
+              "scope": "Same-root and actual centered inverse commutation plus B23 coefficient square identity only. Sharp B23 norm estimate/B21 rotation/full energy/H1/dynamics/errors/cost/composition not yet proved. All original finite Hilbert/Borel/C2/both Hessians/positive capped eta callers preserved. D=I+T positivity and all commutations are internally proved, never extra public paper premises.",
+              "url": "https://arxiv.org/html/2609.06905v1#A2"
+            }
+          ],
+          "statement": "Let E be a finite-dimensional real Hilbert Borel space with canonical volume, including the explicit rank-zero extension. Let V:E→ℝ be C², 0<α≤β, and assume α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v. Assume η>0 and βη≤1. Define μ(dx) proportional to exp(−V(x))dx, J as the law of (X,X+√η Z) for independent X~μ and Z~N(0,I), ν=J.snd, and Λ as the law of (Y,2X−Y) under J. These are probability laws. Put mY=comap(snd), H_P=L² classes measurable with respect to mY, P=i∘E[·|Y] and the canonical M:u↦u∘snd. Then H_P=ran(P), P is identity on H_P, and there exists an onto linear isometry e:L²(ν;ℝ)≃H_P with i e=M. There is a Markov kernel S whose every-state normalized law is S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)); Λ.IsCondKernel S and both Λ marginals equal ν. The same joint reflection F(x,y)=(x,2x−y) gives the involutive selfadjoint isometry U, with Uf=f∘F J-almost everywhere for every f. There is a bounded selfadjoint T on the full real L²(ν), with ‖Tu‖≤‖u‖, Tu(y)=∫u(x)S(y,dx) ν-almost everywhere for each u, and preserved integral. On H_P put A=PUP restricted via i and orthogonal projection, and B=(I_J−P)UPi:H_P→L²(J). Then A=eTe⁻¹ is selfadjoint and contractive, PB=0. There is a bounded positive operator Γ on the real scalar-valued L² space with Γ²=I−T². For the SAME transported Γ_P=eΓe⁻¹, positivity holds and Γ_P²=I_H_P−A²=B*B. There is q∈L²(ν;ℝ) equal to one ν-almost everywhere, with Tq=q and ⟨q,u⟩=∫u dν for every u. Set q_P=e q and H_P^0=ker⟨q_P,·⟩, with its inherited Hilbert structure. Membership is exactly zero ν-mean after e⁻¹. The SAME Γ_P annihilates q_P. Put γ=2√(αη)/(1+αη)>0. There exists Γ_0:H_P^0→H_P^0 equal under inclusion to the restriction of Γ_P, positive with Γ_0−γ I positive. Γ_0 is a unit in the algebra of bounded real operators. There exists a bounded real Inv on this SAME centered space with Inv Γ_0=Γ_0 Inv=I and ‖Inv‖≤1/γ. All probability, normalization, range, root, centering, spectral-gap, unit and inverse facts are internally derived from the original inputs; none is an additional public premise. αη=1 and rank-zero E remain legal. No inverse on full H_P is asserted. Define the actual closed conditional-mean-zero space H_perp=ker P in L²(J;ℝ), with its inherited complete Hilbert structure; this is not merely the globally zero-mean joint space. There exists B_0:H_P^0→H_perp whose inclusion equals B i_0. There exists V_0:H_P^0→H_perp with V_0=B_0 Inv, B_0=V_0 Γ_0, V_0* V_0=I and ‖V_0 f‖=‖f‖ for every f∈H_P^0. All these objects and identities are conclusions from the same original inputs. There exists the canonical bounded residual map R:L²(J;ℝ)→H_perp with i_perp Rg=g−Pg for every joint g. The SAME ambient adjoint satisfies B* g=i_0 B_0* Rg for every joint g; the printed intrinsic block adjoint is recovered on H_perp. For every actual joint f∈L²(J;ℝ) with ∫f dJ=0, there exists f_P∈H_P^0 whose inclusion is E[f|Y]. Put f_perp=Rf and f_V=V_0* f_perp∈the SAME H_P^0. Then B* i_perp f_perp=i_0 Γ_0 f_V=Γ_P i_0 f_V, ‖f‖²=‖f_P‖²+‖f_perp‖² and ‖f_V‖≤‖f_perp‖. The preceding independently reviewed ambient-adjoint Test derives f=i i_0 f_P+i_perp f_perp, B* f=Γ_P i_0 f_V and ‖f_V‖²≤‖f‖²−‖f_P‖². The global zero-mean condition is a quantified input restriction to this concluded implication, not an extra assumption on the potential or an operator certificate. The SAME root commutes with T and its transport commutes with A. The SAME Inv on H_P^0 is selfadjoint. There exists an internally constructed A_0:H_P^0→H_P^0 whose inclusion equals A after inclusion; it is selfadjoint,commutes with Γ_0,satisfies A_0²+Γ_0²=I,and commutes with the SAME Inv. The genuine original-input Test proves K=A_0 Inv selfadjoint and I+K²=Inv². All old ambient-adjoint/global-centered-observable conclusions persist. These are ingredients for sharp B23 and B21;neither estimate/rotation nor full dynamics,expected costs or composition is asserted. Private literal proposition definitions store the complete original statements and add no premise or provider.",
+          "steps": [
+            {
+              "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+              "formula": "\\Gamma_P=e\\Gamma e^{-1},\\quad H_P^0=\\ker\\langle q_P,\\cdot\\rangle,\\quad\\Gamma_0^{-1}=\\mathrm{Inv}.",
+              "lean": "  classical\n  unfold actual_same_root_inverse_commutation_statement\n  dsimp only\n  let μ := (volume : Measure E).tilted (fun x => -V x)\n  let J := (μ.prod (stdGaussian E)).map\n    (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n  let ν := J.snd\n  let mY : MeasurableSpace (E × E) := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)\n  letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace\n  letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) := ⟨measurable_snd.comap_le⟩\n  let HP := lpMeas ℝ ℝ mY 2 J\n  letI : NormedAddCommGroup HP := HP.normedAddCommGroup\n  letI : InnerProductSpace ℝ HP := HP.innerProductSpace\n  let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n    HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le\n  have hBase := AutoSamplingTheory.ExampleCases.ProximalBPS.AmbientAdjointCorrector.actual_ambient_adjoint_centered_decomposition\n    (E:=E) (V:=V) (α:=α) (β:=β) (η:=η) hα hαβ hV hH hη hβη\n  rcases hBase with\n    ⟨hμ,hJ,hν,hRange,hPf,S,hS,hSd,hSc,hSf,hSs,e,he,U,hU,hUi,hUs,\n      T,hTs,hAll,hAeq,hAs,hAn,hPB,Γ,hΓ,hΓSq,hΓP,hΓPSq,hGram,\n      q,hqa,hTq,hq,hCenter,hΓPq,hγ,ΓP0,hΓP0,hPos0,hOrder0,hUnit,\n      Inv,hLeft,hRight,hNormInv,B0,hB0,V0,hVdef,hFactor,hVadj,hVnorm,R,hR,hAmbient,hGlobal⟩\n  let A : HP →L[ℝ] HP := HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL\n  let B : HP →L[ℝ] Lp ℝ 2 J :=\n    (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL\n  let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ\n  let qP : HP := e q\n  let HP0 := (innerSL ℝ qP).ker\n  letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup\n  letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace\n  letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe\n  let Hperp := P.ker\n  letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup\n  letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace\n  letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe\n  change HP0 →L[ℝ] Hperp at B0 V0\n  change HP0 →L[ℝ] HP0 at ΓP0 Inv\n  change Lp ℝ 2 J →L[ℝ] Hperp at R\n  change (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) at hR\n  change (∀ g : Lp ℝ 2 J,\n    B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) at hAmbient\n  change (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →\n    ∃ fP : HP0,\n      HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧\n      let fperp : Hperp := R f\n      let fV : HP0 := V0.adjoint fperp\n      B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧\n      HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧\n      ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖) at hGlobal\n",
+              "lean_source_region": {
+                "end_line": 172,
+                "exact_code_raw_sha256": "02d74a9a21b0f9036b4f88636c547e184b17ba61945617c406d74991bc705eb9",
+                "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualRootCommutation.lean",
+                "source_raw_sha256": "8567673eba335e7c1209f8bd90ce510954426bd5bbcdef6ff53ea97889762748",
+                "start_line": 124
+              },
+              "text": "Reuse the original-input parent and SAME laws,kernel,operators,roots,inverse,polar and centered geometry;fix their exact spaces.",
+              "title": "Retain the exact actual witnesses"
+            },
+            {
+              "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+              "formula": "\\langle(I+T)u,u\\rangle\\ge\\|u\\|^2-\\|Tu\\|\\|u\\|\\ge0,\\quad[\\Gamma^2,I+T]=0\\Rightarrow[\\Gamma,T]=0.",
+              "lean": "  have hAeqLocal : A=e.conjStarAlgEquiv T := hAeq\n  have hAsLocal : IsSelfAdjoint A := hAs\n  have hLeftLocal : Inv*ΓP0=(1 : HP0 →L[ℝ] HP0) := hLeft\n  have hPosLocal : ΓP0.IsPositive := hPos0\n  have hDpos : ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)+T).IsPositive := by\n    refine ⟨((IsSelfAdjoint.one (Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)).add hTs).isSymmetric,?_⟩\n    intro u\n    change 0 ≤ inner ℝ (u+T u) u\n    rw [inner_add_left,real_inner_self_eq_norm_sq]\n    have hn : ‖T u‖≤‖u‖ := (hAll u).1\n    have hi := (abs_le.mp (abs_real_inner_le_norm (T u) u)).1\n    nlinarith only [hn,hi,norm_nonneg u]\n  have hCommSquare : Commute (Γ*Γ) ((1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)+T) := by\n    rw [hΓSq]\n    show (1-T*T)*(1+T)=(1+T)*(1-T*T)\n    noncomm_ring\n  have hCommRootPlus := AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation\n    ν Γ (1+T) hΓ hDpos hCommSquare\n  have hCommRoot : Commute Γ T := by\n    have h := hCommRootPlus.eq\n    simp only [mul_add,add_mul,mul_one,one_mul] at h\n    exact add_left_cancel h\n",
+              "lean_source_region": {
+                "end_line": 194,
+                "exact_code_raw_sha256": "cadee0b726fd9e0014924da4aaf5b47f4b361c0299bce4707ae87bd4d00d803c",
+                "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualRootCommutation.lean",
+                "source_raw_sha256": "8567673eba335e7c1209f8bd90ce510954426bd5bbcdef6ff53ea97889762748",
+                "start_line": 173
+              },
+              "text": "Selfadjoint contraction and Cauchy-Schwarz give I+T positive. Γ²=I−T² commutes with I+T. The reusable leaf then yields Γ commuting with T.",
+              "title": "Produce positivity and root commutation internally"
+            },
+            {
+              "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+              "formula": "[\\Gamma_P,A]=0,\\quad Aq_P=q_P,\\quad\\langle q_P,Au\\rangle=\\langle Aq_P,u\\rangle=0\\quad(u\\in H_P^0).",
+              "lean": "  have hCommP : Commute ΓP A := by\n    change ΓP*A=A*ΓP\n    change (e.conjStarAlgEquiv Γ)*A=A*(e.conjStarAlgEquiv Γ)\n    rw [hAeqLocal,← map_mul,← map_mul,hCommRoot.eq]\n  have hAq : A qP=qP := by\n    rw [hAeqLocal]\n    change e (T (e.symm (e q)))=e q\n    rw [e.symm_apply_apply,hTq]\n  have hAPreserves (u : HP0) : A (u : HP) ∈ HP0 := by\n    change inner ℝ qP (A (u : HP))=0\n    calc\n      inner ℝ qP (A (u : HP))=inner ℝ (A qP) (u : HP) :=\n        (hAsLocal.isSymmetric qP (u : HP)).symm\n      _ = inner ℝ qP (u : HP) := by rw [hAq]\n      _ = 0 := u.property\n  let A0 : HP0 →L[ℝ] HP0 := (A.comp HP0.subtypeL).codRestrict HP0 hAPreserves\n  have hA0 (u : HP0) : (A0 u : HP)=A (u : HP) := rfl\n  have hA0self : IsSelfAdjoint A0 := by\n    apply ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric.mpr\n    intro u v\n    exact hAsLocal.isSymmetric (u : HP) (v : HP)\n",
+              "lean_source_region": {
+                "end_line": 215,
+                "exact_code_raw_sha256": "a861de35f6b60d0b9254909dd184b2d98143e9732747bd7b0496c0610b6a6fd6",
+                "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualRootCommutation.lean",
+                "source_raw_sha256": "8567673eba335e7c1209f8bd90ce510954426bd5bbcdef6ff53ea97889762748",
+                "start_line": 195
+              },
+              "text": "Conjugate commutation. Tq=q implies AqP=qP;symmetry preserves the exact zero-mean kernel. Construct A0 by codomain restriction and prove selfadjointness.",
+              "title": "Transport and construct the exact centered restriction"
+            },
+            {
+              "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+              "formula": "[A_0,\\Gamma_0]=0,\\qquad A_0^2+\\Gamma_0^2=I_{H_P^0}.",
+              "lean": "  have hComm0 : Commute A0 ΓP0 := by\n    apply ContinuousLinearMap.ext\n    intro u\n    apply Subtype.ext\n    change (A0 (ΓP0 u) : HP)=(ΓP0 (A0 u) : HP)\n    rw [hA0,hΓP0,hΓP0,hA0]\n    exact congrArg (fun D : HP →L[ℝ] HP => D (u : HP)) hCommP.eq.symm\n  have hSquare0 : A0*A0+ΓP0*ΓP0=(1 : HP0 →L[ℝ] HP0) := by\n    apply ContinuousLinearMap.ext\n    intro u\n    apply Subtype.ext\n    change (A0 (A0 u) : HP)+(ΓP0 (ΓP0 u) : HP)=(u : HP)\n    rw [hA0,hA0,hΓP0,hΓP0]\n    have h : ΓP (ΓP (u : HP))=(u : HP)-A (A (u : HP)) :=\n      congrArg (fun D : HP →L[ℝ] HP => D (u : HP)) hΓPSq\n    rw [h]\n    abel\n",
+              "lean_source_region": {
+                "end_line": 232,
+                "exact_code_raw_sha256": "8aa5ff79a81083e8cc614ca8b1a1e62f065ac985a16398012d5fb60059df48e2",
+                "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualRootCommutation.lean",
+                "source_raw_sha256": "8567673eba335e7c1209f8bd90ce510954426bd5bbcdef6ff53ea97889762748",
+                "start_line": 216
+              },
+              "text": "Use exact inclusion identities and injectivity of the centered subspace inclusion.",
+              "title": "Restrict the square identity and commutation"
+            },
+            {
+              "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+              "formula": "\\Gamma_0\\mathrm{Inv}^*=I,\\quad\\mathrm{Inv}^*=\\mathrm{Inv},\\quad A_0\\mathrm{Inv}=\\mathrm{Inv}A_0.",
+              "lean": "  have hStarInv : ΓP0*star Inv=(1 : HP0 →L[ℝ] HP0) := by\n    have h := congrArg (fun D : HP0 →L[ℝ] HP0 => star D) hLeftLocal\n    simpa only [star_mul,hPosLocal.isSelfAdjoint.star_eq,star_one] using h\n  have hInvSelf : IsSelfAdjoint Inv := by\n    change star Inv=Inv\n    calc\n      star Inv=(Inv*ΓP0)*star Inv := by rw [hLeft,one_mul]\n      _ = Inv*(ΓP0*star Inv) := mul_assoc _ _ _\n      _ = Inv := by rw [hStarInv,mul_one]\n  have hCommInv : Commute A0 Inv := by\n    change A0*Inv=Inv*A0\n    calc\n      A0*Inv=(Inv*ΓP0)*(A0*Inv) := by rw [hLeft,one_mul]\n      _ = Inv*((ΓP0*A0)*Inv) := by noncomm_ring\n      _ = Inv*((A0*ΓP0)*Inv) := by rw [hComm0.eq.symm]\n      _ = Inv*A0 := by simp only [mul_assoc,hRight,mul_one]\n",
+              "lean_source_region": {
+                "end_line": 248,
+                "exact_code_raw_sha256": "1ecfa45862a9aace5431c99d25510ab7fa2a9bc510a8458795568d2bf43f0598",
+                "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualRootCommutation.lean",
+                "source_raw_sha256": "8567673eba335e7c1209f8bd90ce510954426bd5bbcdef6ff53ea97889762748",
+                "start_line": 233
+              },
+              "text": "Taking adjoints gives Γ0 Inv*=I. Both inverse identities imply Inv selfadjoint;commutation of A0 with Γ0 passes to Inv by cancellation.",
+              "title": "Cancel with the same inverse"
+            },
+            {
+              "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+              "formula": "K=A_0\\mathrm{Inv}=K^*,\\qquad I+K^2=(\\Gamma_0^2+A_0^2)\\mathrm{Inv}^2=\\mathrm{Inv}^2.",
+              "lean": "  have hKself : IsSelfAdjoint (A0*Inv) := (hA0self.commute_iff hInvSelf).mp hCommInv\n  have hCoefficient : (1 : HP0 →L[ℝ] HP0)+(A0*Inv)*(A0*Inv)=Inv*Inv := by\n    have hFirst : (ΓP0*ΓP0)*(Inv*Inv)=(1 : HP0 →L[ℝ] HP0) := by\n      calc\n        (ΓP0*ΓP0)*(Inv*Inv)=ΓP0*((ΓP0*Inv)*Inv) := by noncomm_ring\n        _ = (1 : HP0 →L[ℝ] HP0) := by rw [hRight,one_mul,hRight]\n    have hSecond : (A0*Inv)*(A0*Inv)=(A0*A0)*(Inv*Inv) := by\n      calc\n        (A0*Inv)*(A0*Inv)=A0*((Inv*A0)*Inv) := by noncomm_ring\n        _ = A0*((A0*Inv)*Inv) := by rw [hCommInv.eq.symm]\n        _ = (A0*A0)*(Inv*Inv) := by noncomm_ring\n    calc\n      (1 : HP0 →L[ℝ] HP0)+(A0*Inv)*(A0*Inv)=\n          (ΓP0*ΓP0)*(Inv*Inv)+(A0*A0)*(Inv*Inv) := by rw [hFirst,hSecond]\n      _ = (ΓP0*ΓP0+A0*A0)*(Inv*Inv) := by rw [add_mul]\n      _ = Inv*Inv := by rw [add_comm,hSquare0,one_mul]\n",
+              "lean_source_region": {
+                "end_line": 189,
+                "exact_code_raw_sha256": "5ec3449dbe963b2e1785ccdd90657fa09ce378b7afc587b24ee4ab31cc6776d2",
+                "path": "Tests/ProximalBPSActualRootCommutation.lean",
+                "source_raw_sha256": "28028653027a811d677c71efdc621e0f42fc176844677b67b7799821f035e6c1",
+                "start_line": 174
+              },
+              "text": "The Test starts from the original potential and step inputs. The product of commuting selfadjoint operators is selfadjoint;multiplying the exact square identity by Inv² gives the coefficient identity.",
+              "title": "Consume the B23 coefficient identity at original inputs"
+            }
+          ],
+          "tests": [
+            "lake build Tests.ProximalBPSActualRootCommutation"
+          ],
+          "title": "Same actual PBPS root and centered inverse commutation"
+        },
+        "obligations": [
+          {
+            "id": "commutation",
+            "label": "Same actual PBPS root and centered inverse commutation"
+          },
+          {
+            "id": "remaining-paper",
+            "label": "Remaining sharp energy,rotation,dynamics,mixing,errors and expected costs/composition"
+          }
+        ],
+        "source": {
+          "anchor": "PBPS2609.06905v1 Appendix B3: B20 corrector definition, Lemma B.3 sharp B23 estimate and B21 rotation. Same spectral square root, actual centered restriction and inverse commutation; ASTIS positive-square commutation background adapter.",
+          "attribution": "Fan Chen,Sinho Chewi,Jianfeng Lu and Matthew S. Zhang;Appendix B3 spectral commutation used by B20/B23/B21. ASTIS explicitly constructs the actual centered restriction and real-L2 adapter;this ingredient is not the full energy theorem.",
+          "edition": "arXiv:2609.06905v1;Lean4.33.0/fixedMathlib",
+          "url": "https://arxiv.org/html/2609.06905v1#A2",
+          "wording_status": "faithful paraphrase"
+        },
+        "statement": "Let E be a finite-dimensional real Hilbert Borel space with canonical volume, including the explicit rank-zero extension. Let V:E→ℝ be C², 0<α≤β, and assume α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for every x,v. Assume η>0 and βη≤1. Define μ(dx) proportional to exp(−V(x))dx, J as the law of (X,X+√η Z) for independent X~μ and Z~N(0,I), ν=J.snd, and Λ as the law of (Y,2X−Y) under J. These are probability laws. Put mY=comap(snd), H_P=L² classes measurable with respect to mY, P=i∘E[·|Y] and the canonical M:u↦u∘snd. Then H_P=ran(P), P is identity on H_P, and there exists an onto linear isometry e:L²(ν;ℝ)≃H_P with i e=M. There is a Markov kernel S whose every-state normalized law is S(y)=volume.tilted(x↦−V((y+x)/2)−‖y−x‖²/(8η)); Λ.IsCondKernel S and both Λ marginals equal ν. The same joint reflection F(x,y)=(x,2x−y) gives the involutive selfadjoint isometry U, with Uf=f∘F J-almost everywhere for every f. There is a bounded selfadjoint T on the full real L²(ν), with ‖Tu‖≤‖u‖, Tu(y)=∫u(x)S(y,dx) ν-almost everywhere for each u, and preserved integral. On H_P put A=PUP restricted via i and orthogonal projection, and B=(I_J−P)UPi:H_P→L²(J). Then A=eTe⁻¹ is selfadjoint and contractive, PB=0. There is a bounded positive operator Γ on the real scalar-valued L² space with Γ²=I−T². For the SAME transported Γ_P=eΓe⁻¹, positivity holds and Γ_P²=I_H_P−A²=B*B. There is q∈L²(ν;ℝ) equal to one ν-almost everywhere, with Tq=q and ⟨q,u⟩=∫u dν for every u. Set q_P=e q and H_P^0=ker⟨q_P,·⟩, with its inherited Hilbert structure. Membership is exactly zero ν-mean after e⁻¹. The SAME Γ_P annihilates q_P. Put γ=2√(αη)/(1+αη)>0. There exists Γ_0:H_P^0→H_P^0 equal under inclusion to the restriction of Γ_P, positive with Γ_0−γ I positive. Γ_0 is a unit in the algebra of bounded real operators. There exists a bounded real Inv on this SAME centered space with Inv Γ_0=Γ_0 Inv=I and ‖Inv‖≤1/γ. All probability, normalization, range, root, centering, spectral-gap, unit and inverse facts are internally derived from the original inputs; none is an additional public premise. αη=1 and rank-zero E remain legal. No inverse on full H_P is asserted. Define the actual closed conditional-mean-zero space H_perp=ker P in L²(J;ℝ), with its inherited complete Hilbert structure; this is not merely the globally zero-mean joint space. There exists B_0:H_P^0→H_perp whose inclusion equals B i_0. There exists V_0:H_P^0→H_perp with V_0=B_0 Inv, B_0=V_0 Γ_0, V_0* V_0=I and ‖V_0 f‖=‖f‖ for every f∈H_P^0. All these objects and identities are conclusions from the same original inputs. There exists the canonical bounded residual map R:L²(J;ℝ)→H_perp with i_perp Rg=g−Pg for every joint g. The SAME ambient adjoint satisfies B* g=i_0 B_0* Rg for every joint g; the printed intrinsic block adjoint is recovered on H_perp. For every actual joint f∈L²(J;ℝ) with ∫f dJ=0, there exists f_P∈H_P^0 whose inclusion is E[f|Y]. Put f_perp=Rf and f_V=V_0* f_perp∈the SAME H_P^0. Then B* i_perp f_perp=i_0 Γ_0 f_V=Γ_P i_0 f_V, ‖f‖²=‖f_P‖²+‖f_perp‖² and ‖f_V‖≤‖f_perp‖. The preceding independently reviewed ambient-adjoint Test derives f=i i_0 f_P+i_perp f_perp, B* f=Γ_P i_0 f_V and ‖f_V‖²≤‖f‖²−‖f_P‖². The global zero-mean condition is a quantified input restriction to this concluded implication, not an extra assumption on the potential or an operator certificate. The SAME root commutes with T and its transport commutes with A. The SAME Inv on H_P^0 is selfadjoint. There exists an internally constructed A_0:H_P^0→H_P^0 whose inclusion equals A after inclusion; it is selfadjoint,commutes with Γ_0,satisfies A_0²+Γ_0²=I,and commutes with the SAME Inv. The genuine original-input Test proves K=A_0 Inv selfadjoint and I+K²=Inv². All old ambient-adjoint/global-centered-observable conclusions persist. These are ingredients for sharp B23 and B21;neither estimate/rotation nor full dynamics,expected costs or composition is asserted. Private literal proposition definitions store the complete original statements and add no premise or provider.",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b"
+      },
+      "publication_context_sha256": "cd73af76a2d0827ecdb5f585bec5519f70c835d46e56aacf428d1225b27a719b",
+      "reader_metadata_findings_resolved_by_separately_reviewed_exact_overlays": true,
+      "repairs": [],
+      "review_evidence": "Source-first pinned primary d81e9294... and pre-candidate graph be9c9a8c...;344/344 literal math items with exact alt/annotation coverage;3 complete modules;2 literal private expansions;10 BODY RAW/line/span hashes;final binding/context recomputed. See source-coverage-audit.json,whole-module-representation-and-source-contracts.json,ten-literal-BODY-excerpt-audit.json,source-graph-current-boundary-comparison.json,final-publication-binding-context-audit.json and exact finite metadata resolutions.",
+      "review_run_sha256": "",
+      "review_run_sha256_external_binding": {
+        "file": "raw-payload-bindings.json",
+        "key": "whole_logical_run_sha256",
+        "reason": "Complete logical run embeds full decisions. To avoid impossible self-hash cycle, native decision leaves standard field empty; external verified finite adapter fills it without modifying native bytes. Only top-level run_sha256 is deleted for whole logical hash."
+      },
+      "reviewer": "/root/independent_source64",
+      "reviewer_packet_RAW": {
+        "LF_bytes": 71621,
+        "LF_sha256": "017261f28dedc5f7d9aec2018f618449b7d063bb781a37eaba9aedd17ddfc33d",
+        "RAW_bytes": 71621,
+        "RAW_sha256": "017261f28dedc5f7d9aec2018f618449b7d063bb781a37eaba9aedd17ddfc33d",
+        "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-root-commutation67/source.1.reviewer-packet.json"
+      },
+      "reviewer_packet_sha256": "18dfeb35b22e14183b8cf4dd76fcd0ef3e77853fd6fe32b1e6a11721051e2cf7",
+      "schema": "source67-canonical-semantic-source-decision-v1",
+      "selected_source_mathematics_accepted": true,
+      "semantic_slots": {
+        "assumptions": {
+          "evidence": "No commutation/A0/complete/gap/unit/root/inverse certificate. I+T positive internally from selfadjoint contraction; T,A,A0 positivity neither assumed nor asserted. No H1/B13/B14 lowerfloor/new smallstep.",
+          "original": "C2 V,0<α≤β,both global Hessian bounds,η>0,βη≤1 inclusive.",
+          "reconstructed": "ContDiff ℝ 2;NNReal α,β with realcoercions; exact two Hessian inequalities and capped positiveη.",
+          "relation": "explicit-elaboration"
+        },
+        "conclusion": {
+          "evidence": "Test66 separately supplies explicit f reconstruction/B*f/squarednormbudget, as approved corrected attribution says. Packet main need not repeat Test67 conclusions because publication explicitly identifies distinct consumer theorem.",
+          "original": "SAME Γ/T and ΓP/A commute; SAME Inv selfadjoint; internal A0 restricts A, selfadjoint,commutes with Γ0/Inv,A0²+Γ0²=I; original ambient/globalcentered clause retained. Genuine Test67 proves K=A0Inv selfadjoint,I+K²=Inv².",
+          "reconstructed": "Main gives same commutations/restriction/inverse and all inherited witnesses; full original-input Test gives two coefficient conclusions and keeps hGlobal.",
+          "relation": "equivalent"
+        },
+        "constant_dependencies": {
+          "evidence": "No operator norm1 assertion for zero HP0. Sum square uses operatorΓ0,not scalarγ. B23 sharp factor1/(2γ) remains excluded.",
+          "original": "γ=2sqrt(αη)/(1+αη)>0,Γ0≥γI,‖Inv‖≤1/γ;rank0 and αη=1 legal.",
+          "reconstructed": "Same formula and operator-order gap, genuine two-sided centered inverse; no nontriviality/strict endpoint.",
+          "relation": "equivalent"
+        },
+        "domains": {
+          "evidence": "B1/B2/D1 selected primary bytes; two private Prop values retain all explicit subtypeL maps and actual domain adapters. Rank-zero extension disclosed, no full-space inverse or onto V0.",
+          "original": "Euclidean paper presented on finite real Hilbert Borel E with canonical volume; HP=ranP;HP0=HP∩globalmean0;Hperp=kerP. Inv only HP0; ambient B*:joint→HP and B0*:kerP→HP0 distinct.",
+          "reconstructed": "Exact lpMeas,comapY,P,inner-kernel,closed inherited complete instances; actual ambient residual adapter for every jointg.",
+          "relation": "explicit-elaboration"
+        },
+        "objects": {
+          "evidence": "Complete main/Test modules and private literal expansions; exact root uniqueness characterization and e conjugation, not a new convenient replacement root.",
+          "original": "Actual normalized μ,J,ν,Λ and exact S,e,U,T,A,B; SAME positive Γ/ΓP/Γ0,constant q/qP,HP0,Inv,B0,V0,R; internally constructed A0.",
+          "reconstructed": "All same dependent witnesses and canonical lets in order; roots are bounded real scalar-L2 operators.",
+          "relation": "equivalent"
+        },
+        "quantifiers": {
+          "evidence": "Public/private caller text exact; every-state normalized S formula and all-g R/adjoint identity remain conclusions; no common exceptional-set claim.",
+          "original": "Every original E,V,α,β,η under original conditions; every x,v Hessian bounds; each U/T formula per observable AE; every globally centered jointf gives fP; global witnesses internally produced.",
+          "reconstructed": "Same original universal callers and nested dependent existentials; AE formulas separately per observable; centered condition local to final implication.",
+          "relation": "equivalent"
+        },
+        "scopes": {
+          "evidence": "Source-first graph precedes all candidates. B20 defines C;Q-block,sharpB23,B22/B24,B21,fullalgorithm/dynamics/main/querycost/composition remain open. Private definitions assert no truth/provider; public whole-module review covers them.",
+          "original": "Source-derived B23 coefficient ingredients and B21 root-commutation prerequisites only; ASTIS real-L2 adapter and explicit centered restriction not printed standalone theorem.",
+          "reconstructed": "No sharp B23/blocknorm/rotation/dynamics/cost or source correctness claim by blind reconstruction.",
+          "relation": "explicit-elaboration"
+        }
+      },
+      "source_mathematical_repair": false,
+      "source_reviewer_mathematical_verification_claim": false,
+      "verdict": "equivalent-after-elaboration",
+      "whole_paper_main_dynamics_query_cost_composition_accepted": false
+    }
+  ],
+  "full_Exposition": false,
+  "reader_metadata_resolutions": [
+    {
+      "kind": "prior-closed-Test66-attribution",
+      "root_adoption": {
+        "LF_bytes": 5537,
+        "LF_sha256": "9843db8a4e2f031df8a791eafd6e5874a8e3e53525afbf0f2ccc9512fc052625",
+        "RAW_bytes": 5537,
+        "RAW_sha256": "9843db8a4e2f031df8a791eafd6e5874a8e3e53525afbf0f2ccc9512fc052625",
+        "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-root-commutation67/root.attribution-overlay67.adoption.json"
+      }
+    },
+    {
+      "applied": {
+        "LF_bytes": 1784,
+        "LF_sha256": "ac4267750af6ff92bb4e6b9966eba38b257f9e13e8a61f9a399eeaeaad06b839",
+        "RAW_bytes": 1784,
+        "RAW_sha256": "ac4267750af6ff92bb4e6b9966eba38b257f9e13e8a61f9a399eeaeaad06b839",
+        "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-root-commutation67/applied-reviewed-citation-catalogue67/applied.json"
+      },
+      "independent_verdict": {
+        "LF_bytes": 7445,
+        "LF_sha256": "aa6ad498bab5a4a2217fc4c8e88938051aa3f72a5d7cad1c8157c604457a8dc3",
+        "RAW_bytes": 7445,
+        "RAW_sha256": "aa6ad498bab5a4a2217fc4c8e88938051aa3f72a5d7cad1c8157c604457a8dc3",
+        "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-root-commutation67/independent-source67/citation-catalogue-overlay.verdict.json"
+      },
+      "kind": "current-open-reviewed-D1-citation-used-catalogue"
+    }
+  ],
+  "schema": "source67-complete-two-source-decisions-v1",
+  "single_audit_URL_resolution": {
+    "independent_verdict": {
+      "LF_bytes": 2176,
+      "LF_sha256": "6c9f75909213559b2f9fd26a6a3567ed7d92ef5a014d0dec07b2b6f8d1835844",
+      "RAW_bytes": 2176,
+      "RAW_sha256": "6c9f75909213559b2f9fd26a6a3567ed7d92ef5a014d0dec07b2b6f8d1835844",
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-root-commutation67/independent-source67/audit-source-url-overlay.verdict.json"
+    },
+    "root_applied": {
+      "LF_bytes": 657,
+      "LF_sha256": "9355bbda405cfc4742a88ce9a32d9246c4e8ff713a1c3c3ce24e22914095ccbb",
+      "RAW_bytes": 657,
+      "RAW_sha256": "9355bbda405cfc4742a88ce9a32d9246c4e8ff713a1c3c3ce24e22914095ccbb",
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-root-commutation67/audit-source-url-overlay67/applied.json"
+    }
+  },
+  "source_first": {
+    "actual_PID": 3564,
+    "complete_reused_graph": {
+      "actual_source_graph_pid": 26172,
+      "built_utc": "2026-10-09T08:54:06.027125+00:00",
+      "edges": [
+        {
+          "child": "actual-joint-P",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "source-inputs"
+        },
+        {
+          "child": "reflection-A",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "actual-joint-P"
+        },
+        {
+          "child": "same-positive-root",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "reflection-A"
+        },
+        {
+          "child": "centered-inverse",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "same-positive-root"
+        },
+        {
+          "child": "centered-inverse",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "source-inputs"
+        },
+        {
+          "child": "same-polar-V",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "centered-inverse"
+        },
+        {
+          "child": "same-polar-V",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "reflection-A"
+        },
+        {
+          "child": "actual-fP-fperp-fV",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "same-polar-V"
+        },
+        {
+          "child": "actual-fP-fperp-fV",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "actual-joint-P"
+        },
+        {
+          "child": "commute-root",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "same-positive-root"
+        },
+        {
+          "child": "commute-root",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "reflection-A"
+        },
+        {
+          "child": "commute-inverse",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "commute-root"
+        },
+        {
+          "child": "commute-inverse",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "centered-inverse"
+        },
+        {
+          "child": "X-centered",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "commute-inverse"
+        },
+        {
+          "child": "X-centered",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "same-positive-root"
+        },
+        {
+          "child": "B20-C-definition",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "centered-inverse"
+        },
+        {
+          "child": "B20-C-definition",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "reflection-A"
+        },
+        {
+          "child": "Q-block",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "X-centered"
+        },
+        {
+          "child": "Q-block",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "centered-inverse"
+        },
+        {
+          "child": "B23-sharp-pair",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "Q-block"
+        },
+        {
+          "child": "B23-sharp-pair",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "B20-C-definition"
+        },
+        {
+          "child": "B23-actual-f",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "B23-sharp-pair"
+        },
+        {
+          "child": "B23-actual-f",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "actual-fP-fperp-fV"
+        },
+        {
+          "child": "B19-L-definition",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "B20-C-definition"
+        },
+        {
+          "child": "B19-L-definition",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "actual-fP-fperp-fV"
+        },
+        {
+          "child": "B22-B24",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "B23-actual-f"
+        },
+        {
+          "child": "B22-B24",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "B19-L-definition"
+        },
+        {
+          "child": "B21-separate-consumer",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "commute-root"
+        },
+        {
+          "child": "B21-separate-consumer",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "commute-inverse"
+        },
+        {
+          "child": "B21-separate-consumer",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "same-polar-V"
+        },
+        {
+          "child": "B21-separate-consumer",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "reflection-A"
+        },
+        {
+          "child": "B21-separate-consumer",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "B20-C-definition"
+        },
+        {
+          "child": "B4-decay",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "B22-B24"
+        },
+        {
+          "child": "B4-decay",
+          "kind": "source-proof-ingredient-not-caller-premise",
+          "parent": "B21-separate-consumer"
+        }
+      ],
+      "independent_of_Lean_topology": true,
+      "next_minimal_boundary": "Derive SAME actual A/Gamma commutation, restrict to exact HP0 and derive SAME Inv commutation internally, with original caller inputs only. Sharp B23 remains downstream; B20 is its corrector definition.",
+      "no_candidate_verdict": true,
+      "no_mathematical_completion_claim": true,
+      "nodes": [
+        {
+          "id": "source-inputs",
+          "parents": [],
+          "role": "source-hypotheses",
+          "statement": "C2 V; 0<alpha<=beta; global Hessian sandwich; eta>0,beta eta<=1 inclusive; original Euclidean source."
+        },
+        {
+          "id": "actual-joint-P",
+          "parents": [
+            "source-inputs"
+          ],
+          "role": "definition-prerequisite",
+          "statement": "Actual pi_eta law; P conditional expectation given Y,HP=ranP,Hperp=kerP,HP0=HP intersect global meanzero."
+        },
+        {
+          "id": "reflection-A",
+          "parents": [
+            "actual-joint-P"
+          ],
+          "role": "derived-operator-prerequisite",
+          "statement": "U actual selfadjoint involution, A=U_PP on HP; A selfadjoint, fixes constants, preserves HP0; block identities B5."
+        },
+        {
+          "id": "same-positive-root",
+          "parents": [
+            "reflection-A"
+          ],
+          "role": "canonical-definition",
+          "statement": "SAME GammaP=(I-A^2)^(1/2), canonical positive root, B10/B11; D1 spectral calculus/unique nonnegative root."
+        },
+        {
+          "id": "centered-inverse",
+          "parents": [
+            "same-positive-root",
+            "source-inputs"
+          ],
+          "role": "inherited-producer-conclusion",
+          "statement": "B12/B15: gamma_gap=2sqrt(alpha eta)/(1+alpha eta)>0; Gamma0 exact HP0 restriction, Gamma0>=gamma I. Inv genuine two-sided bounded inverse HP0 only."
+        },
+        {
+          "id": "same-polar-V",
+          "parents": [
+            "centered-inverse",
+            "reflection-A"
+          ],
+          "role": "inherited-producer-conclusion",
+          "statement": "B16 B0=V0 Gamma0,V0=B0 Inv,V0*V0=I; no onto Hperp."
+        },
+        {
+          "id": "actual-fP-fperp-fV",
+          "parents": [
+            "same-polar-V",
+            "actual-joint-P"
+          ],
+          "role": "inherited-SCI66-interface",
+          "statement": "Every globally centered joint f: fP=Pf in SAME HP0,fperp=(I-P)f in kerP,fV=V0*fperp in SAME HP0; ambient/intrinsic adjoint adapter and norm budget."
+        },
+        {
+          "id": "commute-root",
+          "parents": [
+            "same-positive-root",
+            "reflection-A"
+          ],
+          "role": "missing-compiled-boundary-source-backed",
+          "statement": "A GammaP=GammaP A from GammaP spectral function of A; centered A0 Gamma0=Gamma0 A0 via exact invariance/restriction."
+        },
+        {
+          "id": "commute-inverse",
+          "parents": [
+            "commute-root",
+            "centered-inverse"
+          ],
+          "role": "derived-prerequisite-not-public-premise",
+          "statement": "A0 Inv=Inv A0 internally from commute-root and genuine two-sided inverse; Inv selfadjoint. No full-space inverse."
+        },
+        {
+          "id": "X-centered",
+          "parents": [
+            "commute-inverse",
+            "same-positive-root"
+          ],
+          "role": "sharp-bound-ingredient",
+          "statement": "X=A0 Inv on HP0 is selfadjoint; I+X^2=Inv^2 using A0^2+Gamma0^2=I."
+        },
+        {
+          "id": "B20-C-definition",
+          "parents": [
+            "centered-inverse",
+            "reflection-A"
+          ],
+          "role": "target-definition",
+          "statement": "C(u,v)=1/2(||u||^2-||v||^2)-<A0 Inv u,v>, u,v in SAME HP0. B20 is definition, not bound."
+        },
+        {
+          "id": "Q-block",
+          "parents": [
+            "X-centered",
+            "centered-inverse"
+          ],
+          "role": "sharp-bound-ingredient",
+          "statement": "Q=[[I,-X],[-X,-I]] on HP0 direct-sum HP0; Q selfadjoint,Q^2=diag(Inv^2,Inv^2),||Q||=||Inv||<=1/gamma."
+        },
+        {
+          "id": "B23-sharp-pair",
+          "parents": [
+            "Q-block",
+            "B20-C-definition"
+          ],
+          "role": "next-sharp-energy-target",
+          "statement": "2C=< (u,v),Q(u,v)>; |C(u,v)|<=1/(2gamma)(||u||^2+||v||^2)."
+        },
+        {
+          "id": "B23-actual-f",
+          "parents": [
+            "B23-sharp-pair",
+            "actual-fP-fperp-fV"
+          ],
+          "role": "genuine-original-input-target",
+          "statement": "For actual globally centered f, |C(fP,fV)|<=1/(2gamma)||f||^2 via actual norm budget."
+        },
+        {
+          "id": "B19-L-definition",
+          "parents": [
+            "B20-C-definition",
+            "actual-fP-fperp-fV"
+          ],
+          "role": "definition-consumer",
+          "statement": "L_omega(f)=||f||^2+omega C(fP,fV), initially omega>0."
+        },
+        {
+          "id": "B22-B24",
+          "parents": [
+            "B23-actual-f",
+            "B19-L-definition"
+          ],
+          "role": "genuine-paper-energy-consumer",
+          "statement": "If 0<omega<=gamma, |L_omega(f)-||f||^2|<=omega/(2gamma)||f||^2<=1/2||f||^2; hence 1/2||f||^2<=L<=3/2||f||^2."
+        },
+        {
+          "id": "B21-separate-consumer",
+          "parents": [
+            "commute-root",
+            "commute-inverse",
+            "same-polar-V",
+            "reflection-A",
+            "B20-C-definition"
+          ],
+          "role": "distinct-downstream-consumer-excluded-from-target",
+          "statement": "Same root commutation allows centered inverse cancellation in V* U_perpperp=-A V*, idealized rotation and C change=-||fP||^2+||fV||^2. Not a parent of B23."
+        },
+        {
+          "id": "B4-decay",
+          "parents": [
+            "B22-B24",
+            "B21-separate-consumer"
+          ],
+          "role": "outbound-consumer-no-acceptance",
+          "statement": "B25/B26 later one-step Lyapunov decay adds universal constants, beta eta<=c0,halfturn/dynamics estimates."
+        }
+      ],
+      "schema": "primary67-source-proof-graph-before-candidate-v1",
+      "source_before_candidate": true
+    },
+    "complete_source_slots": {
+      "PURIFIED": false,
+      "candidate_verdict": null,
+      "full_Exposition": false,
+      "mathematical_repair": false,
+      "no_candidate67_seen": true,
+      "schema": "primary67-source-only-seven-slot-contract-v1",
+      "semantic_slots": {
+        "assumptions": {
+          "evidence": "B23 proof ingredients become DAG parents/conclusions. rho context and later B4 beta eta<=c0 are excluded from energy premise set.",
+          "original": "C2,global Hessian sandwich0<alpha<=beta,eta>0,beta eta<=1.",
+          "reconstructed": "No new public commutation/root/unit/gap/regularity/H1/floor/small-step certificate; complete Hilbert subspace structures are internal.",
+          "relation": "same"
+        },
+        "conclusion": {
+          "evidence": "Literal printed equations individually RAW-pinned and all344 selected items classified. This is prerequisite retrieval, not source admission of future candidate.",
+          "original": "B20 definition; B23 exact1/(2gamma) corrector bound; B22/B24 norm equivalence. B21 corrector change is distinct.",
+          "reconstructed": "Minimal next source-backed missing edge is SAME actual root/centered inverse commutation; sharp energy and rotation are genuine consumers, not yet claimed proved.",
+          "relation": "explicit-elaboration"
+        },
+        "constant_dependencies": {
+          "evidence": "Rank0 andalpha eta=1 legal; no division by1-alpha eta/rho_mac or strict gap endpoint. Later rho/log/universal decay constants excluded.",
+          "original": "gamma=2sqrt(alpha eta)/(1+alpha eta)>0; B23 coefficient1/(2gamma); B22 1/2,3/2 andomega<=gamma.",
+          "reconstructed": "Use existing SAME Inv norm<=1/gamma; do not silently assume further gamma-expression estimates or substitute looser coefficient.",
+          "relation": "same"
+        },
+        "domains": {
+          "evidence": "No full-space inverse, no replacement of kerP by mere global zero mean, no finite-dimensional L2 assumption or onto V.",
+          "original": "Real scalar-valued L2 AE classes; HP0 centered macro,kerP conditional micro; C pairs two SAME HP0 vectors.",
+          "reconstructed": "Typed centered A0/Inv/X and Q on HP0 direct sum HP0; ambient B* handled by existing66 R inclusion adapter.",
+          "relation": "explicit-elaboration"
+        },
+        "objects": {
+          "evidence": "B1/B5/B10-B16/B19-B20; exact positive-root uniqueness and source spectral convention. No candidate67 inspected.",
+          "original": "Actual joint pi_eta,P,U,A=U_PP,SAME canonical GammaP and centered Inv; B20 C, B19 L_omega.",
+          "reconstructed": "Source-only identities preserve same operators; existing66 signatures identify exact e transport/HP0/GammaP0/Inv and actual fP/fperp/fV.",
+          "relation": "explicit-elaboration"
+        },
+        "quantifiers": {
+          "evidence": "Source proof graph frozen before current shared-node read; no candidate67 quantifier verdict.",
+          "original": "All original inputs; every globally centered joint f. B23 pair bound in block proof; B22 every0<omega<=gamma.",
+          "reconstructed": "Next edge must derive SAME actual commutation from original inputs and preserve all inherited witnesses; pair and actual-f energy consumers remain downstream.",
+          "relation": "explicit-elaboration"
+        },
+        "scopes": {
+          "evidence": "No candidate/header67 exists in reviewed inputs; B17/B21/B4 and whole paper remain distinct.",
+          "original": "First-corrector energy equivalence in AppendixB3; later decay/main/cost need separate estimates.",
+          "reconstructed": "Bounded source-only next-header planning; no SAU/Goal/proof/compiler/canonical or mathematical completion claim.",
+          "relation": "same"
+        }
+      }
+    },
+    "current_packets_or_Lean67_seen_in_this_review": false,
+    "domains": "real scalar-valued bounded L2 operators, HP=ranP, Hperp=kerP (conditional centering), HP0=HP intersect globalzero mean; genuine inverse only on HP0; global f centered input and SCI66 decomposition distinct from arbitrary kerP g.",
+    "independent_reconstruction": "B4/B5 actual selfadjoint contraction A and canonical GammaP=(I-A^2)^(1/2). Spectral calculus makes SAME A commute with SAME root; exact constant preservation and selfadjointness make HP0 invariant. Centered root has two-sided Inv by inherited B15, hence internally selfadjoint Inv and centered A0/Inv commutation. On SAME HP0, K=A0 Inv is selfadjoint and I+K^2=Inv^2 from A0^2+Gamma0^2=I. These are B23 proof ingredients, not its sharp block-norm bound, and B21 is a separate consumer. D1 supports spectral calculus/unique positive root; arbitrary-real-L2 positive square commutation is an ASTIS supplement, not a printed standalone theorem.",
+    "literal_regions": {
+      "regions": [
+        {
+          "LF_sha256": "e176d6854e56dc575fc8e37556fea086d4bb728f993d2bc23fe5343a5da0766e",
+          "RAW_bytes": 26387,
+          "RAW_sha256": "e176d6854e56dc575fc8e37556fea086d4bb728f993d2bc23fe5343a5da0766e",
+          "math_count": 30,
+          "name": "global-assumptions",
+          "read_end_utc": "2026-10-09T08:54:05.982326+00:00",
+          "read_start_utc": "2026-10-09T08:54:05.978785+00:00",
+          "source_RAW_range_end_exclusive": [
+            46982,
+            73369
+          ]
+        },
+        {
+          "LF_sha256": "a06a289244551dff6d963266c1a5113a8eff8c0fc3baba65eb463e377d4344fc",
+          "RAW_bytes": 35239,
+          "RAW_sha256": "a06a289244551dff6d963266c1a5113a8eff8c0fc3baba65eb463e377d4344fc",
+          "math_count": 40,
+          "name": "actual-joint-law",
+          "read_end_utc": "2026-10-09T08:54:05.987992+00:00",
+          "read_start_utc": "2026-10-09T08:54:05.982326+00:00",
+          "source_RAW_range_end_exclusive": [
+            95318,
+            130557
+          ]
+        },
+        {
+          "LF_sha256": "c3778b9e261a3b398836c76ec4780320103c1261831e54d31d19086f62a1a219",
+          "RAW_bytes": 50204,
+          "RAW_sha256": "c3778b9e261a3b398836c76ec4780320103c1261831e54d31d19086f62a1a219",
+          "math_count": 74,
+          "name": "conditional-reflection-blocks-B1",
+          "read_end_utc": "2026-10-09T08:54:05.997015+00:00",
+          "read_start_utc": "2026-10-09T08:54:05.987992+00:00",
+          "source_RAW_range_end_exclusive": [
+            708167,
+            758371
+          ]
+        },
+        {
+          "LF_sha256": "bb9a48f1e784ebd85db6a2f5f789e27722b35bc0700eef0cee5e0a6d5656e849",
+          "RAW_bytes": 42813,
+          "RAW_sha256": "bb9a48f1e784ebd85db6a2f5f789e27722b35bc0700eef0cee5e0a6d5656e849",
+          "math_count": 50,
+          "name": "same-root-polar-B2",
+          "read_end_utc": "2026-10-09T08:54:06.002946+00:00",
+          "read_start_utc": "2026-10-09T08:54:05.997015+00:00",
+          "source_RAW_range_end_exclusive": [
+            758371,
+            801184
+          ]
+        },
+        {
+          "LF_sha256": "f5c4686bddcd3dedb2bff2ed6c4399fdb442e9657afda401eb35b391485b9177",
+          "RAW_bytes": 87518,
+          "RAW_sha256": "f5c4686bddcd3dedb2bff2ed6c4399fdb442e9657afda401eb35b391485b9177",
+          "math_count": 108,
+          "name": "corrector-sharp-energy-and-consumers-B3",
+          "read_end_utc": "2026-10-09T08:54:06.016021+00:00",
+          "read_start_utc": "2026-10-09T08:54:06.002946+00:00",
+          "source_RAW_range_end_exclusive": [
+            801184,
+            888702
+          ]
+        },
+        {
+          "LF_sha256": "b6951c6a9599e243ab960687213a83d322089a2814fb5532eaf1eb656e5e44e9",
+          "RAW_bytes": 23472,
+          "RAW_sha256": "b6951c6a9599e243ab960687213a83d322089a2814fb5532eaf1eb656e5e44e9",
+          "math_count": 42,
+          "name": "real-L2-spectral-conventions-D1",
+          "read_end_utc": "2026-10-09T08:54:06.020379+00:00",
+          "read_start_utc": "2026-10-09T08:54:06.016021+00:00",
+          "source_RAW_range_end_exclusive": [
+            1348892,
+            1372364
+          ]
+        }
+      ],
+      "regions_end_exclusive": true,
+      "schema": "primary67-exact-six-region-RAW-LF-map-v1",
+      "source_before_candidate": true,
+      "whole_primary": {
+        "LF_bytes": 1482128,
+        "LF_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+        "RAW_bytes": 1482128,
+        "RAW_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+        "path": "E:/Samplinglib/runs/20261007-companion-priority/phase-pbps-gamma-preread57/primary-pbps.exactraw.snapshot.html"
+      }
+    },
+    "original_source_conditions": "V C2,0<alpha<=beta,global lower and upper Hessian bounds,eta>0,beta eta<=1 inclusive. No new commutation/selfadjoint/root/unit/gap/positive-T or A/A0 premise; no H1/B13/B14 floor or stricter smallstep. Rank zero and alphaeta1 remain legal.",
+    "parent_graph_RAW_pin": {
+      "LF_bytes": 10464,
+      "LF_sha256": "be9c9a8ccb48240031faa2fa90de2b4caa4549a7690793ad427658959ce53e8e",
+      "RAW_bytes": 10464,
+      "RAW_sha256": "be9c9a8ccb48240031faa2fa90de2b4caa4549a7690793ad427658959ce53e8e",
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-first-corrector-energy-preproof67/independent-primary67/source-proof-graph.json"
+    },
+    "parent_inventory_RAW_pin": {
+      "LF_bytes": 217165,
+      "LF_sha256": "b828edb3bb0727d57a1095fbdb83dfa1aae0c117720d40bce2991e8bec33f01e",
+      "RAW_bytes": 217165,
+      "RAW_sha256": "b828edb3bb0727d57a1095fbdb83dfa1aae0c117720d40bce2991e8bec33f01e",
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-first-corrector-energy-preproof67/independent-primary67/source-coverage-inventory.json"
+    },
+    "primary_before_candidate": true,
+    "prior_source_graph_before_all67_candidates": true,
+    "recorded_utc": "2026-10-09T10:19:08.192545+00:00",
+    "schema": "source67-independent-primary-before-current-candidate-v1",
+    "source_candidate_verdict": null,
+    "source_derived_residual": {
+      "PURIFIED": false,
+      "alpha_eta_one_legal": true,
+      "candidate67_seen": false,
+      "downstream_residual": {
+        "B20": "Literal corrector definition still to be implemented with SAME A0 Inv and actual fP/fV.",
+        "B21": "Actual idealized rotation/corrector change remains a distinct later proof.",
+        "B22_B24": "Exact omega<=gamma norm equivalence still to be proved.",
+        "B23": "Sharp block-operator bound and actual-f consumer still to be proved after commutation edge.",
+        "B4": "Halfturn/dynamics/small-step/log estimates remain open and out of scope."
+      },
+      "full_Exposition": false,
+      "full_space_inverse": false,
+      "genuine_consumers": {
+        "B21": "Source p5: move A past GammaP before applying centered inverse to GammaP V*U_perpperp=-GammaP A V*, then derive rotation and corrector change. No onto kerP is used.",
+        "B23": "Source p7: selfadjoint A Inv, identity I+(A Inv)^2=Inv^2, selfadjoint block square and norm<=1/gamma; gives B23 and B22/B24."
+      },
+      "minimal_next_edge": {
+        "inherited": "Reuse SAME actual S,e,U,T,A,Gamma,GammaP,qP,HP0,GammaP0,Inv,B0,V0,R; no replacement operator chosen to force commutation.",
+        "internally_produce": [
+          "T Gamma=Gamma T from positive root characterization and spectral calculus, then A GammaP=GammaP A under exact e transport",
+          "A maps exact HP0 to itself because A is selfadjoint and A qP=qP; produce typed A0 with subtype inclusion A0u=A u",
+          "A0 selfadjoint; A0 GammaP0=GammaP0 A0 for SAME root restriction",
+          "A0 Inv=Inv A0 by genuine two-sided inverse cancellation; Inv selfadjoint",
+          "Consequently X=A0 Inv selfadjoint and I+X^2=Inv^2, if included as a bounded immediate algebraic consumer"
+        ],
+        "name": "SAME actual macroscopic reflection/root and centered inverse commutation",
+        "never_extra_caller_premises": [
+          "commutation certificate",
+          "typed A0/root/inverse producer certificate",
+          "root/gap/unit/selfadjointness assumptions",
+          "new complete-space/Nontrivial/H1/B13/B14 floor or stricter small-step/alphaeta premise"
+        ],
+        "original_inputs": "Existing66 exact h_alpha,h_alpha_beta,h_C2,h_Hessian,h_eta,h_beta_eta; finite-real-Hilbert/Borel source presentation with disclosed rank0.",
+        "original_public_inputs_only": true
+      },
+      "no_mathematical_completion_claim": true,
+      "onto_Hperp": false,
+      "rank_zero_legal": true,
+      "schema": "primary67-source-derived-next-statement-boundary-v1",
+      "source_graph_frozen_before_existing66_interface_read": true,
+      "source_hypothesis_vs_ingredient": "All original source assumptions remain original caller binders. Commutation,centered restriction,selfadjoint inverse,block-square/norm and f decomposition are produced DAG edges/internal conclusions.",
+      "source_route": [
+        "B4/B5 actual reflection block gives selfadjoint A,constant preservation and A^2+GammaP^2=I",
+        "B10/D1 positive square-root functional calculus makes SAME GammaP commute with A; no finite-dimensional L2 assumption",
+        "Exact HP0 invariance and inherited centered restriction transport commutation to SAME GammaP0",
+        "SAME two-sided Inv yields inverse commutation algebraically on HP0 only",
+        "B23 proof uses X selfadjoint and block Q square to obtain the exact printed constant",
+        "B21 separately uses root commutation/inverse cancellation for polar intertwining and idealized rotation; it is a consumer, not a prerequisite for B23"
+      ]
+    },
+    "source_mathematical_completion_claim": false,
+    "whole_primary": {
+      "LF_bytes": 1482128,
+      "LF_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+      "RAW_bytes": 1482128,
+      "RAW_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/phase-pbps-gamma-preread57/primary-pbps.exactraw.snapshot.html"
+    }
+  },
+  "source_mathematical_repair": false
+}

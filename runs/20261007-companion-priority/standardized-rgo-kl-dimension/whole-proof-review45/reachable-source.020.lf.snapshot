@@ -1,0 +1,286 @@
+/-
+Copyright (c) 2026 Yuanhe Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yuanhe Zhang, Jason D. Lee, Fanghui Liu
+-/
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.TwoPointEntropy
+import Mathlib.MeasureTheory.Measure.Count
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+import Mathlib.Data.Fin.Tuple.Basic
+
+/-!
+# Bernoulli function log-Sobolev inequality
+
+The genuine law is normalized counting measure. Law/snoc helpers are minimally
+adapted from the pinned SLT BernoulliLSI source (Apache 2.0, commit
+d0f506f0a695018265dccb33bcb05e2f5ca1c876). The entropy/RMS induction below is
+an authored alternative to Han tensorization. Gaussian limits remain separate.
+-/
+open MeasureTheory ProbabilityTheory Real Set Filter Function
+open scoped ENNReal NNReal BigOperators Topology
+noncomputable section
+namespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BernoulliLogSobolev
+variable {n : ℕ}
+private def flipCoord (j : Fin n) (ε : Fin n → Bool) : Fin n → Bool :=
+  update ε j (!ε j)
+
+@[simp] private theorem flipCoord_same (j : Fin n) (ε : Fin n → Bool) :
+    (flipCoord j ε) j = !ε j := by
+  simp [flipCoord]
+
+private theorem flipCoord_noteq (j i : Fin n) (ε : Fin n → Bool) (h : i ≠ j) :
+    (flipCoord j ε) i = ε i := by
+  simp only [flipCoord, update_of_ne h]
+
+private def bernoulliUniform (n : ℕ) : Measure (Fin n → Bool) :=
+  ((Finset.univ : Finset (Fin n → Bool)).card : ℝ≥0∞)⁻¹ • Measure.count
+
+private theorem card_fin_bool (n : ℕ) : Finset.card (Finset.univ : Finset (Fin n → Bool)) = 2^n := by
+  simp only [Finset.card_univ, Fintype.card_fun, Fintype.card_fin, Fintype.card_bool]
+
+private theorem bernoulli_integral_eq_sum {n : ℕ} (f : (Fin n → Bool) → ℝ) :
+    ∫ ε, f ε ∂(bernoulliUniform n) = (∑ ε : Fin n → Bool, f ε) / 2^n := by
+  unfold bernoulliUniform
+  rw [integral_smul_measure]
+  rw [MeasureTheory.integral_fintype (Integrable.of_finite : Integrable f Measure.count)]
+  rw [card_fin_bool n]
+  simp only [Nat.cast_pow, Nat.cast_ofNat, smul_eq_mul, count_real_singleton, one_mul]
+  rw [ENNReal.toReal_inv, ENNReal.toReal_pow, ENNReal.toReal_ofNat]
+  ring
+
+private theorem sum_fin_succ_bool_eq_sum_snoc {n : ℕ} (f : (Fin (n+1) → Bool) → ℝ) :
+    ∑ ε : Fin (n+1) → Bool, f ε =
+    ∑ ε' : Fin n → Bool, (f (Fin.snoc ε' true) + f (Fin.snoc ε' false)) := by
+  -- Use Fin.snocEquiv: (Fin (n+1) → α) ≃ α × (Fin n → α) at last position
+  -- But we need (Fin n → α) × α, so use Prod.swap
+  let h_equiv : (Fin (n+1) → Bool) ≃ (Fin n → Bool) × Bool :=
+    (Fin.snocEquiv (fun _ => Bool)).symm.trans (Equiv.prodComm _ _)
+  calc ∑ ε : Fin (n+1) → Bool, f ε
+      = ∑ p : (Fin n → Bool) × Bool, f (h_equiv.symm p) := by
+          rw [Fintype.sum_equiv h_equiv.symm]
+          simp
+    _ = ∑ ε' : Fin n → Bool, ∑ b : Bool, f (h_equiv.symm (ε', b)) := by
+          rw [Fintype.sum_prod_type]
+    _ = ∑ ε' : Fin n → Bool, (f (h_equiv.symm (ε', true)) + f (h_equiv.symm (ε', false))) := by
+          congr 1
+          ext ε'
+          simp only [Fintype.sum_bool]
+    _ = ∑ ε' : Fin n → Bool, (f (Fin.snoc ε' true) + f (Fin.snoc ε' false)) := by
+          congr 1
+
+private theorem bernoulli_integral_succ_split {n : ℕ} (f : (Fin (n+1) → Bool) → ℝ) :
+    ∫ ε, f ε ∂(bernoulliUniform (n+1)) =
+    ∫ ε', (f (Fin.snoc ε' true) + f (Fin.snoc ε' false)) / 2 ∂(bernoulliUniform n) := by
+  rw [bernoulli_integral_eq_sum, bernoulli_integral_eq_sum]
+  rw [sum_fin_succ_bool_eq_sum_snoc]
+  rw [pow_succ]
+  rw [Finset.sum_div]
+  -- Goal: ∑ i, (f true + f false) / (2^n * 2) = (∑ i, (f true + f false) / 2) / 2^n
+  -- Rewrite RHS: (∑ (x/2)) / 2^n = ∑ (x / (2 * 2^n)) = ∑ (x / (2^n * 2))
+  rw [Finset.sum_div]
+  congr 1
+  ext i
+  ring
+
+private def gradientNormSq (n : ℕ) (h : (Fin n → Bool) → ℝ) (ε : Fin n → Bool) : ℝ :=
+  ∑ j : Fin n, (h ε - h (flipCoord j ε))^2
+
+private theorem gradientNormSq_succ_decomposition {n : ℕ} (h : (Fin (n + 1) → Bool) → ℝ)
+    (ε : Fin (n + 1) → Bool) :
+    gradientNormSq (n + 1) h ε =
+    (∑ j : Fin n, (h ε - h (flipCoord (Fin.castSucc j) ε))^2) +
+    (h ε - h (flipCoord (Fin.last n) ε))^2 := by
+  simp only [gradientNormSq]
+  rw [Fin.sum_univ_castSucc]
+
+private theorem flipCoord_last_snoc {n : ℕ} (ε' : Fin n → Bool) (b : Bool) :
+    flipCoord (Fin.last n) (Fin.snoc ε' b) = Fin.snoc ε' (!b) := by
+  ext i
+  by_cases h : i = Fin.last n
+  · simp only [h, flipCoord_same, Fin.snoc_last]
+  · have hi : i.val < n := by
+      have hlt := i.isLt
+      have hne : i.val ≠ n := by
+        intro heq
+        apply h; ext; simp [Fin.last, heq]
+      omega
+    have hne' : i ≠ Fin.last n := fun heq => h heq
+    rw [flipCoord_noteq (Fin.last n) i _ hne']
+    simp only [Fin.snoc, hi, ↓reduceDIte]
+
+private theorem flipCoord_castSucc_snoc {n : ℕ} (j : Fin n) (ε' : Fin n → Bool) (b : Bool) :
+    flipCoord (Fin.castSucc j) (Fin.snoc ε' b) = Fin.snoc (flipCoord j ε') b := by
+  ext i
+  by_cases hi_last : i = Fin.last n
+  · -- i is the last index
+    simp only [hi_last, Fin.snoc_last]
+    have hne : Fin.last n ≠ Fin.castSucc j := by
+      intro heq
+      have hval : (Fin.last n).val = (Fin.castSucc j).val := congrArg Fin.val heq
+      simp only [Fin.last, Fin.val_castSucc] at hval
+      omega
+    rw [flipCoord_noteq (Fin.castSucc j) (Fin.last n) _ hne]
+    simp [Fin.snoc]
+  · -- i is not the last index
+    have hi : i.val < n := by
+      have hlt := i.isLt
+      have hne : i.val ≠ n := by
+        intro heq
+        apply hi_last; ext; simp [Fin.last, heq]
+      omega
+    by_cases hj : i = Fin.castSucc j
+    · -- i = castSucc j
+      subst hj
+      simp only [flipCoord_same, Fin.snoc]
+      have hi' : (Fin.castSucc j).val < n := by simp [Fin.val_castSucc]
+      simp only [hi', ↓reduceDIte]
+      -- Need to show !ε'(castLT (castSucc j)) = flipCoord j ε' (castLT (castSucc j))
+      have hcast_eq : Fin.castLT (Fin.castSucc j) hi' = j := by
+        ext; simp [Fin.castLT, Fin.castSucc]
+      simp only [hcast_eq, flipCoord_same, cast_eq]
+    · -- i ≠ castSucc j
+      have hne' : i ≠ Fin.castSucc j := hj
+      rw [flipCoord_noteq (Fin.castSucc j) i _ hne']
+      simp only [Fin.snoc, hi, ↓reduceDIte]
+      have hj' : Fin.castLT i hi ≠ j := by
+        intro heq
+        apply hj
+        ext
+        simp only [Fin.val_castSucc]
+        exact congrArg Fin.val heq
+      rw [flipCoord_noteq j (Fin.castLT i hi) _ hj']
+
+private instance probability (n : ℕ) : IsProbabilityMeasure (bernoulliUniform n) := by
+  constructor
+  unfold bernoulliUniform
+  simp only [Measure.smul_apply, smul_eq_mul]
+  rw [Measure.count_apply_finite Set.univ Set.finite_univ]
+  simp only [Set.Finite.toFinset_univ, Finset.card_univ, Fintype.card_fun,
+    Fintype.card_fin, Fintype.card_bool, Nat.cast_pow, Nat.cast_ofNat]
+  rw [ENNReal.inv_mul_cancel]
+  · exact pow_ne_zero _ (by norm_num)
+  · exact ENNReal.pow_ne_top (by norm_num : (2 : ℝ≥0∞) ≠ ⊤)
+
+/-- Reverse Euclidean norm inequality, squared, at the actual conditional RMS. -/
+private theorem rms_contraction (a b c d : ℝ) :
+    (sqrt ((a^2+b^2)/2) - sqrt ((c^2+d^2)/2))^2 ≤
+      ((a-c)^2+(b-d)^2)/2 := by
+  set s := sqrt ((a^2+b^2)/2)
+  set t := sqrt ((c^2+d^2)/2)
+  have hs : 0 ≤ s := sqrt_nonneg _
+  have ht : 0 ≤ t := sqrt_nonneg _
+  have hs2 : s^2 = (a^2+b^2)/2 := sq_sqrt (by positivity)
+  have ht2 : t^2 = (c^2+d^2)/2 := sq_sqrt (by positivity)
+  have hcs : (a*c+b*d)^2 ≤ (2*s*t)^2 := by
+    nlinarith [sq_nonneg (a*d-b*c)]
+  have hst : 0 ≤ 2*s*t := by positivity
+  have hcross : a*c+b*d ≤ 2*s*t := by
+    nlinarith [sq_nonneg (a*c+b*d-2*s*t)]
+  nlinarith
+
+private def entropy (n : ℕ) (h : (Fin n → Bool) → ℝ) : ℝ :=
+  (∫ x, h x^2 * log (h x^2) ∂bernoulliUniform n) -
+    (∫ x, h x^2 ∂bernoulliUniform n) * log (∫ x, h x^2 ∂bernoulliUniform n)
+
+private def rms {n : ℕ} (h : (Fin (n+1) → Bool) → ℝ) (x : Fin n → Bool) : ℝ :=
+  sqrt ((h (Fin.snoc x true)^2 + h (Fin.snoc x false)^2)/2)
+
+private theorem rms_sq (h : (Fin (n+1) → Bool) → ℝ) (x : Fin n → Bool) :
+    rms h x^2 = (h (Fin.snoc x true)^2 + h (Fin.snoc x false)^2)/2 :=
+  sq_sqrt (by positivity)
+
+private def localEntropy {n : ℕ} (h : (Fin (n+1) → Bool) → ℝ)
+    (x : Fin n → Bool) : ℝ :=
+  (h (Fin.snoc x true)^2 * log (h (Fin.snoc x true)^2) +
+    h (Fin.snoc x false)^2 * log (h (Fin.snoc x false)^2))/2 -
+    (rms h x)^2 * log ((rms h x)^2)
+
+private theorem entropy_chain (h : (Fin (n+1) → Bool) → ℝ) :
+    entropy (n+1) h = (∫ x, localEntropy h x ∂bernoulliUniform n) + entropy n (rms h) := by
+  unfold entropy localEntropy
+  rw [bernoulli_integral_succ_split, bernoulli_integral_succ_split,
+    integral_sub (Integrable.of_finite) (Integrable.of_finite)]
+  simp_rw [rms_sq]
+  ring
+
+private def prefixEnergy {n : ℕ} (h : (Fin (n+1) → Bool) → ℝ)
+    (x : Fin n → Bool) : ℝ :=
+  ∑ j : Fin n,
+    ((h (Fin.snoc x true)-h (Fin.snoc (flipCoord j x) true))^2 +
+      (h (Fin.snoc x false)-h (Fin.snoc (flipCoord j x) false))^2)/2
+
+private def lastEnergy {n : ℕ} (h : (Fin (n+1) → Bool) → ℝ)
+    (x : Fin n → Bool) : ℝ :=
+  (h (Fin.snoc x true)-h (Fin.snoc x false))^2
+
+private theorem energy_chain (h : (Fin (n+1) → Bool) → ℝ) :
+    (∫ x, gradientNormSq (n+1) h x ∂bernoulliUniform (n+1)) =
+      ∫ x, prefixEnergy h x + lastEnergy h x ∂bernoulliUniform n := by
+  rw [bernoulli_integral_succ_split]
+  apply integral_congr_ae
+  filter_upwards [] with x
+  simp only [gradientNormSq_succ_decomposition, flipCoord_castSucc_snoc,
+    flipCoord_last_snoc, Bool.not_true, Bool.not_false, prefixEnergy, lastEnergy]
+  rw [← Finset.sum_div, Finset.sum_add_distrib]
+  have hs : (h (Fin.snoc x false)-h (Fin.snoc x true))^2 =
+      (h (Fin.snoc x true)-h (Fin.snoc x false))^2 := by ring
+  rw [hs]
+  ring
+
+private theorem rms_energy (h : (Fin (n+1) → Bool) → ℝ) (x : Fin n → Bool) :
+    gradientNormSq n (rms h) x ≤ prefixEnergy h x := by
+  unfold gradientNormSq prefixEnergy
+  apply Finset.sum_le_sum
+  intro j _
+  exact rms_contraction _ _ _ _
+
+private theorem entropy_bound (n : ℕ) (h : (Fin n → Bool) → ℝ) :
+    entropy n h ≤ (1/2 : ℝ) * ∫ x, gradientNormSq n h x ∂bernoulliUniform n := by
+  induction n with
+  | zero =>
+    unfold entropy gradientNormSq
+    simp only [bernoulli_integral_eq_sum]
+    simp
+  | succ n ih =>
+    have hlocal : (∫ x, localEntropy h x ∂bernoulliUniform n) ≤
+        (1/2 : ℝ) * ∫ x, lastEnergy h x ∂bernoulliUniform n := by
+      rw [← integral_const_mul]
+      apply integral_mono (Integrable.of_finite) (Integrable.of_finite)
+      intro x
+      unfold localEntropy lastEnergy
+      rw [rms_sq]
+      calc
+        _ ≤ (h (Fin.snoc x true)-h (Fin.snoc x false))^2/2 :=
+          TwoPointEntropy.two_point_squared_entropy_le_half_sq_sub _ _
+        _ = _ := by ring
+    have hprefix : (∫ x, gradientNormSq n (rms h) x ∂bernoulliUniform n) ≤
+        ∫ x, prefixEnergy h x ∂bernoulliUniform n :=
+      integral_mono (Integrable.of_finite) (Integrable.of_finite) (rms_energy h)
+    rw [entropy_chain, energy_chain,
+      integral_add (Integrable.of_finite) (Integrable.of_finite)]
+    have hi := ih (rms h)
+    linarith
+
+theorem bernoulli_function_logSobolev (n : ℕ) (h : (Fin n → Bool) → ℝ) :
+    let μ : Measure (Fin n → Bool) :=
+      (Fintype.card (Fin n → Bool) : ℝ≥0∞)⁻¹ • Measure.count
+    let D := fun ε : Fin n → Bool =>
+      ∑ j : Fin n, (h ε - h (Function.update ε j (!ε j))) ^ 2
+    IsProbabilityMeasure μ ∧
+      Integrable (fun ε => (h ε) ^ 2) μ ∧
+      Integrable (fun ε => (h ε) ^ 2 * Real.log ((h ε) ^ 2)) μ ∧
+      Integrable D μ ∧
+      ((∫ ε, (h ε) ^ 2 * Real.log ((h ε) ^ 2) ∂μ) -
+        (∫ ε, (h ε) ^ 2 ∂μ) * Real.log (∫ ε, (h ε) ^ 2 ∂μ) ≤
+      (1 / 2 : ℝ) * ∫ ε, D ε ∂μ) := by
+  dsimp only
+  change IsProbabilityMeasure (bernoulliUniform n) ∧
+    Integrable (fun ε => (h ε)^2) (bernoulliUniform n) ∧
+    Integrable (fun ε => (h ε)^2 * log ((h ε)^2)) (bernoulliUniform n) ∧
+    Integrable (gradientNormSq n h) (bernoulliUniform n) ∧
+    entropy n h ≤ (1/2 : ℝ) * ∫ ε, gradientNormSq n h ε ∂bernoulliUniform n
+  exact ⟨inferInstance, Integrable.of_finite, Integrable.of_finite,
+    Integrable.of_finite, entropy_bound n h⟩
+
+end AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BernoulliLogSobolev

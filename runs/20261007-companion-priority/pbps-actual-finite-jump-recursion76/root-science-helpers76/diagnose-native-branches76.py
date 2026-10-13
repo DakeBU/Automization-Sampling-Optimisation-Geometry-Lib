@@ -1,0 +1,9 @@
+from pathlib import Path
+import hashlib,json,os
+r=Path('runs/20261007-companion-priority/pbps-actual-finite-jump-recursion76')
+q=json.loads((r/'focused-inference76/receipt.json').read_bytes());assert q['exit_code']==1 and q['terminal_closed']
+s=(r/'focused-inference76/stdout.log').read_text(encoding='utf8');assert '(deterministic) timeout' not in s
+p=Path('AutoSamplingTheory/ExampleCases/ProximalBPS/ActualFiniteJumpRecursion.lean');raw=p.read_bytes()
+d=dict(status='DIAGNOSED_NATIVE_SUM_AND_EXTENDED_TIME_API_MATCHING',actual_root_PID=os.getpid(),failure_class='API_BLOCKED',first_timeout_retired=True,failed_PID=q['actual_foreground_PID'],failed_EXIT=1,failed_receipt=str(r/'focused-inference76/receipt.json'),route_fingerprint='native-Sum-case-substitution/explicit-finite-coercion/WithTop-addition',diagnosis=['A case split on a product projection did not substitute the complete product in the composed measurable function; destruct the product before the sum.', 'Replace split_ifs-at-hypothesis ordering with explicit by_cases on the actual infinity guard for the active energy induction.', 'The WithTop NNReal implementation shares ENNReal coercions; exact specialized finite/default-value equalities follow by rfl and avoid unmatched generic simp patterns.', 'Use definally reduced stopped-time goal and add_le_add for the extended increment; zero_le is a theorem with an implicit argument.'],heartbeat_limit=1600000,heartbeat_increased=False,public_statement_changed=False,source_hypotheses_changed=False,new_analytic_premises=[],candidate_RAW_sha256=hashlib.sha256(raw).hexdigest(),retry_pending=True,Goal_complete=False)
+o=r/'route-diagnosis76.native-branches.json';assert not o.exists();o.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
+print('PASS76 native Sum/extended-time API diagnosis recorded; no statement change or budget increase.')

@@ -1,0 +1,148 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsLinearCovarianceUpper
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianUpper
+
+/-! SPHMC arXiv:2609.06906v1 Lemma4.1, source beta=1 and alpha=kappa^-1.
+Construct actual posterior covariance upper from proved original-gradient
+Poincare, keeping the unreflected quadratic law and its true vectorL2 moments.
+The Gaussian Hessian identity applies to normalized U; the actual source
+unnormalized V_eta differs by the produced log partition constant. Reuse the
+actual reverse-Cramer-Rao upper half, then derive the true global 1-Lipschitz
+gradient. No moment/partition/covariance/PI certificate is supplied on this
+source Anchor. Source eta cap is retained. Higher regularity, joint measurable
+kernel, algorithms/main/Wp/warmness/expected cost/composition remain open. -/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianBounds
+open Set MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped NNReal
+noncomputable section
+set_option autoImplicit false
+set_option backward.isDefEq.respectTransparency false
+
+theorem smoothed_hessian_bounds
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]
+    {V : E → ℝ} {κ η : ℝ}
+    (hκ : 1 ≤ κ) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x a : E, κ⁻¹*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a ∧
+      fderiv ℝ (fderiv ℝ V) x a a ≤ ‖a‖^2)
+    (hη : 0 < η) (hη1 : η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E
+    let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)
+    let Vη := fun y => -Real.log (A y)
+    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))
+    IsProbabilityMeasure μ ∧ ContDiff ℝ 2 Vη ∧
+      (∀ y, IsProbabilityMeasure (R y) ∧ MemLp id 2 (R y) ∧
+        (∀ a, ProbabilityTheory.covarianceBilin (R y) a a ≤ ‖a‖^2/(κ⁻¹+η⁻¹)) ∧
+        ∀ a, (1/(κ+η))*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ Vη) y a a ∧
+          fderiv ℝ (fderiv ℝ Vη) y a a ≤ (1/(1+η))*‖a‖^2) ∧
+      LipschitzWith (1 : ℝ≥0) (gradient Vη) := by
+  have hk : 0<κ := lt_of_lt_of_le zero_lt_one hκ
+  have ha : 0<κ⁻¹ := inv_pos.mpr hk
+  let α : ℝ≥0 := ⟨κ⁻¹,ha.le⟩
+  have hα : 0<α := ha
+  have hα1 : α≤1 := (inv_le_one₀ hk).2 hκ
+  have hHV : ∀ x a : E, (α:ℝ)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a ∧
+      fderiv ℝ (fderiv ℝ V) x a a ≤ ((1:ℝ≥0):ℝ)*‖a‖^2 := by
+    intro x a
+    change κ⁻¹*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a ∧
+      fderiv ℝ (fderiv ℝ V) x a a ≤ 1*‖a‖^2
+    simpa only [one_mul] using hH x a
+  let μ := (volume : Measure E).tilted (fun x => -V x)
+  let C := ((Real.sqrt (2*Real.pi*η))⁻¹)^Module.finrank ℝ E
+  let A := fun y : E => C*∫ x, Real.exp (-V x-‖y-x‖^2/(2*η)) ∂(volume : Measure E)
+  let Vη := fun y => -Real.log (A y)
+  let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))
+  let U := fun y : E => -Real.log (C*∫ x, Real.exp (-‖y-x‖^2/(2*η)) ∂μ)
+  let ZV := ∫ x, Real.exp (-V x) ∂(volume : Measure E)
+  obtain ⟨_hZ,hμ,_hlaw,_hI,_hInt,_hTilt,_hA,hC2,hshift⟩ :=
+    SmoothedGibbsPotential.smoothed_gibbs_potential ha hV (fun x a => (hH x a).1) hη
+  have : IsProbabilityMeasure μ := hμ
+  have hC : 0<C := by dsimp only [C]; positivity
+  obtain ⟨hRm,_hD,hDD⟩ :=
+    AutoSamplingTheory.TechnicalLemmas.Measure.GaussianConvolutionRegularity.gaussian_convolution_derivatives μ hη hC
+  have hi := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn
+    ha (hV.differentiable (by norm_num))
+    (AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hV (fun x a => (hH x a).1))
+  have hcov (y : E) : ∀ a : E, covarianceBilin (R y) a a ≤ ‖a‖^2/(κ⁻¹+η⁻¹) := by
+    let W := fun x => V x+η⁻¹/2*‖x-y‖^2
+    have hW : ContDiff ℝ 2 W := hV.add (contDiff_const.mul ((contDiff_id.sub contDiff_const).norm_sq (𝕜:=ℝ)))
+    have hVd : Differentiable ℝ V := hV.differentiable (by norm_num)
+    have hVdd : Differentiable ℝ (fderiv ℝ V) := (hV.fderiv_right (m:=1) (by norm_num)).differentiable_one
+    have hq (x : E) : HasFDerivAt (fun z => η⁻¹/2*‖z-y‖^2)
+        (η⁻¹ • innerSL ℝ (x-y)) x := by
+      convert (((hasFDerivAt_id x).sub_const y).norm_sq).const_mul (η⁻¹/2)
+        using 1 <;> first | rfl | (ext a; simp;ring)
+    have hWfd (x : E) : fderiv ℝ W x = fderiv ℝ V x+η⁻¹ • innerSL ℝ (x-y) :=
+      ((hVd x).hasFDerivAt.add (hq x)).fderiv
+    let J : E →L[ℝ] (E →L[ℝ] ℝ) :=
+      {toFun := fun a => innerSL ℝ a
+       map_add' := by intros;ext;simp
+       map_smul' := by intros;ext;simp
+       cont := (innerSL ℝ (E:=E)).continuous}
+    have hWdd (x : E) : HasFDerivAt (fderiv ℝ W)
+        (fderiv ℝ (fderiv ℝ V) x+η⁻¹ • J) x := by
+      rw [show fderiv ℝ W=(fun z => fderiv ℝ V z+η⁻¹ • innerSL ℝ (z-y)) from funext hWfd]
+      convert (hVdd x).hasFDerivAt.add ((J.hasFDerivAt.comp x ((hasFDerivAt_id x).sub_const y)).const_smul η⁻¹) using 1 <;> rfl
+    have hb (x a : E) : (κ⁻¹+η⁻¹)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ W) x a a ∧
+        fderiv ℝ (fderiv ℝ W) x a a ≤ (1+η⁻¹)*‖a‖^2 := by
+      rw [(hWdd x).fderiv]
+      change (κ⁻¹+η⁻¹)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ V) x a a+η⁻¹*inner ℝ a a ∧
+        fderiv ℝ (fderiv ℝ V) x a a+η⁻¹*inner ℝ a a ≤ (1+η⁻¹)*‖a‖^2
+      rw [real_inner_self_eq_norm_sq]
+      constructor <;> nlinarith [(hH x a).1,(hH x a).2]
+    have hm : 0<κ⁻¹+η⁻¹ := add_pos ha (inv_pos.mpr hη)
+    have hmM : κ⁻¹+η⁻¹≤1+η⁻¹ := by
+      simpa only [add_comm] using (add_le_add_right ((inv_le_one₀ hk).2 hκ) η⁻¹)
+    have hiW := AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGibbsIntegrability.integrable_exp_neg_of_strongConvexOn
+      hm (hW.differentiable (by norm_num))
+      (AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower hW (fun x a => (hb x a).1))
+    have hRW : R y=(volume : Measure E).tilted (fun x => -W x) := by
+      dsimp only [R,μ]
+      rw [tilted_tilted hi]
+      congr 1
+      funext x
+      simp only [Pi.add_apply,W]
+      field_simp [hη.ne']
+      ring
+    have hX : MemLp id 2 ((volume : Measure E).tilted (fun x => -W x)) := hRW ▸ (hRm y).2
+    rw [hRW]
+    exact AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GibbsLinearCovarianceUpper.gibbs_linear_covariance_upper
+      W hW hiW (integral_exp_pos hiW) (κ⁻¹+η⁻¹) (1+η⁻¹) hm hmM
+      (fun x a => (hb x a).1) (fun x a => (hb x a).2) hX
+  have he : U=(fun y => Vη y+Real.log ZV) := funext hshift
+  have hd : fderiv ℝ U=fderiv ℝ Vη := by
+    rw [he]
+    funext y
+    exact fderiv_add_const _
+  change ∀ y a b, fderiv ℝ (fderiv ℝ U) y a b = _ at hDD
+  rw [hd] at hDD
+  have hlower (y a : E) : (1/(κ+η))*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ Vη) y a a := by
+    rw [hDD y a a,real_inner_self_eq_norm_sq]
+    have hm : 0<κ⁻¹+η⁻¹ := add_pos ha (inv_pos.mpr hη)
+    have hke : 0<κ+η := add_pos hk hη
+    calc
+      (1/(κ+η))*‖a‖^2 = ‖a‖^2/η-(‖a‖^2/(κ⁻¹+η⁻¹))/η^2 := by
+        field_simp [hk.ne',hη.ne',hm.ne',hke.ne']
+        ring
+      _ ≤ ‖a‖^2/η-covarianceBilin (R y) a a/η^2 :=
+        sub_le_sub_left (div_le_div_of_nonneg_right (hcov y a) (sq_nonneg η)) _
+  have hupper : ∀ y a : E, fderiv ℝ (fderiv ℝ Vη) y a a ≤ (1/(1+η))*‖a‖^2 := by
+    have hu := (SmoothedHessianUpper.smoothed_hessian_upper hα hα1 hV hHV hη).2
+    simpa only [NNReal.coe_one,one_mul] using hu
+  have hHVη : ∀ y a : E, ((0:ℝ≥0):ℝ)*‖a‖^2 ≤ fderiv ℝ (fderiv ℝ Vη) y a a ∧
+      fderiv ℝ (fderiv ℝ Vη) y a a ≤ ((1:ℝ≥0):ℝ)*‖a‖^2 := by
+    intro y a
+    have hp : 0≤(1/(κ+η))*‖a‖^2 := by positivity
+    have hu : 1/(1+η)≤1 := by
+      apply (div_le_iff₀ (by positivity : 0<1+η)).2
+      linarith
+    simpa only [NNReal.coe_zero,zero_mul,NNReal.coe_one,one_mul] using
+      And.intro (hp.trans (hlower y a)) ((hupper y a).trans (mul_le_mul_of_nonneg_right hu (sq_nonneg ‖a‖)))
+  have hLip := (AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic
+    (m:=0) (L:=1) (r:=0) hC2 hHVη (0:E)).2
+  simp only [NNReal.coe_zero,zero_div,zero_mul,add_zero] at hLip
+  exact ⟨hμ,hC2,fun y => ⟨(hRm y).1,(hRm y).2,hcov y,fun a => ⟨hlower y a,hupper y a⟩⟩,hLip⟩
+
+end
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.SmoothedHessianBounds

@@ -1,0 +1,488 @@
+{
+  "status": "SEALED_BEFORE_PROOF_AFTER_INDEPENDENT_HEADER_AND_TOPOLOGY_AUDITS",
+  "sealed_utc": "2026-10-12T02:08:36.126224+00:00",
+  "statement_version": 1,
+  "owner": "companion_root_20261005",
+  "baseline_commit": "bd25af52d971654773edcfeb15bc8e09fb9b76ae",
+  "header": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/Header106.lean",
+    "raw_sha256": "6e995eb9308bf5c6d09fcd15b6ebb0e120b3fced62202572a4041cbfe19e7b9d",
+    "bytes": 9190
+  },
+  "expanded_literal_Prop": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let readTime : Rec → ℝ := fun r => match r with\n      | Sum.inl q => (q.1 : ℝ)\n      | Sum.inr _ => 0\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>\n      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧\n        StrictMono (fun j => readTime (h j)) ∧\n        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}\n    let eventTime : E → E → (E × E) → (ℕ → ℝ) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ w j => (record y xRef z₀ (ε w) j).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    let I : E → E → (E × E) → ℝ≥0 → ℕ → Set (ℕ → ℝ) :=\n      fun y xRef z₀ T n => {w | eventTime y xRef z₀ w n ≤ (T : WithTop ℝ≥0) ∧\n        (T : WithTop ℝ≥0) < eventTime y xRef z₀ w (n + 1)}\n    let N : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → ℕ := fun y xRef z₀ T w =>\n      if h : ∃ n, w ∈ I y xRef z₀ T n then Nat.find h else 0\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let survival : E → E → Rec → ℝ≥0 → ℝ → Prop :=\n      fun y xRef r u e => r.elim\n        (fun a => (u : WithTop ℝ≥0) < τ y xRef a.2 (Real.toNNReal e)) (fun _ => False)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let C : E → E → (E × E) → (n : ℕ) → ℝ≥0 → Set (ℕ → ℝ) :=\n      fun y xRef z₀ n T => {w | history y xRef z₀ n w ∈ A n T ∧\n        survival y xRef (record y xRef z₀ (ε w) n) (d n T (history y xRef z₀ n w)) (w n)}\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let Vy : E → E → ℝ := fun y x => V x + ‖x - y‖ ^ 2 / (2 * η)\n    let nu : E → Measure (E × E) := fun y =>\n      ((volume : Measure E).tilted (fun x => -Vy y x)).prod\n        (ProbabilityTheory.stdGaussian E)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E), w ∈ I y xRef z₀ s n →\n          record y xRef z₀ (ε w) n = Sum.inl a →\n          Z y xRef z₀ s w = Φ y xRef ((s - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        (¬ ∃ n, w ∈ I y xRef z₀ s n) → Z y xRef z₀ s w = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ w ∂P, Z y xRef z₀ 0 w = z₀) ∧\n      (∀ y xRef : E, ∀ T : ℝ≥0,\n        let op : ((E × E) → ℝ) → (E × E) → ℝ :=\n          fun G z => ∫ w, G (Z y xRef z T w) ∂P\n        let endpoint : (E × E) × (ℕ → ℝ) → E × E :=\n          fun a => Z y xRef a.1 T a.2\n        MeasurePreserving endpoint ((nu y).prod P) (nu y) ∧\n        ∀ F G : (E × E) → ℝ, ∀ C_F C_G : ℝ,\n          Measurable F → Measurable G → 0 ≤ C_F → 0 ≤ C_G →\n          (∀ z, |F z| ≤ C_F) → (∀ z, |G z| ≤ C_G) →\n          Integrable (fun z => F z * op G z) (nu y) ∧\n          Integrable (fun z => G (R z) * op (fun a => F (R a)) z) (nu y) ∧\n          (∫ z, F z * op G z ∂nu y) =\n            ∫ z, G (R z) * op (fun a => F (R a)) z ∂nu y)",
+  "proposed_public_theorem": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality.actual_bounded_gibbs_duality",
+  "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+  "source_anchor": "Appendix A.1 final bounded signed bilinear identity (A8 averaging) and F=1 fixed-time Gibbs stationarity.",
+  "independent_math_header": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/header-math-decision106.native.json",
+    "raw_sha256": "e843a21a080c9fbfef62bcb0d2744ff33357517876dcf363c7825918eb3502f3",
+    "bytes": 6960
+  },
+  "independent_source_header": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/header-source-decision106.native.json",
+    "raw_sha256": "0c879bd1f5d19f37838a21a177d22cfd987b77c2bcc605cf2683ae43cebe5d62",
+    "bytes": 10854
+  },
+  "independent_topology": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/topology-admission106.native.json",
+    "raw_sha256": "3adca8290efdd5eb39051aaf6df7fc957230030c4905a097483effac3caf38c1",
+    "bytes": 26324
+  },
+  "source_graph": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/source-proof-graph-delta106.native.json",
+    "raw_sha256": "ac2c22808c64938ef2a74b1d0113e2bf86db7ce2472628df394b6a5dda77d64a",
+    "bytes": 8735
+  },
+  "source_coverage": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/source-coverage-delta106.native.json",
+    "raw_sha256": "df7bf8f3c4f01c573af430406ab513a3dfa21d8d6ea29355aab7446c5d4fc3af",
+    "bytes": 17432
+  },
+  "primary": {
+    "path": "runs/20261007-companion-priority/phase-pbps-gamma-preread57/primary-pbps.exactraw.snapshot.html",
+    "raw_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760",
+    "bytes": 1482128
+  },
+  "all_review_artifacts_rehashed": [
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/closed-RAW-preread106.native.json",
+      "raw_sha256": "ac5268bbbd11d1cb15f505932f039b4ab5e9b31c7e787000daf4a477302b66bd",
+      "bytes": 8001
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/expected-semantic-slots106.native.json",
+      "raw_sha256": "31d97e7712ee542fd6b94bd6479f9487b2efcf79b2ce34274c3dd83b2a8446b0",
+      "bytes": 2941
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/closed-RAW106.native.json",
+      "raw_sha256": "9cc5be01e30f4d67322637a9eb61b7dfd752a9eeec915018d20eb365ef1929ee",
+      "bytes": 9237
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/independent-route-before-graph106.native.json",
+      "raw_sha256": "b527b38518c02b7a4992b122103fb84d109fbaf10b1dccad1747611c8550279d",
+      "bytes": 2245
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/recommendation-math-review106.native.json",
+      "raw_sha256": "03ec26ee5f102859a8dec875a0a3a183ef20333faaff9c1b04a64c8804c74680",
+      "bytes": 5030
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/run106.native.json",
+      "raw_sha256": "3befb20c75cf74c4e858e30b1c88a9df2f6fd4aca4ac25cf3474de55fbf22474",
+      "bytes": 8374
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/topology-admission106.native.json",
+      "raw_sha256": "3adca8290efdd5eb39051aaf6df7fc957230030c4905a097483effac3caf38c1",
+      "bytes": 26324
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/literal-definition-context106.native.json",
+      "raw_sha256": "abb100b9657356a5a35ffdcf52a4bf7bc5046b3f544c570a9e4e9f4d17b51ee8",
+      "bytes": 9139
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/primary-first-reconstruction106.native.json",
+      "raw_sha256": "bcdfecac590890337d08677765386b3fd975268767b37e109931d5969aa6f189",
+      "bytes": 7977
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/recommendation106.native.json",
+      "raw_sha256": "6fe7d905e4163c3f7e0c283e012ab907a95477d96d2f294ffdf64107b7f714c1",
+      "bytes": 7233
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/retrieval-label-clarification106/clarification106.native.json",
+      "raw_sha256": "0b495e976393fd1f49cb6fbf18f0a3b2e2cdb12273c948f25b89d5649013dedb",
+      "bytes": 1929
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/retrieval-label-clarification106/closed-RAW-clarification106.native.json",
+      "raw_sha256": "2756dad2860728860684d24451a9708eb8d2aa7dcfe4cf52b9d4ff52a5c6c769",
+      "bytes": 842
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/retrieval106.native.json",
+      "raw_sha256": "e4785f44446ba07a72ca8ba80e883d7d108a410f309b9ab3cb68fb756376526f",
+      "bytes": 9072
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/scheduling-context106.native.json",
+      "raw_sha256": "e79d1233345a1bf0c3edfb501ec13ba95472c0beaf2fa3e546c909339f96b664",
+      "bytes": 7775
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/source-coverage-delta106.native.json",
+      "raw_sha256": "df7bf8f3c4f01c573af430406ab513a3dfa21d8d6ea29355aab7446c5d4fc3af",
+      "bytes": 17432
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/source-preread-run106.native.json",
+      "raw_sha256": "0542bfc92e767ff2b19715dd6994f5b2a42912423ebe997818fa214758a7b276",
+      "bytes": 2293
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/source-proof-graph-delta106.native.json",
+      "raw_sha256": "ac2c22808c64938ef2a74b1d0113e2bf86db7ce2472628df394b6a5dda77d64a",
+      "bytes": 8735
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/closed-RAW106.native.json",
+      "raw_sha256": "20aa06f5deb76467300aee8adb262cdd5f60b9d36f642ceef442990d9750a6ac",
+      "bytes": 5365
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/fresh-typecheck106.receipt.json",
+      "raw_sha256": "0c4d5096a5cf24fe0098af163c8bda889212fcef8c755f107b2b8c4c5e4caa9b",
+      "bytes": 1166
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/header-math-decision106.native.json",
+      "raw_sha256": "e843a21a080c9fbfef62bcb0d2744ff33357517876dcf363c7825918eb3502f3",
+      "bytes": 6960
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/input-freeze106.native.json",
+      "raw_sha256": "f68e415181c8d1ad7418c4d12c532beb6a7471b82b639f897fcb936385a652bf",
+      "bytes": 3229
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/run106.native.json",
+      "raw_sha256": "8053744863c1dc05150c3d2cd00dd8dcb43ceb489b192b0cffb13030a16545fa",
+      "bytes": 3834
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/closed-RAW-header-source106.native.json",
+      "raw_sha256": "e57df65ecddcdc2bc8eeebeadb0b58bffca3bc5de32383333ad9780bab15195c",
+      "bytes": 10938
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/header-source-coverage106.native.json",
+      "raw_sha256": "c099a3bfe7fb304455e39a714d1de319043cef6b0623c49e11d08a74d8fc0459",
+      "bytes": 13173
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/header-source-decision106.native.json",
+      "raw_sha256": "0c879bd1f5d19f37838a21a177d22cfd987b77c2bcc605cf2683ae43cebe5d62",
+      "bytes": 10854
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/header-source-run106.native.json",
+      "raw_sha256": "dfb9914a61638721c27f0a9df06c8ac6707d8e4e5b8e1f910b8b1d1a5cf60689",
+      "bytes": 2964
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/literal-comparison106.native.json",
+      "raw_sha256": "64fd3f292f79b3354577b3165a6f45db116691a6c0f99406ce43e4bf73da4574",
+      "bytes": 13079
+    },
+    {
+      "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/primary-expectations-frozen106.native.json",
+      "raw_sha256": "bfd0c9f38abab638b7a34654bd8ab239fb7f6c8a48e9bbcabd14a4fcbff15273",
+      "bytes": 12490
+    }
+  ],
+  "all_bound_RAW_inputs_rehashed": [
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/source-preread-run106.native.json",
+      "raw_sha256": "0542bfc92e767ff2b19715dd6994f5b2a42912423ebe997818fa214758a7b276"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/recommendation106.native.json",
+      "raw_sha256": "6fe7d905e4163c3f7e0c283e012ab907a95477d96d2f294ffdf64107b7f714c1"
+    },
+    {
+      "path": "runs/20261007-companion-priority/phase-pbps-gamma-preread57/primary-pbps.exactraw.snapshot.html",
+      "raw_sha256": "d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-normalized-endpoint104/next-primary105/source-coverage-delta105.native.json",
+      "raw_sha256": "7ccff3fc5d16620743fb632500fc0bbd657f5b84917e24b6d25760692113eb10"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualCountableEndpointLaw.lean",
+      "raw_sha256": "31003aa5df1826329f8e57740860e9a0e7c1b866ab110108974e1a339a96bbca"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseNormalization.lean",
+      "raw_sha256": "c7806ada54ca78514a75ea1d13ed4bf08e5af4e92546d9ba0165683d77b36af4"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Probability/UnitExponentialProduct.lean",
+      "raw_sha256": "c4a93999f287008d9ddb3f3624f52f302df122e5e007a54fd427a9985edc5ec0"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPhaseTransitionKernel.lean",
+      "raw_sha256": "14df46eb96095b6b4cf3e454f7794382c2ba1e09812bd8ab15b7ea6b11842a22"
+    },
+    {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/GaussianReflection.lean",
+      "raw_sha256": "c24c8ce6f5191a15dae80ee2bbdab36fb568ae91d2cfafb3160ec88bec2586ba"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Measure/L2Expectation.lean",
+      "raw_sha256": "52860741cb8ed8aca4e705f79450ac361fe5126301489700d9606804a3ee4a5e"
+    },
+    {
+      "path": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelReversibility.lean",
+      "raw_sha256": "ccb70dad01697007115d875c57b6df57ab91c023cd44d238c9e0aed4bd9dc26e"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Multivariate.lean",
+      "raw_sha256": "bf27cc682e22025ede23f8bf9b2eec2bb6549867f8eb9465bace8f75ec50bd30"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Prod.lean",
+      "raw_sha256": "250d04f265272159b5a0443ba1106dccc6ee368aa92d2d60dbd2c6df4f462125"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Integral/IntegrableOn.lean",
+      "raw_sha256": "6107b2e2a1f95581c5334a3d38a6ca62bc07f046d543aaee681ec3e09dae8d22"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Integral/Prod.lean",
+      "raw_sha256": "d68e4adccef0f68268149915258237b989505b90ae596d0ced458080ee045c21"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Integral/Bochner/Basic.lean",
+      "raw_sha256": "38acb9930511f4fda15584cc7be30bb37d0d8ab0406a6cc2b32229c730440463"
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Function/L1Space/Integrable.lean",
+      "raw_sha256": "39efd7fe6d47d6218c95fc9be2ea2b4e48cfc42593961fbffe2f432b10148dbd"
+    },
+    {
+      "path": "research-wiki/external-lean-libraries/README.md",
+      "raw_sha256": "524bb5c905c8a54a35fe4f93ba0f17a06e222a28fcbe382d662cebe825b8da1a"
+    },
+    {
+      "path": "lean-toolchain",
+      "raw_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477"
+    },
+    {
+      "path": "lake-manifest.json",
+      "raw_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-countable-endpoint-preread105/independent-header-math105/source-topology-admission105.native.json",
+      "raw_sha256": "737a1e9568b4245dd0f73a8bd8f0e23c754109883f0ef3078f01d460f96f290e"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-countable-endpoint-preread105/source-graph-repair105/source-proof-graph-delta105.v2.native.json",
+      "raw_sha256": "97fc1255c8a70c879070734d36d72db785c73d6c5b7bf73a3b284351c70e5bc9"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/final-source105/compiled-source-coverage105.native.json",
+      "raw_sha256": "9d65e94df5ecc2ee7e3d01c783859f4d9e18a37bf3bc844c80abd8767ad33d38"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/expected-semantic-slots106.native.json",
+      "raw_sha256": "31d97e7712ee542fd6b94bd6479f9487b2efcf79b2ce34274c3dd83b2a8446b0"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/literal-definition-context106.native.json",
+      "raw_sha256": "abb100b9657356a5a35ffdcf52a4bf7bc5046b3f544c570a9e4e9f4d17b51ee8"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/prepare_source106.py",
+      "raw_sha256": "945d5df76b6e148db7426e95592e27b469250e5cebd3cb19ef1ded597444aeb7"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/primary-first-reconstruction106.native.json",
+      "raw_sha256": "bcdfecac590890337d08677765386b3fd975268767b37e109931d5969aa6f189"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/retrieval106.native.json",
+      "raw_sha256": "e4785f44446ba07a72ca8ba80e883d7d108a410f309b9ab3cb68fb756376526f"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/scheduling-context106.native.json",
+      "raw_sha256": "e79d1233345a1bf0c3edfb501ec13ba95472c0beaf2fa3e546c909339f96b664"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/source-coverage-delta106.native.json",
+      "raw_sha256": "df7bf8f3c4f01c573af430406ab513a3dfa21d8d6ea29355aab7446c5d4fc3af"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/source-proof-graph-delta106.native.json",
+      "raw_sha256": "ac2c22808c64938ef2a74b1d0113e2bf86db7ce2472628df394b6a5dda77d64a"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/closed-RAW-preread106.native.json",
+      "raw_sha256": "ac5268bbbd11d1cb15f505932f039b4ab5e9b31c7e787000daf4a477302b66bd"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/retrieval-label-clarification106/clarification106.native.json",
+      "raw_sha256": "0b495e976393fd1f49cb6fbf18f0a3b2e2cdb12273c948f25b89d5649013dedb"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/retrieval-label-clarification106/closed-RAW-clarification106.native.json",
+      "raw_sha256": "2756dad2860728860684d24451a9708eb8d2aa7dcfe4cf52b9d4ff52a5c6c769"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/close_review106.py",
+      "raw_sha256": "08f602bba055d8c00951ee22efaf66c031e61169bddcc3b26fd505efff32c6f4"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/independent-route-before-graph106.native.json",
+      "raw_sha256": "b527b38518c02b7a4992b122103fb84d109fbaf10b1dccad1747611c8550279d"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/recommendation-math-review106.native.json",
+      "raw_sha256": "03ec26ee5f102859a8dec875a0a3a183ef20333faaff9c1b04a64c8804c74680"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/run106.native.json",
+      "raw_sha256": "3befb20c75cf74c4e858e30b1c88a9df2f6fd4aca4ac25cf3474de55fbf22474"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/topology-admission106.native.json",
+      "raw_sha256": "3adca8290efdd5eb39051aaf6df7fc957230030c4905a097483effac3caf38c1"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/Header106.lean",
+      "raw_sha256": "6e995eb9308bf5c6d09fcd15b6ebb0e120b3fced62202572a4041cbfe19e7b9d"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/typecheck106/receipt.json",
+      "raw_sha256": "56d28a433cfbebd2e295c8bc3f0f6077333e3adfbeefcbfe4bca09b0e57b664e"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-actual-countable-endpoint105/next-primary106/independent-topology106/closed-RAW106.native.json",
+      "raw_sha256": "9cc5be01e30f4d67322637a9eb61b7dfd752a9eeec915018d20eb365ef1929ee"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/close_review106.py",
+      "raw_sha256": "1e4534348658bbd1f7c38876e1a2d5540ccbe222a4d5c286d2a5302f1d38be0f"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/fresh-typecheck.stderr.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/fresh-typecheck.stdout.log",
+      "raw_sha256": "e5dc68005000c850c9ad851bab9708f2251117750dd841f3d7f2cd6a4a17fd40"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/fresh-typecheck106.receipt.json",
+      "raw_sha256": "0c4d5096a5cf24fe0098af163c8bda889212fcef8c755f107b2b8c4c5e4caa9b"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/FreshHeader106.lean",
+      "raw_sha256": "6e995eb9308bf5c6d09fcd15b6ebb0e120b3fced62202572a4041cbfe19e7b9d"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/header-math-decision106.native.json",
+      "raw_sha256": "e843a21a080c9fbfef62bcb0d2744ff33357517876dcf363c7825918eb3502f3"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/input-freeze106.native.json",
+      "raw_sha256": "f68e415181c8d1ad7418c4d12c532beb6a7471b82b639f897fcb936385a652bf"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/run106.native.json",
+      "raw_sha256": "8053744863c1dc05150c3d2cd00dd8dcb43ceb489b192b0cffb13030a16545fa"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-math106/typecheck106.py",
+      "raw_sha256": "53502979a9c152e47e1f537a38da647f21067c3a62912fe5e3517e1e64d44059"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/header-source-decision106.native.json",
+      "raw_sha256": "0c879bd1f5d19f37838a21a177d22cfd987b77c2bcc605cf2683ae43cebe5d62"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/header-source-run106.native.json",
+      "raw_sha256": "dfb9914a61638721c27f0a9df06c8ac6707d8e4e5b8e1f910b8b1d1a5cf60689"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/primary-expectations-frozen106.native.json",
+      "raw_sha256": "bfd0c9f38abab638b7a34654bd8ab239fb7f6c8a48e9bbcabd14a4fcbff15273"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/typecheck106/stdout.log",
+      "raw_sha256": "458570b6a05e937b230f5dced094c375102575b3f3d0d998046667a83ccf295d"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/typecheck106/stderr.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/header-source-coverage106.native.json",
+      "raw_sha256": "c099a3bfe7fb304455e39a714d1de319043cef6b0623c49e11d08a74d8fc0459"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/header-source-coverage106.native.json.raw.gz",
+      "raw_sha256": "06287949f39677cb656c4616b5a8fde0174772a91d4eb09437d51e23cde06888"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/header-source-decision106.native.json.raw.gz",
+      "raw_sha256": "6152aafc8abc5cbfb1c3db220a42e33b664f3e875b48814dd498bd76314fdd53"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/header-source-run106.native.json.raw.gz",
+      "raw_sha256": "aaf0e2c5a22a44b34b7b00652e3b3d0c612d999b945ec8c8204f2ad8dec837a3"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/literal-comparison106.native.json",
+      "raw_sha256": "64fd3f292f79b3354577b3165a6f45db116691a6c0f99406ce43e4bf73da4574"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/literal-comparison106.native.json.raw.gz",
+      "raw_sha256": "85507f49b3ccc963e86abdebe03bf1da4c18c51994f378cdcadcd00deddc4490"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/primary-expectations-frozen106.native.json.raw.gz",
+      "raw_sha256": "bdd0c38e0a7d1799290a04e999e0ec42f3198539e1185afbbb18f337cc7dad66"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/review_header106.py",
+      "raw_sha256": "f098a02d77b3bd522b624905ac14efbafeb08b49fa40f903f41ff8e26f68630d"
+    },
+    {
+      "path": "runs/20261007-companion-priority/pbps-bounded-gibbs-duality-preread106/independent-header-source106/review_header106.py.raw.gz",
+      "raw_sha256": "895d993708d4455d93274d37f301453d04c3b98c6bfa434dec69b29c73214cd9"
+    }
+  ],
+  "binder_audit": {
+    "SOURCE": [
+      "hα",
+      "hαβ",
+      "hV",
+      "hH",
+      "hη",
+      "hβη"
+    ],
+    "TYPING": "Finite-dimensional real inner-product Borel space, including rank zero.",
+    "OBSERVABLE": "Measurable bounded real F,G and finite nonnegative bounds within universal conclusion.",
+    "EXCESS": []
+  },
+  "definition_audit": "37 literal actual algorithm/clock/path/phase definitions of105, exactly the same global Z arc/fallback/zero contract; two new internal let definitions op and endpoint. No arbitrary process/kernel provider, signed-integrability, mass or momentum-symmetry premise.",
+  "core_delta": "Under the original six assumptions, one global actual jointly measurable Z satisfies the inherited arc/fallback/zero-time contract. Every y,r,T endpoint pushes nu_y times P to nu_y; every pair of bounded Borel real F,G yields both outer integrability conclusions and integral F*(op G) = integral (G composed R)*(op(F composed R)).",
+  "actual_producer_plan": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCountableEndpointLaw.actual_countable_endpoint_law",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization",
+    "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+  ],
+  "consumer": "Printed Appendix A.1 bounded duality and fixed-time Gibbs stationarity; future actual L2 and kernel-invariance consumers require their separate representation and same-witness adapters.",
+  "truth_boundary": "Bounded signed Gibbs duality and fixed-time actual phase invariance only. L2 operator/domain identity, restart/Markovness, kernel-witness identification, hypocoercivity, simulation errors, actual expected costs, composition and all four full papers remain open.",
+  "upstream_reconciliation": {
+    "fetched_main": "a3a3fc3f2d34c5a013168bea1446a106054c194c",
+    "pending": true,
+    "reason": "New sphere-Rayleigh upstream changes do not alter three selected producers or toolchain; preserve shared changes in next serialized integration."
+  },
+  "source_topology_counts": {
+    "nodes": 62,
+    "edges": 122,
+    "primary_regions": 21,
+    "new_nodes": 2,
+    "new_edges": 10,
+    "proposed_direct_public_parents": 3
+  },
+  "proof_search_started": false,
+  "sau_claimed": false,
+  "Goal_complete": false
+}

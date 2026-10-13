@@ -1,0 +1,63 @@
+import Mathlib.Analysis.Calculus.Rademacher
+import Mathlib.Analysis.Convex.Continuous
+import Mathlib.Topology.Algebra.MetricSpace.Lipschitz
+
+/-!
+# Almost-everywhere differentiability of finite convex potentials
+
+This is the first regularity leaf on the analytic frontier of Chewi Theorem
+1.4.5. It is independent of optimal transport.
+
+A finite-valued convex function on a finite-dimensional real normed space is
+locally Lipschitz. On each compact closed ball, local Lipschitz regularity
+upgrades to one Lipschitz constant. Rademacher's theorem then gives Frechet
+differentiability almost everywhere on the corresponding open ball. A
+countable exhaustion by balls gives the global almost-everywhere statement.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace ConvexAEDifferentiable
+
+open Filter MeasureTheory Metric Set
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  {m : Measure E} [Measure.IsAddHaarMeasure m]
+
+/-- A finite-valued globally convex potential on a finite-dimensional real
+normed space is Frechet differentiable almost everywhere with respect to any
+additive Haar measure. -/
+theorem ae_differentiableAt_of_convexOn_univ
+    {phi : E → ℝ} (hconv : ConvexOn ℝ Set.univ phi) :
+    ∀ᵐ x ∂m, DifferentiableAt ℝ phi x := by
+  have hlocal : LocallyLipschitzOn (Set.univ : Set E) phi :=
+    hconv.locallyLipschitzOn isOpen_univ
+  have hball : ∀ n : ℕ, ∀ᵐ x ∂m,
+      x ∈ ball (0 : E) (n : ℝ) → DifferentiableAt ℝ phi x := by
+    intro n
+    have hlocalClosed : LocallyLipschitzOn (closedBall (0 : E) (n : ℝ)) phi :=
+      hlocal.mono (subset_univ _)
+    obtain ⟨K, hK⟩ :=
+      hlocalClosed.exists_lipschitzOnWith_of_compact
+        (isCompact_closedBall (0 : E) (n : ℝ))
+    have hKball : LipschitzOnWith K phi (ball (0 : E) (n : ℝ)) :=
+      hK.mono ball_subset_closedBall
+    filter_upwards [hKball.ae_differentiableWithinAt_of_mem (μ := m)] with x hx
+    intro hxball
+    rcases hx hxball with ⟨A, hA⟩
+    exact ⟨A, (hasFDerivWithinAt_of_isOpen isOpen_ball hxball).mp hA⟩
+  filter_upwards [ae_all_iff.2 hball] with x hx
+  obtain ⟨n : ℕ, hn⟩ := exists_nat_gt ‖x‖
+  apply hx n
+  simpa [mem_ball, dist_zero_left] using hn
+
+end
+
+end ConvexAEDifferentiable
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

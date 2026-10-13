@@ -1,0 +1,178 @@
+import Mathlib.Tactic.Module
+import Mathlib.Tactic.FieldSimp
+import Mathlib.Tactic.FunProp
+import Mathlib.Tactic.LinearCombination
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
+import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+
+/-!
+Chen--Chewi--Lu--Zhang, arXiv:2609.06905v1, Algorithm 1 and Appendix A.1:
+the literal deterministic harmonic arcs, their ODE and conserved energy.
+This deterministic statement asserts no stochastic process or probability kernel.
+-/
+namespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow
+open InnerProductSpace
+open scoped ContDiff NNReal Topology
+noncomputable section
+set_option autoImplicit false
+
+private def actual_harmonic_flow_statement
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=
+    let c : E → E → E := fun y xRef => y - η • gradient V xRef
+    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+      (c y xRef + Real.cos t • (z.1 - c y xRef) +
+          (Real.sqrt η * Real.sin t) • z.2,
+       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+    let H : E → E → (E × E) → ℝ := fun y xRef z =>
+      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2
+    Continuous (fun a : (E × E) × ℝ × (E × E) =>
+      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧
+    Measurable (fun a : (E × E) × ℝ × (E × E) =>
+      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧
+    (∀ y xRef : E, ∀ z : E × E, Φ y xRef 0 z = z) ∧
+    (∀ y xRef : E, ∀ s t : ℝ, ∀ z : E × E,
+      Φ y xRef (s + t) z = Φ y xRef s (Φ y xRef t z)) ∧
+    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,
+      Φ y xRef (-t) (Φ y xRef t z) = z ∧
+      Φ y xRef t (Φ y xRef (-t) z) = z) ∧
+    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,
+      HasDerivAt (fun s : ℝ => (Φ y xRef s z).1)
+        (Real.sqrt η • (Φ y xRef t z).2) t ∧
+      HasDerivAt (fun s : ℝ => (Φ y xRef s z).2)
+        (-(Real.sqrt η)⁻¹ • ((Φ y xRef t z).1 - y) -
+          Real.sqrt η • gradient V xRef) t) ∧
+    (∀ y xRef : E, ∀ z : E × E, 0 ≤ H y xRef z) ∧
+    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,
+      H y xRef (Φ y xRef t z) = H y xRef z) ∧
+    (∀ y xRef : E, ∀ z : E × E,
+      Φ y xRef Real.pi z = ((2 : ℝ) • c y xRef - z.1, -z.2))
+
+theorem actual_harmonic_flow_laws
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}
+    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E,
+      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)
+    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :
+    actual_harmonic_flow_statement hα hαβ hV hH hη hβη := by
+
+  let c : E → E → E := fun y xRef => y - η • gradient V xRef
+  let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>
+    (c y xRef + Real.cos t • (z.1 - c y xRef) +
+        (Real.sqrt η * Real.sin t) • z.2,
+     (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)
+  let H : E → E → (E × E) → ℝ := fun y xRef z =>
+    (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2
+  change
+    Continuous (fun a : (E × E) × ℝ × (E × E) =>
+      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧
+    Measurable (fun a : (E × E) × ℝ × (E × E) =>
+      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧
+    (∀ y xRef : E, ∀ z : E × E, Φ y xRef 0 z = z) ∧
+    (∀ y xRef : E, ∀ s t : ℝ, ∀ z : E × E,
+      Φ y xRef (s + t) z = Φ y xRef s (Φ y xRef t z)) ∧
+    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,
+      Φ y xRef (-t) (Φ y xRef t z) = z ∧
+      Φ y xRef t (Φ y xRef (-t) z) = z) ∧
+    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,
+      HasDerivAt (fun s : ℝ => (Φ y xRef s z).1)
+        (Real.sqrt η • (Φ y xRef t z).2) t ∧
+      HasDerivAt (fun s : ℝ => (Φ y xRef s z).2)
+        (-(Real.sqrt η)⁻¹ • ((Φ y xRef t z).1 - y) -
+          Real.sqrt η • gradient V xRef) t) ∧
+    (∀ y xRef : E, ∀ z : E × E, 0 ≤ H y xRef z) ∧
+    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,
+      H y xRef (Φ y xRef t z) = H y xRef z) ∧
+    (∀ y xRef : E, ∀ z : E × E,
+      Φ y xRef Real.pi z = ((2 : ℝ) • c y xRef - z.1, -z.2))
+  have hr : 0 < Real.sqrt η := Real.sqrt_pos.2 hη
+  have hr0 : Real.sqrt η ≠ 0 := ne_of_gt hr
+  have hr2 : (Real.sqrt η) ^ 2 = η := Real.sq_sqrt hη.le
+  have hgrad : Continuous (fun x : E => gradient V x) :=
+    AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one
+      (hV.of_le (by norm_num))
+  have hc : Continuous (fun a : E × E => c a.1 a.2) := by
+    dsimp [c]
+    fun_prop
+  have hcont : Continuous (fun a : (E × E) × ℝ × (E × E) =>
+      Φ a.1.1 a.1.2 a.2.1 a.2.2) := by
+    dsimp [Φ]
+    fun_prop
+  have hzero (y xRef : E) (z : E × E) : Φ y xRef 0 z = z := by
+    apply Prod.ext <;> dsimp [Φ]
+    · simp only [Real.cos_zero, Real.sin_zero, one_smul, mul_zero, zero_smul, add_zero]
+      module
+    · simp
+  have hgroup (y xRef : E) (s t : ℝ) (z : E × E) :
+      Φ y xRef (s + t) z = Φ y xRef s (Φ y xRef t z) := by
+    apply Prod.ext <;> dsimp [Φ]
+    all_goals
+      rw [Real.cos_add, Real.sin_add]
+      match_scalars <;> (try field_simp [hr0]) <;> ring
+  have hinverse (y xRef : E) (t : ℝ) (z : E × E) :
+      Φ y xRef (-t) (Φ y xRef t z) = z ∧
+      Φ y xRef t (Φ y xRef (-t) z) = z := by
+    constructor
+    · rw [← hgroup, neg_add_cancel, hzero]
+    · rw [← hgroup, add_neg_cancel, hzero]
+  have hode (y xRef : E) (t : ℝ) (z : E × E) :
+      HasDerivAt (fun s : ℝ => (Φ y xRef s z).1)
+        (Real.sqrt η • (Φ y xRef t z).2) t ∧
+      HasDerivAt (fun s : ℝ => (Φ y xRef s z).2)
+        (-(Real.sqrt η)⁻¹ • ((Φ y xRef t z).1 - y) -
+          Real.sqrt η • gradient V xRef) t := by
+    constructor
+    · have hx := ((hasDerivAt_const t (c y xRef)).add
+          ((Real.hasDerivAt_cos t).smul_const (z.1 - c y xRef))).add
+          (((Real.hasDerivAt_sin t).const_mul (Real.sqrt η)).smul_const z.2)
+      convert hx using 1
+      dsimp [Φ]
+      match_scalars <;> (try field_simp [hr0]) <;> ring
+    · have hp := (((Real.hasDerivAt_sin t).neg.div_const (Real.sqrt η)).smul_const
+          (z.1 - c y xRef)).add ((Real.hasDerivAt_cos t).smul_const z.2)
+      convert hp using 1
+      dsimp [Φ, c]
+      match_scalars <;> (try field_simp [hr0]) <;> nlinarith only [hr2]
+  have hnonneg (y xRef : E) (z : E × E) : 0 ≤ H y xRef z := by
+    exact div_nonneg (add_nonneg (mul_nonneg (inv_nonneg.2 hη.le) (sq_nonneg _))
+      (sq_nonneg _)) (by norm_num)
+  have henergy (y xRef : E) (t : ℝ) (z : E × E) :
+      H y xRef (Φ y xRef t z) = H y xRef z := by
+    have hcenter : (Φ y xRef t z).1 - c y xRef =
+        Real.cos t • (z.1 - c y xRef) + (Real.sqrt η * Real.sin t) • z.2 := by
+      dsimp [Φ]
+      module
+    dsimp only [H]
+    rw [hcenter]
+    dsimp only [Φ]
+    congr 1
+    rw [norm_add_sq_real, norm_add_sq_real]
+    simp only [norm_smul, Real.norm_eq_abs, mul_pow, sq_abs,
+      real_inner_smul_left, real_inner_smul_right, div_pow, neg_sq]
+    rw [show η⁻¹ = ((Real.sqrt η) ^ 2)⁻¹ by rw [hr2]]
+    field_simp [hr0]
+    linear_combination (‖z.1 - c y xRef‖ ^ 2 + (Real.sqrt η) ^ 2 * ‖z.2‖ ^ 2) *
+      Real.sin_sq_add_cos_sq t
+  have hpi (y xRef : E) (z : E × E) :
+      Φ y xRef Real.pi z = ((2 : ℝ) • c y xRef - z.1, -z.2) := by
+    apply Prod.ext <;> dsimp [Φ]
+    · simp only [Real.cos_pi, Real.sin_pi, mul_zero, zero_smul, add_zero, neg_smul,
+        one_smul]
+      module
+    · simp
+  exact ⟨hcont, hcont.measurable, hzero, hgroup, hinverse, hode, hnonneg, henergy, hpi⟩
+
+end
+end AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow
+
+#print axioms AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws

@@ -1,0 +1,217 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.OperatorGenerator
+import Mathlib.Topology.Order.DenselyOrdered
+
+/-!
+# Strong continuity and the linear right-generator domain
+
+This file continues the operator-theoretic layer behind Chewi's Definition
+1.2.3 and Proposition 1.2.5.
+
+The first part packages strong continuity at time zero for a nonnegative-time
+continuous-linear semigroup and derives right continuity of every orbit at an
+arbitrary starting time. The second part proves that the right-generator
+relation is single-valued and linear, turns its domain into a genuine
+submodule, and bundles the infinitesimal generator as a linear map on that
+submodule.
+
+No concrete diffusion semigroup is constructed here, and no claim is made
+that the abstract generator is closed or agrees with the differential
+Langevin expression on a core. Those remain separate analytic obligations.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace OperatorGeneratorDomain
+
+open Filter Set
+open scoped NNReal Topology
+
+noncomputable section
+
+open OperatorGenerator
+
+variable {M : Type*} [NormedAddCommGroup M] [NormedSpace ℝ M]
+
+/-- A continuous-linear semigroup whose orbit is strongly continuous at time
+zero for every vector in the ambient normed space. -/
+structure StronglyContinuousSemigroup (M : Type*) [NormedAddCommGroup M]
+    [NormedSpace ℝ M] extends ContinuousLinearSemigroup M where
+  stronglyContinuousAtZero :
+    ∀ f : M, Tendsto (fun t : ℝ≥0 => op t f) (𝓝 0) (𝓝 f)
+
+/-- Strong continuity at zero propagates to right continuity of every orbit at
+an arbitrary nonnegative starting time. -/
+theorem StronglyContinuousSemigroup.tendsto_op_add
+    (S : StronglyContinuousSemigroup M) (t : ℝ≥0) (f : M) :
+    Tendsto (fun h : ℝ≥0 => S.op (t + h) f) (𝓝 0) (𝓝 (S.op t f)) := by
+  have hop : Tendsto (S.op t) (𝓝 f) (𝓝 (S.op t f)) :=
+    (S.op t).continuous.continuousAt
+  have hmapped :
+      Tendsto (fun h : ℝ≥0 => S.op t (S.op h f))
+        (𝓝 0) (𝓝 (S.op t f)) :=
+    hop.comp (S.stronglyContinuousAtZero f)
+  simpa only [ContinuousLinearSemigroup.op_add_apply] using hmapped
+
+/-- The zero vector has generator value zero. -/
+theorem hasRightGeneratorAt_zero (S : ContinuousLinearSemigroup M) :
+    HasRightGeneratorAt S (0 : M) 0 := by
+  unfold HasRightGeneratorAt
+  simp [rightDifferenceQuotient]
+
+/-- Right difference quotients are additive in the observable. -/
+theorem rightDifferenceQuotient_add
+    (S : ContinuousLinearSemigroup M) (h : ℝ≥0) (f g : M) :
+    rightDifferenceQuotient S h (f + g) =
+      rightDifferenceQuotient S h f + rightDifferenceQuotient S h g := by
+  unfold rightDifferenceQuotient
+  rw [map_add]
+  module
+
+/-- Right difference quotients commute with scalar multiplication. -/
+theorem rightDifferenceQuotient_smul
+    (S : ContinuousLinearSemigroup M) (h : ℝ≥0) (c : ℝ) (f : M) :
+    rightDifferenceQuotient S h (c • f) =
+      c • rightDifferenceQuotient S h f := by
+  unfold rightDifferenceQuotient
+  rw [map_smul]
+  module
+
+/-- Right difference quotients commute with negation. -/
+theorem rightDifferenceQuotient_neg
+    (S : ContinuousLinearSemigroup M) (h : ℝ≥0) (f : M) :
+    rightDifferenceQuotient S h (-f) =
+      -rightDifferenceQuotient S h f := by
+  simpa using rightDifferenceQuotient_smul S h (-1 : ℝ) f
+
+/-- The right-generator value is unique. The relevant one-sided filter is
+nontrivial because positive nonnegative reals accumulate at zero. -/
+theorem hasRightGeneratorAt_unique
+    {S : ContinuousLinearSemigroup M} {f g₁ g₂ : M}
+    (hg₁ : HasRightGeneratorAt S f g₁)
+    (hg₂ : HasRightGeneratorAt S f g₂) :
+    g₁ = g₂ := by
+  unfold HasRightGeneratorAt at hg₁ hg₂
+  exact tendsto_nhds_unique hg₁ hg₂
+
+/-- Generator limits add. -/
+theorem hasRightGeneratorAt_add
+    {S : ContinuousLinearSemigroup M} {f₁ f₂ g₁ g₂ : M}
+    (h₁ : HasRightGeneratorAt S f₁ g₁)
+    (h₂ : HasRightGeneratorAt S f₂ g₂) :
+    HasRightGeneratorAt S (f₁ + f₂) (g₁ + g₂) := by
+  unfold HasRightGeneratorAt at h₁ h₂ ⊢
+  simpa only [rightDifferenceQuotient_add] using h₁.add h₂
+
+/-- Generator limits commute with scalar multiplication. -/
+theorem hasRightGeneratorAt_smul
+    {S : ContinuousLinearSemigroup M} {f g : M}
+    (hfg : HasRightGeneratorAt S f g) (c : ℝ) :
+    HasRightGeneratorAt S (c • f) (c • g) := by
+  unfold HasRightGeneratorAt at hfg ⊢
+  simpa only [rightDifferenceQuotient_smul] using hfg.const_smul c
+
+/-- Generator limits commute with negation. -/
+theorem hasRightGeneratorAt_neg
+    {S : ContinuousLinearSemigroup M} {f g : M}
+    (hfg : HasRightGeneratorAt S f g) :
+    HasRightGeneratorAt S (-f) (-g) := by
+  simpa using (hasRightGeneratorAt_smul hfg (-1 : ℝ))
+
+/-- Generator limits subtract. -/
+theorem hasRightGeneratorAt_sub
+    {S : ContinuousLinearSemigroup M} {f₁ f₂ g₁ g₂ : M}
+    (h₁ : HasRightGeneratorAt S f₁ g₁)
+    (h₂ : HasRightGeneratorAt S f₂ g₂) :
+    HasRightGeneratorAt S (f₁ - f₂) (g₁ - g₂) := by
+  simpa [sub_eq_add_neg] using
+    (hasRightGeneratorAt_add h₁ (hasRightGeneratorAt_neg h₂))
+
+/-- The right-generator domain is a real submodule of the ambient normed
+space. -/
+def generatorDomainSubmodule (S : ContinuousLinearSemigroup M) :
+    Submodule ℝ M where
+  carrier := generatorDomain S
+  zero_mem' := ⟨0, hasRightGeneratorAt_zero S⟩
+  add_mem' := by
+    intro f g hf hg
+    rcases hf with ⟨Af, hf⟩
+    rcases hg with ⟨Ag, hg⟩
+    exact ⟨Af + Ag, hasRightGeneratorAt_add hf hg⟩
+  smul_mem' := by
+    intro c f hf
+    rcases hf with ⟨Af, hf⟩
+    exact ⟨c • Af, hasRightGeneratorAt_smul hf c⟩
+
+/-- The canonical right-generator value on its submodule domain. -/
+noncomputable def rightGeneratorValue
+    (S : ContinuousLinearSemigroup M)
+    (f : generatorDomainSubmodule S) : M :=
+  Classical.choose
+    (show ∃ g, HasRightGeneratorAt S (f : M) g from f.property)
+
+/-- The canonical value really is the right-generator limit. -/
+theorem rightGeneratorValue_spec
+    (S : ContinuousLinearSemigroup M)
+    (f : generatorDomainSubmodule S) :
+    HasRightGeneratorAt S (f : M) (rightGeneratorValue S f) :=
+  Classical.choose_spec
+    (show ∃ g, HasRightGeneratorAt S (f : M) g from f.property)
+
+/-- The canonical generator value is additive. -/
+theorem rightGeneratorValue_add
+    (S : ContinuousLinearSemigroup M)
+    (f g : generatorDomainSubmodule S) :
+    rightGeneratorValue S (f + g) =
+      rightGeneratorValue S f + rightGeneratorValue S g := by
+  apply hasRightGeneratorAt_unique
+  · exact rightGeneratorValue_spec S (f + g)
+  · exact hasRightGeneratorAt_add
+      (rightGeneratorValue_spec S f) (rightGeneratorValue_spec S g)
+
+/-- The canonical generator value commutes with real scalar multiplication. -/
+theorem rightGeneratorValue_smul
+    (S : ContinuousLinearSemigroup M)
+    (c : ℝ) (f : generatorDomainSubmodule S) :
+    rightGeneratorValue S (c • f) = c • rightGeneratorValue S f := by
+  apply hasRightGeneratorAt_unique
+  · exact rightGeneratorValue_spec S (c • f)
+  · exact hasRightGeneratorAt_smul (rightGeneratorValue_spec S f) c
+
+/-- The infinitesimal right generator as a genuine linear map on its domain. -/
+noncomputable def rightGenerator (S : ContinuousLinearSemigroup M) :
+    generatorDomainSubmodule S →ₗ[ℝ] M where
+  toFun := rightGeneratorValue S
+  map_add' := rightGeneratorValue_add S
+  map_smul' := rightGeneratorValue_smul S
+
+/-- The canonical generator commutes with the semigroup on its invariant
+domain. -/
+theorem rightGenerator_map
+    (S : ContinuousLinearSemigroup M) (t : ℝ≥0)
+    (f : generatorDomainSubmodule S) :
+    rightGenerator S
+        ⟨S.op t (f : M), generatorDomain_map S f.property t⟩ =
+      S.op t (rightGenerator S f) := by
+  apply hasRightGeneratorAt_unique
+  · exact rightGeneratorValue_spec S
+      ⟨S.op t (f : M), generatorDomain_map S f.property t⟩
+  · exact (rightGeneratorValue_spec S f).map t
+
+/-- Chewi's right Kolmogorov backward equation using the canonical bundled
+generator rather than an existential generator witness. -/
+theorem kolmogorov_backward_right_generator
+    (S : ContinuousLinearSemigroup M)
+    (f : generatorDomainSubmodule S) (t : ℝ≥0) :
+    Tendsto
+      (fun h : ℝ≥0 => rightOrbitDifferenceQuotient S t h (f : M))
+      (nhdsWithin 0 (Ioi 0))
+      (𝓝 (S.op t (rightGenerator S f))) := by
+  exact (kolmogorov_backward_right S (rightGeneratorValue_spec S f) t).2
+
+end
+
+end OperatorGeneratorDomain
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

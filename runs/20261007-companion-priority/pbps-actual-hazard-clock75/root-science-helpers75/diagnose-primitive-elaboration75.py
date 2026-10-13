@@ -1,0 +1,5 @@
+from pathlib import Path
+import json,os
+p=Path('AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHazardClock.lean');out=Path(os.environ['ASTIS_FOREGROUND_OBSERVER_DIR']);b=p.read_bytes();(out/'module.before.exactraw.lean').write_bytes(b);s=b.decode();old='private theorem actual_hazard_primitive_laws\n';assert s.count(old)==1
+s=s.replace(old,'set_option maxHeartbeats 800000 in\n'+old);p.write_text(s,encoding='utf8',newline='\n')
+(out/'diagnosis.json').write_text(json.dumps(dict(actual_root_PID=os.getpid(),failure_class='IMPLEMENTATION_FAILED',strict_reduction='Explicit actual integrand removed the previous application type mismatch. Only cumulative default200000 elaboration-budget timeout remains, at the later fixed-state interval-integrability composition.',route='Same exact mathematical route and sealed statement. One bounded local800000 elaboration budget for this internal theorem; no global/unlimited budget.',statement_changed=False,new_assumptions=False,retry_fingerprint_changed=True),indent=2)+'\n',encoding='utf8',newline='\n')

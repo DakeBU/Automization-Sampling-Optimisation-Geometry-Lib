@@ -1,0 +1,175 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EnergyStoppedIntegrand
+import Mathlib.MeasureTheory.Function.L2Space
+
+/-!
+# Energy-stopped processes in global progressive L2
+
+The pathwise canonical energy bound is integrated over the probability space
+to show that every energy-stopped local integrand belongs to the global
+product-`L2` class constructed for the Itô integral.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace EnergyStoppedProgressiveL2
+
+open MeasureTheory Set
+open scoped ENNReal NNReal
+
+open ElementaryItoIntegral ProgressiveL2 LocalProgressiveL2
+  EnergyStoppedIntegrand
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- Zero extension of an energy-stopped process from `[0,T] × Ω`. -/
+noncomputable def stoppedExtension
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (level : ℝ) : ℝ≥0 × Omega → ℝ :=
+  Function.extend
+    (Prod.map ((↑) : Set.Iic T → ℝ≥0) id)
+    (fun p : Set.Iic T × Omega =>
+      energyStoppedIntegrand hUsual eta level p.1 p.2)
+    0
+
+theorem stoppedExtension_stronglyMeasurable
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (level : ℝ) :
+    StronglyMeasurable (stoppedExtension hUsual eta level) := by
+  have hrel : @StronglyMeasurable (ℝ≥0 × Omega) ℝ inferInstance
+      (MeasurableSpace.prod inferInstance (filtration T))
+      (stoppedExtension hUsual eta level) := by
+    apply ((MeasurableEmbedding.subtype_coe measurableSet_Iic).prodMap
+      MeasurableEmbedding.id).stronglyMeasurable_extend
+    · exact energyStoppedIntegrand_stronglyProgressive hUsual eta level T
+    · exact stronglyMeasurable_const
+  apply hrel.mono
+  change
+    ((inferInstance : MeasurableSpace ℝ≥0).comap Prod.fst ⊔
+        (filtration T).comap Prod.snd) ≤
+      ((inferInstance : MeasurableSpace ℝ≥0).comap Prod.fst ⊔
+        m.comap Prod.snd)
+  exact sup_le_sup le_rfl (MeasurableSpace.comap_mono (filtration.le T))
+
+@[simp] theorem stoppedExtension_apply_of_le
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (level : ℝ) {s : ℝ≥0} (hsT : s ≤ T) (omega : Omega) :
+    stoppedExtension hUsual eta level (s, omega) =
+      energyStoppedIntegrand hUsual eta level s omega := by
+  let p : Set.Iic T × Omega := (⟨s, hsT⟩, omega)
+  exact ((MeasurableEmbedding.subtype_coe measurableSet_Iic).prodMap
+    MeasurableEmbedding.id).injective.extend_apply
+      (fun q : Set.Iic T × Omega =>
+        energyStoppedIntegrand hUsual eta level q.1 q.2) 0 p
+
+/-- Product-space representative of the stopped process is strongly
+measurable almost everywhere. -/
+theorem processFunction_aestronglyMeasurable
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    (level : ℝ) :
+    AEStronglyMeasurable
+      (processFunction (energyStoppedIntegrand hUsual eta level))
+      (processTimeMeasure mu T) := by
+  let extSwap : Omega × ℝ≥0 → ℝ := fun z =>
+    stoppedExtension hUsual eta level (z.2, z.1)
+  have hext : StronglyMeasurable extSwap :=
+    (stoppedExtension_stronglyMeasurable hUsual eta level).comp_measurable
+      (measurable_snd.prodMk measurable_fst)
+  refine hext.aestronglyMeasurable.congr ?_
+  have hprod : ∀ᵐ z ∂processTimeMeasure mu T, z.2 ≤ T := by
+    rw [ae_iff]
+    have hset : {z : Omega × ℝ≥0 | ¬z.2 ≤ T} =
+        Set.univ ×ˢ Set.Ioi T := by
+      ext z
+      simp only [Set.mem_ofPred_eq, Set.mem_prod, Set.mem_univ, true_and,
+        Set.mem_Ioi, not_le]
+    rw [hset]
+    simp [processTimeMeasure, TimeMeasure.upTo_Ioi_terminal]
+  filter_upwards [hprod] with z hz
+  exact stoppedExtension_apply_of_le hUsual eta level hz z.1
+
+/-- The square of the stopped product-space process is integrable whenever the
+level is nonnegative and the sample measure is a probability measure. -/
+theorem processFunction_sq_integrable
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    {level : ℝ} (hlevel : 0 ≤ level) :
+    Integrable
+      (fun z =>
+        (processFunction (energyStoppedIntegrand hUsual eta level) z) ^ 2)
+      (processTimeMeasure mu T) := by
+  let F : Omega × ℝ≥0 → ℝ := fun z =>
+    (processFunction (energyStoppedIntegrand hUsual eta level) z) ^ 2
+  have hmeas : AEStronglyMeasurable F (processTimeMeasure mu T) :=
+    (processFunction_aestronglyMeasurable hUsual eta level).pow 2
+  refine ⟨hmeas, ?_⟩
+  rw [hasFiniteIntegral_iff_enorm]
+  have hnonneg : ∀ z, 0 ≤ F z := fun z => sq_nonneg _
+  have hnorm : (fun z => ‖F z‖ₑ) = fun z => ENNReal.ofReal (F z) := by
+    funext z
+    exact Real.enorm_eq_ofReal (hnonneg z)
+  rw [hnorm]
+  have hENN : AEMeasurable
+      (fun z : Omega × ℝ≥0 =>
+        ENNReal.ofReal
+          ((energyStoppedIntegrand hUsual eta level z.2 z.1) ^ 2))
+      (processTimeMeasure mu T) := by
+    simpa only [F, processFunction] using
+      hmeas.aemeasurable.ennreal_ofReal
+  change processL2Energy
+    (energyStoppedIntegrand hUsual eta level) mu T < ∞
+  rw [chewi_display_1_1_7
+    (energyStoppedIntegrand hUsual eta level) mu T hENN]
+  calc
+    (∫⁻ omega, ∫⁻ t,
+        ENNReal.ofReal
+          ((energyStoppedIntegrand hUsual eta level t omega) ^ 2)
+          ∂(TimeMeasure.upTo T) ∂mu) ≤
+        ∫⁻ _omega, ENNReal.ofReal level ∂mu := by
+      apply lintegral_mono
+      intro omega
+      change
+        (∫⁻ t, ENNReal.ofReal
+          ((energyStoppedIntegrand hUsual eta level t omega) ^ 2)
+          ∂(TimeMeasure.upTo T)) ≤ ENNReal.ofReal level
+      rw [← ofReal_integral_eq_lintegral_ofReal
+        (EnergyStoppedIntegrand.sectionSquare_integrable hUsual eta level omega)
+        (ae_of_all _ fun _ => sq_nonneg _)]
+      exact ENNReal.ofReal_le_ofReal
+        (integral_energyStoppedIntegrand_sq_le hUsual eta hlevel omega)
+    _ = ENNReal.ofReal level := by simp
+    _ < ∞ := ENNReal.ofReal_lt_top
+
+/-- Energy stopping upgrades a local progressive integrand to the global
+progressive `L2` domain. -/
+noncomputable def stoppedProgressiveL2
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    {level : ℝ} (hlevel : 0 ≤ level) :
+    ProgressiveL2Integrand filtration mu T where
+  process := energyStoppedIntegrand hUsual eta level
+  progressive := energyStoppedIntegrand_stronglyProgressive hUsual eta level
+  memLp := (memLp_two_iff_integrable_sq
+      (processFunction_aestronglyMeasurable hUsual eta level)).2
+    (processFunction_sq_integrable hUsual eta hlevel)
+
+@[simp] theorem stoppedProgressiveL2_process
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (eta : LocalProgressiveL2Integrand filtration mu T)
+    {level : ℝ} (hlevel : 0 ≤ level) :
+    (stoppedProgressiveL2 hUsual eta hlevel).process =
+      energyStoppedIntegrand hUsual eta level :=
+  rfl
+
+end EnergyStoppedProgressiveL2
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

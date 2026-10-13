@@ -1,0 +1,69 @@
+{
+  "copyProbeUsesIsolatedPageClipboardCallback": true,
+  "physicalOSClipboardTest": false,
+  "initialFolded": true,
+  "panels": [
+    {
+      "code": "theorem positive_square_commutation\n    {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)\n    (G D : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ)\n    (hG : G.IsPositive) (hD : D.IsPositive)\n    (hCommute : Commute (G*G) D) : Commute G D",
+      "callbackCalled": true,
+      "copiedExactly": true,
+      "status": "Copied"
+    },
+    {
+      "code": "theorem positive_square_commutation\n    {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)\n    (G D : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ)\n    (hG : G.IsPositive) (hD : D.IsPositive)\n    (hCommute : Commute (G*G) D) : Commute G D\n := by\n  letI := IsStarNormal.instNonUnitalContinuousFunctionalCalculus\n    (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  letI : NonUnitalContinuousFunctionalCalculus ℂ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsStarNormal :=\n    NonUnitalClosedEmbeddingContinuousFunctionalCalculus.toNonUnitalContinuousFunctionalCalculus\n  letI : NonUnitalContinuousFunctionalCalculus ℝ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsSelfAdjoint :=\n    IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus\n      (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  let ι : Lp ℝ 2 μ →L[ℝ] Lp ℂ 2 μ := Complex.ofRealCLM.compLpL 2 μ\n  let R : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.reCLM.compLpL 2 μ\n  let Q : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.imCLM.compLpL 2 μ\n  obtain ⟨hNorm,_,Gc,hGc,hGf,hGi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ G hG\n  obtain ⟨_,_,Dc,hDc,hDf,hDi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ D hD\n  have hReal (u : Lp ℝ 2 μ) : G (G (D u)) = D (G (G u)) :=\n    congrArg (fun A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ => A u) hCommute.eq\n  have hComplex : Commute (Gc*Gc) Dc := by\n    apply ContinuousLinearMap.ext\n    intro g\n    change Gc (Gc (Dc g)) = Dc (Gc (Gc g))\n    calc\n      Gc (Gc (Dc g)) = ι (G (G (D (R g)))) + Complex.I • ι (G (G (D (Q g)))) := by\n        rw [hDf g, map_add, map_smul, hGi, hGi, map_add, map_smul, hGi, hGi]\n      _ = ι (D (G (G (R g)))) + Complex.I • ι (D (G (G (Q g)))) := by\n        rw [hReal (R g),hReal (Q g)]\n      _ = Dc (Gc (Gc g)) := by\n        rw [hGf g,map_add,map_smul,hGi,hGi,map_add,map_smul,hDi,hDi]\n  have hGcNonneg : 0 ≤ Gc := (ContinuousLinearMap.nonneg_iff_isPositive Gc).mpr hGc\n  have hRoot : CFC.sqrt (Gc*Gc)=Gc := CFC.sqrt_unique rfl hGcNonneg\n  have hLift : Commute Gc Dc := by\n    have h := hComplex.cfcₙ_nnreal NNReal.sqrt\n    change Commute (CFC.sqrt (Gc*Gc)) Dc at h\n    rwa [hRoot] at h\n  let e : Lp ℝ 2 μ →ₗᵢ[ℝ] Lp ℂ 2 μ :=\n    { toLinearMap := ι.toLinearMap, norm_map' := hNorm }\n  apply ContinuousLinearMap.ext\n  intro u\n  apply e.injective\n  change ι (G (D u))=ι (D (G u))\n  rw [← hGi (D u), ← hDi u, ← hDi (G u), ← hGi u]\n  exact congrArg (fun A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ => A (ι u)) hLift.eq\n\nend\nend AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute\n\n#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation",
+      "callbackCalled": true,
+      "copiedExactly": true,
+      "status": "Copied"
+    }
+  ],
+  "downloads": [
+    {
+      "href": "../../../downloads/lean/AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareCommute.lean",
+      "status": 200,
+      "bytes": 3004,
+      "text": "import AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator\nimport Mathlib.Analysis.InnerProductSpace.StarOrder\nimport Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Commute\nimport Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.Basic\n\nopen MeasureTheory\nopen scoped ENNReal\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute\nnoncomputable section\nset_option autoImplicit false\nset_option maxHeartbeats 1000000\n\ntheorem positive_square_commutation\n    {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)\n    (G D : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ)\n    (hG : G.IsPositive) (hD : D.IsPositive)\n    (hCommute : Commute (G*G) D) : Commute G D\n := by\n  letI := IsStarNormal.instNonUnitalContinuousFunctionalCalculus\n    (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  letI : NonUnitalContinuousFunctionalCalculus ℂ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsStarNormal :=\n    NonUnitalClosedEmbeddingContinuousFunctionalCalculus.toNonUnitalContinuousFunctionalCalculus\n  letI : NonUnitalContinuousFunctionalCalculus ℝ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsSelfAdjoint :=\n    IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus\n      (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  let ι : Lp ℝ 2 μ →L[ℝ] Lp ℂ 2 μ := Complex.ofRealCLM.compLpL 2 μ\n  let R : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.reCLM.compLpL 2 μ\n  let Q : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.imCLM.compLpL 2 μ\n  obtain ⟨hNorm,_,Gc,hGc,hGf,hGi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ G hG\n  obtain ⟨_,_,Dc,hDc,hDf,hDi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ D hD\n  have hReal (u : Lp ℝ 2 μ) : G (G (D u)) = D (G (G u)) :=\n    congrArg (fun A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ => A u) hCommute.eq\n  have hComplex : Commute (Gc*Gc) Dc := by\n    apply ContinuousLinearMap.ext\n    intro g\n    change Gc (Gc (Dc g)) = Dc (Gc (Gc g))\n    calc\n      Gc (Gc (Dc g)) = ι (G (G (D (R g)))) + Complex.I • ι (G (G (D (Q g)))) := by\n        rw [hDf g, map_add, map_smul, hGi, hGi, map_add, map_smul, hGi, hGi]\n      _ = ι (D (G (G (R g)))) + Complex.I • ι (D (G (G (Q g)))) := by\n        rw [hReal (R g),hReal (Q g)]\n      _ = Dc (Gc (Gc g)) := by\n        rw [hGf g,map_add,map_smul,hGi,hGi,map_add,map_smul,hDi,hDi]\n  have hGcNonneg : 0 ≤ Gc := (ContinuousLinearMap.nonneg_iff_isPositive Gc).mpr hGc\n  have hRoot : CFC.sqrt (Gc*Gc)=Gc := CFC.sqrt_unique rfl hGcNonneg\n  have hLift : Commute Gc Dc := by\n    have h := hComplex.cfcₙ_nnreal NNReal.sqrt\n    change Commute (CFC.sqrt (Gc*Gc)) Dc at h\n    rwa [hRoot] at h\n  let e : Lp ℝ 2 μ →ₗᵢ[ℝ] Lp ℂ 2 μ :=\n    { toLinearMap := ι.toLinearMap, norm_map' := hNorm }\n  apply ContinuousLinearMap.ext\n  intro u\n  apply e.injective\n  change ι (G (D u))=ι (D (G u))\n  rw [← hGi (D u), ← hDi u, ← hDi (G u), ← hGi u]\n  exact congrArg (fun A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ => A (ι u)) hLift.eq\n\nend\nend AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute\n\n#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation\n"
+    },
+    {
+      "href": "../../../downloads/lean/AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareCommute.lean",
+      "status": 200,
+      "bytes": 3004,
+      "text": "import AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator\nimport Mathlib.Analysis.InnerProductSpace.StarOrder\nimport Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Commute\nimport Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.Basic\n\nopen MeasureTheory\nopen scoped ENNReal\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute\nnoncomputable section\nset_option autoImplicit false\nset_option maxHeartbeats 1000000\n\ntheorem positive_square_commutation\n    {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)\n    (G D : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ)\n    (hG : G.IsPositive) (hD : D.IsPositive)\n    (hCommute : Commute (G*G) D) : Commute G D\n := by\n  letI := IsStarNormal.instNonUnitalContinuousFunctionalCalculus\n    (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  letI : NonUnitalContinuousFunctionalCalculus ℂ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsStarNormal :=\n    NonUnitalClosedEmbeddingContinuousFunctionalCalculus.toNonUnitalContinuousFunctionalCalculus\n  letI : NonUnitalContinuousFunctionalCalculus ℝ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsSelfAdjoint :=\n    IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus\n      (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  let ι : Lp ℝ 2 μ →L[ℝ] Lp ℂ 2 μ := Complex.ofRealCLM.compLpL 2 μ\n  let R : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.reCLM.compLpL 2 μ\n  let Q : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.imCLM.compLpL 2 μ\n  obtain ⟨hNorm,_,Gc,hGc,hGf,hGi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ G hG\n  obtain ⟨_,_,Dc,hDc,hDf,hDi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ D hD\n  have hReal (u : Lp ℝ 2 μ) : G (G (D u)) = D (G (G u)) :=\n    congrArg (fun A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ => A u) hCommute.eq\n  have hComplex : Commute (Gc*Gc) Dc := by\n    apply ContinuousLinearMap.ext\n    intro g\n    change Gc (Gc (Dc g)) = Dc (Gc (Gc g))\n    calc\n      Gc (Gc (Dc g)) = ι (G (G (D (R g)))) + Complex.I • ι (G (G (D (Q g)))) := by\n        rw [hDf g, map_add, map_smul, hGi, hGi, map_add, map_smul, hGi, hGi]\n      _ = ι (D (G (G (R g)))) + Complex.I • ι (D (G (G (Q g)))) := by\n        rw [hReal (R g),hReal (Q g)]\n      _ = Dc (Gc (Gc g)) := by\n        rw [hGf g,map_add,map_smul,hGi,hGi,map_add,map_smul,hDi,hDi]\n  have hGcNonneg : 0 ≤ Gc := (ContinuousLinearMap.nonneg_iff_isPositive Gc).mpr hGc\n  have hRoot : CFC.sqrt (Gc*Gc)=Gc := CFC.sqrt_unique rfl hGcNonneg\n  have hLift : Commute Gc Dc := by\n    have h := hComplex.cfcₙ_nnreal NNReal.sqrt\n    change Commute (CFC.sqrt (Gc*Gc)) Dc at h\n    rwa [hRoot] at h\n  let e : Lp ℝ 2 μ →ₗᵢ[ℝ] Lp ℂ 2 μ :=\n    { toLinearMap := ι.toLinearMap, norm_map' := hNorm }\n  apply ContinuousLinearMap.ext\n  intro u\n  apply e.injective\n  change ι (G (D u))=ι (D (G u))\n  rw [← hGi (D u), ← hDi u, ← hDi (G u), ← hGi u]\n  exact congrArg (fun A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ => A (ι u)) hLift.eq\n\nend\nend AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute\n\n#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation\n"
+    }
+  ],
+  "steps": [
+    {
+      "lean": "  letI := IsStarNormal.instNonUnitalContinuousFunctionalCalculus\n    (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  letI : NonUnitalContinuousFunctionalCalculus ℂ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsStarNormal :=\n    NonUnitalClosedEmbeddingContinuousFunctionalCalculus.toNonUnitalContinuousFunctionalCalculus\n  letI : NonUnitalContinuousFunctionalCalculus ℝ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsSelfAdjoint :=\n    IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus\n      (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  let ι : Lp ℝ 2 μ →L[ℝ] Lp ℂ 2 μ := Complex.ofRealCLM.compLpL 2 μ\n  let R : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.reCLM.compLpL 2 μ\n  let Q : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.imCLM.compLpL 2 μ\n  obtain ⟨hNorm,_,Gc,hGc,hGf,hGi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ G hG\n  obtain ⟨_,_,Dc,hDc,hDf,hDi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ D hD\n",
+      "initiallyFolded": true
+    },
+    {
+      "lean": "  have hReal (u : Lp ℝ 2 μ) : G (G (D u)) = D (G (G u)) :=\n    congrArg (fun A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ => A u) hCommute.eq\n  have hComplex : Commute (Gc*Gc) Dc := by\n    apply ContinuousLinearMap.ext\n    intro g\n    change Gc (Gc (Dc g)) = Dc (Gc (Gc g))\n    calc\n      Gc (Gc (Dc g)) = ι (G (G (D (R g)))) + Complex.I • ι (G (G (D (Q g)))) := by\n        rw [hDf g, map_add, map_smul, hGi, hGi, map_add, map_smul, hGi, hGi]\n      _ = ι (D (G (G (R g)))) + Complex.I • ι (D (G (G (Q g)))) := by\n        rw [hReal (R g),hReal (Q g)]\n      _ = Dc (Gc (Gc g)) := by\n        rw [hGf g,map_add,map_smul,hGi,hGi,map_add,map_smul,hDi,hDi]\n",
+      "initiallyFolded": true
+    },
+    {
+      "lean": "  have hGcNonneg : 0 ≤ Gc := (ContinuousLinearMap.nonneg_iff_isPositive Gc).mpr hGc\n  have hRoot : CFC.sqrt (Gc*Gc)=Gc := CFC.sqrt_unique rfl hGcNonneg\n  have hLift : Commute Gc Dc := by\n    have h := hComplex.cfcₙ_nnreal NNReal.sqrt\n    change Commute (CFC.sqrt (Gc*Gc)) Dc at h\n    rwa [hRoot] at h\n",
+      "initiallyFolded": true
+    },
+    {
+      "lean": "  let e : Lp ℝ 2 μ →ₗᵢ[ℝ] Lp ℂ 2 μ :=\n    { toLinearMap := ι.toLinearMap, norm_map' := hNorm }\n  apply ContinuousLinearMap.ext\n  intro u\n  apply e.injective\n  change ι (G (D u))=ι (D (G u))\n  rw [← hGi (D u), ← hDi u, ← hDi (G u), ← hGi u]\n  exact congrArg (fun A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ => A (ι u)) hLift.eq\n",
+      "initiallyFolded": true
+    }
+  ],
+  "url": "http://127.0.0.1:50165/example-cases/samplewiki/companions/proximal-bouncy-particle.html",
+  "scrollY": 401685,
+  "bodyHeight": 426151,
+  "targetRect": {
+    "x": 328.5,
+    "y": -0.375,
+    "width": 1036,
+    "height": 3764.25,
+    "top": -0.375,
+    "right": 1364.5,
+    "bottom": 3763.875,
+    "left": 328.5
+  },
+  "targetText": "Positive square commutation on arbitrary real L²Fan Chen,Sinho Chewi,Jianfeng Lu and Matthew S. Zhang supply Appendix D.1 spectral-calculus background. This ASTIS auxiliary real-L2 corollary uses pinned Mathlib CFC and local complexification;it is not a separately printed theorem.arXiv:2609.06905v1;Lean4.33.0/fixedMathlib · PBPS2609.06905v1 Appendix D.1 spectral calculus background;ASTIS positive real-L2 square commutation corollary for B23/B21. · faithful paraphraseComplete source statement (Samplinglib restatement)For every measurable space Ω and every measure μ,let G,D be bounded real linear operators on real L²(μ). Assume G,D positive:selfadjoint with nonnegative quadratic form. If G²D=DG²,then GD=DG. No probability,finite measure,finite-dimensional L²,nontriviality or caller CFC insta",
+  "bodyVisibility": "visible",
+  "bodyDisplay": "block",
+  "closedLeanDetails": 9,
+  "mathContainers": 6
+}

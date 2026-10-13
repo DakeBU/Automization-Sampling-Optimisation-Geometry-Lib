@@ -1,0 +1,96 @@
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.SimultaneousFDivergence
+import Mathlib.Analysis.Calculus.ParametricIntegral
+import Mathlib.Tactic
+
+/-!
+# Dominated differentiation for simultaneous f-divergence integrands
+
+Chewi Theorem 8.3.1 first differentiates the pointwise quantity
+
+`q_t(x) * f(p_t(x) / q_t(x))`
+
+and then integrates in space.  `SimultaneousFDivergence` already proves the
+pointwise weighted-quotient chain rule.  This module performs only the next
+analytic step: under explicit local domination and measurability hypotheses,
+Mathlib's dominated parametric-integral theorem transports that pointwise
+identity through a fixed spatial integral.
+
+No Fokker--Planck equation, integration by parts, carré du champ, heat-flow
+normalization, or source-facing dissipation theorem is asserted here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace InformationTheory
+namespace SimultaneousFDivergenceIntegral
+
+open MeasureTheory Filter Set Topology
+
+/-- The pointwise time-derivative expression supplied by the simultaneous
+weighted-quotient chain rule. -/
+noncomputable def derivativeIntegrand
+    {α : Type*}
+    (p q pDot qDot : ℝ → α → ℝ) (f fPrime : ℝ → ℝ)
+    (s : ℝ) (x : α) : ℝ :=
+  let rho := p s x / q s x
+  fPrime rho * pDot s x + (f rho - rho * fPrime rho) * qDot s x
+
+/-- Dominated differentiation of a simultaneous `f`-divergence density with
+respect to a fixed base measure.
+
+All analytic regularity needed by Mathlib's parametric-integral theorem is kept
+explicit.  The only derived input is the pointwise derivative itself, obtained
+from `SimultaneousFDivergence.hasDerivAt_weighted_f_divergence_integrand`.
+-/
+theorem hasDerivAt_integral_weighted_f_divergence_of_dominated
+    {α : Type*} [MeasurableSpace α]
+    {μ : Measure α}
+    {p q pDot qDot : ℝ → α → ℝ}
+    {f fPrime : ℝ → ℝ} {s0 : ℝ}
+    {neighborhood : Set ℝ} {bound : α → ℝ}
+    (hf : ∀ r : ℝ, HasDerivAt f (fPrime r) r)
+    (hneighborhood : neighborhood ∈ 𝓝 s0)
+    (hFMeas :
+      ∀ᶠ s in 𝓝 s0,
+        AEStronglyMeasurable
+          (fun x => q s x * f (p s x / q s x)) μ)
+    (hFInt : Integrable (fun x => q s0 x * f (p s0 x / q s0 x)) μ)
+    (hDerivMeas :
+      AEStronglyMeasurable
+        (derivativeIntegrand p q pDot qDot f fPrime s0) μ)
+    (hDerivBound :
+      ∀ᵐ x ∂μ, ∀ s ∈ neighborhood,
+        ‖derivativeIntegrand p q pDot qDot f fPrime s x‖ ≤ bound x)
+    (hBoundInt : Integrable bound μ)
+    (hpDeriv :
+      ∀ᵐ x ∂μ, ∀ s ∈ neighborhood,
+        HasDerivAt (fun t => p t x) (pDot s x) s)
+    (hqDeriv :
+      ∀ᵐ x ∂μ, ∀ s ∈ neighborhood,
+        HasDerivAt (fun t => q t x) (qDot s x) s)
+    (hqNe : ∀ᵐ x ∂μ, ∀ s ∈ neighborhood, q s x ≠ 0) :
+    HasDerivAt
+      (fun s => ∫ x, q s x * f (p s x / q s x) ∂μ)
+      (∫ x, derivativeIntegrand p q pDot qDot f fPrime s0 x ∂μ) s0 := by
+  have hPathDeriv :
+      ∀ᵐ x ∂μ, ∀ s ∈ neighborhood,
+        HasDerivAt
+          (fun t => q t x * f (p t x / q t x))
+          (derivativeIntegrand p q pDot qDot f fPrime s x) s := by
+    filter_upwards [hpDeriv, hqDeriv, hqNe] with x hpx hqx hqnx
+    intro s hs
+    exact
+      SimultaneousFDivergence.hasDerivAt_weighted_f_divergence_integrand
+        (hqnx s hs) (hpx s hs) (hqx s hs) (hf (p s x / q s x))
+  exact
+    (hasDerivAt_integral_of_dominated_loc_of_deriv_le
+      (F := fun s x => q s x * f (p s x / q s x))
+      (F' := derivativeIntegrand p q pDot qDot f fPrime)
+      (x₀ := s0) (s := neighborhood) (bound := bound) (μ := μ)
+      hneighborhood hFMeas hFInt hDerivMeas hDerivBound hBoundInt
+      hPathDeriv).2
+
+end SimultaneousFDivergenceIntegral
+end InformationTheory
+end TechnicalLemmas
+end AutoSamplingTheory

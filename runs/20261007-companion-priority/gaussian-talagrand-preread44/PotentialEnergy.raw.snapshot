@@ -1,0 +1,37 @@
+This is the easy, reusable half of the KL geodesic-convexity proof in Chewi
+Theorem 1.4.5.  Strong convexity of the potential is first applied pointwise to
+one affine displacement segment and then integrated against the endpoint
+coupling.
+
+The entropy/Jacobian half of KL displacement convexity is deliberately not in
+this file.  Integrability of the two sides is also kept explicit rather than
+being hidden by Mathlib's totalized Bochner integral.
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementPotentialEnergy
+
+open MeasureTheory Set
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+theorem integral_potential_displacementInterpolation_le
+    {V : E → ℝ} {alpha t : ℝ} (gamma : Measure (E × E))
+    (hVstrong : StrongConvexOn (Set.univ : Set E) alpha V)
+    (hVmeas : StronglyMeasurable V)
+    (ht : t ∈ Icc (0 : ℝ) 1)
+    (hleft : Integrable (fun z => V (pointMap (E := E) t z)) gamma)
+    (hright : Integrable
+      (fun z =>
+        (1 - t) * V z.1 + t * V z.2 -
+          (alpha * t * (1 - t) / 2) * ‖z.1 - z.2‖ ^ 2) gamma) :
+    (∫ x, V x ∂displacementInterpolation gamma t) ≤
+      ∫ z,
+        ((1 - t) * V z.1 + t * V z.2 -
+          (alpha * t * (1 - t) / 2) * ‖z.1 - z.2‖ ^ 2) ∂gamma := by
+  rw [integral_displacementInterpolation_eq_integral_pointMap gamma t hVmeas]
+  exact integral_potential_pointMap_le gamma hVstrong ht hleft hright
+
+end

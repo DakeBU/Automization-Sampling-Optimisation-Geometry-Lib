@@ -80,6 +80,13 @@ def disclosure(name: str, *, role: str, explanation: str,
     signature, body = split_statement(exact_source)
     code = signature if role == 'statement' else exact_source
     label = 'Lean statement' if role == 'statement' else 'Lean proof / instance' if declaration.kind == 'instance' else 'Lean proof' if declaration.kind in {'theorem', 'lemma'} else 'Lean construction'
+    literal_statement = (declaration.kind == 'def'
+                         and declaration.short_name.endswith('_statement')
+                         and re.search(r':\s*Prop\s*$', base.sanitize_lean(signature)) is not None)
+    if role == 'proof' and literal_statement:
+        label = 'Full Lean proposition (definition)'
+        explanation = ('This literal definition stores the complete proposition asserted above. '
+                       'It supplies no mathematical proof or additional hypothesis; the theorem proof must establish its value.')
     if role == 'statement' and not body and declaration.kind in {'theorem', 'lemma'}:
         label = 'Complete Lean declaration (unsplit)'
     href, _ = base.source_href(declaration, from_path=page)
@@ -87,7 +94,7 @@ def disclosure(name: str, *, role: str, explanation: str,
         n, role='proof', explanation='Supporting proof called by the result above.',
         page=page, trim_following_docstring=trim_following_docstring) for n in helpers)
     return (
-        f'<details class="inline-lean inline-lean-{role}" data-inline-lean="{base.esc(name)}">'
+        f'<details class="inline-lean inline-lean-{role}" data-inline-lean="{base.esc(name)}" data-lean-code-panel>'
         f'<summary>{label} · {base.esc(declaration.short_name)}</summary>'
         f'<p>{base.esc(explanation)}</p>'
         '<p>Braces mark parameters Lean can infer; square brackets request structures '
@@ -95,6 +102,8 @@ def disclosure(name: str, *, role: str, explanation: str,
         'mathematical premises, not facts established by this declaration. '
         'Section parameters are described in the mathematical hypotheses above; '
         'the module link retains their exact source context.</p>'
+        + base.lean_source_actions(declaration.source_file, page=page,
+                                   copy_label='Copy statement' if role == 'statement' else 'Copy declaration')
         + base.code_html(code)
         + f'<p><a href="{base.esc(href)}">Exact module and namespace context</a></p>'
         + helper_html + '</details>'

@@ -1,0 +1,91 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.OperatorGeneratorDomain
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.Reversibility
+import Mathlib.Analysis.InnerProductSpace.Continuous
+
+/-!
+# Symmetry of the generator of a reversible semigroup
+
+Chewi's reversibility condition is stated at the semigroup level:
+
+`<P_t f, g> = <f, P_t g>`.
+
+On the right-generator domain, taking the `t -> 0+` difference quotient should
+therefore give
+
+`<L f, g> = <f, L g>`.
+
+This file makes that topology edge explicit.  It is independent of any
+particular measure representation or Langevin differential expression, so it
+can later be instantiated with `H = L²(pi)` to discharge the symmetry field in
+the canonical Dirichlet/Fisher domain.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ReversibleGenerator
+
+open Filter Set
+open scoped NNReal Topology
+
+noncomputable section
+
+open OperatorGenerator OperatorGeneratorDomain Reversibility
+
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]
+
+/-- Reversibility already makes every finite positive-time generator difference
+quotient symmetric. -/
+theorem inner_rightDifferenceQuotient_eq
+    (S : ContinuousLinearSemigroup H)
+    (hrev : IsReversible S)
+    (h : ℝ≥0) (f g : H) :
+    inner ℝ (rightDifferenceQuotient S h f) g =
+      inner ℝ f (rightDifferenceQuotient S h g) := by
+  simp only [rightDifferenceQuotient, inner_smul_real_left,
+    inner_smul_real_right, inner_sub_left, inner_sub_right]
+  rw [hrev h f g]
+
+/-- The canonical right generator of a reversible semigroup is symmetric on
+its generator domain.
+
+No closedness, self-adjointness, or concrete `L²(pi)` realization is claimed;
+this is exactly the pairwise identity inherited by taking the generator limit
+of the reversible semigroup identity. -/
+theorem inner_rightGenerator_eq
+    (S : ContinuousLinearSemigroup H)
+    (hrev : IsReversible S)
+    (f g : generatorDomainSubmodule S) :
+    inner ℝ (rightGenerator S f) (g : H) =
+      inner ℝ (f : H) (rightGenerator S g) := by
+  let l : Filter ℝ≥0 := nhdsWithin 0 (Ioi 0)
+  have hf :
+      Tendsto
+        (fun h : ℝ≥0 =>
+          inner ℝ (rightDifferenceQuotient S h (f : H)) (g : H))
+        l
+        (𝓝 (inner ℝ (rightGenerator S f) (g : H))) := by
+    exact (rightGeneratorValue_spec S f).inner tendsto_const_nhds
+  have hg :
+      Tendsto
+        (fun h : ℝ≥0 =>
+          inner ℝ (f : H) (rightDifferenceQuotient S h (g : H)))
+        l
+        (𝓝 (inner ℝ (f : H) (rightGenerator S g))) := by
+    exact tendsto_const_nhds.inner (rightGeneratorValue_spec S g)
+  have hfun :
+      (fun h : ℝ≥0 =>
+        inner ℝ (rightDifferenceQuotient S h (f : H)) (g : H)) =
+      fun h : ℝ≥0 =>
+        inner ℝ (f : H) (rightDifferenceQuotient S h (g : H)) := by
+    funext h
+    exact inner_rightDifferenceQuotient_eq S hrev h (f : H) (g : H)
+  rw [hfun] at hf
+  exact tendsto_nhds_unique hf hg
+
+end
+
+end ReversibleGenerator
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

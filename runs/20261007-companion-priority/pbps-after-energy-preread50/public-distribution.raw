@@ -1,0 +1,13 @@
+theorem closed_gradient_distributional (W : E → ℝ) (hW : ContDiff ℝ 1 W)
+    (hI : Integrable (fun x => Real.exp (-W x))) :
+    let μ := (volume : Measure E).tilted (fun x => -W x)
+    ∀ (D : Lp ℝ 2 μ →ₗ.[ℝ] Lp E 2 μ), D.IsClosable →
+      (∀ (u : Lp ℝ 2 μ) (G : Lp E 2 μ), (u,G) ∈ D.graph ↔
+        ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧
+          u =ᵐ[μ] f ∧ G =ᵐ[μ] gradient f) →
+      ∀ (u : Lp ℝ 2 μ) (G : Lp E 2 μ), (u,G) ∈ D.closure.graph →
+        LocallyIntegrable (fun x => u x) ∧ LocallyIntegrable (fun x => G x) ∧
+        ∀ (ψ : E → ℝ), ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,
+          Integrable (fun x => ψ x * inner ℝ (G x) v) ∧
+          Integrable (fun x => u x * fderiv ℝ ψ x v) ∧
+          (∫ x, ψ x * inner ℝ (G x) v) = - ∫ x, u x * fderiv ℝ ψ x v 

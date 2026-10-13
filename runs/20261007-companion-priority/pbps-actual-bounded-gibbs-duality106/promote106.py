@@ -1,0 +1,10 @@
+from pathlib import Path
+import json,hashlib,subprocess,os
+r=Path('runs/20261007-companion-priority/pbps-actual-bounded-gibbs-duality106');a=(r/'Assembly106.lean').read_text()
+a=a.replace('/- Prospective type-only statement. No proof, seal or claim yet. -/','/- Actual bounded signed Gibbs duality and fixed-time phase invariance,\nunder the original PBPS analytic assumptions. ASTIS completion of Appendix A.1. -/')
+a=a.replace('PBPSBoundedGibbsDualityCandidate106','AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality').replace('def candidate\n','private def actual_bounded_gibbs_duality_statement\n').replace('theorem candidate_proof','/-- One actual global PBPS process preserves the Gibbs phase law at each fixed time and satisfies bounded signed momentum-flipped duality. -/\ntheorem actual_bounded_gibbs_duality').replace(': candidate hα',': actual_bounded_gibbs_duality_statement hα').replace('unfold candidate','unfold actual_bounded_gibbs_duality_statement').replace('#print axioms candidate_proof','#print axioms actual_bounded_gibbs_duality')
+p=Path('AutoSamplingTheory/ExampleCases/ProximalBPS/ActualBoundedGibbsDuality.lean');assert not p.exists();p.write_text(a,encoding='utf8',newline='\n')
+out=r/'focused106/production1';out.mkdir();(out/'input.exactraw.lean').write_bytes(p.read_bytes())
+env=os.environ.copy();env['PATH']=str(Path.cwd()/'.astis/toolchain/lean-4.33.0-windows/bin')+os.pathsep+env['PATH'];env.pop('ELAN_TOOLCHAIN',None);env['PYTHONUTF8']='1';env['LEAN_NUM_THREADS']='2'
+q=subprocess.run([str(Path.cwd()/'.astis/toolchain/lean-4.33.0-windows/bin/lake.exe'),'build','AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality'],env=env,capture_output=True)
+(out/'stdout.log').write_bytes(q.stdout);(out/'stderr.log').write_bytes(q.stderr);(out/'receipt.json').write_text(json.dumps({'exit_code':q.returncode,'terminal_closed':True,'module':p.as_posix(),'module_raw_sha256':hashlib.sha256(p.read_bytes()).hexdigest()},indent=2)+'\n');print(q.stdout.decode(errors='replace')[-1600:]);print('exit',q.returncode,'RAW',hashlib.sha256(p.read_bytes()).hexdigest())

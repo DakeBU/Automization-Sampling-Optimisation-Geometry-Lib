@@ -1,0 +1,49 @@
+{
+  "status": "SEALED_BEFORE_PROOF_AFTER_INDEPENDENT_HEADER_MATH_SOURCE_AND_TOPOLOGY_REVIEW",
+  "sealed_utc": "2026-10-10T14:21:33.360566+00:00",
+  "statement_version": 1,
+  "header": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/header82.proposed.lean",
+    "RAW_bytes": 5689,
+    "RAW_sha256": "0333cf3e488effe1fa6f516553bb1e63a3bb650bfe09aca234ed20375cf85e64"
+  },
+  "expanded_literal_Prop": "actual_small_time_stochastic_continuity_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀)\n ∧\n      (∀ y xRef : E, ∀ z₀ : E × E,\n        (∀ t : ℝ≥0,\n          MeasurableSet {sample : ℕ → ℝ |\n            Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ∧\n          P.real {sample : ℕ → ℝ |\n            Z y xRef z₀ t sample ≠ Φ y xRef (t : ℝ) z₀} ≤\n              1 - Real.exp (-Λ y xRef z₀ t)) ∧\n        (∀ δ : ℝ, 0 < δ →\n          (∀ t : ℝ≥0, MeasurableSet {sample : ℕ → ℝ |\n            δ ≤ ‖Z y xRef z₀ t sample - z₀‖}) ∧\n          Tendsto (fun t : ℝ≥0 => P.real {sample : ℕ → ℝ |\n            δ ≤ ‖Z y xRef z₀ t sample - z₀‖}) (𝓝 0) (𝓝 0)))\n",
+  "public_theorem": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualSmallTimeContinuity.actual_small_time_stochastic_continuity",
+  "source_first_freeze": {
+    "path": "runs/20261007-companion-priority/pbps-process-regularity-preread82/source_freeze82.raw-manifest.json",
+    "RAW_bytes": 2070,
+    "RAW_sha256": "45253a0383bebeffe048730edfd738b4578f281d1a6b764e95abb2388253d3c1"
+  },
+  "source_graph": {
+    "path": "runs/20261007-companion-priority/pbps-process-regularity-preread82/source_proof_graph82.json",
+    "RAW_bytes": 10945,
+    "RAW_sha256": "583c3b39241af71dbc5222b466d0a9db6c866272f17aa3623a97e2aa9ff2c1d3"
+  },
+  "source_inventory": {
+    "path": "runs/20261007-companion-priority/pbps-process-regularity-preread82/source_inventory82.json",
+    "RAW_bytes": 15904,
+    "RAW_sha256": "3183e709903404df3f9980a21ccd1d29855947adfa6e9cdeb995dc859e095d14"
+  },
+  "reviewed_title_overlay": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/independent-review-adoption82.json",
+    "RAW_bytes": 2510,
+    "RAW_sha256": "8b5cff18cfc0d724c961eeda86ce66acfc3e495c429a8842a7cc594af2ef2415"
+  },
+  "reuse_search": {
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-small-time-continuity82/retrieval82/reuse-decision82.json",
+    "RAW_bytes": 7353,
+    "RAW_sha256": "2c37c8ea38edb1c9ac54deca6cec112c0f25bcf0823c8d78d4786fd2551c1505"
+  },
+  "toolchain": {
+    "path": "lean-toolchain",
+    "RAW_bytes": 26,
+    "RAW_sha256": "b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477"
+  },
+  "lake_manifest": {
+    "path": "lake-manifest.json",
+    "RAW_bytes": 3234,
+    "RAW_sha256": "b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2"
+  },
+  "truth_boundary": "Actual phase-flow defect bound and zero-time stochastic continuity for fixed V/alpha/beta/eta,y,xRef,z0 under actual exponential product, retaining all physical-phase realization clauses. No uniform parameter nullset/limit or arbitrary correlated substitution. Full L2 strong continuity/Markov/restart/semigroup/invariance/hypocoercivity/implementation/main/cost/composition and actual reader visual/main/PURIFIED/live remain OPEN.",
+  "proof_BODY_created": false
+}

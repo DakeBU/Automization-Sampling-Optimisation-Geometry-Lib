@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-da003d3cca935a86",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x a : E,\n      (α : ℝ) * ‖a‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x a) a ∧\n      (fderiv ℝ (fderiv ℝ V) x a) a ≤ (β : ℝ) * ‖a‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1, p.1 + Real.sqrt η • p.2))\n      (μ.prod (stdGaussian E))\n    let ν := J.snd\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2 : ℝ) • x - y)) ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun u => -V ((1/2 : ℝ) • (y+u)) - ‖y-u‖^2/(8*η))) ∧\n      ∀ (f : E → ℝ), ContDiff ℝ ∞ f → HasCompactSupport f →\n        let Tf := fun y => ∫ u, f u ∂S y\n        Differentiable ℝ Tf ∧ MemLp f 2 ν ∧ MemLp Tf 2 ν ∧\n        MemLp (gradient Tf) 2 ν ∧\n        Integrable (fun y =>\n          AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n            (S y) f) ν ∧\n        (∫ y, AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n          (S y) f ∂ν) = (∫ y, (f y)^2 ∂ν) - (∫ y, (Tf y)^2 ∂ν) ∧\n        η * (∫ y, ‖gradient Tf y‖^2 ∂ν) ≤\n          (1-(α : ℝ)*η)^2/(4*(1+(α : ℝ)*η)) *\n            ((∫ y, (f y)^2 ∂ν) - (∫ y, (Tf y)^2 ∂ν))",
+    "statement_sha256": "da003d3cca935a86ef9849ff0855266ba6926a086f58f3947f889a81774b0c24",
+    "compiled": true,
+    "approved_definition_context": [
+      "E is a finite-dimensional real inner-product space with its norm and Borel measurable structure, including rank zero.",
+      "V is globally twice continuously real Frechet differentiable; the evaluated second derivative is its genuine Hessian. alpha,beta are nonnegative reals with 0<alpha<=beta and alpha norm(a)^2<=D2V(x)[a,a]<=beta norm(a)^2 for every x,a.",
+      "eta is positive and beta*eta<=1. volume is canonicalvolume; Measure.tilted uses the exponential of the specified function divided by its genuine Bochner normalizer. Probability of each actual law is an output.",
+      "stdGaussian E is the centered identity-covariance Gaussian. J is the literal pushforward of mu product Gaussian by (x,g)->(x,x+sqrt(eta)g). nu=J.snd is its actual second marginal.",
+      "Kernel E E is measurable; IsMarkovKernel says everyfiber is aprobability. IsCondKernel for swappedJ means its firstmarginalcompProdR equals swappedJ. One commonR/S is produced beforeall observations; every-yreflection and explicitnormalizedS density are outputs.",
+      "f is real-valued globallysmooth withcompactsupport. Tf(y) is the literal Bochnerintegral of f under S(y), not an arbitrary conditional representative.",
+      "Differentiable Tf is globaltrue Frechetdifferentiability. gradient is inverseRiesz applied to its genuine realFrechetderivative. MemLp g2nu means genuine AEstrongmeasurability and finiteL2 seminorm against actualnu.",
+      "Poincare.variance(S y)f is exactly the Bochnerintegral under S(y) of (f(u)-integral f dS(y))^2. The theorem outputs its integrability under nu and the exact outeridentity integralVar=integralf^2nu-integralTf^2nu.",
+      "The squared gradient energy is integrated against the sameactualnu, multipliedbyeta and bounded by exactly (1-alphaeta)^2/[4(1+alphaeta)] times that squared-normdefect. There is no supplied law/domain/energy/variance/bound certificate among public assumptions."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "96d052b5c7f12119f24e267d82057be8f4ae74267af875188c05ca53bea22fb5"
+}

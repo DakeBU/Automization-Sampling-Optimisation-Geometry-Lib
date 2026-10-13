@@ -1,0 +1,87 @@
+import Mathlib.MeasureTheory.Integral.Lebesgue.Basic
+import Mathlib.MeasureTheory.Measure.Comap
+import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+import Mathlib.Probability.Martingale.Basic
+import Mathlib.Probability.Process.Stopping
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure
+
+/-!
+# Localization for continuous-time stochastic processes
+
+This file records the localization definitions used in Chewi's stochastic-
+calculus primer. The definitions retain progressive measurability, stopping-
+time measurability, monotonicity, the almost-sure limiting condition, and the
+stopped-process martingale property.
+
+They do not construct the Ito integral or prove that canonical hitting times
+localize a given integrand; those are separate theorem obligations.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace Localization
+
+open Filter MeasureTheory Set
+open scoped ENNReal NNReal Topology
+
+noncomputable section
+
+abbrev nnrealLebesgue : Measure ℝ≥0 :=
+  TimeMeasure.nnrealLebesgue
+
+/-- The stopped real integrand used in the local square-integrability
+condition. -/
+def stoppedIntegrand
+    {Omega : Type*} (eta : ℝ≥0 → Omega → ℝ)
+    (tau : Omega → WithTop ℝ≥0) : ℝ≥0 → Omega → ℝ :=
+  fun t omega => if (t : WithTop ℝ≥0) ≤ tau omega then eta t omega else 0
+
+/-- Chewi Definition 1.1.12: an increasing stopping-time sequence which makes
+the stopped integrand square-integrable on `[0,T]` and converges almost surely
+to `T`.
+
+The iterated `lintegral` is the literal nonnegative form of
+`E[integral_0^T |eta_t 1_{t <= tau_n}|^2 dt] < infinity`; using `ENNReal`
+avoids totalizing a real integral before finiteness is known. -/
+def IsLocalizingSequence
+    {Omega : Type*} {m : MeasurableSpace Omega}
+    (eta : ℝ≥0 → Omega → ℝ) (filtration : Filtration ℝ≥0 m)
+    (mu : Measure Omega) (T : ℝ≥0)
+    (tau : ℕ → Omega → WithTop ℝ≥0) : Prop :=
+  IsStronglyProgressive filtration eta ∧
+    (∀ n, IsStoppingTime filtration (tau n)) ∧
+    Monotone tau ∧
+    (∀ n,
+      (∫⁻ omega, ∫⁻ t in Icc (0 : ℝ≥0) T,
+        ENNReal.ofReal ((stoppedIntegrand eta (tau n) t omega) ^ 2) ∂nnrealLebesgue ∂mu) < ∞) ∧
+    ∀ᵐ omega ∂mu, Tendsto (fun n => tau n omega) atTop (𝓝 (T : WithTop ℝ≥0))
+
+/-- Chewi Definition 1.1.15: an adapted process is a local martingale when a
+monotone sequence of stopping times tends to infinity almost surely and every
+stopped, initially centered process is a martingale.
+
+The limit is the *topological* neighborhood of `⊤` in `WithTop ℝ≥0`.  Using
+the order filter `atTop` as the codomain would be too strong here because
+`WithTop ℝ≥0` has a greatest element: that filter would force the stopping
+times to be eventually equal to `⊤`, rather than allowing finite stopping
+times to diverge to infinity as in Chewi's definition. -/
+def IsLocalMartingale
+    {Omega : Type*} {m : MeasurableSpace Omega}
+    (process : ℝ≥0 → Omega → ℝ) (filtration : Filtration ℝ≥0 m)
+    (mu : Measure Omega) : Prop :=
+  Adapted filtration process ∧
+    ∃ tau : ℕ → Omega → WithTop ℝ≥0,
+      (∀ n, IsStoppingTime filtration (tau n)) ∧
+      Monotone tau ∧
+      (∀ᵐ omega ∂mu, Tendsto (fun n => tau n omega) atTop (𝓝 (⊤ : WithTop ℝ≥0))) ∧
+      ∀ n, Martingale
+        (fun t omega => stoppedProcess process (tau n) t omega - process 0 omega)
+        filtration mu
+
+end
+
+end Localization
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

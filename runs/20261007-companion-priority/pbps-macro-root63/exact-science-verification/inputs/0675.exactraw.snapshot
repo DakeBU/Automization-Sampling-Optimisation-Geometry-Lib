@@ -1,0 +1,107 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GlobalWeightedResolventCoercivity
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreDomain
+
+set_option autoImplicit false
+open MeasureTheory ProbabilityTheory InnerProductSpace
+open scoped ContDiff NNReal RealInnerProductSpace Topology
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGlobalCoercivity
+
+/-- The true reflected conditional kernels and original gradient graphs have an
+actual positive-epsilon resolvent satisfying global quarter-scale coercivity.
+All original variational/local/ordinary weak and cutoff data are retained. -/
+theorem conditional_global_coercivity {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {V : E → ℝ} {α β : NNReal} {η : ℝ}
+    (hα : 0 < (α:ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)
+    (hH : ∀ x v : E, (α:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧
+      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β:ℝ)*‖v‖^2)
+    (hη : 0 < η) (hβη : (β:ℝ)*η ≤ 1) :
+    let μ := (volume : Measure E).tilted (fun x => -V x)
+    let J := Measure.map (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2)) (μ.prod (stdGaussian E))
+    let W := fun y u : E => V ((1/2:ℝ) • (y+u)) + ‖u-y‖^2/(8*η)
+    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧
+      (J.map Prod.swap).IsCondKernel R ∧
+      (∀ y, S y = (R y).map (fun x => (2:ℝ) • x-y)) ∧
+      ∀ y, S y = (volume : Measure E).tilted (fun u => -W y u) ∧
+        ContDiff ℝ 2 (W y) ∧ Integrable (fun u => Real.exp (-W y u)) ∧
+        0 < (∫ u, Real.exp (-W y u)) ∧
+        ∃ D : Lp ℝ 2 (S y) →ₗ.[ℝ] Lp E 2 (S y),
+          Dense (D.domain : Set (Lp ℝ 2 (S y))) ∧ D.IsClosable ∧ D.closure.IsClosed ∧
+          (∀ (u : Lp ℝ 2 (S y)) (v : Lp E 2 (S y)), (u,v) ∈ D.graph ↔
+            ∃ f : E → ℝ, ContDiff ℝ ∞ f ∧ HasCompactSupport f ∧
+              u =ᵐ[S y] f ∧ v =ᵐ[S y] gradient f) ∧
+      ∀ (ε : ℝ), 0 < ε → ∀ f : Lp ℝ 2 (S y),
+      ∃ u : D.closure.domain,
+        (∀ v : D.closure.domain,
+          ε * ⟪(u : Lp ℝ 2 (S y)), (v : Lp ℝ 2 (S y))⟫ +
+            ⟪D.closure u, D.closure v⟫ = ⟪f, (v : Lp ℝ 2 (S y))⟫) ∧
+        LocallyIntegrable (fun x => (u : Lp ℝ 2 (S y)) x) ∧
+        LocallyIntegrable (fun x => D.closure u x) ∧
+        (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ v : E,
+          Integrable (fun x => ψ x * inner ℝ (D.closure u x) v) ∧
+          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧
+          (∫ x, ψ x * inner ℝ (D.closure u x) v) =
+            - ∫ x, (u : Lp ℝ 2 (S y)) x * fderiv ℝ ψ x v) ∧
+        LocallyIntegrable (fun x => ‖ε * (u : Lp ℝ 2 (S y)) x +
+          inner ℝ (gradient (W y) x) (D.closure u x) - f x‖ ^ 2) ∧
+        (∀ K : Set E, IsCompact K →
+          MemLp (fun x => (u : Lp ℝ 2 (S y)) x) 2 (volume.restrict K) ∧
+          MemLp (fun x => D.closure u x) 2 (volume.restrict K) ∧
+          MemLp (fun x => ε * (u : Lp ℝ 2 (S y)) x +
+            inner ℝ (gradient (W y) x) (D.closure u x) - f x) 2 (volume.restrict K)) ∧
+        (∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+          Integrable (fun x => (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) ∧
+          Integrable (fun x => (ε * (u : Lp ℝ 2 (S y)) x +
+            inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧
+          (∫ x, (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian φ x) =
+            ∫ x, (ε * (u : Lp ℝ 2 (S y)) x +
+              inner ℝ (gradient (W y) x) (D.closure u x) - f x) * φ x) ∧
+        (((α:ℝ)+1/η)/4)*‖D.closure u‖^2 ≤
+          ‖f-ε • (u : Lp ℝ 2 (S y))‖^2 ∧
+        ‖f-ε • (u : Lp ℝ 2 (S y))‖^2 ≤ ‖f‖^2 ∧
+        ∀ χ : E → ℝ, ContDiff ℝ 2 χ → HasCompactSupport χ →
+    let v := fun x => χ x * (u : Lp ℝ 2 (S y)) x
+    let Gχ := fun x => χ x • D.closure u x + (u : Lp ℝ 2 (S y)) x • gradient χ x
+    let Fχ := fun x => χ x * (ε * (u : Lp ℝ 2 (S y)) x + inner ℝ (gradient (W y) x) (D.closure u x) - f x) + 2 * inner ℝ (gradient χ x) (D.closure u x) +
+      (u : Lp ℝ 2 (S y)) x * Laplacian.laplacian χ x
+    MemLp v 2 volume ∧ MemLp Gχ 2 volume ∧ MemLp Fχ 2 volume ∧
+    tsupport v ⊆ tsupport χ ∧ tsupport Gχ ⊆ tsupport χ ∧ tsupport Fχ ⊆ tsupport χ ∧
+    (∀ ψ : E → ℝ, ContDiff ℝ 1 ψ → HasCompactSupport ψ → ∀ a : E,
+      Integrable (fun x => ψ x * inner ℝ (Gχ x) a) ∧
+      Integrable (fun x => v x * fderiv ℝ ψ x a) ∧
+      (∫ x, ψ x * inner ℝ (Gχ x) a) = -∫ x, v x * fderiv ℝ ψ x a) ∧
+    ∀ φ : E → ℝ, ContDiff ℝ 2 φ → HasCompactSupport φ →
+      Integrable (fun x => v x * Laplacian.laplacian φ x) ∧
+      Integrable (fun x => Fχ x * φ x) ∧
+      (∫ x, v x * Laplacian.laplacian φ x) = ∫ x, Fχ x * φ x := by
+  obtain ⟨_R2,_S2,_hR2,_hS2,_hcond2,_hSR2,hcurv⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreDomain.conditional_curvature_and_score_domain
+      hα hαβ hV hH hη hβη
+  obtain ⟨R,S,hR,hS,hcond,hSR,hfiber⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalLocalizedResolvent.conditional_localized_resolvent
+      hα hαβ hV hH hη hβη
+  dsimp only
+  refine ⟨R,S,hR,hS,hcond,hSR,?_⟩
+  intro y
+  obtain ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,_⟩ := hfiber y
+  obtain ⟨_,_,_,hderiv,hlower,_,_⟩ := hcurv y
+  have hupper (x a : E) :
+      (fderiv ℝ (fderiv ℝ (fun z => V ((1/2:ℝ) • (y+z))+‖z-y‖^2/(8*η))) x a) a
+        ≤ (((β:ℝ)+1/η)/4)*‖a‖^2 := by
+    rw [(hderiv x a a).1,real_inner_self_eq_norm_sq]
+    have hv := (hH ((1/2:ℝ) • (y+x)) a).2
+    have hn : (((β:ℝ)+1/η)/4)*‖a‖^2 =
+        (1/4:ℝ)*((β:ℝ)*‖a‖^2)+(1/(4*η))*‖a‖^2 := by ring
+    rw [hn]
+    nlinarith
+  have hβ : (α:ℝ) ≤ (β:ℝ) := by exact_mod_cast hαβ
+  have hm : 0 < ((α:ℝ)+1/η)/4 := by positivity
+  have hmM : ((α:ℝ)+1/η)/4 ≤ ((β:ℝ)+1/η)/4 := by linarith
+  refine ⟨hSy,hW,hI,hZ,D,hDense,hClose,hClosed,hgraph,?_⟩
+  exact AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GlobalWeightedResolventCoercivity.global_weak_resolvent_coercivity
+    (fun z => V ((1/2:ℝ) • (y+z))+‖z-y‖^2/(8*η)) hW hI hZ
+    (((α:ℝ)+1/η)/4) (((β:ℝ)+1/η)/4) hm hmM hlower hupper (S y) hSy D hClose hgraph
+
+end AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalGlobalCoercivity

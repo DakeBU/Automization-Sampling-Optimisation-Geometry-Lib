@@ -1,0 +1,61 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcessAfterHorizon
+
+/-!
+# Global continuity of the finite-horizon Itô version
+
+The completed finite-horizon Itô process is continuous on `[0,T]` and is
+pathwise constant after `T`.  Hence the chosen version is in fact continuous on
+all nonnegative times.  This seemingly small strengthening is the bridge that
+lets Mathlib's continuous-path stopped-process measurability theorem apply in
+the final local-martingale gluing argument.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ItoIntegralProcessGlobalContinuity
+
+open MeasureTheory Set
+open scoped NNReal Topology
+
+open BrownianMotion ItoIntegralProcess ItoIntegralProcessAfterHorizon ProgressiveL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- The completed finite-horizon Itô process is globally continuous because it
+is constant after the construction horizon. -/
+theorem itoIntegralProcess_continuous [IsFiniteMeasure mu]
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (hT : 0 < T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu)
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (omega : Omega) :
+    Continuous (fun t => itoIntegralProcess eta hT hB hUsual t omega) := by
+  let f : ℝ≥0 → ℝ := fun t => itoIntegralProcess eta hT hB hUsual t omega
+  have hleft : ContinuousOn f (Iic T) := by
+    apply (itoIntegralProcess_continuousOn eta hT hB hUsual omega).mono
+    intro t ht
+    exact ⟨zero_le t, ht⟩
+  have hright : ContinuousOn f (Ici T) := by
+    have hconst : ContinuousOn (fun _ : ℝ≥0 => f T) (Ici T) :=
+      continuousOn_const
+    apply hconst.congr
+    intro t ht
+    symm
+    simpa only [f] using
+      itoIntegralProcess_eq_terminal_of_le eta hT hB hUsual ht
+  have hclosed : ContinuousOn f (Iic T ∪ Ici T) :=
+    hleft.union_of_isClosed hright isClosed_Iic isClosed_Ici
+  have huniv : Iic T ∪ Ici T = (Set.univ : Set ℝ≥0) := by
+    ext t
+    simp only [mem_union, mem_Iic, mem_Ici, mem_univ, iff_true]
+    exact le_total t T
+  rw [huniv, continuousOn_univ] at hclosed
+  exact hclosed
+
+end ItoIntegralProcessGlobalContinuity
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

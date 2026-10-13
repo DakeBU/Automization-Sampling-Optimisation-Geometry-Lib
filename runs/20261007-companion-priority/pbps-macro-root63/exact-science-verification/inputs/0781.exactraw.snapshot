@@ -1,0 +1,389 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentContraction
+import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
+import Mathlib.Analysis.Convex.Integral
+import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+import Mathlib.MeasureTheory.MeasurableSpace.Constructions
+import Mathlib.Tactic
+
+/-!
+# Actual gradient descent terminal reference construction
+
+Source consumer: Smoothed Picard Hamiltonian Monte Carlo, arXiv:2609.06906v1,
+section 6.3, Reference point construction and Terminal stage.
+
+The regularized potential is the actual U plus its quadratic, not a supplied
+model or gradient field. The algorithm uses step 1/(b+1/A), tests the actual
+regularized gradient at every visited point, and returns the first point below
+the terminal threshold. Adjacent-iterate contraction gives a sharper local
+bound than the source display with its extra condition-number prefactor; the
+algorithm is unchanged. No minimizer is assumed.
+
+The finite-dimensional inner-product formulation and nonnegative base Hessian
+modulus extend the source setting. A is finite and strictly positive, dimension
+is positive, and the public dimension equality is retained even though the
+underlying threshold argument does not use its numeric value.
+
+The specified gradient count N+1 includes the initial and final gradient checks:
+one U-gradient evaluation per visited point, reused to update the iterate; the
+quadratic-gradient contribution is algebraic. This is a mathematical count
+model, not a verified evaluator/compiler trace. Expected cost requires the
+explicit actual initial gradient-square L1 and moment bound. These inputs are
+not proved for the recursive sampler history here. Joint random A/u kernels,
+stage summation and the combined terminal sampling program remain separate;
+no cross-module cache saving or TV transport of unbounded cost is asserted.
+-/
+
+open MeasureTheory Set InnerProductSpace
+open scoped RealInnerProductSpace NNReal
+
+noncomputable section
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TerminalReferenceGradientDescent
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+
+private theorem gradient_decay {F : E → ℝ} {a b : ℝ}
+    (hF : ContDiff ℝ 1 F) (ha : 0 < a) (hb : 0 < b)
+    (hsc : StrongConvexOn univ a F)
+    (hu : ∀ x y, F y ≤ F x + inner ℝ (gradient F x) (y-x) + b/2*‖y-x‖^2)
+    (v : E) (n : ℕ) :
+    ‖gradient F ((fun x => x-b⁻¹ • gradient F x)^[n] v)‖^2 ≤
+      Real.exp (-(a/b)*(n:ℝ))*‖gradient F v‖^2 := by
+  let T : E → E := fun x => x-b⁻¹ • gradient F x
+  let r := Real.sqrt (1-a/b)
+  have hr : 0 ≤ r := Real.sqrt_nonneg _
+  have hdisp (x : E) : ‖T x-x‖ = b⁻¹*‖gradient F x‖ := by
+    have he : T x-x = -(b⁻¹ • gradient F x) := by dsimp [T]; abel
+    rw [he,norm_neg,norm_smul,Real.norm_eq_abs,abs_of_pos (inv_pos.mpr hb)]
+  have hstep (x : E) : ‖gradient F (T x)‖ ≤ r*‖gradient F x‖ := by
+    have hc := TechnicalLemmas.Analysis.GradientDescentContraction.gradient_step_contraction
+      hF hsc ha.le hb.le (inv_nonneg.mpr hb.le)
+      (by rw [mul_inv_cancel₀ hb.ne']) hu x (T x)
+    change ‖T (T x)-T x‖ ≤ Real.sqrt (1-a*b⁻¹)*‖T x-x‖ at hc
+    rw [hdisp,hdisp] at hc
+    have he : Real.sqrt (1-a*b⁻¹)=r := by simp [r,div_eq_mul_inv]
+    rw [he] at hc
+    nlinarith [inv_pos.mpr hb]
+  have hi : ‖gradient F (T^[n] v)‖ ≤ r^n*‖gradient F v‖ := by
+    induction n with
+    | zero => simp
+    | succ n ih =>
+      rw [Function.iterate_succ_apply']
+      calc
+        _ ≤ r*‖gradient F (T^[n] v)‖ := hstep _
+        _ ≤ r*(r^n*‖gradient F v‖) := mul_le_mul_of_nonneg_left ih hr
+        _ = r^(n+1)*‖gradient F v‖ := by rw [pow_succ]; ring
+  have hre : r ≤ Real.exp (-(a/b)/2) := by
+    apply (Real.sqrt_le_left (Real.exp_nonneg _)).mpr
+    have hx := Real.add_one_le_exp (-(a/b))
+    rw [pow_two,← Real.exp_add]
+    have he : -(a/b)/2 + -(a/b)/2 = -(a/b) := by ring
+    rw [he]
+    linarith
+  have hp := mul_le_mul_of_nonneg_right (pow_le_pow_left₀ hr hre n) (norm_nonneg (gradient F v))
+  rw [← Real.exp_nat_mul] at hp
+  have hn := hi.trans hp
+  have hs := pow_le_pow_left₀ (norm_nonneg _) hn 2
+  rw [mul_pow,← Real.exp_nat_mul] at hs
+  have he : (2:ℝ)*((n:ℝ)*(-(a/b)/2)) = -(a/b)*(n:ℝ) := by ring
+  norm_num only [Nat.cast_ofNat] at hs
+  rw [he] at hs
+  exact hs
+
+
+private theorem stopping_certificate {k s z : ℝ} (hk : 0 < k) (hs : 0 < s)
+    (hz : 0 ≤ z) :
+    Real.exp (-((Nat.ceil (k*Real.log (1+z/s)) : ℕ):ℝ)/k)*z ≤ s := by
+  have ht : 0 < 1+z/s := by positivity
+  have hn := Nat.le_ceil (k*Real.log (1+z/s))
+  have he : -((Nat.ceil (k*Real.log (1+z/s)) : ℕ):ℝ)/k ≤
+      -Real.log (1+z/s) := by
+    apply (div_le_iff₀ hk).mpr
+    nlinarith
+  have hb := mul_le_mul_of_nonneg_right (Real.exp_le_exp.mpr he) hz
+  rw [Real.exp_neg, Real.exp_log ht] at hb
+  apply hb.trans
+  rw [inv_mul_eq_div]
+  apply (div_le_iff₀ ht).mpr
+  have heq : s*(1+z/s)=s+z := by field_simp
+  rw [heq]
+  linarith
+
+
+private def firstIndex (T : E → E) (F : E → ℝ) (s : ℝ) (v : E) : ℕ := by
+  classical
+  exact if h : ∃ n : ℕ, ‖gradient F (T^[n] v)‖^2 ≤ s then Nat.find h else 0
+
+private theorem stopped_program [MeasurableSpace E] [BorelSpace E]
+    {F : E → ℝ} {a b s : ℝ}
+    (hF : ContDiff ℝ 1 F) (ha : 0 < a) (hb : 0 < b) (hs : 0 < s)
+    (hsc : StrongConvexOn univ a F)
+    (hu : ∀ x y, F y ≤ F x + inner ℝ (gradient F x) (y-x) + b/2*‖y-x‖^2) :
+    let T : E → E := fun x => x-b⁻¹ • gradient F x
+    let N := firstIndex T F s
+    Measurable N ∧ Measurable (fun v => T^[N v] v) ∧
+    ∀ v, ‖gradient F (T^[N v] v)‖^2 ≤ s ∧
+      (∀ j < N v, s < ‖gradient F (T^[j] v)‖^2) ∧
+      N v ≤ Nat.ceil ((b/a)*Real.log (1+‖gradient F v‖^2/s)) ∧
+      (N v : ℝ)+1 ≤ (b/a)*Real.log (1+‖gradient F v‖^2/s)+2 := by
+  classical
+  let T : E → E := fun x => x-b⁻¹ • gradient F x
+  let N := firstIndex T F s
+  let B (v : E) := Nat.ceil ((b/a)*Real.log (1+‖gradient F v‖^2/s))
+  have hcert (v : E) : ‖gradient F (T^[B v] v)‖^2 ≤ s := by
+    have hd := gradient_decay hF ha hb hsc hu v (B v)
+    have he : -(a/b)*(B v:ℝ) = -(B v:ℝ)/(b/a) := by field_simp
+    rw [he] at hd
+    exact hd.trans (stopping_certificate (div_pos hb ha) hs (sq_nonneg _))
+  have ht (v : E) : ∃ n : ℕ, ‖gradient F (T^[n] v)‖^2 ≤ s := ⟨B v,hcert v⟩
+  have hn (v : E) : N v = Nat.find (ht v) := by
+    simp only [N,firstIndex,dif_pos (ht v)]
+  have hg : Continuous (gradient F) :=
+    TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one hF
+  have hT : Continuous T := continuous_id.sub (hg.const_smul _)
+  have hp (n : ℕ) : MeasurableSet {v : E | ‖gradient F (T^[n] v)‖^2 ≤ s} :=
+    measurableSet_le ((hg.comp (hT.iterate n)).norm.pow 2).measurable measurable_const
+  have hnmeas : Measurable N := by
+    have he : N = fun v => Nat.find (ht v) := funext hn
+    rw [he]
+    exact measurable_find ht hp
+  have homeas : Measurable (fun v => T^[N v] v) := by
+    have he : (fun v => T^[N v] v) = (fun v => T^[Nat.find (ht v)] v) := by
+      funext v; rw [hn]
+    rw [he]
+    exact Measurable.find (fun n => (hT.iterate n).measurable) hp ht
+  refine ⟨hnmeas,homeas,fun v => ?_⟩
+  change ‖gradient F (T^[N v] v)‖^2 ≤ s ∧
+    (∀ j < N v, s < ‖gradient F (T^[j] v)‖^2) ∧
+    N v ≤ B v ∧ (N v:ℝ)+1 ≤ (b/a)*Real.log (1+‖gradient F v‖^2/s)+2
+  have hle : N v ≤ B v := by rw [hn]; exact Nat.find_min' (ht v) (hcert v)
+  refine ⟨?_,?_,hle,?_⟩
+  · rw [hn]; exact Nat.find_spec (ht v)
+  · intro j hj
+    rw [hn] at hj
+    exact lt_of_not_ge (Nat.find_min (ht v) hj)
+  · have hnon : 0 ≤ (b/a)*Real.log (1+‖gradient F v‖^2/s) :=
+      mul_nonneg (div_nonneg hb.le ha.le) (Real.log_nonneg (by nlinarith [div_nonneg (sq_nonneg ‖gradient F v‖) hs.le]))
+    have hc := Nat.ceil_lt_add_one hnon
+    have hcast : (N v:ℝ) ≤ (B v:ℝ) := by exact_mod_cast hle
+    dsimp [B] at hcast
+    linarith
+
+
+private theorem expected_count {X : Type*} [MeasurableSpace X]
+    (μ : Measure X) [IsProbabilityMeasure μ] (g : X → ℝ) (N : X → ℕ)
+    {k s M : ℝ} (hk : 0 < k) (hs : 0 < s)
+    (hgm : Measurable g) (hgi : Integrable g μ) (hg : ∀ x, 0 ≤ g x)
+    (hNm : Measurable N) (hM : (∫ x, g x ∂μ) ≤ M)
+    (hbound : ∀ x, (N x:ℝ)+1 ≤ k*Real.log (1+g x/s)+2) :
+    Integrable (fun x => (N x:ℝ)+1) μ ∧
+      (∫ x, (N x:ℝ)+1 ∂μ) ≤ 2+k*Real.log (1+M/s) := by
+  have hM0 : 0 ≤ M := (integral_nonneg hg).trans hM
+  have hden : 0 < 1+M/s := by positivity
+  have hsm : 0 < s+M := by positivity
+  have hpos (x : X) : 0 < 1+g x/s := by have := hg x; positivity
+  have hl0 (x : X) : 0 ≤ Real.log (1+g x/s) :=
+    Real.log_nonneg (by have := div_nonneg (hg x) hs.le; linarith)
+  have hlub (x : X) : Real.log (1+g x/s) ≤ g x/s := by
+    have := Real.log_le_sub_one_of_pos (hpos x)
+    linarith
+  have hlm : Measurable (fun x => Real.log (1+g x/s)) :=
+    (measurable_const.add (hgm.div_const s)).log
+  have hli : Integrable (fun x => Real.log (1+g x/s)) μ :=
+    (hgi.div_const s).mono' hlm.aestronglyMeasurable (Filter.Eventually.of_forall fun x => by
+      rw [Real.norm_eq_abs,abs_of_nonneg (hl0 x)]
+      exact hlub x)
+  have htangent (x : X) : Real.log (1+g x/s) ≤
+      Real.log (1+M/s)+(g x-M)/(s+M) := by
+    have ht := Real.log_le_sub_one_of_pos (div_pos (hpos x) hden)
+    rw [Real.log_div (hpos x).ne' hden.ne'] at ht
+    have he : (1+g x/s)/(1+M/s)-1=(g x-M)/(s+M) := by
+      field_simp; ring
+    rw [he] at ht
+    linarith
+  have hsubi : Integrable (fun x => g x-M) μ := hgi.sub (integrable_const M)
+  have hdivi : Integrable (fun x => (g x-M)/(s+M)) μ := hsubi.div_const _
+  have hri : Integrable (fun x => Real.log (1+M/s)+(g x-M)/(s+M)) μ :=
+    (integrable_const _).add hdivi
+  have hj := integral_mono hli hri htangent
+  rw [integral_add (integrable_const _) hdivi,
+    integral_div,integral_sub hgi (integrable_const M)] at hj
+  simp only [integral_const,probReal_univ,smul_eq_mul,one_mul] at hj
+  have hlog : (∫ x, Real.log (1+g x/s) ∂μ) ≤ Real.log (1+M/s) := by
+    have hn : ((∫ x,g x ∂μ)-M)/(s+M) ≤ 0 :=
+      div_nonpos_of_nonpos_of_nonneg (sub_nonpos.mpr hM) hsm.le
+    linarith
+  have hbi : Integrable (fun x => k*Real.log (1+g x/s)+2) μ :=
+    (hli.const_mul k).add (integrable_const 2)
+  have hNr : Measurable (fun x => (N x:ℝ)) := measurable_from_nat.comp hNm
+  have hci : Integrable (fun x => (N x:ℝ)+1) μ :=
+    hbi.mono' (hNr.add measurable_const).aestronglyMeasurable
+      (Filter.Eventually.of_forall fun x => by
+        rw [Real.norm_eq_abs,abs_of_nonneg (by positivity : 0 ≤ (N x:ℝ)+1)]
+        exact hbound x)
+  refine ⟨hci,?_⟩
+  have hc := integral_mono hci hbi hbound
+  rw [integral_add (hli.const_mul k) (integrable_const 2),integral_const_mul] at hc
+  simp only [integral_const,probReal_univ,smul_eq_mul,one_mul] at hc
+  have hh := mul_le_mul_of_nonneg_left hlog hk.le
+  linarith
+
+
+private theorem quadratic_upper {F : E → ℝ} {b : ℝ}
+    (hF : ContDiff ℝ 2 F)
+    (hH : ∀ x v : E, (fderiv ℝ (fderiv ℝ F) x v) v ≤ b*‖v‖^2) :
+    ∀ x y, F y ≤ F x+inner ℝ (gradient F x) (y-x)+b/2*‖y-x‖^2 := by
+  have hd : Differentiable ℝ F := hF.differentiable (by norm_num)
+  have hn : fderiv ℝ (fun x => -F x) = fun x => -fderiv ℝ F x := by
+    funext x
+    exact fderiv_neg
+  have hn2 (x : E) : fderiv ℝ (fderiv ℝ (fun z => -F z)) x =
+      -fderiv ℝ (fderiv ℝ F) x := by
+    rw [hn]
+    exact fderiv_neg
+  have hc : StrongConvexOn univ (-b) (fun x => -F x) :=
+    TechnicalLemmas.Analysis.HessianStrongConvexity.strongConvexOn_univ_of_fderiv2_lower
+      hF.neg (fun x v => by
+        rw [hn2]
+        simp only [neg_apply]
+        nlinarith [hH x v])
+  have hg (x : E) : HasGradientAt (fun z => -F z) (-gradient F x) x := by
+    rw [hasGradientAt_iff_hasFDerivAt]
+    convert! (hd x).hasGradientAt.hasFDerivAt.neg using 1; simp only [map_neg]
+  intro x y
+  have hl := TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn
+    hc (fun z _ => hg z) (mem_univ x) (mem_univ y)
+  simp only [inner_neg_left] at hl
+  nlinarith
+
+
+private theorem regularized_data {U : E → ℝ} {m b r : ℝ≥0}
+    (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E, (m:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ U) x v) v ∧
+      (fderiv ℝ (fderiv ℝ U) x v) v ≤ (b:ℝ)*‖v‖^2) (u : E) :
+    let F := fun x => U x+(r:ℝ)/2*‖x-u‖^2
+    ContDiff ℝ 2 F ∧ StrongConvexOn univ ((m:ℝ)+r) F ∧
+      LipschitzWith (b+r) (gradient F) ∧
+      (∀ x, gradient F x=gradient U x+(r:ℝ) • (x-u)) ∧
+      (∀ x y, F y ≤ F x+inner ℝ (gradient F x) (y-x)+((b:ℝ)+r)/2*‖y-x‖^2) := by
+  let F := fun x => U x+(r:ℝ)/2*‖x-u‖^2
+  have hd : Differentiable ℝ U := hU.differentiable (by norm_num)
+  have hF : ContDiff ℝ 2 F :=
+    hU.add (contDiff_const.mul ((contDiff_id.sub contDiff_const).norm_sq (𝕜:=ℝ)))
+  have hbase := TechnicalLemmas.Analysis.QuadraticRegularization.strongConvexOn_and_lipschitzWith_gradient_add_quadratic (r:=r) hU hH u
+  have hsc : StrongConvexOn univ ((m:ℝ)+r) F := by
+    simpa only [NNReal.coe_add] using hbase.1
+  have hq (x : E) : HasFDerivAt (fun z => (r:ℝ)/2*‖z-u‖^2)
+      ((r:ℝ) • innerSL ℝ (x-u)) x := by
+    convert (((hasFDerivAt_id x).sub_const u).norm_sq).const_mul ((r:ℝ)/2)
+      using 1 <;> first | rfl | (ext v; simp; ring)
+  have hg (x : E) : gradient F x=gradient U x+(r:ℝ) • (x-u) := by
+    apply HasGradientAt.gradient
+    rw [hasGradientAt_iff_hasFDerivAt]
+    change HasFDerivAt (fun z => U z+(r:ℝ)/2*‖z-u‖^2)
+      ((toDual ℝ E) (gradient U x+(r:ℝ) • (x-u))) x
+    convert! (hd x).hasGradientAt.hasFDerivAt.add (hq x) using 1
+    simp only [map_add,map_smul]
+    rfl
+  refine ⟨hF,hsc,hbase.2,hg,?_⟩
+  intro x y
+  have hu := quadratic_upper hU (fun x v => (hH x v).2) x y
+  have hn : ‖y-u‖^2=‖x-u‖^2+2*inner ℝ (x-u) (y-x)+‖y-x‖^2 := by
+    rw [show y-u=(x-u)+(y-x) by abel,norm_add_sq_real]
+  change U y+(r:ℝ)/2*‖y-u‖^2 ≤ U x+(r:ℝ)/2*‖x-u‖^2+
+    inner ℝ (gradient F x) (y-x)+((b:ℝ)+r)/2*‖y-x‖^2
+  rw [hg,inner_add_left,inner_smul_left,hn]
+  simp only [starRingEnd_apply,star_trivial]
+  nlinarith
+
+
+/-- Construct the actual first gradient-descent reference point. Prove the
+stopping/output measurability, exact terminal center residual, first-hit and
+query-count bounds, and conditional initial-law expected cost. The expectation
+proof uses an integrable logarithmic tangent bound, not an assumed cost moment. -/
+theorem terminal_reference_gradient_descent [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E] {U : E → ℝ} {m b : ℝ≥0}
+    (hU : ContDiff ℝ 2 U)
+    (hH : ∀ x v : E, (m:ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ U) x v) v ∧
+      (fderiv ℝ (fderiv ℝ U) x v) v ≤ (b:ℝ)*‖v‖^2)
+    (hmb : m ≤ b) {A d : ℝ} (hA : 0 < A) (hd : 0 < d)
+    (_hdim : d = Module.finrank ℝ E) (u : E) :
+    let F := fun x => U x+A⁻¹/2*‖x-u‖^2
+    let a := (m:ℝ)+A⁻¹
+    let c := (b:ℝ)+A⁻¹
+    let k := c/a
+    let T := fun x => x-c⁻¹ • gradient F x
+    let N := firstIndex T F (d/A)
+    let xp := fun v => T^[N v] v
+    0 < a ∧ 0 < c ∧ 1 ≤ k ∧
+    (∀ x, gradient F x=gradient U x+A⁻¹ • (x-u)) ∧
+    Measurable N ∧ Measurable xp ∧
+    (∀ v, ‖gradient F (xp v)‖^2 ≤ d/A ∧
+      ‖u-A • gradient U (xp v)-xp v‖=A*‖gradient F (xp v)‖ ∧
+      ‖u-A • gradient U (xp v)-xp v‖ ≤ Real.sqrt (d*A) ∧
+      (∀ j < N v, d/A < ‖gradient F (T^[j] v)‖^2) ∧
+      N v ≤ Nat.ceil (k*Real.log (1+A*‖gradient F v‖^2/d)) ∧
+      (N v:ℝ)+1 ≤ k*Real.log (1+A*‖gradient F v‖^2/d)+2) ∧
+    (∀ (μ : Measure E), IsProbabilityMeasure μ → ∀ M : ℝ,
+      Integrable (fun v => ‖gradient F v‖^2) μ →
+      (∫ v, ‖gradient F v‖^2 ∂μ) ≤ M →
+      Integrable (fun v => (N v:ℝ)+1) μ ∧
+      (∫ v, (N v:ℝ)+1 ∂μ) ≤ 2+k*Real.log (1+A*M/d)) := by
+  let r : ℝ≥0 := ⟨A⁻¹,inv_nonneg.mpr hA.le⟩
+  let F := fun x => U x+A⁻¹/2*‖x-u‖^2
+  let a := (m:ℝ)+A⁻¹
+  let c := (b:ℝ)+A⁻¹
+  let k := c/a
+  let T := fun x => x-c⁻¹ • gradient F x
+  let N := firstIndex T F (d/A)
+  let xp := fun v => T^[N v] v
+  have ha : 0 < a := add_pos_of_nonneg_of_pos m.coe_nonneg (inv_pos.mpr hA)
+  have hc : 0 < c := add_pos_of_nonneg_of_pos b.coe_nonneg (inv_pos.mpr hA)
+  have hk : 1 ≤ k := by
+    apply (le_div_iff₀ ha).mpr
+    have hmb' : (m:ℝ) ≤ b := hmb
+    dsimp [a,c]
+    linarith
+  have hdata := regularized_data (r:=r) hU hH u
+  have hF : ContDiff ℝ 2 F := hdata.1
+  have hsc : StrongConvexOn univ a F := hdata.2.1
+  have hg (x : E) : gradient F x=gradient U x+A⁻¹ • (x-u) := hdata.2.2.2.1 x
+  have hu : ∀ x y, F y ≤ F x+inner ℝ (gradient F x) (y-x)+c/2*‖y-x‖^2 :=
+    hdata.2.2.2.2
+  have hp := stopped_program (hF.of_le (by norm_num)) ha hc
+    (div_pos hd hA) hsc hu
+  have ratio (z : ℝ) : z/(d/A)=A*z/d := by field_simp
+  have hres (x : E) : ‖u-A • gradient U x-x‖=A*‖gradient F x‖ := by
+    have he : u-A • gradient U x-x=-(A • gradient F x) := by
+      rw [hg,smul_add,smul_smul,mul_inv_cancel₀ hA.ne',one_smul]
+      abel
+    rw [he,norm_neg,norm_smul,Real.norm_eq_abs,abs_of_pos hA]
+  refine ⟨ha,hc,hk,hg,hp.1,hp.2.1,?_,?_⟩
+  · intro v
+    have hv := hp.2.2 v
+    have hstop : ‖gradient F (xp v)‖^2 ≤ d/A := hv.1
+    have hr : ‖u-A • gradient U (xp v)-xp v‖ ≤ Real.sqrt (d*A) := by
+      apply Real.le_sqrt_of_sq_le
+      rw [hres,mul_pow]
+      have hh := mul_le_mul_of_nonneg_left hstop (sq_nonneg A)
+      have he : A^2*(d/A)=d*A := by field_simp
+      rw [he] at hh
+      exact hh
+    refine ⟨hstop,hres _,hr,hv.2.1,?_,?_⟩
+    · simpa only [ratio] using hv.2.2.1
+    · simpa only [ratio] using hv.2.2.2
+  · intro μ hμ M hgi hM
+    let : IsProbabilityMeasure μ := hμ
+    have hgm : Measurable (fun v => ‖gradient F v‖^2) :=
+      ((TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one
+        (hF.of_le (by norm_num))).norm.pow 2).measurable
+    have he := expected_count μ (fun v => ‖gradient F v‖^2) N (div_pos hc ha)
+      (div_pos hd hA) hgm hgi (fun v => sq_nonneg _) hp.1 hM (fun v => (hp.2.2 v).2.2.2)
+    simpa only [ratio] using he
+
+
+
+
+
+
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.TerminalReferenceGradientDescent

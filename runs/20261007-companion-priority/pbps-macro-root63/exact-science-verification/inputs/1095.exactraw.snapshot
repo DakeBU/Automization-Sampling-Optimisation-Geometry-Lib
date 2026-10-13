@@ -1,0 +1,199 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoAlgebra
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2
+
+/-!
+# Elementary processes in the progressive L2 domain
+
+This file proves that every bounded elementary adapted process is strongly
+progressive and square integrable on a finite horizon.  It supplies the actual
+embedding used by the later density and completion arguments.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace ElementaryItoEmbedding
+
+open MeasureTheory Set
+open scoped BigOperators NNReal
+
+open ElementaryItoIntegral ElementaryItoAlgebra ProgressiveL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {n : ℕ}
+
+/-- The probability-time representative of an elementary process is jointly
+strongly measurable in the repository's sample-first product orientation. -/
+  theorem processFunction_stronglyMeasurable
+    (eta : ElementaryAdaptedProcess filtration n) :
+    StronglyMeasurable (processFunction eta.value) := by
+  unfold processFunction ElementaryAdaptedProcess.value
+  let piece : Fin n → Omega × ℝ≥0 → ℝ := fun i z =>
+    if eta.times i.castSucc < z.2 ∧ z.2 ≤ eta.times i.succ
+    then eta.coeff i z.1 else 0
+  have hsum : (fun z : Omega × ℝ≥0 => ∑ i, if
+      eta.times i.castSucc < z.2 ∧ z.2 ≤ eta.times i.succ
+      then eta.coeff i z.1 else 0) = ∑ i, piece i := by
+    funext z
+    simp [piece]
+  rw [hsum]
+  apply Finset.stronglyMeasurable_sum Finset.univ
+  intro i _
+  have hset : MeasurableSet {z : Omega × ℝ≥0 |
+      eta.times i.castSucc < z.2 ∧ z.2 ≤ eta.times i.succ} :=
+    measurableSet_Ioc.preimage measurable_snd
+  have hcoeff : StronglyMeasurable (fun z : Omega × ℝ≥0 => eta.coeff i z.1) :=
+    ((eta.coeff_stronglyMeasurable i).mono (filtration.le _)).comp_measurable measurable_fst
+  exact StronglyMeasurable.ite hset hcoeff stronglyMeasurable_const
+
+/-- Elementary left-endpoint processes are strongly progressive.  Cells whose
+left endpoint lies after the inspected horizon vanish on that restricted
+product; all earlier coefficients are measurable in the terminal sigma-field. -/
+  theorem value_stronglyProgressive
+    (eta : ElementaryAdaptedProcess filtration n) :
+    IsStronglyProgressive filtration eta.value := by
+  intro terminal
+  unfold ElementaryAdaptedProcess.value
+  let piece : Fin n → Set.Iic terminal × Omega → ℝ := fun i p =>
+    if eta.times i.castSucc < (p.1 : ℝ≥0) ∧
+      (p.1 : ℝ≥0) ≤ eta.times i.succ
+    then eta.coeff i p.2 else 0
+  have hsum : (fun p : Set.Iic terminal × Omega => ∑ i, if
+      eta.times i.castSucc < (p.1 : ℝ≥0) ∧
+        (p.1 : ℝ≥0) ≤ eta.times i.succ
+      then eta.coeff i p.2 else 0) = ∑ i, piece i := by
+    funext p
+    simp [piece]
+  rw [hsum]
+  apply Finset.stronglyMeasurable_sum Finset.univ
+  intro i _
+  by_cases hleft : eta.times i.castSucc ≤ terminal
+  · have hset : @MeasurableSet (Set.Iic terminal × Omega)
+        (Subtype.instMeasurableSpace.prod (filtration terminal))
+        {p | eta.times i.castSucc < (p.1 : ℝ≥0) ∧
+          (p.1 : ℝ≥0) ≤ eta.times i.succ} :=
+      measurableSet_Ioc.preimage (measurable_subtype_coe.comp measurable_fst)
+    have hcoeff : StronglyMeasurable[
+        Subtype.instMeasurableSpace.prod (filtration terminal)]
+        (fun p : Set.Iic terminal × Omega => eta.coeff i p.2) :=
+      ((eta.coeff_stronglyMeasurable i).mono (filtration.mono hleft)).comp_measurable
+        measurable_snd
+    exact StronglyMeasurable.ite hset hcoeff stronglyMeasurable_const
+  · have hzero : (fun p : Set.Iic terminal × Omega =>
+        if eta.times i.castSucc < (p.1 : ℝ≥0) ∧
+          (p.1 : ℝ≥0) ≤ eta.times i.succ
+        then eta.coeff i p.2 else 0) = 0 := by
+      funext p
+      have hp : ¬ eta.times i.castSucc < (p.1 : ℝ≥0) := by
+        exact not_lt_of_ge ((p.1.property.trans_lt (lt_of_not_ge hleft)).le)
+      simp [hp]
+    show StronglyMeasurable[Subtype.instMeasurableSpace.prod (filtration terminal)] (piece i)
+    rw [show piece i = 0 by simpa [piece] using hzero]
+    exact stronglyMeasurable_const
+
+/-- A deterministic bound obtained from the finitely many coefficient bounds. -/
+noncomputable def valueBound (eta : ElementaryAdaptedProcess filtration n) : ℝ :=
+  ∑ i, max 0 (Classical.choose (eta.coeff_bounded i))
+
+theorem abs_value_le_valueBound
+    (eta : ElementaryAdaptedProcess filtration n) (t : ℝ≥0) (omega : Omega) :
+    |eta.value t omega| ≤ valueBound eta := by
+  rw [ElementaryAdaptedProcess.value]
+  refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+  apply Finset.sum_le_sum
+  intro i _
+  by_cases hi : eta.times i.castSucc < t ∧ t ≤ eta.times i.succ
+  · simp only [if_pos hi]
+    exact (Classical.choose_spec (eta.coeff_bounded i) omega).trans
+      (le_max_right 0 _)
+  · simp [hi]
+
+/-- Bounded elementary processes belong to product `L2` on every finite
+probability-time horizon. -/
+theorem value_memLp_two (eta : ElementaryAdaptedProcess filtration n)
+    (mu : Measure Omega) [IsFiniteMeasure mu] (T : ℝ≥0) :
+    MemLp (processFunction eta.value) 2 (processTimeMeasure mu T) := by
+  let _ : IsFiniteMeasure (processTimeMeasure mu T) := by
+    unfold processTimeMeasure
+    infer_instance
+  exact MemLp.of_bound (processFunction_stronglyMeasurable eta).aestronglyMeasurable
+    (valueBound eta) (ae_of_all _ fun z => by
+      simpa [Real.norm_eq_abs, processFunction] using abs_value_le_valueBound eta z.2 z.1)
+
+/-- Canonical inclusion of elementary adapted processes into the progressive
+`L2` domain used for general Ito integration. -/
+noncomputable def toProgressiveL2 (eta : ElementaryAdaptedProcess filtration n)
+    (mu : Measure Omega) [IsFiniteMeasure mu] (T : ℝ≥0) :
+    ProgressiveL2Integrand filtration mu T where
+  process := eta.value
+  progressive := value_stronglyProgressive eta
+  memLp := value_memLp_two eta mu T
+
+@[simp] theorem toProgressiveL2_process
+    (eta : ElementaryAdaptedProcess filtration n)
+    (mu : Measure Omega) [IsFiniteMeasure mu] (T : ℝ≥0) :
+    (toProgressiveL2 eta mu T).process = eta.value :=
+  rfl
+
+theorem toLp_add (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times) (mu : Measure Omega)
+    [IsFiniteMeasure mu] (T : ℝ≥0) :
+    (toProgressiveL2 (add eta xi hgrid) mu T).toLp =
+      (toProgressiveL2 eta mu T).toLp + (toProgressiveL2 xi mu T).toLp := by
+  apply Lp.ext
+  simp only [ProgressiveL2Integrand.toLp]
+  filter_upwards [
+    (toProgressiveL2 (add eta xi hgrid) mu T).memLp.coeFn_toLp,
+    Lp.coeFn_add
+      ((toProgressiveL2 eta mu T).memLp.toLp
+        (processFunction (toProgressiveL2 eta mu T).process))
+      ((toProgressiveL2 xi mu T).memLp.toLp
+        (processFunction (toProgressiveL2 xi mu T).process)),
+    (toProgressiveL2 eta mu T).memLp.coeFn_toLp,
+    (toProgressiveL2 xi mu T).memLp.coeFn_toLp] with z hsum hadd heta hxi
+  rw [hsum, hadd]
+  simp only [Pi.add_apply]
+  rw [heta, hxi]
+  exact add_value eta xi hgrid z.2 z.1
+
+theorem toLp_sub (eta xi : ElementaryAdaptedProcess filtration n)
+    (hgrid : eta.times = xi.times) (mu : Measure Omega)
+    [IsFiniteMeasure mu] (T : ℝ≥0) :
+    (toProgressiveL2 (sub eta xi hgrid) mu T).toLp =
+      (toProgressiveL2 eta mu T).toLp - (toProgressiveL2 xi mu T).toLp := by
+  apply Lp.ext
+  simp only [ProgressiveL2Integrand.toLp]
+  filter_upwards [
+    (toProgressiveL2 (sub eta xi hgrid) mu T).memLp.coeFn_toLp,
+    Lp.coeFn_sub
+      ((toProgressiveL2 eta mu T).memLp.toLp
+        (processFunction (toProgressiveL2 eta mu T).process))
+      ((toProgressiveL2 xi mu T).memLp.toLp
+        (processFunction (toProgressiveL2 xi mu T).process)),
+    (toProgressiveL2 eta mu T).memLp.coeFn_toLp,
+    (toProgressiveL2 xi mu T).memLp.coeFn_toLp] with z hsub hdiff heta hxi
+  rw [hsub, hdiff]
+  simp only [Pi.sub_apply]
+  rw [heta, hxi]
+  exact sub_value eta xi hgrid z.2 z.1
+
+theorem toLp_smul (c : ℝ) (eta : ElementaryAdaptedProcess filtration n)
+    (mu : Measure Omega) [IsFiniteMeasure mu] (T : ℝ≥0) :
+    (toProgressiveL2 (smul c eta) mu T).toLp =
+      c • (toProgressiveL2 eta mu T).toLp := by
+  apply Lp.ext
+  simp only [ProgressiveL2Integrand.toLp]
+  filter_upwards [
+    (toProgressiveL2 (smul c eta) mu T).memLp.coeFn_toLp,
+    Lp.coeFn_smul c ((toProgressiveL2 eta mu T).memLp.toLp
+      (processFunction (toProgressiveL2 eta mu T).process)),
+    (toProgressiveL2 eta mu T).memLp.coeFn_toLp] with z hsmul hscale heta
+  rw [hsmul, hscale]
+  simp only [Pi.smul_apply]
+  rw [heta]
+  exact smul_value c eta z.2 z.1
+
+end ElementaryItoEmbedding
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

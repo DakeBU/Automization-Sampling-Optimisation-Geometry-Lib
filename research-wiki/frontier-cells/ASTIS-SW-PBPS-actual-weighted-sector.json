@@ -1,0 +1,196 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-weighted-sector",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS unnormalized weighted sector integral",
+  "mode": "faithfulPaper",
+  "declaration_level": "source-anchor",
+  "source_anchor": "Appendix A.1 Eq A7/A8 weighted finite-sector substitution under actual endpoint/time reversal; unnormalized Gibbs energy Eq3.1",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal\n\n/- Type-only proposal for independent prospective source and mathematics review.\nNo theorem proof, Statement Seal, SAU claim or completion is asserted. -/\nnamespace PBPSWeightedSectorCandidate102\nopen MeasureTheory InnerProductSpace\nopen scoped ContDiff NNReal ENNReal Classical\nnoncomputable section\nset_option autoImplicit false\n\ndef candidate\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let U : E → E × E → ℝ := fun y z =>\n      V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2\n    let w : E → E × E → ℝ := fun y z => Real.exp (-U y z)\n    let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    ∀ n : ℕ, ∀ T : ℝ≥0, ∃ rho : Prefix n T → Prefix n T,\n      (∀ t : Prefix n T, ∀ i : Fin n, (rho t).val i = (T : ℝ) - t.val i.rev) ∧\n      ∀ y r : E,\n        let A : (E × E) × Prefix n T → E × E :=\n          fun q => Γ y r q.1 n T q.2 ⟨T, le_rfl⟩\n        let Theta : (E × E) × Prefix n T → (E × E) × Prefix n T :=\n          fun q => (R (A q), rho q.2)\n        let W : (E × E) × Prefix n T → ℝ≥0∞ :=\n          fun q => ENNReal.ofReal (w y q.1) * ρ y r q.1 n T q.2\n        ∀ F : (E × E) × Prefix n T → ℝ≥0∞, Measurable F →\n          (∫⁻ q, W q * F (Theta q) ∂(ell.prod (m n T))) =\n            ∫⁻ q, W q * F q ∂(ell.prod (m n T))\n\n#check candidate\nend\nend PBPSWeightedSectorCandidate102\n",
+  "status": "independently_verified",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity.actual_prescribed_weighted_density_balance",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law"
+  ],
+  "consumers": [
+    "Finite-sector endpoint-pair reversal and later count-summed normalized Gibbs stationary averaging; these later results remain open."
+  ],
+  "target_declarations": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector.actual_weighted_sector_lintegral"
+  ],
+  "evidence": {
+    "owner": "companion_root_20261005",
+    "statement_seal": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-weighted-sector-preread102\\root.statement-seal102.json",
+    "focused_checks": [
+      "runs/20261007-companion-priority/pbps-actual-weighted-sector102/focused102/production1/receipt.json"
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualWeightedSector.lean"
+    ],
+    "truth_boundary": "Unnormalized finite-sector nonnegative measurable integral identity only. Measurable ENNReal tests extend source bounded tests without a finite-integral assertion. No normalization, stationary probability, Markovness, hypocoercivity, simulation error, expected cost or main-paper completion.",
+    "whole_target_compiled": {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualWeightedSector.lean",
+      "raw_sha256": "9fa8aee0014fc558c455f0350ffab8c43804645d2878b19d7704c8b6bea5f92b",
+      "bytes": 9433
+    },
+    "independent_math": "runs/20261007-companion-priority/pbps-actual-weighted-sector102/independent-whole-math102/whole-math-decision102.native.json",
+    "independent_verification": "runs/20261007-companion-priority/pbps-actual-weighted-sector102/exact-commit-verification102/verified.json"
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib actual93/97/101 and fixed Mathlib MeasurePreserving.lintegral_comp; compatible upstream catalog reviewed in source retrieval",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-prescribed-weighted-density101\\next-primary102\\retrieval102.native.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-weighted-sector-preread102\\independent-header-math102\\header-math-decision102.native.json"
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector.actual_weighted_sector_lintegral",
+    "canonical_shared_cell": "",
+    "reason": "Actual93 joint density measurability,97 phase-first measure preservation,101 actual weighted density balance; fixed Mathlib lintegral substitution."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib actual93/97/101 and fixed Mathlib MeasurePreserving.lintegral_comp; compatible upstream catalog reviewed in source retrieval",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-actual-prescribed-weighted-density101\\next-primary102\\retrieval102.native.json",
+      "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-weighted-sector-preread102\\independent-header-math102\\header-math-decision102.native.json"
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity.actual_prescribed_weighted_density_balance",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law"
+    ],
+    "planned_dependencies": [],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "Finite-sector endpoint-pair reversal and later count-summed normalized Gibbs stationary averaging; these later results remain open."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "New actual weighted sector integral, no supplied provider premises."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Full sealed actual target compiles; independent whole math, anonymous decoding and source/exposition reviews pending."
+  },
+  "statement_seal": {
+    "evidence": "E:\\Samplinglib\\runs\\20261007-companion-priority\\pbps-weighted-sector-preread102\\root.statement-seal102.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "fcd8cded492e47481dfa5dca20f55a3e19f7d630ebeccfe2a0d8903b31794f3d",
+    "binder_audit": [
+      "Original six analytic assumptions and finite real Hilbert Borel typing; no excess."
+    ],
+    "definition_kind": "First20 exact actual definitions; R/U/w target weight; phase-first ell and strict simplex comap m; local actual endpoint A, reversal Theta and actual weight W. Measurable ENNReal observable F, no finite-mass or normalization premise."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-actual-prescribed-weighted-density101/next-primary102/source-proof-graph-delta102.native.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-actual-prescribed-weighted-density101/next-primary102/source-coverage-delta102.native.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-actual-weighted-sector102/final-source102/compiled-source-coverage102.native.json",
+    "coverage_status": "Independently accepted compiled source coverage; full paper boundaries remain open.",
+    "source_graph_overlay": "runs/20261007-companion-priority/pbps-actual-prescribed-weighted-density101/next-primary102/graph-normalization102/source-graph-normalization102.native.json"
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Appendix A.1 Eq A7/A8 weighted finite-sector substitution under actual endpoint/time reversal; unnormalized Gibbs energy Eq3.1",
+    "fidelity_boundary": "Unnormalized finite-sector nonnegative measurable integral identity only. Measurable ENNReal tests extend source bounded tests without a finite-integral assertion. No normalization, stationary probability, Markovness, hypocoercivity, simulation error, expected cost or main-paper completion.",
+    "detail_status": "omitted",
+    "gap": "Weighted substitution requires joint weight measurability and actual measure-preserving map; normalization is separate.",
+    "consulted": [
+      {
+        "source": "Pinned PBPS v1 and fixed Mathlib/core",
+        "anchor": "Eq3.1 and Appendix A1 A7/A8",
+        "hypothesis_adapter": "Retain exact actual rho=q*terminalweight and target U; no extra regularity/positivity."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedWeightedDensity.actual_prescribed_weighted_density_balance",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law"
+    ],
+    "bookkeeping": [
+      "Reversal witness uniqueness",
+      "Joint target weight measurability",
+      "Nonnegative lintegral substitution"
+    ],
+    "new_reusable": [],
+    "new_topology": "Actual unnormalized weighted finite-sector lintegral invariant under endpoint/time reversal for every measurable ENNReal observable."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Single public theorem consumes three public actual producers93/97/101 and its literal private statement; no unused helper or mangled private API.",
+    "duplicate_semantics_audit": "Local Mathlib compatible catalog search complete.",
+    "canonicalization": "Consume three public actual producers; no private cross-module calls.",
+    "compressed_spine_delta": "Actual unnormalized weighted finite-sector lintegral invariant under endpoint/time reversal for every measurable ENNReal observable.",
+    "reader_default_view": "Full attributed statement/formula proof and adjacent folded Lean.",
+    "scope": "Unnormalized finite-sector nonnegative measurable integral identity only. Measurable ENNReal tests extend source bounded tests without a finite-integral assertion. No normalization, stationary probability, Markovness, hypocoercivity, simulation error, expected cost or main-paper completion."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "Full sealed target compiled; no mathematical fragment discarded. Initial elaboration failures retained with corrected unfold and explicit finite-grid types.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-weighted-sector-integral"
+      ],
+      "expected_information_gain": "One implementation owner and independent source/math audits.",
+      "shared_verified_context_digest": "fcd8cded492e47481dfa5dca20f55a3e19f7d630ebeccfe2a0d8903b31794f3d"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Single source-faithful implementation route."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "SECTOR102-UNNORM"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector.actual_weighted_sector_lintegral"
+      ],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector.actual_weighted_sector_lintegral"
+    ],
+    "visual_review": "Pending implementation and publication."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "reason": "Source-specific actual PBPS weighted-sector integration; no new cross-domain bridge.",
+    "discovery_ids": []
+  }
+}

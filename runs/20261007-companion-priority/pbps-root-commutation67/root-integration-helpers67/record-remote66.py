@@ -1,0 +1,7 @@
+from pathlib import Path
+import subprocess,json,hashlib,os,datetime
+r=Path('runs/20261007-companion-priority/pbps-ambient-adjoint66');d=r/'integration66'/'remote-ci66-final-all-success';d.mkdir(exist_ok=False)
+cmd=['gh','run','list','--branch','codex/sphmc-standardized-rgo','--commit','eb3d5ffbb6853f2a0aa4a8c66aefce19d8050176','--limit','10','--json','databaseId,name,status,conclusion,headSha,url'];p=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE);o,e=p.communicate();(d/'stdout.RAW.json').write_bytes(o);(d/'stderr.RAW.log').write_bytes(e);assert p.returncode==0
+rows=json.loads(o);assert {x['databaseId'] for x in rows}=={37912228791,37912228124,37912228131,37912207332};assert all(x['headSha']=='eb3d5ffbb6853f2a0aa4a8c66aefce19d8050176' and x['status']=='completed' and x['conclusion']=='success' for x in rows)
+x=dict(status='EXACT_INT66_REMOTE_ALL_SUCCESS',checked_INT_commit='eb3d5ffbb6853f2a0aa4a8c66aefce19d8050176',actual_foreground_pid=p.pid,exit_code=p.returncode,observed_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),command=cmd,complete_RAW_stdout_sha256=hashlib.sha256(o).hexdigest(),runs=rows,current_local_generated_graph_freshness_admission=False,whole_paper_complete=False,Goal_complete=False)
+(d/'receipt.json').write_text(json.dumps(x,indent=2)+'\n',encoding='utf-8',newline='\n');(r/'remote-ci66.accepted.json').write_text(json.dumps(x,indent=2)+'\n',encoding='utf-8',newline='\n');print('PASS exact INT66 all4 authoritative remote runs completed SUCCESS; local graph freshness remains separately withheld.')

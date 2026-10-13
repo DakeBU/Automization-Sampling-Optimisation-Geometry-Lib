@@ -1,0 +1,68 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.CommonMass
+import Mathlib.MeasureTheory.Measure.Sub
+
+/-!
+# Prescribed-mass slices of finite measures
+
+Given a finite measure `mu` with positive total mass and a target mass `t` no
+larger than `mu.mass`, the scalar multiple
+
+`t / mu.mass • mu`
+
+is a canonical submeasure of `mu` with total mass exactly `t`.
+
+This primitive is independent of how the target mass is chosen.  In the direct
+Brenier perturbation it will later be instantiated with the minimum local mass
+of a finite family.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace CommonMassSlice
+
+open MeasureTheory
+open CommonMass
+open scoped NNReal ENNReal
+
+noncomputable section
+
+variable {X : Type*} [MeasurableSpace X]
+
+/-- Canonical slice of a finite measure with prescribed target mass. -/
+noncomputable def commonMassSlice (t : ℝ≥0) (mu : FiniteMeasure X) :
+    FiniteMeasure X :=
+  (t / mu.mass) • mu
+
+/-- If the ambient finite measure has positive mass, its canonical slice has
+exactly the prescribed total mass. -/
+theorem commonMassSlice_mass (t : ℝ≥0) (mu : FiniteMeasure X)
+    (hpos : 0 < mu.mass) :
+    (commonMassSlice t mu).mass = t := by
+  have hne : mu.mass ≠ 0 := ne_of_gt hpos
+  rw [commonMassSlice, mass_smul_nnreal]
+  simp [div_eq_mul_inv, hne]
+
+/-- If the target mass is no larger than the ambient mass, the canonical slice
+is dominated by the original measure.  The domination is stated for the
+underlying `Measure`, exactly the order relation consumed by later measure
+subtraction. -/
+theorem commonMassSlice_toMeasure_le (t : ℝ≥0) (mu : FiniteMeasure X)
+    (hpos : 0 < mu.mass) (ht : t ≤ mu.mass) :
+    ((commonMassSlice t mu : FiniteMeasure X) : Measure X) ≤ (mu : Measure X) := by
+  have hscale : t / mu.mass ≤ 1 := (div_le_one hpos).2 ht
+  rw [Measure.le_iff]
+  intro s hs
+  change ((t / mu.mass : ℝ≥0) : ℝ≥0∞) * (mu : Measure X) s ≤ (mu : Measure X) s
+  calc
+    ((t / mu.mass : ℝ≥0) : ℝ≥0∞) * (mu : Measure X) s
+        ≤ 1 * (mu : Measure X) s :=
+      mul_le_mul_left (ENNReal.coe_le_coe.mpr hscale) _
+    _ = (mu : Measure X) s := one_mul _
+
+end
+
+end CommonMassSlice
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

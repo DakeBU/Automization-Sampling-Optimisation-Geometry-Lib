@@ -1,0 +1,305 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.PowerPerspective
+import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianPowerMoment
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing
+
+/-!
+# Actual Gaussian mixture reverse transport
+
+Expanded bounded-displacement ingredient of arXiv:2609.06906v1 Lemma6.3(ii).
+The existing independent Gaussian smoothing law has an actual finite RN power
+moment bounded by exp(q(q-1)t^2/(2 tau)). Prove all density identities,
+measurability, positivity, finite moments and logarithm conditions internally.
+Finite-dimensional real inner-product Borel spaces include zero dimension;
+no marginal moment assumption is needed for this bounded-coupling ingredient.
+The coupling is supplied; truncation and the single proxy before forall q
+remain a separate composition. No full Wasserstein/Renyi API, proxy warmness,
+sampler or query-cost theorem is claimed.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianMixture
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal NNReal RealInnerProductSpace
+open AutoSamplingTheory.TechnicalLemmas.Measure
+
+/-- An actual bounded-displacement coupling controls the actual Gaussian
+smoothed RN power moment, its integrability and its normalized logarithm. -/
+theorem bounded_displacement_reverse_transport {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (P Q : Measure E) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
+    (γ : Measure (E × E))
+    (hγ : Transport.IsCoupling γ P Q)
+    (τ q t : ℝ) (hτ : 0 < τ) (hq : 1 < q) (ht : 0 ≤ t)
+    (hdisp : ∀ᵐ c ∂γ, ‖c.1-c.2‖ ≤ t) :
+    let H := fun μ : Measure E => GaussianSmoothing.gaussianSmoothing μ (Real.sqrt τ)
+    H P ≪ H Q ∧
+      (∫⁻ z, ((H P).rnDeriv (H Q) z)^q ∂H Q) ≤ ENNReal.ofReal (Real.exp (q*(q-1)*t^2/(2*τ))) ∧
+      Integrable (fun z => ((H P).rnDeriv (H Q) z).toReal^q) (H Q) ∧
+      (∫ z, ((H P).rnDeriv (H Q) z).toReal^q ∂H Q) ≤ Real.exp (q*(q-1)*t^2/(2*τ)) ∧
+      Real.log (∫ z, ((H P).rnDeriv (H Q) z).toReal^q ∂H Q)/(q-1) ≤ q*t^2/(2*τ) := by
+  let gd := fun (τ : ℝ) (a z : E) => ENNReal.ofReal
+    (((Real.sqrt (2*Real.pi*τ))⁻¹)^Module.finrank ℝ E * Real.exp (-‖z-a‖^2/(2*τ)))
+  have gd_law (a : E) (τ : ℝ) (hτ : 0 < τ) :
+      (stdGaussian E).map (fun z => a+Real.sqrt τ • z) =
+        (volume : Measure E).withDensity (gd τ a) := by
+    have hmap : (stdGaussian E).map (fun z => a + Real.sqrt τ • z) =
+        ((stdGaussian E).map (fun z : E => Real.sqrt τ • z)).map (MeasurableEquiv.addLeft a) := by
+      rw [Measure.map_map (by fun_prop) (by fun_prop)]
+      rfl
+    rw [hmap,IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity τ hτ,
+      RadonNikodym.measurableEquiv_map_withDensity (MeasurableEquiv.addLeft a) _ (by fun_prop)]
+    have hvol : (volume : Measure E).map (MeasurableEquiv.addLeft a) = volume :=
+      Measure.IsAddLeftInvariant.map_add_left_eq_self a
+    rw [hvol]
+    congr 1
+    funext z
+    simp [gd,MeasurableEquiv.addLeft,sub_eq_add_neg,add_comm]
+  have mix_density (μ : Measure E) [IsProbabilityMeasure μ] (τ : ℝ) (hτ : 0 < τ) :
+      (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt τ • p.2) =
+        (volume : Measure E).withDensity (fun z => ∫⁻ a, gd τ a z ∂μ) := by
+    have hg : Measurable (fun p : E × E => gd τ p.1 p.2) := by unfold gd; fun_prop
+    have hmix : Measurable (fun z => ∫⁻ a, gd τ a z ∂μ) := hg.lintegral_prod_left'
+    apply Measure.ext_of_lintegral
+    intro f hf
+    rw [lintegral_map hf (by fun_prop),lintegral_prod _ (by fun_prop),
+      lintegral_withDensity_eq_lintegral_mul _ hmix hf]
+    calc
+      (∫⁻ a, ∫⁻ z, f (a+Real.sqrt τ • z) ∂stdGaussian E ∂μ) =
+          ∫⁻ a, ∫⁻ z, gd τ a z * f z ∂volume ∂μ := by
+        apply lintegral_congr
+        intro a
+        rw [← lintegral_map hf (by fun_prop),gd_law a τ hτ,
+          lintegral_withDensity_eq_lintegral_mul _ (by unfold gd; fun_prop) hf]
+        rfl
+      _ = ∫⁻ z, ∫⁻ a, gd τ a z * f z ∂μ ∂volume :=
+        lintegral_lintegral_swap (hg.mul (hf.comp measurable_snd)).aemeasurable
+      _ = ∫⁻ z, (∫⁻ a, gd τ a z ∂μ) * f z ∂volume := by
+        apply lintegral_congr
+        intro z
+        exact lintegral_mul_const _ (by unfold gd; fun_prop)
+  have gd_bounds (τ : ℝ) (hτ : 0 < τ) (a z : E) :
+      0 < gd τ a z ∧ gd τ a z ≤ ENNReal.ofReal
+        (((Real.sqrt (2*Real.pi*τ))⁻¹)^Module.finrank ℝ E) := by
+    have hC : 0 < ((Real.sqrt (2*Real.pi*τ))⁻¹)^Module.finrank ℝ E := by positivity
+    constructor
+    · unfold gd
+      exact ENNReal.ofReal_pos.mpr (mul_pos hC (Real.exp_pos _))
+    · unfold gd
+      apply ENNReal.ofReal_le_ofReal
+      have he : Real.exp (-‖z-a‖^2/(2*τ)) ≤ 1 := by
+        apply Real.exp_le_one_iff.mpr
+        exact div_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr (sq_nonneg _)) (by positivity)
+      simpa using mul_le_mul_of_nonneg_left he hC.le
+  have mix_bounds (μ : Measure E) [IsProbabilityMeasure μ] (τ : ℝ) (hτ : 0 < τ)
+      (z : E) : 0 < (∫⁻ a, gd τ a z ∂μ) ∧ (∫⁻ a, gd τ a z ∂μ) ≠ ⊤ := by
+    constructor
+    · apply pos_iff_ne_zero.mpr
+      intro h
+      have hz := (lintegral_eq_zero_iff (by unfold gd; fun_prop)).mp h
+      have hf : ∀ᵐ a ∂μ, False := by
+        filter_upwards [hz] with a ha
+        exact (ne_of_gt (gd_bounds τ hτ a z).1) ha
+      have hm : μ = 0 := by simpa using hf
+      exact IsProbabilityMeasure.ne_zero μ hm
+    · apply ne_top_of_le_ne_top (ENNReal.ofReal_ne_top (r :=
+        ((Real.sqrt (2*Real.pi*τ))⁻¹)^Module.finrank ℝ E))
+      calc
+        (∫⁻ a, gd τ a z ∂μ) ≤ ∫⁻ _ : E, ENNReal.ofReal
+            (((Real.sqrt (2*Real.pi*τ))⁻¹)^Module.finrank ℝ E) ∂μ :=
+          lintegral_mono (fun a => (gd_bounds τ hτ a z).2)
+        _ = _ := by simp
+  have density_power (μ : Measure E)
+      (f g : E → ℝ≥0∞) (hf : Measurable f) (hg : Measurable g)
+      [SigmaFinite (μ.withDensity g)] (hgpos : ∀ x, g x ≠ 0 ∧ g x ≠ ⊤)
+      (q : ℝ) (hq : 1 < q) :
+      μ.withDensity f ≪ μ.withDensity g ∧
+        (∫⁻ x, ((μ.withDensity f).rnDeriv (μ.withDensity g) x)^q ∂μ.withDensity g) =
+          ∫⁻ x, f x^q / g x^(q-1) ∂μ := by
+    have heq : μ.withDensity f = (μ.withDensity g).withDensity (fun x => f x/g x) := by
+      rw [← withDensity_mul μ (g := fun x => f x/g x) hg (hf.div hg)]
+      congr 1
+      funext x
+      exact (mul_comm _ _).trans (ENNReal.div_mul_cancel (hgpos x).1 (hgpos x).2) |>.symm
+    constructor
+    · rw [heq]
+      exact withDensity_absolutelyContinuous _ _
+    · have hrn : (μ.withDensity f).rnDeriv (μ.withDensity g) =ᵐ[μ.withDensity g]
+          (fun x => f x/g x) := by
+        rw [heq]
+        exact Measure.rnDeriv_withDensity _ (hf.div hg)
+      have hpow : (fun x => ((μ.withDensity f).rnDeriv (μ.withDensity g) x)^q) =ᵐ[μ.withDensity g]
+          (fun x => (f x/g x)^q) := hrn.fun_comp (fun x : ℝ≥0∞ => x^q)
+      rw [lintegral_congr_ae hpow,
+        lintegral_withDensity_eq_lintegral_mul _ hg
+          (show Measurable (fun x => (f x/g x)^q) from (hf.div hg).pow_const q)]
+      apply lintegral_congr
+      intro x
+      change g x * (f x/g x)^q = f x^q / g x^(q-1)
+      rw [ENNReal.div_rpow_of_nonneg _ _ (by linarith),div_eq_mul_inv,mul_left_comm]
+      congr 1
+      calc
+        g x * (g x^q)⁻¹ = g x^(1 : ℝ) * g x^(-q) := by
+          rw [ENNReal.rpow_one,ENNReal.rpow_neg]
+        _ = g x^(1-q) := by
+          rw [← ENNReal.rpow_add _ _ (hgpos x).1 (hgpos x).2]
+          rfl
+        _ = (g x^(q-1))⁻¹ := by
+          rw [← ENNReal.rpow_neg]
+          congr 1
+          ring
+  have gd_power_moment (x y : E) (τ q : ℝ) (hτ : 0 < τ) (hq : 1 < q) :
+      (∫⁻ z, gd τ x z^q / gd τ y z^(q-1) ∂volume) =
+        ENNReal.ofReal (Real.exp (q*(q-1)*‖x-y‖^2/(2*τ))) := by
+    let : IsProbabilityMeasure ((volume : Measure E).withDensity (gd τ y)) := by
+      rw [← gd_law y τ hτ]
+      exact Measure.isProbabilityMeasure_map (by fun_prop)
+    have hd := (density_power (volume : Measure E) (gd τ x) (gd τ y)
+      (by unfold gd; fun_prop) (by unfold gd; fun_prop)
+      (fun z => ⟨ne_of_gt (gd_bounds τ hτ y z).1,ENNReal.ofReal_ne_top⟩) q hq).2
+    rw [← gd_law x τ hτ,← gd_law y τ hτ] at hd
+    obtain ⟨_,_,_,hrn,hI,hm,_⟩ :=
+      AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianPowerMoment.gaussian_power_moment x y τ q hτ hq
+    have hi := ofReal_integral_eq_lintegral_ofReal hI
+      (Filter.Eventually.of_forall (fun z => Real.rpow_nonneg ENNReal.toReal_nonneg q))
+    rw [hm] at hi
+    rw [← hd]
+    refine (lintegral_congr_ae ?_).trans hi.symm
+    filter_upwards [hrn] with z hz
+    rw [← ENNReal.ofReal_rpow_of_nonneg ENNReal.toReal_nonneg (by linarith),
+      ENNReal.ofReal_toReal (by rw [hz]; exact ENNReal.ofReal_ne_top)]
+  have mixture_power_bound (γ : Measure (E × E)) [IsProbabilityMeasure γ]
+      (τ q t : ℝ) (hτ : 0 < τ) (hq : 1 < q) (ht : 0 ≤ t)
+      (hdisp : ∀ᵐ c ∂γ, ‖c.1-c.2‖ ≤ t) :
+      (∫⁻ z : E, (∫⁻ c, gd τ c.1 z ∂γ)^q /
+        (∫⁻ c, gd τ c.2 z ∂γ)^(q-1) ∂volume) ≤
+        ENNReal.ofReal (Real.exp (q*(q-1)*t^2/(2*τ))) := by
+    have hb : ∀ z : E, 0 < (∫⁻ c, gd τ c.2 z ∂γ) ∧
+        (∫⁻ c, gd τ c.2 z ∂γ) ≠ ⊤ := by
+      intro z
+      let : IsProbabilityMeasure (γ.map Prod.snd) := Measure.isProbabilityMeasure_map (by fun_prop)
+      have h := mix_bounds (γ.map Prod.snd) τ hτ z
+      rw [lintegral_map (by unfold gd; fun_prop) measurable_snd] at h
+      exact h
+    calc
+      _ ≤ ∫⁻ z : E, ∫⁻ c, gd τ c.1 z^q / gd τ c.2 z^(q-1) ∂γ ∂volume := by
+        apply lintegral_mono
+        intro z
+        exact PowerPerspective.lintegral_perspective_le γ (fun c => gd τ c.1 z) (fun c => gd τ c.2 z)
+          (by unfold gd; fun_prop) (by unfold gd; fun_prop)
+          (Filter.Eventually.of_forall (fun c => ⟨ne_of_gt (gd_bounds τ hτ c.2 z).1,ENNReal.ofReal_ne_top⟩))
+          (ne_of_gt (hb z).1) (hb z).2 q hq
+      _ = ∫⁻ c, ∫⁻ z : E, gd τ c.1 z^q / gd τ c.2 z^(q-1) ∂volume ∂γ := by
+        apply lintegral_lintegral_swap
+        unfold gd
+        fun_prop
+      _ = ∫⁻ c, ENNReal.ofReal (Real.exp (q*(q-1)*‖c.1-c.2‖^2/(2*τ))) ∂γ := by
+        apply lintegral_congr
+        intro c
+        exact gd_power_moment c.1 c.2 τ q hτ hq
+      _ ≤ ∫⁻ _ : E × E, ENNReal.ofReal (Real.exp (q*(q-1)*t^2/(2*τ))) ∂γ := by
+        apply lintegral_mono_ae
+        filter_upwards [hdisp] with c hc
+        apply ENNReal.ofReal_le_ofReal
+        apply Real.exp_le_exp.mpr
+        apply div_le_div_of_nonneg_right _ (by positivity)
+        apply mul_le_mul_of_nonneg_left _ (by positivity)
+        have hn := norm_nonneg (c.1-c.2)
+        nlinarith
+      _ = _ := by simp
+  have bounded_mix (P Q : Measure E) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
+      (γ : Measure (E × E)) [IsProbabilityMeasure γ]
+      (hγ : Transport.IsCoupling γ P Q)
+      (τ q t : ℝ) (hτ : 0 < τ) (hq : 1 < q) (ht : 0 ≤ t)
+      (hdisp : ∀ᵐ c ∂γ, ‖c.1-c.2‖ ≤ t) :
+      let H := fun μ : Measure E => (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt τ • p.2)
+      H P ≪ H Q ∧
+        (∫⁻ z, ((H P).rnDeriv (H Q) z)^q ∂H Q) ≤ ENNReal.ofReal (Real.exp (q*(q-1)*t^2/(2*τ))) ∧
+        Integrable (fun z => ((H P).rnDeriv (H Q) z).toReal^q) (H Q) ∧
+        (∫ z, ((H P).rnDeriv (H Q) z).toReal^q ∂H Q) ≤ Real.exp (q*(q-1)*t^2/(2*τ)) ∧
+        Real.log (∫ z, ((H P).rnDeriv (H Q) z).toReal^q ∂H Q)/(q-1) ≤ q*t^2/(2*τ) := by
+    let H := fun μ : Measure E => (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt τ • p.2)
+    let a := fun z => ∫⁻ x, gd τ x z ∂P
+    let b := fun z => ∫⁻ x, gd τ x z ∂Q
+    have ha : Measurable a := by
+      exact (show Measurable (fun p : E × E => gd τ p.1 p.2) by unfold gd; fun_prop).lintegral_prod_left'
+    have hb : Measurable b := by
+      exact (show Measurable (fun p : E × E => gd τ p.1 p.2) by unfold gd; fun_prop).lintegral_prod_left'
+    have hA : H P = (volume : Measure E).withDensity a := mix_density P τ hτ
+    have hB : H Q = (volume : Measure E).withDensity b := mix_density Q τ hτ
+    let : IsProbabilityMeasure (H P) := Measure.isProbabilityMeasure_map (by fun_prop)
+    let : IsProbabilityMeasure (H Q) := Measure.isProbabilityMeasure_map (by fun_prop)
+    let : IsProbabilityMeasure ((volume : Measure E).withDensity a) := hA ▸ inferInstance
+    let : IsProbabilityMeasure ((volume : Measure E).withDensity b) := hB ▸ inferInstance
+    have hap : ∀ z, a z ≠ 0 ∧ a z ≠ ⊤ := fun z =>
+      ⟨ne_of_gt (mix_bounds P τ hτ z).1,(mix_bounds P τ hτ z).2⟩
+    have hbp : ∀ z, b z ≠ 0 ∧ b z ≠ ⊤ := fun z =>
+      ⟨ne_of_gt (mix_bounds Q τ hτ z).1,(mix_bounds Q τ hτ z).2⟩
+    obtain ⟨hac,hd⟩ := density_power (volume : Measure E) a b ha hb hbp q hq
+    have hback := (density_power (volume : Measure E) b a hb ha hap q hq).1
+    rw [← hA,← hB] at hac hd hback
+    have hbound : (∫⁻ z, ((H P).rnDeriv (H Q) z)^q ∂H Q) ≤
+        ENNReal.ofReal (Real.exp (q*(q-1)*t^2/(2*τ))) := by
+      rw [hd]
+      have hp : ∀ z, a z = ∫⁻ c, gd τ c.1 z ∂γ := by
+        intro z
+        dsimp only [a]
+        rw [← hγ.1]
+        exact lintegral_map (by unfold gd; fun_prop) measurable_fst
+      have hq' : ∀ z, b z = ∫⁻ c, gd τ c.2 z ∂γ := by
+        intro z
+        dsimp only [b]
+        rw [← hγ.2]
+        exact lintegral_map (by unfold gd; fun_prop) measurable_snd
+      simp_rw [hp,hq']
+      exact mixture_power_bound γ τ q t hτ hq ht hdisp
+    have hfin : (∫⁻ z, ((H P).rnDeriv (H Q) z)^q ∂H Q) ≠ ⊤ :=
+      ne_top_of_le_ne_top ENNReal.ofReal_ne_top hbound
+    have hm : Measurable (fun z => ((H P).rnDeriv (H Q) z)^q) :=
+      (Measure.measurable_rnDeriv _ _).pow_const q
+    have hI : Integrable (fun z => ((H P).rnDeriv (H Q) z).toReal^q) (H Q) := by
+      simpa only [ENNReal.toReal_rpow] using integrable_toReal_of_lintegral_ne_top hm.aemeasurable hfin
+    have hre : (∫ z, ((H P).rnDeriv (H Q) z).toReal^q ∂H Q) =
+        (∫⁻ z, ((H P).rnDeriv (H Q) z)^q ∂H Q).toReal := by
+      simp_rw [ENNReal.toReal_rpow]
+      apply integral_toReal hm.aemeasurable
+      filter_upwards [Measure.rnDeriv_lt_top (H P) (H Q)] with z hz
+      exact ENNReal.rpow_lt_top_of_nonneg (by linarith) hz.ne
+    have hrb : (∫ z, ((H P).rnDeriv (H Q) z).toReal^q ∂H Q) ≤
+        Real.exp (q*(q-1)*t^2/(2*τ)) := by
+      rw [hre]
+      simpa only [ENNReal.toReal_ofReal (Real.exp_pos _).le] using
+        ENNReal.toReal_mono ENNReal.ofReal_ne_top hbound
+    have hp0 : (∫⁻ z, ((H P).rnDeriv (H Q) z)^q ∂H Q) ≠ 0 := by
+      intro hz
+      have he := (lintegral_eq_zero_iff hm).mp hz
+      have hpos := Measure.rnDeriv_pos' hback
+      have hf : ∀ᵐ z ∂H Q, False := by
+        filter_upwards [he,hpos] with z he hp
+        exact (ne_of_gt (ENNReal.rpow_pos_of_nonneg hp (by linarith))) he
+      exact IsProbabilityMeasure.ne_zero (H Q) (by simpa using hf)
+    have hipos : 0 < (∫ z, ((H P).rnDeriv (H Q) z).toReal^q ∂H Q) := by
+      rw [hre]
+      exact ENNReal.toReal_pos hp0 hfin
+    refine ⟨hac,hbound,hI,hrb,?_⟩
+    have hl := Real.log_le_log hipos hrb
+    rw [Real.log_exp] at hl
+    have hh := div_le_div_of_nonneg_right hl (show 0 ≤ q-1 by linarith)
+    have he : (q*(q-1)*t^2/(2*τ))/(q-1) = q*t^2/(2*τ) := by
+      have hn : q-1 ≠ 0 := by linarith
+      field_simp
+    exact hh.trans_eq he
+  have smoothing_law (μ : Measure E) [IsProbabilityMeasure μ] (τ : ℝ) :
+      GaussianSmoothing.gaussianSmoothing μ (Real.sqrt τ) =
+        (μ.prod (stdGaussian E)).map (fun p => p.1+Real.sqrt τ • p.2) := by
+    unfold GaussianSmoothing.gaussianSmoothing CommonNoiseContraction.addNoise
+      GaussianSmoothing.scaledStdGaussian
+    have hp := Measure.map_prod_map μ (stdGaussian E) measurable_id
+      (by fun_prop : Measurable (fun z : E => Real.sqrt τ • z))
+    simp only [Measure.map_id] at hp
+    rw [hp,Measure.map_map (by fun_prop) (by fun_prop)]
+    rfl
+  let : IsProbabilityMeasure γ := Transport.isProbabilityMeasure_of_isCoupling_left hγ
+  have h := bounded_mix P Q γ hγ τ q t hτ hq ht hdisp
+  dsimp only
+  simpa only [smoothing_law] using h
+
+end AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.GaussianMixture

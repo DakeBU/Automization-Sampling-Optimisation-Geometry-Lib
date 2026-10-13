@@ -1,0 +1,67 @@
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+import Mathlib.Tactic
+
+/-!
+# Integrals against normalized finite measures
+
+A nonzero finite measure is its total mass times its normalized probability
+measure. This module records the corresponding Bochner-integral identity in a
+form convenient for the direct Brenier perturbation.
+
+The proof uses only Mathlib's canonical
+`FiniteMeasure.self_eq_mass_smul_normalize` and
+`integral_smul_nnreal_measure`.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Probability
+namespace NormalizedFiniteMeasureIntegral
+
+open MeasureTheory
+open scoped NNReal
+
+noncomputable section
+
+variable {X : Type*} [MeasurableSpace X] [Nonempty X]
+
+/-- Integrating a real observable against a finite measure is its total mass
+times the expectation under the normalized probability measure. The Bochner
+integral is totalized, so no separate integrability hypothesis is needed for
+this algebraic scaling identity. -/
+theorem integral_eq_mass_mul_integral_normalize
+    (mu : FiniteMeasure X) (f : X → ℝ) :
+    (∫ x, f x ∂(mu : Measure X)) =
+      (mu.mass : ℝ) * ∫ x, f x ∂(mu.normalize : Measure X) := by
+  have hmeasure :
+      (mu : Measure X) =
+        (mu.mass : ℝ≥0) • (mu.normalize : Measure X) := by
+    have h := congrArg
+      (fun eta : FiniteMeasure X => (eta : Measure X))
+      mu.self_eq_mass_smul_normalize
+    simpa using h
+  rw [hmeasure, integral_smul_nnreal_measure]
+  rfl
+
+/-- Positive-mass specialization, packaged with the scalar positivity needed
+to transport strict inequalities between normalized expectations and finite
+measure integrals. -/
+theorem integral_lt_integral_iff_normalize_of_mass_pos
+    (mu : FiniteMeasure X) (f g : X → ℝ)
+    (hpos : 0 < mu.mass) :
+    (∫ x, f x ∂(mu : Measure X)) < (∫ x, g x ∂(mu : Measure X)) ↔
+      (∫ x, f x ∂(mu.normalize : Measure X)) <
+        (∫ x, g x ∂(mu.normalize : Measure X)) := by
+  rw [integral_eq_mass_mul_integral_normalize,
+    integral_eq_mass_mul_integral_normalize]
+  have hm : (0 : ℝ) < (mu.mass : ℝ) := by
+    exact_mod_cast hpos
+  constructor <;> intro h <;> nlinarith
+
+end
+
+end NormalizedFiniteMeasureIntegral
+end Probability
+end TechnicalLemmas
+end AutoSamplingTheory

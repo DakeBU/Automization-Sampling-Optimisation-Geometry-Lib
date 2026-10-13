@@ -1,0 +1,131 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingProcessApprox
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteTimeGrid
+
+/-!
+# Pointwise limit of randomly stopped dyadic refinements
+
+This file is the order-theoretic layer between exact finite-grid stopping and
+product-space `L2` convergence.  For a bounded nonnegative stopping time `tau`,
+the refined elementary process stopped by the *original* random time converges
+pointwise to Chewi's closed stopped integrand
+
+`eta_t * 1_{t <= tau}`
+
+as represented by `Localization.stoppedIntegrand`.
+
+No expectation, Brownian increment estimate, dominated convergence, or
+completed Ito integral is used here.  Those belong to the next layer.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace RandomStoppingIntegrandLimit
+
+open Filter MeasureTheory Set
+open scoped NNReal Topology
+
+open ContinuousDoobL2 DyadicElementaryRefinement DyadicElementaryStopping FiniteTimeGrid
+  ProgressiveL2Density RandomStoppingBoundary RandomStoppingDyadicApprox
+  RandomStoppingProcessApprox StoppingTime
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {T : ℝ≥0}
+
+/-- The randomly stopped dyadic refinements converge at every time/sample pair
+to the closed stopped integrand used in Chewi's localization definition.
+
+The endpoint `s = tau omega` is included: every dyadic right endpoint lies at
+or to the right of `tau omega`, so the approximants retain `eta_s` there.  The
+case `tau omega = 0` is separated because the elementary process itself
+vanishes at the left grid endpoint. -/
+theorem tendsto_stopRefinedDyadic_value_stoppedIntegrand
+    (eta : DyadicElementaryProcess filtration T)
+    (tau : Omega → ℝ≥0)
+    (htau : IsChewiStoppingTime filtration
+      (fun omega => (tau omega : WithTop ℝ≥0)))
+    (htauT : ∀ omega, tau omega ≤ T)
+    (s : ℝ≥0) (omega : Omega) :
+    Tendsto
+      (fun n => (stopRefinedDyadic eta tau htau n).process.value s omega)
+      atTop
+      (𝓝 (Localization.stoppedIntegrand eta.process.value
+        (fun w => (tau w : WithTop ℝ≥0)) s omega)) := by
+  by_cases hzero : tau omega = 0
+  · have hseq :
+        (fun n => (stopRefinedDyadic eta tau htau n).process.value s omega) =
+          (fun _ : ℕ => (0 : ℝ)) := by
+      funext n
+      exact stopRefinedDyadic_value_eq_zero_of_stoppingValue_eq_zero
+        eta tau htau n omega hzero s
+    have htarget :
+        Localization.stoppedIntegrand eta.process.value
+          (fun w => (tau w : WithTop ℝ≥0)) s omega = 0 := by
+      by_cases hs0 : s = 0
+      · subst s
+        have hvalue0 : eta.process.value 0 omega = 0 :=
+          ElementaryAdaptedProcess.value_eq_zero_of_le_first
+            eta.process bot_le omega
+        rw [Localization.stoppedIntegrand, hzero]
+        simp [hvalue0]
+      · have hspos : 0 < s := lt_of_le_of_ne bot_le (Ne.symm hs0)
+        have hnot :
+            ¬ ((s : WithTop ℝ≥0) ≤ (tau omega : WithTop ℝ≥0)) := by
+          rw [hzero]
+          simpa only [WithTop.coe_le_coe] using (not_le_of_gt hspos)
+        rw [Localization.stoppedIntegrand, if_neg hnot]
+    rw [hseq, htarget]
+    exact tendsto_const_nhds
+  · have homega : 0 < tau omega :=
+      lt_of_le_of_ne bot_le (Ne.symm hzero)
+    have hseq :
+        (fun n => (stopRefinedDyadic eta tau htau n).process.value s omega) =
+          (fun n =>
+            (stopAtRightApprox eta (DyadicElementaryProcess.horizon_pos eta)
+              homega (htauT omega) n).process.value s omega) := by
+      funext n
+      exact stopRefinedDyadic_value_eq_rightApprox
+        eta tau htau htauT n omega homega s
+    rw [hseq]
+    by_cases hst : s ≤ tau omega
+    · have hsright (n : ℕ) :
+          s ≤ rightApproxTime (DyadicElementaryProcess.horizon_pos eta)
+            homega (htauT omega) (stoppingLevel eta n) :=
+        hst.trans
+          (activeCellIndex_spec (DyadicElementaryProcess.horizon_pos eta)
+            homega (htauT omega) (stoppingLevel eta n)).2
+      have htarget :
+          Localization.stoppedIntegrand eta.process.value
+            (fun w => (tau w : WithTop ℝ≥0)) s omega =
+            eta.process.value s omega := by
+        have hcoe :
+            (s : WithTop ℝ≥0) ≤ (tau omega : WithTop ℝ≥0) := by
+          simpa only [WithTop.coe_le_coe] using hst
+        rw [Localization.stoppedIntegrand, if_pos hcoe]
+      rw [htarget]
+      simp only [stopAtRightApprox_value_eq, if_pos (hsright _)]
+      exact tendsto_const_nhds
+    · have htauS : tau omega < s := lt_of_not_ge hst
+      have hevent :
+          ∀ᶠ n in atTop,
+            rightApproxTime (DyadicElementaryProcess.horizon_pos eta)
+              homega (htauT omega) (stoppingLevel eta n) < s :=
+        (tendsto_order.1
+          (tendsto_rightApproxTime_stoppingValue
+            eta tau htauT omega homega)).2 s htauS
+      have htarget :
+          Localization.stoppedIntegrand eta.process.value
+            (fun w => (tau w : WithTop ℝ≥0)) s omega = 0 := by
+        have hnot :
+            ¬ ((s : WithTop ℝ≥0) ≤ (tau omega : WithTop ℝ≥0)) := by
+          simpa only [WithTop.coe_le_coe] using hst
+        rw [Localization.stoppedIntegrand, if_neg hnot]
+      rw [htarget]
+      apply (Filter.tendsto_congr' ?_).mpr tendsto_const_nhds
+      filter_upwards [hevent] with n hn
+      rw [stopAtRightApprox_value_eq, if_neg (not_le_of_gt hn)]
+
+end RandomStoppingIntegrandLimit
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

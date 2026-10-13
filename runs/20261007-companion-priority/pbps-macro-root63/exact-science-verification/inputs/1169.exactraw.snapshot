@@ -1,0 +1,112 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CoefficientTruncation
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoEmbedding
+
+/-!
+# Sampled elementary approximations
+
+This file constructs genuine bounded elementary adapted processes by sampling a
+progressive process at deterministic left endpoints and clipping each sampled
+coefficient.  It supplies the finite-grid object required by the later density
+argument; convergence of the time discretization is deliberately separate.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace SampledElementaryApproximation
+
+open MeasureTheory
+open scoped NNReal
+
+open CoefficientTruncation ElementaryItoIntegral ProgressiveL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- Equally spaced endpoints with mesh `delta`. -/
+def regularGridTimes (delta : ℝ≥0) (cellCount : ℕ) : Fin (cellCount + 1) → ℝ≥0 :=
+  fun i => (i.val : ℝ≥0) * delta
+
+theorem regularGridTimes_strictMono {delta : ℝ≥0} (hdelta : 0 < delta)
+    (cellCount : ℕ) :
+    StrictMono (regularGridTimes delta cellCount) := by
+  intro i j hij
+  apply mul_lt_mul_of_pos_right _ hdelta
+  exact_mod_cast hij
+
+/-- Sample at each deterministic left endpoint and clip at a natural level.
+The result inhabits the actual elementary-process structure used by the Ito
+isometry, including its strict grid, filtration measurability, and bound. -/
+noncomputable def sampledClipped
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (cellCount : ℕ) (delta : ℝ≥0) (hdelta : 0 < delta)
+    (truncationLevel : ℕ) :
+    ElementaryAdaptedProcess filtration cellCount where
+  times := regularGridTimes delta cellCount
+  times_strictMono := regularGridTimes_strictMono hdelta cellCount
+  coeff := fun i omega =>
+    clipNat truncationLevel
+      (eta.process (regularGridTimes delta cellCount i.castSucc) omega)
+  coeff_stronglyMeasurable := fun i => by
+    apply stronglyMeasurable_clipNat
+    exact eta.progressive.stronglyAdapted
+      (regularGridTimes delta cellCount i.castSucc)
+  coeff_bounded := fun i =>
+    ⟨truncationLevel, fun omega =>
+      abs_clipNat_le truncationLevel
+        (eta.process (regularGridTimes delta cellCount i.castSucc) omega)⟩
+
+@[simp] theorem sampledClipped_times
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (cellCount : ℕ) (delta : ℝ≥0) (hdelta : 0 < delta)
+    (truncationLevel : ℕ) :
+    (sampledClipped eta cellCount delta hdelta truncationLevel).times =
+      regularGridTimes delta cellCount :=
+  by simp [sampledClipped]
+
+@[simp] theorem sampledClipped_coeff
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (cellCount : ℕ) (delta : ℝ≥0) (hdelta : 0 < delta)
+    (truncationLevel : ℕ) (i : Fin cellCount) (omega : Omega) :
+    (sampledClipped eta cellCount delta hdelta truncationLevel).coeff i omega =
+      clipNat truncationLevel
+        (eta.process (regularGridTimes delta cellCount i.castSucc) omega) :=
+  by simp [sampledClipped]
+
+theorem sampledClipped_coeff_abs_le
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (cellCount : ℕ) (delta : ℝ≥0) (hdelta : 0 < delta)
+    (truncationLevel : ℕ) (i : Fin cellCount) (omega : Omega) :
+    |(sampledClipped eta cellCount delta hdelta truncationLevel).coeff i omega| ≤
+      (truncationLevel : ℝ) :=
+  abs_clipNat_le truncationLevel _
+
+/-- Mesh for the level-`level` dyadic partition of `[0,T]`. -/
+noncomputable def dyadicMesh (T : ℝ≥0) (level : ℕ) : ℝ≥0 :=
+  T / (2 ^ level : ℕ)
+
+theorem dyadicMesh_pos {T : ℝ≥0} (hT : 0 < T) (level : ℕ) :
+    0 < dyadicMesh T level := by
+  exact div_pos hT (by positivity)
+
+/-- Canonical clipped left-step process on the dyadic partition of `[0,T]`. -/
+noncomputable def sampledClippedDyadic
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (level truncationLevel : ℕ) :
+    ElementaryAdaptedProcess filtration (2 ^ level) :=
+  sampledClipped eta (2 ^ level) (dyadicMesh T level)
+    (dyadicMesh_pos hT level) truncationLevel
+
+theorem sampledClippedDyadic_last_time
+    (eta : ProgressiveL2Integrand filtration mu T) (hT : 0 < T)
+    (level truncationLevel : ℕ) :
+    (sampledClippedDyadic eta hT level truncationLevel).times (Fin.last (2 ^ level)) = T := by
+  simp only [sampledClippedDyadic, sampledClipped_times, regularGridTimes,
+    Fin.val_last, Nat.cast_pow, Nat.cast_ofNat, dyadicMesh]
+  rw [mul_comm, div_mul_cancel₀]
+  positivity
+
+end SampledElementaryApproximation
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,34 @@
+import Mathlib.Probability.Distributions.Gaussian.Real
+import Mathlib.MeasureTheory.Measure.Count
+import Mathlib.Analysis.Calculus.ContDiff.Deriv
+import Mathlib.Analysis.Calculus.Deriv.Support
+open MeasureTheory ProbabilityTheory Filter
+open scoped ENNReal Topology BigOperators
+noncomputable section
+#check (∀ (f : ℝ → ℝ), ContDiff ℝ 2 f → HasCompactSupport f →
+    let μ : (n : ℕ) → Measure (Fin n → Bool) := fun n =>
+      (Fintype.card (Fin n → Bool) : ℝ≥0∞)⁻¹ • Measure.count
+    let S : (n : ℕ) → (Fin n → Bool) → ℝ := fun n ε =>
+      (Real.sqrt (n : ℝ))⁻¹ * ∑ j : Fin n, if ε j then (1 : ℝ) else -1
+    let γ : Measure ℝ := gaussianReal 0 1
+    Integrable (fun x => (f x)^2) γ ∧
+    Integrable (fun x => (f x)^2 * Real.log ((f x)^2)) γ ∧
+    Integrable (fun x => (deriv f x)^2) γ ∧
+    (∀ n : ℕ,
+      Integrable (fun ε => (f (S n ε))^2) (μ n) ∧
+      Integrable (fun ε => (f (S n ε))^2 * Real.log ((f (S n ε))^2)) (μ n) ∧
+      Integrable (fun ε => (deriv f (S n ε))^2) (μ n)) ∧
+    Tendsto (fun n : ℕ => ∫ ε, (f (S (n+1) ε))^2 ∂μ (n+1)) atTop
+      (𝓝 (∫ x, (f x)^2 ∂γ)) ∧
+    Tendsto (fun n : ℕ => ∫ ε,
+      (f (S (n+1) ε))^2 * Real.log ((f (S (n+1) ε))^2) ∂μ (n+1)) atTop
+      (𝓝 (∫ x, (f x)^2 * Real.log ((f x)^2) ∂γ)) ∧
+    Tendsto (fun n : ℕ => ∫ ε, (deriv f (S (n+1) ε))^2 ∂μ (n+1)) atTop
+      (𝓝 (∫ x, (deriv f x)^2 ∂γ)) ∧
+    Tendsto (fun n : ℕ =>
+      (∫ ε, (f (S (n+1) ε))^2 * Real.log ((f (S (n+1) ε))^2) ∂μ (n+1)) -
+      (∫ ε, (f (S (n+1) ε))^2 ∂μ (n+1)) *
+        Real.log (∫ ε, (f (S (n+1) ε))^2 ∂μ (n+1))) atTop
+      (𝓝 ((∫ x, (f x)^2 * Real.log ((f x)^2) ∂γ) -
+        (∫ x, (f x)^2 ∂γ) * Real.log (∫ x, (f x)^2 ∂γ)))
+ : Prop)

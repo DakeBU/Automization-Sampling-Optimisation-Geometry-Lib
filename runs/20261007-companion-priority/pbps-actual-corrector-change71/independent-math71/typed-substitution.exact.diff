@@ -1,0 +1,44 @@
+--- root-failed-v1
++++ current-frozen-typed-substitution-v2
+@@ -302,6 +302,23 @@
+   change (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) at hR
+   change (∀ g : Lp ℝ 2 J,
+     B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) at hAmbient
++  change (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →
++                            ∃ fP : HP0,
++                              HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧
++                              let fperp : Hperp := R f
++                              let fV : HP0 := V0.adjoint fperp
++                              B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧
++                              HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧
++                              ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖ ∧
++                              let g : Lp ℝ 2 J := U (P f-(f-P f))
++                              (∫ z, g z ∂J)=0 ∧
++                              ∃ gP : HP0,
++                                HP0.subtypeL gP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le g ∧
++                                let gperp : Hperp := R g
++                                let gV : HP0 := V0.adjoint gperp
++                                gP=A0 fP-ΓP0 fV ∧
++                                gV=ΓP0 fP+A0 fV ∧
++                                ‖gP‖^2+‖gV‖^2=‖fP‖^2+‖fV‖^2) at hGlobal
+   let D : Hperp →L[ℝ] Hperp := R ∘L U.toContinuousLinearMap ∘L Hperp.subtypeL
+   have hD (h : Hperp) : (D h : Lp ℝ 2 J)=
+       U (h : Lp ℝ 2 J)-P (U (h : Lp ℝ 2 J)) := hDparent h
+@@ -412,8 +429,15 @@
+         inner ℝ (K gP) (V0.adjoint (R (U (P f-(f-P f))))))-
+       ((‖fP‖^2-‖V0.adjoint (R f)‖^2)/2-inner ℝ (K fP) (V0.adjoint (R f)))=
+       -‖fP‖^2+‖V0.adjoint (R f)‖^2
+-    rw [hgPformula,hgVformula]
+-    exact hCorrector fP (V0.adjoint (R f))
++    let fV : HP0 := V0.adjoint (R f)
++    let gV : HP0 := V0.adjoint (R (U (P f-(f-P f))))
++    have hgp : gP=A0 fP-ΓP0 fV := hgPformula
++    have hgv : gV=ΓP0 fP+A0 fV := hgVformula
++    let C : HP0 → HP0 → ℝ := fun u v => (‖u‖^2-‖v‖^2)/2-inner ℝ (K u) v
++    change C gP gV-C fP fV= -‖fP‖^2+‖fV‖^2
++    have hPair : C gP gV=C (A0 fP-ΓP0 fV) (ΓP0 fP+A0 fV) :=
++      congrArg₂ C hgp hgv
++    exact (congrArg (fun a : ℝ => a-C fP fV) hPair).trans (hCorrector fP fV)
+   have hFinal :
+       (∀ h : Hperp, (D h : Lp ℝ 2 J)=U (h : Lp ℝ 2 J)-P (U (h : Lp ℝ 2 J))) ∧
+       V0.adjoint ∘L D= -(A0 ∘L V0.adjoint) ∧

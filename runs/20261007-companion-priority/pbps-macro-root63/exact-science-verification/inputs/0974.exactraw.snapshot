@@ -1,0 +1,48 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementJacobianEntropy
+
+/-!
+# Eigenvectors of the affine displacement Jacobian
+
+For Chewi's entropy proof, after certifying that `(1-t) I + t A` remains
+positive definite, the next algebraic edge is that it uses the same
+orthonormal eigenbasis as `A`.  This file proves that pointwise eigenvector
+statement without making any claim yet about the library's ordered eigenvalue
+function.
+
+That separation avoids coupling the simple linear algebra here to eigenvalue
+sorting conventions.  A later determinant/log-det node can use the common
+basis to diagonalize the affine Jacobian.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementJacobianAffineSpectrum
+
+open Matrix
+
+noncomputable section
+
+/-- Every eigenvector in the canonical Hermitian eigenbasis of a real SPD
+matrix `A` remains an eigenvector of `(1-t) I + t A`, with eigenvalue
+`(1-t) + t * lambda_i`.
+
+No ordering claim about `Matrix.IsHermitian.eigenvalues` for the affine matrix
+is made here. -/
+theorem affineIdentityMatrix_mulVec_eigenvectorBasis
+    {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (A : Matrix ι ι ℝ) (hA : A.PosDef) (t : ℝ) (i : ι) :
+    ((1 - t) • (1 : Matrix ι ι ℝ) + t • A) *ᵥ
+        ⇑(hA.isHermitian.eigenvectorBasis i) =
+      ((1 - t) + t * hA.isHermitian.eigenvalues i) •
+        ⇑(hA.isHermitian.eigenvectorBasis i) := by
+  rw [Matrix.add_mulVec, Matrix.smul_mulVec, Matrix.smul_mulVec,
+    Matrix.one_mulVec, hA.isHermitian.mulVec_eigenvectorBasis]
+  simp [smul_smul, add_smul]
+
+end
+
+end DisplacementJacobianAffineSpectrum
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

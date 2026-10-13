@@ -1,0 +1,93 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion
+import Mathlib.Order.Interval.Set.Disjoint
+import Mathlib.Tactic
+
+/-!
+# Vector Brownian motion relative to a common filtration
+
+Chewi's finite-dimensional Itô-process definition is driven by one
+`ℝ^N`-valued Brownian motion.  The scalar Itô integral developed earlier in
+Chapter 1 is phrased through `IsBrownianMotionWithFiltration`.  The bridge must
+therefore derive scalar coordinate contracts from a single vector process; it
+must not replace the source Brownian motion by an unrelated family of scalar
+processes.
+
+This first layer proves that the stronger independent-increments clause in
+`IsStandardBrownianMotion` implies Mathlib's consecutive-grid
+`HasIndepIncrements`.  Continuous linear projections then inherit those
+independent increments through Mathlib's `HasIndepIncrements.map` API.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace BrownianMotion
+
+open MeasureTheory ProbabilityTheory Set
+open scoped NNReal RealInnerProductSpace Topology
+
+variable {Omega E : Type*} [MeasurableSpace Omega]
+  [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+  [MeasurableSpace E] [BorelSpace E]
+
+/-- Chewi's arbitrary finite-family independent-increment clause implies
+Mathlib's consecutive-grid `HasIndepIncrements` predicate. -/
+theorem IsStandardBrownianMotion.hasIndepIncrements
+    {B : ℝ≥0 → Omega → E} {mu : Measure Omega}
+    (hB : IsStandardBrownianMotion B mu) :
+    HasIndepIncrements B mu := by
+  intro n t ht
+  apply hB.2.1 n
+      (fun i : Fin n => t i.castSucc)
+      (fun i : Fin n => t i.succ)
+  · intro i
+    apply ht
+    apply Fin.le_iff_val_le_val.mpr
+    simp only [Fin.val_castSucc, Fin.val_succ]
+    omega
+  · intro i j hij
+    rcases lt_or_gt_of_ne hij with hijlt | hjilt
+    · apply Set.Ioc_disjoint_Ioc_of_le
+      apply ht
+      apply Fin.le_iff_val_le_val.mpr
+      simp only [Fin.val_succ, Fin.val_castSucc]
+      have hijval : i.val < j.val := hijlt
+      omega
+    · apply (Set.Ioc_disjoint_Ioc_of_le ?_).symm
+      apply ht
+      apply Fin.le_iff_val_le_val.mpr
+      simp only [Fin.val_succ, Fin.val_castSucc]
+      have hjival : j.val < i.val := hjilt
+      omega
+
+/-- Every continuous linear projection of a Chewi-standard vector Brownian
+motion has Mathlib independent increments.  All projections still come from
+the same vector process. -/
+theorem IsStandardBrownianMotion.projected_hasIndepIncrements
+    {B : ℝ≥0 → Omega → E} {mu : Measure Omega}
+    (hB : IsStandardBrownianMotion B mu) (ell : StrongDual ℝ E) :
+    HasIndepIncrements (fun t omega => ell (B t omega)) mu :=
+  hB.hasIndepIncrements.map ell
+
+/-- Source-level Brownian-filtration contract for a vector process.
+
+The process itself is Chewi-standard.  Adaptedness and independence of each
+future *vector* increment from the whole past filtration are added explicitly;
+these are exactly the filtration hypotheses needed to derive the scalar
+coordinate contracts consumed by stochastic integration. -/
+structure IsStandardBrownianMotionWithFiltration
+    {Omega E : Type*} [MeasurableSpace Omega]
+    [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    [MeasurableSpace E] [BorelSpace E]
+    (B : ℝ≥0 → Omega → E) (filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Omega))
+    (mu : Measure Omega) : Prop where
+  isStandard : IsStandardBrownianMotion B mu
+  stronglyAdapted : StronglyAdapted filtration B
+  incrementIndependent : ∀ s t, s ≤ t →
+    Indep (filtration s)
+      (MeasurableSpace.comap (fun omega => B t omega - B s omega) (borel E)) mu
+
+end BrownianMotion
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,96 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementConvexPotentialSupport
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementGradientDerivativeSymmetry
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementMonotoneDerivative
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementPositiveOperator
+
+/-!
+# Positive derivatives of differentiable convex gradient fields
+
+This module is a pure composition node in the Chewi 1.4.5 Brenier/Jacobian
+spine.  The ingredients are already isolated independently:
+
+* convexity plus the global Riesz representation `D phi = innerSL R ∘ T`
+  gives monotonicity of `T`;
+* monotonicity plus differentiability of `T` at `x` gives the nonnegative
+  quadratic form of the derivative;
+* the same gradient representation plus differentiability of `T` at `x`
+  gives symmetry of the derivative via Mathlib's second-derivative symmetry
+  theorem.
+
+Combining the last two properties yields a positive continuous-linear
+operator.  No new regularity or optimal-transport assumption is introduced
+here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementConvexGradientPositive
+
+open scoped RealInnerProductSpace
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- At every point where the gradient vector field of a globally convex
+potential is Frechet differentiable, its derivative is a positive operator.
+This statement is dimension-free. -/
+theorem isPositive_fderiv_of_convex_gradient_field
+    {phi : E → ℝ} {T : E → E} {A : E →L[ℝ] E} {x : E}
+    (hconv : ConvexOn ℝ Set.univ phi)
+    (hphi : ∀ y, HasFDerivAt phi (innerSL ℝ (T y)) y)
+    (hT : HasFDerivAt T A x) :
+    A.IsPositive := by
+  have hmono : DisplacementMapInjectivity.IsMonotoneMap T :=
+    DisplacementConvexPotentialSupport.isMonotoneMap_of_convexOn_univ_hasFDerivAt_inner
+      hconv hphi
+  have hsymm : A.IsSymmetric :=
+    DisplacementGradientDerivativeSymmetry.isSymmetric_fderiv_of_gradient_field
+      hphi hT
+  exact
+    DisplacementMonotoneDerivative.isPositive_fderiv_of_monotone_of_isSymmetric
+      hmono hT hsymm
+
+section FiniteDimensional
+
+variable {ι : Type*}
+  [FiniteDimensional ℝ E]
+  [MeasurableSpace E] [BorelSpace E]
+  [Fintype ι] [DecidableEq ι]
+
+/-- In an orthonormal basis, the same local derivative therefore has a PSD
+matrix representation.  The basis is only a coordinate witness; positivity is
+proved before choosing it. -/
+theorem toMatrix_fderiv_posSemidef_of_convex_gradient_field
+    (b : OrthonormalBasis ι ℝ E)
+    {phi : E → ℝ} {T : E → E} {A : E →L[ℝ] E} {x : E}
+    (hconv : ConvexOn ℝ Set.univ phi)
+    (hphi : ∀ y, HasFDerivAt phi (innerSL ℝ (T y)) y)
+    (hT : HasFDerivAt T A x) :
+    (LinearMap.toMatrix b.toBasis b.toBasis A.toLinearMap).PosSemidef :=
+  DisplacementPositiveOperator.toMatrix_posSemidef_of_isPositive
+    b A (isPositive_fderiv_of_convex_gradient_field hconv hphi hT)
+
+/-- Consequently, the interior affine displacement derivative has strictly
+positive determinant at every such differentiability point. -/
+theorem det_affineDisplacementDerivative_pos_of_convex_gradient_field
+    (b : OrthonormalBasis ι ℝ E)
+    {phi : E → ℝ} {T : E → E} {A : E →L[ℝ] E} {x : E}
+    (hconv : ConvexOn ℝ Set.univ phi)
+    (hphi : ∀ y, HasFDerivAt phi (innerSL ℝ (T y)) y)
+    (hT : HasFDerivAt T A x)
+    (t : ℝ) (ht0 : 0 ≤ t) (ht1 : t < 1) :
+    0 < LinearMap.det
+      (DisplacementMapDerivative.affineDisplacementDerivative A t).toLinearMap :=
+  DisplacementPositiveOperator.det_affineDisplacementDerivative_pos_of_isPositive
+    b A (isPositive_fderiv_of_convex_gradient_field hconv hphi hT) t ht0 ht1
+
+end FiniteDimensional
+
+end
+
+end DisplacementConvexGradientPositive
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

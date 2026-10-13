@@ -1,0 +1,214 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-harmonic-flow",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS harmonic arcs, ODE, conserved weighted energy and half-turn",
+  "mode": "faithfulPaper",
+  "source_anchor": "PBPS Algorithm1 harmonic arcs, Section3 exact dynamics and AppendixA.1 ODE/weighted-energy formulas; deterministic construction prerequisite for Proposition3.1",
+  "target_statement": "import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient\nimport Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv\nimport Mathlib.MeasureTheory.Constructions.BorelSpace.Basic\n\n/-!\nChen--Chewi--Lu--Zhang, arXiv:2609.06905v1, Algorithm 1 and Appendix A.1:\nthe literal deterministic harmonic arcs, their ODE and conserved energy.\nThis deterministic statement asserts no stochastic process or probability kernel.\n-/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow\nopen InnerProductSpace\nopen scoped ContDiff NNReal Topology\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_harmonic_flow_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop :=\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let H : E → E → (E × E) → ℝ := fun y xRef z =>\n      (η⁻¹ * ‖z.1 - c y xRef‖ ^ 2 + ‖z.2‖ ^ 2) / 2\n    Continuous (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    Measurable (fun a : (E × E) × ℝ × (E × E) =>\n      Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    (∀ y xRef : E, ∀ z : E × E, Φ y xRef 0 z = z) ∧\n    (∀ y xRef : E, ∀ s t : ℝ, ∀ z : E × E,\n      Φ y xRef (s + t) z = Φ y xRef s (Φ y xRef t z)) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      Φ y xRef (-t) (Φ y xRef t z) = z ∧\n      Φ y xRef t (Φ y xRef (-t) z) = z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).1)\n        (Real.sqrt η • (Φ y xRef t z).2) t ∧\n      HasDerivAt (fun s : ℝ => (Φ y xRef s z).2)\n        (-(Real.sqrt η)⁻¹ • ((Φ y xRef t z).1 - y) -\n          Real.sqrt η • gradient V xRef) t) ∧\n    (∀ y xRef : E, ∀ z : E × E, 0 ≤ H y xRef z) ∧\n    (∀ y xRef : E, ∀ t : ℝ, ∀ z : E × E,\n      H y xRef (Φ y xRef t z) = H y xRef z) ∧\n    (∀ y xRef : E, ∀ z : E × E,\n      Φ y xRef Real.pi z = ((2 : ℝ) • c y xRef - z.1, -z.2))\n\ntheorem actual_harmonic_flow_laws\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    actual_harmonic_flow_statement hα hαβ hV hH hη hβη := by\n",
+  "status": "proved_locally",
+  "parents": [
+    "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one"
+  ],
+  "consumers": [
+    "PBPS Proposition3.1 fixed-reference PDMP construction/nonexplosion: deterministic harmonic segment before bounce/rate/clock recursion",
+    "Actual Algorithm1 pi-terminal position kernel, after separate measurable stochastic construction and invariance proof"
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib exact source-first finite retrieval: runs/20261007-companion-priority/pbps-half-turn-construction-preread73/api.retrieval.json",
+      "Independent73 gradient producer audit and prospective header math API typing; fixed Mathlib trigonometric/derivative/Hilbert/Borel APIs."
+    ],
+    "classification": "missing",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+    "canonical_shared_cell": "",
+    "reason": "Actual source input center depends on gradient V. Reuse the canonical gradient continuity producer; implement one deterministic arc theorem. No duplicate Flow structure, probability reference law, corrector-algebra dependency or invented second shared consumer."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib exact source-first finite retrieval: runs/20261007-companion-priority/pbps-half-turn-construction-preread73/api.retrieval.json",
+      "Independent73 gradient producer audit and prospective header math API typing; fixed Mathlib trigonometric/derivative/Hilbert/Borel APIs."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "PBPS Proposition3.1 fixed-reference PDMP construction/nonexplosion: deterministic harmonic segment before bounce/rate/clock recursion",
+      "Actual Algorithm1 pi-terminal position kernel, after separate measurable stochastic construction and invariance proof"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Actual source input center depends on gradient V. Reuse the canonical gradient continuity producer; implement one deterministic arc theorem. No duplicate Flow structure, probability reference law, corrector-algebra dependency or invented second shared consumer."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws"
+    ],
+    "visual_review": "Pending focused proof and independent review; no new graph layer."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261010-PBPSActualHarmonicFlow",
+    "statement_seal": "runs/20261007-companion-priority/pbps-harmonic-flow-preproof73/root.statement-seal73.json",
+    "focused_checks": [
+      {
+        "command": "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow",
+        "result": "PASS2523; standard three axioms only; exact sealed six callers and nine conclusions.",
+        "evidence": "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-harmonic-flow73/focused-derivative-congruence-repair/receipt.json"
+      }
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHarmonicFlow.lean"
+    ],
+    "truth_boundary": "Only the actual deterministic harmonic segment and its nine stated laws are focused-compiled. The measurable stochastic bounce/rate/clock recursion, nonexplosion, actual half-turn H_y and terminal Markov kernel, reversal, invariance, same-J lift, actual K/r_rho/B27/B28, full PBPS/SPHMC main results, implementation errors/caps, expected-query costs and actual-input composition remain open. Independent review, serialized integration, full Exposition Seal, PURIFIED, main/live and whole-Goal completion are separate admissions.",
+    "proof_review": "runs/20261007-companion-priority/pbps-actual-harmonic-flow73/independent-math73/decision.json",
+    "source_review": "runs/20261007-companion-priority/pbps-actual-harmonic-flow73/independent-source73/source.0.decision.json",
+    "execution_boundary": "Actual deterministic harmonic flow, nine clauses and six retained analytic callers focused-compiled, independently mathematically reviewed, blindly reconstructed and source-reviewed. Exact SCI73, serialized shared integration and reader acceptance remain pending. No bounce/rate/clock/random path, actual terminal Markov kernel, nonexplosion/invariance/reversal/main/errors/expected-query costs/actual-input composition or whole-paper/Exposition/PURIFIED/main/live/Goal credit."
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Frozen focused-compiled deterministic result; independent mathematics, blind reconstruction, whole implementation/source and publication review pending."
+  },
+  "declaration_level": "source-anchor",
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "PBPS Algorithm1 harmonic arcs, Section3 exact dynamics and AppendixA.1 ODE/weighted-energy formulas; deterministic construction prerequisite for Proposition3.1",
+    "fidelity_boundary": "Only the actual deterministic harmonic segment and its nine stated laws are focused-compiled. The measurable stochastic bounce/rate/clock recursion, nonexplosion, actual half-turn H_y and terminal Markov kernel, reversal, invariance, same-J lift, actual K/r_rho/B27/B28, full PBPS/SPHMC main results, implementation errors/caps, expected-query costs and actual-input composition remain open. Independent review, serialized integration, full Exposition Seal, PURIFIED, main/live and whole-Goal completion are separate admissions.",
+    "detail_status": "cites_external",
+    "gap": "Seven omitted deterministic source bridges are implemented internally and await independent full-body review; stochastic construction remains open.",
+    "source_preread": "runs/20261007-companion-priority/pbps-harmonic-flow-preproof73/independent-header-source73/StageA.source-expectations73.before-header.frozen.json",
+    "consulted": [
+      {
+        "source": "PBPS fixed v1 Algorithm1/Section3/AppendixA.1; fixed Mathlib and canonical Gradient",
+        "anchor": "PBPS Algorithm1 harmonic arcs, Section3 exact dynamics and AppendixA.1 ODE/weighted-energy formulas; deterministic construction prerequisite for Proposition3.1",
+        "hypothesis_adapter": "Source C2 supplies gradient continuity internally; eta>0 supplies reciprocal cancellation. No extra analytic premise, dimension positivity or strict cap.",
+        "expanded_binder_audit": {
+          "path": "runs/20261007-companion-priority/pbps-harmonic-flow-preproof73/independent-header-source73/source-header73.decision.json",
+          "RAW_bytes": 10422,
+          "RAW_sha256": "21a61b7bcbad0325afe0250331bce5c0c13adea4ac94fa37b75dfc8097de0aaa",
+          "LF_sha256": "21a61b7bcbad0325afe0250331bce5c0c13adea4ac94fa37b75dfc8097de0aaa",
+          "LF_recipe": "Replace CRLF byte pairs with LF only; preserve bare CR and every other byte"
+        }
+      }
+    ]
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "Two distinct compiler diagnostics repaired without changing sealed mathematics; see compiler-diagnoses73.json. All nine clauses now compile.",
+      "promoted_fragments": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws"
+      ],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-harmonic/Phi/ODE/weighted-sum"
+      ],
+      "expected_information_gain": "Sole proving writer; distinct fresh mathematics, strict blind reconstruction and anti-anchored source verification after focused compile.",
+      "shared_verified_context_digest": "0ce9bfaeda1bf2a573d606ee3d3d8beff7cd7a17fce7f511545233c8dd26b7ca"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "actual-center",
+        "joint-continuous-Borel",
+        "group-inverse",
+        "actual-ODE",
+        "weighted-energy",
+        "pi-endpoint",
+        "stochastic-construction-open"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one"
+    ],
+    "bookkeeping": [
+      "Keep the exact source center and literal weighted SUM energy."
+    ],
+    "new_reusable": [],
+    "new_topology": "Actual centered harmonic flow from the six original analytic callers: joint continuous/Borel, zero/group/both inverse, both exact ODEs, nonnegative conserved weighted SUM energy, exact pi endpoint."
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-harmonic-flow-preproof73/root.statement-seal73.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "a9c88ba486e49662820d38f3420cff2027b996ec7c911231d7fbc13cedbf7c9e",
+    "binder_audit": {
+      "path": "runs/20261007-companion-priority/pbps-harmonic-flow-preproof73/independent-header-source73/source-header73.decision.json",
+      "RAW_bytes": 10422,
+      "RAW_sha256": "21a61b7bcbad0325afe0250331bce5c0c13adea4ac94fa37b75dfc8097de0aaa",
+      "LF_sha256": "21a61b7bcbad0325afe0250331bce5c0c13adea4ac94fa37b75dfc8097de0aaa",
+      "LF_recipe": "Replace CRLF byte pairs with LF only; preserve bare CR and every other byte"
+    },
+    "definition_kind": "Complete private literal of actual c/Phi/H and all nine conclusions; same six source-standing callers. No proof provider."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-harmonic-flow-preproof73/independent-header-source73/source-proof-graph73.reviewed-projection.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-harmonic-flow-preproof73/independent-header-source73/StageA.independent-source79-classification73.frozen.json",
+    "coverage_report": {
+      "path": "runs/20261007-companion-priority/pbps-actual-harmonic-flow73/independent-source73/source-proof-coverage73.json",
+      "RAW_bytes": 5611,
+      "RAW_sha256": "b567b733300bd537ee175395f7f505e08ef19b5c1d618b95b20056eca11865fd",
+      "LF_sha256": "b567b733300bd537ee175395f7f505e08ef19b5c1d618b95b20056eca11865fd",
+      "LF_recipe": "CRLF byte pairs -> LF only; preserve bare CR and every other byte"
+    },
+    "coverage_status": "Independent whole178-line implementation/source and six exact formula/BODY steps reviewed:13regions51blocks79items24NODE55EXCLUDED; unchanged23nodes37edges;7 omitted-source bridges produced internally; same6callers/all9conclusions. Local source/math exposition only; no stochastic kernel/nonexplosion/invariance, full Exposition Seal, PURIFIED, main/live, full-paper or Goal credit."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "One public deterministic theorem uses the complete private literal proposition definition; the literal is a specification, not a mathematical provider. The six original callers are retained. No retired candidate declaration occurs in this178-line module. This scoped audit grants neither an Exposition Seal nor PURIFIED admission.",
+    "duplicate_semantics_audit": "Existing corrector algebra/reference-law kernels do not construct this flow.",
+    "canonicalization": "One actual explicit harmonic arc; Mathlib Flow packaging optional and unnecessary.",
+    "compressed_spine_delta": "Actual centered harmonic flow from the six original analytic callers: joint continuous/Borel, zero/group/both inverse, both exact ODEs, nonnegative conserved weighted SUM energy, exact pi endpoint.",
+    "reader_default_view": "Complete attributed statement plus stepwise formulas and exact adjacent folded Lean.",
+    "scope": "Only the actual deterministic harmonic segment and its nine stated laws are focused-compiled. The measurable stochastic bounce/rate/clock recursion, nonexplosion, actual half-turn H_y and terminal Markov kernel, reversal, invariance, same-J lift, actual K/r_rho/B27/B28, full PBPS/SPHMC main results, implementation errors/caps, expected-query costs and actual-input composition remain open. Independent review, serialized integration, full Exposition Seal, PURIFIED, main/live and whole-Goal completion are separate admissions."
+  },
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws"
+  ],
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "reason": "Actual harmonic rotation and weighted-energy preservation are deterministic ingredients in one existing PBPS source. No new reviewed cross-domain hypothesis/conclusion map or formal transport is inferred, and no Gaussian/PDMP invariance follows from this identity."
+  }
+}

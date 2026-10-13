@@ -1,0 +1,200 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-prescribed-gibbs-survival",
+  "route": "samplewiki-route",
+  "title": "Actual PBPS prescribed-path Gibbs and survival balance",
+  "mode": "faithfulPaper",
+  "source_anchor": "Appendix A.1 A4 target-energy derivative and Gibbs/survival identity before A8 weighted substitution",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedPathDensity\n\n/- Type-only proposal for independent prospective source and mathematical review.\nNo theorem proof, sealed statement, claim or completion is asserted. -/\nnamespace PBPSPrescribedGibbsSurvivalCandidate98\nopen MeasureTheory InnerProductSpace\nopen scoped ContDiff NNReal ENNReal Classical\nnoncomputable section\nset_option autoImplicit false\n\ndef candidate\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let rate : E → E × E → ℝ := fun r z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V r))\n    let U : E → E × E → ℝ := fun y z =>\n      V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2\n    ∀ y r : E, ∀ z : E × E, ∀ n : ℕ, ∀ T : ℝ≥0, ∀ t : Prefix n T,\n      let gamma : ℝ → E × E := fun s =>\n        Γ y r z n T t ⟨min (Real.toNNReal s) T, min_le_right _ _⟩\n      let A : E × E := Γ y r z n T t ⟨T, le_rfl⟩\n      let Iplus : ℝ := ∫ s in (0 : ℝ)..(T : ℝ), rate r (gamma s)\n      let Iminus : ℝ := ∫ s in (0 : ℝ)..(T : ℝ), rate r (R (gamma s))\n      IntervalIntegrable (fun s => rate r (gamma s)) volume 0 (T : ℝ) ∧\n      IntervalIntegrable (fun s => rate r (R (gamma s))) volume 0 (T : ℝ) ∧\n      U y A - U y z = Iplus - Iminus ∧\n      Real.exp (-U y z) * Real.exp (-Iplus) = Real.exp (-U y A) * Real.exp (-Iminus)\n\n#check candidate\nend\nend PBPSPrescribedGibbsSurvivalCandidate98\n",
+  "status": "independently_verified",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws"
+  ],
+  "consumers": [
+    "Weighted prescribed-sector Theta balance requires this finite Gibbs/survival identity together with separate reverse-arc and event-rate product correspondence, actual94 density and97 volume substitution; Gibbs probability averaging follows later."
+  ],
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival.actual_prescribed_gibbs_survival_balance"
+  ],
+  "declaration_level": "source-anchor",
+  "blocked": {
+    "status": false,
+    "reason": "Full sealed target compiles; independent whole mathematics, anonymous decoding and source/exposition reviews pending."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261012-PBPSActualPrescribedGibbsSurvival",
+    "statement_seal": "runs/20261007-companion-priority/pbps-prescribed-gibbs-survival-preread98/root.statement-seal98.json",
+    "focused_checks": [
+      "E:/Samplinglib/runs/20261007-companion-priority/pbps-actual-prescribed-gibbs-survival98/checks98/production1/receipt.json"
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedGibbsSurvival.lean"
+    ],
+    "truth_boundary": "No equality of reversed right-continuous jump values, no reversed-event density balance, weighted Theta preservation, stationary averaging/invariance, Markovness, hypocoercivity, errors, expected cost, main result or composition.",
+    "whole_target_compiled": {
+      "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualPrescribedGibbsSurvival.lean",
+      "raw_sha256": "f4856a5f059ef9875e481830cbd1a6152d7bc7de690ed325a71390a791098b95",
+      "bytes": 18529
+    },
+    "proved_local_packet": "runs/20261007-companion-priority/pbps-actual-prescribed-gibbs-survival98/proved-local98.v2.json",
+    "independent_verification": "runs/20261007-companion-priority/pbps-actual-prescribed-gibbs-survival98/exact-commit-verification98/verified.json"
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib and pinned Mathlib source-only API search: runs/20261007-companion-priority/pbps-actual-endpoint-time-reversal97/next-primary98/reuse-search98.native.json",
+      "Independent mathematical header/API audit: runs/20261007-companion-priority/pbps-prescribed-gibbs-survival-preread98/independent-header-math98/header-math-decision98.native.json",
+      "Independent primary-source header audit: runs/20261007-companion-priority/pbps-prescribed-gibbs-survival-preread98/independent-header-source98/header-source-review98.native.json",
+      "Independent source topology review: runs/20261007-companion-priority/pbps-prescribed-gibbs-survival-preread98/independent-header-math98/topology98/source-topology-decision98.native.json"
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival.actual_prescribed_gibbs_survival_balance",
+    "canonical_shared_cell": "",
+    "reason": "Reuse actual ODE, reflection and finite-path identities; supply target-energy derivative and finite-arc integration internally."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib and pinned Mathlib source-only API search: runs/20261007-companion-priority/pbps-actual-endpoint-time-reversal97/next-primary98/reuse-search98.native.json",
+      "Independent mathematical header/API audit: runs/20261007-companion-priority/pbps-prescribed-gibbs-survival-preread98/independent-header-math98/header-math-decision98.native.json",
+      "Independent primary-source header audit: runs/20261007-companion-priority/pbps-prescribed-gibbs-survival-preread98/independent-header-source98/header-source-review98.native.json",
+      "Independent source topology review: runs/20261007-companion-priority/pbps-prescribed-gibbs-survival-preread98/independent-header-math98/topology98/source-topology-decision98.native.json"
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws"
+    ],
+    "planned_dependencies": [],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "Weighted prescribed-sector Theta balance requires this finite Gibbs/survival identity together with separate reverse-arc and event-rate product correspondence, actual94 density and97 volume substitution; Gibbs probability averaging follows later."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Actual target energy and both rate integrals are new conclusions; no provider assumptions."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-prescribed-gibbs-survival-preread98/root.statement-seal98.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "50c6999fe069f4cf648832a804b71bb8e447b7a3aea0f0c42a836f81650c6ad0",
+    "binder_audit": [
+      "Six original analytic assumptions; finite real Hilbert Borel typing including rank0; no excess binder."
+    ],
+    "definition_kind": "First thirteen actual path literals identical97; R and positive-part rate literal; U_y=V+norm(x-y)^2/(2 eta)+norm(p)^2/2; real-time clamp identical94. A=Gamma(T), Iplus integrates rate(gamma), Iminus integrates rate(R gamma) along the same path, not reversed time. Exact simplex m retained unused; no normalization hypothesis."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-prescribed-gibbs-survival-preread98/source-proof-graph98.v3.native.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-actual-endpoint-time-reversal97/next-primary98/source-coverage98.native.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-actual-prescribed-gibbs-survival98/independent-final-source98/compiled-source-coverage98.native.json",
+    "coverage_status": "Independent final compiled source coverage and all six exact exposition regions accepted; exact-commit verification and integration remain separate."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "Appendix A.1 A4 target-energy derivative and Gibbs/survival identity before A8 weighted substitution",
+    "fidelity_boundary": "No equality of reversed right-continuous jump values, no reversed-event density balance, weighted Theta preservation, stationary averaging/invariance, Markovness, hypocoercivity, errors, expected cost, main result or composition.",
+    "detail_status": "omitted",
+    "gap": "Explicit target-energy chain rule, finite-arc integrability and telescoping through jumps.",
+    "consulted": [
+      {
+        "source": "Pinned PBPS v1 and fixed Mathlib",
+        "anchor": "Appendix A1 A4 and integrated A4 before weighted A8",
+        "hypothesis_adapter": "Exact target energy, actual clamped Gamma and momentum reversal on the same path; no normalization provider."
+      }
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow.actual_harmonic_flow_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate.actual_bounce_rate_energy_laws",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws"
+    ],
+    "bookkeeping": [
+      "Finite adjacent interval integration and telescoping",
+      "Exponential algebra"
+    ],
+    "new_reusable": [],
+    "new_topology": "Both actual whole-path rate integrabilities, U_y(A)-U_y(z)=Iplus-Iminus, and exp(-U_y(z))*exp(-Iplus)=exp(-U_y(A))*exp(-Iminus) for every finite prescribed tuple and nonnegative horizon."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Both private calculus and finite-energy helpers are consumed. Existing94 private integrator is not duplicated or called through a private name; new two-rate telescoping discharges actual energy-grid conditions. Postmerge review pending.",
+    "duplicate_semantics_audit": "Local/fixed Mathlib and independent source-only retrieval audited.",
+    "canonicalization": "Actual flow/reflection/path producer APIs; finite interval FTC from fixed Mathlib.",
+    "compressed_spine_delta": "Both actual whole-path rate integrabilities, U_y(A)-U_y(z)=Iplus-Iminus, and exp(-U_y(z))*exp(-Iplus)=exp(-U_y(A))*exp(-Iminus) for every finite prescribed tuple and nonnegative horizon.",
+    "reader_default_view": "Complete attributed energy/survival statement and formula proof with adjacent folded Lean.",
+    "scope": "No equality of reversed right-continuous jump values, no reversed-event density balance, weighted Theta preservation, stationary averaging/invariance, Markovness, hypocoercivity, errors, expected cost, main result or composition."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "Proof not yet attempted.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "actual-target-energy/finite-arc-FTC/gibbs-survival"
+      ],
+      "expected_information_gain": "One implementation owner; independent sealed prospective audits closed.",
+      "shared_verified_context_digest": "50c6999fe069f4cf648832a804b71bb8e447b7a3aea0f0c42a836f81650c6ad0"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Single source-faithful implementation route."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "A1.E4",
+        "A1.SS1.SSS0.Px1.p5"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival.actual_prescribed_gibbs_survival_balance"
+      ],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPrescribedGibbsSurvival.actual_prescribed_gibbs_survival_balance"
+    ],
+    "visual_review": "Pending proof and publication."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "reason": "This actual finite-path energy/compensator cancellation is the local PBPS source mechanism. No new cross-domain transport or claimed external consumer.",
+    "discovery_ids": []
+  }
+}

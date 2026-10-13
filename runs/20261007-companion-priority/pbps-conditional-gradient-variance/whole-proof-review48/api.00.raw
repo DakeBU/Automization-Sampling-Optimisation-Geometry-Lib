@@ -1,0 +1,30 @@
+namespace ProbabilityTheory
+
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {X Y Z T : Ω → ℝ} {μ : Measure Ω}
+
+/-- The covariance of two real-valued random variables defined as
+the integral of `(X - 𝔼[X])(Y - 𝔼[Y])`. -/
+noncomputable def covariance (X Y : Ω → ℝ) (μ : Measure Ω) : ℝ :=
+  ∫ ω, (X ω - μ[X]) * (Y ω - μ[Y]) ∂μ
+
+@[inherit_doc]
+scoped notation "cov[" X ", " Y "; " μ "]" => ProbabilityTheory.covariance X Y μ
+
+/-- The covariance of the real-valued random variables `X` and `Y`
+according to the volume measure. -/
+scoped notation "cov[" X ", " Y "]" => cov[X, Y; MeasureTheory.MeasureSpace.volume]
+
+lemma covariance_eq_sub [IsProbabilityMeasure μ] (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) :
+     cov[X, Y; μ] = μ[X * Y] - μ[X] * μ[Y] := by
+   simp_rw [covariance, sub_mul, mul_sub]
+   repeat rw [integral_sub]
+   · simp_rw [integral_mul_const, integral_const_mul, integral_const, probReal_univ,
+       one_smul]
+     simp
+   · exact hY.const_mul _ |>.integrable (by simp)
+   · exact integrable_const _
+   · exact hX.integrable_mul hY
+   · exact hX.mul_const _ |>.integrable (by simp)
+   · exact (hX.integrable_mul hY).sub (hX.mul_const _ |>.integrable (by simp))
+   · exact (hY.const_mul _ |>.integrable (by simp)).sub (integrable_const _)
+

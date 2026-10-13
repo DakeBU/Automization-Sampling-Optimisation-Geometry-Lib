@@ -1,0 +1,189 @@
+REGION algorithm-and-prop31 [250262, 284344]
+The direct harmonic generator (3.3)
+still bounces against the full gradient $\nabla V$, so its bounce rate
+can remain large.
+To further reduce the bounce rate and the resulting computational
+cost, we introduce a conditional reference point and use the smoothness of
+$V$ to control the local gradient difference. Specifically, draw
+$\widetilde{X}\sim\pi_{\eta}^{X\mid Y=y}$ independently and write the exact
+decomposition
+$\nabla V(x)=\nabla V(\widetilde{X})+\{\nabla V(x)-\nabla V(\widetilde{X})\}\,.$
+Conditionally on $\widetilde{X}=\widetilde{x}$, we incorporate the fixed
+reference term into the deterministic dynamics and retain only the gradient
+difference in the BPS jump term. Define the equilibrium position of this
+deterministic harmonic flow and the residual gradient by
+$c_{y,\widetilde{x}}\coloneqq y-\eta\nabla V(\widetilde{x})\,,\hskip 20.00003pth_{\widetilde{x}}(x)\coloneqq\nabla V(x)-\nabla V(\widetilde{x})\,.$
+(3.4)
+The resulting generator is
+$\begin{split}\mathsf{L}_{y,\widetilde{x}}f(x,p)&\coloneqq\sqrt{\eta}\,p^{\top}\nabla_{x}f(x,p)-\frac{(x-c_{y,\widetilde{x}})^{\top}}{\sqrt{\eta}}\nabla_{p}f(x,p)\\
+&\quad+\sqrt{\eta}\,[p^{\top}h_{\widetilde{x}}(x)]_{+}\bigl\{f(x,R_{h_{\widetilde{x}}(x)}p)-f(x,p)\bigr\}\,.\end{split}$
+(3.5)
+The harmonic and residual terms sum to the full conditional force
+$\sqrt{\eta}\,\nabla V_{y}(x)$. Thus $\widetilde{x}$ changes only how this
+force is divided between deterministic motion and bounces. By the
+$\beta$-smoothness of $V$,
+$\|h_{\widetilde{x}}(x)\|=\|\nabla V(x)-\nabla V(\widetilde{x})\|\leq\beta\,\|x-\widetilde{x}\|\,.$
+Drawing the reference point from the same localized conditional law keeps
+the residual gradient small and reduces the expected number of bounces per
+run of the half-turn process to order $\beta\eta\sqrt{d}$; see
+Proposition 3.3.
+Having specified the dynamics, it remains to choose the integration
+horizon. For fixed $(y,\widetilde{x})$, the deterministic part of
+(3.5) is harmonic motion about its equilibrium
+position $c_{y,\widetilde{x}}$. In the absence of bounces, its position at
+time $t$ satisfies
+$x_{t}-c_{y,\widetilde{x}}=(x_{0}-c_{y,\widetilde{x}})\cos t+\sqrt{\eta}\,p_{0}\sin t\,.$
+(3.6)
+As discussed earlier, we choose the integration horizon $t=\pi$, corresponding to one
+half-period. This is the first non-zero harmonic time at which the
+position $x_{\pi}$ no longer depends on the initial momentum $p_{0}$.
+Without bounces, the resulting map is
+$(x_{\pi},p_{\pi})=(2c_{y,\widetilde{x}}-x_{0},-p_{0})\,.$
+(3.7)
+Thus, the position is reflected through the equilibrium position
+$c_{y,\widetilde{x}}$ and retains its dependence on $x_{0}$. Bounce
+events correct for the residual force along the trajectory, while the
+fixed horizon $t=\pi$ retains the memory-preserving structure of the
+half-turn process.
+The construction is now complete. The following algorithm gives its
+pathwise prescription: it draws the reference point and momentum, evolves
+the process with generator (3.5) for time $\pi$, and
+returns only the final position.
+Algorithm 1 Simulation of the ideal conditional half-turn process
+1:
+Input: state $(x,y)$
+2:
+Draw $\widetilde{X}\sim\pi_{\eta}^{X\mid Y=y}$ and
+$p_{0}\sim\mathcal{N}(0,I)$ independently.
+3:
+Query $\nabla V(\widetilde{X})$.
+4:
+Set $x_{0}\leftarrow x$.
+5:
+Evolve $(x_{t},p_{t})$ according to
+$\dot{x}=\sqrt{\eta}\,p\,,\hskip 20.00003pt\dot{p}=-\frac{x-y}{\sqrt{\eta}}-\sqrt{\eta}\,\nabla V(\widetilde{X})\,,$
+(3.8)
+until $t=\pi$.
+6:
+During the evolution, generate bounce events at rate
+$\lambda_{\widetilde{X}}(x,p)=\sqrt{\eta}\,\bigl[p^{\top}[\nabla V(x)-\nabla V(\widetilde{X})]\bigr]_{+}\,.$
+(3.9)
+7:
+At each bounce, set
+$p_{t}\leftarrow R_{\nabla V(x_{t})-\nabla V(\widetilde{X})}p_{t}$.
+8:
+return $x_{\pi}$
+Proposition 3.1 (Well-posedness and stationarity of the conditional phase space process).
+For every fixed $y,\widetilde{x}\in\mathbb{R}^{d}$ and initial phase space point
+$(x_{0},p_{0})$, the event-driven dynamics in Algorithm 1, with
+the reference point fixed at $\widetilde{x}$, defines a unique
+non-explosive, time-homogeneous Markov process. The phase space measure
+$\nu_{\eta,y}$ is stationary for this process. In particular, the
+returned position $x_{\pi}$ is well-defined almost surely.
+The well-posedness and stationarity assertions are proved in
+Section A.1.
+
+REGION appendixA1-construction [533213, 575646]
+A.1 The fixed-reference phase space process
+Proof of the well-posedness assertion in
+Proposition 3.1.
+Fix $y,\widetilde{x}\in\mathbb{R}^{d}$. In the notation of
+(3.4), the bounce rate
+(3.9) reads
+$\lambda_{\widetilde{x}}(x,p)=\sqrt{\eta}\,[p^{\top}h_{\widetilde{x}}(x)]_{+}\,.$
+The deterministic harmonic flow, namely the solution
+(4.5) of (3.8), and
+the bounce map are
+$\displaystyle\Phi_{t}^{y,\widetilde{x}}(x,p)$
+$\displaystyle\coloneqq\bigl(c_{y,\widetilde{x}}+(x-c_{y,\widetilde{x}})\cos t+\sqrt{\eta}\,p\sin t,\;-\eta^{-1/2}(x-c_{y,\widetilde{x}})\sin t+p\cos t\bigr)\,,$
+$\displaystyle\mathsf{S}_{\widetilde{x}}(x,p)$
+$\displaystyle\coloneqq(x,R_{h_{\widetilde{x}}(x)}p)\,,\hskip 20.00003ptR_{0}\coloneqq I\,.$
+The bounce map is an involution. Although there is a possible discontinuity at $h_{\widetilde{x}}(x)=0$, this creates no ambiguity
+because the event rate vanishes there.
+Let $(E_{n})_{n\geq 1}$ be independent $\operatorname{Exp}(1)$
+random variables. Starting from
+$\zeta_{0}\coloneqq(x_{0},p_{0})$ at time $T_{0}\coloneqq 0$, define recursively
+$\displaystyle S_{n+1}$
+$\displaystyle\coloneqq\inf\Bigl\{u\geq 0:\int_{0}^{u}\lambda_{\widetilde{x}}(\Phi_{s}^{y,\widetilde{x}}(\zeta_{T_{n}}))\,\mathrm{d}s\geq E_{n+1}\Bigr\}\,,$
+(A.1)
+$\displaystyle T_{n+1}$
+$\displaystyle\coloneqq T_{n}+S_{n+1}\,,\hskip 20.00003pt\zeta_{T_{n+1}}\coloneqq\mathsf{S}_{\widetilde{x}}\bigl(\Phi_{S_{n+1}}^{y,\widetilde{x}}(\zeta_{T_{n}})\bigr)\,,$
+(A.2)
+when $S_{n+1}<\infty$. If the set is empty, set
+$T_{n+1}=S_{n+1}=\infty$ and stop the recursion. Between jumps, set
+$\zeta_{T_{n}+t}=\Phi_{t}^{y,\widetilde{x}}(\zeta_{T_{n}})$ for
+$0\leq t<S_{n+1}$.
+To prove non-explosion, define the shifted harmonic energy
+$H_{y,\widetilde{x}}(x,p)\coloneqq\frac{1}{2}\,\bigl\{\eta^{-1}\,\|x-c_{y,\widetilde{x}}\|^{2}+\|p\|^{2}\bigr\}\,.$
+The flow and each bounce preserve this energy. Hence, with
+$\mathcal{E}\coloneqq H_{y,\widetilde{x}}(x_{0},p_{0})$, every state produced by
+the recursion satisfies
+$\|p\|\leq\sqrt{2\mathcal{E}}\,,\hskip 20.00003pt\|x-c_{y,\widetilde{x}}\|\leq\sqrt{2\eta\mathcal{E}}\,.$
+Because $\nabla V$ is $\beta$-Lipschitz,
+$\lambda_{\widetilde{x}}(x,p)\leq\bar{\lambda}_{\mathcal{E}}(y,\widetilde{x})$ throughout the path, where
+$\bar{\lambda}_{\mathcal{E}}(y,\widetilde{x})\coloneqq\sqrt{\eta}\,\beta\sqrt{2\mathcal{E}}\,\bigl\{\sqrt{2\eta\mathcal{E}}+\|c_{y,\widetilde{x}}-\widetilde{x}\|\bigr\}\,.$
+Hence,
+$\int_{0}^{u}\lambda_{\widetilde{x}}(\Phi_{s}^{y,\widetilde{x}}(\zeta_{T_{n}}))\,\mathrm{d}s\leq\bar{\lambda}_{\mathcal{E}}(y,\widetilde{x})\,u\,.$
+If $\bar{\lambda}_{\mathcal{E}}(y,\widetilde{x})=0$, the event rate
+vanishes and there are no jumps. Otherwise,
+(A.1) implies, for every finite waiting time,
+$S_{n+1}\geq\frac{E_{n+1}}{\bar{\lambda}_{\mathcal{E}}(y,\widetilde{x})}\,.$
+If the recursion does not terminate, it follows that
+$T_{n}\geq\frac{\sum_{j=1}^{n}E_{j}}{\bar{\lambda}_{\mathcal{E}}(y,\widetilde{x})}\longrightarrow\infty$
+almost surely by the strong law of large numbers. Thus, the jump times
+cannot accumulate, and the recursive construction defines a unique
+process for all $t\geq 0$. Finally, the
+memoryless property of the exponential clocks gives the time-homogeneous
+Markov property. This is precisely the integrated hazard construction
+of Davis [12, Section 2].
+∎
+With the process now constructed, we prove the stationarity assertion in
+Proposition 3.1 and record the stronger operator facts used
+to analyze the averaged kernel. Recall $\nu_{\eta,y}$ from
+(3.1), and define momentum
+reversal by
+$\mathsf{R}(x,p)\coloneqq(x,-p)\,,\hskip 20.00003pt(\mathsf{R}F)(x,p)\coloneqq F(\mathsf{R}(x,p))\,.$
+As usual, we use the same symbol for $\nu_{\eta,y}$ and its Lebesgue
+density:
+$\nu_{\eta,y}(x,p)\propto\exp\Bigl\{-V_{y}(x)-\frac{\|p\|^{2}}{2}\Bigr\}\,.$
+Proposition A.1 (Path reversal, invariance, and the $L^{2}$ semigroup).
+Let $(\mathsf{T}_{t}^{y,\widetilde{x}})_{t\geq 0}$ be the Markov transition
+operators of the process constructed in
+Proposition 3.1. For every $t\geq 0$,
+$(\mathsf{T}_{t}^{y,\widetilde{x}})^{*}=\mathsf{R}\mathsf{T}_{t}^{y,\widetilde{x}}\mathsf{R}\hskip 10.00002pt\text{on }L^{2}(\nu_{\eta,y})\,.$
+(A.3)
+Consequently:
+(i)
+$\nu_{\eta,y}$ is invariant;
+(ii)
+$(\mathsf{T}_{t}^{y,\widetilde{x}})_{t\geq 0}$ is a strongly continuous
+contraction semigroup on $L^{2}(\nu_{\eta,y})$;
+(iii)
+
+REGION davis-reference [1445364, 1448631]
+Note: Available online at https://chewisinho.github.io/
+Cited by: §1,
+footnote 1.
+[DAV84]
+M. H. A. Davis (1984)
+Piecewise-deterministic Markov processes: a general class of non-diffusion stochastic models.
+Journal of the Royal Statistical Society, Series B 46 (3), pp. 353–388.
+External Links: Document
+Cited by: §A.1,
+Appendix A.
+[DB23]
+P. Dobson and J. Bierkens (2023)
+
+REGION S1.p1.1 [47160, 49051]
+We study the problem of sampling from the probability measure
+$\mu(\mathrm{d}x)=Z^{-1}e^{-V(x)}\,\mathrm{d}x$ on $\mathbb{R}^{d}$, where
+$V\in C^{2}(\mathbb{R}^{d})$ satisfies, for $0<\alpha\leq\beta$,
+
+REGION S1.E1 [49052, 50640]
+$\alpha I\preceq\nabla^{2}V(x)\preceq\beta I\,,\hskip 20.00003ptx\in\mathbb{R}^{d}\,,\hskip 20.00003pt\kappa\coloneqq\tfrac{\beta}{\alpha}\,.$
+(1.1)
+
+REGION S2.SS2.p1.1 [95559, 96221]
+Our algorithm operates on the augmented distribution underlying the
+proximal sampler of Lee, Shen, and Tian [17]. For a
+scale $\eta\in(0,1/\beta]$, consider the joint law

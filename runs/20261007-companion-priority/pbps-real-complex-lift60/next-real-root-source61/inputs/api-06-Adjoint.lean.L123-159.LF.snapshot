@@ -1,0 +1,37 @@
+theorem adjoint_inner_left (A : E →L[𝕜] F) (x : E) (y : F) : ⟪(A†) y, x⟫ = ⟪y, A x⟫ :=
+  adjointAux_inner_left A x y
+
+/-- The fundamental property of the adjoint. -/
+theorem adjoint_inner_right (A : E →L[𝕜] F) (x : E) (y : F) : ⟪x, (A†) y⟫ = ⟪A x, y⟫ :=
+  adjointAux_inner_right A x y
+
+/-- The adjoint is involutive. -/
+@[simp]
+theorem adjoint_adjoint (A : E →L[𝕜] F) : A†† = A :=
+  adjointAux_adjointAux A
+
+/-- The adjoint of the composition of two operators is the composition of the two adjoints
+in reverse order. -/
+@[simp]
+theorem adjoint_comp (A : F →L[𝕜] G) (B : E →L[𝕜] F) : (A ∘L B)† = B† ∘L A† := by
+  ext v
+  refine ext_inner_left 𝕜 fun w => ?_
+  simp [adjoint_inner_right]
+
+theorem apply_norm_sq_eq_inner_adjoint_left (A : E →L[𝕜] F) (x : E) :
+    ‖A x‖ ^ 2 = re ⟪(A† ∘L A) x, x⟫ := by
+  have h : ⟪(A† ∘L A) x, x⟫ = ⟪A x, A x⟫ := by rw [← adjoint_inner_left]; rfl
+  rw [h, ← inner_self_eq_norm_sq (𝕜 := 𝕜) _]
+
+theorem apply_norm_eq_sqrt_inner_adjoint_left (A : E →L[𝕜] F) (x : E) :
+    ‖A x‖ = √(re ⟪(A† ∘L A) x, x⟫) := by
+  rw [← apply_norm_sq_eq_inner_adjoint_left, Real.sqrt_sq (norm_nonneg _)]
+
+theorem apply_norm_sq_eq_inner_adjoint_right (A : E →L[𝕜] F) (x : E) :
+    ‖A x‖ ^ 2 = re ⟪x, (A† ∘L A) x⟫ := by
+  have h : ⟪x, (A† ∘L A) x⟫ = ⟪A x, A x⟫ := by rw [← adjoint_inner_right]; rfl
+  rw [h, ← inner_self_eq_norm_sq (𝕜 := 𝕜) _]
+
+theorem apply_norm_eq_sqrt_inner_adjoint_right (A : E →L[𝕜] F) (x : E) :
+    ‖A x‖ = √(re ⟪x, (A† ∘L A) x⟫) := by
+  rw [← apply_norm_sq_eq_inner_adjoint_right, Real.sqrt_sq (norm_nonneg _)]

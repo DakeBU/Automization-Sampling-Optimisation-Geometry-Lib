@@ -1,0 +1,49 @@
+One candidate is recommended, ranked first by its small unresolved mathematical uncertainty: PBPS's actual pointwise macroscopic gradient–variance bound for smooth compact observations. The source is the printed unnumbered `A3.Ex7` in Appendix C.1, the next real step toward (C.2)/(B.13). This is a source/API prerequisite recommendation, not a sealed statement, Lean implementation, source graph, SAU claim, theorem approval, or proof verification.
+
+The primary was read before the complete public producer contracts. Frozen arXiv2609.06905v1 HTML has 1,482,128 raw bytes and SHA `d81e929496ff33f8895ebdb45b5b7f3eba89a069806d97d5bbbd7a6c0c032760`. Its physical anchors are: global assumptions1.1 at348–363; Section2.2 curvature context668–754; C.1 density/score `A3.Ex1/Ex2`4581–4594; normalized derivative `A3.E1`4597–4604; reflected curvature `A3.Ex3`4608–4614; score Poincaré `A3.Ex4`4617–4625; score derivative norm `A3.Ex5`4628–4634; score variance `A3.Ex6`4636–4643; desired actual consumer `A3.Ex7`4646–4653; downstream C.2 context4654–4665. These are physical local raw HTML spans, not rendered web line numbers. The source first restricts f to C∞ compact, with the later general case requiring density and closedness; this packet retains that initial scope.
+
+The exact proposed minimal public assumptions are finite-dimensional real inner-product/Borel E; V:E→ℝ; α,β:NNReal; α>0 and α≤β; `ContDiff ℝ 2 V`; source Hessian quadratic bounds α‖v‖²≤D²V(x)[v,v]≤β‖v‖² for all x,v; η>0 and βη≤1. No extra eta≤1/2, dimension-positive, Nontrivial, critical point, supplied normalized law, Poincaré, score variance, derivative, or desired gradient estimate is proposed. Finite-dimensional real normed E supplies completeness internally. Paper ℝᵈ is generalized to finite real Hilbert/Borel E including rank zero, explicitly an authored extension supported by these parent contracts.
+
+Literal source definitions must remain:
+
+    μ = volume.tilted (−V)
+    J = map ((x,g) ↦ (x,x+√η g)) (μ.prod (stdGaussian E))
+    W_y(u) = V((y+u)/2) + ‖u−y‖²/(8η)
+    S_y = volume.tilted (−W_y)
+    s_y(u) = −(1/2) fderiv V((y+u)/2) − (1/(4η)) innerSL(y−u)
+    T_f(y) = ∫u f(u) dS_y
+    C = (1/η−α)²/(4(α+1/η))
+
+S is the reflected actual conditional kernel from J, not an arbitrary measure with a desired variance certificate. A prospective target should produce genuine R,S Markov kernels, `J.map Prod.swap` conditional R, S_y=map(x↦2x−y)R_y and the literal normalized S_y density. For all f with C∞/compact support and every y, it should retain the real derivative of T_f, then conclude
+
+    ‖gradient T_f y‖² ≤ C · Poincare.variance (S y) f.
+
+Equivalently, the squared norm of the actual real Frechet derivative can first be bounded; the actual Hilbert `gradient` is its Riesz inverse with the same norm. No pointwise RN representative is differentiated, and no equality of unrelated R witnesses is required. Whether every parent output is restated in the final root candidate is a statement-audit choice; kernel/law/derivative semantics may not be replaced by caller premises.
+
+Actual verified parents, read only through complete public headers:
+
+| Producer | Exact available conclusion | Current DAG evidence |
+| --- | --- | --- |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScore.reflected_conditional_covariance`36–57 | Actual R/S conditional/reflection kernels, literal S density, integrable dual score and f·score, true pointwise `HasFDerivAt T_f` equal to centered score covariance for smooth compact f | Cell independently_verified; integration commit b76a6a14282479d9bd48116549ccb1513789f8b9; independent-verification pointer retained in cell metadata |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ConditionalScoreVariance.conditional_centered_domain_and_score_variance`11–43 | Actual common R/S with same literal S density, positive partition/domain facts and, for every a, score Poincare.Admissible and score variance≤C‖a‖² | Cell independently_verified; exact verified commit292878b81db3f6d6ff46bdf59ba98539f05ce87f |
+| `...MacroscopicRepresentative.macroscopic_reflection_smooth_representative`27–57 | Actual Λ conditional kernel, reflection isometry U, Pg=g and actual PUPg a.e. equal to T_f∘snd, T_f∈L²(J.snd), same covariance derivative | Downstream actual consumer bridge; cell independently_verified; integration df4625d5dafb94f9db69cb93adf01efd0ea9530e |
+| `...ReflectionL2.actual_reflection_block_identities`26–47 | Actual reflection P/A/B/D operators and ‖Bf‖²=‖f‖²−‖Af‖² on macroscopic f | Downstream C.2/B.13 bridge; independently_verified, integration dc189ab16186d8d5d76b965b4dfac78048a6cc0e |
+
+The first two are sufficient direct mathematical parents of the recommended pointwise edge. The latter two identify its real paper consumer and remain opaque compiled production interfaces here. The packet trusts the current DAG's independent-verification status; it does not inspect verifier proof artifacts or compile anything anew.
+
+Internal obligations and hidden contracts, in six bounded steps:
+
+1. Take the score derivative's actual R/S. Take the variance producer's S′ and identify S′_y=S_y from their literal tilted formulas, using norm-sub symmetry and elementary negation algebra. Do not assume R′=R, D′=D, or selector coherence.
+2. Retain the derivative parent's true dual-score and f·score L¹ outputs. Produce scalar f L² from compact continuity and probability. For each direction a, the variance parent's Admissible output gives scalar score L¹ and centered-score-square L¹; its continuous/measurable formula supplies actual L² classes. Centered-f-square L¹, product integrability and probability mean identities are internal.
+3. Evaluate the actual dual derivative on a under the integrals by `ContinuousLinearMap.integral_apply`. The result is the actual scalar covariance of f and u↦s_y(u)(a). Keep normalized probability and all L² contracts before covariance algebra; totalized integrals outside their domain are not certificates.
+4. Apply genuine scalar covariance Cauchy–Schwarz using the real L² inner product and `real_inner_mul_inner_self_le`. `MeasureTheory.L2.inner_def` identifies the integral; `Poincare.variance` is exactly the centered-square integral. Use the already produced score variance C‖a‖², rather than reproving moment/Poincaré background.
+5. Convert all-direction scalar estimates to the dual operator norm by `ContinuousLinearMap.opNorm_le_bound`, with internally derived C≥0 and variance≥0. Keep zero variance and zero derivative branches; no division by a nonzero norm or selected unit direction is a public input.
+6. Identify true gradient with `toDual.symm (fderiv ...)`, an isometric Riesz inverse, and obtain the coefficient exactly. Rank zero is internal: every dual derivative/gradient vanishes and every observable is constant under its probability fiber. No unit-vector existence assumption is added.
+
+Pinned Mathlib is db584cd6d46c92f209a44c0f1c829460d327499d, v4.33.0. Primitive headers pin `MeasureTheory.memLp_two_iff_integrable_sq`52–53; `MeasureTheory.L2.inner_def`137; `MeasureTheory.L2.integral_inner_eq_sq_eLpNorm`140–141; `real_inner_mul_inner_self_le`284; `ContinuousLinearMap.integral_apply`72–73; `ContinuousLinearMap.opNorm_le_bound`199–200; `MeasureTheory.MemLp.of_bound`549–550; `ProbabilityTheory.covariance_eq_sub`54–55. These are actual source contracts with raw/LF pins, not compiler-generated edge validation. Compact boundedness, scalar centering arithmetic and the quotient representative conversions remain routine internal obligations for the root proof; they have not been implemented here.
+
+The main remaining uncertainty is a small API join: exact centered L² quotient bookkeeping, evaluating the dual covariance, and the zero-aware operator-norm/Riesz passage. There is no missing analytic theorem comparable to46's Alexandrov/Caffarelli gap. Source C∞ compact f is not silently promoted to arbitrary weighted Sobolev f. Family measurability comes from actual kernels and their genuine scalar integrals; no jointly measurable gradient selector or rough-representative derivative is claimed. The candidate retains all source parameters, βη≤1 and covariance-I augmentation, with no change in quarter constants.
+
+One candidate is retained. SPHMC4.4/4.5 was rejected as duplicate: the independently verified actual `ProximalEstimatorLipschitz` cell already owns that producer. Generic Gaussian T₂ remains the strictly reduced46 regularity/Jacobian obstruction and is not scheduled as a short API composition. Integrated PBPS C.2/B.13 needs outer-y gradient integrability, actual conditional-variance integration and an operator/representative join; it is the real next consumer, not part of this pointwise target. Marginal Poincaré, general-domain extension, half-turn invariance/nonexplosion, hypocoercivity, full algorithms/main/cost remain open.
+
+Exposure and chronology are explicit. Current scheduling/frontier/handoff metadata was read first, then primary, then full actual public contracts. The read-only Harness `capsule` initially failed GBK stdout and was rerun with UTF8; its authorized current-state output included45 nested verification/status/path metadata, which is an accidental metadata exposure, not a read of any45 proof/Test/blind/review file. A filename search for primary material returned a large truncated list; no listed decoder/review file was opened. Narrowed guessed source/cache paths failed and were abandoned in favor of the exact immutable primary. The first public extractor mistakenly stopped at a `let μ :=` binder; four truncated originals are preserved as `*.truncated-first-coloneq.*`, then complete headers were re-extracted through the final `:= by` delimiter. No proof body was exposed by that repair. Historical exposures recorded in46 remain intact; this is not a fresh-blind role. No compiler, shared edit, claim, Goal change, source graph or self admission occurred.

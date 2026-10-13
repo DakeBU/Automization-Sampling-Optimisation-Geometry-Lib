@@ -1,0 +1,126 @@
+import Mathlib.Analysis.InnerProductSpace.Basic
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+
+/-!
+# Pairing cyclic monotonicity for the Brenier frontier
+
+This module isolates the algebraic interface between quadratic optimal
+transport and Rockafellar convex analysis. It is deliberately independent of
+couplings, transport costs, densities, and measurable selections.
+
+For a finite cycle `(x_i,y_i)`, the form used by the Rockafellar chain
+construction is
+
+`sum_i <y_i, x_{i+1} - x_i> <= 0`.
+
+The equivalent diagonal/shifted form is
+
+`sum_i <y_i,x_i> >= sum_i <y_i,x_{i+1}>`.
+
+The standard mathematical predicate below quantifies over every finite cycle.
+A separate `PairingDistinctCycleMonotone` predicate records the weaker
+injective-cycle contract naturally produced by the future local perturbation
+proof. The combinatorial implication from distinct cycles to arbitrary cycles
+is intentionally left as its own auditable frontier node.
+
+A separate public Lean formalization of Brenier's theorem by mbrc12 was used
+to cross-check the proof architecture. This ASTIS module is an independent
+implementation against the pinned Mathlib version; no source code is copied
+from that repository, whose repository root did not expose a license when this
+frontier was audited.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PairingCyclicMonotonicity
+
+open scoped BigOperators
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- Standard finite-cycle pairing monotonicity on a relation `Gamma`. -/
+def PairingCycleMonotone (Gamma : Set (E × E)) : Prop :=
+  ∀ n (p : Fin (n + 1) → E × E),
+    (∀ i, p i ∈ Gamma) →
+      (∑ i, inner ℝ (p i).2 ((p (i + 1)).1 - (p i).1)) ≤ 0
+
+/-- The distinct-point cycle contract expected directly from the future
+finite-neighborhood perturbation proof of optimality. -/
+def PairingDistinctCycleMonotone (Gamma : Set (E × E)) : Prop :=
+  ∀ n (p : Fin (n + 1) → E × E), Function.Injective p →
+    (∀ i, p i ∈ Gamma) →
+      (∑ i, inner ℝ (p i).2 ((p (i + 1)).1 - (p i).1)) ≤ 0
+
+/-- The standard finite-cycle condition in diagonal-versus-shifted pairing
+form. -/
+def PairingShiftedCycleMonotone (Gamma : Set (E × E)) : Prop :=
+  ∀ n (p : Fin (n + 1) → E × E),
+    (∀ i, p i ∈ Gamma) →
+      (∑ i, inner ℝ (p i).2 (p (i + 1)).1) ≤
+        ∑ i, inner ℝ (p i).2 (p i).1
+
+/-- Pointwise algebra behind the increment and shifted cycle conventions. -/
+theorem cycle_increment_sum_eq_shifted_sub_diag
+    {n : ℕ} (p : Fin (n + 1) → E × E) :
+    (∑ i, inner ℝ (p i).2 ((p (i + 1)).1 - (p i).1)) =
+      (∑ i, inner ℝ (p i).2 (p (i + 1)).1) -
+        ∑ i, inner ℝ (p i).2 (p i).1 := by
+  simp_rw [inner_sub_right]
+  rw [Finset.sum_sub_distrib]
+
+/-- Rockafellar increment form and diagonal/shifted form are exactly
+equivalent. -/
+theorem pairingCycleMonotone_iff_shifted
+    (Gamma : Set (E × E)) :
+    PairingCycleMonotone Gamma ↔ PairingShiftedCycleMonotone Gamma := by
+  constructor
+  · intro h n p hmem
+    have hcycle := h n p hmem
+    rw [cycle_increment_sum_eq_shifted_sub_diag] at hcycle
+    exact sub_nonpos.mp hcycle
+  · intro h n p hmem
+    rw [cycle_increment_sum_eq_shifted_sub_diag]
+    exact sub_nonpos.mpr (h n p hmem)
+
+/-- The standard all-cycle property immediately implies the distinct-cycle
+contract used by perturbation arguments. -/
+theorem PairingCycleMonotone.distinct
+    {Gamma : Set (E × E)}
+    (hmono : PairingCycleMonotone Gamma) :
+    PairingDistinctCycleMonotone Gamma := by
+  intro n p _hp hmem
+  exact hmono n p hmem
+
+/-- Restricting a pairing-cyclically-monotone relation preserves the property. -/
+theorem PairingCycleMonotone.mono
+    {Gamma₁ Gamma₂ : Set (E × E)}
+    (hsub : Gamma₁ ⊆ Gamma₂)
+    (hmono : PairingCycleMonotone Gamma₂) :
+    PairingCycleMonotone Gamma₁ := by
+  intro n p hmem
+  exact hmono n p (fun i => hsub (hmem i))
+
+/-- Restriction also preserves the distinct-cycle contract. -/
+theorem PairingDistinctCycleMonotone.mono
+    {Gamma₁ Gamma₂ : Set (E × E)}
+    (hsub : Gamma₁ ⊆ Gamma₂)
+    (hmono : PairingDistinctCycleMonotone Gamma₂) :
+    PairingDistinctCycleMonotone Gamma₁ := by
+  intro n p hp hmem
+  exact hmono n p hp (fun i => hsub (hmem i))
+
+/-- The empty relation is vacuously pairing cyclically monotone. -/
+theorem pairingCycleMonotone_empty :
+    PairingCycleMonotone (∅ : Set (E × E)) := by
+  intro n p hmem
+  simpa using hmem 0
+
+end
+
+end PairingCyclicMonotonicity
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

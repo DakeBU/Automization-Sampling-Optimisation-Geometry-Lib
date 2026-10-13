@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-b0753416a337cc85",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x a : E,\n      (α : ℝ) * ‖a‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x a) a ∧\n      (fderiv ℝ (fderiv ℝ V) x a) a ≤ (β : ℝ) * ‖a‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := Measure.map (fun p : E × E => (p.1, p.1 + Real.sqrt η • p.2))\n      (μ.prod (stdGaussian E))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2, (2 : ℝ) • p.1 - p.2))\n    let F := fun p : E × E => (p.1, (2 : ℝ) • p.1 - p.2)\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))\n        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    ∃ R S : Kernel E E, IsMarkovKernel R ∧ IsMarkovKernel S ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      (∀ y, S y = (R y).map (fun x => (2 : ℝ) • x - y)) ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun u => -V ((1/2 : ℝ) • (y+u)) - ‖y-u‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧\n      ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n        (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n        Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n        let A := P * U.toContinuousLinearMap * P\n        let B := (1-P) * U.toContinuousLinearMap * P\n        let D := (1-P) * U.toContinuousLinearMap * (1-P)\n        star B * B = P - A^2 ∧ star B * D = -(A * star B) ∧\n        (∀ g : Lp ℝ 2 J, P g = g → ‖B g‖^2 = ‖g‖^2 - ‖A g‖^2) ∧\n        ∀ (f : E → ℝ), ContDiff ℝ ∞ f → HasCompactSupport f →\n          let Tf := fun y => ∫ u, f u ∂S y\n          Differentiable ℝ Tf ∧ MemLp f 2 ν ∧ MemLp Tf 2 ν ∧\n          MemLp (gradient Tf) 2 ν ∧\n          Integrable (fun y =>\n            AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n              (S y) f) ν ∧\n          ∃ g : Lp ℝ 2 J,\n            (g : E × E → ℝ) =ᵐ[J] (fun p => f p.2) ∧ P g = g ∧\n            (A g : E × E → ℝ) =ᵐ[J] (fun p => Tf p.2) ∧\n            ‖g‖^2 = (∫ y, (f y)^2 ∂ν) ∧\n            ‖A g‖^2 = (∫ y, (Tf y)^2 ∂ν) ∧\n            (∫ y, AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Poincare.variance\n              (S y) f ∂ν) = ‖B g‖^2 ∧\n            η * (∫ y, ‖gradient Tf y‖^2 ∂ν) ≤\n              (1-(α : ℝ)*η)^2/(4*(1+(α : ℝ)*η)) * ‖B g‖^2",
+    "statement_sha256": "b0753416a337cc85246cce3f95a321b108136f577c45c6398ec2fb1876d0db18",
+    "compiled": true,
+    "approved_definition_context": [
+      "E is a finite-dimensional real inner-product space, with norm and Borel measurable structure, including rank zero. V is globally C2 with genuine evaluated Hessian bounded below/above by positive alpha/nonnegative beta times norm-square; 0<alpha<=beta, eta>0 and beta eta<=1.",
+      "volume is canonical volume. Measure.tilted uses exp of its supplied function divided by its genuine Bochner normalizer. stdGaussian E is the centered identity-covariance Gaussian. mu, J, nu, Lambda and F are literal laws/maps specified in the statement; probability is produced as output.",
+      "Kernel E E is measurable; IsMarkovKernel gives probability at every fiber. IsCondKernel means actual first marginal compProd kernel equals the joint measure. One common R and S are chosen before all observations; reflection relation and explicit normalized S density hold for every y. Lambda disintegration and its marginal are output.",
+      "Lp real 2 J is the actual Hilbert space of square-integrable AE classes. The displayed P is the actual L2 conditional projection onto the comap-snd measurable subspace. U is an actual real linear isometry on the SAME Hilbert space with the displayed AE reflection pullback action, involution and self-adjointness. A=PUP, B=(I-P)UP, D=(I-P)U(I-P) are local aliases. Star means actual Hilbert adjoint; multiplication is actual operator composition.",
+      "The theorem outputs star B B=P-A squared, star B D=-(A star B), and the true norm defect for every macroscopic class Pg=g. No operator/law/class equality certificate is supplied as a public premise.",
+      "f is a real signed globally C-infinity compactly supported function. Tf(y) is its literal Bochner integral under SAME S(y). True differentiability, f/Tf/gradient L2 under SAME nu and conditional variance L1 are all produced. gradient is inverse Riesz of the genuine real Frechet derivative.",
+      "Poincare.variance(S y)f is the integral under S(y) of (f(u)-integral f dS(y)) squared. A actual class g has AE[J] representative f o snd and Pg=g; Ag has AE[J] representative Tf o snd. Both squared norms equal actual second moments under nu. Expected conditional variance equals actual squared norm of Bg.",
+      "The exact energy bound is eta times actual integrated squared gradient at most (1-alpha eta)^2/[4(1+alpha eta)] times actual Bg squared norm. AE equalities denote classes only and do not assert equality of pointwise derivatives. Smooth-test output only; no arbitrary rough outer-domain or operator-root extension is asserted."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "af13ddb58ea0393688b8a78d8bdd1be572160b98f4c6ccacda7da01a612760f8"
+}

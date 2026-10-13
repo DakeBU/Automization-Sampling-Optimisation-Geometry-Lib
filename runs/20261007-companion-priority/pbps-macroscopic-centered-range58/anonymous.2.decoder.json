@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-3908b29f449701b0",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      (lpMeas ℝ ℝ (MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E))\n        2 J).subtypeL ∘L condExpL2 ℝ ℝ measurable_snd.comap_le\n    ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n      (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n      Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n      let A := P * U.toContinuousLinearMap * P\n      let B := (1-P) * U.toContinuousLinearMap * P\n      ∀ f : Lp ℝ 2 J, f ∈ P.toLinearMap.range → (∫ p, f p ∂J)=0 →\n        ‖A f‖ ≤ ((1-(α : ℝ)*η)/(1+(α : ℝ)*η))*‖f‖ ∧\n        (4*(α : ℝ)*η/(1+(α : ℝ)*η)^2)*‖f‖^2 ≤ ‖B f‖^2",
+    "statement_sha256": "3908b29f449701b01a5cf4fe6d5c18e2e018f335d0dcb75eb02916b5faf7c845",
+    "compiled": true,
+    "approved_definition_context": [
+      "The underlying space is a finite-dimensional real Hilbert Borel space with canonical volume, including zero dimension; the potential is C2 with positive alpha<=beta, both displayed global Hessian bounds, eta>0,beta*eta<=1.",
+      "Measure.tilted denotes normalized exponential tilting. The joint law is the displayed independent Gibbs-times-standardGaussian pushforward. The displayed reflection fixes the first coordinate and sends the second to twice the first minus the second.",
+      "The projection is the actual second-coordinate conditional expectation on real joint L2. A linear isometry preserves all norms. AE reflection, involution and self-adjointness are produced conclusions. Operator multiplication is composition, identity 1 acts on real joint L2.",
+      "The quantifier is every actual projection-range L2 class with zero integral. Finite dimension of the base does not make its L2 finite dimensional. The sharp coefficient includes alpha*eta=1. No defect root, inverse, separate weak Sobolev equivalence, trajectory or algorithmic cost is asserted."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "d0709c6da1a0b53784b6bba4e72b8cfe0b90e4e67d96108c6312cf0e299dbe54"
+}

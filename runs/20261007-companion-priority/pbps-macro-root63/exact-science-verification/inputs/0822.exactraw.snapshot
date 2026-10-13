@@ -1,0 +1,43 @@
+import Mathlib.Analysis.Calculus.Gradient.Basic
+import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+import Mathlib.MeasureTheory.Measure.Dirac
+
+/-!
+# Almost-everywhere equality does not determine classical gradients
+
+This negative result records a representative-choice obstruction that matters
+for Fisher-information arguments.  Two pointwise functions can represent the
+same almost-everywhere class for a measure while their classical gradients
+disagree on a set of full measure.  A gradient transfer therefore needs local
+equality, a selected differentiable representative, or a weak-gradient API.
+-/
+
+open MeasureTheory
+
+namespace AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
+
+/-- There is no unrestricted rule transporting classical gradients across
+almost-everywhere equality.  The counterexample uses `δ₀`, the zero function,
+and the identity function: their values agree at the atom, while their
+gradients there are respectively zero and one. -/
+theorem not_gradient_ae_congr_for_arbitrary_measure :
+    ¬ ∀ (μ : Measure ℝ) (f g : ℝ → ℝ),
+      f =ᵐ[μ] g → ∀ᵐ x ∂μ, gradient f x = gradient g x := by
+  intro h
+  let f : ℝ → ℝ := fun _ => 0
+  let g : ℝ → ℝ := fun x => x
+  have hfg : f =ᵐ[Measure.dirac 0] g := by
+    rw [ae_dirac_eq]
+    rfl
+  have hgrad := h (Measure.dirac 0) f g hfg
+  have hgrad0 : gradient f 0 = gradient g 0 := by
+    rw [ae_dirac_eq] at hgrad
+    exact hgrad
+  have hf0 : gradient f 0 = 0 := by
+    simp [f]
+  have hg0 : gradient g 0 = 1 := by
+    exact (hasDerivAt_id (𝕜 := ℝ) 0).hasGradientAt.gradient
+  rw [hf0, hg0] at hgrad0
+  norm_num at hgrad0
+
+end AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence

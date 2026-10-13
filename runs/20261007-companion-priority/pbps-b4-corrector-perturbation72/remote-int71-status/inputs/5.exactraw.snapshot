@@ -1,0 +1,193 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-PBPS-actual-corrector-perturbation",
+  "route": "samplewiki-route",
+  "title": "Exact corrector perturbation on the same actual PBPS Hilbert space",
+  "mode": "faithfulPaper",
+  "source_anchor": "PBPS B20 and Appendix B4 Ex28--Ex34 perturbation algebra; future actual B27/B28 adapter",
+  "target_statement": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorChange\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation\n\n/-!\n# Actual PBPS corrector perturbation on the same centered space\n\nChen--Chewi--Lu--Zhang, arXiv:2609.06905v1, Appendix B.3, the actual\nB.4 unnumbered perturbation algebra (Ex28--Ex34), keeping all earlier\nactual projected rotation and B.21 conclusions.\nThe reflected observable and its conditional/polar components are actual\ninputs and outputs. Mean preservation is proved internally from the same law.\n-/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation\nopen MeasureTheory ProbabilityTheory InnerProductSpace\nopen scoped RealInnerProductSpace ContDiff NNReal Topology ENNReal\nnoncomputable section\nset_option autoImplicit false\nset_option maxHeartbeats 4000000\n\nprivate def actual_corrector_perturbation_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) : Prop :=\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let J := (μ.prod (stdGaussian E)).map\n      (fun p : E × E => (p.1,p.1+Real.sqrt η • p.2))\n    let ν := J.snd\n    let Λ := J.map (fun p : E × E => (p.2,(2 : ℝ) • p.1-p.2))\n    let F := fun p : E × E => (p.1,(2 : ℝ) • p.1-p.2)\n    let mY := MeasurableSpace.comap Prod.snd (inferInstance : MeasurableSpace E)\n    letI : MeasurableSpace (E × E) := Prod.instMeasurableSpace\n    letI : Fact (mY ≤ (inferInstance : MeasurableSpace (E × E))) :=\n      ⟨measurable_snd.comap_le⟩\n    let HP := lpMeas ℝ ℝ mY 2 J\n    let P : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J :=\n      HP.subtypeL ∘L condExpL2 ℝ ℝ (μ := J) measurable_snd.comap_le\n    let hp : MeasurePreserving (Prod.snd : E × E → E) J ν := ⟨measurable_snd,rfl⟩\n    let M : Lp ℝ 2 ν →ₗᵢ[ℝ] Lp ℝ 2 J := Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hp\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧ IsProbabilityMeasure ν ∧\n    HP = P.toLinearMap.range ∧\n    (∀ f : HP, P (f : Lp ℝ 2 J) = f) ∧\n    ∃ S : Kernel E E, IsMarkovKernel S ∧\n      (∀ y, S y = (volume : Measure E).tilted\n        (fun x => -V ((1/2 : ℝ) • (y+x)) - ‖y-x‖^2/(8*η))) ∧\n      Λ.IsCondKernel S ∧ Λ.fst = ν ∧ Λ.snd = ν ∧\n      ∃ e : Lp ℝ 2 ν ≃ₗᵢ[ℝ] HP,\n        (∀ u : Lp ℝ 2 ν, (e u : Lp ℝ 2 J) = M u) ∧\n        ∃ U : Lp ℝ 2 J →ₗᵢ[ℝ] Lp ℝ 2 J,\n          (∀ g : Lp ℝ 2 J, (U g : E × E → ℝ) =ᵐ[J] g ∘ F) ∧\n          Function.Involutive U ∧ IsSelfAdjoint U.toContinuousLinearMap ∧\n          ∃ T : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n            IsSelfAdjoint T ∧\n            (∀ u : Lp ℝ 2 ν,\n              ‖T u‖ ≤ ‖u‖ ∧\n              (T u : E → ℝ) =ᵐ[ν] (fun y => ∫ x, u x ∂S y) ∧\n              (∫ y, T u y ∂ν) = ∫ y, u y ∂ν) ∧\n            let A : HP →L[ℝ] HP :=\n              HP.orthogonalProjectionOnto ∘L U.toContinuousLinearMap ∘L HP.subtypeL\n            let B : HP →L[ℝ] Lp ℝ 2 J :=\n              (((1 : Lp ℝ 2 J →L[ℝ] Lp ℝ 2 J)-P)*U.toContinuousLinearMap*P) ∘L HP.subtypeL\n            A = e.conjStarAlgEquiv T ∧ IsSelfAdjoint A ∧\n            (∀ f : HP, ‖A f‖ ≤ ‖f‖) ∧\n            (∀ f : HP, P (B f) = 0) ∧\n            ∃ Γ : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν,\n              Γ.IsPositive ∧ Γ*Γ=(1 : Lp ℝ 2 ν →L[ℝ] Lp ℝ 2 ν)-T*T ∧\n              Commute Γ T ∧\n              let ΓP : HP →L[ℝ] HP := e.conjStarAlgEquiv Γ\n              ΓP.IsPositive ∧ ΓP*ΓP=(1 : HP →L[ℝ] HP)-A*A ∧\n              Commute ΓP A ∧\n              B.adjoint ∘L B = ΓP*ΓP ∧\n              ∃ q : Lp ℝ 2 ν,\n                (q : E → ℝ) =ᵐ[ν] (fun _ => (1 : ℝ)) ∧ T q = q ∧\n                (∀ u : Lp ℝ 2 ν, inner ℝ q u = ∫ y, u y ∂ν) ∧\n                let qP : HP := e q\n                let HP0 := (innerSL ℝ qP).ker\n                letI : NormedAddCommGroup HP0 := HP0.normedAddCommGroup\n                letI : InnerProductSpace ℝ HP0 := HP0.innerProductSpace\n                letI : CompleteSpace HP0 := (innerSL ℝ qP).isClosed_ker.completeSpace_coe\n                let γ : ℝ := 2*Real.sqrt ((α : ℝ)*η)/(1+(α : ℝ)*η)\n                (∀ f : HP, f ∈ HP0 ↔ (∫ y, (e.symm f) y ∂ν) = 0) ∧\n                ΓP qP = 0 ∧ 0 < γ ∧\n                ∃ ΓP0 : HP0 →L[ℝ] HP0,\n                  (∀ f : HP0, (ΓP0 f : HP) = ΓP (f : HP)) ∧\n                  ΓP0.IsPositive ∧ (ΓP0-γ • (1 : HP0 →L[ℝ] HP0)).IsPositive ∧\n                  IsUnit ΓP0 ∧\n                  ∃ Inv : HP0 →L[ℝ] HP0,\n                    Inv*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧\n                    ΓP0*Inv=(1 : HP0 →L[ℝ] HP0) ∧ ‖Inv‖ ≤ 1/γ ∧\n                    IsSelfAdjoint Inv ∧\n                    ∃ A0 : HP0 →L[ℝ] HP0,\n                      (∀ u : HP0, (A0 u : HP)=A (u : HP)) ∧\n                      IsSelfAdjoint A0 ∧ Commute A0 ΓP0 ∧\n                      A0*A0+ΓP0*ΓP0=(1 : HP0 →L[ℝ] HP0) ∧\n                      Commute A0 Inv ∧\n                    let Hperp := P.ker\n                    letI : NormedAddCommGroup Hperp := Hperp.normedAddCommGroup\n                    letI : InnerProductSpace ℝ Hperp := Hperp.innerProductSpace\n                    letI : CompleteSpace Hperp := P.isClosed_ker.completeSpace_coe\n                    ∃ B0 : HP0 →L[ℝ] Hperp,\n                      (∀ f : HP0, (B0 f : Lp ℝ 2 J) = B (f : HP)) ∧\n                      ∃ V0 : HP0 →L[ℝ] Hperp,\n                        V0 = B0 ∘L Inv ∧ B0 = V0 ∘L ΓP0 ∧\n                        V0.adjoint ∘L V0 = (1 : HP0 →L[ℝ] HP0) ∧\n                        (∀ f : HP0, ‖V0 f‖ = ‖f‖) ∧\n                        ∃ R : Lp ℝ 2 J →L[ℝ] Hperp,\n                          (∀ g : Lp ℝ 2 J, (R g : Lp ℝ 2 J)=g-P g) ∧\n                          (∀ g : Lp ℝ 2 J,\n                            B.adjoint g=HP0.subtypeL (B0.adjoint (R g))) ∧\n                          let D : Hperp →L[ℝ] Hperp :=\n                            R ∘L U.toContinuousLinearMap ∘L Hperp.subtypeL\n                          (∀ h : Hperp, (D h : Lp ℝ 2 J)=\n                            U (h : Lp ℝ 2 J)-P (U (h : Lp ℝ 2 J))) ∧\n                          V0.adjoint ∘L D = -(A0 ∘L V0.adjoint) ∧\n                          (∀ f : Lp ℝ 2 J, (∫ z, f z ∂J)=0 →\n                            ∃ fP : HP0,\n                              HP0.subtypeL fP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le f ∧\n                              let fperp : Hperp := R f\n                              let fV : HP0 := V0.adjoint fperp\n                              B.adjoint (fperp : Lp ℝ 2 J)=HP0.subtypeL (ΓP0 fV) ∧\n                              HP0.subtypeL (ΓP0 fV)=ΓP (HP0.subtypeL fV) ∧\n                              ‖f‖^2=‖fP‖^2+‖fperp‖^2 ∧ ‖fV‖≤‖fperp‖ ∧\n                              let g : Lp ℝ 2 J := U (P f-(f-P f))\n                              (∫ z, g z ∂J)=0 ∧\n                              ∃ gP : HP0,\n                                HP0.subtypeL gP=condExpL2 ℝ ℝ (μ:=J) measurable_snd.comap_le g ∧\n                                let gperp : Hperp := R g\n                                let gV : HP0 := V0.adjoint gperp\n                                gP=A0 fP-ΓP0 fV ∧\n                                gV=ΓP0 fP+A0 fV ∧\n                                ‖gP‖^2+‖gV‖^2=‖fP‖^2+‖fV‖^2 ∧\n                                let C : HP0 → HP0 → ℝ := fun u v =>\n                                  (‖u‖^2-‖v‖^2)/2-inner ℝ (A0 (Inv u)) v\n                                C gP gV-C fP fV= -‖fP‖^2+‖fV‖^2 ∧\n                                (∀ u v r : HP0,\n                                  C (u+ΓP0 r) (v-A0 r)-C u v=\n                                    inner ℝ u (Inv r)+‖r‖^2/2))\n\ntheorem actual_corrector_perturbation\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ)*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ)*‖v‖^2)\n    (hη : 0 < η) (hβη : (β : ℝ)*η ≤ 1) : actual_corrector_perturbation_statement (E:=E) (V:=V) (α:=α) (β:=β) (η:=η) hα hαβ hV hH hη hβη := by\n",
+  "status": "proved_locally",
+  "parents": [
+    "ASTIS-SW-PBPS-actual-corrector-change",
+    "ASTIS-SW-PBPS-hilbert-corrector-perturbation"
+  ],
+  "consumers": [
+    "PBPS Appendix B4 B28 perturbation summand after actual r_rho/B27 producer"
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib and fixed Mathlib: preproof72/library-retrieval72 exact finite pins and bounded rg logs; no matching named local perturbation target in those searches. Existing sharp bound68 is a different theorem, not a dependency."
+    ],
+    "classification": "missing",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation.actual_corrector_perturbation",
+    "canonical_shared_cell": "",
+    "reason": "Two publication cells are required by the canonical one-declaration-per-cell validator. They belong to ONE claimed SAU; generic algebra has the concrete actual72 production consumer. No second SAU, duplicated theorem, invented route or shared-foundation completion badge."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib and fixed Mathlib: preproof72/library-retrieval72 exact finite pins and bounded rg logs; no matching named local perturbation target in those searches. Existing sharp bound68 is a different theorem, not a dependency."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation.quadratic_corrector_perturbation",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorChange.actual_corrector_change"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "PBPS Appendix B4 B28 perturbation summand, after separate actual r_rho/B27 producer"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Write the generic Hilbert leaf once in TechnicalLemmas and consume it inside actual72. There is one presently concrete production caller; no invented second route or shared-foundation completion claim."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "updated",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation.quadratic_corrector_perturbation",
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation.actual_corrector_perturbation"
+    ],
+    "visual_review": "Pending proof and independent review; mathematics first."
+  },
+  "evidence": {
+    "substantive_advance": "ASTIS-SA-20261010-PBPSActualCorrectorPerturbation",
+    "statement_seal": "runs/20261007-companion-priority/pbps-b4-perturbation-preproof72/root.statement-seal72.json",
+    "focused_checks": [
+      {
+        "command": "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation",
+        "result": "PASS; standard three axioms only; exact sealed mathematical header.",
+        "evidence": "E:/Samplinglib/runs/20261007-companion-priority/pbps-b4-corrector-perturbation72/focused-actual-first/receipt.json"
+      }
+    ],
+    "owned_files": [
+      "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualCorrectorPerturbation.lean"
+    ],
+    "truth_boundary": "The bounded corrector perturbation identity is focused-compiled. Arbitrary r is not the actual source residual r_rho. Actual conditional half-turn H, K/B7, r/r_rho/B27, B4/B28 dynamics, H1/B2, invariance/nonexplosion, full PBPS/SPHMC results, implementation errors/caps, expected-query costs and actual-input composition remain open. The perturbation identity alone establishes no Exposition Seal, PURIFIED, main/live, whole-paper or Goal completion; independent review and serialized integration are separate admissions.",
+    "proof_review": "runs/20261007-companion-priority/pbps-b4-corrector-perturbation72/independent-math72/mathematical-verdict.json",
+    "source_review": "runs/20261007-companion-priority/pbps-b4-corrector-perturbation72/independent-source72/source.1.decision.json",
+    "execution_boundary": "Two connected perturbation identities focused-compiled, independently mathematically reviewed, blindly reconstructed and source-reviewed. Exact SCI72, serialized shared integration and reader validation remain pending. Arbitrary r is not actual r_rho; real H/K/B27/B28/fullB4/H1, invariance/nonexplosion, full papers, errors, expected-query costs and actual-input composition remain open. No whole-paper/Exposition Seal/PURIFIED/main/live/Goal credit."
+  },
+  "blocked": {
+    "status": false,
+    "reason": "Frozen focused-compiled result; independent mathematics, blind reconstruction, whole implementation/source and publication review pending."
+  },
+  "declaration_level": "source-anchor",
+  "source_detail_audit": {
+    "primary_edition": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "PBPS B20 and Appendix B4 Ex28--Ex34 perturbation algebra; future actual B27/B28 adapter",
+    "fidelity_boundary": "The bounded corrector perturbation identity is focused-compiled. Arbitrary r is not the actual source residual r_rho. Actual conditional half-turn H, K/B7, r/r_rho/B27, B4/B28 dynamics, H1/B2, invariance/nonexplosion, full PBPS/SPHMC results, implementation errors/caps, expected-query costs and actual-input composition remain open. The perturbation identity alone establishes no Exposition Seal, PURIFIED, main/live, whole-paper or Goal completion; independent review and serialized integration are separate admissions.",
+    "detail_status": "cites_external",
+    "gap": "Actual H/K/r_rho/B27/B28 are separate open source adapters; no generic r identification.",
+    "source_preread": "runs/20261007-companion-priority/pbps-b4-perturbation-preproof72/independent-header-source72/stageA.source-expectations72.before-header.frozen.json",
+    "consulted": [
+      {
+        "source": "PBPS fixed v1 Appendix B and fixed Mathlib real Hilbert APIs",
+        "anchor": "B20, Appendix B4 Ex28--Ex34; B1/B2 domain and root background",
+        "hypothesis_adapter": "Generic same-space structural hypotheses are all produced internally from actual71; original six actual callers and twelve common witnesses retained.",
+        "expanded_binder_audit": "runs/20261007-companion-priority/pbps-b4-perturbation-preproof72/independent-header-source72/source-header72.decision.json"
+      }
+    ]
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES"
+    ],
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "Recorded first generic compilation failed on coercion-sensitive selfadjoint rewrite. Explicit typed inner equalities repaired elaboration without changing any mathematical binder. Both frozen modules now compile.",
+      "promoted_fragments": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation.actual_corrector_perturbation"
+      ],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "same-C/perturbation/Hilbert-expansion"
+      ],
+      "expected_information_gain": "Sole writer; independent mathematical verification, fresh strict blind decoder and anti-anchored source reviewer after focused compile.",
+      "shared_verified_context_digest": "803d933f5677d76b97f07b5ddb1ccd56c83e53d3955d4ce0adbb4648290092fe"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "samplewiki-route",
+      "selection_reason": "Dependencyreadytrue PBPS macro bridge/consumer; unrelatedwork defers."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [
+        "B20-corrector",
+        "B4-perturbation-expansion",
+        "B27-actual-residual-open",
+        "B28-open"
+      ],
+      "lean_expansion_nodes": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation.actual_corrector_perturbation"
+      ],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorChange.actual_corrector_change",
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.HilbertCorrectorPerturbation.quadratic_corrector_perturbation"
+    ],
+    "bookkeeping": [
+      "Retain every actual71 clause and the same C."
+    ],
+    "new_reusable": [],
+    "new_topology": "Same C: C(u+Gamma0 r,v-A0 r)-C(u,v)=inner(u,Inv r)+norm(r)^2/2; generic complete-real-Hilbert leaf plus actual original-six-input/twelve-witness consumer."
+  },
+  "statement_seal": {
+    "evidence": "runs/20261007-companion-priority/pbps-b4-perturbation-preproof72/root.statement-seal72.json",
+    "source_revision": "arXiv2609.06905v1/Lean4.33.0/Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "statement_version": 1,
+    "signature_digest": "b69fba2a42aa00bcedd0b60dd586b06c6099aa41405a7ba09526dc484b038c2c",
+    "binder_audit": "runs/20261007-companion-priority/pbps-b4-perturbation-preproof72/independent-header-source72/source-header72.decision.json",
+    "definition_kind": "Literal generic C and complete private actual Prop; both exact headers sealed independently; no provider premise."
+  },
+  "source_proof_coverage": {
+    "source_graph": "runs/20261007-companion-priority/pbps-b4-perturbation-preproof72/independent-header-source72/stageA.source-proof-graph72.before-header.frozen.json",
+    "source_inventory": "runs/20261007-companion-priority/pbps-b4-perturbation-preproof72/independent-header-source72/stageA.finite-source255-plus-supplemental-coverage72.frozen.json",
+    "coverage_report": "runs/20261007-companion-priority/pbps-b4-corrector-perturbation72/independent-source72/source.1.decision.json",
+    "coverage_status": "Independent bounded whole-implementation/source review72 unit1:361 exact source items=255primary+106supplemental (239NODE/122EXCLUDED),24 source nodes53 edges,20 formulas27 obligations,494 combined module lines and6+4 exact BODY spans. Source graph/classes unchanged; per-node current dispositions recorded. NODE is source relevance, not a proof badge. Actual H/K/r_rho/B27/B28/fullB4/main/errors/cost/composition remain OPEN; no Exposition Seal/PURIFIED/VERIFIED/wholepaper/Goal credit."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "One new algebra leaf plus one actual mathematical consumer; no test wrapper.",
+    "duplicate_semantics_audit": "Perturbation differs from B21 rotation change and sharp bound68.",
+    "canonicalization": "One generic Hilbert implementation, internally consumed on actual centered HP0.",
+    "compressed_spine_delta": "Same C: C(u+Gamma0 r,v-A0 r)-C(u,v)=inner(u,Inv r)+norm(r)^2/2; generic complete-real-Hilbert leaf plus actual original-six-input/twelve-witness consumer.",
+    "reader_default_view": "Full attributed assumptions and stepwise formulas; adjacent exact initially folded Lean.",
+    "scope": "The bounded corrector perturbation identity is focused-compiled. Arbitrary r is not the actual source residual r_rho. Actual conditional half-turn H, K/B7, r/r_rho/B27, B4/B28 dynamics, H1/B2, invariance/nonexplosion, full PBPS/SPHMC results, implementation errors/caps, expected-query costs and actual-input composition remain open. The perturbation identity alone establishes no Exposition Seal, PURIFIED, main/live, whole-paper or Goal completion; independent review and serialized integration are separate admissions."
+  },
+  "source_targets": [
+    "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation.actual_corrector_perturbation"
+  ],
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "reason": "Exact quadratic corrector perturbation remains within the existing discrete hypocoercivity mechanism. No new source-backed cross-domain hypothesis/conclusion map or formal transport is inferred."
+  }
+}

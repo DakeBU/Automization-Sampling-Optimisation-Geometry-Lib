@@ -1,0 +1,232 @@
+{
+  "PURIFIED": false,
+  "canonical_Git_ledger_Lean_writes": false,
+  "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation",
+  "deltas": [
+    {
+      "blocking": false,
+      "classification": "explicit-elaboration",
+      "description": "ASTIS auxiliary expands D1 spectral background to arbitrary real L2;not printed standalone PBPS.",
+      "id": "ASTIS-background-expansion",
+      "slot": "scopes",
+      "severity": "informational",
+      "evidence": "D1 spectral calculus/unique positive root accurately attributed; exact source URL corrected separately; no source mathematical repair."
+    }
+  ],
+  "full_Exposition": false,
+  "independent_from_decoder": true,
+  "independent_from_formalizer": true,
+  "packet_index": 0,
+  "publication_binding_sha256": "34ba0bb3a85f58c9dff1405301b46ac15dace416a0dcbc28673f5739adb8742f",
+  "publication_context": {
+    "assumptions": [
+      "Arbitrary measurable space and measure;bounded positive real operators G,D on real L²;Commute(G²,D). No CFC/finiteness/nontriviality premise."
+    ],
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation",
+      "role": "proof-edge",
+      "supports": [
+        "commutation"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "lean": "Arbitrary measurable space and measure;bounded positive real operators G,D on real L²;Commute(G²,D). No CFC/finiteness/nontriviality premise.",
+        "source": "Arbitrary measurable space and measure;bounded positive real operators G,D on real L²;Commute(G²,D). No CFC/finiteness/nontriviality premise."
+      },
+      {
+        "lean": "ASTIS auxiliary on arbitrary real L2;positivity of D is not a PBPS caller premise. Actual D=I+T positivity is internally produced.",
+        "source": "Remaining sharp B23/B21/full dynamics and expected costs/composition."
+      }
+    ],
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator\nimport Mathlib.Analysis.InnerProductSpace.StarOrder\nimport Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Commute\nimport Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.Basic\n\nopen MeasureTheory\nopen scoped ENNReal\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute\nnoncomputable section\nset_option autoImplicit false\nset_option maxHeartbeats 1000000\n\ntheorem positive_square_commutation\n    {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)\n    (G D : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ)\n    (hG : G.IsPositive) (hD : D.IsPositive)\n    (hCommute : Commute (G*G) D) : Commute G D\n := by\n  letI := IsStarNormal.instNonUnitalContinuousFunctionalCalculus\n    (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  letI : NonUnitalContinuousFunctionalCalculus ℂ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsStarNormal :=\n    NonUnitalClosedEmbeddingContinuousFunctionalCalculus.toNonUnitalContinuousFunctionalCalculus\n  letI : NonUnitalContinuousFunctionalCalculus ℝ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsSelfAdjoint :=\n    IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus\n      (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  let ι : Lp ℝ 2 μ →L[ℝ] Lp ℂ 2 μ := Complex.ofRealCLM.compLpL 2 μ\n  let R : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.reCLM.compLpL 2 μ\n  let Q : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.imCLM.compLpL 2 μ\n  obtain ⟨hNorm,_,Gc,hGc,hGf,hGi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ G hG\n  obtain ⟨_,_,Dc,hDc,hDf,hDi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ D hD\n  have hReal (u : Lp ℝ 2 μ) : G (G (D u)) = D (G (G u)) :=\n    congrArg (fun A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ => A u) hCommute.eq\n  have hComplex : Commute (Gc*Gc) Dc := by\n    apply ContinuousLinearMap.ext\n    intro g\n    change Gc (Gc (Dc g)) = Dc (Gc (Gc g))\n    calc\n      Gc (Gc (Dc g)) = ι (G (G (D (R g)))) + Complex.I • ι (G (G (D (Q g)))) := by\n        rw [hDf g, map_add, map_smul, hGi, hGi, map_add, map_smul, hGi, hGi]\n      _ = ι (D (G (G (R g)))) + Complex.I • ι (D (G (G (Q g)))) := by\n        rw [hReal (R g),hReal (Q g)]\n      _ = Dc (Gc (Gc g)) := by\n        rw [hGf g,map_add,map_smul,hGi,hGi,map_add,map_smul,hDi,hDi]\n  have hGcNonneg : 0 ≤ Gc := (ContinuousLinearMap.nonneg_iff_isPositive Gc).mpr hGc\n  have hRoot : CFC.sqrt (Gc*Gc)=Gc := CFC.sqrt_unique rfl hGcNonneg\n  have hLift : Commute Gc Dc := by\n    have h := hComplex.cfcₙ_nnreal NNReal.sqrt\n    change Commute (CFC.sqrt (Gc*Gc)) Dc at h\n    rwa [hRoot] at h\n  let e : Lp ℝ 2 μ →ₗᵢ[ℝ] Lp ℂ 2 μ :=\n    { toLinearMap := ι.toLinearMap, norm_map' := hNorm }\n  apply ContinuousLinearMap.ext\n  intro u\n  apply e.injective\n  change ι (G (D u))=ι (D (G u))\n  rw [← hGi (D u), ← hDi u, ← hDi (G u), ← hGi u]\n  exact congrArg (fun A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ => A (ι u)) hLift.eq\n\nend\nend AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute\n\n#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation\n",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "file": "3c2e4892a24890f0c007ca6ecf9806baa42f0b50f62fc0484066e6643e2b303c",
+    "formulae": [
+      {
+        "label": "Positive square commutation on arbitrary real L²",
+        "tex": "G,D\\ge0,\\quad[G^2,D]=0\\Longrightarrow[G,D]=0."
+      }
+    ],
+    "lesson": {
+      "assumptions": [
+        "Arbitrary measurable space and measure;bounded positive real operators G,D on real L²;Commute(G²,D). No CFC/finiteness/nontriviality premise."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealComplexOperator.exists_positive_complex_lift"
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.L2RealSquareCommute.positive_square_commutation",
+      "formula": "G,D\\ge0,\\quad[G^2,D]=0\\Longrightarrow[G,D]=0.",
+      "kind": "theorem",
+      "lean_proof": "Complexify the positive operators; Lift square commutation; Commute with the same positive square root; Descend by injectivity",
+      "lean_statement": "For every measurable space Ω and every measure μ,let G,D be bounded real linear operators on real L²(μ). Assume G,D positive:selfadjoint with nonnegative quadratic form. If G²D=DG²,then GD=DG. No probability,finite measure,finite-dimensional L²,nontriviality or caller CFC instance is required. This ASTIS auxiliary consequence of unique positive-root functional calculus is not a separately printed PBPS theorem. Its actual paper consumer internally proves D=I+T positive and G² commuting with D;these are not extra paper premises.",
+      "mathlib_dependencies": [
+        "Commute.cfcₙ_nnreal",
+        "CFC.sqrt_unique",
+        "ContinuousLinearMap.ext"
+      ],
+      "sources": [
+        {
+          "label": "PBPS2609.06905v1 Appendix D.1 spectral calculus background;ASTIS positive real-L2 square commutation corollary for B23/B21.",
+          "scope": "ASTIS auxiliary on arbitrary real L2;positivity of D is not a PBPS caller premise. Actual D=I+T positivity is internally produced.",
+          "url": "https://arxiv.org/html/2609.06905v1#A4.SS1"
+        }
+      ],
+      "statement": "For every measurable space Ω and every measure μ,let G,D be bounded real linear operators on real L²(μ). Assume G,D positive:selfadjoint with nonnegative quadratic form. If G²D=DG²,then GD=DG. No probability,finite measure,finite-dimensional L²,nontriviality or caller CFC instance is required. This ASTIS auxiliary consequence of unique positive-root functional calculus is not a separately printed PBPS theorem. Its actual paper consumer internally proves D=I+T positive and G² commuting with D;these are not extra paper premises.",
+      "steps": [
+        {
+          "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+          "formula": "G_{\\mathbb C}\\iota u=\\iota Gu,\\quad D_{\\mathbb C}\\iota u=\\iota Du,\\quad\\|\\iota u\\|=\\|u\\|.",
+          "lean": "  letI := IsStarNormal.instNonUnitalContinuousFunctionalCalculus\n    (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  letI : NonUnitalContinuousFunctionalCalculus ℂ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsStarNormal :=\n    NonUnitalClosedEmbeddingContinuousFunctionalCalculus.toNonUnitalContinuousFunctionalCalculus\n  letI : NonUnitalContinuousFunctionalCalculus ℝ\n      (Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ) IsSelfAdjoint :=\n    IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus\n      (A := Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ)\n  let ι : Lp ℝ 2 μ →L[ℝ] Lp ℂ 2 μ := Complex.ofRealCLM.compLpL 2 μ\n  let R : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.reCLM.compLpL 2 μ\n  let Q : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ := Complex.imCLM.compLpL 2 μ\n  obtain ⟨hNorm,_,Gc,hGc,hGf,hGi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ G hG\n  obtain ⟨_,_,Dc,hDc,hDf,hDi,_⟩ :=\n    L2RealComplexOperator.exists_positive_complex_lift μ D hD\n",
+          "lean_source_region": {
+            "end_line": 35,
+            "exact_code_raw_sha256": "1a6605affa880255debd31099d40aa7359ab9414546ea5f62f01c0592a2c0d98",
+            "path": "AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareCommute.lean",
+            "source_raw_sha256": "3c2e4892a24890f0c007ca6ecf9806baa42f0b50f62fc0484066e6643e2b303c",
+            "start_line": 20
+          },
+          "text": "Use the existing canonical complex lift,its action on every complex vector and the norm-preserving real embedding.",
+          "title": "Complexify the positive operators"
+        },
+        {
+          "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+          "formula": "G^2D=DG^2\\Rightarrow G_{\\mathbb C}^2D_{\\mathbb C}=D_{\\mathbb C}G_{\\mathbb C}^2.",
+          "lean": "  have hReal (u : Lp ℝ 2 μ) : G (G (D u)) = D (G (G u)) :=\n    congrArg (fun A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ => A u) hCommute.eq\n  have hComplex : Commute (Gc*Gc) Dc := by\n    apply ContinuousLinearMap.ext\n    intro g\n    change Gc (Gc (Dc g)) = Dc (Gc (Gc g))\n    calc\n      Gc (Gc (Dc g)) = ι (G (G (D (R g)))) + Complex.I • ι (G (G (D (Q g)))) := by\n        rw [hDf g, map_add, map_smul, hGi, hGi, map_add, map_smul, hGi, hGi]\n      _ = ι (D (G (G (R g)))) + Complex.I • ι (D (G (G (Q g)))) := by\n        rw [hReal (R g),hReal (Q g)]\n      _ = Dc (Gc (Gc g)) := by\n        rw [hGf g,map_add,map_smul,hGi,hGi,map_add,map_smul,hDi,hDi]\n",
+          "lean_source_region": {
+            "end_line": 48,
+            "exact_code_raw_sha256": "0f59158fa5920f24e93859f4954a0ca677cbcaea2ed822a194d39bb11397c702",
+            "path": "AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareCommute.lean",
+            "source_raw_sha256": "3c2e4892a24890f0c007ca6ecf9806baa42f0b50f62fc0484066e6643e2b303c",
+            "start_line": 36
+          },
+          "text": "Apply the real identity separately to real and imaginary parts and use complex linearity;this proves equality of full complex operators.",
+          "title": "Lift square commutation"
+        },
+        {
+          "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+          "formula": "\\sqrt{G_{\\mathbb C}^2}=G_{\\mathbb C},\\quad[G_{\\mathbb C}^2,D_{\\mathbb C}]=0\\Rightarrow[G_{\\mathbb C},D_{\\mathbb C}]=0.",
+          "lean": "  have hGcNonneg : 0 ≤ Gc := (ContinuousLinearMap.nonneg_iff_isPositive Gc).mpr hGc\n  have hRoot : CFC.sqrt (Gc*Gc)=Gc := CFC.sqrt_unique rfl hGcNonneg\n  have hLift : Commute Gc Dc := by\n    have h := hComplex.cfcₙ_nnreal NNReal.sqrt\n    change Commute (CFC.sqrt (Gc*Gc)) Dc at h\n    rwa [hRoot] at h\n",
+          "lean_source_region": {
+            "end_line": 54,
+            "exact_code_raw_sha256": "0aed1a1c745c6fba4f07be084e287d4ae89d5c6b4d3b36a17e5e2ab3ce2860a3",
+            "path": "AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareCommute.lean",
+            "source_raw_sha256": "3c2e4892a24890f0c007ca6ecf9806baa42f0b50f62fc0484066e6643e2b303c",
+            "start_line": 49
+          },
+          "text": "The unique positive root of Gc² is Gc. Commutation with the argument passes to its continuous functional calculus.",
+          "title": "Commute with the same positive square root"
+        },
+        {
+          "detail": "Literal compiled BODY span;exact preceding locals remain in scope.",
+          "formula": "\\iota GD u=G_{\\mathbb C}D_{\\mathbb C}\\iota u=D_{\\mathbb C}G_{\\mathbb C}\\iota u=\\iota DG u\\Rightarrow GD=DG.",
+          "lean": "  let e : Lp ℝ 2 μ →ₗᵢ[ℝ] Lp ℂ 2 μ :=\n    { toLinearMap := ι.toLinearMap, norm_map' := hNorm }\n  apply ContinuousLinearMap.ext\n  intro u\n  apply e.injective\n  change ι (G (D u))=ι (D (G u))\n  rw [← hGi (D u), ← hDi u, ← hDi (G u), ← hGi u]\n  exact congrArg (fun A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ => A (ι u)) hLift.eq\n",
+          "lean_source_region": {
+            "end_line": 62,
+            "exact_code_raw_sha256": "522440335f0989eb689ea07cf0b908bcc16cc40477ed0156745bb6b12a21935d",
+            "path": "AutoSamplingTheory/TechnicalLemmas/Measure/L2RealSquareCommute.lean",
+            "source_raw_sha256": "3c2e4892a24890f0c007ca6ecf9806baa42f0b50f62fc0484066e6643e2b303c",
+            "start_line": 55
+          },
+          "text": "Evaluate on the embedded real vector;exact intertwining and norm-injectivity recover real commutation.",
+          "title": "Descend by injectivity"
+        }
+      ],
+      "tests": [
+        "lake build Tests.ProximalBPSActualRootCommutation"
+      ],
+      "title": "Positive square commutation on arbitrary real L²"
+    },
+    "obligations": [
+      {
+        "id": "commutation",
+        "label": "Positive square commutation on arbitrary real L²"
+      },
+      {
+        "id": "remaining-paper",
+        "label": "Remaining sharp energy,rotation,dynamics,mixing,errors and expected costs/composition"
+      }
+    ],
+    "source": {
+      "anchor": "PBPS2609.06905v1 Appendix D.1 spectral calculus background;ASTIS positive real-L2 square commutation corollary for B23/B21.",
+      "attribution": "Fan Chen,Sinho Chewi,Jianfeng Lu and Matthew S. Zhang supply Appendix D.1 spectral-calculus background. This ASTIS auxiliary real-L2 corollary uses pinned Mathlib CFC and local complexification;it is not a separately printed theorem.",
+      "edition": "arXiv:2609.06905v1;Lean4.33.0/fixedMathlib",
+      "url": "https://arxiv.org/html/2609.06905v1#A4.SS1",
+      "wording_status": "faithful paraphrase"
+    },
+    "statement": "For every measurable space Ω and every measure μ,let G,D be bounded real linear operators on real L²(μ). Assume G,D positive:selfadjoint with nonnegative quadratic form. If G²D=DG²,then GD=DG. No probability,finite measure,finite-dimensional L²,nontriviality or caller CFC instance is required. This ASTIS auxiliary consequence of unique positive-root functional calculus is not a separately printed PBPS theorem. Its actual paper consumer internally proves D=I+T positive and G² commuting with D;these are not extra paper premises.",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b"
+  },
+  "publication_context_sha256": "97ce8a2857b1ada5ad38293e2f2a344c9b878ff6f8037dd69c102c94f1d3ceea",
+  "reader_metadata_findings_resolved_by_separately_reviewed_exact_overlays": true,
+  "repairs": [],
+  "review_evidence": "Source-first pinned primary d81e9294... and pre-candidate graph be9c9a8c...;344/344 literal math items with exact alt/annotation coverage;3 complete modules;2 literal private expansions;10 BODY RAW/line/span hashes;final binding/context recomputed. See source-coverage-audit.json,whole-module-representation-and-source-contracts.json,ten-literal-BODY-excerpt-audit.json,source-graph-current-boundary-comparison.json,final-publication-binding-context-audit.json and exact finite metadata resolutions.",
+  "review_run_sha256": "8b6baf92a68e1161bb574eddcb338fa27c9afc326a185801048e5e0d9d8453f1",
+  "review_run_sha256_external_binding": {
+    "file": "raw-payload-bindings.json",
+    "key": "whole_logical_run_sha256",
+    "reason": "Complete logical run embeds full decisions. To avoid impossible self-hash cycle, native decision leaves standard field empty; external verified finite adapter fills it without modifying native bytes. Only top-level run_sha256 is deleted for whole logical hash."
+  },
+  "reviewer": "/root/independent_source64",
+  "reviewer_packet_RAW": {
+    "LF_bytes": 21275,
+    "LF_sha256": "93b8728d1ba894ce20f15cc5a337ffc12792824a16f9d60a3bf45c2af6cccd91",
+    "RAW_bytes": 21275,
+    "RAW_sha256": "93b8728d1ba894ce20f15cc5a337ffc12792824a16f9d60a3bf45c2af6cccd91",
+    "path": "E:/Samplinglib/runs/20261007-companion-priority/pbps-root-commutation67/source.0.reviewer-packet.json"
+  },
+  "reviewer_packet_sha256": "cb62a377623e885e6d760cac7b195e99f2b4ecede5efc8d8328b70d34663780f",
+  "schema": "source67-canonical-semantic-source-decision-v1",
+  "selected_source_mathematics_accepted": true,
+  "semantic_slots": {
+    "assumptions": {
+      "evidence": "Exact public binders hG,hD,hCommute. D positivity is a generic background condition; actual paper internally constructs D=I+T.",
+      "original": "G,D positive (selfadjoint and nonnegative quadratic form), Commute(G²,D).",
+      "reconstructed": "Both positivity hypotheses and square commutation retained.",
+      "relation": "equivalent"
+    },
+    "conclusion": {
+      "evidence": "Complex lift intertwining, CFC unique positive root of Gc², then descend using injective real embedding.",
+      "original": "GD=DG.",
+      "reconstructed": "Commute G D.",
+      "relation": "equivalent"
+    },
+    "constant_dependencies": {
+      "evidence": "Zero measure/zero-space and admissible zero operators legal; no norm=1 assertion.",
+      "original": "No numeric constants or spectral gap.",
+      "reconstructed": "No numeric constants/finiteness/inverse/gap.",
+      "relation": "equivalent"
+    },
+    "domains": {
+      "evidence": "CFC instances and complex lifts internal; real domain retained; D1 probability conventions expanded explicitly for ASTIS background.",
+      "original": "Arbitrary measurable Ω and any μ; complete real L2 of AE classes.",
+      "reconstructed": "Arbitrary measurable Ω,μ; no probability/finite mass/finite dimensionality/nontriviality.",
+      "relation": "explicit-elaboration"
+    },
+    "objects": {
+      "evidence": "Exact leaf header/full BODY and blind packet0; Γ is not a scalar.",
+      "original": "Bounded positive G,D on real scalar-valued L2(μ), squares and products are operator composition.",
+      "reconstructed": "Same bounded real-linear positive G,D and composition square.",
+      "relation": "equivalent"
+    },
+    "quantifiers": {
+      "evidence": "No hidden section binder, output witness or link to actual PBPS in generic proposition.",
+      "original": "For every Ω,μ and G,D satisfying the stated hypotheses.",
+      "reconstructed": "Every Ω,μ,G,D universal.",
+      "relation": "equivalent"
+    },
+    "scopes": {
+      "evidence": "D1 spectral calculus/unique positive root accurately attributed; exact source URL corrected separately; no source mathematical repair.",
+      "original": "ASTIS auxiliary corollary from spectral calculus, not a separately printed PBPS theorem; genuine actual-root consumer downstream.",
+      "reconstructed": "Generic bounded-operator assertion only; no source/proof/certification claim from decoder.",
+      "relation": "explicit-elaboration"
+    }
+  },
+  "source_mathematical_repair": false,
+  "source_reviewer_mathematical_verification_claim": false,
+  "verdict": "equivalent-after-elaboration",
+  "whole_paper_main_dynamics_query_cost_composition_accepted": false,
+  "exact_delta_schema_map": "source-delta-schema-adapter67/resolution.json; native nonblocking elaborations preserved, evidence copied from same reviewed slot",
+  "native_complete_RAW_review_sha256": "244601e3a579a2c318c6a7e72c5d8d4e0ffced155e580a18bd452770f6d23856",
+  "native_review_bytes_preserved": true,
+  "external_whole_run_binding": "root.source67.adoption.json; native logical run removes only top-level run_sha256"
+}

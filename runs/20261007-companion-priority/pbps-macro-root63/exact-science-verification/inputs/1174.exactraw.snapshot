@@ -1,0 +1,228 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.LaggedDyadicApproximation
+import Mathlib.MeasureTheory.Function.LocallyIntegrable
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+
+/-!
+# Bridge from nonnegative time to real Lebesgue time
+
+The stochastic-process API uses `NNReal`, whereas Lebesgue differentiation is
+formulated on `Real`.  This file centralizes the zero extension, the exact
+push-forward identity on finite intervals, and the resulting integral bridge.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace TimeMeasureRealBridge
+
+open MeasureTheory Set
+open scoped NNReal Interval
+
+open LaggedDyadicApproximation ProgressiveL2 ProgressiveL2Truncation
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+
+/-- Extend a function on nonnegative time by zero to the negative real axis. -/
+noncomputable def realZeroExtension (f : ℝ≥0 → ℝ) : ℝ → ℝ :=
+  fun r ↦ if 0 ≤ r then f r.toNNReal else 0
+
+theorem realZeroExtension_measurable {f : ℝ≥0 → ℝ} (hf : Measurable f) :
+    Measurable (realZeroExtension f) := by
+  exact (hf.comp measurable_real_toNNReal).piecewise
+    measurableSet_Ici measurable_const
+
+theorem realZeroExtension_stronglyMeasurable
+    {f : ℝ≥0 → ℝ} (hf : StronglyMeasurable f) :
+    StronglyMeasurable (realZeroExtension f) :=
+  (realZeroExtension_measurable hf.measurable).stronglyMeasurable
+
+@[simp] theorem realZeroExtension_coe (f : ℝ≥0 → ℝ) (t : ℝ≥0) :
+    realZeroExtension f (t : ℝ) = f t := by
+  simp [realZeroExtension]
+
+theorem realZeroExtension_eq_zero_of_neg (f : ℝ≥0 → ℝ)
+    {r : ℝ} (hr : r < 0) :
+    realZeroExtension f r = 0 := by
+  simp [realZeroExtension, not_le.mpr hr]
+
+private theorem range_nnreal_coe :
+    Set.range ((↑) : ℝ≥0 → ℝ) = Ici 0 := by
+  ext r
+  constructor
+  · rintro ⟨s, rfl⟩
+    exact s.property
+  · intro hr
+    exact ⟨⟨r, hr⟩, rfl⟩
+
+/-- On an interval contained in `[0,T]`, pushing `upTo T` forward along the
+canonical embedding gives ordinary Lebesgue measure restricted to that real
+interval. -/
+theorem map_restrict_upTo_Ioc
+    {a b T : ℝ≥0} (_hab : a ≤ b) (hbT : b ≤ T) :
+    Measure.map ((↑) : ℝ≥0 → ℝ)
+        ((TimeMeasure.upTo T).restrict (Ioc a b)) =
+      volume.restrict (Ioc (a : ℝ) (b : ℝ)) := by
+  let emb : ℝ≥0 → ℝ := (↑)
+  have hemb : MeasurableEmbedding emb :=
+    MeasurableEmbedding.subtype_coe measurableSet_Ici
+  rw [TimeMeasure.upTo, hemb.restrict_comap, hemb.map_comap]
+  rw [NNReal.image_coe_Ioc, range_nnreal_coe]
+  rw [Measure.restrict_restrict measurableSet_Ici]
+  rw [Measure.restrict_restrict
+    (measurableSet_Ici.inter (measurableSet_Ioc : MeasurableSet (Ioc (a : ℝ) b)))]
+  congr 1
+  ext r
+  simp only [mem_inter_iff, mem_Icc, mem_Ioc, mem_Ici]
+  constructor
+  · rintro ⟨⟨hr0, har, hrb⟩, _, hrT⟩
+    exact ⟨har, hrb⟩
+  · rintro ⟨har, hrb⟩
+    have hr0 : 0 ≤ r := le_trans a.property har.le
+    have hrT : r ≤ (T : ℝ) := hrb.trans (by exact_mod_cast hbT)
+    exact ⟨⟨hr0, har, hrb⟩, hr0, hrT⟩
+
+/-- Exact Bochner-integral bridge on `(a,b]`.  No endpoint regularity is
+assumed; the interval convention agrees on both sides. -/
+theorem integral_upTo_restrict_Ioc_eq_real
+    (f : ℝ≥0 → ℝ) {a b T : ℝ≥0}
+    (hab : a ≤ b) (hbT : b ≤ T) :
+    ∫ s, f s ∂((TimeMeasure.upTo T).restrict (Ioc a b)) =
+      ∫ r in (a : ℝ)..(b : ℝ), realZeroExtension f r := by
+  have hemb : MeasurableEmbedding ((↑) : ℝ≥0 → ℝ) :=
+    MeasurableEmbedding.subtype_coe measurableSet_Ici
+  rw [intervalIntegral.integral_of_le (by exact_mod_cast hab)]
+  rw [← map_restrict_upTo_Ioc hab hbT]
+  calc
+    ∫ s, f s ∂((TimeMeasure.upTo T).restrict (Ioc a b)) =
+        ∫ s, realZeroExtension f (s : ℝ)
+          ∂((TimeMeasure.upTo T).restrict (Ioc a b)) := by
+      apply integral_congr_ae
+      filter_upwards [] with s
+      exact (realZeroExtension_coe f s).symm
+    _ = ∫ r, realZeroExtension f r
+          ∂Measure.map ((↑) : ℝ≥0 → ℝ)
+            ((TimeMeasure.upTo T).restrict (Ioc a b)) :=
+      (hemb.integral_map (realZeroExtension f)).symm
+
+/-- An a.e. statement on a nonnegative interval is equivalent to its real
+zero-coordinate form under ordinary restricted Lebesgue measure. -/
+theorem ae_restrict_upTo_Ioc_iff_real
+    (p : ℝ≥0 → Prop) {a b T : ℝ≥0}
+    (hab : a ≤ b) (hbT : b ≤ T) :
+    (∀ᵐ s ∂((TimeMeasure.upTo T).restrict (Ioc a b)), p s) ↔
+      ∀ᵐ r ∂(volume.restrict (Ioc (a : ℝ) (b : ℝ))), p r.toNNReal := by
+  have hemb : MeasurableEmbedding ((↑) : ℝ≥0 → ℝ) :=
+    MeasurableEmbedding.subtype_coe measurableSet_Ici
+  have hmap := hemb.ae_map_iff
+    (p := fun r : ℝ ↦ p r.toNNReal)
+    (μ := (TimeMeasure.upTo T).restrict (Ioc a b))
+  rw [map_restrict_upTo_Ioc hab hbT] at hmap
+  simpa using hmap.symm
+
+/-- Upgrade pointwise-in-`omega` time-a.e. facts to product-a.e. facts once
+the target event is known measurable. -/
+theorem ae_prod_restrict_upTo_of_forall_ae
+    {p : Omega × ℝ≥0 → Prop} {a b T : ℝ≥0}
+    (hp : MeasurableSet {z | p z})
+    (h : ∀ omega, ∀ᵐ s ∂((TimeMeasure.upTo T).restrict (Ioc a b)), p (omega, s)) :
+    ∀ᵐ z ∂mu.prod ((TimeMeasure.upTo T).restrict (Ioc a b)), p z := by
+  apply (Measure.ae_prod_iff_ae_ae hp).2
+  filter_upwards [] with omega
+  exact h omega
+
+/-- Real-time section of the clipped process, zero outside `[0,T]`. -/
+noncomputable def realClippedSection
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (truncationLevel : ℕ) (omega : Omega) : ℝ → ℝ :=
+  realZeroExtension
+    (fun s ↦ clippedExtensionAt eta truncationLevel T (s, omega))
+
+@[simp] theorem realClippedSection_coe
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (truncationLevel : ℕ) (omega : Omega) {s : ℝ≥0} (hsT : s ≤ T) :
+    realClippedSection eta truncationLevel omega (s : ℝ) =
+      (clipped eta truncationLevel).process s omega := by
+  simp [realClippedSection,
+    clippedExtensionAt_apply_of_le eta truncationLevel hsT]
+
+theorem realClippedSection_eq_zero_of_neg
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (truncationLevel : ℕ) (omega : Omega) {r : ℝ} (hr : r < 0) :
+    realClippedSection eta truncationLevel omega r = 0 :=
+  realZeroExtension_eq_zero_of_neg _ hr
+
+theorem realClippedSection_eq_zero_of_T_lt
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (truncationLevel : ℕ) (omega : Omega) {r : ℝ} (hr : (T : ℝ) < r) :
+    realClippedSection eta truncationLevel omega r = 0 := by
+  have hr0 : 0 ≤ r := T.property.trans hr.le
+  rw [realClippedSection, realZeroExtension, if_pos hr0]
+  rw [clippedExtensionAt, Function.extend_apply']
+  · rfl
+  · rintro ⟨s, hs⟩
+    have hcoe := congrArg Prod.fst hs
+    change (s.1 : ℝ≥0) = r.toNNReal at hcoe
+    have hsT : (s.1 : ℝ) ≤ T := by exact_mod_cast s.1.property
+    have hre : (r.toNNReal : ℝ) = r := by
+      simp [Real.toNNReal_of_nonneg hr0]
+    rw [← hre, ← hcoe] at hr
+    exact (not_lt_of_ge hsT) hr
+
+theorem realClippedSection_abs_le
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (truncationLevel : ℕ) (omega : Omega) (r : ℝ) :
+    |realClippedSection eta truncationLevel omega r| ≤
+      (truncationLevel : ℝ) := by
+  by_cases hr : 0 ≤ r
+  · rw [realClippedSection, realZeroExtension, if_pos hr]
+    exact clippedExtensionAt_abs_le eta truncationLevel T r.toNNReal omega
+  · rw [realClippedSection_eq_zero_of_neg eta truncationLevel omega
+      (lt_of_not_ge hr)]
+    simpa only [abs_zero] using
+      (Nat.cast_nonneg truncationLevel : (0 : ℝ) ≤ (truncationLevel : ℝ))
+
+theorem realClippedSection_stronglyMeasurable
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (truncationLevel : ℕ) (omega : Omega) :
+    StronglyMeasurable (realClippedSection eta truncationLevel omega) := by
+  apply realZeroExtension_stronglyMeasurable
+  exact (clippedExtensionAt_stronglyMeasurable eta truncationLevel T).comp_measurable
+    (measurable_id.prodMk measurable_const)
+
+theorem realClippedSection_integrable
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (truncationLevel : ℕ) (omega : Omega) :
+    Integrable (realClippedSection eta truncationLevel omega) volume := by
+  have hon : IntegrableOn (realClippedSection eta truncationLevel omega)
+      (Icc (0 : ℝ) (T : ℝ)) volume := by
+    apply Measure.integrableOn_of_bounded (measure_Icc_lt_top.ne)
+      (realClippedSection_stronglyMeasurable eta truncationLevel omega).aestronglyMeasurable
+    filter_upwards [] with r
+    simpa only [Real.norm_eq_abs] using
+      realClippedSection_abs_le eta truncationLevel omega r
+  have hind := hon.integrable_indicator measurableSet_Icc
+  apply hind.congr
+  filter_upwards [] with r
+  by_cases hr : r ∈ Icc (0 : ℝ) (T : ℝ)
+  · simp [hr]
+  · have hout : r < 0 ∨ (T : ℝ) < r := by
+      by_cases hr0 : 0 ≤ r
+      · exact Or.inr (lt_of_not_ge (fun hrT ↦ hr ⟨hr0, hrT⟩))
+      · exact Or.inl (lt_of_not_ge hr0)
+    rcases hout with hneg | hTlt
+    · rw [realClippedSection_eq_zero_of_neg eta truncationLevel omega hneg]
+      simp [hr]
+    · rw [realClippedSection_eq_zero_of_T_lt eta truncationLevel omega hTlt]
+      simp [hr]
+
+theorem realClippedSection_locallyIntegrable
+    (eta : ProgressiveL2Integrand filtration mu T)
+    (truncationLevel : ℕ) (omega : Omega) :
+    LocallyIntegrable (realClippedSection eta truncationLevel omega) volume :=
+  (realClippedSection_integrable eta truncationLevel omega).locallyIntegrable
+
+end TimeMeasureRealBridge
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-97d38dd74da52e8d",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root-samplinglib-writer",
+    "blind_decoder": "/root/fresh_blind_decoder53",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion-background:pbps-literal-reflected-mean",
+    "anchor": "Fixed PBPS arXiv2609.06905v1 C.1 A3.Ex1 physical4581-4587, A3.Ex2 physical4589-4595, normalized-density differentiation A3.E1 physical4597-4604; authored literal Gaussian posterior-reflection background toward B.13 physical3779-3786.",
+    "original_text": "Attributed ASTIS-authored analytic integration for fixed PBPS C.1, not a printed standalone theorem.\nLet E be a finite-dimensional real Hilbert space with its Borel measurable structure, including rank zero. Let V:E→ℝ be C2, α>0, and D²V(x)[v,v]≥α‖v‖² for all x,v. Let η>0 and let f:E→ℝ be C1 with compact support. Define μ=volume.tilted(−V), R_y=μ.tilted(x↦−‖x−y‖²/(2η)), and the literal source law S_y=volume.tilted(u↦−V((y+u)/2)−‖y−u‖²/(8η)). Then for EVERY y, S_y=(x↦2x−y)_#R_y, and the exact mean function y↦∫f(u)S_y(du) is C1. All actual Gibbs normalization, integrability, affine law and mean regularity ingredients are produced internally. This is attributed analytic integration for PBPS C.1, with explicitly broader sufficient background assumptions, not a standalone printed main theorem or rough B.13.\nSource boundary: ASTIS-authored analytic integration for pinned PBPS2609.06905v1 C.1 actual reflected density A3.Ex1 physical4581-4587, A3.Ex2 4589-4595 and normalized-density differentiation A3.E1 4597-4604; smooth compact core4573-4576 and C.2 physical4654-4664 toward B.13 physical3779-3786. This is not printed standalone theorem.\nExplicit extension: Explicit sufficient-background generalization: finite real Hilbert/Borel E including rank0, C2 V with positive global lower Hessian, eta>0, signed compact C1 f. Original paper also has upper Hessian beta and beta*eta<=1 and smooth compact f. Upper bound and step cap are not needed for this analytic edge; genuine paper consumer retains them. This is attributed background extension, never replacement of B.13 assumptions.\nActual objects: At EVERY y: mu=volume.tilted(-V), R_y=mu.tilted(-norm(x-y)^2/(2eta)), literal SOURCE S_y=volume.tilted(-V((y+u)/2)-norm(y-u)^2/(8eta)). Simultaneously prove actual S_y=(2x-y)#R_y and literal S_y compact mean C1. No arbitrary AE conditional version.\nFuture consumer: Real50 source-density Tf compact C1, then actual51 outer Gaussian gradient closure using actual50 Lp representatives and WeightedC1GradientDomain.c1_in_closed_gradient. Both pointwise source-law and mean regularity are needed; no closure consumer completed before it is proved.",
+    "text_sha256": "63326d943bf0d3d2a4b3e3895c65e92bc515c394363cc752596373bbd5db5832"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean.reflected_gibbs_mean_c1",
+    "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/LiteralReflectedMean.lean",
+    "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α η : ℝ} (hα : 0 < α) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, α*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v)\n    (hη : 0 < η) {f : E → ℝ} (hf : ContDiff ℝ 1 f) (hc : HasCompactSupport f) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n    let S := fun y : E => (volume : Measure E).tilted\n      (fun u => -V ((1/2:ℝ) • (y+u)) - ‖y-u‖^2/(8*η))\n    (∀ y, S y = (R y).map (fun x : E => (2:ℝ) • x-y)) ∧\n      ContDiff ℝ 1 (fun y : E => ∫ u, f u ∂S y)",
+    "statement_sha256": "2ffa67092cac8a25fb4c9aef6cb402b54329b2f9e3d305161a46a6f3e599a6dc",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be any finite-dimensional real inner-product space, with its normed additive commutative group structure, Borel measurable structure, and canonical Lebesgue/Haar volume measure lambda. Dimension zero is included. Let V : E -> R and alpha, eta : R. Assume alpha > 0, eta > 0, V is globally C^2, and for every x,v in E the directional bilinear Hessian satisfies D^2 V(x)[v,v] >= alpha ||v||^2. Let f : E -> R be any globally C^1 function whose nonzero support has compact closure; f may have either sign.\n\nUse the actual normalized exponential tilt T_rho(q) from the ambient definition context: when the exponential weight is integrable, its density relative to rho is exp(q) / integral exp(q) d rho. Define the exact measures\nmu = T_lambda(x -> -V(x)),\nR_y = T_mu(x -> -||x-y||^2 / (2 eta)),\nS_y = T_lambda(u -> -V((1/2)(y+u)) - ||y-u||^2 / (8 eta)).\nHere (1/2)(y+u) is real scalar multiplication of the vector y+u; these measures are defined at every parameter y, using the literal reference measures displayed above.\n\nThen both of the following hold:\n(1) For every y in E, S_y equals the measurable pushforward of R_y by the exact affine map x -> 2x-y. Equivalently, for every Borel set A in E, S_y(A) = R_y({x in E : 2x-y is in A}). The inverse affine map is u -> (1/2)(u+y).\n(2) The whole mean function M : E -> R, M(y) = integral f(u) d S_y(u), with the real Bochner integral, is globally C^1: its Frechet derivative exists everywhere and is continuous.\n\nThe two conclusions form a conjunction. No probability, partition positivity/finiteness, integrability, law-equality, conditional-version, derivative-continuity, upper Hessian, upper step-size, normalizer or closed-gradient certificate is an additional caller premise. No derivative formula, rough-observer extension, trajectory, convergence/mixing, numerical-error, oracle-cost or complexity conclusion is asserted.",
+    "text_sha256": "f36ece536f33f2c9f72ce52942d1f9398a9d147158121fafd4ecfff542b3e5ee",
+    "decoder": "/root/fresh_blind_decoder53",
+    "decoder_packet_sha256": "21cb72f82171d71cff4426cfeaff530f7d091d8286b9e93facd8279b6a952c3c",
+    "decoder_run_sha256": "36023272ccfe8cfbcf6b102c4638bc25ecc490478d6a410331e6eb9c562a8e20",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "f418bdbebf422f0ccb6feadbd83f4d8da8d6de35101705473bf57abbeaffc6ee",
+  "candidate_publication_context": {
+    "file": "f94ffb4bb6f64ca2cc44ccee311ed9cc4aa6cd29722e8899ab19a67516e2091d",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.ProximalBPS.GibbsAugmentation\nimport AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs\nimport AutoSamplingTheory.TechnicalLemmas.Measure.GaussianReflectedMean\n\n/-!\n# Literal PBPS reflected Gibbs law and compact-observer mean\n\nAuthored analytic integration for Chen, Chewi, Lu and Zhang,\narXiv:2609.06905v1, Appendix C.1 reflected density and normalized mean.\nThe source-volume S_y is identified at EVERY y with the actual posterior\nreflection, using genuine Gibbs integrability and exported affine normalization.\nThis whole function equality transports actual compact mean C1, never an AE\nconditional version or an assumed regularity/law certificate.\n\nLower C2 curvature/allpositive eta, compact C1 observer and finite real Hilbert\nincluding rank zero are explicit sufficient-background extensions. Actual paper\nconsumers retain two-sided Hessian/capped eta/smooth compact source hypotheses.\nTf closed-gradient membership, rough B.13, Gamma, invariance/nonexplosion,\nimplementation errors, main results and expected costs remain separate.\n-/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean\nopen MeasureTheory\nnoncomputable section\nset_option autoImplicit false\nset_option maxHeartbeats 800000\n\n/-- Literal every-y source reflection law and C1 mean, with normalization internal. -/\ntheorem reflected_gibbs_mean_c1\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α η : ℝ} (hα : 0 < α) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E, α*‖v‖^2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v)\n    (hη : 0 < η) {f : E → ℝ} (hf : ContDiff ℝ 1 f) (hc : HasCompactSupport f) :\n    let μ := (volume : Measure E).tilted (fun x => -V x)\n    let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n    let S := fun y : E => (volume : Measure E).tilted\n      (fun u => -V ((1/2:ℝ) • (y+u)) - ‖y-u‖^2/(8*η))\n    (∀ y, S y = (R y).map (fun x : E => (2:ℝ) • x-y)) ∧\n      ContDiff ℝ 1 (fun y : E => ∫ u, f u ∂S y)\n := by\n  let μ := (volume : Measure E).tilted (fun x => -V x)\n  let R := fun y : E => μ.tilted (fun x => -‖x-y‖^2/(2*η))\n  let S := fun y : E => (volume : Measure E).tilted\n    (fun u => -V ((1/2:ℝ) • (y+u)) - ‖y-u‖^2/(8*η))\n  change (∀ y, S y = (R y).map (fun x : E => (2:ℝ) • x-y)) ∧\n    ContDiff ℝ 1 (fun y : E => ∫ u, f u ∂S y)\n  have hG := GibbsAugmentation.normalized_augmentation_density hα hV hH hη\n  have hI : Integrable (fun x => Real.exp (-V x)) (volume : Measure E) :=\n    Integrable.of_integral_ne_zero hG.1.ne'\n  have : IsProbabilityMeasure μ := isProbabilityMeasure_tilted hI\n  have hR (y : E) : R y = (volume : Measure E).tilted\n      (fun x => -(V x + ‖x-y‖^2/(2*η))) := by\n    dsimp only [R, μ]\n    rw [tilted_tilted hI]\n    congr 1\n    funext x\n    simp only [Pi.add_apply]\n    ring\n  have hS (y : E) : S y = (R y).map (fun x : E => (2:ℝ) • x-y) := by\n    have hW (u : E) :\n        V ((2:ℝ)⁻¹ • (u- -y)) + ‖(2:ℝ)⁻¹ • (u- -y)-y‖^2/(2*η) =\n          V ((1/2:ℝ) • (y+u)) + ‖y-u‖^2/(8*η) := by\n      have ha : (2:ℝ)⁻¹ • (u- -y) = (1/2:ℝ) • (y+u) := by\n        simp [div_eq_mul_inv, sub_neg_eq_add, add_comm]\n      have hb : (2:ℝ)⁻¹ • (u- -y)-y = (1/2:ℝ) • (u-y) := by\n        norm_num\n        module\n      have hq : ‖(2:ℝ)⁻¹ • (u- -y)-y‖^2/(2*η) = ‖y-u‖^2/(8*η) := by\n        rw [hb, norm_smul, norm_sub_rev u y]\n        norm_num [Real.norm_eq_abs]\n        field_simp\n        ring\n      rw [hq, ha]\n    have haf := AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs.map_affine_gibbs\n      (fun x : E => V x + ‖x-y‖^2/(2*η)) (-y) (s := 2) (by norm_num)\n    have hm : (fun x : E => -y+(2:ℝ) • x) = (fun x : E => (2:ℝ) • x-y) :=\n      funext fun x => by abel\n    rw [hm] at haf\n    rw [hR]\n    calc\n      S y = (volume : Measure E).tilted (fun u =>\n          -(V ((2:ℝ)⁻¹ • (u- -y)) + ‖(2:ℝ)⁻¹ • (u- -y)-y‖^2/(2*η))) := by\n        dsimp only [S]\n        congr 1\n        funext u\n        rw [hW]\n        ring\n      _ = _ := haf.symm\n  refine ⟨hS, ?_⟩\n  simp_rw [hS]\n  exact AutoSamplingTheory.TechnicalLemmas.Measure.GaussianReflectedMean.gaussian_reflected_mean_c1\n    μ hη hf hc\n\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+      "edition": "PBPS arXiv2609.06905v1; pinned Mathlib; Lean4.33.0",
+      "anchor": "Fixed PBPS arXiv2609.06905v1 C.1 A3.Ex1 physical4581-4587, A3.Ex2 physical4589-4595, normalized-density differentiation A3.E1 physical4597-4604; authored literal Gaussian posterior-reflection background toward B.13 physical3779-3786.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "ASTIS-authored source-specific analytic integration for Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang’s C.1 reflected density and normalized mean. Lower-only curvature/all-positive η/compact C1/finite Hilbert/rank0 are explicit sufficient-background generalizations; Tests retain original two-sided curvature/cap/smooth compact source setting. Actual Tf closed-gradient and full rough B.13 are excluded."
+    },
+    "statement": "Let E be a finite-dimensional real Hilbert space with its Borel measurable structure, including rank zero. Let V:E→ℝ be C2, α>0, and D²V(x)[v,v]≥α‖v‖² for all x,v. Let η>0 and let f:E→ℝ be C1 with compact support. Define μ=volume.tilted(−V), R_y=μ.tilted(x↦−‖x−y‖²/(2η)), and the literal source law S_y=volume.tilted(u↦−V((y+u)/2)−‖y−u‖²/(8η)). Then for EVERY y, S_y=(x↦2x−y)_#R_y, and the exact mean function y↦∫f(u)S_y(du) is C1. All actual Gibbs normalization, integrability, affine law and mean regularity ingredients are produced internally. This is attributed analytic integration for PBPS C.1, with explicitly broader sufficient background assumptions, not a standalone printed main theorem or rough B.13.",
+    "formulae": [
+      {
+        "label": "Literal PBPS reflected Gibbs law and C1 compact mean",
+        "tex": "\\mu(dx)=Z_V^{-1}e^{-V(x)}dx,\\quad R_y(dx)=Z_R(y)^{-1}e^{-V(x)-\\|x-y\\|^2/(2\\eta)}dx,\\quad S_y(du)=Z_S(y)^{-1}e^{-V((y+u)/2)-\\|y-u\\|^2/(8\\eta)}du,\\quad S_y=(2x-y)_\\#R_y\\ (\\forall y),\\quad m(y)=\\int f\\,dS_y\\in C^1."
+      }
+    ],
+    "assumptions": [
+      "Finite-dimensional real Hilbert/Borel E, with canonical volume; rank zero is an explicit authored extension.",
+      "C2 potential V, positive α and global Hessian lower bound D²V(x)[v,v]≥α‖v‖²; any η>0; signed compact C1 real f.",
+      "The paper consumer retains the original upper Hessian β, βη≤1 and smooth compact f. Their omission here is explicitly sufficient-background generalization, never a repair of the source main statement.",
+      "μ, R_y and S_y are the exact normalized tilts displayed at every y. No caller probability, L1, partition, Jacobian, affine law, derivative or domain certificate is assumed."
+    ],
+    "obligations": [
+      {
+        "id": "literal-source-law-c1",
+        "label": "Every-y literal source reflected Gibbs law and compact mean C1"
+      },
+      {
+        "id": "remaining-paper",
+        "label": "Actual Tf closure/rough B13/Gamma/dynamics/main/error/cost/composition remain open"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean.reflected_gibbs_mean_c1",
+      "title": "Literal PBPS reflected Gibbs law and C1 compact mean",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A3.SS1",
+          "label": "Fixed PBPS arXiv2609.06905v1 C.1 A3.Ex1 physical4581-4587, A3.Ex2 physical4589-4595, normalized-density differentiation A3.E1 physical4597-4604; authored literal Gaussian posterior-reflection background toward B.13 physical3779-3786.",
+          "scope": "Every-y literal PBPS source-volume reflected law identity and C1 of its compact C1 real-observer mean on finite real Hilbert/Borel E, including rank zero. Genuine Gibbs normalization and likelihood integrability are internally produced; original-source Tests retain two-sided Hessian and eta cap and join the SAME mu/J Markov conditional. Actual Tf closed-gradient membership, rough L2/H1 B.13, Gamma/halfturn/hypocoercivity, invariance/nonexplosion, implementation errors, main results, actual-input composition and unbounded expected query costs remain separate. Focused3895 passed; independent mathematics/source/exact-commit/shared integration remain pending."
+        }
+      ],
+      "tests": [
+        "lake build Tests.ProximalBPSReflectedMeanRegularity"
+      ],
+      "assumptions": [
+        "Finite-dimensional real Hilbert/Borel E, with canonical volume; rank zero is an explicit authored extension.",
+        "C2 potential V, positive α and global Hessian lower bound D²V(x)[v,v]≥α‖v‖²; any η>0; signed compact C1 real f.",
+        "The paper consumer retains the original upper Hessian β, βη≤1 and smooth compact f. Their omission here is explicitly sufficient-background generalization, never a repair of the source main statement.",
+        "μ, R_y and S_y are the exact normalized tilts displayed at every y. No caller probability, L1, partition, Jacobian, affine law, derivative or domain certificate is assumed."
+      ],
+      "statement": "Let E be a finite-dimensional real Hilbert space with its Borel measurable structure, including rank zero. Let V:E→ℝ be C2, α>0, and D²V(x)[v,v]≥α‖v‖² for all x,v. Let η>0 and let f:E→ℝ be C1 with compact support. Define μ=volume.tilted(−V), R_y=μ.tilted(x↦−‖x−y‖²/(2η)), and the literal source law S_y=volume.tilted(u↦−V((y+u)/2)−‖y−u‖²/(8η)). Then for EVERY y, S_y=(x↦2x−y)_#R_y, and the exact mean function y↦∫f(u)S_y(du) is C1. All actual Gibbs normalization, integrability, affine law and mean regularity ingredients are produced internally. This is attributed analytic integration for PBPS C.1, with explicitly broader sufficient background assumptions, not a standalone printed main theorem or rough B.13.",
+      "formula": "\\mu(dx)=Z_V^{-1}e^{-V(x)}dx,\\quad R_y(dx)=Z_R(y)^{-1}e^{-V(x)-\\|x-y\\|^2/(2\\eta)}dx,\\quad S_y(du)=Z_S(y)^{-1}e^{-V((y+u)/2)-\\|y-u\\|^2/(8\\eta)}du,\\quad S_y=(2x-y)_\\#R_y\\ (\\forall y),\\quad m(y)=\\int f\\,dS_y\\in C^1.",
+      "steps": [
+        {
+          "title": "Produce genuine Gibbs normalization before using a tilt",
+          "text": "Positive lower curvature and C2 V feed the existing Gibbs augmentation producer. Its actual positive partition integral is nonzero; Integrable.of_integral_ne_zero yields exp(−V)∈L1(volume). This establishes that the literal μ is a probability, rather than relying on a totalized zero integral. Finite-dimensional volume and its positive-open-set property are inherited ambient facts, not new theorem binders.",
+          "formula": "Z_V=\\int e^{-V(x)}dx>0,\\qquad e^{-V}\\in L^1(dx),\\qquad\\mu=Z_V^{-1}e^{-V}dx,\\quad\\mu(E)=1.",
+          "lean": "GibbsAugmentation.normalized_augmentation_density; hG; hI; Integrable.of_integral_ne_zero; isProbabilityMeasure_tilted"
+        },
+        {
+          "title": "Identify the actual posterior as the combined normalized potential",
+          "text": "Using the genuine exp(−V) integrability, the existing tilted_tilted theorem combines the literal μ tilt with its quadratic likelihood. Pointwise algebra gives the same combined potential V(x)+‖x−y‖²/(2η) at each y. No arbitrary almost-everywhere conditional representative is used.",
+          "formula": "R_y=dx.\\operatorname{tilted}\\!\\left(-V(x)-\\frac{\\|x-y\\|^2}{2\\eta}\\right)\\qquad(\\forall y).",
+          "lean": "hR; tilted_tilted hI; funext; Pi.add_apply; ring"
+        },
+        {
+          "title": "Keep the exact inverse map and the factor8η",
+          "text": "For T_y(x)=2x−y the inverse is (u+y)/2. Its displacement from y is (u−y)/2, so the original quadratic denominator2η becomes8η. This gives exactly the paper’s reflected source potential W_y. Its parameter-y score is −∇V((y+u)/2)/2−(y−u)/(4η); this differs from the u-gradient. The score formula is source context here, not an additional exported derivative theorem.",
+          "formula": "T_y^{-1}(u)=\\frac{u+y}{2},\\quad T_y^{-1}(u)-y=\\frac{u-y}{2},\\quad W_y(u)=V\\!\\left(\\frac{y+u}{2}\\right)+\\frac{\\|y-u\\|^2}{8\\eta}.",
+          "lean": "hW; ha; hb; hq; norm_smul; norm_sub_rev; exact rw [hq,ha]"
+        },
+        {
+          "title": "Apply the genuine normalized affine-map theorem",
+          "text": "The existing affine Gibbs theorem applies to F_y(x)=V(x)+‖x−y‖²/(2η), scale2 and translation−y. Its change-of-variables normalization retains the inverse Jacobian2^(−d), equivalently Z_S(y)=2^d Z_R(y), so the normalized laws agree exactly. Substitute the proved inverse-potential identity and rewrite −y+2x=2x−y. The result is every-y S_y=(T_y)_#R_y, including d=0.",
+          "formula": "d=\\dim E,\\quad |\\det DT_y^{-1}|=2^{-d},\\quad Z_S(y)=2^d Z_R(y),\\quad S_y=(T_y)_\\#R_y\\qquad(\\forall y).",
+          "lean": "AffineGibbs.map_affine_gibbs; haf; hm; hR; hW; hS"
+        },
+        {
+          "title": "Transport the whole literal mean function, then use true C1 regularity",
+          "text": "The Gaussian reflected-mean parent applies to the actual probability μ, η>0 and compact C1 f. Its domination, numerator derivative, positive normalizer and continuous integrated derivative are internal verified background. Rewrite the measure equality at EVERY y in the whole mean function and consume this C1 result. An AE fiber identity would not justify this derivative transport.",
+          "formula": "m(y)=\\int f(u)S_y(du)=\\int f(2x-y)R_y(dx)\\quad(\\forall y),\\qquad m\\in C^1(E).",
+          "lean": "refine ⟨hS,?_⟩; simp_rw [hS]; GaussianReflectedMean.gaussian_reflected_mean_c1 μ hη hf hc"
+        },
+        {
+          "title": "Consume the paper’s original kernel and a noncentered rank-zero source law",
+          "text": "The genuine Tests use the original two-sided Hessian and βη≤1 assumptions. MacroscopicEnergy supplies probability of the same μ; GaussianConditionalKernel constructs a Markov conditional R for the same Gaussian augmentation J and identifies every literal posterior fiber. The new law identity yields every source S_y probability and its smooth compact mean C1. Separately, dimension0 with V=0, α=η=1 and f=1 produces actual source mean1 and actual derivative0. Neither Test assumes centering or a closure certificate.",
+          "formula": "J=\\operatorname{law}(X,X+\\sqrt\\eta G),\\quad R\\text{ is Markov and conditional for }J,\\quad S_y=(2x-y)_\\#R_y;\\qquad d=0,\\ V=0,\\ f=1:\\ m\\equiv1,\\ Dm\\equiv0.",
+          "lean": "Tests.ProximalBPSReflectedMeanRegularity.actual_pbps_source_reflected_mean; rank_zero_source_noncentered_mean; MacroscopicEnergy/GaussianConditionalKernel (Test only)"
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real Hilbert space with its Borel measurable structure, including rank zero. Let V:E→ℝ be C2, α>0, and D²V(x)[v,v]≥α‖v‖² for all x,v. Let η>0 and let f:E→ℝ be C1 with compact support. Define μ=volume.tilted(−V), R_y=μ.tilted(x↦−‖x−y‖²/(2η)), and the literal source law S_y=volume.tilted(u↦−V((y+u)/2)−‖y−u‖²/(8η)). Then for EVERY y, S_y=(x↦2x−y)_#R_y, and the exact mean function y↦∫f(u)S_y(du) is C1. All actual Gibbs normalization, integrability, affine law and mean regularity ingredients are produced internally. This is attributed analytic integration for PBPS C.1, with explicitly broader sufficient background assumptions, not a standalone printed main theorem or rough B.13.",
+      "lean_proof": "Produce genuine Gibbs normalization before using a tilt; Identify the actual posterior as the combined normalized potential; Keep the exact inverse map and the factor8η; Apply the genuine normalized affine-map theorem; Transport the whole literal mean function, then use true C1 regularity; Consume the paper’s original kernel and a noncentered rank-zero source law",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.AffineGibbs.map_affine_gibbs",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.GibbsAugmentation.normalized_augmentation_density",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianReflectedMean.gaussian_reflected_mean_c1"
+      ],
+      "mathlib_dependencies": [
+        "Integrable.of_integral_ne_zero",
+        "MeasureTheory.isProbabilityMeasure_tilted",
+        "MeasureTheory.tilted_tilted",
+        "norm_smul",
+        "norm_sub_rev",
+        "MeasureTheory.Measure.isProbabilityMeasure_map",
+        "fderiv_const_apply"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.LiteralReflectedMean.reflected_gibbs_mean_c1",
+      "role": "proof-edge",
+      "supports": [
+        "literal-source-law-c1"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "C.1 uses the reflected Gibbs density in the original C2 two-sided-curvature/capped-step setting and smooth compact f.",
+        "lean": "Explicit sufficient-background generalization: finite real Hilbert/Borel E including rank0, C2 V with positive global lower Hessian, eta>0, signed compact C1 f. Original paper also has upper Hessian beta and beta*eta<=1 and smooth compact f. Upper bound and step cap are not needed for this analytic edge; genuine paper consumer retains them. This is attributed background extension, never replacement of B.13 assumptions."
+      },
+      {
+        "source": "The source S_y is the displayed normalized half-position Gibbs density; its relationship to the posterior reflection is exact.",
+        "lean": "All-y source-volume S_y=(2x−y)#R_y from actual Gibbs L1, posterior tilt composition, exact inverse algebra and normalized affine change of variables."
+      },
+      {
+        "source": "C.1 differentiates the normalized mean on a smooth compact core.",
+        "lean": "Whole literal mean C1 via actual probability and existing genuine Gaussian reflected-mean regularity; no supplied domination/C1 certificate."
+      },
+      {
+        "source": "Actual Tf closed-gradient membership, all-L2/H1 B.13 and paper main/error/cost results.",
+        "lean": "Every-y literal PBPS source-volume reflected law identity and C1 of its compact C1 real-observer mean on finite real Hilbert/Borel E, including rank zero. Genuine Gibbs normalization and likelihood integrability are internally produced; original-source Tests retain two-sided Hessian and eta cap and join the SAME mu/J Markov conditional. Actual Tf closed-gradient membership, rough L2/H1 B.13, Gamma/halfturn/hypocoercivity, invariance/nonexplosion, implementation errors, main results, actual-input composition and unbounded expected query costs remain separate. Focused3895 passed; independent mathematics/source/exact-commit/shared integration remain pending."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "88d6bd73ea4e39743567387d559a808ee883d625815057c9657624f560638d72"
+}

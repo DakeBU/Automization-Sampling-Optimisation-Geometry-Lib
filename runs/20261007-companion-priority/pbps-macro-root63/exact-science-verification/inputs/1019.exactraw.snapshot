@@ -1,0 +1,85 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.PermutedReplacementQuadraticCost
+import AutoSamplingTheory.TechnicalLemmas.Measure.ReplacementCompetitor
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+
+/-!
+# Quadratic cost bookkeeping for a replacement competitor
+
+Once an ambient finite measure is decomposed as `remainder + removed`, replacing
+`removed` by a strictly cheaper finite block preserves the same strict cost
+improvement after adding back the unchanged remainder.  This module isolates
+that purely additive fact and packages the integrability of the ambient and
+replacement competitor.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace ReplacementCompetitorQuadraticCost
+
+open MeasureTheory
+open PermutedReplacementQuadraticCost ReplacementCompetitor
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+
+/-- Integrability of the unchanged remainder and removed block implies
+integrability of the reconstructed ambient measure. -/
+theorem integrable_ambient_of_remainder_removed
+    (ambient remainder removed : FiniteMeasure (E × E))
+    (hdecomp : ambient = remainder + removed)
+    (hrem : Integrable realQuadraticCost (remainder : Measure (E × E)))
+    (hremoved : Integrable realQuadraticCost (removed : Measure (E × E))) :
+    Integrable realQuadraticCost (ambient : Measure (E × E)) := by
+  rw [hdecomp]
+  exact integrable_add_measure.2 ⟨hrem, hremoved⟩
+
+/-- Integrability of the unchanged remainder and replacement block implies
+integrability of the global replacement competitor. -/
+theorem integrable_replacementCompetitor
+    (remainder replacement : FiniteMeasure (E × E))
+    (hrem : Integrable realQuadraticCost (remainder : Measure (E × E)))
+    (hreplacement : Integrable realQuadraticCost (replacement : Measure (E × E))) :
+    Integrable realQuadraticCost
+      (replacementCompetitor remainder replacement : Measure (E × E)) := by
+  unfold replacementCompetitor
+  exact integrable_add_measure.2 ⟨hrem, hreplacement⟩
+
+/-- A strict cost improvement on the removed/replacement part remains strict
+after the same remainder is added to both sides. -/
+theorem integral_replacementCompetitor_lt_ambient
+    (ambient remainder removed replacement : FiniteMeasure (E × E))
+    (hdecomp : ambient = remainder + removed)
+    (hrem : Integrable realQuadraticCost (remainder : Measure (E × E)))
+    (hremoved : Integrable realQuadraticCost (removed : Measure (E × E)))
+    (hreplacement : Integrable realQuadraticCost (replacement : Measure (E × E)))
+    (hcost :
+      (∫ z, realQuadraticCost z ∂(replacement : Measure (E × E))) <
+        ∫ z, realQuadraticCost z ∂(removed : Measure (E × E))) :
+    (∫ z, realQuadraticCost z
+        ∂(replacementCompetitor remainder replacement : Measure (E × E))) <
+      ∫ z, realQuadraticCost z ∂(ambient : Measure (E × E)) := by
+  calc
+    (∫ z, realQuadraticCost z
+        ∂(replacementCompetitor remainder replacement : Measure (E × E))) =
+        (∫ z, realQuadraticCost z ∂(remainder : Measure (E × E))) +
+          ∫ z, realQuadraticCost z ∂(replacement : Measure (E × E)) := by
+      unfold replacementCompetitor
+      exact integral_add_measure hrem hreplacement
+    _ < (∫ z, realQuadraticCost z ∂(remainder : Measure (E × E))) +
+        ∫ z, realQuadraticCost z ∂(removed : Measure (E × E)) :=
+      add_lt_add_left hcost _
+    _ = ∫ z, realQuadraticCost z
+        ∂((remainder + removed : FiniteMeasure (E × E)) : Measure (E × E)) := by
+      exact (integral_add_measure hrem hremoved).symm
+    _ = ∫ z, realQuadraticCost z ∂(ambient : Measure (E × E)) := by
+      rw [← hdecomp]
+
+end
+
+end ReplacementCompetitorQuadraticCost
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

@@ -1,0 +1,87 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteDimensionalItoProcess
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.GlobalItoProcessProgressive
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveDriftIntegral
+
+/-!
+# Progressive finite-dimensional Itô-process assembly
+
+This module keeps the source-facing Definition 1.1.17 bridge modular.  It
+proves that each scalar coordinate assembled from the initial value, the
+Bochner drift primitive, and the finite Brownian-coordinate stochastic sum is
+strongly progressive.  No new integrability or measurability assumptions are
+introduced here.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace FiniteDimensionalItoProcessProgressive
+
+open MeasureTheory
+open scoped NNReal BigOperators
+
+open BrownianMotion FiniteDimensionalItoProcess GlobalItoProcessGluing
+  GlobalItoProcessProgressive GlobalLocalProgressiveL2 ProgressiveDriftIntegral
+  ProgressiveL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega}
+
+/-- A time-constant initial coordinate is progressive once its `F_0`
+measurability is known. -/
+theorem initialCoordinateProcess_stronglyProgressive
+    {iota kappa : Type*}
+    (data : CoordinateItoData (filtration := filtration) (mu := mu) iota kappa)
+    (i : iota) :
+    IsStronglyProgressive filtration (fun _ omega => data.initial omega i) := by
+  have hAdapted :
+      StronglyAdapted filtration (fun _ omega => data.initial omega i) := by
+    intro t
+    exact (data.initialStronglyMeasurable i).mono (filtration.mono bot_le)
+  exact hAdapted.isStronglyProgressive_of_continuous (fun _ => continuous_const)
+
+/-- The finite stochastic sum over Brownian coordinates is progressive. -/
+theorem coordinateStochasticTerm_stronglyProgressive
+    {iota kappa : Type*} [Fintype kappa]
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (data : CoordinateItoData (filtration := filtration) (mu := mu) iota kappa)
+    (brownian : CoordinateBrownianFamilyWithFiltration
+      (filtration := filtration) (mu := mu) kappa)
+    (i : iota) :
+    IsStronglyProgressive filtration
+      (fun t omega => coordinateStochasticTerm hUsual data brownian t omega i) := by
+  unfold coordinateStochasticTerm
+  simpa only using
+    (IsStronglyProgressive.finsetSum (s := Finset.univ)
+      (fun j _ =>
+        globalItoProcess_stronglyProgressive hUsual
+          (data.diffusion i j) (brownian.isBrownian j)))
+
+/-- Every scalar coordinate of the finite-dimensional Itô process is strongly
+progressive. -/
+theorem coordinateItoProcess_coordinate_stronglyProgressive
+    {iota kappa : Type*} [Fintype kappa]
+    [IsProbabilityMeasure mu]
+    (hUsual : SatisfiesUsualConditions filtration mu)
+    (data : CoordinateItoData (filtration := filtration) (mu := mu) iota kappa)
+    (brownian : CoordinateBrownianFamilyWithFiltration
+      (filtration := filtration) (mu := mu) kappa)
+    (i : iota) :
+    IsStronglyProgressive filtration
+      (fun t omega => coordinateItoProcess hUsual data brownian t omega i) := by
+  change IsStronglyProgressive filtration
+    (fun t omega =>
+      data.initial omega i +
+        prefixIntegralProcess (data.drift i) t omega +
+        coordinateStochasticTerm hUsual data brownian t omega i)
+  exact
+    ((initialCoordinateProcess_stronglyProgressive data i).add
+      (prefixIntegralProcess_stronglyProgressive (data.drift i)
+        (data.driftProgressive i))).add
+      (coordinateStochasticTerm_stronglyProgressive hUsual data brownian i)
+
+end FiniteDimensionalItoProcessProgressive
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

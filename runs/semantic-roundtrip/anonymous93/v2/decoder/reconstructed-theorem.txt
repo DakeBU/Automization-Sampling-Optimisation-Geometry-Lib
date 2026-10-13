@@ -1,0 +1,74 @@
+RECONSTRUCTED THEOREM — V2 SOURCE-BLIND RAW SEMANTICS
+
+Parameters and assumptions.
+E is any finite-dimensional real inner-product space, with its normed additive commutative group structure and a measurable structure satisfying BorelSpace. Its dimension may be zero. V:E→R is twice continuously differentiable. α,β are nonnegative reals, α>0 and α≤β. For every x,v∈E the second Frechet derivative satisfies
+ α||v||² ≤ D²V(x)[v,v] ≤ β||v||².
+η is real, η>0 and βη≤1. No bound on third or higher derivatives is assumed. All constructions below use fixed E,V,η; α,β restrict inputs but do not appear in the process formulas.
+Measurability throughout is relative to the specified measurable structures. In particular, the given BorelSpace E instance identifies E's structure with its Borel sigma-algebra, whereas function spaces use coordinate-product sigma-algebras. No unspecified topology or Borel sigma-algebra on the uncountable path space is supplied.
+
+Process definitions.
+Write z=(x,v)∈E×E, g=∇V, and let r denote xRef. For any y,r∈E define c=y−ηg(r). For every real t put
+ Φ(y,r,t,(x,v))=(c+cos(t)(x−c)+sqrt(η)sin(t)v,
+                  −sin(t)/sqrt(η)(x−c)+cos(t)v).
+Let δ=g(x)−g(r), S(r,(x,v))=(x,v−[2<v,δ>/||δ||²]δ), and λ(r,(x,v))=sqrt(η)max(0,<v,δ>). Real division is total: δ=0 gives coefficient zero and S(z)=z. The rate contains exactly sqrt(η); the flow time has no hidden rescaling.
+For t∈R≥0 define Λ(y,r,z,t)=∫_0^t λ(r,Φ(y,r,s,z)) ds, a real interval Bochner integral. For e∈R≥0 let τ(y,r,z,e)∈WithTop(R≥0) be the infimum of nonnegative times t satisfying Λ(y,r,z,t)−e≥0, with infinity for no entry time. This uses a non-strict threshold condition.
+Let Rec=(R≥0×(E×E))⊕Unit. Write Live(a,z) for the left tag and Dead for the unique right tag. next(y,r,e,Dead)=Dead. For Live(a,z), next is Dead if τ(y,r,z,e)=infinity; otherwise next=Live(a+τ,S(r,Φ(y,r,τ,z))). The literal finite extraction is untopD 0, used only in the finite branch. For every nonnegative sequence e define R_0=Live(0,z0) and R_(k+1)=next(y,r,e_k,R_k). Every R_k is a finite recursion and is defined for all raw inputs.
+Let Ω=N→R with the canonical product sigma-algebra and probability measure P=⊗_(k∈N)Exp(rate=1). Let ε_k(w)=max(w_k,0) as a nonnegative real. Raw Ω includes negative and zero entries and exceptional sequences. Below R_j(w) uses thresholds ε(w). Define H_n(w)=(R_j(w))_(j=0,...,n)∈Hist_n, where Hist_n=Fin(n+1)→Rec.
+
+Ordered prefixes and path construction.
+For n∈N and T∈R≥0 let Δ_(n,T)={t∈R^n: (0,t_0,...,t_(n−1)) is strictly increasing and each t_i<T}. Let Prefix_(n,T) be this subtype. Its measure m_(n,T) is the comap of n-dimensional product Lebesgue measure under inclusion, not a normalized measure. Put u_0=0 and u_(i+1)=t_i. Define z_0(t)=z0 and
+ z_(i+1)(t)=S(r,Φ(y,r,u_(i+1)−u_i,z_i(t))) for 0≤i<n.
+Define K_n(t)_j=Live(max(u_j,0),z_j(t)); on this subtype u_j≥0. Define
+ qReal_n(t)=∏_(i=0)^(n−1) [λ(r,Φ(y,r,u_(i+1)−u_i,z_i(t))) exp(−Λ(y,r,z_i(t),max(u_(i+1)−u_i,0)))],
+ q_n(t)=ENNReal.ofReal(qReal_n(t)).
+The nonnegative-real arguments use Real.toNNReal; all these gaps are strictly positive on a prefix. The rate factor is before reflection and z_(i+1) is after reflection.
+For records define readTime(Live(a,z))=a as a real and readTime(Dead)=0; liveTime(Live(a,z))=a as a nonnegative real and liveTime(Dead)=0. A_(n,T) consists of histories all of whose entries are live, whose readTime function is strictly increasing, and whose entries numbered 1 through n have time <T. A alone does not impose initial time zero or initial state z0; those come from H and K.
+Let t_j(w)=a as a WithTop nonnegative real if R_j(w)=Live(a,z), and infinity if dead. Put I_(T,n)={w:t_n(w)≤T<t_(n+1)(w)}. Define N_T(w) as the least such n when one exists, and as zero otherwise. This is a totalization, not an unconditional raw count identity.
+Let d_(n,T)(h)=T−liveTime(h_n), using truncated nonnegative subtraction. Define survival(Live(a,z),u,e) to mean u<τ(y,r,z,max(e,0)), and survival(Dead,u,e)=False. Define weight(Live(a,z),u)=ENNReal.ofReal(exp(−Λ(y,r,z,u))) and weight(Dead,u)=0. Put
+ C_(n,T)={w:H_n(w)∈A_(n,T) and survival(R_n(w),d_(n,T)(H_n(w)),w_n)}.
+The first n transitions use w_0,...,w_(n−1); final survival uses coordinate w_n.
+Path_T is the full function space {s∈R≥0:s≤T}→E×E, with its coordinate-product sigma-algebra. Ψ_n(h)(s) starts at accumulator z0 and visits indices j=0,...,n in increasing order. A live record Live(a,z) with a≤s overwrites the accumulator by Φ(y,r,s−a,z), with nonnegative truncated subtraction; any other record leaves it unchanged. Thus the last eligible index wins even for malformed histories; this need not be the largest recorded time on an unordered raw history. Define Γ_n(t)=Ψ_n(K_n(t)) and
+ ρ_n(t)=q_n(t) weight(K_n(t)_n,d_(n,T)(K_n(t))).
+On valid prefixes this equals the product of n event rate/survival factors times exp(−Λ(y,r,z_n(t),T−u_n)). The density is extended nonnegative and belongs to an unnormalized event-count component.
+
+Conclusion, with all quantifier scopes.
+After E,V,α,β,η and their assumptions, there exists ONE Z:E→E→(E×E)→R≥0→Ω→E×E satisfying all the following simultaneously.
+(1) Z is jointly measurable in the whole tuple (y,r,z0,s,w) for the stated product measurable structures.
+(2) For EVERY y,r,z0,w,s,n and a∈R≥0×(E×E), if w∈I_(s,n) and R_n(w)=Live(a.time,a.state), then
+ Z(y,r,z0,s,w)=Φ(y,r,s−a.time,a.state),
+where s−a.time is truncated nonnegative subtraction coerced to a real. This is a raw pointwise implication.
+(3) For EVERY y,r,z0,w,s, if no n satisfies w∈I_(s,n), then Z(y,r,z0,s,w)=z0.
+(4) For EVERY fixed y,r,z0, Z(y,r,z0,0,w)=z0 for P-almost every w. This clause is not raw initialization for every w.
+(5) For EVERY n∈N,T∈R≥0, Ψ_n is jointly measurable in (y,r,z0,h), Γ_n in (y,r,z0,t), and ρ_n in (y,r,z0,t). Path-valued measurability in the first two claims uses the coordinate-product sigma-algebra.
+For EVERY such n,T and EVERY fixed y,r,z0, write H=H_n and ZT(w)(s)=Z(y,r,z0,s,w). Then all the following hold:
+(6) H, ZT and N_T are measurable; C_(n,T) is measurable.
+(7) For EVERY t∈Prefix_(n,T), s∈[0,T] and j∈{0,...,n}, if u_j≤s and s<u_k for every k>j, then
+ Γ_n(t)(s)=Φ(y,r,s−u_j,z_j(t)),
+where the difference is real. Equality s=u_j is included, so the event instant uses the post-event state.
+(8) For EVERY raw w∈C_(n,T), Ψ_n(H(w))=ZT(w) as entire functions on [0,T]. Thus equality is simultaneous in all path times for each such input.
+(9) For P-almost every w, the following ONE conjunction holds: every positive-index event time t_j(w) is different from T; for EVERY k∈N, N_T(w)=k iff w∈C_(k,T); the sets {j∈N:j>0 and t_j(w)<T} and {j∈N:j>0 and t_j(w)≤T} are both finite; and N_T(w) equals the natural cardinality of each set. The parameters and T are outside the AE quantifier, while all j,k are inside it.
+(10) For all distinct i,j∈N, C_(i,T) and C_(j,T) are disjoint as raw sets.
+(11) P(⋃_(k∈N) C_(k,T))=1.
+(12) As unnormalized measures on Hist_n×Path_T,
+ (w↦(H(w),ZT(w)))_* [P restricted to {w:N_T(w)=n}]
+ = (t↦(K_n(t),Γ_n(t)))_* [m_(n,T) with density ρ_n].
+(13) For EVERY measurable F:Hist_n×Path_T→[0,infinity],
+ ∫_{N_T=n} F(H(w),ZT(w)) dP(w)
+ = ∫_{Prefix_(n,T)} F(K_n(t),Γ_n(t))ρ_n(t) dm_(n,T)(t).
+Both are extended nonnegative Lebesgue integrals, so no integrability or finite-value premise is required.
+(14) ∫ρ_n dm_(n,T)=P{w:N_T(w)=n}, and P{w:N_T(w)=n}≤1.
+
+Probability, path and totalization boundaries.
+The existential Z is simultaneous in its parameters and time; joint measurability is explicitly asserted. In contrast, the AE claims fix y,r,z0 and, where present, T first. They do not assert one null set uniform over an uncountable collection of parameters or horizons. In particular, excluding an event at each fixed T almost surely does not exclude events at every time on a common full-measure set. Countable intersections could combine countably many fixed-horizon conclusions, but no additional all-real-horizon claim is being silently added here. The raw C-path identity is already simultaneous in every s∈[0,T], not just coordinate-by-coordinate AE.
+The product sigma-algebra on Path_T is generated by coordinate evaluations. No topology, continuous/cadlag subspace, or measurability for arbitrary uncountable-time events is supplied. Joint evaluation on a general uncountable product is not implied by path-valued measurability; joint measurability for this specific Z is a separate clause. Measurable F is restricted to that specified history/path product sigma-algebra.
+τ measures elapsed time; t_j accumulates times. An infinite wait produces a dead next record and all subsequent records are dead. At every finite time bracketed by the preceding live event and infinity, clause (2) continues the deterministic flow from that last live state. The dead tag does not stop that flow. No raw strict event increase, raw non-explosion, or raw count interpretation is claimed. Raw negative and zero coordinates are clipped to zero and may generate immediate coincident events. If no event interval brackets a time, Z=z0 and N=0 are the explicit defaults. The measure identity includes final survival and does not divide by the count-event probability; it is not a normalized conditional distribution.
+
+Edge cases.
+Zero dimension is permitted. E and E×E have one point; all gradients, displacements, rates and hazards vanish, and flow and reflection preserve the unique state. Hessian inequalities in v are vacuous, but α>0, α≤β, η>0 and βη≤1 remain scalar assumptions. With identically zero future hazard, τ(e)=infinity for e>0 and τ(0)=0. Almost surely all countably many exponential coordinates are positive, hence in dimension zero no positive-index finite event occurs and N_T=0 for every finite T on that common positivity event. Raw zero thresholds can still generate zero-time records.
+When n=0, Prefix_(0,T) is a singleton even if T=0; constraints over Fin 0 are vacuous and strict monotonicity of the one-point (0) tuple is vacuous. The zero-dimensional product-volume mass is one. K_0 is the initial record; qReal_0=q_0=1; Γ_0(s)=Φ(y,r,s,z0); and ρ_0=exp(−Λ(y,r,z0,T)), embedded in ENNReal. C_(0,T) means first waiting time >T. Thus the zero-event component is the deterministic flow path weighted by its survival probability.
+When T=0 and n>0, Prefix_(n,0) is empty: its first time would need to be >0 and <0. The density integral and therefore P{N_0=n} are zero. At n=0,T=0 the density is one, giving P{N_0=0}=1. The AE endpoint claim excludes positive-index zero-time events, but raw zero thresholds remain permitted.
+If a count-event has probability zero, its restricted measure and density integral are zero; all formulas remain meaningful without defining a conditional probability or dividing by zero.
+No invariant distribution, stationarity, convergence/accuracy bound, expected event count/query cost, moment bound, randomized initial law, or source-provenance claim is a conclusion of this statement.
+
+V2 neutral-context comparison.
+The exact Lean statement hash is unchanged from the earlier input retained in this conversation. The changed neutral sentence specifies measurability relative to stated structures and assigns coordinate-product sigma-algebras to function spaces. This changes none of the earlier decoded mathematical claims, which already used this sigma-algebra for Path_T and rejected implicit uncountable-path topology or general diagonal measurability. The correction removes ambiguity in the supplied context itself. This report quotes only the v2 context; the older generic wording is not carried forward. No earlier source, implementation or review artifact was read for this comparison.

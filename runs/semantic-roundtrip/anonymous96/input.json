@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-6b0086ad88bb1261",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E := fun y r => y - η • gradient V r\n    let h : E → E → E := fun r x => gradient V x - gradient V r\n    let B : E → E → E := fun n p => p - (2 * inner ℝ p n / ‖n‖ ^ 2) • n\n    let S : E → (E × E) → (E × E) := fun r z => (z.1, B (h r z.1) z.2)\n    let R : (E × E) → (E × E) := fun z => (z.1, -z.2)\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y r u z =>\n      (c y r + Real.cos u • (z.1 - c y r) + (Real.sqrt η * Real.sin u) • z.2,\n       (-Real.sin u / Real.sqrt η) • (z.1 - c y r) + Real.cos u • z.2)\n    let rate : E → (E × E) → ℝ := fun r z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (h r z.1))\n    let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)\n    Measurable (fun a : (E × E) × ℝ × (E × E) => Φ a.1.1 a.1.2 a.2.1 a.2.2) ∧\n    Measurable (fun a : E × (E × E) => S a.1 a.2) ∧\n    Measurable (fun a : E × (E × E) => rate a.1 a.2) ∧\n    (∀ y r : E, ∀ u : ℝ, MeasurePreserving (Φ y r u) ell ell) ∧\n    (∀ r : E, MeasurePreserving (S r) ell ell) ∧\n    MeasurePreserving R ell ell ∧\n    (∀ y r : E, ∀ u : ℝ, ∀ z : E × E,\n      Φ y r (-u) (Φ y r u z) = z ∧ Φ y r u (Φ y r (-u) z) = z) ∧\n    (∀ r : E, ∀ z : E × E, S r (S r z) = z) ∧\n    (∀ z : E × E, R (R z) = z) ∧\n    (∀ y r : E, ∀ u : ℝ, ∀ z : E × E, R (Φ y r u (R z)) = Φ y r (-u) z) ∧\n    (∀ r : E, ∀ z : E × E, R (S r z) = S r (R z)) ∧\n    (∀ r : E, ∀ z : E × E, rate r (R (S r z)) = rate r z) ∧\n    (∀ r : E, ∀ F : (E × E) → ℝ, Integrable F ell →\n      Integrable (fun z => F (S r z)) ell ∧\n      (∫ z, F (S r z) ∂ell) = ∫ z, F z ∂ell)",
+    "statement_sha256": "6b0086ad88bb126107de088d0ca80497936f3fa99dad01d88b730f8bc69fe0b6",
+    "compiled": true,
+    "approved_definition_context": [
+      "The ambient norm and inner product are real; gradient and fderiv denote Hilbert gradient and Frechet derivative. The ambient measurable structure is its Borel sigma algebra.",
+      "volume on a finite-dimensional real inner-product space is its canonical Hilbert-space Lebesgue measure, and Measure.prod is product measure. MeasurePreserving f mu nu means f is measurable and its pushforward sends mu to nu.",
+      "Real division by zero equals zero. Smul denotes scalar multiplication. The real square root is the nonnegative one. Finite-dimensional spaces include dimension zero.",
+      "Integrable is Bochner integrability; for real functions it includes absolute integrability and almost-everywhere strong measurability. All quantifiers have their displayed scope, and real time ranges over the whole real line."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "bed0e56de8d7fcd48c463f7eef714067247b078d6790a58b3850ce56d62bdb10"
+}

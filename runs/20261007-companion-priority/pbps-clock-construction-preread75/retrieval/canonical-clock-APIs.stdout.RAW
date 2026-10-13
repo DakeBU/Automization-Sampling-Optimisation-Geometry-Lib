@@ -1,0 +1,61 @@
+23:* `MeasureTheory.hittingAfter u s n`: the first time a stochastic process `u` enters a set `s`
+30:* `MeasureTheory.Adapted.isStoppingTime_hittingAfter`: a discrete hitting time of a adapted process
+62:/-- Hitting time: given a stochastic process `u` and a set `s`, `hittingAfter u s n` is
+65:noncomputable def hittingAfter (u : ι → Ω → β) (s : Set β) (n : ι) :
+76:lemma hittingAfter_def (u : ι → Ω → β) (s : Set β) (n : ι) :
+77:    hittingAfter u s n =
+85:lemma hittingAfter_empty (n : ι) : hittingAfter u ∅ n = fun _ ↦ ⊤ := by ext; simp [hittingAfter]
+95:lemma hittingAfter_univ {ι : Type*} [ConditionallyCompleteLattice ι] {u : ι → Ω → β} (n : ι) :
+96:    hittingAfter u .univ n = fun _ ↦ (n : WithTop ι) := by
+99:  simp only [hittingAfter_def, Set.mem_univ, and_true]
+129:theorem notMem_of_lt_hittingAfter {k : ι} (hk₁ : k < hittingAfter u s n ω) (hk₂ : n ≤ k) :
+132:  rw [hittingAfter, if_pos ⟨k, hk₂, h⟩]
+140:lemma hittingAfter_eq_top_iff : hittingAfter u s n ω = ⊤ ↔ ∀ j, n ≤ j → u j ω ∉ s := by
+141:  simp [hittingAfter]
+163:lemma le_hittingAfter (ω : Ω) : n ≤ hittingAfter u s n ω := by
+164:  simp only [hittingAfter]
+189:lemma hittingAfter_mem_set [WellFoundedLT ι] (h_exists : ∃ j, n ≤ j ∧ u j ω ∈ s) :
+190:    u (hittingAfter u s n ω).untopA ω ∈ s := by
+191:  rw [hittingAfter, if_pos h_exists]
+205:lemma hittingAfter_mem_set_of_ne_top [WellFoundedLT ι] (hl : hittingAfter u s n ω ≠ ⊤) :
+206:    u (hittingAfter u s n ω).untopA ω ∈ s := by
+207:  simp only [ne_eq, hittingAfter_eq_top_iff, not_forall, not_not] at hl
+209:  exact hittingAfter_mem_set ⟨j, hj₁, hj₂⟩
+217:lemma hittingAfter_le_of_mem (hin : n ≤ i) (his : u i ω ∈ s) :
+218:    hittingAfter u s n ω ≤ i := by
+220:  rw [hittingAfter, if_pos h_exists]
+238:lemma hittingAfter_le_iff [WellFoundedLT ι] :
+239:    hittingAfter u s n ω ≤ i ↔ ∃ j ∈ Set.Icc n i, u j ω ∈ s := by
+241:  · have h_top : hittingAfter u s n ω ≠ ⊤ := fun h ↦ by simp [h] at h'
+242:    have h_le := le_hittingAfter (u := u) (s := s) (n := n) ω
+243:    refine ⟨(hittingAfter u s n ω).untopA, ?_, hittingAfter_mem_set_of_ne_top h_top⟩
+244:    lift (hittingAfter u s n ω) to ι using h_top with i'
+248:    exact hittingAfter_le_of_mem hj₁.1 hj₂
+279:lemma hittingAfter_lt_iff :
+280:    hittingAfter u s n ω < i ↔ ∃ j ∈ Set.Ico n i, u j ω ∈ s := by
+282:  · have h_top : hittingAfter u s n ω ≠ ⊤ := fun h ↦ by simp [h] at h'
+284:      rw [ne_eq, hittingAfter_eq_top_iff] at h_top
+287:    have h_le := le_hittingAfter (u := u) (s := s) (n := n) ω
+288:    rw [hittingAfter, if_pos h_exists] at h'
+299:    exact hittingAfter_le_of_mem hj₁.1 hj₂
+327:/-- `hittingAfter` is nonincreasing with respect to the set. -/
+328:lemma hittingAfter_anti (u : ι → Ω → β) (n : ι) : Antitone (hittingAfter u · n) := by
+330:  simp only [hittingAfter_def]
+343:lemma hittingAfter_apply_anti (u : ι → Ω → β) (n : ι) (ω : Ω) :
+344:    Antitone (hittingAfter u · n ω) := fun _ _ hst ↦ hittingAfter_anti u n hst ω
+374:/-- `hittingAfter` is monotone with respect to the minimal time. -/
+375:lemma hittingAfter_mono (u : ι → Ω → β) (s : Set β) : Monotone (hittingAfter u s) := by
+377:  simp only [hittingAfter]
+393:lemma hittingAfter_apply_mono (u : ι → Ω → β) (s : Set β) (ω : Ω) :
+394:    Monotone (hittingAfter u s · ω) := fun _ _ hnm ↦ hittingAfter_mono u s hnm ω
+415:theorem Adapted.isStoppingTime_hittingAfter [ConditionallyCompleteLinearOrder ι]
+418:    IsStoppingTime f (hittingAfter u s n) := by
+420:  have h_set_eq_Union : {ω | hittingAfter u s n ω ≤ i} = ⋃ j ∈ Set.Icc n i, u j ⁻¹' s := by
+421:    ext; simp [hittingAfter_le_iff]
+426:alias hittingAfter_isStoppingTime := Adapted.isStoppingTime_hittingAfter
+487:lemma hittingAfter_eq_sInf [∀ ω, Decidable (∃ j, u j ω ∈ s)] (ω : Ω) :
+488:    hittingAfter u s ⊥ ω
+491:  simp [hittingAfter]
+509:theorem hittingAfter_bot_le_iff {i : ι} {ω : Ω} :
+510:    hittingAfter u s ⊥ ω ≤ i ↔ ∃ j ≤ i, u j ω ∈ s := by
+511:  simp [hittingAfter_le_iff]

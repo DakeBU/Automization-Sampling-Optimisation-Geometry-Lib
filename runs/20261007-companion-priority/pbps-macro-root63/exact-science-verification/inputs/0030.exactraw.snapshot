@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-a8578f333c33f063",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : FiniteDimensional ℝ E]\n  [inst_3 : MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] (f : E → ℝ),\n  Differentiable ℝ f →\n    ∀ (eta beta B : ℝ),\n      0 < eta →\n        ∀ (hbeta : 0 ≤ beta) (hB : 0 < B),\n          LipschitzWith ⟨beta, hbeta⟩ (gradient f) →\n            ∀ (x0 xp : E),\n              have h := x0 - eta • gradient f xp;\n              have P := MeasureTheory.Measure.map (fun z => √eta • z) (ProbabilityTheory.stdGaussian E);\n              have U := MeasureTheory.MeasureSpace.volume.restrict (Set.Ioc 0 1);\n              have ν := U.prod P;\n              have q := MeasureTheory.Measure.map (fun z => h + √eta • z) (ProbabilityTheory.stdGaussian E);\n              have C := ∫ (z : E), f (h + z) ∂P - Inner.inner ℝ (gradient f xp) h;\n              have W := fun p =>\n                Inner.inner ℝ\n                  ((Real.pi / 2) •\n                    (Real.cos (Real.pi / 2 * p.2.1) • (p.1 - h) - Real.sin (Real.pi / 2 * p.2.1) • p.2.2))\n                  (gradient f xp -\n                    gradient f\n                      (h + Real.sin (Real.pi / 2 * p.2.1) • (p.1 - h) + Real.cos (Real.pi / 2 * p.2.1) • p.2.2));\n              have Wc := fun p => Min.min B (Max.max (-B) (W p));\n              have m := fun x => ∫ (z : ℝ × E), Wc (x, z) ∂ν;\n              have Z := ∫ (x : E), Real.exp (m x) ∂q;\n              have Λ :=\n                q.prod\n                  ((ProbabilityTheory.poissonMeasure\n                        ⟨2 * B,\n                          le_of_lt\n                            (mul_pos\n                              (Mathlib.Meta.Positivity.pos_of_isNat (Mathlib.Meta.NormNum.isNat_ofNat ℝ (Eq.refl 2))\n                                (Eq.refl (Nat.ble 1 2)))\n                              hB)⟩).prod\n                    ((MeasureTheory.Measure.infinitePi fun x => ν).prod\n                      (MeasureTheory.MeasureSpace.volume.restrict (Set.Icc 0 1))));\n              have ρ := MeasureTheory.Measure.infinitePi fun x => Λ;\n              MeasureTheory.IsProbabilityMeasure ν ∧\n                MeasureTheory.IsProbabilityMeasure q ∧\n                  Measurable W ∧\n                    Measurable Wc ∧\n                      Measurable m ∧\n                        (∀ (x : E),\n                            MeasureTheory.Integrable (fun z => W (x, z)) ν ∧\n                              MeasureTheory.Integrable (fun z => Wc (x, z)) ν ∧\n                                MeasureTheory.Integrable (fun z => Max.max (|W (x, z)| - B) 0) ν ∧\n                                  |m x| ≤ B ∧\n                                    |m x - (Inner.inner ℝ (gradient f xp) x - f x + C)| ≤\n                                      ∫ (z : ℝ × E), Max.max (|W (x, z)| - B) 0 ∂ν) ∧\n                          MeasureTheory.Integrable (fun x => Real.exp (m x)) q ∧\n                            Real.exp (-B) ≤ Z ∧\n                              Z ≤ Real.exp B ∧\n                                (Measurable fun ω =>\n                                    if h : ∃ n, ω n ∈ {p | p.2.2.2 ≤ ∏ i, (B + Wc (p.1, p.2.2.1 ↑i)) / (2 * B)} then\n                                      (ω (Nat.find h)).1\n                                    else x0) ∧\n                                  MeasureTheory.Measure.map\n                                        (fun ω =>\n                                          if h :\n                                              ∃ n, ω n ∈ {p | p.2.2.2 ≤ ∏ i, (B + Wc (p.1, p.2.2.1 ↑i)) / (2 * B)} then\n                                            (ω (Nat.find h)).1\n                                          else x0)\n                                        ρ =\n                                      q.tilted m ∧\n                                    ρ {ω | ∀ (n : ℕ), ω n ∉ {p | p.2.2.2 ≤ ∏ i, (B + Wc (p.1, p.2.2.1 ↑i)) / (2 * B)}} =\n                                        0 ∧\n                                      Λ {p | p.2.2.2 ≤ ∏ i, (B + Wc (p.1, p.2.2.1 ↑i)) / (2 * B)} =\n                                          ENNReal.ofReal (Real.exp (-B) * Z) ∧\n                                        ENNReal.ofReal (Real.exp (-2 * B)) ≤\n                                            Λ {p | p.2.2.2 ≤ ∏ i, (B + Wc (p.1, p.2.2.1 ↑i)) / (2 * B)} ∧\n                                          ∫⁻ (ω : ℕ → E × ℕ × (ℕ → ℝ × E) × ℝ),\n                                                ∑' (n : ℕ),\n                                                  if\n                                                      ∀ i < n,\n                                                        ω i ∉\n                                                          {p | p.2.2.2 ≤ ∏ i, (B + Wc (p.1, p.2.2.1 ↑i)) / (2 * B)} then\n                                                    ↑(ω n).2.1\n                                                  else 0 ∂ρ =\n                                              (ENNReal.ofReal (Real.exp (-B) * Z))⁻¹ * ENNReal.ofReal (2 * B) ∧\n                                            ∫⁻ (ω : ℕ → E × ℕ × (ℕ → ℝ × E) × ℝ),\n                                                ∑' (n : ℕ),\n                                                  if\n                                                      ∀ i < n,\n                                                        ω i ∉\n                                                          {p | p.2.2.2 ≤ ∏ i, (B + Wc (p.1, p.2.2.1 ↑i)) / (2 * B)} then\n                                                    ↑(ω n).2.1\n                                                  else 0 ∂ρ ≤\n                                              ENNReal.ofReal (2 * B * Real.exp (2 * B))",
+    "statement_sha256": "a8578f333c33f063f9c15076cc895fa52784cf8bf66c4c8d1970b7b6daccf786",
+    "compiled": true,
+    "approved_definition_context": [
+      "stdGaussian E is the centered identity-covariance Gaussian probability measure on E. Measure.map is pushforward; Measure.prod is independent product; Measure.infinitePi (fun n : Nat => mu) is the countably infinite iid product of mu.",
+      "volume is real Lebesgue measure. Measure.restrict restricts it to the indicated interval. Ioc(0,1) and Icc(0,1) have equal Lebesgue mass and define the uniform probability law.",
+      "gradient f is the actual real inner-product gradient. Differentiable means differentiability everywhere. LipschitzWith beta is the global distance bound. Integrable asserts Bochner integrability.",
+      "poissonMeasure r is the Poisson probability distribution on natural numbers with nonnegative real rate r. The displayed positivity proof inside its rate parameter is only a proof of nonnegativity.",
+      "Nat.find h is the least natural index satisfying the existential proposition h. A dependent if evaluates the then branch when its proposition holds and the else branch otherwise. Fin n indexes exactly 0 through n-1. The product over Fin n has value 1 for n=0.",
+      "Real and Bochner integrals use the typed signed integral. The integral with lower dash is the extended-nonnegative Lebesgue integral. ENNReal.ofReal a is max(a,0) viewed in [0,infinity]. Infinite sums are extended-nonnegative sums where typed as ENNReal.",
+      "Measure.tilted mu m is the normalized exponential tilt of mu by m, with density exp(m)/integral exp(m) in the positive finite integrable case. IsProbabilityMeasure means total mass one.",
+      "All seven local mathematical/program definitions and the generated nonnegativity proof have been expanded from the compiled type with Lean Meta.isDefEq checked. Let-bound objects keep their displayed scope."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "5286a9bc2c8639eb71453501e86be83341dbdd4c5aa08d3cd707be530d7de513"
+}

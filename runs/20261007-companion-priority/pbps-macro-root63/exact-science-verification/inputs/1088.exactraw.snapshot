@@ -1,0 +1,491 @@
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ContinuousDoobL2
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicElementaryRefinement
+
+/-!
+# Stopping dyadic elementary processes at grid points
+
+This file supplies the discrete stopping operation needed to identify the
+continuous Ito process at an arbitrary deterministic time.  A process is
+first refined to a target dyadic level and then its coefficients are set to
+zero after a selected grid endpoint.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace StochasticProcesses
+namespace DyadicElementaryStopping
+
+open Filter MeasureTheory
+open scoped BigOperators NNReal
+open scoped Topology
+
+open BrownianMotion ContinuousDoobL2 DyadicElementaryRefinement
+  ElementaryItoIntegral ElementaryItoL2 FiniteTimeGrid ProgressiveL2Density
+  SampledElementaryApproximation ProgressiveL2
+
+variable {Omega : Type*} {m : MeasurableSpace Omega}
+  {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} {T : ℝ≥0}
+  {B : ℝ≥0 → Omega → ℝ}
+
+/-- Refine `eta` and retain exactly the cells strictly before the grid point
+`cutoff`.  Values at the cutoff itself are immaterial in product `L2`. -/
+noncomputable def stopDyadicAtGridIndex
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) (cutoff : Fin (2 ^ targetLevel + 1)) :
+    DyadicElementaryProcess filtration T where
+  level := targetLevel
+  process :=
+    { times := regularGridTimes (dyadicMesh T targetLevel) (2 ^ targetLevel)
+      times_strictMono := regularGridTimes_strictMono
+        (dyadicMesh_pos (DyadicElementaryProcess.horizon_pos eta) targetLevel) _
+      coeff := fun j omega =>
+        if j.castSucc < cutoff
+        then (refineDyadic eta targetLevel hle).process.coeff j omega
+        else 0
+      coeff_stronglyMeasurable := fun j => by
+        by_cases hj : j.castSucc < cutoff
+        · simp only [if_pos hj]
+          change StronglyMeasurable[filtration
+            ((refineDyadic eta targetLevel hle).process.times j.castSucc)]
+            ((refineDyadic eta targetLevel hle).process.coeff j)
+          exact refineDyadic_coeff_stronglyMeasurable eta targetLevel hle j
+        · simpa [hj] using
+            (stronglyMeasurable_const :
+              StronglyMeasurable[filtration
+                (regularGridTimes (dyadicMesh T targetLevel)
+                  (2 ^ targetLevel) j.castSucc)] (fun _ : Omega => (0 : ℝ)))
+      coeff_bounded := fun j => by
+        by_cases hj : j.castSucc < cutoff
+        · simpa [hj] using
+            (refineDyadic eta targetLevel hle).process.coeff_bounded j
+        · exact ⟨0, by simp [hj]⟩ }
+  times_eq := rfl
+
+@[simp] theorem stopDyadicAtGridIndex_level
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) (cutoff : Fin (2 ^ targetLevel + 1)) :
+    (stopDyadicAtGridIndex eta targetLevel hle cutoff).level = targetLevel :=
+  rfl
+
+@[simp] theorem stopDyadicAtGridIndex_coeff
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) (cutoff : Fin (2 ^ targetLevel + 1))
+    (j : Fin (2 ^ targetLevel)) (omega : Omega) :
+    (stopDyadicAtGridIndex eta targetLevel hle cutoff).process.coeff j omega =
+      if j.castSucc < cutoff
+      then (refineDyadic eta targetLevel hle).process.coeff j omega
+      else 0 :=
+  rfl
+
+/-- The time represented by a cutoff grid index. -/
+noncomputable def cutoffTime
+    (targetLevel : ℕ) (cutoff : Fin (2 ^ targetLevel + 1)) : ℝ≥0 :=
+  regularGridTimes (dyadicMesh T targetLevel) (2 ^ targetLevel) cutoff
+
+theorem cutoffTime_le_horizon
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (cutoff : Fin (2 ^ targetLevel + 1)) :
+    cutoffTime (T := T) targetLevel cutoff ≤ T := by
+  calc
+    cutoffTime (T := T) targetLevel cutoff ≤
+        regularGridTimes (dyadicMesh T targetLevel) (2 ^ targetLevel)
+          (Fin.last (2 ^ targetLevel)) := by
+      exact (regularGridTimes_strictMono
+        (dyadicMesh_pos (DyadicElementaryProcess.horizon_pos eta) targetLevel) _).monotone
+          (Fin.le_last cutoff)
+    _ = T := regularDyadic_last_time T targetLevel
+
+/-- Stopping coefficients at a grid index is exactly the same finite Ito sum
+as integrating the refined process up to that grid time. -/
+theorem stopDyadicAtGridIndex_elementaryItoIntegral
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) (cutoff : Fin (2 ^ targetLevel + 1))
+    (B : ℝ≥0 → Omega → ℝ) (omega : Omega) :
+    elementaryItoIntegral
+        (stopDyadicAtGridIndex eta targetLevel hle cutoff).process B T omega =
+      elementaryItoIntegral eta.process B
+        (cutoffTime (T := T) targetLevel cutoff) omega := by
+  rw [← refineDyadic_elementaryItoIntegral_eq eta targetLevel hle B
+    (cutoffTime (T := T) targetLevel cutoff) omega]
+  change
+    (∑ j : Fin (2 ^ targetLevel),
+      (if j.castSucc < cutoff
+        then (refineDyadic eta targetLevel hle).process.coeff j omega
+        else 0) *
+        (B (min (regularGridTimes (dyadicMesh T targetLevel)
+          (2 ^ targetLevel) j.succ) T) omega -
+         B (min (regularGridTimes (dyadicMesh T targetLevel)
+          (2 ^ targetLevel) j.castSucc) T) omega)) =
+    ∑ j : Fin (2 ^ targetLevel),
+      (refineDyadic eta targetLevel hle).process.coeff j omega *
+        (B (min (regularGridTimes (dyadicMesh T targetLevel)
+          (2 ^ targetLevel) j.succ)
+          (cutoffTime (T := T) targetLevel cutoff)) omega -
+         B (min (regularGridTimes (dyadicMesh T targetLevel)
+          (2 ^ targetLevel) j.castSucc)
+          (cutoffTime (T := T) targetLevel cutoff)) omega)
+  apply Finset.sum_congr rfl
+  intro j _
+  let grid := regularGridTimes (dyadicMesh T targetLevel) (2 ^ targetLevel)
+  have hmono : StrictMono grid :=
+    regularGridTimes_strictMono
+      (dyadicMesh_pos (DyadicElementaryProcess.horizon_pos eta) targetLevel) _
+  have hrightT : grid j.succ ≤ T := by
+    calc
+      grid j.succ ≤ grid (Fin.last (2 ^ targetLevel)) :=
+        hmono.monotone (Fin.le_last j.succ)
+      _ = T := regularDyadic_last_time T targetLevel
+  have hleftT : grid j.castSucc ≤ T :=
+    (hmono.monotone (Fin.castSucc_le_succ j)).trans hrightT
+  by_cases hj : j.castSucc < cutoff
+  · have hrightCutoff : grid j.succ ≤ grid cutoff :=
+      hmono.monotone (by
+        exact_mod_cast (Nat.succ_le_iff.mpr hj))
+    have hleftCutoff : grid j.castSucc ≤ grid cutoff :=
+      (hmono.monotone (Fin.castSucc_le_succ j)).trans hrightCutoff
+    simp [hj, cutoffTime, grid,
+      min_eq_left hrightT, min_eq_left hleftT,
+      min_eq_left hrightCutoff, min_eq_left hleftCutoff]
+  · have hcutoffLeft : grid cutoff ≤ grid j.castSucc :=
+      hmono.monotone (le_of_not_gt hj)
+    have hcutoffRight : grid cutoff ≤ grid j.succ :=
+      hcutoffLeft.trans (hmono.monotone (Fin.castSucc_le_succ j))
+    simp [hj, cutoffTime, grid,
+      min_eq_left hrightT, min_eq_left hleftT,
+      min_eq_right hcutoffLeft, min_eq_right hcutoffRight]
+
+theorem stopDyadicAtGridIndex_terminalToLp
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) (cutoff : Fin (2 ^ targetLevel + 1))
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    terminalToLp (stopDyadicAtGridIndex eta targetLevel hle cutoff) hB =
+      elementaryItoTerminalToLp eta.process hB
+        (cutoffTime (T := T) targetLevel cutoff) := by
+  apply Lp.ext
+  simp only [terminalToLp, elementaryItoTerminalToLp]
+  filter_upwards [
+    (elementaryItoIntegral_memLp_two
+      (stopDyadicAtGridIndex eta targetLevel hle cutoff).process hB T).coeFn_toLp,
+    (elementaryItoIntegral_memLp_two eta.process hB
+      (cutoffTime (T := T) targetLevel cutoff)).coeFn_toLp]
+      with omega hstop horiginal
+  rw [hstop, horiginal]
+  exact stopDyadicAtGridIndex_elementaryItoIntegral
+    eta targetLevel hle cutoff B omega
+
+/-- Pointwise description of a grid-stopped process.  The closed endpoint is
+kept here; it differs from `restrictProcess` only on one null time slice. -/
+theorem stopDyadicAtGridIndex_value_eq
+    (eta : DyadicElementaryProcess filtration T) (targetLevel : ℕ)
+    (hle : eta.level ≤ targetLevel) (cutoff : Fin (2 ^ targetLevel + 1))
+    (s : ℝ≥0) (omega : Omega) :
+    (stopDyadicAtGridIndex eta targetLevel hle cutoff).process.value s omega =
+      if s ≤ cutoffTime (T := T) targetLevel cutoff
+      then eta.process.value s omega else 0 := by
+  rw [← refineDyadic_value_eq eta targetLevel hle s omega]
+  let grid := regularGridTimes (dyadicMesh T targetLevel) (2 ^ targetLevel)
+  change
+    (∑ j : Fin (2 ^ targetLevel),
+      if grid j.castSucc < s ∧ s ≤ grid j.succ then
+        (if j.castSucc < cutoff
+          then (refineDyadic eta targetLevel hle).process.coeff j omega
+          else 0)
+      else 0) =
+      if s ≤ cutoffTime (T := T) targetLevel cutoff then
+        ∑ j : Fin (2 ^ targetLevel),
+          if grid j.castSucc < s ∧ s ≤ grid j.succ then
+            (refineDyadic eta targetLevel hle).process.coeff j omega
+          else 0
+      else 0
+  have hmono : StrictMono grid :=
+    regularGridTimes_strictMono
+      (dyadicMesh_pos (DyadicElementaryProcess.horizon_pos eta) targetLevel) _
+  by_cases hs : s ≤ cutoffTime (T := T) targetLevel cutoff
+  · simp only [if_pos hs]
+    apply Finset.sum_congr rfl
+    intro j _
+    by_cases hcell : grid j.castSucc < s ∧ s ≤ grid j.succ
+    · have hleftCutoff : grid j.castSucc < grid cutoff := by
+        exact hcell.1.trans_le (by simpa only [cutoffTime, grid] using hs)
+      have hj : j.castSucc < cutoff := (hmono.lt_iff_lt).mp hleftCutoff
+      simp [hcell, hj]
+    · simp [hcell]
+  · have hcutoffS : cutoffTime (T := T) targetLevel cutoff < s :=
+      lt_of_not_ge hs
+    simp only [if_neg hs]
+    apply Finset.sum_eq_zero
+    intro j _
+    by_cases hj : j.castSucc < cutoff
+    · have hrightCutoff : grid j.succ ≤ grid cutoff :=
+        hmono.monotone (by exact_mod_cast (Nat.succ_le_iff.mpr hj))
+      have hnotCell : ¬(grid j.castSucc < s ∧ s ≤ grid j.succ) := by
+        intro hcell
+        have : grid cutoff < s := by
+          simpa only [cutoffTime, grid] using hcutoffS
+        exact (not_le_of_gt this) (hcell.2.trans hrightCutoff)
+      simp [hnotCell]
+    · simp [hj]
+
+/-- Target level used by the right-endpoint stopping approximation. -/
+def stoppingLevel (eta : DyadicElementaryProcess filtration T) (n : ℕ) : ℕ :=
+  eta.level + n
+
+theorem level_le_stoppingLevel
+    (eta : DyadicElementaryProcess filtration T) (n : ℕ) :
+    eta.level ≤ stoppingLevel eta n := by
+  simp [stoppingLevel]
+
+/-- Grid index of the right endpoint of the cell containing `t`. -/
+noncomputable def rightCutoffIndex
+    (eta : DyadicElementaryProcess filtration T)
+    (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) (n : ℕ) :
+    Fin (2 ^ stoppingLevel eta n + 1) :=
+  (activeCellIndex hT ht htT (stoppingLevel eta n)).succ
+
+/-- Dyadic elementary process stopped at right grid endpoints decreasing to
+the deterministic time `t`. -/
+noncomputable def stopAtRightApprox
+    (eta : DyadicElementaryProcess filtration T)
+    (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) (n : ℕ) :
+    DyadicElementaryProcess filtration T :=
+  stopDyadicAtGridIndex eta (stoppingLevel eta n)
+    (level_le_stoppingLevel eta n) (rightCutoffIndex eta hT ht htT n)
+
+theorem cutoffTime_rightCutoffIndex
+    (eta : DyadicElementaryProcess filtration T)
+    (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) (n : ℕ) :
+    cutoffTime (T := T) (stoppingLevel eta n)
+        (rightCutoffIndex eta hT ht htT n) =
+      rightApproxTime hT ht htT (stoppingLevel eta n) :=
+  rfl
+
+theorem stopAtRightApprox_terminalToLp
+    (eta : DyadicElementaryProcess filtration T)
+    (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) (n : ℕ)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) :
+    terminalToLp (stopAtRightApprox eta hT ht htT n) hB =
+      elementaryItoTerminalToLp eta.process hB
+        (rightApproxTime hT ht htT (stoppingLevel eta n)) := by
+  exact stopDyadicAtGridIndex_terminalToLp eta (stoppingLevel eta n)
+    (level_le_stoppingLevel eta n) (rightCutoffIndex eta hT ht htT n) hB
+
+theorem stopAtRightApprox_value_eq
+    (eta : DyadicElementaryProcess filtration T)
+    (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) (n : ℕ)
+    (s : ℝ≥0) (omega : Omega) :
+    (stopAtRightApprox eta hT ht htT n).process.value s omega =
+      if s ≤ rightApproxTime hT ht htT (stoppingLevel eta n)
+      then eta.process.value s omega else 0 := by
+  exact stopDyadicAtGridIndex_value_eq eta (stoppingLevel eta n)
+    (level_le_stoppingLevel eta n) (rightCutoffIndex eta hT ht htT n) s omega
+
+theorem tendsto_stoppingLevel
+    (eta : DyadicElementaryProcess filtration T) :
+    Tendsto (stoppingLevel eta) atTop atTop := by
+  change Tendsto (fun n => eta.level + n) atTop atTop
+  simpa only [Nat.add_comm] using tendsto_add_atTop_nat eta.level
+
+theorem tendsto_rightApproxTime_stoppingLevel
+    (eta : DyadicElementaryProcess filtration T)
+    (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T) :
+    Tendsto
+      (fun n => rightApproxTime hT ht htT (stoppingLevel eta n))
+      atTop (𝓝 t) :=
+  (tendsto_rightApproxTime hT ht htT).comp (tendsto_stoppingLevel eta)
+
+/-- Away from the single cutoff time, the stopped dyadic representatives
+converge pointwise to the strict time restriction. -/
+theorem tendsto_stopAtRightApprox_value_of_ne
+    (eta : DyadicElementaryProcess filtration T)
+    (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T)
+    {s : ℝ≥0} (hst : s ≠ t) (omega : Omega) :
+    Tendsto
+      (fun n => (stopAtRightApprox eta hT ht htT n).process.value s omega)
+      atTop (𝓝 (ProgressiveL2Integrand.restrictProcess t eta.process.value s omega)) := by
+  rcases lt_or_gt_of_ne hst with hst | hts
+  · have hsright (n : ℕ) :
+        s ≤ rightApproxTime hT ht htT (stoppingLevel eta n) :=
+      hst.le.trans (activeCellIndex_spec hT ht htT (stoppingLevel eta n)).2
+    simp only [stopAtRightApprox_value_eq, if_pos (hsright _),
+      ProgressiveL2Integrand.restrictProcess, if_pos hst]
+    exact tendsto_const_nhds
+  · have hevent : ∀ᶠ n in atTop,
+        rightApproxTime hT ht htT (stoppingLevel eta n) < s :=
+      (tendsto_order.1 (tendsto_rightApproxTime_stoppingLevel eta hT ht htT)).2 s hts
+    have htarget :
+        ProgressiveL2Integrand.restrictProcess t eta.process.value s omega = 0 := by
+      simp [ProgressiveL2Integrand.restrictProcess, not_lt_of_ge hts.le]
+    rw [htarget]
+    apply (Filter.tendsto_congr' ?_).mpr tendsto_const_nhds
+    filter_upwards [hevent] with n hn
+    rw [stopAtRightApprox_value_eq, if_neg (not_le_of_gt hn)]
+
+theorem tendsto_stopAtRightApprox_ae
+    (eta : DyadicElementaryProcess filtration T)
+    (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T)
+    (mu : Measure Omega) [IsFiniteMeasure mu] :
+    ∀ᵐ z ∂processTimeMeasure mu T,
+      Tendsto
+        (fun n => (stopAtRightApprox eta hT ht htT n).process.value z.2 z.1)
+        atTop
+        (𝓝 (ProgressiveL2Integrand.restrictProcess t eta.process.value z.2 z.1)) := by
+  have htime : ∀ᵐ s ∂TimeMeasure.upTo T, s ≠ t := by
+    rw [ae_iff]
+    have hset : {s : ℝ≥0 | ¬s ≠ t} = {t} := by
+      ext s
+      simp
+    rw [hset, TimeMeasure.upTo_singleton]
+  have htarget : Measurable (fun z : Omega × ℝ≥0 =>
+      ProgressiveL2Integrand.restrictProcess t eta.process.value z.2 z.1) := by
+    have hset : MeasurableSet {z : Omega × ℝ≥0 | z.2 < t} :=
+      (measurableSet_Iio : MeasurableSet (Set.Iio t)).preimage
+        (measurable_snd : Measurable (fun z : Omega × ℝ≥0 => z.2))
+    exact StronglyMeasurable.ite hset
+      (ElementaryItoEmbedding.processFunction_stronglyMeasurable eta.process)
+      stronglyMeasurable_const |>.measurable
+  have hevent : MeasurableSet {z : Omega × ℝ≥0 |
+      Tendsto
+        (fun n => (stopAtRightApprox eta hT ht htT n).process.value z.2 z.1)
+        atTop
+        (𝓝 (ProgressiveL2Integrand.restrictProcess t eta.process.value z.2 z.1))} :=
+    MeasureTheory.measurableSet_tendsto_fun
+      (fun n => (ElementaryItoEmbedding.processFunction_stronglyMeasurable
+        (stopAtRightApprox eta hT ht htT n).process).measurable) htarget
+  apply (Measure.ae_prod_iff_ae_ae hevent).2
+  filter_upwards [] with omega
+  filter_upwards [htime] with s hst
+  exact tendsto_stopAtRightApprox_value_of_ne eta hT ht htT hst omega
+
+/-- A stopped representative and the strict restriction are uniformly
+dominated by twice the deterministic elementary-process bound. -/
+theorem abs_stopAtRightApprox_error_le
+    (eta : DyadicElementaryProcess filtration T)
+    (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T)
+    (n : ℕ) (s : ℝ≥0) (omega : Omega) :
+    |(stopAtRightApprox eta hT ht htT n).process.value s omega -
+        ProgressiveL2Integrand.restrictProcess t eta.process.value s omega| ≤
+      2 * ElementaryItoEmbedding.valueBound eta.process := by
+  have hstop :
+      |(stopAtRightApprox eta hT ht htT n).process.value s omega| ≤
+        ElementaryItoEmbedding.valueBound eta.process := by
+    rw [stopAtRightApprox_value_eq]
+    split_ifs
+    · exact ElementaryItoEmbedding.abs_value_le_valueBound eta.process s omega
+    · simp only [abs_zero]
+      exact (ElementaryItoEmbedding.abs_value_le_valueBound eta.process s omega).trans'
+        (abs_nonneg _)
+  have hrestrict :
+      |ProgressiveL2Integrand.restrictProcess t eta.process.value s omega| ≤
+        ElementaryItoEmbedding.valueBound eta.process := by
+    simp only [ProgressiveL2Integrand.restrictProcess]
+    split_ifs
+    · exact ElementaryItoEmbedding.abs_value_le_valueBound eta.process s omega
+    · simp only [abs_zero]
+      exact (ElementaryItoEmbedding.abs_value_le_valueBound eta.process s omega).trans'
+        (abs_nonneg _)
+  calc
+    |_ - _| ≤ |(stopAtRightApprox eta hT ht htT n).process.value s omega| +
+        |ProgressiveL2Integrand.restrictProcess t eta.process.value s omega| :=
+      abs_sub _ _
+    _ ≤ ElementaryItoEmbedding.valueBound eta.process +
+        ElementaryItoEmbedding.valueBound eta.process := add_le_add hstop hrestrict
+    _ = 2 * ElementaryItoEmbedding.valueBound eta.process := by ring
+
+/-- Right-grid stopping converges in the actual product-space `L2` object to
+strict restriction at `t`. -/
+theorem tendsto_stopAtRightApprox_toLp
+    (eta : DyadicElementaryProcess filtration T)
+    (hT : 0 < T) (ht : 0 < t) (htT : t ≤ T)
+    (hB : IsBrownianMotionWithFiltration B filtration mu) [IsFiniteMeasure mu] :
+    Tendsto (fun n => processToLp (stopAtRightApprox eta hT ht htT n) hB)
+      atTop
+      (𝓝 ((ElementaryItoEmbedding.toProgressiveL2 eta.process mu T).restrictAt t).toLp) := by
+  let _ : IsProbabilityMeasure mu := hB.isProbabilityMeasure
+  let _ : IsFiniteMeasure (processTimeMeasure mu T) := by
+    unfold processTimeMeasure
+    infer_instance
+  let target := (ElementaryItoEmbedding.toProgressiveL2 eta.process mu T).restrictAt t
+  let approximation : ℕ → ProgressiveL2Integrand filtration mu T := fun n =>
+    ElementaryItoEmbedding.toProgressiveL2
+      (stopAtRightApprox eta hT ht htT n).process mu T
+  let error : ℕ → Omega × ℝ≥0 → ℝ := fun n z =>
+    (approximation n).process z.2 z.1 - target.process z.2 z.1
+  have herrorMem : ∀ n, MemLp (error n) 2 (processTimeMeasure mu T) :=
+    fun n => (approximation n).memLp.sub target.memLp
+  have hmeas : ∀ n, AEStronglyMeasurable (fun z => (error n z) ^ 2)
+      (processTimeMeasure mu T) :=
+    fun n => (herrorMem n).integrable_sq.aestronglyMeasurable
+  have hboundIntegrable : Integrable
+      (fun _ : Omega × ℝ≥0 =>
+        4 * (ElementaryItoEmbedding.valueBound eta.process) ^ 2)
+      (processTimeMeasure mu T) :=
+    MeasureTheory.integrable_const _
+  have hbound : ∀ n, ∀ᵐ z ∂processTimeMeasure mu T,
+      ‖(error n z) ^ 2‖ ≤
+        4 * (ElementaryItoEmbedding.valueBound eta.process) ^ 2 := by
+    intro n
+    filter_upwards [] with z
+    have herr := abs_stopAtRightApprox_error_le eta hT ht htT n z.2 z.1
+    have hC : 0 ≤ ElementaryItoEmbedding.valueBound eta.process := by
+      unfold ElementaryItoEmbedding.valueBound
+      apply Finset.sum_nonneg
+      intro i _
+      exact le_max_left 0 _
+    change |error n z| ≤ 2 * ElementaryItoEmbedding.valueBound eta.process at herr
+    calc
+      ‖(error n z) ^ 2‖ = |error n z| ^ 2 := by
+        rw [Real.norm_eq_abs, abs_sq, sq_abs]
+      _ ≤ (2 * ElementaryItoEmbedding.valueBound eta.process) ^ 2 :=
+        (sq_le_sq₀ (abs_nonneg _) (mul_nonneg (by norm_num) hC)).mpr herr
+      _ = 4 * (ElementaryItoEmbedding.valueBound eta.process) ^ 2 := by ring
+  have hlim : ∀ᵐ z ∂processTimeMeasure mu T,
+      Tendsto (fun n => (error n z) ^ 2) atTop (𝓝 0) := by
+    filter_upwards [tendsto_stopAtRightApprox_ae eta hT ht htT mu] with z hz
+    have hzsub : Tendsto (fun n => error n z) atTop (𝓝 0) := by
+      simpa only [error, approximation, target,
+        ElementaryItoEmbedding.toProgressiveL2_process,
+        ProgressiveL2Integrand.restrictAt_process] using
+        tendsto_sub_nhds_zero_iff.mpr hz
+    simpa only [zero_pow (by norm_num : (2 : ℕ) ≠ 0)] using hzsub.pow 2
+  have hintegral : Tendsto
+      (fun n => ∫ z, (error n z) ^ 2 ∂processTimeMeasure mu T)
+      atTop (𝓝 0) := by
+    simpa only [integral_zero] using tendsto_integral_of_dominated_convergence
+      (fun _ : Omega × ℝ≥0 =>
+        4 * (ElementaryItoEmbedding.valueBound eta.process) ^ 2)
+      hmeas hboundIntegrable hbound hlim
+  have hnormSq (n : ℕ) :
+      ‖(approximation n).toLp - target.toLp‖ ^ 2 =
+        ∫ z, (error n z) ^ 2 ∂processTimeMeasure mu T := by
+    have h := ElementaryItoL2.norm_sq_toLp_eq_integral_sq (herrorMem n)
+    have hto : (herrorMem n).toLp (error n) =
+        (approximation n).toLp - target.toLp := by
+      calc
+        (herrorMem n).toLp (error n) =
+            ((approximation n).memLp.sub target.memLp).toLp
+              (processFunction (approximation n).process -
+                processFunction target.process) := by
+          apply MemLp.toLp_congr
+          filter_upwards [] with z
+          rfl
+        _ = (approximation n).toLp - target.toLp := MemLp.toLp_sub _ _
+    rwa [hto] at h
+  have hsquares : Tendsto
+      (fun n => ‖(approximation n).toLp - target.toLp‖ ^ 2)
+      atTop (𝓝 0) :=
+    (Filter.tendsto_congr' (Filter.Eventually.of_forall hnormSq)).mpr hintegral
+  have hnorms : Tendsto
+      (fun n => ‖(approximation n).toLp - target.toLp‖)
+      atTop (𝓝 0) := by
+    have hsqrt := Real.continuous_sqrt.continuousAt.tendsto.comp hsquares
+    change Tendsto
+      (fun n => √(‖(approximation n).toLp - target.toLp‖ ^ 2))
+      atTop (𝓝 (√(0 : ℝ))) at hsqrt
+    simpa only [Real.sqrt_sq (norm_nonneg _), Real.sqrt_zero] using hsqrt
+  change Tendsto (fun n => (approximation n).toLp) atTop (𝓝 target.toLp)
+  exact tendsto_iff_norm_sub_tendsto_zero.mpr hnorms
+
+end DyadicElementaryStopping
+end StochasticProcesses
+end TechnicalLemmas
+end AutoSamplingTheory

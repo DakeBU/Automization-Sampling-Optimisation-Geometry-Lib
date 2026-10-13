@@ -1,0 +1,28 @@
+
+namespace ContinuousLinearMap
+
+/-- A continuous linear endomorphism `T` of a Hilbert space is **positive** if it is symmetric
+  and `∀ x, 0 ≤ re ⟪T x, x⟫`. -/
+def IsPositive (T : E →L[𝕜] E) : Prop :=
+  T.IsSymmetric ∧ ∀ x, 0 ≤ T.reApplyInnerSelf x
+
+theorem isPositive_def {T : E →L[𝕜] E} :
+    T.IsPositive ↔ T.IsSymmetric ∧ ∀ x, 0 ≤ T.reApplyInnerSelf x := Iff.rfl
+
+/-- In a complete space, a continuous linear endomorphism `T` is **positive** if it is
+symmetric and `∀ x, 0 ≤ re ⟪T x, x⟫`. -/
+theorem isPositive_def' [CompleteSpace E] {T : E →L[𝕜] E} :
+    T.IsPositive ↔ IsSelfAdjoint T ∧ ∀ x, 0 ≤ T.reApplyInnerSelf x := by
+  simp [IsPositive, isSelfAdjoint_iff_isSymmetric, LinearMap.IsSymmetric]
+
+theorem IsPositive.isSymmetric {T : E →L[𝕜] E} (hT : T.IsPositive) :
+    T.IsSymmetric := hT.1
+
+theorem IsPositive.isSelfAdjoint [CompleteSpace E] {T : E →L[𝕜] E} (hT : IsPositive T) :
+    IsSelfAdjoint T := hT.isSymmetric.isSelfAdjoint
+
+theorem IsPositive.inner_left_eq_inner_right {T : E →L[𝕜] E} (hT : IsPositive T) (x y : E) :
+    ⟪T x, y⟫ = ⟪x, T y⟫ := hT.isSymmetric _ _
+
+theorem IsPositive.re_inner_nonneg_left {T : E →L[𝕜] E} (hT : IsPositive T) (x : E) :
+    0 ≤ re ⟪T x, x⟫ := hT.2 x

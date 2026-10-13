@@ -1,0 +1,114 @@
+  classical
+  unfold candidate
+  intro c Φ S rate Λ Rec Hist Δ Prefix zAt K qReal q liveTime d weight Path Ψ Γ ρ R Vy piY gamma m y r n T A B sigma L J
+  obtain ⟨rhoTime, hrho, h97⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualEndpointTimeReversal.actual_endpoint_time_reversal_laws
+      hα hαβ hV hH hη hβη n T
+  obtain ⟨rho102, hrho102, h102⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualWeightedSector.actual_weighted_sector_lintegral
+      hα hαβ hV hH hη hβη n T
+  have halign : rho102 = rhoTime := by
+    funext t
+    apply Subtype.ext
+    funext i
+    exact (hrho102 t i).trans (hrho t i).symm
+  subst rho102
+  rcases h97 with ⟨hTimeM, hTimeI, hTimeP, hAformula, hAjoint, hAvolume,
+    hArev, hThetajoint, hThetaI, hThetaP⟩
+  let Theta : (E × E) × Prefix n T → (E × E) × Prefix n T :=
+    fun q => (R (A q), rhoTime q.2)
+  have hemb : Measurable (fun q : (E × E) × Prefix n T => (((y, r), q.1), q.2)) :=
+    (measurable_const.prodMk measurable_fst).prodMk measurable_snd
+  have hA : Measurable A := hAjoint.comp hemb
+  have hB : Measurable B := measurable_fst.prodMk hA
+  have hR : Measurable R := measurable_fst.prodMk measurable_snd.neg
+  have hJ : Measurable J := (hR.comp measurable_snd).prodMk (hR.comp measurable_fst)
+  have hTheta : Measurable Theta := hThetajoint.comp hemb
+  have hinter (x : (E × E) × Prefix n T) : B (Theta x) = J (B x) := by
+    apply Prod.ext
+    · rfl
+    · exact hArev y r x.1 x.2
+  obtain ⟨Z, hZ⟩ :=
+    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteCountPath.actual_finite_count_path_law
+      hα hαβ hV hH hη hβη
+  have hρjoint : Measurable (fun p : ((E × E) × (E × E)) × Prefix n T =>
+      ρ p.1.1.1 p.1.1.2 p.1.2 n T p.2) := (hZ.2.2.2.2 n T).2.2.1
+  have hρ := hρjoint.comp hemb
+  have hρliteral : Measurable (fun x : (E × E) × Prefix n T => ρ y r x.1 n T x.2) := by
+    simpa only [Function.comp_def] using hρ
+  have hcons (i : Fin (n + 1)) :
+      Measurable (fun t : Fin n → ℝ => (Fin.cons (0 : ℝ) t : Fin (n + 1) → ℝ) i) := by
+    induction i using Fin.cases with
+    | zero => exact measurable_const
+    | succ i => exact measurable_pi_apply i
+  have hs : MeasurableSet (Δ n T) := by
+    change MeasurableSet {t : Fin n → ℝ |
+      (∀ i j : Fin (n + 1), i < j → (Fin.cons (0 : ℝ) t : Fin (n + 1) → ℝ) i < (Fin.cons (0 : ℝ) t : Fin (n + 1) → ℝ) j) ∧
+      ∀ i : Fin n, t i < (T : ℝ)}
+    rw [Set.ofPred_and]
+    apply MeasurableSet.inter
+    · simpa only [← Set.ofPred_forall] using (MeasurableSet.iInter fun (i : Fin (n + 1)) =>
+        MeasurableSet.iInter fun (j : Fin (n + 1)) =>
+        MeasurableSet.iInter fun (_ : i < j) => measurableSet_lt (hcons i) (hcons j))
+    · simpa only [← Set.ofPred_forall] using (MeasurableSet.iInter fun (i : Fin n) =>
+        measurableSet_lt (measurable_pi_apply i) (measurable_const (a := (T : ℝ))))
+  have hmσ : SigmaFinite ((m n T).map (fun t : Prefix n T => t.val)) := by
+    change SigmaFinite ((Measure.comap (fun t : Prefix n T => t.val)
+      (volume : Measure (Fin n → ℝ))).map (fun t : Prefix n T => t.val))
+    rw [map_comap_subtype_coe hs]
+    infer_instance
+  letI : SigmaFinite (m n T) := SigmaFinite.of_map (m n T) measurable_subtype_coe.aemeasurable hmσ
+  let U : E × E → ℝ := fun z => V z.1 + ‖z.1 - y‖ ^ 2 / (2 * η) + ‖z.2‖ ^ 2 / 2
+  let w : E × E → ℝ := fun z => Real.exp (-U z)
+  let ell : Measure (E × E) := (volume : Measure E).prod (volume : Measure E)
+  let cNorm : ℝ≥0∞ := (∫⁻ z, ENNReal.ofReal (w z) ∂ell)⁻¹
+  let W : (E × E) × Prefix n T → ℝ≥0∞ :=
+    fun x => ENNReal.ofReal (w x.1) * ρ y r x.1 n T x.2
+  have hU : Continuous U := by
+    exact ((hV.continuous.comp continuous_fst).add
+      (((continuous_fst.sub continuous_const).norm.pow 2).div_const (2 * η))).add
+      ((continuous_snd.norm.pow 2).div_const 2)
+  have hw : Measurable (fun z => ENNReal.ofReal (w z)) :=
+    ENNReal.measurable_ofReal.comp (Real.continuous_exp.comp hU.neg).measurable
+  have hW : Measurable W := (hw.comp measurable_fst).mul hρ
+  have hf : Measurable (fun z => cNorm * ENNReal.ofReal (w z)) := measurable_const.mul hw
+  have hphase : ell.withDensity (fun z => cNorm * ENNReal.ofReal (w z)) =
+      (piY y).prod gamma :=
+    (AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization
+      hα hαβ hV hH hη hβη y).2.2.2.2.2.2
+  have hsigma : sigma = (ell.prod (m n T)).withDensity (fun x => cNorm * W x) := by
+    change (((piY y).prod gamma).prod (m n T)).withDensity
+      (fun x => ρ y r x.1 n T x.2) = _
+    rw [← hphase, prod_withDensity_left hf,
+      ← withDensity_mul _
+        (f := fun x : (E × E) × Prefix n T => cNorm * ENNReal.ofReal (w x.1))
+        (g := fun x => ρ y r x.1 n T x.2) (hf.comp measurable_fst) hρliteral]
+    congr 1
+    funext x
+    exact mul_assoc _ _ _
+  have hsector : MeasurePreserving Theta sigma sigma := by
+    refine ⟨hTheta, ?_⟩
+    apply Measure.ext_of_lintegral
+    intro F hF
+    rw [lintegral_map hF hTheta, hsigma]
+    rw [lintegral_withDensity_eq_lintegral_mul _
+        (f := fun x => cNorm * W x) (g := fun x => F (Theta x))
+        (measurable_const.mul hW) (hF.comp hTheta),
+      lintegral_withDensity_eq_lintegral_mul _
+        (f := fun x => cNorm * W x) (g := fun x => F x)
+        (measurable_const.mul hW) hF]
+    simp only [Pi.mul_apply, mul_assoc]
+    rw [lintegral_const_mul cNorm (f := fun x => W x * F (Theta x))
+        (hW.mul (hF.comp hTheta)),
+      lintegral_const_mul cNorm (f := fun x => W x * F x) (hW.mul hF)]
+    exact congrArg (fun a => cNorm * a) (h102 y r F hF)
+  refine ⟨hJ, ?_⟩
+  change Measure.map J (Measure.map B sigma) = Measure.map B sigma
+  rw [Measure.map_map hJ hB]
+  calc
+    Measure.map (J ∘ B) sigma = Measure.map (B ∘ Theta) sigma := by
+      congr 1
+      funext x
+      exact (hinter x).symm
+    _ = Measure.map B (Measure.map Theta sigma) := (Measure.map_map hB hTheta).symm
+    _ = Measure.map B sigma := by rw [hsector.map_eq]

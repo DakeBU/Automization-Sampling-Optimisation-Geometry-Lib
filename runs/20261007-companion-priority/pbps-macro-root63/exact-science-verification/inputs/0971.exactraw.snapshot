@@ -1,0 +1,110 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementInterpolationCoupling
+import AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace
+import Mathlib.MeasureTheory.Integral.Lebesgue.Map
+import Mathlib.Tactic
+
+/-!
+# Cost scaling along displacement interpolation
+
+For the two-time coupling
+
+`gamma_{s,t} = (T_s,T_t)_# gamma`,
+
+with `T_t(x,y) = (1-t)x + ty`, the displacement between the two images is
+
+`T_s(x,y) - T_t(x,y) = (s-t)(y-x)`.
+
+Consequently its quadratic transport cost is exactly `|s-t|^2` times the
+quadratic cost of the original endpoint coupling.  This is the upper-bound
+half of Chewi Theorem 1.3.23; the metric lower bound needed for constant-speed
+equality is a separate topology node.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Measure
+namespace DisplacementInterpolationCost
+
+open MeasureTheory
+open scoped ENNReal
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+open DisplacementInterpolationCoupling
+
+/-- Difference of two affine displacement maps. -/
+theorem pointMap_sub_pointMap
+    (s t : ℝ) (z : E × E) :
+    pointMap (E := E) s z - pointMap (E := E) t z =
+      (s - t) • (z.2 - z.1) := by
+  unfold pointMap
+  module
+
+/-- The quadratic Wasserstein cost function is measurable on a finite-
+dimensional Borel normed space. -/
+@[fun_prop]
+theorem measurable_quadraticCost :
+    Measurable (WassersteinSpace.quadraticCost (E := E)) := by
+  unfold WassersteinSpace.quadraticCost
+  fun_prop
+
+/-- Pointwise quadratic cost scaling under the two-time displacement map. -/
+theorem quadraticCost_pairPointMap_eq
+    (s t : ℝ) (z : E × E) :
+    WassersteinSpace.quadraticCost (E := E)
+        (pointMap (E := E) s z, pointMap (E := E) t z) =
+      ENNReal.ofReal (|s - t| ^ 2) *
+        WassersteinSpace.quadraticCost (E := E) z := by
+  rw [WassersteinSpace.quadraticCost, pointMap_sub_pointMap]
+  rw [norm_smul]
+  simp only [Real.norm_eq_abs, mul_pow]
+  rw [ENNReal.ofReal_mul (sq_nonneg |s - t|)]
+  congr 1
+  rw [WassersteinSpace.quadraticCost]
+  congr 1
+  exact congrArg (fun r : ℝ => r ^ 2) (norm_sub_rev z.2 z.1)
+
+/-- The exact quadratic cost of the canonical two-time interpolation coupling
+is `|s-t|^2` times the original endpoint-plan cost. -/
+theorem lintegral_quadraticCost_interpolationCoupling_eq
+    (gamma : Measure (E × E)) (s t : ℝ) :
+    (∫⁻ w,
+      WassersteinSpace.quadraticCost (E := E) w
+        ∂interpolationCoupling gamma s t) =
+      ENNReal.ofReal (|s - t| ^ 2) *
+        ∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂gamma := by
+  rw [interpolationCoupling]
+  rw [lintegral_map measurable_quadraticCost (measurable_pairPointMap s t)]
+  simp_rw [quadraticCost_pairPointMap_eq]
+  exact lintegral_const_mul _ measurable_quadraticCost
+
+/-- Any endpoint coupling therefore gives the expected upper bound between two
+of its displacement-interpolation marginals. -/
+theorem wassersteinDistance_sq_interpolation_le
+    (gamma : Measure (E × E)) (s t : ℝ) :
+    WassersteinSpace.wassersteinDistance
+        (DisplacementInterpolation.displacementInterpolation gamma s)
+        (DisplacementInterpolation.displacementInterpolation gamma t) ^ 2 ≤
+      ENNReal.ofReal (|s - t| ^ 2) *
+        ∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂gamma := by
+  calc
+    WassersteinSpace.wassersteinDistance
+        (DisplacementInterpolation.displacementInterpolation gamma s)
+        (DisplacementInterpolation.displacementInterpolation gamma t) ^ 2 ≤
+      ∫⁻ w, WassersteinSpace.quadraticCost (E := E) w
+        ∂interpolationCoupling gamma s t :=
+      WassersteinSpace.wassersteinDistance_sq_le_lintegral_of_isCoupling
+        _ _ _ (isCoupling_interpolationCoupling gamma s t)
+    _ = ENNReal.ofReal (|s - t| ^ 2) *
+        ∫⁻ z, WassersteinSpace.quadraticCost (E := E) z ∂gamma :=
+      lintegral_quadraticCost_interpolationCoupling_eq gamma s t
+
+end
+
+end DisplacementInterpolationCost
+end Measure
+end TechnicalLemmas
+end AutoSamplingTheory

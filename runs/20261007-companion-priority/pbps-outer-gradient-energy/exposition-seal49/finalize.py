@@ -1,0 +1,70 @@
+import pathlib,json,hashlib,subprocess,datetime,sys
+sys.stdout.reconfigure(encoding="utf-8")
+ROOT=pathlib.Path("E:/Samplinglib");OUT=ROOT/"runs/20261007-companion-priority/pbps-outer-gradient-energy/exposition-seal49"
+COMMIT="39d72437b565e21c65364187a810501754a38c4b"
+def sha(b):return hashlib.sha256(b).hexdigest()
+def encoded(x):return (json.dumps(x,ensure_ascii=False,indent=2)+"\n").encode()
+def binding(p,b):
+ d={"path":str(p.relative_to(ROOT)).replace("\\","/"),"bytes":len(b),"raw_sha256":sha(b)}
+ if p.suffix!=".png":d["lf_sha256"]=sha(b.decode("utf-8").replace("\r\n","\n").replace("\r","\n").encode())
+ return d
+# All filesystem reads precede the terminal lease write.
+checkbytes=(OUT/"static-checks.json").read_bytes();check=json.loads(checkbytes)
+leasebytes=(OUT/"lease.json").read_bytes();lease=json.loads(leasebytes)
+scriptbytes=(OUT/"static-check.py").read_bytes()
+finalizerbytes=(OUT/"finalize.py").read_bytes()
+if subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT).decode().strip()!=COMMIT:raise RuntimeError("Frozen commit changed")
+if not all(check["checks"].values()):raise RuntimeError("Static checks incomplete")
+stamp=datetime.datetime.now(datetime.timezone.utc).isoformat()
+lease.update({"status":"CLOSED","read_lease":"CLOSED","write_lease":"CLOSED","compiler_lease":"CLOSED","compiler_started":False,"source_text_visible":True,"closed_utc":stamp,"actual_reads":check["input_artifacts"],"own_role_reads":[binding(OUT/"static-checks.json",checkbytes),binding(OUT/"lease.json",leasebytes),binding(OUT/"static-check.py",scriptbytes),binding(OUT/"finalize.py",finalizerbytes)],"actual_writes":["lease.json (OPEN then final CLOSED)","static-check.py","static-checks.json","finalize.py","receipt.json","capsule.md","run.json"],"visual_reads":["cdp.pbps.png","cdp.branch.png","proof.proof.png","proof.proof-late.png"],"forbidden_writes_performed":False,"old_decoder_artifacts_read_or_written":False,"compiler_commands":[],"browser_started_by_this_reviewer":False,"role_transition":"Source/proof/static-reader exposure occurred only in this later independent exposition task; earlier immutable decoder role/result/run/lease were not reopened.","final_filesystem_operation":"Write lease.json CLOSED; no later filesystem reads/writes by this reviewer."})
+finalleasebytes=encoded(lease);finalleasebind=binding(OUT/"lease.json",finalleasebytes)
+steps=[
+ {"step":1,"source_nodes":["S.model","S.curvature","S.eta","S.J","S.nu","S.R","S.S","A.Gibbs","A.48","I.mu-prob","I.Jnu-prob","I.S-prob"],"lean_lines":[103,117],"judgment":"Genuine normalization/probability and common kernels are outputs before all observations."},
+ {"step":2,"source_nodes":["S.compact","I.bound","I.T-domain","I.moment-meas","P.compact-bound","P.mean-bound","P.bounded-Lp","P.kernel-meas"],"lean_lines":[118,147],"judgment":"Compact continuity and actual probability laws establish inner and outer L2/L1 domains; no centering or caller certificate."},
+ {"step":3,"source_nodes":["I.same","I.disintegrate","I.inner-map","P.disintegration","P.disintegrate","P.fubini-domain","P.fubini"],"lean_lines":[17,57],"judgment":"Same actual R/S, correctly ordered swapped joint, measurable bounded squared integrand and disintegration/Fubini."},
+ {"step":4,"source_nodes":["S.reflection","A.reflection","I.second-moment"],"lean_lines":[58,65],"judgment":"Joint Gaussian reflection preserves actual augmentation J and yields the same nu second moment; no sampler invariance or nonexplosion claim."},
+ {"step":5,"source_nodes":["D.variance","S.var-defect","I.fiber-var","I.defect","P.var-integral","P.var-sub"],"lean_lines":[132,152],"judgment":"Actual centered-square fiber variance is integrable and gives the exact same-law squared-norm defect for signed noncentered f."},
+ {"step":6,"source_nodes":["D.gradient","I.derivative","I.grad-meas","I.grad-domain","P.fderiv-meas","P.Riesz","P.domination","P.gradient-L2"],"lean_lines":[153,163],"judgment":"Global genuine differentiability, measurable inverse-Riesz derivative and variance domination establish true outer gradient L2, distinct from fiber domains."},
+ {"step":7,"source_nodes":["S.integration","S.C2","I.integrate","I.algebra","I.target","P.integral-order"],"lean_lines":[164,180],"judgment":"Integrate only after domains; positive eta and denominators yield exactly (1-alpha eta)^2/[4(1+alpha eta)], retaining its zero endpoint."},
+ {"step":8,"source_nodes":["I.rankzero"],"test_lines":[12,76],"judgment":"Authored Gaussian precision and rank-zero extensions preserve actual laws/domains; Test source evidence reused from independent source review, no fresh test run."}
+]
+for s in steps:
+ if not set(s["source_nodes"])<=set(check["source_expansion_nodes"]):raise RuntimeError("Unknown expansion node")
+debts=[
+ {"kind":"reader-repetition","detail":"Renderer repeats complete restatement in publication and declaration lesson; bounded theorem remains reconstructible; whole-reader compression pending.","scoped_blocker":False},
+ {"kind":"inline-typesetting","detail":"ASCII notation and compressed spacing occur in inline prose/assumptions; displayed formulas remain readable; polish pending.","scoped_blocker":False},
+ {"kind":"navigation-scale","detail":"Whole companion approximately 274738px tall in recorded desktop capture; four bounded viewports do not certify full navigation.","scoped_blocker":False},
+ {"kind":"dense-graph-layout","detail":"Graph is dense and long names wrap heavily; exact focus/source/reader identity and truth labels readable; whole-graph usability unsealed.","scoped_blocker":False},
+ {"kind":"incomplete-reference-scan","detail":"Name scan expressly incomplete and can include nonconsumer name collisions; dashed reference signals do not certify formal dependencies; source links separately checked.","scoped_blocker":False},
+ {"kind":"historical-conservative-scope-caption","detail":"Current authored boundary retains focused3888PASS and independent/shared admission pending wording; dated conservative caption, not completion claim; frozen native provenance unchanged.","scoped_blocker":False}
+]
+receipt={
+ "schema_version":1,"kind":"independent-scoped-exposition-seal","status":"SCOPED_STATIC_AND_ACTUAL_LOCAL_DESKTOP_ACCEPTED_WITH_DEBT","checked_commit":COMMIT,"reviewer":"/root/anonymous_decoder_49","reviewed_utc":stamp,
+ "independent_from_caption_author_and_formalizer":True,"later_task_after_closed_blind_decoder":True,
+ "scope":"Current original PBPS item pbps-conditional-gradient-energy, exact declaration lesson, all eight formula steps, adjacent initially folded exact Lean statement/proof, current complete-source links and exact focused Lean Branches node; four archived actual 1440x1800 local desktop captures.",
+ "source_review_reuse":{"path":check["admitted_source_review_path"],"scope":"Independent admitted source0 statement/proof/exposition context and pinned topology reused; not a new source-fidelity verdict or theorem admission.","current_statement_and_all_steps_exactly_match":True,"current_whole_module_exactly_matches":True},
+ "visual_review":{"method":"Actually viewed all four portable PNGs; did not rely only on DOM/root verdict.","images":["cdp.pbps.png","cdp.branch.png","proof.proof.png","proof.proof-late.png"],"source_pixels":[1440,1800],"display_tool_resized_pixels":[1408,1760],"findings":["Full attributed restatement and genuine curvature/positive step-cap/compact signed-function/rank-zero conditions visible.","Main exact coefficient, variance-defect formulas and all eight step formulas readable without observed formula overflow.","Eight corresponding Lean disclosures and exact statement/proof initially folded; DOM reports ten rendered math containers and thirteen closed disclosures.","Actual probability/domain outputs, same kernels, Gaussian augmentation/process distinction, variance defect, true gradient domain and zero endpoint preserved.","Exact focused graph declaration, source line67, reader link and solid ownership/incomplete-scanned-reference truth labels visible."],"capture_browser_exits_zero_rechecked":True,"server_closure":"Root recorded foreground-server closure reused; this reviewer started no server/browser."},
+ "assumptions_preserved":True,"boundary_preserved":True,
+ "semantic_checks":["Finite real Hilbert/Borel E including rank zero explicit authored generalization.","Globally C2 V with genuine Hessian bounds every x,a; 0<alpha<=beta, eta>0 and beta eta<=1.","Actual tilted mu, literal Gaussian augmentation J and actual nu=J.snd; probabilities outputs.","One common R/S precedes all y/f; every-y reflection and explicitly normalized S density outputs.","Every signed globally smooth compact f with no centering uses literal Tf; global differentiability, f/Tf/gradientTf L2 and variance L1 outputs.","Exact same-nu defect and sharp coefficient retain quantifier/constant scope.","ASTIS and Mathlib calls separate; linked exact complete-module source includes private integration helper."],
+ "step_expansion":steps,"source_expansion_nodes":check["source_expansion_nodes"],"lean_expansion_nodes":check["lean_expansion_nodes"],
+ "internal_provider":{"file":"AutoSamplingTheory/ExampleCases/ProximalBPS/ConditionalGradientEnergy.lean","name":"reflected_second_moment","visibility":"private","line":17,"owner":check["lean_expansion_nodes"][0],"included_in_exact_full_source_link":True,"independent_public_credit":False},
+ "static_checks":{"receipt":"static-checks.json","passed":len(check["checks"]),"input_artifacts":len(check["input_artifacts"]),"commit_byte_bound_inputs":len(check["commit_byte_bound_inputs"]),"scoped_reader_links":len(check["reader_links"]),"sealed_header_utf8_bytes_including_trailing_LF":1795,"sealed_header_sha256":"f37b4a07e62e16d22f4ecbc1fba9c38fd80d42f947011b38ded7c5153e0bea1d","folded_proof_note":"Exact current declaration plus closing namespace extracted by current renderer."},
+ "render_blockers":[],"presentation_debt":debts,
+ "remaining_mathematics":["Full B.13 arbitrary-L2 outer-H1/closed-gradient extension","Literal Gamma/P/U/A/B operator norm-square adapters and spectral coercivity","Half-turn and actual sampler convergence/nonexplosion/invariance","Complete four-paper mains, initialization, errors/caps, expected query costs and actual-input composition"],
+ "not_certified":["Whole 274738px companion or entire graph readability","Main branch or live deployment","Mobile or physical device","Copy/download/all bundles","Postmerge PURIFIED acceptance","A new VERIFIED transition or source-fidelity/theorem admission"],
+ "compiler_started":False,"source_text_visible":True,"expected_final_closed_lease":finalleasebind,
+ "input_artifacts":check["input_artifacts"]+[binding(OUT/"static-checks.json",checkbytes),binding(OUT/"static-check.py",scriptbytes)]
+}
+receiptbytes=encoded(receipt)
+capsule=("Independent scoped ExpositionSeal49\n\nAccepted with presentation debt at "+COMMIT+" for original pbps-conditional-gradient-energy and exact declaration focus.\n\nActually viewed four archived local desktop screenshots. Independently checked eight explanations against admitted source0, all conditions/domains and remaining boundaries, exact 1795-byte seal, exact folded proof including closing namespace, and linked complete module including private helper. All 68 bounded static checks pass; nine scoped reader links resolve. ASTIS/Mathlib provenance remains distinct. Explicitly incomplete graph scan is not formal proof topology.\n\nDebt: repeated restatement, ASCII/compressed prose, long companion, dense wrapped graph names, incomplete scan, historical conservative pending caption. No scoped render blocker.\n\nFull rough B.13/H1/closed-gradient, literal operator/Gamma, half-turn/process, complete mains/cost/composition, whole-reader/mobile/live/download/bundle and postmerge PURIFIED remain outside seal. No compiler/browser/server started; no shared/canonical/source/site edits or VERIFIED. Earlier blind decoder remained immutable CLOSED; later source/proof exposure belongs only to separate task.\n\nEvidence: receipt.json, static-checks.json, run.json, final actual CLOSED lease.json.\n").encode()
+runpayload={"schema_version":1,"checked_commit":COMMIT,"reviewer":"/root/anonymous_decoder_49","kind":"scoped-exposition-seal49-run","inputs":[binding(OUT/"static-checks.json",checkbytes),binding(OUT/"static-check.py",scriptbytes),binding(OUT/"finalize.py",finalizerbytes)],"outputs":[binding(OUT/"receipt.json",receiptbytes),binding(OUT/"capsule.md",capsule)],"expected_final_closed_lease":finalleasebind,"actual_role_status":{"status":"CLOSED","read_lease":"CLOSED","write_lease":"CLOSED","compiler_lease":"CLOSED","compiler_started":False,"source_text_visible":True},"hash_recipe":"Raw SHA256 exact UTF-8 no-BOM bytes; LF normalizes CRLF->LF then CR->LF. Generated JSON preserved insertion order, ensure_ascii=false, indent2, trailing LF. Logical review_run_sha256 hashes compact insertion-ordered UTF-8 run_payload with separators comma/colon, ensure_ascii=false, no trailing LF. Raw run.json hash separately reported; neither is decoder digest."}
+logical=sha(json.dumps(runpayload,ensure_ascii=False,separators=(",",":")).encode())
+runbytes=encoded({"schema_version":1,"review_run_sha256":logical,"run_payload":runpayload})
+report={"status":receipt["status"],"checked_commit":COMMIT,"receipt":binding(OUT/"receipt.json",receiptbytes),"capsule":binding(OUT/"capsule.md",capsule),"static_checks":binding(OUT/"static-checks.json",checkbytes),"run":binding(OUT/"run.json",runbytes),"lease":finalleasebind,"review_run_sha256":logical,"actual_status":"CLOSED","read_lease":"CLOSED","write_lease":"CLOSED","compiler_lease":"CLOSED","compiler_started":False,"source_text_visible":True}
+reporttext=json.dumps(report,ensure_ascii=False,indent=2)
+(OUT/"receipt.json").write_bytes(receiptbytes)
+(OUT/"capsule.md").write_bytes(capsule)
+(OUT/"run.json").write_bytes(runbytes)
+# Final filesystem operation. No reads or writes follow.
+(OUT/"lease.json").write_bytes(finalleasebytes)
+print(reporttext)

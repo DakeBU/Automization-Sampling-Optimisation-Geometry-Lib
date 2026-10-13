@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-eaac4f20bc472381",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {E : Type u_1}\n  [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : FiniteDimensional ℝ E]\n  [inst_3 : MeasurableSpace E] [BorelSpace E] (μ : MeasureTheory.Measure E) [MeasureTheory.IsProbabilityMeasure μ]\n  (b a : ℝ),\n  0 ≤ b →\n    0 < a →\n      ∀ (u : E),\n        have ρ := μ.tilted fun x => -(b / 2) * ‖x - u‖ ^ 2;\n        MeasureTheory.IsProbabilityMeasure ρ ∧\n          ∃ K,\n            ProbabilityTheory.IsMarkovKernel K ∧\n              (∀ (y : E), K y = ρ.tilted fun x => -‖x - y‖ ^ 2 / (2 * a)) ∧\n                (∀ (y : E), K y = μ.tilted fun x => -((b + a⁻¹) / 2) * ‖x - (b + a⁻¹)⁻¹ • (b • u + a⁻¹ • y)‖ ^ 2) ∧\n                  ⇑K ∘ₘ AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing ρ √a = ρ ∧\n                    ∀ (ν : MeasureTheory.Measure E),\n                      MeasureTheory.IsProbabilityMeasure ν →\n                        ∀ (r : ℝ),\n                          0 ≤ r →\n                            AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost\n                                  (fun z => ENNReal.ofReal (‖z.1 - z.2‖ ^ 2)) ν ρ ≤\n                                ENNReal.ofReal (r ^ 2) →\n                              InformationTheory.klDiv\n                                  (⇑K ∘ₘ\n                                    AutoSamplingTheory.TechnicalLemmas.Measure.GaussianSmoothing.gaussianSmoothing ν √a)\n                                  ρ ≤\n                                ENNReal.ofReal (r ^ 2 / (2 * a))",
+    "statement_sha256": "eaac4f20bc472381ce708a308480df4b33087651ee6859083899fffa9d495302",
+    "compiled": true,
+    "approved_definition_context": [
+      "MeasurableSpace supplies a sigma-algebra. Measure is a countably additive extended nonnegative measure. AEMeasurable means measurability up to a measure-null set; forall-a.e. is relative to the displayed measure.",
+      "ENNReal is the extended nonnegative reals, including infinity; the displayed integrals with the nonnegative-integral symbol are Lebesgue nonnegative integrals. Real powers and division retain their extended-real conventions. Only displayed nonzero/finite assumptions may be used.",
+      "NormedAddCommGroup, InnerProductSpace over real scalars and FiniteDimensional form a finite-dimensional real inner-product space; BorelSpace gives the Borel measurable structure. Dimension zero is allowed.",
+      "IsProbabilityMeasure means total mass one. Transport.IsCoupling gamma P Q means gamma.fst=P and gamma.snd=Q, where fst/snd are the actual pushforwards by coordinate projections.",
+      "GaussianSmoothing.gaussianSmoothing mu sigma is CommonNoiseContraction.addNoise mu (scaledStdGaussian sigma); scaledStdGaussian sigma is stdGaussian.map(z to sigma smul z); addNoise mu kappa is (mu.prod kappa).map((x,z) to x+z). Thus its stated definition uses the actual product measure and pushforward, not a density or moment premise.",
+      "Measure.rnDeriv mu nu is the extended nonnegative Radon-Nikodym derivative dmu/dnu. AbsolutelyContinuous mu nu means mu is absolutely continuous with respect to nu in that direction.",
+      "ENNReal.ofReal embeds the nonnegative part of a real. ENNReal.toReal is totalized at infinity; use only the displayed assumptions and conclusions. Integrable means a.e. strong measurability and finite integral of norm; the real integral is the Bochner integral.",
+      "Real.log is the real logarithm. The norm and scalar multiplication are the actual space operations. Let expressions define laws; all quantifiers and parameter restrictions are exactly as printed.",
+      "Transport.transportCost c P Q is sInf of the set of extended nonnegative numbers r for which there exists a measure gamma with gamma.fst=P and gamma.snd=Q and r=integral c dgamma. Thus it is the actual infimum over all couplings, not a supplied optimizer.",
+      "The actual stdGaussian E is the pushforward of the product of one-dimensional gaussianReal 0 1 laws through the canonical orthonormal-basis linear isometry into E. This is the centered Gaussian with identity covariance, including the zero-dimensional case. Measure.real B is the toReal of the measure of B.",
+      "InformationTheory.klDiv mu nu is an extended nonnegative quantity: if mu is absolutely continuous with respect to nu and llr(mu,nu) is integrable under mu, it is ofReal(integral llr(mu,nu) dmu + nu.real(univ)-mu.real(univ)); otherwise it is infinity. Here llr(mu,nu)(z)=Real.log((mu.rnDeriv nu z).toReal). The displayed probability hypotheses make both mass terms one, but no integrability premise may be inserted. The asserted finite upper bound is for this actual ENNReal divergence, not its totalized toReal.",
+      "Measure.tilted mu f is the normalized exponential reweighting of mu: density exp(f(x))/integral exp(f) dmu, with the API totalized through ENNReal normalization if normalization fails. IsProbabilityMeasure of the displayed tilted measure is a conclusion, not an extra premise. All exponential weights in the displayed statement are real.",
+      "ProbabilityTheory.Kernel E E is a measurable probability-transition candidate: for each measurable event B, y maps to K(y,B) measurably. IsMarkovKernel K asserts each K(y) is a probability measure. The kernel composition K composed with eta, written K ∘ₘ eta, is the actual measure B maps to integral K(y,B) deta(y); it is not function composition or an assumed sample output.",
+      "The let-bound rho abbreviates the initial displayed quadratic tilt. The existential kernel is chosen before the universal input law nu and radius r. Both every-point fiber equalities, the recovery measure equality, and all KL guarantees use that same kernel."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "64322f88e0a92bf01297d680cbad9c004f9d4bb4961a0dfcdc5eeb05976ebcf0"
+}

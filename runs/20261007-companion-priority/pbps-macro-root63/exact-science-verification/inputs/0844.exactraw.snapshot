@@ -1,0 +1,195 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.PairingClosedChain
+import Mathlib.Algebra.BigOperators.Fin
+import Mathlib.Algebra.Group.Fin.Basic
+import Mathlib.Data.List.Nodup
+import Mathlib.Data.List.OfFn
+import Mathlib.Tactic
+
+/-!
+# Distinct pairing cycles imply closed-chain monotonicity
+
+The direct quadratic-transport perturbation naturally proves the injective
+finite-cycle condition `PairingDistinctCycleMonotone`.  Rockafellar's
+construction, however, is most stable in a list language: every nonempty rooted
+chain must have nonpositive value when it is closed back at its root.
+
+This module is the exact bridge between those two representations.
+
+* A nodup list is converted once to an injective `Fin (n+1)` tuple.
+* A list with a repeated pair point is split into an outer chain and an inner
+  closed loop.  Both are strictly shorter, so strong induction and the
+  loop-erasure identity from `PairingClosedChain` finish the proof.
+
+In particular, arbitrary modular-`Fin` cycle manipulation is not the recursive
+proof language.  The only modular arithmetic is isolated in the small theorem
+identifying the split first-`n` edges plus the closing edge with the canonical
+cycle sum.
+-/
+
+namespace AutoSamplingTheory
+namespace TechnicalLemmas
+namespace Analysis
+namespace PairingClosedChainMonotonicity
+
+open PairingCyclicMonotonicity PairingClosedChain
+open scoped BigOperators
+
+noncomputable section
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- Split form of the pairing value of a nonempty finite tuple: all ordinary
+successor edges followed by a final edge to the chosen terminal source point. -/
+def tuplePathValue {n : ℕ} (p : Fin (n + 1) → E × E) (z : E) : ℝ :=
+  (∑ i : Fin n,
+      inner ℝ (p i.castSucc).2 ((p i.succ).1 - (p i.castSucc).1)) +
+    inner ℝ (p (Fin.last n)).2 (z - (p (Fin.last n)).1)
+
+/-- `chainValue` of `List.ofFn p` is exactly the split tuple path value.
+
+The proof peels the final tuple entry using `List.ofFn_succ'`; therefore no
+cyclic index arithmetic appears here. -/
+theorem chainValue_ofFn_eq_tuplePathValue :
+    ∀ {n : ℕ} (p : Fin (n + 1) → E × E) (z : E),
+      chainValue (List.ofFn p) z = tuplePathValue p z
+  | 0, p, z => by
+      simp [tuplePathValue, chainValue]
+  | n + 1, p, z => by
+      let q : Fin (n + 1) → E × E := fun i => p i.castSucc
+      have hlist :
+          List.ofFn p = (List.ofFn q).concat (p (Fin.last (n + 1))) := by
+        simpa [q] using (List.ofFn_succ' p)
+      rw [hlist]
+      simp only [List.concat_eq_append]
+      rw [chainValue_append_cons (List.ofFn q) (p (Fin.last (n + 1))) [] z]
+      rw [chainValue_ofFn_eq_tuplePathValue q (p (Fin.last (n + 1))).1]
+      rw [Fin.sum_univ_castSucc]
+      simp [tuplePathValue, q, add_assoc]
+
+/-- The split tuple path closed at its first source coordinate is the canonical
+modular pairing-cycle sum.  The wraparound edge is discharged algebraically by
+`Fin.neg_last`, rather than by fragile modular arithmetic automation. -/
+theorem tuplePathValue_at_first_eq_cycle_sum
+    {n : ℕ} (p : Fin (n + 1) → E × E) :
+    tuplePathValue p (p 0).1 =
+      ∑ i : Fin (n + 1),
+        inner ℝ (p i).2 ((p (i + 1)).1 - (p i).1) := by
+  rw [Fin.sum_univ_castSucc]
+  unfold tuplePathValue
+  congr 1
+  · apply Finset.sum_congr rfl
+    intro i _hi
+    have hsucc : (i.castSucc + 1 : Fin (n + 1)) = i.succ := by
+      apply Fin.ext
+      simp [Fin.add_def, Nat.mod_eq_of_lt (Nat.succ_lt_succ i.isLt)]
+    rw [hsucc]
+  · have hlast : (Fin.last n + 1 : Fin (n + 1)) = 0 := by
+      rw [← Fin.neg_last n]
+      exact add_neg_cancel (Fin.last n)
+    rw [hlast]
+
+/-- Closing `List.ofFn p` at its first source coordinate recovers the exact
+pairing-cycle sum used by `PairingDistinctCycleMonotone`. -/
+theorem chainValue_ofFn_at_first_eq_cycle_sum
+    {n : ℕ} (p : Fin (n + 1) → E × E) :
+    chainValue (List.ofFn p) (p 0).1 =
+      ∑ i : Fin (n + 1),
+        inner ℝ (p i).2 ((p (i + 1)).1 - (p i).1) := by
+  rw [chainValue_ofFn_eq_tuplePathValue,
+    tuplePathValue_at_first_eq_cycle_sum]
+
+/-- Nodup rooted chains are exactly the direct finite-cycle case. -/
+theorem chainValue_nonpos_of_nodup
+    {Gamma : Set (E × E)}
+    (hmono : PairingDistinctCycleMonotone Gamma)
+    {l : List (E × E)} {base : E × E}
+    (hlne : l ≠ []) (hhead : l.head? = some base)
+    (hforall : List.Forall (fun p => p ∈ Gamma) l)
+    (hnodup : l.Nodup) :
+    chainValue l base.1 ≤ 0 := by
+  obtain ⟨n, hlen⟩ :=
+    Nat.exists_eq_succ_of_ne_zero
+      (Nat.ne_of_gt (List.length_pos_iff_ne_nil.mpr hlne))
+  let p : Fin (n + 1) → E × E :=
+    fun i => l.get (Fin.cast hlen.symm i)
+  have hp_inj : Function.Injective p := by
+    intro i j hij
+    apply Fin.cast_injective hlen.symm
+    exact hnodup.injective_get hij
+  have hp_mem : ∀ i, p i ∈ Gamma := by
+    rw [List.forall_iff_forall_mem] at hforall
+    intro i
+    exact hforall _ (List.get_mem _ _)
+  have hlist : List.ofFn p = l := by
+    simpa [p, hlen] using (List.ofFn_get l)
+  have hp0 : p 0 = base := by
+    have h := hhead
+    rw [← hlist] at h
+    simpa using h
+  calc
+    chainValue l base.1 = chainValue (List.ofFn p) (p 0).1 := by
+      rw [hlist, hp0]
+    _ = ∑ i : Fin (n + 1),
+        inner ℝ (p i).2 ((p (i + 1)).1 - (p i).1) :=
+      chainValue_ofFn_at_first_eq_cycle_sum p
+    _ ≤ 0 := hmono n p hp_inj hp_mem
+
+private theorem pairingClosedChainMonotone_of_distinct_aux
+    {Gamma : Set (E × E)}
+    (hmono : PairingDistinctCycleMonotone Gamma) :
+    ∀ m : ℕ, ∀ {l : List (E × E)} {base : E × E},
+      l.length = m → l ≠ [] → l.head? = some base →
+        List.Forall (fun p => p ∈ Gamma) l → chainValue l base.1 ≤ 0 := by
+  intro m
+  induction m using Nat.strong_induction_on with
+  | _ m ih =>
+      intro l base hlen hlne hhead hforall
+      by_cases hnodup : l.Nodup
+      · exact chainValue_nonpos_of_nodup hmono hlne hhead hforall hnodup
+      · rcases (List.exists_duplicate_iff_not_nodup.mpr hnodup) with ⟨a, ha⟩
+        rcases exists_duplicate_split ha with ⟨s, t, u, rfl⟩
+        have hforall_outer :
+            List.Forall (fun p => p ∈ Gamma) (s ++ a :: u) := by
+          rw [List.forall_iff_forall_mem] at hforall ⊢
+          intro p hp
+          exact hforall p (by simp [List.mem_append] at hp ⊢; aesop)
+        have hforall_inner :
+            List.Forall (fun p => p ∈ Gamma) (a :: t) := by
+          rw [List.forall_iff_forall_mem] at hforall ⊢
+          intro p hp
+          exact hforall p (by simp [List.mem_append] at hp ⊢; aesop)
+        have houter_len : (s ++ a :: u).length < m := by
+          rw [← hlen]
+          simp
+        have hinner_len : (a :: t).length < m := by
+          rw [← hlen]
+          simp
+          omega
+        have houter_head : (s ++ a :: u).head? = some base := by
+          cases s <;> simpa using hhead
+        have hinner_head : (a :: t).head? = some a := by simp
+        have houter : chainValue (s ++ a :: u) base.1 ≤ 0 :=
+          ih (s ++ a :: u).length houter_len rfl (by simp)
+            houter_head hforall_outer
+        have hinner : chainValue (a :: t) a.1 ≤ 0 :=
+          ih (a :: t).length hinner_len rfl (by simp)
+            hinner_head hforall_inner
+        rw [chainValue_duplicate_split]
+        linarith
+
+/-- The standard transport endpoint on injective finite cycles already implies
+the closed rooted-list condition consumed by the Rockafellar construction. -/
+theorem pairingClosedChainMonotone_of_distinct
+    {Gamma : Set (E × E)}
+    (hmono : PairingDistinctCycleMonotone Gamma) :
+    PairingClosedChainMonotone Gamma := by
+  intro l base hlne hhead hforall
+  exact pairingClosedChainMonotone_of_distinct_aux hmono l.length rfl
+    hlne hhead hforall
+
+end
+
+end PairingClosedChainMonotonicity
+end Analysis
+end TechnicalLemmas
+end AutoSamplingTheory

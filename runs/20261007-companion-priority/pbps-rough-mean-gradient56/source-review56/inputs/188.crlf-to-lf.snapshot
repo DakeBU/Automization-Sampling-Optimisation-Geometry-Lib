@@ -1,0 +1,11 @@
+from pathlib import Path
+exec((Path(__file__).parent/'source_first_extract.py').read_text(encoding='utf-8-sig').split('metadata=')[0])
+for k,a in p.ids.items():
+ if (k.startswith('A3.SS1') or k.startswith('A3.E') or k.startswith('A2.SS2.p') or k.startswith('A2.Thmtheorem1') or k.startswith('S2.SS2') or k.startswith('A4.E6')) and a.tag in ('p','table','div'):
+  if a.tag=='div' and 'ltx_proof' not in a.attrs.get('class',''):continue
+  print(k,'lines',s.count('\n',0,a.start)+1,s.count('\n',0,a.end)+1,re.sub(r'\s+',' ',txt(a))[:850])
+for k,a in p.ids.items():
+ if a.tag=='table' and '(D.6)' in txt(a):print('D6',k,txt(a));anchor=k
+if 'anchor' in locals():
+ a=p.ids[anchor]
+ with (T/(anchor+'.balanced.html')).open('wb') as f:f.write(s[a.start:a.end].encode('utf-8'))

@@ -1,5 +1,40 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS zero-time L2 strong continuity (2026-10-16)
+
+Read this current entry and the bounded linked plan first. Later sections are
+historical retrieval checkpoints, not instructions to restart older work.
+
+- New declaration: `ActualL2StrongContinuity.actual_l2_strong_continuity` in
+  `AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2StrongContinuity.lean`.
+  Under the original six hypotheses, the SAME actual process/operator family
+  satisfies `A_t f -> f` in real L2 as nonnegative time tends to zero.
+- Independent producer/test compilation and standard-only axioms passed at
+  `eb5f3e75d062428f8ddb219d9dcd3caf56c799ae`; admission checkpoint
+  `be3f02c4f8e086c610f2c42c5ec4b294a09dd915`. Canonical source-blind audit:
+  `ASTIS-RT-20261015-PBPSActualL2StrongContinuity`, equivalent after elaboration.
+- State: independently verified, now in the sole STABILIZING lane. Registry is
+  still563 until actual integration. A cold single-worker root Tests build is
+  running; no aggregate ASTIS pass, main merge or deployment is claimed yet.
+- The actual local reader showed six rendered formulas with zero MathJax
+  errors and four adjacent, initially folded Lean steps. Step3 was expanded
+  successfully. The local five-node SVG was inspected. This is bounded reader
+  QA, not whole-paper/mobile acceptance or purification.
+- Next source-first prereview accepts one same-witness actual kernel/L2
+  realization packet, deriving constants and positivity. Probability fibers
+  do not imply process Markovness; restart/semigroup and all later edges remain
+  separate. Exact Lean statement sealing has not started.
+- Continue the full existing four-paper Goal; complete papers remain0/4.
+  Preserve every previous cell/cycle and the lossless historical-evidence
+  on-demand checkout. Do not create a parallel Goal or background ASTIS.
+
+Exact plan, environment lessons and next-source graph:
+`research-wiki/paper-contributions/PBPS/l2-strong-continuity-plan.md`.
+Exact verification and pending gates:
+`research-wiki/paper-contributions/PBPS/l2-strong-continuity-verification.json`.
+Use correct approved D-repo execution context and `LEAN_NUM_THREADS=1` on this
+host; default-sandbox cwd failures are not mathematical counterexamples.
+
 ## Actual PBPS Gaussian position L2 averaging (2026-10-12)
 
 Independent science 86e2da02b6b1a855916adcd46363e34d8a6ecb5b. Original six analytic assumptions and all108

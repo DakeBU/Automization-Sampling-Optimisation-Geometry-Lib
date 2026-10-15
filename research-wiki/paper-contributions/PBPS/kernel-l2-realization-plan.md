@@ -1,7 +1,8 @@
 # PBPS actual kernel/L2 realization — one bounded packet
 
-Status: exact statement elaborated; independent exact-statement/source-topology review pending.
-No proof search or theorem completion is claimed.
+Status: exact statement/source topology independently accepted before proof;
+producer and focused test compiled locally (3259 jobs), standard axioms only.
+Post-proof semantic/independent verification, integration and purification remain pending.
 Statement seal: `fc2c39d412f077d007b509cebf2952eb7ed3e39a81032f2af07f8e0619099e23`.
 Owned target: `ActualKernelL2Realization.actual_kernel_l2_realization`.
 Original four-paper Goal, cycles, memory and current continuity stabilization are unchanged.
@@ -37,7 +38,9 @@ Appendix A.1's process Markov/semigroup assertions are explicitly excluded here
 and remain red. Definition D.2 density evolution/adjoint fixed constants and
 chi-square identities are excluded from this bounded packet; they are not
 silently claimed from A preserving constants. Hypocoercivity and cost regions
-are excluded as separate consumers. Independent exact topology review pending.
+are excluded as separate consumers. Exact independent source/topology prereview
+accepted after the coverage and B4 acyclicity corrections; see the adjacent
+kernel-l2-realization-prereview.md. The statement digest never changed.
 
 ### Source-region inventory (v1 HTML line locators at inspection)
 
@@ -73,14 +76,16 @@ ASTIS analytical completion nodes, rather than additional source hypotheses:
   (S3 AND S4 -> S5), with index nesting and measurable sets explicit.
 - B3: canonical-representative integral-map and AE fiber integrability
   (S5 AND Q0 -> S6), retaining the SAME operator A.
-- B4: AE null-set transport and nonnegative integration, and probability-clock
-  integration of constants (S5 AND S6 -> derived positivity/constants).
+- B4: positivity follows from S5 invariance AND Q0 AND B3's realization
+  equality, by AE null-set transport and nonnegative integration. Constants
+  follow from Nnu probability AND S4 probability fibers AND B3's realization
+  equality. S6 is the aggregate output of B3/B4, never an input to B4.
 
 These bridge nodes complete omitted bookkeeping; none is a theorem binder or
 an invented source citation. Parameterwise AE is retained, not one event
 uniform in all times, parameters and L2 observables.
 
-## Reuse and proof plan (not an implemented proof)
+## Reuse and proof plan (now implemented and focused-compiled)
 
 Search completed: actual phase kernel, accepted actual L2/flip/position/continuity
 interfaces; existing KernelInvariance; pinned Mathlib Kernel.Invariance,

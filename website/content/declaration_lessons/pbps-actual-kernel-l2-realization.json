@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "title": "Actual PBPS: one probability kernel and its real-L2 operator",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1",
+          "label": "Appendix A.1 and Definition D.2, phase-kernel realization component",
+          "scope": "Only same-witness phase probability-kernel/L2 realization, invariant state sections, AE positivity and constant classes are added. Process Markovness/restart, Chapman–Kolmogorov/semigroup, adjoint density evolution/fixed constants, position probability-kernel realization, independent-reference averaging, hypocoercivity, simulation errors, actual-input expected costs, composition and all four full papers remain open."
+        }
+      ],
+      "tests": [
+        "LEAN_NUM_THREADS=1 lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualKernelL2Realization Tests.ProximalBPSActualKernelL2Realization"
+      ],
+      "assumptions": [
+        "E is a finite-dimensional real inner-product Borel space with canonical volume; dimension zero is allowed.",
+        "V is C2; alpha,beta are nonnegative with 0<alpha<=beta, and alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for all x,v. Also eta>0 and beta eta<=1.",
+        "Process, Gibbs probability, kernel, invariance, L2 realization, integrability, positivity and constants are conclusions, not supplied assumptions.",
+        "Each AE assertion is for fixed parameters/time/observable. Lp coercion chooses a strongly measurable representative of an AE class. Positivity preserves AE nonnegativity, not a Hilbert quadratic form."
+      ],
+      "statement": "Assume the six displayed analytic hypotheses. Put V_y(x)=V(x)+||x-y||^2/(2 eta), pi_y=volume.tilted(-V_y), gamma=stdGaussian(E), nu_y=pi_y times gamma and P=Exp(1)^N. Use the literal fixed-reference PBPS flow with center c=y-eta grad V(r), position c+cos(t)(x-c)+sqrt(eta)sin(t)p and momentum -sin(t)(x-c)/sqrt(eta)+cos(t)p. The bounce reflects momentum in grad V(x)-grad V(r), with the identity for a zero normal; its rate is sqrt(eta) max(0,<p,grad V(x)-grad V(r)>). Independent exponential thresholds determine integrated-hazard waiting times, post-bounce records and between-jump interpolation. The existing raw initial-state fallback outside covered intervals is retained, not introduced anew. There is one global jointly measurable actual process Z with the every-raw-input arc/fallback rules and parameterwise clock-AE zero-time initialization. Its endpoint sends nu_y times P to nu_y; bounded signed flip duality and jointly measurable bounded-Borel clock expectations retain their integrability and uniform bounds. A single joint-index probability kernel Kphase has every fiber exactly map(Z(y,r,z,t))P. For every fixed y,r,t the state-kernel z -> Kphase(((y,r),z),t) preserves nu_y as an exact measure equality. For each y,r the SAME continuous real-linear L2(nu_y) family A_t satisfies A_0=I, ||A_t||<=1 and A_t f -> f at zero for every f. Every canonical L2 representative f-sharp is integrable on almost every kernel fiber, and (A_t f)-sharp(z)=integral f-sharp(z') Kphase(((y,r),z),t)(dz') for nu_y-almost every z. A_t preserves AE nonnegativity and fixes every real constant class, whose L2 membership is produced. All earlier arbitrary-MemLp clock representation and square-integral bounds remain. The momentum flip J is an involutive isometry and A_t*=J A_t J. The position pullback B is isometric; M=B* equals Gaussian integration for arbitrary MemLp representatives, MB=I, JB=B, MJ=M. Kpos_t=M A_t B remains a self-adjoint contraction with Kpos_0=I and its Gaussian-outer/clock-inner representative, including both nested AE integrability obligations. This identifies a phase probability kernel and its existing operator, not a restart law or a position probability kernel.",
+      "formula": "\\nu_y\\kappa_t^{y,r}=\\nu_y,\\qquad(A_t f)^\\sharp(z)=\\int f^\\sharp(z')\\,\\kappa_t^{y,r}(z,dz')\\quad\\nu_y\\text{-a.e.}",
+      "boundary": "Only same-witness phase probability-kernel/L2 realization, invariant state sections, AE positivity and constant classes are added. Process Markovness/restart, Chapman–Kolmogorov/semigroup, adjoint density evolution/fixed constants, position probability-kernel realization, independent-reference averaging, hypocoercivity, simulation errors, actual-input expected costs, composition and all four full papers remain open.",
+      "steps": [
+        {
+          "title": "Use one actual path",
+          "text": "The two parents prescribe identical live-record recursion. A covered interval has a live record and both paths follow the same harmonic arc. Outside coverage both use the old raw fallback. Thus the chosen paths agree pointwise for every raw clock sequence before the kernel is joined to the operator.",
+          "formula": "Z_{\\rm kernel}=Z_{\\rm operator},\\qquad\\kappa_t^{y,r}(z)=(Z_{y,r,z,t})_*P.",
+          "detail": "Existential witnesses are identified, not assumed equal. No new fallback semantics is introduced.",
+          "lean": "  obtain ⟨Z, hZm, hZa, hZf, hZ0, h106, hBorel, h110⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity.actual_l2_strong_continuity\n      hα hαβ hV hH hη hβη\n  obtain ⟨Zk, _hZkm, hZka, hZkf, _hZkgood,\n      Kphase, hK, hfiber, _hset, _hinit, _hbounded⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel.actual_phase_transition_kernel\n      hα hαβ hV hH hη hβη\n  -- Same literal recursion and raw fallback identify the two path witnesses.\n  have hZeq : Zk = Z := by\n    funext y xRef z t w\n    by_cases hx : ∃ n, w ∈ I y xRef z t n\n    · obtain ⟨n, hn⟩ := hx\n      obtain ⟨a, ha⟩ : ∃ a, record y xRef z (ε w) n = Sum.inl a := by\n        cases hr : record y xRef z (ε w) n with\n        | inl a => exact ⟨a, rfl⟩\n        | inr u =>\n          have hh := hn.1\n          change (record y xRef z (ε w) n).elim\n            (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤) ≤ (t : WithTop ℝ≥0) at hh\n          rw [hr] at hh\n          exact False.elim ((WithTop.not_top_le_coe t) hh)\n      exact (hZka y xRef z w t n a hn.1 hn.2 ha).trans\n        (hZa y xRef z w t n a hn ha).symm\n    · exact (hZkf y xRef z w t hx).trans (hZf y xRef z w t hx).symm\n  rw [hZeq] at hfiber\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualKernelL2Realization.lean",
+            "source_raw_sha256": "dfa277810eb05f14e50964760ca3cfc55745940f09a7a505dd40e4e744206f16",
+            "exact_code_raw_sha256": "2966c70f02bc4872b3ca18ed109e542dbdbf1e1232b1c4b1aed9f268f52d66a3",
+            "start_line": 244,
+            "end_line": 268
+          }
+        },
+        {
+          "title": "Turn endpoint stationarity into kernel invariance",
+          "text": "For a measurable set C integrate the fiber pushforward formula against nu_y. The product-measure formula identifies it with the endpoint preimage under nu_y times P. The existing endpoint measure-preserving identity gives nu_y(C), hence an equality of measures.",
+          "formula": "\\int\\kappa_t^{y,r}(z,C)\\,d\\nu_y(z)=(\\nu_y\\otimes P)\\{(z,w):Z(y,r,z,t,w)\\in C\\}=\\nu_y(C).",
+          "detail": "Kernel.comap fixes y,r,t. Probability fibers do not prove process Markovness or restart. No generator-domain or integration-by-parts shortcut is used.",
+          "lean": "  letI : IsProbabilityMeasure P :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.1\n  letI : IsMarkovKernel Kphase := hK\n  have hzM (y xRef : E) (z : E × E) (T : ℝ≥0) :\n      Measurable (Z y xRef z T) := hZm.comp\n    (show Measurable (fun w : ℕ → ℝ => (((y, xRef), z), T, w)) from\n      measurable_const.prodMk (measurable_const.prodMk measurable_id))\n  -- A fixed-time endpoint pushforward, not a restart/Markov argument.\n  have hInv (y xRef : E) (T : ℝ≥0) :\n      (Kphase.comap (fun z : E × E => (((y, xRef), z), T))\n        (by fun_prop)).Invariant (nu y) := by\n    let κ : Kernel (E × E) (E × E) :=\n      Kphase.comap (fun z : E × E => (((y, xRef), z), T)) (by fun_prop)\n    have he := (h106 y xRef T).1\n    change (nu y).bind κ = nu y\n    calc\n      (nu y).bind κ =\n          Measure.map (fun a : (E × E) × (ℕ → ℝ) => Z y xRef a.1 T a.2)\n            ((nu y).prod P) := by\n        ext s hs\n        rw [Measure.bind_apply hs κ.aemeasurable, Measure.map_apply he.measurable hs,\n          Measure.prod_apply (he.measurable hs)]\n        apply lintegral_congr_ae\n        filter_upwards with z\n        change Kphase (((y, xRef), z), T) s =\n          P ((Z y xRef z T) ⁻¹' s)\n        rw [hfiber, Measure.map_apply (hzM y xRef z T) hs]\n      _ = nu y := he.map_eq\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualKernelL2Realization.lean",
+            "source_raw_sha256": "dfa277810eb05f14e50964760ca3cfc55745940f09a7a505dd40e4e744206f16",
+            "exact_code_raw_sha256": "078b39db323dffcc304c01b48f62a291757815304c964784a4d1e85b048b0591",
+            "start_line": 269,
+            "end_line": 296
+          }
+        },
+        {
+          "title": "Realize every L2 class by a genuine fiber integral",
+          "text": "For Mathlib's strongly measurable representative f-sharp, the same-family parent supplies clock integrability and AE identification of A_t f. Integral-map transfers integrability to the exact kernel fiber. Lp.toLp_coeFn removes the redundant quotient construction; the integral-map identity then gives the kernel representation.",
+          "formula": "f^\\sharp\\in L^1(\\kappa_t^{y,r}(z))\\quad(\\nu_y\\text{-a.e. }z),\\qquad(A_t f)^\\sharp(z)=\\int f^\\sharp(z')\\,\\kappa_t^{y,r}(z,dz').",
+          "detail": "Integrability is a separate output, not inferred from totalized integral syntax. Representatives agree AE, not pointwise.",
+          "lean": "  refine ⟨Z, hZm, hZa, hZf, hZ0, h106, hBorel, Kphase, hK, hfiber, hInv, ?_⟩\n  intro y xRef\n  obtain ⟨L, hL0, hSC, hL, hRest⟩ := h110 y xRef\n  have hnorm := ActualPhaseNormalization.actual_phase_gibbs_normalization\n    hα hαβ hV hH hη hβη y\n  letI : IsProbabilityMeasure (nu y) := by\n    have hp := hnorm.2.2.2.2.2.1\n    rw [hnorm.2.2.2.2.2.2] at hp\n    exact hp\n  have hreal (T : ℝ≥0) (f : Lp ℝ 2 (nu y)) :\n      (∀ᵐ z ∂nu y, Integrable (f : (E × E) → ℝ)\n        (Kphase (((y, xRef), z), T))) ∧\n      (L T f : (E × E) → ℝ) =ᵐ[nu y]\n        fun z => ∫ z', f z' ∂Kphase (((y, xRef), z), T) := by\n    let opG : (E × E) → ℝ := fun z => ∫ w, f (Z y xRef z T w) ∂P\n    have hclock := (hL T).2 (f : (E × E) → ℝ) (Lp.memLp f)\n    obtain ⟨hOp, heq⟩ := hclock.2.1\n    have heq' : L T f = hOp.toLp opG := by\n      simpa only [Lp.toLp_coeFn] using heq\n    have hae : (L T f : (E × E) → ℝ) =ᵐ[nu y] opG := by\n      rw [heq']\n      exact hOp.coeFn_toLp\n    have hinter (z : E × E) :\n        (∫ z', f z' ∂Kphase (((y, xRef), z), T)) = opG z := by\n      rw [hfiber]\n      exact integral_map (hzM y xRef z T).aemeasurable\n        (Lp.stronglyMeasurable f).aestronglyMeasurable\n    refine ⟨?_, ?_⟩\n    · filter_upwards [hclock.1] with z hz\n      rw [hfiber]\n      exact (integrable_map_measure\n        (Lp.stronglyMeasurable f).aestronglyMeasurable (hzM y xRef z T).aemeasurable).2 hz\n    · filter_upwards [hae] with z hz\n      exact hz.trans (hinter z).symm\n  refine ⟨L, hL0, hSC, hreal, ?_, ?_, hL, hRest⟩\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualKernelL2Realization.lean",
+            "source_raw_sha256": "dfa277810eb05f14e50964760ca3cfc55745940f09a7a505dd40e4e744206f16",
+            "exact_code_raw_sha256": "72314a09bb6609bef87e61296a885e4dc2f17882bd183930e54044c5081c12c5",
+            "start_line": 297,
+            "end_line": 331
+          }
+        },
+        {
+          "title": "Transport nonnegativity through the invariant kernel",
+          "text": "If f-sharp is nonnegative nu_y-AE, invariance makes it nonnegative under nu_y followed by the kernel. The measure-composition AE theorem gives nonnegativity on almost every fiber. Nonnegative integration and the representation prove A_t f is nonnegative AE.",
+          "formula": "f^\\sharp\\ge0\\ \\nu_y\\text{-a.e.}\\ \\Longrightarrow\\ f^\\sharp\\ge0\\ \\kappa_t^{y,r}(z)\\text{-a.e. for }\\nu_y\\text{-a.e. }z\\ \\Longrightarrow\\ (A_t f)^\\sharp\\ge0\\ \\nu_y\\text{-a.e.}",
+          "detail": "Positivity preserving is not Loewner positivity or phase self-adjointness.",
+          "lean": "  · intro T f hf\n    let κ : Kernel (E × E) (E × E) :=\n      Kphase.comap (fun z : E × E => (((y, xRef), z), T)) (by fun_prop)\n    have hcomp : ∀ᵐ z ∂((nu y).bind κ), 0 ≤ f z := by\n      rw [(hInv y xRef T).def]\n      exact hf\n    have hfib := Measure.ae_ae_of_ae_comp (κ := κ) hcomp\n    filter_upwards [(hreal T f).2, hfib] with z hz hzz\n    rw [hz]\n    exact integral_nonneg_of_ae hzz\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualKernelL2Realization.lean",
+            "source_raw_sha256": "dfa277810eb05f14e50964760ca3cfc55745940f09a7a505dd40e4e744206f16",
+            "exact_code_raw_sha256": "ad858c0eaa77490b25268da8ac697c494332b710bbbbf95f58b16670dce60435",
+            "start_line": 332,
+            "end_line": 341
+          }
+        },
+        {
+          "title": "Fix constant classes without pretending representatives are pointwise constant",
+          "text": "Probability of nu_y makes every real constant c square integrable. Its Lp representative equals c only AE. Invariance transports that equality to almost every fiber. AE integral congruence and probability mass one give integral c=c. Lp.ext identifies the two classes.",
+          "formula": "(A_t[c])^\\sharp(z)=\\int[c]^\\sharp(z')\\,\\kappa_t^{y,r}(z,dz')=\\int c\\,\\kappa_t^{y,r}(z,dz')=c,\\qquad A_t[c]=[c].",
+          "detail": "The AE equality is transported before the constant integral is simplified.",
+          "lean": "  · intro T r\n    have hr : MemLp (fun _ : E × E => r) 2 (nu y) := memLp_const r\n    let f : Lp ℝ 2 (nu y) := hr.toLp (fun _ : E × E => r)\n    let κ : Kernel (E × E) (E × E) :=\n      Kphase.comap (fun z : E × E => (((y, xRef), z), T)) (by fun_prop)\n    have hcae : (f : (E × E) → ℝ) =ᵐ[nu y] fun _ => r := hr.coeFn_toLp\n    have hcomp : ∀ᵐ z ∂((nu y).bind κ), f z = r := by\n      rw [(hInv y xRef T).def]\n      exact hcae\n    have hfib := Measure.ae_ae_of_ae_comp (κ := κ) hcomp\n    refine ⟨hr, ?_⟩\n    change L T f = f\n    apply Lp.ext\n    filter_upwards [(hreal T f).2, hcae, hfib] with z hz hzr hfz\n    calc\n      L T f z = ∫ z', f z' ∂Kphase (((y, xRef), z), T) := hz\n      _ = ∫ _ : E × E, r ∂Kphase (((y, xRef), z), T) := integral_congr_ae hfz\n      _ = r := by simp\n      _ = f z := hzr.symm\n\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualKernelL2Realization.lean",
+            "source_raw_sha256": "dfa277810eb05f14e50964760ca3cfc55745940f09a7a505dd40e4e744206f16",
+            "exact_code_raw_sha256": "095ec74b169b781285fb4497db0f468a6c965e02ded17f518e90fd9c717a5883",
+            "start_line": 342,
+            "end_line": 361
+          }
+        }
+      ],
+      "lean_proof": "Same literal path -> endpoint pushforward -> invariant kernel -> quotient-safe all-L2 representation -> AE positivity and constants.",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualKernelL2Realization.actual_kernel_l2_realization_statement"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity.actual_l2_strong_continuity",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseTransitionKernel.actual_phase_transition_kernel",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPhaseNormalization.actual_phase_gibbs_normalization",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Measure.bind_apply",
+        "MeasureTheory.Measure.prod_apply",
+        "MeasureTheory.Measure.map_apply",
+        "MeasureTheory.Measure.ae_ae_of_ae_comp",
+        "MeasureTheory.integrable_map_measure",
+        "MeasureTheory.integral_map",
+        "MeasureTheory.Lp.toLp_coeFn",
+        "MeasureTheory.Lp.stronglyMeasurable",
+        "MeasureTheory.MemLp.coeFn_toLp",
+        "MeasureTheory.Lp.ext",
+        "MeasureTheory.integral_nonneg_of_ae",
+        "MeasureTheory.integral_congr_ae",
+        "MeasureTheory.memLp_const"
+      ],
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualKernelL2Realization.actual_kernel_l2_realization",
+      "lean_statement": "Assume the six displayed analytic hypotheses. Put V_y(x)=V(x)+||x-y||^2/(2 eta), pi_y=volume.tilted(-V_y), gamma=stdGaussian(E), nu_y=pi_y times gamma and P=Exp(1)^N. Use the literal fixed-reference PBPS flow with center c=y-eta grad V(r), position c+cos(t)(x-c)+sqrt(eta)sin(t)p and momentum -sin(t)(x-c)/sqrt(eta)+cos(t)p. The bounce reflects momentum in grad V(x)-grad V(r), with the identity for a zero normal; its rate is sqrt(eta) max(0,<p,grad V(x)-grad V(r)>). Independent exponential thresholds determine integrated-hazard waiting times, post-bounce records and between-jump interpolation. The existing raw initial-state fallback outside covered intervals is retained, not introduced anew. There is one global jointly measurable actual process Z with the every-raw-input arc/fallback rules and parameterwise clock-AE zero-time initialization. Its endpoint sends nu_y times P to nu_y; bounded signed flip duality and jointly measurable bounded-Borel clock expectations retain their integrability and uniform bounds. A single joint-index probability kernel Kphase has every fiber exactly map(Z(y,r,z,t))P. For every fixed y,r,t the state-kernel z -> Kphase(((y,r),z),t) preserves nu_y as an exact measure equality. For each y,r the SAME continuous real-linear L2(nu_y) family A_t satisfies A_0=I, ||A_t||<=1 and A_t f -> f at zero for every f. Every canonical L2 representative f-sharp is integrable on almost every kernel fiber, and (A_t f)-sharp(z)=integral f-sharp(z') Kphase(((y,r),z),t)(dz') for nu_y-almost every z. A_t preserves AE nonnegativity and fixes every real constant class, whose L2 membership is produced. All earlier arbitrary-MemLp clock representation and square-integral bounds remain. The momentum flip J is an involutive isometry and A_t*=J A_t J. The position pullback B is isometric; M=B* equals Gaussian integration for arbitrary MemLp representatives, MB=I, JB=B, MJ=M. Kpos_t=M A_t B remains a self-adjoint contraction with Kpos_0=I and its Gaussian-outer/clock-inner representative, including both nested AE integrability obligations. This identifies a phase probability kernel and its existing operator, not a restart law or a position probability kernel."
+    }
+  ]
+}

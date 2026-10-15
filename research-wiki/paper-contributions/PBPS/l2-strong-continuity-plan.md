@@ -30,3 +30,21 @@ review accepted. Full root acceptance and independent compilation are separate.
 PBPS and SPHMC remain the first priority; dependency-ready work, not leaf counts,
 determines scheduling. No publication percentage is inferred from cell counts.
 All four complete papers and actual-input composition remain open.
+
+## Integration handoff
+
+This leaf is independently VERIFIED, not yet Registry-integrated or merged.
+The inherited advance ledger still holds the sole STABILIZING lease for
+ASTIS-SA-20261011-PBPSActualPrescribedPathDensity (owner companion_root_20261005),
+although its theorem is already in the c1dfb53b main baseline. Reconcile that
+stale lease explicitly against the real PR #315/main history before acquiring
+the lane; do not impersonate its owner or overwrite historical state.
+The new Registry count remains 563 until the new leaf is actually integrated.
+
+Local execution lesson: this host's permitted workspace is on C:, but the real
+repository is on D:. Native compiler/Git commands require the exact D: workdir
+and the approved elevated execution context. Default-sandbox canonicalization
+warnings plus random upstream private-olean read failures are not evidence of
+a theorem failure or a Lean-version mismatch. Keep LEAN_NUM_THREADS=1; the
+independent direct runs also used Lean -j1. Do not refetch/delete valid caches
+or change another contributor's processes to address this context mismatch.

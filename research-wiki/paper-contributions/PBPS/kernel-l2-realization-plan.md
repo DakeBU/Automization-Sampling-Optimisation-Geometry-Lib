@@ -2,7 +2,10 @@
 
 Status: exact statement/source topology independently accepted before proof;
 producer and focused test compiled locally (3259 jobs), standard axioms only.
-Post-proof semantic/independent verification, integration and purification remain pending.
+Post-proof semantic/source/compiler review is accepted and VERIFIED was published
+by the independent reviewer after explicit human authorization. Kernel/L2 now
+holds the sole STABILIZING lease after continuity PR325 merged. Registry/root
+integration and final acceptance are in progress; purification remains pending.
 Statement seal: `fc2c39d412f077d007b509cebf2952eb7ed3e39a81032f2af07f8e0619099e23`.
 Owned target: `ActualKernelL2Realization.actual_kernel_l2_realization`.
 Original four-paper Goal, cycles, memory and current continuity stabilization are unchanged.

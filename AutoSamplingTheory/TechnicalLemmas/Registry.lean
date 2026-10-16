@@ -80,6 +80,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualKernelL2Realization
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -124,6 +125,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualKernelL2Realization"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualKernelL2Realization.actual_kernel_l2_realization"
+    upstreamDecl := "Actual PBPS invariant phase kernel and real-L2 realization"
+    upstreamFile := "arXiv2609.06905v1 Appendix A.1 and Definition D.2, fixed-time observable realization only"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "kernel", "invariance", "representative"]
+    saldUse := "Same-process PBPS transition/operator bridge; no SALD claim"
+    note := "Independent source/compiler verification at52d523aca2aa825fa23d0fc997592b9128468bd2; accepted audit ASTIS-RT-20261016-PBPSActualKernelL2Realization. Original six analytic assumptions only. Identify the joint phase probability kernel with the SAME raw process Z using covered-arc/fallback equality, derive invariant fixed-parameter state fibers, and identify every canonical real-L2 representative with its kernel expectation AE, including fiber integrability. Derive AE order positivity and fixed real constant classes internally, retaining prior zero-time continuity, flip and Gaussian averaging. No process Markovness/restart, Chapman--Kolmogorov/semigroup, adjoint-density statement, independent-reference half-turn, hypocoercivity, simulation errors, actual expected cost, composition or complete paper."
+  },
   {
     key := "pbps.actualL2StrongContinuity"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity.actual_l2_strong_continuity"

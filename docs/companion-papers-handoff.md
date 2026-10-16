@@ -1,5 +1,17 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS invariant phase kernel and L2 realization (2026-10-17)
+
+Current integration owner: `root_20261016`, sole STABILIZING lease. Independent
+source/compiler reviewer published VERIFIED with explicit human authorization;
+the exact source at52d523ac is unchanged. Registry/root imports are prepared
+(target565; merged continuity baseline564), not yet a final root-gate pass.
+Continuity PR325 merged at01f844b6 after all three current-head CI lanes passed.
+The next exact half-turn detailed-balance statement is sealed and source-first
+prereviewed; its cell is claimed/EXPLORING, NOT proved or counted. Proof work
+does not acquire a second integration lease. Complete papers remain0/4.
+Start from `research-wiki/paper-contributions/PBPS/kernel-l2-realization-verification.json`.
+
 ## Actual PBPS zero-time L2 strong continuity (2026-10-17)
 
 Read this current entry and the bounded linked plan first. Later sections are
@@ -13,13 +25,13 @@ historical retrieval checkpoints, not instructions to restart older work.
   `eb5f3e75d062428f8ddb219d9dcd3caf56c799ae`; admission checkpoint
   `be3f02c4f8e086c610f2c42c5ec4b294a09dd915`. Canonical source-blind audit:
   `ASTIS-RT-20261015-PBPSActualL2StrongContinuity`, equivalent after elaboration.
-- State: independently verified, in the sole STABILIZING lane. Registry564
+- State: MERGED via PR325 at01f844b6 after all current-head CI passed. Registry564
   (previous563) and root Tests actually passed at9bbaba65: canonical Lake,
   Tests9530 jobs, ATLAS and ASTIS checks all PASS. Prior private-olean/logoff
   attempts remain failed diagnostic history; no source/cache/toolchain repair
   was needed for the passing retry. Exact logs are linked in verification JSON.
-- PR325 head9bbaba65 is pushed. Its contributor/site CI passed; formalization
-  run38952824694 is still running at this checkpoint. Not merged/deployed yet.
+- PR325 head9bbaba65 passed contributor/site and formalization38952824694 CI.
+  Actual merge is recorded above; no deployment/purification is inferred.
 - Final website build/check and graph coverage PASS. Desktop lesson has five
   rendered MathJax containers, zero errors and four adjacent initially folded
   Lean steps; step3 expanded and restored. Actual rendered graph inspected:
@@ -31,7 +43,7 @@ historical retrieval checkpoints, not instructions to restart older work.
   independent reviewer published VERIFIED after explicit human authorization:
   same actual Z/K/A, invariant state sections, AE fiber realization, positivity
   and fixed constants. The reviewed code is now on this kernel branch, but
-  NOT integrated into Registry or main; it must wait for the sole lane.
+  Registry565 integration is now prepared in the sole lane, not merged to main.
   Probability fibers do not prove process Markovness or a restart law.
 - Next shortest source target: actual averaged half-turn detailed balance
   (Proposition3.2). Reuse the existing returned-position kernel, bounded flip

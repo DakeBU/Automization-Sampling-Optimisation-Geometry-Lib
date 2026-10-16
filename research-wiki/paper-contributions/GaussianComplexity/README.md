@@ -344,3 +344,31 @@ website build proves the paper.
 The overall Goal completes only after both main lower bounds, required background,
 source fidelity, reader delivery and purification are accepted. A source intake,
 one cycle, a local lemma, a draft PR or a successful deployment cannot finish it.
+
+
+## Radial packet validation record
+
+The immutable local proof commit `9d13dd93c88ac4536a0a6c1be4e9e2a88c3d0fb7` passed the actual
+`python tools/astis.py check` gate with terminal exit0: root library9224 jobs,
+root Tests9528 jobs, ATLAS36469 named declarations in26 books and the
+forbidden-closure scan. The new radial module is additionally covered by its
+focused2828-job test and expanded-type/reference check; no unchanged root
+import is presented as new direct consumer coverage.
+
+Contributor, diff-aware publication, semantic-roundtrip and Frontier checks
+passed. Both private providers are covered by the fresh accepted independent
+whole-module source/exposition review. The frozen-input generated site passed
+build and full validation:1008 modules,5075 declarations and77 reviewed teaching
+declarations. The affected graph coverage check passed with no omitted required
+connections. In the actual browser, the lesson has seven rendered formulas,
+no MathJax errors, no initially open Lean disclosures and no horizontal overflow.
+Its six mathematical proof steps are visible. The focused graph has five nodes,
+four edges and three immediate relations; module ownership is solid, while
+source correspondence and semantic review remain dashed. The source-present
+partial badge is retained. Compiler-reference evidence, rather than these
+structural/curated lines, establishes the actual canonical B.6 call.
+
+This validation note changes no frozen mathematical/publication/Frontier inputs.
+The packet remains PROVED_LOCAL; independent commit-bound admission, public
+upload, repository integration and purification remain separate. Original
+H(lambda) identification, both main lower bounds and the overall Goal remain open.

@@ -201,6 +201,17 @@ publication badge and does not infer a compiled main theorem or an implication
 from conceptual proximity. These observations are separate from the live root
 aggregate gate and any later commit-bound admission.
 
+Final aggregate evidence: the earlier live session83319 terminated successfully.
+A fresh `python tools/astis.py check` then ran against immutable proof commit
+`e4048ad785bee06b43ab6a9836353ac32dc6ca53` and also terminated with exit0:
+root library9224 jobs, root Tests9528 jobs, ATLAS36469 named declarations across
+26 books, and the forbidden-closure scan all passed. The new module's focused
+2689-job tests and expanded-type checks remain its explicit compiler coverage;
+this record does not pretend that an unchanged root import newly calls it.
+The full site check also passed with 77 reviewed teaching declarations. This
+paragraph records observed validation of the proof commit without changing its
+mathematical inputs; independent admission, merge and purification remain open.
+
 ## Admission and next mathematical packet
 
 For the completed local block regularity packet, start with:

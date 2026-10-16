@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "title": "Actual PBPS: L2 continuity at time zero, not yet a semigroup",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A1.SS1",
+          "label": "Appendix A.1, Proposition A.1(ii), final strong-continuity paragraph",
+          "scope": "Only zero-time strong continuity; restart/semigroup, positivity/constants, independent-reference averaging, hypocoercivity, errors, costs and composition remain open."
+        }
+      ],
+      "tests": [
+        "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity Tests.ProximalBPSActualL2StrongContinuity"
+      ],
+      "assumptions": [
+        "E is any finite-dimensional real inner-product Borel space, including dimension zero.",
+        "V is C2, alpha>0, alpha<=beta, and alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v. Also eta>0 and beta*eta<=1.",
+        "The actual process, invariant probability law, L2 operators, integrability and dense-core convergence are constructed/proved internally, not supplied premises.",
+        "L2 is a quotient by almost-everywhere equality. All AE statements are parameterwise. Nonnegative-time neighborhoods include t=0."
+      ],
+      "statement": "Under the displayed hypotheses put V_y(x)=V(x)+||x-y||^2/(2 eta), pi_y=volume.tilted(-V_y), gamma=stdGaussian(E) and nu_y=pi_y times gamma. Use the literal fixed-reference PBPS harmonic-flight/bounce recursion with independent unit exponential clocks, covered-arc interpolation and the initial-phase raw fallback. There exists one global jointly measurable actual process Z, and for every center y and reference r a family of continuous real linear operators A_t on L2(nu_y), with A_0=I and ||A_t||<=1. For every raw G with MemLp G 2 nu_y, its clock sections are integrable for nu_y-almost every initial phase, op_t G(z)=integral G(Z(y,r,z,t,w))dP(w) belongs to L2, and A_t[G]=[op_t G]. All previous fixed-time Gibbs invariance, bounded signed duality, flip and Gaussian-averaging conclusions hold on this SAME process and family. In particular the canonical momentum flip J is an involutive isometry, A_t*=J A_t J; the position pullback B is isometric, M=B* is Gaussian integration for arbitrary MemLp representatives, MB=I, JB=B, MJ=M; and K_t=M A_t B is a self-adjoint contraction with K_0=I and its literal Gaussian-outer/clock-inner representative, with both AE integrability obligations retained. In addition, for every f in real L2(nu_y), A_t f tends to f in L2 as nonnegative t tends to zero. No process or operator is substituted. No semigroup law or positive-time continuity is asserted.",
+      "formula": "\\forall y,r\\ \\forall f\\in L^2(\\nu_y):\\quad\\lim_{t\\downarrow0}\\|A_t f-f\\|_2=0.",
+      "boundary": "Zero-time real-L2 strong continuity only. Restart/semigroup, Markov positivity/constants, separate kernel-witness identification, independent-reference half-turn averaging, final discrete hypocoercivity, implementation errors, actual expected costs, composition and all four complete papers remain open.",
+      "steps": [
+        {
+          "title": "Identify the same actual process",
+          "text": "The two producer theorems have the same literal record recursion. On a covered interval, finite event time forces a live record and both representatives follow the same harmonic flight. Outside coverage both return the initial phase. This identifies Z pointwise, including raw exceptional inputs, before comparing expectations.",
+          "formula": "Z_{\\mathrm{bounded}}(y,r,z,t,w)=Z(y,r,z,t,w).",
+          "detail": "ASTIS completion: equality of two existential witnesses is proved, never assumed.",
+          "lean": "  obtain ⟨Z, hZm, hZa, hZf, hZ0, h106, hBorel, h109⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging.actual_position_l2_averaging\n      hα hαβ hV hH hη hβη\n  obtain ⟨Zb, hZbm, hZba, hZbf, hZbAE, hshort, htest, houter⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity.actual_outer_bounded_l2_continuity\n      hα hαβ hV hH hη hβη\n  have hZeq : Zb = Z := by\n    funext y xRef z t w\n    by_cases hx : ∃ n, w ∈ I y xRef z t n\n    · obtain ⟨n, hn⟩ := hx\n      obtain ⟨a, ha⟩ : ∃ a, record y xRef z (ε w) n = Sum.inl a := by\n        cases hr : record y xRef z (ε w) n with\n        | inl a => exact ⟨a, rfl⟩\n        | inr u =>\n          have hh := hn.1\n          change (record y xRef z (ε w) n).elim\n            (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤) ≤ (t : WithTop ℝ≥0) at hh\n          rw [hr] at hh\n          exact False.elim ((WithTop.not_top_le_coe t) hh)\n      exact (hZba y xRef z w t n a hn.1 hn.2 ha).trans\n        (hZa y xRef z w t n a hn ha).symm\n    · exact (hZbf y xRef z w t hx).trans (hZf y xRef z w t hx).symm\n  rw [hZeq] at houter\n",
+          "lean_source_region": {"path":"AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2StrongContinuity.lean","source_raw_sha256":"94c4dd9950f43132ca90a896d4f77b9bbf9867ed033a7d263dd687ac9021ccf4","exact_code_raw_sha256":"bc4dda2b806e8dc0f10ff823b52a5c51d2861a7c7a35739027be5f5d82a70f17","start_line":224,"end_line":246}
+        },
+        {
+          "title": "Identify the exact probability law",
+          "text": "The old exponent -V-q equals -(V+q), where q=||x-y||^2/(2 eta). Congruence identifies the tilted measures and Gaussian products. The old bounded-core theorem supplies probability internally, hence the finiteness needed below.",
+          "formula": "-V(x)-\\frac{\\|x-y\\|^2}{2\\eta}=-\\left(V(x)+\\frac{\\|x-y\\|^2}{2\\eta}\\right).",
+          "detail": "No new normalizer or finite-mass assumption.",
+          "lean": "  refine ⟨Z, hZm, hZa, hZf, hZ0, h106, hBorel, ?_⟩\n  intro y xRef\n  obtain ⟨L, hL0, hL, hR, hJ⟩ := h109 y xRef\n  refine ⟨L, hL0, ?_, hL, hR, hJ⟩\n  have hnu :\n      ((volume : Measure E).tilted (fun x => -V x - ‖x - y‖ ^ 2 / (2 * η))).prod\n        (stdGaussian E) = nu y := by\n    apply congrArg (fun μ : Measure E => μ.prod (stdGaussian E))\n    apply congrArg ((volume : Measure E).tilted)\n    funext x\n    dsimp only [Vy]\n    ring\n  letI : IsProbabilityMeasure (nu y) := by\n    rw [← hnu]\n    exact (houter.1 y).2\n",
+          "lean_source_region": {"path":"AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2StrongContinuity.lean","source_raw_sha256":"94c4dd9950f43132ca90a896d4f77b9bbf9867ed033a7d263dd687ac9021ccf4","exact_code_raw_sha256":"9f8769ff0f64f2d776da628cb9813f8a96fad74d785081094e5fb6e39d5469b9","start_line":247,"end_line":261}
+        },
+        {
+          "title": "Convert the bounded-core integral limit into norm convergence",
+          "text": "For bounded continuous g choose its L2 class. Operator identification and AE congruence give the displayed identity via the real L2 inner product. The existing dominated-convergence theorem makes the right side tend to zero. Continuity of square root gives norm convergence.",
+          "formula": "\\|A_t[g]-[g]\\|_2^2=\\int(\\operatorname{op}_t g(z)-g(z))^2\\,d\\nu_y(z)\\longrightarrow0.",
+          "detail": "The source uses C_c; ASTIS reuses its explicitly attributed stronger C_b core. The existing 4||g||_infty^2 domination is a dependency. L2 representatives agree only AE, not pointwise.",
+          "lean": "  have hcore (g : (E × E) →ᵇ ℝ) :\n      Tendsto (fun t : ℝ≥0 => L t (BoundedContinuousFunction.toLp 2 (nu y) ℝ g))\n        (𝓝 0) (𝓝 (BoundedContinuousFunction.toLp 2 (nu y) ℝ g)) := by\n    let f : Lp ℝ 2 (nu y) := BoundedContinuousFunction.toLp 2 (nu y) ℝ g\n    have hf : (f : (E × E) → ℝ) =ᵐ[nu y] g :=\n      BoundedContinuousFunction.coeFn_toLp 2 (nu y) ℝ g\n    have hg : MemLp g 2 (nu y) := MemLp.ae_eq hf (Lp.memLp f)\n    have hfg : hg.toLp g = f := by\n      apply Lp.ext\n      exact hg.coeFn_toLp.trans hf.symm\n    have hlimit := (houter.2 y xRef g g.continuous ‖g‖ (norm_nonneg g)\n      (fun z => by simpa only [Real.norm_eq_abs] using g.norm_coe_le_norm z)).2\n    dsimp only at hlimit\n    rw [hnu] at hlimit\n    have hnorm (t : ℝ≥0) :\n        ‖L t f - f‖ ^ 2 =\n          ∫ z, ((∫ w, g (Z y xRef z t w) ∂P) - g z) ^ 2 ∂nu y := by\n      obtain ⟨_, ⟨hop, he⟩, _⟩ := (hL t).2 g hg\n      rw [hfg] at he\n      have ha : (L t f : (E × E) → ℝ) =ᵐ[nu y]\n          (fun z => ∫ w, g (Z y xRef z t w) ∂P) := by\n        rw [he]\n        exact hop.coeFn_toLp\n      rw [← real_inner_self_eq_norm_sq (L t f - f), L2.inner_def]\n      apply integral_congr_ae\n      filter_upwards [Lp.coeFn_sub (L t f) f, ha, hf] with z hz hzA hzf\n      simp only [hz, Pi.sub_apply, hzA, hzf, RCLike.inner_apply, conj_trivial, pow_two]\n    have hnormlimit : Tendsto (fun t : ℝ≥0 => ‖L t f - f‖ ^ 2) (𝓝 0) (𝓝 0) := by\n      simpa only [hnorm] using hlimit\n    have hsqrt := (Real.continuous_sqrt.tendsto 0).comp hnormlimit\n    change Tendsto (fun t : ℝ≥0 => Real.sqrt (‖L t f - f‖ ^ 2))\n      (𝓝 0) (𝓝 (Real.sqrt 0)) at hsqrt\n    have hzero : Tendsto (fun t : ℝ≥0 => ‖L t f - f‖) (𝓝 0) (𝓝 0) := by\n      simpa only [Real.sqrt_sq_eq_abs, abs_norm, Real.sqrt_zero] using hsqrt\n    exact tendsto_iff_norm_sub_tendsto_zero.mpr hzero\n",
+          "lean_source_region": {"path":"AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2StrongContinuity.lean","source_raw_sha256":"94c4dd9950f43132ca90a896d4f77b9bbf9867ed033a7d263dd687ac9021ccf4","exact_code_raw_sha256":"7da4c5296fabe664c45cccccda6a77c89b9a71867db2196bb7041d986658443b","start_line":262,"end_line":296}
+        },
+        {
+          "title": "Extend to every L2 observable",
+          "text": "For arbitrary f choose a nearby bounded-continuous core class g. Uniform contractivity bounds both approximation terms; core convergence handles the remaining term. Equivalently, the uniformly Lipschitz operators have a closed convergence locus containing a dense range. Lean invokes the existing Mathlib equicontinuity and density theorems for this epsilon argument.",
+          "formula": "\\|A_t f-f\\|_2\\le2\\|f-g\\|_2+\\|A_tg-g\\|_2.",
+          "detail": "Finite Borel measures on this metrizable phase space have the required weak regularity. This proves continuity at zero, not restart or semigroup identities.",
+          "lean": "  have hequi : Equicontinuous (fun t : ℝ≥0 => fun f : Lp ℝ 2 (nu y) => L t f) := by\n    apply Metric.equicontinuous_of_continuity_modulus id tendsto_id\n    intro f g t\n    have hlip : LipschitzWith 1 (L t) :=\n      ContinuousLinearMap.lipschitzWith_of_opNorm_le (hL t).1\n    simpa only [id_eq, NNReal.coe_one, one_mul] using hlip.dist_le_mul f g\n  have hclosed : IsClosed {f : Lp ℝ 2 (nu y) |\n      Tendsto (fun t : ℝ≥0 => L t f) (𝓝 0) (𝓝 f)} :=\n    hequi.isClosed_setOfPred_tendsto continuous_id\n  have hdense : DenseRange (BoundedContinuousFunction.toLp 2 (nu y) ℝ :\n      ((E × E) →ᵇ ℝ) →L[ℝ] Lp ℝ 2 (nu y)) :=\n    BoundedContinuousFunction.toLp_denseRange ℝ (nu y) ℝ (by norm_num)\n  have hsubset : Set.range (BoundedContinuousFunction.toLp 2 (nu y) ℝ :\n      ((E × E) →ᵇ ℝ) →L[ℝ] Lp ℝ 2 (nu y)) ⊆\n      {f : Lp ℝ 2 (nu y) | Tendsto (fun t : ℝ≥0 => L t f) (𝓝 0) (𝓝 f)} := by\n    rintro _ ⟨g, rfl⟩\n    exact hcore g\n  intro f\n  exact closure_minimal hsubset hclosed (hdense f)\n\n",
+          "lean_source_region": {"path":"AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2StrongContinuity.lean","source_raw_sha256":"94c4dd9950f43132ca90a896d4f77b9bbf9867ed033a7d263dd687ac9021ccf4","exact_code_raw_sha256":"526bc692495402d698aadb65f7bfa1952e3e6c8318a92590cf52d860f3799a27","start_line":297,"end_line":316}
+        }
+      ],
+      "lean_proof": "Same process and law -> representative-safe bounded-core limit -> uniform contraction and density.",
+      "helpers": ["AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity.actual_l2_strong_continuity_statement"],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging.actual_position_l2_averaging",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity.actual_outer_bounded_l2_continuity"
+      ],
+      "mathlib_dependencies": [
+        "BoundedContinuousFunction.toLp_denseRange",
+        "BoundedContinuousFunction.coeFn_toLp",
+        "Equicontinuous.isClosed_setOfPred_tendsto",
+        "Metric.equicontinuous_of_continuity_modulus",
+        "ContinuousLinearMap.lipschitzWith_of_opNorm_le",
+        "Lp.coeFn_sub",
+        "Lp.ext",
+        "MemLp.ae_eq",
+        "L2.inner_def",
+        "real_inner_self_eq_norm_sq",
+        "integral_congr_ae",
+        "Real.continuous_sqrt",
+        "closure_minimal"
+      ],
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity.actual_l2_strong_continuity",
+      "lean_statement": "Under the displayed hypotheses put V_y(x)=V(x)+||x-y||^2/(2 eta), pi_y=volume.tilted(-V_y), gamma=stdGaussian(E) and nu_y=pi_y times gamma. Use the literal fixed-reference PBPS harmonic-flight/bounce recursion with independent unit exponential clocks, covered-arc interpolation and the initial-phase raw fallback. There exists one global jointly measurable actual process Z, and for every center y and reference r a family of continuous real linear operators A_t on L2(nu_y), with A_0=I and ||A_t||<=1. For every raw G with MemLp G 2 nu_y, its clock sections are integrable for nu_y-almost every initial phase, op_t G(z)=integral G(Z(y,r,z,t,w))dP(w) belongs to L2, and A_t[G]=[op_t G]. All previous fixed-time Gibbs invariance, bounded signed duality, flip and Gaussian-averaging conclusions hold on this SAME process and family. In particular the canonical momentum flip J is an involutive isometry, A_t*=J A_t J; the position pullback B is isometric, M=B* is Gaussian integration for arbitrary MemLp representatives, MB=I, JB=B, MJ=M; and K_t=M A_t B is a self-adjoint contraction with K_0=I and its literal Gaussian-outer/clock-inner representative, with both AE integrability obligations retained. In addition, for every f in real L2(nu_y), A_t f tends to f in L2 as nonnegative t tends to zero. No process or operator is substituted. No semigroup law or positive-time continuity is asserted."
+    }
+  ]
+}

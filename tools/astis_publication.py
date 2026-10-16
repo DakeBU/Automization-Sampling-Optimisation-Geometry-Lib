@@ -280,7 +280,10 @@ aggregators and test examples do not count as new mathematical declarations.
         implementations = []
         # Inspect complete tokens anywhere, not only at the beginning of a line:
         # multiline attributes and Unicode suffixes must not hide declarations.
-        for match in re.finditer(r'\b(theorem|lemma|def|abbrev|structure|class|inductive|opaque|axiom|instance)\b\s*([^\s(\[{:=]*)', clean):
+        # A keyword after a dot is a projection/qualified identifier, e.g.
+        # `(hInv y r t).def`, not a declaration command. Do not weaken the
+        # fail-closed check for actual command tokens elsewhere in the file.
+        for match in re.finditer(r'(?<!\.)\b(theorem|lemma|def|abbrev|structure|class|inductive|opaque|axiom|instance)\b\s*([^\s(\[{:=]*)', clean):
             line = clean.count('\n', 0, match.start()) + 1
             kind, name = match.groups()
             prefix = clean[clean.rfind('\n', 0, match.start()) + 1:match.start()]

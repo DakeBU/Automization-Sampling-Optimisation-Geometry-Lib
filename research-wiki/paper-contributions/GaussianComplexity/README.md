@@ -152,6 +152,55 @@ posteriors and Krylov representation remain distinct open obligations. The
 background includes the singleton group at dimension zero; the paper's
 two-component assertions are not extended to that endpoint.
 
+## Full Lemma B.6 cancellation packet
+
+`DeterminantCancellation.lean` now compiles the full equation (15) for every
+Borel h with E|h(O_11)| finite, retaining n>=3 and kappa>=4. Its other public
+theorem proves both integrability and zero expectation of a weighted principal
+minor containing a non-first coordinate. No weighted-integrability,
+cancellation or determinant-expansion conclusion is supplied as a premise.
+The unchanged concrete full Haar law and literal precision are reused.
+
+The checked proof flips one selected row, preserves O_11, and changes the
+principal determinant's sign. Finite row multilinearity expands det(aO-bI);
+only the empty set and first singleton survive. The final theorem genuinely
+calls the earlier signed pointwise normalizer and, through its private finite
+average helper, the new public cancellation theorem. These are actual compiled
+uses; the sign main theorem remains a prospective consumer.
+
+`Tests/GaussianComplexityDeterminantCancellation.lean` passes 2689 build jobs.
+It checks the nonzero exact averages -1/8 in dimension3 and +1/16 in dimension4
+at kappa4, plus the globally unbounded h(t)=t. Both public results use only
+`propext`, `Classical.choice` and `Quot.sound`. Expanded anonymous target types
+also elaborate against the actual compiled declarations and their definitions.
+
+The source-only inventory retains 38 nodes, 62 edges and six explicit
+exclusions. Do not read these counts as 38 separately compiled results. The
+source sharp bound |det O_(S,S)|<=1 remains source-only: compactness and
+continuity give a sufficient finite bound C_(n,S) for the implemented L1 route.
+The earlier normalizer similarly used a kernel argument instead of separately
+compiling the source quantitative path norm bound2. The English formula lesson
+states these proof-route differences without altering the final identity.
+Statement/topology reviews, anonymous decoding and distinct current source
+reviews are separate evidence; publication admission is checked mechanically.
+
+Older packet boundary paragraphs describe what those individual packets did
+not establish. This packet closes local B.6 cancellation, while Gaussian
+laws/densities, spherical Poisson identities, Fubini, radial/Hellinger
+separation, conditional sign posteriors/transcripts, the eigenbasis argument
+and both main lower bounds remain separate obligations. No full-paper,
+integration or purification completion follows.
+
+Local reader acceptance for this packet: the generated site builds with
+1006 modules and 5072 declarations, and both affected graph coverage checks
+pass. The actual browser lesson has ten rendered formulas, no MathJax errors,
+no initially open Lean disclosures and no horizontal overflow. The focused
+equation-(15) graph shows five nodes, four edges and three immediate relations:
+module ownership plus dashed source/fidelity overlays. It retains the partial
+publication badge and does not infer a compiled main theorem or an implication
+from conceptual proximity. These observations are separate from the live root
+aggregate gate and any later commit-bound admission.
+
 ## Admission and next mathematical packet
 
 For the completed local block regularity packet, start with:
@@ -165,21 +214,22 @@ independent commit-bound admission. The earlier aggregate gate reached an actual
 terminal failure, its cache path issue was repaired without changing dependency
 sources, and a final-candidate gate was started. Keep polling that live process;
 an observation timeout is not a failure or permission to restart it.
-Then select the next dependency-ready source region in the sign route: the
-actual hard prior/Gaussian law, or the remaining reflection sign identity and
-principal-minor cancellation in Lemma B.6. Audit the exact definitions and fix
-their own Statement Seals before proof search. Do not manufacture a wrapper
-around an assumed determinant cancellation, posterior or testing estimate.
+The next dependency-ready source region is the actual hard prior/Gaussian law
+and the Appendix B.2.2 spherical Poisson/density calculation. Fix the next exact
+source boundary and Statement Seal before proof search, including any genuine
+existence/normalization and Fubini obligations. Do not manufacture a wrapper
+around an assumed density, posterior or testing estimate, or repeat the now
+compiled B.6 cancellation as another theorem-shaped milestone.
 Both main lower-bound proof regions remain individually visible and open.
 
 Pinned Mathlib retrieval for the remaining minor expansion found
 `Matrix.coeff_det_one_add_X_smul_eq_sum_minors` and
 `Matrix.det_piecewise_one_eq_submatrix_det` in
 `Mathlib/LinearAlgebra/Matrix/Charpoly/Coeff.lean`. These are source-present API
-candidates, not current ASTIS theorem calls or evidence that the Haar expectation
-cancellation is proved. Inspect the exact polynomial/index conventions before
-a source-faithful adapter. Consume the actual shared Haar law and its fixed-left
-invariance rather than accepting them as new binders on Lemma B.6.
+candidates. The current proof actually uses row multilinearity and
+`Matrix.det_piecewise_one_eq_submatrix_det`; the polynomial coefficient theorem
+is still retrieval-only. The cancellation consumes the actual shared Haar law
+and its fixed-left invariance rather than accepting them as new binders.
 
 Keep the two main consumers separate:
 

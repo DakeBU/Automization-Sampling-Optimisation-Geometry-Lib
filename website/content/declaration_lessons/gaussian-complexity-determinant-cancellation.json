@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantCancellation.principalMinor_weighted_integral_eq_zero",
+      "kind": "theorem",
+      "title": "A non-first principal minor has finite weighted expectation zero",
+      "statement": "Let n>=3 and let O be drawn from the actual normalized Haar probability on the full real orthogonal group O(n). Put U=O_11. Let h:R->R be Borel with E|h(U)| finite. If a principal index set S contains an index i other than the first coordinate, then det(O_(S,S))h(U) is integrable and its expectation is zero. The empty principal determinant equals one.",
+      "formula": "i\\in S,\\ i\\ne1\\quad\\Longrightarrow\\quad\\det(O_{S,S})h(U)\\in L^1(\\mu_n),\\qquad\\mathbb E_{\\mu_n}[\\det(O_{S,S})h(U)]=0",
+      "assumptions": [
+        "n>=3; S is a finite principal index set and i belongs to S but is not the first coordinate.",
+        "The probability law is the existing concrete full orthogonal Haar law, with inherited finite real matrix topology and its Borel sigma-algebra. No restriction to SO(n) or determinant-conditioned law.",
+        "h:R->R is Borel measurable, and its actual composition with U=O_11 is integrable under that Haar probability. h itself need not be bounded."
+      ],
+      "steps": [
+        {
+          "title": "Establish finite weighted expectations first",
+          "text": "A principal determinant is continuous as a function of O. The actual full orthogonal group is compact, as proved in the shared Haar module. Hence each such determinant has some finite uniform norm bound C. Multiplying the given L1 function h(U) by this bounded measurable multiplier is integrable. The source uses the sharper bound |det O_(S,S)|<=1; the Lean proof needs only finite C and does not claim the sharp estimate itself.",
+          "formula": "|\\det O_{S,S}|\\le C_{n,S}<\\infty\\quad\\Longrightarrow\\quad\\mathbb E|\\det(O_{S,S})h(U)|\\le C_{n,S}\\mathbb E|h(U)|<\\infty",
+          "lean": "integrable_minor_weight uses Continuous.matrix_submatrix/matrix_det, IsCompact.exists_bound_of_continuousOn and Integrable.bdd_mul. The compactness instance is the actual one constructed in the shared orthogonal Haar module. No estimate is a new public hypothesis."
+        },
+        {
+          "title": "Reflect exactly one selected row",
+          "text": "Let D_i be diagonal with -1 in coordinate i and +1 elsewhere. Its square is identity, so it is genuinely orthogonal. Left multiplication flips precisely row i. On the S principal submatrix, the diagonal row multiplier has determinant -1. Since i differs from the first coordinate, U is unchanged.",
+          "formula": "(D_iO)_{11}=U,\\qquad\\det((D_iO)_{S,S})=-\\det(O_{S,S})",
+          "lean": "Private rowReflection is the literal diagonal matrix, with orthogonality proved in its constructor. reflection_minor_det factors the restricted diagonal and uses det_mul, det_diagonal and the exact single negative factor."
+        },
+        {
+          "title": "Use the existing law and cancel",
+          "text": "The actual shared Haar law has the same pushforward under O->D_iO. The weighted integrand changes sign, so its integral equals its own negative. Together with the already proved L1 statement, this is a finite expectation equal to zero.",
+          "formula": "I=\\mathbb E[\\det((D_iO)_{S,S})h((D_iO)_{11})]=-I\\quad\\Longrightarrow\\quad I=0",
+          "lean": "The proof genuinely calls orthogonalHaar_map_mul_left, then MeasurableEmbedding.integral_map and integral_neg. The public conclusion includes integrability, so Lean's default value for a nonintegrable Bochner integral cannot masquerade as this finite expectation."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_map_mul_left"
+      ],
+      "mathlib_dependencies": [
+        "Continuous.matrix_submatrix",
+        "Continuous.matrix_det",
+        "IsCompact.exists_bound_of_continuousOn",
+        "MeasureTheory.Integrable.bdd_mul",
+        "Matrix.det_mul",
+        "Matrix.det_diagonal",
+        "MeasurableEmbedding.integral_map",
+        "MeasureTheory.integral_neg"
+      ],
+      "lean_statement": "Source coordinate1 becomes Fin n coordinate0 with its membership proof derived from n>=3. The actual Haar and literal precision definitions are reused unchanged.",
+      "lean_proof": "The exact module derives integrability, reflection algebra, law preservation, finite expansion and survivor evaluation internally. The Borel premise is retained from the source even where L1 already supplies the measurability needed by a bounded-multiplier step.",
+      "boundary": "Only the actual LemmaB6 signed normalization integral identity and finite weighted principal-minor cancellation. Gaussian laws/densities, Fubini, spherical Poisson identities, radial/Hellinger separation, determinant-conditioned posteriors and transcript equality, eigenbasis/Krylov reductions and both main lower bounds remain separate open obligations. The source sharp principal-minor bound1 and path norm lower bound2 are not separately claimed as compiled estimates: sufficient alternate finiteness/kernel routes are explicitly disclosed.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS1",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "AppendixB2.1 LemmaB6 Eq15; row-reflection displays A2.Ex53-54 and final principal-minor expansion/evaluation; standing assumptions AppendixB2",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS mathematical restatement with source coordinate1 represented by Fin n coordinate0.",
+          "label": "LemmaB6 and its complete author proof",
+          "scope": "The integral identity and scoped finite minor cancellation only."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityDeterminantCancellation"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantCancellation.signed_sqrt_det_integral",
+      "kind": "theorem",
+      "title": "Average the actual signed Gaussian normalization factor",
+      "statement": "Let n>=3, kappa>=4, and let O have the actual full orthogonal Haar probability law. Write U=O_11 and A_O=((kappa+1)/2)I-((kappa-1)/4)(O+O^T). For every Borel h with E|h(U)| finite, E[det(O)sqrt(det A_O)h(U)] equals ((-1)^(n-1)(sqrt(kappa)-1)^(n-1)/2^n) E[((sqrt(kappa)+1)U-(sqrt(kappa)-1))h(U)].",
+      "formula": "\\mathbb E\\!\\left[\\det(O)\\sqrt{\\det A_O}\\,h(U)\\right]=\\frac{(-1)^{n-1}(\\sqrt\\kappa-1)^{n-1}}{2^n}\\,\\mathbb E\\!\\left[\\bigl((\\sqrt\\kappa+1)U-(\\sqrt\\kappa-1)\\bigr)h(U)\\right]",
+      "assumptions": [
+        "n>=3 and real kappa>=4, retaining AppendixB2 standing assumptions.",
+        "The same actual full orthogonal Haar probability and the same literal equation4 precision A_O are used. Square roots are nonnegative real square roots.",
+        "h:R->R is Borel measurable with actual E|h(O_11)| finite. Weighted-minor integrability, cancellation, determinant expansion and all linearity conditions are derived internally."
+      ],
+      "steps": [
+        {
+          "title": "Reuse the signed pointwise normalizer",
+          "text": "Put a=sqrt(kappa)+1 and b=sqrt(kappa)-1. The already compiled equation18 gives det(O)sqrt(det A_O)=2^(-n)det(aO-bI). Its positive square-root branch was proved internally in the earlier packet.",
+          "formula": "\\det(O)\\sqrt{\\det A_O}=2^{-n}\\det(aO-bI)",
+          "lean": "The public proof calls the existing singleBlockPrecision_signed_sqrt_det on the identical actual precision. No Gaussian density normalization is assumed. The earlier Lean proof uses a squared-norm kernel contradiction and continuity; the source quantitative path norm lower bound remains a separately visible source estimate."
+        },
+        {
+          "title": "Expand the determinant by multilinearity",
+          "text": "Choose, independently in each row of aO+bI, either the O row or the identity row. Group choices by S. Extract row scalars and use the canonical principal-submatrix determinant identity. This yields an exact finite expansion, with no stochastic approximation.",
+          "formula": "\\det(aO+bI)=\\sum_{S\\subseteq[n]}a^{|S|}b^{n-|S|}\\det(O_{S,S})",
+          "lean": "det_affine_principalMinor uses detRowAlternating.map_add_univ/map_smul_univ and Matrix.det_piecewise_one_eq_submatrix_det. The previously retrieved polynomial coefficient theorem is not called; the actual dependency is row multilinearity plus the canonical submatrix identity."
+        },
+        {
+          "title": "Pass only finite sums through the integral",
+          "text": "For each S, integrable_minor_weight supplies the real L1 obligation. Thus finite-sum linearity and constant extraction are legal for the actual law. Every term whose S contains a non-first coordinate vanishes by the preceding public cancellation theorem.",
+          "formula": "\\mathbb E[\\det(aO-bI)h(U)]=\\sum_S a^{|S|}(-b)^{n-|S|}\\mathbb E[\\det(O_{S,S})h(U)]",
+          "lean": "The private affine_det_weighted_average genuinely consumes principalMinor_weighted_integral_eq_zero, checks each integral_finsetSum premise and reduces the finite sum using Finset.sum_subset."
+        },
+        {
+          "title": "Evaluate the two survivors",
+          "text": "If S has no non-first index, then S is empty or consists of the first coordinate. Their determinants are 1 and U. Hence the sum is (-b)^n E[h(U)]+a(-b)^(n-1)E[Uh(U)]. The bound |U|<=1 proves U h(U) is L1 from the source hypothesis.",
+          "formula": "\\mathbb E[\\det(aO-bI)h(U)]=(-b)^n\\mathbb E[h(U)]+a(-b)^{n-1}\\mathbb E[Uh(U)]",
+          "lean": "Empty and singleton determinants use det_eq_one_of_card_eq_zero and det_eq_elem_of_card_eq_one. entry_norm_bound_of_unitary and Integrable.bdd_mul supply the actual weighted-coordinate integrability."
+        },
+        {
+          "title": "Keep the parity and normalization exact",
+          "text": "Use n=(n-1)+1 and (-b)^(n-1)=(-1)^(n-1)b^(n-1), then combine the two finite expectations by integral linearity. The exact coefficient is the one in equation15.",
+          "formula": "2^{-n}(-b)^{n-1}\\bigl(a\\mathbb E[Uh(U)]-b\\mathbb E[h(U)]\\bigr)=\\frac{(-1)^{n-1}b^{n-1}}{2^n}\\mathbb E[(aU-b)h(U)]",
+          "lean": "The final proof uses integral_sub with actual L1 arguments and elementary ring identities. Concrete tests check the nonzero averages -1/8 for n3 and +1/16 for n4 at kappa4, so discarding the empty term or losing parity is detected."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantCancellation.principalMinor_weighted_integral_eq_zero",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_signed_sqrt_det",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.detRowAlternating",
+        "AlternatingMap.map_add_univ",
+        "AlternatingMap.map_smul_univ",
+        "Matrix.det_piecewise_one_eq_submatrix_det",
+        "MeasureTheory.integral_finsetSum",
+        "Matrix.det_eq_one_of_card_eq_zero",
+        "Matrix.det_eq_elem_of_card_eq_one",
+        "MeasureTheory.integral_sub",
+        "entry_norm_bound_of_unitary"
+      ],
+      "lean_statement": "Source coordinate1 becomes Fin n coordinate0 with its membership proof derived from n>=3. The actual Haar and literal precision definitions are reused unchanged.",
+      "lean_proof": "The exact module derives integrability, reflection algebra, law preservation, finite expansion and survivor evaluation internally. The Borel premise is retained from the source even where L1 already supplies the measurability needed by a bounded-multiplier step.",
+      "boundary": "Only the actual LemmaB6 signed normalization integral identity and finite weighted principal-minor cancellation. Gaussian laws/densities, Fubini, spherical Poisson identities, radial/Hellinger separation, determinant-conditioned posteriors and transcript equality, eigenbasis/Krylov reductions and both main lower bounds remain separate open obligations. The source sharp principal-minor bound1 and path norm lower bound2 are not separately claimed as compiled estimates: sufficient alternate finiteness/kernel routes are explicitly disclosed.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS1",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "AppendixB2.1 LemmaB6 Eq15; row-reflection displays A2.Ex53-54 and final principal-minor expansion/evaluation; standing assumptions AppendixB2",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS mathematical restatement with source coordinate1 represented by Fin n coordinate0.",
+          "label": "LemmaB6 and its complete author proof",
+          "scope": "The integral identity and scoped finite minor cancellation only."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityDeterminantCancellation"
+      ]
+    }
+  ]
+}

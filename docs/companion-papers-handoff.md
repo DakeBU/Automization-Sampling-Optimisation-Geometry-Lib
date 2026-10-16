@@ -5,11 +5,19 @@
 Current integration owner: `root_20261016`, sole STABILIZING lease. Independent
 source/compiler reviewer published VERIFIED with explicit human authorization;
 the exact source at52d523ac is unchanged. Registry/root imports are prepared
-(target565; merged continuity baseline564), not yet a final root-gate pass.
+(target565; merged continuity baseline564). At exact candidate5c3fcdd1, the
+canonical Lean/Tests9532-job gate and final source-bound site build/check passed.
+Draft PR327 is pushed; contributor/site CI passed, formalization CI remains
+in progress at this checkpoint. No merge or purification is inferred.
 Continuity PR325 merged at01f844b6 after all three current-head CI lanes passed.
 The next exact half-turn detailed-balance statement is sealed and source-first
-prereviewed; its cell is claimed/EXPLORING, NOT proved or counted. Proof work
-does not acquire a second integration lease. Complete papers remain0/4.
+prereviewed. Its production proof and focused test now compile (3251 jobs), and
+independent mathematical/direct-compiler review passed. Its cell remains
+claimed/EXPLORING, NOT VERIFIED or counted: the fresh decoder completed, but
+saving its raw report was denied pending separate human authorization; canonical
+source review is still pending. The formalizer must not write that report on
+the decoder's behalf. Proof work does not acquire a second integration lease.
+Complete papers remain0/4.
 Start from `research-wiki/paper-contributions/PBPS/kernel-l2-realization-verification.json`.
 
 ## Actual PBPS zero-time L2 strong continuity (2026-10-17)

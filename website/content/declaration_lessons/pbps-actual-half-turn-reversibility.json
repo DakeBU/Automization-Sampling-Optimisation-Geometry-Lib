@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "title": "Actual PBPS: detailed balance after independent reference averaging",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1",
+          "label": "Proposition3.2, A.1 bounded duality819-820 and A.2 proof832-853",
+          "scope": "Conditional detailed balance for the same actual returned-position kernel only. No temporal restart/semigroup, augmented all-L2 operator, hypocoercive rate, capped implementation, error/cost, global warm start, composition or complete paper."
+        }
+      ],
+      "tests": [
+        "LEAN_NUM_THREADS=1 lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHalfTurnReversibility Tests.ProximalBPSActualHalfTurnReversibility"
+      ],
+      "assumptions": [
+        "Exactly the six analytic assumptions in the statement; finite real Hilbert Borel E includes dimension zero.",
+        "Literal flow: c=y-eta grad V(r); x_t=c+cos(t)(x-c)+sqrt(eta)sin(t)p, p_t=-sin(t)(x-c)/sqrt(eta)+cos(t)p. Bounce reflects in grad V(x)-grad V(r), with identity at zero normal; rate sqrt(eta)max(0,<p,grad V(x)-grad V(r)>).",
+        "Independent unit exponential thresholds, integrated-hazard hitting times and the existing raw initial-state fallback define Z. The full literal recursion and retained outputs are available in the folded proposition.",
+        "Normalization, probability, joint measurability, integrability and detailed balance are derived, not extra source binders. AE initialization/coverage is parameterwise; no common null set uniform in every parameter is asserted."
+      ],
+      "statement": "Let E be a finite-dimensional real inner-product Borel space. Assume V is C2, 0<alpha<=beta, alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v, eta>0 and beta eta<=1. For each y let q_y be the normalized law proportional to exp(-V(x)-||x-y||^2/(2 eta)) dx. Draw the reference r from q_y, momentum p from the standard Gaussian and unit exponential clocks independently. Run the actual fixed-reference flow to time pi and return its position. The SAME global jointly measurable probability kernel H(y,x) given by this literal pushforward satisfies detailed balance with q_y for EVERY y. The existing raw covered-arc and fallback equations, parameterwise clock-AE interval coverage, local zero-time law and half-turn initialization outputs are retained. None of these construction, normalization, probability or integrability facts is a new hypothesis.",
+      "formula": "q_y(dx)=\\frac{e^{-V(x)-\\|x-y\\|^2/(2\\eta)}}{Z_y}\\,dx,\\qquad\\forall y\\ \\forall A,B\\text{ measurable}:\\ \\int_A^-H(y,x)(B)\\,q_y(dx)=\\int_B^-H(y,x)(A)\\,q_y(dx).",
+      "boundary": "Conditional detailed balance for the same actual returned-position kernel only. No temporal restart/semigroup, augmented all-L2 operator, hypocoercive rate, capped implementation, error/cost, global warm start, composition or complete paper.",
+      "steps": [
+        {
+          "title": "Identify the actual path, including exceptional raw clocks",
+          "text": "The kernel construction and the signed-duality construction prescribe the same recursion. On a covered interval their live record gives the same harmonic arc; a dead record cannot bracket a finite time. When no interval covers the time, both use the existing initial-state fallback. The two global path witnesses therefore agree pointwise, before taking any expectation.",
+          "formula": "Z_{\\rm law}(y,r,z,t,w)=Z_{\\rm dual}(y,r,z,t,w).",
+          "detail": "This is equality for all raw inputs, not an informal identification of laws or a common null event over all parameters.",
+          "lean": "  obtain ⟨Z, hZM, hZa, hZf, hgood, R, hR, hRq, H, hHK, hHlaw, hH0, hHgood⟩ :=\n    IdealHalfTurnKernel.ideal_half_turn_returned_position_kernel hα hαβ hV hH hη hβη\n  refine ⟨Z, hZM, hZa, hZf, hgood, R, hR, hRq, H, hHK, ?_, hHlaw, hH0, hHgood⟩\n  obtain ⟨Zb, _hZbm, hZba, hZbf, _hZb0, hD⟩ :=\n    ActualBoundedGibbsDuality.actual_bounded_gibbs_duality hα hαβ hV hH hη hβη\n  have hZd : Zb = Z := by\n    funext y r z t w\n    by_cases hw : ∃ n : ℕ, eventTime y r z (ε w) n ≤ (t : WithTop ℝ≥0) ∧\n        (t : WithTop ℝ≥0) < eventTime y r z (ε w) (n + 1)\n    · obtain ⟨n, hn, hn'⟩ := hw\n      cases hr : record y r z (ε w) n with\n      | inl a =>\n          exact (hZba y r z w t n a (by exact ⟨hn, hn'⟩) hr).trans\n            (hZa y r z w t n a hn hn' hr).symm\n      | inr a =>\n          have hnot : ¬ (⊤ : WithTop ℝ≥0) ≤ (t : WithTop ℝ≥0) :=\n            WithTop.not_top_le_coe t\n          apply False.elim\n          apply hnot\n          simpa only [eventTime, hr, Sum.elim_inr] using hn\n    · exact (hZbf y r z w t hw).trans (hZf y r z w t hw).symm\n  subst Zb\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHalfTurnReversibility.lean",
+            "source_raw_sha256": "81ff89368effa372f07f1f65ec05251bfddba32f656edcdc82854ab4196bf8fd",
+            "exact_code_raw_sha256": "b4351599c93907c6535357418c56e6e5fcd5b2e72617439ae497443068a16c8c",
+            "start_line": 274,
+            "end_line": 295
+          }
+        },
+        {
+          "title": "Keep the literal independent-reference kernel",
+          "text": "The existing reference kernel identifies q_y as a probability law for every y. Gaussian momentum and the clock product are also probability laws. Joint measurability of Z makes the returned-position map measurable in input, reference, momentum and clocks. Restrict the joint kernel to a fixed y; its fiber law is exactly the displayed pushforward, not an arbitrary reversible replacement.",
+          "formula": "\\kappa_y(x)=\\bigl[(r,p,w)\\mapsto\\operatorname{fst}Z(y,r,(x,p),\\pi,w)\\bigr]_{\\#}(q_y\\otimes\\gamma\\otimes P).",
+          "detail": "The reference distribution q_y does not depend on the current input x. Global warm-start initialization is not supplied or proved here.",
+          "lean": "  letI : IsMarkovKernel R := hR\n  letI : IsMarkovKernel H := hHK\n  letI : IsProbabilityMeasure P :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws.1\n  letI : IsProbabilityMeasure γ := inferInstanceAs (IsProbabilityMeasure (stdGaussian E))\n  intro y\n  letI : IsProbabilityMeasure (q y) := by\n    have he : R y = q y := hRq y\n    rw [← he]\n    infer_instance\n  let κ : Kernel E E := H.comap (fun x : E => (y, x)) (by fun_prop)\n  let F : E → E → E → (ℕ → ℝ) → E := fun r x p w => (Z y r (x, p) tπ w).1\n  have hFM : Measurable (fun a : ((E × E) × E) × (ℕ → ℝ) =>\n      F a.1.1.2 a.1.1.1 a.1.2 a.2) :=\n    (hZM.comp (((measurable_const.prodMk measurable_fst.fst.snd).prodMk\n      (measurable_fst.fst.fst.prodMk measurable_fst.snd)).prodMk\n      (measurable_const.prodMk measurable_snd))).fst\n  have hKl (x : E) : κ x = Measure.map\n      (fun a : (E × E) × (ℕ → ℝ) => F a.1.1 x a.1.2 a.2)\n      (((q y).prod γ).prod P) := hHlaw y x\n  apply reversible_of_reference_average (q y) γ P F hFM κ hKl\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHalfTurnReversibility.lean",
+            "source_raw_sha256": "81ff89368effa372f07f1f65ec05251bfddba32f656edcdc82854ab4196bf8fd",
+            "exact_code_raw_sha256": "b6f4b2970b33b3bed492545d36fd4c905ffd10980d1c1094d1643b0ee30291d8",
+            "start_line": 296,
+            "end_line": 316
+          }
+        },
+        {
+          "title": "Remove both momentum flips from bounded position tests",
+          "text": "Lift measurable functions f,g bounded in absolute value by1 to phase space using the position projection. The momentum flip leaves both lifts unchanged. Actual bounded signed phase duality therefore gives a symmetric pairing for each fixed reference r. The two written forms of the Gibbs potential are identified by real algebra.",
+          "formula": "\\int f(x)\\,\\mathbb E_w g(\\operatorname{fst}Z_{y,r,(x,p),\\pi}(w))\\,q_y(dx)\\gamma(dp)=\\int g(x)\\,\\mathbb E_w f(\\operatorname{fst}Z_{y,r,(x,p),\\pi}(w))\\,q_y(dx)\\gamma(dp).",
+          "detail": "This is the bounded-test adapter to the source operator proof, not a claim that a temporal semigroup has been constructed.",
+          "lean": "  intro r f g hf hg hfb hgb\n  have hbd := (hD y r tπ).2 (fun z : E × E => f z.1)\n    (fun z : E × E => g z.1) 1 1 (hf.comp measurable_fst)\n    (hg.comp measurable_fst) zero_le_one zero_le_one\n    (fun z => hfb z.1) (fun z => hgb z.1)\n  have hflux := hbd.2.2\n  have hqeq : (volume : Measure E).tilted\n      (fun x => -(V x + ‖x - y‖ ^ 2 / (2 * η))) = q y := by\n    apply congrArg (fun U : E → ℝ => (volume : Measure E).tilted U)\n    funext x\n    ring\n  change (∫ z : E × E, f z.1 * (∫ w, g (Z y r z tπ w).1 ∂P)\n      ∂((volume : Measure E).tilted\n        (fun x => -(V x + ‖x - y‖ ^ 2 / (2 * η)))).prod γ) =\n    (∫ z : E × E, g z.1 * (∫ w, f (Z y r z tπ w).1 ∂P)\n      ∂((volume : Measure E).tilted\n        (fun x => -(V x + ‖x - y‖ ^ 2 / (2 * η)))).prod γ) at hflux\n  rw [hqeq] at hflux\n  exact hflux\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHalfTurnReversibility.lean",
+            "source_raw_sha256": "81ff89368effa372f07f1f65ec05251bfddba32f656edcdc82854ab4196bf8fd",
+            "exact_code_raw_sha256": "76eb9efc02aa0517aa93fdac75219930797eeb849a4de9a8e277f415eaeeac40",
+            "start_line": 317,
+            "end_line": 335
+          }
+        },
+        {
+          "title": "Average the reference only after proving signed Fubini conditions",
+          "text": "Joint measurability gives a measurable clock expectation. Probability and |g|<=1 imply |E_w g|<=1; hence |f E_w g|<=1. These products are integrable under q_y times q_y times gamma, and the raw clock integrands are integrable under the corresponding product with P. Signed Fubini can now exchange input x and independent reference r. Integrating the fixed-reference symmetry yields symmetry of the actual kernel pairing.",
+          "formula": "\\langle f,\\kappa_y g\\rangle_{q_y}=\\int q_y(dr)\\int q_y(dx)\\gamma(dp)\\,f(x)\\mathbb E_w g(\\operatorname{fst}Z_{y,r,(x,p),\\pi}(w)).",
+          "detail": "No unbounded reference-energy moment, integration over y, or transfer of an unbounded cost by TV proximity is used.",
+          "lean": "        ∂q.prod γ) ∂q := by\n  let op : X → X → Y → ℝ := fun x r p => ∫ w, g (F r x p w) ∂P\n  have hopm : Measurable (fun a : (X × X) × Y => op a.1.1 a.1.2 a.2) :=\n    (hg.comp hF).stronglyMeasurable.integral_prod_right'.measurable\n  have hopb (x r : X) (p : Y) : |op x r p| ≤ 1 := by\n    have hh := norm_integral_le_of_norm_le_const (μ := P)\n      (f := fun w => g (F r x p w))\n      (Eventually.of_forall fun w => by\n        simpa only [Real.norm_eq_abs] using hgb (F r x p w))\n    simpa [op] using hh\n  have hdb (x r : X) (p : Y) : |f x * op x r p| ≤ 1 := by\n    calc\n      |f x * op x r p| = |f x| * |op x r p| := abs_mul _ _\n      _ ≤ 1 * 1 := mul_le_mul (hfb x) (hopb x r p) (abs_nonneg _) zero_le_one\n      _ = 1 := mul_one 1\n  have hdm : Measurable (fun a : (X × X) × Y =>\n      f a.1.1 * op a.1.1 a.1.2 a.2) := (hf.comp measurable_fst.fst).mul hopm\n  have hdi : Integrable (fun a : (X × X) × Y =>\n      f a.1.1 * op a.1.1 a.1.2 a.2) ((q.prod q).prod γ) :=\n    Integrable.of_bound hdm.aestronglyMeasurable 1\n      (Eventually.of_forall fun a => by\n        simpa only [Real.norm_eq_abs] using hdb a.1.1 a.1.2 a.2)\n  have hinner (x : X) : (∫ z, g z ∂κ x) = ∫ r, ∫ p, op x r p ∂γ ∂q := by\n    have hfx : Measurable (fun a : (X × Y) × W => F a.1.1 x a.1.2 a.2) :=\n      hF.comp (((measurable_const.prodMk measurable_fst.fst).prodMk\n        measurable_fst.snd).prodMk measurable_snd)\n    have hi : Integrable (fun a : (X × Y) × W => g (F a.1.1 x a.1.2 a.2))\n        ((q.prod γ).prod P) :=\n      Integrable.of_bound (hg.comp hfx).aestronglyMeasurable 1\n        (Eventually.of_forall fun a => by\n          simpa only [Real.norm_eq_abs] using hgb (F a.1.1 x a.1.2 a.2))\n    rw [hlaw x, integral_map hfx.aemeasurable hg.aestronglyMeasurable,\n      integral_prod _ hi]\n    exact integral_prod _ hi.integral_prod_left\n  calc\n    (∫ x, f x * (∫ z, g z ∂κ x) ∂q) =\n        ∫ x, ∫ r, ∫ p, f x * op x r p ∂γ ∂q ∂q := by\n      simp_rw [hinner, ← integral_const_mul]\n    _ = ∫ r, ∫ x, ∫ p, f x * op x r p ∂γ ∂q ∂q :=\n      integral_integral_swap hdi.integral_prod_left\n    _ = ∫ r, (∫ z : X × Y, f z.1 * (∫ w, g (F r z.1 z.2 w) ∂P)\n        ∂q.prod γ) ∂q := by\n      apply integral_congr_ae\n      exact Eventually.of_forall fun r => by\n        have hm : Measurable (fun z : X × Y => f z.1 * op z.1 r z.2) :=\n          hdm.comp ((measurable_fst.prodMk measurable_const).prodMk measurable_snd)\n        have hi : Integrable (fun z : X × Y => f z.1 * op z.1 r z.2)\n            (q.prod γ) :=\n          Integrable.of_bound hm.aestronglyMeasurable 1\n            (Eventually.of_forall fun z => by\n              simpa only [Real.norm_eq_abs] using hdb z.1 r z.2)\n        exact (integral_prod _ hi).symm\n\n/-- Combine the exact raw returned law with fixed-reference bounded position duality. -/\nprivate theorem reversible_of_reference_average\n    {X Y W : Type*} [MeasurableSpace X] [MeasurableSpace Y] [MeasurableSpace W]\n    (q : Measure X) (γ : Measure Y) (P : Measure W)\n    [IsProbabilityMeasure q] [IsProbabilityMeasure γ] [IsProbabilityMeasure P]\n    (F : X → X → Y → W → X)\n    (hF : Measurable (fun a : ((X × X) × Y) × W =>\n      F a.1.1.2 a.1.1.1 a.1.2 a.2))\n    (κ : Kernel X X) [IsMarkovKernel κ]\n    (hlaw : ∀ x, κ x = Measure.map\n      (fun a : (X × Y) × W => F a.1.1 x a.1.2 a.2) ((q.prod γ).prod P))\n    (hdual : ∀ r : X, ∀ f g : X → ℝ, Measurable f → Measurable g →\n      (∀ x, |f x| ≤ 1) → (∀ x, |g x| ≤ 1) →\n      (∫ z : X × Y, f z.1 * (∫ w, g (F r z.1 z.2 w) ∂P) ∂q.prod γ) =\n        ∫ z : X × Y, g z.1 * (∫ w, f (F r z.1 z.2 w) ∂P) ∂q.prod γ) :\n    κ.IsReversible q := by\n  apply reversible_of_bounded_pairing q κ\n  intro f g hf hg hfb hgb\n  rw [pairing_eq_reference_average q γ P F hF κ hlaw f g hf hg hfb hgb,\n    pairing_eq_reference_average q γ P F hF κ hlaw g f hg hf hgb hfb]\n  exact integral_congr_ae (Eventually.of_forall fun r => hdual r f g hf hg hfb hgb)\n\nopen InnerProductSpace\nopen scoped ContDiff NNReal Topology Interval BigOperators\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHalfTurnReversibility.lean",
+            "source_raw_sha256": "81ff89368effa372f07f1f65ec05251bfddba32f656edcdc82854ab4196bf8fd",
+            "exact_code_raw_sha256": "0f615d774a237c0e0878c2ce70427282ea1a63d3c94810aa1d4b61deaa93b3de",
+            "start_line": 93,
+            "end_line": 169
+          }
+        },
+        {
+          "title": "Convert measurable indicators to exact rectangle detailed balance",
+          "text": "Choose f=1_A and g=1_B for measurable A,B. Each kernel fiber has finite mass one. Mathlib identifies the integral of an indicator with its real measure; nonnegative finite integration identifies its ofReal value with the ENNReal rectangle flux. Symmetry therefore gives the defining identity of Kernel.IsReversible on all measurable rectangles.",
+          "formula": "\\int_A^-\\kappa_y(x,B)\\,q_y(dx)=\\operatorname{ofReal}\\langle\\mathbf1_A,\\kappa_y\\mathbf1_B\\rangle=\\operatorname{ofReal}\\langle\\mathbf1_B,\\kappa_y\\mathbf1_A\\rangle=\\int_B^-\\kappa_y(x,A)\\,q_y(dx).",
+          "detail": "The criterion works on atomless E. The countable-state singleton-balance lemma is inapplicable. The private adapters below are not additional Registry leaves.",
+          "lean": "private theorem flux_ofReal\n    {X : Type*} [MeasurableSpace X] (μ : Measure X) [IsFiniteMeasure μ]\n    (κ : Kernel X X) [IsMarkovKernel κ]\n    {A B : Set X} (hA : MeasurableSet A) (hB : MeasurableSet B) :\n    ENNReal.ofReal (∫ x, A.indicator (fun _ => (1 : ℝ)) x *\n      (∫ z, B.indicator (fun _ => (1 : ℝ)) z ∂κ x) ∂μ) =\n      ∫⁻ x in A, κ x B ∂μ := by\n  have hi : Integrable (fun x => (κ x).real B) (μ.restrict A) := by\n    apply Integrable.of_bound\n      (κ.measurable_coe hB).ennreal_toReal.aestronglyMeasurable 1\n    exact Eventually.of_forall fun x => by\n      simpa only [Real.norm_eq_abs, abs_of_nonneg ENNReal.toReal_nonneg,\n        Measure.real] using\n        (measureReal_le_one (μ := κ x) (s := B))\n  have hreal : (∫ x, A.indicator (fun _ => (1 : ℝ)) x *\n      (∫ z, B.indicator (fun _ => (1 : ℝ)) z ∂κ x) ∂μ) =\n      ∫ x in A, (κ x).real B ∂μ := by\n    have hIB (x : X) : (∫ z, B.indicator (fun _ => (1 : ℝ)) z ∂κ x) =\n        (κ x).real B := integral_indicator_one hB\n    simp_rw [hIB]\n    rw [← integral_indicator hA]\n    congr 1\n    funext x\n    by_cases hx : x ∈ A <;> simp [hx]\n  rw [hreal, ofReal_integral_eq_lintegral_ofReal hi\n    (Eventually.of_forall fun _ => measureReal_nonneg)]\n  apply lintegral_congr_ae\n  exact Eventually.of_forall fun x => ENNReal.ofReal_toReal (measure_ne_top (κ x) B)\n\n/-- Test symmetry on measurable indicators; no countability/singleton criterion. -/\nprivate theorem reversible_of_bounded_pairing\n    {X : Type*} [MeasurableSpace X] (μ : Measure X) [IsFiniteMeasure μ]\n    (κ : Kernel X X) [IsMarkovKernel κ]\n    (hsym : ∀ f g : X → ℝ, Measurable f → Measurable g →\n      (∀ x, |f x| ≤ 1) → (∀ x, |g x| ≤ 1) →\n      (∫ x, f x * (∫ z, g z ∂κ x) ∂μ) =\n        ∫ x, g x * (∫ z, f z ∂κ x) ∂μ) : κ.IsReversible μ := by\n  intro A B hA hB\n  rw [← flux_ofReal μ κ hA hB, ← flux_ofReal μ κ hB hA]\n  congr 1\n  apply hsym _ _ (measurable_const.indicator hA) (measurable_const.indicator hB)\n  · intro x\n    by_cases hx : x ∈ A <;> simp [hx]\n  · intro x\n    by_cases hx : x ∈ B <;> simp [hx]\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHalfTurnReversibility.lean",
+            "source_raw_sha256": "81ff89368effa372f07f1f65ec05251bfddba32f656edcdc82854ab4196bf8fd",
+            "exact_code_raw_sha256": "ec1bce0d03c5b9db0ffd854bc9e1c1ec13855d37892a703685b49cd468e63338",
+            "start_line": 32,
+            "end_line": 76
+          }
+        }
+      ],
+      "lean_proof": "Same literal Z -> exact probability kernel -> position lifts absorb flips -> bounded signed reference Fubini -> measurable-rectangle detailed balance.",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHalfTurnReversibility.actual_half_turn_reversibility_statement"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.IdealHalfTurnKernel.ideal_half_turn_returned_position_kernel",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality.actual_bounded_gibbs_duality",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct.unit_exponential_product_laws"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Integrable.of_bound",
+        "MeasureTheory.integral_indicator_one",
+        "MeasureTheory.ofReal_integral_eq_lintegral_ofReal",
+        "MeasureTheory.integral_map",
+        "MeasureTheory.integral_prod",
+        "MeasureTheory.integral_integral_swap",
+        "MeasureTheory.StronglyMeasurable.integral_prod_right",
+        "ProbabilityTheory.Kernel.IsReversible"
+      ],
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHalfTurnReversibility.actual_half_turn_reversible",
+      "lean_statement": "Let E be a finite-dimensional real inner-product Borel space. Assume V is C2, 0<alpha<=beta, alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v, eta>0 and beta eta<=1. For each y let q_y be the normalized law proportional to exp(-V(x)-||x-y||^2/(2 eta)) dx. Draw the reference r from q_y, momentum p from the standard Gaussian and unit exponential clocks independently. Run the actual fixed-reference flow to time pi and return its position. The SAME global jointly measurable probability kernel H(y,x) given by this literal pushforward satisfies detailed balance with q_y for EVERY y. The existing raw covered-arc and fallback equations, parameterwise clock-AE interval coverage, local zero-time law and half-turn initialization outputs are retained. None of these construction, normalization, probability or integrability facts is a new hypothesis."
+    }
+  ]
+}

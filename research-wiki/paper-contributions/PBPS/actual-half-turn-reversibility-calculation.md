@@ -1,9 +1,14 @@
-# Actual averaged half-turn: pre-implementation calculation
+# Actual averaged half-turn: calculation and local Lean proof
 
-This is a proof plan, not compiled or independently verified mathematics.
-The exact statement alone passed source-first prereview; signature digest
+The exact production module and focused test compiled locally (3251 jobs,
+standard three axioms only). Independent mathematical/direct-compiler proof
+checking passed; see actual-half-turn-reversibility-independent-proof-check.json.
+The post-proof source-blind roundtrip and publication are NOT yet accepted:
+the decoder's raw-report write was denied pending explicit authorization for
+this separate audit. The earlier kernel/L2 authorization does not cover it.
+The exact statement passed source-first prereview before implementation; digest
 `45ea5cc6ba2706069de8d6ad70a03a686de81e5aaaf9e1cc4b373a5fa2af4dd2`.
-Do not promote a Frontier status or claim Proposition3.2 from this sketch.
+Do not promote this result to VERIFIED or count a complete paper from local compilation.
 
 Fix y. Write q=q_y, gamma=stdGaussian(E), P=Exp(1)^N and
 nu=q product gamma. All factors are probability measures, supplied internally
@@ -82,3 +87,34 @@ then gives invariance without inventing another ASTIS wrapper.
 Remaining outside this packet: restart/Chapman--Kolmogorov/semigroup,
 augmented-space all-L2 realization, hypocoercive rate, capped implementation,
 actual-input expected cost, global warm start, composition and complete papers.
+
+## Reading the Lean proof
+
+The public declaration is `ActualHalfTurnReversibility.actual_half_turn_reversible`
+in `AutoSamplingTheory/ExampleCases/ProximalBPS/ActualHalfTurnReversibility.lean`.
+It has exactly the sealed six analytic binders and retains all raw-path,
+joint-kernel, local-initialization and half-turn outputs from its kernel parent.
+
+- `flux_ofReal` uses Mathlib's indicator integral and finite kernel masses to
+  identify a real pairing with the ENNReal rectangle flux. It is private, not
+  a separately counted mathematical leaf.
+- `reversible_of_bounded_pairing` tests only measurable indicators. This works
+  on atomless spaces and does not use a countable-state singleton shortcut.
+- `pairing_eq_reference_average` first derives the measurable clock expectation
+  and its absolute bound1. Bounded products are integrable under the probability
+  factors. Only then does signed Fubini swap the input and independent reference.
+- `reversible_of_reference_average` integrates the fixed-reference symmetric
+  pairing and invokes the preceding exact rectangle criterion.
+- The public proof identifies `Zb=Z` pointwise by covered/fallback cases. A dead
+  record cannot bracket a finite time, since top cannot be below that time.
+  The existing reference kernel supplies probability of q_y. Position lifts of
+  f,g remove both momentum flips from the actual signed phase duality. Finally,
+  `hqeq` identifies the two literally written Gibbs potentials by real algebra.
+
+The generic private helpers have explicit finite/probability-law hypotheses;
+the public theorem supplies them internally from its existing actual producers.
+They are not new assumptions on the paper. The focused import/axiom test is
+`Tests/ProximalBPSActualHalfTurnReversibility.lean`; it is not a mathematical
+consumer. The future actual augmented half-turn operator is the planned paper
+consumer, not an invented existing Lean dependency. Registry565 currently
+excludes this new candidate; independent source fidelity and integration remain.

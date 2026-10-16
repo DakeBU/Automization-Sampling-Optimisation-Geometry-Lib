@@ -25,6 +25,37 @@ evidence before scheduling; this intake is not a second proof-status registry.
   The global Functor Hypergraph retains its hypothesis map and failure boundary;
   there is no certified reduction, functor or Lean equivalence.
 
+## Current bounded mathematical packet
+
+The literal single-block precision and the source equation (26) now compile in
+`AutoSamplingTheory/ExampleCases/GaussianComplexity/DeterminantFamily.lean` under
+Lean 4.33.0 and the pinned Mathlib revision. The proof derives norm preservation
+from orthogonality, applies the finite-sum Cauchy–Schwarz inequality internally,
+expands the literal quadratic form and discharges the coefficient sign from
+κ≥4. No cross-term or spectral estimate is added as a theorem hypothesis.
+
+`Tests/GaussianComplexitySingleBlock.lean` checks the source endpoint n=3, κ=4
+and the exact matrices A_I=I and A_{−I}=4I. The theorem uses only the standard
+Lean axioms `propext`, `Classical.choice` and `Quot.sound`. The versioned Statement
+Seal, independent source-only proof graph and distinct topology review are
+stored beside this README. Their acceptance covers this bounded region only.
+The definition and theorem also have distinct packet-bound source reviews after
+anonymous decoding, both `equivalent-after-elaboration`. The definition's larger
+algebraic carrier and the elimination of the ambient dimension d are disclosed;
+no regularity claim outside the theorem's standing range is imported.
+
+The equation-(26) result is a local compiled candidate, not repository admission:
+the aggregate `python tools/astis.py check` currently stops while fetching the
+fixed Mathlib dependency because GitHub name resolution fails in this checkout.
+No root imports, canonical Registry status, merge or purification state is
+promoted on the strength of the focused compilation.
+
+This is an expansion of existing orthogonal-matrix algebra and Cauchy–Schwarz,
+not a new generic reusable mathematical primitive or a new conceptual transport.
+The one route-local precision definition is consumed by the actual quadratic
+bound. Mathlib calls retain their canonical identities; no duplicate generic
+isometry wrapper or analogy edge is invented.
+
 ## Next mathematical packet
 
 Use `ASTIS-SW-GAUSSIAN-COMPLEXITY-regularity`: Lemma 3.4 and Appendix B.3,
@@ -35,13 +66,14 @@ minimizer of its quadratic potential. Start with:
 python tools/astis_publication.py packet --cell ASTIS-SW-GAUSSIAN-COMPLEXITY-regularity
 ```
 
-The packet currently has no production declaration or publication binding.
-Retrieve exact Mathlib and local orthogonal-matrix/quadratic-form facts before
-elaborating a signature. Audit every meaning-carrying matrix/block/Gaussian
-definition and freeze the Statement Seal before proof search. If the smallest
-reachable step is a source-independent lemma with two real consumers, establish
-one shared cell and canonical declaration first. Do not manufacture a route-local
-wrapper around an assumed spectral or testing estimate.
+The full-regularity packet still has no completed production declaration. Its
+single-block child supplies the first actual ingredient; next construct the
+literal block diagonal, including the residual identity block and the kn=d
+endpoint, then prove its quadratic bounds and unique minimizer. Audit the new
+block index adapter and freeze its own Statement Seal before proof search.
+Do not manufacture a route-local wrapper around an assumed spectral or testing
+estimate. The remaining block and minimizer paragraphs are individually visible
+as pending obligations in the source-only graph review.
 
 Keep the two main consumers separate:
 
@@ -87,8 +119,9 @@ removed without changing the original repository. Never repeat that expansion.
 Only small, exact tracked audit artifacts required by the merged semantic loader
 were materialized from Git. Obtain any further historical evidence on demand.
 
-The pinned toolchain remains Lean 4.33.0. This source intake adds zero Lean
-declarations and does not claim a new Lean build. Before any theorem admission,
+The pinned toolchain remains Lean 4.33.0. The initial intake added no Lean
+declarations; the subsequent bounded packet adds one literal definition and one
+actual theorem, with focused compiler evidence only. Before any theorem admission,
 run its focused checks, independent source-blind decoding and source review, then
 serialize the repository's normal publication, graph, site, root Tests and ASTIS
 gates. Follow the active contributor contract; neither metadata validation nor a

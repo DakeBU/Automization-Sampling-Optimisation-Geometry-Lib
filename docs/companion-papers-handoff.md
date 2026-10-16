@@ -1,6 +1,6 @@
 # Companion-paper formalization handoff
 
-## Actual PBPS zero-time L2 strong continuity (2026-10-16)
+## Actual PBPS zero-time L2 strong continuity (2026-10-17)
 
 Read this current entry and the bounded linked plan first. Later sections are
 historical retrieval checkpoints, not instructions to restart older work.
@@ -13,17 +13,30 @@ historical retrieval checkpoints, not instructions to restart older work.
   `eb5f3e75d062428f8ddb219d9dcd3caf56c799ae`; admission checkpoint
   `be3f02c4f8e086c610f2c42c5ec4b294a09dd915`. Canonical source-blind audit:
   `ASTIS-RT-20261015-PBPSActualL2StrongContinuity`, equivalent after elaboration.
-- State: independently verified, now in the sole STABILIZING lane. Registry is
-  still563 until actual integration. A cold single-worker root Tests build is
-  running; no aggregate ASTIS pass, main merge or deployment is claimed yet.
+- State: independently verified, in the sole STABILIZING lane. Its Registry
+  entry and root Tests import are prepared (catalog target564; baseline563).
+  The old cold build terminated during Windows logoff; it is not still running
+  and did not pass. A current-host cache/read retry passed without proof or
+  cache changes. Final candidate acceptance remains recorded in the linked
+  verification JSON and canonical gate log, not inferred from old process IDs.
+- Draft PR325's earlier daedbb58 checkpoint passed all three remote CI lanes.
+  Final Registry integration has not yet been pushed/merged or deployed.
 - The actual local reader showed six rendered formulas with zero MathJax
   errors and four adjacent, initially folded Lean steps. Step3 was expanded
   successfully. The local five-node SVG was inspected. This is bounded reader
   QA, not whole-paper/mobile acceptance or purification.
-- Next source-first prereview accepts one same-witness actual kernel/L2
-  realization packet, deriving constants and positivity. Probability fibers
-  do not imply process Markovness; restart/semigroup and all later edges remain
-  separate. Exact Lean statement sealing has not started.
+- A separate reviewed kernel/L2 result is preserved on remote branch
+  `codex/pbps-kernel-l2-realization`, checkpoint `e9c8ab4e`. The original
+  independent reviewer published VERIFIED after explicit human authorization:
+  same actual Z/K/A, invariant state sections, AE fiber realization, positivity
+  and fixed constants. It is NOT integrated into this branch or Registry.
+  Probability fibers do not prove process Markovness or a restart law.
+- Next shortest source target: actual averaged half-turn detailed balance
+  (Proposition3.2). Reuse the existing returned-position kernel, bounded flip
+  duality and independent reference averaging; do not duplicate an ideal-kernel
+  wrapper. Exact next signature/source-topology review remains a prerequisite
+  to implementation. Restart/semigroup, hypocoercivity, implementation error,
+  actual-input expected costs and composition remain separate red edges.
 - Continue the full existing four-paper Goal; complete papers remain0/4.
   Preserve every previous cell/cycle and the lossless historical-evidence
   on-demand checkout. Do not create a parallel Goal or background ASTIS.

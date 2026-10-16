@@ -79,6 +79,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -123,6 +124,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualL2StrongContinuity"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity.actual_l2_strong_continuity"
+    upstreamDecl := "Actual PBPS real-L2 strong continuity at zero"
+    upstreamFile := "arXiv2609.06905v1 Appendix A.1 Proposition A.1(ii), zero-time density argument only"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "strong-continuity", "dense-core"]
+    saldUse := "Actual same-process PBPS semigroup prerequisite; no SALD claim"
+    note := "Independent exact-commit verification eb5f3e75d062428f8ddb219d9dcd3caf56c799ae and accepted source-blind audit ASTIS-RT-20261015-PBPSActualL2StrongContinuity. Under the original six analytic assumptions, preserve the same actual Z, phase family A, flip J and Gaussian position averaging. Identify bounded-continuous-core representatives, prove their L2 norm-square zero-time limit using the actual clock law, then extend by bounded-continuous density and the closed locus of an equicontinuous contraction family. Every real L2 observable and rank0 included. This adds only zero-time strong continuity: no restart, Chapman--Kolmogorov, semigroup, positive-time continuity, kernel/L2 realization, positivity/constants, independent-reference averaging, hypocoercivity, simulation error, actual expected cost, composition or full-paper completion."
+  },
   {
     key := "pbps.actualPositionL2Averaging"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging.actual_position_l2_averaging"

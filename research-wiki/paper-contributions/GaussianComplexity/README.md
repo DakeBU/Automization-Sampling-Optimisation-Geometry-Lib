@@ -44,17 +44,44 @@ anonymous decoding, both `equivalent-after-elaboration`. The definition's larger
 algebraic carrier and the elimination of the ambient dimension d are disclosed;
 no regularity claim outside the theorem's standing range is imported.
 
-The equation-(26) result is a local compiled candidate, not repository admission:
-the aggregate `python tools/astis.py check` currently stops while fetching the
-fixed Mathlib dependency because GitHub name resolution fails in this checkout.
-No root imports, canonical Registry status, merge or purification state is
-promoted on the strength of the focused compilation.
+The equation-(26) result is a local compiled candidate, not repository admission.
+The next cycle copied all nine exactly pinned dependency repositories and their
+build caches into this isolated checkout, with independent Git objects and build
+outputs. The original checkout is read-only. The aggregate ASTIS gate now passes
+the download stage and is compiling the project; its final result remains
+separate from focused compilation. No root imports, canonical Registry status,
+merge or purification state is promoted by this environment change.
 
 This is an expansion of existing orthogonal-matrix algebra and Cauchy–Schwarz,
 not a new generic reusable mathematical primitive or a new conceptual transport.
 The one route-local precision definition is consumed by the actual quadratic
 bound. Mathlib calls retain their canonical identities; no duplicate generic
 isometry wrapper or analogy edge is invented.
+
+## Full block packet
+
+`BlockFamily.lean` now constructs the actual equation-(5) matrix on `Fin d` and
+proves `blockPrecision_regular` and `blockPrecision_unique_minimizer`. The first
+theorem genuinely calls the existing `singleBlockPrecision_regular`. The second
+consumes the resulting full lower bound for the actual quadratic potential.
+The finite-coordinate adapter maps `(inner,block)` to `inner+n*block`; the
+residual starts at `k*n` and disappears when its dimension is zero. Thus this
+packet closes the local matrix content of Lemma 3.4 / B.8 rather than merely
+assuming admissibility in a new wrapper.
+
+`lake build Tests.GaussianComplexityBlockFamily` passed under Lean 4.33.0.
+Concrete tests use identity and negative-identity blocks to distinguish
+consecutive coordinates from interleaving, verify the residual identity, and
+cover both `d=7,n=3` and the zero-residual endpoint `d=6,n=3`. Both theorems use
+only the standard three Lean axioms. Source-only statement and topology reviews
+are pinned separately from compilation; final semantic and publication
+acceptance remains governed by the current audit fragments and Frontier Cells.
+
+The initial `block-topology-review.json` discloses a read-scope deviation and is
+not the strict input-isolated approval. `block-topology-strict-review.json`
+records the fresh restricted review. The extractor corrected its route prose:
+minimization branches from the full lower bound, while symmetry and both bounds
+feed regularity. The actual source edges were unchanged.
 
 ## Next mathematical packet
 
@@ -66,14 +93,14 @@ minimizer of its quadratic potential. Start with:
 python tools/astis_publication.py packet --cell ASTIS-SW-GAUSSIAN-COMPLEXITY-regularity
 ```
 
-The full-regularity packet still has no completed production declaration. Its
-single-block child supplies the first actual ingredient; next construct the
-literal block diagonal, including the residual identity block and the kn=d
-endpoint, then prove its quadratic bounds and unique minimizer. Audit the new
-block index adapter and freeze its own Statement Seal before proof search.
-Do not manufacture a route-local wrapper around an assumed spectral or testing
-estimate. The remaining block and minimizer paragraphs are individually visible
-as pending obligations in the source-only graph review.
+Complete the current block packet's semantic/publication and aggregate gates
+before admission. Then select the next dependency-ready source region in the
+sign route: the actual hard prior and its Gaussian target/normalizing constant,
+or the named determinant/Haar ingredients whose exact source contracts are
+already visible. Audit the corresponding definitions and freeze their own
+Statement Seals before proof search. Do not manufacture a wrapper around an
+assumed spectral, posterior or testing estimate. The main lower-bound proof
+regions remain individually visible and open.
 
 Keep the two main consumers separate:
 
@@ -120,8 +147,9 @@ Only small, exact tracked audit artifacts required by the merged semantic loader
 were materialized from Git. Obtain any further historical evidence on demand.
 
 The pinned toolchain remains Lean 4.33.0. The initial intake added no Lean
-declarations; the subsequent bounded packet adds one literal definition and one
-actual theorem, with focused compiler evidence only. Before any theorem admission,
+declarations; subsequent bounded packets add the single-block and full-block
+matrix definitions, one single-block theorem and two full-block/minimum theorems.
+Their focused compiler evidence is distinct from aggregate admission. Before any theorem admission,
 run its focused checks, independent source-blind decoding and source review, then
 serialize the repository's normal publication, graph, site, root Tests and ASTIS
 gates. Follow the active contributor contract; neither metadata validation nor a

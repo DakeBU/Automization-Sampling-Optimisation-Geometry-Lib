@@ -1,0 +1,213 @@
+{
+  "id": "ASTIS-RT-GC-BlockFamily-1",
+  "state": "accepted",
+  "source": {
+    "source_id": "gaussian-complexity-2026",
+    "anchor": "Section3.1 equations(4),(5); Lemma3.4 / AppendixB.3 LemmaB.8 blockPrecision_regular",
+    "url": "https://arxiv.org/html/2610.20492v1#A2.SS3",
+    "original_text": "For n>=3,n<=d,kappa>=4 and every tuple of floor(d/n) real orthogonal n by n matrices, the literal d-dimensional precision A is symmetric and every x in R^d satisfies x^T x<=x^T A x<=kappa x^T x. Hence A belongs to the source admissible precision class.",
+    "text_sha256": "1ed302deeb08ad6ebeb6e57079e7f727d453dc3e32c82d0b57e75c5083cbb908"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/BlockFamily.lean",
+    "statement": "∀ {d n : ℕ}, 3 ≤ n → n ≤ d → ∀ {κ : ℝ}, 4 ≤ κ → ∀ (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ), let A : Matrix (Fin d) (Fin d) ℝ := (let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d := ((Equiv.sumCongr ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv) (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n)); Matrix.reindex e e (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => ((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O j : Matrix (Fin n) (Fin n) ℝ) + (O j : Matrix (Fin n) (Fin n) ℝ).transpose))) 0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ))); A.IsHermitian ∧ ∀ x : Fin d → ℝ, x ⬝ᵥ x ≤ x ⬝ᵥ (A *ᵥ x) ∧ x ⬝ᵥ (A *ᵥ x) ≤ κ * (x ⬝ᵥ x)",
+    "statement_sha256": "96731efdf270ef23bfd432095a12e8fdf6dab484a03cf66fdcbdf2984603dea2",
+    "compiled": true,
+    "formalizer": "/root",
+    "compiler_evidence": "Lean4.33.0 fixed Mathlib db584cd6d46c92f209a44c0f1c829460d327499d; actual BlockFamily module compiled without placeholders. lake build Tests.GaussianComplexityBlockFamily PASS(1717 jobs); standard3 axioms. Expanded anonymous definition and theorem types additionally checked definitionally against actual compiled declarations by ExpandedTargetCheck.lean.",
+    "decoder_context": [
+      "The displayed anonymous term expands the matrix definition and its finite-coordinate equivalence; no source or theorem identity is provided.",
+      "Matrix.blockDiagonal indexes pairs as (inner coordinate, block). prodComm before finProdFinEquiv places the blocks consecutively; the tail starts at (d/n)*n. Matrix.reindex uses inverse coordinate maps.",
+      "Fin0 is the empty type, so its identity matrix has no coordinates. The remainder d%n equals d-(d/n)*n.",
+      "Over ℝ, IsHermitian means symmetric. dotProduct is the sum of coordinate products, giving squared Euclidean norm when both vectors agree; mulVec is ordinary matrix-vector multiplication."
+    ]
+  },
+  "semantic_slots": {
+    "assumptions": {
+      "evidence": "Pinned section 3.1 states these bounds before (4),(5). Lemma 3.4 and full Appendix B.3 apply to every orthogonal tuple. The theorem has no common determinant-sign, random-law, query-budget, or pre-established spectral-estimate hypothesis. hnd is retained even where not needed internally.",
+      "original": "The standing construction fixes kappa>=4 and 3<=n<=d, with orthogonal blocks; regularity itself is deterministic.",
+      "reconstructed": "Explicit hn : 3<=n, hnd : n<=d, hκ : 4<=kappa, and each block typed as an orthogonal matrix.",
+      "relation": "same"
+    },
+    "conclusion": {
+      "evidence": "Over R Hermitian means transpose-symmetric. For a real symmetric finite matrix the stated inequalities for every vector are exactly the Loewner bounds in Appendix B.3 equation (26) and the ensuing block argument. The admissible-class name is represented by these defining mathematical conditions, with no loss of a bound.",
+      "original": "A is symmetric and I_d <= A <= kappa I_d in Loewner order, hence in the source admissible precision class.",
+      "reconstructed": "A.IsHermitian over R and, for every x, x dot x <= x dot (A*x) <= kappa*(x dot x).",
+      "relation": "equivalent"
+    },
+    "constant_dependencies": {
+      "evidence": "There are no hidden existential constants or dimension-dependent losses. The tail estimate uses only 1<=kappa, derived from the retained 4<=kappa. The minimum proof multiplies by exactly the positive scalar 1/2.",
+      "original": "The literal block coefficients are (kappa+1)/2 and (kappa-1)/4; bounds use exactly 1 and kappa.",
+      "reconstructed": "The expanded expression has those same coefficients, with quotient/remainder determined solely by d,n.",
+      "relation": "same"
+    },
+    "domains": {
+      "evidence": "The real orthogonal group is the full group, including either determinant sign. Fin-indexed functions represent tuples and Euclidean vectors. Nat quotient equals floor(d/n) in the source standing range; Nat.div_add_mod identifies d%n with d-(d/n)*n.",
+      "original": "3<=n<=d natural dimensions, real kappa>=4, all O in O(n)^floor(d/n), vectors in R^d.",
+      "reconstructed": "Natural d,n with 3<=n and n<=d; real kappa with 4<=kappa; O : Fin(d/n) -> orthogonalGroup(Fin n) R; x : Fin d -> R.",
+      "relation": "equivalent"
+    },
+    "objects": {
+      "evidence": "Pinned section 3.1 equations (4),(5); the packet expands singleBlockPrecision to exactly equation (4). prodComm followed by finProdFinEquiv flattens (i,j) as j*n+i; sum flattening places tail t at (d/n)*n+t. Reindex uses the inverse of this same equivalence on both matrix indices. Thus the matrix is the literal consecutive-block precision, not an arbitrary permutation or abstract surrogate.",
+      "original": "Real orthogonal n by n blocks A_O=((kappa+1)/2)I-((kappa-1)/4)(O+O^T), in a d-dimensional block precision.",
+      "reconstructed": "Fin(d/n)-indexed orthogonalGroup(Fin n) blocks with the same expanded entries, followed by an identity on Fin(d%n), reindexed to Fin d.",
+      "relation": "explicit-elaboration"
+    },
+    "quantifiers": {
+      "evidence": "The binders preserve dependence: d,n determine the tuple size; kappa and that tuple determine A. No vector-dependent choice of A or tuple is introduced.",
+      "original": "For every admissible orthogonal tuple; regularity and the minimum assertion hold for every vector.",
+      "reconstructed": "d,n,kappa and O are universally quantified; x is universally quantified inside the theorem for the same literal A.",
+      "relation": "same"
+    },
+    "scopes": {
+      "evidence": "The packet module and lessons explicitly delimit their scope. The source later samples common-sign blocks, but the audited deterministic lemma quantifies over the full orthogonal tuple space. No claim about Gaussian mixtures, oracle lower bounds, or the full paper is needed for these statements.",
+      "original": "Literal precision construction and the finite-dimensional regularity/zero-minimum assertions of Lemma 3.4 and Lemma B.8.",
+      "reconstructed": "Only the matrix definition and its quadratic-form and minimum assertions.",
+      "relation": "same"
+    }
+  },
+  "deltas": [
+    {
+      "description": "Loewner bounds for the real symmetric precision are expressed by equivalent inequalities for every quadratic form.",
+      "evidence": "These are the same finite-dimensional real symmetric matrix conditions; Appendix B.3 derives class membership from precisely these inequalities.",
+      "original": "Symmetry and Loewner spectral bounds, expressed as membership in the source admissible precision class.",
+      "reconstructed": "Real Hermitianity and the two quadratic-form inequalities for every vector.",
+      "relation": "equivalent",
+      "severity": "informational",
+      "slot": "conclusion"
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/block_semantic_source_review",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "4b1d5db7cf9349f2c7a4e20d01a203fd24a14e6dd53da3225f26c5cee533cf86",
+    "review_run_sha256": "340b5001cabd98cd076b7fb5d4b8ca9b0e08776499e1fc980778353155564deb",
+    "evidence": "Independently compared the full original Appendix B.3 proof with the packet Lean proof and all three English lesson steps. hB assembles symmetry from actual singleBlockPrecision_regular results and the identity tail. hchange transports the quadratic form through the same explicit equivalence; hvec, hnorm, hquad prove the actual block/tail expansions. hlo and hupp obtain estimates by calling the single-block theorem inside the proof, then sum them; no producer estimate is assumed as a public parameter. hz and htail handle the residual using 4<=kappa => 1<=kappa, and empty finite sums cover kn=d. The English formulas and proof references match this argument. The retained n<=d assumption is unused internally but matches the source standing scope. This is a scoped independent semantic review of the supplied candidate only. Compilation and axiom reports were supplied as background and are not used as semantic equivalence evidence; no aggregate-gate outcome is asserted.",
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/block-semantic-evidence/1.review-result.json"
+  },
+  "repairs": [],
+  "publication_context": {
+    "file": "79661674e9b934d948242c80b1f1a0bb7b71c1b87c5293dc8468a3457ae7d2df",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\nimport Mathlib.Data.Matrix.Block\nimport Mathlib.Logic.Equiv.Fin.Basic\n\n/-!\n# The determinant family's full block precision\n\nEquation (5) and Lemma 3.4 / Appendix B.3, Lemma B.8, of\nZhou--Suzuki, arXiv:2610.20492v1. Coordinates are consecutive blocks,\nfollowed by the residual identity block. No Gaussian law or oracle lower bound\nis supplied by these finite-dimensional matrix statements.\n-/\n\nopen Matrix\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\n\nprivate def blockCoordinates (d n : ℕ) :\n    ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n  ((Equiv.sumCongr\n    ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n    (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n    (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n\n/-- Literal equation (5), with contiguous size-n blocks and the residual identity. -/\nnoncomputable def blockPrecision {d n : ℕ} (κ : ℝ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) : Matrix (Fin d) (Fin d) ℝ :=\n  Matrix.reindex (blockCoordinates d n) (blockCoordinates d n)\n    (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => singleBlockPrecision κ (O j)))\n      0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ))\n\n/-- Full block spectral regularity in Lemma 3.4 / Lemma B.8. -/\ntheorem blockPrecision_regular {d n : ℕ} (hn : 3 ≤ n) (_hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) :\n    (blockPrecision κ O).IsHermitian ∧\n      ∀ x : Fin d → ℝ,\n        x ⬝ᵥ x ≤ x ⬝ᵥ (blockPrecision κ O *ᵥ x) ∧\n        x ⬝ᵥ (blockPrecision κ O *ᵥ x) ≤ κ * (x ⬝ᵥ x) := by\n  let e := blockCoordinates d n\n  let B := Matrix.fromBlocks (Matrix.blockDiagonal (fun j => singleBlockPrecision κ (O j)))\n    0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)\n  have hB : B.IsHermitian := by\n    apply Matrix.IsHermitian.fromBlocks\n    · exact Matrix.isHermitian_blockDiagonal_iff.mpr\n        (fun j => (singleBlockPrecision_regular hn hκ (O j)).1)\n    · simp\n    · exact Matrix.isHermitian_one\n  constructor\n  · exact hB.reindex e\n  · intro x\n    let y := x ∘ e\n    let v := fun j i => y (Sum.inl (i, j))\n    let z := y ∘ Sum.inr\n    have hchange (M : Matrix ((Fin n × Fin (d / n)) ⊕ Fin (d % n))\n        ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ℝ) :\n        x ⬝ᵥ (Matrix.reindex e e M *ᵥ x) = y ⬝ᵥ (M *ᵥ y) := by\n      change x ⬝ᵥ (M.submatrix e.symm e.symm *ᵥ x) = _\n      rw [Matrix.submatrix_mulVec_equiv]\n      exact dotProduct_comp_equiv_symm _ _ e\n    have hvec (w : Fin n × Fin (d / n) → ℝ) (i : Fin n) (j : Fin (d / n)) :\n        (Matrix.blockDiagonal (fun j => singleBlockPrecision κ (O j)) *ᵥ w) (i, j) =\n          (singleBlockPrecision κ (O j) *ᵥ (fun a => w (a, j))) i := by\n      simp [Matrix.mulVec, dotProduct, Fintype.sum_prod_type, Matrix.blockDiagonal_apply,\n        ite_mul]\n    have hnorm : x ⬝ᵥ x = (∑ j, v j ⬝ᵥ v j) + z ⬝ᵥ z := by\n      have h := e.sum_comp (fun i => x i * x i)\n      change y ⬝ᵥ y = x ⬝ᵥ x at h\n      rw [← h, Matrix.dotProduct_block]\n      congr 1\n      simp only [dotProduct, Fintype.sum_prod_type]\n      exact Finset.sum_comm\n    have hquad : x ⬝ᵥ (blockPrecision κ O *ᵥ x) =\n        (∑ j, v j ⬝ᵥ (singleBlockPrecision κ (O j) *ᵥ v j)) + z ⬝ᵥ z := by\n      change x ⬝ᵥ (Matrix.reindex e e B *ᵥ x) = _\n      rw [hchange]\n      simp only [B, Matrix.fromBlocks_mulVec, Matrix.zero_mulVec, Matrix.one_mulVec,\n        add_zero, zero_add]\n      rw [Matrix.dotProduct_block]\n      congr 1\n      simp only [dotProduct, Fintype.sum_prod_type, Function.comp_apply, Sum.elim_inl,\n        hvec]\n      exact Finset.sum_comm\n    have hlo : (∑ j, v j ⬝ᵥ v j) ≤\n        ∑ j, v j ⬝ᵥ (singleBlockPrecision κ (O j) *ᵥ v j) :=\n      Finset.sum_le_sum (fun j _ => ((singleBlockPrecision_regular hn hκ (O j)).2 (v j)).1)\n    have hupp : (∑ j, v j ⬝ᵥ (singleBlockPrecision κ (O j) *ᵥ v j)) ≤\n        κ * (∑ j, v j ⬝ᵥ v j) := by\n      rw [Finset.mul_sum]\n      exact Finset.sum_le_sum (fun j _ =>\n        ((singleBlockPrecision_regular hn hκ (O j)).2 (v j)).2)\n    have hz : 0 ≤ z ⬝ᵥ z := Finset.sum_nonneg (fun i _ => mul_self_nonneg (z i))\n    have htail : z ⬝ᵥ z ≤ κ * (z ⬝ᵥ z) := by\n      simpa using mul_le_mul_of_nonneg_right (show (1 : ℝ) ≤ κ by linarith) hz\n    rw [hnorm, hquad]\n    constructor <;> nlinarith\n\n/-- The actual quadratic potential has minimum zero only at the origin. -/\ntheorem blockPrecision_unique_minimizer {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) :\n    let f : (Fin d → ℝ) → ℝ := fun x => (1 / 2 : ℝ) * (x ⬝ᵥ (blockPrecision κ O *ᵥ x))\n    f 0 = 0 ∧ ∀ x, 0 ≤ f x ∧ (f x = 0 ↔ x = 0) := by\n  dsimp\n  constructor\n  · simp\n  intro x\n  have hlow := ((blockPrecision_regular hn hnd hκ O).2 x).1\n  have hnonneg : 0 ≤ x ⬝ᵥ x :=\n    Finset.sum_nonneg (fun i _ => mul_self_nonneg (x i))\n  constructor\n  · nlinarith\n  constructor\n  · intro h\n    have hzero : x ⬝ᵥ x = 0 := by nlinarith\n    ext i\n    change x i = 0\n    have hi := Finset.single_le_sum (fun j (_ : j ∈ (Finset.univ : Finset (Fin d))) =>\n      mul_self_nonneg (x j)) (Finset.mem_univ i)\n    change x i * x i ≤ x ⬝ᵥ x at hi\n    rw [hzero] at hi\n    exact mul_self_eq_zero.mp (le_antisymm hi (mul_self_nonneg (x i)))\n  · intro h\n    subst x\n    simp\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A2.SS3",
+      "edition": "arXiv:2610.20492v1",
+      "anchor": "Section3.1 equations(4),(5); Lemma3.4 / AppendixB.3 LemmaB.8",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS mathematical restatement."
+    },
+    "statement": "For n>=3,n<=d,kappa>=4 and every tuple of floor(d/n) real orthogonal n by n matrices, the literal d-dimensional precision A is symmetric and every x in R^d satisfies x^T x<=x^T A x<=kappa x^T x. Hence A belongs to the source admissible precision class.",
+    "formulae": [
+      {
+        "label": "Lemma3.4/B.8",
+        "tex": "A=A^\\top,\\qquad \\|x\\|_2^2\\le x^\\top A x\\le\\kappa\\|x\\|_2^2\\quad(\\forall x\\in\\mathbb R^d)"
+      }
+    ],
+    "assumptions": [
+      "d and n are natural dimensions; kappa is a real number.",
+      "n>=3, n<=d and kappa>=4 are the source standing range.",
+      "O is a tuple indexed by Fin(d/n), with each matrix in the full real orthogonal group on Fin n."
+    ],
+    "obligations": [
+      {
+        "id": "full-block-regularity",
+        "label": "Sum the actual single-block estimates in the original coordinates"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular",
+      "kind": "theorem",
+      "title": "Sum the actual single-block estimates in the original coordinates",
+      "statement": "For n>=3,n<=d,kappa>=4 and every tuple of floor(d/n) real orthogonal n by n matrices, the literal d-dimensional precision A is symmetric and every x in R^d satisfies x^T x<=x^T A x<=kappa x^T x. Hence A belongs to the source admissible precision class.",
+      "formula": "A=A^\\top,\\qquad \\|x\\|_2^2\\le x^\\top A x\\le\\kappa\\|x\\|_2^2\\quad(\\forall x\\in\\mathbb R^d)",
+      "assumptions": [
+        "d and n are natural dimensions; kappa is a real number.",
+        "n>=3, n<=d and kappa>=4 are the source standing range.",
+        "O is a tuple indexed by Fin(d/n), with each matrix in the full real orthogonal group on Fin n."
+      ],
+      "steps": [
+        {
+          "title": "Symmetry survives block assembly",
+          "text": "The existing single-block theorem proves each A_Oj symmetric. Block diagonal assembly, the identity tail and the coordinate equivalence preserve real Hermitianity, which is symmetry.",
+          "formula": "A_{O_j}=A_{O_j}^\\top\\ (\\forall j)\\ \\Longrightarrow\\ A=A^\\top",
+          "lean": "hB uses singleBlockPrecision_regular, isHermitian_blockDiagonal_iff and IsHermitian.fromBlocks; IsHermitian.reindex returns the result on Fin d."
+        },
+        {
+          "title": "Split the two quadratic forms",
+          "text": "Pull x back through the exact coordinate equivalence. Its blocks are v_j and its residual is z. Matrix-vector multiplication has no cross-block terms, so both expressions split into finite sums.",
+          "formula": "\\|x\\|_2^2=\\sum_j\\|v_j\\|_2^2+\\|z\\|_2^2,\\qquad x^\\top Ax=\\sum_jv_j^\\top A_{O_j}v_j+\\|z\\|_2^2",
+          "lean": "hchange proves the quadratic form is preserved under reindex. hvec, hnorm and hquad expand the actual fromBlocks/blockDiagonal matrix, using finite sum reordering."
+        },
+        {
+          "title": "Sum the existing bounds and handle the tail",
+          "text": "Apply the compiled single-block lower and upper bounds to each v_j and sum them. The standing kappa>=4 implies kappa>=1, so the residual squared norm is at most kappa times itself. Empty residual sums also cover kn=d.",
+          "formula": "\\sum_j\\|v_j\\|_2^2+\\|z\\|_2^2\\le x^\\top Ax\\le\\kappa\\sum_j\\|v_j\\|_2^2+\\|z\\|_2^2\\le\\kappa\\|x\\|_2^2",
+          "lean": "hlo and hupp call singleBlockPrecision_regular inside the proof; htail derives its coefficient condition from hκ. No spectral estimate is a public hypothesis."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_regular"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.isHermitian_blockDiagonal_iff",
+        "Matrix.IsHermitian.fromBlocks",
+        "Matrix.IsHermitian.reindex",
+        "Matrix.submatrix_mulVec_equiv",
+        "Matrix.dotProduct_block",
+        "Finset.sum_le_sum"
+      ],
+      "lean_statement": "Coordinates are Fin d with the exact quotient/remainder adapter; dotProduct represents the Euclidean quadratic form.",
+      "lean_proof": "The adjacent checked Lean body supplies the actual matrix assembly and all internal dependencies.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS3",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Section3.1 equations(4),(5); Lemma3.4 / AppendixB.3 LemmaB.8",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS mathematical restatement.",
+          "label": "Source block family and full regularity lemma",
+          "scope": "Literal equation(5), block quadratic bounds and unique minimum only."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityBlockFamily"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular",
+      "role": "proof-edge",
+      "supports": [
+        "full-block-regularity"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "n>=3,n<=d,kappa>=4; k=floor(d/n); residual d-k*n.",
+        "lean": "The theorem retains n>=3,n<=d,kappa>=4; Fin(d/n) blocks and Fin(d%n) residual, with contiguous coordinate equivalence."
+      }
+    ]
+  },
+  "publication_binding_sha256": "df27785d8ca6daf59ce2e164ee9154e36963f4c1073aac593e7090ac0104240b",
+  "reconstruction": {
+    "text": "For all natural numbers d,n with 3<=n and n<=d, every real kappa with 4<=kappa, and every family O of real orthogonal n by n matrices indexed by Fin(d div n), define A as follows. Put q = d div n and r = d mod n, with natural-number division and remainder, so d = q*n + r. For each j in {0,...,q-1}, define the real n by n block B_j = ((kappa+1)/2) I_n - ((kappa-1)/4)(O_j + O_j^T). The resulting real d by d matrix A has q consecutive blocks B_0,...,B_(q-1), followed by I_r, and all entries between distinct blocks or between a main block and the tail are zero. The pair (i,j), with inner coordinate i in {0,...,n-1} and block index j in {0,...,q-1}, maps to coordinate j*n+i. Tail coordinate k in {0,...,r-1} maps to q*n+k. Both row and column indices use this same map (reindexing uses its inverse to retrieve the original entries). If r=0, the tail is empty: I_0 has no entries and adds no coordinates. Then A is symmetric, and for every vector x in R^d, ||x||_2^2 <= x^T A x <= kappa ||x||_2^2, where ||x||_2^2 = sum_(i=0)^(d-1) x_i^2. Both inequalities hold for each x for this same A.",
+    "text_sha256": "a2df6187eb7668ec235ecb2f68f08056a9e08deeb0644f600281940a9e94aa00",
+    "decoder": "/root/anonymous_block_decoder",
+    "source_text_visible": false,
+    "decoder_packet_sha256": "cc842a27f8cfe5fcea464d8c36b2e36fb6a8139c0cb64be51365c0d00f18d8be",
+    "decoder_run_sha256": "13e8d9ba0f81049680b2eb5508f8a564f2bc6e8f054918d8ee297fbcb5fa2d73",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "lean_statement_sha256": "96731efdf270ef23bfd432095a12e8fdf6dab484a03cf66fdcbdf2984603dea2",
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/block-semantic-evidence/1.decoder-result.json"
+  }
+}

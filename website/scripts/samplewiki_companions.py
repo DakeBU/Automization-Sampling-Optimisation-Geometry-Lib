@@ -68,6 +68,21 @@ def validate_data(model=None):
             formula_html(row["setting"]["formula"])
             if not row["setting"].get("notes"):
                 raise ValueError("Case-specific settings require explanatory notes")
+        outline = row.get("source_graph")
+        if outline:
+            node_ids = [node["id"] for node in outline["nodes"]]
+            if len(node_ids) != len(set(node_ids)):
+                raise ValueError("Duplicate source-proof outline node")
+            if not outline.get("coverage"):
+                raise ValueError("Source outline requires an explicit coverage boundary")
+            for node in outline["nodes"]:
+                if node.get("status") != "open" or not node.get("anchor"):
+                    raise ValueError("Source outline is not a compiled Lean graph")
+            for edge in outline["edges"]:
+                if not {edge["parent"], edge["consumer"]} <= set(node_ids):
+                    raise ValueError("Unknown source-proof outline endpoint")
+                if edge.get("relation") != "source-proof-use; not Lean dependency":
+                    raise ValueError("Source proof use cannot become a Lean dependency")
     techs = {r["id"]: r for r in m["technologies"]}
     if len(techs) != len(m["technologies"]):
         raise ValueError("Duplicate shared technology")
@@ -200,6 +215,35 @@ def bookkeeping_html(book):
 <h3>Strict boundary</h3><p>{escape(book['boundary'])}</p></section>'''
 
 
+def comparison_html(row):
+    """Source mechanisms and open proof use; never a compiler dependency claim."""
+    if not row.get("method_comparison"):
+        return ""
+    rows = "".join(
+        f'<tr><th scope="row">{escape(item["aspect"])}</th>'
+        f'<td>{escape(item["sign"])}</td><td>{escape(item["eigen"])}</td></tr>'
+        for item in row["method_comparison"]
+    )
+    outline = row["source_graph"]
+    parents = {node["id"]: [] for node in outline["nodes"]}
+    labels = {node["id"]: node["label"] for node in outline["nodes"]}
+    for edge in outline["edges"]:
+        parents[edge["consumer"]].append(labels[edge["parent"]])
+    nodes = "".join(
+        f'<li id="source-{escape(node["id"])}"><h4>{escape(node["label"])}</h4>'
+        f'<p>Source: {escape(node["anchor"])}. Lean: open.</p>'
+        f'<p>Source inputs: {escape("; ".join(parents[node["id"]]) or "source definition or background obligation")}</p></li>'
+        for node in outline["nodes"]
+    )
+    notes = ul(row.get("source_notes", []))
+    return f'''<section id="method-comparison"><h2>How the two proofs organize their ingredients</h2>
+<p>One canonical Lean node is shared only when the exact compiled declaration is actually consumed, with its hypotheses matched. Residual Haar symmetry is currently a conceptual link: it does not identify determinant-component posterior laws with deferred-rotation Krylov laws.</p>
+<div class="table-scroll"><table><thead><tr><th>Comparison</th><th>Determinant sign</th><th>Hidden eigenbasis</th></tr></thead><tbody>{rows}</tbody></table></div>
+<h3>Source proof outline</h3><p>{escape(outline['coverage'])}</p><p>All links below describe source proof use. No solid Lean implication or compiled node is asserted.</p>
+<details><summary>Expand {len(outline['nodes'])} source nodes and their inputs</summary><ol>{nodes}</ol></details>
+<h3>Source discrepancies retained for review</h3>{notes}</section>'''
+
+
 def nav(rel):
     return (f'<nav class="reader-breadcrumb"><a href="{href_from(rel, "example-cases/samplewiki.html")}">SampleWiki</a> / '
             f'<a href="{href_from(rel, HOME)}">Companion frontiers</a> / '
@@ -325,6 +369,7 @@ def enrich_site(output):
         if row.get("bookkeeping"):
             body += bookkeeping_html(row["bookkeeping"])
         body += ''.join(theorem_html(m, row, t) for t in row['theorems'][1:])
+        body += comparison_html(row)
         body += f'<p><a href="proof-technology.html">Expand reusable prerequisites and next packets →</a></p>'
         write(output, BASE + row['slug'] + '.html', row['title'], body)
     cards = ''.join(f'<li><h2><a href="{r["slug"]}.html">{escape(r["title"])}</a></h2><p>{escape(r["role"])}</p></li>' for r in rows)
@@ -365,6 +410,18 @@ def add_to_graph(builder):
     for row in [*m['cases'], m['composition']]:
         builder.add('case:' + row['id'], 'frontier-case', row['title'], status='planned', subtitle=row['role'], url=BASE + row['slug'] + '.html', summary=m['review'], details=[{'label':'Lean status','value':'No local theorem certificate; source-pinned plan only.'}])
         builder.edge('library:samplewiki', 'case:' + row['id'], 'companion source case; not a proof dependency')
+        outline = row.get('source_graph')
+        if outline:
+            prefix = 'source-outline:' + row['id'] + ':'
+            for node in outline['nodes']:
+                builder.add(prefix + node['id'], 'proof-root', node['label'], status='planned',
+                            subtitle=node['anchor'], summary=outline['coverage'],
+                            url=BASE + row['slug'] + '.html#source-' + node['id'])
+            for edge in outline['edges']:
+                builder.edge(prefix + edge['parent'], prefix + edge['consumer'], edge['relation'])
+            for target in ('sign-main', 'eigen-main'):
+                if any(n['id'] == target for n in outline['nodes']):
+                    builder.edge(prefix + target, 'case:' + row['id'], 'source theorem outline; not a proof dependency')
     for t in m['technologies']:
         builder.add(t['id'], 'proof-root', t['title'], status='planned', subtitle='Reusable proof technology candidate', summary=t['target'], url=TECH+'#'+t['id'], details=[{'label':'Boundary','value':t['boundary']}])
     for t in m['technologies']:

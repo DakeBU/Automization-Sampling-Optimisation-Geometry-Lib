@@ -47,9 +47,13 @@ no regularity claim outside the theorem's standing range is imported.
 The equation-(26) result is a local compiled candidate, not repository admission.
 The next cycle copied all nine exactly pinned dependency repositories and their
 build caches into this isolated checkout, with independent Git objects and build
-outputs. The original checkout is read-only. The aggregate ASTIS gate now passes
-the download stage and is compiling the project; its final result remains
-separate from focused compilation. No root imports, canonical Registry status,
+outputs. The original checkout is read-only. The first aggregate ASTIS gate
+completed with one Mathlib cache path failure at the Windows 260-character
+boundary. The exact unchanged Mathlib checkout was relocated to a shorter
+physical path inside this workspace, retaining its original package entry as a
+directory junction. The previously failing target then passed (3021 jobs).
+The final-candidate aggregate gate is separate from focused compilation.
+No root imports, canonical Registry status,
 merge or purification state is promoted by this environment change.
 
 This is an expansion of existing orthogonal-matrix algebra and Cauchy–Schwarz,
@@ -108,12 +112,45 @@ by the square-root theorem and that theorem by the signed identity. Independent
 preproof statement and source-only topology reviews are stored beside the seal.
 Final semantic/reader acceptance is governed by the current audit fragments.
 
-This closes only the pointwise normalization identities. The Haar law,
+This packet alone closes only the pointwise normalization identities. The
 reflection cancellation of principal minors, equation (15), actual Gaussian
 density/normalization, Fubini and separation remain open. The same canonical
 `singleBlockPrecision` is shared by the quadratic/block and determinant routes;
 their proof organizations remain distinct. A shared definition is not a proof
 that the subsequent estimates or experimental laws are interchangeable.
+
+## Shared full orthogonal Haar probability
+
+`AutoSamplingTheory/TechnicalLemmas/Probability/OrthogonalHaar.lean` now proves
+existence and uniqueness of the actual Borel Haar probability on every finite
+real orthogonal group. Closedness and the bound on each matrix entry produce
+compactness internally; the inherited topology gives second countability.
+The actual Mathlib Haar constructor is normalized on the whole compact group,
+and Haar probability uniqueness identifies every competing law.
+
+The existence/uniqueness theorem compiled and received independent proof review
+before the production measure definition was written. The pre-definition
+snapshot and review are retained as `haar-well-definedness-input.json` and
+`haar-well-definedness-review.json`. The separately named characterization
+genuinely calls the existence theorem, and fixed-left pushforward invariance
+genuinely calls that characterization. The definition body itself is the actual
+Haar constructor; no compiled call from its body to the existence theorem is
+claimed. The earlier theorem gates its introduction as a characterized object.
+
+`lake build Tests.GaussianComplexityOrthogonalHaar` passes (2596 jobs), including
+zero-dimensional normalization and a concrete three-dimensional single-row
+reflection with determinant -1. All three theorem axiom checks report only the
+standard three axioms. Expanded anonymous target types and the constructor body
+were checked against the actual compiled declarations. Final source/reader
+acceptance is governed by the current four audit fragments.
+
+This is one canonical shared probability law for the determinant-sign and
+eigenbasis experiments. Their main theorem consumers remain planned until their
+proofs actually call it. Determinant conditioning and half-mass, principal-minor
+sign/expectation cancellation, independence from the algorithm seed, adaptive
+posteriors and Krylov representation remain distinct open obligations. The
+background includes the singleton group at dimension zero; the paper's
+two-component assertions are not extended to that endpoint.
 
 ## Admission and next mathematical packet
 
@@ -124,12 +161,12 @@ python tools/astis_publication.py packet --cell ASTIS-SW-GAUSSIAN-COMPLEXITY-reg
 ```
 
 Complete the current packets' semantic/publication and aggregate gates before
-independent commit-bound admission. The existing aggregate gate was launched
-before this normalizer packet; keep polling its live handle and record its
-actual terminal scope before running a necessary incremental final-candidate
-gate. An observation timeout is not a failure or permission to restart it.
+independent commit-bound admission. The earlier aggregate gate reached an actual
+terminal failure, its cache path issue was repaired without changing dependency
+sources, and a final-candidate gate was started. Keep polling that live process;
+an observation timeout is not a failure or permission to restart it.
 Then select the next dependency-ready source region in the sign route: the
-actual hard prior/Gaussian law, or the remaining Haar reflection and
+actual hard prior/Gaussian law, or the remaining reflection sign identity and
 principal-minor cancellation in Lemma B.6. Audit the exact definitions and fix
 their own Statement Seals before proof search. Do not manufacture a wrapper
 around an assumed determinant cancellation, posterior or testing estimate.
@@ -141,7 +178,7 @@ Pinned Mathlib retrieval for the remaining minor expansion found
 `Mathlib/LinearAlgebra/Matrix/Charpoly/Coeff.lean`. These are source-present API
 candidates, not current ASTIS theorem calls or evidence that the Haar expectation
 cancellation is proved. Inspect the exact polynomial/index conventions before
-a source-faithful adapter; construct the actual Haar law and its reflection
+a source-faithful adapter. Consume the actual shared Haar law and its fixed-left
 invariance rather than accepting them as new binders on Lemma B.6.
 
 Keep the two main consumers separate:

@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.RadialIntegral.radialized_test_integral",
+      "kind": "theorem",
+      "title": "Evaluate the finite radialized Gaussian test average",
+      "statement": "Let n>=3, kappa>=4 and lambda>=0, and draw O from the existing normalized Haar probability on the full real O(n). Put U=O_11, p=n/2 as a real number, a(O)=kappa+1+4lambda-(kappa-1)U, A_O=((kappa+1)/2)I-((kappa-1)/4)(O+O^T), F(O)=det(O)sqrt(det A_O), N(O)=(sqrt(kappa)+1)U-(sqrt(kappa)-1), and J(O)=integral over real Euclidean n-space of exp(-a(O)||x||^2/4) against canonical volume. Every inner spatial integrand is absolutely integrable; F(O)J(O) and N(O)/a(O)^p are absolutely integrable under this Haar probability. Their finite expectations satisfy E[FJ]/(2pi)^p = [(-1)^(n-1)(sqrt(kappa)-1)^(n-1)/2^p] E[N/a^p]. This evaluates the explicit radialized iterated integral and does not identify it with the original mixture test H(lambda).",
+      "formula": "\\frac{\\mathbb E[F(O)J(O)]}{(2\\pi)^p}=\\frac{(-1)^{n-1}(\\sqrt\\kappa-1)^{n-1}}{2^p}\\,\\mathbb E\\!\\left[\\frac{(\\sqrt\\kappa+1)U-(\\sqrt\\kappa-1)}{a(O)^p}\\right],\\qquad p=\\frac n2",
+      "assumptions": [
+        "Natural n>=3 and real kappa>=4 are the AppendixB2 standing range. Real lambda>=0 includes zero; no positive-lambda-only restriction is introduced.",
+        "The law is the actual canonical normalized full orthogonal Haar probability, with its inherited matrix topology and Borel sigma-algebra. A_O is the existing literal equation4 precision.",
+        "The inner domain is EuclideanSpace R (Fin n) with Euclidean norm and canonical volume. The exponent n/2 is real division, including half-integer dimensions; only the sign/normalizer powers n-1 use natural exponents.",
+        "All three absolute-integrability assertions are conclusions. No Gaussian density law, assumed Fubini equality, denominator bound, normalized-mixture identity or Borel/L1 weight is supplied by the caller."
+      ],
+      "steps": [
+        {
+          "title": "Keep the denominator strictly positive",
+          "text": "Orthogonality bounds the first diagonal entry by one in absolute value. Since kappa-1 is nonnegative, a(O)>=2+4lambda>=2. Thus every real power and denominator in the displayed actual integrands has a strictly positive base. This is derived from the stated assumptions.",
+          "formula": "|U|\\le1,\\qquad a(O)\\ge2+4\\lambda\\ge2>0",
+          "lean": "The main proof uses entry_norm_bound_of_unitary on the actual matrix, then ha_bound and ha_pos. No caller bound or regularity premise is added."
+        },
+        {
+          "title": "Evaluate a genuine finite spatial Gaussian integral",
+          "text": "For each fixed O, apply the existing Euclidean Gaussian formula with positive rate a(O)/4. Its integrability theorem is used as well as its value. Dimension is exactly n, and the exponent is n/2 in R. Hence this step cannot obtain the displayed value from a default integral of a divergent function.",
+          "formula": "J(O)=\\int_{\\mathbb R^n}e^{-a(O)\\|x\\|^2/4}\\,dx=\\left(\\frac{4\\pi}{a(O)}\\right)^p,\\qquad e^{-a(O)\\|x\\|^2/4}\\in L^1(dx)",
+          "lean": "Private gaussian_integral genuinely calls GaussianFourier.integrable_cexp_neg_mul_sq_norm_add and takes its real part, then GaussianFourier.integral_rexp_neg_mul_sq_norm. Canonical finrank_euclideanSpace identifies dimension n. This is reuse of Mathlib, not a new public generic Gaussian wrapper."
+        },
+        {
+          "title": "Prove the outer expectations are finite",
+          "text": "The functions U, a, det(O), det(A_O) and sqrt(det(A_O)) are continuous on the actual compact group O(n). The positive denominators preserve continuity. Thus F/a^p and N/a^p are integrable under the existing finite Haar probability. The formula for J transfers integrability to FJ. The implementation uses finite compact bounds where explicit sharp domination constants are unnecessary.",
+          "formula": "\\frac{F}{a^p},\\ \\frac{N}{a^p}\\in L^1(\\mu_n),\\qquad FJ=(4\\pi)^p\\frac{F}{a^p}\\in L^1(\\mu_n)",
+          "lean": "Private integrable_continuous_haar consumes orthogonalHaar_spec and Continuous.integrable_of_hasCompactSupport on compact O(n). The main proof establishes continuity of the literal precision and positive real-power denominators. This does not perform Fubini on the original experiment."
+        },
+        {
+          "title": "Extract the exact Gaussian normalization",
+          "text": "Use the pointwise finite Gaussian formula inside the already defined iterated integral. Real-power multiplication and quotient rules give (4pi)^p/(2pi)^p=2^p. Moving this constant through the Haar integral is ordinary one-integral linearity; no exchange of two integrals is asserted.",
+          "formula": "\\frac{\\mathbb E[FJ]}{(2\\pi)^p}=\\frac{(4\\pi)^p}{(2\\pi)^p}\\mathbb E\\!\\left[\\frac F{a^p}\\right]=2^p\\mathbb E\\!\\left[\\frac F{a^p}\\right]",
+          "lean": "hprod and hOuter_eq use the actual gaussian_integral value, Real.div_rpow and integral_const_mul. hnorm proves the pi factors cancel exactly."
+        },
+        {
+          "title": "Apply the actual general L1 cancellation theorem",
+          "text": "Choose a globally continuous scalar extension h(u)=1/max(kappa+1+4lambda-(kappa-1)u,1)^p. On every actual U, the denominator is at least two, so h(U)=1/a(O)^p exactly. This extension makes the real-line Borel condition explicit without changing the actual weight. Compactness gives its actual Haar L1 property. The existing LemmaB6 therefore applies with all its genuine hypotheses discharged.",
+          "formula": "h(U)=a(O)^{-p},\\qquad\\mathbb E\\!\\left[\\frac F{a^p}\\right]=\\frac{(-1)^{n-1}(\\sqrt\\kappa-1)^{n-1}}{2^n}\\mathbb E\\!\\left[\\frac N{a^p}\\right]",
+          "lean": "The proof constructs the continuous positive-base max extension, proves hactual on every O and hL1 internally, and directly calls the identical compiled signed_sqrt_det_integral. The extension is a proof adapter outside the actual entry range, not a changed source weight or source repair."
+        },
+        {
+          "title": "Retain the half-dimensional power and sign",
+          "text": "Since p=n/2 is real division, 2p=n and 2^n=2^p 2^p. Multiplying the Gaussian factor by the exact B6 coefficient gives 2^p/2^n=1/2^p. The parity factor (-1)^(n-1) and power (sqrt(kappa)-1)^(n-1) are unchanged.",
+          "formula": "2^p\\,\\frac{(-1)^{n-1}(\\sqrt\\kappa-1)^{n-1}}{2^n}=\\frac{(-1)^{n-1}(\\sqrt\\kappa-1)^{n-1}}{2^p}",
+          "lean": "htwos uses Real.rpow_add and Real.rpow_natCast with p+p=n. The final field identity uses actual nonzero positive powers; no natural-number truncation of n/2 is allowed."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantCancellation.signed_sqrt_det_integral",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision"
+      ],
+      "mathlib_dependencies": [
+        "GaussianFourier.integrable_cexp_neg_mul_sq_norm_add",
+        "GaussianFourier.integral_rexp_neg_mul_sq_norm",
+        "finrank_euclideanSpace",
+        "Continuous.integrable_of_hasCompactSupport",
+        "entry_norm_bound_of_unitary",
+        "Continuous.matrix_det",
+        "Real.continuous_sqrt",
+        "Continuous.rpow_const",
+        "Real.div_rpow",
+        "Real.mul_rpow",
+        "Real.rpow_add",
+        "Real.rpow_natCast",
+        "MeasureTheory.integral_const_mul"
+      ],
+      "lean_statement": "The local lets spell out first index, actual matrix entry, denominator and real exponent; all L1 assertions are outputs.",
+      "lean_proof": "Two private providers establish genuine continuous Haar integrability and spatial Gaussian finiteness/evaluation. The public proof derives the positive denominator, all three L1 outputs, exact B6 use and normalization arithmetic.",
+      "boundary": "Only Ex60 Gaussian evaluation for its explicit radialized integral and the B6 specialization leading to the Eq21 right-hand side. Equality to original H(lambda), actual Gaussian probability laws and density normalization, conjugation/radialization of the original mixture, original Fubini/interchange, determinant-component half-mass, Haar-column sphere uniformity, Poisson identities, TV/radial/Hellinger separation, transcript/eigenbasis reductions and both main lower bounds remain separate obligations. The source-only sharp minor/path bounds inherited from B6 are not newly claimed; additional sharp domination constants in the source inventory are distinguishable from sufficient compact boundedness.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "AppendixB2.2 Ex60: explicit radial integral on RHS of first equality, Gaussian evaluation in second equality; p4.4 and Eq21 genuine B6 specialization. Standing assumptions AppendixB2; B6 Eq15.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS isolates the explicit analytic radial integral; the preceding identification with H(lambda) is not included.",
+          "label": "Explicit radialized integral and its analytic evaluation",
+          "scope": "Ex60 RHS radial integral through Eq21 RHS only; identification with original H(lambda) is excluded."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityRadialIntegral"
+      ]
+    }
+  ]
+}

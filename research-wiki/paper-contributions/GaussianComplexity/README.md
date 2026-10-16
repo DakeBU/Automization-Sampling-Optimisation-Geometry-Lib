@@ -198,7 +198,7 @@ no initially open Lean disclosures and no horizontal overflow. The focused
 equation-(15) graph shows five nodes, four edges and three immediate relations:
 module ownership plus dashed source/fidelity overlays. It retains the partial
 publication badge and does not infer a compiled main theorem or an implication
-from conceptual proximity. These observations are separate from the live root
+from conceptual proximity. These observations are separate from the root
 aggregate gate and any later commit-bound admission.
 
 Final aggregate evidence: the earlier live session83319 terminated successfully.
@@ -220,13 +220,13 @@ For the completed local block regularity packet, start with:
 python tools/astis_publication.py packet --cell ASTIS-SW-GAUSSIAN-COMPLEXITY-regularity
 ```
 
-Complete the current packets' semantic/publication and aggregate gates before
-independent commit-bound admission. The earlier aggregate gate reached an actual
-terminal failure, its cache path issue was repaired without changing dependency
-sources, and a final-candidate gate was started. Keep polling that live process;
-an observation timeout is not a failure or permission to restart it.
-The next dependency-ready source region is the actual hard prior/Gaussian law
-and the Appendix B.2.2 spherical Poisson/density calculation. Fix the next exact
+Complete each current packet's semantic/publication and aggregate gates before
+independent commit-bound admission. The earlier cache-path failure was repaired
+without changing dependency sources. Both subsequent aggregate sessions83319
+and34590 are terminal PASS; neither is a live process to poll or restart.
+The new radial packet requires its own immutable-commit gate.
+The remaining dependency-ready source region is the actual hard prior/Gaussian
+law and the Appendix B.2.2 spherical Poisson/density calculation. Fix the next exact
 source boundary and Statement Seal before proof search, including any genuine
 existence/normalization and Fubini obligations. Do not manufacture a wrapper
 around an assumed density, posterior or testing estimate, or repeat the now
@@ -258,6 +258,52 @@ the public source theorem. Keep the exact worst-case deterministic cap distinct
 from expected cost, and input-averaged hardness distinct from uniform per-input
 accuracy. A known spectrum in Theorem 4.1 is the particular hard spectrum, not a
 claim that every prescribed spectrum is hard.
+
+## Finite radialized integral packet
+
+`RadialIntegral.lean` proves `radialized_test_integral` under exactly
+`n>=3`, `kappa>=4` and `lambda>=0`, including zero. Its starting object is the
+explicit already radialized iterated Haar/spatial integral on the right of
+Ex60's first equality. It evaluates that object through the right of Eq21.
+Writing `p=(n:R)/2`, `a(O)=kappa+1+4lambda-(kappa-1)O_11`,
+`F(O)=det(O)sqrt(det A_O)` and
+`N(O)=(sqrt(kappa)+1)O_11-(sqrt(kappa)-1)`, the result is
+
+`E[F(O) integral_x exp(-a(O)||x||^2/4)]/(2pi)^p`
+`=((-1)^(n-1)(sqrt(kappa)-1)^(n-1)/2^p) E[N(O)/a(O)^p]`.
+
+The actual full orthogonal Haar law, literal existing precision and Euclidean
+volume are fixed. Each spatial integrand, the determinant-weighted outer
+integrand and the final quotient are genuinely absolutely integrable; all three
+are conclusions. Orthogonality supplies `a(O)>=2+4lambda>=2`. The private spatial
+provider calls Mathlib's Gaussian integrability theorem and exact integral
+formula. The public proof actually calls the existing general B.6 theorem with
+a globally continuous extension `h(u)=1/max(a(u),1)^p`; this equals the exact
+source weight on every actual matrix entry. No Borel/L1 premise is added.
+
+Continuity on compact O(n) supplies sufficient finite bounds. The source graph
+also inventories sharper domination constants, the numerator bound
+`2sqrt(kappa)` and the inherited path/minor estimates; these are not claimed as
+new separately compiled results. The independently reconstructed source graph
+has 37 nodes, 79 AND-edges and six explicit exclusions. Those counts inventory
+source coverage, rather than counting separately compiled declarations.
+
+Focused tests passed (2828 jobs): actual spatial integrability at
+`n=3,kappa=4,lambda=0`, the odd-dimensional real exponent `3/2` at lambda1,
+and the exact even-dimensional coefficient `-1/4` at `n=4,kappa=4,lambda=0`.
+The public theorem uses only `propext`, `Classical.choice` and `Quot.sound`.
+Expanded anonymous target checking and actual compiler-reference inspection
+also passed. Statement/topology audits, independent anonymous decoding and the
+fresh whole-module source/exposition review remain separate evidence artifacts.
+Current final aggregate, publication and reader acceptance is recorded below
+after the immutable local proof commit is checked.
+
+This packet does not identify the starting integral with the original
+`H(lambda)`. Constructing the actual Gaussian law and its density, conjugation
+covariance, original-mixture radialization/Fubini, spherical uniformity and
+Poisson identities remain open. That original-experiment identification is a
+concrete next consumer of the analytic calculation; both main lower bounds and
+the fixed-spectrum route remain open. No repeated B.6 wrapper is needed.
 
 ## Graph truth and comparisons
 

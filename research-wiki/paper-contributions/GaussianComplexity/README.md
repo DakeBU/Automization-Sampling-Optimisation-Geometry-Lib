@@ -83,24 +83,66 @@ records the fresh restricted review. The extractor corrected its route prose:
 minimization branches from the full lower bound, while symmetry and both bounds
 feed regularity. The actual source edges were unchanged.
 
-## Next mathematical packet
+## Pointwise determinant normalization packet
 
-Use `ASTIS-SW-GAUSSIAN-COMPLEXITY-regularity`: Lemma 3.4 and Appendix B.3,
-the literal source block precision, its spectral interval, and the unique
-minimizer of its quadratic potential. Start with:
+`Normalizer.lean` proves the three actual pointwise identities (16)--(18) in
+Appendix B.2.1. With `s=sqrt(kappa)` and `M=(s+1)I-(s-1)O`, they are
+`A_O=(1/4)M^T M`, `sqrt(det A_O)=2^(-n)det M`, and
+`det(O)sqrt(det A_O)=2^(-n)det((s+1)O-(s-1)I)`. All three retain `n>=3`,
+`kappa>=4` and the full real orthogonal group, including determinant -1.
+
+The positive determinant is produced internally. Along `aI-tO` for
+`0<=t<=b<a`, orthogonality makes a kernel vector satisfy
+`(a^2-t^2)||v||_2^2=0`, so it is zero. Continuity and the intermediate value
+theorem then preserve the positive sign from `t=0`. The source obtains the same
+nonsingularity from a reverse-triangle norm lower bound. That quantitative norm
+bound remains a source-graph node, not a separately formalized Lean estimate.
+The differing sufficient proof routes are explicit in the authored lesson.
+
+`lake build Tests.GaussianComplexityNormalizer` passes with 2278 jobs, checking
+the source endpoint `kappa=4`, both determinant components in dimension three,
+and the even-dimensional sign. All three theorem bodies have only the standard
+three axioms. Their fully expanded anonymous types were checked against the
+actual compiled targets; compiled constants confirm the factorization is used
+by the square-root theorem and that theorem by the signed identity. Independent
+preproof statement and source-only topology reviews are stored beside the seal.
+Final semantic/reader acceptance is governed by the current audit fragments.
+
+This closes only the pointwise normalization identities. The Haar law,
+reflection cancellation of principal minors, equation (15), actual Gaussian
+density/normalization, Fubini and separation remain open. The same canonical
+`singleBlockPrecision` is shared by the quadratic/block and determinant routes;
+their proof organizations remain distinct. A shared definition is not a proof
+that the subsequent estimates or experimental laws are interchangeable.
+
+## Admission and next mathematical packet
+
+For the completed local block regularity packet, start with:
 
 ```text
 python tools/astis_publication.py packet --cell ASTIS-SW-GAUSSIAN-COMPLEXITY-regularity
 ```
 
-Complete the current block packet's semantic/publication and aggregate gates
-before admission. Then select the next dependency-ready source region in the
-sign route: the actual hard prior and its Gaussian target/normalizing constant,
-or the named determinant/Haar ingredients whose exact source contracts are
-already visible. Audit the corresponding definitions and freeze their own
-Statement Seals before proof search. Do not manufacture a wrapper around an
-assumed spectral, posterior or testing estimate. The main lower-bound proof
-regions remain individually visible and open.
+Complete the current packets' semantic/publication and aggregate gates before
+independent commit-bound admission. The existing aggregate gate was launched
+before this normalizer packet; keep polling its live handle and record its
+actual terminal scope before running a necessary incremental final-candidate
+gate. An observation timeout is not a failure or permission to restart it.
+Then select the next dependency-ready source region in the sign route: the
+actual hard prior/Gaussian law, or the remaining Haar reflection and
+principal-minor cancellation in Lemma B.6. Audit the exact definitions and fix
+their own Statement Seals before proof search. Do not manufacture a wrapper
+around an assumed determinant cancellation, posterior or testing estimate.
+Both main lower-bound proof regions remain individually visible and open.
+
+Pinned Mathlib retrieval for the remaining minor expansion found
+`Matrix.coeff_det_one_add_X_smul_eq_sum_minors` and
+`Matrix.det_piecewise_one_eq_submatrix_det` in
+`Mathlib/LinearAlgebra/Matrix/Charpoly/Coeff.lean`. These are source-present API
+candidates, not current ASTIS theorem calls or evidence that the Haar expectation
+cancellation is proved. Inspect the exact polynomial/index conventions before
+a source-faithful adapter; construct the actual Haar law and its reflection
+invariance rather than accepting them as new binders on Lemma B.6.
 
 Keep the two main consumers separate:
 

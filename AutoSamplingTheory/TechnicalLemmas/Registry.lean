@@ -45,6 +45,7 @@ import AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalKernel
 import AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope
 import AutoSamplingTheory.TechnicalLemmas.Probability.KernelInvariance
 import AutoSamplingTheory.TechnicalLemmas.Probability.KernelL2
+import AutoSamplingTheory.TechnicalLemmas.Probability.KernelRetainedReversibility
 import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
 import AutoSamplingTheory.TechnicalLemmas.Probability.LawMap
 import AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct
@@ -4981,6 +4982,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+  {
+    key := "probability.kernel.retained-coordinate-reversibility",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelRetainedReversibility.retained_coordinate_isReversible",
+    upstreamDecl := "Almost-everywhere conditional detailed balance lifts through a retained coordinate; ASTIS standard derived interface",
+    upstreamFile := "Mathlib db584cd6d46c92f209a44c0f1c829460d327499d Kernel.IsReversible, deterministic product and Measure.compProd",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["KERN", "MEAS", "reversibility", "disintegration", "PBPS", "MCMC", "shared"],
+    saldUse := "Planned actual PBPS half-turn A.2/A.9 and general component-wise Gibbs adapters; no SALD completion",
+    note := "For arbitrary measurable A,B, s-finite mu and s-finite measurable kernels R,F, lift mu-a.e. fiber reversibility under R(a) to detailed balance of deterministic-fst product F under mu compProd R. General measurable joint-set sections and nonnegative Tonelli avoid rectangle-only restrictions and finite-flux assumptions. Zero/empty/infinite-flux cases allowed; no Markov premise or invariance conclusion. Independent source/compiler review at63408b2af; accepted anonymous seven-slot audit ASTIS-RT-20261017-RetainedKernelReversibility, standard three axioms only. Actual SAME-H/R disintegration, swap transport, all-L2 half-turn, full-K operator, semigroup/restart, hypocoercivity, implementation/error/cap/cost, initialization/composition and full papers remain separate."
+  },
   {
     key := "probability.kernel.invariant-l2-operator",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelL2.invariant_kernel_l2_operator",

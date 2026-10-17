@@ -318,6 +318,7 @@ import Tests.GaussianComplexityOrthogonalHaar
 import Tests.GaussianComplexityRadialIntegral
 import Tests.GaussianComplexitySingleBlock
 import Tests.KernelL2
+import Tests.KernelRetainedReversibility
 
 import Tests.GaussianComplexityComponents
 import Tests.GaussianComplexityMixtureLaws

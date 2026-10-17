@@ -19,3 +19,4 @@ import AutoSamplingTheory.ExampleCases.GaussianComplexity.ActualTotalVariation
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.NumericSeparation
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedTilt
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.PoissonNormalization
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.ColumnTransport

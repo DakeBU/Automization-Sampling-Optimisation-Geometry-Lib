@@ -1,0 +1,275 @@
+{
+  "id": "ASTIS-RT-GC-ColumnTransport-0",
+  "state": "accepted",
+  "source": {
+    "source_id": "gaussian-complexity-2026",
+    "anchor": "Appendix B.2.2 Proposition B.7 proof, Eq21–24, sentence that O e_1 is uniform on the unit sphere; bounded first-column transport component only, before Lemma A.1 evaluation",
+    "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p5",
+    "original_text": "For natural \\(n\\ge3\\) and real \\(\\kappa\\ge4\\), set \\(s=\\sqrt\\kappa\\), \\(r=(1-1/n)(s-1)/(s+1)\\), \\(\\ell=(4ns+(s-1)^2)/(8n(n-1))\\), and \\(\\beta=(-1)^{n-1}(s-1)^{n-1}(1-1/n)^{n/2}/(s+1)^n\\). Let \\(\\mu\\) be normalized Haar probability on full \\(O(n)\\), \\(c(O)=Oe_1\\) in genuine Euclidean space and \\(\\nu=c_*\\mu\\). Put \\(f(y)=((s+1)y_1-(s-1))/(1+r^2-2ry_1)^{n/2}\\), using real half-dimension powers. Let \\(A_O=((\\kappa+1)/2)I-((\\kappa-1)/4)(O+O^\\top)\\), \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\), and \\(H_\\gamma(\\ell)=\\mathbb E_\\mu[\\det(O)\\int e^{-\\ell\\|x\\|_2^2}\\,d\\gamma_O]\\). Then \\(\\nu\\) is a probability, \\(\\|y\\|_2=1\\) almost surely, \\(Q_*\\nu=\\nu\\) for every fixed full orthogonal matrix \\(Q\\), \\(f\\in L^1(\\nu)\\), and \\(H_\\gamma(\\ell)=\\beta\\int f\\,d\\nu\\). This does not yet identify \\(\\nu\\) with canonical normalized surface measure or give either Poisson integral value.",
+    "text_sha256": "e614bd950a9f3b9b8c2c735933d5655842150bd92444ebddecf7a1efeee12155"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.ColumnTransport.selected_column_transport",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/ColumnTransport.lean",
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ),\n    let s : ℝ := Real.sqrt κ\n    let r : ℝ := (1 - 1 / (n : ℝ)) * ((s - 1) / (s + 1))\n    let ℓ : ℝ := (4 * (n : ℝ) * s + (s - 1) ^ 2) /\n      (8 * (n : ℝ) * ((n : ℝ) - 1))\n    let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n    let c : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) :=\n      fun O => WithLp.toLp 2 (fun i => (O : Matrix (Fin n) (Fin n) ℝ) i j0)\n    let ν : Measure (EuclideanSpace ℝ (Fin n)) := (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))).map c\n    let f : EuclideanSpace ℝ (Fin n) → ℝ := fun y =>\n      ((s + 1) * WithLp.ofLp y j0 - (s - 1)) /\n        (1 + r ^ 2 - 2 * r * WithLp.ofLp y j0) ^ ((n : ℝ) / 2)\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))⁻¹\n    IsProbabilityMeasure ν ∧\n      (∀ᵐ y ∂ν, ‖y‖ = 1) ∧\n      (∀ Q : Matrix.orthogonalGroup (Fin n) ℝ,\n        ν.map (fun y => Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin n) (Q : Matrix (Fin n) (Fin n) ℝ) y) = ν) ∧\n      Integrable f ν ∧\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det *\n          (∫ x : EuclideanSpace ℝ (Fin n), Real.exp (-ℓ * ‖x‖ ^ 2) ∂γ O)\n        ∂(Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))) =\n        (((-1 : ℝ) ^ (n - 1) * (s - 1) ^ (n - 1)) / (s + 1) ^ n) *\n          (1 - 1 / (n : ℝ)) ^ ((n : ℝ) / 2) * (∫ y, f y ∂ν)",
+    "statement_sha256": "d80aaef28d293df6cc4b7c4d622242bbc1b978f0cd0b6adfdd3a3e1f8bc405b6",
+    "compiled": true,
+    "formalizer": "/root",
+    "compiler_evidence": "Focused production/test build passed; odd n3/kappa4 true Euclidean sphere support and universal actual determinant-conditioned Gaussian mixture gap consumer; standard axioms and actual used constants printed. Expanded anonymous target checked separately.",
+    "decoder_context": [
+      "The orthogonal group is full real O(n), both determinant signs, with inherited matrix Borel structure. Measure.haarMeasure(top : PositiveCompacts G) is Haar probability normalized on the entire compact group.",
+      "EuclideanSpace R (Fin n) carries the genuine Euclidean l2 norm. WithLp.toLp 2 sends a coordinate vector to that Euclidean vector and WithLp.ofLp returns its coordinates. Matrix.toEuclideanCLM is the canonical matrix-to-continuous-linear-map star algebra equivalence, acting by ordinary matrix-vector multiplication.",
+      "multivariateGaussian zero C is the existing pushforward of canonical stdGaussian by the continuous linear map obtained from the positive matrix square root of C; this constructor uses the existing totalized square root, with its usual positive-semidefinite-domain meaning. Matrix inverse is the existing nonsingular inverse.",
+      "All divisions/subtractions involving real-coerced dimension are real. The n/2 exponent is real; n-1 in parity and numerator exponents is natural subtraction. Integrable means absolute Bochner L1 under the displayed measure. The ambient quotient is totalized by the standard real division/rpow operations; no assertion of global denominator positivity or global continuity is made."
+    ]
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual normalized full O(n) Haar mu; genuine Euclidean first column c(O)=Oe1; literal nu=c_*mu; selected scalar f; A_O=((kappa+1)/2)I-((kappa-1)/4)(O+O^T); gamma_O=N(0,A_O^{-1}); actual signed Gaussian expectation H_gamma.",
+      "reconstructed": "The decoder reconstructs these identical objects, expanding orthogonalHaar to haarMeasure(top), singleBlockPrecision to its literal matrix body, and the Gaussian to the existing covariance-square-root pushforward. Fin n coordinate 0 is source coordinate 1.",
+      "relation": "explicit-elaboration",
+      "evidence": "Read the complete ColumnTransport.lean module; OrthogonalHaar.lean defines haarMeasure on the whole compact orthogonal group, never a determinant-conditioned component; DeterminantFamily.lean singleBlockPrecision is exactly source S3.E4. Mathlib Multivariate.lean:168 constructs the stated Gaussian by stdGaussian.map through CFC.sqrt. GaussianLawDensity.gaussian_law_eq_density derives SPD internally from the source regularity bound and identifies that constructor with source p_O. ExpandedTargetCheck.lean substitutes the full Haar and precision bodies without changing the theorem."
+    },
+    "domains": {
+      "original": "n natural with n>=3, kappa real with kappa>=4; O,Q in full real O(n); x,y in R^n with l2 norm; f interpreted on the ambient space and integrated against its sphere-supported column law; n/2 is real.",
+      "reconstructed": "EuclideanSpace R (Fin n), WithLp.toLp 2, full Matrix.orthogonalGroup (Fin n) R and its matrix Borel structure; real coercions in all dimension divisions; totalized real quotient/rpow for ambient f.",
+      "relation": "explicit-elaboration",
+      "evidence": "ColumnTransport uses WithLp.toLp 2 in both statement and proof, PiLp.single 2 for e1 and Matrix.toEuclideanCLM for the actual Euclidean action. Unitary.map_mem plus norm_map_of_mem_unitary proves norm exactly 1; coordinate bounds are not substituted for l2 support. Mathlib UnitaryGroup orthogonalGroup is unitaryGroup, with no determinant=1 restriction. Real exponents ((n:R)/2) occur in both denominator and coefficient; the test covers n=3,kappa=4."
+    },
+    "quantifiers": {
+      "original": "For every n>=3 and kappa>=4, define all remaining parameters and measures literally; the support assertion is nu-a.e., invariance holds for every fixed Q in full O(n), and the Gaussian identity integrates all O and all x.",
+      "reconstructed": "Exactly forall {n:N} (hn:3<=n) {kappa:R} (h_kappa:4<=kappa); let-bound parameters; forall-a.e. y under nu and forall Q under the invariant-law conjunct, with the same all-O, all-x integral scopes.",
+      "relation": "same",
+      "evidence": "The whole production module has set_option autoImplicit false and no section variables or hidden parameter structures. Its only theorem has exactly hn and h_kappa as proof binders. No random-Q, independence, existence of a law, integrability, Poisson identity, or positivity assumption is universally or existentially inserted. The expanded anonymous witness is text-identical to the packet statement and freshly checks against the production theorem."
+    },
+    "assumptions": {
+      "original": "Only n>=3 and kappa>=4 are independent mathematical hypotheses. Actual Haar/Gaussian definitions and source notation are fixed objects. Measurability, probability, l2 support, invariance, and L1 must be supplied internally.",
+      "reconstructed": "The same two bounds; probability/support/invariance/L1 are conclusions. The producer supplies selected r,ell positivity, support-kernel positivity and L1, internally discharging the upstream lambda>=0 requirement.",
+      "relation": "same",
+      "evidence": "Production hc and hf prove measurability; hprob, hnorm/hsphere, hinvariant, and hL prove the analytic assertions. PoissonNormalization.selected_gaussian_normalization calls SelectedTilt.selected_tilt and GaussianExpectation.actual_gaussian_transform with h_ell.le after obtaining ell>0. Raw source A2.SS2.SSS2.p3.1 fixes lambda>=0; current graph explicitly retains this scope and records PARAMETER_DISCHARGE -> SELECTED_NORMALIZATION. The exact seal binder audit has no EXCESS and the signature recomputes to ba378970ec318495ab27d88dd1a2c623b3d8537fe311c98218fb661696aa5baf."
+    },
+    "conclusion": {
+      "original": "nu is a probability, nu-a.e. ||y||_2=1, every full orthogonal Q preserves nu, f is absolutely L1 under nu, and H_gamma(ell)=beta integral f dnu. This is the declared bounded pre-Poisson component.",
+      "reconstructed": "The identical five-conjunct conclusion, with absolute Bochner Integrable f nu and the exact signed determinant-weighted Gaussian integral. No evaluated scalar value or surface-law equality is reconstructed.",
+      "relation": "equivalent",
+      "evidence": "ColumnTransport concludes precisely IsProbabilityMeasure nu / a.e. norm=1 / forall Q map action nu=nu / Integrable f nu / the stated identity. It transfers q=f composed with c from PoissonNormalization using integrable_map_measure, then integral_map and hp.2. Raw E21 and E23 give beta: with a=1-1/n, p=n/2, C=n(s+1)^2/[2(n-1)], 2^p C^p=(s+1)^n/a^p. The sign and natural powers agree. No use of evaluated E24 or A1 values is present."
+    },
+    "scopes": {
+      "original": "Full-group Haar including reflections; support and L1 refer to the actual column distribution; equality at selected positive ell only; no claim of global ambient denominator positivity/continuity, canonical surface identification, Poisson values, TV separation, query costs or main theorem.",
+      "reconstructed": "The reconstruction preserves these senses. f is totalized on the ambient carrier but only its nu-L1 and integral matter. It does not add outer/inner L1 clauses as public conclusions and does not identify nu with a separately defined surface measure.",
+      "relation": "explicit-elaboration",
+      "evidence": "Raw p4.5 supplies the first-column source bridge but also proceeds to A1; the publication and lesson explicitly separate that remaining step. For |y1|<=1, D>= (1-r)^2>0 since 0<r<1; hence standard source and totalized Lean expressions agree on support. Off support hf is only measurability. All four canonical-surface/Poisson residual nodes are absent from the bounded anchor backward closure. The selected theorem imports no residual as a premise. The focused mixture consumer proves a test-expectation equality with factor two, without asserting TV."
+    },
+    "constant_dependencies": {
+      "original": "Only n and kappa are free. s=sqrt(kappa), r=(1-1/n)(s-1)/(s+1), ell=(4ns+(s-1)^2)/(8n(n-1)), beta=(-1)^(n-1)(s-1)^(n-1)(1-1/n)^(n/2)/(s+1)^n; no unspecified constants or parity restrictions.",
+      "reconstructed": "Identical dependent lets and coefficient, with natural n-1 sign/numerator powers, natural denominator power n, and real n/2 powers. Haar depends only on n; c on n and the canonical first index; f and gamma on the displayed parameters.",
+      "relation": "same",
+      "evidence": "Direct comparison of source E22-E23, the exact seal, packet/expanded statement, PoissonNormalization and all three authored notation formulas agrees. n>=3 gives positive n and n-1; kappa=4 is included and gives s>=2. SelectedTilt proves 0<r<1 and ell>0 universally, not only in even dimensions. No hidden O-,Q-,x-,y-dependent constant is introduced."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "objects",
+      "severity": "informational",
+      "blocking": false,
+      "description": "Definition expansion makes the existing Haar and Gaussian constructors explicit; it does not replace their laws.",
+      "evidence": "orthogonalHaar is literally haarMeasure(top), singleBlockPrecision is literal S3.E4, multivariateGaussian is the existing CFC.sqrt pushforward, and GaussianLawDensity proves its source density under internally derived SPD."
+    },
+    {
+      "slot": "domains",
+      "severity": "informational",
+      "blocking": false,
+      "description": "Fin n coordinate zero and WithLp.toLp 2 elaborate the source first coordinate and Euclidean l2 space; real half powers retain odd dimensions.",
+      "evidence": "ColumnTransport hnorm applies canonical unitary Euclidean norm preservation to PiLp.single 2 j0 1; Tests includes n=3,kappa=4 and the universal consumer."
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "blocking": false,
+      "description": "The ambient totalized real quotient is an implementation elaboration outside the source probability support. This does not change an integral or require an ambient positivity assumption.",
+      "evidence": "hc/hf are internal; hL transfers L1 under nu. PoissonNormalization proves 0<r<1 and the positive denominator on actual orthogonal columns. On sphere support, D>=(1-r)^2>0."
+    },
+    {
+      "slot": "conclusion",
+      "severity": "informational",
+      "blocking": false,
+      "description": "Probability, support, invariance and integral transport expand the declared bounded source-implicit component; they do not claim completion of the source uniform-sphere identification or A1/E24 evaluation.",
+      "evidence": "Current publication statement, lesson boundary, source-only graph and source-lean-map keep canonical surface equality/uniqueness and both Poisson values open; backward closure has no residual nodes."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/column_transport_current_source_review",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "079ab950c1d1bd70db92550755313cbda998c139a351d43a116cf4c4713c00b2",
+    "review_run_sha256": "225756c99cc2d29b25be4ea6da5f99d45be7b737759548021ea9d0b2da7841bc",
+    "evidence": "Independent source/exposition review of the current anti-anchored packet against pinned raw HTML, whole production module, actual meaning-carrying parent bodies, all authored notation and five proof formulas, exact seal, current topology/map, focused consumer and expanded witness. Recomputed canonical packet and publication hashes exactly; candidate context equals current actual data. All 52 inventory raw HTML byte ranges, lengths, SHA-256 and stored text hashes match; independent p/table enumeration finds all 41 B7 and 6 A1 regions with no omission. Source lambda>=0 is explicit and discharged by ell>0 at selected use; definition edges FULL_HAAR->H_DEFINITION and COLUMN_MAP->COLUMN_MEASURABILITY are actually present. All four surface/Poisson residual nodes are outside the bounded anchor backward closure. Reused focused compiler log reports 3144 jobs and only propext/Classical.choice/Quot.sound; actual compiled ASTIS parents agree with source-lean-map. A fresh independent lake env lean ExpandedTargetCheck.lean check completed exit 0 with no output (session 11795). Compilation is only Lean truth evidence; the slotwise raw-source comparison supplies fidelity evidence. No broad gate or final integration/purification certification was performed.",
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/column-transport-semantic-evidence/0.review-result.json"
+  },
+  "reconstruction": {
+    "text": "For every natural number n with 3 ≤ n and every real number κ with 4 ≤ κ, work in E = EuclideanSpace ℝ (Fin n), with its genuine Euclidean l2 norm, and in the full real orthogonal group G = O(n), including both determinant signs, with the inherited matrix Borel structure. Let H be the literal measure Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts G), namely Haar probability normalized on the entire compact group. Put s = √κ, r = (1 − 1/n)((s − 1)/(s + 1)), and ℓ = (4ns + (s − 1)²)/(8n(n − 1)), where occurrences of n in these arithmetic formulas are real coercions. Let j₀ be the index 0 in Fin n. Define c : G → E by c(O) = WithLp.toLp 2 (i ↦ Oᵢⱼ₀), the Euclidean vector given by the zeroth column of O, and define ν to be exactly the pushforward H.map c.\n\nFor every y ∈ E write y₀ = WithLp.ofLp y j₀ and define the real-valued function f on the whole ambient Euclidean space by f(y) = ((s + 1)y₀ − (s − 1))/(1 + r² − 2ry₀)^(n/2). Here n/2 is a real exponent and this expression uses the standard totalized real division and real-power operations, including at ambient points where ordinary positive-base interpretations do not apply. For every O ∈ G let A(O) = ((κ + 1)/2) • I − ((κ − 1)/4) • (O + Oᵀ), let C(O) be its existing nonsingular matrix inverse A(O)⁻¹, and define γ(O) to be literally ProbabilityTheory.multivariateGaussian (0 : E) C(O). This is the existing pushforward of canonical stdGaussian by the continuous linear map obtained from the existing totalized positive matrix square root of C(O), with the usual positive-semidefinite-domain meaning; no replacement measure is part of the statement.\n\nThen all of the following hold together: ν is a probability measure; ‖y‖ = 1 for ν-almost every y ∈ E; for every Q ∈ G the pushforward of ν by y ↦ Matrix.toEuclideanCLM(Q)(y), that is ordinary multiplication Qy, equals ν; and f is absolutely Bochner L1 integrable with respect to ν. In addition, the following exact identity of real integrals holds:\n\n∫[O ∈ G] det(O) (∫[x ∈ E] exp(−ℓ‖x‖²) dγ(O)(x)) dH(O)\n= (((−1)^(n − 1) (s − 1)^(n − 1))/(s + 1)^n) (1 − 1/n)^(n/2) (∫[y ∈ E] f(y) dν(y)).\n\nThe outer integral is over the entire orthogonal group under H, and for each O the inner integral is over all E under γ(O). The final integral is over all E under the literal column pushforward ν. The exponents n − 1 in the sign and numerator powers use natural subtraction; n in (s + 1)^n is a natural exponent; n/2 in both real-power expressions is real. The norm in the Gaussian integral and in the almost-everywhere assertion is the Euclidean norm. The only independent parameters are n and κ with the stated bounds: s, r, ℓ, c, ν, f, and γ are the explicit dependent definitions above, H depends on n, and there are no unspecified constants or additional quantifiers over measures, functions, or parameters.\n\nThe almost-everywhere sphere assertion is not an assertion that every ambient y has unit norm. The probability, almost-everywhere support, and orthogonal pushforward invariance assertions do not state any additional identification of ν with a separately defined sphere or surface measure. Integrability is asserted for f under ν; no separate outer- or inner-integrability clause is stated. The theorem does not assert global positivity of the displayed denominator, global continuity of f, or an additional positive-definiteness conclusion about A(O) or C(O). It states the displayed exact integral relation and does not separately supply a value for either side or for the final integral.",
+    "text_sha256": "1317f5195bd1362050751dde1c5c82b28f4c2122b34316450b0dcd1134154512",
+    "decoder": "/root/anonymous_series19_decoder",
+    "decoder_run_sha256": "3f425413ab290cb2e9b0fbe01c725a5eddd98c2597ec5215484d8e2b0d5ae7f8",
+    "decoder_packet_sha256": "6ee773baa3ec2b5463e8d6a6826d7c1bc9b901752db0ea5075053303211948f3",
+    "source_text_visible": false,
+    "lean_statement_sha256": "d80aaef28d293df6cc4b7c4d622242bbc1b978f0cd0b6adfdd3a3e1f8bc405b6",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/column-transport-semantic-evidence/0.decoder-result.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "cfccb9700c323e3c048f37b270ffaedd165bad6a83a9630c885fcc9455b1a6c2",
+  "publication_context": {
+    "file": "e5a4c766b4be9b290a8c96fb80ac245ff39b97c1d4d38479defa00363726b53e",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.PoissonNormalization\nopen Matrix MeasureTheory\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.ColumnTransport\nset_option autoImplicit false\n/-!\nActual full-Haar first-column law and selected Gaussian integral transport.\nThis is the bounded source-implicit adapter preceding Appendix A.1 in the\nproof of Zhou--Suzuki arXiv:2610.20492v1 B.7. It does not identify canonical\nnormalized surface measure or evaluate either Poisson integral.\n-/\ntheorem selected_column_transport {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) :\n    let s : ℝ := Real.sqrt κ\n    let r : ℝ := (1 - 1 / (n : ℝ)) * ((s - 1) / (s + 1))\n    let ℓ : ℝ := (4 * (n : ℝ) * s + (s - 1) ^ 2) /\n      (8 * (n : ℝ) * ((n : ℝ) - 1))\n    let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n    let c : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) :=\n      fun O => WithLp.toLp 2 (fun i => (O : Matrix (Fin n) (Fin n) ℝ) i j0)\n    let ν : Measure (EuclideanSpace ℝ (Fin n)) := (orthogonalHaar n).map c\n    let f : EuclideanSpace ℝ (Fin n) → ℝ := fun y =>\n      ((s + 1) * WithLp.ofLp y j0 - (s - 1)) /\n        (1 + r ^ 2 - 2 * r * WithLp.ofLp y j0) ^ ((n : ℝ) / 2)\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n    IsProbabilityMeasure ν ∧\n      (∀ᵐ y ∂ν, ‖y‖ = 1) ∧\n      (∀ Q : Matrix.orthogonalGroup (Fin n) ℝ,\n        ν.map (fun y => Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin n) (Q : Matrix (Fin n) (Fin n) ℝ) y) = ν) ∧\n      Integrable f ν ∧\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det *\n          (∫ x : EuclideanSpace ℝ (Fin n), Real.exp (-ℓ * ‖x‖ ^ 2) ∂γ O)\n        ∂orthogonalHaar n) =\n        (((-1 : ℝ) ^ (n - 1) * (s - 1) ^ (n - 1)) / (s + 1) ^ n) *\n          (1 - 1 / (n : ℝ)) ^ ((n : ℝ) / 2) * (∫ y, f y ∂ν) := by\n  classical\n  let s : ℝ := Real.sqrt κ\n  let r : ℝ := (1 - 1 / (n : ℝ)) * ((s - 1) / (s + 1))\n  let ℓ : ℝ := (4 * (n : ℝ) * s + (s - 1) ^ 2) /\n    (8 * (n : ℝ) * ((n : ℝ) - 1))\n  let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n  let c : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) :=\n    fun O => WithLp.toLp 2 (fun i => (O : Matrix (Fin n) (Fin n) ℝ) i j0)\n  let ν : Measure (EuclideanSpace ℝ (Fin n)) := (orthogonalHaar n).map c\n  let f : EuclideanSpace ℝ (Fin n) → ℝ := fun y =>\n    ((s + 1) * WithLp.ofLp y j0 - (s - 1)) /\n      (1 + r ^ 2 - 2 * r * WithLp.ofLp y j0) ^ ((n : ℝ) / 2)\n  let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n    fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n      (singleBlockPrecision κ O)⁻¹\n  change IsProbabilityMeasure ν ∧ (∀ᵐ y ∂ν, ‖y‖ = 1) ∧\n    (∀ Q : Matrix.orthogonalGroup (Fin n) ℝ,\n      ν.map (fun y => Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin n)\n        (Q : Matrix (Fin n) (Fin n) ℝ) y) = ν) ∧ Integrable f ν ∧ _\n  have hc : Continuous c :=\n    (PiLp.continuous_toLp 2 (fun _ : Fin n => ℝ)).comp\n      (continuous_pi (fun i => continuous_subtype_val.matrix_elem i j0))\n  have hf : Measurable f := by dsimp [f]; fun_prop\n  let := (orthogonalHaar_spec n).1\n  have hprob : IsProbabilityMeasure ν := Measure.isProbabilityMeasure_map hc.measurable.aemeasurable\n  have hnorm (O : Matrix.orthogonalGroup (Fin n) ℝ) : ‖c O‖ = 1 := by\n    have hu := Unitary.map_mem (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin n)) O.property\n    have hh := ContinuousLinearMap.norm_map_of_mem_unitary hu (PiLp.single 2 j0 (1 : ℝ))\n    have he : Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin n)\n        (O : Matrix (Fin n) (Fin n) ℝ) (PiLp.single 2 j0 (1 : ℝ)) = c O := by\n      apply (WithLp.equiv 2 (Fin n → ℝ)).injective\n      change (O : Matrix (Fin n) (Fin n) ℝ) *ᵥ Pi.single j0 1 = fun i =>\n        (O : Matrix (Fin n) (Fin n) ℝ) i j0\n      rw [Matrix.mulVec_single_one]\n      rfl\n    rw [he] at hh\n    simpa [PiLp.norm_single] using hh\n  have hsphere : ∀ᵐ y ∂ν, ‖y‖ = 1 :=\n    (ae_map_iff hc.measurable.aemeasurable\n      (isClosed_eq continuous_norm continuous_const).measurableSet).2\n        (Filter.Eventually.of_forall hnorm)\n  have hinvariant (Q : Matrix.orthogonalGroup (Fin n) ℝ) :\n      ν.map (fun y => Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin n)\n        (Q : Matrix (Fin n) (Fin n) ℝ) y) = ν := by\n    let T := Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin n)\n      (Q : Matrix (Fin n) (Fin n) ℝ)\n    have heq : (fun y => T y) ∘ c = c ∘ (fun O => Q * O) := by\n      funext O\n      apply (WithLp.equiv 2 (Fin n → ℝ)).injective\n      ext i\n      simp [T, c, Matrix.mul_apply, Matrix.mulVec, dotProduct]\n    change ((orthogonalHaar n).map c).map (fun y => T y) = (orthogonalHaar n).map c\n    rw [Measure.map_map T.continuous.measurable hc.measurable, heq,\n      ← Measure.map_map hc.measurable (measurable_const_mul Q), orthogonalHaar_map_mul_left]\n  have hp := PoissonNormalization.selected_gaussian_normalization hn hκ\n  change Integrable (f ∘ c) (orthogonalHaar n) ∧ _ at hp\n  have hL : Integrable f ν :=\n    (integrable_map_measure hf.aestronglyMeasurable hc.measurable.aemeasurable).2 hp.1\n  refine ⟨hprob, hsphere, hinvariant, hL, ?_⟩\n  rw [integral_map hc.measurable.aemeasurable hL.aestronglyMeasurable]\n  exact hp.2\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.ColumnTransport\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "label": "Zhou–Suzuki, B.7: actual first-column transport before Lemma A.1",
+      "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p5",
+      "edition": "arXiv:2610.20492v1",
+      "anchor": "Appendix B.2.2 Proposition B.7 proof, Eq21–24, sentence that O e_1 is uniform on the unit sphere; bounded first-column transport component only, before Lemma A.1 evaluation",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. A bounded source-implicit component of the statement that the first orthogonal column is uniformly spherical, together with transport of the unevaluated selected Gaussian normalization. Identification with canonical normalized surface measure and both Poisson values remain separate.",
+      "scope": "Probability, unit-sphere support, full orthogonal invariance of the actual first-column law and transport of the existing actual signed Gaussian expectation to an absolutely integrable ambient first-column kernel. Canonical normalized surface measure identification/uniqueness and Poisson evaluations remain OPEN; no Eq24 value, positive TV ratio, query/cost, hidden-eigenbasis or main theorem."
+    },
+    "statement": "For natural \\(n\\ge3\\) and real \\(\\kappa\\ge4\\), set \\(s=\\sqrt\\kappa\\), \\(r=(1-1/n)(s-1)/(s+1)\\), \\(\\ell=(4ns+(s-1)^2)/(8n(n-1))\\), and \\(\\beta=(-1)^{n-1}(s-1)^{n-1}(1-1/n)^{n/2}/(s+1)^n\\). Let \\(\\mu\\) be normalized Haar probability on full \\(O(n)\\), \\(c(O)=Oe_1\\) in genuine Euclidean space and \\(\\nu=c_*\\mu\\). Put \\(f(y)=((s+1)y_1-(s-1))/(1+r^2-2ry_1)^{n/2}\\), using real half-dimension powers. Let \\(A_O=((\\kappa+1)/2)I-((\\kappa-1)/4)(O+O^\\top)\\), \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\), and \\(H_\\gamma(\\ell)=\\mathbb E_\\mu[\\det(O)\\int e^{-\\ell\\|x\\|_2^2}\\,d\\gamma_O]\\). Then \\(\\nu\\) is a probability, \\(\\|y\\|_2=1\\) almost surely, \\(Q_*\\nu=\\nu\\) for every fixed full orthogonal matrix \\(Q\\), \\(f\\in L^1(\\nu)\\), and \\(H_\\gamma(\\ell)=\\beta\\int f\\,d\\nu\\). This does not yet identify \\(\\nu\\) with canonical normalized surface measure or give either Poisson integral value.",
+    "formulae": [
+      {
+        "label": "Actual Gaussian-to-column transport",
+        "tex": "H_\\gamma(\\ell)=\\beta_{n,\\kappa}\\int f\\,d\\nu,\\qquad f\\in L^1(\\nu)."
+      }
+    ],
+    "assumptions": [
+      "Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including \\(\\kappa=4\\). All parameter divisions are real, and \\(n/2\\) is a real exponent even for odd dimensions.",
+      "\\(\\mu\\) is the existing actual normalized Haar probability on full \\(O(n)\\), including reflections. \\(c(O)=Oe_1\\) uses the Euclidean l2 norm, and \\(\\nu=c_*\\mu\\) is its literal ambient pushforward.",
+      "Probability, unit-sphere support, invariance and absolute L1 are proved conclusions. The quotient need not be continuous or have positive denominator off the support; global Borel measurability suffices for transport. No sphere law or Poisson identity is a caller premise."
+    ],
+    "obligations": [
+      {
+        "id": "actual-column-selected-gaussian-transport",
+        "label": "Actual full-Haar column probability/support/invariance and selected-kernel L1/integral transport"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.ColumnTransport.selected_column_transport",
+      "kind": "theorem",
+      "title": "The actual first-column law",
+      "reading_layout": "progressive",
+      "reader_note": "The column law and integral transport are proved; canonical surface identification and Poisson evaluation remain open.",
+      "statement": "Move the selected Gaussian expectation to the actual Euclidean first-column distribution, preserving probability, sphere support and full orthogonal invariance.",
+      "formula": "H_\\gamma(\\ell)=\\beta_{n,\\kappa}\\int f\\,d\\nu,\\qquad f\\in L^1(\\nu).",
+      "assumptions": [
+        "Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including \\(\\kappa=4\\). All parameter divisions are real, and \\(n/2\\) is a real exponent even for odd dimensions.",
+        "\\(\\mu\\) is the existing actual normalized Haar probability on full \\(O(n)\\), including reflections. \\(c(O)=Oe_1\\) uses the Euclidean l2 norm, and \\(\\nu=c_*\\mu\\) is its literal ambient pushforward.",
+        "Probability, unit-sphere support, invariance and absolute L1 are proved conclusions. The quotient need not be continuous or have positive denominator off the support; global Borel measurability suffices for transport. No sphere law or Poisson identity is a caller premise."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(s,r,\\ell,\\beta\\)",
+          "text": "The identical source-selected parameters and coefficient, with real dimension arithmetic.",
+          "formula": "\\begin{aligned}s&=\\sqrt\\kappa,& r&=\\left(1-\\frac1n\\right)\\frac{s-1}{s+1},\\\\\\ell&=\\frac{4ns+(s-1)^2}{8n(n-1)},&\\beta_{n,\\kappa}&=\\frac{(-1)^{n-1}(s-1)^{n-1}}{(s+1)^n}\\left(1-\\frac1n\\right)^{n/2}.\\end{aligned}"
+        },
+        {
+          "symbol": "\\(c,\\nu,f\\)",
+          "text": "Index zero in Fin n is the source first coordinate. The measure is an actual pushforward; standard surface-measure equality is still open.",
+          "formula": "c(O)=Oe_1,\\qquad\\nu=c_*\\mu,\\qquad f(y)=\\frac{(s+1)y_1-(s-1)}{(1+r^2-2ry_1)^{n/2}}."
+        },
+        {
+          "symbol": "\\(A_O,\\gamma_O,H_\\gamma\\)",
+          "text": "Literal source precision and the actual canonical Gaussian expectation. The rotation in the conclusion is the ordinary Euclidean matrix action.",
+          "formula": "\\begin{aligned}A_O&=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top),\\\\\\gamma_O&=\\mathcal N(0,A_O^{-1}),\\\\H_\\gamma(\\ell)&=\\mathbb E_\\mu\\!\\left[\\det(O)\\int e^{-\\ell\\|x\\|_2^2}\\,d\\gamma_O\\right].\\end{aligned}"
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use the actual column pushforward",
+          "text": "Each matrix entry varies continuously with O. The Euclidean identification preserves this continuity, so the column map is measurable and pushes the existing full-Haar probability to a probability.",
+          "formula": "\\nu=c_*\\mu,\\qquad\\nu(\\mathbb R^n)=\\mu(O(n))=1.",
+          "lean": "hc uses PiLp.continuous_toLp and continuous matrix entries. hprob consumes the identical OrthogonalHaar.orthogonalHaar_spec and canonical Measure.isProbabilityMeasure_map."
+        },
+        {
+          "title": "Prove genuine Euclidean sphere support",
+          "text": "Transport the orthogonal matrix through the canonical star-algebra equivalence to Euclidean continuous linear maps. Its unitary norm-preservation acts on the first unit basis vector. The resulting column has norm one for every O, hence also almost surely under its pushforward.",
+          "formula": "\\|c(O)\\|_2=\\|Oe_1\\|_2=\\|e_1\\|_2=1,\\qquad\\nu\\{y:\\|y\\|_2=1\\}=1.",
+          "lean": "hnorm calls Unitary.map_mem and ContinuousLinearMap.norm_map_of_mem_unitary on Matrix.toEuclideanCLM, then Matrix.mulVec_single_one and PiLp.norm_single. hsphere applies ae_map_iff to the measurable norm level set. No l-infinity norm proxy is used."
+        },
+        {
+          "title": "Preserve the full orthogonal action",
+          "text": "The actual matrix action commutes with taking the first column by left multiplication. Full Haar invariance, including reflections, therefore gives invariance of the literal column law. This alone is not an identification with canonical surface measure.",
+          "formula": "Qc(O)=c(QO),\\qquad Q_*\\nu=c_*((L_Q)_*\\mu)=c_*\\mu=\\nu.",
+          "lean": "hinvariant proves the exact equivariance identity, reuses Measure.map_map twice and calls the identical compiled OrthogonalHaar.orthogonalHaar_map_mul_left. Q is an arbitrary element of full O(n), not SO(n)."
+        },
+        {
+          "title": "Transport absolute integrability on the actual support",
+          "text": "The normalized scalar Haar kernel is exactly f composed with c. Its existing absolute integrability transfers through the measurable pushforward. The ambient quotient is Borel measurable; no off-sphere positivity or continuity is asserted.",
+          "formula": "q(O)=f(c(O)),\\qquad q\\in L^1(\\mu)\\Longrightarrow f\\in L^1(c_*\\mu).",
+          "lean": "hf is global Borel measurability of the literal totalized real quotient. hp consumes the identical PoissonNormalization.selected_gaussian_normalization; hL uses integrable_map_measure with its actual L1 conclusion and the proved measurable c. Positivity and the chosen tilt are supplied by the existing producer, never extra hypotheses."
+        },
+        {
+          "title": "Keep the actual Gaussian expectation attached",
+          "text": "Use change of variables for the same absolutely integrable function. Substitute the transported integral into the existing selected Gaussian normalization. The focused consumer performs the same substitution in the actual determinant-conditioned Gaussian bind-mixture expectation gap, retaining its factor two.",
+          "formula": "\\int f\\,d\\nu=\\int f(c(O))\\,d\\mu,\\qquad H_\\gamma(\\ell)=\\beta_{n,\\kappa}\\int f\\,d\\nu.",
+          "lean": "The final equality directly uses integral_map and hp.2. Tests.GaussianComplexityColumnTransport composes this exact declaration with MixtureExpectation.actual_mixture_expectation_gap; neither a canonical sphere law nor a Poisson value is assumed."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.PoissonNormalization.selected_gaussian_normalization",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_map_mul_left"
+      ],
+      "mathlib_dependencies": [
+        "PiLp.continuous_toLp",
+        "Continuous.matrix_elem",
+        "Measure.isProbabilityMeasure_map",
+        "Unitary.map_mem",
+        "ContinuousLinearMap.norm_map_of_mem_unitary",
+        "Matrix.toEuclideanCLM",
+        "Matrix.mulVec_single_one",
+        "PiLp.norm_single",
+        "ae_map_iff",
+        "Measure.map_map",
+        "integrable_map_measure",
+        "integral_map"
+      ],
+      "lean_statement": "Exact preproof signature: only source n>=3 and kappa>=4; actual column law and every analytic side condition are outputs.",
+      "lean_proof": "Canonical unitary norm preservation, literal equivariance, full-Haar invariance and measurable integral transport join the existing actual Gaussian normalization.",
+      "sources": [
+        {
+          "label": "Zhou–Suzuki, B.7: actual first-column transport before Lemma A.1",
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p5",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Appendix B.2.2 Proposition B.7 proof, Eq21–24, sentence that O e_1 is uniform on the unit sphere; bounded first-column transport component only, before Lemma A.1 evaluation",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. A bounded source-implicit component of the statement that the first orthogonal column is uniformly spherical, together with transport of the unevaluated selected Gaussian normalization. Identification with canonical normalized surface measure and both Poisson values remain separate.",
+          "scope": "Probability, unit-sphere support, full orthogonal invariance of the actual first-column law and transport of the existing actual signed Gaussian expectation to an absolutely integrable ambient first-column kernel. Canonical normalized surface measure identification/uniqueness and Poisson evaluations remain OPEN; no Eq24 value, positive TV ratio, query/cost, hidden-eigenbasis or main theorem."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityColumnTransport"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.ColumnTransport.selected_column_transport",
+      "role": "proof-edge",
+      "supports": [
+        "actual-column-selected-gaussian-transport"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "B7 n>=3, kappa>=4, actual full orthogonal Haar and source Gaussian.",
+        "lean": "Exactly those public assumptions and objects; actual first-column probability, l2 support, full orthogonal invariance and L1 are conclusions."
+      },
+      {
+        "source": "The source states that Oe1 is uniform on the sphere before applying A1, and leaves the probability/support/invariance and pushforward bookkeeping implicit.",
+        "lean": "Proves the actual column-law probability/support/invariance and selected-kernel integral transport only; canonical normalized surface identification/uniqueness and Poisson values remain explicit residuals."
+      }
+    ]
+  }
+}

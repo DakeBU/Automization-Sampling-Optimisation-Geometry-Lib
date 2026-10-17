@@ -912,3 +912,21 @@ Actual sphere pushforward and Poisson values, evaluated Eq24, positive TV
 first ratio, amplification, oracle/query/cost and hidden-eigenbasis results
 and both mains remain open. Frozen integration/publication and postmerge
 purification are separate; no self-VERIFIED/Registry promotion.
+
+
+## Actual full-Haar first-column transport
+
+ColumnTransport.selected_column_transport proves probability, genuine Euclidean
+l2 sphere support, full orthogonal invariance and absolute L1 for the literal
+first-column pushforward. It transports the existing selected actual signed
+Gaussian expectation to this same law. The concrete consumer transports the
+actual determinant-conditioned Gaussian bind-mixture expectation gap, preserving
+the factor two. Exact canonical Haar, unitary norm and measure-map primitives
+are reused without new generic wrappers.
+
+Canonical normalized surface identification/uniqueness, both Poisson values
+and evaluated Eq24 remain open. Invariance is not labelled a compiled surface
+measure equality. Positive TV/amplification, exact matvec and worst-query/cost
+adapters, hidden-eigenbasis and main results also remain open. Source topology,
+blind decoding and current source/exposition review are distinct from final
+immutable integration, public deployment and postmerge purification.

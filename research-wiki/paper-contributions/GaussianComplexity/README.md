@@ -511,3 +511,41 @@ The result remains local PROVED_LOCAL. Independent commit-bound admission,
 public upload, integration, merge and purification remain separate. Gaussian
 law/density identification, original-mixture spatial Fubini/H(lambda), both
 main lower bounds and the overall Goal remain open.
+
+
+## Literal mixture transform: genuine joint L1 and Fubini
+
+The source H definition, Ex58 and Ex60-to-Eq21 calculation now have one actual
+integration consumer: `MixtureFubini.literal_mixture_transform`. Under unchanged
+n>=3, kappa>=4 and ell>=0, both original and radial determinant-weighted literal
+integrands are genuinely absolutely L1 on the identical full-O(n) Haar probability
+times canonical Euclidean volume. Two legitimate Fubini swaps join the original
+nested transform to the exact Eq21 scalar expectation.
+
+The proof actually calls canonical `singleBlockPrecision_regular`,
+`KernelAxis.signed_kernel_radial` and `RadialIntegral.radialized_test_integral`,
+with the same literal precision and actual Haar/spec. Two reachable private
+providers use existing GaussianFourier integrability and a compact continuous
+prefactor bound. The latter is sufficient for joint L1, but is distinguished
+from the sharp source Ex59 prefactor (kappa/(2pi))^(n/2), which is not separately
+claimed compiled. Prior B6 sharp-minor/path estimates retain their already
+disclosed parent source-only status.
+
+The exact preproof statement was independently source-reviewed and sealed.
+The first locator-access gap was corrected before sealing and its original
+rejection record is preserved; it was not a mathematical/source correction.
+The independent strict source topology inventory covers50 nodes,34 AND/OR
+edges and5 exclusions. These are reviewed source ingredients and alternatives,
+not50 public Lean declarations. The exact public signature stayed unchanged.
+Production2829jobs and expanded anonymous type/reference checks passed; focused
+endpoint tests and fresh independent anonymous/whole-module source/exposition
+reviews are recorded separately in the accepted packet.
+
+This theorem concerns explicit real functions. Actual Gaussian-law/density
+identification, law normalization/covariance and target-mixture/TV interpretation
+remain open, as do sphere/Poisson, parameter choice, sign separation,
+amplification/transcript, hidden-eigenbasis and both main lower bounds. A
+conceptual analogy cannot substitute for those adapters. Both oracle/cost routes
+and the other ASTIS integration queues remain unchanged. Local compilation,
+independent admission, integration/publication, merge and purification remain
+separate; no self-VERIFIED or whole-Goal completion is claimed.

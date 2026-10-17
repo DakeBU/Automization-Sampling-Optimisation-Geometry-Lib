@@ -169,6 +169,7 @@ def current_attr(current: str, target: str) -> str:
 
 
 def sidebar_directory(rel_path: str, pages: list[dict[str, object]]) -> str:
+    import samplewiki_navigation
     setting_links = []
     for page in pages:
         setting_slug = str(page.get("setting_slug", ""))
@@ -177,7 +178,7 @@ def sidebar_directory(rel_path: str, pages: list[dict[str, object]]) -> str:
             f'<a href="{html.escape(href_from(rel_path, target), quote=True)}"'
             f'{current_attr(rel_path, target)}>{html.escape(str(page.get("setting_title", setting_slug)))}</a>'
         )
-    return f"""
+    return samplewiki_navigation.paper_directory(rel_path) + f"""
 <section class="sidebar-group sw-sidebar-directory" data-samplewiki-directory="true">
   <h2>SampleWiki contents</h2>
   <nav>
@@ -185,7 +186,7 @@ def sidebar_directory(rel_path: str, pages: list[dict[str, object]]) -> str:
     <a href="{html.escape(href_from(rel_path, PROGRESS), quote=True)}"{current_attr(rel_path, PROGRESS)}>Current progress</a>
     <a href="{html.escape(href_from(rel_path, FRONTIER), quote=True)}"{current_attr(rel_path, FRONTIER)}>Open frontier</a>
   </nav>
-  <details class="sw-sidebar-settings" open>
+  <details class="sw-sidebar-settings">
     <summary>Settings</summary>
     <nav>{''.join(setting_links)}</nav>
   </details>

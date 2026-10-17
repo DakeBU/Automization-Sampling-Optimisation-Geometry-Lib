@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 
 import samplewiki_math_render
+import samplewiki_navigation
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -518,7 +519,7 @@ def overview_main(
     if active_case:
         audit = audit_for(active_case, audits)
         focus = (
-            '<section class="sw-overview-focus"><div class="sw-reader-step">Current formalization focus</div>'
+            '<section class="sw-overview-focus"><div class="sw-reader-step">Textbook-linked case study</div>'
             f'<h2>{esc(active_case.get("algorithm_or_model", ""))}</h2>'
             + preview_formula(active_case, audit)
             + f'<a href="{esc(href_from(OVERVIEW, case_path(active_id)))}">Open theorem, proof route, and Lean boundary →</a></section>'
@@ -527,22 +528,22 @@ def overview_main(
 <article class="sw-casebook-home">
   <header class="sw-casebook-header sw-casebook-home-header">
     <div class="sw-casebook-kicker">Sampling frontier · source-linked theorem casebook</div>
-    <h1>SampleWiki in ASTIS</h1>
-    <p class="sw-casebook-lede">A mathematical reading interface for frontier sampling results. Every case separates what the source states, how the proof runs, what assumptions are inherited, and what Lean has actually verified.</p>
+    <h1>SampleWiki</h1>
+    <p class="sw-casebook-lede">Sampling papers, explained step by step. Start with the mathematics; open the verified Lean when you need it.</p>
     <div class="hero-actions"><a class="button" href="{esc(href_from(OVERVIEW, PROGRESS))}">Formalization progress</a><a class="button" href="{esc(href_from(OVERVIEW, FRONTIER))}">Open frontier</a></div>
   </header>
-  <section class="sw-overview-focus" id="cross-library-state-preparation">
-    <div class="sw-reader-step">Cross-library worked problem · sampling structure meets quantum state preparation</div>
-    <h2>Smooth auxiliary states for Schrödingerisation of PDEs</h2>
-    <p>Jin–Liu–Ma’s Schrödingerisation construction for PDEs with physical boundary or interface conditions introduces a smooth auxiliary \(p\)-register initial state. If its \(2^{{n_p}}\) grid amplitudes are treated as unrelated data, generic loading is exponential in the register width. QuantumComputinglib/ASPBE instead exploits the exact Hermite–Bernstein/tensor-train representation and proves a constructive circuit bound</p>
-    <div class="formula sw-casebook-formula">\[G\le 48n_p(2k+6)^3,\qquad q=\lceil\log_2(2k+6)\rceil.\]</div>
-    <p>Thus, for fixed smoothness order \(k\), the gate count is <strong>linear in \(n_p\)</strong>, rather than the generic \(\Theta(2^{{n_p}})\) amplitude-loading dependence. This is a SampleWiki-style lesson beyond sampling itself: the decisive question is often whether analytical structure exposes a bounded-memory representation before one accepts a black-box oracle or dense table.</p>
-    <p class="sw-primary-source"><a href="https://arxiv.org/abs/2403.19123v3">Jin–Liu–Ma: source PDE / Schrödingerisation construction</a> · <a href="https://arxiv.org/abs/2005.04351">Holmes–Matsuura: prior smooth-function-to-MPS state-preparation route</a></p>
-    <p><a class="button" href="https://dakebu.github.io/Quantum-Computing-Block-Encoding/example-cases/hermite-smooth-state-preparation/index.html">Open the Lean-verified QuantumComputinglib construction and proof →</a></p>
-    <p class="sw-provenance-code">Cross-library pointer only: Samplinglib does not claim this quantum theorem as a local Lean result, and the general function-to-MPS idea is prior art.</p>
-  </section>
-  <section><div class="sw-reader-step">Choose a mathematical regime</div><div class="sw-setting-book-list">{''.join(cards)}</div></section>
-  {focus}
+  {samplewiki_navigation.paper_cards(OVERVIEW)}
+  <details class="sw-secondary-reading"><summary>Browse other sampling regimes</summary>
+    <div class="sw-setting-book-list">{''.join(cards)}</div>{focus}
+  </details>
+  <details class="sw-secondary-reading" id="cross-library-state-preparation">
+    <summary>Across libraries: quantum state preparation</summary>
+    <h3>Smooth auxiliary states for Schrödingerisation of PDEs</h3>
+    <p>A separate worked example studies structured state preparation for Jin–Liu–Ma’s PDE construction.</p>
+    <p><a href="https://dakebu.github.io/Quantum-Computing-Block-Encoding/example-cases/hermite-smooth-state-preparation/index.html">Read the QuantumComputinglib construction and proof →</a></p>
+    <p class="sw-primary-source"><a href="https://arxiv.org/abs/2403.19123v3">Jin–Liu–Ma: PDE construction</a> · <a href="https://arxiv.org/abs/2005.04351">Holmes–Matsuura: prior state-preparation route</a></p>
+    <p class="sw-provenance-code">External pointer, not a Samplinglib-owned Lean theorem. The general function-to-MPS idea is prior art.</p>
+  </details>
 </article>
 """
 
@@ -635,6 +636,12 @@ def write_final(path: Path, rel_path: str, body: str) -> None:
     text = path.read_text(encoding="utf-8")
     text = replace_main(text, body, rel_path)
     text = add_style(text, rel_path)
+    if samplewiki_navigation.STYLE_NAME not in text:
+        href = href_from(rel_path, 'assets/' + samplewiki_navigation.STYLE_NAME)
+        text = text.replace('</head>', f'<link rel="stylesheet" href="{esc(href)}">\n</head>', 1)
+    if samplewiki_navigation.SCRIPT_NAME not in text:
+        src = href_from(rel_path, 'assets/' + samplewiki_navigation.SCRIPT_NAME)
+        text = text.replace('</head>', f'<script defer src="{esc(src)}"></script>\n</head>', 1)
     # Raw crawler row text remains in source-index JSON only, never in reader HTML.
     text = re.sub(r'<details class="sw-raw-row">.*?</details>', "", text, flags=re.S)
     path.write_text(text, encoding="utf-8", newline="\n")
@@ -729,6 +736,7 @@ def enrich_site(output: Path = DEFAULT_OUTPUT) -> None:
     asset_dir = output / "assets"
     asset_dir.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(STYLE_PATH, asset_dir / STYLE_NAME)
+    samplewiki_navigation.install_style(output)
 
     by_setting: dict[str, list[dict[str, Any]]] = {}
     for case in cases:

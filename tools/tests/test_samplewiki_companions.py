@@ -86,10 +86,20 @@ class CompanionTests(unittest.TestCase):
         for row in [*m['cases'],m['composition']]:
             for theorem in row['theorems']:
                 text=companion.theorem_html(m,row,theorem)
-                self.assertEqual(text.count('<details '),2+len(theorem['steps']))
+                self.assertEqual(text.count('<details '),3+len(theorem['steps']))
                 self.assertNotIn('<details open',text)
                 self.assertLess(text.index('Lean statement'),text.index('Proof architecture and calculations'))
                 self.assertLess(text.index('Lean proof'),text.index('Strict boundary'))
+
+    def test_known_source_notation_is_typeset_without_changing_metadata(self):
+        text = 'R_2(mu_0||pi) <= Delta; ||grad V(x_ref)|| <= sqrt(alpha d).'
+        rendered = companion.reader_prose(text)
+        self.assertIn(r'\(R_2(\mu_0\Vert\pi)\)', rendered)
+        self.assertIn(r'\(\|\nabla V(x_{\mathrm{ref}})\|\)', rendered)
+        self.assertIn('≤', rendered)
+        self.assertNotIn(r'\(\(', rendered)
+        self.assertEqual(companion.reader_prose('<script>not mathematics</script>'),
+                         '&lt;script&gt;not mathematics&lt;/script&gt;')
 
     def test_overlay_does_not_create_compiler_edges(self):
         b=GraphBuilder(); counts=companion.add_to_graph(b)

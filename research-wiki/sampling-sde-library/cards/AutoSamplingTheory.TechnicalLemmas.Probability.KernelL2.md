@@ -40,3 +40,7 @@ The source-neutral generic interface does not complete either actual adapter,
 process restart/semigroup, density evolution, hypocoercivity, quantitative
 convergence, implementation/cap/error/cost, warm-start composition or any paper.
 Independent verification, root integration, merge and PURIFIED remain distinct.
+
+Integration checkpoint: focused producer/test PASS2910 jobs; canonical ASTIS
+root/Tests PASS9565 jobs at1514d9e09, candidate Registry568. This is not evidence
+that the two planned actual-process adapters have been implemented.

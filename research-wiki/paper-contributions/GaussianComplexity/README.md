@@ -772,3 +772,19 @@ their test expectations with the conditional nested integrals, prove the H-to-TV
 adapter, or prove spherical/Poisson, transcript, parameter or either main query
 lower-bound result. The hidden-eigenbasis route, deterministic query cap, exact
 matvec oracle, TV convention and parameter contracts are unchanged.
+
+Validation at immutable proof commit
+`3b1fe108dfde806011500a5961704dff37c3967f` passed the canonical aggregate:
+9240 library jobs, 9559 root test jobs, ATLAS36469 declarations in26 books and
+the forbidden-closure scan. The source-bound site receipt matches digest
+`1dc2f56f3a0674c6da109a1f2107723a3b1da3d7a15cb495d71cb334200a94f2`.
+Frozen site build and full check passed:1027 modules,5101 declarations and77
+reviewed teaching declarations. Required graph coverage has zero omissions.
+Actual local browser inspection confirmed six rendered formulas, five proof
+steps, no formula errors, no initially open Lean and no horizontal overflow.
+The focused graph retains solid structure, dashed source/fidelity relations
+and PARTIAL/source-present status. Independent commit-bound integration review
+accepted this exact proof commit and preserved the other queues and ledgers.
+This README-only validation note changes no mathematical or generated-site
+inputs. Public merge, deployment and post-merge purification are separate;
+the packet remains PROVED_LOCAL rather than self-promoted VERIFIED.

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-6e49b66b5dc544db",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ),\n    let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n    let U : Matrix.orthogonalGroup (Fin n) ℝ → ℝ :=\n      fun O => (O : Matrix (Fin n) (Fin n) ℝ) j0 j0\n    let a : Matrix.orthogonalGroup (Fin n) ℝ → ℝ :=\n      fun O => κ + 1 + 4 * ℓ - (κ - 1) * U O\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n          Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n            ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)) *ᵥ WithLp.ofLp x)) / 2)\n    let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)))⁻¹\n    (∀ O, Integrable t (γ O) ∧ Integrable (fun x => t x * p O x) volume ∧\n      (∫ x, t x ∂γ O) = ∫ x, t x * p O x) ∧\n    Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x ∂γ O)) ((Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))) ∧\n    (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x ∂γ O) ∂(Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))) =\n      ((-1 : ℝ) ^ (n - 1) * (Real.sqrt κ - 1) ^ (n - 1) /\n        (2 : ℝ) ^ ((n : ℝ) / 2)) *\n        (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n          ((Real.sqrt κ + 1) * U O - (Real.sqrt κ - 1)) /\n            (a O) ^ ((n : ℝ) / 2) ∂(Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))))",
+    "statement_sha256": "6e49b66b5dc544db070e792b7dfff8c0fb67cb607b5c6cb9a63ffc5464281e73",
+    "compiled": true,
+    "approved_definition_context": [
+      "The orthogonal group is full real O(n), both determinant signs, with inherited matrix Borel structure. Measure.haarMeasure(top : PositiveCompacts G) is the existing canonical normalized full-group Haar probability.",
+      "EuclideanSpace R (Fin n) uses the true Euclidean norm and canonical volume. WithLp.ofLp supplies coordinates and does not replace that norm with a Pi sup norm. All dimension-half powers use real division; n-1 uses natural subtraction.",
+      "The existing multivariateGaussian zero covariance C is the pushforward of canonical stdGaussian by z -> Matrix.toEuclideanCLM (CFC.sqrt C) z. Matrix inverse is the existing nonsingular inverse; the displayed source precision is positive definite in the numerical range, internally justified by existing results. No new Gaussian law is defined.",
+      "Integrable means genuine absolute Bochner L1 under the displayed measure. The first conjunction gives test Gaussian L1, weighted-volume L1 and pointwise equality; the second gives outer signed Haar L1, then the exact signed average. All L1 and transport claims are conclusions."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "af984eb4a939433d7c2d933bc1f8aceac1e21909938626e4e4ecabb0f0dc49a2"
+}

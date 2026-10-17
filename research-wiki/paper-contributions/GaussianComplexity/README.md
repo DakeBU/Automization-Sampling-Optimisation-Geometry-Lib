@@ -656,3 +656,43 @@ public upload/integration, merge and purification remain separate. Target
 mixtures/H-to-TV, sphere/Poisson, both main lower bounds and the overall Goal
 remain open. The fixed-spectrum consumer is planned and requires its own SPD
 adapter; no determinant-sign lower bound is transferred to that route.
+
+
+## Actual signed Gaussian expectation through Eq21
+
+`GaussianExpectation.actual_gaussian_transform` now makes the density-based H
+calculation an actual canonical Gaussian test-expectation calculation. Under
+unchanged n>=3,kappa>=4,ell>=0, every full-O input has genuine test Gaussian L1,
+genuine weighted Euclidean-volume L1, and equality between the two actual
+integrals. The signed Gaussian expectation is itself absolutely Haar L1 and its
+Haar average equals the exact Eq21 coefficient and O11 scalar expectation.
+
+The proof derives continuity and 0<t<=1 from ell>=0, uses actual canonical
+Gaussian probability for test L1, and calls the identical
+`GaussianLawDensity.gaussian_law_eq_density`. Nonnegative finite measurable p_O
+allows the existing Mathlib withDensity integrability and Bochner-integral APIs
+to supply weighted-volume L1 and exact expectation transport. The identical
+`MixtureFubini.literal_mixture_transform` supplies joint L1; its integrated
+sections give outer Haar L1. The same pointwise transport and exact literal
+Eq21 parent then evaluate the actual signed Gaussian expectation. No new
+Gaussian/Haar constructor, generic withDensity wrapper or copied Fubini proof
+is introduced. No measurability or L1 conclusion is a public premise.
+
+The exact statement was independently source-reviewed and sealed before proof.
+A separate source-only topology review covers22nodes,18ANDedges,14exclusions;
+these are source/background ingredients, not22public Lean theorems. Production
+3129jobs and focused Tests3131jobs passed. The tests exercise n3,kappa4,ell0
+real p_O-volume integral1 and actual endpoint signed Haar L1, plus n4,kappa4,
+ell1 actual Gaussian test expectation with exact -1/4 coefficient and denominator
+9-3U. Only the usual three axioms occur. Expanded anonymous type and actual
+compiled references to the same density, Fubini, Haar and transport APIs pass.
+
+The source H definition is literally written using p_O. This packet rigorously
+identifies that H with the actual Gaussian signed test expectation; it does not
+construct determinant-conditioned target-mixture measures, prove component
+half-mass, or implement Ex57/Eq20 H-to-TV. Sphere/Poisson, parameter choice,
+amplification/transcript/eigenbasis and both main lower bounds remain open.
+Sharp Ex59/B6 estimates retain the unchanged disclosed parent boundaries. Both
+oracle/cost routes and the other ASTIS queues remain unchanged. Local proof,
+independent commit-bound admission, public integration and purification remain
+separate, and the overall Goal remains unfinished.

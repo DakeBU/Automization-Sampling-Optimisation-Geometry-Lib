@@ -1,6 +1,21 @@
 # Invariant-kernel L2: integration checkpoint, 2026-10-17
 
 This is the main harness's integration record, not an independent review.
+
+PR332 actually merged at1ce5654b33fa45c5a2a217eb31536102b5c1b103.
+Exact head78f9a93d4 passed all three CI lanes: contributor39026320307,
+site39026320224 and formalization39026320215. Incoming main45daa576d's
+Gaussian mixture laws and all append-only records were retained. The final
+local canonical gate passed9567 jobs; source digest
+4a98805c147d23ad662a99558b91d25e3a6c90f42935a90dd464944f66ac4767.
+Final site build/check passed12chapters,1033modules,5109declarations and77
+reviewed teaching declarations. Registry568 is now on main. The normal MERGED
+API releases the old integration lease. Main Pages run39044611271 completed
+both website-first reader build and deploy website successfully, including
+Chromium peer-reader/math/graph/mobile validation. HTTP200 was checked for the
+SampleWiki directory and all four paper companions after that deployment.
+PURIFIED remains a separate gate; full papers remain0/4.
+
 The original reviewer evidence remains unchanged in
 `invariant-kernel-l2-independent-verification.json`; its canonical semantic
 projection is `ASTIS-RT-20261017-InvariantKernelL2`.

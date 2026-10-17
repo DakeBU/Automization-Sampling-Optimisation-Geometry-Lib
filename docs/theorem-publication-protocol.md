@@ -1,7 +1,7 @@
 # Theorem publication: mathematics once, reader views automatically
 
 For SampleWiki paper entry points and progressive disclosure, follow the compact
-[paper-first reader contract](samplewiki-reader-navigation.md); exact reviewed
+[unified SampleWiki reader contract](samplewiki-reader-navigation.md); exact reviewed
 content and canonical status bindings remain the source of truth.
 
 Applies to **every new or changed production declaration** in every ASTIS route,

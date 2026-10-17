@@ -286,8 +286,7 @@ def comparison_html(row):
 
 
 def nav(rel):
-    return (f'<nav class="reader-breadcrumb"><a href="{href_from(rel, "example-cases/samplewiki.html")}">SampleWiki</a> / '
-            f'<a href="{href_from(rel, HOME)}">Sampling papers</a></nav>')
+    return f'<nav class="reader-breadcrumb"><a href="{href_from(rel, samplewiki_navigation.PAPER_HOME)}">SampleWiki</a></nav>'
 
 
 def write(output, rel, title, body):
@@ -298,6 +297,10 @@ def write(output, rel, title, body):
                            active="SampleWiki", description=title + "; source-pinned proof route, local Lean work open.", extra_head=styles)
     page = source_lineage.canonical_shell(page, rel, output)
     page = samplewiki_navigation.inject_paper_directory(page, rel)
+    if rel == HOME:
+        target = href_from(rel, samplewiki_navigation.PAPER_HOME)
+        page = page.replace('</head>', f'<link rel="canonical" href="{target}">'
+                            f'<meta http-equiv="refresh" content="0; url={target}"></head>', 1)
     astis_site.write_page(output, rel, page)
 
 
@@ -432,19 +435,10 @@ def enrich_site(output):
                  + '<p><a href="proof-technology.html">Reusable prerequisites</a> · '
                  '<a href="proof-delta.html">What changes in the proof?</a></p></details>')
         write(output, BASE + row['slug'] + '.html', row['title'], body)
-    priority_ids = {r['id'] for r in samplewiki_navigation.priority_cases(m)}
-    cards = ''.join(f'<li><a href="{r["slug"]}.html">{escape(r["title"])}</a></li>' for r in rows if r['id'] not in priority_ids)
-    sources = ''.join(f'<li><a href="{escape(s["url"])}">{escape(s["title"])}</a> — {escape(", ".join(s["authors"]))}. {escape(s["version"])}. {escape(s["pin_kind"])}.</li>' for s in m['sources'].values())
-    body = ('<header class="paper-reader-header"><h1>Sampling papers</h1><p>Start with a paper. Read the main ideas first, then expand a proof or its checked Lean.</p></header>'
-            + samplewiki_navigation.paper_cards(HOME, m)
-            + '<details class="paper-advanced"><summary>Composition and other research projects</summary><ul>' + cards + '</ul></details>')
-    body += '<details class="paper-advanced"><summary>Compare the proposed proof routes</summary><p>' + escape(m['topology']['change']) + '</p>'
-    body += '<figure><a href="../../../assets/samplewiki-companions.svg"><img src="../../../assets/samplewiki-companions.svg" alt="Three red source cases form a proxy-stable composition route and a separate Gaussian-cloud recursive-accounting route; all formalization remains open."></a><figcaption>Open the SVG to zoom. This is a planned source-interface graph, not the Lean import graph.</figcaption></figure>'
-    body += '<p>' + escape(m['topology']['interpretation']) + '</p>' + ul(m['topology']['chewi_windows'] + m['topology']['other_routes'])
-    body += '<p>' + escape(m['topology']['failure_boundary']) + '</p><p><a href="../../../lean-foundations.html?view=frontier&amp;focus=case%3AASTIS-SW-SPHMC-PBPS-COMPOSITION">Expand this frontier in the interactive proof graph →</a> · <a href="../../../lean-foundations.html?view=functor&amp;focus=transport%3Aproxy-warm-handoff">Inspect the candidate certificate bridge →</a></p></details>'
-    body += f'<section><h2>Reading and formalization order</h2><p>Use the source-case cards as researcher-facing maps. For Picard HMC Part I, read the Section 6 call/error ledger before the detailed lemmas. Formalize dependency-ready common technology before algorithm assemblies; preserved textbook and companion frontiers are not reset.</p><p><a href="proof-technology.html">{len(m["technologies"])} reusable technology contracts and {len(m["next_packets"])} next-packet candidates →</a></p></section>'
-    body += '<details class="paper-advanced"><summary>Attribution and source versions</summary><ul>' + sources + '</ul><p>These are ASTIS mathematical restatements and proof-route explanations, not reproduced paper prose. Licenses are recorded per pinned source; no blanket right to republish paper prose, author endorsement or new Lean certificate is implied.</p></details>'
-    write(output, HOME, m['title'], body)
+    body = ('<header class="paper-reader-header"><h1>SampleWiki</h1>'
+            '<p>The research directory has one home; papers and research problems are not separate libraries.</p></header>'
+            f'<p><a href="{href_from(HOME, samplewiki_navigation.PAPER_HOME)}">Open SampleWiki →</a></p>')
+    write(output, HOME, 'SampleWiki', body)
     techs = {t['id']: t for t in m['technologies']}
     items = []
     for t in m['technologies']:
@@ -462,8 +456,8 @@ def enrich_site(output):
         text = path.read_text(encoding='utf-8')
         if 'data-companion-frontiers="true"' in text:
             continue
-        banner = (f'<nav class="paper-entry-link" data-companion-frontiers="true" aria-label="Sampling papers">'
-                  f'<a href="{href_from(rel, HOME)}">Four sampling papers: PBPS, SPHMC, Gaussian Cloud and Midpoint →</a></nav>')
+        banner = (f'<nav class="paper-entry-link" data-companion-frontiers="true" aria-label="SampleWiki">'
+                  f'<a href="{href_from(rel, samplewiki_navigation.PAPER_HOME)}">SampleWiki research directory →</a></nav>')
         text, count = re.subn(r'(<main\b[^>]*>)', lambda match: match.group(1) + banner, text, count=1)
         if count != 1:
             raise ValueError(f'Missing main for companion entry: {rel}')

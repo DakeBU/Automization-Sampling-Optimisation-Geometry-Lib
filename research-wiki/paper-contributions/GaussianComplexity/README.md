@@ -893,3 +893,22 @@ module. Actual sphere law, Poisson evaluation/Eq24, actual TV first ratio,
 amplification, exact oracle/query/cost adapters, fixed-spectrum eigenbasis
 and both main bounds remain open. Source/semantic, immutable integration,
 publication and postmerge purification remain separate lifecycle gates.
+
+
+## Actual selected Gaussian normalization before Eq24
+
+PoissonNormalization.selected_gaussian_normalization joins the identical
+SelectedTilt and GaussianExpectation nodes. It derives absolute Haar L1 of
+the actual normalized coordinate kernel and the exact selected real-power
+prefactor, including odd dimensions and kappa4. Actual U=O_11 bounds are
+consumed for positivity; no all-real-u positivity is claimed. Canonical
+Mathlib rpow, matrix-coordinate, continuity and compact integration nodes
+are reused directly without generic helper clones.
+
+The focused consumer normalizes the actual determinant-conditioned Gaussian
+bind-mixture expectation gap. Independent source topology, blind decoding
+and fresh whole-module/source/five-step exposition review are separate.
+Actual sphere pushforward and Poisson values, evaluated Eq24, positive TV
+first ratio, amplification, oracle/query/cost and hidden-eigenbasis results
+and both mains remain open. Frozen integration/publication and postmerge
+purification are separate; no self-VERIFIED/Registry promotion.

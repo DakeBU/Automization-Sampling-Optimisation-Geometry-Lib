@@ -327,6 +327,7 @@ import Tests.GaussianComplexityActualTotalVariation
 import Tests.GaussianComplexityNumericSeparation
 import Tests.GaussianComplexitySelectedTilt
 import Tests.GaussianComplexityPoissonNormalization
+import Tests.GaussianComplexityColumnTransport
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

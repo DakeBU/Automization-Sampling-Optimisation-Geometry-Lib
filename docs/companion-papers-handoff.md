@@ -1,5 +1,94 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS half-turn detailed balance (2026-10-17)
+
+Current sole STABILIZING owner: `root_20261017`. The SAME actual returned-position
+kernel satisfies every-y measurable-rectangle detailed balance under the
+original six analytic inputs; raw construction and initialization are retained.
+Producer/focused test PASS3251 jobs. Independent source-blind audit
+`ASTIS-RT-20261017-PBPSActualHalfTurnReversibility` is accepted in all seven slots;
+the fresh reviewer compiled producer/test natively, scanned47 local imports,
+and published VERIFIED with explicit human authorization. Exact source81ff8936,
+test989cf7d1, reviewed commitcffd16e6, binding6334034c. Read
+`research-wiki/paper-contributions/PBPS/actual-half-turn-reversibility-verification.json`.
+
+Pre-gate integration checkpoint: Registry566/root import/assertion, one module
+card and two bounded retrieval-index records are prepared; aggregate/site and
+remote PR gates remain separate. Main565 is the actual PR327 baseline below.
+No restart/semigroup, augmented L2 realization, hypocoercivity, implementation
+error/cost, initialization/composition or full-paper completion follows.
+Complete papers remain0/4. Next audited mathematical consumer is actual
+Proposition3.4 one-step augmented kernel invariance; it is not implemented or
+sealed. See `actual-half-turn-reversibility-next.md` in the same PBPS directory.
+
+## Actual PBPS invariant phase kernel and L2 realization (2026-10-17)
+
+Previous integration owner: `root_20261016`; its STABILIZING lease is released.
+Independent
+source/compiler reviewer published VERIFIED with explicit human authorization;
+the exact source at52d523ac is unchanged. Registry/root imports are prepared
+(target565; merged continuity baseline564). At exact candidate5c3fcdd1, the
+canonical Lean/Tests9532-job gate and final source-bound site build/check passed.
+PR327 actually merged at202a65e12eba211c21d8a0d7a8b859e0ccbf7f14 after
+contributor/site/formalization CI all passed at exact5c3fcdd1. Registry565 is
+now on main. Purification and deployment acceptance are not inferred.
+Continuity PR325 merged at01f844b6 after all three current-head CI lanes passed.
+The next half-turn result has since passed independent source/compiler review
+and acquired the integration lease; use the newer entry above.
+Complete papers remain0/4.
+Start from `research-wiki/paper-contributions/PBPS/kernel-l2-realization-verification.json`.
+
+## Actual PBPS zero-time L2 strong continuity (2026-10-17)
+
+Read this current entry and the bounded linked plan first. Later sections are
+historical retrieval checkpoints, not instructions to restart older work.
+
+- New declaration: `ActualL2StrongContinuity.actual_l2_strong_continuity` in
+  `AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2StrongContinuity.lean`.
+  Under the original six hypotheses, the SAME actual process/operator family
+  satisfies `A_t f -> f` in real L2 as nonnegative time tends to zero.
+- Independent producer/test compilation and standard-only axioms passed at
+  `eb5f3e75d062428f8ddb219d9dcd3caf56c799ae`; admission checkpoint
+  `be3f02c4f8e086c610f2c42c5ec4b294a09dd915`. Canonical source-blind audit:
+  `ASTIS-RT-20261015-PBPSActualL2StrongContinuity`, equivalent after elaboration.
+- State: MERGED via PR325 at01f844b6 after all current-head CI passed. Registry564
+  (previous563) and root Tests actually passed at9bbaba65: canonical Lake,
+  Tests9530 jobs, ATLAS and ASTIS checks all PASS. Prior private-olean/logoff
+  attempts remain failed diagnostic history; no source/cache/toolchain repair
+  was needed for the passing retry. Exact logs are linked in verification JSON.
+- PR325 head9bbaba65 passed contributor/site and formalization38952824694 CI.
+  Actual merge is recorded above; no deployment/purification is inferred.
+- Final website build/check and graph coverage PASS. Desktop lesson has five
+  rendered MathJax containers, zero errors and four adjacent initially folded
+  Lean steps; step3 expanded and restored. Actual rendered graph inspected:
+  surrounding47-node Fit labels are small, and .prod short-name scan is a known
+  spurious dashed reference, not a formal dependency. No whole-paper/mobile
+  acceptance or purification is claimed; own preview tab/server are closed.
+- A separate reviewed kernel/L2 result is preserved on remote branch
+  `codex/pbps-kernel-l2-realization`, checkpoint `e9c8ab4e`. The original
+  independent reviewer published VERIFIED after explicit human authorization:
+  same actual Z/K/A, invariant state sections, AE fiber realization, positivity
+  and fixed constants. The reviewed code is now on this kernel branch, but
+  Registry565 integration is now prepared in the sole lane, not merged to main.
+  Probability fibers do not prove process Markovness or a restart law.
+- Next shortest source target: actual averaged half-turn detailed balance
+  (Proposition3.2). Reuse the existing returned-position kernel, bounded flip
+  duality and independent reference averaging; do not duplicate an ideal-kernel
+  wrapper. Exact next signature elaboration and independent source/topology
+  prereview passed (digest45ea5cc6); proof is NOT implemented. Register and seal
+  the actual next packet before implementation. Restart/semigroup, hypocoercivity, implementation error,
+  actual-input expected costs and composition remain separate red edges.
+- Continue the full existing four-paper Goal; complete papers remain0/4.
+  Preserve every previous cell/cycle and the lossless historical-evidence
+  on-demand checkout. Do not create a parallel Goal or background ASTIS.
+
+Exact plan, environment lessons and next-source graph:
+`research-wiki/paper-contributions/PBPS/l2-strong-continuity-plan.md`.
+Exact verification and pending gates:
+`research-wiki/paper-contributions/PBPS/l2-strong-continuity-verification.json`.
+Use correct approved D-repo execution context and `LEAN_NUM_THREADS=1` on this
+host; default-sandbox cwd failures are not mathematical counterexamples.
+
 ## Actual PBPS Gaussian position L2 averaging (2026-10-12)
 
 Independent science 86e2da02b6b1a855916adcd46363e34d8a6ecb5b. Original six analytic assumptions and all108

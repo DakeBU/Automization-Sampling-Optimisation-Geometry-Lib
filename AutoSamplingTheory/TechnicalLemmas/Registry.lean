@@ -79,6 +79,9 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualKernelL2Realization
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHalfTurnReversibility
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -123,6 +126,36 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualHalfTurnReversibility"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHalfTurnReversibility.actual_half_turn_reversible"
+    upstreamDecl := "Actual PBPS conditional half-turn detailed balance"
+    upstreamFile := "arXiv2609.06905v1 Proposition3.2, A.1 bounded duality and A.2 independent-reference averaging"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "kernel", "reversibility", "Fubini", "conditional"]
+    saldUse := "Actual augmented PBPS one-step invariance and half-turn operator consumer; no SALD claim"
+    note := "Independent source/compiler verification atcffd16e6a5613cd924bee9dc18ab0af6e5f67a3f; accepted audit ASTIS-RT-20261017-PBPSActualHalfTurnReversibility. Under exactly the original six analytic binders, retain the SAME globally measurable actual returned-position kernel, raw process and local initialization outputs, and prove every-y all-measurable-rectangle detailed balance. Identify raw process witnesses, absorb momentum flips on position tests, derive finite signed Fubini and convert indicator pairings to ENNReal fluxes internally. Planned paper consumer: actual augmented one-step kernel in Proposition3.4. No temporal Markov/restart/semigroup, augmented all-L2 realization, hypocoercivity, simulation errors/caps, actual expected costs, warm start, composition or complete paper. Private adapters are not additional leaves."
+  },
+  {
+    key := "pbps.actualKernelL2Realization"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualKernelL2Realization.actual_kernel_l2_realization"
+    upstreamDecl := "Actual PBPS invariant phase kernel and real-L2 realization"
+    upstreamFile := "arXiv2609.06905v1 Appendix A.1 and Definition D.2, fixed-time observable realization only"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "kernel", "invariance", "representative"]
+    saldUse := "Same-process PBPS transition/operator bridge; no SALD claim"
+    note := "Independent source/compiler verification at52d523aca2aa825fa23d0fc997592b9128468bd2; accepted audit ASTIS-RT-20261016-PBPSActualKernelL2Realization. Original six analytic assumptions only. Identify the joint phase probability kernel with the SAME raw process Z using covered-arc/fallback equality, derive invariant fixed-parameter state fibers, and identify every canonical real-L2 representative with its kernel expectation AE, including fiber integrability. Derive AE order positivity and fixed real constant classes internally, retaining prior zero-time continuity, flip and Gaussian averaging. No process Markovness/restart, Chapman--Kolmogorov/semigroup, adjoint-density statement, independent-reference half-turn, hypocoercivity, simulation errors, actual expected cost, composition or complete paper."
+  },
+  {
+    key := "pbps.actualL2StrongContinuity"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity.actual_l2_strong_continuity"
+    upstreamDecl := "Actual PBPS real-L2 strong continuity at zero"
+    upstreamFile := "arXiv2609.06905v1 Appendix A.1 Proposition A.1(ii), zero-time density argument only"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "L2", "strong-continuity", "dense-core"]
+    saldUse := "Actual same-process PBPS semigroup prerequisite; no SALD claim"
+    note := "Independent exact-commit verification eb5f3e75d062428f8ddb219d9dcd3caf56c799ae and accepted source-blind audit ASTIS-RT-20261015-PBPSActualL2StrongContinuity. Under the original six analytic assumptions, preserve the same actual Z, phase family A, flip J and Gaussian position averaging. Identify bounded-continuous-core representatives, prove their L2 norm-square zero-time limit using the actual clock law, then extend by bounded-continuous density and the closed locus of an equicontinuous contraction family. Every real L2 observable and rank0 included. This adds only zero-time strong continuity: no restart, Chapman--Kolmogorov, semigroup, positive-time continuity, kernel/L2 realization, positivity/constants, independent-reference averaging, hypocoercivity, simulation error, actual expected cost, composition or full-paper completion."
+  },
   {
     key := "pbps.actualPositionL2Averaging"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging.actual_position_l2_averaging"

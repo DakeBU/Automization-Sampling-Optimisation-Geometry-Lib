@@ -480,6 +480,17 @@ class PrivateImplementationCoverageTest(unittest.TestCase):
                 result = p.changed_declarations('HEAD')
                 return result, copy.deepcopy(p.PRIVATE_IMPLEMENTATION_COVERAGE), cover.call_args
 
+    def test_def_projection_is_not_a_declaration_or_an_inventory_bypass(self):
+        source = ('theorem T : True := by\n'
+                  '  rw [(hInv y r t).def, SomeNamespace.def]\n'
+                  '  exact True.intro\n')
+        result, rows, args = self.scan(source, [(1, 'theorem', 'T')])
+        self.assertEqual(result, {'T'})
+        self.assertEqual(rows, [])
+        self.assertIsNone(args)
+        with self.assertRaisesRegex(ValueError, 'unindexed declaration'):
+            self.scan(source + 'def unindexed : Nat := 0\n', [(1, 'theorem', 'T')])
+
     def test_named_and_anonymous_private_implementations_have_explicit_owners(self):
         result, rows, args = self.scan(
             'private def h : Nat := 0\nprivate instance : Nonempty Nat := inferInstance\n'

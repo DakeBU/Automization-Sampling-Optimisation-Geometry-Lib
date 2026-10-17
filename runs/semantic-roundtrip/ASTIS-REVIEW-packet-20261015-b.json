@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-cc2f986d3e684c45",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root_20261015",
+    "blind_decoder": "/root/blind_decoder_20261015_a",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "companion-domain:pbps-actual-l2-strong-continuity",
+    "anchor": "Appendix A.1 Proposition A.1(ii), zero-time strong-continuity paragraph",
+    "original_text": "Under the displayed hypotheses put V_y(x)=V(x)+||x-y||^2/(2 eta), pi_y=volume.tilted(-V_y), gamma=stdGaussian(E) and nu_y=pi_y times gamma. Use the literal fixed-reference PBPS harmonic-flight/bounce recursion with independent unit exponential clocks, covered-arc interpolation and the initial-phase raw fallback. There exists one global jointly measurable actual process Z, and for every center y and reference r a family of continuous real linear operators A_t on L2(nu_y), with A_0=I and ||A_t||<=1. For every raw G with MemLp G 2 nu_y, its clock sections are integrable for nu_y-almost every initial phase, op_t G(z)=integral G(Z(y,r,z,t,w))dP(w) belongs to L2, and A_t[G]=[op_t G]. All previous fixed-time Gibbs invariance, bounded signed duality, flip and Gaussian-averaging conclusions hold on this SAME process and family. In particular the canonical momentum flip J is an involutive isometry, A_t*=J A_t J; the position pullback B is isometric, M=B* is Gaussian integration for arbitrary MemLp representatives, MB=I, JB=B, MJ=M; and K_t=M A_t B is a self-adjoint contraction with K_0=I and its literal Gaussian-outer/clock-inner representative, with both AE integrability obligations retained. In addition, for every f in real L2(nu_y), A_t f tends to f in L2 as nonnegative t tends to zero. No process or operator is substituted. No semigroup law or positive-time continuity is asserted.",
+    "text_sha256": "d0a1a172fbd55f64a0917158575d1f7e106319e8b6d355433f94c871d70d3143"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity.actual_l2_strong_continuity",
+    "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2StrongContinuity.lean",
+    "statement": "{E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) :\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let readTime : Rec → ℝ := fun r => match r with\n      | Sum.inl q => (q.1 : ℝ)\n      | Sum.inr _ => 0\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>\n      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧\n        StrictMono (fun j => readTime (h j)) ∧\n        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}\n    let eventTime : E → E → (E × E) → (ℕ → ℝ) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ w j => (record y xRef z₀ (ε w) j).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    let I : E → E → (E × E) → ℝ≥0 → ℕ → Set (ℕ → ℝ) :=\n      fun y xRef z₀ T n => {w | eventTime y xRef z₀ w n ≤ (T : WithTop ℝ≥0) ∧\n        (T : WithTop ℝ≥0) < eventTime y xRef z₀ w (n + 1)}\n    let N : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → ℕ := fun y xRef z₀ T w =>\n      if h : ∃ n, w ∈ I y xRef z₀ T n then Nat.find h else 0\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let survival : E → E → Rec → ℝ≥0 → ℝ → Prop :=\n      fun y xRef r u e => r.elim\n        (fun a => (u : WithTop ℝ≥0) < τ y xRef a.2 (Real.toNNReal e)) (fun _ => False)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let C : E → E → (E × E) → (n : ℕ) → ℝ≥0 → Set (ℕ → ℝ) :=\n      fun y xRef z₀ n T => {w | history y xRef z₀ n w ∈ A n T ∧\n        survival y xRef (record y xRef z₀ (ε w) n) (d n T (history y xRef z₀ n w)) (w n)}\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let Vy : E → E → ℝ := fun y x => V x + ‖x - y‖ ^ 2 / (2 * η)\n    let nu : E → Measure (E × E) := fun y =>\n      ((volume : Measure E).tilted (fun x => -Vy y x)).prod\n        (ProbabilityTheory.stdGaussian E)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E), w ∈ I y xRef z₀ s n →\n          record y xRef z₀ (ε w) n = Sum.inl a →\n          Z y xRef z₀ s w = Φ y xRef ((s - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        (¬ ∃ n, w ∈ I y xRef z₀ s n) → Z y xRef z₀ s w = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ w ∂P, Z y xRef z₀ 0 w = z₀) ∧\n      (∀ y xRef : E, ∀ T : ℝ≥0,\n        let op : ((E × E) → ℝ) → (E × E) → ℝ :=\n          fun G z => ∫ w, G (Z y xRef z T w) ∂P\n        let endpoint : (E × E) × (ℕ → ℝ) → E × E :=\n          fun a => Z y xRef a.1 T a.2\n        MeasurePreserving endpoint ((nu y).prod P) (nu y) ∧\n        ∀ F G : (E × E) → ℝ, ∀ C_F C_G : ℝ,\n          Measurable F → Measurable G → 0 ≤ C_F → 0 ≤ C_G →\n          (∀ z, |F z| ≤ C_F) → (∀ z, |G z| ≤ C_G) →\n          Integrable (fun z => F z * op G z) (nu y) ∧\n          Integrable (fun z => G (R z) * op (fun a => F (R a)) z) (nu y) ∧\n          (∫ z, F z * op G z ∂nu y) =\n            ∫ z, G (R z) * op (fun a => F (R a)) z ∂nu y) ∧\n      (∀ G : (E × E) → ℝ, Measurable G →\n        Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 =>\n          ∫ w, G (Z a.1.1.1 a.1.1.2 a.1.2 a.2 w) ∂P) ∧\n        ∀ C : ℝ, 0 ≤ C → (∀ z, |G z| ≤ C) →\n          ∀ y xRef : E, ∀ z : E × E, ∀ T : ℝ≥0,\n            Integrable (fun w => G (Z y xRef z T w)) P ∧\n            |∫ w, G (Z y xRef z T w) ∂P| ≤ C) ∧\n      (∀ y xRef : E,\n        ∃ A : ℝ≥0 → (Lp ℝ 2 (nu y) →L[ℝ] Lp ℝ 2 (nu y)),\n          A 0 = ContinuousLinearMap.id ℝ (Lp ℝ 2 (nu y)) ∧\n          (∀ f : Lp ℝ 2 (nu y),\n            Tendsto (fun t : ℝ≥0 => A t f) (𝓝 0) (𝓝 f)) ∧\n          (∀ T : ℝ≥0, ‖A T‖ ≤ 1 ∧\n            ∀ G : (E × E) → ℝ, ∀ hG : MemLp G 2 (nu y),\n              let opG : (E × E) → ℝ := fun z => ∫ w, G (Z y xRef z T w) ∂P\n              (∀ᵐ z ∂nu y, Integrable (fun w => G (Z y xRef z T w)) P) ∧\n              (∃ hOp : MemLp opG 2 (nu y), A T (hG.toLp G) = hOp.toLp opG) ∧\n              (∫ z, |opG z| ^ 2 ∂nu y) ≤ ∫ z, |G z| ^ 2 ∂nu y) ∧\n          ∃ hR : MeasurePreserving R (nu y) (nu y),\n            let J : Lp ℝ 2 (nu y) →ₗᵢ[ℝ] Lp ℝ 2 (nu y) :=\n              Lp.compMeasurePreservingₗᵢ ℝ R hR\n            (∀ f : Lp ℝ 2 (nu y),\n              (J f : (E × E) → ℝ) =ᵐ[nu y] fun z => f (R z)) ∧\n            (∀ f : Lp ℝ 2 (nu y), J (J f) = f) ∧\n            (∀ T : ℝ≥0, (A T).adjoint =\n              J.toContinuousLinearMap.comp ((A T).comp J.toContinuousLinearMap)) ∧\n            let mu : Measure E := (volume : Measure E).tilted (fun x => -Vy y x)\n            ∃ hfst : MeasurePreserving Prod.fst (nu y) mu,\n              let B : Lp ℝ 2 mu →ₗᵢ[ℝ] Lp ℝ 2 (nu y) :=\n                Lp.compMeasurePreservingₗᵢ ℝ Prod.fst hfst\n              let M : Lp ℝ 2 (nu y) →L[ℝ] Lp ℝ 2 mu := B.toContinuousLinearMap.adjoint\n              (∀ f : Lp ℝ 2 mu, (B f : (E × E) → ℝ) =ᵐ[nu y] fun z => f z.1) ∧\n              ‖B.toContinuousLinearMap‖ ≤ 1 ∧ ‖M‖ ≤ 1 ∧\n              M.comp B.toContinuousLinearMap = ContinuousLinearMap.id ℝ (Lp ℝ 2 mu) ∧\n              (∀ G : (E × E) → ℝ, ∀ hG : MemLp G 2 (nu y),\n                let gbar : E → ℝ := fun x => ∫ p, G (x, p) ∂stdGaussian E\n                (∀ᵐ x ∂mu, Integrable (fun p => G (x, p)) (stdGaussian E)) ∧\n                ∃ hbar : MemLp gbar 2 mu, M (hG.toLp G) = hbar.toLp gbar) ∧\n              (∀ f : Lp ℝ 2 mu, J (B f) = B f) ∧\n              M.comp J.toContinuousLinearMap = M ∧\n              let Kpos : ℝ≥0 → (Lp ℝ 2 mu →L[ℝ] Lp ℝ 2 mu) :=\n                fun T => M.comp ((A T).comp B.toContinuousLinearMap)\n              Kpos 0 = ContinuousLinearMap.id ℝ (Lp ℝ 2 mu) ∧\n              ∀ T : ℝ≥0, (Kpos T).adjoint = Kpos T ∧ ‖Kpos T‖ ≤ 1 ∧\n                ∀ f : E → ℝ, ∀ hf : MemLp f 2 mu,\n                  let kTf : E → ℝ := fun x =>\n                    ∫ p, (∫ w, f ((Z y xRef (x, p) T w).1) ∂P) ∂stdGaussian E\n                  (∀ᵐ x ∂mu, ∀ᵐ p ∂stdGaussian E,\n                    Integrable (fun w => f ((Z y xRef (x, p) T w).1)) P) ∧\n                  (∀ᵐ x ∂mu, Integrable\n                    (fun p => ∫ w, f ((Z y xRef (x, p) T w).1) ∂P) (stdGaussian E)) ∧\n                  ∃ hk : MemLp kTf 2 mu, Kpos T (hf.toLp f) = hk.toLp kTf)",
+    "statement_sha256": "10c81ef841f012869c6d870301e2bcd8e15a17b2ea76f0dd2c15788fdb330dd3",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be any finite-dimensional real inner-product space, with its Borel measurable structure and canonical volume; dimension zero is allowed. Let V:E→ℝ be twice continuously Fréchet differentiable. Let α,β be nonnegative real numbers with 0<α≤β, and suppose for every x,v∈E that α‖v‖²≤D²V(x)[v,v]≤β‖v‖². Let η>0 and βη≤1. All conclusions below hold with these choices fixed.\n\nFor arbitrary y,r∈E write c=y−η∇V(r). For z=(x,p) and t∈ℝ define Φ_{y,r}(t,z)=(c+cos(t)(x−c)+√η sin(t)p, −sin(t)(x−c)/√η+cos(t)p). Put g_r(x)=∇V(x)−∇V(r), S_r(x,p)=(x,p−2⟨p,g_r(x)⟩g_r(x)/‖g_r(x)‖²), and λ_r(x,p)=√η max(0,⟨p,g_r(x)⟩). The displayed division is real totalized division, so S_r(x,p)=(x,p) when g_r(x)=0. For u≥0 let Λ_{y,r,z}(u)=∫₀ᵘ λ_r(Φ_{y,r}(s,z)) ds and τ_{y,r,z}(e)=inf{u≥0:Λ_{y,r,z}(u)≥e}, valued in [0,∞], with the empty infimum equal to infinity.\n\nA live record consists of a nonnegative accumulated time and a phase state; there is also one stopped record. Starting with record₀=(0,z₀), a live record (t,z) and threshold e_k≥0 are replaced by the stopped record if τ_{y,r,z}(e_k)=∞, and otherwise by (t+τ_{y,r,z}(e_k), S_r(Φ_{y,r}(τ_{y,r,z}(e_k),z))). A stopped record remains stopped. Let P be the countable product of unit-rate exponential measures on real coordinates w_k, and use e_k=max(w_k,0). Let t_n(w) be the recorded time if record_n is live and infinity otherwise. For every T≥0 put I_n(T)={w:t_n(w)≤T<t_{n+1}(w)}.\n\nDefine R(x,p)=(x,−p), W_y(x)=V(x)+‖x−y‖²/(2η), μ_y=volume.tilted(−W_y), γ=stdGaussian(E), and ν_y=μ_y⊗γ. Precisely, the tilted spatial measure has density exp(−W_y(x))/(∫exp(−W_y) dvolume) against volume, interpreted using the given totalized real division and ENNReal.ofReal convention.\n\nThere exists one function Z(y,r,z₀,T,w)∈E×E, jointly measurable in all five displayed arguments, satisfying the following statements. For every y,r,z₀,w,T,n and every live record a=(a_time,a_state), if w∈I_n(T) and record_n=a, then Z(y,r,z₀,T,w)=Φ_{y,r}(T−a_time,a_state), where the time subtraction is nonnegative truncated subtraction. If no n satisfies w∈I_n(T), then Z(y,r,z₀,T,w)=z₀. For every y,r,z₀, initialization Z(y,r,z₀,0,w)=z₀ holds for P-almost every w; no common null set uniform over these parameters is asserted.\n\nFor every y,r,T define P_TG(z)=∫G(Z(y,r,z,T,w)) dP(w). The endpoint map (z,w)↦Z(y,r,z,T,w) is measure preserving from ν_y⊗P to ν_y. For all measurable real functions F,G on E×E and all real C_F,C_G≥0 such that |F(z)|≤C_F and |G(z)|≤C_G for every z, both F·P_TG and (G∘R)·P_T(F∘R) are integrable against ν_y and ∫F(z)P_TG(z) dν_y(z)=∫G(Rz)P_T(F∘R)(z) dν_y(z).\n\nFor every measurable real G on E×E, the raw real integral (y,r,z,T)↦∫G(Z(y,r,z,T,w)) dP(w) is jointly measurable, even without an integrability hypothesis on G; no integrability for arbitrary unbounded G is asserted. If a real C≥0 bounds |G| everywhere, then for every y,r,z,T the integrand in w is P-integrable and the absolute value of this expectation is at most C.\n\nFor every y,r there exists a family A_T of continuous real linear operators on L²(ν_y), indexed by T≥0, such that A₀ is the identity and, for every f∈L²(ν_y), A_t f→f in L² norm as t→0 within the nonnegative reals. This is a strong-at-zero convergence assertion, not an assertion of operator-norm convergence. For every T≥0, ‖A_T‖≤1. For every raw G with MemLp G 2 ν_y, the function w↦G(Z(y,r,z,T,w)) is P-integrable for ν_y-almost every z; the raw expectation P_TG belongs to L²(ν_y), A_T[G]=[P_TG], and ∫|P_TG|² dν_y≤∫|G|² dν_y.\n\nFor each y,r, this family A can be chosen together with a measure-preservation witness for R on ν_y. Its canonical real linear isometric pullback J on L²(ν_y) satisfies (Jf)(z)=f(Rz) for ν_y-almost every z for every f, J²f=f for every f, and A_T*=J A_T J for every T≥0.\n\nThere also exists a measure-preservation witness for the projection π(x,p)=x from ν_y to μ_y. Let B:L²(μ_y)→L²(ν_y) be its canonical real linear isometric pullback and M=B* its Hilbert adjoint. For every f∈L²(μ_y), (Bf)(x,p)=f(x) for ν_y-almost every (x,p). The operator norms satisfy ‖B‖≤1 and ‖M‖≤1, and MB is the identity on L²(μ_y). For every raw G∈L²(ν_y), p↦G(x,p) is γ-integrable for μ_y-almost every x, its Gaussian average ḡ(x)=∫G(x,p)dγ(p) lies in L²(μ_y), and M[G]=[ḡ]. Moreover JBf=Bf for every f and MJ=M.\n\nDefine K_T=M A_T B on L²(μ_y). Then K₀ is the identity, and for every T≥0 the operator K_T is self-adjoint and has norm at most one. For every raw f∈L²(μ_y), let k_Tf(x)=∫[∫f(π Z(y,r,(x,p),T,w))dP(w)]dγ(p). For μ_y-almost every x and then γ-almost every p the inner w-integrand is P-integrable; for μ_y-almost every x the inner expectation as a function of p is γ-integrable; k_Tf lies in L²(μ_y); and K_T[f]=[k_Tf]. All equalities of bracketed L² classes are quotient-space equalities, not everywhere equalities of chosen representatives.\n\nThe other displayed let-bindings specify finite histories, strict event-time simplexes, their induced Lebesgue measures, deterministic reconstructed records, products of completed-event rate/survival factors, terminal survival factors, and stitched finite paths; they add no hypotheses and no separate assertion about their laws. The conclusion does not state a semigroup or Markov identity, global nonexplosion, convergence to equilibrium, continuity at positive times, or additional regularity of the paths T↦Z(y,r,z₀,T,w).",
+    "text_sha256": "c8c9032a67ca9bd7fe9f106423befdab9fed303b0ab10972a77c4654462fa33f",
+    "decoder": "/root/blind_decoder_20261015_a",
+    "decoder_packet_sha256": "6ef3a66a07bab252aff0037fe2111ca07638ef61980bfb685abb95b34a0e05db",
+    "decoder_run_sha256": "3b9fc9aa108ff630f162318922fd64ac08227fec6d1517dc8276cf2130e83245",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "cd647edf3680915a29afccc7371f0fef8f2c62aca7723572d40b6f02568d2634",
+  "candidate_publication_context": {
+    "candidate_assumptions": [
+      {
+        "source": "Original six analytic hypotheses and source Euclidean phase.",
+        "lean": "Exactly those six hypotheses on finite real Hilbert Borel E, including rank zero."
+      },
+      {
+        "source": "Source compactly supported continuous core, then density and contractivity.",
+        "lean": "Existing ASTIS bounded-continuous core plus finite-Borel Lp density and equicontinuity."
+      },
+      {
+        "source": "Proposition A.1(ii) also asserts the semigroup and full strong-continuity properties.",
+        "lean": "Only zero-time convergence is added, with all prior actual109 conclusions retained."
+      }
+    ],
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity.actual_l2_strong_continuity",
+      "role": "proof-edge",
+      "supports": [
+        "zero-time-l2"
+      ]
+    },
+    "lesson": {
+      "kind": "theorem",
+      "title": "Actual PBPS: L2 continuity at time zero, not yet a semigroup",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1#A1.SS1",
+          "label": "Appendix A.1, Proposition A.1(ii), final strong-continuity paragraph",
+          "scope": "Only zero-time strong continuity; restart/semigroup, positivity/constants, independent-reference averaging, hypocoercivity, errors, costs and composition remain open."
+        }
+      ],
+      "tests": [
+        "lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity Tests.ProximalBPSActualL2StrongContinuity"
+      ],
+      "assumptions": [
+        "E is any finite-dimensional real inner-product Borel space, including dimension zero.",
+        "V is C2, alpha>0, alpha<=beta, and alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v. Also eta>0 and beta*eta<=1.",
+        "The actual process, invariant probability law, L2 operators, integrability and dense-core convergence are constructed/proved internally, not supplied premises.",
+        "L2 is a quotient by almost-everywhere equality. All AE statements are parameterwise. Nonnegative-time neighborhoods include t=0."
+      ],
+      "statement": "Under the displayed hypotheses put V_y(x)=V(x)+||x-y||^2/(2 eta), pi_y=volume.tilted(-V_y), gamma=stdGaussian(E) and nu_y=pi_y times gamma. Use the literal fixed-reference PBPS harmonic-flight/bounce recursion with independent unit exponential clocks, covered-arc interpolation and the initial-phase raw fallback. There exists one global jointly measurable actual process Z, and for every center y and reference r a family of continuous real linear operators A_t on L2(nu_y), with A_0=I and ||A_t||<=1. For every raw G with MemLp G 2 nu_y, its clock sections are integrable for nu_y-almost every initial phase, op_t G(z)=integral G(Z(y,r,z,t,w))dP(w) belongs to L2, and A_t[G]=[op_t G]. All previous fixed-time Gibbs invariance, bounded signed duality, flip and Gaussian-averaging conclusions hold on this SAME process and family. In particular the canonical momentum flip J is an involutive isometry, A_t*=J A_t J; the position pullback B is isometric, M=B* is Gaussian integration for arbitrary MemLp representatives, MB=I, JB=B, MJ=M; and K_t=M A_t B is a self-adjoint contraction with K_0=I and its literal Gaussian-outer/clock-inner representative, with both AE integrability obligations retained. In addition, for every f in real L2(nu_y), A_t f tends to f in L2 as nonnegative t tends to zero. No process or operator is substituted. No semigroup law or positive-time continuity is asserted.",
+      "formula": "\\forall y,r\\ \\forall f\\in L^2(\\nu_y):\\quad\\lim_{t\\downarrow0}\\|A_t f-f\\|_2=0.",
+      "steps": [
+        {
+          "title": "Identify the same actual process",
+          "text": "The two producer theorems have the same literal record recursion. On a covered interval, finite event time forces a live record and both representatives follow the same harmonic flight. Outside coverage both return the initial phase. This identifies Z pointwise, including raw exceptional inputs, before comparing expectations.",
+          "formula": "Z_{\\mathrm{bounded}}(y,r,z,t,w)=Z(y,r,z,t,w).",
+          "detail": "ASTIS completion: equality of two existential witnesses is proved, never assumed.",
+          "lean": "  obtain ⟨Z, hZm, hZa, hZf, hZ0, h106, hBorel, h109⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging.actual_position_l2_averaging\n      hα hαβ hV hH hη hβη\n  obtain ⟨Zb, hZbm, hZba, hZbf, hZbAE, hshort, htest, houter⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity.actual_outer_bounded_l2_continuity\n      hα hαβ hV hH hη hβη\n  have hZeq : Zb = Z := by\n    funext y xRef z t w\n    by_cases hx : ∃ n, w ∈ I y xRef z t n\n    · obtain ⟨n, hn⟩ := hx\n      obtain ⟨a, ha⟩ : ∃ a, record y xRef z (ε w) n = Sum.inl a := by\n        cases hr : record y xRef z (ε w) n with\n        | inl a => exact ⟨a, rfl⟩\n        | inr u =>\n          have hh := hn.1\n          change (record y xRef z (ε w) n).elim\n            (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤) ≤ (t : WithTop ℝ≥0) at hh\n          rw [hr] at hh\n          exact False.elim ((WithTop.not_top_le_coe t) hh)\n      exact (hZba y xRef z w t n a hn.1 hn.2 ha).trans\n        (hZa y xRef z w t n a hn ha).symm\n    · exact (hZbf y xRef z w t hx).trans (hZf y xRef z w t hx).symm\n  rw [hZeq] at houter\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2StrongContinuity.lean",
+            "source_raw_sha256": "94c4dd9950f43132ca90a896d4f77b9bbf9867ed033a7d263dd687ac9021ccf4",
+            "exact_code_raw_sha256": "bc4dda2b806e8dc0f10ff823b52a5c51d2861a7c7a35739027be5f5d82a70f17",
+            "start_line": 224,
+            "end_line": 246
+          }
+        },
+        {
+          "title": "Identify the exact probability law",
+          "text": "The old exponent -V-q equals -(V+q), where q=||x-y||^2/(2 eta). Congruence identifies the tilted measures and Gaussian products. The old bounded-core theorem supplies probability internally, hence the finiteness needed below.",
+          "formula": "-V(x)-\\frac{\\|x-y\\|^2}{2\\eta}=-\\left(V(x)+\\frac{\\|x-y\\|^2}{2\\eta}\\right).",
+          "detail": "No new normalizer or finite-mass assumption.",
+          "lean": "  refine ⟨Z, hZm, hZa, hZf, hZ0, h106, hBorel, ?_⟩\n  intro y xRef\n  obtain ⟨L, hL0, hL, hR, hJ⟩ := h109 y xRef\n  refine ⟨L, hL0, ?_, hL, hR, hJ⟩\n  have hnu :\n      ((volume : Measure E).tilted (fun x => -V x - ‖x - y‖ ^ 2 / (2 * η))).prod\n        (stdGaussian E) = nu y := by\n    apply congrArg (fun μ : Measure E => μ.prod (stdGaussian E))\n    apply congrArg ((volume : Measure E).tilted)\n    funext x\n    dsimp only [Vy]\n    ring\n  letI : IsProbabilityMeasure (nu y) := by\n    rw [← hnu]\n    exact (houter.1 y).2\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2StrongContinuity.lean",
+            "source_raw_sha256": "94c4dd9950f43132ca90a896d4f77b9bbf9867ed033a7d263dd687ac9021ccf4",
+            "exact_code_raw_sha256": "9f8769ff0f64f2d776da628cb9813f8a96fad74d785081094e5fb6e39d5469b9",
+            "start_line": 247,
+            "end_line": 261
+          }
+        },
+        {
+          "title": "Convert the bounded-core integral limit into norm convergence",
+          "text": "For bounded continuous g choose its L2 class. Operator identification and AE congruence give the displayed identity via the real L2 inner product. The existing dominated-convergence theorem makes the right side tend to zero. Continuity of square root gives norm convergence.",
+          "formula": "\\|A_t[g]-[g]\\|_2^2=\\int(\\operatorname{op}_t g(z)-g(z))^2\\,d\\nu_y(z)\\longrightarrow0.",
+          "detail": "The source uses C_c; ASTIS reuses its explicitly attributed stronger C_b core. The existing 4||g||_infty^2 domination is a dependency. L2 representatives agree only AE, not pointwise.",
+          "lean": "  have hcore (g : (E × E) →ᵇ ℝ) :\n      Tendsto (fun t : ℝ≥0 => L t (BoundedContinuousFunction.toLp 2 (nu y) ℝ g))\n        (𝓝 0) (𝓝 (BoundedContinuousFunction.toLp 2 (nu y) ℝ g)) := by\n    let f : Lp ℝ 2 (nu y) := BoundedContinuousFunction.toLp 2 (nu y) ℝ g\n    have hf : (f : (E × E) → ℝ) =ᵐ[nu y] g :=\n      BoundedContinuousFunction.coeFn_toLp 2 (nu y) ℝ g\n    have hg : MemLp g 2 (nu y) := MemLp.ae_eq hf (Lp.memLp f)\n    have hfg : hg.toLp g = f := by\n      apply Lp.ext\n      exact hg.coeFn_toLp.trans hf.symm\n    have hlimit := (houter.2 y xRef g g.continuous ‖g‖ (norm_nonneg g)\n      (fun z => by simpa only [Real.norm_eq_abs] using g.norm_coe_le_norm z)).2\n    dsimp only at hlimit\n    rw [hnu] at hlimit\n    have hnorm (t : ℝ≥0) :\n        ‖L t f - f‖ ^ 2 =\n          ∫ z, ((∫ w, g (Z y xRef z t w) ∂P) - g z) ^ 2 ∂nu y := by\n      obtain ⟨_, ⟨hop, he⟩, _⟩ := (hL t).2 g hg\n      rw [hfg] at he\n      have ha : (L t f : (E × E) → ℝ) =ᵐ[nu y]\n          (fun z => ∫ w, g (Z y xRef z t w) ∂P) := by\n        rw [he]\n        exact hop.coeFn_toLp\n      rw [← real_inner_self_eq_norm_sq (L t f - f), L2.inner_def]\n      apply integral_congr_ae\n      filter_upwards [Lp.coeFn_sub (L t f) f, ha, hf] with z hz hzA hzf\n      simp only [hz, Pi.sub_apply, hzA, hzf, RCLike.inner_apply, conj_trivial, pow_two]\n    have hnormlimit : Tendsto (fun t : ℝ≥0 => ‖L t f - f‖ ^ 2) (𝓝 0) (𝓝 0) := by\n      simpa only [hnorm] using hlimit\n    have hsqrt := (Real.continuous_sqrt.tendsto 0).comp hnormlimit\n    change Tendsto (fun t : ℝ≥0 => Real.sqrt (‖L t f - f‖ ^ 2))\n      (𝓝 0) (𝓝 (Real.sqrt 0)) at hsqrt\n    have hzero : Tendsto (fun t : ℝ≥0 => ‖L t f - f‖) (𝓝 0) (𝓝 0) := by\n      simpa only [Real.sqrt_sq_eq_abs, abs_norm, Real.sqrt_zero] using hsqrt\n    exact tendsto_iff_norm_sub_tendsto_zero.mpr hzero\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2StrongContinuity.lean",
+            "source_raw_sha256": "94c4dd9950f43132ca90a896d4f77b9bbf9867ed033a7d263dd687ac9021ccf4",
+            "exact_code_raw_sha256": "7da4c5296fabe664c45cccccda6a77c89b9a71867db2196bb7041d986658443b",
+            "start_line": 262,
+            "end_line": 296
+          }
+        },
+        {
+          "title": "Extend to every L2 observable",
+          "text": "For arbitrary f choose a nearby bounded-continuous core class g. Uniform contractivity bounds both approximation terms; core convergence handles the remaining term. Equivalently, the uniformly Lipschitz operators have a closed convergence locus containing a dense range. Lean invokes the existing Mathlib equicontinuity and density theorems for this epsilon argument.",
+          "formula": "\\|A_t f-f\\|_2\\le2\\|f-g\\|_2+\\|A_tg-g\\|_2.",
+          "detail": "Finite Borel measures on this metrizable phase space have the required weak regularity. This proves continuity at zero, not restart or semigroup identities.",
+          "lean": "  have hequi : Equicontinuous (fun t : ℝ≥0 => fun f : Lp ℝ 2 (nu y) => L t f) := by\n    apply Metric.equicontinuous_of_continuity_modulus id tendsto_id\n    intro f g t\n    have hlip : LipschitzWith 1 (L t) :=\n      ContinuousLinearMap.lipschitzWith_of_opNorm_le (hL t).1\n    simpa only [id_eq, NNReal.coe_one, one_mul] using hlip.dist_le_mul f g\n  have hclosed : IsClosed {f : Lp ℝ 2 (nu y) |\n      Tendsto (fun t : ℝ≥0 => L t f) (𝓝 0) (𝓝 f)} :=\n    hequi.isClosed_setOfPred_tendsto continuous_id\n  have hdense : DenseRange (BoundedContinuousFunction.toLp 2 (nu y) ℝ :\n      ((E × E) →ᵇ ℝ) →L[ℝ] Lp ℝ 2 (nu y)) :=\n    BoundedContinuousFunction.toLp_denseRange ℝ (nu y) ℝ (by norm_num)\n  have hsubset : Set.range (BoundedContinuousFunction.toLp 2 (nu y) ℝ :\n      ((E × E) →ᵇ ℝ) →L[ℝ] Lp ℝ 2 (nu y)) ⊆\n      {f : Lp ℝ 2 (nu y) | Tendsto (fun t : ℝ≥0 => L t f) (𝓝 0) (𝓝 f)} := by\n    rintro _ ⟨g, rfl⟩\n    exact hcore g\n  intro f\n  exact closure_minimal hsubset hclosed (hdense f)\n\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualL2StrongContinuity.lean",
+            "source_raw_sha256": "94c4dd9950f43132ca90a896d4f77b9bbf9867ed033a7d263dd687ac9021ccf4",
+            "exact_code_raw_sha256": "526bc692495402d698aadb65f7bfa1952e3e6c8318a92590cf52d860f3799a27",
+            "start_line": 297,
+            "end_line": 316
+          }
+        }
+      ],
+      "lean_proof": "Same process and law -> representative-safe bounded-core limit -> uniform contraction and density.",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity.actual_l2_strong_continuity_statement"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging.actual_position_l2_averaging",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity.actual_outer_bounded_l2_continuity"
+      ],
+      "mathlib_dependencies": [
+        "BoundedContinuousFunction.toLp_denseRange",
+        "BoundedContinuousFunction.coeFn_toLp",
+        "Equicontinuous.isClosed_setOfPred_tendsto",
+        "Metric.equicontinuous_of_continuity_modulus",
+        "ContinuousLinearMap.lipschitzWith_of_opNorm_le",
+        "Lp.coeFn_sub",
+        "Lp.ext",
+        "MemLp.ae_eq",
+        "L2.inner_def",
+        "real_inner_self_eq_norm_sq",
+        "integral_congr_ae",
+        "Real.continuous_sqrt",
+        "closure_minimal"
+      ],
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity.actual_l2_strong_continuity",
+      "lean_statement": "Under the displayed hypotheses put V_y(x)=V(x)+||x-y||^2/(2 eta), pi_y=volume.tilted(-V_y), gamma=stdGaussian(E) and nu_y=pi_y times gamma. Use the literal fixed-reference PBPS harmonic-flight/bounce recursion with independent unit exponential clocks, covered-arc interpolation and the initial-phase raw fallback. There exists one global jointly measurable actual process Z, and for every center y and reference r a family of continuous real linear operators A_t on L2(nu_y), with A_0=I and ||A_t||<=1. For every raw G with MemLp G 2 nu_y, its clock sections are integrable for nu_y-almost every initial phase, op_t G(z)=integral G(Z(y,r,z,t,w))dP(w) belongs to L2, and A_t[G]=[op_t G]. All previous fixed-time Gibbs invariance, bounded signed duality, flip and Gaussian-averaging conclusions hold on this SAME process and family. In particular the canonical momentum flip J is an involutive isometry, A_t*=J A_t J; the position pullback B is isometric, M=B* is Gaussian integration for arbitrary MemLp representatives, MB=I, JB=B, MJ=M; and K_t=M A_t B is a self-adjoint contraction with K_0=I and its literal Gaussian-outer/clock-inner representative, with both AE integrability obligations retained. In addition, for every f in real L2(nu_y), A_t f tends to f in L2 as nonnegative t tends to zero. No process or operator is substituted. No semigroup law or positive-time continuity is asserted."
+    },
+    "obligations": [
+      {
+        "id": "zero-time-l2",
+        "label": "Actual same-family zero-time convergence for every real L2 class"
+      }
+    ],
+    "assumptions": [
+      "E is any finite-dimensional real inner-product Borel space, including dimension zero.",
+      "V is C2, alpha>0, alpha<=beta, and alpha||v||^2<=D2V(x)[v,v]<=beta||v||^2 for every x,v. Also eta>0 and beta*eta<=1.",
+      "The actual process, invariant probability law, L2 operators, integrability and dense-core convergence are constructed/proved internally, not supplied premises.",
+      "L2 is a quotient by almost-everywhere equality. All AE statements are parameterwise. Nonnegative-time neighborhoods include t=0."
+    ],
+    "formulae": [
+      "\\forall y,r\\ \\forall f\\in L^2(\\nu_y):\\quad\\lim_{t\\downarrow0}\\|A_t f-f\\|_2=0."
+    ],
+    "statement": "Under the displayed hypotheses put V_y(x)=V(x)+||x-y||^2/(2 eta), pi_y=volume.tilted(-V_y), gamma=stdGaussian(E) and nu_y=pi_y times gamma. Use the literal fixed-reference PBPS harmonic-flight/bounce recursion with independent unit exponential clocks, covered-arc interpolation and the initial-phase raw fallback. There exists one global jointly measurable actual process Z, and for every center y and reference r a family of continuous real linear operators A_t on L2(nu_y), with A_0=I and ||A_t||<=1. For every raw G with MemLp G 2 nu_y, its clock sections are integrable for nu_y-almost every initial phase, op_t G(z)=integral G(Z(y,r,z,t,w))dP(w) belongs to L2, and A_t[G]=[op_t G]. All previous fixed-time Gibbs invariance, bounded signed duality, flip and Gaussian-averaging conclusions hold on this SAME process and family. In particular the canonical momentum flip J is an involutive isometry, A_t*=J A_t J; the position pullback B is isometric, M=B* is Gaussian integration for arbitrary MemLp representatives, MB=I, JB=B, MJ=M; and K_t=M A_t B is a self-adjoint contraction with K_0=I and its literal Gaussian-outer/clock-inner representative, with both AE integrability obligations retained. In addition, for every f in real L2(nu_y), A_t f tends to f in L2 as nonnegative t tends to zero. No process or operator is substituted. No semigroup law or positive-time continuity is asserted.",
+    "source": {
+      "wording_status": "faithful paraphrase",
+      "url": "https://arxiv.org/html/2609.06905v1#A1.SS1",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. ASTIS completes the zero-time L2-continuity component only; this is not a claim of the full strongly continuous contraction semigroup theorem.",
+      "edition": "arXiv:2609.06905v1",
+      "anchor": "Appendix A.1 Proposition A.1(ii), zero-time strong-continuity paragraph"
+    },
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity\nimport Mathlib.MeasureTheory.Function.ContinuousMapDense\nimport Mathlib.Topology.MetricSpace.Equicontinuity\nimport AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct\nimport Mathlib.MeasureTheory.Function.L2Space\n\n/- PBPS zero-time L2 strong continuity; preserved actual process and averaging. -/\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity\nopen MeasureTheory InnerProductSpace ProbabilityTheory Filter\nopen scoped ContDiff NNReal ENNReal Classical Topology\nnoncomputable section\nset_option autoImplicit false\n\nprivate def actual_l2_strong_continuity_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : Prop := by\n  classical\n  exact\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun w k => Real.toNNReal (w k)\n    let history : E → E → (E × E) → (n : ℕ) → (ℕ → ℝ) →\n        (Fin (n + 1) → ((ℝ≥0 × (E × E)) ⊕ Unit)) :=\n      fun y xRef z₀ n w j => record y xRef z₀ (ε w) j.val\n    let Rec := (ℝ≥0 × (E × E)) ⊕ Unit\n    let Hist : ℕ → Type _ := fun n => Fin (n + 1) → Rec\n    let readTime : Rec → ℝ := fun r => match r with\n      | Sum.inl q => (q.1 : ℝ)\n      | Sum.inr _ => 0\n    let Δ : (n : ℕ) → ℝ≥0 → Set (Fin n → ℝ) := fun n T =>\n      {t | StrictMono (Fin.cons (0 : ℝ) t) ∧ ∀ i, t i < (T : ℝ)}\n    let Prefix : (n : ℕ) → ℝ≥0 → Type := fun n T => {t : Fin n → ℝ // t ∈ Δ n T}\n    let m : (n : ℕ) → (T : ℝ≥0) → Measure (Prefix n T) := fun n T =>\n      Measure.comap (fun t : Prefix n T => t.val) (volume : Measure (Fin n → ℝ))\n    let zAt : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Fin (n + 1) → (E × E) := fun y xRef z₀ n T t =>\n      Fin.induction z₀ (fun i z =>\n        S xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc) z))\n    let K : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → Hist n := fun y xRef z₀ n T t j =>\n      Sum.inl (Real.toNNReal ((Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) j), zAt y xRef z₀ n T t j)\n    let qReal : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ := fun y xRef z₀ n T t =>\n      ∏ i : Fin n,\n        rate xRef (Φ y xRef (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)\n          (zAt y xRef z₀ n T t i.castSucc)) *\n        Real.exp (-Λ y xRef (zAt y xRef z₀ n T t i.castSucc)\n          (Real.toNNReal (t.val i - (Fin.cons (0 : ℝ) (t.val : Fin n → ℝ) : Fin (n + 1) → ℝ) i.castSucc)))\n    let q : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) →\n        Prefix n T → ℝ≥0∞ := fun y xRef z₀ n T t =>\n      ENNReal.ofReal (qReal y xRef z₀ n T t)\n    let A : (n : ℕ) → ℝ≥0 → Set (Hist n) := fun n T =>\n      {h | (∀ j, ∃ a : ℝ≥0 × (E × E), h j = Sum.inl a) ∧\n        StrictMono (fun j => readTime (h j)) ∧\n        ∀ i : Fin n, readTime (h i.succ) < (T : ℝ)}\n    let eventTime : E → E → (E × E) → (ℕ → ℝ) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ w j => (record y xRef z₀ (ε w) j).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    let I : E → E → (E × E) → ℝ≥0 → ℕ → Set (ℕ → ℝ) :=\n      fun y xRef z₀ T n => {w | eventTime y xRef z₀ w n ≤ (T : WithTop ℝ≥0) ∧\n        (T : WithTop ℝ≥0) < eventTime y xRef z₀ w (n + 1)}\n    let N : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → ℕ := fun y xRef z₀ T w =>\n      if h : ∃ n, w ∈ I y xRef z₀ T n then Nat.find h else 0\n    let liveTime : Rec → ℝ≥0 := fun r => r.elim Prod.fst (fun _ => 0)\n    let d : (n : ℕ) → ℝ≥0 → Hist n → ℝ≥0 :=\n      fun n T h => T - liveTime (h ⟨n, Nat.lt_succ_self n⟩)\n    let survival : E → E → Rec → ℝ≥0 → ℝ → Prop :=\n      fun y xRef r u e => r.elim\n        (fun a => (u : WithTop ℝ≥0) < τ y xRef a.2 (Real.toNNReal e)) (fun _ => False)\n    let weight : E → E → Rec → ℝ≥0 → ℝ≥0∞ :=\n      fun y xRef r u => r.elim\n        (fun a => ENNReal.ofReal (Real.exp (-Λ y xRef a.2 u))) (fun _ => 0)\n    let C : E → E → (E × E) → (n : ℕ) → ℝ≥0 → Set (ℕ → ℝ) :=\n      fun y xRef z₀ n T => {w | history y xRef z₀ n w ∈ A n T ∧\n        survival y xRef (record y xRef z₀ (ε w) n) (d n T (history y xRef z₀ n w)) (w n)}\n    let Path : ℝ≥0 → Type _ := fun T => {s : ℝ≥0 // s ≤ T} → E × E\n    let Ψ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Hist n → Path T :=\n      fun y xRef z₀ n T h s =>\n        Fin.foldl (n + 1) (fun z j => (h j).elim\n          (fun a => if a.1 ≤ s.val then Φ y xRef ((s.val - a.1 : ℝ≥0) : ℝ) a.2 else z)\n          (fun _ => z)) z₀\n    let Γ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → Path T :=\n      fun y xRef z₀ n T t => Ψ y xRef z₀ n T (K y xRef z₀ n T t)\n    let ρ : E → E → (E × E) → (n : ℕ) → (T : ℝ≥0) → Prefix n T → ℝ≥0∞ :=\n      fun y xRef z₀ n T t => q y xRef z₀ n T t *\n        weight y xRef ((K y xRef z₀ n T t) ⟨n, Nat.lt_succ_self n⟩)\n          (d n T (K y xRef z₀ n T t))\n    let R : E × E → E × E := fun z => (z.1, -z.2)\n    let Vy : E → E → ℝ := fun y x => V x + ‖x - y‖ ^ 2 / (2 * η)\n    let nu : E → Measure (E × E) := fun y =>\n      ((volume : Measure E).tilted (fun x => -Vy y x)).prod\n        (ProbabilityTheory.stdGaussian E)\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E), w ∈ I y xRef z₀ s n →\n          record y xRef z₀ (ε w) n = Sum.inl a →\n          Z y xRef z₀ s w = Φ y xRef ((s - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ w : ℕ → ℝ, ∀ s : ℝ≥0,\n        (¬ ∃ n, w ∈ I y xRef z₀ s n) → Z y xRef z₀ s w = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ w ∂P, Z y xRef z₀ 0 w = z₀) ∧\n      (∀ y xRef : E, ∀ T : ℝ≥0,\n        let op : ((E × E) → ℝ) → (E × E) → ℝ :=\n          fun G z => ∫ w, G (Z y xRef z T w) ∂P\n        let endpoint : (E × E) × (ℕ → ℝ) → E × E :=\n          fun a => Z y xRef a.1 T a.2\n        MeasurePreserving endpoint ((nu y).prod P) (nu y) ∧\n        ∀ F G : (E × E) → ℝ, ∀ C_F C_G : ℝ,\n          Measurable F → Measurable G → 0 ≤ C_F → 0 ≤ C_G →\n          (∀ z, |F z| ≤ C_F) → (∀ z, |G z| ≤ C_G) →\n          Integrable (fun z => F z * op G z) (nu y) ∧\n          Integrable (fun z => G (R z) * op (fun a => F (R a)) z) (nu y) ∧\n          (∫ z, F z * op G z ∂nu y) =\n            ∫ z, G (R z) * op (fun a => F (R a)) z ∂nu y) ∧\n      (∀ G : (E × E) → ℝ, Measurable G →\n        Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 =>\n          ∫ w, G (Z a.1.1.1 a.1.1.2 a.1.2 a.2 w) ∂P) ∧\n        ∀ C : ℝ, 0 ≤ C → (∀ z, |G z| ≤ C) →\n          ∀ y xRef : E, ∀ z : E × E, ∀ T : ℝ≥0,\n            Integrable (fun w => G (Z y xRef z T w)) P ∧\n            |∫ w, G (Z y xRef z T w) ∂P| ≤ C) ∧\n      (∀ y xRef : E,\n        ∃ A : ℝ≥0 → (Lp ℝ 2 (nu y) →L[ℝ] Lp ℝ 2 (nu y)),\n          A 0 = ContinuousLinearMap.id ℝ (Lp ℝ 2 (nu y)) ∧\n          (∀ f : Lp ℝ 2 (nu y),\n            Tendsto (fun t : ℝ≥0 => A t f) (𝓝 0) (𝓝 f)) ∧\n          (∀ T : ℝ≥0, ‖A T‖ ≤ 1 ∧\n            ∀ G : (E × E) → ℝ, ∀ hG : MemLp G 2 (nu y),\n              let opG : (E × E) → ℝ := fun z => ∫ w, G (Z y xRef z T w) ∂P\n              (∀ᵐ z ∂nu y, Integrable (fun w => G (Z y xRef z T w)) P) ∧\n              (∃ hOp : MemLp opG 2 (nu y), A T (hG.toLp G) = hOp.toLp opG) ∧\n              (∫ z, |opG z| ^ 2 ∂nu y) ≤ ∫ z, |G z| ^ 2 ∂nu y) ∧\n          ∃ hR : MeasurePreserving R (nu y) (nu y),\n            let J : Lp ℝ 2 (nu y) →ₗᵢ[ℝ] Lp ℝ 2 (nu y) :=\n              Lp.compMeasurePreservingₗᵢ ℝ R hR\n            (∀ f : Lp ℝ 2 (nu y),\n              (J f : (E × E) → ℝ) =ᵐ[nu y] fun z => f (R z)) ∧\n            (∀ f : Lp ℝ 2 (nu y), J (J f) = f) ∧\n            (∀ T : ℝ≥0, (A T).adjoint =\n              J.toContinuousLinearMap.comp ((A T).comp J.toContinuousLinearMap)) ∧\n            let mu : Measure E := (volume : Measure E).tilted (fun x => -Vy y x)\n            ∃ hfst : MeasurePreserving Prod.fst (nu y) mu,\n              let B : Lp ℝ 2 mu →ₗᵢ[ℝ] Lp ℝ 2 (nu y) :=\n                Lp.compMeasurePreservingₗᵢ ℝ Prod.fst hfst\n              let M : Lp ℝ 2 (nu y) →L[ℝ] Lp ℝ 2 mu := B.toContinuousLinearMap.adjoint\n              (∀ f : Lp ℝ 2 mu, (B f : (E × E) → ℝ) =ᵐ[nu y] fun z => f z.1) ∧\n              ‖B.toContinuousLinearMap‖ ≤ 1 ∧ ‖M‖ ≤ 1 ∧\n              M.comp B.toContinuousLinearMap = ContinuousLinearMap.id ℝ (Lp ℝ 2 mu) ∧\n              (∀ G : (E × E) → ℝ, ∀ hG : MemLp G 2 (nu y),\n                let gbar : E → ℝ := fun x => ∫ p, G (x, p) ∂stdGaussian E\n                (∀ᵐ x ∂mu, Integrable (fun p => G (x, p)) (stdGaussian E)) ∧\n                ∃ hbar : MemLp gbar 2 mu, M (hG.toLp G) = hbar.toLp gbar) ∧\n              (∀ f : Lp ℝ 2 mu, J (B f) = B f) ∧\n              M.comp J.toContinuousLinearMap = M ∧\n              let Kpos : ℝ≥0 → (Lp ℝ 2 mu →L[ℝ] Lp ℝ 2 mu) :=\n                fun T => M.comp ((A T).comp B.toContinuousLinearMap)\n              Kpos 0 = ContinuousLinearMap.id ℝ (Lp ℝ 2 mu) ∧\n              ∀ T : ℝ≥0, (Kpos T).adjoint = Kpos T ∧ ‖Kpos T‖ ≤ 1 ∧\n                ∀ f : E → ℝ, ∀ hf : MemLp f 2 mu,\n                  let kTf : E → ℝ := fun x =>\n                    ∫ p, (∫ w, f ((Z y xRef (x, p) T w).1) ∂P) ∂stdGaussian E\n                  (∀ᵐ x ∂mu, ∀ᵐ p ∂stdGaussian E,\n                    Integrable (fun w => f ((Z y xRef (x, p) T w).1)) P) ∧\n                  (∀ᵐ x ∂mu, Integrable\n                    (fun p => ∫ w, f ((Z y xRef (x, p) T w).1) ∂P) (stdGaussian E)) ∧\n                  ∃ hk : MemLp kTf 2 mu, Kpos T (hf.toLp f) = hk.toLp kTf)\n\n\n\nset_option maxHeartbeats 2200000\nset_option maxRecDepth 12000\nopen scoped BoundedContinuousFunction\n\n/-- Zero-time strong continuity for every real L2 observable of the same actual\nPBPS phase process, retaining its previously proved flip and averaging laws.\nThis is only the zero-time component of Proposition A.1(ii), not a semigroup law. -/\ntheorem actual_l2_strong_continuity\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1) : actual_l2_strong_continuity_statement hα hαβ hV hH hη hβη := by\n  classical\n  unfold actual_l2_strong_continuity_statement\n  intro c Φ S rate Λ τ next record P ε history Rec Hist readTime Δ Prefix m zAt K qReal q A eventTime I N liveTime d survival weight C Path Ψ Γ ρ R Vy nu\n  obtain ⟨Z, hZm, hZa, hZf, hZ0, h106, hBorel, h109⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging.actual_position_l2_averaging\n      hα hαβ hV hH hη hβη\n  obtain ⟨Zb, hZbm, hZba, hZbf, hZbAE, hshort, htest, houter⟩ :=\n    AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOuterBoundedL2Continuity.actual_outer_bounded_l2_continuity\n      hα hαβ hV hH hη hβη\n  have hZeq : Zb = Z := by\n    funext y xRef z t w\n    by_cases hx : ∃ n, w ∈ I y xRef z t n\n    · obtain ⟨n, hn⟩ := hx\n      obtain ⟨a, ha⟩ : ∃ a, record y xRef z (ε w) n = Sum.inl a := by\n        cases hr : record y xRef z (ε w) n with\n        | inl a => exact ⟨a, rfl⟩\n        | inr u =>\n          have hh := hn.1\n          change (record y xRef z (ε w) n).elim\n            (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤) ≤ (t : WithTop ℝ≥0) at hh\n          rw [hr] at hh\n          exact False.elim ((WithTop.not_top_le_coe t) hh)\n      exact (hZba y xRef z w t n a hn.1 hn.2 ha).trans\n        (hZa y xRef z w t n a hn ha).symm\n    · exact (hZbf y xRef z w t hx).trans (hZf y xRef z w t hx).symm\n  rw [hZeq] at houter\n  refine ⟨Z, hZm, hZa, hZf, hZ0, h106, hBorel, ?_⟩\n  intro y xRef\n  obtain ⟨L, hL0, hL, hR, hJ⟩ := h109 y xRef\n  refine ⟨L, hL0, ?_, hL, hR, hJ⟩\n  have hnu :\n      ((volume : Measure E).tilted (fun x => -V x - ‖x - y‖ ^ 2 / (2 * η))).prod\n        (stdGaussian E) = nu y := by\n    apply congrArg (fun μ : Measure E => μ.prod (stdGaussian E))\n    apply congrArg ((volume : Measure E).tilted)\n    funext x\n    dsimp only [Vy]\n    ring\n  letI : IsProbabilityMeasure (nu y) := by\n    rw [← hnu]\n    exact (houter.1 y).2\n  have hcore (g : (E × E) →ᵇ ℝ) :\n      Tendsto (fun t : ℝ≥0 => L t (BoundedContinuousFunction.toLp 2 (nu y) ℝ g))\n        (𝓝 0) (𝓝 (BoundedContinuousFunction.toLp 2 (nu y) ℝ g)) := by\n    let f : Lp ℝ 2 (nu y) := BoundedContinuousFunction.toLp 2 (nu y) ℝ g\n    have hf : (f : (E × E) → ℝ) =ᵐ[nu y] g :=\n      BoundedContinuousFunction.coeFn_toLp 2 (nu y) ℝ g\n    have hg : MemLp g 2 (nu y) := MemLp.ae_eq hf (Lp.memLp f)\n    have hfg : hg.toLp g = f := by\n      apply Lp.ext\n      exact hg.coeFn_toLp.trans hf.symm\n    have hlimit := (houter.2 y xRef g g.continuous ‖g‖ (norm_nonneg g)\n      (fun z => by simpa only [Real.norm_eq_abs] using g.norm_coe_le_norm z)).2\n    dsimp only at hlimit\n    rw [hnu] at hlimit\n    have hnorm (t : ℝ≥0) :\n        ‖L t f - f‖ ^ 2 =\n          ∫ z, ((∫ w, g (Z y xRef z t w) ∂P) - g z) ^ 2 ∂nu y := by\n      obtain ⟨_, ⟨hop, he⟩, _⟩ := (hL t).2 g hg\n      rw [hfg] at he\n      have ha : (L t f : (E × E) → ℝ) =ᵐ[nu y]\n          (fun z => ∫ w, g (Z y xRef z t w) ∂P) := by\n        rw [he]\n        exact hop.coeFn_toLp\n      rw [← real_inner_self_eq_norm_sq (L t f - f), L2.inner_def]\n      apply integral_congr_ae\n      filter_upwards [Lp.coeFn_sub (L t f) f, ha, hf] with z hz hzA hzf\n      simp only [hz, Pi.sub_apply, hzA, hzf, RCLike.inner_apply, conj_trivial, pow_two]\n    have hnormlimit : Tendsto (fun t : ℝ≥0 => ‖L t f - f‖ ^ 2) (𝓝 0) (𝓝 0) := by\n      simpa only [hnorm] using hlimit\n    have hsqrt := (Real.continuous_sqrt.tendsto 0).comp hnormlimit\n    change Tendsto (fun t : ℝ≥0 => Real.sqrt (‖L t f - f‖ ^ 2))\n      (𝓝 0) (𝓝 (Real.sqrt 0)) at hsqrt\n    have hzero : Tendsto (fun t : ℝ≥0 => ‖L t f - f‖) (𝓝 0) (𝓝 0) := by\n      simpa only [Real.sqrt_sq_eq_abs, abs_norm, Real.sqrt_zero] using hsqrt\n    exact tendsto_iff_norm_sub_tendsto_zero.mpr hzero\n  have hequi : Equicontinuous (fun t : ℝ≥0 => fun f : Lp ℝ 2 (nu y) => L t f) := by\n    apply Metric.equicontinuous_of_continuity_modulus id tendsto_id\n    intro f g t\n    have hlip : LipschitzWith 1 (L t) :=\n      ContinuousLinearMap.lipschitzWith_of_opNorm_le (hL t).1\n    simpa only [id_eq, NNReal.coe_one, one_mul] using hlip.dist_le_mul f g\n  have hclosed : IsClosed {f : Lp ℝ 2 (nu y) |\n      Tendsto (fun t : ℝ≥0 => L t f) (𝓝 0) (𝓝 f)} :=\n    hequi.isClosed_setOfPred_tendsto continuous_id\n  have hdense : DenseRange (BoundedContinuousFunction.toLp 2 (nu y) ℝ :\n      ((E × E) →ᵇ ℝ) →L[ℝ] Lp ℝ 2 (nu y)) :=\n    BoundedContinuousFunction.toLp_denseRange ℝ (nu y) ℝ (by norm_num)\n  have hsubset : Set.range (BoundedContinuousFunction.toLp 2 (nu y) ℝ :\n      ((E × E) →ᵇ ℝ) →L[ℝ] Lp ℝ 2 (nu y)) ⊆\n      {f : Lp ℝ 2 (nu y) | Tendsto (fun t : ℝ≥0 => L t f) (𝓝 0) (𝓝 f)} := by\n    rintro _ ⟨g, rfl⟩\n    exact hcore g\n  intro f\n  exact closure_minimal hsubset hclosed (hdense f)\n\n#print axioms actual_l2_strong_continuity\nend\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity\n",
+    "file": "94c4dd9950f43132ca90a896d4f77b9bbf9867ed033a7d263dd687ac9021ccf4"
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "fce2be65729d12e18621615fb933248a1188df28dcce2a6564107db445d71ea7"
+}

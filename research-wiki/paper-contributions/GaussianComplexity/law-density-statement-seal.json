@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "seal_id": "GC-actual-gaussian-law-density-v1",
+  "status": "STATEMENT_SEALED",
+  "source_version": "arXiv:2610.20492v1",
+  "source_anchor": "Identify the literal explicit precision formula p_O used in AppendixB2.2 with the canonical actual centered multivariate Gaussian law of covariance A_O^-1, as equality of measures with the exact Euclidean-volume density. No new Gaussian-law constructor and no density premise. This supplies the law/density interface needed by the already compiled literal mixture transform. Mixture/TV interpretation, sphere/Poisson and main lower bounds are separate.",
+  "source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+  "payload": {
+    "proposed_signatures": {
+      "gaussian_law_eq_density": "theorem gaussian_law_eq_density {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) (O : Matrix.orthogonalGroup (Fin n) ℝ) :\n    ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹ =\n      (volume : Measure (EuclideanSpace ℝ (Fin n))).withDensity (fun x =>\n        ENNReal.ofReal (Real.sqrt (singleBlockPrecision κ O).det /\n          (2 * Real.pi) ^ ((n : ℝ) / 2) *\n            Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n              (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)))",
+      "multivariateGaussian_eq_withDensity_of_posDef": "theorem multivariateGaussian_eq_withDensity_of_posDef {n : ℕ}\n    (A : Matrix (Fin n) (Fin n) ℝ) (hA : A.PosDef) :\n    ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n)) A⁻¹ =\n      (volume : Measure (EuclideanSpace ℝ (Fin n))).withDensity (fun x =>\n        ENNReal.ofReal (Real.sqrt A.det / (2 * Real.pi) ^ ((n : ℝ) / 2) *\n          Real.exp (-((WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x)) / 2)))"
+    },
+    "meaning_definitions": {
+      "singleBlockPrecision": "Identical literal source Eq4 precision.",
+      "multivariateGaussian": "Existing Mathlib canonical law (stdGaussian E).map (fun x => mean + Matrix.toEuclideanCLM (CFC.sqrt covariance) x). Here mean is zero and covariance the actual nonsingular inverse A^-1, to be justified internally.",
+      "stdGaussian": "Existing canonical finite-dimensional standard Gaussian: pushforward of independent scalar standard gaussianReal coordinates in the canonical orthonormal basis.",
+      "inverse": "Matrix nonsingular inverse has a total fallback on singular matrices, but this source case must prove PosDef/invertibility internally; no singular/default law is accepted as source covariance.",
+      "density": "ENNReal.ofReal of the exact real formula sqrt(det A)/(2pi)^(real n/2) exp(-coord x dot(A*coord x)/2), relative to actual Euclidean volume.",
+      "space": "Actual EuclideanSpace R (Fin n), true Euclidean norm, WithLp.ofLp coordinates. Real n/2 and nonnegative real square root."
+    },
+    "binder_audit": {
+      "STANDING": [
+        "natural n>=3 and real kappa>=4"
+      ],
+      "SOURCE": [
+        "every actual full orthogonal matrix O"
+      ],
+      "TYPING": [
+        "canonical centered multivariate Gaussian, Euclidean volume, finite real matrices"
+      ],
+      "EXCESS": []
+    },
+    "definition_kind": "equality using existing canonical Gaussian constructor; no new characterized object",
+    "canonical_library_node": {
+      "kind": "canonical-library-node, standard nondegenerate Gaussian background",
+      "scope": "The general SPD precision law/density formula for every finite dimension, including n0; this is standard background, not a claim that the paper states a new all-matrix theorem.",
+      "planned_home": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianPrecisionDensity.lean",
+      "actual_consumer": "The source-specific gaussian_law_eq_density must call this exact compiled declaration after proving SPD from existing source regularity.",
+      "second_realistic_consumer": "The fixed-spectrum hidden-eigenbasis Gaussian experiment needs the same SPD precision density for its different Q-diagonal-Q-transpose precision. Planned only; no formal sign-to-eigenbasis implication.",
+      "binder_boundary": "A.PosDef is the canonical background theorem hypothesis. The source-specific anchor has no SPD premise: it must produce it internally. No new Gaussian constructor."
+    }
+  },
+  "signature_sha256": "6f2da832348356abe487f874c6a8028fe486b2abd088714f35cbd69a53d8a52c",
+  "independent_review": "research-wiki/paper-contributions/GaussianComplexity/law-density-statement-review.json",
+  "excess_binders": [],
+  "proof_status_at_seal": "not-started"
+}

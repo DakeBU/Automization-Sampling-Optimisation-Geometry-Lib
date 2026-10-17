@@ -578,3 +578,47 @@ remains local PROVED_LOCAL. Independent commit-bound admission, public upload,
 integration, merge and purification remain separate. Actual Gaussian-law and
 density identification, resulting target-mixture/TV meaning, sphere/Poisson,
 both main lower bounds and the overall Goal remain open.
+
+
+## Actual Gaussian law and exact precision density
+
+The historical literal-only packets above now have their missing Gaussian-law
+interface: the actual existing canonical `multivariateGaussian 0 A^-1` equals
+Euclidean volume with density sqrt(det A)/(2pi)^(n/2) exp(-x^T A x/2).
+`TechnicalLemmas.Measure.GaussianPrecisionDensity` supplies one canonical shared
+SPD background theorem for every natural dimension, including zero. This is
+standard Gaussian background expanded for the source, not an all-matrices
+theorem attributed to Zhou--Suzuki. It consumes the identical existing
+isotropic Gaussian density theorem at variance1 and the identical measurable
+equivalence density-transport node. Its one private provider builds an actual
+invertible Euclidean linear map and verifies its inverse and determinant.
+
+`GaussianLawDensity.gaussian_law_eq_density` is the actual source consumer.
+Under unchanged n>=3, kappa>=4 and every full-O(n) input, its exact existing
+precision lower bound produces strict SPD internally before the shared call.
+No SPD, invertibility, density, Jacobian or normalization premise is added to
+the paper-facing theorem. The actual CFC covariance-square-root constructor,
+inverse determinant Jacobian, true Euclidean squared norm and real n/2 powers
+are checked explicitly. No replacement Gaussian law is defined.
+
+The sealed statement and independent source topology inventory cover24nodes,
+18AND/ORedges and6exclusions, rather than24public declarations. The topology
+review's B0 precision note is respected: WithLp.ofLp provides coordinates and
+the Euclidean norm-square formula, without asserting isometry into the default
+Pi sup norm. The proof obtains its Jacobian directly from the canonical
+Euclidean linear equivalence. Two exact public signatures remain unchanged.
+Production3120jobs, Tests3122jobs and both expanded anonymous types passed.
+Tests exercise the n0 volume identity, anisotropic n3 precision diag(4,1,1)
+with exact factor2 and real3/2, and probability normalization of the source
+density at n3,kappa4 for every full-O input. Both theorems use only the usual
+three axioms. Actual compiler references distinguish shared isotropic/transport
+reuse from the source regularity/shared-node call.
+
+The fixed-spectrum route is a planned second consumer of this same generic
+node and still requires its own SPD adapter. No lower bound is transported
+between the determinant-sign and hidden-eigenbasis routes. Target-mixture
+construction and H-to-TV interpretation, sphere/Poisson, parameter choice,
+amplification/transcript and both main lower bounds remain open. The previous
+literal Fubini theorem is unchanged and can use this new law/density interface
+only through a subsequent explicit measure/integral adapter. Local proof,
+independent admission, public integration and purification remain separate.

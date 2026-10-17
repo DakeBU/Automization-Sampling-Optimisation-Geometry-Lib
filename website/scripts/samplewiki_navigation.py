@@ -12,6 +12,7 @@ from html import escape
 from pathlib import Path
 
 MODEL = Path(__file__).resolve().parents[1] / 'content/samplewiki_companion_frontiers.json'
+REGIMES = Path(__file__).resolve().parents[2] / 'research-wiki/source-index/SampleWiki_cases.json'
 PAPER_HOME = 'example-cases/samplewiki.html'
 PAPER_BASE = 'example-cases/samplewiki/companions/'
 STYLE_NAME = 'samplewiki-paper-navigation.css'
@@ -31,6 +32,10 @@ def install_style(output: Path) -> None:
 
 def load_model() -> dict:
     return json.loads(MODEL.read_text(encoding='utf-8'))
+
+
+def regime_pages() -> list[dict]:
+    return json.loads(REGIMES.read_text(encoding='utf-8'))['pages']
 
 
 def relative(rel: str, target: str) -> str:
@@ -79,13 +84,16 @@ def paper_cards(rel: str, model: dict | None = None) -> str:
             + '</article>'
         )
     return ('<section class="sw-priority-papers" id="research-cases" data-companion-frontiers="true">'
-            '<h2>Research problems and results</h2><p>Choose a result. Follow the mathematical proof, then open the corresponding Lean.</p>'
+            '<h2>Selected research projects</h2><p>Read a paper or case study, its proof route and the pieces verified so far.</p>'
             '<div class="sw-paper-grid">' + ''.join(cards) + '</div>'
             '<p class="sw-reader-boundary">Verified building blocks are not completed paper proofs.</p></section>')
 
 
 def paper_directory(rel: str, model: dict | None = None) -> str:
     rows = research_cases(model)
+    regimes = ''.join(
+        f'<a href="{escape(relative(rel, "example-cases/samplewiki/settings/" + r["setting_slug"] + ".html"))}">{escape(r["setting_title"])}</a>'
+        for r in regime_pages())
     links = ''.join(
         f'<a href="{escape(relative(rel, PAPER_BASE + r["slug"] + ".html"))}"'
         + (' aria-current="page"' if rel == PAPER_BASE + r['slug'] + '.html' else '')
@@ -93,7 +101,9 @@ def paper_directory(rel: str, model: dict | None = None) -> str:
     )
     return ('<section class="sidebar-group sw-paper-directory" data-paper-directory="true">'
             f'<h2>SampleWiki</h2><nav><a href="{escape(relative(rel, PAPER_HOME))}">All research problems</a>'
-            + links + '</nav></section>')
+            + regimes + '</nav><details class="sw-project-directory"'
+            + (' open' if rel.startswith(PAPER_BASE) else '')
+            + '><summary>Research projects</summary><nav>' + links + '</nav></details></section>')
 
 
 def inject_paper_directory(text: str, rel: str, model: dict | None = None) -> str:

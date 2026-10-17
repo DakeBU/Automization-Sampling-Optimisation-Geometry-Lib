@@ -1,4 +1,4 @@
-"""Paper-first presentation preserves the canonical mathematical content."""
+"""Regime-first presentation preserves the canonical mathematical content."""
 import copy
 import sys
 import tempfile
@@ -12,6 +12,7 @@ import samplewiki_navigation as navigation
 import samplewiki_reader_contract as reader
 import samplewiki_math_render as math_render
 import publication_reader
+import samplewiki_placements as placements
 
 
 class PaperNavigationTests(unittest.TestCase):
@@ -38,6 +39,18 @@ class PaperNavigationTests(unittest.TestCase):
         self.assertNotIn('rceil', text)
         self.assertNotIn('\r', text)
         self.assertIn('not completed paper proofs', text)
+
+    def test_regimes_are_primary_visible_and_before_research_projects(self):
+        pages = navigation.regime_pages()
+        text = reader.overview_main(pages, [], {}, {})
+        self.assertEqual(text.count('class="sw-setting-book-card"'), len(pages))
+        self.assertLess(text.index('id="research-by-setting"'), text.index('id="research-cases"'))
+        self.assertIn('<section class="sw-primary-regimes"', text)
+        self.assertNotIn('<details class="sw-secondary-reading" id="research-by-setting"', text)
+        self.assertNotIn('Browse other', text)
+        sidebar = navigation.paper_directory('example-cases/samplewiki.html')
+        self.assertLess(sidebar.index(pages[0]['setting_slug']), sidebar.index('Research projects'))
+        self.assertNotIn('class="sw-project-directory" open', sidebar)
 
     def test_sidebar_has_all_research_cases_without_an_extra_taxonomy(self):
         text = math_render.sidebar_directory('example-cases/samplewiki.html', [])
@@ -112,6 +125,27 @@ class PaperNavigationTests(unittest.TestCase):
         self.assertIn('1 independently reviewed', text)
         self.assertIn('not completed paper results', text)
         self.assertNotIn('<details open', text)
+
+    def test_extension_uses_verified_bindings_without_duplicate_lean_nodes(self):
+        from types import SimpleNamespace
+        row = {'slug': 'test'}
+        binding = {'declaration': 'Test.exact'}
+        items = [{'chapter_path': navigation.PAPER_BASE + 'test.html', 'id': 'source-test',
+                  'bindings': [binding, binding, {'declaration': 'Test.open'}]}]
+        data = {'lessons': {'Test.exact': {'title': 'A real proof'}},
+                'declarations': {'Test.exact': SimpleNamespace(module='Test')}}
+        with patch.object(placements.publication, 'verified_binding', side_effect=lambda b, _: b['declaration'] == 'Test.exact'):
+            rows = placements.reviewed_rows(row, items, data)
+        self.assertEqual([r['name'] for r in rows], ['Test.exact'])
+        self.assertEqual(rows[0]['source_reader'], 'proofs/source-source-test.html')
+        self.assertIn('focus=decl%3ATest.exact', placements.graph_link('Test.exact'))
+
+    def test_research_context_chapters_exist_without_completion_claims(self):
+        import json
+        chapters = {r['number'] for r in json.loads((navigation.MODEL.parent / 'chapters.json').read_text(encoding='utf-8'))}
+        for row in navigation.research_cases():
+            self.assertTrue(row['reader_chapters'])
+            self.assertLessEqual(set(row['reader_chapters']), chapters)
 
 
 if __name__ == '__main__':

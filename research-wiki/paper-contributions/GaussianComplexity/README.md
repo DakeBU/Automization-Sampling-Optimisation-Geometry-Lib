@@ -414,3 +414,30 @@ This validation note changes no frozen mathematical/publication/Frontier inputs.
 The packet remains PROVED_LOCAL; independent commit-bound admission, public
 upload, repository integration and purification remain separate. Original
 H(lambda) identification, both main lower bounds and the overall Goal remain open.
+
+
+## Kernel rotation validation record
+
+Exact immutable local proof commit `bbe54fbb3cb46920576915ff0a5ee834ea533982` passed
+`python tools/astis.py check` with actual terminal exit0: root library9224 jobs,
+root Tests9528 jobs, ATLAS36469 named declarations in26 books and the
+forbidden-closure scan. The new module also has its focused2601-job tests
+and successful expanded-type/actual compiler-reference check; unchanged root
+imports are not represented as direct coverage of the new declaration.
+
+Contributor, diff-aware publication, semantic and Frontier gates passed.
+Both private providers have fresh accepted whole-module source/exposition
+coverage after independent anonymous decoding. Frozen-input site build and
+full check passed:1010 modules,5079 declarations,77 reviewed teaching
+declarations. The affected graph coverage check passed with no omitted required
+connections. The actual browser lesson has seven rendered formulas, zero
+MathJax errors, zero initially open disclosures and no horizontal overflow;
+all six mathematical proof steps are visible. The focused branch has five nodes,
+four edges and three immediate relations, with solid module ownership and
+dashed source/fidelity overlays. Its source-present partial badge is retained.
+
+This README-only validation note changes no frozen mathematical or graph input.
+The result remains PROVED_LOCAL. Independent commit-bound admission, public
+upload, integration, merge and purification remain separate. Gaussian-law
+identification, norm-axis transitivity, original Fubini/H(lambda), both main
+lower bounds and the overall Goal remain open.

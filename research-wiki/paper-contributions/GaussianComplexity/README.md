@@ -875,3 +875,21 @@ their separate provenance. Source topology, blind decode and current full
 module/formula review are independent; exact boundary and non-boundary tests
 compile. Actual TV first ratio, sphere/Poisson, both main bounds, immutable
 integration/publication and postmerge purification remain separate.
+
+
+## Positive selected tilt and denominator matching (Eq22-23)
+
+SelectedTilt.selected_tilt derives the literal source radius0<r<1,
+positive ell, both source presentations of ell and the two denominator
+normalizations, under natural n>=3 and real kappa>=4 including equality.
+The standalone coefficient equality supplies omitted scalar bookkeeping.
+The identities hold for every real u; no arbitrary-u denominator positivity
+or replacement for the actual O_11 distribution is asserted.
+
+The focused test uses the proved positive ell in the identical existing
+GaussianExpectation.actual_gaussian_transform to obtain actual Gaussian
+integrability. It does not make that generic producer depend on this new
+module. Actual sphere law, Poisson evaluation/Eq24, actual TV first ratio,
+amplification, exact oracle/query/cost adapters, fixed-spectrum eigenbasis
+and both main bounds remain open. Source/semantic, immutable integration,
+publication and postmerge purification remain separate lifecycle gates.

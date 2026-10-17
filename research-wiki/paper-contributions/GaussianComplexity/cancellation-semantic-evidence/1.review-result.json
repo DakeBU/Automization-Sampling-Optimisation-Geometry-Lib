@@ -1,0 +1,70 @@
+{
+  "semantic_slots": {
+    "objects": {
+      "original": "A_O literal precision, U=O_11, det(O), nonnegative sqrt(det A_O).",
+      "reconstructed": "Same singleBlockPrecision definition, U at (0,0), real determinant and Real.sqrt.",
+      "relation": "equivalent",
+      "evidence": "Actual DeterminantFamily and Normalizer definitions checked; raw E16-E18 and E15 match pointwise quantities exactly."
+    },
+    "domains": {
+      "original": "Full real O(n), Haar probability, real Borel h, n>=3 and kappa>=4.",
+      "reconstructed": "Same group and normalized actual Borel Haar constructor; Fin n real matrices, real kappa, real measurable h.",
+      "relation": "equivalent",
+      "evidence": "No determinant conditioning or SO domain. Normalization on top of the actual compact group gives probability. Coordinate indexing is shifted by one only."
+    },
+    "quantifiers": {
+      "original": "For every Borel h with E|h(U)| finite throughout fixed arbitrary n>=3,kappa>=4.",
+      "reconstructed": "Universal n>=3,kappa>=4,h,hh,hL1; both sides integrate O over the same concrete law.",
+      "relation": "equivalent",
+      "evidence": "Full statement in packet and raw Lemma B.6/E15 independently compared; no existential choice or bounded-h replacement."
+    },
+    "assumptions": {
+      "original": "n>=3,kappa>=4, full Haar O, Borel h, finite absolute expectation of h(U).",
+      "reconstructed": "Identical n,kappa inequalities, Measurable h and Integrable actual composition h(O_00); law and precision are fixed definitions.",
+      "relation": "equivalent",
+      "evidence": "Normalizer hypotheses match source standing range; all minor and affine-coordinate L1 obligations are derived, not assumed."
+    },
+    "conclusion": {
+      "original": "E[det(O)sqrt(det A_O)h(U)]=(-1)^(n-1)(sqrt(kappa)-1)^(n-1)/2^n E[((sqrt(kappa)+1)U-(sqrt(kappa)-1))h(U)].",
+      "reconstructed": "Exactly the same identity with Real.sqrt and explicit Bochner integrals over actual full Haar measure.",
+      "relation": "equivalent",
+      "evidence": "E15 and Ex55 final evaluation agree. Both integrands are genuinely L1 from bounded polynomial multipliers and hL1; no default-zero shortcut. Final theorem does not separately return their L1 proofs, but its assumptions and audited helpers imply them."
+    },
+    "scopes": {
+      "original": "B.6 signed-normalization average; source proof includes pointwise factorization/sign, row cancellation and exact finite expansion.",
+      "reconstructed": "Same signed-average proof edge built from actual Normalizer plus the fully audited private row-reflection, bounded-minor and finite-expansion helpers.",
+      "relation": "equivalent",
+      "evidence": "No Gaussian density normalization, conditional posterior, oracle transcript or main complexity lower bound is inferred. Detailed audit of each helper and each lesson formula is in review_evidence."
+    },
+    "constant_dependencies": {
+      "original": "Exact coefficient (-1)^(n-1)(sqrt(kappa)-1)^(n-1)/2^n and affine weight (sqrt(kappa)+1)U-(sqrt(kappa)-1).",
+      "reconstructed": "Same coefficient and affine weight. Intermediate a=sqrt(kappa)+1,b=sqrt(kappa)-1, average applied with -b.",
+      "relation": "same",
+      "evidence": "Empty term (-b)^n E[h] and singleton term a(-b)^(n-1)E[Uh] both retained. n=(n-1)+1 makes factorization legal; neg_pow yields exact parity, with no cancellation of 2^n or hidden n-dependent constant."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "objects",
+      "severity": "informational",
+      "classification": "notation-resolution",
+      "description": "Source coordinate 1 is Lean Fin n coordinate 0; this is consistent in U, the excluded reflected index and singleton survivor.",
+      "evidence": "Raw U:=O_11 and S={1}; module j0:=0 and survivor {j0}."
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "classification": "proof-method-elaboration",
+      "description": "The Lean proof uses compactness to obtain a finite principal-minor bound rather than proving the source sharp bound one. The lesson explicitly states this limitation; the same L1 and cancellation conclusions follow.",
+      "evidence": "Raw p3.3 sharp bound; private integrable_minor_weight uses continuous principal determinant and compactness before Integrable.bdd_mul."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "reviewer": "/root/cancellation_semantic_source_review",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Independent evidence boundary: I read only the two anti-anchored reviewer packets, the pinned raw HTML (verified SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915), and actual local dependency definitions. I did not read prior reviews, verdicts, canonical audits or coordinator notes. I audited the complete current_lean_module contained in both packets, rather than treating compiled=true as mathematical or source-fidelity evidence.\n\nRaw source: A2.SS2.p2 explicitly fixes n>=3, kappa>=4, full O(n), U=O_11. Lemma B.6 says every Borel h with E|h(U)|<infinity. A2.E15 is the claimed signed expectation identity. A2.E16-18 establish the precise precision determinant and positive square-root branch; A2.Ex53 and Ex54 use D_i row reflection, preserve U and reverse the selected principal determinant. A2.SS2.SSS1.p3.3 explicitly states finite expectations from |det O_(S,S)|<=1; Ex55 keeps precisely the empty and first-singleton terms and the displayed parity coefficient.\n\nActual dependencies: Matrix.orthogonalGroup is the full unitaryGroup over the real trivial-star ring, with membership A*A^T=I (equivalently A^T*A=I), with no det=1 predicate. OrthogonalHaar.lean explicitly sets the Borel measurable space, inherits the finite matrix topology and second countability, and proves compactness as a closed subset of the entrywise [-1,1] cube using entry_norm_bound_of_unitary. orthogonalHaar is exactly Measure.haarMeasure top. Mathlib Haar/Basic.lean defines normalization on PositiveCompacts K0 and proves haarMeasure_self=1 and left invariance; taking top gives mass one on the whole group. The local spec proves probability plus Haar uniqueness, and map_mul_left is the genuine pushforward identity for every group element, including determinant-negative reflections. There is no abstract assumed measure, SO restriction or conditioned replacement.\n\nWhole-module helper scope: (1) rowReflection constructs the literal diagonal with one -1 and otherwise +1, and proves its square/transpose product is I. (2) reflection_mul_apply computes actual left multiplication entrywise, so it flips one row. (3) reflection_minor_det factors the restricted diagonal on S, uses det_mul/det_diagonal and exactly one negative factor using hiS; it does not require hi0. (4) integrable_minor_weight has arbitrary n,S and arbitrary Integrable real g, proves continuity of the determinant of the actual principal submatrix, gets a finite uniform bound from compactness, and applies the actual Integrable.bdd_mul. Its constant can depend on n,S, but imposes no new public hypothesis or bound on h. (5) principalMinor_weighted_integral_eq_zero first returns that L1 result, then uses hi0 to fix U under reflection, the actual Haar pushforward, MeasurableEquiv.mulLeft measurable embedding, integral_map and integral_neg, giving I=-I and I=0. (6) det_affine_principalMinor is a deterministic identity for all real matrices M, all real a,b and every n. Alternating row multilinearity enumerates all finite subsets S, extraction of row scalars gives a^|S| b^(n-|S|), and Mathlib det_piecewise_one_eq_submatrix_det identifies precisely the principal determinant with no extra permutation sign. I checked that Mathlib theorem's actual block-triangular proof. (7) affine_det_weighted_average retains Borel/L1 assumptions and arbitrary real a,b; every finite-sum term is integrable by helper (4), so integral_finsetSum is used with genuine hypotheses. Any S other than empty or {j0} contains an i!=j0 and vanishes by public cancellation. Empty determinant is 1 and singleton determinant is U, yielding b^n E[g]+a b^(n-1)E[Ug]. No convergence or infinite-sum interchange is hidden. (8) signed_sqrt_det_integral invokes the actual pointwise normalizer at the same n,kappa,O, substitutes a=sqrt(kappa)+1 and b=sqrt(kappa)-1 into the average with parameter -b, proves Ug integrable by |U|<=1, uses integral_sub with real L1 premises, and factors (-b)^n=(-b)^(n-1)(-b) and (-b)^(n-1)=(-1)^(n-1)b^(n-1). It retains both survivor terms and 2^(-n).\n\nNormalizer dependency independently inspected: singleBlockPrecision is literally ((kappa+1)/2)I-((kappa-1)/4)(O+O^T). singleBlockPrecision_factorization expands using O^T O=I and sqrt(kappa)^2=kappa. shiftedOrthogonal_det_pos proves every aI-tO on [0,b] nonsingular by a nonzero-kernel squared-dot-product contradiction using 0<=t<=b<a, then uses continuity and positive value a^n at zero. singleBlockPrecision_sqrt_det therefore chooses the positive branch, not an unproved sign. The signed version multiplies by O^T and transposes the determinant, matching both E18 equalities. The source's quantitative path norm lower bound is not asserted by the cancellation module or its lesson as a proved Lean bound.\n\nFinite-expectation audit: Mathlib Integrable is AEStronglyMeasurable plus HasFiniteIntegral; for real functions this supplies the finite absolute expectation required by source Borel h and its continuous-coordinate composition. Mathlib integral_undef really does return zero for nonintegrable functions, so bare zero identities would be insufficient. Here minor integrability is a public conjunct, all affine determinant terms are individually L1 before finite-sum linearity, and the signed normalizer is pointwise a scalar times that finite polynomial. Thus its left integrand is also L1 under the stated assumptions even though the final public theorem only states the equality. The right affine-coordinate weight is L1 by the explicit Ug proof and linear combination. No use of the default integral supplies the asserted finite expectations.\n\nExposition audit: I checked every formula and every English mathematical step in both packet lessons against the actual module and raw source. The minor lesson accurately distinguishes its finite compactness bound C_(n,S) from the source's sharp bound one, describes the genuine reflection and Haar invariance, and labels finite L1 cancellation correctly. The signed-normalizer lesson correctly gives E18, the generic plus-b deterministic expansion, subsequent substitution of -b, the finite integral expansion, empty/singleton evaluation and parity-normalization factor. The generic expansion's b is a temporary arbitrary coefficient; the following formula explicitly uses -b for the previously defined positive b. There is no mathematical sign inconsistency. The lesson's claims about particular build/test executions were not used as evidence of mathematical equivalence; test files are outside this independent evidence boundary. No blocking source, proof or explanatory-formula defect was found.",
+  "reviewer_packet_sha256": "4c5dd4167303dc2337435e7178881d98e2036477153e98cc6631b761859ecfba",
+  "review_run_sha256": "eee871139006b76ff6852b8b5a9f6bccb24d4a70ea73c300600774d0c5ae7df9"
+}

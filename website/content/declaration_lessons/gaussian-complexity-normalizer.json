@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_factorization",
+      "kind": "theorem",
+      "title": "Factor the actual precision as a positive square",
+      "statement": "For every natural n>=3, real kappa>=4 and real orthogonal n by n matrix O, put M=(sqrt(kappa)+1)I-(sqrt(kappa)-1)O. The literal precision A_O=((kappa+1)/2)I-((kappa-1)/4)(O+O^T) equals (1/4) M^T M.",
+      "formula": "A_O=\\tfrac14 M^\\top M,\\qquad M=(\\sqrt\\kappa+1)I-(\\sqrt\\kappa-1)O",
+      "assumptions": [
+        "n is a natural number with n>=3, retaining the source standing block range.",
+        "kappa is real with kappa>=4.",
+        "O belongs to the full real orthogonal group O(n); determinant -1 and +1 are both included.",
+        "All square roots are the nonnegative real square root. No Haar law, probabilistic average or integrability premise is part of these pointwise identities."
+      ],
+      "steps": [
+        {
+          "title": "Expand the orthogonal square",
+          "text": "Write s=sqrt(kappa). Orthogonality gives O^T O=I. Expand the two factors, keeping O and O^T distinct.",
+          "formula": "M^\\top M=((s+1)^2+(s-1)^2)I-(s+1)(s-1)(O+O^\\top)",
+          "lean": "Use mem_orthogonalGroup_iff', transpose linearity and distributivity of matrix multiplication."
+        },
+        {
+          "title": "Use the nonnegative square root",
+          "text": "The standing kappa>=4 implies kappa>=0, so s^2=kappa. The diagonal and cross coefficients then give the exact source precision.",
+          "formula": "\\tfrac14\\bigl((s+1)^2+(s-1)^2\\bigr)=\\tfrac{\\kappa+1}{2},\\qquad \\tfrac14(s+1)(s-1)=\\tfrac{\\kappa-1}{4}",
+          "lean": "After expanding matrix entries, ring normalization and Real.sq_sqrt prove the coefficients. The existing literal singleBlockPrecision is used unchanged."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.mem_orthogonalGroup_iff'",
+        "Real.sq_sqrt",
+        "Matrix.transpose_sub",
+        "Matrix.mul_sub"
+      ],
+      "lean_statement": "The source real precision is used literally; finite indices Fin n express the real n-dimensional matrix.",
+      "lean_proof": "The adjacent checked Lean body supplies each actual algebraic and sign dependency internally.",
+      "boundary": "Pointwise equations16-18 only. Haar probability and signed averaging, reflection/principal-minor cancellation and equation15, actual Gaussian laws/densities and Fubini, spherical Poisson identities, testing amplification, oracle indistinguishability, and both main lower bounds remain open.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS1",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Appendix B.2.1 proof of Lemma B.6, equations16-18 and the intervening determinant-sign paragraph",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS mathematical restatement.",
+          "label": "Determinant normalization identities",
+          "scope": "Only the pointwise part through equation18, including its sign argument."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityNormalizer"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_sqrt_det",
+      "kind": "theorem",
+      "title": "Fix the positive branch of the determinant square root",
+      "statement": "For every natural n>=3, real kappa>=4 and real orthogonal n by n matrix O, the nonnegative real square root of det(A_O) equals 2^(-n) det((sqrt(kappa)+1)I-(sqrt(kappa)-1)O). The determinant on the right is positive; it is not replaced by an assumed absolute-value identity.",
+      "formula": "\\sqrt{\\det A_O}=2^{-n}\\det\\bigl((\\sqrt\\kappa+1)I-(\\sqrt\\kappa-1)O\\bigr)",
+      "assumptions": [
+        "n is a natural number with n>=3, retaining the source standing block range.",
+        "kappa is real with kappa>=4.",
+        "O belongs to the full real orthogonal group O(n); determinant -1 and +1 are both included.",
+        "All square roots are the nonnegative real square root. No Haar law, probabilistic average or integrability premise is part of these pointwise identities."
+      ],
+      "steps": [
+        {
+          "title": "Keep every matrix on the path nonsingular",
+          "text": "Put a=sqrt(kappa)+1 and b=sqrt(kappa)-1. Then 0<=b<a. If (aI-tO)v=0 for 0<=t<=b, orthogonality gives a^2||v||_2^2=t^2||v||_2^2. Since a^2>t^2, v=0. This proves the determinant never vanishes.",
+          "formula": "(aI-tO)v=0\\ \\Longrightarrow\\ (a^2-t^2)\\|v\\|_2^2=0\\ \\Longrightarrow\\ v=0",
+          "lean": "The private shiftedOrthogonal_det_pos derives norm preservation directly from O^T O=I, uses the finite sum of coordinate squares, and applies Matrix.exists_mulVec_eq_zero_iff. No invertibility/sign bound is a public binder."
+        },
+        {
+          "title": "Continuity fixes the sign",
+          "text": "At t=0 the determinant is a^n>0. The determinant is continuous on [0,b]. If its final value were nonpositive, the intermediate value theorem would give a zero on that interval, contradicting nonsingularity.",
+          "formula": "\\det(aI)=a^n>0,\\qquad \\det(aI-tO)\\ne0\\ (0\\le t\\le b)\\ \\Longrightarrow\\ \\det M>0",
+          "lean": "Continuous.matrix_det and intermediate_value_Icc' supply the actual sign argument. The source uses a reverse-triangle norm bound for invertibility; Lean instead uses the equivalent squared-norm kernel contradiction. That quantitative norm bound is retained in the source graph and is not separately claimed as a new Lean estimate."
+        },
+        {
+          "title": "Take the positive square root",
+          "text": "Apply determinants to the already proved factorization. Multiplicativity and transpose invariance give det(A_O)=4^(-n)(det M)^2. The candidate 2^(-n)det M is positive and its square is exactly det(A_O), fixing the real square-root branch.",
+          "formula": "\\det A_O=4^{-n}(\\det M)^2=\\bigl(2^{-n}\\det M\\bigr)^2,\\qquad 2^{-n}\\det M>0",
+          "lean": "singleBlockPrecision_factorization is genuinely consumed. Matrix.det_smul, det_mul, det_transpose and Real.sqrt_eq_iff_mul_self_eq_of_pos finish the identity."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_factorization"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.exists_mulVec_eq_zero_iff",
+        "dotProduct_self_eq_zero",
+        "Continuous.matrix_det",
+        "intermediate_value_Icc'",
+        "Matrix.det_smul",
+        "Matrix.det_mul",
+        "Matrix.det_transpose",
+        "Real.sqrt_eq_iff_mul_self_eq_of_pos"
+      ],
+      "lean_statement": "The source real precision is used literally; finite indices Fin n express the real n-dimensional matrix.",
+      "lean_proof": "The adjacent checked Lean body supplies each actual algebraic and sign dependency internally.",
+      "boundary": "Pointwise equations16-18 only. Haar probability and signed averaging, reflection/principal-minor cancellation and equation15, actual Gaussian laws/densities and Fubini, spherical Poisson identities, testing amplification, oracle indistinguishability, and both main lower bounds remain open.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS1",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Appendix B.2.1 proof of Lemma B.6, equations16-18 and the intervening determinant-sign paragraph",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS mathematical restatement.",
+          "label": "Determinant normalization identities",
+          "scope": "Only the pointwise part through equation18, including its sign argument."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityNormalizer"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_signed_sqrt_det",
+      "kind": "theorem",
+      "title": "Move the determinant sign inside the normalization factor",
+      "statement": "For every natural n>=3, real kappa>=4 and real orthogonal n by n matrix O of either determinant sign, det(O) sqrt(det(A_O)) equals 2^(-n) det((sqrt(kappa)+1)O-(sqrt(kappa)-1)I).",
+      "formula": "\\det(O)\\sqrt{\\det A_O}=2^{-n}\\det\\bigl((\\sqrt\\kappa+1)O-(\\sqrt\\kappa-1)I\\bigr)",
+      "assumptions": [
+        "n is a natural number with n>=3, retaining the source standing block range.",
+        "kappa is real with kappa>=4.",
+        "O belongs to the full real orthogonal group O(n); determinant -1 and +1 are both included.",
+        "All square roots are the nonnegative real square root. No Haar law, probabilistic average or integrability premise is part of these pointwise identities."
+      ],
+      "steps": [
+        {
+          "title": "Multiply by the transpose inside the determinant",
+          "text": "The exact matrix identity O^T M=(sqrt(kappa)+1)O^T-(sqrt(kappa)-1)I follows from O^T O=I. Determinant multiplicativity and det(O^T)=det(O) bring the sign inside.",
+          "formula": "\\det(O)\\det M=\\det\\bigl((\\sqrt\\kappa+1)O^\\top-(\\sqrt\\kappa-1)I\\bigr)",
+          "lean": "hmatrix proves the matrix equality from orthogonality; hdet is its determinant image, using det_mul and det_transpose."
+        },
+        {
+          "title": "Transpose once more",
+          "text": "A determinant equals that of its transpose. Combine the preceding identity with the actual square-root theorem, leaving O rather than O^T in the final formula. This works for both determinant components.",
+          "formula": "\\det\\bigl((\\sqrt\\kappa+1)O^\\top-(\\sqrt\\kappa-1)I\\bigr)=\\det\\bigl((\\sqrt\\kappa+1)O-(\\sqrt\\kappa-1)I\\bigr)",
+          "lean": "The proof calls singleBlockPrecision_sqrt_det, not an assumed Gaussian normalization law or a sign-restricted orthogonal subgroup."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_sqrt_det"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.mem_orthogonalGroup_iff'",
+        "Matrix.det_mul",
+        "Matrix.det_transpose"
+      ],
+      "lean_statement": "The source real precision is used literally; finite indices Fin n express the real n-dimensional matrix.",
+      "lean_proof": "The adjacent checked Lean body supplies each actual algebraic and sign dependency internally.",
+      "boundary": "Pointwise equations16-18 only. Haar probability and signed averaging, reflection/principal-minor cancellation and equation15, actual Gaussian laws/densities and Fubini, spherical Poisson identities, testing amplification, oracle indistinguishability, and both main lower bounds remain open.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS1",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Appendix B.2.1 proof of Lemma B.6, equations16-18 and the intervening determinant-sign paragraph",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS mathematical restatement.",
+          "label": "Determinant normalization identities",
+          "scope": "Only the pointwise part through equation18, including its sign argument."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityNormalizer"
+      ]
+    }
+  ]
+}

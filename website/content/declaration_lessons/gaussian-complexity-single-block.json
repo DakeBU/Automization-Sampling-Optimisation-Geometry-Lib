@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+      "kind": "definition",
+      "title": "Single-block precision: the literal formula (4)",
+      "statement": "For every natural dimension n, real parameter kappa and real orthogonal matrix O, define A_O by the displayed expression. The definition is algebraic on the whole carrier; the regularity theorem retains the source standing range n>=3 and kappa>=4.",
+      "formula": "A_O=\\frac{\\kappa+1}{2}I_n-\\frac{\\kappa-1}{4}(O+O^\\top)",
+      "assumptions": [
+        "n is a natural number; κ is real.",
+        "O is an n by n real orthogonal matrix; both determinant signs are allowed."
+      ],
+      "steps": [
+        {
+          "title": "Retain the coefficients and transpose",
+          "text": "The identity coefficient is (kappa+1)/2, while the coefficient of O+O^T is -(kappa-1)/4. The definition contains no precomputed spectral estimate.",
+          "formula": "A_O=\\frac{\\kappa+1}{2}I_n-\\frac{\\kappa-1}{4}(O+O^\\top)",
+          "lean": "The body is exactly the scalar multiples, matrix addition, transpose and subtraction shown in the formula."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Matrix.orthogonalGroup"
+      ],
+      "lean_statement": "A literal matrix-valued definition on every n, κ and O.",
+      "lean_proof": "No existence or fallback branch: this is the displayed algebraic expression.",
+      "boundary": "Only the single-block equation (26). Full block diagonal assembly, Gaussian normalization, unique minimizer and both query-complexity lower bounds remain open.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.E26",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Equation (4); Appendix B.3 single-block paragraph through equation (26)",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS mathematical restatement.",
+          "label": "Source equation (4)",
+          "scope": "Literal definition of one precision block."
+        }
+      ],
+      "tests": [
+        "Tests/GaussianComplexitySingleBlock.lean"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_regular",
+      "kind": "theorem",
+      "title": "Orthogonality and Cauchy–Schwarz give the single-block spectral bounds",
+      "statement": "Let n>=3, kappa>=4 and O belong to the real orthogonal group O(n). The matrix A_O in equation (4) is real symmetric, and every real vector v satisfies v^T v <= v^T A_O v <= kappa v^T v. This is the quadratic-form formulation of source equation (26).",
+      "formula": "A_O=A_O^\\top,\\qquad \\|v\\|_2^2\\le v^\\top A_Ov\\le\\kappa\\|v\\|_2^2\\quad(\\forall v\\in\\mathbb R^n)",
+      "assumptions": [
+        "n≥3 and κ≥4 are the standing range in Section 3.1.",
+        "O belongs to the full real orthogonal group O(n).",
+        "The bounds hold for every real coordinate vector, including zero."
+      ],
+      "steps": [
+        {
+          "title": "Orthogonality preserves the Euclidean squared norm",
+          "text": "Use O^T O=I to reduce (Ov)^T(Ov) to v^T v. Squared Euclidean norms are represented by sums of squared coordinates.",
+          "formula": "\\|Ov\\|_2^2=v^\\top O^\\top Ov=\\|v\\|_2^2",
+          "lean": "horth uses Matrix.mem_orthogonalGroup_iff'; hiso uses the transpose dot-product identity and matrix multiplication."
+        },
+        {
+          "title": "Control the cross term",
+          "text": "Finite-sum Cauchy–Schwarz bounds the square of the cross term. Together with v^T v>=0 this gives both signed inequalities. These estimates are derived inside the proof.",
+          "formula": "|v^\\top Ov|^2\\le\\|v\\|_2^2\\|Ov\\|_2^2=\\|v\\|_2^4,\\qquad-\\|v\\|_2^2\\le v^\\top Ov\\le\\|v\\|_2^2",
+          "lean": "hcs applies Finset.sum_mul_sq_le_sq_mul_sq; hcross derives the two real bounds."
+        },
+        {
+          "title": "Expand the quadratic form",
+          "text": "Over the reals, v^T O^T v equals v^T O v, so the two transpose cross terms combine.",
+          "formula": "v^\\top A_Ov=\\frac{\\kappa+1}{2}\\|v\\|_2^2-\\frac{\\kappa-1}{2}v^\\top Ov",
+          "lean": "htranspose is Matrix.dotProduct_transpose_mulVec; hexpand distributes mulVec and dotProduct and checks the coefficient algebra."
+        },
+        {
+          "title": "Scale with the correct sign and prove symmetry",
+          "text": "The standing kappa>=4 implies (kappa-1)/2>=0. Substituting the upper and lower cross-term bounds gives the lower and upper quadratic bounds respectively. Transpose fixes both I and O+O^T, hence A_O is symmetric.",
+          "formula": "\\frac{(\\kappa+1)-(\\kappa-1)}2=1,\\qquad\\frac{(\\kappa+1)+(\\kappa-1)}2=\\kappa",
+          "lean": "hc discharges the sign from hκ. hlow/hupp scale hcross. The first conjunction proves real Hermitianity, equivalently symmetry."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.mem_orthogonalGroup_iff'",
+        "Matrix.dotProduct_transpose_mulVec",
+        "Matrix.mulVec_mulVec",
+        "Finset.sum_mul_sq_le_sq_mul_sq"
+      ],
+      "lean_statement": "The statement uses IsHermitian over ℝ and explicit universal dot-product inequalities, avoiding entrywise matrix order and the default Pi norm.",
+      "lean_proof": "The checked proof follows the source orthogonality → Cauchy–Schwarz → quadratic expansion route.",
+      "boundary": "Only the single-block equation (26). Full block diagonal assembly, Gaussian normalization, unique minimizer and both query-complexity lower bounds remain open.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.E26",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Equation (4); Appendix B.3 single-block paragraph through equation (26)",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS mathematical restatement.",
+          "label": "Source single-block equation (26)",
+          "scope": "Single-block symmetry and quadratic bounds, not the full Lemma 3.4/B.8."
+        }
+      ],
+      "tests": [
+        "Tests/GaussianComplexitySingleBlock.lean"
+      ]
+    }
+  ]
+}

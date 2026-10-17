@@ -306,6 +306,18 @@ import Tests.ProximalBPSActualKernelL2Realization
 import Tests.ProximalBPSActualHalfTurnReversibility
 import Tests.ProximalBPSActualAugmentedKernelInvariance
 
+import Tests.GaussianComplexityBlockFamily
+import Tests.GaussianComplexityDeterminantCancellation
+import Tests.GaussianComplexityExpectation
+import Tests.GaussianComplexityKernelAxis
+import Tests.GaussianComplexityKernelRotation
+import Tests.GaussianComplexityLawDensity
+import Tests.GaussianComplexityMixtureFubini
+import Tests.GaussianComplexityNormalizer
+import Tests.GaussianComplexityOrthogonalHaar
+import Tests.GaussianComplexityRadialIntegral
+import Tests.GaussianComplexitySingleBlock
+
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are
 part of the root target together with the compiled Registry count,

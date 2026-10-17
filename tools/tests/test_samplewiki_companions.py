@@ -18,10 +18,10 @@ class CompanionTests(unittest.TestCase):
         companion.validate_data()
         cross_domain.validate_data()
 
-    def test_four_sources_keep_the_two_paper_composition_separate(self):
+    def test_five_sources_keep_the_two_paper_composition_separate(self):
         m=companion.load()
-        self.assertEqual(len(m['sources']),4)
-        self.assertEqual(len(m['cases']),4)
+        self.assertEqual(len(m['sources']),5)
+        self.assertEqual(len(m['cases']),5)
         self.assertEqual(set(m['composition']['source_ids']),{'sphmc-2026','pbps-2026'})
         cloud=next(row for row in m['cases'] if row['id']=='ASTIS-SW-GAUSSIAN-CLOUD-2026')
         self.assertEqual(cloud['source_ids'],['gaussian-cloud-2026'])
@@ -39,6 +39,24 @@ class CompanionTests(unittest.TestCase):
         m=companion.load(); m['cases'][0]['status']='compiled'
         with self.assertRaisesRegex(ValueError,'remain planned'):
             companion.validate_data(m)
+
+    def test_gaussian_source_outline_cannot_claim_lean_dependency(self):
+        m=companion.load()
+        row=next(r for r in m['cases'] if r['id']=='ASTIS-SW-GAUSSIAN-COMPLEXITY-2026')
+        self.assertIn('deterministic cap',row['setting']['notes'][-1])
+        self.assertEqual(len(row['theorems']),2)
+        self.assertTrue(all(not s.get('compiled_support') for t in row['theorems'] for s in t['steps']))
+        row['source_graph']['edges'][0]['relation']='depends-on'
+        with self.assertRaisesRegex(ValueError,'cannot become a Lean dependency'):
+            companion.validate_data(m)
+
+    def test_gaussian_comparison_survives_agent_export(self):
+        w=next(w for w in research_workspace.build_payload()['workspaces']
+               if w['id']=='ASTIS-SW-GAUSSIAN-COMPLEXITY-2026')
+        exported=research_workspace.workspace_markdown(w)
+        self.assertIn('Proof mechanisms and graph boundaries',exported)
+        self.assertIn('Source discrepancies',exported)
+        self.assertIn('source-proof-use; not Lean dependency',str(w['source_graph']))
 
     def test_candidate_modules_must_exist(self):
         m=companion.load(); m['technologies'][0]['search_modules']=['AutoSamplingTheory.DoesNotExist']
@@ -75,8 +93,8 @@ class CompanionTests(unittest.TestCase):
 
     def test_overlay_does_not_create_compiler_edges(self):
         b=GraphBuilder(); counts=companion.add_to_graph(b)
-        self.assertEqual(counts,{'source_cases':4,'composition_views':1,'technology_candidates':12})
-        self.assertEqual(len(b.nodes),20)
+        self.assertEqual(counts,{'source_cases':5,'composition_views':1,'technology_candidates':12})
+        self.assertEqual(len(b.nodes),39)
         self.assertFalse(any(n.get('status')=='compiled' for n in b.nodes.values()))
         formal={'imports','declares','depends-on','closes leaf'}
         self.assertFalse(any(e['relation'] in formal for e in b.edges.values()))

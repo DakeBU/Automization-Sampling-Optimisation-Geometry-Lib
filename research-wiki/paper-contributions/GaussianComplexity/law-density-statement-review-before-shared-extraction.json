@@ -1,0 +1,93 @@
+{
+  "review_kind": "independent PREPROOF exact statement and source proof graph review",
+  "reviewer": {
+    "identity": "/root/law_density_statement_review",
+    "role": "independent statement/source reviewer",
+    "date": "2026-10-17",
+    "read_scope": "Only GaussianLawDensityStatementPacket.json and the pinned primary HTML at its referenced regions, including the same-primary proof immediately preceding Eq. (26). No implementation or previous reviews read."
+  },
+  "hashes": {
+    "packet_path": ".astis/gaussian-complexity/GaussianLawDensityStatementPacket.json",
+    "packet_sha256": "d1015013bbeebb50de7dc947f0212fe93f914b5678053d7ae47c52936a9560ef",
+    "raw_primary_path": ".astis/gaussian-complexity/2610.20492v1.html",
+    "raw_primary_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "pinned_primary_hash_matches": true
+  },
+  "accepted": true,
+  "blockers": [],
+  "acceptance_basis": "Accepted as an exact mathematical statement about the packet's existing canonical Gaussian constructor, independently of proof availability. The precision is symmetric and bounded below by I for every full orthogonal matrix, so its actual inverse is positive definite. The standard Gaussian density and invertible linear change-of-variables theorem then give precisely the displayed withDensity measure. This acceptance does not certify a Lean implementation or the exact availability of library lemmas.",
+  "signature_audit": {
+    "theorem": "gaussian_law_eq_density",
+    "standing_binders": ["n : Nat with 3 <= n", "kappa : Real with 4 <= kappa"],
+    "source_binder": "Every O : Matrix.orthogonalGroup (Fin n) Real, including both determinant components; no restriction to SO(n) and no almost-everywhere-in-O qualification.",
+    "left_measure": "ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace Real (Fin n)) (singleBlockPrecision kappa O)^(-1), using the existing canonical constructor specified by the packet.",
+    "right_measure": "Actual Euclidean volume.withDensity of ENNReal.ofReal (sqrt(det A) / (2*pi)^((n:Real)/2) * exp(-(coord x dot (A * coord x))/2)), where A is the literal Eq. (4) precision and coord x is WithLp.ofLp x.",
+    "normalization_audit": "The power is real n/2, not natural-number division. sqrt(det A) is the nonnegative real square root, strictly positive here. The factor belongs in the numerator because A is precision; the covariance is its genuine inverse. There is no missing absolute determinant factor because the positive definite square root has positive determinant.",
+    "space_audit": "EuclideanSpace Real (Fin n), its canonical orthonormal coordinates, its true Euclidean norm and its actual volume. The coordinate representation is an isometry identifying volume with coordinate Lebesgue product measure. No arbitrary reference measure or coordinate-counting density is permitted.",
+    "hypothesis_audit": "No excess caller hypotheses. Symmetry, positive definiteness, inverse validity, square-root invertibility, measurability, change-of-variables conditions, normalization and the density identity are internal consequences or standard background results, not premises.",
+    "constructor_audit": "Use precisely the existing canonical constructor: standard Gaussian pushed forward by the covariance CFC square root, followed by zero translation. Do not define or substitute a measure characterized by the desired density. The total nonsingular-inverse fallback is inapplicable after internally proving det A > 0."
+  },
+  "source_audit": {
+    "literal_source": [
+      {"locator": "S3.E4 and S3.SS1.p1", "content": "For every O in O(n), A_O = ((kappa+1)/2) I - ((kappa-1)/4)(O+O^T); section hypotheses include kappa >= 4 and n >= 3."},
+      {"locator": "S3.SS1.p3", "content": "The single-block mixture is formed from N(0,A_O^-1)."},
+      {"locator": "A2.SS2.p2", "content": "Appendix B.2 fixes n >= 3 and kappa >= 4, uses Haar on the full O(n), and names p_O as the density of N(0,A_O^-1)."},
+      {"locator": "A2.SS3.p2, proof of Lemma 3.4, and A2.E26", "content": "For every O and v, orthogonality and Cauchy-Schwarz yield ||v||^2 <= v^T A_O v <= kappa ||v||^2; symmetry gives I <= A_O <= kappa I."},
+      {"locator": "A2.SS2.SSS2.p3, A2.Ex56, A2.Ex58 and A2.Ex59", "content": "The paper uses p_O in actual dx integrals, its Gaussian quadratic exponent, and the bound (kappa/(2*pi))^(n/2) exp(-||x||^2/2). These are consistent contextual uses, not standalone proofs of the canonical-law density theorem."}
+    ],
+    "explicit_background_gap": "The complete precision-density formula and its identification with the packet's canonical pushforward constructor are standard finite-dimensional Gaussian background, implicit in the paper's phrase 'density of N(0,A_O^-1)'. They are not a separately displayed theorem or proved change-of-variables result in the cited paper regions. The graph below makes these necessary background providers explicit and requires proving/reusing them; it does not treat them as caller assumptions or falsely attribute their proofs to the paper."
+  },
+  "proposed_source_graph": {
+    "nodes": [
+      {"id": "S0", "kind": "source standing data", "claim": "n >= 3, real kappa >= 4, and any actual O in full O(n).", "source": ["S3.SS1.p1", "A2.SS2.p2"]},
+      {"id": "S1", "kind": "literal source definition", "claim": "A = ((kappa+1)/2) I - ((kappa-1)/4)(O+O^T).", "source": ["S3.E4"]},
+      {"id": "S2", "kind": "source proof", "claim": "A is symmetric and ||v||^2 <= v^T A v <= kappa ||v||^2 for all coordinate v. Derive via ||Ov||=||v||, |<v,Ov>|<=||v||^2 and the nonnegative coefficient kappa-1.", "source": ["A2.SS3.p2", "A2.E26"]},
+      {"id": "S3", "kind": "literal source law identification", "claim": "The source's single-block law is N(0,A^-1); Appendix p_O denotes its density relative to dx.", "source": ["S3.SS1.p3", "A2.SS2.p2"]},
+      {"id": "B0", "kind": "standard Euclidean coordinate background", "claim": "The canonical coordinate map WithLp.ofLp identifies EuclideanSpace Real (Fin n) isometrically with R^n, sends its volume to product scalar Lebesgue volume, and identifies squared norm with sum of squares and matrix quadratic forms with coordinate dot products."},
+      {"id": "B1", "kind": "internal consequence of source bound", "claim": "A is real symmetric positive definite: v != 0 implies v^T A v >= ||v||^2 > 0. Thus det A > 0 and A is invertible; its matrix inverse is the genuine inverse, not the total singular fallback."},
+      {"id": "B2", "kind": "standard SPD inverse background", "claim": "C=A^-1 is real symmetric positive definite, AC=CA=I, C^-1=A, and det C=(det A)^-1 > 0."},
+      {"id": "B3", "kind": "standard SPD square-root background", "claim": "S=CFC.sqrt C is the real symmetric positive definite square root, S*S=C. It is invertible with positive determinant, and (S^-1)^T*S^-1=C^-1=A."},
+      {"id": "B4", "kind": "existing canonical standard Gaussian definition", "claim": "stdGaussian E is the pushforward of independent scalar standard gaussianReal coordinates through the canonical orthonormal coordinate isometry. This is the existing constructor, with no new surrogate law."},
+      {"id": "B5", "kind": "standard Gaussian density background provider", "claim": "Scalar standard Gaussian has Lebesgue density (2*pi)^(-1/2) exp(-t^2/2); finite products and the canonical coordinate isometry give stdGaussian E = volume.withDensity (ofReal ((2*pi)^(-(n:Real)/2) * exp(-||y||^2/2))). This actual standard Gaussian density must be established or reused explicitly."},
+      {"id": "B6", "kind": "existing canonical multivariate Gaussian definition", "claim": "For zero mean and covariance C, the existing multivariateGaussian is (stdGaussian E).map L, where L=Matrix.toEuclideanCLM S. The zero translation simplifies literally; the covariance parameter is the genuine C from B2."},
+      {"id": "B7", "kind": "standard linear coordinate and determinant background", "claim": "L is the continuous linear equivalence represented by S in the canonical orthonormal coordinates. Its determinant equals det S. Its inverse is represented by S^-1."},
+      {"id": "B8", "kind": "standard measure change-of-variables background", "claim": "For this invertible L, pushforward of volume.withDensity f is volume.withDensity (x -> (ofReal (1/abs(det S))) * f(L^-1 x)). This is the genuine absolute-Jacobian formula on actual Euclidean volume, with map measurability and inverse conditions proved internally."},
+      {"id": "B9", "kind": "transformed quadratic form", "claim": "For every x, ||L^-1 x||^2 = (coord x)^T (S^-1)^T S^-1 (coord x) = (coord x) dot (A * coord x), including x=0."},
+      {"id": "B10", "kind": "Jacobian determinant simplification", "claim": "det S>0 and (det S)^2=det C=(det A)^-1 imply 1/abs(det S)=sqrt(det A). No orientation restriction on O is used."},
+      {"id": "B11", "kind": "real normalizer and ENNReal compatibility", "claim": "Since 2*pi>0 and det A>0, (2*pi)^(-(n:Real)/2)=1/(2*pi)^((n:Real)/2). The product scalar normalizer has this exact real exponent. All real density factors are finite and nonnegative; ofReal products and quotients simplify to the exact single ofReal expression. The density is continuous and measurable."},
+      {"id": "T0", "kind": "intermediate exact measure identity", "claim": "Expanding B6, inserting the actual standard density B5 and applying B8 gives the canonical law as withDensity of the transformed standard density times the true inverse absolute Jacobian."},
+      {"id": "T1", "kind": "target exact measure equality", "claim": "Use B9, B10 and B11 pointwise in T0 to obtain exactly volume.withDensity (x -> ofReal (sqrt(det A)/(2*pi)^((n:Real)/2) * exp(-((coord x) dot (A * coord x))/2))). This proves the proposed equality for every O under S0."},
+      {"id": "T2", "kind": "normalization consequence", "claim": "The explicit density integrates to one because T1 identifies it with the pushforward of the existing standard Gaussian probability measure. Normalization is derived, never a premise, and no separately normalized substitute is introduced."}
+    ],
+    "edges": [
+      {"from": ["S0", "S1"], "to": "S2", "reason": "Source quadratic-form argument using orthogonality and kappa>=4."},
+      {"from": ["S2", "B0"], "to": "B1", "reason": "Strict positivity for every nonzero vector and finite-dimensional SPD determinant theorem."},
+      {"from": ["B1"], "to": "B2", "reason": "Positive definite inverse and genuine matrix inverse identities."},
+      {"from": ["B2"], "to": "B3", "reason": "Positive definite spectral/CFC square root and inverse algebra."},
+      {"from": ["B0", "B4"], "to": "B5", "reason": "Scalar Gaussian density, finite product density and canonical isometric volume identification."},
+      {"from": ["S3", "B2", "B3", "B4"], "to": "B6", "reason": "Interpret the paper's Gaussian law with the existing constructor and actual inverse covariance."},
+      {"from": ["B0", "B3"], "to": "B7", "reason": "An invertible square-root matrix gives the required Euclidean continuous linear equivalence and coordinate determinant."},
+      {"from": ["B0", "B7"], "to": "B8", "reason": "Finite-dimensional linear change of variables on Euclidean volume."},
+      {"from": ["B0", "B3", "B7"], "to": "B9", "reason": "Coordinate expansion of inverse-map squared norm and (S^-1)^T*S^-1=A."},
+      {"from": ["B1", "B2", "B3"], "to": "B10", "reason": "Positive determinants, determinant of a square and the positive real square root."},
+      {"from": ["B0", "B1", "B5", "B10"], "to": "B11", "reason": "Real powers on the positive base 2*pi, positivity, continuity and ENNReal.ofReal algebra."},
+      {"from": ["B5", "B6", "B7", "B8"], "to": "T0", "reason": "Map the actual standard-Gaussian density through the canonical covariance square root."},
+      {"from": ["S0", "S1", "T0", "B9", "B10", "B11"], "to": "T1", "reason": "Pointwise simplification of the exact transformed density; extensional equality of measures."},
+      {"from": ["B4", "B6", "T1"], "to": "T2", "reason": "The existing Gaussian pushforward is a probability measure."}
+    ],
+    "exclusions": [
+      "No new Gaussian/Haar law, characterized density constructor, ad hoc covariance, singular fallback interpretation or caller-supplied SPD/density/normalization/Jacobian hypothesis.",
+      "No identification of target mixture measures with literal mixture densities and no determinant-component probability theorem.",
+      "No H-to-TV interpretation, TV lower bound or sharp Ex59 prefactor proof.",
+      "No spherical pushforward, spherical Poisson identity or sphere normalization theorem.",
+      "No amplification, transcript/eigenbasis analysis or main query lower-bound completion."
+    ]
+  },
+  "downstream_status": {
+    "canonical_law_equals_exact_density_statement": "accepted at source/mathematics level; implementation not inspected",
+    "mixture_measure_and_density_interface": "pending and excluded from this acceptance",
+    "H_to_TV_and_TV_lower_bounds": "pending and excluded from this acceptance",
+    "sphere_and_Poisson": "pending and excluded from this acceptance",
+    "main_lower_bounds": "pending and excluded from this acceptance"
+  }
+}

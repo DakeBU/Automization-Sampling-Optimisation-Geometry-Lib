@@ -16,6 +16,7 @@ from collections import Counter
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit, quote
 from playwright.sync_api import sync_playwright
+import samplewiki_navigation
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -224,6 +225,32 @@ def main() -> None:
                 'adjacent_lean': True, 'mobile_overflow': False}
             # Every companion binding must have adjacent, initially folded Lean.
             # Derive the inventory from publications; do not freeze a leaf count.
+            goto('example-cases/samplewiki.html')
+            priority = samplewiki_navigation.priority_cases()
+            cards = page.locator('.sw-paper-card')
+            assert cards.count() == len(priority)
+            assert cards.evaluate_all('nodes => nodes.map(n => n.dataset.paperId)') == [r['id'] for r in priority]
+            assert not page.locator('#cross-library-state-preparation').evaluate('node => node.open')
+            assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
+            report['priority_papers'] = []
+            for row in priority:
+                rel = samplewiki_navigation.PAPER_BASE + row['slug'] + '.html'
+                goto(rel)
+                assert page.locator('[data-paper-directory="true"]').count() == 1, rel
+                assert page.locator('#paper-main-results').count() == 1, rel
+                route = page.locator('.companion-proof-route').first
+                assert not route.evaluate('node => node.open'), rel
+                page.get_by_role('link', name='2. Proof route', exact=True).click()
+                assert route.evaluate('node => node.open'), rel
+                assert page.locator('details.companion-lean[open]').count() == 0, rel
+                if not args.offline_dom:
+                    page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
+                    page.evaluate('() => MathJax.startup.promise')
+                    assert page.locator('mjx-container').count() > 0, rel
+                    assert page.locator('mjx-merror').count() == 0, rel
+                assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1'), rel
+                report['priority_papers'].append({'path': rel, 'proof_navigation': True,
+                                                 'adjacent_lean_closed': True, 'mobile_overflow': False})
             items = [i for f in (ROOT/'website/content/publications').glob('*.json')
                      for i in json.loads(f.read_text(encoding='utf-8'))['items']
                      if i['chapter_path'].startswith('example-cases/samplewiki/companions/')]
@@ -252,8 +279,16 @@ def main() -> None:
                     assert page.locator('mjx-container').count() > 0, rel
                     assert page.locator('mjx-merror').count() == 0, rel
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1'), rel
-                for summary in page.locator('details.inline-lean-proof > summary').all():
-                    summary.click()
+                # Progressive disclosure is intentional. Exercise the same
+                # visible navigation as a reader, never force-click hidden code.
+                index = page.locator('details.paper-verified-index')
+                assert index.count() == 1 and not index.evaluate('node => node.open'), rel
+                page.get_by_role('link', name='3. Verified work', exact=True).click()
+                assert index.evaluate('node => node.open'), rel
+                for unit in page.locator('details.paper-verified-unit').all():
+                    unit.locator(':scope > summary').click()
+                    for summary in unit.locator('details.inline-lean-proof > summary').all():
+                        summary.click()
                 assert page.locator('details.inline-lean-proof[open]').count() == expected_proof_panels, rel
                 assert page.locator('details.inline-lean-proof[open] code.language-lean').count() == expected_proof_panels, rel
                 page.locator('[data-authored-declaration]').last.scroll_into_view_if_needed()

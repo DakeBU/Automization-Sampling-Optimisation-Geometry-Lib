@@ -18,3 +18,4 @@ import AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureExpectation
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.ActualTotalVariation
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.NumericSeparation
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedTilt
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.PoissonNormalization

@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.PoissonNormalization.selected_gaussian_normalization",
+      "kind": "theorem",
+      "title": "Normalize the signed Gaussian expectation",
+      "reading_layout": "progressive",
+      "reader_note": "This supplies the real-power normalization before Eq24; the actual sphere law and Poisson integral remain open.",
+      "statement": "At the selected tilt, factor the actual Gaussian expectation into a scalar coefficient and one absolutely integrable Haar kernel.",
+      "formula": "H_\\gamma(\\ell)=\\beta_{n,\\kappa}\\,\\mathbb E_\\mu q,\\qquad q\\in L^1(\\mu).",
+      "assumptions": [
+        "Exactly natural \\(n\\ge3\\) and real \\(\\kappa\\ge4\\), including \\(\\kappa=4\\). All divisions involving \\(n\\) are real after coercion; \\(n/2\\) is a real exponent, including odd dimensions.",
+        "\\(\\mu\\) is the unchanged normalized Haar probability on full \\(O(n)\\), with both determinant signs. \\(U=O_{11}\\) is its actual matrix coordinate; \\(\\gamma_O\\) is the canonical Gaussian with covariance \\(A_O^{-1}\\).",
+        "\\(r,\\ell\\) are the literal selected parameters. Their positivity, the actual-coordinate denominator positivity and absolute integrability of \\(q\\) are conclusions, never caller assumptions."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(s,r,\\ell\\)",
+          "text": "Literal source choices, with real dimension arithmetic.",
+          "formula": "s=\\sqrt\\kappa,\\qquad r=\\left(1-\\frac1n\\right)\\frac{s-1}{s+1},\\qquad\\ell=\\frac{4ns+(s-1)^2}{8n(n-1)}."
+        },
+        {
+          "symbol": "\\(H_\\gamma,q,\\beta\\)",
+          "text": "Actual signed Gaussian expectation, normalized scalar kernel and selected coefficient. The Haar expectation of q is not evaluated here.",
+          "formula": "\\begin{aligned}H_\\gamma(\\ell)&=\\mathbb E_\\mu\\!\\left[\\det(O)\\int e^{-\\ell\\|x\\|_2^2}\\,d\\gamma_O\\right],\\\\q(O)&=\\frac{(s+1)U-(s-1)}{(1+r^2-2rU)^{n/2}},\\\\\\beta_{n,\\kappa}&=\\frac{(-1)^{n-1}(s-1)^{n-1}}{(s+1)^n}\\left(1-\\frac1n\\right)^{n/2}.\\end{aligned}"
+        },
+        {
+          "symbol": "\\(A_O,\\gamma_O\\)",
+          "text": "The literal source precision and actual canonical Gaussian. Fin n index zero denotes the source first coordinate.",
+          "formula": "A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top),\\qquad\\gamma_O=\\mathcal N(0,A_O^{-1})."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use the actual selected parameters",
+          "text": "Apply the identical compiled selection theorem. It supplies the positive tilt, the radius interval and the literal affine matching. These conditions are not copied into the public hypotheses.",
+          "formula": "0<r<1,\\quad\\ell>0,\\qquad D_\\ell(U)=\\kappa+1+4\\ell-(\\kappa-1)U=C(1+r^2-2rU),\\quad C=\\frac{n(s+1)^2}{2(n-1)}>0.",
+          "lean": "hsel and hden call SelectedTilt.selected_tilt exactly; all n, square-root and coefficient domains are derived internally."
+        },
+        {
+          "title": "Keep the actual coordinate in its range",
+          "text": "Orthogonality gives the coordinate bound. The normalized denominator is uniformly positive, so the quotient is continuous on compact full O(n) and absolutely integrable under its Haar probability. This step is essential before the real-power rule.",
+          "formula": "|U|\\le1,\\qquad 1+r^2-2rU=(1-r)^2+2r(1-U)\\ge(1-r)^2>0,\\qquad q\\in L^1(\\mu).",
+          "lean": "hbpos uses canonical entry_norm_bound_of_unitary and the compiled radius bounds. hqcont uses Continuous.rpow_const and Continuous.div; hqL directly calls Continuous.integrable_of_hasCompactSupport with the existing Haar probability, without cloning a generic compact-integration lemma."
+        },
+        {
+          "title": "Scale the positive real power",
+          "text": "Write p=n/2 and a=1-1/n. Both factors in the matched denominator are positive. The positive-base multiplication law therefore applies even when n is odd.",
+          "formula": "[C(1+r^2-2rU)]^p=C^p(1+r^2-2rU)^p,\\qquad p=n/2,\\quad a=1-1/n>0.",
+          "lean": "The pointwise final integral congruence uses hden, hC, hbpos and canonical Real.mul_rpow. The actual coordinate range is a consumed proof dependency, not positivity for an arbitrary real u."
+        },
+        {
+          "title": "Simplify the entire prefactor",
+          "text": "Normalize the coefficient together with the original factor of two. Converting the squared base to the natural n-th power uses real exponent multiplication, not integer rounding.",
+          "formula": "2C=\\frac{(s+1)^2}{a},\\qquad 2^p C^p=\\frac{(s+1)^n}{a^p},\\qquad\\beta_{n,\\kappa}=\\frac{(-1)^{n-1}(s-1)^{n-1}}{(s+1)^n}a^p.",
+          "lean": "htwoC, hpow2, hscale and hpref directly reuse Real.rpow_natCast_mul, Real.rpow_natCast, Real.mul_rpow and Real.div_rpow. Nonzero denominators are established before field normalization."
+        },
+        {
+          "title": "Join the actual Gaussian transform",
+          "text": "Use the existing actual Gaussian expectation identity at the proved positive tilt, rewrite its denominator and move the constant outside the same full-Haar integral. The normalized expectation is left unevaluated.",
+          "formula": "H_\\gamma(\\ell)=\\frac{(-1)^{n-1}(s-1)^{n-1}}{2^p}(C^p)^{-1}\\mathbb E_\\mu q=\\beta_{n,\\kappa}\\mathbb E_\\mu q.",
+          "lean": "hg calls GaussianExpectation.actual_gaussian_transform hn hκ hℓ.le. The final calc uses integral_congr_ae and integral_const_mul, then hpref. The focused test consumes this exact equality in the actual determinant-conditioned Gaussian mixture expectation gap. It does not supply the sphere/Poisson evaluation."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedTilt.selected_tilt",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianExpectation.actual_gaussian_transform",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec"
+      ],
+      "mathlib_dependencies": [
+        "entry_norm_bound_of_unitary",
+        "Continuous.matrix_elem",
+        "Continuous.rpow_const",
+        "Continuous.div",
+        "Continuous.integrable_of_hasCompactSupport",
+        "Real.rpow_natCast_mul",
+        "Real.rpow_natCast",
+        "Real.mul_rpow",
+        "Real.div_rpow",
+        "Real.rpow_pos_of_pos",
+        "integral_const_mul",
+        "integral_congr_ae"
+      ],
+      "lean_statement": "The unchanged preproof signature has only source n>=3 and kappa>=4. Actual Gaussian/Haar objects and normalized kernel are literal; positivity and L1 are proved internally.",
+      "lean_proof": "Positive-base real-power normalization joins the identical selected-parameter and actual Gaussian transform parents.",
+      "boundary": "Normalized actual signed Gaussian expectation and absolute Haar integrability of its normalized scalar kernel. No sphere pushforward, either Poisson integral evaluation, Eq24 evaluated H, actual positive TV first ratio, amplification, oracle/query/cost, hidden-eigenbasis or main bounds. The source-omitted real-power scaling and normalized kernel L1 are supplied internally, not hypotheses.",
+      "sources": [
+        {
+          "label": "Zhou–Suzuki, Eq. (21)–(24): normalization bridge",
+          "url": "https://arxiv.org/html/2610.20492v1#A2.E23",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Appendix B.2.2 Proposition B.7 proof: Eq21 plus Eq22–23 and the real-power prefactor substitution preceding Eq24 in A2.SS2.SSS2.p5",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. This is the source-implicit positive real-power normalization joining Eq21 and Eq23, before the Poisson value is substituted in Eq24. Kernel absolute integrability and coefficient algebra are explicit here.",
+          "scope": "Normalized actual signed Gaussian expectation and absolute Haar integrability of its normalized scalar kernel. No sphere pushforward, either Poisson integral evaluation, Eq24 evaluated H, actual positive TV first ratio, amplification, oracle/query/cost, hidden-eigenbasis or main bounds. The source-omitted real-power scaling and normalized kernel L1 are supplied internally, not hypotheses."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityPoissonNormalization"
+      ]
+    }
+  ]
+}

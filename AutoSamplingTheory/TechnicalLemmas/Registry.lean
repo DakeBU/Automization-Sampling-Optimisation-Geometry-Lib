@@ -82,6 +82,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualKernelL2Realization
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHalfTurnReversibility
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAugmentedKernelInvariance
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -126,6 +127,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualAugmentedKernelInvariance"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAugmentedKernelInvariance.actual_augmented_kernel_invariant"
+    upstreamDecl := "Actual augmented PBPS one-step invariant kernel"
+    upstreamFile := "arXiv2609.06905v1 Proposition3.4, equation3.11 and Algorithm2"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "kernel", "invariance", "conditional", "Tonelli"]
+    saldUse := "Actual normalized augmented kernel for the planned PBPS Theorem3.5 convergence route; no SALD claim"
+    note := "Independent source/compiler verification at6fbb3f42689e294cbb3f994fee26455baf4afef9; accepted audit ASTIS-RT-20261017-PBPSActualAugmentedKernelInvariance. Original six analytic inputs and exactly source fixed rho in(0,1). Retain the SAME literal actual Z/R/H and every-y conditional reversibility. Derive normalized Gibbs/augmentation probability and the same explicit conditional R, lift fiber invariance through measurable-section Tonelli, construct the fixed probability mixture and compose after Gaussian reflection to obtain exact eq3.11 and K.Invariant J. Three private declarations are implementation, not additional leaves. Exceptional-clock representative is justified parameterwise AE, not by a uniform null event. No process restart/semigroup, augmented all-L2 realization, hypocoercivity or convergence rate, implementation error/caps/actual cost, initialization/composition, PURIFIED or full-paper claim."
+  },
   {
     key := "pbps.actualHalfTurnReversibility"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHalfTurnReversibility.actual_half_turn_reversible"

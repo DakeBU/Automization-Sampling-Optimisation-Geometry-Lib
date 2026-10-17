@@ -304,6 +304,7 @@ import Tests.ExponentialKernelInterpolation
 import Tests.ProximalBPSActualL2StrongContinuity
 import Tests.ProximalBPSActualKernelL2Realization
 import Tests.ProximalBPSActualHalfTurnReversibility
+import Tests.ProximalBPSActualAugmentedKernelInvariance
 
 import Tests.GaussianComplexityBlockFamily
 import Tests.GaussianComplexityDeterminantCancellation

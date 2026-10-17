@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-170ad72c449cc345",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "theorem anonymous_target\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1)\n    (ρ : ℝ) (hρpos : 0 < ρ) (hρlt : ρ < 1) :\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    let q : E → Measure E := fun y =>\n      (volume : Measure E).tilted (fun x => -V x - ‖x - y‖ ^ 2 / (2 * η))\n    let γ : Measure E := stdGaussian E\n    let M : E → Measure ((E × E) × (ℕ → ℝ)) := fun y => ((q y).prod γ).prod P\n    let tπ : ℝ≥0 := ⟨Real.pi, Real.pi_pos.le⟩\n    let μ : Measure E := (volume : Measure E).tilted (fun x => -V x)\n    let J : Measure (E × E) := Measure.map\n      (fun z : E × E => (z.1, z.1 + Real.sqrt η • z.2)) (μ.prod γ)\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀) ∧\n      ∃ R : Kernel E E, IsMarkovKernel R ∧ (∀ y : E, R y = q y) ∧\n      ∃ H : Kernel (E × E) E, IsMarkovKernel H ∧\n      (∀ y : E, (H.comap (fun x : E => (y, x)) (by fun_prop)).IsReversible (q y)) ∧\n      (∀ y x : E, H (y, x) = Measure.map\n        (fun w : (E × E) × (ℕ → ℝ) => (Z y w.1.1 (x, w.1.2) tπ w.2).1)\n        (M y)) ∧\n      (∀ y x : E, Measure.map\n        (fun w : (E × E) × (ℕ → ℝ) => Z y w.1.1 (x, w.1.2) 0 w.2)\n        (M y) = (Measure.dirac x).prod γ) ∧\n      (∀ y x : E, ∀ᵐ w ∂M y,\n        Z y w.1.1 (x, w.1.2) 0 w.2 = (x, w.1.2) ∧\n        ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y w.1.1 (x, w.1.2) (ε w.2) n ≤ (tπ : WithTop ℝ≥0) ∧\n          (tπ : WithTop ℝ≥0) < eventTime y w.1.1 (x, w.1.2) (ε w.2) (n + 1) ∧\n          record y w.1.1 (x, w.1.2) (ε w.2) n = Sum.inl a ∧ a.1 ≤ tπ ∧\n          ((tπ - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y w.1.1 a.2 (ε w.2 n) ∧\n          Z y w.1.1 (x, w.1.2) tπ w.2 = Φ y w.1.1 ((tπ - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧ K.Invariant J ∧\n        (∀ z : E × E, K z =\n          (ENNReal.ofReal ρ • q ((2 : ℝ) • z.1 - z.2) +\n            ENNReal.ofReal (1 - ρ) • H ((2 : ℝ) • z.1 - z.2, z.1)).prod\n          (Measure.dirac ((2 : ℝ) • z.1 - z.2)))",
+    "statement_sha256": "170ad72c449cc34500635289256cf8dcb09857e69cf4d2cba96d9b45c65b2e4b",
+    "compiled": true,
+    "approved_definition_context": [
+      "Finite-dimensional real inner-product Borel space with canonical volume, including rank zero; gradient is the real Hilbert gradient and fderiv the totalized Frechet derivative. The supplied C2 and Hessian assumptions are literal theorem binders.",
+      "Real division by zero is zero; Real.toNNReal is positive part; subtraction in nonnegative reals is truncated. WithTop adds top, untopD 0 returns the finite value or zero for top. Sum.inl is the live time/state record and Sum.inr the stopped record.",
+      "Measure.tilted mu h is the probability-normalized exponential tilt: mu.withDensity(x -> ENNReal.ofReal(exp(h(x))/integral exp(h) dmu)); the integral is a totalized real integral. The let definition itself does not assert positivity or finiteness of that normalizer.",
+      "hittingAfter f D 0 a is the infimum of nonnegative times t at which f t a lies in D, in WithTop nonnegative reals; the empty infimum is top.",
+      "Measure.infinitePi forms the displayed countable product law; expMeasure 1 is the unit-rate exponential probability law on real numbers. Function spaces have the coordinate-product measurable structure; stdGaussian E is centered identity-covariance Gaussian. Product measures use exactly the displayed coordinate order.",
+      "Kernel A B is a measurable map from A to measures on B. IsMarkovKernel means every fiber is a probability measure. Kernel.comap i hi precomposes the index with the measurable map i. Measure.map F mu is the measurable-map pushforward; an explicit equality to it is a conclusion, not a law about temporal conditional distributions.",
+      "Kernel.IsReversible k mu means: for every pair of measurable sets A,B, the ENNReal set-lintegral of k(x,B) over A with measure mu equals the set-lintegral of k(x,A) over B. It is a measurable-rectangle detailed-balance predicate, not a countable-state singleton assertion.",
+      "All almost-everywhere assertions have exactly the displayed parameter scope. The literal let bindings define objects; their presence does not itself prove the properties suggested by their names.",
+      "Kernel.Invariant k mu means mu.bind k = mu, equality of measures; it is one-step invariance, not convergence or invariance of another process. Measure.fst is the first marginal. Measure.IsCondKernel nu R means nu.fst compProd R = nu: R disintegrates nu; this predicate alone does not characterize a conditional version pointwise on null marginal fibers.",
+      "Scalar multiplication and addition on measures use the displayed nonnegative extended-real weights. In the final product the first factor is the returned position law and the second is the retained auxiliary coordinate."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "a4963eb4ee29c4bb4d2d18343c68c1dfebf480e5452bc02ef2877a86c801c255"
+}

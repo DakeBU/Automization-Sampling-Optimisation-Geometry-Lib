@@ -1,0 +1,322 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-e3a8d7ba1ae38875",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "root_20261017_augmented",
+    "blind_decoder": "/root/anonymous_decoder_20261017_c",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "arXiv:2609.06905v1",
+    "anchor": "Proposition3.4 and eq3.11; source standing1.1, scale2.2, Gaussian augmentation2.6-2.8, reflectionProp2.1iii, conditional reversibilityProp3.2",
+    "original_text": "Assume the standing C2 potential with genuine Hessian bounds 0<alpha<=beta, positive eta with beta eta<=1, and fixed resampling probability rho in (0,1). Define the normalized Gibbs probability mu, its generative independent Gaussian augmentation J, q_y its normalized conditional density, and the actual conditional half-turn H_y returned by the literal process. Reflect the auxiliary coordinate first: yprime=2x-y. The next position law is rho q_yprime+(1-rho)H_yprime(x), retaining yprime. This actual augmented Markov transition preserves J. Gaussian reflection preserves J; both conditional updates preserve q_yprime, hence so do their fixed mixture and composition. The Lean target retains the literal clock recursion, raw arc/fallback, parameterwise AE coverage/initialization and exact H witness, and derives all probability/conditional certificates internally.",
+    "text_sha256": "5deb38e48d8cb9af86e4d82b00a96635f7b81cd5d9883b4b3331238c2d70b57d"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAugmentedKernelInvariance.actual_augmented_kernel_invariant",
+    "file": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualAugmentedKernelInvariance.lean",
+    "statement": "theorem anonymous_target\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1)\n    (ρ : ℝ) (hρpos : 0 < ρ) (hρlt : ρ < 1) :\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    let q : E → Measure E := fun y =>\n      (volume : Measure E).tilted (fun x => -V x - ‖x - y‖ ^ 2 / (2 * η))\n    let γ : Measure E := stdGaussian E\n    let M : E → Measure ((E × E) × (ℕ → ℝ)) := fun y => ((q y).prod γ).prod P\n    let tπ : ℝ≥0 := ⟨Real.pi, Real.pi_pos.le⟩\n    let μ : Measure E := (volume : Measure E).tilted (fun x => -V x)\n    let J : Measure (E × E) := Measure.map\n      (fun z : E × E => (z.1, z.1 + Real.sqrt η • z.2)) (μ.prod γ)\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀) ∧\n      ∃ R : Kernel E E, IsMarkovKernel R ∧ (∀ y : E, R y = q y) ∧\n      ∃ H : Kernel (E × E) E, IsMarkovKernel H ∧\n      (∀ y : E, (H.comap (fun x : E => (y, x)) (by fun_prop)).IsReversible (q y)) ∧\n      (∀ y x : E, H (y, x) = Measure.map\n        (fun w : (E × E) × (ℕ → ℝ) => (Z y w.1.1 (x, w.1.2) tπ w.2).1)\n        (M y)) ∧\n      (∀ y x : E, Measure.map\n        (fun w : (E × E) × (ℕ → ℝ) => Z y w.1.1 (x, w.1.2) 0 w.2)\n        (M y) = (Measure.dirac x).prod γ) ∧\n      (∀ y x : E, ∀ᵐ w ∂M y,\n        Z y w.1.1 (x, w.1.2) 0 w.2 = (x, w.1.2) ∧\n        ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y w.1.1 (x, w.1.2) (ε w.2) n ≤ (tπ : WithTop ℝ≥0) ∧\n          (tπ : WithTop ℝ≥0) < eventTime y w.1.1 (x, w.1.2) (ε w.2) (n + 1) ∧\n          record y w.1.1 (x, w.1.2) (ε w.2) n = Sum.inl a ∧ a.1 ≤ tπ ∧\n          ((tπ - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y w.1.1 a.2 (ε w.2 n) ∧\n          Z y w.1.1 (x, w.1.2) tπ w.2 = Φ y w.1.1 ((tπ - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧ K.Invariant J ∧\n        (∀ z : E × E, K z =\n          (ENNReal.ofReal ρ • q ((2 : ℝ) • z.1 - z.2) +\n            ENNReal.ofReal (1 - ρ) • H ((2 : ℝ) • z.1 - z.2, z.1)).prod\n          (Measure.dirac ((2 : ℝ) • z.1 - z.2)))",
+    "statement_sha256": "170ad72c449cc34500635289256cf8dcb09857e69cf4d2cba96d9b45c65b2e4b",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be any finite-dimensional real inner-product space with its Borel measurable structure and canonical volume measure, including dimension zero. Let V:E -> R be twice continuously differentiable. Let alpha and beta be nonnegative real constants with alpha > 0 and alpha <= beta. Assume, for every x,v in E, that\nalpha ||v||^2 <= (D(DV)(x)[v])[v] <= beta ||v||^2.\nHere D is the totalized real Frechet derivative and grad V is the real Hilbert-space gradient. Let eta > 0 satisfy beta eta <= 1. Let rho be a real number satisfying 0 < rho < 1.\n\nThe following definitions are part of the statement. Every real division, including division by zero, is totalized; real division by zero equals zero. Subtraction of nonnegative real times is truncated at zero.\n\nWrite Omega = R^N with its coordinate-product measurable structure. Let P be the countable product of unit-rate exponential probability laws on R. For every sample s in Omega and integer k >= 0, put epsilon_s(k) = max(s(k),0), regarded as a nonnegative real.\n\nFor y,r in E define c(y,r)=y-eta grad V(r). For z=(u,v) in E x E and real t define the deterministic flow\nPhi(y,r,t,(u,v)) =\n(c(y,r) + cos(t)(u-c(y,r)) + sqrt(eta) sin(t) v,\n -sin(t)/sqrt(eta) (u-c(y,r)) + cos(t) v).\nPut d_r(u)=grad V(u)-grad V(r). Define the reflection and nonnegative rate by\nS(r,(u,v))=(u, v-[2 <v,d_r(u)>/||d_r(u)||^2] d_r(u)),\nlambda(r,(u,v))=sqrt(eta) max(0,<v,d_r(u)>).\nThus the displayed reflection remains defined when d_r(u)=0, using totalized division.\n\nFor each nonnegative real t set\nLambda(y,r,z,t)=integral from 0 to t of lambda(r,Phi(y,r,s,z)) ds.\nFor a nonnegative threshold e let tau(y,r,z,e) be the infimum, in the nonnegative reals with an added largest element infinity, of all nonnegative t with Lambda(y,r,z,t)-e >= 0. The infimum of the empty set is infinity. This is the hittingAfter construction starting at time zero; no additional first-hit or conditional-distribution property is presumed.\n\nFor any y,r,z0 and any sequence e:N -> [0,infinity), define live/stopped records recursively. A live record is a pair (a,z), where a is a finite nonnegative accumulated time and z is in E x E; a stopped record is a separate absorbing symbol. Record_0 is the live record (0,z0). To obtain Record_(k+1), leave a stopped record stopped. From a live record (a,z), if tau(y,r,z,e(k)) is infinity, output the stopped record. Otherwise, writing h for that finite hitting time, output the live record (a+h, S(r,Phi(y,r,h,z))). Equivalently, the finite time is obtained by untopD 0, which returns zero at infinity, but the infinity case is checked first. Define T_n(y,r,z0,e) to be the accumulated time in Record_n if that record is live, and infinity if it is stopped.\n\nFor any real measurable exponent h, the notation Tilt(h) below means the probability-normalized exponential tilt of canonical volume, defined literally by density\nx |-> ofReal(exp(h(x)) / integral exp(h) dvolume).\nThe normalizing integral is the totalized real integral. The definition alone does not assert that its value is positive or finite. Define\nq_y = Tilt(x |-> -V(x)-||x-y||^2/(2 eta)),\nmu = Tilt(x |-> -V(x)).\nLet gamma be the centered identity-covariance Gaussian measure on E. Define\nM_y = (q_y x gamma) x P\non (E x E) x Omega, with a point written w=((r,v),s) in precisely that order. Put t_pi=pi, considered as a nonnegative time. Define J on E x E as the pushforward of mu x gamma by\n(x,v) |-> (x, x+sqrt(eta) v).\n\nThen mu and J are probability measures. Moreover there exist Z, R, H, and K, with the existential dependencies specified below, satisfying all of the following.\n\nFirst there exists a map\nZ:E x E x (E x E) x [0,infinity) x Omega -> E x E,\nwritten Z(y,r,z0,t,s), which is jointly measurable for the product measurable structures. Explicitly, the map (((y,r),z0),(t,s)) |-> Z(y,r,z0,t,s) is measurable.\n\nFor every y,r in E, every z0 in E x E, every sample s in Omega, every nonnegative time t, every integer n >= 0, and every live-record value a=(a_time,a_state), if\nT_n(y,r,z0,epsilon_s) <= t < T_(n+1)(y,r,z0,epsilon_s)\nand Record_n(y,r,z0,epsilon_s) is the live record a, then\nZ(y,r,z0,t,s)=Phi(y,r,t-a_time,a_state).\nThe comparisons with event times take place in the extended nonnegative reals; t-a_time is nonnegative-real truncated subtraction, then included in R. Thus these equalities apply on the half-open intervals including an event's time at their left endpoint.\n\nFor every y,r,z0,s,t in those same domains, if there is no integer n >= 0 with\nT_n(y,r,z0,epsilon_s) <= t < T_(n+1)(y,r,z0,epsilon_s),\nthen Z(y,r,z0,t,s)=z0. Both this fallback law and the preceding segment law hold for every sample, not only almost every sample.\n\nFor every fixed y,r in E and fixed z0 in E x E, for P-almost every sample s, the following conjunction holds: simultaneously for every nonnegative t there exist an integer n >= 0 and a live-record value a=(a_time,a_state) such that\nT_n(y,r,z0,epsilon_s) <= t < T_(n+1)(y,r,z0,epsilon_s),\nRecord_n(y,r,z0,epsilon_s) is the live record a,\na_time <= t,\nt-a_time < tau(y,r,a_state,epsilon_s(n)),\nand Z(y,r,z0,t,s)=Phi(y,r,t-a_time,a_state);\nand also Z(y,r,z0,0,s)=z0. The residual-time comparison again uses the extended nonnegative reals. The exceptional P-null set may depend on y,r,z0, but for fixed y,r,z0 this assertion holds for all t on one full-measure set.\n\nFor such a Z there exists a measurable Markov kernel R from E to E, every fiber of which is a probability measure, with R(y)=q_y for every y in E.\n\nFor such Z and R there exists a measurable Markov kernel H from E x E to E, every fiber of which is a probability measure, satisfying the following four assertions.\n\nFor every y in E, the kernel x |-> H(y,x) is reversible with respect to q_y: for every pair of measurable sets A,B in E, the nonnegative extended-real integral of H(y,x)(B) over x in A with measure q_y equals the corresponding integral of H(y,x)(A) over x in B with measure q_y. This is measurable-rectangle detailed balance.\n\nFor every y,x in E,\nH(y,x) is the pushforward of M_y by\n((r,v),s) |-> first_coordinate(Z(y,r,(x,v),t_pi,s)).\nThus its prescribed sampling order is a reference r with law q_y, a Gaussian velocity v, and exponential sample s under their displayed product law; the initial position in Z is the fixed x.\n\nFor every y,x in E, the pushforward of M_y by\n((r,v),s) |-> Z(y,r,(x,v),0,s)\nis exactly delta_x x gamma on E x E.\n\nFor every fixed y,x in E, for M_y-almost every w=((r,v),s), both of the following hold: Z(y,r,(x,v),0,s)=(x,v); and there exist an integer n >= 0 and a live-record value a=(a_time,a_state) such that\nT_n(y,r,(x,v),epsilon_s) <= t_pi < T_(n+1)(y,r,(x,v),epsilon_s),\nRecord_n(y,r,(x,v),epsilon_s) is the live record a,\na_time <= t_pi,\nt_pi-a_time < tau(y,r,a_state,epsilon_s(n)),\nand Z(y,r,(x,v),t_pi,s)=Phi(y,r,t_pi-a_time,a_state).\nThis M_y-null exceptional set may depend on y,x. It is not asserted to be uniform in those parameters.\n\nIn addition, let nu be the pushforward of J under coordinate swap, so nu has coordinate order (auxiliary coordinate, position). Then R is a conditional kernel for nu in the measure-level sense\nnu.fst compProd R = nu.\nThat is, composing the first marginal of nu with R reconstructs the whole measure nu. This identity alone is not a claim that conditional distributions are pointwise characterized on null fibers; the separate assertion R(y)=q_y holds for every y.\n\nFinally, for such Z,R,H there exists a measurable Markov kernel K from E x E to E x E which leaves J invariant in one step:\nJ.bind K = J.\nFor every z=(x,b) in E x E, put u=2x-b. Its fiber is exactly\nK(x,b) = [ofReal(rho) q_u + ofReal(1-rho) H(u,x)] x delta_u,\nwhere the weights are nonnegative extended-real weights on measures. Since 0<rho<1, equivalently first compute the reflected auxiliary value u=2x-b, then draw a new first coordinate x_new with probability rho from q_u and with probability 1-rho from H(u,x), and return the ordered pair (x_new,u). The retained second coordinate is the reflected old pair value u, not the old b or x, and the H branch is indexed by (u,x).\n\nThe witness order is: probability of mu and J; there exists Z with all its measurability, pathwise, fallback and fixed-parameter P-almost-everywhere laws; then there exists R with its Markov and q-fiber laws; then there exists H with all its stated laws and the conditional-kernel identity for R; then there exists K with its Markov, J-invariance and all-fiber transition laws. All witnesses are under the original universal space, potential and parameter assumptions. No convergence, phase-process Markov property, temporal conditional-distribution identity, or invariance/reversibility of a process other than the explicitly named kernels is an additional conclusion.",
+    "text_sha256": "04fb8bd4e29076ef8aa870a721179bd8129ad35b455d5d38d5b4ab709ba1a4ba",
+    "decoder": "/root/anonymous_decoder_20261017_c",
+    "decoder_packet_sha256": "a4963eb4ee29c4bb4d2d18343c68c1dfebf480e5452bc02ef2877a86c801c255",
+    "decoder_run_sha256": "46e42f3b17f69eb0111e1d4eddcde8757f7b13103c4715c9c3d440d5d65695b0",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "8612515e1e18107a4cfe3c3c3e490e0c4eb023b7fb97243391b198a37a4506ee",
+  "candidate_publication_context": {
+    "file": "63dd736026104e3637fc89758811b9ad7034b17b58fe083a65a06516df7c5780",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHalfTurnReversibility\nimport AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection\nimport AutoSamplingTheory.TechnicalLemmas.Probability.GaussianConditionalKernel\nimport AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture\nimport AutoSamplingTheory.TechnicalLemmas.Probability.KernelTransport\n\nopen MeasureTheory ProbabilityTheory\nopen scoped ENNReal NNReal\n\n/-!\n# Actual augmented PBPS one-step invariance\n\nSource: Chen, Chewi, Lu and Zhang, arXiv:2609.06905v1, Proposition 3.4,\nequation (3.11), under standing hypotheses (1.1), (2.2), and fixed resampling\nprobability in (0,1). This constructs the actual transition, not an arbitrary\nkernel supplied with invariance as a premise.\n\nThe literal clock/flight/half-turn witness is retained. The normalized generative\nGibbs augmentation is disintegrated using the same everywhere-defined R. A\nretained-coordinate Tonelli argument lifts fiber invariance to the joint law;\nthe fixed probability mixture follows the auxiliary Gaussian reflection.\n\nOnly exact one-step invariance is proved: no process restart, semigroup,\naugmented all-L2 realization, hypocoercivity, implementation error, cap, cost,\ninitialization, composition, or full-paper conclusion.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAugmentedKernelInvariance\n\nprivate theorem retained_invariant {A B : Type*} [MeasurableSpace A] [MeasurableSpace B]\n    (ν : Measure (A × B)) [IsProbabilityMeasure ν]\n    (R : Kernel A B) [IsMarkovKernel R] [ν.IsCondKernel R]\n    (F : Kernel (A × B) B) [IsMarkovKernel F]\n    (hF : ∀ a, (F.comap (fun b => (a, b)) (by fun_prop)).Invariant (R a)) :\n    ((Kernel.deterministic Prod.fst measurable_fst) ×ₖ F).Invariant ν := by\n  let L := (Kernel.deterministic Prod.fst measurable_fst) ×ₖ F\n  change ν.bind L = ν\n  ext s hs\n  calc\n    (ν.bind L) s = ∫⁻ z, L z s ∂ν :=\n      Measure.bind_apply hs L.aemeasurable\n    _ = ∫⁻ a, ∫⁻ b, L (a, b) s ∂R a ∂ν.fst := by\n      rw [← Measure.lintegral_compProd (L.measurable_coe hs), ν.disintegrate R]\n    _ = ∫⁻ a, R a (Prod.mk a ⁻¹' s) ∂ν.fst := by\n      apply lintegral_congr\n      intro a\n      simp_rw [show ∀ b, L (a, b) s = F (a, b) (Prod.mk a ⁻¹' s) from\n        fun b => Kernel.deterministic_prod_apply' measurable_fst F (a, b) hs]\n      have ht : MeasurableSet (Prod.mk a ⁻¹' s) := hs.preimage measurable_prodMk_left\n      have hi := congrArg (fun m : Measure B => m (Prod.mk a ⁻¹' s)) (hF a).def\n      rw [Measure.bind_apply ht (Kernel.aemeasurable _)] at hi\n      exact hi\n    _ = (ν.fst ⊗ₘ R) s := (Measure.compProd_apply hs).symm\n    _ = ν s := congrArg (fun m : Measure (A × B) => m s) (ν.disintegrate R)\n\nprivate theorem reflected_conditional_mixture\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (J : Measure (E × E)) [IsProbabilityMeasure J]\n    (R : Kernel E E) [IsMarkovKernel R] [(J.map Prod.swap).IsCondKernel R]\n    (H : Kernel (E × E) E) [IsMarkovKernel H]\n    (hH : ∀ y, (H.comap (fun x => (y, x)) (by fun_prop)).Invariant (R y))\n    (ρ : ℝ) (hρpos : 0 < ρ) (hρlt : ρ < 1)\n    (hreflection : J.map (fun z => (z.1, (2 : ℝ) • z.1 - z.2)) = J) :\n    ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧ K.Invariant J ∧\n      ∀ z, K z = (ENNReal.ofReal ρ • R ((2 : ℝ) • z.1 - z.2) +\n        ENNReal.ofReal (1 - ρ) • H ((2 : ℝ) • z.1 - z.2, z.1)).prod\n        (Measure.dirac ((2 : ℝ) • z.1 - z.2)) := by\n  classical\n  let w : Fin 2 → ℝ≥0 := ![Real.toNNReal ρ, Real.toNNReal (1 - ρ)]\n  have hw : ∑ i, w i = 1 := by\n    apply NNReal.coe_injective\n    simp only [Fin.sum_univ_two, w, Matrix.cons_val_zero, Matrix.cons_val_one,\n      NNReal.coe_add, NNReal.coe_one, Real.coe_toNNReal ρ hρpos.le,\n      Real.coe_toNNReal (1 - ρ) (sub_nonneg.mpr hρlt.le)]\n    ring\n  let A : Kernel (E × E) E := R.comap Prod.fst measurable_fst\n  let ks : Fin 2 → Kernel (E × E) E := ![A, H]\n  letI : ∀ i, IsMarkovKernel (ks i) := by\n    intro i\n    fin_cases i <;> dsimp [ks, A] <;> infer_instance\n  let F := AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture w ks\n  letI : IsMarkovKernel F :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_isMarkovKernel w ks hw\n  have hFlaw (z : E × E) : F z = ENNReal.ofReal ρ • R z.1 +\n      ENNReal.ofReal (1 - ρ) • H z := by\n    rw [AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_apply,\n      Fin.sum_univ_two]\n    rfl\n  have hF (y : E) : (F.comap (fun x => (y, x)) (by fun_prop)).Invariant (R y) := by\n    let sy : Fin 2 → Kernel E E :=\n      ![Kernel.const E (R y), H.comap (fun x => (y, x)) (by fun_prop)]\n    letI : ∀ i, IsMarkovKernel (sy i) := by\n      intro i\n      fin_cases i <;> dsimp [sy] <;> infer_instance\n    have hsy : ∀ i, (sy i).Invariant (R y) := by\n      intro i\n      fin_cases i\n      · change (R y).bind (fun _ => R y) = R y\n        simp [Measure.bind_const]\n      · exact hH y\n    have heq : F.comap (fun x => (y, x)) (by fun_prop) =\n        AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture w sy := by\n      ext x : 1\n      rw [Kernel.comap_apply, hFlaw,\n        AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_apply,\n        Fin.sum_univ_two]\n      rfl\n    rw [heq]\n    exact AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_invariant\n      w sy (R y) hw hsy\n  letI : IsProbabilityMeasure (J.map Prod.swap) :=\n    Measure.isProbabilityMeasure_map measurable_swap.aemeasurable\n  let L : Kernel (E × E) (E × E) :=\n    (Kernel.deterministic Prod.fst measurable_fst) ×ₖ F\n  have hL : L.Invariant (J.map Prod.swap) := retained_invariant (J.map Prod.swap) R F hF\n  let B : Kernel (E × E) (E × E) := (L.comap Prod.swap measurable_swap).map Prod.swap\n  letI : IsMarkovKernel B := Kernel.IsMarkovKernel.map _ measurable_swap\n  have hB : B.Invariant J := by\n    have ht := AutoSamplingTheory.TechnicalLemmas.Probability.KernelTransport.invariant_map_comap\n      (MeasurableEquiv.prodComm : E × E ≃ᵐ E × E) hL\n    change B.Invariant ((J.map Prod.swap).map Prod.swap) at ht\n    rw [Measure.map_map measurable_swap measurable_swap] at ht\n    simpa only [Prod.swap_swap_eq, Measure.map_id] using ht\n  let U : E × E → E × E := fun z => (z.1, (2 : ℝ) • z.1 - z.2)\n  have hU : Measurable U := by\n    dsimp only [U]\n    fun_prop\n  have hUinv : (Kernel.deterministic U hU).Invariant J := by\n    change (Kernel.deterministic U hU) ∘ₘ J = J\n    rw [Measure.deterministic_comp_eq_map]\n    exact hreflection\n  let K := B ∘ₖ Kernel.deterministic U hU\n  refine ⟨K, inferInstance, hB.comp hUinv, ?_⟩\n  intro z\n  change (B ∘ₖ Kernel.deterministic U hU) z = _\n  rw [Kernel.comp_deterministic_eq_comap, Kernel.comap_apply, Kernel.map_apply _ measurable_swap,\n    Kernel.comap_apply, Kernel.prod_apply, Kernel.deterministic_apply]\n  rw [Measure.prod_swap, hFlaw]\n  rfl\n\n\nprivate def actual_augmented_kernel_invariance_statement\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1)\n    (ρ : ℝ) (hρpos : 0 < ρ) (hρlt : ρ < 1) : Prop :=\n    let P : Measure (ℕ → ℝ) := Measure.infinitePi (fun _ : ℕ => expMeasure (1 : ℝ))\n    let ε : (ℕ → ℝ) → ℕ → ℝ≥0 := fun sample k => Real.toNNReal (sample k)\n    let c : E → E → E := fun y xRef => y - η • gradient V xRef\n    let Φ : E → E → ℝ → (E × E) → (E × E) := fun y xRef t z =>\n      (c y xRef + Real.cos t • (z.1 - c y xRef) +\n          (Real.sqrt η * Real.sin t) • z.2,\n       (-Real.sin t / Real.sqrt η) • (z.1 - c y xRef) + Real.cos t • z.2)\n    let S : E → (E × E) → (E × E) := fun xRef z =>\n      (z.1, z.2 - (2 * inner ℝ z.2 (gradient V z.1 - gradient V xRef) /\n        ‖gradient V z.1 - gradient V xRef‖ ^ 2) • (gradient V z.1 - gradient V xRef))\n    let rate : E → (E × E) → ℝ := fun xRef z =>\n      Real.sqrt η * max 0 (inner ℝ z.2 (gradient V z.1 - gradient V xRef))\n    let Λ : E → E → (E × E) → ℝ≥0 → ℝ := fun y xRef z t =>\n      ∫ s in (0 : ℝ)..(t : ℝ), rate xRef (Φ y xRef s z)\n    let τ : E → E → (E × E) → ℝ≥0 → WithTop ℝ≥0 := fun y xRef z e =>\n      MeasureTheory.hittingAfter\n        (fun t : ℝ≥0 => fun a : (E × E) × (E × E) × ℝ≥0 =>\n          Λ a.1.1 a.1.2 a.2.1 t - (a.2.2 : ℝ))\n        (Set.Ici (0 : ℝ)) 0 ((y, xRef), z, e)\n    let next : E → E → ℝ≥0 → ((ℝ≥0 × (E × E)) ⊕ Unit) →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef e r =>\n      match r with\n      | Sum.inr _ => Sum.inr ()\n      | Sum.inl a =>\n        if τ y xRef a.2 e = ⊤ then Sum.inr () else\n          Sum.inl (a.1 + (τ y xRef a.2 e).untopD 0,\n            S xRef (Φ y xRef (((τ y xRef a.2 e).untopD 0 : ℝ≥0) : ℝ) a.2))\n    let record : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ →\n        ((ℝ≥0 × (E × E)) ⊕ Unit) := fun y xRef z₀ e n =>\n      Nat.rec (Sum.inl (0, z₀)) (fun k r => next y xRef (e k) r) n\n    let eventTime : E → E → (E × E) → (ℕ → ℝ≥0) → ℕ → WithTop ℝ≥0 :=\n      fun y xRef z₀ e n => (record y xRef z₀ e n).elim\n        (fun a => (a.1 : WithTop ℝ≥0)) (fun _ => ⊤)\n    let q : E → Measure E := fun y =>\n      (volume : Measure E).tilted (fun x => -V x - ‖x - y‖ ^ 2 / (2 * η))\n    let γ : Measure E := stdGaussian E\n    let M : E → Measure ((E × E) × (ℕ → ℝ)) := fun y => ((q y).prod γ).prod P\n    let tπ : ℝ≥0 := ⟨Real.pi, Real.pi_pos.le⟩\n    let μ : Measure E := (volume : Measure E).tilted (fun x => -V x)\n    let J : Measure (E × E) := Measure.map\n      (fun z : E × E => (z.1, z.1 + Real.sqrt η • z.2)) (μ.prod γ)\n    IsProbabilityMeasure μ ∧ IsProbabilityMeasure J ∧\n    ∃ Z : E → E → (E × E) → ℝ≥0 → (ℕ → ℝ) → (E × E),\n      Measurable (fun a : ((E × E) × (E × E)) × ℝ≥0 × (ℕ → ℝ) =>\n        Z a.1.1.1 a.1.1.2 a.1.2 a.2.1 a.2.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        ∀ n : ℕ, ∀ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) →\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) →\n          record y xRef z₀ (ε sample) n = Sum.inl a →\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ sample : ℕ → ℝ, ∀ t : ℝ≥0,\n        (¬ ∃ n : ℕ, eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1)) →\n          Z y xRef z₀ t sample = z₀) ∧\n      (∀ y xRef : E, ∀ z₀ : E × E, ∀ᵐ sample ∂P,\n        (∀ t : ℝ≥0, ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y xRef z₀ (ε sample) n ≤ (t : WithTop ℝ≥0) ∧\n          (t : WithTop ℝ≥0) < eventTime y xRef z₀ (ε sample) (n + 1) ∧\n          record y xRef z₀ (ε sample) n = Sum.inl a ∧ a.1 ≤ t ∧\n          ((t - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y xRef a.2 (ε sample n) ∧\n          Z y xRef z₀ t sample = Φ y xRef ((t - a.1 : ℝ≥0) : ℝ) a.2) ∧\n        Z y xRef z₀ 0 sample = z₀) ∧\n      ∃ R : Kernel E E, IsMarkovKernel R ∧ (∀ y : E, R y = q y) ∧\n      ∃ H : Kernel (E × E) E, IsMarkovKernel H ∧\n      (∀ y : E, (H.comap (fun x : E => (y, x)) (by fun_prop)).IsReversible (q y)) ∧\n      (∀ y x : E, H (y, x) = Measure.map\n        (fun w : (E × E) × (ℕ → ℝ) => (Z y w.1.1 (x, w.1.2) tπ w.2).1)\n        (M y)) ∧\n      (∀ y x : E, Measure.map\n        (fun w : (E × E) × (ℕ → ℝ) => Z y w.1.1 (x, w.1.2) 0 w.2)\n        (M y) = (Measure.dirac x).prod γ) ∧\n      (∀ y x : E, ∀ᵐ w ∂M y,\n        Z y w.1.1 (x, w.1.2) 0 w.2 = (x, w.1.2) ∧\n        ∃ n : ℕ, ∃ a : ℝ≥0 × (E × E),\n          eventTime y w.1.1 (x, w.1.2) (ε w.2) n ≤ (tπ : WithTop ℝ≥0) ∧\n          (tπ : WithTop ℝ≥0) < eventTime y w.1.1 (x, w.1.2) (ε w.2) (n + 1) ∧\n          record y w.1.1 (x, w.1.2) (ε w.2) n = Sum.inl a ∧ a.1 ≤ tπ ∧\n          ((tπ - a.1 : ℝ≥0) : WithTop ℝ≥0) < τ y w.1.1 a.2 (ε w.2 n) ∧\n          Z y w.1.1 (x, w.1.2) tπ w.2 = Φ y w.1.1 ((tπ - a.1 : ℝ≥0) : ℝ) a.2) ∧\n      (J.map Prod.swap).IsCondKernel R ∧\n      ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧ K.Invariant J ∧\n        (∀ z : E × E, K z =\n          (ENNReal.ofReal ρ • q ((2 : ℝ) • z.1 - z.2) +\n            ENNReal.ofReal (1 - ρ) • H ((2 : ℝ) • z.1 - z.2, z.1)).prod\n          (Measure.dirac ((2 : ℝ) • z.1 - z.2)))\n\n/-- The literal reflected augmented actual-PBPS transition preserves its normalized Gibbs law.\nAll normalization and conditional-law obligations are conclusions or internal dependencies. -/\ntheorem actual_augmented_kernel_invariant\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    {V : E → ℝ} {α β : ℝ≥0} {η : ℝ}\n    (hα : 0 < (α : ℝ)) (hαβ : α ≤ β) (hV : ContDiff ℝ 2 V)\n    (hH : ∀ x v : E,\n      (α : ℝ) * ‖v‖ ^ 2 ≤ (fderiv ℝ (fderiv ℝ V) x v) v ∧\n      (fderiv ℝ (fderiv ℝ V) x v) v ≤ (β : ℝ) * ‖v‖ ^ 2)\n    (hη : 0 < η) (hβη : (β : ℝ) * η ≤ 1)\n    (ρ : ℝ) (hρpos : 0 < ρ) (hρlt : ρ < 1) :\n    actual_augmented_kernel_invariance_statement hα hαβ hV hH hη hβη ρ hρpos hρlt := by\n  classical\n  unfold actual_augmented_kernel_invariance_statement\n  intro P ε c Φ S rate Λ τ next record eventTime q γ M tπ μ J\n  obtain ⟨Z, hZM, hZa, hZf, hgood, R, hR, hRq, H, hHK, hrev, hHlaw, hH0, hHgood⟩ :=\n    ActualHalfTurnReversibility.actual_half_turn_reversible hα hαβ hV hH hη hβη\n  letI : IsMarkovKernel R := hR\n  letI : IsMarkovKernel H := hHK\n  have hnorm := GibbsAugmentation.normalized_augmentation_density\n    hα hV (fun x v => (hH x v).1) hη\n  have hi : Integrable (fun x : E => Real.exp (-V x)) (volume : Measure E) :=\n    Integrable.of_integral_ne_zero hnorm.1.ne'\n  letI : IsProbabilityMeasure μ := isProbabilityMeasure_tilted hi\n  letI : IsProbabilityMeasure J := hnorm.2.1\n  obtain ⟨Rc, hRc, hRctilt, hcond⟩ :=\n    TechnicalLemmas.Probability.GaussianConditionalKernel.exists_tilted_isCondKernel μ hη\n  have hRcq (y : E) : Rc y = q y := by\n    rw [hRctilt y, show μ = (volume : Measure E).tilted (fun x => -V x) from rfl,\n      tilted_tilted hi]\n    congr 1\n    funext x\n    dsimp only [Pi.add_apply]\n    ring\n  have hRcR : Rc = R := by\n    ext y : 1\n    rw [hRcq y, hRq y]\n  subst Rc\n  change (J.map Prod.swap).IsCondKernel R at hcond\n  letI : (J.map Prod.swap).IsCondKernel R := hcond\n  refine ⟨inferInstance, inferInstance, Z, hZM, hZa, hZf, hgood, R, hR, hRq,\n    H, hHK, hrev, hHlaw, hH0, hHgood, hcond, ?_⟩\n  have hHinv (y : E) : (H.comap (fun x => (y, x)) (by fun_prop)).Invariant (R y) := by\n    rw [hRq y]\n    exact (hrev y).invariant\n  have href : J.map (fun z => (z.1, (2 : ℝ) • z.1 - z.2)) = J :=\n    (GaussianReflection.reflection_preserves_augmentation μ η hη).2\n  obtain ⟨K, hK, hKinv, hKlaw⟩ :=\n    reflected_conditional_mixture J R H hHinv ρ hρpos hρlt href\n  refine ⟨K, hK, hKinv, ?_⟩\n  intro z\n  simpa only [hRq] using hKlaw z\n\nend AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAugmentedKernelInvariance\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "wording_status": "faithful paraphrase",
+      "url": "https://arxiv.org/html/2609.06905v1",
+      "attribution": "Fan Chen, Sinho Chewi, Jianfeng Lu and Matthew S. Zhang. ASTIS expands normalization, explicit conditional-version identification and the retained-coordinate Tonelli argument. No author endorsement or complete-paper claim.",
+      "edition": "arXiv:2609.06905v1",
+      "anchor": "Proposition3.4, equation3.11 and Algorithm2; standing1.1/scale2.2; reflectionProp2.1iii and conditional reversibilityProp3.2"
+    },
+    "statement": "Let \\(E\\) be a finite-dimensional real inner-product Borel space, including dimension zero. Suppose \\(V\\in C^2\\), \\(0<\\alpha\\le\\beta\\), \\(\\alpha\\|v\\|^2\\le D^2V(x)[v,v]\\le\\beta\\|v\\|^2\\) for all \\(x,v\\), \\(\\eta>0\\), \\(\\beta\\eta\\le1\\), and a fixed scalar \\(0<\\rho<1\\). Let \\(\\mu(dx)\\propto e^{-V(x)}dx\\) and let \\(J\\) be the law of \\((X,X+\\sqrt\\eta G)\\) for independent \\(X\\sim\\mu\\), \\(G\\sim\\mathcal N(0,I)\\). Let \\(q_y(dx)\\propto e^{-V(x)-\\|x-y\\|^2/(2\\eta)}dx\\) and let \\(H_y(x,\\cdot)\\) be the actual time-pi returned-position kernel, with an independent reference from \\(q_y\\), Gaussian momentum and iid unit exponential clocks. Reflect \\(y\\) to \\(y\\prime=2x-y\\), draw the next position from \\(\\rho q_{y\\prime}+(1-\\rho)H_{y\\prime}(x,\\cdot)\\), and retain \\(y\\prime\\). This defines a Markov kernel \\(K\\) preserving \\(J\\). All probability normalizations and the conditional-kernel certificate are conclusions. The same literal clock recursion, covered-arc/fallback laws, parameterwise AE coverage/initialization, and actual H witness are retained in the folded full statement.",
+    "formulae": [
+      {
+        "label": "Actual one-step transition and invariant law",
+        "tex": "\\begin{aligned} y\\prime&=2x-y,\\\\ K((x,y),dx\\prime\\,dy\\prime)&=\\bigl[\\rho q_{y\\prime}(dx\\prime)+(1-\\rho)H(y\\prime,x)(dx\\prime)\\bigr]\\,\\delta_{2x-y}(dy\\prime),\\\\ J K&=J.\\end{aligned}"
+      },
+      {
+        "label": "Normalized target and its chosen conditional",
+        "tex": "\\mu(dx)=Z_V^{-1}e^{-V(x)}dx,\\quad J=\\operatorname{Law}(X,X+\\sqrt\\eta G),\\quad J^{\\rm swap}=J^Y\\otimes q,\\quad 0<Z_V<\\infty."
+      }
+    ],
+    "assumptions": [
+      "The six standing analytic binders are unchanged: genuine C2/Hessian bounds, positive alpha and eta, alpha<=beta and beta eta<=1. The only new source binders are the fixed scalar rho and 0<rho<1; weights do not depend on state.",
+      "The potential, Gaussian, canonical volume and Hilbert-space assumptions match the actual half-turn producer. fderiv is totalized in Lean, but C2 supplies genuine differentiability; no derivative-zero fallback is used to infer regularity.",
+      "Gibbs integrability/positive normalizer, probability, explicit everywhere-defined q_y, joint measurable kernels, conditional disintegration, mixture mass one and invariant measures are internally derived, not supplied premises.",
+      "Conditional R is the explicit normalized quadratic tilt at EVERY y. Its equality to the retained R follows from their explicit fiber laws, not from almost-everywhere uniqueness of arbitrary conditional versions.",
+      "All old path coverage/initialization null sets remain parameterwise. This one-step law does not assert a temporal Markov/restart/semigroup property or any convergence rate."
+    ],
+    "obligations": [
+      {
+        "id": "actual-augmented-one-step-invariance",
+        "label": "Construct the same actual reflected mixture K and prove exact invariant normalized joint law"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "title": "Actual PBPS: why the reflected augmented transition preserves its target",
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAugmentedKernelInvariance.actual_augmented_kernel_invariant",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2609.06905v1",
+          "label": "Proposition3.4, equation3.11 and Algorithm2; standing1.1/scale2.2; reflectionProp2.1iii and conditional reversibilityProp3.2",
+          "scope": "Exact one-step invariance of the literal augmented transition only. No process restart/semigroup, augmented all-L2 operator, hypocoercivity or quantitative convergence, implementation error/caps/cost, warm-start initialization, composition or complete paper."
+        }
+      ],
+      "tests": [
+        "LEAN_NUM_THREADS=1 lake build AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAugmentedKernelInvariance Tests.ProximalBPSActualAugmentedKernelInvariance"
+      ],
+      "assumptions": [
+        "The six standing analytic binders are unchanged: genuine C2/Hessian bounds, positive alpha and eta, alpha<=beta and beta eta<=1. The only new source binders are the fixed scalar rho and 0<rho<1; weights do not depend on state.",
+        "The potential, Gaussian, canonical volume and Hilbert-space assumptions match the actual half-turn producer. fderiv is totalized in Lean, but C2 supplies genuine differentiability; no derivative-zero fallback is used to infer regularity.",
+        "Gibbs integrability/positive normalizer, probability, explicit everywhere-defined q_y, joint measurable kernels, conditional disintegration, mixture mass one and invariant measures are internally derived, not supplied premises.",
+        "Conditional R is the explicit normalized quadratic tilt at EVERY y. Its equality to the retained R follows from their explicit fiber laws, not from almost-everywhere uniqueness of arbitrary conditional versions.",
+        "All old path coverage/initialization null sets remain parameterwise. This one-step law does not assert a temporal Markov/restart/semigroup property or any convergence rate."
+      ],
+      "statement": "Let \\(E\\) be a finite-dimensional real inner-product Borel space, including dimension zero. Suppose \\(V\\in C^2\\), \\(0<\\alpha\\le\\beta\\), \\(\\alpha\\|v\\|^2\\le D^2V(x)[v,v]\\le\\beta\\|v\\|^2\\) for all \\(x,v\\), \\(\\eta>0\\), \\(\\beta\\eta\\le1\\), and a fixed scalar \\(0<\\rho<1\\). Let \\(\\mu(dx)\\propto e^{-V(x)}dx\\) and let \\(J\\) be the law of \\((X,X+\\sqrt\\eta G)\\) for independent \\(X\\sim\\mu\\), \\(G\\sim\\mathcal N(0,I)\\). Let \\(q_y(dx)\\propto e^{-V(x)-\\|x-y\\|^2/(2\\eta)}dx\\) and let \\(H_y(x,\\cdot)\\) be the actual time-pi returned-position kernel, with an independent reference from \\(q_y\\), Gaussian momentum and iid unit exponential clocks. Reflect \\(y\\) to \\(y\\prime=2x-y\\), draw the next position from \\(\\rho q_{y\\prime}+(1-\\rho)H_{y\\prime}(x,\\cdot)\\), and retain \\(y\\prime\\). This defines a Markov kernel \\(K\\) preserving \\(J\\). All probability normalizations and the conditional-kernel certificate are conclusions. The same literal clock recursion, covered-arc/fallback laws, parameterwise AE coverage/initialization, and actual H witness are retained in the folded full statement.",
+      "lean_statement": "Let \\(E\\) be a finite-dimensional real inner-product Borel space, including dimension zero. Suppose \\(V\\in C^2\\), \\(0<\\alpha\\le\\beta\\), \\(\\alpha\\|v\\|^2\\le D^2V(x)[v,v]\\le\\beta\\|v\\|^2\\) for all \\(x,v\\), \\(\\eta>0\\), \\(\\beta\\eta\\le1\\), and a fixed scalar \\(0<\\rho<1\\). Let \\(\\mu(dx)\\propto e^{-V(x)}dx\\) and let \\(J\\) be the law of \\((X,X+\\sqrt\\eta G)\\) for independent \\(X\\sim\\mu\\), \\(G\\sim\\mathcal N(0,I)\\). Let \\(q_y(dx)\\propto e^{-V(x)-\\|x-y\\|^2/(2\\eta)}dx\\) and let \\(H_y(x,\\cdot)\\) be the actual time-pi returned-position kernel, with an independent reference from \\(q_y\\), Gaussian momentum and iid unit exponential clocks. Reflect \\(y\\) to \\(y\\prime=2x-y\\), draw the next position from \\(\\rho q_{y\\prime}+(1-\\rho)H_{y\\prime}(x,\\cdot)\\), and retain \\(y\\prime\\). This defines a Markov kernel \\(K\\) preserving \\(J\\). All probability normalizations and the conditional-kernel certificate are conclusions. The same literal clock recursion, covered-arc/fallback laws, parameterwise AE coverage/initialization, and actual H witness are retained in the folded full statement.",
+      "formula": "\\begin{aligned} y\\prime&=2x-y,\\\\ K((x,y),dx\\prime\\,dy\\prime)&=\\bigl[\\rho q_{y\\prime}(dx\\prime)+(1-\\rho)H(y\\prime,x)(dx\\prime)\\bigr]\\,\\delta_{2x-y}(dy\\prime),\\\\ J K&=J.\\end{aligned}",
+      "steps": [
+        {
+          "title": "Normalize the real target and identify the SAME conditional kernel",
+          "text": "The genuine Hessian lower bound gives a finite positive Gibbs normalizer. The existing Gaussian augmentation is therefore a probability law. Its explicit backward conditional is a quadratic exponential tilt of mu. The nested-tilt identity turns it into the literal volume tilt q_y. Both conditional kernels have this fiber at every y, so they are equal as kernels; we transfer the disintegration certificate to the R retained by the actual half-turn producer.",
+          "formula": "\\begin{aligned}(\\mu^{\\rm tilt(-\\|\\cdot-y\\|^2/(2\\eta))})(dx)&=q_y(dx),\\\\ R_y=q_y,\\qquad J^{\\rm swap}&=J^Y\\otimes R.\\end{aligned}",
+          "detail": "This is pointwise identity of explicitly chosen versions, not a pointwise claim obtained from AE conditional uniqueness. Integrability is established before applying the normalized nested-tilt identity.",
+          "lean": "  obtain ⟨Z, hZM, hZa, hZf, hgood, R, hR, hRq, H, hHK, hrev, hHlaw, hH0, hHgood⟩ :=\n    ActualHalfTurnReversibility.actual_half_turn_reversible hα hαβ hV hH hη hβη\n  letI : IsMarkovKernel R := hR\n  letI : IsMarkovKernel H := hHK\n  have hnorm := GibbsAugmentation.normalized_augmentation_density\n    hα hV (fun x v => (hH x v).1) hη\n  have hi : Integrable (fun x : E => Real.exp (-V x)) (volume : Measure E) :=\n    Integrable.of_integral_ne_zero hnorm.1.ne'\n  letI : IsProbabilityMeasure μ := isProbabilityMeasure_tilted hi\n  letI : IsProbabilityMeasure J := hnorm.2.1\n  obtain ⟨Rc, hRc, hRctilt, hcond⟩ :=\n    TechnicalLemmas.Probability.GaussianConditionalKernel.exists_tilted_isCondKernel μ hη\n  have hRcq (y : E) : Rc y = q y := by\n    rw [hRctilt y, show μ = (volume : Measure E).tilted (fun x => -V x) from rfl,\n      tilted_tilted hi]\n    congr 1\n    funext x\n    dsimp only [Pi.add_apply]\n    ring\n  have hRcR : Rc = R := by\n    ext y : 1\n    rw [hRcq y, hRq y]\n  subst Rc\n  change (J.map Prod.swap).IsCondKernel R at hcond\n  letI : (J.map Prod.swap).IsCondKernel R := hcond\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualAugmentedKernelInvariance.lean",
+            "source_raw_sha256": "63dd736026104e3637fc89758811b9ad7034b17b58fe083a65a06516df7c5780",
+            "exact_code_raw_sha256": "f9329784fe96b295d127eab0bdb18f36d899482a72bbf07f0351e75ac145fecc",
+            "start_line": 256,
+            "end_line": 280
+          }
+        },
+        {
+          "title": "Mix two probability updates at fixed auxiliary coordinate",
+          "text": "The actual half-turn is reversible for q_y, hence invariant. Exact resampling has the constant output law q_y and also preserves it. Construct their jointly measurable fixed two-component mixture F using the existing finite-mixture API. The nonnegative weights sum to one, so F is Markov; its restriction to each y preserves q_y.",
+          "formula": "\\begin{aligned}q_y H_y&=q_y,\\quad q_y R_y=q_y,\\\\ F_y(x)&=\\rho q_y+(1-\\rho)H_y(x),\\qquad q_y F_y=q_y.\\end{aligned}",
+          "detail": "The excerpt implements the mixture adapter: its private hH input is discharged from actual reversibility in the public proof. It is not a new public hypothesis. State-dependent selection weights would invalidate this inference.",
+          "lean": "private theorem reflected_conditional_mixture\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (J : Measure (E × E)) [IsProbabilityMeasure J]\n    (R : Kernel E E) [IsMarkovKernel R] [(J.map Prod.swap).IsCondKernel R]\n    (H : Kernel (E × E) E) [IsMarkovKernel H]\n    (hH : ∀ y, (H.comap (fun x => (y, x)) (by fun_prop)).Invariant (R y))\n    (ρ : ℝ) (hρpos : 0 < ρ) (hρlt : ρ < 1)\n    (hreflection : J.map (fun z => (z.1, (2 : ℝ) • z.1 - z.2)) = J) :\n    ∃ K : Kernel (E × E) (E × E), IsMarkovKernel K ∧ K.Invariant J ∧\n      ∀ z, K z = (ENNReal.ofReal ρ • R ((2 : ℝ) • z.1 - z.2) +\n        ENNReal.ofReal (1 - ρ) • H ((2 : ℝ) • z.1 - z.2, z.1)).prod\n        (Measure.dirac ((2 : ℝ) • z.1 - z.2)) := by\n  classical\n  let w : Fin 2 → ℝ≥0 := ![Real.toNNReal ρ, Real.toNNReal (1 - ρ)]\n  have hw : ∑ i, w i = 1 := by\n    apply NNReal.coe_injective\n    simp only [Fin.sum_univ_two, w, Matrix.cons_val_zero, Matrix.cons_val_one,\n      NNReal.coe_add, NNReal.coe_one, Real.coe_toNNReal ρ hρpos.le,\n      Real.coe_toNNReal (1 - ρ) (sub_nonneg.mpr hρlt.le)]\n    ring\n  let A : Kernel (E × E) E := R.comap Prod.fst measurable_fst\n  let ks : Fin 2 → Kernel (E × E) E := ![A, H]\n  letI : ∀ i, IsMarkovKernel (ks i) := by\n    intro i\n    fin_cases i <;> dsimp [ks, A] <;> infer_instance\n  let F := AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture w ks\n  letI : IsMarkovKernel F :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_isMarkovKernel w ks hw\n  have hFlaw (z : E × E) : F z = ENNReal.ofReal ρ • R z.1 +\n      ENNReal.ofReal (1 - ρ) • H z := by\n    rw [AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_apply,\n      Fin.sum_univ_two]\n    rfl\n  have hF (y : E) : (F.comap (fun x => (y, x)) (by fun_prop)).Invariant (R y) := by\n    let sy : Fin 2 → Kernel E E :=\n      ![Kernel.const E (R y), H.comap (fun x => (y, x)) (by fun_prop)]\n    letI : ∀ i, IsMarkovKernel (sy i) := by\n      intro i\n      fin_cases i <;> dsimp [sy] <;> infer_instance\n    have hsy : ∀ i, (sy i).Invariant (R y) := by\n      intro i\n      fin_cases i\n      · change (R y).bind (fun _ => R y) = R y\n        simp [Measure.bind_const]\n      · exact hH y\n    have heq : F.comap (fun x => (y, x)) (by fun_prop) =\n        AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture w sy := by\n      ext x : 1\n      rw [Kernel.comap_apply, hFlaw,\n        AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_apply,\n        Fin.sum_univ_two]\n      rfl\n    rw [heq]\n    exact AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_invariant\n      w sy (R y) hw hsy\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualAugmentedKernelInvariance.lean",
+            "source_raw_sha256": "63dd736026104e3637fc89758811b9ad7034b17b58fe083a65a06516df7c5780",
+            "exact_code_raw_sha256": "e2381e1498cf950de3d5ed07b962837b628ff8335045ed90902682e1717478e7",
+            "start_line": 56,
+            "end_line": 111
+          }
+        },
+        {
+          "title": "Explain the omitted retained-coordinate Tonelli argument",
+          "text": "Work in the order (y,x), with nu=J.swap. For any measurable set S, write S_y for its measurable section. The lifted update L keeps y and draws xprime from F_y(x). Disintegrate nu; Tonelli applies to these nonnegative measurable probabilities. Fiber invariance replaces the inner integral by q_y(S_y), and the same disintegration recovers nu(S). Thus L preserves the entire joint law, not only its marginals.",
+          "formula": "\\begin{aligned}(\\nu L)(S)&=\\int J^Y(dy)\\int q_y(dx)F_y(x,S_y)\\\\&=\\int J^Y(dy)q_y(S_y)=\\nu(S),\\\\ S_y&=\\{x:(y,x)\\in S\\}.\\end{aligned}",
+          "detail": "No unbounded signed integral, moment assumption or extra domination premise is needed. Kernel measurability and section measurability are explicit; the implementation uses ENNReal lintegrals and the exact conditional certificate.",
+          "lean": "private theorem retained_invariant {A B : Type*} [MeasurableSpace A] [MeasurableSpace B]\n    (ν : Measure (A × B)) [IsProbabilityMeasure ν]\n    (R : Kernel A B) [IsMarkovKernel R] [ν.IsCondKernel R]\n    (F : Kernel (A × B) B) [IsMarkovKernel F]\n    (hF : ∀ a, (F.comap (fun b => (a, b)) (by fun_prop)).Invariant (R a)) :\n    ((Kernel.deterministic Prod.fst measurable_fst) ×ₖ F).Invariant ν := by\n  let L := (Kernel.deterministic Prod.fst measurable_fst) ×ₖ F\n  change ν.bind L = ν\n  ext s hs\n  calc\n    (ν.bind L) s = ∫⁻ z, L z s ∂ν :=\n      Measure.bind_apply hs L.aemeasurable\n    _ = ∫⁻ a, ∫⁻ b, L (a, b) s ∂R a ∂ν.fst := by\n      rw [← Measure.lintegral_compProd (L.measurable_coe hs), ν.disintegrate R]\n    _ = ∫⁻ a, R a (Prod.mk a ⁻¹' s) ∂ν.fst := by\n      apply lintegral_congr\n      intro a\n      simp_rw [show ∀ b, L (a, b) s = F (a, b) (Prod.mk a ⁻¹' s) from\n        fun b => Kernel.deterministic_prod_apply' measurable_fst F (a, b) hs]\n      have ht : MeasurableSet (Prod.mk a ⁻¹' s) := hs.preimage measurable_prodMk_left\n      have hi := congrArg (fun m : Measure B => m (Prod.mk a ⁻¹' s)) (hF a).def\n      rw [Measure.bind_apply ht (Kernel.aemeasurable _)] at hi\n      exact hi\n    _ = (ν.fst ⊗ₘ R) s := (Measure.compProd_apply hs).symm\n    _ = ν s := congrArg (fun m : Measure (A × B) => m s) (ν.disintegrate R)\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualAugmentedKernelInvariance.lean",
+            "source_raw_sha256": "63dd736026104e3637fc89758811b9ad7034b17b58fe083a65a06516df7c5780",
+            "exact_code_raw_sha256": "2ac06c78009abe6accc25a54d92381d4a7fe3dd2bbdd68dc194ba0947f0a9c0c",
+            "start_line": 30,
+            "end_line": 54
+          }
+        },
+        {
+          "title": "Swap coordinates back, then apply reflection first",
+          "text": "Conjugating L by the measurable swap returns to the order (x,y), giving an invariant Markov kernel B. The existing Gaussian reflection U(x,y)=(x,2x-y) preserves J. Define K as first U, then B. Composition of two J-preserving kernels preserves J. Evaluating the kernel removes the deterministic input and swaps the product factors, giving exactly the displayed transition law.",
+          "formula": "\\begin{aligned} U_\\#J&=J,\\quad JB=J,\\\\ JK&=(U_\\#J)B=JB=J,\\\\K(z)&=B(U(z)).\\end{aligned}",
+          "detail": "The order matters: the conditional mixture is evaluated at the reflected auxiliary coordinate, not the original y. Kernel.map can totalize to zero for nonmeasurable maps; here genuine swap/reflection measurability is proved, and Markovness is checked separately.",
+          "lean": "  letI : IsProbabilityMeasure (J.map Prod.swap) :=\n    Measure.isProbabilityMeasure_map measurable_swap.aemeasurable\n  let L : Kernel (E × E) (E × E) :=\n    (Kernel.deterministic Prod.fst measurable_fst) ×ₖ F\n  have hL : L.Invariant (J.map Prod.swap) := retained_invariant (J.map Prod.swap) R F hF\n  let B : Kernel (E × E) (E × E) := (L.comap Prod.swap measurable_swap).map Prod.swap\n  letI : IsMarkovKernel B := Kernel.IsMarkovKernel.map _ measurable_swap\n  have hB : B.Invariant J := by\n    have ht := AutoSamplingTheory.TechnicalLemmas.Probability.KernelTransport.invariant_map_comap\n      (MeasurableEquiv.prodComm : E × E ≃ᵐ E × E) hL\n    change B.Invariant ((J.map Prod.swap).map Prod.swap) at ht\n    rw [Measure.map_map measurable_swap measurable_swap] at ht\n    simpa only [Prod.swap_swap_eq, Measure.map_id] using ht\n  let U : E × E → E × E := fun z => (z.1, (2 : ℝ) • z.1 - z.2)\n  have hU : Measurable U := by\n    dsimp only [U]\n    fun_prop\n  have hUinv : (Kernel.deterministic U hU).Invariant J := by\n    change (Kernel.deterministic U hU) ∘ₘ J = J\n    rw [Measure.deterministic_comp_eq_map]\n    exact hreflection\n  let K := B ∘ₖ Kernel.deterministic U hU\n  refine ⟨K, inferInstance, hB.comp hUinv, ?_⟩\n  intro z\n  change (B ∘ₖ Kernel.deterministic U hU) z = _\n  rw [Kernel.comp_deterministic_eq_comap, Kernel.comap_apply, Kernel.map_apply _ measurable_swap,\n    Kernel.comap_apply, Kernel.prod_apply, Kernel.deterministic_apply]\n  rw [Measure.prod_swap, hFlaw]\n  rfl\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualAugmentedKernelInvariance.lean",
+            "source_raw_sha256": "63dd736026104e3637fc89758811b9ad7034b17b58fe083a65a06516df7c5780",
+            "exact_code_raw_sha256": "ad0db1ef3acc4d9561b0a0868d74ab12c3f2606cfcf2f8f8f1b262adbaabb9fb",
+            "start_line": 112,
+            "end_line": 140
+          }
+        },
+        {
+          "title": "Connect every adapter to the actual process, with no supplied invariant law",
+          "text": "The public proof retains the actual jointly measurable Z and its exact H pushforward, covered-arc/fallback equations and local initialization. It derives the fiber invariant input from the retained every-y detailed balance, obtains reflection from the owned Gaussian producer, and invokes the private construction. Finally replace the exact R fibers by q_y to obtain the paper transition, without replacing H by an arbitrary convenient kernel.",
+          "formula": "\\begin{aligned} y\\prime&=2x-y,\\\\ K((x,y),dx\\prime\\,dy\\prime)&=\\bigl[\\rho q_{y\\prime}(dx\\prime)+(1-\\rho)H(y\\prime,x)(dx\\prime)\\bigr]\\,\\delta_{2x-y}(dy\\prime),\\\\ J K&=J.\\end{aligned}",
+          "detail": "Local compilation proves this proposition. Independent source review, integration and purification are separately tracked. In particular, invariant law alone supplies none of the later hypocoercivity or actual expected-cost conclusions.",
+          "lean": "  refine ⟨inferInstance, inferInstance, Z, hZM, hZa, hZf, hgood, R, hR, hRq,\n    H, hHK, hrev, hHlaw, hH0, hHgood, hcond, ?_⟩\n  have hHinv (y : E) : (H.comap (fun x => (y, x)) (by fun_prop)).Invariant (R y) := by\n    rw [hRq y]\n    exact (hrev y).invariant\n  have href : J.map (fun z => (z.1, (2 : ℝ) • z.1 - z.2)) = J :=\n    (GaussianReflection.reflection_preserves_augmentation μ η hη).2\n  obtain ⟨K, hK, hKinv, hKlaw⟩ :=\n    reflected_conditional_mixture J R H hHinv ρ hρpos hρlt href\n  refine ⟨K, hK, hKinv, ?_⟩\n  intro z\n  simpa only [hRq] using hKlaw z\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/ExampleCases/ProximalBPS/ActualAugmentedKernelInvariance.lean",
+            "source_raw_sha256": "63dd736026104e3637fc89758811b9ad7034b17b58fe083a65a06516df7c5780",
+            "exact_code_raw_sha256": "811586c32c9f10e0d6ce375e210787696550ed54d5aca38501ba892d385e3448",
+            "start_line": 281,
+            "end_line": 292
+          }
+        }
+      ],
+      "lean_proof": "Normalize and identify explicit conditional -> fixed conditional mixture -> measurable-section Tonelli lift -> swap transport -> reflection-first composition -> same actual K law.",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAugmentedKernelInvariance.actual_augmented_kernel_invariance_statement"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHalfTurnReversibility.actual_half_turn_reversible",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.GibbsAugmentation.normalized_augmentation_density",
+        "AutoSamplingTheory.ExampleCases.ProximalBPS.GaussianReflection.reflection_preserves_augmentation",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianConditionalKernel.exists_tilted_isCondKernel",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_isMarkovKernel",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_apply",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_invariant",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.KernelTransport.invariant_map_comap"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.tilted_tilted",
+        "MeasureTheory.Measure.disintegrate",
+        "MeasureTheory.Measure.lintegral_compProd",
+        "MeasureTheory.Measure.compProd_apply",
+        "MeasureTheory.Measure.bind_apply",
+        "ProbabilityTheory.Kernel.IsReversible.invariant",
+        "ProbabilityTheory.Kernel.Invariant.comp",
+        "ProbabilityTheory.Kernel.deterministic_prod_apply'"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAugmentedKernelInvariance.actual_augmented_kernel_invariant",
+      "role": "proof-edge",
+      "supports": [
+        "actual-augmented-one-step-invariance"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Euclidean state and standing analytic and fixed resampling regimes.",
+        "lean": "Finite real Hilbert Borel E, including rank zero; same six analytic inputs and rho in (0,1)."
+      },
+      {
+        "source": "Conditional preservation implies joint preservation, then composition with Gaussian reflection.",
+        "lean": "Explicit R equals the literal q at every center and disintegrates J.swap. Measurable sections and nonnegative Tonelli lift fiber invariance; fixed weights and coordinate transport then give the literal eq3.11 law."
+      },
+      {
+        "source": "Later quantitative ideal convergence and implementable complexity theorems.",
+        "lean": "Exact one-step invariance of the literal augmented transition only. No process restart/semigroup, augmented all-L2 operator, hypocoercivity or quantitative convergence, implementation error/caps/cost, warm-start initialization, composition or complete paper."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "583491dfb36e83f320f8452587731ccd4eac02fb0a99022d9639d1d4ad3937d9"
+}

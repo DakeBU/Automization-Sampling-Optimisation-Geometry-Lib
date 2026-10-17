@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "seal_id": "GC-determinant-component-probability-v1",
+  "reviewer": "independent-component-probability-statement-reviewer",
+  "verdict": "ACCEPTED",
+  "review_stage": "preproof-exact-interface",
+  "proof_started_at_review": false,
+  "early_verdict_delivered_before_proof_search": true,
+  "source_version": "arXiv:2610.20492v1",
+  "source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+  "source_anchor": "A2.SS2.SSS2.p3, half-mass clause before Eq20",
+  "signature_sha256": "8a49f91a110e25f371ede150d59bba70069405a9d77b038f793e49462cf15d36",
+  "signature_digest_independently_recomputed": true,
+  "signature_digest_encoding": "UTF-8 of parsed proposed_signature, without added trailing newline",
+  "proposed_signature": "theorem component_probabilities {n : ℕ} (hn : 0 < n) :\n    let μ := orthogonalHaar n\n    let Cpos : Set (Matrix.orthogonalGroup (Fin n) ℝ) :=\n      {O | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let Cneg : Set (Matrix.orthogonalGroup (Fin n) ℝ) :=\n      {O | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    μ Cpos = (2 : ℝ≥0∞)⁻¹ ∧ μ Cneg = (2 : ℝ≥0∞)⁻¹ ∧\n    IsProbabilityMeasure ((2 : ℝ≥0∞) • μ.restrict Cpos) ∧\n    IsProbabilityMeasure ((2 : ℝ≥0∞) • μ.restrict Cneg)",
+  "permitted_evidence": [
+    "statement-packet.json, including the complete supplied raw source paragraph",
+    "AGENTS.md and docs/proof-digestion-protocol.md",
+    "prior Haar statement review, for canonical object meaning only; no production Lean inspected",
+    "coordinator's report of successful exact-signature elaboration, treated as reported evidence rather than independent proof verification"
+  ],
+  "recursive_definition_audit": {
+    "orthogonalHaar": {
+      "definition_kind": "existing-characterized-object",
+      "meaning": "The same existing compiled probability Haar measure on full real O(n), with inherited finite real matrix topology and its Borel sigma-algebra. It is not a new measure constructor or an arbitrary caller-supplied Haar measure.",
+      "boundary": "This review accepts the pinned canonical meaning supplied in the seal and prior object review; it does not re-verify that object's implementation. An implementation change to that meaning invalidates this approval."
+    },
+    "carrier": "Matrix.orthogonalGroup (Fin n) Real is the full finite real orthogonal matrix group. No determinant restriction is present in the carrier. Fin n supplies finite indices, and the coercion exposes the actual underlying real matrix determinant.",
+    "Cpos": {
+      "definition_kind": "literal",
+      "body": "{O | det(O) = 1}",
+      "meaning": "Positive determinant level set on the whole full-group carrier."
+    },
+    "Cneg": {
+      "definition_kind": "literal",
+      "body": "{O | det(O) = -1}",
+      "meaning": "Negative determinant level set on the same whole carrier; -1 is a real scalar, not a sign enum or a negated predicate."
+    },
+    "component_measurability": "Continuity of determinant on the canonical matrix topology makes both level sets Borel. This must be established inside the proof or reused as a dependency, never added as a caller hypothesis.",
+    "mass": "mu Cpos and mu Cneg are actual ENNReal evaluations of the full canonical Haar measure. (2 : ENNReal)^(-1) is exactly 1/2; finite nonzero 2 introduces no endpoint ambiguity.",
+    "conditional_laws": {
+      "definition_kind": "literal",
+      "body": "(2 : ENNReal) • mu.restrict Cpos, and (2 : ENNReal) • mu.restrict Cneg",
+      "meaning": "On every measurable event A these are twice the full-Haar masses of A intersected with the corresponding component. No choice, default, SO substitution or merely characterized replacement law occurs."
+    },
+    "probability_predicate": "IsProbabilityMeasure nu asserts nu(univ)=1. Both predicates are conclusions, not typeclass assumptions or aliases hiding the desired normalization.",
+    "normalization_dependency": "The equalities mu C±=1/2 imply that each displayed literal restriction has total mass 2*(1/2)=1. This is a dependency edge and a genuine usable construction interface."
+  },
+  "binder_audit": [
+    {
+      "binder": "{n : Nat}",
+      "classification": "TYPING",
+      "meaning": "Finite real matrix dimension, implicitly universally quantified."
+    },
+    {
+      "binder": "hn : 0 < n",
+      "classification": "SOURCE",
+      "meaning": "Positive dimension, inherited from the source application's stronger standing n>=3; this is the explicitly disclosed generic background extension described below."
+    },
+    {
+      "binder": "mu := orthogonalHaar n",
+      "classification": "TYPING",
+      "meaning": "Definitional local abbreviation of the fixed source measure, not a new parameter or logical hypothesis."
+    },
+    {
+      "binder": "Cpos and Cneg",
+      "classification": "TYPING",
+      "meaning": "Definitional local abbreviations of the two literal source level sets, not arbitrary event parameters."
+    },
+    {
+      "binder": "O in each set comprehension",
+      "classification": "TYPING",
+      "meaning": "Locally bound orthogonal matrix; there is no distinguished sampled matrix premise."
+    },
+    {
+      "binder": "Fin n, real scalars, canonical Borel typing and inferred algebraic structure",
+      "classification": "TYPING",
+      "meaning": "Implicit canonical carrier/structure information, with no additional public measure, regularity or existence assumptions."
+    }
+  ],
+  "source_range_delta": {
+    "source_application": "n>=3",
+    "approved_generic_interface": "n>=1, equivalently 0<n for natural n",
+    "kind": "disclosed background generalization, not verbatim source theorem range",
+    "reason": "The component-mass fact only requires existence of a negative-determinant orthogonal symmetry in positive dimension. Neither Gaussian covariance parameters nor later lower-bound dimensional restrictions are needed for this background measure fact.",
+    "n_zero": "Excluded correctly: O(0) is a singleton with determinant 1, so full Haar gives Cpos mass 1 and Cneg mass 0; both half-mass equalities would be false.",
+    "no_excess": true
+  },
+  "actual_consumer": {
+    "object": "Actual determinant-conditioned Gaussian target mixtures P_(+1) and P_(-1)",
+    "use": "The two literal normalized restriction laws supply the mixing priors for the actual family O -> p_O. They permit the later split of the signed full-Haar expectation H into one half of the actual mixture expectation difference.",
+    "residual_obligations": [
+      "Measurability of the actual Gaussian family",
+      "Construction of the actual two target mixtures with these priors",
+      "Valid integral/expectation interchange",
+      "Signed expectation identity for H",
+      "Bounded-test TV adapter and quantitative separation"
+    ],
+    "not_an_arbitrary_abstract_mixture_assumption": true
+  },
+  "findings": [
+    "The conjunction asserts four real mathematical conclusions and cannot close by assuming component masses or probability normalization.",
+    "Using full O(n) is essential; replacing the source law by SO(n) makes the negative component empty and the conclusion false.",
+    "No lambda, kappa, Gaussian-family, transcript, conditional posterior or main lower-bound premise belongs in this signature.",
+    "The source's word 'components' is interpreted here only through its exact determinant level sets; a separate connectedness theorem is not necessary for this measure interface.",
+    "The additional literal restriction-probability conclusions faithfully expose the elementary normalization needed by the concrete consumer without claiming that the mixture consumer is already constructed."
+  ],
+  "excess_binders": [],
+  "required_signature_changes": [],
+  "source_main_theorem_proved": false,
+  "mixture_or_TV_or_transcript_result_proved": false,
+  "lean_verification_claim": false,
+  "implementation_review_claim": false,
+  "purification": "pending"
+}

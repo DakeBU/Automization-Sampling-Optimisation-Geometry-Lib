@@ -727,3 +727,64 @@ packet remains local PROVED_LOCAL. Independent commit-bound admission, public
 upload/integration, merge and purification remain separate. Conditioned target
 mixtures, H-to-TV, sphere/Poisson, both main lower bounds and the overall Goal
 remain open. The hidden-eigenbasis route remains distinct.
+
+
+## Determinant-component prior normalization
+
+The preceding intake and accepted proof pages were published through PR326,
+merged at `d349d2a16590b55f704ffe6963c021f96cb185c6`. The deployed GitHub Pages
+build has that exact content tree. Historical local-only notes above describe
+their original validation times; merge does not imply purification or a full
+paper theorem.
+
+The new `DeterminantComponents.component_probabilities` proves that actual full
+orthogonal Haar gives mass1/2 to each determinant sign and that the literal
+measures2 times each restriction are genuine probability priors. Its sole
+non-typing premise is n>0. This elementary background extends the source's n>=3
+application explicitly; n0 is excluded, and a focused test proves its negative
+event has mass0. There is no kappa/ell, supplied reflection, partition,
+measurability or half-mass premise.
+
+The actual same canonical Haar/spec/left-invariance declarations are consumed.
+Determinant continuity and orthogonality provide the Borel binary partition;
+a locally constructed coordinate reflection exchanges its events, so their
+masses agree. Probability additivity and finite ENNReal arithmetic give1/2.
+Restriction/scaling then give actual total mass1 for both priors. These are
+mathematical probability-law conclusions, not a new characterized constructor.
+
+The pinned paragraph asserts half-mass but omits its elementary symmetry proof.
+The source-first graph retains that omission explicitly; the current background
+proof supplies it without inventing an explicit author proof. Independent
+statement review, source-only reconstruction and separate strict13inventory/
+5node/5consumer-edge coverage review passed. Anonymous decoding and fresh
+current whole-module/source/five-step exposition review passed, recording three
+informational distinctions (domain extension, normalization expansion, supplied
+background proof), with no repairs. These are not5public Lean declarations.
+
+Production2596jobs and focused2597jobs passed, with the usual three axioms only.
+The expanded anonymous proposition and actual compiler-reference check passed.
+Root imports and the focused root test are wired, without Registry or
+self-VERIFIED promotion. Exact-commit aggregate/site/graph/browser and public
+integration remain separate validation steps recorded below when terminal.
+
+This packet does not construct the actual Gaussian target mixtures, identify
+their test expectations with the conditional nested integrals, prove the H-to-TV
+adapter, or prove spherical/Poisson, transcript, parameter or either main query
+lower-bound result. The hidden-eigenbasis route, deterministic query cap, exact
+matvec oracle, TV convention and parameter contracts are unchanged.
+
+Validation at immutable proof commit
+`3b1fe108dfde806011500a5961704dff37c3967f` passed the canonical aggregate:
+9240 library jobs, 9559 root test jobs, ATLAS36469 declarations in26 books and
+the forbidden-closure scan. The source-bound site receipt matches digest
+`1dc2f56f3a0674c6da109a1f2107723a3b1da3d7a15cb495d71cb334200a94f2`.
+Frozen site build and full check passed:1027 modules,5101 declarations and77
+reviewed teaching declarations. Required graph coverage has zero omissions.
+Actual local browser inspection confirmed six rendered formulas, five proof
+steps, no formula errors, no initially open Lean and no horizontal overflow.
+The focused graph retains solid structure, dashed source/fidelity relations
+and PARTIAL/source-present status. Independent commit-bound integration review
+accepted this exact proof commit and preserved the other queues and ledgers.
+This README-only validation note changes no mathematical or generated-site
+inputs. Public merge, deployment and post-merge purification are separate;
+the packet remains PROVED_LOCAL rather than self-promoted VERIFIED.

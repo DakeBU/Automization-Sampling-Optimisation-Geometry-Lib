@@ -158,17 +158,20 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
     proof_helpers = tuple(n for n in unit.get('helpers', []) if n not in statement_helpers)
     is_proof = declaration.kind in {'lemma', 'theorem', 'instance'}
     proof_title = 'Mathematical proof' if is_proof else 'Construction and meaning'
+    progressive = unit.get('reading_layout') == 'progressive'
     roadmap = ''.join(
         f'<li><span>{i}</span><strong>{base.esc(s["title"])}</strong>'
         f'<p>{inline_text(s["text"])}</p></li>'
         for i, s in enumerate(unit['steps'], 1)
     )
     steps = ''.join(
-        f'<div class="proof-reader-step"><h4>{i}. {base.esc(s["title"])}</h4>'
-        f'<p>{inline_text(s["text"])}</p><div class="proof-reader-equation">\\[{base.esc(s["formula"])}\\]</div>'
+        (f'<details class="proof-reader-step reader-proof-disclosure"><summary>{i}. {base.esc(s["title"])}</summary><div class="reader-step-body">'
+         if progressive else f'<div class="proof-reader-step"><h4>{i}. {base.esc(s["title"])}</h4>')
+        + f'<p>{inline_text(s["text"])}</p><div class="proof-reader-equation">\\[{base.esc(s["formula"])}\\]</div>'
         '<details><summary>Corresponding Lean step</summary>'
         + (base.code_html(s['lean']) if '\n' in s['lean'] else f'<p>{inline_text(s["lean"])}</p>')
         + (f'<p>{inline_text(s["detail"])}</p>' if s.get('detail') else '') + '</details></div>'
+        + ('</details>' if progressive else '')
         for i, s in enumerate(unit['steps'], 1)
     )
     astis = ''.join(
@@ -195,13 +198,14 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
     if isinstance(boundary, str):
         boundary = [boundary]
     return (
-        f'<article class="proof-reader" data-authored-declaration="{base.esc(name)}">'
+        f'<article class="proof-reader{" reader-progressive" if progressive else ""}" data-authored-declaration="{base.esc(name)}">'
         '<div class="eyebrow">Samplinglib mathematical lesson</div>'
         f'<h1>{base.esc(unit["title"])}</h1>'
-        f'<p><code>{base.esc(name)}</code> · {base.esc(declaration.kind)} · <a href="index.html">Teaching coverage</a></p>'
+        + ('' if progressive else f'<p><code>{base.esc(name)}</code> · {base.esc(declaration.kind)} · <a href="index.html">Teaching coverage</a></p>')
+        +
         '<section class="reader-first-pass" aria-label="First reading">'
         '<div class="reader-first-pass-label">Read this first</div>'
-        f'<h2>Mathematical statement</h2><p class="reader-claim">{base.esc(unit["statement"])}</p>'
+        f'<h2>Mathematical statement</h2><p class="reader-claim">{inline_text(unit["statement"])}</p>'
         f'<div class="proof-reader-equation reader-main-equation">\\[{base.esc(unit["formula"])}\\]</div>'
         + inline_lean.disclosure(name, role='statement', explanation=unit['lean_statement'],
                                  page=page, trim_following_docstring=True)
@@ -209,20 +213,24 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
                                         explanation='Complete literal proposition asserted by the theorem above.',
                                         page=page, trim_following_docstring=True)
                   for helper in statement_helpers)
-        + '<h3>Proof roadmap</h3><ol class="proof-roadmap">' + roadmap + '</ol></section>'
+        + ('' if progressive else '<h3>Proof roadmap</h3><ol class="proof-roadmap">' + roadmap + '</ol>')
+        + (f'<p class="reader-scope-note">{inline_text(unit["reader_note"])}</p>' if unit.get('reader_note') else '')
+        + '</section>'
         '<details class="reader-ledger assumption-ledger"><summary>Full assumptions and notation</summary>'
         '<h3>All objects and hypotheses</h3>' + base.list_html(unit['assumptions'])
         + ('<h3>Notation and interpretation</h3><dl>' + notation + '</dl>' if notation else '')
         + base.list_html(unit.get('conventions', []), empty='') + '</details>'
-        + f'<h2>{proof_title}</h2>' + steps
-        + '<section class="lean-verification"><h2>Lean verification</h2>'
-        '<p>The exact proof begins folded immediately after the mathematical argument; the statement is folded beside the claim above.</p>'
+        + f'<h2>{proof_title}</h2>'
+        + ('<p class="reader-expand-hint">Open a step to read its argument and formula.</p>' if progressive else '') + steps
+        + ('<details class="lean-verification reader-ledger"><summary>Complete Lean proof</summary>' if progressive else '<section class="lean-verification"><h2>Lean verification</h2>')
+        + '<p>The exact proof begins folded immediately after the mathematical argument; the statement is folded beside the claim above.</p>'
         + inline_lean.disclosure(name, role='proof', explanation=unit['lean_proof'], page=page,
                                  helpers=proof_helpers,
                                  trim_following_docstring=True)
-        + '</section>'
+        + ('</details>' if progressive else '</section>')
         + examples
-        + source_comparison
+        + (('<details class="reader-ledger"><summary>Source correspondence and review</summary>'
+            + source_comparison + '</details>') if progressive and source_comparison else source_comparison)
         + '<details class="reader-ledger boundary-ledger"><summary>Scope and omitted-condition boundaries</summary>'
         + base.list_html(boundary) + '</details>'
         + '<details class="proof-reader-provenance reader-ledger"><summary>Sources, dependencies, and reuse</summary><h2>Source and reuse</h2><h3>Samplinglib parents called</h3><ul>' + astis
@@ -299,11 +307,15 @@ def enrich_site(output: Path) -> None:
     for module, module_units in by_module.items():
         module_units.sort(key=lambda u: known[u['declaration']].source_line)
         rel = 'lessons/module-' + base.slugify(module) + '.html'
+        compact_module = len(module_units) == 1 and module_units[0].get('reading_layout') == 'progressive'
         contents = '<ol>' + ''.join(f'<li><a href="#{known[u["declaration"]].anchor}">{base.esc(u["title"])}</a></li>' for u in module_units) + '</ol>'
         body = f'<h1>{base.esc(module.rsplit(".", 1)[-1])}: mathematical reading route</h1><p>Read the statements and derivations in source order. Every result has its own optional Lean statement and proof. Source assumptions, library reuse and unproved boundaries are kept explicit.</p>' + contents
+        if compact_module:
+            body = ''
         for unit in module_units:
             card = render_unit(unit, rel)
-            card = re.sub(r'<(/?)h([1-4])>', lambda m: f'<{m[1]}h{int(m[2])+1}>', card)
+            if not compact_module:
+                card = re.sub(r'<(/?)h([1-4])>', lambda m: f'<{m[1]}h{int(m[2])+1}>', card)
             body += f'<section id="{known[unit["declaration"]].anchor}">{card}</section>'
         base.write_page(output, rel, source_lineage.canonical_shell(base.page(module, rel, body, extra_head='<link rel="stylesheet" href="../assets/proof-readers.css">'), rel, output))
         module_page = output / f'modules/{base.slugify(module)}.html'

@@ -81,6 +81,7 @@ import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualPositionL2Averaging
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity
 import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualKernelL2Realization
+import AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHalfTurnReversibility
 import AutoSamplingTheory.TechnicalLemmas.ProbabilityDistributions.Gaussian
 import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
 
@@ -125,6 +126,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "pbps.actualHalfTurnReversibility"
+    localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHalfTurnReversibility.actual_half_turn_reversible"
+    upstreamDecl := "Actual PBPS conditional half-turn detailed balance"
+    upstreamFile := "arXiv2609.06905v1 Proposition3.2, A.1 bounded duality and A.2 independent-reference averaging"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["PBPS", "kernel", "reversibility", "Fubini", "conditional"]
+    saldUse := "Actual augmented PBPS one-step invariance and half-turn operator consumer; no SALD claim"
+    note := "Independent source/compiler verification atcffd16e6a5613cd924bee9dc18ab0af6e5f67a3f; accepted audit ASTIS-RT-20261017-PBPSActualHalfTurnReversibility. Under exactly the original six analytic binders, retain the SAME globally measurable actual returned-position kernel, raw process and local initialization outputs, and prove every-y all-measurable-rectangle detailed balance. Identify raw process witnesses, absorb momentum flips on position tests, derive finite signed Fubini and convert indicator pairings to ENNReal fluxes internally. Planned paper consumer: actual augmented one-step kernel in Proposition3.4. No temporal Markov/restart/semigroup, augmented all-L2 realization, hypocoercivity, simulation errors/caps, actual expected costs, warm start, composition or complete paper. Private adapters are not additional leaves."
+  },
   {
     key := "pbps.actualKernelL2Realization"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualKernelL2Realization.actual_kernel_l2_realization"

@@ -103,7 +103,7 @@ Reuse search already found these exact owned interfaces:
 - `TechnicalLemmas.Probability.GaussianConditionalKernel.exists_tilted_isCondKernel`:
   an everywhere-defined normalized quadratic tilt disintegrates `J.map Prod.swap`.
 - `ActualHalfTurnReversibility.actual_half_turn_reversible`: the local compiled
-  H candidate; independent source admission is still pending at this checkpoint.
+  H result; independent source/compiler admission and VERIFIED are now complete.
 - `TechnicalLemmas.Probability.KernelMixture.finiteMixture_isMarkovKernel` and
   `finiteMixture_invariant`: reuse the fixed finite mixture, not a new ad hoc
   sum-kernel implementation.

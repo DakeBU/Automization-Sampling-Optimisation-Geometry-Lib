@@ -1,5 +1,26 @@
 # Companion-paper formalization handoff
 
+## Actual PBPS half-turn detailed balance (2026-10-17)
+
+Current sole STABILIZING owner: `root_20261017`. The SAME actual returned-position
+kernel satisfies every-y measurable-rectangle detailed balance under the
+original six analytic inputs; raw construction and initialization are retained.
+Producer/focused test PASS3251 jobs. Independent source-blind audit
+`ASTIS-RT-20261017-PBPSActualHalfTurnReversibility` is accepted in all seven slots;
+the fresh reviewer compiled producer/test natively, scanned47 local imports,
+and published VERIFIED with explicit human authorization. Exact source81ff8936,
+test989cf7d1, reviewed commitcffd16e6, binding6334034c. Read
+`research-wiki/paper-contributions/PBPS/actual-half-turn-reversibility-verification.json`.
+
+Pre-gate integration checkpoint: Registry566/root import/assertion, one module
+card and two bounded retrieval-index records are prepared; aggregate/site and
+remote PR gates remain separate. Main565 is the actual PR327 baseline below.
+No restart/semigroup, augmented L2 realization, hypocoercivity, implementation
+error/cost, initialization/composition or full-paper completion follows.
+Complete papers remain0/4. Next audited mathematical consumer is actual
+Proposition3.4 one-step augmented kernel invariance; it is not implemented or
+sealed. See `actual-half-turn-reversibility-next.md` in the same PBPS directory.
+
 ## Actual PBPS invariant phase kernel and L2 realization (2026-10-17)
 
 Previous integration owner: `root_20261016`; its STABILIZING lease is released.
@@ -12,14 +33,8 @@ PR327 actually merged at202a65e12eba211c21d8a0d7a8b859e0ccbf7f14 after
 contributor/site/formalization CI all passed at exact5c3fcdd1. Registry565 is
 now on main. Purification and deployment acceptance are not inferred.
 Continuity PR325 merged at01f844b6 after all three current-head CI lanes passed.
-The next exact half-turn detailed-balance statement is sealed and source-first
-prereviewed. Its production proof and focused test now compile (3251 jobs), and
-independent mathematical/direct-compiler review passed. Its cell remains
-claimed/EXPLORING, NOT VERIFIED or counted. After separate explicit human
-authorization, the original decoder saved its unchanged raw report; fresh
-anti-anchored source/compiler review is running on packet04b16881 and
-publication binding6334034c. Earlier denied persistence is not acceptance.
-This result has not acquired an integration lease.
+The next half-turn result has since passed independent source/compiler review
+and acquired the integration lease; use the newer entry above.
 Complete papers remain0/4.
 Start from `research-wiki/paper-contributions/PBPS/kernel-l2-realization-verification.json`.
 

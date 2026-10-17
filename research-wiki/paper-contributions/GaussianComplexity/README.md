@@ -849,3 +849,16 @@ are separate acceptance steps. Actual TV inequality, Eq21 composition, products,
 spherical/Poisson, parameter/transcript/eigenbasis and both main query bounds
 remain open. Postmerge purification and whole-paper completion stay separate,
 and other ASTIS queues and oracle/cost contracts remain unchanged.
+
+
+## Actual radial-test TV bound (Eq20)
+
+ActualTotalVariation.actual_radial_test_tv proves the exact source Eq20 for
+the actual determinant-conditioned Gaussian mixtures and source density-defined
+H. It reuses the identical compiled Markov TV contraction through an internally
+constructed Bernoulli test kernel; actual law/density correspondence, all real
+L1/transport, probability and event-supremum conditions are internal.
+The exact preproof seal, distinct source topology challenge, anonymous decode,
+fresh whole-module/source/five-step reader review and native focused checks
+are recorded. Root/site/immutable integration/merge and postmerge purification
+remain separate. Numerical B7, product/amplification and both mains remain open.

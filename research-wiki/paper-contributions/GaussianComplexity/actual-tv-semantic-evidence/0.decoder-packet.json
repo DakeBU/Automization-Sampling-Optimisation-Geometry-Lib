@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-6d4a4703da47b629",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ),\n    let μ := (Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))⁻¹\n    let Ppos := νpos.bind γ\n    let Pneg := νneg.bind γ\n    let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)) *ᵥ WithLp.ofLp x)) / 2)\n    2 * |∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x) ∂μ| ≤\n      sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin n)),\n        MeasurableSet B ∧ z = |Ppos.real B - Pneg.real B|}",
+    "statement_sha256": "6d4a4703da47b6298150a110ab2a08e92d4bf9ebcc8ab780b15d5e8ed330796b",
+    "compiled": true,
+    "approved_definition_context": [
+      "The measure on the full real orthogonal matrix group is the normalized Borel Haar probability on the whole compact group, retaining both determinant signs.",
+      "The displayed restriction, scalar multiplication and bind are literal measure operations; bind is join after pushforward of the actual measure-valued family. Family measurability and probability must be produced internally, not assumed.",
+      "The centered multivariate Gaussian is the actual canonical distribution at the displayed inverse precision, on genuine Borel Euclidean space. The displayed real function is its actual precision density relative to Euclidean volume. No replacement characterized distribution is allowed.",
+      "All real integrals are Bochner integrals. Absolute integrability and actual density-to-law correspondence must be derived internally; totalized undefined integrals do not discharge these obligations.",
+      "The real supremum ranges over absolute probability discrepancies of all measurable Euclidean events. The set is nonempty and bounded above, internally proved. Its normalization is the event supremum, not the mass of signed total variation. Zero radial tilt is included."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "b8f109752eb5bdb443e28ed320a8646f59d36c18de6b621aa0491ace651aa62e"
+}

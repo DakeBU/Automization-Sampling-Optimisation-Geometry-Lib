@@ -549,3 +549,32 @@ conceptual analogy cannot substitute for those adapters. Both oracle/cost routes
 and the other ASTIS integration queues remain unchanged. Local compilation,
 independent admission, integration/publication, merge and purification remain
 separate; no self-VERIFIED or whole-Goal completion is claimed.
+
+
+## Literal mixture Fubini validation record
+
+Exact immutable local proof commit `7555f2684b997f8e6375c299493beea90c1200ba` passed
+`python tools/astis.py check` with actual terminal exit0: root library9224jobs,
+root Tests9528jobs, ATLAS36469named declarations in26books and forbidden-closure
+scan. The new module is covered separately by focused2831-job endpoint tests
+and successful expanded-type/actual compiler-reference checks; unchanged root
+imports are not represented as direct coverage of this new declaration.
+
+Contributor, diff-aware publication, semantic and Frontier gates passed. The
+two reachable private providers and six-step lesson have fresh accepted
+independent whole-module/source/exposition review after anonymous decoding.
+Frozen-input site build and full check passed:1014modules,5086declarations
+and77reviewed teaching declarations. Graph coverage passed with no omitted
+required connections. Actual browser inspection found seven rendered formulas,
+zero MathJax errors, zero initially open Lean disclosures and no horizontal
+overflow, with all six mathematical proof steps. The focused branch has five
+nodes, four edges and three immediate relations. Module ownership remains
+solid, source/fidelity overlays dashed and the source-present partial badge
+retained. Compiler-reference evidence separately establishes the actual calls
+to identical regularity, norm-axis, radial/B6, Haar/spec and Fubini nodes.
+
+This README-only note changes no frozen mathematical/graph input. The result
+remains local PROVED_LOCAL. Independent commit-bound admission, public upload,
+integration, merge and purification remain separate. Actual Gaussian-law and
+density identification, resulting target-mixture/TV meaning, sphere/Poisson,
+both main lower bounds and the overall Goal remain open.

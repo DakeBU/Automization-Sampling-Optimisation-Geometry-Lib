@@ -77,3 +77,53 @@ keep the hard memoryless-restart edge independently visible. SPHMC real RGO
 transport/Fisher/Wp/proxy-warmness and actual costs remain separate. Then follow
 the existing Gaussian Cloud Section6 and Midpoint phases, not four simultaneous
 paper implementation lanes.
+
+## Dependency-ready consumer audit after the actual H proof (2026-10-17)
+
+The smallest concrete paper consumer to audit next is Proposition3.4, not a
+second fixed-reference kernel wrapper. Equation(3.11) first sends
+`(x,y)` to `(x,2*x-y)`, then mixes exact conditional resampling with the SAME
+actual returned-position kernel. At `y'=2*x-y` its exact output law must be
+
+    K((x,y),.) = (rho*q_y' + (1-rho)*H(y',x)).prod(dirac y').
+
+The proposed mathematical delta is construction/probability/exact-law and
+invariance of this actual augmented one-step kernel for the actual normalized
+augmentation J. Do not supply invariance, conditional identification, or a
+different unspecified H as a public premise. Retain the original six analytic
+inputs and the source resampling regime `0<rho<1`. This is an audit/route, NOT
+a frozen Lean signature or completed proposition.
+
+Reuse search already found these exact owned interfaces:
+
+- `GibbsAugmentation.normalized_augmentation_density`: genuine positive Gibbs
+  normalization and the source joint density, derived from Hessian regularity.
+- `GaussianReflection.reflection_preserves_augmentation`: the exact auxiliary
+  reflection preserves the generative J. No new reflection wrapper is needed.
+- `TechnicalLemmas.Probability.GaussianConditionalKernel.exists_tilted_isCondKernel`:
+  an everywhere-defined normalized quadratic tilt disintegrates `J.map Prod.swap`.
+- `ActualHalfTurnReversibility.actual_half_turn_reversible`: the local compiled
+  H result; independent source/compiler admission and VERIFIED are now complete.
+- `TechnicalLemmas.Probability.KernelMixture.finiteMixture_isMarkovKernel` and
+  `finiteMixture_invariant`: reuse the fixed finite mixture, not a new ad hoc
+  sum-kernel implementation.
+- `TechnicalLemmas.Probability.KernelTransport.invariant_map_comap` and pinned
+  Mathlib `Measure.IsCondKernel.disintegrate`, `Measure.compProd_apply`,
+  `Kernel.IsReversible.invariant`: existing transport/disintegration contracts.
+
+The real adapter still to check is conditional-fiber invariance -> invariance
+of the retained-coordinate joint update. Work in `(y,x)` order using the SAME
+conditional version, then transport by `Prod.swap` and compose with reflection.
+The Gaussian conditional producer initially gives a tilt of the Gibbs input
+measure, whereas H uses the volume tilt of the summed potential: identify these
+exactly with `tilted_tilted` and the already derived positive Gibbs integral.
+Do not equate arbitrary regular conditional versions pointwise on null fibers.
+Tonelli is available for nonnegative set integrals; any signed/L2 claim needs
+its own integrability/representative adapter. Search for an existing general
+retained-coordinate theorem before making this adapter public; with one actual
+consumer it can remain private rather than inflate the Registry.
+
+Only after exact signature elaboration, binder/definition audit and source-first
+review may implementation begin. Prop3.4 does not close temporal phase restart,
+the augmented L2 realization, hypocoercivity, implementation error or actual
+expected cost, initialization, composition, or any full paper.

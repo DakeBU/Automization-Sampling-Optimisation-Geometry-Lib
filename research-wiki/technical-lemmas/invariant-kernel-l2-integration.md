@@ -10,7 +10,11 @@ local canonical gate passed9567 jobs; source digest
 4a98805c147d23ad662a99558b91d25e3a6c90f42935a90dd464944f66ac4767.
 Final site build/check passed12chapters,1033modules,5109declarations and77
 reviewed teaching declarations. Registry568 is now on main. The normal MERGED
-API releases the old integration lease; deployment and PURIFIED are separate.
+API releases the old integration lease. Main Pages run39044611271 completed
+both website-first reader build and deploy website successfully, including
+Chromium peer-reader/math/graph/mobile validation. HTTP200 was checked for the
+SampleWiki directory and all four paper companions after that deployment.
+PURIFIED remains a separate gate; full papers remain0/4.
 
 The original reviewer evidence remains unchanged in
 `invariant-kernel-l2-independent-verification.json`; its canonical semantic

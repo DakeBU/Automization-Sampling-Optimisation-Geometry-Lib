@@ -304,6 +304,7 @@ import Tests.ExponentialKernelInterpolation
 import Tests.ProximalBPSActualL2StrongContinuity
 import Tests.ProximalBPSActualKernelL2Realization
 import Tests.ProximalBPSActualHalfTurnReversibility
+import Tests.ProximalBPSActualAugmentedKernelInvariance
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

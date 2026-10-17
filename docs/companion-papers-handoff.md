@@ -8,9 +8,13 @@ Exact sealed statement07357104 and producer/focused test PASS3255 jobs, standard
 three axioms only. The SAME actual Z/R/H is retained; normalized probability,
 literal conditional R, retained-coordinate Tonelli, fixed rho mixture and
 reflection-first K with exact eq3.11 law/invariance are derived internally.
-State: PROVED_LOCAL, not independently VERIFIED. Five adjacent formula/Lean
-steps are authored and bound; source-blind review is running. No Registry entry
-for this new result yet. Read
+State: independently VERIFIED, now sole STABILIZING owner above. Fresh blind
+decoder and distinct source/compiler reviewer accepted all seven slots, with
+two documented nonblocking domain/exceptional-clock elaborations and no repair.
+Original reviewer used the approved elevated API; source and five formula/Lean
+steps remain unchanged. Pre-gate Registry567/root import/assertion, module card
+and bounded retrieval update are prepared; aggregate/site/CI/merge/deploy and
+purification are separate. Read
 `research-wiki/paper-contributions/PBPS/actual-augmented-kernel-invariance-verification.json`.
 
 Parent PR328 actually MERGED at180e90b0952f3b6b844def6d9e17e31a292d738f,

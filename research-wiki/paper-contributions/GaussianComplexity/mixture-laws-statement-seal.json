@@ -1,0 +1,64 @@
+{
+  "seal_id": "GC-actual-conditioned-Gaussian-mixture-laws-v1",
+  "status": "STATEMENT_FIXED_AWAITING_INDEPENDENT_PREPROOF_REVIEW",
+  "source_version": "arXiv:2610.20492v1",
+  "source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+  "source_regions": {
+    "S2.p2": "Let O(n):=\\{O\\in\\mathbb{R}^{n\\times n}:O^{\\top}O=I_{n}\\} denote the real orthogonal group, equipped with Haar probability measure. It has two components, \\{\\det O=+1\\}, \\{\\det O=-1\\}, and each have Haar probability 1/2. For b\\in\\{-1,+1\\}, we write \\mu_{n,b} for Haar probability measure conditioned on \\det O=b.",
+    "S3.SS1.p1": "Fix \\kappa\\geq 4. Let 3\\leq n\\leq d be the block dimension and k:=\\lfloor d/n\\rfloor the number of blocks. In the proof of the main theorem, we choose n=2T+1, where T is the algorithm’s query budget. This choice applies when T\\geq 1 and 2T+1\\leq d. The remaining cases are treated separately. For O\\in O(n), define A_{O}:=\\frac{\\kappa+1}{2}I_{n}-\\frac{\\kappa-1}{4}(O+O^{\\top}). (4) For \\bm{O}=(O_{1},\\ldots,O_{k})\\in O(n)^{k}, set A_{\\bm{O}}:=\\operatorname{diag}\\bigl(A_{O_{1}},\\ldots,A_{O_{k}},I_{d-kn}\\bigr). (5)",
+    "S3.SS1.p2": "For each b\\in\\{-1,+1\\}, draw O_{1},\\ldots,O_{k} independently from \\mu_{n,b}, and let \\mathcal{D}_{b} denote the law of A_{\\bm{O}}. Thus the orthogonal matrices share the same determinant sign.",
+    "S3.SS1.p3": "Writing P_{b}:=\\mathbb{E}_{O\\sim\\mu_{n,b}}[N(0,A_{O}^{-1})] for the single-block target mixture, the averaged target under \\mathcal{D}_{b} is \\bar{\\pi}_{b}:=\\mathbb{E}_{A\\sim\\mathcal{D}_{b}}[\\pi_{A}]=P_{b}^{\\otimes k}\\otimes N(0,I_{d-kn}). (6) When kn=d, the identity block and the final Gaussian factor are omitted.",
+    "A2.SS2.p2": "We first separate the single-block mixtures using a bounded radial test, and then amplify this separation across independent blocks. The single-block argument combines a cancellation identity for Gaussian normalization factors with two spherical Poisson identities. Throughout this section, n\\geq 3, \\kappa\\geq 4, and O is Haar distributed on the full orthogonal group O(n). Write U:=O_{11}, let p_{O} be the density of N(0,A_{O}^{-1}), and let p_{b} be the density of P_{b}, for b\\in\\{-1,+1\\}.",
+    "A2.SS2.SSS2.p3": "For \\lambda\\geq 0, let h_{\\lambda}(x):=e^{-\\lambda\\|x\\|^{2}} and define H(\\lambda):=\\mathbb{E}\\left[\\det(O)\\int_{\\mathbb{R}^{n}}h_{\\lambda}(x)p_{O}(x)\\,dx\\right]. Since the two determinant components have Haar probability 1/2, H(\\lambda)=\\frac{1}{2}\\left(\\mathbb{E}_{P_{+1}}h_{\\lambda}-\\mathbb{E}_{P_{-1}}h_{\\lambda}\\right). As 0<h_{\\lambda}\\leq 1, it follows that \\operatorname{TV}(P_{+1},P_{-1})\\geq 2|H(\\lambda)|. (20) We compute H(\\lambda) and then choose \\lambda>0."
+  },
+  "proposed_signature": "theorem actual_mixture_laws {n : ℕ} (hn : 3 ≤ n) {κ : ℝ} (hκ : 4 ≤ κ) :\n    let μ := orthogonalHaar n\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n    Measurable γ ∧ IsProbabilityMeasure (νpos.bind γ) ∧\n      IsProbabilityMeasure (νneg.bind γ) ∧\n      (∀ B : Set (EuclideanSpace ℝ (Fin n)), MeasurableSet B →\n        (νpos.bind γ) B = ∫⁻ O, γ O B ∂νpos) ∧\n      (∀ B : Set (EuclideanSpace ℝ (Fin n)), MeasurableSet B →\n        (νneg.bind γ) B = ∫⁻ O, γ O B ∂νneg)",
+  "signature_sha256": "5d9a84034a9be3e412cdd5ede4cb969bf7314ad10d3ef03dc2492f71bd4b8351",
+  "elaboration": "PASS actual terminal session66594; temporary ignored signature-only probe. No proof search started. Scoped ENNReal notation correction only.",
+  "meaning_definitions": {
+    "singleBlockPrecision": {
+      "kind": "literal",
+      "body": "((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)"
+    },
+    "orthogonalHaar": {
+      "kind": "literal",
+      "body": "The same compiled full O(n) Borel Haar probability, Measure.haarMeasure on the whole compact group; not SO(n), arbitrary Haar, or newly chosen law."
+    },
+    "νpos/νneg": {
+      "kind": "literal",
+      "body": "Exactly twice the restriction of full Haar to determinant +1/-1; source conditional laws since each event has mass1/2."
+    },
+    "γ": {
+      "kind": "literal",
+      "body": "The existing ProbabilityTheory.multivariateGaussian at actual zero mean and inverse of literal A_O, not a user-supplied law or density-only proxy. Source n>=3,kappa>=4 ensures SPD internally; exact existing law=density parent supplies this."
+    },
+    "Measure.bind": {
+      "kind": "literal",
+      "body": "Measure.bind ν γ = Measure.join (Measure.map γ ν); actual mixture on Borel Euclidean space. Measurable γ is a conclusion, so no nonmeasurable map fallback is accepted."
+    }
+  },
+  "binder_audit": {
+    "SOURCE": [
+      "Source single-block range n>=3 and kappa>=4; both signs use the same actual Gaussian family."
+    ],
+    "STANDING": [
+      "Full real orthogonal group with canonical Borel Haar; Euclidean Borel state space and usual centered multivariate Gaussian."
+    ],
+    "TYPING": [
+      "n : Nat, kappa : Real; arbitrary Borel set B occurs universally in conclusion, not as a new theorem-level assumption."
+    ],
+    "RULED": [],
+    "EXCESS": []
+  },
+  "mathematical_statement": "For every source n>=3,kappa>=4, the actual covariance Gaussian family is measurable as a map into measures; both literal determinant-conditioned mixtures are actual probability measures; their values on every Borel set are the integrals of the actual component Gaussian values against the corresponding normalized priors.",
+  "source_gap": "Source defines P_b as an expectation of actual Gaussian measures, but omits measurability and probability-construction bookkeeping. Keep that omission explicit. This packet supplies well-definedness without attributing a detailed proof to the authors.",
+  "consumer": "Actual Pplus/Pminus expectation difference=2H for bounded radial h, then Eq20 H-to-TV adapter. Existing actual Gaussian expectation Eq21 and determinant prior normalization are distinct exact parents.",
+  "boundary": [
+    "No block-product Eq6 theorem",
+    "No H-gap equality or TV adapter",
+    "No spherical/Poisson or quantitative separation",
+    "No transcript, worst-case-query, fixed-spectrum route or main lower bound"
+  ],
+  "process_memory": "Checked evidence-routed process registry; seal before proof search; no hidden measurability, positivity, kernel or integrability producer premise.",
+  "proof_status": "not-started",
+  "review_request": "Independently check exact signature/definitions/binders and source fidelity BEFORE proof search; reconstruct source-only inventory and consumer-use topology from supplied raw regions. Mark each substantive part NODE or EXCLUDED with reasons; preserve omitted measurability/well-definedness as SOURCE_GAP, and do not invent author proof. Do not read implementation Lean to determine topology. Write statement-review.json and source-only-reconstruction.json only in this ignored directory."
+}

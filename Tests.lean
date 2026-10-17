@@ -320,6 +320,7 @@ import Tests.GaussianComplexitySingleBlock
 import Tests.KernelL2
 
 import Tests.GaussianComplexityComponents
+import Tests.GaussianComplexityMixtureLaws
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

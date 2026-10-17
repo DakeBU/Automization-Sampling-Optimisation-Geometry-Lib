@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-eb181620c817dae0",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ),\n    let s : ℝ := Real.sqrt κ\n    let r : ℝ := (1 - 1 / (n : ℝ)) * ((s - 1) / (s + 1))\n    let ℓ : ℝ := (4 * (n : ℝ) * s + (s - 1) ^ 2) /\n      (8 * (n : ℝ) * ((n : ℝ) - 1))\n    let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n    let c : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) :=\n      fun O => WithLp.toLp 2 (fun i => (O : Matrix (Fin n) (Fin n) ℝ) i j0)\n    let ν : Measure (EuclideanSpace ℝ (Fin n)) := (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))).map c\n    let τ : Measure (Metric.sphere (0 : EuclideanSpace ℝ (Fin n)) 1) :=\n      (volume : Measure (EuclideanSpace ℝ (Fin n))).toSphere\n    let σ : Measure (EuclideanSpace ℝ (Fin n)) :=\n      (τ Set.univ)⁻¹ • τ.map (fun y => y.val)\n    let f : EuclideanSpace ℝ (Fin n) → ℝ := fun y =>\n      ((s + 1) * WithLp.ofLp y j0 - (s - 1)) /\n        (1 + r ^ 2 - 2 * r * WithLp.ofLp y j0) ^ ((n : ℝ) / 2)\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))⁻¹\n    ν = σ ∧ IsProbabilityMeasure σ ∧ Integrable f σ ∧\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det *\n          (∫ x : EuclideanSpace ℝ (Fin n), Real.exp (-ℓ * ‖x‖ ^ 2) ∂γ O)\n        ∂(Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))) =\n        (((-1 : ℝ) ^ (n - 1) * (s - 1) ^ (n - 1)) / (s + 1) ^ n) *\n          (1 - 1 / (n : ℝ)) ^ ((n : ℝ) / 2) * (∫ y, f y ∂σ)",
+    "statement_sha256": "eb181620c817dae0ddb77309bbc4d1132fe86a0f5ac3dc0f94342b51eda1fec9",
+    "compiled": true,
+    "approved_definition_context": [
+      "The orthogonal group is full real O(n), both determinant signs, with inherited matrix Borel structure. Measure.haarMeasure(top : PositiveCompacts G) is Haar probability normalized on the entire compact group.",
+      "EuclideanSpace R (Fin n) has its genuine Euclidean l2 norm and actual volume. WithLp.toLp 2 sends coordinates to that Euclidean vector; WithLp.ofLp returns coordinates. Fin n indices are zero-based.",
+      "Measure.toSphere(volume) on Metric.sphere zero one is the actual cone-derived surface measure: on Borel sphere subsets B it equals the real dimension times volume({r*u:0<r<1,u in B}). The scalar inverse of its univ mass is in ENNReal; map Subtype.val includes the sphere in the ambient Euclidean space.",
+      "multivariateGaussian zero C is the existing stdGaussian pushforward by the continuous linear map obtained from the positive matrix square root of C; matrix inverse is the existing nonsingular inverse.",
+      "All real-coerced dimension arithmetic and n/2 exponents are real; n-1 parity/polynomial exponents are natural subtraction. Integrable means absolute Bochner L1. The ambient quotient uses totalized real division/rpow; no global positivity or continuity is asserted."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "00606b09f51ab669b27e14f4fd75e9a6352bfd0731049f584621c048f3ce0c2e"
+}

@@ -930,3 +930,25 @@ measure equality. Positive TV/amplification, exact matvec and worst-query/cost
 adapters, hidden-eigenbasis and main results also remain open. Source topology,
 blind decoding and current source/exposition review are distinct from final
 immutable integration, public deployment and postmerge purification.
+
+
+## Canonical Euclidean surface-law identification
+
+SphereHaar.column_map_eq_normalized_surface is the one shared actual
+full-orthogonal Haar column/surface identity for every existing coordinate.
+Its surface measure is literally Euclidean volume.toSphere with finite nonzero
+normalization, not a law defined by invariance. Volume-preserving cone maps,
+pointwise reflection, actual Haar right invariance and Tonelli on Borel events
+prove equality. The determinant-sign Gaussian route consumes that exact node
+in SurfaceLaw.selected_surface_transport, retaining actual probability/L1 and
+the selected Gaussian expectation. A genuine bind-mixture consumer preserves
+the factor two. A second test identifies two distinct actual column marginals.
+
+The hidden-eigenbasis sphere marginal is a planned consumer of this same node;
+conditional residual/subspace laws and independence need their own adapters.
+Both Poisson values and evaluated Eq24 remain open, as do positive actual TV,
+amplification, exact matvec/worst-query/cost adapters and both main lower bounds.
+Source topology, blind decoding and fresh whole-module/source/formula review
+are accepted separately from frozen native/site/integration and public merge.
+No self VERIFIED or Registry promotion; purification and whole-Goal completion
+remain separate.

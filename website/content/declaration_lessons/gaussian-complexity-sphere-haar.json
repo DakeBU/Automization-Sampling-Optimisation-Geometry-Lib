@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.SphereHaar.column_map_eq_normalized_surface",
+      "kind": "theorem",
+      "title": "From Haar columns to surface measure",
+      "reading_layout": "progressive",
+      "reader_note": "Actual surface-law identification is established; Poisson values remain open.",
+      "statement": "Every actual Haar column has the canonical Euclidean surface law.",
+      "formula": "(O\\mapsto Oe_j)_*\\mu=\\sigma.",
+      "assumptions": [
+        "\\(n\\in\\mathbb N\\) and \\(j\\in\\{1,\\ldots,n\\}\\); a chosen coordinate forces \\(n\\ge1\\). The source uses the first coordinate at \\(n\\ge3\\); this canonical background includes every coordinate and positive finite dimension.",
+        "\\(E=\\mathbb R^n\\) has its genuine Euclidean norm and volume. \\(\\mu\\) is the actual normalized Haar probability on full \\(O(n)\\), including reflections.",
+        "The surface law is literally derived from Euclidean volume: \\(\\tau=\\mathrm{volume}.\\mathrm{toSphere}\\), then \\(\\sigma=\\tau(S)^{-1}\\iota_*\\tau\\). Finite nonzero mass, normalization, invariance and equality are proved internally. No uniqueness, measurable-selection or uniform-law premise is supplied."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(S,\\tau,\\sigma\\)",
+          "text": "The actual cone-derived surface measure on the sphere subtype, normalized and included in the ambient Euclidean space. The inverse scalar is an extended nonnegative real.",
+          "formula": "S=\\{u:\\|u\\|_2=1\\},\\quad\\tau(B)=n\\,\\mathrm{vol}\\{ru:0<r<1,\\ u\\in B\\},\\quad\\sigma=\\frac{\\iota_*\\tau}{\\tau(S)}."
+        },
+        {
+          "symbol": "\\(c_j,\\nu_j\\)",
+          "text": "Index j in Fin n is zero-based in Lean; e_j is the corresponding actual Euclidean basis vector.",
+          "formula": "c_j(O)=Oe_j,\\qquad\\nu_j=(c_j)_*\\mu."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Normalize the actual surface measure",
+          "text": "The cone construction has finite nonzero total mass in positive dimension. Normalize that measure on the sphere, then push it into Euclidean space. The result is a probability supported on the unit sphere.",
+          "formula": "0<\\tau(S)<\\infty,\\qquad\\sigma(E)=1,\\qquad\\sigma(\\{y:\\|y\\|_2=1\\})=1.",
+          "lean": "Measure.toSphere_ne_zero and the canonical IsFiniteMeasure instance justify inverse scaling via isProbabilityMeasureSMul. hσ is the literal map_smul equality; hσprob and hσsphere use probability pushforward and ae_map_iff."
+        },
+        {
+          "title": "Use volume preservation on cones",
+          "text": "Every linear isometry preserves Euclidean volume and commutes with positive radial scaling. Its action therefore preserves the cone-derived surface measure and its normalized ambient pushforward, including orientation-reversing maps.",
+          "formula": "Q^{-1}\\{ru:u\\in B,\\ 0<r<1\\}=\\{rv:Qv\\in B,\\ 0<r<1\\},\\qquad Q_*\\sigma=\\sigma.",
+          "lean": "hσiso constructs the actual sphere subtype map q. hτ applies Measure.toSphere_apply' and proves exact cone preimage equality hc; LinearIsometryEquiv.measurePreserving.measure_preimage_emb supplies actual volume preservation even for arbitrary cone sets. Measure.map_map/map_smul transport the result. hσinv uses Unitary.map_mem and Unitary.linearIsometryEquiv on Matrix.toEuclideanCLM."
+        },
+        {
+          "title": "Identify every unit-vector orbit law",
+          "text": "For any unit vector y, a reflection sends e_j to y. Its matrix Q belongs to full O(n). Right multiplication by Q preserves the actual normalized Haar law, so O y and the j-th Haar column have the same law. No measurable choice of Q as a function of y is required.",
+          "formula": "Qe_j=y,\\qquad OQ\\stackrel{d}=O,\\qquad (O\\mapsto Oy)_*\\mu=\\nu_j\\quad(\\|y\\|_2=1).",
+          "lean": "horbit constructs one fixed reflection for each point using Submodule.reflection_sub, its orthonormal-basis matrix and LinearMap.toMatrix_mulVec_repr. hr derives right invariance from the identical orthogonalHaar_spec uniqueness and Measure.isHaarMeasure_map_mul_right. No clone or promotion of KernelAxis private helpers is used."
+        },
+        {
+          "title": "Compare Borel events by Haar averaging",
+          "text": "For a Borel event B, integrate its indicator after the orthogonal action. Integrating in the sphere variable first gives sigma(B) by invariance; integrating in the Haar variable first gives nu_j(B) on the actual sphere support. The joint action is continuous, so Tonelli permits exchanging these nonnegative integrals.",
+          "formula": "\\int\\!\\int 1_B(Oy)\\,d\\sigma(y)\\,d\\mu(O)=\\sigma(B),\\qquad\\int\\!\\int 1_B(Oy)\\,d\\mu(O)\\,d\\sigma(y)=\\nu_j(B).",
+          "lean": "hact proves joint Euclidean continuity from finite matrix-coordinate sums and PiLp topology. hg is the Borel indicator into ENNReal. hleft uses actual sigma invariance; hright uses horbit on hσsphere. lintegral_lintegral_swap applies with both actual probability measures; no signed Fubini or unstated L1 premise is needed."
+        },
+        {
+          "title": "Conclude equality of actual measures",
+          "text": "The two probabilities agree on every Borel event, hence are the same ambient measure. The selected Gaussian consumer can now use the canonical surface law; conditional residual sphere laws and Poisson values remain separate.",
+          "formula": "\\forall B\\in\\mathcal B(E),\\quad\\nu_j(B)=\\sigma(B)\\qquad\\Longrightarrow\\qquad(c_j)_*\\mu=\\sigma.",
+          "lean": "Measure.ext closes the actual measure equality after Tonelli and both total masses one. The selected SurfaceLaw adapter calls this exact shared declaration, and the focused test compares two distinct actual column marginals through the same canonical node."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec"
+      ],
+      "mathlib_dependencies": [
+        "Measure.toSphere_ne_zero",
+        "Measure.toSphere_apply'",
+        "Measure.isProbabilityMeasure_map",
+        "ae_map_iff",
+        "LinearIsometryEquiv.measurePreserving",
+        "MeasurePreserving.measure_preimage_emb",
+        "Measure.map_map",
+        "Measure.map_smul",
+        "Submodule.reflection_sub",
+        "LinearIsometryEquiv.toMatrix_mem_unitaryGroup",
+        "Measure.isHaarMeasure_map_mul_right",
+        "lintegral_map",
+        "lintegral_lintegral_swap"
+      ],
+      "lean_statement": "Exact frozen signature; every normalization/analytic dependency is supplied internally.",
+      "lean_proof": "Actual measure identification by cone invariance and Tonelli, or its exact Gaussian consumer adapter.",
+      "boundary": "Actual unconditional full-Haar column equals normalized Euclidean volume-derived surface probability. No conditional residual/subspace law, seed independence, Poisson value, evaluated Eq24 or main lower bound.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p4",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "B.7 proof A2.SS2.SSS2.p4.5 uniform Oe1 sentence; A.1 proof A1.SS1.p2.1 normalized surface convention; Eq21-23 for selected transport",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS expands the standard surface-law identification used by the source. Shared background is explicitly generalized to every existing coordinate and positive finite dimension.",
+          "scope": "Actual unconditional full-Haar column equals normalized Euclidean volume-derived surface probability. No conditional residual/subspace law, seed independence, Poisson value, evaluated Eq24 or main lower bound.",
+          "label": "Zhou–Suzuki, B.7/A.1: Haar columns and normalized surface law"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexitySurfaceLaw"
+      ]
+    }
+  ]
+}

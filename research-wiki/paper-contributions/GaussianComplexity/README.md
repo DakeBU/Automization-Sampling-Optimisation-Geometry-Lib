@@ -622,3 +622,37 @@ amplification/transcript and both main lower bounds remain open. The previous
 literal Fubini theorem is unchanged and can use this new law/density interface
 only through a subsequent explicit measure/integral adapter. Local proof,
 independent admission, public integration and purification remain separate.
+
+
+## Actual Gaussian law-density validation record
+
+Exact immutable local proof commit `b1d42a4ad7691d33d514dbdb51bbe3a180871939` passed
+`python tools/astis.py check` with actual terminal exit0: root library9224jobs,
+root Tests9528jobs, ATLAS36469named declarations in26books and forbidden-closure
+scan. The new modules are covered separately by the focused3122-job tests and
+both expanded-type/actual compiler-reference checks; unchanged root imports
+are not represented as direct coverage of the new declarations.
+
+Diff-aware contributor/publication, semantic and Frontier gates passed. Two
+anonymous decoders and two fresh anti-anchored source reviewers independently
+checked the exact generic/source statements, actual whole modules/private
+provider and all seven/three mathematical proof steps. The true Euclidean
+norm, matrix inverse/square-root, determinant Jacobian, real n/2 and generic
+zero-dimensional boundary were preserved. The all-SPD theorem is explicitly
+standard background, not an all-matrices result attributed to the paper.
+
+Frozen-input site build and full check passed: 1017modules, 5089declarations
+and 77reviewed teaching declarations. Both new cells passed graph coverage.
+Actual browser inspection of the generic/source lessons found eight/four
+rendered formulas, no MathJax errors, no initially open Lean disclosures and
+no horizontal overflow. The focused source graph keeps ownership/import
+structure solid and source/fidelity overlays dashed, with the partial
+source-present badge retained. Actual compiler-reference evidence separately
+establishes source-to-shared and shared-to-isotropic/transport calls.
+
+This README-only note changes no frozen mathematical or graph inputs. Both
+declarations remain local PROVED_LOCAL. Independent commit-bound admission,
+public upload/integration, merge and purification remain separate. Target
+mixtures/H-to-TV, sphere/Poisson, both main lower bounds and the overall Goal
+remain open. The fixed-spectrum consumer is planned and requires its own SPD
+adapter; no determinant-sign lower bound is transferred to that route.

@@ -441,3 +441,44 @@ The result remains PROVED_LOCAL. Independent commit-bound admission, public
 upload, integration, merge and purification remain separate. Gaussian-law
 identification, norm-axis transitivity, original Fubini/H(lambda), both main
 lower bounds and the overall Goal remain open.
+
+
+## Literal norm-axis reduction and exact first-entry exponent
+
+The next bounded source step now has an actual compiled consumer of
+`KernelRotation.signed_kernel_rotation_invariant`: the public
+`KernelAxis.signed_kernel_radial` closes the literal-function Ex58 norm-axis
+average and the immediately following exact O11 exponent evaluation. For every
+Euclidean x, the signed average of the unchanged real Gaussian formula equals
+the signed average with exponent
+`-(kappa+1-(kappa-1)*O_11)*||x||_2^2/4`. Both fixed-x Haar L1 assertions are
+proved outputs under the same full O(n) canonical Haar law, n>=3 and kappa>=4.
+The normalizer uses the real dimension-half power, including odd n.
+
+Two reachable private providers supply the actual reflection/matrix-coordinate
+witness and exact axis quadratic form. Existing Mathlib `reflection_sub`,
+`toMatrix_mem_unitaryGroup` and `toMatrix_mulVec_repr` are consumed directly;
+zero and equal vectors require no division or added premise. The canonical
+fixed-Q theorem, precision and Haar law are reused without local copies.
+This exact reuse creates Lean dependencies; it introduces no conceptual-mirror
+transport into the separate fixed-spectrum hidden-eigenbasis route.
+
+Production2601 and focused Tests2602jobs passed, with only the standard three
+axioms. The concrete n3 vector (1,2,2) has Euclidean squared norm9, distinct from
+its coordinate sup-norm square4; the exact reduced exponent and both L1 outputs
+are checked. The n4 zero-vector case is also checked. Fully expanded anonymous
+type and compiler-reference checks passed. The preproof source statement and
+independent strict source topology inventory contain21 nodes,14 AND-edges and7
+explicit exclusions; these are source ingredients, not21 public Lean theorems.
+Fresh anonymous decoding and independent whole-module/private-provider/source/
+six-step exposition review are required for publication admission.
+
+Actual Gaussian probability-law/density identification, normalization and
+covariance, joint spatial domination/Fubini, original H(lambda), sharp Ex59
+domination, sphere/Poisson, TV/amplification/transcript and both main lower
+bounds remain open. The formalized object is an explicit real formula and Haar
+average. No Gaussian law, expected-cost adapter or main result is inferred.
+The existing model/cost contracts and both lower-bound routes are preserved.
+The packet stays local PROVED_LOCAL: exact-commit aggregate, reader/graph
+acceptance and independent admission remain separate from integration,
+public upload, merge and purification.

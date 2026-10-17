@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-484307a81ee1ed0f",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "/root",
+    "blind_decoder": "/root/anonymous_axis_decoder",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "gaussian-complexity-2026",
+    "anchor": "AppendixB2 standing range; AppendixB2.2 Ex58 and following p4.2 axis quadratic form e1^T A_O e1=(kappa+1-(kappa-1)U)/2. Literal Gaussian-formula average only.",
+    "original_text": "Let n>=3 and kappa>=4, let O have the existing normalized Borel Haar probability on full real O(n), and let A_O be the exact equation4 precision. Define the literal function p_O(v)=sqrt(det A_O)/(2pi)^(n/2) exp(-v^T A_O v/2), with a real dimension-half exponent. For every x in Euclidean real n-space, put U=O_11 and r_O(x)=sqrt(det A_O)/(2pi)^(n/2) exp(-(kappa+1-(kappa-1)U)||x||_2^2/4). Both O -> det(O)p_O(x) and O -> det(O)r_O(x) are absolutely integrable under that Haar probability, and their expectations are equal. All vectors, including zero and vectors already on the norm axis, are included. The claim is for these explicit functions; it does not identify p with a Gaussian probability density.",
+    "text_sha256": "0007d25a8edd8337ec4fa2cbf4b0d751043f5a3dd102acfd96e848f37838b3e0"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelAxis.signed_kernel_radial",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/KernelAxis.lean",
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ),\n    let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → (Fin n → ℝ) → ℝ :=\n      fun O v => Real.sqrt ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n          Real.exp (-(v ⬝ᵥ ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)) *ᵥ v)) / 2)\n    let r : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n          Real.exp (-(κ + 1 - (κ - 1) * (O : Matrix (Fin n) (Fin n) ℝ) j0 j0) *\n            ‖x‖ ^ 2 / 4)\n    ∀ x : EuclideanSpace ℝ (Fin n),\n      Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n        (O : Matrix (Fin n) (Fin n) ℝ).det * p O (WithLp.ofLp x)) ((Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))) ∧\n      Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n        (O : Matrix (Fin n) (Fin n) ℝ).det * r O x) ((Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))) ∧\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det * p O (WithLp.ofLp x) ∂(Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))) =\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det * r O x ∂(Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))))",
+    "statement_sha256": "1b98ddba4216894edac260bde64708e7881ef0524f6a7af376fb4204d2aa2967",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every natural number n with n ≥ 3 and every real κ with κ ≥ 4, let j₀ = 0 in Fin n, let O(n) be the full real orthogonal matrix group (including both determinant signs), and let μ be its normalized Haar probability measure, namely Measure.haarMeasure (⊤ : PositiveCompacts O(n)). For O ∈ O(n), set\nA(O) = ((κ + 1)/2) Iₙ − ((κ − 1)/4)(O + Oᵀ).\nDefine the explicit real functions\np(O,v) = sqrt(det A(O)) / (2π)^(n/2) · exp(−vᵀ A(O) v / 2), for real coordinate vectors v : Fin n → ℝ,\nand\nr(O,x) = sqrt(det A(O)) / (2π)^(n/2) · exp(−(κ + 1 − (κ − 1)O₀₀) ‖x‖₂² / 4), for x ∈ EuclideanSpace ℝ (Fin n).\nHere sqrt is the nonnegative real square root; (2π)^(n/2) uses the real exponent (n : ℝ)/2. The matrix products and quadratic form use the coordinates, and ‖x‖₂ is the actual Euclidean norm, not the coordinate supremum norm. Write vₓ = WithLp.ofLp x for the underlying coordinate vector of x.\nThen for every x ∈ EuclideanSpace ℝ (Fin n), both functions O ↦ det(O) p(O,vₓ) and O ↦ det(O) r(O,x) are absolutely Bochner L¹ integrable with respect to μ, and\n∫_{O(n)} det(O) p(O,vₓ) dμ(O) = ∫_{O(n)} det(O) r(O,x) dμ(O).\nThe two L¹ assertions and the integral equality are simultaneous conclusions for each fixed x. The functions p and r are the literal displayed formulas; no probability-law construction or density characterization is assumed.",
+    "text_sha256": "9a94aff8bacd8eb27577880f57cea7bba5b5e6f4285008054029af86149ff7e4",
+    "decoder": "/root/anonymous_axis_decoder",
+    "decoder_packet_sha256": "144bb7412f699229e701a70b1cecf1d65c75ec8f4cf213f489503b9145760579",
+    "decoder_run_sha256": "038f9e047b3d63264733cd68343f317cfa78d0ccac65c70f0dd0ccf0439f5a52",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "999214f164bce295a6bf8dc66721f441bccd798ee6337dda883aaa62a0043346",
+  "candidate_publication_context": {
+    "file": "2ffc1ae24d04bc86b5b3c4685055cfb297ba00a3fe7ad92e3a362d665bce5e8b",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelRotation\nimport Mathlib.Analysis.InnerProductSpace.Projection.Reflection\nimport Mathlib.Analysis.InnerProductSpace.PiL2\nimport Mathlib.Tactic.Ring\n\n/-!\n# Norm-axis reduction of the literal signed Gaussian kernel average\n\nZhou--Suzuki arXiv:2610.20492v1, Appendix B.2.2 Ex58 and the following\nO11 quadratic-form evaluation. Actual Gaussian-law/density identification,\nspatial domination/Fubini and the original H(lambda) remain separate.\n-/\n\nopen Matrix MeasureTheory Set TopologicalSpace\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelRotation\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelAxis\n\nprivate lemma exists_orthogonal_map {n : ℕ} (x y : EuclideanSpace ℝ (Fin n))\n    (h : ‖x‖ = ‖y‖) :\n    ∃ Q : Matrix.orthogonalGroup (Fin n) ℝ,\n      (Q : Matrix (Fin n) (Fin n) ℝ) *ᵥ WithLp.ofLp x = WithLp.ofLp y := by\n  let f : EuclideanSpace ℝ (Fin n) ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin n) :=\n    (ℝ ∙ (x - y))ᗮ.reflection\n  let b := EuclideanSpace.basisFun (Fin n) ℝ\n  let Q : Matrix.orthogonalGroup (Fin n) ℝ :=\n    ⟨f.toMatrix b.toBasis b.toBasis, f.toMatrix_mem_unitaryGroup b b⟩\n  have hm := LinearMap.toMatrix_mulVec_repr b.toBasis b.toBasis f.toLinearEquiv.toLinearMap x\n  have hfx : f x = y := Submodule.reflection_sub h\n  refine ⟨Q, ?_⟩\n  change (Q : Matrix (Fin n) (Fin n) ℝ) *ᵥ WithLp.ofLp x = WithLp.ofLp (f x) at hm\n  exact hm.trans (congrArg WithLp.ofLp hfx)\n\nprivate lemma axis_quadratic {n : ℕ} (κ t : ℝ)\n    (O : Matrix.orthogonalGroup (Fin n) ℝ) (j : Fin n) :\n    (Pi.single j t) ⬝ᵥ (singleBlockPrecision κ O *ᵥ Pi.single j t) =\n      (κ + 1 - (κ - 1) * (O : Matrix (Fin n) (Fin n) ℝ) j j) * t ^ 2 / 2 := by\n  rw [single_dotProduct]\n  change t * ((singleBlockPrecision κ O) j ⬝ᵥ Pi.single j t) = _\n  rw [dotProduct_single]\n  simp only [singleBlockPrecision, Matrix.sub_apply, Matrix.smul_apply, Matrix.add_apply,\n    Matrix.transpose_apply, Matrix.one_apply, ite_true, smul_eq_mul]\n  ring\n\ntheorem signed_kernel_radial {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) :\n    let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → (Fin n → ℝ) → ℝ :=\n      fun O v => Real.sqrt (singleBlockPrecision κ O).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n          Real.exp (-(v ⬝ᵥ (singleBlockPrecision κ O *ᵥ v)) / 2)\n    let r : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n          Real.exp (-(κ + 1 - (κ - 1) * (O : Matrix (Fin n) (Fin n) ℝ) j0 j0) *\n            ‖x‖ ^ 2 / 4)\n    ∀ x : EuclideanSpace ℝ (Fin n),\n      Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n        (O : Matrix (Fin n) (Fin n) ℝ).det * p O (WithLp.ofLp x)) (orthogonalHaar n) ∧\n      Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n        (O : Matrix (Fin n) (Fin n) ℝ).det * r O x) (orthogonalHaar n) ∧\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det * p O (WithLp.ofLp x) ∂orthogonalHaar n) =\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det * r O x ∂orthogonalHaar n) := by\n  classical\n  let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n  let p : Matrix.orthogonalGroup (Fin n) ℝ → (Fin n → ℝ) → ℝ :=\n    fun O v => Real.sqrt (singleBlockPrecision κ O).det /\n      (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-(v ⬝ᵥ (singleBlockPrecision κ O *ᵥ v)) / 2)\n  let r : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n    fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n      (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-(κ + 1 - (κ - 1) * (O : Matrix (Fin n) (Fin n) ℝ) j0 j0) *\n          ‖x‖ ^ 2 / 4)\n  change ∀ x : EuclideanSpace ℝ (Fin n),\n    Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n      (O : Matrix (Fin n) (Fin n) ℝ).det * p O (WithLp.ofLp x)) (orthogonalHaar n) ∧\n    Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n      (O : Matrix (Fin n) (Fin n) ℝ).det * r O x) (orthogonalHaar n) ∧ _\n  intro x\n  let y : EuclideanSpace ℝ (Fin n) := PiLp.single 2 j0 ‖x‖\n  have hnorm : ‖x‖ = ‖y‖ := by simp [y, PiLp.norm_single]\n  obtain ⟨Q, hQ⟩ := exists_orthogonal_map x y hnorm\n  have hy : WithLp.ofLp y = Pi.single j0 ‖x‖ := rfl\n  have hr (O : Matrix.orthogonalGroup (Fin n) ℝ) : p O (WithLp.ofLp y) = r O x := by\n    dsimp only [p, r]\n    rw [hy, axis_quadratic]\n    congr 2\n    ring\n  have h := signed_kernel_rotation_invariant hn hκ\n  change (∀ v : Fin n → ℝ, Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n      (O : Matrix (Fin n) (Fin n) ℝ).det * p O v) (orthogonalHaar n)) ∧ _ at h\n  have hrad : Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n      (O : Matrix (Fin n) (Fin n) ℝ).det * r O x) (orthogonalHaar n) :=\n    (h.1 (WithLp.ofLp y)).congr (Filter.Eventually.of_forall fun O =>\n      congrArg (fun z : ℝ => (O : Matrix (Fin n) (Fin n) ℝ).det * z) (hr O))\n  refine ⟨h.1 (WithLp.ofLp x), hrad, ?_⟩\n  have he := h.2 Q (WithLp.ofLp x)\n  rw [hQ] at he\n  calc\n    _ = ∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det * p O (WithLp.ofLp y) ∂orthogonalHaar n := he.symm\n    _ = _ := by\n      apply integral_congr_ae\n      exact Filter.Eventually.of_forall fun O =>\n        congrArg (fun z : ℝ => (O : Matrix (Fin n) (Fin n) ℝ).det * z) (hr O)\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelAxis\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2",
+      "edition": "arXiv:2610.20492v1",
+      "anchor": "AppendixB2 standing range; AppendixB2.2 Ex58 and following p4.2 axis quadratic form e1^T A_O e1=(kappa+1-(kappa-1)U)/2. Literal Gaussian-formula average only.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS makes the orthogonal-transitivity and coordinate adapter explicit; actual Gaussian-law identification is separate."
+    },
+    "statement": "Let n>=3 and kappa>=4, let O have the existing normalized Borel Haar probability on full real O(n), and let A_O be the exact equation4 precision. Define the literal function p_O(v)=sqrt(det A_O)/(2pi)^(n/2) exp(-v^T A_O v/2), with a real dimension-half exponent. For every x in Euclidean real n-space, put U=O_11 and r_O(x)=sqrt(det A_O)/(2pi)^(n/2) exp(-(kappa+1-(kappa-1)U)||x||_2^2/4). Both O -> det(O)p_O(x) and O -> det(O)r_O(x) are absolutely integrable under that Haar probability, and their expectations are equal. All vectors, including zero and vectors already on the norm axis, are included. The claim is for these explicit functions; it does not identify p with a Gaussian probability density.",
+    "formulae": [
+      {
+        "label": "Literal norm-axis reduction and O11 exponent",
+        "tex": "\\mathbb E[\\det(O)p_O(x)]=\\mathbb E\\!\\left[\\det(O)\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}\\exp\\!\\left(-\\frac{[\\kappa+1-(\\kappa-1)U]\\|x\\|_2^2}{4}\\right)\\right],\\qquad U=O_{11}"
+      }
+    ],
+    "assumptions": [
+      "AppendixB2 standing n>=3 and kappa>=4 are retained. Every x belongs to the actual EuclideanSpace R (Fin n); its norm is the Euclidean norm, never the coordinate sup norm.",
+      "The law is the same actual canonical normalized full-O(n) Borel Haar probability, allowing reflections and both determinant signs. The matrix A_O is the unchanged literal source precision.",
+      "WithLp.ofLp converts a Euclidean vector to its real coordinates for dotProduct and mulVec. Source coordinate1 is the zero-based j0, whose validity follows from n>=3.",
+      "Both Haar L1 assertions are outputs. No orthogonal witness, equal-norm premise, covariance identity, integrability assumption, Gaussian density identification or spatial Fubini assumption is supplied by the caller. All dimension-half powers are real."
+    ],
+    "obligations": [
+      {
+        "id": "literal-norm-axis-O11",
+        "label": "Genuine-L1 literal signed Haar norm-axis equality and exact first-entry Gaussian exponent"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelAxis.signed_kernel_radial",
+      "kind": "theorem",
+      "title": "Reduce the signed Gaussian formula to the norm axis",
+      "statement": "Let n>=3 and kappa>=4, let O have the existing normalized Borel Haar probability on full real O(n), and let A_O be the exact equation4 precision. Define the literal function p_O(v)=sqrt(det A_O)/(2pi)^(n/2) exp(-v^T A_O v/2), with a real dimension-half exponent. For every x in Euclidean real n-space, put U=O_11 and r_O(x)=sqrt(det A_O)/(2pi)^(n/2) exp(-(kappa+1-(kappa-1)U)||x||_2^2/4). Both O -> det(O)p_O(x) and O -> det(O)r_O(x) are absolutely integrable under that Haar probability, and their expectations are equal. All vectors, including zero and vectors already on the norm axis, are included. The claim is for these explicit functions; it does not identify p with a Gaussian probability density.",
+      "formula": "\\mathbb E[\\det(O)p_O(x)]=\\mathbb E\\!\\left[\\det(O)\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}\\exp\\!\\left(-\\frac{[\\kappa+1-(\\kappa-1)U]\\|x\\|_2^2}{4}\\right)\\right],\\qquad U=O_{11}",
+      "assumptions": [
+        "AppendixB2 standing n>=3 and kappa>=4 are retained. Every x belongs to the actual EuclideanSpace R (Fin n); its norm is the Euclidean norm, never the coordinate sup norm.",
+        "The law is the same actual canonical normalized full-O(n) Borel Haar probability, allowing reflections and both determinant signs. The matrix A_O is the unchanged literal source precision.",
+        "WithLp.ofLp converts a Euclidean vector to its real coordinates for dotProduct and mulVec. Source coordinate1 is the zero-based j0, whose validity follows from n>=3.",
+        "Both Haar L1 assertions are outputs. No orthogonal witness, equal-norm premise, covariance identity, integrability assumption, Gaussian density identification or spatial Fubini assumption is supplied by the caller. All dimension-half powers are real."
+      ],
+      "steps": [
+        {
+          "title": "Choose the true Euclidean norm-axis point",
+          "text": "For any Euclidean x, take y=||x||_2 e1. Its Euclidean norm is ||x||_2 because that scalar is nonnegative. This holds also at zero and when x already equals y. Coordinates of y are exactly the single-coordinate vector with entry ||x||_2.",
+          "formula": "y=\\|x\\|_2e_1,\\qquad\\|y\\|_2=\\|x\\|_2",
+          "lean": "The public proof uses PiLp.single 2 j0 and PiLp.norm_single. hy identifies its WithLp.ofLp coordinates with Pi.single. No sup-norm substitution or division by ||x|| occurs."
+        },
+        {
+          "title": "Produce the orthogonal map internally",
+          "text": "Equal-norm vectors are related by the reflection in the orthogonal complement of span(x-y). The existing canonical reflection theorem sends x to y uniformly, including x=y and x=y=0. The source uses transitivity implicitly; this is its explicit standard-background implementation.",
+          "formula": "F=\\operatorname{reflection}_{\\operatorname{span}(x-y)^\\perp},\\qquad Fx=y",
+          "lean": "Private exists_orthogonal_map calls the actual Submodule.reflection_sub. The reflection is a real linear isometry equivalence, with no new public witness or regularity assumption."
+        },
+        {
+          "title": "Connect the isometry to the actual matrix action",
+          "text": "Use the canonical Euclidean orthonormal basis to represent that isometry as a matrix Q. The canonical isometry-to-matrix theorem proves Q belongs to full O(n), and the matrix-coordinate evaluation theorem gives Q times the coordinate vector of x equal to the coordinates of y. This is a proved adapter, not a changed action.",
+          "formula": "Q\\in O(n),\\qquad Q\\,\\operatorname{coord}(x)=\\operatorname{coord}(y)",
+          "lean": "The same private provider calls LinearIsometryEquiv.toMatrix_mem_unitaryGroup and LinearMap.toMatrix_mulVec_repr in EuclideanSpace.basisFun. Its witness is an actual orthogonal matrix."
+        },
+        {
+          "title": "Consume the identical fixed-Q Haar theorem",
+          "text": "Apply the previously compiled rotation/reflection-invariance theorem to this produced Q and the coordinates of x. Its actual matrix action is y, so the signed average at x equals the signed average at the norm-axis point. The same full Haar law and precision are used.",
+          "formula": "\\mathbb E[\\det(O)p_O(x)]=\\mathbb E[\\det(O)p_O(Qx)]=\\mathbb E[\\det(O)p_O(\\|x\\|_2e_1)]",
+          "lean": "The public proof genuinely calls signed_kernel_rotation_invariant once, rewrites with the produced coordinate identity hQ, and reverses its equality. This is a real consumer of the unchanged canonical declaration."
+        },
+        {
+          "title": "Evaluate the axis quadratic form exactly",
+          "text": "For a single-coordinate vector t e1, the quadratic form is t^2 times the first diagonal entry of the literal precision. That diagonal entry is (kappa+1-(kappa-1)U)/2. The extra factor1/2 in the Gaussian exponent produces exactly the denominator4. The square-root determinant and real normalization power are unchanged.",
+          "formula": "(te_1)^\\top A_O(te_1)=\\frac{[\\kappa+1-(\\kappa-1)U]t^2}{2},\\qquad p_O(\\|x\\|_2e_1)=r_O(x)",
+          "lean": "Private axis_quadratic uses single_dotProduct, dotProduct_single and the literal singleBlockPrecision entry. The public hr identity substitutes t=||x|| and proves the exact exponent arithmetic."
+        },
+        {
+          "title": "Retain genuine finiteness on both sides",
+          "text": "The existing fixed-Q theorem already proves Haar L1 for every fixed coordinate vector. Apply it to x and to the produced y. Pointwise equality p_O(y)=r_O(x) transfers L1 to the displayed reduced formula, then integral equality follows. This concerns one fixed x at a time and exchanges no spatial integrals.",
+          "formula": "\\det(O)p_O(x),\\ \\det(O)r_O(x)\\in L^1(\\mu_n),\\qquad\\mathbb E[\\det(O)p_O(x)]=\\mathbb E[\\det(O)r_O(x)]",
+          "lean": "h.1 supplies both genuine L1 providers; Integrable.congr and integral_congr_ae use the actual hr identity. The two L1 conclusions accompany the final equality; original Gaussian-law/Fubini obligations are excluded."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelRotation.signed_kernel_rotation_invariant",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar"
+      ],
+      "mathlib_dependencies": [
+        "Submodule.reflection_sub",
+        "LinearIsometryEquiv.toMatrix_mem_unitaryGroup",
+        "LinearMap.toMatrix_mulVec_repr",
+        "EuclideanSpace.basisFun",
+        "PiLp.norm_single",
+        "single_dotProduct",
+        "dotProduct_single",
+        "Integrable.congr",
+        "integral_congr_ae"
+      ],
+      "lean_statement": "Literal p and r local lets, actual Euclidean norm and coordinates; every vector and both Haar L1 conclusions are explicit.",
+      "lean_proof": "Two reachable private providers produce the orthogonal coordinate witness and exact axis quadratic evaluation. The public proof consumes the existing fixed-Q invariant/L1 theorem and discharges the full literal norm-axis identity.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "AppendixB2 standing range; AppendixB2.2 Ex58 and following p4.2 axis quadratic form e1^T A_O e1=(kappa+1-(kappa-1)U)/2. Literal Gaussian-formula average only.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS makes the orthogonal-transitivity and coordinate adapter explicit; actual Gaussian-law identification is separate.",
+          "label": "Ex58 and exact axis exponent",
+          "scope": "Literal-function norm-axis Haar average and O11 evaluation; actual Gaussian law/density and spatial Fubini are separate."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityKernelAxis"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelAxis.signed_kernel_radial",
+      "role": "proof-edge",
+      "supports": [
+        "literal-norm-axis-O11"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Standing n>=3,kappa>=4; full Haar O(n), every Euclidean x. Ex58 uses orthogonal transitivity and p4.2 evaluates the axis quadratic form.",
+        "lean": "Same standing range, law, precision and Euclidean norm. Reflection and actual orthogonal coordinate witness, both Haar L1 conclusions and exact axis exponent are produced internally. Formula-to-Gaussian-law identification remains excluded."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "2130931c8585bdf8a776fc6c22412e3fb9cb9dadeb047df8d684fba575172aa1"
+}

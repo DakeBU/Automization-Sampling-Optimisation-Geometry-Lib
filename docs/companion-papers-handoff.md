@@ -1,5 +1,26 @@
 # Companion-paper formalization handoff
 
+## Actual augmented PBPS one-step kernel (2026-10-17)
+
+Current bounded packet: `ASTIS-SA-20261017-PBPSActualAugmentedKernelInvariance`,
+owner `root_20261017_augmented`, branch `codex/pbps-actual-augmented-kernel-invariance`.
+Exact sealed statement07357104 and producer/focused test PASS3255 jobs, standard
+three axioms only. The SAME actual Z/R/H is retained; normalized probability,
+literal conditional R, retained-coordinate Tonelli, fixed rho mixture and
+reflection-first K with exact eq3.11 law/invariance are derived internally.
+State: PROVED_LOCAL, not independently VERIFIED. Five adjacent formula/Lean
+steps are authored and bound; source-blind review is running. No Registry entry
+for this new result yet. Read
+`research-wiki/paper-contributions/PBPS/actual-augmented-kernel-invariance-verification.json`.
+
+Parent PR328 actually MERGED at180e90b0952f3b6b844def6d9e17e31a292d738f,
+exact checked head5d74ae19, all remote CI SUCCESS. Main Registry566. Its local
+source-bound root/Tests9534, site/graph and desktop QA passed with limitations
+in the Cell and PR. Half-turn stabilization lease released; purification and
+deployment remain distinct. Complete papers0/4. No hypocoercivity, actual
+implementation error/cap/expected cost or warm-start composition is closed by
+the present one-step invariant law. Older checkpoints below are historical.
+
 ## Actual PBPS half-turn detailed balance (2026-10-17)
 
 Current sole STABILIZING owner: `root_20261017`. The SAME actual returned-position

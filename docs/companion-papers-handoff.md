@@ -1,5 +1,27 @@
 # Companion-paper formalization handoff
 
+## Current merged L2 prerequisite and next retained lift (2026-10-17)
+
+PR332 actually MERGED at1ce5654b33fa45c5a2a217eb31536102b5c1b103 after
+all three exact78f9a93d4 CI lanes passed. The canonical local ASTIS/root Tests
+gate passed9567 jobs and the final source-bound site build/check passed.
+Incoming collaborator Gaussian mixture results and ledger rows were preserved.
+Registry568 is on main; the shared L2 integration lease is released through
+the normal API. Pages deployment and purification remain separate events.
+
+The next packet, ASTIS-SA-20261017-RetainedKernelReversibility, keeps its exact
+preproof seal a35ffde0. One shared s-finite/a.e. fiber-to-joint detailed-balance
+lemma and focused tests compile (1884 jobs, standard three axioms). Its two-step
+formula proof has adjacent exact folded Lean. Fresh blind decoding and distinct
+source/compiler review found all seven slots equivalent, with no repair;
+formal VERIFIED publication is pending the completed artifact admission.
+See research-wiki/technical-lemmas/retained-kernel-reversibility-local-evidence.json.
+
+This closes no actual PBPS A.2/A.9 adapter: exact SAME-H/R disintegration,
+coordinate-swap reversibility transport and actual all-L2 realization remain.
+Full K is not assumed reversible. Hypocoercivity, implementation error/cap/cost,
+initialization and actual-input composition stay independent. Full papers0/4.
+
 ## Current integration and reader navigation (2026-10-17)
 
 PR329 actually merged at869c511605c19754de6563640a6108285fc2739e;

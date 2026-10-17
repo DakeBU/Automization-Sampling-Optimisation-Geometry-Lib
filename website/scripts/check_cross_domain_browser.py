@@ -11,6 +11,7 @@ import http.server
 import json
 import re
 import shutil
+import sys
 import threading
 from collections import Counter
 from pathlib import Path
@@ -19,6 +20,8 @@ from playwright.sync_api import sync_playwright
 import samplewiki_navigation
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'tools'))
+import publication_reader
 
 
 def main() -> None:
@@ -26,6 +29,7 @@ def main() -> None:
     parser.add_argument('--output',default=str(ROOT/'_site'))
     parser.add_argument('--evidence',default=str(ROOT/'_browser-evidence'))
     parser.add_argument('--offline-dom',action='store_true')
+    parser.add_argument('--focus-declaration', help='Inspect this actual declaration in the bounded graph slice')
     parser.add_argument('--browser-channel', choices=['chrome', 'msedge'],
                         help='Use an installed browser in an isolated profile; CI defaults to pinned Chromium')
     args=parser.parse_args()
@@ -132,7 +136,7 @@ def main() -> None:
             publication_items = [i for f in (ROOT/'website/content/publications').glob('*.json')
                                  for i in json.loads(f.read_text(encoding='utf-8'))['items']]
             if publication_items:
-                name = publication_items[0]['bindings'][0]['declaration']
+                name = args.focus_declaration or publication_items[0]['bindings'][0]['declaration']
                 ident = 'decl:' + name
                 goto('lean-foundations.html?view=lean&focus=' + quote(ident, safe='') + '&q=' + quote(name, safe=''))
                 page.wait_for_selector('.ulg-canvas[data-local="true"]')
@@ -234,6 +238,10 @@ def main() -> None:
             assert 'Sampling papers' not in page.locator('main').inner_text()
             assert page.get_by_role('link', name='Gaussian expectations: mathematical proof and Lean', exact=True).count() == 1
             page.screenshot(path=str(evidence/'samplewiki-unified-directory-mobile.png'))
+            old_viewport = page.viewport_size
+            page.set_viewport_size({'width': 1280, 'height': 1100})
+            page.screenshot(path=str(evidence/'samplewiki-unified-directory-desktop.png'))
+            page.set_viewport_size(old_viewport)
             assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
             report['priority_papers'] = []
             for row in priority:
@@ -261,43 +269,51 @@ def main() -> None:
                             for f in (ROOT/'website/content/declaration_lessons').glob('*.json')
                             for u in json.loads(f.read_text(encoding='utf-8'))['units']}
             report['companion_publications'] = []
+            source_reader_errors = publication_reader.validate_site(site)
+            assert not source_reader_errors, source_reader_errors
             for rel in sorted({i['chapter_path'] for i in items}):
                 goto(rel)
-                expected = sum(len(i['bindings']) for i in items if i['chapter_path'] == rel)
-                proof_names = [name for i in items if i['chapter_path'] == rel
-                               for b in i['bindings']
-                               for name in [b['declaration'], *lesson_units[b['declaration']].get('helpers', [])]]
-                expected_proof_panels = len(proof_names)
-                assert page.locator('[data-authored-declaration]').count() == expected, rel
-                assert page.locator('details.inline-lean-statement').count() == expected, rel
-                assert page.locator('details.inline-lean-statement:not([open])').count() == expected, rel
-                proof_panels = page.locator('details.inline-lean-proof')
-                assert proof_panels.count() == expected_proof_panels, rel
-                assert page.locator('details.inline-lean-proof[open]').count() == 0, rel
-                assert Counter(proof_panels.evaluate_all(
-                    "nodes => nodes.map(node => node.getAttribute('data-inline-lean'))")) == Counter(proof_names), rel
-                if not args.offline_dom:
-                    page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
-                    page.evaluate('() => MathJax.startup.promise')
-                    assert page.locator('mjx-container').count() > 0, rel
-                    assert page.locator('mjx-merror').count() == 0, rel
-                assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1'), rel
-                # Progressive disclosure is intentional. Exercise the same
-                # visible navigation as a reader, never force-click hidden code.
+                group = [i for i in items if i['chapter_path'] == rel]
+                expected = sum(len(i['bindings']) for i in group)
+                assert page.locator('[data-proof-declaration]').count() == expected, rel
+                assert page.locator('[data-authored-declaration]').count() == 0, rel
                 index = page.locator('details.paper-verified-index')
                 assert index.count() == 1 and not index.evaluate('node => node.open'), rel
                 page.get_by_role('link', name='3. Verified work', exact=True).click()
                 assert index.evaluate('node => node.open'), rel
-                for unit in page.locator('details.paper-verified-unit').all():
-                    unit.locator(':scope > summary').click()
-                    for summary in unit.locator('details.inline-lean-proof > summary').all():
-                        summary.click()
-                assert page.locator('details.inline-lean-proof[open]').count() == expected_proof_panels, rel
-                assert page.locator('details.inline-lean-proof[open] code.language-lean').count() == expected_proof_panels, rel
-                page.locator('[data-authored-declaration]').last.scroll_into_view_if_needed()
-                page.screenshot(path=str(evidence/(Path(rel).stem+'-proof-mobile.png')))
+                # Static validation checks every complete source/proof target.
+                # Browser-check boundary samples and the newly retained lift,
+                # without reloading hundreds of full proofs on one paper page.
+                selected = [group[0]]
+                if group[-1]['id'] != group[0]['id']: selected.append(group[-1])
+                selected.extend(i for i in group if i['id'] == 'shared-retained-kernel-reversibility'
+                                and i not in selected)
+                checked = []
+                for item in selected:
+                    focused = publication_reader.source_proof_path(item)
+                    goto(focused)
+                    expected_units = len(item['bindings'])
+                    proof_names = [name for b in item['bindings']
+                                   for name in [b['declaration'], *lesson_units[b['declaration']].get('helpers', [])]]
+                    assert page.locator('[data-authored-declaration]').count() == expected_units, focused
+                    assert page.locator('details.inline-lean-statement:not([open])').count() == expected_units, focused
+                    panels = page.locator('details.inline-lean-proof')
+                    assert Counter(panels.evaluate_all(
+                        "nodes => nodes.map(node => node.getAttribute('data-inline-lean'))")) == Counter(proof_names), focused
+                    assert page.locator('details.inline-lean-proof[open]').count() == 0, focused
+                    if not args.offline_dom:
+                        page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
+                        page.evaluate('() => MathJax.startup.promise')
+                        assert page.locator('mjx-container').count() > 0, focused
+                        assert page.locator('mjx-merror').count() == 0, focused
+                    assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1'), focused
+                    page.locator('details.inline-lean-proof > summary').last.click()
+                    assert page.locator('details.inline-lean-proof[open] code.language-lean').count() == 1, focused
+                    page.screenshot(path=str(evidence/(item['id']+'-proof-mobile.png')))
+                    checked.append(focused)
                 report['companion_publications'].append({'path': rel, 'declarations': expected,
-                    'proof_panels': expected_proof_panels, 'adjacent_lean': True, 'mobile_overflow': False})
+                    'browser_sampled_readers': checked, 'all_targets_statically_validated': True,
+                    'adjacent_lean': True, 'mobile_overflow': False})
             assert not report['runtime_errors'],report['runtime_errors']
             browser.close()
     except Exception as error:

@@ -21,8 +21,12 @@ Each paper has three depths:
 2. Source-linked calculations, initially folded. Each step has its own adjacent
    Lean disclosure. A source proof route is not a completed Lean proof.
 3. A compact index of source-mapped declarations and independent reviews,
-   projected from the existing publication bindings. Expand one exact proof
-   or follow its focused reader page; do not maintain a second status list.
+   projected from the existing publication bindings. Link each item to its
+   focused source/proof reader; do not embed hundreds of full proof units in a
+   closed disclosure. Hidden DOM still loads and renders its formulas. Every
+   focused reader retains the complete source, assumption ledger, authored
+   formula proof, semantic evidence and adjacent folded Lean. The static gate
+   checks all targets; browser checks exercise representative full readers.
 
 The exact authored publication and declaration-lesson content is retained.
 Navigation/layout changes must not rewrite reviewed proofs, expand statements,

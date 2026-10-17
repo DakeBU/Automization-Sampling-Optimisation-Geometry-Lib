@@ -95,17 +95,20 @@ class PaperNavigationTests(unittest.TestCase):
         text = navigation.inject_paper_directory(original, 'example-cases/samplewiki/companions/test.html')
         self.assertLess(text.index('data-paper-directory'), text.index('sidebar-libraries'))
 
-    def test_checked_work_is_folded_without_dropping_source_card(self):
-        item = {'title': 'An exact source statement', 'bindings': [{'declaration': 'Test.exact'}]}
-        with patch.object(publication_reader.publication, 'inputs', return_value={}), \
+    def test_checked_work_links_full_source_proof_without_loading_it_in_the_index(self):
+        item = {'id': 'test-source', 'title': 'An exact source statement', 'bindings': [{'declaration': 'Test.exact'}]}
+        data = {'lessons': {'Test.exact': {'title': 'Exact mathematical proof'}}}
+        with patch.object(publication_reader.publication, 'inputs', return_value=data), \
              patch.object(publication_reader.publication, 'verified_binding', return_value=True), \
              patch.object(publication_reader, 'source_card', return_value='<section>EXACT-PROOF-AND-LEAN</section>'):
             text = publication_reader.companion_publication_block([item], 'example-cases/samplewiki/companions/test.html')
         self.assertEqual(text.count('id="paper-lean-progress"'), 1)
         self.assertIn('<details class="paper-verified-index">', text)
-        self.assertIn('<details class="paper-verified-unit">', text)
-        self.assertIn('EXACT-PROOF-AND-LEAN', text)
-        self.assertIn('Read focused proof', text)
+        self.assertIn('<details class="paper-verified-unit"', text)
+        self.assertNotIn('EXACT-PROOF-AND-LEAN', text)
+        self.assertIn('proofs/source-test-source.html', text)
+        self.assertIn('Read full statement and proof', text)
+        self.assertIn('data-proof-declaration="Test.exact"', text)
         self.assertIn('1 independently reviewed', text)
         self.assertIn('not completed paper results', text)
         self.assertNotIn('<details open', text)

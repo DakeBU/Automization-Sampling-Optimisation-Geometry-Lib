@@ -9,6 +9,8 @@ from pathlib import Path
 import astis_publication as publication
 import astis_site
 import declaration_lessons
+import source_lineage
+import samplewiki_navigation
 
 SOURCE_EDGE = 'source correspondence; not a Lean dependency'
 REFERENCE_EDGE = 'source reference (scanner)'
@@ -118,6 +120,10 @@ def source_card(item: dict, page: str) -> str:
             + ''.join(obligations) + '</ul></section>')
 
 
+def source_proof_path(item: dict) -> str:
+    return 'proofs/source-' + astis_site.slugify(item['id']) + '.html'
+
+
 def companion_publication_block(items: list[dict], page: str) -> str:
     """One compact index; exact statements/proofs remain available on demand."""
     data = publication.inputs()
@@ -126,12 +132,14 @@ def companion_publication_block(items: list[dict], page: str) -> str:
                 if publication.verified_binding(b, data)}
     entries = []
     for item in items:
-        links = ' · '.join(
-            f'<a href="{astis_site.relative_prefix(page)}{declaration_lessons.lesson_path(b["declaration"])}">Read focused proof</a>'
-            for b in item['bindings'])
-        entries.append('<details class="paper-verified-unit"><summary>'
-                       + escape(item['title']) + '</summary><p>' + links + '</p>'
-                       + source_card(item, page) + '</details>')
+        target = astis_site.relative_prefix(page) + source_proof_path(item)
+        units = ''.join(f'<li data-proof-declaration="{escape(b["declaration"])}">'
+                        + escape(data['lessons'][b['declaration']]['title']) + '</li>'
+                        for b in item['bindings'])
+        entries.append(f'<details class="paper-verified-unit" id="{escape(item["id"])}" data-publication-item="{escape(item["id"])}"><summary>'
+                       + escape(item['title']) + '</summary><ul>' + units + '</ul>'
+                       + f'<p><a href="{escape(target)}">Read full statement and proof →</a></p>'
+                       + '<p>Source assumptions, verification evidence and optional Lean are beside the proof on that page.</p></details>')
     return ('<section id="paper-lean-progress" class="paper-checked-work"><h2>3. What has been verified?</h2>'
             f'<p>{len(names)} source-mapped declarations; {len(reviewed)} independently reviewed. '
             'These are building blocks, not completed paper results.</p>'
@@ -143,6 +151,10 @@ def enrich_site(output: Path) -> None:
     errors = publication.validate()
     if errors:
         raise ValueError('\n'.join(errors))
+    research_model = samplewiki_navigation.load_model()
+    research_titles = {samplewiki_navigation.PAPER_BASE + row['slug'] + '.html':
+                       row.get('reader_label', row['title'])
+                       for row in [*research_model['cases'], research_model['composition']]}
     groups = {}
     for item in publication.load():
         groups.setdefault(item['chapter_path'], []).append(item)
@@ -158,6 +170,16 @@ def enrich_site(output: Path) -> None:
         # Unordered legacy items retain their existing relative order.
         ordered = sorted(items, key=lambda i: i.get('source_order', float('inf')))
         if rel.startswith('example-cases/samplewiki/companions/'):
+            for item in ordered:
+                focused = source_proof_path(item)
+                proof = source_card(item, focused)
+                proof = proof.replace(f'<h2>{escape(item["title"])}</h2>', '', 1)
+                breadcrumb = ('<nav class="reader-breadcrumb"><a href="../example-cases/samplewiki.html">SampleWiki</a> / '
+                              f'<a href="{astis_site.relative_prefix(focused)}{rel}">{escape(research_titles.get(rel, "Research result"))}</a></nav>')
+                body = breadcrumb + f'<h1>{escape(item["title"])}</h1>' + proof
+                rendered = astis_site.page(item['title'], focused, body, active='SampleWiki',
+                    extra_head='<link rel="stylesheet" href="../assets/proof-readers.css">')
+                astis_site.write_page(output, focused, source_lineage.canonical_shell(rendered, focused, output))
             block = companion_publication_block(ordered, rel)
             text, replaced = re.subn(
                 r'<section id="paper-lean-progress" data-paper-publications="pending">.*?</section>',
@@ -308,6 +330,17 @@ def validate_site(output: Path) -> list[str]:
             errors.append(f'Missing publication chapter {item["chapter_path"]}')
             continue
         text = path.read_text(encoding='utf-8')
+        if item['chapter_path'].startswith('example-cases/samplewiki/companions/'):
+            focused = source_proof_path(item)
+            if focused not in text:
+                errors.append(f'{path.name}: missing focused source proof link {focused}')
+            target = output / focused
+            if not target.exists():
+                errors.append(f'Missing complete source/proof reader {focused}')
+                continue
+            # Moving a proof out of the index may never drop its source ledger,
+            # exact authored mathematics, audit or adjacent Lean.
+            text = target.read_text(encoding='utf-8')
         for marker in (f'data-publication-item="{item["id"]}"', 'Encoder–denoiser:',
                        'Source assumptions versus formal assumptions'):
             if marker not in text:

@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents.component_probabilities",
+      "kind": "theorem",
+      "title": "Normalize the actual positive and negative determinant Haar priors",
+      "statement": "Let n be a positive natural number and mu the existing normalized Borel Haar probability on the full real orthogonal group O(n). Put Cplus={O:det(O)=1} and Cminus={O:det(O)=-1}. Then mu(Cplus)=mu(Cminus)=1/2, and both literal measures 2 times mu restricted to Cplus and 2 times mu restricted to Cminus are probability measures. All determinant-event measurability, partition, negative-determinant witness and invariance requirements are established internally. This explicitly generalizes the source application n>=3 to n>=1; dimension0 is excluded because its negative determinant event is empty. No Gaussian target-mixture measure or TV conclusion is asserted.",
+      "assumptions": [
+        "Positive natural dimension n>=1; source application retains n>=3. The n=0 obstruction is explicit.",
+        "Identical actual normalized full-O(n) Borel Haar law; no arbitrary measure, SO replacement, equal-mass assumption or supplied negative-determinant matrix.",
+        "No kappa, ell, Gaussian, integrability or query-budget hypotheses are relevant to this probability-normalization prerequisite."
+      ],
+      "formula": "\\mu(C_+)=\\mu(C_-)=\\frac12,\\qquad \\nu_\\pm=2\\,\\mu|_{C_\\pm},\\qquad\\nu_\\pm(O(n))=1",
+      "steps": [
+        {
+          "title": "Identify the actual two Borel events",
+          "text": "The determinant is continuous on real matrices and hence on O(n), so its level sets are Borel. Orthogonality gives det(O)^2=1. Over the reals this says det(O)=1 or det(O)=-1, with disjoint alternatives. Thus Cminus is exactly the complement of Cplus.",
+          "formula": "\\det(O)^2=1,\\quad C_-=C_+^c,\\quad C_+\\sqcup C_-=O(n)",
+          "lean": "Continuity, determinant product/transpose and mul_self_eq_one_iff produce the measurable partition; it is not a caller premise."
+        },
+        {
+          "title": "Construct a sign-changing symmetry in positive dimension",
+          "text": "Because n>=1, the zeroth coordinate exists. Negate that coordinate and fix the others. The diagonal matrix R is orthogonal, its determinant is -1, and det(RO)=-det(O). Consequently the preimage of Cplus under left multiplication by R is Cminus.",
+          "formula": "R=\\operatorname{diag}(-1,1,\\ldots,1),\\quad\\det(R)=-1,\\quad L_R^{-1}(C_+)=C_-",
+          "lean": "The proof constructs R as a local actual orthogonal matrix and proves its determinant and preimage identity internally. No reflection witness is supplied by the caller."
+        },
+        {
+          "title": "Use the same canonical full-Haar invariance",
+          "text": "Left multiplication by the fixed R preserves the identical full-Haar probability already used elsewhere. Applying the map-measure formula to the Borel event Cplus and substituting the preimage identity yields equality of the two component masses. This elementary argument supplies the justification omitted from the source paragraph.",
+          "formula": "(L_R)_*\\mu=\\mu\\quad\\Longrightarrow\\quad\\mu(C_+)=\\mu(L_R^{-1}C_+)=\\mu(C_-)",
+          "lean": "The proof calls the exact compiled orthogonalHaar_map_mul_left and Measure.map_apply. The source omission stays explicit; no distinct Haar or SO law is introduced."
+        },
+        {
+          "title": "Solve the mass equation using actual probability",
+          "text": "The events partition the whole group and mu is a probability measure, so their masses sum to1. Combining equal masses with this identity gives each mass1/2. In Lean, finiteness permits a faithful ENNReal-to-real calculation and injectivity returns the ENNReal equality; no infinite-value cancellation is used.",
+          "formula": "\\mu(C_+)+\\mu(C_-)=1,\\quad\\mu(C_+)=\\mu(C_-)\\quad\\Longrightarrow\\quad\\mu(C_\\pm)=\\frac12",
+          "lean": "The exact orthogonalHaar_spec probability, measure_add_measure_compl, measure_ne_top and finite toReal equality discharge normalization."
+        },
+        {
+          "title": "Normalize the literal restricted mixing priors",
+          "text": "For either sign define the actual measure nu by scaling the restriction of mu by2. The mass of its whole carrier is2 times the already proved component mass, hence1. Therefore both literal measures are genuine probabilities. These are the normalized priors needed by later Gaussian mixtures; this step does not construct those mixtures.",
+          "formula": "\\nu_\\pm(O(n))=2\\,\\mu(C_\\pm)=2\\cdot\\frac12=1",
+          "lean": "Measure.smul_apply and Measure.restrict_apply_univ consume the actual half-mass equalities; ENNReal.mul_inv_cancel is used only for finite nonzero2."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_map_mul_left"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.mem_orthogonalGroup_iff",
+        "Matrix.det_mul",
+        "Matrix.det_transpose",
+        "Matrix.det_diagonal",
+        "mul_self_eq_one_iff",
+        "Measure.map_apply",
+        "measure_add_measure_compl",
+        "ENNReal.toReal_eq_toReal_iff'",
+        "ENNReal.toReal_add",
+        "Measure.smul_apply",
+        "Measure.restrict_apply_univ",
+        "ENNReal.mul_inv_cancel"
+      ],
+      "lean_statement": "Exact preproof sealed signature: actual full Haar, determinant level sets, both half-masses and actual literal restriction probabilities.",
+      "lean_proof": "Construct a fixed coordinate reflection, apply the same canonical Haar-left-map theorem, use the measurable complement partition, and normalize both actual restrictions.",
+      "boundary": "Actual full-Haar component masses and literal2*restriction mixing-prior probabilities only. No actual Gaussian-family kernel/target mixtures, H expectation split, TV, adaptive posterior/transcript, sphere/Poisson, parameter choice or either main lower bound. n>=1 is a disclosed background generalization; n=0 excluded. Source omits the elementary symmetry argument; the supplied background proof is not attributed as an explicit author proof.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p3",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Appendix B.2.2 first proof paragraph, half-mass clause preceding Eq20; literal normalized restriction priors are explicit background expansion.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. The source n>=3 application is explicitly extended to the elementary n>=1 background fact; the omitted symmetry justification is supplied here.",
+          "label": "Determinant-component half-mass and normalized priors",
+          "scope": "Half-mass clause and explicitly supplied elementary background normalization only."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityComponents"
+      ]
+    }
+  ]
+}

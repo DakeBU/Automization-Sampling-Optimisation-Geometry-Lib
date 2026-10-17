@@ -1,0 +1,283 @@
+{
+  "id": "ASTIS-RT-GC-MixtureExpectation-0",
+  "state": "accepted",
+  "source": {
+    "source_id": "gaussian-complexity-2026",
+    "anchor": "arXiv:2610.20492v1 AppendixB2.2 radial test/H half-mass expectation identity immediately before Eq20, with Section3.1 single-block mixture before Eq6 and Section2 conditioned full Haar.",
+    "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p3",
+    "original_text": "For \\(n\\ge3\\), \\(\\kappa\\ge4\\) and \\(\\ell\\ge0\\), the radial test is integrable under both actual Gaussian mixtures. Their expectations are the corresponding component averages, and their difference is twice the signed Haar average. Here \\(A_O=\\frac{\\kappa+1}{2}I_n-\\frac{\\kappa-1}{4}(O+O^\\top)\\), \\(\\mu\\) is full normalized Haar, \\(\\nu_\\pm=2\\mu|_{\\{\\det O=\\pm1\\}}\\), \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\), \\(P_\\pm=\\nu_\\pm\\mathbin{\\mathrm{bind}}\\gamma\\), \\(t(x)=e^{-\\ell\\|x\\|^2}\\), and \\(f(O)=\\int t\\,d\\gamma_O\\). The conclusions include absolute L1 of \\(t\\) under both \\(P_\\pm\\), absolute L1 of \\(f\\) under both \\(\\nu_\\pm\\), both real identities \\(\\mathbb E_{P_\\pm}t=\\int f\\,d\\nu_\\pm\\), and \\(\\mathbb E_{P_+}t-\\mathbb E_{P_-}t=2\\int_{O(n)}\\det(O)\\,f(O)\\,d\\mu(O).\\)",
+    "text_sha256": "90ebce490e7b4613f9830a0645a9d5cc0e5b37461349b1a950da26f72c79e8c3"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureExpectation.actual_mixture_expectation_gap",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/MixtureExpectation.lean",
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ),\n    let μ := (Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))⁻¹\n    let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n    let f : Matrix.orthogonalGroup (Fin n) ℝ → ℝ := fun O => ∫ x, t x ∂γ O\n    Integrable t (νpos.bind γ) ∧ Integrable t (νneg.bind γ) ∧\n      Integrable f νpos ∧ Integrable f νneg ∧\n      (∫ x, t x ∂νpos.bind γ) = (∫ O, f O ∂νpos) ∧\n      (∫ x, t x ∂νneg.bind γ) = (∫ O, f O ∂νneg) ∧\n      ((∫ x, t x ∂νpos.bind γ) - (∫ x, t x ∂νneg.bind γ)) =\n        2 * (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n          (O : Matrix (Fin n) (Fin n) ℝ).det * f O ∂μ)",
+    "statement_sha256": "8daf284bf11743a1a2cf09895e8485af1bc47ec15c3c06882b2bbd7c3a084905",
+    "compiled": true,
+    "formalizer": "/root",
+    "compiler_evidence": "PASS production and concrete focusedTests actualterminal85208exit0,3133jobs (production3132/test3133). Actual negative mixture zero-tilt L1; actual nonzero n4,kappa9 negative-law real expectation transport; actual signed zero-tilt expectation vanishes by the gap and both actual mixture masses. Expanded anonymous target and actual compiler references actualterminal13914exit0. Only propext, Classical.choice, Quot.sound.",
+    "decoder_context": [
+      "The Borel probability on the full real orthogonal matrix group is normalized Haar on the whole compact group, retaining both determinant signs.",
+      "Restriction, scaling and bind are literal measure operations. Measure.bind nu gamma is Measure.join (Measure.map gamma nu), the actual mixture. Actual family measurability and probability laws must be produced internally, never assumed.",
+      "The existing canonical centered multivariate Gaussian uses the actual displayed inverse precision as covariance on genuine Borel Euclidean space. No replacement characterized kernel or density-only proxy is supplied.",
+      "All displayed integrals of real functions are Bochner integrals. Integrable means absolute L1; the source range includes a zero radial tilt. Both mixture-test and prior-component integrability and both real transport identities are conclusions. No measurable-family, probability, L1 or desired equality producer is a caller premise."
+    ]
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "The pinned source uses A_O=((κ+1)/2)I−((κ−1)/4)(O+Oᵀ), γ_O=N(0,A_O⁻¹), determinant-conditioned full-Haar priors, actual single-block mixtures P_b, and radial h_λ. Its H(λ) is defined by the signed component-density integral.",
+      "reconstructed": "The reconstruction uses exactly the same precision, canonical ProbabilityTheory.multivariateGaussian with zero mean and inverse precision, literal doubled restricted Haar priors, ν±.bind γ, t=h_ℓ and f(O)=∫t dγ_O. The signed Haar integral represents the source density-defined H through an existing separate interface.",
+      "relation": "explicit-elaboration",
+      "evidence": "Pinned HTML S3.SS1.p1/Eq4, S3.SS1.p3 before Eq6, A2.SS2.p2 and A2.SS2.SSS2.p3/Ex56; current MixtureExpectation.lean:24–40; DeterminantFamily.singleBlockPrecision:21–25; GaussianLawDensity.gaussian_law_eq_density:18–40 identifies the actual canonical law with the exact source precision density. GaussianExpectation.actual_gaussian_transform:22ff includes pointwise actual-law/density integral equality. Pinned Mathlib Multivariate.lean:163–170 constructs the canonical law, rather than an arbitrary assumed kernel."
+    },
+    "domains": {
+      "original": "n-dimensional real orthogonal group with full Haar probability; component conditioning det=±1; Euclidean R^n Gaussian sampling. Section3.1 also discusses an ambient d and block product, outside the pre-Eq20 single-block identity.",
+      "reconstructed": "Matrix.orthogonalGroup (Fin n) ℝ with its Borel structure, canonical full compact Haar probability, literal restriction/scaling on that same group, and EuclideanSpace ℝ (Fin n) with its Euclidean norm and Borel measures.",
+      "relation": "explicit-elaboration",
+      "evidence": "Pinned HTML S2.p2, S3.SS1.p1–p3, A2.SS2.p2; target:24–39,43–51; OrthogonalHaar.lean defines Borel instances and orthogonalHaar as haarMeasure top on the full compact group. No SO(n)-only outer measure, coordinate maximum norm, product target or ambient d is substituted."
+    },
+    "quantifiers": {
+      "original": "AppendixB.2 standing n≥3 and κ≥4; A2.SS2.SSS2.p3 starts with every λ≥0, before later choosing λ>0. Both determinant signs occur simultaneously.",
+      "reconstructed": "∀ natural n with 3≤n, ∀ real κ with 4≤κ, ∀ real ℓ with 0≤ℓ; both signs and every actual Gaussian component are handled by one conjunction. The result includes ℓ=0.",
+      "relation": "equivalent",
+      "evidence": "Pinned HTML A2.SS2.p2 and A2.SS2.SSS2.p3.1/.4; target:22–23 and34–40. htb uses only neg_nonpos.mpr hℓ, and no division by ℓ or strict-positive tilt premise occurs anywhere in the 148-line current module."
+    },
+    "assumptions": {
+      "original": "Only n≥3, κ≥4 and nonnegative radial tilt are source parameter restrictions for this bounded single-block identity. Probability, measurability, integrability and exchange of component/mixture integration are implicit mathematical bookkeeping, not caller data.",
+      "reconstructed": "Exactly hn:3≤n, hκ:4≤κ, hℓ:0≤ℓ are public hypotheses. The exact family measurability, actual bind probabilities, sign-prior probabilities, continuity, absolute L1, finite q≤1 and both expectation transports are produced internally.",
+      "relation": "explicit-elaboration",
+      "evidence": "Target:54–65 consumes actual_mixture_laws hn hκ and component_probabilities with 0<n derived from hn. GaussianMixtureLaws.actual_mixture_laws proves measurability of the literal γ via gaussian_law_eq_density/measurable_withDensity and actual bind probability via isProbabilityMeasure_bind. DeterminantComponents.component_probabilities proves both masses=1/2 and doubled-restriction probabilities by reflection/Haar symmetry. Target:66–115 proves bounds, measurable q, q≤1<top, measurable/bounded f, L1 and htrans. No producer conclusion is moved into the target binders."
+    },
+    "conclusion": {
+      "original": "The scoped source identity is H(λ)=½(E_{P+1}h_λ−E_{P−1}h_λ), with H the signed density-component average. The supplied faithful restatement explicitly adds both actual-mixture L1 claims, both prior L1 claims and both component expectation transports omitted in the source prose.",
+      "reconstructed": "The seven conjuncts are exactly Integrable t under each actual ν±.bind γ, Integrable f under each ν±, the two real Bochner transport identities and E₊t−E₋t=2∫det(O)f(O)dμ. This is the same half-mass identity after identifying the existing Gaussian representation of H and rearranging.",
+      "relation": "explicit-elaboration",
+      "evidence": "Pinned HTML A2.SS2.SSS2.p3/Ex56 and Ex57; packet source.original_text and reconstruction; target:34–40 and141–147. htrans:105–115 applies literal Measure.lintegral_bind then integral_toReal; hsplit:126–140 yields positive restriction minus negative restriction; hipos/hineg multiply each restriction by 2. The final ring step preserves positive-minus-negative orientation."
+    },
+    "scopes": {
+      "original": "The selected source boundary is the radial-test/half-mass expectation identity immediately before Eq20. Source H uses densities; Eq20 is a TV inequality, Eq21 is a quantitative transform, and Eq6 is a product target statement outside this edge.",
+      "reconstructed": "This edge proves actual single-block mixture L1 and real expectation transport plus signed factor2 identity. The existing density/H correspondence is representation evidence; the proof does not call actual_gaussian_transform or prove its Eq21 evaluation, TV, products, oracle results or main lower bounds.",
+      "relation": "equivalent",
+      "evidence": "The whole target module imports GaussianMixtureLaws and Bochner.Set, and calls only the actual mixture/prior/Haar producers and indicated integration/sign APIs. Its docstring:6–12 explicitly separates density identification, Eq21, TV and main claims. Current lesson assumptions[3], boundary, source attribution/scope and step5, and publication binding.boundary/assumption_deltas preserve the same separation. GaussianExpectation.actual_gaussian_transform supplies the separate density representation; its first conjunct has the needed equality, while its quantitative last conjunct is not used by htrans."
+    },
+    "constant_dependencies": {
+      "original": "The normalization constant is exactly 2, because each determinant component has full-Haar mass 1/2; it is independent of n, κ and λ. No unspecified estimate or asymptotic constant occurs in the identity.",
+      "reconstructed": "Literal ENNReal scalar 2 defines both priors, converts to real scalar 2 under integral_smul_measure and yields the exact positive-minus-negative factor2 gap. Bounds 0≤t≤1, 0≤q≤1 and ||f||≤1 depend only on ℓ≥0 and probability normalization.",
+      "relation": "equivalent",
+      "evidence": "Pinned HTML S2.p2 and A2.SS2.SSS2.p3/Ex57; DeterminantComponents.component_probabilities proves half masses and normalization; target hqle/hqfin:79–91 and hfb:99–104; hsplit/hipos/hineg:122–140 and final algebra:141–147. Pinned Bochner.Basic integral_smul_measure:1014ff uses c.toReal; for c=2 that is exactly real 2."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "objects",
+      "severity": "informational",
+      "description": "The source defines H by integrating the component density; this target displays its actual Gaussian-expectation representation. The current lesson and publication attribution make the representation change visible. The separate actual density transport justifies fidelity, without becoming an analytic hypothesis of the bind-interchange proof.",
+      "evidence": "Pinned HTML A2.SS2.p2 and A2.SS2.SSS2.p3/Ex56; GaussianLawDensity.gaussian_law_eq_density; GaussianExpectation.actual_gaussian_transform first conjunct; target htrans:105–115; current lesson assumptions[3], boundary and source attribution, and publication source.attribution/bindings[0].boundary."
+    },
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "description": "The implementation expands the source-implicit probability/measurability/L1 and interchange bookkeeping, proving it for the actual objects rather than requesting it as public premises. This is an explicit elaboration, not a source repair.",
+      "evidence": "Target binders:22–23, laws/priors:54–65, bounded radial test:66–76, q/f:77–104, htrans:105–115; pinned GiryMonad measurable_lintegral:116ff, bind definition:248ff and lintegral_bind:285ff; pinned Bochner.Basic integral_eq_lintegral_of_nonneg_ae:483ff and integral_toReal:709ff."
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "The formal edge stops at the identity before Eq20 and includes the boundary tilt ℓ=0. It does not assert the TV inequality or reuse the separate Eq21 transform as its proof. The five current formula steps correctly describe this bounded proof.",
+      "evidence": "Pinned HTML A2.SS2.SSS2.p3 starts with λ≥0, displays Ex57 and then separately Eq20, later choosing λ>0; current target whole module:1–148; lesson steps[0]–[4], reader_note and boundary; publication bindings[0].boundary."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/mixture_expectation_current_source_review",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "354b560e1afb7efcc2f746f9cbebbe4550bb6953646dc6ddd65dbd2c03a74c6b",
+    "review_run_sha256": "7684d2e209cc0b77778e4fc950503d4dde26187bee30cc78b5a9ef3dd026518a",
+    "evidence": "Fresh independent anti-anchored source review, distinct from formalizer /root and decoder anonymous_measure_expectation_decoder. First read only the fresh reviewer packet; no historical audit, prior verdict, candidate/preproof/topology review was read. Then read the whole CURRENT 148-line MixtureExpectation module, whole current declaration lesson and publication metadata; reread actual pinned HTML S2.p2, S3.SS1.p1–p3 (including the single-block definition before Eq6), A2.SS2.p2 and A2.SS2.SSS2.p3 (radial test, density H, half split and Eq20). Inspected whole actual GaussianMixtureLaws, DeterminantComponents, GaussianLawDensity and GaussianExpectation modules, exact precision definition, canonical Haar definition, pinned Mathlib Gaussian constructor, Giry measurable_lintegral/bind/lintegral_bind and Bochner nonnegative/toReal/indicator/scaling APIs, plus shared Gaussian precision-density positive-definiteness/inverse construction. The packet compact-sorted SHA256 matches its declared packet_sha256; the whole current target module and all five current lesson steps match the packet context. Independently checked all five formula steps: (1) exact laws and priors internal; (2) continuous 0<t≤1 supplies absolute L1, including ℓ=0; (3) measurable ENNReal q≤1<top and f=q.toReal supply actual prior L1; (4) lintegral_bind and finite real conversions give each actual Bochner transport; (5) exact orthogonal determinant dichotomy, measurable sign events, integrable indicator subtraction and doubled restrictions give positive-minus-negative factor2. Density-defined source H is represented by the separate Gaussian density/expectation interface; the actual bind transport is not premised on that H interface or Eq21. Actual-mixture measurability does legitimately use the lower law-density producer internally. No extra Lean, root or site checks run; compilation is not used as source-fidelity evidence. No blocking delta or source repair is needed. Current input byte SHA256: {\".astis/gaussian-complexity/2610.20492v1.html\":\"6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915\",\".lake/packages/mathlib/Mathlib/MeasureTheory/Integral/Bochner/Basic.lean\":\"f81a06eab17faccbc4b671a93e7af73332f5fd3946f7690e7c2a3cfee77d28c8\",\".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/GiryMonad.lean\":\"46aafd3d73deb6b50925501da46d66f9466f52b0f9c40cd2637b47160ab0857c\",\"AutoSamplingTheory/ExampleCases/GaussianComplexity/DeterminantComponents.lean\":\"7074629333ba7406c8fc7d94e5fe6b7f51b5435d8bd12e2b4b6b81542b25274f\",\"AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianExpectation.lean\":\"aa09454432abd42a84b6c8433cf2664cc6e6f26a179b648dcb64cc31a6da57db\",\"AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianLawDensity.lean\":\"b0a1e8cde61774503771ca247e940a967cb540ee73feb1190d32cc246414ec3a\",\"AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianMixtureLaws.lean\":\"3eb7c04a827651c87628ba54aeb3741cacdf1b7a1b9a7c5170bd344819c7417c\",\"AutoSamplingTheory/ExampleCases/GaussianComplexity/MixtureExpectation.lean\":\"4366a00af2b6033bf2170eb27eb4f22c2afaa2847cc6231c4f9a9fa1e1962dec\",\"website/content/declaration_lessons/gaussian-complexity-mixture-expectation.json\":\"bd7ebf694d6bedf681e9dcf70f052ca7efb42a7e5aafdc1aabf963b30d69ee24\",\"website/content/publications/gaussian-complexity-mixture-expectation.json\":\"500202bf397ff49554a52dc83bc08146a80254270663b7eb73ff59872e848b4c\"}",
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/mixture-expectation-semantic-evidence/0.review-result.json"
+  },
+  "repairs": [],
+  "publication_context": {
+    "file": "4366a00af2b6033bf2170eb27eb4f22c2afaa2847cc6231c4f9a9fa1e1962dec",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws\nimport Mathlib.MeasureTheory.Integral.Bochner.Set\n/-!\n# Actual mixture test expectations and their signed gap\n\nZhou--Suzuki arXiv:2610.20492v1 Appendix B.2.2 radial test and half-mass\nexpectation identity before Eq20, with Section3.1 actual single-block mixtures.\nThe source omits measure/test interchange bookkeeping; it is supplied here.\nBoth actual Bochner transports and the exact factor2 gap are proved internally.\nThe source H is represented by the existing actual Gaussian expectation; its\ndensity identification and Eq21 value are separate existing results. No TV,\nproduct, oracle or main lower bound is asserted here.\n-/\n\nopen Matrix MeasureTheory ProbabilityTheory\nopen scoped ENNReal\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureExpectation\ntheorem actual_mixture_expectation_gap {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ) :\n    let μ := orthogonalHaar n\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n    let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n    let f : Matrix.orthogonalGroup (Fin n) ℝ → ℝ := fun O => ∫ x, t x ∂γ O\n    Integrable t (νpos.bind γ) ∧ Integrable t (νneg.bind γ) ∧\n      Integrable f νpos ∧ Integrable f νneg ∧\n      (∫ x, t x ∂νpos.bind γ) = (∫ O, f O ∂νpos) ∧\n      (∫ x, t x ∂νneg.bind γ) = (∫ O, f O ∂νneg) ∧\n      ((∫ x, t x ∂νpos.bind γ) - (∫ x, t x ∂νneg.bind γ)) =\n        2 * (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n          (O : Matrix (Fin n) (Fin n) ℝ).det * f O ∂μ) := by\n  classical\n  dsimp only\n  let G := Matrix.orthogonalGroup (Fin n) ℝ\n  let E := EuclideanSpace ℝ (Fin n)\n  let μ := orthogonalHaar n\n  let Cpos : Set G := {O | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n  let Cneg : Set G := {O | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n  let νpos := (2 : ℝ≥0∞) • μ.restrict Cpos\n  let νneg := (2 : ℝ≥0∞) • μ.restrict Cneg\n  let γ : G → Measure E := fun O => multivariateGaussian (0 : E)\n    (singleBlockPrecision κ O)⁻¹\n  let t : E → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n  let f : G → ℝ := fun O => ∫ x, t x ∂γ O\n  have hlaws := actual_mixture_laws hn hκ\n  have hγ : Measurable γ := hlaws.1\n  let : IsProbabilityMeasure (νpos.bind γ) := hlaws.2.1\n  let : IsProbabilityMeasure (νneg.bind γ) := hlaws.2.2.1\n  have hpriors := component_probabilities (lt_of_lt_of_le (by decide : 0 < 3) hn)\n  let : IsProbabilityMeasure νpos := hpriors.2.2.1\n  let : IsProbabilityMeasure νneg := hpriors.2.2.2\n  let : IsProbabilityMeasure μ := (orthogonalHaar_spec n).1\n  have hγprob (O : G) : IsProbabilityMeasure (γ O) := by\n    dsimp [γ]\n    infer_instance\n  have htc : Continuous t := by dsimp [t, E]; fun_prop\n  have htnn (x : E) : 0 ≤ t x := (Real.exp_pos _).le\n  have htb (x : E) : ‖t x‖ ≤ 1 := by\n    dsimp [t]\n    rw [abs_of_pos (Real.exp_pos _)]\n    apply Real.exp_le_one_iff.mpr\n    exact mul_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr hℓ) (sq_nonneg _)\n  have htL (ρ : Measure E) [IsProbabilityMeasure ρ] : Integrable t ρ :=\n    (integrable_const (1 : ℝ)).mono' htc.aestronglyMeasurable\n      (Filter.Eventually.of_forall htb)\n  let q : G → ℝ≥0∞ := fun O => ∫⁻ x, ENNReal.ofReal (t x) ∂γ O\n  have hqm : Measurable q :=\n    (Measure.measurable_lintegral (ENNReal.measurable_ofReal.comp htc.measurable)).comp hγ\n  have hqle (O : G) : q O ≤ 1 := by\n    let := hγprob O\n    calc\n      q O ≤ ∫⁻ x, (1 : ℝ≥0∞) ∂γ O := by\n        apply lintegral_mono\n        intro x\n        have htupper : t x ≤ 1 :=\n          (le_abs_self (t x)).trans (by simpa only [Real.norm_eq_abs] using htb x)\n        simpa using ENNReal.ofReal_le_ofReal htupper\n      _ = 1 := by simp\n  have hqfin (O : G) : q O < ⊤ := (hqle O).trans_lt (by simp)\n  have hfq (O : G) : f O = (q O).toReal :=\n    integral_eq_lintegral_of_nonneg_ae (Filter.Eventually.of_forall htnn)\n      htc.aestronglyMeasurable\n  have hfm : Measurable f := by\n    have heq : f = fun O => (q O).toReal := funext hfq\n    rw [heq]\n    exact ENNReal.measurable_toReal.comp hqm\n  have hfb (O : G) : ‖f O‖ ≤ 1 := by\n    let := hγprob O\n    simpa only [f, probReal_univ, mul_one] using\n      (norm_integral_le_of_norm_le_const (Filter.Eventually.of_forall htb) :\n        ‖∫ x, t x ∂γ O‖ ≤ (1 : ℝ) * (γ O).real Set.univ)\n  have hfL (ρ : Measure G) [IsProbabilityMeasure ρ] : Integrable f ρ :=\n    (integrable_const (1 : ℝ)).mono' hfm.aestronglyMeasurable\n      (Filter.Eventually.of_forall hfb)\n  have htrans (ν : Measure G) [IsProbabilityMeasure ν] :\n      (∫ x, t x ∂ν.bind γ) = ∫ O, f O ∂ν := by\n    have htm : AEMeasurable (fun x => ENNReal.ofReal (t x)) (ν.bind γ) :=\n      (ENNReal.measurable_ofReal.comp htc.measurable).aemeasurable\n    rw [integral_eq_lintegral_of_nonneg_ae (Filter.Eventually.of_forall htnn)\n      htc.aestronglyMeasurable, Measure.lintegral_bind hγ.aemeasurable htm]\n    have heq : f = fun O => (q O).toReal := funext hfq\n    rw [heq]\n    exact (integral_toReal hqm.aemeasurable (Filter.Eventually.of_forall hqfin)).symm\n  have hcont : Continuous (fun O : G => (O : Matrix (Fin n) (Fin n) ℝ).det) := by\n    fun_prop\n  have hpos : MeasurableSet Cpos := (isClosed_eq hcont continuous_const).measurableSet\n  have hneg : MeasurableSet Cneg := (isClosed_eq hcont continuous_const).measurableSet\n  have hsign (O : G) : (O : Matrix (Fin n) (Fin n) ℝ).det = 1 ∨\n      (O : Matrix (Fin n) (Fin n) ℝ).det = -1 := by\n    have h := congrArg Matrix.det\n      ((Matrix.mem_orthogonalGroup_iff (Fin n) ℝ).mp O.property)\n    rw [Matrix.det_mul, Matrix.det_transpose, Matrix.det_one] at h\n    exact mul_self_eq_one_iff.mp h\n  have hsplit : (∫ O : G, (O : Matrix (Fin n) (Fin n) ℝ).det * f O ∂μ) =\n      (∫ O in Cpos, f O ∂μ) - (∫ O in Cneg, f O ∂μ) := by\n    calc\n      _ = ∫ O, Cpos.indicator f O - Cneg.indicator f O ∂μ := by\n        apply integral_congr_ae\n        exact Filter.Eventually.of_forall fun O => by\n          rcases hsign O with h | h\n          · have hp : O ∈ Cpos := h\n            have hm : O ∉ Cneg := by change (O : Matrix (Fin n) (Fin n) ℝ).det ≠ -1; rw [h]; norm_num\n            simp only [Set.indicator_of_mem hp, Set.indicator_of_notMem hm, h, one_mul, sub_zero]\n          · have hm : O ∈ Cneg := h\n            have hp : O ∉ Cpos := by change (O : Matrix (Fin n) (Fin n) ℝ).det ≠ 1; rw [h]; norm_num\n            simp only [Set.indicator_of_mem hm, Set.indicator_of_notMem hp, h, neg_one_mul, zero_sub]\n      _ = _ := by\n        rw [integral_sub ((hfL μ).indicator hpos) ((hfL μ).indicator hneg),\n          integral_indicator hpos, integral_indicator hneg]\n  have hipos : (∫ O, f O ∂νpos) = 2 * (∫ O in Cpos, f O ∂μ) := by\n    simp [νpos, integral_smul_measure]\n  have hineg : (∫ O, f O ∂νneg) = 2 * (∫ O in Cneg, f O ∂μ) := by\n    simp [νneg, integral_smul_measure]\n  refine ⟨htL _, htL _, hfL _, hfL _, htrans _, htrans _, ?_⟩\n  change (∫ x, t x ∂νpos.bind γ) - (∫ x, t x ∂νneg.bind γ) =\n    2 * (∫ O : G, (O : Matrix (Fin n) (Fin n) ℝ).det * f O ∂μ)\n  rw [htrans νpos, htrans νneg, hipos, hineg, hsplit]\n  ring\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureExpectation\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p3",
+      "edition": "arXiv:2610.20492v1",
+      "anchor": "arXiv:2610.20492v1 AppendixB2.2 radial test/H half-mass expectation identity immediately before Eq20, with Section3.1 single-block mixture before Eq6 and Section2 conditioned full Haar.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. The source half-mass identity is made explicit on the actual mixture measures; omitted integration bookkeeping is supplied background. Source H uses the existing component density representation; this statement uses its actual Gaussian expectation representation."
+    },
+    "statement": "For \\(n\\ge3\\), \\(\\kappa\\ge4\\) and \\(\\ell\\ge0\\), the radial test is integrable under both actual Gaussian mixtures. Their expectations are the corresponding component averages, and their difference is twice the signed Haar average. Here \\(A_O=\\frac{\\kappa+1}{2}I_n-\\frac{\\kappa-1}{4}(O+O^\\top)\\), \\(\\mu\\) is full normalized Haar, \\(\\nu_\\pm=2\\mu|_{\\{\\det O=\\pm1\\}}\\), \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\), \\(P_\\pm=\\nu_\\pm\\mathbin{\\mathrm{bind}}\\gamma\\), \\(t(x)=e^{-\\ell\\|x\\|^2}\\), and \\(f(O)=\\int t\\,d\\gamma_O\\). The conclusions include absolute L1 of \\(t\\) under both \\(P_\\pm\\), absolute L1 of \\(f\\) under both \\(\\nu_\\pm\\), both real identities \\(\\mathbb E_{P_\\pm}t=\\int f\\,d\\nu_\\pm\\), and \\(\\mathbb E_{P_+}t-\\mathbb E_{P_-}t=2\\int_{O(n)}\\det(O)\\,f(O)\\,d\\mu(O).\\)",
+    "formulae": [
+      {
+        "label": "Actual mixture expectation difference",
+        "tex": "\\mathbb E_{P_+}t-\\mathbb E_{P_-}t=2\\int_{O(n)}\\det(O)\\,f(O)\\,d\\mu(O)."
+      }
+    ],
+    "assumptions": [
+      "Exactly \\(n\\ge3\\), \\(\\kappa\\ge4\\), \\(\\ell\\ge0\\), including \\(\\ell=0\\). No integrability or measurable-family premise is supplied.",
+      "\\(\\mu\\) is normalized Borel Haar on full real \\(O(n)\\); \\(\\nu_\\pm=2\\mu|_{\\{\\det O=\\pm1\\}}\\). Both are the actual prior measures.",
+      "\\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\), \\(P_\\pm=\\nu_\\pm\\mathbin{\\mathrm{bind}}\\gamma\\), and all expectations are real Bochner integrals on actual Borel Euclidean space.",
+      "The source defines \\(H\\) with component densities. Its actual Gaussian representation is supplied by the existing law-density/expectation interfaces. This packet proves the actual mixture expectation identity, while the quantitative Eq21 evaluation and TV inequality remain separate."
+    ],
+    "obligations": [
+      {
+        "id": "actual-mixture-expectation-gap",
+        "label": "Actual radial-test L1, real expectation transports and exact signed half-mass gap"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureExpectation.actual_mixture_expectation_gap",
+      "kind": "theorem",
+      "title": "Expectations of the Gaussian mixtures",
+      "reading_layout": "progressive",
+      "reader_note": "The TV inequality and the main query lower bounds remain open.",
+      "statement": "For \\(n\\ge3\\), \\(\\kappa\\ge4\\) and \\(\\ell\\ge0\\), the radial test is integrable under both actual Gaussian mixtures. Their expectations are the corresponding component averages, and their difference is twice the signed Haar average.",
+      "formula": "\\mathbb E_{P_+}t-\\mathbb E_{P_-}t=2\\int_{O(n)}\\det(O)\\,f(O)\\,d\\mu(O).",
+      "assumptions": [
+        "Exactly \\(n\\ge3\\), \\(\\kappa\\ge4\\), \\(\\ell\\ge0\\), including \\(\\ell=0\\). No integrability or measurable-family premise is supplied.",
+        "\\(\\mu\\) is normalized Borel Haar on full real \\(O(n)\\); \\(\\nu_\\pm=2\\mu|_{\\{\\det O=\\pm1\\}}\\). Both are the actual prior measures.",
+        "\\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\), \\(P_\\pm=\\nu_\\pm\\mathbin{\\mathrm{bind}}\\gamma\\), and all expectations are real Bochner integrals on actual Borel Euclidean space.",
+        "The source defines \\(H\\) with component densities. Its actual Gaussian representation is supplied by the existing law-density/expectation interfaces. This packet proves the actual mixture expectation identity, while the quantitative Eq21 evaluation and TV inequality remain separate."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(A_O\\)",
+          "text": "Literal source precision.",
+          "formula": "A_O=\\frac{\\kappa+1}{2}I_n-\\frac{\\kappa-1}{4}(O+O^\\top)"
+        },
+        {
+          "symbol": "\\(t\\) and \\(f\\)",
+          "text": "Radial test and actual component Gaussian expectation.",
+          "formula": "t(x)=e^{-\\ell\\|x\\|^2},\\qquad f(O)=\\int t(x)\\,d\\gamma_O(x)"
+        },
+        {
+          "symbol": "\\(P_\\pm\\)",
+          "text": "Actual mixtures and their real expectation transports.",
+          "formula": "P_\\pm=\\int\\gamma_O\\,d\\nu_\\pm(O),\\qquad\\mathbb E_{P_\\pm}t=\\int f(O)\\,d\\nu_\\pm(O)"
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use the actual probability laws",
+          "text": "The identical mixture-law theorem supplies the measurable actual Gaussian family and both actual mixture probabilities. The identical sign-prior theorem supplies both prior probabilities.",
+          "formula": "\\gamma_O=\\mathcal N(0,A_O^{-1}),\\quad P_\\pm=\\nu_\\pm\\mathbin{\\mathrm{bind}}\\gamma\\in\\mathcal P(\\mathbb R^n)",
+          "lean": "actual_mixture_laws hn hκ gives hγ and exact bind probability instances; component_probabilities internally uses n>0 derived from hn. No law or producer is a public premise."
+        },
+        {
+          "title": "Bound the radial test",
+          "text": "Nonnegative tilt makes the continuous test lie between zero and one. Every actual probability law therefore integrates it absolutely, including both mixtures and every component Gaussian.",
+          "formula": "0<t(x)=e^{-\\ell\\|x\\|^2}\\le1,\\qquad\\int|t|\\,dP_\\pm\\le1",
+          "lean": "htc, htnn and htb are internal; htL uses domination by integrable constant1. The same argument includes ell=0."
+        },
+        {
+          "title": "Make the component expectation measurable and integrable",
+          "text": "The nonnegative component integral is measurable as a function of its actual measure. Its bound by one makes it finite; taking its real value gives the actual Bochner component expectation, which is bounded by one under either prior.",
+          "formula": "q(O)=\\int t\\,d\\gamma_O\\in[0,1],\\qquad f(O)=q(O)\\ \\text{as a real value}",
+          "lean": "hqm composes Measure.measurable_lintegral with hγ; hqle/hqfin prove finite ENNReal integrals; hfq uses integral_eq_lintegral_of_nonneg_ae. hfm/hfb/hfL produce real measurability, boundedness and actual prior L1 internally."
+        },
+        {
+          "title": "Transport through each actual mixture",
+          "text": "Apply the nonnegative integral formula for the actual bind. The already proved finiteness permits the conversion back to real Bochner integrals on both sides.",
+          "formula": "\\int t\\,dP_\\pm=\\int_{O(n)}\\left(\\int t\\,d\\gamma_O\\right)d\\nu_\\pm(O)",
+          "lean": "htrans calls Measure.lintegral_bind with the explicit measurable nonnegative test and integral_toReal with hqfin. No unproved Bochner bind-interchange theorem or caller integrability assumption is used."
+        },
+        {
+          "title": "Split the determinant signs",
+          "text": "An orthogonal matrix has determinant plus or minus one. Its signed expectation is the positive restricted integral minus the negative restricted integral. Each normalized prior multiplies its restriction by two, giving the displayed gap.",
+          "formula": "\\begin{aligned}\\int\\det(O)f(O)\\,d\\mu&=\\int_{C_+}f\\,d\\mu-\\int_{C_-}f\\,d\\mu,\\\\\\mathbb E_{P_+}t-\\mathbb E_{P_-}t&=2\\int\\det(O)f(O)\\,d\\mu.\\end{aligned}",
+          "lean": "hpos/hneg prove Borel sign events; hsign derives the determinant dichotomy from actual orthogonality. hsplit integrates the exact difference of indicators using hfL, and hipos/hineg use literal integral_smul_measure. Ring algebra closes factor2 and its sign; TV is not concluded."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws.actual_mixture_laws",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents.component_probabilities",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec"
+      ],
+      "mathlib_dependencies": [
+        "Measure.measurable_lintegral",
+        "Measure.lintegral_bind",
+        "integral_eq_lintegral_of_nonneg_ae",
+        "integral_toReal",
+        "norm_integral_le_of_norm_le_const",
+        "integral_indicator",
+        "integral_sub",
+        "integral_smul_measure"
+      ],
+      "lean_statement": "Exact sealed actual-law target: both mixture L1, both prior L1, both actual real expectation transports and exact2 signed Haar gap; all producer results internal.",
+      "lean_proof": "Actual measurable probability laws, bounded radial test, finite nonnegative bind integration and exact sign-restriction algebra prove the real expectation gap.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p3",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "arXiv:2610.20492v1 AppendixB2.2 radial test/H half-mass expectation identity immediately before Eq20, with Section3.1 single-block mixture before Eq6 and Section2 conditioned full Haar.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. The source half-mass identity is made explicit on the actual mixture measures; omitted integration bookkeeping is supplied background. Source H uses the existing component density representation; this statement uses its actual Gaussian expectation representation.",
+          "label": "Radial test and half-mass expectation split",
+          "scope": "Actual mixture test transport and factor2 identity only; source-omitted bookkeeping is supplied, not attributed as an explicit author proof."
+        },
+        {
+          "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/GiryMonad.lean",
+          "line": 116,
+          "label": "Mathlib: measurable integrals over actual measures",
+          "scope": "measurable_lintegral composes with the already proved actual measurable Gaussian family."
+        },
+        {
+          "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/GiryMonad.lean",
+          "line": 285,
+          "label": "Mathlib: nonnegative integration through actual bind",
+          "scope": "Literal measure bind with proved family measurability; no arbitrary kernel replacement."
+        },
+        {
+          "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Integral/Bochner/Basic.lean",
+          "line": 483,
+          "label": "Mathlib: real integral of a nonnegative test",
+          "scope": "Converts actual Gaussian and mixture real expectations to the corresponding finite nonnegative integral."
+        },
+        {
+          "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Integral/Bochner/Basic.lean",
+          "line": 709,
+          "label": "Mathlib: finite nonnegative integrals back to real values",
+          "scope": "integral_toReal uses the internally proved q(O)<=1 finiteness, not a caller-supplied interchange hypothesis."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityMixtureExpectation"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureExpectation.actual_mixture_expectation_gap",
+      "role": "proof-edge",
+      "supports": [
+        "actual-mixture-expectation-gap"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "AppendixB2.2 explicitly uses n>=3,kappa>=4 and radial ell>=0, then asserts H is half the actual mixture expectation difference. The component density representation is the source convention.",
+        "lean": "Exactly those source parameters and actual mixtures; measurability/probability/L1/transport and partition estimates are internal. H is represented by the actual signed Gaussian expectation, whose density correspondence is an existing separate result."
+      }
+    ]
+  },
+  "publication_binding_sha256": "b7a31fc4b24b0084f64bc459b54ce3430dc0abf690e19b216bbb71563cc622f1",
+  "reconstruction": {
+    "text": "For every integer n ≥ 3, every real κ ≥ 4, and every real ℓ ≥ 0, let G = O(n) be the full real orthogonal group, μ its normalized Haar probability measure, G₊ = {O ∈ G : det O = 1}, and G₋ = {O ∈ G : det O = −1}. Define ν₊ = 2 μ|G₊ and ν₋ = 2 μ|G₋ by literal restriction and scaling of measures on G. For O ∈ G let A(O) = ((κ + 1)/2) Iₙ − ((κ − 1)/4)(O + Oᵀ), and let γ(O) be the canonical centered multivariate Gaussian Borel measure on Euclidean ℝⁿ with covariance A(O)⁻¹. Set t(x) = exp(−ℓ ‖x‖²), f(O) = ∫ℝⁿ t(x) dγ(O)(x), and M₊ = ν₊.bind γ, M₋ = ν₋.bind γ, where bind is the actual mixture join(map γ ν). Then t is absolutely integrable with respect to each of M₊ and M₋, f is absolutely integrable with respect to each of ν₊ and ν₋, and the following three equalities hold:\n∫ℝⁿ t(x) dM₊(x) = ∫G f(O) dν₊(O),\n∫ℝⁿ t(x) dM₋(x) = ∫G f(O) dν₋(O),\n∫ℝⁿ t(x) dM₊(x) − ∫ℝⁿ t(x) dM₋(x) = 2 ∫G det(O) f(O) dμ(O).\nAll displayed real integrals are Bochner integrals. The only caller assumptions are n ≥ 3, κ ≥ 4, and ℓ ≥ 0; family measurability, probability laws, integrability, and the displayed identities are not assumed.",
+    "text_sha256": "482d2e96ce5e9f7034950e7349afbd5ba172ceb1e75b1e8e1a0dbc82323af088",
+    "decoder": "anonymous_measure_expectation_decoder",
+    "source_text_visible": false,
+    "decoder_packet_sha256": "9dad7a9bee53745fff529648ab7bd59aa22a7af5643f1e96c0785e65d5002b32",
+    "decoder_run_sha256": "ee25d89549dff1ec268767c838245aafef632378f9d846312052d054be14ba76",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "lean_statement_sha256": "8daf284bf11743a1a2cf09895e8485af1bc47ec15c3c06882b2bbd7c3a084905",
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/mixture-expectation-semantic-evidence/0.decoder-result.json"
+  }
+}

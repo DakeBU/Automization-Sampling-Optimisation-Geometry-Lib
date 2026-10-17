@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-8daf284bf11743a1",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ),\n    let μ := (Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))⁻¹\n    let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n    let f : Matrix.orthogonalGroup (Fin n) ℝ → ℝ := fun O => ∫ x, t x ∂γ O\n    Integrable t (νpos.bind γ) ∧ Integrable t (νneg.bind γ) ∧\n      Integrable f νpos ∧ Integrable f νneg ∧\n      (∫ x, t x ∂νpos.bind γ) = (∫ O, f O ∂νpos) ∧\n      (∫ x, t x ∂νneg.bind γ) = (∫ O, f O ∂νneg) ∧\n      ((∫ x, t x ∂νpos.bind γ) - (∫ x, t x ∂νneg.bind γ)) =\n        2 * (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n          (O : Matrix (Fin n) (Fin n) ℝ).det * f O ∂μ)",
+    "statement_sha256": "8daf284bf11743a1a2cf09895e8485af1bc47ec15c3c06882b2bbd7c3a084905",
+    "compiled": true,
+    "approved_definition_context": [
+      "The Borel probability on the full real orthogonal matrix group is normalized Haar on the whole compact group, retaining both determinant signs.",
+      "Restriction, scaling and bind are literal measure operations. Measure.bind nu gamma is Measure.join (Measure.map gamma nu), the actual mixture. Actual family measurability and probability laws must be produced internally, never assumed.",
+      "The existing canonical centered multivariate Gaussian uses the actual displayed inverse precision as covariance on genuine Borel Euclidean space. No replacement characterized kernel or density-only proxy is supplied.",
+      "All displayed integrals of real functions are Bochner integrals. Integrable means absolute L1; the source range includes a zero radial tilt. Both mixture-test and prior-component integrability and both real transport identities are conclusions. No measurable-family, probability, L1 or desired equality producer is a caller premise."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "9dad7a9bee53745fff529648ab7bd59aa22a7af5643f1e96c0785e65d5002b32"
+}

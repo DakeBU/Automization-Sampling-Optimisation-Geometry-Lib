@@ -482,3 +482,32 @@ The existing model/cost contracts and both lower-bound routes are preserved.
 The packet stays local PROVED_LOCAL: exact-commit aggregate, reader/graph
 acceptance and independent admission remain separate from integration,
 public upload, merge and purification.
+
+
+## Kernel norm-axis validation record
+
+Exact immutable local proof commit `7c1f88e4a05b3d2757c417c7096d557400fa1e36` passed
+`python tools/astis.py check` with actual terminal exit0: root library9224jobs,
+root Tests9528jobs, ATLAS36469named declarations in26books and forbidden-closure
+scan. The new module is covered separately by focused2602-job tests and a
+successful expanded-type/actual compiler-reference check; unchanged root
+imports are not represented as direct coverage of this new declaration.
+
+Contributor, diff-aware publication, semantic and Frontier gates passed.
+The two private providers and six-step lesson have fresh accepted independent
+whole-module source/exposition review after anonymous decoding. Frozen-input
+site build and full check passed:1012modules,5083declarations and
+77reviewed teaching declarations. Graph coverage passed with no omitted
+required connections. Actual browser inspection found seven rendered formulas,
+zero MathJax errors, zero initially open Lean disclosures and no horizontal
+overflow, with all six mathematical proof steps. The focused branch has five
+nodes, four edges and three immediate relations. Module ownership remains
+solid, source/fidelity overlays dashed and the source-present partial badge
+retained. Compiler-reference evidence separately establishes the actual calls
+to the identical fixed-Q theorem and canonical Mathlib geometry.
+
+This README-only validation note changes no frozen mathematical/graph input.
+The result remains local PROVED_LOCAL. Independent commit-bound admission,
+public upload, integration, merge and purification remain separate. Gaussian
+law/density identification, original-mixture spatial Fubini/H(lambda), both
+main lower bounds and the overall Goal remain open.

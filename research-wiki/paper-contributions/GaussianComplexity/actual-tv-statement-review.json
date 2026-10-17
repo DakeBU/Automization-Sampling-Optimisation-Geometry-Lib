@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "review_id": "actual-tv-statement-independent-review-v1",
+  "inputs": {
+    "source": {
+      "path": ".astis/gaussian-complexity/2610.20492v1.html",
+      "sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "matches_seal": true
+    },
+    "seal": {
+      "path": ".astis/gaussian-complexity/actual-tv/statement-seal.json",
+      "sha256": "0f07eaf0e3f3b5dbeb6b5afb215aee0f4a1f90a9b2485317bb1d3490de2df3f0",
+      "seal_id": "GC-actual-radial-test-TV-v1"
+    },
+    "signature": {
+      "encoding": "UTF-8 exact proposed_signature, no newline normalization",
+      "sha256": "ec854c16ab658d770b07759ec57c701d599fe3ae87da0640f34de634cf241816",
+      "matches_seal": true
+    }
+  },
+  "proposed_signature": "theorem actual_radial_test_tv {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ) :\n    let μ := orthogonalHaar n\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n    let Ppos := νpos.bind γ\n    let Pneg := νneg.bind γ\n    let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n    2 * |∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x) ∂μ| ≤\n      sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin n)),\n        MeasurableSet B ∧ z = |Ppos.real B - Pneg.real B|}",
+  "verdict": "PASS_STATEMENT_AS_SEALED",
+  "blocking_issues": [],
+  "scope": "Independent source-only statement review; mathematical meanings supplied by seal audited against fixed original. No validation of existing compiled declarations, Lean typing, API signatures or implementation correctness is claimed.",
+  "statement_audit": [
+    {
+      "item": "n and hn",
+      "verdict": "PASS",
+      "reason": "Natural block dimension n>=3 exactly source B.2 context. No d or query-budget binder belongs to this local claim."
+    },
+    {
+      "item": "kappa and h_kappa",
+      "verdict": "PASS",
+      "reason": "Real kappa>=4 matches source. Guarantees SPD precision; proof is an internal producer, not a caller premise."
+    },
+    {
+      "item": "ell and h_ell",
+      "verdict": "PASS",
+      "reason": "Real ell>=0 is source lambda>=0, includes zero. Positive special lambda is chosen only later."
+    },
+    {
+      "item": "full Haar mu",
+      "verdict": "PASS_AS_SEALED",
+      "reason": "Source full O(n), not SO(n), agrees with literal normalized canonical meaning. Implementation not inspected."
+    },
+    {
+      "item": "nu_pos / nu_neg",
+      "verdict": "PASS",
+      "reason": "Exactly 2 times restricted normalized full Haar equals conditioning because measurable sign components have mass 1/2. Normalization must be established internally."
+    },
+    {
+      "item": "gamma",
+      "verdict": "PASS_AS_SEALED",
+      "reason": "Actual Gaussian zero mean and inverse precision matches source, with no fallback law. SPD, measurability and probability obligations remain internal."
+    },
+    {
+      "item": "Ppos / Pneg",
+      "verdict": "PASS",
+      "reason": "Actual bind of the fixed conditional Haar laws with Gaussian family is precisely the single-block P_b mixture. No arbitrary laws or characterization choices."
+    },
+    {
+      "item": "t",
+      "verdict": "PASS",
+      "reason": "Literal exp(-ell*norm(x)^2) is the source radial test; continuous/measurable and in (0,1] for ell>=0."
+    },
+    {
+      "item": "p",
+      "verdict": "PASS_AS_SEALED",
+      "reason": "sqrt(det A)/(2*pi)^(n/2) times exp(-x^T A x/2) is the normalized precision density on Euclidean volume. The covariance inverse and coordinate conversion are mathematically correct. Actual law=density identity must be internal, not postulated."
+    },
+    {
+      "item": "H inner/outer integral",
+      "verdict": "PASS",
+      "reason": "Euclidean default volume for inner integral and full Haar outer integral reproduce density-defined H. Integrability of both genuine Bochner integrals must be established; totalized undefined integrals cannot stand in for H."
+    },
+    {
+      "item": "event sSup",
+      "verdict": "PASS",
+      "reason": "Real sSup over all measurable Euclidean Borel events gives exactly factor-one TV. Empty event ensures nonempty; probability laws bound discrepancies by 1. All must be proved internally. There is no missing factor 1/2 on event TV and no signed-variation mass."
+    },
+    {
+      "item": "factor and direction",
+      "verdict": "PASS",
+      "reason": "H=one half of the expectation difference; bounded-test inequality yields 2*abs(H)<=event-TV, exactly Eq20."
+    },
+    {
+      "item": "excess assumptions / hidden choices",
+      "verdict": "PASS",
+      "reason": "No excess caller premises; neither special lambda, n odd, O11, Poisson identities, query budget nor product assumptions enter this claim."
+    }
+  ],
+  "source_gaps": [
+    {
+      "id": "GAP_GAUSSIAN",
+      "role": "SOURCE_GAP",
+      "claim": "Identify actual multivariateGaussian with precision density sqrt(det A)/(2*pi)^(n/2)*exp(-x^T A x/2) on Euclidean volume; identify invertible positive precision with valid covariance.",
+      "source_status": "Standard Gaussian background implicit in p_O designation and subsequent Gaussian formula; not proved in these source regions.",
+      "required_internally": true,
+      "caller_assumption_allowed": false
+    },
+    {
+      "id": "GAP_KERNEL",
+      "role": "SOURCE_GAP",
+      "claim": "The family O->N(0,A_O^-1) is a measurable probability kernel; actual bind is a probability measure.",
+      "source_status": "Mixture notation presupposes these conditions; source does not expand them.",
+      "required_internally": true,
+      "caller_assumption_allowed": false
+    },
+    {
+      "id": "GAP_ANALYTIC",
+      "role": "SOURCE_GAP",
+      "claim": "h and density product and determinant-weighted outer integrand are measurable and integrable; real Bochner integrals are genuine finite expectations.",
+      "source_status": "Bounded h and actual probability Gaussian laws justify required integrability; bookkeeping absent from Eq20 paragraph.",
+      "required_internally": true,
+      "caller_assumption_allowed": false
+    },
+    {
+      "id": "GAP_TRANSPORT",
+      "role": "SOURCE_GAP",
+      "claim": "Transport int h*p_O dx=int h dgamma(O), integrate through actual bind and restricted/scaled full-Haar components, and split signed det integral.",
+      "source_status": "Compressed into the sentence beginning Since the two determinant components; no numerical H evaluation is needed.",
+      "required_internally": true,
+      "caller_assumption_allowed": false
+    },
+    {
+      "id": "GAP_SUPREMUM",
+      "role": "SOURCE_GAP",
+      "claim": "Measurable event discrepancy set is nonempty (empty event gives 0), bounded above by 1 since both mixtures are probabilities; Measure.real agrees with finite probability values.",
+      "source_status": "Implicit in real-valued probability TV. Needed to avoid Lean conditional-sSup vacuity.",
+      "required_internally": true,
+      "caller_assumption_allowed": false
+    },
+    {
+      "id": "GAP_BOUNDED_TEST",
+      "role": "SOURCE_GAP",
+      "claim": "Supply or consume a valid background proof of Section2 bounded-test inequality for event-supremum TV.",
+      "source_status": "Source states the fact in Section2 without a proof here. Layer-cake is background completion, not an additional source theorem or assumption.",
+      "required_internally": true,
+      "caller_assumption_allowed": false
+    }
+  ],
+  "or_routes": {
+    "present_in_source": false,
+    "routes": [],
+    "explanation": "The scoped source Eq20 inference has a single conjunction: actual mixtures and density transport -> half-difference; bounded radial test and Section2 bounded-test TV -> Eq20. The event and half-L1 TV descriptions are equivalent representations, not distinct source proof branches. Later radialization/Poisson evaluation is a downstream consumer route, not an OR substitute for Eq20."
+  },
+  "consumer": {
+    "immediate": {
+      "section": "B.2.2 Single-block Separation",
+      "result": "Proposition B.7 (Single-block separation), Eq19",
+      "location": "A2.SS2.SSS2.p6, sentence beginning Together with Eq. (20) and Eq. (24)",
+      "use": "Eq20 + explicit H evaluation Eq24 + positive-factor estimates yields first quantitative single-block TV lower bound."
+    },
+    "subsequent": [
+      {
+        "section": "B.2.3 Amplification Across Blocks",
+        "result": "Proof of Lemma 3.3",
+        "use": "Consumes Proposition B.7 via Hellinger affinity and independent blocks, not direct Eq20 production."
+      }
+    ],
+    "excluded_as_direct_consumer": [
+      "Main determinant-sign theorem",
+      "query-cost lower bounds",
+      "transcript construction"
+    ]
+  },
+  "coverage_audit": {
+    "coordinate_system": "Half-open Unicode code-point offsets in the exact normalized_text sealed per region; all whitespace is assigned. HTML ranges are half-open Unicode code-point offsets in the UTF-8 decoded source. Math is extracted once using alttext, descendants omitted; remaining text whitespace collapsed.",
+    "region_count": 12,
+    "expected_region_count": 12,
+    "no_missing_region": true,
+    "no_extra_region": true,
+    "no_gaps": true,
+    "no_overlaps": true,
+    "all_source_text_matches_seal": true,
+    "node_part_count": 16,
+    "excluded_part_count": 23
+  },
+  "coverage_artifact": "source-only-reconstruction.json",
+  "implementation_acceptance_conditions": [
+    "All meaning_definitions remain literal as sealed.",
+    "All SOURCE_GAP/internal producer obligations are proved or legitimately consumed without caller assumptions, fallback measures or conditionally-defined vacuous integral/sSup shortcuts.",
+    "The theorem typechecks against the actual canonical declarations; this source-only audit does not check compilation."
+  ],
+  "signature_change_requires_new_review": true,
+  "source_change_requires_new_review": true
+}

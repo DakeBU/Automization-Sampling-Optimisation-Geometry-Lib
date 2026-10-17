@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.ActualTotalVariation.actual_radial_test_tv",
+      "kind": "theorem",
+      "title": "A radial test bounds mixture TV",
+      "reading_layout": "progressive",
+      "reader_note": "Used by the single-block separation proof; its numerical lower bound remains open.",
+      "statement": "The bounded radial test turns its signed Gaussian average into a lower bound on the actual mixture distance.",
+      "formula": "2|H(\\ell)|\\le\\operatorname{TV}(P_+,P_-).",
+      "assumptions": [
+        "\\(n\\ge3\\), \\(\\kappa\\ge4\\), and \\(\\ell\\ge0\\), including \\(\\ell=0\\).",
+        "\\(\\mu\\) is normalized Haar on full real \\(O(n)\\), \\(\\nu_\\pm=2\\mu|_{\\{\\det O=\\pm1\\}}\\), and \\(P_\\pm=\\nu_\\pm\\mathbin{\\mathrm{bind}}\\gamma\\) with the actual \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\).",
+        "\\(p_O\\) is the actual normalized density relative to Euclidean volume. All integrals are real Bochner integrals; absolute integrability and actual law identities are proved internally.",
+        "TV uses the supremum over measurable events, with no extra factor of two. Measurability, probability laws and the event supremum conditions are produced inside the proof."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(A_O\\) and \\(p_O\\)",
+          "text": "Literal precision and normalized Euclidean density.",
+          "formula": "A_O=\\frac{\\kappa+1}{2}I_n-\\frac{\\kappa-1}{4}(O+O^\\top),\\qquad p_O(x)=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}e^{-x^\\top A_Ox/2}."
+        },
+        {
+          "symbol": "\\(t\\) and \\(H\\)",
+          "text": "Radial test and source density-defined signed average.",
+          "formula": "t(x)=e^{-\\ell\\|x\\|^2},\\qquad H(\\ell)=\\int_{O(n)}\\det(O)\\!\\left(\\int_{\\mathbb R^n}t(x)p_O(x)\\,dx\\right)d\\mu(O)."
+        },
+        {
+          "symbol": "\\(\\operatorname{TV}\\)",
+          "text": "Factor-one event supremum; no signed-variation convention is substituted.",
+          "formula": "\\operatorname{TV}(P_+,P_-)=\\sup_{B\\ \\mathrm{measurable}}|P_+(B)-P_-(B)|."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Identify the actual Gaussian integral",
+          "text": "Use the existing law–density theorem. The radial test is bounded, so its actual Gaussian integral and its density integral are absolutely integrable and agree.",
+          "formula": "f(O)=\\int t\\,d\\gamma_O=\\int_{\\mathbb R^n}t(x)p_O(x)\\,dx.",
+          "lean": "hpoint uses gaussian_law_eq_density, integrable_withDensity_iff and integral_withDensity_eq_integral_toReal_smul. hp0/hpm/hpfin and bounded actual-Gaussian L1 are internal."
+        },
+        {
+          "title": "Use the actual mixture gap",
+          "text": "The existing mixture-expectation theorem gives the factor two. Its prior integrability and the sign partition also give absolute integrability of the signed full-Haar density average.",
+          "formula": "\\mathbb E_{P_+}t-\\mathbb E_{P_-}t=2H(\\ell).",
+          "lean": "hgap is the identical actual_mixture_expectation_gap. hparts/hunion/hfL and bounded determinant multiplication produce hHactualL/hHdensityL; hH identifies the exact source density-defined H."
+        },
+        {
+          "title": "Represent the test by one output event",
+          "text": "Construct a Bernoulli kernel with success probability equal to the radial test. Its probability of the event consisting of one is exactly the test value, and its composed probability is the actual test expectation.",
+          "formula": "K(x,\\cdot)=t(x)\\delta_1+(1-t(x))\\delta_0,\\qquad (K\\circ P_\\pm)(\\{1\\})=\\mathbb E_{P_\\pm}t.",
+          "lean": "b is the continuous unit-interval test. K is the literal bernoulliMeasure kernel; hKtest and happly prove its real event identity using bind_apply and finite integral_toReal."
+        },
+        {
+          "title": "Reuse the shared TV contraction",
+          "text": "Probability bounds make the event supremum nonempty and bounded. Apply the same compiled common-kernel contraction theorem at the event consisting of one.",
+          "formula": "|\\mathbb E_{P_+}t-\\mathbb E_{P_-}t|\\le\\sup_{B\\ \\mathrm{measurable}}|P_+(B)-P_-(B)|.",
+          "lean": "D is the literal real event-discrepancy set; hDne/hDbd/hδ establish the actual sSup meaning. htest calls the canonical KernelTotalVariation.abs_real_comp_sub_le, not a copied layercake proof."
+        },
+        {
+          "title": "Keep the exact normalization",
+          "text": "Substitute the density-defined signed gap into the bounded-test estimate. Taking the absolute value retains the factor two and gives Eq20.",
+          "formula": "2|H(\\ell)|=|2H(\\ell)|\\le\\operatorname{TV}(P_+,P_-).",
+          "lean": "hgap' composes the actual mixture gap with hH; abs_mul and positivity of2 finish. No quantitative value of H, Poisson estimate or query model is assumed."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws.actual_mixture_laws",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureExpectation.actual_mixture_expectation_gap",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianLawDensity.gaussian_law_eq_density",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation.abs_real_comp_sub_le",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar"
+      ],
+      "mathlib_dependencies": [
+        "bernoulliMeasure",
+        "bernoulliMeasure_real_apply_of_mem_of_notMem",
+        "integrable_withDensity_iff",
+        "integral_withDensity_eq_integral_toReal_smul",
+        "integrable_smul_measure",
+        "integrableOn_union",
+        "Integrable.bdd_mul",
+        "Measure.bind_apply",
+        "integral_toReal",
+        "le_csSup"
+      ],
+      "lean_statement": "Only the source parameters are premises; the literal actual density-defined H and event-supremum TV occur in the conclusion.",
+      "lean_proof": "Identify density integrals, consume the actual mixture gap, construct the radial Bernoulli test kernel and reuse the identical compiled common-kernel TV contraction.",
+      "boundary": "Exact source Eq20 at n>=3,kappa>=4,ell>=0 including zero, for actual bind mixtures and source density-defined H, with factor-one measurable-event TV. Probability, measurability, absolute Bochner L1, density transport, supremum nonempty/bounded and factor2 all produced internally. No numerical H/Poisson separation, Eq6 product/amplification, query/transcript/cost, hidden-eigenbasis or either main lower bound. Merge, purification and full-paper completion separate.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p3",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "arXiv:2610.20492v1 Section2 accuracy measures and AppendixB2.2 Eq20; actual Section3.1 mixtures and AppendixB2 density p_O.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Eq20 with the Section2 factor-one event-TV convention. Measure/density and Bernoulli-kernel details are supplied background.",
+          "label": "Radial test to single-block TV, Eq20",
+          "scope": "Exact Eq20 only; quantitative Proposition B.7 is the immediate consumer, not a result of this packet."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelTotalVariation.lean",
+          "line": 40,
+          "label": "Canonical shared Markov TV contraction",
+          "scope": "The identical compiled node is applied to the actual Bernoulli test kernel; no analogy is promoted to an implication."
+        },
+        {
+          "path": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Bernoulli.lean",
+          "line": 46,
+          "label": "Mathlib Bernoulli measure",
+          "scope": "Literal two-atom probability construction and its measurable-event evaluations; authors Etienne Marion and David Ledvinka, Apache2."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityActualTotalVariation"
+      ]
+    }
+  ]
+}

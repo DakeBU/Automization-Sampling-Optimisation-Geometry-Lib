@@ -1,0 +1,720 @@
+{
+  "schema_version": 1,
+  "review_id": "actual-tv-source-independent-review-v1",
+  "independence": {
+    "read_inputs_only": [
+      ".astis/gaussian-complexity/actual-tv/statement-seal.json",
+      ".astis/gaussian-complexity/2610.20492v1.html"
+    ],
+    "implementation_read": false,
+    "old_reviews_read": false,
+    "proof_notes_read": false,
+    "proof_search_performed": false,
+    "compile_claim_made": false
+  },
+  "inputs": {
+    "source": {
+      "path": ".astis/gaussian-complexity/2610.20492v1.html",
+      "sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "matches_seal": true
+    },
+    "seal": {
+      "path": ".astis/gaussian-complexity/actual-tv/statement-seal.json",
+      "sha256": "0f07eaf0e3f3b5dbeb6b5afb215aee0f4a1f90a9b2485317bb1d3490de2df3f0",
+      "seal_id": "GC-actual-radial-test-TV-v1"
+    },
+    "signature": {
+      "encoding": "UTF-8 exact proposed_signature, no newline normalization",
+      "sha256": "ec854c16ab658d770b07759ec57c701d599fe3ae87da0640f34de634cf241816",
+      "matches_seal": true
+    }
+  },
+  "target": "Exactly Eq20 for actual mixtures and source density-defined H: 2 abs(H) <= event-TV(Ppos,Pneg).",
+  "nodes": [
+    {
+      "id": "FULL_HAAR",
+      "role": "SOURCE_DEFINITION",
+      "claim": "mu is normalized Haar probability on full real O(n).",
+      "dependencies": []
+    },
+    {
+      "id": "SIGN_PARTITION",
+      "role": "SOURCE_FACT",
+      "claim": "det is +/-1, measurable components C+ and C- partition O(n), mu(C+)=mu(C-)=1/2.",
+      "dependencies": [
+        "FULL_HAAR"
+      ]
+    },
+    {
+      "id": "CONDITIONAL_LAWS",
+      "role": "SOURCE_DEFINITION",
+      "claim": "mu_n,b is conditional full Haar on Cb; literal normalized restriction is 2*mu.restrict Cb.",
+      "dependencies": [
+        "SIGN_PARTITION"
+      ]
+    },
+    {
+      "id": "SOURCE_KAPPA",
+      "role": "SOURCE_PREMISE",
+      "claim": "kappa>=4.",
+      "dependencies": []
+    },
+    {
+      "id": "SOURCE_SCOPE",
+      "role": "SOURCE_PREMISE",
+      "claim": "n>=3 and kappa>=4; full Haar convention.",
+      "dependencies": []
+    },
+    {
+      "id": "PRECISION_DEFINITION",
+      "role": "SOURCE_DEFINITION",
+      "claim": "A_O=((kappa+1)/2)I-((kappa-1)/4)(O+O^T).",
+      "dependencies": [
+        "SOURCE_KAPPA",
+        "SOURCE_SCOPE"
+      ]
+    },
+    {
+      "id": "PRECISION_BOUNDS",
+      "role": "SOURCE_FACT",
+      "claim": "I<=A_O<=kappa I, hence Gaussian covariance A_O^-1 is valid; only the spectral-bound clause of p4 is imported, not radialization.",
+      "dependencies": [
+        "PRECISION_DEFINITION"
+      ]
+    },
+    {
+      "id": "DENSITY_MEANING",
+      "role": "SOURCE_DEFINITION",
+      "claim": "p_O is density of actual N(0,A_O^-1), relative to Euclidean Lebesgue volume.",
+      "dependencies": [
+        "PRECISION_DEFINITION",
+        "PRECISION_BOUNDS",
+        "GAP_GAUSSIAN"
+      ]
+    },
+    {
+      "id": "ACTUAL_MIXTURES",
+      "role": "SOURCE_DEFINITION",
+      "claim": "P_b is actual mixture of the above Gaussians over conditional Haar.",
+      "dependencies": [
+        "CONDITIONAL_LAWS",
+        "GAP_KERNEL"
+      ]
+    },
+    {
+      "id": "RADIAL_TEST",
+      "role": "SOURCE_DEFINITION",
+      "claim": "lambda>=0, h(x)=exp(-lambda||x||^2).",
+      "dependencies": []
+    },
+    {
+      "id": "RADIAL_RANGE",
+      "role": "SOURCE_FACT",
+      "claim": "h is measurable with 0<h<=1. Measurability is implicit source background.",
+      "dependencies": [
+        "RADIAL_TEST",
+        "GAP_ANALYTIC"
+      ]
+    },
+    {
+      "id": "DENSITY_H",
+      "role": "SOURCE_DEFINITION",
+      "claim": "H=int_O det(O)*int_x h(x)*p_O(x) dx dmu.",
+      "dependencies": [
+        "FULL_HAAR",
+        "DENSITY_MEANING",
+        "RADIAL_TEST",
+        "GAP_ANALYTIC"
+      ]
+    },
+    {
+      "id": "HALF_DIFFERENCE",
+      "role": "SOURCE_INFERENCE",
+      "claim": "H=1/2*(int h dPpos-int h dPneg).",
+      "dependencies": [
+        "DENSITY_H",
+        "SIGN_PARTITION",
+        "CONDITIONAL_LAWS",
+        "ACTUAL_MIXTURES",
+        "GAP_TRANSPORT"
+      ]
+    },
+    {
+      "id": "TV_EVENTS",
+      "role": "SOURCE_DEFINITION",
+      "claim": "TV(P,Q)=sup over measurable B of |P(B)-Q(B)|, probability convention with factor one.",
+      "dependencies": [
+        "ACTUAL_MIXTURES",
+        "GAP_SUPREMUM"
+      ]
+    },
+    {
+      "id": "BOUNDED_TEST",
+      "role": "SOURCE_BACKGROUND_FACT",
+      "claim": "For measurable h in [0,1], |int h dP-int h dQ|<=TV(P,Q).",
+      "dependencies": [
+        "TV_EVENTS",
+        "GAP_BOUNDED_TEST"
+      ]
+    },
+    {
+      "id": "EQ20",
+      "role": "TARGET",
+      "claim": "2|H|<=TV(Ppos,Pneg).",
+      "dependencies": [
+        "HALF_DIFFERENCE",
+        "RADIAL_RANGE",
+        "BOUNDED_TEST"
+      ]
+    },
+    {
+      "id": "GAP_GAUSSIAN",
+      "role": "SOURCE_GAP",
+      "claim": "Identify actual multivariateGaussian with precision density sqrt(det A)/(2*pi)^(n/2)*exp(-x^T A x/2) on Euclidean volume; identify invertible positive precision with valid covariance.",
+      "source_status": "Standard Gaussian background implicit in p_O designation and subsequent Gaussian formula; not proved in these source regions.",
+      "required_internally": true,
+      "caller_assumption_allowed": false
+    },
+    {
+      "id": "GAP_KERNEL",
+      "role": "SOURCE_GAP",
+      "claim": "The family O->N(0,A_O^-1) is a measurable probability kernel; actual bind is a probability measure.",
+      "source_status": "Mixture notation presupposes these conditions; source does not expand them.",
+      "required_internally": true,
+      "caller_assumption_allowed": false
+    },
+    {
+      "id": "GAP_ANALYTIC",
+      "role": "SOURCE_GAP",
+      "claim": "h and density product and determinant-weighted outer integrand are measurable and integrable; real Bochner integrals are genuine finite expectations.",
+      "source_status": "Bounded h and actual probability Gaussian laws justify required integrability; bookkeeping absent from Eq20 paragraph.",
+      "required_internally": true,
+      "caller_assumption_allowed": false
+    },
+    {
+      "id": "GAP_TRANSPORT",
+      "role": "SOURCE_GAP",
+      "claim": "Transport int h*p_O dx=int h dgamma(O), integrate through actual bind and restricted/scaled full-Haar components, and split signed det integral.",
+      "source_status": "Compressed into the sentence beginning Since the two determinant components; no numerical H evaluation is needed.",
+      "required_internally": true,
+      "caller_assumption_allowed": false
+    },
+    {
+      "id": "GAP_SUPREMUM",
+      "role": "SOURCE_GAP",
+      "claim": "Measurable event discrepancy set is nonempty (empty event gives 0), bounded above by 1 since both mixtures are probabilities; Measure.real agrees with finite probability values.",
+      "source_status": "Implicit in real-valued probability TV. Needed to avoid Lean conditional-sSup vacuity.",
+      "required_internally": true,
+      "caller_assumption_allowed": false
+    },
+    {
+      "id": "GAP_BOUNDED_TEST",
+      "role": "SOURCE_GAP",
+      "claim": "Supply or consume a valid background proof of Section2 bounded-test inequality for event-supremum TV.",
+      "source_status": "Source states the fact in Section2 without a proof here. Layer-cake is background completion, not an additional source theorem or assumption.",
+      "required_internally": true,
+      "caller_assumption_allowed": false
+    }
+  ],
+  "edges_semantics": "Each dependencies list is an AND dependency set. SOURCE_GAP nodes are required internal bookkeeping/background producers, not new caller premises.",
+  "or_routes": {
+    "present_in_source": false,
+    "routes": [],
+    "explanation": "The scoped source Eq20 inference has a single conjunction: actual mixtures and density transport -> half-difference; bounded radial test and Section2 bounded-test TV -> Eq20. The event and half-L1 TV descriptions are equivalent representations, not distinct source proof branches. Later radialization/Poisson evaluation is a downstream consumer route, not an OR substitute for Eq20."
+  },
+  "source_gap_policy": "All six explicitly listed gaps must be produced or legitimately consumed internally. Source-only acceptance does not certify their Lean proofs.",
+  "consumer": {
+    "immediate": {
+      "section": "B.2.2 Single-block Separation",
+      "result": "Proposition B.7 (Single-block separation), Eq19",
+      "location": "A2.SS2.SSS2.p6, sentence beginning Together with Eq. (20) and Eq. (24)",
+      "use": "Eq20 + explicit H evaluation Eq24 + positive-factor estimates yields first quantitative single-block TV lower bound."
+    },
+    "subsequent": [
+      {
+        "section": "B.2.3 Amplification Across Blocks",
+        "result": "Proof of Lemma 3.3",
+        "use": "Consumes Proposition B.7 via Hellinger affinity and independent blocks, not direct Eq20 production."
+      }
+    ],
+    "excluded_as_direct_consumer": [
+      "Main determinant-sign theorem",
+      "query-cost lower bounds",
+      "transcript construction"
+    ]
+  },
+  "coverage": {
+    "audit": {
+      "coordinate_system": "Half-open Unicode code-point offsets in the exact normalized_text sealed per region; all whitespace is assigned. HTML ranges are half-open Unicode code-point offsets in the UTF-8 decoded source. Math is extracted once using alttext, descendants omitted; remaining text whitespace collapsed.",
+      "region_count": 12,
+      "expected_region_count": 12,
+      "no_missing_region": true,
+      "no_extra_region": true,
+      "no_gaps": true,
+      "no_overlaps": true,
+      "all_source_text_matches_seal": true,
+      "node_part_count": 16,
+      "excluded_part_count": 23
+    },
+    "regions": {
+      "S2.SS0.SSS0.Px3.p1": {
+        "declared_group": "source_regions",
+        "normalized_text": "For probability measures P and Q on a common measurable space, their total variation distance is \\operatorname{TV}(P,Q):=\\sup_{B}|P(B)-Q(B)|=\\frac{1}{2}\\int|p-q|\\,d\\lambda, where the supremum ranges over measurable sets, and p and q are the densities of P and Q with respect to any common dominating measure \\lambda. In particular, |\\mathbb{E}_{P}h-\\mathbb{E}_{Q}h|\\leq\\operatorname{TV}(P,Q) for every measurable function h taking values in [0,1].",
+        "normalized_sha256": "a465a1e4269d38e3fea4eda699aa5772254beaf827f75eea7140848255536875",
+        "html_unicode_char_range": [
+          126845,
+          131414
+        ],
+        "source_text_matches_seal": true,
+        "partitions": [
+          {
+            "start": 0,
+            "end": 140,
+            "text": "For probability measures P and Q on a common measurable space, their total variation distance is \\operatorname{TV}(P,Q):=\\sup_{B}|P(B)-Q(B)|",
+            "classification": "NODE",
+            "node_id": "TV_EVENTS",
+            "reason": "Probability measures and common measurable space; factor-one event supremum."
+          },
+          {
+            "start": 140,
+            "end": 317,
+            "text": "=\\frac{1}{2}\\int|p-q|\\,d\\lambda, where the supremum ranges over measurable sets, and p and q are the densities of P and Q with respect to any common dominating measure \\lambda. ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Density L1 representation is equivalent source background but the sealed conclusion uses events directly."
+          },
+          {
+            "start": 317,
+            "end": 447,
+            "text": "In particular, |\\mathbb{E}_{P}h-\\mathbb{E}_{Q}h|\\leq\\operatorname{TV}(P,Q) for every measurable function h taking values in [0,1].",
+            "classification": "NODE",
+            "node_id": "BOUNDED_TEST",
+            "reason": "The source explicitly invokes the measurable [0,1]-test inequality."
+          }
+        ]
+      },
+      "S2.p2": {
+        "declared_group": "source_regions",
+        "normalized_text": "Let O(n):=\\{O\\in\\mathbb{R}^{n\\times n}:O^{\\top}O=I_{n}\\} denote the real orthogonal group, equipped with Haar probability measure. It has two components, \\{\\det O=+1\\}, \\{\\det O=-1\\}, and each have Haar probability 1/2. For b\\in\\{-1,+1\\}, we write \\mu_{n,b} for Haar probability measure conditioned on \\det O=b.",
+        "normalized_sha256": "31bbaa50cbb0243aacc1be885c585674445b7b2f0d3fa56e47e211d79b269683",
+        "html_unicode_char_range": [
+          114630,
+          117573
+        ],
+        "source_text_matches_seal": true,
+        "partitions": [
+          {
+            "start": 0,
+            "end": 131,
+            "text": "Let O(n):=\\{O\\in\\mathbb{R}^{n\\times n}:O^{\\top}O=I_{n}\\} denote the real orthogonal group, equipped with Haar probability measure. ",
+            "classification": "NODE",
+            "node_id": "FULL_HAAR",
+            "reason": "Full real O(n) and its normalized Haar probability."
+          },
+          {
+            "start": 131,
+            "end": 220,
+            "text": "It has two components, \\{\\det O=+1\\}, \\{\\det O=-1\\}, and each have Haar probability 1/2. ",
+            "classification": "NODE",
+            "node_id": "SIGN_PARTITION",
+            "reason": "Determinant signs partition O(n), each with mass 1/2."
+          },
+          {
+            "start": 220,
+            "end": 311,
+            "text": "For b\\in\\{-1,+1\\}, we write \\mu_{n,b} for Haar probability measure conditioned on \\det O=b.",
+            "classification": "NODE",
+            "node_id": "CONDITIONAL_LAWS",
+            "reason": "Haar conditioned on det=b."
+          }
+        ]
+      },
+      "S3.SS1.p1": {
+        "declared_group": "source_regions",
+        "normalized_text": "Fix \\kappa\\geq 4. Let 3\\leq n\\leq d be the block dimension and k:=\\lfloor d/n\\rfloor the number of blocks. In the proof of the main theorem, we choose n=2T+1, where T is the algorithm’s query budget. This choice applies when T\\geq 1 and 2T+1\\leq d. The remaining cases are treated separately. For O\\in O(n), define A_{O}:=\\frac{\\kappa+1}{2}I_{n}-\\frac{\\kappa-1}{4}(O+O^{\\top}). (4) For \\bm{O}=(O_{1},\\ldots,O_{k})\\in O(n)^{k}, set A_{\\bm{O}}:=\\operatorname{diag}\\bigl(A_{O_{1}},\\ldots,A_{O_{k}},I_{d-kn}\\bigr). (5)",
+        "normalized_sha256": "907465ef36ae9d6bbedeb266ce49d0f33a9496017379f317dfae8ea74c2c1ac0",
+        "html_unicode_char_range": [
+          141725,
+          147534
+        ],
+        "source_text_matches_seal": true,
+        "partitions": [
+          {
+            "start": 0,
+            "end": 18,
+            "text": "Fix \\kappa\\geq 4. ",
+            "classification": "NODE",
+            "node_id": "SOURCE_KAPPA",
+            "reason": "Source condition kappa>=4."
+          },
+          {
+            "start": 18,
+            "end": 107,
+            "text": "Let 3\\leq n\\leq d be the block dimension and k:=\\lfloor d/n\\rfloor the number of blocks. ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Ambient dimension d and number k belong to multiblock construction. Single-block n>=3 is separately stated in A2.SS2.p2."
+          },
+          {
+            "start": 107,
+            "end": 293,
+            "text": "In the proof of the main theorem, we choose n=2T+1, where T is the algorithm’s query budget. This choice applies when T\\geq 1 and 2T+1\\leq d. The remaining cases are treated separately. ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "n=2T+1 and budget applicability are downstream main-theorem choices, not Eq20 premises."
+          },
+          {
+            "start": 293,
+            "end": 382,
+            "text": "For O\\in O(n), define A_{O}:=\\frac{\\kappa+1}{2}I_{n}-\\frac{\\kappa-1}{4}(O+O^{\\top}). (4) ",
+            "classification": "NODE",
+            "node_id": "PRECISION_DEFINITION",
+            "reason": "Literal single-block precision, Eq4."
+          },
+          {
+            "start": 382,
+            "end": 514,
+            "text": "For \\bm{O}=(O_{1},\\ldots,O_{k})\\in O(n)^{k}, set A_{\\bm{O}}:=\\operatorname{diag}\\bigl(A_{O_{1}},\\ldots,A_{O_{k}},I_{d-kn}\\bigr). (5)",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Block diagonal precision, Eq5, not consumed by Eq20."
+          }
+        ]
+      },
+      "S3.SS1.p2": {
+        "declared_group": "source_regions",
+        "normalized_text": "For each b\\in\\{-1,+1\\}, draw O_{1},\\ldots,O_{k} independently from \\mu_{n,b}, and let \\mathcal{D}_{b} denote the law of A_{\\bm{O}}. Thus the orthogonal matrices share the same determinant sign.",
+        "normalized_sha256": "2861b0e731c4d05a810c4c128664eb11f9c3b624a2668c40b46534fdc2f73968",
+        "html_unicode_char_range": [
+          147535,
+          149215
+        ],
+        "source_text_matches_seal": true,
+        "partitions": [
+          {
+            "start": 0,
+            "end": 193,
+            "text": "For each b\\in\\{-1,+1\\}, draw O_{1},\\ldots,O_{k} independently from \\mu_{n,b}, and let \\mathcal{D}_{b} denote the law of A_{\\bm{O}}. Thus the orthogonal matrices share the same determinant sign.",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Independent k-block prior and shared sign are multiblock context, not needed to define or compare single-block mixtures."
+          }
+        ]
+      },
+      "S3.SS1.p3": {
+        "declared_group": "source_regions",
+        "normalized_text": "Writing P_{b}:=\\mathbb{E}_{O\\sim\\mu_{n,b}}[N(0,A_{O}^{-1})] for the single-block target mixture, the averaged target under \\mathcal{D}_{b} is \\bar{\\pi}_{b}:=\\mathbb{E}_{A\\sim\\mathcal{D}_{b}}[\\pi_{A}]=P_{b}^{\\otimes k}\\otimes N(0,I_{d-kn}). (6) When kn=d, the identity block and the final Gaussian factor are omitted.",
+        "normalized_sha256": "f83ee84b2dd719a5882e9d16b9fd46433bde9586ebc627a896da066b38eafe4c",
+        "html_unicode_char_range": [
+          149216,
+          152443
+        ],
+        "source_text_matches_seal": true,
+        "partitions": [
+          {
+            "start": 0,
+            "end": 97,
+            "text": "Writing P_{b}:=\\mathbb{E}_{O\\sim\\mu_{n,b}}[N(0,A_{O}^{-1})] for the single-block target mixture, ",
+            "classification": "NODE",
+            "node_id": "ACTUAL_MIXTURES",
+            "reason": "Actual single-block mixture P_b=E_{mu_n,b}N(0,A_O^-1)."
+          },
+          {
+            "start": 97,
+            "end": 316,
+            "text": "the averaged target under \\mathcal{D}_{b} is \\bar{\\pi}_{b}:=\\mathbb{E}_{A\\sim\\mathcal{D}_{b}}[\\pi_{A}]=P_{b}^{\\otimes k}\\otimes N(0,I_{d-kn}). (6) When kn=d, the identity block and the final Gaussian factor are omitted.",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Averaged target factorization Eq6 and omitted remainder convention are amplification context."
+          }
+        ]
+      },
+      "A2.SS2.p2": {
+        "declared_group": "source_regions",
+        "normalized_text": "We first separate the single-block mixtures using a bounded radial test, and then amplify this separation across independent blocks. The single-block argument combines a cancellation identity for Gaussian normalization factors with two spherical Poisson identities. Throughout this section, n\\geq 3, \\kappa\\geq 4, and O is Haar distributed on the full orthogonal group O(n). Write U:=O_{11}, let p_{O} be the density of N(0,A_{O}^{-1}), and let p_{b} be the density of P_{b}, for b\\in\\{-1,+1\\}.",
+        "normalized_sha256": "c1ba22465230a4ed6790ce240174046e51676008f2b0477bed066ff59c65e78d",
+        "html_unicode_char_range": [
+          460796,
+          463914
+        ],
+        "source_text_matches_seal": true,
+        "partitions": [
+          {
+            "start": 0,
+            "end": 266,
+            "text": "We first separate the single-block mixtures using a bounded radial test, and then amplify this separation across independent blocks. The single-block argument combines a cancellation identity for Gaussian normalization factors with two spherical Poisson identities. ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Roadmap: later cancellation/Poisson computation and product amplification are not Eq20 proof dependencies."
+          },
+          {
+            "start": 266,
+            "end": 375,
+            "text": "Throughout this section, n\\geq 3, \\kappa\\geq 4, and O is Haar distributed on the full orthogonal group O(n). ",
+            "classification": "NODE",
+            "node_id": "SOURCE_SCOPE",
+            "reason": "n>=3, kappa>=4, full O(n) Haar."
+          },
+          {
+            "start": 375,
+            "end": 392,
+            "text": "Write U:=O_{11}, ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "U=O11 is used only after Eq20."
+          },
+          {
+            "start": 392,
+            "end": 437,
+            "text": "let p_{O} be the density of N(0,A_{O}^{-1}), ",
+            "classification": "NODE",
+            "node_id": "DENSITY_MEANING",
+            "reason": "p_O denotes the actual Gaussian law density."
+          },
+          {
+            "start": 437,
+            "end": 494,
+            "text": "and let p_{b} be the density of P_{b}, for b\\in\\{-1,+1\\}.",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Mixture densities p_b are unused in the event-supremum version of Eq20."
+          }
+        ]
+      },
+      "A2.SS2.SSS2.p3": {
+        "declared_group": "source_regions",
+        "normalized_text": "For \\lambda\\geq 0, let h_{\\lambda}(x):=e^{-\\lambda\\|x\\|^{2}} and define H(\\lambda):=\\mathbb{E}\\left[\\det(O)\\int_{\\mathbb{R}^{n}}h_{\\lambda}(x)p_{O}(x)\\,dx\\right]. Since the two determinant components have Haar probability 1/2, H(\\lambda)=\\frac{1}{2}\\left(\\mathbb{E}_{P_{+1}}h_{\\lambda}-\\mathbb{E}_{P_{-1}}h_{\\lambda}\\right). As 0<h_{\\lambda}\\leq 1, it follows that \\operatorname{TV}(P_{+1},P_{-1})\\geq 2|H(\\lambda)|. (20) We compute H(\\lambda) and then choose \\lambda>0.",
+        "normalized_sha256": "f0dcc2d5588f8445fdee0e63327fe97843c8ed8799ef0fc2f16fc41ef7ea975b",
+        "html_unicode_char_range": [
+          503796,
+          510449
+        ],
+        "source_text_matches_seal": true,
+        "partitions": [
+          {
+            "start": 0,
+            "end": 72,
+            "text": "For \\lambda\\geq 0, let h_{\\lambda}(x):=e^{-\\lambda\\|x\\|^{2}} and define ",
+            "classification": "NODE",
+            "node_id": "RADIAL_TEST",
+            "reason": "lambda>=0 and h_lambda=exp(-lambda||x||^2)."
+          },
+          {
+            "start": 72,
+            "end": 163,
+            "text": "H(\\lambda):=\\mathbb{E}\\left[\\det(O)\\int_{\\mathbb{R}^{n}}h_{\\lambda}(x)p_{O}(x)\\,dx\\right]. ",
+            "classification": "NODE",
+            "node_id": "DENSITY_H",
+            "reason": "H is determinant-weighted full-Haar integral of actual Gaussian density against h."
+          },
+          {
+            "start": 163,
+            "end": 325,
+            "text": "Since the two determinant components have Haar probability 1/2, H(\\lambda)=\\frac{1}{2}\\left(\\mathbb{E}_{P_{+1}}h_{\\lambda}-\\mathbb{E}_{P_{-1}}h_{\\lambda}\\right). ",
+            "classification": "NODE",
+            "node_id": "HALF_DIFFERENCE",
+            "reason": "H=1/2(E_Ppos h-E_Pneg h)."
+          },
+          {
+            "start": 325,
+            "end": 349,
+            "text": "As 0<h_{\\lambda}\\leq 1, ",
+            "classification": "NODE",
+            "node_id": "RADIAL_RANGE",
+            "reason": "0<h<=1."
+          },
+          {
+            "start": 349,
+            "end": 422,
+            "text": "it follows that \\operatorname{TV}(P_{+1},P_{-1})\\geq 2|H(\\lambda)|. (20) ",
+            "classification": "NODE",
+            "node_id": "EQ20",
+            "reason": "Event-TV(Ppos,Pneg)>=2|H|, Eq20."
+          },
+          {
+            "start": 422,
+            "end": 470,
+            "text": "We compute H(\\lambda) and then choose \\lambda>0.",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Transition to subsequent quantitative evaluation and choice of positive lambda."
+          }
+        ]
+      },
+      "A2.SS2.SSS2.p1": {
+        "declared_group": "neighboring_exclusions",
+        "normalized_text": "We distinguish P_{+1} and P_{-1} using a test of the form x\\mapsto e^{-\\lambda\\|x\\|^{2}}. After Gaussian integration and determinant cancellation, its expectation difference reduces to a spherical integral. The following identities evaluate that integral.",
+        "normalized_sha256": "ca5a1b4e0741d959de75497913d6e7a24f5b6c558b76edebb9d2b554d15bc6ba",
+        "html_unicode_char_range": [
+          499009,
+          500294
+        ],
+        "source_text_matches_seal": true,
+        "partitions": [
+          {
+            "start": 0,
+            "end": 255,
+            "text": "We distinguish P_{+1} and P_{-1} using a test of the form x\\mapsto e^{-\\lambda\\|x\\|^{2}}. After Gaussian integration and determinant cancellation, its expectation difference reduces to a spherical integral. The following identities evaluate that integral.",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Introductory duplicate radial-test roadmap; Gaussian integration, cancellation and spherical evaluation are downstream of Eq20."
+          }
+        ]
+      },
+      "A2.SS2.SSS2.p2": {
+        "declared_group": "neighboring_exclusions",
+        "normalized_text": "Choosing \\lambda so that these identities apply gives the following quantitative separation.",
+        "normalized_sha256": "fcaf715ae7846821d6e84ede7628c157c8c36a3b139ac5b166348b8e0344568f",
+        "html_unicode_char_range": [
+          500295,
+          500673
+        ],
+        "source_text_matches_seal": true,
+        "partitions": [
+          {
+            "start": 0,
+            "end": 92,
+            "text": "Choosing \\lambda so that these identities apply gives the following quantitative separation.",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Transition announcing a special positive lambda and quantitative result, not a condition on Eq20."
+          }
+        ]
+      },
+      "A2.SS2.SSS2.p4": {
+        "declared_group": "neighboring_exclusions",
+        "normalized_text": "For every Q\\in O(n), conjugation preserves Haar measure and the determinant sign, while A_{QOQ^{\\top}}=QA_{O}Q^{\\top} and p_{QOQ^{\\top}}(Qx)=p_{O}(x). Consequently, for every x\\in\\mathbb{R}^{n}, \\mathbb{E}[\\det(O)p_{O}(x)]=\\mathbb{E}[\\det(O)p_{O}(\\|x\\|e_{1})]. At \\|x\\|e_{1}, the Gaussian exponent depends on O only through U, since e_{1}^{\\top}A_{O}e_{1}=(\\kappa+1-(\\kappa-1)U)/2. Moreover, I_{n}\\preceq A_{O}\\preceq\\kappa I_{n} gives the integrable bound h_{\\lambda}(x)p_{O}(\\|x\\|e_{1})\\leq\\left(\\frac{\\kappa}{2\\pi}\\right)^{n/2}e^{-\\|x\\|^{2}/2}. Using |\\det(O)|=1, Fubini’s theorem, and Gaussian integration, we obtain \\displaystyle H(\\lambda) \\displaystyle=\\frac{1}{(2\\pi)^{n/2}}\\mathbb{E}\\left[\\det(O)\\sqrt{\\det A_{O}}\\int_{\\mathbb{R}^{n}}e^{-[\\kappa+1+4\\lambda-(\\kappa-1)U]\\|x\\|^{2}/4}\\,dx\\right] \\displaystyle=2^{n/2}\\mathbb{E}\\left[\\frac{\\det(O)\\sqrt{\\det A_{O}}}{(\\kappa+1+4\\lambda-(\\kappa-1)U)^{n/2}}\\right], where \\int_{\\mathbb{R}^{n}}e^{-a\\|x\\|^{2}/4}\\,dx=(4\\pi/a)^{n/2} for a>0. The denominator is at least 2+4\\lambda, so Lemma B.6 applies with h(u)=(\\kappa+1+4\\lambda-(\\kappa-1)u)^{-n/2} and gives H(\\lambda)=\\frac{(-1)^{n-1}(\\sqrt{\\kappa}-1)^{n-1}}{2^{n/2}}\\mathbb{E}\\left[\\frac{(\\sqrt{\\kappa}+1)U-(\\sqrt{\\kappa}-1)}{(\\kappa+1+4\\lambda-(\\kappa-1)U)^{n/2}}\\right]. (21) Since Oe_{1} is uniform on \\mathbb{S}^{n-1}, Lemma A.1 applies to U.",
+        "normalized_sha256": "aff1c7555168239c55b22d66d13ac9f3f690c7f50b0936405bd01a9ed84cc067",
+        "html_unicode_char_range": [
+          510450,
+          528630
+        ],
+        "source_text_matches_seal": true,
+        "partitions": [
+          {
+            "start": 0,
+            "end": 151,
+            "text": "For every Q\\in O(n), conjugation preserves Haar measure and the determinant sign, while A_{QOQ^{\\top}}=QA_{O}Q^{\\top} and p_{QOQ^{\\top}}(Qx)=p_{O}(x). ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Conjugation covariance of A and p is part of radialization for evaluating H, not needed for the bounded-test comparison."
+          },
+          {
+            "start": 151,
+            "end": 261,
+            "text": "Consequently, for every x\\in\\mathbb{R}^{n}, \\mathbb{E}[\\det(O)p_{O}(x)]=\\mathbb{E}[\\det(O)p_{O}(\\|x\\|e_{1})]. ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Signed density radialization identity is downstream numerical evaluation."
+          },
+          {
+            "start": 261,
+            "end": 382,
+            "text": "At \\|x\\|e_{1}, the Gaussian exponent depends on O only through U, since e_{1}^{\\top}A_{O}e_{1}=(\\kappa+1-(\\kappa-1)U)/2. ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "O11 exponent reduction is downstream numerical evaluation."
+          },
+          {
+            "start": 382,
+            "end": 429,
+            "text": "Moreover, I_{n}\\preceq A_{O}\\preceq\\kappa I_{n}",
+            "classification": "NODE",
+            "node_id": "PRECISION_BOUNDS",
+            "reason": "The stated I<=A_O<=kappa I supplies source evidence of positive definite precision."
+          },
+          {
+            "start": 429,
+            "end": 548,
+            "text": " gives the integrable bound h_{\\lambda}(x)p_{O}(\\|x\\|e_{1})\\leq\\left(\\frac{\\kappa}{2\\pi}\\right)^{n/2}e^{-\\|x\\|^{2}/2}. ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "This particular radialized dominating bound belongs to the following Fubini computation. Eq20 needs bounded tests of actual Gaussian probability laws, not radialization."
+          },
+          {
+            "start": 548,
+            "end": 1351,
+            "text": "Using |\\det(O)|=1, Fubini’s theorem, and Gaussian integration, we obtain \\displaystyle H(\\lambda) \\displaystyle=\\frac{1}{(2\\pi)^{n/2}}\\mathbb{E}\\left[\\det(O)\\sqrt{\\det A_{O}}\\int_{\\mathbb{R}^{n}}e^{-[\\kappa+1+4\\lambda-(\\kappa-1)U]\\|x\\|^{2}/4}\\,dx\\right] \\displaystyle=2^{n/2}\\mathbb{E}\\left[\\frac{\\det(O)\\sqrt{\\det A_{O}}}{(\\kappa+1+4\\lambda-(\\kappa-1)U)^{n/2}}\\right], where \\int_{\\mathbb{R}^{n}}e^{-a\\|x\\|^{2}/4}\\,dx=(4\\pi/a)^{n/2} for a>0. The denominator is at least 2+4\\lambda, so Lemma B.6 applies with h(u)=(\\kappa+1+4\\lambda-(\\kappa-1)u)^{-n/2} and gives H(\\lambda)=\\frac{(-1)^{n-1}(\\sqrt{\\kappa}-1)^{n-1}}{2^{n/2}}\\mathbb{E}\\left[\\frac{(\\sqrt{\\kappa}+1)U-(\\sqrt{\\kappa}-1)}{(\\kappa+1+4\\lambda-(\\kappa-1)U)^{n/2}}\\right]. (21) Since Oe_{1} is uniform on \\mathbb{S}^{n-1}, Lemma A.1 applies to U.",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Fubini, Gaussian integration, denominator estimate, determinant cancellation Lemma B.6, Eq21 and spherical U applicability form the downstream evaluation route."
+          }
+        ]
+      },
+      "A2.SS2.SSS2.p5": {
+        "declared_group": "neighboring_exclusions",
+        "normalized_text": "We now match the denominator with a positive multiple of 1+r^{2}-2rU. At \\lambda=0, this matching gives r=(\\sqrt{\\kappa}-1)/(\\sqrt{\\kappa}+1), but H(0)=0 because both target distributions have total mass one. We therefore decrease r by a factor 1-1/n and set \\displaystyle r \\displaystyle:=\\left(1-\\frac{1}{n}\\right)\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}, (22) \\displaystyle\\lambda \\displaystyle:=\\frac{\\kappa-1}{8r}(1+r^{2})-\\frac{\\kappa+1}{4}=\\frac{4n\\sqrt{\\kappa}+(\\sqrt{\\kappa}-1)^{2}}{8n(n-1)}. Then 0<r<1, \\lambda>0, and \\displaystyle\\kappa+1+4\\lambda-(\\kappa-1)U \\displaystyle=\\frac{\\kappa-1}{2r}(1+r^{2}-2rU) (23) \\displaystyle=\\frac{n(\\sqrt{\\kappa}+1)^{2}}{2(n-1)}(1+r^{2}-2rU). The two Poisson identities yield \\displaystyle\\mathbb{E}\\left[\\frac{(\\sqrt{\\kappa}+1)U-(\\sqrt{\\kappa}-1)}{(1+r^{2}-2rU)^{n/2}}\\right] \\displaystyle=\\frac{(\\sqrt{\\kappa}+1)r-(\\sqrt{\\kappa}-1)}{1-r^{2}} \\displaystyle=-\\frac{\\sqrt{\\kappa}-1}{n(1-r^{2})}. Substitution into Eq. (21) gives \\displaystyle H(\\lambda) \\displaystyle=\\frac{(-1)^{n-1}(\\sqrt{\\kappa}-1)^{n-1}}{(\\sqrt{\\kappa}+1)^{n}}\\left(1-\\frac{1}{n}\\right)^{n/2}\\left(-\\frac{\\sqrt{\\kappa}-1}{n(1-r^{2})}\\right) (24) \\displaystyle=\\frac{(-1)^{n}}{n}\\left(\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}\\right)^{n}\\frac{(1-1/n)^{n/2}}{1-r^{2}}.",
+        "normalized_sha256": "4d12bebf73b913370eab982073843891127515d89d870955f86965a644ec8867",
+        "html_unicode_char_range": [
+          528631,
+          546479
+        ],
+        "source_text_matches_seal": true,
+        "partitions": [
+          {
+            "start": 0,
+            "end": 70,
+            "text": "We now match the denominator with a positive multiple of 1+r^{2}-2rU. ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Matching denominator to Poisson kernel is downstream of Eq20."
+          },
+          {
+            "start": 70,
+            "end": 209,
+            "text": "At \\lambda=0, this matching gives r=(\\sqrt{\\kappa}-1)/(\\sqrt{\\kappa}+1), but H(0)=0 because both target distributions have total mass one. ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "H(0)=0 corroborates mass normalization but is not an independent premise or excluded zero case of Eq20."
+          },
+          {
+            "start": 209,
+            "end": 1280,
+            "text": "We therefore decrease r by a factor 1-1/n and set \\displaystyle r \\displaystyle:=\\left(1-\\frac{1}{n}\\right)\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}, (22) \\displaystyle\\lambda \\displaystyle:=\\frac{\\kappa-1}{8r}(1+r^{2})-\\frac{\\kappa+1}{4}=\\frac{4n\\sqrt{\\kappa}+(\\sqrt{\\kappa}-1)^{2}}{8n(n-1)}. Then 0<r<1, \\lambda>0, and \\displaystyle\\kappa+1+4\\lambda-(\\kappa-1)U \\displaystyle=\\frac{\\kappa-1}{2r}(1+r^{2}-2rU) (23) \\displaystyle=\\frac{n(\\sqrt{\\kappa}+1)^{2}}{2(n-1)}(1+r^{2}-2rU). The two Poisson identities yield \\displaystyle\\mathbb{E}\\left[\\frac{(\\sqrt{\\kappa}+1)U-(\\sqrt{\\kappa}-1)}{(1+r^{2}-2rU)^{n/2}}\\right] \\displaystyle=\\frac{(\\sqrt{\\kappa}+1)r-(\\sqrt{\\kappa}-1)}{1-r^{2}} \\displaystyle=-\\frac{\\sqrt{\\kappa}-1}{n(1-r^{2})}. Substitution into Eq. (21) gives \\displaystyle H(\\lambda) \\displaystyle=\\frac{(-1)^{n-1}(\\sqrt{\\kappa}-1)^{n-1}}{(\\sqrt{\\kappa}+1)^{n}}\\left(1-\\frac{1}{n}\\right)^{n/2}\\left(-\\frac{\\sqrt{\\kappa}-1}{n(1-r^{2})}\\right) (24) \\displaystyle=\\frac{(-1)^{n}}{n}\\left(\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}\\right)^{n}\\frac{(1-1/n)^{n/2}}{1-r^{2}}.",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Special r and lambda choice Eq22, positivity, denominator matching Eq23, Poisson evaluation, and Eq24 are quantitative downstream work."
+          }
+        ]
+      },
+      "A2.SS2.SSS2.p6": {
+        "declared_group": "neighboring_exclusions",
+        "normalized_text": "It remains to lower-bound the test gap. Since n/2\\geq 1, convexity of t\\mapsto t^{n/2} implies \\left(1-\\frac{1}{n}\\right)^{n/2}\\geq 1-\\frac{n}{2}\\cdot\\frac{1}{n}=\\frac{1}{2}. Also, \\displaystyle n(1-r^{2}) \\displaystyle=\\frac{4n\\sqrt{\\kappa}}{(\\sqrt{\\kappa}+1)^{2}}+\\left(\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}\\right)^{2}\\left(2-\\frac{1}{n}\\right) \\displaystyle\\leq\\frac{4n\\sqrt{\\kappa}}{(\\sqrt{\\kappa}+1)^{2}}+2. Together with Eq. (20) and Eq. (24), these estimates give \\displaystyle\\operatorname{TV}(P_{+1},P_{-1}) \\displaystyle\\geq\\frac{2}{n}\\left(\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}\\right)^{n}\\frac{(1-1/n)^{n/2}}{1-r^{2}} \\displaystyle\\geq\\frac{\\left(\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}\\right)^{n}}{2+\\frac{4n\\sqrt{\\kappa}}{(\\sqrt{\\kappa}+1)^{2}}}. This proves the first claimed bound. For the second, \\kappa\\geq 4 implies \\displaystyle\\log\\left(\\frac{\\sqrt{\\kappa}+1}{\\sqrt{\\kappa}-1}\\right) \\displaystyle=2\\int_{0}^{1/\\sqrt{\\kappa}}\\frac{dt}{1-t^{2}} \\displaystyle\\leq\\frac{2}{\\sqrt{\\kappa}(1-\\kappa^{-1})}\\leq\\frac{8}{3\\sqrt{\\kappa}}\\leq\\frac{3}{\\sqrt{\\kappa}}. Hence ((\\sqrt{\\kappa}-1)/(\\sqrt{\\kappa}+1))^{n}\\geq e^{-3n/\\sqrt{\\kappa}}. Using 1+t\\leq e^{t}, we also have 2+\\frac{4n\\sqrt{\\kappa}}{(\\sqrt{\\kappa}+1)^{2}}\\leq 2+\\frac{4n}{\\sqrt{\\kappa}}\\leq 2e^{2n/\\sqrt{\\kappa}}. Therefore, \\operatorname{TV}(P_{+1},P_{-1})\\geq\\frac{e^{-3n/\\sqrt{\\kappa}}}{2e^{2n/\\sqrt{\\kappa}}}=\\frac{1}{2}e^{-5n/\\sqrt{\\kappa}}. ∎",
+        "normalized_sha256": "dad934d7dce0fab81ea5becef2b6be5eb0fb325a55ee98830572fb94ebfb7f92",
+        "html_unicode_char_range": [
+          546480,
+          563112
+        ],
+        "source_text_matches_seal": true,
+        "partitions": [
+          {
+            "start": 0,
+            "end": 415,
+            "text": "It remains to lower-bound the test gap. Since n/2\\geq 1, convexity of t\\mapsto t^{n/2} implies \\left(1-\\frac{1}{n}\\right)^{n/2}\\geq 1-\\frac{n}{2}\\cdot\\frac{1}{n}=\\frac{1}{2}. Also, \\displaystyle n(1-r^{2}) \\displaystyle=\\frac{4n\\sqrt{\\kappa}}{(\\sqrt{\\kappa}+1)^{2}}+\\left(\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}\\right)^{2}\\left(2-\\frac{1}{n}\\right) \\displaystyle\\leq\\frac{4n\\sqrt{\\kappa}}{(\\sqrt{\\kappa}+1)^{2}}+2. ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Convexity and denominator estimates are quantitative downstream work."
+          },
+          {
+            "start": 415,
+            "end": 801,
+            "text": "Together with Eq. (20) and Eq. (24), these estimates give \\displaystyle\\operatorname{TV}(P_{+1},P_{-1}) \\displaystyle\\geq\\frac{2}{n}\\left(\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}\\right)^{n}\\frac{(1-1/n)^{n/2}}{1-r^{2}} \\displaystyle\\geq\\frac{\\left(\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}\\right)^{n}}{2+\\frac{4n\\sqrt{\\kappa}}{(\\sqrt{\\kappa}+1)^{2}}}. This proves the first claimed bound. ",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "This is the immediate source consumer: combines Eq20 with Eq24 and estimates to prove Proposition B.7 Eq19 first bound."
+          },
+          {
+            "start": 801,
+            "end": 1429,
+            "text": "For the second, \\kappa\\geq 4 implies \\displaystyle\\log\\left(\\frac{\\sqrt{\\kappa}+1}{\\sqrt{\\kappa}-1}\\right) \\displaystyle=2\\int_{0}^{1/\\sqrt{\\kappa}}\\frac{dt}{1-t^{2}} \\displaystyle\\leq\\frac{2}{\\sqrt{\\kappa}(1-\\kappa^{-1})}\\leq\\frac{8}{3\\sqrt{\\kappa}}\\leq\\frac{3}{\\sqrt{\\kappa}}. Hence ((\\sqrt{\\kappa}-1)/(\\sqrt{\\kappa}+1))^{n}\\geq e^{-3n/\\sqrt{\\kappa}}. Using 1+t\\leq e^{t}, we also have 2+\\frac{4n\\sqrt{\\kappa}}{(\\sqrt{\\kappa}+1)^{2}}\\leq 2+\\frac{4n}{\\sqrt{\\kappa}}\\leq 2e^{2n/\\sqrt{\\kappa}}. Therefore, \\operatorname{TV}(P_{+1},P_{-1})\\geq\\frac{e^{-3n/\\sqrt{\\kappa}}}{2e^{2n/\\sqrt{\\kappa}}}=\\frac{1}{2}e^{-5n/\\sqrt{\\kappa}}. ∎",
+            "classification": "EXCLUDED",
+            "node_id": null,
+            "reason": "Logarithmic/exponential simplification proves the second Eq19 bound; it is not a producer of Eq20."
+          }
+        ]
+      }
+    }
+  },
+  "verdict": "PASS_SOURCE_TOPOLOGY_WITH_EXPLICIT_BACKGROUND_GAPS",
+  "blocking_source_issues": []
+}

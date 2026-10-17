@@ -1,0 +1,302 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-9439ce6308240c9d",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "/root",
+    "blind_decoder": "Independent anonymous mathematical decoder /root/anonymous_event_test_decoder",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "gaussian-complexity-2026",
+    "anchor": "arXiv:2610.20492v1 Section2 accuracy measures and AppendixB2.2 Eq20; actual Section3.1 mixtures and AppendixB2 density p_O.",
+    "original_text": "For \\(n\\ge3\\), \\(\\kappa\\ge4\\), \\(\\ell\\ge0\\), let \\(A_O=\\frac{\\kappa+1}{2}I_n-\\frac{\\kappa-1}{4}(O+O^\\top)\\), \\(\\mu\\) be normalized full real orthogonal Haar, \\(\\nu_\\pm=2\\mu|_{\\{\\det O=\\pm1\\}}\\), \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\), \\(P_\\pm=\\nu_\\pm\\mathbin{\\mathrm{bind}}\\gamma\\), and \\(p_O(x)=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}e^{-x^\\top A_Ox/2}\\) on Euclidean volume. Set \\(t(x)=e^{-\\ell\\|x\\|^2}\\) and \\(H(\\ell)=\\int\\det(O)\\int t(x)p_O(x)\\,dx\\,d\\mu(O)\\). Then \\(2|H(\\ell)|\\le\\sup_{B\\ \\mathrm{measurable}}|P_+(B)-P_-(B)|\\). Includes zero tilt; all actual law, probability, L1 and supremum conditions are internal.",
+    "text_sha256": "39103677eeb93b694d5627eed0f1ad6a0187426b99ae7ca339bf8b2fdf9a126f"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.ActualTotalVariation.actual_radial_test_tv",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/ActualTotalVariation.lean",
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ),\n    let μ := (Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))⁻¹\n    let Ppos := νpos.bind γ\n    let Pneg := νneg.bind γ\n    let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)) *ᵥ WithLp.ofLp x)) / 2)\n    2 * |∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x) ∂μ| ≤\n      sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin n)),\n        MeasurableSet B ∧ z = |Ppos.real B - Pneg.real B|}",
+    "statement_sha256": "6d4a4703da47b6298150a110ab2a08e92d4bf9ebcc8ab780b15d5e8ed330796b",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every integer n >= 3, every real kappa >= 4, and every real ell >= 0, let G = O(n) be the full real orthogonal group and let mu be normalized Borel Haar probability on G. Write A(O) = ((kappa+1)/2) I_n - ((kappa-1)/4)(O+O^T). Define nu_+ = 2 mu restricted to {O in G : det O = 1} and nu_- = 2 mu restricted to {O in G : det O = -1}. For each O in G let gamma_O be the actual centered Gaussian law N(0,A(O)^{-1}) on Borel Euclidean R^n, and define the mixture measures P_+(B) = integral_G gamma_O(B) d nu_+(O) and P_-(B) = integral_G gamma_O(B) d nu_-(O) for every Borel set B. Put t_ell(x) = exp(-ell ||x||_2^2) and p_O(x) = sqrt(det A(O))/(2 pi)^(n/2) exp(-x^T A(O)x/2), with dx denoting Euclidean Lebesgue volume. Then\n2 | integral_G det(O) [ integral_(R^n) t_ell(x) p_O(x) dx ] d mu(O) | <= sup_{B Borel subset R^n} |P_+(B)-P_-(B)|.\nHere A(O) is positive definite, with every eigenvalue in [1,kappa]; nu_+, nu_-, gamma_O, and P_+, P_- are genuine probability measures, the family O -> gamma_O is measurable, and p_O is the actual volume density of gamma_O. These facts and the absolute integrability of both displayed integrals are consequences to be established internally, not extra hypotheses. The supremum is the real least upper bound of a nonempty bounded set of absolute event discrepancies. Its normalization is the event supremum, with no extra factor of two on the right. The case ell = 0 is included (the left side is then zero).",
+    "text_sha256": "51a4aca88f61518418d80aafc285e851aafd0e183fdb0fc3615c77cf3fa7133c",
+    "decoder": "Independent anonymous mathematical decoder /root/anonymous_event_test_decoder",
+    "decoder_packet_sha256": "b8f109752eb5bdb443e28ed320a8646f59d36c18de6b621aa0491ace651aa62e",
+    "decoder_run_sha256": "cc15c1fcbcd29a0ddeae50082e727b5649187d15a3e1cc312434aa4bf403958a",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "3d44697d5e7d263a1e5b66dbe15094d42f2925b8515afdc4c22a3da44bb8e8fa",
+  "candidate_publication_context": {
+    "file": "06b2d133ea4a7d5fd210a23f2ff792057121e96df233c5f26f8e51525d972a42",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureExpectation\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianLawDensity\nimport AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation\nimport Mathlib.Probability.Distributions.Bernoulli\n/-!\n# The radial test bounds TV of the actual mixtures\n\nZhou--Suzuki, arXiv:2610.20492v1, Section2 accuracy convention and AppendixB2.2\nEq20. All source objects are literal: full Haar, twice-restricted sign priors,\nactual Gaussian bind mixtures, and the normalized Euclidean Gaussian density.\nThe factor-one bounded-test estimate is obtained by applying the identical\ncompiled Markov TV contraction node to a Bernoulli test kernel. Measurability,\nprobability, Bochner L1, density identification and the real event supremum\nconditions are internal. No Poisson estimate, product, transcript, cost or main\nquery lower bound is claimed.\n-/\n\nopen Matrix MeasureTheory ProbabilityTheory\nopen scoped ENNReal ProbabilityTheory\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureExpectation\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianLawDensity\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.ActualTotalVariation\ntheorem actual_radial_test_tv {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ) :\n    let μ := orthogonalHaar n\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n    let Ppos := νpos.bind γ\n    let Pneg := νneg.bind γ\n    let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n    2 * |∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x) ∂μ| ≤\n      sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin n)),\n        MeasurableSet B ∧ z = |Ppos.real B - Pneg.real B|} := by\n  classical\n  dsimp only\n  let G := Matrix.orthogonalGroup (Fin n) ℝ\n  let E := EuclideanSpace ℝ (Fin n)\n  let μ := orthogonalHaar n\n  let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n  let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n  let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n  let Ppos := νpos.bind γ\n  let Pneg := νneg.bind γ\n  let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n  let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n  let f : G → ℝ := fun O => ∫ x, t x ∂γ O\n  have hlaws := actual_mixture_laws hn hκ\n  let : IsProbabilityMeasure Ppos := hlaws.2.1\n  let : IsProbabilityMeasure Pneg := hlaws.2.2.1\n  have hgap := actual_mixture_expectation_gap hn hκ hℓ\n  have htc : Continuous t := by dsimp [t]; fun_prop\n  have ht0 (x : E) : 0 ≤ t x := (Real.exp_pos _).le\n  have ht1 (x : E) : t x ≤ 1 := by\n    exact Real.exp_le_one_iff.mpr\n      (mul_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr hℓ) (sq_nonneg _))\n  have htnorm (x : E) : ‖t x‖ ≤ 1 := by\n    simpa only [Real.norm_eq_abs, abs_of_nonneg (ht0 x)] using ht1 x\n  have hp0 (O : G) (x : E) : 0 ≤ p O x := by dsimp [p]; positivity\n  have hpm (O : G) : Measurable (fun x => ENNReal.ofReal (p O x)) := by\n    dsimp [p]; fun_prop\n  have hpfin (O : G) : ∀ᵐ x ∂(volume : Measure E),\n      ENNReal.ofReal (p O x) < ⊤ :=\n    Filter.Eventually.of_forall fun _ => ENNReal.ofReal_lt_top\n  have hpoint (O : G) :\n      Integrable (fun x => t x * p O x) volume ∧\n        f O = ∫ x, t x * p O x := by\n    let : IsProbabilityMeasure (γ O) := by dsimp [γ]; infer_instance\n    have htL : Integrable t (γ O) :=\n      (integrable_const (1 : ℝ)).mono' htc.aestronglyMeasurable\n        (Filter.Eventually.of_forall htnorm)\n    have hd : γ O = volume.withDensity (fun x => ENNReal.ofReal (p O x)) :=\n      gaussian_law_eq_density hn hκ O\n    have htd : Integrable t (volume.withDensity (fun x => ENNReal.ofReal (p O x))) :=\n      hd ▸ htL\n    have hw := (integrable_withDensity_iff (hpm O) (hpfin O)).mp htd\n    refine ⟨?_, ?_⟩\n    · simpa only [ENNReal.toReal_ofReal (hp0 O _)] using hw\n    · change (∫ x, t x ∂γ O) = _\n      rw [hd, integral_withDensity_eq_integral_toReal_smul (hpm O) (hpfin O)]\n      apply integral_congr_ae\n      exact Filter.Eventually.of_forall fun x => by\n        change (ENNReal.ofReal (p O x)).toReal * t x = t x * p O x\n        rw [ENNReal.toReal_ofReal (hp0 O x), mul_comm]\n  have hsign (O : G) : (O : Matrix (Fin n) (Fin n) ℝ).det = 1 ∨\n      (O : Matrix (Fin n) (Fin n) ℝ).det = -1 := by\n    have h := congrArg Matrix.det\n      ((Matrix.mem_orthogonalGroup_iff (Fin n) ℝ).mp O.property)\n    rw [Matrix.det_mul, Matrix.det_transpose, Matrix.det_one] at h\n    exact mul_self_eq_one_iff.mp h\n  have hparts :\n      Integrable f (μ.restrict {O : G | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}) ∧\n      Integrable f (μ.restrict {O : G | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}) := by\n    constructor\n    · exact (integrable_smul_measure (by norm_num : (2 : ℝ≥0∞) ≠ 0)\n        (by norm_num : (2 : ℝ≥0∞) ≠ ⊤)).mp hgap.2.2.1\n    · exact (integrable_smul_measure (by norm_num : (2 : ℝ≥0∞) ≠ 0)\n        (by norm_num : (2 : ℝ≥0∞) ≠ ⊤)).mp hgap.2.2.2.1\n  have hunion : {O : G | (O : Matrix (Fin n) (Fin n) ℝ).det = 1} ∪\n      {O : G | (O : Matrix (Fin n) (Fin n) ℝ).det = -1} = Set.univ := by\n    exact Set.eq_univ_iff_forall.mpr hsign\n  have hfL : Integrable f μ := by\n    have hU := integrableOn_union.mpr hparts\n    simpa only [hunion, integrableOn_univ] using hU\n  have hdetm : Continuous (fun O : G => (O : Matrix (Fin n) (Fin n) ℝ).det) := by\n    fun_prop\n  have hdetb (O : G) : ‖(O : Matrix (Fin n) (Fin n) ℝ).det‖ ≤ 1 := by\n    rcases hsign O with h | h <;> simp [h]\n  have hHactualL : Integrable\n      (fun O : G => (O : Matrix (Fin n) (Fin n) ℝ).det * f O) μ :=\n    hfL.bdd_mul hdetm.aestronglyMeasurable (Filter.Eventually.of_forall hdetb)\n  have hHdensityL : Integrable (fun O : G =>\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x)) μ := by\n    apply hHactualL.congr\n    exact Filter.Eventually.of_forall fun O => by\n      change (O : Matrix (Fin n) (Fin n) ℝ).det * f O =\n        (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x)\n      rw [(hpoint O).2]\n  have hH : (∫ O : G, (O : Matrix (Fin n) (Fin n) ℝ).det * f O ∂μ) =\n      ∫ O : G, (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x) ∂μ := by\n    apply integral_congr_ae\n    exact Filter.Eventually.of_forall fun O => by\n      change (O : Matrix (Fin n) (Fin n) ℝ).det * f O =\n        (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x)\n      rw [(hpoint O).2]\n  let D : Set ℝ := {z | ∃ B : Set E, MeasurableSet B ∧\n    z = |Ppos.real B - Pneg.real B|}\n  have hDne : D.Nonempty := ⟨0, ∅, MeasurableSet.empty, by simp⟩\n  have hDbd : BddAbove D := by\n    refine ⟨1, ?_⟩\n    rintro z ⟨B, hB, rfl⟩\n    have hp0 : 0 ≤ Ppos.real B := measureReal_nonneg\n    have hp1 : Ppos.real B ≤ 1 := measureReal_le_one\n    have hn0 : 0 ≤ Pneg.real B := measureReal_nonneg\n    have hn1 : Pneg.real B ≤ 1 := measureReal_le_one\n    exact abs_le.mpr ⟨by linarith, by linarith⟩\n  have hδ (B : Set E) (hB : MeasurableSet B) :\n      |Ppos.real B - Pneg.real B| ≤ sSup D :=\n    le_csSup hDbd ⟨B, hB, rfl⟩\n  let b : E → unitInterval := fun x => ⟨t x, ht0 x, ht1 x⟩\n  have hbc : Continuous b := by dsimp [b]; fun_prop\n  let K : Kernel E ℝ := ⟨fun x => bernoulliMeasure (1 : ℝ) 0 (b x), by\n    refine Measure.measurable_of_measurable_coe _ fun B hB => ?_\n    simp only [bernoulliMeasure_apply _ hB]\n    split_ifs <;> fun_prop⟩\n  let : IsMarkovKernel K := ⟨fun x => by\n    change IsProbabilityMeasure (bernoulliMeasure (1 : ℝ) 0 (b x))\n    infer_instance⟩\n  have hKtest (x : E) : (K x).real {1} = t x := by\n    exact bernoulliMeasure_real_apply_of_mem_of_notMem (b x)\n      (measurableSet_singleton 1) (by simp) (by norm_num)\n  have happly (ρ : Measure E) [IsProbabilityMeasure ρ] :\n      (K ∘ₘ ρ).real {1} = ∫ x, t x ∂ρ := by\n    change (Measure.bind ρ K {1}).toReal = _\n    rw [Measure.bind_apply (measurableSet_singleton 1) K.aemeasurable]\n    calc\n      _ = ∫ x, (K x {1}).toReal ∂ρ :=\n        (integral_toReal (K.measurable_coe (measurableSet_singleton 1)).aemeasurable\n          (Filter.Eventually.of_forall fun x => measure_lt_top (K x) {1})).symm\n      _ = _ := integral_congr_ae (Filter.Eventually.of_forall hKtest)\n  have htest := AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation.abs_real_comp_sub_le\n    Ppos Pneg K hδ {1} (measurableSet_singleton 1)\n  rw [happly Ppos, happly Pneg] at htest\n  have hgap' : (∫ x, t x ∂Ppos) - (∫ x, t x ∂Pneg) =\n      2 * (∫ O : G, (O : Matrix (Fin n) (Fin n) ℝ).det *\n        (∫ x, t x * p O x) ∂μ) := by\n    exact hgap.2.2.2.2.2.2.trans (congrArg (fun y : ℝ => 2 * y) hH)\n  rw [hgap', abs_mul, abs_of_pos (by norm_num : (0 : ℝ) < 2)] at htest\n  exact htest\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.ActualTotalVariation\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p3",
+      "edition": "arXiv:2610.20492v1",
+      "anchor": "arXiv:2610.20492v1 Section2 accuracy measures and AppendixB2.2 Eq20; actual Section3.1 mixtures and AppendixB2 density p_O.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Eq20 with the Section2 factor-one event-TV convention. Measure/density and Bernoulli-kernel details are supplied background.",
+      "label": "Radial test to single-block TV, Eq20",
+      "scope": "Exact Eq20 only; quantitative Proposition B.7 is the immediate consumer, not a result of this packet."
+    },
+    "statement": "For \\(n\\ge3\\), \\(\\kappa\\ge4\\), \\(\\ell\\ge0\\), let \\(A_O=\\frac{\\kappa+1}{2}I_n-\\frac{\\kappa-1}{4}(O+O^\\top)\\), \\(\\mu\\) be normalized full real orthogonal Haar, \\(\\nu_\\pm=2\\mu|_{\\{\\det O=\\pm1\\}}\\), \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\), \\(P_\\pm=\\nu_\\pm\\mathbin{\\mathrm{bind}}\\gamma\\), and \\(p_O(x)=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}e^{-x^\\top A_Ox/2}\\) on Euclidean volume. Set \\(t(x)=e^{-\\ell\\|x\\|^2}\\) and \\(H(\\ell)=\\int\\det(O)\\int t(x)p_O(x)\\,dx\\,d\\mu(O)\\). Then \\(2|H(\\ell)|\\le\\sup_{B\\ \\mathrm{measurable}}|P_+(B)-P_-(B)|\\). Includes zero tilt; all actual law, probability, L1 and supremum conditions are internal.",
+    "formulae": [
+      {
+        "label": "Source Eq20 on actual mixtures",
+        "tex": "2|H(\\ell)|\\le\\operatorname{TV}(P_+,P_-)."
+      }
+    ],
+    "assumptions": [
+      "\\(n\\ge3\\), \\(\\kappa\\ge4\\), and \\(\\ell\\ge0\\), including \\(\\ell=0\\).",
+      "\\(\\mu\\) is normalized Haar on full real \\(O(n)\\), \\(\\nu_\\pm=2\\mu|_{\\{\\det O=\\pm1\\}}\\), and \\(P_\\pm=\\nu_\\pm\\mathbin{\\mathrm{bind}}\\gamma\\) with the actual \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\).",
+      "\\(p_O\\) is the actual normalized density relative to Euclidean volume. All integrals are real Bochner integrals; absolute integrability and actual law identities are proved internally.",
+      "TV uses the supremum over measurable events, with no extra factor of two. Measurability, probability laws and the event supremum conditions are produced inside the proof."
+    ],
+    "obligations": [
+      {
+        "id": "actual-radial-test-tv",
+        "label": "Actual density-defined signed radial average bounds actual mixture event-TV with exact factor2"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.ActualTotalVariation.actual_radial_test_tv",
+      "kind": "theorem",
+      "title": "A radial test bounds mixture TV",
+      "reading_layout": "progressive",
+      "reader_note": "Used by the single-block separation proof; its numerical lower bound remains open.",
+      "statement": "The bounded radial test turns its signed Gaussian average into a lower bound on the actual mixture distance.",
+      "formula": "2|H(\\ell)|\\le\\operatorname{TV}(P_+,P_-).",
+      "assumptions": [
+        "\\(n\\ge3\\), \\(\\kappa\\ge4\\), and \\(\\ell\\ge0\\), including \\(\\ell=0\\).",
+        "\\(\\mu\\) is normalized Haar on full real \\(O(n)\\), \\(\\nu_\\pm=2\\mu|_{\\{\\det O=\\pm1\\}}\\), and \\(P_\\pm=\\nu_\\pm\\mathbin{\\mathrm{bind}}\\gamma\\) with the actual \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\).",
+        "\\(p_O\\) is the actual normalized density relative to Euclidean volume. All integrals are real Bochner integrals; absolute integrability and actual law identities are proved internally.",
+        "TV uses the supremum over measurable events, with no extra factor of two. Measurability, probability laws and the event supremum conditions are produced inside the proof."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(A_O\\) and \\(p_O\\)",
+          "text": "Literal precision and normalized Euclidean density.",
+          "formula": "A_O=\\frac{\\kappa+1}{2}I_n-\\frac{\\kappa-1}{4}(O+O^\\top),\\qquad p_O(x)=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}e^{-x^\\top A_Ox/2}."
+        },
+        {
+          "symbol": "\\(t\\) and \\(H\\)",
+          "text": "Radial test and source density-defined signed average.",
+          "formula": "t(x)=e^{-\\ell\\|x\\|^2},\\qquad H(\\ell)=\\int_{O(n)}\\det(O)\\!\\left(\\int_{\\mathbb R^n}t(x)p_O(x)\\,dx\\right)d\\mu(O)."
+        },
+        {
+          "symbol": "\\(\\operatorname{TV}\\)",
+          "text": "Factor-one event supremum; no signed-variation convention is substituted.",
+          "formula": "\\operatorname{TV}(P_+,P_-)=\\sup_{B\\ \\mathrm{measurable}}|P_+(B)-P_-(B)|."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Identify the actual Gaussian integral",
+          "text": "Use the existing law–density theorem. The radial test is bounded, so its actual Gaussian integral and its density integral are absolutely integrable and agree.",
+          "formula": "f(O)=\\int t\\,d\\gamma_O=\\int_{\\mathbb R^n}t(x)p_O(x)\\,dx.",
+          "lean": "hpoint uses gaussian_law_eq_density, integrable_withDensity_iff and integral_withDensity_eq_integral_toReal_smul. hp0/hpm/hpfin and bounded actual-Gaussian L1 are internal."
+        },
+        {
+          "title": "Use the actual mixture gap",
+          "text": "The existing mixture-expectation theorem gives the factor two. Its prior integrability and the sign partition also give absolute integrability of the signed full-Haar density average.",
+          "formula": "\\mathbb E_{P_+}t-\\mathbb E_{P_-}t=2H(\\ell).",
+          "lean": "hgap is the identical actual_mixture_expectation_gap. hparts/hunion/hfL and bounded determinant multiplication produce hHactualL/hHdensityL; hH identifies the exact source density-defined H."
+        },
+        {
+          "title": "Represent the test by one output event",
+          "text": "Construct a Bernoulli kernel with success probability equal to the radial test. Its probability of the event consisting of one is exactly the test value, and its composed probability is the actual test expectation.",
+          "formula": "K(x,\\cdot)=t(x)\\delta_1+(1-t(x))\\delta_0,\\qquad (K\\circ P_\\pm)(\\{1\\})=\\mathbb E_{P_\\pm}t.",
+          "lean": "b is the continuous unit-interval test. K is the literal bernoulliMeasure kernel; hKtest and happly prove its real event identity using bind_apply and finite integral_toReal."
+        },
+        {
+          "title": "Reuse the shared TV contraction",
+          "text": "Probability bounds make the event supremum nonempty and bounded. Apply the same compiled common-kernel contraction theorem at the event consisting of one.",
+          "formula": "|\\mathbb E_{P_+}t-\\mathbb E_{P_-}t|\\le\\sup_{B\\ \\mathrm{measurable}}|P_+(B)-P_-(B)|.",
+          "lean": "D is the literal real event-discrepancy set; hDne/hDbd/hδ establish the actual sSup meaning. htest calls the canonical KernelTotalVariation.abs_real_comp_sub_le, not a copied layercake proof."
+        },
+        {
+          "title": "Keep the exact normalization",
+          "text": "Substitute the density-defined signed gap into the bounded-test estimate. Taking the absolute value retains the factor two and gives Eq20.",
+          "formula": "2|H(\\ell)|=|2H(\\ell)|\\le\\operatorname{TV}(P_+,P_-).",
+          "lean": "hgap' composes the actual mixture gap with hH; abs_mul and positivity of2 finish. No quantitative value of H, Poisson estimate or query model is assumed."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws.actual_mixture_laws",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureExpectation.actual_mixture_expectation_gap",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianLawDensity.gaussian_law_eq_density",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation.abs_real_comp_sub_le",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar"
+      ],
+      "mathlib_dependencies": [
+        "bernoulliMeasure",
+        "bernoulliMeasure_real_apply_of_mem_of_notMem",
+        "integrable_withDensity_iff",
+        "integral_withDensity_eq_integral_toReal_smul",
+        "integrable_smul_measure",
+        "integrableOn_union",
+        "Integrable.bdd_mul",
+        "Measure.bind_apply",
+        "integral_toReal",
+        "le_csSup"
+      ],
+      "lean_statement": "Only the source parameters are premises; the literal actual density-defined H and event-supremum TV occur in the conclusion.",
+      "lean_proof": "Identify density integrals, consume the actual mixture gap, construct the radial Bernoulli test kernel and reuse the identical compiled common-kernel TV contraction.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p3",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "arXiv:2610.20492v1 Section2 accuracy measures and AppendixB2.2 Eq20; actual Section3.1 mixtures and AppendixB2 density p_O.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Eq20 with the Section2 factor-one event-TV convention. Measure/density and Bernoulli-kernel details are supplied background.",
+          "label": "Radial test to single-block TV, Eq20",
+          "scope": "Exact Eq20 only; quantitative Proposition B.7 is the immediate consumer, not a result of this packet."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelTotalVariation.lean",
+          "line": 40,
+          "label": "Canonical shared Markov TV contraction",
+          "scope": "The identical compiled node is applied to the actual Bernoulli test kernel; no analogy is promoted to an implication."
+        },
+        {
+          "path": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Bernoulli.lean",
+          "line": 46,
+          "label": "Mathlib Bernoulli measure",
+          "scope": "Literal two-atom probability construction and its measurable-event evaluations; authors Etienne Marion and David Ledvinka, Apache2."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityActualTotalVariation"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.ActualTotalVariation.actual_radial_test_tv",
+      "role": "proof-edge",
+      "supports": [
+        "actual-radial-test-tv"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Section2 bounded [0,1] test inequality, AppendixB2 Eq20 at n>=3,kappa>=4 and radial ell>=0, with actual Gaussian density and actual mixtures.",
+        "lean": "Exactly those source parameters and literal actual objects. Measurable probability laws, absolute integrability, actual density/mixture identities, Bernoulli kernel, and event supremum conditions are produced internally."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "2e811ee3070ad06f552e23bce065369573cf9f31ebc81a6dffbd97ddd15a17d4"
+}

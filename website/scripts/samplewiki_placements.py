@@ -40,6 +40,15 @@ def graph_link(name: str) -> str:
     return 'lean-foundations.html?' + urlencode({'view': 'lean', 'focus': 'decl:' + name})
 
 
+def display_title(value: str) -> str:
+    """Literal typesetting of existing labels, not a source-statement rewrite."""
+    value = escape(value)
+    for raw, tex in [('h Lambda_J&lt;=c/kappa', r'\(h\Lambda_J\le c/\kappa\)'),
+                     ('M_kappa', r'\(M_\kappa\)'), ('Q_kappa', r'\(Q_\kappa\)')]:
+        value = value.replace(raw, tex)
+    return value
+
+
 def links(row: dict, chapters: dict[int, dict], rel: str) -> str:
     targets = [(PAGE + '#' + row['slug'], 'Textbook research extension')]
     targets += [(f'textbook/chapter-{n:02d}.html', f'Ch. {n}: {chapters[n]["title"]}')
@@ -72,7 +81,7 @@ def enrich_site(output: Path) -> None:
             owner = 'Canonical shared module' if shared else 'Paper-specific owning module'
             module_href = navigation.relative(PAGE, 'modules/' + astis_site.slugify(entry['module']) + '.html')
             entries.append(f'<li data-reviewed-placement="{escape(entry["name"])}">'
-                f'<a href="{escape(href)}">{escape(entry["title"])}</a> · '
+                f'<a href="{escape(href)}">{display_title(entry["title"])}</a> · '
                 f'<a href="{escape(graph_href)}">Lean graph</a>'
                 f'<small>{owner}: <a href="{escape(module_href)}">{escape(entry["module"])}</a></small></li>')
         label = row.get('reader_label', row['title'])

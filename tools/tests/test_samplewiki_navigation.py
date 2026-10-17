@@ -147,6 +147,12 @@ class PaperNavigationTests(unittest.TestCase):
             self.assertTrue(row['reader_chapters'])
             self.assertLessEqual(set(row['reader_chapters']), chapters)
 
+    def test_extension_titles_typeset_existing_literal_notation(self):
+        text = placements.display_title('M_kappa and Q_kappa under h Lambda_J<=c/kappa')
+        self.assertNotIn('M_kappa', text)
+        self.assertIn(r'\(M_\kappa\)', text)
+        self.assertIn(r'\(h\Lambda_J\le c/\kappa\)', text)
+
 
 if __name__ == '__main__':
     unittest.main()

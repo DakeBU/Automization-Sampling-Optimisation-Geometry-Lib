@@ -48,6 +48,11 @@ Maintenance:
 
 - Edit `samplewiki_navigation.py`, companion/reader generators and the small
   `samplewiki-paper-navigation.css`/`.js` assets, not generated HTML.
+- `samplewiki_placements.py` projects reviewed bindings from the existing
+  publication metadata into `textbook/research-extensions.html`. Set a case's
+  `reader_chapters` only for relevant existing textbook background; it is a
+  reading-context field, never a proof-status or dependency override. New
+  verified bindings appear automatically; pending bindings are not admitted.
 - Run `python -m unittest tools.tests.test_samplewiki_navigation
   tools.tests.test_samplewiki_companions tools.tests.test_samplewiki_reader_contract`
   as one command, followed by the canonical site build and `check_site.py`.

@@ -255,6 +255,13 @@ def main() -> None:
             assert 'not chapters or numbered results' in page.locator('main').inner_text()
             assert page.locator('main a[href*="focus=decl%3A"]').count() == extensions.count()
             report['research_extension_declarations'] = extensions.count()
+            page.locator('#smoothed-picard-hmc > details > summary').click()
+            if not args.offline_dom:
+                page.evaluate('() => MathJax.startup.promise')
+                assert page.locator('#smoothed-picard-hmc a mjx-container').count() >= 2
+                assert page.locator('mjx-merror').count() == 0
+            assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
+            page.screenshot(path=str(evidence/'samplewiki-textbook-extension-mobile.png'))
             for row in priority:
                 rel = samplewiki_navigation.PAPER_BASE + row['slug'] + '.html'
                 goto(rel)

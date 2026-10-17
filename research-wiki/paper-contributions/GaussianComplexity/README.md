@@ -696,3 +696,34 @@ Sharp Ex59/B6 estimates retain the unchanged disclosed parent boundaries. Both
 oracle/cost routes and the other ASTIS queues remain unchanged. Local proof,
 independent commit-bound admission, public integration and purification remain
 separate, and the overall Goal remains unfinished.
+
+
+## Actual Gaussian expectation validation record
+
+Exact immutable local proof commit `c240ec0d44a084b30b51b17f8e9669d73bbf601d` passed
+`python tools/astis.py check` with actual terminal exit0: root library9224jobs,
+root Tests9528jobs, ATLAS36469named declarations in26books and forbidden-closure
+scan. The new declaration has separate focused3131-job tests and successful
+expanded-type/actual compiler-reference checks; unchanged root imports do not
+claim direct coverage of the new module.
+
+Diff-aware contributor/publication, semantic and Frontier gates passed. The
+anonymous decoder and fresh anti-anchored source reviewer accepted the exact
+current whole module and all five mathematical proof steps. The preproof seal
+and separate exhaustive source topology22nodes18ANDedges14exclusions passed;
+these source ingredients are not22public Lean declarations.
+
+Frozen-input site build and full check passed:1019modules,5090declarations
+and77reviewed teaching declarations. Graph coverage passed with no omitted
+required connections. Actual browser inspection found6rendered formulas, no
+MathJax errors, no initially open Lean disclosures and no horizontal overflow,
+with all five proof steps. The focused branch has5nodes,4edges and3immediate
+relations, with solid ownership, dashed source/fidelity overlays and retained
+partial/source-present status. Actual compiler references separately establish
+the exact GaussianLawDensity/MixtureFubini/Haar and measure-transport calls.
+
+This README-only note changes no frozen mathematical or graph inputs. The
+packet remains local PROVED_LOCAL. Independent commit-bound admission, public
+upload/integration, merge and purification remain separate. Conditioned target
+mixtures, H-to-TV, sphere/Poisson, both main lower bounds and the overall Goal
+remain open. The hidden-eigenbasis route remains distinct.

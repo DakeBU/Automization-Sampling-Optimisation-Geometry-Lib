@@ -1,6 +1,7 @@
 """Paper-first presentation preserves the canonical mathematical content."""
 import copy
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -25,22 +26,64 @@ class PaperNavigationTests(unittest.TestCase):
         self.assertEqual(navigation.priority_cases(reordered), rows)
         self.assertEqual(len(model['cases']), 5)  # Other projects are retained.
 
-    def test_home_puts_four_links_before_closed_cross_library_pointer(self):
+    def test_home_has_one_sampling_research_directory(self):
         text = reader.overview_main([], [], {}, {})
-        self.assertEqual(text.count('data-paper-id='), 4)
-        self.assertLess(text.index('id="sampling-papers"'),
-                        text.index('id="cross-library-state-preparation"'))
-        self.assertIn('<details class="sw-secondary-reading" id="cross-library-state-preparation">', text)
+        self.assertEqual(text.count('data-paper-id='), 5)
+        self.assertIn('id="research-cases"', text)
+        self.assertIn('Gaussian Sampling Complexity', text)
+        self.assertIn('module-autosamplingtheory-examplecases-gaussiancomplexity-gaussianexpectation.html', text)
+        for old_level in ('Sampling papers', 'Companion-paper frontiers', 'Open frontier',
+                          'cross-library-state-preparation', 'Schrödinger', 'QuantumComputinglib'):
+            self.assertNotIn(old_level, text)
         self.assertNotIn('rceil', text)
         self.assertNotIn('\r', text)
         self.assertIn('not completed paper proofs', text)
 
-    def test_sidebar_has_four_direct_papers_and_closed_settings(self):
+    def test_sidebar_has_all_research_cases_without_an_extra_taxonomy(self):
         text = math_render.sidebar_directory('example-cases/samplewiki.html', [])
         self.assertEqual(text.count('data-paper-directory="true"'), 1)
-        for row in navigation.priority_cases():
+        for row in navigation.research_cases():
             self.assertIn(row['slug'] + '.html', text)
+        self.assertIn('<h2>SampleWiki</h2>', text)
+        self.assertNotIn('Sampling papers', text)
+        self.assertNotIn('Open frontier', text)
+        self.assertNotIn('SampleWiki contents', text)
         self.assertNotIn('<details class="sw-setting-directory" open', text)
+
+    def test_scheduling_priority_does_not_hide_other_projects(self):
+        model = navigation.load_model()
+        self.assertEqual(len(navigation.priority_cases(model)), 4)
+        self.assertEqual({r['id'] for r in navigation.research_cases(model)},
+                         {r['id'] for r in model['cases']})
+
+    def test_old_frontier_is_only_a_compatibility_entry(self):
+        text = reader.frontier_main([], {}, {})
+        self.assertIn('unified research directory', text)
+        self.assertNotIn('<h1>Sampling frontier</h1>', text)
+
+    def test_existing_lesson_links_back_to_its_samplewiki_result(self):
+        model = navigation.load_model()
+        row = next(r for r in model['cases'] if r['id'] == 'ASTIS-SW-GAUSSIAN-COMPLEXITY-2026')
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / row['reader_links'][0]['path']
+            target.parent.mkdir(parents=True)
+            original = '<main id="content"><h1>Exact lesson</h1><div>UNCHANGED-PROOF</div></main>'
+            target.write_text(original, encoding='utf-8')
+            navigation.attach_research_context(Path(tmp), model)
+            once = target.read_text(encoding='utf-8')
+            self.assertIn('gaussian-sampling-complexity.html', once)
+            self.assertIn('>SampleWiki</a>', once)
+            self.assertIn('UNCHANGED-PROOF', once)
+            navigation.attach_research_context(Path(tmp), model)
+            self.assertEqual(target.read_text(encoding='utf-8'), once)
+
+    def test_research_context_cannot_write_outside_the_site(self):
+        model = navigation.load_model()
+        row = next(r for r in model['cases'] if r['id'] == 'ASTIS-SW-GAUSSIAN-COMPLEXITY-2026')
+        row['reader_links'][0]['path'] = '../outside.html'
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, 'inside generated site'):
+                navigation.attach_research_context(Path(tmp), model)
 
     def test_directory_injection_is_idempotent(self):
         original = '<aside><details class="book-nav"><summary>Books</summary></details></aside>'

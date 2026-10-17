@@ -180,14 +180,11 @@ def sidebar_directory(rel_path: str, pages: list[dict[str, object]]) -> str:
         )
     return samplewiki_navigation.paper_directory(rel_path) + f"""
 <section class="sidebar-group sw-sidebar-directory" data-samplewiki-directory="true">
-  <h2>SampleWiki contents</h2>
   <nav>
-    <a href="{html.escape(href_from(rel_path, OVERVIEW), quote=True)}"{current_attr(rel_path, OVERVIEW)}>Overview</a>
     <a href="{html.escape(href_from(rel_path, PROGRESS), quote=True)}"{current_attr(rel_path, PROGRESS)}>Current progress</a>
-    <a href="{html.escape(href_from(rel_path, FRONTIER), quote=True)}"{current_attr(rel_path, FRONTIER)}>Open frontier</a>
   </nav>
   <details class="sw-sidebar-settings">
-    <summary>Settings</summary>
+    <summary>By assumptions and guarantees</summary>
     <nav>{''.join(setting_links)}</nav>
   </details>
 </section>

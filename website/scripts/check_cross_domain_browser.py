@@ -226,11 +226,14 @@ def main() -> None:
             # Every companion binding must have adjacent, initially folded Lean.
             # Derive the inventory from publications; do not freeze a leaf count.
             goto('example-cases/samplewiki.html')
-            priority = samplewiki_navigation.priority_cases()
+            priority = samplewiki_navigation.research_cases()
             cards = page.locator('.sw-paper-card')
             assert cards.count() == len(priority)
             assert cards.evaluate_all('nodes => nodes.map(n => n.dataset.paperId)') == [r['id'] for r in priority]
-            assert not page.locator('#cross-library-state-preparation').evaluate('node => node.open')
+            assert page.locator('#cross-library-state-preparation').count() == 0
+            assert 'Sampling papers' not in page.locator('main').inner_text()
+            assert page.get_by_role('link', name='Gaussian expectations: mathematical proof and Lean', exact=True).count() == 1
+            page.screenshot(path=str(evidence/'samplewiki-unified-directory-mobile.png'))
             assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
             report['priority_papers'] = []
             for row in priority:

@@ -2,21 +2,24 @@
 
 ## Actual PBPS invariant phase kernel and L2 realization (2026-10-17)
 
-Current integration owner: `root_20261016`, sole STABILIZING lease. Independent
+Previous integration owner: `root_20261016`; its STABILIZING lease is released.
+Independent
 source/compiler reviewer published VERIFIED with explicit human authorization;
 the exact source at52d523ac is unchanged. Registry/root imports are prepared
 (target565; merged continuity baseline564). At exact candidate5c3fcdd1, the
 canonical Lean/Tests9532-job gate and final source-bound site build/check passed.
-Draft PR327 is pushed; contributor/site CI passed, formalization CI remains
-in progress at this checkpoint. No merge or purification is inferred.
+PR327 actually merged at202a65e12eba211c21d8a0d7a8b859e0ccbf7f14 after
+contributor/site/formalization CI all passed at exact5c3fcdd1. Registry565 is
+now on main. Purification and deployment acceptance are not inferred.
 Continuity PR325 merged at01f844b6 after all three current-head CI lanes passed.
 The next exact half-turn detailed-balance statement is sealed and source-first
 prereviewed. Its production proof and focused test now compile (3251 jobs), and
 independent mathematical/direct-compiler review passed. Its cell remains
-claimed/EXPLORING, NOT VERIFIED or counted: the fresh decoder completed, but
-saving its raw report was denied pending separate human authorization; canonical
-source review is still pending. The formalizer must not write that report on
-the decoder's behalf. Proof work does not acquire a second integration lease.
+claimed/EXPLORING, NOT VERIFIED or counted. After separate explicit human
+authorization, the original decoder saved its unchanged raw report; fresh
+anti-anchored source/compiler review is running on packet04b16881 and
+publication binding6334034c. Earlier denied persistence is not acceptance.
+This result has not acquired an integration lease.
 Complete papers remain0/4.
 Start from `research-wiki/paper-contributions/PBPS/kernel-l2-realization-verification.json`.
 

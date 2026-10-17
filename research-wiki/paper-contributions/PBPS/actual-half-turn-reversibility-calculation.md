@@ -3,9 +3,10 @@
 The exact production module and focused test compiled locally (3251 jobs,
 standard three axioms only). Independent mathematical/direct-compiler proof
 checking passed; see actual-half-turn-reversibility-independent-proof-check.json.
-The post-proof source-blind roundtrip and publication are NOT yet accepted:
-the decoder's raw-report write was denied pending explicit authorization for
-this separate audit. The earlier kernel/L2 authorization does not cover it.
+The post-proof source-blind roundtrip and publication are NOT yet accepted.
+After separate explicit human authorization, the original decoder saved its
+unchanged raw report; a fresh anti-anchored source/compiler review is in progress.
+The earlier denied persistence remains historical evidence, not acceptance.
 The exact statement passed source-first prereview before implementation; digest
 `45ea5cc6ba2706069de8d6ad70a03a686de81e5aaaf9e1cc4b373a5fa2af4dd2`.
 Do not promote this result to VERIFIED or count a complete paper from local compilation.

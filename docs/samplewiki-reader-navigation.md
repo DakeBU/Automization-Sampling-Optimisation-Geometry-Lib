@@ -1,12 +1,18 @@
-# SampleWiki paper-first reader contract
+# SampleWiki unified research-reader contract
 
 The landing page is a directory, not a concatenation of every project update.
-Its first mathematical entry is the current paper route. The four-paper order
-is projected from `execution.phase_order` in
-`website/content/samplewiki_companion_frontiers.json`; `reader_label` and
-`reader_summary` are presentation only. Keep all other source cases intact.
-Cross-library pointers, including quantum/PDE state preparation, belong in
-secondary closed disclosures rather than above the sampling papers.
+SampleWiki itself is the home of Sampling research problems and new results.
+Do not add another researcher-facing `Frontier`, `Companion-paper frontiers`,
+or `Sampling papers` level. All source cases, including Gaussian Complexity,
+belong to the same directory. The active four-paper scheduling order comes from
+`execution.phase_order` in `website/content/samplewiki_companion_frontiers.json`;
+it determines ordering, never library membership or exclusive visibility.
+`reader_label`, `reader_summary` and `reader_links` are presentation only.
+Keep the 34 source-index cases and their source/proof boundaries intact.
+Quantum/PDE state preparation belongs to its own library, not this directory.
+Legacy frontier/companion index URLs redirect to the single SampleWiki home.
+Shared foundations and textbook extended chapters remain linked lower-level
+homes for reusable lemmas, not competing classifications for a research result.
 
 Each paper has three depths:
 
@@ -15,8 +21,12 @@ Each paper has three depths:
 2. Source-linked calculations, initially folded. Each step has its own adjacent
    Lean disclosure. A source proof route is not a completed Lean proof.
 3. A compact index of source-mapped declarations and independent reviews,
-   projected from the existing publication bindings. Expand one exact proof
-   or follow its focused reader page; do not maintain a second status list.
+   projected from the existing publication bindings. Link each item to its
+   focused source/proof reader; do not embed hundreds of full proof units in a
+   closed disclosure. Hidden DOM still loads and renders its formulas. Every
+   focused reader retains the complete source, assumption ledger, authored
+   formula proof, semantic evidence and adjacent folded Lean. The static gate
+   checks all targets; browser checks exercise representative full readers.
 
 The exact authored publication and declaration-lesson content is retained.
 Navigation/layout changes must not rewrite reviewed proofs, expand statements,
@@ -31,7 +41,7 @@ Maintenance:
 - Run `python -m unittest tools.tests.test_samplewiki_navigation
   tools.tests.test_samplewiki_companions tools.tests.test_samplewiki_reader_contract`
   as one command, followed by the canonical site build and `check_site.py`.
-- Actually inspect all four paper pages: MathJax output/errors, statement/proof
+- Actually inspect affected research pages: MathJax output/errors, statement/proof
   navigation, an adjacent Lean fold and the reviewed-work index. Check the
   narrow single-column layout and reset temporary viewport overrides.
 - Save the actual screenshot and report its scope. Link/static validation alone

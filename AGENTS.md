@@ -23,6 +23,9 @@ composition, source fidelity and reader delivery must all be accepted before
 whole-Goal completion. Midpoint may not acquire extra higher-derivative bounds. Correct Lean/source results come before new graph, citation or
 download features. This is scheduling, never a theorem-completion badge.
 
+SampleWiki is one research directory, not separate paper/frontier libraries;
+follow `docs/samplewiki-reader-navigation.md` for its shared navigation contract.
+
 Current collaborator checkpoint: read `docs/companion-papers-handoff.md` before
 resuming these papers. It records the owner's pause, reviewed local results,
 pending aggregate/publication checks and the next bounded mathematical edge.

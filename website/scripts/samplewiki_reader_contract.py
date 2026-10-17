@@ -527,22 +527,20 @@ def overview_main(
     return f"""
 <article class="sw-casebook-home">
   <header class="sw-casebook-header sw-casebook-home-header">
-    <div class="sw-casebook-kicker">Sampling frontier · source-linked theorem casebook</div>
+    <div class="sw-casebook-kicker">Sampling research</div>
     <h1>SampleWiki</h1>
-    <p class="sw-casebook-lede">Sampling papers, explained step by step. Start with the mathematics; open the verified Lean when you need it.</p>
-    <div class="hero-actions"><a class="button" href="{esc(href_from(OVERVIEW, PROGRESS))}">Formalization progress</a><a class="button" href="{esc(href_from(OVERVIEW, FRONTIER))}">Open frontier</a></div>
+    <p class="sw-casebook-lede">New results, open questions and their proofs. Read the mathematics; open the checked Lean when you need it.</p>
+    <div class="hero-actions"><a class="button" href="{esc(href_from(OVERVIEW, PROGRESS))}">Formalization progress</a></div>
   </header>
   {samplewiki_navigation.paper_cards(OVERVIEW)}
-  <details class="sw-secondary-reading"><summary>Browse other sampling regimes</summary>
+  <p class="sw-reader-boundary"><a href="{esc(href_from(OVERVIEW, 'example-cases/samplewiki/companions/warm-start-composition.html'))}">How the warm start and high-accuracy sampler fit together →</a></p>
+  <details class="sw-secondary-reading" id="research-by-setting"><summary>Browse by assumptions and guarantees</summary>
     <div class="sw-setting-book-list">{''.join(cards)}</div>{focus}
   </details>
-  <details class="sw-secondary-reading" id="cross-library-state-preparation">
-    <summary>Across libraries: quantum state preparation</summary>
-    <h3>Smooth auxiliary states for Schrödingerisation of PDEs</h3>
-    <p>A separate worked example studies structured state preparation for Jin–Liu–Ma’s PDE construction.</p>
-    <p><a href="https://dakebu.github.io/Quantum-Computing-Block-Encoding/example-cases/hermite-smooth-state-preparation/index.html">Read the QuantumComputinglib construction and proof →</a></p>
-    <p class="sw-primary-source"><a href="https://arxiv.org/abs/2403.19123v3">Jin–Liu–Ma: PDE construction</a> · <a href="https://arxiv.org/abs/2005.04351">Holmes–Matsuura: prior state-preparation route</a></p>
-    <p class="sw-provenance-code">External pointer, not a Samplinglib-owned Lean theorem. The general function-to-MPS idea is prior art.</p>
+  <details class="sw-secondary-reading" id="open-questions">
+    <summary>Open mathematical questions</summary>
+    <p>These are open in the literature, not merely missing Lean proofs.</p>
+    <div class="sw-theorem-preview-list">{''.join(case_preview(OVERVIEW, case, audit_for(case, audits)) for case in cases if literature_open(case))}</div>
   </details>
 </article>
 """
@@ -593,24 +591,12 @@ def progress_main(
 
 
 def frontier_main(cases: list[dict[str, Any]], audits: dict[str, Any], reader: dict[str, Any]) -> str:
-    open_cases = [case for case in cases if literature_open(case)]
-    cards = "".join(case_preview(FRONTIER, case, audit_for(case, audits)) for case in open_cases)
-    active_id = str(reader.get("active_case_id", ""))
-    active_case = next((case for case in cases if str(case.get("id", "")) == active_id), None)
-    focus = ""
-    if active_case:
-        focus = (
-            '<section><div class="sw-reader-step">Formalization frontier</div>'
-            f'<h2>{esc(active_case.get("algorithm_or_model", ""))}</h2>'
-            + preview_formula(active_case, audit_for(active_case, audits))
-            + f'<a href="{esc(href_from(FRONTIER, case_path(active_id)))}">Inspect exact open Lean interfaces →</a></section>'
-        )
+    # Preserve the old URL, not a second researcher-facing classification.
     return f"""
 <article class="sw-casebook-frontier">
   <nav class="reader-breadcrumb"><a href="{esc(href_from(FRONTIER, OVERVIEW))}">SampleWiki</a></nav>
-  <header class="sw-casebook-header"><div class="sw-casebook-kicker">Open problems</div><h1>Sampling frontier</h1><p class="sw-casebook-lede">Literature-open mathematical questions are separated from results whose mathematics is known but whose Lean dependency graph is still incomplete.</p></header>
-  <section><div class="sw-reader-step">Literature-open cases</div><div class="sw-theorem-preview-list">{cards}</div></section>
-  {focus}
+  <h1>SampleWiki</h1><p>This older link now belongs to the unified research directory.</p>
+  <a class="button" href="{esc(href_from(FRONTIER, OVERVIEW))}#open-questions">Open SampleWiki →</a>
 </article>
 """
 
@@ -642,6 +628,11 @@ def write_final(path: Path, rel_path: str, body: str) -> None:
     if samplewiki_navigation.SCRIPT_NAME not in text:
         src = href_from(rel_path, 'assets/' + samplewiki_navigation.SCRIPT_NAME)
         text = text.replace('</head>', f'<script defer src="{esc(src)}"></script>\n</head>', 1)
+    if rel_path == FRONTIER:
+        target = href_from(rel_path, OVERVIEW) + '#open-questions'
+        text = re.sub(r'<title>.*?</title>', '<title>SampleWiki</title>', text, count=1)
+        text = text.replace('</head>', f'<link rel="canonical" href="{esc(target)}">'
+                            f'<meta http-equiv="refresh" content="0; url={esc(target)}"></head>', 1)
     # Raw crawler row text remains in source-index JSON only, never in reader HTML.
     text = re.sub(r'<details class="sw-raw-row">.*?</details>', "", text, flags=re.S)
     path.write_text(text, encoding="utf-8", newline="\n")

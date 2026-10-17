@@ -819,3 +819,33 @@ remain separate. Actual bounded radial-test expectation transport and the 2H
 gap, H-to-TV, block products, sphere/Poisson, parameter choice, transcripts and
 both main lower bounds remain open. The fixed-spectrum hidden-eigenbasis
 route, cost/oracle contracts and other ASTIS integration queues are unchanged.
+
+
+## Actual mixture expectation transport and signed gap
+
+MixtureExpectation.actual_mixture_expectation_gap proves actual radial-test
+L1 under both determinant-conditioned mixture laws, actual component-expectation
+L1 under both priors, both real Bochner transports and their exact factor2
+signed Gaussian Haar gap. The only mathematical premises are source n>=3,
+kappa>=4 and ell>=0, including zero. Measurability, probability laws, finite
+nonnegative expectations, real transport and sign partition are internal.
+Identical actual_mixture_laws, component_probabilities and canonical Haar nodes
+are consumed. Density identification is source alignment and an existing
+separate interface, not a mandatory analytic premise of actual bind transport.
+
+The frozen v2 statement, distinct source-only topology, anonymous decoding
+and fresh current whole-module/source/five-step exposition were independently
+accepted. Source13NODE+14EXCLUDED,14uses and5gaps are not13public Lean theorems.
+Production/focused3133jobs and expanded anonymous target/compiler references
+passed with only the standard three axioms. Tests include actual zero-tilt L1,
+nonzero n4/kappa9/ell1 negative-mixture real transport, and actual signed
+zero-tilt expectation0 obtained through the new gap and actual mixture masses.
+
+The progressive page keeps the short typeset gap first, conditions and notation
+folded, five formula steps expandable and exact Lean directly accessible.
+Root imports and focused root Tests are wired without Registry or self-VERIFIED
+promotion; exactcommit aggregate/site/graph/browser and independent integration
+are separate acceptance steps. Actual TV inequality, Eq21 composition, products,
+spherical/Poisson, parameter/transcript/eigenbasis and both main query bounds
+remain open. Postmerge purification and whole-paper completion stay separate,
+and other ASTIS queues and oracle/cost contracts remain unchanged.

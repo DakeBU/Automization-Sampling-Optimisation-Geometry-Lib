@@ -1,0 +1,68 @@
+{
+  "seal_id": "GC-actual-mixture-expectation-gap-v2",
+  "status": "AWAITING_INDEPENDENT_STATEMENT_AND_SOURCE_TOPOLOGY_REVIEW",
+  "source_version": "arXiv:2610.20492v1",
+  "source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+  "source_regions": {
+    "S2.p2": "Let O(n):=\\{O\\in\\mathbb{R}^{n\\times n}:O^{\\top}O=I_{n}\\} denote the real orthogonal group, equipped with Haar probability measure. It has two components, \\{\\det O=+1\\}, \\{\\det O=-1\\}, and each have Haar probability 1/2. For b\\in\\{-1,+1\\}, we write \\mu_{n,b} for Haar probability measure conditioned on \\det O=b.",
+    "S3.SS1.p1": "Fix \\kappa\\geq 4. Let 3\\leq n\\leq d be the block dimension and k:=\\lfloor d/n\\rfloor the number of blocks. In the proof of the main theorem, we choose n=2T+1, where T is the algorithm’s query budget. This choice applies when T\\geq 1 and 2T+1\\leq d. The remaining cases are treated separately. For O\\in O(n), define A_{O}:=\\frac{\\kappa+1}{2}I_{n}-\\frac{\\kappa-1}{4}(O+O^{\\top}). (4) For \\bm{O}=(O_{1},\\ldots,O_{k})\\in O(n)^{k}, set A_{\\bm{O}}:=\\operatorname{diag}\\bigl(A_{O_{1}},\\ldots,A_{O_{k}},I_{d-kn}\\bigr). (5)",
+    "S3.SS1.p2": "For each b\\in\\{-1,+1\\}, draw O_{1},\\ldots,O_{k} independently from \\mu_{n,b}, and let \\mathcal{D}_{b} denote the law of A_{\\bm{O}}. Thus the orthogonal matrices share the same determinant sign.",
+    "S3.SS1.p3": "Writing P_{b}:=\\mathbb{E}_{O\\sim\\mu_{n,b}}[N(0,A_{O}^{-1})] for the single-block target mixture, the averaged target under \\mathcal{D}_{b} is \\bar{\\pi}_{b}:=\\mathbb{E}_{A\\sim\\mathcal{D}_{b}}[\\pi_{A}]=P_{b}^{\\otimes k}\\otimes N(0,I_{d-kn}). (6) When kn=d, the identity block and the final Gaussian factor are omitted.",
+    "A2.SS2.p2": "We first separate the single-block mixtures using a bounded radial test, and then amplify this separation across independent blocks. The single-block argument combines a cancellation identity for Gaussian normalization factors with two spherical Poisson identities. Throughout this section, n\\geq 3, \\kappa\\geq 4, and O is Haar distributed on the full orthogonal group O(n). Write U:=O_{11}, let p_{O} be the density of N(0,A_{O}^{-1}), and let p_{b} be the density of P_{b}, for b\\in\\{-1,+1\\}.",
+    "A2.SS2.SSS2.p3": "For \\lambda\\geq 0, let h_{\\lambda}(x):=e^{-\\lambda\\|x\\|^{2}} and define H(\\lambda):=\\mathbb{E}\\left[\\det(O)\\int_{\\mathbb{R}^{n}}h_{\\lambda}(x)p_{O}(x)\\,dx\\right]. Since the two determinant components have Haar probability 1/2, H(\\lambda)=\\frac{1}{2}\\left(\\mathbb{E}_{P_{+1}}h_{\\lambda}-\\mathbb{E}_{P_{-1}}h_{\\lambda}\\right). As 0<h_{\\lambda}\\leq 1, it follows that \\operatorname{TV}(P_{+1},P_{-1})\\geq 2|H(\\lambda)|. (20) We compute H(\\lambda) and then choose \\lambda>0."
+  },
+  "proposed_signature": "theorem actual_mixture_expectation_gap {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ) :\n    let μ := orthogonalHaar n\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n    let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n    let f : Matrix.orthogonalGroup (Fin n) ℝ → ℝ := fun O => ∫ x, t x ∂γ O\n    Integrable t (νpos.bind γ) ∧ Integrable t (νneg.bind γ) ∧\n      Integrable f νpos ∧ Integrable f νneg ∧\n      (∫ x, t x ∂νpos.bind γ) = (∫ O, f O ∂νpos) ∧\n      (∫ x, t x ∂νneg.bind γ) = (∫ O, f O ∂νneg) ∧\n      ((∫ x, t x ∂νpos.bind γ) - (∫ x, t x ∂νneg.bind γ)) =\n        2 * (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n          (O : Matrix (Fin n) (Fin n) ℝ).det * f O ∂μ)",
+  "signature_sha256": "a2e43091af6ac95b9c90466ef8d0e31122f9fd82419436e3f025f4986d47a6c4",
+  "elaboration": "Not yet probed. Statement-only proposal; no proof search or production code.",
+  "meaning_definitions": {
+    "singleBlockPrecision": {
+      "kind": "literal",
+      "body": "((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)"
+    },
+    "orthogonalHaar": {
+      "kind": "literal",
+      "body": "The same compiled full O(n) Borel Haar probability, Measure.haarMeasure on the whole compact group; not SO(n), arbitrary Haar, or newly chosen law."
+    },
+    "νpos/νneg": {
+      "kind": "literal",
+      "body": "Exactly twice the restriction of full Haar to determinant +1/-1; source conditional laws since each event has mass1/2."
+    },
+    "γ": {
+      "kind": "literal",
+      "body": "The existing ProbabilityTheory.multivariateGaussian at actual zero mean and inverse of literal A_O, not a user-supplied law or density-only proxy. Source n>=3,kappa>=4 ensures SPD internally; exact existing law=density parent supplies this."
+    },
+    "Measure.bind": {
+      "kind": "literal",
+      "body": "Measure.bind nu gamma = Measure.join (Measure.map gamma nu); actual mixture on Borel Euclidean space. Actual family measurability is proved and consumed internally through the existing actual_mixture_laws theorem, not an exported conjunct in this target and never a caller premise. No nonmeasurable map fallback is accepted."
+    }
+  },
+  "binder_audit": {
+    "SOURCE": [
+      "n natural with n>=3",
+      "kappa real with kappa>=4",
+      "ell real with ell>=0 including zero, explicitly source radial-test paragraph"
+    ],
+    "TYPING": [
+      "Actual full real orthogonal group, Borel EuclideanSpace and real Bochner integrals"
+    ],
+    "EXCESS": [],
+    "internal_producers": [
+      "Actual family measurability and actual mixture probabilities via identical compiled actual_mixture_laws",
+      "Actual bounded-test integrability, nonnegative Fubini transport and prior-integrability",
+      "Actual sign partition and its restriction algebra, to be proved inside the theorem"
+    ]
+  },
+  "mathematical_statement": "For the literal actual conditioned mixtures P± and bounded radial test t at the exact source range, prove t integrable under both actual mixtures, f(O)=the actual component Gaussian expectation integrable under both actual conditioned priors, both actual Bochner expectation transport identities, and actual mixture expectation difference = twice the full-Haar determinant-signed Gaussian expectation. The latter is the previously audited actual representation of source H; no separately characterized mixture or caller-supplied probability/integrability premise.",
+  "source_gap": "The source states the half-mass H split but omits measure-to-test expectation interchange and sign-partition integration bookkeeping. Supply those explicitly as background, not an invented author-written proof.",
+  "consumer": "Source Eq20 H-to-TV adapter on the actual P±; previous actual_gaussian_transform supplies the exact Eq21 value for the signed component Gaussian expectation.",
+  "boundary": [
+    "No TV inequality yet",
+    "No product Eq6",
+    "No sphere/Poisson or quantitative separation",
+    "No query, transcript, parameter choice, hidden-eigenbasis or main lower bounds"
+  ],
+  "proof_status": "NO_IMPLEMENTATION_OR_PROOF_SEARCH",
+  "review_request": "Read only this exact source/signature/meaning packet. Independently approve/reject statement with all binders/definitions and scope, reconstruct source graph inventory source-first with all NODE/EXCLUDED and explicit gaps/actual consumer uses. Write separate statement-review.json and source-only-reconstruction.json, do not compile/prove or consult implementation Lean/old semantic verdicts. A distinct topology reviewer will challenge reconstruction.",
+  "supersedes": "GC-actual-mixture-expectation-gap-v1",
+  "revision_reason": "Correct only copied definition explanation: Measurable gamma is produced and consumed internally, not exported in this signature. Mathematical signature unchanged; v1 exact review retained as rejected on this explanatory mismatch only."
+}

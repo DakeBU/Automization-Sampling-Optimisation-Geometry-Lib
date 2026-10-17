@@ -1,0 +1,224 @@
+{
+  "id": "ASTIS-RT-GC-SurfaceLaw-0",
+  "state": "accepted",
+  "source": {
+    "source_id": "gaussian-complexity-2026",
+    "anchor": "B.7 proof A2.SS2.SSS2.p4.5 uniform Oe1 sentence; A.1 proof A1.SS1.p2.1 normalized surface convention; Eq21-23 for selected transport",
+    "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p4",
+    "original_text": "For natural \\(n\\ge3\\) and real \\(\\kappa\\ge4\\), use the literal selected \\(s,r,\\ell,\\beta\\), actual precision \\(A_O\\), Gaussian \\(\\gamma_O\\), signed expectation \\(H_\\gamma(\\ell)\\), and kernel \\(f\\) defined below. Let \\(\\nu=(O\\mapsto Oe_1)_*\\mu\\) for actual normalized full orthogonal Haar. Let \\(\\tau=\\mathrm{vol}.\\mathrm{toSphere}\\) on the actual Euclidean unit sphere, and \\(\\sigma=\\tau(S)^{-1}\\iota_*\\tau\\). Then \\(\\nu=\\sigma\\), \\(\\sigma\\) is a probability, \\(f\\in L^1(\\sigma)\\), and \\(H_\\gamma(\\ell)=\\beta\\int f\\,d\\sigma\\). The parameters are \\(s=\\sqrt\\kappa\\), \\(r=(1-1/n)(s-1)/(s+1)\\), \\(\\ell=(4ns+(s-1)^2)/(8n(n-1))\\), \\(\\beta=(-1)^{n-1}(s-1)^{n-1}(1-1/n)^{n/2}/(s+1)^n\\). Here \\(f(y)=((s+1)y_1-(s-1))/(1+r^2-2ry_1)^{n/2}\\), \\(A_O=((\\kappa+1)/2)I-((\\kappa-1)/4)(O+O^\\top)\\), \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\), and \\(H_\\gamma(\\ell)=\\mathbb E_\\mu[\\det(O)\\int e^{-\\ell\\|x\\|_2^2}\\,d\\gamma_O]\\). Real \\(n/2\\) powers are retained. Neither Poisson value nor evaluated Eq24 is asserted.",
+    "text_sha256": "8145d453efcb003103eda66b3fdff03886f8364433a76cf168cfc60816031b87"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.SurfaceLaw.selected_surface_transport",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/SurfaceLaw.lean",
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ),\n    let s : ℝ := Real.sqrt κ\n    let r : ℝ := (1 - 1 / (n : ℝ)) * ((s - 1) / (s + 1))\n    let ℓ : ℝ := (4 * (n : ℝ) * s + (s - 1) ^ 2) /\n      (8 * (n : ℝ) * ((n : ℝ) - 1))\n    let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n    let c : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) :=\n      fun O => WithLp.toLp 2 (fun i => (O : Matrix (Fin n) (Fin n) ℝ) i j0)\n    let ν : Measure (EuclideanSpace ℝ (Fin n)) := (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))).map c\n    let τ : Measure (Metric.sphere (0 : EuclideanSpace ℝ (Fin n)) 1) :=\n      (volume : Measure (EuclideanSpace ℝ (Fin n))).toSphere\n    let σ : Measure (EuclideanSpace ℝ (Fin n)) :=\n      (τ Set.univ)⁻¹ • τ.map (fun y => y.val)\n    let f : EuclideanSpace ℝ (Fin n) → ℝ := fun y =>\n      ((s + 1) * WithLp.ofLp y j0 - (s - 1)) /\n        (1 + r ^ 2 - 2 * r * WithLp.ofLp y j0) ^ ((n : ℝ) / 2)\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))⁻¹\n    ν = σ ∧ IsProbabilityMeasure σ ∧ Integrable f σ ∧\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det *\n          (∫ x : EuclideanSpace ℝ (Fin n), Real.exp (-ℓ * ‖x‖ ^ 2) ∂γ O)\n        ∂(Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))) =\n        (((-1 : ℝ) ^ (n - 1) * (s - 1) ^ (n - 1)) / (s + 1) ^ n) *\n          (1 - 1 / (n : ℝ)) ^ ((n : ℝ) / 2) * (∫ y, f y ∂σ)",
+    "statement_sha256": "eb181620c817dae0ddb77309bbc4d1132fe86a0f5ac3dc0f94342b51eda1fec9",
+    "compiled": true,
+    "formalizer": "/root",
+    "compiler_evidence": "Focused shared producer, exact source adapter, distinct-coordinate actual-law comparison and universal determinant-conditioned actual Gaussian bind-mixture gap consumer passed; standard axioms printed. Expanded anonymous target checked separately.",
+    "decoder_context": [
+      "The orthogonal group is full real O(n), both determinant signs, with inherited matrix Borel structure. Measure.haarMeasure(top : PositiveCompacts G) is Haar probability normalized on the entire compact group.",
+      "EuclideanSpace R (Fin n) has its genuine Euclidean l2 norm and actual volume. WithLp.toLp 2 sends coordinates to that Euclidean vector; WithLp.ofLp returns coordinates. Fin n indices are zero-based.",
+      "Measure.toSphere(volume) on Metric.sphere zero one is the actual cone-derived surface measure: on Borel sphere subsets B it equals the real dimension times volume({r*u:0<r<1,u in B}). The scalar inverse of its univ mass is in ENNReal; map Subtype.val includes the sphere in the ambient Euclidean space.",
+      "multivariateGaussian zero C is the existing stdGaussian pushforward by the continuous linear map obtained from the positive matrix square root of C; matrix inverse is the existing nonsingular inverse.",
+      "All real-coerced dimension arithmetic and n/2 exponents are real; n-1 parity/polynomial exponents are natural subtraction. Integrable means absolute Bochner L1. The ambient quotient uses totalized real division/rpow; no global positivity or continuity is asserted."
+    ]
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Literal selected s,r,ell,beta; actual full Haar, first column, volume-derived sigma, f and centered Gaussian with covariance A_O inverse.",
+      "reconstructed": "Same literal data; expanded actual multivariateGaussian, inverse precision and signed determinant expectation.",
+      "relation": "explicit-elaboration",
+      "evidence": "singleBlockPrecision body matches Eq4. multivariateGaussian is actual stdGaussian pushforward by CFC.sqrt covariance; in source admissible parameter range existing positivity parents make this N(0,A_O^-1). sigma is actual normalized volume.toSphere, not invariant law by definition."
+    },
+    "domains": {
+      "original": "n natural >=3, κ real >=4, actual l2 E=R^n, full O(n), canonical normalized unit-sphere law.",
+      "reconstructed": "Exactly those domains; source coordinate 1 becomes Lean j0=0; f is totalized ambient real quotient.",
+      "relation": "explicit-elaboration",
+      "evidence": "No parity restriction: n/2 uses real coercion and Real.rpow; n=3 and κ=4 are included. Off-sphere totalized values do not change supported sigma integral or L1."
+    },
+    "quantifiers": {
+      "original": "For every n>=3 and every real κ>=4 with all selected data determined.",
+      "reconstructed": "Universal n,κ under exactly hn and hκ; no existence placeholders.",
+      "relation": "same",
+      "evidence": "Entire module has one public theorem, autoImplicit false, no scoped theorem variables adding hidden binders. Source/expanded statement and exact production signature agree."
+    },
+    "assumptions": {
+      "original": "Exactly n>=3 and κ>=4; surface equality/probability and kernel L1 are concluded.",
+      "reconstructed": "Exactly hn:3<=n and hκ:4<=κ.",
+      "relation": "same",
+      "evidence": "Adapter introduces he and hp internally. Parent selected_tilt derives ell>0/r range; ColumnTransport supplies absolute L1 by compact continuous group-kernel bounds and integrable_map_measure. No ell>=0, uniformity or Poisson premise added."
+    },
+    "conclusion": {
+      "original": "nu=sigma, sigma probability, f absolutely integrable, H_gamma(ell)=beta integral f d sigma.",
+      "reconstructed": "Exact conjunction of these four facts, real Bochner integrals and signed det(O).",
+      "relation": "equivalent",
+      "evidence": "Four conjuncts are he, hp.1, hp.2.2.2.1 and hp.2.2.2.2 after actual measure equality rewriting. β is algebraically identical to source Eq21+Eq23 before Poisson evaluation; Gaussian remains inside signed Haar expectation."
+    },
+    "scopes": {
+      "original": "Unevaluated selected actual Gaussian surface transport, before numerical Poisson values/Equation24.",
+      "reconstructed": "Same finite exact identity, no limit/TV or main theorem; actual L1 conclusion and literal supported measure.",
+      "relation": "same",
+      "evidence": "Raw p4.5 and A1 normalized-surface convention support law identification. Eq21–23 yield unchanged selected integral, while A1 numerical values, Ex61 and evaluated Eq24 remain open. Test consumer alone preserves actual factor-two mixture conversion."
+    },
+    "constant_dependencies": {
+      "original": "s=sqrtκ, r=(1-1/n)(s-1)/(s+1), ell=(4ns+(s-1)^2)/(8n(n-1)), beta=(-1)^(n-1)(s-1)^(n-1)(1-1/n)^(n/2)/(s+1)^n.",
+      "reconstructed": "Identical literal expressions with natural sign/polynomial powers and real half powers.",
+      "relation": "same",
+      "evidence": "Read Eq22–23 from actual raw source. In PoissonNormalization, C=n(s+1)^2/(2(n-1))>0 and (2C)^(n/2)=(s+1)^n/(1-1/n)^(n/2), proving exact β without even-dimension simplification or unstated constant."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/surface_law_current_source_review",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "1b08994413a0bad11e244fa305bbc0f812b81330bfd0cd951834abbf20836162",
+    "review_run_sha256": "21b372d5ec7dc452ebe7bd4d1efbb50fac5f55ff5c12c462bd6478a1faeeaedd",
+    "evidence": "Independent fresh anti-anchored review of this exact packet, actual pinned source, exact whole production modules and canonical dependencies. All seven slots compared mathematically. Actual source snapshot and 52 raw inventory regions revalidated; complete B7/A1 source topology and boundaries audited. Authored statements, each formula step and Lean correspondence checked. No earlier fidelity verdict or repair review was used as evidence. Compilation logs corroborate actual Lean truth, not source fidelity. Reader definitions and formulas in the current packet have no outstanding authored-content repair.",
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/surface-law-semantic-evidence/0.review-result.json"
+  },
+  "reconstruction": {
+    "text": "For every natural number n with n >= 3 and every real number kappa with kappa >= 4 (both lower endpoints included), put s = sqrt(kappa), r = (1 - 1/n)*(s - 1)/(s + 1), and ell = [4*n*s + (s - 1)^2]/[8*n*(n - 1)]. Dimensions in these formulas are coerced to real numbers. Work in R^n = EuclideanSpace R (Fin n), with coordinates indexed by {0,...,n-1}, the genuine Euclidean l2 norm, its Borel structure, and actual Euclidean volume. The distinguished coordinate is index 0.\n\nLet H be Haar probability on the full real orthogonal group O(n), including both determinant signs, with the inherited matrix Borel structure. For O in O(n), let c(O) = (O_{00},O_{10},...,O_{n-1,0}), assembled as an l2 vector, and let nu = c_*H be its probability distribution as an ambient measure on R^n. Put S = {u in R^n : ||u||_2 = 1}. Let tau = volume.toSphere be the sphere-subtype measure with normalization tau(B) = n*volume({t*u : 0 < t < 1, u in B}) for Borel B contained in S. For the inclusion i:S -> R^n, put sigma = (tau(S))^(-1) times i_*tau. This mass reciprocal and measure scalar multiplication are taken in the extended nonnegative reals; sigma is an ambient measure, not merely a measure on the sphere subtype.\n\nDefine a real-valued function on the whole ambient Euclidean space by f(y) = [(s + 1)*y_0 - (s - 1)]/[1 + r^2 - 2*r*y_0]^(n/2). The exponent n/2 here is a real exponent, and the ambient definition uses Lean's totalized real division and real power, including at points where the denominator base is nonpositive or the denominator vanishes. No global positivity or continuity of this ambient function is a hypothesis or a separate conclusion.\n\nFor each O in O(n), define the real n-by-n matrix A(O) = ((kappa + 1)/2)*I - ((kappa - 1)/4)*(O + O^T), and put C(O) = A(O)^(-1), using the existing nonsingular matrix inverse operation. Let gamma_O = multivariateGaussian(0,C(O)): specifically, this is the existing standard Gaussian measure on R^n pushed forward by the continuous linear map obtained from the positive matrix square root of C(O). Thus the matrix parameter of this centered Gaussian construction is the inverse of A(O), not A(O) itself. All scalar-matrix multiplications in A(O) are real scalar multiplication.\n\nThe proposition asserts the following conjunction of four conclusions: (1) nu = sigma as measures on R^n; (2) sigma is a probability measure; (3) f is integrable with respect to sigma, where Integrable means absolute Bochner L1 integrability; and (4) the following exact equality of real integrals holds:\n\nintegral_{O in O(n)} det(O) * [integral_{x in R^n} exp(-ell * ||x||_2^2) d gamma_O(x)] dH(O)\n= [(-1)^(n-1) * (s-1)^(n-1)/(s+1)^n] * (1 - 1/n)^(n/2) * integral_{y in R^n} f(y) d sigma(y).\n\nThe outer group integral uses probability Haar measure on the full O(n). Its determinant multiplier is signed (det(O) is either +1 or -1), rather than an absolute determinant or an indicator of either component. The inner integral averages the indicated radial exponential under gamma_O, whose dependence on O remains inside that outer integral. The norm squared is the square of the actual l2 norm. The rightmost integral is over ambient R^n with the normalized embedded sphere measure sigma. The powers (-1)^(n-1), (s-1)^(n-1), and (s+1)^n have natural-number exponents; n-1 there is natural subtraction. Both exponents written n/2 are real, as are the other displayed dimension arithmetic operations. All quantities s, r, ell, f, and the Gaussian matrix parameters are explicitly determined by n and kappa; there are no unspecified constants or existence choices. The theorem makes the exact identity for every pair satisfying the stated finite-dimensional bounds; it asserts no limit, approximation, inequality, or additional separately stated outer-integrability claim. The displayed integrals are Lean's real Bochner integrals.",
+    "text_sha256": "52ec65f52bb8219538bc63c9232dd3dba9f5dc519e3fa67f46a6119450138415",
+    "decoder": "/root/anonymous_series20_decoder",
+    "decoder_run_sha256": "4745b0acbaffbdfac3988c3a263b220177ba8d835e3cbc930257063a64b260c5",
+    "decoder_packet_sha256": "00606b09f51ab669b27e14f4fd75e9a6352bfd0731049f584621c048f3ce0c2e",
+    "source_text_visible": false,
+    "lean_statement_sha256": "eb181620c817dae0ddb77309bbc4d1132fe86a0f5ac3dc0f94342b51eda1fec9",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/surface-law-semantic-evidence/0.decoder-result.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "deab209bdd98858de0eeaec142b6e8f3db89bd9e281629289983b10df005221b",
+  "publication_context": {
+    "file": "04159e88f213555532735c2e9d27456ebe2a7b36574fe8d71b69602d0b1f1b4d",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.ColumnTransport\nimport AutoSamplingTheory.TechnicalLemmas.Probability.SphereHaar\nopen Matrix MeasureTheory\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.SurfaceLaw\nset_option autoImplicit false\n/-!\nActual normalized Euclidean surface law in the selected signed Gaussian expectation.\nThe canonical shared column/surface identity is consumed without assuming a\nPoisson value, a conditional sphere law or an evaluated Eq24.\n-/\ntheorem selected_surface_transport {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) :\n    let s : ℝ := Real.sqrt κ\n    let r : ℝ := (1 - 1 / (n : ℝ)) * ((s - 1) / (s + 1))\n    let ℓ : ℝ := (4 * (n : ℝ) * s + (s - 1) ^ 2) /\n      (8 * (n : ℝ) * ((n : ℝ) - 1))\n    let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n    let c : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) :=\n      fun O => WithLp.toLp 2 (fun i => (O : Matrix (Fin n) (Fin n) ℝ) i j0)\n    let ν : Measure (EuclideanSpace ℝ (Fin n)) := (orthogonalHaar n).map c\n    let τ : Measure (Metric.sphere (0 : EuclideanSpace ℝ (Fin n)) 1) :=\n      (volume : Measure (EuclideanSpace ℝ (Fin n))).toSphere\n    let σ : Measure (EuclideanSpace ℝ (Fin n)) :=\n      (τ Set.univ)⁻¹ • τ.map (fun y => y.val)\n    let f : EuclideanSpace ℝ (Fin n) → ℝ := fun y =>\n      ((s + 1) * WithLp.ofLp y j0 - (s - 1)) /\n        (1 + r ^ 2 - 2 * r * WithLp.ofLp y j0) ^ ((n : ℝ) / 2)\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n    ν = σ ∧ IsProbabilityMeasure σ ∧ Integrable f σ ∧\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det *\n          (∫ x : EuclideanSpace ℝ (Fin n), Real.exp (-ℓ * ‖x‖ ^ 2) ∂γ O)\n        ∂orthogonalHaar n) =\n        (((-1 : ℝ) ^ (n - 1) * (s - 1) ^ (n - 1)) / (s + 1) ^ n) *\n          (1 - 1 / (n : ℝ)) ^ ((n : ℝ) / 2) * (∫ y, f y ∂σ) := by\n  classical\n  let s : ℝ := Real.sqrt κ\n  let r : ℝ := (1 - 1 / (n : ℝ)) * ((s - 1) / (s + 1))\n  let ℓ : ℝ := (4 * (n : ℝ) * s + (s - 1) ^ 2) /\n      (8 * (n : ℝ) * ((n : ℝ) - 1))\n  let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n  let c : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) :=\n      fun O => WithLp.toLp 2 (fun i => (O : Matrix (Fin n) (Fin n) ℝ) i j0)\n  let ν : Measure (EuclideanSpace ℝ (Fin n)) := (orthogonalHaar n).map c\n  let τ : Measure (Metric.sphere (0 : EuclideanSpace ℝ (Fin n)) 1) :=\n      (volume : Measure (EuclideanSpace ℝ (Fin n))).toSphere\n  let σ : Measure (EuclideanSpace ℝ (Fin n)) :=\n      (τ Set.univ)⁻¹ • τ.map (fun y => y.val)\n  let f : EuclideanSpace ℝ (Fin n) → ℝ := fun y =>\n      ((s + 1) * WithLp.ofLp y j0 - (s - 1)) /\n        (1 + r ^ 2 - 2 * r * WithLp.ofLp y j0) ^ ((n : ℝ) / 2)\n  let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n  change ν = σ ∧ IsProbabilityMeasure σ ∧ Integrable f σ ∧ _\n  have he : ν = σ :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.SphereHaar.column_map_eq_normalized_surface j0\n  have hp := ColumnTransport.selected_column_transport hn hκ\n  refine ⟨he, ?_, ?_, ?_⟩\n  · rw [← he]\n    exact hp.1\n  · rw [← he]\n    exact hp.2.2.2.1\n  · change (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det *\n          (∫ x : EuclideanSpace ℝ (Fin n), Real.exp (-ℓ * ‖x‖ ^ 2) ∂γ O)\n        ∂orthogonalHaar n) =\n        (((-1 : ℝ) ^ (n - 1) * (s - 1) ^ (n - 1)) / (s + 1) ^ n) *\n          (1 - 1 / (n : ℝ)) ^ ((n : ℝ) / 2) * (∫ y, f y ∂σ)\n    rw [← he]\n    exact hp.2.2.2.2\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.SurfaceLaw\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p4",
+      "edition": "arXiv:2610.20492v1",
+      "anchor": "B.7 proof A2.SS2.SSS2.p4.5 uniform Oe1 sentence; A.1 proof A1.SS1.p2.1 normalized surface convention; Eq21-23 for selected transport",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS expands the standard surface-law identification used by the source. Shared background is explicitly generalized to every existing coordinate and positive finite dimension.",
+      "scope": "Identify actual full-Haar first-column law with actual normalized volume-derived sphere probability, and transport existing absolute selected-kernel L1 and actual signed Gaussian integral to that same canonical surface law. Neither Poisson value, evaluated Eq24, actual positive TV ratio, amplification/oracle/query/cost, hidden-eigenbasis or main theorem is asserted. Surface normalization/invariance, any invariant-law uniqueness/transitivity and all measurability are proof dependencies, never new public premises."
+    },
+    "statement": "For natural \\(n\\ge3\\) and real \\(\\kappa\\ge4\\), use the literal selected \\(s,r,\\ell,\\beta\\), actual precision \\(A_O\\), Gaussian \\(\\gamma_O\\), signed expectation \\(H_\\gamma(\\ell)\\), and kernel \\(f\\) defined below. Let \\(\\nu=(O\\mapsto Oe_1)_*\\mu\\) for actual normalized full orthogonal Haar. Let \\(\\tau=\\mathrm{vol}.\\mathrm{toSphere}\\) on the actual Euclidean unit sphere, and \\(\\sigma=\\tau(S)^{-1}\\iota_*\\tau\\). Then \\(\\nu=\\sigma\\), \\(\\sigma\\) is a probability, \\(f\\in L^1(\\sigma)\\), and \\(H_\\gamma(\\ell)=\\beta\\int f\\,d\\sigma\\). The parameters are \\(s=\\sqrt\\kappa\\), \\(r=(1-1/n)(s-1)/(s+1)\\), \\(\\ell=(4ns+(s-1)^2)/(8n(n-1))\\), \\(\\beta=(-1)^{n-1}(s-1)^{n-1}(1-1/n)^{n/2}/(s+1)^n\\). Here \\(f(y)=((s+1)y_1-(s-1))/(1+r^2-2ry_1)^{n/2}\\), \\(A_O=((\\kappa+1)/2)I-((\\kappa-1)/4)(O+O^\\top)\\), \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\), and \\(H_\\gamma(\\ell)=\\mathbb E_\\mu[\\det(O)\\int e^{-\\ell\\|x\\|_2^2}\\,d\\gamma_O]\\). Real \\(n/2\\) powers are retained. Neither Poisson value nor evaluated Eq24 is asserted.",
+    "formulae": [
+      {
+        "label": "The selected Gaussian surface integral",
+        "tex": "\\nu=\\sigma,\\qquad H_\\gamma(\\ell)=\\beta_{n,\\kappa}\\int f\\,d\\sigma,\\qquad f\\in L^1(\\sigma)."
+      }
+    ],
+    "assumptions": [
+      "Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including \\(\\kappa=4\\). All parameter divisions are real, and \\(n/2\\) is a real exponent even for odd dimensions.",
+      "\\(\\mu\\) is the existing actual normalized Haar probability on full \\(O(n)\\), including reflections. \\(c(O)=Oe_1\\) uses the Euclidean l2 norm, and \\(\\nu=c_*\\mu\\) is its literal ambient pushforward.",
+      "\\(\\sigma\\) is the literal normalized Euclidean volume-derived surface measure. Its equality with the actual Haar first-column law, its probability normalization, and \\(f\\in L^1(\\sigma)\\) are conclusions, with no additional public premises. The ambient quotient retains standard totalized real division/rpow; no off-sphere positivity or continuity is asserted."
+    ],
+    "obligations": [
+      {
+        "id": "actual-surface-law-law-transport",
+        "label": "Move the selected actual Gaussian expectation onto canonical surface probability."
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.SurfaceLaw.selected_surface_transport",
+      "kind": "theorem",
+      "title": "The selected Gaussian surface integral",
+      "reading_layout": "progressive",
+      "reader_note": "Actual surface-law identification is established; Poisson values remain open.",
+      "statement": "Move the selected actual Gaussian expectation onto canonical surface probability.",
+      "formula": "\\nu=\\sigma,\\qquad H_\\gamma(\\ell)=\\beta_{n,\\kappa}\\int f\\,d\\sigma,\\qquad f\\in L^1(\\sigma).",
+      "assumptions": [
+        "Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including \\(\\kappa=4\\). All parameter divisions are real, and \\(n/2\\) is a real exponent even for odd dimensions.",
+        "\\(\\mu\\) is the existing actual normalized Haar probability on full \\(O(n)\\), including reflections. \\(c(O)=Oe_1\\) uses the Euclidean l2 norm, and \\(\\nu=c_*\\mu\\) is its literal ambient pushforward.",
+        "\\(\\sigma\\) is the literal normalized Euclidean volume-derived surface measure. Its equality with the actual Haar first-column law, its probability normalization, and \\(f\\in L^1(\\sigma)\\) are conclusions, with no additional public premises. The ambient quotient retains standard totalized real division/rpow; no off-sphere positivity or continuity is asserted."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(s,r,\\ell,\\beta\\)",
+          "text": "The identical source-selected parameters and coefficient, with real dimension arithmetic.",
+          "formula": "\\begin{aligned}s&=\\sqrt\\kappa,& r&=\\left(1-\\frac1n\\right)\\frac{s-1}{s+1},\\\\\\ell&=\\frac{4ns+(s-1)^2}{8n(n-1)},&\\beta_{n,\\kappa}&=\\frac{(-1)^{n-1}(s-1)^{n-1}}{(s+1)^n}\\left(1-\\frac1n\\right)^{n/2}.\\end{aligned}"
+        },
+        {
+          "symbol": "\\(\\tau,\\sigma,\\nu,f\\)",
+          "text": "Use the canonical shared surface construction and the identical selected ambient kernel; the actual first-column law is now identified with this sigma.",
+          "formula": "\\tau=\\mathrm{vol}.\\mathrm{toSphere},\\quad\\sigma=\\tau(S)^{-1}\\iota_*\\tau,\\quad\\nu=(O\\mapsto Oe_1)_*\\mu,\\quad f(y)=\\frac{(s+1)y_1-(s-1)}{(1+r^2-2ry_1)^{n/2}}."
+        },
+        {
+          "symbol": "\\(A_O,\\gamma_O,H_\\gamma\\)",
+          "text": "Literal source precision and the actual canonical Gaussian expectation. The rotation in the conclusion is the ordinary Euclidean matrix action.",
+          "formula": "\\begin{aligned}A_O&=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top),\\\\\\gamma_O&=\\mathcal N(0,A_O^{-1}),\\\\H_\\gamma(\\ell)&=\\mathbb E_\\mu\\!\\left[\\det(O)\\int e^{-\\ell\\|x\\|_2^2}\\,d\\gamma_O\\right].\\end{aligned}"
+        },
+        {
+          "symbol": "\\(t,\\nu_\\pm,\\nu_\\pm\\mathrm{bind}\\gamma\\)",
+          "text": "The priors are the actual determinant-conditioned full-Haar probabilities on the orthogonal group, normalized by the factor two. Binding the actual Gaussian kernel gamma to either prior forms its Gaussian mixture. The test function is the literal selected radial tilt.",
+          "formula": "t(x)=e^{-\\ell\\|x\\|_2^2},\\qquad\\nu_\\pm=2\\,\\mu\\!\\restriction\\{O:\\det O=\\pm1\\},\\qquad(\\nu_\\pm\\mathrm{bind}\\gamma)(B)=\\int\\gamma_O(B)\\,d\\nu_\\pm(O)."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use the one canonical surface-law identity",
+          "text": "Apply the shared full-Haar column identity to the first coordinate. All surface normalization, invariance and measure identification are proved inside that producer.",
+          "formula": "\\nu=(O\\mapsto Oe_1)_*\\mu=\\sigma.",
+          "lean": "he calls the identical SphereHaar.column_map_eq_normalized_surface j0; no invariant-law or Poisson premise is accepted."
+        },
+        {
+          "title": "Transport probability and absolute integrability",
+          "text": "The existing selected column producer gives an actual probability and absolute integrability of the unchanged kernel. Equality of the measures transfers both facts to the canonical surface law.",
+          "formula": "\\nu(E)=1,\\quad f\\in L^1(\\nu),\\quad\\nu=\\sigma\\quad\\Longrightarrow\\quad\\sigma(E)=1,\\ f\\in L^1(\\sigma).",
+          "lean": "hp is the identical ColumnTransport.selected_column_transport hn hκ. The second and third conjuncts rewrite by he and consume hp.1 and hp.2.2.2.1, preserving genuine absolute L1."
+        },
+        {
+          "title": "Keep the actual Gaussian expectation attached",
+          "text": "Rewrite the measure in the existing selected Gaussian expectation. The actual determinant-conditioned Gaussian bind-mixture consumer then has the same surface integral with its required factor two. No numerical Poisson identity is used.",
+          "formula": "H_\\gamma(\\ell)=\\beta_{n,\\kappa}\\int f\\,d\\sigma,\\qquad\\mathbb E_{\\nu_+\\mathrm{bind}\\gamma}t-\\mathbb E_{\\nu_-\\mathrm{bind}\\gamma}t=2\\beta_{n,\\kappa}\\int f\\,d\\sigma.",
+          "lean": "The final conjunct rewrites by he and uses hp.2.2.2.2. Tests.GaussianComplexitySurfaceLaw combines this actual integral with MixtureExpectation.actual_mixture_expectation_gap and the positive selected tilt, preserving the literal Gaussian and real odd-dimensional half powers."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.SphereHaar.column_map_eq_normalized_surface",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.ColumnTransport.selected_column_transport"
+      ],
+      "mathlib_dependencies": [],
+      "lean_statement": "Exact frozen signature; every normalization/analytic dependency is supplied internally.",
+      "lean_proof": "Actual measure identification by cone invariance and Tonelli, or its exact Gaussian consumer adapter.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2.p4",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "B.7 proof A2.SS2.SSS2.p4.5 uniform Oe1 sentence; A.1 proof A1.SS1.p2.1 normalized surface convention; Eq21-23 for selected transport",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS expands the standard surface-law identification used by the source. Shared background is explicitly generalized to every existing coordinate and positive finite dimension.",
+          "scope": "Identify actual full-Haar first-column law with actual normalized volume-derived sphere probability, and transport existing absolute selected-kernel L1 and actual signed Gaussian integral to that same canonical surface law. Neither Poisson value, evaluated Eq24, actual positive TV ratio, amplification/oracle/query/cost, hidden-eigenbasis or main theorem is asserted. Surface normalization/invariance, any invariant-law uniqueness/transitivity and all measurability are proof dependencies, never new public premises."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexitySurfaceLaw"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.SurfaceLaw.selected_surface_transport",
+      "role": "proof-edge",
+      "supports": [
+        "actual-surface-law-law-transport"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "B7 n>=3, kappa>=4, actual full orthogonal Haar and source Gaussian, selected Eq22-23 parameters.",
+        "lean": "Exactly n>=3,kappa>=4; actual canonical surface equality/probability and L1 are conclusions."
+      },
+      {
+        "source": "The Oe1 uniform sentence identifies the A1 normalized surface law before evaluating its Poisson integrals.",
+        "lean": "Makes that actual identity explicit, transporting the unchanged unevaluated selected Gaussian integral to it."
+      }
+    ]
+  }
+}

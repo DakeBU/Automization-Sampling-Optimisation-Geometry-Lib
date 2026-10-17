@@ -325,3 +325,4 @@ Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are
 part of the root target together with the compiled Registry count,
 Registry-backed source correspondence, and Samplinglib declaration inventory.
 -/
+import Tests.GaussianComplexityMixtureLaws

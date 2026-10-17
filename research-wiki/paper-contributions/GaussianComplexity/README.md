@@ -788,3 +788,34 @@ accepted this exact proof commit and preserved the other queues and ledgers.
 This README-only validation note changes no mathematical or generated-site
 inputs. Public merge, deployment and post-merge purification are separate;
 the packet remains PROVED_LOCAL rather than self-promoted VERIFIED.
+
+
+## Actual conditioned Gaussian mixture laws
+
+The new GaussianMixtureLaws.actual_mixture_laws constructs the literal source
+single-block mixtures as actual measure binds. At exactly n>=3 and kappa>=4,
+it proves actual Gaussian-family measurability, both mixture probabilities and
+their evaluations on every Borel event. Joint density continuity and the
+identical actual law-density provider discharge family measurability; the
+identical determinant-component probability theorem supplies both priors.
+No producer conclusion is a caller assumption and no replacement Gaussian,
+Haar or characterized kernel is introduced.
+
+Production and concrete constant-test/Borel-ball tests passed3132jobs with
+only the standard three axioms. The fully expanded anonymous statement and
+actual compiler-reference checks passed. Independent exact statement, separate
+source-only topology, anonymous decoding and fresh whole-module/source/formula
+exposition review accepted. Source coverage17nodes/20uses/11exclusions/4gaps
+is not a count of public Lean declarations. G01/G02/G03 are supplied internally
+or by the identical law-density parent; actual mixture density/expectation
+interchanges in G04 remain open.
+
+The concise progressive reader keeps conditions, notation and five typeset
+proof steps expandable, with exact Lean directly accessible. Root imports and
+focused root Tests are wired without Registry or self-VERIFIED promotion.
+Aggregate/site/graph/browser and independent commit-bound integration follow
+on an immutable proof commit. Merge, purification and whole-paper completion
+remain separate. Actual bounded radial-test expectation transport and the 2H
+gap, H-to-TV, block products, sphere/Poisson, parameter choice, transcripts and
+both main lower bounds remain open. The fixed-spectrum hidden-eigenbasis
+route, cost/oracle contracts and other ASTIS integration queues are unchanged.

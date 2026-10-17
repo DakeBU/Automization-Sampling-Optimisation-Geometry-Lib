@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws.actual_mixture_laws",
+      "kind": "theorem",
+      "title": "Construct the actual determinant-conditioned Gaussian mixtures",
+      "reading_layout": "progressive",
+      "reader_note": "The bounded-test expectation gap, total-variation bound and main query lower bounds remain open.",
+      "statement": "For \\(n\\ge3\\) and \\(\\kappa\\ge4\\), the actual Gaussian family \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\) is measurable. Mixing it over either determinant sign gives a genuine probability law \\(P_\\pm\\), with the Borel-event evaluation formula below.",
+      "formula": "\\begin{aligned}P_\\pm&\\in\\mathcal P(\\mathbb R^n),\\\\P_\\pm(B)&=\\int_{O(n)}\\gamma_O(B)\\,d\\nu_\\pm(O)\\quad(B\\text{ Borel}).\\end{aligned}",
+      "assumptions": [
+        "Exactly \\(n\\ge3\\) and \\(\\kappa\\ge4\\). No measurable-family, probability-kernel or normalization premise is supplied.",
+        "\\(\\mu\\) is the same normalized Borel Haar probability on the full real orthogonal group. Both determinant signs occur.",
+        "\\(\\nu_\\pm=2\\mu|_{\\{\\det O=\\pm1\\}}\\), and \\(\\gamma_O\\) is the existing canonical Gaussian with zero mean and covariance \\(A_O^{-1}\\). The state space is Borel Euclidean \\(\\mathbb R^n\\).",
+        "Measurability, positive-definiteness justification, prior probability, mixture probability and every Borel-set evaluation are produced internally. The source omits this construction bookkeeping; it is supplied explicitly here."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(A_O\\)",
+          "text": "The literal source single-block precision.",
+          "formula": "A_O=\\frac{\\kappa+1}{2}I_n-\\frac{\\kappa-1}{4}(O+O^\\top)"
+        },
+        {
+          "symbol": "\\(\\mu\\) and \\(\\nu_\\pm\\)",
+          "text": "Full Haar and its two normalized sign restrictions.",
+          "formula": "C_\\pm=\\{O\\in O(n):\\det O=\\pm1\\},\\qquad\\nu_\\pm=2\\mu|_{C_\\pm}"
+        },
+        {
+          "symbol": "\\(\\gamma_O\\) and \\(P_\\pm\\)",
+          "text": "Actual component Gaussian measures and their actual mixtures.",
+          "formula": "\\gamma_O=\\mathcal N(0,A_O^{-1}),\\qquad P_\\pm=\\int_{O(n)}\\gamma_O\\,d\\nu_\\pm(O)"
+        }
+      ],
+      "steps": [
+        {
+          "title": "Make the density jointly measurable",
+          "text": "The precision depends continuously on \\(O\\). The displayed density is continuous jointly in \\((O,x)\\), so its nonnegative extended-real form is measurable.",
+          "formula": "p_O(x)=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}\\exp\\!\\left(-\\frac{x^\\top A_Ox}{2}\\right)",
+          "lean": "Local hAc and hpc prove continuity for the exact literal precision/density; hpm applies ENNReal.measurable_ofReal. No density measurability premise is added."
+        },
+        {
+          "title": "Identify the actual measurable Gaussian family",
+          "text": "Use the existing exact law-density identity for every \\(O\\), at the unchanged source parameters. Measurability of measures with a jointly measurable density then gives measurability of the actual Gaussian family.",
+          "formula": "\\gamma_O=p_O\\,dx\\quad\\Longrightarrow\\quad O\\longmapsto\\gamma_O\\text{ is measurable}",
+          "lean": "The proof calls GaussianLawDensity.gaussian_law_eq_density hn hκ O, whose internal SPD proof uses the source precision bounds, then the exact Mathlib measurable_withDensity. The conclusion concerns the actual multivariateGaussian constructor."
+        },
+        {
+          "title": "Use the normalized determinant priors",
+          "text": "The existing half-mass theorem supplies the two literal prior probability laws. The same full Haar law is retained throughout.",
+          "formula": "\\mu\\{\\det O=\\pm1\\}=\\tfrac12,\\qquad\\nu_\\pm(O(n))=1",
+          "lean": "DeterminantComponents.component_probabilities is applied at the internally derived positive dimension. Its actual2*restriction probability conclusions are installed, not supplied by the caller."
+        },
+        {
+          "title": "Construct genuine probability mixtures",
+          "text": "Mix the same measurable Gaussian family against each probability prior. Every component Gaussian has total mass one, so both resulting measures have total mass one.",
+          "formula": "P_\\pm=\\int\\gamma_O\\,d\\nu_\\pm(O),\\qquad P_\\pm(\\mathbb R^n)=\\int1\\,d\\nu_\\pm=1",
+          "lean": "The actual measures are νpos.bind γ and νneg.bind γ, where bind is join of map. isProbabilityMeasure_bind consumes the proved family measurability, exact prior probabilities and actual Gaussian probability instances. No replacement density-only law or fallback kernel is defined."
+        },
+        {
+          "title": "Evaluate every Borel event",
+          "text": "For any Borel event, the value of each actual mixture equals the corresponding average of component Gaussian probabilities. This identifies the source mixture laws; bounded-test expectation transport remains a separate step.",
+          "formula": "P_\\pm(B)=\\int\\gamma_O(B)\\,d\\nu_\\pm(O)\\qquad(B\\text{ Borel})",
+          "lean": "Both Measure.bind_apply calls use the measurable family already proved above. B is universally quantified in the conclusion; its Borel condition is the ordinary evaluation domain, not an additional theorem-level regularity assumption."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianLawDensity.gaussian_law_eq_density",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents.component_probabilities",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar"
+      ],
+      "mathlib_dependencies": [
+        "measurable_withDensity",
+        "isProbabilityMeasure_bind",
+        "Measure.bind_apply",
+        "ENNReal.measurable_ofReal",
+        "ProbabilityTheory.multivariateGaussian",
+        "Continuous.measurable"
+      ],
+      "lean_statement": "Exact preproof sealed signature: actual covariance Gaussian family measurability, both literal conditioned binds probability, and universal Borel evaluations; source n>=3,kappa>=4.",
+      "lean_proof": "Joint literal density continuity and the exact actual Gaussian law-density node produce family measurability; exact component priors and canonical Mathlib bind facts produce both actual mixture laws.",
+      "boundary": "Actual single-block Gaussian family measurability, both determinant-conditioned probability measures and their universal Borel-set evaluations only, n>=3 and kappa>=4. Source omits measurable-family/bind well-definedness bookkeeping; this supplies it without inventing an author proof. No product Eq6, mixture-density/expectation interchange, H expectation gap, TV adapter, Poisson, parameters, transcript, eigenbasis or main lower bound.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S3.SS1.p3",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "arXiv:2610.20492v1 Section3.1 single-block P_b definition before Eq6; Section2 determinant-conditioned Haar and AppendixB2.2 standing range.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. The source definition of the single-block mixture is made measure-theoretically explicit; omitted construction bookkeeping is supplied background, not attributed author proof.",
+          "label": "Single-block Gaussian mixture definition",
+          "scope": "Actual law construction and supplied measurable-family bookkeeping only; Eq6 product and Eq20 H-to-TV remain separate."
+        },
+        {
+          "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/WithDensity.lean",
+          "line": 379,
+          "label": "Mathlib: measurable measures with density",
+          "scope": "The jointly measurable density produces a measurable measure-valued family; the actual same compiled theorem is called."
+        },
+        {
+          "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/GiryMonad.lean",
+          "line": 228,
+          "label": "Mathlib: actual bind and Borel evaluation",
+          "scope": "Literal join of map and bind_apply; no separately invented kernel law."
+        },
+        {
+          "path": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/ProbabilityMeasure.lean",
+          "line": 672,
+          "label": "Mathlib: probability preserved by measurable bind",
+          "scope": "Actual same isProbabilityMeasure_bind consumes the proved family and actual probability priors."
+        },
+        {
+          "path": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Multivariate.lean",
+          "line": 168,
+          "label": "Mathlib: actual multivariate Gaussian constructor",
+          "scope": "Existing centered covariance Gaussian; source precision admissibility is established by the identical imported law-density provider."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityMixtureLaws"
+      ]
+    }
+  ]
+}

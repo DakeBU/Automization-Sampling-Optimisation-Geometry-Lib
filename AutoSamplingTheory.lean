@@ -13,3 +13,4 @@ import AutoSamplingTheory.TechnicalLemmas.SALDExtracted
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.BlockFamily
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianExpectation
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws

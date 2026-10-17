@@ -1,5 +1,9 @@
 # Theorem publication: mathematics once, reader views automatically
 
+For SampleWiki paper entry points and progressive disclosure, follow the compact
+[paper-first reader contract](samplewiki-reader-navigation.md); exact reviewed
+content and canonical status bindings remain the source of truth.
+
 Applies to **every new or changed production declaration** in every ASTIS route,
 including reusable shared foundations. An unchanged historical proof is not
 retroactively certified; its missing exposition or semantic audit remains debt.

@@ -317,6 +317,7 @@ import Tests.GaussianComplexityNormalizer
 import Tests.GaussianComplexityOrthogonalHaar
 import Tests.GaussianComplexityRadialIntegral
 import Tests.GaussianComplexitySingleBlock
+import Tests.KernelL2
 
 import Tests.GaussianComplexityComponents
 import Tests.GaussianComplexityMixtureLaws

@@ -14,6 +14,7 @@ from urllib.parse import urlencode
 
 import astis_site
 import source_lineage
+import samplewiki_navigation
 from samplewiki_reader_contract import formula_html, href_from
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -126,8 +127,48 @@ def validate_data(model=None):
         formula_html(row['formula'])
 
 
+def reader_prose(text):
+    """Typeset known source notation; keep the canonical prose unchanged.
+
+    These are literal notation substitutions, not a parser or a replacement
+    theorem statement. Longer expressions win and are substituted only once.
+    """
+    notation = {
+        '0<epsilon<=sqrt(d)/2': r'0<\varepsilon\le\sqrt d/2',
+        'sqrt(alpha)W2<=epsilon': r'\sqrt{\alpha}\,W_2\le\varepsilon',
+        'P0~N(0,I_d)': r'P_0\sim\mathcal N(0,I_d)',
+        'X0=x_star': r'X_0=x_\star',
+        'E[V(X0)-V(x_star)]<=C*d': r'\mathbb E[V(X_0)-V(x_\star)]\le C d',
+        'friction2sqrt(beta)': r'\text{friction }2\sqrt{\beta}',
+        'Tilde O': r'\widetilde O',
+        'R_2(mu_0||pi)': r'R_2(\mu_0\Vert\pi)',
+        'KL(mu||pi)': r'\operatorname{KL}(\mu\Vert\pi)',
+        '||grad V(x_ref)||': r'\|\nabla V(x_{\mathrm{ref}})\|',
+        'sqrt(alpha d)': r'\sqrt{\alpha d}',
+        'sqrt(d/kappa)': r'\sqrt{d/\kappa}',
+        'sqrt(alpha)W2': r'\sqrt{\alpha}\,W_2',
+        'sqrt(d)/2': r'\sqrt d/2',
+        'kappa=beta/alpha': r'\kappa=\beta/\alpha',
+        '0<alpha I<=Hessian V(x)<=beta I': r'0\prec\alpha I\preceq\nabla^2 V(x)\preceq\beta I',
+        'exp(-V)': r'e^{-V}',
+        'C2': r'C^2', 'R^d': r'\mathbb R^d', 'W2': r'W_2',
+        'mu_0': r'\mu_0', 'x_ref': r'x_{\mathrm{ref}}', 'x_star': r'x_\star',
+        'c_opt': r'c_{\mathrm{opt}}', 'K_opt': r'K_{\mathrm{opt}}',
+        'grad V': r'\nabla V', 'epsilon': r'\varepsilon', 'delta': r'\delta',
+        'alpha': r'\alpha', 'beta': r'\beta', 'kappa': r'\kappa',
+        'Delta': r'\Delta', 'pi': r'\pi', 'mu': r'\mu',
+        'eta': r'\eta', 'rho': r'\rho', 'lambda': r'\lambda',
+    }
+    pattern = r'(?<![\w\\])(?:' + '|'.join(re.escape(s) for s in sorted(notation, key=len, reverse=True)) + r')(?!\w)'
+    parts, start = [], 0
+    for match in re.finditer(pattern, text):
+        parts.extend([escape(text[start:match.start()]), r'\(' + escape(notation[match[0]]) + r'\)'])
+        start = match.end()
+    return (''.join(parts) + escape(text[start:])).replace('&lt;=', '≤').replace('&gt;=', '≥')
+
+
 def ul(items):
-    return "<ul>" + "".join(f"<li>{escape(x)}</li>" for x in items) + "</ul>"
+    return "<ul>" + "".join(f"<li>{reader_prose(x)}</li>" for x in items) + "</ul>"
 
 
 def sources_html(m, source_ids, anchor):
@@ -170,7 +211,7 @@ def theorem_html(m, row, thm):
         query = urlencode({**workspace_base, "step": key})
         step_fragments.append(
             f'<li id="{escape(key)}"><h4>{escape(step["title"])}</h4>'
-            f'{formula_html(step["formula"])}<p>{escape(step["text"])}</p>'
+            f'{formula_html(step["formula"])}<p>{reader_prose(step["text"])}</p>'
             f'{sources_html(m, row["source_ids"], step["anchor"])}'
             f'<p><a class="button" href="../../../live/index.html?{query}">'
             'Track or question this step in Live Formalization</a></p>'
@@ -179,16 +220,16 @@ def theorem_html(m, row, thm):
     steps = "".join(step_fragments)
     return f'''<section class="companion-theorem" id="{escape(thm['id'])}" data-proof-status="planned">
 <p class="companion-status">RED · source theorem known · local proof open</p>
-<h2>{escape(thm['title'])}</h2>
+<h3>{escape(thm['title'])}</h3>
 {sources_html(m, row['source_ids'], thm['anchor'])}
 <p><a class="button primary" href="../../../live/index.html?{urlencode(workspace_base)}">Open this theorem in the interactive research workspace</a></p>
-<h3>Statement</h3><p>{escape(thm['statement'])}</p>
+<h3>Statement</h3><p>{reader_prose(thm['statement'])}</p>
 {ul(thm['assumptions'])}{formula_html(thm['formula'])}
 {lean_fold('statement', 'A future declaration must bind the probability laws, normalization, regularity, source algorithm and oracle model explicitly. The formula is a source theorem contract, not Lean code.')}
-<h3>Proof architecture and calculations</h3><p>This is a source-linked proof route, not a complete reconstruction of all cited lemmas. The dependencies below remain separate formalization tasks.</p>
+<details class="companion-proof-route" id="{escape(thm['id'])}-proof"><summary>Proof architecture and calculations · {len(thm['steps'])} steps</summary><p>This is a source-linked proof route, not a complete reconstruction of all cited lemmas. The dependencies below remain separate formalization tasks.</p>
 <ol class="companion-steps">{steps}</ol>
-{lean_fold('proof', 'Formalization will first match the named technology interfaces, then assemble this source theorem. No placeholder proof or source-cited wrapper has been added.')}
-<h3>Strict boundary</h3><p>{escape(thm['boundary'])}</p></section>'''
+{lean_fold('proof', 'Formalization will first match the named technology interfaces, then assemble this source theorem. No placeholder proof or source-cited wrapper has been added.')}</details>
+<h3>Strict boundary</h3><p>{reader_prose(thm['boundary'])}</p></section>'''
 
 
 def bookkeeping_html(book):
@@ -246,17 +287,17 @@ def comparison_html(row):
 
 def nav(rel):
     return (f'<nav class="reader-breadcrumb"><a href="{href_from(rel, "example-cases/samplewiki.html")}">SampleWiki</a> / '
-            f'<a href="{href_from(rel, HOME)}">Companion frontiers</a> / '
-            f'<a href="{href_from(rel, TECH)}">Reusable proof technology</a> / '
-            f'<a href="{href_from(rel, DELTA)}">What changed in the proof?</a></nav>')
+            f'<a href="{href_from(rel, HOME)}">Sampling papers</a></nav>')
 
 
 def write(output, rel, title, body):
     styles = "".join(f'<link rel="stylesheet" href="{href_from(rel, "assets/" + name)}">'
-                     for name in ("samplewiki-math-reader.css", "samplewiki-companions.css"))
+                     for name in ("samplewiki-math-reader.css", "samplewiki-companions.css", samplewiki_navigation.STYLE_NAME))
+    styles += f'<script defer src="{href_from(rel, "assets/" + samplewiki_navigation.SCRIPT_NAME)}"></script>'
     page = astis_site.page(title, rel, '<article class="companion-reader">' + nav(rel) + body + '</article>',
                            active="SampleWiki", description=title + "; source-pinned proof route, local Lean work open.", extra_head=styles)
     page = source_lineage.canonical_shell(page, rel, output)
+    page = samplewiki_navigation.inject_paper_directory(page, rel)
     astis_site.write_page(output, rel, page)
 
 
@@ -352,6 +393,7 @@ def gaussian_cloud_ledger_svg():
 
 def enrich_site(output):
     m = load(); validate_data(m)
+    samplewiki_navigation.install_style(output)
     assets = output / "assets"
     (assets / "samplewiki-companions.css").write_text((ROOT / "website/static/samplewiki-companions.css").read_text(encoding="utf-8"), encoding="utf-8")
     (assets / "samplewiki-companions.svg").write_text(topology_svg(m), encoding="utf-8")
@@ -360,27 +402,48 @@ def enrich_site(output):
     (assets / 'samplewiki-proof-delta.svg').write_text(proof_delta_svg(delta_model), encoding='utf-8')
     rows = [*m["cases"], m["composition"]]
     for row in rows:
-        body = f'<header><p class="companion-status">Planned local formalization</p><h1>{escape(row["title"])}</h1><p>{escape(row["role"])}</p></header>'
+        body = (f'<header class="paper-reader-header"><h1>{escape(row.get("reader_label", row["title"]))}</h1>'
+                f'<p class="paper-subtitle">{escape(row.get("reader_summary", row["role"]))}</p>'
+                '<p class="companion-status">Main paper results remain open in Lean. Verified building blocks are listed separately below.</p></header>')
+        body += (f'<nav class="paper-reading-nav" aria-label="Reading depth"><a href="#paper-main-results">1. Statements</a>'
+                 f'<a href="#{escape(row["theorems"][0]["id"])}-proof">2. Proof route</a>'
+                 '<a href="#paper-lean-progress">3. Verified work</a></nav>')
         if row.get("reader_guide"):
-            body += '<section class="reader-guide"><h2>Researcher reading path</h2><ol>' + ''.join(f'<li>{escape(item)}</li>' for item in row['reader_guide']) + '</ol></section>'
+            body += '<details class="reader-guide"><summary>Suggested reading order</summary><ol>' + ''.join(f'<li>{escape(item)}</li>' for item in row['reader_guide']) + '</ol></details>'
         setting = row.get("setting", m["setting"])
-        body += '<section><h2>Source setting and conventions</h2>' + formula_html(setting["formula"]) + ul(setting["notes"]) + '</section>'
+        body += ('<details class="paper-source-setting"><summary>Paper, notation and source conventions</summary>'
+                 + ''.join(f'<p>{escape(m["sources"][sid]["title"])}</p>' for sid in row['source_ids'])
+                 + sources_html(m, row['source_ids'], 'Pinned source version')
+                 + formula_html(setting['formula']) + ul(setting['notes']) + '</details>')
+        body += '<section id="paper-main-results"><h2>1. Main statements</h2>'
         body += theorem_html(m, row, row['theorems'][0])
         if row.get("bookkeeping"):
-            body += bookkeeping_html(row["bookkeeping"])
-        body += ''.join(theorem_html(m, row, t) for t in row['theorems'][1:])
-        body += comparison_html(row)
-        body += f'<p><a href="proof-technology.html">Expand reusable prerequisites and next packets →</a></p>'
+            body += ('<details class="paper-section-ledger"><summary>Section 6: follow the recursive calls and accumulated errors</summary>'
+                     + bookkeeping_html(row['bookkeeping']) + '</details>')
+        if len(row['theorems']) > 1:
+            body += ('<details class="paper-supporting-statements"><summary>Further source statements · '
+                     + str(len(row['theorems']) - 1) + '</summary>'
+                     + ''.join(theorem_html(m, row, t) for t in row['theorems'][1:]) + '</details>')
+        body += '</section>'
+        body += ('<section id="paper-lean-progress" data-paper-publications="pending"><h2>3. Verified work</h2>'
+                 '<p>No declaration-level publication is attached to this page yet. A source proof route is not a Lean verification.</p></section>')
+        body += ('<details class="paper-advanced"><summary>Compare proof mechanisms and prerequisites</summary>'
+                 + comparison_html(row)
+                 + '<p><a href="proof-technology.html">Reusable prerequisites</a> · '
+                 '<a href="proof-delta.html">What changes in the proof?</a></p></details>')
         write(output, BASE + row['slug'] + '.html', row['title'], body)
-    cards = ''.join(f'<li><h2><a href="{r["slug"]}.html">{escape(r["title"])}</a></h2><p>{escape(r["role"])}</p></li>' for r in rows)
+    priority_ids = {r['id'] for r in samplewiki_navigation.priority_cases(m)}
+    cards = ''.join(f'<li><a href="{r["slug"]}.html">{escape(r["title"])}</a></li>' for r in rows if r['id'] not in priority_ids)
     sources = ''.join(f'<li><a href="{escape(s["url"])}">{escape(s["title"])}</a> — {escape(", ".join(s["authors"]))}. {escape(s["version"])}. {escape(s["pin_kind"])}.</li>' for s in m['sources'].values())
-    body = f'<header><h1>{escape(m["title"])}</h1><p>{escape(m["scope"])}</p><p class="companion-status">{escape(m["review"])}</p></header><ol>{cards}</ol>'
-    body += '<section><h2>How the proposed proof graph changes</h2><p>' + escape(m['topology']['change']) + '</p>'
+    body = ('<header class="paper-reader-header"><h1>Sampling papers</h1><p>Start with a paper. Read the main ideas first, then expand a proof or its checked Lean.</p></header>'
+            + samplewiki_navigation.paper_cards(HOME, m)
+            + '<details class="paper-advanced"><summary>Composition and other research projects</summary><ul>' + cards + '</ul></details>')
+    body += '<details class="paper-advanced"><summary>Compare the proposed proof routes</summary><p>' + escape(m['topology']['change']) + '</p>'
     body += '<figure><a href="../../../assets/samplewiki-companions.svg"><img src="../../../assets/samplewiki-companions.svg" alt="Three red source cases form a proxy-stable composition route and a separate Gaussian-cloud recursive-accounting route; all formalization remains open."></a><figcaption>Open the SVG to zoom. This is a planned source-interface graph, not the Lean import graph.</figcaption></figure>'
     body += '<p>' + escape(m['topology']['interpretation']) + '</p>' + ul(m['topology']['chewi_windows'] + m['topology']['other_routes'])
-    body += '<p>' + escape(m['topology']['failure_boundary']) + '</p><p><a href="../../../lean-foundations.html?view=frontier&amp;focus=case%3AASTIS-SW-SPHMC-PBPS-COMPOSITION">Expand this frontier in the interactive proof graph →</a> · <a href="../../../lean-foundations.html?view=functor&amp;focus=transport%3Aproxy-warm-handoff">Inspect the candidate certificate bridge →</a></p></section>'
+    body += '<p>' + escape(m['topology']['failure_boundary']) + '</p><p><a href="../../../lean-foundations.html?view=frontier&amp;focus=case%3AASTIS-SW-SPHMC-PBPS-COMPOSITION">Expand this frontier in the interactive proof graph →</a> · <a href="../../../lean-foundations.html?view=functor&amp;focus=transport%3Aproxy-warm-handoff">Inspect the candidate certificate bridge →</a></p></details>'
     body += f'<section><h2>Reading and formalization order</h2><p>Use the source-case cards as researcher-facing maps. For Picard HMC Part I, read the Section 6 call/error ledger before the detailed lemmas. Formalize dependency-ready common technology before algorithm assemblies; preserved textbook and companion frontiers are not reset.</p><p><a href="proof-technology.html">{len(m["technologies"])} reusable technology contracts and {len(m["next_packets"])} next-packet candidates →</a></p></section>'
-    body += '<section><h2>Attribution and source status</h2><ul>' + sources + '</ul><p>These are ASTIS mathematical restatements and proof-route explanations, not reproduced paper prose. The pinned arXiv pages list the perpetual non-exclusive distribution license; ASTIS assumes no blanket right to republish them. No author endorsement or new Lean certificate is implied.</p></section>'
+    body += '<details class="paper-advanced"><summary>Attribution and source versions</summary><ul>' + sources + '</ul><p>These are ASTIS mathematical restatements and proof-route explanations, not reproduced paper prose. Licenses are recorded per pinned source; no blanket right to republish paper prose, author endorsement or new Lean certificate is implied.</p></details>'
     write(output, HOME, m['title'], body)
     techs = {t['id']: t for t in m['technologies']}
     items = []
@@ -397,7 +460,10 @@ def enrich_site(output):
         if not path.exists():
             raise ValueError(f'Missing companion entry surface: {rel}')
         text = path.read_text(encoding='utf-8')
-        banner = f'<section data-companion-frontiers="true"><h2>Companion-paper frontiers</h2><p>Smoothed Picard HMC, Proximal BPS, and Picard HMC Part I: source statements, readable proof routes, recursive-call/error ledgers, and explicit Lean status.</p><p><a href="{href_from(rel, HOME)}">Read the frontier theorems and proof graph →</a> · <a href="{href_from(rel, TECH)}">Reusable proof technology →</a></p></section>'
+        if 'data-companion-frontiers="true"' in text:
+            continue
+        banner = (f'<nav class="paper-entry-link" data-companion-frontiers="true" aria-label="Sampling papers">'
+                  f'<a href="{href_from(rel, HOME)}">Four sampling papers: PBPS, SPHMC, Gaussian Cloud and Midpoint →</a></nav>')
         text, count = re.subn(r'(<main\b[^>]*>)', lambda match: match.group(1) + banner, text, count=1)
         if count != 1:
             raise ValueError(f'Missing main for companion entry: {rel}')

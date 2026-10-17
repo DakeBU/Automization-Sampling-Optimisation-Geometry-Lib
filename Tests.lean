@@ -302,6 +302,7 @@ import Tests.UnitSphere
 import Tests.SphereSecondOrder
 import Tests.ExponentialKernelInterpolation
 import Tests.ProximalBPSActualL2StrongContinuity
+import Tests.ProximalBPSActualKernelL2Realization
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

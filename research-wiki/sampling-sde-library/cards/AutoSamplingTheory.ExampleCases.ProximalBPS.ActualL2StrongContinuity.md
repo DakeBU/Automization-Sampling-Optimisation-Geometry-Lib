@@ -4,6 +4,7 @@
 - Layer: uncategorized
 - Purpose: Extend actual PBPS bounded-core continuity to every real L2 class on the SAME process and contraction family.
 - Mathlib-quality status: Route-local integration node; use Registry and the linked verification record for actual current acceptance evidence.
+- Verification: [exact compilation, source review and final candidate gates](../../paper-contributions/PBPS/l2-strong-continuity-verification.json).
 
 ## Imports
 

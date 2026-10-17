@@ -56,6 +56,8 @@ def semantic_details(audit: dict) -> str:
 def source_card(item: dict, page: str) -> str:
     data = publication.inputs()
     source = item['source']
+    progressive = all(data['lessons'][b['declaration']].get('reading_layout') == 'progressive'
+                      for b in item['bindings'])
     formulae = ''.join(f'<h3>{escape(f["label"])}</h3><div class="proof-reader-equation">'
                        f'\\[{escape(f["tex"])}\\]</div>' for f in item['formulae'])
     obligations = []
@@ -104,8 +106,11 @@ def source_card(item: dict, page: str) -> str:
             f'<h2>{escape(item["title"])}</h2><p>{escape(source.get("attribution", ""))}</p>'
             '<p>' + declaration_lessons.source_citation_anchor(
                 {'url': source['url'], 'label': source['edition'] + ' · ' + source['anchor']}, page)
-            + f' · {escape(source["wording_status"])}</p><h3>Complete source statement (Samplinglib restatement)</h3>'
-            f'<p>{escape(item["statement"])}</p>' + astis_site.list_html(item['assumptions']) + formulae
+            + f' · {escape(source["wording_status"])}</p>'
+            + ('<details class="reader-ledger"><summary>Complete source statement and conditions</summary>'
+               if progressive else '<h3>Complete source statement (Samplinglib restatement)</h3>')
+            + f'<p>{escape(item["statement"])}</p>' + astis_site.list_html(item['assumptions']) + formulae
+            + ('</details>' if progressive else '')
             + '<h2>Read the formalized proofs</h2><p>Each statement and proof below has its own closed Lean disclosure. '
             'Samplinglib parents, Mathlib calls and external mathematical sources are distinguished in each proof.</p>'
             + ''.join(lessons)

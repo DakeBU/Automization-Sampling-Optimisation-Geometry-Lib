@@ -222,12 +222,12 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
         + base.list_html(unit.get('conventions', []), empty='') + '</details>'
         + f'<h2>{proof_title}</h2>'
         + ('<p class="reader-expand-hint">Open a step to read its argument and formula.</p>' if progressive else '') + steps
-        + ('<details class="lean-verification reader-ledger"><summary>Complete Lean proof</summary>' if progressive else '<section class="lean-verification"><h2>Lean verification</h2>')
-        + '<p>The exact proof begins folded immediately after the mathematical argument; the statement is folded beside the claim above.</p>'
+        + '<section class="lean-verification"><h2>Lean verification</h2>'
+        + ('' if progressive else '<p>The exact proof begins folded immediately after the mathematical argument; the statement is folded beside the claim above.</p>')
         + inline_lean.disclosure(name, role='proof', explanation=unit['lean_proof'], page=page,
                                  helpers=proof_helpers,
                                  trim_following_docstring=True)
-        + ('</details>' if progressive else '</section>')
+        + '</section>'
         + examples
         + (('<details class="reader-ledger"><summary>Source correspondence and review</summary>'
             + source_comparison + '</details>') if progressive and source_comparison else source_comparison)

@@ -96,6 +96,9 @@ def build_payload(model: dict[str, object] | None = None) -> dict[str, object]:
                 "reader_guide": list(row.get("reader_guide", [])),
                 "theorems": theorems,
                 "ledger": row.get("bookkeeping"),
+                "method_comparison": row.get("method_comparison", []),
+                "source_graph": row.get("source_graph"),
+                "source_notes": row.get("source_notes", []),
                 "downloads": {
                     "json": f"../downloads/{slug}-research-context.json",
                     "markdown": f"../downloads/{slug}-research-context.md",
@@ -204,6 +207,12 @@ def workspace_markdown(workspace: dict[str, object]) -> str:
                 ]
             )
         lines.extend(["", "Ledger boundary:", "", ledger["boundary"], ""])
+    if workspace.get("method_comparison"):
+        lines.extend(["## Proof mechanisms and graph boundaries", ""])
+        for item in workspace["method_comparison"]:
+            lines.extend([f"### {item['aspect']}", "", f"Determinant sign: {item['sign']}", "",
+                          f"Hidden eigenbasis: {item['eigen']}", ""])
+        lines.extend(["## Source discrepancies", "", *[f"- {note}" for note in workspace.get("source_notes", [])], ""])
     lines.extend(
         [
             "## Suggested agent instruction",

@@ -9,3 +9,6 @@ import AutoSamplingTheory.SALD
 import AutoSamplingTheory.SDE
 import AutoSamplingTheory.TechnicalLemmas
 import AutoSamplingTheory.TechnicalLemmas.SALDExtracted
+
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.BlockFamily
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianExpectation

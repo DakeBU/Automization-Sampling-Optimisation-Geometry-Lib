@@ -1,0 +1,500 @@
+{
+  "source_version": "arXiv:2610.20492v1",
+  "source_anchor": "Section3.1 equations(4),(5); Lemma3.4 and AppendixB.3 LemmaB.8, complete block and minimizer proof",
+  "source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+  "sealed_interface": {
+    "definitions": "private def blockCoordinates (d n : ℕ) :\n    ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n  ((Equiv.sumCongr\n    ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n    (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n    (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n\nnoncomputable def blockPrecision {d n : ℕ} (κ : ℝ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) : Matrix (Fin d) (Fin d) ℝ :=\n  Matrix.reindex (blockCoordinates d n) (blockCoordinates d n)\n    (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => singleBlockPrecision κ (O j)))\n      0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ))",
+    "signatures": {
+      "blockPrecision_regular": "theorem blockPrecision_regular {d n : ℕ} (hn : 3 ≤ n) (_hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) :\n    (blockPrecision κ O).IsHermitian ∧\n      ∀ x : Fin d → ℝ,\n        x ⬝ᵥ x ≤ x ⬝ᵥ (blockPrecision κ O *ᵥ x) ∧\n        x ⬝ᵥ (blockPrecision κ O *ᵥ x) ≤ κ * (x ⬝ᵥ x)",
+      "blockPrecision_unique_minimizer": "theorem blockPrecision_unique_minimizer {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) :\n    let f : (Fin d → ℝ) → ℝ := fun x => (1 / 2 : ℝ) * (x ⬝ᵥ (blockPrecision κ O *ᵥ x))\n    f 0 = 0 ∧ ∀ x, 0 ≤ f x ∧ (f x = 0 ↔ x = 0)"
+    }
+  },
+  "source_proof_graph": {
+    "semantics": "Source dependencies only. The graph does not certify the future Lean implementation or library edges.",
+    "scope": "Entire Appendix B.3 proof of full Lemma3.4/B.8, plus requisite definitions and standing assumptions.",
+    "nodes": [
+      {
+        "id": "gc-b3-family",
+        "disposition": "NODE",
+        "anchor": "S2.Ex1",
+        "kind": "source-definition",
+        "content": "A_(d,kappa) consists of real symmetric matrices with I_d <= A <= kappa I_d in positive-semidefinite order."
+      },
+      {
+        "id": "gc-b3-potential",
+        "disposition": "NODE",
+        "anchor": "S2.SS0.SSS0.Px1.p1.2",
+        "kind": "source-definition",
+        "content": "f_A(x)=(1/2)x^T A x."
+      },
+      {
+        "id": "gc-b3-range",
+        "disposition": "NODE",
+        "anchor": "S3.SS1.p1.1, first two sentences",
+        "kind": "standing-assumptions",
+        "content": "kappa>=4; natural dimensions 3<=n<=d; k=floor(d/n)."
+      },
+      {
+        "id": "gc-b3-single-definition",
+        "disposition": "NODE",
+        "anchor": "S3.E4; S3.SS1.p1.1 final clause",
+        "kind": "source-definition",
+        "content": "For every O in O(n), A_O=((kappa+1)/2)I_n-((kappa-1)/4)(O+O^T)."
+      },
+      {
+        "id": "gc-b3-block-definition",
+        "disposition": "NODE",
+        "anchor": "S3.SS1.p1.2; S3.E5",
+        "kind": "source-definition",
+        "content": "For O-vector in O(n)^k, A_Ovector=diag(A_O1,...,A_Ok,I_(d-kn))."
+      },
+      {
+        "id": "gc-b3-no-tail-construction",
+        "disposition": "NODE",
+        "anchor": "S3.SS1.p3.2",
+        "kind": "endpoint-convention",
+        "content": "When kn=d, the identity block is omitted. The Gaussian-factor omission belongs to excluded Eq6, not a regularity dependency."
+      },
+      {
+        "id": "gc-b3-overview",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p1.1",
+        "kind": "proof-overview",
+        "content": "Orthogonality supplies within-block bounds; block diagonal construction preserves them."
+      },
+      {
+        "id": "gc-b3-lemma",
+        "disposition": "NODE",
+        "anchor": "A2.Thmtheorem8.p1.1; S3.Thmtheorem4",
+        "kind": "source-anchor",
+        "content": "For every O-vector in O(n)^k, full precision lies in A_(d,kappa), f has unique minimizer zero and minimum value zero.",
+        "status": "unproved-new-target"
+      },
+      {
+        "id": "gc-b3-orthogonality",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p2.1 first clause",
+        "kind": "unnamed-estimate",
+        "content": "For O in O(n) and all real v, ||Ov||_2=||v||_2."
+      },
+      {
+        "id": "gc-b3-cs",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p2.1 Hence by Cauchy-Schwarz",
+        "kind": "background-inequality",
+        "content": "|<v,Ov>|<=||v||_2||Ov||_2. No numbered external citation is present."
+      },
+      {
+        "id": "gc-b3-cross",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p2.1 second clause",
+        "kind": "unnamed-estimate",
+        "content": "|<v,Ov>|<=||v||_2^2."
+      },
+      {
+        "id": "gc-b3-quadratic-expansion",
+        "disposition": "NODE",
+        "anchor": "A2.Ex73",
+        "kind": "reused-display",
+        "content": "v^T A_O v=((kappa+1)/2)||v||_2^2-((kappa-1)/2)<v,Ov>."
+      },
+      {
+        "id": "gc-b3-sign",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p2.2 implicit scaling premise",
+        "kind": "arithmetic-bookkeeping",
+        "content": "(kappa-1)/2>=0 follows from kappa>=4; it is discharged, never a theorem binder."
+      },
+      {
+        "id": "gc-b3-single-forms",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p2.2 first sentence",
+        "kind": "unnamed-estimate",
+        "content": "For all v, ||v||_2^2<=v^T A_O v<=kappa||v||_2^2."
+      },
+      {
+        "id": "gc-b3-single-symmetry",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p2.2 Together with",
+        "kind": "unnamed-algebraic-fact",
+        "content": "A_O=A_O^T by the literal formula."
+      },
+      {
+        "id": "gc-b3-loewner",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p2.2 -> A2.E26; A2.SS3.p3.2",
+        "kind": "background-characterization",
+        "content": "For real symmetric matrices, Loewner comparisons are equivalent to universal quadratic-form comparisons; not entrywise matrix order."
+      },
+      {
+        "id": "gc-b3-eq26",
+        "disposition": "NODE",
+        "anchor": "A2.E26",
+        "kind": "source-conclusion",
+        "content": "I_n<=A_O<=kappa I_n, with symmetry retained in the formal interface.",
+        "planned_compiled_parent": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_regular"
+      },
+      {
+        "id": "gc-b3-coordinate-split",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p3.1 first sentence",
+        "kind": "unnamed-finite-dimensional-bookkeeping",
+        "content": "Write each x in R^d as (x_1,...,x_k,z), x_j in R^n and z in R^(d-kn)."
+      },
+      {
+        "id": "gc-b3-finite-index-adapter",
+        "disposition": "NODE",
+        "anchor": "S3.E5 -> A2.SS3.p3.1; A2.Ex74",
+        "kind": "implicit-semantic-adapter",
+        "content": "Finite indices realize source consecutive blocks: coordinate (inner,block) has value inner+n*block, tail t has value k*n+t; d%n=d-k*n. Reindex changes representation only.",
+        "adapter_kind": "source-required bookkeeping, not a claim that the source writes Lean equivalences"
+      },
+      {
+        "id": "gc-b3-norm-split",
+        "disposition": "NODE",
+        "anchor": "A2.Ex74 first line",
+        "kind": "reused-display",
+        "content": "||x||_2^2=sum_j ||x_j||_2^2+||z||_2^2."
+      },
+      {
+        "id": "gc-b3-quadratic-split",
+        "disposition": "NODE",
+        "anchor": "A2.Ex74 second line equality",
+        "kind": "reused-display",
+        "content": "x^T A_Ovector x=sum_j x_j^T A_Oj x_j+||z||_2^2."
+      },
+      {
+        "id": "gc-b3-block-lower",
+        "disposition": "NODE",
+        "anchor": "A2.Ex74 first inequality",
+        "kind": "unnamed-estimate",
+        "content": "Sum single-block lower bounds and identity-tail equality to get ||x||_2^2<=x^T A_Ovector x."
+      },
+      {
+        "id": "gc-b3-block-upper-partial",
+        "disposition": "NODE",
+        "anchor": "A2.Ex74 third line first inequality",
+        "kind": "unnamed-estimate",
+        "content": "x^T A_Ovector x<=kappa sum_j ||x_j||_2^2+||z||_2^2."
+      },
+      {
+        "id": "gc-b3-kappa-one",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p3.2 first sentence",
+        "kind": "arithmetic-bookkeeping",
+        "content": "kappa>=1 follows from the standing kappa>=4; it discharges the final tail comparison."
+      },
+      {
+        "id": "gc-b3-block-upper",
+        "disposition": "NODE",
+        "anchor": "A2.Ex74 final inequality; A2.SS3.p3.2 first sentence",
+        "kind": "unnamed-estimate",
+        "content": "||z||_2^2<=kappa||z||_2^2 gives x^T A_Ovector x<=kappa||x||_2^2."
+      },
+      {
+        "id": "gc-b3-zero-tail-proof",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p3.2 When kn=d",
+        "kind": "endpoint-bookkeeping",
+        "content": "If kn=d then d%n=0; Fin0 has no entries, all tail sums vanish, so the displayed proof includes this case."
+      },
+      {
+        "id": "gc-b3-block-symmetry",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p3.2 Since A_Ovector is symmetric",
+        "kind": "unnamed-algebraic-fact",
+        "content": "Block diagonal of symmetric A_Oj and an identity tail is symmetric; both off-diagonal cross blocks are zero."
+      },
+      {
+        "id": "gc-b3-full-regular",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p3.2 these inequalities imply",
+        "kind": "source-conclusion",
+        "content": "Symmetry and all-vector bounds give I_d<=A_Ovector<=kappa I_d and membership in A_(d,kappa)."
+      },
+      {
+        "id": "gc-b3-value-zero",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p4.1 first clause",
+        "kind": "unnamed-algebraic-fact",
+        "content": "f_A_Ovector(0)=0."
+      },
+      {
+        "id": "gc-b3-norm-positive",
+        "disposition": "NODE",
+        "anchor": "A2.Ex75 final strict inequality",
+        "kind": "background-positivity",
+        "content": "For x!=0, ||x||_2^2=sum_i x_i^2>0; factor 1/2 is positive."
+      },
+      {
+        "id": "gc-b3-strict-positive",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p4.1 x!=0 clause; A2.Ex75",
+        "kind": "reused-display",
+        "content": "For every x!=0, f_A_Ovector(x)=(1/2)x^T A_Ovector x>=(1/2)||x||_2^2>0."
+      },
+      {
+        "id": "gc-b3-minimizer",
+        "disposition": "NODE",
+        "anchor": "A2.SS3.p4.2",
+        "kind": "source-conclusion",
+        "content": "Zero is the unique minimizer and minimum value is zero; equivalently f0=0 and for every x, 0<=f x and (f x=0 iff x=0)."
+      }
+    ],
+    "edges": [
+      {
+        "from_nodes": [
+          "gc-b3-single-definition"
+        ],
+        "to": "gc-b3-orthogonality",
+        "consumer_use_site": "A2.SS3.p2.1 orthogonality clause",
+        "detail": "Consumes O in O(n), not a public norm-preservation assumption."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-orthogonality",
+          "gc-b3-cs"
+        ],
+        "to": "gc-b3-cross",
+        "consumer_use_site": "A2.SS3.p2.1 Hence by Cauchy-Schwarz",
+        "detail": ""
+      },
+      {
+        "from_nodes": [
+          "gc-b3-single-definition"
+        ],
+        "to": "gc-b3-quadratic-expansion",
+        "consumer_use_site": "A2.Ex73",
+        "detail": "Expand and use v^T O^T v=v^T O v over reals."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-range"
+        ],
+        "to": "gc-b3-sign",
+        "consumer_use_site": "A2.SS3.p2.2 scaling cross estimate",
+        "detail": ""
+      },
+      {
+        "from_nodes": [
+          "gc-b3-quadratic-expansion",
+          "gc-b3-cross",
+          "gc-b3-sign"
+        ],
+        "to": "gc-b3-single-forms",
+        "consumer_use_site": "A2.SS3.p2.2 we obtain",
+        "detail": "Both sides of the absolute bound are used with the correct sign."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-single-definition"
+        ],
+        "to": "gc-b3-single-symmetry",
+        "consumer_use_site": "A2.SS3.p2.2 Together with",
+        "detail": ""
+      },
+      {
+        "from_nodes": [
+          "gc-b3-single-symmetry",
+          "gc-b3-single-forms",
+          "gc-b3-loewner"
+        ],
+        "to": "gc-b3-eq26",
+        "consumer_use_site": "A2.E26",
+        "detail": ""
+      },
+      {
+        "from_nodes": [
+          "gc-b3-range",
+          "gc-b3-block-definition"
+        ],
+        "to": "gc-b3-finite-index-adapter",
+        "consumer_use_site": "A2.SS3.p3.1 coordinate split",
+        "detail": "Euclidean division: k*n+(d%n)=d and tail length d-k*n=d%n. No divisibility hypothesis is added."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-finite-index-adapter"
+        ],
+        "to": "gc-b3-coordinate-split",
+        "consumer_use_site": "A2.SS3.p3.1 Now let x=...",
+        "detail": "Every x is represented, not a restricted vector subspace."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-coordinate-split"
+        ],
+        "to": "gc-b3-norm-split",
+        "consumer_use_site": "A2.Ex74 first equality",
+        "detail": "Finite sum decomposition with squared Euclidean norm."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-block-definition",
+          "gc-b3-finite-index-adapter",
+          "gc-b3-coordinate-split"
+        ],
+        "to": "gc-b3-quadratic-split",
+        "consumer_use_site": "A2.Ex74 second equality",
+        "detail": "Cross blocks zero, identity tail contributes exactly ||z||^2."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-eq26",
+          "gc-b3-norm-split",
+          "gc-b3-quadratic-split"
+        ],
+        "to": "gc-b3-block-lower",
+        "consumer_use_site": "A2.Ex74 first inequality",
+        "detail": "Instantiate Eq26 for every j and x_j; sum the produced lower bounds."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-eq26",
+          "gc-b3-quadratic-split"
+        ],
+        "to": "gc-b3-block-upper-partial",
+        "consumer_use_site": "A2.Ex74 third line first inequality",
+        "detail": "Instantiate and sum upper bounds; tail remains coefficient one."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-range"
+        ],
+        "to": "gc-b3-kappa-one",
+        "consumer_use_site": "A2.SS3.p3.2 The last inequality uses kappa>=1",
+        "detail": "No convenience binder kappa>=1."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-block-upper-partial",
+          "gc-b3-norm-split",
+          "gc-b3-kappa-one"
+        ],
+        "to": "gc-b3-block-upper",
+        "consumer_use_site": "A2.Ex74 final inequality",
+        "detail": "Multiply nonnegative ||z||^2 by 1<=kappa."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-range",
+          "gc-b3-no-tail-construction",
+          "gc-b3-finite-index-adapter"
+        ],
+        "to": "gc-b3-zero-tail-proof",
+        "consumer_use_site": "A2.SS3.p3.2 When kn=d",
+        "detail": "Conditional kn=d is discharged by empty tail, not added to theorem input; no separate sufficient proof route."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-single-symmetry",
+          "gc-b3-block-definition"
+        ],
+        "to": "gc-b3-block-symmetry",
+        "consumer_use_site": "A2.SS3.p3.2 Since A_Ovector is symmetric",
+        "detail": ""
+      },
+      {
+        "from_nodes": [
+          "gc-b3-block-symmetry",
+          "gc-b3-block-lower",
+          "gc-b3-block-upper",
+          "gc-b3-loewner",
+          "gc-b3-family"
+        ],
+        "to": "gc-b3-full-regular",
+        "consumer_use_site": "A2.SS3.p3.2 and therefore A_Ovector in A_(d,kappa)",
+        "detail": "Zero-tail node records endpoint coverage of the same universal argument; it is not an extra unconditional premise."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-potential"
+        ],
+        "to": "gc-b3-value-zero",
+        "consumer_use_site": "A2.SS3.p4.1 Finally f(0)=0",
+        "detail": ""
+      },
+      {
+        "from_nodes": [
+          "gc-b3-potential",
+          "gc-b3-block-lower",
+          "gc-b3-norm-positive"
+        ],
+        "to": "gc-b3-strict-positive",
+        "consumer_use_site": "A2.Ex75",
+        "detail": "The conditional x!=0 is introduced locally; squared Euclidean positivity discharges the strict comparison."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-value-zero",
+          "gc-b3-strict-positive"
+        ],
+        "to": "gc-b3-minimizer",
+        "consumer_use_site": "A2.SS3.p4.2 Thus",
+        "detail": "For x=0 value is zero; for x!=0 value strictly positive. This supplies all-vector nonnegativity and equality iff zero."
+      },
+      {
+        "from_nodes": [
+          "gc-b3-full-regular",
+          "gc-b3-minimizer"
+        ],
+        "to": "gc-b3-lemma",
+        "consumer_use_site": "A2.Thmtheorem8 / proof ending A2.SS3.p4.2",
+        "detail": "AND of the two actual source conclusions; neither main lower bound is a consumer closed here."
+      }
+    ],
+    "excluded_with_reason": [
+      {
+        "id": "gc-b3-budget-choice",
+        "disposition": "EXCLUDED",
+        "anchor": "S3.SS1.p1.1 sentences n=2T+1 through remaining cases",
+        "content": "Choose n=2T+1 for T>=1 and 2T+1<=d; remaining cases separately.",
+        "reason": "Main lower-bound application specialization. The regularity lemma is universally quantified over source standing n and d; no T or query budget is used."
+      },
+      {
+        "id": "gc-b3-random-law",
+        "disposition": "EXCLUDED",
+        "anchor": "S3.SS1.p2.1",
+        "content": "Independent O_j from mu_(n,b), common determinant sign and law D_b.",
+        "reason": "A random hard-input distribution, not needed for deterministic all-O regularity. Adding independence, Haar law or determinant sign as regularity premises would narrow the source result."
+      },
+      {
+        "id": "gc-b3-gaussian-mixture",
+        "disposition": "EXCLUDED",
+        "anchor": "S3.SS1.p3.1; S3.E6; Gaussian-factor clause of S3.SS1.p3.2",
+        "content": "Averaged target P_b^tensor k times identity Gaussian tail, omitting final Gaussian when kn=d.",
+        "reason": "Probabilistic mixture factorization is a separate source obligation and is not proved by matrix regularity or unique minimization. Identity-tail omission itself is included as gc-b3-no-tail-construction."
+      },
+      {
+        "id": "gc-b3-proof-heading",
+        "disposition": "EXCLUDED",
+        "anchor": "A2.SS3 title; A2.SS3.2 proof heading; final QED marker",
+        "content": "B.3 Regularity; Proof of Lemma 3.4; QED.",
+        "reason": "Editorial labels have no separate mathematical obligation. Lemma B.8 is the appendix restatement of Lemma3.4, not a second result."
+      }
+    ],
+    "source_gaps": [],
+    "implicit_bridges_expanded": [
+      "real transpose scalar identity in Ex73",
+      "coefficient sign from standing range",
+      "quadratic characterization of Loewner order",
+      "Euclidean division and contiguous finite-coordinate adapter",
+      "finite sum norm/quadratic decomposition",
+      "nonnegative tail rescaling and zero-tail endpoint",
+      "strict Euclidean squared-norm positivity for nonzero vectors"
+    ],
+    "external_citations": "No numbered external citation in B.3. Cauchy-Schwarz and finite-dimensional elementary background are recorded as nodes, with no unearned Lean certification.",
+    "alternative_routes": [],
+    "route_logic": "One source route: single-block orthogonality/Cauchy-Schwarz -> blockwise summation plus tail -> full-block lower and upper bounds. Symmetry plus both bounds yields full regularity; separately the full-block lower bound and the literal potential give strict positivity away from zero and then unique minimizer zero with value zero. Empty-tail discussion is endpoint bookkeeping, not an independent OR-route or a new AND premise.",
+    "coverage_status": "All substantive Appendix B.3 paragraphs and displays inventoried. This extraction requires a distinct raw-source topology reviewer; author cannot self-approve.",
+    "independent_topology_approval": "pending-distinct-reviewer",
+    "topology_review_actor": null,
+    "source_graph_revision": {
+      "revision": "block-source-graph-v1-prose-correction-1",
+      "change_kind": "prose-only",
+      "reason": "Distinct strict topology reviewer identified that prior route_logic prose overstated the positivity branch as requiring full regularity; the actual source dependency uses only the full-block lower bound.",
+      "nodes_edges_unchanged": true,
+      "serialization": "UTF-8 without BOM; LF line endings; JSON indented by 2 spaces."
+    }
+  }
+}

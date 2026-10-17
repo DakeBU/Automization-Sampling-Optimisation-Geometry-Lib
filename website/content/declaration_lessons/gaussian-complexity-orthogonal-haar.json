@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.existsUnique_orthogonalHaar",
+      "kind": "theorem",
+      "title": "The full orthogonal group has a unique Haar probability",
+      "statement": "For every natural finite dimension n, the full real orthogonal group O(n), with its inherited matrix topology and Borel sigma-algebra, has exactly one measure which is both a probability and a Haar measure. This explicates the standard Haar background invoked in the source.",
+      "formula": "\\exists!\\,\\mu\\in\\mathcal M(O(n)):\\quad \\mu(O(n))=1\\ \\land\\ \\mu\\text{ is Haar}",
+      "assumptions": [
+        "n is an arbitrary natural finite dimension. The paper applications use n>=3 or d>=2; the shared background also covers n=0.",
+        "O(n) is the full real orthogonal group O^T O=I, equipped with the subspace topology of finite real matrices and its Borel sigma-algebra. Both determinant signs are allowed whenever they exist.",
+        "Haar means left invariant, finite on compact sets and positive on nonempty open sets. Probability means total mass one. Compactness and second countability are proved internally, not assumed as public premises."
+      ],
+      "steps": [
+        {
+          "title": "The group is compact in its actual matrix topology",
+          "text": "Orthogonality bounds every real matrix entry in absolute value by one. The unitary set is closed, so O(n) is a closed subset of the finite product cube [-1,1]^(n times n). The cube is compact. Identity supplies nonemptiness even at n=0; the subspace is second countable and has its canonical Borel structure.",
+          "formula": "O(n)\\subseteq[-1,1]^{n\\times n},\\qquad O(n)\\text{ closed}\\ \\Longrightarrow\\ O(n)\\text{ compact}",
+          "lean": "Private instances construct the canonical Borel space, induced second countability and compactness from entry_norm_bound_of_unitary, isClosed_unitary and isCompact_Icc. They do not add source assumptions."
+        },
+        {
+          "title": "Normalize and identify the unique law",
+          "text": "Apply the actual Mathlib Haar constructor with positive compact normalization set K0 equal to the whole compact group. The constructor assigns K0 mass one. Haar uniqueness on the second-countable group shows that any other Haar probability is equal to this one.",
+          "formula": "\\mu(K_0)=1,\\qquad \\nu,\\mu\\text{ Haar probabilities}\\ \\Longrightarrow\\nu=\\mu",
+          "lean": "haarMeasure_self and PositiveCompacts.coe_top give probability; the constructor supplies IsHaarMeasure; isHaarMeasure_eq_of_isProbabilityMeasure gives equality for every competing measure."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "entry_norm_bound_of_unitary",
+        "isClosed_unitary",
+        "isCompact_Icc",
+        "MeasureTheory.Measure.haarMeasure_self",
+        "MeasureTheory.Measure.isHaarMeasure_eq_of_isProbabilityMeasure"
+      ],
+      "lean_statement": "The measure lives on the actual full orthogonal subtype with its canonical Borel space. No abstract Haar law or compactness premise is supplied by the caller.",
+      "lean_proof": "The adjacent exact Lean constructs the law and discharges its topology, normalization and invariance dependencies internally.",
+      "boundary": "Only the common full orthogonal Haar probability and fixed left multiplication invariance. Determinant-conditioned laws, component half-mass, principal-minor sign/zero expectation, Gaussian densities, independence from an algorithm seed, adaptive posterior invariance, Krylov reduction and both main lower bounds remain open. Dimension zero is included as a singleton group; no two-components claim is made there.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S2",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Section2 first paragraph; AppendixB2.1 row-reflection invariance; Section4.1 Haar eigenbasis draw",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS explicates the standard Haar background invoked by the source.",
+          "label": "Shared full Haar background",
+          "scope": "Background common to both experiments; only the fixed left-invariance part of the row-reflection argument."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityOrthogonalHaar"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+      "kind": "definition",
+      "title": "Construct the full orthogonal Haar draw",
+      "statement": "For every natural finite dimension n, define the full orthogonal Haar law by the actual Haar constructor normalized on the entire compact group O(n).",
+      "formula": "\\mu_n=\\operatorname{Haar}_{K_0}(O(n)),\\qquad K_0=O(n),\\quad\\mu_n(K_0)=1",
+      "assumptions": [
+        "n is an arbitrary natural finite dimension. The paper applications use n>=3 or d>=2; the shared background also covers n=0.",
+        "O(n) is the full real orthogonal group O^T O=I, equipped with the subspace topology of finite real matrices and its Borel sigma-algebra. Both determinant signs are allowed whenever they exist.",
+        "Haar means left invariant, finite on compact sets and positive on nonempty open sets. Probability means total mass one. Compactness and second countability are proved internally, not assumed as public premises."
+      ],
+      "steps": [
+        {
+          "title": "Define only after well-definedness",
+          "text": "The preceding existence/uniqueness theorem was compiled and independently proof-reviewed before this production definition was written. Use the actual normalized Haar constructor on the same carrier, topology and Borel sigma-algebra. The separately named characterization follows.",
+          "formula": "K_0=O(n),\\qquad\\mu_n=\\operatorname{Haar}_{K_0}",
+          "lean": "The body is Measure.haarMeasure (top : PositiveCompacts O(n)). It does not call the preceding existence theorem; that theorem gates introduction of the object, and its proof is genuinely consumed by the later uniqueness characterization. The pre-definition snapshot and independent audit are retained in haar-well-definedness-input.json and haar-well-definedness-review.json."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "MeasureTheory.Measure.haarMeasure"
+      ],
+      "lean_statement": "The measure lives on the actual full orthogonal subtype with its canonical Borel space. No abstract Haar law or compactness premise is supplied by the caller.",
+      "lean_proof": "The adjacent exact Lean constructs the law and discharges its topology, normalization and invariance dependencies internally.",
+      "boundary": "Only the common full orthogonal Haar probability and fixed left multiplication invariance. Determinant-conditioned laws, component half-mass, principal-minor sign/zero expectation, Gaussian densities, independence from an algorithm seed, adaptive posterior invariance, Krylov reduction and both main lower bounds remain open. Dimension zero is included as a singleton group; no two-components claim is made there.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S2",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Section2 first paragraph; AppendixB2.1 row-reflection invariance; Section4.1 Haar eigenbasis draw",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS explicates the standard Haar background invoked by the source.",
+          "label": "Shared full Haar background",
+          "scope": "Background common to both experiments; only the fixed left-invariance part of the row-reflection argument."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityOrthogonalHaar"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec",
+      "kind": "theorem",
+      "title": "Characterize the constructed probability law",
+      "statement": "For every natural finite dimension n, the constructed full orthogonal Haar law is a probability Haar measure. Every probability Haar measure on that same Borel group equals it.",
+      "formula": "\\mu_n(O(n))=1,\\quad\\mu_n\\text{ is Haar},\\quad\\forall\\nu:\\ (\\nu(O(n))=1\\land\\nu\\text{ is Haar})\\Rightarrow\\nu=\\mu_n",
+      "assumptions": [
+        "n is an arbitrary natural finite dimension. The paper applications use n>=3 or d>=2; the shared background also covers n=0.",
+        "O(n) is the full real orthogonal group O^T O=I, equipped with the subspace topology of finite real matrices and its Borel sigma-algebra. Both determinant signs are allowed whenever they exist.",
+        "Haar means left invariant, finite on compact sets and positive on nonempty open sets. Probability means total mass one. Compactness and second countability are proved internally, not assumed as public premises."
+      ],
+      "steps": [
+        {
+          "title": "Prove normalization and the Haar property for this constructor",
+          "text": "Unfold the definition. The constructor normalization set is the entire group, so its normalization theorem gives total mass one; the actual constructor instance supplies the Haar property.",
+          "formula": "\\mu_n(O(n))=1,\\qquad\\mu_n\\text{ is Haar}",
+          "lean": "Use haarMeasure_self and the actual IsHaarMeasure instance, not a probability premise supplied by the caller."
+        },
+        {
+          "title": "Consume the existence/uniqueness theorem",
+          "text": "The constructed measure and any competing Haar probability both satisfy the predicate proved uniquely inhabited above. Uniqueness therefore identifies them.",
+          "formula": "\\exists!\\mu:\\Phi(\\mu),\\quad\\Phi(\\nu),\\Phi(\\mu_n)\\ \\Longrightarrow\\nu=\\mu_n",
+          "lean": "The proof genuinely calls existsUnique_orthogonalHaar n and its unique field."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.existsUnique_orthogonalHaar",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Measure.haarMeasure_self"
+      ],
+      "lean_statement": "The measure lives on the actual full orthogonal subtype with its canonical Borel space. No abstract Haar law or compactness premise is supplied by the caller.",
+      "lean_proof": "The adjacent exact Lean constructs the law and discharges its topology, normalization and invariance dependencies internally.",
+      "boundary": "Only the common full orthogonal Haar probability and fixed left multiplication invariance. Determinant-conditioned laws, component half-mass, principal-minor sign/zero expectation, Gaussian densities, independence from an algorithm seed, adaptive posterior invariance, Krylov reduction and both main lower bounds remain open. Dimension zero is included as a singleton group; no two-components claim is made there.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S2",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Section2 first paragraph; AppendixB2.1 row-reflection invariance; Section4.1 Haar eigenbasis draw",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS explicates the standard Haar background invoked by the source.",
+          "label": "Shared full Haar background",
+          "scope": "Background common to both experiments; only the fixed left-invariance part of the row-reflection argument."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityOrthogonalHaar"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_map_mul_left",
+      "kind": "theorem",
+      "title": "A fixed rotation or reflection preserves the draw",
+      "statement": "For every natural finite dimension n and every fixed Q in the full real orthogonal group O(n), the pushforward of the constructed Haar probability by O -> Q O equals that same probability. This includes a fixed single-row reflection.",
+      "formula": "(O\\mapsto QO)_{\\#}\\mu_n=\\mu_n\\qquad(Q\\in O(n))",
+      "assumptions": [
+        "n is an arbitrary natural finite dimension. The paper applications use n>=3 or d>=2; the shared background also covers n=0.",
+        "O(n) is the full real orthogonal group O^T O=I, equipped with the subspace topology of finite real matrices and its Borel sigma-algebra. Both determinant signs are allowed whenever they exist.",
+        "Haar means left invariant, finite on compact sets and positive on nonempty open sets. Probability means total mass one. Compactness and second countability are proved internally, not assumed as public premises.",
+        "Q is any fixed real orthogonal n by n matrix."
+      ],
+      "steps": [
+        {
+          "title": "Apply the Haar invariance of this actual law",
+          "text": "Install the Haar property from the characterization of the constructed law. A fixed Q acts by continuous left multiplication in the orthogonal group; the Haar pushforward theorem gives the same measure. Q need not have determinant +1.",
+          "formula": "\\mu_n\\text{ left invariant}\\ \\Longrightarrow\\ (O\\mapsto QO)_{\\#}\\mu_n=\\mu_n",
+          "lean": "orthogonalHaar_spec supplies the actual Haar instance; map_mul_left_eq_self supplies the pushforward equality. The focused test constructs a diagonal single-row reflection with determinant -1 and checks it is measurable and measure preserving."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.map_mul_left_eq_self"
+      ],
+      "lean_statement": "The measure lives on the actual full orthogonal subtype with its canonical Borel space. No abstract Haar law or compactness premise is supplied by the caller.",
+      "lean_proof": "The adjacent exact Lean constructs the law and discharges its topology, normalization and invariance dependencies internally.",
+      "boundary": "Only the common full orthogonal Haar probability and fixed left multiplication invariance. Determinant-conditioned laws, component half-mass, principal-minor sign/zero expectation, Gaussian densities, independence from an algorithm seed, adaptive posterior invariance, Krylov reduction and both main lower bounds remain open. Dimension zero is included as a singleton group; no two-components claim is made there.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S2",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Section2 first paragraph; AppendixB2.1 row-reflection invariance; Section4.1 Haar eigenbasis draw",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS explicates the standard Haar background invoked by the source.",
+          "label": "Shared full Haar background",
+          "scope": "Background common to both experiments; only the fixed left-invariance part of the row-reflection argument."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityOrthogonalHaar"
+      ]
+    }
+  ]
+}

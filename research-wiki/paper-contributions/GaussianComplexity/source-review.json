@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "review_id": "GaussianComplexity-source-intake-review-20261017",
+  "reviewer_id": "/root/gaussian_source_review",
+  "review_kind": "independent-source-intake-review",
+  "status": "source-intake-reviewed-with-notes",
+  "review_date": "2026-10-17",
+  "source": {
+    "title": "On Complexity of Gaussian Sampling",
+    "version": "2610.20492v1",
+    "url": "https://arxiv.org/html/2610.20492v1",
+    "reading_method": "Independently read the primary HTML, Section 2, Sections 3-4 and Appendices A-C before reading the added site-model case. No implementation Lean or coordinator theorem summary was used to reconstruct the source routes."
+  },
+  "truth_boundary": {
+    "lean_verification": false,
+    "checked_lean_declarations": [],
+    "state_transitions_authorized": false,
+    "scope": "Source statement, proof-route, method-comparison and source-inconsistency audit only. This is neither a theorem-completion certificate nor an exhaustive semantic-roundtrip audit.",
+    "only_owned_file": "research-wiki/paper-contributions/GaussianComplexity/source-review.json"
+  },
+  "model_seal": {
+    "precision_class": "A real symmetric d-by-d; I_d <= A <= kappa I_d; target N(0,A^(-1)).",
+    "oracle": "Exact x -> Ax. For f_A(x)=x^T A x/2 this is equivalent to exact (f_A(x), grad f_A(x)), and also gradient-only access, because f_A(x)=<x,Ax>/2.",
+    "algorithms": "Queries and stopping decisions are Borel functions of an input-independent seed and previous responses. Output is an arbitrary R^d-valued Borel function of the same information. Both adaptive and randomized algorithms are covered.",
+    "output_restriction": "No query-span or query/reply-span restriction. Lemma 4.3 explicitly needs an additional Gaussian start for the output.",
+    "budget_quantifier": "There exists an integer T >= 0 and one algorithm making at most T queries for EVERY admissible input and EVERY seed realization. T is a deterministic worst-case cap, not an expected query budget.",
+    "accuracy_quantifier": "sup_A TV(rho_A^Alg, pi_A) <= epsilon, where rho_A^Alg already averages all internal randomness. No per-seed accuracy is asserted.",
+    "tv_normalization": "sup over measurable B of |P(B)-Q(B)| = one half of density L1 distance.",
+    "forbidden_unrecorded_changes": [
+      "Replace deterministic cap by expected cost.",
+      "Restrict outputs to the query/reply span.",
+      "Replace uniform-in-input accuracy by an average-prior guarantee as the public theorem.",
+      "Assume exact spectrum is known in the determinant-sign theorem.",
+      "Add derived transcript, separation, concentration, tau/beta or moment estimates as public theorem binders."
+    ]
+  },
+  "main_statement_seals": [
+    {
+      "anchor": "Theorem 3.1, equation (3)",
+      "quantifiers": "For every integer d >= 1, every real kappa >= 4 and every 0 < epsilon <= 1/16.",
+      "formula": "Q_G(d,kappa,epsilon) >= (1/256) min{d, sqrt(kappa) log(1+d/(sqrt(kappa) epsilon))}.",
+      "fixed_spectrum": false,
+      "boundary": "Uniform all-dimensional accuracy-sensitive lower bound in the exact-oracle deterministic-cap model. The sign is det(O), not det(A); A is positive definite. The source does not establish an expected-budget analogue here."
+    },
+    {
+      "anchor": "Theorem 4.1",
+      "quantifiers": "For every fixed delta in (0,1), there exists d_0(delta), such that for every integer d >= d_0(delta), every real 2 <= kappa <= d^(1-delta), and every 0 < epsilon <= 1/10.",
+      "formula": "Q_G(d,kappa,epsilon) >= (delta/256) sqrt(kappa) log d.",
+      "fixed_spectrum": true,
+      "spectrum_contract": "For each (d,kappa), theta_i=(i-1/2)pi/d and lambda_i=(kappa+1)/2+(kappa-1)cos(theta_i)/2 are deterministic; A=O Lambda O^T, O Haar independent of the algorithm seed. Lambda and the normalizing constant may be supplied. This is a particular hard fixed spectrum, not a claim that every supplied spectrum is hard.",
+      "boundary": "The dimension threshold depends only on delta, uniformly over kappa and epsilon in the stated ranges. The lower bound has no growing precision term."
+    }
+  ],
+  "independent_source_proof_graph": {
+    "kind": "bounded-source-reconstruction-not-lean-graph",
+    "determinant_route": [
+      {
+        "node": "sign-oracle-adapter",
+        "anchor": "Section 3.1 and B.1",
+        "content": "A_O=((kappa+1)/2)I-((kappa-1)/4)(O+O^T), with k=floor(d/n) blocks and an identity remainder. Under each fixed sign b the O_j are independent with law mu_(n,b). One FO call costs at most two primitive O_j/O_j^T observations PER block.",
+        "parents": []
+      },
+      {
+        "node": "sign-admissibility",
+        "anchor": "Lemma 3.4 / B.8",
+        "content": "Orthogonality and Cauchy-Schwarz bound <v,Ov>; sum quadratic forms over blocks. Obtain spectral bounds and known unique minimizer 0.",
+        "parents": ["sign-oracle-adapter"]
+      },
+      {
+        "node": "sign-conditional-haar",
+        "anchor": "Lemma B.2",
+        "content": "For residual dimension m>=2, Wu has uniform spherical law under either determinant component, and the conditional residual map is component-conditioned Haar. Borel SO frames retain the determinant label.",
+        "parents": []
+      },
+      {
+        "node": "sign-adaptive-posterior",
+        "anchor": "Lemma B.3",
+        "content": "Posterior factorization of residual maps survives adaptive forward/inverse observations, including cross-block query dependence and zero residual vectors. Before a new observation m>=n-2T+1>=2.",
+        "parents": ["sign-conditional-haar", "sign-oracle-adapter"]
+      },
+      {
+        "node": "sign-equal-output-laws",
+        "anchor": "Lemma B.4; Lemma 3.2",
+        "content": "Iterate sign-independent Borel response kernels on padded histories, then integrate the independent seed and push forward by arbitrary Borel output. For 2T<n, the two averaged output laws agree exactly.",
+        "parents": ["sign-adaptive-posterior"]
+      },
+      {
+        "node": "sign-radial-gap",
+        "anchor": "Lemma B.6, Proposition B.7, Lemma A.1",
+        "content": "Factor A_O as C^T C/4 and control the determinant sign of C by continuity. Haar row-reflection cancels all principal minors except empty and {1}. Conjugation invariance, dominated Fubini and Gaussian integration reduce a bounded radial exponential test to two spherical Poisson integrals. This produces TV(P_+,P_-) >= (1/2) exp(-5n/sqrt(kappa)).",
+        "parents": ["sign-admissibility"]
+      },
+      {
+        "node": "sign-amplified-gap",
+        "anchor": "Lemma 3.3 / B.5; B.2.3",
+        "content": "For each fixed sign the target mixture is a product across blocks. TV <= sqrt(1-affinity^2), affinity tensorization and TV >= 1-affinity give TV(bar_pi_+,bar_pi_-) >= 1-exp(-(k/8)exp(-10n/sqrt(kappa))).",
+        "parents": ["sign-radial-gap"]
+      },
+      {
+        "node": "sign-main-join",
+        "anchor": "Section 3.3",
+        "content": "Separate T=0 and 2T+1>d. Otherwise choose n=2T+1>=3. Admissibility, uniform input accuracy, mixing convexity and equal output laws give TV(bar_pi_+,bar_pi_-)<=2epsilon. Invert to k exp(-10n/sqrt(kappa))<=32epsilon, use k>=d/(2n), n<=3T, sinh(t)>=t and log concavity. The interior calculation gives coefficient 1/192; the published final bound uses 1/256.",
+        "parents": ["sign-admissibility", "sign-equal-output-laws", "sign-amplified-gap"]
+      }
+    ],
+    "eigenbasis_route": [
+      {
+        "node": "eigen-fixed-spectrum",
+        "anchor": "Section 4.1; Lemma 4.6 / C.4",
+        "content": "Cosine-grid eigenvalues are distinct and in (1,kappa). Orthogonal conjugation preserves bounds. Only O is hidden; determinant and Gaussian normalizer are public with Lambda.",
+        "parents": []
+      },
+      {
+        "node": "eigen-haar-state",
+        "anchor": "Facts C.1-C.3, Definition C.2",
+        "content": "An enlarged history reveals O on a latent subspace E; its restriction between complementary spaces stays a full Haar isometry. Auxiliary randomness and image/preimage revelation preserve this invariant.",
+        "parents": []
+      },
+      {
+        "node": "eigen-output-representation",
+        "anchor": "Fact C.4; Lemma 4.3 / C.1",
+        "content": "For q>=0 with 2q+1<d, a joint-law-preserving extension creates q+1 mutually independent standard Gaussian starts. Gaussianize newly revealed uniform directions. Propagate latent spans under Lambda and treat X as a final preimage revelation. Obtain O^T X in K_q=span{Lambda^j g_a:a<=q+1,j<=q} almost surely. The g_a need not be independent of O or X; coefficients may depend on the whole extension.",
+        "parents": ["eigen-haar-state", "eigen-fixed-spectrum"]
+      },
+      {
+        "node": "eigen-uniform-cosine",
+        "anchor": "Lemma 4.4; Facts C.5-C.6",
+        "content": "n=2q+1. Chebyshev change of basis and finite cosine sums give E(B^T B)=I, E(B^T D_n B)=0. Gaussian truncation, bias control, fourth moments and matrix Bernstein give simultaneous Gram bounds. With absolute C, tau=C[(q+1)sqrt(log(d)/d)+(q+1)(q+1+log(d))log(d)/d]. If 2q+1<d and tau<=1/2, with probability >=0.99 every u in K_q satisfies |u^T D_n u|<=2tau||u||^2.",
+        "parents": ["eigen-fixed-spectrum"]
+      },
+      {
+        "node": "eigen-target-moments",
+        "anchor": "Lemma 4.5; Facts C.7-C.8",
+        "content": "Set rho=(sqrt(kappa)-1)/(sqrt(kappa)+1), U~N(0,Lambda^(-1)), M=E||U||^2, mu_n=E(U^T D_n U). For 1<=n<d, M=(d/sqrt(kappa))(1-rho^(2d))/(1+rho^(2d)) and (-1)^n mu_n=(d/sqrt(kappa))(rho^n-rho^(2d-n))/(1+rho^(2d)). Both variances <=2M. If d-n>=sqrt(kappa), (1-exp(-4))exp(-3n/sqrt(kappa))<=|mu_n|/M<=exp(-2n/sqrt(kappa)). Dependencies: absolutely uniformly convergent cosine series, finite-grid aliasing, Gaussian fourth moments and elementary rho bounds.",
+        "parents": ["eigen-fixed-spectrum"]
+      },
+      {
+        "node": "eigen-test-main-join",
+        "anchor": "Section 4.3",
+        "content": "Assume q<=(delta/256)sqrt(kappa)log(d). Choose d_0(delta) uniformly so n<d, d-n>=sqrt(kappa), tau<=beta/4 and M beta^2>=320, beta=|mu_n|/M. The input-dependent Chebyshev-polynomial event has algorithm average probability <=0.01, target probability >=0.9 by variance bound and Chebyshev. Uniform per-input TV gives 0.89<=epsilon<=0.1, contradiction. E_A is an analysis witness, not a sampler oracle query.",
+        "parents": ["eigen-fixed-spectrum", "eigen-output-representation", "eigen-uniform-cosine", "eigen-target-moments"]
+      },
+      {
+        "node": "eigen-analysis-limits",
+        "anchor": "Section 4.4; Lemma 4.7",
+        "content": "The same enlarged space generically has dimension min{d,(q+1)^2}; once full it cannot have uniformly small high-frequency quadratic form. Separately, the Bernstein-certified uniform noise floor and exponentially decaying target bias cap this test at q=O(sqrt(kappa)log(d)), without growing dependence on epsilon.",
+        "parents": ["eigen-output-representation", "eigen-uniform-cosine", "eigen-target-moments"]
+      }
+    ],
+    "coverage_boundary": "Major source proof dependencies reconstructed; full paragraph/display/citation coverage, explicit external-leaf contracts, all analytic measurability certificates and Lean Statement Seals remain pending. Lemma 4.7 is stated without a proof in this HTML; a future formal proof must supply its generic-rank/Vandermonde argument rather than invent a source appendix."
+  },
+  "section_4_4_audit": {
+    "kappa_boundary": "This uniform-Krylov-space argument cannot extend the sqrt(kappa)log(d) rate into kappa of order d/log(d)^2 or above, because at the corresponding q scale (q+1)^2 reaches d. This is distinct from the positively proved kappa<=d^(1-delta) range.",
+    "dimension": "Almost surely dim K_q=min{d,(q+1)^2}; with K_q=R^d and n<d, some coordinate has |cos(n theta_i)|>=1/sqrt(2). A small uniform operator ratio therefore fails.",
+    "accuracy_boundary": "For this threshold test one needs a < beta, while the specific Bernstein certification needs a>=c/sqrt(d) and beta<=exp(-2(2q+1)/sqrt(kappa)). Inverting gives q=O(sqrt(kappa)log(d)) irrespective of epsilon. Do not turn this certification limitation into a universal noise-floor theorem for every possible proof.",
+    "not_established": [
+      "No impossibility theorem for stronger lower bounds on the same fixed-spectrum family.",
+      "No impossibility theorem for all other test statistics or smaller representations.",
+      "No theorem that Gaussian sampling itself loses its precision dependence."
+    ]
+  },
+  "conceptual_comparison": {
+    "status": "candidate-mechanism-correspondence-source-reviewed-only",
+    "mechanism": "Adaptive finite revelation preserves residual rotational uncertainty; unrevealed directions limit what outputs can encode.",
+    "hypothesis_map": {
+      "determinant_route": "Product of determinant-conditioned Haar laws per block, SO Borel frames, fewer than n primitive revelations per block and residual dimension at least two before an observation.",
+      "eigenbasis_route": "Single full-Haar eigenbasis with public distinct Lambda, Haar-isometry state, enlarged probability space preserving the original joint law, 2q+1<d and q+1 Gaussian starts."
+    },
+    "conclusion_map": {
+      "determinant_route": "Exact equality of two prior-averaged transcript/output laws.",
+      "eigenbasis_route": "Almost-sure span containment for one input ensemble, followed by a uniform random-space inequality."
+    },
+    "failure_boundary": "These are different propositions and different priors. Do not identify sign-conditional posterior factorization with full-Haar Krylov representation. Do not identify radial mixture separation with an A-dependent cosine test. Any future common Haar kernel must be independently proved with explicit component, dimension, conditional-law and measurability adapters.",
+    "lean_node_merge_authorized": false,
+    "formal_dependency_edges_authorized": false,
+    "candidate_shared_substrate": [
+      "Actual exact probability/TV, Borel-kernel composition and Gaussian linear-image declarations may be shared only after declaration-level contract checks.",
+      "Haar revelation may motivate a shared abstraction, but no existing compiled common theorem has been reviewed here."
+    ]
+  },
+  "source_inconsistencies": [
+    {
+      "id": "GC-v1-conclusion-regime",
+      "anchors": ["Section 1.1 after Theorem 1.1", "Section 5 Conclusion"],
+      "severity": "source-exposition-inconsistency",
+      "finding": "The conclusion first claims matching when kappa<=d^(2-delta), then calls closing the constant-accuracy gap for that same regime open. Those statements cannot both describe the same claim. Preserve the discrepancy and privilege the exact theorem/derived regime; do not silently rewrite the source open problem.",
+      "affects_main_formula": false
+    },
+    {
+      "id": "GC-v1-conjecture-confirmation-overclaim",
+      "anchors": ["Section 1.1 sentence after the kappa<=d^(2-delta) matching statement", "Theorem 3.1"],
+      "severity": "source-claim-not-implied-by-stated-bound",
+      "finding": "The introduction asserts confirmation of the sqrt(kappa)log(d) conjecture throughout sqrt(kappa)log(d)<=d. The explicit lower bound does not imply this whole region.",
+      "independent_diagnostic": "At fixed epsilon in (0,1/16], set kappa=d^2/(log(d))^2 for large d. Then sqrt(kappa)log(d)=d, but the Theorem 3.1 right-hand scale is Theta(d log(log(d))/log(d)), whereas the cited conjectured scale is d. This identifies a logical overclaim in the exposition, not a counterexample to either the main theorem or the conjecture.",
+      "recommended_reader_action": "Display the exact proven formula and fixed-delta matching regimes. Flag the broader conjecture-confirmation wording as unsupported by this formula; retain it as attributed source text only.",
+      "affects_main_formula": false
+    },
+    {
+      "id": "GC-v1-A1-dimension-wording",
+      "anchors": ["Lemma A.1"],
+      "severity": "source-dimension-wording-ambiguity",
+      "finding": "The statement contains both an opening n>=2 and a trailing n>=3 qualification. The determinant application uses n=2T+1>=3, so it is unaffected. A generic n=2 leaf requires its own statement seal; do not erase the discrepancy.",
+      "affects_main_formula": false
+    }
+  ],
+  "site_model_comparison_after_independent_reconstruction": {
+    "file": "website/content/samplewiki_companion_frontiers.json",
+    "case_id": "ASTIS-SW-GAUSSIAN-COMPLEXITY-2026",
+    "verdict": "Main formulas, constants, quantifiers, deterministic-cap model, output freedom, fixed-spectrum meaning and conceptual separation agree with the independently read source at the intake-outline level.",
+    "corrections_or_expansions": [
+      {
+        "priority": "reader-important",
+        "location": "source_notes",
+        "request": "Add GC-v1-conjecture-confirmation-overclaim from this review; the two currently recorded discrepancies do not cover it."
+      },
+      {
+        "priority": "statement-expansion",
+        "location": "eigenbasis theorem, uniform-space step",
+        "request": "Include the formula for tau_(d,q), the q>=0 and 2q+1<d side conditions, and that the bound is simultaneous over every u. The overview correctly labels itself nonexhaustive, but tau is currently used without being defined."
+      },
+      {
+        "priority": "graph-fidelity",
+        "location": "source_graph edges into eigen-limits",
+        "request": "Add eigen-uniform -> eigen-limits: Section 4.4 uses the uniform-space estimate and Fact C.6 Bernstein certification, in addition to representation and target moments."
+      },
+      {
+        "priority": "dependency-wording",
+        "location": "uniform-space step text",
+        "request": "Generic Krylov dimension saturation belongs to the limitations branch. Lemma 4.4's positive proof instead uses cosine basis identities plus Gram concentration and Gram lower coercivity; do not make Lemma 4.7 a proof parent of Lemma 4.4."
+      }
+    ],
+    "unreviewed_surfaces": "No generated page, global graph, source byte hash, license metadata, registry, Frontier Cell, SAU state or automation was certified by this review."
+  }
+}

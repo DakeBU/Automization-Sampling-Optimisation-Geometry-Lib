@@ -1,0 +1,274 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-4152a8980f41b642",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "/root",
+    "blind_decoder": "/root/anonymous_fubini_decoder",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "gaussian-complexity-2026",
+    "anchor": "AppendixB2.2 H definition Ex56, Ex58, Ex59/Fubini paragraph, Ex60 and Eq21, with Eq4 and B6 as providers. Literal functions only.",
+    "original_text": "Let n>=3, kappa>=4 and ell>=0. On full real O(n), use the existing normalized Borel Haar probability mu; on Euclidean real n-space use its actual norm and volume. Let A_O be the literal Eq4 precision and p_O(x)=sqrt(det A_O)/(2pi)^(n/2) exp(-x^T A_O x/2), with real n/2. Put U=O_11 and a(O)=kappa+1+4ell-(kappa-1)U. Both joint functions f(O,x)=det(O)exp(-ell||x||_2^2)p_O(x) and g(O,x)=det(O)sqrt(det A_O)/(2pi)^(n/2) exp(-a(O)||x||_2^2/4) are absolutely Bochner L1 under mu times Euclidean volume. Moreover the literal nested transform E[det(O) integral exp(-ell||x||_2^2)p_O(x) dx] equals (-1)^(n-1)(sqrt(kappa)-1)^(n-1)/2^(n/2) times E[((sqrt(kappa)+1)U-(sqrt(kappa)-1))/a(O)^(n/2)]. This includes ell=0. It is an equality for explicit real formulas, without identifying p with an actual Gaussian density or the transform with target-mixture expectations.",
+    "text_sha256": "b6a2dfb58c08f2412495d2b36d8a4d07e430078d45cf9d59d31aa7c41b5a2c33"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureFubini.literal_mixture_transform",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/MixtureFubini.lean",
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ),\n    let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n    let U : Matrix.orthogonalGroup (Fin n) ℝ → ℝ :=\n      fun O => (O : Matrix (Fin n) (Fin n) ℝ) j0 j0\n    let a : Matrix.orthogonalGroup (Fin n) ℝ → ℝ :=\n      fun O => κ + 1 + 4 * ℓ - (κ - 1) * U O\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n          Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n            ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)) *ᵥ WithLp.ofLp x)) / 2)\n    let f : (Matrix.orthogonalGroup (Fin n) ℝ × EuclideanSpace ℝ (Fin n)) → ℝ :=\n      fun z => (z.1 : Matrix (Fin n) (Fin n) ℝ).det *\n        (Real.exp (-ℓ * ‖z.2‖ ^ 2) * p z.1 z.2)\n    let g : (Matrix.orthogonalGroup (Fin n) ℝ × EuclideanSpace ℝ (Fin n)) → ℝ :=\n      fun z => (z.1 : Matrix (Fin n) (Fin n) ℝ).det *\n        Real.sqrt ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((z.1 : Matrix (Fin n) (Fin n) ℝ) + (z.1 : Matrix (Fin n) (Fin n) ℝ).transpose))).det /\n          (2 * Real.pi) ^ ((n : ℝ) / 2) * Real.exp (-a z.1 * ‖z.2‖ ^ 2 / 4)\n    Integrable f (((Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))).prod volume) ∧\n    Integrable g (((Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))).prod volume) ∧\n    (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n      (O : Matrix (Fin n) (Fin n) ℝ).det *\n        (∫ x : EuclideanSpace ℝ (Fin n), Real.exp (-ℓ * ‖x‖ ^ 2) * p O x)\n        ∂(Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))) =\n      ((-1 : ℝ) ^ (n - 1) * (Real.sqrt κ - 1) ^ (n - 1) /\n        (2 : ℝ) ^ ((n : ℝ) / 2)) *\n        (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n          ((Real.sqrt κ + 1) * U O - (Real.sqrt κ - 1)) /\n            (a O) ^ ((n : ℝ) / 2) ∂(Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))))",
+    "statement_sha256": "20b9942484a9658174d45d74d38e3862a8933f93c43f535eb36f1e49d71251ef",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every natural number n with 3 <= n, every real kappa with 4 <= kappa, and every real ell with 0 <= ell (including ell = 0), make the following literal definitions. Let G = O(n, R) be the full real orthogonal matrix group, containing both determinant signs, and let E = EuclideanSpace R (Fin n), identified through WithLp.ofLp with R^n. Let mu be Measure.haarMeasure(top : PositiveCompacts G), the actual normalized Haar probability measure on G, and let vol be the canonical Euclidean volume measure on E. Use the true Euclidean norm on E. Let j0 be the coordinate 0 in Fin n, let U(O) = O[j0,j0], and define\nA(O) = ((kappa + 1)/2) I_n - ((kappa - 1)/4) (O + O^T),\na(O) = kappa + 1 + 4 ell - (kappa - 1) U(O),\np(O,x) = sqrt(det A(O)) / (2 pi)^(n/2) * exp(-(x dot (A(O) x))/2),\nf(O,x) = det(O) * (exp(-ell ||x||_2^2) * p(O,x)),\ng(O,x) = det(O) * sqrt(det A(O)) / (2 pi)^(n/2) * exp(-a(O) ||x||_2^2/4).\nHere x dot (A(O) x) is the real coordinate dot product supplied by WithLp.ofLp. Every displayed square root is Real.sqrt, the nonnegative real square root. Each dimension-half exponent n/2 is the real number (n : R)/2 and its power is a real power; each exponent n-1 is natural subtraction in N and its power is a natural power.\nThe conclusion is the conjunction of these three outputs:\n(1) f is absolutely Bochner integrable with respect to the product measure mu x vol on G x E;\n(2) g is absolutely Bochner integrable with respect to the same product measure;\n(3) the following real Bochner integral equality holds:\nintegral_G det(O) * (integral_E exp(-ell ||x||_2^2) * p(O,x) dvol(x)) dmu(O)\n= [(-1)^(n-1) * (sqrt(kappa) - 1)^(n-1) / 2^(n/2)]\n  * integral_G [((sqrt(kappa) + 1) * U(O) - (sqrt(kappa) - 1)) / a(O)^(n/2)] dmu(O).\nAll functions above are the literal real formulas displayed; p is not replaced by an independently characterized Gaussian law. The two joint integrability assertions are conclusions, not hypotheses, and no caller-supplied majorant or Fubini hypothesis is assumed. Integrals use the Mathlib Bochner integration convention.",
+    "text_sha256": "d84ee751de042472745549f9fc719da16fefa18bdc6a37867b89140a6d605899",
+    "decoder": "/root/anonymous_fubini_decoder",
+    "decoder_packet_sha256": "27b14c945cd2e73b9a0ddac9ddb280d5152edabbe0392c4fb61607b1a09a4b9d",
+    "decoder_run_sha256": "f21a52cefb7df9bb5c37085ff420a67496ade2bf4d1dc7be293c92c37660b207",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "3370ed8e1d922962fd770b25a49e6ac9f7d072479911d331ce62d984fd776451",
+  "candidate_publication_context": {
+    "file": "ab25a11e17b0a51f9903a819b9f3bf85b6a8c61c268dcdcc88b702231d806d1a",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelAxis\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.RadialIntegral\nimport Mathlib.MeasureTheory.Integral.Prod\nimport Mathlib.Tactic.Positivity\n\n/-!\n# Genuine Fubini for the literal signed Gaussian mixture transform\n\nZhou--Suzuki arXiv:2610.20492v1, Appendix B.2.2, H definition through Eq21.\nJoint Haar-times-Euclidean-volume L1 is produced internally. A finite compact\nprefactor is a sufficient alternative to the sharp source Ex59 prefactor.\nActual Gaussian density/law identification and mixture/TV meanings stay separate.\n-/\n\nopen Matrix MeasureTheory Set TopologicalSpace\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelAxis\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.RadialIntegral\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureFubini\n\nprivate lemma gaussian_decay_integrable {n : ℕ} :\n    Integrable (fun x : EuclideanSpace ℝ (Fin n) => Real.exp (-‖x‖ ^ 2 / 2)) volume := by\n  have hc := GaussianFourier.integrable_cexp_neg_mul_sq_norm_add\n    (V := EuclideanSpace ℝ (Fin n))\n    (b := ((1 / 2 : ℝ) : ℂ)) (by norm_num) 0 0\n  convert hc.re using 1\n  funext x\n  simp only [zero_mul, add_zero]\n  rw [← Complex.ofReal_pow, ← Complex.ofReal_neg, ← Complex.ofReal_mul,\n    ← Complex.ofReal_exp]\n  congr 1\n  ring\n\nprivate lemma joint_integrable {n : ℕ}\n    (k : Matrix.orthogonalGroup (Fin n) ℝ → ℝ)\n    (b : Matrix.orthogonalGroup (Fin n) ℝ × EuclideanSpace ℝ (Fin n) → ℝ)\n    (hk : Continuous k) (hb : Continuous b)\n    (hbound : ∀ z, b z ≤ -‖z.2‖ ^ 2 / 2) :\n    Integrable (fun z => k z.1 * Real.exp (b z)) ((orthogonalHaar n).prod volume) := by\n  let := (orthogonalHaar_spec n).1\n  obtain ⟨C, hC⟩ := isCompact_univ.exists_bound_of_continuousOn hk.continuousOn\n  have hmajor := (integrable_const C (μ := orthogonalHaar n)).mul_prod\n    (gaussian_decay_integrable (n := n))\n  apply hmajor.mono' ((hk.comp continuous_fst).mul (Real.continuous_exp.comp hb)).aestronglyMeasurable\n  exact Filter.Eventually.of_forall fun z => by\n    change ‖k z.1 * Real.exp (b z)‖ ≤ C * Real.exp (-‖z.2‖ ^ 2 / 2)\n    rw [norm_mul, Real.norm_of_nonneg (Real.exp_pos (b z)).le]\n    calc\n      ‖k z.1‖ * Real.exp (b z) ≤ ‖k z.1‖ * Real.exp (-‖z.2‖ ^ 2 / 2) :=\n        mul_le_mul_of_nonneg_left (Real.exp_le_exp.mpr (hbound z)) (norm_nonneg _)\n      _ ≤ C * Real.exp (-‖z.2‖ ^ 2 / 2) :=\n        mul_le_mul_of_nonneg_right (hC z.1 (mem_univ _)) (Real.exp_pos _).le\n\ntheorem literal_mixture_transform {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ) :\n    let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n    let U : Matrix.orthogonalGroup (Fin n) ℝ → ℝ :=\n      fun O => (O : Matrix (Fin n) (Fin n) ℝ) j0 j0\n    let a : Matrix.orthogonalGroup (Fin n) ℝ → ℝ :=\n      fun O => κ + 1 + 4 * ℓ - (κ - 1) * U O\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n          Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n            (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n    let f : (Matrix.orthogonalGroup (Fin n) ℝ × EuclideanSpace ℝ (Fin n)) → ℝ :=\n      fun z => (z.1 : Matrix (Fin n) (Fin n) ℝ).det *\n        (Real.exp (-ℓ * ‖z.2‖ ^ 2) * p z.1 z.2)\n    let g : (Matrix.orthogonalGroup (Fin n) ℝ × EuclideanSpace ℝ (Fin n)) → ℝ :=\n      fun z => (z.1 : Matrix (Fin n) (Fin n) ℝ).det *\n        Real.sqrt (singleBlockPrecision κ z.1).det /\n          (2 * Real.pi) ^ ((n : ℝ) / 2) * Real.exp (-a z.1 * ‖z.2‖ ^ 2 / 4)\n    Integrable f ((orthogonalHaar n).prod volume) ∧\n    Integrable g ((orthogonalHaar n).prod volume) ∧\n    (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n      (O : Matrix (Fin n) (Fin n) ℝ).det *\n        (∫ x : EuclideanSpace ℝ (Fin n), Real.exp (-ℓ * ‖x‖ ^ 2) * p O x)\n        ∂orthogonalHaar n) =\n      ((-1 : ℝ) ^ (n - 1) * (Real.sqrt κ - 1) ^ (n - 1) /\n        (2 : ℝ) ^ ((n : ℝ) / 2)) *\n        (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n          ((Real.sqrt κ + 1) * U O - (Real.sqrt κ - 1)) /\n            (a O) ^ ((n : ℝ) / 2) ∂orthogonalHaar n) := by\n  classical\n  let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n  let U : Matrix.orthogonalGroup (Fin n) ℝ → ℝ :=\n    fun O => (O : Matrix (Fin n) (Fin n) ℝ) j0 j0\n  let a : Matrix.orthogonalGroup (Fin n) ℝ → ℝ :=\n    fun O => κ + 1 + 4 * ℓ - (κ - 1) * U O\n  let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n    fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n      (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n  let f : (Matrix.orthogonalGroup (Fin n) ℝ × EuclideanSpace ℝ (Fin n)) → ℝ :=\n    fun z => (z.1 : Matrix (Fin n) (Fin n) ℝ).det *\n      (Real.exp (-ℓ * ‖z.2‖ ^ 2) * p z.1 z.2)\n  let g : (Matrix.orthogonalGroup (Fin n) ℝ × EuclideanSpace ℝ (Fin n)) → ℝ :=\n    fun z => (z.1 : Matrix (Fin n) (Fin n) ℝ).det *\n      Real.sqrt (singleBlockPrecision κ z.1).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) * Real.exp (-a z.1 * ‖z.2‖ ^ 2 / 4)\n  let q (O : Matrix.orthogonalGroup (Fin n) ℝ) (x : EuclideanSpace ℝ (Fin n)) :=\n    (WithLp.ofLp x) ⬝ᵥ (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)\n  let k (O : Matrix.orthogonalGroup (Fin n) ℝ) :=\n    (O : Matrix (Fin n) (Fin n) ℝ).det * Real.sqrt (singleBlockPrecision κ O).det /\n      (2 * Real.pi) ^ ((n : ℝ) / 2)\n  let r (O : Matrix.orthogonalGroup (Fin n) ℝ) (x : EuclideanSpace ℝ (Fin n)) :=\n    Real.sqrt (singleBlockPrecision κ O).det / (2 * Real.pi) ^ ((n : ℝ) / 2) *\n      Real.exp (-(κ + 1 - (κ - 1) * U O) * ‖x‖ ^ 2 / 4)\n  change Integrable f ((orthogonalHaar n).prod volume) ∧\n    Integrable g ((orthogonalHaar n).prod volume) ∧ _\n  let := (orthogonalHaar_spec n).1\n  have hAc : Continuous (fun O : Matrix.orthogonalGroup (Fin n) ℝ => singleBlockPrecision κ O) := by\n    unfold singleBlockPrecision\n    exact continuous_const.sub\n      ((continuous_subtype_val.add continuous_subtype_val.matrix_transpose).const_smul ((κ - 1) / 4))\n  have hk : Continuous k := by dsimp only [k]; fun_prop\n  have hUc : Continuous U := continuous_subtype_val.matrix_elem j0 j0\n  have hac : Continuous a := by dsimp only [a]; fun_prop\n  have hqc : Continuous (fun z : Matrix.orthogonalGroup (Fin n) ℝ × EuclideanSpace ℝ (Fin n) =>\n      q z.1 z.2) := by dsimp only [q]; fun_prop\n  have hq (O : Matrix.orthogonalGroup (Fin n) ℝ) (x : EuclideanSpace ℝ (Fin n)) :\n      ‖x‖ ^ 2 ≤ q O x := by\n    have h := ((singleBlockPrecision_regular hn hκ O).2 (WithLp.ofLp x)).1\n    have he : (WithLp.ofLp x) ⬝ᵥ WithLp.ofLp x = ‖x‖ ^ 2 := by\n      rw [EuclideanSpace.real_norm_sq_eq]\n      simp only [dotProduct, pow_two]\n    simpa only [he] using h\n  have ha (O : Matrix.orthogonalGroup (Fin n) ℝ) : 2 ≤ a O := by\n    have hu : U O ≤ 1 := le_trans (le_abs_self _) (by\n      simpa only [U, Real.norm_eq_abs] using entry_norm_bound_of_unitary O.property j0 j0)\n    have hm := mul_le_mul_of_nonneg_left hu (show 0 ≤ κ - 1 by linarith)\n    dsimp only [a]\n    linarith\n  have hf : Integrable f ((orthogonalHaar n).prod volume) := by\n    have hi := joint_integrable k (fun z => -ℓ * ‖z.2‖ ^ 2 + -(q z.1 z.2) / 2) hk\n      (by fun_prop) (fun z => by\n        have h1 := hq z.1 z.2\n        have h2 := mul_nonneg hℓ (sq_nonneg ‖z.2‖)\n        linarith)\n    convert hi using 1\n    funext z\n    dsimp only [f, p, k, q]\n    rw [Real.exp_add]\n    ring\n  have hg : Integrable g ((orthogonalHaar n).prod volume) := by\n    have hi := joint_integrable k (fun z => -a z.1 * ‖z.2‖ ^ 2 / 4) hk\n      (by fun_prop) (fun z => by\n        have hm := mul_le_mul_of_nonneg_right (ha z.1) (sq_nonneg ‖z.2‖)\n        nlinarith)\n    exact hi\n  refine ⟨hf, hg, ?_⟩\n  have haxis (x : EuclideanSpace ℝ (Fin n)) :\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det * p O x ∂orthogonalHaar n) =\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det * r O x ∂orthogonalHaar n) :=\n    (signed_kernel_radial hn hκ x).2.2\n  have hgr (O : Matrix.orthogonalGroup (Fin n) ℝ) (x : EuclideanSpace ℝ (Fin n)) :\n      g (O, x) = Real.exp (-ℓ * ‖x‖ ^ 2) *\n        ((O : Matrix (Fin n) (Fin n) ℝ).det * r O x) := by\n    dsimp only [g, r, a]\n    rw [show Real.exp (-ℓ * ‖x‖ ^ 2) *\n        ((O : Matrix (Fin n) (Fin n) ℝ).det *\n          (Real.sqrt (singleBlockPrecision κ O).det / (2 * Real.pi) ^ ((n : ℝ) / 2) *\n            Real.exp (-(κ + 1 - (κ - 1) * U O) * ‖x‖ ^ 2 / 4))) =\n      ((O : Matrix (Fin n) (Fin n) ℝ).det * Real.sqrt (singleBlockPrecision κ O).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2)) *\n          (Real.exp (-ℓ * ‖x‖ ^ 2) * Real.exp (-(κ + 1 - (κ - 1) * U O) * ‖x‖ ^ 2 / 4)) by ring]\n    rw [← Real.exp_add]\n    congr 1\n    congr 1\n    ring\n  have havg (x : EuclideanSpace ℝ (Fin n)) :\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ, f (O, x) ∂orthogonalHaar n) =\n      (∫ O : Matrix.orthogonalGroup (Fin n) ℝ, g (O, x) ∂orthogonalHaar n) := by\n    calc\n      _ = Real.exp (-ℓ * ‖x‖ ^ 2) *\n          (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n            (O : Matrix (Fin n) (Fin n) ℝ).det * p O x ∂orthogonalHaar n) := by\n        rw [← integral_const_mul]\n        apply integral_congr_ae\n        exact Filter.Eventually.of_forall fun O => by dsimp only [f]; ring\n      _ = Real.exp (-ℓ * ‖x‖ ^ 2) *\n          (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n            (O : Matrix (Fin n) (Fin n) ℝ).det * r O x ∂orthogonalHaar n) := by rw [haxis]\n      _ = _ := by\n        rw [← integral_const_mul]\n        apply integral_congr_ae\n        exact Filter.Eventually.of_forall fun O => (hgr O x).symm\n  have heval := (radialized_test_integral hn hκ hℓ).2.2.2\n  calc\n    _ = ∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (∫ x : EuclideanSpace ℝ (Fin n), f (O, x)) ∂orthogonalHaar n := by\n      apply integral_congr_ae\n      exact Filter.Eventually.of_forall fun O => (integral_const_mul _ _).symm\n    _ = ∫ x : EuclideanSpace ℝ (Fin n),\n        (∫ O : Matrix.orthogonalGroup (Fin n) ℝ, f (O, x) ∂orthogonalHaar n) :=\n      integral_integral_swap hf\n    _ = ∫ x : EuclideanSpace ℝ (Fin n),\n        (∫ O : Matrix.orthogonalGroup (Fin n) ℝ, g (O, x) ∂orthogonalHaar n) := by\n      apply integral_congr_ae\n      exact Filter.Eventually.of_forall havg\n    _ = ∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (∫ x : EuclideanSpace ℝ (Fin n), g (O, x)) ∂orthogonalHaar n :=\n      (integral_integral_swap hg).symm\n    _ = (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n        (O : Matrix (Fin n) (Fin n) ℝ).det * Real.sqrt (singleBlockPrecision κ O).det *\n          (∫ x : EuclideanSpace ℝ (Fin n), Real.exp (-a O * ‖x‖ ^ 2 / 4))\n          ∂orthogonalHaar n) / (2 * Real.pi) ^ ((n : ℝ) / 2) := by\n      simp only [g, integral_const_mul]\n      rw [← integral_div]\n      apply integral_congr_ae\n      exact Filter.Eventually.of_forall fun O => by ring\n    _ = _ := heval\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureFubini\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2",
+      "edition": "arXiv:2610.20492v1",
+      "anchor": "AppendixB2.2 H definition Ex56, Ex58, Ex59/Fubini paragraph, Ex60 and Eq21, with Eq4 and B6 as providers. Literal functions only.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Joint-L1 and Fubini details are made explicit; compact prefactor is a disclosed sufficient alternative to the sharp Ex59 constant."
+    },
+    "statement": "Let n>=3, kappa>=4 and ell>=0. On full real O(n), use the existing normalized Borel Haar probability mu; on Euclidean real n-space use its actual norm and volume. Let A_O be the literal Eq4 precision and p_O(x)=sqrt(det A_O)/(2pi)^(n/2) exp(-x^T A_O x/2), with real n/2. Put U=O_11 and a(O)=kappa+1+4ell-(kappa-1)U. Both joint functions f(O,x)=det(O)exp(-ell||x||_2^2)p_O(x) and g(O,x)=det(O)sqrt(det A_O)/(2pi)^(n/2) exp(-a(O)||x||_2^2/4) are absolutely Bochner L1 under mu times Euclidean volume. Moreover the literal nested transform E[det(O) integral exp(-ell||x||_2^2)p_O(x) dx] equals (-1)^(n-1)(sqrt(kappa)-1)^(n-1)/2^(n/2) times E[((sqrt(kappa)+1)U-(sqrt(kappa)-1))/a(O)^(n/2)]. This includes ell=0. It is an equality for explicit real formulas, without identifying p with an actual Gaussian density or the transform with target-mixture expectations.",
+    "formulae": [
+      {
+        "label": "Literal mixture transform through Eq21",
+        "tex": "H_{\\mathrm{lit}}(\\ell)=\\mathbb E\\!\\left[\\det(O)\\int e^{-\\ell\\|x\\|_2^2}p_O(x)\\,dx\\right]=\\frac{(-1)^{n-1}(\\sqrt\\kappa-1)^{n-1}}{2^{n/2}}\\mathbb E\\!\\left[\\frac{(\\sqrt\\kappa+1)U-(\\sqrt\\kappa-1)}{[\\kappa+1+4\\ell-(\\kappa-1)U]^{n/2}}\\right]"
+      }
+    ],
+    "assumptions": [
+      "Standing n>=3 and kappa>=4, and source ell>=0 including zero. All dimension-half powers use real division.",
+      "The same actual canonical normalized full O(n) Haar law is used, with both determinant signs, and the spatial measure is actual Euclidean volume. WithLp.ofLp supplies coordinates without replacing the Euclidean norm.",
+      "Original and radial joint absolute L1 are theorem conclusions. Spectral lower bounds, Haar probability, compact prefactor bounds, Gaussian decay integrability and both Fubini swaps are supplied internally. No L1, domination, density-identification or Fubini premise is added.",
+      "Source Ex59 has explicit sharp prefactor (kappa/(2pi))^(n/2). This proof uses a sufficient finite compact prefactor depending on n and kappa. It proves the same exact integration identity, without separately claiming the sharp Ex59 estimate."
+    ],
+    "obligations": [
+      {
+        "id": "literal-joint-fubini-transform",
+        "label": "Genuine original/radial joint L1 and exact literal H transform"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureFubini.literal_mixture_transform",
+      "title": "Compute the literal mixture transform by genuine joint Fubini",
+      "assumptions": [
+        "Standing n>=3 and kappa>=4, and source ell>=0 including zero. All dimension-half powers use real division.",
+        "The same actual canonical normalized full O(n) Haar law is used, with both determinant signs, and the spatial measure is actual Euclidean volume. WithLp.ofLp supplies coordinates without replacing the Euclidean norm.",
+        "Original and radial joint absolute L1 are theorem conclusions. Spectral lower bounds, Haar probability, compact prefactor bounds, Gaussian decay integrability and both Fubini swaps are supplied internally. No L1, domination, density-identification or Fubini premise is added.",
+        "Source Ex59 has explicit sharp prefactor (kappa/(2pi))^(n/2). This proof uses a sufficient finite compact prefactor depending on n and kappa. It proves the same exact integration identity, without separately claiming the sharp Ex59 estimate."
+      ],
+      "formula": "H_{\\mathrm{lit}}(\\ell)=\\mathbb E\\!\\left[\\det(O)\\int e^{-\\ell\\|x\\|_2^2}p_O(x)\\,dx\\right]=\\frac{(-1)^{n-1}(\\sqrt\\kappa-1)^{n-1}}{2^{n/2}}\\mathbb E\\!\\left[\\frac{(\\sqrt\\kappa+1)U-(\\sqrt\\kappa-1)}{[\\kappa+1+4\\ell-(\\kappa-1)U]^{n/2}}\\right]",
+      "mathlib_dependencies": [
+        "GaussianFourier.integrable_cexp_neg_mul_sq_norm_add",
+        "IsCompact.exists_bound_of_continuousOn",
+        "Integrable.mul_prod",
+        "Integrable.mono'",
+        "integral_integral_swap",
+        "integral_const_mul",
+        "integral_div",
+        "entry_norm_bound_of_unitary",
+        "EuclideanSpace.real_norm_sq_eq"
+      ],
+      "lean_statement": "Literal local p/f/g, exact Euclidean norm and product measure; both joint L1 conclusions and literal transform equality with realn/2.",
+      "lean_proof": "Two reachable private providers establish Gaussian decay and uniform compact-prefactor joint L1; the main theorem consumes exact regularity, norm-axis and radial/B6 nodes with two legitimate Fubini swaps.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "AppendixB2.2 H definition Ex56, Ex58, Ex59/Fubini paragraph, Ex60 and Eq21, with Eq4 and B6 as providers. Literal functions only.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Joint-L1 and Fubini details are made explicit; compact prefactor is a disclosed sufficient alternative to the sharp Ex59 constant.",
+          "label": "H definition through Eq21",
+          "scope": "Literal formula joint integrability and Fubini composition only; actual Gaussian-law/mixture/TV interpretation separate."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityMixtureFubini"
+      ],
+      "kind": "theorem",
+      "statement": "Let n>=3, kappa>=4 and ell>=0. On full real O(n), use the existing normalized Borel Haar probability mu; on Euclidean real n-space use its actual norm and volume. Let A_O be the literal Eq4 precision and p_O(x)=sqrt(det A_O)/(2pi)^(n/2) exp(-x^T A_O x/2), with real n/2. Put U=O_11 and a(O)=kappa+1+4ell-(kappa-1)U. Both joint functions f(O,x)=det(O)exp(-ell||x||_2^2)p_O(x) and g(O,x)=det(O)sqrt(det A_O)/(2pi)^(n/2) exp(-a(O)||x||_2^2/4) are absolutely Bochner L1 under mu times Euclidean volume. Moreover the literal nested transform E[det(O) integral exp(-ell||x||_2^2)p_O(x) dx] equals (-1)^(n-1)(sqrt(kappa)-1)^(n-1)/2^(n/2) times E[((sqrt(kappa)+1)U-(sqrt(kappa)-1))/a(O)^(n/2)]. This includes ell=0. It is an equality for explicit real formulas, without identifying p with an actual Gaussian density or the transform with target-mixture expectations.",
+      "steps": [
+        {
+          "title": "Dominate the original joint integrand",
+          "text": "The existing exact precision theorem gives x^T A_O x>=||x||_2^2. Since ell>=0, adding the test exponent only increases decay. The determinant-normalization prefactor is continuous on compact full O(n), so its absolute value has a finite bound C. Thus the original joint integrand is bounded in absolute value by C exp(-||x||_2^2/2). This C is sufficient and is not claimed to equal the sharp source Ex59 prefactor.",
+          "formula": "x^\\top A_Ox\\geq\\|x\\|_2^2,\\qquad |f(O,x)|\\leq C e^{-\\|x\\|_2^2/2}",
+          "lean": "hq consumes the exact singleBlockPrecision_regular and identifies coordinate dotProduct with true Euclidean squared norm. hk and private joint_integrable produce the compact bound and actual product L1 using GaussianFourier integrability."
+        },
+        {
+          "title": "Dominate the radial joint integrand too",
+          "text": "Orthogonality bounds U<=1, hence a(O)>=2+4ell>=2. The radial exponent is bounded by -||x||_2^2/2, with the identical prefactor. The same genuine integrable majorant works on Haar times volume, including ell=0. Continuity supplies joint measurability, while the canonical Haar specification supplies probability.",
+          "formula": "a(O)\\geq 2+4\\ell\\geq2,\\qquad |g(O,x)|\\leq C e^{-\\|x\\|_2^2/2}",
+          "lean": "ha uses entry_norm_bound_of_unitary. The private product provider combines compact continuity with actual Haar probability and GaussianFourier decay; hf and hg are genuine joint Integrable proofs."
+        },
+        {
+          "title": "Perform the first legitimate Fubini swap",
+          "text": "Pull the determinant into each spatial integral and apply Fubini using the proved original joint L1. The original nested transform becomes a spatial integral of signed Haar averages. This step is an equality of actual finite integrals, rather than an identity between default nonintegrable Bochner values.",
+          "formula": "H_{\\mathrm{lit}}(\\ell)=\\int\\!\\left[\\int f(O,x)\\,d\\mu(O)\\right]dx",
+          "lean": "The main calc uses integral_const_mul and integral_integral_swap hf. No spatial integrability hypothesis is supplied by the caller."
+        },
+        {
+          "title": "Consume the identical norm-axis theorem inside the test",
+          "text": "For each fixed Euclidean x, the already compiled norm-axis theorem equates the signed original average with its exact O11 radial formula. The test exp(-ell||x||_2^2) is constant in O. Multiplying that equality by the test and combining exponents identifies the two Haar inner integrals. This is equality after averaging; the original and radial integrands need not agree pointwise in O.",
+          "formula": "\\int f(O,x)\\,d\\mu(O)=e^{-\\ell\\|x\\|_2^2}\\mathbb E[\\det(O)p_O(x)]=\\int g(O,x)\\,d\\mu(O)",
+          "lean": "haxis directly calls canonical signed_kernel_radial. hgr proves exact exponent addition; havg pulls the test through the Haar integral and consumes haxis. There is no asserted pointwise f=g."
+        },
+        {
+          "title": "Use radial joint L1 for the second swap",
+          "text": "Apply Fubini in the reverse direction to the radial joint integrand. Pull the unchanged normalizer and determinant factors outside the spatial integral. This yields precisely the iterated expression already evaluated in the existing radial-integral theorem.",
+          "formula": "H_{\\mathrm{lit}}(\\ell)=\\frac{1}{(2\\pi)^{n/2}}\\mathbb E\\!\\left[\\det(O)\\sqrt{\\det A_O}\\int e^{-a(O)\\|x\\|_2^2/4}\\,dx\\right]",
+          "lean": "The calc uses (integral_integral_swap hg).symm, integral_const_mul and integral_div. Both swaps have their own proved joint L1 provider, on the same actual measures."
+        },
+        {
+          "title": "Reuse the evaluated Gaussian and B6 node",
+          "text": "The canonical radial-integral theorem already evaluates the Gaussian spatial integral and applies actual determinant cancellation B6 with its genuine integrable weight. Apply that identical declaration, with unchanged U, a, dimension, condition number and test parameter. Its conclusion is exactly the displayed scalar expectation and sign coefficient.",
+          "formula": "\\frac{\\mathbb E[\\det(O)\\sqrt{\\det A_O}\\int e^{-a(O)\\|x\\|_2^2/4}dx]}{(2\\pi)^{n/2}}=\\frac{(-1)^{n-1}(\\sqrt\\kappa-1)^{n-1}}{2^{n/2}}\\mathbb E\\!\\left[\\frac{(\\sqrt\\kappa+1)U-(\\sqrt\\kappa-1)}{a(O)^{n/2}}\\right]",
+          "lean": "heval is the exact equality projection of radialized_test_integral hn hκ hℓ. The existing Gaussian/B6 proof is consumed without a copied route, new premise or inference about actual Gaussian-mixture laws."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_regular",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelAxis.signed_kernel_radial",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.RadialIntegral.radialized_test_integral"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureFubini.literal_mixture_transform",
+      "role": "proof-edge",
+      "supports": [
+        "literal-joint-fubini-transform"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Standing n>=3,kappa>=4, ell>=0, full Haar O(n), Euclidean volume and source Ex58/Ex59/Fubini/Gaussian/B6 calculation.",
+        "lean": "Same range and measures, no caller joint L1/majorant premise. Explicit literal-formula transform only. Finite compact prefactor supplies sufficient domination rather than separately proving sharp Ex59 constant."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "be47739145551538c631809b046beb824b9336d988336741f878ffa63edc8e79"
+}

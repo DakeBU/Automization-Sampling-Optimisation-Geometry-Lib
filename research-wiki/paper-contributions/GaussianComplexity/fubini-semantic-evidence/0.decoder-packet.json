@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-20b9942484a96581",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ),\n    let j0 : Fin n := ⟨0, lt_of_lt_of_le (by decide : 0 < 3) hn⟩\n    let U : Matrix.orthogonalGroup (Fin n) ℝ → ℝ :=\n      fun O => (O : Matrix (Fin n) (Fin n) ℝ) j0 j0\n    let a : Matrix.orthogonalGroup (Fin n) ℝ → ℝ :=\n      fun O => κ + 1 + 4 * ℓ - (κ - 1) * U O\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n          Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n            ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)) *ᵥ WithLp.ofLp x)) / 2)\n    let f : (Matrix.orthogonalGroup (Fin n) ℝ × EuclideanSpace ℝ (Fin n)) → ℝ :=\n      fun z => (z.1 : Matrix (Fin n) (Fin n) ℝ).det *\n        (Real.exp (-ℓ * ‖z.2‖ ^ 2) * p z.1 z.2)\n    let g : (Matrix.orthogonalGroup (Fin n) ℝ × EuclideanSpace ℝ (Fin n)) → ℝ :=\n      fun z => (z.1 : Matrix (Fin n) (Fin n) ℝ).det *\n        Real.sqrt ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((z.1 : Matrix (Fin n) (Fin n) ℝ) + (z.1 : Matrix (Fin n) (Fin n) ℝ).transpose))).det /\n          (2 * Real.pi) ^ ((n : ℝ) / 2) * Real.exp (-a z.1 * ‖z.2‖ ^ 2 / 4)\n    Integrable f (((Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))).prod volume) ∧\n    Integrable g (((Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))).prod volume) ∧\n    (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n      (O : Matrix (Fin n) (Fin n) ℝ).det *\n        (∫ x : EuclideanSpace ℝ (Fin n), Real.exp (-ℓ * ‖x‖ ^ 2) * p O x)\n        ∂(Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))) =\n      ((-1 : ℝ) ^ (n - 1) * (Real.sqrt κ - 1) ^ (n - 1) /\n        (2 : ℝ) ^ ((n : ℝ) / 2)) *\n        (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n          ((Real.sqrt κ + 1) * U O - (Real.sqrt κ - 1)) /\n            (a O) ^ ((n : ℝ) / 2) ∂(Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))))",
+    "statement_sha256": "20b9942484a9658174d45d74d38e3862a8933f93c43f535eb36f1e49d71251ef",
+    "compiled": true,
+    "approved_definition_context": [
+      "The full real orthogonal group has inherited matrix topology and Borel sets, both determinant signs. Measure.haarMeasure on top is its actual normalized probability; product is with the canonical volume on actual EuclideanSpace R (Fin n).",
+      "The norm is the true Euclidean norm, not the coordinate sup norm; WithLp.ofLp supplies real coordinates. All lets are literal real formulas, not a characterized Gaussian law or assumed probability density.",
+      "Integrable is genuine absolute Bochner L1 under the displayed product law. Both joint assertions are outputs, without a caller majorant or Fubini premise. The integral convention is Mathlib Bochner integration.",
+      "All dimension-half exponents use real n/2 and nonnegative Real.sqrt; natural n-1 is natural subtraction. Source first coordinate is zero-based j0; ell0 is included."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "27b14c945cd2e73b9a0ddac9ddb280d5152edabbe0392c4fb61607b1a09a4b9d"
+}

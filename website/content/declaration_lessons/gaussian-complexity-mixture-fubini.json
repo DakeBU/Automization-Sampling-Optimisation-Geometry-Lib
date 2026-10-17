@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureFubini.literal_mixture_transform",
+      "title": "Compute the literal mixture transform by genuine joint Fubini",
+      "assumptions": [
+        "Standing n>=3 and kappa>=4, and source ell>=0 including zero. All dimension-half powers use real division.",
+        "The same actual canonical normalized full O(n) Haar law is used, with both determinant signs, and the spatial measure is actual Euclidean volume. WithLp.ofLp supplies coordinates without replacing the Euclidean norm.",
+        "Original and radial joint absolute L1 are theorem conclusions. Spectral lower bounds, Haar probability, compact prefactor bounds, Gaussian decay integrability and both Fubini swaps are supplied internally. No L1, domination, density-identification or Fubini premise is added.",
+        "Source Ex59 has explicit sharp prefactor (kappa/(2pi))^(n/2). This proof uses a sufficient finite compact prefactor depending on n and kappa. It proves the same exact integration identity, without separately claiming the sharp Ex59 estimate."
+      ],
+      "formula": "H_{\\mathrm{lit}}(\\ell)=\\mathbb E\\!\\left[\\det(O)\\int e^{-\\ell\\|x\\|_2^2}p_O(x)\\,dx\\right]=\\frac{(-1)^{n-1}(\\sqrt\\kappa-1)^{n-1}}{2^{n/2}}\\mathbb E\\!\\left[\\frac{(\\sqrt\\kappa+1)U-(\\sqrt\\kappa-1)}{[\\kappa+1+4\\ell-(\\kappa-1)U]^{n/2}}\\right]",
+      "mathlib_dependencies": [
+        "GaussianFourier.integrable_cexp_neg_mul_sq_norm_add",
+        "IsCompact.exists_bound_of_continuousOn",
+        "Integrable.mul_prod",
+        "Integrable.mono'",
+        "integral_integral_swap",
+        "integral_const_mul",
+        "integral_div",
+        "entry_norm_bound_of_unitary",
+        "EuclideanSpace.real_norm_sq_eq"
+      ],
+      "lean_statement": "Literal local p/f/g, exact Euclidean norm and product measure; both joint L1 conclusions and literal transform equality with realn/2.",
+      "lean_proof": "Two reachable private providers establish Gaussian decay and uniform compact-prefactor joint L1; the main theorem consumes exact regularity, norm-axis and radial/B6 nodes with two legitimate Fubini swaps.",
+      "boundary": "Joint original/radial Haar-spatial L1 and the literal H integral through Eq21 are proved. Actual Gaussian law/density identification, normalization/covariance of that law and resulting target-mixture/TV meanings remain open. The sharp Ex59 constant remains source-only; a finite compact prefactor suffices here. Sphere/Poisson, parameter choice, TV/separation/amplification/transcript/eigenbasis and both main lower bounds remain open.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "AppendixB2.2 H definition Ex56, Ex58, Ex59/Fubini paragraph, Ex60 and Eq21, with Eq4 and B6 as providers. Literal functions only.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Joint-L1 and Fubini details are made explicit; compact prefactor is a disclosed sufficient alternative to the sharp Ex59 constant.",
+          "label": "H definition through Eq21",
+          "scope": "Literal formula joint integrability and Fubini composition only; actual Gaussian-law/mixture/TV interpretation separate."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityMixtureFubini"
+      ],
+      "kind": "theorem",
+      "statement": "Let n>=3, kappa>=4 and ell>=0. On full real O(n), use the existing normalized Borel Haar probability mu; on Euclidean real n-space use its actual norm and volume. Let A_O be the literal Eq4 precision and p_O(x)=sqrt(det A_O)/(2pi)^(n/2) exp(-x^T A_O x/2), with real n/2. Put U=O_11 and a(O)=kappa+1+4ell-(kappa-1)U. Both joint functions f(O,x)=det(O)exp(-ell||x||_2^2)p_O(x) and g(O,x)=det(O)sqrt(det A_O)/(2pi)^(n/2) exp(-a(O)||x||_2^2/4) are absolutely Bochner L1 under mu times Euclidean volume. Moreover the literal nested transform E[det(O) integral exp(-ell||x||_2^2)p_O(x) dx] equals (-1)^(n-1)(sqrt(kappa)-1)^(n-1)/2^(n/2) times E[((sqrt(kappa)+1)U-(sqrt(kappa)-1))/a(O)^(n/2)]. This includes ell=0. It is an equality for explicit real formulas, without identifying p with an actual Gaussian density or the transform with target-mixture expectations.",
+      "steps": [
+        {
+          "title": "Dominate the original joint integrand",
+          "text": "The existing exact precision theorem gives x^T A_O x>=||x||_2^2. Since ell>=0, adding the test exponent only increases decay. The determinant-normalization prefactor is continuous on compact full O(n), so its absolute value has a finite bound C. Thus the original joint integrand is bounded in absolute value by C exp(-||x||_2^2/2). This C is sufficient and is not claimed to equal the sharp source Ex59 prefactor.",
+          "formula": "x^\\top A_Ox\\geq\\|x\\|_2^2,\\qquad |f(O,x)|\\leq C e^{-\\|x\\|_2^2/2}",
+          "lean": "hq consumes the exact singleBlockPrecision_regular and identifies coordinate dotProduct with true Euclidean squared norm. hk and private joint_integrable produce the compact bound and actual product L1 using GaussianFourier integrability."
+        },
+        {
+          "title": "Dominate the radial joint integrand too",
+          "text": "Orthogonality bounds U<=1, hence a(O)>=2+4ell>=2. The radial exponent is bounded by -||x||_2^2/2, with the identical prefactor. The same genuine integrable majorant works on Haar times volume, including ell=0. Continuity supplies joint measurability, while the canonical Haar specification supplies probability.",
+          "formula": "a(O)\\geq 2+4\\ell\\geq2,\\qquad |g(O,x)|\\leq C e^{-\\|x\\|_2^2/2}",
+          "lean": "ha uses entry_norm_bound_of_unitary. The private product provider combines compact continuity with actual Haar probability and GaussianFourier decay; hf and hg are genuine joint Integrable proofs."
+        },
+        {
+          "title": "Perform the first legitimate Fubini swap",
+          "text": "Pull the determinant into each spatial integral and apply Fubini using the proved original joint L1. The original nested transform becomes a spatial integral of signed Haar averages. This step is an equality of actual finite integrals, rather than an identity between default nonintegrable Bochner values.",
+          "formula": "H_{\\mathrm{lit}}(\\ell)=\\int\\!\\left[\\int f(O,x)\\,d\\mu(O)\\right]dx",
+          "lean": "The main calc uses integral_const_mul and integral_integral_swap hf. No spatial integrability hypothesis is supplied by the caller."
+        },
+        {
+          "title": "Consume the identical norm-axis theorem inside the test",
+          "text": "For each fixed Euclidean x, the already compiled norm-axis theorem equates the signed original average with its exact O11 radial formula. The test exp(-ell||x||_2^2) is constant in O. Multiplying that equality by the test and combining exponents identifies the two Haar inner integrals. This is equality after averaging; the original and radial integrands need not agree pointwise in O.",
+          "formula": "\\int f(O,x)\\,d\\mu(O)=e^{-\\ell\\|x\\|_2^2}\\mathbb E[\\det(O)p_O(x)]=\\int g(O,x)\\,d\\mu(O)",
+          "lean": "haxis directly calls canonical signed_kernel_radial. hgr proves exact exponent addition; havg pulls the test through the Haar integral and consumes haxis. There is no asserted pointwise f=g."
+        },
+        {
+          "title": "Use radial joint L1 for the second swap",
+          "text": "Apply Fubini in the reverse direction to the radial joint integrand. Pull the unchanged normalizer and determinant factors outside the spatial integral. This yields precisely the iterated expression already evaluated in the existing radial-integral theorem.",
+          "formula": "H_{\\mathrm{lit}}(\\ell)=\\frac{1}{(2\\pi)^{n/2}}\\mathbb E\\!\\left[\\det(O)\\sqrt{\\det A_O}\\int e^{-a(O)\\|x\\|_2^2/4}\\,dx\\right]",
+          "lean": "The calc uses (integral_integral_swap hg).symm, integral_const_mul and integral_div. Both swaps have their own proved joint L1 provider, on the same actual measures."
+        },
+        {
+          "title": "Reuse the evaluated Gaussian and B6 node",
+          "text": "The canonical radial-integral theorem already evaluates the Gaussian spatial integral and applies actual determinant cancellation B6 with its genuine integrable weight. Apply that identical declaration, with unchanged U, a, dimension, condition number and test parameter. Its conclusion is exactly the displayed scalar expectation and sign coefficient.",
+          "formula": "\\frac{\\mathbb E[\\det(O)\\sqrt{\\det A_O}\\int e^{-a(O)\\|x\\|_2^2/4}dx]}{(2\\pi)^{n/2}}=\\frac{(-1)^{n-1}(\\sqrt\\kappa-1)^{n-1}}{2^{n/2}}\\mathbb E\\!\\left[\\frac{(\\sqrt\\kappa+1)U-(\\sqrt\\kappa-1)}{a(O)^{n/2}}\\right]",
+          "lean": "heval is the exact equality projection of radialized_test_integral hn hκ hℓ. The existing Gaussian/B6 proof is consumed without a copied route, new premise or inference about actual Gaussian-mixture laws."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_regular",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelAxis.signed_kernel_radial",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.RadialIntegral.radialized_test_integral"
+      ]
+    }
+  ]
+}

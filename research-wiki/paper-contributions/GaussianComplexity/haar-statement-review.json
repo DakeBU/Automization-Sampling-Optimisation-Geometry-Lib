@@ -1,0 +1,340 @@
+{
+  "review_kind": "Independent PREPROOF statement, binder and definition audit plus SOURCE-ONLY topology extraction",
+  "verdict": "PASS",
+  "decision_scope": "Sealed mathematical statement/meaning only; production proof and elaborated dependency audit remain separate gates",
+  "permitted_read_inputs": [
+    ".astis/gaussian-complexity/HaarStatementPacket.json",
+    ".astis/gaussian-complexity/2610.20492v1.html"
+  ],
+  "forbidden_inputs_not_read": [
+    "Production Lean",
+    "Other reviews",
+    "Private implementation rationale"
+  ],
+  "raw_source_sha256_verified": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+  "sealed_packet_sha256": "361d1549ab9f2cc40c68b3d96a53545533ef672f0acb9341f121eba9c74a6333",
+  "exact_payload": {
+    "scope": "Shared full real orthogonal-group Haar probability: Section2 first paragraph; AppendixB2.1 row reflection distribution invariance, and Section4.1 Haar O(d). Not determinant-conditioned law, component half-mass, adaptive posterior, seed independence or either main result.",
+    "source_raw": ".astis/gaussian-complexity/2610.20492v1.html",
+    "source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "proposed_signatures": {
+      "existsUnique_orthogonalHaar": "theorem existsUnique_orthogonalHaar (n : ℕ) :\n    ∃! μ : Measure (Matrix.orthogonalGroup (Fin n) ℝ),\n      IsProbabilityMeasure μ ∧ μ.IsHaarMeasure",
+      "orthogonalHaar_spec": "theorem orthogonalHaar_spec (n : ℕ) :\n    IsProbabilityMeasure (orthogonalHaar n) ∧ (orthogonalHaar n).IsHaarMeasure ∧\n      ∀ μ : Measure (Matrix.orthogonalGroup (Fin n) ℝ),\n        IsProbabilityMeasure μ → μ.IsHaarMeasure → μ = orthogonalHaar n",
+      "orthogonalHaar_map_mul_left": "theorem orthogonalHaar_map_mul_left (n : ℕ)\n    (Q : Matrix.orthogonalGroup (Fin n) ℝ) :\n    (orthogonalHaar n).map (fun O => Q * O) = orthogonalHaar n"
+    },
+    "proposed_definition": "noncomputable def orthogonalHaar (n : ℕ) :\n    Measure (Matrix.orthogonalGroup (Fin n) ℝ) :=\n  Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))",
+    "implementation_context": "Private CompactSpace instance for full orthogonal group must be constructed internally. Canonical topology is the inherited matrix subspace topology. Mathlib supplies no MeasurableSpace instance for this matrix subtype, so exact private typing definition sets it to borel of that topology, with proof of BorelSpace and second countability as displayed. These definitions are part of sealed meaning, not public assumptions. IsHaarMeasure means left invariant, finite on compact sets and positive on nonempty opens.",
+    "definition_discipline": "Characterized source object. First compile and independently proof-review existsUnique_orthogonalHaar (real well-definedness) before writing the production orthogonalHaar definition. Then define by the actual Mathlib haarMeasure constructor normalized on the full compact group; a separately named spec/uniqueness theorem will prove the characterization. No fallback/off-source default.",
+    "source_range_delta": "The shared background interface is valid for all natural finite n, including n0 singleton group; this is a disclosed generalization of the paper application n>=3/d>=2. It does not claim two determinant components at n0 or conditioned laws.",
+    "reuse_floor": "No existing Samplinglib Haar/orthogonal law found. Mathlib has abstract Haar construction and uniqueness but no compactness/Haar probability instance specialized to real finite orthogonal groups. Two genuine source consumers are sign/Haar minor cancellation and Section4 eigenbasis rotation. Their different experiments retain separate adapters.",
+    "measurable_typing_definitions": "private instance orthogonal_measurableSpace (n : ℕ) :\n    MeasurableSpace (Matrix.orthogonalGroup (Fin n) ℝ) := borel _\n\nprivate instance orthogonal_borelSpace (n : ℕ) :\n    BorelSpace (Matrix.orthogonalGroup (Fin n) ℝ) := ⟨rfl⟩\n\nprivate instance orthogonal_secondCountable (n : ℕ) :\n    SecondCountableTopology (Matrix.orthogonalGroup (Fin n) ℝ) := by\n  let : SecondCountableTopology (Matrix (Fin n) (Fin n) ℝ) :=\n    inferInstanceAs (SecondCountableTopology (Fin n → Fin n → ℝ))\n  exact secondCountableTopology_induced (Matrix.orthogonalGroup (Fin n) ℝ)\n    (Matrix (Fin n) (Fin n) ℝ) Subtype.val"
+  },
+  "binders": {
+    "existsUnique_orthogonalHaar": [
+      "n : Nat, unrestricted, including zero",
+      "mu : Measure(full O(n)), bound under exists-unique; predicate = probability(mu) AND Haar(mu)",
+      "No compactness, measurable-space, existence, invariance, or uniqueness hypothesis is exposed to callers"
+    ],
+    "orthogonalHaar_spec": [
+      "n : Nat, unrestricted",
+      "mu : Measure(full O(n)), universally bound only in uniqueness clause",
+      "IsProbabilityMeasure mu and mu.IsHaarMeasure are antecedents for comparing an arbitrary candidate mu, not assumptions replacing the construction of orthogonalHaar"
+    ],
+    "orthogonalHaar_map_mul_left": [
+      "n : Nat, unrestricted",
+      "Q : full O(n), arbitrary fixed element; includes determinant -1 where present",
+      "O : full O(n), lambda-bound in the mapped function",
+      "Conclusion is equality of measures after actual map O -> Q * O, not a proposition encoding the intended equality as a hypothesis"
+    ]
+  },
+  "recursive_definition_audit": {
+    "carrier": "Matrix.orthogonalGroup (Fin n) Real represents full real finite orthogonal matrices; no determinant constraint. Mathematical correspondence to source O^T O = I uses equivalence of real square-matrix orthogonality conventions.",
+    "topology": "Sealed inherited matrix subspace topology, with finite real matrix space viewed as Fin n -> Fin n -> Real. Canonical, not discrete or indiscrete.",
+    "sigma_algebra": "Exact private measurableSpace definition is borel of that topology; BorelSpace proof is rfl. No arbitrary measurable-space binder.",
+    "second_countability": "Sealed private typing definition inherits second countability through Subtype.val. Internal typing support, not a convenient new hypothesis.",
+    "probability": "Recursive mathematical expansion of IsProbabilityMeasure mu: mu(univ)=1. This rules out zero/infinite total mass.",
+    "haar": "Recursive mathematical expansion of mu.IsHaarMeasure, using the explicit meaning supplied in the sealed packet: left invariance under each group translation, finiteness on compact sets, and positivity on every nonempty open set. These predicates are independent of orthogonalHaar and contain no assumed target theorem.",
+    "normalized_constructor": "Exact production proposal is Measure.haarMeasure (top : PositiveCompacts full O(n)). For a nonempty compact group, top is the entire group; normalization is on univ, not a determinant component or arbitrary local compact neighborhood.",
+    "no_circular_definition": "The proposed constructor is the abstract Haar constructor. The preceding exists-unique theorem quantifies independent measures and does not refer to orthogonalHaar. The later spec proves characterization, and map theorem proves actual invariant law.",
+    "n_zero": "At n=0 the carrier is the singleton empty orthogonal matrix group, nonempty via identity. Whole-group normalization and unique Haar probability remain meaningful. No two-component or determinant-half-mass claim is imported.",
+    "library_audit_boundary": "This is a statement/meaning audit from the permitted packet and raw source only. Exact Mathlib class fields, elaboration, hidden elaborated dependencies and implementation correctness were not inspected or verified here."
+  },
+  "coverage": {
+    "approved_scope": [
+      "Section 2 full orthogonal-group Haar probability object",
+      "B2.1 actual left row-reflection invariant distribution equality",
+      "Section 4.1 same full orthogonal Haar object"
+    ],
+    "source_locators": [
+      "S2.p2.1 / S2.p2.m1",
+      "A2.SS2.p2.1 / A2.SS2.p2.m3-m4",
+      "A2.SS2.SSS1.p3.1 / A2.Ex53.m1 first equality",
+      "S4.SS1.p1.2 / S4.SS1.p1.m5-m6"
+    ],
+    "completeness": "The three interfaces jointly specify existence/uniqueness, identify the concrete named probability measure, and expose exactly the left-pushforward invariance used by reflection. The shared object is genuine across determinant and eigenbasis consumers. Their conditional, seed and Krylov experiments remain distinct.",
+    "source_range_delta": "The shared background interface is valid for all natural finite n, including n0 singleton group; this is a disclosed generalization of the paper application n>=3/d>=2. It does not claim two determinant components at n0 or conditioned laws.",
+    "construction_obligations": [
+      "Prove internal compactness/nonemptiness and canonical measurable/topological support",
+      "Apply abstract Haar existence on the full compact group",
+      "Establish positive finite univ mass and probability normalization",
+      "Prove uniqueness among probability Haar measures",
+      "Compile and independently proof-review existsUnique_orthogonalHaar BEFORE writing production orthogonalHaar definition",
+      "Then prove orthogonalHaar_spec and actual map law; no fallback measure"
+    ],
+    "source_status": "Haar existence/normalization/uniqueness are standard background implicit in the source object, not new author theorems. This review does not claim any downstream mathematical result or Lean verification.",
+    "exclusions": [
+      {
+        "item": "two determinant components and their mass 1/2",
+        "locator": "S2.p2.1 after first sentence; A2.SS2.SSS2.p3.2",
+        "reason": "Separate component theorem requiring positive dimension; not claimed at n=0"
+      },
+      {
+        "item": "determinant-conditioned law mu_(n,b)",
+        "locator": "S2.p2.1, final sentence",
+        "reason": "Distinct conditional source object, not the full Haar probability definition"
+      },
+      {
+        "item": "row reflection preserves O_11, flips a principal minor, and gives zero expectation",
+        "locator": "A2.Ex53.m1 second and third equalities; A2.Ex54",
+        "reason": "Separate algebraic/integral consumer obligations; only invariant-law equality is in scope"
+      },
+      {
+        "item": "Lemma B.6 determinant cancellation and signed Gaussian expectations",
+        "locator": "A2.Thmtheorem6 / A2.E15",
+        "reason": "Downstream author result, not supplied by this interface"
+      },
+      {
+        "item": "independence of Haar O from private random seed",
+        "locator": "S4.SS1.p1.2",
+        "reason": "Separate joint probability experiment, not marginal Haar object"
+      },
+      {
+        "item": "conditional Haar residual laws, adaptive posterior, Haar revelation/state",
+        "locator": "A2.SS1; A3.SS1 / A3.Thmtheorem1-3",
+        "reason": "Separate conditional and adaptive results"
+      },
+      {
+        "item": "Krylov/Gaussian experiment and reduction",
+        "locator": "Section 4 and Appendix C",
+        "reason": "Distinct consumer experiment, not merged with determinant branch"
+      },
+      {
+        "item": "main lower bounds and mixture/separation experiments",
+        "locator": "Sections 3-4",
+        "reason": "Beyond shared background object and invariant law"
+      }
+    ]
+  },
+  "independent_findings": [
+    "Full O(n) is essential: the determinant -1 reflection would not be a permissible arbitrary left translator on SO(n).",
+    "The actual map-law conclusion correctly makes the source distributional equality available without assuming it.",
+    "All dimensions including zero are appropriate for this shared background object, but do not transfer component statements to zero.",
+    "Global probability normalization removes the arbitrary scale in abstract Haar uniqueness.",
+    "Canonical Borel typing is necessary to make the statement about the intended matrix law rather than a different sigma-algebra.",
+    "There is no source-driven need to conflate the determinant and eigenbasis experiments; only their full Haar marginal is shared."
+  ],
+  "source_graph": {
+    "scope": "Shared full real orthogonal-group Haar probability and its actual left-invariance use only",
+    "source_treatment": "The source introduces Haar probability as standard background. Construction obligations below explicate that background; they are not newly attributed author theorems.",
+    "nodes": [
+      {
+        "id": "source_full_orthogonal_group",
+        "kind": "source_definition",
+        "locator": "S2.p2.1 / S2.p2.m1",
+        "meaning": "O(n) = {O in real n-by-n matrices : transpose(O) O = identity}; full orthogonal group, not SO(n)"
+      },
+      {
+        "id": "canonical_topology_borel",
+        "kind": "standard_background_obligation",
+        "source_support": "S2.p2.1",
+        "meaning": "Inherited finite real matrix topology and its Borel sigma-algebra; topological group, Hausdorff and second countable"
+      },
+      {
+        "id": "compact_nonempty_group",
+        "kind": "standard_background_obligation",
+        "source_support": "S2.p2.1",
+        "meaning": "Full real finite orthogonal group is compact and nonempty; identity supplies nonemptiness, including n=0"
+      },
+      {
+        "id": "abstract_haar_existence",
+        "kind": "standard_background_obligation",
+        "source_support": "S2.p2.1",
+        "meaning": "Existence of a nonzero left invariant Borel Haar measure, finite on compact sets and positive on nonempty opens"
+      },
+      {
+        "id": "full_group_normalization",
+        "kind": "standard_background_obligation",
+        "source_support": "S2.p2.1",
+        "meaning": "Normalize on the whole compact group: positive finite mass of univ becomes 1"
+      },
+      {
+        "id": "haar_probability_uniqueness",
+        "kind": "standard_background_obligation",
+        "source_support": "S2.p2.1",
+        "meaning": "Uniqueness up to scaling of Haar measure, with probability mass fixing the scale"
+      },
+      {
+        "id": "source_full_haar_probability",
+        "kind": "source_background_object",
+        "locator": "S2.p2.1, first sentence",
+        "meaning": "The Haar probability measure on full O(n), uniquely characterized on the canonical Borel space"
+      },
+      {
+        "id": "left_multiplication_law",
+        "kind": "standard_background_property_used_in_source",
+        "locator": "A2.Ex53.m1, first equality",
+        "meaning": "For every fixed Q in O(n), pushforward of full Haar probability by O -> Q O equals the original measure"
+      },
+      {
+        "id": "determinant_branch_full_haar",
+        "kind": "source_consumer_object",
+        "locator": "A2.SS2.p2.1 / A2.SS2.p2.m3-m4",
+        "meaning": "B.2 uses O Haar distributed on the full group O(n), with n>=3"
+      },
+      {
+        "id": "row_reflection_invariant_law",
+        "kind": "source_consumer_use",
+        "locator": "A2.SS2.SSS1.p3.1 / A2.Ex53.m1, first equality",
+        "meaning": "D_i = I - 2 e_i e_i^T is a fixed orthogonal row reflection and D_i O has the same law as O; the source uses i>=2"
+      },
+      {
+        "id": "eigenbasis_branch_full_haar_draw",
+        "kind": "source_consumer_object",
+        "locator": "S4.SS1.p1.2 / S4.SS1.p1.m5",
+        "meaning": "Section 4.1 draws O from Haar(O(d)), with d>=2; same canonical full-group law indexed by d"
+      },
+      {
+        "id": "eigenbasis_rotation_adapter",
+        "kind": "source_consumer_use",
+        "locator": "S4.SS1.p1.2 / S4.SS1.p1.m6; S4.SS1.p2.1",
+        "meaning": "O supplies the eigenbasis in A=O Lambda O^T; this is a separate consumer adapter, not the determinant-conditioned experiment"
+      }
+    ],
+    "edges": [
+      {
+        "from": "source_full_orthogonal_group",
+        "to": "canonical_topology_borel",
+        "relation": "canonical measurable/topological interpretation"
+      },
+      {
+        "from": "source_full_orthogonal_group",
+        "to": "compact_nonempty_group",
+        "relation": "standard finite-dimensional compact-group obligation"
+      },
+      {
+        "from": "canonical_topology_borel",
+        "to": "abstract_haar_existence",
+        "relation": "topological and measurable prerequisites"
+      },
+      {
+        "from": "compact_nonempty_group",
+        "to": "abstract_haar_existence",
+        "relation": "locally compact nonempty group prerequisites"
+      },
+      {
+        "from": "abstract_haar_existence",
+        "to": "full_group_normalization",
+        "relation": "supplies nonzero Haar measure"
+      },
+      {
+        "from": "compact_nonempty_group",
+        "to": "full_group_normalization",
+        "relation": "univ compact and nonempty gives positive finite mass"
+      },
+      {
+        "from": "canonical_topology_borel",
+        "to": "haar_probability_uniqueness",
+        "relation": "canonical Borel uniqueness prerequisites"
+      },
+      {
+        "from": "abstract_haar_existence",
+        "to": "haar_probability_uniqueness",
+        "relation": "Haar measures unique up to scalar"
+      },
+      {
+        "from": "full_group_normalization",
+        "to": "source_full_haar_probability",
+        "relation": "constructs probability Haar object"
+      },
+      {
+        "from": "haar_probability_uniqueness",
+        "to": "source_full_haar_probability",
+        "relation": "characterizes canonical object"
+      },
+      {
+        "from": "source_full_haar_probability",
+        "to": "left_multiplication_law",
+        "relation": "Haar left invariance gives actual pushforward equality"
+      },
+      {
+        "from": "source_full_haar_probability",
+        "to": "determinant_branch_full_haar",
+        "relation": "same full-group source law"
+      },
+      {
+        "from": "determinant_branch_full_haar",
+        "to": "row_reflection_invariant_law",
+        "relation": "B2.1 uses full Haar draw"
+      },
+      {
+        "from": "left_multiplication_law",
+        "to": "row_reflection_invariant_law",
+        "relation": "specialize Q to D_i; first equality in A2.Ex53"
+      },
+      {
+        "from": "source_full_haar_probability",
+        "to": "eigenbasis_branch_full_haar_draw",
+        "relation": "same full-group source law with n renamed d"
+      },
+      {
+        "from": "eigenbasis_branch_full_haar_draw",
+        "to": "eigenbasis_rotation_adapter",
+        "relation": "source rotates deterministic spectrum by Haar eigenbasis"
+      }
+    ],
+    "explicit_exclusions": [
+      {
+        "item": "two determinant components and their mass 1/2",
+        "locator": "S2.p2.1 after first sentence; A2.SS2.SSS2.p3.2",
+        "reason": "Separate component theorem requiring positive dimension; not claimed at n=0"
+      },
+      {
+        "item": "determinant-conditioned law mu_(n,b)",
+        "locator": "S2.p2.1, final sentence",
+        "reason": "Distinct conditional source object, not the full Haar probability definition"
+      },
+      {
+        "item": "row reflection preserves O_11, flips a principal minor, and gives zero expectation",
+        "locator": "A2.Ex53.m1 second and third equalities; A2.Ex54",
+        "reason": "Separate algebraic/integral consumer obligations; only invariant-law equality is in scope"
+      },
+      {
+        "item": "Lemma B.6 determinant cancellation and signed Gaussian expectations",
+        "locator": "A2.Thmtheorem6 / A2.E15",
+        "reason": "Downstream author result, not supplied by this interface"
+      },
+      {
+        "item": "independence of Haar O from private random seed",
+        "locator": "S4.SS1.p1.2",
+        "reason": "Separate joint probability experiment, not marginal Haar object"
+      },
+      {
+        "item": "conditional Haar residual laws, adaptive posterior, Haar revelation/state",
+        "locator": "A2.SS1; A3.SS1 / A3.Thmtheorem1-3",
+        "reason": "Separate conditional and adaptive results"
+      },
+      {
+        "item": "Krylov/Gaussian experiment and reduction",
+        "locator": "Section 4 and Appendix C",
+        "reason": "Distinct consumer experiment, not merged with determinant branch"
+      },
+      {
+        "item": "main lower bounds and mixture/separation experiments",
+        "locator": "Sections 3-4",
+        "reason": "Beyond shared background object and invariant law"
+      }
+    ]
+  },
+  "lean_verification_claim": false,
+  "implementation_review_claim": false
+}

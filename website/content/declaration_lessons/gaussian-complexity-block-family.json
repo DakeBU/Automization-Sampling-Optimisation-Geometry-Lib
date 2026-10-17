@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision",
+      "kind": "definition",
+      "title": "The literal full precision, including its residual identity block",
+      "statement": "Within the standing range kappa>=4 and 3<=n<=d, put k=floor(d/n). For every tuple of k real orthogonal n by n matrices, define the d by d precision as diag(A_O1,...,A_Ok,I_(d-kn)), where A_O=((kappa+1)/2)I-((kappa-1)/4)(O+O^T).",
+      "formula": "A_{\\boldsymbol O}=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_{d-kn}),\\qquad k=\\lfloor d/n\\rfloor",
+      "assumptions": [
+        "d and n are natural dimensions; kappa is a real number.",
+        "n>=3, n<=d and kappa>=4 are the source standing range.",
+        "O is a tuple indexed by Fin(d/n), with each matrix in the full real orthogonal group on Fin n.",
+        "The literal algebraic definition extends to every natural d,n and real kappa; spectral and minimizer theorems retain the source range."
+      ],
+      "steps": [
+        {
+          "title": "Use consecutive coordinates",
+          "text": "Mathlib indexes equal blocks by (inner coordinate, block). Swap these indices before flattening, so the original coordinate is inner+n*block. The residual coordinate starts at k*n.",
+          "formula": "(i,j)\\mapsto i+nj,\\qquad z_t\\mapsto kn+t",
+          "lean": "The private blockCoordinates uses prodComm, finProdFinEquiv, sumCongr, finSumFinEquiv and finCongr."
+        },
+        {
+          "title": "Retain the residual identity",
+          "text": "Euclidean division gives d=k*n+r with r=d mod n=d-k*n. Reindex the literal block diagonal to Fin d. When r=0, Fin0 is empty and no residual coordinate is introduced.",
+          "formula": "d=kn+r,\\quad r=d\\bmod n=d-kn",
+          "lean": "blockPrecision applies Matrix.reindex to fromBlocks (blockDiagonal ...) 0 0 1; no padding or fallback replaces the residual block."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.blockDiagonal",
+        "Matrix.fromBlocks",
+        "Matrix.reindex",
+        "finProdFinEquiv",
+        "finSumFinEquiv",
+        "Nat.div_add_mod"
+      ],
+      "lean_statement": "Coordinates are Fin d with the exact quotient/remainder adapter; dotProduct represents the Euclidean quadratic form.",
+      "lean_proof": "The adjacent checked Lean body supplies the actual matrix assembly and all internal dependencies.",
+      "boundary": "Only determinant-family regularity and the quadratic minimum in Lemma3.4/B.8. Gaussian normalization, Haar posterior laws, oracle indistinguishability, test separation and both main complexity lower bounds remain open.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS3",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Section3.1 equations(4),(5); Lemma3.4 / AppendixB.3 LemmaB.8",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS mathematical restatement.",
+          "label": "Source block family and full regularity lemma",
+          "scope": "Literal equation(5), block quadratic bounds and unique minimum only."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityBlockFamily"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular",
+      "kind": "theorem",
+      "title": "Sum the actual single-block estimates in the original coordinates",
+      "statement": "For n>=3,n<=d,kappa>=4 and every tuple of floor(d/n) real orthogonal n by n matrices, the literal d-dimensional precision A is symmetric and every x in R^d satisfies x^T x<=x^T A x<=kappa x^T x. Hence A belongs to the source admissible precision class.",
+      "formula": "A=A^\\top,\\qquad \\|x\\|_2^2\\le x^\\top A x\\le\\kappa\\|x\\|_2^2\\quad(\\forall x\\in\\mathbb R^d)",
+      "assumptions": [
+        "d and n are natural dimensions; kappa is a real number.",
+        "n>=3, n<=d and kappa>=4 are the source standing range.",
+        "O is a tuple indexed by Fin(d/n), with each matrix in the full real orthogonal group on Fin n."
+      ],
+      "steps": [
+        {
+          "title": "Symmetry survives block assembly",
+          "text": "The existing single-block theorem proves each A_Oj symmetric. Block diagonal assembly, the identity tail and the coordinate equivalence preserve real Hermitianity, which is symmetry.",
+          "formula": "A_{O_j}=A_{O_j}^\\top\\ (\\forall j)\\ \\Longrightarrow\\ A=A^\\top",
+          "lean": "hB uses singleBlockPrecision_regular, isHermitian_blockDiagonal_iff and IsHermitian.fromBlocks; IsHermitian.reindex returns the result on Fin d."
+        },
+        {
+          "title": "Split the two quadratic forms",
+          "text": "Pull x back through the exact coordinate equivalence. Its blocks are v_j and its residual is z. Matrix-vector multiplication has no cross-block terms, so both expressions split into finite sums.",
+          "formula": "\\|x\\|_2^2=\\sum_j\\|v_j\\|_2^2+\\|z\\|_2^2,\\qquad x^\\top Ax=\\sum_jv_j^\\top A_{O_j}v_j+\\|z\\|_2^2",
+          "lean": "hchange proves the quadratic form is preserved under reindex. hvec, hnorm and hquad expand the actual fromBlocks/blockDiagonal matrix, using finite sum reordering."
+        },
+        {
+          "title": "Sum the existing bounds and handle the tail",
+          "text": "Apply the compiled single-block lower and upper bounds to each v_j and sum them. The standing kappa>=4 implies kappa>=1, so the residual squared norm is at most kappa times itself. Empty residual sums also cover kn=d.",
+          "formula": "\\sum_j\\|v_j\\|_2^2+\\|z\\|_2^2\\le x^\\top Ax\\le\\kappa\\sum_j\\|v_j\\|_2^2+\\|z\\|_2^2\\le\\kappa\\|x\\|_2^2",
+          "lean": "hlo and hupp call singleBlockPrecision_regular inside the proof; htail derives its coefficient condition from hκ. No spectral estimate is a public hypothesis."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_regular"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.isHermitian_blockDiagonal_iff",
+        "Matrix.IsHermitian.fromBlocks",
+        "Matrix.IsHermitian.reindex",
+        "Matrix.submatrix_mulVec_equiv",
+        "Matrix.dotProduct_block",
+        "Finset.sum_le_sum"
+      ],
+      "lean_statement": "Coordinates are Fin d with the exact quotient/remainder adapter; dotProduct represents the Euclidean quadratic form.",
+      "lean_proof": "The adjacent checked Lean body supplies the actual matrix assembly and all internal dependencies.",
+      "boundary": "Only determinant-family regularity and the quadratic minimum in Lemma3.4/B.8. Gaussian normalization, Haar posterior laws, oracle indistinguishability, test separation and both main complexity lower bounds remain open.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS3",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Section3.1 equations(4),(5); Lemma3.4 / AppendixB.3 LemmaB.8",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS mathematical restatement.",
+          "label": "Source block family and full regularity lemma",
+          "scope": "Literal equation(5), block quadratic bounds and unique minimum only."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityBlockFamily"
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_unique_minimizer",
+      "kind": "theorem",
+      "title": "The quadratic potential has its unique minimum at zero",
+      "statement": "Under the same n>=3,n<=d,kappa>=4 and orthogonal tuple assumptions, the actual potential f_A(x)=(1/2)x^T A x has f_A(0)=0, is nonnegative for every x, and equals zero if and only if x=0. Thus its unique minimizer is0 and its minimum value is0.",
+      "formula": "f_A(0)=0,\\qquad f_A(x)\\ge0,\\qquad f_A(x)=0\\iff x=0",
+      "assumptions": [
+        "d and n are natural dimensions; kappa is a real number.",
+        "n>=3, n<=d and kappa>=4 are the source standing range.",
+        "O is a tuple indexed by Fin(d/n), with each matrix in the full real orthogonal group on Fin n."
+      ],
+      "steps": [
+        {
+          "title": "The origin has value zero",
+          "text": "The literal quadratic expression vanishes at the zero vector.",
+          "formula": "f_A(0)=\\tfrac12 0^\\top A0=0",
+          "lean": "The first conjunct unfolds the displayed potential and simplifies zero matrix-vector and dot products."
+        },
+        {
+          "title": "The lower spectral bound gives nonnegativity",
+          "text": "Apply the actual full-precision theorem to the same x. Since its coordinate squared sum is nonnegative, so is the potential.",
+          "formula": "f_A(x)=\\tfrac12x^\\top Ax\\ge\\tfrac12\\|x\\|_2^2\\ge0",
+          "lean": "hlow is produced by blockPrecision_regular, with the same hn,hnd,hκ and O. hnonneg is the finite sum of coordinate squares."
+        },
+        {
+          "title": "Zero energy forces every coordinate to vanish",
+          "text": "If f_A(x)=0, the lower bound forces the sum of squared coordinates to be0. Each nonnegative summand is at most this sum, hence each coordinate is0. Conversely x=0 has zero energy. Combined with nonnegativity, this gives strict positivity for x!=0 and the unique minimum.",
+          "formula": "f_A(x)=0\\Longrightarrow\\sum_i x_i^2=0\\Longrightarrow (\\forall i,\\ x_i=0)\\Longrightarrow x=0",
+          "lean": "The proof uses Finset.single_le_sum and mul_self_eq_zero. The theorem packages nonnegativity and the exact zero set; this is equivalent to the source unique-minimizer conclusion."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular"
+      ],
+      "mathlib_dependencies": [
+        "Finset.single_le_sum",
+        "mul_self_eq_zero"
+      ],
+      "lean_statement": "Coordinates are Fin d with the exact quotient/remainder adapter; dotProduct represents the Euclidean quadratic form.",
+      "lean_proof": "The adjacent checked Lean body supplies the actual matrix assembly and all internal dependencies.",
+      "boundary": "Only determinant-family regularity and the quadratic minimum in Lemma3.4/B.8. Gaussian normalization, Haar posterior laws, oracle indistinguishability, test separation and both main complexity lower bounds remain open.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS3",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "Section3.1 equations(4),(5); Lemma3.4 / AppendixB.3 LemmaB.8",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS mathematical restatement.",
+          "label": "Source block family and full regularity lemma",
+          "scope": "Literal equation(5), block quadratic bounds and unique minimum only."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityBlockFamily"
+      ]
+    }
+  ]
+}

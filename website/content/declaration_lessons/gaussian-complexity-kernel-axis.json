@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelAxis.signed_kernel_radial",
+      "kind": "theorem",
+      "title": "Reduce the signed Gaussian formula to the norm axis",
+      "statement": "Let n>=3 and kappa>=4, let O have the existing normalized Borel Haar probability on full real O(n), and let A_O be the exact equation4 precision. Define the literal function p_O(v)=sqrt(det A_O)/(2pi)^(n/2) exp(-v^T A_O v/2), with a real dimension-half exponent. For every x in Euclidean real n-space, put U=O_11 and r_O(x)=sqrt(det A_O)/(2pi)^(n/2) exp(-(kappa+1-(kappa-1)U)||x||_2^2/4). Both O -> det(O)p_O(x) and O -> det(O)r_O(x) are absolutely integrable under that Haar probability, and their expectations are equal. All vectors, including zero and vectors already on the norm axis, are included. The claim is for these explicit functions; it does not identify p with a Gaussian probability density.",
+      "formula": "\\mathbb E[\\det(O)p_O(x)]=\\mathbb E\\!\\left[\\det(O)\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}\\exp\\!\\left(-\\frac{[\\kappa+1-(\\kappa-1)U]\\|x\\|_2^2}{4}\\right)\\right],\\qquad U=O_{11}",
+      "assumptions": [
+        "AppendixB2 standing n>=3 and kappa>=4 are retained. Every x belongs to the actual EuclideanSpace R (Fin n); its norm is the Euclidean norm, never the coordinate sup norm.",
+        "The law is the same actual canonical normalized full-O(n) Borel Haar probability, allowing reflections and both determinant signs. The matrix A_O is the unchanged literal source precision.",
+        "WithLp.ofLp converts a Euclidean vector to its real coordinates for dotProduct and mulVec. Source coordinate1 is the zero-based j0, whose validity follows from n>=3.",
+        "Both Haar L1 assertions are outputs. No orthogonal witness, equal-norm premise, covariance identity, integrability assumption, Gaussian density identification or spatial Fubini assumption is supplied by the caller. All dimension-half powers are real."
+      ],
+      "steps": [
+        {
+          "title": "Choose the true Euclidean norm-axis point",
+          "text": "For any Euclidean x, take y=||x||_2 e1. Its Euclidean norm is ||x||_2 because that scalar is nonnegative. This holds also at zero and when x already equals y. Coordinates of y are exactly the single-coordinate vector with entry ||x||_2.",
+          "formula": "y=\\|x\\|_2e_1,\\qquad\\|y\\|_2=\\|x\\|_2",
+          "lean": "The public proof uses PiLp.single 2 j0 and PiLp.norm_single. hy identifies its WithLp.ofLp coordinates with Pi.single. No sup-norm substitution or division by ||x|| occurs."
+        },
+        {
+          "title": "Produce the orthogonal map internally",
+          "text": "Equal-norm vectors are related by the reflection in the orthogonal complement of span(x-y). The existing canonical reflection theorem sends x to y uniformly, including x=y and x=y=0. The source uses transitivity implicitly; this is its explicit standard-background implementation.",
+          "formula": "F=\\operatorname{reflection}_{\\operatorname{span}(x-y)^\\perp},\\qquad Fx=y",
+          "lean": "Private exists_orthogonal_map calls the actual Submodule.reflection_sub. The reflection is a real linear isometry equivalence, with no new public witness or regularity assumption."
+        },
+        {
+          "title": "Connect the isometry to the actual matrix action",
+          "text": "Use the canonical Euclidean orthonormal basis to represent that isometry as a matrix Q. The canonical isometry-to-matrix theorem proves Q belongs to full O(n), and the matrix-coordinate evaluation theorem gives Q times the coordinate vector of x equal to the coordinates of y. This is a proved adapter, not a changed action.",
+          "formula": "Q\\in O(n),\\qquad Q\\,\\operatorname{coord}(x)=\\operatorname{coord}(y)",
+          "lean": "The same private provider calls LinearIsometryEquiv.toMatrix_mem_unitaryGroup and LinearMap.toMatrix_mulVec_repr in EuclideanSpace.basisFun. Its witness is an actual orthogonal matrix."
+        },
+        {
+          "title": "Consume the identical fixed-Q Haar theorem",
+          "text": "Apply the previously compiled rotation/reflection-invariance theorem to this produced Q and the coordinates of x. Its actual matrix action is y, so the signed average at x equals the signed average at the norm-axis point. The same full Haar law and precision are used.",
+          "formula": "\\mathbb E[\\det(O)p_O(x)]=\\mathbb E[\\det(O)p_O(Qx)]=\\mathbb E[\\det(O)p_O(\\|x\\|_2e_1)]",
+          "lean": "The public proof genuinely calls signed_kernel_rotation_invariant once, rewrites with the produced coordinate identity hQ, and reverses its equality. This is a real consumer of the unchanged canonical declaration."
+        },
+        {
+          "title": "Evaluate the axis quadratic form exactly",
+          "text": "For a single-coordinate vector t e1, the quadratic form is t^2 times the first diagonal entry of the literal precision. That diagonal entry is (kappa+1-(kappa-1)U)/2. The extra factor1/2 in the Gaussian exponent produces exactly the denominator4. The square-root determinant and real normalization power are unchanged.",
+          "formula": "(te_1)^\\top A_O(te_1)=\\frac{[\\kappa+1-(\\kappa-1)U]t^2}{2},\\qquad p_O(\\|x\\|_2e_1)=r_O(x)",
+          "lean": "Private axis_quadratic uses single_dotProduct, dotProduct_single and the literal singleBlockPrecision entry. The public hr identity substitutes t=||x|| and proves the exact exponent arithmetic."
+        },
+        {
+          "title": "Retain genuine finiteness on both sides",
+          "text": "The existing fixed-Q theorem already proves Haar L1 for every fixed coordinate vector. Apply it to x and to the produced y. Pointwise equality p_O(y)=r_O(x) transfers L1 to the displayed reduced formula, then integral equality follows. This concerns one fixed x at a time and exchanges no spatial integrals.",
+          "formula": "\\det(O)p_O(x),\\ \\det(O)r_O(x)\\in L^1(\\mu_n),\\qquad\\mathbb E[\\det(O)p_O(x)]=\\mathbb E[\\det(O)r_O(x)]",
+          "lean": "h.1 supplies both genuine L1 providers; Integrable.congr and integral_congr_ae use the actual hr identity. The two L1 conclusions accompany the final equality; original Gaussian-law/Fubini obligations are excluded."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelRotation.signed_kernel_rotation_invariant",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar"
+      ],
+      "mathlib_dependencies": [
+        "Submodule.reflection_sub",
+        "LinearIsometryEquiv.toMatrix_mem_unitaryGroup",
+        "LinearMap.toMatrix_mulVec_repr",
+        "EuclideanSpace.basisFun",
+        "PiLp.norm_single",
+        "single_dotProduct",
+        "dotProduct_single",
+        "Integrable.congr",
+        "integral_congr_ae"
+      ],
+      "lean_statement": "Literal p and r local lets, actual Euclidean norm and coordinates; every vector and both Haar L1 conclusions are explicit.",
+      "lean_proof": "Two reachable private providers produce the orthogonal coordinate witness and exact axis quadratic evaluation. The public proof consumes the existing fixed-Q invariant/L1 theorem and discharges the full literal norm-axis identity.",
+      "boundary": "The literal-function Ex58 norm-axis average and its following O11 exponent are proved, including both fixed-vector Haar L1 outputs. Actual N(0,A_O^-1) law/density identification, probability normalization/covariance, joint spatial/Haar domination and Fubini, original H(lambda) identification, Ex59 sharp domination, sphere/Poisson, TV/amplification/transcript/eigenbasis and both main lower bounds remain open. No Gaussian probability measure is defined by the local formulas.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "AppendixB2 standing range; AppendixB2.2 Ex58 and following p4.2 axis quadratic form e1^T A_O e1=(kappa+1-(kappa-1)U)/2. Literal Gaussian-formula average only.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS makes the orthogonal-transitivity and coordinate adapter explicit; actual Gaussian-law identification is separate.",
+          "label": "Ex58 and exact axis exponent",
+          "scope": "Literal-function norm-axis Haar average and O11 evaluation; actual Gaussian law/density and spatial Fubini are separate."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityKernelAxis"
+      ]
+    }
+  ]
+}

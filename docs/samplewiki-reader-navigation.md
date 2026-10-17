@@ -1,6 +1,11 @@
 # SampleWiki unified research-reader contract
 
 The landing page is a directory, not a concatenation of every project update.
+Its primary, immediately visible entry is **Browse sampling regimes**: the seven
+canonical assumption/oracle/accuracy settings. Do not fold this directory or
+rename it "other" regimes. Specific papers/case studies come below it as
+selected research projects. The sidebar follows the same order. Proof-work
+scheduling priority is not reader-navigation priority.
 SampleWiki itself is the home of Sampling research problems and new results.
 Do not add another researcher-facing `Frontier`, `Companion-paper frontiers`,
 or `Sampling papers` level. All source cases, including Gaussian Complexity,
@@ -13,6 +18,11 @@ Quantum/PDE state preparation belongs to its own library, not this directory.
 Legacy frontier/companion index URLs redirect to the single SampleWiki home.
 Shared foundations and textbook extended chapters remain linked lower-level
 homes for reusable lemmas, not competing classifications for a research result.
+The generated textbook research-extension shelf links the existing reviewed
+publication bindings, exact declaration graph locations and chapter reading
+contexts. These are navigation/source overlays, never new Lean dependency
+edges, source-text chapter theorems or chapter-completion credit. Keep proofs
+in the canonical authored lesson; do not duplicate them to obtain placement.
 
 Each paper has three depths:
 
@@ -38,6 +48,11 @@ Maintenance:
 
 - Edit `samplewiki_navigation.py`, companion/reader generators and the small
   `samplewiki-paper-navigation.css`/`.js` assets, not generated HTML.
+- `samplewiki_placements.py` projects reviewed bindings from the existing
+  publication metadata into `textbook/research-extensions.html`. Set a case's
+  `reader_chapters` only for relevant existing textbook background; it is a
+  reading-context field, never a proof-status or dependency override. New
+  verified bindings appear automatically; pending bindings are not admitted.
 - Run `python -m unittest tools.tests.test_samplewiki_navigation
   tools.tests.test_samplewiki_companions tools.tests.test_samplewiki_reader_contract`
   as one command, followed by the canonical site build and `check_site.py`.

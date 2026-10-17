@@ -42,6 +42,7 @@ import samplewiki_examples  # noqa: E402
 import samplewiki_frontier_audit  # noqa: E402
 import samplewiki_math_render  # noqa: E402
 import samplewiki_navigation  # noqa: E402
+import samplewiki_placements  # noqa: E402
 import samplewiki_primary_audit_additions  # noqa: E402
 import samplewiki_reader_contract  # noqa: E402
 import samplewiki_companions  # noqa: E402
@@ -232,6 +233,7 @@ def main() -> int:
     metadata_lessons.enrich_site(output)
     inline_lean.enrich_textbook(output)
     samplewiki_navigation.attach_research_context(output)
+    samplewiki_placements.enrich_site(output)
 
     math_2_0.enrich_site(output)
 

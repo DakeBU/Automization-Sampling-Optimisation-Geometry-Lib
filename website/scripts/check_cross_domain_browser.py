@@ -236,14 +236,32 @@ def main() -> None:
             assert cards.evaluate_all('nodes => nodes.map(n => n.dataset.paperId)') == [r['id'] for r in priority]
             assert page.locator('#cross-library-state-preparation').count() == 0
             assert 'Sampling papers' not in page.locator('main').inner_text()
+            regimes = page.locator('#research-by-setting')
+            assert regimes.evaluate('n => n.tagName === "SECTION" && !n.closest("details")')
+            assert regimes.locator('.sw-setting-book-card').count() == len(samplewiki_navigation.regime_pages())
+            assert regimes.locator('.sw-setting-book-card').first.is_visible()
+            assert page.evaluate('document.querySelector("#research-by-setting").compareDocumentPosition(document.querySelector("#research-cases")) & Node.DOCUMENT_POSITION_FOLLOWING')
             assert page.get_by_role('link', name='Gaussian expectations: mathematical proof and Lean', exact=True).count() == 1
-            page.screenshot(path=str(evidence/'samplewiki-unified-directory-mobile.png'))
+            page.screenshot(path=str(evidence/'samplewiki-unified-directory-mobile.png'), full_page=True)
             old_viewport = page.viewport_size
             page.set_viewport_size({'width': 1280, 'height': 1100})
-            page.screenshot(path=str(evidence/'samplewiki-unified-directory-desktop.png'))
+            page.screenshot(path=str(evidence/'samplewiki-unified-directory-desktop.png'), full_page=True)
             page.set_viewport_size(old_viewport)
             assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
             report['priority_papers'] = []
+            goto('textbook/research-extensions.html')
+            extensions = page.locator('[data-reviewed-placement]')
+            assert extensions.count() > 0
+            assert 'not chapters or numbered results' in page.locator('main').inner_text()
+            assert page.locator('main a[href*="focus=decl%3A"]').count() == extensions.count()
+            report['research_extension_declarations'] = extensions.count()
+            page.locator('#smoothed-picard-hmc > details > summary').click()
+            if not args.offline_dom:
+                page.evaluate('() => MathJax.startup.promise')
+                assert page.locator('#smoothed-picard-hmc a mjx-container').count() >= 2
+                assert page.locator('mjx-merror').count() == 0
+            assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
+            page.screenshot(path=str(evidence/'samplewiki-textbook-extension-mobile.png'))
             for row in priority:
                 rel = samplewiki_navigation.PAPER_BASE + row['slug'] + '.html'
                 goto(rel)

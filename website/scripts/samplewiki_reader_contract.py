@@ -532,11 +532,14 @@ def overview_main(
     <p class="sw-casebook-lede">New results, open questions and their proofs. Read the mathematics; open the checked Lean when you need it.</p>
     <div class="hero-actions"><a class="button" href="{esc(href_from(OVERVIEW, PROGRESS))}">Formalization progress</a></div>
   </header>
+  <section class="sw-primary-regimes" id="research-by-setting" aria-labelledby="sampling-regimes-heading">
+    <h2 id="sampling-regimes-heading">Browse sampling regimes</h2>
+    <p>Start with the target assumptions, oracle and accuracy notion. Compare results and open questions in that setting.</p>
+    <div class="sw-setting-book-list">{''.join(cards)}</div>
+  </section>
+  <details class="sw-secondary-reading"><summary>A textbook-linked worked example</summary>{focus}</details>
   {samplewiki_navigation.paper_cards(OVERVIEW)}
   <p class="sw-reader-boundary"><a href="{esc(href_from(OVERVIEW, 'example-cases/samplewiki/companions/warm-start-composition.html'))}">How the warm start and high-accuracy sampler fit together →</a></p>
-  <details class="sw-secondary-reading" id="research-by-setting"><summary>Browse by assumptions and guarantees</summary>
-    <div class="sw-setting-book-list">{''.join(cards)}</div>{focus}
-  </details>
   <details class="sw-secondary-reading" id="open-questions">
     <summary>Open mathematical questions</summary>
     <p>These are open in the literature, not merely missing Lean proofs.</p>

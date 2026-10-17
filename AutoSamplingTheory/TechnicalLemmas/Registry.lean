@@ -44,6 +44,7 @@ import AutoSamplingTheory.TechnicalLemmas.Measure.RadonNikodym
 import AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalKernel
 import AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope
 import AutoSamplingTheory.TechnicalLemmas.Probability.KernelInvariance
+import AutoSamplingTheory.TechnicalLemmas.Probability.KernelL2
 import AutoSamplingTheory.TechnicalLemmas.Measure.Transport
 import AutoSamplingTheory.TechnicalLemmas.Probability.LawMap
 import AutoSamplingTheory.TechnicalLemmas.Probability.UnitExponentialProduct
@@ -4980,6 +4981,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+  {
+    key := "probability.kernel.invariant-l2-operator",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelL2.invariant_kernel_l2_operator",
+    upstreamDecl := "Finite invariant Markov kernel real-L2 contraction; ASTIS standard derived interface",
+    upstreamFile := "Mathlib db584cd6d46c92f209a44c0f1c829460d327499d Kernel/compProd, L2Space and Adjoint",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["KERN", "L2", "invariance", "reversibility", "PBPS", "shared"],
+    saldUse := "Planned actual retained-coordinate half-turn A.2/A.9 and one-step observable B.1 adapters; no SALD completion",
+    note := "For arbitrary measurable X and finite invariant mu, construct ONE real-L2 contraction realizing EVERY MemLp representative with genuine AE fiber integrability, AE order positivity, fixed one and preserved mean. Reversibility additionally yields self-adjointness of the SAME operator; order positivity is not Hilbert PSD. Zero measure and empty X allowed. Independent source/compiler and anonymous reconstruction accepted at14cebf6c; standard three axioms only. Shared prerequisite, not completion of actual PBPS A.2/B.1, semigroup, density evolution, hypocoercivity, rate, implementation/error/cap/expected cost, initialization/composition or any paper."
+  },
   {
     key := "probability.balanced-count.actual-clt"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.BalancedRademacherCLT.balanced_count_sum_tendsto_gaussian"

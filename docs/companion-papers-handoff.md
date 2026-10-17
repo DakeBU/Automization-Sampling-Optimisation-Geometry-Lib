@@ -1,5 +1,34 @@
 # Companion-paper formalization handoff
 
+## Current integration and reader navigation (2026-10-17)
+
+PR329 actually merged at869c511605c19754de6563640a6108285fc2739e;
+its exact-head contributor, site and formalization CI passed. Pages run
+39018927993 deployed successfully, and the live augmented-kernel proof returned
+HTTP200. This places Registry567 on main; it does not complete PBPS.
+
+The next shared packet, `ASTIS-SA-20261017-InvariantKernelL2`, is independently
+VERIFIED and the sole STABILIZING packet, owner `root_kernel_l2_20261017` on
+`codex/invariant-kernel-l2`. Its unchanged generic theorem and five-step reader
+proof passed distinct blind decoding and source/compiler review. Focused build
+passed2910 jobs; the canonical source-bound root/Tests gate at1514d9e09 passed
+9565 jobs, including the incoming collaborator Gaussian-complexity components.
+Candidate Registry568 includes exactly one new shared leaf. Main merge,
+deployment and purification are separate checkpoints, not inferred here.
+
+The reader insertion puts the four current papers first on SampleWiki and in
+its sidebar. Paper pages separate source statements, expandable calculations
+and reviewed building blocks; each retains adjacent optional Lean and focused
+proof links. Other sampling cases and the external quantum/PDE pointer remain
+available in secondary disclosures. Navigation derives from the existing
+companion execution order; it owns no alternative theorem/status registry.
+
+Complete papers remain0/4. The generic L2 theorem does NOT implement the actual
+augmented half-turn A.2/A.9 or full one-step observable operator B.1. Those
+actual-law adapters precede hypocoercivity. Error/cap/cost, initialization and
+composition remain independent red boundaries. Older entries below are
+historical checkpoints, not instructions to restart them.
+
 ## Actual augmented PBPS one-step kernel (2026-10-17)
 
 Current bounded packet: `ASTIS-SA-20261017-PBPSActualAugmentedKernelInvariance`,

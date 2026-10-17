@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "title": "From an invariant Markov kernel to its genuine L2 observable operator",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelL2.invariant_kernel_l2_operator",
+      "sources": [
+        {
+          "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Probability/Kernel/Invariance.lean",
+          "label": "Pinned Mathlib invariant-kernel and compProd definitions; standard derived L2 theorem",
+          "scope": "One standard shared operator bridge only; no process Markov/restart/semigroup, density-forward identity, rate, cap/error/expected cost, warm start/composition or full paper. It will be published as a shared prerequisite, not as completion of A.2/B.1."
+        },
+        {
+          "url": "https://arxiv.org/html/2609.06905v1",
+          "label": "PBPS A.2/A.9 and B.1: motivating consumers only",
+          "scope": "Actual operator adapters remain red."
+        }
+      ],
+      "tests": [
+        "LEAN_NUM_THREADS=1 lake build AutoSamplingTheory.TechnicalLemmas.Probability.KernelL2 Tests.KernelL2"
+      ],
+      "assumptions": [
+        "Finite measure is a mathematical premise of this shared interface, not a hidden paper hypothesis. Finite mass need not equal one; it makes every L2 representative L1, so the mean equality is genuine. The zero target and empty carrier are allowed.",
+        "A kernel is genuinely measurable and every fiber is a probability measure. Its invariance is a premise here; an actual PBPS adapter must PRODUCE that premise from the verified actual process/kernel, never add invariance as a new paper-level assumption.",
+        "Lp is a quotient by mu-almost-everywhere equality. The theorem quantifies over every MemLp representative and concludes both AE fiber integrability and the AE kernel-integral formula. It asserts neither everywhere integrability nor an exceptional set uniform in all observables.",
+        "Order positivity means f>=0 AE implies Pf>=0 AE. It does not assert the Hilbert positive-semidefinite inequality <f,Pf>>=0. Mere invariance does not imply detailed balance or self-adjointness.",
+        "This is a standard source-neutral library theorem motivated by PBPS A.2/A.9 and B.1, not a claim that either paper section or the actual L2 adapter has been completed."
+      ],
+      "statement": "Let \\(X\\) be an arbitrary measurable space, \\(\\mu\\) a finite measure (possibly zero), and \\(\\kappa\\) a measurable Markov kernel with \\(\\mu\\kappa=\\mu\\). There exists ONE continuous real-linear operator \\(P:L^2(\\mu)\\to L^2(\\mu)\\), of norm at most one, such that for EVERY real \\(f\\) with \\(f\\in L^2(\\mu)\\), its kernel fibers are integrable for \\(\\mu\\)-almost every \\(x\\) and \\((P[f])(x)=\\int f(z)\\,\\kappa(x,dz)\\) almost everywhere. The operator preserves almost-everywhere order positivity, the constant-one class and the genuine integral of every L2 observable. IF \\(\\kappa\\) is reversible for \\(\\mu\\), this SAME operator is self-adjoint. No topology, separability, Standard-Borel or nonempty hypothesis is imposed. Exceptional sets may depend on f.",
+      "lean_statement": "Let \\(X\\) be an arbitrary measurable space, \\(\\mu\\) a finite measure (possibly zero), and \\(\\kappa\\) a measurable Markov kernel with \\(\\mu\\kappa=\\mu\\). There exists ONE continuous real-linear operator \\(P:L^2(\\mu)\\to L^2(\\mu)\\), of norm at most one, such that for EVERY real \\(f\\) with \\(f\\in L^2(\\mu)\\), its kernel fibers are integrable for \\(\\mu\\)-almost every \\(x\\) and \\((P[f])(x)=\\int f(z)\\,\\kappa(x,dz)\\) almost everywhere. The operator preserves almost-everywhere order positivity, the constant-one class and the genuine integral of every L2 observable. IF \\(\\kappa\\) is reversible for \\(\\mu\\), this SAME operator is self-adjoint. No topology, separability, Standard-Borel or nonempty hypothesis is imposed. Exceptional sets may depend on f.",
+      "formula": "\\begin{gathered}(Pf)(x)=\\int f(z)\\,\\kappa(x,dz)\\quad(\\mu\\text{-a.e.}),\\qquad\\|P\\|_{2\\to2}\\le1,\\\\ P1=1,\\quad f\\ge0\\Rightarrow Pf\\ge0\\ (\\mu\\text{-a.e.}),\\quad\\int Pf\\,d\\mu=\\int f\\,d\\mu,\\\\ \\kappa\\text{ reversible}\\ \\Longrightarrow\\ P^*=P.\\end{gathered}",
+      "boundary": "One standard shared operator bridge only; no process Markov/restart/semigroup, density-forward identity, rate, cap/error/expected cost, warm start/composition or full paper. It will be published as a shared prerequisite, not as completion of A.2/B.1.",
+      "steps": [
+        {
+          "title": "Construct the operator from two marginal pullbacks",
+          "text": "Put nu(dx,dz)=mu(dx)kappa(x,dz). Markovness gives the first marginal mu, and invariance gives the second marginal mu. Pullback by the two coordinates therefore gives L2 isometries Bf(x,z)=f(x) and Cf(x,z)=f(z). Set P=B* C. Both pullbacks have norm at most one, including when the L2 space is trivial. The adjoint identity gives the pairing formula.",
+          "formula": "\\begin{aligned}\\nu^X=\\nu^Z&=\\mu,\\quad P=B^*C,\\quad\\|P\\|\\le\\|B\\|\\|C\\|\\le1,\\\\ \\langle f,Pg\\rangle&=\\int f(x)g(z)\\,\\nu(dx,dz).\\end{aligned}",
+          "detail": "The proof adapts the existing private actual-process adjoint technology, but the new public interface has no actual-process or product-noise witness. This is an alternative standard realization, not paper-author proof topology.",
+          "lean": "private lemma pair_operator {X : Type*} [MeasurableSpace X]\n    (μ : Measure X) [IsFiniteMeasure μ] (κ : Kernel X X) [IsMarkovKernel κ]\n    (hκ : κ.Invariant μ) :\n    ∃ A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ, ‖A‖ ≤ 1 ∧\n      ∀ f g : Lp ℝ 2 μ,\n        ⟪f, A g⟫_ℝ = ∫ p : X × X, f p.1 * g p.2 ∂(μ ⊗ₘ κ) := by\n  let ν := μ ⊗ₘ κ\n  have hfst : MeasurePreserving Prod.fst ν μ :=\n    ⟨measurable_fst, Measure.fst_compProd μ κ⟩\n  have hsnd : MeasurePreserving Prod.snd ν μ :=\n    ⟨measurable_snd, (Measure.snd_compProd μ κ).trans hκ.def⟩\n  let B : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 ν :=\n    (Lp.compMeasurePreservingₗᵢ ℝ Prod.fst hfst).toContinuousLinearMap\n  let C : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 ν :=\n    (Lp.compMeasurePreservingₗᵢ ℝ Prod.snd hsnd).toContinuousLinearMap\n  let A := B.adjoint.comp C\n  have hB : ‖B‖ ≤ 1 := LinearIsometry.norm_toContinuousLinearMap_le _\n  have hC : ‖C‖ ≤ 1 := LinearIsometry.norm_toContinuousLinearMap_le _\n  refine ⟨A, ?_, ?_⟩\n  · calc\n      ‖A‖ ≤ ‖B.adjoint‖ * ‖C‖ := ContinuousLinearMap.opNorm_comp_le _ _\n      _ = ‖B‖ * ‖C‖ := by rw [ContinuousLinearMap.adjoint.norm_map]\n      _ ≤ 1 * 1 := mul_le_mul hB hC (norm_nonneg _) zero_le_one\n      _ = 1 := one_mul 1\n  · intro f g\n    change ⟪f, B.adjoint (C g)⟫_ℝ = _\n    rw [ContinuousLinearMap.adjoint_inner_right, L2.inner_def]\n    have hb := Lp.coeFn_compMeasurePreserving f hfst\n    have hc := Lp.coeFn_compMeasurePreserving g hsnd\n    apply integral_congr_ae\n    filter_upwards [hb, hc] with p hp hq\n    change B f p = f p.1 at hp\n    change C g p = g p.2 at hq\n    rw [hp, hq]\n    simp [RCLike.inner_apply, mul_comm]\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelL2.lean",
+            "source_raw_sha256": "c71f83f2c13c7123b86d8ab11e215de56c1fd1799cbf63c266797ef639e8a5c3",
+            "exact_code_raw_sha256": "705c6e516646abd74ba6b117145aa25f21b4733aba5bb81306597331d8588672",
+            "start_line": 42,
+            "end_line": 76
+          }
+        },
+        {
+          "title": "Identify the raw conditional integral, not just an abstract operator",
+          "text": "Fix ANY MemLp representative G. Its second-coordinate pullback is L2 and therefore L1 under the finite joint measure. Invariance and kernel Fubini give genuinely integrable fibers almost everywhere and an integrable conditional mean u(x). To prove P[G]=u, pair with the indicator of every measurable set s of finite measure. The adjoint pairing, representative transport along both marginals, and Fubini identify every set integral. Equality of integrable functions then yields AE equality.",
+          "formula": "\\begin{aligned}\\int_sP[G],d\\mu&=\\langle1_s,P[G]\\rangle=\\int1_s(x)G(z)\\,d\\nu\\\\ &=\\int_s\\left[\\int G(z)\\,\\kappa(x,dz)\\right]d\\mu,\\\\ P[G]&=u\\quad\\mu\\text{-a.e.}\\end{aligned}",
+          "detail": "Indicator functions belong to L2 because mu is finite. The Fubini step has an explicit integrable indicator-weighted joint integrand. This proves the meaning of the totalized Lean integral on a full-measure set, rather than silently assuming integrability.",
+          "lean": "  have hrep : ∀ G : X → ℝ, ∀ hG : MemLp G 2 μ,\n      (∀ᵐ x ∂μ, Integrable G (κ x)) ∧\n      (A (hG.toLp G) : X → ℝ) =ᵐ[μ] fun x => ∫ z, G z ∂κ x := by\n    intro G hG\n    have hprod : Integrable (fun p : X × X => G p.2) ν :=\n      (hG.comp_measurePreserving hsnd).integrable (by norm_num)\n    have hc : Integrable G ((κ ∘ₖ Kernel.const Unit μ) ()) := by\n      simpa only [Kernel.comp_const, Kernel.const_apply, hκ.def] using\n        hG.integrable (by norm_num)\n    have hop : Integrable (fun x => ∫ z, G z ∂κ x) μ := by\n      simpa only [Kernel.const_apply] using hc.integral_comp\n    have hAg : Integrable (A (hG.toLp G) : X → ℝ) μ :=\n      (Lp.memLp _).integrable (by norm_num)\n    refine ⟨Measure.ae_integrable_of_integrable_comp (by\n      simpa only [hκ.def] using hG.integrable (by norm_num)), ?_⟩\n    apply Integrable.ae_eq_of_forall_setIntegral_eq _ _ hAg hop\n    intro s hs hms\n    let i : Lp ℝ 2 μ := indicatorConstLp 2 hs hms.ne (1 : ℝ)\n    have hi : (i : X → ℝ) =ᵐ[μ] s.indicator (fun _ => (1 : ℝ)) :=\n      indicatorConstLp_coeFn\n    have hi' := hfst.quasiMeasurePreserving.ae_eq hi\n    have hg' := hsnd.quasiMeasurePreserving.ae_eq hG.coeFn_toLp\n    let F : X × X → ℝ := fun p => s.indicator (fun _ => (1 : ℝ)) p.1 * G p.2\n    have hF : Integrable F ν := by\n      have he : F = (Prod.fst ⁻¹' s).indicator (fun p : X × X => G p.2) := by\n        funext p\n        by_cases hp : p.1 ∈ s <;> simp [F, Set.indicator, hp]\n      rw [he]\n      exact hprod.indicator (hs.preimage measurable_fst)\n    calc\n      (∫ x in s, A (hG.toLp G) x ∂μ) = ⟪i, A (hG.toLp G)⟫_ℝ :=\n        (L2.inner_indicatorConstLp_one hs hms.ne _).symm\n      _ = ∫ p : X × X, i p.1 * (hG.toLp G) p.2 ∂ν := hpair i (hG.toLp G)\n      _ = ∫ p, F p ∂ν := by\n        apply integral_congr_ae\n        filter_upwards [hi', hg'] with p hp hq\n        change i p.1 = s.indicator (fun _ => (1 : ℝ)) p.1 at hp\n        change (hG.toLp G) p.2 = G p.2 at hq\n        simp only [F, hp, hq]\n      _ = ∫ x, ∫ z, F (x, z) ∂κ x ∂μ := Measure.integral_compProd hF\n      _ = ∫ x, s.indicator (fun _ => (1 : ℝ)) x * (∫ z, G z ∂κ x) ∂μ := by\n        simp only [F, integral_const_mul]\n      _ = ∫ x in s, (∫ z, G z ∂κ x) ∂μ := by\n        rw [← integral_indicator hs]\n        congr 1\n        funext x\n        by_cases hx : x ∈ s <;> simp [Set.indicator, hx]\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelL2.lean",
+            "source_raw_sha256": "c71f83f2c13c7123b86d8ab11e215de56c1fd1799cbf63c266797ef639e8a5c3",
+            "exact_code_raw_sha256": "47f30b1cf53f02b2647360b14cc6d852f26bf8b81c4cf596b70a7e382944d9db",
+            "start_line": 93,
+            "end_line": 139
+          }
+        },
+        {
+          "title": "Derive order positivity and the fixed-one class",
+          "text": "Apply the representation to an arbitrary L2 quotient representative. If f>=0 mu-AE, invariance transports this property to kappa(x)-AE for mu-AE x. Its integral is nonnegative, so Pf>=0 AE. For the literal constant representative 1, each probability fiber integrates to one; quotient extensionality proves P1=1.",
+          "formula": "\\begin{aligned}f\\ge0\\ \\mu\\text{-a.e.}&\\Longrightarrow f\\ge0\\ \\kappa(x)\\text{-a.e. for }\\mu\\text{-a.e. }x\\\\ &\\Longrightarrow Pf\\ge0\\ \\mu\\text{-a.e.},\\qquad P1(x)=\\int1\\,d\\kappa(x)=1.\\end{aligned}",
+          "detail": "Null sets are transported by the exact invariant law; positivity is not concluded pointwise from a chosen quotient representative. Order positivity is different from positive-semidefinite Hilbert positivity.",
+          "lean": "  have hrepLp (f : Lp ℝ 2 μ) :\n      (A f : X → ℝ) =ᵐ[μ] fun x => ∫ z, f z ∂κ x := by\n    simpa only [Lp.toLp_coeFn] using (hrep f (Lp.memLp f)).2\n  refine ⟨A, hA, hrep, ?_, ?_, ?_, ?_⟩\n  · intro f hf\n    have hp : ∀ᵐ x ∂μ, ∀ᵐ z ∂κ x, 0 ≤ f z :=\n      Measure.ae_ae_of_ae_comp (by simpa only [hκ.def] using hf)\n    filter_upwards [hrepLp f, hp] with x hx hp\n    rw [hx]\n    exact integral_nonneg_of_ae hp\n  · have hc := (hrep (fun _ : X => (1 : ℝ)) (memLp_const (1 : ℝ))).2\n    rw [MemLp.toLp_const] at hc\n    apply Lp.ext\n    filter_upwards [hc, Lp.coeFn_const (p := 2) (μ := μ) (c := (1 : ℝ))] with x hx h1\n    calc\n      A (Lp.const 2 μ (1 : ℝ)) x = 1 := by simpa [measureReal_def] using hx\n      _ = Lp.const 2 μ (1 : ℝ) x := h1.symm\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelL2.lean",
+            "source_raw_sha256": "c71f83f2c13c7123b86d8ab11e215de56c1fd1799cbf63c266797ef639e8a5c3",
+            "exact_code_raw_sha256": "eb3eb09010ab65cd8ada2ed0ec89e12821715e65af12881745a42a0e9400cae7",
+            "start_line": 140,
+            "end_line": 156
+          }
+        },
+        {
+          "title": "Preserve the genuine mean",
+          "text": "For any L2 class f, its second-coordinate pullback is integrable under the finite joint law. Integrate the AE representation, use kernel Fubini, then push forward along the second marginal. Because that marginal is mu, the mean is unchanged.",
+          "formula": "\\int Pf\\,d\\mu=\\int\\!\\int f(z)\\,\\kappa(x,dz)\\,\\mu(dx)=\\int f(z)\\,d\\nu=\\int f\\,d\\mu.",
+          "detail": "All these real integrals are genuine L1 integrals. In particular, the argument is not relying on the totalized convention that an undefined Bochner integral equals zero.",
+          "lean": "  · intro f\n    have hprod : Integrable (fun p : X × X => f p.2) ν :=\n      ((Lp.memLp f).comp_measurePreserving hsnd).integrable (by norm_num)\n    calc\n      (∫ x, A f x ∂μ) = ∫ x, ∫ z, f z ∂κ x ∂μ := integral_congr_ae (hrepLp f)\n      _ = ∫ p : X × X, f p.2 ∂ν := (Measure.integral_compProd hprod).symm\n      _ = ∫ x, f x ∂ν.map Prod.snd :=\n        (integral_map_of_stronglyMeasurable measurable_snd (Lp.stronglyMeasurable f)).symm\n      _ = ∫ x, f x ∂μ := by rw [hsnd.map_eq]\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelL2.lean",
+            "source_raw_sha256": "c71f83f2c13c7123b86d8ab11e215de56c1fd1799cbf63c266797ef639e8a5c3",
+            "exact_code_raw_sha256": "8169743446e07460d11c5b3006ee23972d0e6a681690178b7c3b94708454eabe",
+            "start_line": 157,
+            "end_line": 165
+          }
+        },
+        {
+          "title": "Use detailed balance only when self-adjointness is requested",
+          "text": "Assume now that kappa is reversible. The joint law and its coordinate swap agree on every measurable rectangle by detailed balance. Both are finite, so rectangle uniqueness makes them equal as measures. Swap the two coordinates in the pairing formula to obtain a symmetric operator, hence a bounded self-adjoint operator.",
+          "formula": "\\begin{aligned}\\nu(A\\times B)&=\\int_A\\kappa(x,B)\\,d\\mu=\\int_B\\kappa(x,A)\\,d\\mu=\\nu(B\\times A),\\\\ \\langle Pf,g\\rangle&=\\int g(x)f(z)\\,d\\nu=\\int f(x)g(z)\\,d\\nu=\\langle f,Pg\\rangle.\\end{aligned}",
+          "detail": "Finite-measure rectangle uniqueness works on arbitrary measurable spaces; no countably generated or Standard-Borel premise is introduced. The actual full PBPS one-step kernel is NOT assumed reversible.",
+          "lean": "  · intro hrev\n    have hswap : ν.map Prod.swap = ν := by\n      apply Measure.ext_prod\n      intro s t hs ht\n      rw [Measure.map_apply measurable_swap (hs.prod ht)]\n      have he : Prod.swap ⁻¹' (s ×ˢ t) = t ×ˢ s := by ext p; simp [and_comm]\n      rw [he, Measure.compProd_apply_prod ht hs, Measure.compProd_apply_prod hs ht]\n      exact hrev ht hs\n    apply ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric.mpr\n    intro f g\n    calc\n      ⟪A f, g⟫_ℝ = ⟪g, A f⟫_ℝ := real_inner_comm _ _\n      _ = ∫ p : X × X, g p.1 * f p.2 ∂ν := hpair g f\n      _ = ∫ p : X × X, g p.1 * f p.2 ∂ν.map Prod.swap := by rw [hswap]\n      _ = ∫ p : X × X, g p.2 * f p.1 ∂ν := by\n        have hm : StronglyMeasurable (fun p : X × X => g p.1 * f p.2) :=\n          ((Lp.stronglyMeasurable g).comp_measurable measurable_fst).mul\n            ((Lp.stronglyMeasurable f).comp_measurable measurable_snd)\n        exact integral_map_of_stronglyMeasurable measurable_swap hm\n      _ = ∫ p : X × X, f p.1 * g p.2 ∂ν := by simp only [mul_comm]\n      _ = ⟪f, A g⟫_ℝ := (hpair f g).symm\n",
+          "lean_source_region": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelL2.lean",
+            "source_raw_sha256": "c71f83f2c13c7123b86d8ab11e215de56c1fd1799cbf63c266797ef639e8a5c3",
+            "exact_code_raw_sha256": "fe67946f976b9deb2820e9929131b00a86a861416c2b3835bf5a80af04f0e19a",
+            "start_line": 166,
+            "end_line": 186
+          }
+        }
+      ],
+      "lean_proof": "Finite invariant joint marginals -> pullback adjoint -> integrable indicator pairings -> order/one/mean -> conditional reversible swap symmetry.",
+      "helpers": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.KernelL2.invariant_kernel_l2_statement"
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "MeasureTheory.Measure.fst_compProd",
+        "MeasureTheory.Measure.snd_compProd",
+        "MeasureTheory.Lp.compMeasurePreservingₗᵢ",
+        "ContinuousLinearMap.adjoint_inner_right",
+        "MeasureTheory.Integrable.ae_eq_of_forall_setIntegral_eq",
+        "MeasureTheory.Measure.ae_integrable_of_integrable_comp",
+        "MeasureTheory.Measure.integral_compProd",
+        "MeasureTheory.Measure.ext_prod",
+        "ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric"
+      ]
+    }
+  ]
+}

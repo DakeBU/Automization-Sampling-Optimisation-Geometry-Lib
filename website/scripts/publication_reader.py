@@ -118,6 +118,27 @@ def source_card(item: dict, page: str) -> str:
             + ''.join(obligations) + '</ul></section>')
 
 
+def companion_publication_block(items: list[dict], page: str) -> str:
+    """One compact index; exact statements/proofs remain available on demand."""
+    data = publication.inputs()
+    names = {b['declaration'] for i in items for b in i['bindings']}
+    reviewed = {b['declaration'] for i in items for b in i['bindings']
+                if publication.verified_binding(b, data)}
+    entries = []
+    for item in items:
+        links = ' · '.join(
+            f'<a href="{astis_site.relative_prefix(page)}{declaration_lessons.lesson_path(b["declaration"])}">Read focused proof</a>'
+            for b in item['bindings'])
+        entries.append('<details class="paper-verified-unit"><summary>'
+                       + escape(item['title']) + '</summary><p>' + links + '</p>'
+                       + source_card(item, page) + '</details>')
+    return ('<section id="paper-lean-progress" class="paper-checked-work"><h2>3. What has been verified?</h2>'
+            f'<p>{len(names)} source-mapped declarations; {len(reviewed)} independently reviewed. '
+            'These are building blocks, not completed paper results.</p>'
+            '<details class="paper-verified-index"><summary>Browse statements and their mathematical proofs</summary>'
+            + ''.join(entries) + '</details></section>')
+
+
 def enrich_site(output: Path) -> None:
     errors = publication.validate()
     if errors:
@@ -136,8 +157,16 @@ def enrich_site(output: Path) -> None:
         # Explicit book order takes precedence over metadata fragment filenames.
         # Unordered legacy items retain their existing relative order.
         ordered = sorted(items, key=lambda i: i.get('source_order', float('inf')))
-        block = ''.join(source_card(i, rel) for i in ordered)
-        text = text.replace('</main>', block + '</main>', 1)
+        if rel.startswith('example-cases/samplewiki/companions/'):
+            block = companion_publication_block(ordered, rel)
+            text, replaced = re.subn(
+                r'<section id="paper-lean-progress" data-paper-publications="pending">.*?</section>',
+                lambda _: block, text, count=1, flags=re.S)
+            if not replaced:
+                text = text.replace('</main>', block + '</main>', 1)
+        else:
+            block = ''.join(source_card(i, rel) for i in ordered)
+            text = text.replace('</main>', block + '</main>', 1)
         path.write_text(text, encoding='utf-8', newline='\n')
         index = path.parent / 'index.html'
         if index.exists():

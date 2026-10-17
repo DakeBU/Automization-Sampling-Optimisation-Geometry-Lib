@@ -862,3 +862,16 @@ The exact preproof seal, distinct source topology challenge, anonymous decode,
 fresh whole-module/source/five-step reader review and native focused checks
 are recorded. Root/site/immutable integration/merge and postmerge purification
 remain separate. Numerical B7, product/amplification and both mains remain open.
+
+
+## Scalar exponential separation floor (B.7 Eq19)
+
+NumericSeparation.explicit_ratio_ge_exponential proves the exact scalar
+comparison from the explicit ratio to (1/2)exp(-5n/sqrt(kappa)), at n>=3
+and kappa>=4. It consumes identical canonical Mathlib log/exp/order nodes.
+Two log tangent bounds provide a sufficient alternative to the original
+integral estimate; the source integral identity and sharper8/3 step retain
+their separate provenance. Source topology, blind decode and current full
+module/formula review are independent; exact boundary and non-boundary tests
+compile. Actual TV first ratio, sphere/Poisson, both main bounds, immutable
+integration/publication and postmerge purification remain separate.

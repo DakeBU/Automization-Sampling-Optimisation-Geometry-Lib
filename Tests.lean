@@ -324,6 +324,7 @@ import Tests.GaussianComplexityComponents
 import Tests.GaussianComplexityMixtureLaws
 import Tests.GaussianComplexityMixtureExpectation
 import Tests.GaussianComplexityActualTotalVariation
+import Tests.GaussianComplexityNumericSeparation
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

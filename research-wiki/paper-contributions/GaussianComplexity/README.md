@@ -224,7 +224,8 @@ Complete each current packet's semantic/publication and aggregate gates before
 independent commit-bound admission. The earlier cache-path failure was repaired
 without changing dependency sources. Both subsequent aggregate sessions83319
 and34590 are terminal PASS; neither is a live process to poll or restart.
-The new radial packet requires its own immutable-commit gate.
+Each subsequent packet requires its own immutable-commit gate; the completed
+radial gate is recorded separately below.
 The remaining dependency-ready source region is the actual hard prior/Gaussian
 law and the Appendix B.2.2 spherical Poisson/density calculation. Fix the next exact
 source boundary and Statement Seal before proof search, including any genuine
@@ -304,6 +305,47 @@ covariance, original-mixture radialization/Fubini, spherical uniformity and
 Poisson identities remain open. That original-experiment identification is a
 concrete next consumer of the analytic calculation; both main lower bounds and
 the fixed-spectrum route remain open. No repeated B.6 wrapper is needed.
+
+## Signed literal-kernel rotation packet
+
+`KernelRotation.lean` proves `signed_kernel_rotation_invariant` under the
+unchanged AppendixB2 standing bounds `n>=3,kappa>=4`. The explicit local formula
+is `p_O(x)=sqrt(det A_O)/(2pi)^(n/2) exp(-x^T A_O x/2)`, with the existing literal
+precision and real exponent. For every fixed vector, `det(O)p_O(x)` is genuinely
+Haar L1, and for every fixed Q in full O(n),
+`E[det(O)p_O(Qx)]=E[det(O)p_O(x)]`. Reflections are included.
+
+Two reachable private providers supply precision/determinant/quadratic
+conjugation covariance and actual full-Haar conjugation preservation. The latter
+uses uniqueness of the same normalized probability after right translation,
+then genuinely calls the existing canonical fixed-left map theorem. The public
+average consumes both providers. Finite-dimensional continuity on compact O(n)
+proves fixed-vector L1 internally; no covariance, invariance or integrability
+premise is passed in by the caller. No duplicate public matrix or Haar primitive
+is introduced.
+
+The source-only graph has20 nodes and15 AND-edges with five explicit exclusions.
+Focused tests passed2601 jobs: an actual determinant-minus-one coordinate swap
+at n3 with real exponent3/2 and vector(1,2,3), plus genuine zero-vector Haar L1
+at n4. The public proof uses only the standard three Lean axioms. Exact expanded
+target and compiled-reference checking is separate from semantic source review;
+final immutable-commit aggregate and reader evidence is recorded after checking.
+
+The first publication transition rejected a provenance-schema mismatch: the
+decoder recorded the JSON transport path instead of the packet's canonical
+artifact labels. The mathematical reconstruction was unchanged. Superseded
+decoder/reviewer evidence is explicitly named in `rotation-semantic-evidence/`;
+the corrected decoder result requires a fresh anti-anchored packet-bound review
+before publication acceptance. This is an evidence correction, not a theorem
+repair or a new mathematical proof route.
+
+This is the fixed-Q step in AppendixB2.2 p4.1 underlying Ex58. The formula has
+not yet been identified with an actual `N(0,A_O^-1)` probability density. The
+orthogonal-transitivity bridge to `||x||e1`, full Ex58, joint spatial domination,
+original-mixture Fubini and H(lambda) identification remain open. The next
+consumer joins this fixed-Q invariance to that axis and genuine law/density
+identification, then to the already compiled radial integral. Neither main
+lower bound, fixed-spectrum experiment nor overall Goal is completed.
 
 ## Graph truth and comparisons
 

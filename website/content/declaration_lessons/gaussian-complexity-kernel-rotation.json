@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.KernelRotation.signed_kernel_rotation_invariant",
+      "kind": "theorem",
+      "title": "Rotate the literal signed Gaussian kernel average",
+      "statement": "Let n>=3 and kappa>=4. For O in the full real orthogonal group, let A_O=((kappa+1)/2)I-((kappa-1)/4)(O+O^T) be the existing literal precision, and define the explicit real formula p_O(x)=sqrt(det A_O)/(2pi)^(n/2) exp(-x^T A_O x/2) on real coordinate n-space, with n/2 a real exponent. For every vector x, O -> det(O)p_O(x) is absolutely integrable under the actual canonical normalized full-O(n) Haar probability. For every fixed Q in full O(n), including reflections, E[det(O)p_O(Qx)]=E[det(O)p_O(x)]. This statement concerns the displayed formula itself and does not identify it with the density of an actual Gaussian probability law.",
+      "formula": "\\mathbb E_{O\\sim\\mu_n}\\!\\left[\\det(O)p_O(Qx)\\right]=\\mathbb E_{O\\sim\\mu_n}\\!\\left[\\det(O)p_O(x)\\right],\\qquad Q\\in O(n),\\quad x\\in\\mathbb R^n",
+      "assumptions": [
+        "The AppendixB2 standing bounds n>=3 and kappa>=4 are retained, although the explicit algebraic invariance proof needs less. No L1, continuity or covariance hypothesis is added.",
+        "The law is the same actual canonical normalized Borel Haar probability on the full real O(n); both determinant components are allowed.",
+        "Vectors are real coordinates on Fin n, dotProduct is the Euclidean quadratic form and Q acts by matrix multiplication. The formula uses real exponent (n:R)/2 and the nonnegative real square root.",
+        "The local formula p is literal. This theorem defines no Gaussian probability measure and assumes no density identification, normalization or covariance fact. Those remain separate obligations."
+      ],
+      "steps": [
+        {
+          "title": "Conjugate the actual precision",
+          "text": "Let C_Q(O)=QOQ^T. Expanding the existing literal precision, transpose reverses products and QQ^T=I. Thus conjugating O conjugates A_O by the same Q. This calculation is internal, not an extra covariance premise.",
+          "formula": "A_{C_Q(O)}=QA_OQ^\\top,\\qquad Q^\\top Q=QQ^\\top=I",
+          "lean": "Private conjugation_algebra proves hA by the exact source precision body, transpose/matrix distributivity and both orthogonality identities."
+        },
+        {
+          "title": "Preserve both determinant factors",
+          "text": "Taking determinants in QQ^T=I gives (det Q)^2=1. Therefore conjugation preserves det(O), as a signed real number, and det(A_O). The square-root normalization in the literal kernel is consequently unchanged. No det Q=+1 restriction is imposed.",
+          "formula": "\\det C_Q(O)=\\det O,\\qquad\\det A_{C_Q(O)}=\\det A_O",
+          "lean": "The same private provider derives hd and hdet from Matrix.det_mul and Matrix.det_transpose, then obtains the exact determinant equalities."
+        },
+        {
+          "title": "Transport the quadratic exponent",
+          "text": "The conjugated precision and Q^T Q=I imply (Qx)^T A_{C_Q(O)}(Qx)=x^T A_Ox. Combining this with determinant preservation yields pointwise covariance for the literal kernel and its determinant weight.",
+          "formula": "p_{C_Q(O)}(Qx)=p_O(x),\\qquad\\det C_Q(O)\\,p_{C_Q(O)}(Qx)=\\det O\\,p_O(x)",
+          "lean": "conjugation_algebra proves the quadratic identity by actual mulVec and dotProduct transpose identities. The public proof combines it with the determinant facts in hcov."
+        },
+        {
+          "title": "Keep exactly the same full Haar law",
+          "text": "The right translate of the actual Haar probability is still a Haar probability, so its uniqueness characterization identifies it with the original law. Compose that right translation with the existing canonical fixed-left invariance theorem. Their composition is C_Q, hence conjugation preserves the actual normalized full Haar law.",
+          "formula": "(C_Q)_*\\mu_n=\\mu_n,\\qquad C_Q(O)=QOQ^{-1}",
+          "lean": "Private haar_conjugation consumes orthogonalHaar_spec, the canonical Mathlib Haar right-translation instance and Measure.isProbabilityMeasure_map, then genuinely calls orthogonalHaar_map_mul_left. No arbitrary invariant law or assumed conjugation identity is supplied."
+        },
+        {
+          "title": "Prove every fixed-vector average finite",
+          "text": "For fixed x, the precision entries, determinant and square root are continuous functions of O. The finite quadratic form and exponential preserve continuity. On compact O(n), this determinant-weighted formula has compact support and is integrable under the actual finite Haar probability. This proves the L1 output, including x=0.",
+          "formula": "\\left[O\\mapsto\\det(O)p_O(x)\\right]\\in L^1(\\mu_n),\\qquad x\\in\\mathbb R^n",
+          "lean": "hAc and hcont establish actual continuity; hL1 uses orthogonalHaar_spec and Continuous.integrable_of_hasCompactSupport. This is fixed-x Haar L1 only, not joint spatial domination or Fubini."
+        },
+        {
+          "title": "Change variables inside the genuine Haar average",
+          "text": "Apply the measure-preserving conjugation substitution to the integrand O -> det(O)p_O(Qx), then use the pointwise covariance. The same normalized law appears on both sides and no exchange of spatial integrals occurs.",
+          "formula": "\\mathbb E[\\det(O)p_O(Qx)]=\\mathbb E[\\det C_Q(O)\\,p_{C_Q(O)}(Qx)]=\\mathbb E[\\det(O)p_O(x)]",
+          "lean": "The public proof builds the actual conjugation measurable embedding and MeasurePreserving map, applies MeasurePreserving.integral_comp, and finishes by integral_congr_ae with hcov. Orthogonal transitivity to the norm-axis point is not asserted here."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_map_mul_left"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.det_mul",
+        "Matrix.det_transpose",
+        "Matrix.transpose_mul",
+        "Matrix.mulVec_mulVec",
+        "Matrix.dotProduct_transpose_mulVec",
+        "Measure.isHaarMeasure_map_mul_right",
+        "Measure.isProbabilityMeasure_map",
+        "Measure.map_map",
+        "Continuous.integrable_of_hasCompactSupport",
+        "MeasurePreserving.integral_comp",
+        "integral_congr_ae"
+      ],
+      "lean_statement": "The local let spells out the complete real Gaussian formula; absolute integrability and every fixed-Q identity are conclusions.",
+      "lean_proof": "Two reachable private providers produce actual Haar conjugation preservation and all precision/determinant/quadratic covariance facts; the public proof proves L1 and consumes both providers in the final average identity.",
+      "boundary": "Only fixed-Q invariance of the signed Haar average of the literal Gaussian formula. Identifying that formula with the actual N(0,A_O^-1) density, probability normalization/covariance, orthogonal transitivity and the full x -> ||x||e1 statement Ex58, joint spatial/Haar integrability and Fubini, original H(lambda) identification, sphere/Poisson evaluation, TV/amplification/transcript/eigenbasis and both main lower bounds remain open. The source uses the Gaussian density notation; the present scoped statement makes the formula explicit and retains the missing law-identification edge.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS2",
+          "edition": "arXiv:2610.20492v1",
+          "anchor": "AppendixB2 standing range; AppendixB2.2 p4.1 fixed-Q conjugation covariance and full-Haar change of variable underlying Ex58. Only the literal Gaussian-formula average is covered.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS isolates the explicit-formula fixed-Q invariance step; Gaussian-law identification and the norm-axis conclusion are separate.",
+          "label": "Conjugation and fixed-Q average step",
+          "scope": "The literal-formula fixed-Q step underlying Ex58; not actual Gaussian-law identification or the full norm-axis identity."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityKernelRotation"
+      ]
+    }
+  ]
+}

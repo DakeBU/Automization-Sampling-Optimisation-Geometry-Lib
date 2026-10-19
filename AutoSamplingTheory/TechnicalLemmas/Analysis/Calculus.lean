@@ -3,6 +3,7 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Divergence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.GradientAlgebra
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Laplacian
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.LaplacianProduct
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.LineDeriv
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Taylor
 

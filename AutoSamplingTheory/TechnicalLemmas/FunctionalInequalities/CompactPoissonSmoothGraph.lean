@@ -1,4 +1,5 @@
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactWeakPoissonSobolev
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.LaplacianProduct
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.GradientAlgebra
 
 set_option autoImplicit false
@@ -422,80 +423,6 @@ private theorem real_schwartz_graph (v F : E → ℝ) (G : E → E)
       R.continuous.continuousAt.tendsto.comp hsF
 
 
-/- The source-localization module has no public Laplacian product API.
-These private C2 trace identities reuse its audited proof route; no new public
-background node or graph-density assumption is introduced. -/
-omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
-private theorem directional_second (f : E → ℝ) (hf : ContDiff ℝ 2 f) (x v : E) :
-    fderiv ℝ (fun z => fderiv ℝ f z v) x v = fderiv ℝ (fderiv ℝ f) x v v := by
-  have hd := ((hf.fderiv_right (m := 1) (by norm_num)).differentiable one_ne_zero x).hasFDerivAt
-  simpa using congrArg (fun T : E →L[ℝ] ℝ => T v)
-    (hd.clm_apply (hasFDerivAt_const v x)).fderiv
-
-omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
-private theorem first_product (χ φ : E → ℝ) (hχ : ContDiff ℝ 1 χ)
-    (hφ : ContDiff ℝ 1 φ) (x v : E) :
-    fderiv ℝ (fun z => χ z * φ z) x v =
-      χ x * fderiv ℝ φ x v + φ x * fderiv ℝ χ x v := by
-  have hd := (hχ.differentiable one_ne_zero x).hasFDerivAt.mul
-    (hφ.differentiable one_ne_zero x).hasFDerivAt
-  rw [show fderiv ℝ (fun z => χ z * φ z) x = _ from hd.fderiv]
-  simp only [add_apply, smul_apply, smul_eq_mul]
-
-omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
-private theorem second_product (χ φ : E → ℝ) (hχ : ContDiff ℝ 2 χ)
-    (hφ : ContDiff ℝ 2 φ) (x v : E) :
-    fderiv ℝ (fderiv ℝ (fun z => χ z * φ z)) x v v =
-      χ x * fderiv ℝ (fderiv ℝ φ) x v v +
-      2 * (fderiv ℝ χ x v * fderiv ℝ φ x v) +
-      φ x * fderiv ℝ (fderiv ℝ χ) x v v := by
-  have hχ1 : ContDiff ℝ 1 χ := hχ.of_le (by norm_num)
-  have hφ1 : ContDiff ℝ 1 φ := hφ.of_le (by norm_num)
-  have hχd : ContDiff ℝ 1 (fun z => fderiv ℝ χ z v) :=
-    (hχ.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
-  have hφd : ContDiff ℝ 1 (fun z => fderiv ℝ φ z v) :=
-    (hφ.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
-  have he : (fun z => fderiv ℝ (fun w => χ w * φ w) z v) =
-      fun z => χ z * fderiv ℝ φ z v + φ z * fderiv ℝ χ z v := by
-    funext z; exact first_product χ φ hχ1 hφ1 z v
-  rw [← directional_second _ (hχ.mul hφ), he]
-  have hd := ((hχ1.differentiable one_ne_zero x).hasFDerivAt.mul
-    (hφd.differentiable one_ne_zero x).hasFDerivAt).add
-    ((hφ1.differentiable one_ne_zero x).hasFDerivAt.mul
-      (hχd.differentiable one_ne_zero x).hasFDerivAt)
-  rw [show fderiv ℝ (fun z => χ z * fderiv ℝ φ z v + φ z * fderiv ℝ χ z v) x = _ from hd.fderiv]
-  simp only [add_apply, smul_apply, smul_eq_mul]
-  rw [directional_second _ hφ, directional_second _ hχ]
-  ring
-
-omit [MeasurableSpace E] [BorelSpace E] in
-private theorem laplacian_trace (f : E → ℝ) (x : E) :
-    Laplacian.laplacian f x = ∑ i, fderiv ℝ (fderiv ℝ f) x
-      ((stdOrthonormalBasis ℝ E) i) ((stdOrthonormalBasis ℝ E) i) := by
-  rw [InnerProductSpace.laplacian_eq_iteratedFDeriv_stdOrthonormalBasis]
-  apply Finset.sum_congr rfl
-  intro i _
-  rw [iteratedFDeriv_two_apply]
-  rfl
-
-omit [MeasurableSpace E] [BorelSpace E] in
-private theorem laplacian_product (χ φ : E → ℝ) (hχ : ContDiff ℝ 2 χ)
-    (hφ : ContDiff ℝ 2 φ) (x : E) :
-    Laplacian.laplacian (fun z => χ z * φ z) x =
-      χ x * Laplacian.laplacian φ x +
-      2 * inner ℝ (gradient χ x) (gradient φ x) +
-      φ x * Laplacian.laplacian χ x := by
-  have hi : inner ℝ (gradient χ x) (gradient φ x) =
-      ∑ i, fderiv ℝ χ x ((stdOrthonormalBasis ℝ E) i) *
-        fderiv ℝ φ x ((stdOrthonormalBasis ℝ E) i) := by
-    rw [← (stdOrthonormalBasis ℝ E).sum_inner_mul_inner (gradient χ x) (gradient φ x)]
-    simp only [inner_gradient_left, inner_gradient_right, conj_trivial]
-  rw [laplacian_trace, laplacian_trace, laplacian_trace, hi]
-  simp_rw [second_product χ φ hχ hφ]
-  simp only [Finset.sum_add_distrib, ← Finset.mul_sum]
-
-
-
 omit [MeasurableSpace E] [BorelSpace E] in
 private theorem outer_plateau (K : Set E) (hK : IsCompact K) :
     ∃ θ : SchwartzMap E ℝ, HasCompactSupport (θ : E → ℝ) ∧
@@ -665,7 +592,9 @@ private theorem cutoff_schwartz_graph (v F : E → ℝ) (G : E → E) (K : Set E
       Laplacian.laplacian (θ : E → ℝ) x * r n x
     rw [hq]
     simpa only [mul_comm] using
-      laplacian_product (θ : E → ℝ) (r n : E → ℝ) (θ.smooth 2) ((r n).smooth 2) x
+      AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.LaplacianProduct.laplacian_mul
+        (f := (θ : E → ℝ)) (g := (r n : E → ℝ)) (x := x)
+        (θ.smooth 2).contDiffAt ((r n).smooth 2).contDiffAt
   refine ⟨tsupport θ,hθc,q,?_,?_,?_,?_⟩
   · intro n
     rw [hq]

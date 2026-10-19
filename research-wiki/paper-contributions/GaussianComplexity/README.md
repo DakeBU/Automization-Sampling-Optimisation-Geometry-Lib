@@ -952,3 +952,23 @@ Source topology, blind decoding and fresh whole-module/source/formula review
 are accepted separately from frozen native/site/integration and public merge.
 No self VERIFIED or Registry promotion; purification and whole-Goal completion
 remain separate.
+
+
+## Local Laplacian product and two actual consumers
+
+One canonical LaplacianProduct.laplacian_mul proves the real product identity
+with C2 regularity only at the evaluation point. The orthonormal trace/Parseval
+proof includes dimensions zero and one; these local/coordinate/low-dimensional
+generalizations of HFT Eq1.19 are explicit. The literal Poisson quotient test
+discharges pole exclusion and local C2 internally. The existing compact smooth
+graph proof calls the identical compiled node; its public statement and proof
+body remain byte-identical while74 duplicate private lines are removed.
+
+See laplacian-product-source-lean-map.json for the precise source/Lean map.
+Source-only extraction, distinct topology challenge, anonymous decoding and
+fresh whole-module/source/reader reviews are separate from frozen native,
+site, integration and deployment checks. No self VERIFIED or Registry change.
+Poisson harmonicity, closed-ball mean-value, both AppendixA1 values, Eq24,
+actual positive TV, amplification, oracle/query/cost adapters, conditional
+hidden-eigenbasis laws and both main lower bounds remain open.
+Merged publication does not imply purification or whole-Goal completion.

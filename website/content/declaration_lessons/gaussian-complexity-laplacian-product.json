@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.LaplacianProduct.laplacian_mul",
+      "kind": "theorem",
+      "title": "The Laplacian of a product",
+      "reading_layout": "progressive",
+      "reader_note": "A local calculus identity. Poisson integral values remain open.",
+      "statement": "Multiply two locally C² real functions, then take the Laplacian.",
+      "formula": "\\begin{aligned}\\Delta(fg)(x)&=f(x)\\Delta g(x)\\\\&\\quad+2\\langle\\nabla f(x),\\nabla g(x)\\rangle\\\\&\\quad+g(x)\\Delta f(x).\\end{aligned}",
+      "assumptions": [
+        "\\(E\\) is a finite-dimensional real inner product space, and \\(x\\in E\\). No positive-dimension premise is required. The source book works in \\(\\mathbb R^n\\), \\(n>1\\); the canonical coordinate-independent form explicitly includes dimensions zero and one.",
+        "\\(f,g:E\\to\\mathbb R\\) are twice continuously differentiable locally at \\(x\\). The book identity applies to C² functions on their open domain. Here the local germ is sufficient; the former compact-graph implementation required global C² functions on E.",
+        "\\(\\nabla\\) is the actual Riesz gradient and \\(\\Delta\\) is the actual Euclidean Laplacian defined from the canonical covariant tensor and second Fréchet derivative. Neither is defined by the identity being proved."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(D_vf,\\nabla f,\\Delta f\\)",
+          "text": "Directional derivative, the actual Riesz gradient, and the orthonormal trace of the second Fréchet derivative.",
+          "formula": "D_vf(x)=Df(x)[v]=\\langle\\nabla f(x),v\\rangle,\\qquad\\Delta f(x)=\\sum_i D^2f(x)[e_i,e_i]."
+        },
+        {
+          "symbol": "\\(P_\\zeta\\)",
+          "text": "Concrete consumer: the spherical Poisson kernel for a unit vector zeta. At points inside the unit ball the pole is excluded and local C² regularity is discharged internally. Its harmonicity and normalized surface integral are not yet concluded.",
+          "formula": "P_\\zeta(z)=\\frac{1-\\|z\\|_2^2}{\\|z-\\zeta\\|_2^n},\\qquad\\|\\zeta\\|_2=1,\\quad\\|x\\|_2<1\\ \\Longrightarrow\\ x\\ne\\zeta."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Differentiate the product twice locally",
+          "text": "Local C² regularity gives a neighborhood on which the first product rule holds. Differentiate that equality at x, in the same direction v twice. This produces the two cross terms without assuming global smoothness.",
+          "formula": "D_v^2(fg)(x)=f(x)D_v^2g(x)+2D_vf(x)D_vg(x)+g(x)D_v^2f(x).",
+          "lean": "second_product uses ContDiffAt.eventually, the actual first Fréchet product derivative, and EventuallyEq.fderiv_eq. directional_second identifies evaluation of the second Fréchet derivative."
+        },
+        {
+          "title": "Take the orthonormal trace",
+          "text": "Choose an orthonormal basis, apply the directional identity to each basis vector, and sum. The Laplacian is this trace; the coefficients f(x) and g(x) are independent of the summation index.",
+          "formula": "\\Delta(fg)(x)=f(x)\\Delta g(x)+2\\sum_i D_{e_i}f(x)D_{e_i}g(x)+g(x)\\Delta f(x).",
+          "lean": "The local ht identity uses InnerProductSpace.laplacian_eq_iteratedFDeriv_stdOrthonormalBasis and iteratedFDeriv_two_apply. Finset.sum_add_distrib and Finset.mul_sum collect the three terms."
+        },
+        {
+          "title": "Identify the gradient pairing",
+          "text": "Parseval identifies the middle sum with the real inner product of the two actual gradients. In dimension zero the trace is empty and the gradients vanish; in dimension one this recovers the ordinary second-derivative product rule.",
+          "formula": "\\sum_i D_{e_i}f(x)D_{e_i}g(x)=\\langle\\nabla f(x),\\nabla g(x)\\rangle.",
+          "lean": "The local hi identity calls OrthonormalBasis.sum_inner_mul_inner, inner_gradient_left and inner_gradient_right. The same finite sum proof includes empty and singleton bases; no Nontrivial assumption is added."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "ContDiffAt.eventually",
+        "ContDiffAt.fderiv_right",
+        "HasFDerivAt.mul",
+        "HasFDerivAt.clm_apply",
+        "Filter.EventuallyEq.fderiv_eq",
+        "InnerProductSpace.laplacian_eq_iteratedFDeriv_stdOrthonormalBasis",
+        "iteratedFDeriv_two_apply",
+        "OrthonormalBasis.sum_inner_mul_inner",
+        "inner_gradient_left",
+        "inner_gradient_right"
+      ],
+      "lean_statement": "Exact local-C2 signature; no global smoothness, integrability, harmonicity or positive-dimension assumption.",
+      "lean_proof": "Differentiate in one direction twice, take the orthonormal trace, and apply Parseval.",
+      "boundary": "Local differential identity only. The actual Poisson kernel product expansion and the existing compact smooth-graph consumer reuse this same node. Poisson harmonicity, sphere mean-value/normalization, both AppendixA1 numerical integrals, Eq24, actual TV/oracle/query/cost and main lower bounds remain separate. No weighted core or other PBPS/SPHMC completion follows.",
+      "sources": [
+        {
+          "url": "https://www.axler.net/HFT.pdf#page=21",
+          "edition": "Harmonic Function Theory, second edition (author-hosted PDF SHA256 4e64124f7e36993ee784e575a024505f99d484ccf959d2d3864eae9232af8bf1)",
+          "anchor": "Printed page13/PDF page21, Eq1.19; the product rule used in Proposition1.18. Downstream use in Proposition1.20(b), Theorem1.21 and arXiv2610.20492v1 AppendixA1 remains open.",
+          "wording_status": "attributed canonical local generalization",
+          "attribution": "Sheldon Axler, Paul Bourdon and Wade Ramey. ASTIS states the coordinate-independent local form and explicitly extends the standing source dimension n>1 to all finite real Hilbert spaces.",
+          "scope": "Local differential identity only. The actual Poisson kernel product expansion and the existing compact smooth-graph consumer reuse this same node. Poisson harmonicity, sphere mean-value/normalization, both AppendixA1 numerical integrals, Eq24, actual TV/oracle/query/cost and main lower bounds remain separate. No weighted core or other PBPS/SPHMC completion follows.",
+          "label": "Axler–Bourdon–Ramey, Eq1.19: Laplacian product rule"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityPoissonProduct"
+      ]
+    }
+  ]
+}

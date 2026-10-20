@@ -42,17 +42,6 @@ def literature : List PaperEntry :=
       note := "First faithful target. Excludes sald_version_2.tex."
     },
     {
-      key := "rmfld-current-paper"
-      title := "RMFLD current exploratory paper"
-      authors := "local RMFLD collaborators"
-      year := 2026
-      mode := PaperMode.exploratoryProof
-      status := ImplementationStatus.planned
-      targetFile := "AutoSamplingTheory/RMFLD.lean"
-      urlOrPath := "/home/nitanda_sub/mark/repos/RMFLD/RMFLD_paper"
-      note := "Exploratory mode: validate evolving proof routes without silently weakening targets."
-    },
-    {
       key := "yuanhe-zhang-lee-liu-2026-slt"
       title := "Statistical Learning Theory in Lean 4: Empirical Processes from Scratch"
       authors := "Yuanhe Zhang, Jason D. Lee, Fanghui Liu"

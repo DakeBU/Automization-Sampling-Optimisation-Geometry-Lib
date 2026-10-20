@@ -91,7 +91,7 @@ The theorem skeletons may remain `contractOnly` or depend on
 `sourceCited`/`obligation` interfaces; reviewer must reject any upgrade to
 `formalized` that is not backed by compiled local proofs.  Systematic
 measure-theory and SDE backfill, including material guided by
-`/home/nitanda_sub/mark/repos/outer_papers/sampling_theory_sde/Statistical Learning Theory in Lean 4 Empirical Processes from Scratch`
+`/workspace/repos/outer_papers/sampling_theory_sde/Statistical Learning Theory in Lean 4 Empirical Processes from Scratch`
 and `YuanheZ/lean-stat-learning-theory`, comes
 after this theorem skeleton is stable.
 
@@ -222,7 +222,7 @@ per-coordinate Hessian generator identity.
 
 Mode boundary: `faithfulPaper` may keep failed proof attempts and negative
 caches for a fixed theorem, but must not use EoH-style mutation to change the
-paper construction.  EoH-style populations belong to RMFLD-like
+paper construction.  EoH-style populations belong to PRIVATE-like
 `exploratoryProof` tasks after the target predicate is explicit.
 
 ## Phase 2: Reorganization And Reuse
@@ -232,7 +232,7 @@ Phase 2 begins only after the faithful transcript is complete.
 - Reorganize shared SDE/Sampling APIs for future papers.
 - Add teaching-friendly structure for users who want to reproduce their own
   sampling or SDE proofs.
-- Support `exploratoryProof` mode for active projects such as RMFLD.
+- Support `exploratoryProof` mode for active projects such as PRIVATE.
 - Refactor repeated proof blocks into reusable Lean interfaces only after the
   Phase 1 source correspondence is stable.
 

@@ -211,6 +211,15 @@ The diff gate is intentionally conservative: all declarations in a changed
 production module need publication coverage (including scoped-variable/import
 changes). Root imports, Tests and the generated Registry catalog are not new
 theorem proofs. CI checks the PR/push base before the expensive Lean build.
+A separate, independently reviewed retirement of unused planned metadata and
+module documentation is pinned in [the migration record](reviewed-metadata-migration.json).
+It applies only to the three exact LF-normalized before/after file-hash pairs
+listed there. The command scanner still runs first. Any extra import, binder,
+proof, instance or string edit restores the ordinary conservative module gate.
+Existing publication bindings, code/source/exposition hash freshness, independent
+mathematical review and root Tests remain required. This finite migration awards
+no mathematical progress and creates no general metadata/comment exemption.
+
 The site projects the same mapping into source chapter readers, chapter labels,
 route progress and overview graph. No mapping means no inferred chapter credit.
 The declaration-level Lean gate remains authoritative for **blue**; chapter

@@ -1,7 +1,7 @@
 # Candidate Populations
 
 Exploratory proof routes and candidate decompositions for active research
-targets such as RMFLD.
+targets such as PRIVATE.
 
 This directory is the ASTIS adaptation of the EoH-style population idea:
 initialize candidate routes, vary them, evaluate them against an explicit

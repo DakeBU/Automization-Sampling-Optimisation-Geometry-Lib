@@ -9253,7 +9253,7 @@ Local SLT consultation: `/home/nitanda_sub/mark/repos/outer_repos/sampling_theor
 was searched for `Measure.map`/`integrable_map_measure` idioms.  The direct
 proof uses Mathlib `MeasureTheory.Integrable.comp_aemeasurable`, whose backend
 is `MeasureTheory.integrable_map_measure`; no SLT theorem is imported or
-marked formalized.  The configured RMFLD SLT path remains absent.
+marked formalized.  The configured optional SLT path remains absent.
 
 This packet rejects `hbarBCondExp` wrapper churn, selected-representative
 replay, broad route audits, non-EM fallback, theorem-status promotion, Lake

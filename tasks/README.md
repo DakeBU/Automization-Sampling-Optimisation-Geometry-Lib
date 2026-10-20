@@ -9,4 +9,4 @@ building, and exploratory proof validation.
 |---|---|---|
 | `ASTIS-CHEWI-001.md` | active-priority | Chewi Log-Concave Sampling foundation and scientific Lean tree |
 | `ASTIS-SALD-001.md` | active legacy consumer | faithful VA-SALD paper route using the shared foundation |
-| `ASTIS-RMFLD-001.md` | planned | exploratory RMFLD indexing |
+| `ASTIS-PRIVATE-001.md` | planned | exploratory PRIVATE indexing |

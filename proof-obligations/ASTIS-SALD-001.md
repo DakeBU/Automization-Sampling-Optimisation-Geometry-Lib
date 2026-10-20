@@ -8860,7 +8860,7 @@ Mathlib/SLT consultation: consulted
 `.lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Real.lean`,
 and `.lake/packages/mathlib/Mathlib/Probability/Moments/CovarianceBilin.lean`
 for the local vocabulary.  The configured SLT clone
-`/home/nitanda_sub/mark/repos/RMFLD/lean-stat-learning-theory` is absent, so no
+`[optional local checkout]` is absent, so no
 SLT theorem was consulted, imported, or marked formalized.
 
 Reviewer checklist: accept only if the remaining boundary is strictly smaller

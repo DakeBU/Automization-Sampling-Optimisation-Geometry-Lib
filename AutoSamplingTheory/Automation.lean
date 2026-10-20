@@ -213,18 +213,6 @@ def seedAutomationTasks : List AutomationTask :=
       targetLean := "AutoSamplingTheory/SALD.lean"
       artifacts := conversionArtifacts "SALD"
       gates := defaultGates
-    },
-    {
-      id := "ASTIS-RMFLD-001"
-      title := "Index and validate current RMFLD exploratory proof routes"
-      kind := TaskKind.exploratoryProof
-      status := TaskStatus.planned
-      stage := AutomationStage.sourceIndex
-      mode := "exploratoryProof"
-      source := "/home/nitanda_sub/mark/repos/RMFLD/RMFLD_paper"
-      targetLean := "AutoSamplingTheory/RMFLD.lean"
-      artifacts := conversionArtifacts "RMFLD"
-      gates := defaultGates
     }
   ]
 

@@ -43,6 +43,30 @@ LEGACY_NAMES = frozenset(
 )
 PRIVATE_IMPLEMENTATION_COVERAGE: list[dict] = []
 
+# One reviewed migration of nonmathematical planned-case metadata / module docs.
+# Exact LF-normalized before AND after bytes are required. This is not a general
+# comment/string/metadata exemption, and does not suppress existing bindings.
+# Independent review and scope are recorded in docs/reviewed-metadata-migration.json.
+REVIEWED_METADATA_MIGRATIONS = {'AutoSamplingTheory/Automation.lean': ('b6d55e2ad5e4867c73e7b2cbb5dfae9bb39a72df58b8b61761783d3993db2785',
+                                        '04822d7a6da5e5926061ed513e07240d7b672f4d98246727c2e4355f8ce7a8f4'),
+ 'AutoSamplingTheory/Literature.lean': ('12f1c6bcf87b186b8a9318cc35a3f94dd29e6784681d59f0607545540250bfde',
+                                        '0199e08226c37af1b123128896b505de9c04c81b9bad3e529c481db0c1902157'),
+ 'AutoSamplingTheory/Probability.lean': ('4619278cb3caba6b1ceca1210f618f80ab70ef9045373c2747d62f5d9d437d43',
+                                         'f46419e8fa9523840371aa46c9e305d7aaabb8173ac80b61d8f917ab72fc5b9c')}
+
+def reviewed_metadata_migration(path: str, base: str, current_text: str) -> bool:
+    pair = REVIEWED_METADATA_MIGRATIONS.get(path)
+    if pair is None:
+        return False
+    try:
+        before = git('show', base + ':' + path)
+    except subprocess.CalledProcessError:
+        return False
+    def lf_digest(text: str) -> str:
+        return hashlib.sha256(text.replace('\r\n', '\n').encode('utf-8')).hexdigest()
+    return (lf_digest(before), lf_digest(current_text)) == pair
+
+
 
 def digest(value) -> str:
     return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True,
@@ -310,7 +334,11 @@ aggregators and test examples do not count as new mathematical declarations.
             owner = private_implementation_owner(path, text, public_names, data)
             owners.add(owner)
             PRIVATE_IMPLEMENTATION_COVERAGE.extend(dict(row, owner=owner) for row in implementations)
-    return owners | {d.full_name for d in data['declarations'].values() if d.source_file in paths
+    # Scan all command syntax first; a migration cannot hide unindexed commands.
+    reviewed_paths = {path for path in paths
+        if path in REVIEWED_METADATA_MIGRATIONS and (ROOT / path).is_file()
+        and reviewed_metadata_migration(path, base, (ROOT / path).read_text(encoding='utf-8'))}
+    return owners | {d.full_name for d in data['declarations'].values() if d.source_file in paths - reviewed_paths
             and d.full_name not in private_names
             and not (d.source_file == 'AutoSamplingTheory/TechnicalLemmas/Registry.lean'
                      and ((d.kind == 'def' and d.short_name in REGISTRY_DATA_NAMES)

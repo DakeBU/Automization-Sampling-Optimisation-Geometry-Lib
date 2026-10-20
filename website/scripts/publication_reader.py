@@ -22,6 +22,17 @@ def status(library: str, chapter: str | None = None) -> str:
             f'data-publication-status="{p["status"]}">{escape(p["label"])}</span>')
 
 
+
+def graph_chapter_path(chapter_path: str) -> str:
+    """Keep the reader at its section while attaching to the chapter graph node.
+
+    The textbook graph has one node per chapter, not one per HTML section.
+    Peer-library and companion paths retain their existing exact identities.
+    """
+    section = re.fullmatch(r'textbook/chapter-(\d{2})/section-[^/]+\.html', chapter_path)
+    return f'textbook/chapter-{section.group(1)}.html' if section else chapter_path
+
+
 def chapter_path_progress(chapter_path: str) -> dict:
     """Aggregate publication progress for every source item rendered on one page.
 
@@ -29,7 +40,8 @@ def chapter_path_progress(chapter_path: str) -> dict:
     depend on which JSON item happened to be loaded last.
     """
     progress = [publication.chapter_progress(item['library'], item['chapter'])
-                for item in publication.load() if item['chapter_path'] == chapter_path]
+                for item in publication.load()
+                if graph_chapter_path(item['chapter_path']) == graph_chapter_path(chapter_path)]
     proved = sorted({name for item in progress for name in item['proof_declarations']})
     prerequisites = sorted({name for item in progress for name in item['prerequisites']})
     return {
@@ -219,7 +231,8 @@ def project_graph(builder) -> None:
                             subtitle='Source-present publication; compiled badge not inferred',
                             url=astis_site.declaration_path(decl))
             builder.edge('module:' + decl.module, ident, 'declares')
-    by_path = {i['chapter_path']: chapter_path_progress(i['chapter_path']) for i in publication.load()}
+    by_path = {graph_chapter_path(i['chapter_path']): chapter_path_progress(i['chapter_path'])
+               for i in publication.load()}
     by_path.update({str(Path(i['chapter_path']).parent / 'index.html').replace('\\', '/'):
                    publication.chapter_progress(i['library']) for i in publication.load()})
     for node in builder.nodes.values():
@@ -229,9 +242,10 @@ def project_graph(builder) -> None:
             node['subtitle'] = p['label'] + ' · source fidelity and chapter closure separate'
             node['search'] += ' ' + node['subtitle'].lower()
             for item in publication.load():
-                if item['chapter_path'] == node.get('url'):
+                if graph_chapter_path(item['chapter_path']) == node.get('url'):
                     node.setdefault('details', []).append({'label': 'Mapped source',
-                        'value': item['title'] + ' · ' + item['source']['anchor']})
+                        'value': item['title'] + ' · ' + item['source']['anchor']
+                                 + ' · ' + item['chapter_path']})
                     for b in item['bindings']:
                         node['details'].append({'label': 'Local component / boundary',
                             'value': b['declaration'] + ' · ' + b['boundary']})
@@ -303,7 +317,7 @@ def validate_graph(graph: dict, site: dict, items: list[dict] | None = None) -> 
                 if ('decl:' + parent, 'decl:' + consumer, 'depends-on') in edges:
                     errors.append(f'Graph promotes a name scan to a formal dependency: {consumer}')
     for item in items:
-        chapters = [n for n in nodes.values() if n.get('url') == item['chapter_path']
+        chapters = [n for n in nodes.values() if n.get('url') == graph_chapter_path(item['chapter_path'])
                     and n.get('kind') in {'chapter', 'library-chapter', 'frontier-case'}]
         if len(chapters) != 1:
             errors.append(f'Graph contribution needs one source chapter: {item["id"]}')

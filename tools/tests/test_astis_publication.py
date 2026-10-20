@@ -353,7 +353,7 @@ class PublicationTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             p.check_advance(['NoSuch.declaration'], reviewed=True)
 
-    def graph_fixture(self, container_kind='library-chapter'):
+    def graph_fixture(self, container_kind='library-chapter', container_url=None):
         import publication_reader as reader
         from underlying_lean_graph_model import GraphBuilder
         from underlying_lean_graph_textbook import add_textbook
@@ -369,7 +369,7 @@ class PublicationTest(unittest.TestCase):
         builder = GraphBuilder()
         add_textbook(builder, site)
         builder.add('chapter:fixture', container_kind, 'Fixture', status='planned',
-                    url=self.item['chapter_path'])
+                    url=container_url or self.item['chapter_path'])
         reader.project_graph(builder)
         graph = builder.export()
         graph['publication_inputs_sha256'] = reader.graph_input_digest()
@@ -380,6 +380,25 @@ class PublicationTest(unittest.TestCase):
         self.assertEqual(reader.validate_graph(graph, site, [self.item]), [])
         self.assertIn(reader.REFERENCE_EDGE, {e['relation'] for e in graph['edges']})
         self.assertNotIn('depends-on', {e['relation'] for e in graph['edges']})
+
+    def test_textbook_section_keeps_reader_path_and_uses_owning_chapter_graph(self):
+        import publication_reader as reader
+        section = 'textbook/chapter-99/section-99-1.html'
+        chapter = 'textbook/chapter-99.html'
+        self.item['chapter_path'] = section
+        with patch.object(reader.publication, 'load', return_value=[self.item]), \
+                patch.object(reader.publication, 'inputs', return_value=self.data):
+            reader, graph, site = self.graph_fixture('chapter', chapter)
+            self.assertEqual(reader.validate_graph(graph, site, [self.item]), [])
+        self.assertEqual(self.item['chapter_path'], section)
+        self.assertTrue(any(e['relation'] == reader.SOURCE_EDGE and
+                            e['target'] == 'chapter:fixture' for e in graph['edges']))
+        self.assertFalse(any(n.get('url') == section and n['kind'] == 'chapter'
+                             for n in graph['nodes']))
+        peer = 'libraries/optimisation/chapter-01.html'
+        companion = 'example-cases/samplewiki/companions/fixture.html'
+        self.assertEqual(reader.graph_chapter_path(peer), peer)
+        self.assertEqual(reader.graph_chapter_path(companion), companion)
 
     def test_contribution_missing_or_mistyped_edges_rejected(self):
         reader, graph, site = self.graph_fixture()

@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-8a4141ea7f85284c",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "codex-gaussian-feature-regularity-formalizer",
+    "blind_decoder": "anonymous-decoder-v1",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "probability-segment-risk-supplement",
+    "anchor": "Complete authored units 0,1,4 and their formula proof steps in the immutable declaration lesson; units[4]",
+    "original_text": "Let P be an actual probability law on E×ℝ, where E is a finite-dimensional real inner-product space with its Borel structure. Assume only that its input marginal is the standard Gaussian and its actual response coordinate Y is square-integrable. Let p be any finite real polynomial. For any probability ρ on the unit sphere define fρ(x)=∫p(⟨w,x⟩) dρ(w), F(ρ)=∫(fρ(x)−y)² dP(x,y), and Vρ(w)=2∫(fρ(x)−y)p(⟨w,x⟩) dP(x,y). Every squared loss is integrable, and every displayed inner residual-feature product is integrable at every unit direction. For any two parameter probabilities ρ₀,ρ₁, Vρ₀ is integrable under both laws. The actual scalar risk along (1−t)ρ₀+tρ₁ has right derivative ∫Vρ₀ dρ₁−∫Vρ₀ dρ₀ at zero, and F(ρ₁)≥F(ρ₀)+∫Vρ₀ dρ₁−∫Vρ₀ dρ₀.",
+    "text_sha256": "cb68b79a71e2c4475b041caf961a40c43133532c51494d4ee31adde7f00982fb"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRisk.gaussian_polynomial_joint_risk_first_variation",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialRisk.lean",
+    "statement": "theorem result\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (P : Measure (E × ℝ)) [IsProbabilityMeasure P]\n    (hGaussian : P.map Prod.fst = ProbabilityTheory.stdGaussian E)\n    (p : Polynomial ℝ)\n    (hlabel : MemLp (fun z : E × ℝ => z.2) 2 P) :\n    let U := {w : E // ‖w‖ = 1}\n    let predictor : Measure U → E → ℝ := fun rho x => ∫ w : U, p.eval ⟪w.1,x⟫_ℝ ∂rho\n    let risk : Measure U → ℝ := fun rho => ∫ z, (predictor rho z.1 - z.2)^2 ∂P\n    let potential : Measure U → U → ℝ := fun rho w =>\n      2 * ∫ z, (predictor rho z.1 - z.2) * p.eval ⟪w.1,z.1⟫_ℝ ∂P\n    (∀ rho : Measure U, IsProbabilityMeasure rho →\n      Integrable (fun z : E × ℝ => (predictor rho z.1 - z.2)^2) P ∧\n      ∀ w : U, Integrable (fun z : E × ℝ =>\n        (predictor rho z.1 - z.2) * p.eval ⟪w.1,z.1⟫_ℝ) P) ∧\n    ∀ rho0 rho1 : Measure U, IsProbabilityMeasure rho0 → IsProbabilityMeasure rho1 →\n      let curve : ℝ → Measure U := fun t =>\n        ENNReal.ofReal (1-t) • rho0 + ENNReal.ofReal t • rho1\n      Integrable (potential rho0) rho0 ∧ Integrable (potential rho0) rho1 ∧\n      HasDerivWithinAt (fun t => risk (curve t))\n        ((∫ w, potential rho0 w ∂rho1) - (∫ w, potential rho0 w ∂rho0))\n        (Set.Icc (0 : ℝ) 1) 0 ∧\n      risk rho0 + ((∫ w, potential rho0 w ∂rho1) - (∫ w, potential rho0 w ∂rho0)) ≤\n        risk rho1",
+    "statement_sha256": "d3e21778fec13de3832148c84f88e5909fae1a72e7a0094ac09a02c4ac8dbb6a",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every finite-dimensional real inner-product normed vector space E equipped with its Borel measurable structure, every joint probability measure P on E times R such that P.map Prod.fst equals the actual centered identity-covariance standard Gaussian on E, every real polynomial p, and a supplied witness of MemLp(z->z.2,2,P) for the actual response coordinate, use these definitions. Let U={w:E | norm(w)=1}, with its inherited subspace topology and Borel measurable structure. For every rho:Measure U and x:E define predictor(rho,x)=integral_U p.eval(inner_product(w,x)) drho(w). Define risk(rho)=integral_{E times R}(predictor(rho,z.1)-z.2)^2 dP(z), and potential(rho,w)=2*integral_{E times R}(predictor(rho,z.1)-z.2)*p.eval(inner_product(w,z.1)) dP(z). All integrals are the actual real Bochner integrals on the whole indicated spaces, syntactically totalized when genuine integrability is absent. For any subsequently quantified pair rho0,rho1 define curve(t)=ofReal(1-t) times rho0 + ofReal(t) times rho1 for t:R, using literal positive-measure scaling and addition and ofReal(r)=max(r,0) embedded in the nonnegative extended reals. Abbreviate D=integral_U potential(rho0,w) drho1(w)-integral_U potential(rho0,w) drho0(w). The conclusion is the conjunction of the following two universal statements. First: For every probability rho on U, the actual squared joint residual z->(predictor(rho,z.1)-z.2)^2 is genuinely Bochner integrable under P, and for every w in U the scalar cross term z->(predictor(rho,z.1)-z.2)*p.eval(inner_product(w,z.1)) is genuinely Bochner integrable under P. Second: For every rho0,rho1:Measure U which are both probability measures, potential(rho0,.) is genuinely Bochner integrable under rho0 and under rho1; the real function t->risk(curve(t)) has derivative D within the closed interval [0,1] at endpoint 0, using its actual value at 0; and risk(rho0)+D<=risk(rho1). The only supplied analytic moment premise is L2 membership of the actual response, meaning almost-everywhere strong measurability and finite L2 seminorm under the joint law. No independent feature-integrability or residual-integrability premise is given; the displayed joint and parameter integrability statements are generated conclusions. Parameter probability laws are arbitrary, including nonatomic laws, and the first statement quantifies every unit w regardless of where rho is supported. It therefore certifies the inner potential integrals genuinely for all unit directions when rho is a probability, rather than just at its atoms. P is a true joint law: its actual first-coordinate pushforward is Gaussian, but no product decomposition or independence of the response and input is assumed. Every response in the formulas is the actual z.2. The same potential based at rho0 is integrated under rho1 and rho0; their real difference has new-minus-base direction and is never positive or truncated subtraction of measures. The loss is unhalved, so potential has literal factor 2. On [0,1] the curve is the actual convex probability mixture, with curve(0)=rho0 and curve(1)=rho1. The endpoint derivative is right-sided relative to that closed interval and includes risk(curve(0))=risk(rho0). Outside [0,1] the displayed formula uses clipped nonnegative coefficients, so the conclusion is not an unrestricted derivative of that outside extension. The support inequality compares the two actual risks using exactly the same scalar difference as the derivative; D need not be nonnegative. No finite-support, particle-count, uniform norm-budget, or positive-degree assumption is imposed. The statement asserts these segment derivatives and support inequalities for all probability pairs, without specifying an ambient topology or a Frechet derivative on a space of signed measures. No positive dimension is required; in zero dimension U is empty and the probability-law implications have no laws satisfying their premises. The zero polynomial is allowed and gives zero predictors and potential and equality in the supporting inequality.",
+    "text_sha256": "09ea16b505363d26eada285f4ae623244ba40d1f6cded0ff23f2c86c1a6e0921",
+    "decoder": "anonymous-decoder-v1",
+    "decoder_packet_sha256": "8de04f7ccc3ecb505e5064cbe61bbdbad5c144527951b6a5236837a354d03b9b",
+    "decoder_run_sha256": "ea90050d2a8c85175b1dfc9012f21f26a75a2b7d0d79bf254a634a9506835579",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "f49b549028e6878f6ae1d06f7bda364a836146fc4b2adc8cca3fb99dfd8773ef",
+  "candidate_publication_context": {
+    "file": "93656c06fd3e639e5517e0b0e1950c0ef8d0cf1f7da2043bb13795bd26d2ef68",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk\n\nopen MeasureTheory ProbabilityTheory Filter\nopen scoped ENNReal InnerProductSpace Topology\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRisk\n\ntheorem gaussian_polynomial_joint_risk_first_variation\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (P : Measure (E × ℝ)) [IsProbabilityMeasure P]\n    (hGaussian : P.map Prod.fst = ProbabilityTheory.stdGaussian E)\n    (p : Polynomial ℝ)\n    (hlabel : MemLp (fun z : E × ℝ => z.2) 2 P) :\n    let U := {w : E // ‖w‖ = 1}\n    let predictor : Measure U → E → ℝ := fun rho x => ∫ w : U, p.eval ⟪w.1,x⟫_ℝ ∂rho\n    let risk : Measure U → ℝ := fun rho => ∫ z, (predictor rho z.1 - z.2)^2 ∂P\n    let potential : Measure U → U → ℝ := fun rho w =>\n      2 * ∫ z, (predictor rho z.1 - z.2) * p.eval ⟪w.1,z.1⟫_ℝ ∂P\n    (∀ rho : Measure U, IsProbabilityMeasure rho →\n      Integrable (fun z : E × ℝ => (predictor rho z.1 - z.2)^2) P ∧\n      ∀ w : U, Integrable (fun z : E × ℝ =>\n        (predictor rho z.1 - z.2) * p.eval ⟪w.1,z.1⟫_ℝ) P) ∧\n    ∀ rho0 rho1 : Measure U, IsProbabilityMeasure rho0 → IsProbabilityMeasure rho1 →\n      let curve : ℝ → Measure U := fun t =>\n        ENNReal.ofReal (1-t) • rho0 + ENNReal.ofReal t • rho1\n      Integrable (potential rho0) rho0 ∧ Integrable (potential rho0) rho1 ∧\n      HasDerivWithinAt (fun t => risk (curve t))\n        ((∫ w, potential rho0 w ∂rho1) - (∫ w, potential rho0 w ∂rho0))\n        (Set.Icc (0 : ℝ) 1) 0 ∧\n      risk rho0 + ((∫ w, potential rho0 w ∂rho1) - (∫ w, potential rho0 w ∂rho0)) ≤\n        risk rho1 := by\n  classical\n  letI : CompleteSpace E := FiniteDimensional.complete ℝ E\n  dsimp only\n  let U := {w : E // ‖w‖ = 1}\n  let K : U → E → ℝ := fun w x => p.eval ⟪w.1,x⟫_ℝ\n  let predictor : Measure U → E → ℝ := fun rho x => ∫ w, K w x ∂rho\n  let risk : Measure U → ℝ := fun rho => ∫ z, (predictor rho z.1-z.2)^2 ∂P\n  let potential : Measure U → U → ℝ := fun rho w =>\n    2 * ∫ z, (predictor rho z.1-z.2) * K w z.1 ∂P\n  change (∀ rho : Measure U, IsProbabilityMeasure rho →\n    Integrable (fun z : E × ℝ => (predictor rho z.1-z.2)^2) P ∧\n      ∀ w : U, Integrable (fun z : E × ℝ => (predictor rho z.1-z.2) * K w z.1) P) ∧\n    ∀ rho0 rho1 : Measure U, IsProbabilityMeasure rho0 → IsProbabilityMeasure rho1 →\n      let curve : ℝ → Measure U := fun t => ENNReal.ofReal (1-t) • rho0 + ENNReal.ofReal t • rho1\n      Integrable (potential rho0) rho0 ∧ Integrable (potential rho0) rho1 ∧\n      HasDerivWithinAt (fun t => risk (curve t))\n        ((∫ w, potential rho0 w ∂rho1)-(∫ w, potential rho0 w ∂rho0)) (Set.Icc (0 : ℝ) 1) 0 ∧\n      risk rho0 + ((∫ w, potential rho0 w ∂rho1)-(∫ w, potential rho0 w ∂rho0)) ≤ risk rho1\n  obtain ⟨hf,hcont,havg⟩ := AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging.gaussian_polynomial_parameter_average_L2 (E := E) p\n  have hmarg : MeasurePreserving (Prod.fst : E × ℝ → E) P (stdGaussian E) :=\n    ⟨measurable_fst,hGaussian⟩\n  let T : Lp ℝ 2 (stdGaussian E) →L[ℝ] Lp ℝ 2 P :=\n    (Lp.compMeasurePreservingₗᵢ ℝ Prod.fst hmarg).toContinuousLinearMap\n  let hfP : ∀ w : U, MemLp (fun z : E × ℝ => K w z.1) 2 P :=\n    fun w => (hf w).comp_measurePreserving hmarg\n  let feature : U → Lp ℝ 2 P := fun w => (hfP w).toLp (fun z => K w z.1)\n  let label : Lp ℝ 2 P := hlabel.toLp (fun z : E × ℝ => z.2)\n  let mean : Measure U → Lp ℝ 2 P := fun rho => ∫ w, feature w ∂rho\n  have hFint (rho : Measure U) (hrho : IsProbabilityMeasure rho) : Integrable feature rho := by\n    have h := T.integrable_comp (havg rho hrho).2.1\n    exact h\n  have hMeanClass (rho : Measure U) (hrho : IsProbabilityMeasure rho) :\n      ∃ hpred : MemLp (fun z : E × ℝ => predictor rho z.1) 2 P,\n        hpred.toLp (fun z => predictor rho z.1) = mean rho := by\n    obtain ⟨hscalar,hint,hmean,hident⟩ := havg rho hrho\n    let hpred : MemLp (fun z : E × ℝ => predictor rho z.1) 2 P :=\n      hmean.comp_measurePreserving hmarg\n    refine ⟨hpred, ?_⟩\n    calc\n      hpred.toLp (fun z => predictor rho z.1) = T (hmean.toLp (predictor rho)) := rfl\n      _ = T (∫ w, (hf w).toLp (K w) ∂rho) := congrArg T hident\n      _ = mean rho := (T.integral_comp_comm hint).symm\n  have hMeanAE (rho : Measure U) (hrho : IsProbabilityMeasure rho) :\n      (fun z => mean rho z) =ᵐ[P] (fun z : E × ℝ => predictor rho z.1) := by\n    obtain ⟨hpred,hident⟩ := hMeanClass rho hrho\n    rw [← hident]\n    exact hpred.coeFn_toLp\n  have hResidual (rho : Measure U) (hrho : IsProbabilityMeasure rho) :\n      (fun z => (mean rho-label) z) =ᵐ[P] (fun z : E × ℝ => predictor rho z.1-z.2) := by\n    filter_upwards [Lp.coeFn_sub (mean rho) label, hMeanAE rho hrho,hlabel.coeFn_toLp]\n      with z hsub hm hy\n    simp only [Pi.sub_apply] at hsub\n    rw [hsub,hm,hy]\n  have hRisk (rho : Measure U) (hrho : IsProbabilityMeasure rho) :\n      risk rho = ‖mean rho-label‖^2 := by\n    rw [← real_inner_self_eq_norm_sq, L2.inner_def]\n    apply integral_congr_ae\n    filter_upwards [hResidual rho hrho] with z hz\n    simp only [risk,Real.inner_apply,hz,pow_two]\n  have hPot (rho : Measure U) (hrho : IsProbabilityMeasure rho) :\n      potential rho = fun w => 2 * ⟪mean rho-label,feature w⟫_ℝ := by\n    funext w\n    change 2 * (∫ z, (predictor rho z.1-z.2) * K w z.1 ∂P) = _\n    rw [L2.inner_def]\n    congr 1\n    apply integral_congr_ae\n    filter_upwards [hResidual rho hrho,(hfP w).coeFn_toLp] with z hr hw\n    change feature w z = K w z.1 at hw\n    simp only [Real.inner_apply,hr,hw]\n  refine ⟨?_,?_⟩\n  · intro rho hrho\n    obtain ⟨hpred,hident⟩ := hMeanClass rho hrho\n    exact ⟨(hpred.sub hlabel).integrable_sq,fun w =>\n      (hpred.sub hlabel).integrable_mul (hfP w)⟩\n  · intro rho0 rho1 h0 h1\n    letI : IsProbabilityMeasure rho0 := h0\n    letI : IsProbabilityMeasure rho1 := h1\n    dsimp only\n    let curve : ℝ → Measure U := fun t => ENNReal.ofReal (1-t) • rho0 + ENNReal.ofReal t • rho1\n    have hc := AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk.quadratic_feature_probability_segment\n      rho0 rho1 feature label (hFint rho0 h0) (hFint rho1 h1)\n    dsimp only at hc\n    rcases hc with ⟨hprops,hpot0,hpot1,hderiv,hbre,hsupport⟩\n    rw [hPot rho0 h0]\n    refine ⟨hpot0,hpot1,?_,?_⟩\n    · apply hderiv.congr_of_mem\n      · intro t ht\n        exact hRisk (curve t) (hprops t ht).1\n      · exact ⟨le_rfl,zero_le_one⟩\n    · rw [hRisk rho0 h0,hRisk rho1 h1]\n      exact hsupport\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRisk\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/309a0949e6bdf83e118a230b304e0e291ac653ff/website/content/declaration_lessons/gaussian-feature-regularity.json",
+      "edition": "Samplinglib original mathematical supplement v1, 2026-10-20",
+      "anchor": "Complete authored units 0,1,4 and their formula proof steps in the immutable declaration lesson",
+      "wording_status": "licensed original",
+      "attribution": "An original reusable mathematics supplement placed by subject. It is not a theorem claim about the primary textbook or a complete stochastic/statistical model."
+    },
+    "statement": "The adjacent complete statements, assumptions and formula proofs describe the exact generic results; the optional Lean is initially folded.",
+    "formulae": [
+      {
+        "label": "Differentiating a quadratic risk along a probability segment",
+        "tex": "\\left.\\frac{d}{dt}R((1-t)\\mu+t\\nu)\\right|_{0^+}=\\int V\\,d\\nu-\\int V\\,d\\mu,\\qquad R(\\nu)-R(\\mu)-\\left(\\int V\\,d\\nu-\\int V\\,d\\mu\\right)=\\|m(\\nu)-m(\\mu)\\|^2."
+      },
+      {
+        "label": "A finite empirical segment has the actual joint-risk derivative",
+        "tex": "\\rho_a=\\frac1N\\sum_{j=1}^N\\delta_{w_a^j},\\qquad \\left.\\frac d{dt}F((1-t)\\rho_0+t\\rho_1)\\right|_{0^+}=\\int V\\,d\\rho_1-\\int V\\,d\\rho_0."
+      },
+      {
+        "label": "An actual Gaussian joint-data risk has a first variation",
+        "tex": "\\left.\\frac d{dt}F((1-t)\\rho_0+t\\rho_1)\\right|_{0^+}=\\int V_{\\rho_0}\\,d\\rho_1-\\int V_{\\rho_0}\\,d\\rho_0,\\qquad F(\\rho_1)\\ge F(\\rho_0)+\\int V_{\\rho_0}\\,d(\\rho_1-\\rho_0)."
+      }
+    ],
+    "assumptions": [
+      "E has finite-dimensional real inner-product and Borel structures. P is a true joint probability with standard Gaussian first marginal.",
+      "N>0. Only the two selected lists of feature slices are assumed to be in L²(Pₓ); global kernel measurability, a uniform feature bound, and nonsampled feature moments are not assumed.",
+      "W and X are measurable, and singletons in W are measurable. P is an actual joint probability; its response coordinate is in L²(P).",
+      "W is measurable; H is a complete real inner-product normed space.",
+      "p is any finite real polynomial, and the actual second-coordinate response belongs to L²(P). Input and response need not be independent.",
+      "μ and ν are probabilities. Φ is genuinely Bochner integrable under each; y is any vector in H."
+    ],
+    "obligations": [
+      {
+        "id": "quadratic-probability-segment",
+        "label": "Differentiating a quadratic risk along a probability segment"
+      },
+      {
+        "id": "joint-empirical-segment-risk",
+        "label": "A finite empirical segment has the actual joint-risk derivative"
+      },
+      {
+        "id": "gaussian-polynomial-joint-risk",
+        "label": "An actual Gaussian joint-data risk has a first variation"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRisk.gaussian_polynomial_joint_risk_first_variation",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRisk",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialRisk.lean",
+      "source_line": 9,
+      "short_name": "gaussian_polynomial_joint_risk_first_variation",
+      "title": "An actual Gaussian joint-data risk has a first variation",
+      "classification": "canonical shared library node; original mathematical supplement",
+      "statement": "Let P be an actual probability law on E×ℝ, where E is a finite-dimensional real inner-product space with its Borel structure. Assume only that its input marginal is the standard Gaussian and its actual response coordinate Y is square-integrable. Let p be any finite real polynomial. For any probability ρ on the unit sphere define fρ(x)=∫p(⟨w,x⟩) dρ(w), F(ρ)=∫(fρ(x)−y)² dP(x,y), and Vρ(w)=2∫(fρ(x)−y)p(⟨w,x⟩) dP(x,y). Every squared loss is integrable, and every displayed inner residual-feature product is integrable at every unit direction. For any two parameter probabilities ρ₀,ρ₁, Vρ₀ is integrable under both laws. The actual scalar risk along (1−t)ρ₀+tρ₁ has right derivative ∫Vρ₀ dρ₁−∫Vρ₀ dρ₀ at zero, and F(ρ₁)≥F(ρ₀)+∫Vρ₀ dρ₁−∫Vρ₀ dρ₀.",
+      "formula": "\\left.\\frac d{dt}F((1-t)\\rho_0+t\\rho_1)\\right|_{0^+}=\\int V_{\\rho_0}\\,d\\rho_1-\\int V_{\\rho_0}\\,d\\rho_0,\\qquad F(\\rho_1)\\ge F(\\rho_0)+\\int V_{\\rho_0}\\,d(\\rho_1-\\rho_0).",
+      "assumptions": [
+        "E has finite-dimensional real inner-product and Borel structures. P is a true joint probability with standard Gaussian first marginal.",
+        "p is any finite real polynomial, and the actual second-coordinate response belongs to L²(P). Input and response need not be independent."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Pull the actual mean to the joint data law",
+          "text": "The first-coordinate map preserves the actual marginal measures. Its continuous linear L² isometry commutes with Bochner integration, transporting the scalar-average class identity to L²(P).",
+          "formula": "[f_\\rho(X)]_{L^2(P)}=\\int[p(\\langle w,X\\rangle)]_{L^2(P)}\\,d\\rho(w).",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        },
+        {
+          "number": 2,
+          "title": "Identify the true squared risk",
+          "text": "Subtract the actual label class. Its squared norm is the literal integrated squared residual. Cauchy–Schwarz also gives genuine residual-feature product integrability at every direction.",
+          "formula": "F(\\rho)=\\|m(\\rho)-Y\\|_{L^2(P)}^2<\\infty.",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        },
+        {
+          "number": 3,
+          "title": "Identify the actual potential",
+          "text": "Almost-everywhere representative identities give the exact residual-feature inner-product formula. The bounded linear residual functional proves integrability of this scalar potential under both parameter laws.",
+          "formula": "V_{\\rho_0}(w)=2\\langle m(\\rho_0)-Y,\\Phi(w)\\rangle_{L^2(P)}.",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        },
+        {
+          "number": 4,
+          "title": "Use the positive probability segment",
+          "text": "Apply the actual probability-segment mean calculus, and identify its norm risk with the literal scalar risk at every point of the interval. Restriction at zero gives the stated right derivative.",
+          "formula": "m((1-t)\\rho_0+t\\rho_1)=(1-t)m(\\rho_0)+tm(\\rho_1).",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        },
+        {
+          "number": 5,
+          "title": "Obtain linear convexity",
+          "text": "The difference between the risk increment and the potential pairing is the squared mean increment. Its nonnegativity gives the supporting inequality with the correct sign and factor two.",
+          "formula": "F(\\rho_1)-F(\\rho_0)-\\left(\\int V_{\\rho_0}\\,d\\rho_1-\\int V_{\\rho_0}\\,d\\rho_0\\right)=\\|m(\\rho_1)-m(\\rho_0)\\|^2\\ge0.",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        }
+      ],
+      "lean_statement": "Let P be an actual probability law on E×ℝ, where E is a finite-dimensional real inner-product space with its Borel structure. Assume only that its input marginal is the standard Gaussian and its actual response coordinate Y is square-integrable. Let p be any finite real polynomial. For any probability ρ on the unit sphere define fρ(x)=∫p(⟨w,x⟩) dρ(w), F(ρ)=∫(fρ(x)−y)² dP(x,y), and Vρ(w)=2∫(fρ(x)−y)p(⟨w,x⟩) dP(x,y). Every squared loss is integrable, and every displayed inner residual-feature product is integrable at every unit direction. For any two parameter probabilities ρ₀,ρ₁, Vρ₀ is integrable under both laws. The actual scalar risk along (1−t)ρ₀+tρ₁ has right derivative ∫Vρ₀ dρ₁−∫Vρ₀ dρ₀ at zero, and F(ρ₁)≥F(ρ₀)+∫Vρ₀ dρ₁−∫Vρ₀ dρ₀.",
+      "lean_proof": "The formula proof above explains the mathematical moves; the adjacent folded Lean gives their exact implementation.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging.gaussian_polynomial_parameter_average_L2",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk.quadratic_feature_probability_segment"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Lp.compMeasurePreservingₗᵢ",
+        "ContinuousLinearMap.integral_comp_comm",
+        "MeasureTheory.MemLp.comp_measurePreserving",
+        "MeasureTheory.MemLp.integrable_mul",
+        "MeasureTheory.L2.inner_def",
+        "HasDerivWithinAt.congr_of_mem"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/309a0949e6bdf83e118a230b304e0e291ac653ff/website/content/declaration_lessons/gaussian-feature-regularity.json",
+          "label": "Samplinglib original probability and Gaussian feature regularity supplement v1 (2026-10-20)",
+          "scope": "Original generic mathematical supplement from the cited pinned library prerequisites; no primary-textbook theorem or statistical convergence credit."
+        }
+      ],
+      "tests": {
+        "file": "Tests/GaussianFeatureRegularity.lean",
+        "scope": "Closed actual probability and joint-data consumers; focused compilation pending."
+      }
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRisk.gaussian_polynomial_joint_risk_first_variation",
+      "role": "proof-edge",
+      "supports": [
+        "gaussian-polynomial-joint-risk"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Let P be an actual probability law on E×ℝ, where E is a finite-dimensional real inner-product space with its Borel structure. Assume only that its input marginal is the standard Gaussian and its actual response coordinate Y is square-integrable. Let p be any finite real polynomial. For any probability ρ on the unit sphere define fρ(x)=∫p(⟨w,x⟩) dρ(w), F(ρ)=∫(fρ(x)−y)² dP(x,y), and Vρ(w)=2∫(fρ(x)−y)p(⟨w,x⟩) dP(x,y). Every squared loss is integrable, and every displayed inner residual-feature product is integrable at every unit direction. For any two parameter probabilities ρ₀,ρ₁, Vρ₀ is integrable under both laws. The actual scalar risk along (1−t)ρ₀+tρ₁ has right derivative ∫Vρ₀ dρ₁−∫Vρ₀ dρ₀ at zero, and F(ρ₁)≥F(ρ₀)+∫Vρ₀ dρ₁−∫Vρ₀ dρ₀.",
+        "lean": "The exact adjacent public signature preserves all displayed primitive structures and hypotheses, literal measures/functions, produced integrability and derivative scope."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "f652a82bbe7dc8d9fbad3aa8478f5041b4a8b2965e5c0e4a15b352aa8c5ed23b"
+}

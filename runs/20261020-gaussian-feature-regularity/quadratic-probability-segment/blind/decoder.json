@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-0e85fe761980adce",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "theorem result\n    {W H : Type*} [MeasurableSpace W]\n    [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]\n    (μ ν : Measure W) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]\n    (feature : W → H) (label : H)\n    (hμ : Integrable feature μ) (hν : Integrable feature ν) :\n    let curve : ℝ → Measure W := fun t =>\n      ENNReal.ofReal (1 - t) • μ + ENNReal.ofReal t • ν\n    let mean : Measure W → H := fun law => ∫ w, feature w ∂law\n    let risk : Measure W → ℝ := fun law => ‖mean law - label‖ ^ 2\n    let potential : W → ℝ := fun w => 2 * ⟪mean μ - label, feature w⟫_ℝ\n    (∀ t ∈ Set.Icc (0 : ℝ) 1,\n      IsProbabilityMeasure (curve t) ∧ Integrable feature (curve t) ∧\n      mean (curve t) = (1 - t) • mean μ + t • mean ν) ∧\n    Integrable potential μ ∧ Integrable potential ν ∧\n    HasDerivWithinAt (fun t => risk (curve t))\n      ((∫ w, potential w ∂ν) - (∫ w, potential w ∂μ))\n      (Set.Icc (0 : ℝ) 1) 0 ∧\n    (risk ν - risk μ - ((∫ w, potential w ∂ν) - (∫ w, potential w ∂μ)) =\n      ‖mean ν - mean μ‖ ^ 2) ∧\n    (risk μ + ((∫ w, potential w ∂ν) - (∫ w, potential w ∂μ)) ≤ risk ν)",
+    "statement_sha256": "0e85fe761980adceb70e97147764081e2d85f7ee82f0e4f95bdad7e07096214b",
+    "compiled": true,
+    "approved_definition_context": [
+      "Integrable feature mu denotes genuine Bochner integrability under the displayed measure. The mean and risk are actual displayed Bochner-integral formulas.",
+      "ENNReal.ofReal r is max(r,0) as a nonnegative extended-real coefficient; a measure scalar multiple and measure addition are literal positive-measure operations.",
+      "HasDerivWithinAt f D (Set.Icc 0 1) 0 denotes the real derivative within the displayed closed interval at endpoint0, with the function value at0 included."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "d2c0537b07380ace3c01c495900e3d302dbc060ac2a5d05032868753652b3286"
+}

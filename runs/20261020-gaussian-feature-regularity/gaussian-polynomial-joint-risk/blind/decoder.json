@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-d3e21778fec13de3",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "theorem result\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (P : Measure (E × ℝ)) [IsProbabilityMeasure P]\n    (hGaussian : P.map Prod.fst = ProbabilityTheory.stdGaussian E)\n    (p : Polynomial ℝ)\n    (hlabel : MemLp (fun z : E × ℝ => z.2) 2 P) :\n    let U := {w : E // ‖w‖ = 1}\n    let predictor : Measure U → E → ℝ := fun rho x => ∫ w : U, p.eval ⟪w.1,x⟫_ℝ ∂rho\n    let risk : Measure U → ℝ := fun rho => ∫ z, (predictor rho z.1 - z.2)^2 ∂P\n    let potential : Measure U → U → ℝ := fun rho w =>\n      2 * ∫ z, (predictor rho z.1 - z.2) * p.eval ⟪w.1,z.1⟫_ℝ ∂P\n    (∀ rho : Measure U, IsProbabilityMeasure rho →\n      Integrable (fun z : E × ℝ => (predictor rho z.1 - z.2)^2) P ∧\n      ∀ w : U, Integrable (fun z : E × ℝ =>\n        (predictor rho z.1 - z.2) * p.eval ⟪w.1,z.1⟫_ℝ) P) ∧\n    ∀ rho0 rho1 : Measure U, IsProbabilityMeasure rho0 → IsProbabilityMeasure rho1 →\n      let curve : ℝ → Measure U := fun t =>\n        ENNReal.ofReal (1-t) • rho0 + ENNReal.ofReal t • rho1\n      Integrable (potential rho0) rho0 ∧ Integrable (potential rho0) rho1 ∧\n      HasDerivWithinAt (fun t => risk (curve t))\n        ((∫ w, potential rho0 w ∂rho1) - (∫ w, potential rho0 w ∂rho0))\n        (Set.Icc (0 : ℝ) 1) 0 ∧\n      risk rho0 + ((∫ w, potential rho0 w ∂rho1) - (∫ w, potential rho0 w ∂rho0)) ≤\n        risk rho1",
+    "statement_sha256": "d3e21778fec13de3832148c84f88e5909fae1a72e7a0094ac09a02c4ac8dbb6a",
+    "compiled": true,
+    "approved_definition_context": [
+      "MemLp f 2 mu means that the displayed scalar function is almost-everywhere strongly measurable and has finite L2 seminorm under mu. IsProbabilityMeasure rho means rho has total mass one.",
+      "The subtype {w : E // norm w = 1} has the subspace topology and induced Borel measurable structure inherited from E. stdGaussian E is the standard centered Gaussian measure with identity covariance on the finite-dimensional real inner-product space. P.map Prod.fst is the actual first-coordinate pushforward of the joint law P.",
+      "Every displayed integral is the actual real Bochner integral. This operator is totalized outside its integrable domain; Integrable f mu explicitly certifies almost-everywhere strong measurability and finite integral of the norm.",
+      "ENNReal.ofReal embeds the maximum of the real argument and zero into the nonnegative extended reals; the measure scaling and addition are the literal positive-measure operations. HasDerivWithinAt f d S a asserts a derivative of f with value d at a within S, using the actual value f(a)."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "8de04f7ccc3ecb505e5064cbe61bbdbad5c144527951b6a5236837a354d03b9b"
+}

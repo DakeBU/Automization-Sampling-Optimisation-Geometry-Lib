@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-f2ef0ffbbf9779eb",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "theorem result\n    {W X : Type*} [MeasurableSpace W] [MeasurableSingletonClass W] [MeasurableSpace X]\n    (P : Measure (X × ℝ)) [IsProbabilityMeasure P]\n    (K : W → X → ℝ)\n    (hlabel : MemLp (fun z : X × ℝ => z.2) 2 P)\n    {N : ℕ} (hN : 0 < N) (w0 w1 : Fin N → W)\n    (hfeature0 : ∀ j, MemLp (K (w0 j)) 2 (P.map Prod.fst))\n    (hfeature1 : ∀ j, MemLp (K (w1 j)) 2 (P.map Prod.fst)) :\n    let rho0 : Measure W := (N : ℝ≥0∞)⁻¹ • ∑ j, Measure.dirac (w0 j)\n    let rho1 : Measure W := (N : ℝ≥0∞)⁻¹ • ∑ j, Measure.dirac (w1 j)\n    let curve : ℝ → Measure W := fun t =>\n      ENNReal.ofReal (1 - t) • rho0 + ENNReal.ofReal t • rho1\n    let predictor : Measure W → X → ℝ := fun law x => ∫ q, K q x ∂law\n    let risk : Measure W → ℝ := fun law => ∫ z, (predictor law z.1 - z.2) ^ 2 ∂P\n    let potential : W → ℝ := fun q =>\n      2 * ∫ z, (predictor rho0 z.1 - z.2) * K q z.1 ∂P\n    (∀ t ∈ Set.Icc (0 : ℝ) 1,\n      IsProbabilityMeasure (curve t) ∧\n      Integrable (fun z : X × ℝ => (predictor (curve t) z.1 - z.2) ^ 2) P) ∧\n    Integrable potential rho0 ∧ Integrable potential rho1 ∧\n    HasDerivWithinAt (fun t => risk (curve t))\n      ((∫ q, potential q ∂rho1) - (∫ q, potential q ∂rho0))\n      (Set.Icc (0 : ℝ) 1) 0",
+    "statement_sha256": "f2ef0ffbbf9779ebae481142cc570fff16f3f72f3a1ba4ede26e61ad78b87510",
+    "compiled": true,
+    "approved_definition_context": [
+      "P.map Prod.fst is the actual first-coordinate pushforward marginal of the joint measure P; no product measure or independence is implicit. MemLp at exponent2 is actual almost-everywhere strong measurability and finite L2 membership of the displayed scalar function.",
+      "Finite sums of actual Dirac measures with reciprocal ENNReal scaling preserve repeated indices. ENNReal.ofReal is the nonnegative real embedding, taking negative real arguments to zero.",
+      "Every displayed integral is the actual Mathlib real Bochner integral. This operator is totalized outside its integrable domain; Integrable f mu explicitly certifies the finite Lebesgue integral under that measure."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "58818b9867e1925c450c624ade0962e9903d97258d1ae5cd0bfd40cc9ccdd435"
+}

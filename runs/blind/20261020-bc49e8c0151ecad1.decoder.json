@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-f49ac18f18e2fe63",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "theorem result\n    {W X : Type*} [MeasurableSpace W] [MeasurableSingletonClass W]\n    [MeasurableSpace X] (P : Measure (X × ℝ)) [IsProbabilityMeasure P]\n    (K : W → X → ℝ) (b : ℝ) (hb : 0 < b)\n    (hfeature : ∀ q, MemLp (K q) 2 (P.map Prod.fst))\n    (hbound : ∀ q, ‖(hfeature q).toLp (K q)‖ ≤ b)\n    (hlabel : MemLp (fun z : X × ℝ => z.2) 2 P)\n    {N : ℕ} (hN : 0 < N) (w : Fin N → W) (i : Fin N) (u : W) :\n    let rho : Measure W := (N : ℝ≥0∞)⁻¹ • ∑ j, Measure.dirac (w j)\n    let rhoNew : Measure W :=\n      (N : ℝ≥0∞)⁻¹ • ∑ j, Measure.dirac (Function.update w i u j)\n    let predictor : Measure W → X → ℝ := fun law x => ∫ q, K q x ∂law\n    let risk : Measure W → ℝ :=\n      fun law => ∫ z, (predictor law z.1 - z.2) ^ 2 ∂P\n    let potential : W → ℝ :=\n      fun q => 2 * ∫ z, (predictor rho z.1 - z.2) * K q z.1 ∂P\n    let pairing : ℝ := (∫ q, potential q ∂rhoNew) - (∫ q, potential q ∂rho)\n    (0 < 4 * b ^ 2) ∧ IsProbabilityMeasure rho ∧ IsProbabilityMeasure rhoNew ∧\n    Integrable (fun z : X × ℝ => (predictor rho z.1 - z.2) ^ 2) P ∧\n    Integrable (fun z : X × ℝ => (predictor rhoNew z.1 - z.2) ^ 2) P ∧\n    Integrable potential rho ∧ Integrable potential rhoNew ∧\n    (pairing = (N : ℝ)⁻¹ * (potential u - potential (w i))) ∧\n    (risk rhoNew - risk rho - pairing =\n      ∫ x, (predictor rhoNew x - predictor rho x) ^ 2 ∂(P.map Prod.fst)) ∧\n    (0 ≤ risk rhoNew - risk rho - pairing) ∧\n    (risk rhoNew - risk rho - pairing ≤ 4 * b ^ 2 / (N : ℝ) ^ 2)",
+    "statement_sha256": "f49ac18f18e2fe631705135c43ac95889817c12d6eba32aa429ac4aca2e9aeb4",
+    "compiled": true,
+    "approved_definition_context": [
+      "P is the stated joint law; P.map Prod.fst is its true input marginal, and z.2 is the actual response coordinate.",
+      "MemLp at exponent2 and toLp denote genuine actual-function L2 membership and its equivalence class under the stated marginal.",
+      "Function.update changes one index and retains particle multiplicity. Every predictor, risk and potential is its displayed literal scalar integral; only the two finite laws receive conclusions."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "bc49e8c0151ecad11875da8385ed2def2576e84731eed53dc905c8f27769d482"
+}

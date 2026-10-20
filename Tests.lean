@@ -1,3 +1,4 @@
+import Tests.QuadraticFeatureRisk
 import Tests.BoundedPerturbation
 import Tests.Shared.SphereRayleigh
 import Tests.Shared.SphereGradient

@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient
@@ -130,6 +131,66 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "analysis.quadratic-feature-risk-1",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk.empirical_squared_feature_risk_derivatives",
+    upstreamDecl := "Samplinglib original quadratic feature-risk supplement v1, interface 1",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticFeatureRisk.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["quadratic-risk", "empirical-measure", "L2", "optimisation"],
+    saldUse := "Reusable squared-loss, genuine integral and indexed replacement calculations",
+    note := "Compiled generic library interface. Exact hypotheses, actual integrals and remaining global-law boundaries are exposed in the authored lesson. Current public context-bound independent semantic reviews are accepted; serialized stabilization remains pending; no stochastic algorithm or model theorem is claimed."
+  },
+  {
+    key := "analysis.quadratic-feature-risk-2",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk.empirical_squared_risk_eq_L2_norm",
+    upstreamDecl := "Samplinglib original quadratic feature-risk supplement v1, interface 2",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticFeatureRisk.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["quadratic-risk", "empirical-measure", "L2", "optimisation"],
+    saldUse := "Reusable squared-loss, genuine integral and indexed replacement calculations",
+    note := "Compiled generic library interface. Exact hypotheses, actual integrals and remaining global-law boundaries are exposed in the authored lesson. Current public context-bound independent semantic reviews are accepted; serialized stabilization remains pending; no stochastic algorithm or model theorem is claimed."
+  },
+  {
+    key := "analysis.quadratic-feature-risk-3",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk.empirical_law_squared_risk_eq_L2_norm",
+    upstreamDecl := "Samplinglib original quadratic feature-risk supplement v1, interface 3",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticFeatureRisk.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["quadratic-risk", "empirical-measure", "L2", "optimisation"],
+    saldUse := "Reusable squared-loss, genuine integral and indexed replacement calculations",
+    note := "Compiled generic library interface. Exact hypotheses, actual integrals and remaining global-law boundaries are exposed in the authored lesson. Current public context-bound independent semantic reviews are accepted; serialized stabilization remains pending; no stochastic algorithm or model theorem is claimed."
+  },
+  {
+    key := "analysis.quadratic-feature-risk-4",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk.empirical_squared_loss_replacement",
+    upstreamDecl := "Samplinglib original quadratic feature-risk supplement v1, interface 4",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticFeatureRisk.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["quadratic-risk", "empirical-measure", "L2", "optimisation"],
+    saldUse := "Reusable squared-loss, genuine integral and indexed replacement calculations",
+    note := "Compiled generic library interface. Exact hypotheses, actual integrals and remaining global-law boundaries are exposed in the authored lesson. Current public context-bound independent semantic reviews are accepted; serialized stabilization remains pending; no stochastic algorithm or model theorem is claimed."
+  },
+  {
+    key := "analysis.quadratic-feature-risk-5",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk.quadratic_feature_mean_calculus",
+    upstreamDecl := "Samplinglib original quadratic feature-risk supplement v1, interface 5",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticFeatureRisk.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["quadratic-risk", "empirical-measure", "L2", "optimisation"],
+    saldUse := "Reusable squared-loss, genuine integral and indexed replacement calculations",
+    note := "Compiled generic library interface. Exact hypotheses, actual integrals and remaining global-law boundaries are exposed in the authored lesson. Current public context-bound independent semantic reviews are accepted; serialized stabilization remains pending; no stochastic algorithm or model theorem is claimed."
+  },
+  {
+    key := "analysis.quadratic-feature-risk-6",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk.joint_empirical_squared_risk_replacement",
+    upstreamDecl := "Samplinglib original quadratic feature-risk supplement v1, interface 6",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticFeatureRisk.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["quadratic-risk", "empirical-measure", "L2", "optimisation"],
+    saldUse := "Reusable squared-loss, genuine integral and indexed replacement calculations",
+    note := "Compiled generic library interface. Exact hypotheses, actual integrals and remaining global-law boundaries are exposed in the authored lesson. Current public context-bound independent semantic reviews are accepted; serialized stabilization remains pending; no stochastic algorithm or model theorem is claimed."
+  },
   {
     key := "pbps.actualAugmentedKernelInvariance"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAugmentedKernelInvariance.actual_augmented_kernel_invariant"

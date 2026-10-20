@@ -26,7 +26,7 @@ searchable theorem that later papers can call.
 - External projects such as `lean-stat-learning-theory` or `lean-rademacher`
   are cited as port/reference memory, not treated as local proof certificates.
 - Imports are the smallest reasonable imports for the family.
-- The theorem name would still make sense outside SALD/RMFLD.
+- The theorem name would still make sense outside any one paper case study.
 
 ## Gate 3: Proof Quality
 

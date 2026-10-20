@@ -68,15 +68,14 @@ PROJECT_ARTICLE_UPDATE_DIR = ROOT / "paper-notes" / "project-paper" / "cycle-upd
 PRO_PROMPT_DIR = ROOT / "runs" / "pro-prompts"
 SALD_CYCLE_SUMMARY_DIR = ROOT / "paper-notes" / "SALD" / "markdown" / "cycle-summaries"
 
-OUTER_REPOS_ROOT = Path("/home/nitanda_sub/mark/repos/outer_repos")
-OUTER_PAPERS_ROOT = Path("/home/nitanda_sub/mark/repos/outer_papers")
+OUTER_REPOS_ROOT = Path(os.environ.get("ASTIS_EXTERNAL_REPOS_ROOT") or str(ROOT.parent / "external_repos"))
+OUTER_PAPERS_ROOT = Path(os.environ.get("ASTIS_EXTERNAL_PAPERS_ROOT") or str(ROOT.parent / "external_papers"))
 OUTER_REPOS_AUTOMATION_ROOT = OUTER_REPOS_ROOT / "automation_systems"
 OUTER_REPOS_SAMPLING_ROOT = OUTER_REPOS_ROOT / "sampling_theory_sde"
 OUTER_PAPERS_SAMPLING_ROOT = OUTER_PAPERS_ROOT / "sampling_theory_sde"
 OUTER_PAPERS_AUTOMATION_ROOT = OUTER_PAPERS_ROOT / "automation_systems"
 
-SALD_ROOT = Path("/home/nitanda_sub/mark/repos/sald/paper")
-RMFLD_ROOT = Path("/home/nitanda_sub/mark/repos/RMFLD/RMFLD_paper")
+SALD_ROOT = Path(os.environ.get("ASTIS_SALD_SOURCE_ROOT") or str(ROOT / "local_sources" / "sald"))
 SLT_ROOT = OUTER_REPOS_SAMPLING_ROOT / "lean-stat-learning-theory"
 SLT_ARTICLE_ROOT = OUTER_PAPERS_SAMPLING_ROOT / "Statistical Learning Theory in Lean 4 Empirical Processes from Scratch"
 CHEWI_LOG_CONCAVE_PDF = OUTER_PAPERS_SAMPLING_ROOT / "Chewi-Log-Concave-Sampling" / "main.pdf"
@@ -227,7 +226,20 @@ def public_article_text(value: str) -> str:
     }
     for old, new in replacements.items():
         value = value.replace(old, new)
-    value = re.sub(r"/home/nitanda_sub/mark/repos/[^\s`]+", "[local source path]", value)
+    # Rendered prose may receive old or environment-configured local paths.
+    # Keep raw sealed evidence untouched; remove machine roots at this boundary.
+    # A quoted absolute path can contain spaces in a personal directory name.
+    value = re.sub(r"(?P<quote>[\"'`])(?:[A-Za-z]:[\\/]|/(?:home|Users|workspace)/).*?(?P=quote)",
+                   lambda match: match.group('quote') + "[local source path]" + match.group('quote'), value)
+    for source_root in (OUTER_REPOS_ROOT, OUTER_PAPERS_ROOT, SALD_ROOT):
+        if not source_root.is_absolute() or source_root == Path(source_root.anchor):
+            continue
+        for spelling in {str(source_root), source_root.as_posix()}:
+            value = value.replace(spelling, "[local source root]")
+    value = re.sub(r"(?<![\w:/])/(?:home|Users|workspace)/[^\s`\"'<>]+",
+                   "[local source path]", value)
+    value = re.sub(r"(?<![A-Za-z0-9])[A-Za-z]:[\\/][^\s`\"'<>]+",
+                   "[local source path]", value)
     value = re.sub(r"\bappendix\.tex:\d+(?:-\d+)?", "the relevant SALD appendix passage", value)
     value = re.sub(r"\bmain_body\.tex:\d+(?:-\d+)?", "the corresponding SALD main-text passage", value)
     value = re.sub(r"\b[A-Za-z0-9_.-]+\.tex:\d+(?:-\d+)?", "the source LaTeX passage", value)
@@ -640,7 +652,7 @@ def cmd_init(_: argparse.Namespace) -> int:
         state["active_task"] = "ASTIS-CHEWI-001"
     state["task_relationship"] = {
         "primary_foundation": "ASTIS-CHEWI-001",
-        "downstream_consumers": ["ASTIS-SALD-001", "ASTIS-RMFLD-001"],
+        "downstream_consumers": ["ASTIS-SALD-001"],
     }
     state["initialized_at"] = state.get("initialized_at") or now_stamp()
     save_state(state)
@@ -754,8 +766,6 @@ def cmd_list_tasks(_: argparse.Namespace) -> int:
 def source_roots_for_task(task_id: str) -> tuple[Path, list[str], Path]:
     if task_id == "ASTIS-SALD-001":
         return SALD_ROOT, ["sald_version_2.tex"], ROOT / "research-wiki" / "source-index" / "SALD_original.jsonl"
-    if task_id == "ASTIS-RMFLD-001":
-        return RMFLD_ROOT, [], ROOT / "research-wiki" / "source-index" / "RMFLD_paper.jsonl"
     raise SystemExit(f"no source-index configuration for task: {task_id}")
 
 
@@ -1046,12 +1056,8 @@ def blueprint_control_state(task_id: str) -> dict:
         ]
         stage = "Log-concave sampling foundation Stage-1: chapter map, shared-root DAG, and Mathlib-ready leaf growth"
     else:
-        system_of_record = [
-            "AutoSamplingTheory/RMFLD.lean",
-            "research-wiki/source-index/RMFLD_paper.jsonl",
-            "runs/trials.jsonl",
-        ]
-        stage = "exploratoryProof blueprint construction"
+        system_of_record = ["runs/trials.jsonl"]
+        stage = "task-specific blueprint construction"
     return {
         "task_id": task_id,
         "generated": now_stamp(),
@@ -1193,13 +1199,6 @@ def task_relevant_lean_declarations(task_id: str, limit: int = 60) -> list[dict]
             ROOT / "AutoSamplingTheory" / "Probability.lean",
             ROOT / "AutoSamplingTheory" / "Core.lean",
         ]
-    elif task_id == "ASTIS-RMFLD-001":
-        files = [
-            ROOT / "AutoSamplingTheory" / "RMFLD.lean",
-            ROOT / "AutoSamplingTheory" / "SDE.lean",
-            ROOT / "AutoSamplingTheory" / "Probability.lean",
-            ROOT / "AutoSamplingTheory" / "Core.lean",
-        ]
     else:
         files = lean_source_files()
     rows = []
@@ -1229,7 +1228,7 @@ def blueprint_refresh_text(task_id: str) -> str:
     elif task_id == "ASTIS-CHEWI-001":
         source_index_path = ROOT / "research-wiki" / "retrieval-index" / "ASTIS-CHEWI-001.json"
     else:
-        source_index_path = ROOT / "research-wiki" / "source-index" / "RMFLD_paper.jsonl"
+        source_index_path = ROOT / "research-wiki" / "source-index" / f"{task_id}.jsonl"
     if task_id == "ASTIS-CHEWI-001":
         gate_policy = "\n".join([
             "- Textbook mode may not silently strengthen a mathematical statement to close Lean.",
@@ -1691,7 +1690,7 @@ def mathlib_ready_leaf_protocol_text() -> str:
 
 ASTIS treats every reusable SDE/Sampling background result as a possible future
 Mathlib contribution.  The immediate rule is more modest: before a lemma is
-called by a SALD or RMFLD proof, it must be an ASTIS-owned Lean declaration
+called by a downstream proof, it must be an ASTIS-owned Lean declaration
 that builds locally, or it must be recorded as an explicit proof obligation.
 
 Reference target: {MATHLIB_URL}
@@ -1907,7 +1906,7 @@ searchable theorem that later papers can call.
 - External projects such as `lean-stat-learning-theory` or `lean-rademacher`
   are cited as port/reference memory, not treated as local proof certificates.
 - Imports are the smallest reasonable imports for the family.
-- The theorem name would still make sense outside SALD/RMFLD.
+- The theorem name would still make sense outside any one paper case study.
 
 ## Gate 3: Proof Quality
 
@@ -1987,7 +1986,7 @@ flowchart LR
   LSI[LSI/DV/Gronwall chains]
   IBP[Integration by parts and boundary contracts]
   SALD[SALD faithful proof DAG]
-  RMFLD[RMFLD exploratory DAG]
+  Private[Private research clients]
 
   M --> Search
   Search --> Measure
@@ -2002,8 +2001,8 @@ flowchart LR
   IBP --> KL
   Ito --> SALD
   LSI --> SALD
-  Ito --> RMFLD
-  KL --> RMFLD
+  Ito --> Private
+  KL --> Private
 ```
 
 ## Skill Blocks
@@ -2337,7 +2336,7 @@ def sampling_sde_leaf_network_svg() -> str:
         "lsi": (710, 430, 245, 64, "LSI/DV/Gronwall", "inequality handoff blocks", "leaf"),
         "analytic": (1010, 430, 245, 64, "Source-cited analysis", "Ito, KL derivative, no-boundary IBP", "analytic"),
         "sald": (710, 605, 245, 68, "SALD case study", "paper contribution consumer", "consumer"),
-        "rmfld": (1010, 605, 245, 68, "Exploratory SDE tasks", "RMFLD and future papers", "consumer"),
+        "private": (1010, 605, 245, 68, "Exploratory SDE tasks", "private and future projects", "consumer"),
         "reviewer": (365, 605, 245, 68, "Reviewer gate", "build, source, regularity, no churn", "gate"),
     }
     edges = [
@@ -2360,10 +2359,10 @@ def sampling_sde_leaf_network_svg() -> str:
         ("analytic", "ibp", "source contract", True),
         ("lsi", "sald", "", False),
         ("ito", "sald", "", False),
-        ("kl", "rmfld", "", False),
-        ("ito", "rmfld", "", False),
+        ("kl", "private", "", False),
+        ("ito", "private", "", False),
         ("sald", "reviewer", "", False),
-        ("rmfld", "reviewer", "", False),
+        ("private", "reviewer", "", False),
     ]
     node_parts = [
         leaf_network_node(node_id, x, y, w, h, title, subtitle, kind)
@@ -2383,7 +2382,7 @@ def sampling_sde_leaf_network_svg() -> str:
 </defs>
 <rect width="1320" height="750" fill="white"/>
 <text x="660" y="34" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="24" font-weight="700" fill="#1f2933">ASTIS SDE/Sampling Leaf Lemma Network</text>
-<text x="660" y="58" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#475569">Reusable technical lemmas are the library center.  SALD and RMFLD consume this arsenal instead of owning background analysis facts.</text>
+<text x="660" y="58" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#475569">Reusable technical lemmas are the library center.  Paper case studies and private projects consume this arsenal instead of owning background analysis facts.</text>
 <rect x="690" y="35" width="585" height="480" rx="16" ry="16" fill="none" stroke="#2e7d59" stroke-width="2" stroke-dasharray="8 5"/>
 <text x="982" y="525" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#2e7d59">Mathlib-ready leaf families</text>
 <g id="edges">
@@ -4127,7 +4126,7 @@ python3 tools/astis.py sleep-run-window ASTIS-CHEWI-001 \\
 Use this when you want the long run to live in a named terminal session:
 
 ```bash
-screen -dmS astis_log_concave_6h bash -lc 'cd /home/nitanda_sub/mark/repos/Auto-Sampling-Theory-In-Sleep; python3 tools/astis.py sleep-run-window ASTIS-CHEWI-001 --hours 24 --agent-hours-budget 6 --max-cycles 64 --lower-count 3 --parallel-lower --upper-panel-final --middle-panel-final --reviewer-waste-final --agent-cmd "bash tools/astis_codex_faithful.sh {{root}} {{prompt}}" --execute --check-each-cycle'
+screen -dmS astis_log_concave_6h bash -lc 'cd /workspace/repos/Auto-Sampling-Theory-In-Sleep; python3 tools/astis.py sleep-run-window ASTIS-CHEWI-001 --hours 24 --agent-hours-budget 6 --max-cycles 64 --lower-count 3 --parallel-lower --upper-panel-final --middle-panel-final --reviewer-waste-final --agent-cmd "bash tools/astis_codex_faithful.sh {{root}} {{prompt}}" --execute --check-each-cycle'
 ```
 
 Attach/detach:
@@ -4777,11 +4776,6 @@ ARSENAL_MODULE_SUMMARIES: dict[str, dict[str, str]] = {
         "summary": "SALD case-study theorem contracts, compiled sublemmas, obligations",
         "status": "consumer of arsenal; no longer the center of the public library map",
     },
-    "AutoSamplingTheory.RMFLD": {
-        "layer": "exploratory consumer",
-        "summary": "exploratory sampling-theory proof targets",
-        "status": "consumer of arsenal",
-    },
     "AutoSamplingTheory.Automation": {
         "layer": "harness",
         "summary": "compiled process contracts, role contracts, acceptance gates",
@@ -5346,7 +5340,7 @@ def arsenal_module_graph_svg(records: list[dict]) -> str:
   <text x="78" y="869" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700">Legend</text>
   <rect x="78" y="883" width="18" height="12" fill="#dff0e4" stroke="#2e7d59"/><text x="104" y="894" font-family="Helvetica,Arial,sans-serif" font-size="11">Canonical Mathlib-ready candidate module: compiled local reusable leaves</text>
   <rect x="78" y="905" width="18" height="12" fill="#eaf2ff" stroke="#2563eb"/><text x="104" y="916" font-family="Helvetica,Arial,sans-serif" font-size="11">Root public import surface</text>
-  <text x="78" y="938" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#475569">Omitted from the main graph: SALD/RMFLD consumers, SALDExtracted quarantine, compatibility files, registry metadata, and external references.</text>
+  <text x="78" y="938" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#475569">Omitted from the main graph: paper consumers, SALDExtracted quarantine, compatibility files, registry metadata, and external references.</text>
   <text x="1260" y="955" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#64748b">Generated {generated} by tools/astis.py module-graph-refresh</text>
 </g>
 </svg>
@@ -5411,8 +5405,7 @@ Non-arsenal files documented separately:
 |-- Core.lean, SDE.lean, Automation.lean, Literature.lean, OpenProblems.lean
 |-- TechnicalLemmas/Registry.lean
 |-- TechnicalLemmas/SALDExtracted.lean
-|-- SALD.lean
-`-- RMFLD.lean
+`-- SALD.lean
 """
 
 
@@ -5564,7 +5557,7 @@ main graph omits `SALDExtracted.lean` for this reason.
 | Compatibility surfaces | `TechnicalLemmas/Gaussian.lean`, `TechnicalLemmas/Taylor.lean`, `TechnicalLemmas/Measure.lean`, and `TechnicalLemmas/Variational.lean` remain stable imports but are omitted from the main graph. |
 | Contract and automation surfaces | `Core.lean`, `SDE.lean`, `Automation.lean`, `Literature.lean`, and `OpenProblems.lean` are system interfaces, not Mathlib-ready leaf families. |
 | Paper-extracted compiled leaves | `TechnicalLemmas/SALDExtracted.lean` exposes useful local theorems, but they remain paper-derived until generalized. |
-| Consumers | `SALD.lean` and `RMFLD.lean` are downstream users of the arsenal; they are not the public foundation. |
+| Consumers | `SALD.lean` is a downstream user of the arsenal; it is not the public foundation. |
 
 ## External Reference Memory
 
@@ -6194,7 +6187,7 @@ def compact_task_context(task_id: str, title: str, task_text: str, cycle: int) -
         f"# {title}",
         "",
         "Status: active faithfulPaper reproduction of the original VA-SALD paper.",
-        "Source: `/home/nitanda_sub/mark/repos/sald/paper`; exclude `sald_version_2.tex`.",
+        "Source: `/workspace/repos/sald/paper`; exclude `sald_version_2.tex`.",
         "Current phase: Phase 1 faithful transcript and proof backfill; Phase 2 API reorganization is deferred.",
         "",
         "Current post-cycle-84 rule: do not add broad wrappers or broad theorem-route audits. Each cycle must either discharge one supplied hypothesis, strictly narrow one source-cited theorem boundary, or explicitly reject wrapper churn.",
@@ -6453,7 +6446,7 @@ def chewi_role_instructions(role: str, role_name: str, lower_count: int) -> str:
         "upper": (
             "Choose exactly one log-concave sampling objective for this cycle. Start from the library overview, chapter DAG, module graph, and retrieval index. "
             "Prefer shared roots over chapter-specific theorem work: MEAS, KERN, DENS, GAUSS, CONV, FI, SDE, PATH, DISC, REG. "
-            "Do not assign SALD/RMFLD wrapper work unless it extracts a reusable ASTIS-owned lemma for the log-concave sampling foundation. "
+            "Do not assign paper-wrapper work unless it extracts a reusable ASTIS-owned lemma for the log-concave sampling foundation. "
             "The upper packet must name the chapter/topic, the shared roots reused, the target module, one lower-ready leaf, and reviewer criteria."
         ),
         "middle": (
@@ -9015,9 +9008,6 @@ def public_source_block_for_pro(task_id: str) -> str:
         return """- Primary textbook target, "Log-Concave Sampling": https://chewisinho.github.io/main.pdf
 - ASTIS task mode: faithful reconstruction of the textbook route and the cited rigorous background results needed by that route.
 """
-    if task_id == "ASTIS-RMFLD-001":
-        return """- RMFLD is currently tracked as an exploratory local proof program.  ChatGPT Pro cannot access the local manuscript, so only use the theorem statements and status pasted below unless the user separately provides a public arXiv link.
-"""
     return """- No public source URL was recorded for this task.  Use only the theorem statements and status pasted below unless the user supplies a public arXiv or paper link.
 """
 
@@ -9934,7 +9924,7 @@ result with a recorded Lean status.
 The workflow has two public modes.  In \Lean{faithfulPaper} mode, the theorem,
 assumptions, constants, and proof target are fixed by the source paper.  In
 \Lean{exploratoryProof} mode, the system tracks proof routes for active
-research drafts, such as RMFLD, without promoting candidate assumptions to
+private research drafts without promoting candidate assumptions to
 facts.
 
 The project-paper framing follows the automation emphasis of
@@ -10080,7 +10070,7 @@ remaining obligation \\
       article explains the automation system; the appendix shows what the
       current Lean-backed proof framework looks like.
 \item After Phase 1, start Phase 2 organization for reusable SDE/Sampling
-      theory blocks and for \Lean{exploratoryProof} targets such as RMFLD.
+      theory blocks and for private \Lean{exploratoryProof} targets.
 \end{enumerate}
 """)
 

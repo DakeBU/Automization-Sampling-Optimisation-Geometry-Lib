@@ -327,7 +327,7 @@ agent-briefs/mathlib_ready_leaf_packet.md
 
 Before claiming a generic Sampling/SDE delta, read the corresponding module
 card and reuse `Probability.lean`, `SDE.lean`, and
-`AutoSamplingTheory/TechnicalLemmas/`. SALD/RMFLD files are consumers, not the
+`AutoSamplingTheory/TechnicalLemmas/`. Paper-specific files are consumers, not the
 home of reusable background mathematics.
 
 ATLAS v1 is searchable external memory, not a local proof certificate. Search

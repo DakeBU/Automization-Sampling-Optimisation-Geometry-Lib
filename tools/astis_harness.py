@@ -748,7 +748,6 @@ def reconcile_frontier(root: Path = ROOT) -> dict[str, Any]:
         "task_relationship": {
             "ASTIS-CHEWI-001": "primary log-concave-sampling textbook foundation",
             "ASTIS-SALD-001": "downstream faithful-paper consumer of shared sampling/SDE leaves",
-            "ASTIS-RMFLD-001": "planned downstream exploratory consumer",
         },
         "source_of_truth": (
             "current Lean declaration inventory plus static foundation nodes and "

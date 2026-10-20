@@ -6,9 +6,9 @@ open scoped ENNReal RealInnerProductSpace BigOperators
 open AutoSamplingTheory
 open MeasureTheory Filter Topology
 
-example : literatureCount = 4 := rfl
+example : literatureCount = 3 := rfl
 
-example : automationTaskCount = 2 := rfl
+example : automationTaskCount = 1 := rfl
 
 example : threeLayerAgentContracts.length = 4 := rfl
 
@@ -37,8 +37,6 @@ example : SALD.cycle43LsiKlFiMiddleObligation.status = ProofStatus.obligation :=
 example : SALD.cycle43LsiKlFiLowerObligation.status = ProofStatus.obligation := rfl
 
 example : SALD.saldStatusForLabel "lem:dv_variation" = ProofStatus.sourceCited := rfl
-
-example : RMFLD.exploratorySeedLabels.length = 5 := rfl
 
 example : openProblemCount = 1 := rfl
 

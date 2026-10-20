@@ -18,7 +18,7 @@ flowchart LR
   LSI[LSI/DV/Gronwall chains]
   IBP[Integration by parts and boundary contracts]
   SALD[SALD faithful proof DAG]
-  RMFLD[RMFLD exploratory DAG]
+  Private[Private research clients]
 
   M --> Search
   Search --> Measure
@@ -33,8 +33,8 @@ flowchart LR
   IBP --> KL
   Ito --> SALD
   LSI --> SALD
-  Ito --> RMFLD
-  KL --> RMFLD
+  Ito --> Private
+  KL --> Private
 ```
 
 ## Skill Blocks

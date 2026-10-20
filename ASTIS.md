@@ -32,7 +32,7 @@
 6. Faithfully index and translate the original VA-SALD paper proofs, excluding
    `sald_version_2.tex`, while treating the Chewi program as the reusable SDE
    foundation consumed by SALD.
-7. Create RMFLD exploratory proof-route memory without attempting large theorem
+7. Create PRIVATE exploratory proof-route memory without attempting large theorem
    proofs prematurely.
 8. Preserve Phase 1 faithful-source discipline before Phase 2 reusable API
    reorganization.
@@ -56,7 +56,7 @@ statement/proof and foundation references before the optional Lean details.
 ```bash
 python3 tools/astis.py init
 python3 tools/astis.py source-index ASTIS-SALD-001
-python3 tools/astis.py source-index ASTIS-RMFLD-001
+python3 tools/astis.py source-index ASTIS-PRIVATE-001
 python3 tools/astis.py check
 python3 tools/astis.py proof-diagnostics
 python3 tools/astis.py launch-sald-6h

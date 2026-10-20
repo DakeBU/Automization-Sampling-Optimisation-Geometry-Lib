@@ -13,8 +13,8 @@ import AutoSamplingTheory.Core
 /-!
 # Probability and functional-inequality contracts
 
-The first implementation records the analytic interfaces needed by SALD and
-RMFLD papers.  Heavy measure-theoretic proofs are intentionally represented as
+The first implementation records analytic interfaces needed by downstream
+sampling projects.  Heavy measure-theoretic proofs are intentionally represented as
 contracts or proof obligations until they are ported from Mathlib/SLT or proved
 locally.
 -/

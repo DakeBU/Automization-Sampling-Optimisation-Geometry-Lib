@@ -73,8 +73,7 @@ Non-arsenal files documented separately:
 |-- Core.lean, SDE.lean, Automation.lean, Literature.lean, OpenProblems.lean
 |-- TechnicalLemmas/Registry.lean
 |-- TechnicalLemmas/SALDExtracted.lean
-|-- SALD.lean
-`-- RMFLD.lean
+`-- SALD.lean
 ```
 
 ## Log-Concave Sampling Planned Extension
@@ -175,6 +174,7 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | --- | --- | --- | --- |
 | `AutoSamplingTheory` | `lsi.sqrt-density.fisher-chain` | `lsiKlFiSqrtDensityFisherChainIntegralHandoffScalar` | Mathlib/SLT-inspired entropy and LSI proof shape |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAbsoluteNextEventTime` | `pbps.actualAbsoluteNextEventTime` | `actual_absolute_next_event_time_law` | arXiv2609.06905v1 Appendix A1 A1 A2 A7 coordinate ingredient and Appendix A2 |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualAugmentedKernelInvariance` | `pbps.actualAugmentedKernelInvariance` | `actual_augmented_kernel_invariant` | arXiv2609.06905v1 Proposition3.4, equation3.11 and Algorithm2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBounceRate` | `pbps.actualBounceRate` | `actual_bounce_rate_energy_laws` | arXiv2609.06905v1 Section2 Algorithm1 and AppendixA1 Proposition3.1 construction |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedGibbsDuality` | `pbps.actualBoundedGibbsDuality` | `actual_bounded_gibbs_duality` | arXiv2609.06905v1 Appendix A.1 final bounded signed bilinear identity and Gibbs stationarity |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualBoundedPathExpansion` | `pbps.actualBoundedPathExpansion` | `actual_bounded_path_functional_expansion` | arXiv2609.06905v1 Appendix A1 A7 |
@@ -190,10 +190,13 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryExtension` | `pbps.actualFiniteHistoryExtension` | `actual_finite_history_extension` | arXiv2609.06905v1 AppendixA1 A1 A2 A7 update iteration ingredient and AppendixA2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteHistoryTailLaw` | `pbps.actualFiniteHistoryTailLaw` | `actual_finite_history_tail_law` | arXiv2609.06905v1 AppendixA1 A1 A2 deterministic iteration implicit A7 and AppendixA2 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualFiniteJumpRecursion` | `pbps.actualFiniteJumpRecursion` | `actual_fixed_reference_finite_jump_recursion` | arXiv2609.06905v1 AppendixA1 equation(A2) and Ex8 |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHalfTurnReversibility` | `pbps.actualHalfTurnReversibility` | `actual_half_turn_reversible` | arXiv2609.06905v1 Proposition3.2, A.1 bounded duality and A.2 independent-reference averaging |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHarmonicFlow` | `pbps.actualHarmonicFlow` | `actual_harmonic_flow_laws` | arXiv2609.06905v1 Section2 Algorithm1 and AppendixA1 Proposition3.1 construction |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualHazardClock` | `pbps.actualHazardClock` | `actual_integrated_hazard_clock_laws` | arXiv2609.06905v1 Algorithm1 and AppendixA1 equation(A1) |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualKernelL2Realization` | `pbps.actualKernelL2Realization` | `actual_kernel_l2_realization` | arXiv2609.06905v1 Appendix A.1 and Definition D.2, fixed-time observable realization only |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2Expectation` | `pbps.actualL2Expectation` | `actual_l2_expectation_contraction` | arXiv2609.06905v1 Appendix A.1 expectation operator and L2 domain toward Eq A.3 |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2FlipDuality` | `pbps.actualL2FlipDuality` | `actual_l2_flip_duality` | arXiv2609.06905v1 Appendix A.1 Eq A.3 and density extension |
+| `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualL2StrongContinuity` | `pbps.actualL2StrongContinuity` | `actual_l2_strong_continuity` | arXiv2609.06905v1 Appendix A.1 Proposition A.1(ii), zero-time density argument only |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNonaccumulation` | `pbps.actualNonaccumulation` | `actual_fixed_reference_event_time_nonaccumulation` | arXiv2609.06905v1 AppendixA1 Ex8-Ex9 and SLLN/nonaccumulation |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualNormalizedEndpointSector` | `pbps.actualNormalizedEndpointSector` | `actual_normalized_endpoint_sector_reversal` | arXiv2609.06905v1 Appendix A.1 fixed-count reversal and Eq3.1 averaging |
 | `AutoSamplingTheory.ExampleCases.ProximalBPS.ActualOrderedPrefix` | `pbps.actualOrderedPrefix` | `actual_ordered_prefix_law` | arXiv2609.06905v1 Appendix A1 A1 A2 A7 finite iteration ingredient and Appendix A2 |
@@ -423,6 +426,9 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.TechnicalLemmas.Analysis.UniformRegularization` | `analysis.optimisation.uniform-regularization` | `uniform_accuracy_and_query_bound` | Chewi Lectures on Optimization arXiv:2605.07006v1 Section4.1 Lemma4.2 |
 | `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities` | `semigroup-interpolation.exponential-kernel-endpoint` | `endpoint_le_of_deriv_le_exponential_kernel` | Mathlib.Analysis.Calculus.Deriv.MeanValue |
 | `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BernoulliLogSobolev` | `entropy.bernoulli.function-log-sobolev` | `bernoulli_function_logSobolev` | SLT d0f506f0a695018265dccb33bcb05e2f5ca1c876; no Lake upstream dependency |
+| `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation` | `entropy.measureDomination` | `entropy_le_mul_of_measure_le` | Chewi, Log-Concave Sampling, August20 2026, section2.3.1 pp60-61 |
+| `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation` | `logSobolev.energyMeasureComparison` | `energyLogSobolev_of_measure_comparison` | Chewi, Log-Concave Sampling, August20 2026, section2.3.1 pp60-61 |
+| `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation` | `logSobolev.boundedExponentialPerturbation` | `energyLogSobolev_tilted` | Chewi, Log-Concave Sampling, August20 2026, section2.3.1 pp60-61 |
 | `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev` | `functional-inequality.canonical-lsi-kl-fisher` | `finite_klDiv_and_toReal_le_half_mul_information` | Log-Concave Sampling, Definition 1.2.25; AutoSamplingTheory.TechnicalLemmas.InformationTheory.CanonicalDirichletFisher |
 | `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactEntropy` | `entropy.gaussian.compact-count-observer-limits` | `compact_count_gaussian_entropy_limits` | Mathlib db584cd6; ASTIS authored actual count adapter; SLT d0f506f0 external reference only |
 | `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactHilbertLogSobolev` | `gaussian.compact-hilbert-logSobolev` | `compact_stdGaussian_logSobolev` | Mathlib db584cd6 Gaussian.Multivariate/Basis/Gradient/PiL2/map integrals |
@@ -584,6 +590,8 @@ a row, but the callable proof is the ASTIS-owned declaration listed here.
 | `AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope` | `probability.kernel-hybrid.common-suffix` | `abs_real_comp_commonSuffix_sub_le_integral_eventBound` | AutoSamplingTheory.TechnicalLemmas.Probability.{KernelHybridTelescope,KernelTotalVariation}; arXiv:2609.38710v1 Section 6.1 |
 | `AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope` | `probability.kernel-hybrid.finite-adjacent-sum` | `abs_sub_zero_le_sum_range_of_adjacent` | AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope; arXiv:2609.38710v1 Section 6.1 |
 | `AutoSamplingTheory.TechnicalLemmas.Probability.KernelInvariance` | `probability.kernel.invariant-powers` | `invariant_pow` | Mathlib.Probability.Kernel.Invariance; Mathlib.Probability.Kernel.Composition.Comp |
+| `AutoSamplingTheory.TechnicalLemmas.Probability.KernelL2` | `probability.kernel.invariant-l2-operator` | `invariant_kernel_l2_operator` | Mathlib db584cd6d46c92f209a44c0f1c829460d327499d Kernel/compProd, L2Space and Adjoint |
+| `AutoSamplingTheory.TechnicalLemmas.Probability.KernelRetainedReversibility` | `probability.kernel.retained-coordinate-reversibility` | `retained_coordinate_isReversible` | Mathlib db584cd6d46c92f209a44c0f1c829460d327499d Kernel.IsReversible, deterministic product and Measure.compProd |
 | `AutoSamplingTheory.TechnicalLemmas.Probability.LawMap` | `measure.law-map.integral` | `lawMapIntegral` | Mathlib measure/integration APIs |
 | `AutoSamplingTheory.TechnicalLemmas.Probability.LawMap` | `measure.law-map.dominated-derivative` | `lawMapIntegralHasDerivAtOfDominated` | Mathlib.Analysis.Calculus.ParametricIntegral |
 | `AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment` | `gaussian.std.norm-square-second-moment` | `integrable_norm_sq_and_integral_stdGaussian` | Mathlib.Probability.Distributions.Gaussian.Multivariate |
@@ -754,7 +762,7 @@ main graph omits `SALDExtracted.lean` for this reason.
 | Compatibility surfaces | `TechnicalLemmas/Gaussian.lean`, `TechnicalLemmas/Taylor.lean`, `TechnicalLemmas/Measure.lean`, and `TechnicalLemmas/Variational.lean` remain stable imports but are omitted from the main graph. |
 | Contract and automation surfaces | `Core.lean`, `SDE.lean`, `Automation.lean`, `Literature.lean`, and `OpenProblems.lean` are system interfaces, not Mathlib-ready leaf families. |
 | Paper-extracted compiled leaves | `TechnicalLemmas/SALDExtracted.lean` exposes useful local theorems, but they remain paper-derived until generalized. |
-| Consumers | `SALD.lean` and `RMFLD.lean` are downstream users of the arsenal; they are not the public foundation. |
+| Consumers | `SALD.lean` is a downstream user of the arsenal; it is not the public foundation. |
 
 ## External Reference Memory
 

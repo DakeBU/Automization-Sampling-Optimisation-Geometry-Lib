@@ -2,7 +2,7 @@
 
 ASTIS treats every reusable SDE/Sampling background result as a possible future
 Mathlib contribution.  The immediate rule is more modest: before a lemma is
-called by a SALD or RMFLD proof, it must be an ASTIS-owned Lean declaration
+called by a downstream proof, it must be an ASTIS-owned Lean declaration
 that builds locally, or it must be recorded as an explicit proof obligation.
 
 Reference target: https://mathlib-initiative.org/

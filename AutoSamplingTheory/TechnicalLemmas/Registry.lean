@@ -1,3 +1,7 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.JointEmpiricalSegmentRisk
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRisk
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidge
 import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation
@@ -132,6 +136,26 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "quadratic-probability-segment",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk.quadratic_feature_probability_segment",
+    upstreamDecl := "Original actual probability and Gaussian feature regularity supplement",
+    upstreamFile := "Pinned Mathlib probability, Gaussian moments, L2 representatives and Bochner calculus",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "L2", "risk", "shared"],
+    saldUse := "Generic probability-law calculus and feature averaging; no model completion",
+    note := "Actual two-probability-law endpoint calculus and integrable potential pairings. Independent fresh compilation and whole-module current-context semantic review accepted. Final root/reader gates and postmerge purification separate. No spatial gradient regularity, SDE or stochastic convergence claim."
+  },
+  {
+    key := "joint-empirical-segment-risk",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.JointEmpiricalSegmentRisk.joint_empirical_probability_segment_derivative",
+    upstreamDecl := "Original actual probability and Gaussian feature regularity supplement",
+    upstreamFile := "Pinned Mathlib probability, Gaussian moments, L2 representatives and Bochner calculus",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "L2", "risk", "shared"],
+    saldUse := "Generic probability-law calculus and feature averaging; no model completion",
+    note := "Actual joint empirical loss and endpoint derivative using only selected finite feature lists. Independent fresh compilation and whole-module current-context semantic review accepted. Final root/reader gates and postmerge purification separate. No spatial gradient regularity, SDE or stochastic convergence claim."
+  },
   {
     key := "analysis.quadratic-feature-risk-1",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk.empirical_squared_feature_risk_derivatives",
@@ -5075,6 +5099,36 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+  {
+    key := "gaussian-polynomial-l2-continuity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging.continuous_gaussian_polynomial_ridge_L2",
+    upstreamDecl := "Original actual probability and Gaussian feature regularity supplement",
+    upstreamFile := "Pinned Mathlib probability, Gaussian moments, L2 representatives and Bochner calculus",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "L2", "risk", "shared"],
+    saldUse := "Generic probability-law calculus and feature averaging; no model completion",
+    note := "Actual Gaussian polynomial L2 membership and continuity, with radial domination derived internally. Independent fresh compilation and whole-module current-context semantic review accepted. Final root/reader gates and postmerge purification separate. No spatial gradient regularity, SDE or stochastic convergence claim."
+  },
+  {
+    key := "gaussian-polynomial-parameter-average",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging.gaussian_polynomial_parameter_average_L2",
+    upstreamDecl := "Original actual probability and Gaussian feature regularity supplement",
+    upstreamFile := "Pinned Mathlib probability, Gaussian moments, L2 representatives and Bochner calculus",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "L2", "risk", "shared"],
+    saldUse := "Generic probability-law calculus and feature averaging; no model completion",
+    note := "Actual scalar parameter mean membership and its L2 class identified with the genuine Bochner feature mean. Independent fresh compilation and whole-module current-context semantic review accepted. Final root/reader gates and postmerge purification separate. No spatial gradient regularity, SDE or stochastic convergence claim."
+  },
+  {
+    key := "gaussian-polynomial-joint-risk",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRisk.gaussian_polynomial_joint_risk_first_variation",
+    upstreamDecl := "Original actual probability and Gaussian feature regularity supplement",
+    upstreamFile := "Pinned Mathlib probability, Gaussian moments, L2 representatives and Bochner calculus",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "L2", "risk", "shared"],
+    saldUse := "Generic probability-law calculus and feature averaging; no model completion",
+    note := "Actual joint-Gaussian polynomial risk first variation and linear convexity, with finite label second moment explicit and no independence hypothesis. Independent fresh compilation and whole-module current-context semantic review accepted. Final root/reader gates and postmerge purification separate. No spatial gradient regularity, SDE or stochastic convergence claim."
+  },
   {
     key := "probability.gaussian.polynomial-ridge-uniform-l2",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidge.standard_gaussian_polynomial_ridge_uniform_L2",

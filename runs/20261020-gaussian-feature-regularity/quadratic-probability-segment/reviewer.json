@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-a86c81b4f6f68c4e",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "codex-gaussian-feature-regularity-formalizer",
+    "blind_decoder": "anonymous-decoder-v1",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "probability-segment-risk-supplement",
+    "anchor": "Complete authored units 0,1,4 and their formula proof steps in the immutable declaration lesson; units[0]",
+    "original_text": "Let μ and ν be probability measures on a measurable parameter space W. Let Φ map W to a real Hilbert space H and be Bochner integrable under both laws, and let y be a fixed vector in H. Write m(ρ)=∫Φ dρ, R(ρ)=‖m(ρ)−y‖², and V(w)=2⟨m(μ)−y,Φ(w)⟩. For every 0≤t≤1, the actual positive measure ρₜ=(1−t)μ+tν is a probability, Φ is integrable under ρₜ, and its mean is the affine interpolation of the endpoint means. V is integrable under both endpoint laws. The right derivative of R(ρₜ) at zero is ∫V dν−∫V dμ. The exact remainder R(ν)−R(μ)−(∫V dν−∫V dμ) is ‖m(ν)−m(μ)‖², and is therefore nonnegative.",
+    "text_sha256": "c38e8a4a7a17d09b1ef814f8b7a1481eb533b42bb18b9feb358335e2057f69c9"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk.quadratic_feature_probability_segment",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/ProbabilitySegmentRisk.lean",
+    "statement": "theorem result\n    {W H : Type*} [MeasurableSpace W]\n    [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]\n    (μ ν : Measure W) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]\n    (feature : W → H) (label : H)\n    (hμ : Integrable feature μ) (hν : Integrable feature ν) :\n    let curve : ℝ → Measure W := fun t =>\n      ENNReal.ofReal (1 - t) • μ + ENNReal.ofReal t • ν\n    let mean : Measure W → H := fun law => ∫ w, feature w ∂law\n    let risk : Measure W → ℝ := fun law => ‖mean law - label‖ ^ 2\n    let potential : W → ℝ := fun w => 2 * ⟪mean μ - label, feature w⟫_ℝ\n    (∀ t ∈ Set.Icc (0 : ℝ) 1,\n      IsProbabilityMeasure (curve t) ∧ Integrable feature (curve t) ∧\n      mean (curve t) = (1 - t) • mean μ + t • mean ν) ∧\n    Integrable potential μ ∧ Integrable potential ν ∧\n    HasDerivWithinAt (fun t => risk (curve t))\n      ((∫ w, potential w ∂ν) - (∫ w, potential w ∂μ))\n      (Set.Icc (0 : ℝ) 1) 0 ∧\n    (risk ν - risk μ - ((∫ w, potential w ∂ν) - (∫ w, potential w ∂μ)) =\n      ‖mean ν - mean μ‖ ^ 2) ∧\n    (risk μ + ((∫ w, potential w ∂ν) - (∫ w, potential w ∂μ)) ≤ risk ν)",
+    "statement_sha256": "0e85fe761980adceb70e97147764081e2d85f7ee82f0e4f95bdad7e07096214b",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every measurable space W, every complete real inner-product normed vector space H, every probability measures mu,nu on W, every feature:W->H, and fixed label:H, assume feature is genuinely Bochner integrable under mu and under nu. For every real t define the actual positive measure curve(t)=ofReal(1-t) times mu + ofReal(t) times nu, where ofReal(r) is the nonnegative extended-real coefficient max(r,0). For any measure law on W define mean(law)=integral_W feature(w) dlaw(w) in H and risk(law)=norm(mean(law)-label)^2 in R. Define the single scalar potential(w)=2*inner_product(mean(mu)-label,feature(w)). Abbreviate D=integral_W potential(w) dnu(w)-integral_W potential(w) dmu(w). Every integral is the literal Bochner integral over all W under the displayed measure; the potential integrals are real-valued. Then all of the following hold: (1) For every real t in the closed interval [0,1], curve(t) is a probability measure, feature is genuinely Bochner integrable under curve(t), and mean(curve(t))=(1-t) times mean(mu)+t times mean(nu). (2) potential is integrable under mu. (3) potential is integrable under nu. (4) The real function t->risk(curve(t)) has derivative D within the closed interval [0,1] at its endpoint 0, including the actual function value at 0. (5) risk(nu)-risk(mu)-D=norm(mean(nu)-mean(mu))^2. (6) risk(mu)+D<=risk(nu). The vector integrability assumptions are supplied separately under the two endpoint laws; segment integrability and both scalar potential integrability claims are derived. For t in [0,1] the nonnegative coefficients are exactly 1-t and t, and the endpoints are curve(0)=mu and curve(1)=nu, with the corresponding means and risks. The derivative is the right-hand endpoint derivative relative to the specified closed interval: as t approaches 0 through that interval, risk(curve(t))=risk(mu)+t*D+o(abs(t)). It is not a claim of an unrestricted two-sided derivative of this actual measure curve. Outside [0,1] the displayed definition still uses clipped nonnegative coefficients rather than a signed affine combination; probability and affine-mean conclusions are asserted only within [0,1]. The scalar difference D uses the same potential based at mean(mu) and is nu minus mu, never an integral against positive or truncated measure subtraction. Under the supplied integrability D also equals 2*inner_product(mean(mu)-label,mean(nu)-mean(mu)), but the explicit derivative value in the statement is the difference of the actual scalar integrals. The loss is the unhalved squared norm of the feature mean minus label, rather than an integral of pointwise squared residuals. The exact remainder is a nonnegative squared norm; D itself may have either sign. No feature second-moment hypothesis, pointwise continuity, topology on W, or abstract global first-variation assertion on measures is supplied or concluded.",
+    "text_sha256": "7dd9b30f91f84b5194aeb39a57e074ee6db9b3cb173bde61abb7447687276225",
+    "decoder": "anonymous-decoder-v1",
+    "decoder_packet_sha256": "d2c0537b07380ace3c01c495900e3d302dbc060ac2a5d05032868753652b3286",
+    "decoder_run_sha256": "3bfc4a1ee5e6550897d4cd469cd800247253f61ece7d6f2f9236755ae19bc7d0",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "7276c7662700ff63b54da31cac0e49438c48af036c5d57728f627ed82dba3d63",
+  "candidate_publication_context": {
+    "file": "e2bde7e8e25f1bfcc8b7d9d9854098332e8829b876b3e2f2570ec81773c9d7d3",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk\n\nopen MeasureTheory\nopen scoped InnerProductSpace\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk\n\ntheorem quadratic_feature_probability_segment\n    {W H : Type*} [MeasurableSpace W]\n    [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]\n    (μ ν : Measure W) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]\n    (feature : W → H) (label : H)\n    (hμ : Integrable feature μ) (hν : Integrable feature ν) :\n    let curve : ℝ → Measure W := fun t =>\n      ENNReal.ofReal (1 - t) • μ + ENNReal.ofReal t • ν\n    let mean : Measure W → H := fun law => ∫ w, feature w ∂law\n    let risk : Measure W → ℝ := fun law => ‖mean law - label‖ ^ 2\n    let potential : W → ℝ := fun w => 2 * ⟪mean μ - label, feature w⟫_ℝ\n    (∀ t ∈ Set.Icc (0 : ℝ) 1,\n      IsProbabilityMeasure (curve t) ∧ Integrable feature (curve t) ∧\n      mean (curve t) = (1 - t) • mean μ + t • mean ν) ∧\n    Integrable potential μ ∧ Integrable potential ν ∧\n    HasDerivWithinAt (fun t => risk (curve t))\n      ((∫ w, potential w ∂ν) - (∫ w, potential w ∂μ))\n      (Set.Icc (0 : ℝ) 1) 0 ∧\n    (risk ν - risk μ - ((∫ w, potential w ∂ν) - (∫ w, potential w ∂μ)) =\n      ‖mean ν - mean μ‖ ^ 2) ∧\n    (risk μ + ((∫ w, potential w ∂ν) - (∫ w, potential w ∂μ)) ≤ risk ν) := by\n  dsimp only\n  let curve : ℝ → Measure W := fun t =>\n    ENNReal.ofReal (1 - t) • μ + ENNReal.ofReal t • ν\n  let mean : Measure W → H := fun law => ∫ w, feature w ∂law\n  let risk : Measure W → ℝ := fun law => ‖mean law - label‖ ^ 2\n  let potential : W → ℝ := fun w => 2 * ⟪mean μ - label, feature w⟫_ℝ\n  change (∀ t ∈ Set.Icc (0 : ℝ) 1,\n    IsProbabilityMeasure (curve t) ∧ Integrable feature (curve t) ∧\n    mean (curve t) = (1 - t) • mean μ + t • mean ν) ∧\n    Integrable potential μ ∧ Integrable potential ν ∧\n    HasDerivWithinAt (fun t => risk (curve t))\n      ((∫ w, potential w ∂ν) - (∫ w, potential w ∂μ)) (Set.Icc (0 : ℝ) 1) 0 ∧\n    (risk ν - risk μ - ((∫ w, potential w ∂ν) - (∫ w, potential w ∂μ)) =\n      ‖mean ν - mean μ‖ ^ 2) ∧\n    (risk μ + ((∫ w, potential w ∂ν) - (∫ w, potential w ∂μ)) ≤ risk ν)\n  have hprops : ∀ t ∈ Set.Icc (0 : ℝ) 1,\n      IsProbabilityMeasure (curve t) ∧ Integrable feature (curve t) ∧\n      mean (curve t) = (1 - t) • mean μ + t • mean ν := by\n    intro t ht\n    have hleft : 0 ≤ 1 - t := sub_nonneg.mpr ht.2\n    have hμt := hμ.smul_measure (c := ENNReal.ofReal (1 - t)) ENNReal.ofReal_ne_top\n    have hνt := hν.smul_measure (c := ENNReal.ofReal t) ENNReal.ofReal_ne_top\n    refine ⟨?_, hμt.add_measure hνt, ?_⟩\n    · apply isProbabilityMeasure_iff.mpr\n      simp only [curve, Measure.add_apply, Measure.smul_apply, measure_univ, smul_eq_mul,\n        mul_one]\n      rw [← ENNReal.ofReal_add hleft ht.1]\n      norm_num\n    · dsimp only [mean, curve]\n      rw [integral_add_measure hμt hνt, integral_smul_measure, integral_smul_measure,\n        ENNReal.toReal_ofReal hleft, ENNReal.toReal_ofReal ht.1]\n  have hcalc := AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk.quadratic_feature_mean_calculus\n    μ ν feature label hμ hν\n  dsimp only at hcalc\n  rcases hcalc with ⟨hpotμ, hpotν, hpair, hbre, hsupport, hderiv⟩\n  refine ⟨hprops, hpotμ, hpotν, ?_, hbre, hsupport⟩\n  apply hderiv.hasDerivWithinAt.congr_of_mem\n  · intro t ht\n    change ‖mean (curve t) - label‖ ^ 2 = _\n    rw [(hprops t ht).2.2]\n    congr 2\n    rw [sub_smul, one_smul, smul_sub]\n    abel\n  · exact ⟨le_rfl, zero_le_one⟩\n\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/309a0949e6bdf83e118a230b304e0e291ac653ff/website/content/declaration_lessons/gaussian-feature-regularity.json",
+      "edition": "Samplinglib original mathematical supplement v1, 2026-10-20",
+      "anchor": "Complete authored units 0,1,4 and their formula proof steps in the immutable declaration lesson",
+      "wording_status": "licensed original",
+      "attribution": "An original reusable mathematics supplement placed by subject. It is not a theorem claim about the primary textbook or a complete stochastic/statistical model."
+    },
+    "statement": "The adjacent complete statements, assumptions and formula proofs describe the exact generic results; the optional Lean is initially folded.",
+    "formulae": [
+      {
+        "label": "Differentiating a quadratic risk along a probability segment",
+        "tex": "\\left.\\frac{d}{dt}R((1-t)\\mu+t\\nu)\\right|_{0^+}=\\int V\\,d\\nu-\\int V\\,d\\mu,\\qquad R(\\nu)-R(\\mu)-\\left(\\int V\\,d\\nu-\\int V\\,d\\mu\\right)=\\|m(\\nu)-m(\\mu)\\|^2."
+      },
+      {
+        "label": "A finite empirical segment has the actual joint-risk derivative",
+        "tex": "\\rho_a=\\frac1N\\sum_{j=1}^N\\delta_{w_a^j},\\qquad \\left.\\frac d{dt}F((1-t)\\rho_0+t\\rho_1)\\right|_{0^+}=\\int V\\,d\\rho_1-\\int V\\,d\\rho_0."
+      },
+      {
+        "label": "An actual Gaussian joint-data risk has a first variation",
+        "tex": "\\left.\\frac d{dt}F((1-t)\\rho_0+t\\rho_1)\\right|_{0^+}=\\int V_{\\rho_0}\\,d\\rho_1-\\int V_{\\rho_0}\\,d\\rho_0,\\qquad F(\\rho_1)\\ge F(\\rho_0)+\\int V_{\\rho_0}\\,d(\\rho_1-\\rho_0)."
+      }
+    ],
+    "assumptions": [
+      "E has finite-dimensional real inner-product and Borel structures. P is a true joint probability with standard Gaussian first marginal.",
+      "N>0. Only the two selected lists of feature slices are assumed to be in L²(Pₓ); global kernel measurability, a uniform feature bound, and nonsampled feature moments are not assumed.",
+      "W and X are measurable, and singletons in W are measurable. P is an actual joint probability; its response coordinate is in L²(P).",
+      "W is measurable; H is a complete real inner-product normed space.",
+      "p is any finite real polynomial, and the actual second-coordinate response belongs to L²(P). Input and response need not be independent.",
+      "μ and ν are probabilities. Φ is genuinely Bochner integrable under each; y is any vector in H."
+    ],
+    "obligations": [
+      {
+        "id": "quadratic-probability-segment",
+        "label": "Differentiating a quadratic risk along a probability segment"
+      },
+      {
+        "id": "joint-empirical-segment-risk",
+        "label": "A finite empirical segment has the actual joint-risk derivative"
+      },
+      {
+        "id": "gaussian-polynomial-joint-risk",
+        "label": "An actual Gaussian joint-data risk has a first variation"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk.quadratic_feature_probability_segment",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/ProbabilitySegmentRisk.lean",
+      "source_line": 8,
+      "short_name": "quadratic_feature_probability_segment",
+      "title": "Differentiating a quadratic risk along a probability segment",
+      "classification": "canonical shared library node; original mathematical supplement",
+      "statement": "Let μ and ν be probability measures on a measurable parameter space W. Let Φ map W to a real Hilbert space H and be Bochner integrable under both laws, and let y be a fixed vector in H. Write m(ρ)=∫Φ dρ, R(ρ)=‖m(ρ)−y‖², and V(w)=2⟨m(μ)−y,Φ(w)⟩. For every 0≤t≤1, the actual positive measure ρₜ=(1−t)μ+tν is a probability, Φ is integrable under ρₜ, and its mean is the affine interpolation of the endpoint means. V is integrable under both endpoint laws. The right derivative of R(ρₜ) at zero is ∫V dν−∫V dμ. The exact remainder R(ν)−R(μ)−(∫V dν−∫V dμ) is ‖m(ν)−m(μ)‖², and is therefore nonnegative.",
+      "formula": "\\left.\\frac{d}{dt}R((1-t)\\mu+t\\nu)\\right|_{0^+}=\\int V\\,d\\nu-\\int V\\,d\\mu,\\qquad R(\\nu)-R(\\mu)-\\left(\\int V\\,d\\nu-\\int V\\,d\\mu\\right)=\\|m(\\nu)-m(\\mu)\\|^2.",
+      "assumptions": [
+        "W is measurable; H is a complete real inner-product normed space.",
+        "μ and ν are probabilities. Φ is genuinely Bochner integrable under each; y is any vector in H."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Stay within probability measures",
+          "text": "On the closed interval the two nonnegative coefficients add to one. Scaling and adding genuine integrable functions preserves integrability under the resulting measure.",
+          "formula": "\\rho_t(W)=(1-t)\\mu(W)+t\\nu(W)=1.",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        },
+        {
+          "number": 2,
+          "title": "Integrate the affine segment",
+          "text": "Linearity of the Bochner integral identifies the actual segment mean, without replacing the measure path by an unrelated vector path.",
+          "formula": "m(\\rho_t)=(1-t)m(\\mu)+tm(\\nu).",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        },
+        {
+          "number": 3,
+          "title": "Compute the potential pairing",
+          "text": "The bounded linear functional defined by the fixed residual commutes with the integral. This also proves the two scalar potential integrals exist.",
+          "formula": "\\int V\\,d\\nu-\\int V\\,d\\mu=2\\langle m(\\mu)-y,m(\\nu)-m(\\mu)\\rangle.",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        },
+        {
+          "number": 4,
+          "title": "Differentiate and retain the square remainder",
+          "text": "Apply real Hilbert-space squared-norm calculus to the affine mean. Restrict its derivative to the probability interval; expand the square to obtain the nonnegative remainder.",
+          "formula": "\\|r+th\\|^2=\\|r\\|^2+2t\\langle r,h\\rangle+t^2\\|h\\|^2.",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        }
+      ],
+      "lean_statement": "Let μ and ν be probability measures on a measurable parameter space W. Let Φ map W to a real Hilbert space H and be Bochner integrable under both laws, and let y be a fixed vector in H. Write m(ρ)=∫Φ dρ, R(ρ)=‖m(ρ)−y‖², and V(w)=2⟨m(μ)−y,Φ(w)⟩. For every 0≤t≤1, the actual positive measure ρₜ=(1−t)μ+tν is a probability, Φ is integrable under ρₜ, and its mean is the affine interpolation of the endpoint means. V is integrable under both endpoint laws. The right derivative of R(ρₜ) at zero is ∫V dν−∫V dμ. The exact remainder R(ν)−R(μ)−(∫V dν−∫V dμ) is ‖m(ν)−m(μ)‖², and is therefore nonnegative.",
+      "lean_proof": "The formula proof above explains the mathematical moves; the adjacent folded Lean gives their exact implementation.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk.quadratic_feature_mean_calculus"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.integral_add_measure",
+        "MeasureTheory.integral_smul_measure",
+        "HasDerivWithinAt.congr_of_mem"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/309a0949e6bdf83e118a230b304e0e291ac653ff/website/content/declaration_lessons/gaussian-feature-regularity.json",
+          "label": "Samplinglib original probability and Gaussian feature regularity supplement v1 (2026-10-20)",
+          "scope": "Original generic mathematical supplement from the cited pinned library prerequisites; no primary-textbook theorem or statistical convergence credit."
+        }
+      ],
+      "tests": {
+        "file": "Tests/GaussianFeatureRegularity.lean",
+        "scope": "Closed actual probability and joint-data consumers; focused compilation pending."
+      }
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk.quadratic_feature_probability_segment",
+      "role": "proof-edge",
+      "supports": [
+        "quadratic-probability-segment"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Let μ and ν be probability measures on a measurable parameter space W. Let Φ map W to a real Hilbert space H and be Bochner integrable under both laws, and let y be a fixed vector in H. Write m(ρ)=∫Φ dρ, R(ρ)=‖m(ρ)−y‖², and V(w)=2⟨m(μ)−y,Φ(w)⟩. For every 0≤t≤1, the actual positive measure ρₜ=(1−t)μ+tν is a probability, Φ is integrable under ρₜ, and its mean is the affine interpolation of the endpoint means. V is integrable under both endpoint laws. The right derivative of R(ρₜ) at zero is ∫V dν−∫V dμ. The exact remainder R(ν)−R(μ)−(∫V dν−∫V dμ) is ‖m(ν)−m(μ)‖², and is therefore nonnegative.",
+        "lean": "The exact adjacent public signature preserves all displayed primitive structures and hypotheses, literal measures/functions, produced integrability and derivative scope."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "a905cdbf25e1ea5f95cf208052845eba133740c10f39896394d5a7dd4cf74dcf"
+}

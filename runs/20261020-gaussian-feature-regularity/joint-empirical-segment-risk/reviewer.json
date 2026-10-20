@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-a7c214e134e29937",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "codex-gaussian-feature-regularity-formalizer",
+    "blind_decoder": "anonymous-decoder-v1",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "probability-segment-risk-supplement",
+    "anchor": "Complete authored units 0,1,4 and their formula proof steps in the immutable declaration lesson; units[1]",
+    "original_text": "Let P be a probability law on X×ℝ, with its actual input marginal Pₓ. Let K:W×X→ℝ be a scalar feature, and assume the actual response coordinate belongs to L²(P). Choose N>0 and two indexed parameter configurations w₀,w₁ of length N. Assume only their selected feature functions K(wₐʲ,·) belong to L²(Pₓ), for a=0,1 and every index j. Let ρ₀ and ρ₁ be their literal equally weighted Dirac empirical measures, retaining repeated indices. Define fρ(x)=∫K(w,x) dρ(w), F(ρ)=∫(fρ(x)−y)² dP(x,y), and V(w)=2∫(fρ₀(x)−y)K(w,x) dP(x,y). Every mixture (1−t)ρ₀+tρ₁ for 0≤t≤1 is a probability with integrable squared loss. V is integrable under both empirical laws, and the actual scalar risk along the mixture has right derivative ∫V dρ₁−∫V dρ₀ at zero.",
+    "text_sha256": "9a704f7f7690ce54ae54b83d29fa81db3c90615167ec9e53728131a4fb9a4f2c"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.JointEmpiricalSegmentRisk.joint_empirical_probability_segment_derivative",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/JointEmpiricalSegmentRisk.lean",
+    "statement": "theorem result\n    {W X : Type*} [MeasurableSpace W] [MeasurableSingletonClass W] [MeasurableSpace X]\n    (P : Measure (X × ℝ)) [IsProbabilityMeasure P]\n    (K : W → X → ℝ)\n    (hlabel : MemLp (fun z : X × ℝ => z.2) 2 P)\n    {N : ℕ} (hN : 0 < N) (w0 w1 : Fin N → W)\n    (hfeature0 : ∀ j, MemLp (K (w0 j)) 2 (P.map Prod.fst))\n    (hfeature1 : ∀ j, MemLp (K (w1 j)) 2 (P.map Prod.fst)) :\n    let rho0 : Measure W := (N : ℝ≥0∞)⁻¹ • ∑ j, Measure.dirac (w0 j)\n    let rho1 : Measure W := (N : ℝ≥0∞)⁻¹ • ∑ j, Measure.dirac (w1 j)\n    let curve : ℝ → Measure W := fun t =>\n      ENNReal.ofReal (1 - t) • rho0 + ENNReal.ofReal t • rho1\n    let predictor : Measure W → X → ℝ := fun law x => ∫ q, K q x ∂law\n    let risk : Measure W → ℝ := fun law => ∫ z, (predictor law z.1 - z.2) ^ 2 ∂P\n    let potential : W → ℝ := fun q =>\n      2 * ∫ z, (predictor rho0 z.1 - z.2) * K q z.1 ∂P\n    (∀ t ∈ Set.Icc (0 : ℝ) 1,\n      IsProbabilityMeasure (curve t) ∧\n      Integrable (fun z : X × ℝ => (predictor (curve t) z.1 - z.2) ^ 2) P) ∧\n    Integrable potential rho0 ∧ Integrable potential rho1 ∧\n    HasDerivWithinAt (fun t => risk (curve t))\n      ((∫ q, potential q ∂rho1) - (∫ q, potential q ∂rho0))\n      (Set.Icc (0 : ℝ) 1) 0",
+    "statement_sha256": "f2ef0ffbbf9779ebae481142cc570fff16f3f72f3a1ba4ede26e61ad78b87510",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every measurable spaces W and X, with measurable singletons in W, every joint probability measure P on X times R, every kernel K:W->X->R, and a supplied L2(P) membership witness for the actual response z->z.2, let N be any natural number with N>0 and w0,w1:Fin N->W any two indexed particle families. Assume for each j:Fin N that K(w0(j)) and K(w1(j)) belong to L2(PX), where PX=P.map Prod.fst. These supplied memberships mean almost-everywhere strong measurability and finite L2 seminorm under the indicated actual measures. Use the following fixed definitions. Set PX=P.map Prod.fst, the actual first-coordinate marginal. Define rho0=(N:nonnegative_extended_reals)^(-1) times sum_{j:Fin N} dirac(w0(j)) and rho1=(N:nonnegative_extended_reals)^(-1) times sum_{j:Fin N} dirac(w1(j)). For every real t define the actual positive measure curve(t)=ofReal(1-t) times rho0 + ofReal(t) times rho1, where ofReal(r) embeds max(r,0) into the nonnegative extended reals. Define predictor(law,x)=integral_W K(q,x) dlaw(q) for every measure law on W, and risk(law)=integral_{X times R}(predictor(law,z.1)-z.2)^2 dP(z). Define one potential(q)=2*integral_{X times R}(predictor(rho0,z.1)-z.2)*K(q,z.1) dP(z). Abbreviate D=integral_W potential(q) drho1(q)-integral_W potential(q) drho0(q). Every integral is a literal real Bochner integral on the full displayed space with the indicated measure. Then all four outer conclusions hold: (1) For every t in the closed interval [0,1], curve(t) is a probability measure and z->(predictor(curve(t),z.1)-z.2)^2 is genuinely integrable under P. (2) potential is genuinely integrable under rho0. (3) potential is genuinely integrable under rho1. (4) The real function t->risk(curve(t)) has derivative D within [0,1] at its endpoint 0, including its actual value at 0. There are exactly N indices at each endpoint, without a distinctness condition. Repeated particle values, including overlaps between the two families, accumulate their masses. The segment is supported on the finite union of the endpoint particle values. On [0,1] the coefficients are exactly 1-t and t; curve(0)=rho0 and curve(1)=rho1. Each endpoint predictor is the pointwise arithmetic average of its N sampled raw features, and prediction along this finite segment is their affine interpolation. The derivative is the right-hand derivative relative to the closed interval and uses risk(curve(0))=risk(rho0); it is not an unrestricted two-sided derivative of the clipped extension. The response is the actual second coordinate of P, with no independence or product decomposition assumed. Supplied label and sampled-feature L2 memberships yield the displayed squared-loss and endpoint potential integrability conclusions. No uniform feature norm bound is supplied. Only sampled slices carry feature membership assumptions; no global measurability or L2 assumption on the whole kernel is imposed. For q in the finite endpoint support, the inner potential integrand is genuinely P-integrable by these sampled L2 assumptions. For q outside that support, no such integrability is asserted, so the formula defining potential retains its totalized real-integral meaning there. Potential integrability under the two empirical laws and the derivative statement do not give a genuine global first variation at arbitrary off-support locations or under arbitrary parameter laws. Both scalar integrals in D use the same rho0-anchored potential, with rho1 minus rho0 direction; this is not an integral against positive or truncated subtraction of measures. The risk is the unhalved integrated squared residual, so potential has literal factor 2. The full conclusion has the segment assertion, two endpoint scalar integrability assertions, and the endpoint derivative; no quantitative remainder budget is part of it.",
+    "text_sha256": "d37136f047381cf6b0e0504df2c1a42ffca8a595517c75bdb653bf1695de4ca5",
+    "decoder": "anonymous-decoder-v1",
+    "decoder_packet_sha256": "58818b9867e1925c450c624ade0962e9903d97258d1ae5cd0bfd40cc9ccdd435",
+    "decoder_run_sha256": "de5b052ac1c98463f2dab8644c6585b35b2d538bf86b234cde3bde869cc3b35d",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "bf81725441a98b853a32e728f81725d8fb23c0fc28c275dff3d9dc7e01daded9",
+  "candidate_publication_context": {
+    "file": "4192b502f321dc9fb5ad4c372bb47de645743333526b9cbeb8ce242516cfd990",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk\n\nopen MeasureTheory\nopen scoped ENNReal InnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.JointEmpiricalSegmentRisk\n\ntheorem joint_empirical_probability_segment_derivative\n    {W X : Type*} [MeasurableSpace W] [MeasurableSingletonClass W] [MeasurableSpace X]\n    (P : Measure (X × ℝ)) [IsProbabilityMeasure P]\n    (K : W → X → ℝ)\n    (hlabel : MemLp (fun z : X × ℝ => z.2) 2 P)\n    {N : ℕ} (hN : 0 < N) (w0 w1 : Fin N → W)\n    (hfeature0 : ∀ j, MemLp (K (w0 j)) 2 (P.map Prod.fst))\n    (hfeature1 : ∀ j, MemLp (K (w1 j)) 2 (P.map Prod.fst)) :\n    let rho0 : Measure W := (N : ℝ≥0∞)⁻¹ • ∑ j, Measure.dirac (w0 j)\n    let rho1 : Measure W := (N : ℝ≥0∞)⁻¹ • ∑ j, Measure.dirac (w1 j)\n    let curve : ℝ → Measure W := fun t =>\n      ENNReal.ofReal (1 - t) • rho0 + ENNReal.ofReal t • rho1\n    let predictor : Measure W → X → ℝ := fun law x => ∫ q, K q x ∂law\n    let risk : Measure W → ℝ := fun law => ∫ z, (predictor law z.1 - z.2) ^ 2 ∂P\n    let potential : W → ℝ := fun q =>\n      2 * ∫ z, (predictor rho0 z.1 - z.2) * K q z.1 ∂P\n    (∀ t ∈ Set.Icc (0 : ℝ) 1,\n      IsProbabilityMeasure (curve t) ∧\n      Integrable (fun z : X × ℝ => (predictor (curve t) z.1 - z.2) ^ 2) P) ∧\n    Integrable potential rho0 ∧ Integrable potential rho1 ∧\n    HasDerivWithinAt (fun t => risk (curve t))\n      ((∫ q, potential q ∂rho1) - (∫ q, potential q ∂rho0))\n      (Set.Icc (0 : ℝ) 1) 0 := by\n  classical\n  dsimp only\n  let rhoOf : (Fin N → W) → Measure W :=\n    fun cfg => (N : ℝ≥0∞)⁻¹ • ∑ j, Measure.dirac (cfg j)\n  let curve : ℝ → Measure W := fun t =>\n    ENNReal.ofReal (1 - t) • rhoOf w0 + ENNReal.ofReal t • rhoOf w1\n  let predictor : Measure W → X → ℝ := fun law x => ∫ q, K q x ∂law\n  let risk : Measure W → ℝ := fun law => ∫ z, (predictor law z.1 - z.2) ^ 2 ∂P\n  let potential : W → ℝ := fun q =>\n    2 * ∫ z, (predictor (rhoOf w0) z.1 - z.2) * K q z.1 ∂P\n  change (∀ t ∈ Set.Icc (0 : ℝ) 1,\n      IsProbabilityMeasure (curve t) ∧\n      Integrable (fun z : X × ℝ => (predictor (curve t) z.1 - z.2) ^ 2) P) ∧\n    Integrable potential (rhoOf w0) ∧ Integrable potential (rhoOf w1) ∧\n    HasDerivWithinAt (fun t => risk (curve t))\n      ((∫ q, potential q ∂rhoOf w1) - (∫ q, potential q ∂rhoOf w0))\n      (Set.Icc (0 : ℝ) 1) 0\n  have hinv : (N : ℝ≥0∞)⁻¹ ≠ ∞ := by\n    apply ENNReal.inv_ne_top.mpr\n    exact_mod_cast hN.ne'\n  have hInt (cfg : Fin N → W) (g : W → ℝ) : Integrable g (rhoOf cfg) := by\n    apply Integrable.smul_measure (c := (N : ℝ≥0∞)⁻¹) _ hinv\n    exact integrable_finsetSum_measure.mpr (fun j _ => integrable_dirac (by simp))\n  have hEval (cfg : Fin N → W) (g : W → ℝ) :\n      (∫ q, g q ∂rhoOf cfg) = (N : ℝ)⁻¹ * ∑ j, g (cfg j) := by\n    dsimp only [rhoOf]\n    rw [integral_smul_measure,\n      integral_finsetSum_measure (fun j _ => integrable_dirac (by simp))]\n    simp [smul_eq_mul]\n  have hPred (cfg : Fin N → W) (x : X) :\n      predictor (rhoOf cfg) x = (N : ℝ)⁻¹ * ∑ j, K (cfg j) x :=\n    hEval cfg (fun q => K q x)\n  have hmarg : MeasurePreserving (Prod.fst : X × ℝ → X) P (P.map Prod.fst) :=\n    measurable_fst.measurePreserving P\n  have hf0 (j : Fin N) : MemLp (fun z : X × ℝ => K (w0 j) z.1) 2 P :=\n    (hfeature0 j).comp_measurePreserving hmarg\n  have hf1 (j : Fin N) : MemLp (fun z : X × ℝ => K (w1 j) z.1) 2 P :=\n    (hfeature1 j).comp_measurePreserving hmarg\n  let mean (cfg : Fin N → W) (hf : ∀ j, MemLp (fun z : X × ℝ => K (cfg j) z.1) 2 P) :\n      Lp ℝ 2 P := (N : ℝ)⁻¹ • ∑ j, (hf j).toLp (fun z => K (cfg j) z.1)\n  let m0 : Lp ℝ 2 P := mean w0 hf0\n  let m1 : Lp ℝ 2 P := mean w1 hf1\n  let label : Lp ℝ 2 P := hlabel.toLp (fun z : X × ℝ => z.2)\n  have hBase (cfg : Fin N → W) (hf : ∀ j, MemLp (fun z : X × ℝ => K (cfg j) z.1) 2 P) :=\n    empirical_law_squared_risk_eq_L2_norm P hN cfg\n      (fun q z => K q z.1) (fun z => z.2) hf hlabel\n  have hMean (cfg : Fin N → W) (hf : ∀ j, MemLp (fun z : X × ℝ => K (cfg j) z.1) 2 P) :\n      (fun z => mean cfg hf z) =ᵐ[P]\n        (fun z : X × ℝ => predictor (rhoOf cfg) z.1) := by\n    filter_upwards [Lp.coeFn_smul (N : ℝ)⁻¹ (∑ j, (hf j).toLp (fun z => K (cfg j) z.1)),\n      Lp.coeFn_fun_finsetSum Finset.univ (fun j => (hf j).toLp (fun z => K (cfg j) z.1)),\n      ae_all_iff.2 (fun j => (hf j).coeFn_toLp)] with z hsmul hsum hj\n    change (((N : ℝ)⁻¹ • ∑ j, (hf j).toLp (fun z => K (cfg j) z.1)) z) = _\n    simp only [Pi.smul_apply, smul_eq_mul] at hsmul\n    rw [hsmul, hsum, hPred]\n    congr 1\n    exact Finset.sum_congr rfl (fun j _ => hj j)\n  have hResidual : (fun z => (m0 - label) z) =ᵐ[P]\n      (fun z : X × ℝ => predictor (rhoOf w0) z.1 - z.2) := by\n    filter_upwards [Lp.coeFn_sub m0 label, hMean w0 hf0, hlabel.coeFn_toLp]\n      with z hsub hm hy\n    simp only [Pi.sub_apply] at hsub\n    rw [hsub, hm, hy]\n  have hPotMean (cfg : Fin N → W)\n      (hf : ∀ j, MemLp (fun z : X × ℝ => K (cfg j) z.1) 2 P) :\n      (∫ q, potential q ∂rhoOf cfg) = 2 * ⟪m0 - label, mean cfg hf⟫_ℝ := by\n    have hpot (j : Fin N) : potential (cfg j) =\n        2 * ⟪m0 - label, (hf j).toLp (fun z => K (cfg j) z.1)⟫_ℝ := by\n      dsimp only [potential]\n      rw [L2.inner_def]\n      congr 1\n      apply integral_congr_ae\n      filter_upwards [hResidual, (hf j).coeFn_toLp] with z hr hj\n      simp only [Real.inner_apply, hr, hj]\n    rw [hEval]\n    simp_rw [hpot]\n    dsimp only [mean]\n    rw [real_inner_smul_right, inner_sum, ← Finset.mul_sum]\n    ring\n  have hPair : ((∫ q, potential q ∂rhoOf w1) - (∫ q, potential q ∂rhoOf w0)) =\n      2 * ⟪m0 - label, m1 - m0⟫_ℝ := by\n    rw [hPotMean w1 hf1, hPotMean w0 hf0, inner_sub_right]\n    dsimp only [m0, m1]\n    ring\n  have hCurvePred (t : ℝ) (ht : t ∈ Set.Icc (0 : ℝ) 1) (x : X) :\n      predictor (curve t) x =\n        (1 - t) * predictor (rhoOf w0) x + t * predictor (rhoOf w1) x := by\n    dsimp only [predictor, curve]\n    rw [integral_add_measure\n      ((hInt w0 (fun q => K q x)).smul_measure ENNReal.ofReal_ne_top)\n      ((hInt w1 (fun q => K q x)).smul_measure ENNReal.ofReal_ne_top)]\n    simp only [integral_smul_measure, ENNReal.toReal_ofReal (sub_nonneg.mpr ht.2),\n      ENNReal.toReal_ofReal ht.1, smul_eq_mul]\n  have hPredLp (cfg : Fin N → W)\n      (hf : ∀ j, MemLp (fun z : X × ℝ => K (cfg j) z.1) 2 P) :\n      MemLp (fun z : X × ℝ => predictor (rhoOf cfg) z.1) 2 P := by\n    have hs := (memLp_finsetSum Finset.univ (fun j _ => hf j)).const_smul (N : ℝ)⁻¹\n    exact hs.ae_eq (Filter.Eventually.of_forall (fun z => (hPred cfg z.1).symm))\n  have hMixLp (t : ℝ) (ht : t ∈ Set.Icc (0 : ℝ) 1) :\n      MemLp (fun z : X × ℝ => predictor (curve t) z.1 - z.2) 2 P := by\n    have hs := (((hPredLp w0 hf0).const_smul (1 - t)).add\n      ((hPredLp w1 hf1).const_smul t)).sub hlabel\n    exact hs.ae_eq (Filter.Eventually.of_forall (fun z => by\n      change (1 - t) * predictor (rhoOf w0) z.1 +\n        t * predictor (rhoOf w1) z.1 - z.2 = predictor (curve t) z.1 - z.2\n      rw [hCurvePred t ht]))\n  have hMixAE (t : ℝ) (ht : t ∈ Set.Icc (0 : ℝ) 1) :\n      (fun z => ((1 - t) • m0 + t • m1 - label) z) =ᵐ[P]\n        (fun z : X × ℝ => predictor (curve t) z.1 - z.2) := by\n    filter_upwards [Lp.coeFn_sub ((1 - t) • m0 + t • m1) label,\n      Lp.coeFn_add ((1 - t) • m0) (t • m1),\n      Lp.coeFn_smul (1 - t) m0, Lp.coeFn_smul t m1,\n      hMean w0 hf0, hMean w1 hf1, hlabel.coeFn_toLp]\n      with z hsub hadd hsm0 hsm1 hm0 hm1 hy\n    simp only [Pi.sub_apply, Pi.add_apply, Pi.smul_apply, smul_eq_mul] at hsub hadd hsm0 hsm1\n    rw [hsub, hadd, hsm0, hsm1, hm0, hm1, hy, hCurvePred t ht]\n  have hRiskCurve (t : ℝ) (ht : t ∈ Set.Icc (0 : ℝ) 1) :\n      risk (curve t) = ‖(1 - t) • m0 + t • m1 - label‖ ^ 2 := by\n    dsimp only [risk]\n    rw [← real_inner_self_eq_norm_sq, L2.inner_def]\n    symm\n    apply integral_congr_ae\n    filter_upwards [hMixAE t ht] with z hz\n    simp only [Real.inner_apply, hz, pow_two]\n  have hProps (t : ℝ) (ht : t ∈ Set.Icc (0 : ℝ) 1) :\n      IsProbabilityMeasure (curve t) ∧\n      Integrable (fun z : X × ℝ => (predictor (curve t) z.1 - z.2) ^ 2) P := by\n    refine ⟨?_, (hMixLp t ht).integrable_sq⟩\n    letI : IsProbabilityMeasure (rhoOf w0) := (hBase w0 hf0).1\n    letI : IsProbabilityMeasure (rhoOf w1) := (hBase w1 hf1).1\n    apply isProbabilityMeasure_iff.mpr\n    simp only [curve, Measure.add_apply, Measure.smul_apply, measure_univ, smul_eq_mul, mul_one]\n    rw [← ENNReal.ofReal_add (sub_nonneg.mpr ht.2) ht.1]\n    norm_num\n  refine ⟨hProps, hInt w0 potential, hInt w1 potential, ?_⟩\n  rw [hPair]\n  have hlin : HasDerivAt (fun t : ℝ => m0 + t • (m1 - m0) - label) (m1 - m0) 0 := by\n    have hs : HasDerivAt (fun t : ℝ => t • (m1 - m0)) (m1 - m0) 0 := by\n      simpa only [one_smul, id_eq] using (hasDerivAt_id (0 : ℝ)).smul_const (m1 - m0)\n    exact (hs.const_add m0).sub_const label\n  have hd : HasDerivAt (fun t : ℝ => ‖m0 + t • (m1 - m0) - label‖ ^ 2)\n      (2 * ⟪m0 - label, m1 - m0⟫_ℝ) 0 := by\n    simpa only [zero_smul, add_zero] using hlin.norm_sq\n  apply hd.hasDerivWithinAt.congr_of_mem\n  · intro t ht\n    rw [hRiskCurve t ht]\n    congr 2\n    rw [sub_smul, one_smul, smul_sub]\n    abel\n  · exact ⟨le_rfl, zero_le_one⟩\n\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.JointEmpiricalSegmentRisk\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/309a0949e6bdf83e118a230b304e0e291ac653ff/website/content/declaration_lessons/gaussian-feature-regularity.json",
+      "edition": "Samplinglib original mathematical supplement v1, 2026-10-20",
+      "anchor": "Complete authored units 0,1,4 and their formula proof steps in the immutable declaration lesson",
+      "wording_status": "licensed original",
+      "attribution": "An original reusable mathematics supplement placed by subject. It is not a theorem claim about the primary textbook or a complete stochastic/statistical model."
+    },
+    "statement": "The adjacent complete statements, assumptions and formula proofs describe the exact generic results; the optional Lean is initially folded.",
+    "formulae": [
+      {
+        "label": "Differentiating a quadratic risk along a probability segment",
+        "tex": "\\left.\\frac{d}{dt}R((1-t)\\mu+t\\nu)\\right|_{0^+}=\\int V\\,d\\nu-\\int V\\,d\\mu,\\qquad R(\\nu)-R(\\mu)-\\left(\\int V\\,d\\nu-\\int V\\,d\\mu\\right)=\\|m(\\nu)-m(\\mu)\\|^2."
+      },
+      {
+        "label": "A finite empirical segment has the actual joint-risk derivative",
+        "tex": "\\rho_a=\\frac1N\\sum_{j=1}^N\\delta_{w_a^j},\\qquad \\left.\\frac d{dt}F((1-t)\\rho_0+t\\rho_1)\\right|_{0^+}=\\int V\\,d\\rho_1-\\int V\\,d\\rho_0."
+      },
+      {
+        "label": "An actual Gaussian joint-data risk has a first variation",
+        "tex": "\\left.\\frac d{dt}F((1-t)\\rho_0+t\\rho_1)\\right|_{0^+}=\\int V_{\\rho_0}\\,d\\rho_1-\\int V_{\\rho_0}\\,d\\rho_0,\\qquad F(\\rho_1)\\ge F(\\rho_0)+\\int V_{\\rho_0}\\,d(\\rho_1-\\rho_0)."
+      }
+    ],
+    "assumptions": [
+      "E has finite-dimensional real inner-product and Borel structures. P is a true joint probability with standard Gaussian first marginal.",
+      "N>0. Only the two selected lists of feature slices are assumed to be in L²(Pₓ); global kernel measurability, a uniform feature bound, and nonsampled feature moments are not assumed.",
+      "W and X are measurable, and singletons in W are measurable. P is an actual joint probability; its response coordinate is in L²(P).",
+      "W is measurable; H is a complete real inner-product normed space.",
+      "p is any finite real polynomial, and the actual second-coordinate response belongs to L²(P). Input and response need not be independent.",
+      "μ and ν are probabilities. Φ is genuinely Bochner integrable under each; y is any vector in H."
+    ],
+    "obligations": [
+      {
+        "id": "quadratic-probability-segment",
+        "label": "Differentiating a quadratic risk along a probability segment"
+      },
+      {
+        "id": "joint-empirical-segment-risk",
+        "label": "A finite empirical segment has the actual joint-risk derivative"
+      },
+      {
+        "id": "gaussian-polynomial-joint-risk",
+        "label": "An actual Gaussian joint-data risk has a first variation"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.JointEmpiricalSegmentRisk.joint_empirical_probability_segment_derivative",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Analysis.JointEmpiricalSegmentRisk",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/JointEmpiricalSegmentRisk.lean",
+      "source_line": 9,
+      "short_name": "joint_empirical_probability_segment_derivative",
+      "title": "A finite empirical segment has the actual joint-risk derivative",
+      "classification": "canonical shared library node; original mathematical supplement",
+      "statement": "Let P be a probability law on X×ℝ, with its actual input marginal Pₓ. Let K:W×X→ℝ be a scalar feature, and assume the actual response coordinate belongs to L²(P). Choose N>0 and two indexed parameter configurations w₀,w₁ of length N. Assume only their selected feature functions K(wₐʲ,·) belong to L²(Pₓ), for a=0,1 and every index j. Let ρ₀ and ρ₁ be their literal equally weighted Dirac empirical measures, retaining repeated indices. Define fρ(x)=∫K(w,x) dρ(w), F(ρ)=∫(fρ(x)−y)² dP(x,y), and V(w)=2∫(fρ₀(x)−y)K(w,x) dP(x,y). Every mixture (1−t)ρ₀+tρ₁ for 0≤t≤1 is a probability with integrable squared loss. V is integrable under both empirical laws, and the actual scalar risk along the mixture has right derivative ∫V dρ₁−∫V dρ₀ at zero.",
+      "formula": "\\rho_a=\\frac1N\\sum_{j=1}^N\\delta_{w_a^j},\\qquad \\left.\\frac d{dt}F((1-t)\\rho_0+t\\rho_1)\\right|_{0^+}=\\int V\\,d\\rho_1-\\int V\\,d\\rho_0.",
+      "assumptions": [
+        "W and X are measurable, and singletons in W are measurable. P is an actual joint probability; its response coordinate is in L²(P).",
+        "N>0. Only the two selected lists of feature slices are assumed to be in L²(Pₓ); global kernel measurability, a uniform feature bound, and nonsampled feature moments are not assumed."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Use the actual finite support",
+          "text": "Dirac integration turns the predictor into the indexed average. Colliding particles keep their multiplicity, and every scalar function is integrable under these finite empirical laws.",
+          "formula": "f_{\\rho_a}(x)=N^{-1}\\sum_j K(w_a^j,x).",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        },
+        {
+          "number": 2,
+          "title": "Construct genuine joint L² classes",
+          "text": "Pull each selected feature along the actual first-coordinate marginal. Finite sums and the supplied response class construct both endpoint means and their residual in L²(P).",
+          "formula": "\\|K(w,\\cdot)\\|_{L^2(P_X)}=\\|K(w,X)\\|_{L^2(P)}.",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        },
+        {
+          "number": 3,
+          "title": "Identify the finite potential pairing",
+          "text": "Cauchy–Schwarz gives integrability of every required sampled residual-feature product. Finite integration yields the actual potential pairing as twice the residual inner product with the mean change.",
+          "formula": "\\int V\\,d\\rho_1-\\int V\\,d\\rho_0=2\\langle m_0-Y,m_1-m_0\\rangle_{L^2(P)}.",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        },
+        {
+          "number": 4,
+          "title": "Identify the scalar mixture risk",
+          "text": "Linearity under the finite positive-measure mixture gives the actual predictor interpolation; its square is integrable and its integral equals the squared L² residual norm.",
+          "formula": "F((1-t)\\rho_0+t\\rho_1)=\\|(1-t)m_0+tm_1-Y\\|_{L^2(P)}^2.",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        },
+        {
+          "number": 5,
+          "title": "Take the endpoint derivative",
+          "text": "Differentiate this affine residual norm and restrict to the probability interval. Both finite outer potential integrals already exist.",
+          "formula": "\\left.\\frac d{dt}\\|m_0-Y+t(m_1-m_0)\\|^2\\right|_{0^+}=2\\langle m_0-Y,m_1-m_0\\rangle.",
+          "lean": "The exact statement and proof are available in the adjacent initially folded Lean."
+        }
+      ],
+      "lean_statement": "Let P be a probability law on X×ℝ, with its actual input marginal Pₓ. Let K:W×X→ℝ be a scalar feature, and assume the actual response coordinate belongs to L²(P). Choose N>0 and two indexed parameter configurations w₀,w₁ of length N. Assume only their selected feature functions K(wₐʲ,·) belong to L²(Pₓ), for a=0,1 and every index j. Let ρ₀ and ρ₁ be their literal equally weighted Dirac empirical measures, retaining repeated indices. Define fρ(x)=∫K(w,x) dρ(w), F(ρ)=∫(fρ(x)−y)² dP(x,y), and V(w)=2∫(fρ₀(x)−y)K(w,x) dP(x,y). Every mixture (1−t)ρ₀+tρ₁ for 0≤t≤1 is a probability with integrable squared loss. V is integrable under both empirical laws, and the actual scalar risk along the mixture has right derivative ∫V dρ₁−∫V dρ₀ at zero.",
+      "lean_proof": "The formula proof above explains the mathematical moves; the adjacent folded Lean gives their exact implementation.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk.empirical_law_squared_risk_eq_L2_norm"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.MemLp.comp_measurePreserving",
+        "MeasureTheory.integral_finsetSum_measure",
+        "HasDerivAt.norm_sq",
+        "HasDerivWithinAt.congr_of_mem"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/309a0949e6bdf83e118a230b304e0e291ac653ff/website/content/declaration_lessons/gaussian-feature-regularity.json",
+          "label": "Samplinglib original probability and Gaussian feature regularity supplement v1 (2026-10-20)",
+          "scope": "Original generic mathematical supplement from the cited pinned library prerequisites; no primary-textbook theorem or statistical convergence credit."
+        }
+      ],
+      "tests": {
+        "file": "Tests/GaussianFeatureRegularity.lean",
+        "scope": "Closed actual probability and joint-data consumers; focused compilation pending."
+      }
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.JointEmpiricalSegmentRisk.joint_empirical_probability_segment_derivative",
+      "role": "proof-edge",
+      "supports": [
+        "joint-empirical-segment-risk"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Let P be a probability law on X×ℝ, with its actual input marginal Pₓ. Let K:W×X→ℝ be a scalar feature, and assume the actual response coordinate belongs to L²(P). Choose N>0 and two indexed parameter configurations w₀,w₁ of length N. Assume only their selected feature functions K(wₐʲ,·) belong to L²(Pₓ), for a=0,1 and every index j. Let ρ₀ and ρ₁ be their literal equally weighted Dirac empirical measures, retaining repeated indices. Define fρ(x)=∫K(w,x) dρ(w), F(ρ)=∫(fρ(x)−y)² dP(x,y), and V(w)=2∫(fρ₀(x)−y)K(w,x) dP(x,y). Every mixture (1−t)ρ₀+tρ₁ for 0≤t≤1 is a probability with integrable squared loss. V is integrable under both empirical laws, and the actual scalar risk along the mixture has right derivative ∫V dρ₁−∫V dρ₀ at zero.",
+        "lean": "The exact adjacent public signature preserves all displayed primitive structures and hypotheses, literal measures/functions, produced integrability and derivative scope."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "fc2100452b6bb4c531b1f0e4b88e59498e949fbe39fd9765e51495155197e426"
+}

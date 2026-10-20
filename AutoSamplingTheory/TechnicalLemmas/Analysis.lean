@@ -1,3 +1,5 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.JointEmpiricalSegmentRisk
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk
 import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk
 import AutoSamplingTheory.TechnicalLemmas.Analysis.UniformRegularization
 import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle

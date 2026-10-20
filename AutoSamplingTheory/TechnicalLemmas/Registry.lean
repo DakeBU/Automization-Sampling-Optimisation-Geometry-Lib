@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidge
 import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticFeatureRisk
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh
@@ -5074,6 +5075,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+  {
+    key := "probability.gaussian.polynomial-ridge-uniform-l2",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidge.standard_gaussian_polynomial_ridge_uniform_L2",
+    upstreamDecl := "Original Gaussian polynomial ridge L2 moment and isometry supplement",
+    upstreamFile := "Pinned Mathlib Gaussian moments, actual linear projection and L2 pullback",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Gaussian", "polynomial", "L2", "moments", "shared"],
+    saldUse := "Generic Gaussian observables and planned quadratic-feature inputs; no SALD completion",
+    note := "One actual standard Gaussian polynomial moment producer. All ridge L2 membership and the common positive dimension-independent bound are derived, never supplied. Non-even and zero polynomials and dimension0 allowed. Independent fresh module/test and current-context7-slot source review accepted; exact final root/reader gates and postmerge purification remain pending. No label moment, global parameter averaging, statistical first variation or convergence claim."
+  },
   {
     key := "probability.kernel.retained-coordinate-reversibility",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.KernelRetainedReversibility.retained_coordinate_isReversible",

@@ -1,0 +1,237 @@
+{
+  "id": "ASTIS-RT-20261020-BoundedEntropy-5",
+  "state": "accepted",
+  "source": {
+    "source_id": "canonical:bounded-entropy-core-5",
+    "anchor": "Canonical finite-integral supporting interface; background: Chewi, Log-Concave Sampling, August20 2026, §2.3.1, pp60–61; not the full PI/LSI proposition",
+    "url": "https://chewisinho.github.io/main.pdf",
+    "original_text": "Let μ be a probability measure on any measurable space, B an almost-everywhere measurable real function, and l,u finite real bounds with l ≤ B ≤ u μ-almost everywhere. If C ≥ 0 and the finite-integral energy LSI holds under μ for fixed Γ,D with constant C, it holds for the normalized tilt dν = exp(B)/Z dμ with constant C exp(u-l). The proof derives integrability and positivity of Z, normalization, and both measure comparisons; it does not assume the perturbed LSI.",
+    "text_sha256": "0f4c4eab6f5e7c8216ee80de3b9f9d38988d63b832ce249ac1e6372fec73af9f"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.energyLogSobolev_tilted",
+    "file": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/BoundedPerturbation.lean",
+    "statement": "∀\n  {X : Type u_1} [inst : MeasurableSpace.{u_1} X] {μ : MeasureTheory.Measure.{u_1} X}\n  [MeasureTheory.IsProbabilityMeasure.{u_1} μ] {Γ : (X → ℝ) → X → ℝ} {admissible : (X → ℝ) → Prop} {C l u : ℝ}\n  {B : X → ℝ},\n  LE.le.{0} 0 C →\n    AEMeasurable.{u_1, 0} B μ →\n      (∀ᵐ (x : X) ∂μ, LE.le.{0} l (B x)) →\n        (∀ᵐ (x : X) ∂μ, LE.le.{0} (B x) u) →\n          AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.EnergyLogSobolev.{u_1} μ Γ\n              admissible C →\n            AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.EnergyLogSobolev.{u_1}\n              (MeasureTheory.Measure.tilted.{u_1} μ B) Γ admissible\n              (HMul.hMul.{0, 0, 0} C (Real.exp (HSub.hSub.{0, 0, 0} u l)))",
+    "statement_sha256": "424720e46e4ff89a70dcf1f3cc18c41561d10b6e4f75f9fc0f28127bc2d0b9eb",
+    "compiled": true,
+    "formalizer": "root-bounded-entropy-20261020",
+    "compiler_evidence": "runs/20261020-bounded-entropy-transfer/focused-build.log; Lean4.33.0; three theorems standard3 axioms only.",
+    "decoder_context": [
+      "Measure comparison is comparison on all measurable sets. ENNReal.ofReal takes the nonnegative part into the nonnegative extended reals; scalar multiplication of a measure scales its mass. Integrable means genuine Bochner integrability, and ≤ᵐ[m] means almost-everywhere comparison under m.",
+      "For any measure m and real function h, entropy m h denotes (∫ x, h x * Real.log (h x) ∂m) - (∫ x, h x ∂m) * Real.log (∫ x, h x ∂m). These are real Bochner integrals; Real.log 0 = 0. This is not an extended-real entropy.",
+      "EnergyLogSobolev m G D c is the predicate: for every real function f, D f, Integrable (fun x => (f x)^2) m, Integrable (fun x => (f x)^2 * Real.log ((f x)^2)) m, Integrable (G f) m, and 0 ≤ᵐ[m] G f imply entropy m (fun x => (f x)^2) ≤ 2*c*∫ x, G f x ∂m. D is a fixed arbitrary test-function predicate and G is a fixed energy-density map. The predicate does not assert that all D-tests have the displayed integrability.",
+      "The tilted law m.tilted B is m.withDensity (fun x => ENNReal.ofReal (Real.exp (B x) / ∫ y, Real.exp (B y) ∂m)). Its normalization is meaningful when the exponential is integrable; this is not a separate hypothesis in the displayed theorem."
+    ]
+  },
+  "reconstruction": {
+    "text": "Theorem: for every measurable space X, probability measure mu, fixed Gamma : (X -> R) -> (X -> R), fixed admissible : (X -> R) -> Prop, real C,l,u, and B : X -> R, assume C >= 0, B is mu-almost-everywhere measurable, l <= B mu-almost everywhere, B <= u mu-almost everywhere, and P(mu,Gamma,admissible,C). Put Z = integral_X exp(B(y)) dmu(y) and nu = mu.withDensity(x -> ofReal(exp(B(x))/Z)). Then P(nu,Gamma,admissible,C exp(u-l)). Ent_m(h) means integral_X h(x) log(h(x)) dm(x) - (integral_X h(x) dm(x)) log(integral_X h(x) dm(x)). Every integral is a real Bochner integral over all X, not an extended-real integral; log(0) = 0. Lean totalizes the Bochner integral by assigning zero when integrability fails. P(m,G,D,c) means: for every f : X -> R, D(f), Integrable(f^2,m), Integrable(f^2 log(f^2),m), Integrable(G(f),m), and G(f) >= 0 m-almost everywhere imply Ent_m(f^2) <= 2 c integral_X G(f)(x) dm(x). G and D are fixed outside the test quantifier. This does not assert that every D-test has the stated integrability or sign. P is vacuous if no test satisfies every antecedent, including if D is empty. There is no implicit topology, smoothness, derivative, or structural condition on G. Explicitly, every admissible f whose f^2, f^2 log(f^2), and Gamma(f) are nu-integrable and whose Gamma(f) is nonnegative nu-almost everywhere satisfies Ent_nu(f^2) <= 2 [C exp(u-l)] integral_X Gamma(f) dnu. No separate exponential-integrability or positive-normalization premise is displayed: almost-everywhere measurability and finite real bounds under a probability law imply exp(l) <= Z <= exp(u), hence positive finite normalization.",
+    "text_sha256": "0fe26a49445e71acd55f80203314474f23db201cc45e78cda8f64d1f2f381005",
+    "decoder": "bounded_entropy_blind_decoder",
+    "decoder_run_sha256": "2913220685f728031ba398477c78cd418a74fa739c2d054d566f5eb074388420",
+    "decoder_packet_sha256": "c4ff5e60e3fdc1ef211bd58c47f64ca543fc08c007203fef165ea4fb8371702c",
+    "source_text_visible": false,
+    "lean_statement_sha256": "424720e46e4ff89a70dcf1f3cc18c41561d10b6e4f75f9fc0f28127bc2d0b9eb",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/20261020-bounded-entropy-transfer/ASTIS-RT-20261020-BoundedEntropy-5.decoder-result.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Probability mu, AE-measurable real B with real bounds l,u, and fixed Gamma,D,C.",
+      "reconstructed": "The same data with target measure mu.tilted B.",
+      "relation": "explicit-elaboration",
+      "evidence": "The density comparison unfolds the actual tilted measure and its normalization integral."
+    },
+    "domains": {
+      "original": "The fixed finite-integral target-test domain and mu-AE bounds l <= B <= u.",
+      "reconstructed": "Exactly that domain; exponential integrability and positivity of normalization are derived.",
+      "relation": "same",
+      "evidence": "hExp is established from the upper bound and AE measurability; hZ uses integral_exp_pos."
+    },
+    "quantifiers": {
+      "original": "Every mu,B,l,u,C,Gamma,D satisfying the displayed premises.",
+      "reconstructed": "Those universal parameters, with Gamma,D fixed throughout transfer.",
+      "relation": "same",
+      "evidence": "The final application of energyLogSobolev_of_measure_comparison reuses the same interface."
+    },
+    "assumptions": {
+      "original": "Base probability, C >= 0, AE-measurable B, both finite AE bounds, and the base energy inequality.",
+      "reconstructed": "Exactly those hypotheses; neither positive Z, normalization, nor target LSI is a theorem premise.",
+      "relation": "same",
+      "evidence": "hExp, probability of the tilt, hZ, hupper, and hlower are proved in the body."
+    },
+    "conclusion": {
+      "original": "Normalized tilt has the fixed energy inequality with C exp(u-l).",
+      "reconstructed": "EnergyLogSobolev (mu.tilted B) Gamma admissible (C*exp(u-l)).",
+      "relation": "same",
+      "evidence": "The two proved comparisons are passed to the general transfer, with coefficient rewritten by hconst."
+    },
+    "scopes": {
+      "original": "The canonical normalized-tilt mechanism, not the whole geometric proposition.",
+      "reconstructed": "A finite-integral transfer, with no Sobolev, geometry, best-constant, or independent compiler certification.",
+      "relation": "explicit-elaboration",
+      "evidence": "The current candidate explicitly reserves the geometric base inequality and larger functional domains; its target-integrability wording is read for the stated finite tests, not all D-tests. The current obligation map uses this declaration only as its stated prerequisite/proof edge for canonical supporting results; the geometric-source application is explicitly remaining and has no binding among the five packets."
+    },
+    "constant_dependencies": {
+      "original": "Same Z cancels: (Z/exp l)*(exp u/Z)=exp(u-l).",
+      "reconstructed": "Those exact a,b are proved and hconst establishes C*a*b=C*exp(u-l).",
+      "relation": "same",
+      "evidence": "hupper and hlower follow by withDensity monotonicity; exp_sub and field_simp use the proved Z != 0."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "This needs explicit valid finite bounds l,u. Passing from an oscillation hypothesis to such bounds, identifying a geometric base/test interface, and any Sobolev or extended-domain extension remain separate.",
+      "evidence": "Current canonical source statement, full implementation, independent reconstruction, and candidate prose explicitly limit the claim to the supporting finite-integral core. The separate geometric-source-application obligation has no proof binding."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "bounded_entropy_source_reviewer",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "The upper AE bound controls exp B by the integrable constant exp u and measurability supplies the measurable representative. Its positive integral Z and the normalization lemma construct a probability tilt. The proof establishes upper density exp u/Z and reciprocal comparison Z/exp l by withDensity monotonicity and exact multiplication, rather than assuming them. Applying the proved general transfer cancels the same Z to give exp(u-l). There is no placeholder target law or assumed perturbed inequality.",
+    "review_run_sha256": "1d9bcd127ee0dba90ea24bb69ff21bda2df5b97d8c75ec9d0018737367711559",
+    "reviewer_packet_sha256": "97e05f05fefedd7454c72080fd741bab68519f8d3e972694a9c9647e28fa2d52",
+    "run_artifact": "runs/20261020-bounded-entropy-transfer/ASTIS-RT-20261020-BoundedEntropy-5.review-result.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "79adbc476c5a98d85bbdc372ec719dc50762988122a8800196d2dce7508dfec7",
+  "publication_context": {
+    "file": "f5c9bad8f07e675adfa9f304a5b02ecb0256df2987b984128a60b33598a18693",
+    "current_lean_module": "import Mathlib.MeasureTheory.Integral.Bochner.Basic\nimport Mathlib.Analysis.SpecialFunctions.Log.Basic\nimport Mathlib.MeasureTheory.Measure.Tilted\nimport Mathlib.Tactic.FieldSimp\nimport Mathlib.Tactic.Linarith\nimport Mathlib.Tactic.Ring\nimport Mathlib.Tactic.Positivity\n\n/-!\n# Bounded changes of measure for entropy and logarithmic Sobolev inequalities\n\nThese canonical measure-theoretic results retain a fixed test-function class and\nenergy density. All entropy and energy tests are restricted to the displayed\nfinite-integral domain. No geometric base inequality or Sobolev extension is\ninferred. The exponential perturbation factor is proved by cancellation of\nthe same normalization integral in the two measure comparisons.\n-/\n\nopen MeasureTheory Filter\n\nnamespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation\n\nnoncomputable section\n\nvariable {X : Type*} [MeasurableSpace X]\n\nnoncomputable def entropy (μ : Measure X) (g : X → ℝ) : ℝ :=\n  (∫ x, g x * Real.log (g x) ∂μ) - (∫ x, g x ∂μ) * Real.log (∫ x, g x ∂μ)\n\nprivate def cost (s t : ℝ) : ℝ := s * Real.log (s / t) - s + t\n\nprivate lemma cost_nonneg {s t : ℝ} (hs : 0 ≤ s) (ht : 0 < t) :\n    0 ≤ cost s t := by\n  rcases hs.eq_or_lt with rfl | hs\n  · simp [cost, ht.le]\n  have h := Real.log_le_sub_one_of_pos (div_pos ht hs)\n  have heq : Real.log (t / s) = -Real.log (s / t) := by\n    rw [Real.log_div (ne_of_gt ht) (ne_of_gt hs),\n      Real.log_div (ne_of_gt hs) (ne_of_gt ht)]\n    ring\n  rw [heq] at h\n  have hmul := mul_le_mul_of_nonneg_left h hs.le\n  have hdiv : s * (t / s) = t := by field_simp\n  dsimp [cost]\n  nlinarith\n\nprivate lemma cost_expand {s t : ℝ} (ht : 0 < t) :\n    cost s t = s * Real.log s - s * Real.log t - s + t := by\n  by_cases hs : s = 0\n  · simp [cost, hs]\n  rw [cost, Real.log_div hs (ne_of_gt ht)]\n  ring\n\nvariable {X : Type*} [MeasurableSpace X]\n\nprivate lemma integrable_cost {μ : Measure X} [IsProbabilityMeasure μ]\n    {g : X → ℝ} (hg : Integrable g μ)\n    (hlog : Integrable (fun x => g x * Real.log (g x)) μ) {t : ℝ} (ht : 0 < t) :\n    Integrable (fun x => cost (g x) t) μ := by\n  simp_rw [cost_expand ht]\n  exact ((hlog.sub (hg.mul_const _)).sub hg).add (integrable_const _)\n\nprivate lemma integral_cost {μ : Measure X} [IsProbabilityMeasure μ]\n    {g : X → ℝ} (hg : Integrable g μ)\n    (hlog : Integrable (fun x => g x * Real.log (g x)) μ) {t : ℝ} (ht : 0 < t) :\n    (∫ x, cost (g x) t ∂μ) = entropy μ g + cost (∫ x, g x ∂μ) t := by\n  simp_rw [cost_expand ht]\n  rw [integral_add (f := fun x => g x * Real.log (g x) - g x * Real.log t - g x)\n      (g := fun _ => t) ((hlog.sub (hg.mul_const _)).sub hg) (integrable_const _),\n    integral_sub (f := fun x => g x * Real.log (g x) - g x * Real.log t)\n      (g := g) (hlog.sub (hg.mul_const _)) hg,\n    integral_sub (f := fun x => g x * Real.log (g x))\n      (g := fun x => g x * Real.log t) hlog (hg.mul_const _), integral_mul_const]\n  simp [entropy]\n  ring\n\nprivate theorem entropy_le_integral_cost {μ : Measure X} [IsProbabilityMeasure μ]\n    {g : X → ℝ} (hg0 : 0 ≤ᵐ[μ] g) (hg : Integrable g μ)\n    (hlog : Integrable (fun x => g x * Real.log (g x)) μ) {t : ℝ} (ht : 0 < t) :\n    entropy μ g ≤ ∫ x, cost (g x) t ∂μ := by\n  rw [integral_cost hg hlog ht]\n  exact le_add_of_nonneg_right (cost_nonneg (integral_nonneg_of_ae hg0) ht)\n\ntheorem entropy_le_mul_of_measure_le {μ ν : Measure X}\n    [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] {g : X → ℝ} {b : ℝ}\n    (hb : 0 ≤ b) (hν : ν ≤ ENNReal.ofReal b • μ)\n    (hg0 : 0 ≤ᵐ[μ] g) (hg : Integrable g μ)\n    (hlog : Integrable (fun x => g x * Real.log (g x)) μ) :\n    entropy ν g ≤ b * entropy μ g := by\n  have hνμ : ν ≪ μ := Measure.absolutelyContinuous_of_le_smul hν\n  have hgn : Integrable g ν := (hg.smul_measure ENNReal.ofReal_ne_top).mono_measure hν\n  have hln : Integrable (fun x => g x * Real.log (g x)) ν :=\n    (hlog.smul_measure ENNReal.ofReal_ne_top).mono_measure hν\n  have hgn0 : 0 ≤ᵐ[ν] g := hνμ.ae_le hg0\n  have hm0 : 0 ≤ ∫ x, g x ∂μ := integral_nonneg_of_ae hg0\n  rcases hm0.eq_or_lt with hm | hm\n  · have hgzero : g =ᵐ[μ] 0 := (integral_eq_zero_iff_of_nonneg_ae hg0 hg).1 hm.symm\n    have hgnzero : g =ᵐ[ν] 0 := hνμ.ae_le hgzero\n    have hlogzero : (fun x => g x * Real.log (g x)) =ᵐ[μ] 0 :=\n      hgzero.mono fun x hx => by simp [hx]\n    have hlognzero : (fun x => g x * Real.log (g x)) =ᵐ[ν] 0 :=\n      hgnzero.mono fun x hx => by simp [hx]\n    simp [entropy, integral_congr_ae hgzero, integral_congr_ae hgnzero,\n      integral_congr_ae hlogzero, integral_congr_ae hlognzero]\n  · calc\n      entropy ν g ≤ ∫ x, cost (g x) (∫ y, g y ∂μ) ∂ν :=\n        entropy_le_integral_cost hgn0 hgn hln hm\n      _ ≤ ∫ x, cost (g x) (∫ y, g y ∂μ) ∂(ENNReal.ofReal b • μ) :=\n        integral_mono_measure hν\n          (by filter_upwards [Measure.ae_smul_measure hg0 (ENNReal.ofReal b)] with x hx\n              exact cost_nonneg hx hm)\n          ((integrable_cost hg hlog hm).smul_measure ENNReal.ofReal_ne_top)\n      _ = b * entropy μ g := by\n        rw [integral_smul_measure, ENNReal.toReal_ofReal hb, smul_eq_mul,\n          integral_cost hg hlog hm]\n        simp [cost]\n\n/- The energy functional is held fixed while the probability law changes.\n   For the usual gradient form choose Γ f = ‖∇f‖². -/\ndef EnergyLogSobolev (μ : Measure X) (Γ : (X → ℝ) → X → ℝ)\n    (admissible : (X → ℝ) → Prop) (C : ℝ) : Prop :=\n  ∀ f : X → ℝ,\n    admissible f →\n    Integrable (fun x => (f x) ^ 2) μ →\n    Integrable (fun x => (f x) ^ 2 * Real.log ((f x) ^ 2)) μ →\n    Integrable (Γ f) μ →\n    (0 ≤ᵐ[μ] Γ f) →\n    entropy μ (fun x => (f x) ^ 2) ≤ 2 * C * ∫ x, Γ f x ∂μ\n\ntheorem energyLogSobolev_of_measure_comparison {μ ν : Measure X}\n    [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]\n    {Γ : (X → ℝ) → X → ℝ} {admissible : (X → ℝ) → Prop} {C a b : ℝ}\n    (hC : 0 ≤ C) (ha : 0 ≤ a) (hb : 0 ≤ b)\n    (hμ : μ ≤ ENNReal.ofReal a • ν) (hν : ν ≤ ENNReal.ofReal b • μ)\n    (hLS : EnergyLogSobolev μ Γ admissible C) :\n    EnergyLogSobolev ν Γ admissible (C * a * b) := by\n  intro f hfAd hf hflog hΓ hΓ0\n  have hfμ := (hf.smul_measure ENNReal.ofReal_ne_top).mono_measure hμ\n  have hflogμ := (hflog.smul_measure ENNReal.ofReal_ne_top).mono_measure hμ\n  have hΓμ := (hΓ.smul_measure ENNReal.ofReal_ne_top).mono_measure hμ\n  have hΓμ0 : 0 ≤ᵐ[μ] Γ f :=\n    (Measure.absolutelyContinuous_of_le_smul hμ).ae_le hΓ0\n  have hE : (∫ x, Γ f x ∂μ) ≤ a * ∫ x, Γ f x ∂ν := by\n    calc\n      _ ≤ ∫ x, Γ f x ∂(ENNReal.ofReal a • ν) :=\n        integral_mono_measure hμ (Measure.ae_smul_measure hΓ0 _)\n          (hΓ.smul_measure ENNReal.ofReal_ne_top)\n      _ = _ := by rw [integral_smul_measure, ENNReal.toReal_ofReal ha, smul_eq_mul]\n  calc\n    entropy ν (fun x => (f x) ^ 2) ≤ b * entropy μ (fun x => (f x) ^ 2) :=\n      entropy_le_mul_of_measure_le hb hν (Eventually.of_forall fun x => sq_nonneg _)\n        hfμ hflogμ\n    _ ≤ b * (2 * C * ∫ x, Γ f x ∂μ) :=\n      mul_le_mul_of_nonneg_left (hLS f hfAd hfμ hflogμ hΓμ hΓμ0) hb\n    _ ≤ b * (2 * C * (a * ∫ x, Γ f x ∂ν)) :=\n      mul_le_mul_of_nonneg_left\n        (mul_le_mul_of_nonneg_left hE (by positivity)) hb\n    _ = 2 * (C * a * b) * ∫ x, Γ f x ∂ν := by ring\n\ntheorem energyLogSobolev_tilted {μ : Measure X} [IsProbabilityMeasure μ]\n    {Γ : (X → ℝ) → X → ℝ} {admissible : (X → ℝ) → Prop} {C l u : ℝ} {B : X → ℝ}\n    (hC : 0 ≤ C) (hB : AEMeasurable B μ)\n    (hl : ∀ᵐ x ∂μ, l ≤ B x) (hu : ∀ᵐ x ∂μ, B x ≤ u)\n    (hLS : EnergyLogSobolev μ Γ admissible C) :\n    EnergyLogSobolev (μ.tilted B) Γ admissible (C * Real.exp (u - l)) := by\n  have hExp : Integrable (fun x => Real.exp (B x)) μ :=\n    (integrable_const (Real.exp u)).mono'\n      (Real.measurable_exp.comp_aemeasurable hB).aestronglyMeasurable (by\n        filter_upwards [hu] with x hx\n        simpa only [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)] using Real.exp_le_exp.mpr hx)\n  have := isProbabilityMeasure_tilted hExp\n  let Z := ∫ x, Real.exp (B x) ∂μ\n  have hZ : 0 < Z := integral_exp_pos hExp\n  have hupper : μ.tilted B ≤ ENNReal.ofReal (Real.exp u / Z) • μ := by\n    rw [Measure.tilted, ← withDensity_const]\n    apply withDensity_mono\n    filter_upwards [hu] with x hx\n    exact ENNReal.ofReal_le_ofReal (div_le_div_of_nonneg_right (Real.exp_le_exp.mpr hx) hZ.le)\n  have hlower : μ ≤ ENNReal.ofReal (Z / Real.exp l) • μ.tilted B := by\n    calc\n      μ = μ.withDensity (fun _ => 1) := withDensity_one.symm\n      _ ≤ μ.withDensity (fun x => ENNReal.ofReal (Z / Real.exp l) *\n          ENNReal.ofReal (Real.exp (B x) / Z)) := by\n        apply withDensity_mono\n        filter_upwards [hl] with x hx\n        rw [← ENNReal.ofReal_mul (by positivity)]\n        have heq : (Z / Real.exp l) * (Real.exp (B x) / Z) =\n            Real.exp (B x) / Real.exp l := by field_simp\n        rw [heq, ← ENNReal.ofReal_one]\n        exact ENNReal.ofReal_le_ofReal\n          ((one_le_div (Real.exp_pos _)).2 (Real.exp_le_exp.mpr hx))\n      _ = ENNReal.ofReal (Z / Real.exp l) • μ.tilted B :=\n        withDensity_smul' _ _ ENNReal.ofReal_ne_top\n  have hconst : C * (Z / Real.exp l) * (Real.exp u / Z) = C * Real.exp (u - l) := by\n    rw [Real.exp_sub]\n    field_simp [ne_of_gt hZ]\n  rw [← hconst]\n  exact energyLogSobolev_of_measure_comparison hC (by positivity) (by positivity)\n    hlower hupper hLS\n\nend\nend AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://chewisinho.github.io/main.pdf",
+      "edition": "August20 2026",
+      "anchor": "§2.3.1, Proposition2.3.1 proof and entropy-cost display, printed pp60–61",
+      "wording_status": "licensed original",
+      "attribution": "Classical Holley–Stroock mechanism; source exposition by Sinho Chewi. These generic library interfaces are not a claim that the complete geometric proposition has been formalized.",
+      "pdf_sha256": "8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae"
+    },
+    "statement": "For a fixed class of finite-integral tests and a fixed nonnegative energy density, bounded comparison of probability laws transfers entropy and its energy inequality. A bounded exponential tilt has exact transfer factor exp(u-l); normalization and target-law integrability are proved. Geometric base inequalities and extension to larger functional domains remain separate.",
+    "formulae": [
+      {
+        "label": "entropy comparison",
+        "tex": "\\nu\\le b\\mu\\quad\\Longrightarrow\\quad\\operatorname{Ent}_\\nu(g)\\le b\\operatorname{Ent}_\\mu(g)."
+      },
+      {
+        "label": "energy inequality transfer",
+        "tex": "\\mu\\le a\\nu,\\quad\\nu\\le b\\mu\\quad\\Longrightarrow\\quad C_\\nu\\le abC_\\mu."
+      },
+      {
+        "label": "exponential factor",
+        "tex": "\\nu=Z^{-1}e^B\\mu,\\quad l\\le B\\le u\\quad\\Longrightarrow\\quad C_\\nu\\le C_\\mu e^{u-l}."
+      }
+    ],
+    "assumptions": [
+      "Both laws in the comparison theorem are probability measures.",
+      "All real entropy tests and energy tests use precisely the finite-integral domain of the displayed definition.",
+      "The energy density and test predicate remain fixed as the measure changes."
+    ],
+    "obligations": [
+      {
+        "id": "entropy-comparison",
+        "label": "Canonical finite-integral entropy comparison"
+      },
+      {
+        "id": "energy-comparison",
+        "label": "Fixed-test-class energy inequality under comparable laws"
+      },
+      {
+        "id": "normalized-tilt",
+        "label": "Normalized exponential perturbation with exact factor exp(u-l)"
+      },
+      {
+        "id": "geometric-source-application",
+        "label": "Remaining source application: identify the geometric reference LSI and intended smooth/Sobolev test domain"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.energyLogSobolev_tilted",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/BoundedPerturbation.lean",
+      "source_line": 160,
+      "short_name": "energyLogSobolev_tilted",
+      "title": "Exponential perturbation with the exact oscillation factor",
+      "classification": "canonical measure-theoretic library node; finite-integral domain",
+      "statement": "Let μ be a probability measure on any measurable space, B an almost-everywhere measurable real function, and l,u finite real bounds with l ≤ B ≤ u μ-almost everywhere. If C ≥ 0 and the finite-integral energy LSI holds under μ for fixed Γ,D with constant C, it holds for the normalized tilt dν = exp(B)/Z dμ with constant C exp(u-l). The proof derives integrability and positivity of Z, normalization, and both measure comparisons; it does not assume the perturbed LSI.",
+      "formula": "\\nu=Z^{-1}e^B\\mu,\\quad l\\le B\\le u\\quad\\Longrightarrow\\quad C_\\nu\\le C_\\mu e^{u-l}.",
+      "assumptions": [
+        "Objects, quantifiers, constants and all finite-integral restrictions are stated in the adjacent statement and exact Lean.",
+        "The test predicate and energy density are fixed before changing the measure; no differential operator is transported."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Construct the normalized probability law",
+          "text": "The upper bound B ≤ u bounds exp B by the integrable constant exp u. Measurability gives integrability, and the strictly positive exponential has positive integral, so Z is finite and positive and the normalized tilt is a probability measure.",
+          "formula": "0<Z=\\int e^B\\,d\\mu<\\infty.",
+          "lean": "Use Integrable.mono', integral_exp_pos and isProbabilityMeasure_tilted."
+        },
+        {
+          "number": 2,
+          "title": "Prove both density comparisons",
+          "text": "The same Z occurs in both bounds. The upper density is exp u / Z; multiplying the tilted density by Z / exp l makes it at least one. Both comparisons follow by monotonicity of withDensity.",
+          "formula": "\\nu\\le\\frac{e^u}{Z}\\mu,\\qquad\\mu\\le\\frac{Z}{e^l}\\nu.",
+          "lean": "Use withDensity_mono, withDensity_const, withDensity_one and withDensity_smul'."
+        },
+        {
+          "number": 3,
+          "title": "Cancel the normalization constant",
+          "text": "Apply the general measure-comparison transfer. Its factor is the product of the two proved bounds; Z cancels exactly, leaving exp(u-l). The test class and energy density are unchanged.",
+          "formula": "C\\frac Z{e^l}\\frac{e^u}Z=Ce^{u-l}.",
+          "lean": "Apply energyLogSobolev_of_measure_comparison; use Real.exp_sub and field_simp with Z ≠ 0."
+        }
+      ],
+      "lean_statement": "Let μ be a probability measure on any measurable space, B an almost-everywhere measurable real function, and l,u finite real bounds with l ≤ B ≤ u μ-almost everywhere. If C ≥ 0 and the finite-integral energy LSI holds under μ for fixed Γ,D with constant C, it holds for the normalized tilt dν = exp(B)/Z dμ with constant C exp(u-l). The proof derives integrability and positivity of Z, normalization, and both measure comparisons; it does not assume the perturbed LSI.",
+      "lean_proof": "See the adjacent exact source and the stepwise mathematical proof.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.energyLogSobolev_of_measure_comparison"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Integrable.mono'",
+        "MeasureTheory.integral_exp_pos",
+        "MeasureTheory.isProbabilityMeasure_tilted",
+        "MeasureTheory.withDensity_mono",
+        "MeasureTheory.withDensity_smul'",
+        "Real.exp_sub"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf",
+          "label": "Chewi, Log-Concave Sampling, August20 2026, §2.3.1",
+          "scope": "Classical variational-cost and bounded-perturbation proof background; only the displayed canonical finite-integral core is asserted."
+        }
+      ],
+      "tests": {
+        "file": "Tests/BoundedPerturbation.lean",
+        "scope": "Actual theorem imports and standard-axiom checks; focused module compilation."
+      }
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.energyLogSobolev_tilted",
+      "role": "proof-edge",
+      "supports": [
+        "normalized-tilt"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The background proposition is stated using geometric LSI and oscillation.",
+        "lean": "A fixed arbitrary test predicate and energy density on a measurable probability space, with the finite-integral domain expanded explicitly."
+      },
+      {
+        "source": "A bounded exponential tilt of a probability law.",
+        "lean": "Almost-everywhere measurable B and finite almost-everywhere bounds l ≤ B ≤ u; exponential integrability is derived in the tilted theorem."
+      }
+    ]
+  }
+}

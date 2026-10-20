@@ -1,0 +1,160 @@
+{
+  "schema": "bounded-source-proof-topology-v1",
+  "extractor": {
+    "identity": "/root/entropy_source_topology",
+    "role": "independent source-only proof topology extractor",
+    "implementation_blind": true,
+    "implementation_inputs_read": [],
+    "other_audits_read": [],
+    "self_coverage_approval": false,
+    "full_theorem_formalization_claim": false
+  },
+  "source": {
+    "title": "Log-Concave Sampling",
+    "author": "Sinho Chewi",
+    "version": "August 20, 2026",
+    "url": "https://chewisinho.github.io/main.pdf",
+    "anchor_url": "https://chewisinho.github.io/main.pdf#page=72",
+    "section": "2.3.1 Bounded Perturbation",
+    "anchor": "Proposition 2.3.1 and its proof; entropy infimum display at the beginning of printed page 61",
+    "printed_pages": [60, 61],
+    "web_pdf_zero_based_indices": [71, 72],
+    "one_based_pdf_pages_implied_by_web_indices": [72, 73],
+    "requested_physical_pages": [71, 72],
+    "pagination_resolution": "The requested physical numbering differs by one from the web indices. Proposition and printed pagination determine this extraction.",
+    "bounded_text_lines": {"start": 5102, "end": 5177},
+    "input_artifacts": [
+      {"kind": "primary PDF", "url": "https://chewisinho.github.io/main.pdf", "access": "web PDF text and screenshot requests"}
+    ],
+    "incidental_tool_context": "Web extraction returned adjacent material; no adjacent theorem is used as an LSI dependency."
+  },
+  "scope": {
+    "target": "C_LSI(mu) <= C_LSI(pi) exp(b)",
+    "included": ["Proposition 2.3.1 LSI branch", "entropy infimum formula", "nonnegative integrand", "shared normalization and density comparison template"],
+    "excluded": ["PI conclusion and variance variational theorem", "Proposition 2.3.2 T2", "Proposition 2.3.3 Lipschitz mapping", "subsequent Lipschitz perturbation and convolution results", "Exercise 2.12 solution"]
+  },
+  "source_explicit_statements": [
+    {
+      "id": "context-density-bounds",
+      "anchor": "printed 60, lines 5108-5114",
+      "status": "motivation, not extra proposition binders",
+      "formula": "0 < c <= dmu/dpi <= C < infinity"
+    },
+    {
+      "id": "target-lsi",
+      "anchor": "Proposition 2.3.1, printed 60, lines 5115-5121",
+      "hypotheses": ["pi satisfies a log-Sobolev inequality", "dmu/dpi proportional to exp(B)", "osc(B) := sup(B)-inf(B) <= b"],
+      "conclusion": "mu satisfies LSI; C_LSI(mu) <= C_LSI(pi) exp(b)",
+      "measure_context": "probability measures on R^d"
+    },
+    {
+      "id": "normalization",
+      "anchor": "shared PI proof, printed 60, lines 5132-5140",
+      "formula": "dmu = exp(B)/Z dpi",
+      "status": "reused display; Z called the normalizing constant"
+    },
+    {
+      "id": "entropy-infimum",
+      "anchor": "printed 61, lines 5165-5177",
+      "formula": "ent_nu(f) = inf_{t>0} E_nu[f log(f/t) - f + t]",
+      "function_domain_as_printed": "f : R^d -> R_+",
+      "measure_binder_context": "nu in P(R^d), as in the preceding variational discussion",
+      "proof_status_in_source": "Exercise 2.12"
+    },
+    {
+      "id": "integrand-nonnegative",
+      "anchor": "underbrace in entropy display, printed 61, lines 5169-5174",
+      "formula": "Phi_t(f) := f log(f/t)-f+t >= 0, t>0"
+    },
+    {
+      "id": "lsi-similar-argument",
+      "anchor": "printed 61, line 5165",
+      "status": "LSI comparison not expanded; preceding PI chain supplies the template"
+    }
+  ],
+  "proof_graph": {
+    "nodes": [
+      {"id": "N0", "kind": "hypothesis", "statement_ref": "target-lsi"},
+      {"id": "N1", "kind": "normalization", "formula": "Z = integral exp(B) dpi; dmu = exp(B)/Z dpi", "source_ref": "normalization", "detail_status": "integral expression inferred from probability normalization"},
+      {"id": "N2", "kind": "density-bounds", "formula": "a := exp(inf B)/Z; A := exp(sup B)/Z; 0<a<=dmu/dpi<=A; A/a=exp(osc B)<=exp(b)", "detail_status": "implicit in shared comparison display"},
+      {"id": "N3", "kind": "variational-identity", "statement_ref": "entropy-infimum"},
+      {"id": "N4", "kind": "positivity", "statement_ref": "integrand-nonnegative"},
+      {"id": "N5", "kind": "entropy-comparison", "formula": "ent_mu(h) = inf_{t>0} integral Phi_t(h) exp(B)/Z dpi <= A inf_{t>0} integral Phi_t(h) dpi = A ent_pi(h)", "domain": "h : R^d -> R_+", "detail_status": "LSI argument reconstructed from the expressly reused template"},
+      {"id": "N6", "kind": "apply-base-lsi", "formula": "ent_mu(g^2) <= A ent_pi(g^2) <= A K_LSI(pi) integral Gamma(g) dpi", "detail_status": "implicit; K_LSI denotes the unchanged entropy-energy coefficient in pi's LSI convention"},
+      {"id": "N7", "kind": "reverse-energy-comparison", "formula": "integral Gamma(g) dpi <= a^(-1) integral Gamma(g) dmu", "detail_status": "implicit LSI reuse of PI display; requires Gamma(g)>=0"},
+      {"id": "N8", "kind": "constant-cancellation", "formula": "A K_LSI(pi) a^(-1) = K_LSI(pi) exp(osc B) <= K_LSI(pi) exp(b)", "detail_status": "implicit LSI reuse of PI display"},
+      {"id": "N9", "kind": "conclusion", "formula": "C_LSI(mu) <= exp(b) C_LSI(pi)", "source_ref": "target-lsi"}
+    ],
+    "edges": [
+      {"from": ["N0"], "to": "N1"},
+      {"from": ["N0", "N1"], "to": "N2"},
+      {"from": ["N1", "N2", "N3", "N4"], "to": "N5"},
+      {"from": ["N0", "N5"], "to": "N6"},
+      {"from": ["N1", "N2"], "to": "N7"},
+      {"from": ["N2", "N6", "N7"], "to": "N8"},
+      {"from": ["N8"], "to": "N9"}
+    ]
+  },
+  "substantive_proof_regions": [
+    {"id": "R1", "anchor": "printed 60, lines 5122-5131", "role": "variance infimum; excluded theorem, shared strategy"},
+    {"id": "R2", "anchor": "printed 60, lines 5132-5164", "role": "normalization, upper-density comparison, base inequality, reverse energy comparison, cancellation", "reuse": ["N1", "N2", "N5", "N6", "N7", "N8"], "variance_conclusion_excluded": true},
+    {"id": "R3", "anchor": "printed 61, lines 5165-5177", "role": "LSI reduction; entropy formula; positivity; exercise reference", "reuse": ["N3", "N4", "N5"]}
+  ],
+  "reused_displays": [
+    {"anchor": "printed 60 normalization", "formula": "dmu = exp(B)/Z dpi"},
+    {"anchor": "printed 60 upper comparison", "pattern": "inf integral nonnegative_kernel exp(B)/Z dpi <= exp(sup B)/Z inf integral nonnegative_kernel dpi"},
+    {"anchor": "printed 60 energy comparison", "pattern": "exp(sup B)/Z integral Gamma(g) dpi <= exp(sup B-inf B) integral Gamma(g) exp(B)/Z dpi"},
+    {"anchor": "printed 61 entropy display", "formula": "ent_nu(h) = inf_{t>0} E_nu[Phi_t(h)]; Phi_t(h)>=0"}
+  ],
+  "constants_and_conventions": {
+    "exact_loss": "exp(osc B), bounded by exp(b)",
+    "normalizer_cancels": true,
+    "no_extra_factor_in_lsi_constant_bound": true,
+    "local_lsi_normalization": "These pages do not define the entropy-energy prefactor, Gamma, or the admissible LSI test class. K_LSI above is symbolic; any fixed convention factor is preserved.",
+    "source_pi_chain_shorthand": "The final PI line writes equality with exp(b), although osc(B)<=b only warrants inequality. The extracted LSI bound uses <=.",
+    "zero_value_convention": "R_+ is printed, rather than R_{>0}; extension at h=0 requires the usual 0 log 0 convention, unstated here.",
+    "not_explicit_proposition_binders": ["B measurability", "finite normalization", "test-function regularity", "integrability of h", "integrability of h log h", "finite Dirichlet energy", "extended-real versus finite entropy convention"]
+  },
+  "implicit_analytic_justifications": [
+    {
+      "id": "A1",
+      "obligation": "Give measurable meanings to B, h, Gamma(g), and the Radon-Nikodym density; establish 0<Z<infinity.",
+      "status": "implicit analytic setup, not additional printed theorem hypotheses"
+    },
+    {
+      "id": "A2",
+      "obligation": "Specify finite or extended entropy. Avoid undefined infinity-minus-infinity in E[h log h]-E[h] log E[h].",
+      "status": "domain convention omitted from bounded source"
+    },
+    {
+      "id": "A3",
+      "obligation": "For finite positive m=E_nu[h], expand E_nu[Phi_t(h)] = ent_nu(h)+m log(m/t)-m+t; minimize at t=m. If m=0, use h=0 a.e. and t decreasing to zero. Handle other extended cases separately.",
+      "status": "independent analytic explanation of the exercise-level identity, not source proof text"
+    },
+    {
+      "id": "A4",
+      "obligation": "Nonnegative kernels permit density-order integration. Positive finite scalar multiplication commutes with the infimum over t>0.",
+      "status": "implicit comparison justification"
+    },
+    {
+      "id": "A5",
+      "obligation": "Transfer the admissible LSI test-function domain and necessary integrability between equivalent measures with bounded positive density and reciprocal density.",
+      "status": "implicit domain-transfer obligation, not an extra smoothness binder stated here"
+    },
+    {
+      "id": "A6",
+      "obligation": "Interpret C_LSI as the best constant or an admissible constant consistently; if an infimum is not attained, use arbitrary admissible constants and pass to their infimum.",
+      "status": "implicit final constant argument"
+    }
+  ],
+  "citations_and_references": [
+    {"kind": "external attribution", "name": "Holley and Stroock (1987)", "anchor": "Proposition 2.3.1 title", "in_scope": true, "reference_followed": false},
+    {"kind": "internal exercise reference", "name": "Exercise 2.12", "anchor": "entropy infimum formula", "in_scope_as_dependency": true, "solution_read": false},
+    {"kind": "external attribution", "name": "Gozlan et al. (2011)", "anchor": "T2 paragraph following Proposition 2.3.1", "in_scope": false, "reference_followed": false}
+  ],
+  "explicit_exclusions": [
+    {"region": "PI branch of Proposition 2.3.1", "anchor": "printed 60", "excluded": "PI theorem, variance identity and PI proof as independent coverage targets", "retained": "density/normalization/energy template reused by the LSI sentence"},
+    {"region": "T2 paragraph and Proposition 2.3.2", "anchor": "printed 61, lines 5178-5185", "excluded": "T2 hypothesis, P2 domain and factor 8 exp(b) conclusion", "retained": "boundary identification only"}
+  ],
+  "review_status": "Source extraction only; no implementation comparison or coverage verdict."
+}

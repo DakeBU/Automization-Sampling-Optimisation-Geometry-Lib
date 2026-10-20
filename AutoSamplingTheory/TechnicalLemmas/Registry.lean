@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient
 import AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension
@@ -3396,6 +3397,36 @@ def measureMemory : List LemmaMemoryEntry := [
 
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
+  {
+    key := "entropy.measureDomination"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.entropy_le_mul_of_measure_le"
+    upstreamDecl := "Canonical finite-integral supporting core for bounded perturbation"
+    upstreamFile := "Chewi, Log-Concave Sampling, August20 2026, section2.3.1 pp60-61"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["entropy", "log-Sobolev", "change-of-measure", "shared"]
+    saldUse := "For probability measures and nonnegative g with finite entropy integrals, nu <= b mu gives Ent_nu(g) <= b Ent_mu(g)."
+    note := "Independently compiled at proof commit 9ba98ec42d9fa6abd78c045315cdd8d795e37c3c; current five packet-bound audits ASTIS-RT-20261020-BoundedEntropy-1 through -5 accept only this finite-integral scope. The zero-mean case is proved separately; no extended-real entropy claim."
+  },
+  {
+    key := "logSobolev.energyMeasureComparison"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.energyLogSobolev_of_measure_comparison"
+    upstreamDecl := "Canonical finite-integral supporting core for bounded perturbation"
+    upstreamFile := "Chewi, Log-Concave Sampling, August20 2026, section2.3.1 pp60-61"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["entropy", "log-Sobolev", "change-of-measure", "shared"]
+    saldUse := "For one fixed energy and test domain, opposite probability-measure comparisons transfer a finite-integral LSI from C to C*a*b."
+    note := "Independently compiled at proof commit 9ba98ec42d9fa6abd78c045315cdd8d795e37c3c; current five packet-bound audits ASTIS-RT-20261020-BoundedEntropy-1 through -5 accept only this finite-integral scope. The test domain and energy are explicit; reference integrability is derived from target integrability."
+  },
+  {
+    key := "logSobolev.boundedExponentialPerturbation"
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.energyLogSobolev_tilted"
+    upstreamDecl := "Canonical finite-integral supporting core for bounded perturbation"
+    upstreamFile := "Chewi, Log-Concave Sampling, August20 2026, section2.3.1 pp60-61"
+    status := LemmaMemoryStatus.formalizedLocal
+    tags := ["entropy", "log-Sobolev", "change-of-measure", "shared"]
+    saldUse := "A bounded measurable exponential tilt transfers the fixed-energy finite-integral LSI from C to C*exp(u-l)."
+    note := "Independently compiled at proof commit 9ba98ec42d9fa6abd78c045315cdd8d795e37c3c; current five packet-bound audits ASTIS-RT-20261020-BoundedEntropy-1 through -5 accept only this finite-integral scope. Normalization, positive partition function and both density comparisons are derived. Geometric reference LSI and Sobolev extension remain separate."
+  },
   {
     key := "gaussian.outerMarginal.closableGradient"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianMarginalGradient.gaussian_marginal_gradient_closable"

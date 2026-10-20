@@ -1,0 +1,8 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation
+set_option format.width 120
+set_option pp.universes true
+#check @AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.entropy
+#check @AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.EnergyLogSobolev
+#check @AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.entropy_le_mul_of_measure_le
+#check @AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.energyLogSobolev_of_measure_comparison
+#check @AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.energyLogSobolev_tilted

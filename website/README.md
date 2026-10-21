@@ -330,3 +330,22 @@ is summarized with source correspondence rather than copied at length.
 ## Cross-domain extension
 
 `library_shelves.py` renders five peer libraries in the same reader; `cross_domain.py` adds the eight-chapter/two-appendix OT source map, coordinated shared prerequisite order, and higher-order sampling research contract. `formalization_progress.py` owns all five public routes. `underlying_lean_graph.py` exports schema-3 graph data with first-class conceptual `hyperedges` as well as incidence edges; the new Functor Hypergraph view never upgrades source correspondence to a Lean certificate. See `docs/cross-domain-program.md` for schema semantics and source/fallback rules.
+
+## Mathematical prose
+
+Write inline formulas as `\(...\)` or `$...$`; reserve `\[...\]` and
+`$$...$$` for displayed equations. Keep an entire equation inside one pair
+of delimiters. Use code/preformatted blocks only for actual source, commands,
+and deliberate copyable TeX. The reader also recovers complete explicitly
+delimited formulas from legacy inline-code wrappers, without processing Lean
+code, source downloads or editable text areas.
+
+`math-reader.js` configures the shared MathJax startup and typesets newly added
+mathematical prose. The engine, TeX extensions and fonts are pinned to MathJax
+3.2.2 under `static/vendor/` and are published with the site; formula rendering
+does not require a third-party CDN. Preserve that directory when copying assets.
+
+After building, run `python website/scripts/test_math_browser.py --root SITE`.
+This Playwright gate blocks external network access, compiles all unique
+formulas, visits desktop/mobile reader pages, and checks delayed loading,
+inline formulas, live insertion and preservation of code/editor contents.

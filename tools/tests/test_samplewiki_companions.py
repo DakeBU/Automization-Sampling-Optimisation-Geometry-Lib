@@ -14,6 +14,33 @@ from underlying_lean_graph_model import GraphBuilder
 
 
 class CompanionTests(unittest.TestCase):
+    def test_renyi_definition_is_one_complete_inline_formula(self):
+        note = next(x for x in companion.load()['setting']['notes'] if 'R_2(P||Q)' in x)
+        rendered = companion.reader_prose(note)
+        self.assertIn(r'\(R_2(P\Vert Q)=\log\int\left(\frac{dP}{dQ}\right)^2\,dQ\)', rendered)
+        self.assertNotIn('log integral', rendered)
+        self.assertIn('absolutely continuous', rendered)
+        self.assertIn('infinity otherwise', rendered)
+        self.assertNotIn(r'\[', rendered)
+
+    def test_explicit_math_is_not_split_by_legacy_notation_substitutions(self):
+        source = r'Target \(R_2(\mu\Vert\pi)\le\Delta\) and $\alpha+\beta$.'
+        self.assertEqual(companion.reader_prose(source), source)
+        self.assertEqual(companion.reader_prose(r'\(\text{<script>}\)'), r'\(\text{&lt;script&gt;}\)')
+
+    def test_live_reader_reuses_complete_formulas_without_rewriting_source(self):
+        model = companion.load()
+        payload = research_workspace.build_payload(model)
+        queue = 'A_{v+1}=A_v-1+zeta_{v+1}'
+        self.assertIn(r'\(A_{v+1}=A_v-1+\zeta_{v+1}\)', companion.reader_prose(queue))
+        for workspace, source in zip(payload['workspaces'], model['cases']):
+            for theorem, original in zip(workspace['theorems'], source['theorems']):
+                self.assertEqual(theorem['assumptions'], original['assumptions'])
+                self.assertEqual(theorem['statement'], original['statement'])
+                for assumption in theorem['assumptions']:
+                    if assumption in payload['reader_math']:
+                        self.assertEqual(payload['reader_math'][assumption], companion.reader_prose(assumption))
+
     def test_valid_model_and_existing_graph(self):
         companion.validate_data()
         cross_domain.validate_data()
@@ -94,9 +121,8 @@ class CompanionTests(unittest.TestCase):
     def test_known_source_notation_is_typeset_without_changing_metadata(self):
         text = 'R_2(mu_0||pi) <= Delta; ||grad V(x_ref)|| <= sqrt(alpha d).'
         rendered = companion.reader_prose(text)
-        self.assertIn(r'\(R_2(\mu_0\Vert\pi)\)', rendered)
-        self.assertIn(r'\(\|\nabla V(x_{\mathrm{ref}})\|\)', rendered)
-        self.assertIn('≤', rendered)
+        self.assertIn(r'\(R_2(\mu_0\Vert\pi)\le\Delta\)', rendered)
+        self.assertIn(r'\(\|\nabla V(x_{\mathrm{ref}})\|\le\sqrt{\alpha d}\)', rendered)
         self.assertNotIn(r'\(\(', rendered)
         self.assertEqual(companion.reader_prose('<script>not mathematics</script>'),
                          '&lt;script&gt;not mathematics&lt;/script&gt;')

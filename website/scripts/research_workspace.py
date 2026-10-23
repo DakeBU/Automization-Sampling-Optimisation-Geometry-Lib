@@ -114,12 +114,29 @@ def build_payload(model: dict[str, object] | None = None) -> dict[str, object]:
                 },
             }
         )
+    # A reader-only projection leaves source text and agent exports unchanged.
+    # Reuse exactly the same escaped inline notation as the static paper pages.
+    from samplewiki_companions import reader_prose
+    reader_math = {}
+    def collect_prose(value):
+        if isinstance(value, dict):
+            for child in value.values():
+                collect_prose(child)
+        elif isinstance(value, list):
+            for child in value:
+                collect_prose(child)
+        elif isinstance(value, str):
+            rendered = reader_prose(value)
+            if rendered != escape(value):
+                reader_math[value] = rendered
+    collect_prose(workspaces)
     return {
         "schema_version": "1.0",
         "project": "Auto-Sampling-Theory-In-Sleep",
         "library": "Samplinglib",
         "generated_from": "website/content/samplewiki_companion_frontiers.json",
         "workspaces": workspaces,
+        "reader_math": reader_math,
     }
 
 

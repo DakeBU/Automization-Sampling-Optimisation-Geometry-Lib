@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRisk
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidge

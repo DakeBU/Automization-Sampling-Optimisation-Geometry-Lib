@@ -1,3 +1,4 @@
+import Tests.FeatureDifferentiationTransport
 import Tests.GaussianFeatureRegularity
 import Tests.GaussianPolynomialRidge
 import Tests.QuadraticFeatureRisk

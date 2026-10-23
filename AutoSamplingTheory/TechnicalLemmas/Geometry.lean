@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient
 import AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension

@@ -128,12 +128,77 @@ def validate_data(model=None):
 
 
 def reader_prose(text):
+    """Preserve complete explicit formulas before handling legacy ASCII notation.
+
+    Never run token substitutions inside TeX: replacing ``pi`` inside an
+    already delimited expression splits one formula into invalid nested math.
+    HTML is escaped in both branches, including inside mathematical text.
+    """
+    chunks = re.split(r'(\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\]|\$\$[\s\S]*?\$\$|(?<!\\)\$[^$\n]+\$)', text)
+    return ''.join(escape(chunk) if index % 2 else _legacy_reader_prose(chunk)
+                   for index, chunk in enumerate(chunks))
+
+
+def _legacy_reader_prose(text):
     """Typeset known source notation; keep the canonical prose unchanged.
 
     These are literal notation substitutions, not a parser or a replacement
     theorem statement. Longer expressions win and are substituted only once.
     """
     notation = {
+        'R_2(P||Q)=log integral (dP/dQ)^2 dQ': r'R_2(P\Vert Q)=\log\int\left(\frac{dP}{dQ}\right)^2\,dQ',
+        'KL(mu||pi) <= (kappa/2) I(mu||pi)': r'\operatorname{KL}(\mu\Vert\pi)\le(\kappa/2)I(\mu\Vert\pi)',
+        'KL(mu||pi) <= (kappa/2)': r'\operatorname{KL}(\mu\Vert\pi)\le\kappa/2',
+        'E[exp(s zeta_{v+1}) | F_v] <= exp(lambda(exp(ms)-1))': r'\mathbb E[e^{s\zeta_{v+1}}\mid\mathcal F_v]\le e^{\lambda(e^{ms}-1)}',
+        'TV(K_t(H_{t-1},.), Khat_t(H_{t-1},.))': r'\operatorname{TV}(K_t(H_{t-1},\cdot),\widehat K_t(H_{t-1},\cdot))',
+        'R_2(mu_0||pi) <= Delta': r'R_2(\mu_0\Vert\pi)\le\Delta',
+        '||grad V(x_ref)|| <= sqrt(alpha d)': r'\|\nabla V(x_{\mathrm{ref}})\|\le\sqrt{\alpha d}',
+        '||grad V(x_ref)|| <= sqrt(d/kappa)': r'\|\nabla V(x_{\mathrm{ref}})\|\le\sqrt{d/\kappa}',
+        'A_{v+1}=A_v-1+zeta_{v+1}': r'A_{v+1}=A_v-1+\zeta_{v+1}',
+        '|u^T D_n u| <= 2 tau_{d,q} ||u||^2': r'|u^{\mathsf T}D_nu|\le2\tau_{d,q}\|u\|^2',
+        'dim K_q=min(d,(q+1)^2)': r'\dim K_q=\min(d,(q+1)^2)',
+        'sqrt(alpha)W2(position law after N steps,pi)<=epsilon': r'\sqrt\alpha\,W_2(\text{position law after }N\text{ steps},\pi)\le\varepsilon',
+        'I_d <= A <= kappa I_d': r'I_d\preceq A\preceq\kappa I_d',
+        'f_A(x)=<x,Ax>/2': r'f_A(x)=\langle x,Ax\rangle/2',
+        'N(0,A^{-1})': r'\mathcal N(0,A^{-1})',
+        'diag(kappa,1,...,1)': r'\operatorname{diag}(\kappa,1,\ldots,1)',
+        'x -> Ax': r'x\mapsto Ax',
+        '|x_1| <= 1/2': r'|x_1|\le1/2',
+        'k=floor(d/n)': r'k=\lfloor d/n\rfloor',
+        'n=2T+1': r'n=2T+1',
+        'k >= d/(2n)': r'k\ge d/(2n)', 'n <= 3T': r'n\le3T',
+        'tau_{d,q} <= 1/2': r'\tau_{d,q}\le1/2',
+        'beta=|mu_n|/M': r'\beta=|\mu_n|/M',
+        'tau <= beta/4': r'\tau\le\beta/4',
+        'M beta^2 >= 320': r'M\beta^2\ge320',
+        '2 <= kappa <= d^(1-delta)': r'2\le\kappa\le d^{1-\delta}',
+        'd >= d_0(delta)': r'd\ge d_0(\delta)', 'd_0(delta)': r'd_0(\delta)',
+        'kappa >= 4': r'\kappa\ge4', 'kappa >= 1': r'\kappa\ge1', 'kappa=2': r'\kappa=2',
+        '0 < epsilon <= 1/16': r'0<\varepsilon\le1/16',
+        '0 < epsilon <= 1/10': r'0<\varepsilon\le1/10',
+        '0 < epsilon <= 1/4': r'0<\varepsilon\le1/4',
+        '0 < epsilon <= 1': r'0<\varepsilon\le1',
+        '0 < epsilon < 1/4': r'0<\varepsilon<1/4',
+        '0 <= s <= 1/m': r'0\le s\le1/m',
+        '1 <= t <= T_max': r'1\le t\le T_{\max}',
+        'p >= 2': r'p\ge2', 'q >= 1': r'q\ge1', 'q>=0': r'q\ge0',
+        'd >= 1': r'd\ge1', 'd>=1': r'd\ge1', 'm >= 1': r'm\ge1',
+        'lambda >= 0': r'\lambda\ge0', 'Delta >= 1': r'\Delta\ge1',
+        'm lambda <= 1/4': r'm\lambda\le1/4',
+        'A_0=q': r'A_0=q', 'A_v>0': r'A_v>0', 'A_v=0': r'A_v=0',
+        'r delta^(-1/p)': r'r\delta^{-1/p}',
+        'zeta_{v+1}': r'\zeta_{v+1}',
+        'K_t(H,.)': r'K_t(H,\cdot)', 'Khat_t(H,.)': r'\widehat K_t(H,\cdot)',
+        'H_{t-1}': r'H_{t-1}', 'delta_t': r'\delta_t',
+        'epsilon_cap': r'\varepsilon_{\mathrm{cap}}', 'T_max': r'T_{\max}', 'Q_loc': r'Q_{\mathrm{loc}}',
+        'K_h^H': r'K_h^H', 'K_h^E': r'K_h^E',
+        'nu_N^E': r'\nu_N^E', 'pi_h^E': r'\pi_h^E',
+        'I_d': r'I_d', 'D_n': r'D_n', 'K_q': r'K_q',
+        'log(1/epsilon)': r'\log(1/\varepsilon)',
+        'R_2(P||Q)': r'R_2(P\Vert Q)',
+        'TV(P,Q)': r'\operatorname{TV}(P,Q)',
+        '|P(A)-Q(A)|': r'|P(A)-Q(A)|',
+        'D_2': r'D_2', 'L1': r'L^1',
         '0<epsilon<=sqrt(d)/2': r'0<\varepsilon\le\sqrt d/2',
         'sqrt(alpha)W2<=epsilon': r'\sqrt{\alpha}\,W_2\le\varepsilon',
         'P0~N(0,I_d)': r'P_0\sim\mathcal N(0,I_d)',
@@ -236,24 +301,24 @@ def bookkeeping_html(book):
     quantities = "".join(
         "<tr>" +
         f'<th scope="row">{formula_html(row["symbol"])}</th>' +
-        f'<td>{escape(row["meaning"])}</td>' +
+        f'<td>{reader_prose(row["meaning"])}</td>' +
         f'<td>{formula_html(row["update"])}</td>' +
-        f'<td>{escape(row["role"])}</td></tr>'
+        f'<td>{reader_prose(row["role"])}</td></tr>'
         for row in book["quantities"]
     )
     flow = "".join(
-        f'<li><h3>{escape(row["stage"])}</h3><p><strong>Input.</strong> {escape(row["input"])}</p>'
-        f'<p><strong>Output.</strong> {escape(row["output"])}</p><p><strong>Ledger charge.</strong> {escape(row["charge"])}</p></li>'
+        f'<li><h3>{escape(row["stage"])}</h3><p><strong>Input.</strong> {reader_prose(row["input"])}</p>'
+        f'<p><strong>Output.</strong> {reader_prose(row["output"])}</p><p><strong>Ledger charge.</strong> {reader_prose(row["charge"])}</p></li>'
         for row in book["error_flow"]
     )
     return f'''<section class="bookkeeping-ledger" id="section-6-ledger">
 <p class="companion-status">SOURCE-PINNED LEDGER · Lean formalization open</p>
-<h2>{escape(book['title'])}</h2><p>{escape(book['intro'])}</p>
+<h2>{escape(book['title'])}</h2><p>{reader_prose(book['intro'])}</p>
 <figure><a href="../../../assets/gaussian-cloud-section-6-ledger.svg"><img src="../../../assets/gaussian-cloud-section-6-ledger.svg" alt="Gaussian cloud Section 6 call-count and accumulated-error ledger."></a><figcaption>Call count and law error are separate ledgers joined only at the deterministic global cap. Open the SVG to zoom.</figcaption></figure>
 <div class="table-scroll"><table><thead><tr><th>Symbol</th><th>Meaning</th><th>Definition or update</th><th>Why it is tracked</th></tr></thead><tbody>{quantities}</tbody></table></div>
 <h2>Where each error enters</h2><ol class="error-ledger">{flow}</ol>
 {lean_fold('ledger interface', 'The first Lean packet will formalize the fixed finite dummy-filled history and adjacent-hybrid TV telescope. Adaptive-tree tails, concrete cloud kernels and final parameter substitution stay separate.')}
-<h3>Strict boundary</h3><p>{escape(book['boundary'])}</p></section>'''
+<h3>Strict boundary</h3><p>{reader_prose(book['boundary'])}</p></section>'''
 
 
 def comparison_html(row):

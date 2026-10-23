@@ -1051,7 +1051,8 @@ def page(
       options: {{skipHtmlTags: ['script','noscript','style','textarea','pre','code']}}
     }};
   </script>
-  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="{prefix}assets/math-reader.js?v=20261021-2"></script>
+  <script defer src="{prefix}assets/vendor/mathjax@3.2.2/tex-mml-chtml.js"></script>
   {extra_head}
 </head>
 <body>
@@ -3006,6 +3007,7 @@ _ALL_MODULES: list[SourceModule] = []
 def copy_assets(output: Path) -> None:
     assets = output / "assets"
     assets.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(STATIC / "vendor", assets / "vendor", dirs_exist_ok=True)
     for path in STATIC.iterdir():
         if path.is_file():
             shutil.copy2(path, assets / path.name)

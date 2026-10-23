@@ -1,3 +1,6 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation
+import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient
+import AutoSamplingTheory.TechnicalLemmas.Measure.BochnerMeanTransport
 import AutoSamplingTheory.TechnicalLemmas.Analysis.JointEmpiricalSegmentRisk
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging
@@ -2659,6 +2662,16 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "bochner-mean-quadratic-transport",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.BochnerMeanTransport.bounded_bochner_mean_quadratic_transport_control",
+    upstreamDecl := "Original generic feature differentiation and transport supplement",
+    upstreamFile := "Pinned Mathlib Gaussian moments, Frechet calculus, Hilbert adjoints, Bochner integrals and transport infimum",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["feature", "derivative", "transport", "shared"],
+    saldUse := "Generic probability, optimisation and sphere-feature prerequisites; concrete model compositions remain separate",
+    note := "Actual Bochner means controlled by the infimum of quadratic costs over all actual couplings, with cost finiteness and residual norm bounds produced. No optimizer or cost-minimizer assumption. Fresh independent source and compiler audits accepted. Final root/reader gates and postmerge purification remain separate; no whole-model or convergence credit."
+  },
+  {
     key := "pbps.actualCorrectorPerturbation"
     localDecl := "AutoSamplingTheory.ExampleCases.ProximalBPS.ActualCorrectorPerturbation.actual_corrector_perturbation"
     upstreamDecl := "Actual PBPS corrector perturbation on the same centered space"
@@ -5100,6 +5113,26 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 
 def probabilityMemory : List LemmaMemoryEntry := [
   {
+    key := "gaussian-polynomial-l2-differentiation",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_frechet_derivative",
+    upstreamDecl := "Original generic feature differentiation and transport supplement",
+    upstreamFile := "Pinned Mathlib Gaussian moments, Frechet calculus, Hilbert adjoints, Bochner integrals and transport infimum",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["feature", "derivative", "transport", "shared"],
+    saldUse := "Generic probability, optimisation and sphere-feature prerequisites; concrete model compositions remain separate",
+    note := "Actual ambient Gaussian polynomial feature and directional-derivative memberships, represented bounded-linear derivative and full Frechet limit produced internally. Fresh independent source and compiler audits accepted. Final root/reader gates and postmerge purification remain separate; no whole-model or convergence credit."
+  },
+  {
+    key := "gaussian-polynomial-derivative-bounds",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_derivative_bounds",
+    upstreamDecl := "Original generic feature differentiation and transport supplement",
+    upstreamFile := "Pinned Mathlib Gaussian moments, Frechet calculus, Hilbert adjoints, Bochner integrals and transport infimum",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["feature", "derivative", "transport", "shared"],
+    saldUse := "Generic probability, optimisation and sphere-feature prerequisites; concrete model compositions remain separate",
+    note := "Same genuine Gaussian derivative with positive uniform operator and operator-Lipschitz constants on the closed unit ball. Constants may depend on the polynomial and ambient space. Fresh independent source and compiler audits accepted. Final root/reader gates and postmerge purification remain separate; no whole-model or convergence credit."
+  },
+  {
     key := "gaussian-polynomial-l2-continuity",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging.continuous_gaussian_polynomial_ridge_L2",
     upstreamDecl := "Original actual probability and Gaussian feature regularity supplement",
@@ -5441,6 +5474,16 @@ def variationalMemory : List LemmaMemoryEntry := [
 ]
 
 def geometryMemory : List LemmaMemoryEntry := [
+  {
+    key := "quadratic-feature-tangent-gradient",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient.quadratic_feature_potential_tangent_gradient",
+    upstreamDecl := "Original generic feature differentiation and transport supplement",
+    upstreamFile := "Pinned Mathlib Gaussian moments, Frechet calculus, Hilbert adjoints, Bochner integrals and transport infimum",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["feature", "derivative", "transport", "shared"],
+    saldUse := "Generic probability, optimisation and sphere-feature prerequisites; concrete model compositions remain separate",
+    note := "Generic actual Hilbert feature derivative and visible ball bounds yield scalar potential derivative, tangent Riesz representation and joint residual-point field control. No manifold API identity is asserted. Fresh independent source and compiler audits accepted. Final root/reader gates and postmerge purification remain separate; no whole-model or convergence credit."
+  },
   {
     key := "geometry.sphere-rayleigh-gradient",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh.sphere_rayleigh_characterization",

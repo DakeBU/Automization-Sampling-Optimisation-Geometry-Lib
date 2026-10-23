@@ -1,0 +1,353 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_frechet_derivative",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean",
+      "source_line": 273,
+      "short_name": "actual_gaussian_polynomial_ridge_L2_frechet_derivative",
+      "title": "A Gaussian polynomial feature has its actual ambient L² derivative",
+      "classification": "canonical shared library node; original mathematical supplement",
+      "statement": "Let E be a finite-dimensional real inner-product normed space with its Borel measurable structure, let γ be its centered standard Gaussian law with identity covariance, and let p be any finite real polynomial. For every ambient w and every direction v, both f_w(x)=p(⟨w,x⟩) and d_{w,v}(x)=p′(⟨w,x⟩)⟨v,x⟩ belong to L²(γ). There exist simultaneous membership witnesses and a field D(w):E→L²(γ) of continuous real linear maps such that D(w)v is exactly the class of d_{w,v}. The actual feature-class map Φ(w)=[f_w] is fully Fréchet differentiable at every ambient w, with derivative D(w). No feature membership, derivative membership, domination, differentiability or operator bound is an input.",
+      "formula": "D\\Phi(w)[v]=[x\\mapsto p\\prime(\\langle w,x\\rangle)\\langle v,x\\rangle]_{L^2(\\gamma)},\\qquad \\frac{\\|\\Phi(w+h)-\\Phi(w)-D\\Phi(w)[h]\\|_2}{\\|h\\|}\\longrightarrow0.",
+      "assumptions": [
+        "E has real inner-product normed, finite-dimensional and Borel structures; no positive dimension is required.",
+        "p is any finite real polynomial, including zero, constant and non-even polynomials. The weight w ranges over all of E."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Produce Gaussian radial domination",
+          "text": "Finite Gaussian norm moments and polynomial induction give L² radial envelopes on each bounded weight ball. Applying them to p and p′ times one radial factor produces the actual feature and directional-derivative memberships.",
+          "formula": "|p(\\langle u,x\\rangle)|\\le B_0(x),\\quad |p\\prime(\\langle u,x\\rangle)|\\,\\|x\\|\\le B_1(x),\\qquad B_0,B_1\\in L^2(\\gamma).",
+          "lean": "private theorem polynomial_radial_envelope\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (p : Polynomial ℝ) (R : ℝ) (hR : 0 ≤ R) (k : ℕ) :\n    ∃ B : E → ℝ, MemLp B 2 (stdGaussian E) ∧ (∀ x, 0 ≤ B x) ∧\n      ∀ (w : E), ‖w‖ ≤ R → ∀ x,\n        ‖p.eval ⟪w,x⟫_ℝ‖ * ‖x‖^k ≤ B x := by\n  classical\n  letI : CompleteSpace E := FiniteDimensional.complete ℝ E\n  letI : SecondCountableTopology E := inferInstance\n  let μ := stdGaussian E\n  have hpow (n : ℕ) : MemLp (fun x : E => ‖x‖^n) 2 μ := by\n    apply (memLp_two_iff_integrable_sq (by fun_prop)).2\n    have hi := (IsGaussian.memLp_id μ ((2*n : ℕ) : ℝ≥0∞)\n      (ENNReal.natCast_ne_top (2*n))).integrable_norm_pow' (p := 2*n)\n    convert hi using 1\n    funext x\n    simp only [id_eq, ← pow_mul, Nat.mul_comm n 2]\n  induction p using Polynomial.induction_on' with\n  | add p q hp hq =>\n    obtain ⟨B,hB,hB0,hBp⟩ := hp\n    obtain ⟨C,hC,hC0,hCq⟩ := hq\n    refine ⟨B+C,hB.add hC,fun x => add_nonneg (hB0 x) (hC0 x),?_⟩\n    intro w hw x\n    calc\n      ‖(p+q).eval ⟪w,x⟫_ℝ‖ * ‖x‖^k ≤\n          (‖p.eval ⟪w,x⟫_ℝ‖+‖q.eval ⟪w,x⟫_ℝ‖) * ‖x‖^k := by\n        rw [Polynomial.eval_add]\n        exact mul_le_mul_of_nonneg_right (norm_add_le _ _) (pow_nonneg (norm_nonneg _) _)\n      _ = ‖p.eval ⟪w,x⟫_ℝ‖ * ‖x‖^k + ‖q.eval ⟪w,x⟫_ℝ‖ * ‖x‖^k := by ring\n      _ ≤ (B+C) x := add_le_add (hBp w hw x) (hCq w hw x)\n  | monomial n a =>\n    refine ⟨fun x => (‖a‖*R^n)*‖x‖^(n+k),\n      (hpow (n+k)).const_mul (‖a‖*R^n),fun x => by positivity,?_⟩\n    intro w hw x\n    have hi : ‖⟪w,x⟫_ℝ‖ ≤ R*‖x‖ :=\n      (norm_inner_le_norm (𝕜 := ℝ) w x).trans (mul_le_mul_of_nonneg_right hw (norm_nonneg _))\n    simp only [Polynomial.eval_monomial,norm_mul,norm_pow]\n    calc\n      ‖a‖ * ‖⟪w,x⟫_ℝ‖^n * ‖x‖^k ≤ ‖a‖ * (R*‖x‖)^n * ‖x‖^k := by\n        gcongr\n      _ = (‖a‖*R^n)*‖x‖^(n+k) := by rw [pow_add,mul_pow];ring\n\nprivate theorem ambient_feature_and_derivative_memLp\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (p : Polynomial ℝ) :\n    (∀ w : E, MemLp (fun x : E => p.eval ⟪w,x⟫_ℝ) 2 (stdGaussian E)) ∧\n      ∀ w v : E, MemLp (fun x : E =>\n        p.derivative.eval ⟪w,x⟫_ℝ * ⟪v,x⟫_ℝ) 2 (stdGaussian E) := by\n  constructor\n  · intro w\n    obtain ⟨B,hB,hB0,hBound⟩ :=\n      polynomial_radial_envelope (E := E) p ‖w‖ (norm_nonneg _) 0\n    apply hB.mono' (by fun_prop)\n    exact ae_of_all _ fun x => by simpa using hBound w le_rfl x\n  · intro w v\n    obtain ⟨B,hB,hB0,hBound⟩ :=\n      polynomial_radial_envelope (E := E) p.derivative ‖w‖ (norm_nonneg _) 1\n    apply (hB.const_mul ‖v‖).mono' (by fun_prop)\n    apply ae_of_all _\n    intro x\n    calc\n      ‖p.derivative.eval ⟪w,x⟫_ℝ * ⟪v,x⟫_ℝ‖ =\n          ‖p.derivative.eval ⟪w,x⟫_ℝ‖ * ‖⟪v,x⟫_ℝ‖ := norm_mul _ _\n      _ ≤ ‖p.derivative.eval ⟪w,x⟫_ℝ‖ * (‖v‖*‖x‖) :=\n        mul_le_mul_of_nonneg_left (norm_inner_le_norm (𝕜 := ℝ) v x) (norm_nonneg _)\n      _ = ‖v‖ * (‖p.derivative.eval ⟪w,x⟫_ℝ‖ * ‖x‖) := by ring\n      _ ≤ ‖v‖ * B x := mul_le_mul_of_nonneg_left\n        (by simpa using hBound w le_rfl x) (norm_nonneg _)\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 2,
+          "title": "Build the represented bounded linear map",
+          "text": "The directional scalar formula is linear in v. Its L² norm is bounded by an envelope norm times ‖v‖, so it extends directly to a continuous linear map with the required actual-class identity.",
+          "formula": "\\|[p\\prime(\\langle w,\\cdot\\rangle)\\langle v,\\cdot\\rangle]\\|_2\\le\\|B_1\\|_2\\|v\\|.",
+          "lean": "private theorem represented_derivative_clm\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (p : Polynomial ℝ)\n    (hdf : ∀ w v : E, MemLp (fun x : E =>\n      p.derivative.eval ⟪w,x⟫_ℝ * ⟪v,x⟫_ℝ) 2 (stdGaussian E)) :\n    ∃ D : E → E →L[ℝ] Lp ℝ 2 (stdGaussian E),\n      ∀ w v, D w v = (hdf w v).toLp\n        (fun x : E => p.derivative.eval ⟪w,x⟫_ℝ * ⟪v,x⟫_ℝ) := by\n  classical\n  have hD (w : E) : ∃ D : E →L[ℝ] Lp ℝ 2 (stdGaussian E),\n      ∀ v, D v = (hdf w v).toLp\n        (fun x : E => p.derivative.eval ⟪w,x⟫_ℝ * ⟪v,x⟫_ℝ) := by\n    let df := fun (v x : E) => p.derivative.eval ⟪w,x⟫_ℝ * ⟪v,x⟫_ℝ\n    let L : E →ₗ[ℝ] Lp ℝ 2 (stdGaussian E) := {\n      toFun := fun v => (hdf w v).toLp (df v)\n      map_add' := by\n        intro v u\n        apply Lp.ext\n        filter_upwards [(hdf w (v+u)).coeFn_toLp,\n          Lp.coeFn_add ((hdf w v).toLp (df v)) ((hdf w u).toLp (df u)),\n          (hdf w v).coeFn_toLp,(hdf w u).coeFn_toLp] with x hsum hadd hv hu\n        simp only [Pi.add_apply] at hadd\n        rw [hsum,hadd,hv,hu]\n        simp [df,inner_add_left,mul_add]\n      map_smul' := by\n        intro c v\n        apply Lp.ext\n        filter_upwards [(hdf w (c • v)).coeFn_toLp,\n          Lp.coeFn_smul c ((hdf w v).toLp (df v)),(hdf w v).coeFn_toLp] with x hcv hsmul hv\n        simp only [Pi.smul_apply,smul_eq_mul] at hsmul\n        simp only [RingHom.id_apply]\n        rw [hcv,hsmul,hv]\n        simp [df,real_inner_smul_left]\n        ring }\n    obtain ⟨B,hB,hB0,hBound⟩ :=\n      polynomial_radial_envelope (E := E) p.derivative ‖w‖ (norm_nonneg _) 1\n    let b := hB.toLp B\n    have hnorm (v : E) : ‖L v‖ ≤ ‖v‖ * ‖b‖ := by\n      apply Lp.norm_le_mul_norm_of_ae_le_mul\n      filter_upwards [(hdf w v).coeFn_toLp,hB.coeFn_toLp] with x hv hBx\n      change ‖(hdf w v).toLp (df v) x‖ ≤ ‖v‖ * ‖b x‖\n      rw [hv]\n      change ‖df v x‖ ≤ ‖v‖ * ‖hB.toLp B x‖\n      rw [hBx,Real.norm_of_nonneg (hB0 x)]\n      calc\n        ‖df v x‖ = ‖p.derivative.eval ⟪w,x⟫_ℝ‖ * ‖⟪v,x⟫_ℝ‖ := norm_mul _ _\n        _ ≤ ‖p.derivative.eval ⟪w,x⟫_ℝ‖ * (‖v‖*‖x‖) :=\n          mul_le_mul_of_nonneg_left (norm_inner_le_norm (𝕜 := ℝ) v x) (norm_nonneg _)\n        _ = ‖v‖ * (‖p.derivative.eval ⟪w,x⟫_ℝ‖ * ‖x‖) := by ring\n        _ ≤ ‖v‖ * B x := mul_le_mul_of_nonneg_left\n          (by simpa using hBound w le_rfl x) (norm_nonneg _)\n    refine ⟨L.mkContinuous ‖b‖ (fun v => by simpa [mul_comm] using hnorm v),?_⟩\n    intro v\n    rfl\n  choose D hD using hD\n  exact ⟨D,hD⟩\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 3,
+          "title": "Differentiate the pointwise polynomial",
+          "text": "Polynomial differentiation composed with the inner-product functional yields the genuine scalar derivative for every x and every direction.",
+          "formula": "D_w[p(\\langle w,x\\rangle)]v=p\\prime(\\langle w,x\\rangle)\\langle v,x\\rangle.",
+          "lean": "private theorem pointwise_ridge_hasFDerivAt\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    (p : Polynomial ℝ) (w x : E) :\n    HasFDerivAt (fun u : E => p.eval ⟪u,x⟫_ℝ)\n      (p.derivative.eval ⟪w,x⟫_ℝ • innerSL ℝ x) w := by\n  have h := (p.hasDerivAt ⟪x,w⟫_ℝ).comp_hasFDerivAt w (innerSL ℝ x).hasFDerivAt\n  simpa only [Function.comp_def,innerSL_apply_apply,real_inner_comm x] using h\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 4,
+          "title": "Control the normalized remainder locally",
+          "text": "A local scalar mean-value bound and the directional bound dominate the normalized scalar remainder by twice one L² envelope. At u=w define the inverse-norm normalization by the usual totalized value zero.",
+          "formula": "r_u(x)=p(\\langle u,x\\rangle)-p(\\langle w,x\\rangle)-p\\prime(\\langle w,x\\rangle)\\langle u-w,x\\rangle,\\quad q_u(x)=\\|u-w\\|^{-1}|r_u(x)|\\le2B(x).",
+          "lean": "private theorem local_increment_bounds\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (p : Polynomial ℝ) (w : E) :\n    ∃ B : E → ℝ, MemLp B 2 (stdGaussian E) ∧ (∀ x, 0 ≤ B x) ∧\n      (∀ u : E, ‖u-w‖ ≤ 1 → ∀ x,\n        ‖p.eval ⟪u,x⟫_ℝ - p.eval ⟪w,x⟫_ℝ‖ ≤ B x * ‖u-w‖) ∧\n      ∀ (v x : E), ‖p.derivative.eval ⟪w,x⟫_ℝ * ⟪v,x⟫_ℝ‖ ≤ B x * ‖v‖ := by\n  obtain ⟨B,hB,hB0,hBound⟩ := polynomial_radial_envelope\n    (E := E) p.derivative (‖w‖+1) (by positivity) 1\n  have hwNorm : ‖w‖ ≤ ‖w‖+1 := by linarith\n  refine ⟨B,hB,hB0,?_,?_⟩\n  · intro u hu x\n    have huNorm : ‖u‖ ≤ ‖w‖+1 := by\n      calc\n        ‖u‖ = ‖(u-w)+w‖ := by rw [sub_add_cancel]\n        _ ≤ ‖u-w‖+‖w‖ := norm_add_le _ _\n        _ ≤ ‖w‖+1 := by linarith\n    have hwMem : w ∈ Metric.closedBall (0 : E) (‖w‖+1) := by\n      simpa [Metric.mem_closedBall,dist_zero_right] using hwNorm\n    have huMem : u ∈ Metric.closedBall (0 : E) (‖w‖+1) := by\n      simpa [Metric.mem_closedBall,dist_zero_right] using huNorm\n    apply (convex_closedBall (0 : E) (‖w‖+1)).norm_image_sub_le_of_norm_hasFDerivWithin_le\n      (fun z hz => (pointwise_ridge_hasFDerivAt p z x).hasFDerivWithinAt) ?_ hwMem huMem\n    intro z hz\n    rw [norm_smul,innerSL_apply_norm]\n    have hzNorm : ‖z‖ ≤ ‖w‖+1 := by\n      simpa [Metric.mem_closedBall,dist_zero_right] using hz\n    simpa only [pow_one] using hBound z hzNorm x\n  · intro v x\n    calc\n      ‖p.derivative.eval ⟪w,x⟫_ℝ * ⟪v,x⟫_ℝ‖ =\n          ‖p.derivative.eval ⟪w,x⟫_ℝ‖ * ‖⟪v,x⟫_ℝ‖ := norm_mul _ _\n      _ ≤ ‖p.derivative.eval ⟪w,x⟫_ℝ‖ * (‖v‖*‖x‖) :=\n        mul_le_mul_of_nonneg_left (norm_inner_le_norm (𝕜 := ℝ) v x) (norm_nonneg _)\n      _ = (‖p.derivative.eval ⟪w,x⟫_ℝ‖ * ‖x‖) * ‖v‖ := by ring\n      _ ≤ B x * ‖v‖ := mul_le_mul_of_nonneg_right\n        (by simpa only [pow_one] using hBound w hwNorm x) (norm_nonneg _)\n\n  let r := fun (u x : E) => p.eval ⟪u,x⟫_ℝ - p.eval ⟪w,x⟫_ℝ -\n    p.derivative.eval ⟪w,x⟫_ℝ * ⟪u-w,x⟫_ℝ\n  let q := fun (u x : E) => ‖u-w‖⁻¹ * ‖r u x‖\n  obtain ⟨B,hB,hB0,hInc,hDir⟩ := local_increment_bounds p w\n  have hR (u : E) (hu : ‖u-w‖ ≤ 1) (x : E) :\n      ‖r u x‖ ≤ (2 * B x) * ‖u-w‖ := by\n    exact (norm_sub_le _ _).trans ((add_le_add (hInc u hu x) (hDir (u-w) x)).trans_eq (by ring))\n  have hq (u : E) (hu : ‖u-w‖ ≤ 1) (x : E) : q u x ≤ 2 * B x := by\n    by_cases h : u = w\n    · subst u\n      simpa [q] using hB0 x\n    · have hn : 0 < ‖u-w‖ := norm_pos_iff.mpr (sub_ne_zero.mpr h)\n      calc\n        q u x ≤ ‖u-w‖⁻¹ * ((2 * B x) * ‖u-w‖) :=\n          mul_le_mul_of_nonneg_left (hR u hu x) (inv_nonneg.mpr (norm_nonneg _))\n        _ = 2 * B x := by field_simp\n  have hq0 (x : E) : q w x = 0 := by simp [q]\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 5,
+          "title": "Use dominated convergence on the squared remainder",
+          "text": "Pointwise Fréchet differentiability gives q_u(x)→0, and 4B² is integrable. Dominated convergence therefore controls the whole L² remainder, not just each fixed directional limit.",
+          "formula": "\\int q_u(x)^2\\,d\\gamma(x)\\longrightarrow0,\\qquad q_u(x)^2\\le4B(x)^2.",
+          "lean": "  have hqcont (x : E) : ContinuousAt (fun u : E => q u x) w := by\n    rw [ContinuousAt,hq0]\n    have ht := (hasFDerivAt_iff_tendsto.mp (pointwise_ridge_hasFDerivAt p w x))\n    simpa only [q,r,ContinuousLinearMap.smul_apply,innerSL_apply_apply,\n      smul_eq_mul,real_inner_comm x] using ht\n  have hBsq : Integrable (fun x => 4 * (B x)^2) μ :=\n    ((memLp_two_iff_integrable_sq hB.1).1 hB).const_mul 4\n  have hc : ContinuousAt (fun u : E => ∫ x, (q u x)^2 ∂μ) w := by\n    apply continuousAt_of_dominated (bound := fun x => 4 * (B x)^2)\n    · exact Eventually.of_forall fun u => by dsimp [q,r]; fun_prop\n    · filter_upwards [Metric.closedBall_mem_nhds w (by norm_num : (0:ℝ)<1)] with u hu\n      have hu' : ‖u-w‖ ≤ 1 := by simpa [Metric.mem_closedBall,dist_eq_norm] using hu\n      exact ae_of_all _ fun x => by\n        rw [Real.norm_eq_abs,abs_of_nonneg (sq_nonneg _)]\n        have hnon : 0 ≤ q u x := mul_nonneg (inv_nonneg.mpr (norm_nonneg _)) (norm_nonneg _)\n        have h := (sq_le_sq₀ hnon (mul_nonneg (by norm_num : (0:ℝ) ≤ 2) (hB0 x))).2 (hq u hu' x)\n        nlinarith\n    · exact hBsq\n    · exact ae_of_all _ fun x => (hqcont x).pow 2\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 6,
+          "title": "Identify the actual quotient norm",
+          "text": "Almost-everywhere identities for subtraction, scalar multiplication and toLp identify the displayed integral with the squared norm of the normalized genuine class remainder. Taking its square root proves the full ambient Fréchet limit.",
+          "formula": "\\|\\|u-w\\|^{-1}(\\Phi(u)-\\Phi(w)-D(w)(u-w))\\|_2^2=\\int q_u^2\\,d\\gamma\\longrightarrow0.",
+          "lean": "  let R := fun u : E => F u - F w - D w (u-w)\n  let G := fun u : E => ‖u-w‖⁻¹ • R u\n  have hnorm (u : E) : ‖G u‖^2 = ∫ x, (q u x)^2 ∂μ := by\n    rw [← real_inner_self_eq_norm_sq,L2.inner_def]\n    apply integral_congr_ae\n    have hd := (hdf w (u-w)).coeFn_toLp\n    rw [← hD w (u-w)] at hd\n    filter_upwards [Lp.coeFn_smul ‖u-w‖⁻¹ (R u),\n      Lp.coeFn_sub (F u - F w) (D w (u-w)),\n      Lp.coeFn_sub (F u) (F w),(hf u).coeFn_toLp,(hf w).coeFn_toLp,hd]\n      with x hsm hsub hsub' hfu hfw hdx\n    change inner ℝ (G u x) (G u x) = _\n    have hval : G u x = ‖u-w‖⁻¹ * r u x := by\n      change (‖u-w‖⁻¹ • R u) x = _\n      rw [hsm]\n      simp only [Pi.smul_apply,smul_eq_mul]\n      change ‖u-w‖⁻¹ * (F u - F w - D w (u-w)) x = _\n      rw [hsub]\n      simp only [Pi.sub_apply]\n      rw [hsub']\n      simp only [Pi.sub_apply]\n      change ‖u-w‖⁻¹ * ((hf u).toLp _ x - (hf w).toLp _ x - D w (u-w) x) = _\n      rw [hfu,hfw,hdx]\n    rw [hval]\n    simp [q,real_inner_self_eq_norm_sq,norm_mul,Real.norm_of_nonneg (inv_nonneg.mpr (norm_nonneg (u-w))),mul_pow]\n  have ht : Tendsto (fun u : E => ‖G u‖) (𝓝 w) (𝓝 0) := by\n    have hsq : ContinuousAt (fun u : E => ‖G u‖^2) w := by simpa only [← hnorm] using hc\n    have hz : G w = 0 := by simp [G]\n    have h := (Real.continuous_sqrt.continuousAt.comp hsq).tendsto\n    simpa only [Function.comp_def,Real.sqrt_sq (norm_nonneg _),hz,norm_zero,zero_pow (by decide : 2 ≠ 0),Real.sqrt_zero] using h\n  apply hasFDerivAt_iff_tendsto.mpr\n  simpa only [G,norm_smul,Real.norm_of_nonneg (inv_nonneg.mpr (norm_nonneg (_-w))),R,F] using ht\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real inner-product normed space with its Borel measurable structure, let γ be its centered standard Gaussian law with identity covariance, and let p be any finite real polynomial. For every ambient w and every direction v, both f_w(x)=p(⟨w,x⟩) and d_{w,v}(x)=p′(⟨w,x⟩)⟨v,x⟩ belong to L²(γ). There exist simultaneous membership witnesses and a field D(w):E→L²(γ) of continuous real linear maps such that D(w)v is exactly the class of d_{w,v}. The actual feature-class map Φ(w)=[f_w] is fully Fréchet differentiable at every ambient w, with derivative D(w). No feature membership, derivative membership, domination, differentiability or operator bound is an input.",
+      "lean_proof": "The displayed formula proof explains the mathematical route; the exact Lean is folded adjacent.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Pinned Mathlib Gaussian norm moments and actual L² quotient calculus"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/6a426bec5f1b3dff71a5843b91b0f6a9cc68ed38/website/content/declaration_lessons/feature-differentiation-transport.json",
+          "label": "Samplinglib original feature differentiation and transport supplement v1 (2026-10-21)",
+          "scope": "Original generic mathematical supplement from the cited pinned library prerequisites; no primary-textbook theorem or statistical convergence credit."
+        }
+      ],
+      "boundary": [
+        "This is a full ambient derivative, not merely a derivative along the unit sphere or along one fixed direction.",
+        "The theorem does not assert continuity of the derivative field, a second Fréchet derivative, a risk-potential identity or a manifold gradient."
+      ],
+      "tests": {
+        "file": "Tests/FeatureDifferentiationTransport.lean",
+        "scope": "Six actual consumers compiled successfully on Lean4.33.0 (3650 jobs): non-even and dimension-zero ambient derivatives, produced endpoint operator bounds, identity-feature tangent field, exact positive Dirac transport cost and zero-L case. Four producer axiom reports contain only propext, Classical.choice and Quot.sound."
+      },
+      "reading_layout": "progressive",
+      "reader_note": "Read the complete claim and its hypotheses first, then open the numbered mathematical proof steps. Each step has an optional fold containing literal Lean implementation excerpts; the full theorem and module context remain available below."
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_derivative_bounds",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean",
+      "source_line": 374,
+      "short_name": "actual_gaussian_polynomial_ridge_L2_derivative_bounds",
+      "title": "The same Gaussian derivative is bounded and Lipschitz on the closed unit ball",
+      "classification": "canonical shared library node; original mathematical supplement",
+      "statement": "Let E be a finite-dimensional real inner-product normed space with its Borel measurable structure, let γ be its centered standard Gaussian law with identity covariance, and let p be any finite real polynomial. For every ambient weight w and direction v, the actual functions f_w(x)=p(⟨w,x⟩) and d_{w,v}(x)=p′(⟨w,x⟩)⟨v,x⟩ belong to L²(γ). There exist simultaneous membership witnesses and a field of continuous real linear maps D(w):E→L²(γ), with D(w)v=[d_{w,v}], such that the actual feature-class map Φ(w)=[f_w] is fully Fréchet differentiable with derivative D(w) at every ambient w. There also exist strictly positive real constants M₁,M₂ such that ‖D(w)‖op≤M₁ for every ‖w‖≤1 and ‖D(u)−D(w)‖op≤M₂‖u−w‖ whenever both weights lie in the closed unit ball. The constants may depend on p and the ambient space; no dimension-independent rate is asserted. All memberships, derivatives and bounds are produced.",
+      "formula": "\\|D(w)\\|_{\\mathrm{op}}\\le M_1,\\qquad \\|D(u)-D(w)\\|_{\\mathrm{op}}\\le M_2\\|u-w\\|,\\quad \\|w\\|,\\|u\\|\\le1.",
+      "assumptions": [
+        "The only mathematical data are E with its finite-dimensional real inner-product and Borel structures, and a finite real polynomial p.",
+        "The returned operator estimates apply to the same derivative field in the ambient derivative conclusion; both endpoint weights in the difference estimate satisfy norm at most one."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Reuse the actual ambient derivative",
+          "text": "Call the preceding producer to obtain feature memberships, derivative memberships, representation and full Fréchet differentiability together. The following bounds concern this same D.",
+          "formula": "D(w)v=[p\\prime(\\langle w,\\cdot\\rangle)\\langle v,\\cdot\\rangle].",
+          "lean": "  dsimp only\n  obtain ⟨hf,hdf,D,hD,hDiff⟩ := actual_gaussian_polynomial_ridge_L2_frechet_derivative (E := E) p\n  exact ⟨hf,hdf,D,hD,hDiff,produced_operator_bounds p hdf D hD⟩\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 2,
+          "title": "Produce first and second polynomial envelopes",
+          "text": "Gaussian radial moments supply B,C∈L² uniformly on the closed unit ball, with radial factors of orders one and two respectively.",
+          "formula": "|p\\prime(\\langle w,x\\rangle)|\\,\\|x\\|\\le B(x),\\qquad |p^{\\prime\\prime}(\\langle w,x\\rangle)|\\,\\|x\\|^2\\le C(x).",
+          "lean": "  obtain ⟨B,hB,hB0,hBound⟩ := polynomial_radial_envelope (E := E) p.derivative 1 (by norm_num) 1\n  obtain ⟨C,hC,hC0,hBound2⟩ := polynomial_radial_envelope (E := E) p.derivative.derivative 1 (by norm_num) 2\n  let b := hB.toLp B\n  let c := hC.toLp C\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 3,
+          "title": "Bound every directional operator value",
+          "text": "The first envelope and Cauchy–Schwarz for the scalar inner product give an almost-everywhere domination of D(w)v. The L² order estimate yields the operator norm bound.",
+          "formula": "\\|D(w)v\\|_2\\le\\|B\\|_2\\|v\\|,\\qquad \\|D(w)\\|_{\\mathrm{op}}\\le\\|B\\|_2.",
+          "lean": "  have hnorm (w : E) (hw : ‖w‖ ≤ 1) (v : E) : ‖D w v‖ ≤ ‖v‖ * ‖b‖ := by\n    apply Lp.norm_le_mul_norm_of_ae_le_mul\n    rw [hD w v]\n    filter_upwards [(hdf w v).coeFn_toLp,hB.coeFn_toLp] with x hv hBx\n    rw [hv]\n    change ‖p.derivative.eval ⟪w,x⟫_ℝ * ⟪v,x⟫_ℝ‖ ≤ ‖v‖ * ‖hB.toLp B x‖\n    rw [hBx,Real.norm_of_nonneg (hB0 x),norm_mul]\n    calc\n      ‖p.derivative.eval ⟪w,x⟫_ℝ‖ * ‖⟪v,x⟫_ℝ‖ ≤\n          ‖p.derivative.eval ⟪w,x⟫_ℝ‖ * (‖v‖*‖x‖) :=\n        mul_le_mul_of_nonneg_left (norm_inner_le_norm (𝕜 := ℝ) v x) (norm_nonneg _)\n      _ = ‖v‖ * (‖p.derivative.eval ⟪w,x⟫_ℝ‖ * ‖x‖) := by ring\n      _ ≤ ‖v‖ * B x := mul_le_mul_of_nonneg_left\n        (by simpa only [pow_one] using hBound w hw x) (norm_nonneg _)\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 4,
+          "title": "Apply a scalar mean-value theorem inside the convex ball",
+          "text": "Differentiate the p′ directional expression. Convexity keeps the interpolation between u and w inside the same ball, so the second envelope controls its increment.",
+          "formula": "|p\\prime(\\langle u,x\\rangle)\\langle v,x\\rangle-p\\prime(\\langle w,x\\rangle)\\langle v,x\\rangle|\\le\\|v\\|C(x)\\|u-w\\|.",
+          "lean": "  have hinc (w u : E) (hw : ‖w‖ ≤ 1) (hu : ‖u‖ ≤ 1) (v x : E) :\n      ‖p.derivative.eval ⟪u,x⟫_ℝ * ⟪v,x⟫_ℝ -\n        p.derivative.eval ⟪w,x⟫_ℝ * ⟪v,x⟫_ℝ‖ ≤ (‖v‖ * C x) * ‖u-w‖ := by\n    let d := fun z : E => ⟪v,x⟫_ℝ • (p.derivative.derivative.eval ⟪z,x⟫_ℝ • innerSL ℝ x)\n    have hd (z : E) : HasFDerivAt (fun q : E =>\n        p.derivative.eval ⟪q,x⟫_ℝ * ⟪v,x⟫_ℝ) (d z) z := by\n      convert (pointwise_ridge_hasFDerivAt p.derivative z x).const_smul ⟪v,x⟫_ℝ using 1 <;>\n        (first | rfl | (ext q; simp [d,Pi.smul_apply,smul_eq_mul,mul_comm]))\n    apply (convex_closedBall (0 : E) 1).norm_image_sub_le_of_norm_hasFDerivWithin_le\n      (fun z _ => (hd z).hasFDerivWithinAt) ?_\n      (by simpa [Metric.mem_closedBall,dist_zero_right] using hw)\n      (by simpa [Metric.mem_closedBall,dist_zero_right] using hu)\n    intro z hz\n    have hz' : ‖z‖ ≤ 1 := by simpa [Metric.mem_closedBall,dist_zero_right] using hz\n    dsimp only [d]\n    rw [norm_smul,norm_smul,innerSL_apply_norm]\n    calc\n      ‖⟪v,x⟫_ℝ‖ * (‖p.derivative.derivative.eval ⟪z,x⟫_ℝ‖ * ‖x‖) ≤\n          (‖v‖ * ‖x‖) * (‖p.derivative.derivative.eval ⟪z,x⟫_ℝ‖ * ‖x‖) :=\n        mul_le_mul_of_nonneg_right (norm_inner_le_norm (𝕜 := ℝ) v x) (by positivity)\n      _ = ‖v‖ * (‖p.derivative.derivative.eval ⟪z,x⟫_ℝ‖ * ‖x‖^2) := by ring\n      _ ≤ ‖v‖ * C x := mul_le_mul_of_nonneg_left (hBound2 z hz' x) (norm_nonneg _)\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 5,
+          "title": "Pass to operator norms with positive witnesses",
+          "text": "Actual-class subtraction and L² domination give the difference bound for every v. Take the operator norm and choose M₁=‖[B]‖₂+1 and M₂=‖[C]‖₂+1 to retain strict positivity even for constant or zero p.",
+          "formula": "\\|(D(u)-D(w))v\\|_2\\le\\|C\\|_2\\|u-w\\|\\|v\\|,\\qquad M_1,M_2>0.",
+          "lean": "  have hdiff (w u : E) (hw : ‖w‖ ≤ 1) (hu : ‖u‖ ≤ 1) (v : E) :\n      ‖(D u-D w) v‖ ≤ (‖u-w‖*‖v‖) * ‖c‖ := by\n    apply Lp.norm_le_mul_norm_of_ae_le_mul\n    have hdu := (hdf u v).coeFn_toLp\n    have hdw := (hdf w v).coeFn_toLp\n    rw [← hD u v] at hdu\n    rw [← hD w v] at hdw\n    filter_upwards [Lp.coeFn_sub (D u v) (D w v),hdu,hdw,hC.coeFn_toLp]\n      with x hsub hux hwx hCx\n    change ‖(D u v - D w v) x‖ ≤ (‖u-w‖*‖v‖) * ‖hC.toLp C x‖\n    rw [hsub]\n    simp only [Pi.sub_apply]\n    rw [hux,hwx,hCx,Real.norm_of_nonneg (hC0 x)]\n    exact (hinc w u hw hu v x).trans_eq (by ring)\n  have hOp (w : E) (hw : ‖w‖ ≤ 1) : ‖D w‖ ≤ ‖b‖ := by\n    apply ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _)\n    intro v\n    simpa only [mul_comm] using hnorm w hw v\n  have hOpDiff (w u : E) (hw : ‖w‖ ≤ 1) (hu : ‖u‖ ≤ 1) :\n      ‖D u-D w‖ ≤ ‖c‖ * ‖u-w‖ := by\n    apply ContinuousLinearMap.opNorm_le_bound _ (by positivity)\n    intro v\n    exact (hdiff w u hw hu v).trans_eq (by ring)\n  refine ⟨‖b‖+1,‖c‖+1,by positivity,by positivity,?_,?_⟩\n  · intro w hw\n    exact (hOp w hw).trans (by linarith)\n  · intro w u hw hu\n    exact (hOpDiff w u hw hu).trans\n      (mul_le_mul_of_nonneg_right (by linarith : ‖c‖ ≤ ‖c‖+1) (norm_nonneg _))\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialDifferentiation.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real inner-product normed space with its Borel measurable structure, let γ be its centered standard Gaussian law with identity covariance, and let p be any finite real polynomial. For every ambient weight w and direction v, the actual functions f_w(x)=p(⟨w,x⟩) and d_{w,v}(x)=p′(⟨w,x⟩)⟨v,x⟩ belong to L²(γ). There exist simultaneous membership witnesses and a field of continuous real linear maps D(w):E→L²(γ), with D(w)v=[d_{w,v}], such that the actual feature-class map Φ(w)=[f_w] is fully Fréchet differentiable with derivative D(w) at every ambient w. There also exist strictly positive real constants M₁,M₂ such that ‖D(w)‖op≤M₁ for every ‖w‖≤1 and ‖D(u)−D(w)‖op≤M₂‖u−w‖ whenever both weights lie in the closed unit ball. The constants may depend on p and the ambient space; no dimension-independent rate is asserted. All memberships, derivatives and bounds are produced.",
+      "lean_proof": "The displayed formula proof explains the mathematical route; the exact Lean is folded adjacent.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_frechet_derivative"
+      ],
+      "mathlib_dependencies": [
+        "Pinned Mathlib Gaussian norm moments and actual L² quotient calculus"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/6a426bec5f1b3dff71a5843b91b0f6a9cc68ed38/website/content/declaration_lessons/feature-differentiation-transport.json",
+          "label": "Samplinglib original feature differentiation and transport supplement v1 (2026-10-21)",
+          "scope": "Original generic mathematical supplement from the cited pinned library prerequisites; no primary-textbook theorem or statistical convergence credit."
+        }
+      ],
+      "boundary": [
+        "The p′′ envelope is a proved estimate, not an assumed bound on a second feature derivative.",
+        "This theorem makes no global-in-weight uniform bound, sharp constant, dimension-independent estimate, second Fréchet derivative or manifold-gradient assertion."
+      ],
+      "tests": {
+        "file": "Tests/FeatureDifferentiationTransport.lean",
+        "scope": "Six actual consumers compiled successfully on Lean4.33.0 (3650 jobs): non-even and dimension-zero ambient derivatives, produced endpoint operator bounds, identity-feature tangent field, exact positive Dirac transport cost and zero-L case. Four producer axiom reports contain only propext, Classical.choice and Quot.sound."
+      },
+      "reading_layout": "progressive",
+      "reader_note": "Read the complete claim and its hypotheses first, then open the numbered mathematical proof steps. Each step has an optional fold containing literal Lean implementation excerpts; the full theorem and module context remain available below."
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient.quadratic_feature_potential_tangent_gradient",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Geometry/QuadraticFeatureTangentGradient.lean",
+      "source_line": 41,
+      "short_name": "quadratic_feature_potential_tangent_gradient",
+      "title": "A Hilbert feature potential has a controlled tangent Riesz field",
+      "classification": "canonical shared library node; original mathematical supplement",
+      "statement": "Let E,H be complete real inner-product normed spaces. Let F:E→H be a map, and let each D(w):E→H be a continuous real linear map satisfying the actual ambient identity DF(w)=D(w) for every w. Suppose M₁,M₂≥0, ‖D(w)‖op≤M₁ on the closed unit ball, and ‖D(w)−D(u)‖op≤M₂‖w−u‖ there. For r∈H define V_r(w)=2⟨r,F(w)⟩ and G_r(w)=2(D(w)*r−⟨D(w)*r,w⟩w), where * is the Hilbert adjoint. At every ambient w, V_r has derivative 2⟨D(w)*r,·⟩. At every unit w, G_r(w) is tangent, satisfies ⟨G_r(w),v⟩=2⟨r,D(w)v⟩ for every v perpendicular to w, and has norm at most 2M₁‖r‖. For all r,q and unit w,u, its joint increment is bounded by 2M₁‖r−q‖+2(M₂+2M₁)‖q‖‖w−u‖.",
+      "formula": "G_r(w)=2P_wD(w)^*r,\\quad P_wz=z-\\langle z,w\\rangle w,\\quad \\|G_r(w)-G_q(u)\\|\\le2M_1\\|r-q\\|+2(M_2+2M_1)\\|q\\|\\|w-u\\|.",
+      "assumptions": [
+        "E,H are complete real inner-product normed spaces. F and D have the explicit actual full ambient Fréchet derivative relation.",
+        "M₁,M₂ are nonnegative; uniform derivative and operator Lipschitz bounds are explicit inputs on the closed unit ball. The tangent and joint field bounds require unit endpoint weights."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Control the orthogonal projection",
+          "text": "For unit w, expand the squared norm of P_wz. Subtracting a nonnegative squared normal component proves contraction.",
+          "formula": "\\|P_wz\\|^2=\\|z\\|^2-\\langle z,w\\rangle^2\\le\\|z\\|^2.",
+          "lean": "private theorem P_norm_le {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    (w z : E) (hw : ‖w‖ = 1) : ‖P w z‖ ≤ ‖z‖ := by\n  have hsq : ‖P w z‖^2 = ‖z‖^2 - ⟪z,w⟫_ℝ^2 := by\n    simp only [P,norm_sub_sq_real,inner_smul_right,norm_smul,hw,mul_one,\n      Real.norm_eq_abs,sq_abs]\n    ring\n  nlinarith [sq_nonneg ⟪z,w⟫_ℝ,norm_nonneg (P w z),norm_nonneg z]\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Geometry/QuadraticFeatureTangentGradient.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 2,
+          "title": "Control projection movement",
+          "text": "Rewrite the projection difference into one change of vector direction and one change of its inner product. Cauchy–Schwarz and unit norms bound both terms.",
+          "formula": "(P_w-P_u)z=\\langle z,u\\rangle(u-w)+\\langle z,u-w\\rangle w,\\qquad \\|(P_w-P_u)z\\|\\le2\\|z\\|\\|w-u\\|.",
+          "lean": "private theorem P_point_lip {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    (w u z : E) (hw : ‖w‖ = 1) (hu : ‖u‖ = 1) :\n    ‖P w z-P u z‖ ≤ 2 * ‖z‖ * ‖w-u‖ := by\n  have he : P w z-P u z = ⟪z,u⟫_ℝ • (u-w) + ⟪z,u-w⟫_ℝ • w := by\n    simp only [P,inner_sub_right,smul_sub,sub_smul]\n    abel\n  rw [he]\n  calc\n    ‖⟪z,u⟫_ℝ • (u-w) + ⟪z,u-w⟫_ℝ • w‖ ≤\n        ‖⟪z,u⟫_ℝ • (u-w)‖ + ‖⟪z,u-w⟫_ℝ • w‖ := norm_add_le _ _\n    _ = ‖⟪z,u⟫_ℝ‖ * ‖u-w‖ + ‖⟪z,u-w⟫_ℝ‖ * ‖w‖ := by simp only [norm_smul]\n    _ ≤ (‖z‖*‖u‖)*‖u-w‖ + (‖z‖*‖u-w‖)*‖w‖ := by\n      gcongr <;> exact norm_inner_le_norm _ _\n    _ = 2 * ‖z‖ * ‖w-u‖ := by rw [hw,hu,norm_sub_rev u w];ring\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Geometry/QuadraticFeatureTangentGradient.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 3,
+          "title": "Differentiate the scalar potential",
+          "text": "The chain rule for the bounded residual functional and the adjoint identity give the full ambient derivative. Projecting its representing vector removes only the normal part, which pairs to zero against every tangent direction.",
+          "formula": "DV_r(w)v=2\\langle r,D(w)v\\rangle=2\\langle D(w)^*r,v\\rangle,\\quad \\langle w,G_r(w)\\rangle=0.",
+          "lean": "  · intro r w\n    have he : (innerSL ℝ r).comp (D w) = innerSL ℝ ((D w).adjoint r) := by\n      ext v\n      simpa only [ContinuousLinearMap.comp_apply,innerSL_apply_apply] using\n        ((D w).adjoint_inner_left v r).symm\n    have h := (innerSL ℝ r).hasFDerivAt.comp w (hF w)\n    rw [he] at h\n    convert h.const_smul (2 : ℝ) using 1 <;>\n      (first | rfl | (ext q; simp [Pi.smul_apply,smul_eq_mul,innerSL_apply_apply]))\n  · intro r w hw\n    refine ⟨?_,?_,?_⟩\n    · simp only [inner_smul_right,inner_sub_right,inner_smul_right,real_inner_self_eq_norm_sq,hw]\n      rw [real_inner_comm w ((D w).adjoint r)]\n      ring\n    · intro v hv\n      simp only [real_inner_smul_left,inner_sub_left,real_inner_smul_left,hv,mul_zero,\n        sub_zero,ContinuousLinearMap.adjoint_inner_left]\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Geometry/QuadraticFeatureTangentGradient.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 4,
+          "title": "Bound the tangent field",
+          "text": "Adjoints preserve operator norms; the projection is contractive. Multiplication by two gives the asserted residual-dependent bound.",
+          "formula": "\\|G_r(w)\\|\\le2\\|D(w)^*r\\|\\le2M_1\\|r\\|.",
+          "lean": "  have hAdj (w : E) (hw : ‖w‖ ≤ 1) (r : H) :\n      ‖(D w).adjoint r‖ ≤ M₁ * ‖r‖ := by\n    have h := (D w).adjoint.le_opNorm r\n    rw [ContinuousLinearMap.adjoint.norm_map] at h\n    exact h.trans (mul_le_mul_of_nonneg_right (hBound w hw) (norm_nonneg _))\n\n    · change ‖(2 : ℝ) • P w ((D w).adjoint r)‖ ≤ _\n      rw [norm_smul,Real.norm_of_nonneg (by norm_num : (0:ℝ) ≤ 2)]\n      exact (mul_le_mul_of_nonneg_left ((P_norm_le _ _ hw).trans (hAdj w hw.le r))\n        (by norm_num : (0:ℝ) ≤ 2)).trans_eq (by ring)\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Geometry/QuadraticFeatureTangentGradient.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 5,
+          "title": "Separate residual and location changes",
+          "text": "At a fixed w use linearity in r. For the fixed q location change, split the derivative-adjoint increment and the projection increment; combine the previous estimates.",
+          "formula": "G_r(w)-G_q(u)=2P_wD(w)^*(r-q)+2P_w(D(w)^*-D(u)^*)q+2(P_w-P_u)D(u)^*q.",
+          "lean": "  have hAdjDiff (w u : E) (hw : ‖w‖ ≤ 1) (hu : ‖u‖ ≤ 1) (q : H) :\n      ‖((D w).adjoint-(D u).adjoint) q‖ ≤ (M₂*‖w-u‖)*‖q‖ := by\n    have h := ((D w).adjoint-(D u).adjoint).le_opNorm q\n    rw [← map_sub,ContinuousLinearMap.adjoint.norm_map] at h\n    simpa only [map_sub] using h.trans (mul_le_mul_of_nonneg_right (hLip w u hw hu) (norm_nonneg _))\n  have hFixed (q : H) (w u : E) (hw : ‖w‖ = 1) (hu : ‖u‖ = 1) :\n      ‖P w ((D w).adjoint q) - P u ((D u).adjoint q)‖ ≤\n        (M₂+2*M₁) * ‖q‖ * ‖w-u‖ := by\n    have he : P w ((D w).adjoint q) - P u ((D u).adjoint q) =\n        P w (((D w).adjoint-(D u).adjoint) q) +\n          (P w ((D u).adjoint q) - P u ((D u).adjoint q)) := by\n      rw [ContinuousLinearMap.sub_apply,P_sub]\n      abel\n    rw [he]\n    calc\n      ‖P w (((D w).adjoint-(D u).adjoint) q) +\n          (P w ((D u).adjoint q) - P u ((D u).adjoint q))‖ ≤\n        ‖P w (((D w).adjoint-(D u).adjoint) q)‖ +\n          ‖P w ((D u).adjoint q) - P u ((D u).adjoint q)‖ := norm_add_le _ _\n      _ ≤ ‖((D w).adjoint-(D u).adjoint) q‖ + 2 * ‖(D u).adjoint q‖ * ‖w-u‖ :=\n        add_le_add (P_norm_le _ _ hw) (P_point_lip _ _ _ hw hu)\n      _ ≤ (M₂*‖w-u‖)*‖q‖ + 2 * (M₁*‖q‖) * ‖w-u‖ := by\n        gcongr\n        · exact hAdjDiff w u hw.le hu.le q\n        · exact hAdj u hu.le q\n      _ = (M₂+2*M₁)*‖q‖*‖w-u‖ := by ring\n\n  · intro r q w u hw hu\n    change ‖(2 : ℝ) • P w ((D w).adjoint r) - (2 : ℝ) • P u ((D u).adjoint q)‖ ≤ _\n    rw [← smul_sub,norm_smul,Real.norm_of_nonneg (by norm_num : (0:ℝ) ≤ 2)]\n    have he : P w ((D w).adjoint r) - P u ((D u).adjoint q) =\n        P w ((D w).adjoint (r-q)) +\n          (P w ((D w).adjoint q) - P u ((D u).adjoint q)) := by\n      rw [map_sub,P_sub]\n      abel\n    have hn : ‖P w ((D w).adjoint r) - P u ((D u).adjoint q)‖ ≤\n        M₁*‖r-q‖ + (M₂+2*M₁)*‖q‖*‖w-u‖ := by\n      rw [he]\n      exact (norm_add_le _ _).trans (add_le_add\n        ((P_norm_le _ _ hw).trans (hAdj w hw.le (r-q))) (hFixed q w u hw hu))\n    exact (mul_le_mul_of_nonneg_left hn (by norm_num : (0:ℝ) ≤ 2)).trans_eq (by ring)\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Geometry/QuadraticFeatureTangentGradient.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        }
+      ],
+      "lean_statement": "Let E,H be complete real inner-product normed spaces. Let F:E→H and D(w):E→H be continuous real linear maps satisfying the actual ambient identity DF(w)=D(w) for every w. Suppose M₁,M₂≥0, ‖D(w)‖op≤M₁ on the closed unit ball, and ‖D(w)−D(u)‖op≤M₂‖w−u‖ there. For r∈H define V_r(w)=2⟨r,F(w)⟩ and G_r(w)=2(D(w)*r−⟨D(w)*r,w⟩w), where * is the Hilbert adjoint. At every ambient w, V_r has derivative 2⟨D(w)*r,·⟩. At every unit w, G_r(w) is tangent, satisfies ⟨G_r(w),v⟩=2⟨r,D(w)v⟩ for every v perpendicular to w, and has norm at most 2M₁‖r‖. For all r,q and unit w,u, its joint increment is bounded by 2M₁‖r−q‖+2(M₂+2M₁)‖q‖‖w−u‖.",
+      "lean_proof": "The displayed formula proof explains the mathematical route; the exact Lean is folded adjacent.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Pinned Mathlib adjoint and Hilbert Fréchet calculus"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/6a426bec5f1b3dff71a5843b91b0f6a9cc68ed38/website/content/declaration_lessons/feature-differentiation-transport.json",
+          "label": "Samplinglib original feature differentiation and transport supplement v1 (2026-10-21)",
+          "scope": "Original generic mathematical supplement from the cited pinned library prerequisites; no primary-textbook theorem or statistical convergence credit."
+        }
+      ],
+      "boundary": [
+        "D, its actual derivative identity and the two operator bounds are explicit generic hypotheses; a concrete feature model must produce them separately.",
+        "The conclusion is a tangent Riesz representation. Equality with a chosen manifold-gradient API, a geodesic-distance or law-Wasserstein estimate, and a uniform residual bound are separate obligations."
+      ],
+      "tests": {
+        "file": "Tests/FeatureDifferentiationTransport.lean",
+        "scope": "Six actual consumers compiled successfully on Lean4.33.0 (3650 jobs): non-even and dimension-zero ambient derivatives, produced endpoint operator bounds, identity-feature tangent field, exact positive Dirac transport cost and zero-L case. Four producer axiom reports contain only propext, Classical.choice and Quot.sound."
+      },
+      "reading_layout": "progressive",
+      "reader_note": "Read the complete claim and its hypotheses first, then open the numbered mathematical proof steps. Each step has an optional fold containing literal Lean implementation excerpts; the full theorem and module context remain available below."
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.BochnerMeanTransport.bounded_bochner_mean_quadratic_transport_control",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Measure.BochnerMeanTransport",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Measure/BochnerMeanTransport.lean",
+      "source_line": 129,
+      "short_name": "bounded_bochner_mean_quadratic_transport_control",
+      "title": "Actual Bochner means are controlled by the all-coupling quadratic cost",
+      "classification": "canonical shared library node; original mathematical supplement",
+      "statement": "Let U be any measurable space and H a complete real normed vector space. Let K:U→H be strongly measurable with ‖K(u)‖≤B. Let c:U×U→ℝ be measurable with 0≤c(z)≤C, and suppose ‖K(u)−K(v)‖≤L c(u,v), where B,C,L≥0. For any two probability measures μ,ν on U, define Q as the infimum, over all actual couplings π with these two marginals, of ∫c² dπ, interpreted as an extended nonnegative integral; set W=Q^(1/2). Then K is genuinely Bochner integrable under each law, Q is finite, and ‖∫K dμ−∫K dν‖≤L W.toReal. For every y∈H both residual norms are at most B+‖y‖. No optimizer, chosen-plan bound, finite-cost assumption or mean-identity premise is supplied. U need not carry a vector-space structure, and c need not be a metric.",
+      "formula": "Q=\\inf_{\\pi\\in\\Pi(\\mu,\\nu)}\\int c(u,v)^2\\,d\\pi,\\qquad \\left\\|\\int K\\,d\\mu-\\int K\\,d\\nu\\right\\|\\le LQ^{1/2}<\\infty.",
+      "assumptions": [
+        "U is measurable; H is a complete real normed vector space. μ and ν are actual probability measures.",
+        "K is strongly measurable and bounded by the nonnegative B. c is jointly measurable, nonnegative and bounded by nonnegative C.",
+        "L≥0 and the displayed feature increment bound holds for every pair; symmetry, a triangle inequality and an optimal coupling are not assumptions."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Produce integrability and finite transport cost",
+          "text": "Strong measurability and the global norm bound give both Bochner integrals. The actual product probability μ⊗ν is a feasible coupling and has cost at most C², so Q is finite before toReal is used.",
+          "formula": "\\int\\|K\\|\\,d\\mu,\\int\\|K\\|\\,d\\nu\\le B,\\qquad Q\\le\\int c^2\\,d(\\mu\\otimes\\nu)\\le C^2.",
+          "lean": "private theorem bounded_feature_integrable\n    {U H : Type*} [MeasurableSpace U]\n    [NormedAddCommGroup H] [NormedSpace ℝ H] [CompleteSpace H]\n    (K : U → H) (hK : StronglyMeasurable K) (B : ℝ)\n    (hBound : ∀ u, ‖K u‖ ≤ B) (μ : Measure U) [IsProbabilityMeasure μ] :\n    Integrable K μ := by\n  exact (integrable_const B).mono' hK.aestronglyMeasurable (ae_of_all _ hBound)\n\nprivate theorem bounded_cost_lintegral\n    {U : Type*} [MeasurableSpace U]\n    (c : U × U → ℝ) (C : ℝ) (hC : 0 ≤ C)\n    (hc0 : ∀ z, 0 ≤ c z) (hcBound : ∀ z, c z ≤ C)\n    (γ : Measure (U × U)) [IsProbabilityMeasure γ] :\n    (∫⁻ z, ENNReal.ofReal ((c z)^2) ∂γ) ≤ ENNReal.ofReal (C^2) := by\n  calc\n    (∫⁻ z, ENNReal.ofReal ((c z)^2) ∂γ) ≤ ∫⁻ _ : U × U, ENNReal.ofReal (C^2) ∂γ := by\n      apply lintegral_mono\n      intro z\n      exact ENNReal.ofReal_le_ofReal ((sq_le_sq₀ (hc0 z) hC).2 (hcBound z))\n    _ = ENNReal.ofReal (C^2) := by simp\n\nprivate theorem actual_transport_cost_finite\n    {U : Type*} [MeasurableSpace U]\n    (c : U × U → ℝ) (C : ℝ) (hC : 0 ≤ C)\n    (hc0 : ∀ z, 0 ≤ c z) (hcBound : ∀ z, c z ≤ C)\n    (μ ν : Measure U) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :\n    AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost\n      (fun z => ENNReal.ofReal ((c z)^2)) μ ν ≠ ∞ := by\n  have h := AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost_le_lintegral_of_isCoupling\n    (fun z => ENNReal.ofReal ((c z)^2)) μ ν (μ.prod ν)\n    (AutoSamplingTheory.TechnicalLemmas.Measure.Transport.isCoupling_prod μ ν)\n  exact ne_of_lt (lt_of_le_of_lt (h.trans (bounded_cost_lintegral c C hC hc0 hcBound _))\n    ENNReal.ofReal_lt_top)\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Measure/BochnerMeanTransport.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 2,
+          "title": "Use the actual marginals for every coupling",
+          "text": "Every feasible coupling is a probability. Marginal pushforward identities and Bochner subtraction express the actual mean difference as one integral of feature increments.",
+          "formula": "\\int K\\,d\\mu-\\int K\\,d\\nu=\\int(K(u)-K(v))\\,d\\pi(u,v).",
+          "lean": "private theorem actual_coupling_mean_difference\n    {U H : Type*} [MeasurableSpace U]\n    [NormedAddCommGroup H] [NormedSpace ℝ H] [CompleteSpace H]\n    (K : U → H) (hK : StronglyMeasurable K) (B : ℝ)\n    (hBound : ∀ u, ‖K u‖ ≤ B)\n    (μ ν : Measure U) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]\n    (γ : Measure (U × U))\n    (hγ : AutoSamplingTheory.TechnicalLemmas.Measure.Transport.IsCoupling γ μ ν) :\n    (∫ u, K u ∂μ) - (∫ v, K v ∂ν) = ∫ z, (K z.1-K z.2) ∂γ := by\n  letI : IsProbabilityMeasure γ :=\n    AutoSamplingTheory.TechnicalLemmas.Measure.Transport.isProbabilityMeasure_of_isCoupling_left hγ\n  have hleft : Integrable (fun z : U × U => K z.1) γ :=\n    bounded_feature_integrable _ (hK.comp_measurable measurable_fst) B\n      (fun z => hBound z.1) γ\n  have hright : Integrable (fun z : U × U => K z.2) γ :=\n    bounded_feature_integrable _ (hK.comp_measurable measurable_snd) B\n      (fun z => hBound z.2) γ\n  have hfst : (∫ u, K u ∂μ) = ∫ z, K z.1 ∂γ := by\n    rw [← hγ.1]\n    exact integral_map_of_stronglyMeasurable measurable_fst hK\n  have hsnd : (∫ v, K v ∂ν) = ∫ z, K z.2 ∂γ := by\n    rw [← hγ.2]\n    exact integral_map_of_stronglyMeasurable measurable_snd hK\n  rw [integral_sub hleft hright,← hfst,← hsnd]\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Measure/BochnerMeanTransport.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 3,
+          "title": "Square the integral bound",
+          "text": "The feature increment hypothesis first bounds the mean norm by L∫c dπ. Nonnegativity of ∫(c−∫c)² gives the probability square-integral inequality, without an assumed cost estimate.",
+          "formula": "\\left(\\int c\\,d\\pi\\right)^2\\le\\int c^2\\,d\\pi,\\qquad A^2\\le L^2\\int c^2\\,d\\pi,\\quad A=\\left\\|\\int K\\,d\\mu-\\int K\\,d\\nu\\right\\|.",
+          "lean": "private theorem probability_square_integral_le\n    {α : Type*} [MeasurableSpace α] (γ : Measure α) [IsProbabilityMeasure γ]\n    (f : α → ℝ) (hf : MemLp f 2 γ) :\n    (∫ x, f x ∂γ)^2 ≤ ∫ x, (f x)^2 ∂γ := by\n  let m := ∫ x, f x ∂γ\n  have hi : Integrable f γ := hf.integrable (by norm_num)\n  have hs : Integrable (fun x => (f x)^2) γ := (memLp_two_iff_integrable_sq hf.1).1 hf\n  have hm : Integrable (fun x => 2 * f x * m) γ := (hi.const_mul 2).mul_const m\n  have hn : 0 ≤ ∫ x, (f x-m)^2 ∂γ := integral_nonneg fun x => sq_nonneg _\n  have he : (∫ x, (f x-m)^2 ∂γ) = (∫ x, (f x)^2 ∂γ)-m^2 := by\n    simp_rw [sub_sq]\n    have hsub : Integrable (fun x => (f x)^2-2*f x*m) γ := hs.sub hm\n    rw [integral_add hsub (integrable_const (m^2)),integral_sub hs hm]\n    simp only [integral_mul_const,integral_const_mul,integral_const,probReal_univ,one_smul]\n    change (∫ x, (f x)^2 ∂γ) - 2*m*m + m^2 = _\n    ring\n  rw [he] at hn\n  change m^2 ≤ _\n  linarith\n\nprivate theorem actual_coupling_squared_mean_bound\n    {U H : Type*} [MeasurableSpace U]\n    [NormedAddCommGroup H] [NormedSpace ℝ H] [CompleteSpace H]\n    (K : U → H) (hK : StronglyMeasurable K) (B C L : ℝ)\n    (hC : 0 ≤ C) (hL : 0 ≤ L) (hBound : ∀ u, ‖K u‖ ≤ B)\n    (c : U × U → ℝ) (hc : Measurable c)\n    (hc0 : ∀ z, 0 ≤ c z) (hcBound : ∀ z, c z ≤ C)\n    (hLip : ∀ u v, ‖K u-K v‖ ≤ L*c (u,v))\n    (μ ν : Measure U) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]\n    (γ : Measure (U × U))\n    (hγ : AutoSamplingTheory.TechnicalLemmas.Measure.Transport.IsCoupling γ μ ν) :\n    ‖(∫ u, K u ∂μ)-(∫ v, K v ∂ν)‖^2 ≤ L^2 * ∫ z, (c z)^2 ∂γ := by\n  letI : IsProbabilityMeasure γ :=\n    AutoSamplingTheory.TechnicalLemmas.Measure.Transport.isProbabilityMeasure_of_isCoupling_left hγ\n  have hcLp : MemLp c 2 γ := (memLp_const C).mono' hc.aestronglyMeasurable\n    (ae_of_all _ fun z => by simpa only [Real.norm_of_nonneg (hc0 z)] using hcBound z)\n  have hcInt : Integrable c γ := hcLp.integrable (by norm_num)\n  have hleft : Integrable (fun z : U × U => K z.1) γ := bounded_feature_integrable _\n    (hK.comp_measurable measurable_fst) B (fun z => hBound z.1) γ\n  have hright : Integrable (fun z : U × U => K z.2) γ := bounded_feature_integrable _\n    (hK.comp_measurable measurable_snd) B (fun z => hBound z.2) γ\n  have hnorm : ‖(∫ u, K u ∂μ)-(∫ v, K v ∂ν)‖ ≤ L * ∫ z, c z ∂γ := by\n    rw [actual_coupling_mean_difference K hK B hBound μ ν γ hγ]\n    calc\n      ‖∫ z, (K z.1-K z.2) ∂γ‖ ≤ ∫ z, ‖K z.1-K z.2‖ ∂γ := norm_integral_le_integral_norm _\n      _ ≤ ∫ z, L*c z ∂γ := integral_mono (hleft.sub hright).norm\n        (hcInt.const_mul L) (fun z => hLip z.1 z.2)\n      _ = L * ∫ z, c z ∂γ := integral_const_mul _ _\n  have hm0 : 0 ≤ ∫ z, c z ∂γ := integral_nonneg hc0\n  have hs := (sq_le_sq₀ (norm_nonneg _) (mul_nonneg hL hm0)).2 hnorm\n  calc\n    ‖(∫ u, K u ∂μ)-(∫ v, K v ∂ν)‖^2 ≤ (L * ∫ z, c z ∂γ)^2 := hs\n    _ = L^2 * (∫ z, c z ∂γ)^2 := mul_pow _ _ _\n    _ ≤ L^2 * ∫ z, (c z)^2 ∂γ := mul_le_mul_of_nonneg_left\n      (probability_square_integral_le γ c hcLp) (sq_nonneg _)\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Measure/BochnerMeanTransport.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 4,
+          "title": "Take the infimum over all feasible costs",
+          "text": "For L>0, the same lower bound (A/L)² lies below every actual coupling cost. The order characterization of the extended-real infimum therefore places it below Q; no attainment or optimizer is used.",
+          "formula": "(A/L)^2\\le\\inf_{\\pi\\in\\Pi(\\mu,\\nu)}\\int c^2\\,d\\pi=Q.",
+          "lean": "    · have hLp : 0 < L := lt_of_le_of_ne hL (Ne.symm hL0)\n      have hLow : ENNReal.ofReal ((A/L)^2) ≤ Q := by\n        apply le_sInf\n        rintro q ⟨γ,hγ,rfl⟩\n        letI : IsProbabilityMeasure γ :=\n          AutoSamplingTheory.TechnicalLemmas.Measure.Transport.isProbabilityMeasure_of_isCoupling_left hγ\n        have hcLp : MemLp c 2 γ := (memLp_const C).mono' hc.aestronglyMeasurable\n          (ae_of_all _ fun z => by simpa only [Real.norm_of_nonneg (hc0 z)] using hcBound z)\n        have hcSq : Integrable (fun z => (c z)^2) γ := (memLp_two_iff_integrable_sq hcLp.1).1 hcLp\n        change ENNReal.ofReal ((A/L)^2) ≤ ∫⁻ z, ENNReal.ofReal ((c z)^2) ∂γ\n        rw [← ofReal_integral_eq_lintegral_ofReal hcSq (ae_of_all _ fun z => sq_nonneg _)]\n        apply ENNReal.ofReal_le_ofReal\n        rw [div_pow]\n        apply (div_le_iff₀ (sq_pos_of_pos hLp)).2\n        simpa only [mul_comm] using hs γ hγ\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Measure/BochnerMeanTransport.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 5,
+          "title": "Handle the square root and the zero constant",
+          "text": "Finiteness justifies the real conversion and the square-root identity. If L=0, the product-coupling squared bound already gives A=0 and no division is performed.",
+          "formula": "((Q^{1/2}).\\mathrm{toReal})^2=Q.\\mathrm{toReal},\\qquad A\\le L(Q^{1/2}).\\mathrm{toReal}.",
+          "lean": "    · have h := hs (μ.prod ν)\n        (AutoSamplingTheory.TechnicalLemmas.Measure.Transport.isCoupling_prod μ ν)\n      rw [hL0] at *\n      simp only [zero_mul,zero_pow (by decide : 2 ≠ 0)] at *\n      change A^2 ≤ 0 at h\n      nlinarith [norm_nonneg ((∫ u, K u ∂μ)-(∫ v, K v ∂ν))]\n\n      have hReal := ENNReal.toReal_mono hQ hLow\n      rw [ENNReal.toReal_ofReal (sq_nonneg _)] at hReal\n      have he : (Q ^ (1 / 2 : ℝ))^2 = Q := by\n        rw [← ENNReal.rpow_two,← ENNReal.rpow_mul]\n        norm_num\n      have heReal : ((Q ^ (1 / 2 : ℝ)).toReal)^2 = Q.toReal := by\n        rw [← ENNReal.toReal_pow,he]\n      have hr : A/L ≤ (Q ^ (1 / 2 : ℝ)).toReal := by\n        have ha : 0 ≤ A/L := div_nonneg (norm_nonneg _) hL\n        have hb := ENNReal.toReal_nonneg (a := Q ^ (1 / 2 : ℝ))\n        nlinarith\n      calc\n        A = L * (A/L) := by field_simp\n        _ ≤ L * (Q ^ (1 / 2 : ℝ)).toReal := mul_le_mul_of_nonneg_left hr hL\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Measure/BochnerMeanTransport.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        },
+        {
+          "number": 6,
+          "title": "Bound both residuals",
+          "text": "The norm of each actual mean is at most B. The triangle inequality gives the two bounds for the same arbitrary fixed y.",
+          "formula": "\\left\\|\\int K\\,d\\mu-y\\right\\|,\\left\\|\\int K\\,d\\nu-y\\right\\|\\le B+\\|y\\|.",
+          "lean": "  · have hmμ : ‖∫ u, K u ∂μ‖ ≤ B := by\n      simpa only [probReal_univ,mul_one] using\n        (norm_integral_le_of_norm_le_const (μ := μ) (ae_of_all _ hBound))\n    have hmν : ‖∫ v, K v ∂ν‖ ≤ B := by\n      simpa only [probReal_univ,mul_one] using\n        (norm_integral_le_of_norm_le_const (μ := ν) (ae_of_all _ hBound))\n    intro y\n    exact ⟨(norm_sub_le _ _).trans (add_le_add hmμ le_rfl),\n      (norm_sub_le _ _).trans (add_le_add hmν le_rfl)⟩\n",
+          "detail": "Literal implementation excerpt from AutoSamplingTheory/TechnicalLemmas/Measure/BochnerMeanTransport.lean. Local names retain their surrounding theorem context; the complete theorem and exact module context are folded below. These excerpts are presentation, not extra theorem premises."
+        }
+      ],
+      "lean_statement": "Let U be any measurable space and H a complete real normed vector space. Let K:U→H be strongly measurable with ‖K(u)‖≤B. Let c:U×U→ℝ be measurable with 0≤c(z)≤C, and suppose ‖K(u)−K(v)‖≤L c(u,v), where B,C,L≥0. For any two probability measures μ,ν on U, define Q as the infimum, over all actual couplings π with these two marginals, of ∫c² dπ, interpreted as an extended nonnegative integral; set W=Q^(1/2). Then K is genuinely Bochner integrable under each law, Q is finite, and ‖∫K dμ−∫K dν‖≤L W.toReal. For every y∈H both residual norms are at most B+‖y‖. No optimizer, chosen-plan bound, finite-cost assumption or mean-identity premise is supplied. U need not carry a vector-space structure, and c need not be a metric.",
+      "lean_proof": "The displayed formula proof explains the mathematical route; the exact Lean is folded adjacent.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.isCoupling_prod",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.isProbabilityMeasure_of_isCoupling_left",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost_le_lintegral_of_isCoupling"
+      ],
+      "mathlib_dependencies": [
+        "Pinned Mathlib Bochner integration, marginal maps and extended-real order"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/6a426bec5f1b3dff71a5843b91b0f6a9cc68ed38/website/content/declaration_lessons/feature-differentiation-transport.json",
+          "label": "Samplinglib original feature differentiation and transport supplement v1 (2026-10-21)",
+          "scope": "Original generic mathematical supplement from the cited pinned library prerequisites; no primary-textbook theorem or statistical convergence credit."
+        }
+      ],
+      "boundary": [
+        "The all-coupling infimum is literal extended nonnegative transportCost; real conversion occurs after finite cost is proved. No optimal coupling or attainment is assumed.",
+        "This is a generic bounded-cost theorem. A round-geodesic metric identification, a concrete Gaussian feature Lipschitz estimate, and their particular Wasserstein instance must be established separately."
+      ],
+      "tests": {
+        "file": "Tests/FeatureDifferentiationTransport.lean",
+        "scope": "Six actual consumers compiled successfully on Lean4.33.0 (3650 jobs): non-even and dimension-zero ambient derivatives, produced endpoint operator bounds, identity-feature tangent field, exact positive Dirac transport cost and zero-L case. Four producer axiom reports contain only propext, Classical.choice and Quot.sound."
+      },
+      "reading_layout": "progressive",
+      "reader_note": "Read the complete claim and its hypotheses first, then open the numbered mathematical proof steps. Each step has an optional fold containing literal Lean implementation excerpts; the full theorem and module context remain available below."
+    }
+  ]
+}

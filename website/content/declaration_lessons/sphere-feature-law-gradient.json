@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost.unit_sphere_angular_cost_properties",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Geometry/UnitSphereAngularCost.lean",
+      "source_line": 27,
+      "short_name": "unit_sphere_angular_cost_properties",
+      "title": "Angular geometry on the actual unit sphere",
+      "classification": "canonical shared library node; original mathematical supplement",
+      "statement": "Let E be a finite-dimensional real inner-product space with its Borel measurable structure, and let S be its literal unit-norm subtype. The actual angular cost c(u,v)=arccos(inner(u,v)) is jointly continuous and measurable on S×S. For every pair it lies between zero and pi, equals Mathlib's unoriented vector angle, dominates the ambient chord norm, vanishes exactly on the diagonal, and is symmetric. It satisfies the triangle inequality. These are explicit properties of the angular cost; no inherited chord-distance instance is replaced, no path-length geodesic-distance identification or Wasserstein theorem is included, and no sphere nonemptiness or positive dimension is assumed.",
+      "formula": "c(u,v)=\\arccos\\langle u,v\\rangle,\\quad 0\\le c\\le\\pi,\\quad \\|u-v\\|\\le c(u,v),\\quad c(u,w)\\le c(u,v)+c(v,w).",
+      "assumptions": [
+        "E is a finite-dimensional real inner-product normed space with its Borel measurable structure.",
+        "S is exactly the unit-norm subtype and c(u,v)=arccos(inner(u,v)). Neither positive dimension nor a point of S is assumed."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Identify the angle",
+          "text": "Unit norms cancel the denominator in the vector-angle definition, so the literal arccos cost is the existing unoriented angle. Continuity follows from continuous subtype coercions, the inner product and arccos; finite dimension supplies second countability for the measurable product.",
+          "formula": "c(u,v)=\\operatorname{angle}(u,v),\\qquad c\\in C(S\\times S;\\mathbb R).",
+          "lean": "  have heq (u v : {w : E // ‖w‖ = 1}) :\n      Real.arccos ⟪u.1,v.1⟫_ℝ = InnerProductGeometry.angle u.1 v.1 := by\n    simp [InnerProductGeometry.angle,u.property,v.property]\n  have hc : Continuous (fun z : {w : E // ‖w‖ = 1} × {w : E // ‖w‖ = 1} =>\n      Real.arccos ⟪z.1.1,z.2.1⟫_ℝ) := by fun_prop\n",
+          "detail": "Literal module excerpt. Local names retain the surrounding theorem context, available with the complete folded theorem; these are proof ingredients, not extra public premises."
+        },
+        {
+          "number": 2,
+          "title": "Compare a chord with its angle",
+          "text": "Set θ=c(u,v)=angle(u,v). For unit endpoints, expand the squared chord norm. The half-angle identity and sin squared bounded by its argument squared yield the chord estimate; both norms and the angle are nonnegative.",
+          "formula": "\\|u-v\\|^2=2-2\\cos\\theta=4\\sin^2(\\theta/2)\\le\\theta^2.",
+          "lean": "private theorem chord_le_angle\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    (u v : E) (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) :\n    ‖u-v‖ ≤ InnerProductGeometry.angle u v := by\n  let θ := InnerProductGeometry.angle u v\n  have hθ : 0 ≤ θ := InnerProductGeometry.angle_nonneg u v\n  have hc : Real.cos θ = ⟪u,v⟫_ℝ := by\n    simpa [θ,hu,hv] using InnerProductGeometry.cos_angle u v\n  have heq : ‖u-v‖^2 = 2-2*Real.cos θ := by\n    rw [norm_sub_sq_real,hu,hv,hc]\n    ring\n  have hh := Real.sin_sq_eq_half_sub (θ/2)\n  have htwo : 2*(θ/2) = θ := by ring\n  rw [htwo] at hh\n  have hs := Real.sin_sq_le_sq (x := θ/2)\n  change ‖u-v‖ ≤ θ\n  nlinarith [norm_nonneg (u-v)]\n\n",
+          "detail": "Literal module excerpt. Local names retain the surrounding theorem context, available with the complete folded theorem; these are proof ingredients, not extra public premises."
+        },
+        {
+          "number": 3,
+          "title": "Separate points and record the range",
+          "text": "The principal arccos lies in [0,pi]. A zero cost forces zero chord, hence equal subtype points. Conversely every unit vector is nonzero and has zero angle with itself. Inner-product symmetry supplies cost symmetry.",
+          "formula": "0\\le c(u,v)\\le\\pi,\\quad c(u,v)=0\\iff u=v,\\quad c(u,v)=c(v,u).",
+          "lean": "    refine ⟨Real.arccos_nonneg _,Real.arccos_le_pi _,heq u v,hchord,?_,?_⟩\n    · constructor\n      · intro hz\n        apply Subtype.ext\n        apply sub_eq_zero.mp\n        apply norm_eq_zero.mp\n        exact le_antisymm (by simpa only [hz] using hchord) (norm_nonneg _)\n      · rintro rfl\n        rw [heq]\n        apply InnerProductGeometry.angle_self\n        intro hz\n        have hh := u.property\n        rw [hz,norm_zero] at hh\n        norm_num at hh\n    · rw [heq,heq,InnerProductGeometry.angle_comm]\n",
+          "detail": "Literal module excerpt. Local names retain the surrounding theorem context, available with the complete folded theorem; these are proof ingredients, not extra public premises."
+        },
+        {
+          "number": 4,
+          "title": "Use the vector-angle triangle inequality",
+          "text": "Replace each literal cost by its angle expression and apply the existing vector-angle triangle inequality. This is an angular-cost fact; it does not identify an intrinsic path-length metric, particularly on the disconnected two-point sphere.",
+          "formula": "c(u,w)=\\operatorname{angle}(u,w)\\le\\operatorname{angle}(u,v)+\\operatorname{angle}(v,w).",
+          "lean": "  · intro u v w\n    rw [heq,heq,heq]\n    exact InnerProductGeometry.angle_le_angle_add_angle u.1 v.1 w.1\n",
+          "detail": "Literal module excerpt. Local names retain the surrounding theorem context, available with the complete folded theorem; these are proof ingredients, not extra public premises."
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real inner-product space with its Borel measurable structure, and let S be its literal unit-norm subtype. The actual angular cost c(u,v)=arccos(inner(u,v)) is jointly continuous and measurable on S×S. For every pair it lies between zero and pi, equals Mathlib's unoriented vector angle, dominates the ambient chord norm, vanishes exactly on the diagonal, and is symmetric. It satisfies the triangle inequality. These are explicit properties of the angular cost; no inherited chord-distance instance is replaced, no path-length geodesic-distance identification or Wasserstein theorem is included, and no sphere nonemptiness or positive dimension is assumed.",
+      "lean_proof": "The formula steps explain the proof; optional folds contain literal Lean excerpts and the full checked theorem.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "InnerProductGeometry.angle_le_angle_add_angle",
+        "InnerProductGeometry.cos_angle",
+        "Real.sin_sq_eq_half_sub",
+        "Real.sin_sq_le_sq"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/3212f7eb462e2d2237d0a57c6f1f425a82169cff/website/content/declaration_lessons/sphere-feature-law-gradient.json",
+          "label": "Samplinglib original sphere geometry and feature-law supplement v1 (2026-10-23)",
+          "scope": "Original generic canonical-library mathematics placed by subject; no primary-textbook theorem, concrete statistical model or whole chapter credit."
+        }
+      ],
+      "boundary": [
+        "Explicit cost properties only. The inherited subtype distance is still the ambient chord distance; no metric instance is changed.",
+        "No intrinsic path-length identity, installed manifold API, Wasserstein theorem or statistical model is certified. In dimension one the two-point sphere has finite angular cost but no internal path between its two points."
+      ],
+      "tests": {
+        "file": "Tests/SphereFeatureLawGradient.lean",
+        "scope": "Four actual consumers compiled with Lean4.33.0 (3482 jobs): finite antipodal angular cost on S0, actual identity-feature ambient gradient and all-coupling law sensitivity, and zero-derivative constant features. Separate independent canonical compiler review pending."
+      },
+      "reading_layout": "progressive",
+      "reader_note": "Read the complete mathematical statement and visible assumptions, then expand the numbered formula proof. Exact Lean remains optional and initially folded."
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient.quadratic_feature_law_gradient_angular_transport_control",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Geometry/QuadraticFeatureLawGradient.lean",
+      "source_line": 13,
+      "short_name": "quadratic_feature_law_gradient_angular_transport_control",
+      "title": "Uniform gradients of quadratic feature-law potentials",
+      "classification": "canonical shared library node; original mathematical supplement",
+      "statement": "Let E be a finite-dimensional real inner-product normed space with its Borel measurable structure and H a complete real inner-product normed space. Let F:E→H have actual ambient Frechet derivative D(w):E→H for every w. Assume nonnegative M1,M2, an operator bound norm(D(w))<=M1 on the closed unit ball and an operator-Lipschitz bound norm(D(w)-D(u))<=M2 norm(w-u) there. Fix y in H. On the actual unit-norm subtype S define K(w)=F(w), angular cost c(u,v)=arccos(inner(u,v)), the actual Bochner mean m(mu)=integral K dmu, V_mu(w)=2 inner(m(mu)-y,F(w)), and G_mu(w)=2P_w D(w)^*(m(mu)-y) with the explicit projection P_w z=z−⟨z,w⟩w, which projects onto w-perpendicular when norm(w)=1. Let Q(mu,nu) be the literal extended nonnegative infimum of the quadratic angular cost over all actual couplings. There exist C1,C2>0, independent of probability laws and unit weights, such that for every actual parameter probability K is integrable, V_mu has the displayed ambient gradient 2D(w)^*(m(mu)-y) at every ambient w, and its projected G_mu is tangent and uniformly bounded by C1 at every unit weight. For every two actual parameter probabilities Q is finite and norm(G_mu(w)-G_nu(u))<=C2*(sqrt(Q).toReal+c(w,u)). Feature boundedness, strong measurability, feature Lipschitz control and residual budgets are derived inside the proof rather than assumed; the returned conclusions are feature integrability, actual ambient gradient, tangency/uniform bound, finite transport cost and the joint sensitivity estimate. The constants may depend on the displayed feature/derivative data, E,H and y. This is a generic feature-law theorem, not a concrete Gaussian scalar-data potential, installed manifold-gradient/Wasserstein API or intrinsic path-length theorem.",
+      "formula": "P_wz=z-\\langle z,w\\rangle w,\\quad V_\\mu(w)=2\\langle m_\\mu-y,F(w)\\rangle,\\quad G_\\mu(w)=2P_wD(w)^*(m_\\mu-y),\\quad \\|G_\\mu(w)-G_\\nu(u)\\|\\le C_2\\bigl(Q(\\mu,\\nu)^{1/2}+c(w,u)\\bigr).",
+      "assumptions": [
+        "E is finite-dimensional real Hilbert with Borel structure; H is a complete real inner-product normed space, with no separability assumption.",
+        "F:E→H has actual full ambient Frechet derivative D(w) at every w. M1,M2≥0 bound the derivative operator norm and its operator Lipschitz increment on the closed unit ball.",
+        "y is fixed. S is the literal unit-norm subtype; m is the actual Bochner integral, c the literal arccos cost, and Q the infimum of angular squared cost over all actual couplings."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Produce feature continuity and chord control",
+          "text": "Differentiability gives continuity. The convex mean-value bound on the closed unit ball produces the M1 chord Lipschitz estimate. Continuity on a second-countable domain yields strong measurability of the feature restriction even when H is not separable.",
+          "formula": "\\|F(w)-F(u)\\|\\le M_1\\|w-u\\|\\quad(\\|w\\|,\\|u\\|\\le1).",
+          "lean": "  have hFc : Continuous F := continuous_iff_continuousAt.mpr fun w => (hF w).continuousAt\n  have hKsm : StronglyMeasurable K := (hFc.comp continuous_subtype_val).stronglyMeasurable\n  have hChord (w u : E) (hw : ‖w‖ ≤ 1) (hu : ‖u‖ ≤ 1) :\n      ‖F w-F u‖ ≤ M₁*‖w-u‖ := by\n    apply (convex_closedBall (0 : E) 1).norm_image_sub_le_of_norm_hasFDerivWithin_le\n      (fun z _ => (hF z).hasFDerivWithinAt) ?_\n      (by simpa [Metric.mem_closedBall,dist_zero_right] using hu)\n      (by simpa [Metric.mem_closedBall,dist_zero_right] using hw)\n    intro z hz\n    exact hBound z (by simpa [Metric.mem_closedBall,dist_zero_right] using hz)\n",
+          "detail": "Literal module excerpt. Local names retain the surrounding theorem context, available with the complete folded theorem; these are proof ingredients, not extra public premises."
+        },
+        {
+          "number": 2,
+          "title": "Produce one uniform feature bound",
+          "text": "Compare every unit feature with F(0), using the previous estimate and the norm triangle inequality. The extra one makes B a convenient positive budget. This budget is an internal consequence, not a new premise.",
+          "formula": "B=\\|F(0)\\|+M_1+1,\\qquad\\|F(w)\\|\\le B\\quad(w\\in S).",
+          "lean": "  let B := ‖F (0:E)‖+M₁+1\n  have hB : 0 ≤ B := by dsimp [B]; positivity\n  have hKb (w : S) : ‖K w‖ ≤ B := by\n    have hb := hChord w.1 0 w.property.le (by simp)\n    have hn := norm_add_le (F w.1-F 0) (F 0)\n    rw [sub_add_cancel] at hn\n    simp only [sub_zero,w.property,mul_one] at hb\n    change ‖F w.1‖ ≤ B\n    dsimp [B]\n    linarith\n",
+          "detail": "Literal module excerpt. Local names retain the surrounding theorem context, available with the complete folded theorem; these are proof ingredients, not extra public premises."
+        },
+        {
+          "number": 3,
+          "title": "Pass from chords to angular cost",
+          "text": "The canonical angular-geometry result supplies measurability, nonnegativity, the pi upper bound and chord domination. Consequently K is M1 Lipschitz with respect to the actual angular cost.",
+          "formula": "\\|K(w)-K(u)\\|\\le M_1c(w,u),\\qquad 0\\le c(w,u)\\le\\pi.",
+          "lean": "  have hAng := AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost.unit_sphere_angular_cost_properties (E := E)\n  change Continuous c ∧ Measurable c ∧\n    (∀ u v : S, 0 ≤ c (u,v) ∧ c (u,v) ≤ Real.pi ∧\n      c (u,v) = InnerProductGeometry.angle u.1 v.1 ∧ ‖u.1-v.1‖ ≤ c (u,v) ∧\n      (c (u,v) = 0 ↔ u = v) ∧ c (u,v) = c (v,u)) ∧\n    ∀ u v w : S, c (u,w) ≤ c (u,v)+c (v,w) at hAng\n  have hc0 (z : S × S) : 0 ≤ c z := (hAng.2.2.1 z.1 z.2).1\n  have hcB (z : S × S) : c z ≤ Real.pi := (hAng.2.2.1 z.1 z.2).2.1\n  have hKlip (w u : S) : ‖K w-K u‖ ≤ M₁*c (w,u) :=\n    (hChord w.1 u.1 w.property.le u.property.le).trans\n      (mul_le_mul_of_nonneg_left (hAng.2.2.1 w u).2.2.2.1 hM₁)\n",
+          "detail": "Literal module excerpt. Local names retain the surrounding theorem context, available with the complete folded theorem; these are proof ingredients, not extra public premises."
+        },
+        {
+          "number": 4,
+          "title": "Control actual means over all couplings",
+          "text": "Apply bounded Bochner transport to actual probability laws, not chosen optimal couplings. It produces integrability, finite Q, the mean difference estimate and the residual budget R0=B+norm(y).",
+          "formula": "\\|m_\\mu-m_\\nu\\|\\le M_1\\sqrt{Q(\\mu,\\nu)},\\qquad\\|m_\\mu-y\\|\\le R_0.",
+          "lean": "  have hMean (μ ν : Measure S) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :=\n    AutoSamplingTheory.TechnicalLemmas.Measure.BochnerMeanTransport.bounded_bochner_mean_quadratic_transport_control\n      K hKsm B Real.pi M₁ hB Real.pi_pos.le hM₁ hKb c hAng.2.1 hc0 hcB hKlip μ ν\n  have hTangent :=\n    AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient.quadratic_feature_potential_tangent_gradient\n      F D hF M₁ M₂ hM₁ hM₂ hBound hLip\n  let R₀ := B+‖y‖\n  have hR₀ : 0 ≤ R₀ := add_nonneg hB (norm_nonneg y)\n  have hResidual (μ : Measure S) [IsProbabilityMeasure μ] : ‖m μ-y‖ ≤ R₀ :=\n    ((hMean μ μ).2.2.2.2 y).1\n",
+          "detail": "Literal module excerpt. Local names retain the surrounding theorem context, available with the complete folded theorem; these are proof ingredients, not extra public premises."
+        },
+        {
+          "number": 5,
+          "title": "Identify the full ambient gradient",
+          "text": "For fixed residual r=m_mu-y the canonical scalar-potential derivative is 2 inner(D(w)*r,·). The real Riesz identification turns it into HasGradientAt, at every ambient weight rather than only unit points.",
+          "formula": "\\nabla V_\\mu(w)=2D(w)^*(m_\\mu-y).",
+          "lean": "  have hGrad (μ : Measure S) (w : E) :\n      HasGradientAt (V μ) ((2 : ℝ) • (D w).adjoint (m μ-y)) w := by\n    rw [hasGradientAt_iff_hasFDerivAt]\n    have he : InnerProductSpace.toDual ℝ E ((2 : ℝ) • (D w).adjoint (m μ-y)) =\n        (2 : ℝ) • innerSL ℝ ((D w).adjoint (m μ-y)) := by\n      ext v\n      simp [InnerProductSpace.toDual_apply_apply,innerSL_apply_apply]\n    rw [he]\n    exact hTangent.1 (m μ-y) w\n",
+          "detail": "Literal module excerpt. Local names retain the surrounding theorem context, available with the complete folded theorem; these are proof ingredients, not extra public premises."
+        },
+        {
+          "number": 6,
+          "title": "Choose constants before the laws",
+          "text": "Projection contraction gives the pointwise bound, while R0 is independent of the parameter law. Choose strictly positive C1,C2 before quantifying over all laws and weights. The constants are not claimed dimension free.",
+          "formula": "C_1=2M_1R_0+1,\\quad C_2=2M_1^2+2(M_2+2M_1)R_0+1.",
+          "lean": "  let A := 2*M₁^2\n  let B₂ := 2*(M₂+2*M₁)*R₀\n  have hA : 0 ≤ A := by dsimp [A]; positivity\n  have hB₂ : 0 ≤ B₂ := by dsimp [B₂]; positivity\n  refine ⟨2*M₁*R₀+1,A+B₂+1,by positivity,by positivity,?_,?_⟩\n  · intro μ hμ\n    let : IsProbabilityMeasure μ := hμ\n    refine ⟨(hMean μ μ).1,hGrad μ,?_⟩\n    intro w\n    have ht := hTangent.2.1 (m μ-y) w.1 w.property\n    refine ⟨ht.1,?_⟩\n    exact ht.2.2.trans ((mul_le_mul_of_nonneg_left (hResidual μ) (by positivity)).trans (by linarith))\n",
+          "detail": "Literal module excerpt. Local names retain the surrounding theorem context, available with the complete folded theorem; these are proof ingredients, not extra public premises."
+        },
+        {
+          "number": 7,
+          "title": "Combine law and point movement",
+          "text": "Use the tangent-field joint estimate, substitute the actual mean sensitivity and residual budget, and dominate the chord by the angle. All costs are finite before applying toReal; the sum of the two coefficients plus one yields a single constant.",
+          "formula": "\\|G_\\mu(w)-G_\\nu(u)\\|\\le2M_1^2\\sqrt Q+2(M_2+2M_1)R_0c(w,u)\\le C_2(\\sqrt Q+c(w,u)).",
+          "lean": "  · intro μ ν hμ hν\n    let : IsProbabilityMeasure μ := hμ\n    let : IsProbabilityMeasure ν := hν\n    refine ⟨(hMean μ ν).2.2.1,?_⟩\n    intro w u\n    have hm : ‖(m μ-y)-(m ν-y)‖ ≤ M₁*(Q μ ν ^ (1 / 2 : ℝ)).toReal := by\n      simpa only [sub_sub_sub_cancel_right] using (hMean μ ν).2.2.2.1\n    have hr := hResidual ν\n    have ht := hTangent.2.2 (m μ-y) (m ν-y) w.1 u.1 w.property u.property\n    have hpoint := (hAng.2.2.1 w u).2.2.2.1\n    have ht' : ‖G μ w.1-G ν u.1‖ ≤\n        A*(Q μ ν ^ (1 / 2 : ℝ)).toReal+B₂*c (w,u) := by\n      calc\n        _ ≤ 2*M₁*‖(m μ-y)-(m ν-y)‖+\n            2*(M₂+2*M₁)*‖m ν-y‖*‖w.1-u.1‖ := ht\n        _ ≤ 2*M₁*(M₁*(Q μ ν ^ (1 / 2 : ℝ)).toReal)+\n            2*(M₂+2*M₁)*R₀*c (w,u) := by\n          gcongr\n        _ = _ := by dsimp [A,B₂]; ring\n    apply ht'.trans\n    have hs : 0 ≤ (Q μ ν ^ (1 / 2 : ℝ)).toReal := ENNReal.toReal_nonneg\n    have hc := hc0 (w,u)\n    nlinarith [mul_nonneg hA hc,mul_nonneg hB₂ hs]\n",
+          "detail": "Literal module excerpt. Local names retain the surrounding theorem context, available with the complete folded theorem; these are proof ingredients, not extra public premises."
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real inner-product normed space with its Borel measurable structure and H a complete real inner-product normed space. Let F:E→H have actual ambient Frechet derivative D(w):E→H for every w. Assume nonnegative M1,M2, an operator bound norm(D(w))<=M1 on the closed unit ball and an operator-Lipschitz bound norm(D(w)-D(u))<=M2 norm(w-u) there. Fix y in H. On the actual unit-norm subtype S define K(w)=F(w), angular cost c(u,v)=arccos(inner(u,v)), the actual Bochner mean m(mu)=integral K dmu, V_mu(w)=2 inner(m(mu)-y,F(w)), and G_mu(w)=2P_w D(w)^*(m(mu)-y) with the explicit projection P_w z=z−⟨z,w⟩w, which projects onto w-perpendicular when norm(w)=1. Let Q(mu,nu) be the literal extended nonnegative infimum of the quadratic angular cost over all actual couplings. There exist C1,C2>0, independent of probability laws and unit weights, such that for every actual parameter probability K is integrable, V_mu has the displayed ambient gradient 2D(w)^*(m(mu)-y) at every ambient w, and its projected G_mu is tangent and uniformly bounded by C1 at every unit weight. For every two actual parameter probabilities Q is finite and norm(G_mu(w)-G_nu(u))<=C2*(sqrt(Q).toReal+c(w,u)). Feature boundedness, strong measurability, feature Lipschitz control and residual budgets are derived inside the proof rather than assumed; the returned conclusions are feature integrability, actual ambient gradient, tangency/uniform bound, finite transport cost and the joint sensitivity estimate. The constants may depend on the displayed feature/derivative data, E,H and y. This is a generic feature-law theorem, not a concrete Gaussian scalar-data potential, installed manifold-gradient/Wasserstein API or intrinsic path-length theorem.",
+      "lean_proof": "The formula steps explain the proof; optional folds contain literal Lean excerpts and the full checked theorem.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost.unit_sphere_angular_cost_properties",
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient.quadratic_feature_potential_tangent_gradient",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.BochnerMeanTransport.bounded_bochner_mean_quadratic_transport_control"
+      ],
+      "mathlib_dependencies": [
+        "Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le",
+        "Continuous.stronglyMeasurable",
+        "hasGradientAt_iff_hasFDerivAt",
+        "InnerProductSpace.toDual_apply_apply"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/3212f7eb462e2d2237d0a57c6f1f425a82169cff/website/content/declaration_lessons/sphere-feature-law-gradient.json",
+          "label": "Samplinglib original sphere geometry and feature-law supplement v1 (2026-10-23)",
+          "scope": "Original generic canonical-library mathematics placed by subject; no primary-textbook theorem, concrete statistical model or whole chapter credit."
+        }
+      ],
+      "boundary": [
+        "F and D plus their actual derivative/operator bounds remain explicit generic inputs. A specific model must produce them and identify its literal scalar potential with this Hilbert potential.",
+        "Angular all-coupling cost, tangent projection and actual ambient gradient are explicit. Identification with a chosen Riemannian-gradient/Wasserstein API or intrinsic path-length convention remains separate.",
+        "Auxiliary feature bounds, strong measurability and residual estimates are derived internally; they are not separately returned conjuncts. Constants may depend on E,H,F,D,M1,M2,y."
+      ],
+      "tests": {
+        "file": "Tests/SphereFeatureLawGradient.lean",
+        "scope": "Four actual consumers compiled with Lean4.33.0 (3482 jobs): finite antipodal angular cost on S0, actual identity-feature ambient gradient and all-coupling law sensitivity, and zero-derivative constant features. Separate independent canonical compiler review pending."
+      },
+      "reading_layout": "progressive",
+      "reader_note": "Read the complete mathematical statement and visible assumptions, then expand the numbered formula proof. Exact Lean remains optional and initially folded."
+    }
+  ]
+}

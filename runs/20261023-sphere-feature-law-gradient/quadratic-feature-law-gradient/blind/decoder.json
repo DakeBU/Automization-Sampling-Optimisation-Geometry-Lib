@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-ab08475ec7347c1e",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "theorem result\n    {E H : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]\n    (F : E → H) (D : E → E →L[ℝ] H)\n    (hF : ∀ w, HasFDerivAt F (D w) w)\n    (M₁ M₂ : ℝ) (hM₁ : 0 ≤ M₁) (hM₂ : 0 ≤ M₂)\n    (hBound : ∀ w : E, ‖w‖ ≤ 1 → ‖D w‖ ≤ M₁)\n    (hLip : ∀ w u : E, ‖w‖ ≤ 1 → ‖u‖ ≤ 1 → ‖D w-D u‖ ≤ M₂*‖w-u‖)\n    (y : H) :\n    let S := {w : E // ‖w‖ = 1}\n    let K : S → H := fun w => F w.1\n    let c : S × S → ℝ := fun z => Real.arccos ⟪z.1.1,z.2.1⟫_ℝ\n    let m : Measure S → H := fun μ => ∫ w, K w ∂μ\n    let V : Measure S → E → ℝ := fun μ w => 2 * ⟪m μ-y,F w⟫_ℝ\n    let G : Measure S → E → E := fun μ w =>\n      (2 : ℝ) • ((D w).adjoint (m μ-y) - ⟪(D w).adjoint (m μ-y),w⟫_ℝ • w)\n    let Q : Measure S → Measure S → ℝ≥0∞ := fun μ ν =>\n      AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost\n        (fun z => ENNReal.ofReal ((c z)^2)) μ ν\n    ∃ C₁ C₂ : ℝ, 0 < C₁ ∧ 0 < C₂ ∧\n      (∀ μ : Measure S, IsProbabilityMeasure μ →\n        Integrable K μ ∧\n        (∀ w : E, HasGradientAt (V μ) ((2 : ℝ) • (D w).adjoint (m μ-y)) w) ∧\n        ∀ w : S, ⟪w.1,G μ w.1⟫_ℝ = 0 ∧ ‖G μ w.1‖ ≤ C₁) ∧\n      ∀ μ ν : Measure S, IsProbabilityMeasure μ → IsProbabilityMeasure ν →\n        Q μ ν ≠ ∞ ∧ ∀ w u : S,\n          ‖G μ w.1-G ν u.1‖ ≤\n            C₂ * ((Q μ ν ^ (1 / 2 : ℝ)).toReal + c (w,u))",
+    "statement_sha256": "ab08475ec7347c1e5ee52a18a3d14efff34bda76348c652ae70ab4506155e2a6",
+    "compiled": true,
+    "approved_definition_context": [
+      "The subtype {w : E // norm(w)=1} inherits the ambient topology and measurable structure. Its coercion w.val is the ambient representative; product measurable structures are inherited as usual. Real.arccos is the principal real inverse cosine.",
+      "HasFDerivAt F A w means the full real Frechet derivative at ambient w is the continuous real linear map A. HasGradientAt V g w means the real derivative is v mapped to inner(g,v). A.adjoint is the Hilbert adjoint characterized by inner(A.adjoint r,v)=inner(r,A v).",
+      "MeasureTheory.integral is the actual Bochner integral and is totalized to zero when the function is not integrable. Integrable explicitly asserts strong almost-everywhere measurability and finite integral of the norm. IsProbabilityMeasure means total mass one.",
+      "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost(cost,mu,nu) is the extended nonnegative infimum of integral cost dgamma over every actual measure gamma on the product whose first marginal is mu and second marginal is nu. The empty feasible infimum is infinity; no optimizer is part of the definition.",
+      "ENNReal.ofReal sends a real number to its nonnegative extended-real value, ENNReal powers use the displayed real exponent, and ENNReal.toReal is totalized to zero at infinity. The theorem uses the concrete cost and literal integral formulas in its let definitions."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "5631aa3d8d89a875a046e4d65622d5e597c673708a7d47f81348cfc1a84e8968"
+}

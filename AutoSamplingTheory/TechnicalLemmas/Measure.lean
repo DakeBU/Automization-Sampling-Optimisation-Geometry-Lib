@@ -1,4 +1,3 @@
-import AutoSamplingTheory.TechnicalLemmas.Measure.BochnerMeanTransport
 import AutoSamplingTheory.Probability
 import AutoSamplingTheory.TechnicalLemmas.Measure.CanonicalGlobalCompetitor
 import AutoSamplingTheory.TechnicalLemmas.Measure.CommonMass

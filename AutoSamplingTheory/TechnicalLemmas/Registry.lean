@@ -1,3 +1,5 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost
+import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient
 import AutoSamplingTheory.TechnicalLemmas.Measure.BochnerMeanTransport
@@ -5474,6 +5476,26 @@ def variationalMemory : List LemmaMemoryEntry := [
 ]
 
 def geometryMemory : List LemmaMemoryEntry := [
+  {
+    key := "unit-sphere-angular-cost",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost.unit_sphere_angular_cost_properties",
+    upstreamDecl := "Original generic sphere geometry and feature-law supplement",
+    upstreamFile := "Pinned Mathlib vector-angle, Frechet calculus, Hilbert adjoints and actual Bochner/coupling interfaces",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["sphere", "gradient", "transport", "shared"],
+    saldUse := "Generic geometric optimisation and law-dependent feature prerequisites; actual model compositions remain separate",
+    note := "Actual unit-subtype arccos cost is continuous/measurable, bounded, chord-dominating, separating, symmetric and triangular. No installed metric or intrinsic path-length identity. Fresh independent source/compiler and exact candidate audits accepted. Final root/reader gates and postmerge purification separate; no whole-model claim."
+  },
+  {
+    key := "quadratic-feature-law-gradient",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient.quadratic_feature_law_gradient_angular_transport_control",
+    upstreamDecl := "Original generic sphere geometry and feature-law supplement",
+    upstreamFile := "Pinned Mathlib vector-angle, Frechet calculus, Hilbert adjoints and actual Bochner/coupling interfaces",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["sphere", "gradient", "transport", "shared"],
+    saldUse := "Generic geometric optimisation and law-dependent feature prerequisites; actual model compositions remain separate",
+    note := "Actual ambient feature derivatives and visible operator bounds produce genuine mean integrability, potential gradient, tangent uniform bound, finite angular coupling cost and joint law/point control. Concrete feature-model inputs must still be produced. Fresh independent source/compiler and exact candidate audits accepted. Final root/reader gates and postmerge purification separate; no whole-model claim."
+  },
   {
     key := "quadratic-feature-tangent-gradient",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient.quadratic_feature_potential_tangent_gradient",

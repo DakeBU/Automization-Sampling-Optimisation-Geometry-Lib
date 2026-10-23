@@ -1,3 +1,4 @@
+import Tests.SphereFeatureLawGradient
 import Tests.FeatureDifferentiationTransport
 import Tests.GaussianFeatureRegularity
 import Tests.GaussianPolynomialRidge

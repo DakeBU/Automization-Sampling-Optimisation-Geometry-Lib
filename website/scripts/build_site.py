@@ -49,6 +49,7 @@ import samplewiki_companions  # noqa: E402
 import source_foundations  # noqa: E402
 import source_lineage  # noqa: E402
 import project_licensing  # noqa: E402
+import project_news  # noqa: E402
 import textbook_math_contract  # noqa: E402
 import theorem_lessons  # noqa: E402
 import undergrad_guides  # noqa: E402
@@ -241,6 +242,7 @@ def main() -> int:
     inherit_final_reader_contract(output)
     repair_project_author_footer(output)
     project_licensing.enrich_site(output)
+    project_news.enrich_site(output)
     repair_final_content_anchors(output)
     return 0
 

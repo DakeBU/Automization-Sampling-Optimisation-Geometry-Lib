@@ -256,6 +256,14 @@ def main() -> None:
             assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
             page.screenshot(path=str(evidence/'project-license-mobile.png'))
             report['project_license'] = {'Apache-2.0': True, 'downloads': 4, 'third_party_scope': True, 'mobile_overflow': False}
+            goto('index.html')
+            news = page.locator('.project-news-list')
+            assert news.locator('li').count() > 8
+            assert news.evaluate('n => n.scrollHeight > n.clientHeight')
+            news.evaluate('n => n.scrollTop = n.scrollHeight')
+            assert news.locator('li').last.evaluate('(n) => n.getBoundingClientRect().bottom <= n.parentElement.getBoundingClientRect().bottom + 2')
+            page.locator('[data-project-news]').screenshot(path=str(evidence/'project-news-mobile.png'))
+            report['project_news'] = {'retained_entries': news.locator('li').count(), 'scrolls_to_oldest': True}
             goto('textbook/research-extensions.html')
             extensions = page.locator('[data-reviewed-placement]')
             assert extensions.count() > 0

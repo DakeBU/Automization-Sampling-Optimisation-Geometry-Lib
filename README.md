@@ -52,6 +52,7 @@ Each paper has a stable reader page with complete attributed source conditions, 
 - **2026-09-10:** Compiled and source-reviewed the first [SPHMC](conversion-windows/ASTIS-SW-SPHMC-2026.md) and [Proximal BPS](conversion-windows/ASTIS-SW-PBPS-2026.md) proof packets.
 - **2026-09-07:** Added Discrete Sampling and MCMC as peer libraries.
 - **2026-09-05:** Added Statistical Optimal Transport and the Functor Hypergraph.
+- **2026-08-29:** Added source-fidelity checks and theorem denoising.
 - **2026-07-17:** Established Auto-Sampling-Theory-In-Sleep.
 
 ## Research aim

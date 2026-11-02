@@ -11,9 +11,19 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'website/scripts')]
 import project_licensing as licensing
+import project_news as news
 
 
 class ProjectLicensingTests(unittest.TestCase):
+    def test_news_history_is_uncapped_and_uses_the_readme(self):
+        source = '## News\n\n' + '\n'.join(f'- **2026-10-{n:02d}:** Update {n}.' for n in range(20, 0, -1)) + '\n\n## Later\n'
+        rendered = news.render(source, 'https://github.com/example/repo')
+        self.assertEqual(rendered.count('<li>'), 20)
+        self.assertIn('2026-10-01', rendered)
+        history = dict(news.rows((ROOT / 'README.md').read_text(encoding='utf-8')))
+        self.assertIn('2026-08-29', history)
+        self.assertIn('2026-07-17', history)
+
     def test_full_license_is_unmodified_official_apache_text(self):
         self.assertEqual(hashlib.sha256((ROOT / 'LICENSE').read_bytes()).hexdigest(),
             'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30')

@@ -7,6 +7,12 @@ separate throughout review.
 
 ## 0. Collaborator / Codex entry point
 
+Original contributions are submitted under [Apache-2.0](LICENSE), unless
+explicitly identified otherwise. Contributors retain copyright and must have
+authority to license their submissions. Preserve third-party notices and read
+[LICENSE_SCOPE.md](LICENSE_SCOPE.md) before porting code or redistributing data;
+the project license does not relicense external books, papers or ATLAS data.
+
 All contributors and coding agents acting for them must begin from the current
 repository instructions, not from a copied chat prompt.
 

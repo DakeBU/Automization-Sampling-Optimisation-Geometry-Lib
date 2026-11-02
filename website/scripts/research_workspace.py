@@ -16,6 +16,7 @@ from html import escape
 from pathlib import Path
 
 import samplewiki_companions
+import project_licensing
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -322,7 +323,8 @@ def _write_workspace_bundle(
         archive.writestr("workspace.md", markdown)
         archive.writestr("workspace.html", standalone_html(workspace))
         archive.writestr("MANIFEST.json", json.dumps(manifest, indent=2) + "\n")
-        for filename in ("lean-toolchain", "lake-manifest.json", "NOTICE.md"):
+        project_licensing.add_to_archive(archive)
+        for filename in ("lean-toolchain", "lake-manifest.json"):
             path = ROOT / filename
             if path.is_file():
                 archive.write(path, filename)
@@ -336,6 +338,7 @@ def _write_mcp_bundle(output: Path, payload_text: str) -> None:
     target = output / MCP_DOWNLOAD
     target.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
+        project_licensing.add_to_archive(archive)
         for path in sorted(MCP_SOURCE.rglob("*")):
             if path.is_file() and "node_modules" not in path.parts:
                 archive.write(path, path.relative_to(MCP_SOURCE).as_posix())
@@ -393,6 +396,9 @@ def validate_site(output: Path) -> list[str]:
         if bundle.is_file():
             with zipfile.ZipFile(bundle) as archive:
                 names = set(archive.namelist())
+                for required in project_licensing.LICENSE_FILES:
+                    if required not in names:
+                        errors.append(f"{bundle.name}: missing {required}")
                 for required in (
                     "README.md",
                     "workspace.json",
@@ -407,6 +413,9 @@ def validate_site(output: Path) -> list[str]:
     else:
         with zipfile.ZipFile(mcp) as archive:
             names = set(archive.namelist())
+            for required in project_licensing.LICENSE_FILES:
+                if required not in names:
+                    errors.append(f"{mcp.name}: missing {required}")
             for required in (
                 "README.md",
                 "package.json",

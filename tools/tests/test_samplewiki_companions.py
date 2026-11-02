@@ -1,6 +1,7 @@
 """Source contracts and graph separation; these tests do not prove mathematics."""
 import copy
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -186,8 +187,9 @@ class CompanionTests(unittest.TestCase):
         readme=(ROOT/'README.md').read_text(encoding='utf8')
         news=readme.split('## News\n',1)[1].split('\n## ',1)[0]
         lines=[line for line in news.splitlines() if line.strip()]
-        self.assertTrue(all(line.startswith('- **2026-') for line in lines))
-        self.assertLessEqual(len(lines),8)
+        self.assertTrue(all(re.match(r'^- \*\*\d{4}-\d{2}-\d{2}:\*\* ', line) for line in lines))
+        dates=[line.split('**',2)[1] for line in lines]
+        self.assertEqual(dates,sorted(dates,reverse=True))
         self.assertIn('Established Auto-Sampling-Theory-In-Sleep.',lines[-1])
 
 

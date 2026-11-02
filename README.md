@@ -45,6 +45,7 @@ Each paper has a stable reader page with complete attributed source conditions, 
 
 ## News
 
+- **2026-11-03:** Made Samplinglib's original code and exposition available under [Apache-2.0](LICENSE), with explicit [third-party boundaries](LICENSE_SCOPE.md).
 - **2026-10-06:** Extended Statement Seal / Proof Digestion with evidence-routed memory: failed routes receive typed failure and salvage audits, verified negative knowledge can prevent repeated dead ends, parallel proof directions require distinct uncertainty and a common-blind-spot review, and PURIFIED pages require an Exposition Seal.
 - **2026-10-03:** Added source-grounded research workspaces, proof ledgers, and a downloadable ChatGPT/MCP App.
 - **2026-09-29:** [Our system paper](https://openreview.net/forum?id=UkKpNtVED2) was accepted to the NeurIPS 2026 Workshop MATH-AI.
@@ -166,3 +167,20 @@ SAU ledger, not from this historical run note.
 ```
 
 Project authorship is not yet finalized; no provisional author list is published.
+
+## License
+
+Website: [Samplinglib / ASTIS](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/).
+For an offline build, open [`_site/index.html`](_site/index.html) after following
+the [website build guide](website/README.md). The
+[website reuse scope](LICENSE_SCOPE.md#website-reuse-and-entry-points) distinguishes
+Sho Sonoda's Lean-Ridgelet design inspiration from vendored software.
+
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+
+Samplinglib's original code, documentation and website exposition are available
+under [Apache-2.0](LICENSE). Reuse and contributions are warmly welcome.
+See [license scope and historical reuse](LICENSE_SCOPE.md), [NOTICE](NOTICE)
+and [source attribution](NOTICE.md). Third-party code, source books/papers and
+restricted reference datasets retain their own terms; this is not a blanket
+relicense of external material. [Website licensing page](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/licensing/).

@@ -33,6 +33,7 @@ import metadata_lessons  # noqa: E402
 import inline_lean  # noqa: E402
 import samplewiki_companions  # noqa: E402
 import research_workspace  # noqa: E402
+import project_licensing  # noqa: E402
 
 
 # Validation must resolve Registry entries with the same declaration parser used
@@ -295,6 +296,7 @@ def main() -> int:
     reader_errors.extend(publication_reader.validate_site(output))
     reader_errors.extend(inline_lean.validate_textbook(output))
     reader_errors.extend(metadata_lessons.validate_site(output))
+    reader_errors.extend(project_licensing.validate_site(output))
     if reader_errors:
         for error in reader_errors:
             print(f"Proof reader check failed: {error}", file=sys.stderr)

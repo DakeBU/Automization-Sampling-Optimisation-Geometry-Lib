@@ -249,6 +249,13 @@ def main() -> None:
             page.set_viewport_size(old_viewport)
             assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
             report['priority_papers'] = []
+            goto('licensing/index.html')
+            assert page.locator('h1').inner_text() == 'License and reuse'
+            assert page.locator('a[download]').count() == 4
+            assert page.locator('footer [data-project-license]').count() == 1
+            assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
+            page.screenshot(path=str(evidence/'project-license-mobile.png'))
+            report['project_license'] = {'Apache-2.0': True, 'downloads': 4, 'third_party_scope': True, 'mobile_overflow': False}
             goto('textbook/research-extensions.html')
             extensions = page.locator('[data-reviewed-placement]')
             assert extensions.count() > 0

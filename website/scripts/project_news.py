@@ -20,14 +20,14 @@ def rows(readme: str) -> list[tuple[str, str]]:
     return result  # Never truncate the source history.
 
 
-def inline(text: str, repository: str) -> str:
+def inline(text: str, repository: str, commit: str) -> str:
     def link(match):
         label, target = match.groups()
         parsed = urlsplit(target)
         if parsed.scheme and parsed.scheme not in {'http', 'https'}:
             raise ValueError('Unsupported News link scheme')
         if not parsed.scheme:
-            target = repository.rstrip('/') + '/blob/main/' + target
+            target = repository.rstrip('/') + '/blob/' + commit + '/' + target
         return f'<a href="{escape(target)}">{escape(label)}</a>'
     parts, pos = [], 0
     for match in re.finditer(r'\[([^\]]+)\]\(([^)]+)\)', text):
@@ -36,8 +36,8 @@ def inline(text: str, repository: str) -> str:
     return ''.join(parts) + escape(text[pos:])
 
 
-def render(readme: str, repository: str) -> str:
-    entries = ''.join(f'<li><time datetime="{date}">{date}</time><span>{inline(text, repository)}</span></li>'
+def render(readme: str, repository: str, commit: str) -> str:
+    entries = ''.join(f'<li><time datetime="{date}">{date}</time><span>{inline(text, repository, commit)}</span></li>'
                       for date, text in rows(readme))
     return (f'<section class="project-news" {MARKER} aria-labelledby="project-news-title">'
         '<h2 id="project-news-title">News</h2><p>Recent updates first. Scroll within the list for earlier news.</p>'
@@ -51,9 +51,9 @@ def enrich_site(output: Path) -> None:
         (assets / name).write_bytes((ROOT / 'website/static' / name).read_bytes())
     path = output / 'index.html'
     text = path.read_text(encoding='utf-8')
-    repository = (astis_site._ACTIVE_GIT or astis_site.git_context()).web_root
+    git = astis_site._ACTIVE_GIT or astis_site.git_context()
     if MARKER not in text:
-        text = text.replace('</main>', render((ROOT / 'README.md').read_text(encoding='utf-8'), repository) + '</main>', 1)
+        text = text.replace('</main>', render((ROOT / 'README.md').read_text(encoding='utf-8'), git.web_root, git.commit) + '</main>', 1)
         text = text.replace('</head>', '<link rel="stylesheet" href="assets/project-news.css"><script defer src="assets/project-news.js"></script></head>', 1)
         path.write_text(text, encoding='utf-8', newline='\n')
 

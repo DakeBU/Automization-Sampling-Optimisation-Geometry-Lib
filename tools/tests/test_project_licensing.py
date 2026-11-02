@@ -17,12 +17,17 @@ import project_news as news
 class ProjectLicensingTests(unittest.TestCase):
     def test_news_history_is_uncapped_and_uses_the_readme(self):
         source = '## News\n\n' + '\n'.join(f'- **2026-10-{n:02d}:** Update {n}.' for n in range(20, 0, -1)) + '\n\n## Later\n'
-        rendered = news.render(source, 'https://github.com/example/repo')
+        rendered = news.render(source, 'https://github.com/example/repo', 'a' * 40)
         self.assertEqual(rendered.count('<li>'), 20)
         self.assertIn('2026-10-01', rendered)
         history = dict(news.rows((ROOT / 'README.md').read_text(encoding='utf-8')))
         self.assertIn('2026-08-29', history)
         self.assertIn('2026-07-17', history)
+
+    def test_news_repository_links_use_the_exact_build_revision(self):
+        text = news.inline('[License](LICENSE)', 'https://github.com/example/repo', 'a' * 40)
+        self.assertIn('/blob/' + 'a' * 40 + '/LICENSE', text)
+        self.assertNotIn('/blob/main/', text)
 
     def test_full_license_is_unmodified_official_apache_text(self):
         self.assertEqual(hashlib.sha256((ROOT / 'LICENSE').read_bytes()).hexdigest(),

@@ -26,8 +26,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 21)
-        self.assertEqual(len(prompts), 30)
+        self.assertEqual(len(self.cores), 24)
+        self.assertEqual(len(prompts), 35)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -77,7 +77,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 30)
+            self.assertEqual(manifest['qa_views'], 35)
             self.assertEqual(manifest['graph_tasks'], 5)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -180,12 +180,12 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 21)
+        self.assertEqual(coverage['unique_mathematical_cores'], 24)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 21)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 24)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -256,6 +256,51 @@ class BenchTests(unittest.TestCase):
         self.assertNotIn('heatBathSnd_invariant',heat['lean_task'])
         self.assertNotIn('IsProbabilityMeasure',heat['lean_task'])
         self.assertNotIn('StandardBorelSpace α',heat['lean_task'])
+
+    def test_selected_curve_target_keeps_genuine_derivative_and_external_geometry_boundary(self):
+        core=next(c for c in self.cores if c['id']=='sogb-022')
+        self.assertIn('def IsAlphaGeodesicallyConvex',core['context'])
+        self.assertIn('HasDerivAt',core['lean_task'])
+        self.assertIn('MetricSpace M',core['lean_task'])
+        self.assertNotIn('InnerProductSpace',core['lean_task'])
+        self.assertIn('div_le_iff₀',core['lean_reference'])
+        self.assertIn('le_of_tendsto_of_tendsto',core['lean_reference'])
+        self.assertIn('not certified geometric data',core['boundary'])
+
+    def test_gradient_flow_rate_is_a_real_trajectory_join_not_an_assumed_gap_bound(self):
+        core=next(c for c in self.cores if c['id']=='sogb-023')
+        self.assertIn('HasDerivWithinAt X (-gradient',core['lean_task'])
+        self.assertIn('ContinuousOn X (Icc 0 T)',core['lean_task'])
+        self.assertIn('∀ t ∈ Ioc 0 T',core['lean_task'])
+        self.assertIn('if α = 0 then',core['lean_task'])
+        self.assertIn('[CompleteSpace E]',core['context'])
+        self.assertNotIn('FiniteDimensional',core['lean_task'])
+        self.assertNotIn('LipschitzWith',core['lean_task'])
+        self.assertEqual(core['lean_reference'].count('le_gronwallBound_of_liminf_deriv_right_le'),2)
+        self.assertIn('hmono',core['lean_reference'])
+        self.assertIn('firstOrder_lower_bound_of_strongConvexOn',core['lean_reference'])
+        self.assertEqual(core['family'],next(c for c in self.cores if c['id']=='sogb-022')['family'])
+
+    def test_uncountable_event_audit_does_not_claim_a_formal_counterexample_or_failed_averaging(self):
+        core=next(c for c in self.cores if c['id']=='sogb-024')
+        self.assertFalse(bench.has_lean(core))
+        self.assertEqual(core['track_levels'],{'natural-language':'L3'})
+        self.assertIn('∀ᵐ x ∂μ, ∀ s',core['support_lean_source'])
+        self.assertIn('Both output measures are μ',core['steps'][4])
+        self.assertIn('not countably generated',core['steps'][5])
+        self.assertIn('not a formal proof of this QA',core['boundary'])
+        self.assertEqual(core['family'],next(c for c in self.cores if c['id']=='sogb-017')['family'])
+
+    def test_plain_exponentials_render_without_nesting_existing_math_or_mutating_gold(self):
+        text='Multiply by αe^{αt}>0; X(u)=e^{−u}. Already \\(e^{\\alpha t}\\) and \\[e^{-t}\\].'
+        rendered=reader.prose(text)
+        self.assertIn(r'\(αe^{αt}\)',rendered)
+        self.assertIn(r'\(e^{−u}\)',rendered)
+        self.assertIn(r'\(e^{\alpha t}\)',rendered)
+        self.assertNotIn(r'\(\(',rendered)
+        core=next(c for c in self.cores if c['id']=='sogb-023')
+        self.assertIn('αe^{αt}>0',core['steps'][3])
+        self.assertEqual(core['binding_sha256'],next(c for c in bench.materialize() if c['id']==core['id'])['binding_sha256'])
 
     def test_structural_graph_answers_sources_and_no_gold_in_prompts(self):
         graphs = bench.curriculum.graph_items()

@@ -15,6 +15,7 @@ PROSE_ROUND = BASE / 'reviews/round-2'
 PROSE_SCOPE = 'independent AI natural-language QA editorial review; no aligned Lean certification'
 PROSE_REPAIR_SCOPE = 'independent exact prose/difficulty repair; no aligned Lean certification'
 PAIRED_REPAIR_SCOPE = 'independent exact scoring repair; paired Lean conclusions unchanged'
+PAIRED_PROSE_REPAIR_SCOPE = 'independent exact proof-prose repair; paired Lean conclusions unchanged'
 SLOTS = ('objects', 'domains', 'quantifiers', 'assumptions', 'conclusion', 'senses', 'constants')
 AUTHOR = 'agent-task:root'
 
@@ -240,7 +241,9 @@ def prepare_prose(cores: list[dict], identities: list[str], destination: Path) -
     destination.write_bytes(bench.encoded(packet))
 
 
-def prepare_scoped_repair(cores: list[dict], directory: Path, identities: list[str], destination: Path, *, formal: bool = False) -> None:
+def prepare_scoped_repair(cores: list[dict], directory: Path, identities: list[str], destination: Path, *, formal: bool = False, proof_prose: bool = False) -> None:
+    if proof_prose and not formal:
+        raise ValueError('Proof-prose paired repairs need the paired audit route')
     input_path = directory / ('packets/reviewer-input.json' if formal else 'packets/prose-input.json')
     original = json.loads(input_path.read_text(encoding='utf-8'))
     report_path = directory / 'source-review.json'
@@ -256,11 +259,15 @@ def prepare_scoped_repair(cores: list[dict], directory: Path, identities: list[s
         cases[identity] = {'before': before, 'proposed_after': after,
                           'context_sha256': context_binding(after),
                           'repair_requests': report['items'][identity]['repair_requests']}
-    proposal = {'schema_version': 1, 'scope': PAIRED_REPAIR_SCOPE if formal else PROSE_REPAIR_SCOPE, 'author_identity': AUTHOR,
+    scope = PAIRED_PROSE_REPAIR_SCOPE if proof_prose else (PAIRED_REPAIR_SCOPE if formal else PROSE_REPAIR_SCOPE)
+    proposal = {'schema_version': 1, 'scope': scope, 'author_identity': AUTHOR,
                 'base_input_sha256': bench.sha(input_path.read_bytes()),
                 'base_report_sha256': bench.sha(report_path.read_bytes()),
                 'cases': cases,
-                'instruction': 'Independently audit these exact proposed repairs, source/target invariants, rubric and minimality. Paired repairs may change only rubric fields; NL-only repairs only proof prose and difficulty fields. Never change source, assumptions, question, formal coverage or family. Keep earlier reports immutable; return actual per-item decisions with exact digests and no accepted open repairs.'}
+                'instruction': ('Independently audit these exact proposed repairs, source/target invariants and minimality. '
+                    + ('This paired proof-prose scope permits only steps; not rubric, difficulty or formal code. ' if proof_prose else
+                       'Paired scoring repairs may change only rubric fields; NL-only repairs only proof prose and difficulty fields. ')
+                    + 'Never change source, assumptions, question, formal coverage or family. Keep earlier reports immutable; return actual per-item decisions with exact digests and no accepted open repairs.')}
     if destination.exists():
         raise ValueError('Never overwrite a frozen repair proposal')
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -275,7 +282,8 @@ def apply_scoped_repair(cores: list[dict], directory: Path, packet: dict, report
     proposal = json.loads(proposal_path.read_text(encoding='utf-8'))
     repair = json.loads(path.read_text(encoding='utf-8'))
     input_path = directory / ('packets/reviewer-input.json' if formal else 'packets/prose-input.json')
-    scope = PAIRED_REPAIR_SCOPE if formal else PROSE_REPAIR_SCOPE
+    proof_prose = formal and proposal.get('scope') == PAIRED_PROSE_REPAIR_SCOPE
+    scope = PAIRED_PROSE_REPAIR_SCOPE if proof_prose else (PAIRED_REPAIR_SCOPE if formal else PROSE_REPAIR_SCOPE)
     if (proposal['schema_version'] != 1 or repair['schema_version'] != 1
             or proposal['scope'] != scope or repair['scope'] != scope
             or proposal['author_identity'] != AUTHOR
@@ -289,7 +297,7 @@ def apply_scoped_repair(cores: list[dict], directory: Path, packet: dict, report
         raise ValueError('Scoped repair needs a fresh independent actor and exact frozen inputs')
     for identity, case in proposal['cases'].items():
         before, after, row = case['before'], case['proposed_after'], repair['items'][identity]
-        allowed = {'rubric', 'binding_sha256'} if formal else {'steps', 'difficulty', 'difficulty_reason', 'track_levels', 'binding_sha256'}
+        allowed = ({'steps', 'binding_sha256'} if proof_prose else {'rubric', 'binding_sha256'}) if formal else {'steps', 'difficulty', 'difficulty_reason', 'track_levels', 'binding_sha256'}
         changed = {k for k in before.keys() | after.keys() if before.get(k) != after.get(k)}
         coverage = 'conclusion-only' if formal else 'no-aligned-view'
         if (before != next(c for c in packet['mathematical_cores'] if c['id'] == identity)
@@ -391,19 +399,20 @@ def summary(cores: list[dict]) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('decoder-packet', 'reviewer-packet', 'repair-packet', 'prose-packet', 'prose-repair-packet', 'paired-repair-packet'))
+    parser.add_argument('command', choices=('decoder-packet', 'reviewer-packet', 'repair-packet', 'prose-packet', 'prose-repair-packet', 'paired-repair-packet', 'paired-prose-repair-packet'))
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--decoder-input', type=Path)
     parser.add_argument('--mapping', type=Path)
     parser.add_argument('--decoder-output', type=Path)
     parser.add_argument('--ids', nargs='+', help='Distinct NL-only core IDs for prose-packet')
-    parser.add_argument('--review-round', type=Path, help='Original NL-only round for an exact prose repair')
+    parser.add_argument('--review-round', type=Path, help='Original source-review round for an exact scoped repair')
     args = parser.parse_args()
     cores = bench.materialize()
-    if args.command in {'prose-repair-packet', 'paired-repair-packet'}:
+    if args.command in {'prose-repair-packet', 'paired-repair-packet', 'paired-prose-repair-packet'}:
         if not args.review_round or not args.ids:
             parser.error('Supply --review-round and --ids')
-        prepare_scoped_repair(cores, args.review_round, args.ids, args.output, formal=args.command == 'paired-repair-packet')
+        prepare_scoped_repair(cores, args.review_round, args.ids, args.output,
+                             formal=args.command != 'prose-repair-packet', proof_prose=args.command == 'paired-prose-repair-packet')
     elif args.command == 'prose-packet':
         prepare_prose(cores, args.ids or [], args.output)
     elif args.command == 'decoder-packet':

@@ -18,6 +18,13 @@ MARKER = 'data-sog-bench="true"'
 
 
 def prose(text: str) -> str:
+    # Render unambiguous exponential tokens in otherwise plain prose. Leave
+    # existing math spans untouched; this is presentation, not a gold rewrite.
+    spans = re.split(r'(\\\[.*?\\\]|\\\(.*?\\\))', text, flags=re.S)
+    text = ''.join(span if i % 2 else re.sub(
+        r'(?<![A-Za-z\\])(?:[α-ωΑ-Ω])?e\^\{[^{}]+\}',
+        lambda match: r'\(' + match.group(0) + r'\)', span)
+        for i, span in enumerate(spans))
     # Stack independent comma-separated display identities, without changing
     # the audited source strings or shrinking their mobile math fonts.
     def stack(match):

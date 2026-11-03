@@ -1,0 +1,35 @@
+{
+  "cases": [
+    {
+      "case": "case-1",
+      "context": "open Filter Set\nopen scoped Topology\ndef IsAlphaGeodesicallyConvex\n    {M : Type*} [MetricSpace M]\n    (isGeodesic : (ℝ → M) → Prop) (F : M → ℝ) (alpha : ℝ) : Prop :=\n  ∀ path : ℝ → M, isGeodesic path →\n    ∀ t : ℝ, t ∈ Icc (0 : ℝ) 1 →\n      F (path t) ≤\n        (1 - t) * F (path 0) + t * F (path 1) -\n          (alpha * t * (1 - t) / 2) * dist (path 0) (path 1) ^ 2",
+      "definition_context": [
+        "MetricSpace supplies a distance but no tangent spaces, vector-space structure or gradient. The curve selector is an arbitrary predicate; its name alone asserts no geometric property. Its exact chord-inequality definition is supplied in the context.",
+        "HasDerivAt φ g 0 means a genuine scalar derivative of φ:ℝ→ℝ at zero equal to g. The conclusion's ≥ is real order; α is any real and dist is the metric distance. Curve endpoint existence outside the given selected curve is not part of these data."
+      ],
+      "statement": "example\n    {M : Type*} [MetricSpace M]\n    {isGeodesic : (ℝ → M) → Prop} {F : M → ℝ} {alpha : ℝ}\n    (hconvex : IsAlphaGeodesicallyConvex isGeodesic F alpha)\n    {path : ℝ → M} (hpath : isGeodesic path)\n    {gradientPairing : ℝ}\n    (hderiv : HasDerivAt (fun t => F (path t)) gradientPairing 0) :\n    F (path 1) ≥\n      F (path 0) + gradientPairing +\n        alpha / 2 * dist (path 0) (path 1) ^ 2 "
+    },
+    {
+      "case": "case-2",
+      "context": "open Set\nopen scoped RealInnerProductSpace\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]",
+      "definition_context": [
+        "StrongConvexOn univ α f is global α-strong convexity with the quadratic first-order normalization α/2. IsMinOn f univ z means f z≤f x for every x. The domain is a complete real inner-product space, not an arbitrary metric space or manifold.",
+        "Differentiable ℝ f supplies genuine real Frechet differentiability everywhere and hence the Hilbert gradient. HasDerivWithinAt X v (Ici u) u specifies a genuine derivative along the forward ray [u,∞) at u equal to v. ContinuousOn X (Icc 0 T) is continuity on the closed interval.",
+        "Ico 0 T=[0,T), Ioc 0 T=(0,T], α,T are real, and Real.exp is the usual exponential. Division in ℝ is totalized but the conclusion is quantified only over positive observation times; if α=0 it explicitly selects the separate 1/(2t) branch."
+      ],
+      "statement": "example {f : E → ℝ} {X : ℝ → E} {z : E} {α T : ℝ}\n    (hα : 0 ≤ α) (_hT : 0 ≤ T) (hf : Differentiable ℝ f)\n    (hsc : StrongConvexOn univ α f) (hz : IsMinOn f univ z)\n    (hX : ContinuousOn X (Icc 0 T))\n    (hflow : ∀ t ∈ Ico 0 T, HasDerivWithinAt X (-gradient f (X t)) (Ici t) t) :\n    ∀ t ∈ Ioc 0 T, 0 ≤ f (X t) - f z ∧\n      f (X t) - f z ≤ if α = 0 then ‖X 0 - z‖ ^ 2 / (2 * t)\n        else α / (2 * (Real.exp (α * t) - 1)) * ‖X 0 - z‖ ^ 2 "
+    }
+  ],
+  "compiler_version": "Lean 4.33.0",
+  "instruction": "From these anonymous Lean signatures and definition context only, reconstruct the precise mathematical propositions in all seven slots. Do not inspect project files, sources, filenames, question/answer text, prior audits or repair proposals. Report implicit quantification, typeclass assumptions and what the conclusions do not say. No source-fidelity verdict is requested.",
+  "requested_slots": [
+    "objects",
+    "domains",
+    "quantifiers",
+    "assumptions",
+    "conclusion",
+    "senses",
+    "constants"
+  ],
+  "schema_version": 1
+}

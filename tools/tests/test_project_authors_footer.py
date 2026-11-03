@@ -48,6 +48,7 @@ class ProjectAuthorsFooterTests(unittest.TestCase):
         readme = README.read_text(encoding="utf-8")
         self.assertIn("## Technical report", readme)
         self.assertNotIn("## Current four-paper priority", readme)
+        self.assertNotIn("@misc{bu2026astis", readme)
         self.assertIn('(ROOT / "CITATION.bib").read_text', ASTIS_SITE.read_text(encoding="utf-8"))
 
 

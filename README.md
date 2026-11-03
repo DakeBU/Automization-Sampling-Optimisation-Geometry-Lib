@@ -165,15 +165,8 @@ records the ordered shared-kernel route and its strict remaining boundaries.
 Current verification/integration state comes from the Frontier Cells and the
 SAU ledger, not from this historical run note.
 
-```bibtex
-@misc{bu2026astis,
-  title  = {An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry},
-  year   = {2026},
-  url    = {https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib}
-}
-```
-
-Project authorship is not yet finalized; no provisional author list is published.
+The published workshop-paper citation is in [CITATION.bib](CITATION.bib).
+Library contributor attribution is maintained separately from paper authorship.
 
 ## License
 

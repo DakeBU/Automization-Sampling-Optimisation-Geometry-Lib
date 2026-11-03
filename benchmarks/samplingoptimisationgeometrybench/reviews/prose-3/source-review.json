@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "scope": "independent AI natural-language QA editorial review; no aligned Lean certification",
+  "actor_identity": "agent-task:/root/sog_source_review_7",
+  "input_packet_sha256": "de1be00658424c9671921af270f005490f132b4f035898d87833c529053b468d",
+  "items": {
+    "sogb-020": {
+      "binding_sha256": "d91d867bea020e1796c490e782207ea17ccd0affad9a267b60a581fb8c094be3",
+      "context_sha256": "8c9a8b1aa83e3398feedd268369d261ec7cef625518842f4b449a5a9539a1d92",
+      "formal_scope": "no-aligned-view",
+      "verdict": "repair-required",
+      "mathematics_checks": [
+        "Global support is essential: ConvexSubgradient.lean:39-40 quantifies over every point of E. At x_k+g_k, support and the global Lipschitz inequality give ||g_k||^2 <= f(x_k+g_k)-f(x_k) <= G||g_k||; separating the zero-norm case proves ||g_k|| <= G without completeness or differentiability.",
+        "The stated recurrence is the actual vector subtraction x_(k+1)=x_k-a_k g_k. Expanding its squared distance gives the negative cross term -2a_k<g_k,x_k-z> and the positive a_k^2||g_k||^2 term. The support-gap inequality can be multiplied by 2a_k only under a_k >= 0; bounding the squared norm uses a_k^2 >= 0 independently.",
+        "Summation gives exactly 2 sum_(k<N) a_k(f(x_k)-f(z)) <= ||x_0-z||^2+G^2 sum_(k<N)a_k^2-||x_N-z||^2. The terminal term is retained with the correct sign, and the N=0 case is the equality 0 <= 0.",
+        "For N>0 a minimum of f(x_k) on the finite index set exists even if f has no global minimizer. Strictly positive steps imply A=sum_(k<N)a_k>0, and A(f(x_i)-f(z)) <= sum_(k<N)a_k(f(x_k)-f(z)); dropping the nonpositive terminal term and dividing by 2A proves the claimed witness bound. Gaps need not be nonnegative because z is arbitrary.",
+        "For R,G>0 and N>0, the horizon-specific constant step a=R/(G sqrt(N)) is positive. With ||x_0-z||<=R, the upper envelope is R^2/(2Na)+G^2 a/2=RG/sqrt(N). It is minimized at this a because its difference from RG/sqrt(N) equals (Ga-R/sqrt(N))^2/(2a). The exact coefficient is 1, not a claim of attained equality for every run or a query-complexity lower bound.",
+        "The edge cases are correct as separate arguments: N=0 has no index i<N and no positive denominator; R=0 gives z=x_0 and the zero-gap witness i=0 when N>0; G=0 makes f constant and every supplied supporting vector zero, so the recurrence is stationary. A totalized zero quotient does not create an empty-horizon witness. The positive-parameter schedule must not be reused by substitution in these cases.",
+        "The reference proof currently invokes a 'preceding norm estimate' although this packet's context is empty. The needed estimate is valid, but the standalone formula solution should include its short x_k+g_k derivation rather than silently rely on the distinct sogb-019 item."
+      ],
+      "support_checks": [
+        "Read the exact cited local SubgradientMethod.lean and ConvexSubgradient.SupportsAt, not a previous review. The packet's support_lean_source is byte-for-byte equal as decoded text to the local module; its LF-normalized SHA-256 is 0913d624dae26a627474f56dc2d0e394af2cf059b8237ee3ee5db8833035683f, matching the packet. ConvexSubgradient.lean raw SHA-256 is 73405aa737bd030013c63f9a9a463d57e11ecd6ebf3aa1a455d483f4f4c9eac1.",
+        "SubgradientMethod.lean:40-53 proves norm control for a supplied SupportsAt vector from LipschitzWith G. Lines 57-86 prove the terminal-distance-retaining energy inequality for nonnegative steps and every natural horizon. Lines 90-109 prove the finite-index ratio with strictly positive steps and N>0, using exists_min_image, sum_pos and positive division exactly as the prose describes.",
+        "SupportsAt uses innerSL on all of E; for a real inner-product space this is the stated inner product with the supporting vector. There is no domain restriction, convex-set constraint, projection, gradient/oracle construction, or hidden minimizer premise in these declarations.",
+        "The source module retains its upstream authorship, Apache-2.0 notice, pinned Optlib attribution and Samplinglib modification notice. This review checks the exact local source boundary; it does not independently certify the historical upstream port, run a production Lean gate, or confer Registry/theorem-publication credit.",
+        "The no-aligned-view explanation is appropriately conservative: the norm, telescope and witness are existing source theorems, while this QA additionally asks for step optimization and degenerate-case explanations. Showing the whole support module is not an equivalent exported Lean task or a new formal certificate."
+      ],
+      "scoring_checks": [
+        "The four one-point criteria cover distinct verifiable obligations: signed one-step energy, terminal-preserving telescope plus finite witness, exact positive-parameter rate, and degenerate/existence boundaries. Their mathematical content is suitable for human semantic grading rather than keyword matching.",
+        "Criterion one explicitly asks for derived norm control, but the reference solution's unexplained 'preceding norm estimate' does not itself demonstrate that derivation in this standalone packet. Include it so the gold solution meets its own criterion and exported items do not require another core's answer.",
+        "The L4 natural-language level is not justified by the repository's curriculum.json. Its L3 criterion is coordinating several estimates and separating cases, which precisely describes norm control, an elementary recurrence expansion, finite telescoping/minimum selection, scalar step optimization and zero-parameter diagnosis here. The L4 criterion is substantive cross-module composition with real assumption adapters and input/error tracking; invoking an imported definition and same-module helper theorems is not that extra mechanism.",
+        "Relabel this unchanged mathematical task as provisional natural-language L3 and revise the difficulty reason accordingly. 'Advanced' may remain a broad informal descriptor if the schema allows it, but it cannot independently justify L4. No empirical calibration or model measurement is supplied.",
+        "The shared public-dev subgradient family must remain shared with sogb-019. A prose-only extra corollary does not create an independent train/test family or an additional formal QA view."
+      ],
+      "source_assumption_differences": [
+        "The prose uses a real nonnegative Lipschitz constant G; the source packages it as G : Real>=0 and casts to the reals. These are equivalent after the nonnegativity adapter, not a missing mathematical hypothesis.",
+        "The source quantifies the supports, updates and step sign over all natural indices, matching the supplied sequence assumptions; only the finite prefix is used. The source energy theorem allows zero steps, whereas its ratio theorem retains strictly positive steps and N>0. The prose correctly does not claim its denominator proof for an arbitrary signed or all-zero schedule.",
+        "The rate corollary adds R>0, G>0, N>0, ||x_0-z||<=R and a horizon-selected constant schedule, none of which are premises or conclusions of exists_gap_le itself. These are explicit extra corollary assumptions, not concealed source hypotheses.",
+        "There are no CompleteSpace, finite-dimensionality, differentiability, standalone convexity, global-minimizer, measurable-selection or random-oracle binders in the local declarations. Supplied global supports suffice for this deterministic comparison; neither the namespace nor the Lipschitz assumption constructs those supports."
+      ],
+      "remaining_unformalized": [
+        "No aligned Lean QA is provided or certified in this prose packet, even though the existing local module proves the norm, energy and best-index ratio statements.",
+        "The explicit horizon-dependent constant-step optimization, its exact RG/sqrt(N) simplification, and the separate R=0/G=0 explanatory corollaries are not declarations in the cited SubgradientMethod module.",
+        "The supplied statements establish no subgradient-existence or oracle-construction result, measurability/random algorithm, query complexity, constrained/projected convergence, last-iterate convergence, or existence of a global minimizer. They also do not turn all horizon-selected schedules into one simultaneous infinite-run schedule.",
+        "The natural-language difficulty label and rubric adequacy are editorial judgments, not Lean conclusions or empirically calibrated performance results."
+      ],
+      "repair_requests": [
+        "Change track_levels.natural-language from L4 to L3 and rewrite difficulty_reason to describe the actual multi-step estimate/case-analysis mechanism. Preserve the mathematical question, family/split and no-aligned-view boundary; obtain a fresh exact-binding review for the revised metadata rather than applying this verdict to changed content.",
+        "Make solution step one self-contained: test support at x_k+g_k, combine it with the global Lipschitz bound to obtain ||g_k||^2 <= G||g_k||, and separate ||g_k||=0 from the positive-norm division. Do not refer to a preceding norm estimate absent from the core's empty context."
+      ]
+    }
+  }
+}

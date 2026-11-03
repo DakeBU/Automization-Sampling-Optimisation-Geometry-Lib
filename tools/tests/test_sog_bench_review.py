@@ -89,8 +89,8 @@ class EditorialReviewTests(unittest.TestCase):
             bench.export(target, with_draft)
             questions = [json.loads(line) for line in (target/'reviewed-questions.jsonl').read_text(encoding='utf-8').splitlines()]
             refs = [json.loads(line) for line in (target/'reviewed-reference.jsonl').read_text(encoding='utf-8').splitlines()]
-            self.assertEqual(len(questions), 25)
-            self.assertEqual(len(refs), 18)
+            self.assertEqual(len(questions), 30)
+            self.assertEqual(len(refs), 21)
             self.assertEqual({q['id'] for q in questions}, {c['id'] for c in refs})
             self.assertTrue(all('steps' not in q and 'lean_reference' not in q for q in questions))
             self.assertNotIn('sogb-999', {q['id'] for q in questions})
@@ -100,7 +100,54 @@ class EditorialReviewTests(unittest.TestCase):
         self.assertEqual(set(rows), {f'sogb-{i:03d}' for i in range(8,15)})
         self.assertTrue(all(review.accepted(row) for row in rows.values()))
         self.assertTrue(all(row['formal_alignment'] == 'no-aligned-view' for row in rows.values()))
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 18)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 21)
+
+    def test_additional_prose_round_is_disjoint_and_content_bound(self):
+        directory=review.BASE/'reviews/prose-3'
+        rows=review.prose_statuses(self.cores,directory)
+        self.assertEqual(set(rows),{'sogb-020'})
+        self.assertEqual(rows['sogb-020']['formal_alignment'],'no-aligned-view')
+        changed=deepcopy(self.cores)
+        next(c for c in changed if c['id']=='sogb-020')['binding_sha256']='changed'
+        self.assertEqual(review.prose_statuses(changed,directory)['sogb-020']['editorial'],'stale')
+        with patch.object(review,'PROSE_ROUND',directory):
+            with self.assertRaisesRegex(ValueError,'Overlapping'):
+                review.summary(self.cores)
+
+    def test_new_scoped_repairs_preserve_old_reviews_and_reject_laundered_changes(self):
+        import sog_bench_formal_review as formal
+        for name,identity,is_formal in (('prose-3','sogb-020',False),('formal-7','sogb-019',True)):
+            original=review.BASE/'reviews'/name
+            status=formal.round_statuses if is_formal else review.prose_statuses
+            self.assertEqual(status(self.cores,original)[identity]['editorial'],'accepted-after-repair')
+            actual_context=review.context_binding
+            with patch.object(review,'context_binding',side_effect=lambda core: 'changed-source' if core['id']==identity else actual_context(core)):
+                self.assertEqual(status(self.cores,original)[identity]['editorial'],'stale')
+            for scenario in ('actor-reuse','proposal-bytes','open-repair','source-change'):
+                with tempfile.TemporaryDirectory() as tmp:
+                    directory=Path(tmp)/name
+                    shutil.copytree(original,directory)
+                    path=directory/'repair-review.json'
+                    obj=json.loads(path.read_text(encoding='utf-8'))
+                    if scenario=='actor-reuse':
+                        obj['actor_identity']=json.loads((directory/'source-review.json').read_text(encoding='utf-8'))['actor_identity']
+                    elif scenario=='proposal-bytes':
+                        proposal_path=directory/'packets/repair-input.json'
+                        proposal_path.write_bytes(proposal_path.read_bytes()+b'\n')
+                    elif scenario=='open-repair':
+                        obj['items'][identity]['repair_requests']=['Unresolved scoring change.']
+                    else:
+                        proposal_path=directory/'packets/repair-input.json'
+                        proposal=json.loads(proposal_path.read_text(encoding='utf-8'))
+                        after=proposal['cases'][identity]['proposed_after']
+                        after['assumptions'].append('An unreviewed extra mathematical assumption.')
+                        after['binding_sha256']=bench.sha(bench.encoded({k:v for k,v in after.items() if k!='binding_sha256'}))
+                        proposal_path.write_bytes(bench.encoded(proposal))
+                        obj['input_packet_sha256']=bench.sha(proposal_path.read_bytes())
+                        obj['items'][identity]['proposed_binding_sha256']=after['binding_sha256']
+                    path.write_bytes(bench.encoded(obj))
+                    with self.assertRaises(ValueError):
+                        status(self.cores,directory)
 
     def test_nl_packet_route_rejects_formal_views_duplicates_unknown_ids_and_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -49,6 +49,10 @@ def load() -> dict:
         ids.add(core['id'])
         if not core['family'].strip():
             raise ValueError('Missing mathematical family')
+        if ('support_source_view' in core and
+                (not isinstance(core['support_source_view'], bool) or
+                 (core['support_source_view'] and has_lean(core)))):
+            raise ValueError('Supporting-source view is Boolean and reserved for unpaired prose tasks')
         curriculum.classify(core, policy)
         for key in ('title', 'question', 'lean_explanation', 'boundary', 'source_note'):
             if not isinstance(core[key], str) or not core[key].strip():
@@ -76,6 +80,10 @@ def materialize(data: dict | None = None) -> list[dict]:
         if not has_lean(core):
             bound = {**core, 'split': data['split'], 'source_sha256_lf': text_hash(ROOT / core['source_file']),
                      'source_line': declaration.source_line, 'imports': [], 'lean_task': '', 'lean_reference': ''}
+            if core.get('support_source_view'):
+                # Exact supporting module, not another task/reference certificate.
+                # Keep its original notices and namespace/ancestor context intact.
+                bound['support_lean_source'] = (ROOT / core['source_file']).read_text(encoding='utf-8')
             bound['binding_sha256'] = sha(encoded(bound))
             result.append(bound)
             continue
@@ -176,6 +184,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'EVALUATION.md', 'examples/prose-run.json',
                 'compiled-transport-graph.json',
                 *project_licensing.LICENSE_FILES,
+                *('lean/' + c['id'] + '-support.lean' for c in cores if c.get('support_source_view')),
                 *('lean/' + c['id'] + suffix for c in cores if has_lean(c) for suffix in ('-task.lean.txt', '-reference.lean'))}
     if output.exists() and any(output.iterdir()):
         manifest = output / 'manifest.json'
@@ -207,6 +216,8 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('examples/prose-run.json', (DATA.parent / 'examples/prose-run.json').read_bytes())
     (output / 'lean').mkdir(exist_ok=True)
     for c in cores:
+        if c.get('support_source_view'):
+            write('lean/' + c['id'] + '-support.lean', c['support_lean_source'].encode())
         if not has_lean(c):
             continue
         write('lean/' + c['id'] + '-task.lean.txt', c['lean_task'].encode())

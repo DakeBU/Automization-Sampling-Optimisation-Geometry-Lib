@@ -118,6 +118,13 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
             '<p><a href="downloads/lean/' + core['id'] + '-reference.lean" download>Download runnable reference</a></p>')
     if not bench.has_lean(core):
         lean = prose(core['lean_explanation'])
+        if core.get('support_source_view'):
+            lean += (fold('Supporting library Lean (not an aligned QA task)',
+                '<div data-lean-code-panel><button type="button" data-lean-copy>Copy supporting module</button>'
+                '<span data-lean-copy-status role="status" aria-live="polite"></span>'
+                + astis_site.code_html(core['support_lean_source']) + '</div>'
+                '<p><a href="downloads/lean/' + core['id'] + '-support.lean" download>Download exact supporting module</a>'
+                ' · Uses the project toolchain and its listed imports; not a standalone replacement QA proof.</p>'))
     formal_view = ('<section id="lean"><h2>Lean question</h2><p>Keep the target and context fixed; replace the comment slot with your proof. Ancestor libraries are allowed, but the target module is not imported directly.</p>'
         + fold('Show fixed Lean task', astis_site.code_html(core['lean_task'])
                + '<p><a href="downloads/lean/' + core['id'] + '-task.lean.txt" download>Download task template</a></p>')

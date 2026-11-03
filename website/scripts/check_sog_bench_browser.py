@@ -43,7 +43,7 @@ def main() -> None:
                 page.get_by_role('link', name='Prompt-only JSONL', exact=True).click()
             path = download.value.path()
             records = [json.loads(line) for line in Path(path).read_text(encoding='utf-8').splitlines()]
-            assert len(records) == 6 and all('lean_reference' not in r and 'steps' not in r for r in records)
+            assert len(records) == 10 and all('lean_reference' not in r and 'steps' not in r for r in records)
             page.screenshot(path=str(args.evidence / 'overview-desktop.png'), full_page=True)
             for identity in ('sogb-001', 'sogb-002', 'sogb-003'):
                 page.goto(base + HUB + identity + '.html')
@@ -71,8 +71,27 @@ def main() -> None:
                 page.locator('summary', has_text='Reference mathematical proof').click()
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
-                page.evaluate('() => { document.activeElement?.blur(); window.scrollTo(0, 0); }')
+                page.evaluate('() => { document.activeElement?.blur(); window.scrollTo({top:0, behavior:"instant"}); }')
+                page.wait_for_function('window.scrollY === 0')
                 page.screenshot(path=str(args.evidence / (identity + '-proof-mobile.png')), full_page=True)
+                page.set_viewport_size({'width': 1400, 'height': 1000})
+            for tail in ('curriculum/index.html', 'levels/L5.html', 'domains/statistical-optimal-transport.html', 'sogb-g003.html', 'sogb-007.html'):
+                page.goto(base + HUB + tail)
+                page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
+                page.evaluate('() => MathJax.startup.promise')
+                assert page.locator('mjx-merror, [data-mjx-error]').count() == 0
+                if tail == 'sogb-007.html':
+                    assert page.locator('h2', has_text='Lean view: not yet aligned').count() == 1
+                    page.locator('summary', has_text='Reference mathematical proof').click()
+                if tail == 'sogb-g003.html':
+                    assert page.locator('.sog-graph svg rect').count() == 3
+                    page.locator('.sog-graph').screenshot(path=str(args.evidence / 'import-slice-desktop.png'))
+                page.set_viewport_size({'width': 412, 'height': 915})
+                page.wait_for_timeout(400)  # Let the existing sidebar resize transition finish.
+                page.evaluate('() => { document.activeElement?.blur(); window.scrollTo({top:0, behavior:"instant"}); }')
+                page.wait_for_function('window.scrollY === 0')
+                assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
+                page.screenshot(path=str(args.evidence / (tail.replace('/', '-') + '-mobile.png')), full_page=True)
                 page.set_viewport_size({'width': 1400, 'height': 1000})
             assert not errors, errors
             context.close()
@@ -81,7 +100,7 @@ def main() -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
-    report = {'pages': 6, 'views': 6, 'math_rendered': True, 'lean_highlighting': True,
+    report = {'mathematical_views': 10, 'graph_tasks': 3, 'math_rendered': True, 'lean_highlighting': True,
               'folds_and_copy': True, 'prompt_only_download': True, 'mobile_overflow': False,
               'runtime_errors': errors}
     (args.evidence / 'report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')

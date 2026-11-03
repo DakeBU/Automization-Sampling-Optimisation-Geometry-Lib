@@ -32,6 +32,16 @@ pending aggregate/publication checks and the next bounded mathematical edge.
 
 ## Non-Negotiable Gate
 
+User-directed SamplingOptimisationGeometryBench work follows
+`benchmarks/samplingoptimisationgeometrybench/GOAL.md` and its README. Use the
+single curriculum/catalog for seven-domain placement, track-specific L1–L5
+levels, explicit missing Lean alignments, family/split identity and source-hashed
+graph QA. Bench development is not paper/theorem completion or Registry credit.
+Never feed restricted ATLAS material, its index, projections or derivatives to
+ML training/evaluation; import topology never certifies mathematical necessity.
+Keep existing mathematical priorities/frontiers intact when working on this
+separately requested reader/evaluation surface.
+
 ```bash
 python3 tools/astis.py check
 ```

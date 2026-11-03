@@ -1,12 +1,16 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.1.0-dev",
+  "version": "0.2.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
     {
       "id": "sogb-001",
+      "library_domains": ["mcmc", "discrete-sampling"],
+      "track_levels": {"natural-language": "L3", "lean": "L3"},
+      "difficulty_reason": "Coordinate two nonnegative countable expansions, justify their exchange and audit infinite/null masses; Lean also reconstructs that argument.",
+      "skills": ["proof", "assumption-audit", "semantic-boundary"],
       "family": "atomic-detailed-balance",
       "domain": "sampling",
       "title": "From atomic balance to reversibility",
@@ -39,6 +43,10 @@
     },
     {
       "id": "sogb-002",
+      "library_domains": ["optimisation"],
+      "track_levels": {"natural-language": "L3", "lean": "L3"},
+      "difficulty_reason": "Derive an actual-step recurrence and handle both signs before iterating; proof length is not the difficulty measure.",
+      "skills": ["calculation", "proof", "assumption-audit"],
       "family": "pl-gradient-iteration",
       "domain": "optimisation",
       "title": "PL descent: the sign of the contraction factor",
@@ -71,6 +79,10 @@
     },
     {
       "id": "sogb-003",
+      "library_domains": ["log-concave-sampling", "optimisation"],
+      "track_levels": {"natural-language": "L2", "lean": "L2"},
+      "difficulty_reason": "One midpoint mechanism plus scalar rearrangement; the natural-language view additionally distinguishes the envelope from normalization.",
+      "skills": ["calculation", "assumption-audit", "semantic-boundary"],
       "family": "strong-convex-midpoint-envelope",
       "domain": "geometry",
       "title": "A quadratic envelope from one midpoint",
@@ -100,6 +112,98 @@
       "dependencies": {"astis": [], "mathlib": ["StrongConvexOn", "isMinOn_univ_iff", "norm_sub_rev"]},
       "boundary": "This is a normed-vector-space statement, not a Riemannian or geodesic-convexity theorem. The Lean target proves the k/4 envelope only; neither the sharper bound nor Gibbs normalization is supplied.",
       "source_note": "Original exercise over the existing Samplinglib midpoint lemma. It is not presented as a verbatim textbook statement."
+    }
+    ,{
+      "id": "sogb-004", "family": "coupling-swap-near-optimality", "domain": "transport",
+      "library_domains": ["statistical-optimal-transport"],
+      "track_levels": {"natural-language": "L3"}, "lean_enabled": false,
+      "difficulty_reason": "Transport both marginals, preserve cost, and pass from near-optimal plans to an infimum without assuming attainment.",
+      "skills": ["proof", "assumption-audit"], "difficulty": "intermediate",
+      "title": "Wasserstein symmetry without an optimal plan",
+      "assumptions": ["Let E be a finite-dimensional real Euclidean space with its Borel sigma-algebra. Let μ,ν be probability measures with finite second moments.", "A coupling γ has marginals μ,ν. Define W₂(μ,ν) as the infimum of the square root of ∫‖x−y‖² dγ over such couplings. Do not assume an infimizing coupling is attained."],
+      "question": "Prove symmetry of W₂ by swapping coordinates of near-optimal couplings. Which measurability and marginal identities are used, and where does the finite-cost hypothesis prevent an invalid subtraction of infinities?",
+      "steps": [
+        "The coordinate swap S(x,y)=(y,x) is continuous and hence Borel measurable. For γ′=S#γ, the identities π₁∘S=π₂ and π₂∘S=π₁ give marginals ν,μ by composition of pushforwards.",
+        "Nonnegative change of variables and symmetry of the norm give \\[\\int\\|x-y\\|^2\\,d(S_\\#\\gamma)=\\int\\|y-x\\|^2\\,d\\gamma=\\int\\|x-y\\|^2\\,d\\gamma.\\] No signed Fubini theorem is required.",
+        "The product coupling has finite quadratic cost since ‖x−y‖²≤2‖x‖²+2‖y‖². Thus the infimum is finite and, for each ε>0, an admissible coupling can be selected with square-root cost less than W₂(μ,ν)+ε. This is near-optimal selection, not an optimal-plan existence theorem.",
+        "Swapping this plan gives W₂(ν,μ)≤W₂(μ,ν)+ε. Let ε decrease to zero, then interchange μ and ν to obtain equality. Finiteness justifies the real-valued ε argument; there was no operation ∞−∞. The library also treats an extended-valued generalization, which is not silently identified with this question."
+      ],
+      "rubric": [
+        {"points":1,"criterion":"Checks swap measurability and both pushforward marginal identities."},
+        {"points":1,"criterion":"Proves nonnegative quadratic-cost preservation."},
+        {"points":1,"criterion":"Supplies finite product-coupling cost and near-optimal selection rather than assuming attainment."},
+        {"points":1,"criterion":"Passes ε to zero in both directions without subtracting infinities."}
+      ],
+      "declaration":"AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSymmetry.wassersteinDistance_comm",
+      "source_file":"AutoSamplingTheory/TechnicalLemmas/Measure/WassersteinSymmetry.lean",
+      "context":"", "lean_explanation":"Formal support exists for swapping marginals, preserving cost and comparing near-optimal values. No single aligned Lean task for the entire finite-second-moment explanation is admitted in this batch.",
+      "dependencies":{"astis":["AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSymmetry.isCoupling_map_swapPair","AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSymmetry.lintegral_quadraticCost_map_swapPair"],"mathlib":["Measure.map_map","lintegral_map"]},
+      "boundary":"A supporting formal symmetry theorem is not a verified Lean translation of every sentence of this QA. This question neither proves an optimal coupling exists nor derives the triangle inequality.",
+      "source_note":"Original exercise over the existing project-owned coupling-swap route; not copied textbook text."
+    },{
+      "id":"sogb-005", "family":"sphere-tangent-projection", "domain":"geometry",
+      "library_domains":["riemannian-optimization"], "track_levels":{"natural-language":"L3"}, "lean_enabled":false,
+      "difficulty_reason":"Connect a derivative, an adjoint and an orthogonal projection, then diagnose the failure of the unit-normal convention.",
+      "skills":["calculation","proof","assumption-audit","counterexample"], "difficulty":"intermediate",
+      "title":"Why a sphere gradient is a projected ambient gradient",
+      "assumptions":["E,H are real Hilbert spaces. F:E→H is Fréchet differentiable at w, with bounded linear derivative D(w). Fix r∈H and V(w)=2⟨r,F(w)⟩.","Assume ‖w‖=1 and ‖D(w)‖≤M with M≥0. The tangent space of the unit sphere at w is {v:⟨w,v⟩=0}."],
+      "question":"Set g=2D(w)*r and G=g−⟨g,w⟩w. Prove tangency, the directional-derivative identity on tangent vectors and ‖G‖≤2M‖r‖. Explain precisely why the same formula need not project onto w-perpendicular when w is not a unit vector.",
+      "steps":[
+        "The chain rule and the adjoint identity give DV(w)[v]=2⟨r,D(w)v⟩=⟨g,v⟩. This uses genuine differentiability, not an assertion about a default derivative value.",
+        "Since ‖w‖²=1, \\[\\langle w,G\\rangle=\\langle w,g\\rangle-\\langle g,w\\rangle\\|w\\|^2=0.\\] For v perpendicular to w, ⟨G,v⟩=⟨g,v⟩=DV(w)[v], which identifies the sphere gradient by the induced metric.",
+        "The Pythagorean calculation gives ‖G‖²=‖g‖²−⟨g,w⟩²≤‖g‖². Hence ‖G‖≤‖g‖≤2‖D(w)*‖‖r‖=2‖D(w)‖‖r‖≤2M‖r‖.",
+        "Without normalization, ⟨w,G⟩=⟨g,w⟩(1−‖w‖²). For example, take E=ℝ, w=2 and g=2: G=−6 is not perpendicular to w. For a nonzero general normal, the projector instead divides the coefficient by ‖w‖². This is not a formula for an arbitrary manifold without its own tangent and metric data."
+      ],
+      "rubric":[{"points":1,"criterion":"Derives the ambient derivative using the chain rule and adjoint, with genuine differentiability."},{"points":1,"criterion":"Uses the unit-normal condition to prove tangency and the tangent directional identity."},{"points":1,"criterion":"Proves the norm bound by orthogonal projection and the adjoint operator norm."},{"points":1,"criterion":"Gives a valid nonunit counterexample and states the correction and manifold boundary."}],
+      "declaration":"AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient.quadratic_feature_potential_tangent_gradient",
+      "source_file":"AutoSamplingTheory/TechnicalLemmas/Geometry/QuadraticFeatureTangentGradient.lean",
+      "context":"", "lean_explanation":"The existing bundled theorem proves a stronger regularity package. It is support, not a frozen equivalent task for this shorter question and its counterexample.",
+      "dependencies":{"astis":["AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient.quadratic_feature_potential_tangent_gradient"],"mathlib":["ContinuousLinearMap.adjoint_inner_left","ContinuousLinearMap.adjoint.norm_map","norm_sub_sq_real"]},
+      "boundary":"Only the unit sphere with its induced metric is treated. No general Riemannian gradient theorem, retraction guarantee or optimization convergence result is asserted.",
+      "source_note":"Original exercise over the local quadratic-feature tangent-gradient theorem and elementary Hilbert-space algebra."
+    },{
+      "id":"sogb-006", "family":"random-scan-null-atoms", "domain":"sampling",
+      "library_domains":["discrete-sampling","mcmc"], "track_levels":{"natural-language":"L3"}, "lean_enabled":false,
+      "difficulty_reason":"Separate two null-mass cases, apply a conditional formula only at supported starts, then distinguish balance from irreducibility.",
+      "skills":["proof","assumption-audit","counterexample"], "difficulty":"intermediate",
+      "title":"Null atoms in a random-scan balance proof",
+      "assumptions":["μ is any probability measure on the finite Boolean cube with n+1 coordinates. K is its uniform random-site heat-bath kernel, with the project's fixed conditional versions at null fibers.","At any start y with μ({y})>0, the exact singleton transition formula is the sum over coordinates of the retained-coordinate indicator times μ({x}) divided by the corresponding fiber mass, averaged by 1/(n+1). No such formula is assumed at an unsupported start."],
+      "question":"In the detailed-balance proof, handle a target-null atom x without applying the positive-start singleton formula at x. Why is zero mass alone insufficient for an arbitrary kernel? Give a reversible heat-bath example which is not irreducible.",
+      "steps":[
+        "If μ({x})=μ({y})=0, both weighted transition masses vanish: finite Markov transition masses make multiplication by zero harmless.",
+        "If μ({x})=0 but μ({y})>0, use the positive-start formula at y, not x. Each relevant fiber contains y, so its mass is at least μ({y})>0. Every summand for a jump from y to x contains μ({x})=0, hence K(y,{x})=0. Both fluxes are again zero.",
+        "For an arbitrary kernel, a zero target atom does not imply K(y,{x})=0: that conclusion used the actual heat-bath transition law. Target-null starts may have nontrivial transition rules, but their outgoing flux is multiplied by zero.",
+        "On the two-bit cube, let μ give mass 1/2 to each of 00 and 11 and zero to the other states. Updating a single coordinate from either supported state leaves it unchanged. The kernel is reversible for μ, but 00 and 11 cannot communicate. Thus balance supplies neither irreducibility nor convergence from every start."
+      ],
+      "rubric":[{"points":1,"criterion":"Separates the both-null and single-null cases without dividing by zero."},{"points":1,"criterion":"Uses the singleton formula at the positive-mass reverse start and proves fiber positivity."},{"points":1,"criterion":"Explains why an arbitrary kernel need not avoid a target-null atom."},{"points":1,"criterion":"Checks the 00/11 heat-bath counterexample and distinguishes reversibility from irreducibility."}],
+      "declaration":"AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath.randomScan_isReversible",
+      "source_file":"AutoSamplingTheory/TechnicalLemmas/Probability/RandomScanHeatBathReversibility.lean",
+      "context":"", "lean_explanation":"The null-start split follows the existing private balance proof, while the explanatory counterexample is not an aligned checked Lean task.",
+      "dependencies":{"astis":["AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath.randomScan_apply_singleton"],"mathlib":[]},
+      "boundary":"No mixing time, spectral independence, full-support theorem or hard-core ergodicity claim follows from this balance argument.",
+      "source_note":"Original question based on the actual finite heat-bath implementation, retaining its null-fiber boundary."
+    },{
+      "id":"sogb-007", "family":"adaptive-hybrid-cost-boundary", "domain":"sampling",
+      "library_domains":["samplewiki","mcmc"], "track_levels":{"natural-language":"L4"}, "lean_enabled":false,
+      "difficulty_reason":"Compose conditional error averaging, common-suffix contraction and finite telescoping under actual history laws; reject an invalid unbounded-cost transfer.",
+      "skills":["composition","assumption-audit","counterexample"], "difficulty":"advanced",
+      "title":"Adaptive hybrid error does not certify expected cost",
+      "assumptions":["There are finitely many n adjacent hybrid pairs. At slot i the pair shares a probability law ρᵢ on histories, conditional Markov kernels Kᵢ,Lᵢ and a common downstream Markov kernel Sᵢ.","A measurable integrable real εᵢ bounds |Kᵢ(x,A)−Lᵢ(x,A)| for ρᵢ-almost every x and every measurable event A. Let βᵢ=∫εᵢ dρᵢ. Total variation means the supremum of absolute event-probability differences, with no extra factor of two."],
+      "question":"Derive an eventwise discrepancy bound Σᵢβᵢ between the first and last output laws. State why actual history laws and a fixed finite call range matter. Then refute the claim that vanishing TV distance alone transfers an unbounded expected query-cost bound.",
+      "steps":[
+        "For each slot and fixed event A, Markov event probabilities are measurable and bounded by one, hence integrable under ρᵢ. Integrating the almost-everywhere conditional bound yields an averaged discrepancy at most βᵢ. The error function εᵢ is explicitly integrable; measurability of a supremum over all events was not assumed for free.",
+        "A common downstream Markov kernel preserves this uniform event bound by total-variation data processing. The same suffix must be used for the two members of the adjacent pair; otherwise that contraction argument is not applicable.",
+        "For a fixed final event A, telescope the n adjacent probability differences and use the triangle inequality: \\[|P_n(A)-P_0(A)|\\le\\sum_{i=0}^{n-1}\\beta_i.\\] Take the event supremum if desired. Each βᵢ uses its actual shared prefix-history law, not an unrelated ideal or proxy input law.",
+        "For integers N≥2 on the nonnegative reals, take μ_N=δ₀, ν_N=(1−1/N)δ₀+(1/N)δ_{N²} and c(x)=x. Then TV(μ_N,ν_N)=1/N→0, but E_{ν_N}c−E_{μ_N}c=N. All these individual expectations are finite; their gap is unbounded. A uniform cost bound, uniform integrability/tail control, or a separate actual-input cost analysis is needed.",
+        "A random recursion depth or stopping cap is not automatically this deterministic finite telescope. Its history construction, stopping/cap comparison, accumulated errors and actual-input expected cost remain separate obligations. This argument alone does not complete the Gaussian Cloud paper."
+      ],
+      "rubric":[{"points":1,"criterion":"Justifies event measurability/integrability and error averaging under the actual history law."},{"points":1,"criterion":"Uses the same downstream kernel and finite adjacent telescoping with the stated TV convention."},{"points":1,"criterion":"Computes both TV=1/N and expected-cost gap=N in a valid probability example."},{"points":1,"criterion":"Keeps recursive stopping, cap comparison and actual-input cost as separate obligations."}],
+      "declaration":"AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_commonSuffix_sub_le_integral_eventBound",
+      "source_file":"AutoSamplingTheory/TechnicalLemmas/Probability/KernelHybridTelescope.lean",
+      "context":"", "lean_explanation":"Existing formal components support averaging and common-suffix contraction; this multi-component QA and its cost counterexample have no single admitted equivalent Lean view yet.",
+      "dependencies":{"astis":["AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_sub_le_integral_eventBound","AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_sub_zero_le_sum_range_of_adjacent","AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation.abs_real_comp_sub_le"],"mathlib":[]},
+      "boundary":"No recursive algorithm, stopping theorem, uncapped/capped comparison, expected oracle cost theorem or full paper result is claimed.",
+      "source_note":"Original exercise based on local hybrid-kernel components. Their module cites arXiv:2609.38710v1 Lemma 6.3; this exercise is not a reproduction or completion of that paper statement."
     }
   ]
 }

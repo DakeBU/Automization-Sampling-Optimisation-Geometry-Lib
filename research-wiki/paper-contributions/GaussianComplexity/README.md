@@ -1170,3 +1170,21 @@ preserved, and the existing native inventory check now expects597. This
 registration does not create another theorem, duplicate the private proof or
 upgrade the separate source-underspecified audit. A new immutable root/site/graph
 acceptance candidate is required.
+
+Final local integration acceptance passed independently on immutable
+`3e6fc1a2c477`, with actual root/Tests9615, current-main publication/contributor,
+419semantic audits,417cells,48publication regression tests, site build/check
+and graph coverage. The reader link repair preserves every node identity/status
+and all7205edges;403existing nodes now open their authored mathematical lesson.
+Actual desktop and390x844 mobile graph-to-lesson/source-index/adjacent-Lean
+flows passed both primary and independent review. The independent reviewer
+released the sole lease through VERIFIED, preserving the proof owner, all prior
+ledger bytes and all foreign states/cells. The initial viewport API mismatch is
+preserved separately from the successful measured correction.
+
+See `spherical-poisson-semantic-evidence/final-integration-acceptance.json` and
+its portable command logs. These are local acceptance results, not canonical
+merge/deployment, postmerge purification, an Exposition Seal or full-paper
+completion. The next bounded mathematical packet is literal evaluated Gaussian
+Eq24, reusing the actual source-law/normalization/moment declarations. Its
+statement and binder/definition audit must be sealed before proof search.

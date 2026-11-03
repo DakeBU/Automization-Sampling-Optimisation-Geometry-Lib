@@ -336,6 +336,10 @@ import Tests.GaussianComplexityPoissonNormalization
 import Tests.GaussianComplexityColumnTransport
 import Tests.GaussianComplexitySurfaceLaw
 import Tests.GaussianComplexityPoissonProduct
+import Tests.GaussianComplexityPoissonHarmonicity
+import Tests.GaussianComplexityRadialGreenData
+import Tests.GaussianComplexityBallFlux
+import Tests.GaussianComplexitySphericalMeanValue
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

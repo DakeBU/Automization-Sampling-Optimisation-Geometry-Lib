@@ -27,6 +27,12 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Divergence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Laplacian
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BallFlux
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.FundamentalSolution
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalFlux
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Taylor
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev
@@ -141,6 +147,66 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "analysis.radial-gradient-laplacian",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus.radial_gradient_laplacian",
+    upstreamDecl := "ASTIS sealed local squared-distance radial calculus",
+    upstreamFile := "research-wiki/paper-contributions/GaussianComplexity/radial-green-data-statement-seal.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["radial", "gradient", "laplacian", "local-C2"],
+    saldUse := "Canonical local radial provider actually consumed by fundamental-solution data and Poisson harmonicity",
+    note := "Actual gradient and Laplacian from a scalar profile locally C2 at squared distance in every finite real inner-product space, including the center and dimension zero. Independently reviewed exact module; no separate public credit for private implementation. Global source representation, geometric Green identity and paper lower bounds are not claimed."
+  },
+  {
+    key := "analysis.fundamental-solution-boundary-data",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.FundamentalSolution.fundamentalSolution_boundary_data",
+    upstreamDecl := "HFT second edition power/log harmonic functions and expanded positive-sphere data",
+    upstreamFile := "HFT printed2/PDF10 and Theorem1.4 printed5/PDF13; standing dimension printed1/PDF9",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["harmonic", "fundamental-solution", "radial", "boundary"],
+    saldUse := "Shared power/log harmonicity and explicit scalar radial boundary data for Green-function consumers",
+    note := "For n>=2, the literal power/log function is harmonic off zero, with actual values and radial gradient pairings on every positive sphere. Derivatives and local regularity are internal. Independently reviewed exact module. Geometric normal identification, annular orientation, distributional normalization and general Green identity remain separate."
+  },
+  {
+    key := "analysis.poisson-kernel-harmonicity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel.poissonKernel_harmonicOnNhd",
+    upstreamDecl := "HFT second edition Proposition1.18",
+    upstreamFile := "HFT printed13/PDF21; product rule1.19; standing dimension printed1/PDF9",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["poisson-kernel", "harmonic", "laplacian", "sphere"],
+    saldUse := "Actual kernel harmonicity used by the closed-ball mean-value consumer and planned AppendixA1 normalization",
+    note := "For n>=2 and a fixed unit pole, the literal quotient is harmonic on the entire pole complement. Current independent audit HuanjianPoissonRadialRefactor covers actual canonical radial and Laplacian-product reuse; the older proof-body certificate is not reused. No extra smoothness premise, Poisson representation, AppendixA1 value or lower-bound claim."
+  },
+  {
+    key := "analysis.ball-flux-divergence",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BallFlux.ball_flux_eq_integral_divergence",
+    upstreamDecl := "ASTIS sealed local ball divergence and literal polar-sphere flux identity",
+    upstreamFile := "research-wiki/paper-contributions/GaussianComplexity/ball-flux-statement-seal.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["divergence", "ball", "flux", "polar-measure"],
+    saldUse := "Canonical ball-flux identity actually consumed by same-extension harmonic zero flux",
+    note := "Every natural Euclidean dimension, positive radius, local C1 field on the closed ball. Both actual integrabilities and exact radius-scaled volume.toSphere flux are conclusions. Independently reviewed localization, polar shell limits and divergence reuse. General geometric surface area, smooth-domain divergence/Green and annular normals remain separate."
+  },
+  {
+    key := "analysis.harmonic-closed-ball-zero-flux",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalFlux.harmonic_closedBall_zero_flux",
+    upstreamDecl := "HFT zero-flux use: explicit real same-extension closed-ball specialization",
+    upstreamFile := "HFT Eq1.3 printed4/PDF12 and two filled-ball uses in1.4 printed5/PDF13",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["harmonic", "zero-flux", "closed-ball", "extension"],
+    saldUse := "Same actual harmonic extension before all positive subradii, consumed by normalized spherical mean value",
+    note := "For n>=2 and positive parent radius, a matching harmonic-neighborhood extension supplies actual gradient-pair integrability and zero literal polar flux at every positive subradius through the parent radius. Original values may be arbitrary off the ball. Independently reviewed exact module; full complex arbitrary-domain geometric flux is not claimed."
+  },
+  {
+    key := "analysis.harmonic-closed-ball-mean-value",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue.harmonic_closedBall_mean_value",
+    upstreamDecl := "HFT second edition Theorem1.4: explicit real closed-ball specialization",
+    upstreamFile := "HFT printed5/PDF13; closed-set extension convention printed1/PDF9",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["harmonic", "mean-value", "closed-ball", "normalized-sphere"],
+    saldUse := "Canonical normalized spherical mean value with actual Poisson and translated off-ball-discontinuous consumers",
+    note := "For n>=2 and positive radius, an actual matching harmonic-neighborhood extension yields the center value as the literal normalized volume.toSphere boundary average. Probability/full orthogonal invariance, L1 and differentiation estimates are internal. Independently reviewed direct radial-average alternative to the author annulus route. Full complex generality, AppendixA1, Eq24, oracle/cost adapters, rendered acceptance, purification and whole-paper completion remain separate."
+  },
   {
     key := "quadratic-probability-segment",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk.quadratic_feature_probability_segment",

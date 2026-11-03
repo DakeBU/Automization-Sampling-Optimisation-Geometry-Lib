@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "boundary": "The literal ball-flux and same-extension radial zero-flux statements compile locally. Full geometric smooth-domain divergence/Green identity, geometric surface-law and normal adapters, inner-annulus normal reversal, closed-ball mean value, normalized Appendix A1 values, Eq24, TV/oracle/precision/query/expected-cost adapters and both main lower bounds remain separate. Canonical integration, rendered visual acceptance, publication and purification are pending.",
+      "tests": [
+        "lake build Tests.GaussianComplexityBallFlux"
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BallFlux.ball_flux_eq_integral_divergence",
+      "title": "Divergence and polar-sphere flux on a ball",
+      "reader_note": "ASTIS library theorem. The source geometric divergence theorem and its adapters remain separately visible.",
+      "statement": "A field that is C1 near every point of a positive closed ball has integrable divergence and integrable polar-sphere flux, with the exact ball-flux identity.",
+      "formula": "\\tau=\\mathrm{volume}.\\mathrm{toSphere},\\qquad \\int_{B(a,R)}\\operatorname{div}F\\,dx=R^{n-1}\\int_{S^{n-1}}\\langle F(a+R\\zeta),\\zeta\\rangle\\,d\\tau(\\zeta).",
+      "assumptions": [
+        "\\(n\\in\\mathbb N\\), including zero and one; \\(F:\\mathbb R^n\\to\\mathbb R^n\\), \\(a\\in\\mathbb R^n\\), \\(R>0\\).",
+        "\\(F\\) is \\(C^1\\) locally at every point of \\(\\overline B(a,R)\\). No global regularity, support, integrability or flux identity is assumed.",
+        "\\(\\operatorname{div}F\\) is the actual matching-coordinate derivative sum. \\(\\tau\\) is the actual unnormalized polar measure on the unit-sphere subtype. Both volume and boundary integrabilities are conclusions.",
+        "The exponent uses natural subtraction: \\(n-1=\\max(n-1,0)\\). Here \\(S^{n-1}:=\\{\\zeta\\in\\mathbb R^n:\\|\\zeta\\|=1\\}\\); at \\(n=0\\) this sphere is empty and \\(\\tau=0\\)."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(H,q,D_\\varepsilon,\\chi_\\varepsilon,w_\\varepsilon\\)",
+          "text": "Radial flux, a fixed smooth increasing transition q from0 to1, positive squared-radius shell width, spatial cutoff and its scalar radial weight.",
+          "formula": "H(r)=r^{n-1}\\int\\langle F(a+r\\zeta),\\zeta\\rangle\\,d\\tau,\\quad D_\\varepsilon=(R+\\varepsilon)^2-R^2,\\quad\\chi_\\varepsilon(x)=1-q\\!\\left(\\frac{\\|x-a\\|^2-R^2}{D_\\varepsilon}\\right)."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Localize without strengthening the hypotheses",
+          "text": "The finite-order C1 locus is open. Compactness of the closed ball gives a slightly larger closed ball inside it. A smooth bump equals one near the selected ball and has support inside the larger ball. Multiplying F by it produces a global compactly supported C1 field with the same germ at every selected point. Prove the formula for that field and transfer values and derivatives back.",
+          "formula": "\\widetilde F=F\\text{ near }\\overline B(a,R),\\qquad\\widetilde F\\in C_c^1.",
+          "lean": "local_c1_extension uses ContDiffAt.eventually, compact thickening and ContDiffBump. Public hdiv and hboundary transfer actual derivatives and boundary values."
+        },
+        {
+          "title": "Use the existing whole-space divergence producer",
+          "text": "For positive dimension, transport Euclidean volume to finite-Pi volume and reuse the existing compiled compact-C1 zero-divergence theorem. The actual coordinate-divergence trace is continuous and compactly supported, hence integrable.",
+          "formula": "\\int_{\\mathbb R^n}\\operatorname{div}G\\,dx=0\\qquad(G\\in C_c^1).",
+          "lean": "compact_divergence_integral calls the existing canonical declaration through PiLp.volume_preserving_toLp; divergence_continuous and divergence_integrable derive actual L1."
+        },
+        {
+          "title": "Apply the genuine product rule to a smooth shell",
+          "text": "Use the radial-calculus gradient formula and the coordinate product rule. The cutoff lies between zero and one. Integrability of its divergence and of the bounded product with div F yields integrability of the cross term; it is not inferred from a totalized zero integral.",
+          "formula": "\\operatorname{div}(\\chi_\\varepsilon F)=\\chi_\\varepsilon\\operatorname{div}F+\\langle\\nabla\\chi_\\varepsilon,F\\rangle,\\qquad \\int\\chi_\\varepsilon\\operatorname{div}F=-\\int\\langle\\nabla\\chi_\\varepsilon,F\\rangle.",
+          "lean": "divergence_scalar_product and scalar_cutoff_integral derive both the actual cross-term L1 and the identity. cutoff_sphere_pairing calls the same canonical radial_gradient_laplacian node."
+        },
+        {
+          "title": "Change variables with the literal polar law",
+          "text": "The canonical measure-preserving sphere-times-positive-radius homeomorphism decomposes actual Lebesgue volume. Fubini, the radial density and translation turn the negative cross term into a weighted radial flux. The weight vanishes outside the shell.",
+          "formula": "-\\int\\langle\\nabla\\chi_\\varepsilon,F\\rangle=\\int_R^{R+\\varepsilon} w_\\varepsilon(r)H(r)\\,dr,\\quad w_\\varepsilon(r)=\\frac{2r}{D_\\varepsilon}q\\prime\\!\\left(\\frac{r^2-R^2}{D_\\varepsilon}\\right).",
+          "lean": "polar_integral explicitly transports integrability and the integral via measurePreserving_homeomorphUnitSphereProd and volumeIoiPow. cutoff_flux_identity handles translation, the radial factor and shell support."
+        },
+        {
+          "title": "Normalize the shell and pass to the boundary",
+          "text": "The transition is monotone, so the weight is nonnegative on positive radii. The fundamental theorem of calculus gives weight mass exactly one. Continuity of H bounds the weighted error by its oscillation on the shrinking interval; no false uniform bound on the diverging shell density is used.",
+          "formula": "w_\\varepsilon\\ge0,\\qquad\\int_R^{R+\\varepsilon}w_\\varepsilon=1,\\qquad\\left|\\int_R^{R+\\varepsilon}w_\\varepsilon H-H(R)\\right|\\le\\sup_{R\\le r\\le R+\\varepsilon}|H(r)-H(R)|\\longrightarrow0.",
+          "lean": "shellWeight_mass uses actual derivatives and scalar FTC; radial_flux_continuous uses finite-measure compact parameter integration; shellWeight_limit proves the weighted error estimate."
+        },
+        {
+          "title": "Take the volume limit and retain all dimensions",
+          "text": "Dominated convergence applies to the cutoff times div F, bounded by the globally integrable norm of div F. The exceptional sphere has zero volume. Uniqueness of the two limits gives the formula. In dimension zero, the coordinate sum and polar measure are both zero, so both integrabilities and equality hold directly.",
+          "formula": "\\int\\chi_\\varepsilon\\operatorname{div}F\\longrightarrow\\int_{B(a,R)}\\operatorname{div}F,\\qquad n=0:\\ \\operatorname{div}F=0,\\ \\tau=0.",
+          "lean": "cutoff_volume_limit uses genuine dominated convergence and addHaar_sphere; compact_ball_flux joins the limits. The public proof separately handles zero dimension and transfers the localized positive-dimensional result."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Divergence.integral_coordinateDivergence_wrapped_eq_zero_of_contDiff_of_hasCompactSupport",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus.radial_gradient_laplacian"
+      ],
+      "mathlib_dependencies": [
+        "ContDiffAt.eventually",
+        "IsCompact.exists_cthickening_subset_open",
+        "ContDiffBump",
+        "PiLp.volume_preserving_toLp",
+        "MeasureTheory.Measure.measurePreserving_homeomorphUnitSphereProd",
+        "MeasureTheory.integral_prod_symm",
+        "intervalIntegral.integral_eq_sub_of_hasDerivAt",
+        "MeasureTheory.tendsto_integral_filter_of_dominated_convergence",
+        "MeasureTheory.Measure.addHaar_sphere"
+      ],
+      "lean_statement": "Exact sealed all-dimension local-C1 statement; volume and radial-pairing integrabilities are conclusions.",
+      "lean_proof": "The entire module, including every private analytic provider, requires independent whole-module review.",
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib",
+          "edition": "ASTIS original canonical-library specification sealed locally at164c590d93d0acaa505e90ab840c6bf18f45c187",
+          "anchor": "research-wiki/paper-contributions/GaussianComplexity/ball-flux-statement-seal.json, canonical_library_node",
+          "wording_status": "faithful paraphrase",
+          "attribution": "ASTIS original explicit ball-pullback specification. It is related to HFT1.2 but is not the full source smooth-domain theorem. The repository URL identifies the project; this unpushed local proof is not claimed to be hosted there.",
+          "scope": "All natural Euclidean dimensions, positive radius, local C1 on the closed ball, actual coordinate divergence and literal volume.toSphere pairing.",
+          "label": "ASTIS sealed ball-flux specification"
+        },
+        {
+          "path": "research-wiki/paper-contributions/GaussianComplexity/ball-flux-statement-seal.json",
+          "label": "Exact local pre-proof specification",
+          "scope": "canonical_library_node; not the full HFT1.2 theorem"
+        }
+      ]
+    }
+  ]
+}

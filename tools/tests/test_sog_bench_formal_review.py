@@ -55,11 +55,27 @@ class PairedReviewTests(unittest.TestCase):
 
     def test_actual_distinct_actor_evidence_admits_one_conclusion_only_pair(self):
         rows = formal.statuses(self.cores)
-        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017'})
+        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018'})
         self.assertEqual(rows['sogb-015']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-015']['formal_alignment'], 'conclusion-only')
         self.assertTrue(rows['sogb-015']['remaining_unformalized'])
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 17)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 18)
+
+    def test_transport_join_has_its_own_blind_reconstruction_and_source_boundaries(self):
+        core=next(c for c in self.cores if c['id']=='sogb-018')
+        directory=formal.REVIEWS/'formal-6'
+        mapping,decoded=formal.decoder_evidence(directory,[core])
+        self.assertEqual(set(mapping['cases']),{'case-1'})
+        self.assertFalse(decoded['source_text_visible'])
+        self.assertNotIn(core['declaration'],json.dumps(formal.decoder_payload([core])[0]))
+        row=formal.round_statuses(self.cores,directory)['sogb-018']
+        self.assertEqual(row['editorial'],'accepted')
+        self.assertEqual(row['formal_alignment'],'conclusion-only')
+        self.assertTrue(row['remaining_unformalized'])
+        # A later changed proof/question cannot inherit acceptance.
+        changed=deepcopy(bench.load())
+        next(c for c in changed['cores'] if c['id']=='sogb-018')['question']+=' Claim optimal-plan attainment.'
+        self.assertEqual(formal.round_statuses(bench.materialize(changed),directory)['sogb-018']['editorial'],'stale')
 
     def test_altered_packets_role_reuse_slots_and_open_repairs_fail_closed(self):
         for scenario in ('packet', 'source-role', 'decoder-role', 'slots', 'repair'):

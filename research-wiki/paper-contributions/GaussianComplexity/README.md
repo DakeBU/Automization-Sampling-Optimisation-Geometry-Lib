@@ -1091,6 +1091,35 @@ The next mathematical packet remains the sealed public AppendixA1 endpoint.
 
 ## Huanjian resumption on latest main (2026-11-03)
 
-The preserved local candidate is clean-ported onto official main `9f7a7419ea401547c71c5c2890380ec357fa983a` on `huanjian/gaussian-complexity-20261103`. Fresh baseline focused, exact ATLAS, canonical Lean/Tests, semantic, frontier and site build/check commands all passed on that unchanged main. The freshly downloaded v1 HTML and HFT PDF match the handoff raw SHA256 pins.
+The preserved local candidate is clean-ported onto official main
+`9f7a7419ea401547c71c5c2890380ec357fa983a` on
+`huanjian/gaussian-complexity-20261103`. Fresh baseline focused, exact ATLAS,
+canonical Lean/Tests, semantic, frontier and site build/check commands all
+passed on that unchanged main. The freshly downloaded v1 HTML and HFT PDF match
+the handoff raw SHA256 pins.
 
-Independent preflight found no competing harmonic/radial endpoint on main. The reviewed mathematical/source/lesson/audit packet bytes remain unchanged. Latest main ledger bytes stay an exact prefix, followed by all 28 retained candidate events and one normal-API serialization lease. Foreign records and the original mathematical owner remain unchanged. Both independent six-entry Registry contributions are retained; the aggregate test now expects 596. The exact clean-port candidate still requires fresh focused/root, publication, site/graph, actual rendered and independent immutable integration acceptance. No canonical merge, public release, purification or new AppendixA1/Eq24 or main-bound result is asserted. See the existing spherical-meanvalue integration notes and current-main-20261103 preflight report.
+Independent preflight found no competing harmonic/radial endpoint on main. The
+reviewed mathematical/source/lesson/audit packet bytes remain unchanged. Latest
+main ledger bytes stay an exact prefix, followed by all 28 retained candidate
+events and one normal-API serialization lease. Foreign records and the original
+mathematical owner remain unchanged. Both independent six-entry Registry
+contributions are retained; the aggregate test now expects 596. The exact
+clean-port candidate still requires fresh focused/root, publication, site/graph,
+actual rendered and independent immutable integration acceptance. No canonical
+merge, public release, purification or new AppendixA1/Eq24 or main-bound result
+is asserted. See the existing spherical-meanvalue integration notes and
+current-main-20261103 preflight report.
+
+Independent acceptance subsequently passed on immutable `8c79b3f46456`: the
+canonical gate (Tests9613 jobs), all current-base source/publication checks,
+site build/check and six graph checks are real successful executions. All six
+authored readers were inspected on desktop and390px mobile, and all six desktop
+graph branches were inspected. An independent reviewer additionally verified the
+actual390x844 mean-value graph and reader, including Fit, leaf selection,
+evidence navigation and exact statement/proof disclosures. The other five mobile
+graph branches are not claimed. The earlier viewport probe remains a failed API
+observation, not a page defect or mathematical obstruction. The reviewer
+released the normal serialization lease to VERIFIED without changing the
+mathematical owner or other records. See the compact current-main-20261103
+acceptance summary and lane-release report. Canonical merge/deployment and
+purification remain pending; public AppendixA1 is next.

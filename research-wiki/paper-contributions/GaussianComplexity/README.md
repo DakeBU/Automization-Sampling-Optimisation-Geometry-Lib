@@ -1161,3 +1161,12 @@ all incoming Bench work, without conflicts or changes to the reviewed packet.
 The root theorem/test imports are added under that lease. Root/site/graph and
 actual rendered immutable-candidate acceptance remain pending; no canonical
 merge, deployment, postmerge purification or evaluated Eq24 is asserted.
+
+Actual mobile graph inspection of `bbea6bca892d` found that the new A1 declaration
+still used the conservative source-present fallback because its canonical
+Registry ownership was omitted. Under the sole lease, the same independently
+reviewed declaration is now registered exactly once. All596 prior entries are
+preserved, and the existing native inventory check now expects597. This
+registration does not create another theorem, duplicate the private proof or
+upgrade the separate source-underspecified audit. A new immutable root/site/graph
+acceptance candidate is required.

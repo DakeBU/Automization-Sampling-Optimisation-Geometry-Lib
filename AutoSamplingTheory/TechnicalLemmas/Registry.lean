@@ -33,6 +33,7 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.FundamentalSolution
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalFlux
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SphericalPoisson
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Taylor
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev
@@ -206,6 +207,16 @@ def analysisMemory : List LemmaMemoryEntry := [
     tags := ["harmonic", "mean-value", "closed-ball", "normalized-sphere"],
     saldUse := "Canonical normalized spherical mean value with actual Poisson and translated off-ball-discontinuous consumers",
     note := "For n>=2 and positive radius, an actual matching harmonic-neighborhood extension yields the center value as the literal normalized volume.toSphere boundary average. Probability/full orthogonal invariance, L1 and differentiation estimates are internal. Independently reviewed direct radial-average alternative to the author annulus route. Full complex generality, AppendixA1, Eq24, oracle/cost adapters, rendered acceptance, purification and whole-paper completion remain separate."
+  },
+  {
+    key := "gaussian-complexity.spherical-poisson-moments",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.SphericalPoisson.spherical_poisson_moments",
+    upstreamDecl := "arXiv2610.20492v1 LemmaA.1 Eq12: actual normalized sphere moments",
+    upstreamFile := "A1.SS1 LemmaA.1 and proof; B.2.2 selected numerator before Eq24",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "sphere", "poisson", "moments", "integrability"],
+    saldUse := "Both actual moments consumed by selected_numerator_value in Tests/GaussianComplexitySphericalPoisson.lean; Gaussian Eq24 is planned",
+    note := "Independent compiler/source/whole-module admission at f8101cf4cf99d806dc8f73bce7dd14514637d612. Exact normalized ambient surface law, both genuine L1 facts and both values. Raw source opening n>=2 and trailing n>=3 remain visible: source fidelity is accepted on n>=3, with the actually proved n=2 logarithmic case an explicit ASTIS extension. The checked mean-value/zero-flux route is distinct from the author's full HFT1.21 route. No caller-supplied moment/flux/regularity premise, full Poisson representation, evaluated Gaussian Eq24, TV/oracle/query/cost/main lower bound, merge or purification claim. Nine private providers share the one public review and receive no separate Registry credit."
   },
   {
     key := "quadratic-probability-segment",

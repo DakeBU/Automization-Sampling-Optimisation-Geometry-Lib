@@ -1147,3 +1147,17 @@ blind decoding and fresh source/whole-module/reader review are separately bound.
 See `spherical-poisson-integration-notes.json` for exact hashes and remaining
 integration/reader evidence. No full Poisson representation, Eq24, oracle/cost
 adapter, TV/main lower bound, canonical merge or purification is claimed.
+
+Independent source/whole-module/reader acceptance and normal VERIFIED admission
+subsequently passed on immutable `f8101cf4cf99`. The first decoder run was
+superseded because its input path carried a paper directory name. A fresh
+decoder saw only a neutral temporary-path packet; its new reconstruction was
+independently compared across all seven slots. The final audit retains
+`source-underspecified` and the explicit stronger n=2 range, rather than
+claiming full-statement equivalence to both raw dimension clauses.
+
+The sole integration lease now retains official main `43485eed6253`, including
+all incoming Bench work, without conflicts or changes to the reviewed packet.
+The root theorem/test imports are added under that lease. Root/site/graph and
+actual rendered immutable-candidate acceptance remain pending; no canonical
+merge, deployment, postmerge purification or evaluated Eq24 is asserted.

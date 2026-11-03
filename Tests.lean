@@ -340,6 +340,7 @@ import Tests.GaussianComplexityPoissonHarmonicity
 import Tests.GaussianComplexityRadialGreenData
 import Tests.GaussianComplexityBallFlux
 import Tests.GaussianComplexitySphericalMeanValue
+import Tests.GaussianComplexitySphericalPoisson
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

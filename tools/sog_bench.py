@@ -16,6 +16,7 @@ sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'website/scripts')]
 import astis_site
 import inline_lean
 import project_licensing
+import sog_bench_curriculum as curriculum
 
 DATA = ROOT / 'benchmarks/samplingoptimisationgeometrybench/cores.json'
 RECEIPT = ROOT / '.astis/sog-bench/reference-check.json'
@@ -36,21 +37,20 @@ def text_hash(path: Path) -> str:
 
 def load() -> dict:
     data = json.loads(DATA.read_text(encoding='utf-8'))
-    if data['schema_version'] != 1 or data['split'] != 'public-dev':
-        raise ValueError('This pilot supports schema 1 and public-dev only')
+    if data['schema_version'] != 2 or data['split'] != 'public-dev':
+        raise ValueError('This development catalog supports schema 2 and public-dev only')
     if data['review_status'] != 'independent-semantic-review-pending':
         raise ValueError('Reviewed admission needs a future evidence-backed schema, not an edited badge')
-    ids, families = set(), set()
+    ids = set()
+    policy = curriculum.curriculum()
     for core in data['cores']:
         if not re.fullmatch(r'sogb-\d{3}', core['id']) or core['id'] in ids:
             raise ValueError('Invalid or duplicate core identity')
         ids.add(core['id'])
-        if core['family'] in families:
-            raise ValueError('Pilot reserves one shared core per family')
-        families.add(core['family'])
-        if core['domain'] not in {'sampling', 'optimisation', 'geometry'}:
-            raise ValueError('Invalid pilot domain')
-        for key in ('title', 'question', 'context', 'lean_explanation', 'boundary', 'source_note'):
+        if not core['family'].strip():
+            raise ValueError('Missing mathematical family')
+        curriculum.classify(core, policy)
+        for key in ('title', 'question', 'lean_explanation', 'boundary', 'source_note'):
             if not isinstance(core[key], str) or not core[key].strip():
                 raise ValueError('Missing prose: ' + key)
         if not core['assumptions'] or not core['steps'] or len(core['rubric']) != 4:
@@ -73,6 +73,12 @@ def materialize(data: dict | None = None) -> list[dict]:
         declaration = known.get(core['declaration'])
         if declaration is None or declaration.source_file != core['source_file'] or declaration.has_placeholder:
             raise ValueError('Unresolved or unfinished reference declaration: ' + core['declaration'])
+        if not has_lean(core):
+            bound = {**core, 'split': data['split'], 'source_sha256_lf': text_hash(ROOT / core['source_file']),
+                     'source_line': declaration.source_line, 'imports': [], 'lean_task': '', 'lean_reference': ''}
+            bound['binding_sha256'] = sha(encoded(bound))
+            result.append(bound)
+            continue
         # The canonical scanner retains trailing namespace closures; these are
         # not part of the target example. Preserve the theorem itself verbatim.
         code = re.split(r'\nend(?:\s|$)', declaration.source_text, maxsplit=1)[0]
@@ -105,14 +111,18 @@ def materialize(data: dict | None = None) -> list[dict]:
 def prompts(cores: list[dict]) -> list[dict]:
     rows = []
     for core in cores:
-        common = {k: core[k] for k in ('id', 'family', 'domain', 'title', 'split', 'assumptions', 'binding_sha256')}
-        for track in TRACKS:
+        common = {k: core[k] for k in ('id', 'family', 'domain', 'library_domains', 'skills', 'title', 'split', 'assumptions', 'binding_sha256')}
+        for track, level in core['track_levels'].items():
             question = core['question'] if track == 'natural-language' else (
                 'Complete the fixed Lean target below. Keep its imports, context and proposition unchanged. '
                 'Use the repository-pinned Lean/Mathlib. This is open-library reconstruction; '
                 'the target module is not imported directly.\n\n' + core['lean_task'])
-            rows.append({**common, 'track': track, 'question': question})
+            rows.append({**common, 'track': track, 'level': level, 'question': question})
     return rows
+
+
+def has_lean(core: dict) -> bool:
+    return core.get('lean_enabled', True) is True
 
 
 def environment_digest() -> str:
@@ -123,6 +133,7 @@ def environment_digest() -> str:
 
 
 def receipt_current(cores: list[dict]) -> bool:
+    cores = [c for c in cores if has_lean(c)]
     if not RECEIPT.is_file():
         return False
     try:
@@ -140,9 +151,11 @@ def receipt_current(cores: list[dict]) -> bool:
 
 def export(output: Path, cores: list[dict] | None = None) -> None:
     cores = cores or materialize()
+    graphs = curriculum.graph_items()
     expected = {'questions.jsonl', 'reference.jsonl', 'manifest.json', 'README.md',
+                'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 *project_licensing.LICENSE_FILES,
-                *('lean/' + c['id'] + suffix for c in cores for suffix in ('-task.lean.txt', '-reference.lean'))}
+                *('lean/' + c['id'] + suffix for c in cores if has_lean(c) for suffix in ('-task.lean.txt', '-reference.lean'))}
     if output.exists() and any(output.iterdir()):
         manifest = output / 'manifest.json'
         if not manifest.is_file() or json.loads(manifest.read_text(encoding='utf-8')).get('name') != 'SamplingOptimisationGeometryBench':
@@ -155,15 +168,24 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     jsonl = lambda rows: ''.join(json.dumps(r, ensure_ascii=False, sort_keys=True) + '\n' for r in rows).encode()
     write('questions.jsonl', jsonl(prompts(cores)))
     write('reference.jsonl', jsonl(cores))
+    write('graph-questions.jsonl', jsonl(curriculum.graph_prompts(graphs)))
+    write('graph-reference.jsonl', jsonl(graphs))
+    write('curriculum.json', encoded(curriculum.curriculum()))
+    write('coverage.json', encoded(curriculum.coverage(cores, graphs)))
+    write('GOAL.md', (DATA.parent / 'GOAL.md').read_bytes())
     (output / 'lean').mkdir(exist_ok=True)
     for c in cores:
+        if not has_lean(c):
+            continue
         write('lean/' + c['id'] + '-task.lean.txt', c['lean_task'].encode())
         write('lean/' + c['id'] + '-reference.lean', c['lean_reference'].encode())
     for name in project_licensing.LICENSE_FILES:
         write(name, (ROOT / name).read_bytes())
     write('README.md', (DATA.parent / 'README.md').read_bytes())
     manifest = {'name': 'SamplingOptimisationGeometryBench', 'version': load()['version'],
-                'split': 'public-dev', 'cores': len(cores), 'qa_views': 2 * len(cores),
+                'split': 'public-dev', 'cores': len(cores), 'qa_views': len(prompts(cores)), 'graph_tasks': len(graphs),
+                'track_counts': {t: sum(t in c['track_levels'] for c in cores) for t in TRACKS},
+                'difficulty_calibration': 'author-assigned; not empirically calibrated',
                 'independent_semantic_review': 'pending', 'hidden_test': False,
                 'toolchain': (ROOT / 'lean-toolchain').read_text().strip(),
                 'mathlib_manifest_sha256_lf': text_hash(ROOT / 'lake-manifest.json'),
@@ -185,6 +207,9 @@ def archive_bytes(directory: Path, destination: Path) -> None:
 
 def check_lean(cores: list[dict]) -> int:
     """Trusted references only. Never accepts or executes submitted code."""
+    cores = [c for c in cores if has_lean(c)]
+    if not cores:
+        raise ValueError('No aligned Lean tasks to compile')
     RECEIPT.parent.mkdir(parents=True, exist_ok=True)
     RECEIPT.unlink(missing_ok=True)  # Invalidate only this generated receipt before any attempt.
     before = environment_digest()
@@ -221,21 +246,45 @@ def check_lean(cores: list[dict]) -> int:
                'reference_sha256': {c['id']: sha(c['lean_reference'].encode()) for c in cores},
                'commands': commands, 'scope': 'trusted reference compilation only; no semantic or submission certification'}
     RECEIPT.write_bytes(encoded(receipt))
-    print('Three trusted references checked; independent QA semantic review remains pending.')
+    print(f'{len(cores)} trusted references checked; independent QA semantic review remains pending.')
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('check', 'export', 'check-lean'))
+    parser.add_argument('command', choices=('check', 'export', 'check-lean', 'coverage', 'grade-graph'))
     parser.add_argument('--output', type=Path, default=ROOT / '.astis/sog-bench-export')
+    parser.add_argument('--submissions', type=Path, help='First-attempt structured graph responses only; never executable code')
+    parser.add_argument('--run-metadata', type=Path, help='Required provenance for a graph score report')
     args = parser.parse_args()
     cores = materialize()
+    graphs = curriculum.graph_items()
+    if args.command == 'coverage':
+        print(encoded(curriculum.coverage(cores, graphs)).decode('utf-8'))
+        return 0
+    if args.command == 'grade-graph':
+        if not args.submissions or not args.run_metadata:
+            parser.error('grade-graph requires --submissions and --run-metadata')
+        metadata = json.loads(args.run_metadata.read_text(encoding='utf-8'))
+        curriculum.validate_run_metadata(metadata)
+        rows = [json.loads(line) for line in args.submissions.read_text(encoding='utf-8').splitlines() if line.strip()]
+        report = {**curriculum.grade_graph(graphs, rows), 'run_metadata': metadata,
+                  'catalog_version': load()['version'], 'raw_submissions': rows,
+                  'question_bindings': {g['id']: g['binding_sha256'] for g in graphs},
+                  'grader_sha256_lf': text_hash(ROOT / 'tools/sog_bench_curriculum.py'),
+                  'execution_policy_verified': False}
+        args.output.mkdir(parents=True, exist_ok=True)
+        destination = args.output / 'graph-score.json'
+        if destination.exists():
+            raise ValueError('Refusing to overwrite an existing run report; choose a fresh output directory')
+        destination.write_bytes(encoded(report))
+        print('Wrote structured-graph-only score; not a prose or Lean correctness score.')
+        return 0
     if args.command == 'check-lean':
         return check_lean(cores)
     if args.command == 'export':
         export(args.output, cores)
-    print(f'{len(cores)} public development cores / {len(prompts(cores))} QA views; independent semantic review pending.')
+    print(f'{len(cores)} public development cores / {len(prompts(cores))} mathematical QA views / {len(graphs)} graph tasks; independent semantic review pending.')
     return 0
 
 

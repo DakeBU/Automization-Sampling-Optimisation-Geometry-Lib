@@ -60,7 +60,7 @@ Each paper has a stable reader page with complete attributed source conditions, 
 
 [**Dataset, tasks and usage**](benchmarks/samplingoptimisationgeometrybench/) · [**Website reader**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/)
 
-A public development pilot for domain knowledge and mathematical reasoning: three shared cores, each with a natural-language QA view and a Lean-assisted view. Questions, formula solutions, four-point rubrics, source bindings and optional folded Lean are generated from one catalog. It is not a held-out evaluation set; independent QA-pair semantic review is pending. Build/export/check commands are in the dataset guide. No new library theorem or paper-completion credit is claimed.
+A public development curriculum for domain knowledge and reasoning across seven subject routes, with provisional L1–L5 levels, natural-language QA, aligned Lean QA where available, and source-hashed structural graph questions. Formula solutions, rubrics, source bindings, folded Lean and coverage gaps come from one catalog. Public development is not held-out evaluation; independent semantic review and empirical calibration remain pending. Commands and the continuing Goal are in the dataset guide. No new theorem or paper-completion credit is claimed.
 
 ## Research aim
 

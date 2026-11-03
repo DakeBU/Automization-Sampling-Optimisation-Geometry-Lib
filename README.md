@@ -46,6 +46,7 @@ Each paper has a stable reader page with complete attributed source conditions, 
 ## News
 
 - **2026-11-03:** Made Samplinglib's original code and exposition available under [Apache-2.0](LICENSE), with explicit [third-party boundaries](LICENSE_SCOPE.md).
+- **2026-11-03:** Started [SamplingOptimisationGeometryBench](benchmarks/samplingoptimisationgeometrybench/), pairing natural-language and Lean QA.
 - **2026-10-06:** Added statement seals, proof digestion and evidence-routed source-fidelity review.
 - **2026-10-03:** Added source-grounded research workspaces, proof ledgers, and a downloadable ChatGPT/MCP App.
 - **2026-09-29:** [Our system paper](https://openreview.net/forum?id=UkKpNtVED2) was accepted to the NeurIPS 2026 Workshop MATH-AI.
@@ -54,6 +55,12 @@ Each paper has a stable reader page with complete attributed source conditions, 
 - **2026-09-05:** Added Statistical Optimal Transport and the Functor Hypergraph.
 - **2026-08-29:** Added source-fidelity checks and theorem denoising.
 - **2026-07-17:** Established Auto-Sampling-Theory-In-Sleep.
+
+## SamplingOptimisationGeometryBench
+
+[**Dataset, tasks and usage**](benchmarks/samplingoptimisationgeometrybench/) · [**Website reader**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/)
+
+A public development curriculum for domain knowledge and reasoning across seven subject routes, with provisional L1–L5 levels, natural-language QA, aligned Lean QA where available, and source-hashed structural graph questions. Formula solutions, rubrics, source bindings, folded Lean and coverage gaps come from one catalog. Public development is not held-out evaluation; independent semantic review and empirical calibration remain pending. Commands and the continuing Goal are in the dataset guide. No new theorem or paper-completion credit is claimed.
 
 ## Research aim
 
@@ -129,7 +136,6 @@ Full protocol: [docs/formalization-protocol.md](docs/formalization-protocol.md).
 | [lean-stat-learning-theory](https://github.com/YuanheZ/lean-stat-learning-theory) | Mathlib probability, concentration, entropy, and functional-inequality proof idioms | External declarations become local truth only after an audited compatible port compiles |
 | [StatsMLlib](https://github.com/Lean-MoDS/StatsMLlib) | Subject-owned modules, reuse-first formalization, and staged contribution | Samplinglib adds textbook correspondence, SampleWiki ingestion, statement fidelity, and graph-level contribution views |
 | [FrontierAgent](https://github.com/ApodexAI/FrontierAgent) | Parallel generalist agents, bounded task boards, checkpointing, and no-progress control | ASTIS schedules theorem-DAG advances with Lean evidence, truth boundaries, independent verification, and serialized stabilization |
-| [Quantum-Computing-Block-Encoding](https://github.com/DakeBU/Quantum-Computing-Block-Encoding) | Experience building automated formalization workflows | ASTIS specializes the machinery for sampling/SDE mathematics and theorem-sized Frontier Cells |
 
 Full mathematical provenance and design lineage: [docs/attribution.md](docs/attribution.md).
 

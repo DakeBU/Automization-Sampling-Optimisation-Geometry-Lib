@@ -44,6 +44,12 @@ mode. The tool has no `--strict` flag.
 
 ## 1. Discuss the scope
 
+For Bench questions rather than new production theorems, start with
+[`SamplingOptimisationGeometryBench`](benchmarks/samplingoptimisationgeometrybench/README.md)
+and its continuing Goal. Author once, keep paired views in the same family/split,
+label difficulty by reasoning, distinguish support from an equivalent Lean task,
+and expose review/coverage gaps. This does not waive the normal theorem protocol.
+
 Small corrections and narrowly scoped API improvements can go directly to a
 pull request. Open an issue before starting any of the following:
 

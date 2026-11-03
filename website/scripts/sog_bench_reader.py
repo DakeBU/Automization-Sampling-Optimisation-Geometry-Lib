@@ -4,6 +4,7 @@ from __future__ import annotations
 from html import escape
 import json
 from pathlib import Path
+import re
 import shutil
 
 import astis_site
@@ -16,7 +17,25 @@ MARKER = 'data-sog-bench="true"'
 
 
 def prose(text: str) -> str:
-    return '<p>' + escape(text) + '</p>'
+    # Stack independent comma-separated display identities, without changing
+    # the audited source strings or shrinking their mobile math fonts.
+    def stack(match):
+        body = match.group(1)
+        if r'\begin{' in body:
+            return match.group(0)
+        depth, start, parts = 0, 0, []
+        for index, char in enumerate(body):
+            if char in '{}' and (index == 0 or body[index-1] != '\\'):
+                depth += 1 if char == '{' else -1
+            if depth == 0 and body.startswith(r',\qquad', index):
+                parts.append(body[start:index+1])
+                start = index + len(r',\qquad')
+        if not parts:
+            return match.group(0)
+        parts.append(body[start:])
+        return r'\[\begin{gathered}' + r'\\'.join(parts) + r'\end{gathered}\]'
+    rendered = re.sub(r'\\\[(.*?)\\\]', stack, text, flags=re.S)
+    return '<p>' + escape(rendered) + '</p>'
 
 
 def fold(title: str, content: str) -> str:

@@ -21,6 +21,8 @@
 | sogb-013 | Discrete Sampling | Distinguish one random-site step from a sweep and an oracle cost (L1) | Not yet aligned |
 | sogb-014 | MCMC | Separate invariance, detailed balance and convergence (L1) | Not yet aligned |
 | sogb-015 | Statistical Optimal Transport | Recover joint mass one from a prescribed probability marginal (L2) | Reconstruct the actual local coupling-normalization proof (L2) |
+| sogb-016 | Riemannian Optimisation | Characterize a quadratic's sphere differential with the actual induced pairing (L3) | Derive the genuine gradient and normalized tangent projection (L3) |
+| sogb-017 | SampleWiki / MCMC | Average an integrable conditional event-error bound (L3) | Check measurability, finite-mass conversion and integral inequalities (L3) |
 
 Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Graph QA editorial review and empirical difficulty calibration remain pending. Existing theorem review does not certify a new question.
 
@@ -33,6 +35,8 @@ Mathematical cores and QA views are counted separately. A supporting theorem is 
 [Round 2](reviews/round-2/README.md) independently checks the seven L1 natural-language questions. Its input contains no equivalent Lean target, so its acceptance cannot create a formal QA view. The `prose-packet` route explicitly rejects paired tasks, which still require anonymous decoding. Separate review rounds compose only for disjoint cores; changed content becomes stale and overlapping decisions require an explicit supersession policy.
 
 [Formal round 3](reviews/formal-3/README.md) covers the coupling-normalization pair. New paired batches use `tools/sog_bench_formal_review.py`: select aligned `--ids`, prepare a fresh anonymous `decoder-packet --round ...`, obtain a genuinely independent decoder report, then prepare `reviewer-packet --round ...` for a distinct source reviewer. Each core supplies minimal plain-string `decoder_definitions`; source identities, answers, proofs and previous verdicts must stay out of decoder input. The generated anonymous target retains the actual given definition while removing owning namespace labels. Never alter an earlier report or mint another ID to evade its review. Disjoint `reviews/formal-*` rounds are discovered automatically; input preparation cannot create admission.
+
+[Formal round 5](reviews/formal-5/README.md) applies the same workflow to the sphere and conditional-kernel pairs. The unchanged anonymous input and actual decoder report from initial staging round 4 are reused after a bibliography-only correction; no new decoding or changed mathematical target is claimed.
 
 ## Difficulty and subject coverage
 
@@ -76,6 +80,8 @@ Open `_site/benchmarks/samplingoptimisationgeometrybench/index.html` through a l
 - the project license, scope and attribution notices.
 
 Use the repository's pinned **Lean 4.33.0** and `lake-manifest.json`. The target module is deliberately not imported: imported ancestor modules remain allowed. This is **open-library reconstruction**, not a claim that all equivalent statements are unavailable elsewhere. `check-lean` builds only required imported modules, compiles all aligned trusted references, and records command results and source-bound fingerprints under `.astis/sog-bench/`. It does not execute model submissions, certify source equivalence, run the full ASTIS gate, or advance the Registry. Website compiler labels are conservative: absent or stale receipts mean no current reference check is recorded. CI runs the same focused compiler check separately from website-only checks.
+
+Compiler receipts bind each selected source and actual local import closure, the given task/reference code and pinned toolchain/Mathlib/build configuration. Relevant changes invalidate the receipt; unrelated live proof files do not. This narrower cache scope is not a substitute for the full integration gate. Browser QA derives its selected Lean pages and download checks from the generated manifest/prompts, so adding a paired core does not require another hand-maintained page list.
 
 ## Assess a model
 

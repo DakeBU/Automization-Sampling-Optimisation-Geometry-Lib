@@ -1,0 +1,214 @@
+{
+  "author_identity": "agent-task:root",
+  "cases": {
+    "case-1": {
+      "binding_sha256": "69fee45c9a7a53e9d1a4ec5295d530811736ff3e8dec9fbd435f1293d9bc1cd7",
+      "core_id": "sogb-016"
+    },
+    "case-2": {
+      "binding_sha256": "37f2cef51769619910cd718b9d66acd2d57f6a5a5956a6940a4d4dc2ba60eeba",
+      "core_id": "sogb-017"
+    }
+  },
+  "context_bindings": {
+    "sogb-016": "ab41a646e478b09265a4cf915347be9a2a47f732b12f3bca081e9b5de942ebc8",
+    "sogb-017": "896dd5f8ee2893706eb4c145290dc9bd9c104666cbd1667613fe7de264103b8c"
+  },
+  "decoder_identity": "agent-task:root/sog_blind_4",
+  "decoder_input_sha256": "a5d0124a4169f208a7162ddd7ee89a802d28ce1382f47564b7aaab187ca3206e",
+  "decoder_output_sha256": "f9b21fe5430f8fe92d505548073b1089a374a9be85ad9cc6eb5b0f022fa1616a",
+  "instruction": "Independently audit each authored question, formula proof, rubric and actual local declaration. Compare all seven slots to the blind reconstruction. The authored support, status and formal-coverage language are claims to audit, not preferred verdicts. No previous source verdict or repair proposal is supplied. Record precise conclusion-only formal coverage and remaining unformalized explanation; accept, request repair or reject with mathematical and scoring evidence. This is Bench editorial review, not canonical theorem publication or model measurement.",
+  "mathematical_cores": [
+    {
+      "assumptions": [
+        "\\(E\\) is a finite-dimensional real inner-product space with \\(\\dim E=n+1\\), where \\(n\\in\\mathbb N\\). Let \\(S=\\{x\\in E:\\|x\\|=1\\}\\) have its standard smooth sphere structure.",
+        "\\(A:E\\to E\\) is a symmetric continuous linear map and \\(q(y)=\\langle y,Ay\\rangle\\). Fix \\(x\\in S\\), let \\(i:S\\hookrightarrow E\\) be the actual inclusion, and put \\(K=(\\mathbb R x)^\\perp\\).",
+        "Tangent directions \\(w\\in T_xS\\) are paired through \\(D i_x w\\in K\\) using the ambient inner product. No default inner product on chart coordinates is identified with this induced pairing."
+      ],
+      "binding_sha256": "69fee45c9a7a53e9d1a4ec5295d530811736ff3e8dec9fbd435f1293d9bc1cd7",
+      "boundary": "The Lean conclusion is the displayed representation equivalence for each tangent vector. Stationarity/eigenvector equivalences, optimization rates and arbitrary-manifold or arbitrary-metric claims are separate results. The surrounding explanation is not an additional formal theorem.",
+      "context": "noncomputable section\nopen Metric InnerProductSpace\nopen scoped Manifold InnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Geometry\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E]\n",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh.sphere_rayleigh_characterization",
+      "decoder_definitions": [
+        "E →L[ℝ] E is the space of real continuous linear endomorphisms. A.IsSymmetric means ⟨A u,v⟩=⟨u,A v⟩ for all u,v.",
+        "sphere (0:E) 1 is the subtype of unit-norm ambient vectors. The orthogonal complement (ℝ ∙ x)ᗮ is an ambient-vector subtype; coercion forgets its membership proof.",
+        "𝓡 n is the standard real smooth-manifold model for the n-dimensional unit sphere in an ambient space of dimension n+1. TangentSpace (𝓡 n) x is its tangent fiber.",
+        "mvfderiv is Mathlib's manifold differential, totalized to zero outside differentiability. The coercion from the sphere into E is the literal inclusion, and the displayed inner product is the ambient real inner product.",
+        "Fact P is a typeclass packaging a proof of proposition P; Module.finrank ℝ E is the finite real dimension."
+      ],
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient.sphere_gradient_characterization"
+        ],
+        "mathlib": [
+          "LinearMap.IsSymmetric.hasStrictFDerivAt_reApplyInnerSelf",
+          "hasGradientAt_iff_hasFDerivAt",
+          "Submodule.starProjection_orthogonal_val",
+          "Submodule.starProjection_unit_singleton",
+          "Subtype.ext"
+        ]
+      },
+      "difficulty": "intermediate",
+      "difficulty_reason": "Combine a genuine derivative of a symmetric quadratic, the actual sphere-inclusion differential and an explicit orthogonal projection, then establish both directions of the tangent-vector characterization. The level reflects these mechanisms, not tactic length.",
+      "domain": "geometry",
+      "family": "sphere-tangent-projection",
+      "id": "sogb-016",
+      "imports": [
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient",
+        "Mathlib.Analysis.InnerProductSpace.Rayleigh"
+      ],
+      "lean_explanation": "The task retains the exact ambient variables and finrank Fact from the source section. The proof first constructs HasGradientAt, using the symmetric quadratic derivative, rather than interpreting a totalized value as differentiability. It then computes the orthogonal projection using unit sphere membership and specializes the imported sphere-gradient characterization. The final subtype/coercion steps identify ambient tangent vectors in both directions. No proof of the target theorem is supplied in the context, and its module is not imported.",
+      "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient\nimport Mathlib.Analysis.InnerProductSpace.Rayleigh\n\nnoncomputable section\nopen Metric InnerProductSpace\nopen scoped Manifold InnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Geometry\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E]\n\nexample\n    (n : ℕ) [Fact (Module.finrank ℝ E = n + 1)]\n    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1) :\n    ∀ z : (ℝ ∙ (x : E))ᗮ,\n      ((∀ w : TangentSpace (𝓡 n) x,\n        mvfderiv (𝓡 n) (fun y : sphere (0 : E) 1 => ⟪(y : E), A (y : E)⟫_ℝ) x w =\n          ⟪mvfderiv (𝓡 n) ((↑) : sphere (0 : E) 1 → E) x w, (z : E)⟫_ℝ) ↔\n        (z : E) = (2 : ℝ) • (A (x : E) - ⟪(x : E), A (x : E)⟫_ℝ • (x : E))) := by\n  have hx : ‖(x : E)‖ = 1 := mem_sphere_zero_iff_norm.mp x.property\n  have hg : HasGradientAt (fun y : E => ⟪y, A y⟫_ℝ) ((2 : ℝ) • A (x : E)) (x : E) := by\n    apply hasGradientAt_iff_hasFDerivAt.mpr\n    have hraw := (hA.hasStrictFDerivAt_reApplyInnerSelf (x : E)).hasFDerivAt\n    have hfun : (fun y : E => ⟪y, A y⟫_ℝ) = A.reApplyInnerSelf := by\n      funext y\n      simp [ContinuousLinearMap.reApplyInnerSelf_apply, real_inner_comm]\n    have hlin : toDual ℝ E ((2 : ℝ) • A (x : E)) =\n        (2 : ℕ) • innerSL ℝ (A (x : E)) := by\n      ext v\n      simp [toDual_apply_apply, two_smul]\n    rw [hfun, hlin]\n    exact hraw\n  let K := (ℝ ∙ (x : E))ᗮ\n  have hproj (u : E) : (K.orthogonalProjectionOnto u : E) =\n      u - ⟪(x : E), u⟫_ℝ • (x : E) := by\n    change (ℝ ∙ (x : E))ᗮ.starProjection u = _\n    rw [Submodule.starProjection_orthogonal_val,\n      Submodule.starProjection_unit_singleton ℝ hx]\n  have hp : (K.orthogonalProjectionOnto ((2 : ℝ) • A (x : E)) : E) =\n      (2 : ℝ) • (A (x : E) - ⟪(x : E), A (x : E)⟫_ℝ • (x : E)) := by\n    rw [hproj]\n    simp [inner_smul_right, smul_sub, smul_smul]\n  intro z\n  rw [SphereGradient.sphere_gradient_characterization n x hg z]\n  constructor\n  · intro hz\n    exact (congrArg (fun v : K => (v : E)) hz).trans hp\n  · intro hz\n    apply Subtype.ext\n    exact hz.trans hp.symm\n",
+      "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient\nimport Mathlib.Analysis.InnerProductSpace.Rayleigh\n\nnoncomputable section\nopen Metric InnerProductSpace\nopen scoped Manifold InnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Geometry\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E]\n\nexample\n    (n : ℕ) [Fact (Module.finrank ℝ E = n + 1)]\n    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1) :\n    ∀ z : (ℝ ∙ (x : E))ᗮ,\n      ((∀ w : TangentSpace (𝓡 n) x,\n        mvfderiv (𝓡 n) (fun y : sphere (0 : E) 1 => ⟪(y : E), A (y : E)⟫_ℝ) x w =\n          ⟪mvfderiv (𝓡 n) ((↑) : sphere (0 : E) 1 → E) x w, (z : E)⟫_ℝ) ↔\n        (z : E) = (2 : ℝ) • (A (x : E) - ⟪(x : E), A (x : E)⟫_ℝ • (x : E))) := by\n  -- Replace this comment with your proof.\n",
+      "library_domains": [
+        "riemannian-optimization"
+      ],
+      "question": "For every z in K, prove that D(q restricted to S)_x(w)=⟨D i_x(w),z⟩ for all w in T_xS if and only if z=2(Ax−⟨x,Ax⟩x). Justify the ambient derivative, the unit-normal projection and the uniqueness direction. Use genuine differentiability, not the totalized derivative's fallback value.",
+      "rubric": [
+        {
+          "criterion": "Uses symmetry and genuine differentiability to obtain ambient gradient 2Ax with the correct factor two.",
+          "points": 1
+        },
+        {
+          "criterion": "Uses the actual sphere inclusion differential and its range K, retaining the induced pairing rather than assuming a chart metric.",
+          "points": 1
+        },
+        {
+          "criterion": "Uses unit norm to derive the projection and the exact Rayleigh coefficient ⟨x,Ax⟩.",
+          "points": 1
+        },
+        {
+          "criterion": "Proves both representation and uniqueness using tangent directions and the range of the inclusion derivative.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "calculation",
+        "proof",
+        "assumption-audit"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereRayleigh.lean",
+      "source_line": 25,
+      "source_note": "Original QA over the existing sphere-Rayleigh API. Its module places the result at Boumal Example 3.62, and the subsequent sphere_rayleigh_stationary_iff consumes it. This exercise checks the local characterization, not a whole textbook chapter or convergence theorem.",
+      "source_sha256_lf": "295739bce48b7068d100acd61acf38353b6230c106386f03696fa9c1034b22cd",
+      "split": "public-dev",
+      "steps": [
+        "Symmetry gives the genuine ambient derivative \\[Dq_x(v)=\\langle v,Ax\\rangle+\\langle x,Av\\rangle=2\\langle v,Ax\\rangle.\\] Hence the real gradient is \\(g=2Ax\\). The bounded linear map and quadratic operations supply differentiability; the equality is not an inference from a totalized zero derivative.",
+        "For the actual inclusion, \\(\\operatorname{range}(D i_x)=K\\). The chain rule therefore gives \\[D(q|_S)_x(w)=\\langle D i_x(w),g\\rangle.\\] This uses the inclusion-induced pairing, not an assumed isometry from an arbitrary chart metric.",
+        "Because \\(\\|x\\|=1\\), orthogonal projection onto K satisfies \\[P_Ku=u-\\langle x,u\\rangle x.\\] Substituting g yields the tangent vector \\[G=P_K(2Ax)=2(Ax-\\langle x,Ax\\rangle x).\\]",
+        "Every \\(D i_x(w)\\) lies in K, so orthogonal projection preserves its pairing with g. Thus G represents the restricted differential. Conversely, if a tangent vector z has the same pairing for every w, surjectivity onto K makes \\(z-G\\) orthogonal to every vector in K. Taking its inner product with itself gives \\(z=G\\), proving the equivalence."
+      ],
+      "title": "A quadratic gradient through the actual sphere differential",
+      "track_levels": {
+        "lean": "L3",
+        "natural-language": "L3"
+      }
+    },
+    {
+      "assumptions": [
+        "\\(A,B\\) are arbitrary measurable spaces, \\(\\mu\\) is a probability measure on A, and \\(K,L:A\\leadsto B\\) are Markov kernels.",
+        "\\(\\varepsilon:A\\to\\mathbb R\\) is integrable under μ. On one common μ-full-measure set of inputs x, every measurable event s satisfies \\[|K(x,s)-L(x,s)|\\le\\varepsilon(x).\\] Event masses in this inequality are finite real probabilities."
+      ],
+      "binding_sha256": "37f2cef51769619910cd718b9d66acd2d57f6a5a5956a6940a4d4dc2ba60eeba",
+      "boundary": "Only the displayed one-step averaged event discrepancy is formally concluded. Common-suffix contraction, finite telescoping, actual recursive-history construction, stopping/cap comparisons and expected query costs remain distinct results. It does not align the full earlier hybrid/cost QA or complete a paper theorem.",
+      "context": "open MeasureTheory ProbabilityTheory Set Finset\nopen scoped ProbabilityTheory BigOperators\n",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_sub_le_integral_eventBound",
+      "decoder_definitions": [
+        "Kernel A B assigns a measure on B measurably to each input in A. IsMarkovKernel means every such output measure has total mass one.",
+        "For any measure η, η.real t means (η t).toReal in Mathlib. ENNReal.toReal is totalized, with infinity sent to zero; probability assumptions give finite event masses in the displayed statement.",
+        "K ∘ₘ μ is the measure obtained by drawing an input with law μ and then using kernel K.",
+        "Integrable ε μ is real Bochner integrability, including almost-everywhere strong measurability and finite integral of the norm.",
+        "The binder ∀ᵐ x ∂μ, ∀ s, MeasurableSet s → ... asserts one common input null-set exception outside which the bound holds for every measurable event; it is not written with separate exceptional sets chosen after each event."
+      ],
+      "dependencies": {
+        "astis": [],
+        "mathlib": [
+          "ProbabilityTheory.Kernel.measurable_coe",
+          "MeasureTheory.measureReal_le_one",
+          "MeasureTheory.Measure.bind_apply",
+          "MeasureTheory.integral_toReal",
+          "MeasureTheory.integral_sub",
+          "MeasureTheory.abs_integral_le_integral_abs",
+          "MeasureTheory.integral_mono_ae"
+        ]
+      },
+      "difficulty": "intermediate",
+      "difficulty_reason": "Justify measurability and integrability of kernel event probabilities, convert finite extended-measure masses to real expectations, then apply the integral triangle inequality and almost-everywhere domination. No recursion or unbounded-cost transfer is folded into this local theorem.",
+      "domain": "sampling",
+      "family": "adaptive-hybrid-cost-boundary",
+      "id": "sogb-017",
+      "imports": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation"
+      ],
+      "lean_explanation": "The reference builds integrability separately for each fixed event from kernel measurability, Markov mass bounds and the probability input law. The bind_apply and integral_toReal steps expose the finite-mass conversion. It then uses integral_sub, abs_integral_le_integral_abs and integral_mono_ae, specializing the common almost-everywhere bound to the chosen event. The complete proof is reconstructed from the existing component; its target module is not imported.",
+      "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation\n\nopen MeasureTheory ProbabilityTheory Set Finset\nopen scoped ProbabilityTheory BigOperators\n\nexample\n    {A B : Type*} [MeasurableSpace A] [MeasurableSpace B]\n    (μ : Measure A) [IsProbabilityMeasure μ]\n    (K L : Kernel A B) [IsMarkovKernel K] [IsMarkovKernel L]\n    (ε : A → ℝ) (hε : Integrable ε μ)\n    (hbound : ∀ᵐ x ∂μ, ∀ s, MeasurableSet s →\n      |(K x).real s - (L x).real s| ≤ ε x) :\n    ∀ t, MeasurableSet t →\n      |(K ∘ₘ μ).real t - (L ∘ₘ μ).real t| ≤ ∫ x, ε x ∂μ := by\n  intro t ht\n  have hint (M : Kernel A B) [IsMarkovKernel M] :\n      Integrable (fun x => (M x).real t) μ := by\n    apply (integrable_const (1 : ℝ)).mono'\n      (M.measurable_coe ht).ennreal_toReal.aestronglyMeasurable\n    exact Filter.Eventually.of_forall fun x => by\n      rw [Real.norm_eq_abs, abs_of_nonneg ENNReal.toReal_nonneg]\n      exact (measureReal_le_one : (M x).real t ≤ 1)\n  have happly (M : Kernel A B) [IsMarkovKernel M] :\n      (M ∘ₘ μ).real t = ∫ x, (M x).real t ∂μ := by\n    change (Measure.bind μ M t).toReal = ∫ x, (M x t).toReal ∂μ\n    rw [Measure.bind_apply ht M.aemeasurable]\n    exact (integral_toReal (M.measurable_coe ht).aemeasurable\n      (Filter.Eventually.of_forall fun x => measure_lt_top (M x) t)).symm\n  rw [happly K, happly L, ← integral_sub (hint K) (hint L)]\n  exact abs_integral_le_integral_abs.trans <|\n    integral_mono_ae ((hint K).sub (hint L)).abs hε <|\n      hbound.mono fun x hx => hx t ht\n",
+      "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation\n\nopen MeasureTheory ProbabilityTheory Set Finset\nopen scoped ProbabilityTheory BigOperators\n\nexample\n    {A B : Type*} [MeasurableSpace A] [MeasurableSpace B]\n    (μ : Measure A) [IsProbabilityMeasure μ]\n    (K L : Kernel A B) [IsMarkovKernel K] [IsMarkovKernel L]\n    (ε : A → ℝ) (hε : Integrable ε μ)\n    (hbound : ∀ᵐ x ∂μ, ∀ s, MeasurableSet s →\n      |(K x).real s - (L x).real s| ≤ ε x) :\n    ∀ t, MeasurableSet t →\n      |(K ∘ₘ μ).real t - (L ∘ₘ μ).real t| ≤ ∫ x, ε x ∂μ := by\n  -- Replace this comment with your proof.\n",
+      "library_domains": [
+        "samplewiki",
+        "mcmc"
+      ],
+      "question": "For every measurable event t, prove |(K composed with μ)(t)−(L composed with μ)(t)|≤∫ε dμ. Give the measurability, finiteness and integrability justifications required to subtract the two real integrals and use almost-everywhere domination. Do not assume a measurable total-variation supremum or a query-cost conclusion.",
+      "rubric": [
+        {
+          "criterion": "Establishes event measurability and boundedness by one, hence integrability under the probability input law.",
+          "points": 1
+        },
+        {
+          "criterion": "Uses the bind law with finite event masses to justify the real expectation identities.",
+          "points": 1
+        },
+        {
+          "criterion": "Justifies integral subtraction and the triangle inequality using integrability, not a formal subtraction of infinities.",
+          "points": 1
+        },
+        {
+          "criterion": "Applies the common almost-everywhere event bound and integrability of ε without assuming a measurable TV supremum or an expected-cost theorem.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "assumption-audit",
+        "calculation"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelHybridTelescope.lean",
+      "source_line": 28,
+      "source_note": "Original QA over the local mean conditional-kernel error component. Its module cites arXiv:2609.38710v1 Lemma 6.3 and the common-suffix theorem consumes this component, but this QA does not reproduce the full paper lemma or its algorithmic adapters. No paper text is copied.",
+      "source_sha256_lf": "9f5a28c56daeafdfd141d4f66411ff10e0276b4b0ca8ff34e1e98a679097577b",
+      "split": "public-dev",
+      "steps": [
+        "Fix a measurable event t. Kernel measurability makes \\(k_t(x)=K(x,t)\\) and \\(l_t(x)=L(x,t)\\) measurable real functions. Markov normalization gives \\(0\\le k_t,l_t\\le1\\); since μ is a probability measure, both are integrable.",
+        "The bind/composition law gives \\[(K\\circ_m\\mu)(t)=\\int k_t\\,d\\mu,\\qquad(L\\circ_m\\mu)(t)=\\int l_t\\,d\\mu.\\] In Lean the underlying masses are extended nonnegative reals. Their finiteness, supplied by the probability-kernel assumptions, justifies conversion to real integrals; the totalized toReal API is not used as if infinity were finite.",
+        "The two integrable event functions can be subtracted inside the integral. The integral triangle inequality gives \\[\\left|\\int k_t\\,d\\mu-\\int l_t\\,d\\mu\\right|\\le\\int|k_t-l_t|\\,d\\mu.\\] The absolute difference is integrable as well.",
+        "The common almost-everywhere hypothesis supplies \\(|k_t-l_t|\\le\\varepsilon\\) almost everywhere for this event. Monotonicity for integrable real functions yields \\[|(K\\circ_m\\mu)(t)-(L\\circ_m\\mu)(t)|\\le\\int\\varepsilon\\,d\\mu.\\] No measurable supremum over all events is needed, and no new global nonnegativity premise on ε is inserted."
+      ],
+      "title": "Averaging a conditional event-error bound",
+      "track_levels": {
+        "lean": "L3",
+        "natural-language": "L3"
+      }
+    }
+  ],
+  "reconstructions": {
+    "case-1": {
+      "assumptions": "E has NormedAddCommGroup E, InnerProductSpace R E, and FiniteDimensional R E. Fact packages the dimension equality finrank_R(E) = n + 1. A is continuous and real-linear by its type, and hA asserts inner(A u, v) = inner(u, A v) for all ambient u and v. Membership of x in the sphere and z in the orthogonal-complement subtype supplies their norm and orthogonality restrictions. No positivity, invertibility, spectral separation, nonzero-dimensional tangent space, or additional explicit differentiability hypothesis is assumed.",
+      "conclusion": "For every z perpendicular to the real line spanned by x, the identity D q_x(w) = inner(D iota_x(w), z) holds for every tangent vector w if and only if the underlying ambient vector z equals 2 times (A x - inner(x, A x) times x). Here the multiplications by 2 and by inner(x, A x) are real scalar multiplication in E. Thus the displayed expression exactly characterizes the orthogonal-complement vector representing the differential through the differential of inclusion. The proposition is not a stationarity assumption, an assertion that x is an eigenvector, an optimization extremum claim, or a convergence statement.",
+      "constants": "The sphere has center the zero vector and radius exactly 1. The ambient real dimension is exactly n + 1. The coefficient in the representative formula is exactly the real scalar 2; the coefficient removed along x is exactly inner(x, A x). Scalars and inner products are over R. No unspecified constants, limiting parameters, sample sizes, or algorithmic rates occur.",
+      "domains": "E is any Type* with the stated real normed inner-product and finite-dimensional instances. n ranges over all natural numbers subject to finrank_R(E) = n + 1, including n = 0. x belongs to sphere (0 : E) 1, so its underlying ambient vector has norm one. z ranges over the subtype (R span x)^perp, not over all of E without restriction. w ranges over TangentSpace (R-model n) x, the tangent fiber of the sphere's n-dimensional smooth-manifold model; w is not literally declared to be an ambient vector. Both differentials are evaluated at x, and D iota_x(w) lies in E.",
+      "objects": "A finite-dimensional real inner-product space E with its NormedAddCommGroup and InnerProductSpace instances; a natural number n; a real continuous linear endomorphism A of E with a proof hA of symmetry; a point x of the unit sphere in E; and an ambient vector z belonging to the orthogonal complement of the real span of x. The scalar function on the sphere is q(y) = inner(y, A y), and the inclusion iota maps a sphere point to its underlying vector in E.",
+      "quantifiers": "The implicit E and all displayed typeclass data are universally quantified. For every natural number n equipped with Fact (finrank_R(E) = n + 1), every continuous real-linear A, every proof hA : A.IsSymmetric, and every unit sphere point x, the statement quantifies universally over z in (R span x)^perp. For each such z it asserts a biconditional: the left side universally quantifies over every w in the tangent fiber at x, whereas the right side is a single equality of ambient vectors. There is no separate existential quantifier or assertion about arbitrary points other than the universally chosen x.",
+      "senses": "All inner products in the formula are the ambient real inner product. D means the stated Mathlib mvfderiv for the sphere model R n; it is totalized to zero outside differentiability, and no extra regularity condition is to be inserted into the proposition. The map iota is the literal subtype inclusion into E. The left side compares the scalar manifold differential with the inner product of the inclusion differential and an ambient z; it does not silently identify w itself with an ambient orthogonal vector. The equivalence and the equality are exact, at the chosen x, without an error bound or an unstated norm convention."
+    },
+    "case-2": {
+      "assumptions": "mu is a probability measure. K and L are measurable kernels by their type, and each is Markov, so each output measure K x and L x has total mass one. epsilon is real Bochner integrable with respect to mu, including almost-everywhere strong measurability and finite integral of its norm. For mu-almost every x, simultaneously for every measurable s, abs((K x).real(s) - (L x).real(s)) <= epsilon(x). There is no separate assumption that epsilon is globally measurable, uniformly bounded, continuous, or pointwise nonnegative everywhere; the displayed integrability and common almost-everywhere event bound are the hypotheses.",
+      "conclusion": "For every measurable event t in B, abs((K composed with mu).real(t) - (L composed with mu).real(t)) <= integral epsilon(x) d mu(x). In words, the absolute difference of the event probabilities obtained by first sampling x with law mu and then sampling from K x or L x is bounded by the mu-integral of the input-dependent error bound. The proposition states this uniform eventwise inequality; it does not assert equality, a pointwise density bound, an explicit coupling, or any convergence or algorithmic guarantee.",
+      "constants": "All probability measures have total mass exactly 1. The eventwise bound has epsilon(x) with coefficient exactly 1, and the final bound is exactly its mu-integral with coefficient 1. There is no factor 2, factor 1/2, uniform error constant substituted for epsilon, sample size, dimension, limiting parameter, or rate in the statement.",
+      "domains": "A and B range over Type* equipped only with MeasurableSpace instances. mu is a Measure A. K and L have type Kernel A B, and epsilon has type A -> R. Input x ranges over A. Both s in the assumption and t in the conclusion range over sets of B, with their inequalities required only when those sets are measurable. The integral of epsilon is over A with respect to mu. No finite or countable underlying sets, topology, metric, density, or algorithmic setting is specified.",
+      "objects": "Arbitrary measurable spaces A and B; a probability measure mu on A; two Markov kernels K and L from A to B; an integrable real-valued function epsilon on A; their mixed measures K composed with mu and L composed with mu on B; and measurable events in B. For a measure eta, eta.real(t) denotes (eta(t)).toReal.",
+      "quantifiers": "Universally quantify over the implicit types A and B and their measurable-space instances, mu with its probability-measure instance, K and L with their Markov-kernel instances, epsilon, and the proofs h_epsilon and hbound. The bound hbound has the order: for mu-almost every x, for every set s in B, if s is measurable then the absolute difference of the two conditional event masses is at most epsilon(x). This is one common exceptional mu-null set of inputs outside which all measurable-event bounds hold. The conclusion universally quantifies over every set t in B and then assumes MeasurableSet t; there is no almost-everywhere restriction on the events t.",
+      "senses": "Composition K composed with mu is the mixture measure obtained from mu and K, and similarly for L. All differences, absolute values, the function epsilon, and the integral in the inequality are real-valued. The notation eta.real is specifically ENNReal.toReal applied to an event mass, not a separately chosen real measure; toReal sends infinity to zero in general, but the probability and Markov assumptions ensure finite event masses here, including for the mixtures. Integrability and the integral are in the real Bochner sense. The event bound is written directly, not as a specified metric, a density L1 norm, or a total-variation norm with an unstated factor-of-two convention. In particular the common almost-everywhere input qualifier must not be replaced by separately chosen exceptional sets for each s."
+    }
+  },
+  "schema_version": 1,
+  "scope": "independent AI paired QA editorial review; not canonical theorem publication"
+}

@@ -10,6 +10,7 @@ import shutil
 import astis_site
 import source_lineage
 import sog_bench as bench
+import sog_bench_graph_review as graph_review
 
 ROOT = Path(__file__).resolve().parents[2]
 HUB = 'benchmarks/samplingoptimisationgeometrybench/'
@@ -64,14 +65,15 @@ def review_panel(core: dict) -> str:
 def home(cores: list[dict]) -> str:
     graphs = bench.curriculum.graph_items()
     review = bench.editorial_review(cores)
+    structural = graph_review.summary(graphs)
     return (f'<article class="sog-reader" {MARKER}><div class="eyebrow">Public development curriculum · {escape(bench.load()["version"])}</div>'
         '<h1>SamplingOptimisationGeometryBench</h1><p class="lede">Can an AI explain the mathematics—and reconstruct a precise Lean proof?</p>'
-        f'<p>{len(cores)} mathematical cores · {len(bench.prompts(cores))} mathematical QA views · {len(graphs)} structural graph tasks. {review["accepted_cores"]} cores have content-bound AI editorial review. Review never supplies missing Lean coverage; graph editorial review and empirical calibration remain pending.</p>'
+        f'<p>{len(cores)} mathematical cores · {len(bench.prompts(cores))} mathematical QA views · {len(graphs)} structural graph tasks. {review["accepted_cores"]} mathematical cores and {structural["accepted_tasks"]} graph tasks have content-bound AI editorial acceptance. Review never supplies missing Lean coverage or empirical calibration.</p>'
         '<p><a class="button" href="curriculum/index.html">Browse seven domains and L1–L5 coverage</a></p>'
         '<section class="sog-grid"><article><h2>Natural-language QA</h2><p>Explain a proof, track its constants and identify what the assumptions do not imply. No Lean knowledge required.</p><a class="button primary" href="natural-language/index.html">Try natural-language questions</a></article>'
         '<article><h2>Lean-assisted QA</h2><p>Reconstruct a fixed theorem from its allowed imports and explicit context. Read the mathematical reasoning beside optional exact Lean.</p><a class="button" href="lean/index.html">Try Lean questions</a></article>'
         '<article><h2>Structured graph QA</h2><p>Read imports, shared prerequisites and ablation effects in a source-hashed local snapshot. Structural grading is not mathematical-proof grading.</p><a class="button" href="graph-json/index.html">Try graph questions</a></article></section>'
-        '<section><h2>Use the pilot</h2><p><a href="downloads/questions.jsonl" download>Prompt-only JSONL</a> · '
+        '<section><h2>Use the pilot</h2><p><a class="button" href="evaluation/index.html">Run and assess answers</a></p><p><a href="downloads/questions.jsonl" download>Prompt-only JSONL</a> · '
         '<a href="downloads/reference.jsonl" download>References and rubrics</a> · '
         '<a href="downloads/manifest.json" download>Version and hashes</a> · '
         '<a href="pilot.zip" download>Download the full pilot</a></p>'
@@ -80,7 +82,7 @@ def home(cores: list[dict]) -> str:
         + fold('Evaluation policy and contribution guide',
             '<p>Each pair shares one core, family and public-dev split. Score the two tracks separately. Human-assessed natural-language rubrics have four one-point criteria; no automated semantic grader is claimed.</p>'
             '<p>Lean compiler acceptance certifies the fixed proposition only. Arbitrary model output requires target-preservation checks and an isolated, resource-limited sandbox. No submission execution service or AI API is connected here.</p>'
-            '<p>Only original or permission-cleared material may enter ML training/evaluation. Restricted external indexes and their derivatives are excluded. Each question discloses its current editorial status and remaining formal boundary; compilation is not that review. Future drafts require their own review; graph editorial review remains pending.</p>'
+            '<p>Only original or permission-cleared material may enter ML training/evaluation. Restricted external indexes and their derivatives are excluded. Each question discloses its current editorial status and remaining formal boundary; compilation is not that review. Future drafts require their own review.</p>'
             '<p><a href="downloads/README.md">Commands, grading protocol and how to add a core</a> · <a href="downloads/LICENSE_SCOPE.md">License boundaries</a></p>') + '</article>')
 
 
@@ -156,7 +158,7 @@ def curriculum_page(cores: list[dict]) -> str:
         '<p>Each cell shows available public-dev views as Natural language / Lean / Graph JSON. On small screens, scroll the table horizontally for L3–L5. A gap is not a proof-completion percentage. Shared questions can occur in several domain indexes but count once globally.</p>'
         '<div class="sog-table"><table><thead><tr><th>Domain</th>' + ''.join('<th>' + l + '</th>' for l in policy['levels']) + '</tr></thead><tbody>' + ''.join(rows) + '</tbody></table></div>'
         '<h2>What the levels mean</h2><ol>' + levels + '</ol>' + prose(policy['difficulty_policy']) + prose(policy['graph_policy'])
-        + f'<p>{editorial["accepted_cores"]} of {len(cores)} mathematical cores currently have AI editorial acceptance. Other review and empirical calibration remain pending. L5 is a planned research-audit tier, not a claim of solved open problems.</p></article>')
+        + f'<p>{editorial["accepted_cores"]} of {len(cores)} mathematical cores currently have AI editorial acceptance. Structural editorial status: {escape(cover["graph_editorial_status"])}. Empirical calibration remains open. L5 is a planned research-audit tier, not a claim of solved open problems.</p></article>')
 
 
 def browse_page(cores: list[dict], key: str, *, domain: bool) -> str:
@@ -175,15 +177,41 @@ def browse_page(cores: list[dict], key: str, *, domain: bool) -> str:
 
 def graph_page(item: dict) -> str:
     prompt = bench.curriculum.graph_prompts([item])[0]
+    evidence = graph_review.summary(bench.curriculum.graph_items())['items'][item['id']]
+    status = '<p>Current editorial status: <strong>' + escape(evidence['editorial']) + '</strong>. This is AI review of structural QA, not a theorem or calibrated difficulty.</p>'
+    status += '<ul>' + ''.join('<li>' + escape(s) + '</li>' for s in evidence.get('issues', []) + evidence.get('remaining_limits', [])) + '</ul>'
+    status += '<p><a href="downloads/graph-editorial-review.json">Exact review bindings and report hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews/graph-1">Independent source review and correction history</a></p>'
     return (f'<article class="sog-reader" {MARKER}><p><a href="graph-json/index.html">Graph QA</a></p><h1>' + escape(item['title']) + '</h1>'
         + '<p>' + item['level'] + ' · public-dev · structural QA, not a theorem proof</p>' + prose(item['question'])
         + '<p>Targets: ' + escape(', '.join(item['targets'])) + '</p>'
         + (prose('Removed module: ' + item['remove']) if 'remove' in item else '')
         + import_figure(item['context'])
+        + fold('Independent structural review and limits', status)
         + fold('Exact JSON snapshot and response schema', '<pre><code class="language-json">' + escape(json.dumps(prompt, indent=2)) + '</code></pre>')
         + fold('Reference structural answer · 2 checks, 1 point', '<pre><code>' + escape(json.dumps(item['answer'], indent=2)) + '</code></pre>'
             '<p>One point requires both the exact structural node set and a false mathematical-necessity certification. The constant boundary answer earns no standalone credit. Names and edges come only from the supplied source-hashed slice; removing an import node does not prove that a theorem has no other proof.</p>')
         + '<p>No model score, theorem-equivalence certificate or calibrated difficulty is asserted.</p></article>')
+
+
+def evaluation_page() -> str:
+    prepare = 'python tools/sog_bench_prose.py prepare --submissions responses.jsonl --run-metadata run.json --output .astis/sog-bench/runs/my-run'
+    score = 'python tools/sog_bench_prose.py score --packet .astis/sog-bench/runs/my-run --adjudication completed.json --output .astis/sog-bench/runs/my-run-score.json'
+    return (f'<article class="sog-reader" {MARKER}><p><a href="../index.html">Bench</a></p><h1>Run and assess answers</h1>'
+        '<p class="lede">Keep the question, first answer and judgment traceable.</p>'
+        '<p>Offline human-attested prose scoring is available. No model performance has been measured; no AI API or untrusted-Lean executor is connected.</p>'
+        '<ol><li><strong>Choose first.</strong> Select core IDs, model/version, retrieval policy and tools before collecting answers. Give the model only the prompt-only records.</li>'
+        '<li><strong>Freeze the run.</strong> Save raw first responses and metadata. The recorder binds prompts, references, rubric and answers by SHA-256; missing answers stay in the denominator.</li>'
+        '<li><strong>Have a human assess it.</strong> Fill each frozen rubric criterion with 0/1 and a reason. The report records those judgments, not automatically verified mathematics or authenticated grader identity.</li></ol>'
+        + fold('Commands and input formats',
+            '<p>From the repository root, Python 3.11+:</p><pre><code>' + escape(prepare) + '</code></pre>'
+            '<p>Copy the generated adjudication-template.json to completed.json. An actual human supplies grader identity, timestamp and all four criterion judgments per nonempty answer.</p>'
+            '<pre><code>' + escape(score) + '</code></pre>'
+            '<p><a href="../downloads/examples/prose-run.json" download>Run-metadata template</a> · <a href="../downloads/EVALUATION.md">Complete recording and scoring instructions</a></p>')
+        + fold('Other tracks and scientific limits',
+            '<p>Graph JSON has deterministic exact-snapshot scoring; it certifies no mathematical necessity. Lean reference compilation checks trusted references only, not arbitrary submissions.</p>'
+            '<p>Human assessments require actual mathematical checking. No keyword grader or unvalidated AI grader is supplied. Run execution, retrieval compliance and human identity are not authenticated by this recorder.</p>'
+            '<p>All current tasks are public-dev. These records cannot demonstrate unseen generalization, difficulty calibration or private-family evaluation. A paired core is not two independent samples.</p>')
+        + '<p><a href="../downloads/reviewed-questions.jsonl" download>Reviewed prompt-only tasks</a> · <a href="../downloads/EVALUATION.md">Full protocol</a> · <a href="../graph-json/index.html">Structural graph QA</a></p></article>')
 
 
 def import_figure(graph: dict) -> str:
@@ -227,6 +255,7 @@ def enrich_site(output: Path) -> None:
     policy = bench.curriculum.curriculum()
     graphs = bench.curriculum.graph_items()
     pages.append(('curriculum/index.html', 'Bench curriculum', curriculum_page(cores)))
+    pages.append(('evaluation/index.html', 'Run and assess answers', evaluation_page()))
     pages += [('domains/' + key + '.html', title, browse_page(cores, key, domain=True)) for key, title in policy['domains'].items()]
     pages += [('levels/' + key + '.html', key, browse_page(cores, key, domain=False)) for key in policy['levels']]
     pages += [(g['id'] + '.html', g['title'], graph_page(g)) for g in graphs]
@@ -267,14 +296,15 @@ def validate_site(output: Path) -> list[str]:
         errors.append('Bench requires the canonical Lean graph')
     policy = bench.curriculum.curriculum()
     graphs = bench.curriculum.graph_items()
-    extra = ['curriculum/index.html', 'graph-json/index.html',
+    extra = ['curriculum/index.html', 'graph-json/index.html', 'evaluation/index.html',
              *('domains/' + d + '.html' for d in policy['domains']),
              *('levels/' + l + '.html' for l in policy['levels']), *(g['id'] + '.html' for g in graphs)]
     for rel in ['index.html', *(t + '/index.html' for t in bench.TRACKS), *(c['id'] + '.html' for c in cores), *extra]:
         path = output / HUB / rel
         if not path.is_file() or MARKER not in path.read_text(encoding='utf-8'):
             errors.append('Missing Bench reader: ' + rel)
-    current_pages = {'curriculum/index.html': curriculum_page(cores),
+    current_pages = {'index.html': home(cores), 'evaluation/index.html': evaluation_page(),
+                     'curriculum/index.html': curriculum_page(cores),
                      **{'domains/' + d + '.html': browse_page(cores, d, domain=True) for d in policy['domains']},
                      **{'levels/' + l + '.html': browse_page(cores, l, domain=False) for l in policy['levels']},
                      **{g['id'] + '.html': graph_page(g) for g in graphs}}

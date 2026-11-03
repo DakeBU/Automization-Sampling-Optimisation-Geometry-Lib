@@ -1,0 +1,132 @@
+"""Frozen graph editorial evidence and exact difficulty-only repair contracts."""
+from copy import deepcopy
+import json
+from pathlib import Path
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT/'tools'))
+import sog_bench as bench
+import sog_bench_graph_review as review
+
+
+class GraphReviewTests(unittest.TestCase):
+    def setUp(self):
+        self.items = bench.curriculum.graph_items()
+
+    def frozen_round(self, directory, source):
+        for name in ('input.json','source-review.json'):
+            (directory/name).write_bytes((source/name).read_bytes())
+
+    def test_original_decisions_are_not_rewritten_by_current_label(self):
+        before = {p:p.read_bytes() for p in review.ROUND.glob('*.json')}
+        rows = review.statuses(self.items)
+        self.assertEqual(rows['sogb-g001']['editorial'],'accepted')
+        self.assertEqual(rows['sogb-g002']['editorial'],'accepted')
+        self.assertEqual(rows['sogb-g003']['editorial'],'stale')
+        original = json.loads((review.ROUND/'source-review.json').read_text(encoding='utf-8'))
+        self.assertEqual(original['items']['sogb-g003']['verdict'],'repair-required')
+        self.assertEqual(before,{p:p.read_bytes() for p in before})
+
+    def test_current_summary_keeps_structural_and_empirical_truth_separate(self):
+        summary = review.summary(self.items)
+        self.assertEqual(summary['total_tasks'],3)
+        self.assertEqual(summary['accepted_tasks'],3)
+        self.assertEqual(summary['items']['sogb-g003']['editorial'],'accepted-after-repair')
+        self.assertFalse(summary['difficulty_calibrated'])
+        self.assertFalse(summary['model_performance_measured'])
+        self.assertEqual(self.items[2]['level'],'L1')
+        self.assertTrue(all(not row.get('mathematical_necessity_certified',False) for row in summary['items'].values()))
+
+    def test_content_or_source_changes_stale_only_affected_item(self):
+        for key,value in (('question','Different question'), ('level','L5'), ('answer',{'nodes':[]})):
+            changed = deepcopy(self.items)
+            changed[0][key]=value
+            rows=review.statuses(changed)
+            self.assertEqual(rows['sogb-g001']['editorial'],'stale')
+            self.assertEqual(rows['sogb-g002']['editorial'],'accepted')
+        changed=deepcopy(self.items)
+        changed[0]['context']['source_sha256_lf']['changed']='source'
+        self.assertEqual(review.statuses(changed)['sogb-g001']['editorial'],'stale')
+
+    def test_policy_or_scorer_changes_stale_every_original_decision(self):
+        actual=review.payload
+        for key in ('policy_sha256_lf','scorer_source'):
+            def changed(items):
+                result=actual(items)
+                result[key]='changed'
+                return result
+            with patch.object(review,'payload',side_effect=changed):
+                self.assertTrue(all(row['editorial']=='stale' for row in review.statuses(self.items).values()))
+
+    def test_author_input_hash_necessity_and_open_repairs_cannot_self_admit(self):
+        for case in ('actor','hash','necessity','repair','evidence'):
+            with tempfile.TemporaryDirectory() as tmp:
+                directory=Path(tmp)
+                self.frozen_round(directory,review.ROUND)
+                path=directory/'source-review.json'
+                report=json.loads(path.read_text(encoding='utf-8'))
+                if case=='actor':
+                    report['actor_identity']=review.review.AUTHOR
+                elif case=='hash':
+                    report['input_packet_sha256']='wrong'
+                elif case=='necessity':
+                    report['items']['sogb-g001']['mathematical_necessity_certified']=True
+                elif case=='repair':
+                    report['items']['sogb-g001']['repair_requests']=['Unresolved']
+                else:
+                    report['items']['sogb-g001']['scoring_checks']=[]
+                path.write_bytes(bench.encoded(report))
+                with self.assertRaises(ValueError):
+                    review.statuses(self.items,directory)
+
+    def test_difficulty_repair_requires_distinct_actor_exact_input_and_no_extra_edit(self):
+        for case in ('actor','hash','binding','necessity','extra-edit','repair','evidence'):
+            with tempfile.TemporaryDirectory() as tmp:
+                directory=Path(tmp)
+                self.frozen_round(directory,review.REPAIR_ROUND)
+                path=directory/'source-review.json'
+                report=json.loads(path.read_text(encoding='utf-8'))
+                if case=='actor':
+                    report['actor_identity']=json.loads((review.ROUND/'source-review.json').read_text(encoding='utf-8'))['actor_identity']
+                elif case=='hash':
+                    report['input_packet_sha256']='wrong'
+                elif case=='binding':
+                    report['proposed_binding_sha256']='wrong'
+                elif case=='necessity':
+                    report['mathematical_necessity_certified']=True
+                elif case=='extra-edit':
+                    input_path=directory/'input.json'
+                    proposal=json.loads(input_path.read_text(encoding='utf-8'))
+                    proposal['proposed_after']['question']='A different task'
+                    input_path.write_bytes(bench.encoded(proposal))
+                    report['input_packet_sha256']=bench.sha(input_path.read_bytes())
+                elif case=='repair':
+                    report['verdict']='accept'
+                    report['repair_requests']=['Unresolved']
+                else:
+                    report['minimality_checks']=[]
+                path.write_bytes(bench.encoded(report))
+                with self.assertRaises(ValueError):
+                    review.apply_repair(self.items,review.statuses(self.items),directory)
+
+    def test_repair_cannot_be_replayed_after_another_content_change(self):
+        changed=deepcopy(self.items)
+        changed[2]['answer']['nodes']=[]
+        rows=review.apply_repair(changed,review.statuses(changed))
+        self.assertEqual(rows['sogb-g003']['editorial'],'stale')
+
+    def test_preparation_does_not_create_or_overwrite_a_verdict(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output=Path(tmp)/'input.json'
+            review.prepare(output)
+            self.assertFalse((output.parent/'source-review.json').exists())
+            with self.assertRaises(ValueError):
+                review.prepare(output)
+
+
+if __name__=='__main__':
+    unittest.main()

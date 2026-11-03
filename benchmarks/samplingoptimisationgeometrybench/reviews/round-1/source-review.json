@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "actor_identity": "agent-task:root/sog_source_reviewer_round1",
+  "input_packet_sha256": "87f51a86c45fd17a991bd376ab178644ead1baffcaea9d947751c6396bc9fdb6",
+  "scope": "independent AI Bench editorial review; not canonical theorem publication",
+  "items": {
+    "sogb-001": {
+      "binding_sha256": "ac978a2c81f53d2c0ce45bb253fdafd93de190bb9ff64e1eab954ea9e29249b8",
+      "context_sha256": "97c6cf1762968346e0e45517ab5424279674ba53749bc5c0e8f5407c1b2efa35",
+      "verdict": "accept",
+      "formal_scope": "conclusion-only",
+      "semantic_slots": {
+        "objects": "Authored state space, measure mu and measurable kernel K match reconstruction A and Lean alpha, mu : Measure alpha and kappa : Kernel alpha alpha. Neither measure is replaced by a density or by a probability distribution.",
+        "domains": "All three views allow a finite or countably infinite measurable-singleton space, with no Nonempty or sigma-finiteness premise. Singleton masses, kernel masses, products and integrals are ENNReal-valued, including infinity, rather than ordinary signed real integrals.",
+        "quantifiers": "The authored balance assumption and A both quantify over every x,y; the Lean h has exactly that scope. The conclusion in all three views quantifies over every measurable pair A,B for each supplied measure and kernel, not merely singleton events or almost-everywhere pairs.",
+        "assumptions": "Countable alpha, MeasurableSpace alpha and MeasurableSingletonClass alpha supply exactly the authored structures. No IsMarkovKernel, finite measure, probability normalization, or positive-atom assumption occurs in the target or reconstruction.",
+        "conclusion": "The authored two restricted-integral equality is exactly Kernel.IsReversible as defined in Mathlib.Probability.Kernel.Invariance, lines 60-62, and exactly A's reconstruction. It is not a convergence or invariance conclusion for an unnormalized kernel.",
+        "senses": "Reversibility here is ENNReal set-flux symmetry, with nonnegative-integration conventions, not a mixing assertion. A correctly does not add stationarity: the nearby Mathlib implication to invariance requires IsMarkovKernel, absent from this task.",
+        "constants": "The same fixed mu and K occur on both sides, with coefficient one and no scalar rate or dimension constant. A correctly retains the absence of total-mass-one and finiteness constraints."
+      },
+      "mathematics_checks": [
+        "Step 1 is valid: measurable singletons and countability give the restricted lintegral expansion into K(x,B) mu({x}); the same countable expansion gives K(x,B)=sum over y in B of K(x,{y}).",
+        "Step 2 uses distributivity for nonnegative extended sums and termwise balance, followed by a legitimate ENNReal double-sum interchange. No absolute-convergence, signed Fubini or sigma-finiteness hypothesis is missing.",
+        "Step 3 recovers the reverse restricted integral. In particular zero times infinity uses the nonnegative-integration convention zero, so null atoms do not require division or cancellation; infinite total mass likewise introduces no subtraction.",
+        "Step 4 is a correct non-implication. Even a normalized reversible chain need not converge from every start (e.g. two absorbing states with an invariant mixture); the weaker hypotheses here certainly do not provide convergence to a probability law or a cost bound.",
+        "The named source declaration at KernelReversibility.lean:19 has the displayed hypotheses and the same double-sum proof. Its LF-normalized SHA256 matches the packet. Acceptance is based on these mathematical checks, not compilation."
+      ],
+      "scoring_checks": [
+        "Point 1 checks the genuinely needed atomic/measurability structures and ENNReal interpretation, without imposing probability normalization.",
+        "Point 2 distinguishes expansion of the outer integral from expansion of the inner kernel mass; both are present in the solution.",
+        "Point 3 correctly requires both balance and justified exchange and rules out dividing by zero or subtracting infinities.",
+        "Point 4 appropriately grades the question's convergence boundary. Normalization, mixing and cost must not receive credit merely from the formal flux equality; the reference explanation maintains that distinction."
+      ],
+      "remaining_unformalized": [
+        "The target states only reversibility, not the natural-language explanations of why division/cancellation are unnecessary or explicit counterexamples to normalization, irreducibility and convergence implications.",
+        "No normalization, mixing, query-cost or empirical difficulty claim is formalized by this view."
+      ],
+      "repair_requests": []
+    },
+    "sogb-002": {
+      "binding_sha256": "f5d34b22cd89382ed252b2d1ed63a8b0763a005dbe5940fd24174b14710d19e8",
+      "context_sha256": "79e3b40347ced5d90ab8b1a045b57547328368386a7081ed447d8db462b26726",
+      "verdict": "accept",
+      "formal_scope": "conclusion-only",
+      "semantic_slots": {
+        "objects": "Authored f, z, real alpha,beta,h and actual constant-step iterates match reconstruction B and the Lean map T(x)=x-h smul gradient f x. The target does not take a scalar recurrence as an assumption.",
+        "domains": "All three views use a complete real inner-product space, a real-valued f on its whole domain, real parameters, x0 in E and N in the naturals including zero. Completeness is an explicit API premise, not a new finite-dimensional assumption.",
+        "quantifiers": "Global minimality compares z with every x, hu quantifies over every x,y, and hpl over every x. The bound holds for every initial x0 and natural N. B has exactly these quantifiers and does not replace them by along-trajectory assumptions.",
+        "assumptions": "The only parameter signs supplied are h>=0 and beta*h<=1. Neither the author, B nor Lean adds alpha>0, beta>0, h>0, alpha*h<=1 or convexity. The quadratic model and PL inequality are explicit hypotheses, not consequences asserted from gradient notation.",
+        "conclusion": "The inequality is precisely f(T^[N](x0))-f(z) <= (1-alpha*h)^N*(f(x0)-f(z)), including equality at N=0. B reconstructs an objective-gap bound, not an iterate-distance or uniqueness theorem.",
+        "senses": "The Hilbert gradient is the representative of the totalized Frechet derivative, zero at nondifferentiability points. All views retain the supplied upper-model formulation instead of silently asserting differentiability or Lipschitz gradient. B's conditional geometric interpretation is consistent with the author's separate sign discussion, but that interpretation is not itself the target proposition.",
+        "constants": "The upper-model coefficient beta/2, PL coefficient 2*alpha, fixed step h and final factor 1-alpha*h agree exactly. No reciprocal-beta condition, absolute value, clipping of q or variable step schedule is introduced."
+      },
+      "mathematics_checks": [
+        "The actual-step substitution gives f(Tx)-f(x) <= [-h+(beta*h^2)/2]*||gradient f x||^2. Since h>=0 and beta*h<=1, this is at most -(h/2)*||gradient f x||^2, even for signed beta and h=0.",
+        "Multiplying PL by h/2 preserves order. Global minimality gives g(x)>=0 at every x, hence 0<=g(Tx)<=(1-alpha*h)g(x). No differentiability theorem is used in this algebraic consequence of the supplied model.",
+        "For q>=0, induction multiplies inequalities only by a nonnegative number and includes N=0; it gives g(xN)<=q^N*g(x0).",
+        "For q<0, any positive g(x) would make q*g(x)<0 while g(Tx)>=0; therefore all gaps vanish and the displayed inequality is zero<=zero for every N, including odd N. No hidden q>=0 premise is needed.",
+        "The geometric-decay discussion correctly requires the contraction range 0<=q<1, rather than treating every real q^N as a decay rate. A zero initial gap is already trivial; h=0 or nonpositive alpha does not yield a nontrivial contraction.",
+        "GradientDescentPL.lean:24 and the explicitly named GradientDescentBasic.gradient_step_descent_of_quadratic_upper_bound have the hypotheses and constants used above. The primary source LF hash matches the packet; its literature citation was not treated as independently verified canonical-source evidence."
+      ],
+      "scoring_checks": [
+        "Point 1 requires deriving descent from the actual gradient update, not asserting a supplied gap recurrence; the reference solution does so.",
+        "Point 2 checks the sign of h/2 and global gap nonnegativity, both indispensable for the stated parameter range.",
+        "Point 3 properly requires separate q>=0 induction and q<0 global-zero reasoning; proving only the usual positive-modulus regime would not earn this point.",
+        "Point 4 properly rejects added convexity or q>=0 assumptions and distinguishes the unconditional bound from a conditional contraction. The solution meets that criterion."
+      ],
+      "remaining_unformalized": [
+        "The target is the final objective-gap inequality. The reference Lean proof contains the sign split, but the target does not separately state the global-zero characterization for q<0 or the parameter interpretation of genuine geometric decay.",
+        "No iterate convergence, distance rate, uniqueness, derivation of the upper model from smoothness, or empirical difficulty assertion is certified."
+      ],
+      "repair_requests": []
+    },
+    "sogb-003": {
+      "binding_sha256": "6ae4340301ea2f62c4ca85d81bf2b21ca2a502c111f64384f94d652f6b2697ef",
+      "context_sha256": "7e27ad2aaf11ff0b79c45338f9709b08a7501f2ce31455b3357c6e3ae9dfbb54",
+      "verdict": "repair-required",
+      "formal_scope": "conclusion-only",
+      "semantic_slots": {
+        "objects": "Authored V, real modulus k and exposed global minimizer x0 match reconstruction C and Lean V, k, x0. The objects are normed-vector-space data, with no manifold, reference measure or Gibbs probability supplied.",
+        "domains": "The author, C and Lean all allow any real normed vector space, without completeness, inner product, finite dimension or differentiability. k is any real number; the minimizer is assumed to exist rather than constructed.",
+        "quantifiers": "The full strong-convexity premise ranges over all x,y in E and nonnegative a,b summing to one, global minimality ranges over all comparison points, and the conclusion ranges over every x. C preserves these scopes. The requested proof selects only the midpoint instance.",
+        "assumptions": "StrongConvexOn univ k V uses the k/2 correction specified by the author and C; its convex-domain component is automatic on univ. Neither k>0 nor k>=0 is a Lean premise. C correctly does not add a first-order optimality hypothesis.",
+        "conclusion": "All three views have V(x0)+(k/4)*||x-x0||^2<=V(x), exactly. The authored k/2 comparison and normalizer question are explanatory questions outside that proposition. C's conditional uniqueness observation for k>0 is a valid additional deduction, not an extra Lean conclusion.",
+        "senses": "Global, not local, minimality and the supplied two-point convexity convention agree in all views. For k=0 the conclusion is minimality, and for k<0 the correction does not give positive quadratic confinement. No Gibbs normalization or universal necessity of positive k follows from this envelope.",
+        "constants": "The premise has (k/2)*a*b, the midpoint correction is exactly k/8 and the rearranged envelope is k/4. C retains those constants without upgrading to k/2. The formal constants align despite the separate NL normalization issue."
+      },
+      "mathematics_checks": [
+        "Step 1 is correct under the actual Mathlib StrongConvexOn convention: a=b=1/2 gives a correction (k/2)*(1/2)*(1/2)=k/8.",
+        "Step 2 correctly combines V(x0)<=V(midpoint) with the midpoint upper bound and multiplies by positive 2, giving k/4 without any sign restriction on k. This argument uses no derivative or limiting process.",
+        "Step 3 correctly limits this particular calculation to k/4. It does not claim that the full assumptions preclude a sharper bound obtainable by a different argument.",
+        "The principal claim in step 4, that the supplied envelope alone is not a Gibbs-normalization theorem, is correct: no reference measure is specified and k may be zero or negative.",
+        "However, step 4 says a Gibbs-integrability consumer 'needs' a finite-dimensional reference measure, positive confining modulus and a Gaussian-integrability argument. As a general necessity claim this is false. On R with Lebesgue reference, V(x)=|x| is convex with k=0, has attained minimizer 0, and integral exp(-V)=2. Positive strong-convexity modulus and Gaussian tails are not necessary for a finite Gibbs normalizer. With a probability reference measure, even a constant V can normalize in infinite-dimensional settings. These ingredients describe one sufficient route using this quadratic envelope, not universal requirements.",
+        "StrongConvexity.lean:57 supports exactly the displayed k/4 conclusion and midpoint proof, and its LF hash matches the packet. It does not justify the problematic universal reading of the NL consumer requirements; alignment of the formal conclusion therefore does not cure step 4."
+      ],
+      "scoring_checks": [
+        "Point 1 correctly grades the chosen convention and exact k/8 midpoint correction; the supplied calculation earns it.",
+        "Point 2 correctly requires global minimality at the midpoint, rather than existence of a stationary point.",
+        "Point 3 correctly requires the k/4 rearrangement and forbids crediting an unproved k/2 upgrade or adding differentiability.",
+        "Point 4's envelope-versus-normalization distinction is useful, but its interpretation must not require candidates to assert positive k, finite dimension or Gaussian domination as necessary for Gibbs normalization generally. Scope those ingredients to the proposed finite-dimensional Lebesgue/Gaussian-domination route."
+      ],
+      "remaining_unformalized": [
+        "The sharper k/2 discussion and the assertion that this midpoint calculation has not established it are not separate target theorems.",
+        "All Gibbs reference-measure, measurability, integrability, positivity and normalization discussion is outside the Lean target. In particular, the claimed consumer requirements in step 4 are not formally certified.",
+        "Conditional uniqueness for positive k, mentioned in reconstruction C, is not an explicit conclusion of this Lean view."
+      ],
+      "repair_requests": [
+        "Rewrite step 4 to identify a sufficient route, not necessary conditions for every normalizable Gibbs potential: for example, 'To deduce normalization from this quadratic envelope by Gaussian domination, one can additionally specify finite-dimensional Lebesgue reference measure, establish measurability, and assume k>0; finiteness and positivity then need their own argument. These are not necessary conditions for Gibbs normalization in general.' Retain the correct statement that the current envelope alone is not a normalizer theorem.",
+        "Clarify rubric point 4 so it rewards distinguishing the envelope from normalization without demanding the false universal-necessity reading of that sufficient route. The Lean target and k/4 calculation need no change."
+      ]
+    },
+    "sogb-004": {
+      "binding_sha256": "2274ba27f6d700779d832ff90a2b26d881f2bf5f23c3dfc78689f556020559cf",
+      "context_sha256": "8a2b7fc5a9cee03ef7560c69387b0610a541b9fb3c5520ace472f94628d47b8f",
+      "verdict": "accept",
+      "formal_scope": "no-aligned-view",
+      "semantic_slots": {},
+      "mathematics_checks": [
+        "The finite-dimensional Euclidean/Borel assumptions make swap and both coordinate projections measurable. For gamma'=swap#gamma, map pi1 gamma'=map pi2 gamma=nu and map pi2 gamma'=map pi1 gamma=mu, so both marginal claims hold.",
+        "The nonnegative quadratic cost is Borel measurable, and pushforward change of variables followed by ||y-x||=||x-y|| gives exact cost preservation without signed Fubini.",
+        "The product probability measure is an admissible coupling. Integrating ||x-y||^2<=2||x||^2+2||y||^2 bounds its cost by twice the sum of the finite second moments. Thus the set of square-root costs is nonempty, bounded below by zero, and has finite infimum.",
+        "The definition of an infimum supplies, for each positive epsilon, a coupling with square-root cost less than W2(mu,nu)+epsilon; this does not presume attainment. Its swap gives the reverse inequality with epsilon, and real order completeness lets epsilon tend to zero. Reversing mu and nu proves symmetry with no infinity subtraction.",
+        "WassersteinSymmetry.lean:36, :51 and :93 support swap marginals, cost invariance and an extended-valued symmetry proof using near-optimal selection. The source LF hash matches the packet. The answer honestly does not identify that broader formal theorem with a single aligned Lean task covering the finite-second-moment/product-cost explanation, and no optimal-plan or triangle theorem is claimed."
+      ],
+      "scoring_checks": [
+        "Point 1 separately requires swap measurability and both pushforward identities, all supplied in the solution.",
+        "Point 2 correctly requires cost invariance at the nonnegative-integral level rather than informal symmetry of the word 'distance'.",
+        "Point 3 checks nonempty finite-cost admissibility via the product coupling and near-optimal selection rather than assuming an optimizer exists.",
+        "Point 4 correctly requires the two directions and a finite real epsilon argument, avoiding an unjustified subtraction of extended infinities. The four one-point criteria cover the requested reasoning without claiming empirical difficulty evidence."
+      ],
+      "remaining_unformalized": [
+        "This batch admits no aligned Lean view. The finite-dimensional finite-second-moment specialization, product-coupling cost bound, real-valued interpretation and explanatory boundary statements are reviewed here as mathematics, not as a checked translation of the full QA."
+      ],
+      "repair_requests": []
+    },
+    "sogb-005": {
+      "binding_sha256": "ce37724e97b715e2330e57378f5795759da21f91c6f477b863d897b48fe93f74",
+      "context_sha256": "50fab393dd21176e889c553957115bcc1f9d898d390045267bbfbd837fca9acb",
+      "verdict": "accept",
+      "formal_scope": "no-aligned-view",
+      "semantic_slots": {},
+      "mathematics_checks": [
+        "For fixed r, the continuous linear functional u->2<r,u> composed with the genuine derivative D(w) gives DV(w)[v]=2<r,D(w)v>=<2D(w)*r,v>. Completeness of the Hilbert spaces supplies the bounded adjoint; no default derivative value is substituted for a differentiability hypothesis.",
+        "With g=2D(w)*r and ||w||=1, <w,G>=<g,w>(1-||w||^2)=0. For <w,v>=0 the subtracted normal term vanishes in <G,v>, giving the requested derivative identity. This is exactly the induced-metric sphere-gradient characterization.",
+        "The unit-normal Pythagorean identity is ||G||^2=||g||^2-<g,w>^2, so ||G||<=||g||. The adjoint isometry and ||D(w)||<=M give ||g||<=2||D(w)||||r||<=2M||r||, with all constants correct.",
+        "The nonunit example w=2,g=2 in R gives G=2-(2*2)*2=-6 and <w,G>=-12, so it is not tangent. These data can be realized by F(t)=t and r=1. For nonzero w the correct orthogonal projection divides <g,w> by ||w||^2; w=0 is separately the identity projector onto all of E and requires no such division.",
+        "QuadraticFeatureTangentGradient.lean:41 proves the same pointwise derivative/projection/norm identities inside a stronger globally differentiable, uniformly bounded and Lipschitz derivative package. The source LF hash matches the packet. The QA explicitly limits this to supporting mathematics rather than claiming a frozen equivalent Lean view under only its weaker at-w assumptions. No general manifold, retraction or convergence theorem is inferred."
+      ],
+      "scoring_checks": [
+        "Point 1 appropriately grades a chain-rule/adjoint argument with actual Frechet differentiability at w.",
+        "Point 2 checks both tangency and equality against all tangent vectors; merely naming a projection is insufficient.",
+        "Point 3 correctly combines orthogonal projection contraction with the adjoint operator norm, retaining the factor 2.",
+        "Point 4's nonunit counterexample, nonzero-normal correction and manifold boundary are mathematically sound and addressed. The corrected denominator should not be applied at zero; the reference appropriately restricts it to nonzero normals."
+      ],
+      "remaining_unformalized": [
+        "No aligned formal view is admitted. The weaker single-point regularity formulation, nonunit counterexample/correction and explanatory identification with the sphere's induced metric are not certified as a full QA translation by the stronger bundled local theorem."
+      ],
+      "repair_requests": []
+    },
+    "sogb-006": {
+      "binding_sha256": "74f08b42811ce2c35e4669f9e631246262c6038119faa990aea98efb42431cb3",
+      "context_sha256": "029b0f86268a2746b22dae8be0fac0b4065ab8dc40a3fcff987d3f4f598361a2",
+      "verdict": "accept",
+      "formal_scope": "no-aligned-view",
+      "semantic_slots": {},
+      "mathematics_checks": [
+        "If both atoms have zero target mass, both finite Markov transition masses are multiplied by zero, so detailed balance is zero=zero without conditioning at either unsupported start.",
+        "If mu({x})=0 and mu({y})>0, the singleton law is applied at y only. For each coordinate the fiber retained from y contains y and has mass at least mu({y})>0. Every retained-coordinate term for y->x has numerator mu({x})=0; every failing-indicator term is zero. Hence K(y,{x})=0 and both weighted fluxes vanish. The symmetric single-null case follows by swapping x and y.",
+        "Zero target mass alone gives no avoidance property for an arbitrary kernel: for example a kernel could send every input deterministically to a mu-null atom. The proof's avoidance statement depends on the heat-bath law, while outgoing null-start flux vanishes independently of that null-start law.",
+        "For mu=(delta_00+delta_11)/2, fixing the other bit at a supported state makes the updated bit deterministic. Thus 00 and 11 are each absorbing, the actual random-scan heat-bath is reversible, and the supported classes do not communicate. Starting at 00 remains delta_00 rather than converging to the specified mixture mu. This supports the claimed irreducibility/convergence boundary.",
+        "RandomScanHeatBathReversibility.lean:20-49 uses the same null-start split; RandomScanHeatBath.randomScan_apply_singleton requires a nonzero starting atom and its proof establishes fiber positivity. The main source LF hash matches the packet. The stated fixed conditional-version boundary is preserved, and no mixing/full-support or hard-core ergodicity theorem is inferred."
+      ],
+      "scoring_checks": [
+        "Point 1 distinguishes both-null from single-null cases and disallows division by zero; the reference meets it.",
+        "Point 2 correctly requires the supported reverse-start formula and fiber positivity, not an unsupported-start conditional formula.",
+        "Point 3 tests the essential heat-bath-law dependency: arbitrary kernels can enter target-null states, despite their having zero target mass.",
+        "Point 4 checks an actual heat-bath counterexample rather than an unrelated reversible kernel; the 00/11 example verifies this. The rubric does not conflate reversibility, irreducibility and convergence."
+      ],
+      "remaining_unformalized": [
+        "There is no admitted equivalent Lean task. The arbitrary-kernel explanation, 00/11 nonirreducibility example and convergence discussion are NL obligations beyond the cited local reversibility declaration."
+      ],
+      "repair_requests": []
+    },
+    "sogb-007": {
+      "binding_sha256": "a4e2d5d2fd1273d0cadc2054858c9597b4e090dd0fec5fda5ecdfd5c7d206b78",
+      "context_sha256": "ff1bc1aef9d34e673bbf8819a562fd540b641eddcdec18b30c28454ee5fd19f9",
+      "verdict": "accept",
+      "formal_scope": "no-aligned-view",
+      "semantic_slots": {},
+      "mathematics_checks": [
+        "For a fixed measurable event, kernel event probabilities are measurable and in [0,1], hence integrable under the shared probability history law rho_i. Integral subtraction and |integral d|<=integral |d| then give the averaged discrepancy <=beta_i=integral epsilon_i. The uniform a.e. event bound also implies epsilon_i>=0 a.e. by choosing the empty event, so beta_i>=0 without an omitted sign premise.",
+        "For a final event A, S_i(.,A) is a measurable [0,1]-valued function. Layercake expresses its expectation difference using measurable level events, each already bounded by beta_i, proving common-suffix contraction with constant one under the stated event-supremum TV convention. It does not incur a factor two or require measurability of a supremum over all events.",
+        "Because the pairs are adjacent hybrids with a common output space, for each final event A the finite sum of adjacent probability differences telescopes. The triangle inequality gives |Pn(A)-P0(A)|<=sum beta_i. The same bound survives taking the event supremum. Each adjacent representation must use its actual shared prefix-history law; a bound integrated under an unrelated law does not imply this estimate.",
+        "In the counterexample, nu_N-mu_N=(1/N)(delta_(N^2)-delta_0). An event separating those two atoms attains discrepancy 1/N and no event exceeds it, so the stated TV is exactly 1/N. For c(x)=x, the expectations are 0 and N, respectively, finite for each N but with unbounded gap. The example correctly refutes transfer of an unbounded expected-cost guarantee from TV convergence alone.",
+        "A deterministic finite hybrid range is sufficient for this elementary telescope; a random or uncapped recursion requires a separate history/stopping construction and accumulated-error justification. The solution correctly does not infer cap comparison, actual-input expected cost, or a complete paper theorem.",
+        "KernelHybridTelescope.lean:28, :59 and :79 supply averaging, common-suffix preservation and finite real telescoping under the stated uniform a.e. event hypothesis. The explicitly named KernelTotalVariation.abs_real_comp_sub_le proves factor-one contraction via [0,1] layercake. The main source LF hash matches the packet; these local components do not formalize the full multi-component QA or its cost counterexample. The cited paper attribution was not independently reverified."
+      ],
+      "scoring_checks": [
+        "Point 1 appropriately requires event measurability/integrability and averaging under the actual shared history law, rather than an assumed measurable TV-valued error function.",
+        "Point 2 correctly combines a common downstream Markov kernel with finite adjacent telescoping and the factor-one event-TV convention.",
+        "Point 3 checks both exact TV=1/N and expectation gap=N; the supplied probability measures and common unbounded cost function satisfy these calculations.",
+        "Point 4 properly keeps recursive stopping, cap comparisons and actual-input cost separate from the established error bound. The rubric grades composition and boundary reasoning, not an unsupported assertion that a cited full algorithm theorem has been completed."
+      ],
+      "remaining_unformalized": [
+        "No aligned Lean view is admitted for the entire QA. Constructing a consistent algorithmic sequence of adjacent hybrids/history laws, and any adapters identifying the abstract kernels with a concrete recursive algorithm, remain outside the component theorems.",
+        "The TV/expected-cost counterexample, uniform-integrability or tail-control discussion, recursion/stopping/cap comparisons and source-paper noncompletion explanation are NL-reviewed obligations, not certified by the local telescope declaration."
+      ],
+      "repair_requests": []
+    }
+  }
+}

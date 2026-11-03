@@ -12,8 +12,10 @@ Build a source-grounded AI knowledge/reasoning benchmark over Samplinglib's seve
 6. Calibrate with recorded model/human runs and reserve genuinely new private families before publishing answers. No public item or variant becomes an unseen test merely by changing a split field.
 7. Integrate stable batches, CI and the hierarchical reader; pull before shared integration and push at bounded, tested checkpoints. Do not mark the whole Goal complete after one batch.
 
-## First continuation checkpoint
+## Current continuation checkpoint
 
-The v0.1 baseline has three shared cores with two QA views each. This phase adds the seven-domain/five-level curriculum, allows explicitly unpaired natural-language items, and begins source-hashed structural graph QA. L4/L5, independent review, calibrated difficulty and safe arbitrary-submission evaluation remain open until evidenced—not filled by generated wrappers.
+The v0.2 seven-domain/five-level curriculum and source-hashed structural graph QA are merged. The next batch adds one L1 natural-language question per domain. Round 1 independently checks the original seven mathematical cores and records one explanation-only correction, without upgrading the three aligned targets beyond conclusion-only coverage. Derived reviewed-subset exports exclude new unreviewed questions and stale items. See the immutable round evidence; compilation alone is not editorial acceptance.
+
+Next: independently review the L1 batch, extend genuinely aligned Lean and L2 coverage where ready, and develop source-grounded higher-level questions and auditable grading. L5, complete cross-domain/two-track coverage, graph semantic review, calibrated difficulty, private-family evaluation and safe arbitrary-submission execution remain open. Do not fill gaps with generated wrappers or call the whole Goal complete after this packet.
 
 Coverage is computed by `python tools/sog_bench.py coverage`; do not copy counts here. Data and prose are authored once in the catalog; the website and downloadable exports project those same records. Keep the root Lean version at 4.33.0 and never count Bench examples as new Registry leaves.

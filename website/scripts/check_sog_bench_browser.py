@@ -43,7 +43,11 @@ def main() -> None:
                 page.get_by_role('link', name='Prompt-only JSONL', exact=True).click()
             path = download.value.path()
             records = [json.loads(line) for line in Path(path).read_text(encoding='utf-8').splitlines()]
-            assert len(records) == 10 and all('lean_reference' not in r and 'steps' not in r for r in records)
+            assert len(records) == 17 and all('lean_reference' not in r and 'steps' not in r for r in records)
+            with page.expect_download() as reviewed_download:
+                page.get_by_role('link', name='editorially reviewed prompts', exact=True).click()
+            reviewed = [json.loads(line) for line in Path(reviewed_download.value.path()).read_text(encoding='utf-8').splitlines()]
+            assert len(reviewed) == 10 and {r['id'] for r in reviewed} == {f'sogb-{i:03d}' for i in range(1,8)}
             page.screenshot(path=str(args.evidence / 'overview-desktop.png'), full_page=True)
             for identity in ('sogb-001', 'sogb-002', 'sogb-003'):
                 page.goto(base + HUB + identity + '.html')
@@ -75,14 +79,19 @@ def main() -> None:
                 page.wait_for_function('window.scrollY === 0')
                 page.screenshot(path=str(args.evidence / (identity + '-proof-mobile.png')), full_page=True)
                 page.set_viewport_size({'width': 1400, 'height': 1000})
-            for tail in ('curriculum/index.html', 'levels/L5.html', 'domains/statistical-optimal-transport.html', 'sogb-g003.html', 'sogb-007.html'):
+            for tail in ('curriculum/index.html', 'levels/L5.html', 'domains/statistical-optimal-transport.html', 'sogb-g003.html', 'sogb-007.html', 'sogb-008.html', 'sogb-012.html'):
                 page.goto(base + HUB + tail)
                 page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                 page.evaluate('() => MathJax.startup.promise')
                 assert page.locator('mjx-merror, [data-mjx-error]').count() == 0
-                if tail == 'sogb-007.html':
+                if tail in ('sogb-007.html', 'sogb-008.html', 'sogb-012.html'):
                     assert page.locator('h2', has_text='Lean view: not yet aligned').count() == 1
                     page.locator('summary', has_text='Reference mathematical proof').click()
+                    assert page.locator('mjx-container').count() > 0
+                    assert page.locator('mjx-merror, [data-mjx-error]').count() == 0
+                    page.locator('summary', has_text='Editorial review and exact formal-coverage boundary').click()
+                    expected_review = 'AI editorial review accepted' if tail == 'sogb-007.html' else 'Independent QA review pending'
+                    assert expected_review in page.locator('article.sog-reader').inner_text()
                 if tail == 'sogb-g003.html':
                     assert page.locator('.sog-graph svg rect').count() == 3
                     page.locator('.sog-graph').screenshot(path=str(args.evidence / 'import-slice-desktop.png'))
@@ -100,8 +109,9 @@ def main() -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
-    report = {'mathematical_views': 10, 'graph_tasks': 3, 'math_rendered': True, 'lean_highlighting': True,
-              'folds_and_copy': True, 'prompt_only_download': True, 'mobile_overflow': False,
+    report = {'mathematical_views': 17, 'graph_tasks': 3, 'math_rendered': True, 'lean_highlighting': True,
+              'folds_and_copy': True, 'prompt_only_download': True, 'reviewed_subset_download': True,
+              'pending_vs_accepted_review_visible': True, 'mobile_overflow': False,
               'runtime_errors': errors}
     (args.evidence / 'report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report))

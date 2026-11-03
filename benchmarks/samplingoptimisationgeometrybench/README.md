@@ -13,8 +13,21 @@
 | sogb-005 | Riemannian Optimisation | Project a derivative onto the unit-sphere tangent space; diagnose nonunit normals | Not yet aligned |
 | sogb-006 | Discrete Sampling / MCMC | Handle null atoms without applying a formula off support | Not yet aligned |
 | sogb-007 | SampleWiki / MCMC | Compose adaptive hybrid error bounds; refute unbounded-cost transfer | Not yet aligned |
+| sogb-008 | Log-Concave Sampling | Distinguish a log-concave shape from a normalized probability density (L1) | Not yet aligned |
+| sogb-009 | SampleWiki | Separate approximation, invariance and actual-input expected cost (L1) | Not yet aligned |
+| sogb-010 | Optimisation | Read the PL convention without assuming an algorithmic rate (L1) | Not yet aligned |
+| sogb-011 | Riemannian Optimisation | Identify the tangent space, metric and gradient (L1) | Not yet aligned |
+| sogb-012 | Statistical Optimal Transport | Read coupling marginal constraints without assuming independence (L1) | Not yet aligned |
+| sogb-013 | Discrete Sampling | Distinguish one random-site step from a sweep and an oracle cost (L1) | Not yet aligned |
+| sogb-014 | MCMC | Separate invariance, detailed balance and convergence (L1) | Not yet aligned |
 
-Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Independent semantic review remains **pending**; existing theorem review does not certify a new question.
+Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Content-bound independent AI editorial review accepts cores 001–007, including a separately reviewed correction to 003. New cores 008–014, graph QA editorial review and empirical difficulty calibration remain pending. Existing theorem review does not certify a new question.
+
+## Review evidence and scope
+
+[Round 1](reviews/round-1/README.md) records the actual distinct decoder, source reviewer and exact-proposal reviewer, their frozen inputs and immutable reports. The reviewer found that our original explanation of the quadratic envelope confused sufficient Gaussian-domination hypotheses with necessary normalization conditions. The corrected explanation includes the counterexample \(V(x)=|x|\). Only that project-authored explanation changed; neither a textbook statement nor a Lean target was repaired.
+
+`tools/sog_bench_review.py` derives item status from exact QA/source/import-closure/toolchain bindings. Editing a question or its mathematical context makes its old review stale. The first three Lean views have **conclusion-only alignment**; the review explicitly lists explanatory claims not formalized by those targets. This is AI editorial checking, not human consensus, canonical theorem publication, model measurement or a calibrated difficulty label. The tool prepares input packets; it never creates independent verdicts. Round 1 is frozen to its original three formal cases; create a new bounded round before adding further formal cases.
 
 ## Difficulty and subject coverage
 
@@ -39,7 +52,7 @@ python tools/sog_bench.py check
 python tools/sog_bench.py coverage
 python tools/sog_bench.py export --output .astis/sog-bench-export
 python tools/sog_bench.py check-lean
-python -m unittest tools.tests.test_sog_bench
+python -m unittest tools.tests.test_sog_bench tools.tests.test_sog_bench_review
 python website/scripts/build_site.py
 python website/scripts/check_site.py
 ```
@@ -48,6 +61,8 @@ Open `_site/benchmarks/samplingoptimisationgeometrybench/index.html` through a l
 
 - `questions.jsonl`: available mathematical prompt-only views; no solutions, reference Lean or rubric;
 - `reference.jsonl`: mathematical cores, explanations, rubrics and exact Lean only where aligned;
+- `reviewed-questions.jsonl` / `reviewed-reference.jsonl`: only the currently accepted editorial subset, with questions still separated from answers;
+- `editorial-review.json`: per-item review scope, evidence hashes, stale/pending states and unformalized explanation;
 - `graph-questions.jsonl` / `graph-reference.jsonl`: separate structural prompts and answers;
 - `curriculum.json` / `coverage.json`: seven domains, five levels, separate draft track counts and gaps;
 - `lean/*-task.lean.txt`: imports/context and a fixed target with a comment slot; fill the slot with a proof, then save as `.lean`;
@@ -81,4 +96,4 @@ python tools/sog_bench.py grade-graph --submissions responses.jsonl --run-metada
 
 Each response supplies `id`, the prompt's `binding_sha256`, `attempt: 1` and `answer`. Run metadata requires `run_id`, `model`, `model_version`, `created_at`, `prompt_profile: "given-snapshot"`, `attempt_policy: "first-attempt"`, `tools` and `seed`. Unknown/duplicate IDs, stale bindings and alternate attempt policies are rejected. Missing answers remain in the denominator with zero credit. Retain raw prompts/responses, timing/tokens and grader versions for experiments. Reference self-tests are software tests, not measured model performance. Prose grading and safe untrusted-Lean evaluation remain separate work.
 
-Only original/permission-cleared material may enter ML training or evaluation exports. Do not use restricted ATLAS-derived indexes, source text, projections or derivatives in this benchmark. The root Apache-2.0 grant does not relicense external books, papers, code or data; retain their applicable notices. This pilot exports the three listed original/adapted local modules' extracted target proofs and original QA only, not external datasets or transitive source trees. Dependencies remain installed under their own licenses.
+Only original/permission-cleared material may enter ML training or evaluation exports. Do not use restricted ATLAS-derived indexes, source text, projections or derivatives in this benchmark. The root Apache-2.0 grant does not relicense external books, papers, code or data; retain their applicable notices. This pilot exports the three aligned local modules' extracted target proofs and original QA only, not external datasets or transitive source trees. Historical review packets retain rejected wording for audit and are **not reference-answer gold**; use the derived reviewed-reference export instead. Dependencies remain installed under their own licenses.

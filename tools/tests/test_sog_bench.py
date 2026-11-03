@@ -25,8 +25,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 7)
-        self.assertEqual(len(prompts), 10)
+        self.assertEqual(len(self.cores), 14)
+        self.assertEqual(len(prompts), 17)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -76,7 +76,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 10)
+            self.assertEqual(manifest['qa_views'], 17)
             self.assertEqual(manifest['graph_tasks'], 3)
             self.assertEqual(manifest['independent_semantic_review'], 'pending')
             for name, digest in manifest['files'].items():
@@ -134,7 +134,7 @@ class BenchTests(unittest.TestCase):
         text = reader.home(self.cores)
         self.assertIn('natural-language/index.html', text)
         self.assertIn('lean/index.html', text)
-        self.assertIn('Independent semantic review pending', text)
+        self.assertIn('content-bound AI editorial review', text)
         self.assertNotIn('Quantum', text)
         for core in self.cores:
             rendered = reader.core_page(core, False, {'decl:' + core['declaration']})
@@ -156,11 +156,13 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 7)
+        self.assertEqual(coverage['unique_mathematical_cores'], 14)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
         self.assertNotIn('OpenAI', json.dumps(coverage))
+        for domain in bench.curriculum.curriculum()['domains']:
+            self.assertTrue(any(domain in c['library_domains'] and c['track_levels'].get('natural-language') == 'L1' for c in self.cores))
 
     def test_structural_graph_answers_sources_and_no_gold_in_prompts(self):
         graphs = bench.curriculum.graph_items()

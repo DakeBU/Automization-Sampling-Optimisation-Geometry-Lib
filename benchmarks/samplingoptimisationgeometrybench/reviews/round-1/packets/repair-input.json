@@ -1,0 +1,169 @@
+{
+  "anonymous_statement_reconstruction": {
+    "assumptions": "Assume V is StrongConvexOn all of E with parameter k: for all x,y and a,b >= 0 with a+b=1, V(a*x+b*y) <= a*V(x)+b*V(y)-(k/2)*a*b*norm(x-y)^2, where a*x and b*y denote real scalar multiplication. Assume V(x0) <= V(x) for every x. No sign restriction on k or differentiability hypothesis is supplied; existence of the particular minimizer is assumed, not proved.",
+    "conclusion": "For every x in E, V(x0) + (k/4)*norm(x-x0)^2 <= V(x). In other words, V(x)-V(x0) is bounded below by exactly (k/4) times the squared distance from x0. When k is positive this supplies positive quadratic growth and implies uniqueness of the global minimizer.",
+    "constants": "The hypothesis uses exactly (k/2)*a*b times squared distance, whereas the displayed conclusion uses exactly k/4 times squared distance. K is real with no prescribed positivity or normalization. The requested conclusion retains k/4 and is not silently replaced by a stronger coefficient.",
+    "domains": "E is a normed additive commutative group and a normed space over the real numbers. V is defined on all of E with real values; k is an arbitrary real number; x0 and x belong to E. Neither a Hilbert structure, completeness, nor finite-dimensionality is assumed.",
+    "objects": "The objects are a real normed vector space E, a real-valued function V on E, a real convexity parameter k, and a specified global minimizer x0 of V. The conclusion compares V at x0 with V at an arbitrary point x in E.",
+    "quantifiers": "For every such E, V, and real k satisfying global StrongConvexOn with the supplied convention, and every x0 satisfying global minimality, the asserted lower bound holds for all x in E. The strong-convexity hypothesis ranges over all x,y in E and all nonnegative real a,b with a+b=1; minimality ranges over every comparison point in E.",
+    "senses": "StrongConvexOn must be read with the packet's k/2 correction in its two-point inequality, without silently adding k > 0. IsMinOn on the universal set means global, not local, minimality. For k=0 the displayed conclusion reduces to minimality; for k<0 it gives a nonpositive correction and does not supply positive quadratic growth or guarantee uniqueness. No minimizer-existence theorem, gradient characterization, or iteration statement is asserted."
+  },
+  "author_identity": "agent-task:root",
+  "before": {
+    "assumptions": [
+      "\\(E\\) is a real normed vector space; \\(V:E\\to\\mathbb R\\); \\(x_0\\) is an attained global minimizer; \\(k\\) is real.",
+      "Use the following strong-convexity convention (also used by Mathlib): on all of \\(E\\), for \\(a,b\\ge0\\) with \\(a+b=1\\), \\[V(ax+by)\\le aV(x)+bV(y)-\\tfrac k2 ab\\|x-y\\|^2.\\]",
+      "No differentiability or finite-dimensionality assumption is made."
+    ],
+    "binding_sha256": "6ae4340301ea2f62c4ca85d81bf2b21ca2a502c111f64384f94d652f6b2697ef",
+    "boundary": "This is a normed-vector-space statement, not a Riemannian or geodesic-convexity theorem. The Lean target proves the k/4 envelope only; neither the sharper bound nor Gibbs normalization is supplied.",
+    "context": "open Set\n",
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.StrongConvexity.centered_quadratic_lower_bound_of_strongConvexOn_minimizer",
+    "dependencies": {
+      "astis": [],
+      "mathlib": [
+        "StrongConvexOn",
+        "isMinOn_univ_iff",
+        "norm_sub_rev"
+      ]
+    },
+    "difficulty": "foundation",
+    "difficulty_reason": "One midpoint mechanism plus scalar rearrangement; the natural-language view additionally distinguishes the envelope from normalization.",
+    "domain": "geometry",
+    "family": "strong-convex-midpoint-envelope",
+    "id": "sogb-003",
+    "imports": [
+      "AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity",
+      "Mathlib.Analysis.Convex.Strong"
+    ],
+    "lean_explanation": "StrongConvexOn contains a convex-domain component and a two-point inequality; hV.2 selects the latter. IsMinOn on univ is expanded to compare the minimizer with every point. The midpoint coefficients are checked by norm_num, the squared distance is rewritten symmetrically, and nlinarith performs the final scalar rearrangement.",
+    "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity\nimport Mathlib.Analysis.Convex.Strong\n\nopen Set\n\nexample\n    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n    {V : E → ℝ} {k : ℝ} (hV : StrongConvexOn (Set.univ : Set E) k V)\n    (x₀ : E) (hx₀ : IsMinOn V (Set.univ : Set E) x₀) :\n    ∀ x : E, V x₀ + (k / 4) * ‖x - x₀‖ ^ 2 ≤ V x := by\n  intro x\n  have hx₀_min : ∀ y : E, V x₀ ≤ V y := isMinOn_univ_iff.mp hx₀\n  have hmid_min : V x₀ ≤ V ((1 / 2 : ℝ) • x₀ + (1 / 2 : ℝ) • x) := hx₀_min _\n  have hstrong :=\n    hV.2 (by simp : x₀ ∈ (Set.univ : Set E)) (by simp : x ∈ (Set.univ : Set E))\n      (by norm_num : 0 ≤ (1 / 2 : ℝ)) (by norm_num : 0 ≤ (1 / 2 : ℝ))\n      (by norm_num : (1 / 2 : ℝ) + (1 / 2 : ℝ) = 1)\n  have hstrong' :\n      V ((1 / 2 : ℝ) • x₀ + (1 / 2 : ℝ) • x) ≤\n        (1 / 2 : ℝ) * V x₀ + (1 / 2 : ℝ) * V x - (k / 8) * ‖x - x₀‖ ^ 2 := by\n    rw [norm_sub_rev x₀ x] at hstrong\n    convert hstrong using 1\n    · simp [smul_eq_mul]\n      ring_nf\n  have hle := hmid_min.trans hstrong'\n  nlinarith\n",
+    "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity\nimport Mathlib.Analysis.Convex.Strong\n\nopen Set\n\nexample\n    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n    {V : E → ℝ} {k : ℝ} (hV : StrongConvexOn (Set.univ : Set E) k V)\n    (x₀ : E) (hx₀ : IsMinOn V (Set.univ : Set E) x₀) :\n    ∀ x : E, V x₀ + (k / 4) * ‖x - x₀‖ ^ 2 ≤ V x := by\n  -- Replace this comment with your proof.\n",
+    "library_domains": [
+      "log-concave-sampling",
+      "optimisation"
+    ],
+    "question": "Use only the midpoint instance and global minimality to prove \\(V(x)\\ge V(x_0)+\\tfrac k4\\|x-x_0\\|^2\\) for every x. Track the constant. Does this proof establish the sharper k/2 envelope, or finiteness of a Gibbs normalizer?",
+    "rubric": [
+      {
+        "criterion": "States the convention and obtains the midpoint correction k/8 exactly.",
+        "points": 1
+      },
+      {
+        "criterion": "Uses the exposed global minimizer at the midpoint.",
+        "points": 1
+      },
+      {
+        "criterion": "Rearranges to k/4 without silently upgrading it to k/2 or assuming differentiability.",
+        "points": 1
+      },
+      {
+        "criterion": "Separates the quadratic envelope from Gibbs integrability and normalization.",
+        "points": 1
+      }
+    ],
+    "skills": [
+      "calculation",
+      "assumption-audit",
+      "semantic-boundary"
+    ],
+    "source_file": "AutoSamplingTheory/TechnicalLemmas/Geometry/StrongConvexity.lean",
+    "source_line": 57,
+    "source_note": "Original exercise over the existing Samplinglib midpoint lemma. It is not presented as a verbatim textbook statement.",
+    "source_sha256_lf": "4ff7d1a85259002e0a3f947ea509935eb9866bf3741daa361733ed041968f1f1",
+    "split": "public-dev",
+    "steps": [
+      "At \\(m=(x_0+x)/2\\), strong convexity gives \\[V(m)\\le\\tfrac12V(x_0)+\\tfrac12V(x)-\\tfrac k8\\|x-x_0\\|^2.\\] The factor \\(k/8\\) comes from \\((k/2)(1/2)(1/2)\\).",
+      "Global minimality gives \\(V(x_0)\\le V(m)\\). Combine the two inequalities and multiply by 2 to obtain \\(V(x_0)+\\tfrac k4\\|x-x_0\\|^2\\le V(x)\\). No derivative or limit was used.",
+      "This midpoint calculation proves the k/4 envelope, not the sharper k/2 constant. Obtaining a sharper result needs another argument; it must not be credited to this calculation.",
+      "The envelope alone is not a normalization theorem. A Gibbs-integrability consumer additionally needs an appropriate finite-dimensional reference measure, measurability, a positive confining modulus, and a Gaussian-integrability argument; positivity of the normalizer is a separate obligation. Here k need not even be positive."
+    ],
+    "title": "A quadratic envelope from one midpoint",
+    "track_levels": {
+      "lean": "L2",
+      "natural-language": "L2"
+    }
+  },
+  "changed_fields": [
+    "steps"
+  ],
+  "context_sha256": "ad146f34f4cee3207845e0a82e2c52d72debc8ab274bee013faacef45c04d20d",
+  "core_id": "sogb-003",
+  "instruction": "Evaluate this exact explanation-only proposal independently. Earlier reviewer verdicts/delta classifications are intentionally absent. Check mathematical correctness, necessity versus sufficiency, minimality of the edit, unchanged formal coverage and the stated counterexample. This repairs project-authored exposition, not a source textbook or the Lean theorem. Accept, reject or request a narrower repair; do not edit source or prior reports.",
+  "proposed_after": {
+    "assumptions": [
+      "\\(E\\) is a real normed vector space; \\(V:E\\to\\mathbb R\\); \\(x_0\\) is an attained global minimizer; \\(k\\) is real.",
+      "Use the following strong-convexity convention (also used by Mathlib): on all of \\(E\\), for \\(a,b\\ge0\\) with \\(a+b=1\\), \\[V(ax+by)\\le aV(x)+bV(y)-\\tfrac k2 ab\\|x-y\\|^2.\\]",
+      "No differentiability or finite-dimensionality assumption is made."
+    ],
+    "binding_sha256": "b65dd9a70ee7e52100bc85f865904dc278535225ecc2eaa01929897f888543c2",
+    "boundary": "This is a normed-vector-space statement, not a Riemannian or geodesic-convexity theorem. The Lean target proves the k/4 envelope only; neither the sharper bound nor Gibbs normalization is supplied.",
+    "context": "open Set\n",
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.StrongConvexity.centered_quadratic_lower_bound_of_strongConvexOn_minimizer",
+    "dependencies": {
+      "astis": [],
+      "mathlib": [
+        "StrongConvexOn",
+        "isMinOn_univ_iff",
+        "norm_sub_rev"
+      ]
+    },
+    "difficulty": "foundation",
+    "difficulty_reason": "One midpoint mechanism plus scalar rearrangement; the natural-language view additionally distinguishes the envelope from normalization.",
+    "domain": "geometry",
+    "family": "strong-convex-midpoint-envelope",
+    "id": "sogb-003",
+    "imports": [
+      "AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity",
+      "Mathlib.Analysis.Convex.Strong"
+    ],
+    "lean_explanation": "StrongConvexOn contains a convex-domain component and a two-point inequality; hV.2 selects the latter. IsMinOn on univ is expanded to compare the minimizer with every point. The midpoint coefficients are checked by norm_num, the squared distance is rewritten symmetrically, and nlinarith performs the final scalar rearrangement.",
+    "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity\nimport Mathlib.Analysis.Convex.Strong\n\nopen Set\n\nexample\n    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n    {V : E → ℝ} {k : ℝ} (hV : StrongConvexOn (Set.univ : Set E) k V)\n    (x₀ : E) (hx₀ : IsMinOn V (Set.univ : Set E) x₀) :\n    ∀ x : E, V x₀ + (k / 4) * ‖x - x₀‖ ^ 2 ≤ V x := by\n  intro x\n  have hx₀_min : ∀ y : E, V x₀ ≤ V y := isMinOn_univ_iff.mp hx₀\n  have hmid_min : V x₀ ≤ V ((1 / 2 : ℝ) • x₀ + (1 / 2 : ℝ) • x) := hx₀_min _\n  have hstrong :=\n    hV.2 (by simp : x₀ ∈ (Set.univ : Set E)) (by simp : x ∈ (Set.univ : Set E))\n      (by norm_num : 0 ≤ (1 / 2 : ℝ)) (by norm_num : 0 ≤ (1 / 2 : ℝ))\n      (by norm_num : (1 / 2 : ℝ) + (1 / 2 : ℝ) = 1)\n  have hstrong' :\n      V ((1 / 2 : ℝ) • x₀ + (1 / 2 : ℝ) • x) ≤\n        (1 / 2 : ℝ) * V x₀ + (1 / 2 : ℝ) * V x - (k / 8) * ‖x - x₀‖ ^ 2 := by\n    rw [norm_sub_rev x₀ x] at hstrong\n    convert hstrong using 1\n    · simp [smul_eq_mul]\n      ring_nf\n  have hle := hmid_min.trans hstrong'\n  nlinarith\n",
+    "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity\nimport Mathlib.Analysis.Convex.Strong\n\nopen Set\n\nexample\n    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n    {V : E → ℝ} {k : ℝ} (hV : StrongConvexOn (Set.univ : Set E) k V)\n    (x₀ : E) (hx₀ : IsMinOn V (Set.univ : Set E) x₀) :\n    ∀ x : E, V x₀ + (k / 4) * ‖x - x₀‖ ^ 2 ≤ V x := by\n  -- Replace this comment with your proof.\n",
+    "library_domains": [
+      "log-concave-sampling",
+      "optimisation"
+    ],
+    "question": "Use only the midpoint instance and global minimality to prove \\(V(x)\\ge V(x_0)+\\tfrac k4\\|x-x_0\\|^2\\) for every x. Track the constant. Does this proof establish the sharper k/2 envelope, or finiteness of a Gibbs normalizer?",
+    "rubric": [
+      {
+        "criterion": "States the convention and obtains the midpoint correction k/8 exactly.",
+        "points": 1
+      },
+      {
+        "criterion": "Uses the exposed global minimizer at the midpoint.",
+        "points": 1
+      },
+      {
+        "criterion": "Rearranges to k/4 without silently upgrading it to k/2 or assuming differentiability.",
+        "points": 1
+      },
+      {
+        "criterion": "Separates the quadratic envelope from Gibbs integrability and normalization.",
+        "points": 1
+      }
+    ],
+    "skills": [
+      "calculation",
+      "assumption-audit",
+      "semantic-boundary"
+    ],
+    "source_file": "AutoSamplingTheory/TechnicalLemmas/Geometry/StrongConvexity.lean",
+    "source_line": 57,
+    "source_note": "Original exercise over the existing Samplinglib midpoint lemma. It is not presented as a verbatim textbook statement.",
+    "source_sha256_lf": "4ff7d1a85259002e0a3f947ea509935eb9866bf3741daa361733ed041968f1f1",
+    "split": "public-dev",
+    "steps": [
+      "At \\(m=(x_0+x)/2\\), strong convexity gives \\[V(m)\\le\\tfrac12V(x_0)+\\tfrac12V(x)-\\tfrac k8\\|x-x_0\\|^2.\\] The factor \\(k/8\\) comes from \\((k/2)(1/2)(1/2)\\).",
+      "Global minimality gives \\(V(x_0)\\le V(m)\\). Combine the two inequalities and multiply by 2 to obtain \\(V(x_0)+\\tfrac k4\\|x-x_0\\|^2\\le V(x)\\). No derivative or limit was used.",
+      "This midpoint calculation proves the k/4 envelope, not the sharper k/2 constant. Obtaining a sharper result needs another argument; it must not be credited to this calculation.",
+      "The envelope alone is not a normalization theorem. One sufficient route assumes k>0, a finite-dimensional Euclidean space with Lebesgue reference measure and measurable V, then compares exp(−V) with an integrable Gaussian and separately checks positivity of the normalizer. These are conditions for that route, not necessary conditions for every Gibbs normalization: on ℝ, V(x)=|x| is convex with k=0 and exp(−|x|) has integral 2."
+    ],
+    "title": "A quadratic envelope from one midpoint",
+    "track_levels": {
+      "lean": "L2",
+      "natural-language": "L2"
+    }
+  },
+  "schema_version": 1
+}

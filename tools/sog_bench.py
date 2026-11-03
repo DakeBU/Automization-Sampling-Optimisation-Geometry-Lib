@@ -125,6 +125,15 @@ def has_lean(core: dict) -> bool:
     return core.get('lean_enabled', True) is True
 
 
+def editorial_review(cores: list[dict]) -> dict:
+    import sog_bench_review
+    return sog_bench_review.summary(cores)
+
+
+def coverage(cores: list[dict], graphs: list[dict]) -> dict:
+    return curriculum.coverage(cores, graphs, editorial_review(cores)['items'])
+
+
 def environment_digest() -> str:
     """Conservatively invalidate a trusted receipt after any local Lean edit."""
     paths = [ROOT / 'lean-toolchain', ROOT / 'lake-manifest.json', ROOT / 'lakefile.lean',
@@ -152,7 +161,10 @@ def receipt_current(cores: list[dict]) -> bool:
 def export(output: Path, cores: list[dict] | None = None) -> None:
     cores = cores or materialize()
     graphs = curriculum.graph_items()
+    review = editorial_review(cores)
+    reviewed = [c for c in cores if review['items'][c['id']]['editorial'] in {'accepted', 'accepted-after-repair'}]
     expected = {'questions.jsonl', 'reference.jsonl', 'manifest.json', 'README.md',
+                'editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 *project_licensing.LICENSE_FILES,
                 *('lean/' + c['id'] + suffix for c in cores if has_lean(c) for suffix in ('-task.lean.txt', '-reference.lean'))}
@@ -168,10 +180,13 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     jsonl = lambda rows: ''.join(json.dumps(r, ensure_ascii=False, sort_keys=True) + '\n' for r in rows).encode()
     write('questions.jsonl', jsonl(prompts(cores)))
     write('reference.jsonl', jsonl(cores))
+    write('editorial-review.json', encoded(review))
+    write('reviewed-questions.jsonl', jsonl(prompts(reviewed)))
+    write('reviewed-reference.jsonl', jsonl(reviewed))
     write('graph-questions.jsonl', jsonl(curriculum.graph_prompts(graphs)))
     write('graph-reference.jsonl', jsonl(graphs))
     write('curriculum.json', encoded(curriculum.curriculum()))
-    write('coverage.json', encoded(curriculum.coverage(cores, graphs)))
+    write('coverage.json', encoded(coverage(cores, graphs)))
     write('GOAL.md', (DATA.parent / 'GOAL.md').read_bytes())
     (output / 'lean').mkdir(exist_ok=True)
     for c in cores:
@@ -187,6 +202,8 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'track_counts': {t: sum(t in c['track_levels'] for c in cores) for t in TRACKS},
                 'difficulty_calibration': 'author-assigned; not empirically calibrated',
                 'independent_semantic_review': 'pending', 'hidden_test': False,
+                'editorial_accepted_cores': len(reviewed),
+                'review_kind': 'AI editorial review, not full Lean coverage or canonical theorem publication',
                 'toolchain': (ROOT / 'lean-toolchain').read_text().strip(),
                 'mathlib_manifest_sha256_lf': text_hash(ROOT / 'lake-manifest.json'),
                 'files': {p.relative_to(output).as_posix(): sha(p.read_bytes())
@@ -246,7 +263,7 @@ def check_lean(cores: list[dict]) -> int:
                'reference_sha256': {c['id']: sha(c['lean_reference'].encode()) for c in cores},
                'commands': commands, 'scope': 'trusted reference compilation only; no semantic or submission certification'}
     RECEIPT.write_bytes(encoded(receipt))
-    print(f'{len(cores)} trusted references checked; independent QA semantic review remains pending.')
+    print(f'{len(cores)} trusted references checked; compilation does not certify editorial review or full explanatory coverage.')
     return 0
 
 
@@ -260,7 +277,7 @@ def main() -> int:
     cores = materialize()
     graphs = curriculum.graph_items()
     if args.command == 'coverage':
-        print(encoded(curriculum.coverage(cores, graphs)).decode('utf-8'))
+        print(encoded(coverage(cores, graphs)).decode('utf-8'))
         return 0
     if args.command == 'grade-graph':
         if not args.submissions or not args.run_metadata:
@@ -284,7 +301,8 @@ def main() -> int:
         return check_lean(cores)
     if args.command == 'export':
         export(args.output, cores)
-    print(f'{len(cores)} public development cores / {len(prompts(cores))} mathematical QA views / {len(graphs)} graph tasks; independent semantic review pending.')
+    reviewed = editorial_review(cores)['accepted_cores']
+    print(f'{len(cores)} public development cores / {len(prompts(cores))} mathematical QA views / {len(graphs)} graph tasks; {reviewed} cores editorially accepted, remaining review/calibration pending.')
     return 0
 
 

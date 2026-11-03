@@ -80,7 +80,7 @@ class EditorialReviewTests(unittest.TestCase):
     def test_reviewed_exports_cannot_silently_include_new_drafts(self):
         data = deepcopy(bench.load())
         draft = deepcopy(data['cores'][-1])
-        draft['id'] = 'sogb-015'
+        draft['id'] = 'sogb-999'
         draft['question'] += ' Unreviewed test-fixture revision.'
         data['cores'].append(draft)
         with_draft = bench.materialize(data)
@@ -89,18 +89,18 @@ class EditorialReviewTests(unittest.TestCase):
             bench.export(target, with_draft)
             questions = [json.loads(line) for line in (target/'reviewed-questions.jsonl').read_text(encoding='utf-8').splitlines()]
             refs = [json.loads(line) for line in (target/'reviewed-reference.jsonl').read_text(encoding='utf-8').splitlines()]
-            self.assertEqual(len(questions), 17)
-            self.assertEqual(len(refs), 14)
+            self.assertEqual(len(questions), 19)
+            self.assertEqual(len(refs), 15)
             self.assertEqual({q['id'] for q in questions}, {c['id'] for c in refs})
             self.assertTrue(all('steps' not in q and 'lean_reference' not in q for q in questions))
-            self.assertNotIn('sogb-015', {q['id'] for q in questions})
+            self.assertNotIn('sogb-999', {q['id'] for q in questions})
 
     def test_nl_round_accepts_without_inventing_formal_alignment(self):
         rows = review.prose_statuses(self.cores)
         self.assertEqual(set(rows), {f'sogb-{i:03d}' for i in range(8,15)})
         self.assertTrue(all(review.accepted(row) for row in rows.values()))
         self.assertTrue(all(row['formal_alignment'] == 'no-aligned-view' for row in rows.values()))
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 14)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 15)
 
     def test_nl_packet_route_rejects_formal_views_duplicates_unknown_ids_and_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -47,9 +47,10 @@ def decoder_packet(cores: list[dict]) -> tuple[dict, dict]:
          'IsMinOn V Set.univ x₀ means V x₀ ≤ V x for every x.']
     ]
     cases, mapping = [], {}
-    formal = [c for c in cores if bench.has_lean(c)]
-    if len(formal) != 3:
-        raise ValueError('This bounded round is frozen to the first three formal cases')
+    by_id = {c['id']: c for c in cores}
+    formal = [by_id[f'sogb-{i:03d}'] for i in range(1,4)]
+    if not all(bench.has_lean(c) for c in formal):
+        raise ValueError('The frozen round requires its original three formal cases')
     for index, core in enumerate(formal):
         alias = chr(ord('A') + index)
         target = core['lean_task'].split('\nexample', 1)[1].rsplit(':= by', 1)[0]
@@ -284,11 +285,13 @@ def prose_statuses(cores: list[dict], directory: Path = PROSE_ROUND) -> dict:
 
 
 def summary(cores: list[dict]) -> dict:
+    import sog_bench_formal_review
     rows = statuses(cores)
-    for identity, row in prose_statuses(cores).items():
-        if rows[identity]['editorial'] != 'pending':
-            raise ValueError('Overlapping review rounds require an explicit supersession policy')
-        rows[identity] = row
+    for additional in (prose_statuses(cores), sog_bench_formal_review.statuses(cores)):
+        for identity, row in additional.items():
+            if rows[identity]['editorial'] != 'pending':
+                raise ValueError('Overlapping review rounds require an explicit supersession policy')
+            rows[identity] = row
     return {'kind': 'independent AI editorial review; not canonical theorem publication',
             'accepted_cores': sum(accepted(r) for r in rows.values()), 'total_cores': len(cores),
             'difficulty_calibrated': False, 'model_performance_measured': False, 'items': rows}

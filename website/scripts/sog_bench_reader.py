@@ -103,7 +103,7 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
         + fold('Reference Lean and explanation', lean) + prose(status) + '</section>') if bench.has_lean(core) else (
         '<section id="lean"><h2>Lean view: not yet aligned</h2>' + lean + '<p>This support theorem does not certify the complete QA or its explanatory counterexamples.</p></section>')
     dependencies = ''.join('<h3>' + label + '</h3><ul>' + ''.join('<li><code>' + escape(n) + '</code></li>' for n in core['dependencies'][key]) + '</ul>'
-                           for key, label in (('astis', 'ASTIS proof calls' if bench.has_lean(core) else 'ASTIS formal support (not an equivalent QA)'), ('mathlib', 'Mathlib facts / definitions')))
+                           for key, label in (('astis', 'ASTIS definitions / proof calls' if bench.has_lean(core) else 'ASTIS formal support (not an equivalent QA)'), ('mathlib', 'Mathlib facts / definitions')))
     return (f'<article class="sog-reader" {MARKER}><p><a href="index.html">Bench</a> / ' + escape(core['domain']) + '</p>'
         '<div class="eyebrow">' + escape(core['id']) + ' · public-dev · editorial and formal status separate</div><h1>' + escape(core['title']) + '</h1>'
         + '<p>' + escape(domain_names(core)) + ' · ' + escape(' / '.join(t + ': ' + l for t, l in core['track_levels'].items())) + ' (author-assigned; calibration pending)</p>'

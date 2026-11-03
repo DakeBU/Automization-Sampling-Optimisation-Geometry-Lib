@@ -196,7 +196,13 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
         write('lean/' + c['id'] + '-reference.lean', c['lean_reference'].encode())
     for name in project_licensing.LICENSE_FILES:
         write(name, (ROOT / name).read_bytes())
-    write('README.md', (DATA.parent / 'README.md').read_bytes())
+    guide = (DATA.parent / 'README.md').read_text(encoding='utf-8')
+    # Audit records deliberately stay out of ML/reference bundles. Their
+    # repository-relative links must still work in the downloaded guide.
+    guide = re.sub(r'\]\((reviews/[^)]+)\)',
+                   r'](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/benchmarks/samplingoptimisationgeometrybench/\1)',
+                   guide)
+    write('README.md', guide.encode('utf-8'))
     manifest = {'name': 'SamplingOptimisationGeometryBench', 'version': load()['version'],
                 'split': 'public-dev', 'cores': len(cores), 'qa_views': len(prompts(cores)), 'graph_tasks': len(graphs),
                 'track_counts': {t: sum(t in c['track_levels'] for c in cores) for t in TRACKS},

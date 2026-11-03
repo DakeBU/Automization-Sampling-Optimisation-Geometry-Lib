@@ -1,9 +1,11 @@
 import Mathlib.MeasureTheory.Measure.Prod
 
 /-!
-# Candidate L2 task: recover the joint probability interface
+# Historical L2 staging fixture: recover the joint probability interface
 
-Compiler-checked candidate only, not an admitted QA or a new library leaf.
+The corpus task is now sogb-015. Its current admission is derived from the
+catalog and independent review reports, never from this fixture's existence.
+This file supplies no additional QA count or new library leaf.
 The fixed context reproduces the public `IsCoupling` definition from
 `AutoSamplingTheory/TechnicalLemmas/Measure/Transport.lean`. The example
 reconstructs its `isProbabilityMeasure_of_isCoupling_left` proof without
@@ -15,9 +17,9 @@ Thus gamma(univ) = gamma.fst(univ) = mu(univ) = 1. Only mu needs a probability
 assumption; no independent normalization assumption on nu is required.
 This gives total mass, not integrability of an arbitrary unbounded function.
 
-Before corpus admission: freeze the natural-language question and rubric,
-independently decode an anonymous target and compare all semantic slots.
-This public candidate belongs to the already-public coupling family and
+Admission requires a frozen natural-language question/rubric, anonymous
+decoding and an independent comparison of all seven semantic slots.
+This public fixture belongs to the already-public coupling family and
 must never be relabelled as an unseen private test.
 -/
 

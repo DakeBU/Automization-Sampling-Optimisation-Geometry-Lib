@@ -25,8 +25,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 14)
-        self.assertEqual(len(prompts), 17)
+        self.assertEqual(len(self.cores), 15)
+        self.assertEqual(len(prompts), 19)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -53,7 +53,7 @@ class BenchTests(unittest.TestCase):
             target_module = core['source_file'].removesuffix('.lean').replace('/', '.')
             self.assertNotIn('import ' + target_module + '\n', reference)
             self.assertRegex(reference, r'\bexample\s')
-            self.assertNotIn('end AutoSamplingTheory', reference)
+            self.assertNotIn('end AutoSamplingTheory', reference.split('\nexample', 1)[1])
             self.assertNotIn(core['declaration'], reference)
             self.assertNotIn('sorry', reference)
             self.assertEqual(core['source_sha256_lf'], bench.text_hash(ROOT / core['source_file']))
@@ -76,9 +76,13 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 17)
+            self.assertEqual(manifest['qa_views'], 19)
             self.assertEqual(manifest['graph_tasks'], 3)
             self.assertEqual(manifest['independent_semantic_review'], 'pending')
+            guide = (output/'README.md').read_text(encoding='utf-8')
+            self.assertNotIn('](reviews/', guide)
+            self.assertIn('/blob/main/benchmarks/samplingoptimisationgeometrybench/reviews/formal-3/README.md', guide)
+            self.assertFalse((output/'reviews').exists())  # Historical rejected text is audit-only.
             for name, digest in manifest['files'].items():
                 self.assertEqual(digest, bench.sha((output / name).read_bytes()))
             for name in bench.project_licensing.LICENSE_FILES:
@@ -110,7 +114,7 @@ class BenchTests(unittest.TestCase):
                    'compiler_version': 'Lean (version 4.33.0, test fixture)',
                    'bindings': {c['id']: c['binding_sha256'] for c in aligned},
                    'reference_sha256': {c['id']: bench.sha(c['lean_reference'].encode()) for c in aligned},
-                   'commands': [{'returncode': 0}] * 5}
+                   'commands': [{'returncode': 0}] * (len(aligned) + 2)}
         with tempfile.TemporaryDirectory() as tmp, \
              patch.object(bench, 'RECEIPT', Path(tmp) / 'receipt.json'), \
              patch.object(bench, 'environment_digest', return_value='environment'):
@@ -156,12 +160,12 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 14)
+        self.assertEqual(coverage['unique_mathematical_cores'], 15)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 14)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 15)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], 'pending')
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))

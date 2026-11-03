@@ -1,0 +1,125 @@
+"""Anonymous paired review, exact target bindings and distinct-role admission."""
+from copy import deepcopy
+import json
+from pathlib import Path
+import shutil
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'website/scripts')]
+import sog_bench as bench
+import sog_bench_review as review
+import sog_bench_formal_review as formal
+
+ROUND = formal.REVIEWS / 'formal-3'
+
+
+class PairedReviewTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.source_patch = patch.object(bench.astis_site, '_SOURCE_BY_NAME',
+            {d.full_name:d for d in bench.astis_site.scan_project_sources()[1]})
+        cls.source_patch.start()
+        cls.addClassCleanup(cls.source_patch.stop)
+        cls.cores = bench.materialize()
+        cls.core = next(c for c in cls.cores if c['id'] == 'sogb-015')
+
+    def test_anonymous_input_is_exact_without_source_identity_or_answer(self):
+        packet, mapping = formal.decoder_payload([self.core])
+        self.assertEqual((ROUND/'packets/anonymous-input.json').read_bytes(), bench.encoded(packet))
+        self.assertEqual((ROUND/'packets/coordinator-map.json').read_bytes(), bench.encoded(mapping))
+        text = json.dumps(packet)
+        for key in ('id', 'title', 'family', 'source_file', 'declaration'):
+            self.assertNotIn(self.core[key], text)
+        self.assertNotIn('AutoSamplingTheory', text)
+        self.assertNotIn(':= by', text)
+        self.assertNotIn('steps', text)
+        self.assertNotIn('lean_reference', text)
+        self.assertIn('def IsCoupling', text)
+
+    def test_input_generation_rejects_missing_context_source_leaks_unpaired_and_overwrite(self):
+        for change in ({'decoder_definitions': []}, {'decoder_definitions': [self.core['declaration']]},
+                       {'decoder_definitions': [{'hidden': 'structured context'}]}, {'lean_enabled': False}):
+            with self.assertRaises(ValueError):
+                formal.decoder_payload([{**self.core, **change}])
+        with self.assertRaises(ValueError):
+            formal.decoder_payload([self.core, self.core])
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / 'packets'
+            formal.prepare_decoder([self.core], target)
+            with self.assertRaises(ValueError):
+                formal.prepare_decoder([self.core], target)
+
+    def test_actual_distinct_actor_evidence_admits_one_conclusion_only_pair(self):
+        rows = formal.statuses(self.cores)
+        self.assertEqual(set(rows), {'sogb-015'})
+        self.assertEqual(rows['sogb-015']['editorial'], 'accepted')
+        self.assertEqual(rows['sogb-015']['formal_alignment'], 'conclusion-only')
+        self.assertTrue(rows['sogb-015']['remaining_unformalized'])
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 15)
+
+    def test_altered_packets_role_reuse_slots_and_open_repairs_fail_closed(self):
+        for scenario in ('packet', 'source-role', 'decoder-role', 'slots', 'repair'):
+            with tempfile.TemporaryDirectory() as tmp:
+                directory = Path(tmp) / 'formal-test'
+                shutil.copytree(ROUND, directory)
+                path = directory / 'source-review.json'
+                data = json.loads(path.read_text(encoding='utf-8'))
+                if scenario == 'packet':
+                    packet = directory / 'packets/anonymous-input.json'
+                    packet.write_bytes(packet.read_bytes() + b'\n')
+                elif scenario == 'source-role':
+                    data['actor_identity'] = review.AUTHOR
+                elif scenario == 'decoder-role':
+                    data['actor_identity'] = json.loads((directory/'decoder.json').read_text(encoding='utf-8'))['actor_identity']
+                elif scenario == 'slots':
+                    data['items']['sogb-015']['semantic_slots'].pop('constants')
+                else:
+                    data['items']['sogb-015']['repair_requests'] = ['Unresolved mathematical repair.']
+                path.write_bytes(bench.encoded(data))
+                with self.assertRaises(ValueError):
+                    formal.round_statuses(self.cores, directory)
+
+    def test_current_revision_becomes_stale_without_invalidating_other_rounds(self):
+        data = deepcopy(bench.load())
+        data['cores'][-1]['question'] += ' An additional unreviewed conclusion.'
+        changed = bench.materialize(data)
+        rows = review.summary(changed)['items']
+        self.assertEqual(rows['sogb-015']['editorial'], 'stale')
+        self.assertEqual(rows['sogb-001']['editorial'], 'accepted')
+        self.assertEqual(rows['sogb-012']['editorial'], 'accepted')
+
+    def test_overlapping_formal_rounds_do_not_silently_override_a_decision(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            shutil.copytree(ROUND, target/'formal-a')
+            shutil.copytree(ROUND, target/'formal-b')
+            with self.assertRaises(ValueError):
+                formal.statuses(self.cores, target)
+
+    def test_more_than_nine_aliases_keep_numeric_case_order(self):
+        # Synthetic input/reconstruction fixtures exercise serialization only.
+        # No source-review verdict is created or admitted.
+        cores = [{**self.core, 'id': f'sogb-{100+i:03d}',
+                  'binding_sha256': bench.sha(str(i).encode())} for i in range(12)]
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            formal.prepare_decoder(cores, directory/'packets')
+            packet = json.loads((directory/'packets/anonymous-input.json').read_text(encoding='utf-8'))
+            decoded = {'schema_version': 1, 'actor_identity': 'software-test-fixture-only',
+                       'source_text_visible': False,
+                       'input_packet_sha256': bench.sha((directory/'packets/anonymous-input.json').read_bytes()),
+                       'cases': {c['case']: {slot: 'Serialization fixture, not a mathematical review.'
+                                           for slot in review.SLOTS} for c in packet['cases']}}
+            (directory/'decoder.json').write_bytes(bench.encoded(decoded))
+            formal.prepare_reviewer(cores, directory)
+            combined = json.loads((directory/'packets/reviewer-input.json').read_text(encoding='utf-8'))
+            self.assertEqual([c['id'] for c in combined['mathematical_cores']], [c['id'] for c in cores])
+            self.assertEqual(formal.round_statuses(cores, directory), {})
+
+
+if __name__ == '__main__':
+    unittest.main()

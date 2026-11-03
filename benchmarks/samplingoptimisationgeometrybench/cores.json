@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.3.0-dev",
+  "version": "0.4.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -316,6 +316,24 @@
       "dependencies":{"astis":[],"mathlib":[]},
       "boundary":"No irreducibility, aperiodicity, mixing-rate theorem or general-state-space ergodic theorem is proved.",
       "source_note":"Original finite-chain terminology exercise with an elementary identity-matrix illustration."
+    },{
+      "id":"sogb-015", "family":"coupling-swap-near-optimality", "domain":"transport",
+      "library_domains":["statistical-optimal-transport"], "track_levels":{"natural-language":"L2","lean":"L2"},
+      "difficulty_reason":"Use the mass identity for a measurable coordinate pushforward and one prescribed probability marginal to recover the joint probability interface. This is one local measure-theoretic mechanism, not a code-length label.",
+      "skills":["calculation","proof","assumption-audit"], "difficulty":"foundation",
+      "title":"Recovering joint probability mass from one marginal",
+      "assumptions":["The spaces \\(\\alpha,\\beta\\) carry arbitrary measurable structures, with the product measurable structure on \\(\\alpha\\times\\beta\\).", "The measure \\(\\gamma\\) couples \\(\\mu\\) and \\(\\nu\\): its coordinate pushforwards satisfy \\(\\gamma.\\mathrm{fst}=\\mu\\) and \\(\\gamma.\\mathrm{snd}=\\nu\\).", "Only \\(\\mu\\) is assumed to be a probability measure. No finiteness or probability assumption on \\(\\gamma\\) or \\(\\nu\\) is supplied independently."],
+      "question":"Prove that γ is a probability measure by calculating its total mass from the coupling identities. Identify which marginal identity this argument uses and explain whether ν needs an additional probability assumption. Do not assume the desired joint normalization at the outset.",
+      "steps":["Let \\(\\pi_1:\\alpha\\times\\beta\\to\\alpha\\) be the first projection, which is measurable for the product measurable structure. The inverse image of the whole first space is the whole product space: \\[\\pi_1^{-1}(\\alpha)=\\alpha\\times\\beta.\\]", "By the definition of pushforward mass and the prescribed first marginal, \\[\\gamma(\\alpha\\times\\beta)=(\\gamma.\\mathrm{fst})(\\alpha)=\\mu(\\alpha)=1.\\] The last equality is exactly the probability assumption on μ.", "A measure of total mass one is a probability measure. Thus γ has the required probability interface; its finiteness is a consequence, not an extra premise used to obtain the mass identity.", "This deduction uses only the first marginal identity. The second marginal remains part of the coupling data but no separate probability assumption on ν is needed. This local mass result asserts no optimality, moment bound or integrability of arbitrary unbounded functions."],
+      "rubric":[{"points":1,"criterion":"Reduces joint probability normalization to proving γ has total mass one, without assuming γ is already finite or a probability measure."},{"points":1,"criterion":"Uses the measurable first projection and its inverse image of the whole space to identify joint mass with first-marginal mass."},{"points":1,"criterion":"Uses γ.fst=μ and μ being a probability measure to obtain the exact mass one."},{"points":1,"criterion":"Identifies that the second-marginal identity is unused in this calculation and does not add a probability premise on ν."}],
+      "declaration":"AutoSamplingTheory.TechnicalLemmas.Measure.Transport.isProbabilityMeasure_of_isCoupling_left",
+      "source_file":"AutoSamplingTheory/TechnicalLemmas/Measure/Transport.lean",
+      "context":"open MeasureTheory\nnamespace AutoSamplingTheory.TechnicalLemmas.Measure.Transport\ndef IsCoupling {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]\n    (γ : Measure (α × β)) (μ : Measure α) (ν : Measure β) : Prop :=\n  γ.fst = μ ∧ γ.snd = ν\nend AutoSamplingTheory.TechnicalLemmas.Measure.Transport\nopen AutoSamplingTheory.TechnicalLemmas.Measure.Transport\n",
+      "decoder_definitions":["Measures take values in the nonnegative extended reals. IsProbabilityMeasure η is a Prop-valued typeclass asserting that η assigns mass one to the whole underlying space.","For a measure η on a product measurable space, η.fst and η.snd are its pushforwards under the first and second coordinate projections.","IsCoupling γ μ ν is the conjunction γ.fst=μ and γ.snd=ν, as defined in the given Lean context."],
+      "lean_explanation":"The given context reproduces the existing public IsCoupling definition exactly; it is not a new library lemma, and the target module is not imported. The constructor tactic reduces IsProbabilityMeasure γ to its total-mass field. Rewriting by the reverse of Measure.fst_univ turns joint mass into first-marginal mass, hγ.1 substitutes μ, and measure_univ uses the existing probability instance for μ. The second conjunct hγ.2 is not needed. This is a fixed-target reconstruction, not a claim of finite moments or a solved transport problem.",
+      "dependencies":{"astis":["AutoSamplingTheory.TechnicalLemmas.Measure.Transport.IsCoupling"],"mathlib":["Measure.fst_univ","measure_univ","IsProbabilityMeasure"]},
+      "boundary":"The Lean target proves the joint probability interface under exactly the displayed marginal assumptions. Surrounding nonclaims about optimality, unbounded integrability and moments are not separate Lean results. No new production theorem or Registry leaf is introduced.",
+      "source_note":"Original exercise over the local coupling-normalization lemma, a reusable probability-interface dependency for coupling and transport arguments. It is not a quotation or completion of a textbook transport theorem. The family was already public before this QA was authored."
     }
   ]
 }

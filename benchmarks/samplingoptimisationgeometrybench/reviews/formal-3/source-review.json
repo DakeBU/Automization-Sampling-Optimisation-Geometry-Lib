@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "actor_identity": "agent-task:root/sog_paired_review_3",
+  "scope": "independent AI paired QA editorial review; not canonical theorem publication",
+  "input_packet_sha256": "e4df11e0797e393846b433b92d65cd3a5513b8e7059bda92143340dacf60941b",
+  "items": {
+    "sogb-015": {
+      "binding_sha256": "0bf552e05112c84a48c1bb862da7870035eb715a9cd61d0a95474c6694d37a7f",
+      "context_sha256": "80e13c652feca7912eae3e4a6fb1a6703981ad2a97432fd25e554af640289e55",
+      "verdict": "accept",
+      "formal_scope": "conclusion-only",
+      "semantic_slots": {
+        "objects": "Matched across the authored core, independent reconstruction, and public source: measurable types alpha and beta; measures mu on alpha, nu on beta, and gamma on alpha x beta; coordinate pushforwards gamma.fst and gamma.snd. IsCoupling is a proposition equating these marginals to mu and nu, not a constructor, independence condition, or preferred coupling.",
+        "domains": "Matched: arbitrary measurable spaces with the product measurable structure on alpha x beta, and measure values in the nonnegative extended reals. The source and task introduce no topology, metric, separability, countability, finiteness, sigma-finiteness, or explicit nonemptiness premises. Probability and coupling may imply nonemptiness; they do not add a separate binder requiring it.",
+        "quantifiers": "Matched: for the implicit types and arbitrary implicit measures gamma, mu, and nu, given measurable-space instances, an IsProbabilityMeasure mu instance, and a proof hgamma of IsCoupling gamma mu nu, conclude IsProbabilityMeasure gamma. This is universal implication about an already given coupling, not existence or selection of a coupling or an optimizer.",
+        "assumptions": "Matched exactly: gamma.fst = mu and gamma.snd = nu, together with probability normalization of mu. No probability or finiteness of gamma or nu is independently assumed, and there is no product-measure or independence premise. Only the first conjunct is needed in the displayed argument; retaining the unused second conjunct faithfully reproduces the public API.",
+        "conclusion": "Matched: the given joint measure gamma has total mass exactly one, expressed as the Prop-valued typeclass IsProbabilityMeasure gamma. This is not a theorem asserting existence, uniqueness, optimal transport, equality to mu.prod nu, moments, or integrability of arbitrary unbounded functions. Probability of nu follows from the full coupling data, but is not an additional requested conclusion or premise.",
+        "senses": "Matched: coupling means exact equality of measures; marginals are measurable coordinate pushforwards; probability is exact normalization in the nonnegative extended reals. There is no almost-everywhere equality of measures, convergence, asymptotic regime, inequality, or approximate coupling hidden in the definition.",
+        "constants": "Matched: the only normalization constant is exactly 1. It is the value of mu on the whole first space, transferred without loss or multiplicative factor to gamma on the whole product. There are no auxiliary constants, thresholds, rates, dimensions, or omitted bounds."
+      },
+      "mathematics_checks": [
+        "Verified the actual input bytes have SHA256 e4df11e0797e393846b433b92d65cd3a5513b8e7059bda92143340dacf60941b. Read the cited local Transport.lean directly; its LF-normalized SHA256 is d3eff4916a04ab9473ee86b839fa13b8447fa1c4d162874a4ceddbce4003e414, matching the packet, and the cited theorem begins at line 81.",
+        "Actual task-context/public-API comparison: Transport.lean defines AutoSamplingTheory.TechnicalLemmas.Measure.Transport.IsCoupling with the same type and measure binders and exactly the body gamma.fst = mu and gamma.snd = nu. The task's single qualified namespace reproduces the source's nested namespaces. The omitted documentation and open scoped ENNReal introduce no semantic change to this definition or statement.",
+        "The public theorem at Transport.lean:81-87 and the task example have the same measurable-space, measure, and probability-instance binders, the same IsCoupling hypothesis, and the same IsProbabilityMeasure gamma conclusion. The task imports Mathlib.MeasureTheory.Measure.Prod rather than importing the target Transport module; there is no extra local joint-normalization hypothesis or replacement definition strengthening the coupling contract.",
+        "Checked Mathlib Measure/Prod.lean directly: Measure.fst is gamma.map Prod.fst, fst_apply invokes Measure.map_apply with measurable_fst, and fst_univ states gamma.fst univ = gamma univ. This marginal section introduces no finiteness or sigma-finiteness assumption on gamma. The coordinate projection is measurable for arbitrary product measurable spaces, and its preimage of univ is univ.",
+        "Checked Mathlib Measure/Typeclasses/Probability.lean directly: IsProbabilityMeasure is a Prop class with the single field measure_univ : eta univ = 1. Therefore the constructor step has exactly the claimed normalization goal; it does not assume that gamma is already finite or a probability measure.",
+        "The authored formula proof is valid: gamma(alpha x beta) = gamma.fst(alpha) by the pushforward mass identity, = mu(alpha) by hgamma.1, = 1 by the probability instance on mu. The public/reference Lean proof performs these exact equalities with rw [reverse Measure.fst_univ, hgamma.1, measure_univ]. No circular use of a probability instance for gamma is involved.",
+        "The calculation never uses hgamma.2. No additional probability premise on nu is necessary. If one separately wanted its probability conclusion, gamma.snd univ = gamma univ together with hgamma.2 would give nu univ = 1 after joint normalization; the authored answer correctly distinguishes a missing premise from a derived consequence.",
+        "The independent reconstruction agrees with all seven audited slots and does not silently add existence, independence, nonemptiness, finiteness, or transport assumptions. Agreement with that reconstruction is a consistency check; the fidelity finding rests on the inspected source and Mathlib definitions, not on compilation or authored alignment labels.",
+        "The local result is appropriately limited. Probability entails finite total mass, but does not by itself ensure finite moments, integrability of arbitrary unbounded functions, existence of an optimal coupling, or any transport-cost bound. The authored explanatory exclusions are consistent with the source statement."
+      ],
+      "scoring_checks": [
+        "Criterion 1 (1 point): the authored proof explicitly reduces probability to total mass one and states that finiteness is a consequence. This matches the single field of IsProbabilityMeasure and does not reward circularly assuming joint finiteness or probability.",
+        "Criterion 2 (1 point): the authored first step supplies measurability of the first projection and the inverse-image-of-the-whole-space identity. These are precisely the ingredients of Measure.fst_univ, so this point tests a valid pushforward mechanism rather than an unstated regularity premise.",
+        "Criterion 3 (1 point): the authored equality chain uses gamma.fst = mu and mu(alpha) = 1 to obtain the exact constant. This is a distinct substitution/normalization step after the projection mass identity and matches the source proof.",
+        "Criterion 4 (1 point): the authored answer identifies the unused second marginal and explicitly declines an extra probability premise on nu. This matches the actual dependency of the displayed proof. It does not falsely say that nu can have nonunit mass while all coupling hypotheses hold.",
+        "The four one-point criteria total four and correspond to four visible obligations: goal reduction, pushforward mass mechanism, substitution and normalization, and assumption audit. The supplied worked answer satisfies all four; no criterion demands an optimizer, product representation, moment bound, or additional Lean theorem.",
+        "The foundation rationale is mathematically defensible as a provisional editorial classification: one local measurable-pushforward mass identity and one normalization substitution are sufficient. The L2 track labels can be read as provisional labels only; neither code length nor successful compilation supplies empirical difficulty calibration, and no learner or model measurement is established by this review.",
+        "The Lean boundary is accurately conclusion-only. A proof of IsProbabilityMeasure gamma does not automatically grade the explanatory projection argument, the identification of an unused hypothesis, or the prose exclusions. Those remain separate editorial/rubric judgments; the packet does not present them as independently formalized Lean conclusions."
+      ],
+      "remaining_unformalized": [
+        "The natural-language account of measurable projection, inverse images, and why the second conjunct is unused is reviewed here against definitions and proof dependencies, not certified as a separate proposition by the conclusion-only Lean target.",
+        "The explanation that no additional probability premise on nu is needed, and the distinction between such a premise and its derivability, are not separate Lean results in this task. The signature and displayed source proof support that explanation.",
+        "The exclusions of optimality, arbitrary unbounded integrability, and moment guarantees are scope explanations rather than theorem statements proved by this target. No new production theorem, Registry leaf, or canonical VERIFIED publication is supplied or inferred.",
+        "Rubric appropriateness and the provisional foundation/L2 difficulty assessment remain independent AI editorial judgments. They are not empirical calibration, human expert consensus, or a claim that every explanatory component has been formalized."
+      ],
+      "repair_requests": []
+    }
+  }
+}

@@ -43,13 +43,13 @@ def main() -> None:
                 page.get_by_role('link', name='Prompt-only JSONL', exact=True).click()
             path = download.value.path()
             records = [json.loads(line) for line in Path(path).read_text(encoding='utf-8').splitlines()]
-            assert len(records) == 17 and all('lean_reference' not in r and 'steps' not in r for r in records)
+            assert len(records) == 19 and all('lean_reference' not in r and 'steps' not in r for r in records)
             with page.expect_download() as reviewed_download:
                 page.get_by_role('link', name='editorially reviewed prompts', exact=True).click()
             reviewed = [json.loads(line) for line in Path(reviewed_download.value.path()).read_text(encoding='utf-8').splitlines()]
-            assert len(reviewed) == 17 and {r['id'] for r in reviewed} == {f'sogb-{i:03d}' for i in range(1,15)}
+            assert len(reviewed) == 19 and {r['id'] for r in reviewed} == {f'sogb-{i:03d}' for i in range(1,16)}
             page.screenshot(path=str(args.evidence / 'overview-desktop.png'), full_page=True)
-            for identity in ('sogb-001', 'sogb-002', 'sogb-003'):
+            for identity in ('sogb-001', 'sogb-002', 'sogb-003', 'sogb-015'):
                 page.goto(base + HUB + identity + '.html')
                 page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                 page.evaluate('() => MathJax.startup.promise')
@@ -108,7 +108,7 @@ def main() -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
-    report = {'mathematical_views': 17, 'graph_tasks': 3, 'math_rendered': True, 'lean_highlighting': True,
+    report = {'mathematical_views': 19, 'graph_tasks': 3, 'math_rendered': True, 'lean_highlighting': True,
               'folds_and_copy': True, 'prompt_only_download': True, 'reviewed_subset_download': True,
               'editorial_vs_formal_scope_visible': True, 'mobile_overflow': False,
               'runtime_errors': errors}

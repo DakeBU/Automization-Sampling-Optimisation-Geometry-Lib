@@ -139,6 +139,14 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
         '<section id="lean"><h2>Lean view: not yet aligned</h2>' + lean + '<p>This support theorem does not certify the complete QA or its explanatory counterexamples.</p></section>')
     dependencies = ''.join('<h3>' + label + '</h3><ul>' + ''.join('<li><code>' + escape(n) + '</code></li>' for n in core['dependencies'][key]) + '</ul>'
                            for key, label in (('astis', 'ASTIS definitions / proof calls' if bench.has_lean(core) else 'ASTIS formal support (not an equivalent QA)'), ('mathlib', 'Mathlib facts / definitions')))
+    support_links = ''
+    for support in core.get('supporting_declarations', []):
+        support_href, _ = astis_site.source_href(known[support['declaration']], from_path=rel)
+        support_links += ('<li><a href="' + escape(support_href) + '"><code>'
+                          + escape(support['declaration']) + '</code></a> · LF source SHA-256: <code>'
+                          + support['source_sha256_lf'] + '</code></li>')
+    if support_links:
+        dependencies += '<h3>Additional source-bound support (not full QA certification)</h3><ul>' + support_links + '</ul>'
     related=[g for g in (bench.curriculum.graph_items() if structural is None else structural) if g.get('core_id')==core['id']]
     graph_links=('<p>Structural questions about this proof context (not equivalent mathematical tasks): '+
                  ' · '.join('<a href="'+g['id']+'.html">'+escape(g['title'])+'</a>' for g in related)+'</p>') if related else ''

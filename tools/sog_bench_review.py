@@ -33,6 +33,10 @@ def context_binding(core: dict) -> str:
             if name.startswith('AutoSamplingTheory.'):
                 visit(name.replace('.', '/') + '.lean')
     visit(core['source_file'])
+    # Research audits can inspect several producers outside the anchor's
+    # imports. Bind every explicitly cited support module and its local closure.
+    for support in core.get('supporting_declarations', []):
+        visit(support['source_file'])
     return bench.sha(bench.encoded({'binding_sha256': core['binding_sha256'], 'local_context': seen,
         'toolchain': bench.text_hash(ROOT / 'lean-toolchain'),
         'mathlib': bench.text_hash(ROOT / 'lake-manifest.json')}))

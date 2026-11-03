@@ -77,8 +77,23 @@ def materialize(data: dict | None = None) -> list[dict]:
         declaration = known.get(core['declaration'])
         if declaration is None or declaration.source_file != core['source_file'] or declaration.has_placeholder:
             raise ValueError('Unresolved or unfinished reference declaration: ' + core['declaration'])
+        extra = {}
+        if 'additional_source_declarations' in core:
+            names = core['additional_source_declarations']
+            if (not isinstance(names, list) or not names or
+                    not all(isinstance(n, str) for n in names) or len(names) != len(set(names))):
+                raise ValueError('Additional source declarations must be distinct nonempty names')
+            sources = []
+            for name in names:
+                support = known.get(name)
+                if support is None or support.has_placeholder:
+                    raise ValueError('Unresolved or unfinished supporting declaration: ' + name)
+                sources.append({'declaration': name, 'source_file': support.source_file,
+                                'source_line': support.source_line,
+                                'source_sha256_lf': text_hash(ROOT / support.source_file)})
+            extra['supporting_declarations'] = sources
         if not has_lean(core):
-            bound = {**core, 'split': data['split'], 'source_sha256_lf': text_hash(ROOT / core['source_file']),
+            bound = {**core, **extra, 'split': data['split'], 'source_sha256_lf': text_hash(ROOT / core['source_file']),
                      'source_line': declaration.source_line, 'imports': [], 'lean_task': '', 'lean_reference': ''}
             if core.get('support_source_view'):
                 # Exact supporting module, not another task/reference certificate.
@@ -108,7 +123,7 @@ def materialize(data: dict | None = None) -> list[dict]:
         task = prefix + target + ' := by\n  -- Replace this comment with your proof.\n'
         if re.search(r'\b(sorry|admit|axiom|unsafe)\b', astis_site.sanitize_lean(reference)):
             raise ValueError('Forbidden reference proof token')
-        bound = {**core, 'split': data['split'], 'source_sha256_lf': text_hash(ROOT / core['source_file']),
+        bound = {**core, **extra, 'split': data['split'], 'source_sha256_lf': text_hash(ROOT / core['source_file']),
                  'source_line': declaration.source_line, 'imports': imports,
                  'lean_task': task, 'lean_reference': reference}
         bound['binding_sha256'] = sha(encoded(bound))

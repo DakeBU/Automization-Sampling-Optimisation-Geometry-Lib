@@ -89,8 +89,8 @@ class EditorialReviewTests(unittest.TestCase):
             bench.export(target, with_draft)
             questions = [json.loads(line) for line in (target/'reviewed-questions.jsonl').read_text(encoding='utf-8').splitlines()]
             refs = [json.loads(line) for line in (target/'reviewed-reference.jsonl').read_text(encoding='utf-8').splitlines()]
-            self.assertEqual(len(questions), 35)
-            self.assertEqual(len(refs), 24)
+            self.assertEqual(len(questions), 38)
+            self.assertEqual(len(refs), 26)
             self.assertEqual({q['id'] for q in questions}, {c['id'] for c in refs})
             self.assertTrue(all('steps' not in q and 'lean_reference' not in q for q in questions))
             self.assertNotIn('sogb-999', {q['id'] for q in questions})
@@ -100,7 +100,7 @@ class EditorialReviewTests(unittest.TestCase):
         self.assertEqual(set(rows), {f'sogb-{i:03d}' for i in range(8,15)})
         self.assertTrue(all(review.accepted(row) for row in rows.values()))
         self.assertTrue(all(row['formal_alignment'] == 'no-aligned-view' for row in rows.values()))
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 24)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 26)
 
     def test_uncountable_event_review_is_unpaired_and_separately_content_bound(self):
         directory=review.BASE/'reviews/prose-4'
@@ -189,6 +189,50 @@ class EditorialReviewTests(unittest.TestCase):
                 path.write_bytes(bench.encoded(obj))
                 with self.assertRaises(ValueError):
                     review.prose_statuses(self.cores, folder)
+
+    def test_additional_support_modules_and_ancestors_bind_research_audit(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-026')
+        actual_hash = bench.text_hash
+        baseline = review.context_binding(core)
+        self.assertEqual(len(core['supporting_declarations']), 4)
+        for support in core['supporting_declarations']:
+            target = (bench.ROOT / support['source_file']).resolve()
+            self.assertEqual(support['source_sha256_lf'], actual_hash(target))
+            with patch.object(bench, 'text_hash', side_effect=lambda path:
+                              'changed-extra-source' if path.resolve() == target else actual_hash(path)):
+                self.assertNotEqual(review.context_binding(core), baseline)
+        # This ancestor is not itself one of the four named support modules.
+        target = (bench.ROOT / 'AutoSamplingTheory/ExampleCases/ProximalBPS/GaussianAugmentation.lean').resolve()
+        with patch.object(bench, 'text_hash', side_effect=lambda path:
+                          'changed-extra-ancestor' if path.resolve() == target else actual_hash(path)):
+            self.assertNotEqual(review.context_binding(core), baseline)
+
+    def test_additional_source_metadata_is_resolved_and_not_prompt_leakage(self):
+        data = deepcopy(bench.load())
+        original = next(c for c in data['cores'] if c['id'] == 'sogb-026')
+        for names in ([], ['Unknown.missing'], ['duplicate', 'duplicate'], 'not-a-list'):
+            original['additional_source_declarations'] = names
+            with self.assertRaises(ValueError):
+                bench.materialize(data)
+        core = next(c for c in self.cores if c['id'] == 'sogb-026')
+        prompt = bench.prompts([core])[0]
+        self.assertNotIn('supporting_declarations', prompt)
+        self.assertNotIn('support_lean_source', prompt)
+        self.assertNotIn('lean', core['track_levels'])
+
+    def test_curvature_prose_repair_preserves_the_actual_math_and_no_formal_alignment(self):
+        directory = review.BASE / 'reviews/prose-5'
+        packet = json.loads((directory / 'packets/prose-input.json').read_text(encoding='utf-8'))
+        proposal = json.loads((directory / 'packets/repair-input.json').read_text(encoding='utf-8'))
+        before = packet['mathematical_cores'][0]
+        after = proposal['cases']['sogb-026']['proposed_after']
+        self.assertEqual(before['track_levels'], {'natural-language': 'L5'})
+        self.assertEqual(after['track_levels'], {'natural-language': 'L4'})
+        changed = {k for k in before.keys() | after.keys() if before.get(k) != after.get(k)}
+        self.assertEqual(changed, {'track_levels', 'difficulty_reason', 'binding_sha256'})
+        row = review.prose_statuses(self.cores, directory)['sogb-026']
+        self.assertEqual(row['editorial'], 'accepted-after-repair')
+        self.assertEqual(row['formal_alignment'], 'no-aligned-view')
 
     def test_nl_review_is_local_and_stale_when_content_or_support_changes(self):
         data = deepcopy(bench.load())

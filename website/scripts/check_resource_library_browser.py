@@ -41,6 +41,8 @@ def main() -> None:
                     page.evaluate('() => MathJax.startup.promise')
                     assert page.locator('mjx-merror, [data-mjx-error]').count() == 0, rel
                     assert page.locator('[data-resource-library]').count() == 1
+                    assert page.locator('.library-source-hubs > a').count() == 7
+                    assert page.locator('[data-resource-navigation="true"]').count() == 1
                     assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1'), rel
                     checked.append(rel)
                 page.goto(base + 'resources/forum/algorithms.html')

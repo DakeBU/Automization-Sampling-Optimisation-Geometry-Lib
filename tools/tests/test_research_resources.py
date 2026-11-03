@@ -12,6 +12,16 @@ import resource_library as reader
 
 
 class ResourceTests(unittest.TestCase):
+    def test_navigation_preserves_seven_libraries_and_is_idempotent(self):
+        section = '<section class="sidebar-group sidebar-libraries"><nav>' + '<a href="library.html">Book</a>' * 7 + '</nav></section>'
+        result = reader.attach_navigation(section, 'resources/forum/algorithms.html')
+        self.assertEqual(result.split('</section>')[0].count('<a '), 7)
+        self.assertIn('href="../../resources/index.html"', result)
+        self.assertIn('data-resource-navigation="true"', result)
+        self.assertEqual(reader.attach_navigation(result, 'resources/forum/algorithms.html'), result)
+        old = section.replace('</nav>', '<a data-resource-nav="true" href="old">Research resources</a></nav>')
+        self.assertEqual(reader.attach_navigation(old, 'resources/forum/algorithms.html'), result)
+
     def test_complete_pinned_inventory(self):
         data = intake.load()
         self.assertEqual([len(s['items']) for s in data['forum']['sections']], [9, 1, 1, 12, 67, 43])

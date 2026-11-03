@@ -185,6 +185,19 @@ def wrap(body: str, depth: int = 1) -> str:
             + a(p + 'resources/sampling.html', 'Sampling') + ' / ' + a(p + 'resources/geometry.html', 'Geometry') + '</nav>' + body + '</article>')
 
 
+def attach_navigation(text: str, rel: str) -> str:
+    """A utility directory is not an eighth mathematical library."""
+    if 'data-resource-navigation="true"' in text or 'sidebar-libraries' not in text:
+        return text
+    # Migrate only our earlier generated link, never a canonical library link.
+    text = re.sub(r'<a data-resource-nav="true"[^>]*>Research resources</a>', '', text)
+    start = text.index('sidebar-libraries')
+    stop = text.index('</section>', start) + len('</section>')
+    link = '<a data-resource-nav="true" href="' + astis_site.relative_prefix(rel) + 'resources/index.html">Browse by subject and purpose</a>'
+    block = '<section class="sidebar-group resource-navigation" data-resource-navigation="true"><h2>Resources</h2><nav>' + link + '</nav></section>'
+    return text[:stop] + block + text[stop:]
+
+
 def enrich_site(output: Path) -> None:
     data, catalog = guides(), intake.load()
     pages = {'resources/index.html': ('Research resources', hub(data, catalog)),
@@ -226,14 +239,10 @@ def enrich_site(output: Path) -> None:
     # Add one permanent navigation entry throughout the site, without a new library.
     for path in output.rglob('*.html'):
         text = path.read_text(encoding='utf-8')
-        if 'data-resource-nav="true"' in text or 'sidebar-libraries' not in text:
-            continue
         rel = path.relative_to(output).as_posix()
-        start = text.index('sidebar-libraries')
-        stop = text.index('</nav>', start)
-        link = '<a data-resource-nav="true" href="' + astis_site.relative_prefix(rel) + 'resources/index.html">Research resources</a>'
-        text = text[:stop] + link + text[stop:]
-        path.write_text(text, encoding='utf-8', newline='\n')
+        updated = attach_navigation(text, rel)
+        if updated != text:
+            path.write_text(updated, encoding='utf-8', newline='\n')
     for rel in ('attribution/index.html', 'attribution.html'):
         path = output / rel
         if not path.exists():
@@ -258,6 +267,10 @@ def validate_site(output: Path) -> list[str]:
     for rel in expected:
         if not (output / rel).exists() or MARKER not in (output / rel).read_text(encoding='utf-8'):
             errors.append('Missing generated resource page: ' + rel)
+        else:
+            match = re.search(r'<nav class="source-hubs library-source-hubs">(.*?)</nav>', (output / rel).read_text(encoding='utf-8'), re.S)
+            if match is None or len(re.findall(r'<a\b', match[1])) != 7:
+                errors.append('Resource navigation must not become an eighth library: ' + rel)
     for section in catalog['forum']['sections']:
         path = output / ('resources/forum/' + section['id'] + '.html')
         if not path.exists():

@@ -122,6 +122,7 @@ def graph_prompts(items: list[dict]) -> list[dict]:
 
 def coverage(cores: list[dict], graphs: list[dict], reviews: dict | None = None) -> dict:
     policy = curriculum()
+    accepted = sum((reviews or {}).get(c['id'], {}).get('editorial') in {'accepted', 'accepted-after-repair'} for c in cores)
     cells = []
     for domain in policy['domains']:
         for level in policy['levels']:
@@ -135,6 +136,9 @@ def coverage(cores: list[dict], graphs: list[dict], reviews: dict | None = None)
                           'independently_reviewed': reviewed, 'review_kind': 'AI editorial only', 'gap': not any(counts.values())})
     return {'unique_mathematical_cores': len(cores), 'mathematical_views': sum(len(c['track_levels']) for c in cores),
             'graph_tasks': len(graphs), 'independent_review': 'pending', 'difficulty_calibration': 'not-measured',
+            'editorial_accepted_mathematical_cores': accepted,
+            'mathematical_editorial_status': 'complete-for-current-cores' if cores and accepted == len(cores) else ('partial' if accepted else 'pending'),
+            'graph_editorial_status': 'pending',
             'cells': cells, 'note': policy['coverage_policy']}
 
 

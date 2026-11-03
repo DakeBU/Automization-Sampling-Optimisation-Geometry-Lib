@@ -40,7 +40,7 @@ def load() -> dict:
     if data['schema_version'] != 2 or data['split'] != 'public-dev':
         raise ValueError('This development catalog supports schema 2 and public-dev only')
     if data['review_status'] != 'independent-semantic-review-pending':
-        raise ValueError('Reviewed admission needs a future evidence-backed schema, not an edited badge')
+        raise ValueError('Overall catalog badge cannot replace derived per-item review evidence')
     ids = set()
     policy = curriculum.curriculum()
     for core in data['cores']:
@@ -203,6 +203,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'difficulty_calibration': 'author-assigned; not empirically calibrated',
                 'independent_semantic_review': 'pending', 'hidden_test': False,
                 'editorial_accepted_cores': len(reviewed),
+                'editorial_review_complete_for_current_mathematical_cores': bool(cores) and len(reviewed) == len(cores),
                 'review_kind': 'AI editorial review, not full Lean coverage or canonical theorem publication',
                 'toolchain': (ROOT / 'lean-toolchain').read_text().strip(),
                 'mathlib_manifest_sha256_lf': text_hash(ROOT / 'lake-manifest.json'),

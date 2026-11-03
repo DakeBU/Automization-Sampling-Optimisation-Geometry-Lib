@@ -47,7 +47,7 @@ def main() -> None:
             with page.expect_download() as reviewed_download:
                 page.get_by_role('link', name='editorially reviewed prompts', exact=True).click()
             reviewed = [json.loads(line) for line in Path(reviewed_download.value.path()).read_text(encoding='utf-8').splitlines()]
-            assert len(reviewed) == 10 and {r['id'] for r in reviewed} == {f'sogb-{i:03d}' for i in range(1,8)}
+            assert len(reviewed) == 17 and {r['id'] for r in reviewed} == {f'sogb-{i:03d}' for i in range(1,15)}
             page.screenshot(path=str(args.evidence / 'overview-desktop.png'), full_page=True)
             for identity in ('sogb-001', 'sogb-002', 'sogb-003'):
                 page.goto(base + HUB + identity + '.html')
@@ -90,8 +90,7 @@ def main() -> None:
                     assert page.locator('mjx-container').count() > 0
                     assert page.locator('mjx-merror, [data-mjx-error]').count() == 0
                     page.locator('summary', has_text='Editorial review and exact formal-coverage boundary').click()
-                    expected_review = 'AI editorial review accepted' if tail == 'sogb-007.html' else 'Independent QA review pending'
-                    assert expected_review in page.locator('article.sog-reader').inner_text()
+                    assert 'AI editorial review accepted' in page.locator('article.sog-reader').inner_text()
                 if tail == 'sogb-g003.html':
                     assert page.locator('.sog-graph svg rect').count() == 3
                     page.locator('.sog-graph').screenshot(path=str(args.evidence / 'import-slice-desktop.png'))
@@ -111,7 +110,7 @@ def main() -> None:
         thread.join(timeout=5)
     report = {'mathematical_views': 17, 'graph_tasks': 3, 'math_rendered': True, 'lean_highlighting': True,
               'folds_and_copy': True, 'prompt_only_download': True, 'reviewed_subset_download': True,
-              'pending_vs_accepted_review_visible': True, 'mobile_overflow': False,
+              'editorial_vs_formal_scope_visible': True, 'mobile_overflow': False,
               'runtime_errors': errors}
     (args.evidence / 'report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report))

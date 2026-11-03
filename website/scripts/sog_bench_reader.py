@@ -38,7 +38,7 @@ def review_panel(core: dict) -> str:
         detail += '<ul>' + ''.join('<li>' + escape(s) + '</li>' for s in row['remaining_unformalized']) + '</ul>'
     if row.get('issues'):
         detail += '<ul>' + ''.join('<li>' + escape(str(s)) + '</li>' for s in row['issues']) + '</ul>'
-    detail += '<p><a href="downloads/editorial-review.json">Content-bound review status and evidence hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews/round-1">Independent reports and frozen inputs</a>. Historical rejected wording is audit material, not training gold.</p>'
+    detail += '<p><a href="downloads/editorial-review.json">Content-bound review status and evidence hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews">Independent reports and frozen inputs</a>. Historical rejected wording is audit material, not training gold.</p>'
     return fold('Editorial review and exact formal-coverage boundary', detail)
 
 
@@ -47,7 +47,7 @@ def home(cores: list[dict]) -> str:
     review = bench.editorial_review(cores)
     return (f'<article class="sog-reader" {MARKER}><div class="eyebrow">Public development curriculum · {escape(bench.load()["version"])}</div>'
         '<h1>SamplingOptimisationGeometryBench</h1><p class="lede">Can an AI explain the mathematics—and reconstruct a precise Lean proof?</p>'
-        f'<p>{len(cores)} mathematical cores · {len(bench.prompts(cores))} mathematical QA views · {len(graphs)} structural graph tasks. {review["accepted_cores"]} cores have content-bound AI editorial review; remaining items and empirical calibration are pending.</p>'
+        f'<p>{len(cores)} mathematical cores · {len(bench.prompts(cores))} mathematical QA views · {len(graphs)} structural graph tasks. {review["accepted_cores"]} cores have content-bound AI editorial review. Review never supplies missing Lean coverage; graph editorial review and empirical calibration remain pending.</p>'
         '<p><a class="button" href="curriculum/index.html">Browse seven domains and L1–L5 coverage</a></p>'
         '<section class="sog-grid"><article><h2>Natural-language QA</h2><p>Explain a proof, track its constants and identify what the assumptions do not imply. No Lean knowledge required.</p><a class="button primary" href="natural-language/index.html">Try natural-language questions</a></article>'
         '<article><h2>Lean-assisted QA</h2><p>Reconstruct a fixed theorem from its allowed imports and explicit context. Read the mathematical reasoning beside optional exact Lean.</p><a class="button" href="lean/index.html">Try Lean questions</a></article>'
@@ -61,7 +61,7 @@ def home(cores: list[dict]) -> str:
         + fold('Evaluation policy and contribution guide',
             '<p>Each pair shares one core, family and public-dev split. Score the two tracks separately. Human-assessed natural-language rubrics have four one-point criteria; no automated semantic grader is claimed.</p>'
             '<p>Lean compiler acceptance certifies the fixed proposition only. Arbitrary model output requires target-preservation checks and an isolated, resource-limited sandbox. No submission execution service or AI API is connected here.</p>'
-            '<p>Only original or permission-cleared material may enter ML training/evaluation. Restricted external indexes and their derivatives are excluded. Each question discloses its current editorial status and remaining formal boundary; compilation is not that review. New drafts and graph editorial review remain pending.</p>'
+            '<p>Only original or permission-cleared material may enter ML training/evaluation. Restricted external indexes and their derivatives are excluded. Each question discloses its current editorial status and remaining formal boundary; compilation is not that review. Future drafts require their own review; graph editorial review remains pending.</p>'
             '<p><a href="downloads/README.md">Commands, grading protocol and how to add a core</a> · <a href="downloads/LICENSE_SCOPE.md">License boundaries</a></p>') + '</article>')
 
 
@@ -134,7 +134,7 @@ def curriculum_page(cores: list[dict]) -> str:
         rows.append('<tr><th><a href="../domains/' + domain + '.html">' + escape(name) + '</a></th>' + values + '</tr>')
     levels = ''.join('<li><a href="../levels/' + key + '.html"><strong>' + key + ' · ' + escape(row['label']) + '</strong></a>' + prose(row['criterion']) + '</li>' for key, row in policy['levels'].items())
     return (f'<article class="sog-reader" {MARKER}><p><a href="../index.html">Bench</a></p><h1>Domains and reasoning levels</h1>'
-        '<p>Each cell shows draft views as Natural language / Lean / Graph JSON. On small screens, scroll the table horizontally for L3–L5. A gap is not a proof-completion percentage. Shared questions can occur in several domain indexes but count once globally.</p>'
+        '<p>Each cell shows available public-dev views as Natural language / Lean / Graph JSON. On small screens, scroll the table horizontally for L3–L5. A gap is not a proof-completion percentage. Shared questions can occur in several domain indexes but count once globally.</p>'
         '<div class="sog-table"><table><thead><tr><th>Domain</th>' + ''.join('<th>' + l + '</th>' for l in policy['levels']) + '</tr></thead><tbody>' + ''.join(rows) + '</tbody></table></div>'
         '<h2>What the levels mean</h2><ol>' + levels + '</ol>' + prose(policy['difficulty_policy']) + prose(policy['graph_policy'])
         + f'<p>{editorial["accepted_cores"]} of {len(cores)} mathematical cores currently have AI editorial acceptance. Other review and empirical calibration remain pending. L5 is a planned research-audit tier, not a claim of solved open problems.</p></article>')

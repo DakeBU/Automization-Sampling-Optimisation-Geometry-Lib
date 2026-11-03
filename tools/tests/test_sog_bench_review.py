@@ -78,16 +78,75 @@ class EditorialReviewTests(unittest.TestCase):
         self.assertEqual(review.statuses(mixed)['sogb-003']['editorial'], 'repair-required')
 
     def test_reviewed_exports_cannot_silently_include_new_drafts(self):
+        data = deepcopy(bench.load())
+        draft = deepcopy(data['cores'][-1])
+        draft['id'] = 'sogb-015'
+        draft['question'] += ' Unreviewed test-fixture revision.'
+        data['cores'].append(draft)
+        with_draft = bench.materialize(data)
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp)
-            bench.export(target, self.cores)
+            bench.export(target, with_draft)
             questions = [json.loads(line) for line in (target/'reviewed-questions.jsonl').read_text(encoding='utf-8').splitlines()]
             refs = [json.loads(line) for line in (target/'reviewed-reference.jsonl').read_text(encoding='utf-8').splitlines()]
-            self.assertEqual(len(questions), 10)
-            self.assertEqual(len(refs), 7)
+            self.assertEqual(len(questions), 17)
+            self.assertEqual(len(refs), 14)
             self.assertEqual({q['id'] for q in questions}, {c['id'] for c in refs})
             self.assertTrue(all('steps' not in q and 'lean_reference' not in q for q in questions))
-            self.assertTrue(all(q['id'] not in {f'sogb-{i:03d}' for i in range(8,15)} for q in questions))
+            self.assertNotIn('sogb-015', {q['id'] for q in questions})
+
+    def test_nl_round_accepts_without_inventing_formal_alignment(self):
+        rows = review.prose_statuses(self.cores)
+        self.assertEqual(set(rows), {f'sogb-{i:03d}' for i in range(8,15)})
+        self.assertTrue(all(review.accepted(row) for row in rows.values()))
+        self.assertTrue(all(row['formal_alignment'] == 'no-aligned-view' for row in rows.values()))
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 14)
+
+    def test_nl_packet_route_rejects_formal_views_duplicates_unknown_ids_and_overwrite(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'input.json'
+            for identities in ([], ['sogb-001'], ['sogb-008', 'sogb-008'], ['unknown']):
+                with self.assertRaises(ValueError):
+                    review.prepare_prose(self.cores, identities, path)
+            review.prepare_prose(self.cores, ['sogb-008'], path)
+            self.assertEqual(json.loads(path.read_text(encoding='utf-8'))['scope'], review.PROSE_SCOPE)
+            with self.assertRaises(ValueError):
+                review.prepare_prose(self.cores, ['sogb-008'], path)
+
+    def test_nl_review_rejects_role_reuse_changed_bytes_false_alignment_and_open_repairs(self):
+        for scenario in ('role-reuse', 'packet-bytes', 'formal-scope', 'open-repair'):
+            with tempfile.TemporaryDirectory() as tmp:
+                folder = Path(tmp) / 'round'
+                shutil.copytree(review.PROSE_ROUND, folder)
+                path = folder / 'source-review.json'
+                obj = json.loads(path.read_text(encoding='utf-8'))
+                if scenario == 'role-reuse':
+                    obj['actor_identity'] = review.AUTHOR
+                elif scenario == 'formal-scope':
+                    obj['items']['sogb-008']['formal_scope'] = 'conclusion-only'
+                elif scenario == 'open-repair':
+                    obj['items']['sogb-008']['repair_requests'] = ['An unresolved mathematical change.']
+                else:
+                    packet = folder / 'packets/prose-input.json'
+                    packet.write_bytes(packet.read_bytes() + b'\n')
+                path.write_bytes(bench.encoded(obj))
+                with self.assertRaises(ValueError):
+                    review.prose_statuses(self.cores, folder)
+
+    def test_nl_review_is_local_and_stale_when_content_or_support_changes(self):
+        data = deepcopy(bench.load())
+        data['cores'][7]['question'] += ' Additional unaudited clause.'
+        changed = bench.materialize(data)
+        rows = review.prose_statuses(changed)
+        self.assertEqual(rows['sogb-008']['editorial'], 'stale')
+        self.assertEqual(rows['sogb-009']['editorial'], 'accepted')
+        actual_binding = review.context_binding
+        def changed_context(core):
+            return 'changed' if core['id'] == 'sogb-013' else actual_binding(core)
+        with patch.object(review, 'context_binding', side_effect=changed_context):
+            rows = review.prose_statuses(self.cores)
+        self.assertEqual(rows['sogb-013']['editorial'], 'stale')
+        self.assertEqual(rows['sogb-012']['editorial'], 'accepted')
 
 
 if __name__ == '__main__':

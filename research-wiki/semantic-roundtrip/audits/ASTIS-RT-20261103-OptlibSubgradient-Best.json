@@ -1,0 +1,220 @@
+{
+  "id": "ASTIS-RT-20261103-OptlibSubgradient-Best",
+  "state": "accepted",
+  "source": {
+    "source_id": "optlib-subgradient-best",
+    "anchor": "subgradient_method_converge:149–232",
+    "url": "https://github.com/optsuite/optlib/blob/5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3/Optlib/Algorithm/SubgradientMethod.lean#L149-L232",
+    "original_text": "E is a real inner-product space with its associated norm. No completeness or finite-dimensionality assumption is imposed.\nG is a nonnegative real Lipschitz constant and f:E→ℝ is globally G-Lipschitz.\nSupportsAt f x v means f(x)+⟨v,z−x⟩≤f(z) for every z∈E. It supplies a genuine global supporting vector; no differentiability or totalized gradient is used.\nx,v:ℕ→E; a:ℕ→ℝ with a_k>0; each v_k supports f at x_k; x_(k+1)=x_k−a_k v_k for every k.\nN>0, so the finite index set is nonempty and the sum of its positive step sizes is strictly positive.\nz is arbitrary. Neither attainment of the global infimum nor differentiability is supplied.\nUnder the same Lipschitz, support and exact-update assumptions, suppose every step is strictly positive and N>0. For any comparator z, some index i<N satisfies the displayed normalized best-iterate objective-gap bound.\n\\exists i<N:\\quad f(x_i)-f(z)\\le\\frac{\\|x_0-z\\|^2+G^2\\sum_{k=0}^{N-1}a_k^2}{2\\sum_{k=0}^{N-1}a_k}.",
+    "text_sha256": "ca6a300a83ce285fb57834631f9b7c33e3803adace25824e2b9c0ceaff7a3247"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.exists_gap_le",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/SubgradientMethod.lean",
+    "statement": "example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {f : E → ℝ} {G : NNReal} {x g : ℕ → E} {a : ℕ → ℝ}\n    (hf : LipschitzWith G f) (ha : ∀ k, 0 < a k)\n    (hs : ∀ k, SupportsAt f (x k) (g k))\n    (hx : ∀ k, x (k + 1) = x k - a k • g k) (z : E) {N : ℕ} (hN : 0 < N) :\n    ∃ i < N, f (x i) - f z ≤\n      (‖x 0 - z‖ ^ 2 + (G : ℝ) ^ 2 * (∑ k ∈ Finset.range N, (a k) ^ 2)) /\n        (2 * ∑ k ∈ Finset.range N, a k)",
+    "statement_sha256": "69653f7556c5d4fc3f4f43a929daeaccc339f9fad8db5c3cb54cd0d54ad6a138",
+    "compiled": true,
+    "formalizer": "root_optlib_subgradient",
+    "decoder_context": [
+      "NNReal is the type of nonnegative real numbers, coerced to real when necessary.",
+      "SupportsAt F p v abbreviates ∀ z, F p + inner ℝ v (z - p) ≤ F z. This is a pointwise inequality on the whole carrier, not a derivative or a chosen optimizer.",
+      "The norm and inner product are those of the indicated real inner-product space. Finset.range N consists of natural indices smaller than N; the displayed sums are finite real sums."
+    ]
+  },
+  "reconstruction": {
+    "text": "For every real inner-product space E, equipped with its compatible norm, every function f: E -> R, every nonnegative real number G, every pair of sequences x,g: N -> E, and every real sequence a: N -> R, assume the following: |f(u) - f(v)| <= G * ||u - v|| for all u,v in E; a(k) > 0 for every natural number k; f(x(k)) + <g(k), y - x(k)> <= f(y) for every natural number k and every y in E; and x(k+1) = x(k) - a(k) g(k) for every natural number k, where a(k) g(k) denotes real scalar multiplication. Then for every z in E and every positive natural number N there exists a natural number i with 0 <= i < N such that f(x(i)) - f(z) <= (||x(0) - z||^2 + G^2 * sum_{k=0}^{N-1} a(k)^2) / (2 * sum_{k=0}^{N-1} a(k)). Both sums are finite real sums over exactly the natural indices k < N. Their step-size sum is strictly positive because N > 0 and every a(k) > 0, so the displayed denominator is strictly positive. The comparison point z is arbitrary and need not minimize f. No completeness or finite-dimensionality of E is required; G = 0 is permitted.",
+    "text_sha256": "6285731ac01522802947ef49c78bbf0623ccaccb40ea24c193956cad4a604bea",
+    "decoder": "/root/anonymous_intake_decoder",
+    "decoder_run_sha256": "e4e4d136604c6d151440fe68ca92596c1d871d6a1cbf00f290be5939beaa9fa4",
+    "decoder_packet_sha256": "128950751649e2a3a03677e8577f40fd786afee1ac90a3c5d7e56b739890a2e6",
+    "source_text_visible": false,
+    "lean_statement_sha256": "69653f7556c5d4fc3f4f43a929daeaccc339f9fad8db5c3cb54cd0d54ad6a138",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/blind/ASTIS-BLIND-69653f7556c5d4fc.result.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "A real inner-product space, globally G-Lipschitz real objective, actual iterate/support/step sequences, arbitrary comparator z and positive finite horizon N. The upstream theorem packages the sequences in an algorithm class.",
+      "reconstructed": "The same E,f,G,x,g,a,z,N, with algorithm fields unbundled and initial point written literally as x(0).",
+      "relation": "equivalent",
+      "evidence": "Fresh #check of the declaration at module 90-96 confirms precisely the recurrence/support data. Source 137-145 supplies the same data in a class and an equality x(0)=x0, which is eliminated rather than strengthened."
+    },
+    "domains": {
+      "original": "Real inner-product carrier, NNReal/nonnegative G, real steps a_k>0, natural N>0 and i<N. No completeness, dimension or global minimizer-attainment requirement.",
+      "reconstructed": "The same domains with hN:0<N and ha:forall k,0<a k; finite sums over range N.",
+      "relation": "explicit-elaboration",
+      "evidence": "Source k+1 is always positive; the local hN gives exactly that domain after N=k+1. Source line 148 omits completeness. G=0 is permitted without affecting positivity of the denominator."
+    },
+    "quantifiers": {
+      "original": "Under global hypotheses on supplied sequences, for every comparator and positive finite horizon, some sampled index satisfies the bound. The upstream finite-best value is a finite real sInf.",
+      "reconstructed": "For every z and every positive N there exists i<N with the claimed bound. The statement adds 0<=i only as the natural-number convention.",
+      "relation": "equivalent",
+      "evidence": "The finite objective-value set is nonempty and finite, so its sInf is attained by an actual index. All positive N correspond to k+1, and all source k produce such an N. This conversion changes neither comparator scope nor witness dependence."
+    },
+    "assumptions": {
+      "original": "Global Lipschitz continuity, supplied genuine global support at each iterate, exact actual update, strictly positive steps and a nonempty finite horizon. No supplied norm bound or optimizer.",
+      "reconstructed": "Exactly hf,ha,hs,hx and hN, with the global support definition unfolded.",
+      "relation": "explicit-elaboration",
+      "evidence": "Actual lines 97-101 derive the nonempty finite range and positive step sum from hN and ha. Norm control is discharged inside the weighted theorem, not assumed. No theorem-shaped estimate, measurability, differentiability or minimum of f over E is added."
+    },
+    "conclusion": {
+      "original": "Some i<N has f(x_i)-f(z) <= (||x_0-z||^2+G^2 sum_{k<N}a_k^2)/(2 sum_{k<N}a_k). Raw source states the equivalent unnormalized finite-sInf inequality.",
+      "reconstructed": "The same existential normalized objective-gap bound with exactly those numerator and denominator constants.",
+      "relation": "equivalent",
+      "evidence": "If m is the attained finite minimum and A=sum a_k>0, the source 2A(m-f(z))<=B is equivalent to m-f(z)<=B/(2A). Selecting a minimizer gives the existential statement. Conversely any such witness bounds m by its value, and multiplication by positive 2A recovers the source inequality."
+    },
+    "scopes": {
+      "original": "A finite best-iterate guarantee relative to any comparator, not necessarily a global optimizer; neither last-iterate convergence nor asymptotic/stochastic claims.",
+      "reconstructed": "The same finite-index claim. No zero-horizon or zero-denominator normalized quotient is asserted.",
+      "relation": "equivalent",
+      "evidence": "The code uses Finset.exists_min_image at 98, multiplies minimum inequalities by nonnegative steps at 102-106, and invokes le_div_iff only after strict denominator positivity at 108. The authored lesson explicitly states these restrictions and distinguishes a finite minimum from a global infimum."
+    },
+    "constant_dependencies": {
+      "original": "Numerator is ||x0-z||^2+G^2 sum a_k^2, denominator exactly 2 sum a_k. Constants are uniform in the comparator, horizon, and carrier dimension.",
+      "reconstructed": "Identical dependence on actual initial iterate, comparator, G, squared step sum, and positive step sum.",
+      "relation": "same",
+      "evidence": "The actual energy bound retains a negative terminal square, which is discarded using its nonnegativity at 109, without modifying G^2 or factor 2. No unstated rate constant or inverse-horizon factor appears."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "conclusion",
+      "severity": "informational",
+      "description": "The raw upstream unnormalized real sInf presentation is replaced by an equivalent finite-index normalized presentation on the same positive-horizon/positive-step domain.",
+      "evidence": "N=k+1 makes the objective-value set finite and nonempty; it has an attained minimum. The strictly positive total step permits reversible division by 2A. Actual code derives both conditions rather than adding them as unexplained gates."
+    },
+    {
+      "slot": "objects",
+      "severity": "informational",
+      "description": "The upstream algorithm class and initial equality are unbundled into actual sequences and x(0). This does not add a semantic premise.",
+      "evidence": "Source 137-143 and 226 identify x0 with the initial iterate. The local declaration 90-96 writes x 0 directly while preserving support and exact update."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/optlib_source_review",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "Independently compared the fresh best-index packet and blind reconstruction with the actual upstream finite-sInf argument, current full production module, literal SupportsAt body, focused nonsmooth test and authored lesson/publication. Verified all seven semantic slots, exact constants, finite minimum and denominator discharge, and no hidden optimizer. Recomputed packet/text hashes and live publication context/binding; all match. No blocking mismatch or source repair is needed. Earlier semantic audit verdicts were not inspected; no commit-bound integration review or VERIFIED/ledger/registry/status publication has been performed.",
+    "review_run_sha256": "05cfba87718bd9b8da66882d353066f032e0f45c32b7aadcb69f06f6f4e8943b",
+    "reviewer_packet_sha256": "0d3f8740aafa5e6b8eb52945bf43feb4a6b613c8957551b91040b1eac15e24c5",
+    "run_artifact": "runs/20261103-optlib-intake/reviewer-best.result.json",
+    "run_artifact_sha256": "09ba756473335d545337c9a1b0a8be43ac6ea2ea8df60a386b0f0ca19bcd176b"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "10b0aefb71adca408570fbde7dfaaaca5c94944c922c04b19234c592924592c3",
+  "publication_context": {
+    "file": "0913d624dae26a627474f56dc2d0e394af2cf059b8237ee3ee5db8833035683f",
+    "current_lean_module": "/-\nCopyright (c) 2024 Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen. All rights reserved.\nReleased under Apache 2.0 license as described in the file LICENSE.\nAuthors of the upstream mathematical development: Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen\nModified for Samplinglib: native Lean 4.33.0 statements and proofs; reuse SupportsAt,\nunbundle algorithm inputs and expose the weighted telescope and a finite index witness.\n-/\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient\nimport Mathlib.Topology.MetricSpace.Lipschitz\nimport Mathlib.Data.Finset.Max\nimport Mathlib.Algebra.Order.BigOperators.Group.Finset\nimport Mathlib.Tactic.Linarith\nimport Mathlib.Tactic.Positivity\nimport Mathlib.Tactic.Ring\n\n/-!\n# Nonsmooth subgradient method\n\nNative port of the norm bound and finite-horizon convergence argument in Optlib\n`5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3`,\n`Optlib/Algorithm/SubgradientMethod.lean:80–118,137–232` (Apache-2.0).\n\nThe existing `ConvexSubgradient.SupportsAt` relation is exactly the global\nsubgradient inequality. No duplicate predicate or upstream algorithm class is\nintroduced. Lipschitz growth bounds supplied subgradients, the actual update\ntelescopes squared distances, and a finite minimizer index supplies the best\niterate bound. Completeness, differentiability and existence of a minimizer are\nnot needed. This does not construct subgradients or a measurable/random oracle.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod\n\nopen ConvexSubgradient Finset\nopen scoped NNReal RealInnerProductSpace\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n\n/-- Global Lipschitz growth controls every supplied supporting vector.\nThis is consumed inside the subgradient telescope, not supplied as an extra premise. -/\ntheorem norm_le_of_supportsAt {f : E → ℝ} {G : ℝ≥0} {x g : E}\n    (hf : LipschitzWith G f) (hs : SupportsAt f x g) : ‖g‖ ≤ (G : ℝ) := by\n  have hs' := hs (x + g)\n  change f x + inner ℝ g (x + g - x) ≤ f (x + g) at hs'\n  rw [add_sub_cancel_left, real_inner_self_eq_norm_sq] at hs'\n  have hl : f (x + g) - f x ≤ (G : ℝ) * ‖g‖ := by\n    calc\n      f (x + g) - f x ≤ |f (x + g) - f x| := le_abs_self _\n      _ ≤ (G : ℝ) * ‖g‖ := by\n        simpa [Real.dist_eq, dist_eq_norm] using hf.dist_le_mul (x + g) x\n  by_cases hg : ‖g‖ = 0\n  · simp [hg]\n  · have hp : 0 < ‖g‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm hg)\n    nlinarith\n\n/-- The actual subgradient recurrence controls the finite weighted objective gaps,\nretaining the terminal squared distance. Zero steps and the empty horizon are allowed. -/\ntheorem sum_weighted_gap_le {f : E → ℝ} {G : ℝ≥0} {x g : ℕ → E} {a : ℕ → ℝ}\n    (hf : LipschitzWith G f) (ha : ∀ k, 0 ≤ a k)\n    (hs : ∀ k, SupportsAt f (x k) (g k))\n    (hx : ∀ k, x (k + 1) = x k - a k • g k) (z : E) (N : ℕ) :\n    2 * (∑ k ∈ Finset.range N, a k * (f (x k) - f z)) ≤\n      ‖x 0 - z‖ ^ 2 + (G : ℝ) ^ 2 * (∑ k ∈ Finset.range N, (a k) ^ 2) - ‖x N - z‖ ^ 2 := by\n  have hstep (k : ℕ) :\n      2 * a k * (f (x k) - f z) ≤\n        ‖x k - z‖ ^ 2 - ‖x (k + 1) - z‖ ^ 2 + (G : ℝ) ^ 2 * (a k) ^ 2 := by\n    have hs' := hs k z\n    change f (x k) + inner ℝ (g k) (z - x k) ≤ f z at hs'\n    have hpair : f (x k) - f z ≤ inner ℝ (g k) (x k - z) := by\n      rw [inner_sub_right] at hs' ⊢\n      linarith\n    have hg := norm_le_of_supportsAt hf (hs k)\n    have hgsq : ‖g k‖ ^ 2 ≤ (G : ℝ) ^ 2 :=\n      pow_le_pow_left₀ (norm_nonneg _) hg 2\n    have hnorm : ‖x (k + 1) - z‖ ^ 2 =\n        ‖x k - z‖ ^ 2 - 2 * a k * inner ℝ (g k) (x k - z) + (a k) ^ 2 * ‖g k‖ ^ 2 := by\n      rw [hx k, sub_right_comm, norm_sub_sq_real, inner_smul_right,\n        norm_smul, Real.norm_eq_abs, mul_pow, sq_abs, real_inner_comm (x k - z)]\n      ring\n    have hp := mul_le_mul_of_nonneg_left hpair (mul_nonneg (by norm_num : (0 : ℝ) ≤ 2) (ha k))\n    have hn := mul_le_mul_of_nonneg_left hgsq (sq_nonneg (a k))\n    nlinarith\n  induction N with\n  | zero => simp\n  | succ N ih =>\n      rw [Finset.sum_range_succ, Finset.sum_range_succ]\n      nlinarith [hstep N]\n\n/-- A positive finite run contains an iterate satisfying the normalized Optlib\nsubgradient bound, relative to any comparator (not necessarily a minimizer). -/\ntheorem exists_gap_le {f : E → ℝ} {G : ℝ≥0} {x g : ℕ → E} {a : ℕ → ℝ}\n    (hf : LipschitzWith G f) (ha : ∀ k, 0 < a k)\n    (hs : ∀ k, SupportsAt f (x k) (g k))\n    (hx : ∀ k, x (k + 1) = x k - a k • g k) (z : E) {N : ℕ} (hN : 0 < N) :\n    ∃ i < N, f (x i) - f z ≤\n      (‖x 0 - z‖ ^ 2 + (G : ℝ) ^ 2 * (∑ k ∈ Finset.range N, (a k) ^ 2)) /\n        (2 * ∑ k ∈ Finset.range N, a k) := by\n  have hne : (Finset.range N).Nonempty := ⟨0, Finset.mem_range.mpr hN⟩\n  obtain ⟨i, hi, hmin⟩ := Finset.exists_min_image (Finset.range N) (fun k => f (x k)) hne\n  refine ⟨i, Finset.mem_range.mp hi, ?_⟩\n  have hsumpos : 0 < ∑ k ∈ Finset.range N, a k :=\n    Finset.sum_pos (fun k _ => ha k) hne\n  have hlower : (∑ k ∈ Finset.range N, a k) * (f (x i) - f z) ≤\n      ∑ k ∈ Finset.range N, a k * (f (x k) - f z) := by\n    rw [Finset.sum_mul]\n    exact Finset.sum_le_sum fun k hk =>\n      mul_le_mul_of_nonneg_left (sub_le_sub_right (hmin k hk) _) (ha k).le\n  have he := sum_weighted_gap_le hf (fun k => (ha k).le) hs hx z N\n  apply (le_div_iff₀ (mul_pos (by norm_num : (0 : ℝ) < 2) hsumpos)).mpr\n  nlinarith [sq_nonneg ‖x N - z‖]\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://github.com/optsuite/optlib/blob/5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3/Optlib/Algorithm/SubgradientMethod.lean#L149-L232",
+      "edition": "Optlib 5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+      "anchor": "subgradient_method_converge:149–232",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen, Optlib (Apache-2.0). Samplinglib native port and original exposition; not quoted textbook prose."
+    },
+    "statement": "Under the same Lipschitz, support and exact-update assumptions, suppose every step is strictly positive and N>0. For any comparator z, some index i<N satisfies the displayed normalized best-iterate objective-gap bound.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "\\exists i<N:\\quad f(x_i)-f(z)\\le\\frac{\\|x_0-z\\|^2+G^2\\sum_{k=0}^{N-1}a_k^2}{2\\sum_{k=0}^{N-1}a_k}."
+      }
+    ],
+    "assumptions": [
+      "E is a real inner-product space with its associated norm. No completeness or finite-dimensionality assumption is imposed.",
+      "G is a nonnegative real Lipschitz constant and f:E→ℝ is globally G-Lipschitz.",
+      "SupportsAt f x v means f(x)+⟨v,z−x⟩≤f(z) for every z∈E. It supplies a genuine global supporting vector; no differentiability or totalized gradient is used.",
+      "x,v:ℕ→E; a:ℕ→ℝ with a_k>0; each v_k supports f at x_k; x_(k+1)=x_k−a_k v_k for every k.",
+      "N>0, so the finite index set is nonempty and the sum of its positive step sizes is strictly positive.",
+      "z is arbitrary. Neither attainment of the global infimum nor differentiability is supplied."
+    ],
+    "obligations": [
+      {
+        "id": "result",
+        "label": "Under the same Lipschitz, support and exact-update assumptions, suppose every step is strictly positive and N>0. For any comparator z, some index i<N satisfies the displayed normalized best-iterate objective-gap bound."
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.exists_gap_le",
+      "kind": "theorem",
+      "title": "A finite run contains a subgradient iterate with the convergence bound",
+      "statement": "Under the same Lipschitz, support and exact-update assumptions, suppose every step is strictly positive and N>0. For any comparator z, some index i<N satisfies the displayed normalized best-iterate objective-gap bound.",
+      "formula": "\\exists i<N:\\quad f(x_i)-f(z)\\le\\frac{\\|x_0-z\\|^2+G^2\\sum_{k=0}^{N-1}a_k^2}{2\\sum_{k=0}^{N-1}a_k}.",
+      "assumptions": [
+        "E is a real inner-product space with its associated norm. No completeness or finite-dimensionality assumption is imposed.",
+        "G is a nonnegative real Lipschitz constant and f:E→ℝ is globally G-Lipschitz.",
+        "SupportsAt f x v means f(x)+⟨v,z−x⟩≤f(z) for every z∈E. It supplies a genuine global supporting vector; no differentiability or totalized gradient is used.",
+        "x,v:ℕ→E; a:ℕ→ℝ with a_k>0; each v_k supports f at x_k; x_(k+1)=x_k−a_k v_k for every k.",
+        "N>0, so the finite index set is nonempty and the sum of its positive step sizes is strictly positive.",
+        "z is arbitrary. Neither attainment of the global infimum nor differentiability is supplied."
+      ],
+      "steps": [
+        {
+          "title": "Take a genuine finite minimum",
+          "text": "Choose i minimizing f(x_k) among k<N. This finite choice exists because N>0; it is not a default value of a totalized infimum.",
+          "formula": "i<N,\\qquad f(x_i)\\le f(x_k)\\quad(k<N).",
+          "lean": "Finset.exists_min_image; range nonempty from 0<N."
+        },
+        {
+          "title": "Compare the best gap to the weighted gaps",
+          "text": "Multiply each minimum inequality by a_k≥0 and sum. Apply the preceding actual-update telescope, then discard only the nonnegative terminal squared distance.",
+          "formula": "\\begin{aligned}\\left(\\sum_{k<N}a_k\\right)(f(x_i)-f(z))&\\le\\sum_{k<N}a_k(f(x_k)-f(z)),\\\\2\\left(\\sum_{k<N}a_k\\right)(f(x_i)-f(z))&\\le\\|x_0-z\\|^2+G^2\\sum_{k<N}a_k^2.\\end{aligned}",
+          "lean": "Finset.sum_le_sum; Finset.sum_mul; sum_weighted_gap_le; sq_nonneg."
+        },
+        {
+          "title": "Divide only on the positive domain",
+          "text": "The sum of positive steps over a nonempty finite range is positive. Dividing by twice that sum preserves the inequality and produces the claimed witness.",
+          "formula": "2\\sum_{k<N}a_k>0.",
+          "lean": "Finset.sum_pos; le_div_iff₀. No zero-step quotient is asserted."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.sum_weighted_gap_le"
+      ],
+      "mathlib_dependencies": [
+        "Finset.exists_min_image",
+        "Finset.sum_pos",
+        "Finset.sum_le_sum",
+        "Finset.sum_mul",
+        "le_div_iff₀"
+      ],
+      "lean_statement": "A positive finite subgradient run has a best index with the normalized objective-gap guarantee.",
+      "lean_proof": "Choose a minimizing finite index, bound its gap by the weighted gaps, use the actual-update telescope, and divide by the proved positive total step.",
+      "sources": [
+        {
+          "url": "https://github.com/optsuite/optlib/blob/5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3/Optlib/Algorithm/SubgradientMethod.lean#L149-L232",
+          "label": "Optlib subgradient_method_converge",
+          "scope": "Equivalent finite-index normalized formulation of the source best-value bound."
+        },
+        {
+          "path": "Tests/Shared/SubgradientMethod.lean",
+          "label": "Actual |x| recurrence",
+          "scope": "Concrete nonsmooth, nonconstant iterates with no smoothness assumption."
+        }
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.exists_gap_le",
+      "role": "proof-edge",
+      "supports": [
+        "result"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Global real Hilbert supporting-vector inequality and NNReal Lipschitz constant.",
+        "lean": "Existing SupportsAt predicate is the same inequality; no differentiability, chosen global optimizer or norm-bound premise."
+      },
+      {
+        "source": "Positive steps, k+1 iterates and real sInf of finitely many values.",
+        "lean": "N>0 and an actual finite minimizing index; denominator positivity is derived."
+      }
+    ]
+  }
+}

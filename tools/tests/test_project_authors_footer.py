@@ -40,6 +40,16 @@ class ProjectAuthorsFooterTests(unittest.TestCase):
         self.assertIn("| Statistical Optimal Transport |", readme)
         self.assertIn("Sinho Chewi", readme)
 
+    def test_workshop_report_replaces_repository_only_citation(self) -> None:
+        citation = CITATION.read_text(encoding="utf-8")
+        self.assertIn("@inproceedings{bu2026astis", citation)
+        self.assertIn("booktitle = {NeurIPS 2026 Workshop MATH-AI}", citation)
+        self.assertIn("https://openreview.net/forum?id=UkKpNtVED2", citation)
+        readme = README.read_text(encoding="utf-8")
+        self.assertIn("## Technical report", readme)
+        self.assertNotIn("## Current four-paper priority", readme)
+        self.assertIn('(ROOT / "CITATION.bib").read_text', ASTIS_SITE.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

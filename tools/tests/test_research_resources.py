@@ -77,6 +77,18 @@ class ResourceTests(unittest.TestCase):
         guide = next(s for s in reader.guides()['subjects'] if s['id'] == 'geometry')
         self.assertIn('Title-based suggestions', reader.subject_page(guide, reader.guides(), data))
 
+    def test_native_optlib_admission_requires_explicit_current_binding(self):
+        rows = reader.native_optlib_bindings()
+        packet_rows = [r for r in rows if '.SubgradientMethod.' in r['declaration']]
+        self.assertEqual(len(packet_rows), 3)
+        self.assertEqual({r['declaration'].rsplit('.', 1)[1] for r in packet_rows},
+                         {'norm_le_of_supportsAt', 'sum_weighted_gap_le', 'exists_gap_le'})
+        data = deepcopy(reader.publication.inputs())
+        for audit in data['audits'].values():
+            audit['publication_binding_sha256'] = 'stale'
+        self.assertFalse(any(r['reviewed'] for r in reader.native_optlib_bindings(data=data)))
+        self.assertEqual(reader.native_optlib_bindings(items=[]), [])
+
 
 if __name__ == '__main__':
     unittest.main()

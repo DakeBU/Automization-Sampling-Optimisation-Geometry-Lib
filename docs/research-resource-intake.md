@@ -91,8 +91,20 @@ research discovery placement is not a textbook theorem or chapter-completion edg
 Resource → subject/chapter links are navigation/reading-context overlays, never
 solid Lean dependencies. No new Functor Hypergraph bridge is inferred from a
 title or directory category. Exact local graph links reuse existing declaration
-identities. Registry counts and all current red mathematical frontiers remain
-unchanged.
+identities. Bibliographic intake alone does not change Registry counts or any red
+frontier.
+
+A native admission is the Optlib subgradient-method packet in
+`AutoSamplingTheory/TechnicalLemmas/Analysis/SubgradientMethod.lean`: supporting-vector
+norm control, the actual-update weighted energy telescope, and a finite best-iterate
+bound. It reuses the existing `SupportsAt` predicate and is imported by the main
+analysis library, Registry and root Tests. The nonconstant nonsmooth absolute-value
+run is exercised in `Tests/Shared/SubgradientMethod.lean`. The extracted weighted
+intermediate explicitly permits zero steps and the empty horizon; the normalized
+best-iterate theorem requires positive steps and a nonempty horizon. No oracle
+selection, asymptotic iterate convergence or sampling guarantee is inferred.
+Publication bindings, independent semantic review and the current code hash drive
+the native-result panel on the Optlib page; source citations alone cannot enter it.
 
 Optlib is Apache-2.0; copyright stays with its authors and any later code port
 must retain applicable notices. No explicit reuse license was established for

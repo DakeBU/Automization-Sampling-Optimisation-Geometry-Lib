@@ -16,6 +16,7 @@ import AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension
 import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient
 import AutoSamplingTheory.Core
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
+import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature
@@ -141,6 +142,36 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "optlib-subgradient-norm",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.norm_le_of_supportsAt",
+    upstreamDecl := "Lipschitz_to_bounded_subgradient",
+    upstreamFile := "Optlib/Algorithm/SubgradientMethod.lean@5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3:80-118",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["convex", "subgradient", "Lipschitz", "optimisation"],
+    saldUse := "Bounds supplied supporting vectors inside the actual subgradient energy estimate",
+    note := "Native Lean 4.33.0 port over existing SupportsAt; no subgradient existence or random-oracle claim. Compilation, source review and integration are separately recorded."
+  },
+  {
+    key := "optlib-subgradient-energy",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.sum_weighted_gap_le",
+    upstreamDecl := "subgradient_method_converge (extracted weighted intermediate)",
+    upstreamFile := "Optlib/Algorithm/SubgradientMethod.lean@5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3:171-232",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["convex", "subgradient", "energy", "optimisation"],
+    saldUse := "Actual update telescopes weighted gaps; consumed by the finite best-iterate theorem",
+    note := "Retains the terminal distance. Nonnegative steps and empty horizon explicitly generalize the source intermediate; not a claim of full Optlib or Chewi chapter completion."
+  },
+  {
+    key := "optlib-subgradient-best",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.exists_gap_le",
+    upstreamDecl := "subgradient_method_converge",
+    upstreamFile := "Optlib/Algorithm/SubgradientMethod.lean@5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3:137-232",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["convex", "subgradient", "finite-horizon", "optimisation"],
+    saldUse := "Finite best-iterate guarantee for a supplied nonsmooth subgradient run and arbitrary comparator",
+    note := "Positive steps and nonempty horizon justify division. Native index witness replaces attained finite sInf; no minimizer, iterate convergence, stochastic oracle or sampling rate is claimed."
+  },
   {
     key := "quadratic-probability-segment",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk.quadratic_feature_probability_segment",

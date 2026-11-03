@@ -21,13 +21,15 @@
 | sogb-013 | Discrete Sampling | Distinguish one random-site step from a sweep and an oracle cost (L1) | Not yet aligned |
 | sogb-014 | MCMC | Separate invariance, detailed balance and convergence (L1) | Not yet aligned |
 
-Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Content-bound independent AI editorial review accepts cores 001–007, including a separately reviewed correction to 003. New cores 008–014, graph QA editorial review and empirical difficulty calibration remain pending. Existing theorem review does not certify a new question.
+Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Content-bound independent AI editorial review accepts cores 001–014, including a separately reviewed correction to 003. Graph QA editorial review and empirical difficulty calibration remain pending. Existing theorem review does not certify a new question.
 
 ## Review evidence and scope
 
 [Round 1](reviews/round-1/README.md) records the actual distinct decoder, source reviewer and exact-proposal reviewer, their frozen inputs and immutable reports. The reviewer found that our original explanation of the quadratic envelope confused sufficient Gaussian-domination hypotheses with necessary normalization conditions. The corrected explanation includes the counterexample \(V(x)=|x|\). Only that project-authored explanation changed; neither a textbook statement nor a Lean target was repaired.
 
 `tools/sog_bench_review.py` derives item status from exact QA/source/import-closure/toolchain bindings. Editing a question or its mathematical context makes its old review stale. The first three Lean views have **conclusion-only alignment**; the review explicitly lists explanatory claims not formalized by those targets. This is AI editorial checking, not human consensus, canonical theorem publication, model measurement or a calibrated difficulty label. The tool prepares input packets; it never creates independent verdicts. Round 1 is frozen to its original three formal cases; create a new bounded round before adding further formal cases.
+
+[Round 2](reviews/round-2/README.md) independently checks the seven L1 natural-language questions. Its input contains no equivalent Lean target, so its acceptance cannot create a formal QA view. The `prose-packet` route explicitly rejects paired tasks, which still require anonymous decoding. Separate review rounds compose only for disjoint cores; changed content becomes stale and overlapping decisions require an explicit supersession policy.
 
 ## Difficulty and subject coverage
 

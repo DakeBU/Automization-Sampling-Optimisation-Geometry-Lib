@@ -11,6 +11,8 @@ import sog_bench as bench
 ROOT = bench.ROOT
 BASE = bench.DATA.parent
 ROUND = BASE / 'reviews/round-1'
+PROSE_ROUND = BASE / 'reviews/round-2'
+PROSE_SCOPE = 'independent AI natural-language QA editorial review; no aligned Lean certification'
 SLOTS = ('objects', 'domains', 'quantifiers', 'assumptions', 'conclusion', 'senses', 'constants')
 AUTHOR = 'agent-task:root'
 
@@ -217,8 +219,76 @@ def accepted(row: dict) -> bool:
     return row['editorial'] in {'accepted', 'accepted-after-repair'}
 
 
+def prepare_prose(cores: list[dict], identities: list[str], destination: Path) -> None:
+    """NL-only review: do not invent a blind Lean alignment for an absent task."""
+    by_id = {c['id']: c for c in cores}
+    if not identities or len(set(identities)) != len(identities) or set(identities) - by_id.keys():
+        raise ValueError('Select distinct existing natural-language cores')
+    selected = [by_id[identity] for identity in identities]
+    if any(bench.has_lean(c) for c in selected):
+        raise ValueError('Aligned Lean views require the independent decoder route')
+    packet = {'schema_version': 1, 'scope': PROSE_SCOPE, 'author_identity': AUTHOR,
+              'mathematical_cores': selected,
+              'context_bindings': {c['id']: context_binding(c) for c in selected},
+              'instruction': 'Independently check each original natural-language question, formula solution, rubric and cited local support. Inspect the exact local declaration and its hypotheses. Treat authored support/boundary claims as claims to audit. Explain which parts the cited Lean does not prove. No earlier reviewer verdict is supplied. There is no equivalent Lean task and no anonymous Lean reconstruction to certify; do not create one. Return accept, repair-required or reject with mathematical, support and scoring evidence, explicit source-assumption differences and unresolved repair requests. Do not edit the catalog or prior reports. This is editorial review, not theorem publication or a measured benchmark run.'}
+    if destination.exists():
+        raise ValueError('Never overwrite an independent-review input')
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(bench.encoded(packet))
+
+
+def prose_statuses(cores: list[dict], directory: Path = PROSE_ROUND) -> dict:
+    report_path = directory / 'source-review.json'
+    if not report_path.is_file():
+        return {}
+    input_path = directory / 'packets/prose-input.json'
+    packet = json.loads(input_path.read_text(encoding='utf-8'))
+    report = json.loads(report_path.read_text(encoding='utf-8'))
+    if (packet['schema_version'] != 1 or report['schema_version'] != 1
+            or packet['scope'] != PROSE_SCOPE or report['scope'] != PROSE_SCOPE
+            or packet['author_identity'] != AUTHOR
+            or not isinstance(report['actor_identity'], str) or not report['actor_identity'].strip()
+            or report['actor_identity'] == AUTHOR
+            or report['input_packet_sha256'] != bench.sha(input_path.read_bytes())):
+        raise ValueError('NL review needs independent authorship, correct scope and exact input bytes')
+    frozen = {c['id']: c for c in packet['mathematical_cores']}
+    if (len(frozen) != len(packet['mathematical_cores']) or set(report['items']) != set(frozen)
+            or set(packet['context_bindings']) != set(frozen)):
+        raise ValueError('Review every frozen NL core exactly once')
+    result = {}
+    for identity, row in report['items'].items():
+        original = frozen[identity]
+        if (bench.has_lean(original) or row['binding_sha256'] != original['binding_sha256']
+                or row['context_sha256'] != packet['context_bindings'][identity]
+                or row['formal_scope'] != 'no-aligned-view'):
+            raise ValueError('A supporting declaration cannot certify an equivalent Lean QA')
+        for key in ('mathematics_checks', 'support_checks', 'scoring_checks', 'source_assumption_differences', 'remaining_unformalized'):
+            if not isinstance(row[key], list) or not row[key] or not all(isinstance(s, str) and s.strip() for s in row[key]):
+                raise ValueError('NL editorial review needs explicit mathematics, support, rubric and scope evidence')
+        if row['verdict'] not in {'accept', 'repair-required', 'reject'} or not isinstance(row['repair_requests'], list):
+            raise ValueError('Invalid NL editorial verdict or repair requests')
+        if row['verdict'] == 'accept' and row['repair_requests']:
+            raise ValueError('Open mathematical/rubric repairs cannot be accepted')
+        current = next((c for c in cores if c['id'] == identity), None)
+        if current is None:
+            continue
+        if (bench.has_lean(current) or current['binding_sha256'] != original['binding_sha256']
+                or context_binding(current) != packet['context_bindings'][identity]):
+            result[identity] = {'editorial': 'stale', 'formal_alignment': 'not-reviewed', 'issues': []}
+        else:
+            result[identity] = {'editorial': 'accepted' if row['verdict'] == 'accept' else row['verdict'],
+                'formal_alignment': 'no-aligned-view', 'issues': row['repair_requests'],
+                'reviewer': report['actor_identity'], 'report_sha256': bench.sha(report_path.read_bytes()),
+                'remaining_unformalized': row['remaining_unformalized']}
+    return result
+
+
 def summary(cores: list[dict]) -> dict:
     rows = statuses(cores)
+    for identity, row in prose_statuses(cores).items():
+        if rows[identity]['editorial'] != 'pending':
+            raise ValueError('Overlapping review rounds require an explicit supersession policy')
+        rows[identity] = row
     return {'kind': 'independent AI editorial review; not canonical theorem publication',
             'accepted_cores': sum(accepted(r) for r in rows.values()), 'total_cores': len(cores),
             'difficulty_calibrated': False, 'model_performance_measured': False, 'items': rows}
@@ -226,14 +296,17 @@ def summary(cores: list[dict]) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('decoder-packet', 'reviewer-packet', 'repair-packet'))
+    parser.add_argument('command', choices=('decoder-packet', 'reviewer-packet', 'repair-packet', 'prose-packet'))
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--decoder-input', type=Path)
     parser.add_argument('--mapping', type=Path)
     parser.add_argument('--decoder-output', type=Path)
+    parser.add_argument('--ids', nargs='+', help='Distinct NL-only core IDs for prose-packet')
     args = parser.parse_args()
     cores = bench.materialize()
-    if args.command == 'decoder-packet':
+    if args.command == 'prose-packet':
+        prepare_prose(cores, args.ids or [], args.output)
+    elif args.command == 'decoder-packet':
         prepare_decoder(cores, args.output)
     elif args.command == 'repair-packet':
         prepare_repair(cores, args.output)

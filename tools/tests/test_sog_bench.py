@@ -159,6 +159,11 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(coverage['unique_mathematical_cores'], 14)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
+        self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
+        current = bench.coverage(self.cores, graphs)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 14)
+        self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
+        self.assertEqual(current['graph_editorial_status'], 'pending')
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
         self.assertNotIn('OpenAI', json.dumps(coverage))
         for domain in bench.curriculum.curriculum()['domains']:

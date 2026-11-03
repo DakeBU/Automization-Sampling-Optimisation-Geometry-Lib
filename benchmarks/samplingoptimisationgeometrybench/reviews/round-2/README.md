@@ -1,0 +1,11 @@
+# Natural-language editorial review: round 2
+
+This round covers the seven original L1 introductory questions sogb-008–014, one for each subject library. None has an equivalent Lean task. A source theorem may support one concept without proving the full answer; no blind Lean reconstruction or formal alignment is fabricated.
+
+`packets/prose-input.json` freezes the exact questions, assumptions, formula solutions, rubrics, support declarations and local-import/toolchain bindings. The author/coordinator prepared that input, not the verdict. Independent reviewer `/root/sog_source_reviewer_round1` inspected the cited local sources and wrote its own append-only `source-review.json`, accepting all seven. Earlier verdicts and preferred classifications were excluded from this input. This is AI editorial evidence, not human expert consensus, a measured AI score, difficulty calibration or canonical theorem publication.
+
+The review resolved a useful version distinction in sogb-013. The coordinate heat-bath construction preserves every unselected coordinate at **every input**, including null fibers (`CoordinateHeatBath.heatBath_ae_apply_eq`). This retention property is separate from the target-conditional ratio formula, which requires positive fibers. The reviewer inspected the directly inherited implementation before deciding; no new hypothesis or catalog correction was needed.
+
+`tools/sog_bench_review.py prose-packet --ids ... --output ...` prepares fresh NL-only inputs and refuses aligned Lean cases or overwrites. Admission checks the actual reviewer identity, exact packet bytes, each frozen question/context binding, mathematical/support/rubric evidence, missing formal coverage and unresolved repairs. Edited questions or support contexts become stale locally. Overlapping rounds require an explicit supersession policy rather than silently overwriting an earlier decision.
+
+Use the generated `editorial-review.json` for current status and `reviewed-questions.jsonl` / `reviewed-reference.jsonl` for the accepted subset. Those exports never confer unseen-test status on these public-dev families. The three original paired tasks retain conclusion-only formal coverage; the eleven other questions remain without aligned Lean tasks. Graph editorial review, empirical calibration and the remaining curriculum are still open.

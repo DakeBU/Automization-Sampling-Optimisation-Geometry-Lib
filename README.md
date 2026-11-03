@@ -10,6 +10,7 @@
 
 [**Home**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/)
 · [**Libraries**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/libraries/)
+· [**Research Resources**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/resources/)
 · [**Current Progress**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/progress/)
 · [**Underlying Lean Graph**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/underlying-lean-graph/)
 · [**Harness**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/workflow/)
@@ -39,12 +40,19 @@ The next research layer uses the Lean graph and Functor Hypergraph for **cross-p
 
 ## Current four-paper priority
 
+For categorized mathematical resources, upstream inventories and subject guides,
+use the [research directory](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/resources/)
+and its [refresh/maintenance instructions](docs/research-resource-intake.md).
+`python tools/research_resources.py check` validates the pinned intake offline;
+the existing website build projects it without changing proof status.
+
 Continue one existing unbudgeted Goal: **PBPS2609.06905v1 + SPHMC2609.06906v1 and their composition**, then **Gaussian Cloud2609.38710v1**, then **midpoint2610.06308v1**. Read [the current handoff](docs/companion-papers-handoff.md), [execution metadata](website/content/samplewiki_companion_frontiers.json) and `python tools/astis_advance.py capsule`; old result counts are historical. Priorities are scheduling, not invented dependencies or completed theorem badges. Preserve older frontiers and collaborator changes.
 
 Each paper has a stable reader page with complete attributed source conditions, a small proof route, layered lemmas and stepwise formula proofs. Exact Lean is folded beside each statement/proof; [Chapter1.3](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/textbook/chapter-01/section-1-3.html) is the reading standard. Local compile, independent review, stabilization, merge, purification and whole-paper completion remain distinct. [Midpoint v1](https://arxiv.org/html/2610.06308v1) assumes C2 Hessian bounds, without added third-or-higher derivative bounds; TV proximity never transfers unbounded expected oracle cost.
 
 ## News
 
+- **2026-11-03:** Added subject guides and a pinned [research resource directory](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/resources/), drawing on Optlib and Optimization × AI.
 - **2026-11-03:** Made Samplinglib's original code and exposition available under [Apache-2.0](LICENSE), with explicit [third-party boundaries](LICENSE_SCOPE.md).
 - **2026-11-03:** Started [SamplingOptimisationGeometryBench](benchmarks/samplingoptimisationgeometrybench/), pairing natural-language and Lean QA.
 - **2026-10-06:** Added statement seals, proof digestion and evidence-routed source-fidelity review.

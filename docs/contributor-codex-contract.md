@@ -8,6 +8,13 @@ Before creating a declaration, search Samplinglib, Mathlib, and the relevant com
 
 The objective is not to maximize the raw number of helper declarations. It is to maximize mathematically meaningful reuse: fewer canonical leaves, more genuine consumers, explicit adapters where hypotheses differ, and no wrapper lemmas created only to make a reuse count larger.
 
+For subject/resource discovery, use the existing `/resources/` directory and
+`docs/research-resource-intake.md`: the pinned Optlib module inventory and complete
+Optimization × AI Forum bibliography are external references, not proof credit.
+Check existing local/OpenAI intake before scheduling duplicate work; promote only
+through this same theorem-publication contract. No extra resource-only review
+workflow or automatic Lean port is required.
+
 Every new or changed production declaration must record a `reuse_plan` in its Frontier Cell with:
 
 - `searched_existing`: exact local/upstream regions or declarations searched;

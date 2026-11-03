@@ -1,0 +1,180 @@
+{
+  "author_identity": "agent-task:root",
+  "base_input_sha256": "1bc0e786683415f855fb13f5bf8bfa01b01eb2be880fb5ae589635dc2ba3b9a7",
+  "base_report_sha256": "1004de0d5767c4fd5fa3d9727c5303bf9816e2d8dfb4099bfd1b30ac2f9b52e2",
+  "cases": {
+    "sogb-022": {
+      "before": {
+        "assumptions": [
+          "M is a metric space, F:M→ℝ, α∈ℝ, and P selects curves γ:ℝ→M. For every selected curve and 0≤t≤1 assume \\[F(\\gamma(t))\\le(1-t)F(\\gamma(0))+tF(\\gamma(1))-\\frac{\\alpha t(1-t)}2d(\\gamma(0),\\gamma(1))^2.\\] The predicate P itself does not certify geodesicity, speed, regularity or existence of curves between all endpoints.",
+          "A particular γ with P(γ) is supplied. The scalar composition φ(t)=F(γ(t)) has the genuine two-sided derivative φ′(0)=g. Neither a Riemannian/Wasserstein gradient nor a logarithmic map is supplied. α may have either sign."
+        ],
+        "binding_sha256": "a754d28bbdae27c2dd72d2f86273056bfe0a1e25bcd3c2274f857e73048b9cdc",
+        "boundary": "The supplied selector is not certified geometric data. No metric/geodesic existence, manifold regularity, Wasserstein first variation, subgradient existence, flow, sampling rate or invariance is concluded. HasDerivAt is retained exactly as in the source; no claim that all its hypotheses are mathematically minimal is made. The actual StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn supplies an affine-segment/gradient adapter and consumes this limiting lemma.",
+        "context": "open Filter Set\nopen scoped Topology\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\ndef IsAlphaGeodesicallyConvex\n    {M : Type*} [MetricSpace M]\n    (isGeodesic : (ℝ → M) → Prop) (F : M → ℝ) (alpha : ℝ) : Prop :=\n  ∀ path : ℝ → M, isGeodesic path →\n    ∀ t : ℝ, t ∈ Icc (0 : ℝ) 1 →\n      F (path t) ≤\n        (1 - t) * F (path 0) + t * F (path 1) -\n          (alpha * t * (1 - t) / 2) * dist (path 0) (path 1) ^ 2\nend AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\n",
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity.firstOrder_geodesicConvexity",
+        "decoder_definitions": [
+          "MetricSpace supplies a distance but no tangent spaces, vector-space structure or gradient. The curve selector is an arbitrary predicate; its name alone asserts no geometric property. Its exact chord-inequality definition is supplied in the context.",
+          "HasDerivAt φ g 0 means a genuine scalar derivative of φ:ℝ→ℝ at zero equal to g. The conclusion's ≥ is real order; α is any real and dist is the metric distance. Curve endpoint existence outside the given selected curve is not part of these data."
+        ],
+        "dependencies": {
+          "astis": [],
+          "mathlib": [
+            "HasDerivAt.tendsto_slope",
+            "nhdsWithin_mono",
+            "eventually_lt_nhds",
+            "div_le_iff₀",
+            "le_of_tendsto_of_tendsto"
+          ]
+        },
+        "difficulty": "intermediate",
+        "difficulty_reason": "Coordinate a positive-time quotient, eventual interval membership, a genuine scalar derivative restricted to a right filter, continuity of an upper envelope and preservation of inequalities under limits. Audit which geometric gradient/velocity identifications are absent. No level is empirically calibrated.",
+        "domain": "geometry",
+        "family": "convex-flow-first-order-rate",
+        "id": "sogb-022",
+        "imports": [
+          "Mathlib.Analysis.Calculus.Deriv.Slope",
+          "Mathlib.Topology.MetricSpace.Basic"
+        ],
+        "lean_explanation": "The context supplies only the exact existing chord predicate. The reference constructs a scalar upper envelope, restricts hderiv.tendsto_slope to 𝓝[>]0, proves the quotient inequality eventually by positive division, and calls le_of_tendsto_of_tendsto before algebraic rearrangement. No source theorem or geometric gradient identity is imported as an answer. The Lean conclusion is the scalar endpoint inequality; the discussion about absent adapters is an explanation of its scope, not a new Riemannian/Wasserstein theorem.",
+        "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport Mathlib.Analysis.Calculus.Deriv.Slope\nimport Mathlib.Topology.MetricSpace.Basic\n\nopen Filter Set\nopen scoped Topology\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\ndef IsAlphaGeodesicallyConvex\n    {M : Type*} [MetricSpace M]\n    (isGeodesic : (ℝ → M) → Prop) (F : M → ℝ) (alpha : ℝ) : Prop :=\n  ∀ path : ℝ → M, isGeodesic path →\n    ∀ t : ℝ, t ∈ Icc (0 : ℝ) 1 →\n      F (path t) ≤\n        (1 - t) * F (path 0) + t * F (path 1) -\n          (alpha * t * (1 - t) / 2) * dist (path 0) (path 1) ^ 2\nend AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\n\nexample\n    {M : Type*} [MetricSpace M]\n    {isGeodesic : (ℝ → M) → Prop} {F : M → ℝ} {alpha : ℝ}\n    (hconvex : IsAlphaGeodesicallyConvex isGeodesic F alpha)\n    {path : ℝ → M} (hpath : isGeodesic path)\n    {gradientPairing : ℝ}\n    (hderiv : HasDerivAt (fun t => F (path t)) gradientPairing 0) :\n    F (path 1) ≥\n      F (path 0) + gradientPairing +\n        alpha / 2 * dist (path 0) (path 1) ^ 2 := by\n  let phi : ℝ → ℝ := fun t => F (path t)\n  let upper : ℝ → ℝ := fun t =>\n    F (path 1) - F (path 0) -\n      alpha * (1 - t) / 2 * dist (path 0) (path 1) ^ 2\n  have hslope :\n      Tendsto (slope phi 0) (𝓝[>] 0) (𝓝 gradientPairing) := by\n    apply hderiv.tendsto_slope.mono_left\n    apply nhdsWithin_mono\n    intro t ht\n    simpa only [mem_compl_iff, mem_singleton_iff] using ne_of_gt ht\n  have hupper :\n      Tendsto upper (𝓝[>] 0) (𝓝 (upper 0)) := by\n    have hcontinuous : ContinuousAt upper 0 := by\n      dsimp only [upper]\n      fun_prop\n    have hfilter : 𝓝[>] (0 : ℝ) ≤ 𝓝 0 := inf_le_left\n    exact hcontinuous.tendsto.mono_left hfilter\n  have hslope_le : slope phi 0 ≤ᶠ[𝓝[>] 0] upper := by\n    filter_upwards [self_mem_nhdsWithin,\n      (eventually_lt_nhds zero_lt_one).filter_mono inf_le_left]\n      with t ht htle\n    have htpos : 0 < t := ht\n    have hchord := hconvex path hpath t ⟨htpos.le, htle.le⟩\n    have hquotient :\n        (F (path t) - F (path 0)) / t ≤ upper t := by\n      apply (div_le_iff₀ htpos).2\n      dsimp only [upper]\n      nlinarith\n    rw [div_eq_inv_mul] at hquotient\n    simpa [phi, slope, htpos.ne'] using hquotient\n  have hfirst := le_of_tendsto_of_tendsto hslope hupper hslope_le\n  dsimp only [upper, sub_zero, one_mul] at hfirst\n  linarith\n",
+        "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport Mathlib.Analysis.Calculus.Deriv.Slope\nimport Mathlib.Topology.MetricSpace.Basic\n\nopen Filter Set\nopen scoped Topology\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\ndef IsAlphaGeodesicallyConvex\n    {M : Type*} [MetricSpace M]\n    (isGeodesic : (ℝ → M) → Prop) (F : M → ℝ) (alpha : ℝ) : Prop :=\n  ∀ path : ℝ → M, isGeodesic path →\n    ∀ t : ℝ, t ∈ Icc (0 : ℝ) 1 →\n      F (path t) ≤\n        (1 - t) * F (path 0) + t * F (path 1) -\n          (alpha * t * (1 - t) / 2) * dist (path 0) (path 1) ^ 2\nend AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\n\nexample\n    {M : Type*} [MetricSpace M]\n    {isGeodesic : (ℝ → M) → Prop} {F : M → ℝ} {alpha : ℝ}\n    (hconvex : IsAlphaGeodesicallyConvex isGeodesic F alpha)\n    {path : ℝ → M} (hpath : isGeodesic path)\n    {gradientPairing : ℝ}\n    (hderiv : HasDerivAt (fun t => F (path t)) gradientPairing 0) :\n    F (path 1) ≥\n      F (path 0) + gradientPairing +\n        alpha / 2 * dist (path 0) (path 1) ^ 2 := by\n  -- Replace this comment with your proof.\n",
+        "library_domains": [
+          "riemannian-optimization",
+          "statistical-optimal-transport"
+        ],
+        "question": "Prove \\[F(\\gamma(1))\\ge F(\\gamma(0))+g+\\frac\\alpha2d(\\gamma(0),\\gamma(1))^2.\\] Show the positive-time quotient and its right-hand limit, retaining the exact constant. Explain why this does not itself identify g with a geometric gradient pairing or supply geodesics for arbitrary endpoint pairs. Is an arbitrary value returned by a totalized derivative enough to replace the differentiability hypothesis?",
+        "rubric": [
+          {
+            "criterion": "Derives the exact chord quotient for strictly positive t with the α/2 normalization and without assuming α≥0.",
+            "points": 1
+          },
+          {
+            "criterion": "Justifies eventual 0<t<1 and the right-hand slope limit from the genuine derivative hypothesis rather than a totalized value.",
+            "points": 1
+          },
+          {
+            "criterion": "Passes the inequality to the limit using the continuous upper envelope and rearranges the exact endpoint bound.",
+            "points": 1
+          },
+          {
+            "criterion": "Separates selected-curve/scalar facts from curve existence, constant-speed geodesicity and geometric gradient-pairing adapters, retaining the actual differentiability premise.",
+            "points": 1
+          }
+        ],
+        "skills": [
+          "proof",
+          "calculation",
+          "assumption-audit",
+          "semantic-boundary"
+        ],
+        "source_file": "AutoSamplingTheory/TechnicalLemmas/Geometry/GeodesicConvexity.lean",
+        "source_line": 40,
+        "source_note": "Original exercise over the existing ASTIS-owned scalar/geodesic limiting proof. Its module records Chewi Definition 1.3.26's chord normalization and the limiting mechanism behind display (1.4.7); this QA is an ASTIS restatement/explanation, not copied textbook wording or a claim that the full geometric statement is proved. The real local consumer is AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn. No external dataset or restricted source is used.",
+        "source_sha256_lf": "9ed8c8f65014e5494a8ae8a9c6afdbe4c5d628886505b86bc832895c0780b0ff",
+        "split": "public-dev",
+        "steps": [
+          "Put \\(D=d(\\gamma(0),\\gamma(1))^2\\). For 0<t<1, subtract F(γ(0)) from the chord bound and divide by the strictly positive t: \\[\\frac{\\varphi(t)-\\varphi(0)}t\\le F(\\gamma(1))-F(\\gamma(0))-\\frac\\alpha2(1-t)D.\\] No sign restriction on α is used, and division at t=0 is not performed.",
+          "The condition 0<t<1 holds eventually as t approaches 0 from the right. Genuine differentiability gives the restricted limit \\[\\lim_{t\\downarrow0}\\frac{\\varphi(t)-\\varphi(0)}t=g.\\] The formal proof restricts HasDerivAt.tendsto_slope to the right-neighborhood filter; a defined-but-totalized slope value at zero is irrelevant.",
+          "The upper envelope \\(U(t)=F(\\gamma(1))-F(\\gamma(0))-\\frac\\alpha2(1-t)D\\) is continuous at zero. Taking limits in the eventual ordered inequality gives \\[g\\le F(\\gamma(1))-F(\\gamma(0))-\\frac\\alpha2D.\\] Rearranging proves the assertion with α/2, not the weaker midpoint coefficient α/4.",
+          "The proof uses the selected curve's chord inequality and scalar derivative only. It does not construct paths, prove that P encodes constant-speed geodesics, identify their velocities or define a gradient. An empty selection would make the global chord condition vacuous, but would not provide the required witness P(γ). To obtain a Riemannian or transport gradient statement one must separately identify the path derivative with the intended geometric pairing under that geometry's regularity hypotheses.",
+          "A totalized derivative API returns some value even when a derivative does not exist. Merely assigning that value does not justify the slope limit. The local statement explicitly supplies HasDerivAt; its proof uses only the right restriction of that stronger assumption. A genuinely one-sided variant would need its own correctly stated API, not deletion of the current premise."
+        ],
+        "title": "From a selected-curve chord inequality to its first-order bound",
+        "track_levels": {
+          "lean": "L3",
+          "natural-language": "L3"
+        }
+      },
+      "context_sha256": "221470c61dce462abad25df721a4abd0c5e598127bda4a9bcead4f5edd9bb356",
+      "proposed_after": {
+        "assumptions": [
+          "M is a metric space, F:M→ℝ, α∈ℝ, and P selects curves γ:ℝ→M. For every selected curve and 0≤t≤1 assume \\[F(\\gamma(t))\\le(1-t)F(\\gamma(0))+tF(\\gamma(1))-\\frac{\\alpha t(1-t)}2d(\\gamma(0),\\gamma(1))^2.\\] The predicate P itself does not certify geodesicity, speed, regularity or existence of curves between all endpoints.",
+          "A particular γ with P(γ) is supplied. The scalar composition φ(t)=F(γ(t)) has the genuine two-sided derivative φ′(0)=g. Neither a Riemannian/Wasserstein gradient nor a logarithmic map is supplied. α may have either sign."
+        ],
+        "binding_sha256": "2cfe0ffa4f03a84301a91017152eea5265cf548015c4f28f0d9d9fa9f12817b5",
+        "boundary": "The supplied selector is not certified geometric data. No metric/geodesic existence, manifold regularity, Wasserstein first variation, subgradient existence, flow, sampling rate or invariance is concluded. HasDerivAt is retained exactly as in the source; no claim that all its hypotheses are mathematically minimal is made. The actual StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn supplies an affine-segment/gradient adapter and consumes this limiting lemma.",
+        "context": "open Filter Set\nopen scoped Topology\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\ndef IsAlphaGeodesicallyConvex\n    {M : Type*} [MetricSpace M]\n    (isGeodesic : (ℝ → M) → Prop) (F : M → ℝ) (alpha : ℝ) : Prop :=\n  ∀ path : ℝ → M, isGeodesic path →\n    ∀ t : ℝ, t ∈ Icc (0 : ℝ) 1 →\n      F (path t) ≤\n        (1 - t) * F (path 0) + t * F (path 1) -\n          (alpha * t * (1 - t) / 2) * dist (path 0) (path 1) ^ 2\nend AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\n",
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity.firstOrder_geodesicConvexity",
+        "decoder_definitions": [
+          "MetricSpace supplies a distance but no tangent spaces, vector-space structure or gradient. The curve selector is an arbitrary predicate; its name alone asserts no geometric property. Its exact chord-inequality definition is supplied in the context.",
+          "HasDerivAt φ g 0 means a genuine scalar derivative of φ:ℝ→ℝ at zero equal to g. The conclusion's ≥ is real order; α is any real and dist is the metric distance. Curve endpoint existence outside the given selected curve is not part of these data."
+        ],
+        "dependencies": {
+          "astis": [],
+          "mathlib": [
+            "HasDerivAt.tendsto_slope",
+            "nhdsWithin_mono",
+            "eventually_lt_nhds",
+            "div_le_iff₀",
+            "le_of_tendsto_of_tendsto"
+          ]
+        },
+        "difficulty": "intermediate",
+        "difficulty_reason": "Coordinate a positive-time quotient, eventual interval membership, a genuine scalar derivative restricted to a right filter, continuity of an upper envelope and preservation of inequalities under limits. Audit which geometric gradient/velocity identifications are absent. No level is empirically calibrated.",
+        "domain": "geometry",
+        "family": "convex-flow-first-order-rate",
+        "id": "sogb-022",
+        "imports": [
+          "Mathlib.Analysis.Calculus.Deriv.Slope",
+          "Mathlib.Topology.MetricSpace.Basic"
+        ],
+        "lean_explanation": "The context supplies only the exact existing chord predicate. The reference constructs a scalar upper envelope, restricts hderiv.tendsto_slope to 𝓝[>]0, proves the quotient inequality eventually by positive division, and calls le_of_tendsto_of_tendsto before algebraic rearrangement. No source theorem or geometric gradient identity is imported as an answer. The Lean conclusion is the scalar endpoint inequality; the discussion about absent adapters is an explanation of its scope, not a new Riemannian/Wasserstein theorem.",
+        "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport Mathlib.Analysis.Calculus.Deriv.Slope\nimport Mathlib.Topology.MetricSpace.Basic\n\nopen Filter Set\nopen scoped Topology\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\ndef IsAlphaGeodesicallyConvex\n    {M : Type*} [MetricSpace M]\n    (isGeodesic : (ℝ → M) → Prop) (F : M → ℝ) (alpha : ℝ) : Prop :=\n  ∀ path : ℝ → M, isGeodesic path →\n    ∀ t : ℝ, t ∈ Icc (0 : ℝ) 1 →\n      F (path t) ≤\n        (1 - t) * F (path 0) + t * F (path 1) -\n          (alpha * t * (1 - t) / 2) * dist (path 0) (path 1) ^ 2\nend AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\n\nexample\n    {M : Type*} [MetricSpace M]\n    {isGeodesic : (ℝ → M) → Prop} {F : M → ℝ} {alpha : ℝ}\n    (hconvex : IsAlphaGeodesicallyConvex isGeodesic F alpha)\n    {path : ℝ → M} (hpath : isGeodesic path)\n    {gradientPairing : ℝ}\n    (hderiv : HasDerivAt (fun t => F (path t)) gradientPairing 0) :\n    F (path 1) ≥\n      F (path 0) + gradientPairing +\n        alpha / 2 * dist (path 0) (path 1) ^ 2 := by\n  let phi : ℝ → ℝ := fun t => F (path t)\n  let upper : ℝ → ℝ := fun t =>\n    F (path 1) - F (path 0) -\n      alpha * (1 - t) / 2 * dist (path 0) (path 1) ^ 2\n  have hslope :\n      Tendsto (slope phi 0) (𝓝[>] 0) (𝓝 gradientPairing) := by\n    apply hderiv.tendsto_slope.mono_left\n    apply nhdsWithin_mono\n    intro t ht\n    simpa only [mem_compl_iff, mem_singleton_iff] using ne_of_gt ht\n  have hupper :\n      Tendsto upper (𝓝[>] 0) (𝓝 (upper 0)) := by\n    have hcontinuous : ContinuousAt upper 0 := by\n      dsimp only [upper]\n      fun_prop\n    have hfilter : 𝓝[>] (0 : ℝ) ≤ 𝓝 0 := inf_le_left\n    exact hcontinuous.tendsto.mono_left hfilter\n  have hslope_le : slope phi 0 ≤ᶠ[𝓝[>] 0] upper := by\n    filter_upwards [self_mem_nhdsWithin,\n      (eventually_lt_nhds zero_lt_one).filter_mono inf_le_left]\n      with t ht htle\n    have htpos : 0 < t := ht\n    have hchord := hconvex path hpath t ⟨htpos.le, htle.le⟩\n    have hquotient :\n        (F (path t) - F (path 0)) / t ≤ upper t := by\n      apply (div_le_iff₀ htpos).2\n      dsimp only [upper]\n      nlinarith\n    rw [div_eq_inv_mul] at hquotient\n    simpa [phi, slope, htpos.ne'] using hquotient\n  have hfirst := le_of_tendsto_of_tendsto hslope hupper hslope_le\n  dsimp only [upper, sub_zero, one_mul] at hfirst\n  linarith\n",
+        "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport Mathlib.Analysis.Calculus.Deriv.Slope\nimport Mathlib.Topology.MetricSpace.Basic\n\nopen Filter Set\nopen scoped Topology\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\ndef IsAlphaGeodesicallyConvex\n    {M : Type*} [MetricSpace M]\n    (isGeodesic : (ℝ → M) → Prop) (F : M → ℝ) (alpha : ℝ) : Prop :=\n  ∀ path : ℝ → M, isGeodesic path →\n    ∀ t : ℝ, t ∈ Icc (0 : ℝ) 1 →\n      F (path t) ≤\n        (1 - t) * F (path 0) + t * F (path 1) -\n          (alpha * t * (1 - t) / 2) * dist (path 0) (path 1) ^ 2\nend AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexity\n\nexample\n    {M : Type*} [MetricSpace M]\n    {isGeodesic : (ℝ → M) → Prop} {F : M → ℝ} {alpha : ℝ}\n    (hconvex : IsAlphaGeodesicallyConvex isGeodesic F alpha)\n    {path : ℝ → M} (hpath : isGeodesic path)\n    {gradientPairing : ℝ}\n    (hderiv : HasDerivAt (fun t => F (path t)) gradientPairing 0) :\n    F (path 1) ≥\n      F (path 0) + gradientPairing +\n        alpha / 2 * dist (path 0) (path 1) ^ 2 := by\n  -- Replace this comment with your proof.\n",
+        "library_domains": [
+          "riemannian-optimization",
+          "statistical-optimal-transport"
+        ],
+        "question": "Prove \\[F(\\gamma(1))\\ge F(\\gamma(0))+g+\\frac\\alpha2d(\\gamma(0),\\gamma(1))^2.\\] Show the positive-time quotient and its right-hand limit, retaining the exact constant. Explain why this does not itself identify g with a geometric gradient pairing or supply geodesics for arbitrary endpoint pairs. Is an arbitrary value returned by a totalized derivative enough to replace the differentiability hypothesis?",
+        "rubric": [
+          {
+            "criterion": "Derives the exact chord quotient for strictly positive t with the α/2 normalization and without assuming α≥0.",
+            "points": 1
+          },
+          {
+            "criterion": "Justifies eventual 0<t<1 and the right-hand slope limit from the genuine derivative hypothesis rather than a totalized value.",
+            "points": 1
+          },
+          {
+            "criterion": "Passes the inequality to the limit using the continuous upper envelope and rearranges the exact endpoint bound.",
+            "points": 1
+          },
+          {
+            "criterion": "Separates selected-curve/scalar facts from curve existence, constant-speed geodesicity and geometric gradient-pairing adapters, retaining the actual differentiability premise.",
+            "points": 1
+          }
+        ],
+        "skills": [
+          "proof",
+          "calculation",
+          "assumption-audit",
+          "semantic-boundary"
+        ],
+        "source_file": "AutoSamplingTheory/TechnicalLemmas/Geometry/GeodesicConvexity.lean",
+        "source_line": 40,
+        "source_note": "Original exercise over the existing ASTIS-owned scalar/geodesic limiting proof. Its module records Chewi Definition 1.3.26's chord normalization and the limiting mechanism behind display (1.4.7); this QA is an ASTIS restatement/explanation, not copied textbook wording or a claim that the full geometric statement is proved. The real local consumer is AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn. No external dataset or restricted source is used.",
+        "source_sha256_lf": "9ed8c8f65014e5494a8ae8a9c6afdbe4c5d628886505b86bc832895c0780b0ff",
+        "split": "public-dev",
+        "steps": [
+          "Put \\(D=d(\\gamma(0),\\gamma(1))^2\\). For 0<t<1, subtract F(γ(0)) from the chord bound and divide by the strictly positive t: \\[\\frac{\\varphi(t)-\\varphi(0)}t\\le F(\\gamma(1))-F(\\gamma(0))-\\frac\\alpha2(1-t)D.\\] No sign restriction on α is used, and division at t=0 is not performed.",
+          "The condition 0<t<1 holds eventually as t approaches 0 from the right. Genuine differentiability gives the restricted limit \\[\\lim_{t\\downarrow0}\\frac{\\varphi(t)-\\varphi(0)}t=g.\\] The formal proof restricts HasDerivAt.tendsto_slope to the right-neighborhood filter; a defined-but-totalized slope value at zero is irrelevant.",
+          "The upper envelope \\(U(t)=F(\\gamma(1))-F(\\gamma(0))-\\frac\\alpha2(1-t)D\\) is continuous at zero. Taking limits in the eventual ordered inequality gives \\[g\\le F(\\gamma(1))-F(\\gamma(0))-\\frac\\alpha2D.\\] Rearranging proves the assertion with the exact coefficient α/2.",
+          "The proof uses the selected curve's chord inequality and scalar derivative only. It does not construct paths, prove that P encodes constant-speed geodesics, identify their velocities or define a gradient. An empty selection would make the global chord condition vacuous, but would not provide the required witness P(γ). To obtain a Riemannian or transport gradient statement one must separately identify the path derivative with the intended geometric pairing under that geometry's regularity hypotheses.",
+          "A totalized derivative API returns some value even when a derivative does not exist. Merely assigning that value does not justify the slope limit. The local statement explicitly supplies HasDerivAt; its proof uses only the right restriction of that stronger assumption. A genuinely one-sided variant would need its own correctly stated API, not deletion of the current premise."
+        ],
+        "title": "From a selected-curve chord inequality to its first-order bound",
+        "track_levels": {
+          "lean": "L3",
+          "natural-language": "L3"
+        }
+      },
+      "repair_requests": [
+        "In core022 reference steps[2], replace 'with alpha/2, not the weaker midpoint coefficient alpha/4' by a sign-neutral statement that the exact coefficient is alpha/2 rather than alpha/4. If retaining an order comparison, qualify it by the sign of alpha and note equality at alpha=0. Alpha is explicitly allowed to be negative, for which alpha/4 gives a stronger lower bound when the endpoint distance is nonzero. No change to the actual formula, assumptions, question or Lean target is requested."
+      ]
+    }
+  },
+  "instruction": "Independently audit these exact proposed repairs, source/target invariants and minimality. This paired proof-prose scope permits only steps; not rubric, difficulty or formal code. Never change source, assumptions, question, formal coverage or family. Keep earlier reports immutable; return actual per-item decisions with exact digests and no accepted open repairs.",
+  "schema_version": 1,
+  "scope": "independent exact proof-prose repair; paired Lean conclusions unchanged"
+}

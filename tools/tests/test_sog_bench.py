@@ -78,7 +78,9 @@ class BenchTests(unittest.TestCase):
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
             self.assertEqual(manifest['qa_views'], 25)
-            self.assertEqual(manifest['graph_tasks'], 3)
+            self.assertEqual(manifest['graph_tasks'], 5)
+            self.assertEqual(len(manifest['graph_evidence_kinds']),2)
+            self.assertTrue((output/'compiled-transport-graph.json').is_file())
             self.assertIn('content-bound', manifest['independent_semantic_review'])
             self.assertEqual(manifest['editorial_accepted_graph_tasks'], graph_review.summary(bench.curriculum.graph_items())['accepted_tasks'])
             self.assertIn('human-attested', manifest['prose_scoring'])
@@ -226,8 +228,9 @@ class BenchTests(unittest.TestCase):
 
     def test_structural_graph_answers_sources_and_no_gold_in_prompts(self):
         graphs = bench.curriculum.graph_items()
-        self.assertEqual(len(graphs), 3)
-        self.assertTrue(all(g['family'] == 'pl-gradient-iteration' for g in graphs))
+        self.assertEqual(len(graphs), 5)
+        self.assertTrue(all(g['family'] == 'pl-gradient-iteration' for g in graphs[:3]))
+        self.assertTrue(all(g['family'] == 'coupling-gluing-triangle' for g in graphs[3:]))
         self.assertTrue(all('answer' not in p for p in bench.curriculum.graph_prompts(graphs)))
         self.assertEqual(len(graphs[0]['context']['nodes']), 3)
         self.assertEqual(len(graphs[0]['context']['edges']), 2)
@@ -241,9 +244,9 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         rows = [{'id': g['id'], 'binding_sha256': g['binding_sha256'], 'attempt': 1, 'answer': g['answer']} for g in graphs]
         grade = bench.curriculum.grade_graph(graphs, rows)
-        self.assertEqual((grade['points'], grade['max_points']), (3, 3))
+        self.assertEqual((grade['points'], grade['max_points']), (5, 5))
         missing = bench.curriculum.grade_graph(graphs, rows[:1])
-        self.assertEqual((missing['points'], missing['max_points']), (1, 3))
+        self.assertEqual((missing['points'], missing['max_points']), (1, 5))
         for invalid in (rows + rows[:1], [{**rows[0], 'binding_sha256': 'stale'}], [{**rows[0], 'attempt': 2}], [{**rows[0], 'attempt': True}]):
             with self.assertRaises(ValueError):
                 bench.curriculum.grade_graph(graphs, invalid)

@@ -43,6 +43,8 @@ Mathematical cores and QA views are counted separately. A supporting theorem is 
 
 [Graph round 1](reviews/graph-1/README.md) independently checks source-scanned arrows, structural answers, exact scoring, family boundaries and provisional reasoning levels. The initial L3 ablation label and an L2 proposal were rejected as inflated for two directly supplied edges. The separately reviewed final L1 correction changes only the label and its binding; the question, graph and answer are unchanged. Earlier reports are immutable audit evidence, not gold. `graph-editorial-review.json` derives the current decisions and becomes stale if the question, source, scorer or curriculum changes. Import edges still certify no mathematical necessity.
 
+[Graph round 4](reviews/graph-4/README.md) rechecks all five current graph tasks under an explicit two-kind evidence policy and supersedes the old graph rounds for current admission without rewriting them. It adds a replayed, source-bound slice of selected constants in compiled proof bodies. The reviewer required lowering g002 to L1, consistent with the similarly explicit shared-parent lookup; [round 5](reviews/graph-5/README.md) independently reviews only that exact label/binding repair. Provisional labels are not measured difficulty.
+
 ## Difficulty and subject coverage
 
 The seven domain indexes follow the seven library routes; shared questions can appear in several indexes without multiplying the global count. `python tools/sog_bench.py coverage` computes the domain × L1–L5 × track matrix. An empty cell is a visible gap, not a request for filler or a completion percentage.
@@ -66,7 +68,8 @@ python tools/sog_bench.py check
 python tools/sog_bench.py coverage
 python tools/sog_bench.py export --output .astis/sog-bench-export
 python tools/sog_bench.py check-lean
-python -m unittest tools.tests.test_sog_bench tools.tests.test_sog_bench_review tools.tests.test_sog_bench_formal_review tools.tests.test_sog_bench_graph_review tools.tests.test_sog_bench_prose
+python tools/sog_bench_compiled_graph.py check
+python -m unittest tools.tests.test_sog_bench tools.tests.test_sog_bench_review tools.tests.test_sog_bench_formal_review tools.tests.test_sog_bench_graph_review tools.tests.test_sog_bench_compiled_graph tools.tests.test_sog_bench_prose
 python website/scripts/build_site.py
 python website/scripts/check_site.py
 ```
@@ -78,7 +81,9 @@ Open `_site/benchmarks/samplingoptimisationgeometrybench/index.html` through a l
 - `reviewed-questions.jsonl` / `reviewed-reference.jsonl`: only the currently accepted editorial subset, with questions still separated from answers;
 - `editorial-review.json`: per-item review scope, evidence hashes, stale/pending states and unformalized explanation;
 - `graph-questions.jsonl` / `graph-reference.jsonl`: separate structural prompts and answers;
+- `reviewed-graph-questions.jsonl` / `reviewed-graph-reference.jsonl`: only currently admitted graph questions/references, excluding new drafts and stale items;
 - `graph-editorial-review.json`: separately bound structural editorial decisions, not theorem/proof certification;
+- `compiled-transport-graph.json`: recorded selected proof-body occurrences, source/toolchain/generator fingerprints and approved foundational axioms; fresh compiler replay is a separate CI gate;
 - `EVALUATION.md` / `examples/prose-run.json`: offline first-answer recording and human-rubric scoring instructions/template;
 - `curriculum.json` / `coverage.json`: seven domains, five levels, separate draft track counts and gaps;
 - `lean/*-task.lean.txt`: imports/context and a fixed target with a comment slot; fill the slot with a proof, then save as `.lean`;
@@ -106,7 +111,11 @@ Edit `cores.json`: stable id/family, `library_domains`, per-available-track `tra
 
 ## Graph questions and scoring
 
-`graph_tasks.json` selects an induced import slice from explicitly listed original local Lean files. Edges point **consumer → imported module**. Omitted imports are outside this slice, not absent from the library. The slice is source-hashed; no mixed upstream/ATLAS graph data is used. Current tasks ask direct imports (L1), common parents (L2) and node-ablation reachability over two directly supplied edges (corrected to L1). These are structural skills—not theorem difficulty or a minimal mathematical-premise certificate. A genuinely deeper graph task remains a gap. All variants remain in the PL family's public-dev split.
+`graph_tasks.json` selects an induced import slice from explicitly listed original local Lean files. Edges point **consumer → imported module**, not a theorem proof call. After independent reclassification, its direct/common/ablation tasks are L1. `compiled_graph_tasks.json` selects a separate eligible public-theorem slice linked to sogb-018. Its shared-parent task is L1 and its two-step normalization-branch task L2, despite the source mathematical QA being L4. All labels remain provisional. Structural views keep the source core/family/public-dev identity but are not equivalent mathematical questions or independent held-out samples.
+
+The second slice is extracted by `tools/sog_bench_compiled_graph.py` from the **actual compiled proof bodies**, using Lean's `body.getUsedConstants`, not a text search or import scanner. It checks theorem identity, source/import closure, fixed compiler/Mathlib/build pins and transitive axioms against the explicit standard foundation set `propext, Classical.choice, Quot.sound`. A fresh trusted replay must match the recorded artifact in Lean CI. Website-only builds validate its source-bound record; they do not execute Lean in the browser or claim fresh compilation. Neither record hashes nor editorial review replace replay. The graph is induced: unselected constants, private auxiliaries and Mathlib parents are omitted. Even a missing path is **not** a full-closure independence certificate; a positive path is **not** mathematical necessity.
+
+To update this eligible slice after a reviewed source change, run `python tools/sog_bench_compiled_graph.py refresh`, then `check` and obtain a fresh content-bound editorial review where required. Refresh creates neither a review verdict nor Registry credit. It compiles only trusted allowlisted source imports and a generated environment inspector—never model submissions. No mixed upstream or restricted ATLAS graph is read or exported. Source-proof/hypergraph questions and deeper mathematical graph audits still need separate evidence and review.
 
 Graph answers have exactly `nodes` (distinct module IDs) and `entails_mathematical_necessity` (Boolean). One point requires both the exact node set and the false necessity certification; that constant boundary answer alone earns no credit. The grader never executes code or grades a mathematical proof:
 

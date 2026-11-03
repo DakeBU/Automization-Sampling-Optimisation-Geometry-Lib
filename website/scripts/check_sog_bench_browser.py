@@ -66,6 +66,9 @@ def main() -> None:
             page.goto(base + HUB + 'index.html')
             manifest = page.request.get(base + HUB + 'downloads/manifest.json').json()
             editorial = page.request.get(base + HUB + 'downloads/editorial-review.json').json()
+            graph_records=[json.loads(line) for line in page.request.get(base+HUB+'downloads/graph-questions.jsonl').text().splitlines()]
+            compiled_graphs={r['id']+'.html':r for r in graph_records if r['context']['kind']=='compiled-proof-body-constant-occurrences'}
+            assert len(graph_records)==manifest['graph_tasks']
             with page.expect_download() as download:
                 page.get_by_role('link', name='Prompt-only JSONL', exact=True).click()
             path = download.value.path()
@@ -116,7 +119,7 @@ def main() -> None:
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 math_component_shot(page, args.evidence / (identity + '-math-mobile.png'))
                 page.set_viewport_size({'width': 1400, 'height': 1000})
-            for tail in ('curriculum/index.html', 'evaluation/index.html', 'levels/L5.html', 'domains/statistical-optimal-transport.html', 'sogb-g003.html', 'sogb-007.html', 'sogb-008.html', 'sogb-012.html'):
+            for tail in ('curriculum/index.html', 'graph-json/index.html', 'evaluation/index.html', 'levels/L5.html', 'domains/statistical-optimal-transport.html', 'sogb-g003.html', 'sogb-007.html', 'sogb-008.html', 'sogb-012.html', *compiled_graphs):
                 page.goto(base + HUB + tail)
                 page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                 page.evaluate('() => MathJax.startup.promise')
@@ -142,6 +145,31 @@ def main() -> None:
                         page.get_by_role('link',name='Run-metadata template',exact=True).click()
                     template=json.loads(Path(metadata_download.value.path()).read_text(encoding='utf-8'))
                     assert template['track']=='natural-language' and template['attempt_policy']=='first-attempt'
+                if tail=='graph-json/index.html':
+                    assert page.get_by_role('heading',name='Source imports',exact=True).count()==1
+                    assert page.get_by_role('heading',name='Compiled proof bodies',exact=True).count()==1
+                    with page.expect_download() as graph_download:
+                        page.get_by_role('link',name='Reviewed graph prompts',exact=True).click()
+                    admitted=[json.loads(line) for line in Path(graph_download.value.path()).read_text(encoding='utf-8').splitlines()]
+                    assert len(admitted)==manifest['editorial_accepted_graph_tasks']
+                    assert all('answer' not in r for r in admitted)
+                if tail in compiled_graphs:
+                    graph=compiled_graphs[tail]['context']
+                    assert page.locator('.sog-graph svg rect').count()==len(graph['nodes'])
+                    assert page.locator('.sog-graph svg > path').count()==len(graph['edges'])
+                    assert sorted(page.locator('.sog-graph svg text').all_text_contents())==sorted(graph['node_labels'].values())
+                    assert page.locator('.sog-graph svg').evaluate("""svg => {
+                      const rects=[...svg.querySelectorAll('rect')].map(e=>e.getBBox());
+                      const texts=[...svg.querySelectorAll('text')];
+                      return rects.every((r,i)=>texts[i].getBBox().width<=r.width-12 &&
+                        rects.every((s,j)=>i===j || r.x+r.width<=s.x || s.x+s.width<=r.x || r.y+r.height<=s.y || s.y+s.height<=r.y));
+                    }"""), 'Compiled graph labels or nodes overlap'
+                    assert 'Solid arrows' in page.locator('.sog-graph').inner_text()
+                    page.locator('.sog-graph').screenshot(path=str(args.evidence/(tail+'-graph-desktop.png')))
+                    page.locator('summary',has_text='Evidence kind and source scope').click()
+                    assert 'not a fresh Lean run in this browser' in page.locator('article.sog-reader').inner_text()
+                    source_link=page.get_by_role('link',name='Read the source mathematical proof and optional Lean')
+                    assert source_link.get_attribute('href')==compiled_graphs[tail]['core_id']+'.html'
                 page.set_viewport_size({'width': 412, 'height': 915})
                 page.wait_for_timeout(400)  # Let the existing sidebar resize transition finish.
                 page.evaluate('() => { document.activeElement?.blur(); window.scrollTo({top:0, behavior:"instant"}); }')
@@ -161,6 +189,8 @@ def main() -> None:
               'editorial_vs_formal_scope_visible': True, 'mobile_overflow': False,
               'equations_unobscured_when_centered': True, 'component_images_omit_navigation_only': True,
               'human_scoring_guide_and_template': True, 'structural_review_scope_visible': True,
+              'compiled_graphs':len(compiled_graphs), 'graph_evidence_kinds_separate':True,
+              'compiled_graph_labels_fit':True,'reviewed_graph_download':True,
               'runtime_errors': errors}
     (args.evidence / 'report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report))

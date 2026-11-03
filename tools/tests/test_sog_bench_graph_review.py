@@ -24,8 +24,10 @@ class GraphReviewTests(unittest.TestCase):
     def test_original_decisions_are_not_rewritten_by_current_label(self):
         before = {p:p.read_bytes() for p in review.ROUND.glob('*.json')}
         rows = review.statuses(self.items)
-        self.assertEqual(rows['sogb-g001']['editorial'],'accepted')
-        self.assertEqual(rows['sogb-g002']['editorial'],'accepted')
+        # The old reports stay immutable; new policy/context bindings require
+        # an explicit fresh whole-scope review, not silent historical rebinding.
+        self.assertEqual(rows['sogb-g001']['editorial'],'stale')
+        self.assertEqual(rows['sogb-g002']['editorial'],'stale')
         self.assertEqual(rows['sogb-g003']['editorial'],'stale')
         original = json.loads((review.ROUND/'source-review.json').read_text(encoding='utf-8'))
         self.assertEqual(original['items']['sogb-g003']['verdict'],'repair-required')
@@ -33,9 +35,10 @@ class GraphReviewTests(unittest.TestCase):
 
     def test_current_summary_keeps_structural_and_empirical_truth_separate(self):
         summary = review.summary(self.items)
-        self.assertEqual(summary['total_tasks'],3)
-        self.assertEqual(summary['accepted_tasks'],3)
-        self.assertEqual(summary['items']['sogb-g003']['editorial'],'accepted-after-repair')
+        self.assertEqual(summary['total_tasks'],5)
+        self.assertEqual(summary['accepted_tasks'],5)
+        self.assertEqual(summary['items']['sogb-g003']['editorial'],'accepted')
+        self.assertEqual(summary['admission_round'],'graph-4')
         self.assertFalse(summary['difficulty_calibrated'])
         self.assertFalse(summary['model_performance_measured'])
         self.assertEqual(self.items[2]['level'],'L1')
@@ -45,12 +48,12 @@ class GraphReviewTests(unittest.TestCase):
         for key,value in (('question','Different question'), ('level','L5'), ('answer',{'nodes':[]})):
             changed = deepcopy(self.items)
             changed[0][key]=value
-            rows=review.statuses(changed)
+            rows=review.statuses(changed,review.CURRENT_ROUND)
             self.assertEqual(rows['sogb-g001']['editorial'],'stale')
-            self.assertEqual(rows['sogb-g002']['editorial'],'accepted')
+            self.assertEqual(rows['sogb-g003']['editorial'],'accepted')
         changed=deepcopy(self.items)
         changed[0]['context']['source_sha256_lf']['changed']='source'
-        self.assertEqual(review.statuses(changed)['sogb-g001']['editorial'],'stale')
+        self.assertEqual(review.statuses(changed,review.CURRENT_ROUND)['sogb-g001']['editorial'],'stale')
 
     def test_policy_or_scorer_changes_stale_every_original_decision(self):
         actual=review.payload
@@ -60,7 +63,7 @@ class GraphReviewTests(unittest.TestCase):
                 result[key]='changed'
                 return result
             with patch.object(review,'payload',side_effect=changed):
-                self.assertTrue(all(row['editorial']=='stale' for row in review.statuses(self.items).values()))
+                self.assertTrue(all(row['editorial']=='stale' for row in review.statuses(self.items,review.CURRENT_ROUND).values()))
 
     def test_author_input_hash_necessity_and_open_repairs_cannot_self_admit(self):
         for case in ('actor','hash','necessity','repair','evidence'):
@@ -126,6 +129,39 @@ class GraphReviewTests(unittest.TestCase):
             self.assertFalse((output.parent/'source-review.json').exists())
             with self.assertRaises(ValueError):
                 review.prepare(output)
+
+    def test_new_policy_cannot_silently_supersede_history_without_actual_review(self):
+        for field in ('input','report'):
+            with tempfile.TemporaryDirectory() as tmp:
+                directory=Path(tmp)
+                self.frozen_round(directory,review.CURRENT_ROUND)
+                target=directory/('input.json' if field=='input' else 'source-review.json')
+                data=json.loads(target.read_text(encoding='utf-8'));data['supersedes_rounds']=[]
+                target.write_bytes(bench.encoded(data))
+                with patch.object(review,'CURRENT_ROUND',directory):
+                    with self.assertRaises(ValueError):
+                        review.summary(self.items)
+
+    def test_current_level_repair_is_exact_separate_and_not_replayed_after_change(self):
+        summary=review.summary(self.items)
+        self.assertEqual(summary['repair_round'],'graph-5')
+        self.assertEqual(summary['items']['sogb-g002']['editorial'],'accepted-after-repair')
+        self.assertEqual(next(i for i in self.items if i['id']=='sogb-g002')['level'],'L1')
+        base=json.loads((review.CURRENT_ROUND/'source-review.json').read_text(encoding='utf-8'))
+        self.assertEqual(base['items']['sogb-g002']['verdict'],'repair-required')
+        changed=deepcopy(self.items)
+        changed[1]['question']+=' Unreviewed extra task.'
+        self.assertEqual(review.summary(changed)['items']['sogb-g002']['editorial'],'stale')
+        for key,value in (('actor_identity',base['actor_identity']),('base_round','graph-1'),
+                          ('input_packet_sha256','wrong'),('proposed_binding_sha256','wrong'),
+                          ('mathematical_necessity_certified',True),('repair_requests',['Unresolved'])):
+            with tempfile.TemporaryDirectory() as tmp:
+                directory=Path(tmp);self.frozen_round(directory,review.CURRENT_REPAIR_ROUND)
+                path=directory/'source-review.json'
+                report=json.loads(path.read_text(encoding='utf-8'));report[key]=value
+                path.write_bytes(bench.encoded(report))
+                with self.assertRaises(ValueError):
+                    review.apply_repair(self.items,review.statuses(self.items,review.CURRENT_ROUND),directory,review.CURRENT_ROUND)
 
 
 if __name__=='__main__':

@@ -78,9 +78,10 @@ class BenchTests(unittest.TestCase):
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
             self.assertEqual(manifest['qa_views'], 35)
-            self.assertEqual(manifest['graph_tasks'], 5)
+            self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
+            self.assertTrue((output/'compiled-flow-graph.json').is_file())
             self.assertIn('content-bound', manifest['independent_semantic_review'])
             self.assertEqual(manifest['editorial_accepted_graph_tasks'], graph_review.summary(bench.curriculum.graph_items())['accepted_tasks'])
             self.assertIn('human-attested', manifest['prose_scoring'])
@@ -302,11 +303,23 @@ class BenchTests(unittest.TestCase):
         self.assertIn('αe^{αt}>0',core['steps'][3])
         self.assertEqual(core['binding_sha256'],next(c for c in bench.materialize() if c['id']==core['id'])['binding_sha256'])
 
+    def test_flow_graph_reader_separates_statement_profiles_and_download_provenance(self):
+        graphs={g['id']:g for g in bench.curriculum.graph_items()}
+        typed=reader.graph_page(graphs['sogb-g007'])
+        self.assertIn('data-statement-profiles',typed)
+        self.assertIn('not a binder-role analysis',typed)
+        self.assertIn('compiled-flow-graph.json',typed)
+        self.assertIn('source mathematical proof and optional Lean',typed)
+        ordinary=reader.graph_page(graphs['sogb-g004'])
+        self.assertNotIn('data-statement-profiles',ordinary)
+        self.assertIn('compiled-transport-graph.json',ordinary)
+
     def test_structural_graph_answers_sources_and_no_gold_in_prompts(self):
         graphs = bench.curriculum.graph_items()
-        self.assertEqual(len(graphs), 5)
+        self.assertEqual(len(graphs), 7)
         self.assertTrue(all(g['family'] == 'pl-gradient-iteration' for g in graphs[:3]))
-        self.assertTrue(all(g['family'] == 'coupling-gluing-triangle' for g in graphs[3:]))
+        self.assertTrue(all(g['family'] == 'coupling-gluing-triangle' for g in graphs[3:5]))
+        self.assertTrue(all(g['family'] == 'convex-flow-first-order-rate' for g in graphs[5:]))
         self.assertTrue(all('answer' not in p for p in bench.curriculum.graph_prompts(graphs)))
         self.assertEqual(len(graphs[0]['context']['nodes']), 3)
         self.assertEqual(len(graphs[0]['context']['edges']), 2)
@@ -320,9 +333,9 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         rows = [{'id': g['id'], 'binding_sha256': g['binding_sha256'], 'attempt': 1, 'answer': g['answer']} for g in graphs]
         grade = bench.curriculum.grade_graph(graphs, rows)
-        self.assertEqual((grade['points'], grade['max_points']), (5, 5))
+        self.assertEqual((grade['points'], grade['max_points']), (len(graphs), len(graphs)))
         missing = bench.curriculum.grade_graph(graphs, rows[:1])
-        self.assertEqual((missing['points'], missing['max_points']), (1, 5))
+        self.assertEqual((missing['points'], missing['max_points']), (1, len(graphs)))
         for invalid in (rows + rows[:1], [{**rows[0], 'binding_sha256': 'stale'}], [{**rows[0], 'attempt': 2}], [{**rows[0], 'attempt': True}]):
             with self.assertRaises(ValueError):
                 bench.curriculum.grade_graph(graphs, invalid)

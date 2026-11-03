@@ -35,10 +35,10 @@ class GraphReviewTests(unittest.TestCase):
 
     def test_current_summary_keeps_structural_and_empirical_truth_separate(self):
         summary = review.summary(self.items)
-        self.assertEqual(summary['total_tasks'],5)
-        self.assertEqual(summary['accepted_tasks'],5)
+        self.assertEqual(summary['total_tasks'],7)
+        self.assertEqual(summary['accepted_tasks'],7)
         self.assertEqual(summary['items']['sogb-g003']['editorial'],'accepted')
-        self.assertEqual(summary['admission_round'],'graph-4')
+        self.assertEqual(summary['admission_round'],'graph-7')
         self.assertFalse(summary['difficulty_calibrated'])
         self.assertFalse(summary['model_performance_measured'])
         self.assertEqual(self.items[2]['level'],'L1')
@@ -142,13 +142,17 @@ class GraphReviewTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         review.summary(self.items)
 
-    def test_current_level_repair_is_exact_separate_and_not_replayed_after_change(self):
+    def test_historical_level_repair_is_preserved_but_not_replayed_under_new_policy(self):
         summary=review.summary(self.items)
-        self.assertEqual(summary['repair_round'],'graph-5')
-        self.assertEqual(summary['items']['sogb-g002']['editorial'],'accepted-after-repair')
+        self.assertIsNone(summary['repair_round'])
+        self.assertEqual(summary['items']['sogb-g002']['editorial'],'accepted')
         self.assertEqual(next(i for i in self.items if i['id']=='sogb-g002')['level'],'L1')
-        base=json.loads((review.CURRENT_ROUND/'source-review.json').read_text(encoding='utf-8'))
+        old_base=review.ROUND.parent/'graph-4'
+        old_repair=review.ROUND.parent/'graph-5'
+        base=json.loads((old_base/'source-review.json').read_text(encoding='utf-8'))
         self.assertEqual(base['items']['sogb-g002']['verdict'],'repair-required')
+        self.assertEqual(json.loads((old_repair/'source-review.json').read_text(encoding='utf-8'))['verdict'],'accept')
+        self.assertEqual(review.apply_repair(self.items,review.statuses(self.items,old_base),old_repair,old_base)['sogb-g002']['editorial'],'stale')
         changed=deepcopy(self.items)
         changed[1]['question']+=' Unreviewed extra task.'
         self.assertEqual(review.summary(changed)['items']['sogb-g002']['editorial'],'stale')
@@ -156,12 +160,24 @@ class GraphReviewTests(unittest.TestCase):
                           ('input_packet_sha256','wrong'),('proposed_binding_sha256','wrong'),
                           ('mathematical_necessity_certified',True),('repair_requests',['Unresolved'])):
             with tempfile.TemporaryDirectory() as tmp:
-                directory=Path(tmp);self.frozen_round(directory,review.CURRENT_REPAIR_ROUND)
+                directory=Path(tmp);self.frozen_round(directory,old_repair)
                 path=directory/'source-review.json'
                 report=json.loads(path.read_text(encoding='utf-8'));report[key]=value
                 path.write_bytes(bench.encoded(report))
                 with self.assertRaises(ValueError):
-                    review.apply_repair(self.items,review.statuses(self.items,review.CURRENT_ROUND),directory,review.CURRENT_ROUND)
+                    review.apply_repair(self.items,review.statuses(self.items,old_base),directory,old_base)
+
+    def test_union_closure_gap_and_pre_repair_compiler_evidence_remain_auditable(self):
+        before=review.ROUND.parent/'graph-6'
+        report=json.loads((before/'source-review.json').read_text(encoding='utf-8'))
+        self.assertEqual(report['items']['sogb-g006']['verdict'],'repair-required')
+        self.assertEqual(report['items']['sogb-g007']['verdict'],'repair-required')
+        snapshot=json.loads((before/'compiled-flow-before.json').read_text(encoding='utf-8'))
+        self.assertNotIn('local_import_closure_sha256_lf',snapshot['provenance'])
+        self.assertEqual(bench.text_hash(before/'compiler-before.py'),snapshot['provenance']['generator_sha256_lf'])
+        old=json.loads((before/'input.json').read_text(encoding='utf-8'))
+        item=next(i for i in old['items'] if i['id']=='sogb-g006')
+        self.assertEqual(bench.sha((before/'compiled-flow-before.json').read_bytes()),item['context']['snapshot_sha256'])
 
 
 if __name__=='__main__':

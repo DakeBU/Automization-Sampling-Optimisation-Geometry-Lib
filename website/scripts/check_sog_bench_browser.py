@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import functools
 import http.server
+import hashlib
 import json
 from pathlib import Path
 import threading
@@ -187,6 +188,13 @@ def main() -> None:
                     assert all('answer' not in r for r in admitted)
                 if tail in compiled_graphs:
                     graph=compiled_graphs[tail]['context']
+                    if compiled_graphs[tail].get('required_statement_constants'):
+                        profiles=page.locator('[data-statement-profiles]')
+                        assert profiles.is_visible()
+                        assert profiles.locator('tbody tr').count()==len(graph['nodes'])
+                        assert 'not a binder-role analysis' in profiles.inner_text()
+                        for constant in compiled_graphs[tail]['required_statement_constants']:
+                            assert constant in profiles.inner_text()
                     assert page.locator('.sog-graph svg rect').count()==len(graph['nodes'])
                     assert page.locator('.sog-graph svg > path').count()==len(graph['edges'])
                     assert sorted(page.locator('.sog-graph svg text').all_text_contents())==sorted(graph['node_labels'].values())
@@ -200,6 +208,9 @@ def main() -> None:
                     page.locator('.sog-graph').screenshot(path=str(args.evidence/(tail+'-graph-desktop.png')))
                     page.locator('summary',has_text='Evidence kind and source scope').click()
                     assert 'not a fresh Lean run in this browser' in page.locator('article.sog-reader').inner_text()
+                    artifact=page.get_by_role('link',name='Recorded compiler slice and provenance')
+                    raw=page.request.get(base+HUB+artifact.get_attribute('href')).body()
+                    assert hashlib.sha256(raw).hexdigest()==graph['snapshot_sha256']
                     source_link=page.get_by_role('link',name='Read the source mathematical proof and optional Lean')
                     assert source_link.get_attribute('href')==compiled_graphs[tail]['core_id']+'.html'
                 page.set_viewport_size({'width': 412, 'height': 915})
@@ -207,6 +218,8 @@ def main() -> None:
                 page.evaluate('() => { document.activeElement?.blur(); window.scrollTo({top:0, behavior:"instant"}); }')
                 page.wait_for_function('window.scrollY === 0')
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
+                if tail in compiled_graphs and compiled_graphs[tail].get('required_statement_constants'):
+                    assert page.locator('[data-statement-profiles]').is_visible()
                 page.screenshot(path=str(args.evidence / (tail.replace('/', '-') + '-mobile.png')), full_page=True)
                 page.set_viewport_size({'width': 1400, 'height': 1000})
             assert not errors, errors

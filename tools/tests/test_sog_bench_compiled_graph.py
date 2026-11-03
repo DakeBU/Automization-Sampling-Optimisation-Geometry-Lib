@@ -22,6 +22,7 @@ class CompiledGraphTests(unittest.TestCase):
         cls.cache.start()
         cls.addClassCleanup(cls.cache.stop)
         cls.spec,cls.core,cls.data=compiled.recorded()
+        cls.flow_spec,cls.flow_core,cls.flow_data=compiled.recorded(compiled.FLOW_SPEC,compiled.FLOW_SNAPSHOT)
 
     def test_selected_compiler_evidence_is_owned_bounded_and_not_full_closure(self):
         self.assertEqual(len(self.data['rows']),15)
@@ -34,6 +35,7 @@ class CompiledGraphTests(unittest.TestCase):
         probe=compiled.probe_source(self.spec)
         self.assertIn('body.getUsedConstants',probe)
         self.assertIn('Lean.collectAxioms',probe)
+        self.assertIn('info.type.getUsedConstants',probe)
         self.assertIn('let .thmInfo',probe)
         self.assertNotIn('sorry',probe)
         self.assertNotIn(self.core['lean_task'],probe)
@@ -62,6 +64,8 @@ class CompiledGraphTests(unittest.TestCase):
             rows=deepcopy(self.data['rows']);rows[0]['body_parents']=parents;variants.append(rows)
         for axioms in (['sorryAx'],[True],['propext','propext']):
             rows=deepcopy(self.data['rows']);rows[0]['axioms']=axioms;variants.append(rows)
+        for profile in (['unknown'],[True],['HasDerivAt','HasDerivAt']):
+            rows=deepcopy(self.data['rows']);rows[0]['statement_constants']=profile;variants.append(rows)
         rows=deepcopy(self.data['rows'])
         rows[0]['body_parents']=[rows[1]['id']];rows[1]['body_parents']=[rows[0]['id']]
         variants += [rows,self.data['rows'][:-1],self.data['rows'][:-1]+self.data['rows'][:1]]
@@ -86,6 +90,41 @@ class CompiledGraphTests(unittest.TestCase):
         original=bench.text_hash
         with patch.object(bench,'text_hash',side_effect=lambda p:'changed' if p.name=='SubgradientMethod.lean' else original(p)):
             self.assertEqual(compiled.recorded()[2],self.data)
+
+    def test_flow_profiles_and_body_paths_are_distinct_compiler_evidence(self):
+        rows={r['id']:r for r in self.flow_data['rows']}
+        first=next(n for n in rows if n.endswith('.firstOrder_lower_bound_of_strongConvexOn'))
+        inner=next(n for n in rows if n.endswith('.gradient_inner_lower_bound_of_strongConvexOn'))
+        limit=next(n for n in rows if n.endswith('.firstOrder_geodesicConvexity'))
+        flow=self.flow_core['declaration']
+        midpoint=next(n for n in rows if n.endswith('.centered_quadratic_lower_bound_of_strongConvexOn_minimizer'))
+        self.assertEqual(rows[flow]['body_parents'],[first])
+        self.assertEqual(rows[first]['body_parents'],[limit])
+        self.assertEqual(rows[midpoint]['body_parents'],[])
+        self.assertEqual(rows[first]['statement_constants'],['CompleteSpace','HasGradientAt'])
+        self.assertIn('Differentiable',rows[flow]['statement_constants'])
+        self.assertNotIn('HasGradientAt',rows[flow]['statement_constants'])
+        tasks=compiled.items(compiled.FLOW_SPEC,compiled.FLOW_SNAPSHOT)
+        self.assertEqual(tasks[0]['answer']['nodes'],sorted([flow,inner]))
+        self.assertEqual(tasks[1]['answer']['nodes'],sorted([first,inner]))
+        self.assertIn('not proof of necessary hypotheses',tasks[1]['question'])
+        self.assertEqual(tasks[1]['required_statement_constants'],['CompleteSpace','HasGradientAt'])
+        self.assertEqual(tasks[1]['family'],self.flow_core['family'])
+
+    def test_all_selected_local_import_branches_are_bound_not_just_the_anchor(self):
+        dependency='AutoSamplingTheory/TechnicalLemmas/Geometry/LogConcavity.lean'
+        self.assertIn(dependency,self.flow_data['provenance']['local_import_closure_sha256_lf'])
+        original=bench.text_hash
+        with patch.object(bench,'text_hash',side_effect=lambda p:'changed' if p.relative_to(ROOT).as_posix()==dependency else original(p)):
+            with self.assertRaises(ValueError):
+                compiled.recorded(compiled.FLOW_SPEC,compiled.FLOW_SNAPSHOT)
+
+    def test_profile_selectors_cannot_inject_or_invent_lean_constants(self):
+        for required in (['unknown'],['CompleteSpace; import Anything']):
+            changed=deepcopy(self.flow_spec)
+            changed['tasks'][1]['required_statement_constants']=required
+            with self.assertRaises(ValueError):
+                compiled.probe_source(changed)
 
     def test_unsafe_or_unowned_selectors_are_rejected_before_compiler_execution(self):
         variants=[]
@@ -116,6 +155,18 @@ class CompiledGraphTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         compiled.main()
 
+    def test_forged_statement_profiles_also_require_real_replay(self):
+        rows=deepcopy(self.data['rows'])
+        rows[0]['statement_constants']=['HasGradientAt']
+        forged=compiled.snapshot(rows,self.spec,self.data['provenance'])
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'snapshot.json';path.write_bytes(bench.encoded(forged))
+            with patch.object(compiled,'SNAPSHOT',path):
+                self.assertEqual(compiled.recorded()[2],forged)
+                with patch.object(compiled,'replay',return_value=self.data),patch.object(sys,'argv',['compiled-graph','check','--slice','transport']):
+                    with self.assertRaises(ValueError):
+                        compiled.main()
+
     def test_compiled_figure_uses_readable_labels_and_distinct_edge_semantics(self):
         for row in compiled.items():
             graph=row['context'];figure=reader.import_figure(graph)
@@ -134,8 +185,8 @@ class CompiledGraphTests(unittest.TestCase):
             out=Path(tmp)/'export';bench.export(out)
             questions=[json.loads(line) for line in (out/'reviewed-graph-questions.jsonl').read_text(encoding='utf-8').splitlines()]
             refs=[json.loads(line) for line in (out/'reviewed-graph-reference.jsonl').read_text(encoding='utf-8').splitlines()]
-            self.assertEqual(len(questions),5)
-            self.assertEqual(len(refs),5)
+            self.assertEqual(len(questions),7)
+            self.assertEqual(len(refs),7)
             self.assertNotIn('sogb-g999',{r['id'] for r in questions})
             self.assertTrue(all('answer' not in r for r in questions))
 

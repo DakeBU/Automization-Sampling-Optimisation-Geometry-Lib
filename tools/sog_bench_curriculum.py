@@ -119,6 +119,7 @@ def graph_items() -> list[dict]:
                      'reference_status': 'structural-answer-mechanically-checked; see separate editorial evidence'})
     import sog_bench_compiled_graph
     rows += sog_bench_compiled_graph.items()
+    rows += sog_bench_compiled_graph.items(sog_bench_compiled_graph.FLOW_SPEC,sog_bench_compiled_graph.FLOW_SNAPSHOT)
     ids=[row['id'] for row in rows]
     if len(set(ids))!=len(ids) or not all(re.fullmatch(r'sogb-g\d{3}',identity) for identity in ids):
         raise ValueError('Graph identities must be distinct across evidence kinds')

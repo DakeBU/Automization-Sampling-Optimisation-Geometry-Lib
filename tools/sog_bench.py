@@ -182,7 +182,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 'reviewed-graph-questions.jsonl','reviewed-graph-reference.jsonl',
                 'EVALUATION.md', 'examples/prose-run.json',
-                'compiled-transport-graph.json',
+                'compiled-transport-graph.json', 'compiled-flow-graph.json',
                 *project_licensing.LICENSE_FILES,
                 *('lean/' + c['id'] + '-support.lean' for c in cores if c.get('support_source_view')),
                 *('lean/' + c['id'] + suffix for c in cores if has_lean(c) for suffix in ('-task.lean.txt', '-reference.lean'))}
@@ -202,6 +202,8 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('graph-editorial-review.json', encoded(graph_review))
     import sog_bench_compiled_graph
     write('compiled-transport-graph.json',encoded(sog_bench_compiled_graph.recorded()[2]))
+    write('compiled-flow-graph.json',encoded(sog_bench_compiled_graph.recorded(
+        sog_bench_compiled_graph.FLOW_SPEC,sog_bench_compiled_graph.FLOW_SNAPSHOT)[2]))
     write('reviewed-questions.jsonl', jsonl(prompts(reviewed)))
     write('reviewed-reference.jsonl', jsonl(reviewed))
     write('graph-questions.jsonl', jsonl(curriculum.graph_prompts(graphs)))
@@ -243,7 +245,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'review_kind': 'AI editorial review, not full Lean coverage or canonical theorem publication',
                 'editorial_accepted_graph_tasks': graph_review['accepted_tasks'],
                 'graph_evidence_kinds':sorted({g['context']['kind'] for g in graphs}),
-                'compiled_graph_scope':'recorded source-bound selected proof-body occurrences; fresh replay is a separate CI gate, not full closure or mathematical necessity',
+                'compiled_graph_scope':'recorded source-bound proof-body occurrences and whitelisted unexpanded-statement profiles; fresh replay is separate, not full closure, binder-role analysis or mathematical necessity',
                 'toolchain': (ROOT / 'lean-toolchain').read_text().strip(),
                 'mathlib_manifest_sha256_lf': text_hash(ROOT / 'lake-manifest.json'),
                 'files': {p.relative_to(output).as_posix(): sha(p.read_bytes())

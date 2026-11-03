@@ -141,7 +141,7 @@ private theorem potentialCoefficient_ne_zero (n : ℕ) : potentialCoefficient n 
   · simp [potentialCoefficient, h]
   · have hcast : (2 : ℝ) ≠ (n : ℝ) := by exact_mod_cast Ne.symm h
     simpa [potentialCoefficient, h] using sub_ne_zero.mpr hcast
- 
+
 private theorem subtype_moments {n : ℕ} (hn : 2 ≤ n)
     (j : Fin n) (r : ℝ) (hr : 0 < r) (hr1 : r < 1) :
     let S := sphere (0 : EuclideanSpace ℝ (Fin n)) 1

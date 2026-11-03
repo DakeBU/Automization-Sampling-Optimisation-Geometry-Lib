@@ -26,8 +26,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 17)
-        self.assertEqual(len(prompts), 23)
+        self.assertEqual(len(self.cores), 18)
+        self.assertEqual(len(prompts), 25)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -77,7 +77,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 23)
+            self.assertEqual(manifest['qa_views'], 25)
             self.assertEqual(manifest['graph_tasks'], 3)
             self.assertIn('content-bound', manifest['independent_semantic_review'])
             self.assertEqual(manifest['editorial_accepted_graph_tasks'], graph_review.summary(bench.curriculum.graph_items())['accepted_tasks'])
@@ -178,12 +178,12 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 17)
+        self.assertEqual(coverage['unique_mathematical_cores'], 18)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 17)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 18)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -210,6 +210,19 @@ class BenchTests(unittest.TestCase):
                 return 'changed' if path.relative_to(ROOT).as_posix() == changed else actual_hash(path)
             with patch.object(bench, 'text_hash', side_effect=changed_hash):
                 self.assertNotEqual(before, bench.environment_digest(selected))
+
+    def test_transport_join_is_actual_multi_module_proof_not_exact_triangle_shortcut(self):
+        core=next(c for c in self.cores if c['id']=='sogb-018')
+        self.assertEqual(core['track_levels'],{'natural-language':'L4','lean':'L4'})
+        self.assertIn('StandardBorelSpace E',core['context'])
+        self.assertNotIn('FiniteDimensional',core['context'])
+        self.assertEqual(len(core['dependencies']['astis']),8)
+        for name in core['dependencies']['astis']:
+            self.assertIn(name.rsplit('.',1)[1],core['lean_reference'])
+        self.assertNotIn('WassersteinTriangleExact',core['lean_reference'])
+        self.assertIn('independent product',core['steps'][-1])
+        self.assertIn('not the true Wasserstein inequality',core['steps'][-1])
+        self.assertIn('ancestor proofs',core['boundary'])
 
     def test_structural_graph_answers_sources_and_no_gold_in_prompts(self):
         graphs = bench.curriculum.graph_items()

@@ -112,15 +112,16 @@ def graph_items() -> list[dict]:
         answer = {'nodes': sorted(nodes), 'entails_mathematical_necessity': False}
         binding = digest({'prompt': prompt, 'answer': answer})
         rows.append({**prompt, 'binding_sha256': binding, 'answer': answer,
-                     'review_status': 'structural-answer-mechanically-checked; semantic-review-pending'})
+                     'reference_status': 'structural-answer-mechanically-checked; see separate editorial evidence'})
     return rows
 
 
 def graph_prompts(items: list[dict]) -> list[dict]:
-    return [{k: v for k, v in row.items() if k not in {'answer', 'review_status'}} for row in items]
+    return [{k: v for k, v in row.items() if k not in {'answer', 'review_status', 'reference_status'}} for row in items]
 
 
 def coverage(cores: list[dict], graphs: list[dict], reviews: dict | None = None) -> dict:
+    import sog_bench_graph_review
     policy = curriculum()
     accepted = sum((reviews or {}).get(c['id'], {}).get('editorial') in {'accepted', 'accepted-after-repair'} for c in cores)
     cells = []
@@ -138,7 +139,7 @@ def coverage(cores: list[dict], graphs: list[dict], reviews: dict | None = None)
             'graph_tasks': len(graphs), 'independent_review': 'pending', 'difficulty_calibration': 'not-measured',
             'editorial_accepted_mathematical_cores': accepted,
             'mathematical_editorial_status': 'complete-for-current-cores' if cores and accepted == len(cores) else ('partial' if accepted else 'pending'),
-            'graph_editorial_status': 'pending',
+            'graph_editorial_status': sog_bench_graph_review.summary(graphs)['editorial_status'],
             'cells': cells, 'note': policy['coverage_policy']}
 
 
@@ -147,7 +148,7 @@ def grade_graph(items: list[dict], submissions: list[dict]) -> dict:
     given = {}
     for row in submissions:
         identity = row['id']
-        if identity not in known or identity in given or row.get('attempt') != 1:
+        if identity not in known or identity in given or type(row.get('attempt')) is not int or row['attempt'] != 1:
             raise ValueError('Expected one first-attempt record per known graph question')
         if row.get('binding_sha256') != known[identity]['binding_sha256']:
             raise ValueError('Submission does not bind the exact graph/question snapshot')

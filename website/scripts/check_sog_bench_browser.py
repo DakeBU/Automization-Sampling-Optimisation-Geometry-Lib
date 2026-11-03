@@ -59,7 +59,7 @@ def main() -> None:
             page = context.new_page()
             page.on('pageerror', lambda error: errors.append(str(error)))
             base = f'http://127.0.0.1:{server.server_port}/'
-            for path in ('index.html', 'natural-language/index.html', 'lean/index.html'):
+            for path in ('index.html', 'natural-language/index.html', 'lean/index.html', 'evaluation/index.html'):
                 response = page.goto(base + HUB + path)
                 assert response.status == 200
                 assert page.locator('[data-sog-bench]').count() == 1
@@ -116,7 +116,7 @@ def main() -> None:
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 math_component_shot(page, args.evidence / (identity + '-math-mobile.png'))
                 page.set_viewport_size({'width': 1400, 'height': 1000})
-            for tail in ('curriculum/index.html', 'levels/L5.html', 'domains/statistical-optimal-transport.html', 'sogb-g003.html', 'sogb-007.html', 'sogb-008.html', 'sogb-012.html'):
+            for tail in ('curriculum/index.html', 'evaluation/index.html', 'levels/L5.html', 'domains/statistical-optimal-transport.html', 'sogb-g003.html', 'sogb-007.html', 'sogb-008.html', 'sogb-012.html'):
                 page.goto(base + HUB + tail)
                 page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                 page.evaluate('() => MathJax.startup.promise')
@@ -131,6 +131,17 @@ def main() -> None:
                 if tail == 'sogb-g003.html':
                     assert page.locator('.sog-graph svg rect').count() == 3
                     page.locator('.sog-graph').screenshot(path=str(args.evidence / 'import-slice-desktop.png'))
+                    page.locator('summary', has_text='Independent structural review and limits').click()
+                    evidence=page.request.get(base + HUB + 'downloads/graph-editorial-review.json').json()
+                    assert evidence['items']['sogb-g003']['editorial'] in page.locator('article.sog-reader').inner_text()
+                if tail == 'evaluation/index.html':
+                    assert 'not automatically verified mathematics' in page.locator('article.sog-reader').inner_text()
+                    assert page.locator('details[open]').count()==0
+                    page.locator('summary', has_text='Commands and input formats').click()
+                    with page.expect_download() as metadata_download:
+                        page.get_by_role('link',name='Run-metadata template',exact=True).click()
+                    template=json.loads(Path(metadata_download.value.path()).read_text(encoding='utf-8'))
+                    assert template['track']=='natural-language' and template['attempt_policy']=='first-attempt'
                 page.set_viewport_size({'width': 412, 'height': 915})
                 page.wait_for_timeout(400)  # Let the existing sidebar resize transition finish.
                 page.evaluate('() => { document.activeElement?.blur(); window.scrollTo({top:0, behavior:"instant"}); }')
@@ -149,6 +160,7 @@ def main() -> None:
               'folds_and_copy': True, 'prompt_only_download': True, 'reviewed_subset_download': True,
               'editorial_vs_formal_scope_visible': True, 'mobile_overflow': False,
               'equations_unobscured_when_centered': True, 'component_images_omit_navigation_only': True,
+              'human_scoring_guide_and_template': True, 'structural_review_scope_visible': True,
               'runtime_errors': errors}
     (args.evidence / 'report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report))

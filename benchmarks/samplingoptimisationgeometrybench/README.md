@@ -24,7 +24,7 @@
 | sogb-016 | Riemannian Optimisation | Characterize a quadratic's sphere differential with the actual induced pairing (L3) | Derive the genuine gradient and normalized tangent projection (L3) |
 | sogb-017 | SampleWiki / MCMC | Average an integrable conditional event-error bound (L3) | Check measurability, finite-mass conversion and integral inequalities (L3) |
 
-Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Graph QA editorial review and empirical difficulty calibration remain pending. Existing theorem review does not certify a new question.
+Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Structural graph editorial decisions are recorded separately; empirical difficulty calibration remains open. Existing theorem review does not certify a new question.
 
 ## Review evidence and scope
 
@@ -37,6 +37,8 @@ Mathematical cores and QA views are counted separately. A supporting theorem is 
 [Formal round 3](reviews/formal-3/README.md) covers the coupling-normalization pair. New paired batches use `tools/sog_bench_formal_review.py`: select aligned `--ids`, prepare a fresh anonymous `decoder-packet --round ...`, obtain a genuinely independent decoder report, then prepare `reviewer-packet --round ...` for a distinct source reviewer. Each core supplies minimal plain-string `decoder_definitions`; source identities, answers, proofs and previous verdicts must stay out of decoder input. The generated anonymous target retains the actual given definition while removing owning namespace labels. Never alter an earlier report or mint another ID to evade its review. Disjoint `reviews/formal-*` rounds are discovered automatically; input preparation cannot create admission.
 
 [Formal round 5](reviews/formal-5/README.md) applies the same workflow to the sphere and conditional-kernel pairs. The unchanged anonymous input and actual decoder report from initial staging round 4 are reused after a bibliography-only correction; no new decoding or changed mathematical target is claimed.
+
+[Graph round 1](reviews/graph-1/README.md) independently checks source-scanned arrows, structural answers, exact scoring, family boundaries and provisional reasoning levels. The initial L3 ablation label and an L2 proposal were rejected as inflated for two directly supplied edges. The separately reviewed final L1 correction changes only the label and its binding; the question, graph and answer are unchanged. Earlier reports are immutable audit evidence, not gold. `graph-editorial-review.json` derives the current decisions and becomes stale if the question, source, scorer or curriculum changes. Import edges still certify no mathematical necessity.
 
 ## Difficulty and subject coverage
 
@@ -61,7 +63,7 @@ python tools/sog_bench.py check
 python tools/sog_bench.py coverage
 python tools/sog_bench.py export --output .astis/sog-bench-export
 python tools/sog_bench.py check-lean
-python -m unittest tools.tests.test_sog_bench tools.tests.test_sog_bench_review tools.tests.test_sog_bench_formal_review
+python -m unittest tools.tests.test_sog_bench tools.tests.test_sog_bench_review tools.tests.test_sog_bench_formal_review tools.tests.test_sog_bench_graph_review tools.tests.test_sog_bench_prose
 python website/scripts/build_site.py
 python website/scripts/check_site.py
 ```
@@ -73,6 +75,8 @@ Open `_site/benchmarks/samplingoptimisationgeometrybench/index.html` through a l
 - `reviewed-questions.jsonl` / `reviewed-reference.jsonl`: only the currently accepted editorial subset, with questions still separated from answers;
 - `editorial-review.json`: per-item review scope, evidence hashes, stale/pending states and unformalized explanation;
 - `graph-questions.jsonl` / `graph-reference.jsonl`: separate structural prompts and answers;
+- `graph-editorial-review.json`: separately bound structural editorial decisions, not theorem/proof certification;
+- `EVALUATION.md` / `examples/prose-run.json`: offline first-answer recording and human-rubric scoring instructions/template;
 - `curriculum.json` / `coverage.json`: seven domains, five levels, separate draft track counts and gaps;
 - `lean/*-task.lean.txt`: imports/context and a fixed target with a comment slot; fill the slot with a proof, then save as `.lean`;
 - `lean/*-reference.lean`: runnable references extracted from the existing library proof;
@@ -84,6 +88,8 @@ Use the repository's pinned **Lean 4.33.0** and `lake-manifest.json`. The target
 Compiler receipts bind each selected source and actual local import closure, the given task/reference code and pinned toolchain/Mathlib/build configuration. Relevant changes invalidate the receipt; unrelated live proof files do not. This narrower cache scope is not a substitute for the full integration gate. Browser QA derives its selected Lean pages and download checks from the generated manifest/prompts, so adding a paired core does not require another hand-maintained page list.
 
 ## Assess a model
+
+Start with [Run and assess answers](EVALUATION.md). `tools/sog_bench_prose.py prepare` freezes selected prompt/reference/response records and produces a blank human worksheet; `score` records a genuinely supplied human adjudication with exact criterion text, reasons and hashes. Unknown/duplicate/stale responses and unfinished worksheets are rejected; missing/empty answers stay in the denominator. This records declared conditions and human-attested judgments, not authenticated execution/identity or automatically verified mathematics. Historical archives retain their own rubric rather than being reinterpreted under later catalog edits.
 
 1. Give the model a prompt-only record, its track and the allowed-library policy. Do not include the reference export in its prompt.
 2. For natural-language QA, a human or independently validated grader awards each of four criteria 0 or 1; report criterion scores and the full response. Do not use keyword matching as a correctness metric.
@@ -97,7 +103,7 @@ Edit `cores.json`: stable id/family, `library_domains`, per-available-track `tra
 
 ## Graph questions and scoring
 
-`graph_tasks.json` selects an induced import slice from explicitly listed original local Lean files. Edges point **consumer → imported module**. Omitted imports are outside this slice, not absent from the library. The slice is source-hashed; no mixed upstream/ATLAS graph data is used. Current tasks ask direct imports (L1), common parents (L2) and node-ablation reachability (L3). These are structural skills—not theorem difficulty or a minimal mathematical-premise certificate. All variants remain in the PL family's public-dev split.
+`graph_tasks.json` selects an induced import slice from explicitly listed original local Lean files. Edges point **consumer → imported module**. Omitted imports are outside this slice, not absent from the library. The slice is source-hashed; no mixed upstream/ATLAS graph data is used. Current tasks ask direct imports (L1), common parents (L2) and node-ablation reachability over two directly supplied edges (corrected to L1). These are structural skills—not theorem difficulty or a minimal mathematical-premise certificate. A genuinely deeper graph task remains a gap. All variants remain in the PL family's public-dev split.
 
 Graph answers have exactly `nodes` (distinct module IDs) and `entails_mathematical_necessity` (Boolean). One point requires both the exact node set and the false necessity certification; that constant boundary answer alone earns no credit. The grader never executes code or grades a mathematical proof:
 
@@ -105,6 +111,6 @@ Graph answers have exactly `nodes` (distinct module IDs) and `entails_mathematic
 python tools/sog_bench.py grade-graph --submissions responses.jsonl --run-metadata run.json --output .astis/my-graph-run
 ```
 
-Each response supplies `id`, the prompt's `binding_sha256`, `attempt: 1` and `answer`. Run metadata requires `run_id`, `model`, `model_version`, `created_at`, `prompt_profile: "given-snapshot"`, `attempt_policy: "first-attempt"`, `tools` and `seed`. Unknown/duplicate IDs, stale bindings and alternate attempt policies are rejected. Missing answers remain in the denominator with zero credit. Retain raw prompts/responses, timing/tokens and grader versions for experiments. Reference self-tests are software tests, not measured model performance. Prose grading and safe untrusted-Lean evaluation remain separate work.
+Each response supplies `id`, the prompt's `binding_sha256`, `attempt: 1` and `answer`. Run metadata requires `run_id`, `model`, `model_version`, `created_at`, `prompt_profile: "given-snapshot"`, `attempt_policy: "first-attempt"`, `tools` and `seed`. Unknown/duplicate IDs, stale bindings, Boolean attempts and alternate attempt policies are rejected. Missing answers remain in the denominator with zero credit. The score archive retains the full frozen structural items, not just a digest requiring a changing live catalog. Retain raw prompts/responses, timing/tokens and grader versions for experiments. Reference self-tests are software tests, not measured model performance. Human-attested prose recording is a separate tool; safe untrusted-Lean evaluation remains open.
 
 Only original/permission-cleared material may enter ML training or evaluation exports. Do not use restricted ATLAS-derived indexes, source text, projections or derivatives in this benchmark. The root Apache-2.0 grant does not relicense external books, papers, code or data; retain their applicable notices. This pilot exports aligned local modules' extracted target proofs and original QA only, not external datasets or transitive source trees. Historical review packets retain rejected wording for audit and are **not reference-answer gold**; use the derived reviewed-reference export instead. Dependencies remain installed under their own licenses.

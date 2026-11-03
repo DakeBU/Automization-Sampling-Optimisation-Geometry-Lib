@@ -165,10 +165,13 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     cores = cores or materialize()
     graphs = curriculum.graph_items()
     review = editorial_review(cores)
+    import sog_bench_graph_review
+    graph_review = sog_bench_graph_review.summary(graphs)
     reviewed = [c for c in cores if review['items'][c['id']]['editorial'] in {'accepted', 'accepted-after-repair'}]
     expected = {'questions.jsonl', 'reference.jsonl', 'manifest.json', 'README.md',
-                'editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
+                'editorial-review.json', 'graph-editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
+                'EVALUATION.md', 'examples/prose-run.json',
                 *project_licensing.LICENSE_FILES,
                 *('lean/' + c['id'] + suffix for c in cores if has_lean(c) for suffix in ('-task.lean.txt', '-reference.lean'))}
     if output.exists() and any(output.iterdir()):
@@ -184,6 +187,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('questions.jsonl', jsonl(prompts(cores)))
     write('reference.jsonl', jsonl(cores))
     write('editorial-review.json', encoded(review))
+    write('graph-editorial-review.json', encoded(graph_review))
     write('reviewed-questions.jsonl', jsonl(prompts(reviewed)))
     write('reviewed-reference.jsonl', jsonl(reviewed))
     write('graph-questions.jsonl', jsonl(curriculum.graph_prompts(graphs)))
@@ -191,6 +195,9 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('curriculum.json', encoded(curriculum.curriculum()))
     write('coverage.json', encoded(coverage(cores, graphs)))
     write('GOAL.md', (DATA.parent / 'GOAL.md').read_bytes())
+    write('EVALUATION.md', (DATA.parent / 'EVALUATION.md').read_bytes())
+    (output / 'examples').mkdir(exist_ok=True)
+    write('examples/prose-run.json', (DATA.parent / 'examples/prose-run.json').read_bytes())
     (output / 'lean').mkdir(exist_ok=True)
     for c in cores:
         if not has_lean(c):
@@ -210,10 +217,13 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'split': 'public-dev', 'cores': len(cores), 'qa_views': len(prompts(cores)), 'graph_tasks': len(graphs),
                 'track_counts': {t: sum(t in c['track_levels'] for c in cores) for t in TRACKS},
                 'difficulty_calibration': 'author-assigned; not empirically calibrated',
-                'independent_semantic_review': 'pending', 'hidden_test': False,
+                'independent_semantic_review': 'see content-bound mathematical and structural editorial reports; not empirical calibration',
+                'hidden_test': False,
+                'prose_scoring': 'offline human-attested rubric records; execution and judgments not automatically verified',
                 'editorial_accepted_cores': len(reviewed),
                 'editorial_review_complete_for_current_mathematical_cores': bool(cores) and len(reviewed) == len(cores),
                 'review_kind': 'AI editorial review, not full Lean coverage or canonical theorem publication',
+                'editorial_accepted_graph_tasks': graph_review['accepted_tasks'],
                 'toolchain': (ROOT / 'lean-toolchain').read_text().strip(),
                 'mathlib_manifest_sha256_lf': text_hash(ROOT / 'lake-manifest.json'),
                 'files': {p.relative_to(output).as_posix(): sha(p.read_bytes())
@@ -298,6 +308,7 @@ def main() -> int:
         rows = [json.loads(line) for line in args.submissions.read_text(encoding='utf-8').splitlines() if line.strip()]
         report = {**curriculum.grade_graph(graphs, rows), 'run_metadata': metadata,
                   'catalog_version': load()['version'], 'raw_submissions': rows,
+                  'frozen_graph_items': graphs,
                   'question_bindings': {g['id']: g['binding_sha256'] for g in graphs},
                   'grader_sha256_lf': text_hash(ROOT / 'tools/sog_bench_curriculum.py'),
                   'execution_policy_verified': False}

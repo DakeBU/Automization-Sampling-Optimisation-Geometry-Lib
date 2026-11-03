@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'website/scripts')]
 import sog_bench as bench
 import sog_bench_reader as reader
+import sog_bench_graph_review as graph_review
 
 
 class BenchTests(unittest.TestCase):
@@ -78,7 +79,11 @@ class BenchTests(unittest.TestCase):
             manifest = json.loads((output / 'manifest.json').read_text())
             self.assertEqual(manifest['qa_views'], 23)
             self.assertEqual(manifest['graph_tasks'], 3)
-            self.assertEqual(manifest['independent_semantic_review'], 'pending')
+            self.assertIn('content-bound', manifest['independent_semantic_review'])
+            self.assertEqual(manifest['editorial_accepted_graph_tasks'], graph_review.summary(bench.curriculum.graph_items())['accepted_tasks'])
+            self.assertIn('human-attested', manifest['prose_scoring'])
+            self.assertTrue((output/'EVALUATION.md').is_file())
+            self.assertTrue((output/'examples/prose-run.json').is_file())
             guide = (output/'README.md').read_text(encoding='utf-8')
             self.assertNotIn('](reviews/', guide)
             self.assertIn('/blob/main/benchmarks/samplingoptimisationgeometrybench/reviews/formal-3/README.md', guide)
@@ -139,8 +144,12 @@ class BenchTests(unittest.TestCase):
         text = reader.home(self.cores)
         self.assertIn('natural-language/index.html', text)
         self.assertIn('lean/index.html', text)
-        self.assertIn('content-bound AI editorial review', text)
+        self.assertIn('content-bound AI editorial acceptance', text)
         self.assertNotIn('Quantum', text)
+        self.assertIn('evaluation/index.html', text)
+        assessment=reader.evaluation_page()
+        self.assertIn('not automatically verified mathematics',assessment)
+        self.assertNotIn('<details open',assessment)
         for core in self.cores:
             rendered = reader.core_page(core, False, {'decl:' + core['declaration']})
             self.assertIn('Reference mathematical proof', rendered)
@@ -176,7 +185,7 @@ class BenchTests(unittest.TestCase):
         current = bench.coverage(self.cores, graphs)
         self.assertEqual(current['editorial_accepted_mathematical_cores'], 17)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
-        self.assertEqual(current['graph_editorial_status'], 'pending')
+        self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
         self.assertNotIn('OpenAI', json.dumps(coverage))
         for domain in bench.curriculum.curriculum()['domains']:
@@ -222,7 +231,7 @@ class BenchTests(unittest.TestCase):
         self.assertEqual((grade['points'], grade['max_points']), (3, 3))
         missing = bench.curriculum.grade_graph(graphs, rows[:1])
         self.assertEqual((missing['points'], missing['max_points']), (1, 3))
-        for invalid in (rows + rows[:1], [{**rows[0], 'binding_sha256': 'stale'}], [{**rows[0], 'attempt': 2}]):
+        for invalid in (rows + rows[:1], [{**rows[0], 'binding_sha256': 'stale'}], [{**rows[0], 'attempt': 2}], [{**rows[0], 'attempt': True}]):
             with self.assertRaises(ValueError):
                 bench.curriculum.grade_graph(graphs, invalid)
         wrong_type = deepcopy(rows)

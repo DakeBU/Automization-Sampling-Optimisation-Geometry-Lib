@@ -2975,12 +2975,7 @@ def render_live_formalization(mapping_count: int) -> str:
 
 
 def render_attribution_index(git: GitContext) -> str:
-    citation = """@misc{bu2026astis,
-  title        = {An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry},
-  year         = {2026},
-  howpublished = {GitHub repository and Samplinglib formalization website},
-  url          = {https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib}
-}"""
+    citation = (ROOT / "CITATION.bib").read_text(encoding="utf-8").strip()
     body = f"""
 <section class="page-hero compact"><div class="eyebrow">Provenance and ownership</div>
 <h1>Attribution</h1><p class="lede">ASTIS separates the textbook route, Mathlib facts, external proof references, ASTIS-owned Lean declarations, and generated exposition.</p></section>
@@ -2994,7 +2989,7 @@ def render_attribution_index(git: GitContext) -> str:
   <article><h2>External papers and repositories</h2><p>Cited textbooks, papers, <a href="https://github.com/YuanheZ/lean-stat-learning-theory">lean-stat-learning-theory</a>, and <a href="https://github.com/junwei-lu/Lean-Asymptotic-Statistical-Theory">Lean-Asymptotic-Statistical-Theory</a> are audited references or port sources. Their licenses and theorem hypotheses remain controlling.</p><p><a href="https://github.com/facebookresearch/atlas-lean/tree/e8b31c5cb0bec89b487ce33fe525a2c0b0f8b9c6/v1">ATLAS v1</a> contributes a pinned 26-book external declaration index. It is limited to academic/research use under CC BY-NC 4.0; commercial use and ML model training, fine-tuning, distillation, evaluation, or development are prohibited; all 36,469 records remain external-reference until a local ASTIS theorem passes the current gate.</p><p><a href="https://github.com/openai/math/tree/adc7f1241b42e322a6451854ab7e4b4c146bf78a">OpenAI Math</a> contributes Apache-2.0 manuscripts and proof artifacts pinned to its October 6, 2026 release. Comparator evidence and <code>OAI.*</code> declarations remain external references; they become neither blue ASTIS nodes nor solid local proof edges until an ASTIS-owned adapter or theorem passes local compilation and source-fidelity review. <a href="../libraries/openai-math/index.html">Open the seven-library intake map.</a></p></article>
   <article><h2>Design provenance</h2><p>Comparisons with adjacent automation and formalization systems are centralized on the <a href="../related-systems/index.html">Related Systems</a> page. This attribution page records ownership, mathematical sources, and software dependencies.</p></article>
 </section>
-<section id="citation"><div class="section-heading"><span>Citation</span><h2>Cite ASTIS and Samplinglib</h2></div>{code_html(citation, "bibtex")}</section>
+<section id="citation"><div class="section-heading"><span>Citation</span><h2>Cite the workshop technical report</h2></div><p><a href="https://openreview.net/forum?id=UkKpNtVED2">NeurIPS 2026 Workshop MATH-AI · OpenReview</a>. The citation below identifies the published workshop paper, not a provisional list of library contributors.</p>{code_html(citation, "bibtex")}</section>
 <section><h2>Source state</h2><dl><dt>Git ref</dt><dd><code>{esc(git.ref)}</code></dd><dt>Commit</dt><dd><code>{esc(git.commit)}</code></dd><dt>Remote</dt><dd><code>{esc(git.remote_url)}</code></dd><dt>Published commit</dt><dd>{"yes" if git.commit_published else "not found on a configured remote ref"}</dd><dt>Public source links</dt><dd>{"enabled" if git.public_source_links else "disabled; using site-local anchors"}</dd></dl></section>
 <section class="note"><h2>Source-link rule</h2><p>By default every declaration links to the complete Lean module in the generated site, including imports and context, so private or unpublished repositories cannot create public 404s. Set <code>ASTIS_PUBLIC_SOURCE_LINKS=1</code> only after verifying that the remote is public; clean files at a remote-published commit then link to that exact SHA. Modified or untracked files always remain labeled “local preview source”. The generator never assumes that checkout content already exists on <code>main</code>.</p></section>
 """

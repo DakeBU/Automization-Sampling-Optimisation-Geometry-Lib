@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "optlib-subgradient-norm",
+      "library": "optimisation",
+      "chapter": "06",
+      "chapter_path": "libraries/optimisation/chapter-06.html",
+      "title": "Lipschitz growth bounds every supplied subgradient · Optlib prerequisite",
+      "source": {
+        "url": "https://github.com/optsuite/optlib/blob/5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3/Optlib/Algorithm/SubgradientMethod.lean#L80-L118",
+        "edition": "Optlib 5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+        "anchor": "Lipschitz_to_bounded_subgradient:80–118",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen, Optlib (Apache-2.0). Samplinglib native port and original exposition; not quoted textbook prose."
+      },
+      "statement": "For any globally G-Lipschitz real-valued function on a real inner-product space, every global supporting vector v at x satisfies ‖v‖≤G.",
+      "assumptions": [
+        "E is a real inner-product space with its associated norm. No completeness or finite-dimensionality assumption is imposed.",
+        "G is a nonnegative real Lipschitz constant and f:E→ℝ is globally G-Lipschitz.",
+        "SupportsAt f x v means f(x)+⟨v,z−x⟩≤f(z) for every z∈E. It supplies a genuine global supporting vector; no differentiability or totalized gradient is used."
+      ],
+      "formulae": [
+        {
+          "label": "Claim",
+          "tex": "f(x)+\\langle v,z-x\\rangle\\le f(z)\\ (\\forall z)\\quad\\Longrightarrow\\quad\\|v\\|\\le G."
+        }
+      ],
+      "obligations": [
+        {
+          "id": "result",
+          "label": "For any globally G-Lipschitz real-valued function on a real inner-product space, every global supporting vector v at x satisfies ‖v‖≤G."
+        }
+      ],
+      "bindings": [
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.norm_le_of_supportsAt",
+          "cell": "ASTIS-OPT-optlib-subgradient-norm",
+          "role": "proof-edge",
+          "supports": [
+            "result"
+          ],
+          "boundary": "No existence or measurable selection of supporting vectors is claimed. The theorem does not require convexity once a global supporting vector is supplied, just as the corresponding upstream direction. This is a native local port of the norm bound, not a bulk import of Optlib or a sampling convergence result.",
+          "assumption_deltas": [
+            {
+              "source": "Global real Hilbert supporting-vector inequality and NNReal Lipschitz constant.",
+              "lean": "Existing SupportsAt predicate is the same inequality; no differentiability, chosen global optimizer or norm-bound premise.",
+              "classification": "same",
+              "reason": "Upstream SubderivAt membership is unbundled into its literal supporting inequality. No theorem conclusion is moved into the inputs."
+            },
+            {
+              "source": "No completeness used in this upstream direction.",
+              "lean": "No completeness assumption, matching the upstream omit command.",
+              "classification": "same",
+              "reason": "Only the real inner-product carrier and global Lipschitz/support facts are used."
+            }
+          ],
+          "audit_id": "ASTIS-RT-20261103-OptlibSubgradient-Norm"
+        }
+      ]
+    },
+    {
+      "id": "optlib-subgradient-energy",
+      "library": "optimisation",
+      "chapter": "06",
+      "chapter_path": "libraries/optimisation/chapter-06.html",
+      "title": "The actual subgradient steps telescope weighted objective gaps · Optlib prerequisite",
+      "source": {
+        "url": "https://github.com/optsuite/optlib/blob/5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3/Optlib/Algorithm/SubgradientMethod.lean#L137-L232",
+        "edition": "Optlib 5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+        "anchor": "subgradient_method_converge one-step/telescope:137–232",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen, Optlib (Apache-2.0). Samplinglib native port and original exposition; not quoted textbook prose."
+      },
+      "statement": "Let f be globally G-Lipschitz. For sequences x_k,v_k and nonnegative real steps a_k, suppose v_k supports f at x_k and x_(k+1)=x_k−a_k v_k for every k. For every comparator z and every N≥0, the weighted objective gaps obey the displayed bound, including the terminal squared distance.",
+      "assumptions": [
+        "E is a real inner-product space with its associated norm. No completeness or finite-dimensionality assumption is imposed.",
+        "G is a nonnegative real Lipschitz constant and f:E→ℝ is globally G-Lipschitz.",
+        "SupportsAt f x v means f(x)+⟨v,z−x⟩≤f(z) for every z∈E. It supplies a genuine global supporting vector; no differentiability or totalized gradient is used.",
+        "x,v:ℕ→E and a:ℕ→ℝ. Each a_k≥0; each v_k supports f at x_k; the update x_(k+1)=x_k−a_k v_k is an exact equality.",
+        "z is any comparator in E, not a supplied minimizer. N is any natural number, including zero. There is no division by a step or horizon."
+      ],
+      "formulae": [
+        {
+          "label": "Claim",
+          "tex": "2\\sum_{k=0}^{N-1}a_k\\bigl(f(x_k)-f(z)\\bigr)\\le\\|x_0-z\\|^2+G^2\\sum_{k=0}^{N-1}a_k^2-\\|x_N-z\\|^2."
+        }
+      ],
+      "obligations": [
+        {
+          "id": "result",
+          "label": "Let f be globally G-Lipschitz. For sequences x_k,v_k and nonnegative real steps a_k, suppose v_k supports f at x_k and x_(k+1)=x_k−a_k v_k for every k. For every comparator z and every N≥0, the weighted objective gaps obey the displayed bound, including the terminal squared distance."
+        }
+      ],
+      "bindings": [
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.sum_weighted_gap_le",
+          "cell": "ASTIS-OPT-optlib-subgradient-energy",
+          "role": "proof-edge",
+          "supports": [
+            "result"
+          ],
+          "boundary": "This exposes the stronger weighted intermediate estimate used by the upstream convergence proof. It does not assert monotonicity of function values or a last-iterate rate. The source uses positive steps; allowing zero steps and N=0 here is an explicit division-free generalization, not a repair. No stochastic oracle, kernel or expected sampling cost is constructed.",
+          "assumption_deltas": [
+            {
+              "source": "Global real Hilbert supporting-vector inequality and NNReal Lipschitz constant.",
+              "lean": "Existing SupportsAt predicate is the same inequality; no differentiability, chosen global optimizer or norm-bound premise.",
+              "classification": "same",
+              "reason": "Upstream SubderivAt membership is unbundled into its literal supporting inequality. No theorem conclusion is moved into the inputs."
+            },
+            {
+              "source": "Source algorithm positive steps; proof intermediate with a terminal distance.",
+              "lean": "Nonnegative steps and N=0 also permitted in a division-free weighted estimate.",
+              "classification": "generalization",
+              "reason": "Zero steps/empty sum are algebraic endpoint extensions; not normalized at zero."
+            }
+          ],
+          "audit_id": "ASTIS-RT-20261103-OptlibSubgradient-Energy"
+        }
+      ]
+    },
+    {
+      "id": "optlib-subgradient-best",
+      "library": "optimisation",
+      "chapter": "06",
+      "chapter_path": "libraries/optimisation/chapter-06.html",
+      "title": "A finite run contains a subgradient iterate with the convergence bound · Optlib prerequisite",
+      "source": {
+        "url": "https://github.com/optsuite/optlib/blob/5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3/Optlib/Algorithm/SubgradientMethod.lean#L149-L232",
+        "edition": "Optlib 5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3",
+        "anchor": "subgradient_method_converge:149–232",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen, Optlib (Apache-2.0). Samplinglib native port and original exposition; not quoted textbook prose."
+      },
+      "statement": "Under the same Lipschitz, support and exact-update assumptions, suppose every step is strictly positive and N>0. For any comparator z, some index i<N satisfies the displayed normalized best-iterate objective-gap bound.",
+      "assumptions": [
+        "E is a real inner-product space with its associated norm. No completeness or finite-dimensionality assumption is imposed.",
+        "G is a nonnegative real Lipschitz constant and f:E→ℝ is globally G-Lipschitz.",
+        "SupportsAt f x v means f(x)+⟨v,z−x⟩≤f(z) for every z∈E. It supplies a genuine global supporting vector; no differentiability or totalized gradient is used.",
+        "x,v:ℕ→E; a:ℕ→ℝ with a_k>0; each v_k supports f at x_k; x_(k+1)=x_k−a_k v_k for every k.",
+        "N>0, so the finite index set is nonempty and the sum of its positive step sizes is strictly positive.",
+        "z is arbitrary. Neither attainment of the global infimum nor differentiability is supplied."
+      ],
+      "formulae": [
+        {
+          "label": "Claim",
+          "tex": "\\exists i<N:\\quad f(x_i)-f(z)\\le\\frac{\\|x_0-z\\|^2+G^2\\sum_{k=0}^{N-1}a_k^2}{2\\sum_{k=0}^{N-1}a_k}."
+        }
+      ],
+      "obligations": [
+        {
+          "id": "result",
+          "label": "Under the same Lipschitz, support and exact-update assumptions, suppose every step is strictly positive and N>0. For any comparator z, some index i<N satisfies the displayed normalized best-iterate objective-gap bound."
+        }
+      ],
+      "bindings": [
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.exists_gap_le",
+          "cell": "ASTIS-OPT-optlib-subgradient-method",
+          "role": "proof-edge",
+          "supports": [
+            "result"
+          ],
+          "boundary": "The upstream theorem writes the best finite value as a real sInf over k+1 iterates. An actual minimizing index is equivalent on this nonempty finite set; N>0 corresponds to its k+1 horizon. No claim is made about the last iterate, existence of subgradient selectors, asymptotic iterate convergence, stochastic selection, PBPS/SPHMC or sampling complexity. These are reusable Optlib-source components placed beside Optimisation Chapter6; the complete Chewi chapter statement/route is not silently declared finished.",
+          "assumption_deltas": [
+            {
+              "source": "Global real Hilbert supporting-vector inequality and NNReal Lipschitz constant.",
+              "lean": "Existing SupportsAt predicate is the same inequality; no differentiability, chosen global optimizer or norm-bound premise.",
+              "classification": "same",
+              "reason": "Upstream SubderivAt membership is unbundled into its literal supporting inequality. No theorem conclusion is moved into the inputs."
+            },
+            {
+              "source": "Positive steps, k+1 iterates and real sInf of finitely many values.",
+              "lean": "N>0 and an actual finite minimizing index; denominator positivity is derived.",
+              "classification": "same",
+              "reason": "Finite attained minimum equals the real sInf; x₀ is represented literally by x 0."
+            }
+          ],
+          "audit_id": "ASTIS-RT-20261103-OptlibSubgradient-Best"
+        }
+      ]
+    }
+  ]
+}

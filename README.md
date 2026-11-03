@@ -9,6 +9,7 @@
 [![Samplinglib site](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/workflows/blueprint-site.yml/badge.svg)](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/workflows/blueprint-site.yml)
 
 [**Home**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/)
+· [**Technical report**](https://openreview.net/forum?id=UkKpNtVED2)
 · [**Libraries**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/libraries/)
 · [**Research Resources**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/resources/)
 · [**Current Progress**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/progress/)
@@ -18,6 +19,10 @@
 </div>
 
 ASTIS builds **Samplinglib**: natural-language mathematics, source anchors, Lean declarations, and theorem dependencies for sampling, optimisation, and geometry in one inspectable graph. Primary sources, official supplements, background textbooks, and formal upstream libraries have different roles and are recorded separately; frontier papers are inserted into the same graph so that their actual mathematical contribution can be compared, verified, and reused.
+
+## Technical report
+
+Dake Bu et al. **[An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry](https://openreview.net/forum?id=UkKpNtVED2).** NeurIPS 2026 Workshop MATH-AI (Poster), 2026. [BibTeX](CITATION.bib).
 
 ## Samplinglib in Math 2.0
 
@@ -37,18 +42,6 @@ The next research layer uses the Lean graph and Functor Hypergraph for **cross-p
 | Statistical Optimal Transport | Sinho Chewi, Jonathan Niles-Weed, Philippe Rigollet |
 | Discrete Sampling | Zongchen Chen, Daniel Štefankovič, Eric Vigoda, *Spectral Independence and Local-to-Global Techniques for Optimal Mixing of Markov Chains* (arXiv:2307.13826v4) |
 | Markov Chain Monte Carlo | Fearnhead, Nemeth, Oates, Sherlock, *Scalable Monte Carlo for Bayesian Learning* (arXiv:2407.12751) |
-
-## Current four-paper priority
-
-For categorized mathematical resources, upstream inventories and subject guides,
-use the [research directory](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/resources/)
-and its [refresh/maintenance instructions](docs/research-resource-intake.md).
-`python tools/research_resources.py check` validates the pinned intake offline;
-the existing website build projects it without changing proof status.
-
-Continue one existing unbudgeted Goal: **PBPS2609.06905v1 + SPHMC2609.06906v1 and their composition**, then **Gaussian Cloud2609.38710v1**, then **midpoint2610.06308v1**. Read [the current handoff](docs/companion-papers-handoff.md), [execution metadata](website/content/samplewiki_companion_frontiers.json) and `python tools/astis_advance.py capsule`; old result counts are historical. Priorities are scheduling, not invented dependencies or completed theorem badges. Preserve older frontiers and collaborator changes.
-
-Each paper has a stable reader page with complete attributed source conditions, a small proof route, layered lemmas and stepwise formula proofs. Exact Lean is folded beside each statement/proof; [Chapter1.3](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/textbook/chapter-01/section-1-3.html) is the reading standard. Local compile, independent review, stabilization, merge, purification and whole-paper completion remain distinct. [Midpoint v1](https://arxiv.org/html/2610.06308v1) assumes C2 Hessian bounds, without added third-or-higher derivative bounds; TV proximity never transfers unbounded expected oracle cost.
 
 ## News
 
@@ -172,15 +165,8 @@ records the ordered shared-kernel route and its strict remaining boundaries.
 Current verification/integration state comes from the Frontier Cells and the
 SAU ledger, not from this historical run note.
 
-```bibtex
-@misc{bu2026astis,
-  title  = {An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry},
-  year   = {2026},
-  url    = {https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib}
-}
-```
-
-Project authorship is not yet finalized; no provisional author list is published.
+The published workshop-paper citation is in [CITATION.bib](CITATION.bib).
+Library contributor attribution is maintained separately from paper authorship.
 
 ## License
 

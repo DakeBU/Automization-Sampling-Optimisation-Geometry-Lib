@@ -1123,3 +1123,27 @@ released the normal serialization lease to VERIFIED without changing the
 mathematical owner or other records. See the compact current-main-20261103
 acceptance summary and lane-release report. Canonical merge/deployment and
 purification remain pending; public AppendixA1 is next.
+
+
+## Appendix A1 actual sphere moments (2026-11-03)
+
+The pre-proof sealed public `SphericalPoisson.spherical_poisson_moments`
+now compiles with both actual normalized-surface integral values and both L1
+conclusions. One focused consumer, `selected_numerator_value` in
+`Tests/GaussianComplexitySphericalPoisson.lean`, uses both values to evaluate the
+literal selected numerator immediately before Eq24 at n>=3,kappa>=4. The
+focused build also exercises n=2 and n=3 at r=1/2; axiom reports contain only
+propext, Classical.choice and Quot.sound. This is PROVED_LOCAL, not independent
+VERIFIED, integrated publication or evaluated Gaussian Eq24.
+
+The fixed source's opening n>=2 and trailing n>=3 are both retained. The paper
+slice is conservatively n>=3, while the n=2 logarithmic-potential case is an
+explicit ASTIS extension. The independent source graph and distinct topology
+challenge precede the proof. The author's two HFT1.21 applications remain
+separate from the actual direct mean-value/zero-flux route. Its critical
+R=(1+r)/2 margin transfers gradients only after neighborhood equality inside
+the parent ball. The declaration lesson supplies the mathematical formula proof;
+blind decoding and fresh source/whole-module/reader review are separately bound.
+See `spherical-poisson-integration-notes.json` for exact hashes and remaining
+integration/reader evidence. No full Poisson representation, Eq24, oracle/cost
+adapter, TV/main lower bound, canonical merge or purification is claimed.

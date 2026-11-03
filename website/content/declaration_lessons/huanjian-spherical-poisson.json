@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.SphericalPoisson.spherical_poisson_moments",
+      "title": "Two normalized spherical Poisson moments",
+      "reader_note": "Actual integrals and L1, with an explicit n=2 extension and a direct mean-value/zero-flux proof. The source uses general Poisson representation.",
+      "statement": "For a uniform unit vector, the reciprocal radial denominator and its first-coordinate weighted version have the following finite expectations.",
+      "formula": "\\mathbb E[D^{-n/2}]=\\frac1{1-r^2},\\qquad\\mathbb E[U D^{-n/2}]=\\frac r{1-r^2},\\qquad D=1+r^2-2rU.",
+      "assumptions": [
+        "\\(n\\ge2\\), \\(0<r<1\\), and \\(U=\\zeta_1\\) for a uniform \\(\\zeta\\in S^{n-1}\\subset\\mathbb R^n\\).",
+        "The literal law is \\(\\sigma=\\iota_*(\\tau(S^{n-1})^{-1}\\tau)\\), where \\(\\tau=\\mathrm{volume}.\\mathrm{toSphere}\\) and \\(\\iota\\) is the sphere inclusion. Its normalization and both integrability conclusions are derived internally.",
+        "The pinned source contains both \\(n\\ge2\\) and a trailing \\(n\\ge3\\). The \\(n=2\\) result is an explicit extension; the paper application and the selected-parameter consumer keep \\(n\\ge3\\)."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(\\tau,\\mu,\\sigma,U,D,K\\)",
+          "text": "Unnormalized subtype surface measure, normalized subtype measure, ambient pushforward, first coordinate, squared distance and its positive power.",
+          "formula": "\\mu=\\tau(S^{n-1})^{-1}\\tau,\\qquad\\sigma=\\iota_*\\mu,\\qquad U=\\zeta_1,\\qquad D=1+r^2-2rU,\\qquad K=D^{n/2}."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Keep the actual law and positive denominator",
+          "text": "Work first on the compact unit-sphere subtype with its finite nonzero polar measure, normalized to a probability. Let e be the first unit vector. The norm identity and r<1 exclude the pole on the integration sphere. Both integrands are continuous on the compact sphere, hence genuinely integrable. The existing canonical sphere-law correspondence identifies this literal normalization with the source uniform law.",
+          "formula": "D(\\zeta)=\\|r\\zeta-e\\|^2>0,\\qquad K=D^{n/2}>0,\\qquad g_0=K^{-1},\\quad g_1=U/K.",
+          "lean": "sphere_geometry, pole_excluded and subtype_moments derive positivity, the actual probability instance, continuity and h0/h1 L1. The canonical Haar/surface realization is already established in SphereHaar/SurfaceLaw; no probability or L1 hypothesis is added."
+        },
+        {
+          "title": "Obtain the unweighted value by spherical mean value",
+          "text": "The already compiled Poisson-kernel harmonicity holds away from e. The entire closed ball of radius r excludes e, so spherical mean value applies to this actual kernel and evaluates its center to one. Use the exact positive denominator identity to isolate the integral.",
+          "formula": "P_e(x)=\\frac{1-\\|x\\|^2}{\\|x-e\\|^n},\\qquad\\Delta P_e=0\\quad(x\\ne e),\\qquad1=P_e(0)=(1-r^2)\\int g_0\\,d\\mu.",
+          "lean": "subtype_moments calls the existing poissonKernel_harmonicOnNhd and harmonic_closedBall_mean_value, then proves hden, hscale, hd and hI0. The full arbitrary-harmonic-function Poisson representation is not an input or a claimed output."
+        },
+        {
+          "title": "Compute the actual shifted potential in both dimensions",
+          "text": "Use the logarithm at n=2 and the power at n>2. Apply the canonical radial gradient/Laplacian rule to the squared-distance profile. Away from the pole the profile is C2, its Laplacian cancels, and its gradient has the displayed coefficient. The coefficient is nonzero in either dimension.",
+          "formula": "F_e(x)=\\begin{cases}\\frac12\\log\\|x-e\\|^2,&n=2,\\\\(\\|x-e\\|^2)^{1-n/2},&n>2,\\end{cases}\\quad c_n=\\begin{cases}1,&n=2,\\\\2-n,&n>2,\\end{cases}\\qquad\\Delta F_e=0,\\quad\\nabla F_e=\\frac{c_n(x-e)}{(\\|x-e\\|^2)^{n/2}}.",
+          "lean": "potentialProfile, potential and potentialCoefficient are literal private definitions. potential_data calls radial_gradient_laplacian and proves the log/power derivatives, actual C2, gradient and zero Laplacian. potential_harmonic gives neighborhood harmonicity, and potentialCoefficient_ne_zero proves cancellation is legal."
+        },
+        {
+          "title": "Use a larger parent ball before transferring gradients",
+          "text": "Choose R strictly between r and one, and apply the existing all-subradius zero-flux theorem to F on the closed ball of radius R. Its returned extension agrees with F on that parent ball. Every observation r zeta lies in the open parent ball, so the two functions agree on a neighborhood of the observation and their gradients agree there. Equality of boundary values alone would not justify this step.",
+          "formula": "R=\\frac{1+r}2,\\quad r<R<1,\\qquad v=F_e\\text{ near }r\\zeta,\\qquad\\int\\langle\\nabla F_e(r\\zeta),\\zeta\\rangle\\,d\\mu=0.",
+          "lean": "subtype_moments proves hrR,hR1,hF, obtains v,hvu,hf from harmonic_closedBall_zero_flux, then uses isOpen_ball.mem_nhds and EventuallyEq.gradient_eq. hτflux and hμflux transfer the actual flux and its measure normalization."
+        },
+        {
+          "title": "Read the weighted moment from zero flux",
+          "text": "The unit-sphere inner product identity turns the exact gradient into c_n times r g0 minus g1. The already proved L1 statements justify linearity of these actual integrals. Cancel the nonzero coefficient and substitute the unweighted value.",
+          "formula": "\\langle r\\zeta-e,\\zeta\\rangle=r-U,\\qquad0=c_n\\!\\left(r\\int g_0\\,d\\mu-\\int g_1\\,d\\mu\\right),\\qquad\\int g_1\\,d\\mu=\\frac r{1-r^2}.",
+          "lean": "sphere_geometry supplies the inner product; hpair, hz and hI1 perform the exact calculation using integral_sub only after h0/h1. Neither moment is assumed."
+        },
+        {
+          "title": "Transport the values and integrability to the ambient law",
+          "text": "The measurable sphere inclusion pushes the normalized subtype measure to exactly the ambient measure in the public statement. Transport both L1 facts and both real Bochner integrals through that inclusion. On its support, positive-base real-power rules identify reciprocal positive power with the source negative power. Off-sphere totalized values carry no mass.",
+          "formula": "\\sigma=\\iota_*\\mu,\\qquad\\int_E f\\,d\\sigma=\\int_{S^{n-1}}f(\\zeta)\\,d\\mu,\\qquad D^{-n/2}=\\frac1{D^{n/2}}\\quad(D>0).",
+          "lean": "The public proof proves hσ by Measure.map_smul and uses MeasurableEmbedding.subtype_coe, integrable_map_iff and integral_map. This is a carrier adapter for the actual moments, not a second theorem credit."
+        },
+        {
+          "title": "Consume both values in the selected numerator",
+          "text": "For n>=3 and kappa>=4 the focused consumer uses the actual selected r, proves its domain from the existing selected_tilt theorem, and evaluates the linear combination of the two integrable moments. This is the sphere calculation immediately before Eq24; the evaluated Gaussian Eq24 remains a separate target.",
+          "formula": "s=\\sqrt\\kappa,\\quad r=\\left(1-\\frac1n\\right)\\frac{s-1}{s+1},\\qquad\\int\\frac{(s+1)U-(s-1)}{D^{n/2}}\\,d\\sigma=-\\frac{s-1}{n(1-r^2)}.",
+          "lean": "selected_numerator_value in Tests/GaussianComplexitySphericalPoisson.lean calls spherical_poisson_moments and SelectedTilt.selected_tilt, proves L1 for the linear combination and evaluates the exact numerator. The same focused test also exercises n=2 and n=3 at r=1/2."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus.radial_gradient_laplacian",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel.poissonKernel_harmonicOnNhd",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue.harmonic_closedBall_mean_value",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalFlux.harmonic_closedBall_zero_flux"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Measure.toSphere_ne_zero",
+        "Continuous.integrable_of_hasCompactSupport",
+        "Real.contDiffAt_rpow_const_of_ne",
+        "Real.contDiffAt_log",
+        "Real.deriv_rpow_const",
+        "Real.deriv_log",
+        "Real.rpow_mul",
+        "Filter.EventuallyEq.gradient_eq",
+        "MeasureTheory.integral_sub",
+        "MeasureTheory.integral_const_mul",
+        "MeasureTheory.integral_smul_measure",
+        "MeasureTheory.Measure.map_smul",
+        "MeasurableEmbedding.subtype_coe",
+        "MeasurableEmbedding.integrable_map_iff",
+        "MeasurableEmbedding.integral_map"
+      ],
+      "lean_statement": "Exact pre-proof sealed statement, including both actual L1 conclusions and both integrals.",
+      "lean_proof": "The exact complete module includes all nine private implementation declarations; they share the independent source/whole-module review of this public theorem.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A1.SS1",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Lemma A.1, Eq12 and proof (A1.SS1); applied in B.2.2 immediately before Eq24",
+          "wording_status": "faithful paraphrase",
+          "attribution": "The fixed text opens with n>=2 and ends with where n>=3. The source claim is used conservatively for n>=3. The formal n=2 case is an explicit ASTIS extension. The author applies HFT1.21 to h=1 and h=x1; the checked proof uses a separately identified mean-value/zero-flux route. No full Poisson representation theorem is claimed.",
+          "scope": "Actual normalized Euclidean sphere probability, strict0<r<1; both finite expectations. Formal range n>=2, literal source intersection n>=3.",
+          "label": "Lemma A.1: two normalized sphere moments"
+        },
+        {
+          "url": "https://www.axler.net/HFT.pdf#page=23",
+          "edition": "Harmonic Function Theory, second edition; PDF SHA2564e64124f7e36993ee784e575a024505f99d484ccf959d2d3864eae9232af8bf1",
+          "anchor": "Theorem1.21 printed15/PDF23;1.18–1.20 printed13–14/PDF21–22; standing n>1",
+          "label": "Author route: Poisson representation",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Author proof background, separately retained from the checked direct route.",
+          "scope": "Continuous on closed unit ball and harmonic on open unit ball; representation in the open ball."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexitySphericalPoisson"
+      ],
+      "boundary": "Only both actual A1 moments and L1, with one selected-numerator focused consumer. No full HFT1.21/Dirichlet theorem, evaluated Gaussian Eq24, TV separation/amplification, oracle/precision/query/cost adaptation, hidden-eigenbasis route or either main lower bound. Local proof, independent verification, integration, publication and postmerge purification remain distinct."
+    }
+  ]
+}

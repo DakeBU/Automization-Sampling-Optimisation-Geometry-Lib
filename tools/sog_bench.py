@@ -40,7 +40,7 @@ def load() -> dict:
     if data['schema_version'] != 2 or data['split'] != 'public-dev':
         raise ValueError('This development catalog supports schema 2 and public-dev only')
     if data['review_status'] != 'independent-semantic-review-pending':
-        raise ValueError('Reviewed admission needs a future evidence-backed schema, not an edited badge')
+        raise ValueError('Overall catalog badge cannot replace derived per-item review evidence')
     ids = set()
     policy = curriculum.curriculum()
     for core in data['cores']:
@@ -125,11 +125,22 @@ def has_lean(core: dict) -> bool:
     return core.get('lean_enabled', True) is True
 
 
-def environment_digest() -> str:
-    """Conservatively invalidate a trusted receipt after any local Lean edit."""
-    paths = [ROOT / 'lean-toolchain', ROOT / 'lake-manifest.json', ROOT / 'lakefile.lean',
-             *sorted((ROOT / 'AutoSamplingTheory').rglob('*.lean'))]
-    return sha(encoded([(p.relative_to(ROOT).as_posix(), text_hash(p)) for p in paths]))
+def editorial_review(cores: list[dict]) -> dict:
+    import sog_bench_review
+    return sog_bench_review.summary(cores)
+
+
+def coverage(cores: list[dict], graphs: list[dict]) -> dict:
+    return curriculum.coverage(cores, graphs, editorial_review(cores)['items'])
+
+
+def environment_digest(cores: list[dict] | None = None) -> str:
+    """Bind the actual task/source import closures, not unrelated live work."""
+    import sog_bench_review
+    selected = [c for c in (materialize() if cores is None else cores) if has_lean(c)]
+    return sha(encoded({'scope': 'selected-source-import-closure',
+                        'contexts': {c['id']: sog_bench_review.context_binding(c) for c in selected},
+                        'lakefile_sha256_lf': text_hash(ROOT / 'lakefile.lean')}))
 
 
 def receipt_current(cores: list[dict]) -> bool:
@@ -139,7 +150,8 @@ def receipt_current(cores: list[dict]) -> bool:
     try:
         receipt = json.loads(RECEIPT.read_text(encoding='utf-8'))
         return (receipt['schema_version'] == 1 and receipt['passed'] is True
-                and receipt['environment_sha256'] == environment_digest()
+                and receipt['environment_scope'] == 'selected-source-import-closure'
+                and receipt['environment_sha256'] == environment_digest(cores)
                 and receipt['bindings'] == {c['id']: c['binding_sha256'] for c in cores}
                 and receipt['reference_sha256'] == {c['id']: sha(c['lean_reference'].encode()) for c in cores}
                 and re.search(r'version 4\.33\.0(?:[, )])', receipt['compiler_version']) is not None
@@ -152,7 +164,10 @@ def receipt_current(cores: list[dict]) -> bool:
 def export(output: Path, cores: list[dict] | None = None) -> None:
     cores = cores or materialize()
     graphs = curriculum.graph_items()
+    review = editorial_review(cores)
+    reviewed = [c for c in cores if review['items'][c['id']]['editorial'] in {'accepted', 'accepted-after-repair'}]
     expected = {'questions.jsonl', 'reference.jsonl', 'manifest.json', 'README.md',
+                'editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 *project_licensing.LICENSE_FILES,
                 *('lean/' + c['id'] + suffix for c in cores if has_lean(c) for suffix in ('-task.lean.txt', '-reference.lean'))}
@@ -168,10 +183,13 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     jsonl = lambda rows: ''.join(json.dumps(r, ensure_ascii=False, sort_keys=True) + '\n' for r in rows).encode()
     write('questions.jsonl', jsonl(prompts(cores)))
     write('reference.jsonl', jsonl(cores))
+    write('editorial-review.json', encoded(review))
+    write('reviewed-questions.jsonl', jsonl(prompts(reviewed)))
+    write('reviewed-reference.jsonl', jsonl(reviewed))
     write('graph-questions.jsonl', jsonl(curriculum.graph_prompts(graphs)))
     write('graph-reference.jsonl', jsonl(graphs))
     write('curriculum.json', encoded(curriculum.curriculum()))
-    write('coverage.json', encoded(curriculum.coverage(cores, graphs)))
+    write('coverage.json', encoded(coverage(cores, graphs)))
     write('GOAL.md', (DATA.parent / 'GOAL.md').read_bytes())
     (output / 'lean').mkdir(exist_ok=True)
     for c in cores:
@@ -181,12 +199,21 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
         write('lean/' + c['id'] + '-reference.lean', c['lean_reference'].encode())
     for name in project_licensing.LICENSE_FILES:
         write(name, (ROOT / name).read_bytes())
-    write('README.md', (DATA.parent / 'README.md').read_bytes())
+    guide = (DATA.parent / 'README.md').read_text(encoding='utf-8')
+    # Audit records deliberately stay out of ML/reference bundles. Their
+    # repository-relative links must still work in the downloaded guide.
+    guide = re.sub(r'\]\((reviews/[^)]+)\)',
+                   r'](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/benchmarks/samplingoptimisationgeometrybench/\1)',
+                   guide)
+    write('README.md', guide.encode('utf-8'))
     manifest = {'name': 'SamplingOptimisationGeometryBench', 'version': load()['version'],
                 'split': 'public-dev', 'cores': len(cores), 'qa_views': len(prompts(cores)), 'graph_tasks': len(graphs),
                 'track_counts': {t: sum(t in c['track_levels'] for c in cores) for t in TRACKS},
                 'difficulty_calibration': 'author-assigned; not empirically calibrated',
                 'independent_semantic_review': 'pending', 'hidden_test': False,
+                'editorial_accepted_cores': len(reviewed),
+                'editorial_review_complete_for_current_mathematical_cores': bool(cores) and len(reviewed) == len(cores),
+                'review_kind': 'AI editorial review, not full Lean coverage or canonical theorem publication',
                 'toolchain': (ROOT / 'lean-toolchain').read_text().strip(),
                 'mathlib_manifest_sha256_lf': text_hash(ROOT / 'lake-manifest.json'),
                 'files': {p.relative_to(output).as_posix(): sha(p.read_bytes())
@@ -212,7 +239,7 @@ def check_lean(cores: list[dict]) -> int:
         raise ValueError('No aligned Lean tasks to compile')
     RECEIPT.parent.mkdir(parents=True, exist_ok=True)
     RECEIPT.unlink(missing_ok=True)  # Invalidate only this generated receipt before any attempt.
-    before = environment_digest()
+    before = environment_digest(cores)
     commands = []
     compiler_version = ''
     def run(command):
@@ -238,15 +265,16 @@ def check_lean(cores: list[dict]) -> int:
             path.write_text(core['lean_reference'], encoding='utf-8', newline='\n')
             if run(['lake', 'env', 'lean', path.relative_to(ROOT).as_posix()]):
                 return 1
-    if environment_digest() != before:
-        raise ValueError('Lean sources changed during checking; no receipt written')
+    if environment_digest(cores) != before:
+        raise ValueError('Selected source/import contexts changed during checking; no receipt written')
     receipt = {'schema_version': 1, 'passed': True, 'environment_sha256': before,
+               'environment_scope': 'selected-source-import-closure',
                'compiler_version': compiler_version,
                'bindings': {c['id']: c['binding_sha256'] for c in cores},
                'reference_sha256': {c['id']: sha(c['lean_reference'].encode()) for c in cores},
                'commands': commands, 'scope': 'trusted reference compilation only; no semantic or submission certification'}
     RECEIPT.write_bytes(encoded(receipt))
-    print(f'{len(cores)} trusted references checked; independent QA semantic review remains pending.')
+    print(f'{len(cores)} trusted references checked; compilation does not certify editorial review or full explanatory coverage.')
     return 0
 
 
@@ -260,7 +288,7 @@ def main() -> int:
     cores = materialize()
     graphs = curriculum.graph_items()
     if args.command == 'coverage':
-        print(encoded(curriculum.coverage(cores, graphs)).decode('utf-8'))
+        print(encoded(coverage(cores, graphs)).decode('utf-8'))
         return 0
     if args.command == 'grade-graph':
         if not args.submissions or not args.run_metadata:
@@ -284,7 +312,8 @@ def main() -> int:
         return check_lean(cores)
     if args.command == 'export':
         export(args.output, cores)
-    print(f'{len(cores)} public development cores / {len(prompts(cores))} mathematical QA views / {len(graphs)} graph tasks; independent semantic review pending.')
+    reviewed = editorial_review(cores)['accepted_cores']
+    print(f'{len(cores)} public development cores / {len(prompts(cores))} mathematical QA views / {len(graphs)} graph tasks; {reviewed} cores editorially accepted, remaining review/calibration pending.')
     return 0
 
 

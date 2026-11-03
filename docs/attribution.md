@@ -68,6 +68,16 @@ A public source is not wholesale republished merely because it is used as a form
 
 ## System-design lineage
 
+The [research resource directory](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/resources/)
+adapts [Optlib](https://github.com/optsuite/optlib)'s subject hierarchy and the
+[Optimization × AI Forum](https://optimization-x-ai.github.io/resources/)'s
+categorized resource organization. The pinned intake contains bibliographic
+facts, not copied Forum prose, styling or proofs; no explicit Forum reuse license
+was established. Optlib remains Apache-2.0 with its original author notices.
+Neither source is claimed as an affiliate, contributor or endorser. See
+[the intake/maintenance contract](research-resource-intake.md) for completeness,
+compatibility, copyright and formal-truth boundaries.
+
 ASTIS is not a copy of any single automation system. It is a Lean-first sampling/SDE proof system whose design is shaped by source fidelity, hidden regularity, conditional laws, weak generators, KL/FI/LSI chains, discretization, reusable formal memory, and independent verification.
 
 | Source | Design idea absorbed by ASTIS | ASTIS-specific boundary | Why it matters here |

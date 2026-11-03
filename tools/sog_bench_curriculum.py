@@ -120,18 +120,25 @@ def graph_prompts(items: list[dict]) -> list[dict]:
     return [{k: v for k, v in row.items() if k not in {'answer', 'review_status'}} for row in items]
 
 
-def coverage(cores: list[dict], graphs: list[dict]) -> dict:
+def coverage(cores: list[dict], graphs: list[dict], reviews: dict | None = None) -> dict:
     policy = curriculum()
+    accepted = sum((reviews or {}).get(c['id'], {}).get('editorial') in {'accepted', 'accepted-after-repair'} for c in cores)
     cells = []
     for domain in policy['domains']:
         for level in policy['levels']:
             counts = {t: sum(domain in c['library_domains'] and c['track_levels'].get(t) == level for c in cores)
                       for t in ('natural-language', 'lean')}
             counts['graph-json'] = sum(domain in g['library_domains'] and g['level'] == level for g in graphs)
+            reviewed = sum(domain in c['library_domains'] and c['track_levels'].get(t) == level
+                           and (reviews or {}).get(c['id'], {}).get('editorial') in {'accepted', 'accepted-after-repair'}
+                           for c in cores for t in ('natural-language', 'lean'))
             cells.append({'domain': domain, 'level': level, 'draft_views': counts,
-                          'independently_reviewed': 0, 'gap': not any(counts.values())})
+                          'independently_reviewed': reviewed, 'review_kind': 'AI editorial only', 'gap': not any(counts.values())})
     return {'unique_mathematical_cores': len(cores), 'mathematical_views': sum(len(c['track_levels']) for c in cores),
             'graph_tasks': len(graphs), 'independent_review': 'pending', 'difficulty_calibration': 'not-measured',
+            'editorial_accepted_mathematical_cores': accepted,
+            'mathematical_editorial_status': 'complete-for-current-cores' if cores and accepted == len(cores) else ('partial' if accepted else 'pending'),
+            'graph_editorial_status': 'pending',
             'cells': cells, 'note': policy['coverage_policy']}
 
 

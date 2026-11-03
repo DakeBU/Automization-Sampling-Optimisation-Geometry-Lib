@@ -1,0 +1,574 @@
+{
+  "author_identity": "agent-task:root",
+  "cases": {
+    "A": {
+      "binding_sha256": "ac978a2c81f53d2c0ce45bb253fdafd93de190bb9ff64e1eab954ea9e29249b8",
+      "core_id": "sogb-001"
+    },
+    "B": {
+      "binding_sha256": "f5d34b22cd89382ed252b2d1ed63a8b0763a005dbe5940fd24174b14710d19e8",
+      "core_id": "sogb-002"
+    },
+    "C": {
+      "binding_sha256": "6ae4340301ea2f62c4ca85d81bf2b21ca2a502c111f64384f94d652f6b2697ef",
+      "core_id": "sogb-003"
+    }
+  },
+  "context_bindings": {
+    "sogb-001": "97c6cf1762968346e0e45517ab5424279674ba53749bc5c0e8f5407c1b2efa35",
+    "sogb-002": "79e3b40347ced5d90ab8b1a045b57547328368386a7081ed447d8db462b26726",
+    "sogb-003": "7e27ad2aaf11ff0b79c45338f9709b08a7501f2ce31455b3357c6e3ae9dfbb54",
+    "sogb-004": "8a2b7fc5a9cee03ef7560c69387b0610a541b9fb3c5520ace472f94628d47b8f",
+    "sogb-005": "50fab393dd21176e889c553957115bcc1f9d898d390045267bbfbd837fca9acb",
+    "sogb-006": "029b0f86268a2746b22dae8be0fac0b4065ab8dc40a3fcff987d3f4f598361a2",
+    "sogb-007": "ff1bc1aef9d34e673bbf8819a562fd540b641eddcdec18b30c28454ee5fd19f9"
+  },
+  "decoder_identity": "agent-task:root/sog_blind_decoder_round1",
+  "decoder_input_sha256": "d24a6269996a19d6acafe1b000624d595491069298348ed8327daf010e8d1481",
+  "decoder_output_sha256": "b21089191515d836dcb2bad483c84887a63fc3c87054710d5a16e032b484de49",
+  "instruction": "Independently check each question, solution, rubric and cited local support. For the three formal views compare all seven slots against the blind reconstruction. Treat authored scope/alignment claims as claims to audit, not evidence. No earlier reviewer verdicts are supplied. Accept only with precise formal coverage and explicit unformalized explanation. Propose repairs instead of silently altering questions. This is Bench editorial review, not canonical paper-source publication or model evaluation.",
+  "mathematical_cores": [
+    {
+      "assumptions": [
+        "The state space is countable, carries a measurable space, and every singleton is measurable.",
+        "\\(\\mu\\) is a nonnegative measure and \\(K\\) is a measurable kernel; neither is assumed finite or normalized.",
+        "For every pair \\(x,y\\), \\(\\mu(\\{x\\})K(x,\\{y\\})=\\mu(\\{y\\})K(y,\\{x\\})\\) in the extended nonnegative reals."
+      ],
+      "binding_sha256": "ac978a2c81f53d2c0ce45bb253fdafd93de190bb9ff64e1eab954ea9e29249b8",
+      "boundary": "The Lean target covers the flux identity. The explanatory non-implications are assessed in the natural-language track, not certified by that Lean target.",
+      "context": "open MeasureTheory ProbabilityTheory\nopen scoped ENNReal\n",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility.isReversible_of_singleton_balance",
+      "dependencies": {
+        "astis": [],
+        "mathlib": [
+          "lintegral_countable",
+          "ENNReal.tsum_mul_right",
+          "ENNReal.tsum_comm",
+          "tsum_congr"
+        ]
+      },
+      "difficulty": "foundation",
+      "difficulty_reason": "Coordinate two nonnegative countable expansions, justify their exchange and audit infinite/null masses; Lean also reconstructs that argument.",
+      "domain": "sampling",
+      "family": "atomic-detailed-balance",
+      "id": "sogb-001",
+      "imports": [
+        "Mathlib.Probability.Kernel.Invariance",
+        "Mathlib.MeasureTheory.Integral.Lebesgue.Countable"
+      ],
+      "lean_explanation": "The binders in square brackets supply the measurable and countable structures. The hypothesis h is pairwise flux balance. The proof expands countable lintegrals, rewrites kernel masses as sums, then uses ENNReal.tsum_comm and h. The final proposition is Mathlib's kernel reversibility, not a mixing theorem.",
+      "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport Mathlib.Probability.Kernel.Invariance\nimport Mathlib.MeasureTheory.Integral.Lebesgue.Countable\n\nopen MeasureTheory ProbabilityTheory\nopen scoped ENNReal\n\nexample {α : Type*} [MeasurableSpace α]\n    [Countable α] [MeasurableSingletonClass α] (κ : Kernel α α) (μ : Measure α)\n    (h : ∀ x y, μ {x} * κ x {y} = μ {y} * κ y {x}) :\n    Kernel.IsReversible κ μ := by\n  intro A B _ _\n  have hm (ν : Measure α) (s : Set α) : ν s = ∑' y : s, ν {(y : α)} := by\n    simpa using (lintegral_countable (μ := ν) (fun _ => 1) (Set.to_countable s))\n  rw [lintegral_countable _ (Set.to_countable A),\n    lintegral_countable _ (Set.to_countable B)]\n  conv_lhs => enter [1, x]; rw [hm (κ x) B, ← ENNReal.tsum_mul_right]\n  conv_rhs => enter [1, y]; rw [hm (κ y) A, ← ENNReal.tsum_mul_right]\n  rw [ENNReal.tsum_comm]\n  apply tsum_congr\n  intro y\n  apply tsum_congr\n  intro x\n  simpa only [mul_comm] using h (x : α) (y : α)\n",
+      "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport Mathlib.Probability.Kernel.Invariance\nimport Mathlib.MeasureTheory.Integral.Lebesgue.Countable\n\nopen MeasureTheory ProbabilityTheory\nopen scoped ENNReal\n\nexample {α : Type*} [MeasurableSpace α]\n    [Countable α] [MeasurableSingletonClass α] (κ : Kernel α α) (μ : Measure α)\n    (h : ∀ x y, μ {x} * κ x {y} = μ {y} * κ y {x}) :\n    Kernel.IsReversible κ μ := by\n  -- Replace this comment with your proof.\n",
+      "library_domains": [
+        "mcmc",
+        "discrete-sampling"
+      ],
+      "question": "Prove that for all measurable sets A,B, \\(\\int_A K(x,B)\\,d\\mu(x)=\\int_B K(y,A)\\,d\\mu(y)\\). Explain why infinite total mass and zero-mass states cause no cancellation problem. Does this imply convergence to a probability law?",
+      "rubric": [
+        {
+          "criterion": "States the countability and measurable-singleton hypotheses and uses nonnegative extended-valued sums.",
+          "points": 1
+        },
+        {
+          "criterion": "Expands both the outer restricted integral and the inner kernel mass.",
+          "points": 1
+        },
+        {
+          "criterion": "Uses balance termwise and justifies sum exchange without dividing by masses or subtracting infinities.",
+          "points": 1
+        },
+        {
+          "criterion": "Separates reversibility from normalization, convergence and computational cost.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "assumption-audit",
+        "semantic-boundary"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelReversibility.lean",
+      "source_line": 19,
+      "source_note": "Original exercise over the existing Samplinglib declaration; not a quotation of a paper theorem.",
+      "source_sha256_lf": "439e00b3aea2e674925eecde68ce43d62a7b9b168762f07d414c1feb51e8408a",
+      "split": "public-dev",
+      "steps": [
+        "On a countable measurable-singleton space, expand each restricted integral and each kernel mass into singleton masses. The left side becomes \\[\\sum_{x\\in A}\\sum_{y\\in B}K(x,\\{y\\})\\mu(\\{x\\}).\\] These sums take values in \\([0,\\infty]\\).",
+        "Apply the assumed balance identity to each summand. Nonnegativity permits exchanging the two sums even when the result is infinite: \\[\\sum_{x\\in A}\\sum_{y\\in B}\\mu(\\{y\\})K(y,\\{x\\})=\\sum_{y\\in B}K(y,A)\\mu(\\{y\\}).\\]",
+        "Recognize the last expression as the right restricted integral. No division by a singleton mass, subtraction of infinities, or signed Fubini argument occurred. A zero atom needs no special conditional version for this flux identity.",
+        "Reversibility alone proves neither normalization, irreducibility, convergence, nor a mixing or query-cost bound. Those require separate assumptions and arguments."
+      ],
+      "title": "From atomic balance to reversibility",
+      "track_levels": {
+        "lean": "L3",
+        "natural-language": "L3"
+      }
+    },
+    {
+      "assumptions": [
+        "\\(E\\) is a complete real inner-product space, \\(f:E\\to\\mathbb R\\), and \\(z\\) is an attained global minimizer.",
+        "The real parameters \\(\\alpha,\\beta,h\\) satisfy \\(h\\ge0\\) and \\(\\beta h\\le1\\). For all \\(x,y\\), the quadratic upper model holds: \\[f(y)\\le f(x)+\\langle\\nabla f(x),y-x\\rangle+\\tfrac\\beta2\\|y-x\\|^2.\\]",
+        "For every \\(x\\), \\(2\\alpha(f(x)-f(z))\\le\\|\\nabla f(x)\\|^2\\). Here \\(\\nabla f\\) is the representing vector of the derivative where \\(f\\) is Fréchet differentiable, and zero otherwise. The upper-model and PL inequalities are supplied assumptions; global differentiability is not inferred from the notation."
+      ],
+      "binding_sha256": "f5d34b22cd89382ed252b2d1ed63a8b0763a005dbe5940fd24174b14710d19e8",
+      "boundary": "This exercises the supplied upper-model/PL formulation. It does not derive those hypotheses from smoothness or infer differentiability from a totalized gradient. The broader natural-language discussion is not an extra Lean theorem.",
+      "context": "open Set\nopen scoped RealInnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentPL.gradient_descent_pl_value_bound",
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic.gradient_step_descent_of_quadratic_upper_bound"
+        ],
+        "mathlib": [
+          "le_geom",
+          "Function.iterate_succ_apply'",
+          "mul_le_mul_of_nonneg_left"
+        ]
+      },
+      "difficulty": "intermediate",
+      "difficulty_reason": "Derive an actual-step recurrence and handle both signs before iterating; proof length is not the difficulty measure.",
+      "domain": "optimisation",
+      "family": "pl-gradient-iteration",
+      "id": "sogb-002",
+      "imports": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic",
+        "Mathlib.Analysis.SpecificLimits.Basic"
+      ],
+      "lean_explanation": "IsMinOn f univ z supplies nonnegative gaps. Function.iterate describes actual gradient iterates. The proof calls the existing gradient-step bound, combines it with hpl using nlinarith, and splits on the sign of q before invoking le_geom. Completeness is retained from the existing Lean API; it is not asserted to be a sharp mathematical hypothesis.",
+      "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic\nimport Mathlib.Analysis.SpecificLimits.Basic\n\nopen Set\nopen scoped RealInnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\nexample {f : E → ℝ} {α β h : ℝ} {z : E}\n    (hz : IsMinOn f univ z) (hh : 0 ≤ h) (hstep : β * h ≤ 1)\n    (hu : ∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2)\n    (hpl : ∀ x, 2 * α * (f x - f z) ≤ ‖gradient f x‖ ^ 2)\n    (x₀ : E) (N : ℕ) :\n    f ((fun x => x - h • gradient f x)^[N] x₀) - f z ≤\n      (1 - α * h) ^ N * (f x₀ - f z) := by\n  let T : E → E := fun x => x - h • gradient f x\n  let q : ℝ := 1 - α * h\n  have hnonneg (x : E) : 0 ≤ f x - f z := sub_nonneg.mpr (hz (mem_univ x))\n  have hrec (x : E) : f (T x) - f z ≤ q * (f x - f z) := by\n    have hd := GradientDescentBasic.gradient_step_descent_of_quadratic_upper_bound hh hstep hu x\n    have hp := mul_le_mul_of_nonneg_left (hpl x) (show 0 ≤ h / 2 by positivity)\n    dsimp [T, q]\n    nlinarith\n  by_cases hq : 0 ≤ q\n  · have hr := le_geom (u := fun n => f (T^[n] x₀) - f z) hq N (by\n      intro k _\n      rw [Function.iterate_succ_apply']\n      exact hrec _)\n    exact hr\n  · have hzero (x : E) : f x - f z = 0 := by\n      have hc : q * (f x - f z) ≥ 0 := (hnonneg (T x)).trans (hrec x)\n      have hneg : q < 0 := lt_of_not_ge hq\n      have hx := hnonneg x\n      nlinarith\n    change f (T^[N] x₀) - f z ≤ q ^ N * (f x₀ - f z)\n    rw [hzero, hzero, mul_zero]\n",
+      "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic\nimport Mathlib.Analysis.SpecificLimits.Basic\n\nopen Set\nopen scoped RealInnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n\nexample {f : E → ℝ} {α β h : ℝ} {z : E}\n    (hz : IsMinOn f univ z) (hh : 0 ≤ h) (hstep : β * h ≤ 1)\n    (hu : ∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2)\n    (hpl : ∀ x, 2 * α * (f x - f z) ≤ ‖gradient f x‖ ^ 2)\n    (x₀ : E) (N : ℕ) :\n    f ((fun x => x - h • gradient f x)^[N] x₀) - f z ≤\n      (1 - α * h) ^ N * (f x₀ - f z) := by\n  -- Replace this comment with your proof.\n",
+      "library_domains": [
+        "optimisation"
+      ],
+      "question": "For the actual iterates \\(x_{n+1}=x_n-h\\nabla f(x_n)\\), prove \\(f(x_N)-f(z)\\le(1-\\alpha h)^N(f(x_0)-f(z))\\). Do not add convexity or assume \\(1-\\alpha h\\ge0\\). Explain separately what happens when this factor is negative, and when the bound describes genuine geometric decay.",
+      "rubric": [
+        {
+          "criterion": "Derives the descent estimate from the actual update and the supplied quadratic model.",
+          "points": 1
+        },
+        {
+          "criterion": "Uses nonnegative h/2 to combine PL with descent and obtains a nonnegative gap recurrence.",
+          "points": 1
+        },
+        {
+          "criterion": "Proves the iteration bound for q≥0 and handles q<0 by showing every gap vanishes.",
+          "points": 1
+        },
+        {
+          "criterion": "Does not add convexity or a hidden sign premise; distinguishes a bound from strict geometric decay.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "calculation",
+        "proof",
+        "assumption-audit"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentPL.lean",
+      "source_line": 24,
+      "source_note": "Original exercise over Samplinglib's PL theorem. Its module cites Chewi, Lectures on Optimization, arXiv:2605.07006v1, Definition 2.5 and Theorem 3.6; the exercise explicitly retains the Lean upper-model formulation.",
+      "source_sha256_lf": "382c8a5ba9dae70074114a205eb03c44826cb03c9b20c0f64931ced25fd9bea2",
+      "split": "public-dev",
+      "steps": [
+        "Substitute the actual gradient step into the quadratic model. Using \\(h\\ge0\\) and \\(\\beta h\\le1\\) yields \\[f(x-h\\nabla f(x))\\le f(x)-\\tfrac h2\\|\\nabla f(x)\\|^2.\\]",
+        "Multiply the PL bound by h/2≥0. With \\(g(x)=f(x)-f(z)\\ge0\\) and \\(q=1-\\alpha h\\), obtain \\(0\\le g(x-h\\nabla f(x))\\le qg(x)\\).",
+        "If q≥0, multiplication preserves order. Induction along the actual iterates gives \\(g(x_N)\\le q^N g(x_0)\\), including N=0.",
+        "If q<0, the same one-step inequality holds for every x and forces g(x)=0: otherwise qg(x)<0 contradicts nonnegativity of the next gap. Hence every gap is zero and the displayed bound still holds. Nontrivial geometric decay requires \\(0\\le q<1\\), rather than merely the existence of a real power q^N."
+      ],
+      "title": "PL descent: the sign of the contraction factor",
+      "track_levels": {
+        "lean": "L3",
+        "natural-language": "L3"
+      }
+    },
+    {
+      "assumptions": [
+        "\\(E\\) is a real normed vector space; \\(V:E\\to\\mathbb R\\); \\(x_0\\) is an attained global minimizer; \\(k\\) is real.",
+        "Use the following strong-convexity convention (also used by Mathlib): on all of \\(E\\), for \\(a,b\\ge0\\) with \\(a+b=1\\), \\[V(ax+by)\\le aV(x)+bV(y)-\\tfrac k2 ab\\|x-y\\|^2.\\]",
+        "No differentiability or finite-dimensionality assumption is made."
+      ],
+      "binding_sha256": "6ae4340301ea2f62c4ca85d81bf2b21ca2a502c111f64384f94d652f6b2697ef",
+      "boundary": "This is a normed-vector-space statement, not a Riemannian or geodesic-convexity theorem. The Lean target proves the k/4 envelope only; neither the sharper bound nor Gibbs normalization is supplied.",
+      "context": "open Set\n",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.StrongConvexity.centered_quadratic_lower_bound_of_strongConvexOn_minimizer",
+      "dependencies": {
+        "astis": [],
+        "mathlib": [
+          "StrongConvexOn",
+          "isMinOn_univ_iff",
+          "norm_sub_rev"
+        ]
+      },
+      "difficulty": "foundation",
+      "difficulty_reason": "One midpoint mechanism plus scalar rearrangement; the natural-language view additionally distinguishes the envelope from normalization.",
+      "domain": "geometry",
+      "family": "strong-convex-midpoint-envelope",
+      "id": "sogb-003",
+      "imports": [
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity",
+        "Mathlib.Analysis.Convex.Strong"
+      ],
+      "lean_explanation": "StrongConvexOn contains a convex-domain component and a two-point inequality; hV.2 selects the latter. IsMinOn on univ is expanded to compare the minimizer with every point. The midpoint coefficients are checked by norm_num, the squared distance is rewritten symmetrically, and nlinarith performs the final scalar rearrangement.",
+      "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity\nimport Mathlib.Analysis.Convex.Strong\n\nopen Set\n\nexample\n    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n    {V : E → ℝ} {k : ℝ} (hV : StrongConvexOn (Set.univ : Set E) k V)\n    (x₀ : E) (hx₀ : IsMinOn V (Set.univ : Set E) x₀) :\n    ∀ x : E, V x₀ + (k / 4) * ‖x - x₀‖ ^ 2 ≤ V x := by\n  intro x\n  have hx₀_min : ∀ y : E, V x₀ ≤ V y := isMinOn_univ_iff.mp hx₀\n  have hmid_min : V x₀ ≤ V ((1 / 2 : ℝ) • x₀ + (1 / 2 : ℝ) • x) := hx₀_min _\n  have hstrong :=\n    hV.2 (by simp : x₀ ∈ (Set.univ : Set E)) (by simp : x ∈ (Set.univ : Set E))\n      (by norm_num : 0 ≤ (1 / 2 : ℝ)) (by norm_num : 0 ≤ (1 / 2 : ℝ))\n      (by norm_num : (1 / 2 : ℝ) + (1 / 2 : ℝ) = 1)\n  have hstrong' :\n      V ((1 / 2 : ℝ) • x₀ + (1 / 2 : ℝ) • x) ≤\n        (1 / 2 : ℝ) * V x₀ + (1 / 2 : ℝ) * V x - (k / 8) * ‖x - x₀‖ ^ 2 := by\n    rw [norm_sub_rev x₀ x] at hstrong\n    convert hstrong using 1\n    · simp [smul_eq_mul]\n      ring_nf\n  have hle := hmid_min.trans hstrong'\n  nlinarith\n",
+      "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Geometry.LogConcavity\nimport Mathlib.Analysis.Convex.Strong\n\nopen Set\n\nexample\n    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\n    {V : E → ℝ} {k : ℝ} (hV : StrongConvexOn (Set.univ : Set E) k V)\n    (x₀ : E) (hx₀ : IsMinOn V (Set.univ : Set E) x₀) :\n    ∀ x : E, V x₀ + (k / 4) * ‖x - x₀‖ ^ 2 ≤ V x := by\n  -- Replace this comment with your proof.\n",
+      "library_domains": [
+        "log-concave-sampling",
+        "optimisation"
+      ],
+      "question": "Use only the midpoint instance and global minimality to prove \\(V(x)\\ge V(x_0)+\\tfrac k4\\|x-x_0\\|^2\\) for every x. Track the constant. Does this proof establish the sharper k/2 envelope, or finiteness of a Gibbs normalizer?",
+      "rubric": [
+        {
+          "criterion": "States the convention and obtains the midpoint correction k/8 exactly.",
+          "points": 1
+        },
+        {
+          "criterion": "Uses the exposed global minimizer at the midpoint.",
+          "points": 1
+        },
+        {
+          "criterion": "Rearranges to k/4 without silently upgrading it to k/2 or assuming differentiability.",
+          "points": 1
+        },
+        {
+          "criterion": "Separates the quadratic envelope from Gibbs integrability and normalization.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "calculation",
+        "assumption-audit",
+        "semantic-boundary"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Geometry/StrongConvexity.lean",
+      "source_line": 57,
+      "source_note": "Original exercise over the existing Samplinglib midpoint lemma. It is not presented as a verbatim textbook statement.",
+      "source_sha256_lf": "4ff7d1a85259002e0a3f947ea509935eb9866bf3741daa361733ed041968f1f1",
+      "split": "public-dev",
+      "steps": [
+        "At \\(m=(x_0+x)/2\\), strong convexity gives \\[V(m)\\le\\tfrac12V(x_0)+\\tfrac12V(x)-\\tfrac k8\\|x-x_0\\|^2.\\] The factor \\(k/8\\) comes from \\((k/2)(1/2)(1/2)\\).",
+        "Global minimality gives \\(V(x_0)\\le V(m)\\). Combine the two inequalities and multiply by 2 to obtain \\(V(x_0)+\\tfrac k4\\|x-x_0\\|^2\\le V(x)\\). No derivative or limit was used.",
+        "This midpoint calculation proves the k/4 envelope, not the sharper k/2 constant. Obtaining a sharper result needs another argument; it must not be credited to this calculation.",
+        "The envelope alone is not a normalization theorem. A Gibbs-integrability consumer additionally needs an appropriate finite-dimensional reference measure, measurability, a positive confining modulus, and a Gaussian-integrability argument; positivity of the normalizer is a separate obligation. Here k need not even be positive."
+      ],
+      "title": "A quadratic envelope from one midpoint",
+      "track_levels": {
+        "lean": "L2",
+        "natural-language": "L2"
+      }
+    },
+    {
+      "assumptions": [
+        "Let E be a finite-dimensional real Euclidean space with its Borel sigma-algebra. Let μ,ν be probability measures with finite second moments.",
+        "A coupling γ has marginals μ,ν. Define W₂(μ,ν) as the infimum of the square root of ∫‖x−y‖² dγ over such couplings. Do not assume an infimizing coupling is attained."
+      ],
+      "binding_sha256": "2274ba27f6d700779d832ff90a2b26d881f2bf5f23c3dfc78689f556020559cf",
+      "boundary": "A supporting formal symmetry theorem is not a verified Lean translation of every sentence of this QA. This question neither proves an optimal coupling exists nor derives the triangle inequality.",
+      "context": "",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSymmetry.wassersteinDistance_comm",
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSymmetry.isCoupling_map_swapPair",
+          "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSymmetry.lintegral_quadraticCost_map_swapPair"
+        ],
+        "mathlib": [
+          "Measure.map_map",
+          "lintegral_map"
+        ]
+      },
+      "difficulty": "intermediate",
+      "difficulty_reason": "Transport both marginals, preserve cost, and pass from near-optimal plans to an infimum without assuming attainment.",
+      "domain": "transport",
+      "family": "coupling-swap-near-optimality",
+      "id": "sogb-004",
+      "imports": [],
+      "lean_enabled": false,
+      "lean_explanation": "Formal support exists for swapping marginals, preserving cost and comparing near-optimal values. No single aligned Lean task for the entire finite-second-moment explanation is admitted in this batch.",
+      "lean_reference": "",
+      "lean_task": "",
+      "library_domains": [
+        "statistical-optimal-transport"
+      ],
+      "question": "Prove symmetry of W₂ by swapping coordinates of near-optimal couplings. Which measurability and marginal identities are used, and where does the finite-cost hypothesis prevent an invalid subtraction of infinities?",
+      "rubric": [
+        {
+          "criterion": "Checks swap measurability and both pushforward marginal identities.",
+          "points": 1
+        },
+        {
+          "criterion": "Proves nonnegative quadratic-cost preservation.",
+          "points": 1
+        },
+        {
+          "criterion": "Supplies finite product-coupling cost and near-optimal selection rather than assuming attainment.",
+          "points": 1
+        },
+        {
+          "criterion": "Passes ε to zero in both directions without subtracting infinities.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "assumption-audit"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Measure/WassersteinSymmetry.lean",
+      "source_line": 93,
+      "source_note": "Original exercise over the existing project-owned coupling-swap route; not copied textbook text.",
+      "source_sha256_lf": "91b6540103d3d9dca557bae308266fb84ea922ce1e2fbc0a4b90a79a0b473ae4",
+      "split": "public-dev",
+      "steps": [
+        "The coordinate swap S(x,y)=(y,x) is continuous and hence Borel measurable. For γ′=S#γ, the identities π₁∘S=π₂ and π₂∘S=π₁ give marginals ν,μ by composition of pushforwards.",
+        "Nonnegative change of variables and symmetry of the norm give \\[\\int\\|x-y\\|^2\\,d(S_\\#\\gamma)=\\int\\|y-x\\|^2\\,d\\gamma=\\int\\|x-y\\|^2\\,d\\gamma.\\] No signed Fubini theorem is required.",
+        "The product coupling has finite quadratic cost since ‖x−y‖²≤2‖x‖²+2‖y‖². Thus the infimum is finite and, for each ε>0, an admissible coupling can be selected with square-root cost less than W₂(μ,ν)+ε. This is near-optimal selection, not an optimal-plan existence theorem.",
+        "Swapping this plan gives W₂(ν,μ)≤W₂(μ,ν)+ε. Let ε decrease to zero, then interchange μ and ν to obtain equality. Finiteness justifies the real-valued ε argument; there was no operation ∞−∞. The library also treats an extended-valued generalization, which is not silently identified with this question."
+      ],
+      "title": "Wasserstein symmetry without an optimal plan",
+      "track_levels": {
+        "natural-language": "L3"
+      }
+    },
+    {
+      "assumptions": [
+        "E,H are real Hilbert spaces. F:E→H is Fréchet differentiable at w, with bounded linear derivative D(w). Fix r∈H and V(w)=2⟨r,F(w)⟩.",
+        "Assume ‖w‖=1 and ‖D(w)‖≤M with M≥0. The tangent space of the unit sphere at w is {v:⟨w,v⟩=0}."
+      ],
+      "binding_sha256": "ce37724e97b715e2330e57378f5795759da21f91c6f477b863d897b48fe93f74",
+      "boundary": "Only the unit sphere with its induced metric is treated. No general Riemannian gradient theorem, retraction guarantee or optimization convergence result is asserted.",
+      "context": "",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient.quadratic_feature_potential_tangent_gradient",
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient.quadratic_feature_potential_tangent_gradient"
+        ],
+        "mathlib": [
+          "ContinuousLinearMap.adjoint_inner_left",
+          "ContinuousLinearMap.adjoint.norm_map",
+          "norm_sub_sq_real"
+        ]
+      },
+      "difficulty": "intermediate",
+      "difficulty_reason": "Connect a derivative, an adjoint and an orthogonal projection, then diagnose the failure of the unit-normal convention.",
+      "domain": "geometry",
+      "family": "sphere-tangent-projection",
+      "id": "sogb-005",
+      "imports": [],
+      "lean_enabled": false,
+      "lean_explanation": "The existing bundled theorem proves a stronger regularity package. It is support, not a frozen equivalent task for this shorter question and its counterexample.",
+      "lean_reference": "",
+      "lean_task": "",
+      "library_domains": [
+        "riemannian-optimization"
+      ],
+      "question": "Set g=2D(w)*r and G=g−⟨g,w⟩w. Prove tangency, the directional-derivative identity on tangent vectors and ‖G‖≤2M‖r‖. Explain precisely why the same formula need not project onto w-perpendicular when w is not a unit vector.",
+      "rubric": [
+        {
+          "criterion": "Derives the ambient derivative using the chain rule and adjoint, with genuine differentiability.",
+          "points": 1
+        },
+        {
+          "criterion": "Uses the unit-normal condition to prove tangency and the tangent directional identity.",
+          "points": 1
+        },
+        {
+          "criterion": "Proves the norm bound by orthogonal projection and the adjoint operator norm.",
+          "points": 1
+        },
+        {
+          "criterion": "Gives a valid nonunit counterexample and states the correction and manifold boundary.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "calculation",
+        "proof",
+        "assumption-audit",
+        "counterexample"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Geometry/QuadraticFeatureTangentGradient.lean",
+      "source_line": 41,
+      "source_note": "Original exercise over the local quadratic-feature tangent-gradient theorem and elementary Hilbert-space algebra.",
+      "source_sha256_lf": "3594fc8e7b381a90921b25f2e30ef8b87aa2851fbd2dd8320411a29d8b58e3f1",
+      "split": "public-dev",
+      "steps": [
+        "The chain rule and the adjoint identity give DV(w)[v]=2⟨r,D(w)v⟩=⟨g,v⟩. This uses genuine differentiability, not an assertion about a default derivative value.",
+        "Since ‖w‖²=1, \\[\\langle w,G\\rangle=\\langle w,g\\rangle-\\langle g,w\\rangle\\|w\\|^2=0.\\] For v perpendicular to w, ⟨G,v⟩=⟨g,v⟩=DV(w)[v], which identifies the sphere gradient by the induced metric.",
+        "The Pythagorean calculation gives ‖G‖²=‖g‖²−⟨g,w⟩²≤‖g‖². Hence ‖G‖≤‖g‖≤2‖D(w)*‖‖r‖=2‖D(w)‖‖r‖≤2M‖r‖.",
+        "Without normalization, ⟨w,G⟩=⟨g,w⟩(1−‖w‖²). For example, take E=ℝ, w=2 and g=2: G=−6 is not perpendicular to w. For a nonzero general normal, the projector instead divides the coefficient by ‖w‖². This is not a formula for an arbitrary manifold without its own tangent and metric data."
+      ],
+      "title": "Why a sphere gradient is a projected ambient gradient",
+      "track_levels": {
+        "natural-language": "L3"
+      }
+    },
+    {
+      "assumptions": [
+        "μ is any probability measure on the finite Boolean cube with n+1 coordinates. K is its uniform random-site heat-bath kernel, with the project's fixed conditional versions at null fibers.",
+        "At any start y with μ({y})>0, the exact singleton transition formula is the sum over coordinates of the retained-coordinate indicator times μ({x}) divided by the corresponding fiber mass, averaged by 1/(n+1). No such formula is assumed at an unsupported start."
+      ],
+      "binding_sha256": "74f08b42811ce2c35e4669f9e631246262c6038119faa990aea98efb42431cb3",
+      "boundary": "No mixing time, spectral independence, full-support theorem or hard-core ergodicity claim follows from this balance argument.",
+      "context": "",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath.randomScan_isReversible",
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath.randomScan_apply_singleton"
+        ],
+        "mathlib": []
+      },
+      "difficulty": "intermediate",
+      "difficulty_reason": "Separate two null-mass cases, apply a conditional formula only at supported starts, then distinguish balance from irreducibility.",
+      "domain": "sampling",
+      "family": "random-scan-null-atoms",
+      "id": "sogb-006",
+      "imports": [],
+      "lean_enabled": false,
+      "lean_explanation": "The null-start split follows the existing private balance proof, while the explanatory counterexample is not an aligned checked Lean task.",
+      "lean_reference": "",
+      "lean_task": "",
+      "library_domains": [
+        "discrete-sampling",
+        "mcmc"
+      ],
+      "question": "In the detailed-balance proof, handle a target-null atom x without applying the positive-start singleton formula at x. Why is zero mass alone insufficient for an arbitrary kernel? Give a reversible heat-bath example which is not irreducible.",
+      "rubric": [
+        {
+          "criterion": "Separates the both-null and single-null cases without dividing by zero.",
+          "points": 1
+        },
+        {
+          "criterion": "Uses the singleton formula at the positive-mass reverse start and proves fiber positivity.",
+          "points": 1
+        },
+        {
+          "criterion": "Explains why an arbitrary kernel need not avoid a target-null atom.",
+          "points": 1
+        },
+        {
+          "criterion": "Checks the 00/11 heat-bath counterexample and distinguishes reversibility from irreducibility.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "assumption-audit",
+        "counterexample"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/RandomScanHeatBathReversibility.lean",
+      "source_line": 54,
+      "source_note": "Original question based on the actual finite heat-bath implementation, retaining its null-fiber boundary.",
+      "source_sha256_lf": "9e4e6b3d792884660e1b9da65f804e7e497e046f3986613731dd9289ad026ac8",
+      "split": "public-dev",
+      "steps": [
+        "If μ({x})=μ({y})=0, both weighted transition masses vanish: finite Markov transition masses make multiplication by zero harmless.",
+        "If μ({x})=0 but μ({y})>0, use the positive-start formula at y, not x. Each relevant fiber contains y, so its mass is at least μ({y})>0. Every summand for a jump from y to x contains μ({x})=0, hence K(y,{x})=0. Both fluxes are again zero.",
+        "For an arbitrary kernel, a zero target atom does not imply K(y,{x})=0: that conclusion used the actual heat-bath transition law. Target-null starts may have nontrivial transition rules, but their outgoing flux is multiplied by zero.",
+        "On the two-bit cube, let μ give mass 1/2 to each of 00 and 11 and zero to the other states. Updating a single coordinate from either supported state leaves it unchanged. The kernel is reversible for μ, but 00 and 11 cannot communicate. Thus balance supplies neither irreducibility nor convergence from every start."
+      ],
+      "title": "Null atoms in a random-scan balance proof",
+      "track_levels": {
+        "natural-language": "L3"
+      }
+    },
+    {
+      "assumptions": [
+        "There are finitely many n adjacent hybrid pairs. At slot i the pair shares a probability law ρᵢ on histories, conditional Markov kernels Kᵢ,Lᵢ and a common downstream Markov kernel Sᵢ.",
+        "A measurable integrable real εᵢ bounds |Kᵢ(x,A)−Lᵢ(x,A)| for ρᵢ-almost every x and every measurable event A. Let βᵢ=∫εᵢ dρᵢ. Total variation means the supremum of absolute event-probability differences, with no extra factor of two."
+      ],
+      "binding_sha256": "a4e2d5d2fd1273d0cadc2054858c9597b4e090dd0fec5fda5ecdfd5c7d206b78",
+      "boundary": "No recursive algorithm, stopping theorem, uncapped/capped comparison, expected oracle cost theorem or full paper result is claimed.",
+      "context": "",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_commonSuffix_sub_le_integral_eventBound",
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_sub_le_integral_eventBound",
+          "AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_sub_zero_le_sum_range_of_adjacent",
+          "AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation.abs_real_comp_sub_le"
+        ],
+        "mathlib": []
+      },
+      "difficulty": "advanced",
+      "difficulty_reason": "Compose conditional error averaging, common-suffix contraction and finite telescoping under actual history laws; reject an invalid unbounded-cost transfer.",
+      "domain": "sampling",
+      "family": "adaptive-hybrid-cost-boundary",
+      "id": "sogb-007",
+      "imports": [],
+      "lean_enabled": false,
+      "lean_explanation": "Existing formal components support averaging and common-suffix contraction; this multi-component QA and its cost counterexample have no single admitted equivalent Lean view yet.",
+      "lean_reference": "",
+      "lean_task": "",
+      "library_domains": [
+        "samplewiki",
+        "mcmc"
+      ],
+      "question": "Derive an eventwise discrepancy bound Σᵢβᵢ between the first and last output laws. State why actual history laws and a fixed finite call range matter. Then refute the claim that vanishing TV distance alone transfers an unbounded expected query-cost bound.",
+      "rubric": [
+        {
+          "criterion": "Justifies event measurability/integrability and error averaging under the actual history law.",
+          "points": 1
+        },
+        {
+          "criterion": "Uses the same downstream kernel and finite adjacent telescoping with the stated TV convention.",
+          "points": 1
+        },
+        {
+          "criterion": "Computes both TV=1/N and expected-cost gap=N in a valid probability example.",
+          "points": 1
+        },
+        {
+          "criterion": "Keeps recursive stopping, cap comparison and actual-input cost as separate obligations.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "composition",
+        "assumption-audit",
+        "counterexample"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelHybridTelescope.lean",
+      "source_line": 59,
+      "source_note": "Original exercise based on local hybrid-kernel components. Their module cites arXiv:2609.38710v1 Lemma 6.3; this exercise is not a reproduction or completion of that paper statement.",
+      "source_sha256_lf": "9f5a28c56daeafdfd141d4f66411ff10e0276b4b0ca8ff34e1e98a679097577b",
+      "split": "public-dev",
+      "steps": [
+        "For each slot and fixed event A, Markov event probabilities are measurable and bounded by one, hence integrable under ρᵢ. Integrating the almost-everywhere conditional bound yields an averaged discrepancy at most βᵢ. The error function εᵢ is explicitly integrable; measurability of a supremum over all events was not assumed for free.",
+        "A common downstream Markov kernel preserves this uniform event bound by total-variation data processing. The same suffix must be used for the two members of the adjacent pair; otherwise that contraction argument is not applicable.",
+        "For a fixed final event A, telescope the n adjacent probability differences and use the triangle inequality: \\[|P_n(A)-P_0(A)|\\le\\sum_{i=0}^{n-1}\\beta_i.\\] Take the event supremum if desired. Each βᵢ uses its actual shared prefix-history law, not an unrelated ideal or proxy input law.",
+        "For integers N≥2 on the nonnegative reals, take μ_N=δ₀, ν_N=(1−1/N)δ₀+(1/N)δ_{N²} and c(x)=x. Then TV(μ_N,ν_N)=1/N→0, but E_{ν_N}c−E_{μ_N}c=N. All these individual expectations are finite; their gap is unbounded. A uniform cost bound, uniform integrability/tail control, or a separate actual-input cost analysis is needed.",
+        "A random recursion depth or stopping cap is not automatically this deterministic finite telescope. Its history construction, stopping/cap comparison, accumulated errors and actual-input expected cost remain separate obligations. This argument alone does not complete the Gaussian Cloud paper."
+      ],
+      "title": "Adaptive hybrid error does not certify expected cost",
+      "track_levels": {
+        "natural-language": "L4"
+      }
+    }
+  ],
+  "reconstructions": {
+    "A": {
+      "assumptions": "Assume alpha has a measurable-space structure, is countable, and has measurable singletons; kappa is a kernel and mu is a measure. The additional hypothesis is mu({x}) * kappa(x,{y}) = mu({y}) * kappa(y,{x}) for all x,y. No finiteness, sigma-finiteness, probability normalization, or Markov normalization is assumed.",
+      "conclusion": "Kappa is reversible with respect to mu in exactly the supplied sense: for all measurable S,T, the nonnegative integral over S of kappa(x,T) with respect to mu equals the nonnegative integral over T of kappa(x,S) with respect to mu. Thus pointwise singleton balance yields measurable-set integral symmetry.",
+      "constants": "There are no scalar rate, dimension, or normalization parameters. Each side of both balance identities has coefficient one, and the same fixed mu and kappa are used throughout. In particular no total mass equal to one is prescribed.",
+      "domains": "Alpha is countable and has measurable singleton sets. It may be finite or countably infinite, and need not be nonempty. Measures, kernel values, products, and the nonnegative integrals in the conclusion take values in the extended nonnegative reals, including infinity.",
+      "objects": "The objects are a measurable type alpha, a measurable transition kernel kappa from alpha to alpha, and a measure mu on alpha. For points x and y, mu({x}) is singleton mass and kappa(x,{y}) is the kernel's singleton transition measure.",
+      "quantifiers": "For every type alpha with the stated measurable and countability structures, and every such kernel kappa and measure mu, if the balance equality holds for every pair of points x,y in alpha, then the integral equality holds for every pair of measurable subsets S,T of alpha.",
+      "senses": "Reversibility means the supplied equality of two restricted nonnegative integrals, including possible infinite values; it is not an unstated assertion about a normalized Markov chain. The hypothesis uses extended-nonnegative-real multiplication, not an assumption that every product is finite. The proposition does not assert that mu is a probability measure or that kappa preserves total mass; stationarity should not be added without the relevant normalization assumptions."
+    },
+    "B": {
+      "assumptions": "Assume f(z) <= f(x) for every x, h >= 0, and beta*h <= 1. Assume for every x,y that f(y) <= f(x) + inner(gradient f(x), y-x) + (beta/2)*norm(y-x)^2. Also assume for every x that 2*alpha*(f(x)-f(z)) <= norm(gradient f(x))^2. No separate positivity of alpha or beta, strict positivity of h, or condition alpha*h <= 1 is stated.",
+      "conclusion": "For every x0 and N, f(xN) - f(z) <= (1-alpha*h)^N * (f(x0)-f(z)). This bounds the nonnegative objective gap relative to the specified global minimizer after N constant-step gradient iterations. At N=0, iteration is the identity and the power is one, so the bound is equality.",
+      "constants": "The upper-model coefficient is exactly beta/2, the gradient-gap coefficient exactly 2*alpha, and the step is the fixed real h. The final multiplier is exactly the real power (1-alpha*h)^N, with no absolute value, clipping, extra factor of two, or variable step sizes. Beta*h <= 1 is the stated step restriction, not h <= 1/beta, since beta is not assumed positive.",
+      "domains": "E is a normed additive commutative group with a real inner-product-space structure and is complete. The function has domain all of E and codomain the real numbers; alpha, beta, and h are real; z and x0 lie in E; N is a natural number, including zero. No finite-dimensionality is required.",
+      "objects": "The objects are a real-valued function f on a real Hilbert space E, a specified global minimizer z, real parameters alpha, beta, and h, an initial point x0, and a natural iteration count N. Define T(x) = x - h times gradient f(x), and let xN = T iterated N times at x0.",
+      "quantifiers": "For every E and f, alpha, beta, h, z satisfying the hypotheses, the conclusion holds for every initial point x0 and every N in the natural numbers. The upper-model hypothesis is universal over x,y in E, the gradient-gap hypothesis is universal over x in E, and global minimality is universal over comparison points in E.",
+      "senses": "The gradient is the Hilbert-space representative of the totalized real Frechet derivative supplied in the packet, hence is zero at points where f is not differentiable. The assumptions are the written global quadratic upper bound and gradient-gap inequality, not silently substituted convexity, strong convexity, differentiability, or Lipschitz-gradient assumptions. The conclusion concerns function values, with no stated distance bound, uniqueness claim, or assertion of convergence of the iterates. It is not an unconditional strict geometric-convergence claim: h may be zero and alpha need not be positive. If 0 < alpha*h <= 1, its right-hand factor does give a geometric objective-gap bound; that extra parameter condition is not an explicit hypothesis."
+    },
+    "C": {
+      "assumptions": "Assume V is StrongConvexOn all of E with parameter k: for all x,y and a,b >= 0 with a+b=1, V(a*x+b*y) <= a*V(x)+b*V(y)-(k/2)*a*b*norm(x-y)^2, where a*x and b*y denote real scalar multiplication. Assume V(x0) <= V(x) for every x. No sign restriction on k or differentiability hypothesis is supplied; existence of the particular minimizer is assumed, not proved.",
+      "conclusion": "For every x in E, V(x0) + (k/4)*norm(x-x0)^2 <= V(x). In other words, V(x)-V(x0) is bounded below by exactly (k/4) times the squared distance from x0. When k is positive this supplies positive quadratic growth and implies uniqueness of the global minimizer.",
+      "constants": "The hypothesis uses exactly (k/2)*a*b times squared distance, whereas the displayed conclusion uses exactly k/4 times squared distance. K is real with no prescribed positivity or normalization. The requested conclusion retains k/4 and is not silently replaced by a stronger coefficient.",
+      "domains": "E is a normed additive commutative group and a normed space over the real numbers. V is defined on all of E with real values; k is an arbitrary real number; x0 and x belong to E. Neither a Hilbert structure, completeness, nor finite-dimensionality is assumed.",
+      "objects": "The objects are a real normed vector space E, a real-valued function V on E, a real convexity parameter k, and a specified global minimizer x0 of V. The conclusion compares V at x0 with V at an arbitrary point x in E.",
+      "quantifiers": "For every such E, V, and real k satisfying global StrongConvexOn with the supplied convention, and every x0 satisfying global minimality, the asserted lower bound holds for all x in E. The strong-convexity hypothesis ranges over all x,y in E and all nonnegative real a,b with a+b=1; minimality ranges over every comparison point in E.",
+      "senses": "StrongConvexOn must be read with the packet's k/2 correction in its two-point inequality, without silently adding k > 0. IsMinOn on the universal set means global, not local, minimality. For k=0 the displayed conclusion reduces to minimality; for k<0 it gives a nonpositive correction and does not supply positive quadratic growth or guarantee uniqueness. No minimizer-existence theorem, gradient characterization, or iteration statement is asserted."
+    }
+  },
+  "schema_version": 1
+}

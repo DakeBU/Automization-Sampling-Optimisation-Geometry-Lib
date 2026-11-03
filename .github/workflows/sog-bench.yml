@@ -1,0 +1,62 @@
+name: SamplingOptimisationGeometryBench
+
+on:
+  pull_request:
+    paths:
+      - 'benchmarks/samplingoptimisationgeometrybench/**'
+      - 'tools/sog_bench.py'
+      - 'tools/tests/test_sog_bench.py'
+      - 'website/scripts/sog_bench_reader.py'
+      - 'AutoSamplingTheory/**'
+      - 'lean-toolchain'
+      - 'lake-manifest.json'
+      - 'lakefile.lean'
+      - '.github/workflows/sog-bench.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'benchmarks/samplingoptimisationgeometrybench/**'
+      - 'tools/sog_bench.py'
+      - 'website/scripts/sog_bench_reader.py'
+      - 'AutoSamplingTheory/**'
+      - 'lean-toolchain'
+      - 'lake-manifest.json'
+      - 'lakefile.lean'
+      - '.github/workflows/sog-bench.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sog-bench-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trusted-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate paired QA and prompt-only exports
+        run: |
+          python3 -m unittest tools.tests.test_sog_bench
+          python3 tools/sog_bench.py check
+          python3 tools/sog_bench.py export
+      - uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          use-mathlib-cache: true
+      - name: Compile trusted references with the repository toolchain
+        run: python3 tools/sog_bench.py check-lean
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sog-bench-pilot-and-reference-evidence
+          path: |
+            .astis/sog-bench-export
+            .astis/sog-bench/reference-check.json

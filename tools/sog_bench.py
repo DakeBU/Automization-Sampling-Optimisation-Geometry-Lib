@@ -167,11 +167,14 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     review = editorial_review(cores)
     import sog_bench_graph_review
     graph_review = sog_bench_graph_review.summary(graphs)
+    reviewed_graphs=[g for g in graphs if graph_review['items'][g['id']]['editorial'] in {'accepted','accepted-after-repair'}]
     reviewed = [c for c in cores if review['items'][c['id']]['editorial'] in {'accepted', 'accepted-after-repair'}]
     expected = {'questions.jsonl', 'reference.jsonl', 'manifest.json', 'README.md',
                 'editorial-review.json', 'graph-editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
+                'reviewed-graph-questions.jsonl','reviewed-graph-reference.jsonl',
                 'EVALUATION.md', 'examples/prose-run.json',
+                'compiled-transport-graph.json',
                 *project_licensing.LICENSE_FILES,
                 *('lean/' + c['id'] + suffix for c in cores if has_lean(c) for suffix in ('-task.lean.txt', '-reference.lean'))}
     if output.exists() and any(output.iterdir()):
@@ -188,10 +191,14 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('reference.jsonl', jsonl(cores))
     write('editorial-review.json', encoded(review))
     write('graph-editorial-review.json', encoded(graph_review))
+    import sog_bench_compiled_graph
+    write('compiled-transport-graph.json',encoded(sog_bench_compiled_graph.recorded()[2]))
     write('reviewed-questions.jsonl', jsonl(prompts(reviewed)))
     write('reviewed-reference.jsonl', jsonl(reviewed))
     write('graph-questions.jsonl', jsonl(curriculum.graph_prompts(graphs)))
     write('graph-reference.jsonl', jsonl(graphs))
+    write('reviewed-graph-questions.jsonl',jsonl(curriculum.graph_prompts(reviewed_graphs)))
+    write('reviewed-graph-reference.jsonl',jsonl(reviewed_graphs))
     write('curriculum.json', encoded(curriculum.curriculum()))
     write('coverage.json', encoded(coverage(cores, graphs)))
     write('GOAL.md', (DATA.parent / 'GOAL.md').read_bytes())
@@ -224,6 +231,8 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'editorial_review_complete_for_current_mathematical_cores': bool(cores) and len(reviewed) == len(cores),
                 'review_kind': 'AI editorial review, not full Lean coverage or canonical theorem publication',
                 'editorial_accepted_graph_tasks': graph_review['accepted_tasks'],
+                'graph_evidence_kinds':sorted({g['context']['kind'] for g in graphs}),
+                'compiled_graph_scope':'recorded source-bound selected proof-body occurrences; fresh replay is a separate CI gate, not full closure or mathematical necessity',
                 'toolchain': (ROOT / 'lean-toolchain').read_text().strip(),
                 'mathlib_manifest_sha256_lf': text_hash(ROOT / 'lake-manifest.json'),
                 'files': {p.relative_to(output).as_posix(): sha(p.read_bytes())
@@ -324,7 +333,9 @@ def main() -> int:
     if args.command == 'export':
         export(args.output, cores)
     reviewed = editorial_review(cores)['accepted_cores']
-    print(f'{len(cores)} public development cores / {len(prompts(cores))} mathematical QA views / {len(graphs)} graph tasks; {reviewed} cores editorially accepted, remaining review/calibration pending.')
+    import sog_bench_graph_review
+    graph_accepted=sog_bench_graph_review.summary(graphs)['accepted_tasks']
+    print(f'{len(cores)} public development cores / {len(prompts(cores))} mathematical QA views / {len(graphs)} graph tasks; {reviewed} mathematical cores and {graph_accepted} graph tasks editorially accepted; empirical calibration pending.')
     return 0
 
 

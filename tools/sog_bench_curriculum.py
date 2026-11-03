@@ -42,6 +42,7 @@ def graph_items() -> list[dict]:
     """Read only an explicit local-code slice, never the mixed upstream graph."""
     import astis_site
     policy = curriculum()
+    anchors={c['id']:c for c in json.loads((BASE/'cores.json').read_text(encoding='utf-8'))['cores']}
     spec = json.loads((BASE / 'graph_tasks.json').read_text(encoding='utf-8'))
     if spec['schema_version'] != 1:
         raise ValueError('Unsupported structural graph schema')
@@ -71,6 +72,9 @@ def graph_items() -> list[dict]:
         if not re.fullmatch(r'sogb-g\d{3}', task['id']) or task['id'] in seen:
             raise ValueError('Duplicate/invalid graph task identity')
         seen.add(task['id'])
+        anchor=anchors.get(task.get('core_id'))
+        if anchor is None or task['family']!=anchor['family'] or not set(task['library_domains'])<=set(anchor['library_domains']):
+            raise ValueError('Graph context must retain its existing source core/family/domain identity')
         if not set(task['targets']) <= names or not task['targets']:
             raise ValueError('Graph targets must exist in the supplied slice')
         classify({**task, 'track_levels': {'natural-language': task['level']}, 'lean_enabled': False,
@@ -102,7 +106,7 @@ def graph_items() -> list[dict]:
             question = 'List the target modules that have an import path to the removed module in this snapshot. Does this prove that their mathematical conclusions cannot be proved without it?'
         else:
             raise ValueError('Unsupported graph operation')
-        prompt = {'id': task['id'], 'family': task['family'], 'title': task['title'],
+        prompt = {'id': task['id'], 'core_id':task['core_id'], 'family': task['family'], 'title': task['title'],
                   'library_domains': task['library_domains'], 'track': 'graph-json', 'level': task['level'],
                   'split': 'public-dev', 'skills': task['skills'], 'question': question,
                   'targets': task['targets'], 'context': graph, 'graph_sha256': graph_hash,
@@ -113,6 +117,11 @@ def graph_items() -> list[dict]:
         binding = digest({'prompt': prompt, 'answer': answer})
         rows.append({**prompt, 'binding_sha256': binding, 'answer': answer,
                      'reference_status': 'structural-answer-mechanically-checked; see separate editorial evidence'})
+    import sog_bench_compiled_graph
+    rows += sog_bench_compiled_graph.items()
+    ids=[row['id'] for row in rows]
+    if len(set(ids))!=len(ids) or not all(re.fullmatch(r'sogb-g\d{3}',identity) for identity in ids):
+        raise ValueError('Graph identities must be distinct across evidence kinds')
     return rows
 
 
@@ -165,7 +174,7 @@ def grade_graph(items: list[dict], submissions: list[dict]) -> dict:
         scores.append({'id': identity, 'submitted': identity in given, 'valid_schema': valid,
                        'structural_exact': structural, 'truth_boundary': boundary, 'points': structural * boundary,
                        'max_points': 1})
-    return {'scope': 'structured module-graph QA only; not mathematical proof or Lean grading',
+    return {'scope': 'structured graph QA only; not mathematical proof or Lean grading',
             'question_count': len(items), 'submitted': len(given), 'results': scores,
             'points': sum(r['points'] for r in scores), 'max_points': len(items),
             'scoring_policy': 'One point only when both the exact structural set and truth-boundary gate pass; the constant boundary answer earns no standalone credit.'}

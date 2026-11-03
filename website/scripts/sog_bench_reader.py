@@ -72,7 +72,7 @@ def home(cores: list[dict]) -> str:
         '<p><a class="button" href="curriculum/index.html">Browse seven domains and L1–L5 coverage</a></p>'
         '<section class="sog-grid"><article><h2>Natural-language QA</h2><p>Explain a proof, track its constants and identify what the assumptions do not imply. No Lean knowledge required.</p><a class="button primary" href="natural-language/index.html">Try natural-language questions</a></article>'
         '<article><h2>Lean-assisted QA</h2><p>Reconstruct a fixed theorem from its allowed imports and explicit context. Read the mathematical reasoning beside optional exact Lean.</p><a class="button" href="lean/index.html">Try Lean questions</a></article>'
-        '<article><h2>Structured graph QA</h2><p>Read imports, shared prerequisites and ablation effects in a source-hashed local snapshot. Structural grading is not mathematical-proof grading.</p><a class="button" href="graph-json/index.html">Try graph questions</a></article></section>'
+        '<article><h2>Structured graph QA</h2><p>Distinguish module imports from selected constants in actual compiled proof bodies. Compare shared ingredients and proof branches without claiming mathematical necessity.</p><a class="button" href="graph-json/index.html">Try graph questions</a></article></section>'
         '<section><h2>Use the pilot</h2><p><a class="button" href="evaluation/index.html">Run and assess answers</a></p><p><a href="downloads/questions.jsonl" download>Prompt-only JSONL</a> · '
         '<a href="downloads/reference.jsonl" download>References and rubrics</a> · '
         '<a href="downloads/manifest.json" download>Version and hashes</a> · '
@@ -97,7 +97,7 @@ def track_page(cores: list[dict], track: str) -> str:
         '<div class="sog-grid">' + cards + '</div></article>')
 
 
-def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, known: dict | None = None) -> str:
+def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, known: dict | None = None, structural: list[dict] | None = None) -> str:
     from urllib.parse import quote
     rel = HUB + core['id'] + '.html'
     known = known or astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
@@ -125,6 +125,9 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
         '<section id="lean"><h2>Lean view: not yet aligned</h2>' + lean + '<p>This support theorem does not certify the complete QA or its explanatory counterexamples.</p></section>')
     dependencies = ''.join('<h3>' + label + '</h3><ul>' + ''.join('<li><code>' + escape(n) + '</code></li>' for n in core['dependencies'][key]) + '</ul>'
                            for key, label in (('astis', 'ASTIS definitions / proof calls' if bench.has_lean(core) else 'ASTIS formal support (not an equivalent QA)'), ('mathlib', 'Mathlib facts / definitions')))
+    related=[g for g in (bench.curriculum.graph_items() if structural is None else structural) if g.get('core_id')==core['id']]
+    graph_links=('<p>Structural questions about this proof context (not equivalent mathematical tasks): '+
+                 ' · '.join('<a href="'+g['id']+'.html">'+escape(g['title'])+'</a>' for g in related)+'</p>') if related else ''
     return (f'<article class="sog-reader" {MARKER}><p><a href="index.html">Bench</a> / ' + escape(core['domain']) + '</p>'
         '<div class="eyebrow">' + escape(core['id']) + ' · public-dev · editorial and formal status separate</div><h1>' + escape(core['title']) + '</h1>'
         + '<p>' + escape(domain_names(core)) + ' · ' + escape(' / '.join(t + ': ' + l for t, l in core['track_levels'].items())) + ' (author-assigned; calibration pending)</p>'
@@ -135,7 +138,7 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
         + fold('Reference mathematical proof', proof + fold('How the Lean proof follows these steps' if bench.has_lean(core) else 'Formal support and missing Lean alignment', lean))
         + fold('Assessment rubric · 4 points', rubric) + '</section>'
         + formal_view
-        + '<section><h2>What this does—and does not—verify</h2>' + prose(core['boundary'])
+        + graph_links + '<section><h2>What this does—and does not—verify</h2>' + prose(core['boundary'])
         + '<p>Existing library mathematics reused; no new mathematical leaf or paper-completion credit. The editorial panel records the exact current review scope and remaining unformalized explanation.</p></section>'
         + fold('Sources, graph location and dependencies', prose(core['source_note'])
             + '<p><a href="' + escape(href) + '">Exact local source and full context</a> · <a href="../../underlying-lean-graph/index.html?focus='
@@ -180,16 +183,24 @@ def graph_page(item: dict) -> str:
     evidence = graph_review.summary(bench.curriculum.graph_items())['items'][item['id']]
     status = '<p>Current editorial status: <strong>' + escape(evidence['editorial']) + '</strong>. This is AI review of structural QA, not a theorem or calibrated difficulty.</p>'
     status += '<ul>' + ''.join('<li>' + escape(s) + '</li>' for s in evidence.get('issues', []) + evidence.get('remaining_limits', [])) + '</ul>'
-    status += '<p><a href="downloads/graph-editorial-review.json">Exact review bindings and report hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews/graph-1">Independent source review and correction history</a></p>'
+    status += '<p><a href="downloads/graph-editorial-review.json">Exact review bindings and report hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews/graph-4">Current independent review and explicit historical supersession</a></p>'
+    compiled=item['context']['kind']=='compiled-proof-body-constant-occurrences'
+    provenance=('<p>This is a recorded source-bound compiler snapshot. CI separately replays the trusted extractor. It is not a fresh Lean run in this browser, a full proof closure or a minimal-premise certificate. Unique proof constants do not count runtime invocations, recursive calls or oracle queries.</p><p><a href="downloads/compiled-transport-graph.json">Recorded compiler slice and provenance</a></p>') if compiled else '<p>This graph scans source import declarations, not theorem proof bodies.</p>'
+    related=[c for c in bench.materialize() if c['id']!=item['core_id'] and c['declaration'] in item['context']['nodes']]
+    background=('<p>Related exercises about selected statements: '+ ' · '.join(
+        '<a href="'+c['id']+'.html">'+escape(c['title'])+'</a>' for c in related)+'.</p>') if related else ''
     return (f'<article class="sog-reader" {MARKER}><p><a href="graph-json/index.html">Graph QA</a></p><h1>' + escape(item['title']) + '</h1>'
-        + '<p>' + item['level'] + ' · public-dev · structural QA, not a theorem proof</p>' + prose(item['question'])
-        + '<p>Targets: ' + escape(', '.join(item['targets'])) + '</p>'
-        + (prose('Removed module: ' + item['remove']) if 'remove' in item else '')
+        + '<p>' + item['level'] + ' · public-dev · structural QA, not a theorem proof</p>'
+        + '<p><a href="'+item['core_id']+'.html">Read the source mathematical proof and optional Lean</a>. This is context linkage, not an equivalent mathematical question.</p>' + prose(item['question'])
+        + '<p>Targets: ' + escape(', '.join(item['context'].get('node_labels',{}).get(n,n) for n in item['targets'])) + '</p>'
+        + (prose(('Queried interface: ' if compiled else 'Removed module: ') + item['context'].get('node_labels',{}).get(item['remove'],item['remove'])) if 'remove' in item else '')
         + import_figure(item['context'])
+        + background
         + fold('Independent structural review and limits', status)
+        + fold('Evidence kind and source scope', provenance+prose(item['context']['truth_boundary']))
         + fold('Exact JSON snapshot and response schema', '<pre><code class="language-json">' + escape(json.dumps(prompt, indent=2)) + '</code></pre>')
         + fold('Reference structural answer · 2 checks, 1 point', '<pre><code>' + escape(json.dumps(item['answer'], indent=2)) + '</code></pre>'
-            '<p>One point requires both the exact structural node set and a false mathematical-necessity certification. The constant boundary answer earns no standalone credit. Names and edges come only from the supplied source-hashed slice; removing an import node does not prove that a theorem has no other proof.</p>')
+            '<p>One point requires both the exact structural node set and a false mathematical-necessity certification. The constant boundary answer earns no standalone credit. Edges have only the stated evidence kind. Neither a positive path nor an absent induced path proves mathematical necessity or full-closure independence.</p>')
         + '<p>No model score, theorem-equivalence certificate or calibrated difficulty is asserted.</p></article>')
 
 
@@ -214,13 +225,29 @@ def evaluation_page() -> str:
         + '<p><a href="../downloads/reviewed-questions.jsonl" download>Reviewed prompt-only tasks</a> · <a href="../downloads/EVALUATION.md">Full protocol</a> · <a href="../graph-json/index.html">Structural graph QA</a></p></article>')
 
 
+def graph_index_page(graphs: list[dict]) -> str:
+    groups=(('source-scanned-module-imports','Source imports','Arrows record imported modules, not proof-term use.'),
+            ('compiled-proof-body-constant-occurrences','Compiled proof bodies','Arrows record selected theorem constants in compiled proof bodies, not necessity or a full closure.'))
+    sections=''
+    for kind,title,note in groups:
+        selected=[g for g in graphs if g['context']['kind']==kind]
+        sections+='<section><h2>'+title+'</h2><p>'+note+'</p><ul>'+''.join(
+            '<li><a href="../'+g['id']+'.html">'+escape(g['title'])+'</a> · '+g['level']+
+            ' · <a href="../'+g['core_id']+'.html">mathematical source context</a></li>' for g in selected)+'</ul></section>'
+    return (f'<article class="sog-reader" {MARKER}><p><a href="../index.html">Bench</a></p><h1>Structured graph QA</h1>'
+        '<p>Choose the evidence kind before interpreting an arrow. These public-dev structural questions link to mathematical source cores but are not equivalent mathematics tasks or independent held-out samples.</p>'
+        +sections+'<p><a href="../downloads/graph-questions.jsonl" download>Prompt-only graph JSONL</a> · <a href="../downloads/graph-reference.jsonl" download>Structural references</a></p>'
+        '<p>Prefer the current admitted subset: <a href="../downloads/reviewed-graph-questions.jsonl" download>Reviewed graph prompts</a> · <a href="../downloads/reviewed-graph-reference.jsonl" download>Reviewed graph references</a> · <a href="../downloads/graph-editorial-review.json">Current review evidence</a>.</p></article>')
+
+
 def import_figure(graph: dict) -> str:
     """Layout a bounded DAG from its real edges; no graph-theoretic proof credit."""
     nodes, edges = graph['nodes'], graph['edges']
+    compiled=graph['kind']=='compiled-proof-body-constant-occurrences'
     ranks = {}
     def rank(node, active):
         if node in active:
-            raise ValueError('Import illustration requires an acyclic slice')
+            raise ValueError('Graph illustration requires an acyclic slice')
         if node not in ranks:
             ranks[node] = max([rank(b, active | {node}) + 1 for a, b in edges if a == node] or [0])
         return ranks[node]
@@ -232,16 +259,26 @@ def import_figure(graph: dict) -> str:
     height = 100 + highest * 130
     positions = {n: ((i + 1) * width / (len(group) + 1), 45 + (highest - r) * 130)
                  for r, group in groups.items() for i, n in enumerate(group)}
-    paths = ''.join(f'<path d="M {positions[a][0]} {positions[a][1]+22} L {positions[b][0]} {positions[b][1]-22}" stroke="#657080" stroke-dasharray="5 4" fill="none" marker-end="url(#sog-arrow)"/>' for a, b in edges)
-    boxes = ''.join(f'<g><title>{escape(n)}</title><rect x="{x-125}" y="{y-22}" width="250" height="44" rx="6" fill="#f5f6f8" stroke="#657080"/><text x="{x}" y="{y+4}" text-anchor="middle" font-size="14" fill="#17212f">{escape(n.rsplit(".",1)[-1])}</text></g>' for n, (x, y) in positions.items())
-    return (f'<figure class="sog-graph"><svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" role="img" aria-label="Source-scanned import graph; arrows point to imported modules, not theorem implication" viewBox="0 0 {width} {height}">'
+    box_width=250
+    if compiled:
+        box_width=220
+        width=max(660,250*max(map(len,groups.values()),default=1)+40)
+        positions={n:((width-(len(group)*box_width+(len(group)-1)*30))/2+box_width/2+i*250,
+                      45+(highest-r)*130) for r,group in groups.items() for i,n in enumerate(group)}
+    style='' if compiled else 'stroke-dasharray="5 4"'
+    paths = ''.join(f'<path d="M {positions[a][0]} {positions[a][1]+22} L {positions[b][0]} {positions[b][1]-22}" stroke="#657080" {style} fill="none" marker-end="url(#sog-arrow)"/>' for a, b in edges)
+    boxes = ''.join(f'<g><title>{escape(n)}</title><rect x="{x-box_width/2}" y="{y-22}" width="{box_width}" height="44" rx="6" fill="#f5f6f8" stroke="#657080"/><text x="{x}" y="{y+4}" text-anchor="middle" font-size="14" fill="#17212f">{escape(graph.get("node_labels",{}).get(n,n.rsplit(".",1)[-1]))}</text></g>' for n, (x, y) in positions.items())
+    label='Selected compiled proof-body occurrences; not full closure or mathematical necessity' if compiled else 'Source-scanned import graph; arrows point to imported modules, not theorem implication'
+    caption='Solid arrows: selected theorem constants occur in the compiled proof bodies, including proof-term annotations. Other constants and private auxiliaries are omitted; a missing path is not full-closure independence.' if compiled else 'Dashed arrows: source-scanned imports in the supplied slice. The shared module occurs once.'
+    return (f'<figure class="sog-graph"><svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" role="img" aria-label="{label}" viewBox="0 0 {width} {height}">'
         '<defs><marker id="sog-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#657080"/></marker></defs>'
-        + paths + boxes + '</svg><figcaption>Scroll horizontally on a small screen. Dashed arrows: source-scanned imports in the supplied slice. Neutral colours make no proof-status claim. The shared module occurs once.</figcaption></figure>')
+        + paths + boxes + '</svg><figcaption>Scroll horizontally on a small screen. '+caption+' Neutral colours make no proof-status claim.</figcaption></figure>')
 
 
 def enrich_site(output: Path) -> None:
     cores = bench.materialize()
     known = astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
+    astis_site._SOURCE_BY_NAME=known
     checked = bench.receipt_current(cores)
     graph_ids = {n['id'] for n in json.loads((output / 'data/underlying-lean-graph.json').read_text(encoding='utf-8'))['nodes']}
     target = output / HUB
@@ -250,8 +287,9 @@ def enrich_site(output: Path) -> None:
     bench.archive_bytes(target / 'downloads', target / 'pilot.zip')
     shutil.copyfile(ROOT / 'website/static/sog-bench.css', output / 'assets/sog-bench.css')
     pages = [('index.html', 'SamplingOptimisationGeometryBench', home(cores))]
+    graphs = bench.curriculum.graph_items()
     pages += [(track + '/index.html', track.replace('-', ' ').title(), track_page(cores, track)) for track in bench.TRACKS]
-    pages += [(c['id'] + '.html', c['title'], core_page(c, checked, graph_ids, known)) for c in cores]
+    pages += [(c['id'] + '.html', c['title'], core_page(c, checked, graph_ids, known,graphs)) for c in cores]
     policy = bench.curriculum.curriculum()
     graphs = bench.curriculum.graph_items()
     pages.append(('curriculum/index.html', 'Bench curriculum', curriculum_page(cores)))
@@ -259,7 +297,7 @@ def enrich_site(output: Path) -> None:
     pages += [('domains/' + key + '.html', title, browse_page(cores, key, domain=True)) for key, title in policy['domains'].items()]
     pages += [('levels/' + key + '.html', key, browse_page(cores, key, domain=False)) for key in policy['levels']]
     pages += [(g['id'] + '.html', g['title'], graph_page(g)) for g in graphs]
-    graph_index = f'<article class="sog-reader" {MARKER}><p><a href="../index.html">Bench</a></p><h1>Structured graph QA</h1><p>Source-hashed module imports only; not theorem entailment. Three structural tasks share the PL family and public-dev split.</p><ul>' + ''.join('<li><a href="../' + g['id'] + '.html">' + escape(g['title']) + '</a> · ' + g['level'] + '</li>' for g in graphs) + '</ul><p><a href="../downloads/graph-questions.jsonl" download>Prompt-only graph JSONL</a> · <a href="../downloads/graph-reference.jsonl" download>Structural references</a></p></article>'
+    graph_index=graph_index_page(graphs)
     pages.append(('graph-json/index.html', 'Structured graph QA', graph_index))
     for tail, title, body in pages:
         rel = HUB + tail
@@ -283,6 +321,7 @@ def validate_site(output: Path) -> list[str]:
     errors = []
     cores = bench.materialize()
     known = astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
+    astis_site._SOURCE_BY_NAME=known
     checked = bench.receipt_current(cores)
     graph_path = output / 'data/underlying-lean-graph.json'
     ids = set()
@@ -304,6 +343,7 @@ def validate_site(output: Path) -> list[str]:
         if not path.is_file() or MARKER not in path.read_text(encoding='utf-8'):
             errors.append('Missing Bench reader: ' + rel)
     current_pages = {'index.html': home(cores), 'evaluation/index.html': evaluation_page(),
+                     'graph-json/index.html':graph_index_page(graphs),
                      'curriculum/index.html': curriculum_page(cores),
                      **{'domains/' + d + '.html': browse_page(cores, d, domain=True) for d in policy['domains']},
                      **{'levels/' + l + '.html': browse_page(cores, l, domain=False) for l in policy['levels']},
@@ -314,7 +354,7 @@ def validate_site(output: Path) -> list[str]:
             errors.append('Stale Bench curriculum or structural graph: ' + rel)
     for core in cores:
         path = output / HUB / (core['id'] + '.html')
-        if path.is_file() and core_page(core, checked, ids, known) not in path.read_text(encoding='utf-8'):
+        if path.is_file() and core_page(core, checked, ids, known,graphs) not in path.read_text(encoding='utf-8'):
             errors.append('Stale Bench mathematics or compiler label: ' + core['id'])
     # Recreate the deterministic export and compare bytes, not manually copied counts.
     import tempfile

@@ -26,8 +26,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 24)
-        self.assertEqual(len(prompts), 35)
+        self.assertEqual(len(self.cores), 26)
+        self.assertEqual(len(prompts), 38)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -77,7 +77,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 35)
+            self.assertEqual(manifest['qa_views'], 38)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -181,12 +181,13 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 24)
+        self.assertEqual(coverage['unique_mathematical_cores'], 26)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
+        self.assertFalse(any(c['track_levels'].get('lean') == 'L5' for c in self.cores))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 24)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 26)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -291,6 +292,25 @@ class BenchTests(unittest.TestCase):
         self.assertIn('not countably generated',core['steps'][5])
         self.assertIn('not a formal proof of this QA',core['boundary'])
         self.assertEqual(core['family'],next(c for c in self.cores if c['id']=='sogb-017')['family'])
+
+    def test_posterior_covariance_pair_and_weak_convex_transfer_have_distinct_formal_scopes(self):
+        paired = next(c for c in self.cores if c['id'] == 'sogb-025')
+        audit = next(c for c in self.cores if c['id'] == 'sogb-026')
+        self.assertEqual(paired['family'], audit['family'])
+        self.assertTrue(bench.has_lean(paired))
+        self.assertFalse(bench.has_lean(audit))
+        self.assertIn('(hX : MemLp id 2', paired['lean_task'])
+        self.assertIn('(hupper :', paired['lean_task'])
+        self.assertIn('GibbsC1Poincare.gibbs_c1_variance_poincare', paired['lean_reference'])
+        self.assertIn('covarianceBilin_self', paired['lean_reference'])
+        page = reader.core_page(audit, checked=False)
+        self.assertIn('Additional source-bound support', page)
+        for support in audit['supporting_declarations']:
+            self.assertIn(support['source_sha256_lf'], page)
+            self.assertIn(support['declaration'], page)
+        self.assertIn('Lean view: not yet aligned', page)
+        self.assertNotIn('Show fixed Lean task', page)
+        self.assertIn('not full QA certification', page)
 
     def test_plain_exponentials_render_without_nesting_existing_math_or_mutating_gold(self):
         text='Multiply by αe^{αt}>0; X(u)=e^{−u}. Already \\(e^{\\alpha t}\\) and \\[e^{-t}\\].'

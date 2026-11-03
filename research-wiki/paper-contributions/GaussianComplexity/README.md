@@ -1223,3 +1223,32 @@ extension. This new paper application uses only n≥3. Quantitative TV separatio
 actual precision/oracle/query-cap/expected-cost adapters, amplification,
 fixed-spectrum hidden eigenbasis, both main lower bounds, remote publication,
 postmerge purification and whole-Goal completion remain separate.
+
+## Resume checkpoint: 2026-11-04
+
+The exact candidate777809d96a5534e8ab91988b6c1e775546390b5a retains the independently
+verified Eq24 mathematics and actual conditioned-mixture consumer. Its real
+9618-job Lean gate, publication/contributor, rebuilt site/check and both graph
+checks pass. The previously false source-index claim that all paper-specific
+edges are open is replaced by the precise remaining Theorem3.1 boundary. Seven
+of eight serialized main bodies are unchanged; the eighth differs only in that
+tracked boundary paragraph. Fresh actual browser acceptance of that paragraph
+remains ENV_BLOCKED by the recorded browser-control interface failure. Old
+independent desktop/mobile/math/source/module evidence is preserved and is not
+relabelled as a fresh browser observation.
+
+The newly fetched official main68b3141f6f41c337f9802ea9b401483afce944c0 contains
+an unrelated Optlib admission whose ledger still ends STABILIZING under
+root_optlib_subgradient. The user selected original-owner completion/release,
+so its records and statuses remain untouched and it has not been merged into
+this checkout. Latest-main integration, final rendered acceptance, publication,
+purification and whole-paper completion remain distinct pending stages. See
+`eq24-integration-notes.json` and the typed environment/coordination evidence;
+these are no mathematical counterexamples or permission to reset any queue.
+
+The independent reviewer subsequently parked the unfinished integration through
+one normal STABILIZING→VERIFIED transition for Eq24 only, verified commit777809.
+The final integration report explicitly remains accepted=false. The original
+ledger prefix, other264 advance states, other417 cells and all foreign owners
+are retained. No browser refresh, latest-main merge or purification is inferred
+from the retained mathematical VERIFIED status.

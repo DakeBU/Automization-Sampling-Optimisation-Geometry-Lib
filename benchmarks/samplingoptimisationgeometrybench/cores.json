@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "name": "SamplingOptimisationGeometryBench",
+  "version": "0.1.0-dev",
+  "split": "public-dev",
+  "review_status": "independent-semantic-review-pending",
+  "cores": [
+    {
+      "id": "sogb-001",
+      "family": "atomic-detailed-balance",
+      "domain": "sampling",
+      "title": "From atomic balance to reversibility",
+      "difficulty": "foundation",
+      "assumptions": [
+        "The state space is countable, carries a measurable space, and every singleton is measurable.",
+        "\\(\\mu\\) is a nonnegative measure and \\(K\\) is a measurable kernel; neither is assumed finite or normalized.",
+        "For every pair \\(x,y\\), \\(\\mu(\\{x\\})K(x,\\{y\\})=\\mu(\\{y\\})K(y,\\{x\\})\\) in the extended nonnegative reals."
+      ],
+      "question": "Prove that for all measurable sets A,B, \\(\\int_A K(x,B)\\,d\\mu(x)=\\int_B K(y,A)\\,d\\mu(y)\\). Explain why infinite total mass and zero-mass states cause no cancellation problem. Does this imply convergence to a probability law?",
+      "steps": [
+        "On a countable measurable-singleton space, expand each restricted integral and each kernel mass into singleton masses. The left side becomes \\[\\sum_{x\\in A}\\sum_{y\\in B}K(x,\\{y\\})\\mu(\\{x\\}).\\] These sums take values in \\([0,\\infty]\\).",
+        "Apply the assumed balance identity to each summand. Nonnegativity permits exchanging the two sums even when the result is infinite: \\[\\sum_{x\\in A}\\sum_{y\\in B}\\mu(\\{y\\})K(y,\\{x\\})=\\sum_{y\\in B}K(y,A)\\mu(\\{y\\}).\\]",
+        "Recognize the last expression as the right restricted integral. No division by a singleton mass, subtraction of infinities, or signed Fubini argument occurred. A zero atom needs no special conditional version for this flux identity.",
+        "Reversibility alone proves neither normalization, irreducibility, convergence, nor a mixing or query-cost bound. Those require separate assumptions and arguments."
+      ],
+      "rubric": [
+        {"points": 1, "criterion": "States the countability and measurable-singleton hypotheses and uses nonnegative extended-valued sums."},
+        {"points": 1, "criterion": "Expands both the outer restricted integral and the inner kernel mass."},
+        {"points": 1, "criterion": "Uses balance termwise and justifies sum exchange without dividing by masses or subtracting infinities."},
+        {"points": 1, "criterion": "Separates reversibility from normalization, convergence and computational cost."}
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility.isReversible_of_singleton_balance",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelReversibility.lean",
+      "context": "open MeasureTheory ProbabilityTheory\nopen scoped ENNReal\n",
+      "lean_explanation": "The binders in square brackets supply the measurable and countable structures. The hypothesis h is pairwise flux balance. The proof expands countable lintegrals, rewrites kernel masses as sums, then uses ENNReal.tsum_comm and h. The final proposition is Mathlib's kernel reversibility, not a mixing theorem.",
+      "dependencies": {"astis": [], "mathlib": ["lintegral_countable", "ENNReal.tsum_mul_right", "ENNReal.tsum_comm", "tsum_congr"]},
+      "boundary": "The Lean target covers the flux identity. The explanatory non-implications are assessed in the natural-language track, not certified by that Lean target.",
+      "source_note": "Original exercise over the existing Samplinglib declaration; not a quotation of a paper theorem."
+    },
+    {
+      "id": "sogb-002",
+      "family": "pl-gradient-iteration",
+      "domain": "optimisation",
+      "title": "PL descent: the sign of the contraction factor",
+      "difficulty": "intermediate",
+      "assumptions": [
+        "\\(E\\) is a complete real inner-product space, \\(f:E\\to\\mathbb R\\), and \\(z\\) is an attained global minimizer.",
+        "The real parameters \\(\\alpha,\\beta,h\\) satisfy \\(h\\ge0\\) and \\(\\beta h\\le1\\). For all \\(x,y\\), the quadratic upper model holds: \\[f(y)\\le f(x)+\\langle\\nabla f(x),y-x\\rangle+\\tfrac\\beta2\\|y-x\\|^2.\\]",
+        "For every \\(x\\), \\(2\\alpha(f(x)-f(z))\\le\\|\\nabla f(x)\\|^2\\). Here \\(\\nabla f\\) is the representing vector of the derivative where \\(f\\) is Fréchet differentiable, and zero otherwise. The upper-model and PL inequalities are supplied assumptions; global differentiability is not inferred from the notation."
+      ],
+      "question": "For the actual iterates \\(x_{n+1}=x_n-h\\nabla f(x_n)\\), prove \\(f(x_N)-f(z)\\le(1-\\alpha h)^N(f(x_0)-f(z))\\). Do not add convexity or assume \\(1-\\alpha h\\ge0\\). Explain separately what happens when this factor is negative, and when the bound describes genuine geometric decay.",
+      "steps": [
+        "Substitute the actual gradient step into the quadratic model. Using \\(h\\ge0\\) and \\(\\beta h\\le1\\) yields \\[f(x-h\\nabla f(x))\\le f(x)-\\tfrac h2\\|\\nabla f(x)\\|^2.\\]",
+        "Multiply the PL bound by h/2≥0. With \\(g(x)=f(x)-f(z)\\ge0\\) and \\(q=1-\\alpha h\\), obtain \\(0\\le g(x-h\\nabla f(x))\\le qg(x)\\).",
+        "If q≥0, multiplication preserves order. Induction along the actual iterates gives \\(g(x_N)\\le q^N g(x_0)\\), including N=0.",
+        "If q<0, the same one-step inequality holds for every x and forces g(x)=0: otherwise qg(x)<0 contradicts nonnegativity of the next gap. Hence every gap is zero and the displayed bound still holds. Nontrivial geometric decay requires \\(0\\le q<1\\), rather than merely the existence of a real power q^N."
+      ],
+      "rubric": [
+        {"points": 1, "criterion": "Derives the descent estimate from the actual update and the supplied quadratic model."},
+        {"points": 1, "criterion": "Uses nonnegative h/2 to combine PL with descent and obtains a nonnegative gap recurrence."},
+        {"points": 1, "criterion": "Proves the iteration bound for q≥0 and handles q<0 by showing every gap vanishes."},
+        {"points": 1, "criterion": "Does not add convexity or a hidden sign premise; distinguishes a bound from strict geometric decay."}
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentPL.gradient_descent_pl_value_bound",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentPL.lean",
+      "context": "open Set\nopen scoped RealInnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n",
+      "lean_explanation": "IsMinOn f univ z supplies nonnegative gaps. Function.iterate describes actual gradient iterates. The proof calls the existing gradient-step bound, combines it with hpl using nlinarith, and splits on the sign of q before invoking le_geom. Completeness is retained from the existing Lean API; it is not asserted to be a sharp mathematical hypothesis.",
+      "dependencies": {"astis": ["AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentBasic.gradient_step_descent_of_quadratic_upper_bound"], "mathlib": ["le_geom", "Function.iterate_succ_apply'", "mul_le_mul_of_nonneg_left"]},
+      "boundary": "This exercises the supplied upper-model/PL formulation. It does not derive those hypotheses from smoothness or infer differentiability from a totalized gradient. The broader natural-language discussion is not an extra Lean theorem.",
+      "source_note": "Original exercise over Samplinglib's PL theorem. Its module cites Chewi, Lectures on Optimization, arXiv:2605.07006v1, Definition 2.5 and Theorem 3.6; the exercise explicitly retains the Lean upper-model formulation."
+    },
+    {
+      "id": "sogb-003",
+      "family": "strong-convex-midpoint-envelope",
+      "domain": "geometry",
+      "title": "A quadratic envelope from one midpoint",
+      "difficulty": "foundation",
+      "assumptions": [
+        "\\(E\\) is a real normed vector space; \\(V:E\\to\\mathbb R\\); \\(x_0\\) is an attained global minimizer; \\(k\\) is real.",
+        "Use the following strong-convexity convention (also used by Mathlib): on all of \\(E\\), for \\(a,b\\ge0\\) with \\(a+b=1\\), \\[V(ax+by)\\le aV(x)+bV(y)-\\tfrac k2 ab\\|x-y\\|^2.\\]",
+        "No differentiability or finite-dimensionality assumption is made."
+      ],
+      "question": "Use only the midpoint instance and global minimality to prove \\(V(x)\\ge V(x_0)+\\tfrac k4\\|x-x_0\\|^2\\) for every x. Track the constant. Does this proof establish the sharper k/2 envelope, or finiteness of a Gibbs normalizer?",
+      "steps": [
+        "At \\(m=(x_0+x)/2\\), strong convexity gives \\[V(m)\\le\\tfrac12V(x_0)+\\tfrac12V(x)-\\tfrac k8\\|x-x_0\\|^2.\\] The factor \\(k/8\\) comes from \\((k/2)(1/2)(1/2)\\).",
+        "Global minimality gives \\(V(x_0)\\le V(m)\\). Combine the two inequalities and multiply by 2 to obtain \\(V(x_0)+\\tfrac k4\\|x-x_0\\|^2\\le V(x)\\). No derivative or limit was used.",
+        "This midpoint calculation proves the k/4 envelope, not the sharper k/2 constant. Obtaining a sharper result needs another argument; it must not be credited to this calculation.",
+        "The envelope alone is not a normalization theorem. A Gibbs-integrability consumer additionally needs an appropriate finite-dimensional reference measure, measurability, a positive confining modulus, and a Gaussian-integrability argument; positivity of the normalizer is a separate obligation. Here k need not even be positive."
+      ],
+      "rubric": [
+        {"points": 1, "criterion": "States the convention and obtains the midpoint correction k/8 exactly."},
+        {"points": 1, "criterion": "Uses the exposed global minimizer at the midpoint."},
+        {"points": 1, "criterion": "Rearranges to k/4 without silently upgrading it to k/2 or assuming differentiability."},
+        {"points": 1, "criterion": "Separates the quadratic envelope from Gibbs integrability and normalization."}
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.StrongConvexity.centered_quadratic_lower_bound_of_strongConvexOn_minimizer",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Geometry/StrongConvexity.lean",
+      "context": "open Set\n",
+      "lean_explanation": "StrongConvexOn contains a convex-domain component and a two-point inequality; hV.2 selects the latter. IsMinOn on univ is expanded to compare the minimizer with every point. The midpoint coefficients are checked by norm_num, the squared distance is rewritten symmetrically, and nlinarith performs the final scalar rearrangement.",
+      "dependencies": {"astis": [], "mathlib": ["StrongConvexOn", "isMinOn_univ_iff", "norm_sub_rev"]},
+      "boundary": "This is a normed-vector-space statement, not a Riemannian or geodesic-convexity theorem. The Lean target proves the k/4 envelope only; neither the sharper bound nor Gibbs normalization is supplied.",
+      "source_note": "Original exercise over the existing Samplinglib midpoint lemma. It is not presented as a verbatim textbook statement."
+    }
+  ]
+}

@@ -13,9 +13,9 @@ ROUND = bench.DATA.parent/'reviews/graph-1'
 SCOPE = 'independent AI structural QA editorial review; not mathematical necessity or calibration'
 REPAIR_ROUND = ROUND.parent/'graph-3'
 REPAIR_SCOPE = 'independent AI graph-difficulty repair review; not empirical calibration'
-CURRENT_ROUND = ROUND.parent/'graph-4'
-CURRENT_REPAIR_ROUND = ROUND.parent/'graph-5'
-SUPERSEDES = ['graph-1','graph-2','graph-3']
+CURRENT_ROUND = ROUND.parent/'graph-7'
+CURRENT_REPAIR_ROUND = ROUND.parent/'graph-8'
+SUPERSEDES = ['graph-1','graph-2','graph-3','graph-4','graph-5','graph-6']
 
 
 def payload(items: list[dict]) -> dict:
@@ -25,7 +25,7 @@ def payload(items: list[dict]) -> dict:
             'policy_sha256_lf': bench.text_hash(bench.curriculum.BASE/'curriculum.json'),
             'scorer_source': inspect.getsource(bench.curriculum.grade_graph).replace('\r\n','\n'),
             'supersedes_rounds':SUPERSEDES,
-            'instruction': 'Independently inspect every current question, original source and evidence kind, including the trusted compiler extractor, recorded proof-body slice and fresh replay. Audit the present scoped policy and core/family links from scratch; earlier verdicts and preferred repairs are omitted. Verify import versus proof-body direction, omitted-constant/private/full-closure boundaries, shared/path operations, scoring and provisional reasoning levels. Neither positive nor absent induced paths certify mathematical necessity or full independence. A compiler replay is not editorial acceptance, and reference self-tests are not model measurements. Authored claims are audit objects, not preferred verdicts. Return accept, repair-required or reject with precise evidence for every item. This full-scope round explicitly supersedes earlier graph rounds for current admission, without rewriting their reports; do not edit corpus or publish canonical theorem status.'}
+            'instruction': 'Independently inspect every current question, original source and evidence kind, including both compiler slices and fresh trusted replay. Audit core/family links, source eligibility, body-edge direction, omitted-constant/private/full-closure boundaries, unexpanded-statement constant profiles, typed/path operations, scoring and provisional reasoning levels from scratch. Statement occurrences are not a binder-role analysis, inferred hypothesis list or necessity certificate; absence is not absence after definition unfolding. Neither positive nor absent induced paths certify mathematical necessity or full independence. Earlier verdicts and preferred repairs are omitted. Compiler replay is not editorial acceptance; reference self-tests are not model measurements. Return accept, repair-required or reject with precise evidence for every item. This full-scope round explicitly supersedes earlier graph rounds for current admission without rewriting reports; do not edit corpus or publish canonical theorem status.'}
 
 
 def prepare(output: Path) -> None:
@@ -173,7 +173,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--repair-id')
-    parser.add_argument('--base-round',choices=('graph-1','graph-4'),default='graph-1')
+    parser.add_argument('--base-round',choices=('graph-1','graph-4','graph-6','graph-7'),default='graph-1')
     args = parser.parse_args()
     if args.repair_id:
         prepare_repair(args.output,args.repair_id,ROUND.parent/args.base_round)

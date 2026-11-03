@@ -197,9 +197,21 @@ def graph_page(item: dict) -> str:
     evidence = graph_review.summary(bench.curriculum.graph_items())['items'][item['id']]
     status = '<p>Current editorial status: <strong>' + escape(evidence['editorial']) + '</strong>. This is AI review of structural QA, not a theorem or calibrated difficulty.</p>'
     status += '<ul>' + ''.join('<li>' + escape(s) + '</li>' for s in evidence.get('issues', []) + evidence.get('remaining_limits', [])) + '</ul>'
-    status += '<p><a href="downloads/graph-editorial-review.json">Exact review bindings and report hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews/graph-4">Current independent review and explicit historical supersession</a></p>'
+    status += '<p><a href="downloads/graph-editorial-review.json">Exact review bindings and report hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews/'+graph_review.CURRENT_ROUND.name+'">Current independent review and explicit historical supersession</a></p>'
     compiled=item['context']['kind']=='compiled-proof-body-constant-occurrences'
-    provenance=('<p>This is a recorded source-bound compiler snapshot. CI separately replays the trusted extractor. It is not a fresh Lean run in this browser, a full proof closure or a minimal-premise certificate. Unique proof constants do not count runtime invocations, recursive calls or oracle queries.</p><p><a href="downloads/compiled-transport-graph.json">Recorded compiler slice and provenance</a></p>') if compiled else '<p>This graph scans source import declarations, not theorem proof bodies.</p>'
+    artifact='compiled-flow-graph.json' if item['core_id']=='sogb-023' else 'compiled-transport-graph.json'
+    provenance=('<p>This is a recorded source-bound compiler snapshot. CI separately replays the trusted extractor. It is not a fresh Lean run in this browser, a full proof closure or a minimal-premise certificate. Unique proof constants do not count runtime invocations, recursive calls or oracle queries.</p><p><a href="downloads/'+artifact+'">Recorded compiler slice and provenance</a></p>') if compiled else '<p>This graph scans source import declarations, not theorem proof bodies.</p>'
+    profiles=''
+    if item.get('required_statement_constants'):
+        profiles=('<section data-statement-profiles><h2>Statement-occurrence filter</h2><p>Requested constants: '
+            + ', '.join('<code>'+escape(n)+'</code>' for n in item['required_statement_constants'])
+            + '.</p><p>'+escape(item['context']['statement_profile_scope'])
+            + ' Absence here does not mean absence after unfolding or proof derivation.</p>'
+            + '<div class="sog-table"><table><thead><tr><th>Selected declaration</th><th>Emitted direct constants</th></tr></thead><tbody>'
+            + ''.join('<tr><th>'+escape(item['context']['node_labels'][n])+'</th><td>'
+                + (', '.join('<code>'+escape(c)+'</code>' for c in item['context']['statement_profiles'][n]) or 'None of the whitelisted constants; not a claim of no assumptions.')
+                + '</td></tr>' for n in item['context']['nodes'])
+            + '</tbody></table></div></section>')
     related=[c for c in bench.materialize() if c['id']!=item['core_id'] and c['declaration'] in item['context']['nodes']]
     background=('<p>Related exercises about selected statements: '+ ' · '.join(
         '<a href="'+c['id']+'.html">'+escape(c['title'])+'</a>' for c in related)+'.</p>') if related else ''
@@ -209,6 +221,7 @@ def graph_page(item: dict) -> str:
         + '<p>Targets: ' + escape(', '.join(item['context'].get('node_labels',{}).get(n,n) for n in item['targets'])) + '</p>'
         + (prose(('Queried interface: ' if compiled else 'Removed module: ') + item['context'].get('node_labels',{}).get(item['remove'],item['remove'])) if 'remove' in item else '')
         + import_figure(item['context'])
+        + profiles
         + background
         + fold('Independent structural review and limits', status)
         + fold('Evidence kind and source scope', provenance+prose(item['context']['truth_boundary']))

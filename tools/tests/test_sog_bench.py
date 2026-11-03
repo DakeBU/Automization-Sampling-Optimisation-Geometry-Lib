@@ -26,8 +26,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 18)
-        self.assertEqual(len(prompts), 25)
+        self.assertEqual(len(self.cores), 21)
+        self.assertEqual(len(prompts), 30)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -77,7 +77,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 25)
+            self.assertEqual(manifest['qa_views'], 30)
             self.assertEqual(manifest['graph_tasks'], 5)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -161,7 +161,7 @@ class BenchTests(unittest.TestCase):
                 self.assertIn('No current trusted-reference compiler receipt', rendered)
             else:
                 self.assertIn('Lean view: not yet aligned', rendered)
-                self.assertNotIn('data-lean-copy-status', rendered)
+                self.assertEqual('data-lean-copy-status' in rendered, bool(core.get('support_source_view')))
             self.assertNotIn('<details open', rendered)
             self.assertIn('focus=decl%3A', rendered)
             fallback = reader.core_page(core, False, set())
@@ -180,12 +180,12 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 18)
+        self.assertEqual(coverage['unique_mathematical_cores'], 21)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 18)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 21)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -225,6 +225,37 @@ class BenchTests(unittest.TestCase):
         self.assertIn('independent product',core['steps'][-1])
         self.assertIn('not the true Wasserstein inequality',core['steps'][-1])
         self.assertIn('ancestor proofs',core['boundary'])
+
+    def test_subgradient_source_view_preserves_notices_without_inventing_a_lean_task(self):
+        by_id={c['id']:c for c in self.cores}
+        norm,energy=by_id['sogb-019'],by_id['sogb-020']
+        self.assertEqual(norm['family'],energy['family'])
+        self.assertEqual(energy['track_levels'],{'natural-language':'L3'})
+        self.assertEqual(energy['lean_reference'],'')
+        self.assertEqual(energy['support_lean_source'],(ROOT/energy['source_file']).read_text(encoding='utf-8'))
+        for credit in ('Hongjia Chen','Chenyi Li','Wanyi He','Zaiwen Wen','Apache 2.0'):
+            self.assertIn(credit,norm['lean_reference'])
+            self.assertIn(credit,energy['support_lean_source'])
+        question=next(r for r in bench.prompts(self.cores) if r['id']==energy['id'])
+        self.assertNotIn('support_lean_source',question)
+        self.assertNotIn('theorem exists_gap_le',question['question'])
+        with tempfile.TemporaryDirectory() as tmp:
+            output=Path(tmp)
+            bench.export(output,self.cores)
+            self.assertEqual((output/'lean/sogb-020-support.lean').read_text(encoding='utf-8'),energy['support_lean_source'])
+            self.assertFalse((output/'lean/sogb-020-reference.lean').exists())
+        self.assertIn('not an aligned QA task',reader.core_page(energy,False))
+        self.assertNotIn('Trusted reference compilation recorded',reader.core_page(energy,True))
+
+    def test_new_pairs_have_actual_norm_and_conditional_kernel_targets(self):
+        norm,heat=(next(c for c in self.cores if c['id']==identity) for identity in ('sogb-019','sogb-021'))
+        self.assertIn("hs (x + g)",norm['lean_reference'])
+        self.assertIn('by_cases hg',norm['lean_reference'])
+        self.assertIn('fst_compProd_condDistrib_snd_eq_self',heat['lean_reference'])
+        self.assertIn('noncomputable def heatBathSnd',heat['context'])
+        self.assertNotIn('heatBathSnd_invariant',heat['lean_task'])
+        self.assertNotIn('IsProbabilityMeasure',heat['lean_task'])
+        self.assertNotIn('StandardBorelSpace α',heat['lean_task'])
 
     def test_structural_graph_answers_sources_and_no_gold_in_prompts(self):
         graphs = bench.curriculum.graph_items()

@@ -44,6 +44,7 @@ def main() -> None:
     parser.add_argument('--root', type=Path, default=ROOT / '_site')
     parser.add_argument('--browser-channel', choices=('msedge', 'chrome'))
     parser.add_argument('--evidence', type=Path, default=ROOT / '_browser-evidence/sog-bench')
+    parser.add_argument('--core', action='append', help='Focus proof/copy checks on these IDs; overview/graph checks still run')
     args = parser.parse_args()
     args.evidence.mkdir(parents=True, exist_ok=True)
     handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(args.root.resolve()))
@@ -83,7 +84,7 @@ def main() -> None:
             key = lambda r: (r['id'], r['track'], r['binding_sha256'])
             assert sorted(map(key, reviewed)) == sorted(map(key, expected_reviewed))
             page.screenshot(path=str(args.evidence / 'overview-desktop.png'), full_page=True)
-            for identity in sorted({r['id'] for r in records if r['track'] == 'lean'}):
+            for identity in sorted({r['id'] for r in records if r['track'] == 'lean' and (not args.core or r['id'] in args.core)}):
                 page.goto(base + HUB + identity + '.html')
                 page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                 page.evaluate('() => MathJax.startup.promise')
@@ -119,7 +120,38 @@ def main() -> None:
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 math_component_shot(page, args.evidence / (identity + '-math-mobile.png'))
                 page.set_viewport_size({'width': 1400, 'height': 1000})
-            for tail in ('curriculum/index.html', 'graph-json/index.html', 'evaluation/index.html', 'levels/L5.html', 'domains/statistical-optimal-transport.html', 'sogb-g003.html', 'sogb-007.html', 'sogb-008.html', 'sogb-012.html', *compiled_graphs):
+            reference_records=[json.loads(line) for line in page.request.get(base+HUB+'downloads/reference.jsonl').text().splitlines()]
+            for core in (c for c in reference_records if c.get('support_source_view') and (not args.core or c['id'] in args.core)):
+                identity=core['id']
+                for width,height,suffix in ((1400,1000,'desktop'),(412,915,'mobile')):
+                    page.set_viewport_size({'width':width,'height':height})
+                    page.goto(base+HUB+identity+'.html')
+                    page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
+                    page.evaluate('() => MathJax.startup.promise')
+                    assert page.locator('details[open]').count()==0
+                    page.locator('summary',has_text='Reference mathematical proof').click()
+                    check_visible_equations(page)
+                    assert page.locator('mjx-merror, [data-mjx-error]').count()==0
+                    math_component_shot(page,args.evidence/(identity+'-math-'+suffix+'.png'))
+                    page.locator('#natural-language summary',has_text='Formal support and missing Lean alignment').click()
+                    page.locator('#natural-language summary',has_text='Supporting library Lean (not an aligned QA task)').click()
+                    panel=page.locator('#natural-language [data-lean-code-panel]')
+                    assert panel.locator('code.language-lean').is_visible()
+                    assert panel.locator('code span').count()>0
+                    panel.get_by_role('button',name='Copy supporting module').click()
+                    page.wait_for_function('Array.from(document.querySelectorAll("[data-lean-copy-status]")).some(n=>n.textContent==="Copied")')
+                    copied=page.evaluate('() => navigator.clipboard.readText()')
+                    expected=core['support_lean_source']
+                    # Windows' clipboard normalizes line separators to CRLF.
+                    # Ignore only that platform conversion, not source tokens.
+                    assert copied.replace('\r\n','\n')==expected
+                    with page.expect_download() as supporting:
+                        page.locator('#natural-language').get_by_role('link',name='Download exact supporting module').click()
+                    assert Path(supporting.value.path()).read_text(encoding='utf-8')==core['support_lean_source']
+                    assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
+                    page.screenshot(path=str(args.evidence/(identity+'-source-'+suffix+'.png')),full_page=True)
+                page.set_viewport_size({'width':1400,'height':1000})
+            for tail in ('curriculum/index.html', 'graph-json/index.html', 'evaluation/index.html', 'levels/L5.html', 'domains/statistical-optimal-transport.html', 'domains/optimisation.html', 'sogb-g003.html', 'sogb-007.html', 'sogb-008.html', 'sogb-012.html', *compiled_graphs):
                 page.goto(base + HUB + tail)
                 page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                 page.evaluate('() => MathJax.startup.promise')

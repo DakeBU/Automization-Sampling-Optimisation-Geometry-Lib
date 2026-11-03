@@ -1,0 +1,215 @@
+{
+  "author_identity": "agent-task:root",
+  "cases": {
+    "case-1": {
+      "binding_sha256": "295020bd85306baccfd944be7ac02feca977f050794c626c283540309b08b3b5",
+      "core_id": "sogb-019"
+    },
+    "case-2": {
+      "binding_sha256": "f02afb8dd0554bbe7b7a5b1e18c697a2197276c19687809988aaaf6684c1d80b",
+      "core_id": "sogb-021"
+    }
+  },
+  "context_bindings": {
+    "sogb-019": "be2b65dde170eebb45a9ef2b22381c9baf1a41d5d3b08dd4368425a825791b84",
+    "sogb-021": "1d153c4d85ae17e15fff2c770a190862d88202e4146ed4f419b05e587181a2da"
+  },
+  "decoder_identity": "agent-task:/root/sog_blind_7",
+  "decoder_input_sha256": "2799631107ebdca6a0197362dac33db24896d4cffc676707d228469a5c998a76",
+  "decoder_output_sha256": "b7eb9b4fd4bc61b5b9e2d3bf1453bf65f8ed80c5b68d072105c5bf10f1048cbe",
+  "instruction": "Independently audit each authored question, formula proof, rubric and actual local declaration. Compare all seven slots to the blind reconstruction. The authored support, status and formal-coverage language are claims to audit, not preferred verdicts. No previous source verdict or repair proposal is supplied. Record precise conclusion-only formal coverage and remaining unformalized explanation; accept, request repair or reject with mathematical and scoring evidence. This is Bench editorial review, not canonical theorem publication or model measurement.",
+  "mathematical_cores": [
+    {
+      "assumptions": [
+        "E is a real inner-product space, not necessarily complete or finite dimensional. The function f:E→ℝ is globally G-Lipschitz, where G≥0.",
+        "A supplied vector g supports f at x globally: \\[f(x)+\\langle g,y-x\\rangle\\le f(y)\\qquad\\text{for every }y\\in E.\\] Existence of supporting vectors, convexity of f and differentiability are not additional premises."
+      ],
+      "binding_sha256": "295020bd85306baccfd944be7ac02feca977f050794c626c283540309b08b3b5",
+      "boundary": "This bounds each supplied global supporting vector. It constructs neither a subgradient nor a measurable/random oracle, gives no constrained-normal bound, and proves no optimization rate by itself. The existing sum_weighted_gap_le theorem consumes this estimate; Bench examples add no Registry credit.",
+      "context": "/- Copyright (c) 2024 Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen.\nReleased under Apache 2.0; retain LICENSE and NOTICE.\nUpstream Optlib 5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3,\nOptlib/Algorithm/SubgradientMethod.lean:80–118,137–232.\nModified for Samplinglib: native Lean 4.33.0, global SupportsAt and unbundled inputs. -/\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient\nopen scoped NNReal RealInnerProductSpace\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.norm_le_of_supportsAt",
+      "decoder_definitions": [
+        "SupportsAt f x g means ∀ y:E, f x + ⟨g,y-x⟩ ≤ f y, with the real inner product. The quantifier ranges over the entire space, not a constraint subset.",
+        "LipschitzWith G f means dist(f u,f v) ≤ G*dist(u,v) for all u,v. G:ℝ≥0 is a nonnegative real, coerced into ℝ in the conclusion. NormedAddCommGroup plus InnerProductSpace ℝ supplies the real norm and inner product; no completeness is specified."
+      ],
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient.SupportsAt"
+        ],
+        "mathlib": [
+          "LipschitzWith.dist_le_mul",
+          "real_inner_self_eq_norm_sq",
+          "norm_nonneg",
+          "le_abs_self"
+        ]
+      },
+      "difficulty": "intermediate",
+      "difficulty_reason": "The formal norm estimate combines one global support test with Lipschitz growth and a zero/nonzero case split (L2). The prose task additionally audits the global-domain requirement by constructing a constrained-support counterexample (L3). Neither level is experimentally calibrated.",
+      "domain": "optimisation",
+      "family": "subgradient-energy-average",
+      "id": "sogb-019",
+      "imports": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient",
+        "Mathlib.Topology.MetricSpace.Lipschitz",
+        "Mathlib.Data.Finset.Max",
+        "Mathlib.Algebra.Order.BigOperators.Group.Finset",
+        "Mathlib.Tactic.Linarith",
+        "Mathlib.Tactic.Positivity",
+        "Mathlib.Tactic.Ring"
+      ],
+      "lean_explanation": "The reference tests hs at x+g, rewrites the inner product with itself as a squared norm, and obtains the upper increment bound with hf.dist_le_mul. It splits on a zero norm before the final ordered-field inference. SupportsAt is the existing global relation from ConvexSubgradient, not a new predicate. The source module is not imported into the task, and its norm theorem is not supplied as a premise. The Lean conclusion covers the norm bound only; the constrained counterexample is the separate prose audit.",
+      "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient\nimport Mathlib.Topology.MetricSpace.Lipschitz\nimport Mathlib.Data.Finset.Max\nimport Mathlib.Algebra.Order.BigOperators.Group.Finset\nimport Mathlib.Tactic.Linarith\nimport Mathlib.Tactic.Positivity\nimport Mathlib.Tactic.Ring\n\n/- Copyright (c) 2024 Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen.\nReleased under Apache 2.0; retain LICENSE and NOTICE.\nUpstream Optlib 5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3,\nOptlib/Algorithm/SubgradientMethod.lean:80–118,137–232.\nModified for Samplinglib: native Lean 4.33.0, global SupportsAt and unbundled inputs. -/\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient\nopen scoped NNReal RealInnerProductSpace\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n\nexample {f : E → ℝ} {G : ℝ≥0} {x g : E}\n    (hf : LipschitzWith G f) (hs : SupportsAt f x g) : ‖g‖ ≤ (G : ℝ) := by\n  have hs' := hs (x + g)\n  change f x + inner ℝ g (x + g - x) ≤ f (x + g) at hs'\n  rw [add_sub_cancel_left, real_inner_self_eq_norm_sq] at hs'\n  have hl : f (x + g) - f x ≤ (G : ℝ) * ‖g‖ := by\n    calc\n      f (x + g) - f x ≤ |f (x + g) - f x| := le_abs_self _\n      _ ≤ (G : ℝ) * ‖g‖ := by\n        simpa [Real.dist_eq, dist_eq_norm] using hf.dist_le_mul (x + g) x\n  by_cases hg : ‖g‖ = 0\n  · simp [hg]\n  · have hp : 0 < ‖g‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm hg)\n    nlinarith\n",
+      "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient\nimport Mathlib.Topology.MetricSpace.Lipschitz\nimport Mathlib.Data.Finset.Max\nimport Mathlib.Algebra.Order.BigOperators.Group.Finset\nimport Mathlib.Tactic.Linarith\nimport Mathlib.Tactic.Positivity\nimport Mathlib.Tactic.Ring\n\n/- Copyright (c) 2024 Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen.\nReleased under Apache 2.0; retain LICENSE and NOTICE.\nUpstream Optlib 5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3,\nOptlib/Algorithm/SubgradientMethod.lean:80–118,137–232.\nModified for Samplinglib: native Lean 4.33.0, global SupportsAt and unbundled inputs. -/\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient\nopen scoped NNReal RealInnerProductSpace\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n\nexample {f : E → ℝ} {G : ℝ≥0} {x g : E}\n    (hf : LipschitzWith G f) (hs : SupportsAt f x g) : ‖g‖ ≤ (G : ℝ) := by\n  -- Replace this comment with your proof.\n",
+      "library_domains": [
+        "optimisation"
+      ],
+      "question": "Prove \\(\\|g\\|\\le G\\), making the test point and zero case explicit. Is the same conclusion valid if the support inequality holds only for y in a constraint set C containing x? Give a counterexample with a globally Lipschitz function and explain exactly which step no longer applies.",
+      "rubric": [
+        {
+          "criterion": "Uses the globally admissible point y=x+g to obtain the exact squared-norm lower bound without assuming subgradient existence.",
+          "points": 1
+        },
+        {
+          "criterion": "Applies global Lipschitz growth to bound the same increment by G times the norm.",
+          "points": 1
+        },
+        {
+          "criterion": "Separates the zero case before dividing, retaining only the stated inner-product-space hypotheses.",
+          "points": 1
+        },
+        {
+          "criterion": "Gives the zero-function half-line support counterexample with g=-1 and identifies the unavailable test point rather than alleging failure of the global theorem.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "assumption-audit",
+        "counterexample"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/SubgradientMethod.lean",
+      "source_line": 40,
+      "source_note": "Original QA and half-line counterexample over the Samplinglib-native Apache-2.0 port of Optlib. Upstream authors: Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen; pinned commit 5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3, Optlib/Algorithm/SubgradientMethod.lean:80–118,137–232. The extracted reference retains the copyright, source and modification notice. The actual local norm bound is consumed by SubgradientMethod.sum_weighted_gap_le. No textbook passage or restricted dataset is copied.",
+      "source_sha256_lf": "0913d624dae26a627474f56dc2d0e394af2cf059b8237ee3ee5db8833035683f",
+      "split": "public-dev",
+      "steps": [
+        "Because the support relation is global, its test point may be y=x+g. Thus \\[\\|g\\|^2=\\langle g,g\\rangle\\le f(x+g)-f(x).\\] This tests the supplied relation; it does not use a theorem constructing subgradients.",
+        "Global Lipschitz growth and the absolute-value bound give \\[f(x+g)-f(x)\\le|f(x+g)-f(x)|\\le G\\|g\\|.\\] Combining the inequalities yields \\(\\|g\\|^2\\le G\\|g\\|\\).",
+        "If g=0 the conclusion is immediate from G≥0. Otherwise \\(\\|g\\|>0\\), so division by this strictly positive number gives \\(\\|g\\|\\le G\\). No completeness, differentiability or finite-dimensional compactness is used.",
+        "For constrained support take E=ℝ, f≡0, G=0, C=[0,∞), x=0 and g=−1. Then \\[f(0)+g(y-0)=-y\\le0=f(y)\\qquad(y\\in C),\\] but \\(\\|g\\|=1>0=G\\). The chosen point x+g=−1 is outside C. This refutes the constrained variant, not the globally quantified theorem."
+      ],
+      "title": "Why a global Lipschitz function bounds its supporting vectors",
+      "track_levels": {
+        "lean": "L2",
+        "natural-language": "L3"
+      }
+    },
+    {
+      "assumptions": [
+        "α and β are measurable spaces; β is nonempty and standard Borel. μ is any finite nonnegative measure on α×β, including the zero measure. No standard-Borel or nonempty assumption is imposed on α.",
+        "Let μ₁ be the first marginal and κ(a,db) a selected measurable regular conditional Markov kernel for the second coordinate given the first. You may use the existing finite-measure disintegration identity \\[\\mu(da,db)=\\mu_1(da)\\kappa(a,db).\\] Its conditional characterization is only μ₁-almost everywhere; the selected version has mass one at every input.",
+        "The actual update retains a and resamples b: \\[K((a,b),d(a',b'))=\\delta_a(da')\\kappa(a,db').\\] Invariant means the measure equality μK=μ, not convergence from every starting measure."
+      ],
+      "binding_sha256": "f02afb8dd0554bbe7b7a5b1e18c697a2197276c19687809988aaaf6684c1d80b",
+      "boundary": "This proves one actual conditional-resampling kernel preserves its finite joint target. It does not establish reversibility, irreducibility, uniqueness, convergence, a mixing rate, a generator-domain theorem or the Gibbs law of a continuous-time process. Conditional disintegration is allowed background, not reproved by this short task. The NL finite-state counterexample is not a separate Lean conclusion.",
+      "context": "open MeasureTheory ProbabilityTheory\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath\nnoncomputable def heatBathSnd {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]\n    [StandardBorelSpace β] [Nonempty β] (μ : Measure (α × β)) [IsFiniteMeasure μ] :\n    Kernel (α × β) (α × β) :=\n  (Kernel.id ×ₖ condDistrib Prod.snd Prod.fst μ) ∘ₖ\n    Kernel.deterministic Prod.fst measurable_fst\nend AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath\nopen AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath\nopen AutoSamplingTheory.TechnicalLemmas.Probability\nvariable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]\n  [StandardBorelSpace β] [Nonempty β]\n",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath.heatBathSnd_invariant",
+      "decoder_definitions": [
+        "Measure X is a nonnegative extended-real measure. IsFiniteMeasure μ means μ(X)<∞ and permits μ=0. Kernel α β is a measurable assignment of measures on β; a Markov kernel has total mass one at every input.",
+        "Kernel.Invariant K μ means μ.bind K=μ. κ∘ₖη is kernel composition, κ∘ₘμ means μ.bind κ, and Kernel.deterministic f hf sends x to the Dirac measure at f(x). Kernel.id sends a to δ_a; ×ₖ is the product of two output kernels sharing an input.",
+        "condDistrib Prod.snd Prod.fst μ is a chosen regular conditional Markov kernel for the second coordinate given the first, for finite μ and nonempty standard-Borel β. Its disintegration/conditional meaning is characterized only almost everywhere for the first marginal; its selected normalization is pointwise. α has only a measurable-space assumption."
+      ],
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalResampling.fst_compProd_condDistrib_snd_eq_self"
+        ],
+        "mathlib": [
+          "ProbabilityTheory.Kernel.Invariant",
+          "MeasureTheory.Measure.comp_assoc",
+          "MeasureTheory.Measure.deterministic_comp_eq_map",
+          "MeasureTheory.Measure.compProd_eq_comp_prod",
+          "ProbabilityTheory.compProd_map_condDistrib"
+        ]
+      },
+      "difficulty": "intermediate",
+      "difficulty_reason": "The formal task is a short but semantic kernel-composition/disintegration calculation (L2). The prose task additionally audits finite versus probability measures, conditional null-fiber representatives and a concrete failure of convergence from other starts (L3).",
+      "domain": "mcmc",
+      "family": "conditional-resampling-invariance",
+      "id": "sogb-021",
+      "imports": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalResampling",
+        "Mathlib.Probability.Kernel.Invariance"
+      ],
+      "lean_explanation": "The context supplies only the exact existing heatBathSnd definition, not its invariance theorem or Markov instance. The reference unfolds that kernel in the measure equality, reassociates composition, rewrites deterministic composition as the first pushforward and the identity-product composition as a composition product, then calls ConditionalResampling.fst_compProd_condDistrib_snd_eq_self. This is the actual finite-target invariance theorem, not an assumed stationarity premise. Its conclusion does not separately formalize the prose's identity-kernel counterexample or a mixing assertion.",
+      "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalResampling\nimport Mathlib.Probability.Kernel.Invariance\n\nopen MeasureTheory ProbabilityTheory\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath\nnoncomputable def heatBathSnd {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]\n    [StandardBorelSpace β] [Nonempty β] (μ : Measure (α × β)) [IsFiniteMeasure μ] :\n    Kernel (α × β) (α × β) :=\n  (Kernel.id ×ₖ condDistrib Prod.snd Prod.fst μ) ∘ₖ\n    Kernel.deterministic Prod.fst measurable_fst\nend AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath\nopen AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath\nopen AutoSamplingTheory.TechnicalLemmas.Probability\nvariable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]\n  [StandardBorelSpace β] [Nonempty β]\n\nexample (μ : Measure (α × β)) [IsFiniteMeasure μ] :\n    (heatBathSnd μ).Invariant μ := by\n  change ((Kernel.id ×ₖ condDistrib Prod.snd Prod.fst μ) ∘ₖ\n    Kernel.deterministic Prod.fst measurable_fst) ∘ₘ μ = μ\n  rw [← Measure.comp_assoc, Measure.deterministic_comp_eq_map,\n    ← Measure.compProd_eq_comp_prod]\n  exact ConditionalResampling.fst_compProd_condDistrib_snd_eq_self\n",
+      "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalResampling\nimport Mathlib.Probability.Kernel.Invariance\n\nopen MeasureTheory ProbabilityTheory\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath\nnoncomputable def heatBathSnd {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]\n    [StandardBorelSpace β] [Nonempty β] (μ : Measure (α × β)) [IsFiniteMeasure μ] :\n    Kernel (α × β) (α × β) :=\n  (Kernel.id ×ₖ condDistrib Prod.snd Prod.fst μ) ∘ₖ\n    Kernel.deterministic Prod.fst measurable_fst\nend AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath\nopen AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath\nopen AutoSamplingTheory.TechnicalLemmas.Probability\nvariable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]\n  [StandardBorelSpace β] [Nonempty β]\n\nexample (μ : Measure (α × β)) [IsFiniteMeasure μ] :\n    (heatBathSnd μ).Invariant μ := by\n  -- Replace this comment with your proof.\n",
+      "library_domains": [
+        "mcmc",
+        "discrete-sampling"
+      ],
+      "question": "Prove μK=μ by identifying the measure after projecting to the retained coordinate and after applying the product kernel. Explain the role of measurability, the finite-measure disintegration, and the chosen conditional version on null fibers. Must μ be a probability measure? Give a finite-state example showing why this invariance result alone does not imply convergence from another initial probability law.",
+      "rubric": [
+        {
+          "criterion": "Identifies the measurable deterministic projection and its exact pushforward μ₁ under the actual input law.",
+          "points": 1
+        },
+        {
+          "criterion": "Expresses the actual kernel as a deterministic composition and uses associativity and the measure–kernel product, not an independent product, to obtain μ₁⊗κ.",
+          "points": 1
+        },
+        {
+          "criterion": "Applies the finite standard-Borel disintegration with the precise β hypotheses, permits zero μ and distinguishes global Markov normalization from almost-everywhere conditional support claims.",
+          "points": 1
+        },
+        {
+          "criterion": "Gives the two-state retained-coordinate identity-kernel example, with a nonconverging initial law at TV distance 1/2, without mislabeling invariance as convergence or reversibility.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "assumption-audit",
+        "counterexample"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/HeatBath.lean",
+      "source_line": 54,
+      "source_note": "Original QA over the existing Samplinglib-owned HeatBath kernel and its finite-measure ConditionalResampling interface. Uses Mathlib's selected regular conditional distribution, kernel composition and Invariant definition. The discrete example specializes this general measurable-space result; this is not the earlier atomic-detailed-balance task or a new wrapper. No paper text, external dataset or restricted index is reproduced.",
+      "source_sha256_lf": "f246c8fd89c1555de29cc899e7b00e7bce9f6a5b3acb7e303973430fc549bf4f",
+      "split": "public-dev",
+      "steps": [
+        "The deterministic projection (a,b)↦a is measurable. Pushing μ through it gives exactly its first marginal \\(\\mu_1=(\\mathrm{fst})_\\#\\mu\\). This assertion uses the actual input μ, not an arbitrary starting law with a different first marginal.",
+        "The product kernel a↦δₐ⊗κ(a,·) is measurable because it is the product of the identity kernel and the measurable conditional kernel. Composition with the deterministic projection gives K. Associativity of kernel/measure composition yields \\[\\mu K=\\mu_1(\\mathrm{id}\\times\\kappa)=\\mu_1\\otimes\\kappa.\\] The last expression is a measure–kernel composition product, not the independent product of μ₁ and a fixed marginal.",
+        "The supplied finite-measure disintegration identity now gives \\[\\mu K=\\mu_1\\otimes\\kappa=\\mu.\\] It is justified by the standard-Borel, nonempty β and finite μ interface. No density, positivity, normalization to mass one or division by a marginal density is required. For μ=0 both sides are zero; this is invariant as a finite measure, not a probability law.",
+        "Conditional versions agree in their prescribed conditional meaning only for μ₁-almost every a. Replacing them on a μ₁-null set does not change the integrated identity. The chosen global Markov version still yields a legitimate mass-one update there, but no claim about conditional support or convergence from such exceptional starting states follows.",
+        "For lack of convergence take α={0,1}, β={∗} with discrete measurable structures and \\(\\mu=(\\tfrac12\\delta_0+\\tfrac12\\delta_1)\\otimes\\delta_\\ast\\). The update never changes either coordinate, so K is the identity kernel. Starting from \\(\\rho=\\delta_{(0,\\ast)}\\), \\[\\rho K^n=\\rho,\\qquad d_{\\mathrm{TV}}(\\rho K^n,\\mu)=\\tfrac12\\quad(n\\ge0).\\] Thus the actual invariant target does not imply uniqueness, irreducibility, mixing or convergence from a different first marginal."
+      ],
+      "title": "Why retaining one coordinate and conditionally resampling the other is invariant",
+      "track_levels": {
+        "lean": "L2",
+        "natural-language": "L3"
+      }
+    }
+  ],
+  "reconstructions": {
+    "case-1": {
+      "assumptions": "The only analytic hypotheses on f and g are the global Lipschitz bound LipschitzWith G f and the global supporting inequality SupportsAt f x g. Nonnegativity of G is built into its type. Neither convexity of f, differentiability, continuity of a derivative, existence of a minimizer, nor completeness of E is an additional assumption. The hypothesis concerns a support at the specified x, not an asserted support at every point.",
+      "conclusion": "The norm of the given vector g is at most the same Lipschitz bound G, with G coerced from ℝ≥0 to ℝ: ‖g‖ ≤ (G : ℝ). This is a non-strict norm bound for each vector satisfying the stated global support hypothesis. It is not a claim of equality, uniqueness or existence of g, differentiability of f, or any bound on f(x) itself.",
+      "constants": "G is an arbitrary finite nonnegative real bound, not assumed optimal or strictly positive; G = 0 is allowed. The conclusion has multiplicative constant exactly 1 and no additive error: ‖g‖ ≤ G after coercion. The supporting affine function has intercept f(x) and inner-product coefficient g, with no extra scale or tolerance. No dimension-dependent constant, sampling parameter or probability appears.",
+      "domains": "E is an arbitrary type equipped with NormedAddCommGroup E and InnerProductSpace ℝ E, with their compatible real norm, metric and inner product. No completeness assumption is present. The function has type E → ℝ; x and g lie in E; G lies in ℝ≥0, the type of finite nonnegative real numbers. All Lipschitz and support comparisons range over the whole of E, not a feasible subset.",
+      "objects": "A real-valued function f on a real inner-product space E, a nonnegative real Lipschitz bound G, a point x in E, and a vector g in E defining an affine global lower support y ↦ f(x) + ⟨g, y - x⟩. The claim bounds this given supporting vector; it does not assert that a supporting vector exists or identify g with a derivative.",
+      "quantifiers": "Universally for every such E and its stated structures, every f : E → ℝ, every G : ℝ≥0, and every x,g : E: if f is LipschitzWith G and SupportsAt f x g, then ‖g‖ ≤ (G : ℝ). Expanded, the hypotheses say that for all u,v in E, |f(u) - f(v)| ≤ (G : ℝ) ‖u - v‖, and that for all y in E, f(x) + ⟨g, y - x⟩ ≤ f(y). No existential quantifier or restriction to almost-everywhere points occurs.",
+      "senses": "SupportsAt is exactly an affine lower support over all y in E, using the real inner product ⟨g, y - x⟩; the displacement is y - x and the inequality faces toward f(y). LipschitzWith uses the metric distance, so the real-valued output distance is absolute difference and the input distance is the norm of a difference. The conclusion uses the vector norm on E. A merely local or constraint-set support would not be the stated hypothesis; a convex-analysis subgradient interpretation does not add convexity to the signature."
+    },
+    "case-2": {
+      "assumptions": "The measure μ has μ(α × β) < ∞, allowing total mass zero and any finite total mass, not only one. The second-coordinate space β is nonempty and standard Borel, supplying a selected pointwise-normalized regular conditional Markov kernel for the second coordinate given the first. α has only a measurable-space assumption. No absolute continuity, density, product-factorization, coordinate independence, probability-measure hypothesis, irreducibility or ergodicity is assumed.",
+      "conclusion": "The finite measure μ is invariant under the specified second-coordinate heat-bath update: μ.bind (heatBathSnd μ) = μ. Thus integrating one update against μ reproduces exactly μ, without changing its finite total mass or normalizing it. The conclusion does not state uniqueness of an invariant measure, convergence of iterates from other starting measures, a rate, reversibility or a detailed-balance identity. It also applies when μ is the zero measure.",
+      "constants": "There is no numeric bound or free tuning constant. Finiteness is strict finiteness of μ's total mass, not a fixed positive value. The conditional Markov kernel has total mass exactly 1 at every a, and the construction therefore gives a Markov heat-bath kernel at every input, including when μ = 0. No division by μ's total mass or rescaling to a probability appears in the invariant-measure conclusion; μ may have mass 0, 1, or any other finite nonnegative value.",
+      "domains": "α and β are arbitrary types with MeasurableSpace instances. β additionally has StandardBorelSpace β and Nonempty β; no standard-Borel, topological, nonempty or countability assumption is imposed on α. The product carries its product measurable space. μ : Measure (α × β) is an extended-nonnegative-real-valued measure with finite total mass. C : Kernel α β and K : Kernel (α × β) (α × β) are measurable measure-valued assignments.",
+      "objects": "Measurable spaces α and β, a finite measure μ on α × β, the selected regular conditional kernel C = condDistrib Prod.snd Prod.fst μ from α to β, and the heat-bath kernel K = heatBathSnd μ on α × β. By definition K = (Kernel.id ×ₖ C) ∘ₖ Kernel.deterministic Prod.fst measurable_fst: from an input (a,b), it retains a and resamples the second coordinate with law C(a). Thus K((a,b), ·) = δ_a ⊗ C(a, ·), independently of the old b.",
+      "quantifiers": "Universally for every α,β and the stated measurable-space, standard-Borel and nonempty structures, and every μ : Measure (α × β) with IsFiniteMeasure μ, the specifically defined heatBathSnd μ satisfies Kernel.Invariant K μ. Expanded, μ.bind K = μ as measures; equivalently, for every measurable S ⊆ α × β, ∫⁻ z, K(z,S) ∂μ = μ(S). The statement uses the chosen condDistrib construction; it does not explicitly quantify over all possible conditional-kernel versions.",
+      "senses": "Kernel.Invariant is equality of measures after binding, not equality of the transition law at each input to μ. Composition first projects (a,b) to a and then applies the shared-input product of a Dirac identity kernel and C, so the first coordinate is preserved pointwise. The conditional/disintegration interpretation of C is characterized only almost everywhere for the first marginal of μ; its selected Markov normalization is pointwise, including inputs outside that almost-everywhere characterization. Invariance neither asserts a pointwise conditional formula at every a nor determines a unique version on marginal-null inputs."
+    }
+  },
+  "schema_version": 1,
+  "scope": "independent AI paired QA editorial review; not canonical theorem publication"
+}

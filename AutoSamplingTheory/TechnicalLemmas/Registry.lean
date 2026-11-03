@@ -34,6 +34,8 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalFlux
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.SphericalPoisson
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedNumerator
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Taylor
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev
@@ -215,8 +217,28 @@ def analysisMemory : List LemmaMemoryEntry := [
     upstreamFile := "A1.SS1 LemmaA.1 and proof; B.2.2 selected numerator before Eq24",
     status := LemmaMemoryStatus.formalizedLocal,
     tags := ["GaussianComplexity", "sphere", "poisson", "moments", "integrability"],
-    saldUse := "Both actual moments consumed by selected_numerator_value in Tests/GaussianComplexitySphericalPoisson.lean; Gaussian Eq24 is planned",
+    saldUse := "Both actual moments consumed by the unchanged production selected_numerator_value; the actual evaluated Gaussian Eq24 reuses that same node",
     note := "Independent compiler/source/whole-module admission at f8101cf4cf99d806dc8f73bce7dd14514637d612. Exact normalized ambient surface law, both genuine L1 facts and both values. Raw source opening n>=2 and trailing n>=3 remain visible: source fidelity is accepted on n>=3, with the actually proved n=2 logarithmic case an explicit ASTIS extension. The checked mean-value/zero-flux route is distinct from the author's full HFT1.21 route. No caller-supplied moment/flux/regularity premise, full Poisson representation, evaluated Gaussian Eq24, TV/oracle/query/cost/main lower bound, merge or purification claim. Nine private providers share the one public review and receive no separate Registry credit."
+  },
+  {
+    key := "gaussian-complexity.selected-spherical-numerator",
+    localDecl := "selected_numerator_value",
+    upstreamDecl := "arXiv2610.20492v1 AppendixB.2.2 Ex61 immediately before Eq24",
+    upstreamFile := "A2.SS2.SSS2.p5, two A1 moments and selected Eq22 parameter",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "sphere", "selected-numerator", "integrability", "canonical-promotion"],
+    saldUse := "Same compiled global numerator declaration is consumed by EvaluatedGaussian.selected_gaussian_value",
+    note := "Independent source/whole-module admission at fd099e2c44e41ee3ae35f96f82c20e27db1f4035. The exact prior theorem statement and proof are promoted byte-for-byte from the focused A1 test into SelectedNumerator.lean. This canonical registration is not new mathematics or a second proof. Exactly n>=3,kappa>=4, actual normalized sphere law, affine-kernel L1 and the evaluated numerator. No supplied moment or extra assumption, full Poisson representation, quantitative TV, oracle/query/cost, main-bound, merge or purification claim."
+  },
+  {
+    key := "gaussian-complexity.evaluated-eq24",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian.selected_gaussian_value",
+    upstreamDecl := "arXiv2610.20492v1 AppendixB.2.2 Eq24 both lines",
+    upstreamFile := "PropositionB.7 selected Eq22-24; actual source density and inverse-precision Gaussian",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "gaussian", "Eq24", "actual-law", "integrability"],
+    saldUse := "Actual determinant-conditioned Gaussian-mixture test gap is evaluated as 2v and proved nonzero in the focused consumer",
+    note := "Independent compiler/source/whole-module admission at fd099e2c44e41ee3ae35f96f82c20e27db1f4035. Exactly n>=3,kappa>=4; actual full-Haar Gaussian and literal density signed kernels are both L1 and have the exact Eq24 value, including parity sign and real n/2. Canonical actual surface transport, selected domains, A1 and density-L1 nodes are reused; no proof ingredient is a public premise. Actual mixed target measures consume the result. Quantitative TV/precision, deterministic query cap, exact-matvec/oracle/expected-cost adapters, fixed-spectrum hidden eigenbasis, both main lower bounds, remote merge and purification remain separate."
   },
   {
     key := "quadratic-probability-segment",

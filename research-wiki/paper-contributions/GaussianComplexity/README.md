@@ -1188,3 +1188,38 @@ merge/deployment, postmerge purification, an Exposition Seal or full-paper
 completion. The next bounded mathematical packet is literal evaluated Gaussian
 Eq24, reusing the actual source-law/normalization/moment declarations. Its
 statement and binder/definition audit must be sealed before proof search.
+
+## Huanjian continuation: actual evaluated Eq24 (2026-11-03)
+
+`EvaluatedGaussian.selected_gaussian_value` now evaluates the literal Appendix
+B.2.2 Eq24 on exactly n≥3 and κ≥4. With the source-selected
+s=√κ, r=(1−1/n)(s−1)/(s+1), and
+ℓ=(4ns+(s−1)²)/(8n(n−1)), both the actual Gaussian signed full-Haar
+expectation and its Euclidean-density representation equal
+v=((-1)^n/n)((s−1)/(s+1))^n(1−1/n)^(n/2)/(1−r²).
+Both genuine signed outer L1 conclusions are proved internally. Natural parity
+powers and real dimension-half powers remain distinct, including odd n.
+
+The exact global `selected_numerator_value`, previously proved in the A1 focused
+test, is promoted unchanged to `SelectedNumerator.lean` and is actually consumed
+by this endpoint. It is one canonical lemma node, not a second proof or new
+mathematical credit. The actual determinant-conditioned Gaussian bind-mixtures
+consume Eq24 in `Tests/GaussianComplexityEvaluatedGaussian.lean`: their ordered
+test gap is 2v≠0, with both actual test integrabilities retained. No evaluated
+scalar or moment has become an extra public premise.
+
+The source-first graph, distinct topology challenge, two neutral-path blind
+decodings, fresh anti-anchored source/whole-module review, and real focused builds
+are bound in `eq24-semantic-evidence/`. Independent normal-API verification names
+fd099e2c44e41ee3ae35f96f82c20e27db1f4035. The current round normally merges official
+main b191868b3b6a731968807fdd6ceefd18bb206739 under the sole stabilization lease;
+full root/reader/graph acceptance is recorded separately in
+`eq24-integration-notes.json`. The B6 support adapter is explicitly the continuous
+clamped off-support extension, equal to the literal kernel on actual U(O).
+
+The A1 raw n≥2/trailing n≥3 ambiguity remains disclosed; its full-statement
+fidelity verdict stays source-underspecified and n=2 is an explicit ASTIS
+extension. This new paper application uses only n≥3. Quantitative TV separation,
+actual precision/oracle/query-cap/expected-cost adapters, amplification,
+fixed-spectrum hidden eigenbasis, both main lower bounds, remote publication,
+postmerge purification and whole-Goal completion remain separate.

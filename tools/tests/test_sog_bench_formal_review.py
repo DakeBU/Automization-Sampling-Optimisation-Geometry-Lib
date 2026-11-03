@@ -55,11 +55,11 @@ class PairedReviewTests(unittest.TestCase):
 
     def test_actual_distinct_actor_evidence_admits_one_conclusion_only_pair(self):
         rows = formal.statuses(self.cores)
-        self.assertEqual(set(rows), {'sogb-015'})
+        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017'})
         self.assertEqual(rows['sogb-015']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-015']['formal_alignment'], 'conclusion-only')
         self.assertTrue(rows['sogb-015']['remaining_unformalized'])
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 15)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 17)
 
     def test_altered_packets_role_reuse_slots_and_open_repairs_fail_closed(self):
         for scenario in ('packet', 'source-role', 'decoder-role', 'slots', 'repair'):
@@ -85,7 +85,7 @@ class PairedReviewTests(unittest.TestCase):
 
     def test_current_revision_becomes_stale_without_invalidating_other_rounds(self):
         data = deepcopy(bench.load())
-        data['cores'][-1]['question'] += ' An additional unreviewed conclusion.'
+        next(c for c in data['cores'] if c['id'] == 'sogb-015')['question'] += ' An additional unreviewed conclusion.'
         changed = bench.materialize(data)
         rows = review.summary(changed)['items']
         self.assertEqual(rows['sogb-015']['editorial'], 'stale')
@@ -119,6 +119,16 @@ class PairedReviewTests(unittest.TestCase):
             combined = json.loads((directory/'packets/reviewer-input.json').read_text(encoding='utf-8'))
             self.assertEqual([c['id'] for c in combined['mathematical_cores']], [c['id'] for c in cores])
             self.assertEqual(formal.round_statuses(cores, directory), {})
+
+    def test_bibliography_rebinding_reuses_only_identical_blind_input_and_output(self):
+        old = formal.REVIEWS/'formal-4'
+        current = formal.REVIEWS/'formal-5'
+        self.assertEqual((old/'packets/anonymous-input.json').read_bytes(),
+                         (current/'packets/anonymous-input.json').read_bytes())
+        self.assertEqual((old/'decoder.json').read_bytes(), (current/'decoder.json').read_bytes())
+        self.assertNotEqual((old/'packets/coordinator-map.json').read_bytes(),
+                            (current/'packets/coordinator-map.json').read_bytes())
+        self.assertEqual(formal.round_statuses(self.cores, old), {})
 
 
 if __name__ == '__main__':

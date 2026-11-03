@@ -14,6 +14,31 @@ ROOT = Path(__file__).resolve().parents[2]
 HUB = 'benchmarks/samplingoptimisationgeometrybench/'
 
 
+def math_component_shot(page, destination: Path) -> None:
+    """Omit outside navigation chrome from the component image, not the UI tests."""
+    page.evaluate("""() => {
+      document.activeElement?.blur();
+      for (const e of document.querySelectorAll('*'))
+        if (!e.closest('#natural-language') && ['fixed','sticky'].includes(getComputedStyle(e).position))
+          e.setAttribute('data-sog-shot-chrome', '');
+    }""")
+    try:
+        page.locator('#natural-language').screenshot(path=str(destination),
+            style='[data-sog-shot-chrome] { visibility: hidden !important; }')
+    finally:
+        page.evaluate("() => document.querySelectorAll('[data-sog-shot-chrome]').forEach(e=>e.removeAttribute('data-sog-shot-chrome'))")
+
+
+def check_visible_equations(page) -> None:
+    for equation in page.locator('#natural-language mjx-container[display="true"]').all():
+        assert equation.evaluate("""e => {
+          e.scrollIntoView({block:'center', inline:'nearest', behavior:'instant'});
+          const r=e.getBoundingClientRect();
+          const hit=document.elementFromPoint((r.left+r.right)/2,(r.top+r.bottom)/2);
+          return r.width>0 && r.height>0 && (hit===e || e.contains(hit));
+        }"""), 'Rendered equation is obscured in the actual viewport'
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=ROOT / '_site')
@@ -39,17 +64,23 @@ def main() -> None:
                 assert response.status == 200
                 assert page.locator('[data-sog-bench]').count() == 1
             page.goto(base + HUB + 'index.html')
+            manifest = page.request.get(base + HUB + 'downloads/manifest.json').json()
+            editorial = page.request.get(base + HUB + 'downloads/editorial-review.json').json()
             with page.expect_download() as download:
                 page.get_by_role('link', name='Prompt-only JSONL', exact=True).click()
             path = download.value.path()
             records = [json.loads(line) for line in Path(path).read_text(encoding='utf-8').splitlines()]
-            assert len(records) == 19 and all('lean_reference' not in r and 'steps' not in r for r in records)
+            assert len(records) == manifest['qa_views'] and all('lean_reference' not in r and 'steps' not in r for r in records)
             with page.expect_download() as reviewed_download:
                 page.get_by_role('link', name='editorially reviewed prompts', exact=True).click()
             reviewed = [json.loads(line) for line in Path(reviewed_download.value.path()).read_text(encoding='utf-8').splitlines()]
-            assert len(reviewed) == 19 and {r['id'] for r in reviewed} == {f'sogb-{i:03d}' for i in range(1,16)}
+            accepted_ids = {identity for identity, row in editorial['items'].items()
+                            if row['editorial'] in ('accepted', 'accepted-after-repair')}
+            expected_reviewed = [r for r in records if r['id'] in accepted_ids]
+            key = lambda r: (r['id'], r['track'], r['binding_sha256'])
+            assert sorted(map(key, reviewed)) == sorted(map(key, expected_reviewed))
             page.screenshot(path=str(args.evidence / 'overview-desktop.png'), full_page=True)
-            for identity in ('sogb-001', 'sogb-002', 'sogb-003', 'sogb-015'):
+            for identity in sorted({r['id'] for r in records if r['track'] == 'lean'}):
                 page.goto(base + HUB + identity + '.html')
                 page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                 page.evaluate('() => MathJax.startup.promise')
@@ -58,6 +89,7 @@ def main() -> None:
                 page.wait_for_timeout(300)
                 assert page.locator('mjx-container').count() > 0
                 assert page.locator('mjx-merror, [data-mjx-error]').count() == 0
+                check_visible_equations(page)
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 panel = page.locator('#natural-language [data-lean-code-panel]')
                 assert panel.locator('code.language-lean').is_visible()
@@ -68,16 +100,21 @@ def main() -> None:
                 assert 'example' in copied and 'sorry' not in copied
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
                 page.screenshot(path=str(args.evidence / (identity + '-proof-desktop.png')), full_page=True)
+                page.locator('summary', has_text='How the Lean proof follows these steps').click()
+                math_component_shot(page, args.evidence / (identity + '-math-desktop.png'))
                 page.set_viewport_size({'width': 412, 'height': 915})
                 page.reload()
                 page.evaluate('() => MathJax.startup.promise')
                 page.wait_for_timeout(400)
                 page.locator('summary', has_text='Reference mathematical proof').click()
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
+                check_visible_equations(page)
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
                 page.evaluate('() => { document.activeElement?.blur(); window.scrollTo({top:0, behavior:"instant"}); }')
                 page.wait_for_function('window.scrollY === 0')
                 page.screenshot(path=str(args.evidence / (identity + '-proof-mobile.png')), full_page=True)
+                page.locator('summary', has_text='How the Lean proof follows these steps').click()
+                math_component_shot(page, args.evidence / (identity + '-math-mobile.png'))
                 page.set_viewport_size({'width': 1400, 'height': 1000})
             for tail in ('curriculum/index.html', 'levels/L5.html', 'domains/statistical-optimal-transport.html', 'sogb-g003.html', 'sogb-007.html', 'sogb-008.html', 'sogb-012.html'):
                 page.goto(base + HUB + tail)
@@ -108,9 +145,10 @@ def main() -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
-    report = {'mathematical_views': 19, 'graph_tasks': 3, 'math_rendered': True, 'lean_highlighting': True,
+    report = {'mathematical_views': len(records), 'graph_tasks': manifest['graph_tasks'], 'math_rendered': True, 'lean_highlighting': True,
               'folds_and_copy': True, 'prompt_only_download': True, 'reviewed_subset_download': True,
               'editorial_vs_formal_scope_visible': True, 'mobile_overflow': False,
+              'equations_unobscured_when_centered': True, 'component_images_omit_navigation_only': True,
               'runtime_errors': errors}
     (args.evidence / 'report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report))

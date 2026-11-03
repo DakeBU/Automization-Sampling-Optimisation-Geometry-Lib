@@ -134,11 +134,13 @@ def coverage(cores: list[dict], graphs: list[dict]) -> dict:
     return curriculum.coverage(cores, graphs, editorial_review(cores)['items'])
 
 
-def environment_digest() -> str:
-    """Conservatively invalidate a trusted receipt after any local Lean edit."""
-    paths = [ROOT / 'lean-toolchain', ROOT / 'lake-manifest.json', ROOT / 'lakefile.lean',
-             *sorted((ROOT / 'AutoSamplingTheory').rglob('*.lean'))]
-    return sha(encoded([(p.relative_to(ROOT).as_posix(), text_hash(p)) for p in paths]))
+def environment_digest(cores: list[dict] | None = None) -> str:
+    """Bind the actual task/source import closures, not unrelated live work."""
+    import sog_bench_review
+    selected = [c for c in (materialize() if cores is None else cores) if has_lean(c)]
+    return sha(encoded({'scope': 'selected-source-import-closure',
+                        'contexts': {c['id']: sog_bench_review.context_binding(c) for c in selected},
+                        'lakefile_sha256_lf': text_hash(ROOT / 'lakefile.lean')}))
 
 
 def receipt_current(cores: list[dict]) -> bool:
@@ -148,7 +150,8 @@ def receipt_current(cores: list[dict]) -> bool:
     try:
         receipt = json.loads(RECEIPT.read_text(encoding='utf-8'))
         return (receipt['schema_version'] == 1 and receipt['passed'] is True
-                and receipt['environment_sha256'] == environment_digest()
+                and receipt['environment_scope'] == 'selected-source-import-closure'
+                and receipt['environment_sha256'] == environment_digest(cores)
                 and receipt['bindings'] == {c['id']: c['binding_sha256'] for c in cores}
                 and receipt['reference_sha256'] == {c['id']: sha(c['lean_reference'].encode()) for c in cores}
                 and re.search(r'version 4\.33\.0(?:[, )])', receipt['compiler_version']) is not None
@@ -236,7 +239,7 @@ def check_lean(cores: list[dict]) -> int:
         raise ValueError('No aligned Lean tasks to compile')
     RECEIPT.parent.mkdir(parents=True, exist_ok=True)
     RECEIPT.unlink(missing_ok=True)  # Invalidate only this generated receipt before any attempt.
-    before = environment_digest()
+    before = environment_digest(cores)
     commands = []
     compiler_version = ''
     def run(command):
@@ -262,9 +265,10 @@ def check_lean(cores: list[dict]) -> int:
             path.write_text(core['lean_reference'], encoding='utf-8', newline='\n')
             if run(['lake', 'env', 'lean', path.relative_to(ROOT).as_posix()]):
                 return 1
-    if environment_digest() != before:
-        raise ValueError('Lean sources changed during checking; no receipt written')
+    if environment_digest(cores) != before:
+        raise ValueError('Selected source/import contexts changed during checking; no receipt written')
     receipt = {'schema_version': 1, 'passed': True, 'environment_sha256': before,
+               'environment_scope': 'selected-source-import-closure',
                'compiler_version': compiler_version,
                'bindings': {c['id']: c['binding_sha256'] for c in cores},
                'reference_sha256': {c['id']: sha(c['lean_reference'].encode()) for c in cores},

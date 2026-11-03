@@ -25,8 +25,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 15)
-        self.assertEqual(len(prompts), 19)
+        self.assertEqual(len(self.cores), 17)
+        self.assertEqual(len(prompts), 23)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -76,7 +76,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 19)
+            self.assertEqual(manifest['qa_views'], 23)
             self.assertEqual(manifest['graph_tasks'], 3)
             self.assertEqual(manifest['independent_semantic_review'], 'pending')
             guide = (output/'README.md').read_text(encoding='utf-8')
@@ -111,6 +111,7 @@ class BenchTests(unittest.TestCase):
     def test_receipt_requires_exact_source_and_qa_bindings(self):
         aligned = [c for c in self.cores if bench.has_lean(c)]
         receipt = {'schema_version': 1, 'passed': True, 'environment_sha256': 'environment',
+                   'environment_scope': 'selected-source-import-closure',
                    'compiler_version': 'Lean (version 4.33.0, test fixture)',
                    'bindings': {c['id']: c['binding_sha256'] for c in aligned},
                    'reference_sha256': {c['id']: bench.sha(c['lean_reference'].encode()) for c in aligned},
@@ -156,22 +157,50 @@ class BenchTests(unittest.TestCase):
             self.assertIn('focus=module%3A', fallback)
             self.assertIn('declaration not yet indexed', fallback)
 
+    def test_display_identity_linebreaks_preserve_source_and_avoid_nested_tex(self):
+        source = r'Proof \[a=b,\qquad c=d\] done.'
+        rendered = reader.prose(source)
+        self.assertIn(r'\begin{gathered}a=b,\\ c=d\end{gathered}', rendered)
+        self.assertEqual(source, r'Proof \[a=b,\qquad c=d\] done.')
+        for nested in (r'\[\text{a,\qquad b}=c\]', r'\[\begin{aligned}a&=b,\qquad c&=d\end{aligned}\]'):
+            self.assertNotIn(r'\begin{gathered}', reader.prose(nested))
+
     def test_seven_domain_five_level_matrix_does_not_invent_coverage(self):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 15)
+        self.assertEqual(coverage['unique_mathematical_cores'], 17)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 15)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 17)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], 'pending')
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
         self.assertNotIn('OpenAI', json.dumps(coverage))
         for domain in bench.curriculum.curriculum()['domains']:
             self.assertTrue(any(domain in c['library_domains'] and c['track_levels'].get('natural-language') == 'L1' for c in self.cores))
+            self.assertTrue(any(domain in c['library_domains'] and bench.has_lean(c) for c in self.cores))
+
+    def test_compiler_scope_tracks_real_imports_and_pins_not_unrelated_modules(self):
+        selected = [c for c in self.cores if c['id'] == 'sogb-016']
+        actual_hash = bench.text_hash
+        reads = set()
+        def tracked_hash(path):
+            reads.add(path.relative_to(ROOT).as_posix())
+            return actual_hash(path)
+        with patch.object(bench, 'text_hash', side_effect=tracked_hash):
+            before = bench.environment_digest(selected)
+        self.assertIn('AutoSamplingTheory/TechnicalLemmas/Geometry/SphereRayleigh.lean', reads)
+        self.assertIn('AutoSamplingTheory/TechnicalLemmas/Geometry/SphereGradient.lean', reads)
+        self.assertNotIn('AutoSamplingTheory/TechnicalLemmas/Analysis/SubgradientMethod.lean', reads)
+        for changed in ('AutoSamplingTheory/TechnicalLemmas/Geometry/SphereGradient.lean',
+                        'lean-toolchain', 'lake-manifest.json', 'lakefile.lean'):
+            def changed_hash(path):
+                return 'changed' if path.relative_to(ROOT).as_posix() == changed else actual_hash(path)
+            with patch.object(bench, 'text_hash', side_effect=changed_hash):
+                self.assertNotEqual(before, bench.environment_digest(selected))
 
     def test_structural_graph_answers_sources_and_no_gold_in_prompts(self):
         graphs = bench.curriculum.graph_items()

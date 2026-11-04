@@ -104,6 +104,9 @@ a correctness score. This matters because pinned Harbor treats collect-hook
 failure as best-effort and may continue the trial. A failed hook must not fall
 back to the old raw-answer path. These receipts are local collection records,
 not authenticated model/provider attestations or cryptographic signatures.
+Unknown filesystem/I/O faults also fail collection instead of being assigned a
+zero correctness score. Such trials make a run incomplete; do not discard them
+or average only the graded trials as if the full selected suite had completed.
 
 The dedicated CI additionally exercises controlled oversize, symlink, FIFO,
 missing-answer and failed-hook fixtures. These are not new benchmark questions,

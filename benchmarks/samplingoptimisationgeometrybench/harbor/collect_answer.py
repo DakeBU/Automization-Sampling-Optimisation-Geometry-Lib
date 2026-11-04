@@ -1,5 +1,6 @@
 """Trusted root hook: bound declared answer bytes BEFORE Harbor transfers them."""
 import hashlib
+import errno
 import json
 import os
 from pathlib import Path
@@ -10,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from bench_bounded_io import InputRejected, MAX_BYTES, MAX_RECEIPT_BYTES, read_bounded
 
 POLICY = 'bounded-answer-before-transfer-v1'
-REJECTIONS = {'symlink', 'not-regular', 'too-large', 'changed-during-read', 'missing', 'input-io-error'}
+REJECTIONS = {'symlink', 'not-regular', 'too-large', 'changed-during-read', 'missing'}
 
 
 def capture(path):
@@ -21,8 +22,12 @@ def capture(path):
         raw, reason = b'', str(exc)
     except FileNotFoundError:
         raw, reason = b'', 'missing'
-    except OSError:
-        raw, reason = b'', 'input-io-error'
+    except OSError as exc:
+        if exc.errno != errno.ELOOP:
+            # Unknown filesystem/permission failures are not evidence that a
+            # model's mathematical answer is wrong. Emit no accepted receipt.
+            raise
+        raw, reason = b'', 'symlink'
     receipt = {'schema_version': 1, 'policy': POLICY,
                'status': 'captured' if reason is None else 'rejected',
                'reason': reason, 'raw_bytes': len(raw),

@@ -1,5 +1,6 @@
 """Native task packaging tests; fixture rewards are not model measurements."""
 import copy
+import errno
 import hashlib
 import importlib.util
 import io
@@ -262,6 +263,15 @@ class HarborGraphTests(unittest.TestCase):
             path.write_text(json.dumps(row))
             with self.assertRaises(ValueError):
                 adapter.check_failed_collection(Path(temporary), ['sogb-g001'])
+
+    def test_unknown_input_io_failures_cannot_become_zero_scored_model_answers(self):
+        with patch.object(collector, 'read_bounded', side_effect=OSError(errno.EIO, 'controlled IO fault')):
+            with self.assertRaises(OSError):
+                collector.capture(Path('unused'))
+        with patch.object(collector, 'read_bounded', side_effect=OSError(errno.ELOOP, 'controlled no-follow race')):
+            raw, receipt = collector.capture(Path('unused'))
+            self.assertEqual(raw, b'')
+            self.assertEqual(json.loads(receipt)['reason'], 'symlink')
 
     def test_static_offline_probe_rejects_sidecars_and_unlimited_resources(self):
         with tempfile.TemporaryDirectory() as temporary:

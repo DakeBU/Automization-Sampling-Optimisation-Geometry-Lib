@@ -442,5 +442,15 @@ class BenchTests(unittest.TestCase):
                     self.assertGreaterEqual(xx - x, 250)
 
 
+class SiteWorkflowPinTests(unittest.TestCase):
+    def test_pinned_playwright_has_a_supported_fixed_browser_runner(self):
+        workflow = (ROOT / '.github/workflows/blueprint-site.yml').read_text(encoding='utf-8')
+        job = workflow.split('\n  website:\n', 1)[1].split('\n  deploy:', 1)[0]
+        self.assertIn('runs-on: ubuntu-24.04', job)
+        self.assertIn('playwright==1.57.0', job)
+        self.assertIn('playwright install --with-deps chromium', job)
+        self.assertNotIn('runs-on: ubuntu-latest', job)
+
+
 if __name__ == '__main__':
     unittest.main()

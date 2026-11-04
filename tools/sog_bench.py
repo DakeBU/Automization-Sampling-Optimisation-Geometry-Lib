@@ -207,6 +207,118 @@ def receipt_current(cores: list[dict]) -> bool:
         return False
 
 
+def task_assets(cores: list[dict], graphs: list[dict]) -> dict[str, bytes]:
+    """Portable agent inputs, separate training pairs and expert-only anchors.
+
+    This packages existing admitted tasks; it neither invents an execution
+    sandbox nor turns public-dev families into a held-out evaluation dataset.
+    """
+    from urllib.parse import quote
+    import io
+    assets, index, training, positions = {}, [], [], []
+    by_id = {c['id']: c for c in cores}
+    rows = prompts(cores) + curriculum.graph_prompts(graphs)
+    for row in rows:
+        track = row.get('track', 'graph-json')
+        stem = 'tasks/' + row['id'] + '/' + track
+        prompt_path = stem + '/prompt.json'
+        response = {'id': row['id'], 'binding_sha256': row['binding_sha256'], 'attempt': 1}
+        if track == 'graph-json':
+            response['answer'] = {'nodes': [], 'entails_mathematical_necessity': False}
+            verifier = 'exact-snapshot-json; Python3.11+; no submission code execution'
+        else:
+            response.update(track=track, response='')
+            verifier = ('actual-human-rubric' if track == 'natural-language'
+                        else 'isolated-fixed-target-verifier-required; not implemented')
+        environment = {'python': '3.11+', 'lean_toolchain': (ROOT / 'lean-toolchain').read_text().strip(),
+                       'mathlib_manifest_sha256_lf': text_hash(ROOT / 'lake-manifest.json'),
+                       'runner_source_sha256_lf': text_hash(ROOT / 'tools/sog_bench.py'),
+                       'evaluator_source_sha256_lf': text_hash(ROOT / ('tools/sog_bench_curriculum.py' if track == 'graph-json' else 'tools/sog_bench_prose.py')),
+                       'arbitrary_submission_execution': False,
+                       'retrieval_policy': 'declare before collection; not enforced by this package'}
+        descriptor = {'schema_version': 1, 'id': row['id'], 'track': track,
+                      'family': row['family'], 'split': row['split'], 'binding_sha256': row['binding_sha256'],
+                      'prompt_file': 'prompt.json', 'response_template': 'response-template.json',
+                      'environment': environment, 'verifier': verifier,
+                      'hidden_test': False, 'measured_model_result': False}
+        assets[prompt_path] = encoded(row)
+        assets[stem + '/task.json'] = encoded(descriptor)
+        assets[stem + '/response-template.json'] = encoded(response)
+        assets[stem + '/instruction.md'] = (
+            '# ' + row['title'] + '\n\nRead prompt.json. Preserve the task identity, binding, assumptions '
+            'and fixed target. Write your first unedited answer using response-template.json.\n\n'
+            'No gold answer is included in this task package. For Lean, do not execute untrusted '
+            'submissions on the host: an isolated fixed-target verifier is not supplied.\n'
+        ).encode('utf-8')
+        index.append({'id': row['id'], 'track': track, 'family': row['family'],
+                      'level': row['level'], 'library_domains': row['library_domains'],
+                      'binding_sha256': row['binding_sha256'], 'task_file': stem + '/task.json',
+                      'prompt_file': prompt_path, 'verifier': verifier})
+        if track != 'graph-json':
+            core = by_id[row['id']]
+            answer = '\n\n'.join(core['steps']) if track == 'natural-language' else core['lean_reference']
+            training.append({'id': row['id'], 'track': track, 'family': row['family'],
+                             'split': 'public-dev', 'binding_sha256': row['binding_sha256'],
+                             'usage': 'public curriculum reuse; never an unseen test',
+                             'messages': [{'role': 'user', 'content': encoded(row).decode('utf-8')},
+                                          {'role': 'assistant', 'content': answer}]})
+    for core in cores:
+        node = 'decl:' + core['declaration']
+        related = [{'declaration': d['declaration'], 'role': 'additional-formal-support-not-aligned-QA'}
+                   for d in core.get('supporting_declarations', [])]
+        related += [{'declaration': d['declaration'], 'role': 'owned-textbook-core-answer', 'supports': d['supports']}
+                    for d in core.get('textbook_exercise', {}).get('answer_declarations', [])]
+        positions.append({'id': core['id'], 'node_id': node, 'source_file': core['source_file'],
+                          'declaration': core['declaration'], 'binding_sha256': core['binding_sha256'],
+                          'graph_url': '../../../underlying-lean-graph/index.html?focus=' + quote(node, safe=''),
+                          'aligned_fixed_lean_task': has_lean(core), 'audience': 'expert-review-not-model-input',
+                          'related_owned_results': related,
+                          'boundary': core['boundary'],
+                          'edge_semantics': 'position only; no inferred proof-dependency or necessity'})
+    assets['task-index.json'] = encoded({'schema_version': 1, 'name': 'SamplingOptimisationGeometryBench',
+        'catalog_version': load()['version'], 'split': 'public-dev', 'hidden_test': False,
+        'tasks': index, 'note': 'Only currently editorially admitted tasks. Family identity is not a train/test split.'})
+    # The model-facing ZIP contains no gold, expert source anchors or review reports.
+    payload = io.BytesIO()
+    model_files = {**assets, **{name: (ROOT / name).read_bytes() for name in project_licensing.LICENSE_FILES}}
+    assets['task-files.sha256.json'] = encoded({'schema_version': 1,
+        'scope': 'prompt-only agent package; no gold answers or expert source anchors',
+        'files': {name: sha(value) for name, value in sorted(model_files.items())}})
+    model_files['task-files.sha256.json'] = assets['task-files.sha256.json']
+    with zipfile.ZipFile(payload, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+        for name, content in sorted(model_files.items()):
+            member = zipfile.ZipInfo(name, date_time=(2020, 1, 1, 0, 0, 0))
+            member.compress_type = zipfile.ZIP_DEFLATED
+            member.external_attr = 0o100644 << 16
+            archive.writestr(member, content)
+    assets['agent-tasks.zip'] = payload.getvalue()
+    # Full operator package includes oracle/verifier answers. Add it only AFTER
+    # sealing the prompt-only archive, never to model-facing files or manifests.
+    import sog_bench_harbor
+    assets['harbor-graph-tasks.zip'] = sog_bench_harbor.archive(graphs)
+    assets['training-pairs.jsonl'] = ''.join(json.dumps(r, ensure_ascii=False, sort_keys=True)+'\n' for r in training).encode('utf-8')
+    assets['expert-graph-positions.json'] = encoded(positions)
+    assets['examples/graph-run.json'] = encoded({
+        'run_id': 'REPLACE_WITH_YOUR_RUN_ID', 'model': 'REPLACE_WITH_ACTUAL_MODEL',
+        'model_version': 'REPLACE_WITH_ACTUAL_VERSION', 'created_at': 'REPLACE_WITH_ISO8601_TIME_AND_TIMEZONE',
+        'track': 'graph-json', 'prompt_profile': 'given-snapshot', 'attempt_policy': 'first-attempt',
+        'tools': [], 'seed': None, 'task_ids': [g['id'] for g in graphs]})
+    return assets
+
+
+def selected_graph_tasks(graphs: list[dict], metadata: dict) -> list[dict]:
+    """Predeclared subsets retain a fixed denominator; legacy runs use all tasks."""
+    identities = metadata.get('task_ids')
+    if identities is None:
+        return graphs
+    known = {g['id']: g for g in graphs}
+    if (not isinstance(identities, list) or not identities
+            or not all(isinstance(i, str) and i in known for i in identities)
+            or len(set(identities)) != len(identities)):
+        raise ValueError('task_ids must be a nonempty, unique list of current graph IDs declared before collection')
+    return [known[i] for i in identities]
+
+
 def export(output: Path, cores: list[dict] | None = None) -> None:
     cores = cores or materialize()
     graphs = curriculum.graph_items()
@@ -215,13 +327,14 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     graph_review = sog_bench_graph_review.summary(graphs)
     reviewed_graphs=[g for g in graphs if graph_review['items'][g['id']]['editorial'] in {'accepted','accepted-after-repair'}]
     reviewed = [c for c in cores if review['items'][c['id']]['editorial'] in {'accepted', 'accepted-after-repair'}]
+    task_files = task_assets(reviewed, reviewed_graphs)
     expected = {'questions.jsonl', 'reference.jsonl', 'manifest.json', 'README.md',
                 'editorial-review.json', 'graph-editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 'reviewed-graph-questions.jsonl','reviewed-graph-reference.jsonl',
-                'EVALUATION.md', 'TEXTBOOK_EXERCISES.md', 'textbook-exercise-map.json', 'examples/prose-run.json',
+                'EVALUATION.md', 'ECOSYSTEM.md', 'HARBOR.md', 'TEXTBOOK_EXERCISES.md', 'textbook-exercise-map.json', 'examples/prose-run.json',
                 'compiled-transport-graph.json', 'compiled-flow-graph.json',
-                *project_licensing.LICENSE_FILES,
+                *project_licensing.LICENSE_FILES, *task_files,
                 *('lean/' + c['id'] + '-support.lean' for c in cores if c.get('support_source_view')),
                 *('lean/' + c['id'] + suffix for c in cores if has_lean(c) for suffix in ('-task.lean.txt', '-reference.lean'))}
     if output.exists() and any(output.iterdir()):
@@ -235,6 +348,9 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write = lambda path, value: (output / path).write_bytes(value)
     jsonl = lambda rows: ''.join(json.dumps(r, ensure_ascii=False, sort_keys=True) + '\n' for r in rows).encode()
     write('questions.jsonl', jsonl(prompts(cores)))
+    for name, content in task_files.items():
+        (output / name).parent.mkdir(parents=True, exist_ok=True)
+        write(name, content)
     write('reference.jsonl', jsonl(cores))
     write('editorial-review.json', encoded(review))
     write('graph-editorial-review.json', encoded(graph_review))
@@ -252,6 +368,8 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('coverage.json', encoded(coverage(cores, graphs)))
     write('GOAL.md', (DATA.parent / 'GOAL.md').read_bytes())
     write('EVALUATION.md', (DATA.parent / 'EVALUATION.md').read_bytes())
+    write('ECOSYSTEM.md', (DATA.parent / 'ECOSYSTEM.md').read_bytes())
+    write('HARBOR.md', (DATA.parent / 'HARBOR.md').read_bytes())
     # Source intake is documentation, not an admitted QA or copied source text.
     write('TEXTBOOK_EXERCISES.md', (DATA.parent / 'TEXTBOOK_EXERCISES.md').read_bytes())
     import sog_bench_exercises
@@ -393,6 +511,7 @@ def main() -> int:
             parser.error('grade-graph requires --submissions and --run-metadata')
         metadata = json.loads(args.run_metadata.read_text(encoding='utf-8'))
         curriculum.validate_run_metadata(metadata)
+        graphs = selected_graph_tasks(graphs, metadata)
         rows = [json.loads(line) for line in args.submissions.read_text(encoding='utf-8').splitlines() if line.strip()]
         report = {**curriculum.grade_graph(graphs, rows), 'run_metadata': metadata,
                   'catalog_version': load()['version'], 'raw_submissions': rows,
@@ -400,6 +519,8 @@ def main() -> int:
                   'question_bindings': {g['id']: g['binding_sha256'] for g in graphs},
                   'grader_sha256_lf': text_hash(ROOT / 'tools/sog_bench_curriculum.py'),
                   'execution_policy_verified': False}
+        report['selection_scope'] = ('predeclared-task-subset; not a full-suite score'
+                                     if metadata.get('task_ids') is not None else 'all-current-graph-tasks')
         args.output.mkdir(parents=True, exist_ok=True)
         destination = args.output / 'graph-score.json'
         if destination.exists():

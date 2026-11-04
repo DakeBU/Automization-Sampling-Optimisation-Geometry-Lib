@@ -28,7 +28,7 @@ _MATH_GLYPHS = {
 }
 _SUPERSCRIPTS = str.maketrans('⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺ᵈⁿ', '0123456789-+dn')
 _SUBSCRIPTS = str.maketrans('₀₁₂₃₄₅₆₇₈₉₋₊', '0123456789-+')
-_MATH_SENTINEL = re.compile(r'[α-ωΑ-Ωℝℕℤℚℂ∇∂∫∞≼≽≤≥≠∈→↦×−‖⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺ᵈⁿ₀₁₂₃₄₅₆₇₈₉₋₊]|\b[A-Za-z]_[A-Za-z0-9]+\b|[A-Za-z]\^[A-Za-z0-9{]|<=|>=|!=|->')
+_MATH_SENTINEL = re.compile(r'[α-ωΑ-Ωℝℕℤℚℂ∇∂∫∞≼≽≤≥≠∈→↦×−‖⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺ᵈⁿ₀₁₂₃₄₅₆₇₈₉₋₊]|[A-Za-z]_[A-Za-z0-9]+\b|[A-Za-z]\^[A-Za-z0-9{]|<=|>=|!=|->')
 
 
 def inline_prose(text: str) -> str:
@@ -51,7 +51,9 @@ def inline_prose(text: str) -> str:
             body = body[:descriptive.start()]
         # Lean/API names are not mathematical subscript expressions. In
         # particular le_div_iff₀ must never become a doubly-subscripted formula.
-        if re.fullmatch(r'[A-Za-z]{2,}[A-Za-z0-9_\.α-ωΑ-Ω₀-₉]*', body) and ('_' in body or '.' in body):
+        identifier = body.split('(', 1)[0]
+        if (re.fullmatch(r'[A-Za-z][A-Za-z0-9_\.α-ωΑ-Ω₀-₉]*', identifier)
+                and ('.' in identifier or '_' in identifier and re.match(r'(?:[a-z]{2,}|[A-Z][a-z]{2,})', identifier))):
             return '<code>' + escape(body) + '</code>' + escape(punctuation)
         if (not _MATH_SENTINEL.search(body) or '\\' in body or '`' in body
                 or any(body.count(a) != body.count(b) for a, b in [('(', ')'), ('[', ']'), ('{', '}')])

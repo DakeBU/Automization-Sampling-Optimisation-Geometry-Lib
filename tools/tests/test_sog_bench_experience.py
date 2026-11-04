@@ -48,6 +48,12 @@ class ReadableMathTests(unittest.TestCase):
         self.assertEqual(reader.inline_prose('hX.const_inner'), '<code>hX.const_inner</code>')
         self.assertIn('sog-inline-math', reader.inline_prose('C_PI<=C_LSI'))
 
+    def test_differential_notation_is_math_but_named_api_calls_stay_code(self):
+        self.assertIn(r'dT_{h}(z(t))/dt=DT_{h}(z(t))v',
+                      reader.inline_prose('dT_h(z(t))/dt=DT_h(z(t))v.'))
+        self.assertEqual(reader.inline_prose('le_div_iff₀(h)'), '<code>le_div_iff₀(h)</code>')
+        self.assertEqual(reader.inline_prose('hX.const_inner(u)'), '<code>hX.const_inner(u)</code>')
+
     def test_ambiguous_unbalanced_notation_is_left_literal(self):
         self.assertNotIn('sog-inline-math', reader.inline_prose('∇f(x'))
 

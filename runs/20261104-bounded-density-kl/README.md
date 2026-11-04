@@ -80,11 +80,46 @@ copies and the two older untracked kernel Lean files were left untouched.
 Keep this stash and the older stash; do not apply either over already-upstream
 files or drop them as part of this task.
 
+## Current-main integration (2026-11-04)
+
+The existing branch was merged with main `ed709a7f` at `918b7ac0`; only the
+continuation document conflicted, and both the mathematical and reader/runtime
+checkpoints were retained. The theorem module, source statement, authored proof
+and accepted whole-module publication binding remain unchanged.
+
+The old PR359 integration lease was stale, not an active writer: GitHub confirms
+its Nov3 merge at `3f395aa1`. The independent verifier checked that this commit is
+an ancestor and that the original theorem/module/tests/lessons/audits are still
+unchanged, repeated focused compilation and current reviewed admission, then
+legitimately returned its `STABILIZING` record to `VERIFIED` under the verifier's
+own identity. See `stabilization-reconciliation.json`. The coordinator adopted
+integration reporting under `agent-task:/root`, recorded that already-landed
+artifact as `MERGED`, and claimed the now-free single lane for this KL packet.
+No owner was impersonated, policy weakened, mathematical credit added or old
+purification debt erased. The append-only history is preserved.
+
+Current focused KL compilation, exact reviewed publication admission and all133
+Bench tests pass (two Unix file-semantics cases are skipped on Windows and run
+in Linux CI). Two aggregate attempts had loader failures reading existing
+Mathlib/Std artifacts; the named files existed, direct elaboration passed and
+serial individual InformationTheory/Registry builds passed. These environment
+failures are not mathematical counterexamples or passing root gates; preserve
+them separately from the final aggregate result and clean CI.
+
+The owner's pre-existing untracked kernel drafts still make a whole-worktree
+publication check fail. They remain untouched and excluded from this PR; only
+clean committed-snapshot CI can establish the PR-wide gate. No new mathematical
+question or numbered exercise has been admitted by this integration.
+
 ## Continue
 
 Finish this packet's clean integration and actual reader/graph verification
-before opening another proof. Then prove the normalized positive-density and
-finite canonical-KL adapter; keep Fisher convergence, LSI admissibility and
+before opening another proof. The normalized positive-density and finite
+canonical-KL adapter is already independently verified in stacked draft PR372,
+remote proof/evidence head `b3859b9611c8ee7fe1c43aec830d338cc116aade`; integrate
+that exact reviewed work after this parent rather than reproving it. Do not
+blindly push its local branch, which also contains an unrelated reader commit
+already ported to main. Keep Fisher convergence, LSI admissibility and
 uncentering/core closure independent. Reuse the new integral result rather
 than reproving it or adding a wrapper-only Bench target. Whole Exercise 1.7
 and the next Statistical Optimal Transport exercises remain open.

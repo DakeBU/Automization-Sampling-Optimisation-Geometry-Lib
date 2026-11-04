@@ -45,10 +45,14 @@ The full export contains answers: do not provide its root directory to an agent
 as closed-book context. Harbor receives the task and stages only its appropriate
 components; reviewers can inspect the full package.
 
-The agent runs as the unprivileged `bench` user. Both agent and verifier have a
-loopback-only network, one CPU and 256 MiB memory. A runtime probe checks those
-actual cgroup/network observations; incompatible hosts fail the fixture rather
-than earn correctness credit. It is not a proof of container escape resistance.
+The agent runs as the unprivileged `bench` user. Both agent and verifier declare
+Harbor's no-network policy, one CPU and 256 MiB memory. Harbor 0.25's Docker backend
+enforces no-network through a deny-all firewall sidecar, not necessarily removal
+of every non-loopback interface. The runtime probe records interfaces, checks
+actual cgroup limits and samples two rejected external TCP connections. This is
+not exhaustive network verification or a proof of container escape resistance.
+Incompatible resource limits and unexpected external connections fail the fixture
+rather than earn correctness credit.
 Storage/PID limits and arbitrary Lean sandboxing are not certified here.
 
 The verifier starts in a **fresh separate environment**, receiving only the
@@ -90,3 +94,9 @@ The adapter follows Harbor's [native task layout](https://docs.harborframework.c
 [artifacts](https://docs.harborframework.com/tasks/artifacts) and
 [verifier reward interface](https://docs.harborframework.com/tasks/verifier).
 No Terminal-Bench tasks or restricted ATLAS materials are imported.
+
+The first native run, [41797663465](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/runs/41797663465),
+correctly failed acceptance: the original probe wrongly required a loopback-only
+interface list. Its raw logs/artifact remain distinct from corrected runs. The
+fix uses the pinned backend's actual deny-all semantics, not an interface-name
+surrogate, and retains the UID/cgroup checks.

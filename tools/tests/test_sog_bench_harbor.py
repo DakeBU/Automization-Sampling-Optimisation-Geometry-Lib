@@ -2,6 +2,7 @@
 import copy
 import hashlib
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -9,6 +10,7 @@ import sys
 import tempfile
 import tomllib
 import unittest
+import zipfile
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -18,6 +20,9 @@ import sog_bench_harbor as adapter
 spec = importlib.util.spec_from_file_location('sog_harbor_verifier', adapter.TEMPLATES / 'verify.py')
 verifier = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(verifier)
+probe_spec = importlib.util.spec_from_file_location('sog_harbor_probe', adapter.TEMPLATES / 'isolation_check.py')
+probe = importlib.util.module_from_spec(probe_spec)
+probe_spec.loader.exec_module(probe)
 
 
 class HarborGraphTests(unittest.TestCase):
@@ -112,6 +117,22 @@ class HarborGraphTests(unittest.TestCase):
                     adapter.export(output, [self.items[0]['id']])
             self.assertFalse(output.exists())
 
+    def test_operator_zip_is_deterministic_and_uses_the_same_cli_files(self):
+        items = self.items[:2]
+        payload = adapter.archive(items)
+        self.assertEqual(payload, adapter.archive(items))
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / 'native'
+            manifest = adapter.export(output, [i['id'] for i in items])
+            with zipfile.ZipFile(io.BytesIO(payload)) as bundle:
+                self.assertEqual(set(bundle.namelist()), {*manifest['files'], 'adapter-manifest.json'})
+                for name in bundle.namelist():
+                    self.assertEqual(bundle.read(name), (output / name).read_bytes())
+        stale = copy.deepcopy(items)
+        stale[0]['question'] += ' changed'
+        with self.assertRaises(ValueError):
+            adapter.archive(stale)
+
     def test_native_receipt_check_preserves_missing_and_failed_trials(self):
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
@@ -128,6 +149,23 @@ class HarborGraphTests(unittest.TestCase):
             path.write_text(json.dumps(row))
             with self.assertRaises(ValueError):
                 adapter.check_job(base, ['sogb-g001'], 0)
+
+    def test_egress_probe_does_not_confuse_a_firewalled_interface_with_external_access(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'class/net/eth0').mkdir(parents=True)
+            (root / 'class/net/lo').mkdir()
+            (root / 'fs/cgroup').mkdir(parents=True)
+            (root / 'fs/cgroup/memory.max').write_text('256000000')
+            (root / 'fs/cgroup/cpu.max').write_text('100000 100000')
+            with patch.object(probe, 'Path', side_effect=lambda p: root / p.removeprefix('/sys/')):
+                with patch.object(probe.socket, 'create_connection', side_effect=TimeoutError):
+                    report = probe.probe()
+                    self.assertEqual(report['network_interfaces'], ['eth0', 'lo'])
+                    self.assertEqual(len(report['external_tcp_denials']), 2)
+                with patch.object(probe.socket, 'create_connection'):
+                    with self.assertRaises(RuntimeError):
+                        probe.probe()
 
 
 if __name__ == '__main__':

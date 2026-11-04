@@ -26,6 +26,8 @@ tasks/<core-id>/<track>/
 It pins Lean 4.33.0, the Mathlib manifest and evaluator source hashes, names the
 actual scoring mode, and explicitly denies an arbitrary-submission executor.
 This is a portable data/agent convention, **not a native Harbor runnable task**.
+The separate [native graph adapter](HARBOR.md) exports Harbor task directories;
+its operator ZIP contains oracle/verifier answers and must not enter model input.
 Python 3.11+ is the supported local recording/JSON-grading environment, not a
 claim that a container image or provider execution was reproduced.
 
@@ -54,6 +56,7 @@ source mapping does not grant permission to copy its prose into ML data.
 | --- | --- | --- |
 | Natural language | Freeze answers with `sog_bench_prose.py prepare`; actual human rubric assessment; archive with `score` | Automatic semantic correctness, authenticated model/human execution |
 | Graph JSON | `sog_bench.py grade-graph` scores the exact frozen structural question | Mathematical necessity, full proof closure, unseen generalization |
+| Native graph trials | `sog_bench_harbor.py export`; Harbor oracle/nop fixtures in separate Docker verification; inspect the dedicated CI result | A model measurement, all paid-agent compatibility, arbitrary Lean execution, exhaustive security verification |
 | Lean | `sog_bench.py check-lean` compiles trusted references using the pinned project | Safe execution or grading of arbitrary agent Lean submissions |
 
 Use [EVALUATION.md](EVALUATION.md) for the existing commands, response schemas,
@@ -90,10 +93,11 @@ Do not accept “one formula rendered” as whole-page readability evidence.
 motivate separating instructions, environments, solutions and verification.
 We reuse that organizational lesson, not their benchmark data or a claim of
 ecosystem compatibility. Harbor's [verifier contract](https://docs.harborframework.com/tasks/verifier)
-is a concrete reference for a future executable adapter.
+is used by the optional native graph adapter. Its runtime acceptance is separate
+from task export, editorial admission and trusted Lean compilation.
 
 The following remain required Goal work: an actually tested isolated,
 network-disabled and resource-limited Lean submission verifier with fixed-target
-and axiom checks; a tested native agent-harness adapter; authenticated run
+and axiom checks; validated actual-model harness runs; authenticated run
 provenance where available; genuinely new private families; empirical difficulty
 calibration; broader domain/textbook exercise coverage. No UI badge closes them.

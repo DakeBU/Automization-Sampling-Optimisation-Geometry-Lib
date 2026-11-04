@@ -102,7 +102,10 @@ environment/verifier contracts and response templates; use the separate
 `training-pairs.jsonl` only when intentionally supplying answers. The expert
 directory and `expert-graph-positions.json` locate the real owned results and
 show missing formal coverage. See [the ecosystem contract](ECOSYSTEM.md).
-This is not yet a native Harbor adapter or safe arbitrary Lean executor.
+The portable JSON package is not a native harness. The optional
+[native Harbor graph adapter](HARBOR.md) has a dedicated Linux runtime CI gate,
+separate verifier and operator download. It does not execute submitted Lean or
+certify paid-agent performance; inspect its actual CI evidence and limitations.
 
 From the repository root, with Python 3.11+:
 

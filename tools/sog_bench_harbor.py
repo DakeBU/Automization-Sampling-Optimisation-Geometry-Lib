@@ -3,11 +3,13 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 from pathlib import Path
 import re
 import sys
 import tempfile
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
@@ -88,13 +90,10 @@ USER bench
     return files
 
 
-def export(output: Path, task_ids: list[str] | None = None) -> dict:
-    items = bench.curriculum.graph_items()
-    statuses = review.summary(items)['items']
-    selected = bench.selected_graph_tasks(items, {'task_ids': task_ids}) if task_ids is not None else items
+def package_files(selected: list[dict], statuses: dict) -> tuple[dict[str, bytes], dict]:
+    """Build the same full operator package for CLI exports and website downloads."""
     if any(statuses[i['id']]['editorial'] not in {'accepted', 'accepted-after-repair'} for i in selected):
         raise ValueError('Only currently independently admitted graph tasks can be exported')
-    # Render/validate everything before touching the requested destination.
     files = {i['id'] + '/' + name: data for i in selected for name, data in task_files(i).items()}
     for name in ('LICENSE', 'NOTICE', 'LICENSE_SCOPE.md'):
         files[name] = (ROOT / name).read_bytes().replace(b'\r\n', b'\n')
@@ -103,9 +102,36 @@ def export(output: Path, task_ids: list[str] | None = None) -> dict:
                 'base_image': BASE_IMAGE, 'split': 'public-dev', 'track': 'graph-json',
                 'task_ids': [i['id'] for i in selected], 'measured_model_result': False,
                 'lean_submission_execution': False, 'native_runtime_evidence': 'separate CI run required',
+                'editorial_evidence': {i['id']: statuses[i['id']] for i in selected},
                 'scorer_source_sha256_lf': bench.text_hash(ROOT / 'tools/sog_bench_curriculum.py'),
                 'files': {n: hashlib.sha256(data).hexdigest() for n, data in sorted(files.items())}}
     files['adapter-manifest.json'] = bench.encoded(manifest)
+    return files, manifest
+
+
+def archive(selected: list[dict]) -> bytes:
+    current = bench.curriculum.graph_items()
+    known = {i['id']: i for i in current}
+    if any(i != known.get(i['id']) for i in selected) or len({i['id'] for i in selected}) != len(selected):
+        raise ValueError('Archive must retain exact current graph tasks without duplicates')
+    files, _ = package_files(selected, review.summary(current)['items'])
+    payload = io.BytesIO()
+    with zipfile.ZipFile(payload, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
+        for name, content in sorted(files.items()):
+            member = zipfile.ZipInfo(name, (1980, 1, 1, 0, 0, 0))
+            member.create_system = 3
+            member.external_attr = 0o100644 << 16
+            member.compress_type = zipfile.ZIP_DEFLATED
+            bundle.writestr(member, content)
+    return payload.getvalue()
+
+
+def export(output: Path, task_ids: list[str] | None = None) -> dict:
+    items = bench.curriculum.graph_items()
+    statuses = review.summary(items)['items']
+    selected = bench.selected_graph_tasks(items, {'task_ids': task_ids}) if task_ids is not None else items
+    # Render/validate everything before touching the requested destination.
+    files, manifest = package_files(selected, statuses)
     output = output.resolve()
     if output.exists():
         raise ValueError('Use a fresh export directory; existing evidence is never overwritten')

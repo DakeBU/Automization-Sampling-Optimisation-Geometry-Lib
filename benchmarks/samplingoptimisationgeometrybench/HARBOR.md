@@ -64,8 +64,8 @@ TCP. That is not a hard-offline container. Using the native compose definition
 avoids silently substituting that weaker policy for the Bench's offline contract.
 The actual runtime probe must pass; a configuration label alone is insufficient.
 
-The verifier starts in a **fresh separate environment**, receiving only the
-declared `/output/answer.json` artifact. The oracle writes an undeclared marker;
+The verifier starts in a **fresh separate environment**, receiving the declared
+`/handoff/answer.bin` and `/handoff/collection.json` artifacts. The oracle writes an undeclared marker;
 verification rejects inherited marker state, testing the isolation boundary.
 The agent image has neither tests nor gold. Grading imports the byte-identical
 owned `sog_bench_curriculum.py`, not a parallel implementation of the score.
@@ -79,6 +79,42 @@ duplicate keys, non-finite values, stale bindings, invalid schemas and missing
 answers fail. No `eval`, submitted Python, shell or Lean is run by the verifier.
 The reward is exactly the canonical structural-set-and-truth-boundary point;
 imports/constant occurrences never certify mathematical necessity.
+
+## Version 2: bound the declared answer before transfer
+
+The agent still writes `/output/answer.json`; the question, valid answer schema,
+identity, family, split and canonical score do not change. Native task package
+version 2 changes the transfer protocol, not the mathematical benchmark item.
+
+A trusted `[[verifier.collect]]` hook runs as root **before** Harbor downloads
+declared artifacts. Its code is root-owned in the image, and `/handoff` is
+root-owned mode 0700: the unprivileged agent cannot write a collection receipt.
+The hook uses one bounded regular-file reader, also reused by verification:
+no-follow/nonblocking open, regular-file check, size cap, and pre/post file-state
+comparison. It stages at most **65536 raw bytes + 1024 receipt bytes**. Valid small
+answers retain their exact bytes and SHA-256. Oversized, symlink, special, missing
+or changed files produce an empty raw artifact and a typed rejection receipt.
+Only the staged files are declared, so the original unbounded answer path is not
+downloaded as a declared artifact.
+
+The verifier requires the receipt's exact policy/schema, byte count and raw hash.
+A valid rejection earns zero; malformed answer JSON earns zero. A missing,
+inconsistent or corrupt receipt is an **unscored infrastructure failure**, never
+a correctness score. This matters because pinned Harbor treats collect-hook
+failure as best-effort and may continue the trial. A failed hook must not fall
+back to the old raw-answer path. These receipts are local collection records,
+not authenticated model/provider attestations or cryptographic signatures.
+
+The dedicated CI additionally exercises controlled oversize, symlink, FIFO,
+missing-answer and failed-hook fixtures. These are not new benchmark questions,
+private families, measured models or calibration evidence.
+
+**Remaining safety boundary:** this cap covers only the declared answer channel.
+Harbor also handles automatic `/logs/artifacts`, agent/verifier logs and other
+filesystem usage; their storage/transfer limits are not certified by this change.
+Do not interpret a bounded parser or receipt as protection for every host path.
+Whole-storage/log hardening and independent security review remain necessary
+before hostile-agent or arbitrary Lean-submission evaluation.
 
 ## Actual models and remaining work
 

@@ -1,15 +1,13 @@
 """Separate-container graph verifier: parse data only; reuse the canonical scorer."""
 import hashlib
 import json
-import os
 from pathlib import Path
-import stat
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from sog_bench_curriculum import grade_graph
-
-MAX_BYTES = 65536
+from bench_bounded_io import MAX_BYTES, MAX_RECEIPT_BYTES, read_bounded
+from collect_answer import POLICY, REJECTIONS
 
 
 def unique_object(pairs):
@@ -26,16 +24,7 @@ def invalid_constant(value):
 
 
 def read_answer(path):
-    if Path(path).is_symlink():
-        raise ValueError('Symlink answers are not accepted')
-    fd = os.open(path, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0) | getattr(os, 'O_NONBLOCK', 0))
-    with os.fdopen(fd, 'rb') as stream:
-        info = os.fstat(stream.fileno())
-        if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_BYTES:
-            raise ValueError('Expected a regular JSON file of at most 65536 bytes')
-        raw = stream.read(MAX_BYTES + 1)
-    if len(raw) > MAX_BYTES:
-        raise ValueError('Answer exceeds byte limit')
+    raw = read_bounded(path)
     row = json.loads(raw.decode('utf-8'), object_pairs_hook=unique_object, parse_constant=invalid_constant)
     if not isinstance(row, dict) or set(row) != {'id', 'binding_sha256', 'attempt', 'answer'}:
         raise ValueError('Expected the exact response envelope')
@@ -55,9 +44,33 @@ def assess(question, path):
                 'scope': 'rejected graph response; not a Lean or mathematical judgment'}
 
 
+def assess_collected(question, raw_path, receipt_path):
+    """A missing/corrupt trusted receipt is infrastructure failure, not zero credit."""
+    try:
+        receipt = json.loads(read_bounded(receipt_path, MAX_RECEIPT_BYTES),
+                             object_pairs_hook=unique_object, parse_constant=invalid_constant)
+        raw = read_bounded(raw_path)
+        expected = {'schema_version', 'policy', 'status', 'reason', 'raw_bytes', 'raw_sha256'}
+        if (not isinstance(receipt, dict) or set(receipt) != expected
+                or type(receipt['schema_version']) is not int or receipt['schema_version'] != 1
+                or receipt['policy'] != POLICY or type(receipt['raw_bytes']) is not int
+                or receipt['raw_bytes'] != len(raw) or receipt['raw_sha256'] != hashlib.sha256(raw).hexdigest()):
+            raise ValueError('Invalid collection receipt')
+        if receipt['status'] == 'rejected':
+            if raw != b'' or not isinstance(receipt['reason'], str) or receipt['reason'] not in REJECTIONS:
+                raise ValueError('Invalid rejected collection')
+            return {'reward': 0, 'collection': receipt,
+                    'scope': 'rejected answer artifact; not a mathematical or Lean judgment'}
+        if receipt['status'] != 'captured' or receipt['reason'] is not None:
+            raise ValueError('Invalid captured collection')
+    except (ValueError, OSError, UnicodeError, RecursionError, TypeError) as exc:
+        raise RuntimeError('Missing, corrupt or inconsistent trusted collection') from exc
+    return {**assess(question, raw_path), 'collection': receipt}
+
+
 def main():
     question = json.loads(Path('/tests/question.json').read_text(encoding='utf-8'))
-    report = assess(question, Path('/output/answer.json'))
+    report = assess_collected(question, Path('/handoff/answer.bin'), Path('/handoff/collection.json'))
     logs = Path('/logs/verifier')
     logs.mkdir(parents=True, exist_ok=True)
     (logs / 'assessment.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')

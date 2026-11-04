@@ -28,6 +28,9 @@ actual scoring mode, and explicitly denies an arbitrary-submission executor.
 This is a portable data/agent convention, **not a native Harbor runnable task**.
 The separate [native graph adapter](HARBOR.md) exports Harbor task directories;
 its operator ZIP contains oracle/verifier answers and must not enter model input.
+Its version-2 transport bounds the declared answer before host transfer and
+requires a checked collection receipt. This does not bound automatic log/storage
+channels or make arbitrary Lean execution safe.
 Python 3.11+ is the supported local recording/JSON-grading environment, not a
 claim that a container image or provider execution was reproduced.
 

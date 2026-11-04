@@ -16,6 +16,9 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'website/scripts')]
 import sog_bench_harbor as adapter
+sys.path.insert(0, str(adapter.TEMPLATES))
+import collect_answer as collector
+import bench_bounded_io as bounded
 
 spec = importlib.util.spec_from_file_location('sog_harbor_verifier', adapter.TEMPLATES / 'verify.py')
 verifier = importlib.util.module_from_spec(spec)
@@ -39,14 +42,20 @@ class HarborGraphTests(unittest.TestCase):
             self.assertEqual(files['tests/sog_bench_curriculum.py'], (ROOT / 'tools/sog_bench_curriculum.py').read_bytes().replace(b'\r\n', b'\n'))
             self.assertEqual(json.loads(files['tests/question.json']), item)
             self.assertEqual(set(n for n in files if n.startswith('environment/')),
-                             {'environment/Dockerfile', 'environment/docker-compose.yaml', 'environment/prompt.json', 'environment/isolation_check.py'})
+                             {'environment/Dockerfile', 'environment/docker-compose.yaml', 'environment/prompt.json',
+                              'environment/isolation_check.py', 'environment/bench_bounded_io.py', 'environment/collect_answer.py'})
+            self.assertEqual(files['environment/bench_bounded_io.py'], files['tests/bench_bounded_io.py'])
+            self.assertEqual(files['environment/collect_answer.py'], files['tests/collect_answer.py'])
 
     def test_config_declares_actual_limits_and_separate_verification(self):
         for item in self.items:
             files = adapter.task_files(item)
             config = tomllib.loads(files['task.toml'].decode())
             self.assertEqual(config['schema_version'], '1.4')
-            self.assertEqual(config['artifacts'], ['/output/answer.json'])
+            self.assertEqual(config['artifacts'], ['/handoff/answer.bin', '/handoff/collection.json'])
+            self.assertEqual(config['task']['version'], '2')
+            self.assertEqual(config['verifier']['collect'], [{'command': 'python -I /app/collect_answer.py',
+                'service': 'main', 'user': 'root', 'timeout_sec': 5}])
             self.assertEqual(config['environment']['network_mode'], 'public')
             self.assertIn('network_mode:none', config['metadata']['network_contract'])
             self.assertIn(b'network_mode: none', files['environment/docker-compose.yaml'])
@@ -146,6 +155,13 @@ class HarborGraphTests(unittest.TestCase):
             row = {'task_name': 'samplinglib/sogb-g001', 'exception_info': None, 'verifier_result': {'rewards': {'reward': 0}}}
             path = trial / 'result.json'
             path.write_text(json.dumps(row))
+            handoff = trial / 'artifacts/handoff'
+            handoff.mkdir(parents=True)
+            source = base / 'answer.json'
+            source.write_bytes(b'')
+            raw, receipt = collector.capture(source)
+            (handoff / 'answer.bin').write_bytes(raw)
+            (handoff / 'collection.json').write_bytes(receipt)
             self.assertTrue(adapter.check_job(base, ['sogb-g001'], 0)['complete'])
             for ids, value in [(['sogb-g001', 'sogb-g002'], 0), (['sogb-g001'], 1), (['sogb-g001', 'sogb-g001'], 0)]:
                 with self.assertRaises(ValueError):
@@ -154,6 +170,84 @@ class HarborGraphTests(unittest.TestCase):
             path.write_text(json.dumps(row))
             with self.assertRaises(ValueError):
                 adapter.check_job(base, ['sogb-g001'], 0)
+
+    def test_collector_preserves_exact_bounded_bytes_and_the_canonical_score(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            source, raw_path, receipt_path = base / 'source', base / 'raw', base / 'receipt'
+            for item in self.items:
+                source.write_bytes(adapter.task_files(item)['solution/answer.json'])
+                raw, receipt = collector.capture(source)
+                self.assertEqual(raw, source.read_bytes())
+                raw_path.write_bytes(raw)
+                receipt_path.write_bytes(receipt)
+                self.assertEqual(verifier.assess_collected(item, raw_path, receipt_path)['reward'], 1)
+            source.write_bytes(b'x' * bounded.MAX_BYTES)
+            self.assertEqual(len(collector.capture(source)[0]), bounded.MAX_BYTES)
+            source.write_bytes(b'x' * (bounded.MAX_BYTES + 1))
+            raw, encoded = collector.capture(source)
+            self.assertEqual(raw, b'')
+            self.assertEqual(json.loads(encoded)['reason'], 'too-large')
+            self.assertLessEqual(len(encoded), bounded.MAX_RECEIPT_BYTES)
+
+    def test_missing_or_corrupt_receipts_are_infrastructure_failures_not_zero_scores(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            raw_path, receipt_path = base / 'raw', base / 'receipt'
+            with self.assertRaises(RuntimeError):
+                verifier.assess_collected(self.items[0], raw_path, receipt_path)
+            source = base / 'absent'
+            raw, receipt = collector.capture(source)
+            raw_path.write_bytes(raw)
+            receipt_path.write_bytes(receipt)
+            result = verifier.assess_collected(self.items[0], raw_path, receipt_path)
+            self.assertEqual(result['reward'], 0)
+            self.assertEqual(result['collection']['reason'], 'missing')
+            for invalid in [b'{}', b'not-json', b'x' * 1025, receipt.replace(b'"missing"', b'"invented"')]:
+                receipt_path.write_bytes(invalid)
+                with self.assertRaises(RuntimeError):
+                    verifier.assess_collected(self.items[0], raw_path, receipt_path)
+            receipt_path.write_bytes(receipt)
+            raw_path.write_bytes(b'tampered')
+            with self.assertRaises(RuntimeError):
+                verifier.assess_collected(self.items[0], raw_path, receipt_path)
+
+    @unittest.skipUnless(os.name == 'posix', 'Linux no-follow/FIFO semantics')
+    def test_collector_rejects_special_files_before_any_host_transfer(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            target = base / 'target'
+            target.write_bytes(b'secret must not be collected through symlink')
+            link, fifo = base / 'link', base / 'fifo'
+            link.symlink_to(target)
+            os.mkfifo(fifo)
+            for source, reason in [(link, 'symlink'), (fifo, 'not-regular'), (base, 'not-regular')]:
+                raw, receipt = collector.capture(source)
+                self.assertEqual(raw, b'')
+                self.assertEqual(json.loads(receipt)['reason'], reason)
+
+    def test_transport_fixtures_keep_question_binding_and_do_not_enter_default_archive(self):
+        item = self.items[0]
+        original = adapter.task_files(item)
+        for case in adapter.FIXTURES:
+            files = adapter.task_files(item, case)
+            self.assertEqual(files['environment/prompt.json'], original['environment/prompt.json'])
+            self.assertEqual(files['tests/question.json'], original['tests/question.json'])
+            self.assertEqual(tomllib.loads(files['task.toml'].decode())['metadata']['software_fixture'], case)
+
+    def test_failed_hook_acceptance_never_manufactures_a_zero_or_positive_score(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            trial = Path(temporary) / 'trial'
+            trial.mkdir()
+            path = trial / 'result.json'
+            row = {'task_name': 'samplinglib/sogb-g001', 'exception_info': {'exception_type': 'RewardFileNotFoundError'},
+                   'verifier_result': None}
+            path.write_text(json.dumps(row))
+            self.assertTrue(adapter.check_failed_collection(Path(temporary), ['sogb-g001'])['unscored_infrastructure_failure'])
+            row['verifier_result'] = {'rewards': {'reward': 0}}
+            path.write_text(json.dumps(row))
+            with self.assertRaises(ValueError):
+                adapter.check_failed_collection(Path(temporary), ['sogb-g001'])
 
     def test_static_offline_probe_rejects_sidecars_and_unlimited_resources(self):
         with tempfile.TemporaryDirectory() as temporary:

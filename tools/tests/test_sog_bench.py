@@ -542,6 +542,14 @@ class BenchTests(unittest.TestCase):
 
 
 class AuthoredProseRenderingTests(unittest.TestCase):
+    def test_presence_gate_checks_authored_words_not_hidden_code_or_raw_typography(self):
+        import declaration_lessons as lessons
+        raw = 'Assume `x <= M` and actual integrability.'
+        expected = lessons._canonical_prose(raw)
+        self.assertIn(expected, lessons._authored_prose_text('<p>' + lessons.inline_text(raw) + '</p>'))
+        self.assertNotIn(expected, lessons._authored_prose_text('<pre>' + raw + '</pre><script>' + raw + '</script>'))
+        self.assertNotIn(expected, lessons._authored_prose_text('<p>Assume x ≤ M.</p>'))
+
     def test_prose_relations_render_but_literal_code_is_preserved(self):
         import declaration_lessons
         rendered = declaration_lessons.inline_text('u>=0, x <= M, a -> b, x!=y; `x <= M -> True`')

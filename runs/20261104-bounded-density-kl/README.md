@@ -42,12 +42,25 @@ adapter, Fisher limit, LSI application/domain extension or PI theorem.
 - Compilation, semantic/source review, exact-commit verification, aggregate
   integration, graph/reader inspection and publication are different states.
   Follow the canonical records rather than upgrading from this checkpoint.
-- The 99 Bench Python tests pass with all 29 mathematical cores and seven
+- All 102 Bench Python tests pass with all 29 mathematical cores and seven
   structural tasks still admitted. Aggregate ASTIS/Tests passed after the
   census assertion was updated from 593 to 594 for this one actual new leaf.
-  A site build started before that test-only fix has a stale global graph
-  digest; rebuild from the frozen final source, rather than resigning its
-  metadata or treating a narrow graph inspection as full validation.
+- The frozen-source site build passes. The canonical underlying graph was
+  regenerated after independent verification changed the Cell's evidence;
+  target graph-check passes. No digest was manually resigned. The actual
+  module-to-declaration edge remains structural, and the chapter/source and
+  fidelity-audit overlays are not mathematical implication edges.
+- Actual Edge browser inspection at 1400px and 412px passed: rendered formulas,
+  all six visible mathematical proof steps, initially folded highlighted Lean,
+  working code copy, real graph focus, no MathJax/runtime errors or page overflow.
+  Statement, domination, integral-limit, Lean and graph SVG/detail PNGs were
+  inspected under the ignored `_browser-evidence/bounded-density-kl/` cache.
+  The mobile graph requires its existing pan/zoom; its labels are not claimed
+  readable at the unzoomed whole-canvas scale.
+- Authored prose now displays mathematical relation glyphs without altering
+  literal Lean or any of the four supported TeX delimiters. The independent
+  presence validator still requires all authored statement/assumption words and
+  exact proof formulas; hidden code/JSON cannot satisfy its prose check.
 
 The local full diff-aware publication gate also sees the owner's older
 untracked `KernelReversibilityTransport` draft, which lacks its own publication

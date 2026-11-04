@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import hashlib
 import re
+from html.parser import HTMLParser
 from functools import lru_cache
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -78,6 +79,37 @@ def prose_list(values: list[object]) -> str:
     """Natural-language hypotheses/boundaries, not raw code/API inventories."""
     return ('<ul>' + ''.join('<li>' + (inline_text(value) if isinstance(value, str)
                             else base.esc(value)) + '</li>' for value in values) + '</ul>') if values else ''
+
+
+def _canonical_prose(value: object) -> str:
+    """Independent presence check: ignore markup notation, not authored words."""
+    return ' '.join(str(value).replace('`', '').replace('<=', '≤').replace('>=', '≥')
+                    .replace('!=', '≠').replace('->', '→').split())
+
+
+def _authored_prose_text(text: str) -> str:
+    class ProseText(HTMLParser):
+        skip_tags = {'pre', 'script', 'style', 'textarea', 'noscript', 'svg'}
+
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.skip = 0
+            self.parts = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag in self.skip_tags:
+                self.skip += 1
+
+        def handle_endtag(self, tag):
+            if tag in self.skip_tags:
+                self.skip = max(0, self.skip - 1)
+
+        def handle_data(self, data):
+            if not self.skip:
+                self.parts.append(data)
+    parser = ProseText()
+    parser.feed(text)
+    return _canonical_prose(''.join(parser.parts))
 
 
 def export_sources(output: Path, units: list[dict]) -> None:
@@ -365,8 +397,12 @@ def validate_site(output: Path, *, require_complete: bool = False) -> list[str]:
             errors.append(f'{unit["declaration"]}: missing authored page; rebuild the site')
             continue
         text = path.read_text(encoding='utf-8')
-        for value in (unit['statement'], unit['formula'], *unit['assumptions'], *[s['formula'] for s in unit['steps']]):
-            if base.esc(value) not in text:
+        prose = _authored_prose_text(text)
+        for value in (unit['statement'], *unit['assumptions']):
+            if not _canonical_prose(value) or _canonical_prose(value) not in prose:
+                errors.append(f'{unit["declaration"]}: missing authored mathematics')
+        for value in (unit['formula'], *[s['formula'] for s in unit['steps']]):
+            if not value or base.esc(value) not in text:
                 errors.append(f'{unit["declaration"]}: missing authored mathematics')
         order = [text.find('inline-lean-statement'), text.find('inline-lean-proof')]
         if min(order) < 0 or order != sorted(order):

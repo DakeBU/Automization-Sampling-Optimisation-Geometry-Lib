@@ -44,6 +44,13 @@ The report retains criterion-level reasons, misses, all selected tasks, model co
 
 ## Other tracks and limitations
 
+For a declared graph subset, copy the exported `examples/graph-run.json`, fill
+the actual run/model/time fields and set `task_ids` **before** collecting
+answers. Unknown, duplicate or empty selections are rejected. Missing answers
+stay in that selected denominator; unselected submissions are rejected. A subset
+report is explicitly labelled as such, never a full-suite score. Omitting
+`task_ids` preserves the older all-current-graph-tasks behavior.
+
 - **Graph JSON:** `python tools/sog_bench.py grade-graph --submissions graph-responses.jsonl --run-metadata graph-run.json --output .astis/my-graph-run` deterministically checks an exact source-hashed structural snapshot. Its metadata uses `prompt_profile: "given-snapshot"`. Reference self-tests are software tests, not measured model performance. See the [graph policy](README.md#graph-questions-and-scoring).
 - **Lean:** `python tools/sog_bench.py check-lean` compiles trusted extracted references only. It does **not** safely grade arbitrary model submissions. A future evaluator needs an isolated, network-disabled, resource-limited executor, fixed-target validation and unsafe-code/axiom checks; this pilot supplies none.
 - **Difficulty:** labels are provisional editorial judgments, not empirical calibration. Module-import distance does not measure mathematical depth. A review correction can lower a label without adding a question or proving mathematics.

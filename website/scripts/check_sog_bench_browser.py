@@ -6,6 +6,7 @@ import functools
 import http.server
 import hashlib
 import json
+import re
 from pathlib import Path
 import threading
 
@@ -65,10 +66,26 @@ def main() -> None:
             page = context.new_page()
             page.on('pageerror', lambda error: errors.append(str(error)))
             base = f'http://127.0.0.1:{server.server_port}/'
-            for path in ('index.html', 'natural-language/index.html', 'lean/index.html', 'evaluation/index.html'):
+            # Mathematics must work from the vendored same-origin runtime and
+            # fonts, not only when an external CDN happens to be reachable.
+            context.route('**/*', lambda route: route.continue_()
+                          if route.request.url.startswith((base, 'data:')) else route.abort())
+            for path in ('index.html', 'natural-language/index.html', 'lean/index.html', 'evaluation/index.html', 'training/index.html', 'experts/index.html'):
                 response = page.goto(base + HUB + path)
                 assert response.status == 200
                 assert page.locator('[data-sog-bench]').count() == 1
+                if path in ('training/index.html', 'experts/index.html'):
+                    if path.startswith('experts/'):
+                        page.locator('summary').filter(has_text=re.compile(r'^Optimisation ·')).click()
+                        assert page.get_by_role('link', name='Graph position', exact=True).first.is_visible()
+                    page.screenshot(path=str(args.evidence / (path.replace('/index.html','') + '-desktop.png')), full_page=True)
+                    page.set_viewport_size({'width': 412, 'height': 915})
+                    # Resizing starts the existing 180ms navigation transition.
+                    # Inspect the settled mobile layout, not a half-open drawer.
+                    page.wait_for_function('document.querySelector("#site-sidebar").getBoundingClientRect().right <= 0')
+                    assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
+                    page.screenshot(path=str(args.evidence / (path.replace('/index.html','') + '-mobile.png')), full_page=True)
+                    page.set_viewport_size({'width': 1400, 'height': 1000})
             page.goto(base + HUB + 'index.html')
             manifest = page.request.get(base + HUB + 'downloads/manifest.json').json()
             page.get_by_text('Numbered textbook exercises and our reference solutions', exact=True).click()
@@ -91,6 +108,8 @@ def main() -> None:
             exercises = exercise_response.json()
             assert len(exercises) == manifest['numbered_textbook_exercises']
             page.get_by_role('link', name='Textbook exercises & answers', exact=True).click()
+            page.wait_for_url('**/textbook-exercises/index.html')
+            page.get_by_role('heading', name='Numbered textbook exercises', exact=True).wait_for(state='visible')
             assert page.get_by_role('heading', name='Numbered textbook exercises', exact=True).is_visible()
             for exercise in exercises:
                 assert exercise['parts'] and exercise['answer_declarations']
@@ -124,7 +143,8 @@ def main() -> None:
                 page.locator('summary', has_text='Reference mathematical proof').click()
                 page.wait_for_timeout(300)
                 assert page.locator('mjx-container').count() > 0
-                assert page.locator('mjx-merror, [data-mjx-error]').count() == 0
+                assert page.locator('mjx-merror, [data-mjx-error]').count() == 0, (
+                    identity, page.locator('mjx-merror, [data-mjx-error]').all_text_contents())
                 check_visible_equations(page)
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 panel = page.locator('#natural-language [data-lean-code-panel]')
@@ -146,13 +166,32 @@ def main() -> None:
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 check_visible_equations(page)
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
-                page.evaluate('() => { document.activeElement?.blur(); window.scrollTo({top:0, behavior:"instant"}); }')
-                page.wait_for_function('window.scrollY === 0')
+                # Click/focus and layout anchoring can complete after the first
+                # scroll request on Chromium. Normalize at the observed frame,
+                # instead of waiting for a one-shot request to remain effective.
+                page.wait_for_function('''() => {
+                    document.activeElement?.blur();
+                    window.scrollTo({top:0, left:0, behavior:"instant"});
+                    return window.scrollY === 0;
+                }''')
                 page.screenshot(path=str(args.evidence / (identity + '-proof-mobile.png')), full_page=True)
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 math_component_shot(page, args.evidence / (identity + '-math-mobile.png'))
                 page.set_viewport_size({'width': 1400, 'height': 1000})
             reference_records=[json.loads(line) for line in page.request.get(base+HUB+'downloads/reference.jsonl').text().splitlines()]
+            # Every core, not just the paired/support examples: inline typography
+            # can break assumptions even when one display formula renders well.
+            for core in reference_records:
+                page.goto(base + HUB + core['id'] + '.html')
+                page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
+                page.evaluate('() => MathJax.startup.promise')
+                page.locator('summary', has_text='Reference mathematical proof').click()
+                assert page.locator('[data-lean-graph-position]').count() == 1
+                assert page.locator('[data-lean-graph-position]').is_visible()
+                assert page.locator('mjx-merror,[data-mjx-error]').count() == 0, core['id']
+                for span in page.locator('[data-math-original]').all():
+                    assert span.locator('mjx-container').count() == 1, (core['id'], span.get_attribute('data-math-original'))
+                check_visible_equations(page)
             for core in (c for c in reference_records if c.get('support_source_view') and (not args.core or c['id'] in args.core)):
                 identity=core['id']
                 for width,height,suffix in ((1400,1000,'desktop'),(412,915,'mobile')):
@@ -282,6 +321,8 @@ def main() -> None:
               'compiled_graphs':len(compiled_graphs), 'graph_evidence_kinds_separate':True,
               'compiled_graph_labels_fit':True,'reviewed_graph_download':True,
               'runtime_errors': errors}
+    report['offline_same_origin_math_assets'] = True
+    report['all_mathematical_cores_checked'] = len(reference_records)
     (args.evidence / 'report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report))
 

@@ -17,6 +17,73 @@ HUB = 'benchmarks/samplingoptimisationgeometrybench/'
 MARKER = 'data-sog-bench="true"'
 
 
+_MATH_GLYPHS = {
+    'ℝ': r'\mathbb{R}', 'ℕ': r'\mathbb{N}', 'ℤ': r'\mathbb{Z}',
+    'ℚ': r'\mathbb{Q}', 'ℂ': r'\mathbb{C}', '∇': r'\nabla ',
+    '∂': r'\partial ', '∫': r'\int ', '∞': r'\infty ',
+    '≼': r'\preceq ', '≽': r'\succeq ', '≤': r'\le ', '≥': r'\ge ',
+    '≠': r'\ne ', '∈': r'\in ', '→': r'\to ', '↦': r'\mapsto ',
+    '×': r'\times ', '−': '-', '‖': r'\|', '∘': r'\circ ',
+    '#': r'\#', '%': r'\%', '&': r'\&',
+}
+_SUPERSCRIPTS = str.maketrans('⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺ᵈⁿ', '0123456789-+dn')
+_SUBSCRIPTS = str.maketrans('₀₁₂₃₄₅₆₇₈₉₋₊', '0123456789-+')
+_MATH_SENTINEL = re.compile(r'[α-ωΑ-Ωℝℕℤℚℂ∇∂∫∞≼≽≤≥≠∈→↦×−‖⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺ᵈⁿ₀₁₂₃₄₅₆₇₈₉₋₊]|[A-Za-z]_[A-Za-z0-9]+\b|[A-Za-z]\^[A-Za-z0-9{]|<=|>=|!=|->')
+
+
+def inline_prose(text: str) -> str:
+    """Lossless typography projection; never change the audited question data.
+
+    Explicit TeX and literal code are protected first. Only compact mathematical
+    tokens with an unambiguous glyph/subscript/exponent are promoted. Ambiguous
+    or unbalanced tokens stay literal rather than guessing a mathematical parse.
+    The exact original token is retained on each generated span for inspection.
+    """
+    protected = re.split(r'(\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$\$[\s\S]*?\$\$|\$[^$\n]+\$|`[^`\n]+`)', text)
+
+    def token(match):
+        original = match.group(0)
+        body = original.rstrip('.,;:!?')
+        punctuation = original[len(body):]
+        descriptive = re.search(r'-[A-Za-z][A-Za-z.-]+$', body)
+        if descriptive and _MATH_SENTINEL.search(body[:descriptive.start()]):
+            punctuation = body[descriptive.start():] + punctuation
+            body = body[:descriptive.start()]
+        # Lean/API names are not mathematical subscript expressions. In
+        # particular le_div_iff₀ must never become a doubly-subscripted formula.
+        identifier = body.split('(', 1)[0]
+        if (re.fullmatch(r'[A-Za-z][A-Za-z0-9_\.α-ωΑ-Ω₀-₉]*', identifier)
+                and ('.' in identifier or '_' in identifier and re.match(r'(?:[a-z][a-z0-9]+|[A-Z][a-z][a-z0-9]+)_', identifier))):
+            return '<code>' + escape(body) + '</code>' + escape(punctuation)
+        simple_relation = re.fullmatch(r'[A-Za-z](?:\([^()]*\))?[=<>][A-Za-z0-9().+\-/]+', body)
+        if (not (_MATH_SENTINEL.search(body) or simple_relation) or '\\' in body or '`' in body
+                or any(body.count(a) != body.count(b) for a, b in [('(', ')'), ('[', ']'), ('{', '}')])
+                or '/' in body and (body.startswith(('http:', 'https:')) or '.html' in body)):
+            return escape(original)
+        tex = re.sub(r'(?<![\^_])\{([^{}]*)\}', r'\\{\1\\}', body)
+        tex = re.sub(r'[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺ᵈⁿ]+', lambda m: '^{'+m.group(0).translate(_SUPERSCRIPTS)+'}', tex)
+        tex = re.sub(r'[₀₁₂₃₄₅₆₇₈₉₋₊]+', lambda m: '_{'+m.group(0).translate(_SUBSCRIPTS)+'}', tex)
+        tex = re.sub(r'_([A-Za-z0-9]+)', r'_{\1}', tex)
+        for raw, symbol in [('<=', r'\le '), ('>=', r'\ge '), ('!=', r'\ne '), ('->', r'\to ')]:
+            tex = tex.replace(raw, symbol)
+        tex = ''.join(_MATH_GLYPHS.get(char, char) for char in tex)
+        return ('<span class="sog-inline-math" data-math-original="' + escape(body, quote=True)
+                + '">\\(' + escape(tex) + '\\)</span>' + escape(punctuation))
+
+    parts = []
+    for i, part in enumerate(protected):
+        if i % 2:
+            parts.append('<code>' + escape(part[1:-1]) + '</code>' if part.startswith('`') else escape(part))
+        else:
+            cursor = 0
+            for match in re.finditer(r'\S+', part):
+                parts.append(escape(part[cursor:match.start()]))
+                parts.append(token(match))
+                cursor = match.end()
+            parts.append(escape(part[cursor:]))
+    return ''.join(parts)
+
+
 def prose(text: str) -> str:
     # Render unambiguous exponential tokens in otherwise plain prose. Leave
     # existing math spans untouched; this is presentation, not a gold rewrite.
@@ -43,7 +110,7 @@ def prose(text: str) -> str:
         parts.append(body[start:])
         return r'\[\begin{gathered}' + r'\\'.join(parts) + r'\end{gathered}\]'
     rendered = re.sub(r'\\\[(.*?)\\\]', stack, text, flags=re.S)
-    return '<p>' + escape(rendered) + '</p>'
+    return '<p>' + inline_prose(rendered) + '</p>'
 
 
 def fold(title: str, content: str) -> str:
@@ -106,8 +173,8 @@ def domain_names(core: dict) -> str:
     return ' / '.join(labels[d] for d in core['library_domains'])
 
 
-def review_panel(core: dict) -> str:
-    row = bench.editorial_review([core])['items'][core['id']]
+def review_panel(core: dict, row: dict | None = None) -> str:
+    row = row if row is not None else bench.editorial_review([core])['items'][core['id']]
     label = {'accepted': 'AI editorial review accepted', 'accepted-after-repair': 'AI editorial review accepted after a separately reviewed correction',
              'pending': 'Independent QA review pending', 'stale': 'Previous review is stale for this content',
              'repair-required': 'Editorial repair required', 'reject': 'Editorial review rejected'}[row['editorial']]
@@ -125,14 +192,18 @@ def home(cores: list[dict]) -> str:
     review = bench.editorial_review(cores)
     structural = graph_review.summary(graphs)
     return (f'<article class="sog-reader" {MARKER}><div class="eyebrow">Public development curriculum · {escape(bench.load()["version"])}</div>'
-        '<h1>SamplingOptimisationGeometryBench</h1><p class="lede">Can an AI explain the mathematics—and reconstruct a precise Lean proof?</p>'
-        f'<p>{len(cores)} mathematical cores · {len(bench.prompts(cores))} mathematical QA views · {len(graphs)} structural graph tasks. {review["accepted_cores"]} mathematical cores and {structural["accepted_tasks"]} graph tasks have content-bound AI editorial acceptance. Review never supplies missing Lean coverage or empirical calibration.</p>'
+        '<h1 class="sog-name">Sampling<wbr>Optimisation<wbr>Geometry<wbr>Bench</h1><p class="lede">Evaluate mathematical reasoning. Read the proofs. Inspect what Lean actually verifies.</p>'
+        f'<p class="sog-stats">{len(cores)} mathematical cores · {len(bench.prompts(cores))} mathematical QA views · {len(graphs)} structural graph tasks</p>'
+        '<p class="sog-caption">Public development data. Difficulty is provisional; no measured model leaderboard or hidden test set is claimed.</p>'
+        '<section class="sog-grid sog-actions" aria-label="Choose how to use the Bench">'
+        '<article><small>01 · Learn and inspect</small><h2>Explore the tasks</h2><p>Seven domains, textbook exercises, formula proofs and optional Lean.</p><a class="button primary" href="curriculum/index.html">Browse tasks</a></article>'
+        '<article><small>02 · Build on the curriculum</small><h2>Train a model</h2><p>Separate prompt-only task packages from reviewed reference answers.</p><a class="button" href="training/index.html">Training data and task API</a></article>'
+        '<article><small>03 · Record a reproducible run</small><h2>Evaluate</h2><p>Choose a track, freeze first answers, and use the appropriate verifier.</p><a class="button" href="evaluation/index.html">Run and assess answers</a></article>'
+        '<article><small>04 · Check the mathematics</small><h2>Expert review</h2><p>Find the actual library result, source and graph position behind each task.</p><a class="button" href="experts/index.html">Inspect Lean graph positions</a></article></section>'
         '<p><a class="button" href="curriculum/index.html">Browse seven domains and L1–L5 coverage</a> '
         '<a class="button" href="textbook-exercises/index.html">Textbook exercises &amp; answers</a></p>'
-        '<section class="sog-grid"><article><h2>Natural-language QA</h2><p>Explain a proof, track its constants and identify what the assumptions do not imply. No Lean knowledge required.</p><a class="button primary" href="natural-language/index.html">Try natural-language questions</a></article>'
-        '<article><h2>Lean-assisted QA</h2><p>Reconstruct a fixed theorem from its allowed imports and explicit context. Read the mathematical reasoning beside optional exact Lean.</p><a class="button" href="lean/index.html">Try Lean questions</a></article>'
-        '<article><h2>Structured graph QA</h2><p>Distinguish module imports from selected constants in actual compiled proof bodies. Compare shared ingredients and proof branches without claiming mathematical necessity.</p><a class="button" href="graph-json/index.html">Try graph questions</a></article></section>'
-        '<section><h2>Use the pilot</h2><p><a class="button" href="evaluation/index.html">Run and assess answers</a></p><p><a href="downloads/questions.jsonl" download>Prompt-only JSONL</a> · '
+        '<p class="sog-tracks"><a href="natural-language/index.html">Try natural-language questions</a> · <a href="lean/index.html">Try Lean questions</a> · <a href="graph-json/index.html">Try graph questions</a></p>'
+        '<section><h2>Versioned downloads</h2><p><a href="downloads/agent-tasks.zip" download>Prompt-only agent task packages</a> · <a href="downloads/task-index.json">Task API index</a></p><p><a href="downloads/questions.jsonl" download>Prompt-only JSONL</a> · '
         '<a href="downloads/reference.jsonl" download>References and rubrics</a> · '
         '<a href="downloads/manifest.json" download>Version and hashes</a> · '
         '<a href="pilot.zip" download>Download the full pilot</a></p>'
@@ -145,10 +216,71 @@ def home(cores: list[dict]) -> str:
             '<a href="../../libraries/optimisation/chapter-03.html#chewi-opt-v1-exercise-3-2">Existing Chewi Optimization Exercise 3.2 source/solution window</a>.</p>'
             '<p>Intake itself is not admission, an aligned Lean QA or proof that all exercises are complete. Per-question review and named owned-answer build state appear separately in the directory. This does not substitute for Log-Concave Sampling, the cited Statistical Optimal Transport route or the other seven-domain material. Original QA is never relabelled as an original-book exercise.</p>')
         + fold('Evaluation policy and contribution guide',
+            f'<p>{review["accepted_cores"]} mathematical cores and {structural["accepted_tasks"]} graph tasks have current content-bound AI editorial acceptance. This is not full Lean coverage or empirical calibration.</p>'
             '<p>Each pair shares one core, family and public-dev split. Score the two tracks separately. Human-assessed natural-language rubrics have four one-point criteria; no automated semantic grader is claimed.</p>'
             '<p>Lean compiler acceptance certifies the fixed proposition only. Arbitrary model output requires target-preservation checks and an isolated, resource-limited sandbox. No submission execution service or AI API is connected here.</p>'
             '<p>Only original or permission-cleared material may enter ML training/evaluation. Restricted external indexes and their derivatives are excluded. Each question discloses its current editorial status and remaining formal boundary; compilation is not that review. Future drafts require their own review.</p>'
             '<p><a href="downloads/README.md">Commands, grading protocol and how to add a core</a> · <a href="downloads/LICENSE_SCOPE.md">License boundaries</a></p>') + '</article>')
+
+
+def local_navigation(tail: str) -> str:
+    prefix = '../' * tail.count('/')
+    links = [('index.html', 'Overview'), ('curriculum/index.html', 'Browse tasks'),
+             ('training/index.html', 'Train'), ('evaluation/index.html', 'Evaluate'),
+             ('experts/index.html', 'Expert review')]
+    return '<nav class="sog-local-nav" aria-label="Bench workflow">' + ''.join(
+        '<a href="' + prefix + path + '"' + (' aria-current="page"' if tail == path else '') + '>' + label + '</a>'
+        for path, label in links) + '</nav>'
+
+
+def training_page() -> str:
+    return (f'<article class="sog-reader" {MARKER}><h1>Training data and task API</h1>'
+        '<p>Use the reviewed public curriculum for training or development. Do not call it an unseen test. <a href="../downloads/ECOSYSTEM.md">Full ecosystem and environment contract</a>.</p>'
+        '<section><h2>1. Choose what your agent can see</h2><div class="sog-grid">'
+        '<article><h3>Agent task packages</h3><p>One instruction, exact prompt, environment contract and response template per task. No reference answers or expert source anchors in this ZIP.</p><a class="button primary" href="../downloads/agent-tasks.zip" download>Download prompt-only tasks</a></article>'
+        '<article><h3>Reviewed training pairs</h3><p>Original reference formula proofs or aligned Lean references, in messages-format JSONL. These contain answers; keep them away from evaluation prompts.</p><a class="button" href="../downloads/training-pairs.jsonl" download>Download training pairs</a></article></div></section>'
+        '<section><h2>2. Keep identities and environments fixed</h2><p>Read <a href="../downloads/task-index.json">task-index.json</a>. Select by track, domain or level, then fetch the linked prompt.json and task.json. Each keeps the original family, public-dev split and content binding; the environment records Lean 4.33.0, Mathlib manifest and evaluator source hashes.</p>'
+        + astis_site.code_html('python tools/sog_bench.py check\npython tools/sog_bench.py export --output .astis/my-bench-export')
+        + '<p>Instructions and environment/verifier contracts are separate, following the useful task-package organization of <a href="https://docs.harborframework.com/tasks/overview">Harbor</a>. This is not yet a native Harbor adapter or a hosted agent runner; no Terminal-Bench task content is imported.</p></section>'
+        '<section><h2>3. Prevent train/test leakage</h2><p>Paired views and derived variants stay in the same family. All current families are public-dev. Publishing a solution makes it unsuitable as a new unseen test; changing a split label cannot undo exposure.</p><p><a href="../evaluation/index.html">Record an evaluation run</a> · <a href="../downloads/LICENSE_SCOPE.md">Rights and restricted-source boundaries</a> · <a href="../downloads/manifest.json">Exact export hashes</a></p></section></article>')
+
+
+def experts_page(cores: list[dict], graph_ids: set[str], known: dict) -> str:
+    from urllib.parse import quote
+    sections = []
+    for domain, label in bench.curriculum.curriculum()['domains'].items():
+        rows = []
+        for c in cores:
+            if domain != c['library_domains'][0]:
+                continue
+            decl = known[c['declaration']]
+            node = 'decl:' + c['declaration']
+            if node not in graph_ids:
+                node = 'module:' + decl.module
+            href, _ = astis_site.source_href(decl, from_path=HUB + 'experts/index.html')
+            additional = []
+            related = c.get('supporting_declarations', []) + c.get('textbook_exercise', {}).get('answer_declarations', [])
+            for result in {r['declaration']: r for r in related}.values():
+                target = known[result['declaration']]
+                result_node = 'decl:' + target.full_name
+                if result_node not in graph_ids:
+                    result_node = 'module:' + target.module
+                result_href, _ = astis_site.source_href(target, from_path=HUB + 'experts/index.html')
+                additional.append('<li><code>' + escape(target.short_name) + '</code> · <a href="../../../underlying-lean-graph/index.html?focus='
+                    + quote(result_node, safe='') + '">Graph</a> · <a href="' + escape(result_href) + '">Source</a></li>')
+            rows.append('<li id="' + c['id'] + '"><a href="../' + c['id'] + '.html">' + escape(c['title']) + '</a>'
+                '<p><code>' + escape(decl.short_name) + '</code> · '
+                '<a href="../../../underlying-lean-graph/index.html?focus=' + quote(node, safe='') + '">Graph position</a> · '
+                '<a href="' + escape(href) + '">Exact source</a></p>'
+                '<p class="sog-caption">' + ('Aligned Lean task; explanatory scope is separate.' if bench.has_lean(c)
+                                              else 'Formal support, not an aligned fixed Lean task.') + '</p>'
+                + (fold('Additional owned results and answer parts', '<ul>' + ''.join(additional) + '</ul>') if additional else '') + '</li>')
+        sections.append(fold(label + ' · ' + str(len(rows)) + ' task cores', '<ul class="sog-expert-list">' + ''.join(rows) + '</ul>'))
+    return (f'<article class="sog-reader" {MARKER}><h1>Expert review</h1>'
+        '<p>Start from a task, inspect its mathematical proof, then locate the real library result. Each core is listed once under its first library; all additional domain memberships remain visible in its task and curriculum.</p>'
+        '<p><a href="../downloads/expert-graph-positions.json">Machine-readable graph anchors and coverage boundaries</a> · <a href="../graph-json/index.html">Audited structural graph tasks</a></p>'
+        '<p class="sog-caption">An anchor is a location, not a proof edge. Imports, compiled proof-body occurrences and conceptual parallels have different meanings. Existing Lean support does not certify an entire natural-language answer.</p>'
+        + ''.join(sections) + '</article>')
 
 
 def track_page(cores: list[dict], track: str) -> str:
@@ -162,7 +294,7 @@ def track_page(cores: list[dict], track: str) -> str:
         '<div class="sog-grid">' + cards + '</div></article>')
 
 
-def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, known: dict | None = None, structural: list[dict] | None = None) -> str:
+def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, known: dict | None = None, structural: list[dict] | None = None, review_row: dict | None = None) -> str:
     from urllib.parse import quote
     rel = HUB + core['id'] + '.html'
     known = known or astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
@@ -175,9 +307,9 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
         graph_id = 'module:' + declaration.module
         graph_label = 'Locate the owning module (declaration not yet indexed in this graph)'
     status = 'Trusted reference compilation recorded for this source state.' if checked else 'No current trusted-reference compiler receipt recorded in this build.'
-    assumptions = '<ul>' + ''.join('<li>' + escape(s) + '</li>' for s in core['assumptions']) + '</ul>'
+    assumptions = '<ul>' + ''.join('<li>' + inline_prose(s) + '</li>' for s in core['assumptions']) + '</ul>'
     proof = '<ol>' + ''.join('<li>' + prose(s) + '</li>' for s in core['steps']) + '</ol>'
-    rubric = '<ol>' + ''.join('<li>' + escape(r['criterion']) + ' (1 point)</li>' for r in core['rubric']) + '</ol>'
+    rubric = '<ol>' + ''.join('<li>' + inline_prose(r['criterion']) + ' (1 point)</li>' for r in core['rubric']) + '</ol>'
     support_title = ('Owned Lean answer and proof-step correspondence' if core.get('textbook_exercise')
                      else 'Formal support and missing Lean alignment')
     lean = (prose(core['lean_explanation']) + '<div data-lean-code-panel><button type="button" data-lean-copy>Copy Lean reference</button><span data-lean-copy-status role="status" aria-live="polite"></span>'
@@ -214,12 +346,23 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
     related=[g for g in (bench.curriculum.graph_items() if structural is None else structural) if g.get('core_id')==core['id']]
     graph_links=('<p>Structural questions about this proof context (not equivalent mathematical tasks): '+
                  ' · '.join('<a href="'+g['id']+'.html">'+escape(g['title'])+'</a>' for g in related)+'</p>') if related else ''
+    graph_position = ('<aside class="sog-graph-position" data-lean-graph-position="' + escape(graph_id) + '">'
+        '<div><span class="eyebrow">Library result behind this task</span><h2>'
+        + escape(declaration.short_name) + '</h2></div>'
+        '<p><a class="button" href="../../underlying-lean-graph/index.html?focus='
+        + quote(graph_id, safe='') + '">' + graph_label + '</a> '
+        '<a href="' + escape(href) + '">Read the exact source</a></p>'
+        + prose('Aligned fixed Lean task; its conclusion does not certify every explanatory claim.'
+                if bench.has_lean(core) else 'Library support only: this question has no aligned fixed Lean reconstruction task.')
+        + '<p class="sog-caption">A graph location is not a proof-dependency or mathematical-necessity claim. '
+        'Open the task proof and coverage notes below for its exact scope.</p></aside>')
     return (f'<article class="sog-reader" {MARKER}><p><a href="index.html">Bench</a> / ' + escape(core['domain']) + '</p>'
         '<div class="eyebrow">' + escape(core['id']) + ' · public-dev · editorial and formal status separate</div><h1>' + escape(core['title']) + '</h1>'
         + '<p>' + escape(domain_names(core)) + ' · ' + escape(' / '.join(t + ': ' + l for t, l in core['track_levels'].items())) + ' (author-assigned; calibration pending)</p>'
+        + graph_position
         + exercise_panel(core, checked)
         + fold('Why this difficulty?', prose(core['difficulty_reason']))
-        + review_panel(core)
+        + review_panel(core, review_row)
         + '<section><h2>Assumptions and conventions</h2>' + assumptions + '</section>'
         '<section id="natural-language"><h2>Natural-language question</h2>' + prose(core['question'])
         + fold('Reference mathematical proof', proof + fold('How the Lean proof follows these steps' if bench.has_lean(core) else support_title, lean))
@@ -377,6 +520,7 @@ def import_figure(graph: dict) -> str:
 
 def enrich_site(output: Path) -> None:
     cores = bench.materialize()
+    review_rows = bench.editorial_review(cores)['items']
     known = astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
     astis_site._SOURCE_BY_NAME=known
     checked = bench.receipt_current(cores)
@@ -389,11 +533,13 @@ def enrich_site(output: Path) -> None:
     pages = [('index.html', 'SamplingOptimisationGeometryBench', home(cores))]
     graphs = bench.curriculum.graph_items()
     pages += [(track + '/index.html', track.replace('-', ' ').title(), track_page(cores, track)) for track in bench.TRACKS]
-    pages += [(c['id'] + '.html', c['title'], core_page(c, checked, graph_ids, known,graphs)) for c in cores]
+    pages += [(c['id'] + '.html', c['title'], core_page(c, checked, graph_ids, known,graphs,review_rows[c['id']])) for c in cores]
     policy = bench.curriculum.curriculum()
     graphs = bench.curriculum.graph_items()
     pages.append(('curriculum/index.html', 'Bench curriculum', curriculum_page(cores)))
     pages.append(('evaluation/index.html', 'Run and assess answers', evaluation_page()))
+    pages.append(('training/index.html', 'Training data and task API', training_page()))
+    pages.append(('experts/index.html', 'Expert review and Lean graph positions', experts_page(cores, graph_ids, known)))
     pages.append(('textbook-exercises/index.html', 'Numbered textbook exercises', exercise_index(cores, checked)))
     pages += [('domains/' + key + '.html', title, browse_page(cores, key, domain=True)) for key, title in policy['domains'].items()]
     pages += [('levels/' + key + '.html', key, browse_page(cores, key, domain=False)) for key in policy['levels']]
@@ -402,7 +548,7 @@ def enrich_site(output: Path) -> None:
     pages.append(('graph-json/index.html', 'Structured graph QA', graph_index))
     for tail, title, body in pages:
         rel = HUB + tail
-        text = astis_site.page(title, rel, body)
+        text = astis_site.page(title, rel, local_navigation(tail) + body)
         text = source_lineage.canonical_shell(text, rel, output)
         text = text.replace('</head>', '<link rel="stylesheet" href="' + astis_site.relative_prefix(rel) + 'assets/sog-bench.css"></head>')
         astis_site.write_page(output, rel, text)
@@ -421,6 +567,7 @@ def enrich_site(output: Path) -> None:
 def validate_site(output: Path) -> list[str]:
     errors = []
     cores = bench.materialize()
+    review_rows = bench.editorial_review(cores)['items']
     known = astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
     astis_site._SOURCE_BY_NAME=known
     checked = bench.receipt_current(cores)
@@ -441,7 +588,7 @@ def validate_site(output: Path) -> list[str]:
         errors.append('Bench requires the canonical Lean graph')
     policy = bench.curriculum.curriculum()
     graphs = bench.curriculum.graph_items()
-    extra = ['curriculum/index.html', 'graph-json/index.html', 'evaluation/index.html', 'textbook-exercises/index.html',
+    extra = ['curriculum/index.html', 'graph-json/index.html', 'evaluation/index.html', 'training/index.html', 'experts/index.html', 'textbook-exercises/index.html',
              *('domains/' + d + '.html' for d in policy['domains']),
              *('levels/' + l + '.html' for l in policy['levels']), *(g['id'] + '.html' for g in graphs)]
     for rel in ['index.html', *(t + '/index.html' for t in bench.TRACKS), *(c['id'] + '.html' for c in cores), *extra]:
@@ -449,6 +596,7 @@ def validate_site(output: Path) -> list[str]:
         if not path.is_file() or MARKER not in path.read_text(encoding='utf-8'):
             errors.append('Missing Bench reader: ' + rel)
     current_pages = {'index.html': home(cores), 'evaluation/index.html': evaluation_page(),
+                     'training/index.html': training_page(), 'experts/index.html': experts_page(cores, ids, known),
                      'textbook-exercises/index.html': exercise_index(cores, checked),
                      'graph-json/index.html':graph_index_page(graphs),
                      'curriculum/index.html': curriculum_page(cores),
@@ -461,7 +609,7 @@ def validate_site(output: Path) -> list[str]:
             errors.append('Stale Bench curriculum or structural graph: ' + rel)
     for core in cores:
         path = output / HUB / (core['id'] + '.html')
-        if path.is_file() and core_page(core, checked, ids, known,graphs) not in path.read_text(encoding='utf-8'):
+        if path.is_file() and core_page(core, checked, ids, known,graphs,review_rows[core['id']]) not in path.read_text(encoding='utf-8'):
             errors.append('Stale Bench mathematics or compiler label: ' + core['id'])
     # Recreate the deterministic export and compare bytes, not manually copied counts.
     import tempfile

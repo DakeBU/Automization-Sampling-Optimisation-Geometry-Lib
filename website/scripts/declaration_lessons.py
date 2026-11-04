@@ -64,9 +64,20 @@ def source_citation(source: dict, page: str) -> str:
 
 
 def inline_text(value: str) -> str:
-    """Only inline code is interpreted; mathematical TeX remains for MathJax."""
-    return ''.join('<code>' + base.esc(part) + '</code>' if i % 2 else base.esc(part)
+    """Typeset prose relations without rewriting literal Lean or audited TeX."""
+    def prose(part: str) -> str:
+        spans = re.split(r'(\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\])', part)
+        return base.esc(''.join(span if i % 2 else
+            span.replace('<=', '≤').replace('>=', '≥').replace('!=', '≠').replace('->', '→')
+            for i, span in enumerate(spans)))
+    return ''.join('<code>' + base.esc(part) + '</code>' if i % 2 else prose(part)
                    for i, part in enumerate(re.split(r'`([^`]+)`', value)))
+
+
+def prose_list(values: list[object]) -> str:
+    """Natural-language hypotheses/boundaries, not raw code/API inventories."""
+    return ('<ul>' + ''.join('<li>' + (inline_text(value) if isinstance(value, str)
+                            else base.esc(value)) + '</li>' for value in values) + '</ul>') if values else ''
 
 
 def export_sources(output: Path, units: list[dict]) -> None:
@@ -217,9 +228,9 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
         + (f'<p class="reader-scope-note">{inline_text(unit["reader_note"])}</p>' if unit.get('reader_note') else '')
         + '</section>'
         '<details class="reader-ledger assumption-ledger"><summary>Full assumptions and notation</summary>'
-        '<h3>All objects and hypotheses</h3>' + base.list_html(unit['assumptions'])
+        '<h3>All objects and hypotheses</h3>' + prose_list(unit['assumptions'])
         + ('<h3>Notation and interpretation</h3><dl>' + notation + '</dl>' if notation else '')
-        + base.list_html(unit.get('conventions', []), empty='') + '</details>'
+        + prose_list(unit.get('conventions', [])) + '</details>'
         + f'<h2>{proof_title}</h2>'
         + ('<p class="reader-expand-hint">Open a step to read its argument and formula.</p>' if progressive else '') + steps
         + '<section class="lean-verification"><h2>Lean verification</h2>'
@@ -232,7 +243,7 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
         + (('<details class="reader-ledger"><summary>Source correspondence and review</summary>'
             + source_comparison + '</details>') if progressive and source_comparison else source_comparison)
         + '<details class="reader-ledger boundary-ledger"><summary>Scope and omitted-condition boundaries</summary>'
-        + base.list_html(boundary) + '</details>'
+        + prose_list(boundary) + '</details>'
         + '<details class="proof-reader-provenance reader-ledger"><summary>Sources, dependencies, and reuse</summary><h2>Source and reuse</h2><h3>Samplinglib parents called</h3><ul>' + astis
         + '</ul>'
         + ('<h3>Domain assumptions accessed</h3><p>These are fields of the linked structure, not additional independently authored theorem leaves.</p><ul>' + projections + '</ul>' if projections else '')

@@ -13,6 +13,7 @@ sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'website/scripts')]
 import sog_bench as bench
 import sog_bench_reader as reader
 import sog_bench_graph_review as graph_review
+import sog_bench_exercises as exercises
 
 
 class BenchTests(unittest.TestCase):
@@ -26,8 +27,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 28)
-        self.assertEqual(len(prompts), 41)
+        self.assertEqual(len(self.cores), 29)
+        self.assertEqual(len(prompts), 42)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -39,7 +40,7 @@ class BenchTests(unittest.TestCase):
     def test_prompt_export_has_no_answers_rubrics_or_reference_proofs(self):
         allowed = {'id', 'family', 'domain', 'library_domains', 'skills', 'title', 'split', 'assumptions', 'binding_sha256', 'track', 'level', 'question'}
         for row in bench.prompts(self.cores):
-            self.assertEqual(set(row), allowed)
+            self.assertEqual(set(row), allowed | ({'exercise_source'} if row['id'] == 'sogb-029' else set()))
             self.assertNotIn(':= by\n  intro', row['question'])
         self.assertTrue(all('-- Replace this comment' in r['question']
                             for r in bench.prompts(self.cores) if r['track'] == 'lean'))
@@ -77,7 +78,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 41)
+            self.assertEqual(manifest['qa_views'], 42)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -89,7 +90,7 @@ class BenchTests(unittest.TestCase):
             self.assertTrue((output/'TEXTBOOK_EXERCISES.md').is_file())
             self.assertIn('source intake is not QA admission', manifest['textbook_exercise_programme'])
             intake = (output/'TEXTBOOK_EXERCISES.md').read_text(encoding='utf-8')
-            self.assertIn('not yet Bench-admitted', intake)
+            self.assertIn('Intake itself is not admission', intake)
             self.assertIn('9e28afeacb0121b79691fadc6af9c145ccd787bffd2cf9c3f2310806112e644b', intake)
             self.assertTrue((output/'examples/prose-run.json').is_file())
             guide = (output/'README.md').read_text(encoding='utf-8')
@@ -123,17 +124,28 @@ class BenchTests(unittest.TestCase):
 
     def test_receipt_requires_exact_source_and_qa_bindings(self):
         aligned = [c for c in self.cores if bench.has_lean(c)]
+        answers = exercises.answers(self.cores)
         receipt = {'schema_version': 1, 'passed': True, 'environment_sha256': 'environment',
                    'environment_scope': 'selected-source-import-closure',
                    'compiler_version': 'Lean (version 4.33.0, test fixture)',
                    'bindings': {c['id']: c['binding_sha256'] for c in aligned},
                    'reference_sha256': {c['id']: bench.sha(c['lean_reference'].encode()) for c in aligned},
-                   'commands': [{'returncode': 0}] * (len(aligned) + 2)}
+                   'commands': [{'returncode': 0}] * (len(aligned) + 2 + bool(answers)),
+                   'exercise_answer_declarations': sorted(answers),
+                   'exercise_answer_axioms': {n: ['propext', 'Classical.choice', 'Quot.sound'] for n in answers}}
         with tempfile.TemporaryDirectory() as tmp, \
              patch.object(bench, 'RECEIPT', Path(tmp) / 'receipt.json'), \
              patch.object(bench, 'environment_digest', return_value='environment'):
             bench.RECEIPT.write_bytes(bench.encoded(receipt))
             self.assertTrue(bench.receipt_current(self.cores))
+            bad = deepcopy(receipt)
+            bad['exercise_answer_axioms'][sorted(answers)[0]] = ['sorryAx']
+            bench.RECEIPT.write_bytes(bench.encoded(bad))
+            self.assertFalse(bench.receipt_current(self.cores))
+            bad = deepcopy(receipt)
+            del bad['exercise_answer_declarations']
+            bench.RECEIPT.write_bytes(bench.encoded(bad))
+            self.assertFalse(bench.receipt_current(self.cores))
             receipt['bindings']['sogb-001'] = 'old-question'
             bench.RECEIPT.write_bytes(bench.encoded(receipt))
             self.assertFalse(bench.receipt_current(self.cores))
@@ -166,7 +178,8 @@ class BenchTests(unittest.TestCase):
                 self.assertIn('data-lean-copy-status', rendered)
                 self.assertIn('No current trusted-reference compiler receipt', rendered)
             else:
-                self.assertIn('Lean view: not yet aligned', rendered)
+                self.assertIn('Owned Lean core answers' if core.get('textbook_exercise')
+                              else 'Lean view: not yet aligned', rendered)
                 self.assertEqual('data-lean-copy-status' in rendered, bool(core.get('support_source_view')))
             self.assertNotIn('<details open', rendered)
             self.assertIn('focus=decl%3A', rendered)
@@ -186,13 +199,13 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 28)
+        self.assertEqual(coverage['unique_mathematical_cores'], 29)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertFalse(any(c['track_levels'].get('lean') == 'L5' for c in self.cores))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 28)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 29)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -357,9 +370,95 @@ class BenchTests(unittest.TestCase):
         page = reader.home(self.cores)
         self.assertIn('Numbered textbook exercises and our reference solutions', page)
         self.assertIn('downloads/TEXTBOOK_EXERCISES.md', page)
-        self.assertIn('intake route is not an admitted Bench question', page)
+        self.assertIn('Intake itself is not admission', page)
         self.assertIn('chapter-03.html#chewi-opt-v1-exercise-3-2', page)
-        self.assertNotIn('Exercise 3.2', ' '.join(c['title'] for c in self.cores))
+        self.assertIn('Exercise 3.2', next(c['title'] for c in self.cores if c['id'] == 'sogb-029'))
+
+    def test_numbered_exercise_has_exact_source_parts_and_only_bibliography_in_prompts(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-029')
+        ex = core['textbook_exercise']
+        self.assertEqual(ex['number'], '3.2')
+        self.assertEqual((ex['book_page'], ex['pdf_page']), (23, 23))
+        self.assertEqual({p['id'] for p in ex['parts']},
+                         {'hessian-segment-bound', 'balanced-minimax-step'})
+        self.assertEqual({s for d in ex['answer_declarations'] for s in d['supports']},
+                         {p['id'] for p in ex['parts']})
+        self.assertFalse(bench.has_lean(core))
+        prompt = bench.prompts([core])[0]['exercise_source']
+        self.assertEqual(prompt['exercise'], '3.2')
+        self.assertNotIn('answer_declarations', prompt)
+        self.assertNotIn('assumption_deltas', prompt)
+        self.assertNotIn(core['declaration'], json.dumps(prompt))
+        self.assertEqual(core['family'], ex['id'])
+        self.assertTrue(all(d in bench.astis_site._SOURCE_BY_NAME for d in core['dependencies']['astis']))
+
+    def test_numbered_source_resolver_rejects_relabelling_missing_parts_and_fake_declarations(self):
+        original = json.loads(exercises.DATA.read_text(encoding='utf-8'))
+        known = bench.astis_site._SOURCE_BY_NAME
+        for key, value in (('number', '3.3'), ('pdf_page', 150),
+                           ('book_page', True), ('publication_file', '../elsewhere.json')):
+            data = deepcopy(original)
+            data['exercises'][0][key] = value
+            with self.assertRaises(ValueError):
+                exercises.resolve('chewi-opt-v1-exercise-3-2', known, data)
+        data = deepcopy(original)
+        data['books']['chewi-optimization-v1']['pdf_url'] = 'https://arxiv.org/pdf/2605.07006v2'
+        with self.assertRaises(ValueError):
+            exercises.resolve('chewi-opt-v1-exercise-3-2', known, data)
+        with self.assertRaises(ValueError):
+            exercises.resolve('not-a-real-exercise', known)
+        with self.assertRaises(ValueError):
+            exercises.resolve('chewi-opt-v1-exercise-3-2', {}, original)
+        path = ROOT / original['exercises'][0]['publication_file']
+        pub = json.loads(path.read_text(encoding='utf-8'))
+        selected = next(p for p in pub['items'] if p['id'] == 'chewi-opt-v1-exercise-3-2')
+        selected['bindings'] = selected['bindings'][:1]
+        actual_read = Path.read_text
+        with patch.object(Path, 'read_text', lambda p, *a, **kw:
+                          bench.encoded(pub).decode() if p == path else actual_read(p, *a, **kw)):
+            with self.assertRaises(ValueError):
+                exercises.resolve('chewi-opt-v1-exercise-3-2', known, original)
+
+    def test_owned_answer_probe_checks_named_compiled_modules_not_a_reconstruction_target(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-029')
+        names = sorted(exercises.answers([core]))
+        probe = exercises.probe([core])
+        self.assertEqual(probe.count('#print axioms '), 2)
+        self.assertIn('import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep', probe)
+        self.assertNotIn('example', probe)
+        output = '\n'.join("'" + n + "' depends on axioms: [propext, Classical.choice, Quot.sound]" for n in names)
+        self.assertEqual(set(exercises.checked_axioms(output, names)), set(names))
+        with self.assertRaises(ValueError):
+            exercises.checked_axioms(output.replace('Quot.sound', 'sorryAx'), names)
+        with self.assertRaises(ValueError):
+            exercises.checked_axioms('', names)
+
+    def test_exercise_sources_allow_hash_pinned_primary_books_not_only_arxiv(self):
+        data = json.loads(exercises.DATA.read_text(encoding='utf-8'))
+        book = data['books']['chewi-optimization-v1']
+        book['edition'] = 'dated-primary-source-test-fixture'
+        book['pdf_url'] = 'https://chewisinho.github.io/main.pdf'
+        del book['html_url']
+        path = ROOT / data['exercises'][0]['publication_file']
+        pub = json.loads(path.read_text(encoding='utf-8'))
+        selected = next(p for p in pub['items'] if p['id'] == 'chewi-opt-v1-exercise-3-2')
+        selected['source']['edition'] = book['edition']
+        selected['source']['anchor'] = 'Exercise 3.2. Source punctuation fixture.'
+        actual_read = Path.read_text
+        with patch.object(Path, 'read_text', lambda p, *a, **kw:
+                          bench.encoded(pub).decode() if p == path else actual_read(p, *a, **kw)):
+            resolved = exercises.resolve('chewi-opt-v1-exercise-3-2', bench.astis_site._SOURCE_BY_NAME, data)
+            self.assertEqual(resolved['book']['pdf_url'], book['pdf_url'])
+        for url in ('javascript:bad', 'https://user:secret@example.org/book.pdf', 'https://example.org/ bad'):
+            self.assertFalse(exercises.primary_url(url))
+
+    def test_exercise_prose_changes_do_not_recompile_unchanged_owned_answers(self):
+        data = deepcopy(bench.load())
+        data['cores'][-1]['question'] += ' Extra unaudited clause.'
+        changed = bench.materialize(data)
+        self.assertNotEqual(changed[-1]['binding_sha256'], self.cores[-1]['binding_sha256'])
+        self.assertEqual(bench.environment_digest(changed), bench.environment_digest(self.cores))
+        self.assertEqual(exercises.compile_contexts(changed), exercises.compile_contexts(self.cores))
 
     def test_plain_exponentials_render_without_nesting_existing_math_or_mutating_gold(self):
         text='Multiply by αe^{αt}>0; X(u)=e^{−u}. Already \\(e^{\\alpha t}\\) and \\[e^{-t}\\].'

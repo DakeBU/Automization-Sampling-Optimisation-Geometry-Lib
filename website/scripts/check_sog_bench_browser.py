@@ -32,6 +32,10 @@ def math_component_shot(page, destination: Path) -> None:
 
 def check_visible_equations(page) -> None:
     for equation in page.locator('#natural-language mjx-container[display="true"]').all():
+        # Other proof/source sections intentionally remain folded. Check their
+        # equations when opened, not the zero-size boxes of closed details.
+        if not equation.is_visible():
+            continue
         assert equation.evaluate("""e => {
           e.scrollIntoView({block:'center', inline:'nearest', behavior:'instant'});
           const r=e.getBoundingClientRect();
@@ -73,7 +77,7 @@ def main() -> None:
             intake = page.request.get(base + HUB + 'downloads/TEXTBOOK_EXERCISES.md')
             assert intake.status == 200
             assert hashlib.sha256(intake.body()).hexdigest() == manifest['files']['TEXTBOOK_EXERCISES.md']
-            assert 'not yet Bench-admitted' in intake.text()
+            assert 'Intake itself is not admission' in intake.text()
             exercise_link = page.get_by_role('link', name='Existing Chewi Optimization Exercise 3.2 source/solution window')
             assert exercise_link.is_visible()
             source_page = page.request.get(base + 'libraries/optimisation/chapter-03.html')
@@ -81,6 +85,19 @@ def main() -> None:
             assert 'id="chewi-opt-v1-exercise-3-2"' in source_page.text()
             page.screenshot(path=str(args.evidence / 'textbook-exercise-intake.png'), full_page=True)
             page.get_by_text('Numbered textbook exercises and our reference solutions', exact=True).click()
+            exercise_response = page.request.get(base + HUB + 'downloads/textbook-exercise-map.json')
+            assert exercise_response.status == 200
+            assert hashlib.sha256(exercise_response.body()).hexdigest() == manifest['files']['textbook-exercise-map.json']
+            exercises = exercise_response.json()
+            assert len(exercises) == manifest['numbered_textbook_exercises']
+            page.get_by_role('link', name='Textbook exercises & answers', exact=True).click()
+            assert page.get_by_role('heading', name='Numbered textbook exercises', exact=True).is_visible()
+            for exercise in exercises:
+                assert exercise['parts'] and exercise['answer_declarations']
+                for question in exercise['questions']:
+                    assert page.get_by_role('link', name=question['core_id'], exact=True).is_visible()
+            page.screenshot(path=str(args.evidence / 'textbook-exercise-directory.png'), full_page=True)
+            page.goto(base + HUB + 'index.html')
             editorial = page.request.get(base + HUB + 'downloads/editorial-review.json').json()
             graph_records=[json.loads(line) for line in page.request.get(base+HUB+'downloads/graph-questions.jsonl').text().splitlines()]
             compiled_graphs={r['id']+'.html':r for r in graph_records if r['context']['kind']=='compiled-proof-body-constant-occurrences'}
@@ -144,11 +161,23 @@ def main() -> None:
                     page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                     page.evaluate('() => MathJax.startup.promise')
                     assert page.locator('details[open]').count()==0
+                    if core.get('textbook_exercise'):
+                        page.locator('summary', has_text='Original exercise, all requested parts and exact Lean scope').click()
+                        check_visible_equations(page)
+                        exercise = core['textbook_exercise']
+                        for answer in exercise['answer_declarations']:
+                            graph_link = page.get_by_role('link', name=answer['declaration'], exact=True)
+                            assert graph_link.is_visible()
+                            assert 'underlying-lean-graph/index.html?focus=' in graph_link.get_attribute('href')
+                        assert 'not a new proof' in page.locator('article.sog-reader').inner_text()
+                        page.locator('summary', has_text='Original exercise, all requested parts and exact Lean scope').click()
                     page.locator('summary',has_text='Reference mathematical proof').click()
                     check_visible_equations(page)
                     assert page.locator('mjx-merror, [data-mjx-error]').count()==0
                     math_component_shot(page,args.evidence/(identity+'-math-'+suffix+'.png'))
-                    page.locator('#natural-language summary',has_text='Formal support and missing Lean alignment').click()
+                    support_title = ('Owned Lean answer and proof-step correspondence'
+                                     if core.get('textbook_exercise') else 'Formal support and missing Lean alignment')
+                    page.locator('#natural-language summary',has_text=support_title).click()
                     page.locator('#natural-language summary',has_text='Supporting library Lean (not an aligned QA task)').click()
                     panel=page.locator('#natural-language [data-lean-code-panel]')
                     assert panel.locator('code.language-lean').is_visible()
@@ -243,7 +272,9 @@ def main() -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
-    report = {'mathematical_views': len(records), 'graph_tasks': manifest['graph_tasks'], 'textbook_intake_not_qa_admission': True, 'math_rendered': True, 'lean_highlighting': True,
+    report = {'mathematical_views': len(records), 'graph_tasks': manifest['graph_tasks'],
+              'numbered_textbook_exercises': len(exercises), 'exercise_directory_and_actual_part_links': True,
+              'textbook_intake_not_qa_admission': True, 'math_rendered': True, 'lean_highlighting': True,
               'folds_and_copy': True, 'prompt_only_download': True, 'reviewed_subset_download': True,
               'editorial_vs_formal_scope_visible': True, 'mobile_overflow': False,
               'equations_unobscured_when_centered': True, 'component_images_omit_navigation_only': True,

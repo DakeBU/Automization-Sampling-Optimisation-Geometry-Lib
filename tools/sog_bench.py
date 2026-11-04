@@ -78,6 +78,13 @@ def materialize(data: dict | None = None) -> list[dict]:
         if declaration is None or declaration.source_file != core['source_file'] or declaration.has_placeholder:
             raise ValueError('Unresolved or unfinished reference declaration: ' + core['declaration'])
         extra = {}
+        if 'textbook_exercise_id' in core:
+            import sog_bench_exercises
+            exercise = sog_bench_exercises.resolve(core['textbook_exercise_id'], known)
+            if (core['family'] != exercise['id'] or core['declaration'] not in
+                    {d['declaration'] for d in exercise['answer_declarations']}):
+                raise ValueError('Numbered exercise variants share their source family and actual answer anchor')
+            extra['textbook_exercise'] = exercise
         if 'additional_source_declarations' in core:
             names = core['additional_source_declarations']
             if (not isinstance(names, list) or not names or
@@ -135,6 +142,9 @@ def prompts(cores: list[dict]) -> list[dict]:
     rows = []
     for core in cores:
         common = {k: core[k] for k in ('id', 'family', 'domain', 'library_domains', 'skills', 'title', 'split', 'assumptions', 'binding_sha256')}
+        if core.get('textbook_exercise'):
+            import sog_bench_exercises
+            common['exercise_source'] = sog_bench_exercises.source_prompt(core['textbook_exercise'])
         for track, level in core['track_levels'].items():
             question = core['question'] if track == 'natural-language' else (
                 'Complete the fixed Lean target below. Keep its imports, context and proposition unchanged. '
@@ -161,24 +171,37 @@ def environment_digest(cores: list[dict] | None = None) -> str:
     """Bind the actual task/source import closures, not unrelated live work."""
     import sog_bench_review
     selected = [c for c in (materialize() if cores is None else cores) if has_lean(c)]
-    return sha(encoded({'scope': 'selected-source-import-closure',
-                        'contexts': {c['id']: sog_bench_review.context_binding(c) for c in selected},
-                        'lakefile_sha256_lf': text_hash(ROOT / 'lakefile.lean')}))
+    payload = {'scope': 'selected-source-import-closure',
+               'contexts': {c['id']: sog_bench_review.context_binding(c) for c in selected},
+               'lakefile_sha256_lf': text_hash(ROOT / 'lakefile.lean')}
+    import sog_bench_exercises
+    answer_contexts = sog_bench_exercises.compile_contexts(materialize() if cores is None else cores)
+    if answer_contexts:
+        payload['owned_exercise_answers'] = answer_contexts
+    return sha(encoded(payload))
 
 
 def receipt_current(cores: list[dict]) -> bool:
+    all_cores = cores
     cores = [c for c in cores if has_lean(c)]
+    import sog_bench_exercises
+    answers = sog_bench_exercises.answers(all_cores)
     if not RECEIPT.is_file():
         return False
     try:
         receipt = json.loads(RECEIPT.read_text(encoding='utf-8'))
         return (receipt['schema_version'] == 1 and receipt['passed'] is True
                 and receipt['environment_scope'] == 'selected-source-import-closure'
-                and receipt['environment_sha256'] == environment_digest(cores)
+                and receipt['environment_sha256'] == environment_digest(all_cores)
                 and receipt['bindings'] == {c['id']: c['binding_sha256'] for c in cores}
                 and receipt['reference_sha256'] == {c['id']: sha(c['lean_reference'].encode()) for c in cores}
                 and re.search(r'version 4\.33\.0(?:[, )])', receipt['compiler_version']) is not None
-                and len(receipt['commands']) == len(cores) + 2
+                and len(receipt['commands']) == len(cores) + 2 + bool(answers)
+                and (not answers or (
+                    receipt.get('exercise_answer_declarations') == sorted(answers)
+                    and set(receipt.get('exercise_answer_axioms', {})) == set(answers)
+                    and all(set(a) <= {'propext', 'Classical.choice', 'Quot.sound'}
+                            for a in receipt['exercise_answer_axioms'].values())))
                 and all(r['returncode'] == 0 for r in receipt['commands']))
     except (ValueError, KeyError, TypeError):
         return False
@@ -196,7 +219,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'editorial-review.json', 'graph-editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 'reviewed-graph-questions.jsonl','reviewed-graph-reference.jsonl',
-                'EVALUATION.md', 'TEXTBOOK_EXERCISES.md', 'examples/prose-run.json',
+                'EVALUATION.md', 'TEXTBOOK_EXERCISES.md', 'textbook-exercise-map.json', 'examples/prose-run.json',
                 'compiled-transport-graph.json', 'compiled-flow-graph.json',
                 *project_licensing.LICENSE_FILES,
                 *('lean/' + c['id'] + '-support.lean' for c in cores if c.get('support_source_view')),
@@ -231,6 +254,9 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('EVALUATION.md', (DATA.parent / 'EVALUATION.md').read_bytes())
     # Source intake is documentation, not an admitted QA or copied source text.
     write('TEXTBOOK_EXERCISES.md', (DATA.parent / 'TEXTBOOK_EXERCISES.md').read_bytes())
+    import sog_bench_exercises
+    exercises = sog_bench_exercises.projection(cores, review['items'], receipt_current(cores))
+    write('textbook-exercise-map.json', encoded(exercises))
     (output / 'examples').mkdir(exist_ok=True)
     write('examples/prose-run.json', (DATA.parent / 'examples/prose-run.json').read_bytes())
     (output / 'lean').mkdir(exist_ok=True)
@@ -256,7 +282,10 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'difficulty_calibration': 'author-assigned; not empirically calibrated',
                 'independent_semantic_review': 'see content-bound mathematical and structural editorial reports; not empirical calibration',
                 'hidden_test': False,
-                'textbook_exercise_programme': 'See TEXTBOOK_EXERCISES.md; source intake is not QA admission or full exercise formalization',
+                'textbook_exercise_programme': 'See textbook-exercise-map.json and TEXTBOOK_EXERCISES.md; source intake is not QA admission or full exercise formalization',
+                'numbered_textbook_exercises': len(exercises),
+                'editorial_admitted_numbered_exercises': sum(
+                    any(q['editorial'] in {'accepted', 'accepted-after-repair'} for q in e['questions']) for e in exercises),
                 'prose_scoring': 'offline human-attested rubric records; execution and judgments not automatically verified',
                 'editorial_accepted_cores': len(reviewed),
                 'editorial_review_complete_for_current_mathematical_cores': bool(cores) and len(reviewed) == len(cores),
@@ -283,21 +312,26 @@ def archive_bytes(directory: Path, destination: Path) -> None:
 
 
 def check_lean(cores: list[dict]) -> int:
-    """Trusted references only. Never accepts or executes submitted code."""
+    """Trusted references and named owned answers, never submitted code."""
+    all_cores = cores
+    import sog_bench_exercises
+    answers = sog_bench_exercises.answers(all_cores)
     cores = [c for c in cores if has_lean(c)]
-    if not cores:
-        raise ValueError('No aligned Lean tasks to compile')
+    if not cores and not answers:
+        raise ValueError('No trusted Lean tasks or named owned exercise answers to compile')
     RECEIPT.parent.mkdir(parents=True, exist_ok=True)
     RECEIPT.unlink(missing_ok=True)  # Invalidate only this generated receipt before any attempt.
-    before = environment_digest(cores)
+    before = environment_digest(all_cores)
     commands = []
     compiler_version = ''
+    last_output = ''
     def run(command):
-        nonlocal compiler_version
+        nonlocal compiler_version, last_output
         print('Checking:', ' '.join(command), flush=True)
         result = subprocess.run(command, cwd=ROOT, text=True, encoding='utf-8', errors='replace',
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=600)
         print(result.stdout, end='', flush=True)
+        last_output = result.stdout
         if command == ['lake', 'env', 'lean', '--version']:
             compiler_version = result.stdout.strip()
         commands.append({'command': command, 'returncode': result.returncode})
@@ -306,7 +340,8 @@ def check_lean(cores: list[dict]) -> int:
         raise ValueError('Pilot requires the repository-pinned Lean 4.33.0')
     if run(['lake', 'env', 'lean', '--version']) or not re.search(r'version 4\.33\.0(?:[, )])', compiler_version):
         raise ValueError('Effective compiler differs from Lean 4.33.0; check ELAN_TOOLCHAIN/overrides')
-    imports = sorted({m for c in cores for m in c['imports']})
+    imports = sorted({m for c in cores for m in c['imports']} |
+                     {r['source_file'].removesuffix('.lean').replace('/', '.') for r in answers.values()})
     if run(['lake', 'build', *imports]):
         return 1
     with tempfile.TemporaryDirectory(prefix='trusted-', dir=RECEIPT.parent) as tmp:
@@ -315,7 +350,14 @@ def check_lean(cores: list[dict]) -> int:
             path.write_text(core['lean_reference'], encoding='utf-8', newline='\n')
             if run(['lake', 'env', 'lean', path.relative_to(ROOT).as_posix()]):
                 return 1
-    if environment_digest(cores) != before:
+        answer_axioms = {}
+        if answers:
+            path = Path(tmp) / 'owned-exercise-answers.lean'
+            path.write_text(sog_bench_exercises.probe(all_cores), encoding='utf-8', newline='\n')
+            if run(['lake', 'env', 'lean', path.relative_to(ROOT).as_posix()]):
+                return 1
+            answer_axioms = sog_bench_exercises.checked_axioms(last_output, answers)
+    if environment_digest(all_cores) != before:
         raise ValueError('Selected source/import contexts changed during checking; no receipt written')
     receipt = {'schema_version': 1, 'passed': True, 'environment_sha256': before,
                'environment_scope': 'selected-source-import-closure',
@@ -323,8 +365,14 @@ def check_lean(cores: list[dict]) -> int:
                'bindings': {c['id']: c['binding_sha256'] for c in cores},
                'reference_sha256': {c['id']: sha(c['lean_reference'].encode()) for c in cores},
                'commands': commands, 'scope': 'trusted reference compilation only; no semantic or submission certification'}
+    if answers:
+        receipt['exercise_answer_declarations'] = sorted(answers)
+        receipt['exercise_answer_axioms'] = answer_axioms
+        receipt['scope'] = 'trusted QA references plus named owned exercise-answer modules; not equivalent QA or full source alignment'
     RECEIPT.write_bytes(encoded(receipt))
     print(f'{len(cores)} trusted references checked; compilation does not certify editorial review or full explanatory coverage.')
+    if answers:
+        print(f'{len(answers)} named owned exercise-answer declarations checked separately; no aligned challenge or new leaf credit.')
     return 0
 
 

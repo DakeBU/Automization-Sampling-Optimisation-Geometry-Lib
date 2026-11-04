@@ -66,7 +66,7 @@ def source_citation(source: dict, page: str) -> str:
 def inline_text(value: str) -> str:
     """Typeset prose relations without rewriting literal Lean or audited TeX."""
     def prose(part: str) -> str:
-        spans = re.split(r'(\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\])', part)
+        spans = re.split(r'(\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\]|\$\$[\s\S]*?\$\$|(?<!\\)\$[^\n$]+(?<!\\)\$)', part)
         return base.esc(''.join(span if i % 2 else
             span.replace('<=', '≤').replace('>=', '≥').replace('!=', '≠').replace('->', '→')
             for i, span in enumerate(spans)))

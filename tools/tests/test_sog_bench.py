@@ -556,9 +556,11 @@ class AuthoredProseRenderingTests(unittest.TestCase):
 
     def test_existing_tex_and_html_escaping_are_preserved(self):
         import declaration_lessons
-        rendered = declaration_lessons.inline_text(r'\(\texttt{a->b}\) and \[x<=y\] <script>')
+        rendered = declaration_lessons.inline_text(r'\(\texttt{a->b}\) and \[x<=y\] $x>=y$ $$a->b$$ <script>')
         self.assertIn(r'\(\texttt{a-&gt;b}\)', rendered)
         self.assertIn(r'\[x&lt;=y\]', rendered)
+        self.assertIn('$x&gt;=y$', rendered)
+        self.assertIn('$$a-&gt;b$$', rendered)
         self.assertIn('&lt;script&gt;', rendered)
         self.assertNotIn('<script>', rendered)
 

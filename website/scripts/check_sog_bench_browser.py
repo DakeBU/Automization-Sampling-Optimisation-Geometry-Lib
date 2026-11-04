@@ -166,8 +166,14 @@ def main() -> None:
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 check_visible_equations(page)
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
-                page.evaluate('() => { document.activeElement?.blur(); window.scrollTo({top:0, behavior:"instant"}); }')
-                page.wait_for_function('window.scrollY === 0')
+                # Click/focus and layout anchoring can complete after the first
+                # scroll request on Chromium. Normalize at the observed frame,
+                # instead of waiting for a one-shot request to remain effective.
+                page.wait_for_function('''() => {
+                    document.activeElement?.blur();
+                    window.scrollTo({top:0, left:0, behavior:"instant"});
+                    return window.scrollY === 0;
+                }''')
                 page.screenshot(path=str(args.evidence / (identity + '-proof-mobile.png')), full_page=True)
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 math_component_shot(page, args.evidence / (identity + '-math-mobile.png'))

@@ -59,7 +59,7 @@ class PairedReviewTests(unittest.TestCase):
         self.assertEqual(rows['sogb-015']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-015']['formal_alignment'], 'conclusion-only')
         self.assertTrue(rows['sogb-015']['remaining_unformalized'])
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 28)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 29)
 
     def test_transport_join_has_its_own_blind_reconstruction_and_source_boundaries(self):
         core=next(c for c in self.cores if c['id']=='sogb-018')

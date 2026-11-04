@@ -1,6 +1,6 @@
 # Textbook exercises: source-to-answer intake
 
-This programme is required by the Bench Goal. It supplements, rather than relabels, the original library-grounded QA. An intake record is **not an admitted question**, a model result or a certificate that every part of an exercise has been formalized.
+This programme is required by the Bench Goal. It supplements, rather than relabels, original library-grounded QA. **Intake itself is not admission**, a model result or whole-exercise certification. The source snapshot below is historical provenance; current per-question admission and owned-answer build state are generated from the catalog, exact reviews and compiler receipt in textbook-exercise-map.json.
 
 ## First verified source route: Chewi Optimization Exercise 3.2
 
@@ -14,7 +14,7 @@ This programme is required by the Bench Goal. It supplements, rather than relabe
 | HTML | [v1 Chapter 3](https://arxiv.org/html/2605.07006v1#S3) |
 | Existing source/solution record | chewi-opt-v1-exercise-3-2 in website/content/publications/optimisation.json |
 | Existing readable answer | [Optimization chapter 3](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/libraries/optimisation/chapter-03.html#chewi-opt-v1-exercise-3-2) |
-| Intake status | Primary text and whole relevant PDF page visually checked; not yet Bench-admitted |
+| Source snapshot | Primary text and whole relevant PDF page visually checked. The typed Bench entry is sogb-029; current editorial/compiler states are separately derived, not hand-copied into this table. |
 
 The source asks for the Hessian/segment-FTC route to a uniform gradient-map contraction, the balanced step 2/(α+β), and the factor (κ−1)/(κ+1). The section explicitly assumes C² regularity. The condition-number expression needs positive α; distinguish that source-implicit regime from the separate α=0 nonexpansive extension in the library. The minimization is of the **uniform curvature-endpoint envelope**, not the best actual constant for every individual objective. Do not add a minimizer premise or claim an iterate/oracle-complexity theorem.
 

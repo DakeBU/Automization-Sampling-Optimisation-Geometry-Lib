@@ -54,6 +54,11 @@ class ReadableMathTests(unittest.TestCase):
         self.assertEqual(reader.inline_prose('le_div_iff₀(h)'), '<code>le_div_iff₀(h)</code>')
         self.assertEqual(reader.inline_prose('hX.const_inner(u)'), '<code>hX.const_inner(u)</code>')
 
+    def test_simple_mathematical_equalities_are_not_raw_text_or_cli_options(self):
+        for formula in ('x=y', 'z(t)=x+tv', 'M=M(h)', 'q<1', 't=0'):
+            self.assertIn('sog-inline-math', reader.inline_prose(formula))
+        self.assertNotIn('sog-inline-math', reader.inline_prose('attempt=1 and --track=lean'))
+
     def test_ambiguous_unbalanced_notation_is_left_literal(self):
         self.assertNotIn('sog-inline-math', reader.inline_prose('∇f(x'))
 

@@ -55,7 +55,8 @@ def inline_prose(text: str) -> str:
         if (re.fullmatch(r'[A-Za-z][A-Za-z0-9_\.α-ωΑ-Ω₀-₉]*', identifier)
                 and ('.' in identifier or '_' in identifier and re.match(r'(?:[a-z]{2,}|[A-Z][a-z]{2,})', identifier))):
             return '<code>' + escape(body) + '</code>' + escape(punctuation)
-        if (not _MATH_SENTINEL.search(body) or '\\' in body or '`' in body
+        simple_relation = re.fullmatch(r'[A-Za-z](?:\([^()]*\))?[=<>][A-Za-z0-9().+\-/]+', body)
+        if (not (_MATH_SENTINEL.search(body) or simple_relation) or '\\' in body or '`' in body
                 or any(body.count(a) != body.count(b) for a, b in [('(', ')'), ('[', ']'), ('{', '}')])
                 or '/' in body and (body.startswith(('http:', 'https:')) or '.html' in body)):
             return escape(original)

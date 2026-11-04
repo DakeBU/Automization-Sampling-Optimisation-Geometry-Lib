@@ -22,11 +22,10 @@ the canonical audit is artifact-backed to avoid duplicating whole-module text.
 No actor's prior verdict was used as source-review input. Report self-hash:
 `f114eca919102b57fea78e6f74ba745ed2b2ddc28ca45f10c42c70a98fa97146`.
 
-This checkpoint is PROVED_LOCAL with accepted semantic/source review, not yet
-exact-commit VERIFIED, stabilized, merged or purified. No root imports/Tests,
-Registry or global graph truth was changed in this exploration lane. A stale
-unrelated stabilization entry is not permission to impersonate its owner.
-PR371 remains a separate predecessor and its CI/merge must be checked directly.
+That original exploration checkpoint was subsequently independently VERIFIED at
+proof commit `1245946a` and evidence head `b3859b96`; the original report remains
+unchanged. Root imports/Tests, Registry and global graph truth were not changed
+in that exploration lane. Verification and later integration are separate.
 
 The original exercise still needs the published canonical asymptotic adapter,
 Fisher limit, true LSI admissibility/domain extension, uncentering and PI/core
@@ -43,3 +42,46 @@ frozen evidence; keep prompts separate from reference/verifier material.
 No model leaderboard, private test set or safe arbitrary Lean execution exists
 merely because files can be downloaded. This follow-up does not reopen or
 change the already reviewed theorem's mathematics.
+
+## Current-main integration (2026-11-04)
+
+The actual parent PR371 merged at `9bb7a7394ab0719ec2bc6876c8723d8fef2624fe`
+after all six exact-head checks passed. Its main tree equals the accepted PR
+tree; this identity is not called fresh main-CI compilation. Its six-step proof,
+folded highlighted/copied Lean and actual graph were also checked on the public
+Pages site. The independent parent postmerge purification/Exposition Seal is in
+`../20261104-bounded-density-kl/postmerge-purification.json`; it closes only that
+analytic prerequisite, never the whole exercise.
+
+This original draft PR372 was safely retargeted to main before parent-branch
+cleanup. Integration starts from its exact remote head `b3859b96`, not the local
+branch's extra UI commit. Main was merged at `02b06e70`. The only conflict was
+the append-only ledger: all4,952,967 canonical main-prefix bytes were preserved
+with SHA256 `f942d2c100d3a94a01cd6e562d744be277c20bd92e4a5bd025cac829da280bb3`,
+then the five exact law events were appended. No prior journal byte was removed
+or reserialized. The coordinator recorded the actual parent merge under its own
+identity and claimed the sole law stabilization lane through the existing API.
+
+The theorem, test, source statement, authored proof and accepted publication
+binding `c1ea5b4928e12b1c59e8de2738e22bbb7e3c0e729a797e1b0949fca90ed5c25a`
+are unchanged. Focused2732, root Tests9609 and ASTIS pass; all133 Bench Python
+tests pass (two Unix semantics cases are honestly skipped on Windows). Canonical
+semantic416/8 and Frontier415 checks pass. Exactly one genuine public leaf is
+connected to root imports/Tests and Registry. The composed KL-limit example is
+not another leaf, an admitted QA or a complete exercise certification.
+
+The current six-step reader and exact graph pass real desktop/mobile checks.
+Actual screenshot inspection caught an overlong summary formula. A layout-only
+MathJax fit, readable-font floor and explicit horizontal-scroll hint now preserve
+the exact mathematical tree and all authored TeX. Final browser regressions and
+the regenerated full site remain separate gates; no semantic audit was resigned
+for a presentation change. The source/code/exposition inputs remain byte-identical.
+
+The owner's unrelated untracked kernel drafts stay untouched. A whole-worktree
+publication check still sees them; clean committed-snapshot CI, not a narrow
+target check, must establish this PR's full acceptance before merge. Public
+deployment, postmerge purification of this law packet and whole Goal completion
+are not asserted here. Do not restart the parent proof or create KL wrappers for
+counts. The next real mathematical edge is genuine density-gradient energy and
+its dominated limit; an a.e. RN identity alone does not allow replacing a
+pointwise derivative or assuming the canonical smooth-score domain.

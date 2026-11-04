@@ -151,6 +151,7 @@ def main():
             # Regression: a renderer that finishes after the old 3.2s timeout
             # must reveal the actual formula, with source code left untouched.
             fixture = ('<!doctype html><html><head><meta charset="utf-8">'
+                f'<link rel="stylesheet" href="/{asset_base}/proof-readers.css">'
                 f'<script src="/{asset_base}/math-reader.js"></script>'
                 f'<script defer src="/{asset_base}/vendor/mathjax@3.2.2/tex-mml-chtml.js"></script>'
                 '</head><body><p id="inline">Before \\(R_2(P\\Vert Q)=\\log\\int(\\frac{dP}{dQ})^2\\,dQ\\) after.</p>'
@@ -161,7 +162,9 @@ def main():
                 '<pre id="source"><code>\\(source_code\\)</code></pre>'
                 '<textarea id="edit">\\(editable_source\\)</textarea>'
                 '<div data-math-statement><span class="math-fallback">raw fallback</span>'
-                '<span class="math-tex">\\[x^2\\]</span></div></body></html>')
+                '<span class="math-tex">\\[x^2\\]</span></div>'
+                r'<div id="fit-formula" class="proof-reader-equation" style="font-size:22px;box-sizing:border-box;max-width:100%">\[\sum_{i=1}^{12}a_i=a_1+a_2+\cdots+a_{12}\]</div>'
+                '</body></html>')
             context.route('**/__math_fixture__.html', lambda route: route.fulfill(content_type='text/html', body=fixture))
             def delay_engine(route):
                 # Delay only this fixture; all renderer assets still come from
@@ -170,6 +173,7 @@ def main():
                 time.sleep(3.5)
                 route.continue_()
             context.route('**/tex-mml-chtml.js', delay_engine)
+            page.set_viewport_size({'width': 1280, 'height': 900})
             page.goto(base + '/__math_fixture__.html', wait_until='domcontentloaded')
             page.evaluate('async () => { await MathJax.startup.promise; }')
             for selector in ('#inline', '#dollar', '#coded', '#double'):
@@ -184,11 +188,66 @@ def main():
                 document.body.append(paragraph);
             }''', r'New \(\frac{a}{b}\) prose')
             page.wait_for_selector('#dynamic-math mjx-container', timeout=10000)
+            # Fitting changes only presentation. The CHTML mathematical tree
+            # must survive fitting, readable-size scrolling and widening intact.
+            page.evaluate('''() => {
+                const box = document.querySelector('#fit-formula');
+                const container = box.querySelector('mjx-container');
+                const math = container.querySelector('mjx-math');
+                const style = getComputedStyle(box);
+                window.fitFixture = {box, container, math,
+                    tree: math.innerHTML,
+                    width: math.getBoundingClientRect().width,
+                    font: parseFloat(getComputedStyle(container).fontSize),
+                    padding: parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)};
+                box.style.width = `${fitFixture.width * .92 + fitFixture.padding + 2}px`;
+                dispatchEvent(new Event('resize'));
+            }''')
+            try:
+                page.wait_for_function('''() => {
+                    const f = fitFixture, font = parseFloat(getComputedStyle(f.container).fontSize);
+                    return font < f.font && font >= 16 &&
+                        f.math.getBoundingClientRect().width <= f.box.clientWidth - f.padding + 1 &&
+                        f.box.nextElementSibling?.classList.contains('math-scroll-hint') &&
+                        f.box.nextElementSibling.hidden;
+                }''')
+            except Exception:
+                print('Math fitting diagnostics:', json.dumps(page.evaluate('''() => {
+                    const f = fitFixture, current = f.box.querySelector('mjx-container');
+                    return {initialFont:f.font, font:getComputedStyle(f.container).fontSize,
+                        originalFont:f.container.dataset.readerOriginalFont,
+                        connected:f.container.isConnected, currentContainer:current === f.container,
+                        width:f.math.getBoundingClientRect().width, boxWidth:f.box.clientWidth,
+                        padding:f.padding, hint:f.box.nextElementSibling?.className,
+                        hintHidden:f.box.nextElementSibling?.hidden};
+                }''')), flush=True)
+                raise
+            page.evaluate('''() => {
+                fitFixture.box.style.width = `${fitFixture.width * .35 + fitFixture.padding + 2}px`;
+                dispatchEvent(new Event('resize'));
+            }''')
+            page.wait_for_function('''() => !fitFixture.box.nextElementSibling.hidden &&
+                fitFixture.box.tabIndex === 0 &&
+                parseFloat(getComputedStyle(fitFixture.container).fontSize) >= 16''')
+            assert page.evaluate('''() => fitFixture.math.getBoundingClientRect().left >=
+                fitFixture.box.getBoundingClientRect().left - 1'''), 'Formula start must not be clipped by centering'
+            page.evaluate('() => { fitFixture.box.scrollLeft = fitFixture.box.scrollWidth; }')
+            assert page.evaluate('''() => fitFixture.box.scrollLeft > 0 &&
+                fitFixture.math.getBoundingClientRect().right <= fitFixture.box.getBoundingClientRect().right + 1'''), 'Formula end must be reachable'
+            assert page.evaluate('() => fitFixture.math.innerHTML === fitFixture.tree')
+            page.evaluate('''() => {
+                fitFixture.box.style.width = `${fitFixture.width * 1.2 + fitFixture.padding}px`;
+                dispatchEvent(new Event('resize'));
+            }''')
+            page.wait_for_function('''() => Math.abs(parseFloat(getComputedStyle(fitFixture.container).fontSize) - fitFixture.font) < .1 &&
+                fitFixture.box.nextElementSibling.hidden && !fitFixture.box.hasAttribute('tabindex')''')
+            assert page.evaluate('() => fitFixture.math.innerHTML === fitFixture.tree')
             browser.close()
     finally:
         server.shutdown()
     report = {'pages_with_math': len(pages), 'unique_formulas': len(formulas),
-              'sampled_routes': sample, 'widths': [1280, 390], 'external_network': 'blocked', 'errors': failures}
+              'sampled_routes': sample, 'widths': [1280, 390], 'external_network': 'blocked',
+              'responsive_fit_scroll_font_floor_and_math_tree': True, 'errors': failures}
     if args.report:
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding='utf-8')

@@ -40,6 +40,78 @@
     });
   }
 
+  let fitFrame;
+  const observedMathSizes = new WeakMap();
+  const mathSizer = window.ResizeObserver ? new ResizeObserver((entries) => {
+    let changed = false;
+    entries.forEach((entry) => {
+      if (!entry.target.isConnected) {
+        mathSizer.unobserve(entry.target);
+        observedMathSizes.delete(entry.target);
+      } else if (observedMathSizes.get(entry.target) !== entry.contentRect.width) {
+        observedMathSizes.set(entry.target, entry.contentRect.width);
+        changed = true;
+      }
+    });
+    if (changed) scheduleMathFit();
+  }) : null;
+
+  // Presentation only: keep TeX and MathJax's mathematical tree unchanged.
+  // Modest fitting makes long summaries readable on desktop; never shrink a
+  // normal-size formula below 16px to squeeze it into a phone viewport.
+  function fitProofMath() {
+    document.querySelectorAll(".proof-reader-equation").forEach((box) => {
+      const containers = box.querySelectorAll('mjx-container[display="true"]');
+      if (containers.length !== 1 || !box.clientWidth) return;
+      const container = containers[0];
+      const math = container.querySelector("mjx-math");
+      if (!math) return;
+      [box, container].forEach((node) => {
+        if (mathSizer && !observedMathSizes.has(node)) {
+          observedMathSizes.set(node, node.getBoundingClientRect().width);
+          mathSizer.observe(node);
+        }
+      });
+      if (!container.hasAttribute("data-reader-original-font")) {
+        container.dataset.readerOriginalFont = container.style.fontSize;
+      }
+      container.style.fontSize = container.dataset.readerOriginalFont;
+      const style = getComputedStyle(box);
+      const available = box.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      const width = math.getBoundingClientRect().width;
+      const baseline = parseFloat(getComputedStyle(container).fontSize);
+      if (!width || available <= 2 || !Number.isFinite(baseline)) return;
+      if (width > available) {
+        container.style.fontSize = `${Math.max(Math.min(16, baseline), baseline * (available - 2) / width)}px`;
+      }
+      const overflow = math.getBoundingClientRect().width > available + 1;
+      let hint = box.nextElementSibling;
+      if (!hint?.classList.contains("math-scroll-hint")) {
+        hint = document.createElement("div");
+        hint.className = "math-scroll-hint";
+        hint.textContent = "Long formula: scroll horizontally to read the rest.";
+        box.after(hint);
+      }
+      hint.hidden = !overflow;
+      if (overflow && !box.hasAttribute("tabindex")) {
+        box.tabIndex = 0;
+        box.dataset.readerScrollFocus = "true";
+      } else if (!overflow && box.dataset.readerScrollFocus) {
+        box.removeAttribute("tabindex");
+        delete box.dataset.readerScrollFocus;
+      }
+    });
+  }
+
+  function scheduleMathFit() {
+    cancelAnimationFrame(fitFrame);
+    fitFrame = requestAnimationFrame(fitProofMath);
+  }
+  window.addEventListener("resize", scheduleMathFit);
+  document.addEventListener("toggle", scheduleMathFit, true);
+  document.fonts?.ready.then(scheduleMathFit);
+  document.fonts?.addEventListener("loadingdone", scheduleMathFit);
+
   function revealMath() {
     document.querySelectorAll("[data-math-statement]").forEach((statement) => {
       const rendered = !!statement.querySelector("mjx-container") &&
@@ -49,6 +121,7 @@
       statement.querySelector(".math-tex")?.setAttribute("aria-hidden", String(!rendered));
       statement.querySelector(".math-fallback")?.setAttribute("aria-hidden", String(rendered));
     });
+    fitProofMath();
     document.dispatchEvent(new Event("reader-math-ready"));
   }
 

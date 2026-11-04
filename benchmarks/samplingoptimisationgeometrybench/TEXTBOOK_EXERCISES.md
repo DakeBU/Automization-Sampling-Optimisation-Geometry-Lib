@@ -27,6 +27,42 @@ Use their existing cells, tests, canonical source/semantic reviews and module ow
 
 The PDF and HTML identify an arXiv non-exclusive distribution grant, not a blanket text/solution-manual reuse license. Keep the original PDF/page render in the ignored audit cache, outside ML exports. Publish only bibliographic correspondence and an original faithful mathematical restatement/ASTIS-authored solution unless broader permission is established. Do not distribute a copied exercise passage as project-owned text.
 
+## Next real source route: Log-Concave Sampling Exercise 1.7
+
+The pinned August 20, 2026 edition has 333 pages and SHA-256
+`8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae`.
+[Exercise 1.7 / (1.E.1)](https://chewisinho.github.io/main.pdf#page=55)
+is on printed p.43 / PDF p.55. Corollary 2.1.2 explicitly reuses the same
+expansion on printed p.50 / PDF p.62. The entire relevant exercise page and
+the PI/LSI conventions were inspected, not just a search snippet.
+
+This is **not another admitted QA**. The first actual prerequisite is tracked by
+`ASTIS-SHARED-bounded-density-kl-linearization`: the compensated-entropy integral
+limit for a finite measure and a uniformly a.e.-bounded measurable real test.
+Its exact Lean signature, actual compiler checks, semantic audit and later
+integration state are separate evidence. Do not infer a full exercise answer
+from that prerequisite.
+
+The immutable source-only proposal/review and corrected successor are retained
+under `proof-obligations/chewi-exercise-1-7/`. Their topology review is not a
+Lean proof or a source-equivalence verdict. In particular:
+
+- Centering a compact test generally destroys compact support of the function;
+  its gradient stays compactly supported. The second consumer uses this broader
+  bounded smooth compact-gradient class.
+- The probability KL adapter must prove positivity, mass one, the actual
+  Radon--Nikodym representative, finite KL and zero-mean cancellation.
+- A positive perturbation is not automatically an admissible compact LSI test:
+  its square root is noncompact. The LSI-domain extension and gradient-energy
+  integrability/Fisher limit are explicit separate obligations.
+- The compact Euclidean PI target and the broader chapter-1 form-domain or
+  abstract reversible-semigroup conclusion must not be conflated. Same
+  admissible constant means `C_PI <= C_LSI` for optimal constants, not equality.
+
+The primary PDF contains no permission established here to redistribute its
+prose as ML data. Keep the cached PDF/page renders out of exports and author
+original mathematical statements and answers with exact correspondence.
+
 ## Admission checklist
 
 1. Pin the actual work, author(s), edition/hash, number/subparts and both page conventions; inspect the relevant page, not only a search snippet.

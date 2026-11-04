@@ -1,4 +1,5 @@
 import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient
@@ -5288,6 +5289,16 @@ def probabilityMemory : List LemmaMemoryEntry := [
 ]
 
 def klDensityMemory : List LemmaMemoryEntry := [
+  {
+    key := "kl-density.bounded-compensated-second-order-limit",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq",
+    upstreamDecl := "Chewi Exercise 1.7 / (1.E.1): compensated-integral prerequisite",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/InformationTheory/BoundedDensityPerturbation.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["MEAS", "FI", "CALC", "KL", "linearization", "dominated-convergence"],
+    saldUse := "Shared entropy expansion for actual numbered Chewi Exercise 1.7 and Corollary 2.1.2; not a SALD closure",
+    note := "Actual punctured second-order compensated-entropy integral limit for finite measures and uniformly a.e.-bounded measurable real tests. Scalar calculus, positivity, integrable quadratic envelope and DCT are produced internally. Probability KL, Fisher/LSI/domain adapters and the full exercise remain separate."
+  },
   {
     key := "kl-density.pointwise-derivative-simplify",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.KLDensity.klPointwiseDerivSimplify",

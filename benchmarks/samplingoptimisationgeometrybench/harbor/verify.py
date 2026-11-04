@@ -6,7 +6,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from sog_bench_curriculum import grade_graph
-from bench_bounded_io import MAX_BYTES, MAX_RECEIPT_BYTES, read_bounded
+from bench_bounded_io import InputRejected, MAX_BYTES, MAX_RECEIPT_BYTES, read_bounded
 from collect_answer import POLICY, REJECTIONS
 
 
@@ -23,8 +23,7 @@ def invalid_constant(value):
     raise ValueError('Non-finite JSON number')
 
 
-def read_answer(path):
-    raw = read_bounded(path)
+def parse_answer(raw):
     row = json.loads(raw.decode('utf-8'), object_pairs_hook=unique_object, parse_constant=invalid_constant)
     if not isinstance(row, dict) or set(row) != {'id', 'binding_sha256', 'attempt', 'answer'}:
         raise ValueError('Expected the exact response envelope')
@@ -33,15 +32,31 @@ def read_answer(path):
     return row, hashlib.sha256(raw).hexdigest()
 
 
-def assess(question, path):
-    """Malformed/missing answers score zero; unexpected grader bugs propagate."""
+def read_answer(path):
+    return parse_answer(read_bounded(path))
+
+
+def assess_bytes(question, raw):
+    """Grade the exact captured bytes, never a second file read."""
     try:
-        row, digest = read_answer(path)
+        row, digest = parse_answer(raw)
         result = grade_graph([question], [row])
         return {'reward': result['points'], 'response_sha256': digest, 'result': result}
-    except (ValueError, OSError, UnicodeError, RecursionError) as exc:
+    except (ValueError, UnicodeError, RecursionError) as exc:
         return {'reward': 0, 'answer_error': type(exc).__name__,
                 'scope': 'rejected graph response; not a Lean or mathematical judgment'}
+
+
+def assess(question, path):
+    """Local raw-file compatibility API; unknown I/O errors remain unscored."""
+    try:
+        raw = read_bounded(path)
+    except (InputRejected, FileNotFoundError) as exc:
+        return {'reward': 0, 'answer_error': type(exc).__name__,
+                'scope': 'rejected graph response; not a Lean or mathematical judgment'}
+    except OSError as exc:
+        raise RuntimeError('Unscored input I/O failure') from exc
+    return assess_bytes(question, raw)
 
 
 def assess_collected(question, raw_path, receipt_path):
@@ -65,7 +80,7 @@ def assess_collected(question, raw_path, receipt_path):
             raise ValueError('Invalid captured collection')
     except (ValueError, OSError, UnicodeError, RecursionError, TypeError) as exc:
         raise RuntimeError('Missing, corrupt or inconsistent trusted collection') from exc
-    return {**assess(question, raw_path), 'collection': receipt}
+    return {**assess_bytes(question, raw), 'collection': receipt}
 
 
 def main():

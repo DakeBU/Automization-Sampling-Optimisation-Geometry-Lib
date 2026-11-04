@@ -98,6 +98,8 @@ Only the staged files are declared, so the original unbounded answer path is not
 downloaded as a declared artifact.
 
 The verifier requires the receipt's exact policy/schema, byte count and raw hash.
+A captured answer is graded from those same verified bytes, without reopening
+the file and potentially grading a different snapshot.
 A valid rejection earns zero; malformed answer JSON earns zero. A missing,
 inconsistent or corrupt receipt is an **unscored infrastructure failure**, never
 a correctness score. This matters because pinned Harbor treats collect-hook

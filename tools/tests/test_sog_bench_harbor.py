@@ -272,6 +272,21 @@ class HarborGraphTests(unittest.TestCase):
             raw, receipt = collector.capture(Path('unused'))
             self.assertEqual(raw, b'')
             self.assertEqual(json.loads(receipt)['reason'], 'symlink')
+        with patch.object(verifier, 'read_bounded', side_effect=OSError(errno.EIO, 'controlled IO fault')):
+            with self.assertRaises(RuntimeError):
+                verifier.assess(self.items[0], Path('unused'))
+
+    def test_the_score_uses_the_exact_receipt_checked_snapshot_without_rereading(self):
+        item = self.items[0]
+        raw = adapter.task_files(item)['solution/answer.json']
+        receipt = adapter.bench.encoded({'schema_version': 1, 'policy': collector.POLICY,
+            'status': 'captured', 'reason': None, 'raw_bytes': len(raw),
+            'raw_sha256': hashlib.sha256(raw).hexdigest()})
+        with patch.object(verifier, 'read_bounded', side_effect=[receipt, raw]) as reader:
+            report = verifier.assess_collected(item, Path('raw'), Path('receipt'))
+        self.assertEqual(reader.call_count, 2)
+        self.assertEqual(report['reward'], 1)
+        self.assertEqual(report['response_sha256'], json.loads(receipt)['raw_sha256'])
 
     def test_static_offline_probe_rejects_sidecars_and_unlimited_resources(self):
         with tempfile.TemporaryDirectory() as temporary:

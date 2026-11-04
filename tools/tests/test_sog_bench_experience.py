@@ -43,6 +43,11 @@ class ReadableMathTests(unittest.TestCase):
         self.assertIn(r'π_{1}\circ S=π_{2}', reader.inline_prose('π₁∘S=π₂'))
         self.assertIn(r'\{0,1\}^{d}', reader.inline_prose('f:{0,1}ᵈ→ℝ'))
 
+    def test_lean_identifiers_are_code_not_subscripted_mathematics(self):
+        self.assertEqual(reader.inline_prose('le_div_iff₀'), '<code>le_div_iff₀</code>')
+        self.assertEqual(reader.inline_prose('hX.const_inner'), '<code>hX.const_inner</code>')
+        self.assertIn('sog-inline-math', reader.inline_prose('C_PI<=C_LSI'))
+
     def test_ambiguous_unbalanced_notation_is_left_literal(self):
         self.assertNotIn('sog-inline-math', reader.inline_prose('∇f(x'))
 

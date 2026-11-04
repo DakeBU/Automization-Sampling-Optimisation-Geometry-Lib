@@ -6,6 +6,7 @@ import functools
 import http.server
 import hashlib
 import json
+import re
 from pathlib import Path
 import threading
 
@@ -73,6 +74,15 @@ def main() -> None:
                 response = page.goto(base + HUB + path)
                 assert response.status == 200
                 assert page.locator('[data-sog-bench]').count() == 1
+                if path in ('training/index.html', 'experts/index.html'):
+                    if path.startswith('experts/'):
+                        page.locator('summary').filter(has_text=re.compile(r'^Optimisation ·')).click()
+                        assert page.get_by_role('link', name='Graph position', exact=True).first.is_visible()
+                    page.screenshot(path=str(args.evidence / (path.replace('/index.html','') + '-desktop.png')), full_page=True)
+                    page.set_viewport_size({'width': 412, 'height': 915})
+                    assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
+                    page.screenshot(path=str(args.evidence / (path.replace('/index.html','') + '-mobile.png')), full_page=True)
+                    page.set_viewport_size({'width': 1400, 'height': 1000})
             page.goto(base + HUB + 'index.html')
             manifest = page.request.get(base + HUB + 'downloads/manifest.json').json()
             page.get_by_text('Numbered textbook exercises and our reference solutions', exact=True).click()

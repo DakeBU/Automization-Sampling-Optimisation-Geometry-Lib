@@ -49,6 +49,10 @@ def inline_prose(text: str) -> str:
         if descriptive and _MATH_SENTINEL.search(body[:descriptive.start()]):
             punctuation = body[descriptive.start():] + punctuation
             body = body[:descriptive.start()]
+        # Lean/API names are not mathematical subscript expressions. In
+        # particular le_div_iff₀ must never become a doubly-subscripted formula.
+        if re.fullmatch(r'[A-Za-z]{2,}[A-Za-z0-9_\.α-ωΑ-Ω₀-₉]*', body) and ('_' in body or '.' in body):
+            return '<code>' + escape(body) + '</code>' + escape(punctuation)
         if (not _MATH_SENTINEL.search(body) or '\\' in body or '`' in body
                 or any(body.count(a) != body.count(b) for a, b in [('(', ')'), ('[', ']'), ('{', '}')])
                 or '/' in body and (body.startswith(('http:', 'https:')) or '.html' in body)):

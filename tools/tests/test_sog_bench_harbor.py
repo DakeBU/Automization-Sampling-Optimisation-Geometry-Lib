@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+from types import SimpleNamespace
 import tomllib
 import unittest
 import zipfile
@@ -196,6 +197,7 @@ class HarborGraphTests(unittest.TestCase):
             raw_path, receipt_path = base / 'raw', base / 'receipt'
             with self.assertRaises(RuntimeError):
                 verifier.assess_collected(self.items[0], raw_path, receipt_path)
+
             source = base / 'absent'
             raw, receipt = collector.capture(source)
             raw_path.write_bytes(raw)
@@ -211,6 +213,18 @@ class HarborGraphTests(unittest.TestCase):
             raw_path.write_bytes(b'tampered')
             with self.assertRaises(RuntimeError):
                 verifier.assess_collected(self.items[0], raw_path, receipt_path)
+
+    def test_collector_rejects_detected_mutation_instead_of_archiving_a_partial_snapshot(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / 'answer'
+            source.write_bytes(b'abc')
+            before = source.stat()
+            after = SimpleNamespace(**{key: getattr(before, key) for key in
+                ('st_dev', 'st_ino', 'st_size', 'st_mode', 'st_ctime_ns')}, st_mtime_ns=before.st_mtime_ns + 1)
+            with patch.object(bounded.os, 'fstat', side_effect=[before, after]):
+                raw, receipt = collector.capture(source)
+            self.assertEqual(raw, b'')
+            self.assertEqual(json.loads(receipt)['reason'], 'changed-during-read')
 
     @unittest.skipUnless(os.name == 'posix', 'Linux no-follow/FIFO semantics')
     def test_collector_rejects_special_files_before_any_host_transfer(self):

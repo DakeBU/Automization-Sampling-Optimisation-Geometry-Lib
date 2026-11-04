@@ -292,6 +292,10 @@ def task_assets(cores: list[dict], graphs: list[dict]) -> dict[str, bytes]:
             member.external_attr = 0o100644 << 16
             archive.writestr(member, content)
     assets['agent-tasks.zip'] = payload.getvalue()
+    # Full operator package includes oracle/verifier answers. Add it only AFTER
+    # sealing the prompt-only archive, never to model-facing files or manifests.
+    import sog_bench_harbor
+    assets['harbor-graph-tasks.zip'] = sog_bench_harbor.archive(graphs)
     assets['training-pairs.jsonl'] = ''.join(json.dumps(r, ensure_ascii=False, sort_keys=True)+'\n' for r in training).encode('utf-8')
     assets['expert-graph-positions.json'] = encoded(positions)
     assets['examples/graph-run.json'] = encoded({
@@ -328,7 +332,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'editorial-review.json', 'graph-editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 'reviewed-graph-questions.jsonl','reviewed-graph-reference.jsonl',
-                'EVALUATION.md', 'ECOSYSTEM.md', 'TEXTBOOK_EXERCISES.md', 'textbook-exercise-map.json', 'examples/prose-run.json',
+                'EVALUATION.md', 'ECOSYSTEM.md', 'HARBOR.md', 'TEXTBOOK_EXERCISES.md', 'textbook-exercise-map.json', 'examples/prose-run.json',
                 'compiled-transport-graph.json', 'compiled-flow-graph.json',
                 *project_licensing.LICENSE_FILES, *task_files,
                 *('lean/' + c['id'] + '-support.lean' for c in cores if c.get('support_source_view')),
@@ -365,6 +369,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('GOAL.md', (DATA.parent / 'GOAL.md').read_bytes())
     write('EVALUATION.md', (DATA.parent / 'EVALUATION.md').read_bytes())
     write('ECOSYSTEM.md', (DATA.parent / 'ECOSYSTEM.md').read_bytes())
+    write('HARBOR.md', (DATA.parent / 'HARBOR.md').read_bytes())
     # Source intake is documentation, not an admitted QA or copied source text.
     write('TEXTBOOK_EXERCISES.md', (DATA.parent / 'TEXTBOOK_EXERCISES.md').read_bytes())
     import sog_bench_exercises

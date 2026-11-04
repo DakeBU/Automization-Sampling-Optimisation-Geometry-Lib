@@ -75,6 +75,11 @@ def main() -> None:
                 assert response.status == 200
                 assert page.locator('[data-sog-bench]').count() == 1
                 if path in ('training/index.html', 'experts/index.html'):
+                    if path.startswith('training/'):
+                        operator = page.get_by_role('link', name='Download Harbor operator package', exact=True)
+                        assert operator.is_visible()
+                        assert 'Includes oracle answers and verifier material' in page.locator('article.sog-reader').inner_text()
+                        assert page.request.get(base + HUB + 'downloads/harbor-graph-tasks.zip').status == 200
                     if path.startswith('experts/'):
                         page.locator('summary').filter(has_text=re.compile(r'^Optimisation ·')).click()
                         assert page.get_by_role('link', name='Graph position', exact=True).first.is_visible()

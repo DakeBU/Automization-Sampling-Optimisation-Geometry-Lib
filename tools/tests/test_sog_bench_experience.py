@@ -91,6 +91,7 @@ class TaskPackageTests(unittest.TestCase):
             self.assertIn('task-index.json', names)
             self.assertNotIn('training-pairs.jsonl', names)
             self.assertNotIn('expert-graph-positions.json', names)
+            self.assertNotIn('harbor-graph-tasks.zip', names)
             self.assertFalse(any('reference.lean' in n or 'reviews/' in n for n in names))
             manifest = json.loads(bundle.read('task-files.sha256.json'))
             self.assertEqual(set(manifest['files']), names - {'task-files.sha256.json'})

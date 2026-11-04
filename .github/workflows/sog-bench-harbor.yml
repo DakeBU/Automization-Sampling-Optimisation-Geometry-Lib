@@ -1,0 +1,71 @@
+name: Bench native Harbor graph trials
+
+on:
+  pull_request:
+    paths:
+      - 'tools/sog_bench*.py'
+      - 'tools/tests/test_sog_bench_harbor.py'
+      - 'benchmarks/samplingoptimisationgeometrybench/**'
+      - 'AutoSamplingTheory/**'
+      - '.github/workflows/sog-bench-harbor.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/sog_bench*.py'
+      - 'tools/tests/test_sog_bench_harbor.py'
+      - 'benchmarks/samplingoptimisationgeometrybench/**'
+      - 'AutoSamplingTheory/**'
+      - '.github/workflows/sog-bench-harbor.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sog-harbor-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-software-fixtures:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test graph adapter and export currently admitted tasks
+        run: |
+          python -m unittest tools.tests.test_sog_bench_harbor
+          python tools/sog_bench_harbor.py export --output .astis/harbor/tasks
+      - name: Install the pinned Harbor wheel and retain resolved environment
+        run: |
+          mkdir -p .astis/harbor/wheels
+          python -m pip download --no-deps harbor==0.25.0 --dest .astis/harbor/wheels
+          echo '51923ac567fc57b03279e93468b105f689628bcac2cd3d541d4e44aa5c0ec309  .astis/harbor/wheels/harbor-0.25.0-py3-none-any.whl' | sha256sum --check
+          python -m pip install .astis/harbor/wheels/harbor-0.25.0-py3-none-any.whl
+          python -m pip freeze > .astis/harbor/resolved-python.txt
+          docker version > .astis/harbor/docker-version.txt
+      - name: Validate with the actual Harbor schema
+        run: |
+          python -c "from pathlib import Path; from harbor.models.task.task import Task; tasks=list(Path('.astis/harbor/tasks').glob('sogb-g*')); assert len(tasks)==7; [Task(p) for p in tasks]"
+      - name: Run native oracle and no-answer fixtures (not model measurements)
+        env:
+          HARBOR_TELEMETRY: '0'
+        run: |
+          harbor run --path .astis/harbor/tasks --agent oracle --n-concurrent 2 --n-attempts 1 --max-retries 0 --job-name graph-oracle --jobs-dir .astis/harbor/jobs
+          harbor run --path .astis/harbor/tasks --agent nop --n-concurrent 2 --n-attempts 1 --max-retries 0 --job-name graph-nop --jobs-dir .astis/harbor/jobs
+      - name: Require every selected native trial and exact positive/negative outcomes
+        run: |
+          python tools/sog_bench_harbor.py check-job --job .astis/harbor/jobs/graph-oracle --expect-reward 1 --task-id sogb-g001 --task-id sogb-g002 --task-id sogb-g003 --task-id sogb-g004 --task-id sogb-g005 --task-id sogb-g006 --task-id sogb-g007
+          python tools/sog_bench_harbor.py check-job --job .astis/harbor/jobs/graph-nop --expect-reward 0 --task-id sogb-g001 --task-id sogb-g002 --task-id sogb-g003 --task-id sogb-g004 --task-id sogb-g005 --task-id sogb-g006 --task-id sogb-g007
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-harbor-graph-software-fixtures
+          path: |
+            .astis/harbor/tasks
+            .astis/harbor/jobs
+            .astis/harbor/resolved-python.txt
+            .astis/harbor/docker-version.txt
+          retention-days: 14

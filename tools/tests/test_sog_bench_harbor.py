@@ -39,7 +39,7 @@ class HarborGraphTests(unittest.TestCase):
             self.assertEqual(files['tests/sog_bench_curriculum.py'], (ROOT / 'tools/sog_bench_curriculum.py').read_bytes().replace(b'\r\n', b'\n'))
             self.assertEqual(json.loads(files['tests/question.json']), item)
             self.assertEqual(set(n for n in files if n.startswith('environment/')),
-                             {'environment/Dockerfile', 'environment/prompt.json', 'environment/isolation_check.py'})
+                             {'environment/Dockerfile', 'environment/docker-compose.yaml', 'environment/prompt.json', 'environment/isolation_check.py'})
 
     def test_config_declares_actual_limits_and_separate_verification(self):
         for item in self.items:
@@ -47,12 +47,15 @@ class HarborGraphTests(unittest.TestCase):
             config = tomllib.loads(files['task.toml'].decode())
             self.assertEqual(config['schema_version'], '1.4')
             self.assertEqual(config['artifacts'], ['/output/answer.json'])
-            self.assertEqual(config['environment']['network_mode'], 'no-network')
+            self.assertEqual(config['environment']['network_mode'], 'public')
+            self.assertIn('network_mode:none', config['metadata']['network_contract'])
+            self.assertIn(b'network_mode: none', files['environment/docker-compose.yaml'])
+            self.assertIn(b'pids_limit: 128', files['environment/docker-compose.yaml'])
             self.assertEqual(config['environment']['cpus'], 1)
             self.assertEqual(config['environment']['memory_mb'], 256)
             self.assertEqual(config['agent']['user'], 'bench')
             self.assertEqual(config['verifier']['environment_mode'], 'separate')
-            self.assertEqual(config['verifier']['network_mode'], 'no-network')
+            self.assertEqual(config['verifier']['network_mode'], 'public')
             self.assertIn(adapter.BASE_IMAGE.encode(), files['environment/Dockerfile'])
             self.assertIn(b'touch /output/agent-marker', files['solution/solve.sh'])
             self.assertIn(b'test ! -e /output/agent-marker', files['tests/test.sh'])
@@ -150,22 +153,19 @@ class HarborGraphTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 adapter.check_job(base, ['sogb-g001'], 0)
 
-    def test_egress_probe_does_not_confuse_a_firewalled_interface_with_external_access(self):
+    def test_static_offline_probe_rejects_sidecars_and_unlimited_resources(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            (root / 'class/net/eth0').mkdir(parents=True)
-            (root / 'class/net/lo').mkdir()
+            (root / 'class/net/lo').mkdir(parents=True)
             (root / 'fs/cgroup').mkdir(parents=True)
             (root / 'fs/cgroup/memory.max').write_text('256000000')
             (root / 'fs/cgroup/cpu.max').write_text('100000 100000')
+            (root / 'fs/cgroup/pids.max').write_text('128')
             with patch.object(probe, 'Path', side_effect=lambda p: root / p.removeprefix('/sys/')):
-                with patch.object(probe.socket, 'create_connection', side_effect=TimeoutError):
-                    report = probe.probe()
-                    self.assertEqual(report['network_interfaces'], ['eth0', 'lo'])
-                    self.assertEqual(len(report['external_tcp_denials']), 2)
-                with patch.object(probe.socket, 'create_connection'):
-                    with self.assertRaises(RuntimeError):
-                        probe.probe()
+                self.assertEqual(probe.probe()['network_interfaces'], ['lo'])
+                (root / 'class/net/eth0').mkdir()
+                with self.assertRaises(RuntimeError):
+                    probe.probe()
 
 
 if __name__ == '__main__':

@@ -45,13 +45,14 @@ track = "graph-json"
 binding_sha256 = "{item['binding_sha256']}"
 provisional_level = "{item['level']}"
 measured_model_result = false
+network_contract = "Docker compose network_mode:none; Harbor public means no additional egress controller"
 
 [agent]
 timeout_sec = 120
 user = "bench"
 
 [environment]
-network_mode = "no-network"
+network_mode = "public"
 cpus = 1
 memory_mb = 256
 build_timeout_sec = 180
@@ -60,7 +61,7 @@ build_timeout_sec = 180
 environment_mode = "separate"
 user = "root"
 timeout_sec = 30
-network_mode = "no-network"
+network_mode = "public"
 '''
     dockerfile = f'''FROM {BASE_IMAGE}
 RUN useradd --create-home --uid 1000 bench && mkdir -p /app /output && touch /output/answer.json && chown -R bench:bench /output
@@ -78,6 +79,23 @@ USER bench
     files = {
         'instruction.md': instruction.encode(), 'task.toml': config.encode(),
         'environment/Dockerfile': dockerfile.encode(),
+        # Disable all container networking intrinsically. Harbor 0.25's
+        # no-network controller instead retains DNS/ICMP via an egress sidecar.
+        # The public phase policy adds no controller; it cannot give this
+        # network_mode:none container an external interface.
+        'environment/docker-compose.yaml': b'''services:
+  main:
+    build:
+      context: ${CONTEXT_DIR}
+      dockerfile: Dockerfile
+    command: ["sh", "-c", "sleep infinity"]
+    network_mode: none
+    cpus: 1
+    mem_limit: 256m
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+''',
         'environment/prompt.json': bench.encoded(prompt),
         'environment/isolation_check.py': (TEMPLATES / 'isolation_check.py').read_bytes().replace(b'\r\n', b'\n'),
         'tests/verify.py': (TEMPLATES / 'verify.py').read_bytes().replace(b'\r\n', b'\n'),

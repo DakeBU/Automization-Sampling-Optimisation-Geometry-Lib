@@ -67,6 +67,20 @@ def main() -> None:
                 assert page.locator('[data-sog-bench]').count() == 1
             page.goto(base + HUB + 'index.html')
             manifest = page.request.get(base + HUB + 'downloads/manifest.json').json()
+            page.get_by_text('Numbered textbook exercises and our reference solutions', exact=True).click()
+            intake_link = page.get_by_role('link', name='Verified source intake and admission checklist')
+            assert intake_link.is_visible()
+            intake = page.request.get(base + HUB + 'downloads/TEXTBOOK_EXERCISES.md')
+            assert intake.status == 200
+            assert hashlib.sha256(intake.body()).hexdigest() == manifest['files']['TEXTBOOK_EXERCISES.md']
+            assert 'not yet Bench-admitted' in intake.text()
+            exercise_link = page.get_by_role('link', name='Existing Chewi Optimization Exercise 3.2 source/solution window')
+            assert exercise_link.is_visible()
+            source_page = page.request.get(base + 'libraries/optimisation/chapter-03.html')
+            assert source_page.status == 200
+            assert 'id="chewi-opt-v1-exercise-3-2"' in source_page.text()
+            page.screenshot(path=str(args.evidence / 'textbook-exercise-intake.png'), full_page=True)
+            page.get_by_text('Numbered textbook exercises and our reference solutions', exact=True).click()
             editorial = page.request.get(base + HUB + 'downloads/editorial-review.json').json()
             graph_records=[json.loads(line) for line in page.request.get(base+HUB+'downloads/graph-questions.jsonl').text().splitlines()]
             compiled_graphs={r['id']+'.html':r for r in graph_records if r['context']['kind']=='compiled-proof-body-constant-occurrences'}
@@ -229,7 +243,7 @@ def main() -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
-    report = {'mathematical_views': len(records), 'graph_tasks': manifest['graph_tasks'], 'math_rendered': True, 'lean_highlighting': True,
+    report = {'mathematical_views': len(records), 'graph_tasks': manifest['graph_tasks'], 'textbook_intake_not_qa_admission': True, 'math_rendered': True, 'lean_highlighting': True,
               'folds_and_copy': True, 'prompt_only_download': True, 'reviewed_subset_download': True,
               'editorial_vs_formal_scope_visible': True, 'mobile_overflow': False,
               'equations_unobscured_when_centered': True, 'component_images_omit_navigation_only': True,

@@ -196,7 +196,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'editorial-review.json', 'graph-editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 'reviewed-graph-questions.jsonl','reviewed-graph-reference.jsonl',
-                'EVALUATION.md', 'examples/prose-run.json',
+                'EVALUATION.md', 'TEXTBOOK_EXERCISES.md', 'examples/prose-run.json',
                 'compiled-transport-graph.json', 'compiled-flow-graph.json',
                 *project_licensing.LICENSE_FILES,
                 *('lean/' + c['id'] + '-support.lean' for c in cores if c.get('support_source_view')),
@@ -229,6 +229,8 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('coverage.json', encoded(coverage(cores, graphs)))
     write('GOAL.md', (DATA.parent / 'GOAL.md').read_bytes())
     write('EVALUATION.md', (DATA.parent / 'EVALUATION.md').read_bytes())
+    # Source intake is documentation, not an admitted QA or copied source text.
+    write('TEXTBOOK_EXERCISES.md', (DATA.parent / 'TEXTBOOK_EXERCISES.md').read_bytes())
     (output / 'examples').mkdir(exist_ok=True)
     write('examples/prose-run.json', (DATA.parent / 'examples/prose-run.json').read_bytes())
     (output / 'lean').mkdir(exist_ok=True)
@@ -254,6 +256,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'difficulty_calibration': 'author-assigned; not empirically calibrated',
                 'independent_semantic_review': 'see content-bound mathematical and structural editorial reports; not empirical calibration',
                 'hidden_test': False,
+                'textbook_exercise_programme': 'See TEXTBOOK_EXERCISES.md; source intake is not QA admission or full exercise formalization',
                 'prose_scoring': 'offline human-attested rubric records; execution and judgments not automatically verified',
                 'editorial_accepted_cores': len(reviewed),
                 'editorial_review_complete_for_current_mathematical_cores': bool(cores) and len(reviewed) == len(cores),

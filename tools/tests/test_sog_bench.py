@@ -26,8 +26,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 26)
-        self.assertEqual(len(prompts), 38)
+        self.assertEqual(len(self.cores), 28)
+        self.assertEqual(len(prompts), 41)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -77,7 +77,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 38)
+            self.assertEqual(manifest['qa_views'], 41)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -86,6 +86,11 @@ class BenchTests(unittest.TestCase):
             self.assertEqual(manifest['editorial_accepted_graph_tasks'], graph_review.summary(bench.curriculum.graph_items())['accepted_tasks'])
             self.assertIn('human-attested', manifest['prose_scoring'])
             self.assertTrue((output/'EVALUATION.md').is_file())
+            self.assertTrue((output/'TEXTBOOK_EXERCISES.md').is_file())
+            self.assertIn('source intake is not QA admission', manifest['textbook_exercise_programme'])
+            intake = (output/'TEXTBOOK_EXERCISES.md').read_text(encoding='utf-8')
+            self.assertIn('not yet Bench-admitted', intake)
+            self.assertIn('9e28afeacb0121b79691fadc6af9c145ccd787bffd2cf9c3f2310806112e644b', intake)
             self.assertTrue((output/'examples/prose-run.json').is_file())
             guide = (output/'README.md').read_text(encoding='utf-8')
             self.assertNotIn('](reviews/', guide)
@@ -181,13 +186,13 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 26)
+        self.assertEqual(coverage['unique_mathematical_cores'], 28)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertFalse(any(c['track_levels'].get('lean') == 'L5' for c in self.cores))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 26)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 28)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -311,6 +316,50 @@ class BenchTests(unittest.TestCase):
         self.assertIn('Lean view: not yet aligned', page)
         self.assertNotIn('Show fixed Lean task', page)
         self.assertIn('not full QA certification', page)
+
+    def test_bernoulli_induction_is_not_a_fake_final_wrapper_task(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-027')
+        self.assertFalse(bench.has_lean(core))
+        self.assertEqual(core['track_levels'], {'natural-language': 'L3'})
+        self.assertIn('private theorem entropy_bound', core['support_lean_source'])
+        self.assertIn('private theorem rms_contraction', core['support_lean_source'])
+        self.assertIn('Copyright (c) 2026 Yuanhe Zhang', core['support_lean_source'])
+        self.assertIn('d0f506f0a695018265dccb33bcb05e2f5ca1c876', core['support_lean_source'])
+        self.assertIn('conditional mean M is identically zero', core['steps'][7])
+        self.assertIn('not divided by n', ' '.join(core['assumptions']))
+        self.assertNotIn('entropy_chain', ' '.join(core['dependencies']['astis']))
+
+    def test_gaussian_limit_pair_has_no_opaque_limit_premises_or_noncompact_credit(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-028')
+        finite = next(c for c in self.cores if c['id'] == 'sogb-027')
+        target = core['lean_task'].split('\nexample', 1)[1]
+        self.assertEqual(core['family'], finite['family'])
+        self.assertEqual(core['track_levels'], {'natural-language': 'L4', 'lean': 'L3'})
+        self.assertIn('ContDiff ℝ 2 f', target)
+        self.assertIn('HasCompactSupport f', target)
+        self.assertNotIn('Integrable', target)
+        self.assertNotIn('Tendsto', target)
+        self.assertIn('le_of_tendsto_of_tendsto tEnt tHalf', core['lean_reference'])
+        self.assertIn('BernoulliLogSobolev.bernoulli_function_logSobolev', core['lean_reference'])
+        self.assertIn('sub_sq_comm', core['lean_reference'])
+        self.assertIn(r'\frac{16BK}{\sqrt m}', ' '.join(core['steps']))
+        self.assertIn('No full noncompact', core['boundary'])
+        self.assertEqual(len(core['supporting_declarations']), 4)
+
+    def test_real_textbook_exercise_intake_has_actual_existing_source_targets_not_qa_credit(self):
+        source = json.loads((ROOT/'website/content/publications/optimisation.json').read_text(encoding='utf-8'))
+        item = next(row for row in source['items'] if row['id'] == 'chewi-opt-v1-exercise-3-2')
+        self.assertEqual(item['source']['edition'], 'arXiv:2605.07006v1')
+        self.assertIn('Exercise3.2', item['source']['anchor'])
+        for short in ('gradient_step_endpoint_bound', 'optimal_gradient_step'):
+            name = 'AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep.' + short
+            self.assertFalse(bench.astis_site._SOURCE_BY_NAME[name].has_placeholder)
+        page = reader.home(self.cores)
+        self.assertIn('Numbered textbook exercises and our reference solutions', page)
+        self.assertIn('downloads/TEXTBOOK_EXERCISES.md', page)
+        self.assertIn('intake route is not an admitted Bench question', page)
+        self.assertIn('chapter-03.html#chewi-opt-v1-exercise-3-2', page)
+        self.assertNotIn('Exercise 3.2', ' '.join(c['title'] for c in self.cores))
 
     def test_plain_exponentials_render_without_nesting_existing_math_or_mutating_gold(self):
         text='Multiply by αe^{αt}>0; X(u)=e^{−u}. Already \\(e^{\\alpha t}\\) and \\[e^{-t}\\].'

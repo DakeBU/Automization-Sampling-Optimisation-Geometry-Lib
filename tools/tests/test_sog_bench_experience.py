@@ -46,6 +46,7 @@ class ReadableMathTests(unittest.TestCase):
     def test_lean_identifiers_are_code_not_subscripted_mathematics(self):
         self.assertEqual(reader.inline_prose('le_div_iff₀'), '<code>le_div_iff₀</code>')
         self.assertEqual(reader.inline_prose('hX.const_inner'), '<code>hX.const_inner</code>')
+        self.assertEqual(reader.inline_prose('l2_edge_triangle'), '<code>l2_edge_triangle</code>')
         self.assertIn('sog-inline-math', reader.inline_prose('C_PI<=C_LSI'))
 
     def test_differential_notation_is_math_but_named_api_calls_stay_code(self):

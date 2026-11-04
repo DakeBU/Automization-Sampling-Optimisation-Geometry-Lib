@@ -140,7 +140,8 @@ def main() -> None:
                 page.locator('summary', has_text='Reference mathematical proof').click()
                 page.wait_for_timeout(300)
                 assert page.locator('mjx-container').count() > 0
-                assert page.locator('mjx-merror, [data-mjx-error]').count() == 0
+                assert page.locator('mjx-merror, [data-mjx-error]').count() == 0, (
+                    identity, page.locator('mjx-merror, [data-mjx-error]').all_text_contents())
                 check_visible_equations(page)
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 panel = page.locator('#natural-language [data-lean-code-panel]')

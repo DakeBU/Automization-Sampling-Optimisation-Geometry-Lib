@@ -53,7 +53,7 @@ def inline_prose(text: str) -> str:
         # particular le_div_iff₀ must never become a doubly-subscripted formula.
         identifier = body.split('(', 1)[0]
         if (re.fullmatch(r'[A-Za-z][A-Za-z0-9_\.α-ωΑ-Ω₀-₉]*', identifier)
-                and ('.' in identifier or '_' in identifier and re.match(r'(?:[a-z]{2,}|[A-Z][a-z]{2,})', identifier))):
+                and ('.' in identifier or '_' in identifier and re.match(r'(?:[a-z][a-z0-9]+|[A-Z][a-z][a-z0-9]+)_', identifier))):
             return '<code>' + escape(body) + '</code>' + escape(punctuation)
         simple_relation = re.fullmatch(r'[A-Za-z](?:\([^()]*\))?[=<>][A-Za-z0-9().+\-/]+', body)
         if (not (_MATH_SENTINEL.search(body) or simple_relation) or '\\' in body or '`' in body

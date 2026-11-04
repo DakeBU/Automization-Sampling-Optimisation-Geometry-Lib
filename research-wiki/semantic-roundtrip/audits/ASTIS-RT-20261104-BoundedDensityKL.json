@@ -1,0 +1,252 @@
+{
+  "id": "ASTIS-RT-20261104-BoundedDensityKL",
+  "state": "accepted",
+  "source": {
+    "source_id": "ASTIS-rigorous-compensated-step-for-Chewi-1.E.1",
+    "anchor": "Chewi Log-Concave Sampling August20 2026 Exercise1.7 /(1.E.1), compensated analytic prerequisite; not the full exercise",
+    "url": "https://chewisinho.github.io/main.pdf#page=55",
+    "original_text": "For every finite measure mu on any measurable carrier and every a.e.-strongly-measurable real function f admitting a finite uniform a.e. bound M, the integral of q(1+e*f) divided by e squared tends as nonzero real e tends to zero to half the integral of f squared, where q(u)=u*log(u)-u+1. This is the compensated entropy prerequisite; it assumes neither centering nor probability normalization and asserts no canonical probability KL or Poincare theorem.",
+    "text_sha256": "822f64cd1f3fa5b3e4ad1b9bb1b2d712a42b3b3f67f629b8d7d6bef99e444519"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq",
+    "file": "AutoSamplingTheory/TechnicalLemmas/InformationTheory/BoundedDensityPerturbation.lean",
+    "statement": "∀\n  {X : Type u_1} [inst : MeasurableSpace X] (mu : Measure X) [IsFiniteMeasure mu] (f : X → ℝ),\n  AEStronglyMeasurable f mu →\n    ∀ {M : ℝ},\n      (∀ᵐ (x : X) ∂mu, |f x| ≤ M) →\n        Tendsto (fun e => (∫ (x : X), InformationTheory.klFun (1 + e * f x) ∂mu) / e ^ 2) (𝓝[≠] 0)\n          (𝓝 ((∫ (x : X), f x ^ 2 ∂mu) / 2))",
+    "statement_sha256": "eeb1b06620b0b1e37b1772e24237da20c294eb424cc517ca38561dd61a3fda47",
+    "formalizer": "agent-task:/root",
+    "compiled": true,
+    "compiler_evidence": "Pinned Lean4.33.0: lake build owning module (2729 jobs), then lake env lean Tests/Shared/BoundedDensityPerturbation.lean; actual transitive axioms propext/Classical.choice/Quot.sound. Local logs under .astis/sog-bench/kl-linearization-*.log.",
+    "decoder_context": [
+      "InformationTheory.klFun u is the real expression u*Real.log u+1-u. Real.log is a total real function.",
+      "AEStronglyMeasurable f mu means f agrees mu-almost everywhere with a strongly measurable function. The bound is almost everywhere, not for every representative point.",
+      "The notation nhdsWithin at the complement of {0} means the two-sided punctured real-neighborhood filter. Real division at zero is totalized, but this point is excluded from the limit.",
+      "The integral is the real Bochner integral. The theorem is about actual values of these integrals; no differentiability or probability normalization is encoded by this notation."
+    ]
+  },
+  "reconstruction": {
+    "text": "Let X be an arbitrary type equipped with a measurable space, let mu be any finite measure on X, and let f : X -> R be mu-almost everywhere strongly measurable. For every real number M satisfying |f(x)| <= M for mu-almost every x, the two-sided punctured real limit as e tends to 0 of (integral_X klFun(1 + e*f(x)) dmu(x)) / e^2 equals (integral_X f(x)^2 dmu(x)) / 2. Here klFun(t) = t*log(t) + 1 - t, log is the total real logarithm, and the integrals are real Bochner integrals.",
+    "text_sha256": "a15d73f5725d1204c641c67273d35bc3e2373adaa33cd8f36e1a607ef15c57f8",
+    "decoder": "agent-task:/root/sog_kl_blind_20261104",
+    "decoder_run_sha256": "fbadc5e37939486bc8d52e17a045c414e4f24936f8af341f1d96718fd6c36561",
+    "decoder_packet_sha256": "1cba95c6174e5e3b120dac3c983f4bbce79ba27ad73de8f9d83477ae84f10c85",
+    "source_text_visible": false,
+    "lean_statement_sha256": "eeb1b06620b0b1e37b1772e24237da20c294eb424cc517ca38561dd61a3fda47",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/20261104-bounded-density-kl/decoder-result.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "An arbitrary measurable carrier X, a finite measure mu on X, a real-valued perturbation f, one finite real a.e. bound M, and q(u)=u*log(u)-u+1.",
+      "reconstructed": "X : Type u with MeasurableSpace X; mu : Measure X with IsFiniteMeasure mu; f : X -> R; M : R; InformationTheory.klFun(u)=u*Real.log(u)+1-u.",
+      "relation": "explicit-elaboration",
+      "evidence": "Mathlib KLFun.lean:53 gives the literal existing function, algebraically identical to q. The owning module imports only six Mathlib modules and declares the public result plus private klFun_upper and scalar_limit. There is no newly invented KL, law, kernel, or opaque entropy object. The decoder explicitly identifies real Bochner integrals."
+    },
+    "domains": {
+      "original": "Any measurable carrier and any finite measure; real f and finite real bound M; a nonzero real parameter approaching zero from both sides.",
+      "reconstructed": "No topology, Euclidean structure, probability normalization, nonemptiness, or measure-completeness binder on X. The parameter is R and its filter is nhdsWithin 0 {0}^c.",
+      "relation": "same",
+      "evidence": "The exact compiled signature has only MeasurableSpace X and IsFiniteMeasure mu as typeclasses. The public filter is (nhdsWithin 0 {0}^c), rendered as 𝓝[≠] 0. AEStronglyMeasurable is the explicit a.e. assumption. Continuity and first-countability used by DCT concern R, not X."
+    },
+    "quantifiers": {
+      "original": "For every finite mu and every a.e.-strongly-measurable real f admitting some real M with |f|<=M mu-a.e., the displayed limit holds.",
+      "reconstructed": "For every X, measurable-space instance, finite mu, real f, proof of AEStronglyMeasurable f mu, and every real M, the premise ae(|f|<=M) implies the limit.",
+      "relation": "equivalent",
+      "evidence": "The conclusion contains no M. Thus (exists M, ae bound M) -> limit and forall M, ae bound M -> limit are equivalent by existential elimination/introduction. M is a single uniform constant independent of x and epsilon. The bound is not allowed to vary pointwise or with epsilon."
+    },
+    "assumptions": {
+      "original": "Finite mu, AEStronglyMeasurable f mu, and a finite uniform a.e. absolute-value bound. Neither centering nor probability normalization is assumed.",
+      "reconstructed": "Exactly IsFiniteMeasure mu, AEStronglyMeasurable f mu, and ae x, |f x|<=M with M:R.",
+      "relation": "same",
+      "evidence": "The entire current module has no scoped extra variables, bundled structures, project-specific premises, or assumed scalar/integral convergence certificates. Integrability of f^2 is derived from integrable_const(|M|^2), hf.pow 2, and the a.e. bound; eventual positivity and domination are proved internally. No M>=0, M>0, mu!=0, smoothness, compact support, pointwise measurable representative, or energy premise is added."
+    },
+    "conclusion": {
+      "original": "As nonzero real epsilon tends to zero, (integral q(1+epsilon*f) dmu)/epsilon^2 tends to (integral f^2 dmu)/2.",
+      "reconstructed": "Tendsto (fun e => (integral InformationTheory.klFun(1+e*f) dmu)/e^2) (𝓝[≠] 0) (𝓝 ((integral f^2 dmu)/2)).",
+      "relation": "same",
+      "evidence": "The reconstructed theorem and fresh compiler #check agree, including the coefficient 1/2, placement of the integral and squared denominator, and two-sided puncture. scalar_limit proves a^2/2 using genuine derivatives at arguments near 1. Filter DCT yields integral(f^2/2), and integral_div rewrites both source and target exactly. No big-O replacement, liminf weakening, or assumed target is used."
+    },
+    "scopes": {
+      "original": "The compensated entropy analytic prerequisite only; no canonical probability-law KL identification and no Poincare or log-Sobolev theorem.",
+      "reconstructed": "A real Bochner-integral limit for klFun using total Real.log and total real division, not klDiv of measures.",
+      "relation": "equivalent",
+      "evidence": "For sufficiently small |e|, |e|*|M|<1 and hbound imply 1+e*f>0 mu-a.e.; the limit therefore agrees with the usual positive-log compensated entropy independently of off-domain totalization. The e=0 value is excluded. Module documentation, lesson formula proof, obligation binding, and source assumptions all keep normalized-canonical-kl, lsi-energy-domain, and poincare-test-extension separate. This is not acceptance of Exercise 1.7 as complete."
+    },
+    "constant_dependencies": {
+      "original": "One finite bound M may depend on mu and f, but is uniform in x and epsilon. The quadratic coefficient is exactly 1/2, with no other theorem constant.",
+      "reconstructed": "The theorem quantifies M:R under its a.e. bound. The proof uses |M| to select an eventual neighborhood and f^2 as a parameter-independent integrable envelope.",
+      "relation": "same",
+      "evidence": "hsmall follows from continuity of |e|*|M| at zero; there is no division by M and no radius constant is exposed in the result. The dominator f^2 has coefficient 1, independent of e, and the limit coefficient 1/2 is independent of M, mu, X, and f. The finite measure makes |M|^2 integrable without normalization."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "agent-task:/root/sog_kl_source_verifier_20261104",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "bede44e66e2fdebe602f028a3d4355f6b7d4f0f457f50078fc6dea3eeaaea813",
+    "evidence": "Independent anti-anchored SOURCE+CODE review completed 2026-11-04T04:03:21Z. The first artifact read was runs/20261104-bounded-density-kl/reviewer-input.json. No canonical semantic registry/audit, source-topology review, prior reviewer verdict, or another actor's report was read. Reviewer is distinct from formalizer agent-task:/root and decoder agent-task:/root/sog_kl_blind_20261104. Decoder blindness is attested by the supplied packet (source_text_visible=false); I did not independently observe the decoder's execution.\n\nBinding: canonical reviewer packet SHA-256 bede44e66e2fdebe602f028a3d4355f6b7d4f0f457f50078fc6dea3eeaaea813 was recomputed from packet minus packet_sha256 using UTF-8 JSON, ensure_ascii=false, sorted keys, separators(',',':'). Raw reviewer-input.json byte SHA-256 is 9b66c5a8e01f8e1c35f1e47a505045ac55112736fa5cdcddce39138fbb74ae11. Publication binding is 4e9ee86da98cffd5979fe2195890cd383ee1e76969263c4211b222d9af522c20. Source restatement SHA-256 822f64cd1f3fa5b3e4ad1b9bb1b2d712a42b3b3f67f629b8d7d6bef99e444519, elaborated statement SHA-256 eeb1b06620b0b1e37b1772e24237da20c294eb424cc517ca38561dd61a3fda47, and reconstruction SHA-256 a15d73f5725d1204c641c67273d35bc3e2373adaa33cd8f36e1a607ef15c57f8 were independently recomputed.\n\nExact code binding: owning module AutoSamplingTheory/TechnicalLemmas/InformationTheory/BoundedDensityPerturbation.lean raw and LF-normalized SHA-256 both 369238cc225a21a67b13cd32eb7a0e0f4f472b67f2617d8081e6553b378dbbad, matching the packet. The entire decoded current file text equals candidate_publication_context.current_lean_module. Focused test Tests/Shared/BoundedDensityPerturbation.lean raw and LF-normalized SHA-256 both 25660d2afcbd913da3f14a225ffbe3161737f0427ee594e2f6837fa679ccfc1b. Both hashes were unchanged after compilation. Initial build/direct compiler checks used repository base HEAD e346e52a261b60e29f9d07b63c31ea8e3737837c. After the coordinator fast-forwarded to c2b61a411e22002d035e873489a156430f2a4721, I repeated direct owning-module and focused-test elaboration successfully at that base; the module, test, reviewer packet, toolchain and manifest bytes remained identical. The two new Lean files remain untracked at both bases, so this review is bound to the exact working-tree hashes atop these bases, not a claim that either commit contains them.\n\nToolchain/dependencies: lake env lean --version reports Lean 4.33.0, x86_64-w64-windows-gnu, commit d8b18978322de05a8f3dba51ef03cf5461676c17, Release. lean-toolchain raw SHA-256 b2b5068d5a4835675e651ce83b29c0ddb308d28b80076e7c007aef4630af0477 and LF-normalized text SHA-256 302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b; lake-manifest.json raw SHA-256 b1f16b43aaf4a886cfe0382d5e3ae63d6904281c00afd8f35af20f0270a747e2 and LF-normalized text SHA-256 b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37. The normalized hashes match the packet. Mathlib checked-out HEAD db584cd6d46c92f209a44c0f1c829460d327499d.\n\nFocused compiler checks all passed with exit code 0: (1) lake build AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation Tests.Shared.BoundedDensityPerturbation, completed successfully (2730 jobs), with the focused test built in 18s; (2) lake env lean AutoSamplingTheory/TechnicalLemmas/InformationTheory/BoundedDensityPerturbation.lean, silent successful direct source elaboration; (3) lake env lean Tests/Shared/BoundedDensityPerturbation.lean, direct source elaboration producing the exact packet statement and transitive axioms [propext, Classical.choice, Quot.sound]. The test exercises the exact finite-measure/a.e.-bounded signature. A final sequential direct source compilation of both module and test after the base fast-forward also exited 0 and printed the identical statement/axioms. Compilation was not used as a substitute for semantic analysis. git diff --check on the two target paths passed.\n\nWhole-module/fake-closure audit: module has exactly private klFun_upper (line 33), private scalar_limit (line 42), and the public theorem (line 87). Imports are only Mathlib KLFun, LHopital, DominatedConvergence, Linarith, NormNum, and Ring. Direct token scan of module/test found no axiom, sorry, admit, unsafe, opaque, run_tac, custom elaborator/macro, set_option, Prop:=True, or :=trivial closures. The printed transitive axioms establish that neither private helper adds sorryAx or a custom axiom. Helpers earn no independent theorem/source credit.\n\nActual API/proof inspection: Mathlib KLFun.lean:53/76/89/149 provides literal klFun, global continuity, HasDerivAt at nonzero argument, and nonnegativity on [0,infinity). Its totalized deriv_klFun at zero is not used. LHopital.lean:286-293 is the actual two-sided punctured HasDerivAt rule, with genuine numerator/denominator derivatives and eventual nonzero denominator derivative; all premises are supplied. DominatedConvergence.lean:67-74 requires eventual AEStronglyMeasurable integrands, an eventual a.e. norm envelope, integrability of the envelope, and an a.e. pointwise limit. All are constructed inside the public proof. Countable generation is intrinsic to the real punctured-neighborhood filter, not a hidden hypothesis on X.\n\nMathematics: q(u)<= (u-1)^2 for u>=0 follows from log(u)<=u-1 for u>0 and q(0)=1 separately. For fixed a, the log slope quotient tends to a; numerator derivative a*log(1+e*a) divided by 2e tends to a^2/2, and both original numerator and denominator tend to zero. This handles a=0 without dividing by a. Under the uniform a.e. bound and |e|*|M|<1, positivity holds a.e., q>=0, and the nonzero-square cancellation gives |q(1+e*f)/e^2|<=f^2. Finite mu and |f|<=|M| a.e. imply Integrable(f^2). Continuity of klFun composed with the given a.e.-strong measurability yields all parameter integrands. These are genuine integrable values near the puncture, not exploitation of Bochner's zero value for nonintegrable functions.\n\nA.e./degenerate/limit audit: no pointwise representative is silently assumed or replaced. All domination uses the same a.e. bound and pointwise scalar convergence holds for every real f(x); null modifications of f leave both integrals unchanged. Completeness of mu is unnecessary. If M<0 and mu is nonzero, the a.e. absolute-value bound is impossible; if mu=0 it is valid and both integrals are zero. The proof remains valid in both cases via |M|, with no M>=0 premise. M=0 yields f=0 a.e. Empty carriers and zero measures are permitted. At e=0 the total quotient value is irrelevant; eventual positivity and division cancellation use e!=0 explicitly. Both signs of e are covered.\n\nPinned source boundary: independently hash-checked .astis/source-cache/chewi-main-2026-08-20.pdf to 8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae; title page says August 20, 2026. Read full PDF pages 28-30, 55, 60-62, and visually inspected rendered pages 55 and 60-62 (diagnostic source-review-page-055.png, source-review-page-060.png, source-review-page-061.png, source-review-page-062.png kept only in the Git-ignored .astis/sog-bench/tmp/pdfs/20261104-bounded-density-kl-source-review cache after exact-path validated moves; no rendered textbook page or extracted primary text is exported in runs). PDF55/printed43 contains Exercise1.7 and its centered compact-smooth probability-KL hint (1.E.1); PDF61/printed49 Proposition2.1.1 allows bounded centered smooth tests with compact gradient support; PDF62/printed50 Corollary2.1.2 explicitly reuses (1.E.1). PDF28-30 gives broader Markov PI/LSI formulations; PDF60 specifies compact smooth Euclidean tests and PDF61 explicitly leaves extensions to density arguments. The packet honestly presents the finite-measure compensated result as an ASTIS-authored rigorous analytic prerequisite/generalization, not a literal full-exercise reproduction. The lesson's six formula-proof steps match the code; normalized law/Radon-Nikodym/canonical finite KL, the LSI energy/Fisher limit with exact constant, uncentering and test-domain/core closure remain separate obligations. Centering a compact function need not preserve compact support, and square-root densities are generally not compactly supported, so no unjustified compact-test LSI application is approved.\n\nDecision: all seven slots preserve the pinned compensated source contract after the explicit elaborations above. There are no blocking deltas and no repair proposals to accept. This report accepts only this whole-module analytic prerequisite and its current authored exposition. It does not publish VERIFIED, alter ledgers/cells/audits, certify source topology, prove a canonical probability KL theorem, or complete Chewi Exercise1.7 or Corollary2.1.2. Report self-hash is SHA-256 of this entire report object excluding review_run_sha256, with the same canonical JSON convention as above.",
+    "review_run_sha256": "ca4cb18755884b6639f12f1c6b6e76a1232988857a46dc6265bedaa5c6fac61d",
+    "run_artifact": "runs/20261104-bounded-density-kl/source-review.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "4e9ee86da98cffd5979fe2195890cd383ee1e76969263c4211b222d9af522c20",
+  "publication_context": {
+    "file": "369238cc225a21a67b13cd32eb7a0e0f4f472b67f2617d8081e6553b378dbbad",
+    "current_lean_module": "/-\nCopyright (c) 2026 Samplinglib contributors. All rights reserved.\nReleased under Apache 2.0 license as described in the file LICENSE.\nAuthors: Samplinglib contributors\n-/\nimport Mathlib.InformationTheory.KullbackLeibler.KLFun\nimport Mathlib.Analysis.Calculus.LHopital\nimport Mathlib.MeasureTheory.Integral.DominatedConvergence\nimport Mathlib.Tactic.Linarith\nimport Mathlib.Tactic.NormNum\nimport Mathlib.Tactic.Ring\n\n/-!\n# Bounded linear perturbations of a density\n\nThe compensated entropy `klFun (1 + ε * f)` has second-order integral\ncoefficient `(∫ f²) / 2`. The actual scalar limit and a uniform integrable\nquadratic bound are proved, not supplied as assumptions.\n\nThis is a canonical analytic prerequisite for Chewi, *Log-Concave Sampling*\n(August 20, 2026), Exercise 1.7 / (1.E.1), also used in Corollary 2.1.2.\nNo identification with a normalized probability-law KL, Fisher limit, LSI,\nPoincaré test-domain extension or complete exercise is asserted here.\n-/\n\nopen MeasureTheory Filter\nopen scoped Topology\n\nnoncomputable section\n\nnamespace AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation\n\nprivate theorem klFun_upper {x : ℝ} (hx : 0 ≤ x) :\n    _root_.InformationTheory.klFun x ≤ (x - 1) ^ 2 := by\n  rcases eq_or_lt_of_le hx with h | h\n  · subst x\n    norm_num [_root_.InformationTheory.klFun_zero]\n  · have hlog := mul_le_mul_of_nonneg_left (Real.log_le_sub_one_of_pos h) hx\n    rw [_root_.InformationTheory.klFun_apply]\n    nlinarith\n\nprivate theorem scalar_limit (a : ℝ) :\n    Tendsto (fun e : ℝ => _root_.InformationTheory.klFun (1 + e * a) / e ^ 2)\n      (𝓝[≠] (0 : ℝ)) (𝓝 (a ^ 2 / 2)) := by\n  have hlin : ∀ e : ℝ, HasDerivAt (fun s : ℝ => 1 + s * a) a e := by\n    intro e\n    convert! (hasDerivAt_const e 1).add ((hasDerivAt_id e).mul_const a) using 1; simp\n  have hlog : HasDerivAt (fun e : ℝ => Real.log (1 + e * a)) a 0 := by\n    convert! (Real.hasDerivAt_log (by norm_num : (1 + (0 : ℝ) * a) ≠ 0)).comp 0 (hlin 0)\n      using 1; simp\n  have hlogslope : Tendsto (fun e : ℝ => Real.log (1 + e * a) / e)\n      (𝓝[≠] (0 : ℝ)) (𝓝 a) := by\n    simpa [smul_eq_mul, div_eq_mul_inv, mul_comm] using hlog.tendsto_slope_zero\n  have hpos : ∀ᶠ e : ℝ in 𝓝 (0 : ℝ), 0 < 1 + e * a :=\n    (isOpen_lt continuous_const (continuous_const.add (continuous_id.mul continuous_const))).mem_nhds\n      (by norm_num)\n  apply HasDerivAt.lhopital_zero_nhdsNE\n    (f' := fun e => a * Real.log (1 + e * a)) (g' := fun e => 2 * e)\n  · filter_upwards [hpos.filter_mono nhdsWithin_le_nhds] with e he\n    convert! (_root_.InformationTheory.hasDerivAt_klFun (ne_of_gt he)).comp e (hlin e)\n      using 1; simp [mul_comm]\n  · exact .of_forall fun e => by\n      convert! (hasDerivAt_id e).pow 2 using 1; simp\n  · filter_upwards [self_mem_nhdsWithin] with e he\n    exact mul_ne_zero (by norm_num) (by simpa using he)\n  · have h := _root_.InformationTheory.continuous_klFun.continuousAt.tendsto.comp\n      (hlin 0).continuousAt.tendsto\n    simpa only [Function.comp_def, zero_mul, add_zero, _root_.InformationTheory.klFun_one] using\n      h.mono_left nhdsWithin_le_nhds\n  · have hd : ContinuousAt (fun e : ℝ => e ^ 2) 0 := by fun_prop\n    simpa only [zero_pow (by decide : 2 ≠ 0)] using hd.tendsto.mono_left nhdsWithin_le_nhds\n  · convert! hlogslope.const_mul (a / 2) using 1\n    · ext e\n      simp only [div_eq_mul_inv, mul_inv_rev]\n      ring_nf\n    · ring_nf\n\n/-- Actual second-order compensated-entropy limit for a uniformly a.e.-bounded\nreal measurable perturbation of a finite measure.\n\nThe integral uses Mathlib's `klFun`, not an assumed KL asymptotic. The finite\nuniform bound yields eventual positivity and an integrable `f²` dominator;\nthe scalar coefficient is obtained by genuine log differentiation and\nL'Hôpital's rule. No centering/probability normalization is needed for this\ncompensated statement. Those are separate inputs to a probability-KL consumer.\n-/\ntheorem tendsto_integral_klFun_one_add_mul_div_sq\n    {X : Type*} [MeasurableSpace X] (mu : Measure X) [IsFiniteMeasure mu]\n    (f : X → ℝ) (hf : AEStronglyMeasurable f mu) {M : ℝ}\n    (hbound : ∀ᵐ x ∂mu, |f x| ≤ M) :\n    Tendsto (fun e : ℝ => (∫ x, _root_.InformationTheory.klFun (1 + e * f x) ∂mu) / e ^ 2)\n      (𝓝[≠] (0 : ℝ)) (𝓝 ((∫ x, f x ^ 2 ∂mu) / 2)) := by\n  have hsq : Integrable (fun x => f x ^ 2) mu := by\n    refine (integrable_const (|M| ^ 2)).mono' (hf.pow 2) ?_\n    filter_upwards [hbound] with x hx\n    simpa only [Real.norm_eq_abs, abs_pow] using\n      pow_le_pow_left₀ (abs_nonneg (f x)) (hx.trans (le_abs_self M)) 2\n  have hsmall : ∀ᶠ e : ℝ in 𝓝 (0 : ℝ), |e| * |M| < 1 :=\n    (isOpen_lt (continuous_abs.mul continuous_const) continuous_const).mem_nhds (by simp)\n  have hlimit := tendsto_integral_filter_of_dominated_convergence (μ := mu)\n    (F := fun e : ℝ => fun x => _root_.InformationTheory.klFun (1 + e * f x) / e ^ 2)\n    (f := fun x => f x ^ 2 / 2) (l := 𝓝[≠] (0 : ℝ)) (fun x => f x ^ 2)\n    (Filter.Eventually.of_forall fun e =>\n      (by simpa only [div_eq_mul_inv, Pi.add_apply] using\n        (_root_.InformationTheory.continuous_klFun.comp_aestronglyMeasurable\n          (aestronglyMeasurable_const.add (hf.const_mul e))).mul_const ((e ^ 2)⁻¹)))\n    ?_ hsq (ae_of_all mu fun x => scalar_limit (f x))\n  · simpa only [integral_div] using hlimit\n  · filter_upwards [hsmall.filter_mono nhdsWithin_le_nhds, self_mem_nhdsWithin] with e he he0\n    have hne : e ≠ 0 := by simpa using he0\n    filter_upwards [hbound] with x hx\n    have habs : |e * f x| < 1 := by\n      rw [abs_mul]\n      exact (mul_le_mul_of_nonneg_left (hx.trans (le_abs_self M)) (abs_nonneg e)).trans_lt he\n    have hpos : 0 < 1 + e * f x := by linarith [neg_abs_le (e * f x)]\n    have hn := _root_.InformationTheory.klFun_nonneg (le_of_lt hpos)\n    have hu : _root_.InformationTheory.klFun (1 + e * f x) ≤ (e * f x) ^ 2 := by\n      simpa using klFun_upper (le_of_lt hpos)\n    rw [Real.norm_eq_abs, abs_of_nonneg (div_nonneg hn (sq_nonneg e))]\n    calc\n      _ ≤ (e * f x) ^ 2 / e ^ 2 := div_le_div_of_nonneg_right hu (sq_nonneg e)\n      _ = f x ^ 2 := by rw [mul_pow, mul_div_cancel_left₀ _ (pow_ne_zero 2 hne)]\n\nend AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://chewisinho.github.io/main.pdf#page=55",
+      "edition": "August 20, 2026",
+      "anchor": "Exercise 1.7 / (1.E.1), printed p.43 / PDF p.55; reused by Corollary 2.1.2, printed p.50 / PDF p.62",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Sinho Chewi's exercise; ASTIS-authored restatement and rigorous analytic prerequisite. No copied textbook or solution-manual prose.",
+      "pdf_sha256": "8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae"
+    },
+    "statement": "The exercise asks to deduce Poincare from log-Sobolev by linearization. Its hint obtains the quadratic KL expansion for a centered smooth compact test. This item maps only the compensated-entropy integral limit, generalized to bounded measurable tests and arbitrary finite measures. The actual normalized-law KL adapter and the LSI/energy/test-domain conclusion remain open. The Euclidean/Langevin route must not be confused with the abstract reversible form-domain statement.",
+    "formulae": [
+      {
+        "label": "analytic compensated core",
+        "tex": "\\lim_{\\varepsilon\\to0,\\,\\varepsilon\\ne0}\\frac{\\int q(1+\\varepsilon f)\\,d\\mu}{\\varepsilon^2}=\\frac12\\int f^2\\,d\\mu,\\quad q(u)=u\\log u-u+1."
+      },
+      {
+        "label": "source probability-KL target, still separate",
+        "tex": "\\mathrm{KL}((1+\\varepsilon f)\\pi\\|\\pi)=\\frac{\\varepsilon^2}{2}\\int f^2\\,d\\pi+o(\\varepsilon^2)."
+      }
+    ],
+    "assumptions": [
+      "The source perturbation uses a probability law pi and a zero-mean bounded smooth test. Compact smoothness is sufficient for bounded measurability in the literal hint.",
+      "The chapter-2 PI/LSI formulations use compact smooth Euclidean tests with a positive finite inequality constant independent of the test and perturbation parameter. The broader chapter-1 form-domain conclusion needs a separate closure/core argument.",
+      "A centered compact test need not be compact. Corollary 2.1.2 uses the broader bounded smooth class with compact gradient support; compact-test LSI cannot be applied to the noncompact square root of a density without a proved extension."
+    ],
+    "obligations": [
+      {
+        "id": "compensated-integral-limit",
+        "label": "Actual scalar coefficient, quadratic domination, measurability and finite-measure integral limit"
+      },
+      {
+        "id": "normalized-canonical-kl",
+        "label": "Positive unit-mass perturbation and finite canonical KL identification with the zero-mean cancellation"
+      },
+      {
+        "id": "lsi-energy-domain",
+        "label": "Actual LSI admissibility, energy/Fisher limit and exact constant"
+      },
+      {
+        "id": "poincare-test-extension",
+        "label": "Uncentering to compact Euclidean tests; broader form/core closure remains separate"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/InformationTheory/BoundedDensityPerturbation.lean",
+      "short_name": "tendsto_integral_klFun_one_add_mul_div_sq",
+      "title": "The actual second-order entropy integral for bounded perturbations",
+      "classification": "canonical finite-measure analytic prerequisite; not a complete textbook exercise",
+      "statement": "Let mu be a finite measure on any measurable space, and let f be real-valued, a.e. strongly measurable and uniformly a.e. bounded by some finite real M. The compensated entropy integral of 1+epsilon*f, divided by epsilon squared, tends as nonzero real epsilon tends to zero to one half of the integral of f squared. No centering, probability normalization, differentiability of f or supplied convergence certificate is needed for this compensated statement.",
+      "formula": "q(u)=u\\log u-u+1,\\qquad\\lim_{\\varepsilon\\to0,\\,\\varepsilon\\ne0}\\frac{\\int q(1+\\varepsilon f)\\,d\\mu}{\\varepsilon^2}=\\frac12\\int f^2\\,d\\mu.",
+      "assumptions": [
+        "The measure mu is finite. It need not be a probability law, nonzero, sigma-finite by a separate premise, or defined by a smooth Gibbs density.",
+        "The real function f is a.e. strongly measurable and |f| <= M almost everywhere for one finite real M. No pointwise representative, smoothness or compact support is required. The proof uses |M|, so no extra M>=0 premise or division by M is introduced.",
+        "The parameter limit is the two-sided punctured real neighborhood of zero. The totalized quotient value at epsilon=0 is irrelevant. The logarithm arguments are proved positive eventually almost everywhere."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Compensate the first-order term",
+          "text": "Use Mathlib's existing klFun rather than defining another entropy. Substitution cancels the constant term. Centering is unnecessary at this stage: subtracting epsilon*f is part of the integrand, not a theorem hypothesis.",
+          "formula": "q(1+\\varepsilon f)=(1+\\varepsilon f)\\log(1+\\varepsilon f)-\\varepsilon f.",
+          "lean": "The statement uses InformationTheory.klFun. Its literal definition is x*log(x)+1-x."
+        },
+        {
+          "number": 2,
+          "title": "Prove the scalar coefficient using genuine derivatives",
+          "text": "For a fixed real a, the logarithm is genuinely differentiable near epsilon=0 because its argument is near 1, not 0. Its slope quotient tends to a. Differentiate the compensated numerator and epsilon squared, then apply punctured two-sided L'Hopital. This includes a=0 without dividing by a.",
+          "formula": "\\frac{\\log(1+\\varepsilon a)}{\\varepsilon}\\longrightarrow a,\\qquad\\frac{q(1+\\varepsilon a)}{\\varepsilon^2}\\longrightarrow\\frac{a^2}{2}.",
+          "lean": "The private scalar_limit uses hasDerivAt_klFun, Real.hasDerivAt_log, HasDerivAt.tendsto_slope_zero and HasDerivAt.lhopital_zero_nhdsNE. No conclusion is read from a totalized derivative at zero."
+        },
+        {
+          "number": 3,
+          "title": "Construct the quadratic envelope",
+          "text": "For u>=0, convexity gives q(u)>=0. The elementary log inequality log(u)<=u-1 gives q(u)<=(u-1)^2 for u>0; handle u=0 separately. Boundedness makes |epsilon|*|M|<1 eventually and hence 1+epsilon*f>0 almost everywhere. Divide the envelope by epsilon squared only for nonzero epsilon.",
+          "formula": "0\\le q(u)\\le(u-1)^2,\\qquad0\\le\\frac{q(1+\\varepsilon f)}{\\varepsilon^2}\\le f^2.",
+          "lean": "klFun_nonneg and the private klFun_upper produce the bounds. The eventually-small parameter and the a.e. bound are combined explicitly; mul_div_cancel_left0 cancels the nonzero square."
+        },
+        {
+          "number": 4,
+          "title": "Discharge measurability and integrability",
+          "text": "Finite measure and the essential bound imply that f squared is integrable. Continuity of klFun and the measurable arithmetic operations make every parameter integrand a.e. strongly measurable. These are produced inside the proof rather than assumed as certificates.",
+          "formula": "f^2\\le |M|^2\\quad\\mu\\text{-a.e.},\\qquad\\int |M|^2\\,d\\mu<\\infty.",
+          "lean": "Integrable.mono' starts from integrable_const. continuous_klFun.comp_aestronglyMeasurable constructs the parameter integrands."
+        },
+        {
+          "number": 5,
+          "title": "Pass the actual limit through the integral",
+          "text": "Apply filter dominated convergence with the single integrable dominator f squared. The pointwise limit is the scalar result, and the bounds hold eventually almost everywhere. Pull the parameter-dependent scalar outside each Bochner integral to obtain exactly the displayed quotient limit.",
+          "formula": "\\int\\frac{q(1+\\varepsilon f)}{\\varepsilon^2}\\,d\\mu\\longrightarrow\\int\\frac{f^2}{2}\\,d\\mu=\\frac12\\int f^2\\,d\\mu.",
+          "lean": "Use tendsto_integral_filter_of_dominated_convergence followed by integral_div."
+        },
+        {
+          "number": 6,
+          "title": "Keep the source consumers separate",
+          "text": "For a probability law and centered f, the later adapter must prove that the actual positive density has mass one, identify its Radon-Nikodym derivative and finite canonical KL, and remove the compensated linear term. The LSI application, Fisher limit and exact PI test domain require their own proofs. Centering a compact function generally leaves the function noncompact, although its gradient remains compactly supported.",
+          "formula": "\\int f\\,d\\pi=0\\quad\\Longrightarrow\\quad\\int(1+\\varepsilon f)\\,d\\pi=1.",
+          "lean": "These are downstream obligations, not conclusions of this declaration or new public assumptions on a complete Exercise 1.7 theorem."
+        }
+      ],
+      "lean_statement": "The exact statement quantifies over any measurable carrier and finite measure, with one a.e. bound. It concerns the compensated klFun integral, not canonical klDiv of probability laws.",
+      "lean_proof": "A scalar genuine-derivative limit plus a uniform quadratic envelope feed a fully discharged filter dominated-convergence argument. Private helpers share the public result's whole-module review and earn no separate leaf credit.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "InformationTheory.klFun",
+        "InformationTheory.hasDerivAt_klFun",
+        "InformationTheory.klFun_nonneg",
+        "Real.log_le_sub_one_of_pos",
+        "HasDerivAt.tendsto_slope_zero",
+        "HasDerivAt.lhopital_zero_nhdsNE",
+        "MeasureTheory.tendsto_integral_filter_of_dominated_convergence",
+        "MeasureTheory.integral_div"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf#page=55",
+          "label": "Chewi, Log-Concave Sampling, August 20 2026, Exercise 1.7 / (1.E.1)",
+          "scope": "ASTIS-authored analytic expansion of the omitted compensated-integral prerequisite; full KL/LSI/PI remain separate."
+        },
+        {
+          "url": "https://chewisinho.github.io/main.pdf#page=62",
+          "label": "Chewi, Corollary 2.1.2",
+          "scope": "The proof explicitly reuses (1.E.1) for bounded centered smooth functions with compactly supported gradient, not necessarily compactly supported functions."
+        }
+      ],
+      "tests": {
+        "file": "Tests/Shared/BoundedDensityPerturbation.lean",
+        "scope": "Imports and exercises the exact finite-measure a.e.-bounded signature and prints transitive axioms."
+      }
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq",
+      "role": "proof-edge",
+      "supports": [
+        "compensated-integral-limit"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "A smooth compactly supported centered test for the probability law pi in (1.E.1).",
+        "lean": "Any finite measure on any measurable space and an a.e.-strongly-measurable real function with a finite a.e. bound."
+      },
+      {
+        "source": "Small positive epsilon is sufficient for the source linearization.",
+        "lean": "A two-sided punctured-zero real limit with eventual positivity produced from the essential bound."
+      }
+    ]
+  }
+}

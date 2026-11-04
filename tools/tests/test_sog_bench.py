@@ -541,6 +541,38 @@ class BenchTests(unittest.TestCase):
                     self.assertGreaterEqual(xx - x, 250)
 
 
+class AuthoredProseRenderingTests(unittest.TestCase):
+    def test_presence_gate_checks_authored_words_not_hidden_code_or_raw_typography(self):
+        import declaration_lessons as lessons
+        raw = 'Assume `x <= M` and actual integrability.'
+        expected = lessons._canonical_prose(raw)
+        self.assertIn(expected, lessons._authored_prose_text('<p>' + lessons.inline_text(raw) + '</p>'))
+        self.assertNotIn(expected, lessons._authored_prose_text('<pre>' + raw + '</pre><script>' + raw + '</script>'))
+        self.assertNotIn(expected, lessons._authored_prose_text('<p>Assume x ≤ M.</p>'))
+
+    def test_prose_relations_render_but_literal_code_is_preserved(self):
+        import declaration_lessons
+        rendered = declaration_lessons.inline_text('u>=0, x <= M, a -> b, x!=y; `x <= M -> True`')
+        self.assertIn('u≥0, x ≤ M, a → b, x≠y;', rendered)
+        self.assertIn('<code>x &lt;= M -&gt; True</code>', rendered)
+        assumptions = declaration_lessons.prose_list(['x <= M', '`x <= M`'])
+        self.assertIn('<li>x ≤ M</li>', assumptions)
+        self.assertIn('<li><code>x &lt;= M</code></li>', assumptions)
+        # Preserve legacy structured convention records as data, not prose.
+        structured = {'notation': 'x <= M'}
+        self.assertIn(declaration_lessons.base.esc(structured), declaration_lessons.prose_list([structured]))
+
+    def test_existing_tex_and_html_escaping_are_preserved(self):
+        import declaration_lessons
+        rendered = declaration_lessons.inline_text(r'\(\texttt{a->b}\) and \[x<=y\] $x>=y$ $$a->b$$ <script>')
+        self.assertIn(r'\(\texttt{a-&gt;b}\)', rendered)
+        self.assertIn(r'\[x&lt;=y\]', rendered)
+        self.assertIn('$x&gt;=y$', rendered)
+        self.assertIn('$$a-&gt;b$$', rendered)
+        self.assertIn('&lt;script&gt;', rendered)
+        self.assertNotIn('<script>', rendered)
+
+
 class SiteWorkflowPinTests(unittest.TestCase):
     def test_pinned_playwright_has_a_supported_fixed_browser_runner(self):
         workflow = (ROOT / '.github/workflows/blueprint-site.yml').read_text(encoding='utf-8')

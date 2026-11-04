@@ -107,6 +107,8 @@ class HarborGraphTests(unittest.TestCase):
             a = adapter.export(first, [self.items[0]['id']])
             b = adapter.export(second, [self.items[0]['id']])
             self.assertEqual(a, b)
+            self.assertEqual(a['producer_lean_toolchain'], 'leanprover/lean4:v4.33.0')
+            self.assertEqual(a['producer_mathlib_manifest_sha256_lf'], adapter.bench.text_hash(ROOT / 'lake-manifest.json'))
             for name, digest in a['files'].items():
                 self.assertEqual(hashlib.sha256((first / name).read_bytes()).hexdigest(), digest)
             with self.assertRaises(ValueError):

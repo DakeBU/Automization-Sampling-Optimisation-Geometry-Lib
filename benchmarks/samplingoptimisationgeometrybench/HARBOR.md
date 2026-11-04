@@ -3,8 +3,9 @@
 This optional adapter turns the existing independently admitted **graph-json**
 tasks into native Harbor tasks. It is not a Lean submission executor, prose
 judge, hidden test split, measured model result or security certification.
-Initial status: implementation/local tests; native Linux CI evidence is required
-before calling this integration operationally tested.
+Runtime acceptance is per commit in the
+[dedicated Linux CI](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/workflows/sog-bench-harbor.yml),
+separate from export, local tests, editorial admission and trusted Lean builds.
 
 ## Export and run
 
@@ -41,6 +42,8 @@ The base Python image is pinned by OCI digest; Harbor is pinned to 0.25.0 and
 its wheel hash. The export manifest hashes all task files. CI retains Docker
 version, the resolved Python dependencies and native job/trial logs. Transitive
 dependencies are recorded, not yet a fully hash-locked installation environment.
+The producer Lean 4.33.0 toolchain and Mathlib manifest hash are also recorded;
+they identify the graph's library substrate, not a Lean runtime in the agent image.
 The full export contains answers: do not provide its root directory to an agent
 as closed-book context. Harbor receives the task and stages only its appropriate
 components; reviewers can inspect the full package.
@@ -112,3 +115,12 @@ also remains failed: a local transparent proxy can accept a TCP handshake withou
 allowing external traffic, so a sampled connect test was not a sound isolation
 criterion either. The static compose route replaces both surrogate probes; it
 does not reinterpret either failed run as a model score or accepted environment.
+
+The first accepted static-offline run,
+[41800349808](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/runs/41800349808),
+checks source commit `875dd2b593429e4900aaa58621ab4dae8a92d4bc`: all seven oracle
+trials earn one point and all seven nop trials earn zero, with no exceptions.
+The raw artifact was actually inspected: 21 role/probe observations (seven UID
+1000 agents and fourteen UID 0 verifiers), loopback-only networking, the CPU and
+memory caps, and PID limit 128. This is observed software-fixture evidence, not
+a model measurement, independent security review or whole-Goal completion.

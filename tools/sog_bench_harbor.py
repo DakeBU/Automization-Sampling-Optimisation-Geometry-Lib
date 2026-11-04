@@ -118,6 +118,8 @@ def package_files(selected: list[dict], statuses: dict) -> tuple[dict[str, bytes
     manifest = {'schema_version': 1, 'name': 'SamplingOptimisationGeometryBench Harbor graph adapter',
                 'harbor_version': HARBOR_VERSION, 'harbor_wheel_sha256': HARBOR_WHEEL_SHA256,
                 'base_image': BASE_IMAGE, 'split': 'public-dev', 'track': 'graph-json',
+                'producer_lean_toolchain': (ROOT / 'lean-toolchain').read_text().strip(),
+                'producer_mathlib_manifest_sha256_lf': bench.text_hash(ROOT / 'lake-manifest.json'),
                 'task_ids': [i['id'] for i in selected], 'measured_model_result': False,
                 'lean_submission_execution': False, 'native_runtime_evidence': 'separate CI run required',
                 'editorial_evidence': {i['id']: statuses[i['id']] for i in selected},

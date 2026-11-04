@@ -86,6 +86,11 @@ def home(cores: list[dict]) -> str:
         '<a href="pilot.zip" download>Download the full pilot</a></p>'
         '<p>Prefer the separate <a href="downloads/reviewed-questions.jsonl" download>editorially reviewed prompts</a> and <a href="downloads/reviewed-reference.jsonl" download>reviewed references</a> for the reviewed subset. Review is AI editorial checking, not full Lean verification.</p>'
         '<p>Public questions and answers may already occur in training data. This is not an unseen test set, a model ranking, or evidence that a paper is fully formalized.</p></section>'
+        + fold('Numbered textbook exercises and our reference solutions',
+            '<p>The Bench must include actual source-pinned textbook exercises as well as original library-grounded QA. Each needs the original number and edition, a license-compliant complete statement, our stepwise formula answer, independent review and exact compiled Lean/graph links. Partial solutions stay partial; alternative valid proofs receive credit.</p>'
+            '<p><a href="downloads/TEXTBOOK_EXERCISES.md">Verified source intake and admission checklist</a> · '
+            '<a href="../../libraries/optimisation/chapter-03.html#chewi-opt-v1-exercise-3-2">Existing Chewi Optimization Exercise 3.2 source/solution window</a>.</p>'
+            '<p>The intake route is not an admitted Bench question, an aligned Lean QA or proof that all exercises are complete. It does not substitute for Log-Concave Sampling, the cited Statistical Optimal Transport route or the other seven-domain material. Original QA is never relabelled as an original-book exercise.</p>')
         + fold('Evaluation policy and contribution guide',
             '<p>Each pair shares one core, family and public-dev split. Score the two tracks separately. Human-assessed natural-language rubrics have four one-point criteria; no automated semantic grader is claimed.</p>'
             '<p>Lean compiler acceptance certifies the fixed proposition only. Arbitrary model output requires target-preservation checks and an isolated, resource-limited sandbox. No submission execution service or AI API is connected here.</p>'

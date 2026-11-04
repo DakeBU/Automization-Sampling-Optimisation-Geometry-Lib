@@ -80,6 +80,9 @@ def main() -> None:
                         assert page.get_by_role('link', name='Graph position', exact=True).first.is_visible()
                     page.screenshot(path=str(args.evidence / (path.replace('/index.html','') + '-desktop.png')), full_page=True)
                     page.set_viewport_size({'width': 412, 'height': 915})
+                    # Resizing starts the existing 180ms navigation transition.
+                    # Inspect the settled mobile layout, not a half-open drawer.
+                    page.wait_for_function('document.querySelector("#site-sidebar").getBoundingClientRect().right <= 0')
                     assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
                     page.screenshot(path=str(args.evidence / (path.replace('/index.html','') + '-mobile.png')), full_page=True)
                     page.set_viewport_size({'width': 1400, 'height': 1000})

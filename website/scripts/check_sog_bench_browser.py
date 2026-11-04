@@ -65,7 +65,11 @@ def main() -> None:
             page = context.new_page()
             page.on('pageerror', lambda error: errors.append(str(error)))
             base = f'http://127.0.0.1:{server.server_port}/'
-            for path in ('index.html', 'natural-language/index.html', 'lean/index.html', 'evaluation/index.html'):
+            # Mathematics must work from the vendored same-origin runtime and
+            # fonts, not only when an external CDN happens to be reachable.
+            context.route('**/*', lambda route: route.continue_()
+                          if route.request.url.startswith((base, 'data:')) else route.abort())
+            for path in ('index.html', 'natural-language/index.html', 'lean/index.html', 'evaluation/index.html', 'training/index.html', 'experts/index.html'):
                 response = page.goto(base + HUB + path)
                 assert response.status == 200
                 assert page.locator('[data-sog-bench]').count() == 1
@@ -91,6 +95,8 @@ def main() -> None:
             exercises = exercise_response.json()
             assert len(exercises) == manifest['numbered_textbook_exercises']
             page.get_by_role('link', name='Textbook exercises & answers', exact=True).click()
+            page.wait_for_url('**/textbook-exercises/index.html')
+            page.get_by_role('heading', name='Numbered textbook exercises', exact=True).wait_for(state='visible')
             assert page.get_by_role('heading', name='Numbered textbook exercises', exact=True).is_visible()
             for exercise in exercises:
                 assert exercise['parts'] and exercise['answer_declarations']
@@ -153,6 +159,19 @@ def main() -> None:
                 math_component_shot(page, args.evidence / (identity + '-math-mobile.png'))
                 page.set_viewport_size({'width': 1400, 'height': 1000})
             reference_records=[json.loads(line) for line in page.request.get(base+HUB+'downloads/reference.jsonl').text().splitlines()]
+            # Every core, not just the paired/support examples: inline typography
+            # can break assumptions even when one display formula renders well.
+            for core in reference_records:
+                page.goto(base + HUB + core['id'] + '.html')
+                page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
+                page.evaluate('() => MathJax.startup.promise')
+                page.locator('summary', has_text='Reference mathematical proof').click()
+                assert page.locator('[data-lean-graph-position]').count() == 1
+                assert page.locator('[data-lean-graph-position]').is_visible()
+                assert page.locator('mjx-merror,[data-mjx-error]').count() == 0, core['id']
+                for span in page.locator('[data-math-original]').all():
+                    assert span.locator('mjx-container').count() == 1, (core['id'], span.get_attribute('data-math-original'))
+                check_visible_equations(page)
             for core in (c for c in reference_records if c.get('support_source_view') and (not args.core or c['id'] in args.core)):
                 identity=core['id']
                 for width,height,suffix in ((1400,1000,'desktop'),(412,915,'mobile')):
@@ -282,6 +301,8 @@ def main() -> None:
               'compiled_graphs':len(compiled_graphs), 'graph_evidence_kinds_separate':True,
               'compiled_graph_labels_fit':True,'reviewed_graph_download':True,
               'runtime_errors': errors}
+    report['offline_same_origin_math_assets'] = True
+    report['all_mathematical_cores_checked'] = len(reference_records)
     (args.evidence / 'report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report))
 

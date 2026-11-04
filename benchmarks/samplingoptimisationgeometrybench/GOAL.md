@@ -4,6 +4,15 @@ Build a source-grounded AI knowledge/reasoning benchmark over Samplinglib's seve
 
 ## Admission order
 
+Owner readability/ecosystem clarification (2026-11-04): a task inventory is not
+a usable Bench. Maintain clear browse/train/evaluate/expert entry routes,
+correctly rendered mathematical assumptions and proofs, separate prompt-only
+agent inputs from training/reference/verifier material, explicit runtime and
+scoring contracts, and immediate actual Lean-graph positions with coverage
+boundaries. Follow ECOSYSTEM.md. Learn from Terminal-Bench/Harbor organization,
+not their task data. A task package does not itself provide a tested isolated
+Lean evaluator, a native harness adapter or a held-out test split.
+
 1. Establish a versioned curriculum, track-specific L1–L5 reasoning levels, explicit gaps, public-development split and graph truth boundaries.
 2. Expand small subject-balanced batches from existing original/permission-cleared library results. Natural-language questions need not pretend to have an equivalent Lean task. A support lemma is not an aligned formal view.
 3. Independently decode and compare each proposed pair; bind accepted review to its exact content/source/target. Compilation, semantic review, mathematical source fidelity and publication are distinct. Draft questions remain draft until then.

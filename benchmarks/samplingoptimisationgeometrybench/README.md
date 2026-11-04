@@ -96,6 +96,14 @@ Labels are author-assigned and **not empirically calibrated**. Natural-language 
 
 ## Try it
 
+The website now separates **Browse tasks / Train / Evaluate / Expert review**.
+Use `agent-tasks.zip` and `task-index.json` for prompt-only per-task instructions,
+environment/verifier contracts and response templates; use the separate
+`training-pairs.jsonl` only when intentionally supplying answers. The expert
+directory and `expert-graph-positions.json` locate the real owned results and
+show missing formal coverage. See [the ecosystem contract](ECOSYSTEM.md).
+This is not yet a native Harbor adapter or safe arbitrary Lean executor.
+
 From the repository root, with Python 3.11+:
 
 ```bash
@@ -105,6 +113,7 @@ python tools/sog_bench.py export --output .astis/sog-bench-export
 python tools/sog_bench.py check-lean
 python tools/sog_bench_compiled_graph.py check
 python -m unittest tools.tests.test_sog_bench tools.tests.test_sog_bench_review tools.tests.test_sog_bench_formal_review tools.tests.test_sog_bench_graph_review tools.tests.test_sog_bench_compiled_graph tools.tests.test_sog_bench_prose
+python -m unittest tools.tests.test_sog_bench_experience
 python website/scripts/build_site.py
 python website/scripts/check_site.py
 ```

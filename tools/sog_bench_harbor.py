@@ -61,7 +61,7 @@ timeout_sec = 30
 network_mode = "no-network"
 '''
     dockerfile = f'''FROM {BASE_IMAGE}
-RUN useradd --create-home --uid 1000 bench && mkdir -p /app /output && chown bench:bench /output
+RUN useradd --create-home --uid 1000 bench && mkdir -p /app /output && touch /output/answer.json && chown -R bench:bench /output
 COPY prompt.json isolation_check.py /app/
 WORKDIR /app
 USER bench
@@ -81,9 +81,9 @@ USER bench
         'tests/verify.py': (TEMPLATES / 'verify.py').read_bytes().replace(b'\r\n', b'\n'),
         'tests/sog_bench_curriculum.py': (ROOT / 'tools/sog_bench_curriculum.py').read_bytes().replace(b'\r\n', b'\n'),
         'tests/question.json': bench.encoded(item),
-        'tests/test.sh': b'#!/bin/sh\nset -eu\npython -I /app/isolation_check.py\ntest ! -e /output/agent-marker\npython -I /tests/verify.py\n',
+        'tests/test.sh': b'#!/bin/sh\nset -eu\npython -I /app/isolation_check.py --uid 0\ntest ! -e /output/agent-marker\npython -I /tests/verify.py\n',
         'solution/answer.json': bench.encoded(answer),
-        'solution/solve.sh': b'#!/bin/sh\nset -eu\npython -I /app/isolation_check.py\ntest ! -e /tests/question.json\ntouch /output/agent-marker\ncp /solution/answer.json /output/answer.json\n',
+        'solution/solve.sh': b'#!/bin/sh\nset -eu\npython -I /app/isolation_check.py --uid 1000\ntest ! -e /tests/question.json\ntouch /output/agent-marker\ncp /solution/answer.json /output/answer.json\n',
     }
     return files
 

@@ -1,5 +1,7 @@
 """Runtime smoke of the declared Docker/cgroup-v2 limits, not a security proof."""
 import json
+import argparse
+import os
 from pathlib import Path
 
 
@@ -16,4 +18,9 @@ def probe():
 
 
 if __name__ == '__main__':
-    print(json.dumps(probe()))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--uid', type=int, required=True)
+    args = parser.parse_args()
+    if os.geteuid() != args.uid:
+        raise RuntimeError('Execution user differs from the declared role')
+    print(json.dumps({**probe(), 'effective_uid': os.geteuid()}))

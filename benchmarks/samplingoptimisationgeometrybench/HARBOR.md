@@ -24,7 +24,7 @@ The destination must not exist; use a fresh name for a later snapshot. Repeat
 known. Existing identity, family, public-dev split, question binding, snapshot,
 provisional difficulty and canonical grading remain unchanged.
 
-`oracle` copies the published reference answer; `nop` supplies no answer. These
+`oracle` copies the published reference answer; `nop` leaves the answer file empty. These
 are positive/negative **software fixtures**, never scores for a language model.
 The CI checks every selected trial, including zero rewards and exceptions. It
 does not discard failures or retry until a passing score appears.
@@ -56,6 +56,10 @@ declared `/output/answer.json` artifact. The oracle writes an undeclared marker;
 verification rejects inherited marker state, testing the isolation boundary.
 The agent image has neither tests nor gold. Grading imports the byte-identical
 owned `sog_bench_curriculum.py`, not a parallel implementation of the score.
+
+An empty answer file is pre-created so the nop fixture exercises rejection,
+not a missing-artifact transfer failure. Missing/failed native trials remain
+visible and cannot pass the complete-run check.
 
 The output is parsed only as bounded UTF-8 JSON. Oversized/special/symlink files,
 duplicate keys, non-finite values, stale bindings, invalid schemas and missing

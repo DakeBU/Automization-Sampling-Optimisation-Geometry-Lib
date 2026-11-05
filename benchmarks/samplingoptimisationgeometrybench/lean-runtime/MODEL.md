@@ -11,9 +11,12 @@ acceptance remain required before advertising this as a tested model runner.
 
 Only the canonical `agent/prompt.json`, `agent/Solution.lean.txt`, fixed tool
 instructions and bounded feedback. Their hashes are checked against the frozen
-operator packet. The bridge does not expose the operator directory, reference
-proof, source oracle, challenge, runtime configuration, general shell, filesystem
-or retrieval tool. The original public-dev answers are already public and may
+operator packet. The bridge does not directly append the operator directory,
+reference proof, source oracle, challenge or runtime configuration, and offers
+no general shell, filesystem or retrieval tool. Submitted Lean can nevertheless
+print readable public container data into bounded compiler feedback; the accepted
+runtime mounts no oracle directory. This is not new feedback noninterference or
+enforced closed-book isolation. The original public-dev answers are public and may
 be in model training; restricted ATLAS content must never enter this interface.
 This is not a held-out test or proof of closed-book knowledge.
 
@@ -31,7 +34,12 @@ selected targets. Freeze the *whole* evaluation selection with `suite-start`
 before any model work; do not collect only successful responses. For a genuinely
 single-target pilot, `start` already freezes denominator1. Use these declared
 provenance fields, replacing both model placeholders with the intended actual
-snapshot/version; the bridge records the provider's returned model ID separately:
+snapshot/version. The returned `model` must exactly equal the frozen
+`model_version`; missing or different identity stops dispatch. If intentionally
+requesting an alias, freeze the expected returned snapshot ID in advance rather
+than resolving it after seeing the response. There is no automatic alias repair.
+Repeated provider response IDs are rejected even with distinct tool-call IDs.
+The raw response and identity/usage are retained before tool dispatch:
 
 ```json
 {

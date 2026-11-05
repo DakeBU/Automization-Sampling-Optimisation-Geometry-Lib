@@ -111,11 +111,15 @@ def request_body(model: str, inputs: list, max_output_tokens: int, max_checks: i
     return raw
 
 
-def function_call(response: dict) -> tuple[dict, list]:
+def function_call(response: dict, *, expected_model_version: str) -> tuple[dict, list]:
     if not isinstance(response, dict) or response.get('status') != 'completed':
         raise ProviderFailure('provider-response-not-completed')
-    if not isinstance(response.get('id'), str) or not response['id']:
+    if not isinstance(response.get('id'), str) or not response['id'] or len(response['id']) > 256:
         raise ProviderFailure('provider-response-identity-missing')
+    if not isinstance(response.get('model'), str) or not response['model']:
+        raise ProviderFailure('provider-model-identity-missing')
+    if response['model'] != expected_model_version:
+        raise ProviderFailure('provider-model-identity-mismatch')
     output = response.get('output')
     if not isinstance(output, list) or any(not isinstance(item, dict) for item in output):
         raise ProviderFailure('provider-output-shape-error')
@@ -163,12 +167,15 @@ def run(directory: Path, output: Path, *, model: str, max_output_tokens: int, pr
         'created_at': workspace.now(), 'session_sha256': runtime.bench.sha(initial),
         'id': manifest['id'], 'denominator': 1, 'declared_provenance': provenance,
         'provider_transport': provider.kind, 'endpoint': ENDPOINT,
+        'identity_policy': 'exact-declared-provider-model-version',
+        'expected_returned_model': provenance['model_version'],
         'bridge_source_sha256_lf': runtime.bench.text_hash(Path(__file__)),
         'agent_inputs': input_hashes, 'max_api_calls': manifest['max_checks'] + 1,
         'max_output_tokens_per_call': max_output_tokens, 'max_request_or_response_bytes': WIRE_BYTES,
         'automatic_retries': 0, 'model_measurement': False, 'provenance_authenticated': False}
     workspace.write_new(output / 'selection.json', selection)
-    calls = []; seen_calls = set(); expected_events = 0; stop = 'api-call-budget-exhausted'
+    calls = []; seen_calls = set(); seen_responses = set()
+    expected_events = 0; stop = 'api-call-budget-exhausted'
     # This is exclusion between bridge instances only; the operator must not run
     # manual workspace actions concurrently. Each action still has its own lock.
     lock = directory / 'model-operation.lock'
@@ -200,7 +207,16 @@ def run(directory: Path, output: Path, *, model: str, max_output_tokens: int, pr
                 if receipt.get('http_status') != 200:
                     raise ProviderFailure('provider-http-error-no-automatic-retry')
                 response = decode(raw)
-                call, items = function_call(response)
+                # Preserve the provider's identity/usage even when the model
+                # protocol or later tool dispatch fails. A requested alias is
+                # not itself evidence of an actual returned snapshot/version.
+                if isinstance(response, dict):
+                    record.update(response_id=response.get('id'),
+                        provider_model=response.get('model'), usage=response.get('usage'))
+                call, items = function_call(response, expected_model_version=provenance['model_version'])
+                if response['id'] in seen_responses:
+                    raise ProviderFailure('repeated-provider-response-identity')
+                seen_responses.add(response['id'])
                 if call['call_id'] in seen_calls:
                     raise ProviderFailure('repeated-provider-call-identity')
                 seen_calls.add(call['call_id'])
@@ -209,9 +225,7 @@ def run(directory: Path, output: Path, *, model: str, max_output_tokens: int, pr
                 feedback = workspace.act(directory, call['arguments'])
                 expected_events += 1
                 workspace.write_new(step / 'feedback.json', feedback)
-                record.update(outcome='tool-returned', response_id=response['id'],
-                    provider_model=response.get('model'), usage=response.get('usage'),
-                    call_id=call['call_id'], action=call['arguments']['action'],
+                record.update(outcome='tool-returned', call_id=call['call_id'], action=call['arguments']['action'],
                     workspace_sequence=feedback['sequence'])
                 # Preserve ALL provider items, including encrypted reasoning,
                 # for stateless store:false continuation. No handwritten replay.

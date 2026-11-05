@@ -21,6 +21,18 @@ Do not merge or advertise the bridge as an accepted model runner yet.
 The reviewer requests changes. Keep this original prototype and report intact as
 historical evidence if a successor is implemented; never relabel v1 as accepted.
 
+The original reviewed prototype is preserved at pushed commit23e1fdb7. The
+current successor addresses only M2: exact predeclared returned-version matching,
+duplicate response-ID detection and identity/usage retention before dispatch.
+It also clarifies compiler-mediated public-container feedback. The
+[independent M2-only repair review](m2-repair-review.json) narrowly accepts the
+exact successor at design/mocked-contract scope, after eleven unit cases and
+four additional probes. Report raw SHA256:
+`dd7f35eb5cfb66ba346aaf085503a85fb9b86cd00e4562756cd94a2408591cd9`.
+The combined runtime/model/reader unit suite passes54 cases (2 POSIX skips).
+M1 is intentionally unresolved: no accepted workspace/runtime source has changed,
+and this is still not a provider/native-accepted model runner or score.
+
 ## Required next repair
 
 1. **M1 — canonical termination accounting.** A provider/HTTP/runtime failure

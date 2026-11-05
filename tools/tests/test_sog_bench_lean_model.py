@@ -177,6 +177,43 @@ class ModelBridgeTests(unittest.TestCase):
                     self.run_fixture(directory, root / 'transcript', provider)
                 self.assertEqual(provider.requests, [])
 
+    def test_missing_or_wrong_returned_model_never_dispatches_a_tool(self):
+        for returned in (None, '', 'not-the-frozen-version'):
+            with self.subTest(returned=returned), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp); directory = self.make_workspace(root)
+                reply = response(); reply['model'] = returned
+                with patch.object(runtime, 'checked_packet'), patch.object(runtime, 'run_submission') as native:
+                    result = model.run(directory, root / 'transcript', model=MODEL,
+                        max_output_tokens=TOKENS, provider=FixtureProvider(reply))
+                native.assert_not_called()
+                self.assertIn('provider-model-identity', result['stop'])
+                record = json.loads((root / 'transcript/0001/finished.json').read_bytes())
+                self.assertEqual(record['provider_model'], returned)
+                self.assertEqual(record['usage'], reply['usage'])
+
+    def test_expected_snapshot_is_explicit_even_when_request_uses_an_alias(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); directory = self.make_workspace(root)
+            path = directory / 'session.json'; manifest = json.loads(path.read_bytes())
+            manifest['provenance']['model_version'] = 'explicit-returned-fixture-snapshot'
+            path.write_bytes(runtime.bench.encoded(manifest))
+            reply = response(); reply['model'] = 'explicit-returned-fixture-snapshot'
+            result = self.run_fixture(directory, root / 'transcript', FixtureProvider(reply))
+            self.assertTrue(result['final_accepted'])
+            selection = json.loads((root / 'transcript/selection.json').read_bytes())
+            self.assertEqual(selection['identity_policy'], 'exact-declared-provider-model-version')
+            self.assertEqual(selection['expected_returned_model'], reply['model'])
+
+    def test_repeated_response_identity_with_distinct_calls_stops_before_second_dispatch(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); directory = self.make_workspace(root)
+            first = response('check', identity='first'); second = response(identity='second')
+            second['id'] = first['id']
+            result = self.run_fixture(directory, root / 'transcript', FixtureProvider(first, second))
+            self.assertEqual(result['stop'], 'repeated-provider-response-identity')
+            self.assertEqual(len(workspace.history(directory)[1]), 1)
+            self.assertEqual(result['final_outcome'], 'no-final-submission')
+
     def test_transport_has_fixed_endpoint_no_redirect_or_secret_archive(self):
         secret = 'unit-only-secret-not-a-real-key'
         transport = model.OpenAIResponses(secret)

@@ -1776,6 +1776,16 @@ def taylorMemory : List LemmaMemoryEntry := [
 
 def calculusMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.calculus.compact-gradient-sqrt-test-data",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.CompactGradientSqrtPerturbation.eventually_contDiff_and_integrable_sqrt_perturbation",
+    upstreamDecl := "ASTIS source-class input production; ContDiff.sqrt; continuous compact-support integrability",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/Analysis/Calculus/CompactGradientSqrtPerturbation.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "MEAS", "FI", "smooth-test", "compact-derivative", "linearization"],
+    saldUse := "Chewi Exercise1.7: derive original energy and actual smooth square-root L2/entropy/energy inputs before the separate cutoff/LSI-domain step",
+    note := "One independently verified generic integration node; global bound and genuine C-infinity, finite measure, compact derivative support. Does not prove compact support of the square root, canonical KL/Fisher, LSI extension/application, final PI or Bench exercise admission."
+  },
+  {
     key := "analysis.calculus.sqrt-perturbation-energy-limit",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy.eventually_integrable_and_tendsto_sqrt_perturbation_energy",
     upstreamDecl := "HasFDerivAt.sqrt; MeasureTheory.tendsto_integral_filter_of_dominated_convergence",

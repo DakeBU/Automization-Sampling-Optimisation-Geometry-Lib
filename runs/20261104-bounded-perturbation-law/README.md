@@ -134,3 +134,21 @@ independent mathematical verdict. Public Pages read-back and the law's scoped
 postmerge purification/Exposition Seal remain separate gates. Registry on actual
 main is595; the energy theorem has not yet received Registry credit. No Bench
 QA, full exercise, source-domain extension or whole Goal completion is inferred.
+
+## Actual public delivery and scoped postmerge seal
+
+Pages41964750817 completed successfully. Fresh public Edge checks assert visible
+revision387ae4e589bb and pass the six formula-proof steps, folded/highlighted/
+copied Lean, actual graph focus and desktop1400/mobile412 layout with no runtime
+errors. The statement, mobile RN step3 and graph SVG screenshots were actually
+viewed. Evidence: `_browser-evidence/law-public/report.json` and associated PNGs.
+
+The independent source verifier's unchanged preflight and final report are
+`postmerge-preflight.json` and `postmerge-purification.json`. Final self-hash:
+`6c6713c4e858e70e293cf12ee8ad43e47a3f8f721aee01ff0ce5f1a14579a035`.
+It accepts purification and Exposition Seal for **actual-law-finite-kl only**,
+with a scoped lossless source/Lean mapping and the Cell marked merged. No whole
+publication/exercise, parent KL-asymptotic node, Fisher/LSI/PI domain or new Bench
+QA is sealed. The actual publication projection still has exactly the two future
+obligations `full-probability-kl-limit` and `fisher-lsi-pi-boundary` uncovered;
+the scoped seal did not promote them. No fresh main-CI result is manufactured.

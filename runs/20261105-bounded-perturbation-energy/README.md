@@ -102,3 +102,16 @@ with an explicit audit of affected Gaussian/RGO bindings and actual Bench import
 closures. The source compact-LSI assumption concerns smooth tests: a C2 cutoff
 limit alone does not extend that assumption to all C2 tests. This is a retrieved
 reuse route, not a new public API, source-domain proof, Registry leaf or Functor.
+
+## Ready for the next serialized integration
+
+The law prerequisite's original PR372 is now merged on actual main387ae4e5,
+deployed and publicly browser-checked, with its independent construction-only
+postmerge seal accepted. Its immutable reports are carried here without changing
+the earlier proof/audit. This energy result remains VERIFIED, not integrated:
+no new root import, Registry count or canonical public reader is claimed yet.
+The next owner should claim the existing result's sole stabilization lane,
+preserve its frozen code/lesson/binding, sync fresh main, then perform the normal
+root/Registry/reader/graph and clean exact-head gates. Do not restart the proof or
+relabel its private preview as public delivery. Derive counts from current main;
+the broader LSI/PI exercise and new QA admission remain separate.

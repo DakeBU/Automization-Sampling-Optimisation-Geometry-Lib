@@ -63,9 +63,11 @@ inferred from the merge. The original PR372 actual-law/finite-KL construction
 subsequently merged at `387ae4e5`, after all six corrected exact-head checks
 passed. Its earlier hosted-runner disk failure is retained; no gate was bypassed.
 The accepted PR and main merge trees are identical, not relabelled as fresh
-main-CI compilation. Public read-back and the law's independent postmerge seal
-remain separate. The KL composition example is checked, not another public leaf
-or admitted QA.
+main-CI compilation. Public Pages387 read-back and the independent construction-
+only postmerge purification/Exposition Seal now pass. The larger publication's
+future KL/Fisher/LSI/PI obligations remain open; scope is recorded explicitly in
+the Cell and immutable postmerge report. The KL composition example is checked,
+not another public leaf or admitted QA.
 
 The explicit square-root perturbation-energy result is already independently
 VERIFIED at `891a5c9b`; source/evidence and private desktop/mobile reader/graph

@@ -1,0 +1,81 @@
+AutoSamplingTheory.ExampleCases.GaussianComplexity.SphericalPoisson.spherical_poisson_moments {n : ℕ} (hn : 2 ≤ n)
+  (r : ℝ) (hr : 0 < r) (hr1 : r < 1) :
+  have j0 := ⟨0, ⋯⟩;
+  have τ := MeasureTheory.volume.toSphere;
+  have σ := (τ Set.univ)⁻¹ • MeasureTheory.Measure.map (fun y => ↑y) τ;
+  have K := fun y => (1 + r ^ 2 - 2 * r * y.ofLp j0) ^ (↑n / 2);
+  MeasureTheory.Integrable (fun y => 1 / K y) σ ∧
+    MeasureTheory.Integrable (fun y => y.ofLp j0 / K y) σ ∧
+      ∫ (y : EuclideanSpace ℝ (Fin n)), 1 / K y ∂σ = 1 / (1 - r ^ 2) ∧
+        ∫ (y : EuclideanSpace ℝ (Fin n)), y.ofLp j0 / K y ∂σ = r / (1 - r ^ 2)
+AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus.radial_gradient_laplacian.{u_2} {E : Type u_2}
+  [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] (g : ℝ → ℝ) (a x : E)
+  (hg : ContDiffAt ℝ 2 g (‖x - a‖ ^ 2)) :
+  gradient (fun z => g (‖z - a‖ ^ 2)) x = (2 * deriv g (‖x - a‖ ^ 2)) • (x - a) ∧
+    Laplacian.laplacian (fun z => g (‖z - a‖ ^ 2)) x =
+      4 * ‖x - a‖ ^ 2 * deriv (deriv g) (‖x - a‖ ^ 2) + 2 * ↑(Module.finrank ℝ E) * deriv g (‖x - a‖ ^ 2)
+AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel.poissonKernel_harmonicOnNhd {n : ℕ} (hn : 2 ≤ n)
+  (ζ : EuclideanSpace ℝ (Fin n)) (hζ : ‖ζ‖ = 1) :
+  InnerProductSpace.HarmonicOnNhd (fun x => (1 - ‖x‖ ^ 2) / ‖x - ζ‖ ^ n) {ζ}ᶜ
+AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue.harmonic_closedBall_mean_value {n : ℕ}
+  (hn : 2 ≤ n) (u : EuclideanSpace ℝ (Fin n) → ℝ) (a : EuclideanSpace ℝ (Fin n)) (r : ℝ) (hr : 0 < r)
+  (hu : ∃ v, InnerProductSpace.HarmonicOnNhd v (Metric.closedBall a r) ∧ Set.EqOn v u (Metric.closedBall a r)) :
+  have τ := MeasureTheory.volume.toSphere;
+  ∫ (ζ : ↑(Metric.sphere 0 1)), u (a + r • ↑ζ) ∂(τ Set.univ)⁻¹ • τ = u a
+AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalFlux.harmonic_closedBall_zero_flux {n : ℕ} (hn : 2 ≤ n)
+  (u : EuclideanSpace ℝ (Fin n) → ℝ) (a : EuclideanSpace ℝ (Fin n)) (R : ℝ) (hR : 0 < R)
+  (hu : ∃ v, InnerProductSpace.HarmonicOnNhd v (Metric.closedBall a R) ∧ Set.EqOn v u (Metric.closedBall a R)) :
+  have τ := MeasureTheory.volume.toSphere;
+  ∃ v,
+    InnerProductSpace.HarmonicOnNhd v (Metric.closedBall a R) ∧
+      Set.EqOn v u (Metric.closedBall a R) ∧
+        ∀ (r : ℝ),
+          0 < r →
+            r ≤ R →
+              MeasureTheory.Integrable (fun ζ => inner ℝ (gradient v (a + r • ↑ζ)) ↑ζ) τ ∧
+                ∫ (ζ : ↑(Metric.sphere 0 1)), inner ℝ (gradient v (a + r • ↑ζ)) ↑ζ ∂τ = 0
+MeasureTheory.Measure.toSphere_ne_zero.{u_1} {E : Type u_1} [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E]
+  (μ : MeasureTheory.Measure E) [BorelSpace E] [FiniteDimensional ℝ E] [μ.IsAddHaarMeasure] [Nontrivial E] :
+  μ.toSphere ≠ 0
+Continuous.integrable_of_hasCompactSupport.{u_1, u_6} {X : Type u_1} {E : Type u_6} [MeasurableSpace X]
+  [TopologicalSpace X] [NormedAddCommGroup E] {μ : MeasureTheory.Measure X} [OpensMeasurableSpace X] {f : X → E}
+  [MeasureTheory.IsFiniteMeasureOnCompacts μ] (hf : Continuous f) (hcf : HasCompactSupport f) :
+  MeasureTheory.Integrable f μ
+Real.contDiffAt_rpow_const_of_ne {x p : ℝ} {n : WithTop ℕ∞} (h : x ≠ 0) : ContDiffAt ℝ n (fun x => x ^ p) x
+Real.contDiffAt_log {n : WithTop ℕ∞} {x : ℝ} : ContDiffAt ℝ n Real.log x ↔ x ≠ 0
+Real.deriv_rpow_const (x p : ℝ) : deriv (fun x => x ^ p) x = p * x ^ (p - 1)
+Real.deriv_log (x : ℝ) : deriv Real.log x = x⁻¹
+Real.rpow_mul {x : ℝ} (hx : 0 ≤ x) (y z : ℝ) : x ^ (y * z) = (x ^ y) ^ z
+Filter.EventuallyEq.gradient_eq.{u_1, u_2} {𝕜 : Type u_1} {F : Type u_2} [RCLike 𝕜] [NormedAddCommGroup F]
+  [InnerProductSpace 𝕜 F] [CompleteSpace F] {f : F → 𝕜} {x : F} {f₁ : F → 𝕜} (hL : f₁ =ᶠ[nhds x] f) :
+  gradient f₁ x = gradient f x
+MeasureTheory.integral_sub.{u_1, u_5} {α : Type u_1} {G : Type u_5} [NormedAddCommGroup G] [NormedSpace ℝ G]
+  {m : MeasurableSpace α} {μ : MeasureTheory.Measure α} {f g : α → G} (hf : MeasureTheory.Integrable f μ)
+  (hg : MeasureTheory.Integrable g μ) : ∫ (a : α), f a - g a ∂μ = ∫ (a : α), f a ∂μ - ∫ (a : α), g a ∂μ
+MeasureTheory.integral_const_mul.{u_1, u_6} {α : Type u_1} {m : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  {L : Type u_6} [RCLike L] (r : L) (f : α → L) : ∫ (a : α), r * f a ∂μ = r * ∫ (a : α), f a ∂μ
+MeasureTheory.integral_smul_measure.{u_1, u_5} {α : Type u_1} {G : Type u_5} [NormedAddCommGroup G] [NormedSpace ℝ G]
+  {m : MeasurableSpace α} {μ : MeasureTheory.Measure α} (f : α → G) (c : ENNReal) :
+  ∫ (x : α), f x ∂c • μ = c.toReal • ∫ (x : α), f x ∂μ
+MeasureTheory.Measure.map_smul.{u_1, u_2, u_4} {α : Type u_1} {β : Type u_2} {mα : MeasurableSpace α}
+  {mβ : MeasurableSpace β} {R : Type u_4} [SMul R ENNReal] [IsScalarTower R ENNReal ENNReal] (c : R)
+  (μ : MeasureTheory.Measure α) (f : α → β) : MeasureTheory.Measure.map f (c • μ) = c • MeasureTheory.Measure.map f μ
+MeasurableEmbedding.subtype_coe.{u_1} {α : Type u_1} {s : Set α} {mα : MeasurableSpace α} (hs : MeasurableSet s) :
+  MeasurableEmbedding Subtype.val
+MeasurableEmbedding.integrable_map_iff.{u_1, u_4, u_5} {α : Type u_1} {δ : Type u_4} {ε : Type u_5}
+  {m : MeasurableSpace α} {μ : MeasureTheory.Measure α} [MeasurableSpace δ] [TopologicalSpace ε] [ContinuousENorm ε]
+  {f : α → δ} (hf : MeasurableEmbedding f) {g : δ → ε} :
+  MeasureTheory.Integrable g (MeasureTheory.Measure.map f μ) ↔ MeasureTheory.Integrable (g ∘ f) μ
+MeasurableEmbedding.integral_map.{u_1, u_5, u_6} {α : Type u_1} {G : Type u_5} [NormedAddCommGroup G] [NormedSpace ℝ G]
+  {m : MeasurableSpace α} {μ : MeasureTheory.Measure α} {β : Type u_6} {x✝ : MeasurableSpace β} {f : α → β}
+  (hf : MeasurableEmbedding f) (g : β → G) : ∫ (y : β), g y ∂MeasureTheory.Measure.map f μ = ∫ (x : α), g (f x) ∂μ
+/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-a1-fresh-source-review-20261103/AuthoredDependencies.lean:23:7: error(lean.unknownIdentifier): Unknown identifier `Tests.GaussianComplexitySphericalPoisson.selected_numerator_value`
+selected_numerator_value {n : ℕ} (hn : 3 ≤ n) {κ : ℝ} (hκ : 4 ≤ κ) :
+  have s := √κ;
+  have r := (1 - 1 / ↑n) * ((s - 1) / (s + 1));
+  have j0 := ⟨0, ⋯⟩;
+  have τ := MeasureTheory.volume.toSphere;
+  have σ := (τ Set.univ)⁻¹ • MeasureTheory.Measure.map (fun y => ↑y) τ;
+  have f := fun y => ((s + 1) * y.ofLp j0 - (s - 1)) / (1 + r ^ 2 - 2 * r * y.ofLp j0) ^ (↑n / 2);
+  MeasureTheory.Integrable f σ ∧ ∫ (y : EuclideanSpace ℝ (Fin n)), f y ∂σ = -(s - 1) / (↑n * (1 - r ^ 2))
+'selected_numerator_value' depends on axioms: [propext, Classical.choice, Quot.sound]

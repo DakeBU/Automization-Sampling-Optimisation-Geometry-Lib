@@ -1,0 +1,26 @@
+import Tests.GaussianComplexitySphericalPoisson
+
+#check AutoSamplingTheory.ExampleCases.GaussianComplexity.SphericalPoisson.spherical_poisson_moments
+#check AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus.radial_gradient_laplacian
+#check AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel.poissonKernel_harmonicOnNhd
+#check AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue.harmonic_closedBall_mean_value
+#check AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalFlux.harmonic_closedBall_zero_flux
+#check MeasureTheory.Measure.toSphere_ne_zero
+#check Continuous.integrable_of_hasCompactSupport
+#check Real.contDiffAt_rpow_const_of_ne
+#check Real.contDiffAt_log
+#check Real.deriv_rpow_const
+#check Real.deriv_log
+#check Real.rpow_mul
+#check Filter.EventuallyEq.gradient_eq
+#check MeasureTheory.integral_sub
+#check MeasureTheory.integral_const_mul
+#check MeasureTheory.integral_smul_measure
+#check MeasureTheory.Measure.map_smul
+#check MeasurableEmbedding.subtype_coe
+#check MeasurableEmbedding.integrable_map_iff
+#check MeasurableEmbedding.integral_map
+#check Tests.GaussianComplexitySphericalPoisson.selected_numerator_value
+#check selected_numerator_value
+
+#print axioms selected_numerator_value

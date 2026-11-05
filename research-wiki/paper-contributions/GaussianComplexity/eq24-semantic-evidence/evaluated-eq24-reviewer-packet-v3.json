@@ -1,0 +1,286 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-323b810afb65a13d",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "huanjian_gc_20261103_eq24",
+    "blind_decoder": "/root/decode_c1626bf4",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "arxiv2610.20492v1-EvaluatedEq24",
+    "anchor": "B.2.2 Proposition B.7, selected Eq22–23, both displayed A1 moments and the numerator immediately before Eq24; Eq24 both lines",
+    "original_text": "The actual Gaussian and density expectations have the same exact value. \\(H_\\gamma=H_p=\\frac{(-1)^n}{n}\\left(\\frac{\\sqrt\\kappa-1}{\\sqrt\\kappa+1}\\right)^n\\frac{(1-1/n)^{n/2}}{1-r^2}.\\) Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including equality. No parity restriction is imposed; \\(n/2\\) is real even when n is odd. The selected parameters imply \\(s\\ge2\\), \\(0<r<1\\), \\(\\ell>0\\) and \\(1-r^2>0\\). These domain facts and every needed L1/measure identity are proved inside existing canonical dependencies, never supplied as extra assumptions. All expectations are actual real Bochner integrals. Absolute integrability is a conclusion. Standard totalized division/rpow off the measure support changes none of the asserted integrals. Both outer integrands \\(O\\mapsto\\det(O)\\int t\\,d\\gamma_O\\) and \\(O\\mapsto\\det(O)\\int t p_O\\,dx\\) are in \\(L^1(\\mu)\\). These facts, the density identity and positive definiteness are internally supplied conclusions, not extra binders. \\(\\begin{aligned}s&=\\sqrt\\kappa,&r&=\\left(1-\\frac1n\\right)\\frac{s-1}{s+1},\\\\\\ell&=\\frac{4ns+(s-1)^2}{8n(n-1)},&v&=\\frac{(-1)^n}{n}\\left(\\frac{s-1}{s+1}\\right)^n\\frac{(1-1/n)^{n/2}}{1-r^2}.\\end{aligned}\\) \\(\\begin{aligned}A_O&=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top),&\\gamma_O&=\\mathcal N(0,A_O^{-1}),\\\\p_O(x)&=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}e^{-x^\\top A_Ox/2},&t(x)&=e^{-\\ell\\|x\\|_2^2},\\\\H_\\gamma&=\\int\\det(O)\\!\\left(\\int t\\,d\\gamma_O\\right)d\\mu,&H_p&=\\int\\det(O)\\!\\left(\\int t(x)p_O(x)\\,dx\\right)d\\mu.\\end{aligned}\\) \\(\\tau=\\mathrm{vol}.\\mathrm{toSphere},\\quad\\sigma=\\tau(S^{n-1})^{-1}\\iota_*\\tau,\\quad U(y)=y_1,\\quad D(y)=1+r^2-2rU(y),\\quad f(y)=\\frac{(s+1)U(y)-(s-1)}{D(y)^{n/2}}.\\)",
+    "text_sha256": "4230f5db701e42ffa8f517aa36a8c1e31dce9eec692b92e8cda18e341422a17e"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian.selected_gaussian_value",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/EvaluatedGaussian.lean",
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ),\n    let s : ℝ := Real.sqrt κ\n    let r : ℝ := (1 - 1 / (n : ℝ)) * ((s - 1) / (s + 1))\n    let ℓ : ℝ := (4 * (n : ℝ) * s + (s - 1) ^ 2) /\n      (8 * (n : ℝ) * ((n : ℝ) - 1))\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)))⁻¹\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))) *ᵥ WithLp.ofLp x)) / 2)\n    let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n    let v : ℝ := ((-1 : ℝ) ^ n / (n : ℝ)) * ((s - 1) / (s + 1)) ^ n *\n      (1 - 1 / (n : ℝ)) ^ ((n : ℝ) / 2) / (1 - r ^ 2)\n    Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x ∂γ O)) (Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))) ∧\n    Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x)) (Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))) ∧\n    (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x ∂γ O) ∂(Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))) = v ∧\n    (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x) ∂(Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))) = v",
+    "statement_sha256": "dca733b4f6739dcbef019e6fe7a01bb62064d3baaac44e77e88c38c2f552bb93",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every natural number n with 3 ≤ n and every real number κ with 4 ≤ κ, let E be real n-dimensional Euclidean space with its standard ℓ2 norm and coordinates indexed by Fin n = {0, …, n−1}. Let G be the full real orthogonal group O(n), with both determinant signs and its matrix Borel structure, and let μ be Measure.haarMeasure(⊤ : PositiveCompacts G), the canonical normalized Haar probability measure on that full group. Set\ns = √κ,\nr = (1 − 1/n)((s − 1)/(s + 1)),\nℓ = (4ns + (s − 1)²)/(8n(n − 1)),\nwith n interpreted as a real number in these expressions.\n\nFor each O ∈ G, identify O with its real n by n matrix and define\nA_O = ((κ + 1)/2) I − ((κ − 1)/4)(O + Oᵀ).\nLet γ_O be the existing multivariateGaussian measure with mean 0 ∈ E and covariance argument A_O⁻¹. This means exactly the pushforward of canonical stdGaussian by z ↦ Matrix.toEuclideanCLM(CFC.sqrt(A_O⁻¹)) z; matrix inverse is the nonsingular matrix inverse in the approved definition context. Define the real function p_O on E by\np_O(x) = √(det A_O)/(2π)^(n/2) · exp(−(x · (A_O x))/2),\nwhere x · (A_O x) is the coordinate dot product of WithLp.ofLp x with A_O *ᵥ WithLp.ofLp x. Also define\nt(x) = exp(−ℓ ‖x‖²)\nand the real number\nv = ((−1)^n/n) ((s − 1)/(s + 1))^n (1 − 1/n)^(n/2)/(1 − r²).\n\nBoth real-valued functions on G,\nO ↦ det(O) · (∫_E t(x) dγ_O(x))\nand\nO ↦ det(O) · (∫_E t(x)p_O(x) dx),\nare absolutely Bochner integrable with respect to μ. Here dx in the second inner integral is the standard Euclidean Lebesgue volume measure on E, and every displayed integral is a real Bochner integral. Moreover, the following two equalities each hold:\n∫_G det(O) · (∫_E t(x) dγ_O(x)) dμ(O) = v,\n∫_G det(O) · (∫_E t(x)p_O(x) dx) dμ(O) = v.\n\nThe exponents n in (−1)^n and ((s − 1)/(s + 1))^n are natural powers. Each exponent n/2 is real division and uses Real.rpow, defined for all real bases; each square has natural exponent 2. Real division and inverse retain their totalized Lean meaning. The two integrability conclusions concern the displayed functions of O; the statement does not separately assert integrability of any inner integrand. The function p_O and the measure γ_O retain their literal displayed definitions, with no additional density identification needed as a premise or added as a conclusion.",
+    "text_sha256": "e8dc552802ee2a8ca6b10cfe7272c5a6d0e05cf4cea6870ce43c14c8ae07b060",
+    "decoder": "/root/decode_c1626bf4",
+    "decoder_packet_sha256": "8c38b1558950e2ace25bd7e994d4c435a9692e5dd7ddbd2ff6f75ed0ee5217e1",
+    "decoder_run_sha256": "221121adbd84737e5cc180335b34b7e6d5847ad6ad8e26cea805f7562c40f3c6",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "359a5a3ce3a3ff0870f8abb81e1f2265073279013e182a08187e7f3593139a26",
+  "candidate_publication_context": {
+    "file": "6a2e91fed6122dcfc923ceafa8a068a68f35d81832684e982d91d08d03680d15",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedNumerator\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.SurfaceLaw\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianExpectation\n\nopen Matrix MeasureTheory\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian\nset_option autoImplicit false\n\n/-! The evaluated signed Gaussian expectation in Appendix B.2.2, Eq24.\nThe normalized spherical numerator, the actual Gaussian-to-surface transport,\nand the actual density law are canonical dependencies. -/\n\ntheorem selected_gaussian_value {n : ℕ} (hn : 3 ≤ n) {κ : ℝ}\n    (hκ : 4 ≤ κ) :\n    let s : ℝ := Real.sqrt κ\n    let r : ℝ := (1 - 1 / (n : ℝ)) * ((s - 1) / (s + 1))\n    let ℓ : ℝ := (4 * (n : ℝ) * s + (s - 1) ^ 2) /\n      (8 * (n : ℝ) * ((n : ℝ) - 1))\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n    let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n    let v : ℝ := ((-1 : ℝ) ^ n / (n : ℝ)) * ((s - 1) / (s + 1)) ^ n *\n      (1 - 1 / (n : ℝ)) ^ ((n : ℝ) / 2) / (1 - r ^ 2)\n    Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x ∂γ O)) (orthogonalHaar n) ∧\n    Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ =>\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x)) (orthogonalHaar n) ∧\n    (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x ∂γ O) ∂orthogonalHaar n) = v ∧\n    (∫ O : Matrix.orthogonalGroup (Fin n) ℝ,\n      (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x) ∂orthogonalHaar n) = v := by\n  let s : ℝ := Real.sqrt κ\n  let r : ℝ := (1 - 1 / (n : ℝ)) * ((s - 1) / (s + 1))\n  let ℓ : ℝ := (4 * (n : ℝ) * s + (s - 1) ^ 2) /\n    (8 * (n : ℝ) * ((n : ℝ) - 1))\n  let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n    fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n      (singleBlockPrecision κ O)⁻¹\n  let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n    fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n      (2 * Real.pi) ^ ((n : ℝ) / 2) *\n      Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n        (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n  let t : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.exp (-ℓ * ‖x‖ ^ 2)\n  let v : ℝ := ((-1 : ℝ) ^ n / (n : ℝ)) * ((s - 1) / (s + 1)) ^ n *\n    (1 - 1 / (n : ℝ)) ^ ((n : ℝ) / 2) / (1 - r ^ 2)\n  change Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ => (O : Matrix (Fin n) (Fin n) ℝ).det *\n      (∫ x, t x ∂γ O)) (orthogonalHaar n) ∧\n    Integrable (fun O : Matrix.orthogonalGroup (Fin n) ℝ => (O : Matrix (Fin n) (Fin n) ℝ).det *\n      (∫ x, t x * p O x)) (orthogonalHaar n) ∧\n    (∫ O : Matrix.orthogonalGroup (Fin n) ℝ, (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x ∂γ O)\n      ∂orthogonalHaar n) = v ∧\n    (∫ O : Matrix.orthogonalGroup (Fin n) ℝ, (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x)\n      ∂orthogonalHaar n) = v\n  have ht := SelectedTilt.selected_tilt hn hκ\n  have hg := GaussianExpectation.actual_gaussian_transform hn hκ\n    (ℓ := ℓ) ht.2.2.1.le\n  have hpoint : (fun O : Matrix.orthogonalGroup (Fin n) ℝ => (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x ∂γ O)) =ᵐ[\n      orthogonalHaar n]\n      (fun O : Matrix.orthogonalGroup (Fin n) ℝ => (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x * p O x)) :=\n    Filter.Eventually.of_forall fun O => congrArg\n      (fun z => (O : Matrix (Fin n) (Fin n) ℝ).det * z) (hg.1 O).2.2\n  have hvalue : (∫ O : Matrix.orthogonalGroup (Fin n) ℝ, (O : Matrix (Fin n) (Fin n) ℝ).det * (∫ x, t x ∂γ O)\n      ∂orthogonalHaar n) = v := by\n    have hs := (SurfaceLaw.selected_surface_transport hn hκ).2.2.2\n    have hm := (selected_numerator_value hn hκ).2\n    rw [hm] at hs\n    calc\n      _ = (((-1 : ℝ) ^ (n - 1) * (s - 1) ^ (n - 1)) / (s + 1) ^ n) *\n          (1 - 1 / (n : ℝ)) ^ ((n : ℝ) / 2) *\n          (-(s - 1) / ((n : ℝ) * (1 - r ^ 2))) := hs\n      _ = v := by\n        have hn0 : (n : ℝ) ≠ 0 := by exact_mod_cast (by omega : n ≠ 0)\n        have hsp : s + 1 ≠ 0 := ne_of_gt (by dsimp [s]; positivity)\n        have hden : 1 - r ^ 2 ≠ 0 := by\n          have hr : 0 < r := ht.1\n          have hr1 : r < 1 := ht.2.1\n          nlinarith\n        have hpow (a : ℝ) : a ^ n = a ^ (n - 1) * a := by\n          conv_lhs => rw [← Nat.sub_add_cancel (by omega : 1 ≤ n)]\n          rw [pow_succ]\n        dsimp only [v]\n        rw [div_pow, hpow (-1), hpow (s - 1)]\n        field_simp\n  exact ⟨hg.2.1, hg.2.1.congr hpoint, hvalue,\n    (integral_congr_ae hpoint.symm).trans hvalue⟩\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A2.E24",
+      "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "B.2.2 Proposition B.7, selected Eq22–23, both displayed A1 moments and the numerator immediately before Eq24; Eq24 both lines",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Actual-law/density L1 and normalization are supplied by canonical ASTIS producers. No source repair or additional oracle theorem is asserted.",
+      "scope": "n≥3, κ≥4; the selected signed full-Haar Gaussian expectation and its literal density integral."
+    },
+    "statement": "The actual Gaussian and density expectations have the same exact value. \\(H_\\gamma=H_p=\\frac{(-1)^n}{n}\\left(\\frac{\\sqrt\\kappa-1}{\\sqrt\\kappa+1}\\right)^n\\frac{(1-1/n)^{n/2}}{1-r^2}.\\) Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including equality. No parity restriction is imposed; \\(n/2\\) is real even when n is odd. The selected parameters imply \\(s\\ge2\\), \\(0<r<1\\), \\(\\ell>0\\) and \\(1-r^2>0\\). These domain facts and every needed L1/measure identity are proved inside existing canonical dependencies, never supplied as extra assumptions. All expectations are actual real Bochner integrals. Absolute integrability is a conclusion. Standard totalized division/rpow off the measure support changes none of the asserted integrals. Both outer integrands \\(O\\mapsto\\det(O)\\int t\\,d\\gamma_O\\) and \\(O\\mapsto\\det(O)\\int t p_O\\,dx\\) are in \\(L^1(\\mu)\\). These facts, the density identity and positive definiteness are internally supplied conclusions, not extra binders. \\(\\begin{aligned}s&=\\sqrt\\kappa,&r&=\\left(1-\\frac1n\\right)\\frac{s-1}{s+1},\\\\\\ell&=\\frac{4ns+(s-1)^2}{8n(n-1)},&v&=\\frac{(-1)^n}{n}\\left(\\frac{s-1}{s+1}\\right)^n\\frac{(1-1/n)^{n/2}}{1-r^2}.\\end{aligned}\\) \\(\\begin{aligned}A_O&=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top),&\\gamma_O&=\\mathcal N(0,A_O^{-1}),\\\\p_O(x)&=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}e^{-x^\\top A_Ox/2},&t(x)&=e^{-\\ell\\|x\\|_2^2},\\\\H_\\gamma&=\\int\\det(O)\\!\\left(\\int t\\,d\\gamma_O\\right)d\\mu,&H_p&=\\int\\det(O)\\!\\left(\\int t(x)p_O(x)\\,dx\\right)d\\mu.\\end{aligned}\\) \\(\\tau=\\mathrm{vol}.\\mathrm{toSphere},\\quad\\sigma=\\tau(S^{n-1})^{-1}\\iota_*\\tau,\\quad U(y)=y_1,\\quad D(y)=1+r^2-2rU(y),\\quad f(y)=\\frac{(s+1)U(y)-(s-1)}{D(y)^{n/2}}.\\)",
+    "formulae": [
+      {
+        "label": "Eq24: the evaluated signed Gaussian expectation",
+        "tex": "H_\\gamma=H_p=\\frac{(-1)^n}{n}\\left(\\frac{\\sqrt\\kappa-1}{\\sqrt\\kappa+1}\\right)^n\\frac{(1-1/n)^{n/2}}{1-r^2}."
+      }
+    ],
+    "assumptions": [
+      "Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including equality. No parity restriction is imposed; \\(n/2\\) is real even when n is odd.",
+      "The selected parameters imply \\(s\\ge2\\), \\(0<r<1\\), \\(\\ell>0\\) and \\(1-r^2>0\\). These domain facts and every needed L1/measure identity are proved inside existing canonical dependencies, never supplied as extra assumptions.",
+      "All expectations are actual real Bochner integrals. Absolute integrability is a conclusion. Standard totalized division/rpow off the measure support changes none of the asserted integrals.",
+      "Both outer integrands \\(O\\mapsto\\det(O)\\int t\\,d\\gamma_O\\) and \\(O\\mapsto\\det(O)\\int t p_O\\,dx\\) are in \\(L^1(\\mu)\\). These facts, the density identity and positive definiteness are internally supplied conclusions, not extra binders."
+    ],
+    "obligations": [
+      {
+        "id": "actual-signed-gaussian-eq24-value",
+        "label": "The actual Gaussian and density expectations have the same exact value."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian.selected_gaussian_value",
+      "title": "Eq24: the evaluated signed Gaussian expectation",
+      "reader_note": "Exact source range and actual measures; assumptions, proof and exact Lean are folded below.",
+      "statement": "The actual Gaussian and density expectations have the same exact value.",
+      "formula": "H_\\gamma=H_p=\\frac{(-1)^n}{n}\\left(\\frac{\\sqrt\\kappa-1}{\\sqrt\\kappa+1}\\right)^n\\frac{(1-1/n)^{n/2}}{1-r^2}.",
+      "assumptions": [
+        "Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including equality. No parity restriction is imposed; \\(n/2\\) is real even when n is odd.",
+        "The selected parameters imply \\(s\\ge2\\), \\(0<r<1\\), \\(\\ell>0\\) and \\(1-r^2>0\\). These domain facts and every needed L1/measure identity are proved inside existing canonical dependencies, never supplied as extra assumptions.",
+        "All expectations are actual real Bochner integrals. Absolute integrability is a conclusion. Standard totalized division/rpow off the measure support changes none of the asserted integrals.",
+        "Both outer integrands \\(O\\mapsto\\det(O)\\int t\\,d\\gamma_O\\) and \\(O\\mapsto\\det(O)\\int t p_O\\,dx\\) are in \\(L^1(\\mu)\\). These facts, the density identity and positive definiteness are internally supplied conclusions, not extra binders."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(s,r,\\ell,v\\)",
+          "text": "All divisions and n/2 exponents here are real; n−1 is natural subtraction in prefactors.",
+          "formula": "\\begin{aligned}s&=\\sqrt\\kappa,&r&=\\left(1-\\frac1n\\right)\\frac{s-1}{s+1},\\\\\\ell&=\\frac{4ns+(s-1)^2}{8n(n-1)},&v&=\\frac{(-1)^n}{n}\\left(\\frac{s-1}{s+1}\\right)^n\\frac{(1-1/n)^{n/2}}{1-r^2}.\\end{aligned}"
+        },
+        {
+          "symbol": "\\(\\mu,A_O,\\gamma_O,p_O,t,H_\\gamma,H_p\\)",
+          "text": "Mu is normalized Haar on the full real orthogonal group including both determinant signs. A is precision; its inverse is covariance of the actual multivariateGaussian. The density uses Euclidean Lebesgue measure, the Euclidean dot product and the actual l2 norm.",
+          "formula": "\\begin{aligned}A_O&=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top),&\\gamma_O&=\\mathcal N(0,A_O^{-1}),\\\\p_O(x)&=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}e^{-x^\\top A_Ox/2},&t(x)&=e^{-\\ell\\|x\\|_2^2},\\\\H_\\gamma&=\\int\\det(O)\\!\\left(\\int t\\,d\\gamma_O\\right)d\\mu,&H_p&=\\int\\det(O)\\!\\left(\\int t(x)p_O(x)\\,dx\\right)d\\mu.\\end{aligned}"
+        },
+        {
+          "symbol": "\\(\\tau,\\sigma,U,D,f\\)",
+          "text": "The first source coordinate is Lean coordinate 0. The ambient measure is the inclusion pushforward of the normalized volume-derived unit-sphere measure. The kernel is defined on all Euclidean space with standard totalized real division and Real.rpow, and integrated only under sigma.",
+          "formula": "\\tau=\\mathrm{vol}.\\mathrm{toSphere},\\quad\\sigma=\\tau(S^{n-1})^{-1}\\iota_*\\tau,\\quad U(y)=y_1,\\quad D(y)=1+r^2-2rU(y),\\quad f(y)=\\frac{(s+1)U(y)-(s-1)}{D(y)^{n/2}}."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Attach the actual Gaussian to the normalized sphere",
+          "text": "Use the already compiled selected Gaussian surface transport. Its normalized sphere is exactly the one used by the numerator theorem.",
+          "formula": "H_\\gamma=\\beta\\int f\\,d\\sigma,\\qquad\\beta=\\frac{(-1)^{n-1}(s-1)^{n-1}}{(s+1)^n}\\left(1-\\frac1n\\right)^{n/2}.",
+          "lean": "hs consumes SurfaceLaw.selected_surface_transport hn hκ. Its Gaussian is the actual law with inverse precision as covariance; its sphere is literal normalized volume.toSphere."
+        },
+        {
+          "title": "Insert the two-moment numerator value",
+          "text": "Use the single existing numerator node; do not reproduce either A1 proof or assume a moment value.",
+          "formula": "H_\\gamma=\\beta\\left(-\\frac{s-1}{n(1-r^2)}\\right).",
+          "lean": "hm is selected_numerator_value hn hκ; rw [hm] at hs replaces the actual surface integral. The global declaration was promoted byte-for-byte to SelectedNumerator.lean."
+        },
+        {
+          "title": "Collect signs and powers",
+          "text": "Because n≥3, n=(n−1)+1. The extra minus sign and factor s−1 raise both natural powers by one. Keep the real dimension-half power unchanged.",
+          "formula": "(-1)^{n-1}(-1)=(-1)^n,\\quad(s-1)^{n-1}(s-1)=(s-1)^n,\\qquad H_\\gamma=v.",
+          "lean": "hpow uses Nat.sub_add_cancel and pow_succ. div_pow and field_simp combine the exact factors. hn0, hsp and hden justify the nonzero denominators."
+        },
+        {
+          "title": "Transfer the value and L1 to the literal density integral",
+          "text": "The canonical actual-Gaussian theorem supplies signed outer L1 and pointwise equality between each Gaussian expectation and its Euclidean density integral. Multiplication by the determinant preserves equality, so both outer integrands have the same L1 and integral.",
+          "formula": "\\int t\\,d\\gamma_O=\\int t(x)p_O(x)\\,dx,\\qquad H_p=H_\\gamma=v.",
+          "lean": "hg is GaussianExpectation.actual_gaussian_transform at the internally positive selected tilt. hpoint is the everywhere equality promoted to AE; Integrable.congr and integral_congr_ae transfer L1 and the value. Both are conclusions of the sealed theorem."
+        },
+        {
+          "title": "Consume the value in the actual target mixtures",
+          "text": "For ν±=2μ restricted to determinant ±1, the real Gaussian mixtures P±=ν± bind γ have integrable test t. The canonical gap theorem and Eq24 give the ordered gap, with its factor two. Strict parameter domains prove v≠0.",
+          "formula": "\\mathbb E_{P_+}t-\\mathbb E_{P_-}t=2v\\ne0,\\qquad P_\\pm=\\left(2\\mu\\!\\restriction\\{\\det O=\\pm1\\}\\right)\\mathrm{bind}\\gamma.",
+          "lean": "Tests/GaussianComplexityEvaluatedGaussian.lean calls MixtureExpectation.actual_mixture_expectation_gap and this theorem. Nonzero follows from n>0, s≥2, the positive base 1−1/n, and 1−r²>0. This consumer does not assert a quantitative TV or query lower bound."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedTilt.selected_tilt",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.SurfaceLaw.selected_surface_transport",
+        "selected_numerator_value",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianExpectation.actual_gaussian_transform"
+      ],
+      "mathlib_dependencies": [
+        "Nat.sub_add_cancel",
+        "pow_succ",
+        "div_pow",
+        "MeasureTheory.Integrable.congr",
+        "MeasureTheory.integral_congr_ae"
+      ],
+      "lean_statement": "Exact pre-proof sealed signature; no proof ingredient is a supplied hypothesis.",
+      "lean_proof": "The exact production declaration is extracted below; canonical dependencies are called directly.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.E24",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "B.2.2 Proposition B.7, selected Eq22–23, both displayed A1 moments and the numerator immediately before Eq24; Eq24 both lines",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Actual-law/density L1 and normalization are supplied by canonical ASTIS producers. No source repair or additional oracle theorem is asserted.",
+          "scope": "n≥3, κ≥4; the selected signed full-Haar Gaussian expectation and its literal density integral.",
+          "label": "Zhou–Suzuki, Appendix B.2.2, Eq24"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityEvaluatedGaussian Tests.GaussianComplexitySphericalPoisson"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian.selected_gaussian_value",
+      "role": "proof-edge",
+      "supports": [
+        "actual-signed-gaussian-eq24-value"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Proposition B.7 uses n≥3 and κ≥4 with the literal selected Eq22–23 parameters.",
+        "lean": "Exactly n≥3,κ≥4; all parameter, measure and L1 facts are produced internally."
+      },
+      {
+        "source": "The stated finite expectations are normalized sphere or actual Gaussian density expectations.",
+        "lean": "Genuine absolute L1 and actual real Bochner integrals under the explicitly defined measures."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "fb68e70d8fe35704dfbd7a975d5621e5d48707022778cf9c0710ee204741b459"
+}

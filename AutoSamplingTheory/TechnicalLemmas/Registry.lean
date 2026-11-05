@@ -31,6 +31,17 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Divergence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Laplacian
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BallFlux
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.FundamentalSolution
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalFlux
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SphericalPoisson
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedNumerator
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Taylor
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev
@@ -146,6 +157,96 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
 
 def analysisMemory : List LemmaMemoryEntry := [
   {
+    key := "analysis.radial-gradient-laplacian",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus.radial_gradient_laplacian",
+    upstreamDecl := "ASTIS sealed local squared-distance radial calculus",
+    upstreamFile := "research-wiki/paper-contributions/GaussianComplexity/radial-green-data-statement-seal.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["radial", "gradient", "laplacian", "local-C2"],
+    saldUse := "Canonical local radial provider actually consumed by fundamental-solution data and Poisson harmonicity",
+    note := "Actual gradient and Laplacian from a scalar profile locally C2 at squared distance in every finite real inner-product space, including the center and dimension zero. Independently reviewed exact module; no separate public credit for private implementation. Global source representation, geometric Green identity and paper lower bounds are not claimed."
+  },
+  {
+    key := "analysis.fundamental-solution-boundary-data",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.FundamentalSolution.fundamentalSolution_boundary_data",
+    upstreamDecl := "HFT second edition power/log harmonic functions and expanded positive-sphere data",
+    upstreamFile := "HFT printed2/PDF10 and Theorem1.4 printed5/PDF13; standing dimension printed1/PDF9",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["harmonic", "fundamental-solution", "radial", "boundary"],
+    saldUse := "Shared power/log harmonicity and explicit scalar radial boundary data for Green-function consumers",
+    note := "For n>=2, the literal power/log function is harmonic off zero, with actual values and radial gradient pairings on every positive sphere. Derivatives and local regularity are internal. Independently reviewed exact module. Geometric normal identification, annular orientation, distributional normalization and general Green identity remain separate."
+  },
+  {
+    key := "analysis.poisson-kernel-harmonicity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel.poissonKernel_harmonicOnNhd",
+    upstreamDecl := "HFT second edition Proposition1.18",
+    upstreamFile := "HFT printed13/PDF21; product rule1.19; standing dimension printed1/PDF9",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["poisson-kernel", "harmonic", "laplacian", "sphere"],
+    saldUse := "Actual kernel harmonicity used by the closed-ball mean-value consumer and planned AppendixA1 normalization",
+    note := "For n>=2 and a fixed unit pole, the literal quotient is harmonic on the entire pole complement. Current independent audit HuanjianPoissonRadialRefactor covers actual canonical radial and Laplacian-product reuse; the older proof-body certificate is not reused. No extra smoothness premise, Poisson representation, AppendixA1 value or lower-bound claim."
+  },
+  {
+    key := "analysis.ball-flux-divergence",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BallFlux.ball_flux_eq_integral_divergence",
+    upstreamDecl := "ASTIS sealed local ball divergence and literal polar-sphere flux identity",
+    upstreamFile := "research-wiki/paper-contributions/GaussianComplexity/ball-flux-statement-seal.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["divergence", "ball", "flux", "polar-measure"],
+    saldUse := "Canonical ball-flux identity actually consumed by same-extension harmonic zero flux",
+    note := "Every natural Euclidean dimension, positive radius, local C1 field on the closed ball. Both actual integrabilities and exact radius-scaled volume.toSphere flux are conclusions. Independently reviewed localization, polar shell limits and divergence reuse. General geometric surface area, smooth-domain divergence/Green and annular normals remain separate."
+  },
+  {
+    key := "analysis.harmonic-closed-ball-zero-flux",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalFlux.harmonic_closedBall_zero_flux",
+    upstreamDecl := "HFT zero-flux use: explicit real same-extension closed-ball specialization",
+    upstreamFile := "HFT Eq1.3 printed4/PDF12 and two filled-ball uses in1.4 printed5/PDF13",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["harmonic", "zero-flux", "closed-ball", "extension"],
+    saldUse := "Same actual harmonic extension before all positive subradii, consumed by normalized spherical mean value",
+    note := "For n>=2 and positive parent radius, a matching harmonic-neighborhood extension supplies actual gradient-pair integrability and zero literal polar flux at every positive subradius through the parent radius. Original values may be arbitrary off the ball. Independently reviewed exact module; full complex arbitrary-domain geometric flux is not claimed."
+  },
+  {
+    key := "analysis.harmonic-closed-ball-mean-value",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue.harmonic_closedBall_mean_value",
+    upstreamDecl := "HFT second edition Theorem1.4: explicit real closed-ball specialization",
+    upstreamFile := "HFT printed5/PDF13; closed-set extension convention printed1/PDF9",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["harmonic", "mean-value", "closed-ball", "normalized-sphere"],
+    saldUse := "Canonical normalized spherical mean value with actual Poisson and translated off-ball-discontinuous consumers",
+    note := "For n>=2 and positive radius, an actual matching harmonic-neighborhood extension yields the center value as the literal normalized volume.toSphere boundary average. Probability/full orthogonal invariance, L1 and differentiation estimates are internal. Independently reviewed direct radial-average alternative to the author annulus route. Full complex generality, AppendixA1, Eq24, oracle/cost adapters, rendered acceptance, purification and whole-paper completion remain separate."
+  },
+  {
+    key := "gaussian-complexity.spherical-poisson-moments",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.SphericalPoisson.spherical_poisson_moments",
+    upstreamDecl := "arXiv2610.20492v1 LemmaA.1 Eq12: actual normalized sphere moments",
+    upstreamFile := "A1.SS1 LemmaA.1 and proof; B.2.2 selected numerator before Eq24",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "sphere", "poisson", "moments", "integrability"],
+    saldUse := "Both actual moments consumed by the unchanged production selected_numerator_value; the actual evaluated Gaussian Eq24 reuses that same node",
+    note := "Independent compiler/source/whole-module admission at f8101cf4cf99d806dc8f73bce7dd14514637d612. Exact normalized ambient surface law, both genuine L1 facts and both values. Raw source opening n>=2 and trailing n>=3 remain visible: source fidelity is accepted on n>=3, with the actually proved n=2 logarithmic case an explicit ASTIS extension. The checked mean-value/zero-flux route is distinct from the author's full HFT1.21 route. No caller-supplied moment/flux/regularity premise, full Poisson representation, evaluated Gaussian Eq24, TV/oracle/query/cost/main lower bound, merge or purification claim. Nine private providers share the one public review and receive no separate Registry credit."
+  },
+  {
+    key := "gaussian-complexity.selected-spherical-numerator",
+    localDecl := "selected_numerator_value",
+    upstreamDecl := "arXiv2610.20492v1 AppendixB.2.2 Ex61 immediately before Eq24",
+    upstreamFile := "A2.SS2.SSS2.p5, two A1 moments and selected Eq22 parameter",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "sphere", "selected-numerator", "integrability", "canonical-promotion"],
+    saldUse := "Same compiled global numerator declaration is consumed by EvaluatedGaussian.selected_gaussian_value",
+    note := "Independent source/whole-module admission at fd099e2c44e41ee3ae35f96f82c20e27db1f4035. The exact prior theorem statement and proof are promoted byte-for-byte from the focused A1 test into SelectedNumerator.lean. This canonical registration is not new mathematics or a second proof. Exactly n>=3,kappa>=4, actual normalized sphere law, affine-kernel L1 and the evaluated numerator. No supplied moment or extra assumption, full Poisson representation, quantitative TV, oracle/query/cost, main-bound, merge or purification claim."
+  },
+  {
+    key := "gaussian-complexity.evaluated-eq24",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian.selected_gaussian_value",
+    upstreamDecl := "arXiv2610.20492v1 AppendixB.2.2 Eq24 both lines",
+    upstreamFile := "PropositionB.7 selected Eq22-24; actual source density and inverse-precision Gaussian",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "gaussian", "Eq24", "actual-law", "integrability"],
+    saldUse := "Actual determinant-conditioned Gaussian-mixture test gap is evaluated as 2v and proved nonzero in the focused consumer",
+    note := "Independent compiler/source/whole-module admission at fd099e2c44e41ee3ae35f96f82c20e27db1f4035. Exactly n>=3,kappa>=4; actual full-Haar Gaussian and literal density signed kernels are both L1 and have the exact Eq24 value, including parity sign and real n/2. Canonical actual surface transport, selected domains, A1 and density-L1 nodes are reused; no proof ingredient is a public premise. Actual mixed target measures consume the result. Quantitative TV/precision, deterministic query cap, exact-matvec/oracle/expected-cost adapters, fixed-spectrum hidden eigenbasis, both main lower bounds, remote merge and purification remain separate."
+  },
+  {
     key := "optlib-subgradient-norm",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.norm_le_of_supportsAt",
     upstreamDecl := "Lipschitz_to_bounded_subgradient",
@@ -174,6 +275,26 @@ def analysisMemory : List LemmaMemoryEntry := [
     tags := ["convex", "subgradient", "finite-horizon", "optimisation"],
     saldUse := "Finite best-iterate guarantee for a supplied nonsmooth subgradient run and arbitrary comparator",
     note := "Positive steps and nonempty horizon justify division. Native index witness replaces attained finite sInf; no minimizer, iterate convergence, stochastic oracle or sampling rate is claimed."
+  },
+  {
+    key := "gaussian-complexity.single-block-separation",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation.single_block_separation",
+    upstreamDecl := "arXiv2610.20492v1 PropositionB.7 Eq19",
+    upstreamFile := "A2.SS2.SSS2 Eq19, atomic Eq20/Eq24 and Ex62-64",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "actual-mixture", "total-variation", "single-block"],
+    saldUse := "Actual n3,kappa4 event TV at least1/126 and unequal laws; actual n4,kappa9 TV at least1/80; planned affinity/amplification consumer",
+    note := "Independent normal-API VERIFIED at d925c0c3e16810c0023735b80279ed06ffe92ed6. Exact source n>=3,kappa>=4 and literal twice-restricted full-Haar inverse-precision Gaussian bind mixtures. Normalized event TV >=q^n/(2+4ns/(s+1)^2)>=(1/2)exp(-5n/s); real odd n/2, absolute parity and positive denominators internally discharged. Actual Eq20, evaluated Eq24, selected domains and numeric comparator are shared canonical nodes. No supplied expectation, scalar estimate, TV quantity or probability premise. Product/amplification, oracle/precision/query/cost, hidden-eigenbasis, both main bounds and final rendered/purification acceptance remain separate."
+  },
+  {
+    key := "gaussian-complexity.mixture-densities",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities.actual_mixture_densities",
+    upstreamDecl := "arXiv2610.20492v1 actual P_b densities and normalization used before Eq25",
+    upstreamFile := "A2.SS2.p2.1; A2.SS2.SSS3 p2.1-p2.2 and Ex68; S3.SS1 P_b beforeEq6",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "actual-mixture", "Lebesgue-density", "integrability", "normalization"],
+    saldUse := "Actual all-source-domain affinity sqrt(q+q-) is genuine L1 with integral in[0,1], retaining actual law-density equalities",
+    note := "Independent normal-API VERIFIED at8001430a5ce67810c37e35886d1771bf73cd4e20. Exactly n>=3,kappa>=4; actual conditioned-Haar real Gaussian-density averages are pointwise nonnegative, measurable, genuine Lebesgue L1 and mass1, defining exactly the actual bind measures. Pointwise inner L1 is produced by continuity on compact O(n), and Tonelli identifies the actual density. q is a chosen a.e. source density representative, never equality to every arbitrary representative pointwise; no totalized-integral fallback or extra probability/SPD/Fubini/L1/mass premise. Three exact canonical project producers reused; one public node and no authored helper declarations. TV-affinity upper bound, Eq25, Eq6 products/amplification, main lower bounds and final reader/purification acceptance remain open."
   },
   {
     key := "quadratic-probability-segment",

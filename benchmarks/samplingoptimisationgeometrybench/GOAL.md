@@ -59,13 +59,27 @@ Current mathematical checkpoint (2026-11-04): the actual compensated-integral
 prerequisite merged in PR371 at `9bb7a739`, with all exact-head PR checks green
 and its public formula/Lean/graph reader actually checked. Independent postmerge
 purification and the scoped Exposition Seal are recorded in the same cell, not
-inferred from the merge. PR372's already independently verified actual-law and
-finite-KL construction is now being integrated from exact remote head `b3859b96`;
-do not reprove it or blindly push its local branch's extra UI commit. The
-composition example is checked, not another public leaf or admitted QA. Complete
-Fisher/density-gradient energy, real LSI admissibility and PI/core closure remain
-separate. RN a.e. equality is not a differentiability transfer rule. This work
-does not close Exercise1.7 or change the old paper/frontier/cycle programme.
+inferred from the merge. The original PR372 actual-law/finite-KL construction
+subsequently merged at `387ae4e5`, after all six corrected exact-head checks
+passed. Its earlier hosted-runner disk failure is retained; no gate was bypassed.
+The accepted PR and main merge trees are identical, not relabelled as fresh
+main-CI compilation. Public read-back and the law's independent postmerge seal
+remain separate. The KL composition example is checked, not another public leaf
+or admitted QA.
+
+The explicit square-root perturbation-energy result is already independently
+VERIFIED at `891a5c9b`; source/evidence and private desktop/mobile reader/graph
+preview are pushed on `codex/sog-bench-perturbation-energy`. Integrate that existing
+proof after the current publication closeout; do not reprove it. It derives actual
+energy integrability and the coefficient1/4, not canonical RN Fisher information
+or LSI admissibility. The next domain route must reuse the generic private cutoff
+limits already in GaussianLogSobolev (raw discovery
+`ASTIS-DISC-20261105-GenericCutoffLimitsAlreadyPrivate`), with affected-source/QA
+binding audits and the C-infinity versus C2 test-class distinction preserved.
+Actual source-test energy production, LSI admissibility, uncentering and PI/core
+closure remain separate. RN a.e. equality is not a differentiability transfer
+rule. This work does not close Exercise1.7 or change old paper/frontier/cycle
+boundaries; no new QA is admitted by these supporting results.
 
 Next-book source preparation has also checked the pinned Statistical Optimal
 Transport PDF and Chapter1, Section1.8, Exercise6 (printed44/PDF50), the Gaussian

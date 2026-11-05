@@ -42,6 +42,17 @@ class LeanRuntimeTests(unittest.TestCase):
         self.assertEqual(p['minimum_landlock_abi'],6)
         self.assertTrue(p['base_image'].startswith('ubuntu:24.04@sha256:'))
 
+    def test_abi_negotiation_cannot_lower_the_required_kernel_floor(self):
+        original=runtime.policy()
+        with tempfile.TemporaryDirectory() as tmp,patch.object(runtime,'RUNTIME',Path(tmp)):
+            path=Path(tmp)/'policy.json'
+            for minimum in (0,5,True,None,'6'):
+                path.write_text(json.dumps({**original,'minimum_landlock_abi':minimum}))
+                with self.subTest(minimum=minimum),self.assertRaisesRegex(ValueError,'Landlock ABI6'):
+                    runtime.policy()
+            path.write_text(json.dumps({**original,'minimum_landlock_abi':8}))
+            self.assertEqual(runtime.policy()['minimum_landlock_abi'],8)
+
     def test_offline_locations_preserve_the_exact_package_graph(self):
         original=json.loads((ROOT/'lake-manifest.json').read_text())
         offline=runtime.offline_manifest()
@@ -204,6 +215,7 @@ class LeanRuntimeTests(unittest.TestCase):
         exec(compile(ast.Module(body=[function],type_ignores=[]),'<trusted literal argv>','exec'),namespace)
         argv=namespace['readonly_precheck_command']()
         self.assertEqual(argv[:3],['lake','env','/opt/judge/landrun-env'])
+        self.assertIn('--best-effort',argv)
         self.assertEqual(argv[-3:],['--','/opt/lean/bin/lean','Solution.lean'])
         self.assertEqual([argv[i+1] for i,a in enumerate(argv) if a=='--rw'],['/dev'])
         self.assertNotIn('--rwx',argv)

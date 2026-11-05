@@ -25,7 +25,9 @@ def readonly_precheck_command(*, probe=False):
     Only the child's own /dev I/O is writable, as in upstream Landrun. The fixed
     source has no -o/-c output and no shell or agent-controlled argv.
     """
-    argv=['lake','env','/opt/judge/landrun-env',
+    # Match the unchanged official comparator's ABI negotiation. The separate
+    # preflight still REJECTS ABI<6; this is not a no-sandbox/old-kernel fallback.
+    argv=['lake','env','/opt/judge/landrun-env','--best-effort',
             '--ro','/','--rw','/dev','-ldd','-add-exec',
             '--env','PATH','--env','HOME','--env','LEAN_PATH',
             '--env','LEAN_ABORT_ON_PANIC','--rox','/opt/lean',

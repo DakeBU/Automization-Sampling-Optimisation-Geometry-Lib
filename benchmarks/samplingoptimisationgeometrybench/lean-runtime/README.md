@@ -116,6 +116,16 @@ elaboration is rejected only after trusted readiness; timeouts/OOM still retain
 their actual phase. The probe is not cryptographic proof that source execution
 began or a guarantee against all transient failures.
 
+ABI negotiation is the same as the pinned official comparator: `--best-effort`,
+**after** our independent preflight rejects kernels below ABI6. Policy parsing
+also rejects a lower/noninteger floor. Native07 correctly failed in trusted
+readiness on ABI8 because the new direct invocation accidentally demanded strict
+ABI10; no submitted proof ran. The pinned [Landrun documentation](https://github.com/Zouuup/landrun/blob/ec104f6edc1e14d7fec6d31146f1ec6f9c192c5a/README.md#best-effort-mode)
+states that default target10 needs this negotiation on older supported kernels.
+This does not claim ABI9 pathname-UNIX or ABI10 UDP controls on ABI6–8. Docker
+network-none/no host sockets, minimum6 filesystem/TCP/abstract-IPC/signal controls
+and every other limit remain required. New actual native acceptance is pending.
+
 Readonly public caches must also be readable by the container UID. Preparation
 checks the pinned package checkouts and copies only manifest-listed packages.
 Readable artifacts are hard-linked; private-mode public artifacts are copied and

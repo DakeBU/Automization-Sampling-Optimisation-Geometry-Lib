@@ -184,3 +184,13 @@ or permits mandatory semantic/axiom/kernel verification. The same whole-call
 wall/flood, invalid-input and workspace replays must really pass. Local contract
 tests are not that acceptance or a model measurement. The public executor stays
 pending until its declared native and independent-review scope is accepted.
+
+Native07/d4663c33 is a typed launcher mismatch, not a source proof failure:
+the trusted version probe rejects ABI8 when the direct call incorrectly asks
+for strict10. Preserve raw native-07 evidence. The successor matches the pinned
+comparator's --best-effort negotiation but still independently rejects ABI<6;
+do not promise unsupported ABI9/10 controls. Run every declared reference,
+negative, I/O/resource/input and workspace case again. A repaired launch,37 local
+contract tests or independent static review is not a native/model pass. Source
+PR381 is separately clean-ported over Huanjian main994992ba with candidate608;
+do not mix that proof's progress into evaluator or exercise-completion counts.

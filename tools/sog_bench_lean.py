@@ -44,6 +44,9 @@ def policy() -> dict:
         raise ValueError('Runtime Mathlib pin is stale')
     if set(value['permitted_axioms']) != {'propext','Quot.sound','Classical.choice'}:
         raise ValueError('Runtime may not silently expand permitted axioms')
+    minimum=value.get('minimum_landlock_abi')
+    if type(minimum) is not int or minimum<6:
+        raise ValueError('Runtime must reject kernels below Landlock ABI6')
     for key in ('comparator_commit','lean4export_commit','landrun_commit'):
         if not re.fullmatch('[a-f0-9]{40}', value[key]):
             raise ValueError('External tools must use full commit identities')

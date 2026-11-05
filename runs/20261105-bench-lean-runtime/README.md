@@ -297,3 +297,26 @@ resolved/dropped, not a pending check; a dropped result now fails the fixture.
 All changes require successor review and fresh native evidence; the first review
 does not certify them. Public-only dependency/cache immutability and quiescent
 operator inputs remain explicit trust assumptions, not an authenticated snapshot.
+
+## Native07: strict-ABI launcher mismatch, correctly unscored
+
+Head d4663c33962e45e7cab9b2a65dd2dca76ba5d4ef, run42058477265/job127353261210
+is terminal FAILED at the first reference's trusted readiness probe,4.361s.
+The kernel reports ABI8 and meets the declared minimum6, but the new direct
+Landrun call omitted upstream comparator's --best-effort and demanded strict10.
+It is infrastructure-error/challenge-preflight, NOT proof rejection. No submitted
+proof, proof-negative, hostile or workspace case passes/runs at this candidate.
+
+Artifact13431000889 ZIP SHA256
+b0215d1f59b92bb78c99cb3644a0ba3c58255ef0c5064504929ae886ff19709f
+matches the actual upload log. native-07 preserves all8 unchanged members plus
+the archive/member binding. The original failed output is not relabelled.
+
+The next bounded repair matches the pinned comparator's actual --best-effort
+negotiation while retaining the separate mandatory ABI>=6 preflight; policy()
+now also rejects lower or noninteger floors. Primary pinned Landrun README
+confirms strict default10 and this flag. ABI9 pathname sockets/ABI10 UDP controls
+are NOT promised on ABI8; Docker network-none and no-host-socket mounts remain.
+No minimum, proof/axiom condition, marker or resource budget is weakened. Local
+contract tests and independent delta review must pass, then ALL declared native
+cases really run at the successor. No model or security acceptance follows.

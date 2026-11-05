@@ -122,6 +122,62 @@ class LeanRuntimeTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):runtime.run_submission(
                 task=Path('no'),stage_dir=Path('no'),submission=Path('no'),runtime=Path('no'),output=Path('no'))
 
+    def test_invalid_input_is_bounded_and_never_evaluated(self):
+        with tempfile.TemporaryDirectory() as tmp,\
+             patch.object(runtime.subprocess,'Popen',side_effect=AssertionError('No submitted host execution')):
+            root=Path(tmp);source=root/'input.txt'
+            self.assertEqual(runtime.read_submission(source,4),(None,'missing-file'))
+            source.write_bytes(b'12345')
+            self.assertEqual(runtime.read_submission(source,4),(None,'too-large'))
+            source.write_bytes(b'\xff')
+            self.assertEqual(runtime.read_submission(source,4),(None,'invalid-utf8'))
+            source.write_bytes(b'1234')
+            self.assertEqual(runtime.read_submission(source,4),(b'1234',None))
+            source.write_bytes(b'')
+            self.assertEqual(runtime.read_submission(source,4),(b'',None))
+
+    @unittest.skipUnless(sys.platform=='linux','Actual symlink/FIFO behavior requires POSIX')
+    def test_fifo_and_symlink_are_rejected_without_blocking_or_following(self):
+        import os
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);source=root/'regular';source.write_bytes(b'not Lean')
+            link=root/'link';link.symlink_to(source)
+            self.assertEqual(runtime.read_submission(link,65536),(None,'symlink'))
+            fifo=root/'fifo';os.mkfifo(fifo)
+            self.assertEqual(runtime.read_submission(fifo,65536),(None,'not-regular'))
+
+    def test_invalid_selected_attempt_gets_evidence_before_any_docker_process(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);task=root/'task';stage=root/'stage';prepared=root/'runtime'
+            task.mkdir();stage.mkdir();prepared.mkdir();(task/'verifier').mkdir()
+            (task/'operator.json').write_text('{}');(prepared/'preparation.json').write_text('{}')
+            for name in ('Challenge.lean','config.json'):
+                (task/'verifier'/name).write_bytes(b'Unexecuted unit fixture')
+                (stage/name).write_bytes(b'Unexecuted unit fixture')
+            (stage/'stage.json').write_bytes(runtime.bench.encoded({
+                'id':core()['id'],'binding_sha256':'binding','files':{}}))
+            with patch.object(runtime.sys,'platform','linux'),\
+                 patch.object(runtime.shutil,'which',return_value='docker'),\
+                 patch.object(runtime,'check_runtime'),patch.object(runtime,'checked_packet',return_value=core()),\
+                 patch.object(runtime.subprocess,'Popen',side_effect=AssertionError('No process for invalid input')):
+                output=root/'evidence'
+                result=runtime.run_submission(task=task,stage_dir=stage,submission=root/'missing',runtime=prepared,output=output)
+                self.assertEqual(result['kind'],'invalid-submission')
+                self.assertEqual(result['reason'],'missing-file')
+                self.assertIsNone(result['submission_sha256'])
+                self.assertFalse(result['container_started'])
+                self.assertEqual(json.loads((output/'result.json').read_text()),result)
+
+    def test_hostile_sources_are_only_data_and_expect_real_markers_and_reasons(self):
+        with patch.object(runtime.subprocess,'run',side_effect=AssertionError('Never run hostile fixture here')):
+            sources=native.hostile_sources('theorem sogBenchTarget : True := by trivial\n')
+        self.assertEqual(len(sources),4)
+        self.assertIn('Std.Internal.UV.TCP',sources['denied-network'][0])
+        self.assertIn('socket.connect',sources['denied-network'][0])
+        self.assertEqual(sources['denied-trusted-write'][1],'accepted')
+        self.assertEqual(sources['wall-limit'][1],'resource-limit')
+        self.assertEqual(sources['diagnostic-limit'][1],'resource-limit')
+
     def test_verdict_requires_consistent_exit_and_started_container_evidence(self):
         state={'StartedAt':'2026-11-05T00:00:00Z','ExitCode':0,'OOMKilled':False}
         native={'kind':'fixed-target-comparator','accepted':True,'comparator_exit':0}
@@ -166,7 +222,7 @@ class LeanRuntimeTests(unittest.TestCase):
         self.assertIsNone(runtime.parse_control(b'\n'.join(json.dumps(x).encode() for x in wrong))[0])
 
     def test_cli_exposes_nonzero_rejection_and_infrastructure_status(self):
-        for kind,code in [('accepted',0),('proof-rejected',10),('resource-limit',30),('infrastructure-error',20)]:
+        for kind,code in runtime.EXIT_CODES.items():
             with self.subTest(kind=kind),\
                  patch.object(runtime.sys,'argv',['tool','run','--task','t','--stage','s','--runtime','r','--submission','f','--output','o']),\
                  patch.object(runtime,'run_submission',return_value={'kind':kind}),\

@@ -26,6 +26,8 @@ import sog_bench_review as review
 RUNTIME = ROOT/'benchmarks/samplingoptimisationgeometrybench/lean-runtime'
 RUNTIME_TOOLS = {'comparator','lean4export','landrun','container.py','landrun-env',
                  'policy.json','bench_bounded_io.py'}
+EXIT_CODES = {'accepted':0, 'proof-rejected':10, 'infrastructure-error':20,
+              'resource-limit':30, 'invalid-submission':40}
 
 
 def policy() -> dict:
@@ -307,6 +309,24 @@ def check_runtime(directory: Path) -> dict:
     return receipt
 
 
+def read_submission(submission: Path, limit: int) -> tuple[bytes | None, str | None]:
+    """Bound even invalid input; never hash/read an entire oversized answer."""
+    sys.path.insert(0,str(ROOT/'benchmarks/samplingoptimisationgeometrybench/harbor'))
+    from bench_bounded_io import InputRejected, read_bounded
+    try:
+        raw=read_bounded(submission,limit)
+        raw.decode('utf-8',errors='strict')
+        return raw,None
+    except InputRejected as error:
+        return None,str(error)
+    except UnicodeDecodeError:
+        return None,'invalid-utf8'
+    except FileNotFoundError:
+        return None,'missing-file'
+    except OSError as error:
+        return None,'input-os-error-'+str(error.errno)
+
+
 def run_submission(*, task: Path, stage_dir: Path, submission: Path,
                    runtime: Path, output: Path) -> dict:
     """Fresh Linux container per call; bounded I/O; no host execution fallback.
@@ -333,11 +353,23 @@ def run_submission(*, task: Path, stage_dir: Path, submission: Path,
     # Stage and runtime are operator-controlled artifacts, NOT agent directories.
     # The bounded reader is reused, rather than reading a symlink/FIFO or an
     # unbounded file before transfer to the isolated process.
-    sys.path.insert(0,str(ROOT/'benchmarks/samplingoptimisationgeometrybench/harbor'))
-    from bench_bounded_io import read_bounded
-    p=policy();raw=read_bounded(submission,p['limits']['submission_bytes'])
-    raw.decode('utf-8',errors='strict')
+    p=policy();raw,rejection=read_submission(submission,p['limits']['submission_bytes'])
     output.mkdir(parents=True)
+    if rejection is not None:
+        # Retain the selected attempt without claiming execution, acceptance or
+        # a digest of bytes we intentionally did NOT read. Collection/runtime
+        # failures must not silently disappear from a model-run denominator.
+        report={'schema_version':1,'id':core['id'],'binding_sha256':core['binding_sha256'],
+            'task_packet_sha256':bench.sha((task/'operator.json').read_bytes()),
+            'policy_sha256':bench.sha(bench.encoded(p)),
+            'runtime_receipt_sha256':bench.sha((runtime/'preparation.json').read_bytes()),
+            'verifier_source_sha256_lf':bench.text_hash(Path(__file__)),
+            'submission_sha256':None,'kind':'invalid-submission','reason':rejection,
+            'container_started':False,'model_measurement':False,
+            'scoring_scope':'One invalid verification-call input; not a model-run score.'}
+        (output/'result.json').write_bytes(bench.encoded(report))
+        return report
+    assert raw is not None
     frozen=output/'submission.txt';frozen.write_bytes(raw);frozen.chmod(0o444)
     image=(runtime/'image-id').read_text().strip()
     name='sog-lean-'+uuid.uuid4().hex
@@ -403,7 +435,7 @@ def main():
     else:
         result=run_submission(task=args.task,stage_dir=args.stage,submission=args.submission,runtime=args.runtime,output=args.output)
         print(json.dumps(result))
-        raise SystemExit({'accepted':0,'proof-rejected':10,'resource-limit':30,'infrastructure-error':20}[result['kind']])
+        raise SystemExit(EXIT_CODES[result['kind']])
 
 
 if __name__=='__main__': main()

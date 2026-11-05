@@ -134,11 +134,119 @@ def trials(root:Path,task_ids:list[str]|None):
             file=root/'fixtures'/(label+'.txt');file.parent.mkdir(exist_ok=True);file.write_text(source,encoding='utf-8')
             report=runtime.run_submission(task=task,stage_dir=stage_dir,submission=file,
                 runtime=root,output=root/'trials'/label)
-            reports.append({'fixture':label,'expected':'proof-rejected','actual':report['kind']})
+            expected_reason=('Challenge and solution theorem statement do not match'
+                if label=='wrong-statement' else 'bogus' if label=='custom-axiom' else 'sorryAx')
+            diagnostic=(root/'trials'/label/'compiler-diagnostic.bin').read_bytes().decode('utf-8',errors='replace')
+            reports.append({'fixture':label,'expected':'proof-rejected','actual':report['kind'],
+                'expected_reason_seen':expected_reason in diagnostic})
     summary={'schema_version':1,'kind':'controlled-software-fixtures','selected_task_ids':ids,
-        'results':reports,'passed':len(reports)==len(ids)+5 and all(r['expected']==r['actual'] for r in reports),
+        'results':reports,'passed':len(reports)==len(ids)+5 and all(
+            r['expected']==r['actual'] and r.get('expected_reason_seen',True) for r in reports),
         'model_measurement':False,'remaining':'Hostile I/O/resource fixtures, agent trajectories/native harness, model provenance, calibration, private families and full security review remain separate.'}
     (root/'software-trials.json').write_bytes(runtime.bench.encoded(summary));print(json.dumps(summary))
+    if not summary['passed']:raise SystemExit(1)
+
+
+def hostile_sources(oracle: str) -> dict[str, tuple[str, str, list[str]]]:
+    """DATA fixtures for Docker ONLY. Never syntax-probe/evaluate on the host.
+
+    Harmless reference proof follows actual denied I/O attempts. A parser error
+    or arbitrary proof rejection is not a successful isolation test.
+    """
+    def inject(code,imports=''):
+        return imports+oracle.replace('theorem sogBenchTarget',code+'\ntheorem sogBenchTarget',1)
+    files='''#eval (do
+  for path in #["/task/Challenge.lean", "/work/project/Challenge.lean", "/opt/judge/policy.json"] do
+    let denied ← try
+      IO.FS.writeFile path "UNTRUSTED WRITE MUST NOT SUCCEED"
+      pure false
+    catch _ => pure true
+    if !denied then throw (IO.userError "trusted file was writable")
+    IO.println s!"SOG_DENIED_WRITE:{path}"
+  : IO Unit)
+'''
+    network='''#eval (do
+  IO.println "SOG_CONNECT_ATTEMPT"
+  let denied ← try
+    let socket ← Std.Internal.UV.TCP.Socket.new
+    let request ← socket.connect (.v4 ⟨Std.Net.IPv4Addr.ofParts 192 0 2 1, 443⟩)
+    match request.result?.get with
+    | some (.ok _) => pure false
+    | some (.error _) => pure true
+    | none => throw (IO.userError "connection promise dropped")
+  catch _ => pure true
+  if !denied then throw (IO.userError "external connect unexpectedly succeeded")
+  IO.println "SOG_CONNECT_DENIED"
+  : IO Unit)
+'''
+    wall='''#eval (do
+  let out ← IO.getStdout
+  out.putStrLn "SOG_WALL_PROBE_STARTED"
+  out.flush
+  IO.sleep 600000
+  : IO Unit)
+'''
+    flood='''#eval (do
+  let out ← IO.getStdout
+  out.putStrLn "SOG_OUTPUT_PROBE_STARTED"
+  for _ in [:1024] do
+    out.putStrLn (String.ofList (List.replicate 8192 'x'))
+    out.flush
+  : IO Unit)
+'''
+    return {
+        'denied-trusted-write':(inject(files),'accepted',[
+            'SOG_DENIED_WRITE:/task/Challenge.lean','SOG_DENIED_WRITE:/work/project/Challenge.lean',
+            'SOG_DENIED_WRITE:/opt/judge/policy.json']),
+        'denied-network':(inject(network,'import Std.Internal.UV.TCP\n'),'accepted',
+            ['SOG_CONNECT_ATTEMPT','SOG_CONNECT_DENIED']),
+        'wall-limit':(inject(wall),'resource-limit',['SOG_WALL_PROBE_STARTED']),
+        'diagnostic-limit':(inject(flood),'resource-limit',['SOG_OUTPUT_PROBE_STARTED']),
+    }
+
+
+def hostile_trials(root: Path):
+    previous=json.loads((root/'software-trials.json').read_text())
+    if previous.get('passed') is not True:raise ValueError('First pass every reference and proof-negative fixture')
+    output=root/'hostile-trials'
+    if output.exists():raise ValueError('Never overwrite hostile trial evidence')
+    output.mkdir()
+    identity=previous['selected_task_ids'][0];task=root/'tasks'/identity;stage_dir=root/'stages'/identity
+    oracle=(task/'oracle/Solution.lean.txt').read_text()
+    results=[]
+    for label,(source,expected,markers) in hostile_sources(oracle).items():
+        file=output/(label+'.txt');file.write_text(source,encoding='utf-8')
+        report=runtime.run_submission(task=task,stage_dir=stage_dir,submission=file,
+            runtime=root,output=output/label)
+        diagnostic=(output/label/'compiler-diagnostic.bin').read_bytes()
+        text=diagnostic.decode('utf-8',errors='replace')
+        passed=report['kind']==expected and all(marker in text for marker in markers)
+        if label=='wall-limit':passed=passed and report['interruption']=='wall-time-limit'
+        if label=='diagnostic-limit':passed=passed and report.get('native',{}).get('diagnostic_limit') is True
+        passed=passed and len(diagnostic)<=runtime.policy()['limits']['diagnostic_bytes']
+        passed=passed and (output/label/'runtime-output.bin').stat().st_size<=runtime.policy()['limits']['transport_bytes']
+        results.append({'fixture':label,'expected':expected,'actual':report['kind'],
+            'required_markers_seen':[marker for marker in markers if marker in text],'passed':passed})
+        if not passed:break
+    # Invalid handoff is recorded, not executed or silently removed. Do NOT
+    # read/hash a whole oversized file to archive it. FIFO must not block.
+    if all(r['passed'] for r in results):
+        invalid={'missing-file':output/'absent.txt','too-large':output/'oversize.txt',
+            'invalid-utf8':output/'utf8.txt','symlink':output/'link.txt','not-regular':output/'fifo'}
+        invalid['too-large'].write_bytes(b'x'*(runtime.policy()['limits']['submission_bytes']+1))
+        invalid['invalid-utf8'].write_bytes(b'\xff')
+        invalid['symlink'].symlink_to(task/'oracle/Solution.lean.txt')
+        os.mkfifo(invalid['not-regular'])
+        for reason,file in invalid.items():
+            report=runtime.run_submission(task=task,stage_dir=stage_dir,submission=file,
+                runtime=root,output=output/('invalid-'+reason))
+            passed=report['kind']=='invalid-submission' and report['reason']==reason and report['container_started'] is False
+            results.append({'fixture':'invalid-'+reason,'expected':'invalid-submission',
+                'actual':report['kind'],'passed':passed})
+    summary={'schema_version':1,'kind':'hostile-software-fixtures','model_measurement':False,
+        'results':results,'passed':len(results)==9 and all(r['passed'] for r in results),
+        'scope':'Actual denied trusted writes/external connect, wall/output caps and bounded invalid input; not exhaustive OS/kernel/compiler security review.'}
+    (root/'hostile-trials.json').write_bytes(runtime.bench.encoded(summary));print(json.dumps(summary),flush=True)
     if not summary['passed']:raise SystemExit(1)
 
 
@@ -146,9 +254,11 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='cmd',required=True)
     x=sub.add_parser('prepare');x.add_argument('--output',type=Path,required=True)
     x=sub.add_parser('trials');x.add_argument('--runtime',type=Path,required=True);x.add_argument('--task-id',action='append')
+    x=sub.add_parser('hostile-trials');x.add_argument('--runtime',type=Path,required=True)
     args=parser.parse_args()
     if args.cmd=='prepare':prepare(args.output.resolve())
-    else:trials(args.runtime.resolve(),args.task_id)
+    elif args.cmd=='trials':trials(args.runtime.resolve(),args.task_id)
+    else:hostile_trials(args.runtime.resolve())
 
 
 if __name__=='__main__':main()

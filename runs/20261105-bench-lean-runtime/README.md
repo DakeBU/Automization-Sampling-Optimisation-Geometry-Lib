@@ -127,3 +127,32 @@ No missing artifact is paper progress and no oracle time is a calibrated task
 difficulty or model score. Full13-positive/five-negative, hostile-I/O/resource,
 independent review/harness and actual-model requirements remain open. The PR
 stays draft and public readiness remains executor pending.
+
+## Native04: complete fixed-target and negative acceptance
+
+Head72d5322df56c8f010010659f6ff9166c8feee07f, run42010581633/job127188269829
+succeeded. All13 admitted fixed targets passed real comparison, axiom checks and
+fresh Lean-kernel replay. All5 negative cases were rejected; the actual diagnostics
+identify the changed statement, sorryAx, bogus axiom, imported Challenge's sorryAx
+and a spoofed success line still rejected for sorryAx, respectively. The native
+Linux job also passed all17 then-current unit tests. Exact-head contributor,
+Bench, native-Harbor-graph and site workflows succeeded separately. This is not
+merge, independent runtime review or a model measurement.
+
+Artifact13407573365 has verified ZIP SHA256
+3ce1baca77bdbe169a9778f9dae5250709e44869444fbbbb50fd7cda6dd765b8.
+The20 JSON members under native-04 are unchanged extractions: preparation,
+summary and18 per-call results. Earlier failed evidence remains untouched.
+Oracle025 took152.7 seconds and028 took118.5, below the unchanged180-second
+limit. Those are software fixture timings, not difficulty calibration or model
+performance. No source, theorem, assumption, cache identity or time budget was
+relaxed to obtain this pass.
+
+The next bounded patch adds real denied-write/network probes, wall/output limits
+and missing/oversized/invalid-UTF8/symlink/FIFO handoff evidence. These have21
+local contract tests (19 pass,2 POSIX-only skips); that Windows result does not
+execute or certify the hostile native fixtures. A fresh native CI must check the
+actual markers and expected causes. Invalid inputs now receive bounded evidence
+without a container rather than disappearing as uncaught exceptions. Agent tool
+trajectories, first-final accounting, independent runtime review and actual-model
+provenance/calibration/private-family work remain separate required steps.

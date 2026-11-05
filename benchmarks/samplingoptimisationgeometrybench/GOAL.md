@@ -151,3 +151,13 @@ Check primary source and reuse current publication/source-correspondence metadat
 The first source-audited entry is chewi-opt-v1-exercise-3-2, routed through the canonical publication and GradientDescentOptimalStep cells. Its Bench admission is computed from exact current reviews, never inferred from source intake or this checkpoint. It must not replace the other cited textbooks' exercise coverage. New entries extend textbook_exercises.json and reuse canonical publication part bindings; do not maintain a parallel hand-edited theorem-status list.
 
 Coverage is computed by `python tools/sog_bench.py coverage`; do not copy counts here. Data and prose are authored once in the catalog; the website and downloadable exports project those same records. Keep the root Lean version at 4.33.0 and never count Bench examples as new Registry leaves.
+
+Fixed-target runtime checkpoint: native run42010581633 accepts head72d5322d for
+all13 existing aligned reference targets and5 negative fixtures. Raw native-04
+JSON and the three earlier failed attempts are preserved in the existing runtime
+run directory. This is neither a model score nor full Agentic Lean readiness.
+Next test actual denied I/O and resource/invalid-input limits, then a bounded
+agent compiler-interaction trajectory with a frozen first-final denominator and
+independent runtime review. Do not repeat successful target packaging or use
+interface work to replace these real evaluator requirements. The site remains
+executor pending until the full declared acceptance scope is actually satisfied.

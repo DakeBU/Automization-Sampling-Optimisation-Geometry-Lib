@@ -40,6 +40,8 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.SphericalPoisson
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedNumerator
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Taylor
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev
@@ -273,6 +275,26 @@ def analysisMemory : List LemmaMemoryEntry := [
     tags := ["convex", "subgradient", "finite-horizon", "optimisation"],
     saldUse := "Finite best-iterate guarantee for a supplied nonsmooth subgradient run and arbitrary comparator",
     note := "Positive steps and nonempty horizon justify division. Native index witness replaces attained finite sInf; no minimizer, iterate convergence, stochastic oracle or sampling rate is claimed."
+  },
+  {
+    key := "gaussian-complexity.single-block-separation",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation.single_block_separation",
+    upstreamDecl := "arXiv2610.20492v1 PropositionB.7 Eq19",
+    upstreamFile := "A2.SS2.SSS2 Eq19, atomic Eq20/Eq24 and Ex62-64",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "actual-mixture", "total-variation", "single-block"],
+    saldUse := "Actual n3,kappa4 event TV at least1/126 and unequal laws; actual n4,kappa9 TV at least1/80; planned affinity/amplification consumer",
+    note := "Independent normal-API VERIFIED at d925c0c3e16810c0023735b80279ed06ffe92ed6. Exact source n>=3,kappa>=4 and literal twice-restricted full-Haar inverse-precision Gaussian bind mixtures. Normalized event TV >=q^n/(2+4ns/(s+1)^2)>=(1/2)exp(-5n/s); real odd n/2, absolute parity and positive denominators internally discharged. Actual Eq20, evaluated Eq24, selected domains and numeric comparator are shared canonical nodes. No supplied expectation, scalar estimate, TV quantity or probability premise. Product/amplification, oracle/precision/query/cost, hidden-eigenbasis, both main bounds and final rendered/purification acceptance remain separate."
+  },
+  {
+    key := "gaussian-complexity.mixture-densities",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities.actual_mixture_densities",
+    upstreamDecl := "arXiv2610.20492v1 actual P_b densities and normalization used before Eq25",
+    upstreamFile := "A2.SS2.p2.1; A2.SS2.SSS3 p2.1-p2.2 and Ex68; S3.SS1 P_b beforeEq6",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "actual-mixture", "Lebesgue-density", "integrability", "normalization"],
+    saldUse := "Actual all-source-domain affinity sqrt(q+q-) is genuine L1 with integral in[0,1], retaining actual law-density equalities",
+    note := "Independent normal-API VERIFIED at8001430a5ce67810c37e35886d1771bf73cd4e20. Exactly n>=3,kappa>=4; actual conditioned-Haar real Gaussian-density averages are pointwise nonnegative, measurable, genuine Lebesgue L1 and mass1, defining exactly the actual bind measures. Pointwise inner L1 is produced by continuity on compact O(n), and Tonelli identifies the actual density. q is a chosen a.e. source density representative, never equality to every arbitrary representative pointwise; no totalized-integral fallback or extra probability/SPD/Fubini/L1/mass premise. Three exact canonical project producers reused; one public node and no authored helper declarations. TV-affinity upper bound, Eq25, Eq6 products/amplification, main lower bounds and final reader/purification acceptance remain open."
   },
   {
     key := "quadratic-probability-segment",

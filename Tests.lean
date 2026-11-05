@@ -345,6 +345,8 @@ import Tests.GaussianComplexityBallFlux
 import Tests.GaussianComplexitySphericalMeanValue
 import Tests.GaussianComplexitySphericalPoisson
 import Tests.GaussianComplexityEvaluatedGaussian
+import Tests.GaussianComplexitySingleBlockSeparation
+import Tests.GaussianComplexityMixtureDensities
 import Tests.Shared.SubgradientMethod
 
 /-!

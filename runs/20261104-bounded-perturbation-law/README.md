@@ -100,3 +100,23 @@ are not asserted here. Do not restart the parent proof or create KL wrappers for
 counts. The next real mathematical edge is genuine density-gradient energy and
 its dominated limit; an a.e. RN identity alone does not allow replacing a
 pointwise derivative or assuming the canonical smooth-score domain.
+
+## Exact-head CI capacity failure and targeted correction (2026-11-05)
+
+At head `ebc535f0`, site, Bench, native Harbor and both contributor checks passed.
+Formalization run41954406093/job127005731056 terminated with GitHub's annotation
+`System.IO.IOException: No space left on device` while its Lean/Tests step was
+still marked in progress. Its log blob is unavailable. This is a terminal hosted-
+runner capacity failure, not successful Lean acceptance or a diagnosed theorem
+failure. Evidence: the public Actions job's annotations. Do not silently discard
+that failed run or merge on the other five green checks.
+
+The targeted workflow correction pins Ubuntu24.04 and frees only the unused
+Android/.NET SDK directories on that disposable hosted runner before installing
+the fixed Lean/Mathlib cache. Exact resolved-path and workspace-overlap guards
+precede deletion. No repository, local D-drive data, Lean toolchain or Mathlib
+artifact is deleted; a new runner restores its SDK image. YAML parsing and
+cleanup ordering/guard checks pass locally. A local Bash binary was unavailable,
+so actual Bash execution and sufficient capacity require fresh CI evidence.
+The mathematical code, accepted source binding and reader inputs are unchanged.
+No rerun or replacement head is called accepted until its actual gates finish.

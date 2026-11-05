@@ -89,8 +89,8 @@ class EditorialReviewTests(unittest.TestCase):
             bench.export(target, with_draft)
             questions = [json.loads(line) for line in (target/'reviewed-questions.jsonl').read_text(encoding='utf-8').splitlines()]
             refs = [json.loads(line) for line in (target/'reviewed-reference.jsonl').read_text(encoding='utf-8').splitlines()]
-            self.assertEqual(len(questions), 42)
-            self.assertEqual(len(refs), 29)
+            self.assertEqual(len(questions), 43)
+            self.assertEqual(len(refs), 30)
             self.assertEqual({q['id'] for q in questions}, {c['id'] for c in refs})
             self.assertTrue(all('steps' not in q and 'lean_reference' not in q for q in questions))
             self.assertNotIn('sogb-999', {q['id'] for q in questions})
@@ -100,7 +100,7 @@ class EditorialReviewTests(unittest.TestCase):
         self.assertEqual(set(rows), {f'sogb-{i:03d}' for i in range(8,15)})
         self.assertTrue(all(review.accepted(row) for row in rows.values()))
         self.assertTrue(all(row['formal_alignment'] == 'no-aligned-view' for row in rows.values()))
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 29)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 30)
 
     def test_uncountable_event_review_is_unpaired_and_separately_content_bound(self):
         directory=review.BASE/'reviews/prose-4'
@@ -301,7 +301,22 @@ class EditorialReviewTests(unittest.TestCase):
         with patch.object(Path, 'read_text', lambda p, *a, **kw:
                           bench.encoded(pub).decode() if p == path else actual_read(p, *a, **kw)):
             changed = bench.materialize()
-            self.assertEqual(changed[-1]['binding_sha256'], core['binding_sha256'])
+            self.assertEqual({c['id']: c['binding_sha256'] for c in changed},
+                             {c['id']: c['binding_sha256'] for c in self.cores})
+
+    def test_multipage_end_drift_invalidates_review_not_actual_answer_compile(self):
+        import sog_bench_exercises as exercises
+        data = json.loads(exercises.DATA.read_text(encoding='utf-8'))
+        row = next(r for r in data['exercises'] if r['id'] == 'chewi-opt-v1-exercise-3-1')
+        row['pdf_page_end'] = 24
+        actual_read = Path.read_text
+        with patch.object(Path, 'read_text', lambda p, *a, **kw:
+                          bench.encoded(data).decode() if p == exercises.DATA else actual_read(p, *a, **kw)):
+            changed = bench.materialize()
+            rows = review.summary(changed)['items']
+            self.assertEqual(rows['sogb-030']['editorial'], 'stale')
+            self.assertEqual(rows['sogb-029']['editorial'], 'accepted-after-repair')
+            self.assertEqual(bench.environment_digest(changed), bench.environment_digest(self.cores))
 
     def test_nl_review_is_local_and_stale_when_content_or_support_changes(self):
         data = deepcopy(bench.load())

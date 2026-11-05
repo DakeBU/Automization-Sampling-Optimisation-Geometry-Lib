@@ -1,0 +1,137 @@
+{
+  "schema_version": 3,
+  "route": "samplewiki-route",
+  "mode": "faithfulPaper",
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "No new proof search or mathematical failure yet.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "One proof worker; independent source extractor and distinct topology challenger only.",
+      "shared_verified_context_digest": "3474e374781dfa55c30207e009acfd171a63430fc7020d8e85cab3787f3e35b3"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "No parallel proof construction."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "cell_id": "ASTIS-SW-GAUSSIAN-COMPLEXITY-mixture-densities",
+  "title": "Actual single-block mixed Gaussian densities and normalization",
+  "source_anchor": "Section2 S2.p2.1 conditioned full-Haar priors; Section3.1 S3.SS1.p3.1 actual single-block P_b before Eq6 and literal Eq4; Appendix B.2.2 p_O actual Gaussian-density convention at Ex56; Appendix B.2.3 p2.1–p2.2 / Ex68 density p_b, normalization ∫p_b=1 and basic affinity range as real consumer.",
+  "target_statement": "theorem actual_mixture_densities {n : ℕ} (hn : 3 ≤ n) {κ : ℝ} (hκ : 4 ≤ κ) :\n    let μ := orthogonalHaar n\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n    let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos\n    let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg\n    (∀ x, 0 ≤ qpos x ∧ 0 ≤ qneg x) ∧\n    Measurable qpos ∧ Measurable qneg ∧\n    Integrable qpos volume ∧ Integrable qneg volume ∧\n    (∫ x, qpos x) = 1 ∧ (∫ x, qneg x) = 1 ∧\n    νpos.bind γ = volume.withDensity (fun x => ENNReal.ofReal (qpos x)) ∧\n    νneg.bind γ = volume.withDensity (fun x => ENNReal.ofReal (qneg x))",
+  "status": "claimed",
+  "owner_id": "huanjian_gc_20261105_densities",
+  "advance_id": "ASTIS-SA-20261105-GaussianComplexityMixtureDensities",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws.actual_mixture_laws",
+    "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianLawDensity.gaussian_law_eq_density",
+    "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents.component_probabilities"
+  ],
+  "consumers": [
+    "Focused consumer under source n≥3,κ≥4: a=∫x sqrt(qpos(x)*qneg(x)) is genuinely Lebesgue L1 with 0≤a≤1, using the produced actual densities and masses. This is the initial basic affinity range of B.2.3; Eq25/TV comparison/product amplification remain separate."
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib GaussianMixtureLaws.actual_mixture_laws",
+      "Samplinglib GaussianLawDensity.gaussian_law_eq_density",
+      "Samplinglib DeterminantComponents.component_probabilities",
+      "Samplinglib MixtureFubini / MixtureExpectation / Renyi: no actual p_b density/normalization endpoint found",
+      "Pinned Mathlib withDensity, bind, nonnegative Tonelli and parameterized Bochner integral APIs; no Hellinger-affinity inequality or Gaussian-specific mixed density producer found"
+    ],
+    "classification": "adapt",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities.actual_mixture_densities",
+    "canonical_shared_cell": ""
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib GaussianMixtureLaws.actual_mixture_laws",
+      "Samplinglib GaussianLawDensity.gaussian_law_eq_density",
+      "Samplinglib DeterminantComponents.component_probabilities",
+      "Samplinglib MixtureFubini / MixtureExpectation / Renyi: no actual p_b density/normalization endpoint found",
+      "Pinned Mathlib withDensity, bind, nonnegative Tonelli and parameterized Bochner integral APIs; no Hellinger-affinity inequality or Gaussian-specific mixed density producer found"
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws.actual_mixture_laws",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianLawDensity.gaussian_law_eq_density",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents.component_probabilities"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "Focused consumer under source n≥3,κ≥4: a=∫x sqrt(qpos(x)*qneg(x)) is genuinely Lebesgue L1 with 0≤a≤1, using the produced actual densities and masses. This is the initial basic affinity range of B.2.3; Eq25/TV comparison/product amplification remain separate."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "One missing route-local actual density/normalization integration node, reusing exact canonical parents. No new general density/kernel primitive or duplicate prior/Gaussian proof is planned."
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities.actual_mixture_densities"
+    ],
+    "visual_review": "Pending serialized integration; no new graph/browser acceptance claim."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2610.20492v1",
+    "primary_anchor": "Section2 S2.p2.1 conditioned full-Haar priors; Section3.1 S3.SS1.p3.1 actual single-block P_b before Eq6 and literal Eq4; Appendix B.2.2 p_O actual Gaussian-density convention at Ex56; Appendix B.2.3 p2.1–p2.2 / Ex68 density p_b, normalization ∫p_b=1 and basic affinity range as real consumer.",
+    "detail_status": "sufficient",
+    "gap": "Independent source-only extraction and distinct topology challenge pending. Source normalization/density meaning must be audited; no author proof attribution invented.",
+    "consulted": [],
+    "fidelity_boundary": "Actual single-block density representatives, nonnegativity/measurability/genuine L1/normalization and actual measure equalities only. B7 remains the same independently VERIFIED parent/result, with no new B7 credit. TV≤sqrt(1-a²), Eq25 numerical affinity estimate, Eq6 full product law, product affinity, amplification, oracle/transcript/query/precision/cost adapters, fixed-spectrum hidden eigenbasis and both main lower bounds remain open. Shared integration waits original foreign Energy owner release; no imports/Registry/root tests/site publication mutation, browser/PURIFIED or whole-Goal claim."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "reason": "No new conceptual claim at statement stage; mandatory postproof audit pending."
+  },
+  "statement_seal": {
+    "path": "research-wiki/paper-contributions/GaussianComplexity/mixture-densities-statement-seal.json",
+    "sha256": "391f70869977e0b2aa38bdb5c631bf697d865012b82353b38eba4c5f4efe7b95",
+    "signature_sha256": "3474e374781dfa55c30207e009acfd171a63430fc7020d8e85cab3787f3e35b3",
+    "status": "ELABORATED_PENDING_DISTINCT_SOURCE_TOPOLOGY"
+  },
+  "evidence": {
+    "statement_elaboration": ".astis/huanjian-resume-20261103/20261105T071338361478Z-densities-exact-statement-elaboration.receipt.json",
+    "parent_baseline": ".astis/huanjian-resume-20261103/20261105T071338361480Z-densities-parent-baseline.receipt.json",
+    "execution_boundary": "Isolated exploration on de864 B7 verified overlay. Official main207e4b30c not merged; foreign BoundedPerturbationEnergy owns STABILIZING. No shared import/Registry/root tests/site state or foreign lifecycle mutation."
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  }
+}

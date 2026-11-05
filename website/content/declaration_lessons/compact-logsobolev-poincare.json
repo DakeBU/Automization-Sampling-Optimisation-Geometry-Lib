@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactLogSobolevPoincare.poincare_of_compact_logSobolev",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactLogSobolevPoincare",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactLogSobolevPoincare.lean",
+      "short_name": "poincare_of_compact_logSobolev",
+      "title": "Compact-test log-Sobolev implies compact-test Poincaré",
+      "classification": "Source-backed compact Euclidean linearization",
+      "statement": "Let E be a finite-dimensional complete real inner-product space with its Borel measurable structure, μ a probability measure on E, and C a fixed positive real. Assume the homogeneous function logarithmic Sobolev inequality Entμ(v²) ≤ 2C ∫‖∇v‖² dμ for every compactly supported smooth real v. Then every compactly supported smooth real g has centered second moment ∫(g−∫g dμ)² dμ ≤ C∫‖∇g‖² dμ. No zero-mean condition is imposed on g.",
+      "formula": "\\forall v\\in C_c^\\infty(E):\\ \\operatorname{Ent}_\\mu(v^2)\\le 2C\\int\\|\\nabla v\\|^2\\,d\\mu\\quad\\Longrightarrow\\quad\\forall g\\in C_c^\\infty(E):\\ \\int\\left(g-\\int g\\,d\\mu\\right)^2 d\\mu\\le C\\int\\|\\nabla g\\|^2\\,d\\mu.",
+      "assumptions": [
+        "One Borel probability measure μ and one fixed C>0 are used throughout. Entμ(q)=∫q log q dμ−(∫q dμ) log(∫q dμ), with 0 log 0=0.",
+        "Both compact test classes are C-infinity. Genuine smoothness and the Hilbert gradient are used; a totalized derivative value does not supply smoothness.",
+        "No boundedness, zero mean, L², entropy integrability or convergence certificate is added to the observable's premises. The proof constructs these inputs. Finite dimension is used in the cutoff extension."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Center the given observable",
+          "text": "Compact support and continuity give boundedness and integrability. Subtract the actual mean. Centering leaves the derivative unchanged, so its support remains compact even though the new function may have noncompact support.",
+          "formula": "m=\\int g\\,d\\mu,\\quad f=g-m,\\quad \\int f\\,d\\mu=0,\\quad Df=Dg,\\quad |f|\\le M+|m|.",
+          "lean": "hfmean uses mass one; hd and hfcompact use fderiv_sub_const and HasCompactSupport.fderiv."
+        },
+        {
+          "number": 2,
+          "title": "Produce the actual noncompact test",
+          "text": "The compact-gradient producer proves positivity near zero and smoothness, L² and entropy/energy integrability of the square root. The Riesz norm identity and strong measurability convert Fréchet energy into the gradient-L² input of the cutoff extension.",
+          "formula": "q_\\varepsilon=1+\\varepsilon f,\\quad u_\\varepsilon=\\sqrt{q_\\varepsilon},\\quad q_\\varepsilon\\ge \\tfrac12,\\quad\\|Du_\\varepsilon\\|=\\|\\nabla u_\\varepsilon\\|.",
+          "lean": "hdata constructs the domains; hgradMeas and hgrad2 justify the handoff. logSobolev_of_compact_test applies the assumed LSI, not an assumed inequality for u."
+        },
+        {
+          "number": 3,
+          "title": "Remove the mass and compensator terms",
+          "text": "The perturbation has mass one by centering. Its square-root square is the positive affine density, so the mass logarithm is zero and the linear terms in klFun integrate to zero. The integral splitting uses the actual integrability proofs.",
+          "formula": "\\int q_\\varepsilon\\,d\\mu=1,\\qquad\\operatorname{Ent}_\\mu(u_\\varepsilon^2)=\\int(q_\\varepsilon\\log q_\\varepsilon+1-q_\\varepsilon)\\,d\\mu.",
+          "lean": "hmass, hsq and hcomp implement these identities. No canonical RN representative or law identification is needed."
+        },
+        {
+          "number": 4,
+          "title": "Scale and compare the two limits",
+          "text": "For nonzero sufficiently small ε divide the actual inequality by ε². The known quadratic entropy coefficient is one half; the energy coefficient is one quarter. Closedness of real order transfers the inequality to the two limits.",
+          "formula": "\\frac{\\operatorname{Ent}_\\mu(u_\\varepsilon^2)}{\\varepsilon^2}\\to\\frac12\\int f^2\\,d\\mu,\\qquad\\frac{\\int\\|\\nabla u_\\varepsilon\\|^2\\,d\\mu}{\\varepsilon^2}\\to\\frac14\\int\\|\\nabla f\\|^2\\,d\\mu.",
+          "lean": "hscaled is on the punctured filter. hEnt and hEnergy invoke the two actual limit lemmas; le_of_tendsto_of_tendsto passes order."
+        },
+        {
+          "number": 5,
+          "title": "Return to the original test",
+          "text": "Cancel the common factor one half and use Df=Dg. Thus the fixed C is unchanged. No claim about the optimal constants or the closure of the compact test class has been made.",
+          "formula": "\\tfrac12\\int f^2\\,d\\mu\\le \\tfrac{2C}{4}\\int\\|\\nabla f\\|^2\\,d\\mu\\quad\\Longrightarrow\\quad\\int(g-m)^2\\,d\\mu\\le C\\int\\|\\nabla g\\|^2\\,d\\mu.",
+          "lean": "hPI and the final simpa express the centered second moment of the original uncentered observable."
+        }
+      ],
+      "lean_statement": "The literal compact-smooth entropy assumption implies a literal centered second-moment inequality for each compact smooth g; the analytic domains of the noncompact perturbation are produced inside.",
+      "lean_proof": "Center the observable, apply verified cutoff extension to the genuine square-root perturbation, cancel the normalization and compensation terms, and take the two punctured limits with their exact coefficients.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff.logSobolev_of_compact_test",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.CompactGradientSqrtPerturbation.eventually_contDiff_and_integrable_sqrt_perturbation",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy.eventually_integrable_and_tendsto_sqrt_perturbation_energy",
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one"
+      ],
+      "mathlib_dependencies": [
+        "HasCompactSupport.fderiv",
+        "HasCompactSupport.exists_bound_of_continuous",
+        "fderiv_sub_const",
+        "toDual_gradient",
+        "MeasureTheory.memLp_two_iff_integrable_sq_norm",
+        "InformationTheory.klFun_apply",
+        "le_of_tendsto_of_tendsto"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf#page=55",
+          "label": "Chewi, Exercise 1.7 and (1.E.1)",
+          "scope": "Quadratic entropy linearization; this result is restricted to the compact Euclidean specialization."
+        },
+        {
+          "url": "https://chewisinho.github.io/main.pdf#page=60",
+          "label": "Chewi, §2.1.1",
+          "scope": "Compact smooth function LSI and PI conventions."
+        }
+      ],
+      "boundary": [
+        "Compact smooth function inequality only. No wider Sobolev/core or abstract Dirichlet-form extension, optimal constant comparison, canonical probability KL/Fisher identification, or complete numbered exercise or QA admission."
+      ],
+      "tests": {
+        "file": "Tests/Shared/CompactLogSobolevPoincare.lean",
+        "scope": "The actual standard Gaussian compact LSI supplies the input to the new theorem for arbitrary compact smooth real g; standard axioms only."
+      }
+    }
+  ]
+}

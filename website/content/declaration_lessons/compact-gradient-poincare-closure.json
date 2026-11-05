@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactGradientPoincareClosure.poincare_of_compact_logSobolev_on_gradient_closure",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactGradientPoincareClosure",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactGradientPoincareClosure.lean",
+      "short_name": "poincare_of_compact_logSobolev_on_gradient_closure",
+      "title": "Carry compact Poincaré through joint gradient convergence",
+      "classification": "Original shared graph-closure bridge",
+      "statement": "On a finite-dimensional complete real Hilbert space E with its Borel structure, let μ be a probability measure and C>0 a fixed real. Suppose the homogeneous function LSI with coefficient 2C holds for every compact smooth real test. Let G be the scalar/vector L² pairs represented almost everywhere by a compact smooth g and its genuine gradient. Every (u,H) in the joint L² norm closure of G then satisfies Varμ(u) ≤ C ‖H‖²₂. This is a pairwise inequality and does not assert a single-valued gradient for arbitrary μ.",
+      "formula": "G=\\{([g],[\\nabla g]):g\\in C_c^\\infty(E)\\},\\qquad (u,H)\\in\\overline G^{\\,L^2\\times L^2}\\ \\Longrightarrow\\ \\operatorname{Var}_\\mu(u)\\le C\\|H\\|_{L^2(\\mu;E)}^2.",
+      "assumptions": [
+        "The original hypothesis is compact smooth LSI, Entμ(v²) ≤ 2C∫‖∇v‖² dμ for all compact smooth v, with homogeneous entropy ∫q log q−(∫q) log(∫q) on μ.",
+        "The two L² classes use the same probability measure. Every pair in the starting set has a common actual smooth compact representative and its true gradient; both equalities are a.e. on μ.",
+        "Closure is joint norm closure, not scalar-only density. No closability assumption is supplied. Real variance here is the genuine centered second moment of an L² class."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Make variance continuous on L²",
+          "text": "The mean is pairing with the constant-one L² class. On a probability measure, variance is the squared L² norm minus the square of this mean. Both pieces are continuous in the scalar L² norm.",
+          "formula": "\\int u\\,d\\mu=\\langle[1],u\\rangle_{L^2},\\qquad \\operatorname{Var}_\\mu(u)=\\|u\\|_2^2-\\langle[1],u\\rangle_{L^2}^2.",
+          "lean": "mean uses L2.inner_def and a.e. equality of the constant representative; var uses variance_eq_sub and the real squared norm identity."
+        },
+        {
+          "number": 2,
+          "title": "Prove the inequality on the actual test pairs",
+          "text": "Take a pair represented by g and its true gradient. Use a.e. invariance of variance and the vector L² norm formula, then the prior compact-test PI obtained from LSI. No hypothesis about the resulting inequality is added.",
+          "formula": "\\operatorname{Var}_\\mu([g])=\\int\\left(g-\\int g\\,d\\mu\\right)^2d\\mu\\le C\\int\\|\\nabla g\\|^2d\\mu=C\\|[\\nabla g]\\|_2^2.",
+          "lean": "hcompact invokes the actual compact LSI-to-PI parent, with variance_congr and the integral_congr_ae energy identity."
+        },
+        {
+          "number": 3,
+          "title": "Pass closed order to joint limits",
+          "text": "The inequality defines a closed subset of the product because both sides are continuous. Since it contains all compact pairs, it contains their closure. No limit is required to be a classical derivative or a single-valued graph for an arbitrary law.",
+          "formula": "G\\subseteq S=\\{(u,H):\\operatorname{Var}_\\mu(u)\\le C\\|H\\|_2^2\\},\\quad S\\text{ closed}\\ \\Longrightarrow\\ \\overline G\\subseteq S.",
+          "lean": "hS is isClosed_le on the scalar and vector expressions; closure_minimal supplies the conclusion."
+        },
+        {
+          "number": 4,
+          "title": "Check the actual Gibbs consumer",
+          "text": "For a normalized Gibbs measure with C¹ potential and integrable exponential weight, the existing construction produces a closable compact-gradient map. For a C¹ observable with f and its gradient both in L²(μ), the existing C¹-domain theorem places their classes in that very graph closure. The focused test applies the bound there from the given compact LSI, without assuming PI, curvature, an extra law-tail moment, or a graph-membership certificate.",
+          "formula": "( [f],[\\nabla f])\\in \\operatorname{graph}(\\overline D)=\\overline{\\operatorname{graph}(D)},\\qquad \\operatorname{graph}(D)=G.",
+          "lean": "The test consumes compact_gradient_closable, c1_in_closed_gradient and graph_closure_eq_closure_graph, then unfolds the same two norm/variance quantities. The compact LSI premise is still given."
+        }
+      ],
+      "lean_statement": "The candidate pair belongs to the actual joint closure of compact smooth representative pairs; the norm of its vector component is the energy.",
+      "lean_proof": "Use the variance identity and the closed inequality set; feed the existing compact PI bound to closure_minimal. No artificial sequence, assumed approximation estimate, or operator closability enters the proof.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactLogSobolevPoincare.poincare_of_compact_logSobolev"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.L2.inner_def",
+        "ProbabilityTheory.variance_eq_sub",
+        "ProbabilityTheory.variance_congr",
+        "ProbabilityTheory.variance_eq_integral",
+        "isClosed_le",
+        "closure_minimal"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf#page=61",
+          "label": "Chewi §2.1.1, compact inequalities and density discussion",
+          "scope": "Original ASTIS bridge; the source passage does not itself identify all form domains."
+        },
+        {
+          "url": "https://chewisinho.github.io/main.pdf#page=55",
+          "label": "Exercise 1.7",
+          "scope": "Compact Euclidean branch only."
+        }
+      ],
+      "boundary": [
+        "Same C on the joint closure of the original compact gradient pairs. No uniqueness/closability on arbitrary μ, generator/core identification for general reversible dynamics, optimal-constant theorem, or numbered-exercise/QA admission."
+      ],
+      "tests": {
+        "file": "Tests/Shared/CompactGradientPoincareClosure.lean",
+        "scope": "Actual same-original normalized Gibbs application to C¹ f with f and its gradient in L²(μ). It produces closability and graph membership from the stated inputs and uses the given compact LSI, without assuming PI or curvature bounds; standard axioms only."
+      }
+    }
+  ]
+}

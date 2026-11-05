@@ -1,0 +1,18 @@
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactLogSobolevPoincare
+import Mathlib.Probability.Moments.Variance
+
+open MeasureTheory
+open scoped ContDiff RealInnerProductSpace
+
+-- Elaboration of the complete type only.
+#check (∀ {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (μ : Measure E) [IsProbabilityMeasure μ] (C : ℝ) (_hC : 0 < C),
+    (∀ v : E → ℝ, ContDiff ℝ ∞ v → HasCompactSupport v →
+      (∫ x, (v x)^2 * Real.log ((v x)^2) ∂μ) -
+        (∫ x, (v x)^2 ∂μ) * Real.log (∫ x, (v x)^2 ∂μ) ≤
+      2 * C * ∫ x, ‖gradient v x‖^2 ∂μ) →
+    ∀ p : Lp ℝ 2 μ × Lp E 2 μ,
+      p ∈ closure {r | ∃ g : E → ℝ, ContDiff ℝ ∞ g ∧ HasCompactSupport g ∧
+        r.1 =ᵐ[μ] g ∧ r.2 =ᵐ[μ] gradient g} →
+      ProbabilityTheory.variance (p.1 : E → ℝ) μ ≤ C * ‖p.2‖^2)

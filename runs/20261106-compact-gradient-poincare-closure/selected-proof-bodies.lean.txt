@@ -1,0 +1,37 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.CompactGradientSqrtPerturbation
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactGradientPoincareClosure
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactLogSobolevPoincare
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation
+
+open Lean in
+run_cmd do
+  let selected : Array Name := #[
+    `AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy.eventually_integrable_and_tendsto_sqrt_perturbation_energy,
+    `AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.CompactGradientSqrtPerturbation.eventually_contDiff_and_integrable_sqrt_perturbation,
+    `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactGradientPoincareClosure.poincare_of_compact_logSobolev_on_gradient_closure,
+    `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactLogSobolevPoincare.poincare_of_compact_logSobolev,
+    `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff.cutoff_integral_limits,
+    `AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff.logSobolev_of_compact_test,
+    `AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq]
+  let env ← getEnv
+  let statementConstants : Array Name := #[`CompleteSpace, `Differentiable, `HasDerivAt, `HasDerivWithinAt, `HasGradientAt]
+  let requiredStatementConstants : Array Name := #[]
+  for tag in requiredStatementConstants do
+    if (env.find? tag).isNone then
+      throwError m!"Requested statement-profile selector is absent from this environment: {tag}"
+  let mut rows : Array Json := #[]
+  for name in selected do
+    let some info := env.find? name | throwError "Selected theorem missing"
+    let .thmInfo _ := info | throwError "Expected a theorem, not an axiom or definition"
+    let some body := info.value? (allowOpaque := true) | throwError "Proof body missing"
+    let parents := body.getUsedConstants.filter fun n => selected.contains n
+    let profile := info.type.getUsedConstants.filter fun n => statementConstants.contains n
+    let axioms ← Lean.collectAxioms name
+    rows := rows.push (Json.mkObj [
+      ("id", toJson name.toString),
+      ("body_parents", toJson (parents.map Name.toString)),
+      ("statement_constants", toJson (profile.map Name.toString)),
+      ("axioms", toJson (axioms.map Name.toString))])
+  logInfo m!"SOG_COMPILED_BODY_V1 {(Json.arr rows).compress}"

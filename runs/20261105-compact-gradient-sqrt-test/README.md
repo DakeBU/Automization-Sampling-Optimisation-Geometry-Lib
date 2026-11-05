@@ -1,9 +1,10 @@
 # Actual smooth square-root test inputs
 
-Current: **STABILIZING**, independently VERIFIED at exact pushed commit
+Current: **MERGED** in PR381 at c843e133d42b8b904db3e78c0572c644908b7a59,
+after every exact d7df928e CI check succeeded. Independently VERIFIED at commit
 eead411ec020bb34ad18208d3453067e8905c0a6. Public-import/Registry/root-Test
-integration passes locally, but clean exact-head CI, merge, deployment and
-postmerge purification are separate. Not admitted as Bench QA. One writer,
+integration and clean current-base CI pass; main CI/Pages, public readback and
+independent postmerge purification remain separate. Not admitted as Bench QA. One writer,
 source branch codex/sog-bench-source-test-energy from
 main692973fc. The same Bench Goal continues; no paper/cycle frontier reset.
 The runtime remains separately in draft PR379, not duplicated into this branch.
@@ -117,3 +118,33 @@ or an Exposition Seal. Full local contributor/publication gates still FAIL only
 on the owner's preexisting untracked KernelReversibilityTransport draft; it was
 not staged, edited, ignored or hidden. Scoped target checks and clean PR CI must
 be reported separately. integration-evidence.json binds these observations.
+
+## Accepted current-main integration
+
+Huanjian PR380 advanced main to994992ba/Registry607 during the first CI run.
+The initial green96004dd4 was NOT merged over conflicts. The clean port retains
+both Registry/import/test contributions and computes candidate608. The binary
+merge in reconcile_main_ledger.py preserves every5120408 canonical-main byte,
+including55 foreign events, then appends the proof branch's six original events
+unchanged. current-main-merge.json pins both hashes; no reviewer event is edited.
+
+All six exact d7df928e current-base checks succeeded before the real merge:
+42058868210,42058867735,42058867863,42058867764,42058867747,42058858610.
+The accepted tree equals c843e133's actual merge tree
+5f1c6804514924a8ce3e673a31c7f543ea67e7d5. This is not fresh main compilation.
+The actual Harness now records MERGED through record_merge.py, preserving the
+5129159-byte prefix SHA2561847e0164eaf3a6498ac9de42d75f3c44f386c8c9a5b0d2019297e95986352f2.
+
+New local gates pass: root Tests9632 with temporary LEAN_NUM_THREADS=1 (reset
+afterwards), ASTIS check, source430/Cells428, site build/check608 leaves/12 chapters/
+1100 modules/5260 declarations, fresh scoped graph check and actual Edge1400/412
+formula/folded exact-Lean/clipboard/graph checks. Actual generated PNGs opened;
+no error/overlap/page overflow. Earlier parallel Windows olean/private read
+failures and stale-before-rebuild graph result are retained, not hidden. Files
+existed; a single-worker build passes. The underlying read failure cause is not
+proved. All29 QA bindings/recursive contexts still match the original snapshot.
+
+Main CI/Pages/readback and a distinct helper-only purification/Exposition Seal
+remain pending. Registry608 includes the one owned helper, not another admitted
+exercise. Runtime PR379 is independent; native07 is correctly infrastructure-
+failed before source, and fresh native08 is now testing its repaired ABI route.

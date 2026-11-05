@@ -176,3 +176,13 @@ separate independent runtime/security review, while completing only substantive
 source-ready mathematics. Actual-provider trajectories/provenance, calibration,
 private families and complete seven-domain/textbook depth remain outstanding.
 No visual delivery or one helper closes this Goal.
+
+Source helper update: PR381 actually merged at c843e133 after every exact
+d7df928e current-base check succeeded. Huanjian's main607 contribution and all
+foreign ledger bytes are preserved; Registry608 adds only this one source-class
+producer, no new QA/exercise or paper completion. Local root9632/ASTIS/site and
+desktop-mobile formula/folded-Lean/graph checks pass. Public release/readback and
+independent scoped postmerge seal remain separate. Runtime PR379/native08 is a
+different unaccepted lane; its repaired ABI negotiation may not lower minimum6
+or waive any reference/negative/resource/input/workspace case. Keep completing
+actual Agentic Lean acceptance rather than cosmetically repeating visual work.

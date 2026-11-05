@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "declaration_level": "canonical-library-node",
+  "author": "agent-task:/root",
+  "namespace": "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.CompactGradientSqrtPerturbation",
+  "declaration": "eventually_contDiff_and_integrable_sqrt_perturbation",
+  "module": "AutoSamplingTheory/TechnicalLemmas/Analysis/Calculus/CompactGradientSqrtPerturbation.lean",
+  "source": {
+    "work": "Sinho Chewi, Log-Concave Sampling",
+    "edition": "August 20, 2026",
+    "url": "https://chewisinho.github.io/main.pdf#page=55",
+    "pdf_sha256": "8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae",
+    "anchors": ["Exercise 1.7 / (1.E.1), printed43/PDF55", "compact smooth function LSI in Section2.1.1, printed48/PDF60"],
+    "wording": "ASTIS-authored analytic prerequisite, not a literal printed theorem or full exercise",
+    "source_only_topology": "proof-obligations/chewi-exercise-1-7/source-topology-input-v2.json",
+    "source_nodes": ["gradient-energy-integrable", "compact-lsi-extension input production"],
+    "verification": "Root freshly verified cached PDF hash and visually inspected the complete cached primary pages55 and60. No copied textbook prose or images enter Bench exports."
+  },
+  "statement": "On a real normed vector space with measurable open sets and any finite measure, a globally bounded C-infinity real f with compactly supported actual Frechet derivative has integrable squared derivative norm. For all sufficiently small real e, 1+e*f is everywhere at least1/2, u_e=sqrt(1+e*f) is genuinely C-infinity and belongs to L2; both u_e^2 log(u_e^2) and the actual squared derivative norm of u_e are integrable.",
+  "lean_signature": "theorem eventually_contDiff_and_integrable_sqrt_perturbation [MeasurableSpace E] [OpensMeasurableSpace E] (mu : Measure E) [IsFiniteMeasure mu] (f : E → ℝ) (hf : ContDiff ℝ ∞ f) {M : ℝ} (hbound : ∀ x, |f x| ≤ M) (hcompact : HasCompactSupport (fderiv ℝ f)) : Integrable (fun x => ‖fderiv ℝ f x‖ ^ 2) mu ∧ ∀ᶠ e : ℝ in 𝓝 (0 : ℝ), (∀ x, 1 / 2 ≤ 1 + e * f x) ∧ ContDiff ℝ ∞ (fun x => Real.sqrt (1 + e * f x)) ∧ MemLp (fun x => Real.sqrt (1 + e * f x)) 2 mu ∧ Integrable (fun x => (Real.sqrt (1 + e * f x)) ^ 2 * Real.log ((Real.sqrt (1 + e * f x)) ^ 2)) mu ∧ Integrable (fun x => ‖fderiv ℝ (fun y => Real.sqrt (1 + e * f y)) x‖ ^ 2) mu",
+  "typeclasses": ["NormedAddCommGroup E", "NormedSpace ℝ E", "MeasurableSpace E", "OpensMeasurableSpace E", "IsFiniteMeasure mu"],
+  "binder_audit": {
+    "finite_measure": "General analytic prerequisite; probability laws are a later specialization, not an assumed normalization theorem.",
+    "smoothness": "Genuine C-infinity, preserving the source smooth test order. Do not replace this with C2 when supplying compact smooth approximants.",
+    "global_bound": "Needed here for everywhere positivity/C-infinity. An a.e. bound alone cannot justify a global smooth square root. Boundedness must later be derived from the actual source test/centering, not added to a full exercise anchor.",
+    "compact_derivative": "Source-class input, not compact support of f. Later compact-g centering must produce this with the actual derivative; centered f need not be compact.",
+    "energy": "NO integrability premise. Produce the original energy internally from continuity and compact derivative support.",
+    "definitions": "Literal Mathlib sqrt, fderiv, MemLp and integrals. No chosen RN representative, abstract energy alias or fallback definition."
+  },
+  "imports": ["AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy", "Mathlib.MeasureTheory.Function.LocallyIntegrable", "Mathlib.MeasureTheory.Function.LpSeminorm.Basic", "Mathlib.Analysis.SpecialFunctions.Log.NegMulLog"],
+  "reuse": ["Existing bounded-perturbation energy theorem for perturbed derivative integrability", "Mathlib compact-support continuous integrability", "ContDiff.sqrt with everywhere nonzero argument", "MemLp.of_bound and finite-measure dominated integrability", "Continuity/boundedness of q log q on [1/2,3/2]"],
+  "consumers": [
+    {"id": "compact-lsi-extension", "status": "planned", "use": "Supplies genuine smooth square-root tests and finite mass/entropy/energy data before the separately missing compact cutoff LSI argument."},
+    {"id": "actual-lsi-application", "status": "planned", "use": "Closes analytic finite-energy premises for the actual perturbation rather than adding them to the exercise statement."}
+  ],
+  "consumer_boundary": "Two distinct uses within the same Exercise1.7 route, not two completed source results or independently formalized books.",
+  "proof_route": [
+    "Continuity plus compact support of the derivative gives actual unperturbed squared-energy integrability.",
+    "For |e|*|M|<1/2 derive 1/2 <= 1+e*f <= 3/2 everywhere.",
+    "Apply genuine smooth square-root composition, preserving C-infinity.",
+    "Bound the square root by2 and apply finite-measure MemLp.of_bound.",
+    "Use continuity of q log q on the compact interval to get an integrable entropy envelope.",
+    "Reuse the accepted energy theorem's eventual integrability projection with the newly produced original energy."
+  ],
+  "excluded": ["compact support of the square root", "extension or application of a compact-test LSI", "a.e. RN equality used as derivative equality", "probability construction or canonical KL/Fisher", "new energy-limit proof or credit", "uncentering, Poincare/form-domain closure, full Exercise1.7", "new admitted Bench QA, calibrated difficulty, model score or old paper/cycle change"],
+  "notation": "open scoped Topology ContDiff; infinity is Mathlib's smooth order, NOT the distinct omega/analytic top",
+  "signature_check": "lake env lean .astis/sog-bench/compact-gradient-sqrt-signature.lean exits0. Statement-only forall probe, no proof hole/axiom and no mathematical proof credit. Initial missing ContDiff notation scope was corrected before sealing; theorem assumptions/conclusion unchanged.",
+  "status": "statement-sealed-v1; not proved, independently reviewed, integrated or blue"
+}

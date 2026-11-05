@@ -231,7 +231,9 @@ def recover_jsonl(path: Path) -> tuple[list[dict[str, Any]], bool]:
 
 def _append_jsonl_unlocked(path: Path, record: dict[str, Any]) -> None:
     payload = (canonical_json(record) + "\n").encode("utf-8")
-    fd = os.open(path, os.O_CREAT | os.O_WRONLY | os.O_APPEND, 0o644)
+    # Windows CRT text-mode descriptors translate even os.write(bytes) LF to
+    # CRLF. The durable ledger must store exactly the canonical UTF-8 payload.
+    fd = os.open(path, os.O_CREAT | os.O_WRONLY | os.O_APPEND | getattr(os, "O_BINARY", 0), 0o644)
     try:
         written = 0
         while written < len(payload):

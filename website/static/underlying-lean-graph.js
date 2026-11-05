@@ -163,10 +163,13 @@
     // The explicit Fit action still frames all nodes; pan/zoom keeps all accessible.
     state.scale = Math.max(selected ? .8 : .2, Math.min(1.05, (box.width-40)/width, (box.height-40)/height));
     const transform = selected?.transform.baseVal.consolidate()?.matrix;
+    const rect = selected?.querySelector('rect');
     state.x = transform && width * state.scale > box.width
-      ? box.width/2 - (transform.e + 110) * state.scale
+      ? box.width/2 - (transform.e + Number(rect.getAttribute('width'))/2) * state.scale
       : Math.max(18, (box.width-width*state.scale)/2);
-    state.y = 22;
+    state.y = transform && height * state.scale > box.height
+      ? box.height/2 - (transform.f + Number(rect.getAttribute('height'))/2) * state.scale
+      : 22;
     const hint = canvas.querySelector('small');
     if (hint) hint.textContent = selected
       ? 'Focused result at readable scale · drag to explore · Fit shows all · click a node for exact details'

@@ -91,8 +91,10 @@ Do not accept “one formula rendered” as whole-page readability evidence.
 
 For an expert's declaration deep link, frame the selected node at a readable
 screen scale rather than shrinking the whole atlas into tiny text. Keep pan,
-zoom and the explicit Fit action for the rest of the unchanged graph. Small
-local slices use a bounded-height canvas; exact namespace-qualified identifiers
+zoom and the explicit Fit action for the rest of the unchanged graph. Frame
+the selected card in both axes: a readable zoom floor
+must not leave a low-row declaration below the clipped canvas.
+Small local slices use a bounded-height canvas; exact namespace-qualified identifiers
 use compact code typography, not oversized display headings. Muted context
 cards remain opaque so behind-the-card edges do not cross their labels. These
 are presentation rules, never new dependency or verification evidence.

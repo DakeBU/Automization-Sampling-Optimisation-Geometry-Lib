@@ -174,9 +174,35 @@ def main() -> None:
                     'n => parseFloat(getComputedStyle(n).fontSize) <= 16'), 'Raw identifier became a display-size heading'
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
                 page.screenshot(path=str(evidence/'contribution-graph-mobile.png'))
+                # Geometry-only software fixture, not a new graph or proof edge:
+                # put this same selected card far down a tall viewport, then
+                # restore it. A small default source slice must still exercise
+                # two-axis framing even when platform file order changes.
+                original_geometry = page.evaluate('''() => {
+                    const svg=document.querySelector('[data-graph-svg]');
+                    const node=svg.querySelector('.ulg-node.selected');
+                    const saved={transform:node.getAttribute('transform'),height:svg.dataset.worldHeight};
+                    const x=node.transform.baseVal.consolidate().matrix.e;
+                    node.setAttribute('transform', `translate(${x} 3000)`);
+                    svg.dataset.worldHeight='4000';
+                    window.dispatchEvent(new Event('resize'));
+                    return saved;
+                }''')
+                page.wait_for_function('''() => {
+                    const node=document.querySelector('.ulg-node.selected');
+                    const r=node.querySelector('rect').getBoundingClientRect();
+                    return node.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
+                }''')
+                page.evaluate('''saved => {
+                    const svg=document.querySelector('[data-graph-svg]');
+                    svg.querySelector('.ulg-node.selected').setAttribute('transform',saved.transform);
+                    svg.dataset.worldHeight=saved.height;
+                    window.dispatchEvent(new Event('resize'));
+                }''', original_geometry)
                 page.set_viewport_size({'width':1440,'height':1000})
                 report['contribution_graph'] = {'node':ident,'local_view':True,'scanned_edges_not_formal':True,
-                    'bounded_local_viewport':True,'opaque_context_cards':True}
+                    'bounded_local_viewport':True,'opaque_context_cards':True,
+                    'tall_context_framing_fixture':True}
             if not args.offline_dom:
                 goto('underlying-lean-graph/index.html?view=functor&focus=transport:dirac')
                 page.wait_for_url(lambda url: urlsplit(url).path.endswith('/lean-foundations.html')

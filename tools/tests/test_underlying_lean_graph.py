@@ -22,6 +22,8 @@ class UnderlyingLeanGraphInteractionTests(unittest.TestCase):
         self.assertIn('height:var(--ulg-local-height,360px)', css)
         self.assertIn('.ulg-canvas[data-local="true"] .ulg-node.muted{opacity:1}', css)
         self.assertIn('Math.max(selected ? .8 : .2', js)
+        self.assertIn('height * state.scale > box.height', js)
+        self.assertIn("transform.f + Number(rect.getAttribute('height'))/2", js)
         self.assertIn("window.addEventListener('resize'", js)
         self.assertIn('Fit shows all', js)
         self.assertIn('detail.dataset.kind = n.kind', js)

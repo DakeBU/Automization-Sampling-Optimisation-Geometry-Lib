@@ -161,3 +161,37 @@ This is a local stabilization candidate, not a merge/deployment, postmerge
 purification, Exposition Seal, source-test LSI application or complete Exercise1.7.
 The generic cutoff reuse discovery remains the next domain route; genuine source
 energy production, LSI admissibility, uncentering and PI closure are still open.
+
+## Clean-CI presentation regression, not a proof failure
+
+The original PR376 head6758f754 passed the clean Bench, native Harbor and both
+contributor runs. Site run41974565170/job127070316653 failed at the actual mobile
+occlusion assertion for PBPS ConditionalGradientEnergy's
+reflected_conditional_gradient_energy; the formalization run was still live,
+not called accepted or restarted because of an observation timeout. No merge
+or deployment was attempted. The exact job/commit and assertion remain available
+in the PR history; the failure is not erased by later successful checks.
+
+A focused actual-node reproduction found a1290 by3074 world and selected
+transform(372,1210). The old readable frame set only horizontal centering,
+leaving its phone-screen rect at y1185, below a915px viewport, with no hit target.
+The candidate centres both axes using the actual card width/height: on the same
+412px phone the rect moves to y530, and the centre hits its real SVG rect.
+No source text, theorem, node identity, edge, status or selected set changes.
+This is a layout IMPLEMENTATION_FAILED diagnosis, not a mathematical obstruction
+or a rejection of the already independently verified energy proposition.
+
+The browser gate retains the real-source test and adds an explicitly artificial
+tall-geometry software fixture on that same selected card, restoring its geometry
+afterwards. This prevents platform-dependent metadata enumeration from silently
+testing only small slices. It awards no graph, proof, exercise or model credit.
+Focused candidate-asset diagnostics are ignored development evidence; final
+acceptance still requires canonical generation, real-browser checks and clean
+exact-head CI. The ordinary occlusion assertion is not removed or relaxed.
+
+After canonical regeneration (not diagnostic asset interception), the full
+cross-domain browser gate passes for the exact formerly failing PBPS source,
+including the tall-geometry fixture and unobscured mobile selection. The actual
+mobile screenshot was inspected. Unit/syntax checks pass; the owning Lean
+module SHA256 remains77fc4dec36b7b24297e737a6c00ec04f02543e2cb15638ad02e0a9b14e646fba.
+Clean exact-head CI of this presentation correction is still a separate gate.

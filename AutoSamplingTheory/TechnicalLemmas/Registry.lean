@@ -1,4 +1,7 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy
 import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedPerturbationLaw
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient
@@ -16,6 +19,7 @@ import AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension
 import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient
 import AutoSamplingTheory.Core
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
+import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ChebyshevLobattoQuadrature
@@ -239,6 +243,36 @@ def analysisMemory : List LemmaMemoryEntry := [
     tags := ["GaussianComplexity", "gaussian", "Eq24", "actual-law", "integrability"],
     saldUse := "Actual determinant-conditioned Gaussian-mixture test gap is evaluated as 2v and proved nonzero in the focused consumer",
     note := "Independent compiler/source/whole-module admission at fd099e2c44e41ee3ae35f96f82c20e27db1f4035. Exactly n>=3,kappa>=4; actual full-Haar Gaussian and literal density signed kernels are both L1 and have the exact Eq24 value, including parity sign and real n/2. Canonical actual surface transport, selected domains, A1 and density-L1 nodes are reused; no proof ingredient is a public premise. Actual mixed target measures consume the result. Quantitative TV/precision, deterministic query cap, exact-matvec/oracle/expected-cost adapters, fixed-spectrum hidden eigenbasis, both main lower bounds, remote merge and purification remain separate."
+  },
+  {
+    key := "optlib-subgradient-norm",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.norm_le_of_supportsAt",
+    upstreamDecl := "Lipschitz_to_bounded_subgradient",
+    upstreamFile := "Optlib/Algorithm/SubgradientMethod.lean@5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3:80-118",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["convex", "subgradient", "Lipschitz", "optimisation"],
+    saldUse := "Bounds supplied supporting vectors inside the actual subgradient energy estimate",
+    note := "Native Lean 4.33.0 port over existing SupportsAt; no subgradient existence or random-oracle claim. Compilation, source review and integration are separately recorded."
+  },
+  {
+    key := "optlib-subgradient-energy",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.sum_weighted_gap_le",
+    upstreamDecl := "subgradient_method_converge (extracted weighted intermediate)",
+    upstreamFile := "Optlib/Algorithm/SubgradientMethod.lean@5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3:171-232",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["convex", "subgradient", "energy", "optimisation"],
+    saldUse := "Actual update telescopes weighted gaps; consumed by the finite best-iterate theorem",
+    note := "Retains the terminal distance. Nonnegative steps and empty horizon explicitly generalize the source intermediate; not a claim of full Optlib or Chewi chapter completion."
+  },
+  {
+    key := "optlib-subgradient-best",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.exists_gap_le",
+    upstreamDecl := "subgradient_method_converge",
+    upstreamFile := "Optlib/Algorithm/SubgradientMethod.lean@5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3:137-232",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["convex", "subgradient", "finite-horizon", "optimisation"],
+    saldUse := "Finite best-iterate guarantee for a supplied nonsmooth subgradient run and arbitrary comparator",
+    note := "Positive steps and nonempty horizon justify division. Native index witness replaces attained finite sInf; no minimizer, iterate convergence, stochastic oracle or sampling rate is claimed."
   },
   {
     key := "quadratic-probability-segment",
@@ -1719,6 +1753,16 @@ def taylorMemory : List LemmaMemoryEntry := [
 ]
 
 def calculusMemory : List LemmaMemoryEntry := [
+  {
+    key := "analysis.calculus.sqrt-perturbation-energy-limit",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy.eventually_integrable_and_tendsto_sqrt_perturbation_energy",
+    upstreamDecl := "HasFDerivAt.sqrt; MeasureTheory.tendsto_integral_filter_of_dominated_convergence",
+    upstreamFile := "Mathlib.Analysis.SpecialFunctions.Sqrt; Mathlib.MeasureTheory.Integral.DominatedConvergence",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "MEAS", "Dirichlet-energy", "sqrt-perturbation", "linearization"],
+    saldUse := "Chewi Exercise1.7: actual small-parameter square-root energy integrability and normalized quadratic limit with coefficient1/4",
+    note := "One genuine shared analytic leaf. Requires actual differentiability and integrable original squared derivative norm; no canonical RN Fisher identity, LSI-domain extension, Poincare theorem or Bench exercise admission."
+  },
   {
     key := "analysis.calculus.smooth-unit-cutoff-eq-smoothTransition",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.smoothUnitCutoff_eq_smoothTransition",
@@ -5356,6 +5400,26 @@ def probabilityMemory : List LemmaMemoryEntry := [
 ]
 
 def klDensityMemory : List LemmaMemoryEntry := [
+  {
+    key := "kl-density.bounded-actual-perturbation-law",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedPerturbationLaw.eventually_isProbabilityMeasure_and_klDiv_eq_one_add_mul",
+    upstreamDecl := "Chewi Exercise 1.7 / (1.E.1): actual affine probability law and finite canonical KL prerequisite",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/InformationTheory/BoundedPerturbationLaw.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["MEAS", "FI", "KL", "withDensity", "Radon-Nikodym", "integrability", "linearization"],
+    saldUse := "Shared actual-law construction for numbered Chewi Exercise 1.7 and Corollary 2.1.2; not a SALD closure",
+    note := "For a uniformly a.e.-bounded centered measurable real test under a probability law, constructs eventual density lower bound one half, actual unit-mass withDensity law, RN identification, entropy integrability and finite ENNReal KL equality. The focused test consumes this and the independent analytic limit. Fisher, LSI-domain/PI closure and the full exercise remain separate; one public leaf only."
+  },
+  {
+    key := "kl-density.bounded-compensated-second-order-limit",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq",
+    upstreamDecl := "Chewi Exercise 1.7 / (1.E.1): compensated-integral prerequisite",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/InformationTheory/BoundedDensityPerturbation.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["MEAS", "FI", "CALC", "KL", "linearization", "dominated-convergence"],
+    saldUse := "Shared entropy expansion for actual numbered Chewi Exercise 1.7 and Corollary 2.1.2; not a SALD closure",
+    note := "Actual punctured second-order compensated-entropy integral limit for finite measures and uniformly a.e.-bounded measurable real tests. Scalar calculus, positivity, integrable quadratic envelope and DCT are produced internally. Probability KL, Fisher/LSI/domain adapters and the full exercise remain separate."
+  },
   {
     key := "kl-density.pointwise-derivative-simplify",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.KLDensity.klPointwiseDerivSimplify",

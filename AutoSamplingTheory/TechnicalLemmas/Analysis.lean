@@ -32,6 +32,7 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalFlux
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexAEDifferentiable
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient
+import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.CyclicCostExpectation
 import AutoSamplingTheory.TechnicalLemmas.Analysis.CyclicQuadraticCost
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability

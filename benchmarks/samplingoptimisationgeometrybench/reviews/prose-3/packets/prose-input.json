@@ -1,0 +1,93 @@
+{
+  "author_identity": "agent-task:root",
+  "context_bindings": {
+    "sogb-020": "8c9a8b1aa83e3398feedd268369d261ec7cef625518842f4b449a5a9539a1d92"
+  },
+  "instruction": "Independently check each original natural-language question, formula solution, rubric and cited local support. Inspect the exact local declaration and its hypotheses. Treat authored support/boundary claims as claims to audit. Explain which parts the cited Lean does not prove. No earlier reviewer verdict is supplied. There is no equivalent Lean task and no anonymous Lean reconstruction to certify; do not create one. Return accept, repair-required or reject with mathematical, support and scoring evidence, explicit source-assumption differences and unresolved repair requests. Do not edit the catalog or prior reports. This is editorial review, not theorem publication or a measured benchmark run.",
+  "mathematical_cores": [
+    {
+      "assumptions": [
+        "E is a real inner-product space and f:E→ℝ is globally G-Lipschitz with G≥0. Supplied sequences xₖ,gₖ satisfy the global supporting inequality f(xₖ)+⟨gₖ,y−xₖ⟩≤f(y) for every y∈E and every k≥0.",
+        "The actual recurrence is \\[x_{k+1}=x_k-a_k g_k.\\] For the energy estimate take aₖ≥0; for the normalized best-iterate statement assume aₖ>0 and N>0. The comparator z∈E is arbitrary, not necessarily a minimizer.",
+        "For the positive-parameter rate corollary fix N>0, R>0, G>0 and ‖x₀−z‖≤R, then choose the constant step aₖ=R/(G√N). This schedule is selected for that finite horizon."
+      ],
+      "binding_sha256": "d91d867bea020e1796c490e782207ea17ccd0affad9a267b60a581fb8c094be3",
+      "boundary": "This is a deterministic comparator bound for already supplied iterates, supports and steps. It does not construct a subgradient, prove a measurable/random algorithm or establish query complexity, constrained/projected convergence, last-iterate convergence or a global minimizer's existence. Strict positive steps are retained for the source best-iterate theorem even though some weaker sufficient conditions could also be mathematically valid. The full Lean module supports the energy/best-iterate portion, not every corollary in this QA.",
+      "context": "",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.exists_gap_le",
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient.SupportsAt",
+          "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.norm_le_of_supportsAt",
+          "AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod.sum_weighted_gap_le"
+        ],
+        "mathlib": [
+          "norm_sub_sq_real",
+          "Finset.sum_range_succ",
+          "Finset.exists_min_image",
+          "Finset.sum_pos",
+          "le_div_iff₀"
+        ]
+      },
+      "difficulty": "advanced",
+      "difficulty_reason": "Derive and telescope an actual vector update, pass from a weighted energy estimate to a finite iterate witness, optimize a finite-horizon step size, and audit zero denominators and the distinction between a comparator and a minimizer. The multi-stage prose task includes a corollary not present as an aligned Lean target.",
+      "domain": "optimisation",
+      "family": "subgradient-energy-average",
+      "id": "sogb-020",
+      "imports": [],
+      "lean_enabled": false,
+      "lean_explanation": "The existing module proves norm_le_of_supportsAt, then sum_weighted_gap_le (nonnegative steps, including N=0), then exists_gap_le (strictly positive steps and N>0). Its finite-index minimum and positive denominator match the first four proof steps. The full module is shown below unchanged, including imports, namespaces and upstream notices. The explicit step optimization and degenerate-case explanations are additional prose, not a matching formal conclusion. No aligned Lean QA is exported: extracting exists_gap_le alone would leave its same-module energy helper unavailable under the current no-target-module-import task policy. This is a task-context limitation, not an unproved library theorem.",
+      "lean_reference": "",
+      "lean_task": "",
+      "library_domains": [
+        "optimisation"
+      ],
+      "question": "Derive the terminal-distance-retaining weighted energy bound, then show that some i<N satisfies \\[f(x_i)-f(z)\\le\\frac{\\|x_0-z\\|^2+G^2\\sum_{k=0}^{N-1}a_k^2}{2\\sum_{k=0}^{N-1}a_k}.\\] Deduce the exact RG/√N bound for the stated constant step. Explain what happens at N=0, R=0 or G=0 and which existence/domain claims this reasoning does not provide.",
+      "rubric": [
+        {
+          "criterion": "Derives the one-step squared-distance bound from the actual update, supplied global support and derived norm control, tracking the nonnegative step sign.",
+          "points": 1
+        },
+        {
+          "criterion": "Telescopes with the terminal term intact and obtains the normalized bound via a finite nonempty minimum and strictly positive weight sum, without a global minimizer assumption.",
+          "points": 1
+        },
+        {
+          "criterion": "Calculates the exact RG/√N constant for the positive finite-horizon step schedule and states its horizon dependence.",
+          "points": 1
+        },
+        {
+          "criterion": "Handles N=0, R=0 and G=0 separately, rejecting a nonexistent empty-horizon witness and avoiding unproved oracle/existence/completeness claims.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "composition",
+        "assumption-audit",
+        "calculation"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/SubgradientMethod.lean",
+      "source_line": 90,
+      "source_note": "Original formula exercise over the Samplinglib-native Optlib port, sharing a family with sogb-019 (both public-dev; never independent train/test families). Copyright (c) 2024 Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen, Apache-2.0; upstream Optlib 5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3, Optlib/Algorithm/SubgradientMethod.lean:80–118,137–232. The optional module source preserves its full notice and Samplinglib modifications. The constant-step corollary and edge-case explanation are ASTIS-authored mathematics, not a claim that a new formal theorem or QA pair exists.",
+      "source_sha256_lf": "0913d624dae26a627474f56dc2d0e394af2cf059b8237ee3ee5db8833035683f",
+      "split": "public-dev",
+      "steps": [
+        "Test each global support inequality at z and use the preceding norm estimate for the supplied vector: \\[f(x_k)-f(z)\\le\\langle g_k,x_k-z\\rangle,\\qquad\\|g_k\\|\\le G.\\] No minimizing comparator and no differentiability are needed.",
+        "Expanding the actual update in the inner-product space gives \\[\\|x_{k+1}-z\\|^2=\\|x_k-z\\|^2-2a_k\\langle g_k,x_k-z\\rangle+a_k^2\\|g_k\\|^2.\\] Since aₖ≥0, multiplication preserves the support inequality; since aₖ²≥0, the norm bound gives \\[2a_k(f(x_k)-f(z))\\le\\|x_k-z\\|^2-\\|x_{k+1}-z\\|^2+G^2a_k^2.\\] A negative step would invalidate the first inference.",
+        "Sum these finite inequalities; the distance terms telescope exactly: \\[2\\sum_{k<N}a_k(f(x_k)-f(z))\\le\\|x_0-z\\|^2+G^2\\sum_{k<N}a_k^2-\\|x_N-z\\|^2.\\] This statement permits zero steps and N=0. It retains, rather than assumes away, the nonnegative terminal distance.",
+        "For N>0 choose i minimizing f(xₖ) over the finite nonempty index set {0,…,N−1}. This is a finite minimum, not existence of a global minimizer of f. Put \\(A=\\sum_{k=0}^{N-1}a_k>0\\). Positive weights imply \\[A(f(x_i)-f(z))\\le\\sum_{k<N}a_k(f(x_k)-f(z)).\\] Drop the nonpositive terminal term from the upper bound and divide by 2A>0 to obtain the requested ratio.",
+        "When a=R/(G√N)>0, the ratio is at most \\[\\frac{R^2+G^2Na^2}{2Na}=\\frac{R^2}{2Na}+\\frac{G^2a}{2}=\\frac{RG}{\\sqrt N}.\\] The chosen schedule depends on N; this does not establish that one fixed infinite run uses all these horizon-dependent schedules simultaneously.",
+        "At N=0 the energy inequality reduces to 0≤0, but there is no i<0 and division by a zero sum cannot create one (Lean's totalized 0/0 does not repair existence). If R=0 then z=x₀ and, for N>0, i=0 already has zero gap. If G=0 global Lipschitz growth makes f constant and the norm lemma forces all supplied gₖ=0; the positive-parameter step formula is unnecessary. These degenerate cases are separate arguments, not a substitution into a formula requiring positive parameters."
+      ],
+      "support_lean_source": "/-\nCopyright (c) 2024 Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen. All rights reserved.\nReleased under Apache 2.0 license as described in the file LICENSE.\nAuthors of the upstream mathematical development: Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen\nModified for Samplinglib: native Lean 4.33.0 statements and proofs; reuse SupportsAt,\nunbundle algorithm inputs and expose the weighted telescope and a finite index witness.\n-/\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient\nimport Mathlib.Topology.MetricSpace.Lipschitz\nimport Mathlib.Data.Finset.Max\nimport Mathlib.Algebra.Order.BigOperators.Group.Finset\nimport Mathlib.Tactic.Linarith\nimport Mathlib.Tactic.Positivity\nimport Mathlib.Tactic.Ring\n\n/-!\n# Nonsmooth subgradient method\n\nNative port of the norm bound and finite-horizon convergence argument in Optlib\n`5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3`,\n`Optlib/Algorithm/SubgradientMethod.lean:80–118,137–232` (Apache-2.0).\n\nThe existing `ConvexSubgradient.SupportsAt` relation is exactly the global\nsubgradient inequality. No duplicate predicate or upstream algorithm class is\nintroduced. Lipschitz growth bounds supplied subgradients, the actual update\ntelescopes squared distances, and a finite minimizer index supplies the best\niterate bound. Completeness, differentiability and existence of a minimizer are\nnot needed. This does not construct subgradients or a measurable/random oracle.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod\n\nopen ConvexSubgradient Finset\nopen scoped NNReal RealInnerProductSpace\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n\n/-- Global Lipschitz growth controls every supplied supporting vector.\nThis is consumed inside the subgradient telescope, not supplied as an extra premise. -/\ntheorem norm_le_of_supportsAt {f : E → ℝ} {G : ℝ≥0} {x g : E}\n    (hf : LipschitzWith G f) (hs : SupportsAt f x g) : ‖g‖ ≤ (G : ℝ) := by\n  have hs' := hs (x + g)\n  change f x + inner ℝ g (x + g - x) ≤ f (x + g) at hs'\n  rw [add_sub_cancel_left, real_inner_self_eq_norm_sq] at hs'\n  have hl : f (x + g) - f x ≤ (G : ℝ) * ‖g‖ := by\n    calc\n      f (x + g) - f x ≤ |f (x + g) - f x| := le_abs_self _\n      _ ≤ (G : ℝ) * ‖g‖ := by\n        simpa [Real.dist_eq, dist_eq_norm] using hf.dist_le_mul (x + g) x\n  by_cases hg : ‖g‖ = 0\n  · simp [hg]\n  · have hp : 0 < ‖g‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm hg)\n    nlinarith\n\n/-- The actual subgradient recurrence controls the finite weighted objective gaps,\nretaining the terminal squared distance. Zero steps and the empty horizon are allowed. -/\ntheorem sum_weighted_gap_le {f : E → ℝ} {G : ℝ≥0} {x g : ℕ → E} {a : ℕ → ℝ}\n    (hf : LipschitzWith G f) (ha : ∀ k, 0 ≤ a k)\n    (hs : ∀ k, SupportsAt f (x k) (g k))\n    (hx : ∀ k, x (k + 1) = x k - a k • g k) (z : E) (N : ℕ) :\n    2 * (∑ k ∈ Finset.range N, a k * (f (x k) - f z)) ≤\n      ‖x 0 - z‖ ^ 2 + (G : ℝ) ^ 2 * (∑ k ∈ Finset.range N, (a k) ^ 2) - ‖x N - z‖ ^ 2 := by\n  have hstep (k : ℕ) :\n      2 * a k * (f (x k) - f z) ≤\n        ‖x k - z‖ ^ 2 - ‖x (k + 1) - z‖ ^ 2 + (G : ℝ) ^ 2 * (a k) ^ 2 := by\n    have hs' := hs k z\n    change f (x k) + inner ℝ (g k) (z - x k) ≤ f z at hs'\n    have hpair : f (x k) - f z ≤ inner ℝ (g k) (x k - z) := by\n      rw [inner_sub_right] at hs' ⊢\n      linarith\n    have hg := norm_le_of_supportsAt hf (hs k)\n    have hgsq : ‖g k‖ ^ 2 ≤ (G : ℝ) ^ 2 :=\n      pow_le_pow_left₀ (norm_nonneg _) hg 2\n    have hnorm : ‖x (k + 1) - z‖ ^ 2 =\n        ‖x k - z‖ ^ 2 - 2 * a k * inner ℝ (g k) (x k - z) + (a k) ^ 2 * ‖g k‖ ^ 2 := by\n      rw [hx k, sub_right_comm, norm_sub_sq_real, inner_smul_right,\n        norm_smul, Real.norm_eq_abs, mul_pow, sq_abs, real_inner_comm (x k - z)]\n      ring\n    have hp := mul_le_mul_of_nonneg_left hpair (mul_nonneg (by norm_num : (0 : ℝ) ≤ 2) (ha k))\n    have hn := mul_le_mul_of_nonneg_left hgsq (sq_nonneg (a k))\n    nlinarith\n  induction N with\n  | zero => simp\n  | succ N ih =>\n      rw [Finset.sum_range_succ, Finset.sum_range_succ]\n      nlinarith [hstep N]\n\n/-- A positive finite run contains an iterate satisfying the normalized Optlib\nsubgradient bound, relative to any comparator (not necessarily a minimizer). -/\ntheorem exists_gap_le {f : E → ℝ} {G : ℝ≥0} {x g : ℕ → E} {a : ℕ → ℝ}\n    (hf : LipschitzWith G f) (ha : ∀ k, 0 < a k)\n    (hs : ∀ k, SupportsAt f (x k) (g k))\n    (hx : ∀ k, x (k + 1) = x k - a k • g k) (z : E) {N : ℕ} (hN : 0 < N) :\n    ∃ i < N, f (x i) - f z ≤\n      (‖x 0 - z‖ ^ 2 + (G : ℝ) ^ 2 * (∑ k ∈ Finset.range N, (a k) ^ 2)) /\n        (2 * ∑ k ∈ Finset.range N, a k) := by\n  have hne : (Finset.range N).Nonempty := ⟨0, Finset.mem_range.mpr hN⟩\n  obtain ⟨i, hi, hmin⟩ := Finset.exists_min_image (Finset.range N) (fun k => f (x k)) hne\n  refine ⟨i, Finset.mem_range.mp hi, ?_⟩\n  have hsumpos : 0 < ∑ k ∈ Finset.range N, a k :=\n    Finset.sum_pos (fun k _ => ha k) hne\n  have hlower : (∑ k ∈ Finset.range N, a k) * (f (x i) - f z) ≤\n      ∑ k ∈ Finset.range N, a k * (f (x k) - f z) := by\n    rw [Finset.sum_mul]\n    exact Finset.sum_le_sum fun k hk =>\n      mul_le_mul_of_nonneg_left (sub_le_sub_right (hmin k hk) _) (ha k).le\n  have he := sum_weighted_gap_le hf (fun k => (ha k).le) hs hx z N\n  apply (le_div_iff₀ (mul_pos (by norm_num : (0 : ℝ) < 2) hsumpos)).mpr\n  nlinarith [sq_nonneg ‖x N - z‖]\n\nend AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod\n",
+      "support_source_view": true,
+      "title": "From subgradient energy to a finite-run best iterate",
+      "track_levels": {
+        "natural-language": "L4"
+      }
+    }
+  ],
+  "schema_version": 1,
+  "scope": "independent AI natural-language QA editorial review; no aligned Lean certification"
+}

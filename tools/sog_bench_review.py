@@ -13,6 +13,10 @@ BASE = bench.DATA.parent
 ROUND = BASE / 'reviews/round-1'
 PROSE_ROUND = BASE / 'reviews/round-2'
 PROSE_SCOPE = 'independent AI natural-language QA editorial review; no aligned Lean certification'
+PROSE_REPAIR_SCOPE = 'independent exact prose/difficulty repair; no aligned Lean certification'
+PROSE_SCORING_REPAIR_SCOPE = 'independent exact NL scoring repair; no aligned Lean certification'
+PAIRED_REPAIR_SCOPE = 'independent exact scoring repair; paired Lean conclusions unchanged'
+PAIRED_PROSE_REPAIR_SCOPE = 'independent exact proof-prose repair; paired Lean conclusions unchanged'
 SLOTS = ('objects', 'domains', 'quantifiers', 'assumptions', 'conclusion', 'senses', 'constants')
 AUTHOR = 'agent-task:root'
 
@@ -30,6 +34,10 @@ def context_binding(core: dict) -> str:
             if name.startswith('AutoSamplingTheory.'):
                 visit(name.replace('.', '/') + '.lean')
     visit(core['source_file'])
+    # Research audits can inspect several producers outside the anchor's
+    # imports. Bind every explicitly cited support module and its local closure.
+    for support in core.get('supporting_declarations', []):
+        visit(support['source_file'])
     return bench.sha(bench.encoded({'binding_sha256': core['binding_sha256'], 'local_context': seen,
         'toolchain': bench.text_hash(ROOT / 'lean-toolchain'),
         'mathlib': bench.text_hash(ROOT / 'lake-manifest.json')}))
@@ -238,6 +246,110 @@ def prepare_prose(cores: list[dict], identities: list[str], destination: Path) -
     destination.write_bytes(bench.encoded(packet))
 
 
+def prepare_scoped_repair(cores: list[dict], directory: Path, identities: list[str], destination: Path, *, formal: bool = False, proof_prose: bool = False, prose_scoring: bool = False) -> None:
+    if proof_prose and not formal:
+        raise ValueError('Proof-prose paired repairs need the paired audit route')
+    if prose_scoring and (formal or proof_prose):
+        raise ValueError('NL scoring repairs are a disjoint rubric-only scope')
+    input_path = directory / ('packets/reviewer-input.json' if formal else 'packets/prose-input.json')
+    original = json.loads(input_path.read_text(encoding='utf-8'))
+    report_path = directory / 'source-review.json'
+    report = json.loads(report_path.read_text(encoding='utf-8'))
+    if not identities or len(set(identities)) != len(identities):
+        raise ValueError('Select distinct requested repairs')
+    cases = {}
+    for identity in identities:
+        if report['items'][identity]['verdict'] != 'repair-required':
+            raise ValueError('Only an explicitly requested repair may enter this route')
+        before = next(c for c in original['mathematical_cores'] if c['id'] == identity)
+        after = next(c for c in cores if c['id'] == identity)
+        cases[identity] = {'before': before, 'proposed_after': after,
+                          'context_sha256': context_binding(after),
+                          'repair_requests': report['items'][identity]['repair_requests']}
+    scope = PAIRED_PROSE_REPAIR_SCOPE if proof_prose else (PAIRED_REPAIR_SCOPE if formal else PROSE_REPAIR_SCOPE)
+    if prose_scoring:
+        scope = PROSE_SCORING_REPAIR_SCOPE
+    proposal = {'schema_version': 1, 'scope': scope, 'author_identity': AUTHOR,
+                'base_input_sha256': bench.sha(input_path.read_bytes()),
+                'base_report_sha256': bench.sha(report_path.read_bytes()),
+                'cases': cases,
+                'instruction': ('Independently audit these exact proposed repairs, source/target invariants and minimality. '
+                    + ('This NL scoring scope permits only rubric fields, not proof prose, difficulty, source or formal code. ' if prose_scoring else
+                       'This paired proof-prose scope permits only steps; not rubric, difficulty or formal code. ' if proof_prose else
+                       'Paired scoring repairs may change only rubric fields; NL-only repairs only proof prose and difficulty fields. ')
+                    + 'Never change source, assumptions, question, formal coverage or family. Keep earlier reports immutable; return actual per-item decisions with exact digests and no accepted open repairs.')}
+    if destination.exists():
+        raise ValueError('Never overwrite a frozen repair proposal')
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(bench.encoded(proposal))
+
+
+def apply_scoped_repair(cores: list[dict], directory: Path, packet: dict, report: dict, result: dict, *, formal: bool = False) -> None:
+    path = directory / 'repair-review.json'
+    if not path.is_file():
+        return
+    proposal_path = directory / 'packets/repair-input.json'
+    proposal = json.loads(proposal_path.read_text(encoding='utf-8'))
+    repair = json.loads(path.read_text(encoding='utf-8'))
+    input_path = directory / ('packets/reviewer-input.json' if formal else 'packets/prose-input.json')
+    proof_prose = formal and proposal.get('scope') == PAIRED_PROSE_REPAIR_SCOPE
+    prose_scoring = not formal and proposal.get('scope') == PROSE_SCORING_REPAIR_SCOPE
+    scope = PAIRED_PROSE_REPAIR_SCOPE if proof_prose else (PAIRED_REPAIR_SCOPE if formal else PROSE_REPAIR_SCOPE)
+    if prose_scoring:
+        scope = PROSE_SCORING_REPAIR_SCOPE
+    if (proposal['schema_version'] != 1 or repair['schema_version'] != 1
+            or proposal['scope'] != scope or repair['scope'] != scope
+            or proposal['author_identity'] != AUTHOR
+            or proposal['base_input_sha256'] != bench.sha(input_path.read_bytes())
+            or proposal['base_report_sha256'] != bench.sha((directory / 'source-review.json').read_bytes())
+            or not proposal['cases'] or set(repair['items']) != set(proposal['cases'])
+            or not isinstance(repair['actor_identity'], str) or not repair['actor_identity'].strip()
+            or repair['actor_identity'] in {AUTHOR, report['actor_identity'], packet.get('decoder_identity')}
+            or repair['input_packet_sha256'] != bench.sha(proposal_path.read_bytes())
+            ):
+        raise ValueError('Scoped repair needs a fresh independent actor and exact frozen inputs')
+    for identity, case in proposal['cases'].items():
+        before, after, row = case['before'], case['proposed_after'], repair['items'][identity]
+        allowed = ({'steps', 'binding_sha256'} if proof_prose else {'rubric', 'binding_sha256'}) if formal else {'steps', 'difficulty', 'difficulty_reason', 'track_levels', 'binding_sha256'}
+        if prose_scoring:
+            allowed = {'rubric', 'binding_sha256'}
+        changed = {k for k in before.keys() | after.keys() if before.get(k) != after.get(k)}
+        coverage = 'conclusion-only' if formal else 'no-aligned-view'
+        if (before != next(c for c in packet['mathematical_cores'] if c['id'] == identity)
+                or report['items'][identity]['verdict'] != 'repair-required'
+                or case['repair_requests'] != report['items'][identity]['repair_requests']
+                or not changed or not changed <= allowed or bench.has_lean(after) != formal
+                or (not formal and set(after['track_levels']) != {'natural-language'})
+                # Context digests include the QA binding: a prose/rubric repair
+                # legitimately changes that digest without changing imports.
+                # Rebind today's context to the frozen BEFORE QA to compare.
+                # A later changed source is handled as stale below, not used
+                # to invalidate the historical report's immutable bytes.
+                or (context_binding(after) == case['context_sha256']
+                    and context_binding(before) != packet['context_bindings'][identity])
+                or after['binding_sha256'] != bench.sha(bench.encoded({k:v for k,v in after.items() if k != 'binding_sha256'}))
+                or row['proposed_binding_sha256'] != after['binding_sha256']
+                or row['context_sha256'] != case['context_sha256']
+                or row['formal_coverage'] != coverage + '; unchanged'
+                or row['verdict'] not in {'accept', 'repair-required', 'reject'}
+                or not isinstance(row['repair_requests'], list)):
+            raise ValueError('Scoped repair must preserve source, target and identity outside its allowed fields')
+        for key in ('mathematics_checks', 'minimality_checks', 'remaining_unformalized'):
+            if not isinstance(row[key], list) or not row[key] or not all(isinstance(s,str) and s.strip() for s in row[key]):
+                raise ValueError('Scoped repair needs mathematics, minimality and formal-boundary evidence')
+        if row['verdict'] == 'accept' and row['repair_requests']:
+            raise ValueError('Open repairs cannot be accepted')
+        current = next((c for c in cores if c['id'] == identity), None)
+        if current is None:
+            continue
+        stale = current['binding_sha256'] != after['binding_sha256'] or context_binding(current) != case['context_sha256']
+        result[identity] = {'editorial': 'stale' if stale else ('accepted-after-repair' if row['verdict'] == 'accept' else row['verdict']),
+            'formal_alignment': coverage, 'issues': row['repair_requests'],
+            'reviewer': repair['actor_identity'], 'report_sha256': bench.sha(path.read_bytes()),
+            'prior_review_report_sha256': bench.sha((directory / 'source-review.json').read_bytes()),
+            'remaining_unformalized': row['remaining_unformalized']}
+
+
 def prose_statuses(cores: list[dict], directory: Path = PROSE_ROUND) -> dict:
     report_path = directory / 'source-review.json'
     if not report_path.is_file():
@@ -266,6 +378,15 @@ def prose_statuses(cores: list[dict], directory: Path = PROSE_ROUND) -> dict:
         for key in ('mathematics_checks', 'support_checks', 'scoring_checks', 'source_assumption_differences', 'remaining_unformalized'):
             if not isinstance(row[key], list) or not row[key] or not all(isinstance(s, str) and s.strip() for s in row[key]):
                 raise ValueError('NL editorial review needs explicit mathematics, support, rubric and scope evidence')
+        if original.get('textbook_exercise'):
+            exercise = original['textbook_exercise']
+            parts = {part['id'] for part in exercise['parts']}
+            if (set(row.get('exercise_semantic_slots', {})) != set(SLOTS)
+                    or not all(isinstance(s, str) and s.strip() for s in row['exercise_semantic_slots'].values())
+                    or set(row.get('exercise_part_checks', {})) != parts
+                    or not all(isinstance(s, str) and s.strip() for s in row['exercise_part_checks'].values())
+                    or row.get('exercise_coverage_scope') != 'owned core answer reuse; not full exercise/formal QA certification'):
+                raise ValueError('Numbered exercise review must audit every source part, seven slots and exact formal-coverage boundary')
         if row['verdict'] not in {'accept', 'repair-required', 'reject'} or not isinstance(row['repair_requests'], list):
             raise ValueError('Invalid NL editorial verdict or repair requests')
         if row['verdict'] == 'accept' and row['repair_requests']:
@@ -281,13 +402,16 @@ def prose_statuses(cores: list[dict], directory: Path = PROSE_ROUND) -> dict:
                 'formal_alignment': 'no-aligned-view', 'issues': row['repair_requests'],
                 'reviewer': report['actor_identity'], 'report_sha256': bench.sha(report_path.read_bytes()),
                 'remaining_unformalized': row['remaining_unformalized']}
+    apply_scoped_repair(cores, directory, packet, report, result)
     return result
 
 
 def summary(cores: list[dict]) -> dict:
     import sog_bench_formal_review
     rows = statuses(cores)
-    for additional in (prose_statuses(cores), sog_bench_formal_review.statuses(cores)):
+    prose_rounds = [PROSE_ROUND, *sorted((BASE / 'reviews').glob('prose-*'))]
+    for additional in [*(prose_statuses(cores, directory) for directory in prose_rounds),
+                       sog_bench_formal_review.statuses(cores)]:
         for identity, row in additional.items():
             if rows[identity]['editorial'] != 'pending':
                 raise ValueError('Overlapping review rounds require an explicit supersession policy')
@@ -299,15 +423,23 @@ def summary(cores: list[dict]) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('decoder-packet', 'reviewer-packet', 'repair-packet', 'prose-packet'))
+    parser.add_argument('command', choices=('decoder-packet', 'reviewer-packet', 'repair-packet', 'prose-packet', 'prose-repair-packet', 'prose-scoring-repair-packet', 'paired-repair-packet', 'paired-prose-repair-packet'))
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--decoder-input', type=Path)
     parser.add_argument('--mapping', type=Path)
     parser.add_argument('--decoder-output', type=Path)
     parser.add_argument('--ids', nargs='+', help='Distinct NL-only core IDs for prose-packet')
+    parser.add_argument('--review-round', type=Path, help='Original source-review round for an exact scoped repair')
     args = parser.parse_args()
     cores = bench.materialize()
-    if args.command == 'prose-packet':
+    if args.command in {'prose-repair-packet', 'prose-scoring-repair-packet', 'paired-repair-packet', 'paired-prose-repair-packet'}:
+        if not args.review_round or not args.ids:
+            parser.error('Supply --review-round and --ids')
+        prepare_scoped_repair(cores, args.review_round, args.ids, args.output,
+                             formal=args.command in {'paired-repair-packet', 'paired-prose-repair-packet'},
+                             proof_prose=args.command == 'paired-prose-repair-packet',
+                             prose_scoring=args.command == 'prose-scoring-repair-packet')
+    elif args.command == 'prose-packet':
         prepare_prose(cores, args.ids or [], args.output)
     elif args.command == 'decoder-packet':
         prepare_decoder(cores, args.output)

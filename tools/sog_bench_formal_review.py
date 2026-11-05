@@ -136,6 +136,7 @@ def round_statuses(cores: list[dict], directory: Path) -> dict:
             'formal_alignment': 'not-reviewed' if stale else 'conclusion-only', 'issues': row['repair_requests'],
             'reviewer': report['actor_identity'], 'report_sha256': bench.sha(report_path.read_bytes()),
             'remaining_unformalized': row['remaining_unformalized']}
+    review.apply_scoped_repair(cores, directory, packet, report, result, formal=True)
     return result
 
 

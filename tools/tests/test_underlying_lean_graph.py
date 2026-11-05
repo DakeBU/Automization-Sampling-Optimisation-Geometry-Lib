@@ -15,6 +15,21 @@ SEMANTIC_GRAPH = ROOT / "website" / "scripts" / "underlying_lean_graph_semantic.
 
 
 class UnderlyingLeanGraphInteractionTests(unittest.TestCase):
+    def test_local_viewport_is_bounded_without_filtering_the_graph(self) -> None:
+        js = GRAPH_JS.read_text(encoding="utf-8")
+        css = GRAPH_CSS.read_text(encoding="utf-8")
+        self.assertIn('Math.min(720, Math.max(300, height))', js)
+        self.assertIn('height:var(--ulg-local-height,360px)', css)
+        self.assertIn('.ulg-canvas[data-local="true"] .ulg-node.muted{opacity:1}', css)
+        self.assertIn('Math.max(selected ? .8 : .2', js)
+        self.assertIn('height * state.scale > box.height', js)
+        self.assertIn("transform.f + Number(rect.getAttribute('height'))/2", js)
+        self.assertIn("window.addEventListener('resize'", js)
+        self.assertIn('Fit shows all', js)
+        self.assertIn('detail.dataset.kind = n.kind', js)
+        self.assertIn('.ulg-detail[data-kind="declaration"] header h2', css)
+        self.assertIn('Focus is a visual overlay, not a graph filter', js)
+
     def test_focus_preserves_context_and_marks_direct_relations(self) -> None:
         js = GRAPH_JS.read_text(encoding="utf-8")
         self.assertIn("Focus is a visual overlay, not a graph filter", js)

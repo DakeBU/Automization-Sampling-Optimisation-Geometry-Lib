@@ -17,6 +17,7 @@ import astis_site
 import declaration_lessons
 import research_resources as intake
 import source_lineage
+import astis_publication as publication
 
 ROOT = Path(__file__).resolve().parents[2]
 GUIDES = ROOT / 'website/content/resource_guides.json'
@@ -98,7 +99,7 @@ def provenance(catalog: dict) -> str:
         '<p>No explicit Forum reuse license was established. We do not copy its prose, styling, site code, abstracts or proofs. Paper titles and bibliographic links point to their respective owners.</p>'
         f'<p>Optlib: Apache-2.0, commit <code>{opt["commit"]}</code>; {len(opt["modules"])} modules inventoried, not blanket-audited. Copyright {escape(opt["copyright"])} '
         + a(f'{intake.REPO}/blob/{opt["commit"]}/LICENSE', 'Upstream license') + '.</p>'
-        '<p><strong>Reference intake is not formal assimilation.</strong> No new declaration, chapter coverage, solid proof edge or validated conceptual transport is claimed. Existing publication metadata remains authoritative.</p>'
+        '<p><strong>Reference intake is not formal assimilation.</strong> Bibliographic entries alone receive no declaration, chapter-coverage, solid-proof-edge or conceptual-transport credit. Separately admitted local results use the canonical publication metadata.</p>'
         '<p>' + a('data/resource-intake.json', 'Download pinned bibliography and fingerprints', download='resource-intake.json') + ' · '
         + a('data/resource-guides.json', 'Download original subject guide metadata', download='resource-guides.json') + '</p>')
 
@@ -145,11 +146,39 @@ def existing_optlib_matches() -> list[dict]:
     return matches
 
 
+def native_optlib_bindings(items=None, data=None) -> list[dict]:
+    """Explicit source bindings only; a lesson citation is not a native port."""
+    items = publication.load() if items is None else items
+    data = publication.inputs() if data is None else data
+    rows = []
+    for item in items:
+        if not item.get('source', {}).get('url', '').startswith(intake.REPO + '/blob/' + intake.PIN + '/'):
+            continue
+        for binding in item.get('bindings', []):
+            name = binding['declaration']
+            decl = data['declarations'].get(name)
+            if not decl or decl.has_placeholder:
+                continue
+            audit = data['audits'].get(binding.get('audit_id'), {})
+            current = audit.get('publication_binding_sha256') == publication.binding_digest(item, binding, data)
+            reviewed = (current and publication.verified_binding(binding, data)
+                        and audit.get('state') == 'accepted' and audit.get('lean', {}).get('compiled') is True)
+            rows.append({'declaration': name, 'title': item['title'],
+                         'page': declaration_lessons.lesson_path(name),
+                         'reviewed': reviewed, 'cell': binding['cell']})
+    return rows
+
+
 def optlib_page(data: dict, catalog: dict) -> str:
     opt = catalog['optlib']
     body = masthead('Optlib: mathematical reuse map', 'Browse an external library by purpose; inspect source-backed local mathematics without confusing provenance with a compiled dependency.')
     body += (f'<p class="resource-boundary">Optlib uses {escape(opt["toolchain"])}. Samplinglib stays on Lean 4.33.0 and its fixed Mathlib. No new Optlib dependency or bulk port was added.</p>'
-             '<section><h2>Five mathematical areas</h2>')
+             '<section><h2>Native Samplinglib results</h2><p>Explicit primary-source bindings, not inferred citations. These nodes use our pinned compiler and existing definitions; each reader contains the formula proof and adjacent optional Lean. This is not a bulk-port or chapter-completion claim.</p><ul>')
+    for row in native_optlib_bindings():
+        status = 'compiled and independently source-reviewed' if row['reviewed'] else 'local candidate; independent admission incomplete'
+        body += ('<li data-native-optlib="true">' + a('../' + row['page'], row['title'])
+                 + '<small>' + escape(status) + '</small></li>')
+    body += '</ul></section><section><h2>Five mathematical areas</h2>'
     for key, area in data['optlib_areas'].items():
         rows = [m for m in opt['modules'] if m['area'] == key]
         body += ('<article class="resource-area"><h3>' + escape(area['title']) + '</h3><p>' + escape(area['purpose']) + '</p><p>'

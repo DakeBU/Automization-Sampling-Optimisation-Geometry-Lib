@@ -83,7 +83,7 @@ concurrency:
 jobs:
   lean-formalization:
     name: Lean / Mathlib formalization
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -104,6 +104,27 @@ jobs:
         env:
           PUBLICATION_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
         run: python3 tools/astis_publication.py check --ci
+
+      - name: Reserve disk space for the pinned Lean build
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Only this disposable hosted runner is affected. The library uses
+          # neither SDK; never remove project files or Lean/Mathlib artifacts.
+          df -h /
+          for astis_sdk in /usr/local/lib/android /usr/share/dotnet; do
+            if [[ -e "$astis_sdk" ]]; then
+              astis_resolved=$(realpath -- "$astis_sdk")
+              if [[ "$astis_resolved" != "$astis_sdk" ||
+                    "$GITHUB_WORKSPACE" == "$astis_resolved" ||
+                    "$GITHUB_WORKSPACE" == "$astis_resolved/"* ]]; then
+                echo '::error::Refusing unexpected SDK path or workspace overlap'
+                exit 1
+              fi
+              sudo rm -rf -- "$astis_resolved"
+            fi
+          done
+          df -h /
 
       - name: Set up Lean and Mathlib cache
         uses: leanprover/lean-action@v1

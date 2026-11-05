@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review-result",
+  "reviewed_at_utc": "2026-11-03T05:18:36Z",
+  "reviewer": "/root/optlib_source_review",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_decision": "accepted",
+  "reviewer_packet_path": "runs/20261103-optlib-intake/reviewer-energy.json",
+  "reviewer_packet_sha256": "b8966b17fd5dc858ec949cd6dd410e173e070c09367fc781a172c29ec0b38f73",
+  "reviewer_packet_file_sha256": "27353cbbe027c32b780dd39b8006bcf6d968b13f6dfb9c5ae6e31cf7b91bf22a",
+  "publication_binding_sha256": "7d0be200977129cf8d6e5708f9fe49eeed118e10106dc9c865501d2fcc7825f9",
+  "semantic_slots": {
+    "objects": {
+      "original": "The packet pins an extracted energy estimate for a real inner-product carrier E, globally Lipschitz f, nonnegative constant G, supplied sequences x,v, a real step sequence a, arbitrary comparator z, and natural horizon N.",
+      "reconstructed": "The same E,f,G,x,g,a,z,N with v renamed g.",
+      "relation": "same",
+      "evidence": "The anonymous statement, decoder reconstruction and actual declaration at module 57-62 contain exactly these objects; no optimizer or constructed oracle is included."
+    },
+    "domains": {
+      "original": "f:E->R; G>=0; x,v:N->E; a:N->R; z:E; N any natural, including zero. No completeness or finite-dimensionality.",
+      "reconstructed": "The same real domains, with G:NNReal and finite sums over range N.",
+      "relation": "explicit-elaboration",
+      "evidence": "The actual section has only the real normed inner-product structure. Fresh #check confirms N is unrestricted and the statement contains no quotient or hidden positive-horizon binder."
+    },
+    "quantifiers": {
+      "original": "For every supplied sequence with the hypotheses holding at all natural k, every comparator z and every N satisfy the bound; each support is global in its test point.",
+      "reconstructed": "Universal E,f,G,x,g,a; forall k nonnegative steps, global support and recurrence; then every z and N.",
+      "relation": "equivalent",
+      "evidence": "SupportsAt is literally universally quantified over E at ConvexSubgradient.lean:39-40. The theorem has no existential selector, probabilistic event, or quantifier exchange."
+    },
+    "assumptions": {
+      "original": "Global G-Lipschitz growth, a_k>=0, genuine supplied global supports v_k at x_k, and exact equality x_(k+1)=x_k-a_k v_k.",
+      "reconstructed": "LipschitzWith G f; ha:forall k,0<=a k; hs:forall k,SupportsAt f (x k)(g k); exact hx recurrence.",
+      "relation": "explicit-elaboration",
+      "evidence": "Fresh #check exposes these and only these mathematical hypotheses. The norm estimate is proved inside the proof via norm_le_of_supportsAt at line 71, not smuggled into a public premise. Convexity, differentiability and minimizer existence are absent and unnecessary."
+    },
+    "conclusion": {
+      "original": "2 sum_{k<N} a_k(f(x_k)-f(z)) <= ||x_0-z||^2 + G^2 sum_{k<N} a_k^2 - ||x_N-z||^2.",
+      "reconstructed": "Exactly the same finite weighted-gap inequality, retaining the terminal squared distance and empty-sum convention.",
+      "relation": "same",
+      "evidence": "Module lines 60-62 have factor 2, coefficient G^2, squared steps, and a negative terminal square exactly as in the packet. The induction's N=0 case simplifies both sides to zero."
+    },
+    "scopes": {
+      "original": "The packet's attributed extracted intermediate is deterministic and division-free, allowing nonnegative steps and N=0. It is a generalized intermediate, not the raw upstream normalized best-value theorem.",
+      "reconstructed": "The same deterministic generalized intermediate, with no function-value monotonicity, last-iterate, stochastic, or asymptotic assertion.",
+      "relation": "equivalent",
+      "evidence": "Current lesson/publication boundaries explicitly disclose the endpoint generalization. The proof retains individual gaps before the source's finite-sInf substitution and telescopes the same energy identity. Equivalence here compares the packet's pinned generalized statement with the reconstruction, not with the raw displayed upstream theorem."
+    },
+    "constant_dependencies": {
+      "original": "Only G, the actual squared steps, and actual initial/terminal distances occur; z and N are arbitrary. No dimension-dependent or hidden smoothness constant.",
+      "reconstructed": "The same constants and sequence dependence, with exact factor 2 and G^2.",
+      "relation": "same",
+      "evidence": "The norm bound yields ||g_k||^2<=G^2 at 71-73; the exact expansion at 74-78 contributes a_k^2 and 2a_k. No estimate changes either coefficient during induction."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "description": "Relative to the raw upstream algorithm, the pinned energy statement weakens positive steps to nonnegative steps and allows N=0. This is a proved division-free generalization, not a repair or a new source hypothesis.",
+      "evidence": "Upstream 139 requires a_n>0 and its horizon is k+1. The local proof only multiplies support inequalities by nonnegative 2a_k, and its empty-horizon base case is exact equality. Both lesson boundary and publication assumption delta disclose this."
+    },
+    {
+      "slot": "conclusion",
+      "severity": "informational",
+      "description": "Relative to the raw upstream displayed theorem, this extraction retains individual weighted gaps and the negative terminal square. It is not asserted equivalent to the normalized finite-best-value theorem.",
+      "evidence": "Source 171-232 expands and telescopes squared distances after bounding a common finite-sInf gap. Local 63-86 performs the same algebra before that substitution and keeps the terminal square. The stronger energy result implies the source finite-best bound on its positive-horizon domain, not conversely merely by matching notation."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "verdict_scope": "Equivalence to the packet's explicitly pinned generalized intermediate statement and authored explanation only; NOT equivalence to the raw upstream normalized source theorem.",
+  "raw_upstream_normalized_theorem_equivalence_claimed": false,
+  "source_relationship": "Honest source-derived extracted generalization / Canonical Library Node.",
+  "repairs": [],
+  "code_and_exposition_review": {
+    "actual_definition_semantics_checked": true,
+    "proof_ingredient_smuggled_as_binder": false,
+    "unauthorized_placeholder_or_axiom_found": false,
+    "authored_statement_and_formula_proof": "Accepted with the explicitly delimited generalization. Support at z gives the gap pairing; norm is proved internally; nonnegativity licenses multiplication; the exact recurrence gives the norm-square expansion; induction performs a lossless finite telescope. Zero steps and the empty horizon do not enter a quotient.",
+    "live_packet_context_exact_match": true,
+    "canonical_packet_hash_verified": true,
+    "source_statement_and_decoder_text_hashes_verified": true,
+    "live_publication_binding_recomputed_and_verified": true
+  },
+  "checked_artifacts": {
+    "module": "AutoSamplingTheory/TechnicalLemmas/Analysis/SubgradientMethod.lean",
+    "module_sha256": "0913d624dae26a627474f56dc2d0e394af2cf059b8237ee3ee5db8833035683f",
+    "support_definition_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexSubgradient.lean",
+    "support_definition_file_raw_sha256": "73405aa737bd030013c63f9a9a463d57e11ecd6ebf3aa1a455d483f4f4c9eac1",
+    "focused_test_raw_sha256": "64cecb1ed518a8390f1ac2b93fa545b66fa5759c16f465753925602a3a808e68",
+    "upstream_snapshot_raw_sha256": "861b10bd51964d590a3c8e7cf87dd58a4966a08852d8c847d2bbe481187cc703",
+    "toolchain_text_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "manifest_text_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "text_hash_convention": "UTF-8 with universal-newline LF conversion, matching publication file_digest; fields explicitly labeled raw hash original bytes."
+  },
+  "fresh_focused_evidence": {
+    "module_compile": {"command": "lake env lean AutoSamplingTheory/TechnicalLemmas/Analysis/SubgradientMethod.lean", "exit_code": 0},
+    "focused_test_compile": {"command": "lake env lean Tests/Shared/SubgradientMethod.lean", "exit_code": 0},
+    "fresh_axiom_check": "Independently piped the exact current full module to lake env lean --stdin, appending #check and #print axioms for all three declarations; exit code 0. This freshly re-elaborated every proof and exposed the actual public signatures.",
+    "axioms_for_this_declaration": ["propext", "Classical.choice", "Quot.sound"],
+    "focused_consumer_scope": "Generic empty-horizon theorem consumer and an exact nonsmooth absolute-value recurrence; no norm-bound premise, smoothness assumption, or fake closure."
+  },
+  "review_evidence": "Independently checked all seven slots against the fresh energy packet and blind reconstruction, then inspected the actual whole module, literal SupportsAt definition, focused test, and current lesson/publication. The extraction and endpoint generalization are mathematically justified and explicitly attributed, but are not treated as equality with the upstream normalized theorem. Recomputed canonical packet/text hashes, live context and publication binding; all match. No earlier semantic audit verdict inspected. This current-content acceptance does not authorize VERIFIED/registry/ledger/status publication or replace later commit-bound integration evidence.",
+  "prior_semantic_audit_verdicts_inspected": false,
+  "commit_bound_integration_review_performed": false,
+  "registry_ledger_or_status_changed": false,
+  "review_run_hash_convention": "SHA-256 of UTF-8 canonical JSON (sorted object keys, ensure_ascii=false, comma/colon separators), of this complete result after removing review_run_sha256.",
+  "review_run_sha256": "edb136cda428d18a29134f0ffff3207680f7bee3618b23efe455b884a03d7335"
+}

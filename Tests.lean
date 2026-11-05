@@ -8,6 +8,9 @@ import Tests.Shared.SphereRayleigh
 import Tests.Shared.SphereGradient
 import Tests.Shared.CurveExtension
 import Tests.Shared.AffineGradient
+import Tests.Shared.BoundedDensityPerturbation
+import Tests.Shared.BoundedPerturbationEnergy
+import Tests.Shared.BoundedPerturbationLaw
 import Tests.GaussianLipschitzExponential
 import Tests.StandardizedRGOPositionFisher
 import Tests.FullRangeProximalGaussianOracle
@@ -342,6 +345,7 @@ import Tests.GaussianComplexityBallFlux
 import Tests.GaussianComplexitySphericalMeanValue
 import Tests.GaussianComplexitySphericalPoisson
 import Tests.GaussianComplexityEvaluatedGaussian
+import Tests.Shared.SubgradientMethod
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

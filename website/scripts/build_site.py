@@ -52,6 +52,7 @@ import project_licensing  # noqa: E402
 import project_news  # noqa: E402
 import resource_library  # noqa: E402
 import sog_bench_reader  # noqa: E402
+import reader_hierarchy  # noqa: E402
 import textbook_math_contract  # noqa: E402
 import theorem_lessons  # noqa: E402
 import undergrad_guides  # noqa: E402
@@ -245,6 +246,7 @@ def main() -> int:
     repair_project_author_footer(output)
     sog_bench_reader.enrich_site(output)
     resource_library.enrich_site(output)
+    reader_hierarchy.enrich_site(output)
     project_licensing.enrich_site(output)
     project_news.enrich_site(output)
     repair_final_content_anchors(output)

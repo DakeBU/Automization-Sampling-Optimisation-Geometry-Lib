@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review-result",
+  "reviewed_at_utc": "2026-11-03T05:18:36Z",
+  "reviewer": "/root/optlib_source_review",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_decision": "accepted",
+  "reviewer_packet_path": "runs/20261103-optlib-intake/reviewer-norm.json",
+  "reviewer_packet_sha256": "d753ca69c2a9b39d96453bdb019d512d97b0f546dfbf6dbee27910a92e281325",
+  "reviewer_packet_file_sha256": "9e018872d9b40c66f64fc0ce62d64c5346d12098e97bd36c1f15f2659e5cac92",
+  "publication_binding_sha256": "8f9649a9c577d60591242e4af8331a28786658d436e3b802031be894a1ee3cbe",
+  "semantic_slots": {
+    "objects": {
+      "original": "A real inner-product carrier E, a real-valued objective f, nonnegative Lipschitz constant G, point x, and a supplied global supporting vector v.",
+      "reconstructed": "The same E,f,G,x and supporting vector g, with v renamed g.",
+      "relation": "same",
+      "evidence": "The packet's anonymous statement and the fresh #check of norm_le_of_supportsAt at module line 40 quantify exactly these objects. No gradient map or chosen optimizer is introduced."
+    },
+    "domains": {
+      "original": "E has a norm compatible with a real inner product; f:E->R; G>=0; x,v in E. No completeness or dimension restriction.",
+      "reconstructed": "NormedAddCommGroup E and InnerProductSpace R E; f:E->R; G:NNReal; x,g:E.",
+      "relation": "explicit-elaboration",
+      "evidence": "NNReal packages precisely the nonnegative real constant. The actual module's section has no CompleteSpace or finite-dimensional instance, matching the upstream omit at source line 80 and the decoder's domain."
+    },
+    "quantifiers": {
+      "original": "For every admissible E,f,G,x,v, the Lipschitz and support premises imply the bound; the supporting inequality holds for every point of E.",
+      "reconstructed": "Universal E,f,G,x,g and a support condition for every y in the whole E.",
+      "relation": "equivalent",
+      "evidence": "Implicit Lean object binders are universal, not existence claims. Unfolding SupportsAt at ConvexSubgradient.lean:39-40 gives a universal comparator, with no neighborhood or restricted subset."
+    },
+    "assumptions": {
+      "original": "Global G-Lipschitz continuity and f(x)+<v,y-x><=f(y) for every y; no separately assumed norm bound, differentiability, or existence theorem.",
+      "reconstructed": "LipschitzWith G f and SupportsAt f x g, with that same global inequality.",
+      "relation": "explicit-elaboration",
+      "evidence": "The actual definition is forall z, phi x + (innerSL R y)(z-x) <= phi z. Over the real carrier this is exactly the source support pairing. Fresh #check shows no hidden convexity, completeness, continuity, or proof-result binder."
+    },
+    "conclusion": {
+      "original": "The supplied vector has norm at most G.",
+      "reconstructed": "||g|| <= (G:R).",
+      "relation": "same",
+      "evidence": "No constant changes or strictness changes occur. Source 81-82, the packet reconstruction, and actual declaration 40-41 have the same norm bound."
+    },
+    "scopes": {
+      "original": "A deterministic pointwise bound for every supplied global supporting vector; G=0 is allowed. The source proves it by a normalized-direction contradiction.",
+      "reconstructed": "The same pointwise bound, without a differentiability interpretation or a canonical subgradient-selection assertion.",
+      "relation": "equivalent",
+      "evidence": "Actual lines 42-53 probe x+g, derive ||g||^2<=G||g||, and separate zero norm. This is a sufficient alternative proof of the same proposition, not a changed theorem or a repair of the source."
+    },
+    "constant_dependencies": {
+      "original": "The upper bound is the same global Lipschitz constant G, independent of x,v, dimension, or any optimizer.",
+      "reconstructed": "Exactly G bounds ||g||, with no auxiliary constant.",
+      "relation": "same",
+      "evidence": "LipschitzWith.dist_le_mul is applied with its given G. The norm-self pairing contributes coefficient one, and no inverse-norm side condition survives in the statement."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "The implementation uses the unnormalized aligned probe x+g rather than the source's unit-vector contradiction. This changes the proof route only.",
+      "evidence": "Source lines 86-118 normalize by ||g||; current module lines 42-53 instead compare ||g||^2 with G||g|| and explicitly handle zero norm."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "source_relationship": "Equivalent norm theorem after unbundling the literal global support predicate; not a subgradient-existence theorem.",
+  "code_and_exposition_review": {
+    "actual_definition_semantics_checked": true,
+    "proof_ingredient_smuggled_as_binder": false,
+    "unauthorized_placeholder_or_axiom_found": false,
+    "authored_statement_and_formula_proof": "Accepted. The lesson correctly separates support probing, actual Lipschitz growth, and the zero-norm case; its dependency list and no-selection boundary match the code.",
+    "live_packet_context_exact_match": true,
+    "canonical_packet_hash_verified": true,
+    "source_statement_and_decoder_text_hashes_verified": true,
+    "live_publication_binding_recomputed_and_verified": true
+  },
+  "checked_artifacts": {
+    "module": "AutoSamplingTheory/TechnicalLemmas/Analysis/SubgradientMethod.lean",
+    "module_sha256": "0913d624dae26a627474f56dc2d0e394af2cf059b8237ee3ee5db8833035683f",
+    "support_definition_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexSubgradient.lean",
+    "support_definition_file_raw_sha256": "73405aa737bd030013c63f9a9a463d57e11ecd6ebf3aa1a455d483f4f4c9eac1",
+    "focused_test_raw_sha256": "64cecb1ed518a8390f1ac2b93fa545b66fa5759c16f465753925602a3a808e68",
+    "upstream_snapshot_raw_sha256": "861b10bd51964d590a3c8e7cf87dd58a4966a08852d8c847d2bbe481187cc703",
+    "toolchain_text_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "manifest_text_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "text_hash_convention": "UTF-8 with universal-newline LF conversion, matching publication file_digest; fields explicitly labeled raw hash original bytes."
+  },
+  "fresh_focused_evidence": {
+    "module_compile": {"command": "lake env lean AutoSamplingTheory/TechnicalLemmas/Analysis/SubgradientMethod.lean", "exit_code": 0},
+    "focused_test_compile": {"command": "lake env lean Tests/Shared/SubgradientMethod.lean", "exit_code": 0},
+    "fresh_axiom_check": "Independently piped the exact current full module to lake env lean --stdin, appending #check and #print axioms for all three declarations; exit code 0. This checks fresh proof elaboration, not merely an imported cached theorem.",
+    "axioms_for_this_declaration": ["propext", "Classical.choice", "Quot.sound"],
+    "focused_consumer_scope": "The focused test checks the empty-horizon generic bound and a genuine nonsmooth absolute-value objective with an exact nonconstant recurrence. It also prints all three axiom lists."
+  },
+  "review_evidence": "Independently compared the fresh anti-anchored norm packet, its blind reconstruction, the immutable-source norm argument already byte-checked upstream, the actual module, the real SupportsAt body, the focused test, and current authored lesson/publication. Recomputed packet/text/publication hashes and exact candidate context. No blocking semantic, code, or exposition delta found. No earlier semantic audit verdict was inspected. This review is hash-bound to the current inputs, not yet to a supplied candidate commit; no VERIFIED/ledger/registry/status publication is authorized or performed.",
+  "prior_semantic_audit_verdicts_inspected": false,
+  "commit_bound_integration_review_performed": false,
+  "registry_ledger_or_status_changed": false,
+  "review_run_hash_convention": "SHA-256 of UTF-8 canonical JSON (sorted object keys, ensure_ascii=false, comma/colon separators), of this complete result after removing review_run_sha256.",
+  "review_run_sha256": "fa9153fb820343eea32f5c7a48388323605ac754eb5fefc9bb69557f838b48ea"
+}

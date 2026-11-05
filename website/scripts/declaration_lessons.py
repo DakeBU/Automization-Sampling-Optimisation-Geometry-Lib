@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import hashlib
 import re
+from html.parser import HTMLParser
 from functools import lru_cache
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -64,9 +65,51 @@ def source_citation(source: dict, page: str) -> str:
 
 
 def inline_text(value: str) -> str:
-    """Only inline code is interpreted; mathematical TeX remains for MathJax."""
-    return ''.join('<code>' + base.esc(part) + '</code>' if i % 2 else base.esc(part)
+    """Typeset prose relations without rewriting literal Lean or audited TeX."""
+    def prose(part: str) -> str:
+        spans = re.split(r'(\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\]|\$\$[\s\S]*?\$\$|(?<!\\)\$[^\n$]+(?<!\\)\$)', part)
+        return base.esc(''.join(span if i % 2 else
+            span.replace('<=', '≤').replace('>=', '≥').replace('!=', '≠').replace('->', '→')
+            for i, span in enumerate(spans)))
+    return ''.join('<code>' + base.esc(part) + '</code>' if i % 2 else prose(part)
                    for i, part in enumerate(re.split(r'`([^`]+)`', value)))
+
+
+def prose_list(values: list[object]) -> str:
+    """Natural-language hypotheses/boundaries, not raw code/API inventories."""
+    return ('<ul>' + ''.join('<li>' + (inline_text(value) if isinstance(value, str)
+                            else base.esc(value)) + '</li>' for value in values) + '</ul>') if values else ''
+
+
+def _canonical_prose(value: object) -> str:
+    """Independent presence check: ignore markup notation, not authored words."""
+    return ' '.join(str(value).replace('`', '').replace('<=', '≤').replace('>=', '≥')
+                    .replace('!=', '≠').replace('->', '→').split())
+
+
+def _authored_prose_text(text: str) -> str:
+    class ProseText(HTMLParser):
+        skip_tags = {'pre', 'script', 'style', 'textarea', 'noscript', 'svg'}
+
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.skip = 0
+            self.parts = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag in self.skip_tags:
+                self.skip += 1
+
+        def handle_endtag(self, tag):
+            if tag in self.skip_tags:
+                self.skip = max(0, self.skip - 1)
+
+        def handle_data(self, data):
+            if not self.skip:
+                self.parts.append(data)
+    parser = ProseText()
+    parser.feed(text)
+    return _canonical_prose(''.join(parser.parts))
 
 
 def export_sources(output: Path, units: list[dict]) -> None:
@@ -217,9 +260,9 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
         + (f'<p class="reader-scope-note">{inline_text(unit["reader_note"])}</p>' if unit.get('reader_note') else '')
         + '</section>'
         '<details class="reader-ledger assumption-ledger"><summary>Full assumptions and notation</summary>'
-        '<h3>All objects and hypotheses</h3>' + base.list_html(unit['assumptions'])
+        '<h3>All objects and hypotheses</h3>' + prose_list(unit['assumptions'])
         + ('<h3>Notation and interpretation</h3><dl>' + notation + '</dl>' if notation else '')
-        + base.list_html(unit.get('conventions', []), empty='') + '</details>'
+        + prose_list(unit.get('conventions', [])) + '</details>'
         + f'<h2>{proof_title}</h2>'
         + ('<p class="reader-expand-hint">Open a step to read its argument and formula.</p>' if progressive else '') + steps
         + '<section class="lean-verification"><h2>Lean verification</h2>'
@@ -232,7 +275,7 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
         + (('<details class="reader-ledger"><summary>Source correspondence and review</summary>'
             + source_comparison + '</details>') if progressive and source_comparison else source_comparison)
         + '<details class="reader-ledger boundary-ledger"><summary>Scope and omitted-condition boundaries</summary>'
-        + base.list_html(boundary) + '</details>'
+        + prose_list(boundary) + '</details>'
         + '<details class="proof-reader-provenance reader-ledger"><summary>Sources, dependencies, and reuse</summary><h2>Source and reuse</h2><h3>Samplinglib parents called</h3><ul>' + astis
         + '</ul>'
         + ('<h3>Domain assumptions accessed</h3><p>These are fields of the linked structure, not additional independently authored theorem leaves.</p><ul>' + projections + '</ul>' if projections else '')
@@ -354,8 +397,12 @@ def validate_site(output: Path, *, require_complete: bool = False) -> list[str]:
             errors.append(f'{unit["declaration"]}: missing authored page; rebuild the site')
             continue
         text = path.read_text(encoding='utf-8')
-        for value in (unit['statement'], unit['formula'], *unit['assumptions'], *[s['formula'] for s in unit['steps']]):
-            if base.esc(value) not in text:
+        prose = _authored_prose_text(text)
+        for value in (unit['statement'], *unit['assumptions']):
+            if not _canonical_prose(value) or _canonical_prose(value) not in prose:
+                errors.append(f'{unit["declaration"]}: missing authored mathematics')
+        for value in (unit['formula'], *[s['formula'] for s in unit['steps']]):
+            if not value or base.esc(value) not in text:
                 errors.append(f'{unit["declaration"]}: missing authored mathematics')
         order = [text.find('inline-lean-statement'), text.find('inline-lean-proof')]
         if min(order) < 0 or order != sorted(order):

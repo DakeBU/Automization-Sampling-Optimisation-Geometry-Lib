@@ -42,6 +42,7 @@ def graph_items() -> list[dict]:
     """Read only an explicit local-code slice, never the mixed upstream graph."""
     import astis_site
     policy = curriculum()
+    anchors={c['id']:c for c in json.loads((BASE/'cores.json').read_text(encoding='utf-8'))['cores']}
     spec = json.loads((BASE / 'graph_tasks.json').read_text(encoding='utf-8'))
     if spec['schema_version'] != 1:
         raise ValueError('Unsupported structural graph schema')
@@ -71,6 +72,9 @@ def graph_items() -> list[dict]:
         if not re.fullmatch(r'sogb-g\d{3}', task['id']) or task['id'] in seen:
             raise ValueError('Duplicate/invalid graph task identity')
         seen.add(task['id'])
+        anchor=anchors.get(task.get('core_id'))
+        if anchor is None or task['family']!=anchor['family'] or not set(task['library_domains'])<=set(anchor['library_domains']):
+            raise ValueError('Graph context must retain its existing source core/family/domain identity')
         if not set(task['targets']) <= names or not task['targets']:
             raise ValueError('Graph targets must exist in the supplied slice')
         classify({**task, 'track_levels': {'natural-language': task['level']}, 'lean_enabled': False,
@@ -102,7 +106,7 @@ def graph_items() -> list[dict]:
             question = 'List the target modules that have an import path to the removed module in this snapshot. Does this prove that their mathematical conclusions cannot be proved without it?'
         else:
             raise ValueError('Unsupported graph operation')
-        prompt = {'id': task['id'], 'family': task['family'], 'title': task['title'],
+        prompt = {'id': task['id'], 'core_id':task['core_id'], 'family': task['family'], 'title': task['title'],
                   'library_domains': task['library_domains'], 'track': 'graph-json', 'level': task['level'],
                   'split': 'public-dev', 'skills': task['skills'], 'question': question,
                   'targets': task['targets'], 'context': graph, 'graph_sha256': graph_hash,
@@ -112,15 +116,22 @@ def graph_items() -> list[dict]:
         answer = {'nodes': sorted(nodes), 'entails_mathematical_necessity': False}
         binding = digest({'prompt': prompt, 'answer': answer})
         rows.append({**prompt, 'binding_sha256': binding, 'answer': answer,
-                     'review_status': 'structural-answer-mechanically-checked; semantic-review-pending'})
+                     'reference_status': 'structural-answer-mechanically-checked; see separate editorial evidence'})
+    import sog_bench_compiled_graph
+    rows += sog_bench_compiled_graph.items()
+    rows += sog_bench_compiled_graph.items(sog_bench_compiled_graph.FLOW_SPEC,sog_bench_compiled_graph.FLOW_SNAPSHOT)
+    ids=[row['id'] for row in rows]
+    if len(set(ids))!=len(ids) or not all(re.fullmatch(r'sogb-g\d{3}',identity) for identity in ids):
+        raise ValueError('Graph identities must be distinct across evidence kinds')
     return rows
 
 
 def graph_prompts(items: list[dict]) -> list[dict]:
-    return [{k: v for k, v in row.items() if k not in {'answer', 'review_status'}} for row in items]
+    return [{k: v for k, v in row.items() if k not in {'answer', 'review_status', 'reference_status'}} for row in items]
 
 
 def coverage(cores: list[dict], graphs: list[dict], reviews: dict | None = None) -> dict:
+    import sog_bench_graph_review
     policy = curriculum()
     accepted = sum((reviews or {}).get(c['id'], {}).get('editorial') in {'accepted', 'accepted-after-repair'} for c in cores)
     cells = []
@@ -138,7 +149,7 @@ def coverage(cores: list[dict], graphs: list[dict], reviews: dict | None = None)
             'graph_tasks': len(graphs), 'independent_review': 'pending', 'difficulty_calibration': 'not-measured',
             'editorial_accepted_mathematical_cores': accepted,
             'mathematical_editorial_status': 'complete-for-current-cores' if cores and accepted == len(cores) else ('partial' if accepted else 'pending'),
-            'graph_editorial_status': 'pending',
+            'graph_editorial_status': sog_bench_graph_review.summary(graphs)['editorial_status'],
             'cells': cells, 'note': policy['coverage_policy']}
 
 
@@ -147,7 +158,7 @@ def grade_graph(items: list[dict], submissions: list[dict]) -> dict:
     given = {}
     for row in submissions:
         identity = row['id']
-        if identity not in known or identity in given or row.get('attempt') != 1:
+        if identity not in known or identity in given or type(row.get('attempt')) is not int or row['attempt'] != 1:
             raise ValueError('Expected one first-attempt record per known graph question')
         if row.get('binding_sha256') != known[identity]['binding_sha256']:
             raise ValueError('Submission does not bind the exact graph/question snapshot')
@@ -164,7 +175,7 @@ def grade_graph(items: list[dict], submissions: list[dict]) -> dict:
         scores.append({'id': identity, 'submitted': identity in given, 'valid_schema': valid,
                        'structural_exact': structural, 'truth_boundary': boundary, 'points': structural * boundary,
                        'max_points': 1})
-    return {'scope': 'structured module-graph QA only; not mathematical proof or Lean grading',
+    return {'scope': 'structured graph QA only; not mathematical proof or Lean grading',
             'question_count': len(items), 'submitted': len(given), 'results': scores,
             'points': sum(r['points'] for r in scores), 'max_points': len(items),
             'scoring_policy': 'One point only when both the exact structural set and truth-boundary gate pass; the constant boundary answer earns no standalone credit.'}

@@ -14,6 +14,7 @@ on:
       - "benchmarks/samplingoptimisationgeometrybench/**"
       - "tools/sog_bench*.py"
       - "tools/tests/test_sog_bench*.py"
+      - "tools/tests/test_bench_reader_hierarchy.py"
       - "AutoSamplingTheory/**"
       - "AutoSamplingTheory.lean"
       - "Tests/**"
@@ -68,6 +69,7 @@ on:
       - "benchmarks/samplingoptimisationgeometrybench/**"
       - "tools/sog_bench*.py"
       - "tools/tests/test_sog_bench*.py"
+      - "tools/tests/test_bench_reader_hierarchy.py"
       - "LICENSE"
       - "LICENSE_SCOPE.md"
       - "NOTICE"
@@ -134,7 +136,8 @@ concurrency:
 jobs:
   website:
     name: website-first reader build
-    runs-on: ubuntu-latest
+    # Playwright 1.57.0 supports Ubuntu 24.04, not the newer floating latest.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -173,6 +176,7 @@ jobs:
             tools.tests.test_samplewiki_navigation \
             tools.tests.test_samplewiki_companions \
             tools.tests.test_underlying_lean_graph \
+            tools.tests.test_bench_reader_hierarchy \
             tools.tests.test_cross_domain_program \
             tools.tests.test_discrete_sampling \
             tools.tests.test_mcmc_library \
@@ -180,7 +184,7 @@ jobs:
           python3 -m unittest tools.tests.test_project_licensing
           python3 -m unittest tools.tests.test_research_resources
           python3 tools/research_resources.py check
-          python3 -m unittest tools.tests.test_sog_bench tools.tests.test_sog_bench_review tools.tests.test_sog_bench_formal_review
+          python3 -m unittest tools.tests.test_sog_bench tools.tests.test_sog_bench_review tools.tests.test_sog_bench_formal_review tools.tests.test_sog_bench_graph_review tools.tests.test_sog_bench_compiled_graph tools.tests.test_sog_bench_prose
           python3 tools/sog_bench.py check
           node --check website/static/site.js
           node --check website/static/resource-library.js
@@ -245,6 +249,7 @@ jobs:
           python3 website/scripts/check_cross_domain_browser.py
           python3 website/scripts/check_resource_library_browser.py
           python3 website/scripts/check_sog_bench_browser.py
+          python3 website/scripts/check_reader_hierarchy_browser.py
           python3 website/scripts/test_math_browser.py --root _site --report .astis/math-browser-report.json
 
       - name: Upload browser validation evidence

@@ -89,8 +89,8 @@ class EditorialReviewTests(unittest.TestCase):
             bench.export(target, with_draft)
             questions = [json.loads(line) for line in (target/'reviewed-questions.jsonl').read_text(encoding='utf-8').splitlines()]
             refs = [json.loads(line) for line in (target/'reviewed-reference.jsonl').read_text(encoding='utf-8').splitlines()]
-            self.assertEqual(len(questions), 23)
-            self.assertEqual(len(refs), 17)
+            self.assertEqual(len(questions), 42)
+            self.assertEqual(len(refs), 29)
             self.assertEqual({q['id'] for q in questions}, {c['id'] for c in refs})
             self.assertTrue(all('steps' not in q and 'lean_reference' not in q for q in questions))
             self.assertNotIn('sogb-999', {q['id'] for q in questions})
@@ -100,7 +100,64 @@ class EditorialReviewTests(unittest.TestCase):
         self.assertEqual(set(rows), {f'sogb-{i:03d}' for i in range(8,15)})
         self.assertTrue(all(review.accepted(row) for row in rows.values()))
         self.assertTrue(all(row['formal_alignment'] == 'no-aligned-view' for row in rows.values()))
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 17)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 29)
+
+    def test_uncountable_event_review_is_unpaired_and_separately_content_bound(self):
+        directory=review.BASE/'reviews/prose-4'
+        rows=review.prose_statuses(self.cores,directory)
+        self.assertEqual(set(rows),{'sogb-024'})
+        self.assertEqual(rows['sogb-024']['editorial'],'accepted')
+        self.assertEqual(rows['sogb-024']['formal_alignment'],'no-aligned-view')
+        changed=deepcopy(self.cores)
+        next(c for c in changed if c['id']=='sogb-024')['binding_sha256']='changed-quantifier'
+        self.assertEqual(review.prose_statuses(changed,directory)['sogb-024']['editorial'],'stale')
+
+    def test_additional_prose_round_is_disjoint_and_content_bound(self):
+        directory=review.BASE/'reviews/prose-3'
+        rows=review.prose_statuses(self.cores,directory)
+        self.assertEqual(set(rows),{'sogb-020'})
+        self.assertEqual(rows['sogb-020']['formal_alignment'],'no-aligned-view')
+        changed=deepcopy(self.cores)
+        next(c for c in changed if c['id']=='sogb-020')['binding_sha256']='changed'
+        self.assertEqual(review.prose_statuses(changed,directory)['sogb-020']['editorial'],'stale')
+        with patch.object(review,'PROSE_ROUND',directory):
+            with self.assertRaisesRegex(ValueError,'Overlapping'):
+                review.summary(self.cores)
+
+    def test_new_scoped_repairs_preserve_old_reviews_and_reject_laundered_changes(self):
+        import sog_bench_formal_review as formal
+        for name,identity,is_formal in (('prose-3','sogb-020',False),('formal-7','sogb-019',True)):
+            original=review.BASE/'reviews'/name
+            status=formal.round_statuses if is_formal else review.prose_statuses
+            self.assertEqual(status(self.cores,original)[identity]['editorial'],'accepted-after-repair')
+            actual_context=review.context_binding
+            with patch.object(review,'context_binding',side_effect=lambda core: 'changed-source' if core['id']==identity else actual_context(core)):
+                self.assertEqual(status(self.cores,original)[identity]['editorial'],'stale')
+            for scenario in ('actor-reuse','proposal-bytes','open-repair','source-change'):
+                with tempfile.TemporaryDirectory() as tmp:
+                    directory=Path(tmp)/name
+                    shutil.copytree(original,directory)
+                    path=directory/'repair-review.json'
+                    obj=json.loads(path.read_text(encoding='utf-8'))
+                    if scenario=='actor-reuse':
+                        obj['actor_identity']=json.loads((directory/'source-review.json').read_text(encoding='utf-8'))['actor_identity']
+                    elif scenario=='proposal-bytes':
+                        proposal_path=directory/'packets/repair-input.json'
+                        proposal_path.write_bytes(proposal_path.read_bytes()+b'\n')
+                    elif scenario=='open-repair':
+                        obj['items'][identity]['repair_requests']=['Unresolved scoring change.']
+                    else:
+                        proposal_path=directory/'packets/repair-input.json'
+                        proposal=json.loads(proposal_path.read_text(encoding='utf-8'))
+                        after=proposal['cases'][identity]['proposed_after']
+                        after['assumptions'].append('An unreviewed extra mathematical assumption.')
+                        after['binding_sha256']=bench.sha(bench.encoded({k:v for k,v in after.items() if k!='binding_sha256'}))
+                        proposal_path.write_bytes(bench.encoded(proposal))
+                        obj['input_packet_sha256']=bench.sha(proposal_path.read_bytes())
+                        obj['items'][identity]['proposed_binding_sha256']=after['binding_sha256']
+                    path.write_bytes(bench.encoded(obj))
+                    with self.assertRaises(ValueError):
+                        status(self.cores,directory)
 
     def test_nl_packet_route_rejects_formal_views_duplicates_unknown_ids_and_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -132,6 +189,119 @@ class EditorialReviewTests(unittest.TestCase):
                 path.write_bytes(bench.encoded(obj))
                 with self.assertRaises(ValueError):
                     review.prose_statuses(self.cores, folder)
+
+    def test_additional_support_modules_and_ancestors_bind_research_audit(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-026')
+        actual_hash = bench.text_hash
+        baseline = review.context_binding(core)
+        self.assertEqual(len(core['supporting_declarations']), 4)
+        for support in core['supporting_declarations']:
+            target = (bench.ROOT / support['source_file']).resolve()
+            self.assertEqual(support['source_sha256_lf'], actual_hash(target))
+            with patch.object(bench, 'text_hash', side_effect=lambda path:
+                              'changed-extra-source' if path.resolve() == target else actual_hash(path)):
+                self.assertNotEqual(review.context_binding(core), baseline)
+        # This ancestor is not itself one of the four named support modules.
+        target = (bench.ROOT / 'AutoSamplingTheory/ExampleCases/ProximalBPS/GaussianAugmentation.lean').resolve()
+        with patch.object(bench, 'text_hash', side_effect=lambda path:
+                          'changed-extra-ancestor' if path.resolve() == target else actual_hash(path)):
+            self.assertNotEqual(review.context_binding(core), baseline)
+
+    def test_additional_source_metadata_is_resolved_and_not_prompt_leakage(self):
+        data = deepcopy(bench.load())
+        original = next(c for c in data['cores'] if c['id'] == 'sogb-026')
+        for names in ([], ['Unknown.missing'], ['duplicate', 'duplicate'], 'not-a-list'):
+            original['additional_source_declarations'] = names
+            with self.assertRaises(ValueError):
+                bench.materialize(data)
+        core = next(c for c in self.cores if c['id'] == 'sogb-026')
+        prompt = bench.prompts([core])[0]
+        self.assertNotIn('supporting_declarations', prompt)
+        self.assertNotIn('support_lean_source', prompt)
+        self.assertNotIn('lean', core['track_levels'])
+
+    def test_curvature_prose_repair_preserves_the_actual_math_and_no_formal_alignment(self):
+        directory = review.BASE / 'reviews/prose-5'
+        packet = json.loads((directory / 'packets/prose-input.json').read_text(encoding='utf-8'))
+        proposal = json.loads((directory / 'packets/repair-input.json').read_text(encoding='utf-8'))
+        before = packet['mathematical_cores'][0]
+        after = proposal['cases']['sogb-026']['proposed_after']
+        self.assertEqual(before['track_levels'], {'natural-language': 'L5'})
+        self.assertEqual(after['track_levels'], {'natural-language': 'L4'})
+        changed = {k for k in before.keys() | after.keys() if before.get(k) != after.get(k)}
+        self.assertEqual(changed, {'track_levels', 'difficulty_reason', 'binding_sha256'})
+        row = review.prose_statuses(self.cores, directory)['sogb-026']
+        self.assertEqual(row['editorial'], 'accepted-after-repair')
+        self.assertEqual(row['formal_alignment'], 'no-aligned-view')
+
+    def test_numbered_exercise_requires_every_source_part_and_seven_slots(self):
+        directory = review.BASE / 'reviews/prose-7'
+        rows = review.prose_statuses(self.cores, directory)
+        self.assertEqual(rows['sogb-029']['editorial'], 'accepted-after-repair')
+        self.assertEqual(rows['sogb-029']['formal_alignment'], 'no-aligned-view')
+        for field in ('exercise_semantic_slots', 'exercise_part_checks', 'exercise_coverage_scope'):
+            with tempfile.TemporaryDirectory() as tmp:
+                folder = Path(tmp)/'review'
+                shutil.copytree(directory, folder)
+                path = folder/'source-review.json'
+                report = json.loads(path.read_text(encoding='utf-8'))
+                del report['items']['sogb-029'][field]
+                path.write_bytes(bench.encoded(report))
+                with self.assertRaises(ValueError):
+                    review.prose_statuses(self.cores, folder)
+
+    def test_disjoint_nl_scoring_repair_cannot_change_math_or_broaden_old_scope(self):
+        directory = review.BASE/'reviews/prose-7'
+        proposal = json.loads((directory/'packets/repair-input.json').read_text(encoding='utf-8'))
+        self.assertEqual(proposal['scope'], review.PROSE_SCORING_REPAIR_SCOPE)
+        before = proposal['cases']['sogb-029']['before']
+        after = proposal['cases']['sogb-029']['proposed_after']
+        changed = {k for k in before.keys() | after.keys() if before.get(k) != after.get(k)}
+        self.assertEqual(changed, {'rubric', 'binding_sha256'})
+        self.assertEqual([i for i in range(4) if before['rubric'][i] != after['rubric'][i]], [2])
+        for round_name, identity, field in (('prose-7', 'sogb-029', 'steps'),
+                                            ('prose-5', 'sogb-026', 'rubric')):
+            with tempfile.TemporaryDirectory() as tmp:
+                folder = Path(tmp)/'review'
+                shutil.copytree(review.BASE/'reviews'/round_name, folder)
+                path = folder/'packets/repair-input.json'
+                proposed = json.loads(path.read_text(encoding='utf-8'))
+                target = proposed['cases'][identity]['proposed_after']
+                if field == 'steps':
+                    target['steps'].append('Unauthorized mathematical addition.')
+                else:
+                    target['rubric'][0]['criterion'] += ' Unauthorized scoring addition.'
+                target['binding_sha256'] = bench.sha(bench.encoded(
+                    {k:v for k,v in target.items() if k != 'binding_sha256'}))
+                path.write_bytes(bench.encoded(proposed))
+                report_path = folder/'repair-review.json'
+                report = json.loads(report_path.read_text(encoding='utf-8'))
+                report['input_packet_sha256'] = bench.sha(path.read_bytes())
+                report['items'][identity]['proposed_binding_sha256'] = target['binding_sha256']
+                report_path.write_bytes(bench.encoded(report))
+                with self.assertRaises(ValueError):
+                    review.prose_statuses(self.cores, folder)
+
+    def test_exercise_source_mapping_drift_stales_only_its_qa_not_unchanged_module_build(self):
+        import sog_bench_exercises as exercises
+        data = json.loads(exercises.DATA.read_text(encoding='utf-8'))
+        data['exercises'][0]['pdf_page'] = 24
+        actual_read = Path.read_text
+        with patch.object(Path, 'read_text', lambda p, *a, **kw:
+                          bench.encoded(data).decode() if p == exercises.DATA else actual_read(p, *a, **kw)):
+            changed = bench.materialize()
+            rows = review.summary(changed)['items']
+            self.assertEqual(rows['sogb-029']['editorial'], 'stale')
+            self.assertEqual(rows['sogb-028']['editorial'], 'accepted')
+            self.assertEqual(bench.environment_digest(changed), bench.environment_digest(self.cores))
+        core = next(c for c in self.cores if c['id'] == 'sogb-029')
+        path = bench.ROOT / core['textbook_exercise']['publication_file']
+        pub = json.loads(path.read_text(encoding='utf-8'))
+        pub['items'][0]['statement'] += ' Unrelated item edit.'
+        with patch.object(Path, 'read_text', lambda p, *a, **kw:
+                          bench.encoded(pub).decode() if p == path else actual_read(p, *a, **kw)):
+            changed = bench.materialize()
+            self.assertEqual(changed[-1]['binding_sha256'], core['binding_sha256'])
 
     def test_nl_review_is_local_and_stale_when_content_or_support_changes(self):
         data = deepcopy(bench.load())

@@ -55,11 +55,70 @@ class PairedReviewTests(unittest.TestCase):
 
     def test_actual_distinct_actor_evidence_admits_one_conclusion_only_pair(self):
         rows = formal.statuses(self.cores)
-        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017'})
+        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028'})
         self.assertEqual(rows['sogb-015']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-015']['formal_alignment'], 'conclusion-only')
         self.assertTrue(rows['sogb-015']['remaining_unformalized'])
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 17)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 29)
+
+    def test_transport_join_has_its_own_blind_reconstruction_and_source_boundaries(self):
+        core=next(c for c in self.cores if c['id']=='sogb-018')
+        directory=formal.REVIEWS/'formal-6'
+        mapping,decoded=formal.decoder_evidence(directory,[core])
+        self.assertEqual(set(mapping['cases']),{'case-1'})
+        self.assertFalse(decoded['source_text_visible'])
+        self.assertNotIn(core['declaration'],json.dumps(formal.decoder_payload([core])[0]))
+        row=formal.round_statuses(self.cores,directory)['sogb-018']
+        self.assertEqual(row['editorial'],'accepted')
+        self.assertEqual(row['formal_alignment'],'conclusion-only')
+        self.assertTrue(row['remaining_unformalized'])
+        # A later changed proof/question cannot inherit acceptance.
+        changed=deepcopy(bench.load())
+        next(c for c in changed['cores'] if c['id']=='sogb-018')['question']+=' Claim optimal-plan attainment.'
+        self.assertEqual(formal.round_statuses(bench.materialize(changed),directory)['sogb-018']['editorial'],'stale')
+
+    def test_curve_and_flow_audit_has_only_one_exact_proof_prose_repair(self):
+        directory=review.BASE/'reviews/formal-8'
+        rows=formal.round_statuses(self.cores,directory)
+        self.assertEqual(rows['sogb-022']['editorial'],'accepted-after-repair')
+        self.assertEqual(rows['sogb-023']['editorial'],'accepted')
+        proposal=json.loads((directory/'packets/repair-input.json').read_text(encoding='utf-8'))
+        self.assertEqual(proposal['scope'],review.PAIRED_PROSE_REPAIR_SCOPE)
+        case=proposal['cases']['sogb-022']
+        before,after=case['before'],case['proposed_after']
+        self.assertEqual({k for k in before if before[k]!=after[k]},{'steps','binding_sha256'})
+        self.assertEqual([i for i,(a,b) in enumerate(zip(before['steps'],after['steps'])) if a!=b],[2])
+        self.assertNotIn('weaker midpoint',after['steps'][2])
+        for key in ('lean_task','lean_reference','context','assumptions','question','rubric','track_levels'):
+            self.assertEqual(before[key],after[key])
+        changed=deepcopy(bench.load())
+        next(c for c in changed['cores'] if c['id']=='sogb-023')['question']+=' Allow observation time zero.'
+        revised=formal.round_statuses(bench.materialize(changed),directory)
+        self.assertEqual(revised['sogb-023']['editorial'],'stale')
+        self.assertEqual(revised['sogb-022']['editorial'],'accepted-after-repair')
+
+    def test_paired_proof_prose_scope_rejects_resigned_rubric_and_difficulty_changes(self):
+        original=review.BASE/'reviews/formal-8'
+        for field in ('rubric','track_levels'):
+            with tempfile.TemporaryDirectory() as tmp:
+                directory=Path(tmp)/'round'
+                shutil.copytree(original,directory)
+                proposal_path=directory/'packets/repair-input.json'
+                proposal=json.loads(proposal_path.read_text(encoding='utf-8'))
+                after=proposal['cases']['sogb-022']['proposed_after']
+                if field=='rubric':
+                    after['rubric'][0]['criterion']='An unreviewed scoring change.'
+                else:
+                    after['track_levels']['natural-language']='L5'
+                after['binding_sha256']=bench.sha(bench.encoded({k:v for k,v in after.items() if k!='binding_sha256'}))
+                proposal_path.write_bytes(bench.encoded(proposal))
+                report_path=directory/'repair-review.json'
+                report=json.loads(report_path.read_text(encoding='utf-8'))
+                report['input_packet_sha256']=bench.sha(proposal_path.read_bytes())
+                report['items']['sogb-022']['proposed_binding_sha256']=after['binding_sha256']
+                report_path.write_bytes(bench.encoded(report))
+                with self.assertRaises(ValueError):
+                    formal.round_statuses(self.cores,directory)
 
     def test_altered_packets_role_reuse_slots_and_open_repairs_fail_closed(self):
         for scenario in ('packet', 'source-role', 'decoder-role', 'slots', 'repair'):

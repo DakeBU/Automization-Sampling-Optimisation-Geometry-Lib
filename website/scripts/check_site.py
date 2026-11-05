@@ -37,6 +37,7 @@ import project_licensing  # noqa: E402
 import project_news  # noqa: E402
 import resource_library  # noqa: E402
 import sog_bench_reader  # noqa: E402
+import reader_hierarchy  # noqa: E402
 
 
 # Validation must resolve Registry entries with the same declaration parser used
@@ -303,6 +304,7 @@ def main() -> int:
     reader_errors.extend(project_news.validate_site(output))
     reader_errors.extend(resource_library.validate_site(output))
     reader_errors.extend(sog_bench_reader.validate_site(output))
+    reader_errors.extend(reader_hierarchy.validate_site(output))
     if reader_errors:
         for error in reader_errors:
             print(f"Proof reader check failed: {error}", file=sys.stderr)

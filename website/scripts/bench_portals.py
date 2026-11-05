@@ -10,6 +10,7 @@ import hashlib
 import json
 from pathlib import Path
 
+import astis_site
 import sog_bench as bench
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -123,6 +124,9 @@ def collection_assets(downloads: Path, cores: list[dict], collection: dict) -> d
 
 
 def evaluation_page() -> str:
+    git=astis_site.git_context()
+    repository=git.web_root or 'https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib'
+    source_root=escape(f'{repository}/blob/{git.commit}',quote=True)
     return (f'<article class="sog-reader sog-hub" {MARKER}><h1>Evaluate a model</h1><p class="lede">Choose what you want to measure.</p>'
         '<div class="sog-portal-grid">'
         + card('Mathematical reasoning', 'Natural-language answers, checked against a mathematical rubric.', 'guide.html', 'optimisation', extra='<small>Human-assessed · available</small>')
@@ -131,8 +135,8 @@ def evaluation_page() -> str:
         + '</div><p><a href="../downloads/EVALUATION.md">Run metadata, scoring and reproducibility</a> · <a href="../downloads/HARBOR.md">Native runtime guide</a></p>'
         + fold('Use the experimental Lean compiler workspace',
             '<p>For Linux operators: bounded proof checks, compiler feedback and one reserved final submission. This is not a hosted service or a model result.</p>'
-            '<p><a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/benchmarks/samplingoptimisationgeometrybench/lean-runtime/WORKSPACE.md">Setup and check/submit commands</a> · '
-            '<a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/runs/20261105-bench-lean-runtime/native08-independent-review.json">Exact native evidence and independent scope review</a></p>')
+            f'<p><a href="{source_root}/benchmarks/samplingoptimisationgeometrybench/lean-runtime/WORKSPACE.md">Setup and check/submit commands</a> · '
+            f'<a href="{source_root}/runs/20261105-bench-lean-runtime/native08-independent-review.json">Exact native evidence and independent scope review</a></p>')
         + fold('Before reporting a score', '<p>Freeze prompts, family split, model/version, retrieval/tools, attempts and raw outputs. Keep answers out of evaluation prompts. Current data is public-dev; no unseen-generalization or measured model-ranking claim is supported.</p><p>Recorded human rubric judgments are not automatically verified mathematics.</p>') + '</article>')
 
 

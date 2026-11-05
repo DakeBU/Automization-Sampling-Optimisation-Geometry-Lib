@@ -204,6 +204,92 @@ def close(directory: Path) -> dict:
         return result
 
 
+def start_suite(*, tasks: Path, stages: Path, prepared: Path, output: Path,
+                task_ids: list[str], provenance: dict, max_checks: int=4) -> dict:
+    """Freeze ALL selected targets before the first tool call, not survivors."""
+    if output.exists():raise ValueError('Suite requires a fresh operator directory')
+    if not task_ids or len(set(task_ids))!=len(task_ids):raise ValueError('Select distinct admitted task identities')
+    # Resolve identities through the canonical admitted packets, never use an
+    # unchecked agent-provided identity as a filesystem path.
+    admitted={p.name:p for p in tasks.iterdir() if p.is_dir()}
+    if set(task_ids)-set(admitted):raise ValueError('Unknown task selection')
+    selected=[]
+    for identity in task_ids:
+        core=runtime.checked_packet(admitted[identity])
+        if core['id']!=identity:raise ValueError('Packet directory/identity mismatch')
+        selected.append({k:core[k] for k in ('id','family','split','binding_sha256')})
+    runtime.check_runtime(prepared)
+    manifest={'schema_version':1,'kind':'fixed-target-workspace-suite','created_at':now(),
+        'selected':selected,'denominator':len(selected),'provenance':provenance,
+        'max_checks_per_target':max_checks,'attempt_policy':'first-final-after-bounded-checks',
+        'model_measurement':False,'provenance_authenticated':False,
+        'scope':'Frozen selected public-dev targets, including missing/invalid/unstarted/infra outcomes. No model score.'}
+    output.mkdir(parents=True);(output/'tasks').mkdir()
+    # If later initialization fails, this immutable denominator already exists.
+    # Do not delete the partial suite or quietly create a survivors-only run.
+    write_new(output/'suite.json',manifest)
+    for row in selected:
+        identity=row['id']
+        start(task=admitted[identity],stage=stages/identity,prepared=prepared,
+            output=output/'tasks'/identity,provenance=provenance,max_checks=max_checks)
+    return manifest
+
+
+def suite_status(directory: Path, *, finish: bool=False) -> dict:
+    def collect():
+        raw=(directory/'suite.json').read_bytes();manifest=json.loads(raw)
+        if manifest.get('kind')!='fixed-target-workspace-suite' or manifest.get('schema_version')!=1:
+            raise ValueError('Unsupported suite manifest')
+        selected=manifest['selected'];identities=[row['id'] for row in selected]
+        if len(set(identities))!=len(selected) or manifest['denominator']!=len(selected):
+            raise ValueError('Invalid frozen suite selection')
+        rows=[]
+        for selected_row in selected:
+            identity=selected_row['id'];task_dir=directory/'tasks'/identity
+            # Recheck trusted frozen identities before following any paths.
+            if not isinstance(identity,str) or not identity.startswith('sogb-') or not identity[5:].isdigit():
+                raise ValueError('Unsafe suite identity')
+            if not (task_dir/'session.json').is_file():
+                rows.append({'id':identity,'outcome':'initialization-error','completion_sha256':None})
+                continue
+            session,events=history(task_dir)
+            if (session['id']!=identity or session['binding_sha256']!=selected_row['binding_sha256']
+                    or session['provenance']!=manifest['provenance']
+                    or session['max_checks']!=manifest['max_checks_per_target']):
+                raise ValueError('Suite/child binding or declared policy drift')
+            completion=task_dir/'completion.json'
+            if finish and not completion.exists():
+                close(task_dir)
+                session,events=history(task_dir)
+            if completion.exists():
+                value=json.loads(completion.read_bytes())
+                if (value['session_sha256']!=runtime.bench.sha((task_dir/'session.json').read_bytes())
+                        or value['denominator']!=1):
+                    raise ValueError('Child completion/session drift')
+                final=next((e for e in events if e['action']=='submit'),None)
+                expected=('infrastructure-error' if any(e['result'] is None for e in events)
+                    else final['result']['kind'] if final else 'no-final-submission')
+                if value['final_outcome']!=expected or value['final_accepted']!=(expected=='accepted'):
+                    raise ValueError('Child completion/history drift')
+                rows.append({'id':identity,'outcome':expected,'completion_sha256':runtime.bench.sha(completion.read_bytes())})
+            else:rows.append({'id':identity,'outcome':'unfinished','completion_sha256':None})
+        counts={kind:sum(row['outcome']==kind for row in rows) for kind in sorted({row['outcome'] for row in rows})}
+        result={'schema_version':1,'kind':'fixed-target-suite-accounting',
+            'suite_sha256':runtime.bench.sha(raw),'denominator':len(selected),'results':rows,'outcome_counts':counts,
+            'closed':finish or (directory/'accounting.json').exists(),
+            'model_measurement':False,'provenance_authenticated':False,
+            'scope':'Every preselected target retained; infrastructure errors remain distinct/unscored. Not a model score or authenticated trajectory.'}
+        accounting=directory/'accounting.json'
+        if accounting.exists() and json.loads(accounting.read_bytes())!=result:
+            raise ValueError('Closed suite accounting/evidence drift')
+        return result
+    if finish:
+        with exclusive(directory):
+            if (directory/'accounting.json').exists():raise ValueError('Never overwrite closed suite accounting')
+            result=collect();write_new(directory/'accounting.json',result);return result
+    return collect()
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='cmd',required=True)
     p=sub.add_parser('start');p.add_argument('--task',type=Path,required=True);p.add_argument('--stage',type=Path,required=True)
@@ -212,8 +298,19 @@ def main():
     p=sub.add_parser('act');p.add_argument('--workspace',type=Path,required=True);p.add_argument('--request',type=Path,required=True)
     for command in ('close','status'):
         p=sub.add_parser(command);p.add_argument('--workspace',type=Path,required=True)
+    p=sub.add_parser('suite-start');p.add_argument('--tasks',type=Path,required=True);p.add_argument('--stages',type=Path,required=True)
+    p.add_argument('--runtime',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--task-id',action='append',required=True);p.add_argument('--provenance',type=Path,required=True)
+    p.add_argument('--max-checks',type=int,default=4)
+    for command in ('suite-close','suite-status'):
+        p=sub.add_parser(command);p.add_argument('--suite',type=Path,required=True)
     args=parser.parse_args()
-    if args.cmd=='start':
+    if args.cmd=='suite-start':
+        start_suite(tasks=args.tasks,stages=args.stages,prepared=args.runtime,output=args.output,
+            task_ids=args.task_id,provenance=read_request(args.provenance),max_checks=args.max_checks)
+        result={'kind':'suite-created','selected_task_ids':args.task_id,'model_measurement':False}
+    elif args.cmd in {'suite-close','suite-status'}:result=suite_status(args.suite,finish=args.cmd=='suite-close')
+    elif args.cmd=='start':
         start(task=args.task,stage=args.stage,prepared=args.runtime,output=args.output,
             provenance=read_request(args.provenance),max_checks=args.max_checks)
         result={'kind':'workspace-created','agent_view':str(args.output/'agent'),'model_measurement':False}

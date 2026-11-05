@@ -161,3 +161,14 @@ agent compiler-interaction trajectory with a frozen first-final denominator and
 independent runtime review. Do not repeat successful target packaging or use
 interface work to replace these real evaluator requirements. The site remains
 executor pending until the full declared acceptance scope is actually satisfied.
+
+Native05 run42016774565/head ebfe3c14 repeated all13+5 target/negative successes
+and passed real trusted-write/TCP denial. The wall kill was resource-limit at
+180.3s, but the test's marker was hidden by pinned Lean's #eval buffering, so the
+hostile gate failed; flood/invalid-input native cases were unrun. Retain native-05
+raw evidence. The next source packet repairs only the probe output, tests denied
+supervisor-fd access, and adds bounded compiler-tool/workspace plus frozen full-
+selection accounting. All need new native acceptance; independent runtime review,
+authenticated model runs, calibration/private families and exercise/depth work
+remain required. Do not convert software fixture acceptance into model scores,
+security certification, new Registry leaves or whole-Goal completion.

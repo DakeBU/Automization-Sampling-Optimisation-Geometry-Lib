@@ -178,6 +178,10 @@ class LeanRuntimeTests(unittest.TestCase):
         self.assertEqual(sources['denied-trusted-write'][1],'accepted')
         self.assertEqual(sources['wall-limit'][1],'resource-limit')
         self.assertEqual(sources['diagnostic-limit'][1],'resource-limit')
+        for label in ('wall-limit','diagnostic-limit'):
+            self.assertIn('IO.FS.Handle.mk "/dev/stdout" .write',sources[label][0])
+            self.assertNotIn('IO.getStdout',sources[label][0])
+        self.assertIn('/proc/1/fd/1',sources['denied-trusted-write'][0])
 
     def test_verdict_requires_consistent_exit_and_started_container_evidence(self):
         state={'StartedAt':'2026-11-05T00:00:00Z','ExitCode':0,'OOMKilled':False}
@@ -394,6 +398,71 @@ class LeanWorkspaceTests(unittest.TestCase):
                 output=self.create(Path(tmp));workspace.act(output,{'action':'submit','source':'recorded source'})
                 (output/'actions/0001'/changed).write_text('changed')
                 with self.assertRaises(ValueError):workspace.history(output)
+
+    def create_suite(self,root,fail_second=False):
+        tasks=root/'packets';stages=root/'stages';prepared=root/'runtime';prepared.mkdir()
+        (prepared/'preparation.json').write_text('{}')
+        for identity in ('sogb-001','sogb-002'):
+            task=tasks/identity;stage=stages/identity
+            (task/'agent').mkdir(parents=True);stage.mkdir(parents=True)
+            (task/'agent/prompt.json').write_text('{"question":"no gold"}')
+            (task/'operator.json').write_text('{}')
+            (stage/'stage.json').write_bytes(runtime.bench.encoded({'id':identity,'binding_sha256':'binding'}))
+        real_start=workspace.start
+        def start(**kwargs):
+            if fail_second and kwargs['task'].name=='sogb-002':raise RuntimeError('simulated setup failure')
+            return real_start(**kwargs)
+        output=root/'suite'
+        with patch.object(workspace.sys,'platform','linux'),patch.object(workspace.shutil,'which',return_value='docker'),\
+             patch.object(runtime,'checked_packet',side_effect=lambda path:{**core(),'id':path.name}),\
+             patch.object(runtime,'check_runtime'),patch.object(workspace,'start',side_effect=start):
+            try:
+                workspace.start_suite(tasks=tasks,stages=stages,prepared=prepared,output=output,
+                    task_ids=['sogb-001','sogb-002'],provenance={'kind':'controlled-software-fixture'},max_checks=1)
+            except RuntimeError:
+                if not fail_second:raise
+        return output
+
+    def test_frozen_suite_keeps_unattempted_target_in_denominator(self):
+        with tempfile.TemporaryDirectory() as tmp,patch.object(runtime,'run_submission',side_effect=self.fake_verifier):
+            output=self.create_suite(Path(tmp))
+            workspace.act(output/'tasks/sogb-001',{'action':'submit','source':'not executed unit fixture'})
+            before=workspace.suite_status(output)
+            self.assertEqual(before['denominator'],2);self.assertEqual(before['outcome_counts'],{'unfinished':2})
+            result=workspace.suite_status(output,finish=True)
+            self.assertEqual(result['denominator'],2)
+            self.assertEqual(result['outcome_counts'],{'accepted':1,'no-final-submission':1})
+            self.assertFalse(result['model_measurement'])
+            self.assertTrue(workspace.suite_status(output)['closed'])
+            with self.assertRaises(ValueError):workspace.suite_status(output,finish=True)
+
+    def test_initialization_failure_does_not_erase_preselected_target(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output=self.create_suite(Path(tmp),fail_second=True)
+            result=workspace.suite_status(output,finish=True)
+            self.assertEqual(result['denominator'],2)
+            self.assertEqual(result['outcome_counts'],{'initialization-error':1,'no-final-submission':1})
+
+    def test_suite_rejects_child_binding_policy_and_completion_drift(self):
+        for changed in ('binding','policy','completion'):
+            with self.subTest(changed=changed),tempfile.TemporaryDirectory() as tmp:
+                output=self.create_suite(Path(tmp));child=output/'tasks/sogb-001'
+                if changed=='completion':
+                    workspace.close(child)
+                    path=child/'completion.json';data=json.loads(path.read_bytes());data['final_outcome']='accepted'
+                else:
+                    path=child/'session.json';data=json.loads(path.read_bytes())
+                    if changed=='binding':data['binding_sha256']='changed'
+                    else:data['max_checks']=8
+                path.write_bytes(runtime.bench.encoded(data))
+                with self.assertRaises(ValueError):workspace.suite_status(output)
+
+    def test_closed_suite_record_cannot_silently_change_the_denominator(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output=self.create_suite(Path(tmp));workspace.suite_status(output,finish=True)
+            path=output/'accounting.json';data=json.loads(path.read_bytes());data['denominator']=1
+            path.write_bytes(runtime.bench.encoded(data))
+            with self.assertRaisesRegex(ValueError,'accounting'):workspace.suite_status(output)
 
 
 if __name__=='__main__':unittest.main()

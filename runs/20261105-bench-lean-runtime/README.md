@@ -1,5 +1,13 @@
 # Agentic Lean runtime checkpoint
 
+Latest: native05/head ebfe3c14 is terminal, not waiting. Its13 reference and5
+negative checks passed again, as did actual denied-file-write/TCP probes. The
+wall probe was correctly stopped at180.3 seconds, but its start marker was lost
+inside Lean's #eval stream buffer, so the hostile suite FAILED. Raw native-05
+evidence is preserved below. The next source packet fixes the probe's output,
+adds the compiler workspace/full selected-task accounting and requires fresh
+native acceptance. Public execution stays pending; PR379 stays draft.
+
 Continues the existing Bench Goal after PR377/main692973fc; issue378 records the
 bounded evaluator task. Branch: codex/sog-bench-lean-executor. No mathematical
 frontier, production Lean, Registry, QA binding, split, level or prior review is
@@ -197,3 +205,42 @@ diagnose, then push the workspace packet for its own full acceptance. Main still
 the still-pending native05 scope. Website remains executor pending. Required
 independent runtime review, actual model trajectories, calibration/private-family
 and mathematical exercise/depth work remain open; the continuing Goal is active.
+
+## Native05: real I/O denial; correctly killed wall probe with missing marker
+
+Head ebfe3c146ea4a3c869003ffc675fa1e36f99a051, run42016774565/job127209148548
+is a terminal failure in hostile-trials. All13 references and5 proof-negative
+fixtures passed, including their expected-reason checks. Actual denied writes to
+the trusted challenge/policy and an external TCP-connect probe then passed with
+their markers and the original reference proof. The wall test reached180.306s
+in verifying-solution and was killed (container exit137, not OOM); its raw result
+is resource-limit. But no start marker was observed, so the fixture and suite
+correctly report failure. Output-flood and all five invalid-input native tests
+were **not run**. They must not be inferred from local unit tests.
+
+Artifact13411935557 has verified ZIP SHA256
+f39930ff8803dcd5293f68cdd005eb6e77373a717d4c5a411d38b78db3988659.
+The24 JSON files and3 controlled input texts under native-05 are unmodified
+extractions. These input texts are evidence DATA, never host-executed Lean.
+All other exact-head contributor/Bench/native-graph/site CI workflows succeeded;
+that does not cancel this hostile-suite failure or certify the whole backend.
+
+Direct pinned Lean4.33 source explains the defect: BuiltinEvalCommand.lean
+around228 wraps evaluation in IO.FS.withIsolatedStreams; IO.lean around1799
+replaces stdout with Stream.ofBuffer and returns its text only after completion.
+Flushing IO.getStdout therefore does not stream the marker before a deliberately
+sleeping #eval finishes. The repaired controlled wall/output fixtures explicitly
+open the child's own /dev/stdout handle, still inside Docker+Landrun, while a
+separate probe must reject writing to the supervisor's /proc/1/fd/1. Do not
+weaken/remove the marker checks, alter the180-second cap or call this tested yet.
+
+The compiler-workspace extension now also freezes a whole selected suite before
+any tool call. Missing, unattempted, invalid, interrupted and partial-initialization
+targets retain their denominator. Closed accounting is checked against child
+history; drift fails. Four scripted native cases will cover feedback/repair,
+accepted-check/no-final, invalid-final and a two-target selection with one
+unattempted target. These are not autonomous model runs or measured scores.
+The local34-test tool suite passes32 with2 POSIX-specific skips; the earlier full
+151-test/root9611/ASTIS successes remain separately scoped. Syntax/diff pass.
+New source must receive its own native checks, independent runtime review and
+future authenticated provider acceptance before public readiness.

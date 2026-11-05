@@ -89,13 +89,44 @@ is inspection-only, not an automatic replay. Source/result drift fails closed.
 Infrastructure errors stay unscored and distinct from mathematical failures;
 missing/invalid finals remain selected. These files are operator records, not
 cryptographic attestation against a malicious operator. `model_measurement` and
-`provenance_authenticated` remain false. A suite recorder with authenticated raw
-provider/tool trajectories, exact tool/retrieval policy and full selected-task
-accounting is still required before reporting actual model performance.
+`provenance_authenticated` remain false. Authenticated raw provider/tool
+trajectories and the declared tool/retrieval policy are still required before
+reporting actual model performance. The batch recorder below supplies selected-
+task accounting, not that authenticated model connection.
+
+## Batch selection: never count only surviving answers
+
+For a batch, use `suite-start` **before any model/tool work**, instead of starting
+only the tasks for which answers happened to return. The task/stage directories
+come from the same canonical export and trusted staging commands above.
+
+```bash
+python tools/sog_bench_lean_workspace.py suite-start --tasks .astis/my-lean-tasks --stages .astis/my-lean-stages --runtime .astis/my-lean-runtime --task-id sogb-001 --task-id sogb-002 --output .astis/my-lean-suite --provenance provenance.json --max-checks 4
+python tools/sog_bench_lean_workspace.py act --workspace .astis/my-lean-suite/tasks/sogb-001 --request request.json
+python tools/sog_bench_lean_workspace.py suite-close --suite .astis/my-lean-suite
+```
+
+Export and stage **both** selected targets first; the single-target setup example
+above is not already a two-task stage tree. Every selection must currently have
+an admitted aligned Lean task. `suite.json` freezes exact core/family/public-dev
+identity and bindings before initializing children. A failed initialization stays
+selected as `initialization-error`, not deletion. Closing retains all selected
+targets, including unattempted ones, with separate accepted/rejected/invalid/no-
+final/infrastructure outcomes. Partial initialization is not automatic permission
+to restart or silently replace the selection.
+
+`suite-status` is read-only; a live, unclosed task is `unfinished`, not an inferred
+failure. `suite-close` is for the operator after tool calls stop. It closes the
+existing children once and seals `accounting.json`; later evidence/denominator
+drift fails. Exclusive locks are operational exclusion, not proof a process is
+still live. No aggregate success rate, calibrated difficulty or model leaderboard
+is inferred from these records. Authenticated raw provider/prompt/tool recording
+and the declared retrieval policy remain required for a measured evaluation.
 
 CI `workspace-trials` replays an intentionally wrong target, returns actual native
 feedback, submits the unchanged reference, and checks that a second final is
 blocked. Separate cases retain a successful check without final and an invalid
-final. These scripted fixtures test the tool/recorder, not an AI's reasoning.
+final. Its preselected two-task suite retains an unattempted second target in the
+denominator. These scripted fixtures test the tool/recorder, not an AI's reasoning.
 Keep the independent mathematical admission and all existing graph/source readers
 unchanged; reference acceptance is not new theorem or Registry credit.

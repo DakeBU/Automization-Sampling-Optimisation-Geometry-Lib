@@ -103,6 +103,13 @@ A parser error cannot pass an I/O probe: its markers and the original reference
 proof must both succeed. Negative-proof fixtures must show the expected semantic
 or illegal-axiom reason, not just any failure.
 
+Native05/head ebfe3c14 repeated all13+5 successes and passed real write/TCP
+probes. Its wall kill worked but the marker was buffered by Lean #eval, so the
+hostile gate **failed**. The raw failure is retained; output and invalid-input
+native cases were unrun. The next probe uses its own OS stdout, not #eval's
+buffer, with the same limits and additional supervisor-fd protection testing.
+Do not mistake this diagnosis/local patch for fresh native acceptance.
+
 The finite [compiler workspace](WORKSPACE.md) exposes only bounded JSON `check`
 and one immutable `submit`, preserving diagnostics and first-final accounting.
 Its dedicated native replays are controlled software, not model results. A

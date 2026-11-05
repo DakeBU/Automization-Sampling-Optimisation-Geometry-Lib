@@ -113,6 +113,8 @@ def trials(root:Path,task_ids:list[str]|None):
         runtime.stage(task,stage_dir)
         report=runtime.run_submission(task=task,stage_dir=stage_dir,
             submission=task/'oracle/Solution.lean.txt',runtime=root,output=root/'trials'/('oracle-'+identity))
+        print(json.dumps({'fixture':'oracle-'+identity,'kind':report['kind'],
+            'verification_call_seconds':report.get('wall_seconds'),'model_measurement':False}),flush=True)
         reports.append({'fixture':'oracle-'+identity,'expected':'accepted','actual':report['kind']})
         if report['kind']!='accepted':
             print(json.dumps({'first_failure':identity,'kind':report['kind'],
@@ -157,7 +159,7 @@ def hostile_sources(oracle: str) -> dict[str, tuple[str, str, list[str]]]:
     def inject(code,imports=''):
         return imports+oracle.replace('theorem sogBenchTarget',code+'\ntheorem sogBenchTarget',1)
     files='''#eval (do
-  for path in #["/task/Challenge.lean", "/work/project/Challenge.lean", "/opt/judge/policy.json"] do
+  for path in #["/task/Challenge.lean", "/work/project/Challenge.lean", "/opt/judge/policy.json", "/proc/1/fd/1"] do
     let denied ← try
       IO.FS.writeFile path "UNTRUSTED WRITE MUST NOT SUCCEED"
       pure false
@@ -180,15 +182,19 @@ def hostile_sources(oracle: str) -> dict[str, tuple[str, str, list[str]]]:
   IO.println "SOG_CONNECT_DENIED"
   : IO Unit)
 '''
+    # #eval isolates IO.getStdout into a memory buffer until the action
+    # completes (Lean4.33 BuiltinEvalCommand/IO.withIsolatedStreams). Use the
+    # child's own OS stdout so the supervisor can observe the marker/flood
+    # BEFORE timeout, without permitting a write to the supervisor's fd.
     wall='''#eval (do
-  let out ← IO.getStdout
+  let out ← IO.FS.Handle.mk "/dev/stdout" .write
   out.putStrLn "SOG_WALL_PROBE_STARTED"
   out.flush
   IO.sleep 600000
   : IO Unit)
 '''
     flood='''#eval (do
-  let out ← IO.getStdout
+  let out ← IO.FS.Handle.mk "/dev/stdout" .write
   out.putStrLn "SOG_OUTPUT_PROBE_STARTED"
   for _ in [:1024] do
     out.putStrLn (String.ofList (List.replicate 8192 'x'))
@@ -198,7 +204,7 @@ def hostile_sources(oracle: str) -> dict[str, tuple[str, str, list[str]]]:
     return {
         'denied-trusted-write':(inject(files),'accepted',[
             'SOG_DENIED_WRITE:/task/Challenge.lean','SOG_DENIED_WRITE:/work/project/Challenge.lean',
-            'SOG_DENIED_WRITE:/opt/judge/policy.json']),
+            'SOG_DENIED_WRITE:/opt/judge/policy.json','SOG_DENIED_WRITE:/proc/1/fd/1']),
         'denied-network':(inject(network,'import Std.Internal.UV.TCP\n'),'accepted',
             ['SOG_CONNECT_ATTEMPT','SOG_CONNECT_DENIED']),
         'wall-limit':(inject(wall),'resource-limit',['SOG_WALL_PROBE_STARTED']),
@@ -259,7 +265,9 @@ def workspace_trials(root: Path):
     output=root/'workspace-trials'
     if output.exists():raise ValueError('Never overwrite workspace replay evidence')
     output.mkdir()
-    identity=json.loads((root/'software-trials.json').read_text())['selected_task_ids'][0]
+    identities=json.loads((root/'software-trials.json').read_text())['selected_task_ids'][:2]
+    if len(identities)!=2:raise ValueError('Suite accounting trial needs two actually admitted tasks')
+    identity=identities[0]
     task=root/'tasks'/identity;stage=root/'stages'/identity
     oracle=(task/'oracle/Solution.lean.txt').read_text()
     def start(label):
@@ -267,10 +275,15 @@ def workspace_trials(root: Path):
         workspace.start(task=task,stage=stage,prepared=root,output=directory,max_checks=1,
             provenance={'kind':'controlled-software-fixture','name':label})
         return directory
-    repaired=start('repair-replay')
+    suite=output/'fixed-selection'
+    workspace.start_suite(tasks=root/'tasks',stages=root/'stages',prepared=root,
+        output=suite,task_ids=identities,max_checks=1,
+        provenance={'kind':'controlled-software-fixture','name':'suite-repair-replay'})
+    repaired=suite/'tasks'/identity
     diagnostic=workspace.act(repaired,{'action':'check','source':'theorem sogBenchTarget : True := by trivial\n'})
     final=workspace.act(repaired,{'action':'submit','source':oracle})
     replay=workspace.close(repaired)
+    accounting=workspace.suite_status(suite,finish=True)
     blocked=False
     try:workspace.act(repaired,{'action':'submit','source':oracle})
     except ValueError:blocked=True
@@ -289,6 +302,8 @@ def workspace_trials(root: Path):
             and abstention['final_outcome']=='no-final-submission'},
         {'fixture':'invalid-final','passed':invalid_feedback['kind']=='invalid-submission'
             and invalid_result['denominator']==1 and invalid_result['final_outcome']=='invalid-submission'},
+        {'fixture':'preselected-suite-includes-unattempted-target','passed':accounting['denominator']==2
+            and accounting['outcome_counts']=={'accepted':1,'no-final-submission':1}},
     ]
     summary={'schema_version':1,'kind':'scripted-compiler-tool-replays','model_measurement':False,
         'passed':all(r['passed'] for r in results),'results':results,

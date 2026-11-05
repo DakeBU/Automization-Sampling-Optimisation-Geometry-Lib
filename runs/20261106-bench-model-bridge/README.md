@@ -38,8 +38,32 @@ exact successor at design/mocked-contract scope, after eleven unit cases and
 four additional probes. Report raw SHA256:
 `dd7f35eb5cfb66ba346aaf085503a85fb9b86cd00e4562756cd94a2408591cd9`.
 The combined runtime/model/reader unit suite passes54 cases (2 POSIX skips).
-M1 is intentionally unresolved: no accepted workspace/runtime source has changed,
+At that M2 checkpoint M1 was intentionally unresolved: no accepted workspace/runtime source had changed,
 and this is still not a provider/native-accepted model runner or score.
+
+## M1 implementation checkpoint — changes still required
+
+The [exact successor contract](m1-contract-v2.md) received
+[implementation-only preflight acceptance](m1-contract-v2-preflight.json), after
+the preserved original contract/preflight exposed the missing canonical-evidence
+artifact. Root implemented the generic lifecycle, bridge classifications and a
+credential-free native fixture. Local runtime/model/external/reader tests ran66
+cases (63 passed,3 POSIX skips), Python syntax/diff checks passed, and local
+root Tests9632/ASTIS passed without changing production Lean or Registry.
+
+The [independent exact-code review](m1-code-review.json) nevertheless requests
+three concrete repairs: detect complete lifecycle-file loss against managed
+completion fields; validate existing external chains even for read-only open
+children; and reject replayed call IDs before malformed argument classification.
+Its raw report SHA256 is
+`24b8087089f802fa7eec3b9d665ddf14f7d7d8c6f90ab034b9df7e55c689cf6a`.
+Preserve this reviewed implementation snapshot and report; passing local tests
+does not waive these gaps. New native fixture/provider acceptance has not run.
+
+Main747's website is separately deployed and actually read back in nine public
+desktop/mobile routes, three nongold download hashes and one formula/copy task;
+see [the bounded public receipt](../20261105-bench-lean-runtime/public-main747.json).
+That successful existing CLI reader is not admission of this staged model bridge.
 
 ## Required next repair
 

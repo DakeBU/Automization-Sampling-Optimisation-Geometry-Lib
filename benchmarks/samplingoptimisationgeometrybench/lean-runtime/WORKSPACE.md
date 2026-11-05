@@ -130,3 +130,19 @@ final. Its preselected two-task suite retains an unattempted second target in th
 denominator. These scripted fixtures test the tool/recorder, not an AI's reasoning.
 Keep the independent mathematical admission and all existing graph/source readers
 unchanged; reference acceptance is not new theorem or Registry credit.
+
+## Optional external collector lifecycle
+
+The staged [model bridge](MODEL.md) uses operator-only `reserve_external_run`
+and `finish_external_run`; these are not new model-facing commands. They bind a
+pristine selected session and a real bounded canonical termination-evidence copy.
+The shared completion/rollup derivation keeps provider/runtime infrastructure
+unscored and distinct from actual model missing finals, while never changing a
+genuine reserved final's result. No lifecycle or hash is provider attestation.
+
+Read-only unclosed status stays `unfinished`, including an unended collection;
+only explicit `close`/`suite-close` after client/tool work stops classifies that
+interruption. Missing nonterminal observation and later evidence drift fail
+closed. Existing unmanaged archive behavior remains unchanged; unsupported old
+prototype markers are not automatically migrated. See the exact staged contract
+and required new native/code review in MODEL.md before using a collector.

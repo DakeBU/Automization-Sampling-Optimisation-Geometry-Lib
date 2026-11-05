@@ -82,13 +82,34 @@ checks and one final. Each HTTP request/response is bounded to2MiB; calls have a
 request can still be billed. Obtain an authorized provider/model and spending
 policy before starting a paid run. CI/unit fixtures need no API key.
 
-`model-session.json` reserves this model run before its first HTTP request. An
+The canonical workspace `external-run.json` reserves this collection before its
+first HTTP request. An
 ambiguous timeout or interruption cannot be silently retried under a new output
 directory on the same workspace. Keep partial records and inspect them manually;
 do not delete locks or reservation evidence to improve the result. The bridge
 lock excludes another bridge, not a malicious operator: do not issue manual
 workspace actions concurrently. The workspace still reserves every final before
 verification; an invalid, rejected, limited or interrupted final is immutable.
+
+Normal termination writes actual bounded JSON evidence, copied exactly to the
+workspace's `external-evidence.json` and bound into `external-end.json` along
+with session/reservation/selection/client-source/cause and event-history hashes.
+Both single completion and batch rollup re-read these canonical bytes. They
+distinguish provider/verifier/operator infrastructure from genuine model missing
+final/protocol/output-budget cases. Every selected target stays represented;
+infrastructure is unscored, not silently dropped or counted as a math failure.
+
+A genuine observation-backed native final always retains its exact result,
+even if external collection subsequently fails. A native wall-limit result is
+still `resource-limit`, not a missing observation. Missing earlier/nonterminal
+observation is invalid history and fails closed. Without an end record, read-only
+status remains unfinished; only explicit close/suite-close **after client/tool
+work has stopped** marks interrupted infrastructure. No lock/reservation implies
+process liveness. Partial copies, interrupted writes and old unsupported
+`model-session.json` prototypes require inspection, never silent migration or
+automatic retry. Canonical evidence is bounded to512KiB and rejected on duplicate
+keys, nonfinite JSON, incorrect bindings or drift; this is trusted-operator
+recording, not authentication of a malicious operator's claimed provider cause.
 
 The transcript stores exact bounded request/response bodies, selected safe HTTP
 receipt fields, provider response/model IDs, usage when returned, tool feedback,
@@ -102,6 +123,13 @@ items (including encrypted reasoning) and supplies each function output with its
 actual call ID. See the official [function-calling guide](https://developers.openai.com/api/docs/guides/function-calling)
 and [Responses creation reference](https://developers.openai.com/api/reference/resources/responses/methods/create).
 No hosted search, code execution or other provider tool is enabled.
+
+The optional native CI `model-bridge-trials` uses a separately labelled
+`controlled-software-fixture` client: it exercises actual compiler feedback and
+two-target failure accounting but makes **zero** provider calls. Its synthetic
+Responses-shaped messages, model/version names and HTTP-shaped fields are not
+real provider responses or AI reasoning. Real CLI runs still require declared
+OpenAI provider/model/version provenance and an authorized API key.
 
 These are operator-observed records, not cryptographic provider attestation,
 malicious-operator protection, calibrated difficulty, a private-family test or a

@@ -470,3 +470,18 @@ semantic adapter compiles. In particular, do not replace Chewi/SampleWiki source
 identities with an OpenAI source-specific statement, and do not bulk-transplant
 `OAI.*` namespaces. Promote reusable leaves only after Mathlib/local reuse
 search and definition/hypothesis audit.
+
+## Latest Bench handoff (2026-11-06)
+
+PR379 actually merged at main747b4653; exact-head and main software workflows,
+deployment and bounded public reader checks succeeded. Reuse the receipts in
+`runs/20261105-bench-lean-runtime`; do not repeat completed hierarchy/packaging.
+The experimental CLI's software acceptance is not model performance or hosted
+execution. The separate model-bridge packet has narrow independent code review
+under `runs/20261106-bench-model-bridge`, preserving all rejected predecessors.
+Its new credential-free Linux native fixture and authorized real provider trial
+remain pending. Keep API/model/spending authorization explicit, classify provider
+infrastructure separately without changing a genuine final, and never count a
+scripted interface fixture as an AI measurement. Continue the same Bench Goal;
+all source/exercise depth, calibration/private-family and old math frontiers stay
+open. Derive current coverage from the catalog tools, not this process handoff.

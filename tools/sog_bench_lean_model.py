@@ -132,7 +132,8 @@ def response_identity(response: dict, expected_model_version: str) -> str:
     return response['id']
 
 
-def function_call(response: dict, *, expected_model_version: str) -> tuple[dict, list]:
+def function_call(response: dict, *, expected_model_version: str,
+                  seen_call_ids: set[str] | None=None) -> tuple[dict, list]:
     response_identity(response,expected_model_version)
     output = response.get('output')
     if not isinstance(output, list) or any(not isinstance(item, dict) for item in output):
@@ -152,6 +153,8 @@ def function_call(response: dict, *, expected_model_version: str) -> tuple[dict,
     call = calls[0]
     if not isinstance(call.get('call_id'), str) or not call['call_id']:
         raise ProviderFailure('provider-function-identity-error','provider-identity')
+    if seen_call_ids is not None and call['call_id'] in seen_call_ids:
+        raise ProviderFailure('repeated-provider-call-identity','provider-identity')
     try:
         if not isinstance(call.get('arguments'),str):raise ValueError('Function argument text required')
         arguments=decode(call['arguments'].encode('utf-8'))
@@ -249,9 +252,8 @@ def run(directory: Path, output: Path, *, model: str, max_output_tokens: int, pr
                 if identity in seen_responses:
                     raise ProviderFailure('repeated-provider-response-identity','provider-identity')
                 seen_responses.add(identity)
-                call, items = function_call(response, expected_model_version=provenance['model_version'])
-                if call['call_id'] in seen_calls:
-                    raise ProviderFailure('repeated-provider-call-identity','provider-identity')
+                call, items = function_call(response, expected_model_version=provenance['model_version'],
+                    seen_call_ids=seen_calls)
                 seen_calls.add(call['call_id'])
                 if len(workspace.history(directory)[1]) != expected_events:
                     raise ProviderFailure('workspace-interference-no-replay','operator-infrastructure')

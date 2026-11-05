@@ -290,6 +290,19 @@ class ModelBridgeTests(unittest.TestCase):
                     transport(b'{}')
                 self.assertNotIn(secret, str(error.exception))
 
+    def test_replayed_call_id_precedes_malformed_argument_classification(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);directory=self.make_workspace(root)
+            first=response('check',identity='first');second=response(identity='second')
+            second['output'][-1]['call_id']=first['output'][-1]['call_id']
+            second['output'][-1]['arguments']='not JSON'
+            result=self.run_fixture(directory,root/'transcript',FixtureProvider(first,second))
+            self.assertEqual(result['stop'],'repeated-provider-call-identity')
+            self.assertEqual(result['final_outcome'],'infrastructure-error')
+            self.assertEqual(len(workspace.history(directory)[1]),1)
+            end=json.loads((directory/'external-end.json').read_bytes())
+            self.assertEqual(end['disposition'],'infrastructure-error');self.assertEqual(end['reason'],'provider-identity')
+
 
 if __name__ == '__main__':
     unittest.main()

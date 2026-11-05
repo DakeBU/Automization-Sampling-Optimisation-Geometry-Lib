@@ -65,6 +65,16 @@ desktop/mobile routes, three nongold download hashes and one formula/copy task;
 see [the bounded public receipt](../20261105-bench-lean-runtime/public-main747.json).
 That successful existing CLI reader is not admission of this staged model bridge.
 
+The failing M1 implementation/report is preserved at pushed commitb58b03a1.
+The [independent exact repair review](m1-code-repair-review.json) now narrowly
+accepts all three code repairs; raw report SHA256
+`062d3151471217fc8c78187cb51aa0dacbb935550b65b0373eedeb462b8794d1`.
+It personally ran64 scoped tests (61 passed,3 POSIX skips) and replayed the
+original failures. Root's combined reader/runtime/model suite ran70 (67 passed,
+3 POSIX skips). This is **code acceptance only**: the new credential-free Linux
+bridge fixture and actual provider/model admission remain pending. No API key
+or paid/provider call has been used. Keep all original failing reports intact.
+
 ## Required next repair
 
 1. **M1 — canonical termination accounting.** A provider/HTTP/runtime failure

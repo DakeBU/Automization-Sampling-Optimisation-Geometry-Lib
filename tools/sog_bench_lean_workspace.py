@@ -412,6 +412,10 @@ def suite_status(directory: Path, *, finish: bool=False) -> dict:
                     or session['provenance']!=manifest['provenance']
                     or session['max_checks']!=manifest['max_checks_per_target']):
                 raise ValueError('Suite/child binding or declared policy drift')
+            # Validate any present chain even for an unclosed child. Valid
+            # unended collection stays unfinished; corrupt evidence is not a
+            # liveness question and must not be silently treated as valid.
+            _external_state(task_dir,events)
             completion=task_dir/'completion.json'
             if finish and not completion.exists():
                 close(task_dir)
@@ -424,7 +428,8 @@ def suite_status(directory: Path, *, finish: bool=False) -> dict:
                 expected,interrupted,external_bindings=_outcome(task_dir,events)
                 if value['final_outcome']!=expected or value['final_accepted']!=(expected=='accepted'):
                     raise ValueError('Child completion/history drift')
-                if any(value.get(key)!=digest for key,digest in external_bindings.items()):
+                recorded_bindings={key:digest for key,digest in value.items() if key.startswith('external_')}
+                if recorded_bindings!=external_bindings:
                     raise ValueError('Child completion/external evidence drift')
                 rows.append({'id':identity,'outcome':expected,'completion_sha256':runtime.bench.sha(completion.read_bytes())})
             else:rows.append({'id':identity,'outcome':'unfinished','completion_sha256':None})

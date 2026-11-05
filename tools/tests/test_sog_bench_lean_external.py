@@ -153,6 +153,41 @@ class ExternalRunTests(unittest.TestCase):
             with self.assertRaises(ValueError):self.finish(directory,root/'other.json')
             self.assertEqual((directory/'external-evidence.json').read_bytes(),old)
 
+    def test_entire_lifecycle_loss_cannot_downgrade_managed_completion_to_legacy(self):
+        for final in (False,True):
+            for sealed in (False,True):
+                with self.subTest(final=final,sealed=sealed),tempfile.TemporaryDirectory() as tmp:
+                    root=Path(tmp);suite=fixtures.LeanWorkspaceTests().create_suite(root)
+                    child=suite/'tasks/sogb-001';self.reserve(child)
+                    if final:
+                        with patch.object(runtime,'run_submission',side_effect=self.verifier('accepted')):
+                            workspace.act(child,{'action':'submit','source':'unexecuted fixture'})
+                    self.finish(child,root/'stop.json','completed','final-submitted' if final else 'model-no-final')
+                    workspace.close(child)
+                    if sealed:workspace.suite_status(suite,finish=True)
+                    for name in ('external-run.json','external-end.json','external-evidence.json'):(child/name).unlink()
+                    with self.assertRaises(ValueError):workspace.suite_status(suite)
+
+    def test_nullable_managed_completion_fields_cannot_disappear(self):
+        for field in ('external_end_sha256','external_evidence_sha256'):
+            with self.subTest(field=field),tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp);suite=fixtures.LeanWorkspaceTests().create_suite(root)
+                child=suite/'tasks/sogb-001';self.reserve(child);workspace.close(child)
+                path=child/'completion.json';item=json.loads(path.read_bytes())
+                self.assertIsNone(item.pop(field));path.write_bytes(runtime.bench.encoded(item))
+                with self.assertRaises(ValueError):workspace.suite_status(suite)
+
+    def test_readonly_status_validates_ended_and_orphan_evidence_without_closing(self):
+        for change in ('missing','corrupt','orphan'):
+            with self.subTest(change=change),tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp);suite=fixtures.LeanWorkspaceTests().create_suite(root)
+                child=suite/'tasks/sogb-001';self.reserve(child);self.finish(child,root/'stop.json')
+                if change=='missing':(child/'external-evidence.json').unlink()
+                elif change=='corrupt':(child/'external-evidence.json').write_bytes(b'corrupt')
+                else:(child/'external-run.json').unlink()
+                with self.assertRaises(ValueError):workspace.suite_status(suite)
+                self.assertFalse((child/'completion.json').exists())
+
     def test_completed_reason_cannot_fabricate_or_hide_final(self):
         for final in (False,True):
             with self.subTest(final=final),tempfile.TemporaryDirectory() as tmp:

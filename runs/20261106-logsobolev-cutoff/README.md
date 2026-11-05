@@ -1,8 +1,11 @@
-# Compact-smooth LSI extension — local proof checkpoint
+# Compact-smooth LSI extension — independently verified local packet
 
-The SAME Bench Goal continues. This packet reached **PROVED_LOCAL through the
-normal Harness**, not independent verification or main integration. No question,
-family, split, Registry/root import, old paper frontier or cycle was changed.
+The SAME Bench Goal continues. The independent verifier has now published
+**VERIFIED through the normal Harness** at exact pushed commit
+`058990a14b7e5d3e4bb0e476e97edeafba2b8d5c`. This is local mathematical/source
+verification, not main integration, reader delivery or exercise/QA admission.
+No question, family, split, Registry/root import, old paper frontier or cycle
+was changed. See the [independent verification receipt](independent-verification.json).
 
 ## Actual mathematical delta
 
@@ -60,7 +63,9 @@ the pinned historical source contract or source-only topology, or certify the
 downstream paper result. Only changed Gaussian publication input was renewed;
 the two new nodes' anonymous inputs and accepted reviews remain unchanged.
 Mechanical registration of an independent report is not independent VERIFIED
-admission. That exact-commit step is still pending at this checkpoint.
+admission. The distinct exact-commit verification step is recorded in the
+verifier's own receipt; it reuses only byte-identical compiler evidence and
+retains the full dirty-worktree/clean-remote distinction below.
 
 The generic parent and domain-extension child have separate canonical Cells,
 under one SAU/unique writer. No chapter-status code was relaxed to support them.
@@ -68,7 +73,10 @@ The prior global ledger prefix is intact; normal claim/local-transition receipts
 record the exact appended own events. The foreign stabilization lease remains
 untouched. The owning lane was asked to reconcile its already merged PR380 in
 [the PR discussion](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/pull/380#issuecomment-6670560797).
-Do not merge or infer VERIFIED merely from the source-review reports.
+Do not infer integration, public reader acceptance or PURIFIED from VERIFIED.
+The actual one-event transition preserves the prior ledger and every foreign
+state, including the occupied stabilization lane. No owner impersonation or
+lease bypass is authorized by this packet.
 
 The original pushed02967 checkpoint's Contributor run42114658613 failed on the
 pending whole-module review after67 tooling tests passed; no gate was waived.
@@ -80,6 +88,7 @@ untracked collaborator `KernelReversibilityTransport` draft; it is untouched,
 unpublished and is not evidence against this packet's three owned targets.
 Record that local boundary honestly; clean remote CI must check the committed
 candidate through the unchanged full checker, not an ignore/skip exemption.
+That clean exact058 Contributor run42119358602/job127567353769 has now succeeded.
 
 ## Remaining boundary
 

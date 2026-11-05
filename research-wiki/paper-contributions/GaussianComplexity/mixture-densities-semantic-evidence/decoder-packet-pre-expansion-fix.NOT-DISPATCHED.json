@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-9b8c24d0bad27380",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ} (hκ : 4 ≤ κ),\n    let μ := (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)))⁻¹\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n    let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos\n    let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg\n    (∀ x, 0 ≤ qpos x ∧ 0 ≤ qneg x) ∧\n    Measurable qpos ∧ Measurable qneg ∧\n    Integrable qpos volume ∧ Integrable qneg volume ∧\n    (∫ x, qpos x) = 1 ∧ (∫ x, qneg x) = 1 ∧\n    νpos.bind γ = volume.withDensity (fun x => ENNReal.ofReal (qpos x)) ∧\n    νneg.bind γ = volume.withDensity (fun x => ENNReal.ofReal (qneg x))",
+    "statement_sha256": "9b8c24d0bad2738049632a01a4a3f1379c4060b3d087e5fac6f8c8dbcc56454b",
+    "compiled": true,
+    "approved_definition_context": [
+      "EuclideanSpace real (Fin n) is real n-dimensional Euclidean space with its standard l2 norm, Borel structure and Euclidean Lebesgue volume. Fin n indexes coordinates from zero through n-1. WithLp.ofLp is the coordinate representation.",
+      "The orthogonal group is full real O(n), both determinant signs, with its matrix Borel structure. Measure.haarMeasure(top : TopologicalSpace.PositiveCompacts G) is canonical normalized full-group Haar probability.",
+      "Measure.restrict is restriction to the displayed set. Scalar multiplication of measures uses extended nonnegative real scalars. Measure.bind integrates the displayed measure kernel against its input measure. Measure.withDensity of a nonnegative extended-real function is the measure whose measurable-set values are its set lintegrals under the base measure.",
+      "multivariateGaussian mean m matrix C is the pushforward of canonical stdGaussian by z -> m + Matrix.toEuclideanCLM (CFC.sqrt C) z. Its covariance interpretation holds for positive semidefinite C. Matrix inverse is standard totalized matrix inverse.",
+      "Integrable is genuine real Bochner absolute integrability. The displayed integrals with real integrands are real Bochner integrals; unspecified measure is volume on the displayed Euclidean carrier. Real n/2 powers use Real.rpow and real division; natural powers have natural exponents. ENNReal.ofReal maps a real number to its nonnegative extended-real truncation. Real division/inverse are totalized at zero."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "aeafcbbbae94bc5dcbae01e7cb9e4ea843881ca3e55cd6021087ee6820571ab1"
+}

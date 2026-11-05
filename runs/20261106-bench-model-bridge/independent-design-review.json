@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "kind": "independent-staged-model-bridge-design-review",
+  "reviewed_at": "2026-11-06",
+  "base_head": "731d98dec4f8aa96508e90bbda483d16e46f91bd",
+  "artifact_state": "Three new untracked staged interface files; not part of the pushed head or its CI admission",
+  "decision": "changes-requested-before-provider-or-native-bridge-admission",
+  "provider_calls_made": 0,
+  "lean_executions_made": 0,
+  "security_certificate": false,
+  "model_measurement": false,
+  "scope": "Read-only design/contract review of the three exact-hash staged bridge files. The already accepted native08 compiler runtime, PR379 CI/integration, mathematical sources, website, Goal, Cells, ledger and branches are separate and were not modified.",
+  "reviewed_sha256_raw": {
+    "tools/sog_bench_lean_model.py": "15e3f3996ca18245e1dafa5ae7713eff1432e23b8687a1c542d8e699bf9d7dd9",
+    "tools/tests/test_sog_bench_lean_model.py": "3764ace4ab1fd613dc2115f2478b3e493c2b80f105b2607ff05d19da71cc0a45",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/MODEL.md": "16cbca01c6e28989aaf56148bf513a67b9771ae74bc31f203f61c358317374d2"
+  },
+  "checks_actually_run": [
+    "Read all three staged files and verified their exact supplied raw hashes before and after testing. Read-only git checks identified the base HEAD/branch and no delta in the checked accepted engine/workspace sources versus34af8bac.",
+    "Used the OpenAI Docs skill and its official-docs reference. Searched and actually opened the official function-calling and reasoning guides to check the flat Responses function schema, strict parameter constraints, call-ID outputs and stateless reasoning-item replay. No provider/model invocation was used to establish API behavior.",
+    "Ran python -B -m unittest discover -s tools/tests -p test_sog_bench_lean_model.py -v with PYTHONDONTWRITEBYTECODE=1 and TEMP/TMP/TMPDIR all set to the existing D-repository .astis/sog-bench/tmp. All8 tests passed. They use fixture providers and a fake verifier; they establish neither native nor actual provider acceptance.",
+    "Ran five additional trusted mocked probes inside the same temporary root: provider transport failure, returned check-verifier infrastructure-error, missing provider model, mismatched provider model, and a repeated response ID with different function-call IDs. No network, paid request, shell/fault script or Lean text was executed.",
+    "Did not inspect credentials or query a provider/credential service. The coordinator's value-free no-key observation is supplied context, not a credential inspection performed by this reviewer. Read-only official documentation requests were the only network use.",
+    "Only this new immutable review report was written outside authorized temporary test fixtures. No repairs to staged or accepted files were made; previous runtime reviews remain untouched."
+  ],
+  "findings": [
+    {
+      "id": "M1",
+      "severity": "high",
+      "title": "Harness/provider infrastructure termination becomes ordinary no-final in canonical completion and suite accounting",
+      "locations": [
+        "tools/sog_bench_lean_model.py:223",
+        "tools/sog_bench_lean_model.py:225",
+        "tools/sog_bench_lean_model.py:235",
+        "tools/sog_bench_lean_model.py:240",
+        "tools/tests/test_sog_bench_lean_model.py:test_provider_failure_is_recorded_once_without_automatic_retry"
+      ],
+      "evidence": "The bridge stops immediately on a provider transport/HTTP failure or a check feedback kind of infrastructure-error, then closes the unchanged workspace. With no submit event, workspace.close computes no-final-submission even when the bridge, rather than the model, removed the opportunity to submit. trajectory.final_outcome copies that value. Existing suite accounting consumes the same child completion, so stop text alone does not make the target a distinct unscored infrastructure outcome.",
+      "reproductions_actually_run": [
+        {
+          "trusted_mock": "ProviderFailure(provider-transport-error-no-automatic-retry) before any tool result",
+          "api_calls": 1,
+          "denominator": 1,
+          "stop": "provider-transport-error-no-automatic-retry",
+          "final_outcome": "no-final-submission",
+          "final_accepted": false
+        },
+        {
+          "trusted_mock": "A valid check call whose fake verifier returns a persisted infrastructure-error result",
+          "api_calls": 1,
+          "denominator": 1,
+          "stop": "verifier-infrastructure-error-not-a-proof-rejection",
+          "final_outcome": "no-final-submission",
+          "final_accepted": false
+        }
+      ],
+      "impact": "Selection is correctly retained, but causal outcome classification is not preserved in the canonical completion/rollup. A later consumer using those records can count provider/runtime failures as model missing finals instead of keeping them unscored. model_measurement=false prevents an authorized score claim; it does not repair this record contract.",
+      "required_resolution": "Design a separately reviewed canonical external-termination mechanism or equivalent accounting boundary that retains every selected target and records unscored provider/verifier infrastructure distinctly. It must never override a genuine reserved final or its result. Define protocol-error, actual no-final and interrupted cases explicitly, test the suite rollup, and preserve partial evidence. Do not silently reinterpret or patch the already accepted workspace/runtime in this packet.",
+      "status": "Open in these exact staged hashes; no repair attempted."
+    },
+    {
+      "id": "M2",
+      "severity": "medium",
+      "title": "Returned provider/model identity is recorded opportunistically but not bound to the frozen declaration",
+      "locations": [
+        "tools/sog_bench_lean_model.py:114",
+        "tools/sog_bench_lean_model.py:151",
+        "tools/sog_bench_lean_model.py:204",
+        "tools/sog_bench_lean_model.py:213",
+        "benchmarks/samplingoptimisationgeometrybench/lean-runtime/MODEL.md:32"
+      ],
+      "evidence": "Preflight compares provenance.model to the requested model, but never checks provenance.model_version against the returned model identity. function_call requires a response ID but permits missing/nonmatching response.model; seen_calls tracks function-call IDs, not response IDs. Identity/usage fields are only copied into the step record after tool execution succeeds.",
+      "reproductions_actually_run": [
+        {
+          "trusted_mock": "Completed valid submit response with model field omitted",
+          "stop": "first-final-submitted",
+          "final_outcome": "accepted",
+          "recorded_provider_model": null
+        },
+        {
+          "trusted_mock": "Completed valid submit response with model=not-the-declared-model",
+          "stop": "first-final-submitted",
+          "final_outcome": "accepted",
+          "recorded_provider_model": "not-the-declared-model"
+        },
+        {
+          "trusted_mock": "Check and submit use distinct call IDs but the same response-a ID",
+          "api_calls": 2,
+          "stop": "first-final-submitted",
+          "final_outcome": "accepted",
+          "recorded_response_ids": ["response-a", "response-a"]
+        }
+      ],
+      "impact": "A compiler verdict can be retained as valid independently of model identity, but these records are not yet admissible as an identified provider/model trajectory. A declared snapshot/version can disagree with or be absent from the returned identity without a typed identity failure. The fake verifier's accepted status in these probes is not a real Lean acceptance or an actual provider anomaly.",
+      "required_resolution": "Specify and enforce the requested-ID/returned-model/version relation, including any explicit alias-resolution policy; require meaningful returned identity, detect repeated response IDs, and preserve identity/usage before tool dispatch where available. Identity failure must be a distinct non-admissible trajectory cause without replacing an already genuine compiler final. Keep provenance_authenticated=false; HTTPS and raw IDs are not cryptographic provider attestation.",
+      "status": "Open in these exact staged hashes; no repair attempted."
+    }
+  ],
+  "positive_checks": [
+    "Initial model content is assembled from exactly the canonical prompt.json and Solution.lean.txt, checked against the current canonical task descriptor. It does not glob the operator directory or directly append oracle/reference/challenge/configuration contents. The unit nongold/path-sentinel checks passed.",
+    "The only declared custom tool is lean_workspace with strict action/source schema, both properties required and additionalProperties=false. The request disables parallel tool calls, forces the one named function and enables no hosted retrieval/shell/code-execution tool. Unknown/multiple/duplicate-key/incomplete calls fail without running their supplied Lean.",
+    "The normal stateless loop preserves all returned reasoning/message/function-call items, including opaque encrypted reasoning, and appends the actual matching function_call_output ID. Its include value is accepted as compatible guidance in the official reasoning documentation. This is a static/API-contract check, not a successful live round trip.",
+    "The model's source remains data passed to the accepted workspace; no host Lean/shell fallback is introduced. Oversized final source is reserved by workspace.act, becomes invalid-submission and remains selected rather than being executed or replaced.",
+    "Fresh transcript paths, exclusive bridge locking, model-session.json reservation before the first HTTP call, zero automatic retries and partial started/finished records limit silent replay. A KeyboardInterrupt probe in the existing unit suite preserves the reservation; ordinary action locking/first-final enforcement remain in the accepted workspace.",
+    "API call count and output-token/body bounds are frozen before collection. The documentation correctly states that these are not a dollar-cost ceiling and that input/reasoning or interrupted requests may be billed; spending authorization is not implied.",
+    "The CLI removes OPENAI_API_KEY from child-process environment before workspace execution. The standard transport uses a fixed HTTPS endpoint, suppresses redirects and checks direct raw-body credential echo before archiving. Unit tests use only a dummy key and mocked opener; no real credential handling was exercised.",
+    "All bridge trajectories keep model_measurement=false and provenance_authenticated=false. Controlled fixture transport is explicitly labeled, and no test result is promoted into native08/model acceptance or new mathematical credit."
+  ],
+  "boundary_notes_not_additional_acceptance_findings": [
+    "MODEL.md's non-exposure language should distinguish direct initial provider inputs from compiler-mediated feedback. The accepted sandbox intentionally permits readonly access to public mounted task/runtime/dependency files. Submitted Lean can attempt to print readable container data into bounded diagnostics. The bridge does not itself append challenge/configuration/oracle material, and the container has no oracle mount, but there is no new guarantee that challenge/configuration/public dependency content cannot appear through feedback. provided-prompt-template-only is not enforced closed-book isolation, as the docs otherwise acknowledge.",
+    "Transcript hashes are operator evidence under the trusted/quiescent operator assumption, not immutability against a malicious writer. The bridge has no independent sealed-trajectory validation command in this packet. Partial interrupted collection must remain inspectable rather than being counted as a successful sealed run.",
+    "The urllib timeout is a transport timeout, not demonstrated here as a whole-call absolute deadline against every slow-response pattern. No broader provider timeout/security claim was validated.",
+    "The full Responses create reference could not be retrieved by the web tool because its HTML was too large and Markdown was unsupported. Relevant official function-calling/reasoning guide sections were fetched and read. The complete current provider schema/model-specific parameter support remains subject to a later authorized live acceptance trial."
+  ],
+  "official_sources_checked": [
+    {
+      "url": "https://developers.openai.com/api/docs/guides/function-calling",
+      "supports": "Flat Responses function declaration, strict schema constraints, named function selection, disabling parallel calls and call-ID-correlated function outputs."
+    },
+    {
+      "url": "https://developers.openai.com/api/docs/guides/reasoning",
+      "supports": "Stateless store:false encrypted reasoning support and replay of the intervening reasoning/function-call/output items."
+    }
+  ],
+  "limitations": [
+    "This is an immutable v1 design review of staged bytes, not a review of future repairs. Neither the8 fixture passes nor5 mock probes establish real provider identity, successful Responses schema acceptance, native integration or model performance.",
+    "No actual API key, paid provider call, provider entitlement, real model choice, provider/native bridge trajectory or new security certificate was verified. No API call was authorized or made.",
+    "Accepted native08 compiler software acceptance remains separate and unchanged. Current PR379 CI/publication/integration state was not re-audited or promoted by this report. Whole-Goal completion, calibration/private families, real model measurement and site/main integration remain outside this review."
+  ]
+}

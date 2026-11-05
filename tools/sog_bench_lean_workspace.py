@@ -12,7 +12,9 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import re
 import shutil
+import stat
 import sys
 
 sys.path.insert(0,str(Path(__file__).resolve().parent))
@@ -20,6 +22,10 @@ import sog_bench_lean as runtime
 
 REQUEST_BYTES=524288
 FEEDBACK_BYTES=8192
+EXTERNAL_REASONS={
+    'completed': {'final-submitted','model-no-final','model-protocol-error','model-output-budget'},
+    'infrastructure-error': {'provider-transport','provider-http','provider-identity',
+        'provider-protocol','verifier-infrastructure','operator-infrastructure','client-interrupted'}}
 
 
 def now():
@@ -125,10 +131,156 @@ def history(directory: Path) -> tuple[dict,list[dict]]:
         else:event={**event,'result':None}
         events.append(event)
     actions=[event['action'] for event in events]
+    if any(event['result'] is None for event in events[:-1]):
+        raise ValueError('Missing nonterminal observation; inspect invalid history, never forgive a later final')
     if (any(a not in {'check','submit'} for a in actions) or actions.count('check')>manifest['max_checks']
             or actions.count('submit')>1 or ('submit' in actions and actions[-1]!='submit')):
         raise ValueError('Invalid action history')
     return manifest,events
+
+
+def _digest(value):
+    if not isinstance(value,str) or not re.fullmatch('[0-9a-f]{64}',value):
+        raise ValueError('A full lowercase SHA256 binding is required')
+    return value
+
+
+def _present(path: Path) -> bool:
+    return path.exists() or path.is_symlink()
+
+
+def _external_raw(path: Path) -> bytes:
+    # Operator-owned, quiescent files under the operation lock; not an atomic
+    # malicious-writer snapshot. Partial unended evidence can be arbitrary bytes.
+    if not stat.S_ISREG(path.lstat().st_mode):
+        raise ValueError('External evidence must be a regular file, not a link/device')
+    with path.open('rb') as stream:raw=stream.read(REQUEST_BYTES+1)
+    if len(raw)>REQUEST_BYTES:raise ValueError('External evidence byte bound exceeded')
+    return raw
+
+
+def _external_json(raw: bytes, *, fields: set[str], kind: str) -> dict:
+    def nonfinite(value):raise ValueError('Nonfinite JSON is not external evidence')
+    item=json.loads(raw.decode('utf-8'),object_pairs_hook=json_object,parse_constant=nonfinite)
+    if (not isinstance(item,dict) or set(item)!=fields or type(item.get('schema_version')) is not int
+            or item['schema_version']!=1 or item.get('kind')!=kind):
+        raise ValueError('Invalid exact external evidence schema')
+    return item
+
+
+def _reservation(directory: Path) -> tuple[bytes,dict] | None:
+    path=directory/'external-run.json'
+    if not _present(path):
+        if any(_present(directory/name) for name in ('external-end.json','external-evidence.json','model-session.json')):
+            raise ValueError('Missing external reservation or unsupported legacy prototype; inspect, never migrate silently')
+        return None
+    raw=_external_raw(path)
+    item=_external_json(raw,fields={'schema_version','kind','created_at','session_sha256','metadata'},
+        kind='fixed-target-external-run')
+    if item['session_sha256']!=runtime.bench.sha((directory/'session.json').read_bytes()):
+        raise ValueError('External reservation/session drift')
+    metadata=item['metadata']
+    if (not isinstance(metadata,dict) or set(metadata)!={'client','client_source_sha256_lf','selection_sha256'}
+            or not isinstance(metadata.get('client'),str) or not 0<len(metadata['client'])<=256):
+        raise ValueError('Invalid exact external client metadata')
+    _digest(metadata['client_source_sha256_lf']);_digest(metadata['selection_sha256'])
+    return raw,item
+
+
+def _termination_evidence(raw: bytes, reservation: tuple[bytes,dict], disposition: str, reason: str) -> dict:
+    evidence=_external_json(raw,fields={'schema_version','kind','session_sha256','reservation_sha256',
+        'selection_sha256','client_source_sha256_lf','disposition','reason','client_stop','facts'},
+        kind='external-client-termination-evidence')
+    rraw,item=reservation;metadata=item['metadata']
+    expected={'session_sha256':item['session_sha256'],'reservation_sha256':runtime.bench.sha(rraw),
+        'selection_sha256':metadata['selection_sha256'],'client_source_sha256_lf':metadata['client_source_sha256_lf'],
+        'disposition':disposition,'reason':reason}
+    if any(evidence[key]!=value for key,value in expected.items()):
+        raise ValueError('External termination evidence binding/cause drift')
+    if (not isinstance(evidence['client_stop'],str) or not 0<len(evidence['client_stop'])<=256
+            or not isinstance(evidence['facts'],dict)):
+        raise ValueError('External termination requires bounded cause and object facts')
+    return evidence
+
+
+def _external_state(directory: Path, events: list[dict]) -> tuple[dict|None,dict]:
+    reservation=_reservation(directory)
+    if reservation is None:return None,{}
+    rraw,item=reservation;end=directory/'external-end.json';evidence=directory/'external-evidence.json'
+    bindings={'external_run_sha256':runtime.bench.sha(rraw),
+        'external_end_sha256':None,'external_evidence_sha256':None}
+    eraw=_external_raw(evidence) if _present(evidence) else None
+    if eraw is not None:bindings['external_evidence_sha256']=runtime.bench.sha(eraw)
+    if not _present(end):return {'ended':False},bindings
+    raw=_external_raw(end)
+    item_end=_external_json(raw,fields={'schema_version','kind','ended_at','session_sha256','reservation_sha256',
+        'history_sha256','event_count','disposition','reason','evidence_sha256'},kind='fixed-target-external-end')
+    disposition=item_end['disposition'];reason=item_end['reason']
+    if not isinstance(disposition,str) or not isinstance(reason,str) or reason not in EXTERNAL_REASONS.get(disposition,set()):
+        raise ValueError('Unknown external disposition/reason')
+    if (item_end['session_sha256']!=item['session_sha256']
+            or item_end['reservation_sha256']!=runtime.bench.sha(rraw)
+            or type(item_end['event_count']) is not int or item_end['event_count']!=len(events)
+            or item_end['history_sha256']!=runtime.bench.sha(runtime.bench.encoded(events))):
+        raise ValueError('External end/session/reservation/history drift')
+    final=any(e['action']=='submit' for e in events)
+    if disposition=='completed' and ((reason=='final-submitted')!=final):
+        raise ValueError('External completed reason contradicts actual final presence')
+    if eraw is None or runtime.bench.sha(eraw)!=item_end['evidence_sha256']:
+        raise ValueError('Missing or changed actual canonical external evidence')
+    _termination_evidence(eraw,reservation,disposition,reason)
+    bindings['external_end_sha256']=runtime.bench.sha(raw)
+    return {'ended':True,'disposition':disposition,'reason':reason},bindings
+
+
+def reserve_external_run(directory: Path, metadata: dict) -> dict:
+    """Operator only: reserve collection before any model/provider call."""
+    with exclusive(directory):
+        manifest,events=history(directory)
+        if events or (directory/'completion.json').exists() or _reservation(directory) is not None:
+            raise ValueError('External collection needs one pristine selected workspace')
+        if (not isinstance(metadata,dict) or set(metadata)!={'client','client_source_sha256_lf','selection_sha256'}
+                or not isinstance(metadata.get('client'),str) or not 0<len(metadata['client'])<=256):
+            raise ValueError('Invalid external client metadata')
+        _digest(metadata['client_source_sha256_lf']);_digest(metadata['selection_sha256'])
+        item={'schema_version':1,'kind':'fixed-target-external-run','created_at':now(),
+            'session_sha256':runtime.bench.sha((directory/'session.json').read_bytes()),'metadata':metadata}
+        write_new(directory/'external-run.json',item)
+        return item
+
+
+def finish_external_run(directory: Path, *, disposition: str, reason: str, evidence: Path) -> dict:
+    """Bind a real termination artifact; never replace a genuine native final."""
+    with exclusive(directory):
+        manifest,events=history(directory);reservation=_reservation(directory)
+        if reservation is None or (directory/'completion.json').exists():
+            raise ValueError('An open reserved external run is required')
+        if any(_present(directory/name) for name in ('external-end.json','external-evidence.json')):
+            raise ValueError('External end/copy already exists; inspect interrupted evidence, never overwrite')
+        if not isinstance(disposition,str) or not isinstance(reason,str) or reason not in EXTERNAL_REASONS.get(disposition,set()):
+            raise ValueError('Unknown external disposition/reason')
+        final=any(e['action']=='submit' for e in events)
+        if disposition=='completed' and ((reason=='final-submitted')!=final):
+            raise ValueError('External completed reason contradicts actual final presence')
+        raw=_external_raw(evidence);_termination_evidence(raw,reservation,disposition,reason)
+        with (directory/'external-evidence.json').open('xb') as stream:stream.write(raw)
+        item={'schema_version':1,'kind':'fixed-target-external-end','ended_at':now(),
+            'session_sha256':reservation[1]['session_sha256'],'reservation_sha256':runtime.bench.sha(reservation[0]),
+            'history_sha256':runtime.bench.sha(runtime.bench.encoded(events)),'event_count':len(events),
+            'disposition':disposition,'reason':reason,'evidence_sha256':runtime.bench.sha(raw)}
+        write_new(directory/'external-end.json',item)
+        return item
+
+
+def _outcome(directory: Path, events: list[dict]) -> tuple[str,bool,dict]:
+    external,bindings=_external_state(directory,events)
+    final=next((e for e in events if e['action']=='submit'),None)
+    interrupted=any(e['result'] is None for e in events)
+    if final is not None:
+        return ('infrastructure-error' if final['result'] is None else final['result']['kind']),interrupted,bindings
+    if external is not None and not external['ended']:interrupted=True
+    infrastructure=interrupted or (external is not None and external.get('disposition')=='infrastructure-error')
+    return ('infrastructure-error' if infrastructure else 'no-final-submission'),interrupted,bindings
 
 
 def act(directory: Path, request: dict) -> dict:
@@ -139,6 +291,9 @@ def act(directory: Path, request: dict) -> dict:
         manifest,events=history(directory)
         if (directory/'completion.json').exists() or any(e['action']=='submit' for e in events):
             raise ValueError('The first final submission has already sealed this workspace')
+        _external_state(directory,events)
+        if (directory/'external-end.json').exists() or (directory/'external-evidence.json').exists():
+            raise ValueError('External collection ended or has a partial termination copy; no further actions')
         if any(e['result'] is None for e in events):raise ValueError('Inspect interrupted evidence; never silently retry')
         if request['action']=='check' and len(events)>=manifest['max_checks']:
             raise ValueError('Declared check-call budget exhausted')
@@ -191,15 +346,15 @@ def close(directory: Path) -> dict:
     with exclusive(directory):
         manifest,events=history(directory)
         final=next((e for e in events if e['action']=='submit'),None)
-        interrupted=any(e['result'] is None for e in events)
-        outcome=('infrastructure-error' if interrupted else final['result']['kind'] if final else 'no-final-submission')
+        outcome,interrupted,external_bindings=_outcome(directory,events)
         result={'schema_version':1,'kind':'fixed-target-workspace-completion','closed_at':now(),
             'session_sha256':runtime.bench.sha((directory/'session.json').read_bytes()),
             'id':manifest['id'],'denominator':1,'check_calls':sum(e['action']=='check' for e in events),
             'final_submissions':int(final is not None),'final_outcome':outcome,
             'final_accepted':outcome=='accepted','interrupted':interrupted,
             'provenance_authenticated':False,'model_measurement':False,
-            'scope':'One operator-recorded trajectory, not a suite/model score. Invalid/missing finals remain selected; infrastructure errors are distinct.'}
+            'scope':'One operator-recorded trajectory, not a suite/model score. Invalid/missing finals remain selected; infrastructure errors are distinct.',
+            **external_bindings}
         write_new(directory/'completion.json',result)
         return result
 
@@ -257,6 +412,10 @@ def suite_status(directory: Path, *, finish: bool=False) -> dict:
                     or session['provenance']!=manifest['provenance']
                     or session['max_checks']!=manifest['max_checks_per_target']):
                 raise ValueError('Suite/child binding or declared policy drift')
+            # Validate any present chain even for an unclosed child. Valid
+            # unended collection stays unfinished; corrupt evidence is not a
+            # liveness question and must not be silently treated as valid.
+            _external_state(task_dir,events)
             completion=task_dir/'completion.json'
             if finish and not completion.exists():
                 close(task_dir)
@@ -266,11 +425,12 @@ def suite_status(directory: Path, *, finish: bool=False) -> dict:
                 if (value['session_sha256']!=runtime.bench.sha((task_dir/'session.json').read_bytes())
                         or value['denominator']!=1):
                     raise ValueError('Child completion/session drift')
-                final=next((e for e in events if e['action']=='submit'),None)
-                expected=('infrastructure-error' if any(e['result'] is None for e in events)
-                    else final['result']['kind'] if final else 'no-final-submission')
+                expected,interrupted,external_bindings=_outcome(task_dir,events)
                 if value['final_outcome']!=expected or value['final_accepted']!=(expected=='accepted'):
                     raise ValueError('Child completion/history drift')
+                recorded_bindings={key:digest for key,digest in value.items() if key.startswith('external_')}
+                if recorded_bindings!=external_bindings:
+                    raise ValueError('Child completion/external evidence drift')
                 rows.append({'id':identity,'outcome':expected,'completion_sha256':runtime.bench.sha(completion.read_bytes())})
             else:rows.append({'id':identity,'outcome':'unfinished','completion_sha256':None})
         counts={kind:sum(row['outcome']==kind for row in rows) for kind in sorted({row['outcome'] for row in rows})}

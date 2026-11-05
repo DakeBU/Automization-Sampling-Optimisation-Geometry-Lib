@@ -26,6 +26,18 @@ Do not spend this reader/evaluator phase manufacturing further background wrappe
 Already verified mathematics and older frontiers remain intact, not abandoned.
 See docs/bench-reader-contract.md and ECOSYSTEM.md for acceptance.
 
+Current2026-11-06 checkpoint: PR379 is merged at main747b4653 with successful
+PR/main software gates and actual public nine-route reader readback. Detailed
+receipts are in runs/20261105-bench-lean-runtime. The experimental fixed-target
+CLI's controlled software acceptance is not a measured model benchmark.
+The separate codex/sog-bench-model-bridge packet now has independently reviewed
+code for canonical external termination and response identity; its original
+failed designs/code reports are preserved under runs/20261106-bench-model-bridge.
+New Linux native bridge evidence and authorized provider/model trials are still
+required. Do not repeat the completed visual hierarchy or turn mocked API-shaped
+fixtures into model scores. Missing model authorization does not license paid
+calls; continue dependency-ready source/exercise depth while it is unavailable.
+
 Reader milestone1 is now actually merged/deployed at main692973fc (PR377), with
 fresh PR/main gates and nine public desktop/mobile routes read back, including
 all three subject prompt-download hashes and both graph entrances. The independent

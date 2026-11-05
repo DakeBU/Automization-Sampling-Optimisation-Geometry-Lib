@@ -377,17 +377,74 @@ def workspace_trials(root: Path):
     if not summary['passed']:raise SystemExit(1)
 
 
+def model_bridge_trials(root: Path):
+    """Real native verifier + scripted API-shaped client, never a model run."""
+    import sog_bench_lean_model as bridge
+    workspace=bridge.workspace
+    if json.loads((root/'workspace-trials.json').read_bytes()).get('passed') is not True:
+        raise ValueError('Pass actual workspace acceptance before model-interface fixtures')
+    output=root/'model-bridge-trials'
+    if output.exists():raise ValueError('Never overwrite model-interface evidence')
+    output.mkdir()
+    identities=json.loads((root/'software-trials.json').read_bytes())['selected_task_ids'][:2]
+    if len(identities)!=2:raise ValueError('Two actually admitted targets required')
+    identity=identities[0];model='scripted-native-interface-fixture-not-a-model'
+    provenance={'kind':'controlled-software-fixture','name':'scripted-model-interface',
+        'provider':'controlled-responses-fixture','model':model,'model_version':model,
+        'retrieval_profile':'provided-prompt-template-only','tools':['lean_workspace'],
+        'decoding':{'max_output_tokens':4096},'seed':None}
+    class Fixture:
+        kind='controlled-native-model-interface-fixture'
+        def __init__(self,repair=False):self.requests=[];self.repair=repair
+        def __call__(self,raw):
+            request=json.loads(raw);self.requests.append(request)
+            if not self.repair:raise bridge.ProviderFailure('controlled-provider-transport-fault','provider-transport')
+            index=len(self.requests)
+            source=('theorem sogBenchTarget : True := by trivial\n' if index==1 else
+                (root/'tasks'/identity/'oracle/Solution.lean.txt').read_text())
+            reply={'id':'controlled-response-'+str(index),'status':'completed','model':model,
+                'output':[{'type':'function_call','name':'lean_workspace','call_id':'controlled-call-'+str(index),
+                    'arguments':json.dumps({'action':'check' if index==1 else 'submit','source':source})}]}
+            return runtime.bench.encoded(reply),{'http_status':200,'controlled_software_fixture':True}
+    results=[]
+    for label,repair in [('native-compiler-repair-loop',True),('provider-failure-full-selection',False)]:
+        suite=output/label
+        workspace.start_suite(tasks=root/'tasks',stages=root/'stages',prepared=root,
+            output=suite,task_ids=identities,provenance=provenance,max_checks=1)
+        provider=Fixture(repair)
+        result=bridge.run(suite/'tasks'/identity,output/(label+'-transcript'),
+            model=model,max_output_tokens=4096,provider=provider)
+        rolled=workspace.suite_status(suite,finish=True)
+        if repair:
+            feedback=[item for item in provider.requests[1]['input'] if item.get('type')=='function_call_output']
+            observed=json.loads(feedback[-1]['output'])
+            passed=(result['final_outcome']=='accepted' and observed['kind']=='proof-rejected'
+                and 'Challenge and solution theorem statement do not match' in observed['diagnostic']
+                and rolled['denominator']==2 and rolled['outcome_counts']=={'accepted':1,'no-final-submission':1})
+        else:
+            passed=(len(provider.requests)==1 and result['final_outcome']=='infrastructure-error'
+                and rolled['denominator']==2 and rolled['outcome_counts']=={'infrastructure-error':1,'no-final-submission':1})
+        results.append({'fixture':label,'passed':passed,'provider_calls':0,'api_shaped_fixture_turns':len(provider.requests)})
+    summary={'schema_version':1,'kind':'controlled-native-model-interface-fixtures','results':results,
+        'passed':all(item['passed'] for item in results),'model_measurement':False,'provider_calls':0,
+        'scope':'Actual Linux compiler feedback/first-final and canonical infrastructure rollup through a scripted client; no API credentials, real provider, AI reasoning or model score.'}
+    (root/'model-bridge-trials.json').write_bytes(runtime.bench.encoded(summary));print(json.dumps(summary),flush=True)
+    if not summary['passed']:raise SystemExit(1)
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='cmd',required=True)
     x=sub.add_parser('prepare');x.add_argument('--output',type=Path,required=True)
     x=sub.add_parser('trials');x.add_argument('--runtime',type=Path,required=True);x.add_argument('--task-id',action='append')
     x=sub.add_parser('hostile-trials');x.add_argument('--runtime',type=Path,required=True)
     x=sub.add_parser('workspace-trials');x.add_argument('--runtime',type=Path,required=True)
+    x=sub.add_parser('model-bridge-trials');x.add_argument('--runtime',type=Path,required=True)
     args=parser.parse_args()
     if args.cmd=='prepare':prepare(args.output.resolve())
     elif args.cmd=='trials':trials(args.runtime.resolve(),args.task_id)
     elif args.cmd=='hostile-trials':hostile_trials(args.runtime.resolve())
-    else:workspace_trials(args.runtime.resolve())
+    elif args.cmd=='workspace-trials':workspace_trials(args.runtime.resolve())
+    else:model_bridge_trials(args.runtime.resolve())
 
 
 if __name__=='__main__':main()

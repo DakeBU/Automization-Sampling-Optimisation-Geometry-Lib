@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "kind": "independent-M1-contract-preflight",
+  "reviewed_at": "2026-11-06",
+  "base_head": "8f9261f4de0bff9f853b15fa9d7de700976e8a07",
+  "branch": "codex/sog-bench-model-bridge",
+  "reviewed_contract": "runs/20261106-bench-model-bridge/m1-contract.md",
+  "reviewed_contract_sha256_raw": "70caa1b2935ad2c08ba577e9c9f0c253fc95a1c4c37fd91a9ed5cdfd04959936",
+  "decision": "changes-requested-before-implementation",
+  "M1_status": "OPEN; this is a candidate contract, not an implemented accounting repair",
+  "M2_status": "Prior narrow repair acceptance unchanged; not reopened",
+  "checks_actually_run": [
+    "Read the complete exact-hash candidate contract and compared its rules with the preserved original M1 and accepted recorder behavior from the earlier reviews.",
+    "Read-only HEAD/branch/status and contract/prior-report SHA256 checks. Checked accepted engine/workspace source paths versus34af8bac: no delta. Root has not implemented M1 in those files.",
+    "No unit/native/provider tests were run: there is no M1 implementation to test in this preflight. No credentials, provider calls, host Lean execution, network access, agents, production/Goal/Cell/ledger/metadata/branch edits or unrelated integration review occurred. Only this new report was written."
+  ],
+  "blocking_design_findings": [
+    {
+      "id": "C1",
+      "severity": "medium",
+      "title": "A hash-only termination-evidence argument does not define a verifiable canonical evidence artifact",
+      "location": "Interface and authority: finish_external_run(..., evidence_sha256), together with Canonical completion and batch accounting",
+      "evidence": "The reservation metadata has only client, client-source hash and selection hash. finish accepts a64-hex evidence digest, but the contract defines neither canonical evidence bytes/location nor a way for the workspace to read the actual termination evidence. Completion/suite accounting can rehash external-run.json and external-end.json without checking the real evidence whose digest is merely asserted inside the end record.",
+      "impact": "The promised later-drift and cause-binding checks are underspecified. A valid-looking hash can refer to absent or changed client evidence, or evidence for another session/reservation/selection/cause, while the reservation/end record hashes themselves remain internally consistent. This is a normal evidence-integrity gap even without assuming a malicious operator.",
+      "required_resolution": "Define an actual bounded canonical termination-evidence artifact, its required session/reservation/selection/client-source/disposition/reason bindings, how finish validates and durably records it, and how close/suite accounting re-read and rehash its real bytes. Define partial-copy/no-end behavior without fabricating a successful seal. The exact successor contract should be independently checked before implementation.",
+      "status": "Open in the reviewed70caa1 contract. Coordinator has proposed a successor after this finding; its future bytes are not reviewed or accepted by this report."
+    }
+  ],
+  "required_precisions_before_code": [
+    {
+      "topic": "Meaning and precedence of a genuine final result",
+      "requirement": "Define a result as the valid persisted observation/result hash pair accepted by history(), not merely a result.json pathname existing after a crash. A valid final accepted/proof-rejected/invalid/resource-limit/infrastructure result must retain its exact outcome. A valid wall/output-limited final is not an unobserved interrupted action merely because its native result contains an interruption field. Missing observation/result evidence remains interrupted infrastructure; malformed/hash-drifted evidence fails closed. Make the ordered derivation explicit in tests."
+    },
+    {
+      "topic": "Provider versus model failure classification",
+      "requirement": "Specify the validation order and distinguish malformed provider envelopes/status/identity from well-formed completed model responses with unusable function calls. Only a well-formed, identity-valid response with the exact declared max_output_tokens incomplete cause should become the model-output-budget category; do not derive that classification from an unvalidated envelope. A completed genuine missing/malformed/unknown call can be the stated model protocol/no-final outcome. These are recording-policy distinctions, not a new provider or security acceptance claim."
+    }
+  ],
+  "sound_directions_in_the_candidate": [
+    "Reserving one external run under the existing operator lock before any provider call, with no overwrite/retry and no new model-facing action, directly addresses the original collection-reservation problem.",
+    "No-final infrastructure ends become a distinct unscored infrastructure outcome while all selected targets remain represented. Genuine finals cannot be replaced, forgiven into exclusions or reopened by external failure.",
+    "Read-only status does not infer liveness or terminal failure from an unended reservation. Keeping an unclosed child unfinished until explicit close/suite-close after work stops is the correct authority boundary.",
+    "One shared outcome derivation for close and suite_status, binding external lifecycle records and actual event history, is the correct direction for preventing completion/rollup disagreement.",
+    "No actions after an external end, old closed archive immutability and fail-closed unsupported legacy prototype sessions preserve relevant prior boundaries.",
+    "The proposed tests cover final outcomes, interruptions, duplicate operations, drift and actual two-target suite accounting; exact-code review and a credential-free native boundary fixture remain required afterward."
+  ],
+  "acceptance_limits": [
+    "This report neither implements M1 nor admits the bridge. C1 must be resolved in an exact successor contract, then code/tests reviewed; any proposed successor details discussed after the reviewed hash are not credited here.",
+    "PR379 merge/CI status is supplied context and was not re-audited. Accepted native08 software scope, M2 review and broader provider/native/model/security/whole-Goal work remain separate."
+  ],
+  "preserved_prior_report_sha256_raw": {
+    "independent-design-review.json": "0bd2e563864bf7fa950b9a17d6ab3fcfa4c8dd1ca6bc641b968209b058ed9854",
+    "m2-repair-review.json": "dd7f35eb5cfb66ba346aaf085503a85fb9b86cd00e4562756cd94a2408591cd9"
+  }
+}

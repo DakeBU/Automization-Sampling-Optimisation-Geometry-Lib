@@ -11,6 +11,7 @@ import astis_site
 import source_lineage
 import sog_bench as bench
 import sog_bench_graph_review as graph_review
+import bench_portals
 
 ROOT = Path(__file__).resolve().parents[2]
 HUB = 'benchmarks/samplingoptimisationgeometrybench/'
@@ -188,39 +189,7 @@ def review_panel(core: dict, row: dict | None = None) -> str:
 
 
 def home(cores: list[dict]) -> str:
-    graphs = bench.curriculum.graph_items()
-    review = bench.editorial_review(cores)
-    structural = graph_review.summary(graphs)
-    return (f'<article class="sog-reader" {MARKER}><div class="eyebrow">Public development curriculum · {escape(bench.load()["version"])}</div>'
-        '<h1 class="sog-name">Sampling<wbr>Optimisation<wbr>Geometry<wbr>Bench</h1><p class="lede">Evaluate mathematical reasoning. Read the proofs. Inspect what Lean actually verifies.</p>'
-        f'<p class="sog-stats">{len(cores)} mathematical cores · {len(bench.prompts(cores))} mathematical QA views · {len(graphs)} structural graph tasks</p>'
-        '<p class="sog-caption">Public development data. Difficulty is provisional; no measured model leaderboard or hidden test set is claimed.</p>'
-        '<section class="sog-grid sog-actions" aria-label="Choose how to use the Bench">'
-        '<article><small>01 · Learn and inspect</small><h2>Explore the tasks</h2><p>Seven domains, textbook exercises, formula proofs and optional Lean.</p><a class="button primary" href="curriculum/index.html">Browse tasks</a></article>'
-        '<article><small>02 · Build on the curriculum</small><h2>Train a model</h2><p>Separate prompt-only task packages from reviewed reference answers.</p><a class="button" href="training/index.html">Training data and task API</a></article>'
-        '<article><small>03 · Record a reproducible run</small><h2>Evaluate</h2><p>Choose a track, freeze first answers, and use the appropriate verifier.</p><a class="button" href="evaluation/index.html">Run and assess answers</a></article>'
-        '<article><small>04 · Check the mathematics</small><h2>Expert review</h2><p>Find the actual library result, source and graph position behind each task.</p><a class="button" href="experts/index.html">Inspect Lean graph positions</a></article></section>'
-        '<p><a class="button" href="curriculum/index.html">Browse seven domains and L1–L5 coverage</a> '
-        '<a class="button" href="textbook-exercises/index.html">Textbook exercises &amp; answers</a></p>'
-        '<p class="sog-tracks"><a href="natural-language/index.html">Try natural-language questions</a> · <a href="lean/index.html">Try Lean questions</a> · <a href="graph-json/index.html">Try graph questions</a></p>'
-        '<section><h2>Versioned downloads</h2><p><a href="downloads/agent-tasks.zip" download>Prompt-only agent task packages</a> · <a href="downloads/task-index.json">Task API index</a></p><p><a href="downloads/questions.jsonl" download>Prompt-only JSONL</a> · '
-        '<a href="downloads/reference.jsonl" download>References and rubrics</a> · '
-        '<a href="downloads/manifest.json" download>Version and hashes</a> · '
-        '<a href="pilot.zip" download>Download the full pilot</a></p>'
-        '<p>Prefer the separate <a href="downloads/reviewed-questions.jsonl" download>editorially reviewed prompts</a> and <a href="downloads/reviewed-reference.jsonl" download>reviewed references</a> for the reviewed subset. Review is AI editorial checking, not full Lean verification.</p>'
-        '<p>Public questions and answers may already occur in training data. This is not an unseen test set, a model ranking, or evidence that a paper is fully formalized.</p></section>'
-        + fold('Numbered textbook exercises and our reference solutions',
-            '<p>The Bench must include actual source-pinned textbook exercises as well as original library-grounded QA. Each needs the original number and edition, a license-compliant complete statement, our stepwise formula answer, independent review and exact compiled Lean/graph links. Partial solutions stay partial; alternative valid proofs receive credit.</p>'
-            '<p><a class="button" href="textbook-exercises/index.html">Browse numbered textbook exercises</a></p>'
-            '<p><a href="downloads/TEXTBOOK_EXERCISES.md">Verified source intake and admission checklist</a> · '
-            '<a href="../../libraries/optimisation/chapter-03.html#chewi-opt-v1-exercise-3-2">Existing Chewi Optimization Exercise 3.2 source/solution window</a>.</p>'
-            '<p>Intake itself is not admission, an aligned Lean QA or proof that all exercises are complete. Per-question review and named owned-answer build state appear separately in the directory. This does not substitute for Log-Concave Sampling, the cited Statistical Optimal Transport route or the other seven-domain material. Original QA is never relabelled as an original-book exercise.</p>')
-        + fold('Evaluation policy and contribution guide',
-            f'<p>{review["accepted_cores"]} mathematical cores and {structural["accepted_tasks"]} graph tasks have current content-bound AI editorial acceptance. This is not full Lean coverage or empirical calibration.</p>'
-            '<p>Each pair shares one core, family and public-dev split. Score the two tracks separately. Human-assessed natural-language rubrics have four one-point criteria; no automated semantic grader is claimed.</p>'
-            '<p>Lean compiler acceptance certifies the fixed proposition only. Arbitrary model output requires target-preservation checks and an isolated, resource-limited sandbox. No submission execution service or AI API is connected here.</p>'
-            '<p>Only original or permission-cleared material may enter ML training/evaluation. Restricted external indexes and their derivatives are excluded. Each question discloses its current editorial status and remaining formal boundary; compilation is not that review. Future drafts require their own review.</p>'
-            '<p><a href="downloads/README.md">Commands, grading protocol and how to add a core</a> · <a href="downloads/LICENSE_SCOPE.md">License boundaries</a></p>') + '</article>')
+    return bench_portals.home(cores, bench.curriculum.graph_items())
 
 
 def local_navigation(tail: str) -> str:
@@ -228,12 +197,16 @@ def local_navigation(tail: str) -> str:
     links = [('index.html', 'Overview'), ('curriculum/index.html', 'Browse tasks'),
              ('training/index.html', 'Train'), ('evaluation/index.html', 'Evaluate'),
              ('experts/index.html', 'Expert review')]
-    return '<nav class="sog-local-nav" aria-label="Bench workflow">' + ''.join(
+    return '<nav class="sog-local-nav" aria-label="Bench workflow"><a href="'+prefix+'index.html">Bench overview</a><details class="sog-tools"><summary>Tools</summary>' + ''.join(
         '<a href="' + prefix + path + '"' + (' aria-current="page"' if tail == path else '') + '>' + label + '</a>'
-        for path, label in links) + '</nav>'
+        for path, label in links) + '</details></nav>'
 
 
 def training_page() -> str:
+    return bench_portals.training_page()
+
+
+def training_guide() -> str:
     return (f'<article class="sog-reader" {MARKER}><h1>Training data and task API</h1>'
         '<p>Use the reviewed public curriculum for training or development. Do not call it an unseen test. <a href="../downloads/ECOSYSTEM.md">Full ecosystem and environment contract</a>.</p>'
         '<section><h2>1. Choose what your agent can see</h2><div class="sog-grid">'
@@ -297,8 +270,18 @@ def track_page(cores: list[dict], track: str) -> str:
         '<div class="sog-grid">' + cards + '</div></article>')
 
 
+def prompt_actions(core: dict, track: str, review: dict) -> str:
+    if review['editorial'] not in ('accepted', 'accepted-after-repair'):
+        return ''
+    path = 'downloads/tasks/' + core['id'] + '/' + track + '/prompt.json'
+    return ('<p class="sog-prompt-actions"><button type="button" data-sog-copy-prompt="' + path
+            + '">Copy model prompt (JSON)</button> <a download href="' + path + '">Download prompt-only task</a>'
+            '<span data-sog-copy-status role="status" aria-live="polite"></span></p>')
+
+
 def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, known: dict | None = None, structural: list[dict] | None = None, review_row: dict | None = None) -> str:
     from urllib.parse import quote
+    review_row = review_row or bench.editorial_review([core])['items'][core['id']]
     rel = HUB + core['id'] + '.html'
     known = known or astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
     declaration = known[core['declaration']]
@@ -328,6 +311,7 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
                 '<p><a href="downloads/lean/' + core['id'] + '-support.lean" download>Download exact supporting module</a>'
                 ' · Uses the project toolchain and its listed imports; not a standalone replacement QA proof.</p>'))
     formal_view = ('<section id="lean"><h2>Lean question</h2><p>Keep the target and context fixed; replace the comment slot with your proof. Ancestor libraries are allowed, but the target module is not imported directly.</p>'
+        + prompt_actions(core, 'lean', review_row)
         + fold('Show fixed Lean task', astis_site.code_html(core['lean_task'])
                + '<p><a href="downloads/lean/' + core['id'] + '-task.lean.txt" download>Download task template</a></p>')
         + fold('Reference Lean and explanation', lean) + prose(status) + '</section>') if bench.has_lean(core) else (
@@ -350,27 +334,27 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
     graph_links=('<p>Structural questions about this proof context (not equivalent mathematical tasks): '+
                  ' · '.join('<a href="'+g['id']+'.html">'+escape(g['title'])+'</a>' for g in related)+'</p>') if related else ''
     graph_position = ('<aside class="sog-graph-position" data-lean-graph-position="' + escape(graph_id) + '">'
-        '<div><span class="eyebrow">Library result behind this task</span><h2>'
-        + escape(declaration.short_name) + '</h2></div>'
-        '<p><a class="button" href="../../underlying-lean-graph/index.html?focus='
-        + quote(graph_id, safe='') + '">' + graph_label + '</a> '
-        '<a href="' + escape(href) + '">Read the exact source</a></p>'
-        + prose('Aligned fixed Lean task; its conclusion does not certify every explanatory claim.'
-                if bench.has_lean(core) else 'Library support only: this question has no aligned fixed Lean reconstruction task.')
-        + '<p class="sog-caption">A graph location is not a proof-dependency or mathematical-necessity claim. '
-        'Open the task proof and coverage notes below for its exact scope.</p></aside>')
+        '<p class="sog-graph-short"><a href="../../underlying-lean-graph/index.html?focus='
+        + quote(graph_id, safe='') + '">Lean Graph ↗</a> · <a href="' + escape(href) + '">Source ↗</a>'
+        + '<small>' + ('Aligned fixed target' if bench.has_lean(core) else 'Supporting Lean only') + ' · '
+        + ('Declaration anchor' if graph_id.startswith('decl:') else 'Owning-module anchor') + '</small></p>'
+        + fold('Graph location and verification scope', '<h2>' + escape(declaration.short_name) + '</h2>'
+            + prose('Aligned fixed Lean task; its conclusion does not certify every explanatory claim.'
+                    if bench.has_lean(core) else 'Library support only: this question has no aligned fixed Lean reconstruction task.')
+            + '<p class="sog-caption">A graph location is not a proof-dependency or mathematical-necessity claim. Read the exact scope below.</p>')
+        + '</aside>')
     return (f'<article class="sog-reader" {MARKER}><p><a href="index.html">Bench</a> / ' + escape(core['domain']) + '</p>'
         '<div class="eyebrow">' + escape(core['id']) + ' · public-dev · editorial and formal status separate</div><h1>' + escape(core['title']) + '</h1>'
         + '<p>' + escape(domain_names(core)) + ' · ' + escape(' / '.join(t + ': ' + l for t, l in core['track_levels'].items())) + ' (author-assigned; calibration pending)</p>'
         + graph_position
         + exercise_panel(core, checked)
-        + fold('Why this difficulty?', prose(core['difficulty_reason']))
-        + review_panel(core, review_row)
         + '<section><h2>Assumptions and conventions</h2>' + assumptions + '</section>'
-        '<section id="natural-language"><h2>Natural-language question</h2>' + prose(core['question'])
+        '<section id="natural-language"><h2>Natural-language question</h2>' + prompt_actions(core, 'natural-language', review_row) + prose(core['question'])
         + fold('Reference mathematical proof', proof + fold('How the Lean proof follows these steps' if bench.has_lean(core) else support_title, lean))
         + fold('Assessment rubric · 4 points', rubric) + '</section>'
         + formal_view
+        + fold('Why this difficulty?', prose(core['difficulty_reason']))
+        + review_panel(core, review_row)
         + graph_links + '<section><h2>What this does—and does not—verify</h2>' + prose(core['boundary'])
         + '<p>Existing library mathematics reused; no new mathematical leaf or paper-completion credit. The editorial panel records the exact current review scope and remaining unformalized explanation.</p></section>'
         + fold('Sources, graph location and dependencies', prose(core['source_note'])
@@ -451,6 +435,10 @@ def graph_page(item: dict) -> str:
 
 
 def evaluation_page() -> str:
+    return bench_portals.evaluation_page()
+
+
+def evaluation_guide() -> str:
     prepare = 'python tools/sog_bench_prose.py prepare --submissions responses.jsonl --run-metadata run.json --output .astis/sog-bench/runs/my-run'
     score = 'python tools/sog_bench_prose.py score --packet .astis/sog-bench/runs/my-run --adjudication completed.json --output .astis/sog-bench/runs/my-run-score.json'
     return (f'<article class="sog-reader" {MARKER}><p><a href="../index.html">Bench</a></p><h1>Run and assess answers</h1>'
@@ -532,8 +520,15 @@ def enrich_site(output: Path) -> None:
     target.mkdir(parents=True, exist_ok=True)
     bench.export(target / 'downloads', cores)
     bench.archive_bytes(target / 'downloads', target / 'pilot.zip')
+    for collection in bench_portals.configuration()['collections']:
+        folder = target / collection['id']
+        folder.mkdir(parents=True, exist_ok=True)
+        for filename, content in bench_portals.collection_assets(target/'downloads',cores,collection).items():
+            (folder/filename).write_bytes(content)
     shutil.copyfile(ROOT / 'website/static/sog-bench.css', output / 'assets/sog-bench.css')
-    pages = [('index.html', 'SamplingOptimisationGeometryBench', home(cores))]
+    pages = [('index.html', bench_portals.configuration()['display_name'], home(cores))]
+    pages += [(c['id']+'/index.html', c['name'], bench_portals.collection_page(cores,c))
+              for c in bench_portals.configuration()['collections']]
     graphs = bench.curriculum.graph_items()
     pages += [(track + '/index.html', track.replace('-', ' ').title(), track_page(cores, track)) for track in bench.TRACKS]
     pages += [(c['id'] + '.html', c['title'], core_page(c, checked, graph_ids, known,graphs,review_rows[c['id']])) for c in cores]
@@ -541,7 +536,9 @@ def enrich_site(output: Path) -> None:
     graphs = bench.curriculum.graph_items()
     pages.append(('curriculum/index.html', 'Bench curriculum', curriculum_page(cores)))
     pages.append(('evaluation/index.html', 'Run and assess answers', evaluation_page()))
+    pages.append(('evaluation/guide.html', 'Recording and scoring answers', evaluation_guide()))
     pages.append(('training/index.html', 'Training data and task API', training_page()))
+    pages.append(('training/guide.html', 'Training and environment guide', training_guide()))
     pages.append(('experts/index.html', 'Expert review and Lean graph positions', experts_page(cores, graph_ids, known)))
     pages.append(('textbook-exercises/index.html', 'Numbered textbook exercises', exercise_index(cores, checked)))
     pages += [('domains/' + key + '.html', title, browse_page(cores, key, domain=True)) for key, title in policy['domains'].items()]
@@ -591,15 +588,23 @@ def validate_site(output: Path) -> list[str]:
         errors.append('Bench requires the canonical Lean graph')
     policy = bench.curriculum.curriculum()
     graphs = bench.curriculum.graph_items()
-    extra = ['curriculum/index.html', 'graph-json/index.html', 'evaluation/index.html', 'training/index.html', 'experts/index.html', 'textbook-exercises/index.html',
+    extra = ['curriculum/index.html', 'graph-json/index.html', 'evaluation/index.html', 'evaluation/guide.html', 'training/index.html', 'training/guide.html', 'experts/index.html', 'textbook-exercises/index.html',
+             *(c['id']+'/index.html' for c in bench_portals.configuration()['collections']),
              *('domains/' + d + '.html' for d in policy['domains']),
              *('levels/' + l + '.html' for l in policy['levels']), *(g['id'] + '.html' for g in graphs)]
+    for collection in bench_portals.configuration()['collections']:
+        for filename, content in bench_portals.collection_assets(output/HUB/'downloads',cores,collection).items():
+            path = output / HUB / collection['id'] / filename
+            if not path.is_file() or path.read_bytes() != content:
+                errors.append('Missing or stale Bench collection: '+collection['id']+'/'+filename)
     for rel in ['index.html', *(t + '/index.html' for t in bench.TRACKS), *(c['id'] + '.html' for c in cores), *extra]:
         path = output / HUB / rel
         if not path.is_file() or MARKER not in path.read_text(encoding='utf-8'):
             errors.append('Missing Bench reader: ' + rel)
     current_pages = {'index.html': home(cores), 'evaluation/index.html': evaluation_page(),
-                     'training/index.html': training_page(), 'experts/index.html': experts_page(cores, ids, known),
+                     'evaluation/guide.html': evaluation_guide(),
+                     **{c['id']+'/index.html': bench_portals.collection_page(cores,c) for c in bench_portals.configuration()['collections']},
+                     'training/index.html': training_page(), 'training/guide.html': training_guide(), 'experts/index.html': experts_page(cores, ids, known),
                      'textbook-exercises/index.html': exercise_index(cores, checked),
                      'graph-json/index.html':graph_index_page(graphs),
                      'curriculum/index.html': curriculum_page(cores),

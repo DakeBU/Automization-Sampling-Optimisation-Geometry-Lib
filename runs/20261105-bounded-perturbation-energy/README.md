@@ -195,3 +195,16 @@ including the tall-geometry fixture and unobscured mobile selection. The actual
 mobile screenshot was inspected. Unit/syntax checks pass; the owning Lean
 module SHA256 remains77fc4dec36b7b24297e737a6c00ec04f02543e2cb15638ad02e0a9b14e646fba.
 Clean exact-head CI of this presentation correction is still a separate gate.
+
+## Actual merge of the corrected original PR376
+
+All six exact-head7172466e runs succeeded before merge: formalization41976773655,
+site41976773632, Bench41976773580, native41976773658, contributor41976773565 and
+push contributor41976768201. The original PR376 actually merged at
+207e4b30cb46641736474a17cd9fcafdbe2d0bd5. Its tree equals the accepted head's tree,
+d35629cfaa0418c32778f7368adfd74ee365b1f6. Root recorded one actual MERGED event
+through the API, preserving all4970160 prior ledger bytes and LF-formatting only
+its new tail. This tree equality is not relabelled as fresh main compilation.
+Main CI/Pages, actual public read-back and independent scoped postmerge sealing
+remain separate. The three-subject visual Bench/reader work is a later UI batch,
+not part of this mathematical merge or new QA/exercise admission.

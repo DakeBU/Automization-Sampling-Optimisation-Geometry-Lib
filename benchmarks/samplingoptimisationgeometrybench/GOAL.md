@@ -2,6 +2,30 @@
 
 Build a source-grounded AI knowledge/reasoning benchmark over Samplinglib's seven subject libraries. The active Goal lives in the current human chat; this file is its durable handoff, not a parallel scheduler. Preserve all unrelated mathematical frontiers and collaborator files.
 
+## Current owner priority: a usable research benchmark (2026-11-05)
+
+The public umbrella is **Sampling-Optimisation-Geometry-Bench**, with peer
+SamplingBench, OptimisationBench and GeometryBench entry points. These are
+overlapping navigation collections of the existing catalog, not new datasets,
+families or splits. Benchmarks and Libraries are sibling sidebar shelves;
+Lean Graph and Functor Hypergraph must be visible before secondary project tools.
+Use short visual landing pages, then drill down to tasks, complete statements,
+formula proofs, optional adjacent Lean and source/evidence. Do not hide missing
+verification behind an attractive illustration or truncate mathematical content.
+
+Next order: (1) finish the current verified prerequisite's safe publication and
+ship the hierarchical visual reader; (2) implement and actually test the isolated
+fixed-target Agentic Lean submission environment, including target/axiom checks,
+failure accounting, compiler interaction and hostile/incorrect software fixtures;
+(3) support real declared model runs and mathematical grading with honest
+provenance, contamination and calibration boundaries; (4) continue broader
+seven-domain reasoning depth and actual textbook exercises. Graph JSON trials
+and trusted-reference compilation are not an Agentic Lean benchmark. A portable
+ZIP, API-shaped metadata or a redesigned landing page does not complete this Goal.
+Do not spend this reader/evaluator phase manufacturing further background wrappers.
+Already verified mathematics and older frontiers remain intact, not abandoned.
+See docs/bench-reader-contract.md and ECOSYSTEM.md for acceptance.
+
 ## Admission order
 
 Owner readability/ecosystem clarification (2026-11-04): a task inventory is not
@@ -71,11 +95,12 @@ not another public leaf or admitted QA.
 
 The explicit square-root perturbation-energy result is already independently
 VERIFIED at `891a5c9b`; its existing stabilization lane is now claimed on
-`codex/sog-bench-perturbation-energy`, based on main387ae4e5. The local candidate
-adds the single public calculus/Registry/root-test integration and passes full
-Tests/ASTIS checks, generated site/graph checks and actual desktop/mobile readers.
-Clean exact-head CI, merge, public delivery and independent scoped postmerge
-sealing remain separate; do not reprove the unchanged packet or call it deployed.
+`codex/sog-bench-perturbation-energy`. Its original PR376 is now merged at actual
+main207e4b30 after all six exact-head7172466e checks succeeded. The single public
+calculus/Registry/root-test integration is real, with unchanged reviewed code.
+The initial site failure and two-axis graph-framing correction are preserved.
+Fresh main CI, public delivery and independent scoped postmerge sealing remain
+separate; do not reprove the unchanged packet or call it publicly delivered yet.
 Presentation-only local graph framing, resize/occlusion checks and compact exact-
 identifier headings preserve topology; the ecosystem contract records these
 reader rules. Unrelated collaborator drafts remain untouched and unstaged.

@@ -88,3 +88,17 @@ not a new independent mathematical verdict, a whole-site final gate, Registry
 credit, published graph update, Exposition Seal or public deployment. The
 mathematical source/lesson/binding is unchanged. Final integration must rebuild
 the current canonical site after root/Registry work and check its actual scope.
+
+## Next dependency: reuse the existing cutoff technology
+
+Raw discovery `ASTIS-DISC-20261105-GenericCutoffLimitsAlreadyPrivate` records the
+unchanged main9bb7a739 source: GaussianLogSobolev.cutoff_integral_limits is already
+generic in an arbitrary measure, despite its private Gaussian-module placement.
+It proves mass, entropy and genuine gradient-energy limits under its explicit
+C2/L2/entropy domains. The existing public Gaussian LSI actually calls it.
+Do not reprove these limits from scratch or reach for an unstable mangled name.
+Freeze a canonical extraction/compact-LSI-extension packet after integration,
+with an explicit audit of affected Gaussian/RGO bindings and actual Bench import
+closures. The source compact-LSI assumption concerns smooth tests: a C2 cutoff
+limit alone does not extend that assumption to all C2 tests. This is a retrieved
+reuse route, not a new public API, source-domain proof, Registry leaf or Functor.

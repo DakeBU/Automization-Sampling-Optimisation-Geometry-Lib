@@ -49,3 +49,22 @@ Root imports/tests, Registry and global graph truth have not been changed for
 this exploration. The separately pushed law PR372 remains the sole integration
 lane until its actual clean CI, merge and reader checks finish. Collaborator
 untracked kernel drafts and old blind reports remain untouched.
+
+## Independent exact-commit verification
+
+The actual independent verifier checked pushed head
+`891a5c9b3318c037c9b7f33e722e4901cccebe1b` and its exact production/test/lesson/
+publication bytes. Focused compilation, accepted semantic evidence, reviewed
+target admission, Cell validation and canonical fake-closure scan passed. The
+verifier published one VERIFIED event under its own identity, preserving all
+prior ledger bytes, and set only this Cell to independently_verified. Report:
+`commit-verification.json`, self-hash
+`436da1049665462724b3cb4dd4ee9c0bff218c7836e71729a1ca528689e75672`.
+This is not a whole dirty-worktree gate, root integration or site acceptance.
+The existing Bench consistency check still passes; no QA admission changed.
+The immutable verification report records the exact CRLF tail emitted by the
+Windows append API. The coordinator subsequently normalized only that one new
+event's terminating CRLF to LF for git diff --check, preserving its JSON payload
+and every baseline byte. The report's after-byte hash is historical pre-format
+evidence, not a claim about the subsequently formatted ledger. No new VERIFIED
+event, reviewer identity or verdict was created by this formatting operation.

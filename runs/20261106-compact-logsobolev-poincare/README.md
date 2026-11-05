@@ -18,6 +18,11 @@ bound to the fresh [review packet](source-review.packet.json) and anonymous
 reconstruction, separately accepted the seven semantic slots with no deltas.
 This is not Bench editorial review or deployment evidence.
 
+The independent [local VERIFIED admission](independent-verification.json)
+checks exact proof/source commit `e757040f0f8ac528fe2306e0e2e5cd0091ab016c`.
+It records clean-checkout contributor/publication checks and the pinned
+focused evidence, without asserting fresh clean Lean compilation or remote CI.
+
 The remaining wider-domain obligation should reuse the original compact
 gradient graph rather than a new unrelated energy. On a probability measure,
 the mean is continuous on L² (inner product with the constant one), so

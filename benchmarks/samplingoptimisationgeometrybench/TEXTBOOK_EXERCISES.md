@@ -59,6 +59,13 @@ Lean proof or a source-equivalence verdict. In particular:
   abstract reversible-semigroup conclusion must not be conflated. Same
   admissible constant means `C_PI <= C_LSI` for optimal constants, not equality.
 
+The [compact Euclidean linearization packet](../../runs/20261106-compact-logsobolev-poincare/README.md)
+now has a compiled and independently locally VERIFIED same-constant conclusion.
+It derives centering, test admissibility and both limits from the given compact
+smooth test and compact function LSI. The wider graph/core and abstract
+reversible domains, optimal-constant passage and Bench admission are still
+separate; the theorem is not counted as a complete numbered answer.
+
 The primary PDF contains no permission established here to redistribute its
 prose as ML data. Keep the cached PDF/page renders out of exports and author
 original mathematical statements and answers with exact correspondence.

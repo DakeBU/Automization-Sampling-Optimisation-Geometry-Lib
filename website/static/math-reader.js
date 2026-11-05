@@ -29,7 +29,9 @@
   // A complete, explicitly delimited formula is prose even when an old
   // Markdown exporter wrapped it in <code>. Real code and source copies stay code.
   function promoteMathCode(scope) {
-    scope.querySelectorAll("code").forEach((code) => {
+    const promoted = [];
+    const codes = scope.matches?.("code") ? [scope] : scope.querySelectorAll("code");
+    codes.forEach((code) => {
       if (code.closest(skipped) || code.children.length) return;
       const text = normalizeDelimiters(code.textContent.trim());
       if (!/^(?:\\\([\s\S]+\\\)|\\\[[\s\S]+\\\]|\$\$[\s\S]+\$\$|\$[^$\n]+\$)$/.test(text)) return;
@@ -37,7 +39,9 @@
       span.className = "math-inline";
       span.textContent = text;
       code.replaceWith(span);
+      promoted.push(span);
     });
+    return promoted;
   }
 
   let fitFrame;
@@ -139,16 +143,26 @@
   let chain = Promise.resolve();
   const pending = new Set();
   let timer;
+  let mathObserver;
 
   function queueMath(scope) {
     if (!scope || scope.closest(skipped)) return;
+    if (scope.matches("code")) {
+      promoteMathCode(scope).forEach(queueMath);
+      return;
+    }
     pending.add(scope);
     clearTimeout(timer);
     timer = setTimeout(() => {
-      const scopes = [...pending].filter((node) => node.isConnected);
+      const nodes = [...pending];
       pending.clear();
       chain = chain.then(async () => {
+        const connected = nodes.filter((node) => node.isConnected);
+        const scopes = connected.filter((node) => !connected.some((other) => other !== node && other.contains(node)));
         scopes.forEach(prepareMath);
+        // Discard only our synchronous delimiter/code-promotion mutations.
+        // The observer stays active for genuine later edits during typesetting.
+        mathObserver?.takeRecords();
         await window.MathJax.typesetPromise(scopes);
         revealMath();
       }).catch((error) => console.error("Reader math rendering failed", error));
@@ -162,19 +176,28 @@
       return window.MathJax.startup.defaultPageReady().then(() => {
         revealMath();
         // Typeset only new mathematical text, never MathJax's own output.
-        const observer = new MutationObserver((records) => {
+        mathObserver = new MutationObserver((records) => {
           records.forEach((record) => {
             const parent = record.target.nodeType === Node.TEXT_NODE
               ? record.target.parentElement : record.target;
             if (!(parent instanceof Element) || parent.closest(skipped)) return;
             const nodes = record.type === "characterData" ? [record.target] : [...record.addedNodes];
-            if (nodes.some((node) => {
-              if (node.nodeType === Node.TEXT_NODE) return hasMath(node.nodeValue);
-              return node instanceof Element && !node.matches(skipped) && hasMath(node.textContent);
-            })) queueMath(parent);
+            nodes.forEach((node) => {
+              if (node.nodeType === Node.TEXT_NODE && hasMath(node.nodeValue)) {
+                const code = parent.closest("code");
+                if (code) { queueMath(code); return; }
+                // Isolate new prose from already-rendered mathematical siblings.
+                const span = document.createElement("span");
+                span.textContent = node.nodeValue;
+                node.replaceWith(span);
+                queueMath(span);
+              } else if (node instanceof Element && !node.matches(skipped) && hasMath(node.textContent)) {
+                queueMath(node);
+              }
+            });
           });
         });
-        observer.observe(document.body, {childList: true, characterData: true, subtree: true});
+        mathObserver.observe(document.body, {childList: true, characterData: true, subtree: true});
       });
     },
   };

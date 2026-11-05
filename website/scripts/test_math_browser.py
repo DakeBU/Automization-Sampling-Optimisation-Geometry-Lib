@@ -91,6 +91,7 @@ def main():
             # without a CDN. Non-math external diagrams are outside this gate.
             context.route(re.compile(r'https?://(?!127\.0\.0\.1)'), lambda route: route.abort())
             page = context.new_page()
+            page.on('pageerror', lambda error: failures.append({'path': page.url, 'error': str(error)}))
             page.goto(base + '/' + pages[0][0], wait_until='domcontentloaded')
             page.wait_for_function('Boolean(window.MathJax?.typesetPromise)', timeout=30000)
             page.evaluate('async () => { await MathJax.startup.promise; }')
@@ -188,6 +189,21 @@ def main():
                 document.body.append(paragraph);
             }''', r'New \(\frac{a}{b}\) prose')
             page.wait_for_selector('#dynamic-math mjx-container', timeout=10000)
+            assert page.locator('#fit-formula mjx-container[display="true"]').count() == 1, 'Appending prose must not typeset existing displays twice'
+            assert page.locator('#aligned mjx-container[display="true"]').count() == 1
+            inline_tree = page.locator('#inline mjx-container').first.inner_html()
+            page.evaluate('''(text) => document.querySelector('#inline').append(document.createTextNode(text))''', r' More \(c+d\) prose.')
+            page.wait_for_function('document.querySelectorAll("#inline mjx-container").length === 2')
+            assert page.locator('#inline mjx-container').first.inner_html() == inline_tree
+            page.evaluate('''(text) => {
+                const paragraph=document.createElement('p'), code=document.createElement('code');
+                paragraph.id='dynamic-code'; document.body.append(paragraph);
+                code.textContent=text; paragraph.append(code);
+            }''', r'\(u+v\)')
+            page.wait_for_selector('#dynamic-code mjx-container', timeout=10000)
+            assert page.locator('#dynamic-code mjx-container').count() == 1
+            assert page.locator('#fit-formula mjx-container[display="true"]').count() == 1
+            assert page.locator('#source mjx-container, #edit mjx-container').count() == 0
             # Fitting changes only presentation. The CHTML mathematical tree
             # must survive fitting, readable-size scrolling and widening intact.
             page.evaluate('''() => {

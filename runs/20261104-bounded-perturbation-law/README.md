@@ -73,9 +73,24 @@ not another leaf, an admitted QA or a complete exercise certification.
 The current six-step reader and exact graph pass real desktop/mobile checks.
 Actual screenshot inspection caught an overlong summary formula. A layout-only
 MathJax fit, readable-font floor and explicit horizontal-scroll hint now preserve
-the exact mathematical tree and all authored TeX. Final browser regressions and
-the regenerated full site remain separate gates; no semantic audit was resigned
-for a presentation change. The source/code/exposition inputs remain byte-identical.
+the exact mathematical tree and all authored TeX. The offline renderer regression
+passes 4,402 unique formulas from 1,411 pages, desktop/mobile sampling, delayed
+startup, resize/font-floor/scroll and unchanged-tree checks. Its first failed
+resize assertion revealed a real pre-existing bug: adding prose re-typeset the
+whole parent and duplicated existing displays. The fix queues only new scopes;
+explicit regression cases cover new prose, raw text and formula-code insertion
+without touching literal Lean or edit buffers. Earlier failed runs remain local
+evidence, not silently reported as successful acceptance.
+
+The final regenerated reader passes six visible formula-proof steps, folded
+highlighted/copied Lean and actual graph focus at desktop1400/mobile412, with no
+runtime errors. Final statement and graph SVG screenshots were actually viewed.
+The full Bench reader also passes all29 cores/42 mathematical views/7 graph tasks,
+offline same-origin mathematics, copy/downloads, real graph links and mobile
+overflow checks. No semantic audit was resigned for presentation changes; the
+source/code/exposition inputs remain byte-identical. Main's parent formalization
+run41824802254 subsequently finished successfully; this is separate evidence
+from the previously recorded PR/main tree identity.
 
 The owner's unrelated untracked kernel drafts stay untouched. A whole-worktree
 publication check still sees them; clean committed-snapshot CI, not a narrow

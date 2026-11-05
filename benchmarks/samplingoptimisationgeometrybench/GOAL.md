@@ -26,6 +26,16 @@ Do not spend this reader/evaluator phase manufacturing further background wrappe
 Already verified mathematics and older frontiers remain intact, not abandoned.
 See docs/bench-reader-contract.md and ECOSYSTEM.md for acceptance.
 
+Reader milestone1 is now actually merged/deployed at main692973fc (PR377), with
+fresh PR/main gates and nine public desktop/mobile routes read back, including
+all three subject prompt-download hashes and both graph entrances. The independent
+energy helper seal is separately recorded in its existing Cell. Continue item2:
+the issue378 fixed-target runtime reuses compatible pinned comparator/lean4export
+and real Landrun inside Linux Docker, not compiler/stdout-only grading. Its source
+and static packet tests are a work-in-progress, not native acceptance or a model
+score; see lean-runtime/README.md. Keep website executor-pending labels until the
+actual scoped runtime/hostile-fixture/harness acceptance is evidenced.
+
 ## Admission order
 
 Owner readability/ecosystem clarification (2026-11-04): a task inventory is not

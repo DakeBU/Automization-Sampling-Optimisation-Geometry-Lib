@@ -121,8 +121,13 @@ certify paid-agent performance; inspect its actual CI evidence and limitations.
 
 The experimental [fixed-target Lean runtime](lean-runtime/README.md) has actual
 reference/negative-check evidence and a bounded [compiler tool](lean-runtime/WORKSPACE.md).
-Hostile native acceptance, independent runtime review and authenticated model
-evaluation are separate gates; the website's executor status remains pending.
+Its controlled reference, negative, I/O/resource/input and compiler-workspace
+cases passed native08, with a separately recorded
+[independent scope review](../../runs/20261105-bench-lean-runtime/native08-independent-review.json).
+This accepts an experimental Linux operator CLI under its stated trust and
+isolation assumptions, not general hosted execution, security certification or
+measured model performance. Fresh integration and authenticated model evaluation
+remain separate gates.
 
 From the repository root, with Python 3.11+:
 
@@ -165,7 +170,7 @@ Start with [Run and assess answers](EVALUATION.md). `tools/sog_bench_prose.py pr
 
 1. Give the model a prompt-only record, its track and the allowed-library policy. Do not include the reference export in its prompt.
 2. For natural-language QA, a human or independently validated grader awards each of four criteria 0 or 1; report criterion scores and the full response. Do not use keyword matching as a correctness metric.
-3. For Lean, keep imports, context, assumptions and conclusion fixed. Audit for additional hypotheses, changed definitions, placeholders, new axioms and unsafe verification bypasses. Compiler acceptance alone is **not** an assessment of arbitrary generated code. Execute untrusted submissions only in a separately provisioned, network-disabled sandbox with resource limits; this starter does not provide one.
+3. For Lean, keep imports, context, assumptions and conclusion fixed. Audit for additional hypotheses, changed definitions, placeholders, new axioms and unsafe verification bypasses. Compiler acceptance alone is **not** an assessment of arbitrary generated code. The experimental [Linux compiler workspace](lean-runtime/WORKSPACE.md) supports the admitted fixed targets through the declared network-disabled, resource-bounded runtime; provision that environment first and never execute model Lean on the host. It is not a general hosted executor or a claim to support every Lean-language submission.
 4. Report both tracks separately, with model/version, prompt, decoding settings, allowed retrieval/tools, attempts, time and grader. A paired answer is not two independent samples. No model scores have been measured here.
 5. All pilot answers and source proofs are public and potentially contaminated. They are useful for learning, training where rights allow, regression checks and rubric development—not evidence of unseen generalization. Reserve entire mathematical families before designing a genuinely private evaluation set; never move a public-dev item into a secret test split.
 
@@ -197,6 +202,6 @@ Graph answers have exactly `nodes` (distinct snapshot node IDs: module IDs in im
 python tools/sog_bench.py grade-graph --submissions responses.jsonl --run-metadata run.json --output .astis/my-graph-run
 ```
 
-Each response supplies `id`, the prompt's `binding_sha256`, `attempt: 1` and `answer`. Run metadata requires `run_id`, `model`, `model_version`, `created_at`, `prompt_profile: "given-snapshot"`, `attempt_policy: "first-attempt"`, `tools` and `seed`. Unknown/duplicate IDs, stale bindings, Boolean attempts and alternate attempt policies are rejected. Missing answers remain in the denominator with zero credit. The score archive retains the full frozen structural items, not just a digest requiring a changing live catalog. Retain raw prompts/responses, timing/tokens and grader versions for experiments. Reference self-tests are software tests, not measured model performance. Human-attested prose recording is a separate tool; safe untrusted-Lean evaluation remains open.
+Each response supplies `id`, the prompt's `binding_sha256`, `attempt: 1` and `answer`. Run metadata requires `run_id`, `model`, `model_version`, `created_at`, `prompt_profile: "given-snapshot"`, `attempt_policy: "first-attempt"`, `tools` and `seed`. Unknown/duplicate IDs, stale bindings, Boolean attempts and alternate attempt policies are rejected. Missing answers remain in the denominator with zero credit. The score archive retains the full frozen structural items, not just a digest requiring a changing live catalog. Retain raw prompts/responses, timing/tokens and grader versions for experiments. Reference self-tests are software tests, not measured model performance. Human-attested prose recording and the experimental fixed-target Lean CLI have separate contracts; authenticated model evaluation and general hosted Lean execution remain open.
 
 Only original/permission-cleared material may enter ML training or evaluation exports. Do not use restricted ATLAS-derived indexes, source text, projections or derivatives in this benchmark. The root Apache-2.0 grant does not relicense external books, papers, code or data; retain their applicable notices. This pilot exports original QA, aligned local target proofs and explicitly selected notice-preserving supporting modules, not external datasets or transitive source trees. Historical review packets retain rejected wording for audit and are **not reference-answer gold**; use the derived reviewed-reference export instead. Dependencies remain installed under their own licenses.

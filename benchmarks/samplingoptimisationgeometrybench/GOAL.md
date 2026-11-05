@@ -249,3 +249,16 @@ remain open. Never relabel these34 controlled cases as model performance. The
 owner approved Pages build_type=workflow with URL/history/protection preserved;
 the stale own deployment job was normally re-run against the validated artifact,
 not bypassed. Confirm live release/reader bytes before issuing any public seal.
+
+Publication continuation (2026-11-06): head779828ca is pushed over mainc843e133;
+the canonical13 operator packets and runtime/policy bytes retain their exact
+native08 identity. The independent helper-only public readback and postmerge
+seal are now recorded in runs/20261105-compact-gradient-sqrt-test; this is not
+full Exercise1.7 or another admitted QA. Current-head CI/integration and the
+experimental CLI's reader delivery are still separate. The browser gate must
+check the explicit experimental-CLI/hosted-pending label and the initially folded
+setup/evidence links, not require the superseded trusted-reference-only label.
+After integration, prioritize an actual bounded model/tool trajectory with raw
+prompt/response provenance and preselected failure accounting, then substantive
+seven-domain/textbook depth. Do not substitute another software fixture for a
+model measurement, weaken isolation, or expand this Goal's success boundary.

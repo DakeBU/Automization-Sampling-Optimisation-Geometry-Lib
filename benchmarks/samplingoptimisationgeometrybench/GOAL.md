@@ -33,10 +33,18 @@ CLI's controlled software acceptance is not a measured model benchmark.
 The separate codex/sog-bench-model-bridge packet now has independently reviewed
 code for canonical external termination and response identity; its original
 failed designs/code reports are preserved under runs/20261106-bench-model-bridge.
-New Linux native bridge evidence and authorized provider/model trials are still
-required. Do not repeat the completed visual hierarchy or turn mocked API-shaped
+PR382 has since merged at33dc30db with all exact4f4122bc gates and independent
+raw-artifact acceptance of the new controlled Linux bridge fixtures. Receipts
+and actual ZIP are in the same run directory. Fresh main/public acceptance and
+authorized provider/model trials are still separate requirements.
+Do not repeat the completed visual hierarchy or turn mocked API-shaped
 fixtures into model scores. Missing model authorization does not license paid
 calls; continue dependency-ready source/exercise depth while it is unavailable.
+The next compact-LSI domain route now has an independent reuse preflight and
+actual type-only elaboration under proof-obligations/chewi-exercise-1-7. It
+requires canonicalizing existing generic private C2 cutoff limits, preserving
+the compact-C-infinity source premise and deriving actual gradient-L2 inputs.
+It remains unsealed/unimplemented and admits no additional exercise or QA.
 
 Reader milestone1 is now actually merged/deployed at main692973fc (PR377), with
 fresh PR/main gates and nine public desktop/mobile routes read back, including

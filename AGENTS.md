@@ -479,9 +479,17 @@ deployment and bounded public reader checks succeeded. Reuse the receipts in
 The experimental CLI's software acceptance is not model performance or hosted
 execution. The separate model-bridge packet has narrow independent code review
 under `runs/20261106-bench-model-bridge`, preserving all rejected predecessors.
-Its new credential-free Linux native fixture and authorized real provider trial
-remain pending. Keep API/model/spending authorization explicit, classify provider
+PR382 has since merged at33dc30db after all exact4f4122bc gates and independent
+raw-ZIP controlled-native acceptance passed; see native4f evidence in that run
+directory. Fresh main gates/public delivery and an authorized real provider trial
+remain separate. Keep API/model/spending authorization explicit, classify provider
 infrastructure separately without changing a genuine final, and never count a
 scripted interface fixture as an AI measurement. Continue the same Bench Goal;
 all source/exercise depth, calibration/private-family and old math frontiers stay
 open. Derive current coverage from the catalog tools, not this process handoff.
+For the next actual Exercise1.7 gap, reuse the independently preflighted
+`proof-obligations/chewi-exercise-1-7/compact-lsi-extension-plan-v1.md` and its
+typed-interface observation. The private generic C2 cutoff limits already exist;
+canonicalize rather than copy them, preserve compact-C-infinity source tests,
+derive gradient-L2 internally, and renew only actually changed source bindings.
+The plan/type checks are not a proved LSI extension or admitted exercise.

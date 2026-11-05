@@ -1,0 +1,36 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient
+import Mathlib.MeasureTheory.Integral.DominatedConvergence
+import Mathlib.MeasureTheory.Function.L2Space
+import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
+import Mathlib.Topology.Order.OrderClosed
+
+open MeasureTheory Filter
+open scoped Topology RealInnerProductSpace ContDiff
+open AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
+
+-- Type elaboration only: these are propositions, not asserted theorems.
+#check (∀ {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [MeasurableSpace E] [BorelSpace E]
+    (μ : Measure E) (f : E → ℝ),
+    ContDiff ℝ 2 f → MemLp f 2 μ → MemLp (gradient f) 2 μ →
+    Integrable (fun x => (f x)^2 * Real.log ((f x)^2)) μ →
+    let fn := fun n : ℕ => fun x : E => radialSmoothCutoff ((n:ℝ)+1) x * f x
+    Tendsto (fun n => ∫ x, (fn n x)^2 ∂μ) atTop (𝓝 (∫ x, (f x)^2 ∂μ)) ∧
+    Tendsto (fun n => ∫ x, (fn n x)^2 * Real.log ((fn n x)^2) ∂μ)
+      atTop (𝓝 (∫ x, (f x)^2 * Real.log ((f x)^2) ∂μ)) ∧
+    Tendsto (fun n => ∫ x, ‖gradient (fn n) x‖^2 ∂μ)
+      atTop (𝓝 (∫ x, ‖gradient f x‖^2 ∂μ)))
+
+#check (∀ {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (μ : Measure E) (C : ℝ),
+    (∀ (v : E → ℝ), ContDiff ℝ ∞ v → HasCompactSupport v →
+      (∫ x, (v x)^2 * Real.log ((v x)^2) ∂μ) -
+        (∫ x, (v x)^2 ∂μ) * Real.log (∫ x, (v x)^2 ∂μ) ≤
+      2 * C * ∫ x, ‖gradient v x‖^2 ∂μ) →
+    ∀ (f : E → ℝ), ContDiff ℝ ∞ f → MemLp f 2 μ → MemLp (gradient f) 2 μ →
+    Integrable (fun x => (f x)^2 * Real.log ((f x)^2)) μ →
+      (∫ x, (f x)^2 * Real.log ((f x)^2) ∂μ) -
+        (∫ x, (f x)^2 ∂μ) * Real.log (∫ x, (f x)^2 ∂μ) ≤
+      2 * C * ∫ x, ‖gradient f x‖^2 ∂μ)

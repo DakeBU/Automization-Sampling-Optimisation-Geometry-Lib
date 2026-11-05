@@ -1,0 +1,243 @@
+{
+  "id": "ASTIS-RT-20261019-HuanjianPoissonHarmonicity",
+  "state": "accepted",
+  "source": {
+    "source_id": "HFT2E-Proposition1.18",
+    "anchor": "Harmonic Function Theory second edition, Proposition1.18, printed13/PDF21; standing n>1 at printed1/PDF9",
+    "original_text": "For a fixed integer n>1 and a unit vector zeta in real Euclidean n-space, the literal function P_zeta(x)=(1-||x||^2)/||x-zeta||^n is harmonic throughout R^n minus the singleton {zeta}, with x the varying argument. No value or harmonicity at the excluded pole is asserted.",
+    "text_sha256": "86f0dfffeb8b99534b7240b705b229e617d13570c3b4b8dc40e05aa85bd49625",
+    "url": "https://www.axler.net/HFT.pdf#page=21",
+    "source_snapshot_sha256": "4e64124f7e36993ee784e575a024505f99d484ccf959d2d3864eae9232af8bf1"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel.poissonKernel_harmonicOnNhd",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/Harmonic/PoissonKernel.lean",
+    "statement": "∀ {n : ℕ}, 2 ≤ n → ∀ (a : EuclideanSpace ℝ (Fin n)), ‖a‖ = 1 →\n  InnerProductSpace.HarmonicOnNhd\n    (fun x : EuclideanSpace ℝ (Fin n) => (1 - ‖x‖ ^ 2) / ‖x - a‖ ^ n)\n    ({a}ᶜ : Set (EuclideanSpace ℝ (Fin n)))",
+    "statement_sha256": "dea6c9c003f67211237f43f44dc5c665ac589895763acb1fa78b9e641fb27b10",
+    "formalizer": "huanjian_gc_20261019",
+    "compiled": true,
+    "decoder_context": [
+      "EuclideanSpace ℝ (Fin n) is real n-dimensional Euclidean space with its standard l2 inner product and norm.",
+      "InnerProductSpace.HarmonicOnNhd f s means: for every x in s, f is C2 at x and its actual Euclidean Laplacian is identically zero on some neighborhood of x. The Laplacian is the orthonormal trace of the second Frechet derivative.",
+      "The set {a}ᶜ is the complement of the singleton containing a. The displayed quotient uses ordinary real division; the excluded point carries no conclusion."
+    ]
+  },
+  "verdict": "equivalent-after-elaboration",
+  "deltas": [],
+  "repairs": [],
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/source_module_reviewer",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "d4f43029fc7ecca283c08e878174d15c763f18947f61f50a30d09885c4b97322",
+    "evidence": "Fresh anti-anchored source/whole-module/reader review of packet d4f43029fc7ecca283c08e878174d15c763f18947f61f50a30d09885c4b97322. I used this packet, the pinned raw source PDF, exact frozen producer/test files and their genuine pinned dependencies, plus process instructions. I did not read prior audit verdicts, old source graphs/topology reviews, formalizer rationale or the root transcript. Full relevant raw source pages were extracted, rendered and visually inspected. Native producer elaboration, native focused test elaboration and the focused Lake build each exited 0; the source-level fake-closure scan passed; the target axiom list is exactly propext, Classical.choice and Quot.sound. All seven semantic slots, all seven private helpers, the canonical product-rule consumer, all five reader steps and scope exclusions were reviewed. No blocking source or reader delta was found. This is bounded review evidence, not a VERIFIED transition, integration claim, source-topology acceptance or whole-project gate result.",
+    "review_run_sha256": "335218f3ab6bb0de059eea71a8e9caa0138ceca2afd76e2d06864531e30a00b2",
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/poisson-harmonicity-semantic-evidence/source-review.result.json"
+  },
+  "publication_binding_sha256": "18384833ed55b7e971bad254dfa8f0999aae5b99dc823dbf671294965df0fa24",
+  "publication_context": {
+    "file": "702fe689462acf0e61fb136df1947a2484ac1f85e2e619c500cdfce9b4b2e3a0",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.LaplacianProduct\nimport Mathlib.Analysis.InnerProductSpace.Calculus\nimport Mathlib.Analysis.InnerProductSpace.Harmonic.Basic\nimport Mathlib.Analysis.SpecialFunctions.Pow.Deriv\n\n/-!\n# The actual spherical Poisson kernel away from its unit pole\n\nHFT, second edition, Proposition 1.18 (printed page 13 / PDF page 21),\nwith the source standing dimension n > 1. The kernel is the literal quotient\nfrom Eq. 1.15, with the pole fixed and the first argument varying over its\nentire complement. Factor regularity and every derivative/cancellation are\nproved internally using the canonical local Laplacian product rule.\n\nThe source leaves this computation to the reader. No surface integral,\nmean-value formula, Gaussian Eq. 24, TV separation or oracle bound is claimed.\n-/\n\nopen Filter\nopen scoped RealInnerProductSpace Topology\nnamespace AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel\nset_option autoImplicit false\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\nprivate theorem radial_fderiv {x a : E} (hx : x ≠ a) (p : ℝ) :\n    HasFDerivAt (fun z : E => (‖z - a‖ ^ 2) ^ p)\n      ((2 * p * (‖x - a‖ ^ 2) ^ (p - 1)) • innerSL ℝ (x - a)) x := by\n  have hn : ‖x - a‖ ^ 2 ≠ 0 := pow_ne_zero 2 (norm_ne_zero_iff.mpr (sub_ne_zero.mpr hx))\n  have hd := (((hasFDerivAt_id x).sub_const a).norm_sq).rpow_const (p := p) (Or.inl hn)\n  convert hd using 1\n  · rfl\n  · ext y\n    simp [mul_assoc, mul_left_comm, mul_comm]\nprivate theorem radial_gradient [FiniteDimensional ℝ E] {x a : E} (hx : x ≠ a) (p : ℝ) :\n    gradient (fun z : E => (‖z - a‖ ^ 2) ^ p) x =\n      (2 * p * (‖x - a‖ ^ 2) ^ (p - 1)) • (x - a) := by\n  apply ext_inner_right ℝ\n  intro y\n  rw [inner_gradient_left, (radial_fderiv hx p).fderiv]\n  simp [real_inner_smul_left, inner_sub_left]\nprivate theorem radial_second {x a : E} (hx : x ≠ a) (p : ℝ) (e : E) :\n    fderiv ℝ (fun z : E => fderiv ℝ (fun w : E => (‖w - a‖ ^ 2) ^ p) z e) x e =\n      4 * p * (p - 1) * (‖x - a‖ ^ 2) ^ (p - 2) * (inner ℝ (x - a) e) ^ 2 +\n      2 * p * (‖x - a‖ ^ 2) ^ (p - 1) * inner ℝ e e := by\n  have hgerm : (fun z : E => fderiv ℝ (fun w : E => (‖w - a‖ ^ 2) ^ p) z e) =ᶠ[𝓝 x]\n      (fun z : E => (2 * p * (‖z - a‖ ^ 2) ^ (p - 1)) * inner ℝ (z - a) e) := by\n    filter_upwards [eventually_ne_nhds hx] with z hz\n    rw [(radial_fderiv hz p).fderiv]\n    simp [inner_sub_left]\n  have hcoef := (radial_fderiv hx (p - 1)).const_mul (2 * p)\n  have hdot := ((hasFDerivAt_id x).sub_const a).inner ℝ (hasFDerivAt_const e x)\n  have hd := hcoef.mul hdot\n  have hfd := hd.fderiv\n  change fderiv ℝ (fun z : E => (2 * p * (‖z - a‖ ^ 2) ^ (p - 1)) * inner ℝ (z - a) e) x = _ at hfd\n  rw [hgerm.fderiv_eq, hfd]\n  have hp : p - 1 - 1 = p - 2 := by ring_nf\n  simp [hp, smul_eq_mul, inner_sub_left]\n  ring_nf\nprivate theorem radial_laplacian [FiniteDimensional ℝ E] {x a : E} (hx : x ≠ a) (p : ℝ) :\n    Laplacian.laplacian (fun z : E => (‖z - a‖ ^ 2) ^ p) x =\n      4 * p * (p - 1) * (‖x - a‖ ^ 2) ^ (p - 2) * (‖x - a‖ ^ 2) +\n      2 * p * (‖x - a‖ ^ 2) ^ (p - 1) * (Module.finrank ℝ E : ℝ) := by\n  let f : E → ℝ := fun z => (‖z - a‖ ^ 2) ^ p\n  have hn : ‖x - a‖ ^ 2 ≠ 0 := pow_ne_zero 2 (norm_ne_zero_iff.mpr (sub_ne_zero.mpr hx))\n  have hc : ContDiffAt ℝ 2 f x :=\n    ((contDiffAt_id.sub contDiffAt_const).norm_sq ℝ).rpow_const_of_ne hn\n  have hd := ((hc.fderiv_right (m := 1) (by norm_num)).differentiableAt one_ne_zero).hasFDerivAt\n  have he (e : E) : fderiv ℝ (fderiv ℝ f) x e e =\n      4 * p * (p - 1) * (‖x - a‖ ^ 2) ^ (p - 2) * (inner ℝ (x - a) e) ^ 2 +\n      2 * p * (‖x - a‖ ^ 2) ^ (p - 1) * inner ℝ e e := by\n    have hl : fderiv ℝ (fun z => fderiv ℝ f z e) x e = fderiv ℝ (fderiv ℝ f) x e e := by\n      simpa using congrArg (fun T : E →L[ℝ] ℝ => T e)\n        (hd.clm_apply (hasFDerivAt_const e x)).fderiv\n    rw [← hl]\n    exact radial_second hx p e\n  let b := stdOrthonormalBasis ℝ E\n  have ht : Laplacian.laplacian f x = ∑ i, fderiv ℝ (fderiv ℝ f) x (b i) (b i) := by\n    rw [InnerProductSpace.laplacian_eq_iteratedFDeriv_stdOrthonormalBasis]\n    apply Finset.sum_congr rfl\n    intro i _\n    rw [iteratedFDeriv_two_apply]\n    rfl\n  have hs : ∑ i, (inner ℝ (x - a) (b i)) ^ 2 = ‖x - a‖ ^ 2 := by\n    simpa [pow_two, real_inner_comm, inner_self_eq_norm_sq] using b.sum_inner_mul_inner (x - a) (x - a)\n  change Laplacian.laplacian f x = _\n  rw [ht]\n  simp_rw [he]\n  rw [Finset.sum_add_distrib]\n  simp only [← Finset.mul_sum]\n  rw [hs]\n  simp [b]\nomit [InnerProductSpace ℝ E] in\nprivate theorem inv_norm_pow_eq_rpow (z a : E) (n : ℕ) :\n    (‖z - a‖ ^ n)⁻¹ = (‖z - a‖ ^ 2) ^ (-(n : ℝ) / 2) := by\n  calc\n    (‖z - a‖ ^ n)⁻¹ = ‖z - a‖ ^ (-(n : ℝ)) := by\n      rw [Real.rpow_neg (norm_nonneg _), Real.rpow_natCast]\n    _ = (‖z - a‖ ^ 2) ^ (-(n : ℝ) / 2) := by\n      rw [← Real.rpow_natCast, ← Real.rpow_mul (norm_nonneg _)]\n      congr 1\n      ring_nf\nprivate theorem numerator_calculus [FiniteDimensional ℝ E] (x : E) :\n    gradient (fun z : E => (1 : ℝ) - ‖z‖ ^ 2) x = (-2 : ℝ) • x ∧\n    Laplacian.laplacian (fun z : E => (1 : ℝ) - ‖z‖ ^ 2) x = (-2 : ℝ) * (Module.finrank ℝ E : ℝ) := by\n  constructor\n  · apply ext_inner_right ℝ\n    intro y\n    have hd := (hasFDerivAt_const (1 : ℝ) x).sub (hasStrictFDerivAt_norm_sq x).hasFDerivAt\n    rw [inner_gradient_left]\n    have hfd := hd.fderiv\n    change fderiv ℝ (fun z : E => (1 : ℝ) - ‖z‖ ^ 2) x = _ at hfd\n    rw [hfd]\n    simp [real_inner_smul_left]\n  · have hd : HasFDerivAt (fderiv ℝ (fun z : E => ‖z‖ ^ 2))\n        (2 • (innerSL ℝ : E →L[ℝ] E →L[ℝ] ℝ)) x := by\n      rw [fderiv_norm_sq]\n      exact (innerSL ℝ : E →L[ℝ] E →L[ℝ] ℝ).hasFDerivAt.const_smul 2\n    have hlap : Laplacian.laplacian (fun z : E => ‖z‖ ^ 2) x = 2 * (Module.finrank ℝ E : ℝ) := by\n      rw [InnerProductSpace.laplacian_eq_iteratedFDeriv_stdOrthonormalBasis]\n      simp only [iteratedFDeriv_two_apply]\n      simp [hd.fderiv, innerSL, mul_comm]\n    have hC : ContDiffAt ℝ 2 (fun _ : E => (1 : ℝ)) x := contDiffAt_const\n    have hS : ContDiffAt ℝ 2 (fun z : E => ‖z‖ ^ 2) x := contDiffAt_id.norm_sq ℝ\n    have hfun : (fun z : E => (1 : ℝ) - ‖z‖ ^ 2) =\n        (fun _ : E => (1 : ℝ)) - (fun z : E => ‖z‖ ^ 2) := rfl\n    rw [hfun, hC.laplacian_sub hS, hlap]\n    simp\nprivate theorem poisson_laplace_zero {n : ℕ} {ζ x : EuclideanSpace ℝ (Fin n)}\n    (hζ : ‖ζ‖ = 1) (hx : x ≠ ζ) :\n    Laplacian.laplacian (fun z : EuclideanSpace ℝ (Fin n) =>\n      ((1 : ℝ) - ‖z‖ ^ 2) / ‖z - ζ‖ ^ n) x = 0 := by\n  let p : ℝ := -(n : ℝ) / 2\n  let u : EuclideanSpace ℝ (Fin n) → ℝ := fun z => 1 - ‖z‖ ^ 2\n  let v : EuclideanSpace ℝ (Fin n) → ℝ := fun z => (‖z - ζ‖ ^ 2) ^ p\n  have hn : ‖x - ζ‖ ^ 2 ≠ 0 := pow_ne_zero 2 (norm_ne_zero_iff.mpr (sub_ne_zero.mpr hx))\n  have hu : ContDiffAt ℝ 2 u x := contDiffAt_const.sub (contDiffAt_id.norm_sq ℝ)\n  have hv : ContDiffAt ℝ 2 v x :=\n    ((contDiffAt_id.sub contDiffAt_const).norm_sq ℝ).rpow_const_of_ne hn\n  have hfun : (fun z : EuclideanSpace ℝ (Fin n) => ((1 : ℝ) - ‖z‖ ^ 2) / ‖z - ζ‖ ^ n) =\n      fun z => u z * v z := by\n    funext z\n    simp only [div_eq_mul_inv, u, v, p, inv_norm_pow_eq_rpow]\n  have he (q : ℝ) : (‖x - ζ‖ ^ 2) ^ q = (‖x - ζ‖ ^ 2) ^ (q - 1) * (‖x - ζ‖ ^ 2) := by\n    calc\n      _ = (‖x - ζ‖ ^ 2) ^ ((q - 1) + 1) := by congr 1; ring_nf\n      _ = _ := Real.rpow_add_one hn (q - 1)\n  have hlv : Laplacian.laplacian v x = 2 * (n : ℝ) * (‖x - ζ‖ ^ 2) ^ (p - 1) := by\n    rw [radial_laplacian hx p]\n    simp only [finrank_euclideanSpace_fin]\n    rw [he (p - 1)]\n    dsimp [p]\n    ring_nf\n  have hcancel : 1 - ‖x‖ ^ 2 + 2 * inner ℝ x (x - ζ) - ‖x - ζ‖ ^ 2 = 0 := by\n    rw [norm_sub_sq_real]\n    simp only [inner_sub_right, real_inner_self_eq_norm_sq, hζ]\n    ring_nf\n  rw [hfun, AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.LaplacianProduct.laplacian_mul hu hv]\n  rw [hlv, radial_gradient hx p, (numerator_calculus x).1, (numerator_calculus x).2]\n  simp only [finrank_euclideanSpace_fin, real_inner_smul_left, inner_smul_right]\n  dsimp only [u, v]\n  rw [he p]\n  calc\n    _ = (2 * (n : ℝ) * (‖x - ζ‖ ^ 2) ^ (p - 1)) *\n        (1 - ‖x‖ ^ 2 + 2 * inner ℝ x (x - ζ) - ‖x - ζ‖ ^ 2) := by dsimp [p]; ring_nf\n    _ = 0 := by rw [hcancel]; ring_nf\n/-- HFT Proposition 1.18: the literal unit-pole Poisson kernel is harmonic\nin a neighborhood of every point of the pole complement. -/\ntheorem poissonKernel_harmonicOnNhd {n : ℕ} (hn : 2 ≤ n)\n    (ζ : EuclideanSpace ℝ (Fin n)) (hζ : ‖ζ‖ = 1) :\n    InnerProductSpace.HarmonicOnNhd\n      (fun x : EuclideanSpace ℝ (Fin n) => (1 - ‖x‖ ^ 2) / ‖x - ζ‖ ^ n)\n      ({ζ}ᶜ : Set (EuclideanSpace ℝ (Fin n))) := by\n  clear hn\n  intro x hx\n  have hne : x ≠ ζ := by simpa using hx\n  constructor\n  · have hu : ContDiffAt ℝ 2 (fun z : EuclideanSpace ℝ (Fin n) => (1 : ℝ) - ‖z‖ ^ 2) x :=\n      contDiffAt_const.sub (contDiffAt_id.norm_sq ℝ)\n    have hv : ContDiffAt ℝ 2 (fun z : EuclideanSpace ℝ (Fin n) => ‖z - ζ‖ ^ n) x :=\n      ((contDiffAt_id.sub contDiffAt_const).norm ℝ (sub_ne_zero.mpr hne)).pow n\n    exact hu.div hv (pow_ne_zero n (norm_ne_zero_iff.mpr (sub_ne_zero.mpr hne)))\n  · filter_upwards [eventually_ne_nhds hne] with z hz\n    exact poisson_laplace_zero hζ hz\nend AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://www.axler.net/HFT.pdf#page=21",
+      "edition": "Harmonic Function Theory, second edition; author-hosted PDF SHA256 4e64124f7e36993ee784e575a024505f99d484ccf959d2d3864eae9232af8bf1",
+      "anchor": "Proposition1.18, printed13/PDF21; definition1.15, product rule1.19 and standing n>1 at printed1/PDF9",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Sheldon Axler, Paul Bourdon and Wade Ramey. The book suggests the product-rule computation and leaves it to the reader; the displayed differentiation and cancellation below are the ASTIS expansion.",
+      "scope": "Harmonicity of the actual kernel only. Harmonic dilation on a neighborhood of the closed unit ball, mean-value/Poisson representation, both evaluated normalized-surface integrals in AppendixA1, Eq24, positive TV separation, amplification, exact oracle/query/cost adapters, conditional hidden-eigenbasis laws and both main lower bounds remain separate. No publication, integration or purification is inferred from focused compilation.",
+      "label": "Axler-Bourdon-Ramey, Proposition1.18"
+    },
+    "statement": "For every integer \\(n\\ge2\\) and fixed \\(\\zeta\\in\\mathbb R^n\\) with \\(\\|\\zeta\\|=1\\), the literal function \\(P_\\zeta(x)=(1-\\|x\\|^2)/\\|x-\\zeta\\|^n\\) is harmonic on \\(\\mathbb R^n\\setminus\\{\\zeta\\}\\).",
+    "formulae": [
+      {
+        "label": "HFT Proposition1.18",
+        "tex": "P_\\zeta(x)=\\frac{1-\\|x\\|^2}{\\|x-\\zeta\\|^n},\\quad\\|\\zeta\\|=1\\quad\\Longrightarrow\\quad\\Delta P_\\zeta(x)=0\\quad(x\\ne\\zeta)."
+      }
+    ],
+    "assumptions": [
+      "\\(n\\) is a natural number with \\(n\\ge2\\), exactly the book standing dimension \\(n>1\\). The carrier is real Euclidean \\(n\\)-space with its standard inner product.",
+      "The pole \\(\\zeta\\) is fixed and satisfies \\(\\|\\zeta\\|=1\\). The varying argument is \\(x\\in\\mathbb R^n\\setminus\\{\\zeta\\}\\); it need not lie inside the unit ball.",
+      "The function is the literal quotient. At every point of the stated domain, \\(\\|x-\\zeta\\|>0\\). Local \\(C^2\\) regularity is derived in the proof, not imposed as a hypothesis. No assertion is made about the excluded pole.",
+      "Lean harmonicity means local \\(C^2\\) regularity and vanishing actual Euclidean Laplacian on a neighborhood of every domain point. This agrees with the source notion on the open pole complement."
+    ],
+    "obligations": [
+      {
+        "id": "actual-poisson-harmonicity",
+        "label": "Derive local C2 and vanishing Laplacian for the actual kernel on its full pole complement."
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel.poissonKernel_harmonicOnNhd",
+      "kind": "theorem",
+      "title": "The Poisson kernel is harmonic away from its pole",
+      "reading_layout": "progressive",
+      "reader_note": "HFT Proposition1.18. The omitted source computation is expanded below; numerical surface integrals remain open.",
+      "statement": "For a fixed unit pole, the actual Poisson kernel is harmonic everywhere distinct from that pole.",
+      "formula": "P_\\zeta(x)=\\frac{1-\\|x\\|^2}{\\|x-\\zeta\\|^n},\\quad\\|\\zeta\\|=1\\quad\\Longrightarrow\\quad\\Delta P_\\zeta(x)=0\\quad(x\\ne\\zeta).",
+      "assumptions": [
+        "\\(n\\) is a natural number with \\(n\\ge2\\), exactly the book standing dimension \\(n>1\\). The carrier is real Euclidean \\(n\\)-space with its standard inner product.",
+        "The pole \\(\\zeta\\) is fixed and satisfies \\(\\|\\zeta\\|=1\\). The varying argument is \\(x\\in\\mathbb R^n\\setminus\\{\\zeta\\}\\); it need not lie inside the unit ball.",
+        "The function is the literal quotient. At every point of the stated domain, \\(\\|x-\\zeta\\|>0\\). Local \\(C^2\\) regularity is derived in the proof, not imposed as a hypothesis. No assertion is made about the excluded pole.",
+        "Lean harmonicity means local \\(C^2\\) regularity and vanishing actual Euclidean Laplacian on a neighborhood of every domain point. This agrees with the source notion on the open pole complement."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(S,p,u,v\\)",
+          "text": "Squared distance, real exponent and the two literal product factors.",
+          "formula": "S=\\|x-\\zeta\\|^2,\\quad p=-n/2,\\quad u=1-\\|x\\|^2,\\quad v=S^p."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Work away from the pole",
+          "text": "Fix x distinct from the unit pole. The positive squared distance S permits ordinary smooth real powers, including negative powers. The polynomial numerator is smooth everywhere; both factors are C2 in a neighborhood of x.",
+          "formula": "S=\\|x-\\zeta\\|^2>0,\\quad p=-\\frac n2,\\quad u(x)=1-\\|x\\|^2,\\quad v(x)=S^p=\\|x-\\zeta\\|^{-n},\\quad P_\\zeta=uv.",
+          "lean": "inv_norm_pow_eq_rpow identifies the literal inverse natural power. In poisson_laplace_zero, hu and hv derive local C2 from norm-square calculus and ContDiffAt.rpow_const_of_ne."
+        },
+        {
+          "title": "Differentiate the numerator",
+          "text": "The norm-square Frechet derivative is twice the inner-product functional. Its derivative is the constant bilinear inner product; taking an orthonormal trace gives twice the dimension. Subtracting from the constant one gives both formulas.",
+          "formula": "\\nabla u(x)=-2x,\\qquad\\Delta u(x)=-2n.",
+          "lean": "numerator_calculus uses hasStrictFDerivAt_norm_sq, fderiv_norm_sq, the actual Riesz-gradient pairing and the canonical orthonormal trace. It includes x=0 directly."
+        },
+        {
+          "title": "Differentiate the radial factor and take its trace",
+          "text": "Apply the real-power chain rule to the squared distance, then differentiate in a fixed direction e. Summing the diagonal second derivatives over an orthonormal basis uses Parseval. The real-power identity S^(q+1)=S^q S simplifies the result at p=-n/2.",
+          "formula": "\\begin{aligned}\\nabla v(x)&=2pS^{p-1}(x-\\zeta),\\\\D_e^2v(x)&=4p(p-1)S^{p-2}\\langle x-\\zeta,e\\rangle^2+2pS^{p-1}\\|e\\|^2,\\\\\\Delta v(x)&=4p(p-1)S^{p-2}S+2pnS^{p-1}=2nS^{p-1}.\\end{aligned}",
+          "lean": "radial_fderiv, radial_gradient, radial_second and radial_laplacian construct these derivatives. The trace invokes OrthonormalBasis.sum_inner_mul_inner. The local hlv calculation specializes p=-n/2."
+        },
+        {
+          "title": "Use the canonical product rule and cancel",
+          "text": "Invoke the existing local Laplacian product theorem on the two actual factors. Expanding the squared distance reduces the remaining bracket to one minus the squared norm of the pole. The unit-pole source assumption makes this zero.",
+          "formula": "\\begin{aligned}\\Delta P_\\zeta(x)&=2nS^{p-1}\\bigl(1-\\|x\\|^2+2\\langle x,x-\\zeta\\rangle-S\\bigr)\\\\&=2nS^{p-1}(1-\\|\\zeta\\|^2)=0.\\end{aligned}",
+          "lean": "poisson_laplace_zero calls LaplacianProduct.laplacian_mul exactly once. hcancel uses norm_sub_sq_real and the unit-pole condition; the derivative identities are proved internally."
+        },
+        {
+          "title": "Conclude neighborhood harmonicity",
+          "text": "Every point distinct from the pole has a neighborhood still avoiding it. The same computation gives zero Laplacian at every point in that neighborhood, while the literal quotient is C2 there. This establishes the source harmonicity statement on the entire pole complement.",
+          "formula": "\\forall x\\ne\\zeta,\\quad P_\\zeta\\in C^2\\text{ locally at }x,\\qquad\\Delta P_\\zeta=0\\text{ on a neighborhood of }x.",
+          "lean": "poissonKernel_harmonicOnNhd proves the literal quotient locally C2 and uses eventually_ne_nhds together with poisson_laplace_zero. No derivative or regularity result is a public premise."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.LaplacianProduct.laplacian_mul"
+      ],
+      "mathlib_dependencies": [
+        "hasStrictFDerivAt_norm_sq",
+        "fderiv_norm_sq",
+        "HasFDerivAt.rpow_const",
+        "ContDiffAt.rpow_const_of_ne",
+        "Filter.EventuallyEq.fderiv_eq",
+        "HasFDerivAt.clm_apply",
+        "InnerProductSpace.laplacian_eq_iteratedFDeriv_stdOrthonormalBasis",
+        "OrthonormalBasis.sum_inner_mul_inner",
+        "Real.rpow_add_one",
+        "norm_sub_sq_real",
+        "eventually_ne_nhds"
+      ],
+      "lean_statement": "The exact HFT-dimension interface: a fixed unit pole and its full complement; no additional C2, derivative or Laplacian premise.",
+      "lean_proof": "The actual private factor-derivative calculations feed one canonical product-rule call; local C2 and zero Laplacian then give neighborhood harmonicity. The exact module link includes all private calculations.",
+      "sources": [
+        {
+          "url": "https://www.axler.net/HFT.pdf#page=21",
+          "edition": "Harmonic Function Theory, second edition; author-hosted PDF SHA256 4e64124f7e36993ee784e575a024505f99d484ccf959d2d3864eae9232af8bf1",
+          "anchor": "Proposition1.18, printed13/PDF21; definition1.15, product rule1.19 and standing n>1 at printed1/PDF9",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Sheldon Axler, Paul Bourdon and Wade Ramey. The book suggests the product-rule computation and leaves it to the reader; the displayed differentiation and cancellation below are the ASTIS expansion.",
+          "scope": "Harmonicity of the actual kernel only. Harmonic dilation on a neighborhood of the closed unit ball, mean-value/Poisson representation, both evaluated normalized-surface integrals in AppendixA1, Eq24, positive TV separation, amplification, exact oracle/query/cost adapters, conditional hidden-eigenbasis laws and both main lower bounds remain separate. No publication, integration or purification is inferred from focused compilation.",
+          "label": "Axler-Bourdon-Ramey, Proposition1.18"
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/Harmonic/PoissonKernel.lean",
+          "label": "Complete Lean derivation, including the factor calculations",
+          "scope": "Exact current module, including imports, private derivative/trace calculations and the public theorem; implementation evidence, not a substitute for source review."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityPoissonHarmonicity"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel.poissonKernel_harmonicOnNhd",
+      "role": "proof-edge",
+      "supports": [
+        "actual-poisson-harmonicity"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "HFT standing real Euclidean dimension n>1; fixed zeta in the unit sphere.",
+        "lean": "Natural n with 2≤n; zeta:EuclideanSpace R(Fin n), norm zeta=1."
+      },
+      {
+        "source": "P(.,zeta) is harmonic on R^n minus {zeta}.",
+        "lean": "HarmonicOnNhd of the literal quotient on the singleton complement."
+      },
+      {
+        "source": "The suggested real-C2 product calculation has conditional smoothness and derivative ingredients.",
+        "lean": "All factor smoothness, radial derivatives, trace identities and unit-pole cancellation are discharged internally."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "For every natural number n with n >= 2 and every a in real n-dimensional Euclidean space with ||a|| = 1, the real-valued function f_a(x) = (1 - ||x||^2) / ||x - a||^n is harmonic on the complement of {a}. Precisely, for every x in real n-dimensional Euclidean space with x != a, f_a is C^2 at x and there exists a neighborhood U of x such that the actual Euclidean Laplacian of f_a is zero at every point of U. The Laplacian is the orthonormal trace of the second Frechet derivative. No conclusion is asserted at a.",
+    "text_sha256": "4bb7e1c4cadcfef1eaf4d89fef616b82e8516dbf740ac4d794bf77e9b6a81ba4",
+    "decoder": "/root/blind_decoder_01",
+    "decoder_run_sha256": "0a2fb7804bd91e7c85dc8e1f889e130a6ca531afb8874560463b3b170aa77381",
+    "decoder_packet_sha256": "fa0b7620f84451cb426a17b794818a0ae650aaa099825042a00dbe0c45eb88f7",
+    "source_text_visible": false,
+    "lean_statement_sha256": "dea6c9c003f67211237f43f44dc5c665ac589895763acb1fa78b9e641fb27b10",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/poisson-harmonicity-semantic-evidence/decoder.result.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "For a fixed dimension n>1, a unit pole zeta in real Euclidean n-space and the literal kernel P_zeta(x)=(1-||x||^2)/||x-zeta||^n.",
+      "reconstructed": "For n:Nat with 2<=n and a:EuclideanSpace R (Fin n) with ||a||=1, the real-valued literal quotient x |-> (1-||x||^2)/||x-a||^n.",
+      "relation": "equivalent",
+      "evidence": "Pinned PDF printed12/PDF20 defines P by Eq1.15 and explicitly restarts with that equation as its definition; printed13/PDF21 Proposition1.18 fixes zeta in S. Printed5/PDF13 identifies S as the Euclidean unit sphere. Although printed2/PDF10 gives a general complex-valued convention, this particular norm quotient is real, and Eq1.19 on PDF21 explicitly uses real-valued factors. The exact current module lines167-171 contains this quotient directly, with no project-owned object alias, alternate kernel or representative. The blind reconstruction recovers the same function and pole."
+    },
+    "domains": {
+      "original": "x varies over all of R^n except the fixed pole zeta; n is an integer greater than one. The source proposition does not restrict x to the unit ball.",
+      "reconstructed": "The carrier is EuclideanSpace R (Fin n), n>=2, and the asserted set is the complement of the singleton {a}.",
+      "relation": "same",
+      "evidence": "Proposition1.18 on the complete rendered PDF21 says R^n minus the pole, and printed1/PDF9 supplies n>1. The theorem lines167-171 uses 2<=n and ({zeta}^c : Set (EuclideanSpace R (Fin n))). The proof lines173-174 converts membership exactly to x!=zeta. No ball-membership condition is inserted. The focused first example compiles at n=2 and x=2*zeta, outside the unit ball; the second compiles at n=3 and x=0."
+    },
+    "quantifiers": {
+      "original": "For each fixed positive integer n>1 and each fixed zeta in the unit sphere, P(.,zeta) is harmonic at every point distinct from zeta.",
+      "reconstructed": "For every natural n with 2<=n and every unit a in real n-dimensional Euclidean space, every x!=a satisfies the local harmonicity predicate for the function with a held fixed.",
+      "relation": "explicit-elaboration",
+      "evidence": "Printed1/PDF9 fixes n as a standing arbitrary dimension; Proposition1.18 fixes the pole before using dot notation for the varying first argument. Universal Lean binders {n}, hn, zeta, h_zeta, followed by HarmonicOnNhd's forall x in the stated set, preserve that order and dependency. Renaming a/zeta is immaterial. x is not confused with the pole or a variable of integration. The independent reconstruction preserves all these quantifiers."
+    },
+    "assumptions": {
+      "original": "The standing real Euclidean dimension is n>1, the pole lies in S, and the varying point is distinct from the pole. Smoothness is part of the conclusion of harmonicity, not an additional premise of Proposition1.18.",
+      "reconstructed": "n:Nat, 2<=n, a:EuclideanSpace R (Fin n), and ||a||=1; the conclusion is restricted to x!=a. The public theorem has no C2, derivative, radial-power, Laplacian, product-rule or integrability premise.",
+      "relation": "explicit-elaboration",
+      "evidence": "Printed1/PDF9 and printed5/PDF13 justify the dimension and unit-norm binders. Module lines167-182 expose exactly those assumptions and derive quotient C2 internally. Lines134-137 discharge the actual product-rule factors' regularity; lines24-126 prove every derivative and trace ingredient used by lines146-164. There is no bundled project Prop to expand and no EXCESS binder. hn is deliberately unused by the stronger internal calculation, but remains in the public source-facing signature; this produces only an unused-variable warning, not assumption drift."
+    },
+    "conclusion": {
+      "original": "The literal Poisson kernel is C2 and its coordinate Laplacian vanishes throughout the open pole complement, hence it is harmonic there in the book's sense.",
+      "reconstructed": "At every x!=a the quotient satisfies ContDiffAt R 2, and its actual Euclidean Laplacian is zero throughout a neighborhood of x.",
+      "relation": "equivalent",
+      "evidence": "The complete PDF9 defines harmonicity on an open set as C2 plus Delta u=0, with Delta the sum of coordinate second derivatives. Pinned Mathlib Harmonic/Basic.lean lines39 and46 define HarmonicAt and HarmonicOnNhd exactly as recovered by the decoder. Pinned Mathlib Laplacian.lean lines136-140 and194-199 uses the genuine second Frechet derivative contracted against the canonical Euclidean tensor, with the orthonormal-basis trace formula. On the open singleton complement, C2 and pointwise zero Laplacian give these local germs, and the germs conversely give C2 and zero Laplacian there. Module lines175-182 prove both conjuncts, rather than merely proving a totalized derivative equation."
+    },
+    "scopes": {
+      "original": "Harmonicity concerns the x-variable on the full pole complement with the unit pole fixed. No value or harmonicity at the pole, no surface integral, and no Poisson representation is part of Proposition1.18.",
+      "reconstructed": "The function is represented as a total Lean quotient, but HarmonicOnNhd is asserted only away from the fixed pole. The neighborhood used at each domain point avoids the pole.",
+      "relation": "equivalent",
+      "evidence": "PDF20 Eq1.15 and PDF21 Proposition1.18 determine the source scope. In lines178-182, norm/division regularity and eventually_ne_nhds are used only at non-pole points. Lean's arithmetic value at zero denominator is never asserted as a source value and has no effect on these germs. No project definition adds a fallback branch. The reader states the exclusion explicitly, and its full five-step proof establishes only this harmonicity theorem. The adjacent PDF22 contains separate surface-integral and Dirichlet uses; none is silently included in this candidate."
+    },
+    "constant_dependencies": {
+      "original": "There are no unspecified analytic constants, estimates or choices. The formula and exponent depend only on the fixed dimension n and unit pole zeta.",
+      "reconstructed": "The quotient uses the same n and pole, with exact coefficients in internal derivative identities. No existential constants or uniformity hypotheses appear.",
+      "relation": "same",
+      "evidence": "The source formula Eq1.15 and Proposition1.18 contain no free auxiliary constants. The public signature lines167-171 likewise contains none. Internal p=-n/2 and S=||x-zeta||^2 are local abbreviations; Module.finrank specializes to n. The arbitrary real p and direction e in private radial helpers are quantified internal calculus parameters, not additional parameters or restrictions of the source theorem."
+    }
+  }
+}

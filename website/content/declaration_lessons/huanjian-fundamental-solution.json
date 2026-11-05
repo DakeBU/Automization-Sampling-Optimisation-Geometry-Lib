@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.FundamentalSolution.fundamentalSolution_boundary_data",
+      "kind": "theorem",
+      "title": "Power and logarithmic Green test functions",
+      "reading_layout": "progressive",
+      "reader_note": "HFT asserts harmonicity and omits these computations. The all-radius bundle below is an ASTIS expansion.",
+      "statement": "The source power/log test functions are harmonic away from the origin, and their values and outward radial derivatives are explicit on every positive sphere.",
+      "formula": "F(x)=\\begin{cases}\\log\\|x\\|&n=2,\\\\\\|x\\|^{2-n}&n>2;\\end{cases}\\qquad F\\in C^2(\\mathbb R^n\\setminus\\{0\\}),\\quad\\Delta F=0.",
+      "assumptions": [
+        "\\(n\\) is a natural number with \\(n\\ge2\\), the source standing real Euclidean dimension. All subtractions in the real exponents are real subtraction.",
+        "\\(F(x)=\\log\\|x\\|\\) for \\(n=2\\); \\(F(x)=\\|x\\|^{2-n}\\) for \\(n>2\\). Harmonicity is asserted on the entire complement of the origin, with no claim at the pole.",
+        "For the boundary conclusion, \\(R>0\\) and \\(\\|x\\|=R\\). The vector is explicitly \\(R^{-1}x\\); identifying it with a geometric ball/annulus normal is separate.",
+        "Actual local C2 regularity and all derivative formulas are proved internally, with no harmonicity, gradient, Laplacian or Green-identity premise."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(S,q,R^{-1}x\\)",
+          "text": "Squared radius, arbitrary intermediate real power, and the explicit outward radial unit vector.",
+          "formula": "S=\\|x\\|^2,\\quad q=2-n\\ \\text{in the power case},\\quad\\|R^{-1}x\\|=1\\ (\\|x\\|=R>0)."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use the literal source functions away from their pole",
+          "text": "Positive norm at a nonzero point allows smooth logarithms and real powers on a neighborhood. Rewrite the literal radial functions using squared radius; the identities hold as functions, so they legitimately transfer derivatives.",
+          "formula": "S=\\|x\\|^2>0,\\quad\\log\\|x\\|=\\tfrac12\\log S,\\quad\\|x\\|^q=S^{q/2}.",
+          "lean": "power_sq_profile and log_sq_profile prove the function identities. power_data and log_data derive actual local C2 internally using norm, log and rpow calculus."
+        },
+        {
+          "title": "Compute the actual power derivatives",
+          "text": "Apply the canonical radial formula with scalar profile S raised to q/2, and use the positive-radius real-power identity to combine exponents.",
+          "formula": "\\nabla\\|x\\|^q=q\\|x\\|^{q-2}x,\\qquad\\Delta\\|x\\|^q=q(q+n-2)\\|x\\|^{q-2}.",
+          "lean": "power_data calls RadialCalculus.radial_gradient_laplacian. Real.deriv_rpow_const and Real.rpow_add_one supply the explicit scalar derivatives and simplifications."
+        },
+        {
+          "title": "Compute the logarithmic derivatives separately",
+          "text": "Apply the same canonical node to one half of log S. Its first two scalar derivatives give the logarithmic gradient and Laplacian. The source logarithmic case is not obtained from the degenerate power with exponent zero.",
+          "formula": "g\\prime(S)=\\frac1{2S},\\quad g\\prime\\prime(S)=-\\frac1{2S^2},\\quad\\nabla\\log\\|x\\|=\\frac{x}{\\|x\\|^2},\\quad\\Delta\\log\\|x\\|=\\frac{n-2}{\\|x\\|^2}.",
+          "lean": "log_data calls the same radial_gradient_laplacian and uses deriv_const_mul_field, Real.deriv_log and deriv_inv. Nonzero squared norm discharges all denominator conditions."
+        },
+        {
+          "title": "Join the two dimension cases and conclude harmonicity",
+          "text": "If n=2, the logarithmic Laplacian vanishes. If n>2, substituting q=2-n makes the power coefficient zero. Each nonzero point has a neighborhood avoiding the pole, so these pointwise calculations give a zero-Laplacian germ alongside actual local C2.",
+          "formula": "n=2:\\ \\Delta\\log\\|x\\|=0;\\qquad n>2:\\ (2-n)((2-n)+n-2)=0.",
+          "lean": "fundamentalSolution_boundary_data splits eq_or_lt_of_le hn and uses eventually_ne_nhds with the full private data bundles. HarmonicOnNhd contains both C2 and neighborhood zero Laplacian."
+        },
+        {
+          "title": "Evaluate on a positive-radius sphere",
+          "text": "Substitute norm x=R into the literal values. Pair the actual gradient with R inverse times x. The inner product contributes R inverse times R squared, producing the stated radial derivatives. No surface integral or geometric normal theorem is used.",
+          "formula": "\\begin{array}{c|cc}&F(x)&\\langle\\nabla F(x),R^{-1}x\\rangle\\\\n=2&\\log R&R^{-1}\\\\n>2&R^{2-n}&(2-n)R^{1-n}\\end{array}\\qquad(\\|x\\|=R>0).",
+          "lean": "The final quantified boundary conclusion uses real_inner_self_eq_norm_sq, the private gradient formulas and Real.rpow_add_one with positive R."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus.radial_gradient_laplacian"
+      ],
+      "mathlib_dependencies": [
+        "Real.rpow_mul",
+        "Real.log_pow",
+        "ContDiffAt.rpow_const_of_ne",
+        "ContDiffAt.log",
+        "Real.deriv_rpow_const",
+        "Real.deriv_log",
+        "deriv_inv",
+        "Real.rpow_add_one",
+        "eventually_ne_nhds",
+        "real_inner_self_eq_norm_sq"
+      ],
+      "lean_statement": "The only external premise is the source dimension. Positive-radius and sphere conditions are guards inside the boundary conclusion.",
+      "lean_proof": "Both literal cases use internally derived local C2 and the same canonical radial node; no theorem about Green integrals is assumed.",
+      "boundary": "This packet provides local radial calculus and the literal Green test-function data. Geometric normal identification and inner-annulus orientation, zero flux, Green/divergence integral identities, closed-ball mean value, normalized surface integrals, Eq24, oracle/precision/cost adapters and the two main lower bounds remain separate. Integration, visual acceptance and purification are pending.",
+      "sources": [
+        {
+          "url": "https://www.axler.net/HFT.pdf#page=10",
+          "edition": "Harmonic Function Theory, second edition; author-hosted raw PDF SHA2564e64124f7e36993ee784e575a024505f99d484ccf959d2d3864eae9232af8bf1",
+          "anchor": "Definitions and Examples, printed2/PDF10; Theorem1.4 power/log test functions and omitted boundary calculations, printed5/PDF13; standing n>1, printed1/PDF9",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Sheldon Axler, Paul Bourdon and Wade Ramey assert power/log harmonicity and leave its verification to the reader. The all-positive-radius derivative bundle and displayed calculations are an explicit ASTIS expansion, not a verbatim numbered source theorem.",
+          "scope": "This packet provides local radial calculus and the literal Green test-function data. Geometric normal identification and inner-annulus orientation, zero flux, Green/divergence integral identities, closed-ball mean value, normalized surface integrals, Eq24, oracle/precision/cost adapters and the two main lower bounds remain separate. Integration, visual acceptance and purification are pending.",
+          "label": "HFT radial harmonic functions and mean-value test functions"
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/Harmonic/FundamentalSolution.lean",
+          "label": "Exact current power/log calculation",
+          "scope": "Complete implementation, including private literal-identity and derivative providers."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityRadialGreenData Tests.GaussianComplexityPoissonHarmonicity"
+      ]
+    }
+  ]
+}

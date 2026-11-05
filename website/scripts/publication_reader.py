@@ -230,6 +230,10 @@ def project_graph(builder) -> None:
                 builder.add(ident, 'declaration', decl.full_name, status='partial',
                             subtitle='Source-present publication; compiled badge not inferred',
                             url=astis_site.declaration_path(decl))
+            # Open the authored mathematics, with adjacent exact Lean and source
+            # links. The existing node identity and evidence status stay intact.
+            if decl.full_name in data.get('lessons', {}):
+                builder.nodes[ident]['url'] = declaration_lessons.lesson_path(decl.full_name)
             builder.edge('module:' + decl.module, ident, 'declares')
     by_path = {graph_chapter_path(i['chapter_path']): chapter_path_progress(i['chapter_path'])
                for i in publication.load()}

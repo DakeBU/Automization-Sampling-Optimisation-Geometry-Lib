@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation.single_block_separation",
+      "title": "Single-block Gaussian-mixture separation",
+      "reader_note": "The main bound is shown first; assumptions, formula proof and exact Lean are folded below.",
+      "statement": "The actual determinant-conditioned Gaussian mixtures satisfy the full quantitative single-block TV separation.",
+      "formula": "\\mathrm{TV}(P_+,P_-)\\ge\\frac{q^n}{2+4ns/(s+1)^2}\\ge\\frac12\\exp\\!\\left(-\\frac{5n}{s}\\right),\\qquad s=\\sqrt\\kappa,\\quad q=\\frac{s-1}{s+1}.",
+      "assumptions": [
+        "Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\). No parity restriction; every \\(n/2\\) in the proof is real.",
+        "\\(\\mu\\) is normalized Haar probability on full \\(O(n)\\), with both determinant signs. The two priors are exactly twice its restrictions to \\(\\det O=\\pm1\\); \\(P_\\pm\\) are the actual Gaussian bind mixtures defined below.",
+        "TV is the normalized supremum over measurable Euclidean events. Probability, kernel measurability, finite real event mass, integrability, the selected parameter signs, Eq24 and the scalar estimates are produced internally. None is a caller hypothesis."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(A_O,\\gamma_O,\\mu,\\nu_\\pm,P_\\pm\\)",
+          "text": "A is precision, so its inverse is covariance. The group is the full orthogonal group; its determinant sign is distinct from positive definiteness of A.",
+          "formula": "A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top),\\quad\\gamma_O=\\mathcal N(0,A_O^{-1}),\\quad\\nu_\\pm=2\\mu\\!\\restriction\\{\\det O=\\pm1\\},\\quad P_\\pm=\\nu_\\pm\\mathrm{bind}\\gamma."
+        },
+        {
+          "symbol": "\\(\\delta,s,q,a,r,\\ell,D\\)",
+          "text": "The event supremum is over all Borel measurable subsets of real n-dimensional Euclidean space. Selected parameters are definitions depending only on n and κ.",
+          "formula": "\\begin{aligned}\\delta&=\\sup_{B\\text{ measurable}}|P_+(B)-P_-(B)|,&s&=\\sqrt\\kappa,&q&=\\frac{s-1}{s+1},\\\\a&=1-\\frac1n,&r&=aq,&\\ell&=\\frac{4ns+(s-1)^2}{8n(n-1)},&D&=2+\\frac{4ns}{(s+1)^2}.\\end{aligned}"
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use the actual radial-test bound",
+          "text": "The selected tilt is positive. Apply the canonical Eq20 theorem to the literal Gaussian mixtures and the bounded test. Its probability, density, L1 and event-supremum adapters remain inside that parent.",
+          "formula": "t(x)=e^{-\\ell\\|x\\|_2^2},\\quad H=\\int\\det(O)\\left(\\int t(x)p_O(x)\\,dx\\right)d\\mu(O),\\qquad\\delta\\ge2|H|.",
+          "lean": "ht is SelectedTilt.selected_tilt hn hκ; htv is ActualTotalVariation.actual_radial_test_tv hn hκ at ht.2.2.1.le. No abstract TV bound or test expectation is supplied."
+        },
+        {
+          "title": "Insert the evaluated expectation",
+          "text": "Use the single canonical Eq24 value. All positive factors are proved from the source range. Taking absolute value removes the parity sign for every n.",
+          "formula": "H=\\frac{(-1)^n q^n a^{n/2}}{n(1-r^2)},\\qquad |H|=\\frac{q^n a^{n/2}}{n(1-r^2)},\\quad n(1-r^2)>0.",
+          "lean": "he is EvaluatedGaussian.selected_gaussian_value hn hκ; rw [he.2.2.2] identifies the literal density integral. hvabs simplifies absolute values, using hq, hpow, hn0 and hden, without an even-dimension assumption."
+        },
+        {
+          "title": "Keep the real half-power factor",
+          "text": "Bernoulli’s inequality applies because the real exponent n/2 is at least one and the increment −1/n is at least −1. Its linear term is exactly one half.",
+          "formula": "a^{n/2}=\\left(1-\\frac1n\\right)^{n/2}\\ge1-\\frac n2\\frac1n=\\frac12.",
+          "lean": "hhalf calls the existing Mathlib one_add_mul_self_le_rpow_one_add. hlin cancels the nonzero real n. This implements source Ex62 and does not introduce a new general wrapper."
+        },
+        {
+          "title": "Bound the exact denominator",
+          "text": "Expand the literal selected r. Since 0<q<1 and 0≤2−1/n≤2, the remaining product is at most two.",
+          "formula": "n(1-r^2)=\\frac{4ns}{(s+1)^2}+q^2\\left(2-\\frac1n\\right)\\le\\frac{4ns}{(s+1)^2}+2=D.",
+          "lean": "hdenid is the exact Ex63 identity; hq2 and hterm give hdenle. hprod and hD establish the strict positivity needed to reverse the denominator order."
+        },
+        {
+          "title": "Obtain the rational TV separation",
+          "text": "Combine the two scalar estimates with the actual test bound. Both denominator comparisons use positive quantities.",
+          "formula": "\\frac{q^n}{D}\\le\\frac{q^n}{n(1-r^2)}\\le\\frac{2q^n a^{n/2}}{n(1-r^2)}=2|H|\\le\\delta.",
+          "lean": "hratio consumes hdenle via div_le_div_iff₀; htest consumes hhalf and hvabs; their transitive composition with htv proves the new actual rational bound, source Ex64."
+        },
+        {
+          "title": "Reuse the exponential comparison",
+          "text": "The existing canonical scalar theorem supplies the second source inequality with the same constant five. Its proof uses two standard log tangent bounds, an explicitly recorded alternative sufficient proof of the author’s integral estimate; this packet does not reprove it.",
+          "formula": "\\frac12 e^{-5n/s}\\le\\frac{q^n}{D}\\le\\delta.",
+          "lean": "The first conjunction calls NumericSeparation.explicit_ratio_ge_exponential hn hκ directly. The active source projection stops at that canonical parent while the full author route remains in the expanded source graph."
+        },
+        {
+          "title": "Consume an odd-dimensional source endpoint",
+          "text": "At n=3 and κ=4, the actual target measures have a strictly positive TV lower bound and cannot be equal. An even-dimensional non-boundary example is checked as well.",
+          "formula": "n=3,\\ \\kappa=4:\\quad\\delta\\ge\\frac1{126}>0,\\quad P_+\\ne P_-;\\qquad n=4,\\ \\kappa=9:\\quad\\delta\\ge\\frac1{80}.",
+          "lean": "Tests/GaussianComplexitySingleBlockSeparation.lean instantiates the actual bind measures. If the two n=3 measures were equal the event-gap set would be {0}, contradicting the compiled lower bound."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.ActualTotalVariation.actual_radial_test_tv",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian.selected_gaussian_value",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedTilt.selected_tilt",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.NumericSeparation.explicit_ratio_ge_exponential"
+      ],
+      "mathlib_dependencies": [
+        "one_add_mul_self_le_rpow_one_add",
+        "Real.rpow_pos_of_pos",
+        "div_le_div_iff₀",
+        "div_le_div_of_nonneg_right",
+        "abs_pow"
+      ],
+      "lean_statement": "Exact preproof sealed signature, with only the source n and κ range.",
+      "lean_proof": "The adjacent extracted production proof consumes canonical parents and discharges every estimate internally.",
+      "boundary": "One complete actual single-block Proposition B.7 separation endpoint. Product amplification, both main lower bounds, exact-matvec oracle/transcript simulation, deterministic worst-case query caps, TV precision, dimension/condition-number adapters, expected-cost comparisons and fixed-spectrum hidden-eigenbasis remain separate. Latest-main integration waits for the original Optlib owner; rendered acceptance and postmerge purification remain pending.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.E19",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Appendix B.2.2 Proposition B.7 Eq19; Section2 normalized TV; Section3.1 Eq4 and actual mixtures; Eq20, Eq24, Ex62–Ex64 and p6.4–p6.6 / Ex65–Ex67",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+          "scope": "Every natural n≥3 and real κ≥4, including both endpoints and both parities.",
+          "label": "Zhou–Suzuki, Proposition B.7, Eq19"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexitySingleBlockSeparation"
+      ]
+    }
+  ]
+}

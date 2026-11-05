@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel.poissonKernel_harmonicOnNhd",
+      "kind": "theorem",
+      "title": "The Poisson kernel is harmonic away from its pole",
+      "reading_layout": "progressive",
+      "reader_note": "HFT Proposition1.18. The omitted source computation is expanded below; numerical surface integrals remain open.",
+      "statement": "For a fixed unit pole, the actual Poisson kernel is harmonic everywhere distinct from that pole.",
+      "formula": "P_\\zeta(x)=\\frac{1-\\|x\\|^2}{\\|x-\\zeta\\|^n},\\quad\\|\\zeta\\|=1\\quad\\Longrightarrow\\quad\\Delta P_\\zeta(x)=0\\quad(x\\ne\\zeta).",
+      "assumptions": [
+        "\\(n\\) is a natural number with \\(n\\ge2\\), exactly the book standing dimension \\(n>1\\). The carrier is real Euclidean \\(n\\)-space with its standard inner product.",
+        "The pole \\(\\zeta\\) is fixed and satisfies \\(\\|\\zeta\\|=1\\). The varying argument is \\(x\\in\\mathbb R^n\\setminus\\{\\zeta\\}\\); it need not lie inside the unit ball.",
+        "The function is the literal quotient. At every point of the stated domain, \\(\\|x-\\zeta\\|>0\\). Local \\(C^2\\) regularity is derived in the proof, not imposed as a hypothesis. No assertion is made about the excluded pole.",
+        "Lean harmonicity means local \\(C^2\\) regularity and vanishing actual Euclidean Laplacian on a neighborhood of every domain point. This agrees with the source notion on the open pole complement."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(S,p,u,v\\)",
+          "text": "Squared distance, real exponent and the two literal product factors.",
+          "formula": "S=\\|x-\\zeta\\|^2,\\quad p=-n/2,\\quad u=1-\\|x\\|^2,\\quad v=S^p."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Work away from the pole",
+          "text": "Fix x distinct from the unit pole. The positive squared distance S permits ordinary smooth real powers, including negative powers. The polynomial numerator is smooth everywhere; both factors are C2 in a neighborhood of x.",
+          "formula": "S=\\|x-\\zeta\\|^2>0,\\quad p=-\\frac n2,\\quad u(x)=1-\\|x\\|^2,\\quad v(x)=S^p=\\|x-\\zeta\\|^{-n},\\quad P_\\zeta=uv.",
+          "lean": "inv_norm_pow_eq_rpow identifies the literal inverse natural power. In poisson_laplace_zero, hu and hv derive local C2 from norm-square calculus and ContDiffAt.rpow_const_of_ne."
+        },
+        {
+          "title": "Differentiate the numerator",
+          "text": "Apply the shared scalar-profile formula with g(s)=1-s and center0. The profile is smooth even when x=0; its first derivative is -1 and its second is0.",
+          "formula": "\\nabla u(x)=-2x,\\qquad\\Delta u(x)=-2n.",
+          "lean": "numerator_calculus invokes RadialCalculus.radial_gradient_laplacian with g(s)=1-s and derives its local C2 internally. The center point is included."
+        },
+        {
+          "title": "Differentiate the radial factor and take its trace",
+          "text": "Apply the same shared scalar-profile formula to g(s)=s^p at center zeta. Its proof differentiates a local first-derivative germ and takes the orthonormal trace. The positive-distance real-power identity then specializes p=-n/2.",
+          "formula": "\\begin{aligned}\\nabla v(x)&=2pS^{p-1}(x-\\zeta),\\\\D_e^2v(x)&=4p(p-1)S^{p-2}\\langle x-\\zeta,e\\rangle^2+2pS^{p-1}\\|e\\|^2,\\\\\\Delta v(x)&=4p(p-1)S^{p-2}S+2pnS^{p-1}=2nS^{p-1}.\\end{aligned}",
+          "lean": "poisson_laplace_zero calls RadialCalculus.radial_gradient_laplacian for the actual power profile. hr, hgrad and hlv specialize the generic formula. Its scalar local C2 is discharged by Real.contDiffAt_rpow_const_of_ne."
+        },
+        {
+          "title": "Use the canonical product rule and cancel",
+          "text": "Invoke the existing local Laplacian product theorem on the two actual factors. Expanding the squared distance reduces the remaining bracket to one minus the squared norm of the pole. The unit-pole source assumption makes this zero.",
+          "formula": "\\begin{aligned}\\Delta P_\\zeta(x)&=2nS^{p-1}\\bigl(1-\\|x\\|^2+2\\langle x,x-\\zeta\\rangle-S\\bigr)\\\\&=2nS^{p-1}(1-\\|\\zeta\\|^2)=0.\\end{aligned}",
+          "lean": "poisson_laplace_zero calls LaplacianProduct.laplacian_mul exactly once. hcancel uses norm_sub_sq_real and the unit-pole condition; the derivative identities are proved internally."
+        },
+        {
+          "title": "Conclude neighborhood harmonicity",
+          "text": "Every point distinct from the pole has a neighborhood still avoiding it. The same computation gives zero Laplacian at every point in that neighborhood, while the literal quotient is C2 there. This establishes the source harmonicity statement on the entire pole complement.",
+          "formula": "\\forall x\\ne\\zeta,\\quad P_\\zeta\\in C^2\\text{ locally at }x,\\qquad\\Delta P_\\zeta=0\\text{ on a neighborhood of }x.",
+          "lean": "poissonKernel_harmonicOnNhd proves the literal quotient locally C2 and uses eventually_ne_nhds together with poisson_laplace_zero. No derivative or regularity result is a public premise."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.LaplacianProduct.laplacian_mul",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus.radial_gradient_laplacian"
+      ],
+      "mathlib_dependencies": [
+        "Real.rpow_natCast",
+        "Real.rpow_neg",
+        "Real.rpow_mul",
+        "Real.deriv_rpow_const",
+        "ContDiffAt.rpow_const_of_ne",
+        "Real.rpow_add_one",
+        "norm_sub_sq_real",
+        "eventually_ne_nhds"
+      ],
+      "lean_statement": "The exact HFT-dimension interface: a fixed unit pole and its full complement; no additional C2, derivative or Laplacian premise.",
+      "lean_proof": "Both actual factors consume the same canonical radial calculus node, with local C2 derived internally. One canonical product-rule call and the unit-pole cancellation prove zero Laplacian; local quotient regularity gives actual harmonicity.",
+      "boundary": "Harmonicity of the actual kernel only. Harmonic dilation on a neighborhood of the closed unit ball, mean-value/Poisson representation, both evaluated normalized-surface integrals in AppendixA1, Eq24, positive TV separation, amplification, exact oracle/query/cost adapters, conditional hidden-eigenbasis laws and both main lower bounds remain separate. No publication, integration or purification is inferred from focused compilation.",
+      "sources": [
+        {
+          "url": "https://www.axler.net/HFT.pdf#page=21",
+          "edition": "Harmonic Function Theory, second edition; author-hosted PDF SHA256 4e64124f7e36993ee784e575a024505f99d484ccf959d2d3864eae9232af8bf1",
+          "anchor": "Proposition1.18, printed13/PDF21; definition1.15, product rule1.19 and standing n>1 at printed1/PDF9",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Sheldon Axler, Paul Bourdon and Wade Ramey. The book suggests the product-rule computation and leaves it to the reader; the displayed differentiation and cancellation below are the ASTIS expansion.",
+          "scope": "Harmonicity of the actual kernel only. Harmonic dilation on a neighborhood of the closed unit ball, mean-value/Poisson representation, both evaluated normalized-surface integrals in AppendixA1, Eq24, positive TV separation, amplification, exact oracle/query/cost adapters, conditional hidden-eigenbasis laws and both main lower bounds remain separate. No publication, integration or purification is inferred from focused compilation.",
+          "label": "Axler-Bourdon-Ramey, Proposition1.18"
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/Harmonic/PoissonKernel.lean",
+          "label": "Complete Lean derivation, including the factor calculations",
+          "scope": "Exact current module, including imports, private derivative/trace calculations and the public theorem; implementation evidence, not a substitute for source review."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityPoissonHarmonicity"
+      ]
+    }
+  ]
+}

@@ -69,10 +69,12 @@ def home(cores: list[dict], graphs: list[dict]) -> str:
             f'<p>{len(cores)} mathematical cores · {len(bench.prompts(cores))} mathematical QA views · {len(graphs)} structural tasks.</p>'
             '<p><a href="curriculum/index.html">Seven-domain L1–L5 coverage</a> · <a href="natural-language/index.html">Natural-language QA</a> · <a href="lean/index.html">Lean QA</a> · <a href="graph-json/index.html">Graph QA</a></p>'
             '<p><a href="downloads/questions.jsonl" download>Prompt-only JSONL</a> · <a href="downloads/reviewed-questions.jsonl" download>editorially reviewed prompts</a> · <a href="downloads/manifest.json">Version and hashes</a> · <a href="pilot.zip" download>Download the full pilot</a></p>'
+            '<p>Reviewed subsets use content-bound AI editorial acceptance, not empirical difficulty calibration or a certificate for arbitrary submitted proofs.</p>'
             '<p>Natural-language scoring needs mathematical assessment. The native runner currently verifies Graph JSON, not arbitrary Lean. Agentic Lean execution, empirical calibration and private families remain open.</p>')
         + fold('Numbered textbook exercises and our reference solutions',
             '<p><a href="textbook-exercises/index.html">Textbook exercises &amp; answers</a></p>'
             '<p>Complete original answers, exact source numbers and separately checked Lean scope.</p>'
+            '<p>Intake itself is not admission: a source exercise needs a complete answer, exact formal-coverage boundaries and current independent review before entering the reviewed subset.</p>'
             '<p><a href="downloads/TEXTBOOK_EXERCISES.md">Verified source intake and admission checklist</a> · <a href="../../libraries/optimisation/chapter-03.html#chewi-opt-v1-exercise-3-2">Existing Chewi Optimization Exercise 3.2 source/solution window</a></p>')
         + '<p class="sog-caption">Illustrations are navigation sketches, not proof-dependency evidence.</p></article>')
 
@@ -127,7 +129,7 @@ def evaluation_page() -> str:
         + card('Agentic Lean', 'Fixed targets and proof tasks. Safe model-submission execution is not ready.', '../lean/index.html', 'lean', extra='<small>Trusted references only · executor pending</small>')
         + card('Graph reasoning', 'Exact structural answers in the tested isolated Graph JSON runner.', '../graph-json/index.html', 'functor', extra='<small>Native Harbor adapter · available</small>')
         + '</div><p><a href="../downloads/EVALUATION.md">Run metadata, scoring and reproducibility</a> · <a href="../downloads/HARBOR.md">Native runtime guide</a></p>'
-        + fold('Before reporting a score', '<p>Freeze prompts, family split, model/version, retrieval/tools, attempts and raw outputs. Keep answers out of evaluation prompts. Current data is public-dev; no unseen-generalization or measured model-ranking claim is supported.</p>') + '</article>')
+        + fold('Before reporting a score', '<p>Freeze prompts, family split, model/version, retrieval/tools, attempts and raw outputs. Keep answers out of evaluation prompts. Current data is public-dev; no unseen-generalization or measured model-ranking claim is supported.</p><p>Recorded human rubric judgments are not automatically verified mathematics.</p>') + '</article>')
 
 
 def training_page() -> str:

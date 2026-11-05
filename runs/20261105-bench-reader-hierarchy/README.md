@@ -63,3 +63,28 @@ calibration and private families. No score or security certificate is invented.
 User-owned untracked KernelReversibilityTransport source/test and three old blind
 reports, both preserved stashes, old theorem frontiers and cycle memory remain
 untouched and excluded from this contribution. No background ASTIS session runs.
+
+## Exact checkpoint and retained regression
+
+Original UI commit13c85797 is pushed in draft PR377. Its first clean CI correctly
+failed two existing Bench home-page contracts: the concise portal omitted
+content-bound editorial acceptance and the source-intake/non-admission warning.
+The original failures remain in Bench41986538277 and site41986538258. The repair
+puts those scientific boundaries, plus the human-scoring limitation, inside the
+closed coverage/exercise/evaluation details. No assertion or mathematical review
+is removed. The screenshot gate now restores the initial scroll position after
+exercising task search/pagination so the captured landing image is meaningful.
+
+The repaired complete Bench suite passes121 tests (the existing115 plus6 new
+hierarchy tests); the site/Harness/source-reader suite passes256 tests. Logs:
+.astis/sog-bench/reader-hierarchy-full-unit.log and reader-hierarchy-site-unit.log.
+Before this prose-only repair, the actual full canonical build/site validator,
+root9611-job Lean build, ASTIS check, all29-core offline browser gate and nine-route
+desktop/mobile hierarchy gate passed. A fresh repaired canonical build/check and
+clean exact-head CI remain required; earlier successful checks are not relabelled
+as those future checks. This PR is not deployed merely because it is pushed.
+
+The independent source reviewer has separately closed the already-merged energy
+helper's postmerge purification and scoped Exposition Seal. Its immutable reports
+are in the existing energy run directory and the Cell names only the two actual
+energy supports. This does not seal the new UI or the full source exercise.

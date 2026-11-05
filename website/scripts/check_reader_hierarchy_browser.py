@@ -69,10 +69,12 @@ def main():
                     page.wait_for_selector('.ulg-node')
                     assert page.locator('.ulg-help[open]').count()==0
                     assert page.locator('.ulg-shell').bounding_box()['y']<650
+                page.evaluate('window.scrollTo({top:0,behavior:"instant"})')
                 page.screenshot(path=str(args.evidence/(label+'-desktop.png')))
                 page.set_viewport_size({'width':412,'height':915})
                 page.wait_for_function('document.querySelector("#site-sidebar").getBoundingClientRect().right<=1')
                 assert not page.evaluate('document.documentElement.scrollWidth>innerWidth+1'),rel
+                page.evaluate('window.scrollTo({top:0,behavior:"instant"})')
                 page.screenshot(path=str(args.evidence/(label+'-mobile.png')))
                 report['routes'].append(rel)
             page.goto(base+HUB+'sogb-001.html')

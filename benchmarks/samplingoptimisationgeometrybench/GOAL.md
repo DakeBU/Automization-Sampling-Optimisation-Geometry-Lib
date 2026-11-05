@@ -99,8 +99,15 @@ VERIFIED at `891a5c9b`; its existing stabilization lane is now claimed on
 main207e4b30 after all six exact-head7172466e checks succeeded. The single public
 calculus/Registry/root-test integration is real, with unchanged reviewed code.
 The initial site failure and two-axis graph-framing correction are preserved.
-Fresh main CI, public delivery and independent scoped postmerge sealing remain
-separate; do not reprove the unchanged packet or call it publicly delivered yet.
+Main Pages41983784202 succeeded, and the actual public reader at207e4b30 was
+checked on desktop/mobile with its six formula steps, exact folded Lean and
+graph focus. A distinct reviewer accepted helper-only postmerge purification
+and the Exposition Seal, restricted to actual-finite-sqrt-energy and
+quadratic-sqrt-energy-limit. Reports live in the existing energy run directory.
+Fresh main formalization41983784280 was still in progress at that observation;
+accepted exact-head compilation is not relabelled as fresh main compilation.
+The new visual Bench reader is a separate pending delivery, not covered by this
+mathematical helper's seal. Do not reprove the unchanged packet.
 Presentation-only local graph framing, resize/occlusion checks and compact exact-
 identifier headings preserve topology; the ecosystem contract records these
 reader rules. Unrelated collaborator drafts remain untouched and unstaged.

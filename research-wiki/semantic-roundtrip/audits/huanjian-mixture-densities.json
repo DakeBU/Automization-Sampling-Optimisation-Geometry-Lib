@@ -1,0 +1,248 @@
+{
+  "id": "ASTIS-RT-20261105-HuanjianMixtureDensities",
+  "state": "source-reviewed",
+  "source": {
+    "source_id": "arxiv2610.20492v1-MixtureDensities",
+    "anchor": "Section2 S2.p2.1 sign-conditioned Haar; Section3.1 Eq4 and P_b before Eq6; AppendixB.2 introduction A2.SS2.p2.1 density declarations; B.2.3 p2.1–p2.2 / Ex68 density normalization and initial affinity range",
+    "original_text": "The actual determinant-conditioned Gaussian mixtures have nonnegative measurable Lebesgue-integrable densities of mass one. P_b(dx)=q_b(x)\\,dx,\\qquad q_b\\ge0,\\quad q_b\\in L^1(dx),\\quad\\int q_b(x)\\,dx=1,\\qquad b\\in\\{-1,+1\\}. Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including both endpoints and odd dimensions. Every \\(n/2\\) is a real exponent. \\(\\mu\\) is the canonical full-orthogonal Haar probability and \\(\\nu_b=2\\mu\\!\\restriction\\{\\det O=b\\}\\). The actual mixture is \\(P_b=\\nu_b\\mathrm{bind}\\gamma\\), where \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\). The source density \\(p_b\\) is determined only Lebesgue-a.e. We choose the literal average \\(q_b\\) below and certify it by equality of actual measures. No pointwise equality to a different arbitrary source representative is asserted. Pointwise inner absolute integrability, measurability, matrix positivity, actual mixture probability, outer L1, normalization and the measure identity are proved inside the theorem. None is a caller hypothesis; totalized Bochner integration supplies no fallback value. A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top),\\quad\\gamma_O=\\mathcal N(0,A_O^{-1}),\\quad p_O(x)=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}\\exp\\!\\left(-\\frac{x^\\top A_Ox}{2}\\right). \\nu_b=2\\mu\\!\\restriction\\{\\det O=b\\},\\quad P_b=\\nu_b\\mathrm{bind}\\gamma,\\quad q_b(x)=\\int p_O(x)\\,d\\nu_b(O).",
+    "text_sha256": "06b527b9e7bfa15ec5810034609cdf0cf34c1930d7d2b41730dea6c8f0220671",
+    "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS3.p2.2",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities.actual_mixture_densities",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/MixtureDensities.lean",
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ} (hκ : 4 ≤ κ),\n    let μ := (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))))⁻¹\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)))).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))) *ᵥ WithLp.ofLp x)) / 2)\n    let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos\n    let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg\n    (∀ x, 0 ≤ qpos x ∧ 0 ≤ qneg x) ∧\n    Measurable qpos ∧ Measurable qneg ∧\n    Integrable qpos volume ∧ Integrable qneg volume ∧\n    (∫ x, qpos x) = 1 ∧ (∫ x, qneg x) = 1 ∧\n    νpos.bind γ = volume.withDensity (fun x => ENNReal.ofReal (qpos x)) ∧\n    νneg.bind γ = volume.withDensity (fun x => ENNReal.ofReal (qneg x))",
+    "statement_sha256": "d644ba7786cb5802fb82d2bb3ea0e415b8b43fd47151b40c67c33bff4dbdf61c",
+    "formalizer": "huanjian_gc_20261105_densities",
+    "compiled": true,
+    "decoder_context": [
+      "EuclideanSpace real (Fin n) is real n-dimensional Euclidean space with its standard l2 norm, Borel structure and Euclidean Lebesgue volume. Fin n indexes coordinates from zero through n-1. WithLp.ofLp is the coordinate representation.",
+      "The orthogonal group is full real O(n), both determinant signs, with its matrix Borel structure. Measure.haarMeasure(top : TopologicalSpace.PositiveCompacts G) is canonical normalized full-group Haar probability.",
+      "Measure.restrict is restriction to the displayed set. Scalar multiplication of measures uses extended nonnegative real scalars. Measure.bind integrates the displayed measure kernel against its input measure. Measure.withDensity of a nonnegative extended-real function is the measure whose measurable-set values are its set lintegrals under the base measure.",
+      "multivariateGaussian mean m matrix C is the pushforward of canonical stdGaussian by z -> m + Matrix.toEuclideanCLM (CFC.sqrt C) z. Its covariance interpretation holds for positive semidefinite C. Matrix inverse is standard totalized matrix inverse.",
+      "Integrable is genuine real Bochner absolute integrability. The displayed integrals with real integrands are real Bochner integrals; unspecified measure is volume on the displayed Euclidean carrier. Real n/2 powers use Real.rpow and real division; natural powers have natural exponents. ENNReal.ofReal maps a real number to its nonnegative extended-real truncation. Real division/inverse are totalized at zero."
+    ]
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Full O(n) Haar probability μ; actual sign-conditioned priors ν_b=2 μ|{det O=b}; literal Eq4 precision A_O; actual N(0,A_O⁻¹); Lebesgue densities p_O and p_b. The packet chooses q_b(x)=∫p_O(x)dν_b as a representative.",
+      "reconstructed": "G is the full real orthogonal group; μ is haarMeasure on its whole compact carrier; νpos and νneg are twice the determinant-sign restrictions. γ(O) is multivariateGaussian 0 A_O⁻¹ and p(O,x) is the literal real precision density. qpos/qneg are their actual real Bochner averages.",
+      "relation": "explicit-elaboration",
+      "evidence": "Raw S2.p2.1 names full Haar and half-mass signs; S3.E4 fixes A; S3.SS1.p3.1 defines the single-block mixture. A2.SS2.p2.1 declares p_O and p_b densities. Module lines26–47 instantiate these objects; orthogonalHaar and singleBlockPrecision bodies are literal. The paper density is an a.e. equivalence class, so the measure equalities certify these chosen representatives without asserting equality to every arbitrary p_b at every x."
+    },
+    "domains": {
+      "original": "n∈ℕ, n≥3; κ∈ℝ, κ≥4; O∈O(n); x∈ℝⁿ; b∈{−1,+1}; Euclidean Lebesgue base measure.",
+      "reconstructed": "n : ℕ and κ : ℝ with 3≤n,4≤κ; Fin n real orthogonal matrices and EuclideanSpace ℝ (Fin n); both signs represented separately; all outer integrals use volume.",
+      "relation": "same",
+      "evidence": "A2.SS2.p2.1 gives exactly the standing thresholds and full O(n). The theorem has no parity or strict-endpoint restriction. S3.1 ambient d,k concern later product construction; the B.2 single-block density slice has no d-dependent restriction. Fin n and WithLp coordinates realize ℝⁿ without changing volume or its Borel structure."
+    },
+    "quantifiers": {
+      "original": "For every n≥3 and κ≥4, both actual sign mixtures admit the selected normalized density representatives; nonnegativity at every x.",
+      "reconstructed": "Implicit n then hn, implicit κ then hκ scope over all local definitions and nine conjunction clauses; ∀x scopes over both qpos≥0 and qneg≥0.",
+      "relation": "same",
+      "evidence": "Signature lines26–47 binds only source parameters. No existence witness, arbitrary density, Gaussian law or prior is supplied by the caller. Odd dimensions and n=3,κ=4 are included. The universal pointwise claim applies to the chosen averages rather than to an unspecified source representative."
+    },
+    "assumptions": {
+      "original": "Only n≥3 and κ≥4 for the actual literal single-block construction. Density existence, regularity, absolute integrability and normalization are obligations, not extra public hypotheses.",
+      "reconstructed": "Only hn:3≤n and hκ:4≤κ. Measurability, positivity, priors/mixtures being probabilities, inner Bochner L1, outer L1 and mass are produced internally.",
+      "relation": "same",
+      "evidence": "Full137-line module inspected. hdata at lines85–133 is a local have, not a public helper. Its probability classes are supplied at lines67–74 by actual_mixture_laws and component_probabilities before hdata is applied to νpos,νneg. gaussian_law_eq_density derives SPD from singleBlockPrecision_regular using hn,hκ. Compact/Borel/second-countable instances are canonical carrier infrastructure, not caller assumptions."
+    },
+    "conclusion": {
+      "original": "Chosen actual densities q_b are nonnegative, measurable, Lebesgue L1, integrate to1, and P_b(dx)=q_b(x)dx. B.2.3 uses unit masses for initial 0≤a≤1.",
+      "reconstructed": "Pointwise nonnegativity for both q values; Measurable and Integrable under volume; real integrals equal1; each actual ν.bindγ equals volume.withDensity(ofRealq). The focused test additionally proves genuine L1 of sqrt(qpos*qneg), 0≤a≤1, retaining both law equalities.",
+      "relation": "explicit-elaboration",
+      "evidence": "Module lines41–47 exactly supply the normalization/measure interface. hpi establishes all fixed-x inner L1; hmeasure uses nonnegative Tonelli; hmassNN uses actual mixture probability and yields hqi,hmass. Full89-line consumer uses square roots in L2 and Cauchy–Schwarz at exponents2,2. Raw Ex68 and p2.2 initial clause support this range. The subsequent TV display, Eq25, product and amplification claims are not asserted."
+    },
+    "scopes": {
+      "original": "Single-block actual mixtures, both signs under the same full Haar law; q_b is one concrete representative of the a.e. density. Initial affinity only, before TV conversion/amplification.",
+      "reconstructed": "Every definition and conclusion stays inside n,κ; μ depends on n, A/γ/p and q on n,κ. All Bochner averages and densities use their matching sign priors; equalities compare measures on the same E.",
+      "relation": "same",
+      "evidence": "No sign crossing or free prior occurs in lines26–47 and final assembly135–136. hmeasure swaps ν and volume.restrict B for measurable B using hpm; ofReal conversion uses hpi for that very x and ν. No a.e.-to-pointwise claim for an arbitrary paper density is made. hdata and consumer hbasic are proof-local blocks, not exported extra-premise interfaces."
+    },
+    "constant_dependencies": {
+      "original": "Eq4 constants (κ+1)/2 and (κ−1)/4; density sqrt(detA)/(2π)^(n/2), exponent −xᵀAx/2; prior factor2; masses1 and signs±1. n/2 is real, including odd n.",
+      "reconstructed": "Exactly those constants and dependencies; ((n:ℝ)/2) is Real.rpow exponent, A⁻¹ is covariance. No unspecified constants or uniformity-dependent hidden parameters.",
+      "relation": "same",
+      "evidence": "Raw S3.E4 and density declarations checked against singleBlockPrecision and GaussianPrecisionDensity. The latter proves the inverse-covariance Jacobian and real exponent normalizer. Module lines29–39 matches all coefficients/signs. Consumer has no n,κ-dependent loss constant and proves a≤1."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "Codex (GPT-6); canonical agent identity /root/density_fresh_source_module_review. The exact serving-model variant is not exposed in this reviewer context.",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "bb42078fa20d7e8b2b17e5e5e0bf9a0cf18fbf788d7e8e480d68f5888840055a",
+    "evidence": "research-wiki/paper-contributions/GaussianComplexity/mixture-densities-semantic-evidence/independent-source-module-reader-review-20261105/source-review-result.json; raw source anchors and complete module/test reviewed; actual focused build receipt research-wiki/paper-contributions/GaussianComplexity/mixture-densities-semantic-evidence/independent-source-module-reader-review-20261105/20261105T074909790079Z-densities-independent-review-build.receipt.json",
+    "review_run_sha256": "58d7b15831ca3b06b428462875890dcbed302244b5d0253c0602905b053ca81e",
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/mixture-densities-semantic-evidence/independent-source-module-reader-review-20261105/source-review-run.json",
+    "result_artifact": "research-wiki/paper-contributions/GaussianComplexity/mixture-densities-semantic-evidence/independent-source-module-reader-review-20261105/source-review-result.json",
+    "candidate_commit": "584e0c43be5833ddafa9ac1e497957458bc661a2",
+    "whole_module_review_artifact": "research-wiki/paper-contributions/GaussianComplexity/mixture-densities-semantic-evidence/independent-source-module-reader-review-20261105/whole-module-review.json",
+    "authored_reader_content_review_artifact": "research-wiki/paper-contributions/GaussianComplexity/mixture-densities-semantic-evidence/independent-source-module-reader-review-20261105/authored-reader-review.json"
+  },
+  "publication_binding_sha256": "ad56759b69b8b59c421e4e46c6ed2c1eeec3c48789dda9c4dd02a0499d7c5d5b",
+  "publication_context": {
+    "file": "cab697b62be6a468a67ae8404e1a6272872ff00a0f9de6c6c0cc3b7485e1c0dc",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws\nimport Mathlib.MeasureTheory.Integral.Prod\nimport Mathlib.MeasureTheory.Function.LocallyIntegrable\n\n/-!\n# Actual mixed Gaussian densities\n\nThe density notation of Zhou--Suzuki, arXiv:2610.20492v1, Appendix B.2\nintroduction and B.2.3, is realized by actual conditioned-Haar averages.\nThe chosen representatives are nonnegative measurable Lebesgue L1 functions\nof mass one and define exactly the actual Gaussian bind mixtures.\nSource densities are a.e. objects; no pointwise equality to a different\narbitrary source representative is asserted. Pointwise inner L1 is proved,\nso totalized Bochner integration is not used as a fallback.\nTV/affinity comparison, Eq25, products and amplification remain separate.\n-/\n\nopen Matrix MeasureTheory\nopen scoped ENNReal\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities\nset_option autoImplicit false\n\ntheorem actual_mixture_densities {n : ℕ} (hn : 3 ≤ n) {κ : ℝ} (hκ : 4 ≤ κ) :\n    let μ := orthogonalHaar n\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n    let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos\n    let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg\n    (∀ x, 0 ≤ qpos x ∧ 0 ≤ qneg x) ∧\n    Measurable qpos ∧ Measurable qneg ∧\n    Integrable qpos volume ∧ Integrable qneg volume ∧\n    (∫ x, qpos x) = 1 ∧ (∫ x, qneg x) = 1 ∧\n    νpos.bind γ = volume.withDensity (fun x => ENNReal.ofReal (qpos x)) ∧\n    νneg.bind γ = volume.withDensity (fun x => ENNReal.ofReal (qneg x)) := by\n  classical\n  dsimp only\n  let G := Matrix.orthogonalGroup (Fin n) ℝ\n  let E := EuclideanSpace ℝ (Fin n)\n  let μ := orthogonalHaar n\n  let νpos := (2 : ℝ≥0∞) • μ.restrict\n    {O : G | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n  let νneg := (2 : ℝ≥0∞) • μ.restrict\n    {O : G | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n  let γ : G → Measure E := fun O => ProbabilityTheory.multivariateGaussian (0 : E)\n    (singleBlockPrecision κ O)⁻¹\n  let p : G → E → ℝ := fun O x =>\n    Real.sqrt (singleBlockPrecision κ O).det / (2 * Real.pi) ^ ((n : ℝ) / 2) *\n      Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n        (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n  have hlaws := GaussianMixtureLaws.actual_mixture_laws hn hκ\n  have hγ : Measurable γ := hlaws.1\n  let : IsProbabilityMeasure (νpos.bind γ) := hlaws.2.1\n  let : IsProbabilityMeasure (νneg.bind γ) := hlaws.2.2.1\n  have hpriors := DeterminantComponents.component_probabilities\n    (lt_of_lt_of_le (by decide : 0 < 3) hn)\n  let : IsProbabilityMeasure νpos := hpriors.2.2.1\n  let : IsProbabilityMeasure νneg := hpriors.2.2.2\n  have hAc : Continuous (fun O : G => singleBlockPrecision κ O) := by\n    unfold singleBlockPrecision\n    exact continuous_const.sub\n      ((continuous_subtype_val.add continuous_subtype_val.matrix_transpose).const_smul\n        ((κ - 1) / 4))\n  have hpc : Continuous (Function.uncurry p) := by\n    dsimp only [p, Function.uncurry, E]\n    fun_prop\n  have hp0 (O : G) (x : E) : 0 ≤ p O x := by dsimp [p]; positivity\n  have hd (O : G) : γ O = (volume : Measure E).withDensity\n      (fun x => ENNReal.ofReal (p O x)) :=\n    GaussianLawDensity.gaussian_law_eq_density hn hκ O\n  -- One internal construction is used for each of the two actual priors.\n  have hdata (ν : Measure G) [IsProbabilityMeasure ν]\n      [IsProbabilityMeasure (ν.bind γ)] :\n      let q : E → ℝ := fun x => ∫ O, p O x ∂ν\n      (∀ x, 0 ≤ q x) ∧ Measurable q ∧ Integrable q volume ∧\n        (∫ x, q x) = 1 ∧\n        ν.bind γ = volume.withDensity (fun x => ENNReal.ofReal (q x)) := by\n    let q : E → ℝ := fun x => ∫ O, p O x ∂ν\n    have hpi (x : E) : Integrable (fun O => p O x) ν := by\n      have hpx : Continuous (fun O : G => p O x) :=\n        hpc.comp (continuous_id.prodMk continuous_const)\n      simpa only [integrableOn_univ] using\n        (ContinuousOn.integrableOn_compact (μ := ν) isCompact_univ hpx.continuousOn)\n    have hq0 (x : E) : 0 ≤ q x := integral_nonneg (fun O => hp0 O x)\n    have hqm : Measurable q :=\n      (hpc.stronglyMeasurable.integral_prod_left (μ := ν)).measurable\n    have hpm : Measurable (Function.uncurry (fun O x => ENNReal.ofReal (p O x))) :=\n      ENNReal.measurable_ofReal.comp hpc.measurable\n    have hmeasure : ν.bind γ = (volume : Measure E).withDensity\n        (fun x => ENNReal.ofReal (q x)) := by\n      apply Measure.ext\n      intro B hB\n      rw [Measure.bind_apply hB hγ.aemeasurable, withDensity_apply _ hB]\n      calc\n        (∫⁻ O, γ O B ∂ν) =\n            ∫⁻ O, (∫⁻ x in B, ENNReal.ofReal (p O x) ∂(volume : Measure E)) ∂ν := by\n          apply lintegral_congr\n          intro O\n          rw [hd O, withDensity_apply _ hB]\n        _ = ∫⁻ x in B, (∫⁻ O, ENNReal.ofReal (p O x) ∂ν) ∂(volume : Measure E) :=\n          lintegral_lintegral_swap hpm.aemeasurable\n        _ = ∫⁻ x in B, ENNReal.ofReal (q x) := by\n          apply lintegral_congr\n          intro x\n          exact (ofReal_integral_eq_lintegral_ofReal (hpi x)\n            (Filter.Eventually.of_forall (fun O => hp0 O x))).symm\n    have hmassNN : (∫⁻ x, ENNReal.ofReal (q x)) = 1 := by\n      have hu := congrArg (fun M : Measure E => M Set.univ) hmeasure\n      simpa only [measure_univ, withDensity_apply _ MeasurableSet.univ,\n        Measure.restrict_univ] using hu.symm\n    have hqi : Integrable q volume :=\n      (lintegral_ofReal_ne_top_iff_integrable hqm.aestronglyMeasurable\n        (Filter.Eventually.of_forall hq0)).mp (by rw [hmassNN]; exact ENNReal.one_ne_top)\n    have hmass : (∫ x, q x) = 1 := by\n      rw [integral_eq_lintegral_of_nonneg_ae\n        (Filter.Eventually.of_forall hq0) hqm.aestronglyMeasurable, hmassNN]\n      simp\n    exact ⟨hq0, hqm, hqi, hmass, hmeasure⟩\n  have hpos := hdata νpos\n  have hneg := hdata νneg\n  exact ⟨(fun x => ⟨hpos.1 x, hneg.1 x⟩), hpos.2.1, hneg.2.1,\n    hpos.2.2.1, hneg.2.2.1, hpos.2.2.2.1, hneg.2.2.2.1,\n    hpos.2.2.2.2, hneg.2.2.2.2⟩\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS3.p2.2",
+      "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "Section2 S2.p2.1 sign-conditioned Haar; Section3.1 Eq4 and P_b before Eq6; AppendixB.2 introduction A2.SS2.p2.1 density declarations; B.2.3 p2.1–p2.2 / Ex68 density normalization and initial affinity range",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. This is the actual density/normalization interface used by the source amplification argument; the implicit construction is made explicit.",
+      "scope": "Actual single-block P± for every n≥3 and κ≥4; chosen nonnegative Lebesgue-density representatives."
+    },
+    "statement": "The actual determinant-conditioned Gaussian mixtures have nonnegative measurable Lebesgue-integrable densities of mass one. P_b(dx)=q_b(x)\\,dx,\\qquad q_b\\ge0,\\quad q_b\\in L^1(dx),\\quad\\int q_b(x)\\,dx=1,\\qquad b\\in\\{-1,+1\\}. Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including both endpoints and odd dimensions. Every \\(n/2\\) is a real exponent. \\(\\mu\\) is the canonical full-orthogonal Haar probability and \\(\\nu_b=2\\mu\\!\\restriction\\{\\det O=b\\}\\). The actual mixture is \\(P_b=\\nu_b\\mathrm{bind}\\gamma\\), where \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\). The source density \\(p_b\\) is determined only Lebesgue-a.e. We choose the literal average \\(q_b\\) below and certify it by equality of actual measures. No pointwise equality to a different arbitrary source representative is asserted. Pointwise inner absolute integrability, measurability, matrix positivity, actual mixture probability, outer L1, normalization and the measure identity are proved inside the theorem. None is a caller hypothesis; totalized Bochner integration supplies no fallback value. A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top),\\quad\\gamma_O=\\mathcal N(0,A_O^{-1}),\\quad p_O(x)=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}\\exp\\!\\left(-\\frac{x^\\top A_Ox}{2}\\right). \\nu_b=2\\mu\\!\\restriction\\{\\det O=b\\},\\quad P_b=\\nu_b\\mathrm{bind}\\gamma,\\quad q_b(x)=\\int p_O(x)\\,d\\nu_b(O).",
+    "formulae": [
+      {
+        "label": "Actual mixed density and normalization",
+        "tex": "P_b(dx)=q_b(x)\\,dx,\\qquad q_b\\ge0,\\quad q_b\\in L^1(dx),\\quad\\int q_b(x)\\,dx=1,\\qquad b\\in\\{-1,+1\\}."
+      }
+    ],
+    "assumptions": [
+      "Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including both endpoints and odd dimensions. Every \\(n/2\\) is a real exponent.",
+      "\\(\\mu\\) is the canonical full-orthogonal Haar probability and \\(\\nu_b=2\\mu\\!\\restriction\\{\\det O=b\\}\\). The actual mixture is \\(P_b=\\nu_b\\mathrm{bind}\\gamma\\), where \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\).",
+      "The source density \\(p_b\\) is determined only Lebesgue-a.e. We choose the literal average \\(q_b\\) below and certify it by equality of actual measures. No pointwise equality to a different arbitrary source representative is asserted.",
+      "Pointwise inner absolute integrability, measurability, matrix positivity, actual mixture probability, outer L1, normalization and the measure identity are proved inside the theorem. None is a caller hypothesis; totalized Bochner integration supplies no fallback value."
+    ],
+    "obligations": [
+      {
+        "id": "actual-single-block-density-normalization",
+        "label": "The actual determinant-conditioned Gaussian mixtures have nonnegative measurable Lebesgue-integrable densities of mass one."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities.actual_mixture_densities",
+      "title": "Actual densities of the single-block mixtures",
+      "reader_note": "The measure and normalization conclusion is shown first; assumptions, formula proof and exact Lean are folded below.",
+      "statement": "The actual determinant-conditioned Gaussian mixtures have nonnegative measurable Lebesgue-integrable densities of mass one.",
+      "formula": "P_b(dx)=q_b(x)\\,dx,\\qquad q_b\\ge0,\\quad q_b\\in L^1(dx),\\quad\\int q_b(x)\\,dx=1,\\qquad b\\in\\{-1,+1\\}.",
+      "assumptions": [
+        "Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including both endpoints and odd dimensions. Every \\(n/2\\) is a real exponent.",
+        "\\(\\mu\\) is the canonical full-orthogonal Haar probability and \\(\\nu_b=2\\mu\\!\\restriction\\{\\det O=b\\}\\). The actual mixture is \\(P_b=\\nu_b\\mathrm{bind}\\gamma\\), where \\(\\gamma_O=\\mathcal N(0,A_O^{-1})\\).",
+        "The source density \\(p_b\\) is determined only Lebesgue-a.e. We choose the literal average \\(q_b\\) below and certify it by equality of actual measures. No pointwise equality to a different arbitrary source representative is asserted.",
+        "Pointwise inner absolute integrability, measurability, matrix positivity, actual mixture probability, outer L1, normalization and the measure identity are proved inside the theorem. None is a caller hypothesis; totalized Bochner integration supplies no fallback value."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(A_O,\\gamma_O,p_O\\)",
+          "text": "A is the literal precision; its inverse is covariance. The Euclidean dot product and Lebesgue volume are the same ones used by the canonical actual Gaussian-density producer.",
+          "formula": "A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top),\\quad\\gamma_O=\\mathcal N(0,A_O^{-1}),\\quad p_O(x)=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}\\exp\\!\\left(-\\frac{x^\\top A_Ox}{2}\\right)."
+        },
+        {
+          "symbol": "\\(\\mu,\\nu_b,P_b,q_b\\)",
+          "text": "Both signs use the same full O(n) Haar law. The real Bochner average defines the selected representative at every x; its genuine inner L1 is established internally.",
+          "formula": "\\nu_b=2\\mu\\!\\restriction\\{\\det O=b\\},\\quad P_b=\\nu_b\\mathrm{bind}\\gamma,\\quad q_b(x)=\\int p_O(x)\\,d\\nu_b(O)."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Fix the actual component and mixture laws",
+          "text": "The source conditioned priors have mass one. Reuse the canonical actual-mixture construction and the exact Gaussian precision-density identity.",
+          "formula": "\\nu_b(O(n))=1,\\qquad\\gamma_O(dx)=p_O(x)\\,dx,\\qquad P_b(\\mathbb R^n)=1.",
+          "lean": "hlaws calls GaussianMixtureLaws.actual_mixture_laws; hpriors calls DeterminantComponents.component_probabilities. hd calls GaussianLawDensity.gaussian_law_eq_density. The notation P_b is a measure on Euclidean space; no prior or Gaussian law is supplied as an abstract witness."
+        },
+        {
+          "title": "Establish each finite average",
+          "text": "For every fixed x, O↦p_O(x) is continuous on compact O(n), so it is genuinely absolutely integrable under the finite conditioned prior. This is an explicit internal construction omitted by the paper. It uses continuity/compactness; the independently retained source envelope is another sufficient route, not a theorem this proof calls.",
+          "formula": "\\forall x,\\quad O\\mapsto p_O(x)\\in L^1(\\nu_b),\\qquad q_b(x)=\\int p_O(x)\\,d\\nu_b(O)\\in\\mathbb R.",
+          "lean": "hAc and hpc prove actual joint continuity. hpi applies ContinuousOn.integrableOn_compact to each slice and the whole compact group. No nonintegrable-integral default is used."
+        },
+        {
+          "title": "Keep the representatives nonnegative and measurable",
+          "text": "The component density is nonnegative. Integrating a nonnegative function gives a nonnegative average, and joint measurability gives measurability of the parameterized integral.",
+          "formula": "q_b(x)\\ge0,\\qquad q_b\\text{ is Borel measurable}.",
+          "lean": "hp0 and integral_nonneg give hq0. hqm consumes StronglyMeasurable.integral_prod_left from the actual joint density."
+        },
+        {
+          "title": "Identify the actual mixture density",
+          "text": "For any measurable Euclidean event B, first use the actual bind evaluation and actual component law-density identity. Tonelli exchanges nonnegative integration. The proved inner L1 identifies the ENNReal integral with ofReal of the real average.",
+          "formula": "\\begin{aligned}P_b(B)&=\\int\\gamma_O(B)\\,d\\nu_b(O)\\\\&=\\int\\!\\int_Bp_O(x)\\,dx\\,d\\nu_b(O)\\\\&=\\int_B\\!\\int p_O(x)\\,d\\nu_b(O)\\,dx=\\int_B q_b(x)\\,dx.\\end{aligned}",
+          "lean": "hmeasure uses Measure.ext, Measure.bind_apply, withDensity_apply, lintegral_lintegral_swap and ofReal_integral_eq_lintegral_ofReal. Both measures of each nested integral are explicit."
+        },
+        {
+          "title": "Produce genuine outer L1 and mass one",
+          "text": "Evaluate the actual probability measure at the entire Euclidean space. The nonnegative density integral is exactly one and therefore finite. Measurability and this finite integral give true Bochner L1, followed by the real normalization.",
+          "formula": "\\int_{\\mathbb R^n}\\operatorname{ofReal}(q_b(x))\\,dx=1<\\infty,\\qquad q_b\\in L^1(dx),\\qquad\\int q_b\\,dx=1.",
+          "lean": "hmassNN is the univ evaluation of hmeasure, using actual mixture probability from hlaws. hqi uses lintegral_ofReal_ne_top_iff_integrable. hmass uses integral_eq_lintegral_of_nonneg_ae and ENNReal.toReal_one."
+        },
+        {
+          "title": "Consume the actual densities in affinity",
+          "text": "Apply the produced nonnegativity, measurability, L1 and masses to the actual representatives for both signs. Their square roots lie in L2. Cauchy–Schwarz gives the source initial affinity bound and genuine integrability. The consumer also retains both actual law-density equalities.",
+          "formula": "\\int(\\sqrt{q_b})^2\\,dx=1,\\qquad a=\\int\\sqrt{q_+q_-}\\,dx,\\qquad\\sqrt{q_+q_-}\\in L^1(dx),\\quad0\\le a\\le\\sqrt{1\\cdot1}=1.",
+          "lean": "Tests/GaussianComplexityMixtureDensities.lean proves this for every source n,κ. memLp_two_iff_integrable_sq and MemLp.integrable_mul give L2/L1; integral_mul_le_Lp_mul_Lq_of_nonneg at exponents2,2 gives Cauchy–Schwarz. Real.sqrt_mul identifies the literal source affinity integrand. No arbitrary density/mass premise is exported by the example."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws.actual_mixture_laws",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianLawDensity.gaussian_law_eq_density",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents.component_probabilities"
+      ],
+      "mathlib_dependencies": [
+        "ContinuousOn.integrableOn_compact",
+        "MeasureTheory.StronglyMeasurable.integral_prod_left",
+        "MeasureTheory.Measure.bind_apply",
+        "MeasureTheory.withDensity_apply",
+        "MeasureTheory.lintegral_lintegral_swap",
+        "MeasureTheory.ofReal_integral_eq_lintegral_ofReal",
+        "MeasureTheory.lintegral_ofReal_ne_top_iff_integrable"
+      ],
+      "lean_statement": "Exact preproof sealed signature with only hn and hκ source conditions.",
+      "lean_proof": "The extracted proof below constructs the two actual density representatives, proves their measure equalities and derives genuine mass/L1 internally.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS2.SSS3.p2.2",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Section2 S2.p2.1 sign-conditioned Haar; Section3.1 Eq4 and P_b before Eq6; AppendixB.2 introduction A2.SS2.p2.1 density declarations; B.2.3 p2.1–p2.2 / Ex68 density normalization and initial affinity range",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. This is the actual density/normalization interface used by the source amplification argument; the implicit construction is made explicit.",
+          "scope": "Actual single-block P± for every n≥3 and κ≥4; chosen nonnegative Lebesgue-density representatives.",
+          "label": "Zhou–Suzuki, actual densities before the affinity comparison"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityMixtureDensities"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities.actual_mixture_densities",
+      "role": "proof-edge",
+      "supports": [
+        "actual-single-block-density-normalization"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "B.2 standing n≥3,κ≥4 and actual P_b of Section3.1.",
+        "lean": "Exactly n≥3,κ≥4 with literal Eq4, actual Gaussian constructor and actual normalized sign priors."
+      },
+      {
+        "source": "p_b is a Lebesgue density of actual P_b; B.2.3 uses its unit mass.",
+        "lean": "q_b is the explicit real Bochner average; nonnegative measurable genuine L1/mass1 and actual withDensity equalities are conclusions."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "For every natural number n with 3 ≤ n, and then for every real number κ with 4 ≤ κ, make the following local definitions. The Lean binder order is implicit n : ℕ, explicit hn : 3 ≤ n, implicit κ : ℝ, explicit hκ : 4 ≤ κ. The names hn and hκ denote proofs of the displayed inequalities; there are no further hypotheses.\n\nLet E = EuclideanSpace ℝ (Fin n), the standard real n-dimensional Euclidean space, with coordinates indexed by Fin n = {0, …, n−1}, its standard l2 norm and Borel structure, and its Euclidean Lebesgue measure volume. Let G = Matrix.orthogonalGroup (Fin n) ℝ, the full real orthogonal group O(n), with its matrix Borel structure. For O ∈ G, write M_O for its underlying real n-by-n matrix, and write v_x = WithLp.ofLp x for the coordinate vector of x ∈ E. These are expository abbreviations, not extra quantified inputs.\n\nLet μ be Measure.haarMeasure applied to the top positive compact of G; by the supplied definition context this is the canonical normalized Haar probability measure on the full group G. Define measures on that same carrier G by\nνpos = (2 : ℝ≥0∞) • (μ restricted to {O ∈ G : det M_O = 1}),\nνneg = (2 : ℝ≥0∞) • (μ restricted to {O ∈ G : det M_O = −1}).\nThus the factors 2 are extended nonnegative real scalars multiplying restricted measures. Neither restricted measure has a different subtype as its carrier.\n\nFor O ∈ G, put\nA_O = ((κ + 1)/2) • I_n − ((κ − 1)/4) • (M_O + M_Oᵀ),\nwhere I_n is the real n-by-n identity matrix, the two coefficients are real numbers, and the operations • are real scalar multiplication of matrices. In entries,\n(A_O)ᵢⱼ = ((κ + 1)/2) δᵢⱼ − ((κ − 1)/4)((M_O)ᵢⱼ + (M_O)ⱼᵢ)\nfor every i,j ∈ Fin n. This abbreviation is the same matrix in both following definitions.\n\nLet γ : G → Measure E be defined by\nγ(O) = ProbabilityTheory.multivariateGaussian (0 : E) (A_O⁻¹).\nThe inverse is Lean's standard totalized matrix inverse. The supplied convention for multivariateGaussian m C is the pushforward of the canonical standard Gaussian on E under z ↦ m + Matrix.toEuclideanCLM (CFC.sqrt C) z. Consequently the exact matrix argument here is C = A_O⁻¹: it is this inverse that is subjected to the matrix square root in the definition. The supplied covariance interpretation applies when C is positive semidefinite. This explains the convention and does not add a positive-semidefiniteness hypothesis or conclusion to the displayed theorem.\n\nLet p : G → E → ℝ be the real-valued function\np(O,x) = [Real.sqrt(det A_O) / (2π)^((n : ℝ)/2)] · Real.exp(−[v_x ⬝ᵥ (A_O *ᵥ v_x)]/2).\nHere ⬝ᵥ is the real coordinate dot product and *ᵥ is matrix-vector multiplication, so the quadratic form is Σᵢ Σⱼ (v_x)ᵢ (A_O)ᵢⱼ (v_x)ⱼ. The scalar Real.sqrt is applied to det A_O, and the denominator is (2 * Real.pi) raised using Real.rpow to the real exponent (n : ℝ)/2. In particular the exponent is real division by 2 even when n is odd; it is not a natural-number exponent or truncated natural division. The exponential has exponent minus the quadratic form divided by the real number 2. Real scalar division and inverse use the totalized conventions supplied in the packet.\n\nFinally let qpos, qneg : E → ℝ be\nqpos(x) = ∫ O, p(O,x) ∂νpos,\nqneg(x) = ∫ O, p(O,x) ∂νneg.\nThese are real Bochner integrals over the full group carrier G with the indicated measures, not extended-real integrals. Their definitions themselves do not insert an additional integrability hypothesis.\n\nFor these local definitions, the conclusion is exactly the conjunction of the following nine clauses, in this order:\n(1) For every x ∈ E, both 0 ≤ qpos(x) and 0 ≤ qneg(x).\n(2) qpos is measurable.\n(3) qneg is measurable.\n(4) qpos is integrable with respect to volume on E.\n(5) qneg is integrable with respect to volume on E.\n(6) ∫ x, qpos(x) ∂volume = 1.\n(7) ∫ x, qneg(x) ∂volume = 1.\n(8) νpos.bind γ = volume.withDensity (x ↦ ENNReal.ofReal(qpos(x))).\n(9) νneg.bind γ = volume.withDensity (x ↦ ENNReal.ofReal(qneg(x))).\n\nIn clause (1), one universal quantifier over x scopes over the conjunction of the two inequalities. Both inequalities hold at every point, not merely almost everywhere. The measurability assertions are ordinary Measurable assertions for real-valued functions on E. Integrable in clauses (4)–(5) means genuine real Bochner absolute integrability. Clauses (6)–(7) are real Bochner integrals with the default measure volume on E, as specified by the packet.\n\nBoth sides of each of clauses (8)–(9) are measures on E. Measure.bind integrates the G-indexed measures γ(O) against νpos or νneg respectively. For a measurable B ⊆ E, the first left-hand measure has value ∫⁻ O, γ(O)(B) ∂νpos and the second has value ∫⁻ O, γ(O)(B) ∂νneg. On the right, withDensity uses Euclidean volume on E as base measure and the displayed extended nonnegative density ENNReal.ofReal(qpos(x)) or ENNReal.ofReal(qneg(x)); its value at B is the corresponding extended nonnegative set integral over B. ENNReal.ofReal is nonnegative extended-real truncation of a real value. These extended integrals explain the measure constructors; they are distinct from the real integrals defining qpos and qneg and their displayed normalizations. The two equalities separately identify the positive-sign and negative-sign mixtures with their respective densities. They do not assert equality between the two mixtures or between qpos and qneg.\n\nAll the local definitions and the entire conjunction lie inside the quantifiers over n, hn, κ, and hκ. The measure μ depends on n; νpos and νneg depend on n through μ and their determinant-sign sets. The functions γ and p depend on n and κ, with O as their group argument and x additionally an argument of p. The functions qpos and qneg depend on n and κ through p and the respective fixed group measures. The final densities are functions on E with those same parameter dependencies. There are no existential or unspecified constants. The displayed thresholds and numerical constants are exactly 3, 4, 0, 1, −1, 2 and π, in the roles specified above. No source identity, source fidelity judgment, or proof claim is part of this reconstruction.",
+    "text_sha256": "02db03c101430d3be126e27b6094eae4e98279dc91d68fcbe2e489acb843e9c3",
+    "decoder": "Codex (GPT-6); canonical agent identity /root/decode_507824. The exact serving-model variant is not exposed in this decoder context.",
+    "decoder_run_sha256": "3a5ca015bf627b7afd09e08bb2f49949126b86ebe550b0db0f8f0f73e72bf967",
+    "decoder_packet_sha256": "a528ec20e907d8c1d64aad212872f9a5aeecb7cb0c1af95cce754e148bd869ef",
+    "source_text_visible": false,
+    "lean_statement_sha256": "d644ba7786cb5802fb82d2bb3ea0e415b8b43fd47151b40c67c33bff4dbdf61c",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/mixture-densities-semantic-evidence/decoder-result.json"
+  }
+}

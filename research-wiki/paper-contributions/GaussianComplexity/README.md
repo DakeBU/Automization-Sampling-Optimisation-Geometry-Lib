@@ -10,6 +10,14 @@ evidence before scheduling; this intake is not a second proof-status registry.
 
 ## What the intake supplies
 
+Current resume checkpoint (2026-11-05):
+[`density-stack-integration-20261105/resume-checkpoint.json`](density-stack-integration-20261105/resume-checkpoint.json).
+The Eq24/A.1/harmonic, B.7 and actual-mixture-density stack has independent local
+Lean/source/desktop/mobile acceptance on official-main base `692973fcc695`.
+GitHub authentication is confirmed; remote PR/CI/deployment, post-merge purification and
+both main lower bounds remain open. The older packet sections below are retained
+as historical evidence, not the current frontier or completion status.
+
 - The canonical companion model now contains a fifth source case with two
   separate main theorem contracts, formula proof routes, a method comparison,
   and an explicitly incomplete source proof outline.
@@ -972,3 +980,283 @@ Poisson harmonicity, closed-ball mean-value, both AppendixA1 values, Eq24,
 actual positive TV, amplification, oracle/query/cost adapters, conditional
 hidden-eigenbasis laws and both main lower bounds remain open.
 Merged publication does not imply purification or whole-Goal completion.
+
+## Huanjian continuation: actual Poisson and radial Green data
+
+The literal Poisson harmonicity result was independently VERIFIED at
+9e6d910415137a3b353abc414d6005df6887c851. Its frozen integration candidate is
+20f04cfff051d9d7d485b19124d7dccddb2c866d; integration, rendered browser QA and
+purification are separate. The current radial refactor requires fresh review
+rather than inheriting that old whole-module certificate.
+
+The closed-ball mean-value V2 seal uses an actual harmonic extension witness
+with EqOn on the closed ball. The arbitrary original function acquires no
+regularity requirement outside that ball. Its independently accepted source
+and interface topology is an obligation map, not a completed proof.
+
+The next bounded packet, ASTIS-SA-20261019-HuanjianRadialGreenData, is
+PROVED_LOCAL at015e485cc7ab67ef585a9e71124fb9cd0556d1e1. One canonical local-C2
+scalar-profile gradient/Laplacian theorem is genuinely consumed by the source
+power/log test functions and by both retained Poisson factors. Literal
+power/log harmonicity away from0 and every positive-sphere value/radial
+pairing are compiled, with nonzero-point n=2/n=3 consumers and center/dimension0
+checks. Source-only extraction, distinct exact-seal topology challenge and
+anonymous source-blind decoding are complete. Fresh anti-anchored source,
+whole-module and current-reader review accepted all three exact declarations
+at015e485cc7ab67ef585a9e71124fb9cd0556d1e1 without a blocking delta or repair.
+Independent VERIFIED transition and immutable integration remain separate;
+no owner-issued VERIFIED claim is made. The actual full Lean gate also passed at that frozen commit.
+See radial-green-data-source-lean-map.json for all local obligation/provider
+mappings and lossless canonicalization of the old private Poisson calculus.
+
+The scalar radial pairing does not discharge geometric ball/annulus normals,
+inner orientation, zero flux, Green/divergence integrals or closed-ball mean
+value. Both AppendixA1 normalized surface values, evaluated Eq24, positive TV,
+exact oracle/precision/worst-query/expected-cost adapters, conditional residual
+hidden-eigenbasis laws and both main lower bounds remain open. Bounded retrieval
+has found direct upstream placeholders behind ATLAS ball-divergence/mean-value
+wrappers; they are external references, not trusted ASTIS producers.
+
+Browser acceptance remains ENV_BLOCKED because Computer Use permissions were
+not granted; no desktop/mobile/rendered-formula/adjacent-source/graph visual
+acceptance is claimed. The other ASTIS stabilization owner and existing queues
+remain untouched. Overall Goal, local proof, independent verification,
+integration, publication and purification retain distinct completion boundaries.
+
+Independent verifier /root/radial_source_module_review subsequently admitted
+ASTIS-SA-20261019-HuanjianRadialGreenData through the normal VERIFIED API at
+315af8a892b4c08ae0fb1938f43dde7f06761cd2. Both new canonical cells carry that
+commit-bound evidence; the old Poisson history is preserved. See
+radial-green-data-semantic-evidence/verification.result.json. This still does
+not certify canonical integration, rendered visuals or purification.
+
+
+## Huanjian continuation: real closed-ball spherical mean value
+
+One canonical `SphericalMeanValue.harmonic_closedBall_mean_value` now proves the
+real closed-ball normalized spherical mean-value endpoint under exactly the
+V2 extension/EqOn contract. The original function may jump arbitrarily outside
+the ball. The same retained harmonic extension supplies every radius; actual
+normalized-law probability/full orthogonal invariance, restricted L1, compact
+derivative domination, under-integral differentiation, closed-endpoint
+continuity and value-only transfer are proved internally. No proof ingredient
+is added as a public hypothesis.
+
+A generic strict-interior Poisson-kernel consumer and a translated ball whose
+original function is 1 inside and 17 outside compile with the usual three axioms.
+Independent raw-source-first whole-module and seven-step reader review, blind
+decoding, and the separately accepted two-ID reader-index correction are
+preserved in `meanvalue-semantic-evidence/`. The normal independent VERIFIED
+transition checks commit `627210210bdc8ac115dcb2a779cd7dfd11f0e514`; its real
+full gate, native named-target build, publication/contributor/semantic/frontier
+checks and source/Lean map audit are in the lifecycle report. The owner did not
+issue its own VERIFIED.
+
+This is a disclosed real specialization with a direct fixed-sphere radial-mean
+proof. The original complex/general geometric Green, unnormalized ds and
+annulus power/log route remain separately represented. Public AppendixA1
+values, Eq24, actual oracle/precision/query/expected-cost adapters, conditional
+hidden-eigenbasis laws and both main lower bounds remain open.
+
+See `spherical-meanvalue-integration-notes.json` for the immutable packet and
+current boundaries. Read-only official main observation is now 5529b6a4; this
+candidate still descends from a7cc97fc and requires overlap review and clean-port
+in the existing stabilization lane. Other queues, old branches/bundles and
+append-only ledgers are preserved. Browser acceptance remains ENV_BLOCKED by
+the unchanged Computer Use permission denial; local verification, canonical
+integration, publication, rendered acceptance and purification are separate.
+
+Current-main integration now proceeds on `huanjian/gaussian-analysis-current-main`
+from official main `5529b6a4b1a29658f5d7f2884facca9ed9a76c54`. Its real baseline
+gate passed. The independently reviewed source packet was bootstrapped without
+changing proof/lesson/audit bytes; all main ledger bytes are preserved before
+the original 26 owner events and one normal-API stabilization claim. Six exact
+canonical declarations now enter Analysis/Registry, and four genuine consumer
+modules enter root Tests. This is pending immutable-candidate acceptance, not
+a new proof, merge, rendered-reader, purification or whole-paper claim. The
+bounded current evidence is appended to the existing integration notes.
+
+Immutable current-main candidate `f9ae85ae430e2dfe20e98915b6c5a21fb5d537bd`
+has now passed independent code/source/ledger/shared-surface and static-reader
+integration review, including actual full/native Lean, diff publication and
+contributor, semantic/frontier, site and six graph checks. The new exact
+report is preserved beside the earlier independent reviews. Rendered
+acceptance, canonical merge, publication and purification remain pending.
+
+Official main subsequently advanced to `c3e8f7fcf25ee78197be8006b8e37325f776a4b6`.
+Candidate `c3e133aaf265d6e25036104c85430feb1a0bd6cb` retains all five newly
+merged feature interfaces and exact latest-main ledger bytes before the
+unchanged 27 owner events. Its independent current-base code/source/shared
+integration and static-site acceptance is recorded separately; the earlier
+5529/f9ae certificates remain historical and unchanged. Actual rendered
+acceptance, canonical merge, public publication and purification remain open.
+
+The independent verifier has now released the normal stabilization lease back
+to VERIFIED, preserving the owner and all other records. The exact reviewed
+current-main candidate is retained; this is not MERGED or rendered acceptance.
+The next mathematical packet remains the sealed public AppendixA1 endpoint.
+
+
+## Huanjian resumption on latest main (2026-11-03)
+
+The preserved local candidate is clean-ported onto official main
+`9f7a7419ea401547c71c5c2890380ec357fa983a` on
+`huanjian/gaussian-complexity-20261103`. Fresh baseline focused, exact ATLAS,
+canonical Lean/Tests, semantic, frontier and site build/check commands all
+passed on that unchanged main. The freshly downloaded v1 HTML and HFT PDF match
+the handoff raw SHA256 pins.
+
+Independent preflight found no competing harmonic/radial endpoint on main. The
+reviewed mathematical/source/lesson/audit packet bytes remain unchanged. Latest
+main ledger bytes stay an exact prefix, followed by all 28 retained candidate
+events and one normal-API serialization lease. Foreign records and the original
+mathematical owner remain unchanged. Both independent six-entry Registry
+contributions are retained; the aggregate test now expects 596. The exact
+clean-port candidate still requires fresh focused/root, publication, site/graph,
+actual rendered and independent immutable integration acceptance. No canonical
+merge, public release, purification or new AppendixA1/Eq24 or main-bound result
+is asserted. See the existing spherical-meanvalue integration notes and
+current-main-20261103 preflight report.
+
+Independent acceptance subsequently passed on immutable `8c79b3f46456`: the
+canonical gate (Tests9613 jobs), all current-base source/publication checks,
+site build/check and six graph checks are real successful executions. All six
+authored readers were inspected on desktop and390px mobile, and all six desktop
+graph branches were inspected. An independent reviewer additionally verified the
+actual390x844 mean-value graph and reader, including Fit, leaf selection,
+evidence navigation and exact statement/proof disclosures. The other five mobile
+graph branches are not claimed. The earlier viewport probe remains a failed API
+observation, not a page defect or mathematical obstruction. The reviewer
+released the normal serialization lease to VERIFIED without changing the
+mathematical owner or other records. See the compact current-main-20261103
+acceptance summary and lane-release report. Canonical merge/deployment and
+purification remain pending; public AppendixA1 is next.
+
+
+## Appendix A1 actual sphere moments (2026-11-03)
+
+The pre-proof sealed public `SphericalPoisson.spherical_poisson_moments`
+now compiles with both actual normalized-surface integral values and both L1
+conclusions. One focused consumer, `selected_numerator_value` in
+`Tests/GaussianComplexitySphericalPoisson.lean`, uses both values to evaluate the
+literal selected numerator immediately before Eq24 at n>=3,kappa>=4. The
+focused build also exercises n=2 and n=3 at r=1/2; axiom reports contain only
+propext, Classical.choice and Quot.sound. This is PROVED_LOCAL, not independent
+VERIFIED, integrated publication or evaluated Gaussian Eq24.
+
+The fixed source's opening n>=2 and trailing n>=3 are both retained. The paper
+slice is conservatively n>=3, while the n=2 logarithmic-potential case is an
+explicit ASTIS extension. The independent source graph and distinct topology
+challenge precede the proof. The author's two HFT1.21 applications remain
+separate from the actual direct mean-value/zero-flux route. Its critical
+R=(1+r)/2 margin transfers gradients only after neighborhood equality inside
+the parent ball. The declaration lesson supplies the mathematical formula proof;
+blind decoding and fresh source/whole-module/reader review are separately bound.
+See `spherical-poisson-integration-notes.json` for exact hashes and remaining
+integration/reader evidence. No full Poisson representation, Eq24, oracle/cost
+adapter, TV/main lower bound, canonical merge or purification is claimed.
+
+Independent source/whole-module/reader acceptance and normal VERIFIED admission
+subsequently passed on immutable `f8101cf4cf99`. The first decoder run was
+superseded because its input path carried a paper directory name. A fresh
+decoder saw only a neutral temporary-path packet; its new reconstruction was
+independently compared across all seven slots. The final audit retains
+`source-underspecified` and the explicit stronger n=2 range, rather than
+claiming full-statement equivalence to both raw dimension clauses.
+
+The sole integration lease now retains official main `43485eed6253`, including
+all incoming Bench work, without conflicts or changes to the reviewed packet.
+The root theorem/test imports are added under that lease. Root/site/graph and
+actual rendered immutable-candidate acceptance remain pending; no canonical
+merge, deployment, postmerge purification or evaluated Eq24 is asserted.
+
+Actual mobile graph inspection of `bbea6bca892d` found that the new A1 declaration
+still used the conservative source-present fallback because its canonical
+Registry ownership was omitted. Under the sole lease, the same independently
+reviewed declaration is now registered exactly once. All596 prior entries are
+preserved, and the existing native inventory check now expects597. This
+registration does not create another theorem, duplicate the private proof or
+upgrade the separate source-underspecified audit. A new immutable root/site/graph
+acceptance candidate is required.
+
+Final local integration acceptance passed independently on immutable
+`3e6fc1a2c477`, with actual root/Tests9615, current-main publication/contributor,
+419semantic audits,417cells,48publication regression tests, site build/check
+and graph coverage. The reader link repair preserves every node identity/status
+and all7205edges;403existing nodes now open their authored mathematical lesson.
+Actual desktop and390x844 mobile graph-to-lesson/source-index/adjacent-Lean
+flows passed both primary and independent review. The independent reviewer
+released the sole lease through VERIFIED, preserving the proof owner, all prior
+ledger bytes and all foreign states/cells. The initial viewport API mismatch is
+preserved separately from the successful measured correction.
+
+See `spherical-poisson-semantic-evidence/final-integration-acceptance.json` and
+its portable command logs. These are local acceptance results, not canonical
+merge/deployment, postmerge purification, an Exposition Seal or full-paper
+completion. The next bounded mathematical packet is literal evaluated Gaussian
+Eq24, reusing the actual source-law/normalization/moment declarations. Its
+statement and binder/definition audit must be sealed before proof search.
+
+## Huanjian continuation: actual evaluated Eq24 (2026-11-03)
+
+`EvaluatedGaussian.selected_gaussian_value` now evaluates the literal Appendix
+B.2.2 Eq24 on exactly n≥3 and κ≥4. With the source-selected
+s=√κ, r=(1−1/n)(s−1)/(s+1), and
+ℓ=(4ns+(s−1)²)/(8n(n−1)), both the actual Gaussian signed full-Haar
+expectation and its Euclidean-density representation equal
+v=((-1)^n/n)((s−1)/(s+1))^n(1−1/n)^(n/2)/(1−r²).
+Both genuine signed outer L1 conclusions are proved internally. Natural parity
+powers and real dimension-half powers remain distinct, including odd n.
+
+The exact global `selected_numerator_value`, previously proved in the A1 focused
+test, is promoted unchanged to `SelectedNumerator.lean` and is actually consumed
+by this endpoint. It is one canonical lemma node, not a second proof or new
+mathematical credit. The actual determinant-conditioned Gaussian bind-mixtures
+consume Eq24 in `Tests/GaussianComplexityEvaluatedGaussian.lean`: their ordered
+test gap is 2v≠0, with both actual test integrabilities retained. No evaluated
+scalar or moment has become an extra public premise.
+
+The source-first graph, distinct topology challenge, two neutral-path blind
+decodings, fresh anti-anchored source/whole-module review, and real focused builds
+are bound in `eq24-semantic-evidence/`. Independent normal-API verification names
+fd099e2c44e41ee3ae35f96f82c20e27db1f4035. The current round normally merges official
+main b191868b3b6a731968807fdd6ceefd18bb206739 under the sole stabilization lease;
+full root/reader/graph acceptance is recorded separately in
+`eq24-integration-notes.json`. The B6 support adapter is explicitly the continuous
+clamped off-support extension, equal to the literal kernel on actual U(O).
+
+The A1 raw n≥2/trailing n≥3 ambiguity remains disclosed; its full-statement
+fidelity verdict stays source-underspecified and n=2 is an explicit ASTIS
+extension. This new paper application uses only n≥3. Quantitative TV separation,
+actual precision/oracle/query-cap/expected-cost adapters, amplification,
+fixed-spectrum hidden eigenbasis, both main lower bounds, remote publication,
+postmerge purification and whole-Goal completion remain separate.
+
+## Resume checkpoint: 2026-11-04
+
+The exact candidate777809d96a5534e8ab91988b6c1e775546390b5a retains the independently
+verified Eq24 mathematics and actual conditioned-mixture consumer. Its real
+9618-job Lean gate, publication/contributor, rebuilt site/check and both graph
+checks pass. The previously false source-index claim that all paper-specific
+edges are open is replaced by the precise remaining Theorem3.1 boundary. Seven
+of eight serialized main bodies are unchanged; the eighth differs only in that
+tracked boundary paragraph. Fresh actual browser acceptance of that paragraph
+remains ENV_BLOCKED by the recorded browser-control interface failure. Old
+independent desktop/mobile/math/source/module evidence is preserved and is not
+relabelled as a fresh browser observation.
+
+The newly fetched official main68b3141f6f41c337f9802ea9b401483afce944c0 contains
+an unrelated Optlib admission whose ledger still ends STABILIZING under
+root_optlib_subgradient. The user selected original-owner completion/release,
+so its records and statuses remain untouched and it has not been merged into
+this checkout. Latest-main integration, final rendered acceptance, publication,
+purification and whole-paper completion remain distinct pending stages. See
+`eq24-integration-notes.json` and the typed environment/coordination evidence;
+these are no mathematical counterexamples or permission to reset any queue.
+
+The independent reviewer subsequently parked the unfinished integration through
+one normal STABILIZING→VERIFIED transition for Eq24 only, verified commit777809.
+The final integration report explicitly remains accepted=false. The original
+ledger prefix, other264 advance states, other417 cells and all foreign owners
+are retained. No browser refresh, latest-main merge or purification is inferred
+from the retained mathematical VERIFIED status.

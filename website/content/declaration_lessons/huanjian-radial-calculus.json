@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus.radial_gradient_laplacian",
+      "kind": "theorem",
+      "title": "Radial gradient and Laplacian from a local scalar profile",
+      "reading_layout": "progressive",
+      "reader_note": "ASTIS library mathematics. Source applications prove the scalar local regularity internally.",
+      "statement": "A locally C2 scalar function of squared distance has explicit gradient and Laplacian in every finite real Hilbert space.",
+      "formula": "S=\\|x-a\\|^2,\\quad d=\\dim E,\\qquad\\nabla(g\\circ S)(x)=2g\\prime(S)(x-a),\\quad\\Delta(g\\circ S)(x)=4Sg\\prime\\prime(S)+2d g\\prime(S).",
+      "assumptions": [
+        "\\(E\\) is any finite-dimensional real inner-product space, with its induced norm and inner product; dimension zero is allowed.",
+        "\\(g:\\mathbb R\\to\\mathbb R\\), \\(a,x\\in E\\), and \\(g\\) is \\(C^2\\) at \\(S=\\|x-a\\|^2\\). No global regularity or condition \\(x\\ne a\\) is imposed.",
+        "\\(g\\) may be arbitrary outside a neighborhood of \\(S\\). Both gradient and Laplacian are actual derivatives; the latter is the orthonormal trace of the second Fréchet derivative."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(S,d\\)",
+          "text": "Squared radius and real-cast finite dimension.",
+          "formula": "S=\\|x-a\\|^2,\\quad d=\\dim_{\\mathbb R}E."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Differentiate squared distance and the scalar profile",
+          "text": "At the evaluation point, squared distance has the indicated linear derivative. Compose it with the scalar derivative of g. The Riesz representative of this linear functional is the gradient.",
+          "formula": "DS(x)[e]=2\\langle x-a,e\\rangle,\\qquad D(g\\circ S)(x)[e]=2g\\prime(S)\\langle x-a,e\\rangle.",
+          "lean": "radial_fderiv uses norm-square differentiation and HasDerivAt.comp_hasFDerivAt. The gradient conclusion uses inner_gradient_left and ext_inner_right."
+        },
+        {
+          "title": "Differentiate the local first-derivative germ",
+          "text": "Local C2 regularity gives local differentiability of g and differentiability of its derivative. Pull the neighborhood where the first-derivative formula holds back through the continuous squared-distance map, then differentiate in direction e.",
+          "formula": "D_e^2(g\\circ S)(x)=4g\\prime\\prime(S)\\langle x-a,e\\rangle^2+2g\\prime(S)\\|e\\|^2.",
+          "lean": "radial_second obtains an eventual equality from hg.eventually and continuity of squared distance, proves local differentiability of deriv g via ContDiffAt.derivWithin, and uses EventuallyEq.fderiv_eq. A pointwise equality alone is not differentiated."
+        },
+        {
+          "title": "Take the orthonormal trace",
+          "text": "Sum the directional second derivatives over an orthonormal basis. Parseval gives the squared-distance term; the sum of the basis-vector squared norms is the dimension. This also applies when the basis is empty.",
+          "formula": "\\sum_i\\langle x-a,e_i\\rangle^2=S,\\qquad\\sum_i\\|e_i\\|^2=d,\\qquad\\Delta(g\\circ S)=4Sg\\prime\\prime(S)+2d g\\prime(S).",
+          "lean": "radial_gradient_laplacian identifies directional second derivatives with the actual second Fréchet derivative, then calls laplacian_eq_iteratedFDeriv_stdOrthonormalBasis and OrthonormalBasis.sum_inner_mul_inner."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "HasFDerivAt.norm_sq",
+        "HasDerivAt.comp_hasFDerivAt",
+        "ContDiffAt.eventually",
+        "ContDiffAt.derivWithin",
+        "Filter.EventuallyEq.fderiv_eq",
+        "inner_gradient_left",
+        "HasFDerivAt.clm_apply",
+        "InnerProductSpace.laplacian_eq_iteratedFDeriv_stdOrthonormalBasis",
+        "OrthonormalBasis.sum_inner_mul_inner"
+      ],
+      "lean_statement": "The exact local C2 scalar-profile hypothesis is the only regularity premise of this independent library theorem.",
+      "lean_proof": "The whole module includes first-derivative and directional-second-derivative providers, followed by the actual orthonormal trace.",
+      "boundary": "This packet provides local radial calculus and the literal Green test-function data. Geometric normal identification and inner-annulus orientation, zero flux, Green/divergence integral identities, closed-ball mean value, normalized surface integrals, Eq24, oracle/precision/cost adapters and the two main lower bounds remain separate. Integration, visual acceptance and purification are pending.",
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib",
+          "edition": "ASTIS original canonical-library mathematical specification, sealed locally at commit633ccdd82060773e89b60833f60ec0180f8d7f29",
+          "anchor": "research-wiki/paper-contributions/GaussianComplexity/radial-green-data-statement-seal.json, canonical_library_node, signature2676676ed3c7438881f600e46c0a0daea6ed2e119e4cebb31ae8f20412f88b3b",
+          "wording_status": "faithful paraphrase",
+          "attribution": "ASTIS-authored mathematical specification, not a theorem printed in HFT. The repository URL identifies the project; the current unpushed seal and proof are local artifacts, not claimed to be hosted at that URL.",
+          "scope": "Local C2 scalar-profile gradient and trace formulas in finite real Hilbert spaces.",
+          "label": "ASTIS sealed radial-calculus specification"
+        },
+        {
+          "path": "research-wiki/paper-contributions/GaussianComplexity/radial-green-data-statement-seal.json",
+          "label": "Local pre-proof mathematical specification",
+          "scope": "Exact canonical_library_node specification; not a source-authored HFT theorem."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityRadialGreenData Tests.GaussianComplexityPoissonHarmonicity"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue.harmonic_closedBall_mean_value",
+      "title": "Closed-ball spherical mean value",
+      "reader_note": "Real source specialization with an independently identified direct proof route; derivatives belong to the retained extension.",
+      "statement": "A function with a harmonic extension near a positive closed ball equals the normalized spherical average of its boundary values at the center.",
+      "formula": "u(a)=\\int_{S^{n-1}}u(a+R\\zeta)\\,d\\sigma(\\zeta).",
+      "assumptions": [
+        "\\(n\\ge2\\), \\(u:\\mathbb R^n\\to\\mathbb R\\), \\(a\\in\\mathbb R^n\\), \\(R>0\\).",
+        "There is an actual function \\(v\\), harmonic near every point of \\(K=\\overline B(a,R)\\), with \\(v=u\\) on \\(K\\). The original \\(u\\) has no imposed regularity or measurability outside \\(K\\).",
+        "\\(\\sigma\\) is the normalized surface law on \\(S^{n-1}=\\{\\zeta\\in\\mathbb R^n:\\|\\zeta\\|=1\\}\\), characterized in the source as the unique Borel probability invariant under every orthogonal transformation. Its literal Lean realization and integrability are justified internally."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(\\tau,\\mu,M\\)",
+          "text": "The existing polar sphere measure, its exact normalization, and the spherical average of one retained extension.",
+          "formula": "\\tau=\\mathrm{volume}.\\mathrm{toSphere},\\qquad\\mu=\\tau(S^{n-1})^{-1}\\tau,\\qquad M(t)=\\int v(a+t\\zeta)\\,d\\mu(\\zeta)."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Retain the same actual extension",
+          "text": "Consume the existing zero-flux theorem once. Its returned extension is fixed before all subradii; retain its neighborhood harmonicity and equality with u on the entire parent ball. This returned witness, rather than a radius-dependent choice, defines M.",
+          "formula": "v=u\\text{ on }K,\\qquad\\forall\\,0<t\\le R,\\quad\\int\\langle\\nabla v(a+t\\zeta),\\zeta\\rangle\\,d\\tau=0.",
+          "lean": "The public proof obtains v,hv,hvu,hflux from harmonic_closedBall_zero_flux before defining M."
+        },
+        {
+          "title": "Identify the actual normalized source law",
+          "text": "Use the identical canonical Haar-column/surface identity and Haar left invariance. The mapped normalized sphere measure is an actual Haar column probability; a fixed orthogonal transformation corresponds to left multiplication. Transfer the resulting invariance back through the measurable sphere inclusion. Thus the exact literal mu is a Borel probability invariant under all source orthogonal transformations, so the source uniqueness characterization identifies it with sigma. The canonical finite nonzero polar law is used; equality of masses alone is not the argument.",
+          "formula": "c_*\\nu=\\iota_*\\mu,\\qquad (L_Q)_*\\nu=\\nu\\quad\\Longrightarrow\\quad (Q|_{S^{n-1}})_*\\mu=\\mu,\\qquad\\mu(S^{n-1})=1.",
+          "lean": "sphereRotation is the actual norm-preserving matrix action. normalized_sphere_law calls column_map_eq_normalized_surface and orthogonalHaar_map_mul_left, derives probability through the measurable inclusion, and proves the exact sphere map identity by map_injective. No new law is defined by invariance."
+        },
+        {
+          "title": "Keep every observation inside the compact parent ball",
+          "text": "For t in the closed radius interval and unit zeta, a+t zeta lies in K. Actual local C2 of v gives continuity of v and its Frechet derivative there. Compactness bounds the derivative operator norm internally. The sphere sections are continuous and genuinely integrable for the finite normalized law.",
+          "formula": "0\\le t\\le R\\Longrightarrow\\|t\\zeta\\|=t\\le R,\\qquad\\sup_{x\\in K}\\|Dv(x)\\|\\le C.",
+          "lean": "affine_sphere_mem proves membership. sphere_section_continuous uses actual local C2. spherical_mean_hasDerivAt obtains C from isCompact_closedBall.exists_bound_of_continuousOn applied to the actual fderiv."
+        },
+        {
+          "title": "Retain continuity at both endpoint radii",
+          "text": "The selected extension composed with the affine sphere map is jointly continuous on the closed parameter interval times the compact sphere. The actual compact-parametric-integral theorem derives a common integrable value bound and continuity of M, including t=0 and t=R. No endpoint derivative is assumed.",
+          "formula": "M\\in C([0,R]).",
+          "lean": "spherical_mean_continuous restricts the parameter type to Icc0R, proves joint continuity, and invokes continuous_parametric_integral_of_continuous with the compact sphere. Its actual domination proof supplies the value-integral semantics."
+        },
+        {
+          "title": "Differentiate the actual integral in the interior",
+          "text": "On the open interval (0,R), the radial chain rule gives derivative Dv(a+t zeta)[zeta]. The compact parent-ball operator bound and unit norm give a constant L1 derivative dominator on a common parameter neighborhood. Section measurability, value L1 and derivative measurability are established before differentiating under the integral. The Riesz identity identifies the derivative with the gradient pairing.",
+          "formula": "|Dv(a+t\\zeta)[\\zeta]|\\le C,\\qquad M\\prime(t)=\\int Dv(a+t\\zeta)[\\zeta]\\,d\\mu=\\int\\langle\\nabla v(a+t\\zeta),\\zeta\\rangle\\,d\\mu.",
+          "lean": "spherical_mean_hasDerivAt derives hdc,hC,hFc,hmeas,hint,hbound,hdiff and calls hasDerivAt_integral_of_dominated_loc_of_deriv_le on Ioo0R. That open interval is an actual common neighborhood at each interior point; the theorem derives its smaller ball. No bound is a public hypothesis."
+        },
+        {
+          "title": "Use zero flux and the real mean value theorem",
+          "text": "Scale the same extension zero-flux integral from tau to the exact mu. This makes the actual derivative of M zero at every interior radius. Closed-interval continuity and interior differentiability meet the real mean value theorem hypotheses, yielding equality between the outer and center averages. Both source dimensions n=2 and n>2 are covered by this direct route; the unused author power/log proofs remain separately represented.",
+          "formula": "M\\prime(t)=0\\quad(0<t<R),\\qquad0=\\frac{M(R)-M(0)}R,\\qquad M(R)=M(0).",
+          "lean": "The public hd uses integral_smul_measure and hflux. exists_hasDerivAt_eq_slope supplies the endpoint slope; positivity of R cancels its denominator. There is no derivative requirement at either endpoint."
+        },
+        {
+          "title": "Evaluate the center and transfer only values",
+          "text": "Actual probability gives M(0)=v(a). At the center and every outer-sphere observation, EqOn identifies v with u. Derive the original sampled-u L1 from the continuous v section and this equality, then transfer its actual integral. No derivative or ambient regularity is transferred to u.",
+          "formula": "M(0)=v(a)=u(a),\\qquad\\int u(a+R\\zeta)\\,d\\mu=M(R)=u(a).",
+          "lean": "hcenter uses the probability instance. hsample, hvint and huint prove value equality and actual restricted integrability; integral_congr_ae transfers the boundary integral, and mem_closedBall_self supplies the center value."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalFlux.harmonic_closedBall_zero_flux",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.SphereHaar.column_map_eq_normalized_surface",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_map_mul_left"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Measure.isProbabilityMeasure_of_map",
+        "MeasurableEmbedding.map_injective",
+        "ContDiffAt.continuousAt_fderiv",
+        "IsCompact.exists_bound_of_continuousOn",
+        "Continuous.integrable_of_hasCompactSupport",
+        "continuous_parametric_integral_of_continuous",
+        "hasDerivAt_integral_of_dominated_loc_of_deriv_le",
+        "HasFDerivAt.comp_hasDerivAt",
+        "inner_gradient_left",
+        "MeasureTheory.integral_smul_measure",
+        "exists_hasDerivAt_eq_slope"
+      ],
+      "lean_statement": "The exact pre-proof V2 statement: original total u with one existential matching harmonic-neighborhood extension and no off-ball constraint.",
+      "lean_proof": "The exact complete module includes all six private providers. Their mathematical/source and current-reader acceptance is governed by the packet-bound independent whole-module review.",
+      "sources": [
+        {
+          "url": "https://www.axler.net/HFT.pdf#page=13",
+          "edition": "Axler–Bourdon–Ramey, Harmonic Function Theory, second edition; raw PDF SHA2564e64124f7e36993ee784e575a024505f99d484ccf959d2d3864eae9232af8bf1",
+          "anchor": "Theorem1.4 printed5/PDF13; closed-set extension convention printed1/PDF9; normalized all-orthogonal-invariant Borel probability printed5/PDF13",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Explicit real-valued specialization of HFT1.4. The author uses Green identity on an annulus with power/log dimensional cases; this implementation uses the separately identified radial-average derivative route. The full complex-valued theorem and general unnormalized geometric surface identity are not claimed.",
+          "scope": "n>=2, positive closed-ball radius, an actual harmonic neighborhood extension agreeing with the source values, and the normalized unit-sphere law.",
+          "label": "HFT1.4: real closed-ball spherical mean value"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexitySphericalMeanValue"
+      ],
+      "boundary": "This is the real closed-ball normalized-sphere mean-value endpoint. The full complex-valued version, arbitrary-domain geometric divergence/Green, unnormalized geometric surface-measure identification, annular author proof, volume mean value, general Poisson representation, published AppendixA1 values/Eq24, actual TV/oracle/precision/query/expected-cost adapters and both main lower bounds remain separate. Canonical integration, actual desktop/mobile/adjacent Lean/source-index/graph acceptance, publication and postmerge purification require their own evidence."
+    }
+  ]
+}

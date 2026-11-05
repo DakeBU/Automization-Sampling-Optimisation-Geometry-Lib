@@ -9,6 +9,7 @@ import Tests.Shared.SphereGradient
 import Tests.Shared.CurveExtension
 import Tests.Shared.AffineGradient
 import Tests.Shared.BoundedDensityPerturbation
+import Tests.Shared.BoundedPerturbationLaw
 import Tests.GaussianLipschitzExponential
 import Tests.StandardizedRGOPositionFisher
 import Tests.FullRangeProximalGaussianOracle

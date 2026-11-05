@@ -1,5 +1,6 @@
 import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedPerturbationLaw
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient
@@ -5289,6 +5290,16 @@ def probabilityMemory : List LemmaMemoryEntry := [
 ]
 
 def klDensityMemory : List LemmaMemoryEntry := [
+  {
+    key := "kl-density.bounded-actual-perturbation-law",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedPerturbationLaw.eventually_isProbabilityMeasure_and_klDiv_eq_one_add_mul",
+    upstreamDecl := "Chewi Exercise 1.7 / (1.E.1): actual affine probability law and finite canonical KL prerequisite",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/InformationTheory/BoundedPerturbationLaw.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["MEAS", "FI", "KL", "withDensity", "Radon-Nikodym", "integrability", "linearization"],
+    saldUse := "Shared actual-law construction for numbered Chewi Exercise 1.7 and Corollary 2.1.2; not a SALD closure",
+    note := "For a uniformly a.e.-bounded centered measurable real test under a probability law, constructs eventual density lower bound one half, actual unit-mass withDensity law, RN identification, entropy integrability and finite ENNReal KL equality. The focused test consumes this and the independent analytic limit. Fisher, LSI-domain/PI closure and the full exercise remain separate; one public leaf only."
+  },
   {
     key := "kl-density.bounded-compensated-second-order-limit",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq",

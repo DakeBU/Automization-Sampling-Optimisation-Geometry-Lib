@@ -55,6 +55,26 @@ The version-2 declared-answer packet subsequently merged at ed709a7f320dfd6046df
 
 ## Required textbook-exercise programme (owner clarification)
 
+Current mathematical checkpoint (2026-11-04): the actual compensated-integral
+prerequisite merged in PR371 at `9bb7a739`, with all exact-head PR checks green
+and its public formula/Lean/graph reader actually checked. Independent postmerge
+purification and the scoped Exposition Seal are recorded in the same cell, not
+inferred from the merge. PR372's already independently verified actual-law and
+finite-KL construction is now being integrated from exact remote head `b3859b96`;
+do not reprove it or blindly push its local branch's extra UI commit. The
+composition example is checked, not another public leaf or admitted QA. Complete
+Fisher/density-gradient energy, real LSI admissibility and PI/core closure remain
+separate. RN a.e. equality is not a differentiability transfer rule. This work
+does not close Exercise1.7 or change the old paper/frontier/cycle programme.
+
+Next-book source preparation has also checked the pinned Statistical Optimal
+Transport PDF and Chapter1, Section1.8, Exercise6 (printed44/PDF50), the Gaussian
+mixture W2 comparison. This is source intake only, not an admitted question,
+formalized answer or calibrated level. Existing concrete-coupling upper bridges
+are reusable, but the bounded Bochner-mean interface cannot be applied to the
+unbounded identity/Gaussian cost by silently adding bounded-support assumptions.
+Complete answers, true formal coverage and independent QA review remain required.
+
 The Bench must include, but is not limited to, **actual exercises in the Sinho Chewi textbooks used by the library**, alongside original library-grounded QA. Prioritize the actual numbered exercises of *Log-Concave Sampling*, *Lectures on Optimization* and the cited *Statistical Optimal Transport* route, after checking each work's precise authorship/edition and license. Original QA is not a substitute for this programme and must never be relabelled as an original-book exercise merely because it uses the same lemma.
 
 For every admitted textbook exercise, preserve its exact source identity, edition/PDF hash, chapter/section, exercise number and subparts, printed/PDF pages, source URL, wording/license boundary, and original assumptions. Supply an ASTIS-authored complete statement and stepwise formula solution, with every added/missing condition and any restricted/generalized formal domain explicitly explained. Reuse already compiled and source-reviewed owned results; do not manufacture duplicate wrappers or imply that a partial exercise solution closes the whole exercise. Required new substantive exercise proofs follow the normal publication protocol and attach to the appropriate existing shared/textbook dependency tree, without resetting or claiming the older paper/textbook frontiers.

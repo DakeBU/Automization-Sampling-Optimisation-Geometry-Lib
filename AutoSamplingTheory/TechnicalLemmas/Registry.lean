@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy
 import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedPerturbationLaw
@@ -1653,6 +1654,16 @@ def taylorMemory : List LemmaMemoryEntry := [
 ]
 
 def calculusMemory : List LemmaMemoryEntry := [
+  {
+    key := "analysis.calculus.sqrt-perturbation-energy-limit",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy.eventually_integrable_and_tendsto_sqrt_perturbation_energy",
+    upstreamDecl := "HasFDerivAt.sqrt; MeasureTheory.tendsto_integral_filter_of_dominated_convergence",
+    upstreamFile := "Mathlib.Analysis.SpecialFunctions.Sqrt; Mathlib.MeasureTheory.Integral.DominatedConvergence",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["CALC", "MEAS", "Dirichlet-energy", "sqrt-perturbation", "linearization"],
+    saldUse := "Chewi Exercise1.7: actual small-parameter square-root energy integrability and normalized quadratic limit with coefficient1/4",
+    note := "One genuine shared analytic leaf. Requires actual differentiability and integrable original squared derivative norm; no canonical RN Fisher identity, LSI-domain extension, Poincare theorem or Bench exercise admission."
+  },
   {
     key := "analysis.calculus.smooth-unit-cutoff-eq-smoothTransition",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.smoothUnitCutoff_eq_smoothTransition",

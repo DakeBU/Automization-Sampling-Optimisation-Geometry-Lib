@@ -155,11 +155,34 @@
   }
 
   function applyTransform() { const viewport = svg.querySelector(".ulg-viewport"); if (viewport) viewport.setAttribute("transform", `translate(${state.x} ${state.y}) scale(${state.scale})`); }
-  function fit() { const box = svg.getBoundingClientRect(); const width = Number(svg.dataset.worldWidth || 1500), height = Number(svg.dataset.worldHeight || 700); state.scale = Math.max(.2, Math.min(1.05, Math.min((box.width-40)/width, (box.height-40)/height))); state.x = Math.max(18, (box.width-width*state.scale)/2); state.y = 22; applyTransform(); }
+  function fit({readable = false} = {}) {
+    const box = svg.getBoundingClientRect();
+    const width = Number(svg.dataset.worldWidth || 1500), height = Number(svg.dataset.worldHeight || 700);
+    const selected = readable && state.query && state.focus ? svg.querySelector('.ulg-node.selected') : null;
+    // Initial deep links frame the selected result, not microscopic whole graphs.
+    // The explicit Fit action still frames all nodes; pan/zoom keeps all accessible.
+    state.scale = Math.max(selected ? .8 : .2, Math.min(1.05, (box.width-40)/width, (box.height-40)/height));
+    const transform = selected?.transform.baseVal.consolidate()?.matrix;
+    const rect = selected?.querySelector('rect');
+    state.x = transform && width * state.scale > box.width
+      ? box.width/2 - (transform.e + Number(rect.getAttribute('width'))/2) * state.scale
+      : Math.max(18, (box.width-width*state.scale)/2);
+    state.y = transform && height * state.scale > box.height
+      ? box.height/2 - (transform.f + Number(rect.getAttribute('height'))/2) * state.scale
+      : 22;
+    const hint = canvas.querySelector('small');
+    if (hint) hint.textContent = selected
+      ? 'Focused result at readable scale · drag to explore · Fit shows all · click a node for exact details'
+      : 'Drag to pan · wheel to zoom · click a node for direct relations and exact details · Esc clears focus';
+    applyTransform();
+  }
 
   function render() {
     canvas.dataset.view=state.view; canvas.dataset.color=state.color; canvas.dataset.local=state.query?'true':'false'; updateScopeLegend();
     const ids = visibleIds(); const edges = edgeSetFor(ids); const {positions,width,height} = layout(ids);
+    // A bounded search slice need not reserve the whole atlas's tall canvas.
+    // Keep coordinates, identities and edges unchanged; only size its viewport.
+    canvas.style.setProperty("--ulg-local-height", `${Math.min(720, Math.max(300, height))}px`);
     const focusNeighbors = new Set(state.focus ? neighbors(state.focus) : []);
     const directEdges = state.focus ? (incident.get(state.focus) || []).filter(e => ids.has(e.source) && ids.has(e.target)) : [];
     svg.replaceChildren(); svg.dataset.worldWidth=width; svg.dataset.worldHeight=height; svg.setAttribute("viewBox", `0 0 ${Math.max(1, svg.clientWidth || 900)} ${Math.max(1, svg.clientHeight || 650)}`);
@@ -243,6 +266,7 @@
 
   function selectNode(id, expand=false) {
     if (!nodes.has(id)) return; if(state.view === "functor" && !viewKinds.functor.has(nodes.get(id).kind)) setView("lean"); state.focus=id; if(expand) state.expanded.add(id); const n=nodes.get(id);
+    detail.dataset.kind = n.kind;
     try { const url=new URL(location.href); url.searchParams.set("focus",id); url.searchParams.set("view",state.view); history.replaceState(null,"",url); } catch (_) {}
     const incoming=(incident.get(id)||[]).filter(e=>e.target===id).map(e=>nodes.get(e.source)).filter(Boolean); const outgoing=(incident.get(id)||[]).filter(e=>e.source===id).map(e=>nodes.get(e.target)).filter(Boolean);
     const scope=(n.library_scope||[]).length?`<section class="ulg-scope-note"><h3>Library scope · not proof status</h3><p>${n.library_scope.map(k=>`<span>${esc(graph.library_scope_metadata?.palette[k]?.label||k)}</span>`).join(' · ')}</p><small>${esc(n.scope_basis||'Curated source affiliation or planned reuse.')}</small></section>`:'';
@@ -267,11 +291,15 @@
   svg.addEventListener("pointerdown",ev=>{state.drag={x:ev.clientX,y:ev.clientY,tx:state.x,ty:state.y};svg.setPointerCapture(ev.pointerId);canvas.classList.add("dragging");});
   svg.addEventListener("pointermove",ev=>{if(!state.drag)return;state.x=state.drag.tx+ev.clientX-state.drag.x;state.y=state.drag.ty+ev.clientY-state.drag.y;applyTransform();});
   const stop=()=>{state.drag=null;canvas.classList.remove("dragging");}; svg.addEventListener("pointerup",stop);svg.addEventListener("pointercancel",stop);
+  window.addEventListener('resize', () => requestAnimationFrame(() => {
+    svg.setAttribute('viewBox', `0 0 ${Math.max(1, svg.clientWidth)} ${Math.max(1, svg.clientHeight)}`);
+    fit({readable:true});
+  }));
 
   fetch(host.dataset.graphSource).then(r=>{if(!r.ok)throw new Error(`graph data ${r.status}`);return r.json();}).then(data=>{
     graph=data; nodes=new Map(data.nodes.map(n=>[n.id,n])); incident=new Map(data.nodes.map(n=>[n.id,[]])); data.edges.forEach(e=>{if(incident.has(e.source))incident.get(e.source).push(e);if(incident.has(e.target))incident.get(e.target).push(e);}); degree=new Map([...incident].map(([id,list])=>[id,list.length]));
     const params=new URLSearchParams(location.search); const requested=params.get("view"); if(viewKinds[requested])state.view=requested; state.color=params.get("color")==="library"||state.view==="perspectives"?"library":"status";
     state.query=(params.get("q")||"").trim(); search.value=state.query;
-    const focus=params.get("focus"); buttons.forEach(b=>b.classList.toggle("active",b.dataset.view===state.view)); render(); requestAnimationFrame(()=>{if(focus&&nodes.has(focus))selectNode(focus,true);fit();});
+    const focus=params.get("focus"); buttons.forEach(b=>b.classList.toggle("active",b.dataset.view===state.view)); render(); requestAnimationFrame(()=>{if(focus&&nodes.has(focus))selectNode(focus,true);fit({readable:true});});
   }).catch(error=>{empty.hidden=false;empty.textContent=`The formal graph could not be loaded: ${error.message}`;console.error(error);});
 })();

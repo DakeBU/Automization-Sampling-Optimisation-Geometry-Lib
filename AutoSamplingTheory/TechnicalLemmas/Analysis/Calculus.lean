@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Divergence
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient

@@ -120,3 +120,35 @@ cleanup ordering/guard checks pass locally. A local Bash binary was unavailable,
 so actual Bash execution and sufficient capacity require fresh CI evidence.
 The mathematical code, accepted source binding and reader inputs are unchanged.
 No rerun or replacement head is called accepted until its actual gates finish.
+
+## Actual accepted merge
+
+Corrected headfa8de152 completed all six exact-head checks successfully, including
+formalization41959136003. Original PR372 merged at
+`387ae4e589bb0521789b7a719c9c0d331cc4b92c`. Both the accepted head and actual main
+merge have tree`4e3e1b4fd84d2b607e4fefa9eed84ab090ba0474`; this identity is not
+fresh main-CI compilation. Local main was safely fast-forwarded and then merged
+into the existing energy exploration branch without a conflict or lost user
+files. The coordinator records MERGED under its own identity, with no invented
+independent mathematical verdict. Public Pages read-back and the law's scoped
+postmerge purification/Exposition Seal remain separate gates. Registry on actual
+main is595; the energy theorem has not yet received Registry credit. No Bench
+QA, full exercise, source-domain extension or whole Goal completion is inferred.
+
+## Actual public delivery and scoped postmerge seal
+
+Pages41964750817 completed successfully. Fresh public Edge checks assert visible
+revision387ae4e589bb and pass the six formula-proof steps, folded/highlighted/
+copied Lean, actual graph focus and desktop1400/mobile412 layout with no runtime
+errors. The statement, mobile RN step3 and graph SVG screenshots were actually
+viewed. Evidence: `_browser-evidence/law-public/report.json` and associated PNGs.
+
+The independent source verifier's unchanged preflight and final report are
+`postmerge-preflight.json` and `postmerge-purification.json`. Final self-hash:
+`6c6713c4e858e70e293cf12ee8ad43e47a3f8f721aee01ff0ce5f1a14579a035`.
+It accepts purification and Exposition Seal for **actual-law-finite-kl only**,
+with a scoped lossless source/Lean mapping and the Cell marked merged. No whole
+publication/exercise, parent KL-asymptotic node, Fisher/LSI/PI domain or new Bench
+QA is sealed. The actual publication projection still has exactly the two future
+obligations `full-probability-kl-limit` and `fisher-lsi-pi-boundary` uncovered;
+the scoped seal did not promote them. No fresh main-CI result is manufactured.

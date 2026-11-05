@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import re
 import sys
 import unittest
 import tempfile
@@ -63,10 +64,18 @@ class BenchReaderHierarchyTests(unittest.TestCase):
     def test_agentic_lean_readiness_is_not_inferred_from_the_graph_runner(self):
         text=bench_portals.evaluation_page()
         self.assertIn('executor pending', text)
+        self.assertIn('Experimental Linux CLI', text)
+        self.assertIn('native08-independent-review.json', text)
+        self.assertIn('lean-runtime/WORKSPACE.md', text)
         self.assertIn('Human-assessed', text)
         self.assertIn('Native Harbor adapter', text)
         self.assertIn('not ready', text)
         self.assertNotIn('leaderboard score', text)
+        source_links=re.findall(r'href="(https://github.com/[^\"]+/blob/[^\"]+)"',text)
+        self.assertEqual(len(source_links),2)
+        git=bench_portals.astis_site.git_context()
+        for link in source_links:
+            self.assertIsNone(bench_portals.astis_site.source_commit_link_error(link,git.commit,git.web_root))
 
     def test_collection_download_keeps_original_rows_and_one_core_identity(self):
         core={'id':'sogb-fixture','library_domains':['riemannian-optimization']}

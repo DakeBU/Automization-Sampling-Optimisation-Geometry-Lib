@@ -26,6 +26,16 @@ Do not spend this reader/evaluator phase manufacturing further background wrappe
 Already verified mathematics and older frontiers remain intact, not abandoned.
 See docs/bench-reader-contract.md and ECOSYSTEM.md for acceptance.
 
+Reader milestone1 is now actually merged/deployed at main692973fc (PR377), with
+fresh PR/main gates and nine public desktop/mobile routes read back, including
+all three subject prompt-download hashes and both graph entrances. The independent
+energy helper seal is separately recorded in its existing Cell. Continue item2:
+the issue378 fixed-target runtime reuses compatible pinned comparator/lean4export
+and real Landrun inside Linux Docker, not compiler/stdout-only grading. Its source
+and static packet tests are a work-in-progress, not native acceptance or a model
+score; see lean-runtime/README.md. Keep website executor-pending labels until the
+actual scoped runtime/hostile-fixture/harness acceptance is evidenced.
+
 ## Admission order
 
 Owner readability/ecosystem clarification (2026-11-04): a task inventory is not
@@ -142,6 +152,49 @@ The first source-audited entry is chewi-opt-v1-exercise-3-2, routed through the 
 
 Coverage is computed by `python tools/sog_bench.py coverage`; do not copy counts here. Data and prose are authored once in the catalog; the website and downloadable exports project those same records. Keep the root Lean version at 4.33.0 and never count Bench examples as new Registry leaves.
 
+Fixed-target runtime checkpoint: native run42010581633 accepts head72d5322d for
+all13 existing aligned reference targets and5 negative fixtures. Raw native-04
+JSON and the three earlier failed attempts are preserved in the existing runtime
+run directory. This is neither a model score nor full Agentic Lean readiness.
+Next test actual denied I/O and resource/invalid-input limits, then a bounded
+agent compiler-interaction trajectory with a frozen first-final denominator and
+independent runtime review. Do not repeat successful target packaging or use
+interface work to replace these real evaluator requirements. The site remains
+executor pending until the full declared acceptance scope is actually satisfied.
+
+Native05 run42016774565/head ebfe3c14 repeated all13+5 target/negative successes
+and passed real trusted-write/TCP denial. The wall kill was resource-limit at
+180.3s, but the test's marker was hidden by pinned Lean's #eval buffering, so the
+hostile gate failed; flood/invalid-input native cases were unrun. Retain native-05
+raw evidence. The next source packet repairs only the probe output, tests denied
+supervisor-fd access, and adds bounded compiler-tool/workspace plus frozen full-
+selection accounting. All need new native acceptance; independent runtime review,
+authenticated model runs, calibration/private families and exercise/depth work
+remain required. Do not convert software fixture acceptance into model scores,
+security certification, new Registry leaves or whole-Goal completion.
+
+Native06/head8a852fac is terminal failed too; preserve its exact92-file archive.
+The wall kill works but Lake's IO.Process.output buffers even child OS stdout.
+Do not repeat the same observation route or waive the marker/output tests.
+The schema3 candidate adds actual readonly direct-Lean elaboration through
+lake env + real Landrun before the unchanged official comparator. No writable
+project/cache, no artifact output, no new acceptance path: precheck only rejects
+or permits mandatory semantic/axiom/kernel verification. The same whole-call
+180-second and aggregate diagnostic limits apply; native cache-write denial,
+wall/flood, invalid-input and workspace replays must really pass. Local contract
+tests are not that acceptance or a model measurement. The public executor stays
+pending until its declared native and independent-review scope is accepted.
+
+Native07/d4663c33 is a typed launcher mismatch, not a source proof failure:
+the trusted version probe rejects ABI8 when the direct call incorrectly asks
+for strict10. Preserve raw native-07 evidence. The successor matches the pinned
+comparator's --best-effort negotiation but still independently rejects ABI<6;
+do not promise unsupported ABI9/10 controls. Run every declared reference,
+negative, I/O/resource/input and workspace case again. A repaired launch,37 local
+contract tests or independent static review is not a native/model pass. Source
+PR381 is separately clean-ported over Huanjian main994992ba with candidate608;
+do not mix that proof's progress into evaluator or exercise-completion counts.
+
 ## Current reader / execution handoff (2026-11-05)
 
 The visual reader hierarchy merged/deployed in PR377 at692973fc: public umbrella
@@ -176,3 +229,36 @@ separate independent runtime/security review, while completing only substantive
 source-ready mathematics. Actual-provider trajectories/provenance, calibration,
 private families and complete seven-domain/textbook depth remain outstanding.
 No visual delivery or one helper closes this Goal.
+
+Source helper update: PR381 actually merged at c843e133 after every exact
+d7df928e current-base check succeeded. Huanjian's main607 contribution and all
+foreign ledger bytes are preserved; Registry608 adds only this one source-class
+producer, no new QA/exercise or paper completion. Local root9632/ASTIS/site and
+desktop-mobile formula/folded-Lean/graph checks pass. Public release/readback and
+independent scoped postmerge seal remain separate. Runtime PR379/native08 is a
+different unaccepted lane; its repaired ABI negotiation may not lower minimum6
+or waive any reference/negative/resource/input/workspace case. Keep completing
+actual Agentic Lean acceptance rather than cosmetically repeating visual work.
+
+Native08/34af8bac now passes all declared controlled native cases; independent
+raw ZIP/member, canonical-packet and workspace-chain acceptance is recorded in
+the existing runtime run directory. This closes the bounded experimental CLI's
+software test boundary only. Main integration, reader delivery, authenticated
+actual provider/tool runs, calibration/private families and source/math depth
+remain open. Never relabel these34 controlled cases as model performance. The
+owner approved Pages build_type=workflow with URL/history/protection preserved;
+the stale own deployment job was normally re-run against the validated artifact,
+not bypassed. Confirm live release/reader bytes before issuing any public seal.
+
+Publication continuation (2026-11-06): head779828ca is pushed over mainc843e133;
+the canonical13 operator packets and runtime/policy bytes retain their exact
+native08 identity. The independent helper-only public readback and postmerge
+seal are now recorded in runs/20261105-compact-gradient-sqrt-test; this is not
+full Exercise1.7 or another admitted QA. Current-head CI/integration and the
+experimental CLI's reader delivery are still separate. The browser gate must
+check the explicit experimental-CLI/hosted-pending label and the initially folded
+setup/evidence links, not require the superseded trusted-reference-only label.
+After integration, prioritize an actual bounded model/tool trajectory with raw
+prompt/response provenance and preselected failure accounting, then substantive
+seven-domain/textbook depth. Do not substitute another software fixture for a
+model measurement, weaken isolation, or expand this Goal's success boundary.

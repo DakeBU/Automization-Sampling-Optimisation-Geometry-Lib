@@ -1,0 +1,83 @@
+name: Bench isolated Lean runtime trials
+on:
+  pull_request:
+    paths:
+      - 'tools/sog_bench_lean*.py'
+      - 'tools/tests/test_sog_bench_lean.py'
+      - 'benchmarks/samplingoptimisationgeometrybench/lean-runtime/**'
+      - 'benchmarks/samplingoptimisationgeometrybench/cores.json'
+      - 'benchmarks/samplingoptimisationgeometrybench/reviews/**'
+      - 'tools/sog_bench.py'
+      - 'AutoSamplingTheory/**'
+      - 'lean-toolchain'
+      - 'lake-manifest.json'
+      - 'lakefile.lean'
+      - '.github/workflows/sog-bench-lean.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/sog_bench_lean*.py'
+      - 'tools/tests/test_sog_bench_lean.py'
+      - 'benchmarks/samplingoptimisationgeometrybench/lean-runtime/**'
+      - 'benchmarks/samplingoptimisationgeometrybench/cores.json'
+      - 'benchmarks/samplingoptimisationgeometrybench/reviews/**'
+      - 'tools/sog_bench.py'
+      - 'AutoSamplingTheory/**'
+      - 'lean-toolchain'
+      - 'lake-manifest.json'
+      - 'lakefile.lean'
+      - '.github/workflows/sog-bench-lean.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sog-lean-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache: false
+      - name: Test packet and isolation argument contracts
+        run: python -m unittest tools.tests.test_sog_bench_lean
+      - uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          use-mathlib-cache: true
+      - name: Compile trusted task ancestors and references only
+        run: python tools/sog_bench.py check-lean
+      - name: Build pinned official tools and record immutable runtime
+        run: python tools/sog_bench_lean_native.py prepare --output .astis/lean-native
+      - name: Actually test every admitted aligned target and negative software fixtures
+        run: python tools/sog_bench_lean_native.py trials --runtime .astis/lean-native
+      - name: Actually probe denied I/O and bounded resource and input failures
+        run: python tools/sog_bench_lean_native.py hostile-trials --runtime .astis/lean-native
+      - name: Replay compiler feedback and immutable first-final accounting
+        run: python tools/sog_bench_lean_native.py workspace-trials --runtime .astis/lean-native
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sog-lean-native-software-evidence
+          path: |
+            .astis/lean-native/preparation-inputs.json
+            .astis/lean-native/preparation.json
+            .astis/lean-native/software-trials.json
+            .astis/lean-native/hostile-trials.json
+            .astis/lean-native/hostile-trials
+            .astis/lean-native/workspace-trials.json
+            .astis/lean-native/workspace-trials
+            .astis/lean-native/image-id
+            .astis/lean-native/trials
+          retention-days: 14

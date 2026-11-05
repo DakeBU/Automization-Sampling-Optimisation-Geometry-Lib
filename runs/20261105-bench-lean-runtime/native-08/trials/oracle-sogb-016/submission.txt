@@ -1,0 +1,51 @@
+/- SamplingOptimisationGeometryBench public-dev reference.
+   Reuses the existing project proof; retain LICENSE and NOTICE. -/
+import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient
+import Mathlib.Analysis.InnerProductSpace.Rayleigh
+
+noncomputable section
+open Metric InnerProductSpace
+open scoped Manifold InnerProductSpace
+open AutoSamplingTheory.TechnicalLemmas.Geometry
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E]
+
+theorem sogBenchTarget
+    (n : ℕ) [Fact (Module.finrank ℝ E = n + 1)]
+    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1) :
+    ∀ z : (ℝ ∙ (x : E))ᗮ,
+      ((∀ w : TangentSpace (𝓡 n) x,
+        mvfderiv (𝓡 n) (fun y : sphere (0 : E) 1 => ⟪(y : E), A (y : E)⟫_ℝ) x w =
+          ⟪mvfderiv (𝓡 n) ((↑) : sphere (0 : E) 1 → E) x w, (z : E)⟫_ℝ) ↔
+        (z : E) = (2 : ℝ) • (A (x : E) - ⟪(x : E), A (x : E)⟫_ℝ • (x : E))) := by
+  have hx : ‖(x : E)‖ = 1 := mem_sphere_zero_iff_norm.mp x.property
+  have hg : HasGradientAt (fun y : E => ⟪y, A y⟫_ℝ) ((2 : ℝ) • A (x : E)) (x : E) := by
+    apply hasGradientAt_iff_hasFDerivAt.mpr
+    have hraw := (hA.hasStrictFDerivAt_reApplyInnerSelf (x : E)).hasFDerivAt
+    have hfun : (fun y : E => ⟪y, A y⟫_ℝ) = A.reApplyInnerSelf := by
+      funext y
+      simp [ContinuousLinearMap.reApplyInnerSelf_apply, real_inner_comm]
+    have hlin : toDual ℝ E ((2 : ℝ) • A (x : E)) =
+        (2 : ℕ) • innerSL ℝ (A (x : E)) := by
+      ext v
+      simp [toDual_apply_apply, two_smul]
+    rw [hfun, hlin]
+    exact hraw
+  let K := (ℝ ∙ (x : E))ᗮ
+  have hproj (u : E) : (K.orthogonalProjectionOnto u : E) =
+      u - ⟪(x : E), u⟫_ℝ • (x : E) := by
+    change (ℝ ∙ (x : E))ᗮ.starProjection u = _
+    rw [Submodule.starProjection_orthogonal_val,
+      Submodule.starProjection_unit_singleton ℝ hx]
+  have hp : (K.orthogonalProjectionOnto ((2 : ℝ) • A (x : E)) : E) =
+      (2 : ℝ) • (A (x : E) - ⟪(x : E), A (x : E)⟫_ℝ • (x : E)) := by
+    rw [hproj]
+    simp [inner_smul_right, smul_sub, smul_smul]
+  intro z
+  rw [SphereGradient.sphere_gradient_characterization n x hg z]
+  constructor
+  · intro hz
+    exact (congrArg (fun v : K => (v : E)) hz).trans hp
+  · intro hz
+    apply Subtype.ext
+    exact hz.trans hp.symm

@@ -281,3 +281,19 @@ no writable precheck cache, precheck-never-accepts, mandatory later comparator,
 framed phases and unchanged limits; they do not execute submitted Lean or prove
 native acceptance/security. New native trials and independent runtime review
 remain required. Public executor labels and model_measurement stay pending/false.
+
+The independent exact5b8b5094 review is retained in readonly-precheck-review.json,
+not overwritten after repairs. It finds two medium contract gaps: later-phase
+buffering is not prevented by a precheck, and the new launcher needs trusted
+readiness evidence before a nonzero result is called source rejection. The
+successor explicitly limits256KiB to supervisor-captured/stored diagnostics,
+leaves internal buffering to4GiB/180s, and adds a real phase-distinguishing later
+buffered-build flood case. A trusted same-launcher Lean --version probe precedes
+the solution phase; an intentional operator-only failing-Landrun fixture must
+remain infrastructure error in preflight. No original marker/budget is waived.
+The TCP probe also stops treating a dropped promise or socket-creation exception
+as connect denial. Pinned Init/System/Promise.lean says result?.get blocks until
+resolved/dropped, not a pending check; a dropped result now fails the fixture.
+All changes require successor review and fresh native evidence; the first review
+does not certify them. Public-only dependency/cache immutability and quiescent
+operator inputs remain explicit trust assumptions, not an authenticated snapshot.

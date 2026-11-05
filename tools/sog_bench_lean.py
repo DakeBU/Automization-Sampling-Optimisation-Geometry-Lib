@@ -35,6 +35,7 @@ PROXY_VARIABLES = ('HTTP_PROXY','HTTPS_PROXY','FTP_PROXY','ALL_PROXY','NO_PROXY'
 def policy() -> dict:
     value = json.loads((RUNTIME/'policy.json').read_text(encoding='utf-8'))
     if (value['schema_version'] != 3 or value.get('solution_precheck') != 'readonly-streaming'
+            or value.get('diagnostic_scope') != 'aggregate-supervisor-captured-stream'
             or value['lean_toolchain'] != (ROOT/'lean-toolchain').read_text().strip()):
         raise ValueError('Runtime requires the unchanged project toolchain')
     manifest = json.loads((ROOT/'lake-manifest.json').read_text())
@@ -284,6 +285,7 @@ def classify(returncode: int, native, state, interruption, phase=None) -> str:
         return 'resource-limit' if phase=='verifying-solution' else 'infrastructure-error'
     if not isinstance(native,dict) or state.get('ExitCode')!=returncode:
         return 'infrastructure-error'
+    if native.get('sandbox_probe_passed') is not True:return 'infrastructure-error'
     if native.get('kind')=='fixed-target-lean-precheck':
         code=native.get('compiler_exit')
         if (phase!='verifying-solution' or type(code) is not int

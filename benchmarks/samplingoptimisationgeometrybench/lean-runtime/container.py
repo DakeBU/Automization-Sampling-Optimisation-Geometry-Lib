@@ -17,7 +17,7 @@ import subprocess
 import sys
 
 
-def readonly_precheck_command():
+def readonly_precheck_command(*, probe=False):
     """Stream the actual compiler before Lake's buffered build, never accept it.
 
     No writable project/cache path: this pass runs BEFORE comparator exports the
@@ -25,11 +25,12 @@ def readonly_precheck_command():
     Only the child's own /dev I/O is writable, as in upstream Landrun. The fixed
     source has no -o/-c output and no shell or agent-controlled argv.
     """
-    return ['lake','env','/opt/judge/landrun-env',
+    argv=['lake','env','/opt/judge/landrun-env',
             '--ro','/','--rw','/dev','-ldd','-add-exec',
             '--env','PATH','--env','HOME','--env','LEAN_PATH',
             '--env','LEAN_ABORT_ON_PANIC','--rox','/opt/lean',
-            '--','/opt/lean/bin/lean','Solution.lean']
+            '--','/opt/lean/bin/lean']
+    return argv+(['--version'] if probe else ['Solution.lean'])
 
 
 def preflight(p):
@@ -78,7 +79,10 @@ def main():
     (work/'Solution.lean').write_bytes(raw)
     environment=dict(os.environ,COMPARATOR_LANDRUN='/opt/judge/landrun-env',
         COMPARATOR_LEAN4EXPORT='/opt/judge/lean4export',LEAN_ABORT_ON_PANIC='1')
-    # Bound physical diagnostic storage as well as the final JSON. Real child
+    # Bound captured diagnostic storage and the final JSON. Internal Lean/Lake
+    # and serialized-proof buffers instead share the container RAM/wall bounds;
+    # a source can behave differently in the subsequent buffered build/export.
+    # Real child
     # output is data, escaped below, not a report that can override an exit code.
     cap=policy['limits']['diagnostic_bytes']
     def child_limits():
@@ -113,6 +117,16 @@ def main():
             'error':'Trusted challenge build failed','exit_code':code,'diagnostic':diagnostic,
             'diagnostic_limit':limited,'observations':observed}))
         return 20
+    # Validate the SAME launcher/sandbox/executable with no submitted source
+    # before labeling a later compiler rejection as a source failure. This also
+    # keeps missing/unlaunchable Landrun in the infrastructure phase. It is a
+    # trusted readiness probe, not evidence that any submitted proof started.
+    code,diagnostic,limited=capture(readonly_precheck_command(probe=True),'challenge-preflight')
+    if code!=0 or limited or 'version 4.33.0' not in diagnostic:
+        print(json.dumps({'kind':'infrastructure-error','accepted':False,'phase':'challenge-preflight',
+            'error':'Trusted readonly sandbox/Lean readiness probe failed','exit_code':code,
+            'diagnostic_limit':limited,'diagnostic':diagnostic,'observations':observed}))
+        return 20
     print(json.dumps({'kind':'runtime-phase','phase':'verifying-solution'}),flush=True)
     # Lake4.33's rawProc -> IO.Process.output buffers a module's stdout until
     # exit, hiding both a sleep marker and a growing output flood. lake env,
@@ -123,13 +137,14 @@ def main():
     code,diagnostic,limited=capture(readonly_precheck_command(),'verifying-solution')
     if code!=0 or limited:
         print(json.dumps({'schema_version':1,'kind':'fixed-target-lean-precheck',
-            'accepted':False,'compiler_exit':code,'comparator_not_run':True,
+            'accepted':False,'compiler_exit':code,'comparator_not_run':True,'sandbox_probe_passed':True,
             'diagnostic_limit':limited,'diagnostic':diagnostic,
             'observations':observed,'external_kernel':False,'model_measurement':False}))
         return 30 if limited else 10
     code,diagnostic,limited=capture(['lake','env','/opt/judge/comparator','/task/config.json'],'verifying-solution')
     report={'schema_version':1,'kind':'fixed-target-comparator','observations':observed,
-        'comparator_exit':code,'source_precheck_exit':0,'accepted':code==0 and not limited,
+        'comparator_exit':code,'source_precheck_exit':0,'sandbox_probe_passed':True,
+        'accepted':code==0 and not limited,
         'diagnostic_limit':limited,
         'diagnostic':diagnostic,
         'external_kernel':False,'model_measurement':False}

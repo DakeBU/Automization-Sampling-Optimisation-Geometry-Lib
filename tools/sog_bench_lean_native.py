@@ -170,16 +170,15 @@ def hostile_sources(oracle: str) -> dict[str, tuple[str, str, list[str]]]:
 '''
     network='''#eval (do
   IO.println "SOG_CONNECT_ATTEMPT"
-  let denied ← try
-    let socket ← Std.Internal.UV.TCP.Socket.new
+  let socket ← Std.Internal.UV.TCP.Socket.new
+  let result ← try
     let request ← socket.connect (.v4 ⟨Std.Net.IPv4Addr.ofParts 192 0 2 1, 443⟩)
-    match request.result?.get with
-    | some (.ok _) => pure false
-    | some (.error _) => pure true
-    | none => throw (IO.userError "connection promise dropped")
-  catch _ => pure true
-  if !denied then throw (IO.userError "external connect unexpectedly succeeded")
-  IO.println "SOG_CONNECT_DENIED"
+    pure request.result?.get
+  catch error => pure (some (.error error))
+  match result with
+  | some (.ok _) => throw (IO.userError "external connect unexpectedly succeeded")
+  | some (.error _) => IO.println "SOG_CONNECT_DENIED"
+  | none => throw (IO.userError "connection promise dropped; not evidence of denial")
   : IO Unit)
 '''
     cache_write='''#eval (do
@@ -209,6 +208,19 @@ def hostile_sources(oracle: str) -> dict[str, tuple[str, str, list[str]]]:
     out.flush
   : IO Unit)
 '''
+    buffered_flood='''#eval (do
+  let writable ← try
+    IO.FS.writeFile "/work/project/.lake/sog-buffered-flood-probe" "controlled phase probe"
+    pure true
+  catch _ => pure false
+  if !writable then
+    IO.println "SOG_READONLY_PRECHECK_FLOOD_SKIPPED"
+  else
+    IO.println "SOG_LATER_BUFFERED_FLOOD_STARTED"
+    for _ in [:1024] do
+      IO.println (String.ofList (List.replicate 8192 'x'))
+  : IO Unit)
+'''
     return {
         'denied-trusted-write':(inject(files),'accepted',[
             'SOG_DENIED_WRITE:/task/Challenge.lean','SOG_DENIED_WRITE:/work/project/Challenge.lean',
@@ -219,7 +231,34 @@ def hostile_sources(oracle: str) -> dict[str, tuple[str, str, list[str]]]:
             ['SOG_PRECHECK_CACHE_DENIED']),
         'wall-limit':(inject(wall),'resource-limit',['SOG_WALL_PROBE_STARTED']),
         'diagnostic-limit':(inject(flood),'resource-limit',['SOG_OUTPUT_PROBE_STARTED']),
+        'buffered-diagnostic-limit':(inject(buffered_flood),'resource-limit',
+            ['SOG_READONLY_PRECHECK_FLOOD_SKIPPED','SOG_LATER_BUFFERED_FLOOD_STARTED']),
     }
+
+
+def readiness_fault_runtime(root: Path) -> Path:
+    """Operator-only fault injection, NEVER an admitted pinned runtime.
+
+    Keep large public binaries hardlinked and untouched; replace only the NEW
+    Landrun fixture file. This directory is outside uploaded trial artifacts.
+    Its changed receipt records the intentional fault, not trusted provenance.
+    """
+    dest=root/'readiness-fault-runtime'
+    if dest.exists():raise ValueError('Never overwrite fault injection evidence')
+    (dest/'tools').mkdir(parents=True)
+    for name in runtime.RUNTIME_TOOLS:
+        if name=='landrun':
+            (dest/'tools'/name).write_text('#!/bin/sh\nexit 127\n',encoding='utf-8')
+            (dest/'tools'/name).chmod(0o755)
+        else:os.link(root/'tools'/name,dest/'tools'/name)
+    for name in ('packages','toolchain'):
+        (dest/name).symlink_to((root/name).resolve(),target_is_directory=True)
+    shutil.copyfile(root/'image-id',dest/'image-id')
+    receipt=json.loads((root/'preparation.json').read_text())
+    receipt['tools']['landrun']=runtime.bench.sha((dest/'tools/landrun').read_bytes())
+    receipt['controlled_fault']='Intentional failing launcher, not a pinned usable runtime or model result'
+    (dest/'preparation.json').write_bytes(runtime.bench.encoded(receipt))
+    return dest
 
 
 def hostile_trials(root: Path):
@@ -230,8 +269,17 @@ def hostile_trials(root: Path):
     output.mkdir()
     identity=previous['selected_task_ids'][0];task=root/'tasks'/identity;stage_dir=root/'stages'/identity
     oracle=(task/'oracle/Solution.lean.txt').read_text()
-    results=[]
-    for label,(source,expected,markers) in hostile_sources(oracle).items():
+    # The injected operator failure must NOT be called a wrong proof. No
+    # submitted source executes: the trusted version probe stops in preflight.
+    fault=runtime.run_submission(task=task,stage_dir=stage_dir,
+        submission=task/'oracle/Solution.lean.txt',runtime=readiness_fault_runtime(root),
+        output=output/'trusted-launcher-failure')
+    passed=(fault['kind']=='infrastructure-error' and fault['runtime_phase']=='challenge-preflight'
+        and fault.get('native',{}).get('error')=='Trusted readonly sandbox/Lean readiness probe failed')
+    results=[{'fixture':'trusted-launcher-failure','expected':'infrastructure-error',
+              'actual':fault['kind'],'passed':passed}]
+    sources=hostile_sources(oracle) if passed else {}
+    for label,(source,expected,markers) in sources.items():
         file=output/(label+'.txt');file.write_text(source,encoding='utf-8')
         report=runtime.run_submission(task=task,stage_dir=stage_dir,submission=file,
             runtime=root,output=output/label)
@@ -240,6 +288,10 @@ def hostile_trials(root: Path):
         passed=report['kind']==expected and all(marker in text for marker in markers)
         if label=='wall-limit':passed=passed and report['interruption']=='wall-time-limit'
         if label=='diagnostic-limit':passed=passed and report.get('native',{}).get('diagnostic_limit') is True
+        if label=='buffered-diagnostic-limit':
+            passed=passed and report.get('native',{}).get('diagnostic_limit') is True
+            passed=passed and report['native'].get('kind')=='fixed-target-comparator'
+            passed=passed and report['native'].get('source_precheck_exit')==0
         if label=='denied-precheck-cache-write':
             passed=passed and report.get('native',{}).get('kind')=='fixed-target-lean-precheck'
             passed=passed and report['native'].get('comparator_not_run') is True
@@ -264,8 +316,8 @@ def hostile_trials(root: Path):
             results.append({'fixture':'invalid-'+reason,'expected':'invalid-submission',
                 'actual':report['kind'],'passed':passed})
     summary={'schema_version':1,'kind':'hostile-software-fixtures','model_measurement':False,
-        'results':results,'passed':len(results)==10 and all(r['passed'] for r in results),
-        'scope':'Actual denied trusted and precheck-cache writes/external connect, wall/output caps and bounded invalid input; not exhaustive OS/kernel/compiler security review.'}
+        'results':results,'passed':len(results)==12 and all(r['passed'] for r in results),
+        'scope':'Actual operator launcher-fault accounting, denied trusted/precheck-cache writes and external connect, wall/captured diagnostic/wire caps including a later buffered-build flood, and bounded invalid input. Internal buffers use cgroup RAM/wall limits, not a256KiB generation cap; not exhaustive OS/kernel/compiler security review.'}
     (root/'hostile-trials.json').write_bytes(runtime.bench.encoded(summary));print(json.dumps(summary),flush=True)
     if not summary['passed']:raise SystemExit(1)
 

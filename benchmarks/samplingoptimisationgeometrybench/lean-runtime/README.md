@@ -70,7 +70,10 @@ Child output is escaped diagnostic data, never a control record. Each result pin
 the exact task packet and prepared-runtime receipt; changed tools/source fail closed.
 The complete seven-file tool inventory is checked, and verification/preparation
 source hashes are recorded separately. Policy schema3 distinguishes the unchanged
-256KiB raw diagnostic cap from the 2MiB framed transport cap. Base64 diagnostic
+256KiB aggregate supervisor-captured diagnostic cap from the 2MiB framed
+transport cap. This is NOT a256KiB bound on all internally generated output:
+Lean #eval, Lake and proof-export serialization can buffer internally and instead
+share the4GiB cgroup memory and180-second whole-call limits. Base64 diagnostic
 frames are data, never verdicts; bounded compiler output survives a later timeout.
 
 ### Streaming rejection pass, not an alternative acceptance check
@@ -86,7 +89,11 @@ artifact or writable project/cache path**. Only the child's own /dev I/O is
 writable. This supports self-contained proof elaboration under the pinned imports,
 not proof scripts that need filesystem mutation. It shares the SAME180-second
 whole-call wall budget and256KiB aggregate diagnostic cap with later verification.
-The extra pass may reject or hit a resource limit; it can NEVER accept. A fresh
+The extra pass may reject or hit a resource limit; it can NEVER accept. It does
+not force later phase-dependent comparator builds/exports to stream. Native
+acceptance must also see a fixture skip flooding in the readonly pass and then
+flood8MiB in the later writable-cache build, with both phase markers and the
+comparator's diagnostic_limit evidence (not a precheck-only pass). A fresh
 successful precheck still requires the unchanged pinned official comparator's
 challenge/solution definition and type comparison, axiom audit and kernel replay.
 No patched Lean, comparator, extra permitted axiom or new mathematical task.
@@ -98,6 +105,16 @@ Challenge.olean with a specific precheck exception marker and proof that compara
 was not run. This is tested independently of the accepted real I/O-denial probes.
 The wall/output markers remain mandatory, not waived. Until new native evidence
 passes, this remains a proposed fix, not verified output-cap/Agentic Lean readiness.
+
+Before any submitted source, a trusted `--version` probe exercises the SAME
+lake-env/Landrun/Lean launcher. Its failure or version mismatch remains in
+challenge-preflight as unscored infrastructure, not a proof rejection. A native
+operator fault-injection case intentionally replaces Landrun only in a separate
+fault receipt; it must fail this readiness probe before source verification.
+That fixture is not an admitted pinned runtime. Subsequent nonzero source
+elaboration is rejected only after trusted readiness; timeouts/OOM still retain
+their actual phase. The probe is not cryptographic proof that source execution
+began or a guarantee against all transient failures.
 
 Readonly public caches must also be readable by the container UID. Preparation
 checks the pinned package checkouts and copies only manifest-listed packages.

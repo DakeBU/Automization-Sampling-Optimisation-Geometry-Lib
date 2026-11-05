@@ -91,3 +91,39 @@ mistakenly used pretty multiline JSON rather than the producer's actual compact
 NDJSON; that fixture was corrected, not the strict parser. The next exact-head
 native run must still pass every positive/negative task. Website readiness stays
 pending; no native result, QA, theorem or Goal completion is claimed.
+
+## Native03: eleven real target checks; remaining preflight timeout
+
+Headcd2eddcc run42003282167/job127163630550 finished with11 accepted reference
+targets (001,002,003,015,016,017,018,019,021,022,023). The immutable14 raw JSON
+members in native-03 preserve all12 attempted outcomes, preparation and summary.
+Artifact13404717712 ZIP SHA256 is
+3fae6fe927ca14665dfc8373ad820ebd3332b2933205557d8b264d18ee3f1a61,
+matching the job's advertised digest. Each positive is an actual fixed-target
+comparison, permitted-axiom audit and kernel replay, not a model measurement.
+The whole run still failed:025 reached the unchanged180-second wall limit in
+challenge-preflight;028 and all five negative fixtures were not attempted.
+The failed result correctly records infrastructure-error, not proof rejection.
+Its only captured output was the phase marker, so no specific last compiler
+action or sole cause of timeout is inferred from that empty diagnostic.
+
+The cache-read repair is evidenced by the prepared snapshot:130335 private-mode
+public cache files were copied (examples report0600),9975 were hard-linked.
+The source host's inodes were not chmodded; actual readonly/nonroot/cgroup checks
+remain present. Direct Lean4.33 Module.checkArtifactsExist inspection then exposed
+a separate definite staging defect: C output is required, but owned snapshots
+copied only lib/lean artifacts. Current host GibbsC1Poincare.trace likewise names
+its C artifact. Missing C/IR forces rebuilding already-compiled ancestors. The
+next fix includes the same allowed parents' complete C/IR/lib artifacts and
+preserves timestamps; no target, assumption, proof or180-second budget changes.
+It must still be tested rather than assumed to resolve the whole timeout.
+
+Bounded live diagnostic frames now preserve compiler output even if a later
+timeout kills the container. Child data is base64, not control/verdict text.
+Policy schema2 records a separate2MiB wire limit while retaining the256KiB raw
+diagnostic limit. Tool-inventory/source-version guards and new complete-cache/
+framing tests bring the local suite to17 (16 pass,1 POSIX test skipped on Windows).
+No missing artifact is paper progress and no oracle time is a calibrated task
+difficulty or model score. Full13-positive/five-negative, hostile-I/O/resource,
+independent review/harness and actual-model requirements remain open. The PR
+stays draft and public readiness remains executor pending.

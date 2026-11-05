@@ -5,6 +5,7 @@ compares serialized challenge/solution meanings, audits axioms and replays the
 proof in a fresh kernel. Neither untrusted stdout nor #print output is a verdict.
 """
 import ctypes
+import base64
 import json
 import os
 from pathlib import Path
@@ -51,8 +52,8 @@ def main():
     raw=read_bounded('/input/Solution.lean',policy['limits']['submission_bytes'])
     raw.decode('utf-8',errors='strict')
     work=Path('/work/project');shutil.copytree('/task/project',work)
-    (work/'.lake/build/lib/lean').mkdir(parents=True)
-    shutil.copytree('/task/owned-build',work/'.lake/build/lib/lean',dirs_exist_ok=True)
+    (work/'.lake/build').mkdir(parents=True)
+    shutil.copytree('/task/owned-build',work/'.lake/build',dirs_exist_ok=True)
     (work/'.lake/packages').symlink_to('/deps/packages',target_is_directory=True)
     shutil.copyfile('/task/Challenge.lean',work/'Challenge.lean')
     (work/'Solution.lean').write_bytes(raw)
@@ -65,14 +66,21 @@ def main():
         # This cap applies to compiler artifacts too, not just diagnostics.
         resource.setrlimit(resource.RLIMIT_FSIZE,(64*1024*1024,64*1024*1024))
         resource.setrlimit(resource.RLIMIT_CORE,(0,0))
-    def capture(argv):
+    diagnostic_total=0
+    def capture(argv,phase):
+        nonlocal diagnostic_total
         proc=subprocess.Popen(argv,cwd=work,env=environment,stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,preexec_fn=child_limits,start_new_session=True)
         diagnostic=bytearray();limited=False
         try:
-            while chunk:=proc.stdout.read(4096):
-                diagnostic.extend(chunk[:max(0,cap-len(diagnostic))])
-                if len(diagnostic)>=cap:
+            while chunk:=proc.stdout.read1(min(4096,cap-diagnostic_total+1)):
+                kept=chunk[:max(0,cap-diagnostic_total)]
+                diagnostic.extend(kept);diagnostic_total+=len(kept)
+                # Only the readonly supervisor emits protocol frames. Child text
+                # stays base64 DATA and survives a later timeout/forced kill.
+                print(json.dumps({'kind':'runtime-diagnostic','phase':phase,
+                    'chunk_b64':base64.b64encode(kept).decode('ascii')}),flush=True)
+                if len(chunk)>len(kept):
                     limited=True;os.killpg(proc.pid,signal.SIGKILL);break
             proc.wait()
         finally:proc.stdout.close()
@@ -80,14 +88,14 @@ def main():
     # This phase uses ONLY the trusted challenge/imports; a failure here is an
     # infrastructure failure, not a purported refutation of the submitted proof.
     print(json.dumps({'kind':'runtime-phase','phase':'challenge-preflight'}),flush=True)
-    code,diagnostic,limited=capture(['lake','build','Challenge'])
+    code,diagnostic,limited=capture(['lake','build','Challenge'],'challenge-preflight')
     if code!=0 or limited:
         print(json.dumps({'kind':'infrastructure-error','accepted':False,'phase':'challenge-preflight',
             'error':'Trusted challenge build failed','exit_code':code,'diagnostic':diagnostic,
             'diagnostic_limit':limited,'observations':observed}))
         return 20
     print(json.dumps({'kind':'runtime-phase','phase':'verifying-solution'}),flush=True)
-    code,diagnostic,limited=capture(['lake','env','/opt/judge/comparator','/task/config.json'])
+    code,diagnostic,limited=capture(['lake','env','/opt/judge/comparator','/task/config.json'],'verifying-solution')
     report={'schema_version':1,'kind':'fixed-target-comparator','observations':observed,
         'comparator_exit':code,'accepted':code==0 and not limited,
         'diagnostic_limit':limited,

@@ -59,12 +59,20 @@ model scores. A separately framed trusted-challenge preflight precedes solution
 verification; setup failures and setup-time limits are not mathematical rejection.
 Child output is escaped diagnostic data, never a control record. Each result pins
 the exact task packet and prepared-runtime receipt; changed tools/source fail closed.
+The complete seven-file tool inventory is checked, and verification/preparation
+source hashes are recorded separately. Policy schema2 distinguishes the unchanged
+256KiB raw diagnostic cap from the 2MiB framed transport cap. Base64 diagnostic
+frames are data, never verdicts; bounded compiler output survives a later timeout.
 
 Readonly public caches must also be readable by the container UID. Preparation
 checks the pinned package checkouts and copies only manifest-listed packages.
 Readable artifacts are hard-linked; private-mode public artifacts are copied and
 made readable **without chmod on shared original inodes**. Snapshot directories
 are newly created. The readonly mounts/capability/network policy is unchanged.
+Owned ancestor snapshots also carry their C/IR build artifacts, not only oleans.
+Lean4.33 requires these for a complete cached build. Source/artifact timestamps
+are preserved so checking a task does not unnecessarily recompile its trusted
+parents. These are the same pinned module outputs, not new mathematical leaves.
 
 ## Acceptance and remaining work
 

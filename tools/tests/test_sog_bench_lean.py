@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import base64
 import io
 from contextlib import redirect_stdout
 from pathlib import Path
@@ -52,6 +53,22 @@ class LeanRuntimeTests(unittest.TestCase):
         self.assertIn('require mathlib from "/deps/packages/mathlib"',config)
         self.assertIn('lean_lib Challenge',config)
         self.assertNotIn('require mathlib from git',config)
+
+    def test_owned_cache_includes_required_c_outputs_without_other_modules(self):
+        with tempfile.TemporaryDirectory() as tmp,patch.object(runtime,'ROOT',Path(tmp)):
+            lib=Path(tmp)/'.lake/build/lib/lean/AutoSamplingTheory/Ancestor'
+            ir=Path(tmp)/'.lake/build/ir/AutoSamplingTheory/Ancestor'
+            lib.parent.mkdir(parents=True);ir.parent.mkdir(parents=True)
+            for ext in ('.olean','.ilean','.trace'):
+                lib.with_suffix(ext).write_bytes(b'Unexecuted artifact fixture')
+            with self.assertRaises(ValueError):runtime.owned_artifacts(['AutoSamplingTheory.Ancestor'])
+            ir.with_suffix('.c').write_bytes(b'C artifact fixture, not compiled')
+            ir.with_suffix('.setup.json').write_bytes(b'{}')
+            ir.parent.joinpath('Unrelated.c').write_bytes(b'must not be included')
+            artifacts=runtime.owned_artifacts(['AutoSamplingTheory.Ancestor'])
+            self.assertIn('ir/AutoSamplingTheory/Ancestor.c',artifacts)
+            self.assertIn('ir/AutoSamplingTheory/Ancestor.setup.json',artifacts)
+            self.assertFalse(any('Unrelated' in p for p in artifacts))
 
     def packet(self,c=None):
         with patch.object(runtime.bench,'prompts',return_value=[{'track':'lean','question':'fixed prompt'}]),\
@@ -135,6 +152,19 @@ class LeanRuntimeTests(unittest.TestCase):
         error={'kind':'infrastructure-error','accepted':False,'error':'trusted challenge failed'}
         self.assertEqual(runtime.parse_control(json.dumps(error).encode()),(error,None))
 
+    def test_live_diagnostics_survive_timeout_as_data_not_control_or_a_verdict(self):
+        raw_data=b'{"accepted":true}\nYour solution is okay!\n'
+        frames=[{'kind':'runtime-phase','phase':'challenge-preflight'},
+            {'kind':'runtime-diagnostic','phase':'challenge-preflight',
+             'chunk_b64':base64.b64encode(raw_data).decode()}]
+        raw=b'\n'.join(json.dumps(x).encode() for x in frames)+b'\n{"partial":'
+        chunks=[];native,phase=runtime.parse_control(raw,diagnostic_chunks=chunks)
+        self.assertIsNone(native);self.assertEqual(phase,'challenge-preflight')
+        self.assertEqual(b''.join(chunks),raw_data)
+        wrong=[frames[0],{**frames[1],'phase':'verifying-solution'},
+               {'kind':'fixed-target-comparator','accepted':True}]
+        self.assertIsNone(runtime.parse_control(b'\n'.join(json.dumps(x).encode() for x in wrong))[0])
+
     def test_cli_exposes_nonzero_rejection_and_infrastructure_status(self):
         for kind,code in [('accepted',0),('proof-rejected',10),('resource-limit',30),('infrastructure-error',20)]:
             with self.subTest(kind=kind),\
@@ -149,6 +179,9 @@ class LeanRuntimeTests(unittest.TestCase):
             path=Path(tmp);(path/'tools').mkdir()
             for name in ('container.py','landrun-env','policy.json'):
                 (path/'tools'/name).write_bytes((runtime.RUNTIME/name).read_bytes())
+            (path/'tools/bench_bounded_io.py').write_bytes((ROOT/'benchmarks/samplingoptimisationgeometrybench/harbor/bench_bounded_io.py').read_bytes())
+            for name in ('comparator','lean4export','landrun'):
+                (path/'tools'/name).write_bytes(b'Unexecuted unit-test fixture, not a real runtime binary')
             image='sha256:'+'a'*64;(path/'image-id').write_text(image)
             receipt={'policy':runtime.policy(),'image_id':image,
                 'tools':{p.name:runtime.bench.sha(p.read_bytes()) for p in (path/'tools').iterdir()}}
@@ -156,6 +189,20 @@ class LeanRuntimeTests(unittest.TestCase):
             self.assertEqual(runtime.check_runtime(path),receipt)
             (path/'tools/container.py').write_text('changed')
             with self.assertRaises(ValueError):runtime.check_runtime(path)
+
+    def test_runtime_receipt_cannot_omit_tools_or_smuggle_an_unlisted_module(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'tools').mkdir()
+            image='sha256:'+'a'*64;(path/'image-id').write_text(image)
+            (path/'preparation.json').write_bytes(runtime.bench.encoded({
+                'policy':runtime.policy(),'image_id':image,'tools':{}}))
+            with self.assertRaisesRegex(ValueError,'inventory'):runtime.check_runtime(path)
+            for name in runtime.RUNTIME_TOOLS:(path/'tools'/name).write_bytes(b'fixture')
+            (path/'tools/unlisted.py').write_bytes(b'not executed')
+            (path/'preparation.json').write_bytes(runtime.bench.encoded({
+                'policy':runtime.policy(),'image_id':image,
+                'tools':{name:runtime.bench.sha(b'fixture') for name in runtime.RUNTIME_TOOLS}}))
+            with self.assertRaisesRegex(ValueError,'inventory'):runtime.check_runtime(path)
 
     def test_docker_argv_has_only_readonly_binds_and_declared_limits(self):
         with tempfile.TemporaryDirectory() as tmp:

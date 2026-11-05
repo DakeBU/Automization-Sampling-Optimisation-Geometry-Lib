@@ -6,6 +6,7 @@ Export and static tests do not certify native runtime acceptance or model scores
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 from pathlib import Path
@@ -23,11 +24,13 @@ import sog_bench as bench
 import sog_bench_review as review
 
 RUNTIME = ROOT/'benchmarks/samplingoptimisationgeometrybench/lean-runtime'
+RUNTIME_TOOLS = {'comparator','lean4export','landrun','container.py','landrun-env',
+                 'policy.json','bench_bounded_io.py'}
 
 
 def policy() -> dict:
     value = json.loads((RUNTIME/'policy.json').read_text(encoding='utf-8'))
-    if value['schema_version'] != 1 or value['lean_toolchain'] != (ROOT/'lean-toolchain').read_text().strip():
+    if value['schema_version'] != 2 or value['lean_toolchain'] != (ROOT/'lean-toolchain').read_text().strip():
         raise ValueError('Runtime requires the unchanged project toolchain')
     manifest = json.loads((ROOT/'lake-manifest.json').read_text())
     mathlib = next(p for p in manifest['packages'] if p['name']=='mathlib')
@@ -160,6 +163,26 @@ def checked_packet(task: Path) -> dict:
     return core
 
 
+def owned_artifacts(modules: list[str]) -> dict[str, Path]:
+    """Complete Lake artifacts for exactly the allowed owned module closure.
+
+    Lean4.33's Module.checkArtifactsExist requires C output as well as oleans.
+    Dropping IR/C files silently turns cache reuse into expensive recompilation.
+    """
+    found={}
+    for module in modules:
+        rel=module.replace('.','/')
+        lib=ROOT/'.lake/build/lib/lean'/rel
+        ir=ROOT/'.lake/build/ir'/rel
+        required=[lib.with_suffix(ext) for ext in ('.olean','.ilean','.trace')]+[ir.with_suffix('.c')]
+        if not all(path.is_file() for path in required):
+            raise ValueError('Build the complete trusted module artifacts first: '+module)
+        for stem in (lib,ir):
+            for path in stem.parent.glob(stem.name+'.*'):
+                if path.is_file():found[path.relative_to(ROOT/'.lake/build').as_posix()]=path
+    return found
+
+
 def stage(task: Path, output: Path) -> None:
     """Small per-task owning-library snapshot; dependencies are mounted read-only."""
     if output.exists():
@@ -169,20 +192,16 @@ def stage(task: Path, output: Path) -> None:
     target_module = core['source_file'][:-5].replace('/','.')
     if target_module in modules:
         raise ValueError('Target owner is in its permitted ancestor closure')
-    artifacts = {}
-    for module in modules:
-        stem = ROOT/'.lake/build/lib/lean'/module.replace('.','/')
-        paths = list(stem.parent.glob(stem.name+'.*'))
-        if not stem.with_suffix('.olean').is_file():
-            raise ValueError('Build the trusted import closure first: '+module)
-        artifacts.update({p.relative_to(ROOT/'.lake/build/lib/lean').as_posix():p for p in paths if p.is_file()})
+    artifacts=owned_artifacts(modules)
     output.mkdir(parents=True)
     (output/'owned-build').mkdir()
     for module in modules:
         rel=module.replace('.','/')+'.lean';dest=output/'project'/rel
-        dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/rel,dest)
+        dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/rel,dest)
+        dest.chmod(dest.stat().st_mode|0o444)
     for rel,source in artifacts.items():
-        dest=output/'owned-build'/rel;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,dest)
+        dest=output/'owned-build'/rel;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source,dest)
+        dest.chmod(dest.stat().st_mode|0o444)
     for name in ('Challenge.lean','config.json'):
         shutil.copyfile(task/'verifier'/name,output/name)
     # Same trusted package graph via credential-free readonly offline snapshots.
@@ -221,9 +240,10 @@ def docker_command(*, image: str, name: str, stage_dir: Path, submission: Path,
     return argv+[image,'python3','-I','/opt/judge/container.py']
 
 
-def parse_control(raw: bytes) -> tuple[dict | None,str | None]:
+def parse_control(raw: bytes, *, diagnostic_chunks: list[bytes] | None = None) -> tuple[dict | None,str | None]:
     """Only supervisor-framed JSON; child stdout is escaped diagnostic data."""
-    phase=None;result=None;malformed=False
+    phase=None;result=None;malformed=False;diagnostic_size=0
+    cap=policy()['limits']['diagnostic_bytes']
     for line in raw.splitlines():
         try: value=json.loads(line)
         except (ValueError,UnicodeError): malformed=True;continue
@@ -233,6 +253,15 @@ def parse_control(raw: bytes) -> tuple[dict | None,str | None]:
             if result is not None or (phase,next_phase) not in ((None,'challenge-preflight'),('challenge-preflight','verifying-solution')):
                 malformed=True
             phase=next_phase
+        elif value.get('kind')=='runtime-diagnostic':
+            try:
+                if result is not None or value.get('phase')!=phase or phase not in ('challenge-preflight','verifying-solution'):
+                    raise ValueError('Diagnostic outside an active phase')
+                chunk=base64.b64decode(value['chunk_b64'],validate=True)
+                diagnostic_size+=len(chunk)
+                if diagnostic_size>cap:raise ValueError('Raw diagnostic cap exceeded')
+                if diagnostic_chunks is not None:diagnostic_chunks.append(chunk)
+            except (ValueError,KeyError,TypeError):malformed=True
         elif result is None:result=value
         else:malformed=True
     if result and result.get('kind')=='fixed-target-comparator' and phase!='verifying-solution':malformed=True
@@ -264,12 +293,17 @@ def check_runtime(directory: Path) -> dict:
     receipt=json.loads((directory/'preparation.json').read_text())
     if receipt['policy']!=policy() or receipt['image_id']!=(directory/'image-id').read_text().strip():
         raise ValueError('Runtime policy/image drift')
+    actual={path.name for path in (directory/'tools').iterdir()}
+    if set(receipt['tools'])!=RUNTIME_TOOLS or actual!=RUNTIME_TOOLS:
+        raise ValueError('Runtime tool inventory is incomplete or contains unlisted files')
     for name,digest in receipt['tools'].items():
         if not re.fullmatch(r'[A-Za-z0-9_.-]+',name) or bench.sha((directory/'tools'/name).read_bytes())!=digest:
             raise ValueError('Runtime tool drift')
     for name in ('container.py','landrun-env','policy.json'):
         if (directory/'tools'/name).read_bytes()!=(RUNTIME/name).read_bytes():
             raise ValueError('Runtime source does not match this verifier')
+    if (directory/'tools/bench_bounded_io.py').read_bytes()!=(ROOT/'benchmarks/samplingoptimisationgeometrybench/harbor/bench_bounded_io.py').read_bytes():
+        raise ValueError('Runtime bounded-input reader is stale')
     return receipt
 
 
@@ -320,10 +354,10 @@ def run_submission(*, task: Path, stage_dir: Path, submission: Path,
                     interrupted='wall-time-limit';break
                 events=selector.select(timeout=.25)
                 if events:
-                    chunk=os.read(proc.stdout.fileno(),min(4096,p['limits']['diagnostic_bytes']+1-len(data)))
+                    chunk=os.read(proc.stdout.fileno(),min(4096,p['limits']['transport_bytes']+1-len(data)))
                     if not chunk: break
                     data.extend(chunk)
-                    if len(data)>p['limits']['diagnostic_bytes']:
+                    if len(data)>p['limits']['transport_bytes']:
                         interrupted='output-limit';break
                 elif proc.poll() is not None:
                     # Drain remaining pipe bytes rather than losing a final report.
@@ -339,13 +373,17 @@ def run_submission(*, task: Path, stage_dir: Path, submission: Path,
         proc.stdout.close()
         # Only this freshly generated, exact container identity is removed.
         subprocess.run(['docker','rm','--force',name],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=10)
-    (output/'runtime-output.bin').write_bytes(bytes(data[:p['limits']['diagnostic_bytes']]))
-    native,phase=parse_control(bytes(data))
+    (output/'runtime-output.bin').write_bytes(bytes(data[:p['limits']['transport_bytes']]))
+    chunks=[];native,phase=parse_control(bytes(data),diagnostic_chunks=chunks)
+    diagnostic=b''.join(chunks)[:p['limits']['diagnostic_bytes']]
+    (output/'compiler-diagnostic.bin').write_bytes(diagnostic)
     kind=classify(proc.returncode,native,state,interrupted,phase)
     report={'schema_version':1,'id':core['id'],'binding_sha256':core['binding_sha256'],
         'submission_sha256':bench.sha(raw),'policy_sha256':bench.sha(bench.encoded(p)),
         'task_packet_sha256':bench.sha((task/'operator.json').read_bytes()),
         'runtime_receipt_sha256':bench.sha((runtime/'preparation.json').read_bytes()),
+        'verifier_source_sha256_lf':bench.text_hash(Path(__file__)),
+        'compiler_diagnostic_sha256':bench.sha(diagnostic),
         'image_id':image,'wall_seconds':time.monotonic()-started,'container_state':state,
         'kind':kind,'interruption':interrupted,'runtime_phase':phase,'native':native,'model_measurement':False,
         'scoring_scope':'One submission-verification call, not a recorded model attempt or suite score.'}

@@ -93,6 +93,8 @@ def prepare(output:Path):
         # Directories are new copies, never shared host inodes.
         os.chmod(current,stat.S_IMODE(os.stat(current).st_mode)|0o555)
     record={'schema_version':1,'policy':p,'go':go,'cache_snapshot':stats,
+        'preparer_source_sha256_lf':runtime.bench.text_hash(Path(__file__)),
+        'dockerfile_sha256_lf':runtime.bench.text_hash(runtime.RUNTIME/'Dockerfile'),
         'tools':{f.name:runtime.bench.sha(f.read_bytes()) for f in tools.iterdir() if f.is_file()},
         'note':'Prepared tools only; not native runtime acceptance, model evaluation or a security certificate.'}
     (output/'preparation-inputs.json').write_bytes(runtime.bench.encoded(record))

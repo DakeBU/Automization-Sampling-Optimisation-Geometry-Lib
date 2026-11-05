@@ -68,3 +68,23 @@ event's terminating CRLF to LF for git diff --check, preserving its JSON payload
 and every baseline byte. The report's after-byte hash is historical pre-format
 evidence, not a claim about the subsequently formatted ledger. No new VERIFIED
 event, reviewer identity or verdict was created by this formatting operation.
+
+## Private reader preview (not integration)
+
+At the reviewed source payload and evidence head6152d9be, the canonical site
+generator produced a private ignored preview. Its six-step authored lesson and
+actual declaration graph focus pass real Edge checks at widths1400/412:
+formulas rendered, all proof paragraphs visible, source initially folded,
+highlight/copy functional, no page overflow or runtime errors. The statement,
+mobile measurability step and graph SVG screenshots were actually inspected.
+The long mobile formula uses an explicit horizontal-scroll hint and remains
+accessible; this is not a claim that every formula fits without scrolling.
+
+Evidence: `_browser-evidence/energy-reviewed/report.json`, statement-desktop.png,
+domination-mobile.png and graph-svg-desktop.png; the generated graph report is
+`.astis/sog-bench/energy-reviewed-graph-check.json`. Solid module ownership and
+dashed source/audit overlays remain distinct. This is private presentation QA,
+not a new independent mathematical verdict, a whole-site final gate, Registry
+credit, published graph update, Exposition Seal or public deployment. The
+mathematical source/lesson/binding is unchanged. Final integration must rebuild
+the current canonical site after root/Registry work and check its actual scope.

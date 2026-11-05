@@ -4,6 +4,14 @@ This is the next packet of the **same** Sampling-Optimisation-Geometry-Bench
 Goal. It is not part of PR379/head731d98de or the accepted native08 verifier.
 Do not merge or advertise the bridge as an accepted model runner yet.
 
+PR379 has now really merged at main747b4653 after all six exact731d98de gates
+passed. The accepted and merge trees match atb7f269ac; this is not a fresh main
+compilation or public-delivery claim. Root inspected the new174-member native
+ZIP and preserved it in the existing runtime run directory with a
+[scoped integration receipt](../20261105-bench-lean-runtime/current-main-integration.json).
+This feature branch merges that current main without rewriting collaborator
+history. Its model bridge remains a distinct unaccepted successor packet.
+
 ## What exists
 
 - `tools/sog_bench_lean_model.py`: optional finite Responses function-call loop

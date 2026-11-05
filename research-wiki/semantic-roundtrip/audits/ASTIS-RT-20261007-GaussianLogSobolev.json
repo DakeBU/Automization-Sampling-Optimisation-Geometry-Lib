@@ -1,6 +1,6 @@
 {
   "id": "ASTIS-RT-20261007-GaussianLogSobolev",
-  "state": "accepted",
+  "state": "blind-reconstructed",
   "source": {
     "source_id": "companion-background:gaussian-noncompact-lsi",
     "anchor": "FIRST S4.E6 / S4.SS1.p4.3 omitted GaussianLSI background; actual32 domain consumer",
@@ -14,7 +14,7 @@
     "statement": "\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E]\n    [MeasurableSpace E] [BorelSpace E]\n    (f : E → ℝ) (hf : ContDiff ℝ 2 f)\n    (hf2 : MemLp f 2 (ProbabilityTheory.stdGaussian E))\n    (hgrad2 : MemLp (gradient f) 2 (ProbabilityTheory.stdGaussian E))\n    (hentropy : Integrable (fun x => (f x)^2 * Real.log ((f x)^2))\n      (ProbabilityTheory.stdGaussian E)) :\n    let γ : Measure E := ProbabilityTheory.stdGaussian E\n    (∫ x, (f x)^2 * Real.log ((f x)^2) ∂γ) -\n      (∫ x, (f x)^2 ∂γ) * Real.log (∫ x, (f x)^2 ∂γ) ≤\n      2 * ∫ x, ‖gradient f x‖^2 ∂γ",
     "statement_sha256": "f905ed6ba2b029fec432b394b87220c134e2d54b5977d64b36fcb8f76cb11a16",
     "compiled": true,
-    "formalizer": "root-samplinglib-writer",
+    "formalizer": "root_logsobolev_cutoff_20261106",
     "decoder_context": [
       "E is any finite-dimensional complete real inner-product space with its compatible norm and Borel measurable structure, including rank zero.",
       "f is a signed real-valued function. ContDiff real 2 means globally twice continuously Frechet differentiable.",
@@ -24,23 +24,16 @@
       "All displayed integrals are real Bochner integrals. Real.log is totalized at zero. The integrand t*log t is continuous including zero.",
       "The subtraction is homogeneous square entropy. No positive f, positive mass, compact support, normalization, supplied cutoff convergence or desired-inequality certificate is a premise."
     ],
-    "compiler_evidence": "runs/20261007-companion-priority/gaussian-noncompact-lsi/tests-build.3.log PASS3813 actualuncut32posterior/zero/signedconstantmass4 standard3; focused only."
+    "compiler_evidence": "Fresh focused3833 pass including existing Gaussian zero/signed/posterior and RGO KL/Fisher/dimension consumers; actual source hash2611b3a92438b1c284b104c40b248fc26d24b553b8b7b149ed75276d6c9a469c. This is local compilation, not new source acceptance."
   },
   "source_review": {
-    "state": "accepted",
-    "reviewer": "phase_source_reviewer_20261005",
-    "independent_from_formalizer": true,
-    "independent_from_decoder": true,
-    "evidence": "Independent comparison to primary-before-body contract f872a588, pinned SPHMCv1 ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d S4.E6/S4.SS1.p4.3 and admitted source-only topology. Entire production (all five private helpers), all three actual Tests, and seven authored formula steps read. Direct API/provenance and exact publication/decoder bindings independently re-created; 177 raw/LF frozen inputs plus primary inputs match. Root representation/count corrections retained as historical metadata-only evidence. No whole-math verdict used, no compiler run, no canonical write.",
-    "review_run_sha256": "b6be9021d46cf3595cf9630718b0350e9aa089bf56ba58e2b6e0c314ad3da827",
-    "reviewer_packet_sha256": "11941131da6dcb8a6a2d302fcbf2756c97e71c5501db792eb38fff10525c5493",
-    "run_artifact": "runs/20261007-companion-priority/gaussian-noncompact-lsi/source.0.review.json"
+    "state": "pending"
   },
   "repairs": [],
-  "publication_binding_sha256": "9618f2cb4bcb06624a549580192ac612ea6448bdfb53ff8696e3d28ffa980e46",
+  "publication_binding_sha256": "110a765f3dc1eb1b33cee49d653a8851a1529cade91c6335bb93d71f4b4fa1f3",
   "publication_context": {
-    "file": "722394c54914f93fac138cbe89311659a41b7eef70d48bdea96d30988896716c",
-    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactHilbertLogSobolev\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff\nimport Mathlib.MeasureTheory.Integral.DominatedConvergence\nimport Mathlib.MeasureTheory.Function.L2Space\nimport Mathlib.Analysis.SpecialFunctions.Log.NegMulLog\nimport Mathlib.Topology.Order.OrderClosed\n\n/-! Noncompact C2 Gaussian function LSI through actual radial cutoff exhaustion.\nThe three analytic domains are genuine inputs; cutoff limits and the inequality\nare internal obligations. Coherent posterior KL/Fisher and Gaussian T2 are separate. -/\n\nset_option autoImplicit false\nnoncomputable section\nopen MeasureTheory Filter\nopen scoped Topology RealInnerProductSpace\n\nnamespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev\nopen Analysis.Calculus.Cutoff\n\nprivate theorem entropy_dilation_bound {a q : ℝ}\n    (ha : a ∈ Set.Icc (0 : ℝ) 1) (hq : 0 ≤ q) :\n    |(a*q) * Real.log (a*q)| ≤ |q * Real.log q| + q := by\n  have hmul : (a*q) * Real.log (a*q) =\n      a * (q * Real.log q) + q * (a * Real.log a) := by\n    have h := Real.negMulLog_mul a q\n    simp only [Real.negMulLog_eq_neg] at h\n    linarith\n  have hab : |a * Real.log a| ≤ 1 := by\n    apply abs_le.mpr\n    constructor\n    · have h := Real.self_sub_one_le_mul_log ha.1\n      linarith [ha.1]\n    · exact (Real.mul_log_nonpos ha.1 ha.2).trans zero_le_one\n  rw [hmul]\n  calc\n    |a * (q * Real.log q) + q * (a * Real.log a)|\n        ≤ |a| * |q * Real.log q| + |q| * |a * Real.log a| := by\n          simpa only [abs_mul] using abs_add_le (a * (q * Real.log q)) (q * (a * Real.log a))\n    _ ≤ 1 * |q * Real.log q| + q * 1 := by\n      rw [abs_of_nonneg ha.1, abs_of_nonneg hq]\n      exact add_le_add (mul_le_mul_of_nonneg_right ha.2 (abs_nonneg _))\n        (mul_le_mul_of_nonneg_left hab hq)\n    _ = |q * Real.log q| + q := by ring\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n  [CompleteSpace E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n\nomit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem gradient_mul (c f : E → ℝ) (x : E)\n    (hc : DifferentiableAt ℝ c x) (hf : DifferentiableAt ℝ f x) :\n    gradient (fun y => c y * f y) x =\n      c x • gradient f x + f x • gradient c x := by\n  simp only [gradient, fderiv_fun_mul hc hf, map_add, map_smul]\n\nomit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem cutoff_energy_bound (f : E → ℝ) (hf : ContDiff ℝ 2 f)\n    {R C : ℝ} (hR : 1 ≤ R) (hC : 0 ≤ C)\n    (hb : ∀ x : E, ‖fderiv ℝ (radialSmoothCutoff R : E → ℝ) x‖ ≤ C / R)\n    (x : E) :\n    ‖gradient (fun y => radialSmoothCutoff R y * f y) x‖^2 ≤\n      2 * ‖gradient f x‖^2 + 2 * C^2 * (f x)^2 := by\n  have hRp : 0 < R := lt_of_lt_of_le zero_lt_one hR\n  have hc := (radialSmoothCutoff_contDiff (E := E) hRp).differentiable\n    (WithTop.coe_ne_zero.mpr WithTop.top_ne_zero)\n  rw [gradient_mul _ _ x (hc x) (hf.differentiable (by norm_num) x)]\n  have hcg : ‖gradient (radialSmoothCutoff R : E → ℝ) x‖ ≤ C := by\n    change ‖(InnerProductSpace.toDual ℝ E).symm\n      (fderiv ℝ (radialSmoothCutoff R : E → ℝ) x)‖ ≤ C\n    rw [(InnerProductSpace.toDual ℝ E).symm.norm_map]\n    exact (hb x).trans (div_le_self hC hR)\n  have hcc := radialSmoothCutoff_mem_Icc R x\n  have hn : ‖radialSmoothCutoff R x • gradient f x +\n      f x • gradient (radialSmoothCutoff R : E → ℝ) x‖ ≤\n        ‖gradient f x‖ + C * |f x| := by\n    calc\n      _ ≤ ‖radialSmoothCutoff R x • gradient f x‖ +\n          ‖f x • gradient (radialSmoothCutoff R : E → ℝ) x‖ := norm_add_le _ _\n      _ ≤ ‖gradient f x‖ + C * |f x| := by\n        simp only [norm_smul, Real.norm_eq_abs, abs_of_nonneg hcc.1]\n        have h1 := mul_le_mul_of_nonneg_right hcc.2 (norm_nonneg (gradient f x))\n        have h2 := mul_le_mul_of_nonneg_left hcg (abs_nonneg (f x))\n        nlinarith\n  have hs := (sq_le_sq₀ (norm_nonneg _) (by positivity :\n    0 ≤ ‖gradient f x‖ + C * |f x|)).mpr hn\n  nlinarith [sq_nonneg (‖gradient f x‖ - C * |f x|), sq_abs (f x)]\n\nomit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in\nprivate theorem cutoff_gradient_eventually_eq (f : E → ℝ) (x : E) :\n    ∀ᶠ n : ℕ in atTop,\n      gradient (fun y => radialSmoothCutoff ((n:ℝ)+1) y * f y) x = gradient f x := by\n  have hR : Tendsto (fun n : ℕ => (n:ℝ)+1) atTop atTop :=\n    tendsto_atTop_add_const_right atTop (1:ℝ) tendsto_natCast_atTop_atTop\n  filter_upwards [hR.eventually (eventually_gt_atTop (‖x‖ + 1))] with n hn\n  apply Filter.EventuallyEq.gradient_eq\n  refine Metric.eventually_nhds_iff.mpr ⟨1, zero_lt_one, ?_⟩\n  intro y hy\n  have hb : ‖y‖ ≤ ‖x‖ + ‖y-x‖ := by\n    calc\n      ‖y‖ = ‖x + (y-x)‖ := by congr 1; abel\n      _ ≤ ‖x‖ + ‖y-x‖ := norm_add_le _ _\n  rw [dist_eq_norm] at hy\n  have he : radialSmoothCutoff ((n:ℝ)+1) y = 1 :=\n    radialSmoothCutoff_eq_one_of_norm_le (by positivity) (by linarith)\n  simp only [he, one_mul]\n\nomit [FiniteDimensional ℝ E] in\nprivate theorem cutoff_integral_limits (μ : Measure E) (f : E → ℝ)\n    (hf : ContDiff ℝ 2 f) (hf2 : MemLp f 2 μ)\n    (hgrad2 : MemLp (gradient f) 2 μ)\n    (hp : Integrable (fun x => (f x)^2 * Real.log ((f x)^2)) μ) :\n    let fn := fun n : ℕ => fun x : E => radialSmoothCutoff ((n:ℝ)+1) x * f x\n    Tendsto (fun n => ∫ x, (fn n x)^2 ∂μ) atTop (𝓝 (∫ x, (f x)^2 ∂μ)) ∧\n    Tendsto (fun n => ∫ x, (fn n x)^2 * Real.log ((fn n x)^2) ∂μ)\n      atTop (𝓝 (∫ x, (f x)^2 * Real.log ((f x)^2) ∂μ)) ∧\n    Tendsto (fun n => ∫ x, ‖gradient (fn n) x‖^2 ∂μ)\n      atTop (𝓝 (∫ x, ‖gradient f x‖^2 ∂μ)) := by\n  dsimp only\n  let χ := fun n : ℕ => (radialSmoothCutoff ((n:ℝ)+1) : E → ℝ)\n  let fn := fun n : ℕ => fun x : E => χ n x * f x\n  have hfn (n : ℕ) : ContDiff ℝ 2 (fn n) :=\n    ((radialSmoothCutoff_contDiff (E := E) (by positivity : (0:ℝ)<(n:ℝ)+1)).of_le\n      (WithTop.coe_le_coe.mpr (le_top : (2 : ℕ∞) ≤ ⊤))).mul hf\n  have hχb (n : ℕ) (x : E) := radialSmoothCutoff_mem_Icc ((n:ℝ)+1) x\n  have hft (x : E) : Tendsto (fun n => fn n x) atTop (𝓝 (f x)) := by\n    have hR : Tendsto (fun n : ℕ => (n:ℝ)+1) atTop atTop :=\n      tendsto_atTop_add_const_right atTop (1:ℝ) tendsto_natCast_atTop_atTop\n    have h := ((radialSmoothCutoff_tendsto_one x).comp hR).mul_const (f x)\n    simpa only [Function.comp_def, one_mul] using h\n  have im : Integrable (fun x => (f x)^2) μ := hf2.integrable_sq\n  have ie : Integrable (fun x => ‖gradient f x‖^2) μ :=\n    (memLp_two_iff_integrable_sq_norm hgrad2.aestronglyMeasurable).mp hgrad2\n  have hm : Tendsto (fun n => ∫ x, (fn n x)^2 ∂μ)\n      atTop (𝓝 (∫ x, (f x)^2 ∂μ)) := by\n    apply tendsto_integral_of_dominated_convergence (fun x => (f x)^2)\n      (fun n => ((hfn n).continuous.pow 2).aestronglyMeasurable) im\n    · intro n\n      filter_upwards with x\n      rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]\n      have hb := hχb n x\n      have hs : (χ n x)^2 ≤ 1 := by dsimp [χ]; nlinarith [hb.1, hb.2]\n      change (χ n x * f x)^2 ≤ (f x)^2\n      nlinarith [mul_le_mul_of_nonneg_right hs (sq_nonneg (f x))]\n    · exact Eventually.of_forall (fun x => (hft x).pow 2)\n  have hphi : Tendsto (fun n => ∫ x, (fn n x)^2 * Real.log ((fn n x)^2) ∂μ)\n      atTop (𝓝 (∫ x, (f x)^2 * Real.log ((f x)^2) ∂μ)) := by\n    apply tendsto_integral_of_dominated_convergence\n      (fun x => |(f x)^2 * Real.log ((f x)^2)| + (f x)^2)\n      (fun n => (Real.Continuous.mul_log ((hfn n).continuous.pow 2)).aestronglyMeasurable)\n      (hp.abs.add im)\n    · intro n\n      filter_upwards with x\n      rw [Real.norm_eq_abs]\n      have hb := hχb n x\n      have ha : (χ n x)^2 ∈ Set.Icc (0:ℝ) 1 :=\n        ⟨sq_nonneg _, by dsimp [χ]; nlinarith [hb.1, hb.2]⟩\n      change |(χ n x * f x)^2 * Real.log ((χ n x * f x)^2)| ≤ _\n      simpa only [mul_pow] using entropy_dilation_bound ha (sq_nonneg (f x))\n    · exact Eventually.of_forall (fun x =>\n        Real.continuous_mul_log.continuousAt.tendsto.comp ((hft x).pow 2))\n  obtain ⟨C,hC,hCb⟩ := radialSmoothCutoff_fderiv_bound (E := E)\n  have henergy : Tendsto (fun n => ∫ x, ‖gradient (fn n) x‖^2 ∂μ)\n      atTop (𝓝 (∫ x, ‖gradient f x‖^2 ∂μ)) := by\n    apply tendsto_integral_of_dominated_convergence\n      (fun x => 2 * ‖gradient f x‖^2 + 2 * C^2 * (f x)^2)\n      (fun n => ((Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one\n        ((hfn n).of_le (by norm_num))).norm.pow 2).aestronglyMeasurable)\n      ((ie.const_mul 2).add (im.const_mul (2*C^2)))\n    · intro n\n      filter_upwards with x\n      rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]\n      exact cutoff_energy_bound f hf (by have h := Nat.cast_nonneg (α := ℝ) n; linarith) hC.le\n        (hCb _ (by positivity)) x\n    · apply Eventually.of_forall\n      intro x\n      apply tendsto_const_nhds.congr'\n      filter_upwards [cutoff_gradient_eventually_eq f x] with n hn\n      change ‖gradient f x‖^2 =\n        ‖gradient (fun y => radialSmoothCutoff ((n:ℝ)+1) y * f y) x‖^2\n      rw [hn]\n  exact ⟨hm,hphi,henergy⟩\n\n/-- Genuine noncompact Gaussian function LSI on the C2 analytic domain.\nCutoff mass, entropy and true-gradient energy limits are proved internally;\nsigned functions, zero mass and rank zero are retained. -/\ntheorem gaussian_logSobolev_of_contDiff\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E]\n    [MeasurableSpace E] [BorelSpace E]\n    (f : E → ℝ) (hf : ContDiff ℝ 2 f)\n    (hf2 : MemLp f 2 (ProbabilityTheory.stdGaussian E))\n    (hgrad2 : MemLp (gradient f) 2 (ProbabilityTheory.stdGaussian E))\n    (hentropy : Integrable (fun x => (f x)^2 * Real.log ((f x)^2))\n      (ProbabilityTheory.stdGaussian E)) :\n    let γ : Measure E := ProbabilityTheory.stdGaussian E\n    (∫ x, (f x)^2 * Real.log ((f x)^2) ∂γ) -\n      (∫ x, (f x)^2 ∂γ) * Real.log (∫ x, (f x)^2 ∂γ) ≤\n      2 * ∫ x, ‖gradient f x‖^2 ∂γ := by\n  dsimp only\n  let γ := ProbabilityTheory.stdGaussian E\n  let fn := fun n : ℕ => fun x : E => radialSmoothCutoff ((n:ℝ)+1) x * f x\n  obtain ⟨hm,hp,he⟩ := cutoff_integral_limits γ f hf hf2 hgrad2 hentropy\n  have hle (n : ℕ) :\n      (∫ x, (fn n x)^2 * Real.log ((fn n x)^2) ∂γ) -\n      (∫ x, (fn n x)^2 ∂γ) * Real.log (∫ x, (fn n x)^2 ∂γ) ≤\n        2 * ∫ x, ‖gradient (fn n) x‖^2 ∂γ := by\n    have hc : ContDiff ℝ 2 (radialSmoothCutoff ((n:ℝ)+1) : E → ℝ) :=\n      (radialSmoothCutoff_contDiff (by positivity)).of_le\n        (WithTop.coe_le_coe.mpr (le_top : (2 : ℕ∞) ≤ ⊤))\n    have hs : HasCompactSupport (fn n) :=\n      (radialSmoothCutoff_hasCompactSupport (by positivity)).mul_right\n    exact (GaussianCompactHilbertLogSobolev.compact_stdGaussian_logSobolev\n      (fn n) (hc.mul hf) hs).2.2.2\n  exact le_of_tendsto_of_tendsto\n    (hp.sub (Real.continuous_mul_log.continuousAt.tendsto.comp hm))\n    (he.const_mul 2) (Eventually.of_forall hle)\n\nend AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev\n",
+    "file": "2611b3a92438b1c284b104c40b248fc26d24b553b8b7b149ed75276d6c9a469c",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactHilbertLogSobolev\nimport AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff\n\n/-! Noncompact C2 Gaussian function LSI through actual radial cutoff exhaustion.\nThe three analytic domains are genuine inputs; cutoff limits and the inequality\nare internal obligations. Coherent posterior KL/Fisher and Gaussian T2 are separate. -/\n\nset_option autoImplicit false\nnoncomputable section\nopen MeasureTheory Filter\nopen scoped Topology RealInnerProductSpace\n\nnamespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev\nopen Analysis.Calculus.Cutoff\n\n/-- Genuine noncompact Gaussian function LSI on the C2 analytic domain.\nCutoff mass, entropy and true-gradient energy limits are proved internally;\nsigned functions, zero mass and rank zero are retained. -/\ntheorem gaussian_logSobolev_of_contDiff\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E]\n    [MeasurableSpace E] [BorelSpace E]\n    (f : E → ℝ) (hf : ContDiff ℝ 2 f)\n    (hf2 : MemLp f 2 (ProbabilityTheory.stdGaussian E))\n    (hgrad2 : MemLp (gradient f) 2 (ProbabilityTheory.stdGaussian E))\n    (hentropy : Integrable (fun x => (f x)^2 * Real.log ((f x)^2))\n      (ProbabilityTheory.stdGaussian E)) :\n    let γ : Measure E := ProbabilityTheory.stdGaussian E\n    (∫ x, (f x)^2 * Real.log ((f x)^2) ∂γ) -\n      (∫ x, (f x)^2 ∂γ) * Real.log (∫ x, (f x)^2 ∂γ) ≤\n      2 * ∫ x, ‖gradient f x‖^2 ∂γ := by\n  dsimp only\n  let γ := ProbabilityTheory.stdGaussian E\n  let fn := fun n : ℕ => fun x : E => radialSmoothCutoff ((n:ℝ)+1) x * f x\n  obtain ⟨hm,hp,he⟩ := LogSobolevCutoff.cutoff_integral_limits γ f hf hf2 hgrad2 hentropy\n  have hle (n : ℕ) :\n      (∫ x, (fn n x)^2 * Real.log ((fn n x)^2) ∂γ) -\n      (∫ x, (fn n x)^2 ∂γ) * Real.log (∫ x, (fn n x)^2 ∂γ) ≤\n        2 * ∫ x, ‖gradient (fn n) x‖^2 ∂γ := by\n    have hc : ContDiff ℝ 2 (radialSmoothCutoff ((n:ℝ)+1) : E → ℝ) :=\n      (radialSmoothCutoff_contDiff (by positivity)).of_le\n        (WithTop.coe_le_coe.mpr (le_top : (2 : ℕ∞) ≤ ⊤))\n    have hs : HasCompactSupport (fn n) :=\n      (radialSmoothCutoff_hasCompactSupport (by positivity)).mul_right\n    exact (GaussianCompactHilbertLogSobolev.compact_stdGaussian_logSobolev\n      (fn n) (hc.mul hf) hs).2.2.2\n  exact le_of_tendsto_of_tendsto\n    (hp.sub (Real.continuous_mul_log.continuousAt.tendsto.comp hm))\n    (he.const_mul 2) (Eventually.of_forall hle)\n\nend AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev\n",
     "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
     "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
     "source": {
@@ -112,19 +105,19 @@
           "title": "Bound the true gradient and identify its limit",
           "text": "Apply the real product derivative and Riesz inverse, whose isometry identifies derivative norm with gradient norm. With R_n>=1, the square energy is dominated by2G²+2C²f². For each point the cutoff equals1 on a neighborhood for all sufficiently large radii, so its product has exactly the original true gradient there, including rank0.",
           "formula": "\\nabla f_n=\\chi_n\\nabla f+f\\nabla\\chi_n,\\quad\\|\\nabla f_n\\|^2\\le2\\|\\nabla f\\|^2+2C^2f^2,\\quad\\nabla f_n(x)=\\nabla f(x)\\ \\text{eventually}.",
-          "lean": "gradient_mul; cutoff_energy_bound; cutoff_gradient_eventually_eq; Filter.EventuallyEq.gradient_eq"
+          "lean": "The shared LogSobolevCutoff.cutoff_integral_limits implementation uses gradient_mul, cutoff_energy_bound, cutoff_gradient_eventually_eq and Filter.EventuallyEq.gradient_eq; these are no longer duplicated privately in this Gaussian module."
         },
         {
           "title": "Control entropy even where the density vanishes",
           "text": "The totalized zero-aware product identity gives Phi(aq)=aPhi(q)+qPhi(a). For0<=a<=1, the lower bound a-1<=Phi(a) and Phi(a)<=0 imply |Phi(a)|<=1. With a=chi_n² and q=f² this gives an integrable dominator without taking log of f or dividing by mass.",
           "formula": "\\Phi(aq)=a\\Phi(q)+q\\Phi(a),\\quad|\\Phi(a)|\\le1\\ (0\\le a\\le1),\\quad|\\Phi(f_n^2)|\\le|\\Phi(f^2)|+f^2.",
-          "lean": "entropy_dilation_bound; Real.negMulLog_mul; Real.self_sub_one_le_mul_log; Real.mul_log_nonpos"
+          "lean": "The entropy_dilation_bound provider inside the shared cutoff node uses Real.negMulLog_mul, Real.self_sub_one_le_mul_log and Real.mul_log_nonpos."
         },
         {
           "title": "Prove all three real integral limits",
           "text": "Apply dominated convergence separately with q, |Phi(q)|+q and2G²+2C²q. Every sequence is strongly measurable through actual continuity, every dominator is L1 from the analytic domains, and the pointwise limits are proved using the actual cutoff and gradient plateau.",
           "formula": "\\int f_n^2\\,d\\gamma\\to\\int f^2\\,d\\gamma,\\quad\\int\\Phi(f_n^2)\\,d\\gamma\\to\\int\\Phi(f^2)\\,d\\gamma,\\quad\\int\\|\\nabla f_n\\|^2\\,d\\gamma\\to\\int\\|\\nabla f\\|^2\\,d\\gamma.",
-          "lean": "cutoff_integral_limits; tendsto_integral_of_dominated_convergence; radialSmoothCutoff_tendsto_one"
+          "lean": "LogSobolevCutoff.cutoff_integral_limits returns all three limits. Its shared proof performs dominated convergence and the local plateau argument; this consumer does not assume the limits."
         },
         {
           "title": "Pass the compact inequalities without changing the constant",
@@ -140,29 +133,16 @@
         }
       ],
       "lean_statement": "For every finite-dimensional complete real Hilbert/Borel space E, including rank zero, let gamma be literal stdGaussian E. Every signed real globally C2 f with actual f in L2(gamma), true gradient f in L2(gamma), and Phi(f²) integrable satisfies homogeneous Ent_gamma(f²)<=2 integral norm(gradient f)^2. The actual cutoff mass, entropy and gradient-energy limits are proved internally. Phi(t)=t log t is continuous at zero; neither positive mass nor normalization nor compact support is assumed.",
-      "lean_proof": "Derive genuine square and energy domains; Construct actual compact approximants; Bound the true gradient and identify its limit; Control entropy even where the density vanishes; Prove all three real integral limits; Pass the compact inequalities without changing the constant; Exercise the actual noncompact posterior",
+      "lean_proof": "Reuse the canonically extracted measure-generic C2 cutoff limits, construct actual compact C2 approximants and apply the actual Gaussian compact C2 producer, then pass the homogeneous entropy/energy inequality with coefficient2. The preceding mathematical derivation expands the shared node. This C2 theorem is deliberately not rerouted through the separate compact-C-infinity source-domain extension.",
       "astis_dependencies": [
         "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactHilbertLogSobolev.compact_stdGaussian_logSobolev",
         "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff",
         "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_contDiff",
-        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_mem_Icc",
-        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_eq_one_of_norm_le",
-        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_tendsto_one",
         "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_hasCompactSupport",
-        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.radialSmoothCutoff_fderiv_bound",
-        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.continuous_gradient_of_contDiff_one"
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff.cutoff_integral_limits"
       ],
       "mathlib_dependencies": [
-        "MemLp.integrable_sq",
-        "memLp_two_iff_integrable_sq_norm",
-        "fderiv_fun_mul",
-        "InnerProductSpace.toDual",
-        "Real.negMulLog_mul",
-        "Real.self_sub_one_le_mul_log",
-        "Real.mul_log_nonpos",
-        "Filter.EventuallyEq.gradient_eq",
         "Real.continuous_mul_log",
-        "MeasureTheory.tendsto_integral_of_dominated_convergence",
         "le_of_tendsto_of_tendsto"
       ]
     },
@@ -227,50 +207,24 @@
     "run_artifact": "runs/20261007-companion-priority/gaussian-noncompact-lsi/anonymous-decoder/result0.json",
     "run_binding": "runs/20261007-companion-priority/gaussian-noncompact-lsi/anonymous-decoder/run.json"
   },
-  "semantic_slots": {
-    "objects": {
-      "original": "Literal gamma=ProbabilityTheory.stdGaussian E, signed real globally C2 f, true global Riesz gradient; homogeneous entropy of f². Printed source instead uses standardized RGO r_y versus gamma and invokes Gaussian LSI together with Talagrand.",
-      "reconstructed": "[\"A real inner-product space E with compatible norm and Borel measurable structure.\", \"The canonical centered variance-one Gaussian measure gamma on E.\", \"A signed function f : E -> real numbers and its global gradient.\", \"The squared-function entropy and the squared Hilbert norm of the gradient.\"]",
-      "relation": "equivalent",
-      "evidence": "Literal stdGaussian E, signed f and actual global Riesz gradient. Product-gradient helper uses Riesz isometry, never substitutes Pi or derivative operator norm as the final energy."
-    },
-    "domains": {
-      "original": "Finite-dimensional complete real Hilbert/Borel E including rank0. f and gradient f genuinely MemLp2 gamma, Phi(f²)=f²log(f²) genuinely Integrable gamma. All integrals real Bochner; log0 totalized, no positivity/unit mass/compactness of f.",
-      "reconstructed": "[\"E is finite dimensional and complete; dimension zero is included.\", \"f is defined on all of E and takes arbitrary real values.\", \"Integration is over all E with respect to gamma; f(x)^2 and its integral are nonnegative, possibly zero.\"]",
-      "relation": "equivalent",
-      "evidence": "C2/fL2/gradientL2/PhiL1 are explicit background domain binders; actual32 produces them for SAME uncut sqrt density. Square/energy L1 and all cutoff/entropy products are internally justified before integral algebra."
-    },
-    "quantifiers": {
-      "original": "Every E with typing classes and every f satisfying the actual C2/L2/L2/entropy domains. Internal positive cutoff radii and approximants, internally established three limits; none supplied as public conclusions/certificates.",
-      "reconstructed": "[\"Universally quantified over every E satisfying the listed structural instances.\", \"Universally quantified over every f satisfying the smoothness and integrability hypotheses.\", \"gamma is fixed by E through the canonical standard Gaussian construction, not an extra universally variable measure.\"]",
-      "relation": "equivalent",
-      "evidence": "Universal E/f; no positive dimension. Cutoff derivative constant C is chosen once before all positive radii; n+1, local plateaus, all three limits internal. Test same32 selected p supplies raw f; no identification with an independently chosen33 witness."
-    },
-    "assumptions": {
-      "original": "C2, fL2, gradientL2 and entropyL1 are explicit legitimate sufficient-background domain binders, not imposed on a paper Anchor. Actual32 produces these for its actual selected p/f; 33 law/unique-prox/entropy are separate public consequences.",
-      "reconstructed": "[\"E is a normed additive commutative group and a real inner-product space, complete and finite dimensional, with its Borel measurable structure.\", \"f is globally twice continuously Frechet differentiable.\", \"f is AE strongly measurable and has finite L2 seminorm under gamma.\", \"gradient f is AE strongly measurable and has finite L2 seminorm under gamma.\", \"x -> f(x)^2 log(f(x)^2) is AE strongly measurable and has finite integral of its absolute value under gamma.\"]",
-      "relation": "equivalent",
-      "evidence": "No positivity, normalized mass, compact support, moment, law, Parseval, desired inequality, or limit certificate binder. This sufficient C2 domain theorem is authored background, not extra source-Anchor assumptions."
-    },
-    "conclusion": {
-      "original": "Ent_gamma(f²)<=2 integral norm(globalgradient f)², with real masslogmass term including zero. Exact691 signature outputs only inequality; finite square and energy domains follow from L2 premises.",
-      "reconstructed": "[\"Writing M = integral f(x)^2 dgamma, integral f(x)^2 log(f(x)^2) dgamma - M log(M) <= 2 integral ||gradient f(x)||^2 dgamma.\"]",
-      "relation": "equivalent",
-      "evidence": "Exactly homogeneous Ent(f²)<=2 Gaussian integral norm(gradient f)². Entropy_dilation_bound handles zero via negMulLog_mul; no log-zero differentiation or division by mass. Three DCTs and continuity of masslogmass give closed-order passage."
-    },
-    "scopes": {
-      "original": "Authored noncompact globally C2 sufficient Gaussian-LSI background, not full weak W12 theorem, not printed FIRST4.6/T2, not bias/main/work. Allpositive eta only enters actual32/33 source consumers; generic42 has no eta binder.",
-      "reconstructed": "[\"gamma is the canonical pushforward of the independent real standard Gaussian product through a canonical orthonormal-basis map.\", \"gradient f is the literal global Riesz inverse applied to the real Frechet derivative, not an arbitrary representative.\", \"The norm is the compatible Hilbert norm.\", \"The integrals are real Bochner integrals with genuine integrability hypotheses.\", \"Real.log is totalized at zero; t log(t) has value zero at t=0 in this use.\", \"The subtraction is homogeneous square entropy, with no unit-mass normalization.\", \"No f positivity, positive square mass, compact support, cutoff convergence, or desired-inequality premise occurs.\"]",
-      "relation": "explicit-elaboration",
-      "evidence": "Scope preserved as noncompact globally C2 sufficient Gaussian background. Generic theorem has no eta binder; true all-positive-eta raw RGO is tested through actual32. Full W12, coherent33KL/Fisher, T2/FIRST4.6, main/work/composition/full reader remain separate."
-    },
-    "constant_dependencies": {
-      "original": "Universal coefficient2 under variance1 Gaussian, no dimension factor. Signed/zero mass/rank0 admitted. Cutoff C/R and zero-aware entropy dominating constants internally derived, not public bound certificates.",
-      "reconstructed": "[\"The displayed coefficient is exactly 2, uniformly independent of E, its dimension, f, and the square mass M.\", \"The Gaussian normalization is centered with variance one in each orthonormal coordinate.\", \"No additional parameter-dependent constants appear.\"]",
-      "relation": "equivalent",
-      "evidence": "Variance-one Gaussian coefficient2, no dimension factor; internally bound cutoff energy by2G²+2C²f² and entropy byabsPhi(f²)+f². C before R; zero/signed/rank0 retained. No unproved generic Gaussian T2 constant credit."
-    }
-  },
+  "semantic_slots": {},
   "deltas": [],
-  "verdict": "equivalent-after-elaboration"
+  "verdict": "pending",
+  "renewal_from": {
+    "commit": "0804c29747e334f1d6175f6494135be4b164de80",
+    "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-GaussianLogSobolev.json",
+    "committed_audit_sha256": "b71db93ba9313a8659ab1d414f239ff21ff2ab62eccd9fee8eacc28b9e166674",
+    "previous_publication_binding_sha256": "9618f2cb4bcb06624a549580192ac612ea6448bdfb53ff8696e3d28ffa980e46",
+    "previous_source_review": {
+      "state": "accepted",
+      "reviewer": "phase_source_reviewer_20261005",
+      "independent_from_formalizer": true,
+      "independent_from_decoder": true,
+      "evidence": "Independent comparison to primary-before-body contract f872a588, pinned SPHMCv1 ec485cdad5fe140114be35eef93d19398e0cafcf21abb3fff1bdbbf462e5f94d S4.E6/S4.SS1.p4.3 and admitted source-only topology. Entire production (all five private helpers), all three actual Tests, and seven authored formula steps read. Direct API/provenance and exact publication/decoder bindings independently re-created; 177 raw/LF frozen inputs plus primary inputs match. Root representation/count corrections retained as historical metadata-only evidence. No whole-math verdict used, no compiler run, no canonical write.",
+      "review_run_sha256": "b6be9021d46cf3595cf9630718b0350e9aa089bf56ba58e2b6e0c314ad3da827",
+      "reviewer_packet_sha256": "11941131da6dcb8a6a2d302fcbf2756c97e71c5501db792eb38fff10525c5493",
+      "run_artifact": "runs/20261007-companion-priority/gaussian-noncompact-lsi/source.0.review.json"
+    },
+    "reason": "Canonical extraction changes the whole Gaussian source module and proof-walkthrough pointers. Old report bytes are preserved; this candidate requires a new independent review, not hash replay."
+  }
 }

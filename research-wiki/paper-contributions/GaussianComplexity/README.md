@@ -10,6 +10,14 @@ evidence before scheduling; this intake is not a second proof-status registry.
 
 ## What the intake supplies
 
+Current resume checkpoint (2026-11-05):
+[`density-stack-integration-20261105/resume-checkpoint.json`](density-stack-integration-20261105/resume-checkpoint.json).
+The Eq24/A.1/harmonic, B.7 and actual-mixture-density stack has independent local
+Lean/source/desktop/mobile acceptance on official-main base `692973fcc695`.
+GitHub authentication is confirmed; remote PR/CI/deployment, post-merge purification and
+both main lower bounds remain open. The older packet sections below are retained
+as historical evidence, not the current frontier or completion status.
+
 - The canonical companion model now contains a fifth source case with two
   separate main theorem contracts, formula proof routes, a method comparison,
   and an explicitly incomplete source proof outline.

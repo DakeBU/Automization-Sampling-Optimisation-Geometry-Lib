@@ -1,0 +1,34 @@
+/- SamplingOptimisationGeometryBench public-dev reference.
+   Reuses the existing project proof; retain LICENSE and NOTICE. -/
+import AutoSamplingTheory.TechnicalLemmas.Probability.KernelTotalVariation
+
+open MeasureTheory ProbabilityTheory Set Finset
+open scoped ProbabilityTheory BigOperators
+
+theorem sogBenchTarget
+    {A B : Type*} [MeasurableSpace A] [MeasurableSpace B]
+    (μ : Measure A) [IsProbabilityMeasure μ]
+    (K L : Kernel A B) [IsMarkovKernel K] [IsMarkovKernel L]
+    (ε : A → ℝ) (hε : Integrable ε μ)
+    (hbound : ∀ᵐ x ∂μ, ∀ s, MeasurableSet s →
+      |(K x).real s - (L x).real s| ≤ ε x) :
+    ∀ t, MeasurableSet t →
+      |(K ∘ₘ μ).real t - (L ∘ₘ μ).real t| ≤ ∫ x, ε x ∂μ := by
+  intro t ht
+  have hint (M : Kernel A B) [IsMarkovKernel M] :
+      Integrable (fun x => (M x).real t) μ := by
+    apply (integrable_const (1 : ℝ)).mono'
+      (M.measurable_coe ht).ennreal_toReal.aestronglyMeasurable
+    exact Filter.Eventually.of_forall fun x => by
+      rw [Real.norm_eq_abs, abs_of_nonneg ENNReal.toReal_nonneg]
+      exact (measureReal_le_one : (M x).real t ≤ 1)
+  have happly (M : Kernel A B) [IsMarkovKernel M] :
+      (M ∘ₘ μ).real t = ∫ x, (M x).real t ∂μ := by
+    change (Measure.bind μ M t).toReal = ∫ x, (M x t).toReal ∂μ
+    rw [Measure.bind_apply ht M.aemeasurable]
+    exact (integral_toReal (M.measurable_coe ht).aemeasurable
+      (Filter.Eventually.of_forall fun x => measure_lt_top (M x) t)).symm
+  rw [happly K, happly L, ← integral_sub (hint K) (hint L)]
+  exact abs_integral_le_integral_abs.trans <|
+    integral_mono_ae ((hint K).sub (hint L)).abs hε <|
+      hbound.mono fun x hx => hx t ht

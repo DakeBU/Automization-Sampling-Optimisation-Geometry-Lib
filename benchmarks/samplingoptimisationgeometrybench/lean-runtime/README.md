@@ -1,10 +1,19 @@
-# Fixed-target Lean runtime — under native acceptance
+# Fixed-target Lean runtime — experimental CLI
 
 This is work on issue378, continuing the same Bench Goal after the hierarchical
 reader shipped in PR377 at main692973fc. It is **not yet an accepted Agentic Lean
 benchmark**, a model result or a security certificate. Existing website readiness
 labels remain pending. No QA/level/family/source binding or production theorem is
 changed, and no new Registry leaf is claimed.
+
+Native08 at exact34af8bac passes all13 references,5 semantic negatives,
+12 I/O/resource/input/setup cases and4 native compiler-workspace replays.
+An independent raw-artifact/source-packet/workspace-chain review accepts that
+controlled software scope; see runs/20261105-bench-lean-runtime and its exact
+hashes. This makes the bounded Linux CLI testable, not a measured AI benchmark,
+general online execution service or security certificate. Earlier failed
+attempts and narrower historical checkpoints below are preserved. Current-main
+integration/public website labels remain separate; do not infer provider runs.
 
 ## Trust boundary
 

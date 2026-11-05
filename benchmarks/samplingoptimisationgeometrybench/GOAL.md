@@ -194,3 +194,58 @@ negative, I/O/resource/input and workspace case again. A repaired launch,37 loca
 contract tests or independent static review is not a native/model pass. Source
 PR381 is separately clean-ported over Huanjian main994992ba with candidate608;
 do not mix that proof's progress into evaluator or exercise-completion counts.
+
+## Current reader / execution handoff (2026-11-05)
+
+The visual reader hierarchy merged/deployed in PR377 at692973fc: public umbrella
+Sampling-Optimisation-Geometry-Bench, separate Sampling/Optimisation/Geometry
+doors, Benchmarks beside Libraries, and first-level Lean/Functor graph links.
+The seven-domain curriculum and all existing task identities remain shared.
+Compact visual landings lead to full formula proofs and adjacent folded exact
+Lean in drilldown; do not replace rigor with thumbnails or restore inventory
+walls. Actual29-core browser/public acceptance is recorded in that PR.
+
+The real untrusted-Lean executor is a different, still-unaccepted draft PR379.
+Native06/head8a852fac accepts13 references/five negative proofs and actual
+write/TCP-denial probes. Wall termination works but its start marker is buffered
+by Lake; the fixture fails. Output flood, invalid-file and workspace trajectories
+remain unrun there. Inspect the pinned Lake IO.Process.output observation API
+before another run; do not repeat an unchanged probe, silently loosen limits,
+execute submitted Lean on the host, or relabel scripted software tests as actual
+model measurements. Keep the public executor-pending label until real acceptance.
+
+An independent source-backed Exercise1.7 input producer is VERIFIED at exact
+eead411e, now serially STABILIZING in PR381. It derives genuine smoothness and
+actual finite integrals of sqrt(1+epsilon*f) from a bounded smooth f with compact
+derivative support, reusing the existing energy technology. Local root Tests,
+site/graph and desktop/mobile formula/folded-Lean checks pass; all29 existing
+QA bindings and recursive source contexts are unchanged. Clean CI, merge,
+deployment and scoped independent postmerge seal remain separate. This does
+not admit another exercise or prove LSI extension/application, canonical Fisher,
+uncentering or PI/core closure. Preserve the private-generic-cutoff discovery.
+
+Next prioritize acceptance of the actual Agentic Lean environment and its
+separate independent runtime/security review, while completing only substantive
+source-ready mathematics. Actual-provider trajectories/provenance, calibration,
+private families and complete seven-domain/textbook depth remain outstanding.
+No visual delivery or one helper closes this Goal.
+
+Source helper update: PR381 actually merged at c843e133 after every exact
+d7df928e current-base check succeeded. Huanjian's main607 contribution and all
+foreign ledger bytes are preserved; Registry608 adds only this one source-class
+producer, no new QA/exercise or paper completion. Local root9632/ASTIS/site and
+desktop-mobile formula/folded-Lean/graph checks pass. Public release/readback and
+independent scoped postmerge seal remain separate. Runtime PR379/native08 is a
+different unaccepted lane; its repaired ABI negotiation may not lower minimum6
+or waive any reference/negative/resource/input/workspace case. Keep completing
+actual Agentic Lean acceptance rather than cosmetically repeating visual work.
+
+Native08/34af8bac now passes all declared controlled native cases; independent
+raw ZIP/member, canonical-packet and workspace-chain acceptance is recorded in
+the existing runtime run directory. This closes the bounded experimental CLI's
+software test boundary only. Main integration, reader delivery, authenticated
+actual provider/tool runs, calibration/private families and source/math depth
+remain open. Never relabel these34 controlled cases as model performance. The
+owner approved Pages build_type=workflow with URL/history/protection preserved;
+the stale own deployment job was normally re-run against the validated artifact,
+not bypassed. Confirm live release/reader bytes before issuing any public seal.

@@ -1,0 +1,35 @@
+/- SamplingOptimisationGeometryBench public-dev reference.
+   Reuses the existing project proof; retain LICENSE and NOTICE. -/
+import Mathlib.Probability.Kernel.Invariance
+import Mathlib.MeasureTheory.Integral.Lebesgue.Countable
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal
+
+#eval (do
+  for path in #["/task/Challenge.lean", "/work/project/Challenge.lean", "/opt/judge/policy.json", "/proc/1/fd/1"] do
+    let denied ← try
+      IO.FS.writeFile path "UNTRUSTED WRITE MUST NOT SUCCEED"
+      pure false
+    catch _ => pure true
+    if !denied then throw (IO.userError "trusted file was writable")
+    IO.println s!"SOG_DENIED_WRITE:{path}"
+  : IO Unit)
+
+theorem sogBenchTarget {α : Type*} [MeasurableSpace α]
+    [Countable α] [MeasurableSingletonClass α] (κ : Kernel α α) (μ : Measure α)
+    (h : ∀ x y, μ {x} * κ x {y} = μ {y} * κ y {x}) :
+    Kernel.IsReversible κ μ := by
+  intro A B _ _
+  have hm (ν : Measure α) (s : Set α) : ν s = ∑' y : s, ν {(y : α)} := by
+    simpa using (lintegral_countable (μ := ν) (fun _ => 1) (Set.to_countable s))
+  rw [lintegral_countable _ (Set.to_countable A),
+    lintegral_countable _ (Set.to_countable B)]
+  conv_lhs => enter [1, x]; rw [hm (κ x) B, ← ENNReal.tsum_mul_right]
+  conv_rhs => enter [1, y]; rw [hm (κ y) A, ← ENNReal.tsum_mul_right]
+  rw [ENNReal.tsum_comm]
+  apply tsum_congr
+  intro y
+  apply tsum_congr
+  intro x
+  simpa only [mul_comm] using h (x : α) (y : α)

@@ -10,6 +10,7 @@ import Tests.Shared.CurveExtension
 import Tests.Shared.AffineGradient
 import Tests.Shared.BoundedDensityPerturbation
 import Tests.Shared.BoundedPerturbationEnergy
+import Tests.Shared.CompactGradientSqrtPerturbation
 import Tests.Shared.BoundedPerturbationLaw
 import Tests.GaussianLipschitzExponential
 import Tests.StandardizedRGOPositionFisher

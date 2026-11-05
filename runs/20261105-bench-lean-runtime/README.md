@@ -320,3 +320,33 @@ are NOT promised on ABI8; Docker network-none and no-host-socket mounts remain.
 No minimum, proof/axiom condition, marker or resource budget is weakened. Local
 contract tests and independent delta review must pass, then ALL declared native
 cases really run at the successor. No model or security acceptance follows.
+
+## Native08 accepted controlled software scope
+
+Exact34af8bacf541b9b5df57eb9eb7d48e818b709d0f run42065711551/job127379083864
+actually passes every declared native step. All six exact-head workflows pass.
+Artifact13437220244 has208836-byte ZIP SHA256
+e269d2b1cb9b47c6173910779a350ea3af00c541cf7516139203c4e5306c2881.
+native-08 preserves all174 raw members plus their archive binding. Earlier
+failed evidence remains unchanged; never execute archived source on the host.
+
+The distinct reviewer independently hashes the ZIP and every member, reconstructs
+all diagnostic/control frames, checks actual causes/exits/limits, regenerates
+all13 canonical operator packets in memory and verifies workspace hash chains.
+native08-independent-review.json accepts only experimental fixed-target compiler
+CLI controlled software scope:13 references/five specific semantic negatives,
+12 launcher/I-O/resource/input fixtures and4 real first-final/workspace replays.
+There are28 container execution records and6 invalid nonexecuted records; the
+wall-killed record has no terminal observations, which are not invented.27
+observations have actual ABI8, UID/GID1000, capabilities0, no-new-privileges1,
+loopback-only network,4GiB RAM,2 CPUs and128 PIDs. Captured diagnostics top out
+at262144 bytes; largest wire is617937, below2MiB. The later-phase buffered flood
+is checked separately from the early precheck flood. This is not a256KiB limit
+on internal generation/buffers, which retain4GiB/180s.
+
+This acceptance is NOT a provider/model measurement, calibrated/private test,
+unrestricted public web executor or security/kernel certificate. It assumes
+trusted quiescent public caches/operator artifacts; absent binary/ancestor
+artifacts are not pretended independently rebuilt. Current-main integration,
+publication and the readable experimental-CLI entry remain separate. No new
+question, level, Registry leaf, textbook exercise or whole-Goal completion.

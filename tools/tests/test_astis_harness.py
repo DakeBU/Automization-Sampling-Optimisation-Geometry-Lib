@@ -54,6 +54,14 @@ def append_same_memory_worker(path: str) -> None:
 
 
 class HarnessStorageTests(unittest.TestCase):
+    def test_append_preserves_prefix_and_exact_utf8_lf_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "events.jsonl"
+            prefix = b'{"old":1}\r\n'
+            path.write_bytes(prefix)
+            append_jsonl(path, {"new": "\u03bc"})
+            self.assertEqual(path.read_bytes(), prefix + '{"new":"\u03bc"}\n'.encode("utf-8"))
+
     def test_interrupted_append_is_recovered(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "events.jsonl"

@@ -70,7 +70,7 @@ def home(cores: list[dict], graphs: list[dict]) -> str:
             '<p><a href="curriculum/index.html">Seven-domain L1–L5 coverage</a> · <a href="natural-language/index.html">Natural-language QA</a> · <a href="lean/index.html">Lean QA</a> · <a href="graph-json/index.html">Graph QA</a></p>'
             '<p><a href="downloads/questions.jsonl" download>Prompt-only JSONL</a> · <a href="downloads/reviewed-questions.jsonl" download>editorially reviewed prompts</a> · <a href="downloads/manifest.json">Version and hashes</a> · <a href="pilot.zip" download>Download the full pilot</a></p>'
             '<p>Reviewed subsets use content-bound AI editorial acceptance, not empirical difficulty calibration or a certificate for arbitrary submitted proofs.</p>'
-            '<p>Natural-language scoring needs mathematical assessment. The native runner currently verifies Graph JSON, not arbitrary Lean. Agentic Lean execution, empirical calibration and private families remain open.</p>')
+            '<p>Natural-language scoring needs mathematical assessment. Graph JSON and the experimental fixed-target Linux Lean CLI have different contracts; neither supplies a measured model score. Hosted Lean execution, empirical calibration and private families remain open.</p>')
         + fold('Numbered textbook exercises and our reference solutions',
             '<p><a href="textbook-exercises/index.html">Textbook exercises &amp; answers</a></p>'
             '<p>Complete original answers, exact source numbers and separately checked Lean scope.</p>'
@@ -126,9 +126,13 @@ def evaluation_page() -> str:
     return (f'<article class="sog-reader sog-hub" {MARKER}><h1>Evaluate a model</h1><p class="lede">Choose what you want to measure.</p>'
         '<div class="sog-portal-grid">'
         + card('Mathematical reasoning', 'Natural-language answers, checked against a mathematical rubric.', 'guide.html', 'optimisation', extra='<small>Human-assessed · available</small>')
-        + card('Agentic Lean', 'Fixed targets and proof tasks. Safe model-submission execution is not ready.', '../lean/index.html', 'lean', extra='<small>Trusted references only · executor pending</small>')
+        + card('Agentic Lean', 'Fixed proof targets. General hosted execution is not ready.', '../lean/index.html', 'lean', extra='<small>Experimental Linux CLI · hosted executor pending</small>')
         + card('Graph reasoning', 'Exact structural answers in the tested isolated Graph JSON runner.', '../graph-json/index.html', 'functor', extra='<small>Native Harbor adapter · available</small>')
         + '</div><p><a href="../downloads/EVALUATION.md">Run metadata, scoring and reproducibility</a> · <a href="../downloads/HARBOR.md">Native runtime guide</a></p>'
+        + fold('Use the experimental Lean compiler workspace',
+            '<p>For Linux operators: bounded proof checks, compiler feedback and one reserved final submission. This is not a hosted service or a model result.</p>'
+            '<p><a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/benchmarks/samplingoptimisationgeometrybench/lean-runtime/WORKSPACE.md">Setup and check/submit commands</a> · '
+            '<a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/runs/20261105-bench-lean-runtime/native08-independent-review.json">Exact native evidence and independent scope review</a></p>')
         + fold('Before reporting a score', '<p>Freeze prompts, family split, model/version, retrieval/tools, attempts and raw outputs. Keep answers out of evaluation prompts. Current data is public-dev; no unseen-generalization or measured model-ranking claim is supported.</p><p>Recorded human rubric judgments are not automatically verified mathematics.</p>') + '</article>')
 
 

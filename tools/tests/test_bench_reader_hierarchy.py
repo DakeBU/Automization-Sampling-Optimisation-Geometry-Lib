@@ -63,6 +63,9 @@ class BenchReaderHierarchyTests(unittest.TestCase):
     def test_agentic_lean_readiness_is_not_inferred_from_the_graph_runner(self):
         text=bench_portals.evaluation_page()
         self.assertIn('executor pending', text)
+        self.assertIn('Experimental Linux CLI', text)
+        self.assertIn('native08-independent-review.json', text)
+        self.assertIn('lean-runtime/WORKSPACE.md', text)
         self.assertIn('Human-assessed', text)
         self.assertIn('Native Harbor adapter', text)
         self.assertIn('not ready', text)

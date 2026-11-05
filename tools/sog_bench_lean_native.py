@@ -135,7 +135,8 @@ def trials(root:Path,task_ids:list[str]|None):
             report=runtime.run_submission(task=task,stage_dir=stage_dir,submission=file,
                 runtime=root,output=root/'trials'/label)
             expected_reason=('Challenge and solution theorem statement do not match'
-                if label=='wrong-statement' else 'bogus' if label=='custom-axiom' else 'sorryAx')
+                if label=='wrong-statement' else "Illegal axiom detected: 'bogus'"
+                if label=='custom-axiom' else "Illegal axiom detected: 'sorryAx'")
             diagnostic=(root/'trials'/label/'compiler-diagnostic.bin').read_bytes().decode('utf-8',errors='replace')
             reports.append({'fixture':label,'expected':'proof-rejected','actual':report['kind'],
                 'expected_reason_seen':expected_reason in diagnostic})
@@ -250,15 +251,63 @@ def hostile_trials(root: Path):
     if not summary['passed']:raise SystemExit(1)
 
 
+def workspace_trials(root: Path):
+    """Scripted tool replays, not a provider/model/agent performance result."""
+    import sog_bench_lean_workspace as workspace
+    hostile=json.loads((root/'hostile-trials.json').read_text())
+    if hostile.get('passed') is not True:raise ValueError('Pass hostile native acceptance first')
+    output=root/'workspace-trials'
+    if output.exists():raise ValueError('Never overwrite workspace replay evidence')
+    output.mkdir()
+    identity=json.loads((root/'software-trials.json').read_text())['selected_task_ids'][0]
+    task=root/'tasks'/identity;stage=root/'stages'/identity
+    oracle=(task/'oracle/Solution.lean.txt').read_text()
+    def start(label):
+        directory=output/label
+        workspace.start(task=task,stage=stage,prepared=root,output=directory,max_checks=1,
+            provenance={'kind':'controlled-software-fixture','name':label})
+        return directory
+    repaired=start('repair-replay')
+    diagnostic=workspace.act(repaired,{'action':'check','source':'theorem sogBenchTarget : True := by trivial\n'})
+    final=workspace.act(repaired,{'action':'submit','source':oracle})
+    replay=workspace.close(repaired)
+    blocked=False
+    try:workspace.act(repaired,{'action':'submit','source':oracle})
+    except ValueError:blocked=True
+    no_final=start('accepted-check-without-final')
+    check=workspace.act(no_final,{'action':'check','source':oracle})
+    abstention=workspace.close(no_final)
+    invalid=start('invalid-final')
+    invalid_feedback=workspace.act(invalid,{'action':'submit'})
+    invalid_result=workspace.close(invalid)
+    results=[
+        {'fixture':'repair-replay','passed':diagnostic['kind']=='proof-rejected'
+            and 'Challenge and solution theorem statement do not match' in diagnostic['diagnostic']
+            and final['kind']=='accepted' and replay['final_accepted'] and replay['denominator']==1 and blocked},
+        {'fixture':'accepted-check-without-final','passed':check['kind']=='accepted'
+            and abstention['denominator']==1 and not abstention['final_accepted']
+            and abstention['final_outcome']=='no-final-submission'},
+        {'fixture':'invalid-final','passed':invalid_feedback['kind']=='invalid-submission'
+            and invalid_result['denominator']==1 and invalid_result['final_outcome']=='invalid-submission'},
+    ]
+    summary={'schema_version':1,'kind':'scripted-compiler-tool-replays','model_measurement':False,
+        'passed':all(r['passed'] for r in results),'results':results,
+        'scope':'Actual native tool feedback and first-final accounting; no provider calls, autonomous model trajectories or authenticated performance.'}
+    (root/'workspace-trials.json').write_bytes(runtime.bench.encoded(summary));print(json.dumps(summary),flush=True)
+    if not summary['passed']:raise SystemExit(1)
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='cmd',required=True)
     x=sub.add_parser('prepare');x.add_argument('--output',type=Path,required=True)
     x=sub.add_parser('trials');x.add_argument('--runtime',type=Path,required=True);x.add_argument('--task-id',action='append')
     x=sub.add_parser('hostile-trials');x.add_argument('--runtime',type=Path,required=True)
+    x=sub.add_parser('workspace-trials');x.add_argument('--runtime',type=Path,required=True)
     args=parser.parse_args()
     if args.cmd=='prepare':prepare(args.output.resolve())
     elif args.cmd=='trials':trials(args.runtime.resolve(),args.task_id)
-    else:hostile_trials(args.runtime.resolve())
+    elif args.cmd=='hostile-trials':hostile_trials(args.runtime.resolve())
+    else:workspace_trials(args.runtime.resolve())
 
 
 if __name__=='__main__':main()

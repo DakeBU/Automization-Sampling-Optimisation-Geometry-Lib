@@ -13,6 +13,7 @@ ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'tools'))
 import sog_bench_lean as runtime
 import sog_bench_lean_native as native
+import sog_bench_lean_workspace as workspace
 
 
 def core():
@@ -193,7 +194,9 @@ class LeanRuntimeTests(unittest.TestCase):
         self.assertEqual(runtime.classify(137,None,{**state,'OOMKilled':True},None,'verifying-solution'),'resource-limit')
         self.assertEqual(runtime.classify(137,None,state,'wall-time-limit','verifying-solution'),'resource-limit')
         self.assertEqual(runtime.classify(137,None,state,'wall-time-limit','challenge-preflight'),'infrastructure-error')
-        self.assertEqual(runtime.classify(30,{**native,'diagnostic_limit':True},state,None),'resource-limit')
+        self.assertEqual(runtime.classify(30,{**native,'diagnostic_limit':True},
+            {**state,'ExitCode':30},None),'resource-limit')
+        self.assertEqual(runtime.classify(30,{**native,'diagnostic_limit':True},state,None),'infrastructure-error')
 
     def test_control_framing_keeps_stdout_data_and_preflight_distinct(self):
         phases=[{'kind':'runtime-phase','phase':'challenge-preflight'},
@@ -269,6 +272,8 @@ class LeanRuntimeTests(unittest.TestCase):
             self.assertIn('--user=1000:1000',argv);self.assertIn('--cap-drop=ALL',argv)
             self.assertIn('--security-opt=no-new-privileges:true',argv)
             self.assertIn('--log-driver=none',argv);self.assertIn('--pids-limit=128',argv)
+            env=[argv[i+1] for i,a in enumerate(argv) if a=='--env']
+            self.assertEqual(set(env),{v+'=' for v in runtime.PROXY_VARIABLES})
             mounts=[argv[i+1] for i,a in enumerate(argv) if a=='--mount']
             self.assertEqual(len(mounts),5)
             self.assertTrue(all(m.endswith(',readonly') for m in mounts))
@@ -283,6 +288,112 @@ class LeanRuntimeTests(unittest.TestCase):
                 with self.subTest(image=image,name=name),self.assertRaises(ValueError):
                     runtime.docker_command(image=image,name=name,stage_dir=Path(tmp),submission=Path(tmp),
                         packages=Path(tmp),toolchain=Path(tmp),tools_dir=Path(tmp))
+
+
+class LeanWorkspaceTests(unittest.TestCase):
+    def create(self,root,max_checks=1):
+        task=root/'task';stage=root/'stage';prepared=root/'runtime'
+        task.mkdir();stage.mkdir();prepared.mkdir();(task/'agent').mkdir()
+        (task/'agent/prompt.json').write_text('{"question":"test prompt, no gold"}')
+        (task/'oracle').mkdir();(task/'oracle/gold.txt').write_text('must not enter agent view')
+        (task/'operator.json').write_text('{}');(prepared/'preparation.json').write_text('{}')
+        (stage/'stage.json').write_bytes(runtime.bench.encoded({'id':'sogb-001','binding_sha256':'binding'}))
+        output=root/'workspace'
+        with patch.object(workspace.sys,'platform','linux'),patch.object(workspace.shutil,'which',return_value='docker'),\
+             patch.object(runtime,'checked_packet',return_value=core()),patch.object(runtime,'check_runtime'):
+            workspace.start(task=task,stage=stage,prepared=prepared,output=output,
+                provenance={'kind':'controlled-software-fixture','name':'unexecuted unit fixture'},max_checks=max_checks)
+        return output
+
+    @staticmethod
+    def fake_verifier(**kwargs):
+        # Test only the recorder state machine, NOT Lean or native isolation.
+        output=kwargs['output'];output.mkdir()
+        result={'kind':'accepted','model_measurement':False}
+        workspace.write_new(output/'result.json',result)
+        (output/'compiler-diagnostic.bin').write_bytes(b'Unexecuted unit fixture; not real compiler feedback')
+        return result
+
+    def test_agent_view_never_copies_operator_or_oracle(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output=self.create(Path(tmp))
+            self.assertEqual([p.name for p in (output/'agent').iterdir()],['prompt.json'])
+            self.assertFalse((output/'oracle').exists())
+            manifest,events=workspace.history(output)
+            self.assertEqual(manifest['denominator'],1);self.assertEqual(events,[])
+
+    def test_check_acceptance_without_final_is_not_a_pass(self):
+        with tempfile.TemporaryDirectory() as tmp,patch.object(runtime,'run_submission',side_effect=self.fake_verifier):
+            output=self.create(Path(tmp))
+            feedback=workspace.act(output,{'action':'check','source':'not executed by unit test'})
+            self.assertEqual(feedback['kind'],'accepted');self.assertFalse(feedback['final'])
+            result=workspace.close(output)
+            self.assertEqual(result['final_outcome'],'no-final-submission')
+            self.assertEqual(result['denominator'],1);self.assertFalse(result['final_accepted'])
+
+    def test_bounded_tools_then_first_final_is_immutable(self):
+        with tempfile.TemporaryDirectory() as tmp,patch.object(runtime,'run_submission',side_effect=self.fake_verifier):
+            output=self.create(Path(tmp))
+            workspace.act(output,{'action':'check','source':'check source'})
+            with self.assertRaisesRegex(ValueError,'budget'):workspace.act(output,{'action':'check','source':'second check'})
+            workspace.act(output,{'action':'submit','source':'final source'})
+            for action in ('check','submit'):
+                with self.assertRaisesRegex(ValueError,'final'):workspace.act(output,{'action':action,'source':'replacement'})
+            result=workspace.close(output)
+            self.assertTrue(result['final_accepted']);self.assertEqual(result['check_calls'],1)
+            self.assertEqual(result['final_submissions'],1);self.assertFalse(result['model_measurement'])
+            with self.assertRaises(FileExistsError):workspace.close(output)
+
+    def test_invalid_final_stays_selected_and_is_not_executed(self):
+        for source,reason in [(None,'missing-or-nontext-source'),('x'*65537,'too-large'),('\ud800','invalid-utf8')]:
+            with self.subTest(reason=reason),tempfile.TemporaryDirectory() as tmp,\
+                 patch.object(runtime,'run_submission',side_effect=AssertionError('No execution of invalid source')):
+                output=self.create(Path(tmp));feedback=workspace.act(output,{'action':'submit','source':source})
+                self.assertEqual(feedback['kind'],'invalid-submission');self.assertEqual(feedback['reason'],reason)
+                result=workspace.close(output)
+                self.assertEqual(result['denominator'],1);self.assertEqual(result['final_outcome'],'invalid-submission')
+
+    def test_interrupted_final_cannot_be_silently_retried_or_counted_as_proof_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output=self.create(Path(tmp))
+            with patch.object(runtime,'run_submission',side_effect=RuntimeError('simulated operator interruption')):
+                with self.assertRaises(RuntimeError):workspace.act(output,{'action':'submit','source':'reserved final'})
+            with self.assertRaises(ValueError):workspace.act(output,{'action':'submit','source':'retry'})
+            result=workspace.close(output)
+            self.assertEqual(result['final_outcome'],'infrastructure-error');self.assertTrue(result['interrupted'])
+            self.assertEqual(result['denominator'],1)
+
+    def test_sequential_lock_rejects_concurrent_call_without_removing_foreign_lock(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output=self.create(Path(tmp));lock=output/'operation.lock';lock.write_bytes(b'existing owner')
+            with self.assertRaises(FileExistsError):workspace.act(output,{'action':'submit','source':'unused'})
+            self.assertEqual(lock.read_bytes(),b'existing owner')
+
+    def test_fixed_protocol_rejects_command_target_and_path_overrides(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output=self.create(Path(tmp))
+            for request in [{'action':'shell','source':'do not run'},
+                    {'action':'check','source':'unused','command':'do not run'},
+                    {'action':'submit','source':'unused','task':'other-task'},
+                    {'action':'submit','path':'C:/not-an-agent-file'}]:
+                with self.subTest(request=request),self.assertRaises(ValueError):workspace.act(output,request)
+            self.assertEqual(workspace.history(output)[1],[])
+
+    def test_request_envelope_is_bounded_and_duplicate_keys_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source=Path(tmp)/'request.json'
+            source.write_bytes(b'{"action":"check","action":"submit"}')
+            with self.assertRaisesRegex(ValueError,'Duplicate'):workspace.read_request(source)
+            source.write_bytes(b'x'*(workspace.REQUEST_BYTES+1))
+            with self.assertRaisesRegex(ValueError,'too-large'):workspace.read_request(source)
+
+    def test_source_and_result_drift_are_detected(self):
+        for changed in ('source.txt','verification/result.json'):
+            with self.subTest(changed=changed),tempfile.TemporaryDirectory() as tmp,\
+                 patch.object(runtime,'run_submission',side_effect=self.fake_verifier):
+                output=self.create(Path(tmp));workspace.act(output,{'action':'submit','source':'recorded source'})
+                (output/'actions/0001'/changed).write_text('changed')
+                with self.assertRaises(ValueError):workspace.history(output)
 
 
 if __name__=='__main__':unittest.main()

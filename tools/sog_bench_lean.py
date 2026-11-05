@@ -28,6 +28,8 @@ RUNTIME_TOOLS = {'comparator','lean4export','landrun','container.py','landrun-en
                  'policy.json','bench_bounded_io.py'}
 EXIT_CODES = {'accepted':0, 'proof-rejected':10, 'infrastructure-error':20,
               'resource-limit':30, 'invalid-submission':40}
+PROXY_VARIABLES = ('HTTP_PROXY','HTTPS_PROXY','FTP_PROXY','ALL_PROXY','NO_PROXY',
+                   'http_proxy','https_proxy','ftp_proxy','all_proxy','no_proxy')
 
 
 def policy() -> dict:
@@ -233,6 +235,9 @@ def docker_command(*, image: str, name: str, stage_dir: Path, submission: Path,
         '--ulimit','nofile=256:256','--ulimit','core=0:0',
         '--tmpfs','/work:rw,nosuid,nodev,size='+str(limits['scratch_mb'])+'m,uid=1000,gid=1000',
         '--tmpfs','/tmp:rw,noexec,nosuid,nodev,size=64m,uid=1000,gid=1000']
+    # Docker CLI may inject configured proxy credentials automatically. Network
+    # isolation does NOT make those strings safe to expose to submitted #eval.
+    for variable in PROXY_VARIABLES:argv.extend(['--env',variable+'='])
     for source,dest in ((stage_dir,'/task'),(submission,'/input/Solution.lean'),
                         (packages,'/deps/packages'),(toolchain,'/opt/lean'),(tools_dir,'/opt/judge')):
         source=source.resolve(strict=True)
@@ -278,7 +283,7 @@ def classify(returncode: int, native, state, interruption, phase=None) -> str:
         return 'resource-limit' if phase=='verifying-solution' else 'infrastructure-error'
     if not isinstance(native,dict) or native.get('kind')!='fixed-target-comparator':
         return 'infrastructure-error'
-    if returncode==30 and native.get('diagnostic_limit') is True:
+    if returncode==30 and state.get('ExitCode')==30 and native.get('diagnostic_limit') is True:
         return 'resource-limit'
     comparator_exit=native.get('comparator_exit')
     if type(comparator_exit) is not int or state.get('ExitCode')!=returncode:

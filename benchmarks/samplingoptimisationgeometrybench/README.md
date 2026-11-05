@@ -119,6 +119,11 @@ The portable JSON package is not a native harness. The optional
 separate verifier and operator download. It does not execute submitted Lean or
 certify paid-agent performance; inspect its actual CI evidence and limitations.
 
+The experimental [fixed-target Lean runtime](lean-runtime/README.md) has actual
+reference/negative-check evidence and a bounded [compiler tool](lean-runtime/WORKSPACE.md).
+Hostile native acceptance, independent runtime review and authenticated model
+evaluation are separate gates; the website's executor status remains pending.
+
 From the repository root, with Python 3.11+:
 
 ```bash

@@ -29,12 +29,16 @@ def preflight(p):
         'memory_max':Path('/sys/fs/cgroup/memory.max').read_text().strip(),
         'pids_max':Path('/sys/fs/cgroup/pids.max').read_text().strip(),
         'cpu_max':Path('/sys/fs/cgroup/cpu.max').read_text().strip(),
+        'proxy_variables_blank':all(not os.getenv(name) for name in (
+            'HTTP_PROXY','HTTPS_PROXY','FTP_PROXY','ALL_PROXY','NO_PROXY',
+            'http_proxy','https_proxy','ftp_proxy','all_proxy','no_proxy')),
         'root_read_only':bool(os.statvfs('/').f_flag & os.ST_RDONLY)}
     limits=p['limits']
     quota,period=observations['cpu_max'].split()
     if not (observations['uid']==observations['gid']==1000 and abi>=p['minimum_landlock_abi']
             and observations['no_new_privs']=='1' and int(observations['cap_eff'],16)==0
             and observations['interfaces']==['lo'] and observations['root_read_only']
+            and observations['proxy_variables_blank']
             and int(observations['memory_max'])==limits['memory_mb']*1024*1024
             and int(observations['pids_max'])==limits['pids']
             and quota!='max' and int(quota)==limits['cpus']*int(period)):

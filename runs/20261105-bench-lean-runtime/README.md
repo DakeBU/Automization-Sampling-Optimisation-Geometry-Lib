@@ -156,3 +156,44 @@ actual markers and expected causes. Invalid inputs now receive bounded evidence
 without a container rather than disappearing as uncaught exceptions. Agent tool
 trajectories, first-final accounting, independent runtime review and actual-model
 provenance/calibration/private-family work remain separate required steps.
+
+## Compiler-tool workspace patch (native replay still pending)
+
+The next local packet adds tools/sog_bench_lean_workspace.py and WORKSPACE.md.
+It is a finite vendor-neutral JSON tool, not a general shell, online service or
+provider runner. A session freezes one actual admitted task, trusted runtime,
+operator-declared provenance,0–8 checks (default4) and exactly one first final.
+Only canonical agent/ is copied to the agent view. The operator directory is
+private; unrestricted agent access to that directory would defeat the boundary.
+The event is reserved before execution, with source/result/observation hashes.
+No final after a successful check still means no-final-submission; missing,
+invalid and interrupted finals retain the selected denominator1. Interrupted
+runtime calls remain infrastructure failures, never mathematical rejections.
+Locking prevents a concurrent/repeated second final. There are no model calls,
+scores or authenticated provider-provenance claims.
+
+The proposed native extension replays wrong-target feedback then a correct
+reference final, rejects a second final, and separately tests accepted-check/no-
+final and invalid-final accounting. It must actually run; local recorder mocks
+are explicitly not compiler/isolation evidence. The local expanded suite passed
+151 tests (149 pass,2 POSIX-specific skips) and root Tests passed9611 jobs.
+ASTIS check, Python syntax and diff checks also pass. ATLAS's existing gate is
+an integrity check only; no restricted source/index/derivative entered Bench data.
+No new mathematical core or production declaration.
+
+The patch also blanks all ten proxy variables before Docker's automatic CLI
+proxy injection can expose configured URLs/credentials; native preflight records
+only a boolean, never values. This source change needs its own exact-head native
+acceptance. Output-limit classification now also requires the matching actual
+container exit30. Negative fixtures require the specific illegal-axiom diagnostic,
+not just the occurrence of an axiom's name in any compiler error.
+
+At this checkpoint head ebfe3c146ea4a3c869003ffc675fa1e36f99a051 is already pushed;
+its native05 run42016774565/job127209148548 is still executing reference/negative
+trials. Do not push this next packet merely to cancel that expensive evidence run.
+Inspect its terminal result/raw hostile evidence first, retain any failure and
+diagnose, then push the workspace packet for its own full acceptance. Main still
+692973fc; PR379 is draft and explicitly updated with real native04 evidence and
+the still-pending native05 scope. Website remains executor pending. Required
+independent runtime review, actual model trajectories, calibration/private-family
+and mathematical exercise/depth work remain open; the continuing Goal is active.

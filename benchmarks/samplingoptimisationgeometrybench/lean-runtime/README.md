@@ -45,6 +45,12 @@ There is no host home, Docker socket, repository `.git`, credential or writable
 checkout mount. The initial image uses a pinned Ubuntu base; resolved apt packages
 and image identity remain build-environment inputs, not a bit-reproducible image
 claim. The task's own target module is excluded from its ASTIS ancestor snapshot.
+All ten proxy environment variables are explicitly blanked, with a value-free
+preflight observation. Docker can otherwise inject configured proxy URLs (which
+can contain credentials) into containers; network-none alone does not hide these
+strings. See [Docker's own proxy warning](https://docs.docker.com/engine/cli/proxy/).
+The operator must provide public-only, trusted dependency/build caches; this is
+not a sanitizer for arbitrary private files in a locally modified package tree.
 
 `tools/sog_bench_lean.py export` prepares operator packets. `stage` snapshots one
 task's allowed owned ancestors. `run` verifies one bounded regular-file submission
@@ -97,9 +103,14 @@ A parser error cannot pass an I/O probe: its markers and the original reference
 proof must both succeed. Negative-proof fixtures must show the expected semantic
 or illegal-axiom reason, not just any failure.
 
+The finite [compiler workspace](WORKSPACE.md) exposes only bounded JSON `check`
+and one immutable `submit`, preserving diagnostics and first-final accounting.
+Its dedicated native replays are controlled software, not model results. A
+successful check without final does not pass the selected task.
+
 Still required: successful hostile filesystem/network/resource fixtures and
-independent runtime review; a tested agent-facing compiler workspace
-or native harness adapter with recorded trajectories; real declared model runs;
+independent runtime review; accepted native compiler-workspace replays and real
+authenticated provider/tool trajectories; real declared model runs;
 calibration/private families; broader seven-domain/textbook-exercise coverage.
 The old archived comparator pin also requires explicit future security maintenance,
 not an implicit guarantee against all OS/kernel/compiler exploits. Keep complete

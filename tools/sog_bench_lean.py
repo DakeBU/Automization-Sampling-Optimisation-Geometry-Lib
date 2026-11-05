@@ -34,7 +34,8 @@ PROXY_VARIABLES = ('HTTP_PROXY','HTTPS_PROXY','FTP_PROXY','ALL_PROXY','NO_PROXY'
 
 def policy() -> dict:
     value = json.loads((RUNTIME/'policy.json').read_text(encoding='utf-8'))
-    if value['schema_version'] != 2 or value['lean_toolchain'] != (ROOT/'lean-toolchain').read_text().strip():
+    if (value['schema_version'] != 3 or value.get('solution_precheck') != 'readonly-streaming'
+            or value['lean_toolchain'] != (ROOT/'lean-toolchain').read_text().strip()):
         raise ValueError('Runtime requires the unchanged project toolchain')
     manifest = json.loads((ROOT/'lake-manifest.json').read_text())
     mathlib = next(p for p in manifest['packages'] if p['name']=='mathlib')
@@ -271,7 +272,7 @@ def parse_control(raw: bytes, *, diagnostic_chunks: list[bytes] | None = None) -
             except (ValueError,KeyError,TypeError):malformed=True
         elif result is None:result=value
         else:malformed=True
-    if result and result.get('kind')=='fixed-target-comparator' and phase!='verifying-solution':malformed=True
+    if result and result.get('kind') in ('fixed-target-comparator','fixed-target-lean-precheck') and phase!='verifying-solution':malformed=True
     return (None if malformed else result),phase
 
 
@@ -281,7 +282,17 @@ def classify(returncode: int, native, state, interruption, phase=None) -> str:
         return 'infrastructure-error'
     if state.get('OOMKilled') is True or interruption:
         return 'resource-limit' if phase=='verifying-solution' else 'infrastructure-error'
-    if not isinstance(native,dict) or native.get('kind')!='fixed-target-comparator':
+    if not isinstance(native,dict) or state.get('ExitCode')!=returncode:
+        return 'infrastructure-error'
+    if native.get('kind')=='fixed-target-lean-precheck':
+        code=native.get('compiler_exit')
+        if (phase!='verifying-solution' or type(code) is not int
+                or native.get('comparator_not_run') is not True or native.get('accepted') is not False):
+            return 'infrastructure-error'
+        if returncode==30 and native.get('diagnostic_limit') is True:return 'resource-limit'
+        if returncode==10 and code!=0 and native.get('diagnostic_limit') is False:return 'proof-rejected'
+        return 'infrastructure-error'  # a precheck can NEVER certify acceptance
+    if native.get('kind')!='fixed-target-comparator' or type(native.get('source_precheck_exit')) is not int or native['source_precheck_exit']!=0:
         return 'infrastructure-error'
     if returncode==30 and state.get('ExitCode')==30 and native.get('diagnostic_limit') is True:
         return 'resource-limit'

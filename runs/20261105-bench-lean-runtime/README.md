@@ -244,3 +244,40 @@ The local34-test tool suite passes32 with2 POSIX-specific skips; the earlier ful
 151-test/root9611/ASTIS successes remain separately scoped. Syntax/diff pass.
 New source must receive its own native checks, independent runtime review and
 future authenticated provider acceptance before public readiness.
+
+## Native06: Lake buffering, not a missing stdout flush
+
+Head8a852fac52974281d806066a684db4d2ebe99c10, run42021419637/job127224850213
+is terminal failed. All13 targets/five negatives and actual I/O denials pass,
+including the supervisor's /proc/1/fd/1. The wall limit kills at180.489s with
+container exit137 and OOMKilled=false, but its start marker is absent. Flood,
+five invalid-input cases and workspace replays are **unrun**, not passed.
+
+Artifact13414060897 ZIP SHA256
+ae9a8a79dad35e254a1d7245722099dfb3dd65c605cc2e8020026cefa702f115
+was checked against the actual upload log. native-06 preserves all92 raw members
+byte-for-byte, including diagnostic/transport bytes and submitted texts as DATA.
+archive-binding.json pins every member. archive_native.py performs a bounded
+fresh-destination extraction; never host-execute those submitted/hostile texts.
+
+The second observation layer is now read directly in pinned Lean4.33:
+Lake/Build/Actions.lean compileLeanModule uses rawProc; Lake/Util/Proc.lean rawProc
+uses IO.Process.output, which buffers the whole output. Lake/CLI/Actions.lean env
+uses IO.Process.spawn with inherited stdout. Changing a child's /dev/stdout cannot
+bypass lake build's outer buffering. Do not repeat native05/06's unchanged route.
+
+The next schema3 candidate runs a **readonly direct-Lean rejection pass** through
+lake env and real Landrun before the mandatory unchanged official comparator.
+No artifact is written. No project/cache path is writable, since this earlier
+execution must not mutate comparator's as-yet-unexported trusted challenge.
+The whole-call180-second, aggregate256KiB diagnostics,2MiB transport and all
+container limits remain unchanged. Precheck success never accepts; it only
+permits the actual comparator's semantic/axiom/kernel check to run. A specific
+new native cache-write denial fixture must stop in precheck with its actual
+exception marker. The old wall/output markers are still mandatory.
+
+Local36 runtime tests pass34 with2 POSIX-only skips. These test literal argv,
+no writable precheck cache, precheck-never-accepts, mandatory later comparator,
+framed phases and unchanged limits; they do not execute submitted Lean or prove
+native acceptance/security. New native trials and independent runtime review
+remain required. Public executor labels and model_measurement stay pending/false.

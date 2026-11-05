@@ -182,10 +182,18 @@ def hostile_sources(oracle: str) -> dict[str, tuple[str, str, list[str]]]:
   IO.println "SOG_CONNECT_DENIED"
   : IO Unit)
 '''
-    # #eval isolates IO.getStdout into a memory buffer until the action
-    # completes (Lean4.33 BuiltinEvalCommand/IO.withIsolatedStreams). Use the
-    # child's own OS stdout so the supervisor can observe the marker/flood
-    # BEFORE timeout, without permitting a write to the supervisor's fd.
+    cache_write='''#eval (do
+  let denied ← try
+    IO.FS.writeFile "/work/project/.lake/build/lib/lean/Challenge.olean" "MUST NOT MODIFY BASELINE"
+    pure false
+  catch _ => pure true
+  if denied then throw (IO.userError "SOG_PRECHECK_CACHE_DENIED")
+  : IO Unit)
+'''
+    # #eval AND lake build buffer output. The readonly direct-Lean precheck
+    # (lake env, inherited stdout) streams the child's own OS handle, before
+    # comparator's independently required semantic/axiom/kernel verification.
+    # Keep BOTH markers, the same limits, and supervisor-fd denial probes.
     wall='''#eval (do
   let out ← IO.FS.Handle.mk "/dev/stdout" .write
   out.putStrLn "SOG_WALL_PROBE_STARTED"
@@ -207,6 +215,8 @@ def hostile_sources(oracle: str) -> dict[str, tuple[str, str, list[str]]]:
             'SOG_DENIED_WRITE:/opt/judge/policy.json','SOG_DENIED_WRITE:/proc/1/fd/1']),
         'denied-network':(inject(network,'import Std.Internal.UV.TCP\n'),'accepted',
             ['SOG_CONNECT_ATTEMPT','SOG_CONNECT_DENIED']),
+        'denied-precheck-cache-write':(inject(cache_write),'proof-rejected',
+            ['SOG_PRECHECK_CACHE_DENIED']),
         'wall-limit':(inject(wall),'resource-limit',['SOG_WALL_PROBE_STARTED']),
         'diagnostic-limit':(inject(flood),'resource-limit',['SOG_OUTPUT_PROBE_STARTED']),
     }
@@ -230,6 +240,9 @@ def hostile_trials(root: Path):
         passed=report['kind']==expected and all(marker in text for marker in markers)
         if label=='wall-limit':passed=passed and report['interruption']=='wall-time-limit'
         if label=='diagnostic-limit':passed=passed and report.get('native',{}).get('diagnostic_limit') is True
+        if label=='denied-precheck-cache-write':
+            passed=passed and report.get('native',{}).get('kind')=='fixed-target-lean-precheck'
+            passed=passed and report['native'].get('comparator_not_run') is True
         passed=passed and len(diagnostic)<=runtime.policy()['limits']['diagnostic_bytes']
         passed=passed and (output/label/'runtime-output.bin').stat().st_size<=runtime.policy()['limits']['transport_bytes']
         results.append({'fixture':label,'expected':expected,'actual':report['kind'],
@@ -251,8 +264,8 @@ def hostile_trials(root: Path):
             results.append({'fixture':'invalid-'+reason,'expected':'invalid-submission',
                 'actual':report['kind'],'passed':passed})
     summary={'schema_version':1,'kind':'hostile-software-fixtures','model_measurement':False,
-        'results':results,'passed':len(results)==9 and all(r['passed'] for r in results),
-        'scope':'Actual denied trusted writes/external connect, wall/output caps and bounded invalid input; not exhaustive OS/kernel/compiler security review.'}
+        'results':results,'passed':len(results)==10 and all(r['passed'] for r in results),
+        'scope':'Actual denied trusted and precheck-cache writes/external connect, wall/output caps and bounded invalid input; not exhaustive OS/kernel/compiler security review.'}
     (root/'hostile-trials.json').write_bytes(runtime.bench.encoded(summary));print(json.dumps(summary),flush=True)
     if not summary['passed']:raise SystemExit(1)
 

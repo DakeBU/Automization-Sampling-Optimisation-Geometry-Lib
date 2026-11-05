@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import ast
 import base64
 import io
 from contextlib import redirect_stdout
@@ -172,7 +173,7 @@ class LeanRuntimeTests(unittest.TestCase):
     def test_hostile_sources_are_only_data_and_expect_real_markers_and_reasons(self):
         with patch.object(runtime.subprocess,'run',side_effect=AssertionError('Never run hostile fixture here')):
             sources=native.hostile_sources('theorem sogBenchTarget : True := by trivial\n')
-        self.assertEqual(len(sources),4)
+        self.assertEqual(len(sources),5)
         self.assertIn('Std.Internal.UV.TCP',sources['denied-network'][0])
         self.assertIn('socket.connect',sources['denied-network'][0])
         self.assertEqual(sources['denied-trusted-write'][1],'accepted')
@@ -182,16 +183,57 @@ class LeanRuntimeTests(unittest.TestCase):
             self.assertIn('IO.FS.Handle.mk "/dev/stdout" .write',sources[label][0])
             self.assertNotIn('IO.getStdout',sources[label][0])
         self.assertIn('/proc/1/fd/1',sources['denied-trusted-write'][0])
+        self.assertIn('/work/project/.lake/build/lib/lean/Challenge.olean',sources['denied-precheck-cache-write'][0])
+        self.assertEqual(sources['denied-precheck-cache-write'][1],'proof-rejected')
+        self.assertEqual(sources['denied-precheck-cache-write'][2],['SOG_PRECHECK_CACHE_DENIED'])
+
+    def test_streaming_precheck_cannot_write_project_or_skip_real_comparator(self):
+        # Inspect only a literal trusted argv. Never evaluate submitted Lean, or
+        # import the Linux-only supervisor/resource module on the Windows host.
+        source=(runtime.RUNTIME/'container.py').read_text()
+        tree=ast.parse(source)
+        function=next(n for n in tree.body if isinstance(n,ast.FunctionDef)
+                      and n.name=='readonly_precheck_command')
+        argv=ast.literal_eval(function.body[-1].value)
+        self.assertEqual(argv[:3],['lake','env','/opt/judge/landrun-env'])
+        self.assertEqual(argv[-3:],['--','/opt/lean/bin/lean','Solution.lean'])
+        self.assertEqual([argv[i+1] for i,a in enumerate(argv) if a=='--rw'],['/dev'])
+        self.assertNotIn('--rwx',argv)
+        self.assertNotIn('-o',argv)
+        self.assertIn('--env',argv)
+        self.assertIn('LEAN_PATH',argv)
+        self.assertLess(source.index('capture(readonly_precheck_command()'),
+                        source.index("capture(['lake','env','/opt/judge/comparator'"))
+        self.assertEqual(runtime.policy()['solution_precheck'],'readonly-streaming')
+
+    def test_precheck_rejects_but_can_never_certify_acceptance(self):
+        state={'StartedAt':'2026-11-05T00:00:00Z','ExitCode':10,'OOMKilled':False}
+        value={'kind':'fixed-target-lean-precheck','accepted':False,'compiler_exit':1,
+               'diagnostic_limit':False,'comparator_not_run':True}
+        self.assertEqual(runtime.classify(10,value,state,None,'verifying-solution'),'proof-rejected')
+        self.assertEqual(runtime.classify(30,{**value,'diagnostic_limit':True},
+            {**state,'ExitCode':30},None,'verifying-solution'),'resource-limit')
+        for changed in ({'accepted':True}, {'comparator_not_run':False},
+                        {'compiler_exit':0},{'compiler_exit':True}):
+            with self.subTest(changed=changed):
+                self.assertEqual(runtime.classify(10,{**value,**changed},state,None,'verifying-solution'),
+                                 'infrastructure-error')
+        self.assertEqual(runtime.classify(0,{**value,'compiler_exit':0},
+            {**state,'ExitCode':0},None,'verifying-solution'),'infrastructure-error')
+        self.assertEqual(runtime.classify(10,value,state,None,'challenge-preflight'),'infrastructure-error')
 
     def test_verdict_requires_consistent_exit_and_started_container_evidence(self):
         state={'StartedAt':'2026-11-05T00:00:00Z','ExitCode':0,'OOMKilled':False}
-        native={'kind':'fixed-target-comparator','accepted':True,'comparator_exit':0}
+        native={'kind':'fixed-target-comparator','accepted':True,'comparator_exit':0,'source_precheck_exit':0}
         self.assertEqual(runtime.classify(0,native,state,None),'accepted')
         self.assertEqual(runtime.classify(10,{**native,'accepted':False,'comparator_exit':1},
             {**state,'ExitCode':10},None),'proof-rejected')
         for code,value,observed,reason in [
             (0,native,None,None),(0,native,{**state,'StartedAt':'0001-01-01T00:00:00Z'},None),
             (0,{'accepted':True},state,None),(0,{**native,'comparator_exit':1},state,None),
+            (0,{**native,'source_precheck_exit':None},state,None),
+            (0,{**native,'source_precheck_exit':True},state,None),
+            (0,{**native,'source_precheck_exit':1},state,None),
             (10,{},state,None),(10,{**native,'comparator_exit':None},state,None)]:
             with self.subTest(code=code,value=value):
                 self.assertEqual(runtime.classify(code,value,observed,reason),'infrastructure-error')

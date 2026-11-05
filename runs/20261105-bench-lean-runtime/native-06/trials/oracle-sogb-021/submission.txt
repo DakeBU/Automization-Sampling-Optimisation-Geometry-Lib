@@ -1,0 +1,25 @@
+/- SamplingOptimisationGeometryBench public-dev reference.
+   Reuses the existing project proof; retain LICENSE and NOTICE. -/
+import AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalResampling
+import Mathlib.Probability.Kernel.Invariance
+
+open MeasureTheory ProbabilityTheory
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath
+noncomputable def heatBathSnd {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    [StandardBorelSpace β] [Nonempty β] (μ : Measure (α × β)) [IsFiniteMeasure μ] :
+    Kernel (α × β) (α × β) :=
+  (Kernel.id ×ₖ condDistrib Prod.snd Prod.fst μ) ∘ₖ
+    Kernel.deterministic Prod.fst measurable_fst
+end AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath
+open AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath
+open AutoSamplingTheory.TechnicalLemmas.Probability
+variable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+  [StandardBorelSpace β] [Nonempty β]
+
+theorem sogBenchTarget (μ : Measure (α × β)) [IsFiniteMeasure μ] :
+    (heatBathSnd μ).Invariant μ := by
+  change ((Kernel.id ×ₖ condDistrib Prod.snd Prod.fst μ) ∘ₖ
+    Kernel.deterministic Prod.fst measurable_fst) ∘ₘ μ = μ
+  rw [← Measure.comp_assoc, Measure.deterministic_comp_eq_map,
+    ← Measure.compProd_eq_comp_prod]
+  exact ConditionalResampling.fst_compProd_condDistrib_snd_eq_self

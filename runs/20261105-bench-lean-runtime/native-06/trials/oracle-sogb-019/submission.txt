@@ -1,0 +1,33 @@
+/- SamplingOptimisationGeometryBench public-dev reference.
+   Reuses the existing project proof; retain LICENSE and NOTICE. -/
+import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient
+import Mathlib.Topology.MetricSpace.Lipschitz
+import Mathlib.Data.Finset.Max
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Positivity
+import Mathlib.Tactic.Ring
+
+/- Copyright (c) 2024 Hongjia Chen, Chenyi Li, Wanyi He, Zaiwen Wen.
+Released under Apache 2.0; retain LICENSE and NOTICE.
+Upstream Optlib 5da27c5f95aa6a8a45b8c14b968ade4c13ff18c3,
+Optlib/Algorithm/SubgradientMethod.lean:80–118,137–232.
+Modified for Samplinglib: native Lean 4.33.0, global SupportsAt and unbundled inputs. -/
+open AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient
+open scoped NNReal RealInnerProductSpace
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+theorem sogBenchTarget {f : E → ℝ} {G : ℝ≥0} {x g : E}
+    (hf : LipschitzWith G f) (hs : SupportsAt f x g) : ‖g‖ ≤ (G : ℝ) := by
+  have hs' := hs (x + g)
+  change f x + inner ℝ g (x + g - x) ≤ f (x + g) at hs'
+  rw [add_sub_cancel_left, real_inner_self_eq_norm_sq] at hs'
+  have hl : f (x + g) - f x ≤ (G : ℝ) * ‖g‖ := by
+    calc
+      f (x + g) - f x ≤ |f (x + g) - f x| := le_abs_self _
+      _ ≤ (G : ℝ) * ‖g‖ := by
+        simpa [Real.dist_eq, dist_eq_norm] using hf.dist_le_mul (x + g) x
+  by_cases hg : ‖g‖ = 0
+  · simp [hg]
+  · have hp : 0 < ‖g‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm hg)
+    nlinarith

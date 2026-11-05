@@ -69,9 +69,35 @@ verification; setup failures and setup-time limits are not mathematical rejectio
 Child output is escaped diagnostic data, never a control record. Each result pins
 the exact task packet and prepared-runtime receipt; changed tools/source fail closed.
 The complete seven-file tool inventory is checked, and verification/preparation
-source hashes are recorded separately. Policy schema2 distinguishes the unchanged
+source hashes are recorded separately. Policy schema3 distinguishes the unchanged
 256KiB raw diagnostic cap from the 2MiB framed transport cap. Base64 diagnostic
 frames are data, never verdicts; bounded compiler output survives a later timeout.
+
+### Streaming rejection pass, not an alternative acceptance check
+
+Pinned Lake4.33 builds a module through rawProc/IO.Process.output, buffering the
+compiler's output until exit. Native06 proved that even the child's OS stdout
+therefore does not expose a pre-timeout marker through lake build. It also means
+an outer diagnostic reader cannot observe a flood while Lake is accumulating it.
+
+The candidate schema3 driver first runs the actual fixed Solution.lean through
+`lake env` and real Landrun directly, with inherited stdout and **no output
+artifact or writable project/cache path**. Only the child's own /dev I/O is
+writable. This supports self-contained proof elaboration under the pinned imports,
+not proof scripts that need filesystem mutation. It shares the SAME180-second
+whole-call wall budget and256KiB aggregate diagnostic cap with later verification.
+The extra pass may reject or hit a resource limit; it can NEVER accept. A fresh
+successful precheck still requires the unchanged pinned official comparator's
+challenge/solution definition and type comparison, axiom audit and kernel replay.
+No patched Lean, comparator, extra permitted axiom or new mathematical task.
+
+The precheck precedes comparator's challenge export, so making .lake writable
+there would let submitted code corrupt the trusted baseline. The readonly policy
+is deliberate. Native acceptance now also requires an actual denied write to
+Challenge.olean with a specific precheck exception marker and proof that comparator
+was not run. This is tested independently of the accepted real I/O-denial probes.
+The wall/output markers remain mandatory, not waived. Until new native evidence
+passes, this remains a proposed fix, not verified output-cap/Agentic Lean readiness.
 
 Readonly public caches must also be readable by the container UID. Preparation
 checks the pinned package checkouts and copies only manifest-listed packages.
@@ -109,6 +135,14 @@ hostile gate **failed**. The raw failure is retained; output and invalid-input
 native cases were unrun. The next probe uses its own OS stdout, not #eval's
 buffer, with the same limits and additional supervisor-fd protection testing.
 Do not mistake this diagnosis/local patch for fresh native acceptance.
+
+Native06/head8a852fac also failed: all13+5 and real I/O denial pass, including
+supervisor-fd denial, but wall180.489s kills with exit137/non-OOM and no marker.
+Raw92-file evidence and exact archive binding are retained in native-06. Flood,
+invalid-file and workspace replays were unrun. The next candidate uses the real
+readonly streaming pass above, rather than another stdout variant. Limits and
+mandatory marker checks are unchanged; additional local tests are not native
+isolation evidence.
 
 The finite [compiler workspace](WORKSPACE.md) exposes only bounded JSON `check`
 and one immutable `submit`, preserving diagnostics and first-final accounting.

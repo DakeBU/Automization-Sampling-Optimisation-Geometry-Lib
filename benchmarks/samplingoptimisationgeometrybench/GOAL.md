@@ -172,3 +172,15 @@ selection accounting. All need new native acceptance; independent runtime review
 authenticated model runs, calibration/private families and exercise/depth work
 remain required. Do not convert software fixture acceptance into model scores,
 security certification, new Registry leaves or whole-Goal completion.
+
+Native06/head8a852fac is terminal failed too; preserve its exact92-file archive.
+The wall kill works but Lake's IO.Process.output buffers even child OS stdout.
+Do not repeat the same observation route or waive the marker/output tests.
+The schema3 candidate adds actual readonly direct-Lean elaboration through
+lake env + real Landrun before the unchanged official comparator. No writable
+project/cache, no artifact output, no new acceptance path: precheck only rejects
+or permits mandatory semantic/axiom/kernel verification. The same whole-call
+180-second and aggregate diagnostic limits apply; native cache-write denial,
+wall/flood, invalid-input and workspace replays must really pass. Local contract
+tests are not that acceptance or a model measurement. The public executor stays
+pending until its declared native and independent-review scope is accepted.

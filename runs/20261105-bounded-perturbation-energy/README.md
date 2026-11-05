@@ -115,3 +115,49 @@ preserve its frozen code/lesson/binding, sync fresh main, then perform the norma
 root/Registry/reader/graph and clean exact-head gates. Do not restart the proof or
 relabel its private preview as public delivery. Derive counts from current main;
 the broader LSI/PI exercise and new QA admission remain separate.
+
+## Serialized integration candidate (2026-11-05)
+
+The coordinator claimed this existing VERIFIED advance's sole STABILIZING lane
+against main387ae4e5. The frozen theorem, focused test, authored six-step proof
+and binding5926182c are unchanged. The calculus umbrella, explicit Registry
+entry and root test import now include exactly one substantive public leaf;
+the derived local candidate census is596, not a new exercise or QA count.
+Focused calculus/Registry/test4094, root Tests9611, ASTIS check, semantic registry,
+Cell protocol and reviewed exact-target publication admission pass. Bench
+consistency still reports29 cores,42 mathematical views and7 graph tasks.
+The18 focused graph/experience unit tests, Python/JavaScript syntax checks and
+git diff whitespace check pass.
+
+The canonical private site builds; the whole-site inventory/link check passes.
+The actual energy branch passes graph-check and desktop/mobile formula-proof,
+folded-source/highlight/copy and graph-focus checks. The Bench browser gate
+checks all29 mathematical cores with external networking blocked. Cross-domain
+browser acceptance also checks the selected result's actual mobile screen font,
+compact local viewport, opaque context cards and an unobscured centre hit-test.
+The statement, measurability proof and final desktop/mobile graph screenshots
+were actually inspected. Evidence is in ignored .astis/sog-bench/energy-integration-*
+logs and _browser-evidence/energy-final, energy-cross-domain and
+sog-bench-energy-integration. No screenshot is an independent mathematical audit.
+
+Presentation-only graph fixes remove the empty tall canvas for small slices,
+frame deep-linked results at readable scale, preserve explicit Fit/pan/zoom,
+recompute the SVG viewport on resize and use compact typography for exact IDs.
+The initially misleading mobile screenshot caught the existing drawer mid-
+transition and retained desktop scrolling: the final test waits for closure,
+reframes the actual mobile canvas and hit-tests it. No persistent shell bug or
+new dependency topology is claimed. No source theorem or reviewed TeX changed.
+The standards are recorded in the existing Bench ECOSYSTEM.md, not a parallel
+status catalog.
+
+Full local diff-aware publication and contributor checks honestly fail on the
+untouched, unrelated untracked KernelReversibilityTransport draft's missing
+publication binding. Its two source/test SHA256 values remain BF79413B... and
+72480FF8..., respectively; it and the user's three old blind reports are not
+staged. This packet's scoped reviewed admission passes. Clean committed-snapshot
+CI is mandatory, not bypassed or inferred from that scoped result.
+
+This is a local stabilization candidate, not a merge/deployment, postmerge
+purification, Exposition Seal, source-test LSI application or complete Exercise1.7.
+The generic cutoff reuse discovery remains the next domain route; genuine source
+energy production, LSI admissibility, uncentering and PI closure are still open.

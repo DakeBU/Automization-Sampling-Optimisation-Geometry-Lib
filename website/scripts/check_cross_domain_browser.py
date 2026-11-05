@@ -146,13 +146,37 @@ def main() -> None:
                 assert not page.locator('[data-graph-detail] h2').evaluate('(n) => n.scrollWidth > n.clientWidth + 1')
                 assert page.locator('.ulg-node .label').evaluate_all(
                     '(labels) => labels.every(n => n.getBBox().x + n.getBBox().width <= Number(n.parentNode.querySelector("rect").getAttribute("width")))')
+                # A small search slice must not inherit the 720px atlas canvas.
+                world_height = page.locator('[data-graph-svg]').get_attribute('data-world-height')
+                if world_height is not None and float(world_height) <= 400:
+                    assert page.locator('[data-graph-svg]').bounding_box()['height'] <= 400
+                assert page.locator('.ulg-canvas[data-local="true"] .ulg-node.muted').evaluate_all(
+                    '(nodes) => nodes.every(n => Number(getComputedStyle(n).opacity) === 1)')
                 page.locator('[data-graph-canvas]').scroll_into_view_if_needed()
                 page.screenshot(path=str(evidence/'contribution-graph.png'))
                 page.set_viewport_size({'width':412,'height':915})
+                page.wait_for_function('''() => {
+                    const svg=document.querySelector('[data-graph-svg]');
+                    const node=svg?.querySelector('.ulg-node.selected');
+                    if (!node || Math.abs(svg.viewBox.baseVal.width-svg.clientWidth)>1) return false;
+                    const label=node.querySelector('.label');
+                    return parseFloat(getComputedStyle(label).fontSize)*label.getScreenCTM().a >= 11.9;
+                }''')
+                # Wait for the existing drawer transition, then frame the graph
+                # again: desktop scroll offsets do not frame the mobile layout.
+                page.wait_for_function("document.querySelector('#site-sidebar').getBoundingClientRect().right <= 1")
+                page.locator('[data-graph-canvas]').scroll_into_view_if_needed()
+                assert page.locator('.ulg-node.selected').evaluate('''node => {
+                    const r=node.querySelector('rect').getBoundingClientRect();
+                    return node.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
+                }'''), 'Selected result is obscured in the actual mobile viewport'
+                assert page.locator('[data-graph-detail] h2').evaluate(
+                    'n => parseFloat(getComputedStyle(n).fontSize) <= 16'), 'Raw identifier became a display-size heading'
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
                 page.screenshot(path=str(evidence/'contribution-graph-mobile.png'))
                 page.set_viewport_size({'width':1440,'height':1000})
-                report['contribution_graph'] = {'node':ident,'local_view':True,'scanned_edges_not_formal':True}
+                report['contribution_graph'] = {'node':ident,'local_view':True,'scanned_edges_not_formal':True,
+                    'bounded_local_viewport':True,'opaque_context_cards':True}
             if not args.offline_dom:
                 goto('underlying-lean-graph/index.html?view=functor&focus=transport:dirac')
                 page.wait_for_url(lambda url: urlsplit(url).path.endswith('/lean-foundations.html')

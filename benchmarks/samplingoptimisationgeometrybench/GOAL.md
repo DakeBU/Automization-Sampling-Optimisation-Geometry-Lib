@@ -70,9 +70,16 @@ the Cell and immutable postmerge report. The KL composition example is checked,
 not another public leaf or admitted QA.
 
 The explicit square-root perturbation-energy result is already independently
-VERIFIED at `891a5c9b`; source/evidence and private desktop/mobile reader/graph
-preview are pushed on `codex/sog-bench-perturbation-energy`. Integrate that existing
-proof after the current publication closeout; do not reprove it. It derives actual
+VERIFIED at `891a5c9b`; its existing stabilization lane is now claimed on
+`codex/sog-bench-perturbation-energy`, based on main387ae4e5. The local candidate
+adds the single public calculus/Registry/root-test integration and passes full
+Tests/ASTIS checks, generated site/graph checks and actual desktop/mobile readers.
+Clean exact-head CI, merge, public delivery and independent scoped postmerge
+sealing remain separate; do not reprove the unchanged packet or call it deployed.
+Presentation-only local graph framing, resize/occlusion checks and compact exact-
+identifier headings preserve topology; the ecosystem contract records these
+reader rules. Unrelated collaborator drafts remain untouched and unstaged.
+It derives actual
 energy integrability and the coefficient1/4, not canonical RN Fisher information
 or LSI admissibility. The next domain route must reuse the generic private cutoff
 limits already in GaussianLogSobolev (raw discovery

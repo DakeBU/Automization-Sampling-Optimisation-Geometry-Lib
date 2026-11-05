@@ -89,6 +89,19 @@ stay literal instead of being guessed. Real-browser checks cover every core,
 rendered assumptions and proofs, graph anchors and desktop/mobile layouts.
 Do not accept “one formula rendered” as whole-page readability evidence.
 
+For an expert's declaration deep link, frame the selected node at a readable
+screen scale rather than shrinking the whole atlas into tiny text. Keep pan,
+zoom and the explicit Fit action for the rest of the unchanged graph. Small
+local slices use a bounded-height canvas; exact namespace-qualified identifiers
+use compact code typography, not oversized display headings. Muted context
+cards remain opaque so behind-the-card edges do not cross their labels. These
+are presentation rules, never new dependency or verification evidence.
+
+Mobile acceptance must wait for the contents-drawer transition and reframe the
+actual mobile layout. Check the selected node's screen text size and hit-test
+its visible centre, not just document overflow. Retain a real screenshot:
+an unoccluded document width alone does not establish readable content.
+
 ## Standards used and remaining work
 
 [Terminal-Bench](https://www.tbench.ai/) and

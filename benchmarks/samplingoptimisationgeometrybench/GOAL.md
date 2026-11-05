@@ -35,16 +35,25 @@ code for canonical external termination and response identity; its original
 failed designs/code reports are preserved under runs/20261106-bench-model-bridge.
 PR382 has since merged at33dc30db with all exact4f4122bc gates and independent
 raw-artifact acceptance of the new controlled Linux bridge fixtures. Receipts
-and actual ZIP are in the same run directory. Fresh main/public acceptance and
-authorized provider/model trials are still separate requirements.
+and actual ZIP are in the same run directory. Fresh main33 software workflows
+and bounded public desktop/mobile readback have since succeeded; the actual
+readback receipt is `runs/20261106-bench-model-bridge/public-main33.json`,
+preserving the public "Lean gate not recorded for this source state" boundary.
+PR383 merged the independent evidence at main0804c297. Authorized real-provider
+trials, empirical calibration and private/source/exercise depth remain open.
 Do not repeat the completed visual hierarchy or turn mocked API-shaped
 fixtures into model scores. Missing model authorization does not license paid
 calls; continue dependency-ready source/exercise depth while it is unavailable.
-The next compact-LSI domain route now has an independent reuse preflight and
-actual type-only elaboration under proof-obligations/chewi-exercise-1-7. It
-requires canonicalizing existing generic private C2 cutoff limits, preserving
-the compact-C-infinity source premise and deriving actual gradient-L2 inputs.
-It remains unsealed/unimplemented and admits no additional exercise or QA.
+The compact-LSI domain packet is now implemented and pushed at02967a42, with
+an actual PROVED_LOCAL transition, focused3833 build and independent blind
+reconstructions. Its exact compiler/review inputs and remaining boundaries are
+in `runs/20261106-logsobolev-cutoff`; source/code/exposition review, independent
+VERIFIED admission and serialized integration are still distinct. Do not reprove
+the extracted generic C2 cutoff limits, change the compact-C-infinity premise,
+infer gradient-L2 from an unevaluated totalized derivative, or release another
+contributor's stabilization lease. The next compact-PI consumer is planned in
+`proof-obligations/chewi-exercise-1-7/compact-poincare-next-route-v1.md`, not yet
+statement-sealed or implemented. None of this admits another exercise or QA.
 
 Reader milestone1 is now actually merged/deployed at main692973fc (PR377), with
 fresh PR/main gates and nine public desktop/mobile routes read back, including

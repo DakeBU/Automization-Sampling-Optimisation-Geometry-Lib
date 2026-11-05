@@ -487,9 +487,16 @@ infrastructure separately without changing a genuine final, and never count a
 scripted interface fixture as an AI measurement. Continue the same Bench Goal;
 all source/exercise depth, calibration/private-family and old math frontiers stay
 open. Derive current coverage from the catalog tools, not this process handoff.
-For the next actual Exercise1.7 gap, reuse the independently preflighted
-`proof-obligations/chewi-exercise-1-7/compact-lsi-extension-plan-v1.md` and its
-typed-interface observation. The private generic C2 cutoff limits already exist;
-canonicalize rather than copy them, preserve compact-C-infinity source tests,
-derive gradient-L2 internally, and renew only actually changed source bindings.
-The plan/type checks are not a proved LSI extension or admitted exercise.
+For Exercise1.7, do not restart the now-implemented cutoff packet. Pushed
+candidate02967a42970c24a54b211ba1e17c5fda2fd55bbf records an actual PROVED_LOCAL
+transition, exact focused3833 compiler log and two independent blind reports in
+`runs/20261106-logsobolev-cutoff`. Current source/code/exposition review and
+independent VERIFIED admission remain separate; inspect that directory's README
+and canonical Cells rather than inferring acceptance from this handoff. Preserve
+the arbitrary-measure C2 interface and compact-C-infinity source premise; do not
+copy its extracted proof or overwrite the foreign stabilization lease. The
+bounded next consumer plan is
+`proof-obligations/chewi-exercise-1-7/compact-poincare-next-route-v1.md`; it is not
+a Statement Seal, proved PI, admitted QA or full exercise. Finish the current
+review before sealing that consumer. This process handoff creates no theorem
+authority or completion credit.

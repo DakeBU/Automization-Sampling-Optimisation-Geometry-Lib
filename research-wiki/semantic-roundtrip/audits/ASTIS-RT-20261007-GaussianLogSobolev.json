@@ -1,6 +1,6 @@
 {
   "id": "ASTIS-RT-20261007-GaussianLogSobolev",
-  "state": "blind-reconstructed",
+  "state": "accepted",
   "source": {
     "source_id": "companion-background:gaussian-noncompact-lsi",
     "anchor": "FIRST S4.E6 / S4.SS1.p4.3 omitted GaussianLSI background; actual32 domain consumer",
@@ -27,10 +27,17 @@
     "compiler_evidence": "Fresh focused3833 pass including existing Gaussian zero/signed/posterior and RGO KL/Fisher/dimension consumers; actual source hash2611b3a92438b1c284b104c40b248fc26d24b553b8b7b149ed75276d6c9a469c. This is local compilation, not new source acceptance."
   },
   "source_review": {
-    "state": "pending"
+    "state": "accepted",
+    "reviewer": "agent-task:/root/cutoff_lsi_source_review_20261106",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "e2590d6c63acbad51ce16be358cd44e3ded36eb28fd348cf948656fdc6385a97",
+    "evidence": "Independent v3 review of exact frozen inputs, rechecking seven slots against the authored sufficient Gaussian C2 contract, unchanged implementation and updated prose. The revised reader-facing scope and proof-digestion description match the actual same-witness consumer and shared cutoff extraction without changing theorem assumptions, paper status or proof-edge assignments. No semantic mismatch, unresolved current scope copy or repair found within the bounded owning item. Earlier reports are preserved; no integration or admission action performed.",
+    "review_run_sha256": "780f15ee11afa9c01745a97de196242fa70449237a1b4bf790f4cdd60046c9cd",
+    "run_artifact": "runs/20261106-logsobolev-cutoff/gaussian-refactor-v3.source-review.json"
   },
   "repairs": [],
-  "publication_binding_sha256": "110a765f3dc1eb1b33cee49d653a8851a1529cade91c6335bb93d71f4b4fa1f3",
+  "publication_binding_sha256": "f8b0b4546028a561f485e0f237e5f0491412926deff0a67c22551bbd2827e4df",
   "publication_context": {
     "file": "2611b3a92438b1c284b104c40b248fc26d24b553b8b7b149ed75276d6c9a469c",
     "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianCompactHilbertLogSobolev\nimport AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff\n\n/-! Noncompact C2 Gaussian function LSI through actual radial cutoff exhaustion.\nThe three analytic domains are genuine inputs; cutoff limits and the inequality\nare internal obligations. Coherent posterior KL/Fisher and Gaussian T2 are separate. -/\n\nset_option autoImplicit false\nnoncomputable section\nopen MeasureTheory Filter\nopen scoped Topology RealInnerProductSpace\n\nnamespace AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev\nopen Analysis.Calculus.Cutoff\n\n/-- Genuine noncompact Gaussian function LSI on the C2 analytic domain.\nCutoff mass, entropy and true-gradient energy limits are proved internally;\nsigned functions, zero mass and rank zero are retained. -/\ntheorem gaussian_logSobolev_of_contDiff\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [CompleteSpace E] [FiniteDimensional ℝ E]\n    [MeasurableSpace E] [BorelSpace E]\n    (f : E → ℝ) (hf : ContDiff ℝ 2 f)\n    (hf2 : MemLp f 2 (ProbabilityTheory.stdGaussian E))\n    (hgrad2 : MemLp (gradient f) 2 (ProbabilityTheory.stdGaussian E))\n    (hentropy : Integrable (fun x => (f x)^2 * Real.log ((f x)^2))\n      (ProbabilityTheory.stdGaussian E)) :\n    let γ : Measure E := ProbabilityTheory.stdGaussian E\n    (∫ x, (f x)^2 * Real.log ((f x)^2) ∂γ) -\n      (∫ x, (f x)^2 ∂γ) * Real.log (∫ x, (f x)^2 ∂γ) ≤\n      2 * ∫ x, ‖gradient f x‖^2 ∂γ := by\n  dsimp only\n  let γ := ProbabilityTheory.stdGaussian E\n  let fn := fun n : ℕ => fun x : E => radialSmoothCutoff ((n:ℝ)+1) x * f x\n  obtain ⟨hm,hp,he⟩ := LogSobolevCutoff.cutoff_integral_limits γ f hf hf2 hgrad2 hentropy\n  have hle (n : ℕ) :\n      (∫ x, (fn n x)^2 * Real.log ((fn n x)^2) ∂γ) -\n      (∫ x, (fn n x)^2 ∂γ) * Real.log (∫ x, (fn n x)^2 ∂γ) ≤\n        2 * ∫ x, ‖gradient (fn n) x‖^2 ∂γ := by\n    have hc : ContDiff ℝ 2 (radialSmoothCutoff ((n:ℝ)+1) : E → ℝ) :=\n      (radialSmoothCutoff_contDiff (by positivity)).of_le\n        (WithTop.coe_le_coe.mpr (le_top : (2 : ℕ∞) ≤ ⊤))\n    have hs : HasCompactSupport (fn n) :=\n      (radialSmoothCutoff_hasCompactSupport (by positivity)).mul_right\n    exact (GaussianCompactHilbertLogSobolev.compact_stdGaussian_logSobolev\n      (fn n) (hc.mul hf) hs).2.2.2\n  exact le_of_tendsto_of_tendsto\n    (hp.sub (Real.continuous_mul_log.continuousAt.tendsto.comp hm))\n    (he.const_mul 2) (Eventually.of_forall hle)\n\nend AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.GaussianLogSobolev\n",
@@ -63,7 +70,7 @@
       },
       {
         "id": "remaining-paper",
-        "label": "Same33prox/KL-Fisher/T2/FIRST/both mains/expectedquerycost remain open"
+        "label": "Beyond this node: weak W12 extension, Gaussian T2/FIRST, paper mains and actual error/query-cost composition"
       }
     ],
     "lesson": {
@@ -74,7 +81,7 @@
         {
           "url": "https://arxiv.org/html/2609.06906v1#S4.E6",
           "label": "FIRST S4.E6 / S4.SS1.p4.3 omitted GaussianLSI background; actual32 domain consumer",
-          "scope": "Actual stdGaussian E on finite-dimensional real Hilbert/Borel E, signed globally C2 f with real fL2/gradientL2/Phi(f²)L1 domains. These are produced by actual32 for its true sqrt-density. No cutoff limit/desired inequality/domain-of-repaired-density/law/energy certificate premises. Genuine noncompact function-LSI coefficient2 through internally derived actual cutoff limits; rank0/zero mass retained. Coherent33 KL/Fisher, full weak W12 extension, separate GaussianT2/FIRST4.6/both paper main/error/cost/composition/fullreader remain OPEN. Actual focused3813 passes: true noncompact32 posterior f and its real analytic domains, generic zero and negative constant actualmass4 in every dimension. Independent wholeproof/source/exactcommit/shared admission pending. No coherent33canonicalKL/Fisher or T2/FIRST/main/cost claim."
+          "scope": "This node proves function-form Gaussian LSI on the displayed genuine C2/L2/gradient-L2/entropy-integrable domain, including zero mass and rank zero. It does not itself identify probability KL, an RN score or Fisher information. The existing StandardizedRGOKLFisher consumer separately aligns its two proximal witnesses by uniqueness before applying this theorem. That existing implementation is not a new downstream source-fidelity or admission claim by this node. Weak W12/form-domain extension, Gaussian T2, FIRST4.6 and full paper error/cost/composition conclusions are not certified here; compilation, independent review and rendered-reader acceptance remain distinct evidence."
         }
       ],
       "tests": [
@@ -127,7 +134,7 @@
         },
         {
           "title": "Exercise the actual noncompact posterior",
-          "text": "The true standardizedRGO theorem supplies C2, fL2, gradientL2 and qlogqL1 at its actual proximal witness, with f²=q. The Test applies this new result to the raw f=exp(-rho/2)/sqrtZ, without a cutoff certificate or upper step-size restriction. The distinct33KL witness must still be reconciled; GaussianT2/FIRST4.6 remain separate.",
+          "text": "The existing standardized RGO square-root-density producer supplies C2, function-L2, gradient-L2 and entropy integrability at its actual proximal witness, with f²=q. The focused Test applies this theorem to f=exp(-rho/2)/sqrtZ, without a cutoff certificate or upper step-size restriction. The existing StandardizedRGOKLFisher consumer separately proves equality of its two proximal witnesses by uniqueness, then uses this Gaussian LSI and its actual mass/energy identities. The cutoff theorem alone does not supply those probability identifications, Gaussian T2 or FIRST4.6.",
           "formula": "f(u)=e^{-\\rho(u)/2}/\\sqrt Z,\\quad f^2=q,\\quad\\operatorname{Ent}_{\\gamma}(f^2)\\le2\\int\\|\\nabla f\\|^2\\,d\\gamma.",
           "lean": "actual_posterior_noncompact_lsi; standardized_rgo_sqrt_density_domain"
         }
@@ -168,7 +175,7 @@
       },
       {
         "source": "Canonical33 KL<=Fisher/2 and GaussianT2/FIRST/main/query-cost composition.",
-        "lean": "Actual stdGaussian E on finite-dimensional real Hilbert/Borel E, signed globally C2 f with real fL2/gradientL2/Phi(f²)L1 domains. These are produced by actual32 for its true sqrt-density. No cutoff limit/desired inequality/domain-of-repaired-density/law/energy certificate premises. Genuine noncompact function-LSI coefficient2 through internally derived actual cutoff limits; rank0/zero mass retained. Coherent33 KL/Fisher, full weak W12 extension, separate GaussianT2/FIRST4.6/both paper main/error/cost/composition/fullreader remain OPEN. Actual focused3813 passes: true noncompact32 posterior f and its real analytic domains, generic zero and negative constant actualmass4 in every dimension. Independent wholeproof/source/exactcommit/shared admission pending. No coherent33canonicalKL/Fisher or T2/FIRST/main/cost claim."
+        "lean": "This node proves function-form Gaussian LSI on the displayed genuine C2/L2/gradient-L2/entropy-integrable domain, including zero mass and rank zero. It does not itself identify probability KL, an RN score or Fisher information. The existing StandardizedRGOKLFisher consumer separately aligns its two proximal witnesses by uniqueness before applying this theorem. That existing implementation is not a new downstream source-fidelity or admission claim by this node. Weak W12/form-domain extension, Gaussian T2, FIRST4.6 and full paper error/cost/composition conclusions are not certified here; compilation, independent review and rendered-reader acceptance remain distinct evidence."
       }
     ]
   },
@@ -207,9 +214,52 @@
     "run_artifact": "runs/20261007-companion-priority/gaussian-noncompact-lsi/anonymous-decoder/result0.json",
     "run_binding": "runs/20261007-companion-priority/gaussian-noncompact-lsi/anonymous-decoder/run.json"
   },
-  "semantic_slots": {},
+  "semantic_slots": {
+    "objects": {
+      "original": "Literal standard Gaussian on finite-dimensional real Hilbert/Borel E, signed real f, genuine gradient, homogeneous entropy of its square.",
+      "reconstructed": "The same centered variance-one Gaussian, real function, Riesz gradient and explicit homogeneous entropy integrals.",
+      "relation": "explicit-elaboration",
+      "evidence": "Lean uses ProbabilityTheory.stdGaussian E directly. The prior inspected compact parent uses the product of unit-variance Gaussians in orthonormal coordinates and Parseval; unchanged code evidence applies. The displayed entropy is the integral of Phi(f^2) minus Phi of the integral of f^2, not an asserted RN/score identity."
+    },
+    "domains": {
+      "original": "Finite-dimensional complete real Hilbert/Borel E including rank zero; globally C2 analytic-domain f with signed values and possibly zero mass.",
+      "reconstructed": "Same compatible Hilbert/Borel scope, genuine C2 and analytic domains; no exclusion at dimension or mass zero.",
+      "relation": "same",
+      "evidence": "There is no Nontrivial, positivity, normalization, compact-support or C-infinity premise. Finite dimension gives compact radial approximants for the C2 Gaussian parent; it does not enter the shared measure-generic cutoff convergence theorem."
+    },
+    "quantifiers": {
+      "original": "Every permitted E and every f in the stated domain satisfy the claimed inequality.",
+      "reconstructed": "Same universal E and f, no externally quantified cutoff limit or inequality proof.",
+      "relation": "same",
+      "evidence": "The module constructs its actual fn with radius n+1 and discharges convergence internally. Compact LSI is invoked for each n on an actual cutoff product; no choice of a different measure or constant per f is permitted."
+    },
+    "assumptions": {
+      "original": "Genuine global C2, f L2, true gradient L2 and integrable Phi(f^2), under actual stdGaussian.",
+      "reconstructed": "Identical true Frechet differentiability, MemLp and Integrable predicates.",
+      "relation": "same",
+      "evidence": "The C2 premise gives differentiability for the gradient product. The shared proof obtains genuine mass/energy L1 from MemLp, uses measurable real integrands and actual dominators. No new assumptions are added in the revised classification reasons; the actual local posterior producer supplies the domains rather than postulating them."
+    },
+    "conclusion": {
+      "original": "Homogeneous function entropy is bounded by twice actual Gaussian gradient energy.",
+      "reconstructed": "Same inequality and exactly the same square-mass subtraction.",
+      "relation": "same",
+      "evidence": "Both sides have actual limits. Real.continuous_mul_log handles the mass term including zero; the closed-order limit preserves the compact inequality. Nothing in the revised obligation label or prose adds a KL/Fisher, T2, PI, or paper conclusion to this node."
+    },
+    "scopes": {
+      "original": "Authored sufficient Gaussian C2 background at an omitted source step, not the printed FIRST result or unrestricted weak W1,2 extension.",
+      "reconstructed": "Same function-form result with real Bochner integration and zero-aware Phi.",
+      "relation": "explicit-elaboration",
+      "evidence": "The actual L1 domains rule out a fallback integral argument. Corrected live scopes describe local same-witness reuse but not source-fidelity/admission of the downstream theorem. The pinned authored historical source remains immutable, and no new primary SPHMC verification is claimed."
+    },
+    "constant_dependencies": {
+      "original": "Fixed variance-one coefficient two; no cutoff-, mass- or dimension-dependent loss.",
+      "reconstructed": "Exact 2 times the same gradient energy, including mass zero.",
+      "relation": "same",
+      "evidence": "The actual compact Gaussian parent has coefficient two and he.const_mul 2 carries it through the limit. The internal cutoff derivative constant occurs only in the common dominating envelope."
+    }
+  },
   "deltas": [],
-  "verdict": "pending",
+  "verdict": "equivalent-after-elaboration",
   "renewal_from": {
     "commit": "0804c29747e334f1d6175f6494135be4b164de80",
     "path": "research-wiki/semantic-roundtrip/audits/ASTIS-RT-20261007-GaussianLogSobolev.json",

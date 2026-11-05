@@ -42,13 +42,44 @@ packet/reconstruction is reused only after byte-identical input checks. See
 [candidate renewal](candidate-binding-renewal.json): updating a code hash never
 replays an old source verdict. The private proof copy is removed, and natural
 language/formula proofs are authored once in the two declaration lesson files.
-**All three independent source/code/exposition reviews are still pending.**
+The independent reviewer `/root/cutoff_lsi_source_review_20261106` has now
+completed the exact source/code/exposition reviews:
+
+| Current input | Independent report | Result |
+| --- | --- | --- |
+| Generic limits | [report](generic-limits.source-review.json) | Equivalent after elaboration; no blocking or informational delta |
+| Compact-smooth extension | [report](smooth-extension.source-review.json) | Equivalent after elaboration; no delta |
+| Gaussian refactor and current exposition | [v3 report](gaussian-refactor-v3.source-review.json) | Equivalent after elaboration; no delta |
+
+The actual original Gaussian [report](gaussian-refactor.source-review.json) and
+[v2 report](gaussian-refactor-v2.source-review.json) are preserved. They identify
+conservative stale status wording, not a failed Lean proof. The final successor
+corrects all identified live copies and describes the existing same-witness
+consumer and extracted four-helper topology accurately. It does not rewrite
+the pinned historical source contract or source-only topology, or certify the
+downstream paper result. Only changed Gaussian publication input was renewed;
+the two new nodes' anonymous inputs and accepted reviews remain unchanged.
+Mechanical registration of an independent report is not independent VERIFIED
+admission. That exact-commit step is still pending at this checkpoint.
 
 The generic parent and domain-extension child have separate canonical Cells,
 under one SAU/unique writer. No chapter-status code was relaxed to support them.
 The prior global ledger prefix is intact; normal claim/local-transition receipts
 record the exact appended own events. The foreign stabilization lease remains
-untouched. Do not merge or publish `VERIFIED` from this checkpoint.
+untouched. The owning lane was asked to reconcile its already merged PR380 in
+[the PR discussion](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/pull/380#issuecomment-6670560797).
+Do not merge or infer VERIFIED merely from the source-review reports.
+
+The original pushed02967 checkpoint's Contributor run42114658613 failed on the
+pending whole-module review after67 tooling tests passed; no gate was waived.
+Final owned-target checks also exposed missing reused-parent/mirror metadata,
+now corrected to actual calls. The old Gaussian Cell receives only dependency/
+consumer/refactor-description corrections, not a status or mathematical-route
+change. A local all-working-tree diff check additionally sees the protected,
+untracked collaborator `KernelReversibilityTransport` draft; it is untouched,
+unpublished and is not evidence against this packet's three owned targets.
+Record that local boundary honestly; clean remote CI must check the committed
+candidate through the unchanged full checker, not an ignore/skip exemption.
 
 ## Remaining boundary
 

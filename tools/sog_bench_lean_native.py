@@ -53,14 +53,20 @@ def prepare(output:Path):
     shutil.copyfile(runtime.ROOT/'benchmarks/samplingoptimisationgeometrybench/harbor/bench_bounded_io.py',tools/'bench_bounded_io.py')
     prefix=subprocess.check_output(['lake','env','lean','--print-prefix'],cwd=runtime.ROOT,text=True).strip()
     (output/'toolchain').symlink_to(Path(prefix).resolve(),target_is_directory=True)
+    manifest=json.loads((runtime.ROOT/'lake-manifest.json').read_text())
+    for package in manifest['packages']:
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=runtime.ROOT/'.lake/packages'/package['name'],text=True).strip()
+        if actual!=package['rev']:raise ValueError('Trusted package checkout differs from the project manifest: '+package['name'])
     # Hard links avoid duplicating multi-GB trusted caches. Runtime mounts are
     # read-only; only these public dependencies, never the checkout/home, enter.
     shutil.copytree(runtime.ROOT/'.lake/packages',output/'packages',symlinks=True,
         copy_function=os.link,ignore=shutil.ignore_patterns('.git'))
-    command(['docker','build','--iidfile',output/'image-id','-f',runtime.RUNTIME/'Dockerfile',runtime.RUNTIME])
-    record={'schema_version':1,'policy':p,'go':go,'image_id':(output/'image-id').read_text().strip(),
+    record={'schema_version':1,'policy':p,'go':go,
         'tools':{f.name:runtime.bench.sha(f.read_bytes()) for f in tools.iterdir() if f.is_file()},
         'note':'Prepared tools only; not native runtime acceptance, model evaluation or a security certificate.'}
+    (output/'preparation-inputs.json').write_bytes(runtime.bench.encoded(record))
+    command(['docker','build','--iidfile',output/'image-id','-f',runtime.RUNTIME/'Dockerfile',runtime.RUNTIME])
+    record['image_id']=(output/'image-id').read_text().strip()
     (output/'preparation.json').write_bytes(runtime.bench.encoded(record))
 
 

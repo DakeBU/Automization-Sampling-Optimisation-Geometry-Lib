@@ -25,6 +25,20 @@ class LeanRuntimeTests(unittest.TestCase):
         self.assertEqual(p['minimum_landlock_abi'],6)
         self.assertTrue(p['base_image'].startswith('ubuntu:24.04@sha256:'))
 
+    def test_offline_locations_preserve_the_exact_package_graph(self):
+        original=json.loads((ROOT/'lake-manifest.json').read_text())
+        offline=runtime.offline_manifest()
+        self.assertEqual(len(original['packages']),len(offline['packages']))
+        for before,after in zip(original['packages'],offline['packages']):
+            self.assertEqual(after['type'],'path')
+            self.assertEqual(after['dir'],'/deps/packages/'+before['name'])
+            for key in ('name','scope','inherited','configFile','manifestFile'):
+                self.assertEqual(before[key],after[key])
+        config=runtime.offline_lakefile()
+        self.assertIn('require mathlib from "/deps/packages/mathlib"',config)
+        self.assertIn('lean_lib Challenge',config)
+        self.assertNotIn('require mathlib from git',config)
+
     def packet(self,c=None):
         with patch.object(runtime.bench,'prompts',return_value=[{'track':'lean','question':'fixed prompt'}]),\
              patch.object(runtime.bench,'environment_digest',return_value='context'):
@@ -41,6 +55,7 @@ class LeanRuntimeTests(unittest.TestCase):
         self.assertEqual(cfg['definition_names'],[])
         self.assertNotIn('sorryAx',cfg['permitted_axioms'])
         desc=json.loads(files['operator.json'])
+        self.assertEqual(files['agent/LICENSE'],(ROOT/'LICENSE').read_bytes())
         for path,digest in desc['files'].items():
             self.assertEqual(runtime.bench.sha(files[path]),digest)
 
@@ -89,6 +104,9 @@ class LeanRuntimeTests(unittest.TestCase):
             self.assertEqual(len(mounts),5)
             self.assertTrue(all(m.endswith(',readonly') for m in mounts))
             self.assertFalse(any('docker.sock' in m for m in mounts))
+        recipe=(runtime.RUNTIME/'Dockerfile').read_text()
+        self.assertNotIn('useradd',recipe)
+        self.assertIn('USER 1000:1000',recipe)
 
     def test_mutable_image_and_unowned_container_name_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:

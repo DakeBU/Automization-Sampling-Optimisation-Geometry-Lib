@@ -67,6 +67,8 @@ def packet(core: dict) -> dict[str, bytes]:
                  'challenge_module':'Challenge', 'solution_module':'Solution',
                  'theorem_names':[p['target_name']], 'definition_names':[],
                  'permitted_axioms':p['permitted_axioms'], 'enable_nanoda':False})}
+    for name in ('LICENSE','NOTICE','LICENSE_SCOPE.md'):
+        files['agent/'+name]=(ROOT/name).read_bytes()
     descriptor = {k:core[k] for k in ('id','family','split','binding_sha256','imports','source_file')}
     descriptor.update(schema_version=1,track='lean',usage='public-dev; no model measurement',
         target_name=p['target_name'], policy_sha256=bench.sha(bench.encoded(p)),
@@ -114,6 +116,32 @@ def local_imports(imports: list[str]) -> list[str]:
     return sorted(found)
 
 
+def offline_manifest(prefix: str = '/deps/packages') -> dict:
+    """Path projection of the SAME pinned snapshots; no Git/credentials at runtime.
+
+    Keep the original manifest separately for provenance. A readonly snapshot
+    without .git cannot satisfy Lake's Git materializer, which would otherwise
+    try to fetch or replace it. This changes location, not mathematical APIs.
+    """
+    data=json.loads((ROOT/'lake-manifest.json').read_text())
+    rows=[]
+    for entry in data['packages']:
+        if entry['type']!='git' or entry.get('subDir') is not None:
+            raise ValueError('Only the current flat pinned Git package graph is supported')
+        row={k:entry[k] for k in ('name','scope','inherited','configFile','manifestFile')}
+        row.update(type='path',dir=prefix.rstrip('/')+'/'+entry['name'])
+        rows.append(row)
+    return {**data,'packages':rows}
+
+
+def offline_lakefile(prefix: str = '/deps/packages') -> str:
+    source=(ROOT/'lakefile.lean').read_text()
+    replacement='require mathlib from '+json.dumps(prefix.rstrip('/')+'/mathlib')
+    source,count=re.subn(r'require mathlib from git\s+"https://github.com/leanprover-community/mathlib4.git" @ "v4.33.0"',replacement,source)
+    if count!=1:raise ValueError('Unexpected project Lake configuration')
+    return source+'\nlean_lib Challenge\nlean_lib Solution\n'
+
+
 def checked_packet(task: Path) -> dict:
     desc = json.loads((task/'operator.json').read_text())
     if desc['policy_sha256'] != bench.sha(bench.encoded(policy())):
@@ -157,10 +185,11 @@ def stage(task: Path, output: Path) -> None:
         dest=output/'owned-build'/rel;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,dest)
     for name in ('Challenge.lean','config.json'):
         shutil.copyfile(task/'verifier'/name,output/name)
-    # Same trusted package graph; only two targets are added, no lake update.
+    # Same trusted package graph via credential-free readonly offline snapshots.
     (output/'project').mkdir(exist_ok=True)
-    (output/'project/lakefile.lean').write_text((ROOT/'lakefile.lean').read_text()+'\nlean_lib Challenge\nlean_lib Solution\n',encoding='utf-8',newline='\n')
-    shutil.copyfile(ROOT/'lake-manifest.json',output/'project/lake-manifest.json')
+    (output/'project/lakefile.lean').write_text(offline_lakefile(),encoding='utf-8',newline='\n')
+    (output/'project/lake-manifest.json').write_bytes(bench.encoded(offline_manifest()))
+    shutil.copyfile(ROOT/'lake-manifest.json',output/'original-lake-manifest.json')
     shutil.copyfile(ROOT/'lean-toolchain',output/'project/lean-toolchain')
     for name in ('LICENSE','NOTICE','LICENSE_SCOPE.md'):
         shutil.copyfile(ROOT/name,output/name)

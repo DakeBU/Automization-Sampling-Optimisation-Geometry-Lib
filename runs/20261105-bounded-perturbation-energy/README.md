@@ -25,8 +25,16 @@ Current publication binding:
 Current owning-module SHA256:
 `77fc4dec36b7b24297e737a6c00ec04f02543e2cb15638ad02e0a9b14e646fba`.
 Publication admission with reviewed=False passes. This is not source acceptance.
-The anonymous decoder receives only an opaque packet; independent source/code/
-exposition review and exact-commit verification remain separate later gates.
+The anonymous decoder received only its opaque packet; its exact report is in
+`../blind/ASTIS-BLIND-2956cc2940966b30.result.json`. A distinct independent source/
+code/exposition reviewer accepted the exact bound packet as
+equivalent-after-elaboration, with no deltas or repairs. The whole code and all
+six proof steps were checked, including focused production and Hilbert-test
+compilation. Report: `source-review.json`, self-hash
+`14a079e10594816e236e785ca899bc7b3ead55aa0cde4539a21f04c7f6e2e058`.
+The reviewer inspected cached primary pages55/60; no fresh full-PDF hash is
+claimed. Exact pushed-commit verification, integration and purification remain
+separate. This accepted semantic evidence does not itself publish VERIFIED.
 
 The two planned mathematical uses are finite-energy admission and the quadratic
 coefficient in the same Exercise1.7 route. They are not two completed source

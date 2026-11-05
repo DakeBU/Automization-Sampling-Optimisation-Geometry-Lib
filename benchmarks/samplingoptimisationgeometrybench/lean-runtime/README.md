@@ -53,6 +53,18 @@ call uses a fresh evidence directory. Compiler diagnostics support proof repair;
 those calls do not by themselves record a provider/model trajectory or determine
 the first final-answer denominator. Infrastructure errors remain distinguishable
 from proof rejection/resource limits and must not become measured model scores.
+The CLI exits0 for acceptance,10 for proof rejection,20 for infrastructure errors
+and30 for a declared resource limit. These are verification-call outcomes, not
+model scores. A separately framed trusted-challenge preflight precedes solution
+verification; setup failures and setup-time limits are not mathematical rejection.
+Child output is escaped diagnostic data, never a control record. Each result pins
+the exact task packet and prepared-runtime receipt; changed tools/source fail closed.
+
+Readonly public caches must also be readable by the container UID. Preparation
+checks the pinned package checkouts and copies only manifest-listed packages.
+Readable artifacts are hard-linked; private-mode public artifacts are copied and
+made readable **without chmod on shared original inodes**. Snapshot directories
+are newly created. The readonly mounts/capability/network policy is unchanged.
 
 ## Acceptance and remaining work
 

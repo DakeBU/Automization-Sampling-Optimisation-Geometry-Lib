@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import stat
 
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import sog_bench_lean as runtime
@@ -23,6 +24,26 @@ def clone(url,commit,dest):
         command(['git','checkout','--detach',commit],dest)
     actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=dest,text=True).strip()
     if actual!=commit: raise ValueError('External checkout pin mismatch: '+str(dest))
+
+
+def public_cache_file(source,destination,stats=None):
+    """Do not chmod a shared inode: copy private-mode PUBLIC build artifacts.
+
+    Lake's trace reader uses ordinary IO.FS.readFile. CI-created 0600 files
+    cannot be read by container UID1000. Keep the original cache untouched;
+    duplicate only these small files and make the snapshot readable.
+    """
+    mode=stat.S_IMODE(os.stat(source).st_mode)
+    if not mode & stat.S_IROTH:
+        shutil.copy2(source,destination)
+        os.chmod(destination,mode|0o444)
+        if stats is not None:
+            stats['copied_for_read']+=1
+            if len(stats['examples'])<8:stats['examples'].append({'name':Path(source).name,'original_mode':oct(mode)})
+    else:
+        os.link(source,destination)
+        if stats is not None:stats['hardlinked']+=1
+    return str(destination)
 
 
 def prepare(output:Path):
@@ -55,13 +76,23 @@ def prepare(output:Path):
     (output/'toolchain').symlink_to(Path(prefix).resolve(),target_is_directory=True)
     manifest=json.loads((runtime.ROOT/'lake-manifest.json').read_text())
     for package in manifest['packages']:
-        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=runtime.ROOT/'.lake/packages'/package['name'],text=True).strip()
+        directory=runtime.ROOT/'.lake/packages'/package['name']
+        actual=subprocess.check_output(['git','rev-parse','HEAD'],cwd=directory,text=True).strip()
         if actual!=package['rev']:raise ValueError('Trusted package checkout differs from the project manifest: '+package['name'])
+        if subprocess.run(['git','diff','--quiet','HEAD','--'],cwd=directory).returncode:
+            raise ValueError('Modified public package sources are not an approved pinned runtime input')
     # Hard links avoid duplicating multi-GB trusted caches. Runtime mounts are
     # read-only; only these public dependencies, never the checkout/home, enter.
-    shutil.copytree(runtime.ROOT/'.lake/packages',output/'packages',symlinks=True,
-        copy_function=os.link,ignore=shutil.ignore_patterns('.git'))
-    record={'schema_version':1,'policy':p,'go':go,
+    stats={'copied_for_read':0,'hardlinked':0,'examples':[]}
+    (output/'packages').mkdir()
+    for package in manifest['packages']:
+        # No unknown siblings from a user's general .lake cache are bundled.
+        shutil.copytree(runtime.ROOT/'.lake/packages'/package['name'],output/'packages'/package['name'],
+            symlinks=True,copy_function=lambda s,d:public_cache_file(s,d,stats),ignore=shutil.ignore_patterns('.git'))
+    for current,dirs,files in os.walk(output/'packages',followlinks=False):
+        # Directories are new copies, never shared host inodes.
+        os.chmod(current,stat.S_IMODE(os.stat(current).st_mode)|0o555)
+    record={'schema_version':1,'policy':p,'go':go,'cache_snapshot':stats,
         'tools':{f.name:runtime.bench.sha(f.read_bytes()) for f in tools.iterdir() if f.is_file()},
         'note':'Prepared tools only; not native runtime acceptance, model evaluation or a security certificate.'}
     (output/'preparation-inputs.json').write_bytes(runtime.bench.encoded(record))
@@ -81,7 +112,10 @@ def trials(root:Path,task_ids:list[str]|None):
         report=runtime.run_submission(task=task,stage_dir=stage_dir,
             submission=task/'oracle/Solution.lean.txt',runtime=root,output=root/'trials'/('oracle-'+identity))
         reports.append({'fixture':'oracle-'+identity,'expected':'accepted','actual':report['kind']})
-        if report['kind']!='accepted':break  # diagnose the first real environment failure
+        if report['kind']!='accepted':
+            print(json.dumps({'first_failure':identity,'kind':report['kind'],
+                'native':report.get('native')}),flush=True)
+            break  # diagnose the first real environment failure
     if reports and all(r['actual']=='accepted' for r in reports) and len(reports)==len(ids):
         identity=ids[0];task=root/'tasks'/identity;stage_dir=root/'stages'/identity
         template=(task/'agent/Solution.lean.txt').read_text()

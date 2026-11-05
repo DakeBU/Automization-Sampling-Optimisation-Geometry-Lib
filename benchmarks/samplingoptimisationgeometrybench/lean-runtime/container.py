@@ -65,24 +65,36 @@ def main():
         # This cap applies to compiler artifacts too, not just diagnostics.
         resource.setrlimit(resource.RLIMIT_FSIZE,(64*1024*1024,64*1024*1024))
         resource.setrlimit(resource.RLIMIT_CORE,(0,0))
-    proc=subprocess.Popen(['lake','env','/opt/judge/comparator','/task/config.json'],
-        cwd=work,env=environment,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
-        preexec_fn=child_limits,start_new_session=True)
-    diagnostic=bytearray();limited=False
-    try:
-        while chunk:=proc.stdout.read(4096):
-            diagnostic.extend(chunk[:max(0,cap-len(diagnostic))])
-            if len(diagnostic)>=cap:
-                limited=True;os.killpg(proc.pid,signal.SIGKILL);break
-        proc.wait()
-    finally:proc.stdout.close()
+    def capture(argv):
+        proc=subprocess.Popen(argv,cwd=work,env=environment,stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,preexec_fn=child_limits,start_new_session=True)
+        diagnostic=bytearray();limited=False
+        try:
+            while chunk:=proc.stdout.read(4096):
+                diagnostic.extend(chunk[:max(0,cap-len(diagnostic))])
+                if len(diagnostic)>=cap:
+                    limited=True;os.killpg(proc.pid,signal.SIGKILL);break
+            proc.wait()
+        finally:proc.stdout.close()
+        return proc.returncode,diagnostic.decode('utf-8',errors='replace'),limited
+    # This phase uses ONLY the trusted challenge/imports; a failure here is an
+    # infrastructure failure, not a purported refutation of the submitted proof.
+    print(json.dumps({'kind':'runtime-phase','phase':'challenge-preflight'}),flush=True)
+    code,diagnostic,limited=capture(['lake','build','Challenge'])
+    if code!=0 or limited:
+        print(json.dumps({'kind':'infrastructure-error','accepted':False,'phase':'challenge-preflight',
+            'error':'Trusted challenge build failed','exit_code':code,'diagnostic':diagnostic,
+            'diagnostic_limit':limited,'observations':observed}))
+        return 20
+    print(json.dumps({'kind':'runtime-phase','phase':'verifying-solution'}),flush=True)
+    code,diagnostic,limited=capture(['lake','env','/opt/judge/comparator','/task/config.json'])
     report={'schema_version':1,'kind':'fixed-target-comparator','observations':observed,
-        'comparator_exit':proc.returncode,'accepted':proc.returncode==0 and not limited,
+        'comparator_exit':code,'accepted':code==0 and not limited,
         'diagnostic_limit':limited,
-        'diagnostic':diagnostic.decode('utf-8',errors='replace'),
+        'diagnostic':diagnostic,
         'external_kernel':False,'model_measurement':False}
     print(json.dumps(report,ensure_ascii=False))
-    return 30 if limited else 0 if proc.returncode==0 else 10
+    return 30 if limited else 0 if code==0 else 10
 
 
 if __name__=='__main__':

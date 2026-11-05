@@ -58,3 +58,36 @@ to a redirected log host. Observation failure did not trigger a replacement run.
 The actual terminal infrastructure failure, then these exact code repairs, are
 the reason for a fresh-head acceptance attempt. Full native/hostile/harness/model
 requirements remain open. Root Tests9611 and ASTIS check passed with unchanged Lean.
+
+## Native02: actual isolation, failed trusted dependency read
+
+Fresh-head40103979 run41999171893/job127149770711 built the image and actually
+started the first controlled oracle container. Immutable artifact13401483013 has
+ZIP SHA256994a8f46b3aa7671cf369b7283e10ba70ede34fd0d8311f0c9d92d19bf50dbfe.
+The three raw JSON members retained in native-02 are unmodified extractions:
+preparation, software-trials and the first oracle result. The observation reports
+UID/GID1000, capabilities0, no-new-privileges1, only lo, readonly root, Landlock
+ABI8, memory4294967296, PID128 and CPU200000/100000. This is real scoped runtime
+evidence, not successful mathematical/model acceptance.
+
+The trusted Challenge build failed reading dependency .trace files with EACCES,
+before any Solution verification. The old raw report's `proof-rejected` field is
+preserved verbatim, but this is diagnosed as **infrastructure**, not a wrong
+reference proof. The suite stopped at that first unexpected oracle outcome;
+0/13 positive targets and no negative fixtures are accepted. Lake4.33's actual
+readTraceFile uses ordinary IO.FS.readFile, so readonly data is compatible; do not
+weaken mounts or replace the checker. The next repair copies private-mode public
+cache files and normalizes only the new snapshot directories for container read
+access. Original shared cache inode permissions stay unchanged. The POSIX mode
+test runs only in Linux CI; preparation now records actual copied-mode examples.
+
+The supervisor additionally preflights the trusted Challenge separately before
+solution verification and emits framed phases. Output text cannot become a control
+record; partial output retains the last valid phase for failure classification.
+CLI status, consistent container/exit evidence, tool/receipt drift and framing now
+have tests. The local suite runs14 tests:13 pass and the POSIX-specific one is
+skipped on Windows; this is not a Linux permission/runtime pass. The initial framing fixture
+mistakenly used pretty multiline JSON rather than the producer's actual compact
+NDJSON; that fixture was corrected, not the strict parser. The next exact-head
+native run must still pass every positive/negative task. Website readiness stays
+pending; no native result, QA, theorem or Goal completion is claimed.

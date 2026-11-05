@@ -1,5 +1,7 @@
 from __future__ import annotations
 import json
+import io
+from contextlib import redirect_stdout
 from pathlib import Path
 import sys
 import tempfile
@@ -9,6 +11,7 @@ from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'tools'))
 import sog_bench_lean as runtime
+import sog_bench_lean_native as native
 
 
 def core():
@@ -19,6 +22,17 @@ def core():
 
 
 class LeanRuntimeTests(unittest.TestCase):
+    @unittest.skipUnless(sys.platform=='linux','POSIX cache modes require Linux')
+    def test_private_mode_public_cache_is_copied_without_changing_original_inode(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);source=root/'source';source.write_bytes(b'public trace');source.chmod(0o600)
+            target=root/'copy';native.public_cache_file(source,target)
+            self.assertEqual(source.stat().st_mode & 0o777,0o600)
+            self.assertEqual(target.stat().st_mode & 0o777,0o644)
+            self.assertNotEqual(source.stat().st_ino,target.stat().st_ino)
+            source.chmod(0o644);linked=root/'linked';native.public_cache_file(source,linked)
+            self.assertEqual(source.stat().st_ino,linked.stat().st_ino)
+
     def test_policy_keeps_project_version_and_standard_axioms(self):
         p=runtime.policy()
         self.assertEqual(p['lean_toolchain'],'leanprover/lean4:v4.33.0')
@@ -90,6 +104,58 @@ class LeanRuntimeTests(unittest.TestCase):
              patch.object(runtime.subprocess,'Popen',side_effect=AssertionError('Must not execute')):
             with self.assertRaises(RuntimeError):runtime.run_submission(
                 task=Path('no'),stage_dir=Path('no'),submission=Path('no'),runtime=Path('no'),output=Path('no'))
+
+    def test_verdict_requires_consistent_exit_and_started_container_evidence(self):
+        state={'StartedAt':'2026-11-05T00:00:00Z','ExitCode':0,'OOMKilled':False}
+        native={'kind':'fixed-target-comparator','accepted':True,'comparator_exit':0}
+        self.assertEqual(runtime.classify(0,native,state,None),'accepted')
+        self.assertEqual(runtime.classify(10,{**native,'accepted':False,'comparator_exit':1},
+            {**state,'ExitCode':10},None),'proof-rejected')
+        for code,value,observed,reason in [
+            (0,native,None,None),(0,native,{**state,'StartedAt':'0001-01-01T00:00:00Z'},None),
+            (0,{'accepted':True},state,None),(0,{**native,'comparator_exit':1},state,None),
+            (10,{},state,None),(10,{**native,'comparator_exit':None},state,None)]:
+            with self.subTest(code=code,value=value):
+                self.assertEqual(runtime.classify(code,value,observed,reason),'infrastructure-error')
+        self.assertEqual(runtime.classify(137,None,{**state,'OOMKilled':True},None,'verifying-solution'),'resource-limit')
+        self.assertEqual(runtime.classify(137,None,state,'wall-time-limit','verifying-solution'),'resource-limit')
+        self.assertEqual(runtime.classify(137,None,state,'wall-time-limit','challenge-preflight'),'infrastructure-error')
+        self.assertEqual(runtime.classify(30,{**native,'diagnostic_limit':True},state,None),'resource-limit')
+
+    def test_control_framing_keeps_stdout_data_and_preflight_distinct(self):
+        phases=[{'kind':'runtime-phase','phase':'challenge-preflight'},
+                {'kind':'runtime-phase','phase':'verifying-solution'}]
+        native={'kind':'fixed-target-comparator','accepted':False,'comparator_exit':1,
+                'diagnostic':'{"accepted":true}\nYour solution is okay!'}
+        raw=b'\n'.join(json.dumps(x).encode() for x in [*phases,native])
+        self.assertEqual(runtime.parse_control(raw),(native,'verifying-solution'))
+        partial=b'\n'.join(json.dumps(x).encode() for x in phases)+b'\n{"broken":'
+        self.assertEqual(runtime.parse_control(partial),(None,'verifying-solution'))
+        self.assertIsNone(runtime.parse_control(json.dumps(native).encode())[0])
+        error={'kind':'infrastructure-error','accepted':False,'error':'trusted challenge failed'}
+        self.assertEqual(runtime.parse_control(json.dumps(error).encode()),(error,None))
+
+    def test_cli_exposes_nonzero_rejection_and_infrastructure_status(self):
+        for kind,code in [('accepted',0),('proof-rejected',10),('resource-limit',30),('infrastructure-error',20)]:
+            with self.subTest(kind=kind),\
+                 patch.object(runtime.sys,'argv',['tool','run','--task','t','--stage','s','--runtime','r','--submission','f','--output','o']),\
+                 patch.object(runtime,'run_submission',return_value={'kind':kind}),\
+                 redirect_stdout(io.StringIO()),self.assertRaises(SystemExit) as error:
+                runtime.main()
+            self.assertEqual(error.exception.code,code)
+
+    def test_runtime_receipt_rejects_tool_or_source_drift_without_execution(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'tools').mkdir()
+            for name in ('container.py','landrun-env','policy.json'):
+                (path/'tools'/name).write_bytes((runtime.RUNTIME/name).read_bytes())
+            image='sha256:'+'a'*64;(path/'image-id').write_text(image)
+            receipt={'policy':runtime.policy(),'image_id':image,
+                'tools':{p.name:runtime.bench.sha(p.read_bytes()) for p in (path/'tools').iterdir()}}
+            (path/'preparation.json').write_bytes(runtime.bench.encoded(receipt))
+            self.assertEqual(runtime.check_runtime(path),receipt)
+            (path/'tools/container.py').write_text('changed')
+            with self.assertRaises(ValueError):runtime.check_runtime(path)
 
     def test_docker_argv_has_only_readonly_binds_and_declared_limits(self):
         with tempfile.TemporaryDirectory() as tmp:

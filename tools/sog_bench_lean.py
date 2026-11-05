@@ -221,6 +221,58 @@ def docker_command(*, image: str, name: str, stage_dir: Path, submission: Path,
     return argv+[image,'python3','-I','/opt/judge/container.py']
 
 
+def parse_control(raw: bytes) -> tuple[dict | None,str | None]:
+    """Only supervisor-framed JSON; child stdout is escaped diagnostic data."""
+    phase=None;result=None;malformed=False
+    for line in raw.splitlines():
+        try: value=json.loads(line)
+        except (ValueError,UnicodeError): malformed=True;continue
+        if not isinstance(value,dict):malformed=True;continue
+        if value.get('kind')=='runtime-phase':
+            next_phase=value.get('phase')
+            if result is not None or (phase,next_phase) not in ((None,'challenge-preflight'),('challenge-preflight','verifying-solution')):
+                malformed=True
+            phase=next_phase
+        elif result is None:result=value
+        else:malformed=True
+    if result and result.get('kind')=='fixed-target-comparator' and phase!='verifying-solution':malformed=True
+    return (None if malformed else result),phase
+
+
+def classify(returncode: int, native, state, interruption, phase=None) -> str:
+    """Malformed/missing infrastructure evidence never becomes proof rejection."""
+    if not isinstance(state,dict) or not state.get('StartedAt') or str(state['StartedAt']).startswith('0001-'):
+        return 'infrastructure-error'
+    if state.get('OOMKilled') is True or interruption:
+        return 'resource-limit' if phase=='verifying-solution' else 'infrastructure-error'
+    if not isinstance(native,dict) or native.get('kind')!='fixed-target-comparator':
+        return 'infrastructure-error'
+    if returncode==30 and native.get('diagnostic_limit') is True:
+        return 'resource-limit'
+    comparator_exit=native.get('comparator_exit')
+    if type(comparator_exit) is not int or state.get('ExitCode')!=returncode:
+        return 'infrastructure-error'
+    if returncode==0 and comparator_exit==0 and native.get('accepted') is True:
+        return 'accepted'
+    if returncode==10 and comparator_exit!=0 and native.get('accepted') is False:
+        return 'proof-rejected'
+    return 'infrastructure-error'
+
+
+def check_runtime(directory: Path) -> dict:
+    """Operator-prepared receipt, unchanged tools and source; not attestation."""
+    receipt=json.loads((directory/'preparation.json').read_text())
+    if receipt['policy']!=policy() or receipt['image_id']!=(directory/'image-id').read_text().strip():
+        raise ValueError('Runtime policy/image drift')
+    for name,digest in receipt['tools'].items():
+        if not re.fullmatch(r'[A-Za-z0-9_.-]+',name) or bench.sha((directory/'tools'/name).read_bytes())!=digest:
+            raise ValueError('Runtime tool drift')
+    for name in ('container.py','landrun-env','policy.json'):
+        if (directory/'tools'/name).read_bytes()!=(RUNTIME/name).read_bytes():
+            raise ValueError('Runtime source does not match this verifier')
+    return receipt
+
+
 def run_submission(*, task: Path, stage_dir: Path, submission: Path,
                    runtime: Path, output: Path) -> dict:
     """Fresh Linux container per call; bounded I/O; no host execution fallback.
@@ -232,6 +284,7 @@ def run_submission(*, task: Path, stage_dir: Path, submission: Path,
     if sys.platform!='linux' or shutil.which('docker') is None:
         raise RuntimeError('Linux Docker is required; never execute submitted Lean on the host')
     if output.exists(): raise ValueError('A run evidence directory cannot be overwritten')
+    check_runtime(runtime)
     core=checked_packet(task)
     desc=json.loads((stage_dir/'stage.json').read_text())
     if desc['binding_sha256']!=core['binding_sha256'] or desc['id']!=core['id']:
@@ -287,16 +340,14 @@ def run_submission(*, task: Path, stage_dir: Path, submission: Path,
         # Only this freshly generated, exact container identity is removed.
         subprocess.run(['docker','rm','--force',name],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=10)
     (output/'runtime-output.bin').write_bytes(bytes(data[:p['limits']['diagnostic_bytes']]))
-    try: native=json.loads(bytes(data))
-    except (ValueError,UnicodeError):native=None
-    kind=('resource-limit' if interrupted or proc.returncode==30 or (state and state.get('OOMKilled')) else
-          'accepted' if proc.returncode==0 and isinstance(native,dict) and native.get('accepted') is True else
-          'proof-rejected' if proc.returncode==10 and isinstance(native,dict) and native.get('comparator_exit')!=0 else
-          'infrastructure-error')
+    native,phase=parse_control(bytes(data))
+    kind=classify(proc.returncode,native,state,interrupted,phase)
     report={'schema_version':1,'id':core['id'],'binding_sha256':core['binding_sha256'],
         'submission_sha256':bench.sha(raw),'policy_sha256':bench.sha(bench.encoded(p)),
+        'task_packet_sha256':bench.sha((task/'operator.json').read_bytes()),
+        'runtime_receipt_sha256':bench.sha((runtime/'preparation.json').read_bytes()),
         'image_id':image,'wall_seconds':time.monotonic()-started,'container_state':state,
-        'kind':kind,'interruption':interrupted,'native':native,'model_measurement':False,
+        'kind':kind,'interruption':interrupted,'runtime_phase':phase,'native':native,'model_measurement':False,
         'scoring_scope':'One submission-verification call, not a recorded model attempt or suite score.'}
     (output/'result.json').write_bytes(bench.encoded(report))
     return report
@@ -311,7 +362,10 @@ def main():
     args=parser.parse_args()
     if args.cmd=='export': print(json.dumps({'exported':export(args.output,args.task_id),'native_acceptance':False}))
     elif args.cmd=='stage': stage(args.task,args.output)
-    else:print(json.dumps(run_submission(task=args.task,stage_dir=args.stage,submission=args.submission,runtime=args.runtime,output=args.output)))
+    else:
+        result=run_submission(task=args.task,stage_dir=args.stage,submission=args.submission,runtime=args.runtime,output=args.output)
+        print(json.dumps(result))
+        raise SystemExit({'accepted':0,'proof-rejected':10,'resource-limit':30,'infrastructure-error':20}[result['kind']])
 
 
 if __name__=='__main__': main()

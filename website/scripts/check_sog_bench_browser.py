@@ -70,12 +70,29 @@ def main() -> None:
             # fonts, not only when an external CDN happens to be reachable.
             context.route('**/*', lambda route: route.continue_()
                           if route.request.url.startswith((base, 'data:')) else route.abort())
-            for path in ('index.html', 'natural-language/index.html', 'lean/index.html', 'evaluation/index.html', 'training/index.html', 'experts/index.html'):
+            for path in ('index.html', 'sampling/index.html', 'optimisation/index.html', 'geometry/index.html', 'natural-language/index.html', 'lean/index.html', 'evaluation/index.html', 'training/index.html', 'experts/index.html'):
                 response = page.goto(base + HUB + path)
                 assert response.status == 200
                 assert page.locator('[data-sog-bench]').count() == 1
+                assert page.locator('.sidebar-graphs a').count() == 2
+                assert page.locator('.sidebar-benches [data-bench-collection]').count() == 3
+                if path in ('sampling/index.html', 'optimisation/index.html', 'geometry/index.html'):
+                    assert page.locator('.sog-task-row:visible').count() <= 6
+                    collection_manifest=page.request.get(base+HUB+path.replace('index.html','manifest.json')).json()
+                    raw=page.request.get(base+HUB+path.replace('index.html','questions.jsonl')).body()
+                    assert hashlib.sha256(raw).hexdigest()==collection_manifest['files']['questions.jsonl']
+                    assert all('lean_reference' not in json.loads(line) and 'steps' not in json.loads(line) for line in raw.splitlines())
+                    rows=page.locator('.sog-task-row').count()
+                    if rows>6:
+                        page.get_by_role('button',name='Show more tasks',exact=True).click()
+                        assert page.locator('.sog-task-row:visible').count()==min(12,rows)
+                    first=page.locator('.sog-task-row').first
+                    identity=re.search(r'sogb-\d+',first.get_attribute('href')).group(0)
+                    page.get_by_role('searchbox',name='Find a task').fill(identity)
+                    assert page.locator('.sog-task-row:visible').count()==1
                 if path in ('training/index.html', 'experts/index.html'):
                     if path.startswith('training/'):
+                        page.get_by_text('Native graph runner details',exact=True).click()
                         operator = page.get_by_role('link', name='Download Harbor operator package', exact=True)
                         assert operator.is_visible()
                         assert 'Includes oracle answers and verifier material' in page.locator('article.sog-reader').inner_text()
@@ -112,6 +129,7 @@ def main() -> None:
             assert hashlib.sha256(exercise_response.body()).hexdigest() == manifest['files']['textbook-exercise-map.json']
             exercises = exercise_response.json()
             assert len(exercises) == manifest['numbered_textbook_exercises']
+            page.get_by_text('Numbered textbook exercises and our reference solutions', exact=True).click()
             page.get_by_role('link', name='Textbook exercises & answers', exact=True).click()
             page.wait_for_url('**/textbook-exercises/index.html')
             page.get_by_role('heading', name='Numbered textbook exercises', exact=True).wait_for(state='visible')
@@ -126,6 +144,7 @@ def main() -> None:
             graph_records=[json.loads(line) for line in page.request.get(base+HUB+'downloads/graph-questions.jsonl').text().splitlines()]
             compiled_graphs={r['id']+'.html':r for r in graph_records if r['context']['kind']=='compiled-proof-body-constant-occurrences'}
             assert len(graph_records)==manifest['graph_tasks']
+            page.get_by_text('Coverage, downloads and readiness',exact=True).click()
             with page.expect_download() as download:
                 page.get_by_role('link', name='Prompt-only JSONL', exact=True).click()
             path = download.value.path()
@@ -145,6 +164,13 @@ def main() -> None:
                 page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                 page.evaluate('() => MathJax.startup.promise')
                 assert page.locator('details[open]').count() == 0
+                prompt=page.locator('#natural-language [data-sog-copy-prompt]')
+                expected_prompt=page.request.get(base+HUB+prompt.get_attribute('data-sog-copy-prompt')).text()
+                prompt.click()
+                page.wait_for_function('Array.from(document.querySelectorAll("[data-sog-copy-status]")).some(n=>n.textContent==="Copied prompt-only task")')
+                copied_prompt=page.evaluate('() => navigator.clipboard.readText()')
+                assert copied_prompt.replace('\r\n','\n')==expected_prompt.replace('\r\n','\n')
+                assert json.loads(copied_prompt)==json.loads(expected_prompt)
                 page.locator('summary', has_text='Reference mathematical proof').click()
                 page.wait_for_timeout(300)
                 assert page.locator('mjx-container').count() > 0
@@ -239,7 +265,7 @@ def main() -> None:
                     assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
                     page.screenshot(path=str(args.evidence/(identity+'-source-'+suffix+'.png')),full_page=True)
                 page.set_viewport_size({'width':1400,'height':1000})
-            for tail in ('curriculum/index.html', 'graph-json/index.html', 'evaluation/index.html', 'levels/L5.html', 'domains/statistical-optimal-transport.html', 'domains/optimisation.html', 'sogb-g003.html', 'sogb-007.html', 'sogb-008.html', 'sogb-012.html', *compiled_graphs):
+            for tail in ('curriculum/index.html', 'graph-json/index.html', 'evaluation/index.html', 'evaluation/guide.html', 'levels/L5.html', 'domains/statistical-optimal-transport.html', 'domains/optimisation.html', 'sogb-g003.html', 'sogb-007.html', 'sogb-008.html', 'sogb-012.html', *compiled_graphs):
                 page.goto(base + HUB + tail)
                 page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                 page.evaluate('() => MathJax.startup.promise')
@@ -257,7 +283,7 @@ def main() -> None:
                     page.locator('summary', has_text='Independent structural review and limits').click()
                     evidence=page.request.get(base + HUB + 'downloads/graph-editorial-review.json').json()
                     assert evidence['items']['sogb-g003']['editorial'] in page.locator('article.sog-reader').inner_text()
-                if tail == 'evaluation/index.html':
+                if tail == 'evaluation/guide.html':
                     assert 'not automatically verified mathematics' in page.locator('article.sog-reader').inner_text()
                     assert page.locator('details[open]').count()==0
                     page.locator('summary', has_text='Commands and input formats').click()

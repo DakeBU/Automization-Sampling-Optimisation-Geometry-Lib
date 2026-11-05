@@ -1,8 +1,20 @@
-# SamplingOptimisationGeometryBench
+# Sampling-Optimisation-Geometry-Bench
 
 **Natural-language QA**, aligned **Lean-assisted QA** where available, and separate **structured graph QA** for sampling, optimisation and geometry. This is a **public development curriculum**, not a leaderboard or a held-out test set.
 
 [Website](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/) · [Continuing Goal and admission order](GOAL.md) · [Machine-readable curriculum](curriculum.json)
+
+Choose [SamplingBench](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/sampling/),
+[OptimisationBench](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/optimisation/) or
+[GeometryBench](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/geometry/).
+These overlapping subject collections retain one catalog, original task/family
+identities and public-dev split. Each provides admitted prompt-only JSONL and a
+source-bound manifest; collection counts must not be summed as independent data.
+The existing directory and machine identifiers remain compatible.
+
+The reader/evaluator requirements are in [the reader contract](../../docs/bench-reader-contract.md).
+Agentic Lean remains a required environment milestone, not something completed
+by the native Graph JSON adapter or by compiling trusted reference solutions.
 
 | Core | Topic | Natural-language task | Lean task |
 |---|---|---|---|

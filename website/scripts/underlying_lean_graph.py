@@ -96,11 +96,15 @@ def main_html(counts: dict[str, Any]) -> str:
     return f'''
 <section class="ulg-hero" data-underlying-lean-graph data-graph-source="{DATA}">
   <div class="eyebrow">Samplinglib · formal topology · conceptual memory · semantic fidelity</div>
+  <h1>Proof maps</h1><p>Select a view, find a result, inspect its evidence.</p>
+  <p class="sog-caption">Structure is not mathematical necessity. Conceptual bridges are not certified Lean implications.</p>
+  <details class="ulg-help"><summary>View meanings and evidence boundaries</summary>
   <div class="ulg-hero-grid">
-    <div><h1>{LABEL}</h1><p>Read the same project at three epistemic resolutions: <strong>Overview Graph</strong> for source/routes/shared stages, <strong>Lean Branches Graph</strong> for declarations, module structure and labelled reference signals, and <strong>Functor Hypergraph</strong> for source-backed recurring mathematical mechanisms such as curvature, PL/LSI and Poincaré/χ² mirrors. The views share stable ids but never share truth status automatically.</p></div>
+    <div><p>Read the same project at three epistemic resolutions: <strong>Overview Graph</strong> for source/routes/shared stages, <strong>Lean Branches Graph</strong> for declarations, module structure and labelled reference signals, and <strong>Functor Hypergraph</strong> for source-backed recurring mathematical mechanisms such as curvature, PL/LSI and Poincaré/χ² mirrors. The views share stable ids but never share truth status automatically.</p></div>
     <dl><div><dt>{counts.get('chapters', 0)}</dt><dd>sampling chapters</dd></div><div><dt>{counts.get('lean_modules', 0)}</dt><dd>Lean modules</dd></div><div><dt>{counts.get('conceptual_families', 0)}</dt><dd>concept families</dd></div><div><dt>{counts.get('conceptual_hyperedges', 0)}</dt><dd>typed bridges</dd></div><div><dt>{counts.get('samplewiki_cases', 0)}</dt><dd>frontier results</dd></div><div><dt>{counts.get('semantic_audits', 0)}</dt><dd>round-trip audits</dd></div></dl>
   </div>
   <p class="ulg-contract"><strong>Edge direction:</strong> prerequisite/reference → consumer in proof views; Methods × targets edges carry taxonomy labels, not proof implications. <strong>Solid edges</strong> record imports and module/declaration ownership, not theorem implication. <strong>dashed edges</strong> include incomplete source-name reference scans, curated proof-leaf links, textbook/source correspondences, SampleWiki routes, semantic reviews and conceptual mirrors. Scanned references are not an exhaustive export of Lean proof dependencies. <strong>Compilation proves the Lean proposition only:</strong> source fidelity additionally requires source review. Visual proximity never certifies a conceptual transport.</p>
+  </details>
 </section>
 <section class="ulg-shell">
   <div class="ulg-toolbar">

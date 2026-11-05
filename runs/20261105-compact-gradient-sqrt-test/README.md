@@ -1,7 +1,9 @@
 # Actual smooth square-root test inputs
 
-Current: **PROVED_LOCAL**, with independent semantic/code/exposition review,
-but not exact-commit VERIFIED, integrated or admitted as Bench QA. One writer,
+Current: **STABILIZING**, independently VERIFIED at exact pushed commit
+eead411ec020bb34ad18208d3453067e8905c0a6. Public-import/Registry/root-Test
+integration passes locally, but clean exact-head CI, merge, deployment and
+postmerge purification are separate. Not admitted as Bench QA. One writer,
 source branch codex/sog-bench-source-test-energy from
 main692973fc. The same Bench Goal continues; no paper/cycle frontier reset.
 The runtime remains separately in draft PR379, not duplicated into this branch.
@@ -81,3 +83,37 @@ SHA256ae9a8a79dad35e254a1d7245722099dfb3dd65c605cc2e8020026cefa702f115
 when returning to the runtime branch. This is not a source-mathematics blocker.
 
 Protected user drafts, old blind reports and stashes remain untouched/unstaged.
+
+## Serial integration checkpoint
+
+The distinct source reviewer published the real VERIFIED transition after fresh
+exact-commit checks; see commit-verification.json and the Cell for exact hashes.
+The root subsequently claimed STABILIZING through start_stabilization.py. No
+reviewer event or earlier ledger byte was rewritten. O_BINARY now makes the
+actual Windows append path preserve UTF8/LF suffixes.
+
+The public calculus import, one selected Registry leaf, root Tests import and
+the computed count assertion are integrated locally: Registry candidate597.
+The exact theorem, test and accepted source/lesson binding remain unchanged.
+qa-binding-preservation.json records all29 unchanged question bindings AND
+recursive source-context fingerprints. There is no new admitted exercise/core.
+
+Actual local acceptance: focused2679-job build; root Tests9613-job build;
+tools/astis.py check9271-job build and fake-closure gate; Python syntax and
+git diff --check; site build/check (12 chapters,1081 modules,5193 declarations);
+scoped graph check; semantic418 and Cells417. The initial root build's RCLike
+Basic.olean read error is retained. The file actually existed, cache-get fetched
+nothing, the direct calculus check and root retry passed. The cause is not
+established; do not describe a proven missing-cache restoration.
+
+Actual Edge desktop1400/mobile412 inspection checked the new six-step formula
+proof, seven display equations, no MathJax errors, initially folded highlighted
+exact Lean, successful clipboard copy, actual graph focus and no page overflow.
+The PNGs were opened: readable selected graph nodes, dashed scanner/source/audit
+overlays, pan/zoom for neighboring nodes, and horizontal formula/code scrolling
+on small screens. All preview resources were closed. Local generated report is
+_browser-evidence/compact-gradient-sqrt/report.json; it is not public deployment
+or an Exposition Seal. Full local contributor/publication gates still FAIL only
+on the owner's preexisting untracked KernelReversibilityTransport draft; it was
+not staged, edited, ignored or hidden. Scoped target checks and clean PR CI must
+be reported separately. integration-evidence.json binds these observations.

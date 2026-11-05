@@ -141,3 +141,38 @@ Check primary source and reuse current publication/source-correspondence metadat
 The first source-audited entry is chewi-opt-v1-exercise-3-2, routed through the canonical publication and GradientDescentOptimalStep cells. Its Bench admission is computed from exact current reviews, never inferred from source intake or this checkpoint. It must not replace the other cited textbooks' exercise coverage. New entries extend textbook_exercises.json and reuse canonical publication part bindings; do not maintain a parallel hand-edited theorem-status list.
 
 Coverage is computed by `python tools/sog_bench.py coverage`; do not copy counts here. Data and prose are authored once in the catalog; the website and downloadable exports project those same records. Keep the root Lean version at 4.33.0 and never count Bench examples as new Registry leaves.
+
+## Current reader / execution handoff (2026-11-05)
+
+The visual reader hierarchy merged/deployed in PR377 at692973fc: public umbrella
+Sampling-Optimisation-Geometry-Bench, separate Sampling/Optimisation/Geometry
+doors, Benchmarks beside Libraries, and first-level Lean/Functor graph links.
+The seven-domain curriculum and all existing task identities remain shared.
+Compact visual landings lead to full formula proofs and adjacent folded exact
+Lean in drilldown; do not replace rigor with thumbnails or restore inventory
+walls. Actual29-core browser/public acceptance is recorded in that PR.
+
+The real untrusted-Lean executor is a different, still-unaccepted draft PR379.
+Native06/head8a852fac accepts13 references/five negative proofs and actual
+write/TCP-denial probes. Wall termination works but its start marker is buffered
+by Lake; the fixture fails. Output flood, invalid-file and workspace trajectories
+remain unrun there. Inspect the pinned Lake IO.Process.output observation API
+before another run; do not repeat an unchanged probe, silently loosen limits,
+execute submitted Lean on the host, or relabel scripted software tests as actual
+model measurements. Keep the public executor-pending label until real acceptance.
+
+An independent source-backed Exercise1.7 input producer is VERIFIED at exact
+eead411e, now serially STABILIZING in PR381. It derives genuine smoothness and
+actual finite integrals of sqrt(1+epsilon*f) from a bounded smooth f with compact
+derivative support, reusing the existing energy technology. Local root Tests,
+site/graph and desktop/mobile formula/folded-Lean checks pass; all29 existing
+QA bindings and recursive source contexts are unchanged. Clean CI, merge,
+deployment and scoped independent postmerge seal remain separate. This does
+not admit another exercise or prove LSI extension/application, canonical Fisher,
+uncentering or PI/core closure. Preserve the private-generic-cutoff discovery.
+
+Next prioritize acceptance of the actual Agentic Lean environment and its
+separate independent runtime/security review, while completing only substantive
+source-ready mathematics. Actual-provider trajectories/provenance, calibration,
+private families and complete seven-domain/textbook depth remain outstanding.
+No visual delivery or one helper closes this Goal.

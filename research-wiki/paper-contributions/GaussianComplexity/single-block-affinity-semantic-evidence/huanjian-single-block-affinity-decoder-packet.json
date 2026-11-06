@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-8cda7b518a0279d5",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ} (hκ : 4 ≤ κ),\n    let μ := (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))))⁻¹\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)))).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))) *ᵥ WithLp.ofLp x)) / 2)\n    let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos\n    let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg\n    let Ppos := νpos.bind γ\n    let Pneg := νneg.bind γ\n    let δ : ℝ := sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin n)),\n      MeasurableSet B ∧ z = |Ppos.real B - Pneg.real B|}\n    let a : ℝ := ∫ x, Real.sqrt (qpos x * qneg x)\n    Integrable (fun x => Real.sqrt (qpos x * qneg x)) volume ∧\n    0 ≤ a ∧ a ≤ 1 ∧ δ ≤ Real.sqrt (1 - a ^ 2) ∧\n    a ≤ Real.sqrt (1 - (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ∧\n    Real.sqrt (1 - (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ≤\n      Real.exp (-(1 / 8 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ))",
+    "statement_sha256": "8cda7b518a0279d53b3dd438aa8261b45534fed005ecba3239c4287de8f546a5",
+    "compiled": true,
+    "approved_definition_context": [
+      "EuclideanSpace real (Fin n) is real n-dimensional Euclidean space with its standard l2 norm, Borel structure and Euclidean Lebesgue volume. Fin n indexes coordinates from zero through n-1. WithLp.ofLp is the coordinate representation.",
+      "The orthogonal group is full real O(n), both determinant signs, with its matrix Borel structure. Measure.haarMeasure(top : TopologicalSpace.PositiveCompacts G) is canonical normalized full-group Haar probability.",
+      "Measure.restrict is restriction to the displayed set. Scalar multiplication of measures uses extended nonnegative real scalars. Measure.bind integrates the displayed measure kernel against its input measure. Measure.withDensity of a nonnegative extended-real function is the measure whose measurable-set values are its set lintegrals under the base measure.",
+      "multivariateGaussian mean m matrix C is the pushforward of canonical stdGaussian by z -> m + Matrix.toEuclideanCLM (CFC.sqrt C) z. Its covariance interpretation holds for positive semidefinite C. Matrix inverse is standard totalized matrix inverse.",
+      "Integrable is genuine real Bochner absolute integrability. The displayed integrals with real integrands are real Bochner integrals; unspecified measure is volume on the displayed Euclidean carrier. Real n/2 powers use Real.rpow and real division; natural powers have natural exponents. ENNReal.ofReal maps a real number to its nonnegative extended-real truncation. Real division/inverse are totalized at zero.",
+      "Measure.real B is the real value (Measure B).toReal. The supremum ranges over exactly the displayed real absolute event differences with measurable B. No TV abbreviation or independent supplied estimate occurs."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "86eca19e08ecaf61a292431b46e9ee7aa0706e9ce61d8254e75b10c7decbbd02"
+}

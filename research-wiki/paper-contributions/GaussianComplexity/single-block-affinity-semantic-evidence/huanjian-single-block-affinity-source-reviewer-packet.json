@@ -1,0 +1,285 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-be1daa506a9f75e1",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "huanjian_gc_20261106_affinity",
+    "blind_decoder": "Codex (GPT-6), canonical agent /root/decode_816493; exact serving variant not exposed.",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "arxiv2610.20492v1-SingleBlockAffinity",
+    "anchor": "Appendix B.2.3 proof of Lemma3.3, A2.SS2.SSS3.p2.1-p2.4, Ex68 (affinity), Ex69 (TV/Cauchy-Schwarz), Eq25; definitions S2.p2.1, S3.E4/S3.SS1.p3.1, A2.SS2.p2.1; Proposition B.7 Eq19 atomic parent.",
+    "original_text": "The actual sign-conditioned Gaussian mixtures have genuinely integrable affinity and satisfy the TV comparison and Eq25. a\\le\\sqrt{1-\\tfrac14e^{-10n/\\sqrt\\kappa}}\\le\\exp\\!\\left(-\\tfrac18e^{-10n/\\sqrt\\kappa}\\right). Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including endpoints and odd dimensions. \\(\\mu\\) is normalized Haar on full \\(O(n)\\); \\(\\nu_b=2\\mu|_{\\{\\det O=b\\}}\\), \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), and \\(P_b=\\nu_b\\mathrm{bind}[O\\mapsto\\mathcal N(0,A_O^{-1})]\\). The source densities are determined Lebesgue-a.e. The chosen \\(q_b\\) are the actual conditioned-Haar averages of the full Gaussian precision density. Their nonnegativity, measurability, genuine L1, mass one and actual-law identities are obtained internally from the canonical producer. \\(\\delta\\) is normalized event TV, not the unnormalized variation norm. Affinity L1/range, the TV comparison and B.7 are internal dependencies, never caller hypotheses. p_O(x)=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}e^{-x^\\top A_Ox/2},\\quad q_b(x)=\\int p_O(x)\\,d\\nu_b(O),\\quad a=\\int\\sqrt{q_+q_-}\\,dx,\\quad\\delta=\\sup_{B\\ \\mathrm{meas.}}|P_+(B)-P_-(B)|.",
+    "text_sha256": "126c832bc26e400cf80fcdfed06aed2240c28ce4cd26e1960dfa6df2e7c43707"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity.single_block_affinity_bound",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/SingleBlockAffinity.lean",
+    "statement": "∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ} (hκ : 4 ≤ κ),\n    let μ := (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))))⁻¹\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)))).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))) *ᵥ WithLp.ofLp x)) / 2)\n    let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos\n    let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg\n    let Ppos := νpos.bind γ\n    let Pneg := νneg.bind γ\n    let δ : ℝ := sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin n)),\n      MeasurableSet B ∧ z = |Ppos.real B - Pneg.real B|}\n    let a : ℝ := ∫ x, Real.sqrt (qpos x * qneg x)\n    Integrable (fun x => Real.sqrt (qpos x * qneg x)) volume ∧\n    0 ≤ a ∧ a ≤ 1 ∧ δ ≤ Real.sqrt (1 - a ^ 2) ∧\n    a ≤ Real.sqrt (1 - (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ∧\n    Real.sqrt (1 - (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ≤\n      Real.exp (-(1 / 8 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ))",
+    "statement_sha256": "8cda7b518a0279d53b3dd438aa8261b45534fed005ecba3239c4287de8f546a5",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every natural number n, under the hypothesis 3 ≤ n, and then for every real number κ, under the hypothesis 4 ≤ κ, make the following definitions in the displayed order.\n\nLet E = EuclideanSpace ℝ (Fin n), the real n-dimensional Euclidean space with coordinates indexed by Fin n = {0,…,n−1}, its standard ℓ² norm, Borel structure, and Euclidean Lebesgue measure volume. Let G = Matrix.orthogonalGroup (Fin n) ℝ, the full real orthogonal group O(n), including both determinant signs, with its matrix Borel structure. Write O also for the underlying real n-by-n matrix of an element O ∈ G. Let μ be the canonical Haar measure normalized on the whole compact group G; thus μ is the full-group Haar probability measure.\n\nDefine\n  νpos = 2 · (μ restricted to {O ∈ G : det O = 1}),\n  νneg = 2 · (μ restricted to {O ∈ G : det O = −1}),\nwhere the multiplier 2 is an extended nonnegative real scalar acting on measures. For use in the following definitions, abbreviate the real matrix expression\n  A(O) = ((κ + 1)/2) Iₙ − ((κ − 1)/4)(O + Oᵀ).\nDefine γ : G → Measure(E) by letting γ(O) be multivariateGaussian with mean 0 ∈ E and matrix parameter A(O)⁻¹. Precisely, the multivariateGaussian convention is the pushforward of canonical standard Gaussian measure on E under z ↦ 0 + Matrix.toEuclideanCLM(CFC.sqrt(A(O)⁻¹))(z). The matrix inverse is the standard totalized matrix inverse; the covariance interpretation of this Gaussian convention is the one valid for positive semidefinite matrix parameters.\n\nFor O ∈ G and x ∈ E, with v = WithLp.ofLp(x) its coordinate vector, define\n  p(O,x) = [√(det A(O)) / (2π)^(n/2)] · exp(−(v · (A(O)v))/2).\nIn the denominator, n is coerced to a real number and (2π)^(n/2) is a real power, with real division by 2, not a power with a natural-number exponent. The products O + Oᵀ, A(O)v, and v · (A(O)v) are respectively matrix addition, matrix-vector multiplication, and the coordinate dot product. Define the real functions on E\n  qpos(x) = ∫_G p(O,x) dνpos(O),\n  qneg(x) = ∫_G p(O,x) dνneg(O).\nThen define\n  Ppos = νpos.bind γ,\n  Pneg = νneg.bind γ,\nnamely the measures obtained by integrating the displayed measure kernel γ against νpos and νneg, respectively.\n\nDefine the real numbers\n  δ = sup {z ∈ ℝ : there exists a measurable set B ⊆ E such that z = |(Ppos(B)).toReal − (Pneg(B)).toReal|},\n  a = ∫_E √(qpos(x)qneg(x)) dvolume(x).\nThe set in this supremum ranges over exactly those absolute differences for measurable events B. The notation (P(B)).toReal means the real value of the extended nonnegative measure value P(B); the supremum is the real conditionally complete supremum. No separate event-distance estimate is assumed.\n\nThen x ↦ √(qpos(x)qneg(x)) is integrable with respect to volume, and all of the following hold:\n  0 ≤ a,\n  a ≤ 1,\n  δ ≤ √(1 − a²),\n  a ≤ √(1 − (1/4) exp(−(10n)/√κ)),\n  √(1 − (1/4) exp(−(10n)/√κ)) ≤ exp(−(1/8) exp(−(10n)/√κ)).\nIn these last expressions n is coerced to ℝ, and the exponent 2 in a² is the natural-number exponent 2. All displayed integrals of real-valued functions are real Bochner integrals, and integrability means genuine absolute Bochner integrability. Every unspecified Euclidean integral uses volume. Square roots are the nonnegative real square roots with the totalized real convention, and real division and inverse have their totalized conventions at zero.",
+    "text_sha256": "5620d9226a2ef244f99d71f304711ea0d55920b42e1315e5f00422519062327f",
+    "decoder": "Codex (GPT-6), canonical agent /root/decode_816493; exact serving variant not exposed.",
+    "decoder_packet_sha256": "86eca19e08ecaf61a292431b46e9ee7aa0706e9ce61d8254e75b10c7decbbd02",
+    "decoder_run_sha256": "31f4b99a041290cdd644b6ce233f5ccd9dbfcc4466749359eff635c932803747",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "ad8f29a8191e11191776379008f59860346326eed5ab1d2bb252b243a077266e",
+  "candidate_publication_context": {
+    "file": "9ef864fede2a63327f8441c7a136494b4669620fa1175a08f311a457546ac913",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation\nimport AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity\n\n/-!\n# The actual single-block affinity bound (Eq25)\n\nZhou--Suzuki, arXiv:2610.20492v1, Appendix B.2.3, Ex68--69 and Eq25.\nThe actual determinant-conditioned Gaussian bind laws and their actual density\nrepresentatives instantiate the single shared normalized-density comparison.\nB.7 and the scalar log inequality then yield both exact Eq25 inequalities.\nOnly n>=3 and kappa>=4 are public assumptions; analytic ingredients are internal.\nActual block product laws, tensorization, amplification, oracle/precision/cost\nadapters and both main lower bounds remain separate.\n-/\n\nopen Matrix MeasureTheory\nopen scoped ENNReal\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\nopen AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity\nset_option autoImplicit false\n\ntheorem single_block_affinity_bound {n : ℕ} (hn : 3 ≤ n) {κ : ℝ} (hκ : 4 ≤ κ) :\n    let μ := orthogonalHaar n\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ O)⁻¹\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n    let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos\n    let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg\n    let Ppos := νpos.bind γ\n    let Pneg := νneg.bind γ\n    let δ : ℝ := sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin n)),\n      MeasurableSet B ∧ z = |Ppos.real B - Pneg.real B|}\n    let a : ℝ := ∫ x, Real.sqrt (qpos x * qneg x)\n    Integrable (fun x => Real.sqrt (qpos x * qneg x)) volume ∧\n    0 ≤ a ∧ a ≤ 1 ∧ δ ≤ Real.sqrt (1 - a ^ 2) ∧\n    a ≤ Real.sqrt (1 - (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ∧\n    Real.sqrt (1 - (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ≤\n      Real.exp (-(1 / 8 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) := by\n  classical\n  dsimp only\n  let μ := orthogonalHaar n\n  let νpos := (2 : ℝ≥0∞) • μ.restrict\n    {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n  let νneg := (2 : ℝ≥0∞) • μ.restrict\n    {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n  let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=\n    fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n      (singleBlockPrecision κ O)⁻¹\n  let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n    fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n      (2 * Real.pi) ^ ((n : ℝ) / 2) *\n      Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n        (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n  let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos\n  let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg\n  let Ppos := νpos.bind γ\n  let Pneg := νneg.bind γ\n  let δ : ℝ := sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin n)),\n    MeasurableSet B ∧ z = |Ppos.real B - Pneg.real B|}\n  let a : ℝ := ∫ x, Real.sqrt (qpos x * qneg x)\n  have hd := MixtureDensities.actual_mixture_densities hn hκ\n  dsimp only at hd\n  have hc := normalized_density_tv_affinity (volume : Measure (EuclideanSpace ℝ (Fin n)))\n    (fun x => (hd.1 x).1) (fun x => (hd.1 x).2)\n    hd.2.1 hd.2.2.1 hd.2.2.2.1 hd.2.2.2.2.1\n    hd.2.2.2.2.2.1 hd.2.2.2.2.2.2.1\n  dsimp only at hc\n  have hreal (q : EuclideanSpace ℝ (Fin n) → ℝ)\n      (hq0 : ∀ x, 0 ≤ q x) (hqm : Measurable q)\n      (B : Set (EuclideanSpace ℝ (Fin n))) (hB : MeasurableSet B) :\n      (volume.withDensity (fun x => ENNReal.ofReal (q x))).real B =\n        ∫ x in B, q x := by\n    rw [measureReal_def, withDensity_apply _ hB]\n    exact (integral_eq_lintegral_of_nonneg_ae\n      (Filter.Eventually.of_forall hq0) hqm.aestronglyMeasurable).symm\n  have hpos (B : Set (EuclideanSpace ℝ (Fin n))) (hB : MeasurableSet B) :\n      Ppos.real B = ∫ x in B, qpos x := by\n    have he : Ppos = volume.withDensity (fun x => ENNReal.ofReal (qpos x)) :=\n      hd.2.2.2.2.2.2.2.1\n    rw [he]\n    exact hreal qpos (fun x => (hd.1 x).1) hd.2.1 B hB\n  have hneg (B : Set (EuclideanSpace ℝ (Fin n))) (hB : MeasurableSet B) :\n      Pneg.real B = ∫ x in B, qneg x := by\n    have he : Pneg = volume.withDensity (fun x => ENNReal.ofReal (qneg x)) :=\n      hd.2.2.2.2.2.2.2.2\n    rw [he]\n    exact hreal qneg (fun x => (hd.1 x).2) hd.2.2.1 B hB\n  have hset : {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin n)), MeasurableSet B ∧\n        z = |Ppos.real B - Pneg.real B|} =\n      {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin n)), MeasurableSet B ∧\n        z = |(∫ x in B, qpos x) - (∫ x in B, qneg x)|} := by\n    ext z\n    constructor <;> rintro ⟨B, hB, hz⟩\n    · exact ⟨B, hB, (by rw [← hpos B hB, ← hneg B hB]; exact hz)⟩\n    · exact ⟨B, hB, (by rw [hpos B hB, hneg B hB]; exact hz)⟩\n  have ha0 : 0 ≤ a := hc.2.1\n  have ha1 : a ≤ 1 := hc.2.2.1\n  have htv : δ ≤ Real.sqrt (1 - a ^ 2) := by\n    dsimp only [δ]\n    rw [hset]\n    exact hc.2.2.2.2.2\n  have hb7 := SingleBlockSeparation.single_block_separation hn hκ\n  dsimp only at hb7\n  have hlow : (1 / 2 : ℝ) * Real.exp (-(5 * (n : ℝ)) / Real.sqrt κ) ≤ δ :=\n    hb7.1.trans hb7.2\n  have hrad : 0 ≤ 1 - a ^ 2 := by nlinarith\n  have hsquare : ((1 / 2 : ℝ) * Real.exp (-(5 * (n : ℝ)) / Real.sqrt κ)) ^ 2 ≤\n      1 - a ^ 2 := by\n    have he := hlow.trans htv\n    have hpos : 0 ≤ (1 / 2 : ℝ) * Real.exp (-(5 * (n : ℝ)) / Real.sqrt κ) := by\n      positivity\n    have hs := Real.sq_sqrt hrad\n    nlinarith [Real.sqrt_nonneg (1 - a ^ 2)]\n  have hexp : Real.exp (-(5 * (n : ℝ)) / Real.sqrt κ) ^ 2 =\n      Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ) := by\n    rw [pow_two, ← Real.exp_add]\n    congr 1\n    ring\n  have hfirst : a ≤ Real.sqrt\n      (1 - (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) := by\n    apply Real.le_sqrt_of_sq_le\n    rw [mul_pow, hexp] at hsquare\n    nlinarith\n  let t : ℝ := (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)\n  have hn0 : (0 : ℝ) < n := by exact_mod_cast (lt_of_lt_of_le (by decide : 0 < 3) hn)\n  have hs0 : 0 < Real.sqrt κ := Real.sqrt_pos.mpr (by linarith)\n  have ht1 : t < 1 := by\n    have he : Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ) ≤ 1 :=\n      Real.exp_le_one_iff.mpr\n        (div_nonpos_of_nonpos_of_nonneg (by linarith) hs0.le)\n    dsimp only [t]\n    linarith\n  have hlog : Real.log (1 - t) ≤ -t := by\n    have he := Real.log_le_sub_one_of_pos (sub_pos.mpr ht1)\n    linarith\n  have hsqrt : Real.sqrt (1 - t) = Real.exp (Real.log (1 - t) / 2) := by\n    rw [Real.sqrt_eq_rpow, Real.rpow_def_of_pos (sub_pos.mpr ht1)]\n    congr 1\n    ring\n  have hlast : Real.sqrt\n      (1 - (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ≤\n      Real.exp (-(1 / 8 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) := by\n    calc\n      _ = Real.exp (Real.log (1 - t) / 2) := hsqrt\n      _ ≤ Real.exp (-t / 2) := Real.exp_le_exp.mpr (by linarith)\n      _ = _ := by congr 1; dsimp only [t]; ring\n  exact ⟨hc.1, ha0, ha1, htv, hfirst, hlast⟩\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A2.E25",
+      "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "Appendix B.2.3 proof of Lemma3.3, A2.SS2.SSS3.p2.1-p2.4, Ex68 (affinity), Ex69 (TV/Cauchy-Schwarz), Eq25; definitions S2.p2.1, S3.E4/S3.SS1.p3.1, A2.SS2.p2.1; Proposition B.7 Eq19 atomic parent.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Faithful restatement of the single-block TV–affinity comparison and Eq25, with actual density representatives made explicit.",
+      "scope": "Actual single block only, every n≥3 and κ≥4. No full block-product law or main lower-bound theorem."
+    },
+    "statement": "The actual sign-conditioned Gaussian mixtures have genuinely integrable affinity and satisfy the TV comparison and Eq25. a\\le\\sqrt{1-\\tfrac14e^{-10n/\\sqrt\\kappa}}\\le\\exp\\!\\left(-\\tfrac18e^{-10n/\\sqrt\\kappa}\\right). Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including endpoints and odd dimensions. \\(\\mu\\) is normalized Haar on full \\(O(n)\\); \\(\\nu_b=2\\mu|_{\\{\\det O=b\\}}\\), \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), and \\(P_b=\\nu_b\\mathrm{bind}[O\\mapsto\\mathcal N(0,A_O^{-1})]\\). The source densities are determined Lebesgue-a.e. The chosen \\(q_b\\) are the actual conditioned-Haar averages of the full Gaussian precision density. Their nonnegativity, measurability, genuine L1, mass one and actual-law identities are obtained internally from the canonical producer. \\(\\delta\\) is normalized event TV, not the unnormalized variation norm. Affinity L1/range, the TV comparison and B.7 are internal dependencies, never caller hypotheses. p_O(x)=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}e^{-x^\\top A_Ox/2},\\quad q_b(x)=\\int p_O(x)\\,d\\nu_b(O),\\quad a=\\int\\sqrt{q_+q_-}\\,dx,\\quad\\delta=\\sup_{B\\ \\mathrm{meas.}}|P_+(B)-P_-(B)|.",
+    "formulae": [
+      {
+        "label": "Eq25",
+        "tex": "a\\le\\sqrt{1-\\tfrac14e^{-10n/\\sqrt\\kappa}}\\le\\exp\\!\\left(-\\tfrac18e^{-10n/\\sqrt\\kappa}\\right)."
+      },
+      {
+        "label": "Actual TV comparison and range",
+        "tex": "\\sqrt{q_+q_-}\\in L^1(dx),\\quad0\\le a\\le1,\\quad\\delta\\le\\sqrt{1-a^2}."
+      }
+    ],
+    "assumptions": [
+      "Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including endpoints and odd dimensions.",
+      "\\(\\mu\\) is normalized Haar on full \\(O(n)\\); \\(\\nu_b=2\\mu|_{\\{\\det O=b\\}}\\), \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), and \\(P_b=\\nu_b\\mathrm{bind}[O\\mapsto\\mathcal N(0,A_O^{-1})]\\).",
+      "The source densities are determined Lebesgue-a.e. The chosen \\(q_b\\) are the actual conditioned-Haar averages of the full Gaussian precision density. Their nonnegativity, measurability, genuine L1, mass one and actual-law identities are obtained internally from the canonical producer.",
+      "\\(\\delta\\) is normalized event TV, not the unnormalized variation norm. Affinity L1/range, the TV comparison and B.7 are internal dependencies, never caller hypotheses."
+    ],
+    "obligations": [
+      {
+        "id": "actual-single-block-tv-affinity-eq25",
+        "label": "Actual Gaussian affinity L1/range, normalized TV upper comparison and both exact Eq25 inequalities."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity.single_block_affinity_bound",
+      "title": "Eq25: affinity of the actual single-block mixtures",
+      "reader_note": "The explicit affinity bound is shown first; full objects, hypotheses, formula proof and exact Lean are folded below.",
+      "statement": "The actual sign-conditioned Gaussian mixtures have genuinely integrable affinity and satisfy the TV comparison and Eq25.",
+      "formula": "a\\le\\sqrt{1-\\tfrac14e^{-10n/\\sqrt\\kappa}}\\le\\exp\\!\\left(-\\tfrac18e^{-10n/\\sqrt\\kappa}\\right).",
+      "assumptions": [
+        "Exactly \\(n\\in\\mathbb N,\\ n\\ge3\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including endpoints and odd dimensions.",
+        "\\(\\mu\\) is normalized Haar on full \\(O(n)\\); \\(\\nu_b=2\\mu|_{\\{\\det O=b\\}}\\), \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), and \\(P_b=\\nu_b\\mathrm{bind}[O\\mapsto\\mathcal N(0,A_O^{-1})]\\).",
+        "The source densities are determined Lebesgue-a.e. The chosen \\(q_b\\) are the actual conditioned-Haar averages of the full Gaussian precision density. Their nonnegativity, measurability, genuine L1, mass one and actual-law identities are obtained internally from the canonical producer.",
+        "\\(\\delta\\) is normalized event TV, not the unnormalized variation norm. Affinity L1/range, the TV comparison and B.7 are internal dependencies, never caller hypotheses."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(p_O,q_b,a,\\delta\\)",
+          "text": "All integrals in x use Euclidean Lebesgue volume; the Gaussian exponent uses real n/2. The actual law equality fixes the chosen representative, and a.e. replacement leaves the integrals unchanged.",
+          "formula": "p_O(x)=\\frac{\\sqrt{\\det A_O}}{(2\\pi)^{n/2}}e^{-x^\\top A_Ox/2},\\quad q_b(x)=\\int p_O(x)\\,d\\nu_b(O),\\quad a=\\int\\sqrt{q_+q_-}\\,dx,\\quad\\delta=\\sup_{B\\ \\mathrm{meas.}}|P_+(B)-P_-(B)|."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Identify the actual density integrals",
+          "text": "Reuse the actual mixture-density theorem. For every measurable event, its actual law mass is the integral of the corresponding chosen density. Thus the density event supremum is exactly TV of these same Gaussian mixtures. No arbitrary density or lower-bound witness is supplied.",
+          "formula": "P_b(B)=\\int_Bq_b(x)\\,dx,\\qquad q_b\\ge0,\\quad q_b\\in L^1(dx),\\quad\\int q_b\\,dx=1.",
+          "lean": "hd calls MixtureDensities.actual_mixture_densities. hreal, hpos and hneg use withDensity_apply and integral_eq_lintegral_of_nonneg_ae; hset identifies the exact event-value sets."
+        },
+        {
+          "title": "Apply the single canonical affinity comparison",
+          "text": "The proved actual density properties instantiate the shared normalized-density theorem. Its square-root L2 argument supplies genuine affinity integrability, the range and Cauchy–Schwarz TV bound. The same compiled node will later provide the lower comparison for actual product densities.",
+          "formula": "\\sqrt{q_+q_-}\\in L^1(dx),\\qquad0\\le a\\le1,\\qquad\\delta\\le\\sqrt{1-a^2}.",
+          "lean": "hc calls DensityAffinity.normalized_density_tv_affinity with every condition supplied by hd. htv transports the resulting bound using hset; the general lemma is not an extra premise."
+        },
+        {
+          "title": "Use B.7 for these same actual laws",
+          "text": "The canonical single-block separation theorem gives a positive lower bound on this very event TV. Square the nonnegative comparison with the Cauchy–Schwarz upper bound. The doubled exponential is exact.",
+          "formula": "\\frac12e^{-5n/\\sqrt\\kappa}\\le\\delta\\le\\sqrt{1-a^2}\\quad\\Longrightarrow\\quad a^2\\le1-\\frac14e^{-10n/\\sqrt\\kappa}.",
+          "lean": "hb7 calls SingleBlockSeparation.single_block_separation; hlow composes its exact ratio chain. hrad, hsquare and hexp justify squaring and compute exp(u)^2=exp(2u); no parity restriction occurs."
+        },
+        {
+          "title": "Take the square root and apply the source log bound",
+          "text": "Nonnegativity of a gives the first Eq25 inequality. Set t to the explicit positive exponential quarter; n≥3 and κ≥4 imply t<1. The standard log inequality for 1−t>0, together with the sqrt–log identity, gives the second inequality. Mathlib uses the stronger log(x)≤x−1 for every x>0.",
+          "formula": "a\\le\\sqrt{1-t}=\\exp\\!\\left(\\tfrac12\\log(1-t)\\right)\\le e^{-t/2},\\qquad t=\\tfrac14e^{-10n/\\sqrt\\kappa}\\in(0,1).",
+          "lean": "hfirst uses Real.le_sqrt_of_sq_le. hn0, hs0 and ht1 discharge the domain. hlog calls Real.log_le_sub_one_of_pos; hsqrt uses Real.rpow_def_of_pos; hlast applies exp monotonicity and exact rational arithmetic."
+        },
+        {
+          "title": "Consume Eq25 as an actual-affinity power estimate",
+          "text": "For every natural k, monotonicity of nonnegative powers and exp(k u)=(exp u)^k give the scalar factor needed later by amplification. This is a numerical bound on the actual single-block integral; no equality with a product-law affinity is claimed.",
+          "formula": "a^k\\le\\exp\\!\\left(-\\frac{k}{8}e^{-10n/\\sqrt\\kappa}\\right),\\qquad k\\in\\mathbb N.",
+          "lean": "Tests.GaussianComplexitySingleBlockAffinity proves this for all source n,κ and k using single_block_affinity_bound, pow_le_pow_left₀ and Real.exp_nat_mul."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities.actual_mixture_densities",
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity.normalized_density_tv_affinity",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation.single_block_separation"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.withDensity_apply",
+        "MeasureTheory.integral_eq_lintegral_of_nonneg_ae",
+        "Real.le_sqrt_of_sq_le",
+        "Real.exp_add",
+        "Real.log_le_sub_one_of_pos",
+        "Real.rpow_def_of_pos",
+        "Real.exp_le_exp"
+      ],
+      "lean_statement": "Exactly the preproof sealed actual-law signature with only hn and hκ.",
+      "lean_proof": "The exact extracted proof instantiates the shared density node and B.7 internally, then derives the source scalar estimates.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.E25",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Appendix B.2.3 proof of Lemma3.3, A2.SS2.SSS3.p2.1-p2.4, Ex68 (affinity), Ex69 (TV/Cauchy-Schwarz), Eq25; definitions S2.p2.1, S3.E4/S3.SS1.p3.1, A2.SS2.p2.1; Proposition B.7 Eq19 atomic parent.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Faithful restatement of the single-block TV–affinity comparison and Eq25, with actual density representatives made explicit.",
+          "scope": "Actual single block only, every n≥3 and κ≥4. No full block-product law or main lower-bound theorem.",
+          "label": "Zhou–Suzuki, B.2.3 Ex68–69 and Eq25"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexitySingleBlockAffinity"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity.single_block_affinity_bound",
+      "role": "proof-edge",
+      "supports": [
+        "actual-single-block-tv-affinity-eq25"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "B.2 standing n≥3,κ≥4, actual P_b and normalized event-TV convention.",
+        "lean": "Exactly n≥3,κ≥4; same literal A, actual N(0,A⁻¹), conditioned full-Haar binds and measurable-event supremum."
+      },
+      {
+        "source": "p_b is a.e.-defined Lebesgue density of P_b.",
+        "lean": "Use the already certified actual q_b Bochner-average representative and actual law equalities."
+      },
+      {
+        "source": "Cauchy–Schwarz, B.7 and log(1−t)≤−t yield Ex69 and Eq25.",
+        "lean": "Reuse one generic normalized-density TV/affinity node plus exact B.7; apply log(x)≤x−1 for x=1−t>0."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "dee021aa312c0fed11d3658e9aebe0fb44cff11e89f1d549fd050d0e4eec13e5"
+}

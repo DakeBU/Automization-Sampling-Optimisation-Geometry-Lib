@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity.normalized_density_tv_affinity",
+      "title": "Normalized density TV and Hellinger affinity",
+      "reader_note": "One common density comparison is shown first; its intrinsic density conditions, formula proof and exact Lean are folded below.",
+      "statement": "Two normalized nonnegative densities satisfy both sharp TV–affinity comparisons.",
+      "formula": "1-a\\le\\delta=\\frac12\\int|f-g|\\,d\\mu\\le\\sqrt{1-a^2},\\qquad0\\le a\\le1.",
+      "assumptions": [
+        "\\((X,\\mathcal A,\\mu)\\) is any measure space. No finiteness, probability or sigma-finiteness assumption is made on the reference measure \\(\\mu\\).",
+        "\\(f,g:X\\to\\mathbb R\\) are measurable, nonnegative at every point, genuinely integrable, and satisfy \\(\\int f\\,d\\mu=\\int g\\,d\\mu=1\\). These define the generic density contract; the actual paper theorem has none of them as additional caller hypotheses.",
+        "This is a pointwise representative contract, not a claim of the weakest a.e. interface. Event masses are the actual density set integrals; actual-law consumers must identify them with the matching measures."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(a,\\delta\\)",
+          "text": "Affinity uses a real Bochner integral; its true L1 and range are conclusions. The event supremum is over measurable sets only.",
+          "formula": "a=\\int\\sqrt{fg}\\,d\\mu,\\qquad\\delta=\\sup_{B\\in\\mathcal A}\\left|\\int_Bf\\,d\\mu-\\int_Bg\\,d\\mu\\right|."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Place square-root densities in L2",
+          "text": "The squared square roots are the original nonnegative densities. Their squared integrals are one. Cauchy–Schwarz gives both genuine integrability of their product and affinity at most one; its nonnegative integrand gives the other endpoint.",
+          "formula": "F=\\sqrt f,\\ G=\\sqrt g,\\quad\\int F^2=\\int G^2=1,\\quad FG=\\sqrt{fg}\\in L^1,\\quad0\\le a\\le1.",
+          "lean": "hF/hG use memLp_two_iff_integrable_sq. hmul uses MemLp.integrable_mul; hprod uses Real.sqrt_mul; ha1 uses integral_mul_le_Lp_mul_Lq_of_nonneg."
+        },
+        {
+          "title": "Obtain the sharp half factor on every event",
+          "text": "Let d=f−g. It has total integral zero, so an event integral and its complement have opposite values. Bound the absolute integral on each part by the corresponding integral of |d| and add. The event-value set is nonempty and bounded.",
+          "formula": "\\int d=0,\\qquad\\left|\\int_Bd\\right|=\\left|\\int_{B^c}d\\right|,\\qquad2\\left|\\int_Bd\\right|\\le\\int|d|.",
+          "lean": "hd0 follows from the unit masses; hevent uses integral_add_compl and abs_integral_le_integral_abs. hDne/hDbd and csSup_le produce the upper bound for the supremum."
+        },
+        {
+          "title": "Attain the bound on the positive set",
+          "text": "The measurable set where d≥0 attains the positive-part integral. Since the total integral vanishes, the positive part is half the L1 norm. This proves equality with normalized event TV.",
+          "formula": "B_+=\\{d\\ge0\\},\\qquad\\int|d|=2\\int d_+-\\int d=2\\int_{B_+}d,\\qquad\\delta=\\tfrac12\\int|f-g|.",
+          "lean": "hpos identifies the positive part with B.indicator d. hattain uses integral_abs_eq_two_mul_integral_posPart_sub_integral and integral_indicator. le_csSup and hsup_le give htv."
+        },
+        {
+          "title": "Derive the lower affinity comparison",
+          "text": "For nonnegative values, the smaller of f and g is at most their geometric mean. Equivalently, f+g−2√(fg)≤|f−g|. Integrate this inequality and use both masses and the exact TV identity.",
+          "formula": "f+g-2\\sqrt{fg}\\le|f-g|\\quad\\Longrightarrow\\quad2-2a\\le2\\delta\\quad\\Longrightarrow\\quad1-a\\le\\delta.",
+          "lean": "hpoint uses Real.le_sqrt_of_sq_le in the two value orderings; hlower applies integral_mono with actual L1 of every term."
+        },
+        {
+          "title": "Derive the upper affinity comparison",
+          "text": "Factor the density difference through the sum and difference of square roots. Their squares integrate to 2±2a. Cauchy–Schwarz, followed by nonnegative square-root algebra, gives the upper bound.",
+          "formula": "\\begin{aligned}2\\delta&=\\int|F-G|(F+G)\\\\&\\le\\sqrt{\\int(F-G)^2}\\sqrt{\\int(F+G)^2}\\\\&=\\sqrt{2-2a}\\sqrt{2+2a}=2\\sqrt{1-a^2}.\\end{aligned}",
+          "lean": "hminus/hplus establish L2; hminusInt/hplusInt expand the integrals. hc is the same canonical Mathlib Cauchy–Schwarz node, hfactor and hroot give the exact algebra, and hupper concludes."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "MeasureTheory.memLp_two_iff_integrable_sq",
+        "MeasureTheory.MemLp.integrable_mul",
+        "MeasureTheory.integral_mul_le_Lp_mul_Lq_of_nonneg",
+        "MeasureTheory.integral_add_compl",
+        "MeasureTheory.abs_integral_le_integral_abs",
+        "MeasureTheory.integral_abs_eq_two_mul_integral_posPart_sub_integral",
+        "MeasureTheory.integral_indicator",
+        "csSup_le",
+        "le_csSup",
+        "Real.sqrt_mul"
+      ],
+      "lean_statement": "Exact sealed generic normalized-density interface; none of its density conditions is exported by the actual Gaussian source theorem.",
+      "lean_proof": "The exact extracted proof derives L1/range, normalized event TV equality and both comparisons, with all helpers local.",
+      "boundary": "Generic normalized-density TV/affinity inequalities only. No Gaussian assumption/statement strengthened, no actual product law/tensorization or full main bounds, no new implication from analogy. Actual source adapter and Eq25 remain separate consumer obligations.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.Ex69",
+          "edition": "ASTIS-authored canonical library theorem; motivated by arXiv2610.20492v1 (fixed snapshot as above)",
+          "anchor": "Canonical common-measure-space normalized-density theorem; source motivation B.2.3 Ex68–69 and the leading TV/min/affinity comparison in Ex72. This is an explicit library generalization, not the paper statement on arbitrary spaces.",
+          "wording_status": "licensed original",
+          "attribution": "ASTIS-authored generic library statement and proof from standard Cauchy–Schwarz and normalized-density algebra. Zhou–Suzuki use its Euclidean actual-law instances; no claim that they state the arbitrary-space version.",
+          "scope": "Any measurable carrier and common measure; two pointwise nonnegative measurable genuine L1 functions of mass one. Gaussian and actual product-law consumers must supply these conditions internally.",
+          "label": "ASTIS library generalization; Euclidean motivation in Zhou–Suzuki"
+        }
+      ],
+      "tests": [
+        "lake build Tests.NormalizedDensityAffinity",
+        "lake build Tests.GaussianComplexitySingleBlockAffinity"
+      ]
+    }
+  ]
+}

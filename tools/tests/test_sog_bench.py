@@ -27,8 +27,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 29)
-        self.assertEqual(len(prompts), 42)
+        self.assertEqual(len(self.cores), 30)
+        self.assertEqual(len(prompts), 43)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -40,7 +40,7 @@ class BenchTests(unittest.TestCase):
     def test_prompt_export_has_no_answers_rubrics_or_reference_proofs(self):
         allowed = {'id', 'family', 'domain', 'library_domains', 'skills', 'title', 'split', 'assumptions', 'binding_sha256', 'track', 'level', 'question'}
         for row in bench.prompts(self.cores):
-            self.assertEqual(set(row), allowed | ({'exercise_source'} if row['id'] == 'sogb-029' else set()))
+            self.assertEqual(set(row), allowed | ({'exercise_source'} if row['id'] in {'sogb-029', 'sogb-030'} else set()))
             self.assertNotIn(':= by\n  intro', row['question'])
         self.assertTrue(all('-- Replace this comment' in r['question']
                             for r in bench.prompts(self.cores) if r['track'] == 'lean'))
@@ -78,7 +78,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 42)
+            self.assertEqual(manifest['qa_views'], 43)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -199,13 +199,13 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 29)
+        self.assertEqual(coverage['unique_mathematical_cores'], 30)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertFalse(any(c['track_levels'].get('lean') == 'L5' for c in self.cores))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 29)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 30)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -391,6 +391,52 @@ class BenchTests(unittest.TestCase):
         self.assertNotIn(core['declaration'], json.dumps(prompt))
         self.assertEqual(core['family'], ex['id'])
         self.assertTrue(all(d in bench.astis_site._SOURCE_BY_NAME for d in core['dependencies']['astis']))
+
+    def test_multipage_exercise_links_all_three_owned_answers_without_prompt_leakage(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-030')
+        ex = core['textbook_exercise']
+        prompt = bench.prompts([core])[0]['exercise_source']
+        self.assertEqual((prompt['pdf_page'], prompt['pdf_page_end']), (22, 23))
+        self.assertEqual((prompt['book_page'], prompt['book_page_end']), (22, 23))
+        self.assertEqual({p['id'] for p in ex['parts']},
+                         {'bregman-positive-domain', 'scaled-cocoercivity', 'gradient-lipschitz'})
+        names = {d['declaration'] for d in ex['answer_declarations']}
+        self.assertEqual(len(names), 3)
+        self.assertFalse(bench.has_lean(core))
+        panel = reader.exercise_panel(core, False)
+        self.assertIn('printed pp. 22–23 / PDF pp. 22–23', panel)
+        self.assertIn('2605.07006v1#page=22', panel)
+        self.assertIn('2605.07006v1#page=23', panel)
+        for name in names:
+            self.assertIn('?focus=decl%3A' + name, panel)
+            self.assertNotIn(name, json.dumps(prompt))
+        self.assertEqual(exercises.probe([core]).count('#print axioms '), 3)
+
+    def test_long_trial_step_equality_aligns_without_changing_gold(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-030')
+        step = core['steps'][1]
+        rendered = reader.prose(step)
+        self.assertIn(r'\begin{aligned}', rendered)
+        self.assertIn(r'\\&amp;=F_x(y)-\frac{\|d\|^2}{2\beta}', rendered)
+        self.assertNotIn(r'\begin{aligned}', step)
+        for tex in (r'A\le B+\frac{1234567890}{1234567890}+(X=Y)',
+                    r'A\le B+\frac{1234567890}{1234567890}+L:=X'):
+            self.assertNotIn(r'\begin{aligned}', reader.prose(r'\[' + tex + 'a'*90 + r'\]'))
+
+    def test_multipage_exercise_rejects_incomplete_reversed_or_untyped_ranges(self):
+        known = bench.astis_site._SOURCE_BY_NAME
+        original = json.loads(exercises.DATA.read_text(encoding='utf-8'))
+        for edit in ({'pdf_page_end': 22}, {'pdf_page_end': 150}, {'book_page_end': True},
+                     {'book_page_end': '23'}, {'pdf_page_end': None}):
+            data = deepcopy(original)
+            row = next(r for r in data['exercises'] if r['id'] == 'chewi-opt-v1-exercise-3-1')
+            for key, value in edit.items():
+                if value is None:
+                    del row[key]
+                else:
+                    row[key] = value
+            with self.assertRaises(ValueError):
+                exercises.resolve(row['id'], known, data)
 
     def test_numbered_source_resolver_rejects_relabelling_missing_parts_and_fake_declarations(self):
         original = json.loads(exercises.DATA.read_text(encoding='utf-8'))

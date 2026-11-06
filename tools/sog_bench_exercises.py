@@ -47,6 +47,14 @@ def resolve(identity: str, known: dict, data: dict | None = None) -> dict:
     for key in ('book_page', 'pdf_page'):
         if type(row[key]) is not int or not 1 <= row[key] <= book['pdf_pages']:
             raise ValueError('Exercise needs explicit one-based page conventions')
+    end_keys = {'book_page_end', 'pdf_page_end'}
+    if end_keys & row.keys():
+        if not end_keys <= row.keys():
+            raise ValueError('Exercise page ranges need both printed and PDF end pages')
+        for key in ('book_page', 'pdf_page'):
+            end = row[key + '_end']
+            if type(end) is not int or not row[key] < end <= book['pdf_pages']:
+                raise ValueError('Exercise end page must follow its start and be within the source')
     number = row['number']
     if not re.fullmatch(r'[A-Z0-9]+(?:\.[A-Za-z0-9]+)*', number):
         raise ValueError('Invalid source exercise number')
@@ -138,6 +146,7 @@ def source_prompt(exercise: dict) -> dict:
             'authors': exercise['book']['authors'], 'edition': exercise['book']['edition'],
             'exercise': exercise['number'], 'book_page': exercise['book_page'],
             'pdf_page': exercise['pdf_page'],
+            **{key: exercise[key] for key in ('book_page_end', 'pdf_page_end') if key in exercise},
             'source_url': exercise['book']['pdf_url'] + '#page=' + str(exercise['pdf_page']),
             'wording_status': exercise['wording_status']}
 

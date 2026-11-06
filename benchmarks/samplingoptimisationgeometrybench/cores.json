@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.14.0-dev",
+  "version": "0.15.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -610,6 +610,82 @@
       "dependencies":{"astis":["AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep.gradient_step_endpoint_bound","AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexityC2.gradient_mono_iff_fderiv2_lower","AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothnessEquivalences.upper_model_iff_fderiv2_upper"],"mathlib":["ContinuousLinearMap.norm_eq_iSup_rayleighQuotient","intervalIntegral.integral_eq_sub_of_hasDerivAt","intervalIntegral.norm_integral_le_of_norm_le_const"]},
       "boundary":"A real source-numbered exercise with a complete authored mathematical reference answer and two existing compiled owned core-answer declarations. There is no separately aligned fixed Lean QA here. The Lean APIs are broader than the source domain and use the equivalent Rayleigh formulation; their exact differences and unformalized context remain visible. No new production declaration, wrapper, Registry credit, full textbook completion, standalone eigenvalue-list theorem, iterate complexity or source-commentary formalization is claimed.",
       "source_note":"Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1, Chapter 3 Exercise 3.2, printed/PDF p.23. This original mathematical reformulation and solution use the canonical publication item chewi-opt-v1-exercise-3-2 and its two actual part bindings, rather than copying textbook prose or renaming an unrelated original QA. The primary PDF is hash-pinned and its relevant page was visually inspected; the arXiv distribution grant is not treated as a blanket ML-text license. Existing ASTIS-owned answers, source audits, tests and graph placement are reused with their scope disclosed. This public exercise and all variants/subparts share one family; public availability is not evidence of an unseen test."
+    },
+    {
+      "id": "sogb-030",
+      "family": "chewi-opt-v1-exercise-3-1",
+      "domain": "optimisation",
+      "lean_enabled": false,
+      "support_source_view": true,
+      "textbook_exercise_id": "chewi-opt-v1-exercise-3-1",
+      "library_domains": [
+        "optimisation"
+      ],
+      "track_levels": {
+        "natural-language": "L3"
+      },
+      "difficulty_reason": "This is a multi-step proof: construct a tilted objective, extract the exact one-sided coefficient, combine two endpoint inequalities, then handle both zero modulus and zero gradient difference. The level is editorial, not measured.",
+      "skills": [
+        "proof",
+        "calculation",
+        "assumption-audit"
+      ],
+      "difficulty": "intermediate",
+      "title": "Chewi Optimization Exercise 3.1: from an upper model to cocoercivity",
+      "assumptions": [
+        "Let \\(f:\\mathbb R^d\\to\\mathbb R\\) be convex and \\(C^1\\). Fix \\(\\beta\\ge0\\), and for all \\(a,b\\in\\mathbb R^d\\) assume the quadratic upper model\n\\[ f(b)\\le f(a)+\\langle\\nabla f(a),b-a\\rangle+\\frac{\\beta}{2}\\|b-a\\|^2. \\]",
+        "The reciprocal expression in (3.4) is asked only for \\(\\beta>0\\); convexity and smoothness do not imply this strict inequality. The domain is all of \\(\\mathbb R^d\\). Do not assume a minimizer of \\(f\\), Lipschitz continuity of the gradient, or a second derivative."
+      ],
+      "question": "For arbitrary \\(x,y\\), write \\(D_f(y,x)=f(y)-f(x)-\\langle\\nabla f(x),y-x\\rangle\\) and \\(d=\\nabla f(y)-\\nabla f(x)\\). Use an affine tilt at \\(x\\) and the descent estimate to prove \\(D_f(y,x)\\ge\\|d\\|^2/(2\\beta)\\) when \\(\\beta>0\\) (3.4). Deduce \\(\\|d\\|^2\\le\\beta\\langle d,y-x\\rangle\\) (3.5), then \\(\\|d\\|\\le\\beta\\|y-x\\|\\) (1.8). Explain why the latter two conclusions include \\(\\beta=0\\) and why no Hessian is needed.",
+      "steps": [
+        "Define \\(F_x(z)=f(z)-\\langle\\nabla f(x),z\\rangle\\). Convexity and differentiability give the tangent lower bound \\(f(z)\\ge f(x)+\\langle\\nabla f(x),z-x\\rangle\\): restrict to the line segment, divide the convexity inequality by the positive segment parameter and take the derivative at \\(x\\). Thus \\(F_x(x)\\le F_x(z)\\) for every \\(z\\); this does not use an optimizer of \\(f\\). The affine term cancels from the upper model, so \\(F_x\\) has the same upper model and \\(\\nabla F_x(y)=d\\).",
+        "For \\(\\beta>0\\), use the admissible trial point \\(z=y-d/\\beta\\). The upper model, now at \\(y\\) for \\(F_x\\), gives\n\\[ F_x(z)\\le F_x(y)-\\frac{\\|d\\|^2}{\\beta}+\\frac{\\beta}{2}\\frac{\\|d\\|^2}{\\beta^2}=F_x(y)-\\frac{\\|d\\|^2}{2\\beta}. \\]\nCombine with \\(F_x(x)\\le F_x(z)\\) and \\(F_x(y)-F_x(x)=D_f(y,x)\\) to get (3.4).",
+        "Swapping \\(x,y\\) gives the same lower bound for \\(D_f(x,y)\\) because the gradient difference changes sign. Adding yields\n\\[ \\frac{\\|d\\|^2}{\\beta}\\le D_f(y,x)+D_f(x,y)=\\langle d,y-x\\rangle. \\]\nMultiply by positive \\(\\beta\\) to get (3.5).",
+        "At \\(\\beta=0\\) the same upper model holds with any \\(\\varepsilon>0\\) in place of \\(\\beta\\), since only a nonnegative quadratic term is added. Apply the already proved positive-modulus (3.5) at fixed \\(x,y\\) and let \\(\\varepsilon\\downarrow0\\). The right-hand side \\(\\varepsilon\\langle d,y-x\\rangle\\) tends to zero, so (3.5) holds at zero and forces \\(d=0\\). No meaning is assigned to the reciprocal at zero.",
+        "For \\(\\beta\\ge0\\), Cauchy–Schwarz in (3.5) gives \\(\\|d\\|^2\\le\\beta\\|d\\|\\|y-x\\|\\). If \\(\\|d\\|=0\\), the desired estimate is immediate; otherwise divide by the strictly positive \\(\\|d\\|\\). Since \\(x,y\\) were arbitrary, the gradient is \\(\\beta\\)-Lipschitz. Only genuine first derivatives, convexity, the quadratic upper model and inner-product algebra were used."
+      ],
+      "rubric": [
+        {
+          "points": 1,
+          "criterion": "Uses first-order convex support and the unchanged upper model after subtracting the tangent affine term, either through an explicit tilt minimized at x or by an equivalent comparison of the two original models at one trial point. Does not assume f has a minimizer."
+        },
+        {
+          "points": 1,
+          "criterion": "Uses the positive-modulus trial step (or an equivalent application of descent), checks its domain and obtains the exact 1/(2β) coefficient in (3.4)."
+        },
+        {
+          "points": 1,
+          "criterion": "Derives (3.5) with the correct sign and factor by combining the two endpoint gaps or by equivalent valid reasoning, and justifies the zero-modulus case without evaluating the reciprocal there."
+        },
+        {
+          "points": 1,
+          "criterion": "Obtains the global β-Lipschitz bound from (3.5) by Cauchy–Schwarz or equivalent norm reasoning, with no second-derivative or gradient-Lipschitz premise. If dividing by the norm of the gradient difference, justifies positivity and covers zero; correct cancellation-free proofs also receive credit."
+        }
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSmoothGradient.gradient_lipschitz",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexSmoothGradient.lean",
+      "context": "",
+      "additional_source_declarations": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSmoothGradient.gradient_gap_sq_le_bregman",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSmoothGradient.gradient_cocoercive"
+      ],
+      "lean_explanation": "The first theorem represents the affine-tilt calculation by comparing the convex first-order lower model at x to the smooth upper model at y, at the same trial point z. It concludes a scaled inequality equivalent to (3.4) when β>0. The second exchanges x,y, uses positive relaxation and closes the limit inequality; the third applies the real inner-product norm bound and splits on zero before cancellation. In the third statement β is a nonnegative real type and LipschitzWith uses the actual gradient. Complete real inner-product spaces generalize the Euclidean source. The folded module is an owned answer, not a Lean submission target.",
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexFirstOrder.firstOrder_lower_bound_of_strongConvexOn",
+          "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSmoothGradient.gradient_gap_sq_le_bregman",
+          "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSmoothGradient.gradient_cocoercive"
+        ],
+        "mathlib": [
+          "strongConvexOn_zero",
+          "real_inner_self_eq_norm_sq",
+          "ge_of_tendsto",
+          "real_inner_le_norm",
+          "lipschitzWith_iff_norm_sub_le"
+        ]
+      },
+      "boundary": "All three source parts have owned answer bindings; the reciprocal claim is restricted to its meaningful positive domain, while the scaled and Lipschitz claims include zero. This is not a constrained or Riemannian extension, an algorithmic rate, a separately aligned Lean task or a new production declaration.",
+      "source_note": "Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1, Exercise 3.1, printed/PDF pp. 22–23. Original mathematical restatement and solution, checked against both pages of the pinned PDF and the canonical publication bindings; no PDF or copied textbook prose is included. The library module credits the related Optlib mathematics and does not import an external Lean module. This family and all its variants are public-dev, not an unseen test."
     }
   ]
 }

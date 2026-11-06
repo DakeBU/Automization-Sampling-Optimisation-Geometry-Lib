@@ -99,14 +99,29 @@ def prose(text: str) -> str:
         body = match.group(1)
         if r'\begin{' in body:
             return match.group(0)
-        depth, start, parts = 0, 0, []
+        depth, group_depth, start, parts, relations = 0, 0, 0, [], []
         for index, char in enumerate(body):
             if char in '{}' and (index == 0 or body[index-1] != '\\'):
                 depth += 1 if char == '{' else -1
+            if depth == 0 and char in '()[]':
+                group_depth += 1 if char in '([' else -1
             if depth == 0 and body.startswith(r',\qquad', index):
                 parts.append(body[start:index+1])
                 start = index + len(r',\qquad')
+            if depth == group_depth == 0:
+                relation = re.match(r'\\(?:leq?|geq?)(?![A-Za-z])|=', body[index:])
+                if relation:
+                    relations.append((index, relation.group()))
         if not parts:
+            # A long "A ≤ B = C" derivation can put the simplification
+            # on its own row at normal font size. Keep other display math
+            # intact (in particular, do not split assignments or tuples).
+            if (len(body.strip()) > 100 and len(relations) == 2
+                    and relations[0][1] != '=' and relations[1][1] == '='
+                    and not any(token in body for token in (':=', r'\quad', r'\left', r'\right'))):
+                i, j = (pos for pos, _ in relations)
+                return (r'\[\begin{aligned}' + body[:i] + '&' + body[i:j]
+                        + r'\\&' + body[j:] + r'\end{aligned}\]')
             return match.group(0)
         parts.append(body[start:])
         return r'\[\begin{gathered}' + r'\\'.join(parts) + r'\end{gathered}\]'
@@ -116,6 +131,13 @@ def prose(text: str) -> str:
 
 def fold(title: str, content: str) -> str:
     return '<details class="sog-fold"><summary>' + escape(title) + '</summary>' + content + '</details>'
+
+
+def exercise_pages(exercise: dict) -> str:
+    def pages(key: str) -> str:
+        start = str(exercise[key])
+        return 'pp. ' + start + '–' + str(exercise[key + '_end']) if key + '_end' in exercise else 'p.' + start
+    return 'printed ' + pages('book_page') + ' / PDF ' + pages('pdf_page')
 
 
 def exercise_panel(core: dict, checked: bool) -> str:
@@ -133,11 +155,16 @@ def exercise_panel(core: dict, checked: bool) -> str:
         parts.append('<li>' + escape(part['label']) + '<br>' + links + '</li>')
     build = ('Current trusted build records the named owned answer modules and transitive axiom checks.'
              if checked else 'No current aggregate owned-answer build receipt is recorded in this build.')
+    pdf = source['pdf_url'] + '#page='
+    source_links = '<a href="' + escape(pdf + str(exercise['pdf_page'])) + '">Original source page</a>'
+    if 'pdf_page_end' in exercise:
+        source_links += (' · <a href="' + escape(pdf + str(exercise['pdf_page_end']))
+                         + '">Last source page</a>')
     return (prose('Numbered textbook exercise · ' + source['title'] + ' · Exercise ' + exercise['number'])
         + fold('Original exercise, all requested parts and exact Lean scope',
             prose(', '.join(source['authors']) + ' · ' + source['edition'] +
-                  ' · printed p.' + str(exercise['book_page']) + ' / PDF p.' + str(exercise['pdf_page']))
-            + '<p><a href="' + escape(source['pdf_url'] + '#page=' + str(exercise['pdf_page'])) + '">Original source page</a> · '
+                  ' · ' + exercise_pages(exercise))
+            + '<p>' + source_links + ' · '
             '<a href="textbook-exercises/index.html">Numbered exercise directory</a></p>'
             + prose(exercise['wording_status'])
             + '<h3>Original exercise · faithful ASTIS restatement</h3>'
@@ -159,7 +186,7 @@ def exercise_index(cores: list[dict], checked: bool) -> str:
                            + escape(q['core_id']) + '</a> · ' + escape(q['editorial']) + '</li>' for q in row['questions'])
         cards.append('<section><h2>' + escape(row['book']['title']) + ' · Exercise '
                      + escape(row['number']) + '</h2>' + prose(row['book']['edition'] +
-                       ' · printed p.' + str(row['book_page']) + ' / PDF p.' + str(row['pdf_page'])) + '<ul>' + questions + '</ul>'
+                       ' · ' + exercise_pages(row)) + '<ul>' + questions + '</ul>'
                      + prose('Named owned answer declarations: ' + str(len(row['answer_declarations']))
                              + '. Current trusted module build recorded: ' + str(checked).lower() + '.')
                      + ''.join(prose(s) for s in row['unformalized_context']) + '</section>')

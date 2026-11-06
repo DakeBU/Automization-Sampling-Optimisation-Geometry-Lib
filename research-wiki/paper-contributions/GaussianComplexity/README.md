@@ -21,7 +21,15 @@ Latest-main `0804c29747e3` was clean-ported with foreign evidence and ledger eve
 preserved; its combined local gate passed 9632 jobs. Final lifecycle metadata was published to official main `d9bcd4231df6`; its
 Contributor contract and Samplinglib site workflows actually passed, and the
 serialized integration lane is released. External GitHub HTML504 evidence
-remains retained with that unchanged route frozen. Both main
+remains retained with that unchanged route frozen. The next bounded affinity packet is independently verified at `a5d10714ca01`: a
+single canonical normalized-density TV/affinity node and the actual Gaussian
+Eq25 consumer, including the actual scalar power estimate. Its serialized root,
+website and immutable-publication acceptance is in progress on
+`huanjian/gaussian-affinity-integration-20261106`; see
+[`affinity-integration-20261106/`](affinity-integration-20261106/). The actual
+Eq6/product-density/tensorization/amplification boundary remains open.
+
+Both main
 lower bounds and the full oracle/precision/cost/hidden-eigenbasis adapters remain
 open. Older packet sections below are historical evidence, not the current
 frontier or whole-paper completion status.

@@ -25,3 +25,4 @@ import AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedNumerator
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity

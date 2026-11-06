@@ -348,6 +348,8 @@ import Tests.GaussianComplexitySphericalPoisson
 import Tests.GaussianComplexityEvaluatedGaussian
 import Tests.GaussianComplexitySingleBlockSeparation
 import Tests.GaussianComplexityMixtureDensities
+import Tests.NormalizedDensityAffinity
+import Tests.GaussianComplexitySingleBlockAffinity
 import Tests.Shared.SubgradientMethod
 
 /-!

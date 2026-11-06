@@ -25,7 +25,11 @@ separate from the focused build. The [independent source review](source-review.r
 accepted the actual upper witness after elaboration, not the full exercise.
 “Left” and “right” refer to the source's positive-`m` regime; the exact formula
 uses the center labels `−m` and `m` even when they reverse order or coincide.
-Independent exact-commit VERIFIED admission is still separate.
+The [separate independent verification](independent-verification.json)
+replayed the focused build and checked the exact pushed proof commit.
+The Cell is locally VERIFIED, not stabilized, merged, or admitted to the Bench.
+The serial baseline `lake build Tests` (9632 jobs) and `tools/astis.py check`
+also pass; they do not integrate the new declaration into the root import.
 
 ## Next edge — lower comparison, not yet compiled
 
@@ -39,3 +43,7 @@ infimum for `W₁ ≤ W₂`; no optimal-plan existence is needed. Finally
 `f(x) = −x` has the required sign: the two means are `0` and `m/2`,
 so the resulting lower constant is `1/2`. The current bounded-feature
 transport interface does not justify this unbounded test.
+Pinned interfaces worth reusing are `LipschitzWith.comp_memLp` on
+`f − f(0)`, the measure-preserving projections from
+`CouplingQuadraticIntegrability`, and
+`ENNReal.lintegral_mul_le_Lp_mul_Lq` with exponents 2 and 2.

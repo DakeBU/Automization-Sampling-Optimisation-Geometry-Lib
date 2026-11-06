@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureCoupling.exists_gaussian_mixture_coupling_cost",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureCoupling",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianMixtureCoupling.lean",
+      "short_name": "exists_gaussian_mixture_coupling_cost",
+      "title": "Couple the common Gaussian mass and move the remaining quarter",
+      "classification": "Explicit ASTIS completion of the source upper-bound hint",
+      "statement": "For every real m, the two weighted unit-variance Gaussian mixtures in the exercise admit a coupling with exact quadratic cost m²: the first weights are (1/2,1/2) and the second (1/4,3/4), both on the centers −m,+m.",
+      "formula": "\\exists\\gamma\\in\\Gamma(\\mu,\\nu),\\qquad\\int|x-y|^2\\,d\\gamma=m^2.",
+      "assumptions": [
+        "The ambient space is the Borel real line. N(a,1) has mean a and variance one; the variance-one convention describes each component, not the mixture.",
+        "The source assumes m>0. The exact upper witness and squared bound hold for every real m, since the witness cost depends on m². No bounded support, supplied coupling, assumed cost, or optimality condition is imposed."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Reuse one noise sample on each branch",
+          "text": "Let Qₐ,ᵦ be the joint law of (Z+a,Z+b) with a single Z of law G₀. Both coordinate maps and the pair map are Borel. Give mass one quarter to the left diagonal, one quarter to the move from −m to m, and one half to the right diagonal. These are nonnegative weights summing to one.",
+          "formula": "\\gamma=\\tfrac14Q_{-m,-m}+\\tfrac14Q_{-m,m}+\\tfrac12Q_{m,m},\\quad Q_{a,b}=(z\\mapsto(z+a,z+b))_\\#G_0.",
+          "lean": "The local Q is Measure.map on the actual Mathlib Gaussian, and the three nonnegative weights multiply measures. No representation of an unknown optimal plan is chosen."
+        },
+        {
+          "number": 2,
+          "title": "Compute both marginals",
+          "text": "Projection of Qₐ,ᵦ onto its first coordinate shifts G₀ by a, and projection onto its second shifts it by b. These translated laws have the required means and still have unit component variance. The first coordinate receives two left quarters; the second receives a right quarter and a right half.",
+          "formula": "\\gamma_1=(\\tfrac14+\\tfrac14)G_{-m}+\\tfrac12G_m,\\qquad \\gamma_2=\\tfrac14G_{-m}+(\\tfrac14+\\tfrac12)G_m.",
+          "lean": "The projection lemmas for mapped pairs and gaussianReal_map_add_const compute the actual marginals. Pushforwards preserve addition and scaling; finite rational arithmetic is transferred from NNReal to ENNReal."
+        },
+        {
+          "number": 3,
+          "title": "Compute the cost before taking an infimum",
+          "text": "The shared Z cancels inside each squared displacement. The diagonal branches have cost zero, and the moving branch has constant cost (−2m)² under a probability law. Thus the nonnegative integral is exactly m² and is finite, with no estimate on tails required for this witness.",
+          "formula": "\\int|x-y|^2\\,d\\gamma=\\tfrac14\\,0+\\tfrac14(2m)^2+\\tfrac12\\,0=m^2.",
+          "lean": "lintegral_map pulls the measurable quadratic cost back to each branch; the local hcost computes the integral of its constant value under G₀. Add and scale the integrals."
+        },
+        {
+          "number": 4,
+          "title": "Consume the witness for the upper bound",
+          "text": "Taking the infimum over all feasible plans cannot exceed this specific plan's cost. The squared bound implies W₂≤m on the source domain m>0. The result does not say the exhibited plan is a minimizer; the lower direction takes an estimate valid for all couplings.",
+          "formula": "W_2(\\mu,\\nu)^2\\le\\int |x-y|^2\\,d\\gamma=m^2.",
+          "lean": "The focused example applies the existing WassersteinSpace upper bridge to the actual witness, and rewrites by its exact cost. There is no separate public wrapper for this use."
+        }
+      ],
+      "lean_statement": "For any real m, exhibit a measure on the product whose two projections are the fixed Gaussian mixtures and whose extended nonnegative quadratic integral is ofReal (m²).",
+      "lean_proof": "Construct the three affine pushforwards of the actual standard normal law; take their weighted sum; compute both marginals and the exact constant-on-branch costs. The test alone invokes the existing quadratic infimum bridge.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.IsCoupling",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace.quadraticCost"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Measure.fst_map_prodMk",
+        "MeasureTheory.Measure.snd_map_prodMk",
+        "ProbabilityTheory.gaussianReal_map_add_const",
+        "MeasureTheory.Measure.map_smul",
+        "MeasureTheory.lintegral_map",
+        "MeasureTheory.lintegral_add_measure",
+        "MeasureTheory.lintegral_smul_measure",
+        "ENNReal.ofReal_mul"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/st_flour.pdf#page=50",
+          "label": "Statistical Optimal Transport, §1.8 Exercise 6, p.44 (PDF p.50)",
+          "scope": "Attributed paraphrase and original explicit upper witness; lower proof remains open."
+        }
+      ],
+      "boundary": [
+        "Only the upper-bound feasible witness with its exact two marginals and finite quadratic cost. No optimality, lower bound, full numbered exercise, Bench admission, graph certificate, or release is claimed."
+      ],
+      "tests": {
+        "file": "Tests/Shared/GaussianMixtureCoupling.lean",
+        "scope": "Consumes the concrete feasible measure and exact integral with the existing squared Wasserstein upper-bound bridge. No lower comparison or optimality theorem is tested."
+      }
+    }
+  ]
+}

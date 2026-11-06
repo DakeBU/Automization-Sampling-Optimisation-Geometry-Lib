@@ -61,7 +61,14 @@ def main():
                     assert page.locator('.sog-task-row:visible').count()==1
                     page.get_by_role('searchbox',name='Find a task').fill('')
                 if label=='evaluate':
-                    assert page.get_by_text('Trusted references only · executor pending',exact=True).is_visible()
+                    assert page.get_by_text('Experimental Linux CLI · hosted executor pending',exact=True).is_visible()
+                    compiler_guide=page.locator('details').filter(has=page.get_by_text('Use the experimental Lean compiler workspace',exact=True))
+                    assert compiler_guide.count()==1 and compiler_guide.get_attribute('open') is None
+                    compiler_guide.locator('summary').click()
+                    assert compiler_guide.get_by_text('This is not a hosted service or a model result.',exact=False).is_visible()
+                    assert compiler_guide.locator('a[href$="/lean-runtime/WORKSPACE.md"]').is_visible()
+                    assert compiler_guide.locator('a[href$="/native08-independent-review.json"]').is_visible()
+                    compiler_guide.locator('summary').click()
                 if label=='training':
                     assert page.locator('.sog-portal-card[download]').count()==2
                     assert page.locator('.sog-fold[open]').count()==0

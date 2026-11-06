@@ -60,7 +60,16 @@ source mapping does not grant permission to copy its prose into ML data.
 | Natural language | Freeze answers with `sog_bench_prose.py prepare`; actual human rubric assessment; archive with `score` | Automatic semantic correctness, authenticated model/human execution |
 | Graph JSON | `sog_bench.py grade-graph` scores the exact frozen structural question | Mathematical necessity, full proof closure, unseen generalization |
 | Native graph trials | `sog_bench_harbor.py export`; Harbor oracle/nop fixtures in separate Docker verification; inspect the dedicated CI result | A model measurement, all paid-agent compatibility, arbitrary Lean execution, exhaustive security verification |
-| Lean | `sog_bench.py check-lean` compiles trusted references using the pinned project | Safe execution or grading of arbitrary agent Lean submissions |
+| Trusted Lean references | `sog_bench.py check-lean` compiles the aligned references using the pinned project | Arbitrary submitted-code safety, source equivalence or model performance |
+| Fixed-target Agentic Lean tools | Experimental [Linux compiler workspace](lean-runtime/WORKSPACE.md): bounded checks, one immutable final, official target/axiom comparison and fresh kernel replay; controlled native acceptance is independently reviewed | General hosted execution, exhaustive security, authenticated model performance or unseen generalization |
+
+The experimental CLI's controlled native software acceptance is recorded in
+[the runtime evidence](../../runs/20261105-bench-lean-runtime/README.md), separately
+from actual provider use. The optional [model bridge](lean-runtime/MODEL.md)
+remains staged: code review and synthetic API-shaped fixtures do not establish
+a real provider handshake or model measurement. An authorized provider/model
+and spending policy are required before paid calls. No API key is bundled in
+the static website or portable agent inputs.
 
 Use [EVALUATION.md](EVALUATION.md) for the existing commands, response schemas,
 first-attempt denominator, provenance fields and human-grading procedure.
@@ -114,8 +123,10 @@ ecosystem compatibility. Harbor's [verifier contract](https://docs.harborframewo
 is used by the optional native graph adapter. Its runtime acceptance is separate
 from task export, editorial admission and trusted Lean compilation.
 
-The following remain required Goal work: an actually tested isolated,
-network-disabled and resource-limited Lean submission verifier with fixed-target
-and axiom checks; validated actual-model harness runs; authenticated run
-provenance where available; genuinely new private families; empirical difficulty
-calibration; broader domain/textbook exercise coverage. No UI badge closes them.
+The experimental fixed-target Linux CLI has bounded controlled acceptance;
+that is not the full evaluation environment or Goal. Required work still
+includes validated actual-model harness runs, provider/native bridge acceptance,
+authenticated run provenance where available, genuinely new private families,
+empirical difficulty calibration and broader domain/textbook exercise coverage.
+General hosted execution is not currently provided. No UI badge, scripted
+oracle trajectory or repeated reference compilation closes those boundaries.

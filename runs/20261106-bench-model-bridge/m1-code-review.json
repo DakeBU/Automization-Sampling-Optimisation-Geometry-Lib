@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "kind": "independent-M1-exact-code-review",
+  "reviewed_at": "2026-11-06",
+  "base_commit": "8f9261f4de0bff9f853b15fa9d7de700976e8a07",
+  "branch": "codex/sog-bench-model-bridge",
+  "accepted_contract_sha256_raw": "6f57c324bb3e2422e2d525c6b82794c1d0f1b8d96505941f0a068f2e47861a7c",
+  "reviewed_state": "Frozen uncommitted successor bytes at the hashes below, compared with the base commit and accepted contract",
+  "decision": "changes-requested-before-code-admission",
+  "native_acceptance": false,
+  "provider_acceptance": false,
+  "model_measurement": false,
+  "security_certificate": false,
+  "whole_goal_complete": false,
+  "reviewed_sha256_raw": {
+    "tools/sog_bench_lean_workspace.py": "4d4b42dab73383f3fb9815fa9096b8ec402c0af9dc8b8324c474acfc657065b9",
+    "tools/sog_bench_lean_model.py": "32f03458038f5ec29d2a8c4343c76f5490e284bb057f486d1e08f2c75be052ea",
+    "tools/sog_bench_lean_native.py": "83f5c15a321a9b8a6a82aa523de73fb31580da1ea14003c78eaa10bc0d436921",
+    "tools/tests/test_sog_bench_lean_model.py": "ec5551b267393980b87654ca5e32b8dc4cdbb506908aa46e51533791ea7d6fa7",
+    "tools/tests/test_sog_bench_lean_external.py": "2df35dc2f6b1d12a082881275ce98bcfd0e3269892a9a69e7f9aefa5c08565b5",
+    ".github/workflows/sog-bench-lean.yml": "3857f737e7a2a27435c69178713f0e10e0ba677cd527293312edcd2bf4e62c51",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/MODEL.md": "7c3c7de992168e7457bcac42bd5a9623a7f02267b8bb0f6e1e13011c3c140e1b",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/WORKSPACE.md": "60431fb90c5c90d740985ac56fde26f0e2501957ba6a25e56645ffec5b264da3"
+  },
+  "checks_actually_run": [
+    "Read the actual scoped diff, new external-lifecycle test file, bridge implementation, native-fixture addition, workflow and documentation against the frozen contract. No broader mathematical/source/provider admission review was performed.",
+    "Ran python -B -m unittest tools.tests.test_sog_bench_lean tools.tests.test_sog_bench_lean_model tools.tests.test_sog_bench_lean_external -v:60 discovered,57 passed,3 POSIX-only skips. PYTHONDONTWRITEBYTECODE=1 and TEMP/TMP/TMPDIR all pointed to the D-repository .astis/sog-bench/tmp. The coordinator's separate66-test result including reader coverage is not claimed as personally rerun here.",
+    "Ran trusted temporary mocked reproductions for whole managed-lifecycle deletion after sealing, missing ended evidence before read-only status, and a replayed function-call identity combined with malformed arguments. Results are below. No submitted/hostile Lean, native fixture, HTTP provider, credential or shell/fault script was executed.",
+    "Read-only git diff --check passed. The proof-driver, container, landrun wrapper and policy paths have no delta from the base. Checked original report hashes; no report or production source was repaired by this reviewer.",
+    "Only this new report was written outside authorized temporary tests. No provider/native/network/credential calls, agent spawning, external mutations, Goal/Cell/ledger/metadata/branch edits occurred."
+  ],
+  "findings": [
+    {
+      "id": "M1-CODE-1",
+      "severity": "medium",
+      "title": "A sealed managed child can silently become unmanaged when all lifecycle files disappear",
+      "locations": [
+        "tools/sog_bench_lean_workspace.py:_reservation",
+        "tools/sog_bench_lean_workspace.py:_outcome",
+        "tools/sog_bench_lean_workspace.py:suite_status completion/external_bindings comparison"
+      ],
+      "evidence": "When external-run.json, external-end.json and external-evidence.json are all absent, _reservation returns None and _external_state returns an empty bindings object. suite_status compares only newly derived binding keys, so it never checks the existing completion's managed external_* hash field set. An unchanged final/no-final outcome and unchanged completion hash can therefore satisfy an already sealed accounting record despite complete loss of the canonical lifecycle artifacts.",
+      "trusted_reproductions": [
+        {
+          "case": "Completed model-no-final child in a sealed two-target suite; then delete all three lifecycle files in the temporary fixture",
+          "suite_status_accepted_missing_lifecycle": true,
+          "rollup_byte_equivalent_as_JSON": true,
+          "outcome_counts": {"no-final-submission": 2}
+        },
+        {
+          "case": "Observation-backed accepted-final child in a sealed two-target suite; then delete all three lifecycle files in the temporary fixture",
+          "suite_status_accepted_missing_lifecycle": true,
+          "rollup_byte_equivalent_as_JSON": true,
+          "outcome_counts": {"accepted": 1, "no-final-submission": 1}
+        }
+      ],
+      "impact": "This breaks the promised actual-evidence retention/drift seal even after accounting.json exists. It does not change the checked mathematical final itself or demonstrate a sandbox escape; the issue is silently validating missing managed collection evidence as legacy unmanaged data.",
+      "required_resolution": "Validate the managed lifecycle field set in both directions: a completion carrying managed bindings must require the corresponding valid reservation/evidence/end state, and current managed state must require the exact managed completion fields, including nullable fields where permitted. Preserve genuine old unmanaged archives without treating a managed completion as legacy. Add regressions before and after suite sealing for complete file loss and nullable managed-field deletion."
+    },
+    {
+      "id": "M1-CODE-2",
+      "severity": "medium",
+      "title": "Read-only unclosed suite status does not validate an existing external record chain",
+      "locations": ["tools/sog_bench_lean_workspace.py:suite_status unclosed-child else branch"],
+      "evidence": "The unclosed-child branch returns unfinished after history/session checks without calling _external_state. This skips reservation/end/evidence validation even when an end exists and requires canonical evidence. The contract's rule that an unclosed child remains unfinished does not waive fail-closed evidence-chain validation.",
+      "trusted_reproduction": {
+        "case": "Reserve and validly end an open first child; delete its canonical external-evidence.json; call suite_status without finish",
+        "returned_without_error": true,
+        "outcome_counts": {"unfinished": 2}
+      },
+      "impact": "Read-only accounting hides a corrupt/missing ended evidence chain until an explicit close or another validating operation. It must not infer terminal failure or liveness, but it still must refuse invalid evidence.",
+      "required_resolution": "Validate any present external chain before returning unfinished. Keep valid unended/partial collections unfinished and do not close or derive a terminal outcome during read-only status. Add absent/corrupt end-backed evidence and orphan-chain read-only regressions."
+    },
+    {
+      "id": "M1-CODE-3",
+      "severity": "medium",
+      "title": "Malformed arguments can mask a replayed call identity as model protocol failure",
+      "locations": [
+        "tools/sog_bench_lean_model.py:function_call argument decoding",
+        "tools/sog_bench_lean_model.py:run seen_calls check after function_call"
+      ],
+      "evidence": "run checks seen_calls only after function_call returns. function_call can raise ModelStop while parsing arguments first. A single correctly named call with a fresh response ID, a repeated call_id and malformed argument JSON therefore takes the completed/model-protocol-error path instead of the contract's infrastructure/provider-identity path.",
+      "trusted_reproduction": {
+        "case": "One successful mocked check, then a fresh response ID with the first call_id replayed and arguments='not JSON'",
+        "stop": "malformed-fixed-workspace-arguments",
+        "disposition": "completed",
+        "reason": "model-protocol-error",
+        "final_outcome": "no-final-submission",
+        "tool_events": 1
+      },
+      "impact": "No second tool dispatch occurs, but a provider identity-integrity failure becomes a model no-final/protocol outcome, reintroducing the wrong side of the model-versus-infrastructure accounting boundary for overlapping errors.",
+      "required_resolution": "For the selected well-formed function-call identity, enforce missing/replayed call-ID rejection before argument-content classification. Add this combined-fault regression; preserve the declared model-protocol behavior for fresh identities with bad arguments and the no-extra-call policy."
+    }
+  ],
+  "positive_checks": [
+    "The normal external lifecycle reads bounded regular evidence, uses duplicate/nonfinite-token rejection and exact field/binding checks, copies raw bytes once, binds actual copy/history/count/session/reservation digests and revalidates the chain during close and closed-child accounting.",
+    "Observation-backed final kinds take precedence in _outcome, including resource-limit and infrastructure-error. Missing terminal observation remains infrastructure, while missing nonterminal observation now fails history validation instead of forgiving a later final. Existing tests exercise all final kinds and no replacement final.",
+    "Provider transport/HTTP/identity/check-verifier failures now reach canonical infrastructure completion and two-target rollup in the ordinary tested cases. Model protocol/output-budget stops remain distinct, and invalid submitted final source still reserves an actual invalid final.",
+    "Valid unended and partial-copy collections remain unfinished in read-only status and become infrastructure only after explicit close; duplicate reservation/end/copy and post-end actions are rejected. The read-only corruption exception is finding M1-CODE-2, not a reason to classify valid open collections as failed.",
+    "M2's frozen model-version equality, fresh response ID requirement, raw identity/usage persistence and stateless replay remain present. The overlapping function-call-ID classification gap is isolated in M1-CODE-3.",
+    "The native addition is visibly a scripted controlled-software-fixture client with synthetic Responses-shaped messages, explicit zero-provider-call labeling and endpoint=None for the fixture. It invokes the real existing workspace verifier path, inspects actual returned semantic-mismatch feedback, then submits the controlled reference; a separate two-target suite exercises provider-failure infrastructure accounting. The workflow runs it only after existing native gates and uploads its evidence. It was inspected, not run here.",
+    "Proof comparison/axiom/kernel logic, sandbox policy and declared compiler resource limits are unchanged. Documentation keeps actual provider/native admission, model measurement, security certification and broader Goal coverage separate."
+  ],
+  "admission_boundary": "The60 passing local mocked/packaging tests do not cover the reproduced gaps and are not native/provider evidence. Fix these exact-code issues in a new bounded snapshot, preserve this report, and obtain independent delta review before claiming code admission. The new credential-free Linux native bridge boundary fixture and any authorized real provider acceptance remain pending; accepted native08 software scope is not silently upgraded.",
+  "preserved_report_sha256_raw": {
+    "independent-design-review.json": "0bd2e563864bf7fa950b9a17d6ab3fcfa4c8dd1ca6bc641b968209b058ed9854",
+    "m2-repair-review.json": "dd7f35eb5cfb66ba346aaf085503a85fb9b86cd00e4562756cd94a2408591cd9",
+    "m1-contract-preflight.json": "b3c24852498e2e6313f758aea15bd68ec76afd9471b9b99df221653452eb23a7",
+    "m1-contract-v2-preflight.json": "d71d2508fc6f748b8a11a7cd90bb1507ae120dfab7af0f785ddef2dacaf7c440"
+  }
+}

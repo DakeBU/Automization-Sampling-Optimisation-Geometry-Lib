@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "kind": "independent-runtime-design-contract-review",
+  "reviewed_at": "2026-11-05",
+  "candidate_commit": "5b8b5094bafeb10a66125344f8319b6a07d0330f",
+  "branch": "codex/sog-bench-lean-executor",
+  "scoped_worktree_matches_candidate": true,
+  "snapshot_note": "The scoped worktree matched the candidate throughout source review and the unit-test run and at the explicit clean scoped-diff check immediately before report creation. The final status check then observed later edits to container.py, policy.json, sog_bench_lean.py and sog_bench_lean_native.py by another worker. Those later edits are not reviewed here; findings, hashes and test results refer only to the named candidate snapshot.",
+  "decision": "conditional-design-review; native acceptance remains pending",
+  "security_certificate": false,
+  "native_pass_claimed": false,
+  "mathematical_source_review": false,
+  "scope": [
+    "tools/sog_bench_lean.py",
+    "tools/sog_bench_lean_native.py",
+    "tools/sog_bench_lean_workspace.py",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/container.py",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/landrun-env",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/policy.json",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/README.md",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/WORKSPACE.md",
+    "tools/tests/test_sog_bench_lean.py"
+  ],
+  "scope_note": "The requested tests/test_sog_bench_lean.py does not exist; the actual scoped suite is tools/tests/test_sog_bench_lean.py. Root AGENTS.md was read completely, and applicable ancestor/subdirectory AGENTS.md locations were checked. No additional applicable guide was found.",
+  "checks_actually_run": [
+    {
+      "check": "Read-only git branch/HEAD/status, scoped diff and git blob inventory",
+      "result": "HEAD equals the named candidate and the nine reviewed files have no worktree diff from it. Three unrelated untracked paths were present before review and were left untouched."
+    },
+    {
+      "command": "python -B -m unittest discover -s tools/tests -p test_sog_bench_lean.py -v",
+      "environment": "Windows; PYTHONDONTWRITEBYTECODE=1",
+      "result": "36 tests discovered: 34 passed, 2 skipped; no Lean/Docker execution",
+      "skips": [
+        "Actual symlink/FIFO behavior requires POSIX",
+        "POSIX cache modes require Linux"
+      ]
+    },
+    {
+      "check": "Trusted pure-Python classifier probe; no subprocess execution",
+      "input": "A fixed-target-lean-precheck record with accepted=false, diagnostic_limit=false, comparator_not_run=true, supervisor/container exit10, and compiler_exit separately set to1,126,127,-11",
+      "result": "Every value classified as proof-rejected. This confirms the status conflation in finding R2; it does not demonstrate a native launcher failure."
+    },
+    {
+      "check": "Static process/argument, framing, bounded-input, source-receipt and workspace-state-machine review",
+      "result": "Findings and positive checks below; no submitted Lean or hostile fixture was executed, syntax-probed or elaborated."
+    }
+  ],
+  "findings": [
+    {
+      "id": "R1",
+      "severity": "medium",
+      "title": "A successful direct precheck does not establish streaming or a generated-output bound in later comparator executions",
+      "locations": [
+        "benchmarks/samplingoptimisationgeometrybench/lean-runtime/container.py:123",
+        "benchmarks/samplingoptimisationgeometrybench/lean-runtime/container.py:130",
+        "benchmarks/samplingoptimisationgeometrybench/lean-runtime/README.md:78"
+      ],
+      "evidence": "The source is elaborated once by the direct readonly compiler and again by the unchanged comparator. Given the pinned Lake rawProc/IO.Process.output buffering described in the request and README, source can distinguish these phases and emit a flood only during comparator build/export. The initial pass cannot force that later execution to stream. Current native fixtures do not exercise this phase-distinguishing case.",
+      "impact": "The supervisor-captured aggregate diagnostic bytes and archived diagnostic/wire bytes remain bounded by262144/2097152. Internal Lake/Lean/export buffers are not bounded to262144 by this design; their coarse limits are the container memory and whole-call wall budgets. No false acceptance or host escape follows from this observation alone.",
+      "required_resolution": "State the captured/stored-versus-internal-buffer boundary explicitly and require a native phase-distinguishing buffered-build flood fixture with both phase markers and comparator-kind diagnostic_limit evidence. If a hard bound on generated/internal output is actually required, interception at the real process boundary or a separately reviewed adapter is needed. Merely passing a precheck-only flood fixture is insufficient.",
+      "status": "Open at the reviewed candidate. The coordinator proposed a narrower honest captured-diagnostic contract and a new native fixture; neither is credited as implemented or passed in this review."
+    },
+    {
+      "id": "R2",
+      "severity": "medium",
+      "title": "New precheck wrapper/setup failures are indistinguishable from source rejection",
+      "locations": [
+        "benchmarks/samplingoptimisationgeometrybench/lean-runtime/container.py:110",
+        "benchmarks/samplingoptimisationgeometrybench/lean-runtime/container.py:123",
+        "benchmarks/samplingoptimisationgeometrybench/lean-runtime/container.py:126",
+        "tools/sog_bench_lean.py:287"
+      ],
+      "evidence": "capture executes lake env, landrun-env, Landrun and Lean as one command. Any nonzero return without diagnostic overflow is labeled compiler_exit and returned as supervisor exit10. The trusted challenge preflight uses lake build without exercising the new Landrun invocation. check_runtime checks bytes/inventory but not executable permissions, so a permission/setup failure on this path can satisfy the receipt checks and still be reported as proof rejection. The pure classifier probe confirms no distinction for126,127 or a negative process status.",
+      "impact": "This can label an operator/runtime failure as a mathematical rejection, contrary to the documented unscored-infrastructure boundary. It is not a demonstrated false-acceptance or host-escape path.",
+      "required_resolution": "Add trusted readiness/start evidence for the actual sandbox/compiler path or an equivalent robust infrastructure distinction before attributing its failure to submitted source. Do not simply reinterpret arbitrary exit126/127, since submitted code can itself choose those codes. Retain setup failures as infrastructure evidence, with packaging tests and native setup-negative coverage.",
+      "status": "Open; no repair made by this reviewer."
+    }
+  ],
+  "positive_checks": [
+    "The readonly precheck argv is fixed, uses lake env plus real /opt/judge/landrun-env, grants only /dev writable, and supplies neither an artifact output flag nor a writable project/cache grant. Under the stated real-Landrun semantics, the submitted precheck cannot alter the trusted challenge baseline through these filesystem grants.",
+    "Precheck success is not an acceptance route. The only successful supervisor report follows the separately invoked pinned comparator, and the host classifier requires source_precheck_exit0 plus consistent comparator/supervisor/container evidence.",
+    "The new Challenge.olean write fixture actually contains a write attempt followed by the specific denial exception marker; its acceptance condition additionally requires fixed-target-lean-precheck and comparator_not_run=true. Its native execution is still pending.",
+    "Child output is base64 diagnostic data inside supervisor frames, not a verdict. Malformed or inconsistent control framing does not become acceptance. The host never parses submitted diagnostic text as control JSON.",
+    "One diagnostic_total variable spans trusted challenge setup, precheck and comparator capture. The host has a separate bounded framed transport reader and preserves already received diagnostic chunks after timeout.",
+    "The host wall clock spans all container phases rather than resetting for the extra precheck. Docker arguments preserve readonly trusted mounts, nonroot UID, dropped capabilities, no-new-privileges, network-none, resource caps, proxy blanking and exact generated container identity cleanup.",
+    "Task packets are reconstructed against current canonical source/admission, stage files are checked against the operator manifest, challenge/config are compared to the task, and the runtime checks the complete seven-file tools inventory plus verifier source bytes. These are useful operator drift checks, not external attestation.",
+    "Workspace check calls do not count as finals. A valid-shaped submit is reserved before execution, and invalid, interrupted or timed-out reserved finals cannot be replaced. Exclusive operator locks and sequential event hashes protect the normal state-machine path.",
+    "Suite selection is written before child initialization. Missing/unattempted/invalid/interrupted children remain in the denominator, accepted-check-without-final is not success, and infrastructure outcomes remain separately represented in the recorder. The local workspace tests use a fake verifier and are not native evidence."
+  ],
+  "explicit_trust_and_security_limits": [
+    "This is a runtime design/contract review, not mathematical source validation, a Lean kernel audit, or an exhaustive OS/compiler/Landlock security review. No demonstrated host escape or false-acceptance path was found in the scoped source review; that is not evidence that none exists.",
+    "The pinned official comparator and Lake process semantics supplied in the task were used as stated premises. Their external source trees and real binaries were not independently executed or fully audited in this scoped review.",
+    "Runtime tools are byte-hashed, but preparation receipts do not content-seal the entire toolchain or dependency-cache tree. The toolchain is a symlink and readable cache files can be hard-linked. Readonly container mounts do not prevent later host-side mutation of shared inodes. The design therefore depends on trusted, quiescent, public-only operator dependencies/caches and excludes a malicious or concurrently mutating operator.",
+    "Task, stage, runtime and evidence paths are operator-controlled rather than agent-accessible. Hash-before-use checks are not an atomic snapshot against concurrent trusted-host edits or malicious receipt rewriting. Stage manifest identity is not independently frozen by workspace session hashes.",
+    "No submitted/hostile Lean, #eval, fixture source, native compiler invocation, Docker trial, installation, network request or credential access was performed. The only written artifact is this review report.",
+    "Native CI is pending. The reported earlier native05/native06 failures and historical13+5 acceptance are context from the supplied request/docs, not fresh native results checked here. Required wall/output markers, actual I/O-denial probes, invalid-input cases and workspace replays must still run successfully at the exact eventual candidate.",
+    "Authenticated provider/tool trajectories, retrieval enforcement, actual model measurement, calibration/private-family coverage and a security certificate remain outside this review and are not established by local tests. Restricted ATLAS material, indexes and derivatives were not read."
+  ],
+  "reviewed_file_sha256_raw": {
+    "tools/sog_bench_lean.py": "e575ad0620935c3e33337d4173fcbc958a32907eb241fb60ae5b342d7106d88f",
+    "tools/sog_bench_lean_native.py": "4f882bf4b206451ce0d7e5ae0fab875adc3d3ccac2c4a54516d67be380578240",
+    "tools/sog_bench_lean_workspace.py": "268a24227391e9860ef697ebe7fac44e9cb6925b9a525e9da0df59b49d1e6bfd",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/container.py": "13d6f29ae71ed0a7a225c640d09b0f9682657003468d0c5a8bff5f5867ce3b2e",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/landrun-env": "e82ed0eb8977e8d626dcf3bc960e69939ff0b77ade5227af8b986f59067377ef",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/policy.json": "31cd5cbba12975272276af70bf5329dd3f9dcf9515adb1bd9d1227cec265b82a",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/README.md": "8d0a2cbbeff41c46e029ca7d59398ae46fb9e8c704d076cd2e1d9715b0c85b1d",
+    "benchmarks/samplingoptimisationgeometrybench/lean-runtime/WORKSPACE.md": "51f5ef8eaec5985afe9b05e53e7b334c082296cc1254b755af137bfc0733e3b1",
+    "tools/tests/test_sog_bench_lean.py": "7c5f55f532a318f5d93aba1f75e40924f5826b68fe643d1cbd3686386abe419b"
+  }
+}

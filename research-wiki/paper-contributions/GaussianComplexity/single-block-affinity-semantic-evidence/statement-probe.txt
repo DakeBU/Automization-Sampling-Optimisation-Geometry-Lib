@@ -1,0 +1,34 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation
+open Matrix MeasureTheory
+open scoped ENNReal
+open AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily
+set_option autoImplicit false
+def sealedStatement {n : ℕ} (hn : 3 ≤ n) {κ : ℝ} (hκ : 4 ≤ κ) : Prop :=
+    let μ := orthogonalHaar n
+    let νpos := (2 : ℝ≥0∞) • μ.restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}
+    let νneg := (2 : ℝ≥0∞) • μ.restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}
+    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=
+      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))
+        (singleBlockPrecision κ O)⁻¹
+    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=
+      fun O x => Real.sqrt (singleBlockPrecision κ O).det /
+        (2 * Real.pi) ^ ((n : ℝ) / 2) *
+        Real.exp (-((WithLp.ofLp x) ⬝ᵥ
+          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)
+    let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos
+    let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg
+    let Ppos := νpos.bind γ
+    let Pneg := νneg.bind γ
+    let δ : ℝ := sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin n)),
+      MeasurableSet B ∧ z = |Ppos.real B - Pneg.real B|}
+    let a : ℝ := ∫ x, Real.sqrt (qpos x * qneg x)
+    Integrable (fun x => Real.sqrt (qpos x * qneg x)) volume ∧
+    0 ≤ a ∧ a ≤ 1 ∧ δ ≤ Real.sqrt (1 - a ^ 2) ∧
+    a ≤ Real.sqrt (1 - (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ∧
+    Real.sqrt (1 - (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ≤
+      Real.exp (-(1 / 8 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ))
+#check sealedStatement

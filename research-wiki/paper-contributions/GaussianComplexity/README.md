@@ -18,8 +18,10 @@ at `994992ba220c`. Its main Lean/Tests gate, deployment and bounded public reade
 checks succeeded. Only the density packet has the independently accepted
 [Exposition Seal](density-stack-integration-20261105/postmerge-density-purification/exposition-seal.json).
 Latest-main `0804c29747e3` was clean-ported with foreign evidence and ledger events
-preserved; its combined local gate passed 9632 jobs. The final lifecycle metadata
-publication and external GitHub HTML504 follow-up remain explicit. Both main
+preserved; its combined local gate passed 9632 jobs. Final lifecycle metadata was published to official main `d9bcd4231df6`; its
+Contributor contract and Samplinglib site workflows actually passed, and the
+serialized integration lane is released. External GitHub HTML504 evidence
+remains retained with that unchanged route frozen. Both main
 lower bounds and the full oracle/precision/cost/hidden-eigenbasis adapters remain
 open. Older packet sections below are historical evidence, not the current
 frontier or whole-paper completion status.

@@ -76,3 +76,19 @@ artifacts remain retained; the canonical audit points to the current binding.
 No input of the two literal-energy source reviews changed. Merge, remote
 exact-head CI, deployment and post-merge purification are later receipts—not
 consequences of this local stabilization snapshot.
+
+## Cross-domain browser gate correction
+
+PR394 head1626973 passed site generation/static validation, but workflow
+42601909781 failed its older cross-domain browser test: the last Lean fold was
+inside the deliberately closed prerequisite-definition ledger. The test now
+clicks visible outer summaries before each adjacent statement/proof fold,
+checks that all Lean folds start closed, and checks nonempty visible Lean for
+every fold in each sampled reader. It neither force-clicks nor skips definitions.
+
+The full HTTP/MathJax cross-domain browser check passed with installed Edge;
+the literal-energy reader exercised all four statement/proof disclosures and
+remained within the mobile viewport. Its screenshot was actually inspected.
+The mathematical declarations, source bindings and independent reviews are
+unchanged. Exact-head remote CI must pass before merge; this local browser
+receipt does not replace that gate.

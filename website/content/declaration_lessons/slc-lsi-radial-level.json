@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "reading_layout": "progressive",
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel.radialLevel_hasLaw",
+      "title": "From the angular sum to the radial field at a fixed point",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S4.E16",
+          "label": "Zhou–Suzuki, Eq. (16) and footnote 2",
+          "scope": "Exact radial factor and its breakpoints."
+        },
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S6.SS2",
+          "label": "Zhou–Suzuki, §6.2, first application of Fact 10",
+          "scope": "The explicitly stated scalar marginal, separate from the conditional step."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiRadialLevel"
+      ],
+      "boundary": "Exact one-point marginal, including the Dirac case, only. No shell derivative/support estimates, joint process law, multi-level aggregation, independence from earlier coefficients, conditional integration, Eq. (51), or main lower bounds.",
+      "assumptions": [
+        "n is positive, h is natural and 0≤i≤h. The paper prescribes large n and a particular depth; the isolated scalar law does not use that regime and does not extend admissibility.",
+        "The fixed location supplies exactly the participating blocks x_i through x_h in ℝⁿ. No nonzero-block hypothesis is imposed on the whole theorem, and no lower bound on the cutoff is assumed.",
+        "Only the unconditioned coefficient vector Ξ is random. Its full ordered Euclidean carrier has a block of dimension n^(p S_i) for each level i and allowed degree p. The level law does not assert independence from any random history."
+      ],
+      "statement": "Fix a level i and any deterministic trailing location x_i,…,x_h. Under the unconditioned standard Gaussian on the full ordered coefficient space, the level field H_i, formed by applying the exact radial cutoff to the angular sum, is centered Gaussian with variance n C_i(x)² v_i. A zero participating block gives the identically zero field and the point mass at zero.",
+      "formula": "\\begin{gathered}H_i^\\Xi(x)=\\begin{cases}0 & \\exists j\\ge i:\\ x_j=0,\\\\C_i(x)\\,F_i^\\Xi((x_j/\\|x_j\\|)_{j=i}^h)&\\text{otherwise},\\end{cases}\\\\ H_i^\\Xi(x)\\sim\\mathcal N(0,n C_i(x)^2 v_i),\\qquad \\mathcal N(0,0)=\\delta_0.\\end{gathered}",
+      "reader_note": "The source reaches this law using fixed-location degree components. The Lean proof sums the uncut components first and then scales the sum, which gives the same scalar law. It does not prove all of Lemmas 4.3 or 4.4.",
+      "steps": [
+        {
+          "title": "Use the literal shell and handle the zero block",
+          "text": "In either quotient the two arguments to ρ sum to 0.05, so at least one is positive and each denominator is nonzero. At radius zero the left numerator is ρ(−0.65)=0, so a zero participating block makes the whole product vanish. The field is zero by definition there. A Gaussian of variance zero means a point mass, not a density formula with division by zero.",
+          "formula": "\\exists j\\ge i:\\ x_j=0\\quad\\Longrightarrow\\quad C_i(x)=0,\\qquad H_i^\\Xi(x)=0,\\qquad\\mathcal L(H_i^\\Xi(x))=\\delta_0.",
+          "lean": "expNegInvGlue.zero_of_nonpos evaluates the numerator, and a zero factor makes the finite product zero. gaussianReal_zero_var identifies the target with a Dirac measure."
+        },
+        {
+          "title": "Normalize each nonzero block",
+          "text": "When no participating block vanishes, dividing each vector by its norm gives deterministic unit directions. The actual uncut law applies under the same joint coefficient Gaussian; there is no need to postulate a new Gaussian variable.",
+          "formula": "u_j=x_j/\\|x_j\\|,\\quad \\|u_j\\|=1,\\qquad F_i^\\Xi(u)\\sim\\mathcal N(0,nv_i).",
+          "lean": "NormedSpace.norm_normalize uses the nonzero branch, then angularDegreeSum_hasLaw supplies the actual law and the measurability it packages."
+        },
+        {
+          "title": "Scale the variance by the squared cutoff",
+          "text": "The cutoff is a fixed scalar once the location is fixed. Multiplying the random field by it preserves the zero mean and multiplies the variance by its square. The scaling law remains valid when the scalar vanishes despite all blocks being nonzero.",
+          "formula": "\\mathcal L(C_i(x)F_i^\\Xi(u))=\\mathcal N(0,C_i(x)^2\\,n v_i)=\\mathcal N(0,nC_i(x)^2v_i).",
+          "lean": "gaussianReal_const_mul pushes the law through deterministic multiplication, including multiplier zero. The real-to-nonnegative variance conversion is exact by nonnegativity of squares."
+        }
+      ],
+      "lean_statement": "The local lets expose the literal coefficients, cutoff and case distinction without adding a new public definition. HasLaw is an exact pushforward equality with a.e. measurability at the fixed location.",
+      "lean_proof": "Read the two branches separately: zero block gives Dirac directly; nonzero blocks give unit directions, the prior law, and deterministic scaling. The proof never assumes shell membership or spatial regularity.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum.angularDegreeSum_hasLaw"
+      ],
+      "mathlib_dependencies": [
+        "expNegInvGlue.zero_of_nonpos",
+        "NormedSpace.norm_normalize",
+        "ProbabilityTheory.gaussianReal_zero_var",
+        "ProbabilityTheory.hasLaw_dirac_of_ae_eq",
+        "ProbabilityTheory.gaussianReal_const_mul"
+      ],
+      "dependency_notes": "Reuse Samplinglib's actual angular sum; Mathlib supplies scalar Gaussian transport. The scope is not a formal dependency on the full source Lemma 4.3/4.4 and does not yet feed an independently checked conditional iteration."
+    }
+  ]
+}

@@ -19,6 +19,7 @@ import AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension
 import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient
 import AutoSamplingTheory.Core
 import AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
@@ -5300,6 +5301,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+  {
+    key := "probability.gaussian-odd-load",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad.gaussian_odd_load_bound",
+    upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Section 6.2 Fact 10 symmetry/cosh ingredient",
+    upstreamFile := "https://arxiv.org/html/2611.05813v1#Thmfact10",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Gaussian", "integrability", "symmetry", "exponential", "lower-bound"],
+    saldUse := "Planned literal truncated-load comparison, then Lemma 6.2 first-moment bound",
+    note := "Independent compiler and source review at 3890056ea: measurable odd sublinear load, a in [0,1], nonnegative Gaussian variance including zero; derive exponential integrability and exact exp(beta^2 v/2) comparison. Reuses Mathlib MGF. Generic analytic ingredient only: literal Ui, conditional iteration, normalizer moments and query main results remain open."
+  },
   {
     key := "gaussian-polynomial-l2-differentiation",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_frechet_derivative",

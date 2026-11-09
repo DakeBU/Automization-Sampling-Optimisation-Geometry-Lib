@@ -56,3 +56,27 @@ the complete source Fact 10 in context, Lemma 6.2, Theorem 7 or a query lower bo
 
 Recheck active ownership before each new packet. This lane neither duplicates
 the four-paper SAUs nor transfers Huanjian/Andy/Ji/Bench responsibilities.
+
+## Integration acceptance (2026-11-09)
+
+The independent verifier published VERIFIED, preserving candidate `3890056ea`,
+all seven semantic slots and binding
+`a7cc5418a5eea595c8820e9582635a572c154e40b93857411bd9409fd178ed22`.
+Root Tests (9636 jobs) and `python website/scripts/lean_gate.py` passed, including
+the complete ASTIS gate. The Registry now has 610 selected local leaves.
+110 focused Python tests, contributor/Cell/publication/semantic gates and both
+affected graph checks passed. No collaborator source, cache or process changed.
+
+The generated site passed its inventory/link/formula checks: 12 Chewi chapters,
+1102 modules and 5261 declarations. Browser QA exercised four subject entries,
+the paper's metadata-derived verified-work index, both source-proof pages,
+desktop1440/mobile390, all three formula steps, initially folded Lean, and both
+focused graphs. Actual PNG inspection found readable text and no overlapping
+nodes; long mobile formulae have explicit horizontal-scroll controls/hints.
+An initial browser selector wrongly waited for an intentionally folded source
+formula; it now waits for the visible mathematical claim. This was a test
+selector correction, not suppression of a rendering failure.
+
+Final-commit gate regeneration, exact-head GitHub CI, merge, deployment and
+post-merge purification are separate receipts; none follows from these local
+checks. Every source main theorem and the literal-load adapter remain open.

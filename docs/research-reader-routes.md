@@ -62,13 +62,17 @@ or a Statement Seal. Before a main theorem is sealed, enumerate its substantive
 source proof regions and cited/approximation steps, then obtain independent
 topology review. Preserve exact quantifiers, measures, constants and domains.
 
-First candidate: Fact 12, §6.4, Eq. (60). For nonnegative real g,b with g+b>0,
-prove both inequalities `b/(g+b) ≤ b+(1-sqrt g)^2 ≤ b+(1-g)^2`.
-Its real consumer is Theorem 7's good-mass/partition-function argument. Search
-local/Mathlib scalar APIs and active cells before claiming it. This document
-does not claim a declaration, compile, or review. The subsequent integral and
-random-normalizer applications must prove their own measurability, positivity
-and moment bounds; those do not become extra premises of Theorem 7.
+The first integrated packet is Fact 12, §6.4, Eq. (60): for nonnegative real
+g,b with g+b>0, `b/(g+b) ≤ b+(1-sqrt g)^2 ≤ b+(1-g)^2`. PR #392 merged this
+one independently reviewed scalar edge; its Cell and publication binding retain
+the actual evidence. The next packet is the Gaussian symmetry/cosh ingredient
+of Fact 10, in the existing Probability layer, not a copy in a paper module.
+See `research-wiki/paper-contributions/SlcLsiQueryComplexity/fact10-integration.md`
+for the dependency-ready continuation: literal load → conditional iteration →
+actual normalizer moments → Theorem 7's normalization argument. These arrows
+are a plan until their corresponding Lean declarations actually call each other.
+The subsequent applications must prove their own measurability, positivity,
+independence and moment bounds; those do not become extra premises of Theorem 7.
 
 ## Discrete Sampling work, without duplicate foundations
 

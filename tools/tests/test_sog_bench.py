@@ -27,8 +27,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 31)
-        self.assertEqual(len(prompts), 45)
+        self.assertEqual(len(self.cores), 32)
+        self.assertEqual(len(prompts), 47)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -80,7 +80,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 45)
+            self.assertEqual(manifest['qa_views'], 47)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -201,13 +201,18 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 31)
+        self.assertEqual(coverage['unique_mathematical_cores'], 32)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertFalse(any(c['track_levels'].get('lean') == 'L5' for c in self.cores))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 31)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 32)
+        riem_l4 = next(c for c in current['cells']
+                       if c['domain'] == 'riemannian-optimization' and c['level'] == 'L4')
+        self.assertEqual(riem_l4['draft_views']['lean'], 1)
+        self.assertEqual(riem_l4['draft_views']['natural-language'], 1)
+        self.assertEqual(riem_l4['independently_reviewed'], 2)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -448,6 +453,40 @@ class BenchTests(unittest.TestCase):
         for tex in (r'A\le B+\frac{1234567890}{1234567890}+(X=Y)',
                     r'A\le B+\frac{1234567890}{1234567890}+L:=X'):
             self.assertNotIn(r'\begin{aligned}', reader.prose(r'\[' + tex + 'a'*90 + r'\]'))
+
+    def test_sphere_law_pair_exposes_real_producers_but_not_the_assembled_answer(self):
+        import sog_bench_lean as runtime
+        core = next(c for c in self.cores if c['id'] == 'sogb-032')
+        self.assertEqual(core['track_levels'], {'natural-language': 'L4', 'lean': 'L4'})
+        self.assertEqual({p['family'] for p in bench.prompts([core])}, {core['family']})
+        names = {d['declaration'] for d in core['supporting_declarations']}
+        self.assertEqual(names, set(core['dependencies']['astis']))
+        closure = runtime.local_imports(core['imports'])
+        self.assertNotIn(core['declaration'].rsplit('.', 1)[0], closure)
+        self.assertTrue(all(name.rsplit('.', 1)[0] in closure for name in names))
+        packet = runtime.packet(core)
+        for key in ('agent/prompt.json', 'agent/Solution.lean.txt'):
+            self.assertNotIn(core['declaration'].encode(), packet[key])
+            self.assertNotIn(b'anonymous_constant_1', packet[key])
+            self.assertNotIn(b'hResidual', packet[key])
+        self.assertIn(b'AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost',
+                      packet['agent/Solution.lean.txt'])
+        page = reader.core_page(core, False, {'decl:' + core['declaration']})
+        self.assertIn('How the Lean proof follows these steps', page)
+        self.assertIn('focus=decl%3A' + core['declaration'], page)
+        self.assertIn('Additional source-bound support', page)
+
+    def test_sphere_law_proof_reflows_operators_without_rewriting_gold(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-032')
+        projected, sensitivity = core['steps'][-2:]
+        self.assertIn(r'\\&amp;\le (M_2+2M_1)\|w-u\|', reader.prose(projected))
+        rendered = reader.prose(sensitivity)
+        self.assertIn(r'\\&amp;+2(P_wD(w)^*-P_uD(u)^*)r_\nu', rendered)
+        self.assertIn(r'\\&amp;+2(M_2+2M_1)R\,c(w,u)', rendered)
+        self.assertNotIn(r'\begin{aligned}', sensitivity)
+        for grouped in (r'\|a+' + 'z'*60 + r'\|', r'|a+' + 'z'*60 + '|',
+                        r'f(a+b+c+' + 'z'*60 + ')'):
+            self.assertNotIn(r'\begin{aligned}', reader.prose(r'\[' + grouped + r'\]'))
 
     def test_gaussian_coupling_chain_stacks_without_changing_gold(self):
         core = next(c for c in self.cores if c['id'] == 'sogb-031')

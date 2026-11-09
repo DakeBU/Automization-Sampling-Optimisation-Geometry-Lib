@@ -99,12 +99,15 @@ def prose(text: str) -> str:
         body = match.group(1)
         if r'\begin{' in body:
             return match.group(0)
-        depth, group_depth, start, parts, relations = 0, 0, 0, [], []
+        depth, group_depth, start, parts, relations, plus = 0, 0, 0, [], [], []
+        in_norm = False
         for index, char in enumerate(body):
             if char in '{}' and (index == 0 or body[index-1] != '\\'):
                 depth += 1 if char == '{' else -1
             if depth == 0 and char in '()[]':
                 group_depth += 1 if char in '([' else -1
+            if depth == group_depth == 0 and body.startswith(r'\|', index):
+                in_norm = not in_norm
             if depth == 0 and body.startswith(r',\qquad', index):
                 parts.append(body[start:index+1])
                 start = index + len(r',\qquad')
@@ -112,6 +115,8 @@ def prose(text: str) -> str:
                 relation = re.match(r'\\(?:leq?|geq?)(?![A-Za-z])|=', body[index:])
                 if relation:
                     relations.append((index, relation.group()))
+                if char == '+' and not in_norm and (index == 0 or body[index-1] not in '^_\\'):
+                    plus.append(index)
         if not parts:
             # Keep long chains readable even in a mobile proof column. Split
             # only a top-level equality followed by monotone comparisons.
@@ -133,6 +138,23 @@ def prose(text: str) -> str:
                 i, j = (pos for pos, _ in relations)
                 return (r'\[\begin{aligned}' + body[:i] + '&' + body[i:j]
                         + r'\\&' + body[j:] + r'\end{aligned}\]')
+            # Split a single relation with a long norm on the left, or a
+            # long two-term sum, at the visible operator. Never cut inside
+            # delimiters or reuse this for statements with grouped alignment.
+            if (len(body.strip()) >= 50 and len(relations) <= 1 and not in_norm
+                    and not any(token in body for token in (':=', '&', r'\quad', r'\left', r'\right', r'\\',
+                                    r'\langle', r'\rangle', r'\lvert', r'\rvert', r'\lVert', r'\rVert'))
+                    and not re.search(r'(?<!\\)\|', body)):
+                breaks = []
+                if relations and body.lstrip().startswith(r'\|'):
+                    breaks.append(relations[0][0])
+                if len(plus) == 1 and plus[0] > (relations[0][0] if relations else 0):
+                    breaks.append(plus[0])
+                if breaks:
+                    bounds = [0, *breaks, len(body)]
+                    rows = [body[i:j].strip() for i, j in zip(bounds, bounds[1:])]
+                    if all(row and row.count(r'\|') % 2 == 0 for row in rows):
+                        return r'\[\begin{aligned}&' + r'\\&'.join(rows) + r'\end{aligned}\]'
             return match.group(0)
         parts.append(body[start:])
         return r'\[\begin{gathered}' + r'\\'.join(parts) + r'\end{gathered}\]'

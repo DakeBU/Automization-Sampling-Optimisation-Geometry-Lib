@@ -53,13 +53,39 @@ class PairedReviewTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 formal.prepare_decoder([self.core], target)
 
+    def test_exact_imported_cost_is_anonymous_only_in_the_decoder_packet(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-032')
+        symbol, = core['decoder_symbols']
+        packet, mapping = formal.decoder_payload([core])
+        directory = formal.REVIEWS / 'formal-12' / 'packets'
+        self.assertEqual((directory / 'anonymous-input.json').read_bytes(), bench.encoded(packet))
+        self.assertEqual((directory / 'coordinator-map.json').read_bytes(), bench.encoded(mapping))
+        self.assertIn(symbol, core['lean_task'])
+        self.assertIn(symbol, core['lean_reference'])
+        self.assertIn('anonymous_constant_1', packet['cases'][0]['statement'])
+        self.assertNotIn('AutoSamplingTheory', json.dumps(packet))
+        for change in (
+            {'decoder_symbols': []},
+            {'decoder_symbols': symbol},
+            {'decoder_symbols': [symbol, symbol]},
+            {'decoder_symbols': [core['declaration']]},
+            {'supporting_declarations': []},
+            {'decoder_definitions': ['Nothing about the imported constant.']},
+            {'lean_task': core['lean_task'].replace(symbol, 'anonymous_constant_1 ' + symbol)},
+            {'lean_task': core['lean_task'].replace(symbol, symbol + '_other')},
+        ):
+            with self.subTest(change=tuple(change)), self.assertRaises(ValueError):
+                formal.decoder_payload([{**core, **change}])
+
     def test_actual_distinct_actor_evidence_admits_one_conclusion_only_pair(self):
         rows = formal.statuses(self.cores)
-        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028','sogb-031'})
+        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028','sogb-031','sogb-032'})
         self.assertEqual(rows['sogb-015']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-015']['formal_alignment'], 'conclusion-only')
         self.assertTrue(rows['sogb-015']['remaining_unformalized'])
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 31)
+        self.assertEqual(rows['sogb-032']['editorial'], 'accepted')
+        self.assertEqual(rows['sogb-032']['formal_alignment'], 'conclusion-only')
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 32)
 
     def test_paired_numbered_exercise_fails_closed_without_all_source_parts(self):
         actual = formal.REVIEWS / 'formal-11'

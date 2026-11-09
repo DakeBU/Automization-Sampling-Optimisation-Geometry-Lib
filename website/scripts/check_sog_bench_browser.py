@@ -226,6 +226,15 @@ def main() -> None:
                         const box = e.closest('li').getBoundingClientRect();
                         return math.left >= box.left - 1 && math.right <= box.right + 1;
                     }"""), 'Gaussian coupling inequality chain requires horizontal scrolling'
+                if identity == 'sogb-032':
+                    proof_panel = page.locator('#natural-language summary',
+                                               has_text='Reference mathematical proof').locator('..')
+                    equations = proof_panel.locator('ol mjx-container[display="true"]').all()
+                    assert len(equations) == 4
+                    for equation in equations:
+                        assert equation.evaluate(
+                            'e => e.querySelector("mjx-math").getBoundingClientRect().width <= e.clientWidth + 2'
+                        ), 'Sphere law proof equation requires horizontal scrolling'
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
                 # Click/focus and layout anchoring can complete after the first
                 # scroll request on Chromium. Normalize at the observed frame,

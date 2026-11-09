@@ -85,7 +85,7 @@ class PairedReviewTests(unittest.TestCase):
         self.assertTrue(rows['sogb-015']['remaining_unformalized'])
         self.assertEqual(rows['sogb-032']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-032']['formal_alignment'], 'conclusion-only')
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 32)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 34)
 
     def test_paired_numbered_exercise_fails_closed_without_all_source_parts(self):
         actual = formal.REVIEWS / 'formal-11'

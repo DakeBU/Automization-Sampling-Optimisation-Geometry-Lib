@@ -27,8 +27,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 32)
-        self.assertEqual(len(prompts), 47)
+        self.assertEqual(len(self.cores), 34)
+        self.assertEqual(len(prompts), 49)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -80,7 +80,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 47)
+            self.assertEqual(manifest['qa_views'], 49)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -201,18 +201,24 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 32)
+        self.assertEqual(coverage['unique_mathematical_cores'], 34)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertFalse(any(c['track_levels'].get('lean') == 'L5' for c in self.cores))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 32)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 34)
         riem_l4 = next(c for c in current['cells']
                        if c['domain'] == 'riemannian-optimization' and c['level'] == 'L4')
         self.assertEqual(riem_l4['draft_views']['lean'], 1)
         self.assertEqual(riem_l4['draft_views']['natural-language'], 1)
         self.assertEqual(riem_l4['independently_reviewed'], 2)
+        for domain in ('riemannian-optimization', 'samplewiki'):
+            l2 = next(c for c in current['cells'] if c['domain'] == domain and c['level'] == 'L2')
+            self.assertFalse(l2['gap'])
+            self.assertEqual(l2['draft_views']['natural-language'], 1)
+            self.assertEqual(l2['draft_views']['lean'], 0)
+            self.assertEqual(l2['independently_reviewed'], 1)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -220,6 +226,26 @@ class BenchTests(unittest.TestCase):
         for domain in bench.curriculum.curriculum()['domains']:
             self.assertTrue(any(domain in c['library_domains'] and c['track_levels'].get('natural-language') == 'L1' for c in self.cores))
             self.assertTrue(any(domain in c['library_domains'] and bench.has_lean(c) for c in self.cores))
+
+    def test_l2_boundary_examples_stay_unpaired_and_in_their_existing_families(self):
+        by_id = {c['id']: c for c in self.cores}
+        for identity, related in (('sogb-033', 'sogb-032'), ('sogb-034', 'sogb-017')):
+            core = by_id[identity]
+            self.assertEqual(core['family'], by_id[related]['family'])
+            self.assertEqual(core['track_levels'], {'natural-language': 'L2'})
+            self.assertFalse(bench.has_lean(core))
+            self.assertEqual(core['lean_task'], '')
+            self.assertEqual(core['lean_reference'], '')
+            prompt, = bench.prompts([core])
+            self.assertEqual(prompt['track'], 'natural-language')
+            self.assertEqual(prompt['split'], 'public-dev')
+            self.assertNotIn('steps', prompt)
+            self.assertNotIn('supporting_declarations', prompt)
+            self.assertNotIn('support_lean_source', prompt)
+            page = reader.core_page(core, False, {'decl:' + core['declaration']})
+            self.assertIn('focus=decl%3A' + core['declaration'], page)
+            self.assertIn('Supporting library Lean (not an aligned QA task)', page)
+            self.assertIn('Lean view: not yet aligned', page)
 
     def test_compiler_scope_tracks_real_imports_and_pins_not_unrelated_modules(self):
         selected = [c for c in self.cores if c['id'] == 'sogb-016']

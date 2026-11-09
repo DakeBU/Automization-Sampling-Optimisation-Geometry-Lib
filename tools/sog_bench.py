@@ -322,6 +322,9 @@ def selected_graph_tasks(graphs: list[dict], metadata: dict) -> list[dict]:
 def export(output: Path, cores: list[dict] | None = None) -> None:
     cores = cores or materialize()
     graphs = curriculum.graph_items()
+    import sog_bench_exposure as exposure
+    # Refuse non-public rows before creating or updating any export files.
+    public_exposure = exposure.build_public(cores, graphs)
     review = editorial_review(cores)
     import sog_bench_graph_review
     graph_review = sog_bench_graph_review.summary(graphs)
@@ -329,7 +332,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     reviewed = [c for c in cores if review['items'][c['id']]['editorial'] in {'accepted', 'accepted-after-repair'}]
     task_files = task_assets(reviewed, reviewed_graphs)
     expected = {'questions.jsonl', 'reference.jsonl', 'manifest.json', 'README.md',
-                'editorial-review.json', 'graph-editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
+                'editorial-review.json', 'graph-editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl', exposure.PUBLIC_FILE,
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 'reviewed-graph-questions.jsonl','reviewed-graph-reference.jsonl',
                 'EVALUATION.md', 'ECOSYSTEM.md', 'HARBOR.md', 'TEXTBOOK_EXERCISES.md', 'textbook-exercise-map.json', 'examples/prose-run.json',
@@ -348,6 +351,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write = lambda path, value: (output / path).write_bytes(value)
     jsonl = lambda rows: ''.join(json.dumps(r, ensure_ascii=False, sort_keys=True) + '\n' for r in rows).encode()
     write('questions.jsonl', jsonl(prompts(cores)))
+    write(exposure.PUBLIC_FILE, public_exposure)
     for name, content in task_files.items():
         (output / name).parent.mkdir(parents=True, exist_ok=True)
         write(name, content)

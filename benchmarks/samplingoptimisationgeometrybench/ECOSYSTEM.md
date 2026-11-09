@@ -53,6 +53,41 @@ No restricted ATLAS material/index/derivative, external solution manual or
 Terminal-Bench task content is imported. Follow LICENSE_SCOPE.md. A textbook
 source mapping does not grant permission to copy its prose into ML data.
 
+`public-exposure.json` is generated alongside every public export, including
+unadmitted public drafts and graph views. It records IDs, family labels, exact
+source anchors and per-track prompt fingerprints; it contains no answer,
+reference proof or private item. Keep the exact file from each release to retain
+evidence of retired public items. The export rejects non-public inputs before
+writing files.
+
+An operator can preflight private metadata **offline**, without placing the
+inventory, prompts or answers in this checkout:
+
+```bash
+python tools/sog_bench_exposure.py --inventory /secure/outside-repo/inventory.json \
+  --historical-public /retained/earlier/public-exposure.json
+```
+
+Omit `--historical-public` only when there are no earlier snapshots to supply;
+repeat it for each distinct retained snapshot. The strict JSON inventory uses
+`schema_version: 1`, `kind: "sog-bench-private-inventory"`, `split: "private-test"`,
+`source_scope: "project-owned-original-only"`, `public_snapshots` (SHA-256 of
+the exact current and all supplied historical public files), and `records`.
+Each record has exactly `id`, `family`, `anchors` and `views`. Use stable
+lowercase hyphenated IDs; typed anchors are `lean:<owned declaration>`,
+`exercise:<canonical source ID>` and `original:<private source ID>`. Reserve
+the primary target/source, not every shared foundational lemma. Record view
+hashes with `tools.sog_bench_exposure.prompt_sha256`: NL uses exactly
+`assumptions` and `question`, Lean uses exact fixed template text, and graph
+uses the available fields in `GRAPH_FIELDS` (without reference answers).
+
+The preflight rejects exact overlap in IDs, families, primary anchors or
+prompts, and returns counts without echoing private labels. Success does not
+detect paraphrases, renamed semantic families, alternate theorem names, or
+missing historical exposures; it does not verify provenance, rights or
+independent novelty. These still require a private independent audit before
+admitting a test. There is no private corpus or evaluator in the public export.
+
 ## What can actually be run today?
 
 | Track | Available path | Not certified |

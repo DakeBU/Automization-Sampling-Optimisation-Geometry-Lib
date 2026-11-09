@@ -329,6 +329,18 @@ def main() -> None:
                         page.get_by_role('link',name='Run-metadata template',exact=True).click()
                     template=json.loads(Path(metadata_download.value.path()).read_text(encoding='utf-8'))
                     assert template['track']=='natural-language' and template['attempt_policy']=='first-attempt'
+                if tail == 'evaluation/index.html':
+                    page.locator('summary', has_text='Before reporting a score').click()
+                    with page.expect_download() as exposure_download:
+                        page.get_by_role('link', name='Public exposure snapshot', exact=True).click()
+                    exposure_bytes = Path(exposure_download.value.path()).read_bytes()
+                    assert hashlib.sha256(exposure_bytes).hexdigest() == manifest['files']['public-exposure.json']
+                    exposure = json.loads(exposure_bytes)
+                    assert exposure['kind'] == 'sog-bench-public-exposure'
+                    assert len(exposure['records']) == manifest['cores'] + manifest['graph_tasks']
+                    assert sum(len(row['views']) for row in exposure['records']) == manifest['qa_views'] + manifest['graph_tasks']
+                    assert all(set(row) == {'id', 'family', 'anchors', 'views'} for row in exposure['records'])
+                    page.locator('summary', has_text='Before reporting a score').click()
                 if tail=='graph-json/index.html':
                     assert page.get_by_role('heading',name='Source imports',exact=True).count()==1
                     assert page.get_by_role('heading',name='Compiled proof bodies',exact=True).count()==1
@@ -392,6 +404,7 @@ def main() -> None:
               'runtime_errors': errors}
     report['offline_same_origin_math_assets'] = True
     report['all_mathematical_cores_checked'] = len(reference_records)
+    report['public_exposure_records_checked'] = len(exposure['records'])
     (args.evidence / 'report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report))
 

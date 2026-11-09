@@ -20,6 +20,7 @@ import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient
 import AutoSamplingTheory.Core
 import AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
@@ -5301,6 +5302,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+    {
+      key := "probability.slc-lsi-literal-energy-truncation",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation_gaussian_bound",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 footnote3, Eq17 and Fact10",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#Thmfact10",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "cutoff", "integrability", "exponential", "lower-bound"],
+      saldUse := "Actual scalar energy load; planned conditional level iteration in Lemma6.2",
+      note := "Independently compiled/source-reviewed at c873bd3f8. Literal integral cutoff, positive source parameters, arbitrary measurable-space Gaussian variable including variance zero. Derives load properties and integrability internally; reuses canonical Cutoff and GaussianOddLoad. Definition is a prerequisite, not another leaf. Parameter recursion, conditional iteration, hard-family admissibility and main lower bounds remain open."
+    },
   {
     key := "probability.gaussian-odd-load",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad.gaussian_odd_load_bound",
@@ -5308,8 +5319,8 @@ def probabilityMemory : List LemmaMemoryEntry := [
     upstreamFile := "https://arxiv.org/html/2611.05813v1#Thmfact10",
     status := LemmaMemoryStatus.formalizedLocal,
     tags := ["Gaussian", "integrability", "symmetry", "exponential", "lower-bound"],
-    saldUse := "Planned literal truncated-load comparison, then Lemma 6.2 first-moment bound",
-    note := "Independent compiler and source review at 3890056ea: measurable odd sublinear load, a in [0,1], nonnegative Gaussian variance including zero; derive exponential integrability and exact exp(beta^2 v/2) comparison. Reuses Mathlib MGF. Generic analytic ingredient only: literal Ui, conditional iteration, normalizer moments and query main results remain open."
+      saldUse := "Consumed by EnergyTruncation.energyTruncation_gaussian_bound; then planned Lemma6.2 first-moment bound",
+      note := "Independent compiler and source review at 3890056ea: measurable odd sublinear load, a in [0,1], nonnegative Gaussian variance including zero; derive exponential integrability and exact exp(beta^2 v/2) comparison. Reuses Mathlib MGF. Generic analytic ingredient only; literal Ui is a separate source adapter. Conditional iteration, normalizer moments and query main results remain open."
   },
   {
     key := "gaussian-polynomial-l2-differentiation",

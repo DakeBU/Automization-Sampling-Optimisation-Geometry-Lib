@@ -50,3 +50,29 @@ to transfer an unbounded expected query cost.
 
 Recheck issue388, current main and live Cells before claiming that next edge;
 existing four-paper, Optimisation and Bench ownership is unchanged.
+
+## Stabilization checkpoint (2026-11-09)
+
+The independent verifier admitted both public declarations at candidate
+`c873bd3f828ea112a53d62fdc5e9a5f59c04f129`; the theorem and literal definition
+retain separate source-roundtrip bindings. Root Tests passed9638 jobs, and the
+canonical ASTIS gate passed on the integrated tree, with611 selected Registry
+leaves. Only the Gaussian bound adds a leaf; the definition and eight private
+implementation helpers do not create extra theorem credit.
+
+The site builds and validates12 chapters,1104 modules,5271 declarations and77
+reviewed teaching declarations.54 focused Python tests, contributor/Frontier/
+semantic/publication gates and all three affected graph checks passed. Bounded
+desktop1440/mobile390 browser QA exercised the four subject entries, source
+paper, three proof readers, definition fold, statement/proof Lean disclosures,
+all formula steps and local graphs. The coordinator actually viewed the PNGs;
+no MathJax error, page overflow or graph overlap was found. Long formulae retain
+mobile horizontal scrolling. Exact IDs are reused; reference-scanner links are
+not represented as a complete compiler dependency certificate.
+
+The generic parent's redundant import was removed, and its updated scope was
+independently re-reviewed with fresh source/compiler evidence. Old review
+artifacts remain retained; the canonical audit points to the current binding.
+No input of the two literal-energy source reviews changed. Merge, remote
+exact-head CI, deployment and post-merge purification are later receipts—not
+consequences of this local stabilization snapshot.

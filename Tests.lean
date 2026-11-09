@@ -353,6 +353,7 @@ import Tests.NormalizedMass
 import Tests.GaussianOddLoad
 import Tests.SlcLsiEnergyTruncation
 import Tests.SlcLsiAngularDegree
+import Tests.SlcLsiCoefficientBlocks
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

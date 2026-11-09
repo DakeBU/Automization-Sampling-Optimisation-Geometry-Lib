@@ -92,3 +92,20 @@ Zero MathJax errors or page-wide horizontal overflow were observed. The
 selected method relations are dashed reader context, not new Lean edges.
 Remote exact-head CI, merge, deployment and post-merge purification remain
 separate from these local receipts.
+
+## Merge and purification receipt
+
+PR396 merged at `3c31b46765d7e94a1ac1c1c412f85e485f6b8cf2` after all
+exact-head checks passed. The merged tree equals the gated `d2624e2cf` tree.
+Independent `runs/20261109-slc-lsi-angular-degree/postmerge-purification.json` accepts
+the two separate Exposition Seals without changing math or prose. All seven
+saved Lean folds match excerpts of the merged Lean source; the definition
+remains a prerequisite, and the scalar law is the only theorem leaf.
+The new joint coefficient law is a separate proof packet. Public deployment
+is not inferred from either merge or purification.
+
+Main Samplinglib site run42646316614 passed build/browser validation and
+deploy job129267772993. Live HTTP200 checks found exact merge3c31b467 on
+Sampling, Optimisation, Lower Bounds, Discrete Sampling and the angular
+proof reader. The live Lower Bounds has both scopes and both focused method
+links; the proof reader contains the exact law and both adjacent Lean folds.

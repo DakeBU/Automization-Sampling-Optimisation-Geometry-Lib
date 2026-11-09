@@ -1,0 +1,268 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-b6b5b0c66e5200eb",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "/root",
+    "blind_decoder": "/root/anonymous_20261110_f",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "slc-lsi-complexity-2026",
+    "anchor": "§4.1.1 Eq. (14)–(15) and the adjacent component and joint coefficient laws; implicit uncut finite-sum consequence",
+    "original_text": "Attributed reconstruction of an implicit finite-sum consequence of Eq. (14)–(15) and adjacent laws, not a standalone printed theorem. In the unconditioned joint standard Gaussian coefficient model, for fixed level i and deterministic unit trailing vectors, sum the actual terms sqrt(n) a_i,p <Xi_i,p, psi_i^tensor p> over all even 4<=p<=P. The sum is Gaussian with mean zero and variance n times sum_p a_i,p^2. Here P=2^(64(h+1)), K=2^(74(h+1)), S_i=sum_{j=0}^{h-i}K^j, a_i,p=1/[p^4 S_i^2 sqrt((h-i+1) log(2 P S_i))], and psi_i repeats the j-th trailing unit vector K^j times. Xi_i,p is the actual ordered block with n^(p S_i) coordinates. The source prescribes sufficiently large n and its depth, and radial and conditional laws are separate.",
+    "text_sha256": "f77ab7e0198376d1757ef2bb4ee5704c1da5a9fd0f7b132c1f8d6577516cf8b4"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum.angularDegreeSum_hasLaw",
+    "file": "AutoSamplingTheory/ExampleCases/SlcLsiQueryComplexity/AngularDegreeSum.lean",
+    "statement": "let g := fun (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (p : {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n    (ξ : EuclideanSpace ℝ\n      ((Fin p.val × (Σ j : Fin (h - i.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)) ↦\n  let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n  let a : ℝ := 1 / ((p.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n    Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n  Real.sqrt n.val * a * ∑ c, ξ c * ∏ s, u s.2.1 (c s)\n;\n∀ (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n    (_hu : ∀ j, ‖u j‖ = 1),\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := Fin (h + 1) × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun p : P ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n    let F := fun (ξ : EuclideanSpace ℝ (Σ b : B, C b)) ↦ ∑ p : P,\n      g n h i (degree p) u\n        (WithLp.toLp 2 (fun c : C (i, p) ↦ ξ ⟨(i, p), c⟩))\n    HasLaw F (gaussianReal 0 (((n.val : ℝ) * ∑ p : P, (a p) ^ 2).toNNReal))\n      (stdGaussian (EuclideanSpace ℝ (Σ b : B, C b)))",
+    "statement_sha256": "59feab15c915dfa76f401493ef3f2f3bf6e16beea3a36c9cdf6e4e1d59996508",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Fix a positive integer n, a nonnegative integer h, and an integer i with 0 <= i <= h. Write [d] = {0, ..., d-1}, set K = 2^(64(h+1)) and M = 2^(74(h+1)), and let P be the set of even integers p with 4 <= p <= K. For every k in [h+1] let m_k = h-k+1, and for p in P let T_(k,p) consist of the triples (r,j,l) with r in [p], j in [m_k], and l in [M^j]. Let C_(k,p) be the set of all functions from T_(k,p) to [n]. Take a standard Gaussian vector Xi in the real Euclidean space with coordinates (k,p,c), where k is in [h+1], p is in P, and c is in C_(k,p). Thus all entries Xi_(k,p,c) are independent standard normal variables.\n\nFix any deterministic family (u_j)_(j in [m_i]) of vectors in R^[n] with ||u_j||_2 = 1 for each j. Set S = sum_(j in [m_i]) M^j and, for p in P, set\na(p) = 1 / (p^4 S^2 sqrt(m_i log(2 K S))),\nwhere log denotes the natural logarithm. Define the real-valued map\nF(Xi) = sqrt(n) sum_(p in P) a(p) sum_(c in C_(i,p)) Xi_(i,p,c) prod_((r,j,l) in T_(i,p)) u_j(c(r,j,l)).\n\nThen F is almost everywhere measurable under the standard Gaussian coefficient law, and its pushforward law is the real Gaussian with mean 0 and variance n sum_(p in P) a(p)^2. The nonnegative conversion on the variance leaves this expression unchanged. The assertion is for each fixed i and fixed unit-vector family; it gives no simultaneous bound over vector families and no law for a family chosen as a function of Xi. It does not assert that two evaluations using the same coefficient array are independent.",
+    "text_sha256": "754f0064e84935c4ef8263ee0f88961a812ff379a2682b3d89cbbb085548d66d",
+    "decoder": "/root/anonymous_20261110_f",
+    "decoder_packet_sha256": "c5ed983e1bbc792d15dffedde7bd579db4d1426e69e4219d8f8e228739ffea03",
+    "decoder_run_sha256": "20ba784db899e36216745d2fc902b9706ebe2afc0bb95dfe3c69279ba31a3f7b",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "ab127af46e89951f0a97a91ab7aa9d2759826645fc2d0c61975339daa4095038",
+  "candidate_publication_context": {
+    "file": "8aeb59df666041dbbb8356aaf8f72a2e5d3f528aa73c745dff52b886ad084f64",
+    "current_lean_module": "/-\nCopyright (c) 2026 Samplinglib contributors. All rights reserved.\nReleased under Apache 2.0 license as described in the file LICENSE.\n-/\nimport AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree\nimport AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks\nimport Mathlib.Probability.Distributions.Gaussian.HasGaussianLaw.Independence\n\n/-!\n# Gaussian law of a fixed-level angular degree sum\n\nZhou–Suzuki, arXiv:2611.05813v1 (CC BY 4.0), §4.1.1, Eq. (14)–(15).\nAt fixed deterministic unit directions, the literal angular polynomial has a\ncentered Gaussian law with variance `n * ∑ p, aᵢₚ²`. This expands an implicit\nfinite-sum consequence of the paper's adjacent one-block and joint laws.\nNo radial, adaptive, or conditional law is asserted.\n-/\n\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators\n\nnamespace AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum\n\nopen AngularDegree CoefficientBlocks\n\n/-- The actual fixed-level degree sum under the unconditioned coefficient law.\nIndependence and second moments come from the existing block laws, not premises. -/\ntheorem angularDegreeSum_hasLaw (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n    (hu : ∀ j, ‖u j‖ = 1) :\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := Fin (h + 1) × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun p : P ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n    let F := fun (ξ : EuclideanSpace ℝ (Σ b : B, C b)) ↦ ∑ p : P,\n      angularDegreeComponent n h i (degree p) u\n        (WithLp.toLp 2 (fun c : C (i, p) ↦ ξ ⟨(i, p), c⟩))\n    HasLaw F (gaussianReal 0 (((n.val : ℝ) * ∑ p : P, (a p) ^ 2).toNNReal))\n      (stdGaussian (EuclideanSpace ℝ (Σ b : B, C b))) := by\n  intro P B C degree S a F\n  classical\n  let Ω := EuclideanSpace ℝ (Σ b : B, C b)\n  let μ : Measure Ω := stdGaussian Ω\n  let ν := fun b : B ↦ stdGaussian (EuclideanSpace ℝ (C b))\n  let blocks := fun (ξ : Ω) (b : B) ↦\n    (WithLp.toLp 2 (fun c : C b ↦ ξ ⟨b, c⟩) : EuclideanSpace ℝ (C b))\n  let atLevel : P → B := fun p ↦ (i, p)\n  let component (p : P) : EuclideanSpace ℝ (C (atLevel p)) → ℝ :=\n    angularDegreeComponent n h i (degree p) u\n  let X (p : P) (ξ : Ω) : ℝ := component p (blocks ξ (atLevel p))\n  have hJoint : HasLaw blocks (Measure.pi ν) μ := jointCoefficientBlocks_hasLaw n h\n  have hBlock (b : B) : HasLaw (fun ξ ↦ blocks ξ b) (ν b) μ := by\n    have hEval := measurePreserving_eval (μ := ν) b\n    have h := hEval.fun_comp_hasLaw hJoint\n    exact h\n  have hIndep : iIndepFun (fun b ξ ↦ blocks ξ b) μ :=\n    (iIndepFun_iff_hasLaw_pi_pi hBlock).2 hJoint\n  have hInjective : Function.Injective atLevel := fun _ _ h ↦ congrArg Prod.snd h\n  have hComponent (p : P) :\n      HasLaw (component p) (gaussianReal 0 (((n.val : ℝ) * (a p) ^ 2).toNNReal))\n        (ν (atLevel p)) := angularDegreeComponent_hasLaw n h i (degree p) u hu\n  have hX (p : P) :\n      HasLaw (X p) (gaussianReal 0 (((n.val : ℝ) * (a p) ^ 2).toNNReal)) μ :=\n    (hComponent p).fun_comp (hBlock (atLevel p))\n  have hXIndep : iIndepFun X μ :=\n    (hIndep.precomp hInjective).comp₀ component\n      (fun p ↦ (hBlock (atLevel p)).aemeasurable)\n      (fun p ↦ (hBlock (atLevel p)).map_eq.symm ▸ (hComponent p).aemeasurable)\n  have hGaussian (p : P) : HasGaussianLaw (X p) μ := (hX p).hasGaussianLaw\n  have hSum : HasGaussianLaw F μ := hXIndep.hasGaussianLaw_fun_sum hGaussian\n  have hMean : ∫ ξ, F ξ ∂μ = 0 := by\n    change (∫ ξ, ∑ p : P, X p ξ ∂μ) = 0\n    rw [integral_finsetSum _ (fun p _ ↦ (hGaussian p).integrable)]\n    simp only [fun p ↦ (hX p).integral_eq, integral_id_gaussianReal, Finset.sum_const_zero]\n  have hVar : Var[F; μ] = (n.val : ℝ) * ∑ p : P, (a p) ^ 2 := by\n    have hPointwise : F = ∑ p : P, X p := by\n      funext ξ\n      change (∑ p : P, X p ξ) = (∑ p : P, X p) ξ\n      exact (Finset.sum_apply ξ Finset.univ X).symm\n    rw [hPointwise]\n    rw [IndepFun.variance_sum (X := X) (s := Finset.univ)\n      (fun p _ ↦ (hGaussian p).memLp_two)\n      (fun p _ q _ hpq ↦ hXIndep.indepFun hpq), Finset.mul_sum]\n    refine Finset.sum_congr rfl fun p _ ↦ ?_\n    rw [(hX p).variance_eq, variance_id_gaussianReal]\n    exact Real.coe_toNNReal _ (mul_nonneg (Nat.cast_nonneg n.val) (sq_nonneg (a p)))\n  change HasLaw F (gaussianReal 0 (((n.val : ℝ) * ∑ p : P, (a p) ^ 2).toNNReal)) μ\n  exact ⟨hSum.aemeasurable, by rw [hSum.map_eq_gaussianReal, hMean, hVar]⟩\n\nend AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "slc-lsi-complexity-2026",
+      "url": "https://arxiv.org/html/2611.05813v1#S4.E15",
+      "anchor": "§4.1.1 Eq. (14)–(15) and the adjacent component and joint coefficient laws; implicit uncut finite-sum consequence",
+      "edition": "arXiv:2611.05813v1",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, CC BY 4.0. Samplinglib reconstruction of an implicit consequence, not a separately numbered source theorem."
+    },
+    "statement": "Fix a level i and deterministic unit vectors u_i,…,u_h. Let the tensor coefficients at all levels and allowed degrees have their unconditioned joint standard Gaussian law. The actual angular polynomial at level i, obtained by summing its degree components at those directions, is centered Gaussian with variance n times the sum of the squared source amplitudes.",
+    "formulae": [
+      {
+        "label": "Source degrees and amplitudes",
+        "tex": "K=2^{74(h+1)},\\quad P=2^{64(h+1)},\\quad \\mathcal P=\\{4,6,\\ldots,P\\},\\quad S_i=\\sum_{j=0}^{h-i}K^j,\\qquad a_{i,p}=\\frac{1}{p^4 S_i^2\\sqrt{(h-i+1)\\log(2PS_i)}}."
+      },
+      {
+        "label": "Exact uncut angular law",
+        "tex": "\\begin{gathered}\\psi_i=u_i\\otimes u_{i+1}^{\\otimes K}\\otimes\\cdots\\otimes u_h^{\\otimes K^{h-i}},\\\\ F_i^\\Xi(u)=\\sum_{p\\in\\mathcal P}\\sqrt n\\,a_{i,p}\\langle\\Xi_{i,p},\\psi_i^{\\otimes p}\\rangle,\\\\ \\Xi\\sim\\mathcal N(0,I_{\\mathcal G_n})\\quad\\Longrightarrow\\quad F_i^\\Xi(u)\\sim\\mathcal N\\!\\left(0,n\\sum_{p\\in\\mathcal P}a_{i,p}^2\\right).\\end{gathered}"
+      }
+    ],
+    "assumptions": [
+      "The dimension n is a positive integer, h is a natural depth, and 0≤i≤h. The paper fixes h from sufficiently large n; the isolated identity does not use that relation and does not enlarge the admissible hard family.",
+      "The trailing directions u_j are deterministic and satisfy ‖u_j‖₂=1. The source uses the even degree set from 4 through P; repetitions in the ordered tensor are kept.",
+      "The randomness is the unconditioned standard Gaussian on the full Euclidean coefficient direct sum, with the product of block laws derived from the existing coefficient theorem. The spatial input and any adaptive or conditioned coefficient laws are not involved."
+    ],
+    "obligations": [
+      {
+        "id": "actual-degree-evaluations",
+        "label": "Use the actual projected coefficient blocks and source degree components"
+      },
+      {
+        "id": "fixed-level-law",
+        "label": "Derive the exact centered Gaussian law of their sum"
+      }
+    ],
+    "lesson": {
+      "reading_layout": "progressive",
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum.angularDegreeSum_hasLaw",
+      "title": "Add the independent degree components at one level",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S4.E15",
+          "label": "Zhou–Suzuki, §4.1.1, Eq. (14)–(15)",
+          "scope": "Uncut fixed-level scalar consequence of the literal sum and the neighboring Gaussian laws."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiAngularDegreeSum"
+      ],
+      "assumptions": [
+        "The dimension n is a positive integer, h is a natural depth, and 0≤i≤h. The paper fixes h from sufficiently large n; the isolated identity does not use that relation and does not enlarge the admissible hard family.",
+        "The trailing directions u_j are deterministic and satisfy ‖u_j‖₂=1. The source uses the even degree set from 4 through P; repetitions in the ordered tensor are kept.",
+        "The randomness is the unconditioned standard Gaussian on the full Euclidean coefficient direct sum, with the product of block laws derived from the existing coefficient theorem. The spatial input and any adaptive or conditioned coefficient laws are not involved."
+      ],
+      "statement": "Fix a level i and deterministic unit vectors u_i,…,u_h. Let the tensor coefficients at all levels and allowed degrees have their unconditioned joint standard Gaussian law. The actual angular polynomial at level i, obtained by summing its degree components at those directions, is centered Gaussian with variance n times the sum of the squared source amplitudes.",
+      "formula": "\\begin{gathered}\\psi_i=u_i\\otimes u_{i+1}^{\\otimes K}\\otimes\\cdots\\otimes u_h^{\\otimes K^{h-i}},\\\\ F_i^\\Xi(u)=\\sum_{p\\in\\mathcal P}\\sqrt n\\,a_{i,p}\\langle\\Xi_{i,p},\\psi_i^{\\otimes p}\\rangle,\\\\ \\Xi\\sim\\mathcal N(0,I_{\\mathcal G_n})\\quad\\Longrightarrow\\quad F_i^\\Xi(u)\\sim\\mathcal N\\!\\left(0,n\\sum_{p\\in\\mathcal P}a_{i,p}^2\\right).\\end{gathered}",
+      "reader_note": "The point of the calculation is that tensor degree changes the amplitude and the coefficient block, but does not prevent Gaussian addition at a fixed input. The source later uses the variance notation v_i for the squared-amplitude sum. Its actual H_i also contains a radial factor and needs a separate zero-block convention.",
+      "steps": [
+        {
+          "title": "Use the right coefficient block for each degree",
+          "text": "Project the full coefficient draw to its ordered blocks. The joint law is a product, so evaluation at a block gives its standard Gaussian marginal. Distinct degrees at a fixed level select distinct blocks. Apply the deterministic tensor polynomial in each block; the unit directions give the exact component variance.",
+          "formula": "X_p=\\sqrt n\\,a_{i,p}\\langle\\Xi_{i,p},\\psi_i^{\\otimes p}\\rangle,\\qquad X_p\\sim\\mathcal N(0,n a_{i,p}^2).",
+          "lean": "The joint coefficient law is used to recover the block marginals, then the exact AngularDegree law is composed with the projection via HasLaw.fun_comp."
+        },
+        {
+          "title": "Preserve independence under fixed evaluations",
+          "text": "For any finite collection of degree labels, the inverse image of a product event for the scalar values is a product event in those different coefficient blocks. Hence their probabilities factor. This argument fixes the directions before drawing the coefficients and is not valid just from the pointwise law if the directions depend on the draw.",
+          "formula": "\\mathbb P\\{X_p\\in A_p\\text{ for all }p\\in\\mathcal P\\}=\\prod_{p\\in\\mathcal P}\\mathbb P\\{X_p\\in A_p\\}.",
+          "lean": "Recover mutual independence from the joint product law, restrict along the injective map p↦(i,p), and compose with the component maps. Their laws provide the needed almost-everywhere measurability."
+        },
+        {
+          "title": "Add Gaussian means and variances",
+          "text": "A finite sum of independent Gaussian variables is Gaussian. The component laws give finite second moments, hence integrability; add their zero means. Independence makes the mixed covariance terms vanish, leaving the sum of the component variances. The resulting Gaussian is determined by that mean and variance.",
+          "formula": "\\begin{aligned}\\mathbb E F_i^\\Xi(u)&=\\sum_{p\\in\\mathcal P}\\mathbb E X_p=0,\\\\ \\operatorname{Var}(F_i^\\Xi(u))&=\\sum_{p\\in\\mathcal P}\\operatorname{Var}(X_p)=n\\sum_{p\\in\\mathcal P}a_{i,p}^2.\\end{aligned}",
+          "lean": "Mathlib's independent Gaussian finite-sum theorem supplies Gaussianity. integral_finsetSum and IndepFun.variance_sum calculate its parameters; map_eq_gaussianReal then identifies the exact law."
+        }
+      ],
+      "lean_statement": "HasLaw packages almost-everywhere measurability and equality of the pushforward to the displayed centered normal. The finite-subtype degree adapter retains the same natural degree and adds no assumption.",
+      "lean_proof": "Read the proof as actual coefficient projections → independent scalar Gaussian values → exact finite-sum law. The variance parameter uses toNNReal only to encode nonnegativity; it does not approximate the variance.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent_hasLaw",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks.jointCoefficientBlocks_hasLaw"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.measurePreserving_eval",
+        "ProbabilityTheory.iIndepFun_iff_hasLaw_pi_pi",
+        "ProbabilityTheory.HasLaw.fun_comp",
+        "ProbabilityTheory.iIndepFun.precomp",
+        "ProbabilityTheory.iIndepFun.comp₀",
+        "ProbabilityTheory.iIndepFun.hasGaussianLaw_fun_sum",
+        "MeasureTheory.integral_finsetSum",
+        "ProbabilityTheory.IndepFun.variance_sum",
+        "ProbabilityTheory.HasGaussianLaw.map_eq_gaussianReal"
+      ],
+      "dependency_notes": "Two genuine source-model laws are reused from Samplinglib. Mathlib supplies the generic product and Gaussian-sum facts. The fixed-input radial field needed before Eq. (51) is a future consumer, not an already compiled edge."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum.angularDegreeSum_hasLaw",
+      "role": "proof-edge",
+      "supports": [
+        "actual-degree-evaluations",
+        "fixed-level-law"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The hard family uses sufficiently large n and a specified depth.",
+        "lean": "Every positive integer n and natural h for this isolated law."
+      },
+      {
+        "source": "Fixed unit trailing directions, ordered coefficient tensors, and the unconditioned joint Gaussian.",
+        "lean": "The exact sphere hypotheses, finite ordered carriers and flat stdGaussian measure."
+      },
+      {
+        "source": "Independent coefficient blocks and fixed-direction scalar component laws.",
+        "lean": "No independence, moment or measurability premise on the angular sum."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "4ad0314ebbea3815d48fef141a785d0722f9f9bff8b6f1d0da2c432903ca7d41"
+}

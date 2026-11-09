@@ -35,9 +35,16 @@ also cancel after integration. Thus with \(k(t)=t\log t+1-t\),
 
 Divide by \(\varepsilon^2>0\) and approach zero through nonzero parameters.
 The entropy numerator divided by \(\varepsilon^2\) tends to
-\(\tfrac12\int g^2\,d\mu\): Taylor's second-order coefficient of \(k\) at
-one is \(1/2\), and on the stated density interval the quotients are
-dominated by a constant times \(g^2\). The genuine square-root derivative
+\(\tfrac12\int g^2\,d\mu\). Indeed \(k(1)=k'(1)=0\) and \(k''(t)=1/t\),
+so Taylor's formula with integral remainder gives
+\[
+ \frac{k(1+\varepsilon g(x))}{\varepsilon^2}
+ = g(x)^2\int_0^1\frac{1-s}{1+s\varepsilon g(x)}\,ds.
+\]
+The denominator is at least \(1/2\) throughout the segment, so this is
+bounded by \(g(x)^2\) and tends pointwise to \(g(x)^2/2\). The Lean
+producer establishes the same scalar limit and domination separately.
+The genuine square-root derivative
 gives the pointwise energy quotient
 \(\|\nabla g\|^2/(4p_\varepsilon)\), dominated by
 \(\|\nabla g\|^2/2\). Its integral tends to

@@ -356,6 +356,7 @@ import Tests.SlcLsiAngularDegree
 import Tests.SlcLsiCoefficientBlocks
 import Tests.SlcLsiAngularDegreeSum
 import Tests.SlcLsiRadialLevel
+import Tests.SlcLsiRadialLevels
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

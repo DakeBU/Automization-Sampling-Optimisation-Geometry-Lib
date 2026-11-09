@@ -1,0 +1,277 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-3a389b1f13ac3ab9",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "/root",
+    "blind_decoder": "/root/anonymous_20261110_h",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "slc-lsi-complexity-2026",
+    "anchor": "§4.2 Lemma 4.4 and §6.1 fixed-location Gaussian calculation immediately before Eq. (51)",
+    "original_text": "Faithful reconstruction of the joint level law used in the fixed-x Gaussian calculation before Eq. (51). Fix one deterministic full point x=(x_0,...,x_h) of n-dimensional blocks. The actual unconditioned joint coefficient Gaussian has ordered tensor blocks Xi_i,p, with p even from 4 through 2^(64(h+1)) and K=2^(74(h+1)). For each i evaluate the literal degree sum of Eq. (15) at the normalized tail of x, multiply by C_i(x) of Eq. (16) and footnote 2 (unscaled rho quotients at 0.65,0.70,0.95,1), and use zero if a participating block vanishes. The vector of all these H_i(x) has the product of the centered Gaussians of variance n C_i(x)^2 v_i, with v_i the sum of squares of the exact Eq. (14) amplitudes. This expresses mutual independence including degenerate factors at the same fixed x. The paper takes large n and a prescribed depth; the isolated finite law does not use that relation. The weighted sum, MGF, prefix-coefficient conditioning and main results are separate.",
+    "text_sha256": "04d7e057580196db250a67fc0e53b37ae38554bfbb897c44f037c6a416dc8462"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels.radialLevels_hasLaw",
+    "file": "AutoSamplingTheory/ExampleCases/SlcLsiQueryComplexity/RadialLevels.lean",
+    "statement": "let g := fun (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (p : {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n    (ξ : EuclideanSpace ℝ\n      ((Fin p.val × (Σ j : Fin (h - i.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)) ↦\n  let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n  let a : ℝ := 1 / ((p.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n    Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n  Real.sqrt n.val * a * ∑ c, ξ c * ∏ s, u s.2.1 (c s)\n;\n∀ (n : ℕ+) (h : ℕ)\n    (x : Fin (h + 1) → EuclideanSpace ℝ (Fin n.val)),\n    let L := Fin (h + 1)\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := L × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let E := fun b : B ↦ EuclideanSpace ℝ (C b)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S := fun i : L ↦ ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun (i : L) (p : P) ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S i : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S i)))\n    let χ := fun r : ℝ ↦\n      expNegInvGlue (r - 13 / 20) /\n        (expNegInvGlue (r - 13 / 20) + expNegInvGlue (7 / 10 - r)) *\n      (expNegInvGlue (1 - r) /\n        (expNegInvGlue (1 - r) + expNegInvGlue (r - 19 / 20)))\n    let tail := fun (i : L) (j : Fin (h - i.val + 1)) ↦ x ⟨i.val + j.val, by omega⟩\n    let c := fun i : L ↦ ∏ j, χ (‖tail i j‖ / Real.sqrt n.val)\n    let field := fun (i : L) (z : (p : P) → E (i, p)) ↦\n      if ∃ j, tail i j = 0 then 0 else\n        c i * ∑ p : P, g n h i (degree p)\n          (fun j ↦ NormedSpace.normalize (tail i j)) (z p)\n    let Ω := EuclideanSpace ℝ (Σ b : B, C b)\n    let H := fun (ξ : Ω) (i : L) ↦ field i\n      (fun p ↦ WithLp.toLp 2 (fun k : C (i, p) ↦ ξ ⟨(i, p), k⟩))\n    HasLaw H (Measure.pi fun i : L ↦\n      gaussianReal 0 (((n.val : ℝ) * (c i) ^ 2 * ∑ p : P, (a i p) ^ 2).toNNReal))\n      (stdGaussian Ω)",
+    "statement_sha256": "75bf75ca840c48f5ffa42af9ab82e7fa2dab2e4615bb2dad84afcce94b33e000",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let n be a positive integer, let h be a nonnegative integer, and let x=(x_0,…,x_h) be any fixed tuple of vectors in ℝ^n. Write [m]={0,…,m−1}, let L=[h+1], and put D=2^{64(h+1)}, M=2^{74(h+1)}, and P={p∈ℕ : p is even and 4≤p≤D}. For each i∈L let q_i=h−i+1, J_i={(j,k) : j∈[q_i], k∈[M^j]}, S_i=∑_{j∈[q_i]} M^j, and t_{i,j}=x_{i+j} for j∈[q_i]. For i∈L and p∈P let C_{i,p} be the set of all maps [p]×J_i→[n], and set\na_{i,p}=1/(p^4 S_i^2 √(q_i log(2 D S_i))),\nwhere log is the natural logarithm. Define ϕ(t)=exp(−1/t) for t>0 and ϕ(t)=0 for t≤0, and set\nχ(r)=[ϕ(r−13/20)/(ϕ(r−13/20)+ϕ(7/10−r))] [ϕ(1−r)/(ϕ(1−r)+ϕ(r−19/20))],\nc_i=∏_{j∈[q_i]} χ(‖t_{i,j}‖/√n).\nFor any u=(u_j)_{j∈[q_i]} in (ℝ^n)^{q_i} and z∈ℝ^{C_{i,p}}, define\nG_{i,p}(u,z)=√n a_{i,p} ∑_{f∈C_{i,p}} z_f ∏_{(ℓ,(j,k))∈[p]×J_i} (u_j)_{f(ℓ,(j,k))}.\nLet Ω=ℝ^{⨆_{(i,p)∈L×P} C_{i,p}}, with its standard Euclidean structure, and let ξ have the standard Gaussian law on Ω. Write ξ_{i,p}=(ξ_{(i,p),f})_{f∈C_{i,p}} for its (i,p)-block, without any rescaling. Define H(ξ)_i=0 if some t_{i,j}=0; otherwise, with u_j=t_{i,j}/‖t_{i,j}‖, define\nH(ξ)_i=c_i ∑_{p∈P} G_{i,p}(u,ξ_{i,p}).\nThen H is almost-everywhere measurable under the standard Gaussian law on Ω, and its pushforward law is the product over i∈L of the centered real Gaussian laws of variance\nv_i=max{0, n c_i^2 ∑_{p∈P} a_{i,p}^2}=n c_i^2 ∑_{p∈P} a_{i,p}^2.\nIn particular, the coordinates H(ξ)_i are independent, with a point mass at zero when v_i=0.",
+    "text_sha256": "a3f0ae1ddda4519359c437e7fe2df743fc1dc20869e9a53f5681dbdb735713fa",
+    "decoder": "/root/anonymous_20261110_h",
+    "decoder_packet_sha256": "c1fe1f626b33b00f6a2826332af3b3031a06a32332991a6075211931443ba9dd",
+    "decoder_run_sha256": "76dd155c7a4c1f0693a7097fd05a0537dac694c2b632f69057e2728d744c8046",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "2659e60ebefabe93d1d749396c3afa8c5a94a077a263ab42717f2977504ce287",
+  "candidate_publication_context": {
+    "file": "ab8388e99d2d1653d7353ceda682c68edc90b94ed65bf79965c1336b6beaaa5c",
+    "current_lean_module": "/-\nCopyright (c) 2026 Samplinglib contributors. All rights reserved.\nReleased under Apache 2.0 license as described in the file LICENSE.\n-/\nimport AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel\n\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Classical\nopen AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree\n\n/-!\n# Joint law of the actual radial levels at one location\n\nZhou–Suzuki, arXiv:2611.05813v1 (CC BY 4.0), Lemma 4.4 and the fixed-location\nGaussian calculation preceding Eq. (51). The degree-block product of the\nactual coefficient vector regroups by level. Each scalar level is a\nmeasurable function of its own group, with the previously proved marginal.\nNo joint-in-location, weighted-sum, or conditional claim is made here.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels\n\nopen CoefficientBlocks RadialLevel\n\n/-- The literal zero-extended radial fields at a single deterministic location\nhave the product of their exact one-point Gaussian laws, including Dirac factors. -/\ntheorem radialLevels_hasLaw (n : ℕ+) (h : ℕ)\n    (x : Fin (h + 1) → EuclideanSpace ℝ (Fin n.val)) :\n    let L := Fin (h + 1)\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := L × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let E := fun b : B ↦ EuclideanSpace ℝ (C b)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S := fun i : L ↦ ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun (i : L) (p : P) ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S i : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S i)))\n    let χ := fun r : ℝ ↦\n      expNegInvGlue (r - 13 / 20) /\n        (expNegInvGlue (r - 13 / 20) + expNegInvGlue (7 / 10 - r)) *\n      (expNegInvGlue (1 - r) /\n        (expNegInvGlue (1 - r) + expNegInvGlue (r - 19 / 20)))\n    let tail := fun (i : L) (j : Fin (h - i.val + 1)) ↦ x ⟨i.val + j.val, by omega⟩\n    let c := fun i : L ↦ ∏ j, χ (‖tail i j‖ / Real.sqrt n.val)\n    let field := fun (i : L) (z : (p : P) → E (i, p)) ↦\n      if ∃ j, tail i j = 0 then 0 else\n        c i * ∑ p : P, angularDegreeComponent n h i (degree p)\n          (fun j ↦ NormedSpace.normalize (tail i j)) (z p)\n    let Ω := EuclideanSpace ℝ (Σ b : B, C b)\n    let H := fun (ξ : Ω) (i : L) ↦ field i\n      (fun p ↦ WithLp.toLp 2 (fun k : C (i, p) ↦ ξ ⟨(i, p), k⟩))\n    HasLaw H (Measure.pi fun i : L ↦\n      gaussianReal 0 (((n.val : ℝ) * (c i) ^ 2 * ∑ p : P, (a i p) ^ 2).toNNReal))\n      (stdGaussian Ω) := by\n  intro L P B C E degree S a χ tail c field Ω H\n  let μ : Measure Ω := stdGaussian Ω\n  let ν := fun b : B ↦ stdGaussian (E b)\n  let block := fun (ξ : Ω) (b : B) ↦\n    (WithLp.toLp 2 (fun k : C b ↦ ξ ⟨b, k⟩) : E b)\n  let e := Equiv.sigmaEquivProd L P\n  let reindex := MeasurableEquiv.piCongrLeft E e\n  let split := MeasurableEquiv.piCurry (fun (i : L) (p : P) ↦ E (i, p))\n  let νL := fun i : L ↦ Measure.pi (fun p : P ↦ ν (i, p))\n  let groups := fun (ξ : Ω) (i : L) (p : P) ↦ block ξ (i, p)\n  let target := fun i : L ↦\n    gaussianReal 0 (((n.val : ℝ) * (c i) ^ 2 * ∑ p : P, (a i p) ^ 2).toNNReal)\n  change HasLaw H (Measure.pi target) μ\n  have hBlock : HasLaw block (Measure.pi ν) μ := jointCoefficientBlocks_hasLaw n h\n  have hReindex : HasLaw reindex.symm (Measure.pi fun s ↦ ν (e s)) (Measure.pi ν) :=\n    ⟨reindex.symm.measurable.aemeasurable,\n      ((reindex.map_apply_eq_iff_map_symm_apply_eq).mp (Measure.pi_map_piCongrLeft e ν)).symm⟩\n  have hSplit : HasLaw split (Measure.pi νL) (Measure.pi fun s ↦ ν (e s)) :=\n    ⟨split.measurable.aemeasurable, by\n      change (Measure.pi fun s : (Σ _ : L, P) ↦ ν (s.1, s.2)).map split = Measure.pi νL\n      simpa only [split, νL, Measure.infinitePi_eq_pi] using\n        Measure.infinitePi_map_piCurry (fun (i : L) (p : P) ↦ ν (i, p))⟩\n  have hGroup : HasLaw groups (Measure.pi νL) μ := by\n    have h := hSplit.comp (hReindex.comp hBlock)\n    exact h\n  have hmField (i : L) : Measurable (field i) := by\n    dsimp only [field, E]\n    by_cases hz : ∃ j, tail i j = 0\n    · simp only [if_pos hz]\n      exact measurable_const\n    · simp only [if_neg hz, angularDegreeComponent]\n      fun_prop\n  have hFactor (i : L) : (νL i).map (field i) = target i := by\n    have hEval := measurePreserving_eval (μ := νL) i\n    have hG := hEval.fun_comp_hasLaw hGroup\n    have hLocal : HasLaw (field i) ((νL i).map (field i)) (νL i) :=\n      ⟨(hmField i).aemeasurable, rfl⟩\n    have hMapped : HasLaw (fun ξ ↦ H ξ i) ((νL i).map (field i)) μ :=\n      hLocal.fun_comp hG\n    have hMarginal : μ.map (fun ξ ↦ H ξ i) = target i := by\n      have hSlots : ((∑ j : Fin (h - i.val + 1),\n          (2 ^ (74 * (h + 1))) ^ j.val : ℕ) : ℝ) = S i := by\n        simp only [S, Nat.cast_sum, Nat.cast_pow, Nat.cast_ofNat]\n      have h := (radialLevel_hasLaw n h i (tail i)).map_eq\n      dsimp only at h\n      rw [hSlots] at h\n      dsimp only [μ, H, field, Ω, target, E, χ, c, a, degree, B, C, L, P]\n      exact h\n    exact hMapped.map_eq.symm.trans hMarginal\n  let : ∀ i, SigmaFinite ((νL i).map (field i)) := by\n    intro i\n    rw [hFactor i]\n    infer_instance\n  let evaluate := fun (z : (i : L) → (p : P) → E (i, p)) (i : L) ↦ field i (z i)\n  have hEvaluate : HasLaw evaluate (Measure.pi target) (Measure.pi νL) := by\n    refine ⟨(measurable_pi_lambda _ (fun i ↦\n      (hmField i).comp (measurable_pi_apply i))).aemeasurable, ?_⟩\n    rw [show (Measure.pi νL).map evaluate =\n      Measure.pi (fun i ↦ (νL i).map (field i)) from\n        Measure.pi_map_pi (fun i ↦ (hmField i).aemeasurable)]\n    exact congrArg Measure.pi (funext hFactor)\n  exact hEvaluate.comp hGroup\n\nend AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "slc-lsi-complexity-2026",
+      "url": "https://arxiv.org/html/2611.05813v1#S6.SS1",
+      "anchor": "§4.2 Lemma 4.4 and §6.1 fixed-location Gaussian calculation immediately before Eq. (51)",
+      "edition": "arXiv:2611.05813v1",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, CC BY 4.0. Samplinglib spells out the intermediate joint law and its measured product construction."
+    },
+    "statement": "Fix one deterministic spatial point x=(x₀,…,xₕ). Draw the actual full ordered coefficient vector from its unconditioned standard Gaussian law. The vector of scalar radial fields at x has the product of the centered Gaussian laws with variances n C_i(x)² v_i. In particular the fields are mutually independent, including any point-mass factors.",
+    "formulae": [
+      {
+        "label": "Exact cutoff from footnote 2 and Eq. (16)",
+        "tex": "\\begin{gathered}\\rho(t)=\\begin{cases}e^{-1/t}&t>0\\\\0&t\\le0,\\end{cases}\\\\ \\chi(r)=\\frac{\\rho(r-0.65)}{\\rho(r-0.65)+\\rho(0.70-r)}\n\\frac{\\rho(1-r)}{\\rho(1-r)+\\rho(r-0.95)},\\qquad C_i(x)=\\prod_{j=i}^h\\chi\\!\\left(\\frac{\\|x_j\\|}{\\sqrt n}\\right).\\end{gathered}"
+      },
+      {
+        "label": "Angular model and variance scale",
+        "tex": "\\begin{gathered}K=2^{74(h+1)},\\quad P=2^{64(h+1)},\\quad S_i=\\sum_{j=0}^{h-i}K^j,\\quad \\mathcal P=\\{4,6,\\ldots,P\\},\\\\ a_{i,p}=\\frac1{p^4S_i^2\\sqrt{(h-i+1)\\log(2PS_i)}},\\quad v_i=\\sum_{p\\in\\mathcal P}a_{i,p}^2,\\\\ \\psi_i(u)=\\bigotimes_{j=i}^h u_j^{\\otimes K^{j-i}},\\qquad F_i^\\Xi(u)=\\sum_{p\\in\\mathcal P}\\sqrt n\\,a_{i,p}\\langle\\Xi_{i,p},\\psi_i(u)^{\\otimes p}\\rangle.\\end{gathered}"
+      },
+      {
+        "label": "Actual one-point law",
+        "tex": "\\begin{gathered}H_i^\\Xi(x)=\\begin{cases}0 & \\exists j\\ge i:\\ x_j=0,\\\\C_i(x)\\,F_i^\\Xi((x_j/\\|x_j\\|)_{j=i}^h)&\\text{otherwise},\\end{cases}\\\\ H_i^\\Xi(x)\\sim\\mathcal N(0,n C_i(x)^2 v_i),\\qquad \\mathcal N(0,0)=\\delta_0.\\end{gathered}"
+      },
+      {
+        "label": "Product law of the levels",
+        "tex": "\\mathcal L_{\\Xi\\sim\\mu_n}\\big((H_i^\\Xi(x))_{i=0}^h\\big)=\\bigotimes_{i=0}^{h}\\mathcal N(0,nC_i(x)^2v_i),\\qquad \\mathcal N(0,0)=\\delta_0."
+      }
+    ],
+    "assumptions": [
+      "The paper takes n large and chooses h from n. This isolated finite product law holds for every positive n and natural h; it does not extend admissibility or the lower-bound regime.",
+      "Each level uses the tail x_i,…,x_h of the same fixed deterministic x and only its own coefficient blocks, one ordered tensor block for each permitted even p. The cutoff and zero-block extension are literal.",
+      "The only randomness is the unconditioned joint Euclidean coefficient Gaussian. The marginal variances need not be positive. No property of a trajectory, adaptive query, or conditioning event is assumed."
+    ],
+    "obligations": [
+      {
+        "id": "actual-block-grouping",
+        "label": "Regroup the actual independent degree coefficient blocks by level"
+      },
+      {
+        "id": "fixed-x-product-law",
+        "label": "Derive the joint product of the exact radial marginals"
+      }
+    ],
+    "lesson": {
+      "reading_layout": "progressive",
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels.radialLevels_hasLaw",
+      "title": "Regroup the coefficient product and evaluate each level",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S6.SS1",
+          "label": "Zhou–Suzuki, §6.1 before Eq. (51)",
+          "scope": "Unconditioned product law of all levels at the same fixed location; no weights yet."
+        },
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S4.E16",
+          "label": "Zhou–Suzuki, Eq. (16) and footnote 2",
+          "scope": "Literal radial factors and the associated level fields."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiRadialLevels"
+      ],
+      "assumptions": [
+        "The paper takes n large and chooses h from n. This isolated finite product law holds for every positive n and natural h; it does not extend admissibility or the lower-bound regime.",
+        "Each level uses the tail x_i,…,x_h of the same fixed deterministic x and only its own coefficient blocks, one ordered tensor block for each permitted even p. The cutoff and zero-block extension are literal.",
+        "The only randomness is the unconditioned joint Euclidean coefficient Gaussian. The marginal variances need not be positive. No property of a trajectory, adaptive query, or conditioning event is assumed."
+      ],
+      "statement": "Fix one deterministic spatial point x=(x₀,…,xₕ). Draw the actual full ordered coefficient vector from its unconditioned standard Gaussian law. The vector of scalar radial fields at x has the product of the centered Gaussian laws with variances n C_i(x)² v_i. In particular the fields are mutually independent, including any point-mass factors.",
+      "formula": "\\mathcal L_{\\Xi\\sim\\mu_n}\\big((H_i^\\Xi(x))_{i=0}^h\\big)=\\bigotimes_{i=0}^{h}\\mathcal N(0,nC_i(x)^2v_i),\\qquad \\mathcal N(0,0)=\\delta_0.",
+      "reader_note": "Exact Gaussian marginals alone would not determine the joint law. The extra information here is that each level reads a disjoint group of coefficient blocks under a known joint product measure.",
+      "steps": [
+        {
+          "title": "Group coefficients by level without resampling",
+          "text": "The original Euclidean Gaussian has independent tensor blocks labelled by (i,p). Relabel the same blocks as a tuple of level groups. The product over (i,p) becomes a product over levels of products over degrees. All ordered tensor entries remain unchanged.",
+          "formula": "\\bigotimes_{(i,p)}\\nu_{i,p}\\quad\\longmapsto\\quad \\bigotimes_{i=0}^{h}\\left(\\bigotimes_{p\\in\\mathcal P}\\nu_{i,p}\\right),\\qquad \\nu_{i,p}=\\mathcal N(0,I_{i,p}).",
+          "lean": "jointCoefficientBlocks_hasLaw supplies the original product. The measurable coordinate equivalence turns a pair index into a tagged index, then piCurry and the product law move the grouping without changing coordinates."
+        },
+        {
+          "title": "Evaluate one measurable field per group",
+          "text": "Freeze the full spatial point. At a level with a zero participating block the field is the constant zero map; otherwise it is the sum of fixed linear coefficient evaluations times the deterministic cutoff. Evaluating each group separately preserves the product of their pushforwards.",
+          "formula": "\\big(\\prod_i T_i\\big)_{\\#}\\!\\left(\\bigotimes_i\\nu_i\\right)=\\bigotimes_i (T_i)_{\\#}\\nu_i,\\qquad \\nu_i=\\bigotimes_{p\\in\\mathcal P}\\nu_{i,p}.",
+          "lean": "The zero test depends on x alone. In the other case the polynomial is a finite sum of coordinate projections multiplied by fixed scalars. Mathlib's pi_map_pi transports the grouped measure."
+        },
+        {
+          "title": "Identify each exact Gaussian factor",
+          "text": "Project to one level and use the already established one-point law on the same coefficient vector. Since the group projection has the same marginal measure, its field pushforward is exactly that Gaussian. This also covers cutoff zero and zero blocks, without a Gaussian density for a Dirac factor.",
+          "formula": "(T_i)_{\\#}\\nu_i=\\mathcal N(0,nC_i(x)^2 v_i).",
+          "lean": "Product evaluation gives each coefficient-group law, then radialLevel_hasLaw identifies the corresponding scalar law. The integer slot count cast to the reals equals the real sum of the same integer powers, using Nat.cast_sum and Nat.cast_pow; no amplitude changes. Rewriting each factor gives the exact product. The focused test recovers iIndepFun for the literal fields."
+        }
+      ],
+      "lean_statement": "HasLaw asserts a.e. measurability and the exact equality of the vector pushforward to the finite product. The index of the trailing direction is relative to the chosen level; the fields all share the same spatial point and coefficient draw.",
+      "lean_proof": "The implementation starts from the coefficient product and maps it levelwise. The source presents independent degree fields and then takes level sums; both arguments give the same scalar product law.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks.jointCoefficientBlocks_hasLaw",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel.radialLevel_hasLaw"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Measure.pi_map_piCongrLeft",
+        "MeasureTheory.Measure.infinitePi_map_piCurry",
+        "MeasureTheory.Measure.pi_map_pi",
+        "MeasureTheory.measurePreserving_eval",
+        "ProbabilityTheory.HasLaw.comp"
+      ],
+      "dependency_notes": "The two actual model laws are Samplinglib-owned. Mathlib supplies reindexing and product pushforward. The later weighted-sum MGF and the coefficient-prefix argument need their own declarations."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels.radialLevels_hasLaw",
+      "role": "proof-edge",
+      "supports": [
+        "actual-block-grouping",
+        "fixed-x-product-law"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "A fixed x in the paper's hard-family parameter regime.",
+        "lean": "All positive n and natural h, and one full deterministic x for this isolated identity."
+      },
+      {
+        "source": "Fixed-point degree fields are independent centered Gaussians with exact cutoffs, then summed over degrees for each i.",
+        "lean": "The same actual coefficient vector and cutoffs give the exact product of the scalar level marginals."
+      },
+      {
+        "source": "The variance calculation leaves finite grouping and measurability implicit.",
+        "lean": "No added regularity, integrability or independence hypotheses; actual measurable level maps and product laws are proved."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "8411ce3b20c8f730d46a296316f22c52405f44128ee6a7f2768941eafb447dc7"
+}

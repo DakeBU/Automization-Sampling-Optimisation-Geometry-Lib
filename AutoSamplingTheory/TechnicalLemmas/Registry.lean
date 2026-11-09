@@ -25,6 +25,7 @@ import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
@@ -5306,6 +5307,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+    {
+      key := "probability.slc-lsi-joint-radial-levels-law",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels.radialLevels_hasLaw",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Lemma4.4 and fixed-location calculation before Eq51",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S6.E51",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "product-measure", "independence", "radial-cutoff", "lower-bound"],
+      saldUse := "Actual joint radial vector for the weighted Gaussian sum and Eq51",
+      note := "Independently compiled and source-reviewed at 678f1751c. Regroups the actual degree-block product by level, then maps each group to its scalar radial field with the exact variance and zero-variance branch. No conditioning, cross-location law, moment estimate, or lower bound."
+    },
     {
       key := "probability.slc-lsi-radial-level-law",
       localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel.radialLevel_hasLaw",

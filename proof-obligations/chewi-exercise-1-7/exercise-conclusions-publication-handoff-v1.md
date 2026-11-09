@@ -44,12 +44,17 @@ each opened proof step rendered without errors or overflow; the precise Lean
 statement/proof disclosures stayed folded by default and exposed code when
 clicked. This is not a deployed website read-back.
 
-The [PI draft](compact-pi-bench-draft-v1.md) and
-[KL draft](actual-kl-bench-draft-v1.md) use one source family and keep prompts
-separate from scoring criteria. These drafts and their local reviews do not
-admit tasks, assign empirical difficulty, expose a reference in an evaluation
-workspace, or supply model scores. Stabilization still needs the scoped Cells
-and canonical publication/graph/Registry updates, CI, actual Bench admission
+The revised [PI draft](compact-pi-bench-draft-v2.md) and
+[KL draft](actual-kl-bench-draft-v2.md) use one source family and keep prompts
+separate from four binary scoring criteria. The independent
+[scoring re-review](exercise-bench-rubric-review-v2.md) accepts the bounded
+drafts; keep the first drafts and their review as provenance. Prose levels
+are provisionally PI L4 and KL L3, not measured. At packaging, explicitly
+exclude answer copies from assisted-prose retrieval for both tasks and
+verify each declared tool profile. These drafts do not admit tasks, expose
+a reference in an evaluation workspace, or supply model scores. Stabilization
+still needs the scoped Cells and canonical publication/graph/Registry updates,
+CI, actual Bench admission
 and renderer/browser checks on the integrated site. The two retained proof
 branches share the compensated integral result; an edge from actual-law KL
 to compact PI must not be fabricated.

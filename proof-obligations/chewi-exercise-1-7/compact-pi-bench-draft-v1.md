@@ -34,7 +34,8 @@ compactly supported smooth \(f\) satisfies
 \]
 Use the square root of a mass-one affine perturbation built from \(f\).
 Justify its admissibility as an LSI test and justify the integrals and
-limits; do not assume that the original \(f\) already has mean zero.
+limits. In particular, establish integrability of \(f\), its squared centered
+value, and \(\|\nabla f\|^2\); do not assume that \(f\) already has mean zero.
 
 Suggested level: L4, provisional. The task combines centering, extension of
 the test domain and distinct dominated limits; the number of proof lines is
@@ -64,12 +65,15 @@ The task is not asking for equality of optimal constants or a semigroup PI.
 ## Candidate Lean and graph views
 
 The [frozen exact Lean target](compact-pi-statement-v1.lean.txt) adds explicit
-`Poincare.Admissible` to the conclusion, not to the assumptions. A future
+`Poincare.Admissible` to the formal conclusion, matching the three required
+integrability conclusions. A future
 agentic prompt may allow the compiled cutoff-extension, perturbation-energy,
 square-root-domain and compensated-entropy producers, but not import the
 exercise's finished module into the proof environment. Keep the checked
 reference solution separate from the prompt and do not expose it through a
 permitted lookup channel in an assessment claiming no such access.
+Proposed library-assisted Lean level: L4, provisional, because the task must
+connect the genuine noncompact domain, both limits and the compact target.
 
 The local proof-body probe confirmed direct occurrences of those four owned
 producers. A graph view may ask which path reuses the Gaussian cutoff proof

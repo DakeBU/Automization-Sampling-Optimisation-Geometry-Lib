@@ -25,11 +25,11 @@ class PaperNavigationTests(unittest.TestCase):
         reordered = copy.deepcopy(model)
         reordered['cases'].reverse()
         self.assertEqual(navigation.priority_cases(reordered), rows)
-        self.assertEqual(len(model['cases']), 5)  # Other projects are retained.
+        self.assertEqual(len(model['cases']), 6)  # Independent lower-bound projects are retained.
 
     def test_home_has_one_sampling_research_directory(self):
         text = reader.overview_main([], [], {}, {})
-        self.assertEqual(text.count('data-paper-id='), 5)
+        self.assertEqual(text.count('data-paper-id='), 6)
         self.assertIn('id="research-cases"', text)
         self.assertIn('Gaussian Sampling Complexity', text)
         self.assertIn('module-autosamplingtheory-examplecases-gaussiancomplexity-gaussianexpectation.html', text)

@@ -261,6 +261,11 @@ def main() -> None:
             expected_units = sum(len(i['bindings']) for f in (ROOT/'website/content/publications').glob('*.json')
                 for i in json.loads(f.read_text(encoding='utf-8'))['items'] if i['chapter_path'] == opt_path)
             goto('libraries/optimisation/index.html')
+            contents = page.locator('details.subject-contents').filter(has=page.locator('.library-chapter-card'))
+            assert contents.count() == 1
+            assert not contents.evaluate('(node) => node.open')
+            contents.locator(':scope > summary').click()
+            assert page.locator('.library-chapter-card').first.is_visible()
             assert chapter_label(opt_path) in page.locator('.library-chapter-card').first.inner_text()
             assert chapter_label('libraries/optimisation/chapter-02.html') in page.locator('.library-chapter-card').nth(1).inner_text()
             goto(opt_path)

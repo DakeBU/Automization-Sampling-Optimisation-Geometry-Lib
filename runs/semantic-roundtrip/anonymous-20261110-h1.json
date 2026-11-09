@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-75bf75ca840c48f5",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "let g := fun (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (p : {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n    (ξ : EuclideanSpace ℝ\n      ((Fin p.val × (Σ j : Fin (h - i.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)) ↦\n  let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n  let a : ℝ := 1 / ((p.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n    Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n  Real.sqrt n.val * a * ∑ c, ξ c * ∏ s, u s.2.1 (c s)\n;\n∀ (n : ℕ+) (h : ℕ)\n    (x : Fin (h + 1) → EuclideanSpace ℝ (Fin n.val)),\n    let L := Fin (h + 1)\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := L × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let E := fun b : B ↦ EuclideanSpace ℝ (C b)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S := fun i : L ↦ ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun (i : L) (p : P) ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S i : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S i)))\n    let χ := fun r : ℝ ↦\n      expNegInvGlue (r - 13 / 20) /\n        (expNegInvGlue (r - 13 / 20) + expNegInvGlue (7 / 10 - r)) *\n      (expNegInvGlue (1 - r) /\n        (expNegInvGlue (1 - r) + expNegInvGlue (r - 19 / 20)))\n    let tail := fun (i : L) (j : Fin (h - i.val + 1)) ↦ x ⟨i.val + j.val, by omega⟩\n    let c := fun i : L ↦ ∏ j, χ (‖tail i j‖ / Real.sqrt n.val)\n    let field := fun (i : L) (z : (p : P) → E (i, p)) ↦\n      if ∃ j, tail i j = 0 then 0 else\n        c i * ∑ p : P, g n h i (degree p)\n          (fun j ↦ NormedSpace.normalize (tail i j)) (z p)\n    let Ω := EuclideanSpace ℝ (Σ b : B, C b)\n    let H := fun (ξ : Ω) (i : L) ↦ field i\n      (fun p ↦ WithLp.toLp 2 (fun k : C (i, p) ↦ ξ ⟨(i, p), k⟩))\n    HasLaw H (Measure.pi fun i : L ↦\n      gaussianReal 0 (((n.val : ℝ) * (c i) ^ 2 * ∑ p : P, (a i p) ^ 2).toNNReal))\n      (stdGaussian Ω)",
+    "statement_sha256": "75bf75ca840c48f5ffa42af9ab82e7fa2dab2e4615bb2dad84afcce94b33e000",
+    "compiled": true,
+    "approved_definition_context": [
+      "ℕ+ is the type of positive natural numbers. Fin m consists of natural numbers below m, with .val the underlying value. Even denotes parity. Σ b, C b pairs a tag and a coordinate from its carrier.",
+      "EuclideanSpace ℝ J has coordinates indexed by J and the Euclidean norm. WithLp.toLp 2 packages the same coordinate array without rescaling. Finite products and sums range over all displayed indices.",
+      "expNegInvGlue t = exp(-1/t) for t>0, and zero otherwise. NormedSpace.normalize z multiplies z by the inverse of its norm, is unit for nonzero z and equals zero at zero.",
+      "stdGaussian is the centered identity-covariance Gaussian probability measure on the real Euclidean space. gaussianReal m v has mean m and variance v; variance zero gives a Dirac measure. Measure.pi is the finite product measure. r.toNNReal truncates negative reals at zero.",
+      "HasLaw H ν μ asserts almost-everywhere measurability under μ and pushforward H♯μ=ν. All parameters before the local lets are deterministic; only the coefficient vector drawn under the displayed measure is random. Real.log is natural logarithm and Real.sqrt is the nonnegative square root."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "c1fe1f626b33b00f6a2826332af3b3031a06a32332991a6075211931443ba9dd"
+}

@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "status": "PROPOSED_BEFORE_PROOF",
+  "source_url": "https://arxiv.org/html/2611.05813v1#S6.SS1",
+  "source_edition": "arXiv:2611.05813v1",
+  "source_pdf_sha256": "05520f2a491fedc6ceecc7eb0f3d0c1b23275faceb9da1d9cfa6db421aab4f0e",
+  "source_scope": "§4.1.1 Eq. (13)–(16), footnote 2, the coefficient law; §4.2 Lemma 4.4 independence and its fixed-location use in §6.1 immediately before Eq. (51). Joint product law of all scalar level fields at the same fixed x, before weighting or exponentiation.",
+  "namespace": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels",
+  "file": "AutoSamplingTheory/ExampleCases/SlcLsiQueryComplexity/RadialLevels.lean",
+  "signature": "theorem radialLevels_hasLaw (n : ℕ+) (h : ℕ)\n    (x : Fin (h + 1) → EuclideanSpace ℝ (Fin n.val)) :\n    let L := Fin (h + 1)\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := L × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let E := fun b : B ↦ EuclideanSpace ℝ (C b)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S := fun i : L ↦ ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun (i : L) (p : P) ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S i : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S i)))\n    let χ := fun r : ℝ ↦\n      expNegInvGlue (r - 13 / 20) /\n        (expNegInvGlue (r - 13 / 20) + expNegInvGlue (7 / 10 - r)) *\n      (expNegInvGlue (1 - r) /\n        (expNegInvGlue (1 - r) + expNegInvGlue (r - 19 / 20)))\n    let tail := fun (i : L) (j : Fin (h - i.val + 1)) ↦ x ⟨i.val + j.val, by omega⟩\n    let c := fun i : L ↦ ∏ j, χ (‖tail i j‖ / Real.sqrt n.val)\n    let field := fun (i : L) (z : (p : P) → E (i, p)) ↦\n      if ∃ j, tail i j = 0 then 0 else\n        c i * ∑ p : P, angularDegreeComponent n h i (degree p)\n          (fun j ↦ NormedSpace.normalize (tail i j)) (z p)\n    let Ω := EuclideanSpace ℝ (Σ b : B, C b)\n    let H := fun (ξ : Ω) (i : L) ↦ field i\n      (fun p ↦ WithLp.toLp 2 (fun k : C (i, p) ↦ ξ ⟨(i, p), k⟩))\n    HasLaw H (Measure.pi fun i : L ↦\n      gaussianReal 0 (((n.val : ℝ) * (c i) ^ 2 * ∑ p : P, (a i p) ^ 2).toNNReal))\n      (stdGaussian Ω)",
+  "binder_audit": {
+    "TYPING": [
+      "n:ℕ+; h:ℕ; x is one deterministic full tuple x_0,…,x_h. tail i j indexes the actual x_(i+j), with 0≤j≤h−i.",
+      "Allowed even degrees, ordered tensor slots, and exact amplitudes are unchanged. The common sample carrier is the full Euclidean space of the tagged coefficient coordinates."
+    ],
+    "STANDING": [
+      "The isolated finite law holds for all positive n and natural h. The paper's large n, h(n), parameter restrictions and admissible event are not generalized."
+    ],
+    "SOURCE": [],
+    "EXCESS": [],
+    "derived_not_assumed": [
+      "Exact fixed-x field values including zero-block convention; measurability; full mutual independence across levels and exact Gaussian marginals."
+    ]
+  },
+  "definition_audit": {
+    "definition_kind": "literal",
+    "body": "No new global definitions. The let-bound field at level i uses only the product of the i-th level degree blocks and exactly the projected tail of the same x. Its values are the previous single-level expression with the identical literal unscaled cutoff, tensor normalization, coefficients, and zero extension. H extracts every actual (i,p) block by coordinate projection on the common joint carrier; no independent samples are postulated."
+  },
+  "source_regions": [
+    {
+      "id": "actual-coefficients",
+      "locator": "§4.1.1 coefficient-law paragraph after Eq. (15)",
+      "status": "NODE",
+      "meaning": "Same joint Euclidean standard Gaussian and independent tensor blocks across all (i,p)."
+    },
+    {
+      "id": "literal-fields",
+      "locator": "§4.1.1 Eq. (13)–(16), footnote 2; fixed-point portion of Lemma 4.3",
+      "status": "NODE",
+      "meaning": "One fixed x; H_i(x) is the sum over p, with the exact cutoff and zero extension."
+    },
+    {
+      "id": "degree-independence",
+      "locator": "§4.2 Lemma 4.4 opening and §6.1 paragraph before Eq. (51)",
+      "status": "NODE",
+      "meaning": "At fixed x, degree fields are centered Gaussian and mutually independent; the variance is n C_i(x)^2 a_i,p^2."
+    },
+    {
+      "id": "level-grouping",
+      "locator": "Implicit grouping step in §6.1 before Eq. (51)",
+      "status": "SOURCE_GAP",
+      "meaning": "Explain that the level sums are functions of disjoint families of mutually independent variables and therefore are mutually, not just pairwise, independent; account for measurable pushforward."
+    },
+    {
+      "id": "level-product-law",
+      "locator": "Joint law of level sums implicit in §6.1's variance computation; §6.2 also uses the single-level marginal",
+      "status": "NODE",
+      "meaning": "Product of N(0,n C_i(x)^2 v_i) over all levels."
+    },
+    {
+      "id": "not-current",
+      "locator": "Remaining Lemmas 4.3/4.4, Eq. (51) and Lemma 6.2",
+      "status": "EXCLUDED",
+      "reason": "No spatial smoothness, covariance between locations, full process law, actual weighted Gaussian sum or MGF, prefix sigma-field or conditional expectation, admissibility, mass estimate or query bound."
+    }
+  ],
+  "source_edges": [
+    {
+      "parents": [
+        "actual-coefficients",
+        "literal-fields"
+      ],
+      "consumer": "degree-independence",
+      "use_site": "Lemma 4.4 uses the fixed-point linear form and independence of coefficient blocks."
+    },
+    {
+      "parents": [
+        "degree-independence",
+        "literal-fields"
+      ],
+      "consumer": "level-grouping",
+      "use_site": "Group the fixed-location degree contributions by i just before Eq. (51)."
+    },
+    {
+      "parents": [
+        "level-grouping"
+      ],
+      "consumer": "level-product-law",
+      "use_site": "The product law permits the subsequent weighted Gaussian variance computation."
+    }
+  ],
+  "alternative_implementation": "Start from exact joint coefficient-block law; regroup flat product by level, transport each measurable level map, and identify pushforward marginals with radialLevel_hasLaw. This changes the formal dependency topology, not the source statement.",
+  "reuse_search": [
+    "Samplinglib: verified jointCoefficientBlocks_hasLaw, radialLevel_hasLaw, actual angular definition, relevant Cells and issue 388; no duplicate actual multi-level law.",
+    "Pinned Mathlib: dependent product reindexing via piCongrLeft and piCurry / infinitePi_map_piCurry, Measure.pi_map_pi, product evaluation, HasLaw and iIndepFun. No new general product theorem."
+  ],
+  "truth_boundary": "One fixed deterministic x, unconditioned actual coefficient measure. Full finite vector of scalar H_i(x), product of the exact marginals including all degeneracies. Not joint in x; not conditioning or Eq. (51).",
+  "consumer": "The weighted Gaussian level sum and exact MGF m(x) in §6.1 Eq. (51). Full earlier coefficient sigma-fields in §6.2 are not recoverable from scalar-level independence alone."
+}

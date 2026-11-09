@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "reading_layout": "progressive",
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum.angularDegreeSum_hasLaw",
+      "title": "Add the independent degree components at one level",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S4.E15",
+          "label": "Zhou–Suzuki, §4.1.1, Eq. (14)–(15)",
+          "scope": "Uncut fixed-level scalar consequence of the literal sum and the neighboring Gaussian laws."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiAngularDegreeSum"
+      ],
+      "boundary": "One uncut level at deterministic unit directions under the actual unconditioned coefficient law. Radial and zero-block fields, adaptive evaluations, multi-point covariance, conditional level iteration, normalizer moments and all main query lower bounds remain open.",
+      "assumptions": [
+        "The dimension n is a positive integer, h is a natural depth, and 0≤i≤h. The paper fixes h from sufficiently large n; the isolated identity does not use that relation and does not enlarge the admissible hard family.",
+        "The trailing directions u_j are deterministic and satisfy ‖u_j‖₂=1. The source uses the even degree set from 4 through P; repetitions in the ordered tensor are kept.",
+        "The randomness is the unconditioned standard Gaussian on the full Euclidean coefficient direct sum, with the product of block laws derived from the existing coefficient theorem. The spatial input and any adaptive or conditioned coefficient laws are not involved."
+      ],
+      "statement": "Fix a level i and deterministic unit vectors u_i,…,u_h. Let the tensor coefficients at all levels and allowed degrees have their unconditioned joint standard Gaussian law. The actual angular polynomial at level i, obtained by summing its degree components at those directions, is centered Gaussian with variance n times the sum of the squared source amplitudes.",
+      "formula": "\\begin{gathered}\\psi_i=u_i\\otimes u_{i+1}^{\\otimes K}\\otimes\\cdots\\otimes u_h^{\\otimes K^{h-i}},\\\\ F_i^\\Xi(u)=\\sum_{p\\in\\mathcal P}\\sqrt n\\,a_{i,p}\\langle\\Xi_{i,p},\\psi_i^{\\otimes p}\\rangle,\\\\ \\Xi\\sim\\mathcal N(0,I_{\\mathcal G_n})\\quad\\Longrightarrow\\quad F_i^\\Xi(u)\\sim\\mathcal N\\!\\left(0,n\\sum_{p\\in\\mathcal P}a_{i,p}^2\\right).\\end{gathered}",
+      "reader_note": "The point of the calculation is that tensor degree changes the amplitude and the coefficient block, but does not prevent Gaussian addition at a fixed input. The source later uses the variance notation v_i for the squared-amplitude sum. Its actual H_i also contains a radial factor and needs a separate zero-block convention.",
+      "steps": [
+        {
+          "title": "Use the right coefficient block for each degree",
+          "text": "Project the full coefficient draw to its ordered blocks. The joint law is a product, so evaluation at a block gives its standard Gaussian marginal. Distinct degrees at a fixed level select distinct blocks. Apply the deterministic tensor polynomial in each block; the unit directions give the exact component variance.",
+          "formula": "X_p=\\sqrt n\\,a_{i,p}\\langle\\Xi_{i,p},\\psi_i^{\\otimes p}\\rangle,\\qquad X_p\\sim\\mathcal N(0,n a_{i,p}^2).",
+          "lean": "The joint coefficient law is used to recover the block marginals, then the exact AngularDegree law is composed with the projection via HasLaw.fun_comp."
+        },
+        {
+          "title": "Preserve independence under fixed evaluations",
+          "text": "For any finite collection of degree labels, the inverse image of a product event for the scalar values is a product event in those different coefficient blocks. Hence their probabilities factor. This argument fixes the directions before drawing the coefficients and is not valid just from the pointwise law if the directions depend on the draw.",
+          "formula": "\\mathbb P\\{X_p\\in A_p\\text{ for all }p\\in\\mathcal P\\}=\\prod_{p\\in\\mathcal P}\\mathbb P\\{X_p\\in A_p\\}.",
+          "lean": "Recover mutual independence from the joint product law, restrict along the injective map p↦(i,p), and compose with the component maps. Their laws provide the needed almost-everywhere measurability."
+        },
+        {
+          "title": "Add Gaussian means and variances",
+          "text": "A finite sum of independent Gaussian variables is Gaussian. The component laws give finite second moments, hence integrability; add their zero means. Independence makes the mixed covariance terms vanish, leaving the sum of the component variances. The resulting Gaussian is determined by that mean and variance.",
+          "formula": "\\begin{aligned}\\mathbb E F_i^\\Xi(u)&=\\sum_{p\\in\\mathcal P}\\mathbb E X_p=0,\\\\ \\operatorname{Var}(F_i^\\Xi(u))&=\\sum_{p\\in\\mathcal P}\\operatorname{Var}(X_p)=n\\sum_{p\\in\\mathcal P}a_{i,p}^2.\\end{aligned}",
+          "lean": "Mathlib's independent Gaussian finite-sum theorem supplies Gaussianity. integral_finsetSum and IndepFun.variance_sum calculate its parameters; map_eq_gaussianReal then identifies the exact law."
+        }
+      ],
+      "lean_statement": "HasLaw packages almost-everywhere measurability and equality of the pushforward to the displayed centered normal. The finite-subtype degree adapter retains the same natural degree and adds no assumption.",
+      "lean_proof": "Read the proof as actual coefficient projections → independent scalar Gaussian values → exact finite-sum law. The variance parameter uses toNNReal only to encode nonnegativity; it does not approximate the variance.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent_hasLaw",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks.jointCoefficientBlocks_hasLaw"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.measurePreserving_eval",
+        "ProbabilityTheory.iIndepFun_iff_hasLaw_pi_pi",
+        "ProbabilityTheory.HasLaw.fun_comp",
+        "ProbabilityTheory.iIndepFun.precomp",
+        "ProbabilityTheory.iIndepFun.comp₀",
+        "ProbabilityTheory.iIndepFun.hasGaussianLaw_fun_sum",
+        "MeasureTheory.integral_finsetSum",
+        "ProbabilityTheory.IndepFun.variance_sum",
+        "ProbabilityTheory.HasGaussianLaw.map_eq_gaussianReal"
+      ],
+      "dependency_notes": "Two genuine source-model laws are reused from Samplinglib. Mathlib supplies the generic product and Gaussian-sum facts. The fixed-input radial field needed before Eq. (51) is a future consumer, not an already compiled edge."
+    }
+  ]
+}

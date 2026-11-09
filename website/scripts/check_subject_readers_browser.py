@@ -53,6 +53,8 @@ def main() -> None:
          'AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent_hasLaw'),
         ('slc-lsi-coefficient-blocks', 'jointCoefficientBlocks_hasLaw', 'coefficient-blocks',
          'AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks.jointCoefficientBlocks_hasLaw'),
+        ('slc-lsi-angular-degree-sum', 'angularDegreeSum_hasLaw', 'angular-degree-sum',
+         'AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum.angularDegreeSum_hasLaw'),
     )
     assert {case[3] for case in proof_cases} <= reviewed
     try:

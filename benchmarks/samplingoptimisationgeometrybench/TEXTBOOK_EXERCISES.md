@@ -78,6 +78,26 @@ The primary PDF contains no permission established here to redistribute its
 prose as ML data. Keep the cached PDF/page renders out of exports and author
 original mathematical statements and answers with exact correspondence.
 
+For a numbered exercise that spans distinct canonical publication items,
+use `publication_components` instead of `publication_file`. Each entry is a
+`{publication_file, item_id}` reference to a separately bound proof edge
+with the same pinned source, chapter, and exercise number. Keep each
+statement and assumption list separate; specify any remaining formal
+boundary. All views share one source family. Prompt exports include only
+the bibliography, never the joined answer mapping or review records.
+
+For Exercise 1.7 specifically, run
+`python proof-obligations/chewi-exercise-1-7/preview_bench_tasks.py` after
+building the local Lean prerequisites. It projects the two independently
+rubric-reviewed drafts in memory: compact Euclidean LSI ⇒ PI (provisional L4
+for prose and Lean) and bounded centered actual-law KL (provisional L3 for
+both). It compiles the actual generated references with both finished answers
+excluded from imports and emits the normal Bench reader as a local draft.
+The fresh ignored output separates agent inputs from operator proofs, grading
+and reader pages. This is neither catalog admission nor an isolated
+agent/model trial; the two public views share a public-development family
+and are not eligible for a future held-out split.
+
 ## Transport intake: Chapter 1, Exercise 6
 
 The next transport exercise candidate is Chapter 1, §1.8, no. 6 of

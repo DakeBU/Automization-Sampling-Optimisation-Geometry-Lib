@@ -16,6 +16,12 @@ import bench_portals
 ROOT = Path(__file__).resolve().parents[2]
 HUB = 'benchmarks/samplingoptimisationgeometrybench/'
 MARKER = 'data-sog-bench="true"'
+STYLESHEET = ROOT / 'website/static/sog-bench.css'
+
+
+def with_styles(text: str, rel: str) -> str:
+    return text.replace('</head>', '<link rel="stylesheet" href="' + astis_site.relative_prefix(rel)
+                        + 'assets/sog-bench.css"></head>')
 
 
 _MATH_GLYPHS = {
@@ -93,8 +99,8 @@ def prose(text: str) -> str:
         r'(?<![A-Za-z\\])(?:[α-ωΑ-Ω])?e\^\{[^{}]+\}',
         lambda match: r'\(' + match.group(0) + r'\)', span)
         for i, span in enumerate(spans))
-    # Stack independent comma-separated display identities, without changing
-    # the audited source strings or shrinking their mobile math fonts.
+    # Stack independent display identities and explicit continuation lines,
+    # without changing the audited source strings or shrinking the math.
     def stack(match):
         body = match.group(1)
         if r'\begin{' in body:
@@ -105,10 +111,18 @@ def prose(text: str) -> str:
                 depth += 1 if char == '{' else -1
             if depth == 0 and char in '()[]':
                 group_depth += 1 if char in '([' else -1
-            if depth == 0 and body.startswith(r',\qquad', index):
-                parts.append(body[start:index+1])
-                start = index + len(r',\qquad')
-            if depth == group_depth == 0:
+            if depth == group_depth == 0 and index >= start:
+                separator = re.match(r',\s*\\qquad\b', body[index:]) if char == ',' else None
+                if separator:
+                    parts.append(body[start:index+1])
+                    start = index + separator.end()
+                elif (char == '\n' and re.match(r'\n[ \t]+[+-]', body[index:])
+                      and body[start:index].rstrip()
+                      and body[start:index].rstrip()[-1] not in '=+-&^_'):
+                    # The author already marked a new summand on a separate
+                    # source line; preserve the sign and its full group.
+                    parts.append(body[start:index])
+                    start = index + 1
                 relation = re.match(r'\\(?:leq?|geq?)(?![A-Za-z])|=', body[index:])
                 if relation:
                     relations.append((index, relation.group()))
@@ -146,13 +160,13 @@ def exercise_panel(core: dict, checked: bool) -> str:
     if not exercise:
         return ''
     source = exercise['book']
-    parts = []
+    parts = {}
     for part in exercise['parts']:
         declarations = [d for d in exercise['answer_declarations'] if part['id'] in d['supports']]
         links = ' · '.join('<a href="../../underlying-lean-graph/index.html?focus='
                           + quote('decl:' + d['declaration'], safe='') + '"><code>'
                           + escape(d['declaration']) + '</code></a>' for d in declarations)
-        parts.append('<li>' + escape(part['label']) + '<br>' + links + '</li>')
+        parts[part['id']] = '<li>' + escape(part['label']) + '<br>' + links + '</li>'
     build = ('Current trusted build records the named owned answer modules and transitive axiom checks.'
              if checked else 'No current aggregate owned-answer build receipt is recorded in this build.')
     pdf = source['pdf_url'] + '#page='
@@ -160,21 +174,37 @@ def exercise_panel(core: dict, checked: bool) -> str:
     if 'pdf_page_end' in exercise:
         source_links += (' · <a href="' + escape(pdf + str(exercise['pdf_page_end']))
                          + '">Last source page</a>')
-    return (prose('Numbered textbook exercise · ' + source['title'] + ' · Exercise ' + exercise['number'])
-        + fold('Original exercise, all requested parts and exact Lean scope',
+    if exercise.get('source_components'):
+        scope_label = 'Represented source parts and exact Lean scope'
+        source_blocks = '<h3>Separate mathematical results and their assumptions</h3>'
+        for component in exercise['source_components']:
+            source_blocks += fold(component['title'],
+                prose(component['statement'])
+                + ''.join(prose(r'\[' + formula['tex'] + r'\]') for formula in component['formulae'])
+                + ''.join(prose(s) for s in component['assumptions'])
+                + '<p><a href="' + escape(component['source']['url']) + '">Component source</a></p>'
+                + '<h4>Owned answers for this part</h4><ol>'
+                + ''.join(parts[i] for i in component['part_ids']) + '</ol>')
+    else:
+        scope_label = 'Original exercise, all requested parts and exact Lean scope'
+        source_blocks = ('<h3>Original exercise · faithful ASTIS restatement</h3>'
+            + prose(exercise['source_statement'])
+            + ''.join(prose(s) for s in exercise['source_assumptions'])
+            + '<h3>Requested parts and owned answers</h3><ol>' + ''.join(parts.values()) + '</ol>')
+    heading = prose('Numbered textbook exercise · ' + source['title'] + ' · Exercise ' + exercise['number'])
+    details = fold(scope_label,
             prose(', '.join(source['authors']) + ' · ' + source['edition'] +
                   ' · ' + exercise_pages(exercise))
             + '<p>' + source_links + ' · '
             '<a href="textbook-exercises/index.html">Numbered exercise directory</a></p>'
             + prose(exercise['wording_status'])
-            + '<h3>Original exercise · faithful ASTIS restatement</h3>'
-            + prose(exercise['source_statement'])
-            + ''.join(prose(s) for s in exercise['source_assumptions'])
-            + '<h3>Requested parts and owned answers</h3><ol>' + ''.join(parts) + '</ol>'
+            + source_blocks
             + ''.join(prose(s) for s in exercise['context_notes'])
             + '<h3>Remaining formal boundary</h3>' + ''.join(prose(s) for s in exercise['unformalized_context'])
             + prose(build + ' This is owned core-answer reuse, not a new proof, an equivalent Lean challenge or full textbook certification.')
-            + prose(source['rights_boundary'])))
+            + prose(source['rights_boundary']))
+    return heading + ('<div class="sog-exercise-scope">' + details + '</div>'
+                      if exercise.get('source_components') else details)
 
 
 def exercise_index(cores: list[dict], checked: bool) -> str:
@@ -552,7 +582,7 @@ def enrich_site(output: Path) -> None:
         folder.mkdir(parents=True, exist_ok=True)
         for filename, content in bench_portals.collection_assets(target/'downloads',cores,collection).items():
             (folder/filename).write_bytes(content)
-    shutil.copyfile(ROOT / 'website/static/sog-bench.css', output / 'assets/sog-bench.css')
+    shutil.copyfile(STYLESHEET, output / 'assets/sog-bench.css')
     pages = [('index.html', bench_portals.configuration()['display_name'], home(cores))]
     pages += [(c['id']+'/index.html', c['name'], bench_portals.collection_page(cores,c))
               for c in bench_portals.configuration()['collections']]
@@ -577,8 +607,7 @@ def enrich_site(output: Path) -> None:
         rel = HUB + tail
         text = astis_site.page(title, rel, local_navigation(tail) + body)
         text = source_lineage.canonical_shell(text, rel, output)
-        text = text.replace('</head>', '<link rel="stylesheet" href="' + astis_site.relative_prefix(rel) + 'assets/sog-bench.css"></head>')
-        astis_site.write_page(output, rel, text)
+        astis_site.write_page(output, rel, with_styles(text, rel))
     # A quiet, independent entry point: no links to unrelated libraries/projects.
     for path in output.rglob('*.html'):
         text = path.read_text(encoding='utf-8')

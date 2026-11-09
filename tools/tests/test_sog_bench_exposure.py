@@ -119,3 +119,86 @@ class ExposureTests(unittest.TestCase):
         self.assertNotIn(b'private-shaped proof', exposure.build_public([core], [graph]))
         with self.assertRaisesRegex(ValueError, 'source family'):
             exposure.build_public([core], [{**graph, 'family': 'elsewhere'}])
+
+
+class PrivateSealTests(unittest.TestCase):
+    def setUp(self):
+        self.live = snapshot(row('pub', 'public-family', 'original:public-anchor', 'public prompt'))
+        self.old = snapshot(row('retired', 'old-family', 'original:retired-anchor', 'retired prompt'))
+        self.views = {'natural-language': {'assumptions': ['fixture assumption'], 'question': 'fixture question'},
+                      'lean': 'fixture template'}
+        self.row = {'id': 'opaque-item', 'family': 'opaque-family', 'anchors': ['original:opaque-anchor'],
+                    'views': {k: exposure.prompt_sha256(k, v) for k, v in self.views.items()}}
+        self.inventory = inventory([self.live, self.old], self.row)
+        self.prompts = self.pack(exposure.PROMPT_KIND, self.views)
+        self.references = self.pack(exposure.REFERENCE_KIND, {k: {
+            'solution': 'fixture solution', 'rubric': 'fixture rubric'} for k in self.views})
+
+    def pack(self, kind, views, **extra):
+        return exposure.encoded({'schema_version': 1, 'kind': kind, 'records': [
+            {'id': self.row['id'], 'views': views, **extra}]})
+
+    def receipt(self, **changes):
+        return exposure.encoded({'schema_version': 1, 'kind': exposure.REVIEW_KIND,
+            'inventory_sha256': exposure.digest(self.inventory), 'prompts_sha256': exposure.digest(self.prompts),
+            'references_sha256': exposure.digest(self.references), 'author': 'author-a', 'reviewer': 'reviewer-b',
+            'families': [{'id': self.row['family'], 'decision': 'accept', 'checks': sorted(exposure.REVIEW_CHECKS)}],
+            **changes})
+
+    def audit(self, *, review=None, pin=None):
+        review = self.receipt() if review is None else review
+        return exposure.audit_private_seal(self.live, [self.old], self.inventory,
+            self.prompts, self.references, review, exposure.digest(review) if pin is None else pin)
+
+    def test_valid_seal_reports_counts_not_private_data_or_acceptance(self):
+        result = self.audit()
+        self.assertEqual(result['status'], 'matches-pinned-private-review')
+        self.assertEqual(result['private_views'], 2)
+        self.assertEqual(result['review_bound_families'], 1)
+        for key in ('admitted', 'model_measurement', 'receipt_identity_authenticated',
+                    'semantic_independence_verified'):
+            self.assertIs(result[key], False)
+        for secret in ('opaque-item', 'opaque-family', 'fixture question', 'fixture solution', 'reviewer-b'):
+            self.assertNotIn(secret, json.dumps(result))
+
+    def test_pinned_receipt_binds_every_exact_file(self):
+        receipt = self.receipt()
+        with self.assertRaisesRegex(ValueError, 'pinned SHA-256'):
+            self.audit(review=receipt + b'\n', pin=exposure.digest(receipt))
+        for member in ('inventory', 'prompts', 'references'):
+            with self.subTest(member=member), patch.object(self, member, getattr(self, member) + b'\n'):
+                with self.assertRaisesRegex(ValueError, 'does not bind'):
+                    self.audit(review=receipt)
+
+    def test_even_repinned_receipt_cannot_change_screened_prompt_or_tracks(self):
+        for views, error in (
+            ({**self.views, 'lean': 'different exact template'}, 'screened inventory'),
+            ({'lean': self.views['lean']}, 'inventory IDs or tracks'),
+        ):
+            with self.subTest(error=error), patch.object(self, 'prompts', self.pack(exposure.PROMPT_KIND, views)):
+                with self.assertRaisesRegex(ValueError, error):
+                    self.audit()
+        with patch.object(self, 'prompts', self.pack(exposure.PROMPT_KIND, self.views, solution='leak')):
+            with self.assertRaisesRegex(ValueError, 'inventory IDs or tracks'):
+                self.audit()
+
+    def test_missing_or_invalid_grader_data_is_not_a_sealed_task(self):
+        for views in ({}, {k: {'solution': ' ', 'rubric': 'fixture'} for k in self.views}):
+            with self.subTest(views=len(views)), patch.object(self, 'references',
+                    self.pack(exposure.REFERENCE_KIND, views)):
+                with self.assertRaises(ValueError):
+                    self.audit()
+
+    def test_receipt_refuses_same_label_or_incomplete_family_checklist(self):
+        family = {'id': self.row['family'], 'decision': 'accept', 'checks': sorted(exposure.REVIEW_CHECKS)}
+        for fields in ({'reviewer': 'author-a'}, {'families': []}, {'families': [family, family]},
+                       {'families': [{**family, 'decision': 'reject'}]},
+                       {'families': [{**family, 'checks': ['family-independence'] * 4}]}):
+            with self.subTest(fields=fields), self.assertRaises(ValueError):
+                self.audit(review=self.receipt(**fields))
+
+    def test_seal_does_not_override_history_screen(self):
+        family = exposure.strict_json(self.old)['records'][0]['family']
+        exposed = inventory([self.live, self.old], {**self.row, 'family': family})
+        with patch.object(self, 'inventory', exposed), self.assertRaisesRegex(ValueError, 'family=1'):
+            self.audit()

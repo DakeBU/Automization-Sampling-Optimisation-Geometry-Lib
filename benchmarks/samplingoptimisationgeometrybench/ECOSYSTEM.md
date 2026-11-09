@@ -88,6 +88,50 @@ missing historical exposures; it does not verify provenance, rights or
 independent novelty. These still require a private independent audit before
 admitting a test. There is no private corpus or evaluator in the public export.
 
+### Bind an independent review to the exact held-out files
+
+After offline review, run the same command with all four additional arguments:
+
+```bash
+python tools/sog_bench_exposure.py --inventory /secure/outside-repo/inventory.json \
+  --historical-public /retained/earlier/public-exposure.json \
+  --prompts /secure/outside-repo/prompts.json \
+  --references /secure/outside-repo/references.json \
+  --review /secure/outside-repo/review.json \
+  --expected-review-sha256 SHA256_FROM_TRUSTED_REVIEWER_CHANNEL
+```
+
+Keep all four private inputs outside this checkout, including its ignored
+folders. Share only the relevant prompt view with a model. The grader's
+solution and rubric, review files, private hashes and family assignments stay
+with the trusted operator. These checks do not send data or run Lean.
+
+Both packs are strict JSON with `schema_version: 1`, a `kind`, and a `records`
+array. Each record has exactly `id` and `views` keyed by the inventory's track
+names. The `sog-bench-private-prompts` pack has the same typed payloads used by
+`prompt_sha256`. The `sog-bench-private-references` pack instead has nonempty
+`solution` and `rubric` strings for each view. IDs and tracks must match the
+inventory exactly, including paired views. Keep proof sources as data during
+review; this does not qualify private Lean tasks for the public executor.
+
+The independent reviewer produces a `sog-bench-private-review` JSON object
+with `schema_version: 1`, `inventory_sha256`, `prompts_sha256`,
+`references_sha256` (all on exact bytes), distinct `author` and `reviewer`
+labels, and a `families` array. Each family needs an `{id, decision, checks}`
+entry with decision `accept` and all four check IDs: `source-and-rights`,
+`family-independence`, `solution-and-rubric`, `tool-and-graph-scope`. The
+reviewer should inspect the entire family against past public variants and
+reject unsupported graph claims, false difficulty labels, and inappropriate
+tool access. Obtain the receipt hash separately from that trusted reviewer;
+computing it from an untrusted receipt is not authentication.
+
+`matches-pinned-private-review` means the byte bindings, exact exposure screen,
+view coverage and receipt checklist matched. It is **not** proof of the
+reviewer's identity, human independence, formal correctness, corpus admission
+or a model score. Run it again before execution against the then-current
+public snapshots; changes require a newly bound receipt. No private-corpus
+export, provider integration or public CI collection is added by this check.
+
 ## What can actually be run today?
 
 | Track | Available path | Not certified |

@@ -1,4 +1,4 @@
-"""Public exposure snapshots and an offline, metadata-only private preflight."""
+"""Public exposure snapshots and offline private holdout integrity checks."""
 from __future__ import annotations
 
 import argparse
@@ -12,6 +12,9 @@ import sys
 PUBLIC_FILE = 'public-exposure.json'
 PUBLIC_KIND = 'sog-bench-public-exposure'
 PRIVATE_KIND = 'sog-bench-private-inventory'
+PROMPT_KIND = 'sog-bench-private-prompts'
+REFERENCE_KIND = 'sog-bench-private-references'
+REVIEW_KIND = 'sog-bench-private-review'
 SOURCE_SCOPE = 'project-owned-original-only'
 TRACKS = frozenset({'natural-language', 'lean', 'graph-json'})
 GRAPH_FIELDS = frozenset({'question', 'context', 'targets', 'remove',
@@ -21,6 +24,8 @@ LABEL = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*')
 SHA = re.compile(r'[a-f0-9]{64}')
 ANCHOR = re.compile(r'(?:(?:exercise|original):[a-z0-9]+(?:-[a-z0-9]+)*|'
                     r'lean:AutoSamplingTheory(?:\.[\w]+)+)')
+REVIEW_CHECKS = frozenset({'source-and-rights', 'family-independence',
+                           'solution-and-rubric', 'tool-and-graph-scope'})
 
 
 def encoded(value) -> bytes:
@@ -169,11 +174,78 @@ def audit_private(current: bytes, historical: list[bytes], private: bytes) -> di
             'semantic_independence_verified': False, 'admitted': False, 'model_measurement': False}
 
 
+def bundle_views(raw: bytes, kind: str, expected: dict) -> dict:
+    pack = strict_json(raw)
+    if (set(pack) != {'schema_version', 'kind', 'records'} or pack['kind'] != kind
+            or not isinstance(pack['records'], list)):
+        raise ValueError('Invalid private task pack')
+    indexed = {}
+    for row in pack['records']:
+        if (not isinstance(row, dict) or set(row) != {'id', 'views'}
+                or not matches(row['id'], LABEL, 120) or row['id'] not in expected
+                or row['id'] in indexed or not isinstance(row['views'], dict)
+                or row['views'].keys() != expected[row['id']].keys()):
+            raise ValueError('Private task pack differs from the inventory IDs or tracks')
+        indexed[row['id']] = row['views']
+    if indexed.keys() != expected.keys():
+        raise ValueError('Private task pack does not cover the inventory')
+    return indexed
+
+
+def audit_private_seal(current: bytes, historical: list[bytes], private: bytes,
+                       prompts: bytes, references: bytes, review: bytes,
+                       expected_review_sha256: str) -> dict:
+    """Check externally pinned receipt bytes; no identity, proof or score assertion."""
+    result = audit_private(current, historical, private)
+    if not matches(expected_review_sha256, SHA, 64) or digest(review) != expected_review_sha256:
+        raise ValueError('Private review does not match the separately pinned SHA-256')
+    receipt = strict_json(review)
+    if (set(receipt) != {'schema_version', 'kind', 'inventory_sha256', 'prompts_sha256',
+                         'references_sha256', 'author', 'reviewer', 'families'}
+            or receipt['kind'] != REVIEW_KIND or receipt['inventory_sha256'] != digest(private)
+            or receipt['prompts_sha256'] != digest(prompts)
+            or receipt['references_sha256'] != digest(references)
+            or not matches(receipt['author'], LABEL, 120)
+            or not matches(receipt['reviewer'], LABEL, 120)
+            or receipt['author'] == receipt['reviewer'] or not isinstance(receipt['families'], list)):
+        raise ValueError('Private review does not bind these files and separate author/reviewer labels')
+
+    rows = strict_json(private)['records']
+    expected_families = {row['family'] for row in rows}
+    reviewed = set()
+    for family in receipt['families']:
+        if (not isinstance(family, dict) or set(family) != {'id', 'decision', 'checks'}
+                or not matches(family['id'], LABEL, 160) or family['id'] not in expected_families
+                or family['id'] in reviewed or family['decision'] != 'accept'
+                or not isinstance(family['checks'], list)
+                or not all(isinstance(c, str) for c in family['checks'])
+                or len(family['checks']) != len(REVIEW_CHECKS)
+                or set(family['checks']) != REVIEW_CHECKS):
+            raise ValueError('Private review has a rejected, duplicate or incomplete family record')
+        reviewed.add(family['id'])
+    if reviewed != expected_families:
+        raise ValueError('Private review does not cover every held-out family')
+
+    expected = {r['id']: r['views'] for r in rows}
+    prompt_index = bundle_views(prompts, PROMPT_KIND, expected)
+    reference_index = bundle_views(references, REFERENCE_KIND, expected)
+    for identity, views in expected.items():
+        for track, sha in views.items():
+            if prompt_sha256(track, prompt_index[identity][track]) != sha:
+                raise ValueError('Private prompt does not match the screened inventory')
+            ref = reference_index[identity][track]
+            if (not isinstance(ref, dict) or set(ref) != {'solution', 'rubric'}
+                    or not all(isinstance(v, str) and v.strip() for v in ref.values())):
+                raise ValueError('Private reference needs a nonempty solution and rubric for each track')
+    return {**result, 'status': 'matches-pinned-private-review', 'receipt_identity_authenticated': False,
+            'review_bound_families': len(reviewed), 'private_views': sum(map(len, expected.values()))}
+
+
 def read_metadata(path: Path, *, outside: Path | None = None) -> bytes:
     try:
         target = path.resolve(strict=True)
         if outside is not None and target.is_relative_to(outside.resolve()):
-            raise ValueError('Keep the private metadata file outside the repository')
+            raise ValueError('Keep the private input file outside the repository')
         if not target.is_file():
             raise ValueError('Metadata input must be a regular file')
         with target.open('rb') as f:
@@ -191,13 +263,25 @@ def main() -> int:
                         help='External private-test inventory metadata, not prompts or answers')
     parser.add_argument('--historical-public', type=Path, action='append', default=[],
                         help='A retained public exposure snapshot, repeat for each distinct release')
+    parser.add_argument('--prompts', type=Path, help='External prompt-only pack (offline only)')
+    parser.add_argument('--references', type=Path, help='External grader-only reference pack (offline only)')
+    parser.add_argument('--review', type=Path, help='External reviewer receipt for these exact files')
+    parser.add_argument('--expected-review-sha256', help='SHA-256 received from a trusted reviewer channel')
     args = parser.parse_args()
+    options = (args.prompts, args.references, args.review, args.expected_review_sha256)
+    if any(x is not None for x in options) and any(x is None for x in options):
+        parser.error('Provide --prompts, --references, --review and --expected-review-sha256 together')
     import sog_bench as bench
     try:
         private = read_metadata(args.inventory, outside=bench.ROOT)
         historical = [read_metadata(path) for path in args.historical_public]
         current = build_public(bench.materialize(), bench.curriculum.graph_items())
-        result = audit_private(current, historical, private)
+        if args.prompts is None:
+            result = audit_private(current, historical, private)
+        else:
+            prompts, references, review = (read_metadata(p, outside=bench.ROOT) for p in options[:3])
+            result = audit_private_seal(current, historical, private, prompts, references,
+                                        review, args.expected_review_sha256)
     except ValueError as exc:
         parser.exit(1, f'Exposure preflight refused: {exc}\n')
     print(json.dumps(result, sort_keys=True))

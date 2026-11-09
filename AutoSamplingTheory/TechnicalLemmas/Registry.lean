@@ -21,6 +21,7 @@ import AutoSamplingTheory.Core
 import AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
@@ -5302,6 +5303,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+    {
+      key := "probability.slc-lsi-angular-degree-law",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent_hasLaw",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Eq14/15 and pointwise Gaussian-law sentence",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E15",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "tensor", "HasLaw", "lower-bound"],
+      saldUse := "Planned actual degree-summed angular field and radial field law, then Lemma6.2 conditional iteration",
+      note := "Independently compiled/source-reviewed at 8d7bd9f49. Actual ordered tensor polynomial with exact source amplitude under one stdGaussian block; derives normalization, measurability and variance from fixed unit directions. Positive dimension and natural depth are an explicit isolated generalization. Definition and three private helpers receive no extra leaf credit. Joint coefficients, degree sum, adaptive directions, radial extension, conditioning and all main lower bounds remain open."
+    },
     {
       key := "probability.slc-lsi-literal-energy-truncation",
       localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation_gaussian_bound",

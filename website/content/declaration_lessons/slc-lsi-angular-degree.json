@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "reading_layout": "progressive",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S4.E15",
+          "label": "Zhou–Suzuki, Section 4.1.1, Eq. (14)–(15)",
+          "scope": "Literal degree component and its pointwise Gaussian law, not the joint field."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiAngularDegree"
+      ],
+      "boundary": "One fixed-direction degree component under its actual standard Gaussian coefficient block. Joint coefficient projection/independence, degree summation, radial fields, adaptive gates, conditional iteration, Lemma 6.2 and all main query lower bounds remain open.",
+      "kind": "definition",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent",
+      "title": "Construct one angular degree component",
+      "assumptions": [
+        "n is a positive integer, h a nonnegative integer, 0≤i≤h, and p is even with 4≤p≤P.",
+        "The polynomial formula accepts any deterministic direction tuple; only its unit-sphere restriction is used in the source-law theorem. Coefficients are arbitrary real tensor entries at this definition stage."
+      ],
+      "statement": "Repeat each trailing direction K^j times, take p tensor copies, and pair their coordinates with a coefficient array. Multiply by the exact source amplitude √n a_i,p. A definition constructs this polynomial; it does not yet prove a probability law.",
+      "formula": "\\psi_i=u_i\\otimes u_{i+1}^{\\otimes K}\\otimes\\cdots\\otimes u_h^{\\otimes K^{h-i}},\\qquad F_{i,p}^{\\Xi}(u)=\\sqrt n\\,a_{i,p}\\langle\\Xi_{i,p},\\psi_i(u)^{\\otimes p}\\rangle.",
+      "reader_note": "The construction is folded below the theorem by default. It retains every multiplicity and constant; there is no symmetrized tensor, factorial normalization, or fallback branch.",
+      "steps": [
+        {
+          "title": "Name every tensor coordinate",
+          "text": "Write v_j=u_(i+j). A slot t=(r,j,k) chooses one of p copies, a trailing block j, and one of K^j repetitions. A coordinate c chooses one of n entries at every slot. Thus there are pS_i slots and n^(pS_i) coordinates; the feature entry is the product of the chosen direction coordinates.",
+          "formula": "\\begin{gathered}T=\\{(r,j,k):0\\le r<p,\\ 0\\le j\\le h-i,\\ 0\\le k<K^j\\},\\\\ C=\\{c:T\\to\\{0,\\ldots,n-1\\}\\},\\quad q_c=\\prod_{t=(r,j,k)\\in T}(v_j)_{c(t)},\\\\ |T|=pS_i,\\qquad |C|=n^{pS_i}.\\end{gathered}",
+          "lean": "Fin p × (Σ j, Fin(K^j)) is the finite slot type; a function from slots to Fin n is a coordinate. EuclideanSpace ℝ C uses the Euclidean norm, not the sup norm. The focused test proves the cardinality for arbitrary parameters."
+        },
+        {
+          "title": "Keep the source amplitude",
+          "text": "Use the source values of K, P and S_i and the exact degree-dependent denominator. The j=0 summand gives S_i≥1; p≥4 and 2PS_i>1 make the denominator positive. The focused test proves positivity, so totalized division introduces no accidental zero value on this domain.",
+          "formula": "K=2^{74(h+1)},\\quad P=2^{64(h+1)},\\quad S_i=\\sum_{j=0}^{h-i}K^j,\\qquad a_{i,p}=\\frac{1}{p^4S_i^2\\sqrt{(h-i+1)\\log(2PS_i)}}.",
+          "lean": "The body uses literal let-bindings for S and a. Positive dimension and the permitted degree subtype keep source constraints explicit; no estimated or renamed constant replaces a_i,p."
+        },
+        {
+          "title": "Pair with the coefficient block",
+          "text": "Sum the coefficient entry times the matching tensor entry, then multiply by √n a_i,p. This is exactly the entrywise real tensor inner product. The formula extends polynomially off the sphere, but no off-sphere unit-norm assertion is made.",
+          "formula": "F_{i,p}^{\\Xi}(u)=\\sqrt n\\,a_{i,p}\\sum_{c\\in C}\\Xi_c q_c.",
+          "lean": "The finite sum in angularDegreeComponent is the literal coordinate pairing. Its deterministic polynomial extension has no conditional default and is not a new sampling algorithm."
+        }
+      ],
+      "lean_statement": "The direction index starts at zero for the trailing tuple: Lean u j is the source u_(i+j). The coefficient type retains all ordered tensor coordinates.",
+      "lean_proof": "This is a construction, not an inequality. The separate adjacent theorem derives its Gaussian law from the body.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "EuclideanSpace",
+        "Finset.sum",
+        "Finset.prod"
+      ],
+      "dependency_notes": "The finite coordinate carriers and arithmetic come from pinned Mathlib. No external Lean implementation is copied or given local proof credit."
+    },
+    {
+      "reading_layout": "progressive",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S4.E15",
+          "label": "Zhou–Suzuki, Section 4.1.1, Eq. (14)–(15)",
+          "scope": "Literal degree component and its pointwise Gaussian law, not the joint field."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiAngularDegree"
+      ],
+      "boundary": "One fixed-direction degree component under its actual standard Gaussian coefficient block. Joint coefficient projection/independence, degree summation, radial fields, adaptive gates, conditional iteration, Lemma 6.2 and all main query lower bounds remain open.",
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent_hasLaw",
+      "title": "The angular component has its stated Gaussian law",
+      "assumptions": [
+        "n is a positive integer, h a nonnegative integer, 0≤i≤h, and p is even with 4≤p≤P.",
+        "The trailing directions u_i,…,u_h are fixed deterministic unit vectors in real Euclidean n-space.",
+        "The coefficient block has its unconditioned standard Gaussian probability law; it is not conditioned on admissibility.",
+        "The paper fixes sufficiently large n and h=floor((log n)^(1/3)/32). The isolated identity below is proved for every positive n and natural h; this does not extend hard-family admissibility."
+      ],
+      "statement": "For the displayed source parameters and any fixed unit directions, the literal component F_i,p evaluated under its standard Gaussian coefficient block is a centered real Gaussian with variance n a_i,p². Its measurability and distribution identity are proved, not assumed.",
+      "formula": "\\Xi_{i,p}\\sim\\mathcal N(0,I_{n^{pS_i}})\\quad\\Longrightarrow\\quad F_{i,p}^{\\Xi}(u)\\sim\\mathcal N(0,n a_{i,p}^{\\,2}).",
+      "reader_note": "The tensor formula and every constant are available in the definition below. Random or adaptively selected directions are not covered by this pointwise statement.",
+      "steps": [
+        {
+          "title": "Unit directions give a unit tensor",
+          "text": "Square each feature entry, sum over all coordinate choices, and distribute the finite product of sums. Each inner sum is the squared Euclidean norm of a participating direction, hence one. Repeated copies are essential multiplicities, but do not change this unit norm.",
+          "formula": "\\begin{aligned}\\|q\\|_2^2&=\\sum_{c\\in C}\\prod_{t=(r,j,k)\\in T}(v_j)_{c(t)}^2\\\\&=\\prod_{t=(r,j,k)\\in T}\\sum_{\\ell=0}^{n-1}(v_j)_\\ell^2\\\\&=\\prod_{t\\in T}1=1.\\end{aligned}",
+          "lean": "tensorFeature_norm_sq expands EuclideanSpace.real_norm_sq_eq, moves the square inside the finite product, and applies Fintype.prod_sum. Only hu, the source unit-direction condition, is supplied."
+        },
+        {
+          "title": "Use the actual Gaussian linear functional",
+          "text": "For fixed directions define L(ξ)=√n a_i,p⟨q,ξ⟩. The coordinate formula identifies the component exactly with L. This is a continuous linear map, hence measurable. Under the standard Gaussian block, its mean is zero and its variance is the squared operator norm.",
+          "formula": "L(\\xi)=\\sqrt n\\,a_{i,p}\\langle q,\\xi\\rangle,\\qquad \\mathbb E L(\\Xi)=0,\\qquad \\operatorname{Var}(L(\\Xi))=\\|L\\|_{\\mathrm{op}}^2.",
+          "lean": "innerSL makes the inner product a continuous linear functional; hL identifies it with the literal polynomial. Mathlib supplies integral_strongDual_stdGaussian, variance_dual_stdGaussian and IsGaussian.map_eq_gaussianReal."
+        },
+        {
+          "title": "Compute the variance and package the law",
+          "text": "The norm of the inner-product functional is the feature norm. Its square is one, and (√n)²=n because n≥1. Thus the variance is exactly n a_i,p². HasLaw packages a.e. measurability with equality of the pushforward probability measure; it is the conclusion, not an input.",
+          "formula": "\\begin{gathered}\\|L\\|_{\\mathrm{op}}^2=(\\sqrt n\\,a_{i,p})^2\\|q\\|_2^2=n a_{i,p}^2,\\\\ (\\xi\\mapsto F_{i,p}^{\\xi}(u))_\\#\\mathcal N(0,I_C)=\\mathcal N(0,n a_{i,p}^2).\\end{gathered}",
+          "lean": "norm_smul and innerSL_apply_norm reduce the variance to the proved tensor norm; Real.sq_sqrt removes the square root. The nonnegative variance conversion is exact, as the focused test also checks."
+        }
+      ],
+      "lean_statement": "HasLaw f μ P means AEMeasurable f P and P.map f=μ. Here P is the concrete stdGaussian on the tensor-coordinate Euclidean space. There is no assumed Gaussian law, independence, feature norm or integrability premise.",
+      "lean_proof": "Three private providers name slots, construct the tensor feature and prove its norm. The public proof then identifies the linear map and invokes pinned Mathlib Gaussian facts. They receive no separate leaf credit. Parameter positivity and coordinate dimension are also checked by universal examples in the focused test.",
+      "helpers": [
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.TensorSlots",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.tensorFeature",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.tensorFeature_norm_sq"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent"
+      ],
+      "mathlib_dependencies": [
+        "EuclideanSpace.real_norm_sq_eq",
+        "Fintype.prod_sum",
+        "innerSL_apply_norm",
+        "ProbabilityTheory.integral_strongDual_stdGaussian",
+        "ProbabilityTheory.variance_dual_stdGaussian",
+        "ProbabilityTheory.IsGaussian.map_eq_gaussianReal"
+      ],
+      "dependency_notes": "The new ASTIS object is the literal source polynomial; Gaussian linear-law infrastructure is reused from Mathlib. Future degree-sum and conditional applications are planned consumers, not existing Lean call edges."
+    }
+  ]
+}

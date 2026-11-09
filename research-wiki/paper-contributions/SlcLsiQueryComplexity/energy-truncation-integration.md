@@ -92,3 +92,19 @@ remained within the mobile viewport. Its screenshot was actually inspected.
 The mathematical declarations, source bindings and independent reviews are
 unchanged. Exact-head remote CI must pass before merge; this local browser
 receipt does not replace that gate.
+
+## Merge receipt
+
+PR #394 merged at `ef62c36e07bdb15242ad318deccbf8c5d14df63d` after the
+exact `f1c9f5f40` ASTIS, site, contributor, Bench, native Harbor and isolated
+Lean-runtime workflows passed. The main merge tree equals the accepted head.
+This closes integration for one literal Fact10 bound and its definition;
+deployment and post-merge purification are independently observed receipts.
+
+Main site workflow42612276198 succeeded. The public proof returned HTTP200
+with the exact merge ref, theorem and both statement/proof disclosures.
+Independent `runs/20261109-slc-lsi-energy-truncation/postmerge-purification.json`
+accepts no-change purification and both Exposition Seals for the literal
+adapter only. The generic Gaussian parent's removed import is confirmed;
+its stale authored consumer note still needs a bounded binding review before
+its own purification. No new source hypothesis or paper completion is asserted.

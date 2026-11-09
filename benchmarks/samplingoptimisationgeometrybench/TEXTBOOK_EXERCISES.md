@@ -27,6 +27,21 @@ Use their existing cells, tests, canonical source/semantic reviews and module ow
 
 The PDF and HTML identify an arXiv non-exclusive distribution grant, not a blanket text/solution-manual reuse license. Keep the original PDF/page render in the ignored audit cache, outside ML exports. Publish only bibliographic correspondence and an original faithful mathematical restatement/ASTIS-authored solution unless broader permission is established. Do not distribute a copied exercise passage as project-owned text.
 
+## Optimisation Exercise 3.1: three steps, two pages
+
+[Exercise 3.1, printed/PDF pp. 22–23](https://arxiv.org/pdf/2605.07006v1#page=22)
+uses the same pinned edition; the last part is at the
+[top of p. 23](https://arxiv.org/pdf/2605.07006v1#page=23).
+The reference answer (sogb-030) follows the affine tilt, then the sum of the
+two endpoint gaps, then Cauchy–Schwarz. It does not assume a Lipschitz
+gradient in the quadratic upper-model premise. The reciprocal expression
+needs positive modulus; the division-free and Lipschitz conclusions extend
+to zero, and no Hessian is required. The exercise map names all three
+existing `ConvexSmoothGradient` answers and preserves the Euclidean versus
+Hilbert-space distinction. This is an NL exercise with owned Lean answers,
+not another fixed Lean reconstruction task. Both source pages were rendered
+and checked against the original wording; no source prose is reproduced.
+
 ## Next real source route: Log-Concave Sampling Exercise 1.7
 
 The pinned August 20, 2026 edition has 333 pages and SHA-256
@@ -62,6 +77,23 @@ Lean proof or a source-equivalence verdict. In particular:
 The primary PDF contains no permission established here to redistribute its
 prose as ML data. Keep the cached PDF/page renders out of exports and author
 original mathematical statements and answers with exact correspondence.
+
+## Transport intake: Chapter 1, Exercise 6
+
+The next transport exercise candidate is Chapter 1, §1.8, no. 6 of
+*Statistical Optimal Transport* by Chewi, Niles-Weed and Rigollet
+([printed p. 44 / PDF p. 50](https://chewisinho.github.io/st_flour.pdf#page=50),
+edition fingerprint in `Libraries/StatisticalOptimalTransport/source-map.json`).
+The equal-weight and reweighted Gaussian mixtures have finite second
+moments and means separated by `m/2`. The source hint uses the 1-Lipschitz
+test `f(x) = -x`, then the probability-coupling Cauchy–Schwarz bound.
+For the upper bound, couple the common left quarter and right half on
+the diagonal; translate the remaining left quarter by `2m` using the
+same Gaussian noise. The candidate squared cost is `m²`. Mathlib has
+Gaussian means, L² and translation APIs, and the owned Wasserstein upper
+bridge accepts an actual coupling. The unbounded-test lower bound and
+actual mixture coupling/marginals still need proof; the bounded-feature
+transport lemma is not a substitute. No QA or Lean coverage is claimed yet.
 
 ## Admission checklist
 

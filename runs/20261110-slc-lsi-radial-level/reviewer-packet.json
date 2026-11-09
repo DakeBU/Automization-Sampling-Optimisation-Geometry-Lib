@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-1a3fc6a8f97138ab",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "/root",
+    "blind_decoder": "/root/anonymous_20261110_g",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "slc-lsi-complexity-2026",
+    "anchor": "§4.1.1 Eq. (13)–(16), footnote 2; §6.2 actual H_k marginal in the application of Fact 10",
+    "original_text": "Faithful restatement of the fixed-x marginal explicitly used just after Fact 10 in §6.2 of the pinned paper. For each level i and fixed spatial x with trailing blocks x_i,…,x_h, draw the full ordered coefficient vector Xi under the unconditioned standard Gaussian. Set H_i^Xi(x)=0 if any participating block vanishes, and otherwise multiply the Eq. (15) angular degree sum at x_j/||x_j|| by C_i(x) from Eq. (16). That factor is the product over j=i,…,h of chi(||x_j||/sqrt(n)), with the exact unscaled rho ratios in footnote 2 at 0.65,0.70,0.95,1 and rho(t)=exp(-1/t) for t>0 and zero otherwise. The law is N(0,n C_i(x)^2 v_i), v_i=sum_{p in P} a_i,p^2 with the exact Eq. (14) amplitudes, P the even 4 through 2^(64(h+1)) and K=2^(74(h+1)). The paper prescribes sufficiently large n and its depth; the isolated identity does not use this relation. This is the marginal only, not the independence/conditional claim in the same source sentence.",
+    "text_sha256": "e7fb4afae148120e38b0a666ec10faad06c3c80293ba2a04f251b3b0d77e1e98"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel.radialLevel_hasLaw",
+    "file": "AutoSamplingTheory/ExampleCases/SlcLsiQueryComplexity/RadialLevel.lean",
+    "statement": "let g := fun (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (p : {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n    (ξ : EuclideanSpace ℝ\n      ((Fin p.val × (Σ j : Fin (h - i.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)) ↦\n  let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n  let a : ℝ := 1 / ((p.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n    Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n  Real.sqrt n.val * a * ∑ c, ξ c * ∏ s, u s.2.1 (c s)\n;\n∀ (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (x : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val)),\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := Fin (h + 1) × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun p : P ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n    let χ := fun r : ℝ ↦\n      expNegInvGlue (r - 13 / 20) /\n        (expNegInvGlue (r - 13 / 20) + expNegInvGlue (7 / 10 - r)) *\n      (expNegInvGlue (1 - r) /\n        (expNegInvGlue (1 - r) + expNegInvGlue (r - 19 / 20)))\n    let c := ∏ j, χ (‖x j‖ / Real.sqrt n.val)\n    let F := fun (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n        (ξ : EuclideanSpace ℝ (Σ b : B, C b)) ↦ ∑ p : P,\n      g n h i (degree p) u\n        (WithLp.toLp 2 (fun c : C (i, p) ↦ ξ ⟨(i, p), c⟩))\n    let H := fun ξ ↦ if ∃ j, x j = 0 then 0\n      else c * F (fun j ↦ NormedSpace.normalize (x j)) ξ\n    HasLaw H (gaussianReal 0 (((n.val : ℝ) * c ^ 2 * ∑ p : P, (a p) ^ 2).toNNReal))\n      (stdGaussian (EuclideanSpace ℝ (Σ b : B, C b)))",
+    "statement_sha256": "926b3501b5c5a245ab998a32cfdbc9e26a8ef5b91aad7d42a71b2e7d1592e6f8",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every positive integer n, every nonnegative integer h, every i in {0,…,h}, and every deterministic family x = (x_j)_{j=0}^{h−i} of vectors in ℝ^n, the following law holds. Write [m] = {0,…,m−1}, set M = 2^{64(h+1)} and Q = 2^{74(h+1)}, and let P = {p ∈ {0,…,M} : p is even and p ≥ 4} and B = [h+1] × P. For k ∈ [h+1] let L_k = h−k+1 and T_k = ⨆_{j∈[L_k]} [Q^j], whose elements are pairs (j,t) with t ∈ [Q^j]. For (k,p) ∈ B define C(k,p) to be the set of all maps from [p] × T_k to [n]. Let I = ⨆_{(k,p)∈B} C(k,p), and let ξ be a standard Gaussian vector in the finite real Euclidean space ℝ^I (mean zero, identity covariance).\n\nSet S_i = ∑_{j∈[L_i]} Q^j, and for p ∈ P set\na_{i,p} = 1 / (p^4 S_i^2 √(L_i log(2 M S_i))).\nHere log is the natural logarithm and square roots are nonnegative. For u = (u_j)_{j∈[L_i]} in (ℝ^n)^{[L_i]} and η ∈ ℝ^{C(i,p)}, define\ng(n,h,i,p;u,η) = √n a_{i,p} ∑_{α∈C(i,p)} η_α ∏_{(ℓ,(j,t))∈[p]×T_i} (u_j)_{α(ℓ,(j,t))}.\nLet ξ^{(i,p)} be the unscaled coordinate restriction (ξ_{((i,p),α)})_{α∈C(i,p)} and let F(u,ξ) = ∑_{p∈P} g(n,h,i,p;u,ξ^{(i,p)}).\n\nWrite ρ(t) = exp(−1/t) for t > 0 and ρ(t) = 0 for t ≤ 0. Define\nχ(r) = [ρ(r−13/20) / (ρ(r−13/20) + ρ(7/10−r))] · [ρ(1−r) / (ρ(1−r) + ρ(r−19/20))],\nand let c = ∏_{j∈[L_i]} χ(‖x_j‖/√n), using the Euclidean norm. Define H(ξ) = 0 if any x_j is zero, and otherwise H(ξ) = c F((x_j/‖x_j‖)_{j∈[L_i]},ξ).\n\nThen H is almost everywhere measurable under the standard Gaussian measure on ℝ^I, and its pushforward of that measure is the real Gaussian law of mean zero and variance max{n c² ∑_{p∈P} a_{i,p}², 0}. The expression inside the maximum is nonnegative, so the variance is n c² ∑_{p∈P} a_{i,p}². At variance zero this means the point mass at zero.",
+    "text_sha256": "114bbe5de0d0c04c21db62ff7b55ab694975bbdc598ff1816879bbf34ec27430",
+    "decoder": "/root/anonymous_20261110_g",
+    "decoder_packet_sha256": "3bf5d80918428cfc3be5f662efdefd3e49c1954873e2e589849b460018e09f95",
+    "decoder_run_sha256": "12f1fde1ccbfb95c97a6028de4ea95b4c4689ee593514b3577c1cdb29823661c",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "1b9e77fcf2b9fdce03a2ab21648f9256babba892e645cd9ab53588d748bf2f26",
+  "candidate_publication_context": {
+    "file": "48d9468be9a6a91fcff971d33e098ad5d126b20a91e568aa98146396e9829780",
+    "current_lean_module": "/-\nCopyright (c) 2026 Samplinglib contributors. All rights reserved.\nReleased under Apache 2.0 license as described in the file LICENSE.\n-/\nimport AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum\nimport Mathlib.Analysis.Normed.Module.Normalize\nimport Mathlib.Analysis.SpecialFunctions.SmoothTransition\n\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Classical\nopen AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree\nopen scoped NNReal\n\n/-!\n# One-location radial level law\n\nZhou–Suzuki, arXiv:2611.05813v1 (CC BY 4.0), Eq. (13)–(16), footnote 2,\nand the actual level marginal at the application of Fact 10 in §6.2.\nThis uses the literal shell factor, not a rescaled approximation.\nThe location is deterministic; only the joint coefficient vector is sampled.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel\n\nopen AngularDegreeSum\n\n/-- The zero-extended radial level has its exact centered Gaussian law.\nThis proves the one-point marginal, not the conditional or process law. -/\ntheorem radialLevel_hasLaw (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (x : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val)) :\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := Fin (h + 1) × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun p : P ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n    let χ := fun r : ℝ ↦\n      expNegInvGlue (r - 13 / 20) /\n        (expNegInvGlue (r - 13 / 20) + expNegInvGlue (7 / 10 - r)) *\n      (expNegInvGlue (1 - r) /\n        (expNegInvGlue (1 - r) + expNegInvGlue (r - 19 / 20)))\n    let c := ∏ j, χ (‖x j‖ / Real.sqrt n.val)\n    let F := fun (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n        (ξ : EuclideanSpace ℝ (Σ b : B, C b)) ↦ ∑ p : P,\n      angularDegreeComponent n h i (degree p) u\n        (WithLp.toLp 2 (fun c : C (i, p) ↦ ξ ⟨(i, p), c⟩))\n    let H := fun ξ ↦ if ∃ j, x j = 0 then 0\n      else c * F (fun j ↦ NormedSpace.normalize (x j)) ξ\n    HasLaw H (gaussianReal 0 (((n.val : ℝ) * c ^ 2 * ∑ p : P, (a p) ^ 2).toNNReal))\n      (stdGaussian (EuclideanSpace ℝ (Σ b : B, C b))) := by\n  intro P B C degree S a χ c F H\n  let Ω := EuclideanSpace ℝ (Σ b : B, C b)\n  let μ : Measure Ω := stdGaussian Ω\n  let v : ℝ := ∑ p : P, (a p) ^ 2\n  change HasLaw H (gaussianReal 0 (((n.val : ℝ) * c ^ 2 * v).toNNReal)) μ\n  by_cases hz : ∃ j, x j = 0\n  · obtain ⟨j, hj⟩ := hz\n    have hρ : expNegInvGlue (0 - 13 / 20) = 0 :=\n      expNegInvGlue.zero_of_nonpos (by norm_num)\n    have hχ : χ 0 = 0 := by\n      simp only [χ, hρ, zero_div, zero_mul]\n    have hc : c = 0 := by\n      apply Finset.prod_eq_zero (Finset.mem_univ j)\n      simpa only [hj, norm_zero, zero_div] using hχ\n    rw [hc]\n    simp only [zero_pow (by decide : (2 : ℕ) ≠ 0), mul_zero, zero_mul,\n      Real.toNNReal_zero, gaussianReal_zero_var]\n    exact hasLaw_dirac_of_ae_eq (Filter.Eventually.of_forall fun _ ↦ if_pos ⟨j, hj⟩)\n  · let u := fun j ↦ NormedSpace.normalize (x j)\n    have hu (j : Fin (h - i.val + 1)) : ‖u j‖ = 1 :=\n      NormedSpace.norm_normalize (fun hj ↦ hz ⟨j, hj⟩)\n    have hF : HasLaw (F u) (gaussianReal 0 (((n.val : ℝ) * v).toNNReal)) μ :=\n      angularDegreeSum_hasLaw n h i u hu\n    have hScaled := gaussianReal_const_mul hF c\n    have hH : H = fun ξ ↦ c * F u ξ := funext fun _ ↦ if_neg hz\n    have hv : 0 ≤ v := Finset.sum_nonneg fun p _ ↦ sq_nonneg (a p)\n    have hn : 0 ≤ (n.val : ℝ) := Nat.cast_nonneg _\n    have hVar : NNReal.mk (c ^ 2) (sq_nonneg c) * ((n.val : ℝ) * v).toNNReal =\n        ((n.val : ℝ) * c ^ 2 * v).toNNReal := by\n      apply NNReal.coe_injective\n      rw [NNReal.coe_mul, NNReal.coe_mk,\n        Real.coe_toNNReal _ (mul_nonneg hn hv),\n        Real.coe_toNNReal _ (mul_nonneg (mul_nonneg hn (sq_nonneg c)) hv)]\n      ring\n    rw [hH, ← hVar]\n    simpa only [mul_zero] using hScaled\n\nend AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "slc-lsi-complexity-2026",
+      "url": "https://arxiv.org/html/2611.05813v1#S4.E16",
+      "anchor": "§4.1.1 Eq. (13)–(16), footnote 2; §6.2 actual H_k marginal in the application of Fact 10",
+      "edition": "arXiv:2611.05813v1",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, CC BY 4.0. Samplinglib isolates the marginal from the independence and conditioning claims."
+    },
+    "statement": "Fix a level i and any deterministic trailing location x_i,…,x_h. Under the unconditioned standard Gaussian on the full ordered coefficient space, the level field H_i, formed by applying the exact radial cutoff to the angular sum, is centered Gaussian with variance n C_i(x)² v_i. A zero participating block gives the identically zero field and the point mass at zero.",
+    "formulae": [
+      {
+        "label": "Exact cutoff from footnote 2 and Eq. (16)",
+        "tex": "\\begin{gathered}\\rho(t)=\\begin{cases}e^{-1/t}&t>0\\\\0&t\\le0,\\end{cases}\\\\ \\chi(r)=\\frac{\\rho(r-0.65)}{\\rho(r-0.65)+\\rho(0.70-r)}\n\\frac{\\rho(1-r)}{\\rho(1-r)+\\rho(r-0.95)},\\qquad C_i(x)=\\prod_{j=i}^h\\chi\\!\\left(\\frac{\\|x_j\\|}{\\sqrt n}\\right).\\end{gathered}"
+      },
+      {
+        "label": "Angular model and variance scale",
+        "tex": "\\begin{gathered}K=2^{74(h+1)},\\quad P=2^{64(h+1)},\\quad S_i=\\sum_{j=0}^{h-i}K^j,\\quad \\mathcal P=\\{4,6,\\ldots,P\\},\\\\ a_{i,p}=\\frac1{p^4S_i^2\\sqrt{(h-i+1)\\log(2PS_i)}},\\quad v_i=\\sum_{p\\in\\mathcal P}a_{i,p}^2,\\\\ \\psi_i(u)=\\bigotimes_{j=i}^h u_j^{\\otimes K^{j-i}},\\qquad F_i^\\Xi(u)=\\sum_{p\\in\\mathcal P}\\sqrt n\\,a_{i,p}\\langle\\Xi_{i,p},\\psi_i(u)^{\\otimes p}\\rangle.\\end{gathered}"
+      },
+      {
+        "label": "Actual one-point law",
+        "tex": "\\begin{gathered}H_i^\\Xi(x)=\\begin{cases}0 & \\exists j\\ge i:\\ x_j=0,\\\\C_i(x)\\,F_i^\\Xi((x_j/\\|x_j\\|)_{j=i}^h)&\\text{otherwise},\\end{cases}\\\\ H_i^\\Xi(x)\\sim\\mathcal N(0,n C_i(x)^2 v_i),\\qquad \\mathcal N(0,0)=\\delta_0.\\end{gathered}"
+      }
+    ],
+    "assumptions": [
+      "n is positive, h is natural and 0≤i≤h. The paper prescribes large n and a particular depth; the isolated scalar law does not use that regime and does not extend admissibility.",
+      "The fixed location supplies exactly the participating blocks x_i through x_h in ℝⁿ. No nonzero-block hypothesis is imposed on the whole theorem, and no lower bound on the cutoff is assumed.",
+      "Only the unconditioned coefficient vector Ξ is random. Its full ordered Euclidean carrier has a block of dimension n^(p S_i) for each level i and allowed degree p. The level law does not assert independence from any random history."
+    ],
+    "obligations": [
+      {
+        "id": "actual-radial-field",
+        "label": "Use the literal shell cutoff and zero extension of the angular field"
+      },
+      {
+        "id": "one-location-law",
+        "label": "Prove the exact unconditioned one-location Gaussian law, including degeneracy"
+      }
+    ],
+    "lesson": {
+      "reading_layout": "progressive",
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel.radialLevel_hasLaw",
+      "title": "From the angular sum to the radial field at a fixed point",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S4.E16",
+          "label": "Zhou–Suzuki, Eq. (16) and footnote 2",
+          "scope": "Exact radial factor and its breakpoints."
+        },
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S6.SS2",
+          "label": "Zhou–Suzuki, §6.2, first application of Fact 10",
+          "scope": "The explicitly stated scalar marginal, separate from the conditional step."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiRadialLevel"
+      ],
+      "assumptions": [
+        "n is positive, h is natural and 0≤i≤h. The paper prescribes large n and a particular depth; the isolated scalar law does not use that regime and does not extend admissibility.",
+        "The fixed location supplies exactly the participating blocks x_i through x_h in ℝⁿ. No nonzero-block hypothesis is imposed on the whole theorem, and no lower bound on the cutoff is assumed.",
+        "Only the unconditioned coefficient vector Ξ is random. Its full ordered Euclidean carrier has a block of dimension n^(p S_i) for each level i and allowed degree p. The level law does not assert independence from any random history."
+      ],
+      "statement": "Fix a level i and any deterministic trailing location x_i,…,x_h. Under the unconditioned standard Gaussian on the full ordered coefficient space, the level field H_i, formed by applying the exact radial cutoff to the angular sum, is centered Gaussian with variance n C_i(x)² v_i. A zero participating block gives the identically zero field and the point mass at zero.",
+      "formula": "\\begin{gathered}H_i^\\Xi(x)=\\begin{cases}0 & \\exists j\\ge i:\\ x_j=0,\\\\C_i(x)\\,F_i^\\Xi((x_j/\\|x_j\\|)_{j=i}^h)&\\text{otherwise},\\end{cases}\\\\ H_i^\\Xi(x)\\sim\\mathcal N(0,n C_i(x)^2 v_i),\\qquad \\mathcal N(0,0)=\\delta_0.\\end{gathered}",
+      "reader_note": "The source reaches this law using fixed-location degree components. The Lean proof sums the uncut components first and then scales the sum, which gives the same scalar law. It does not prove all of Lemmas 4.3 or 4.4.",
+      "steps": [
+        {
+          "title": "Use the literal shell and handle the zero block",
+          "text": "In either quotient the two arguments to ρ sum to 0.05, so at least one is positive and each denominator is nonzero. At radius zero the left numerator is ρ(−0.65)=0, so a zero participating block makes the whole product vanish. The field is zero by definition there. A Gaussian of variance zero means a point mass, not a density formula with division by zero.",
+          "formula": "\\exists j\\ge i:\\ x_j=0\\quad\\Longrightarrow\\quad C_i(x)=0,\\qquad H_i^\\Xi(x)=0,\\qquad\\mathcal L(H_i^\\Xi(x))=\\delta_0.",
+          "lean": "expNegInvGlue.zero_of_nonpos evaluates the numerator, and a zero factor makes the finite product zero. gaussianReal_zero_var identifies the target with a Dirac measure."
+        },
+        {
+          "title": "Normalize each nonzero block",
+          "text": "When no participating block vanishes, dividing each vector by its norm gives deterministic unit directions. The actual uncut law applies under the same joint coefficient Gaussian; there is no need to postulate a new Gaussian variable.",
+          "formula": "u_j=x_j/\\|x_j\\|,\\quad \\|u_j\\|=1,\\qquad F_i^\\Xi(u)\\sim\\mathcal N(0,nv_i).",
+          "lean": "NormedSpace.norm_normalize uses the nonzero branch, then angularDegreeSum_hasLaw supplies the actual law and the measurability it packages."
+        },
+        {
+          "title": "Scale the variance by the squared cutoff",
+          "text": "The cutoff is a fixed scalar once the location is fixed. Multiplying the random field by it preserves the zero mean and multiplies the variance by its square. The scaling law remains valid when the scalar vanishes despite all blocks being nonzero.",
+          "formula": "\\mathcal L(C_i(x)F_i^\\Xi(u))=\\mathcal N(0,C_i(x)^2\\,n v_i)=\\mathcal N(0,nC_i(x)^2v_i).",
+          "lean": "gaussianReal_const_mul pushes the law through deterministic multiplication, including multiplier zero. The real-to-nonnegative variance conversion is exact by nonnegativity of squares."
+        }
+      ],
+      "lean_statement": "The local lets expose the literal coefficients, cutoff and case distinction without adding a new public definition. HasLaw is an exact pushforward equality with a.e. measurability at the fixed location.",
+      "lean_proof": "Read the two branches separately: zero block gives Dirac directly; nonzero blocks give unit directions, the prior law, and deterministic scaling. The proof never assumes shell membership or spatial regularity.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum.angularDegreeSum_hasLaw"
+      ],
+      "mathlib_dependencies": [
+        "expNegInvGlue.zero_of_nonpos",
+        "NormedSpace.norm_normalize",
+        "ProbabilityTheory.gaussianReal_zero_var",
+        "ProbabilityTheory.hasLaw_dirac_of_ae_eq",
+        "ProbabilityTheory.gaussianReal_const_mul"
+      ],
+      "dependency_notes": "Reuse Samplinglib's actual angular sum; Mathlib supplies scalar Gaussian transport. The scope is not a formal dependency on the full source Lemma 4.3/4.4 and does not yet feed an independently checked conditional iteration."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel.radialLevel_hasLaw",
+      "role": "proof-edge",
+      "supports": [
+        "actual-radial-field",
+        "one-location-law"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Fixed x in the hard-family dimension and depth regime.",
+        "lean": "Fixed trailing blocks for every positive n and natural h."
+      },
+      {
+        "source": "Eq. (16), footnote 2, and the zero-extension convention.",
+        "lean": "Exact rational cutoffs, unscaled expNegInvGlue, and an explicit zero branch."
+      },
+      {
+        "source": "Centered Gaussian with variance n C_i(x)² v_i, also stated when applying Fact 10 to the next level.",
+        "lean": "Only the unconditioned law; no independence or regular conditional law is supplied or claimed."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "e91dbc901202cb5619b99746ae83dde3aeda07589f018edc4e77c8adedf6f53a"
+}

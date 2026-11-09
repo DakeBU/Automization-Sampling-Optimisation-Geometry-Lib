@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-926b3501b5c5a245",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "let g := fun (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (p : {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n    (ξ : EuclideanSpace ℝ\n      ((Fin p.val × (Σ j : Fin (h - i.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)) ↦\n  let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n  let a : ℝ := 1 / ((p.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n    Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n  Real.sqrt n.val * a * ∑ c, ξ c * ∏ s, u s.2.1 (c s)\n;\n∀ (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (x : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val)),\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := Fin (h + 1) × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun p : P ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n    let χ := fun r : ℝ ↦\n      expNegInvGlue (r - 13 / 20) /\n        (expNegInvGlue (r - 13 / 20) + expNegInvGlue (7 / 10 - r)) *\n      (expNegInvGlue (1 - r) /\n        (expNegInvGlue (1 - r) + expNegInvGlue (r - 19 / 20)))\n    let c := ∏ j, χ (‖x j‖ / Real.sqrt n.val)\n    let F := fun (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n        (ξ : EuclideanSpace ℝ (Σ b : B, C b)) ↦ ∑ p : P,\n      g n h i (degree p) u\n        (WithLp.toLp 2 (fun c : C (i, p) ↦ ξ ⟨(i, p), c⟩))\n    let H := fun ξ ↦ if ∃ j, x j = 0 then 0\n      else c * F (fun j ↦ NormedSpace.normalize (x j)) ξ\n    HasLaw H (gaussianReal 0 (((n.val : ℝ) * c ^ 2 * ∑ p : P, (a p) ^ 2).toNNReal))\n      (stdGaussian (EuclideanSpace ℝ (Σ b : B, C b)))",
+    "statement_sha256": "926b3501b5c5a245ab998a32cfdbc9e26a8ef5b91aad7d42a71b2e7d1592e6f8",
+    "compiled": true,
+    "approved_definition_context": [
+      "ℕ+ denotes positive natural numbers; Fin m denotes natural values strictly below m; .val extracts the underlying value; Even is parity. A dependent sum Σ b, C b pairs a label with one of its indices.",
+      "EuclideanSpace ℝ J is finite real Euclidean space with index J, and WithLp.toLp 2 packages the same coordinate array without rescaling. Sums/products run over all elements of the finite index types.",
+      "expNegInvGlue t = exp(-1/t) if t>0 and 0 otherwise. NormedSpace.normalize z is the vector z multiplied by the inverse of its norm; it has norm one for z≠0 and equals zero at z=0.",
+      "stdGaussian is the real Euclidean Gaussian measure of mean zero and identity covariance. gaussianReal m v is the real Gaussian with mean m and variance v, with Dirac law when v=0. r.toNNReal equals max(r,0) encoded as a nonnegative real.",
+      "HasLaw H ν μ means almost-everywhere measurability under μ and pushforward H♯μ=ν. Parameters before the local definitions are deterministic; the random draw is only the vector under the displayed measure. Real.sqrt is the nonnegative square root and Real.log is the natural logarithm."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "3bf5d80918428cfc3be5f662efdefd3e49c1954873e2e589849b460018e09f95"
+}

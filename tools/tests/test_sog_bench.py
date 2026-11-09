@@ -27,8 +27,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 30)
-        self.assertEqual(len(prompts), 43)
+        self.assertEqual(len(self.cores), 31)
+        self.assertEqual(len(prompts), 45)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -39,8 +39,10 @@ class BenchTests(unittest.TestCase):
 
     def test_prompt_export_has_no_answers_rubrics_or_reference_proofs(self):
         allowed = {'id', 'family', 'domain', 'library_domains', 'skills', 'title', 'split', 'assumptions', 'binding_sha256', 'track', 'level', 'question'}
+        exercise_ids = {c['id'] for c in self.cores if c.get('textbook_exercise')}
+        self.assertEqual(exercise_ids, {'sogb-029', 'sogb-030', 'sogb-031'})
         for row in bench.prompts(self.cores):
-            self.assertEqual(set(row), allowed | ({'exercise_source'} if row['id'] in {'sogb-029', 'sogb-030'} else set()))
+            self.assertEqual(set(row), allowed | ({'exercise_source'} if row['id'] in exercise_ids else set()))
             self.assertNotIn(':= by\n  intro', row['question'])
         self.assertTrue(all('-- Replace this comment' in r['question']
                             for r in bench.prompts(self.cores) if r['track'] == 'lean'))
@@ -78,7 +80,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 43)
+            self.assertEqual(manifest['qa_views'], 45)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -199,13 +201,13 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 30)
+        self.assertEqual(coverage['unique_mathematical_cores'], 31)
         self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
         self.assertFalse(any(c['track_levels'].get('lean') == 'L5' for c in self.cores))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 30)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 31)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -412,6 +414,30 @@ class BenchTests(unittest.TestCase):
             self.assertNotIn(name, json.dumps(prompt))
         self.assertEqual(exercises.probe([core]).count('#print axioms '), 3)
 
+    def test_paired_statot_exercise_distinguishes_owned_answer_and_fixed_target(self):
+        import sog_bench_lean as runtime
+        core = next(c for c in self.cores if c['id'] == 'sogb-031')
+        self.assertTrue(bench.has_lean(core))
+        prompts = bench.prompts([core])
+        self.assertEqual({p['track'] for p in prompts}, {'natural-language', 'lean'})
+        self.assertTrue(all(p['family'] == core['textbook_exercise']['id'] for p in prompts))
+        self.assertTrue(all(p['exercise_source']['book_page'] == 44
+                            and p['exercise_source']['pdf_page'] == 50 for p in prompts))
+        answer, = core['textbook_exercise']['answer_declarations']
+        self.assertEqual(set(answer['supports']), {'lower-actual-mixtures', 'upper-actual-mixtures'})
+        self.assertEqual(answer['declaration'], core['declaration'])
+        module = core['source_file'].removesuffix('.lean').replace('/', '.')
+        self.assertNotIn(module, runtime.local_imports(core['imports']))
+        packet = runtime.packet(core)
+        self.assertNotIn(core['declaration'].encode(), packet['agent/prompt.json'])
+        self.assertNotIn(b'rcases', packet['agent/Solution.lean.txt'])
+        self.assertIn(b'Replace this comment with your proof', packet['agent/Solution.lean.txt'])
+        page = reader.core_page(core, False, {'decl:' + core['declaration']})
+        self.assertIn('The separate fixed Lean task certifies the conclusion only', page)
+        self.assertIn('Original exercise, all requested parts and exact Lean scope', page)
+        self.assertIn('st_flour.pdf#page=50', page)
+        self.assertIn('Lean question', page)
+
     def test_long_trial_step_equality_aligns_without_changing_gold(self):
         core = next(c for c in self.cores if c['id'] == 'sogb-030')
         step = core['steps'][1]
@@ -422,6 +448,28 @@ class BenchTests(unittest.TestCase):
         for tex in (r'A\le B+\frac{1234567890}{1234567890}+(X=Y)',
                     r'A\le B+\frac{1234567890}{1234567890}+L:=X'):
             self.assertNotIn(r'\begin{aligned}', reader.prose(r'\[' + tex + 'a'*90 + r'\]'))
+
+    def test_gaussian_coupling_chain_stacks_without_changing_gold(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-031')
+        step = core['steps'][1]
+        rendered = reader.prose(step)
+        self.assertIn(r'\begin{aligned}&amp;\mathbb E_', rendered)
+        self.assertIn(r'\\&amp;=\int(f(x)-f(y))', rendered)
+        self.assertIn(r'\\&amp;\le\left(\int |x-y|^2\,d\gamma\right)^{1/2}', rendered)
+        self.assertNotIn(r'\begin{aligned}', step)
+        self.assertNotIn(r'\begin{aligned}', reader.prose(
+            r'\[A=B\le C\ge ' + 'x'*130 + r'\]'))
+
+    def test_exercise_graph_address_does_not_imply_current_compilation(self):
+        name = next(c for c in self.cores if c['id'] == 'sogb-031')['declaration']
+        identity = 'decl:' + name
+        node = {'kind': 'declaration', 'status': 'partial', 'url': 'lessons/example.html'}
+        self.assertTrue(reader.has_exercise_graph_target({identity: node}, name))
+        self.assertTrue(reader.has_exercise_graph_target({identity: dict(node, status='compiled')}, name))
+        self.assertFalse(reader.has_exercise_graph_target({identity: dict(node, status='planned')}, name))
+        self.assertFalse(reader.has_exercise_graph_target({identity: dict(node, url='')}, name))
+        self.assertFalse(reader.has_exercise_graph_target({identity: dict(node, kind='module')}, name))
+        self.assertFalse(reader.has_exercise_graph_target({'decl:Another.theorem': node}, name))
 
     def test_multipage_exercise_rejects_incomplete_reversed_or_untyped_ranges(self):
         known = bench.astis_site._SOURCE_BY_NAME
@@ -500,9 +548,11 @@ class BenchTests(unittest.TestCase):
 
     def test_exercise_prose_changes_do_not_recompile_unchanged_owned_answers(self):
         data = deepcopy(bench.load())
-        data['cores'][-1]['question'] += ' Extra unaudited clause.'
+        candidate = next(c for c in data['cores'] if c['id'] == 'sogb-030')
+        candidate['question'] += ' Extra unaudited clause.'
         changed = bench.materialize(data)
-        self.assertNotEqual(changed[-1]['binding_sha256'], self.cores[-1]['binding_sha256'])
+        binding = lambda rows: next(c['binding_sha256'] for c in rows if c['id'] == candidate['id'])
+        self.assertNotEqual(binding(changed), binding(self.cores))
         self.assertEqual(bench.environment_digest(changed), bench.environment_digest(self.cores))
         self.assertEqual(exercises.compile_contexts(changed), exercises.compile_contexts(self.cores))
 

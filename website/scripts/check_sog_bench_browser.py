@@ -159,7 +159,10 @@ def main() -> None:
             key = lambda r: (r['id'], r['track'], r['binding_sha256'])
             assert sorted(map(key, reviewed)) == sorted(map(key, expected_reviewed))
             page.screenshot(path=str(args.evidence / 'overview-desktop.png'), full_page=True)
+            reference_records=[json.loads(line) for line in page.request.get(base+HUB+'downloads/reference.jsonl').text().splitlines()]
+            reference_by_id = {core['id']: core for core in reference_records}
             for identity in sorted({r['id'] for r in records if r['track'] == 'lean' and (not args.core or r['id'] in args.core)}):
+                core = reference_by_id[identity]
                 page.goto(base + HUB + identity + '.html')
                 page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                 page.evaluate('() => MathJax.startup.promise')
@@ -177,6 +180,23 @@ def main() -> None:
                 assert page.locator('mjx-merror, [data-mjx-error]').count() == 0, (
                     identity, page.locator('mjx-merror, [data-mjx-error]').all_text_contents())
                 check_visible_equations(page)
+                if core.get('textbook_exercise') and core.get('lean_reference'):
+                    source_panel = page.locator('details').filter(
+                        has=page.locator('summary', has_text='Original exercise, all requested parts and exact Lean scope'))
+                    source_panel.locator('summary').click()
+                    exercise = core['textbook_exercise']
+                    assert source_panel.get_by_role('link', name='Original source page', exact=True).get_attribute(
+                        'href').endswith('#page=' + str(exercise['pdf_page']))
+                    for part in exercise['parts']:
+                        part_row = source_panel.get_by_role('listitem').filter(has_text=part['label'])
+                        assert part_row.is_visible()
+                        for answer in exercise['answer_declarations']:
+                            if part['id'] in answer['supports']:
+                                graph_link = part_row.get_by_role('link', name=answer['declaration'], exact=True)
+                                assert 'underlying-lean-graph/index.html?focus=' in graph_link.get_attribute('href')
+                    assert 'library reference, not a submission' in source_panel.inner_text()
+                    assert 'certifies the conclusion only' in source_panel.inner_text()
+                    check_visible_equations(page)
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 panel = page.locator('#natural-language [data-lean-code-panel]')
                 assert panel.locator('code.language-lean').is_visible()
@@ -196,6 +216,16 @@ def main() -> None:
                 page.locator('summary', has_text='Reference mathematical proof').click()
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 check_visible_equations(page)
+                if identity == 'sogb-031':
+                    proof_panel = page.locator('#natural-language summary',
+                                               has_text='Reference mathematical proof').locator('..')
+                    chain = proof_panel.locator('ol mjx-mtable').first
+                    assert chain.is_visible()
+                    assert chain.evaluate("""e => {
+                        const math = e.getBoundingClientRect();
+                        const box = e.closest('li').getBoundingClientRect();
+                        return math.left >= box.left - 1 && math.right <= box.right + 1;
+                    }"""), 'Gaussian coupling inequality chain requires horizontal scrolling'
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
                 # Click/focus and layout anchoring can complete after the first
                 # scroll request on Chromium. Normalize at the observed frame,
@@ -209,7 +239,6 @@ def main() -> None:
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
                 math_component_shot(page, args.evidence / (identity + '-math-mobile.png'))
                 page.set_viewport_size({'width': 1400, 'height': 1000})
-            reference_records=[json.loads(line) for line in page.request.get(base+HUB+'downloads/reference.jsonl').text().splitlines()]
             # Every core, not just the paired/support examples: inline typography
             # can break assumptions even when one display formula renders well.
             for core in reference_records:

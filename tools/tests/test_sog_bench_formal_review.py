@@ -55,11 +55,26 @@ class PairedReviewTests(unittest.TestCase):
 
     def test_actual_distinct_actor_evidence_admits_one_conclusion_only_pair(self):
         rows = formal.statuses(self.cores)
-        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028'})
+        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028','sogb-031'})
         self.assertEqual(rows['sogb-015']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-015']['formal_alignment'], 'conclusion-only')
         self.assertTrue(rows['sogb-015']['remaining_unformalized'])
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 30)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 31)
+
+    def test_paired_numbered_exercise_fails_closed_without_all_source_parts(self):
+        actual = formal.REVIEWS / 'formal-11'
+        self.assertEqual(formal.round_statuses(self.cores, actual)['sogb-031']['formal_alignment'],
+                         'conclusion-only')
+        for key in ('exercise_semantic_slots', 'exercise_part_checks', 'exercise_coverage_scope'):
+            with self.subTest(key=key), tempfile.TemporaryDirectory() as tmp:
+                directory = Path(tmp) / 'round'
+                shutil.copytree(actual, directory)
+                path = directory / 'source-review.json'
+                report = json.loads(path.read_text(encoding='utf-8'))
+                del report['items']['sogb-031'][key]
+                path.write_bytes(bench.encoded(report))
+                with self.assertRaisesRegex(ValueError, 'every source part'):
+                    formal.round_statuses(self.cores, directory)
 
     def test_transport_join_has_its_own_blind_reconstruction_and_source_boundaries(self):
         core=next(c for c in self.cores if c['id']=='sogb-018')

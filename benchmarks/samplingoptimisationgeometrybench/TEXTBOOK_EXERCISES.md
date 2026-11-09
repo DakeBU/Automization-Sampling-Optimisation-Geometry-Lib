@@ -78,9 +78,9 @@ The primary PDF contains no permission established here to redistribute its
 prose as ML data. Keep the cached PDF/page renders out of exports and author
 original mathematical statements and answers with exact correspondence.
 
-## Transport intake: Chapter 1, Exercise 6
+## Statistical Optimal Transport: Chapter 1, Exercise 6
 
-The next transport exercise candidate is Chapter 1, §1.8, no. 6 of
+sogb-031 is Chapter 1, §1.8, no. 6 of
 *Statistical Optimal Transport* by Chewi, Niles-Weed and Rigollet
 ([printed p. 44 / PDF p. 50](https://chewisinho.github.io/st_flour.pdf#page=50),
 edition fingerprint in `Libraries/StatisticalOptimalTransport/source-map.json`).
@@ -89,11 +89,20 @@ moments and means separated by `m/2`. The source hint uses the 1-Lipschitz
 test `f(x) = -x`, then the probability-coupling Cauchy–Schwarz bound.
 For the upper bound, couple the common left quarter and right half on
 the diagonal; translate the remaining left quarter by `2m` using the
-same Gaussian noise. The candidate squared cost is `m²`. Mathlib has
-Gaussian means, L² and translation APIs, and the owned Wasserstein upper
-bridge accepts an actual coupling. The unbounded-test lower bound and
-actual mixture coupling/marginals still need proof; the bounded-feature
-transport lemma is not a substitute. No QA or Lean coverage is claimed yet.
+same Gaussian noise. The squared cost is `m²`, so the two conclusions are
+`m/2 ≤ W₂ ≤ m`, not an exact-distance claim. The unbounded signed mean
+test and the explicit mixture coupling are separate proved parents; the
+bounded-feature transport lemma is not a substitute. The exercise-level
+Lean answer derives the needed second moments and identifies the marginals.
+
+Both parts link to the owned exercise theorem. The fixed Lean prompt
+permits the two proved parents but not the assembled answer. Its checked
+conclusion does not certify every step of the original five-step prose
+answer. A source-only site build links to the exact declaration even
+without a current repository-wide compiler badge. The two L3 labels are
+provisional editorial judgments, and the
+public-dev family cannot serve as a private test set. See the
+[paired review packet](reviews/formal-11/README.md) for exact evidence.
 
 ## Admission checklist
 

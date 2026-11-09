@@ -81,6 +81,11 @@ def prepare_reviewer(cores: list[dict], directory: Path) -> None:
               'cases': mapping['cases'], 'reconstructions': decoded['cases'], 'mathematical_cores': frozen,
               'context_bindings': {c['id']: review.context_binding(c) for c in frozen},
               'instruction': 'Independently audit each authored question, formula proof, rubric and actual local declaration. Compare all seven slots to the blind reconstruction. The authored support, status and formal-coverage language are claims to audit, not preferred verdicts. No previous source verdict or repair proposal is supplied. Record precise conclusion-only formal coverage and remaining unformalized explanation; accept, request repair or reject with mathematical and scoring evidence. This is Bench editorial review, not canonical theorem publication or model measurement.'}
+    if any(c.get('textbook_exercise') for c in frozen):
+        packet['instruction'] += (
+            ' For a numbered exercise, independently compare the primary source in all seven '
+            'exercise_semantic_slots, audit each canonical part in exercise_part_checks, '
+            'and use this exact exercise_coverage_scope: ' + review.PAIRED_EXERCISE_SCOPE + '.')
     destination = directory / 'packets/reviewer-input.json'
     if destination.exists():
         raise ValueError('Never overwrite a source-review packet')
@@ -124,6 +129,7 @@ def round_statuses(cores: list[dict], directory: Path) -> dict:
         for key in ('mathematics_checks', 'scoring_checks', 'remaining_unformalized'):
             if not isinstance(row[key], list) or not row[key] or not all(isinstance(s, str) and s.strip() for s in row[key]):
                 raise ValueError('Paired acceptance needs mathematical/rubric evidence and explicit formal limits')
+        review.require_exercise_review(original, row, scope=review.PAIRED_EXERCISE_SCOPE)
         if row['verdict'] not in {'accept', 'repair-required', 'reject'} or not isinstance(row['repair_requests'], list):
             raise ValueError('Invalid paired-QA editorial decision')
         if row['verdict'] == 'accept' and row['repair_requests']:

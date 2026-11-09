@@ -113,6 +113,17 @@ def prose(text: str) -> str:
                 if relation:
                     relations.append((index, relation.group()))
         if not parts:
+            # Keep long chains readable even in a mobile proof column. Split
+            # only a top-level equality followed by monotone comparisons.
+            # A sizing pair must stay on the same row.
+            if (len(body.strip()) > 120 and len(relations) >= 3
+                    and relations[0][1] == '=' and relations[1][1] != '='
+                    and all(op[:3] == relations[1][1][:3] for _, op in relations[1:])
+                    and not any(token in body for token in (':=', '&', r'\quad', r'\\'))):
+                bounds = [0, *(pos for pos, _ in relations), len(body)]
+                rows = [body[i:j].strip() for i, j in zip(bounds, bounds[1:])]
+                if all(row.count(r'\left') == row.count(r'\right') for row in rows):
+                    return r'\[\begin{aligned}&' + r'\\&'.join(rows) + r'\end{aligned}\]'
             # A long "A ≤ B = C" derivation can put the simplification
             # on its own row at normal font size. Keep other display math
             # intact (in particular, do not split assignments or tuples).
@@ -155,6 +166,10 @@ def exercise_panel(core: dict, checked: bool) -> str:
         parts.append('<li>' + escape(part['label']) + '<br>' + links + '</li>')
     build = ('Current trusted build records the named owned answer modules and transitive axiom checks.'
              if checked else 'No current aggregate owned-answer build receipt is recorded in this build.')
+    boundary = ('The owned answer is a library reference, not a submission. The separate fixed Lean '
+                'task certifies the conclusion only, not the full explanatory proof or textbook.'
+                if bench.has_lean(core) else
+                'This is owned core-answer reuse, not a new proof, an equivalent Lean challenge or full textbook certification.')
     pdf = source['pdf_url'] + '#page='
     source_links = '<a href="' + escape(pdf + str(exercise['pdf_page'])) + '">Original source page</a>'
     if 'pdf_page_end' in exercise:
@@ -173,7 +188,7 @@ def exercise_panel(core: dict, checked: bool) -> str:
             + '<h3>Requested parts and owned answers</h3><ol>' + ''.join(parts) + '</ol>'
             + ''.join(prose(s) for s in exercise['context_notes'])
             + '<h3>Remaining formal boundary</h3>' + ''.join(prose(s) for s in exercise['unformalized_context'])
-            + prose(build + ' This is owned core-answer reuse, not a new proof, an equivalent Lean challenge or full textbook certification.')
+            + prose(build + ' ' + boundary)
             + prose(source['rights_boundary'])))
 
 
@@ -591,6 +606,15 @@ def enrich_site(output: Path) -> None:
         'data-sog-bench-entry')
 
 
+def has_exercise_graph_target(nodes: dict, declaration: str) -> bool:
+    # The source resolver already checks ownership and absence of placeholders.
+    # A site-only build still needs the exact node and a reader link, but
+    # cannot require blue when the independent compiler receipt is absent.
+    node = nodes.get('decl:' + declaration, {})
+    return (node.get('kind') == 'declaration' and bool(node.get('url'))
+            and node.get('status') in {'partial', 'compiled'})
+
+
 def validate_site(output: Path) -> list[str]:
     errors = []
     cores = bench.materialize()
@@ -608,9 +632,8 @@ def validate_site(output: Path) -> list[str]:
             if 'decl:' + core['declaration'] not in ids and 'module:' + module not in ids:
                 errors.append('Missing Bench graph target: ' + core['id'])
             for answer in core.get('textbook_exercise', {}).get('answer_declarations', []):
-                node = nodes.get('decl:' + answer['declaration'])
-                if not node or node.get('status') != 'compiled':
-                    errors.append('Numbered exercise requires the actual compiled owned graph node: ' + answer['declaration'])
+                if not has_exercise_graph_target(nodes, answer['declaration']):
+                    errors.append('Numbered exercise requires the exact owned declaration graph node: ' + answer['declaration'])
     else:
         errors.append('Bench requires the canonical Lean graph')
     policy = bench.curriculum.curriculum()

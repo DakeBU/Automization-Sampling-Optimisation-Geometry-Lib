@@ -686,6 +686,90 @@
       },
       "boundary": "All three source parts have owned answer bindings; the reciprocal claim is restricted to its meaningful positive domain, while the scaled and Lipschitz claims include zero. This is not a constrained or Riemannian extension, an algorithmic rate, a separately aligned Lean task or a new production declaration.",
       "source_note": "Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1, Exercise 3.1, printed/PDF pp. 22–23. Original mathematical restatement and solution, checked against both pages of the pinned PDF and the canonical publication bindings; no PDF or copied textbook prose is included. The library module credits the related Optlib mathematics and does not import an external Lean module. This family and all its variants are public-dev, not an unseen test."
+    },
+    {
+      "id": "sogb-031",
+      "family": "statot-exercise-1-6-gaussian-mixture-bounds",
+      "domain": "sampling",
+      "library_domains": [
+        "statistical-optimal-transport"
+      ],
+      "track_levels": {
+        "natural-language": "L3",
+        "lean": "L3"
+      },
+      "difficulty_reason": "Natural language coordinates an all-plan infimum bound and one explicit shared-noise coupling, with concrete Gaussian moment and mean checks. Lean assembles the same conclusion through existing lower and upper lemmas but must prove their probability and moment interfaces for the actual weighted laws, choose the signed test, and undo the extended nonnegative square. Neither asks for research transfer or a model-calibrated claim.",
+      "skills": [
+        "proof",
+        "calculation",
+        "assumption-audit",
+        "composition"
+      ],
+      "difficulty": "intermediate",
+      "title": "Gaussian mixtures: a lower bound for every coupling and an upper bound from one",
+      "textbook_exercise_id": "statot-exercise-1-6-gaussian-mixture-bounds",
+      "assumptions": [
+        "Work on the real Borel line. Let \\(m>0\\), and let \\(G_a=\\mathcal N(a,1)\\) denote the Gaussian probability law with mean \\(a\\) and variance one.",
+        "Define the two laws \\[\\mu=\\tfrac12G_{-m}+\\tfrac12G_m,\\qquad \\nu=\\tfrac14G_{-m}+\\tfrac34G_m.\\] Finite moments of these actual mixtures are to be justified, not supplied as an extra hypothesis.",
+        "For \\(p=1,2\\), use \\[W_p(\\mu,\\nu)=\\inf_{\\gamma\\in\\Gamma(\\mu,\\nu)}\\left(\\int |x-y|^p\\,d\\gamma(x,y)\\right)^{1/p},\\] where \\(\\Gamma(\\mu,\\nu)\\) is the set of probability measures on the product with first and second marginals \\(\\mu,\\nu\\), respectively. No optimizing coupling is assumed."
+      ],
+      "question": "Prove \\(m/2\\le W_2(\\mu,\\nu)\\le m\\). For the lower side, justify \\(\\mathbb E_\\mu f-\\mathbb E_\\nu f\\le W_1(\\mu,\\nu)\\le W_2(\\mu,\\nu)\\) for every real 1-Lipschitz \\(f\\), then choose a suitable test. For the upper side, exhibit a feasible coupling and check both marginals and its cost. Say whether your argument gives an exact distance or needs an optimizer.",
+      "steps": [
+        "The weights of each law sum to one. Since \\(\\mathbb E_{G_a} X^2=1+a^2\\), both weighted sums have finite second moments and hence finite first moments. Each real 1-Lipschitz \\(f\\) is Borel and obeys \\(|f(x)|\\le |f(0)|+|x|\\), so its two marginal expectations exist. Under any coupling the two coordinate second moments agree with the marginal second moments, and \\(|x-y|^2\\le 2x^2+2y^2\\) gives finite quadratic cost.",
+        "For every coupling \\(\\gamma\\), use its marginals to pull back the two integrable tests. Then \\[\\mathbb E_\\mu f-\\mathbb E_\\nu f=\\int(f(x)-f(y))\\,d\\gamma\\le\\int|x-y|\\,d\\gamma\\le\\left(\\int |x-y|^2\\,d\\gamma\\right)^{1/2}.\\] The last inequality is Cauchy–Schwarz with the constant one on a probability law. The expectation gap is a lower bound for every linear cost, so it is at most their infimum \\(W_1\\). The same chain shows \\(W_1\\) is at most every root quadratic cost, hence at most \\(W_2\\). Neither inference requires an attaining plan.",
+        "The means are \\(\\mathbb E_\\mu X=0\\) and \\(\\mathbb E_\\nu X=(3/4-1/4)m=m/2\\). With \\(f(x)=-x\\) the expectation difference is \\(m/2\\), giving the lower bound with the required sign.",
+        "Let \\(Z\\sim G_0\\) and \\(Q_{a,b}\\) be the law of \\((Z+a,Z+b)\\). The affine map is Borel and the marginals are \\(G_a,G_b\\). Set \\[\\gamma=\\tfrac14Q_{-m,-m}+\\tfrac14Q_{-m,m}+\\tfrac12Q_{m,m}.\\] The first marginal assigns \\(1/4+1/4\\) to \\(G_{-m}\\) and \\(1/2\\) to \\(G_m\\); the second assigns \\(1/4\\) to \\(G_{-m}\\) and \\(1/4+1/2\\) to \\(G_m\\). Thus the plan has the actual prescribed marginals.",
+        "The common \\(Z\\) cancels within each pair. Both diagonal components have zero cost; the moving component has squared cost \\((2m)^2\\), so \\[\\int|x-y|^2\\,d\\gamma=\\tfrac14(2m)^2=m^2.\\] By feasibility \\(W_2\\le\\sqrt{m^2}=m\\) for \\(m>0\\). The constants \\(1/2\\) and \\(1\\) are uniform; no equality, sharp constant, optimal plan or dual attainment follows."
+      ],
+      "rubric": [
+        {
+          "points": 1,
+          "criterion": "Establishes probability and finite second moments for the actual mixtures and justifies the marginal expectations of a real 1-Lipschitz test."
+        },
+        {
+          "points": 1,
+          "criterion": "Justifies the two lower comparisons with the correct order of infima and obtains the signed mean gap m/2 using a valid 1-Lipschitz test. Equivalent valid derivations of the requested comparisons earn credit."
+        },
+        {
+          "points": 1,
+          "criterion": "Gives an explicit feasible probability coupling, verifies both prescribed marginals and proves that its quadratic cost is at most m². The displayed three branches are not required."
+        },
+        {
+          "points": 1,
+          "criterion": "Concludes the unsquared bounds uniformly for m>0, correctly distinguishing an upper witness from an optimizer or an exact-distance result."
+        }
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureWasserstein.wassersteinDistance_gaussianMixtures_bounds",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianMixtureWasserstein.lean",
+      "context": "open MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.TechnicalLemmas.Measure\nopen scoped ENNReal\n",
+      "decoder_definitions": [
+        "gaussianReal a v is the actual Borel Gaussian measure on the real line with mean a and variance v.",
+        "The two local let expressions are sums of nonnegative scalar multiples of measures.",
+        "wassersteinDistance is the square root of the infimum of integrated squared norm displacement over couplings with the two given marginals.",
+        "ENNReal.ofReal embeds a nonnegative real in the extended nonnegative reals."
+      ],
+      "additional_source_declarations": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureCoupling.exists_gaussian_mixture_coupling_cost",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzLower.expectation_sub_le_linearCost_and_le_wassersteinDistance"
+      ],
+      "lean_explanation": "The fixed target imports the two separately proved lower and upper helpers, not the answer module. The proof normalizes the explicit weighted measures, shows L² membership of the identity using Gaussian moments, computes the two means, and proves that the negative identity is 1-Lipschitz. The signed comparison is clipped by ENNReal.ofReal; the test has positive gap m/2. The upper witness gives the square inequality, which is converted to the unsquared bound using monotonicity of positive powers. The exposed target certifies the final conjunction only, not separate outputs giving its intermediate expectations, couplings, generic comparison, or the prose explanation.",
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureCoupling.exists_gaussian_mixture_coupling_cost",
+          "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzLower.expectation_sub_le_linearCost_and_le_wassersteinDistance",
+          "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance_sq_le_lintegral_of_isCoupling"
+        ],
+        "mathlib": [
+          "ProbabilityTheory.memLp_id_gaussianReal'",
+          "ProbabilityTheory.integral_id_gaussianReal",
+          "MeasureTheory.memLp_two_iff_integrable_sq",
+          "MeasureTheory.integral_add_measure",
+          "MeasureTheory.integral_smul_measure",
+          "ENNReal.rpow_le_rpow_iff"
+        ]
+      },
+      "boundary": "Conclusion-only pairing: the literal source laws and positive m, not an arbitrary Gaussian-mixture theorem, optimal constants, exact distance, or a new graph QA. The natural-language proof must explain the lower comparison and give an upper plan; the fixed Lean task may call already proved helpers for these and only certifies the final inequalities. Report both tracks and their scores separately. All views, subparts and variants stay in one public-dev family, never an unseen test.",
+      "source_note": "Sinho Chewi, Jonathan Niles-Weed and Philippe Rigollet, Statistical Optimal Transport, July 2024 preface, Chapter 1 §1.8 Exercise 6, printed p.44/PDF p.50. §1.2 printed pp.15–17/PDF pp.21–23 supplies the finite-moment domain, the distance convention and ordering. The source asks for comparison up to constants; the problem and solution are original mathematical restatements with explicit valid constants. No primary PDF, copied source prose or restricted material is included."
     }
   ]
 }

@@ -53,7 +53,7 @@
   };
   const atlasLabels = {
     "concept:optimization":"Optimisation", "concept:riemannian":"Riemannian optimisation",
-    "concept:transport":"Optimal transport", "concept:sampling":"Sampling / MFLD", "concept:lower":"Lower bounds / SampleWiki",
+    "concept:transport":"Optimal transport", "concept:sampling":"Sampling / MFLD", "concept:lower":"Lower Bounds",
     "transport:metric-lift":"Change the metric", "transport:gibbs-prox":"Minimizer / Gibbs law",
     "transport:dirac":"Maps to Markov kernels", "transport:wasserstein-flow":"Energy to Wasserstein flow",
     "transport:metric-pl":"Metric PL / dissipation", "transport:curvature-growth":"Curvature → coercivity",

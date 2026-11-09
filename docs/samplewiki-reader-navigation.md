@@ -18,6 +18,9 @@ Quantum/PDE state preparation belongs to its own library, not this directory.
 Legacy frontier/companion index URLs redirect to the single SampleWiki home.
 Shared foundations and textbook extended chapters remain linked lower-level
 homes for reusable lemmas, not competing classifications for a research result.
+The standalone [Lower Bounds reader](lower-bounds-reader.md) is a cross-library
+topic link, not another SampleWiki level. It reuses the same paper pages and
+Lean graph nodes and does not change paper ownership or proof scheduling.
 The generated textbook research-extension shelf links the existing reviewed
 publication bindings, exact declaration graph locations and chapter reading
 contexts. These are navigation/source overlays, never new Lean dependency

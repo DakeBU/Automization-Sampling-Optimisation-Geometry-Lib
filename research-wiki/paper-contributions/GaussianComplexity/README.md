@@ -10,13 +10,19 @@ evidence before scheduling; this intake is not a second proof-status registry.
 
 ## What the intake supplies
 
-Current resume checkpoint (2026-11-05):
+Current resume checkpoint (2026-11-06):
 [`density-stack-integration-20261105/resume-checkpoint.json`](density-stack-integration-20261105/resume-checkpoint.json).
-The Eq24/A.1/harmonic, B.7 and actual-mixture-density stack has independent local
-Lean/source/desktop/mobile acceptance on official-main base `692973fcc695`.
-GitHub authentication is confirmed; remote PR/CI/deployment, post-merge purification and
-both main lower bounds remain open. The older packet sections below are retained
-as historical evidence, not the current frontier or completion status.
+The Eq24/A.1/harmonic, B.7 and actual-mixture-density stack actually merged in
+[PR380](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/pull/380)
+at `994992ba220c`. Its main Lean/Tests gate, deployment and bounded public reader
+checks succeeded. Only the density packet has the independently accepted
+[Exposition Seal](density-stack-integration-20261105/postmerge-density-purification/exposition-seal.json).
+Latest-main `0804c29747e3` was clean-ported with foreign evidence and ledger events
+preserved; its combined local gate passed 9632 jobs. The final lifecycle metadata
+publication and external GitHub HTML504 follow-up remain explicit. Both main
+lower bounds and the full oracle/precision/cost/hidden-eigenbasis adapters remain
+open. Older packet sections below are historical evidence, not the current
+frontier or whole-paper completion status.
 
 - The canonical companion model now contains a fifth source case with two
   separate main theorem contracts, formula proof routes, a method comparison,

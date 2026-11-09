@@ -69,6 +69,39 @@ def load() -> dict:
     return data
 
 
+def tactic_declaration(declaration) -> tuple[str, str]:
+    # The canonical scanner can retain trailing namespace closures or the next docstring.
+    code = re.split(r'\nend(?:\s|$)', declaration.source_text, maxsplit=1)[0]
+    signature, proof = inline_lean.split_statement(inline_lean.display_source(code).strip())
+    if declaration.kind not in {'theorem', 'lemma'} or not proof.startswith(':= by'):
+        raise ValueError('Pilot requires an explicit tactic-proof theorem')
+    return signature, proof
+
+
+def reference_helper_source(core: dict, target, known: dict) -> str:
+    """Exact earlier same-namespace proofs, in the trusted answer only."""
+    if 'reference_helpers' not in core:
+        return ''
+    names = core['reference_helpers']
+    if (not isinstance(names, list) or not names or not all(isinstance(n, str) and n in known for n in names)
+            or len(names) != len(set(names))):
+        raise ValueError('Reference helpers must name distinct known declarations')
+    helpers = [known[n] for n in names]
+    lines = [d.source_line for d in helpers]
+    namespace = target.full_name.rsplit('.', 1)[0]
+    if (lines != sorted(set(lines)) or lines[-1] >= target.source_line
+            or any(d.source_file != target.source_file or d.full_name.rsplit('.', 1)[0] != namespace
+                   or d.has_placeholder for d in helpers)):
+        raise ValueError('Reference helpers must be earlier checked source in the same file and namespace')
+    pieces = []
+    for d in helpers:
+        signature, proof = tactic_declaration(d)
+        if not re.match(r'^(?:private\s+)?(?:theorem|lemma)\s+' + re.escape(d.short_name) + r'\b', signature):
+            raise ValueError('Unsupported reference helper declaration form')
+        pieces.append(('' if signature.startswith('private ') else 'private ') + signature + ' ' + proof)
+    return '\n\n'.join(pieces) + '\n\n'
+
+
 def materialize(data: dict | None = None) -> list[dict]:
     data = data or load()
     known = astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
@@ -100,6 +133,8 @@ def materialize(data: dict | None = None) -> list[dict]:
                                 'source_sha256_lf': text_hash(ROOT / support.source_file)})
             extra['supporting_declarations'] = sources
         if not has_lean(core):
+            if 'reference_helpers' in core:
+                raise ValueError('Reference helpers require an aligned Lean task')
             bound = {**core, **extra, 'split': data['split'], 'source_sha256_lf': text_hash(ROOT / core['source_file']),
                      'source_line': declaration.source_line, 'imports': [], 'lean_task': '', 'lean_reference': ''}
             if core.get('support_source_view'):
@@ -109,13 +144,7 @@ def materialize(data: dict | None = None) -> list[dict]:
             bound['binding_sha256'] = sha(encoded(bound))
             result.append(bound)
             continue
-        # The canonical scanner retains trailing namespace closures; these are
-        # not part of the target example. Preserve the theorem itself verbatim.
-        code = re.split(r'\nend(?:\s|$)', declaration.source_text, maxsplit=1)[0]
-        code = inline_lean.display_source(code).strip()
-        signature, proof = inline_lean.split_statement(code)
-        if not proof.startswith(':= by') or declaration.kind not in {'theorem', 'lemma'}:
-            raise ValueError('Pilot requires an explicit tactic-proof theorem')
+        signature, proof = tactic_declaration(declaration)
         target = re.sub(r'^(?:theorem|lemma)\s+' + re.escape(declaration.short_name), 'example', signature, count=1)
         if target == signature:
             raise ValueError('Could not form the fixed anonymous target')
@@ -126,7 +155,7 @@ def materialize(data: dict | None = None) -> list[dict]:
         header = ('/- SamplingOptimisationGeometryBench public-dev reference.\n'
                   '   Reuses the existing project proof; retain LICENSE and NOTICE. -/\n')
         prefix = header + ''.join('import ' + name + '\n' for name in imports) + '\n' + core['context'] + '\n'
-        reference = prefix + target + ' ' + proof + '\n'
+        reference = prefix + reference_helper_source(core, declaration, known) + target + ' ' + proof + '\n'
         task = prefix + target + ' := by\n  -- Replace this comment with your proof.\n'
         if re.search(r'\b(sorry|admit|axiom|unsafe)\b', astis_site.sanitize_lean(reference)):
             raise ValueError('Forbidden reference proof token')
@@ -407,7 +436,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'numbered_textbook_exercises': len(exercises),
                 'editorial_admitted_numbered_exercises': sum(
                     any(q['editorial'] in {'accepted', 'accepted-after-repair'} for q in e['questions']) for e in exercises),
-                'prose_scoring': 'offline human-attested rubric records; execution and judgments not automatically verified',
+                'prose_scoring': 'offline human-attested single or panel rubric records; execution and judgments not automatically verified',
                 'editorial_accepted_cores': len(reviewed),
                 'editorial_review_complete_for_current_mathematical_cores': bool(cores) and len(reviewed) == len(cores),
                 'review_kind': 'AI editorial review, not full Lean coverage or canonical theorem publication',

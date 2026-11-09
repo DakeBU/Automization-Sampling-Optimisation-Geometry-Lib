@@ -110,18 +110,31 @@ def prose(text: str, *, paragraph: bool = True) -> str:
                                 and s.count(r'\left') == s.count(r'\right') for s in (lhs, rhs))):
                     return r'\[' + prefix + '&' + lhs + r'\\&=' + rhs + newline + rest + r'\]'
             return match.group(0)
-        depth, group_depth, start, parts, relations, plus = 0, 0, 0, [], [], []
+        depth, group_depth, sized_depth, start, parts, relations, plus = 0, 0, 0, 0, [], [], []
         in_norm = False
         for index, char in enumerate(body):
             if char in '{}' and (index == 0 or body[index-1] != '\\'):
                 depth += 1 if char == '{' else -1
             if depth == 0 and char in '()[]':
                 group_depth += 1 if char in '([' else -1
+            if depth == 0 and char == '\\':
+                delimiter = re.match(r'\\(left|right)(?![A-Za-z])', body[index:])
+                if delimiter:
+                    sized_depth += 1 if delimiter.group(1) == 'left' else -1
             if depth == group_depth == 0 and body.startswith(r'\|', index):
                 in_norm = not in_norm
-            if depth == 0 and body.startswith(r',\qquad', index):
-                parts.append(body[start:index+1])
-                start = index + len(r',\qquad')
+            if depth == group_depth == sized_depth == 0 and not in_norm and index >= start:
+                separator = re.match(r',\s*\\qquad\b', body[index:]) if char == ',' else None
+                if separator:
+                    parts.append(body[start:index+1])
+                    start = index + separator.end()
+                elif char == '\n' and re.match(r'\n[ \t]+[+-]', body[index:]):
+                    prefix = body[start:index].rstrip()
+                    if (prefix and not re.search(r'(?:[=+\-&^_,<>]|\\(?:leq?|geq?|sim|to|approx|cdot|times|pm|mp))$', prefix)
+                            and not re.search(r'(?<!\\)\|', body)):
+                        # Preserve an authored top-level signed continuation.
+                        parts.append(body[start:index])
+                        start = index + 1
             if depth == group_depth == 0:
                 relation = re.match(r'\\(?:leq?|geq?)(?![A-Za-z])|=', body[index:])
                 if relation:
@@ -171,6 +184,8 @@ def prose(text: str, *, paragraph: bool = True) -> str:
                     rows = [body[i:j].strip() for i, j in zip(bounds, bounds[1:])]
                     if all(row and row.count(r'\|') % 2 == 0 for row in rows):
                         return r'\[\begin{aligned}&' + r'\\&'.join(rows) + r'\end{aligned}\]'
+            return match.group(0)
+        if not body[start:].strip():
             return match.group(0)
         parts.append(body[start:])
         return r'\[\begin{gathered}' + r'\\'.join(parts) + r'\end{gathered}\]'
@@ -518,17 +533,20 @@ def evaluation_page() -> str:
 
 def evaluation_guide() -> str:
     prepare = 'python tools/sog_bench_prose.py prepare --submissions responses.jsonl --run-metadata run.json --output .astis/sog-bench/runs/my-run'
+    plan = 'python tools/sog_bench_prose.py plan --run-metadata run.json --output .astis/sog-bench/runs/my-plan'
     score = 'python tools/sog_bench_prose.py score --packet .astis/sog-bench/runs/my-run --adjudication completed.json --output .astis/sog-bench/runs/my-run-score.json'
     return (f'<article class="sog-reader" {MARKER}><p><a href="../index.html">Bench</a></p><h1>Run and assess answers</h1>'
         '<p class="lede">Keep the question, first answer and judgment traceable.</p>'
-        '<p>Offline human-attested prose scoring is available. No model performance has been measured; no AI API or untrusted-Lean executor is connected.</p>'
+        '<p>Offline human-attested prose scoring is available. The website does not execute model requests or submitted Lean. No model performance has been measured.</p>'
         '<ol><li><strong>Choose first.</strong> Select core IDs, model/version, retrieval policy and tools before collecting answers. Give the model only the prompt-only records.</li>'
         '<li><strong>Freeze the run.</strong> Save raw first responses and metadata. The recorder binds prompts, references, rubric and answers by SHA-256; missing answers stay in the denominator.</li>'
         '<li><strong>Have a human assess it.</strong> Fill each frozen rubric criterion with 0/1 and a reason. The report records those judgments, not automatically verified mathematics or authenticated grader identity.</li></ol>'
         + fold('Commands and input formats',
-            '<p>From the repository root, Python 3.11+:</p><pre><code>' + escape(prepare) + '</code></pre>'
+            '<p>Before collecting answers, seal the selected prompts and run conditions (Python 3.11+):</p><pre><code>' + escape(plan) + '</code></pre>'
+            '<p>Keep its digest separately and attach it to the answer archive as described in the full protocol. For an exploratory run without a plan:</p><pre><code>' + escape(prepare) + '</code></pre>'
             '<p>Copy the generated adjudication-template.json to completed.json. An actual human supplies grader identity, timestamp and all four criterion judgments per nonempty answer.</p>'
             '<pre><code>' + escape(score) + '</code></pre>'
+            '<p>For double grading, retain both independent worksheets and have a third human resolve only disagreements. Reports distinguish selected cores, equal-weight families and provisional levels.</p>'
             '<p><a href="../downloads/examples/prose-run.json" download>Run-metadata template</a> · <a href="../downloads/EVALUATION.md">Complete recording and scoring instructions</a></p>')
         + fold('Other tracks and scientific limits',
             '<p>Graph JSON has deterministic exact-snapshot scoring; it certifies no mathematical necessity. Lean reference compilation checks trusted references only, not arbitrary submissions.</p>'

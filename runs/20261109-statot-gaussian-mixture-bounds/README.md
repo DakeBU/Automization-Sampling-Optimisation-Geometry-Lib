@@ -18,6 +18,10 @@ receipts still refer to exact committed inputs.
   resolves both source parts using the Bench's existing metadata resolver
   and compiles its generated answer probe. The candidate metadata is not
   an addition to the public catalog.
+- [Local stabilization receipt](local-stabilization-receipt.json) records
+  the public root imports, site, three graph checks and the inspected desktop
+  and mobile views. The [browser probe](reader-acceptance.py) is repeatable
+  against a fresh local site build. Neither is a Pages deployment record.
 - The Cell and semantic audit distinguish local proof from independent
   acceptance. Neither the compilation nor source review admits a Bench
   question or creates a separate aligned Lean challenge.

@@ -97,7 +97,7 @@ class UnderlyingLeanGraphInteractionTests(unittest.TestCase):
 
     def test_publication_declarations_exist_before_semantic_edges_are_added(self) -> None:
         builder = GRAPH_BUILDER.read_text(encoding="utf-8")
-        self.assertLess(builder.index("publication_reader.project_graph(builder)"),
+        self.assertLess(builder.index("publication_reader.project_graph(builder, site=site)"),
                         builder.index("semantic = add_semantic(builder, semantic_registry)"))
 
 

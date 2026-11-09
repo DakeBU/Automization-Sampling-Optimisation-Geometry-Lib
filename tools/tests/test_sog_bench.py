@@ -27,8 +27,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 30)
-        self.assertEqual(len(prompts), 43)
+        self.assertEqual(len(self.cores), 34)
+        self.assertEqual(len(prompts), 48)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -78,7 +78,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 43)
+            self.assertEqual(manifest['qa_views'], 48)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -195,17 +195,30 @@ class BenchTests(unittest.TestCase):
         for nested in (r'\[\text{a,\qquad b}=c\]', r'\[\begin{aligned}a&=b,\qquad c&=d\end{aligned}\]'):
             self.assertNotIn(r'\begin{gathered}', reader.prose(nested))
 
+    def test_stopped_work_display_wraps_without_changing_the_bound_text(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-035')
+        before = bench.encoded(core)
+        assumption = next(a for a in core['assumptions'] if r'\eta_t(h)' in a)
+        estimate = next(s for s in core['steps'] if r'\left|\mathbb E_Q W' in s)
+        self.assertIn(r'\begin{aligned}&amp;\eta_t(h)\\&amp;=\sum',
+                      reader.prose(assumption, paragraph=False))
+        self.assertIn(r'\right|\\&amp;=\left|', reader.prose(estimate))
+        self.assertEqual(bench.encoded(core), before)
+
     def test_seven_domain_five_level_matrix_does_not_invent_coverage(self):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 30)
-        self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
+        self.assertEqual(coverage['unique_mathematical_cores'], 34)
+        self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
+                         {'samplewiki', 'mcmc'})
+        self.assertEqual([c['id'] for c in self.cores if c['track_levels'].get('natural-language') == 'L5'],
+                         ['sogb-035'])
         self.assertFalse(any(c['track_levels'].get('lean') == 'L5' for c in self.cores))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 30)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 34)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -500,9 +513,11 @@ class BenchTests(unittest.TestCase):
 
     def test_exercise_prose_changes_do_not_recompile_unchanged_owned_answers(self):
         data = deepcopy(bench.load())
-        data['cores'][-1]['question'] += ' Extra unaudited clause.'
+        identity = 'sogb-030'
+        next(c for c in data['cores'] if c['id'] == identity)['question'] += ' Extra unaudited clause.'
         changed = bench.materialize(data)
-        self.assertNotEqual(changed[-1]['binding_sha256'], self.cores[-1]['binding_sha256'])
+        self.assertNotEqual(next(c for c in changed if c['id'] == identity)['binding_sha256'],
+                            next(c for c in self.cores if c['id'] == identity)['binding_sha256'])
         self.assertEqual(bench.environment_digest(changed), bench.environment_digest(self.cores))
         self.assertEqual(exercises.compile_contexts(changed), exercises.compile_contexts(self.cores))
 

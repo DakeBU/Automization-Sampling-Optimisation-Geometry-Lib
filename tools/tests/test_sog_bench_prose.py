@@ -128,6 +128,114 @@ class ProseRunTests(unittest.TestCase):
                 report = prose.adjudicate(directory,self.judgment(directory))
             self.assertEqual(report['catalog_version'],bench.load()['version'])
 
+    def test_preselected_run_binds_exact_conditions_and_missing_denominator(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            selection, run = root/'selection', root/'scoring'
+            metadata = self.metadata()
+            digest = prose.freeze_selection(self.cores, metadata, selection)
+            self.assertEqual({p.name for p in selection.iterdir()}, {'selection.json', 'prompts.jsonl'})
+            prompts = (selection/'prompts.jsonl').read_bytes()
+            rows = [json.loads(line) for line in prompts.splitlines()]
+            self.assertEqual([row['id'] for row in rows], metadata['task_ids'])
+            self.assertTrue(all(row['track'] == 'natural-language' and
+                                not {'rubric', 'steps', 'lean_reference', 'source_file'} & row.keys()
+                                for row in rows))
+            receipt = json.loads((selection/'selection.json').read_bytes())
+            self.assertEqual(receipt['run_metadata'], metadata)
+            self.assertEqual(receipt['prompts_sha256'], bench.sha(prompts))
+            prose.prepare(self.cores, self.responses(), None, run,
+                          selection=selection, selection_sha256=digest)
+            self.assertEqual((run/'prompts.jsonl').read_bytes(), prompts)
+            self.assertEqual((run/'selection.json').read_bytes(), (selection/'selection.json').read_bytes())
+            manifest, _ = prose.load_packet(run)
+            self.assertEqual(manifest['schema_version'], 2)
+            with patch.object(bench, 'materialize', side_effect=AssertionError('Use archived inputs only')):
+                report = prose.adjudicate(run, self.judgment(run), selection_sha256=digest)
+            self.assertEqual(report['max_points'], 8)
+            self.assertEqual(report['missing_or_empty_count'], 1)
+            self.assertEqual(report['selection_receipt_sha256'], digest)
+            self.assertTrue(report['selection_external_digest_checked'])
+            self.assertFalse(report['selection_timing_verified'])
+            self.assertFalse(report['execution_verified'])
+            self.assertFalse(prose.adjudicate(run, self.judgment(run))['selection_external_digest_checked'])
+
+    def test_preselection_requires_anchor_and_current_admission_without_replacing_prompt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            selection, run = root/'selection', root/'scoring'
+            metadata = self.metadata()
+            digest = prose.freeze_selection(self.cores, metadata, selection)
+            with self.assertRaises(FileExistsError):
+                prose.freeze_selection(self.cores, metadata, selection)
+            for value in ('0'*64, None):
+                with self.assertRaisesRegex(ValueError, 'separately recorded'):
+                    prose.prepare(self.cores, [], None, run, selection=selection, selection_sha256=value)
+            with self.assertRaisesRegex(ValueError, 'never both'):
+                prose.prepare(self.cores, [], metadata, run, selection=selection, selection_sha256=digest)
+            with patch.object(bench, 'editorial_review', return_value={'items': {}}):
+                with self.assertRaisesRegex(ValueError, 'current editorial admission'):
+                    prose.freeze_selection(self.cores, metadata, root/'unreviewed')
+                with self.assertRaisesRegex(ValueError, 'current editorial admission'):
+                    prose.prepare(self.cores, [], None, run, selection=selection, selection_sha256=digest)
+            prompts = selection/'prompts.jsonl'
+            prompts.write_bytes(prompts.read_bytes() + b'\n')
+            with self.assertRaisesRegex(ValueError, 'prompt bytes'):
+                prose.prepare(self.cores, [], None, run, selection=selection, selection_sha256=digest)
+            self.assertFalse(run.exists())
+
+    def test_preselection_rejects_resigned_conditions_or_rubric(self):
+        for change in ('operator-conditions', 'frozen-rubric', 'run-order'):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                selection, run = root/'selection', root/'scoring'
+                digest = prose.freeze_selection(self.cores, self.metadata(), selection)
+                if change == 'operator-conditions':
+                    receipt = json.loads((selection/'selection.json').read_bytes())
+                    receipt['run_metadata']['retrieval_profile'] = 'closed-book'
+                    (selection/'selection.json').write_bytes(bench.encoded(receipt))
+                    with self.assertRaisesRegex(ValueError, 'separately recorded'):
+                        prose.prepare(self.cores, [], None, run, selection=selection, selection_sha256=digest)
+                    self.assertFalse(run.exists())
+                    continue
+                prose.prepare(self.cores, self.responses(), None, run,
+                              selection=selection, selection_sha256=digest)
+                packet_path, manifest_path = run/'rubric-packet.json', run/'manifest.json'
+                packet, manifest = json.loads(packet_path.read_bytes()), json.loads(manifest_path.read_bytes())
+                if change == 'frozen-rubric':
+                    packet['reference_cores'][0]['rubric'][0]['criterion'] = 'An easier grading target.'
+                else:
+                    packet['reference_cores'].reverse()
+                    packet['run_metadata']['task_ids'].reverse()
+                    manifest['task_ids'].reverse()
+                    raw = bench.encoded(packet['run_metadata'])
+                    (run/'run-metadata.json').write_bytes(raw)
+                    manifest['files']['run-metadata.json'] = bench.sha(raw)
+                    raw = prose.prose_prompts(packet['reference_cores'])
+                    (run/'prompts.jsonl').write_bytes(raw)
+                    manifest['files']['prompts.jsonl'] = bench.sha(raw)
+                raw = bench.encoded(packet)
+                packet_path.write_bytes(raw)
+                manifest['files']['rubric-packet.json'] = bench.sha(raw)
+                manifest_path.write_bytes(bench.encoded(manifest))
+                with self.assertRaisesRegex(ValueError, 'exact public reference core|does not match the scored tasks'):
+                    prose.load_packet(run)
+
+    def test_score_rejects_wrong_anchor_or_retroactive_anchor(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            digest = prose.freeze_selection(self.cores, self.metadata(), root/'selection')
+            prose.prepare(self.cores, [], None, root/'preselected',
+                          selection=root/'selection', selection_sha256=digest)
+            prose.prepare(self.cores, [], self.metadata(), root/'legacy')
+            for lane, anchor in (('preselected', '0'*64), ('legacy', digest)):
+                run = root/lane
+                with self.assertRaises(ValueError):
+                    prose.adjudicate(run, self.judgment(run), selection_sha256=anchor)
+            legacy = prose.adjudicate(root/'legacy', self.judgment(root/'legacy'))
+            self.assertIsNone(legacy['selection_receipt_sha256'])
+            self.assertFalse(legacy['selection_external_digest_checked'])
+
     def test_archived_responses_still_require_unique_exact_question_bindings(self):
         for case in ('duplicate','binding','selection'):
             with tempfile.TemporaryDirectory() as tmp:

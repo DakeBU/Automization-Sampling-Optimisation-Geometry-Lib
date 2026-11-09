@@ -166,7 +166,7 @@ Compiler receipts bind each selected source and actual local import closure, the
 
 ## Assess a model
 
-Start with [Run and assess answers](EVALUATION.md). `tools/sog_bench_prose.py prepare` freezes selected prompt/reference/response records and produces a blank human worksheet; `score` records a genuinely supplied human adjudication with exact criterion text, reasons and hashes. Unknown/duplicate/stale responses and unfinished worksheets are rejected; missing/empty answers stay in the denominator. This records declared conditions and human-attested judgments, not authenticated execution/identity or automatically verified mathematics. Historical archives retain their own rubric rather than being reinterpreted under later catalog edits.
+Start with [Run and assess answers](EVALUATION.md). Run `tools/sog_bench_prose.py freeze` before collection and record the selection digest separately. `prepare` binds the exact prompts and first responses to that selection; `score` records a supplied human adjudication with exact criteria, reasons and hashes. Missing or empty answers stay in the original denominator. The recorder cannot authenticate the date, execution, grader or mathematics. Historical archives retain their own rubric.
 
 1. Give the model a prompt-only record, its track and the allowed-library policy. Do not include the reference export in its prompt.
 2. For natural-language QA, a human or independently validated grader awards each of four criteria 0 or 1; report criterion scores and the full response. Do not use keyword matching as a correctness metric.

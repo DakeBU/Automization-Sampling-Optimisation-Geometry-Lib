@@ -466,18 +466,24 @@ def evaluation_page() -> str:
 
 
 def evaluation_guide() -> str:
-    prepare = 'python tools/sog_bench_prose.py prepare --submissions responses.jsonl --run-metadata run.json --output .astis/sog-bench/runs/my-run'
-    score = 'python tools/sog_bench_prose.py score --packet .astis/sog-bench/runs/my-run --adjudication completed.json --output .astis/sog-bench/runs/my-run-score.json'
+    freeze = 'python tools/sog_bench_prose.py freeze --run-metadata run.json --output .astis/sog-bench/selection'
+    prepare = 'python tools/sog_bench_prose.py prepare --submissions responses.jsonl --selection .astis/sog-bench/selection --selection-sha256 RECORDED_SHA256 --output .astis/sog-bench/runs/my-run'
+    score = 'python tools/sog_bench_prose.py score --packet .astis/sog-bench/runs/my-run --adjudication completed.json --selection-sha256 RECORDED_SHA256 --output .astis/sog-bench/runs/my-run-score.json'
+    def command(text: str) -> str:
+        return '<pre class="sog-command"><code>' + escape(text) + '</code></pre>'
+
     return (f'<article class="sog-reader" {MARKER}><p><a href="../index.html">Bench</a></p><h1>Run and assess answers</h1>'
         '<p class="lede">Keep the question, first answer and judgment traceable.</p>'
-        '<p>Offline human-attested prose scoring is available. No model performance has been measured; no AI API or untrusted-Lean executor is connected.</p>'
-        '<ol><li><strong>Choose first.</strong> Select core IDs, model/version, retrieval policy and tools before collecting answers. Give the model only the prompt-only records.</li>'
-        '<li><strong>Freeze the run.</strong> Save raw first responses and metadata. The recorder binds prompts, references, rubric and answers by SHA-256; missing answers stay in the denominator.</li>'
+        '<p>This page covers offline human-attested prose scoring, not hosted model execution or a model leaderboard.</p>'
+        '<ol><li><strong>Choose first.</strong> Freeze task IDs, model/version and tool rules. Record the selection digest separately; give the model only the prompt rows.</li>'
+        '<li><strong>Archive first answers.</strong> Match the saved selection; missing answers stay in the denominator. A digest checks consistency, not when or how the run happened.</li>'
         '<li><strong>Have a human assess it.</strong> Fill each frozen rubric criterion with 0/1 and a reason. The report records those judgments, not automatically verified mathematics or authenticated grader identity.</li></ol>'
         + fold('Commands and input formats',
-            '<p>From the repository root, Python 3.11+:</p><pre><code>' + escape(prepare) + '</code></pre>'
+            '<p>From the repository root, Python 3.11+:</p>' + command(freeze) +
+            '<p>Record the printed SHA-256 before collecting answers. Use that value in the next two commands.</p>'
+            + command(prepare) +
             '<p>Copy the generated adjudication-template.json to completed.json. An actual human supplies grader identity, timestamp and all four criterion judgments per nonempty answer.</p>'
-            '<pre><code>' + escape(score) + '</code></pre>'
+            + command(score) +
             '<p><a href="../downloads/examples/prose-run.json" download>Run-metadata template</a> · <a href="../downloads/EVALUATION.md">Complete recording and scoring instructions</a></p>')
         + fold('Other tracks and scientific limits',
             '<p>Graph JSON has deterministic exact-snapshot scoring; it certifies no mathematical necessity. Lean reference compilation checks trusted references only, not arbitrary submissions.</p>'

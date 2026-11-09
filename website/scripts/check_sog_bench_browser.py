@@ -287,6 +287,12 @@ def main() -> None:
                     assert 'not automatically verified mathematics' in page.locator('article.sog-reader').inner_text()
                     assert page.locator('details[open]').count()==0
                     page.locator('summary', has_text='Commands and input formats').click()
+                    commands = page.locator('article.sog-reader details[open] pre code').all_text_contents()
+                    assert [command.split()[2] for command in commands] == ['freeze', 'prepare', 'score']
+                    assert '--run-metadata run.json' in commands[0]
+                    assert all('--selection-sha256 RECORDED_SHA256' in command for command in commands[1:])
+                    assert page.locator('.sog-command').evaluate_all(
+                        'boxes => boxes.every(box => box.scrollWidth <= box.clientWidth + 2)')
                     with page.expect_download() as metadata_download:
                         page.get_by_role('link',name='Run-metadata template',exact=True).click()
                     template=json.loads(Path(metadata_download.value.path()).read_text(encoding='utf-8'))

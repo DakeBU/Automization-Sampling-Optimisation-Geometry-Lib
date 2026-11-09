@@ -57,7 +57,7 @@ source mapping does not grant permission to copy its prose into ML data.
 
 | Track | Available path | Not certified |
 | --- | --- | --- |
-| Natural language | Freeze answers with `sog_bench_prose.py prepare`; actual human rubric assessment; archive with `score` | Automatic semantic correctness, authenticated model/human execution |
+| Natural language | `sog_bench_prose.py freeze` fixes prompts, selection and conditions before collection; `prepare` binds first answers; `score` records actual human rubric judgments | Verified selection timing, automatic semantic correctness, authenticated model/human execution |
 | Graph JSON | `sog_bench.py grade-graph` scores the exact frozen structural question | Mathematical necessity, full proof closure, unseen generalization |
 | Native graph trials | `sog_bench_harbor.py export`; Harbor oracle/nop fixtures in separate Docker verification; inspect the dedicated CI result | A model measurement, all paid-agent compatibility, arbitrary Lean execution, exhaustive security verification |
 | Trusted Lean references | `sog_bench.py check-lean` compiles the aligned references using the pinned project | Arbitrary submitted-code safety, source equivalence or model performance |

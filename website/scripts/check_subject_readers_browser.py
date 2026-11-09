@@ -9,7 +9,9 @@ import functools
 import http.server
 import json
 from pathlib import Path
+import sys
 import threading
+from urllib.parse import quote
 
 from playwright.sync_api import sync_playwright
 
@@ -30,6 +32,23 @@ def main() -> None:
     routes = ('sampling/index.html', 'libraries/optimisation/index.html',
               'lower-bounds/index.html', 'libraries/discrete-sampling/index.html')
     paper = 'example-cases/samplewiki/companions/slc-lsi-query-complexity.html'
+    # Derive counts from the same canonical bindings as the reader; future
+    # admitted results must not require a hard-coded counter edit here.
+    sys.path.insert(0, str(root / 'tools'))
+    import astis_publication as publication
+    items = [item for item in publication.load() if item['chapter_path'] == paper]
+    data = publication.inputs()
+    names = {b['declaration'] for item in items for b in item['bindings']}
+    reviewed = {b['declaration'] for item in items for b in item['bindings']
+                if publication.verified_binding(b, data)}
+    expected_progress = f'{len(names)} source-mapped declarations; {len(reviewed)} independently reviewed'
+    proof_cases = (
+        ('slc-lsi-normalized-mass', 'bad_mass_ratio_bounds', 'fact12',
+         'AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass.bad_mass_ratio_bounds'),
+        ('slc-lsi-gaussian-odd-load', 'gaussian_odd_load_bound', 'fact10',
+         'AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad.gaussian_odd_load_bound'),
+    )
+    assert {case[3] for case in proof_cases} <= reviewed
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(channel=args.channel, headless=True)
@@ -76,33 +95,54 @@ def main() -> None:
                 page.locator('[data-graph-svg]').screenshot(path=str(evidence / 'source-route-graph.png'))
                 page.locator('[data-graph-fit]').click()
                 page.locator('[data-graph-svg]').screenshot(path=str(evidence / 'source-route-graph-fit.png'))
-                # The first reviewed source result is a building block, never a
-                # main-theorem badge. Read its proof without needing Lean.
+                # Reviewed building blocks, never main-theorem badges. Both
+                # default and progressive readers must work without opening Lean.
                 for width, height, label in ((1440,1000,'desktop'),(390,844,'mobile')):
                     page.set_viewport_size({'width':width,'height':height})
-                    page.goto(base + paper)
-                    assert '1 source-mapped declarations; 1 independently reviewed' in page.locator('#paper-lean-progress').inner_text()
-                    page.locator('#paper-lean-progress > details > summary').click()
-                    page.locator('#slc-lsi-normalized-mass > summary').click()
-                    page.locator('#slc-lsi-normalized-mass a').click()
-                    assert page.url.endswith('/proofs/source-slc-lsi-normalized-mass.html')
-                    page.locator('main mjx-container').first.wait_for()
-                    assert page.locator('.proof-reader-step').count() == 3
-                    folds = page.locator('main details[data-inline-lean]')
-                    assert folds.count() == 2
-                    assert folds.evaluate_all('(xs)=>xs.every(x=>!x.open)')
-                    folds.first.locator('summary').click()
-                    assert 'bad_mass_ratio_bounds' in folds.first.inner_text()
-                    folds.first.locator('summary').click()
-                    page.locator('.proof-reader-step details').first.locator('summary').click()
-                    assert not page.locator('mjx-merror, [data-mjx-error]').count()
-                    assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
-                    page.screenshot(path=str(evidence / f'fact12-{label}.png'), full_page=True)
+                    for item_id, short_name, image_name, _ in proof_cases:
+                        page.goto(base + paper)
+                        assert expected_progress in page.locator('#paper-lean-progress').inner_text()
+                        page.locator('#paper-lean-progress > details > summary').click()
+                        page.locator(f'#{item_id} > summary').click()
+                        page.locator(f'#{item_id} a').click()
+                        assert page.url.endswith(f'/proofs/source-{item_id}.html')
+                        # The source equation may intentionally live inside a
+                        # closed disclosure; the first-reading claim is visible.
+                        page.locator('.reader-first-pass mjx-container').first.wait_for()
+                        assert page.locator('.proof-reader-step').count() == 3
+                        steps = page.locator('details.reader-proof-disclosure')
+                        assert steps.evaluate_all('(xs)=>xs.every(x=>!x.open)')
+                        folds = page.locator('main details[data-inline-lean]')
+                        assert folds.count() == 2
+                        assert folds.evaluate_all('(xs)=>xs.every(x=>!x.open)')
+                        page.screenshot(path=str(evidence / f'{image_name}-overview-{label}.png'), full_page=True)
+                        steps.evaluate_all('(xs)=>xs.forEach(x=>x.open=true)')
+                        # Hidden source formulae and all three proof formulae.
+                        page.locator('.reader-ledger').evaluate_all('(xs)=>xs.forEach(x=>x.open=true)')
+                        page.evaluate('async()=>{if(window.MathJax?.startup?.promise) await MathJax.startup.promise;}')
+                        assert page.locator('.proof-reader-step mjx-container').count() >= 3
+                        folds.first.locator('summary').click()
+                        assert short_name in folds.first.inner_text()
+                        folds.first.locator('summary').click()
+                        page.locator('.proof-reader-step details').first.locator('summary').click()
+                        assert not page.locator('mjx-merror, [data-mjx-error]').count()
+                        assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
+                        assert page.locator('.proof-reader-equation').evaluate_all('''(xs)=>xs.every(x=>{
+                            if(!x.clientWidth || x.scrollWidth <= x.clientWidth + 1) return true;
+                            const before=x.scrollLeft; x.scrollLeft=x.scrollWidth;
+                            const usable=x.scrollLeft>0; x.scrollLeft=before; return usable;
+                        })'''), 'Long equations must be scrollable, not permanently clipped'
+                        page.locator('.reader-first-pass').screenshot(path=str(evidence / f'{image_name}-statement-{label}.png'))
+                        for step_index in range(3):
+                            page.locator('.proof-reader-step').nth(step_index).screenshot(
+                                path=str(evidence / f'{image_name}-step-{step_index + 1}-{label}.png'))
+                        page.screenshot(path=str(evidence / f'{image_name}-{label}.png'), full_page=True)
                 page.set_viewport_size({'width':1440,'height':1000})
-                page.goto(base + 'lean-foundations.html?view=lean&focus=decl%3AAutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass.bad_mass_ratio_bounds&q=AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass.bad_mass_ratio_bounds')
-                page.locator('[data-graph-detail] h2').wait_for()
-                assert 'bad_mass_ratio_bounds' in page.locator('[data-graph-detail]').inner_text()
-                page.locator('[data-graph-svg]').screenshot(path=str(evidence / 'fact12-lean-graph.png'))
+                for _, short_name, image_name, declaration in proof_cases:
+                    page.goto(base + 'lean-foundations.html?view=lean&focus=' + quote('decl:' + declaration) + '&q=' + quote(declaration))
+                    page.locator('[data-graph-detail] h2').wait_for()
+                    assert short_name in page.locator('[data-graph-detail]').inner_text()
+                    page.locator('[data-graph-svg]').screenshot(path=str(evidence / f'{image_name}-lean-graph.png'))
                 assert not errors, errors
             finally:
                 browser.close()

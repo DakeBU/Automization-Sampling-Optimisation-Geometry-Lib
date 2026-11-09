@@ -63,3 +63,15 @@ consumer and its ready dependencies. Do not make those missing estimates public
 hypotheses of the paper theorem or count a generic expectation wrapper as the
 paper result. Recheck collaborator ownership before claiming its next Cell.
 Post-merge purification and the Exposition Seal remain separate work.
+
+## Post-merge receipt (2026-11-09)
+
+PR #392 merged at `6c61cb13dcf3c96c7c4d84246327aa42e18a6746` after all six
+exact-`c5a55a84` CI workflows passed. The merge tree is identical to that head.
+Independent post-merge review accepted no-change purification and an Exposition
+Seal, preserving the two source regions and all three reader moves. Its immutable
+report is `runs/20261109-slc-lsi-fact12/postmerge-purification.json`.
+The report explicitly distinguishes prior accepted graph/PNG evidence from the
+now-stale generated graph in the follow-up Gaussian worktree. Regenerate the
+follow-up tree before its own acceptance; do not call that staleness check a pass.
+Fresh main deployment remains a separately observed event, not implied by merge.

@@ -8,6 +8,7 @@
 ## Imports
 
 - `AutoSamplingTheory.TechnicalLemmas.Probability.ConditionalKernel`
+- `AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad` — odd sublinear load, actual exponential integrability and exact Gaussian comparison; see its focused card for source/application boundaries.
 - `AutoSamplingTheory.TechnicalLemmas.Probability.FiniteProductPairMarginal`
 - `AutoSamplingTheory.TechnicalLemmas.Probability.FiniteProductSupport`
 - `AutoSamplingTheory.TechnicalLemmas.Probability.KernelInvariance`

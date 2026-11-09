@@ -21,6 +21,8 @@ python tools/sog_bench_split_guard.py --public-tip PUBLIC_RELEASE_SHA --public-t
 
 The guard reads the tracked public-dev catalog, exercise mappings attached to
 Bench questions, and graph task IDs and families at the available revisions.
+This includes catalog entries first introduced by a merge resolution and later
+removed from the current catalog.
 It does not fetch. A shallow checkout permits only a partial inventory,
 labelled `shallow-observation-only`; no private file is read in that mode.
 The public history hash identifies the exact observed inputs, not completeness.

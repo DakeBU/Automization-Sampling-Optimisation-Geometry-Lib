@@ -192,6 +192,34 @@ class GitExposureTests(unittest.TestCase):
         with self.assertRaisesRegex(guard.GuardError, "public-git-object-unavailable"):
             guard.inventory(self.repo, ["0" * 40])
 
+    def test_retired_family_introduced_in_merge_resolution_is_still_public(self):
+        initial = catalog(public_core())
+        self.write(guard.CATALOG, initial)
+        base = self.commit(guard.CATALOG)
+        primary = self.git("branch", "--show-current").decode()
+        self.git("switch", "-c", "synthetic-side", base)
+        self.write("side.txt", b"Side branch only\n")
+        self.commit("side.txt")
+        self.git("switch", primary)
+        self.write("main.txt", b"Main branch only\n")
+        self.commit("main.txt")
+        self.git("merge", "--no-ff", "--no-commit", "synthetic-side")
+        merge_only = public_core(id="dev-merge-only", family="merge-only-family",
+                                 question="Synthetic merge-only prompt",
+                                 declaration="Synthetic.MergeOnly.answer")
+        self.write(guard.CATALOG, catalog(public_core(), merge_only))
+        exposed_merge = self.commit(guard.CATALOG)
+        self.assertEqual(len(self.git("rev-list", "--parents", "-n", "1", exposed_merge).split()), 3)
+        self.write(guard.CATALOG, initial)
+        tip = self.commit(guard.CATALOG)
+
+        found, receipt = guard.inventory(self.repo, [tip])
+        self.assertIn("dev-merge-only", found.task_ids)
+        self.assertIn("Synthetic.MergeOnly.answer", found.answer_declarations)
+        self.assertEqual(receipt["public_snapshots"], 3)
+        result = guard.check_reservation(reservation(aliases=["merge-only-family"]), found)
+        self.assertEqual(result["issues"], {"known-public-families": 1})
+
     def test_shallow_history_never_allows_a_reservation(self):
         self.write(guard.CATALOG, catalog(public_core()))
         tip = self.commit(guard.CATALOG)

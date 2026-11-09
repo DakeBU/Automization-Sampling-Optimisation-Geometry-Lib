@@ -181,10 +181,17 @@ def inventory(repo: Path, public_tips: list[str], *, observation_only: bool = Fa
     require(shallow in (b"true", b"false"), "invalid-git-history-state")
     require(shallow == b"false" or observation_only, "shallow-public-history")
     tips = sorted(set(public_tips))
-    # Include map-only revisions: a source mapping can change while the question
-    # stays byte-for-byte identical. Include each tip as a snapshot too.
-    history = git_bytes(repo, "log", "--full-history", "--no-renames", "--diff-filter=AM", "--format=%H",
-                        *tips, "--", CATALOG, EXERCISES, *GRAPH_SPECS).decode("ascii").split()
+    # Compare merges with each parent: otherwise diff-filter can omit the
+    # merge snapshot itself, including catalog entries introduced by resolution.
+    # Keep map-only changes and each tip, and deduplicate per-parent output.
+    raw_history = git_bytes(repo, "log", "--full-history", "--diff-merges=separate", "--no-patch",
+                            "--no-renames", "--no-show-signature", "--no-notes", "--no-color",
+                            "--no-decorate", "--diff-filter=AM", "--format=%H",
+                            *tips, "--", CATALOG, EXERCISES, *GRAPH_SPECS)
+    try:
+        history = raw_history.decode("ascii").split()
+    except UnicodeDecodeError as exc:
+        raise GuardError("invalid-public-history-output") from exc
     revisions = sorted(set(history) | set(tips))
     require(0 < len(revisions) <= MAX_REVISIONS and all(COMMIT.fullmatch(x) for x in revisions),
             "public-history-limit")

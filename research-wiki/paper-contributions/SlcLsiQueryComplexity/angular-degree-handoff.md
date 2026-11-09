@@ -4,8 +4,9 @@ The exact definition and theorem interface were sealed at commit6ec031b31
 after independent pre-proof acceptance. The proof and focused tests now compile
 without additional axioms. See `angular-degree-compile-evidence.json` for exact
 file hashes and acceptance scope. This is **not independently VERIFIED** and
-adds no Registry credit yet; reader/publication admission must precede the
-canonical `PROVED_LOCAL` transition.
+adds no Registry credit yet. Authored two-level reader content and draft
+source-roundtrip admission now pass, so the canonical SAU is `PROVED_LOCAL`.
+Postproof decoding and independent source/compiler review remain pending.
 
 ## Mathematical delta
 
@@ -25,10 +26,12 @@ sufficiently-large-dimension regime. Directions are deterministic and unit.
 
 ## Next bounded work
 
-1. Author two adjacent-folded reader units (literal definition and law), one
-   source publication item, and anonymous source-roundtrip packets. The reader
-   should lead with the Gaussian-law statement; fold tensor construction below
-   it, retaining all constants and indexing in the expansion.
+1. Two adjacent-folded reader units, one source publication item and anonymous
+   source-roundtrip packets now exist. The reader leads with the Gaussian-law
+   statement and folds tensor construction below it, retaining all constants
+   and indexing in the expansion. Anonymous definition/theorem unfoldings also
+   compiled against the actual declaration. Complete the independent decoder
+   and fresh source reviews before treating this as source-verified content.
 2. Use independent source-blind decoding, fresh source review and focused
    whole-module compiler review. Three private providers (`TensorSlots`,
    `tensorFeature`, `tensorFeature_norm_sq`) share the public-module audit and

@@ -332,7 +332,8 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'editorial-review.json', 'graph-editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 'reviewed-graph-questions.jsonl','reviewed-graph-reference.jsonl',
-                'EVALUATION.md', 'ECOSYSTEM.md', 'HARBOR.md', 'TEXTBOOK_EXERCISES.md', 'textbook-exercise-map.json', 'examples/prose-run.json',
+                'EVALUATION.md', 'FAMILY_ISOLATION.md', 'ECOSYSTEM.md', 'HARBOR.md', 'TEXTBOOK_EXERCISES.md',
+                'textbook-exercise-map.json', 'examples/prose-run.json',
                 'compiled-transport-graph.json', 'compiled-flow-graph.json',
                 *project_licensing.LICENSE_FILES, *task_files,
                 *('lean/' + c['id'] + '-support.lean' for c in cores if c.get('support_source_view')),
@@ -368,6 +369,8 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('coverage.json', encoded(coverage(cores, graphs)))
     write('GOAL.md', (DATA.parent / 'GOAL.md').read_bytes())
     write('EVALUATION.md', (DATA.parent / 'EVALUATION.md').read_bytes())
+    # Public operator instructions only; never enumerate or read reservations.
+    write('FAMILY_ISOLATION.md', (DATA.parent / 'FAMILY_ISOLATION.md').read_bytes())
     write('ECOSYSTEM.md', (DATA.parent / 'ECOSYSTEM.md').read_bytes())
     write('HARBOR.md', (DATA.parent / 'HARBOR.md').read_bytes())
     # Source intake is documentation, not an admitted QA or copied source text.

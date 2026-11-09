@@ -27,8 +27,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 34)
-        self.assertEqual(len(prompts), 48)
+        self.assertEqual(len(self.cores), 35)
+        self.assertEqual(len(prompts), 50)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -78,7 +78,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 48)
+            self.assertEqual(manifest['qa_views'], 50)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -87,6 +87,9 @@ class BenchTests(unittest.TestCase):
             self.assertEqual(manifest['editorial_accepted_graph_tasks'], graph_review.summary(bench.curriculum.graph_items())['accepted_tasks'])
             self.assertIn('human-attested', manifest['prose_scoring'])
             self.assertTrue((output/'EVALUATION.md').is_file())
+            self.assertEqual((output/'FAMILY_ISOLATION.md').read_bytes(), (bench.DATA.parent/'FAMILY_ISOLATION.md').read_bytes())
+            self.assertIn('](FAMILY_ISOLATION.md)', (output/'EVALUATION.md').read_text(encoding='utf-8'))
+            self.assertIn('href="../downloads/FAMILY_ISOLATION.md"', reader.evaluation_guide())
             self.assertTrue((output/'TEXTBOOK_EXERCISES.md').is_file())
             self.assertIn('source intake is not QA admission', manifest['textbook_exercise_programme'])
             intake = (output/'TEXTBOOK_EXERCISES.md').read_text(encoding='utf-8')
@@ -205,11 +208,28 @@ class BenchTests(unittest.TestCase):
         self.assertIn(r'\right|\\&amp;=\left|', reader.prose(estimate))
         self.assertEqual(bench.encoded(core), before)
 
+    def test_common_kernel_reference_retains_credit_but_not_answer_in_prompt(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-037')
+        self.assertEqual(core['family'], 'adaptive-hybrid-cost-boundary')
+        self.assertEqual(core['track_levels'], {'natural-language': 'L3', 'lean': 'L3'})
+        reference = core['lean_reference']
+        self.assertIn('Copyright (c) 2023 Kalle Kytölä.', reference)
+        self.assertIn('Mathlib/MeasureTheory/Measure/LevyProkhorovMetric.lean', reference)
+        self.assertIn('integral_eq_integral_Ioc_meas_le', reference)
+        for row in bench.prompts([core]):
+            self.assertNotIn('have htail', row['question'])
+            self.assertNotIn('integral_eq_integral_Ioc_meas_le', row['question'])
+        step = next(s for s in core['steps'] if r'\begin{aligned}D_T' in s)
+        self.assertIn(r'\\ &amp;\le\delta', reader.prose(step))
+        round_dir = bench.DATA.parent / 'reviews/formal-13'
+        with patch.object(bench, 'RECEIPT', round_dir / 'trusted-reference-receipt.json'):
+            self.assertTrue(bench.receipt_current([core]))
+
     def test_seven_domain_five_level_matrix_does_not_invent_coverage(self):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 34)
+        self.assertEqual(coverage['unique_mathematical_cores'], 35)
         self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
                          {'samplewiki', 'mcmc'})
         self.assertEqual([c['id'] for c in self.cores if c['track_levels'].get('natural-language') == 'L5'],
@@ -218,7 +238,7 @@ class BenchTests(unittest.TestCase):
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 34)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 35)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))

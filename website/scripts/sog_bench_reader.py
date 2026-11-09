@@ -533,7 +533,8 @@ def evaluation_guide() -> str:
         + fold('Other tracks and scientific limits',
             '<p>Graph JSON has deterministic exact-snapshot scoring; it certifies no mathematical necessity. Lean reference compilation checks trusted references only, not arbitrary submissions.</p>'
             '<p>Human assessments require actual mathematical checking. No keyword grader or unvalidated AI grader is supplied. Run execution, retrieval compliance and human identity are not authenticated by this recorder.</p>'
-            '<p>All current tasks are public-dev. These records cannot demonstrate unseen generalization, difficulty calibration or private-family evaluation. A paired core is not two independent samples.</p>')
+            '<p>All current tasks are public-dev. These records cannot demonstrate unseen generalization, difficulty calibration or private-family evaluation. A paired core is not two independent samples.</p>'
+            '<p><a href="../downloads/FAMILY_ISOLATION.md">Held-out family preflight and limitations</a></p>')
         + '<p><a href="../downloads/reviewed-questions.jsonl" download>Reviewed prompt-only tasks</a> · <a href="../downloads/EVALUATION.md">Full protocol</a> · <a href="../graph-json/index.html">Structural graph QA</a></p></article>')
 
 

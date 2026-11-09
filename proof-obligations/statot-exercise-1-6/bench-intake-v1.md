@@ -89,10 +89,11 @@ open-library retrieval corpus. No Lean or graph difficulty label yet.
   supplies the two reusable inequalities. The extended nonnegative
   comparison takes the nonnegative part of the signed gap, equivalent here
   because the right side is nonnegative.
-- The anonymous example in `Tests/Shared/WassersteinLipschitzLower.lean`
-  composes the two on the literal source distributions, supplying their
-  probability, moments and means. Do not advertise the example as a named
-  production declaration or an aligned reconstruction challenge. A graph
-  task must use actual admitted declaration/evidence positions and a
-  separately reviewed question. An induced graph path is not proof
-  necessity.
+- Assembly: `GaussianMixtureWasserstein.wassersteinDistance_gaussianMixtures_bounds`
+  composes the two on the literal laws and supplies their probabilities,
+  moments and means. The prior anonymous example was moved into this one
+  named proof. The focused consumer now verifies the original literal
+  statement through it. This is a compiled answer, not an admitted or
+  separately aligned Lean reconstruction challenge.
+- A graph task must use actual admitted declaration/evidence positions and
+  a separately reviewed question. An induced graph path is not proof necessity.

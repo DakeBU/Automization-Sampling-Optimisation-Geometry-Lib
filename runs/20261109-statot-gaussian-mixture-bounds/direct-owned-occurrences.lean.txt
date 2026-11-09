@@ -1,0 +1,21 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureWasserstein
+
+-- This bounded probe records direct owned occurrences in one compiled proof
+-- body. It neither traverses the closure nor proves logical necessity.
+open Lean in
+run_cmd do
+  let env ← getEnv
+  let some info := env.find? `AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureWasserstein.wassersteinDistance_gaussianMixtures_bounds |
+    throwError "Missing compiled assembly theorem"
+  let .thmInfo _ := info | throwError "Expected a compiled theorem"
+  let some body := info.value? (allowOpaque := true) | throwError "Missing theorem body"
+  let parents := body.getUsedConstants.filter fun n =>
+    n.toString.startsWith "AutoSamplingTheory."
+  let expected : Array Name := #[
+    `AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureCoupling.exists_gaussian_mixture_coupling_cost,
+    `AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzLower.expectation_sub_le_linearCost_and_le_wassersteinDistance,
+    `AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance_sq_le_lintegral_of_isCoupling]
+  for name in expected do
+    unless parents.contains name do
+      throwError m!"Expected owned occurrence absent: {name}"
+  logInfo m!"ASSEMBLY_DIRECT_OWNED {parents}"

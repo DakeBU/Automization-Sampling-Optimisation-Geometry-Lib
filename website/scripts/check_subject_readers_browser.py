@@ -76,6 +76,33 @@ def main() -> None:
                 page.locator('[data-graph-svg]').screenshot(path=str(evidence / 'source-route-graph.png'))
                 page.locator('[data-graph-fit]').click()
                 page.locator('[data-graph-svg]').screenshot(path=str(evidence / 'source-route-graph-fit.png'))
+                # The first reviewed source result is a building block, never a
+                # main-theorem badge. Read its proof without needing Lean.
+                for width, height, label in ((1440,1000,'desktop'),(390,844,'mobile')):
+                    page.set_viewport_size({'width':width,'height':height})
+                    page.goto(base + paper)
+                    assert '1 source-mapped declarations; 1 independently reviewed' in page.locator('#paper-lean-progress').inner_text()
+                    page.locator('#paper-lean-progress > details > summary').click()
+                    page.locator('#slc-lsi-normalized-mass > summary').click()
+                    page.locator('#slc-lsi-normalized-mass a').click()
+                    assert page.url.endswith('/proofs/source-slc-lsi-normalized-mass.html')
+                    page.locator('main mjx-container').first.wait_for()
+                    assert page.locator('.proof-reader-step').count() == 3
+                    folds = page.locator('main details[data-inline-lean]')
+                    assert folds.count() == 2
+                    assert folds.evaluate_all('(xs)=>xs.every(x=>!x.open)')
+                    folds.first.locator('summary').click()
+                    assert 'bad_mass_ratio_bounds' in folds.first.inner_text()
+                    folds.first.locator('summary').click()
+                    page.locator('.proof-reader-step details').first.locator('summary').click()
+                    assert not page.locator('mjx-merror, [data-mjx-error]').count()
+                    assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
+                    page.screenshot(path=str(evidence / f'fact12-{label}.png'), full_page=True)
+                page.set_viewport_size({'width':1440,'height':1000})
+                page.goto(base + 'lean-foundations.html?view=lean&focus=decl%3AAutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass.bad_mass_ratio_bounds&q=AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass.bad_mass_ratio_bounds')
+                page.locator('[data-graph-detail] h2').wait_for()
+                assert 'bad_mass_ratio_bounds' in page.locator('[data-graph-detail]').inner_text()
+                page.locator('[data-graph-svg]').screenshot(path=str(evidence / 'fact12-lean-graph.png'))
                 assert not errors, errors
             finally:
                 browser.close()

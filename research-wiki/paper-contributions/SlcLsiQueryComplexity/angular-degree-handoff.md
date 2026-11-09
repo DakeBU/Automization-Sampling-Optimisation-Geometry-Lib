@@ -6,7 +6,10 @@ without additional axioms. See `angular-degree-compile-evidence.json` for exact
 file hashes and acceptance scope. This is **not independently VERIFIED** and
 adds no Registry credit yet. Authored two-level reader content and draft
 source-roundtrip admission now pass, so the canonical SAU is `PROVED_LOCAL`.
-Postproof decoding and independent source/compiler review remain pending.
+Postproof source-blind decoding is recorded at commit3e56475ad; both independent
+reconstructions distinguish the literal definition from the fixed-direction
+scalar law. Fresh source/compiler review is pending. Decoding is not a source
+fidelity verdict.
 
 ## Mathematical delta
 
@@ -49,3 +52,21 @@ No Four-Paper, Optimisation, Huanjian, Andy, Ji or Bench ownership is reassigned
 The paper remains owned by the independent Lower Bounds reader with crosslinks
 to SampleWiki and the same canonical textbook extensions. Source-outline edges
 are not compiler dependencies, and this packet creates no new Functor transport.
+
+## Reuse notes for the next seal (not a proved edge)
+
+The source's joint coefficient model follows Eq15 in Section4.1.1; the
+first-moment consumer follows Fact10 in the proof of Lemma6.2. A projection law is
+not an excuse to assume the field's law or independence in that consumer.
+The pinned Mathlib already provides `MeasureTheory.measurePreserving_eval`,
+`ProbabilityTheory.iIndepFun_pi` and `iIndepFun.hasLaw_pi` for an actual finite
+product measure, and `map_pi_eq_stdGaussian` / `stdGaussian_map` for Euclidean
+Gaussian representations. Search/reuse these before adding another generic
+product-law wrapper. The coordinate-space identification must preserve the
+ordered tensor indices and source variance, not just match dimension numerals.
+
+The next packet still needs its own exact definition/signature seal and source
+review. In particular, the degree-summed field, radial zero-block extension,
+earlier-level gate measurability and conditional iteration are not results of
+the fixed-direction theorem. Do not use an unconditioned law after conditioning
+on admissibility, or turn adaptive directions into fixed parameters.

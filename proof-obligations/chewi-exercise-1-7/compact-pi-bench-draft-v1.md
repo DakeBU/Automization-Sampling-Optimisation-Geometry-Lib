@@ -10,6 +10,13 @@ compact implication, the same exercise's standalone KL expansion, and
 near-duplicates of its linearization must stay in this family. Do not use a
 publicly exposed family as a private evaluation family.
 
+The [actual-law KL expansion](actual-kl-candidate-v1.md) is a distinct
+mathematical result within the same family. If offered as a separate task,
+require the actual tilted probability, finite extended-real KL, and the
+quadratic coefficient with a valid little-o remainder. An answer about a
+compensated integral alone does not certify that task; conversely the
+compact PI target below does not require calling the actual-law theorem.
+
 ## Natural-language prompt
 
 Let \(\mu\) be a Borel probability measure on a finite-dimensional real

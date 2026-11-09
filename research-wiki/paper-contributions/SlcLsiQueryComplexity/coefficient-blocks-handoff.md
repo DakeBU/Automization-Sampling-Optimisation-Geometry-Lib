@@ -39,6 +39,14 @@ and graph PNGs were actually inspected. No new Functor transport or
 existing consumer call is asserted. Remote merge, deployment and
 post-merge purification are not consequences of these local checks.
 
+## Main integration
+
+[PR #397](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/pull/397)
+merged at `584af6b3` after all exact-head checks passed.
+Its signed main merge tree is byte-identical to the tested integration tree.
+The merge does not establish deployment or close the radial and conditional
+obligations. The next checked consumer is the actual fixed-level angular sum.
+
 ## Next dependency-ready mathematical edge
 
 Combine this joint law with the earlier checked angular component law at

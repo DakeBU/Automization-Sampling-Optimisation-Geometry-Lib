@@ -23,6 +23,7 @@ import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
@@ -5305,13 +5306,23 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 
 def probabilityMemory : List LemmaMemoryEntry := [
     {
+      key := "probability.slc-lsi-angular-degree-sum-law",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum.angularDegreeSum_hasLaw",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Section4.1.1 Eq14/15 uncut finite-sum consequence",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E15",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "tensor", "independence", "HasLaw", "lower-bound"],
+      saldUse := "Exact parent of the radial field law; does not supply the radial factor, conditioning or mass estimate",
+      note := "Independently compiled and source-reviewed at 3292867e2. On the actual joint coefficient model and fixed deterministic unit directions, sum the source degree evaluations, deriving measurability, independence, mean zero and exact variance n times the sum of squared amplitudes. Calls the actual component and coefficient-block laws. No cutoff, adaptive or conditional law, Eq51, or lower bound."
+    },
+    {
       key := "probability.slc-lsi-joint-coefficient-law",
       localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks.jointCoefficientBlocks_hasLaw",
       upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Section4.1.1 joint Euclidean coefficient law following Eq15",
       upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E15",
       status := LemmaMemoryStatus.formalizedLocal,
       tags := ["Gaussian", "product-measure", "tensor", "lower-bound"],
-      saldUse := "Planned degree-summed angular field, coefficient prefix, and conditional level iteration",
+      saldUse := "Used by the actual fixed-level angular degree sum; planned coefficient prefix and conditional level iteration",
       note := "Independently compiled and source-reviewed at dac19f45c. Exact entrywise grouping of the unconditioned joint Euclidean standard Gaussian gives the product of block standard Gaussians. Tests derive every marginal and mutual independence. No supplied law or independence; no degree sum, radial field, adaptive conditioning, admissibility, or main lower bound."
     },
     {
@@ -5321,8 +5332,8 @@ def probabilityMemory : List LemmaMemoryEntry := [
       upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E15",
       status := LemmaMemoryStatus.formalizedLocal,
       tags := ["Gaussian", "tensor", "HasLaw", "lower-bound"],
-      saldUse := "Planned actual degree-summed angular field and radial field law, then Lemma6.2 conditional iteration",
-      note := "Independently compiled/source-reviewed at 8d7bd9f49. Actual ordered tensor polynomial with exact source amplitude under one stdGaussian block; derives normalization, measurability and variance from fixed unit directions. Positive dimension and natural depth are an explicit isolated generalization. Definition and three private helpers receive no extra leaf credit. Joint coefficients, degree sum, adaptive directions, radial extension, conditioning and all main lower bounds remain open."
+      saldUse := "Used by the actual fixed-level angular degree sum; radial extension and Lemma6.2 conditional iteration remain separate",
+      note := "Independently compiled/source-reviewed at 8d7bd9f49. Actual ordered tensor polynomial with exact source amplitude under one stdGaussian block; derives normalization, measurability and variance from fixed unit directions. Positive dimension and natural depth are an explicit isolated generalization. Definition and three private helpers receive no extra leaf credit. This declaration concerns one degree only; it asserts no adaptive, radial or conditional law, or main lower bound."
     },
     {
       key := "probability.slc-lsi-literal-energy-truncation",

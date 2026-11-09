@@ -20,6 +20,9 @@ import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient
 import AutoSamplingTheory.Core
 import AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
@@ -5301,6 +5304,36 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+    {
+      key := "probability.slc-lsi-joint-coefficient-law",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks.jointCoefficientBlocks_hasLaw",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Section4.1.1 joint Euclidean coefficient law following Eq15",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E15",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "product-measure", "tensor", "lower-bound"],
+      saldUse := "Planned degree-summed angular field, coefficient prefix, and conditional level iteration",
+      note := "Independently compiled and source-reviewed at dac19f45c. Exact entrywise grouping of the unconditioned joint Euclidean standard Gaussian gives the product of block standard Gaussians. Tests derive every marginal and mutual independence. No supplied law or independence; no degree sum, radial field, adaptive conditioning, admissibility, or main lower bound."
+    },
+    {
+      key := "probability.slc-lsi-angular-degree-law",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent_hasLaw",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Eq14/15 and pointwise Gaussian-law sentence",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E15",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "tensor", "HasLaw", "lower-bound"],
+      saldUse := "Planned actual degree-summed angular field and radial field law, then Lemma6.2 conditional iteration",
+      note := "Independently compiled/source-reviewed at 8d7bd9f49. Actual ordered tensor polynomial with exact source amplitude under one stdGaussian block; derives normalization, measurability and variance from fixed unit directions. Positive dimension and natural depth are an explicit isolated generalization. Definition and three private helpers receive no extra leaf credit. Joint coefficients, degree sum, adaptive directions, radial extension, conditioning and all main lower bounds remain open."
+    },
+    {
+      key := "probability.slc-lsi-literal-energy-truncation",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation_gaussian_bound",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 footnote3, Eq17 and Fact10",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#Thmfact10",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "cutoff", "integrability", "exponential", "lower-bound"],
+      saldUse := "Actual scalar energy load; planned conditional level iteration in Lemma6.2",
+      note := "Independently compiled/source-reviewed at c873bd3f8. Literal integral cutoff, positive source parameters, arbitrary measurable-space Gaussian variable including variance zero. Derives load properties and integrability internally; reuses canonical Cutoff and GaussianOddLoad. Definition is a prerequisite, not another leaf. Parameter recursion, conditional iteration, hard-family admissibility and main lower bounds remain open."
+    },
   {
     key := "probability.gaussian-odd-load",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad.gaussian_odd_load_bound",
@@ -5308,8 +5341,8 @@ def probabilityMemory : List LemmaMemoryEntry := [
     upstreamFile := "https://arxiv.org/html/2611.05813v1#Thmfact10",
     status := LemmaMemoryStatus.formalizedLocal,
     tags := ["Gaussian", "integrability", "symmetry", "exponential", "lower-bound"],
-    saldUse := "Planned literal truncated-load comparison, then Lemma 6.2 first-moment bound",
-    note := "Independent compiler and source review at 3890056ea: measurable odd sublinear load, a in [0,1], nonnegative Gaussian variance including zero; derive exponential integrability and exact exp(beta^2 v/2) comparison. Reuses Mathlib MGF. Generic analytic ingredient only: literal Ui, conditional iteration, normalizer moments and query main results remain open."
+      saldUse := "Consumed by EnergyTruncation.energyTruncation_gaussian_bound; then planned Lemma6.2 first-moment bound",
+      note := "Independent compiler and source review at 3890056ea: measurable odd sublinear load, a in [0,1], nonnegative Gaussian variance including zero; derive exponential integrability and exact exp(beta^2 v/2) comparison. Reuses Mathlib MGF. Generic analytic ingredient only; literal Ui is a separate source adapter. Conditional iteration, normalizer moments and query main results remain open."
   },
   {
     key := "gaussian-polynomial-l2-differentiation",

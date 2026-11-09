@@ -52,12 +52,19 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-033 | Riemannian Optimisation / Statistical Optimal Transport | Contrast finite angular cost with infinite intrinsic path cost on the two-point sphere (L2) | Angular cost and transport definitions are support only |
 | sogb-034 | SampleWiki / MCMC | Compute exact binary hybrid gaps and refute an incorrectly weighted adjacent bound (L2) | Generic kernel averaging and telescope are support only |
 | sogb-035 | SampleWiki / MCMC | Transfer stopped work by a pathwise likelihood budget and refute the ideal-average substitute (L5) | TV comparison and single-phase work bounds are support only |
+| sogb-037 | MCMC / SampleWiki | Prove factor-one TV contraction under a common Markov kernel and test sharpness and the common-kernel assumption (L3) | Reconstruct the layer-cake argument for actual composed event masses (L3) |
 
 These four reviewed additions retain their existing public IDs. StatOT
 Exercise 6 (`sogb-031`) remains on its separate proof-and-publication route.
 See [formal round 12](reviews/formal-12/README.md),
 [prose round 9](reviews/prose-9/README.md) and
 [prose round 10](reviews/prose-10/README.md) for the exact independent reports.
+
+[Formal round 13](reviews/formal-13/README.md) pairs the eventwise TV proof
+with its aligned Lean target. The mathematical reader explains why the same
+superlevel tests work for both inputs. The Lean result does not formalize the
+prose counterexamples or transfer unbounded work. Its real compiled use in
+the common-suffix proof is recorded separately from graph-task admission.
 
 Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Structural graph editorial decisions are recorded separately; empirical difficulty calibration remains open. Existing theorem review does not certify a new question.
 

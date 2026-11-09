@@ -55,13 +55,24 @@ class PairedReviewTests(unittest.TestCase):
 
     def test_actual_distinct_actor_evidence_admits_one_conclusion_only_pair(self):
         rows = formal.statuses(self.cores)
-        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028','sogb-032'})
+        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028','sogb-032','sogb-037'})
         self.assertEqual(rows['sogb-015']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-015']['formal_alignment'], 'conclusion-only')
         self.assertTrue(rows['sogb-015']['remaining_unformalized'])
         self.assertEqual(rows['sogb-032']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-032']['formal_alignment'], 'conclusion-only')
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 34)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 35)
+
+    def test_common_kernel_review_preserves_rejected_predecessor(self):
+        directory = formal.REVIEWS / 'formal-13'
+        previous = directory / 'predecessor-repair-required'
+        packet = json.loads((previous / 'packets/reviewer-input.json').read_text(encoding='utf-8'))
+        self.assertEqual(formal.round_statuses(packet['mathematical_cores'], previous)['sogb-037']['editorial'],
+                         'repair-required')
+        self.assertEqual(formal.round_statuses(self.cores, previous)['sogb-037']['editorial'], 'stale')
+        accepted = formal.round_statuses(self.cores, directory)['sogb-037']
+        self.assertEqual(accepted['editorial'], 'accepted')
+        self.assertEqual(accepted['formal_alignment'], 'conclusion-only')
 
     def test_sphere_bound_uses_only_the_reviewed_anonymous_alias(self):
         core = next(c for c in self.cores if c['id'] == 'sogb-032')

@@ -47,6 +47,17 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-027 | Discrete Sampling / Log-Concave Sampling | Derive finite-cube log-Sobolev by conditional entropy, RMS contraction and dimension induction; diagnose the conditional-mean shortcut (L3) | Not aligned; full substantive induction is available as supporting source, not a final-call wrapper task |
 | sogb-028 | Log-Concave Sampling / Discrete Sampling | Produce homogeneous entropy and full-flip limits, track 16BK/√m and 1/2×4=2, including zero mass (L4) | Compose the actual finite-law/entropy/flip producers and pass inequalities through real limits (L3) |
 | sogb-029 | Optimisation · actual Chewi Exercise 3.2 | Complete the Hessian/FTC and balanced-step minimax argument; distinguish the uniform bound from an individual optimum (L3) | No fixed challenge; two named owned core answers are separately compiled and axiom-checked |
+| sogb-030 | Optimisation · actual Chewi Exercise 3.1 | Derive cocoercivity and gradient Lipschitzness from the quadratic upper model (L3) | Three separately checked owned answer parts; no fixed challenge |
+| sogb-032 | Riemannian Optimisation / Statistical Optimal Transport | Bound changes to a sphere-projected feature gradient when its law and point change (L4) | Compose the angular, Bochner-mean and tangent-gradient producers without importing the answer (L4) |
+| sogb-033 | Riemannian Optimisation / Statistical Optimal Transport | Contrast finite angular cost with infinite intrinsic path cost on the two-point sphere (L2) | Angular cost and transport definitions are support only |
+| sogb-034 | SampleWiki / MCMC | Compute exact binary hybrid gaps and refute an incorrectly weighted adjacent bound (L2) | Generic kernel averaging and telescope are support only |
+| sogb-035 | SampleWiki / MCMC | Transfer stopped work by a pathwise likelihood budget and refute the ideal-average substitute (L5) | TV comparison and single-phase work bounds are support only |
+
+These four reviewed additions retain their existing public IDs. StatOT
+Exercise 6 (`sogb-031`) remains on its separate proof-and-publication route.
+See [formal round 12](reviews/formal-12/README.md),
+[prose round 9](reviews/prose-9/README.md) and
+[prose round 10](reviews/prose-10/README.md) for the exact independent reports.
 
 Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Structural graph editorial decisions are recorded separately; empirical difficulty calibration remains open. Existing theorem review does not certify a new question.
 
@@ -104,7 +115,7 @@ The seven domain indexes follow the seven library routes; shared questions can a
 | L4 | Cross-module composition with actual inputs, domains, integrability and errors |
 | L5 | Source-grounded research audit or proof transfer with failure boundaries |
 
-Labels are author-assigned and **not empirically calibrated**. Natural-language and Lean views have their own labels; code length, tokens, import depth and graph distance are not difficulty. Independent review rejected the proposed L5 label of the weak-convexity transfer audit and requested L4: source inspection and originality alone do not establish research-level difficulty. L5 remains a gap, not an invented solution to an open problem. Import structure, elaborated declaration dependencies, reviewed source-proof routes and conceptual mechanisms are distinct evidence types.
+Labels are provisional and **not empirically calibrated**. Natural-language and Lean views have their own labels; code length, tokens, import depth and graph distance are not difficulty. Independent review lowered the weak-convexity transfer audit to L4. The stopped-work audit adds one natural-language L5 core shared by SampleWiki and MCMC; it does not fill any L5 Lean cell or prove a cost transfer for either actual sampler. Import structure, elaborated declaration dependencies, reviewed source-proof routes and conceptual mechanisms are distinct evidence types.
 
 ## Try it
 

@@ -55,11 +55,26 @@ class PairedReviewTests(unittest.TestCase):
 
     def test_actual_distinct_actor_evidence_admits_one_conclusion_only_pair(self):
         rows = formal.statuses(self.cores)
-        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028'})
+        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028','sogb-032'})
         self.assertEqual(rows['sogb-015']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-015']['formal_alignment'], 'conclusion-only')
         self.assertTrue(rows['sogb-015']['remaining_unformalized'])
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 30)
+        self.assertEqual(rows['sogb-032']['editorial'], 'accepted')
+        self.assertEqual(rows['sogb-032']['formal_alignment'], 'conclusion-only')
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 34)
+
+    def test_sphere_bound_uses_only_the_reviewed_anonymous_alias(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-032')
+        directory = formal.REVIEWS/'formal-12'
+        packet, _ = formal.decoder_payload([core])
+        self.assertIn('anonymous_constant_1', packet['cases'][0]['statement'])
+        self.assertNotIn('AutoSamplingTheory', json.dumps(packet))
+        for symbols in ([core['declaration']], core['decoder_symbols'] * 2):
+            with self.assertRaises(ValueError):
+                formal.decoder_payload([{**core, 'decoder_symbols': symbols}])
+        changed = deepcopy(bench.load())
+        next(c for c in changed['cores'] if c['id'] == core['id'])['question'] += ' Unreviewed conclusion.'
+        self.assertEqual(formal.round_statuses(bench.materialize(changed), directory)[core['id']]['editorial'], 'stale')
 
     def test_transport_join_has_its_own_blind_reconstruction_and_source_boundaries(self):
         core=next(c for c in self.cores if c['id']=='sogb-018')

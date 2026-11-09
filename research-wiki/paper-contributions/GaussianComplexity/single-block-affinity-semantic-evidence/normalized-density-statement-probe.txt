@@ -1,0 +1,17 @@
+import Mathlib.MeasureTheory.Function.L2Space
+open MeasureTheory
+set_option autoImplicit false
+def sealedSharedStatement {α : Type*} [MeasurableSpace α]
+    (μ : Measure α) {f g : α → ℝ}
+    (hf0 : ∀ x, 0 ≤ f x) (hg0 : ∀ x, 0 ≤ g x)
+    (hfm : Measurable f) (hgm : Measurable g)
+    (hfi : Integrable f μ) (hgi : Integrable g μ)
+    (hf1 : (∫ x, f x ∂μ) = 1) (hg1 : (∫ x, g x ∂μ) = 1) : Prop :=
+    let a : ℝ := ∫ x, Real.sqrt (f x * g x) ∂μ
+    let δ : ℝ := sSup {z : ℝ | ∃ B : Set α, MeasurableSet B ∧
+      z = |(∫ x in B, f x ∂μ) - (∫ x in B, g x ∂μ)|}
+    Integrable (fun x => Real.sqrt (f x * g x)) μ ∧
+    0 ≤ a ∧ a ≤ 1 ∧
+    δ = (1 / 2 : ℝ) * (∫ x, |f x - g x| ∂μ) ∧
+    1 - a ≤ δ ∧ δ ≤ Real.sqrt (1 - a ^ 2)
+#check sealedSharedStatement

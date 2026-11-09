@@ -42,6 +42,8 @@ import AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedNumerator
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Taylor
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev
@@ -275,6 +277,26 @@ def analysisMemory : List LemmaMemoryEntry := [
     tags := ["convex", "subgradient", "finite-horizon", "optimisation"],
     saldUse := "Finite best-iterate guarantee for a supplied nonsmooth subgradient run and arbitrary comparator",
     note := "Positive steps and nonempty horizon justify division. Native index witness replaces attained finite sInf; no minimizer, iterate convergence, stochastic oracle or sampling rate is claimed."
+  },
+  {
+    key := "density.normalized-tv-affinity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity.normalized_density_tv_affinity",
+    upstreamDecl := "ASTIS canonical common-measure normalized-density TV/Hellinger comparison",
+    upstreamFile := "ASTIS-authored generalization; arXiv2610.20492v1 B.2.3 Ex69 and leading Ex72 as Euclidean motivation",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["density", "total-variation", "Hellinger-affinity", "shared", "Cauchy-Schwarz"],
+    saldUse := "Actual Gaussian Eq25 calls the upper comparison; actual product-density amplification has a planned lower-comparison consumer after its separate product-law proof",
+    note := "Independently VERIFIED at a5d10714ca01eb29c934acec06bb8983413182c2. Any common measure space, pointwise nonnegative measurable genuine L1 densities of mass1; no finite/probability/sigma-finite base assumption. Proves genuine affinity L1/range, event-sup TV=half-L1 and1-a<=TV<=sqrt(1-a^2). Intrinsic library density conditions are internally supplied by actual paper consumers, never added to the source theorem. One canonical node, no arbitrary-law wrapper or product-law/main-bound claim."
+  },
+  {
+    key := "gaussian-complexity.single-block-affinity",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity.single_block_affinity_bound",
+    upstreamDecl := "arXiv2610.20492v1 B.2.3 Ex68-69 and Eq25",
+    upstreamFile := "A2.SS2.SSS3 p2.1-p2.4, A2.Ex68-69, A2.E25; actual B7 and density canonical parents",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "actual-mixture", "total-variation", "Hellinger-affinity", "Eq25"],
+    saldUse := "For all source n,kappa and natural k, actual single-block affinity a satisfies a^k<=exp(-(k/8)exp(-10n/sqrt(kappa)))",
+    note := "Independently VERIFIED at a5d10714ca01eb29c934acec06bb8983413182c2. Exactly n>=3,kappa>=4; literal actual conditioned full-Haar inverse-precision Gaussian mixtures. Actual q is genuinely integrable,0<=a<=1, normalized event TV<=sqrt(1-a^2), and both Eq25 inequalities hold with exact1/4,10,1/8 constants. Density, probability, L1, unit masses, TV comparison and B7 are internal dependency edges. Scalar powers are not an actual independent-block law, tensorization or amplified TV; oracle/precision/query/cost/hidden-eigenbasis and both main bounds remain open."
   },
   {
     key := "gaussian-complexity.single-block-separation",

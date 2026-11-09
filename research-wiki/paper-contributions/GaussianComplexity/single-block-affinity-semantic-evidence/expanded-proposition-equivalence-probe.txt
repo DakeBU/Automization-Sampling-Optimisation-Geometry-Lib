@@ -1,0 +1,44 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity
+open Matrix MeasureTheory
+open scoped ENNReal
+set_option autoImplicit false
+example : ∀ {α : Type*} [MeasurableSpace α]
+    (μ : Measure α) {f g : α → ℝ}
+    (hf0 : ∀ x, 0 ≤ f x) (hg0 : ∀ x, 0 ≤ g x)
+    (hfm : Measurable f) (hgm : Measurable g)
+    (hfi : Integrable f μ) (hgi : Integrable g μ)
+    (hf1 : (∫ x, f x ∂μ) = 1) (hg1 : (∫ x, g x ∂μ) = 1),
+    let a : ℝ := ∫ x, Real.sqrt (f x * g x) ∂μ
+    let δ : ℝ := sSup {z : ℝ | ∃ B : Set α, MeasurableSet B ∧
+      z = |(∫ x in B, f x ∂μ) - (∫ x in B, g x ∂μ)|}
+    Integrable (fun x => Real.sqrt (f x * g x)) μ ∧
+    0 ≤ a ∧ a ≤ 1 ∧
+    δ = (1 / 2 : ℝ) * (∫ x, |f x - g x| ∂μ) ∧
+    1 - a ≤ δ ∧ δ ≤ Real.sqrt (1 - a ^ 2) := @AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity.normalized_density_tv_affinity
+
+example : ∀ {n : ℕ} (hn : 3 ≤ n) {κ : ℝ} (hκ : 4 ≤ κ),
+    let μ := (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))
+    let νpos := (2 : ℝ≥0∞) • μ.restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}
+    let νneg := (2 : ℝ≥0∞) • μ.restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}
+    let γ : Matrix.orthogonalGroup (Fin n) ℝ → Measure (EuclideanSpace ℝ (Fin n)) :=
+      fun O => ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))
+        (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))))⁻¹
+    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=
+      fun O x => Real.sqrt (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose)))).det /
+        (2 * Real.pi) ^ ((n : ℝ) / 2) *
+        Real.exp (-((WithLp.ofLp x) ⬝ᵥ
+          (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))) *ᵥ WithLp.ofLp x)) / 2)
+    let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos
+    let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg
+    let Ppos := νpos.bind γ
+    let Pneg := νneg.bind γ
+    let δ : ℝ := sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin n)),
+      MeasurableSet B ∧ z = |Ppos.real B - Pneg.real B|}
+    let a : ℝ := ∫ x, Real.sqrt (qpos x * qneg x)
+    Integrable (fun x => Real.sqrt (qpos x * qneg x)) volume ∧
+    0 ≤ a ∧ a ≤ 1 ∧ δ ≤ Real.sqrt (1 - a ^ 2) ∧
+    a ≤ Real.sqrt (1 - (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ∧
+    Real.sqrt (1 - (1 / 4 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ≤
+      Real.exp (-(1 / 8 : ℝ) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) := @AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity.single_block_affinity_bound

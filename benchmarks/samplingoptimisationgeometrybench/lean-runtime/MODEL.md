@@ -1,4 +1,4 @@
-# Optional model-to-compiler bridge — staged, not yet accepted
+# Optional model-to-compiler bridge
 
 `tools/sog_bench_lean_model.py` connects one explicitly selected Responses API
 model to an existing pristine fixed-target compiler workspace. This is a finite
@@ -13,14 +13,16 @@ Only the canonical `agent/prompt.json`, `agent/Solution.lean.txt`, fixed tool
 instructions and bounded feedback. Their hashes are checked against the frozen
 operator packet. The bridge does not directly append the operator directory,
 reference proof, source oracle, challenge or runtime configuration, and offers
-no general shell, filesystem or retrieval tool. Submitted Lean can nevertheless
+no general shell, filesystem or network tool. The default arm offers no separate
+lookup; the opt-in transport pilot below returns only bounded signatures.
+Submitted Lean can nevertheless
 print readable public container data into bounded compiler feedback; the accepted
 runtime mounts no oracle directory. This is not new feedback noninterference or
 enforced closed-book isolation. The original public-dev answers are public and may
 be in model training; restricted ATLAS content must never enter this interface.
 This is not a held-out test or proof of closed-book knowledge.
 
-The sole function is `lean_workspace({action, source})`, where action is `check`
+The compiler function is `lean_workspace({action, source})`, where action is `check`
 or `submit` and source is full Lean text. All Lean remains data until the existing
 workspace passes it to the provisioned Linux Docker/Landrun verifier. No host
 Lean or shell fallback is added. The accepted runtime's type/definition, axiom
@@ -73,10 +75,60 @@ already selected child and then use the existing `suite-close`; unattempted and
 failed targets remain selected. Do not change the denominator after seeing a
 model answer. Keep the provider transcript together with the workspace evidence.
 
+## Paired pilot: lookup off versus on
+
+The optional lookup arm currently covers only the admitted strict Wasserstein
+triangle target `sogb-018`. Generate its canonical corpus before setting up
+the two fresh workspaces:
+
+```bash
+python tools/sog_bench_lean_retrieval.py --output .astis/transport-lookup.json
+```
+
+The returned digest pins 12 project-owned declaration signatures from the
+existing replayable transport graph. The builder excludes benchmark answer
+modules (including the target's own module), copies no proof bodies, docs,
+graph edges, textbook text, oracle, rubric or ATLAS material, and requires each
+lemma to be available in the task's existing import closure. The signatures
+can omit section context; they are not alternate targets or evidence that
+a lemma is logically necessary. Reuse retains the project Apache-2.0 notices.
+
+Preselect both arms before starting, using the **same** target packet, stage,
+runtime, model version, decoding and compiler-check count. Start two fresh
+workspaces with the usual `start` command. Use the baseline provenance above
+for lookup off. For lookup on, replace the retrieval/tools fields and add:
+
+```json
+{
+  "retrieval_profile": "transport-statements-v1",
+  "tools": ["lean_workspace", "lookup_lean_statements"],
+  "max_searches": 2,
+  "retrieval_corpus_sha256": "COPY_CANONICAL_SHA256"
+}
+```
+
+These are fields of the otherwise unchanged provenance object. Invoke the
+normal bridge in both arms, adding `--lookup-corpus .astis/transport-lookup.json`
+only for lookup on. The bridge regenerates the exact canonical corpus and
+checks its bytes, digest and task binding *before* reserving a run or calling
+the provider. A re-signed file containing foreign content is not accepted.
+The model can request a short word/name query, never a file or URL. It receives
+at most three ranked signatures per call. Exhausting lookup removes that tool;
+it does not consume a compiler check or another final attempt.
+
+Archive both trajectories with their workspace receipts, including failures.
+Compare the exact task/agent inputs and runtime hashes first. Report lookup
+calls, returned declaration IDs, total API turns/usage, Lean check outcomes and
+first-final verification **separately**. More tool turns are possible in the
+lookup arm by design. Lookup off does not disable Lean's own reasoning or
+search tactics. Neither arm establishes unseen performance; this single
+public-dev pilot is not a calibration or a general search benchmark.
+
 ## Budgets, failures and records
 
-The API call budget is frozen to `max_checks + 1`, with0–8 existing compiler
-checks and one final. Each HTTP request/response is bounded to2MiB; calls have a
+The API call budget is frozen to `max_checks + max_searches + 1`, with 0–8
+compiler checks, 0–4 eligible lookup calls and one final. Each HTTP
+request/response is bounded to 2 MiB; calls have a
 60-second network timeout and no automatic retry. These are technical bounds,
 **not a dollar-cost ceiling**. Input tokens, reasoning and an interrupted API
 request can still be billed. Obtain an authorized provider/model and spending
@@ -122,7 +174,8 @@ The function call loop uses stateless `store:false`, preserves all response
 items (including encrypted reasoning) and supplies each function output with its
 actual call ID. See the official [function-calling guide](https://developers.openai.com/api/docs/guides/function-calling)
 and [Responses creation reference](https://developers.openai.com/api/reference/resources/responses/methods/create).
-No hosted search, code execution or other provider tool is enabled.
+No hosted search, code execution or other provider tool is enabled. Lookup is
+deterministic local ranking, not a provider-side search or execution service.
 
 The optional native CI `model-bridge-trials` uses a separately labelled
 `controlled-software-fixture` client: it exercises actual compiler feedback and

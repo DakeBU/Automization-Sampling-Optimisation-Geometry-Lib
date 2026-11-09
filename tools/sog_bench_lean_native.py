@@ -425,9 +425,69 @@ def model_bridge_trials(root: Path):
             passed=(len(provider.requests)==1 and result['final_outcome']=='infrastructure-error'
                 and rolled['denominator']==2 and rolled['outcome_counts']=={'infrastructure-error':1,'no-final-submission':1})
         results.append({'fixture':label,'passed':passed,'provider_calls':0,'api_shaped_fixture_turns':len(provider.requests)})
+    lookup = bridge.retrieval
+    target = lookup.TARGET_ID
+    corpus = lookup.build()
+    corpus_path = output/'transport-lookup-corpus.json'
+    workspace.write_new(corpus_path, corpus)
+    digest = runtime.bench.sha(corpus_path.read_bytes())
+    exact = 'AutoSamplingTheory.TechnicalLemmas.Measure.TransportGluing.exists_gluing_of_isCoupling'
+    arms = {}
+
+    class LookupFixture:
+        kind='controlled-native-model-interface-fixture'
+
+        def __init__(self, enabled):
+            self.enabled=enabled
+            self.requests=[]
+
+        def __call__(self, raw):
+            request=json.loads(raw);self.requests.append(request)
+            index=len(self.requests)
+            if self.enabled and index==1:
+                tool=lookup.TOOL['name'];args={'query':exact}
+            else:
+                tool='lean_workspace'
+                # Explicit oracle use by the *fixture*, not exposed to either
+                # model-side input, corpus or tool feedback.
+                args={'action':'submit','source':
+                    (root/'tasks'/target/'oracle/Solution.lean.txt').read_text(encoding='utf-8')}
+            reply={'id':'lookup-fixture-response-'+str(index),'status':'completed','model':model,
+                'output':[{'type':'function_call','name':tool,'call_id':'lookup-fixture-call-'+str(index),
+                    'arguments':json.dumps(args)}]}
+            return runtime.bench.encoded(reply),{'http_status':200,'controlled_software_fixture':True}
+
+    for label,enabled in [('lookup-off',False),('lookup-on',True)]:
+        lane=output/label;transcript=output/(label+'-transcript')
+        configuration={**provenance}
+        if enabled:
+            configuration.update(retrieval_profile=lookup.PROFILE,max_searches=1,
+                retrieval_corpus_sha256=digest,tools=['lean_workspace',lookup.TOOL['name']])
+        session=workspace.start(task=root/'tasks'/target,stage=root/'stages'/target,prepared=root,
+            output=lane,provenance=configuration,max_checks=0)
+        provider=LookupFixture(enabled)
+        result=bridge.run(lane,transcript,model=model,max_output_tokens=4096,provider=provider,
+            lookup_corpus=corpus_path if enabled else None)
+        selection=json.loads((transcript/'selection.json').read_bytes())
+        feedback=json.loads((transcript/'0001/feedback.json').read_bytes()) if enabled else {}
+        passed=(result['final_outcome']=='accepted' and result['lookup_calls_returned']==int(enabled)
+            and [item['action'] for item in workspace.history(lane)[1]]==['submit']
+            and [t['name'] for t in provider.requests[0]['tools']]==configuration['tools']
+            and (not enabled or (feedback.get('corpus_sha256')==digest
+                 and feedback['hits'][0]['declaration']==exact
+                 and (transcript/'lookup-corpus.json').read_bytes()==corpus_path.read_bytes()))
+            and (enabled or not (transcript/'lookup-corpus.json').exists()))
+        arms[label]={'agent_inputs':selection['agent_inputs'],
+            'task_binding_sha256':session['binding_sha256'],
+            'runtime_receipt_sha256':session['runtime_receipt_sha256']}
+        results.append({'fixture':'native-transport-'+label,'passed':passed,'provider_calls':0,
+                        'api_shaped_fixture_turns':len(provider.requests)})
+    results.append({'fixture':'native-transport-matched-inputs','passed':arms['lookup-off']==arms['lookup-on'],
+                    'provider_calls':0,'api_shaped_fixture_turns':0})
     summary={'schema_version':1,'kind':'controlled-native-model-interface-fixtures','results':results,
         'passed':all(item['passed'] for item in results),'model_measurement':False,'provider_calls':0,
-        'scope':'Actual Linux compiler feedback/first-final and canonical infrastructure rollup through a scripted client; no API credentials, real provider, AI reasoning or model score.'}
+        'lookup_fixture':{'task_id':target,'corpus_sha256':digest,'matched':arms},
+        'scope':'Actual Linux compiler feedback/first-final, bounded declaration lookup and infrastructure rollup through a scripted client; no API credentials, real provider, AI reasoning or model score.'}
     (root/'model-bridge-trials.json').write_bytes(runtime.bench.encoded(summary));print(json.dumps(summary),flush=True)
     if not summary['passed']:raise SystemExit(1)
 

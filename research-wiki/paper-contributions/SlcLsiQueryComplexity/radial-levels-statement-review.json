@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "review_kind": "independent-preproof-statement-and-bounded-source-topology",
+  "reviewer": "/root/radial_levels_statement_review",
+  "review_date": "2026-11-10",
+  "verdict": "ACCEPT",
+  "scope": "Exact fixed-location joint law of all scalar radial level fields, with the independently reconstructed source topology below. This is not proof, integration, or publication acceptance.",
+  "proposal_path": "research-wiki/paper-contributions/SlcLsiQueryComplexity/radial-levels-statement-proposal.json",
+  "proposal_sha256": "72947980acbf37bae8b0cba378fdf3435bcb3ef5210f93e968c8dc9b70d11831",
+  "checked_base_commit": "aa6a8c5bf99957eac2b77eca9f6fd4a2ba28fe84",
+  "checked_branch": "codex/slc-lsi-radial-levels",
+  "accepted_namespace": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels",
+  "accepted_signature_sha256": "178c224eaa209a4b68acef3124a2fc968a5240c8f23ef695ffb47c4416848970",
+  "accepted_signature": "theorem radialLevels_hasLaw (n : ℕ+) (h : ℕ)\n    (x : Fin (h + 1) → EuclideanSpace ℝ (Fin n.val)) :\n    let L := Fin (h + 1)\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := L × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let E := fun b : B ↦ EuclideanSpace ℝ (C b)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S := fun i : L ↦ ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun (i : L) (p : P) ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S i : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S i)))\n    let χ := fun r : ℝ ↦\n      expNegInvGlue (r - 13 / 20) /\n        (expNegInvGlue (r - 13 / 20) + expNegInvGlue (7 / 10 - r)) *\n      (expNegInvGlue (1 - r) /\n        (expNegInvGlue (1 - r) + expNegInvGlue (r - 19 / 20)))\n    let tail := fun (i : L) (j : Fin (h - i.val + 1)) ↦ x ⟨i.val + j.val, by omega⟩\n    let c := fun i : L ↦ ∏ j, χ (‖tail i j‖ / Real.sqrt n.val)\n    let field := fun (i : L) (z : (p : P) → E (i, p)) ↦\n      if ∃ j, tail i j = 0 then 0 else\n        c i * ∑ p : P, angularDegreeComponent n h i (degree p)\n          (fun j ↦ NormedSpace.normalize (tail i j)) (z p)\n    let Ω := EuclideanSpace ℝ (Σ b : B, C b)\n    let H := fun (ξ : Ω) (i : L) ↦ field i\n      (fun p ↦ WithLp.toLp 2 (fun k : C (i, p) ↦ ξ ⟨(i, p), k⟩))\n    HasLaw H (Measure.pi fun i : L ↦\n      gaussianReal 0 (((n.val : ℝ) * (c i) ^ 2 * ∑ p : P, (a i p) ^ 2).toNNReal))\n      (stdGaussian Ω)",
+  "required_signature_corrections": [],
+  "independence": {
+    "implementation_exists_for_review": false,
+    "implementation_lean_used_to_reconstruct_source_topology": false,
+    "inputs_inspected": [
+      "Applicable AGENTS.md and pre-proof protocol sections",
+      "Exact proposal, including the proposed signature and region/edge inventory",
+      "Pinned primary source arXiv v1 HTML, including the raw formula attributes for Eq. (15) and Eq. (16); pinned PDF bytes used only for digest verification"
+    ],
+    "limits": "No implementation or Lean proof was inspected or tested. This is not the later semantic round trip."
+  },
+  "source": {
+    "title": "Towards the Query Complexity of Sampling under Strong Log-Concavity and Log-Sobolev Inequalities",
+    "authors": ["Huanjian Zhou", "Taiji Suzuki"],
+    "edition": "arXiv:2611.05813v1",
+    "url": "https://arxiv.org/html/2611.05813v1",
+    "source_pdf_sha256": "05520f2a491fedc6ceecc7eb0f3d0c1b23275faceb9da1d9cfa6db421aab4f0e",
+    "pdf_digest_independently_recomputed": true,
+    "bounded_inventory": "§4.1.1 Eqs. (13)–(16), footnote 2 and surrounding coefficient law; §4.2 Lemma 4.3 Eq. (27) at one x, Lemma 4.4 opening and Eq. (29) at x=y; §6.1 field notation, definition of v_i, and paragraph before Eq. (51); §6.2 uses only to distinguish exact marginal reuse from additional dependencies."
+  },
+  "binder_audit": {
+    "TYPING": [
+      "n is a positive dimension, h is the natural depth, and x is one fixed deterministic full tuple of h+1 blocks in ℝ^n. For each i, tail i j ranges bijectively from x_i to x_h inclusive; both the cutoff and normalized angular component use that same restriction. In particular, i=h sees only x_h and h=0 gives one level.",
+      "The coefficient vector is the argument of H on the joint measured carrier, not a quantified hypothesis about the coefficients or their law."
+    ],
+    "STANDING": [
+      "The paper prescribes sufficiently large n and a specific h(n) for its hard family. They are unnecessary for this isolated algebraic/probabilistic law, which holds at every positive n and natural h without broadening the hard-family claims."
+    ],
+    "SOURCE": [],
+    "RULED": [],
+    "EXCESS": [],
+    "derived_not_assumed": [
+      "Nonzero participating blocks give unit normalized directions; vanishing blocks follow the source zero extension. No positivity of C_i, admissibility, conditioning, or angular regularity hypothesis is needed.",
+      "For fixed x the branch is deterministic; each coefficient map is linear and measurable (including the constant zero case). Gaussian laws, mutual independence, and variance nonnegativity are conclusions or proof ingredients, not premises."
+    ]
+  },
+  "definition_audit": {
+    "definition_kind": "literal",
+    "location": "H evaluates each field at the same full x through its actual tail. Overlapping spatial tails do not induce random dependence here because x is fixed and the coefficient families are disjoint.",
+    "carrier": "For b=(i,p), C b is the set of assignments of one of n coordinates to every ordered position: one of p copies, a tail offset j, and one of K^j slots. This realizes n^(p S_i) entries, without a symmetric-tensor quotient or hidden scaling. The disjoint sum over (i,p) realizes the full Euclidean coefficient space and WithLp.toLp 2 merely retypes each coordinate projection.",
+    "degrees_and_amplitude": "The degree subtype includes all even p from 4 through P=2^(64(h+1)) inclusive; degree preserves that value. K=2^(74(h+1)) and S_i=sum_{j=0}^{h-i} K^j. The amplitude is the inverse of p^4 S_i^2 sqrt((h-i+1) log(2 P S_i)), with sqrt(n) in the angular degree component. At fixed nonzero tails, the unit ordered tensor gives variance n a_i,p^2 before applying the cutoff.",
+    "cutoff_and_zero": "The exact unscaled glue of footnote 2 is used with endpoints 13/20, 7/10, 19/20, and 1. The two arguments in each denominator sum to 1/20, so each denominator is positive. c i is the Eq. (16) product of one chi(norm(x_j)/sqrt(n)) per tail block. At a vanishing tail block chi(0)=0, so both the source-extended field and the displayed variance are zero. If all blocks are nonzero but the product vanishes, the same degenerate law follows. This is not the earlier-gate product, the energy truncation, or a weighted load.",
+    "law": "The variance is n C_i(x)^2 sum_p a_i,p^2, not a standard deviation, a square of summed amplitudes, or an extra-weighted variance. It is nonnegative, so toNNReal preserves its value; gaussianReal at variance zero is the centered Dirac law. Measure.pi specifies the entire joint law, not only the marginals or pairwise independence."
+  },
+  "source_region_inventory": [
+    {
+      "id": "actual-coefficients",
+      "locator": "§4.1.1 immediately before Eq. (14) and coefficient-space paragraph after Eq. (15)",
+      "disposition": "NODE",
+      "role": "Unconditioned standard Gaussian on the full orthogonal direct sum, with mutually independent standard Gaussian blocks across all (i,p)."
+    },
+    {
+      "id": "angular-model",
+      "locator": "§4.1.1 ordered tensor and degree-set paragraph; Eqs. (14)–(15)",
+      "disposition": "NODE",
+      "role": "Unit ordered feature with the exact amplitudes, per-degree linear angular component, and finite degree sum."
+    },
+    {
+      "id": "radial-field",
+      "locator": "§4.1.1 field and tail after Eq. (13), Eq. (16) and footnote 2 formula; §4.2 zero-extension paragraph; §6.1 introductory H notation and definition of v_i",
+      "disposition": "NODE",
+      "role": "Same fixed x, exact radial product, zero extension, and the sum H_i over degrees (not the load). The coefficient sum of squares is v_i."
+    },
+    {
+      "id": "fixed-point-linear-feature",
+      "locator": "§4.2 feature definition and Lemma 4.3 Eq. (27), restricted to its value at one x",
+      "disposition": "NODE",
+      "role": "Each H_i,p(x) is the fixed linear evaluation of its own coefficient block against the deterministic radial feature; the direct-sum feature identifies H_i(x)."
+    },
+    {
+      "id": "fixed-point-variance-bookkeeping",
+      "locator": "§4.1.1 footnote 2 and tensor norm; §4.2 diagonal specialization of Lemma 4.4 Eq. (29)",
+      "disposition": "NODE",
+      "node_kind": "SOURCE_GAP",
+      "role": "Discharge diagonal normalized directions T_i(x,x)=1 on nonzero tails and reconcile zero extension with the displayed variance via chi(0)=0. No support or nondegeneracy assumption remains."
+    },
+    {
+      "id": "joint-degree-laws",
+      "locator": "§4.2 Lemma 4.4 opening proof and part (1) at x=y; invoked in §6.1 immediately before Eq. (51)",
+      "disposition": "NODE",
+      "role": "Standard Gaussian fixed linear forms have the exact centered marginals. Mutual independence comes from measurable evaluations of the full mutually independent coefficient family, not from a pairwise-only reading of distinct pairs."
+    },
+    {
+      "id": "single-level-sum-law",
+      "locator": "Unweighted one-level Gaussian sum implicit before §6.1 Eq. (51), explicitly identified at the §6.2 Fact 10 use",
+      "disposition": "NODE",
+      "role": "At each level the independent Gaussian degree contributions sum to a centered Gaussian with variance n C_i(x)^2 v_i, including degenerate laws."
+    },
+    {
+      "id": "level-grouping",
+      "locator": "Implicit measurable grouping between §6.1 definitions of H_i and the Gaussian passage before Eq. (51)",
+      "disposition": "NODE",
+      "node_kind": "SOURCE_GAP",
+      "role": "Apply each measurable degree-sum map to its own part of a finite jointly independent family. Grouping disjoint parts preserves mutual independence of the level sums, even when a map is constant."
+    },
+    {
+      "id": "level-product-law",
+      "locator": "Intermediate unweighted joint law extracted from §6.1 immediately before Eq. (51)",
+      "disposition": "NODE",
+      "role": "The pushforward is the finite product of the exact level marginals. This is a source-derived intermediate interface, not a separately displayed paper theorem."
+    },
+    {
+      "id": "remaining-construction-and-process",
+      "locator": "Eq. (13) outside the field definition, footnote 2 outside the formula and zero value, and Lemmas 4.3–4.4 outside their fixed-location parts",
+      "disposition": "EXCLUDED",
+      "reason": "No gates, truncated loads, cutoff smoothness/support/derivative bounds, two-location or derivative covariance, ancestor correlation, or joint process laws in x."
+    },
+    {
+      "id": "weighted-and-mass-applications",
+      "locator": "§6.1 good event, bound on v_i, weighted Gaussian sum, Eq. (51) and ensuing m/M estimates; §6.2 Lemma 6.2 beyond the one-level law identification",
+      "disposition": "EXCLUDED",
+      "reason": "No weighted law or MGF, admissibility/good event, earlier coefficient sigma-field independence, frozen-gate conditional expectation, recursion, mass estimate, or lower bound. The good-mass tilt at x in the radial region uses the full degree-component density, not the law of the scalar level sums."
+    }
+  ],
+  "source_edges": [
+    {
+      "parents": ["angular-model", "radial-field"],
+      "consumer": "fixed-point-linear-feature",
+      "use_site": "Eq. (27) turns the exact angular component and radial multiplier into the deterministic feature paired with its coefficient vector."
+    },
+    {
+      "parents": ["angular-model", "radial-field"],
+      "consumer": "fixed-point-variance-bookkeeping",
+      "use_site": "On the diagonal of Eq. (29), the tensor has norm one after nonzero normalization; at a zero block the exact cutoff vanishes."
+    },
+    {
+      "parents": ["actual-coefficients", "fixed-point-linear-feature", "fixed-point-variance-bookkeeping"],
+      "consumer": "joint-degree-laws",
+      "use_site": "Lemma 4.4 explicitly invokes Lemma 4.3, then uses independent standard Gaussian blocks and specializes its covariance formula."
+    },
+    {
+      "parents": ["joint-degree-laws", "radial-field"],
+      "consumer": "single-level-sum-law",
+      "use_site": "Before Eq. (51), sum the fixed-location Gaussian degree contributions at a single i with all degree weights one; §6.2 identifies this marginal."
+    },
+    {
+      "parents": ["joint-degree-laws", "radial-field"],
+      "consumer": "level-grouping",
+      "use_site": "The degree sets with different first index i are disjoint, so the finite measurable sums defining H_i are mutually independent."
+    },
+    {
+      "parents": ["single-level-sum-law", "level-grouping"],
+      "consumer": "level-product-law",
+      "use_site": "Combine the identified marginals with the joint independence to obtain the finite product law of the unweighted vector."
+    }
+  ],
+  "source_topology": {
+    "coverage_verdict": "Accepted with the refined inventory and edges in this receipt; no signature change. Explicitly separate Lemma 4.3 Eq. (27) from the field definition, diagonal and zero bookkeeping from Gaussian independence, and the within-level marginal calculation from the disjoint-family independence bridge.",
+    "alternative_implementation": "The same law can follow by grouping the full coefficient product by level before pushing it forward through the exact measurable level maps, then identifying each marginal by an existing one-level law. This is an alternative to deriving the product via the scalar degree laws; do not combine the two as mandatory source edges.",
+    "consumer_edge": "Eq. (51) still requires the weighted linear sum and Gaussian exponential moment. In §6.2, the total-mass argument uses the single-level marginal together with independence from earlier full coefficient blocks and freezes the gates before applying Fact 10; scalar-level independence alone does not suffice. The good-mass argument uses all fixed-x degree components jointly and an additional tilt, neither recoverable from just the level sums."
+  },
+  "acceptance_boundaries": {
+    "accepted_now": ["Exact pre-proof signature and its literal semantics", "Bounded source topology and the stated exclusions"],
+    "not_accepted_now": ["Lean proof/build or post-implementation semantic round trip", "Weighted sum, Eq. (51), prefix-conditioning, good event, or mass/query bounds", "Publication, integration, or paper completion"],
+    "future_interface_rule": "No new public Gaussian, measurability, normalization, nonzero-tail, cutoff-positivity, independence, or admissibility premise may be added; any genuine signature change requires a new seal."
+  },
+  "reviewer_actions": "Only this independent review receipt was authored; no production Lean, proposal, shared metadata, ledger or commit was modified by the reviewer."
+}

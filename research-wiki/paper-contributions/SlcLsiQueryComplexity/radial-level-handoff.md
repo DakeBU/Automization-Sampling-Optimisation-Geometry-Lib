@@ -38,6 +38,14 @@ Fact 10 are a separate obligation.
 
 ## Integration boundary
 
+[PR #400](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/pull/400)
+merged at `feb6a20e`. Against `4fec24eee`, the actual merge tree preserves all
+24 proof and 27 collaborator Bench paths. The current-base canonical Lean,
+publication, semantic, graph, complete site and browser checks passed.
+Independent postmerge purification accepted the same proof and reader without
+changes (Exposition Seal `SLC-LSI-RadialLevel-Exposition-mergefeb6a20e-v1`).
+The deployment workflow is independent of this proof and merge record.
+
 The exact reviewed marginal, test, reader and publication binding are
 unchanged on the `cdd030149`-based release. The complete ASTIS Lean gate
 (Tests: 9646 jobs), site inventory/link/formula check, declaration graph

@@ -1,15 +1,19 @@
-# Angular degree component: locally compiled candidate
+# Angular degree component: independently verified candidate
 
 The exact definition and theorem interface were sealed at commit6ec031b31
 after independent pre-proof acceptance. The proof and focused tests now compile
 without additional axioms. See `angular-degree-compile-evidence.json` for exact
-file hashes and acceptance scope. This is **not independently VERIFIED** and
-adds no Registry credit yet. Authored two-level reader content and draft
-source-roundtrip admission now pass, so the canonical SAU is `PROVED_LOCAL`.
+file hashes and acceptance scope. Independent source/compiler review has now
+published `VERIFIED` for candidate8d7bd9f49; both Cells are independently verified.
+This adds no Registry credit before integration. The reader, two source bindings
+and private helper coverage pass the publication gate.
 Postproof source-blind decoding is recorded at commit3e56475ad; both independent
 reconstructions distinguish the literal definition from the fixed-direction
-scalar law. Fresh source/compiler review is pending. Decoding is not a source
-fidelity verdict.
+scalar law. Fresh source/compiler review separately accepted the isolated
+contracts with nonblocking parameter/domain generalizations explicitly retained.
+The reviewer-owned receipt is
+`runs/20261109-slc-lsi-angular-degree/source-reviewer-verification-result.json`.
+Decoding, verification, integration, merge and purification remain distinct.
 
 ## Mathematical delta
 
@@ -33,15 +37,14 @@ sufficiently-large-dimension regime. Directions are deterministic and unit.
    source-roundtrip packets now exist. The reader leads with the Gaussian-law
    statement and folds tensor construction below it, retaining all constants
    and indexing in the expansion. Anonymous definition/theorem unfoldings also
-   compiled against the actual declaration. Complete the independent decoder
-   and fresh source reviews before treating this as source-verified content.
-2. Use independent source-blind decoding, fresh source review and focused
-   whole-module compiler review. Three private providers (`TensorSlots`,
+   compiled against the actual declaration. Independent decoding, source review
+   and fresh direct module/test elaborations are complete for these exact bytes.
+2. Retain the reviewed boundary. Three private providers (`TensorSlots`,
    `tensorFeature`, `tensorFeature_norm_sq`) share the public-module audit and
    must not gain separate result credit.
-3. Admit/publish only after those gates; then integrate root imports/tests,
+3. Integrate root imports/tests,
    Registry and generated graph projections in the single stabilization lane.
-   PR394 retains that lane until merged; do not mix this unreviewed candidate
+   PR394 retains that lane until merged; do not mix this separate candidate
    into its already-reviewed energy-truncation batch.
 4. The true next mathematical boundary is joint coefficient projection and
    independence, then the degree-summed/radially scaled field law. Only after

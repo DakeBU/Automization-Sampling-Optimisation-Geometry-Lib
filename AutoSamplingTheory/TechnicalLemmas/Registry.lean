@@ -24,6 +24,7 @@ import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
@@ -5306,13 +5307,23 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 
 def probabilityMemory : List LemmaMemoryEntry := [
     {
+      key := "probability.slc-lsi-radial-level-law",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel.radialLevel_hasLaw",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Eq16 footnote2 and fixed-location marginal in §6.2",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E16",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "radial-cutoff", "HasLaw", "lower-bound"],
+      saldUse := "Actual one-location field for the joint level law and Eq51; no prefix conditioning",
+      note := "Independently compiled and source-reviewed at 0ffcf29fd. Exact shell quotients and zero-block convention on the actual coefficient measure give the Gaussian marginal with variance n*C_i(x)^2*v_i, including the zero-variance Dirac law. Reuses the fixed-level angular sum. No spatial regularity, joint or conditional law, mass estimate, or main lower bound."
+    },
+    {
       key := "probability.slc-lsi-angular-degree-sum-law",
       localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum.angularDegreeSum_hasLaw",
       upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Section4.1.1 Eq14/15 uncut finite-sum consequence",
       upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E15",
       status := LemmaMemoryStatus.formalizedLocal,
       tags := ["Gaussian", "tensor", "independence", "HasLaw", "lower-bound"],
-      saldUse := "Exact parent of the radial field law; does not supply the radial factor, conditioning or mass estimate",
+      saldUse := "Used by the actual fixed-location radial field law; no conditioning or mass estimate",
       note := "Independently compiled and source-reviewed at 3292867e2. On the actual joint coefficient model and fixed deterministic unit directions, sum the source degree evaluations, deriving measurability, independence, mean zero and exact variance n times the sum of squared amplitudes. Calls the actual component and coefficient-block laws. No cutoff, adaptive or conditional law, Eq51, or lower bound."
     },
     {

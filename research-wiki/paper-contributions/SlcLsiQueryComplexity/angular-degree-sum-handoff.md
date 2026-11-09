@@ -39,6 +39,14 @@ adjacent Lean folds; actual proof and graph PNGs were inspected. The separate
 radial field is not part of this batch. Remote CI, merge, deployment and
 postmerge purification are not inferred from local acceptance.
 
+## Main integration and purification
+
+[PR #398](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/pull/398)
+merged at `cdd03014` after all seven exact-head checks passed. The exact
+merge tree preserves both the tested proof packet and the nonoverlapping
+Bench update. Independent postmerge `ACCEPT_NO_CHANGE` seals the existing
+three-move reader and exact Lean folds; it does not itself verify deployment.
+
 ## Next dependency-ready boundary
 
 Specialize the uncut law to the paper's actual radial pullback at a

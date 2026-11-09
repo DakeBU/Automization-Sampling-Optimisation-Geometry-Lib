@@ -18,6 +18,7 @@ import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient
 import AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension
 import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient
 import AutoSamplingTheory.Core
+import AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
@@ -156,6 +157,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "analysis.normalized-bad-mass",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass.bad_mass_ratio_bounds",
+    upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Section 6.4 Fact 12, equation (60)",
+    upstreamFile := "https://arxiv.org/html/2611.05813v1#Thmfact12",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["normalization", "mass", "sqrt", "lower-bound"],
+    saldUse := "Planned Theorem 7 consumer: normalized good/bad random masses after actual normalizer and moment estimates",
+    note := "Both scalar inequalities with nonnegative masses and strictly positive total mass, including either individual zero case. Independent source and compiler review passed; random-mass integration and oracle/query lower bounds are not claimed."
+  },
   {
     key := "analysis.radial-gradient-laplacian",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus.radial_gradient_laplacian",

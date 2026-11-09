@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "units": [{
+    "kind": "theorem",
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass.bad_mass_ratio_bounds",
+    "title": "Control a bad fraction without dividing by good mass alone",
+    "sources": [{"url":"https://arxiv.org/html/2611.05813v1#Thmfact12","label":"Zhou–Suzuki, Fact 12, §6.4, Eq. (60)","scope":"Complete deterministic fact only; Theorem 7's random-mass application remains separate"}],
+    "tests": ["lake env lean Tests/NormalizedMass.lean"],
+    "assumptions": ["g and b are arbitrary nonnegative real numbers; their sum is strictly positive.","The square root is the nonnegative real square root. Either individual mass may vanish."],
+    "statement": "The fraction of bad mass is at most the unnormalized bad mass plus the squared deviation of the square root of good mass from one. This is in turn at most bad mass plus the squared deviation of good mass from one.",
+    "formula": "\\frac{b}{g+b}\\le b+(1-\\sqrt g)^2\\le b+(1-g)^2,\\qquad g,b\\ge0,\\quad g+b>0.",
+    "boundary": "This is a deterministic inequality, not a bound on an expected random ratio or a sampling-query theorem. The later substitution g=Z_good/M and b=Z_bad/M requires positivity, measurability and moment/integrability results for the actual random masses. Source nonnegativity of b is retained for fidelity; the algebra actually needs only g≥0 and g+b>0.",
+    "steps": [
+      {"title":"Identify the safe denominator", "text":"Put t=g+b. The hypothesis t>0 allows ordinary real division and gives a nonnegative square divided by t. We never divide by g, which could be zero. Let s be the nonnegative square root of g, so s²=g.", "formula":"t=g+b>0,\\qquad s=\\sqrt g\\ge0,\\qquad s^2=g.", "lean":"hpos supplies positive total mass; Real.sqrt_nonneg and Real.sq_sqrt give hs and hs2. No random-variable structure is involved."},
+      {"title":"Write the error as a nonnegative square", "text":"Subtract the bad fraction from the proposed upper bound. Combining b/t with 1 uses t-b=g. The result is exactly a square divided by t, proving the first inequality with coefficient one.", "formula":"\\begin{aligned}b+(1-s)^2-\\frac bt&=t-2s+\\frac gt\\\\&=\\frac{(t-s)^2}{t}\\ge0.\\end{aligned}", "lean":"hdiff proves this identity by field_simp, ring_nf and hs2; div_nonneg and sq_nonneg prove its sign. sub_nonneg.mp turns the difference back into the desired inequality."},
+      {"title":"Replace square-root error by quadratic error", "text":"Factor 1-g=(1-s)(1+s). Because s≥0, the second factor is positive and its square is at least one. Divide the squared factorization by (1+s)² and use that dividing a nonnegative quantity by a number at least one cannot increase it. Add the same b to both sides.", "formula":"1-g=(1-s)(1+s),\\qquad (1-s)^2=\\frac{(1-g)^2}{(1+s)^2}\\le(1-g)^2.", "lean":"hden, hfactor and hid express the positivity and factorization. eq_div_iff and mul_pow justify division; div_le_self gives the comparison, and add_le_add preserves it after adding b."}
+    ],
+    "lean_statement": "Universal real parameters, three explicit source hypotheses and a conjunction of the two inequalities. Real division is totalized, but hpos guarantees its ordinary nonzero-denominator meaning here.",
+    "lean_proof": "The two branches of constructor correspond to the two source inequalities. Every denominator/sign condition is proved internally from the stated hypotheses. The intentionally retained source hypothesis hb triggers an unused-variable warning; it is not a missing proof or an additional assumption.",
+    "astis_dependencies": [],
+    "mathlib_dependencies": ["Real.sqrt_nonneg","Real.sq_sqrt","sub_nonneg","div_nonneg","sq_nonneg","eq_div_iff","pow_ne_zero","mul_pow","add_le_add","div_le_self"]
+  }]
+}

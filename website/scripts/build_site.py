@@ -54,6 +54,7 @@ import resource_library  # noqa: E402
 import sog_bench_reader  # noqa: E402
 import reader_hierarchy  # noqa: E402
 import lower_bounds  # noqa: E402
+import subject_readers  # noqa: E402
 import textbook_math_contract  # noqa: E402
 import theorem_lessons  # noqa: E402
 import undergrad_guides  # noqa: E402
@@ -248,6 +249,7 @@ def main() -> int:
     sog_bench_reader.enrich_site(output)
     resource_library.enrich_site(output)
     lower_bounds.enrich_site(output)
+    subject_readers.enrich_site(output)
     reader_hierarchy.enrich_site(output)
     project_licensing.enrich_site(output)
     project_news.enrich_site(output)

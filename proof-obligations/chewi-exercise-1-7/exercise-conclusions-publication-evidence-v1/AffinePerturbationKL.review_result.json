@@ -1,0 +1,77 @@
+{
+  "semantic_slots": {
+    "objects": {
+      "original": "The authored statement uses the actual affine tilt ν_ε = μ.withDensity of the nonnegative extended-real image of 1+εf, canonical KL(ν_ε ∥ μ), and its real value on a neighborhood where that KL is finite. Chewi writes (1+εf)π for the tilted law in (1.E.1).",
+      "reconstructed": "The blind reconstruction defines the measure using the nonnegative extended-real density max(1+εf,0) and takes real KL only where it is finite.",
+      "relation": "equivalent",
+      "evidence": "AffinePerturbationKL.lean:33–48 uses the literal μ.withDensity (fun x => ENNReal.ofReal (1 + e * f x)) and _root_.InformationTheory.klDiv in that order. ENNReal.ofReal implements the stated truncation; the law parent proves the real density lies in [1/2,3/2] μ-a.e. near zero, so the formula ν_ε=(1+εf)μ is the actual law on its stated local scope, not a formal integrand or a global formula for a signed density."
+    },
+    "domains": {
+      "original": "The authored ASTIS result takes an arbitrary measurable space with a probability measure and a real observable. The textbook hint on printed p.43 / PDF p.55 is for a centered f in C_c^∞(ℝ^d) in its Euclidean probability-law setting.",
+      "reconstructed": "The blind result uses a probability space (X,𝒳,μ) and f : X → ℝ on that space.",
+      "relation": "equivalent",
+      "evidence": "The actual Lean binder has only {X : Type*} [MeasurableSpace X] and μ : Measure X [IsProbabilityMeasure μ]; neither parent imports a geometric premise into this result. Smooth compact support implies real a.e. strong measurability and boundedness for the Euclidean instance. Cor. 2.1.2 invokes the expansion for the bounded smooth, centered tests with compactly supported gradient of Prop. 2.1.1, also covered. The authored domain is a generalization, not literally the textbook test class."
+    },
+    "quantifiers": {
+      "original": "For each admissible μ, f, and fixed a.e. bound, all sufficiently small real |ε|, including zero, give a probability law and finite KL; the remainder is little-o on the full neighborhood.",
+      "reconstructed": "There is some fixed real M bounding f a.e.; every sufficiently small |ε| works, and the real expansion holds as ε → 0.",
+      "relation": "explicit-elaboration",
+      "evidence": "Lean quantifies an arbitrary witness M and a bound proof before both parameter conclusions, and uses 𝓝 0 for both. Eventual probability and finiteness mean there exists a neighborhood, hence an open interval around zero, on which they hold. The punctured two-sided filter 𝓝[≠] 0 is only an intermediate division device. Chewi's (1.E.1) display has no explicit one-sided restriction; the ε↘0 in Prop. 2.1.1 is on the transport side."
+    },
+    "assumptions": {
+      "original": "The authored hypotheses are μ probability, f real μ-a.e. strongly measurable and uniformly bounded μ-a.e., and ∫f dμ=0.",
+      "reconstructed": "The same hypotheses, with |f|≤M μ-a.e. spelled out for a fixed real M.",
+      "relation": "same",
+      "evidence": "Lean has precisely IsProbabilityMeasure, AEStronglyMeasurable, the a.e. bound, and the centered integral equality. BoundedPerturbationLaw.lean:44–86 derives f and density integrability, near-zero positivity, mass one, the Radon–Nikodym identity, and entropy integrability. No differentiability or support of f, positivity premise, log-integrability premise, smallness premise at the theorem binder, or nonzero M is required."
+    },
+    "conclusion": {
+      "original": "Eventually ν_ε is probability and extended-real KL(ν_ε ∥ μ)<∞; its real value is (ε²/2)∫f²dμ + o(ε²).",
+      "reconstructed": "The same actual-law probability, finiteness and real expansion with coefficient (1/2)∫f²dμ.",
+      "relation": "equivalent",
+      "evidence": "AffinePerturbationKL.lean:49–62 rewrites canonical KL using the parent's formula ofReal (∫klFun(1+εf)dμ) and proves the strict bound with ENNReal.ofReal_lt_top, independently of toReal; only afterward does toReal_ofReal use nonnegativity. The parent proves integrability before that identity, so totalized integrals do not hide divergence. Lines 63–93 subtract Q=(∫f²)/2, obtain the punctured quotient limit, prove ν_0=μ and KL(μ∥μ)=0, and combine with pure zero and the zero-of-denominator condition to obtain full-neighborhood little-o."
+    },
+    "scopes": {
+      "original": "The authored obligation is the actual-law KL expansion in (1.E.1) only. The full Exercise 1.7 is LSI ⇒ PI, and Cor. 2.1.2 is the textbook T₂ ⇒ PI consumer.",
+      "reconstructed": "Only the actual affine perturbation and its quadratic KL expansion are claimed.",
+      "relation": "same",
+      "evidence": "On printed p.50 / PDF p.62 the corollary explicitly invokes (1.E.1) for the KL side and a separate transport result for the Wasserstein side. The current whole module has one theorem, importing actual-law and compensated-entropy parents; there is no Wasserstein, cost, T₂, LSI, PI or compiled consumer declaration. The lesson's Taylor calculation is a valid explanatory proof on the punctured positive-density segment, not the method used by the analytic Lean parent."
+    },
+    "constant_dependencies": {
+      "original": "The coefficient is exactly (1/2)∫f²dμ; the neighborhood may depend on the fixed bound, not on the corollary's transport constant or geometry. No parameter-uniform remainder over an arbitrary class of μ,f is asserted.",
+      "reconstructed": "The same exact coefficient and sufficiently small |ε| after fixing μ,f and an a.e. bound M.",
+      "relation": "same",
+      "evidence": "The law parent uses |ε| |M| < 1/2, e.g. |ε| < 1/(2(1+|M|)) works even when M=0. The analytic parent gets f² as the integrable dominator and the pointwise limit f²/2. Independently, k''(t)=1/t gives the lesson's Taylor integral: the segment denominator is at least 1/2, so the integral factor is at most 2∫₀¹(1−s)ds=1 and tends to 1/2. C enters only the textbook consumer's separate inequality, not the KL result."
+    }
+  },
+  "deltas": [
+    {
+      "id": "chewi-generality",
+      "slot": "domains",
+      "classification": "source-scope-clarification",
+      "blocking": false,
+      "description": "The packet's 'faithful paraphrase' describes a scoped ASTIS generalization of (1.E.1), not a literal restatement of its hypotheses: the printed hint specifies C_c^∞(ℝ^d), whereas the Lean theorem works for essentially bounded a.e. strongly measurable observables on arbitrary probability spaces. The packet's attribution and candidate assumptions disclose that extension."
+    },
+    {
+      "id": "chewi-parameter-scope",
+      "slot": "quantifiers",
+      "classification": "source-scope-clarification",
+      "blocking": false,
+      "description": "Qualify the candidate note that the source uses small positive parameters: ε↘0 is explicit for Prop. 2.1.1's transport limit used by Cor. 2.1.2, not a restriction written into Exercise 1.7's (1.E.1). The actual theorem and local lesson correctly use a two-sided neighborhood and include zero."
+    },
+    {
+      "id": "scalar-proof-method",
+      "slot": "scopes",
+      "classification": "proof-method-clarification",
+      "blocking": false,
+      "description": "The lesson's Taylor integral identity and f² bound are sound for ε≠0 and the indicated positive affine segment. They are an explanatory derivation: BoundedDensityPerturbation.lean instead obtains the scalar limit by log differentiation and L’Hôpital, the quadratic upper bound from log t≤t−1, and the integral limit by dominated convergence. The lesson's named Lean invocation of the resulting limit is accurate."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "reviewer": "agent-task:/root/affine_kl_publication_source_review",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Independently fetched and verified the PDF SHA-256 8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae; inspected Chewi, Log-Concave Sampling (August 20, 2026), https://chewisinho.github.io/main.pdf#page=55 (printed p.43, Exercise 1.7 hint, (1.E.1)) and https://chewisinho.github.io/main.pdf#page=62 (printed p.50, Cor. 2.1.2), with Prop. 2.1.1 on PDF p.61 for the consumer's hypotheses and one-sided transport limit. Read the entire actual AffinePerturbationKL.lean, SHA-256 26d341f16ce386430fa9de4860f2298d89eb1dbb15c74c925054eb4ffa24ed8a, matched its text to the packet, and traced BoundedPerturbationLaw.lean:34–88 and BoundedDensityPerturbation.lean:33–121. Independently checked the formula derivation, especially normalization, canonical extended-real finiteness before conversion, the exact half coefficient, and the separate endpoint. The verdict compares the authored scoped generalization with the blind reconstruction and current theorem, not the whole textbook exercise or the corollary. No build, prior review, or prior verdict was used.",
+  "reviewer_packet_sha256": "be7fc83e6de064a969f210585608476fccea6909d8f6de5fd03e6ec02e509e62",
+  "review_run_sha256": "764bb95121cb3812983caef7449720662eff567103a537633044e578d2735b77"
+}

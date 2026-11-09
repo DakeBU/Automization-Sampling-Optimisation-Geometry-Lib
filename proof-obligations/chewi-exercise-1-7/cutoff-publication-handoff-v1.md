@@ -34,7 +34,7 @@ publication declaration or a counterexample on the stated integrable domain.
 
 ## Replay and integration boundaries
 
-`python proof-obligations/chewi-exercise-1-7/check_cutoff_publication_v1.py`
+`python proof-obligations/chewi-exercise-1-7/check_exercise_publication_packets.py --batch cutoff`
 rehydrates the exact packet-backed records from the evidence folder, checks the
 decoder and reviewer pins, compares all bindings to current Lean and lesson
 content, and smoke-tests the actual progressive lesson renderer. It also checks

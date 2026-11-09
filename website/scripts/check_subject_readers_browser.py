@@ -51,6 +51,8 @@ def main() -> None:
          'AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation_gaussian_bound'),
         ('slc-lsi-angular-degree', 'angularDegreeComponent_hasLaw', 'angular',
          'AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent_hasLaw'),
+        ('slc-lsi-coefficient-blocks', 'jointCoefficientBlocks_hasLaw', 'coefficient-blocks',
+         'AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks.jointCoefficientBlocks_hasLaw'),
     )
     assert {case[3] for case in proof_cases} <= reviewed
     try:
@@ -166,6 +168,10 @@ def main() -> None:
                         folds.first.locator('summary').click()
                         assert short_name in folds.first.inner_text()
                         folds.first.locator('summary').click()
+                        proof_summary = folds.last.locator(':scope > summary')
+                        proof_summary.click()
+                        assert folds.last.locator('pre').first.is_visible()
+                        proof_summary.click()
                         reader.locator('.proof-reader-step details').first.locator('summary').click()
                         assert not page.locator('mjx-merror, [data-mjx-error]').count()
                         assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')

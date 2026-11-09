@@ -22,6 +22,7 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
@@ -5303,6 +5304,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+    {
+      key := "probability.slc-lsi-joint-coefficient-law",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks.jointCoefficientBlocks_hasLaw",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Section4.1.1 joint Euclidean coefficient law following Eq15",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E15",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "product-measure", "tensor", "lower-bound"],
+      saldUse := "Planned degree-summed angular field, coefficient prefix, and conditional level iteration",
+      note := "Independently compiled and source-reviewed at dac19f45c. Exact entrywise grouping of the unconditioned joint Euclidean standard Gaussian gives the product of block standard Gaussians. Tests derive every marginal and mutual independence. No supplied law or independence; no degree sum, radial field, adaptive conditioning, admissibility, or main lower bound."
+    },
     {
       key := "probability.slc-lsi-angular-degree-law",
       localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent_hasLaw",

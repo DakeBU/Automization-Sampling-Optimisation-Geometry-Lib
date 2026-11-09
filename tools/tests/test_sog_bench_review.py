@@ -89,8 +89,8 @@ class EditorialReviewTests(unittest.TestCase):
             bench.export(target, with_draft)
             questions = [json.loads(line) for line in (target/'reviewed-questions.jsonl').read_text(encoding='utf-8').splitlines()]
             refs = [json.loads(line) for line in (target/'reviewed-reference.jsonl').read_text(encoding='utf-8').splitlines()]
-            self.assertEqual(len(questions), 49)
-            self.assertEqual(len(refs), 34)
+            self.assertEqual(len(questions), 50)
+            self.assertEqual(len(refs), 35)
             self.assertEqual({q['id'] for q in questions}, {c['id'] for c in refs})
             self.assertTrue(all('steps' not in q and 'lean_reference' not in q for q in questions))
             self.assertNotIn('sogb-999', {q['id'] for q in questions})
@@ -100,7 +100,17 @@ class EditorialReviewTests(unittest.TestCase):
         self.assertEqual(set(rows), {f'sogb-{i:03d}' for i in range(8,15)})
         self.assertTrue(all(review.accepted(row) for row in rows.values()))
         self.assertTrue(all(row['formal_alignment'] == 'no-aligned-view' for row in rows.values()))
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 34)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 35)
+
+    def test_first_research_audit_is_prose_only_and_exactly_bound(self):
+        directory = review.BASE / 'reviews/prose-10'
+        rows = review.prose_statuses(self.cores, directory)
+        self.assertEqual(set(rows), {'sogb-035'})
+        self.assertEqual(rows['sogb-035']['editorial'], 'accepted')
+        self.assertEqual(rows['sogb-035']['formal_alignment'], 'no-aligned-view')
+        changed = deepcopy(self.cores)
+        next(c for c in changed if c['id'] == 'sogb-035')['binding_sha256'] = 'different-work-budget'
+        self.assertEqual(review.prose_statuses(changed, directory)['sogb-035']['editorial'], 'stale')
 
     def test_l2_boundary_review_admits_only_the_exact_prose_versions(self):
         directory = review.BASE / 'reviews/prose-9'

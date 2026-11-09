@@ -52,6 +52,7 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-032 | Riemannian Optimisation / Statistical Optimal Transport | Derive simultaneous law and point stability of sphere-projected feature gradients from actual couplings and derivative bounds (L4) | Join the actual angular, Bochner-mean and tangent-gradient producers without importing the assembled answer (L4) |
 | sogb-033 | Riemannian Optimisation / Statistical Optimal Transport | Distinguish finite angular cost and infinite intrinsic path cost on the two-point sphere, including the actual Dirac coupling (L2) | Angular cost and transport definition are support only |
 | sogb-034 | SampleWiki / MCMC | Compute the exact binary hybrid gaps and test an incorrectly weighted adjacent bound (L2) | Generic kernel averaging and telescope are support only |
+| sogb-035 | SampleWiki / MCMC | Design a stopped-path likelihood transfer and refute the ideal-average conditional budget substitute (L5) | Existing TV and single-phase work are support only; no aligned Lean target |
 
 Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Structural graph editorial decisions are recorded separately; empirical difficulty calibration remains open. Existing theorem review does not certify a new question.
 
@@ -113,7 +114,7 @@ The seven domain indexes follow the seven library routes; shared questions can a
 | L4 | Cross-module composition with actual inputs, domains, integrability and errors |
 | L5 | Source-grounded research audit or proof transfer with failure boundaries |
 
-Labels are author-assigned and **not empirically calibrated**. Natural-language and Lean views have their own labels; code length, tokens, import depth and graph distance are not difficulty. Independent review rejected the proposed L5 label of the weak-convexity transfer audit and requested L4: source inspection and originality alone do not establish research-level difficulty. L5 remains a gap, not an invented solution to an open problem. Import structure, elaborated declaration dependencies, reviewed source-proof routes and conceptual mechanisms are distinct evidence types.
+Labels are provisional and **not empirically calibrated**. Natural-language and Lean views have their own labels; code length, tokens, import depth and graph distance are not difficulty. Independent review rejected the proposed L5 label of the weak-convexity transfer audit and requested L4: source inspection and originality alone do not establish research-level difficulty. The stopped-work audit in [prose round 10](reviews/prose-10/README.md) addresses one natural-language L5 task in SampleWiki and MCMC (one shared core); it does not fill other L5 cells or any L5 Lean cell. Import structure, elaborated declaration dependencies, reviewed source-proof routes and conceptual mechanisms are distinct evidence types.
 
 ## Try it
 

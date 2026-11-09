@@ -27,8 +27,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 34)
-        self.assertEqual(len(prompts), 49)
+        self.assertEqual(len(self.cores), 35)
+        self.assertEqual(len(prompts), 50)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -80,7 +80,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 49)
+            self.assertEqual(manifest['qa_views'], 50)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -218,13 +218,17 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 34)
-        self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
+        self.assertEqual(coverage['unique_mathematical_cores'], 35)
+        self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
+                         {'samplewiki', 'mcmc'})
         self.assertFalse(any(c['track_levels'].get('lean') == 'L5' for c in self.cores))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 34)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 35)
+        for l5 in (c for c in current['cells'] if c['level'] == 'L5'):
+            self.assertEqual(l5['independently_reviewed'], int(l5['domain'] in ('samplewiki', 'mcmc')))
+            self.assertEqual(l5['draft_views']['lean'], 0)
         riem_l4 = next(c for c in current['cells']
                        if c['domain'] == 'riemannian-optimization' and c['level'] == 'L4')
         self.assertEqual(riem_l4['draft_views']['lean'], 1)
@@ -263,6 +267,23 @@ class BenchTests(unittest.TestCase):
             self.assertIn('focus=decl%3A' + core['declaration'], page)
             self.assertIn('Supporting library Lean (not an aligned QA task)', page)
             self.assertIn('Lean view: not yet aligned', page)
+
+    def test_stopped_cost_audit_keeps_the_new_interfaces_outside_formal_credit(self):
+        cores = {c['id']: c for c in self.cores}
+        audit = cores['sogb-035']
+        self.assertEqual(audit['family'], cores['sogb-034']['family'])
+        self.assertEqual(audit['track_levels'], {'natural-language': 'L5'})
+        self.assertFalse(bench.has_lean(audit))
+        self.assertEqual(audit['lean_task'], '')
+        support, = audit['supporting_declarations']
+        self.assertEqual(support['source_file'],
+                         'AutoSamplingTheory/ExampleCases/SmoothedPicardHMC/ImplementedPhaseWork.lean')
+        prompt, = bench.prompts([audit])
+        self.assertNotIn('steps', prompt)
+        self.assertNotIn('supporting_declarations', prompt)
+        page = reader.core_page(audit, False, {'decl:' + audit['declaration']})
+        self.assertIn('Formal support and missing Lean alignment', page)
+        self.assertIn('not a second moment of the total stopped query count', page)
 
     def test_compiler_scope_tracks_real_imports_and_pins_not_unrelated_modules(self):
         selected = [c for c in self.cores if c['id'] == 'sogb-016']

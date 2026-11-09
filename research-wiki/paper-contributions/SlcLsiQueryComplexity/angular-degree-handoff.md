@@ -42,10 +42,10 @@ sufficiently-large-dimension regime. Directions are deterministic and unit.
 2. Retain the reviewed boundary. Three private providers (`TensorSlots`,
    `tensorFeature`, `tensorFeature_norm_sq`) share the public-module audit and
    must not gain separate result credit.
-3. Integrate root imports/tests,
-   Registry and generated graph projections in the single stabilization lane.
-   PR394 retains that lane until merged; do not mix this separate candidate
-   into its already-reviewed energy-truncation batch.
+3. After PR394's observed merge, the single stabilization lane admitted this
+   separate candidate. Root Tests pass9640 jobs and the ASTIS gate passes on
+   the integrated612-leaf tree. Only the scalar-law theorem adds a leaf.
+   The local site and remote merge/deployment evidence remain distinct.
 4. The true next mathematical boundary is joint coefficient projection and
    independence, then the degree-summed/radially scaled field law. Only after
    those and the actual gates exist may conditional level integration apply
@@ -73,3 +73,22 @@ review. In particular, the degree-summed field, radial zero-block extension,
 earlier-level gate measurability and conditional iteration are not results of
 the fixed-direction theorem. Do not use an unconditioned law after conditioning
 on admissibility, or turn adaptive directions into fixed parameters.
+
+## Local stabilization
+
+The integrated 612-leaf tree passes root Tests (9640 jobs), the full ASTIS
+gate, publication/contributor/semantic/Frontier checks, site build/check and
+both focused graph checks. The exact independently reviewed Lean and lesson
+bytes are unchanged. Graph focus shows one canonical blue law declaration,
+its owning module, and distinct source/audit overlays; this is not a complete
+compiler dependency export. The definition and private providers are not
+separate Registry leaves.
+
+Desktop/mobile Edge checks exercised the four subject entries, both new
+lower-bound scopes, MALA/HMC method links and Fit, source formulas and all
+seven adjacent Lean folds. Actual proof and graph PNGs were inspected. Labels
+stay inside the focused method nodes; Fit frames the whole local branch.
+Zero MathJax errors or page-wide horizontal overflow were observed. The
+selected method relations are dashed reader context, not new Lean edges.
+Remote exact-head CI, merge, deployment and post-merge purification remain
+separate from these local receipts.

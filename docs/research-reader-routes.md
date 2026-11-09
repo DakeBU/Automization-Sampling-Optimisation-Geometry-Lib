@@ -30,6 +30,30 @@ calculations go behind descriptive disclosures or focused pages. Never put all
 Lean in a detached final appendix: keep each exact statement/proof fold beside
 the corresponding authored mathematical proof. Avoid duplicated full proof DOM.
 
+### Two lower-bound questions, one shared graph
+
+Lower Bounds first splits by the quantified algorithm class, not by textbook:
+**algorithm-specific** (MALA, specified leapfrog HMC, midpoint schemes and
+method sharpness) versus **general within an explicit oracle model** (optimisation,
+Gaussian query complexity and nonlinear SLC/LSI targets). A general oracle
+claim still has information, randomization, adaptivity, initialization and cost
+restrictions; it is not an unrestricted impossibility theorem.
+
+Method readers link back to the matching algorithm chapters (Chewi5.2,7.5,7.6)
+and the existing Methods × targets nodes. Reversible-kernel/Dirichlet conventions
+connect MCMC and discrete sampling; integrator recurrences connect numerical
+upper/lower analyses; information restriction and separation connect oracle
+arguments across optimisation and sampling. These reading relations do not add
+solid Lean implications. Reuse an exact declaration only when the hypotheses
+and actual call are present; compare mechanisms in reviewed Functor adapters.
+
+Initial primary reading references are Lee–Shen–Tian (NeurIPS2021,
+arXiv2106.05480) and Wu–Schmidler–Chen (arXiv2109.13055v2 / JMLR2022).
+Their MALA/HMC lower bounds are reading/formalization targets, not newly admitted
+proofs. Warmness regimes, relaxation versus mixing time, fixed versus randomized
+trajectory policies and gradient queries per transition must stay distinct.
+Do not transfer a leapfrog bound to SPHMC merely because both names contain HMC.
+
 ## Zhou–Suzuki, arXiv:2611.05813v1
 
 Source/title/authors/license/PDF fingerprint and the three restatements live once

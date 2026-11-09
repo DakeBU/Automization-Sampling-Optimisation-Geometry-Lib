@@ -352,6 +352,7 @@ import Tests.Shared.SubgradientMethod
 import Tests.NormalizedMass
 import Tests.GaussianOddLoad
 import Tests.SlcLsiEnergyTruncation
+import Tests.SlcLsiAngularDegree
 
 /-!
 Focused Chapter 1.1 stochastic-calculus and Chapter 1.2 Markov/Feller tests are

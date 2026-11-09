@@ -77,3 +77,12 @@ within an explicitly induced compiled slice; that path does not establish
 mathematical necessity. Wait for canonical publication and a fresh exported
 graph, answer equivalence, exact replay and separate editorial review before
 admitting any of these views. Do not describe the draft as a runnable task.
+
+A source-faithful comparison is available for a later two-target slice:
+the compact PI proof and the actual-law KL proof both directly call
+`BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq`.
+Only the KL branch uses the actual-law identity; only the PI branch uses the
+square-root energy and cutoff-LSI extension. Ask for the shared producer in
+the supplied slice, not whether either theorem mathematically entails the
+other. Keep the explicit source use by Corollary 2.1.2 as a source edge until
+there is a corresponding compiled theorem body.

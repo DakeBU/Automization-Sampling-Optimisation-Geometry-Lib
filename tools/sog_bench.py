@@ -139,6 +139,7 @@ def materialize(data: dict | None = None) -> list[dict]:
 
 
 def prompts(cores: list[dict]) -> list[dict]:
+    from sog_bench_exposure import LEAN_PROMPT_PREFIX
     rows = []
     for core in cores:
         common = {k: core[k] for k in ('id', 'family', 'domain', 'library_domains', 'skills', 'title', 'split', 'assumptions', 'binding_sha256')}
@@ -146,10 +147,7 @@ def prompts(cores: list[dict]) -> list[dict]:
             import sog_bench_exercises
             common['exercise_source'] = sog_bench_exercises.source_prompt(core['textbook_exercise'])
         for track, level in core['track_levels'].items():
-            question = core['question'] if track == 'natural-language' else (
-                'Complete the fixed Lean target below. Keep its imports, context and proposition unchanged. '
-                'Use the repository-pinned Lean/Mathlib. This is open-library reconstruction; '
-                'the target module is not imported directly.\n\n' + core['lean_task'])
+            question = core['question'] if track == 'natural-language' else LEAN_PROMPT_PREFIX + core['lean_task']
             rows.append({**common, 'track': track, 'level': level, 'question': question})
     return rows
 
@@ -322,6 +320,10 @@ def selected_graph_tasks(graphs: list[dict], metadata: dict) -> list[dict]:
 def export(output: Path, cores: list[dict] | None = None) -> None:
     cores = cores or materialize()
     graphs = curriculum.graph_items()
+    import sog_bench_exposure as exposure
+    # Validate both public snapshots before creating or updating export files.
+    current_exposure = exposure.build_public(cores, graphs)
+    draft_exposure, draft_sources = exposure.known_published_drafts()
     review = editorial_review(cores)
     import sog_bench_graph_review
     graph_review = sog_bench_graph_review.summary(graphs)
@@ -329,6 +331,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     reviewed = [c for c in cores if review['items'][c['id']]['editorial'] in {'accepted', 'accepted-after-repair'}]
     task_files = task_assets(reviewed, reviewed_graphs)
     expected = {'questions.jsonl', 'reference.jsonl', 'manifest.json', 'README.md',
+                exposure.PUBLIC_FILE, exposure.PUBLIC_DRAFT_FILE, exposure.PUBLIC_DRAFT_SOURCE_FILE,
                 'editorial-review.json', 'graph-editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 'reviewed-graph-questions.jsonl','reviewed-graph-reference.jsonl',
@@ -348,6 +351,9 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write = lambda path, value: (output / path).write_bytes(value)
     jsonl = lambda rows: ''.join(json.dumps(r, ensure_ascii=False, sort_keys=True) + '\n' for r in rows).encode()
     write('questions.jsonl', jsonl(prompts(cores)))
+    write(exposure.PUBLIC_FILE, current_exposure)
+    write(exposure.PUBLIC_DRAFT_FILE, draft_exposure)
+    write(exposure.PUBLIC_DRAFT_SOURCE_FILE, draft_sources)
     for name, content in task_files.items():
         (output / name).parent.mkdir(parents=True, exist_ok=True)
         write(name, content)

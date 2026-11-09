@@ -83,6 +83,16 @@ class BenchTests(unittest.TestCase):
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
             self.assertTrue((output/'compiled-flow-graph.json').is_file())
+            import sog_bench_exposure as exposure
+            catalog = exposure.public_records((output/exposure.PUBLIC_FILE).read_bytes())
+            self.assertEqual({r['id'] for r in catalog}, {c['id'] for c in self.cores} | {
+                g['id'] for g in bench.curriculum.graph_items()})
+            self.assertEqual(sum(len(row['views']) for row in catalog), manifest['qa_views'] + manifest['graph_tasks'])
+            self.assertEqual(tuple((output/name).read_bytes() for name in
+                (exposure.PUBLIC_DRAFT_FILE, exposure.PUBLIC_DRAFT_SOURCE_FILE)), exposure.known_published_drafts())
+            with zipfile.ZipFile(output/'agent-tasks.zip') as agent:
+                self.assertFalse(set(agent.namelist()) & {exposure.PUBLIC_FILE, exposure.PUBLIC_DRAFT_FILE,
+                                                          exposure.PUBLIC_DRAFT_SOURCE_FILE})
             self.assertIn('content-bound', manifest['independent_semantic_review'])
             self.assertEqual(manifest['editorial_accepted_graph_tasks'], graph_review.summary(bench.curriculum.graph_items())['accepted_tasks'])
             self.assertIn('human-attested', manifest['prose_scoring'])
@@ -112,6 +122,15 @@ class BenchTests(unittest.TestCase):
     def test_absent_and_stale_receipt_do_not_claim_compilation(self):
         with tempfile.TemporaryDirectory() as tmp, patch.object(bench, 'RECEIPT', Path(tmp) / 'receipt.json'):
             self.assertFalse(bench.receipt_current(self.cores))
+
+    def test_export_refuses_nonpublic_input_before_writing_any_file(self):
+        changed = deepcopy(self.cores)
+        changed[-1]['split'] = 'private-test'
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / 'not-created'
+            with self.assertRaisesRegex(ValueError, 'public-dev cores'):
+                bench.export(output, changed)
+            self.assertFalse(output.exists())
 
     def test_export_does_not_overwrite_or_bundle_unrelated_work(self):
         with tempfile.TemporaryDirectory() as tmp:

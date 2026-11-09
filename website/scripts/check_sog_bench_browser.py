@@ -291,6 +291,17 @@ def main() -> None:
                         page.get_by_role('link',name='Run-metadata template',exact=True).click()
                     template=json.loads(Path(metadata_download.value.path()).read_text(encoding='utf-8'))
                     assert template['track']=='natural-language' and template['attempt_policy']=='first-attempt'
+                if tail == 'evaluation/index.html':
+                    page.get_by_text('Before reporting a score', exact=True).click()
+                    for label, name in (
+                        ('Catalog snapshot', 'public-exposure.json'),
+                        ('Known public drafts', 'published-draft-exposure.json'),
+                        ('Draft provenance', 'published-draft-exposure-sources.json'),
+                    ):
+                        link = page.get_by_role('link', name=label, exact=True)
+                        assert link.is_visible() and link.get_attribute('href') == '../downloads/' + name
+                        receipt = page.request.get(base + HUB + 'downloads/' + name)
+                        assert receipt.ok and hashlib.sha256(receipt.body()).hexdigest() == manifest['files'][name]
                 if tail=='graph-json/index.html':
                     assert page.get_by_role('heading',name='Source imports',exact=True).count()==1
                     assert page.get_by_role('heading',name='Compiled proof bodies',exact=True).count()==1

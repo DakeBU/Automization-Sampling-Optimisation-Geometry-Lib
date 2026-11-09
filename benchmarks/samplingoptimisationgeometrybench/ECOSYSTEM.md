@@ -75,6 +75,81 @@ Use [EVALUATION.md](EVALUATION.md) for the existing commands, response schemas,
 first-attempt denominator, provenance fields and human-grading procedure.
 Trusted-reference/oracle software tests are not measured agent scores.
 
+## Offline holdout preflight
+
+Retain both public exposure downloads, with their exact bytes. The catalog
+snapshot covers all current catalog entries, not just admitted exports.
+The separately pinned **published-draft** snapshot adds eight known off-main
+records (twelve views) from publicly reachable commits: five catalog-stack
+cores, two Exercise 1.7 drafts, and the random-scan graph draft. This list is
+not a search of the entire internet or all historical branches. Keep old
+snapshots even if a branch is deleted or a task is renamed.
+
+The [published-draft provenance](published-draft-exposure-sources.json)
+records the exact Git commits, typed anchors and SHA-256 values of the three
+prompt exports used. Reproduce those exports on the pinned sources:
+
+- `catalog-stack`: the `questions.jsonl` from `python tools/sog_bench.py export`
+  at [3b016d0c](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/commit/3b016d0cf921ff5bb05949d3d8fb5c87168f4dd9),
+  taking only the five IDs in the provenance record.
+- `exercise-1-7`: `agent/prompts.jsonl` from the checked
+  `proof-obligations/chewi-exercise-1-7/preview_bench_tasks.py` at
+  [0fa0ab87](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/commit/0fa0ab87ad73fd73b74e724ad33215267fb277ef).
+- `random-scan-graph`: `agent/prompt.json` from
+  `candidates/random-scan-graph/check_candidate.py --export-review` at
+  [57ee324f](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/commit/57ee324ff4b53efe547f6cc8ed5cb7b9bcfe8e57).
+
+```bash
+python tools/sog_bench_exposure.py \
+  --replay-published-drafts catalog-stack /retained/catalog/questions.jsonl \
+  --replay-published-drafts exercise-1-7 /retained/exercise/prompts.jsonl \
+  --replay-published-drafts random-scan-graph /retained/graph/prompt.json
+```
+
+This reads public prompt exports as data and checks their exact fingerprints.
+It does not execute code from those branches, authenticate the owner of an
+export, or include any solution or private material in either snapshot. Add
+new exposed drafts through an explicit source record, not a private run.
+
+For a private inventory, use the offline command below. Keep **all private
+inputs outside the checkout**, including its ignored folders. Private
+labels and task content do not appear in the public outputs.
+
+```bash
+python tools/sog_bench_exposure.py --inventory /secure/inventory.json \
+  --historical-public /retained/earlier/public-exposure.json
+```
+
+The current catalog and known draft snapshots are always included; do not
+pass either of those again. Use `--historical-public` once per other
+distinct known exposure snapshot. The strict JSON inventory has
+`schema_version: 1`, `kind: "sog-bench-private-inventory"`,
+`split: "private-test"`, `source_scope: "project-owned-original-only"`,
+`public_snapshots` (the SHA-256 digests of **all** supplied and automatically
+included snapshots), and `records`. Each record has exactly `id`, `family`,
+`anchors` and `views`. Use stable primary `lean:<declaration>`,
+`exercise:<source-id>` or `original:<source-id>` anchors; do not reserve
+every shared foundational lemma. Compute views with `prompt_sha256`: exact
+assumptions/question, fixed Lean template, or structural prompt fields.
+
+To bind an independent review, add all of `--prompts`, `--references`,
+`--review` and `--expected-review-sha256` (the digest received independently).
+The `sog-bench-private-prompts` and `sog-bench-private-references` packs
+both have `schema_version: 1`, `kind`, and `records` with exact `id` and
+`views` coverage. References give nonempty `solution` and `rubric`
+strings per track. The `sog-bench-private-review` receipt binds the exact
+`inventory_sha256`, `prompts_sha256`, `references_sha256`, distinct
+`author` and `reviewer` labels, and one accepted `families` entry per family
+with `id`, `decision`, and checks for source/rights, family independence,
+solution/rubric, and tool/graph scope.
+
+The exact collision screen does not detect arbitrary paraphrases, missing
+public exposures, or renamed mathematical families with different declared
+anchors. A matching review digest does not authenticate the reviewer or
+verify the proof. Neither output admits a private corpus, executes Lean,
+contacts a provider, or reports a model result. Independent source and
+family review and a real evaluation are separate requirements.
+
 ## Expert graph inspection
 
 Every question has an immediately visible library-result card and a deep link

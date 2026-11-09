@@ -137,7 +137,7 @@ def evaluation_page() -> str:
             '<p>For Linux operators: bounded proof checks, compiler feedback and one reserved final submission. This is not a hosted service or a model result.</p>'
             f'<p><a href="{source_root}/benchmarks/samplingoptimisationgeometrybench/lean-runtime/WORKSPACE.md">Setup and check/submit commands</a> · '
             f'<a href="{source_root}/runs/20261105-bench-lean-runtime/native08-independent-review.json">Exact native evidence and independent scope review</a></p>')
-        + fold('Before reporting a score', '<p>Freeze prompts, family split, model/version, retrieval/tools, attempts and raw outputs. Keep answers out of evaluation prompts. Current data is public-dev; no unseen-generalization or measured model-ranking claim is supported.</p><p>Recorded human rubric judgments are not automatically verified mathematics.</p>') + '</article>')
+        + fold('Before reporting a score', '<p>Freeze prompts, family split, model/version, retrieval/tools, attempts and raw outputs. Keep answers out of evaluation prompts. Current data is public-dev; no unseen-generalization or measured model-ranking claim is supported.</p><p>Exact exposure checks: <a href="../downloads/public-exposure.json" download>Catalog snapshot</a> · <a href="../downloads/published-draft-exposure.json" download>Known public drafts</a> · <a href="../downloads/published-draft-exposure-sources.json">Draft provenance</a>. These do not certify novelty.</p><p>Recorded human rubric judgments are not automatically verified mathematics.</p>') + '</article>')
 
 
 def training_page() -> str:

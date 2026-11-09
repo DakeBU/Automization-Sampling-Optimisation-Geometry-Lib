@@ -89,6 +89,7 @@ def render(model: dict, items: dict, data: dict, nodes: dict) -> str:
     gaussian = reviewed_readings(GAUSSIAN_ITEMS, items, data, nodes)
     midpoint = case_link(model, "ASTIS-SW-MIDPOINT-2026", "Midpoint Langevin reader")
     gaussian_case = case_link(model, "ASTIS-SW-GAUSSIAN-COMPLEXITY-2026", "Gaussian Complexity reader")
+    nonlinear = case_link(model, "ASTIS-SW-SLC-LSI-COMPLEXITY-2026", "SLC / LSI query-complexity reader")
     return (f'<article class="resource-reader" {MARKER}>'
             '<header><p class="eyebrow">Samplinglib · cross-library research topic</p><h1>Lower Bounds</h1>'
             '<p class="lede">What information does an algorithm receive, and what can it guarantee with that information? '
@@ -101,7 +102,9 @@ def render(model: dict, items: dict, data: dict, nodes: dict) -> str:
             '<article><h3><a href="#midpoint">Midpoint methods</a></h3>'
             '<p>Bias and iteration limits for specified numerical methods.</p></article>'
             '<article><h3><a href="#gaussian">Gaussian sampling</a></h3>'
-            '<p>Query limits for adaptive algorithms with exact oracle access.</p></article></div></section>'
+            '<p>Query limits for adaptive algorithms with exact oracle access.</p></article>'
+            '<article><h3><a href="#nonlinear">Beyond Gaussian targets</a></h3>'
+            '<p>Gated tensor fields and hidden caps: SLC and LSI query lower bounds.</p></article></div></section>'
             '<section id="optimisation"><h2>Optimisation: start with the oracle</h2>'
             '<p>Identify the permitted queries, the information revealed by each reply and the required objective accuracy. '
             'Borrow the design of hard instances and the transcript argument, not the rate or its constants.</p>'
@@ -126,6 +129,12 @@ def render(model: dict, items: dict, data: dict, nodes: dict) -> str:
             + '</p><p>These Lean components do not certify the complete query lower bounds. '
             'Product amplification, transcript restrictions and the exact cost model belong to the paper route.</p>'
             + components(gaussian, "Open independently reviewed Gaussian components") + '</section>'
+            '<section id="nonlinear"><h2>Beyond Gaussian sampling</h2>'
+            '<p>Zhou–Suzuki (arXiv:2611.05813v1) use nonlinear hard instances: '
+            'layered Gaussian tensor fields for strongly log-concave targets, and hidden angular caps '
+            'for smooth targets satisfying LSI. Cold-start, unknown warm-start and LSI results have separate contracts.</p>'
+            '<p>' + nonlinear + '</p><p>All main results are open in Lean. The source outline locates what must be proved; '
+            'it does not certify reuse of Gaussian Complexity or optimisation lower bounds.</p></section>'
             '<section id="reuse"><h2>How the techniques connect</h2>'
             '<p>One reusable proof pattern: if two hard priors yield the same joint law of the random seed and visible transcript '
             r'(including stopping), measurable postprocessing gives one averaged output law \(Q\). If the guarantee places '

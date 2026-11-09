@@ -46,10 +46,10 @@ class CompanionTests(unittest.TestCase):
         companion.validate_data()
         cross_domain.validate_data()
 
-    def test_five_sources_keep_the_two_paper_composition_separate(self):
+    def test_six_sources_keep_the_two_paper_composition_separate(self):
         m=companion.load()
-        self.assertEqual(len(m['sources']),5)
-        self.assertEqual(len(m['cases']),5)
+        self.assertEqual(len(m['sources']),6)
+        self.assertEqual(len(m['cases']),6)
         self.assertEqual(set(m['composition']['source_ids']),{'sphmc-2026','pbps-2026'})
         cloud=next(row for row in m['cases'] if row['id']=='ASTIS-SW-GAUSSIAN-CLOUD-2026')
         self.assertEqual(cloud['source_ids'],['gaussian-cloud-2026'])
@@ -101,7 +101,7 @@ class CompanionTests(unittest.TestCase):
 
     def test_proxy_and_oracle_distinctions_are_preserved(self):
         m=companion.load()
-        w2,proxy=m['cases'][0]['theorems']
+        w2,proxy=next(c for c in m['cases'] if c['id']=='ASTIS-SW-SPHMC-2026')['theorems']
         self.assertIn('prox',w2['formula'])
         self.assertIn('dagger',proxy['formula'])
         self.assertIn('Only the proxy',proxy['boundary'])
@@ -130,8 +130,8 @@ class CompanionTests(unittest.TestCase):
 
     def test_overlay_does_not_create_compiler_edges(self):
         b=GraphBuilder(); counts=companion.add_to_graph(b)
-        self.assertEqual(counts,{'source_cases':5,'composition_views':1,'technology_candidates':12})
-        self.assertEqual(len(b.nodes),39)
+        self.assertEqual(counts,{'source_cases':6,'composition_views':1,'technology_candidates':12})
+        self.assertEqual(len(b.nodes),52)
         self.assertFalse(any(n.get('status')=='compiled' for n in b.nodes.values()))
         formal={'imports','declares','depends-on','closes leaf'}
         self.assertFalse(any(e['relation'] in formal for e in b.edges.values()))

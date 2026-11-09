@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "slc-lsi-energy-truncation",
+      "library": "samplewiki-route",
+      "chapter": "slc-lsi-06",
+      "chapter_path": "example-cases/samplewiki/companions/slc-lsi-query-complexity.html",
+      "source_order": 10.1,
+      "title": "Fact 10 for the literal energy truncation",
+      "source": {
+        "id": "slc-lsi-complexity-2026",
+        "url": "https://arxiv.org/html/2611.05813v1#Thmfact10",
+        "anchor": "Section4.1.1 footnote3 and Eq17; Section6.2 Fact10",
+        "edition": "arXiv:2611.05813v1",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Huanjian Zhou and Taiji Suzuki, CC BY4.0. ASTIS adaptation and formalization; no endorsement implied."
+      },
+      "statement": "For positive integer n and positive β,λ, define ρ(t)=exp(−1/t) for t>0 and zero otherwise, φ(t)=∫₀ᵗ ρ(2−|s|)/(ρ(2−|s|)+ρ(|s|−1)) ds, and U(y)=nβ²/λ·φ(λy/(nβ)). If Y is centered Gaussian, possibly degenerate, and a∈[0,1], then exp(−aU(Y)) is integrable and E exp(−aU(Y))≤exp(β² Var(Y)/2). This scalar statement permits any positive β,λ; the paper's recursive choices are a later instantiation.",
+      "assumptions": [
+        "n≥1 integer; β>0, λ>0.",
+        "Y has a centered Gaussian probability law, including variance zero.",
+        "The deterministic gate a lies in [0,1]."
+      ],
+      "formulae": [
+        {
+          "label": "Literal energy load",
+          "tex": "\\begin{gathered} k(s)=\\frac{\\rho(2-|s|)}{\\rho(2-|s|)+\\rho(|s|-1)},\\quad \\varphi(t)=\\int_0^t k(s)\\,ds,\\\\ U(y)=\\frac{n\\beta^2}{\\lambda}\\varphi\\!\\left(\\frac{\\lambda y}{n\\beta}\\right).\\end{gathered}"
+        },
+        {
+          "label": "Fact10",
+          "tex": "\\mathbb E e^{-aU(Y)}\\le \\exp\\!\\left(\\frac{\\beta^2\\operatorname{Var}(Y)}{2}\\right)."
+        }
+      ],
+      "obligations": [
+        {
+          "id": "literal-load",
+          "label": "Define exactly the source load on positive parameters"
+        },
+        {
+          "id": "derived-load-properties",
+          "label": "Derive measurability, oddness and sublinearity from the integral"
+        },
+        {
+          "id": "actual-gaussian-bound",
+          "label": "Prove integrability and the bound on any Gaussian probability space"
+        }
+      ],
+      "bindings": [
+        {
+          "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation",
+          "cell": "ASTIS-SW-SLC-LSI-energy-truncation-definition",
+          "role": "prerequisite",
+          "supports": [
+            "literal-load"
+          ],
+          "audit_id": "ASTIS-RT-20261109-SlcLsiEnergyTruncationDef",
+          "boundary": "This is the literal scalar energy load and Fact10. The recursive selection of amplitudes, higher smoothness/cap/plateau properties, coefficient fields and conditional product iteration are separate. Lemma6.2 and all main lower bounds remain open.",
+          "assumption_deltas": [
+            {
+              "source": "n positive integer and β_i,λ positive in the standing construction",
+              "lean": "n:ℕ+; β and lam:{r:ℝ // 0<r}",
+              "classification": "generalization",
+              "reason": "Positive carriers exclude off-source zero-denominator parameters. Every positive β,λ is allowed in this scalar result; their Eq18 recursion is not constructed."
+            },
+            {
+              "source": "φ is the footnote3 oriented integral of the rho quotient; U_i is Eq17",
+              "lean": "Literal expNegInvGlue quotient and interval integral",
+              "classification": "same",
+              "reason": "expNegInvGlue is exactly rho; the proof identifies the integrand with the existing smoothUnitCutoff, rather than choosing a different cutoff."
+            }
+          ]
+        },
+        {
+          "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation_gaussian_bound",
+          "cell": "ASTIS-SW-SLC-LSI-energy-truncation",
+          "role": "proof-edge",
+          "supports": [
+            "derived-load-properties",
+            "actual-gaussian-bound"
+          ],
+          "audit_id": "ASTIS-RT-20261109-SlcLsiEnergyTruncation",
+          "boundary": "This is the literal scalar energy load and Fact10. The recursive selection of amplitudes, higher smoothness/cap/plateau properties, coefficient fields and conditional product iteration are separate. Lemma6.2 and all main lower bounds remain open.",
+          "assumption_deltas": [
+            {
+              "source": "n positive integer and β_i,λ positive in the standing construction",
+              "lean": "n:ℕ+; β and lam:{r:ℝ // 0<r}",
+              "classification": "generalization",
+              "reason": "Positive carriers exclude off-source zero-denominator parameters. Every positive β,λ is allowed in this scalar result; their Eq18 recursion is not constructed."
+            },
+            {
+              "source": "φ is the footnote3 oriented integral of the rho quotient; U_i is Eq17",
+              "lean": "Literal expNegInvGlue quotient and interval integral",
+              "classification": "same",
+              "reason": "expNegInvGlue is exactly rho; the proof identifies the integrand with the existing smoothUnitCutoff, rather than choosing a different cutoff."
+            },
+            {
+              "source": "Centered Gaussian Y, possibly degenerate",
+              "lean": "HasLaw Y (gaussianReal 0 v) P with v:ℝ≥0",
+              "classification": "same",
+              "reason": "The hypothesis includes a.e. measurability and implies P is a probability measure; its pushforward law identifies variance Y P with v, including zero."
+            },
+            {
+              "source": "a∈[0,1] and the stated expectation inequality",
+              "lean": "Same gate interval; integrability is also concluded",
+              "classification": "source-implicit",
+              "reason": "Measurability, oddness, sublinearity and exponential integrability are derived from the literal definition, never extra hypotheses."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

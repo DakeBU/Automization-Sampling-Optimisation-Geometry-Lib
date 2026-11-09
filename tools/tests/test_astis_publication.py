@@ -254,6 +254,29 @@ class PublicationTest(unittest.TestCase):
         self.assertIn('TODO — not closed by these contributions', text)
         self.assertIn('A deliberately unbound proof obligation', text)
 
+    def test_theorem_first_reader_folds_definition_without_dropping_lean(self):
+        import publication_reader
+        item = next(i for i in p.load() if i['id'] == 'slc-lsi-energy-truncation')
+        text = publication_reader.source_card(item, 'proofs/source-slc-lsi-energy-truncation.html')
+        ns = 'AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.'
+        self.assertLess(text.index(f'data-authored-declaration="{ns}energyTruncation_gaussian_bound"'),
+                        text.index(f'data-authored-declaration="{ns}energyTruncation"'))
+        self.assertEqual(text.count('data-authored-declaration='), 2)
+        self.assertIn('<details class="reader-ledger reader-prerequisite">', text)
+        self.assertIn('Definition used above:', text)
+        self.assertNotIn('<details open', text)
+        self.assertNotIn('<h1>', text)
+        self.assertEqual(text.count('data-inline-lean='), 4)
+
+    def test_generic_reader_links_separate_literal_adapter_without_copying_it(self):
+        import publication_reader
+        item = next(i for i in p.load() if i['id'] == 'slc-lsi-gaussian-odd-load')
+        text = publication_reader.source_card(item, 'proofs/source-slc-lsi-gaussian-odd-load.html')
+        self.assertIn('href="../proofs/source-slc-lsi-energy-truncation.html"', text)
+        self.assertIn('Separate source adapter:', text)
+        self.assertEqual(text.count('data-authored-declaration='), 1)
+        self.assertNotIn('data-authored-declaration="AutoSamplingTheory.ExampleCases.', text)
+
     def test_reader_labels_verified_prerequisites_without_claiming_a_proof_edge(self):
         import publication_reader
         item = copy.deepcopy(self.item)

@@ -47,6 +47,8 @@ def main() -> None:
          'AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass.bad_mass_ratio_bounds'),
         ('slc-lsi-gaussian-odd-load', 'gaussian_odd_load_bound', 'fact10',
          'AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad.gaussian_odd_load_bound'),
+        ('slc-lsi-energy-truncation', 'energyTruncation_gaussian_bound', 'energy',
+         'AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation_gaussian_bound'),
     )
     assert {case[3] for case in proof_cases} <= reviewed
     try:
@@ -99,32 +101,35 @@ def main() -> None:
                 # default and progressive readers must work without opening Lean.
                 for width, height, label in ((1440,1000,'desktop'),(390,844,'mobile')):
                     page.set_viewport_size({'width':width,'height':height})
-                    for item_id, short_name, image_name, _ in proof_cases:
+                    for item_id, short_name, image_name, declaration in proof_cases:
                         page.goto(base + paper)
                         assert expected_progress in page.locator('#paper-lean-progress').inner_text()
                         page.locator('#paper-lean-progress > details > summary').click()
                         page.locator(f'#{item_id} > summary').click()
                         page.locator(f'#{item_id} a').click()
                         assert page.url.endswith(f'/proofs/source-{item_id}.html')
+                        reader = page.locator(f'article[data-authored-declaration="{declaration}"]')
                         # The source equation may intentionally live inside a
                         # closed disclosure; the first-reading claim is visible.
-                        page.locator('.reader-first-pass mjx-container').first.wait_for()
-                        assert page.locator('.proof-reader-step').count() == 3
-                        steps = page.locator('details.reader-proof-disclosure')
+                        reader.locator('.reader-first-pass mjx-container').first.wait_for()
+                        assert reader.locator('.proof-reader-step').count() == 3
+                        steps = reader.locator('details.reader-proof-disclosure')
                         assert steps.evaluate_all('(xs)=>xs.every(x=>!x.open)')
-                        folds = page.locator('main details[data-inline-lean]')
+                        folds = reader.locator('details[data-inline-lean]')
                         assert folds.count() == 2
                         assert folds.evaluate_all('(xs)=>xs.every(x=>!x.open)')
+                        prerequisites = page.locator('details.reader-prerequisite')
+                        assert prerequisites.evaluate_all('(xs)=>xs.every(x=>!x.open)')
                         page.screenshot(path=str(evidence / f'{image_name}-overview-{label}.png'), full_page=True)
                         steps.evaluate_all('(xs)=>xs.forEach(x=>x.open=true)')
                         # Hidden source formulae and all three proof formulae.
                         page.locator('.reader-ledger').evaluate_all('(xs)=>xs.forEach(x=>x.open=true)')
                         page.evaluate('async()=>{if(window.MathJax?.startup?.promise) await MathJax.startup.promise;}')
-                        assert page.locator('.proof-reader-step mjx-container').count() >= 3
+                        assert reader.locator('.proof-reader-step mjx-container').count() >= 3
                         folds.first.locator('summary').click()
                         assert short_name in folds.first.inner_text()
                         folds.first.locator('summary').click()
-                        page.locator('.proof-reader-step details').first.locator('summary').click()
+                        reader.locator('.proof-reader-step details').first.locator('summary').click()
                         assert not page.locator('mjx-merror, [data-mjx-error]').count()
                         assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
                         assert page.locator('.proof-reader-equation').evaluate_all('''(xs)=>xs.every(x=>{
@@ -132,10 +137,14 @@ def main() -> None:
                             const before=x.scrollLeft; x.scrollLeft=x.scrollWidth;
                             const usable=x.scrollLeft>0; x.scrollLeft=before; return usable;
                         })'''), 'Long equations must be scrollable, not permanently clipped'
-                        page.locator('.reader-first-pass').screenshot(path=str(evidence / f'{image_name}-statement-{label}.png'))
+                        reader.locator('.reader-first-pass').screenshot(path=str(evidence / f'{image_name}-statement-{label}.png'))
                         for step_index in range(3):
-                            page.locator('.proof-reader-step').nth(step_index).screenshot(
+                            reader.locator('.proof-reader-step').nth(step_index).screenshot(
                                 path=str(evidence / f'{image_name}-step-{step_index + 1}-{label}.png'))
+                        if prerequisites.count():
+                            prerequisites.locator('details.reader-proof-disclosure').evaluate_all('(xs)=>xs.forEach(x=>x.open=true)')
+                            assert prerequisites.locator('mjx-container').count() > 0
+                            prerequisites.screenshot(path=str(evidence / f'{image_name}-definition-{label}.png'))
                         page.screenshot(path=str(evidence / f'{image_name}-{label}.png'), full_page=True)
                 page.set_viewport_size({'width':1440,'height':1000})
                 for _, short_name, image_name, declaration in proof_cases:

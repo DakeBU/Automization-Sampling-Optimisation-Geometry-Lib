@@ -33,16 +33,17 @@ Whole-library integration, actual deployment and post-merge purification remain
 separate from the focused proof.
 
 Only `integrability` and `symmetry-cosh-bound` are bound in the publication item.
-`literal-load-adapter` remains open. The generic theorem is not advertised as
+The literal-load adapter is a separate publication, now independently verified;
+see `energy-truncation-integration.md` and its canonical Cell for release status.
+The generic theorem alone is not advertised as
 the complete source Fact 10 in context, Lemma 6.2, Theorem 7 or a query lower bound.
 
 ## Next dependency-ready route
 
-1. Define the actual source truncated load and derive its measurability, oddness
-   and linear bound from the source's function and positive scaling parameters.
-   Apply the existing comparison, without adding those properties as public
-   assumptions on a final source theorem. Reuse a pre-existing load definition
-   if another collaborator has supplied one.
+1. The separate `EnergyTruncation` packet now constructs the actual source load,
+   derives its measurability, oddness and linear bound, and applies this comparison
+   to an actual Gaussian random variable. Reuse that declaration; do not repeat
+   this step or assume these properties on a final source theorem.
 2. Express the actual independent Gaussian coefficients and measurable gates.
    Establish the conditional Gaussian law, freeze the appropriate gate, justify
    integration/factorization, and then iterate the level-wise estimate. A
@@ -57,7 +58,7 @@ the complete source Fact 10 in context, Lemma 6.2, Theorem 7 or a query lower bo
 Recheck active ownership before each new packet. This lane neither duplicates
 the four-paper SAUs nor transfers Huanjian/Andy/Ji/Bench responsibilities.
 
-## Integration acceptance (2026-11-09)
+## Historical integration snapshot (before PR #393 merge)
 
 The independent verifier published VERIFIED, preserving candidate `3890056ea`,
 all seven semantic slots and binding
@@ -79,4 +80,7 @@ selector correction, not suppression of a rendering failure.
 
 Final-commit gate regeneration, exact-head GitHub CI, merge, deployment and
 post-merge purification are separate receipts; none follows from these local
-checks. Every source main theorem and the literal-load adapter remain open.
+checks. At this snapshot every source main theorem and the literal-load adapter
+were open. PR #393 subsequently merged this generic ingredient at `150a8a55`,
+and its website deployed successfully. The literal-load follow-up has its own
+independent evidence and publication, while every main query bound remains open.

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "status": "PROPOSED_BEFORE_PROOF",
+  "source_url": "https://arxiv.org/html/2611.05813v1#Thmfact10",
+  "source_edition": "arXiv:2611.05813v1",
+  "source_pdf_sha256": "05520f2a491fedc6ceecc7eb0f3d0c1b23275faceb9da1d9cfa6db421aab4f0e",
+  "source_scope": "Section4.1.1 footnote3 and Eq17; Section6.2 paragraph preceding Fact10 and Fact10. Conditional iteration after Fact10 excluded.",
+  "namespace": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation",
+  "file": "AutoSamplingTheory/ExampleCases/SlcLsiQueryComplexity/EnergyTruncation.lean",
+  "definition_kind": "literal",
+  "definition": "noncomputable def energyTruncation (n : ℕ+) (β lam : {r : ℝ // 0 < r}) (y : ℝ) : ℝ :=\n  (n : ℝ) * (β : ℝ) ^ 2 / (lam : ℝ) *\n    ∫ s in (0 : ℝ)..((lam : ℝ) * y / ((n : ℝ) * (β : ℝ))),\n      expNegInvGlue (2 - |s|) /\n        (expNegInvGlue (2 - |s|) + expNegInvGlue (|s| - 1))",
+  "signature": "theorem energyTruncation_gaussian_bound {Ω : Type*} [MeasurableSpace Ω]\n    (P : Measure Ω) (n : ℕ+) (β lam : {r : ℝ // 0 < r}) {Y : Ω → ℝ}\n    (v : ℝ≥0) (hY : ProbabilityTheory.HasLaw Y (ProbabilityTheory.gaussianReal 0 v) P)\n    {a : ℝ} (ha : a ∈ Set.Icc (0 : ℝ) 1) :\n    Integrable (fun ω ↦ Real.exp (-a * energyTruncation n β lam (Y ω))) P ∧\n      (∫ ω, Real.exp (-a * energyTruncation n β lam (Y ω)) ∂P) ≤\n        Real.exp ((β : ℝ) ^ 2 * ProbabilityTheory.variance Y P / 2)",
+  "binder_audit": {
+    "TYPING": ["Ω and its measurable space, probability law carrier P", "NNReal variance v includes zero"],
+    "STANDING": ["Positive integer n and positive real β,λ encoded in their carriers. No off-domain default values.", "The paper selects λ and β_i by Eq18; this scalar lemma holds for every positive choice and does not construct that recursion."],
+    "SOURCE": ["HasLaw Y (gaussianReal 0 v) P expresses a centered Gaussian variable, possibly degenerate; it includes a.e. measurability and implies P is a probability measure.", "Frozen deterministic a belongs to [0,1]."],
+    "EXCESS": [],
+    "derived_not_assumed": ["The literal integrand equals the existing smoothUnitCutoff", "Continuity/measurability, oddness and |U(y)|≤β|y|", "Exponential integrability", "Variance identity Var(Y)=v", "Strict positivity of the rho denominator"]
+  },
+  "source_regions": [
+    {"id":"rho-primitive", "locator":"Section4.1.1 footnote3", "status":"NODE", "meaning":"Literal rho quotient and oriented integral; exact equality with the existing canonical cutoff is proved, not chosen by analogy."},
+    {"id":"primitive-properties", "locator":"Footnote3 and paragraph preceding Fact10", "status":"NODE", "meaning":"Even [0,1]-valued integrand gives odd primitive with absolute value bounded by |t|; continuity supplies measurability."},
+    {"id":"scaled-load", "locator":"Eq17; Section6.2 immediately before Fact10", "status":"NODE", "meaning":"Positive scaling gives odd U and |U(y)|≤β|y| with cancellation of n,λ."},
+    {"id":"gaussian-comparison", "locator":"Fact10 proof", "status":"NODE", "meaning":"Reuse reviewed symmetry/cosh/MGF ingredient and prove the actual random-variable law transport and variance identity."},
+    {"id":"higher-regularity", "locator":"Section4.1.1 full phi properties", "status":"EXCLUDED", "reason":"C-infinity, linear plateau, global cap2 and derivative constants are not needed for Fact10; not claiming Lemma4.1 or admissibility."},
+    {"id":"parameter-recursion", "locator":"Eq18", "status":"EXCLUDED", "reason":"This scalar result permits every positive parameter; actual recursive amplitudes remain a separate construction."},
+    {"id":"conditional-iteration", "locator":"Section6.2 after Fact10", "status":"EXCLUDED", "reason":"Product coefficient law, independence, measurable frozen gates, conditional expectations, level iteration and Tonelli remain open."}
+  ],
+  "reuse_search": ["Samplinglib Cutoff.smoothUnitCutoff_eq_smoothTransition, contDiff, mem_Icc; no existing integral primitive found", "Samplinglib GaussianOddLoad.gaussian_odd_load_bound at reviewed3890056, integrated98092aad", "Mathlib expNegInvGlue, Real.smoothTransition.pos_denom, intervalIntegral norm bound/neg substitution/FTC, HasLaw.variance_eq/integral_comp, Integrable.comp_aemeasurable", "Current Frontier Cells and source lane: no duplicate literal-energy target found"],
+  "proof_plan": ["Identify the literal quotient with the canonical smoothUnitCutoff and prove its denominator positive.", "Derive continuous odd primitive and absolute bound from existing cutoff APIs and oriented-interval integration.", "Rescale using positive n,β,λ; derive load properties internally.", "Apply gaussian_odd_load_bound.", "Transport integrability and integral by HasLaw and identify the variance."],
+  "consumer": "Fact10 at the conditional coefficient-freezing use site in Lemma6.2; the conditional application itself remains open.",
+  "truth_boundary": "Literal scalar Fact10 including random-variable transport; not the full hard family, source parameter recursion, conditional product iteration, Lemma6.2 or any query lower bound.",
+  "review_requested": "Independent pre-proof statement/binder/definition/source-topology review. No proof implementation exists yet."
+}

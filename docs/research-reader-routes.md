@@ -65,12 +65,17 @@ topology review. Preserve exact quantifiers, measures, constants and domains.
 The first integrated packet is Fact 12, §6.4, Eq. (60): for nonnegative real
 g,b with g+b>0, `b/(g+b) ≤ b+(1-sqrt g)^2 ≤ b+(1-g)^2`. PR #392 merged this
 one independently reviewed scalar edge; its Cell and publication binding retain
-the actual evidence. The next packet is the Gaussian symmetry/cosh ingredient
-of Fact 10, in the existing Probability layer, not a copy in a paper module.
-See `research-wiki/paper-contributions/SlcLsiQueryComplexity/fact10-integration.md`
-for the dependency-ready continuation: literal load → conditional iteration →
-actual normalizer moments → Theorem 7's normalization argument. These arrows
-are a plan until their corresponding Lean declarations actually call each other.
+the actual evidence. PR #393 merged the Gaussian symmetry/cosh ingredient of
+Fact 10 in the existing Probability layer. The subsequent literal positive-scale
+truncation and actual-Gaussian-variable adapter have passed independent review;
+their integration/merge/purification state is read from the canonical Cell, not
+inferred from this route description. On a proof page, show the theorem and its
+three mathematical moves first; keep the full construction in a named, initially
+closed definition fold, with exact Lean adjacent to both explanation layers.
+See `research-wiki/paper-contributions/SlcLsiQueryComplexity/energy-truncation-integration.md`
+for the next boundary: actual coefficient law → conditional level iteration →
+actual normalizer moments → Theorem 7's normalization argument. These remaining
+arrows are a plan until the corresponding Lean declarations actually call each other.
 The subsequent applications must prove their own measurability, positivity,
 independence and moment bounds; those do not become extra premises of Theorem 7.
 

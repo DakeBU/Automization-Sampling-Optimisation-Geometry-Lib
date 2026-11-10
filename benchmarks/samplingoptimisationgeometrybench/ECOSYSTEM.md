@@ -73,7 +73,7 @@ source mapping does not grant permission to copy its prose into ML data.
 | Track | Available path | Not certified |
 | --- | --- | --- |
 | Natural language | Freeze answers with `sog_bench_prose.py prepare`; actual human rubric assessment; archive with `score` | Automatic semantic correctness, authenticated model/human execution |
-| Graph JSON | `sog_bench.py grade-graph` scores the exact frozen structural question | Mathematical necessity, full proof closure, unseen generalization |
+| Graph JSON | `sog_bench.py grade-graph` scores a frozen snapshot; the [paired JSONL suite](EVALUATION.md#paired-suites-across-families-any-jsonl-agent) preselects the same tasks for snapshot and bounded-search conditions and replays each recorded first answer | Mathematical necessity, full proof closure, unseen generalization |
 | Native graph trials | `sog_bench_harbor.py export`; Harbor oracle/nop fixtures in separate Docker verification; inspect the dedicated CI result | A model measurement, all paid-agent compatibility, arbitrary Lean execution, exhaustive security verification |
 | Trusted Lean references | `sog_bench.py check-lean` compiles the aligned references using the pinned project | Arbitrary submitted-code safety, source equivalence or model performance |
 | Fixed-target Agentic Lean tools | Experimental [Linux compiler workspace](lean-runtime/WORKSPACE.md): bounded checks, one immutable final, official target/axiom comparison and fresh kernel replay; controlled native acceptance is independently reviewed | General hosted execution, exhaustive security, authenticated model performance or unseen generalization |

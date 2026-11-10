@@ -165,6 +165,45 @@ The pipe CLI does not call a provider, execute Lean or constrain a separate
 agent process outside the pipe. Do not give the agent a shell in the operator
 checkout. The controlled tool tests do not establish model performance.
 
+#### Paired suites across families (any JSONL agent)
+
+Use `tools/sog_bench_graph_suite.py` to freeze both conditions before
+collecting any responses. Select one admitted compiled-body question per
+family. Record the agent and revision plus decoding/retrieval settings in a
+local JSON file, for example
+`{"kind":"declared-agent","agent":"your-agent","revision":"exact-revision","settings":{"seed":17}}`.
+Use `controlled-software-fixture` instead for scripted inputs.
+
+```bash
+python tools/sog_bench_graph_suite.py plan --suite .astis/my-paired-run --task-id sogb-g007 --task-id sogb-g010 --max-lookups 8 --provenance provenance.json
+python tools/sog_bench_graph_suite.py record --suite .astis/my-paired-run --plan-sha256 SAVED_DIGEST --task-id sogb-g007 --profile given-snapshot
+python tools/sog_bench_graph_suite.py record --suite .astis/my-paired-run --plan-sha256 SAVED_DIGEST --task-id sogb-g007 --profile bounded-compiled-graph-lookup-v1
+python tools/sog_bench_graph_suite.py account --suite .astis/my-paired-run --plan-sha256 SAVED_DIGEST
+```
+
+Save the printed selection digest and the repository revision separately;
+replay against the same task and tool versions. Run each selected task in each
+condition in a **fresh conversation**; do not give an agent the suite directory,
+other condition's trace, reference, or score. Forward only stdout and send
+one action JSON line at a time. The supplied-snapshot condition accepts
+no lookups. `record` reserves the case before reading its first response and
+will not overwrite an unfinished case or a final. Keep input and output logs
+private to the operator unless the agent's terms and the task's rights allow
+publication.
+
+After collectors stop, `account` replays exact raw actions and observations,
+including the first final if any. Its report includes the preselected
+denominator for both conditions, separately identifies exact replayed pairs,
+and retains unstarted and interrupted archives as unscored (`null`). An
+observed EOF without a final is a replayed outcome, not an omitted task.
+The JSONL recorder cannot tell whether EOF came from a model stop or a
+transport failure. Use a transport-aware adapter when that distinction
+matters, and do not report a provider or operator failure as a model miss.
+No survivor-only percentage is emitted. This verifies the operator archive,
+not the identity, chronology or retrieval compliance of an external agent.
+Use the same prompts, model and tool policy if comparing results; even a
+complete public-dev run is not evidence of held-out generalization.
+
 #### Optional foreground model comparison
 
 With `OPENAI_API_KEY` configured outside Git, the separate adapter can run

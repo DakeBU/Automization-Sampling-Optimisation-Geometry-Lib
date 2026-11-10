@@ -36,6 +36,18 @@ measurability and exchange in Eq. (70) are also separate.
 
 ## Integration boundary
 
+[PR #402](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/pull/402)
+merged at `98425863` after all seven exact-head remote checks passed.
+The actual tree is identical to the local accepted tree. Independent
+postmerge purification accepted the exact proof, three reader moves,
+adjacent Lean folds and module download without changes (Exposition Seal
+`SLC-LSI-RadialLevels-Exposition-merge98425863-v1`). No conditioning,
+multi-location or weighted moment credit follows from that merge.
+
+GitHub Pages run [42695392378](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/runs/42695392378)
+passed both build and deploy. The [proof page](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/proofs/source-slc-lsi-radial-levels.html)
+and live site data were checked at `98425863` (Registry 616).
+
 On `feb6a20e`, the exact verified joint law, test and authored binding
 are unchanged. The full Lean gate (Tests: 9648 jobs), whole site check,
 publication, semantic, contributor, Frontier, exact graph and four-subject

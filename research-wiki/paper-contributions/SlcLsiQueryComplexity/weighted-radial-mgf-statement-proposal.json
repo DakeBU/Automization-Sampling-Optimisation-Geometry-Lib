@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "status": "PROPOSED_BEFORE_PROOF",
+  "source_url": "https://arxiv.org/html/2611.05813v1#S6.E51",
+  "source_edition": "arXiv:2611.05813v1",
+  "source_pdf_sha256": "05520f2a491fedc6ceecc7eb0f3d0c1b23275faceb9da1d9cfa6db421aab4f0e",
+  "source_scope": "§6.1 Gaussian variance calculation immediately before Eq. (51) and Eq. (51) itself, fixed x under the actual unconditioned coefficient law. No integration over x.",
+  "namespace": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF",
+  "file": "AutoSamplingTheory/ExampleCases/SlcLsiQueryComplexity/WeightedRadialMGF.lean",
+  "signature": "theorem weightedRadialLevels_gaussian_mgf (n : ℕ+) (h : ℕ)\n    (β : Fin (h + 1) → ℝ)\n    (x : Fin (h + 1) → EuclideanSpace ℝ (Fin n.val)) :\n    let L := Fin (h + 1)\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := L × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let E := fun b : B ↦ EuclideanSpace ℝ (C b)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S := fun i : L ↦ ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun (i : L) (p : P) ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S i : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S i)))\n    let χ := fun r : ℝ ↦\n      expNegInvGlue (r - 13 / 20) /\n        (expNegInvGlue (r - 13 / 20) + expNegInvGlue (7 / 10 - r)) *\n      (expNegInvGlue (1 - r) /\n        (expNegInvGlue (1 - r) + expNegInvGlue (r - 19 / 20)))\n    let tail := fun (i : L) (j : Fin (h - i.val + 1)) ↦ x ⟨i.val + j.val, by omega⟩\n    let c := fun i : L ↦ ∏ j, χ (‖tail i j‖ / Real.sqrt n.val)\n    let field := fun (i : L) (z : (p : P) → E (i, p)) ↦\n      if ∃ j, tail i j = 0 then 0 else\n        c i * ∑ p : P, angularDegreeComponent n h i (degree p)\n          (fun j ↦ NormedSpace.normalize (tail i j)) (z p)\n    let Ω := EuclideanSpace ℝ (Σ b : B, C b)\n    let H := fun (ξ : Ω) (i : L) ↦ field i\n      (fun p ↦ WithLp.toLp 2 (fun k : C (i, p) ↦ ξ ⟨(i, p), k⟩))\n    let μ := stdGaussian Ω\n    let W := fun ξ : Ω ↦ ∑ i : L, β i * H ξ i\n    let V := (n.val : ℝ) * ∑ i : L, β i ^ 2 * (c i) ^ 2 * ∑ p : P, (a i p) ^ 2\n    HasLaw W (gaussianReal 0 V.toNNReal) μ ∧\n      Integrable (fun ξ ↦ Real.exp (-W ξ)) μ ∧\n      (∫ ξ, Real.exp (-W ξ) ∂μ) = Real.exp (V / 2)",
+  "binder_audit": {
+    "TYPING": [
+      "n positive, h natural, full deterministic x=(x_0,…,x_h). Same exact degree set, tensor carrier, cutoffs and zero extension as the checked joint-level law.",
+      "β gives one deterministic real weight per level. The same field and coefficient draw are used for every term."
+    ],
+    "STANDING": [
+      "The source fixes the positive recursive weights from Eq. (18) and large n with the prescribed depth. The fixed-point Gaussian calculation holds for arbitrary real weights and positive n / natural h; this generalizes only the identity, not the recursion, admissibility or bounds."
+    ],
+    "SOURCE": [],
+    "EXCESS": [],
+    "derived_not_assumed": [
+      "Actual independence and marginal laws, finite moments, weighted sum HasLaw, nonnegativity of its variance and integrability of exp(-W), including variance zero."
+    ]
+  },
+  "definition_audit": {
+    "definition_kind": "literal",
+    "body": "No new global definitions. All local coefficient and field lets match the checked actual joint level law. W is the source weighted sum on those fields. V is n times the finite sum of β_i² C_i(x)² v_i, with v_i the exact sum of squared amplitudes. V/2 is exactly the displayed exponent n/2 times the sum. The measure is the original joint stdGaussian, not spatial γ_n or a restricted measure."
+  },
+  "source_regions": [
+    {
+      "id": "actual-radial-vector",
+      "locator": "§4.1.1 Eq. (13)–(16) and footnote 2",
+      "status": "NODE",
+      "meaning": "Exact fixed-x radial fields on the original coefficient sample."
+    },
+    {
+      "id": "source-degree-laws",
+      "locator": "§4.2 Lemma 4.4 and §6.1 paragraph before Eq. (51)",
+      "status": "NODE",
+      "meaning": "At fixed x all degree fields are independent centered Gaussians; the exact variance includes the radial factor."
+    },
+    {
+      "id": "weighted-law",
+      "locator": "§6.1 final sentence before Eq. (51)",
+      "status": "NODE",
+      "meaning": "The finite weighted sum is centered Gaussian, variance n times the weighted squared-amplitude sum."
+    },
+    {
+      "id": "gaussian-mgf",
+      "locator": "Eq. (51)",
+      "status": "NODE",
+      "meaning": "Evaluate the real Gaussian MGF at t=-1 to obtain exp(V/2)."
+    },
+    {
+      "id": "mgf-integrability",
+      "locator": "Implicit finiteness in Eq. (51)",
+      "status": "SOURCE_GAP",
+      "meaning": "Prove the exponential integrable rather than relying on the totalized real integral. Degenerate factor laws are permitted."
+    },
+    {
+      "id": "out-of-scope",
+      "locator": "Remaining §6.1, Eq. (49), §6.2 and later",
+      "status": "EXCLUDED",
+      "reason": "No beta recursion, cutoff support estimate, identity to the actual nonlinear weight outside its good event, spatial integral M, conditional or tilted law, mass bounds, or main lower bounds."
+    }
+  ],
+  "source_edges": [
+    {
+      "parents": [
+        "actual-radial-vector",
+        "source-degree-laws"
+      ],
+      "consumer": "weighted-law",
+      "use_site": "Fixed-x finite Gaussian variance calculation preceding Eq. (51)."
+    },
+    {
+      "parents": [
+        "weighted-law"
+      ],
+      "consumer": "gaussian-mgf",
+      "use_site": "Eq. (51) uses the actual one-dimensional law at t=-1."
+    },
+    {
+      "parents": [
+        "weighted-law",
+        "gaussian-mgf"
+      ],
+      "consumer": "mgf-integrability",
+      "use_site": "The finite positive Gaussian MGF gives the needed real exponential integrability; no extra assumption."
+    }
+  ],
+  "alternative_implementation": "Lean reuses the already verified actual level product law instead of resumming the individual degree fields. Obtain exact marginals and mutual independence, scale and sum the Gaussians, then use mgf_gaussianReal and mgf_pos_iff. Source and Lean graph layers stay separate.",
+  "reuse_search": [
+    "Samplinglib: verified RadialLevels.radialLevels_hasLaw, AngularDegreeSum finite Gaussian assembly, cells and issue388. No duplicate actual Eq. (51) theorem.",
+    "Mathlib: gaussianReal_const_mul, iIndepFun.hasGaussianLaw_fun_sum, IndepFun.variance_sum, mgf_gaussianReal, mgf_pos_iff. No generic weighted-Gaussian wrapper."
+  ],
+  "truth_boundary": "The actual unconditioned weighted scalar law and Eq. (51) integrability/expectation at one deterministic x. No pointwise domination across x, M integral, gates, conditioning, tilted Gaussian, mass bound or query lower bound.",
+  "consumer": "§6.1 scale m(x) and M, then the total and good mass comparison in Lemma 6.2. The weighted MGF is not the nonlinear load bound or prefix conditioning."
+}

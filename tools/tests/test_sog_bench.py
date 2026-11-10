@@ -290,7 +290,7 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L2'),
                          {'natural-language': 0, 'lean': 0, 'graph-json': 1})
         self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L3'),
-                         {'natural-language': 2, 'lean': 2, 'graph-json': 0})
+                         {'natural-language': 3, 'lean': 2, 'graph-json': 0})
         self.assertEqual(coverage['unique_mathematical_cores'], len(bench.load()['cores']))
         self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
                          {'samplewiki', 'mcmc'})
@@ -352,6 +352,19 @@ class BenchTests(unittest.TestCase):
         self.assertIn(gap['declaration'], graph['context']['nodes'])
         self.assertIn('sogb-g010.html', reader.core_page(gap, False, structural=[graph], review_row=row))
         self.assertIn('sogb-047.html', reader.graph_page(graph))
+
+    def test_single_query_lower_bound_is_only_aligned_to_natural_language(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-048')
+        self.assertEqual(core['track_levels'], {'natural-language': 'L3'})
+        self.assertFalse(bench.has_lean(core))
+        self.assertNotIn('textbook_exercise', core)
+        self.assertTrue(core['support_source_view'])
+        self.assertTrue(core['declaration'].endswith(
+            '.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness'))
+        self.assertNotIn(core['id'], {g['core_id'] for g in bench.curriculum.graph_items()})
+        row = bench.editorial_review(self.cores)['items'][core['id']]
+        self.assertEqual((row['editorial'], row['formal_alignment'], row['issues']),
+                         ('accepted', 'no-aligned-view', []))
 
     def test_product_coupling_is_an_original_foundation_view_of_a_public_family(self):
         by_id = {c['id']: c for c in self.cores}

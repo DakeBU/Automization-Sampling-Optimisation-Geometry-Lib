@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.31.0-dev",
+  "version": "0.32.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -1774,6 +1774,74 @@
         "lean": "L3",
         "natural-language": "L3"
       }
+    },
+    {
+      "id": "sogb-048",
+      "family": "single-query-quadratic-oracle-indistinguishability",
+      "domain": "Lower Bounds",
+      "library_domains": [
+        "lower-bounds",
+        "optimisation"
+      ],
+      "title": "One first-order reply cannot distinguish these two quadratics",
+      "difficulty": "multi-step proof and oracle-assumption audit",
+      "difficulty_reason": "For an arbitrary deterministic query, construct two admissible quadratics, match both oracle coordinates, convert the common transcript to a quantitative objective gap, and audit how the conclusion changes when the optimal value is known. This is a finite explicit adversary, not a claimed multi-query or research-level general lower bound. The level is provisional.",
+      "track_levels": {
+        "natural-language": "L3"
+      },
+      "lean_enabled": false,
+      "support_source_view": true,
+      "skills": [
+        "proof",
+        "calculation",
+        "assumption-audit",
+        "counterexample",
+        "semantic-boundary"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularizationFirstOrder.lean",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness",
+      "assumptions": [
+        "Fix known \\(\\beta,R>0\\). The unknown objective is \\(f(x)=\\mu(x-m)^2/2+c\\) on \\(\\mathbb R\\), with \\(\\beta/2\\le\\mu\\le\\beta\\), \\(|m|\\le R\\), and unrestricted unknown \\(c\\in\\mathbb R\\). Thus these are \\(\\beta\\)-smooth, \\(\\beta/2\\)-strongly convex objectives with a minimizer within distance \\(R\\) of zero.",
+        "A deterministic algorithm knows this class and can choose any one query \\(q\\in\\mathbb R\\) before seeing the objective. Its only reply is the exact pair \\((f(q),f'(q))\\); it may use unlimited local arithmetic to output any \\(z\\in\\mathbb R\\). Neither the objective nor its optimal value is given."
+      ],
+      "question": "Show that every such algorithm has an input on which \\(f(z)-f(m)\\ge\\beta R^2/64\\). Construct two admissible objectives with the same first-order reply at the algorithm's query and justify why their common output must be bad on at least one of them. Then explain whether one query suffices to recover the minimizer on this same quadratic class if the exact optimal value \\(f(m)\\) is supplied in advance.",
+      "steps": [
+        "Fix the algorithm, hence its query \\(q\\), and let \\(s=1\\) for \\(q\\ge0\\) and \\(s=-1\\) otherwise. Choose centers on the opposite side of zero, \\(m_F=-sR\\) and \\(m_C=-sR/2\\). Their distances from the query are \\(d_F=|q|+R\\) and \\(d_C=|q|+R/2\\), and \\(q-m_i=sd_i\\) for either index \\(i\\). Put \\(\\mu_F=\\beta d_C/d_F\\) and \\(\\mu_C=\\beta\\). Since \\(d_F/2\\le d_C\\le d_F\\), both curvatures lie in \\([\\beta/2,\\beta]\\).",
+        "Use the unknown additive offsets to choose \\[f_i(x)=\\frac{\\mu_i}{2}\\big((x-m_i)^2-(q-m_i)^2\\big).\\] Their gradients are \\(f_i'(x)=\\mu_i(x-m_i)\\). Their constant positive second derivatives verify the curvature constraints and give the unique minimizers \\(m_i\\), which lie within the prescribed radius. At \\(q\\), both values are zero and both gradients are \\(s\\beta d_C\\). The common reply includes the function value, not just the derivative.",
+        "Since the algorithm is deterministic and has no other objective information, the identical reply produces a common output \\(z\\). The minimizers differ by \\(R/2\\). The triangle inequality implies \\(\\max_i|z-m_i|\\ge R/4\\). For that index, \\[f_i(z)-f_i(m_i)=\\frac{\\mu_i}{2}|z-m_i|^2\\ge\\frac{\\beta R^2}{64}.\\] The objective may depend on the algorithm's predetermined query, not on any randomized query or later feedback.",
+        "If the exact optimal value \\(c=f(m)\\) is known, let \\(v=f(q)\\) and \\(g=f'(q)\\). If \\(g=0\\), then \\(q=m\\) because \\(\\mu>0\\). Otherwise \\(v-c>0\\) and \\[\\mu=\\frac{g^2}{2(v-c)},\\qquad m=q-\\frac{g}{\\mu}.\\] Thus a single reply does recover the minimizer in that stronger information model, for this quadratic class. The two-instance lower bound does not grant the algorithm that additional scalar."
+      ],
+      "rubric": [
+        {
+          "points": 1,
+          "criterion": "For an arbitrary deterministic query, constructs two distinct admissible instances with the stipulated radius and curvature bounds. Any valid construction is accepted."
+        },
+        {
+          "points": 1,
+          "criterion": "Checks equality of both the value and the derivative at the query and justifies the common output from the deterministic information model."
+        },
+        {
+          "points": 1,
+          "criterion": "Obtains the requested quantitative worst-case gap for every possible common output, with correct constants; a stronger bound earns full credit."
+        },
+        {
+          "points": 1,
+          "criterion": "Shows how a known optimal value identifies the minimizer in one query for the stated quadratic class, including the case of zero derivative."
+        }
+      ],
+      "dependencies": {
+        "astis": [
+          "QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness"
+        ],
+        "mathlib": [
+          "StrongConvexOn",
+          "LipschitzWith",
+          "abs_add_le"
+        ]
+      },
+      "lean_explanation": "Only the analytic quadratic adapter is formally linked. Apply the owned quadratic-regularization theorem on the real line with a constant base function, base smoothness zero, center m and regularization coefficient μ. Its conclusion supplies differentiability, curvature, gradient and the μ-Lipschitz estimate. The two-instance construction, indistinguishable replies, algorithmic lower bound and known-optimum comparison are not aligned Lean tasks here.",
+      "boundary": "Original deterministic one-query exercise. It is not an exact minimax constant, a many-query or randomized oracle lower bound, or a numbered exercise from the book. Unknown additive offsets are part of the stated information model. The Lean graph points to an analytic supporting result only; neither the oracle argument nor the stronger-information comparison is formalized in this packet.",
+      "source_note": "Original ASTIS question and solution. Background: Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1, §1.1 first-order oracle and §4 lower-bound framework (https://arxiv.org/html/2605.07006v1#S1.SS1 and https://arxiv.org/html/2605.07006v1#S4); the supporting quadratic-regularization declaration comes from the analytic part of Lemma 4.2, not from a formal oracle lower-bound theorem. Retain Apache-2.0 LICENSE and NOTICE for the support source. No copied textbook wording or hidden-test claim."
     }
   ]
 }

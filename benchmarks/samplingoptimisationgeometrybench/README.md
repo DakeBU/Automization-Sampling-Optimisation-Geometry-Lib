@@ -63,12 +63,18 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-045 | Discrete Sampling / MCMC | Derive the positive-fiber heat-bath law and explain why sampling can land on a zero-mass fiber (L4) | Reconstruct the fixed-site measure identity via measurable regrouping and the positive marginal atom (L4) |
 | sogb-046 | Lower Bounds / Optimisation | Construct a quadratic worst case for a fixed step and delimit the algorithm class (L3) | Reconstruct the endpoint witness, exact iterates and minimax factor (L3) |
 | sogb-047 | Lower Bounds / Optimisation | Derive the exact value gap and distinguish a horizon-dependent lower bound from a fixed-objective tail (L3) | Reconstruct the finite-horizon witness, class checks and power lower bound (L3) |
+| sogb-048 | Lower Bounds / Optimisation | Match both coordinates of one exact first-order reply; derive the quantitative gap and explain how a known optimum changes the information model (L3) | Analytic quadratic support only; the oracle argument has no aligned Lean task |
 
 These four reviewed additions retain their existing public IDs. StatOT
 Exercise 6 (`sogb-031`) remains on its separate proof-and-publication route.
 See [formal round 12](reviews/formal-12/README.md),
 [prose round 9](reviews/prose-9/README.md) and
 [prose round 10](reviews/prose-10/README.md) for the exact independent reports.
+
+[Prose round 11](reviews/prose-11/README.md) adds an original one-query
+indistinguishability problem. Unlike the fixed-step questions, it permits an
+arbitrary deterministic query and output. The compiled graph anchor supports
+the quadratic analysis, not the oracle lower bound or a multi-query claim.
 
 [Formal round 13](reviews/formal-13/README.md) pairs the eventwise TV proof
 with its aligned Lean target. The mathematical reader explains why the same

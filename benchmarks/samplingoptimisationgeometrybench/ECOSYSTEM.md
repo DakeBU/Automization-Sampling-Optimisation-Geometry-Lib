@@ -87,7 +87,13 @@ to its actual declaration, or explicitly labelled owning-module fallback.
 The expert directory lists each core once, with exact sources, additional owned
 support/numbered-exercise answer parts, and coverage boundaries.
 `expert-graph-positions.json` exposes those source-derived identities separately
-from model inputs. It exports owned result anchors, never the full mixed graph.
+from model inputs. The site checks each location against its actual graph;
+an indexed module does not mean its declaration is indexed. Standalone
+`sog_bench.py export` leaves `node_id` and `graph_url` null unless supplied
+the generated graph via `--graph-index PATH`. The `anchor_kind` distinguishes
+declaration, owning module, not indexed, and not checked. The exact declaration
+and source file remain present even when no graph position is available.
+The export never supplies the full mixed graph.
 
 A position is not an implication edge. Only the separately replayed compiler
 slices carry selected proof-body occurrences; import scans and conceptual

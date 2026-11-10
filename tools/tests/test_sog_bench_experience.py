@@ -128,8 +128,24 @@ class TaskPackageTests(unittest.TestCase):
             self.assertIn('never an unseen test', row['usage'])
         positions = json.loads(self.assets['expert-graph-positions.json'])
         self.assertEqual(len(positions), len(self.cores))
-        self.assertTrue(all(p['node_id'].startswith('decl:AutoSamplingTheory.') for p in positions))
+        self.assertTrue(all(p['anchor_kind'] == 'not-checked' and p['node_id'] is None
+                            and p['graph_url'] is None for p in positions))
+        self.assertTrue(all(p['declaration'].startswith('AutoSamplingTheory.') for p in positions))
         self.assertTrue(all(p['audience'] == 'expert-review-not-model-input' for p in positions))
+
+    def test_expert_positions_share_the_actual_graph_and_do_not_invent_links(self):
+        module_core, exact_core, absent_core = self.cores[:3]
+        module = 'module:' + module_core['source_file'].removesuffix('.lean').replace('/', '.')
+        exact = 'decl:' + exact_core['declaration']
+        assets = bench.task_assets([module_core, exact_core, absent_core], [], graph_ids={module, exact})
+        rows = json.loads(assets['expert-graph-positions.json'])
+        self.assertEqual([(p['anchor_kind'], p['node_id']) for p in rows],
+                         [('owning-module', module), ('declaration', exact), ('not-indexed', None)])
+        self.assertIsNone(rows[2]['graph_url'])
+        self.assertIn('focus=module%3A', rows[0]['graph_url'])
+        self.assertIn('focus=decl%3A', rows[1]['graph_url'])
+        self.assertEqual(bench.graph_anchor(module_core['declaration'], module_core['source_file'],
+                                           {module, 'decl:' + module_core['declaration']})[0], 'declaration')
 
     def test_package_bytes_are_repeatable(self):
         self.assertEqual(self.assets, bench.task_assets(self.cores, self.graphs))

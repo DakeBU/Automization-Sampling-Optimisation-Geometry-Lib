@@ -105,7 +105,7 @@ def main() -> None:
                         assert page.request.get(base + HUB + 'downloads/harbor-graph-tasks.zip').status == 200
                     if path.startswith('experts/'):
                         page.locator('summary').filter(has_text=re.compile(r'^Optimisation ·')).click()
-                        assert page.get_by_role('link', name='Graph position', exact=True).first.is_visible()
+                        assert page.get_by_role('link', name=re.compile(r'^(Declaration|Owning module) in Lean Graph$')).first.is_visible()
                     page.screenshot(path=str(args.evidence / (path.replace('/index.html','') + '-desktop.png')), full_page=True)
                     page.set_viewport_size({'width': 412, 'height': 915})
                     # Resizing starts the existing 180ms navigation transition.
@@ -116,6 +116,19 @@ def main() -> None:
                     page.set_viewport_size({'width': 1400, 'height': 1000})
             page.goto(base + HUB + 'index.html')
             manifest = page.request.get(base + HUB + 'downloads/manifest.json').json()
+            graph_ids = {n['id'] for n in page.request.get(base + 'data/underlying-lean-graph.json').json()['nodes']}
+            expert = page.request.get(base + HUB + 'downloads/expert-graph-positions.json')
+            assert expert.status == 200
+            assert hashlib.sha256(expert.body()).hexdigest() == manifest['files']['expert-graph-positions.json']
+            expert_rows = expert.json()
+            expert_positions = {p['id']: p for p in expert_rows}
+            assert len(expert_rows) == len(expert_positions) == manifest['editorial_accepted_cores']
+            for p in expert_rows:
+                decl = 'decl:' + p['declaration']
+                module = 'module:' + p['source_file'].removesuffix('.lean').replace('/', '.')
+                kind, node = ('declaration', decl) if decl in graph_ids else ('owning-module', module)
+                assert node in graph_ids and p['node_id'] == node and p['anchor_kind'] == kind, p['id']
+                assert parse_qs(urlsplit(p['graph_url']).query)['focus'] == [node], p['id']
             page.get_by_text('Numbered textbook exercises and our reference solutions', exact=True).click()
             intake_link = page.get_by_role('link', name='Verified source intake and admission checklist')
             assert intake_link.is_visible()
@@ -256,6 +269,8 @@ def main() -> None:
                 page.locator('summary', has_text='Reference mathematical proof').click()
                 assert page.locator('[data-lean-graph-position]').count() == 1
                 assert page.locator('[data-lean-graph-position]').is_visible()
+                if core['id'] in expert_positions:
+                    assert page.locator('[data-lean-graph-position]').get_attribute('data-lean-graph-position') == expert_positions[core['id']]['node_id']
                 assert page.locator('mjx-merror,[data-mjx-error]').count() == 0, core['id']
                 for span in page.locator('[data-math-original]').all():
                     assert span.locator('mjx-container').count() == 1, (core['id'], span.get_attribute('data-math-original'))

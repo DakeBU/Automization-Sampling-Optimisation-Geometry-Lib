@@ -236,7 +236,32 @@ def receipt_current(cores: list[dict]) -> bool:
         return False
 
 
-def task_assets(cores: list[dict], graphs: list[dict]) -> dict[str, bytes]:
+def graph_anchor(declaration: str, source_file: str, graph_ids: set[str] | None) -> tuple[str, str | None]:
+    """Resolve a location against an actual graph, never against the proof status."""
+    if graph_ids is None:
+        return 'not-checked', None
+    node = 'decl:' + declaration
+    if node in graph_ids:
+        return 'declaration', node
+    module = 'module:' + source_file.removesuffix('.lean').replace('/', '.')
+    if module in graph_ids:
+        return 'owning-module', module
+    return 'not-indexed', None
+
+
+def graph_index_ids(path: Path) -> set[str]:
+    data = json.loads(path.read_text(encoding='utf-8'))
+    nodes = data.get('nodes') if isinstance(data, dict) else None
+    if not isinstance(nodes, list) or any(not isinstance(n, dict) or not isinstance(n.get('id'), str)
+                                         or not n['id'] for n in nodes):
+        raise ValueError('Expected a generated Lean graph with node identifiers')
+    ids = {n['id'] for n in nodes}
+    if len(ids) != len(nodes):
+        raise ValueError('Generated Lean graph contains duplicate node identifiers')
+    return ids
+
+
+def task_assets(cores: list[dict], graphs: list[dict], *, graph_ids: set[str] | None = None) -> dict[str, bytes]:
     """Portable agent inputs, separate training pairs and expert-only anchors.
 
     This packages existing admitted tasks; it neither invents an execution
@@ -302,14 +327,16 @@ def task_assets(cores: list[dict], graphs: list[dict]) -> dict[str, bytes]:
                              'messages': [{'role': 'user', 'content': encoded(row).decode('utf-8')},
                                           {'role': 'assistant', 'content': answer}]})
     for core in cores:
-        node = 'decl:' + core['declaration']
+        kind, node = graph_anchor(core['declaration'], core['source_file'], graph_ids)
         related = [{'declaration': d['declaration'], 'role': 'additional-formal-support-not-aligned-QA'}
                    for d in core.get('supporting_declarations', [])]
         related += [{'declaration': d['declaration'], 'role': 'owned-textbook-core-answer', 'supports': d['supports']}
                     for d in core.get('textbook_exercise', {}).get('answer_declarations', [])]
         positions.append({'id': core['id'], 'node_id': node, 'source_file': core['source_file'],
+                          'anchor_kind': kind,
                           'declaration': core['declaration'], 'binding_sha256': core['binding_sha256'],
-                          'graph_url': '../../../underlying-lean-graph/index.html?focus=' + quote(node, safe=''),
+                          'graph_url': ('../../../underlying-lean-graph/index.html?focus=' + quote(node, safe='')
+                                        if node is not None else None),
                           'aligned_fixed_lean_task': has_lean(core), 'audience': 'expert-review-not-model-input',
                           'related_owned_results': related,
                           'boundary': core['boundary'],
@@ -358,7 +385,7 @@ def selected_graph_tasks(graphs: list[dict], metadata: dict) -> list[dict]:
     return [known[i] for i in identities]
 
 
-def export(output: Path, cores: list[dict] | None = None) -> None:
+def export(output: Path, cores: list[dict] | None = None, *, graph_ids: set[str] | None = None) -> None:
     cores = cores or materialize()
     graphs = curriculum.graph_items()
     review = editorial_review(cores)
@@ -366,7 +393,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     graph_review = sog_bench_graph_review.summary(graphs)
     reviewed_graphs=[g for g in graphs if graph_review['items'][g['id']]['editorial'] in {'accepted','accepted-after-repair'}]
     reviewed = [c for c in cores if review['items'][c['id']]['editorial'] in {'accepted', 'accepted-after-repair'}]
-    task_files = task_assets(reviewed, reviewed_graphs)
+    task_files = task_assets(reviewed, reviewed_graphs, graph_ids=graph_ids)
     import sog_bench_graph_slices
     compiler_snapshots = sog_bench_graph_slices.snapshots()
     expected = {'questions.jsonl', 'reference.jsonl', 'manifest.json', 'README.md',
@@ -543,9 +570,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=('check', 'export', 'check-lean', 'coverage', 'grade-graph'))
     parser.add_argument('--output', type=Path, default=ROOT / '.astis/sog-bench-export')
+    parser.add_argument('--graph-index', type=Path, help='For export: actual generated underlying-lean-graph.json')
     parser.add_argument('--submissions', type=Path, help='First-attempt structured graph responses only; never executable code')
     parser.add_argument('--run-metadata', type=Path, help='Required provenance for a graph score report')
     args = parser.parse_args()
+    if args.graph_index is not None and args.command != 'export':
+        parser.error('--graph-index applies only to export')
     cores = materialize()
     graphs = curriculum.graph_items()
     if args.command == 'coverage':
@@ -576,7 +606,7 @@ def main() -> int:
     if args.command == 'check-lean':
         return check_lean(cores)
     if args.command == 'export':
-        export(args.output, cores)
+        export(args.output, cores, graph_ids=graph_index_ids(args.graph_index) if args.graph_index else None)
     reviewed = editorial_review(cores)['accepted_cores']
     import sog_bench_graph_review
     graph_accepted=sog_bench_graph_review.summary(graphs)['accepted_tasks']

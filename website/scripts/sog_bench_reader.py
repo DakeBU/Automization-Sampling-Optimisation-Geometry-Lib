@@ -345,6 +345,12 @@ def training_guide() -> str:
 
 def experts_page(cores: list[dict], graph_ids: set[str], known: dict) -> str:
     from urllib.parse import quote
+    def graph_link(decl):
+        kind, node = bench.graph_anchor(decl.full_name, decl.source_file, graph_ids)
+        if node is None:
+            return 'Graph not indexed'
+        label = 'Declaration in Lean Graph' if kind == 'declaration' else 'Owning module in Lean Graph'
+        return '<a href="../../../underlying-lean-graph/index.html?focus=' + quote(node, safe='') + '">' + label + '</a>'
     sections = []
     for domain, label in bench.curriculum.curriculum()['domains'].items():
         rows = []
@@ -352,23 +358,16 @@ def experts_page(cores: list[dict], graph_ids: set[str], known: dict) -> str:
             if domain != c['library_domains'][0]:
                 continue
             decl = known[c['declaration']]
-            node = 'decl:' + c['declaration']
-            if node not in graph_ids:
-                node = 'module:' + decl.module
             href, _ = astis_site.source_href(decl, from_path=HUB + 'experts/index.html')
             additional = []
             related = c.get('supporting_declarations', []) + c.get('textbook_exercise', {}).get('answer_declarations', [])
             for result in {r['declaration']: r for r in related}.values():
                 target = known[result['declaration']]
-                result_node = 'decl:' + target.full_name
-                if result_node not in graph_ids:
-                    result_node = 'module:' + target.module
                 result_href, _ = astis_site.source_href(target, from_path=HUB + 'experts/index.html')
-                additional.append('<li><code>' + escape(target.short_name) + '</code> · <a href="../../../underlying-lean-graph/index.html?focus='
-                    + quote(result_node, safe='') + '">Graph</a> · <a href="' + escape(result_href) + '">Source</a></li>')
+                additional.append('<li><code>' + escape(target.short_name) + '</code> · ' + graph_link(target)
+                    + ' · <a href="' + escape(result_href) + '">Source</a></li>')
             rows.append('<li id="' + c['id'] + '"><a href="../' + c['id'] + '.html">' + escape(c['title']) + '</a>'
-                '<p><code>' + escape(decl.short_name) + '</code> · '
-                '<a href="../../../underlying-lean-graph/index.html?focus=' + quote(node, safe='') + '">Graph position</a> · '
+                '<p><code>' + escape(decl.short_name) + '</code> · ' + graph_link(decl) + ' · '
                 '<a href="' + escape(href) + '">Exact source</a></p>'
                 '<p class="sog-caption">' + ('Aligned Lean task; explanatory scope is separate.' if bench.has_lean(c)
                                               else 'Formal support, not an aligned fixed Lean task.') + '</p>'
@@ -408,12 +407,15 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
     known = known or astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
     declaration = known[core['declaration']]
     href, _ = astis_site.source_href(declaration, from_path=rel)
-    graph_id = 'decl:' + core['declaration']
-    if graph_id in (graph_ids or set()):
-        graph_label = 'Locate the existing Lean declaration'
-    else:
-        graph_id = 'module:' + declaration.module
-        graph_label = 'Locate the owning module (declaration not yet indexed in this graph)'
+    anchor_kind, graph_id = bench.graph_anchor(core['declaration'], core['source_file'], graph_ids)
+    anchor_label = {'declaration': 'Declaration anchor', 'owning-module': 'Owning-module anchor',
+                    'not-indexed': 'Not indexed in Lean Graph', 'not-checked': 'Graph position not checked'}[anchor_kind]
+    graph_label = ('Locate the existing Lean declaration' if anchor_kind == 'declaration'
+                   else 'Locate the owning module (declaration not yet indexed in this graph)')
+    graph_href = ('../../underlying-lean-graph/index.html?focus=' + quote(graph_id, safe='')
+                  if graph_id is not None else None)
+    graph_short = f'<a href="{graph_href}">Lean Graph ↗</a> · ' if graph_href else ''
+    graph_detail = f' · <a href="{graph_href}">{graph_label}</a>' if graph_href else ' · ' + anchor_label
     status = 'Trusted reference compilation recorded for this source state.' if checked else 'No current trusted-reference compiler receipt recorded in this build.'
     assumptions = '<ul>' + ''.join('<li>' + prose(s, paragraph=False) + '</li>'
                                    for s in core['assumptions']) + '</ul>'
@@ -456,11 +458,10 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
     related=[g for g in (bench.curriculum.graph_items() if structural is None else structural) if g.get('core_id')==core['id']]
     graph_links=('<p>Structural questions about this proof context (not equivalent mathematical tasks): '+
                  ' · '.join('<a href="'+g['id']+'.html">'+escape(g['title'])+'</a>' for g in related)+'</p>') if related else ''
-    graph_position = ('<aside class="sog-graph-position" data-lean-graph-position="' + escape(graph_id) + '">'
-        '<p class="sog-graph-short"><a href="../../underlying-lean-graph/index.html?focus='
-        + quote(graph_id, safe='') + '">Lean Graph ↗</a> · <a href="' + escape(href) + '">Source ↗</a>'
+    graph_position = ('<aside class="sog-graph-position" data-lean-graph-position="' + escape(graph_id or '') + '">'
+        '<p class="sog-graph-short">' + graph_short + '<a href="' + escape(href) + '">Source ↗</a>'
         + '<small>' + ('Aligned fixed target' if bench.has_lean(core) else 'Supporting Lean only') + ' · '
-        + ('Declaration anchor' if graph_id.startswith('decl:') else 'Owning-module anchor') + '</small></p>'
+        + anchor_label + '</small></p>'
         + fold('Graph location and verification scope', '<h2>' + escape(declaration.short_name) + '</h2>'
             + prose('Aligned fixed Lean task; its conclusion does not certify every explanatory claim.'
                     if bench.has_lean(core) else 'Library support only: this question has no aligned fixed Lean reconstruction task.')
@@ -481,8 +482,8 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
         + graph_links + '<section><h2>What this does—and does not—verify</h2>' + prose(core['boundary'])
         + '<p>Existing library mathematics reused; no new mathematical leaf or paper-completion credit. The editorial panel records the exact current review scope and remaining unformalized explanation.</p></section>'
         + fold('Sources, graph location and dependencies', prose(core['source_note'])
-            + '<p><a href="' + escape(href) + '">Exact local source and full context</a> · <a href="../../underlying-lean-graph/index.html?focus='
-            + quote(graph_id, safe='') + '">' + graph_label + '</a></p><p><code>' + escape(core['declaration']) + '</code></p>'
+            + '<p><a href="' + escape(href) + '">Exact local source and full context</a>' + graph_detail
+            + '</p><p><code>' + escape(core['declaration']) + '</code></p>'
             + dependencies + '<p>Binding SHA-256: <code>' + core['binding_sha256'] + '</code></p>')
         + '</article>')
 
@@ -674,10 +675,10 @@ def enrich_site(output: Path) -> None:
     known = astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
     astis_site._SOURCE_BY_NAME=known
     checked = bench.receipt_current(cores)
-    graph_ids = {n['id'] for n in json.loads((output / 'data/underlying-lean-graph.json').read_text(encoding='utf-8'))['nodes']}
+    graph_ids = bench.graph_index_ids(output / 'data/underlying-lean-graph.json')
     target = output / HUB
     target.mkdir(parents=True, exist_ok=True)
-    bench.export(target / 'downloads', cores)
+    bench.export(target / 'downloads', cores, graph_ids=graph_ids)
     bench.archive_bytes(target / 'downloads', target / 'pilot.zip')
     for collection in bench_portals.configuration()['collections']:
         folder = target / collection['id']
@@ -782,7 +783,7 @@ def validate_site(output: Path) -> list[str]:
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
         export = Path(tmp) / 'export'
-        bench.export(export, cores)
+        bench.export(export, cores, graph_ids=ids)
         for source in export.rglob('*'):
             if source.is_file():
                 target = output / HUB / 'downloads' / source.relative_to(export)

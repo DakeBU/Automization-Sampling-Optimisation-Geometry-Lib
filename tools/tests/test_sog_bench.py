@@ -221,9 +221,13 @@ class BenchTests(unittest.TestCase):
                 self.assertEqual('data-lean-copy-status' in rendered, bool(core.get('support_source_view')))
             self.assertNotIn('<details open', rendered)
             self.assertIn('focus=decl%3A', rendered)
-            fallback = reader.core_page(core, False, set())
+            module = 'module:' + core['source_file'].removesuffix('.lean').replace('/', '.')
+            fallback = reader.core_page(core, False, {module})
             self.assertIn('focus=module%3A', fallback)
             self.assertIn('declaration not yet indexed', fallback)
+            unindexed = reader.core_page(core, False, set())
+            self.assertIn('Not indexed in Lean Graph', unindexed)
+            self.assertNotIn('focus=module%3A', unindexed)
 
     def test_display_identity_linebreaks_preserve_source_and_avoid_nested_tex(self):
         source = r'Proof \[a=b,\qquad c=d\] done.'

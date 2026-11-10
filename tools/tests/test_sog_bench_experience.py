@@ -64,6 +64,36 @@ class ReadableMathTests(unittest.TestCase):
         self.assertNotIn('sog-inline-math', reader.inline_prose('∇f(x'))
 
 
+class NumberedExerciseReaderTests(unittest.TestCase):
+    def test_single_source_exercise_distinguishes_fixed_task_from_owned_answer(self):
+        owned = 'AutoSamplingTheory.TechnicalLemmas.Measure.Example.answer'
+        exercise = {'book': {'title': 'Synthetic exercise source', 'pdf_url': 'https://example.invalid/book.pdf',
+                             'authors': ['Fixture Author'], 'edition': 'Pinned fixture', 'rights_boundary': 'Example only.'},
+                    'number': '6', 'book_page': 44, 'pdf_page': 50, 'wording_status': 'Original restatement.',
+                    'source_statement': 'Prove the conclusion.', 'source_assumptions': ['Let the hypotheses hold.'],
+                    'parts': [{'id': 'bound', 'label': 'Bound'}],
+                    'answer_declarations': [{'declaration': owned, 'supports': ['bound']}],
+                    'context_notes': [], 'unformalized_context': ['No optimizer conclusion.']}
+        paired = reader.exercise_panel({'textbook_exercise': exercise, 'lean_enabled': True}, False)
+        self.assertIn('fixed Lean task covers the mathematical conclusion only', paired)
+        self.assertIn('No current aggregate owned-answer build receipt', paired)
+        self.assertIn('book.pdf#page=50', paired)
+        self.assertNotIn('not a new proof, an equivalent Lean challenge', paired)
+        prose = reader.exercise_panel({'textbook_exercise': exercise, 'lean_enabled': False}, True)
+        self.assertIn('not a new proof, an equivalent Lean challenge', prose)
+        self.assertNotIn('separate fixed Lean task', prose)
+
+    def test_source_only_graph_target_never_counts_as_compiled(self):
+        owned = 'AutoSamplingTheory.TechnicalLemmas.Measure.Example.answer'
+        key = 'decl:' + owned
+        node = {'kind': 'declaration', 'url': 'declarations/answer.html', 'status': 'partial'}
+        self.assertTrue(reader.has_exercise_graph_target({key: node}, owned, checked=False))
+        self.assertFalse(reader.has_exercise_graph_target({key: node}, owned, checked=True))
+        for altered in ({'kind': 'module'}, {'status': 'todo'}, {'url': ''}):
+            self.assertFalse(reader.has_exercise_graph_target({key: {**node, **altered}}, owned, checked=False))
+        self.assertTrue(reader.has_exercise_graph_target({key: {**node, 'status': 'compiled'}}, owned, checked=True))
+
+
 class TaskPackageTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

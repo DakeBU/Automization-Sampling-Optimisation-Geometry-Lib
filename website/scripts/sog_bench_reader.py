@@ -251,6 +251,14 @@ def exercise_panel(core: dict, checked: bool) -> str:
             + prose(exercise['source_statement'])
             + ''.join(prose(s) for s in exercise['source_assumptions'])
             + '<h3>Requested parts and owned answers</h3><ol>' + ''.join(parts.values()) + '</ol>')
+    if component_mode:
+        boundary = 'These Lean results cover only the named components; compilation and QA admission are separate.'
+    elif bench.has_lean(core):
+        boundary = ('The owned answer is a library reference, not a submission. The separate fixed Lean task '
+                    'covers the mathematical conclusion only, not the full explanatory proof or textbook.')
+    else:
+        boundary = ('This is owned core-answer reuse, not a new proof, an equivalent Lean challenge '
+                    'or full textbook certification.')
     heading = prose('Numbered textbook exercise · ' + source['title'] + ' · Exercise ' + exercise['number'])
     details = fold(scope_label,
             prose(', '.join(source['authors']) + ' · ' + source['edition'] +
@@ -261,8 +269,7 @@ def exercise_panel(core: dict, checked: bool) -> str:
             + source_blocks
             + ''.join(prose(s) for s in exercise['context_notes'])
             + '<h3>Remaining formal boundary</h3>' + ''.join(prose(s) for s in exercise['unformalized_context'])
-            + prose(build + (' These Lean results cover only the named components; compilation and QA admission are separate.'
-                             if component_mode else ' This is owned core-answer reuse, not a new proof, an equivalent Lean challenge or full textbook certification.'))
+            + prose(build + ' ' + boundary)
             + prose(source['rights_boundary']))
     return heading + ('<div class="sog-exercise-scope">' + details + '</div>'
                       if component_mode else details)
@@ -728,6 +735,13 @@ def enrich_site(output: Path) -> None:
         'data-sog-bench-entry')
 
 
+def has_exercise_graph_target(nodes: dict, declaration: str, *, checked: bool) -> bool:
+    """Check a source-owned declaration link without promoting source-only evidence."""
+    node = nodes.get('decl:' + declaration, {})
+    return (node.get('kind') == 'declaration' and bool(node.get('url'))
+            and node.get('status') in ({'compiled'} if checked else {'compiled', 'partial'}))
+
+
 def validate_site(output: Path) -> list[str]:
     errors = []
     cores = bench.materialize()
@@ -745,9 +759,9 @@ def validate_site(output: Path) -> list[str]:
             if 'decl:' + core['declaration'] not in ids and 'module:' + module not in ids:
                 errors.append('Missing Bench graph target: ' + core['id'])
             for answer in core.get('textbook_exercise', {}).get('answer_declarations', []):
-                node = nodes.get('decl:' + answer['declaration'])
-                if not node or node.get('status') != 'compiled':
-                    errors.append('Numbered exercise requires the actual compiled owned graph node: ' + answer['declaration'])
+                if not has_exercise_graph_target(nodes, answer['declaration'], checked=checked):
+                    scope = 'compiled ' if checked else ''
+                    errors.append('Numbered exercise requires the exact ' + scope + 'owned declaration graph node: ' + answer['declaration'])
     else:
         errors.append('Bench requires the canonical Lean graph')
     policy = bench.curriculum.curriculum()

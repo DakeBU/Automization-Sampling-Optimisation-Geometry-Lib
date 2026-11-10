@@ -9,6 +9,7 @@ import json
 import re
 from pathlib import Path
 import threading
+from urllib.parse import parse_qs, urlsplit
 
 from playwright.sync_api import sync_playwright
 
@@ -31,8 +32,8 @@ def math_component_shot(page, destination: Path) -> None:
         page.evaluate("() => document.querySelectorAll('[data-sog-shot-chrome]').forEach(e=>e.removeAttribute('data-sog-shot-chrome'))")
 
 
-def check_visible_equations(page) -> None:
-    for equation in page.locator('#natural-language mjx-container[display="true"]').all():
+def check_visible_equations(page, *, require_full_width: bool = False, scope: str = '#natural-language') -> None:
+    for equation in page.locator(scope + ' mjx-container[display="true"]').all():
         # Other proof/source sections intentionally remain folded. Check their
         # equations when opened, not the zero-size boxes of closed details.
         if not equation.is_visible():
@@ -43,6 +44,11 @@ def check_visible_equations(page) -> None:
           const hit=document.elementFromPoint((r.left+r.right)/2,(r.top+r.bottom)/2);
           return r.width>0 && r.height>0 && (hit===e || e.contains(hit));
         }"""), 'Rendered equation is obscured in the actual viewport'
+        if require_full_width:
+            assert equation.evaluate("""e => {
+              const outer=e.getBoundingClientRect(), math=e.querySelector('mjx-math').getBoundingClientRect();
+              return math.left >= outer.left-1 && math.right <= outer.right+1;
+            }"""), 'Rendered equation requires horizontal scrolling'
 
 
 def main() -> None:
@@ -99,7 +105,7 @@ def main() -> None:
                         assert page.request.get(base + HUB + 'downloads/harbor-graph-tasks.zip').status == 200
                     if path.startswith('experts/'):
                         page.locator('summary').filter(has_text=re.compile(r'^Optimisation ·')).click()
-                        assert page.get_by_role('link', name='Graph position', exact=True).first.is_visible()
+                        assert page.get_by_role('link', name=re.compile(r'^(Declaration|Owning module) in Lean Graph$')).first.is_visible()
                     page.screenshot(path=str(args.evidence / (path.replace('/index.html','') + '-desktop.png')), full_page=True)
                     page.set_viewport_size({'width': 412, 'height': 915})
                     # Resizing starts the existing 180ms navigation transition.
@@ -110,6 +116,19 @@ def main() -> None:
                     page.set_viewport_size({'width': 1400, 'height': 1000})
             page.goto(base + HUB + 'index.html')
             manifest = page.request.get(base + HUB + 'downloads/manifest.json').json()
+            graph_ids = {n['id'] for n in page.request.get(base + 'data/underlying-lean-graph.json').json()['nodes']}
+            expert = page.request.get(base + HUB + 'downloads/expert-graph-positions.json')
+            assert expert.status == 200
+            assert hashlib.sha256(expert.body()).hexdigest() == manifest['files']['expert-graph-positions.json']
+            expert_rows = expert.json()
+            expert_positions = {p['id']: p for p in expert_rows}
+            assert len(expert_rows) == len(expert_positions) == manifest['editorial_accepted_cores']
+            for p in expert_rows:
+                decl = 'decl:' + p['declaration']
+                module = 'module:' + p['source_file'].removesuffix('.lean').replace('/', '.')
+                kind, node = ('declaration', decl) if decl in graph_ids else ('owning-module', module)
+                assert node in graph_ids and p['node_id'] == node and p['anchor_kind'] == kind, p['id']
+                assert parse_qs(urlsplit(p['graph_url']).query)['focus'] == [node], p['id']
             page.get_by_text('Numbered textbook exercises and our reference solutions', exact=True).click()
             intake_link = page.get_by_role('link', name='Verified source intake and admission checklist')
             assert intake_link.is_visible()
@@ -134,14 +153,29 @@ def main() -> None:
             page.wait_for_url('**/textbook-exercises/index.html')
             page.get_by_role('heading', name='Numbered textbook exercises', exact=True).wait_for(state='visible')
             assert page.get_by_role('heading', name='Numbered textbook exercises', exact=True).is_visible()
+            component_questions = {}
             for exercise in exercises:
                 assert exercise['parts'] and exercise['answer_declarations']
+                titles = {c['item_id']: c['title'] for c in exercise.get('source_components', [])}
                 for question in exercise['questions']:
-                    assert page.get_by_role('link', name=question['core_id'], exact=True).is_visible()
+                    identity = question['core_id']
+                    component = question.get('component_id')
+                    link = page.locator(f'a[href="../{identity}.html"]')
+                    assert link.is_visible() and link.inner_text() == titles.get(component, identity)
+                    if component:
+                        component_questions[identity] = (titles[component], {
+                            answer['declaration'] for answer in exercise['answer_declarations']
+                            if answer['component_id'] == component})
             page.screenshot(path=str(args.evidence / 'textbook-exercise-directory.png'), full_page=True)
             page.goto(base + HUB + 'index.html')
             editorial = page.request.get(base + HUB + 'downloads/editorial-review.json').json()
+            graph_editorial = page.request.get(base + HUB + 'downloads/graph-editorial-review.json').json()['items']
             graph_records=[json.loads(line) for line in page.request.get(base+HUB+'downloads/graph-questions.jsonl').text().splitlines()]
+            for graph_prompt in graph_records:
+                assert not {'answer', 'binding_sha256'} & graph_prompt.keys()
+                visible = {k: v for k, v in graph_prompt.items() if k != 'prompt_sha256'}
+                assert graph_prompt['prompt_sha256'] == hashlib.sha256(
+                    json.dumps(visible, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
             compiled_graphs={r['id']+'.html':r for r in graph_records if r['context']['kind']=='compiled-proof-body-constant-occurrences'}
             assert len(graph_records)==manifest['graph_tasks']
             page.get_by_text('Coverage, downloads and readiness',exact=True).click()
@@ -164,6 +198,21 @@ def main() -> None:
                 page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                 page.evaluate('() => MathJax.startup.promise')
                 assert page.locator('details[open]').count() == 0
+                if identity in component_questions:
+                    title, declarations = component_questions[identity]
+                    scope = page.locator('.sog-exercise-scope > details')
+                    scope.locator('summary').first.click()
+                    components = scope.locator('details')
+                    assert components.first.locator('summary').inner_text() == title
+                    components.first.locator('summary').click()
+                    assert components.first.get_by_text('Source component for this question', exact=True).is_visible()
+                    actual = set()
+                    for link in components.first.locator('a[href*="underlying-lean-graph/index.html?focus="]').all():
+                        assert link.is_visible()
+                        actual.update(parse_qs(urlsplit(link.get_attribute('href')).query)['focus'])
+                    assert actual == {'decl:' + name for name in declarations}
+                    components.first.locator('summary').click()
+                    scope.locator('summary').first.click()
                 prompt=page.locator('#natural-language [data-sog-copy-prompt]')
                 expected_prompt=page.request.get(base+HUB+prompt.get_attribute('data-sog-copy-prompt')).text()
                 prompt.click()
@@ -185,6 +234,13 @@ def main() -> None:
                 page.wait_for_function('Array.from(document.querySelectorAll("[data-lean-copy-status]")).some(n=>n.textContent==="Copied")')
                 copied = page.evaluate('() => navigator.clipboard.readText()')
                 assert 'example' in copied and 'sorry' not in copied
+                if identity == 'sogb-038':
+                    assert 'private theorem finiteMixture_apply' in copied
+                    task = page.request.get(base + HUB + 'downloads/lean/sogb-038-task.lean.txt')
+                    reference = page.request.get(base + HUB + 'downloads/lean/sogb-038-reference.lean')
+                    assert task.status == reference.status == 200
+                    assert 'finiteMixture_apply' not in task.text()
+                    assert copied.replace('\r\n', '\n').strip() == reference.text().replace('\r\n', '\n').strip()
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
                 page.screenshot(path=str(args.evidence / (identity + '-proof-desktop.png')), full_page=True)
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
@@ -219,10 +275,24 @@ def main() -> None:
                 page.locator('summary', has_text='Reference mathematical proof').click()
                 assert page.locator('[data-lean-graph-position]').count() == 1
                 assert page.locator('[data-lean-graph-position]').is_visible()
+                if core['id'] in expert_positions:
+                    assert page.locator('[data-lean-graph-position]').get_attribute('data-lean-graph-position') == expert_positions[core['id']]['node_id']
                 assert page.locator('mjx-merror,[data-mjx-error]').count() == 0, core['id']
                 for span in page.locator('[data-math-original]').all():
                     assert span.locator('mjx-container').count() == 1, (core['id'], span.get_attribute('data-math-original'))
                 check_visible_equations(page)
+                if core['id'] in {'sogb-032', 'sogb-033', 'sogb-034', 'sogb-035', 'sogb-037', 'sogb-038', 'sogb-041', 'sogb-042', 'sogb-043', 'sogb-044', 'sogb-045', 'sogb-046', 'sogb-047', 'sogb-048'} or core['id'] in component_questions:
+                    page.set_viewport_size({'width': 390, 'height': 915})
+                    page.reload()
+                    page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
+                    page.evaluate('() => MathJax.startup.promise')
+                    page.locator('summary', has_text='Reference mathematical proof').click()
+                    assert page.locator('mjx-merror,[data-mjx-error]').count() == 0, core['id']
+                    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), core['id']
+                    check_visible_equations(page,
+                        require_full_width=core['id'] in {'sogb-037', 'sogb-038', 'sogb-041', 'sogb-042', 'sogb-043', 'sogb-044', 'sogb-045', 'sogb-046', 'sogb-047', 'sogb-048'},
+                        scope='.sog-reader' if core['id'] in {'sogb-043', 'sogb-044', 'sogb-045', 'sogb-046', 'sogb-047', 'sogb-048'} else '#natural-language')
+                    page.set_viewport_size({'width': 1400, 'height': 1000})
             for core in (c for c in reference_records if c.get('support_source_view') and (not args.core or c['id'] in args.core)):
                 identity=core['id']
                 for width,height,suffix in ((1400,1000,'desktop'),(412,915,'mobile')):
@@ -281,12 +351,16 @@ def main() -> None:
                     assert page.locator('.sog-graph svg rect').count() == 3
                     page.locator('.sog-graph').screenshot(path=str(args.evidence / 'import-slice-desktop.png'))
                     page.locator('summary', has_text='Independent structural review and limits').click()
-                    evidence=page.request.get(base + HUB + 'downloads/graph-editorial-review.json').json()
-                    assert evidence['items']['sogb-g003']['editorial'] in page.locator('article.sog-reader').inner_text()
+                    assert graph_editorial['sogb-g003']['editorial'] in page.locator('article.sog-reader').inner_text()
                 if tail == 'evaluation/guide.html':
                     assert 'not automatically verified mathematics' in page.locator('article.sog-reader').inner_text()
                     assert page.locator('details[open]').count()==0
                     page.locator('summary', has_text='Commands and input formats').click()
+                    assert page.locator('pre code', has_text='sog_bench_prose.py plan --run-metadata').is_visible()
+                    protocol = page.request.get(base + HUB + 'downloads/EVALUATION.md')
+                    assert protocol.status == 200
+                    assert hashlib.sha256(protocol.body()).hexdigest() == manifest['files']['EVALUATION.md']
+                    assert all(flag in protocol.text() for flag in ('--plan-sha256', 'selection_timing_verified', 'score-panel'))
                     with page.expect_download() as metadata_download:
                         page.get_by_role('link',name='Run-metadata template',exact=True).click()
                     template=json.loads(Path(metadata_download.value.path()).read_text(encoding='utf-8'))
@@ -326,6 +400,27 @@ def main() -> None:
                     assert hashlib.sha256(raw).hexdigest()==graph['snapshot_sha256']
                     source_link=page.get_by_role('link',name='Read the source mathematical proof and optional Lean')
                     assert source_link.get_attribute('href')==compiled_graphs[tail]['core_id']+'.html'
+                    lookup=page.locator('details', has=page.locator('summary', has_text='Try this as a bounded search task'))
+                    identity = compiled_graphs[tail]['id']
+                    if graph_editorial[identity]['editorial'] in ('accepted', 'accepted-after-repair'):
+                        assert lookup.count() == 1 and lookup.get_attribute('open') is None
+                        lookup.locator('summary').click()
+                        assert lookup.locator('code', has_text=f'run --task-id {identity} --max-lookups 8').is_visible()
+                        assert lookup.get_by_role('link', name='JSONL tool and scoring protocol').is_visible()
+                        lookup.locator('summary').click()
+                    else:
+                        assert lookup.count() == 0
+                    if identity == 'sogb-g010':
+                        assert page.locator('.sog-graph svg').evaluate('svg => svg.width.baseVal.value < 440')
+                        positions = page.locator('details', has=page.locator('summary', has_text='Locate these declarations in the Lean Graph'))
+                        positions.locator('summary').click()
+                        assert {parse_qs(urlsplit(link.get_attribute('href')).query)['focus'][0]
+                                for link in positions.locator('a').all()} == {'decl:' + name for name in graph['nodes']}
+                        positions.locator('summary').click()
+                        reference = page.locator('details', has=page.locator('summary', has_text='Reference structural answer'))
+                        reference.locator('summary').click()
+                        assert reference.get_by_text('Selected path: Horizon-dependent value-gap witness → Fixed-step distance witness → Balanced step and scalar minimax bound → One-step endpoint upper bound.', exact=True).is_visible()
+                        reference.locator('summary').click()
                 page.set_viewport_size({'width': 412, 'height': 915})
                 page.wait_for_timeout(400)  # Let the existing sidebar resize transition finish.
                 page.evaluate('() => { document.activeElement?.blur(); window.scrollTo({top:0, behavior:"instant"}); }')

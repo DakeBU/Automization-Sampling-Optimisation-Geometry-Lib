@@ -35,14 +35,30 @@ class GraphReviewTests(unittest.TestCase):
 
     def test_current_summary_keeps_structural_and_empirical_truth_separate(self):
         summary = review.summary(self.items)
-        self.assertEqual(summary['total_tasks'],7)
-        self.assertEqual(summary['accepted_tasks'],7)
+        self.assertEqual(summary['total_tasks'],len(self.items))
+        self.assertEqual(summary['accepted_tasks'],len(self.items))
         self.assertEqual(summary['items']['sogb-g003']['editorial'],'accepted')
         self.assertEqual(summary['admission_round'],'graph-7')
         self.assertFalse(summary['difficulty_calibrated'])
         self.assertFalse(summary['model_performance_measured'])
         self.assertEqual(self.items[2]['level'],'L1')
         self.assertTrue(all(not row.get('mathematical_necessity_certified',False) for row in summary['items'].values()))
+
+    def test_disjoint_extension_keeps_base_verdicts_and_cannot_rebind_an_old_item(self):
+        by_id = review.summary(self.items)['items']
+        self.assertEqual(by_id['sogb-g008']['editorial'], 'accepted')
+        self.assertEqual(by_id['sogb-g008']['review_round'], 'graph-extension-exercise17')
+        base = review.apply_repair(self.items, review.statuses(self.items, review.CURRENT_ROUND),
+                                   review.CURRENT_REPAIR_ROUND, review.CURRENT_ROUND)
+        bound_ids = {row['id'] for row in json.loads(
+            (review.CURRENT_ROUND / 'input.json').read_bytes())['items']}
+        self.assertEqual({key: by_id[key] for key in bound_ids},
+                         {key: base[key] for key in bound_ids})
+        with self.assertRaisesRegex(ValueError, 'cannot supersede or overlap'):
+            review.extension_statuses(self.items, review.ROUND.parent, {'sogb-g008'})
+        changed = deepcopy(self.items)
+        next(x for x in changed if x['id'] == 'sogb-g008')['question'] += ' Changed.'
+        self.assertEqual(review.summary(changed)['items']['sogb-g008']['editorial'], 'stale')
 
     def test_content_or_source_changes_stale_only_affected_item(self):
         for key,value in (('question','Different question'), ('level','L5'), ('answer',{'nodes':[]})):
@@ -55,15 +71,78 @@ class GraphReviewTests(unittest.TestCase):
         changed[0]['context']['source_sha256_lf']['changed']='source'
         self.assertEqual(review.statuses(changed,review.CURRENT_ROUND)['sogb-g001']['editorial'],'stale')
 
+    def test_random_scan_extension_pins_the_safe_visible_projection(self):
+        path = review.ROUND.parent / 'graph-extension-random-scan'
+        old = path / 'preflight-answer-binding'
+        identity = 'sogb-g009'
+        graph = next(item for item in self.items if item['id'] == identity)
+        accepted = review.summary(self.items)['items'][identity]
+        self.assertEqual((accepted['editorial'], accepted['review_round']), ('accepted', path.name))
+        self.assertEqual(review.statuses(self.items, old)[identity]['editorial'], 'repair-required')
+        self.assertEqual(graph['family'], 'random-scan-null-atoms')
+        self.assertEqual((len(graph['context']['nodes']), len(graph['context']['edges'])), (8, 5))
+        self.assertEqual({name.rsplit('.', 1)[-1] for name in graph['answer']['nodes']},
+                         {'randomScan_apply_singleton', 'heatBath_ae_apply_eq'})
+        packet = json.loads((path / 'input.json').read_bytes())
+        self.assertEqual(bench.text_hash(path / 'PrivateBalanceTrace.lean'),
+                         packet['proof_occurrence_witness']['probe_sha256_lf'])
+        self.assertEqual(graph['context']['snapshot_sha256'],
+                         packet['proof_occurrence_witness']['public_snapshot_sha256'])
+        actual = bench.curriculum.graph_prompt
+        with patch.object(bench.curriculum, 'graph_prompt',
+                          side_effect=lambda item: {**actual(item), 'changed_projection': True}):
+            self.assertEqual(review.statuses(self.items, path)[identity]['editorial'], 'stale')
+
+    def test_lower_bounds_extension_binds_first_answer_and_visible_prompt(self):
+        directory = review.ROUND.parent / 'graph-extension-lower-bounds'
+        identity = 'sogb-g010'
+        graph = next(item for item in self.items if item['id'] == identity)
+        packet = json.loads((directory / 'input.json').read_bytes())
+        public = (directory / 'public-prompt.json').read_bytes()
+        blind = (directory / 'blind-answer.json').read_bytes()
+        self.assertEqual(public, bench.encoded(bench.curriculum.graph_prompt(graph)))
+        self.assertEqual(bench.sha(public), packet['public_projection_sha256'][identity])
+        self.assertEqual(bench.sha(blind),
+                         'b0565ac0819d11d4ec2246451297a7c0626376add939b702d319cf8923ccf787')
+        self.assertEqual(json.loads(blind), graph['answer'])
+        status = review.summary(self.items)['items'][identity]
+        self.assertEqual((status['editorial'], status['review_round'], status['mathematical_necessity_certified']),
+                         ('accepted', directory.name, False))
+
     def test_policy_or_scorer_changes_stale_every_original_decision(self):
         actual=review.payload
+        originals = {row['id'] for row in json.loads(
+            (review.CURRENT_ROUND / 'input.json').read_bytes())['items']}
         for key in ('policy_sha256_lf','scorer_source'):
             def changed(items):
                 result=actual(items)
                 result[key]='changed'
                 return result
             with patch.object(review,'payload',side_effect=changed):
-                self.assertTrue(all(row['editorial']=='stale' for row in review.statuses(self.items,review.CURRENT_ROUND).values()))
+                rows = review.statuses(self.items, review.CURRENT_ROUND)
+                self.assertTrue(all(row['editorial'] == ('stale' if identity in originals else 'pending')
+                                    for identity, row in rows.items()))
+
+    def test_only_exact_lower_bounds_addition_preserves_older_domain_policy(self):
+        path = bench.curriculum.BASE / 'curriculum.json'
+        active = path.read_text(encoding='utf-8')
+        self.assertEqual(active.count(review.LOWER_BOUNDS_ADDITION), 1)
+        previous = active.replace(review.LOWER_BOUNDS_ADDITION, '', 1)
+        archived = json.loads((review.CURRENT_ROUND / 'input.json').read_bytes())['policy_sha256_lf']
+        self.assertEqual(bench.sha(previous.encode()), archived)
+        domains = review.reviewed_policy_domains(archived, bench.text_hash(path))
+        self.assertEqual(domains, set(json.loads(previous)['domains']))
+        self.assertNotIn('lower-bounds', domains)
+        with tempfile.TemporaryDirectory() as tmp, patch.object(bench.curriculum, 'BASE', Path(tmp)):
+            target = Path(tmp) / 'curriculum.json'
+            for altered in (active.replace('Lower Bounds', 'Lower Bounds and Oracles'),
+                            active.replace('Log-Concave Sampling', 'Sampling'),
+                            active.replace('Author-assigned', 'Empirically assigned'),
+                            active.replace(review.LOWER_BOUNDS_ADDITION,
+                                           review.LOWER_BOUNDS_ADDITION + '    "extra": "Extra",\n')):
+                with self.subTest(policy=bench.sha(altered.encode())):
+                    target.write_bytes(altered.encode())
+                    self.assertFalse(review.reviewed_policy_domains(archived, bench.text_hash(target)))
 
     def test_author_input_hash_necessity_and_open_repairs_cannot_self_admit(self):
         for case in ('actor','hash','necessity','repair','evidence'):

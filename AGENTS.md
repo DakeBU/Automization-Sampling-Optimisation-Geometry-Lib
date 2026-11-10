@@ -25,6 +25,10 @@ download features. This is scheduling, never a theorem-completion badge.
 
 SampleWiki is one research directory, not separate paper/frontier libraries;
 follow `docs/samplewiki-reader-navigation.md` for its shared navigation contract.
+For the independent Lower Bounds / four-subject reader lane and Zhou–Suzuki
+arXiv:2611.05813v1 intake, read `docs/research-reader-routes.md`. This lane does not
+transfer ownership of existing four-paper, Gaussian Complexity or Optimisation
+cells. Recheck live ownership; source-outline nodes are not compiled Lean edges.
 
 Current collaborator checkpoint: read `docs/companion-papers-handoff.md` before
 resuming these papers. It records the owner's pause, reviewed local results,
@@ -39,7 +43,7 @@ Sampling-Optimisation-Geometry-Bench has three peer subject doors; Benchmarks
 and Libraries are sibling shelves, with visible Lean/Functor graph entrances.
 Visual redesign, Graph JSON trials and trusted references do not substitute for
 the required actual Agentic Lean evaluation environment. Use the
-single curriculum/catalog for seven-domain placement, track-specific L1–L5
+single curriculum/catalog for eight-domain placement (including Lower Bounds), track-specific L1–L5
 levels, explicit missing Lean alignments, family/split identity and source-hashed
 graph QA. Bench development is not paper/theorem completion or Registry credit.
 Never feed restricted ATLAS material, its index, projections or derivatives to

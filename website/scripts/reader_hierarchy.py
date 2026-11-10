@@ -14,6 +14,8 @@ import astis_site
 import bench_portals
 import information_architecture
 import library_shelves
+import lower_bounds
+import subject_readers
 
 ROOT = Path(__file__).resolve().parents[2]
 MARKER = 'data-reader-hierarchy="3"'
@@ -41,8 +43,11 @@ def sidebar(text: str, rel: str) -> str:
                          + (' aria-current="page"' if rel.startswith(bench_portals.HUB+c['id']+'/') else '')
                          + f'><span class="source-hub-title">{escape(c["name"])}</span></a>' for c in bench_portals.configuration()['collections'])
                + '</nav></section>')
+    topics = ('<section class="sidebar-group sidebar-topics"><h2>Research topics</h2><nav>'
+              + lower_bounds.link(subject_readers.SAMPLING, "Sampling guide", page=rel)
+              + lower_bounds.link(lower_bounds.PAGE, "Lower Bounds", page=rel) + '</nav></section>')
     contents = (f'<div class="sidebar-contents" data-ia-version="3" {MARKER}>' + graph
-                + library_shelves.libraries_sidebar(rel) + benches
+                + library_shelves.libraries_sidebar(rel) + benches + topics
                 + '<details class="sidebar-more reader-secondary-nav"><summary>Library tools &amp; project</summary>' + rest + '</details></div>\n')
     return text[:start.start()] + contents + text[end:]
 
@@ -59,6 +64,8 @@ def home() -> str:
             '<p class="lede">Sampling, optimisation and geometry — connected by formal mathematics.</p>'
             '<div class="reader-home-grid" data-sog-bench-entry>'
             + ''.join(bench_portals.card(*row) for row in cards) + '</div>'
+            '<p class="reader-home-note">Read by subject: '
+            + ' · '.join(lower_bounds.link(p, label, page="index.html") for p, label in subject_readers.SUBJECTS) + '</p>'
             '<p class="reader-home-note">Early formalisation. Inspect the evidence for each result. <a href="progress/index.html">Current progress →</a></p>'
             '<p class="sog-caption">Navigation sketches are illustrative; graph views distinguish formal edges from conceptual overlays.</p></section>')
 

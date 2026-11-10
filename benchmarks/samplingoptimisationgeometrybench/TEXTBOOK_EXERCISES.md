@@ -42,7 +42,7 @@ Hilbert-space distinction. This is an NL exercise with owned Lean answers,
 not another fixed Lean reconstruction task. Both source pages were rendered
 and checked against the original wording; no source prose is reproduced.
 
-## Next real source route: Log-Concave Sampling Exercise 1.7
+## Log-Concave Sampling Exercise 1.7: two distinct conclusions
 
 The pinned August 20, 2026 edition has 333 pages and SHA-256
 `8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae`.
@@ -51,12 +51,15 @@ is on printed p.43 / PDF p.55. Corollary 2.1.2 explicitly reuses the same
 expansion on printed p.50 / PDF p.62. The entire relevant exercise page and
 the PI/LSI conventions were inspected, not just a search snippet.
 
-This is **not another admitted QA**. The first actual prerequisite is tracked by
-`ASTIS-SHARED-bounded-density-kl-linearization`: the compensated-entropy integral
-limit for a finite measure and a uniformly a.e.-bounded measurable real test.
-Its exact Lean signature, actual compiler checks, semantic audit and later
-integration state are separate evidence. Do not infer a full exercise answer
-from that prerequisite.
+The two Bench questions share one public-development family. `sogb-039`
+asks for the compact Euclidean Poincaré implication (L4 in both tracks);
+`sogb-040` asks for the actual affine probability law and its finite KL
+expansion (L3 in both tracks). The Lean targets certify those conclusions,
+not a whole-exercise abstract form-domain result. The two proofs share the
+compensated-entropy integral limit; the Poincaré proof does not use the
+actual-law KL theorem. See [the independent reviews](reviews/formal-15/README.md).
+The levels are provisional and the current compiler and editorial states
+are reported separately by the generated exercise map.
 
 The immutable source-only proposal/review and corrected successor are retained
 under `proof-obligations/chewi-exercise-1-7/`. Their topology review is not a
@@ -78,9 +81,19 @@ The primary PDF contains no permission established here to redistribute its
 prose as ML data. Keep the cached PDF/page renders out of exports and author
 original mathematical statements and answers with exact correspondence.
 
-## Transport intake: Chapter 1, Exercise 6
+For exercises with separate canonical source components, use
+`publication_components` instead of `publication_file`. Each entry names a
+`{publication_file, item_id}` with a proof-edge binding to the same pinned
+book, chapter, and exercise. Do not conjoin distinct assumptions. The reader
+lists the component corresponding to the current question's answer anchor
+first; its source, hypotheses and graph links stay separate. An accepted
+question credits only its component, not the other components or the
+exercise's remaining mathematical obligations. All views share one source
+family. Agent prompts receive only the bibliography.
 
-The next transport exercise candidate is Chapter 1, §1.8, no. 6 of
+## Transport: Chapter 1, Exercise 6
+
+The paired transport exercise is Chapter 1, §1.8, no. 6 of
 *Statistical Optimal Transport* by Chewi, Niles-Weed and Rigollet
 ([printed p. 44 / PDF p. 50](https://chewisinho.github.io/st_flour.pdf#page=50),
 edition fingerprint in `Libraries/StatisticalOptimalTransport/source-map.json`).
@@ -89,11 +102,11 @@ moments and means separated by `m/2`. The source hint uses the 1-Lipschitz
 test `f(x) = -x`, then the probability-coupling Cauchy–Schwarz bound.
 For the upper bound, couple the common left quarter and right half on
 the diagonal; translate the remaining left quarter by `2m` using the
-same Gaussian noise. The candidate squared cost is `m²`. Mathlib has
-Gaussian means, L² and translation APIs, and the owned Wasserstein upper
-bridge accepts an actual coupling. The unbounded-test lower bound and
-actual mixture coupling/marginals still need proof; the bounded-feature
-transport lemma is not a substitute. No QA or Lean coverage is claimed yet.
+same Gaussian noise. The squared cost is `m²`. The two owned producers
+prove the lower comparison and the actual coupling with these marginals;
+the assembled result is `m/2 ≤ W₂ ≤ m` for `m > 0`.
+The independent paired review applies to the fixed final inequalities.
+It does not give an exact distance, an optimal plan, or a held-out score.
 
 ## Admission checklist
 
@@ -102,6 +115,6 @@ transport lemma is not a substitute. No QA or Lean coverage is claimed yet.
 3. Supply a complete stepwise formula proof. Compare all requested subparts with the exact compiled declarations and existing graph nodes. Reuse existing proofs; new substantive gaps follow normal theorem publication and independent semantic review.
 4. Add a content-bound Bench rubric/review and family assignment. Distinguish an existing compiled exercise answer from a separately aligned Lean reconstruction challenge. Source/answer/graph/compiler/editorial statuses are separate.
 5. Validate source links, code copy/download, tests, graph ownership and readable mathematics. Only admitted QA enters the reviewed prompt/reference export. Exercise variants/subparts/derived questions stay together for contamination control.
-6. Continue the same process for *Log-Concave Sampling*, the cited *Statistical Optimal Transport* route and suitable exercises elsewhere in the seven domains. This first reuse lead is not coverage of those books.
+6. Continue the same process for *Log-Concave Sampling*, the cited *Statistical Optimal Transport* route and suitable exercises elsewhere in the curriculum. This first reuse lead is not coverage of those books.
 
 The reference answer should be complete, independently checked and easy to study; equivalent valid proofs receive credit. No unmeasured claim that an answer is uniquely “best” is made.

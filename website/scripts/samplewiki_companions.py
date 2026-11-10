@@ -323,8 +323,24 @@ def bookkeeping_html(book):
 
 def comparison_html(row):
     """Source mechanisms and open proof use; never a compiler dependency claim."""
-    if not row.get("method_comparison"):
+    if not row.get("source_graph"):
         return ""
+    if not row.get("method_comparison"):
+        outline = row["source_graph"]
+        parents = {n["id"]: [] for n in outline["nodes"]}
+        labels = {n["id"]: n["label"] for n in outline["nodes"]}
+        for edge in outline["edges"]:
+            parents[edge["consumer"]].append(labels[edge["parent"]])
+        nodes = ''.join(
+            f'<li id="source-{escape(n["id"])}"><h4>{escape(n["label"])}</h4>'
+            f'<p>{escape(n["anchor"])} · Lean open.</p>'
+            f'<p>Source inputs: {escape("; ".join(parents[n["id"]]) or "source construction / model")}</p></li>'
+            for n in outline["nodes"])
+        query = urlencode({"view": "frontier", "focus": "case:" + row["id"], "q": row["id"]})
+        return ('<section id="source-outline"><h2>Source proof route</h2>'
+                f'<p>{escape(outline["coverage"])}</p>'
+                f'<p><a href="../../../lean-foundations.html?{query}">Locate the planned source route in the graph</a></p>'
+                f'<ol>{nodes}</ol></section>')
     rows = "".join(
         f'<tr><th scope="row">{escape(item["aspect"])}</th>'
         f'<td>{escape(item["sign"])}</td><td>{escape(item["eigen"])}</td></tr>'
@@ -544,7 +560,7 @@ def add_to_graph(builder):
                             url=BASE + row['slug'] + '.html#source-' + node['id'])
             for edge in outline['edges']:
                 builder.edge(prefix + edge['parent'], prefix + edge['consumer'], edge['relation'])
-            for target in ('sign-main', 'eigen-main'):
+            for target in outline.get('roots', ('sign-main', 'eigen-main')):
                 if any(n['id'] == target for n in outline['nodes']):
                     builder.edge(prefix + target, 'case:' + row['id'], 'source theorem outline; not a proof dependency')
     for t in m['technologies']:

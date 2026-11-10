@@ -69,6 +69,41 @@ def load() -> dict:
     return data
 
 
+def assigned_theorem(declaration) -> tuple[str, str]:
+    """Preserve an explicit source proof (term or tactic), not an equation block."""
+    # The canonical scanner can retain trailing namespace closures or the next docstring.
+    code = re.split(r'\nend(?:\s|$)', declaration.source_text, maxsplit=1)[0]
+    signature, proof = inline_lean.split_statement(inline_lean.display_source(code).strip())
+    if (declaration.kind not in {'theorem', 'lemma'} or not proof.startswith(':=')
+            or not astis_site.sanitize_lean(proof[2:]).strip()):
+        raise ValueError('Bench requires a theorem with an explicit assigned proof')
+    return signature, proof
+
+
+def reference_helper_source(core: dict, target, known: dict) -> str:
+    """Exact earlier same-namespace proofs, in the trusted answer only."""
+    if 'reference_helpers' not in core:
+        return ''
+    names = core['reference_helpers']
+    if (not isinstance(names, list) or not names or not all(isinstance(n, str) and n in known for n in names)
+            or len(names) != len(set(names))):
+        raise ValueError('Reference helpers must name distinct known declarations')
+    helpers = [known[n] for n in names]
+    lines = [d.source_line for d in helpers]
+    namespace = target.full_name.rsplit('.', 1)[0]
+    if (lines != sorted(set(lines)) or lines[-1] >= target.source_line
+            or any(d.source_file != target.source_file or d.full_name.rsplit('.', 1)[0] != namespace
+                   or d.has_placeholder for d in helpers)):
+        raise ValueError('Reference helpers must be earlier checked source in the same file and namespace')
+    pieces = []
+    for d in helpers:
+        signature, proof = assigned_theorem(d)
+        if not re.match(r'^(?:private\s+)?(?:theorem|lemma)\s+' + re.escape(d.short_name) + r'\b', signature):
+            raise ValueError('Unsupported reference helper declaration form')
+        pieces.append(('' if signature.startswith('private ') else 'private ') + signature + ' ' + proof)
+    return '\n\n'.join(pieces) + '\n\n'
+
+
 def materialize(data: dict | None = None) -> list[dict]:
     data = data or load()
     known = astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
@@ -100,6 +135,8 @@ def materialize(data: dict | None = None) -> list[dict]:
                                 'source_sha256_lf': text_hash(ROOT / support.source_file)})
             extra['supporting_declarations'] = sources
         if not has_lean(core):
+            if 'reference_helpers' in core:
+                raise ValueError('Reference helpers require an aligned Lean task')
             bound = {**core, **extra, 'split': data['split'], 'source_sha256_lf': text_hash(ROOT / core['source_file']),
                      'source_line': declaration.source_line, 'imports': [], 'lean_task': '', 'lean_reference': ''}
             if core.get('support_source_view'):
@@ -109,13 +146,7 @@ def materialize(data: dict | None = None) -> list[dict]:
             bound['binding_sha256'] = sha(encoded(bound))
             result.append(bound)
             continue
-        # The canonical scanner retains trailing namespace closures; these are
-        # not part of the target example. Preserve the theorem itself verbatim.
-        code = re.split(r'\nend(?:\s|$)', declaration.source_text, maxsplit=1)[0]
-        code = inline_lean.display_source(code).strip()
-        signature, proof = inline_lean.split_statement(code)
-        if not proof.startswith(':= by') or declaration.kind not in {'theorem', 'lemma'}:
-            raise ValueError('Pilot requires an explicit tactic-proof theorem')
+        signature, proof = assigned_theorem(declaration)
         target = re.sub(r'^(?:theorem|lemma)\s+' + re.escape(declaration.short_name), 'example', signature, count=1)
         if target == signature:
             raise ValueError('Could not form the fixed anonymous target')
@@ -126,7 +157,7 @@ def materialize(data: dict | None = None) -> list[dict]:
         header = ('/- SamplingOptimisationGeometryBench public-dev reference.\n'
                   '   Reuses the existing project proof; retain LICENSE and NOTICE. -/\n')
         prefix = header + ''.join('import ' + name + '\n' for name in imports) + '\n' + core['context'] + '\n'
-        reference = prefix + target + ' ' + proof + '\n'
+        reference = prefix + reference_helper_source(core, declaration, known) + target + ' ' + proof + '\n'
         task = prefix + target + ' := by\n  -- Replace this comment with your proof.\n'
         if re.search(r'\b(sorry|admit|axiom|unsafe)\b', astis_site.sanitize_lean(reference)):
             raise ValueError('Forbidden reference proof token')
@@ -207,7 +238,42 @@ def receipt_current(cores: list[dict]) -> bool:
         return False
 
 
-def task_assets(cores: list[dict], graphs: list[dict]) -> dict[str, bytes]:
+def graph_anchor(declaration: str, source_file: str, graph_ids: set[str] | None) -> tuple[str, str | None]:
+    """Resolve a location against an actual graph, never against the proof status."""
+    if graph_ids is None:
+        return 'not-checked', None
+    node = 'decl:' + declaration
+    if node in graph_ids:
+        return 'declaration', node
+    module = 'module:' + source_file.removesuffix('.lean').replace('/', '.')
+    if module in graph_ids:
+        return 'owning-module', module
+    return 'not-indexed', None
+
+
+def graph_index_ids(path: Path) -> set[str]:
+    data = json.loads(path.read_text(encoding='utf-8'))
+    nodes = data.get('nodes') if isinstance(data, dict) else None
+    if not isinstance(nodes, list) or any(not isinstance(n, dict) or not isinstance(n.get('id'), str)
+                                         or not n['id'] for n in nodes):
+        raise ValueError('Expected a generated Lean graph with node identifiers')
+    ids = {n['id'] for n in nodes}
+    if len(ids) != len(nodes):
+        raise ValueError('Generated Lean graph contains duplicate node identifiers')
+    return ids
+
+
+def mathematical_scope(core: dict) -> str:
+    """Keep historical staging text out of current reader and expert scope.
+
+    The frozen input still carries the exact author's note. Admission is
+    derived from reviews, never from prose in that input.
+    """
+    return core['boundary'].removesuffix(
+        ' Draft pending independent editorial review; never include in canonical exports yet.')
+
+
+def task_assets(cores: list[dict], graphs: list[dict], *, graph_ids: set[str] | None = None) -> dict[str, bytes]:
     """Portable agent inputs, separate training pairs and expert-only anchors.
 
     This packages existing admitted tasks; it neither invents an execution
@@ -218,26 +284,36 @@ def task_assets(cores: list[dict], graphs: list[dict]) -> dict[str, bytes]:
     assets, index, training, positions = {}, [], [], []
     by_id = {c['id']: c for c in cores}
     rows = prompts(cores) + curriculum.graph_prompts(graphs)
+    evaluators = {'natural-language': 'tools/sog_bench_prose.py',
+                  'lean': 'tools/sog_bench_lean.py',
+                  'graph-json': 'tools/sog_bench_curriculum.py'}
+    evaluator_hashes = {track: text_hash(ROOT / path) for track, path in evaluators.items()}
+    lean_policy_hash = text_hash(DATA.parent / 'lean-runtime/policy.json')
     for row in rows:
         track = row.get('track', 'graph-json')
         stem = 'tasks/' + row['id'] + '/' + track
         prompt_path = stem + '/prompt.json'
-        response = {'id': row['id'], 'binding_sha256': row['binding_sha256'], 'attempt': 1}
+        identity_key = 'prompt_sha256' if track == 'graph-json' else 'binding_sha256'
+        identity = {identity_key: row[identity_key]}
+        response = {'id': row['id'], **identity, 'attempt': 1}
         if track == 'graph-json':
             response['answer'] = {'nodes': [], 'entails_mathematical_necessity': False}
             verifier = 'exact-snapshot-json; Python3.11+; no submission code execution'
         else:
             response.update(track=track, response='')
             verifier = ('actual-human-rubric' if track == 'natural-language'
-                        else 'isolated-fixed-target-verifier-required; not implemented')
+                        else 'isolated-fixed-target-lean; operator-provisioned Linux Docker/Landrun')
         environment = {'python': '3.11+', 'lean_toolchain': (ROOT / 'lean-toolchain').read_text().strip(),
                        'mathlib_manifest_sha256_lf': text_hash(ROOT / 'lake-manifest.json'),
                        'runner_source_sha256_lf': text_hash(ROOT / 'tools/sog_bench.py'),
-                       'evaluator_source_sha256_lf': text_hash(ROOT / ('tools/sog_bench_curriculum.py' if track == 'graph-json' else 'tools/sog_bench_prose.py')),
+                       'evaluator_source_sha256_lf': evaluator_hashes[track],
                        'arbitrary_submission_execution': False,
                        'retrieval_policy': 'declare before collection; not enforced by this package'}
-        descriptor = {'schema_version': 1, 'id': row['id'], 'track': track,
-                      'family': row['family'], 'split': row['split'], 'binding_sha256': row['binding_sha256'],
+        if track == 'lean':
+            environment.update(verifier_policy_sha256_lf=lean_policy_hash,
+                               verifier_included=False, hosted_execution=False)
+        descriptor = {'schema_version': 2 if track == 'graph-json' else 1, 'id': row['id'], 'track': track,
+                      'family': row['family'], 'split': row['split'], **identity,
                       'prompt_file': 'prompt.json', 'response_template': 'response-template.json',
                       'environment': environment, 'verifier': verifier,
                       'hidden_test': False, 'measured_model_result': False}
@@ -245,14 +321,16 @@ def task_assets(cores: list[dict], graphs: list[dict]) -> dict[str, bytes]:
         assets[stem + '/task.json'] = encoded(descriptor)
         assets[stem + '/response-template.json'] = encoded(response)
         assets[stem + '/instruction.md'] = (
-            '# ' + row['title'] + '\n\nRead prompt.json. Preserve the task identity, binding, assumptions '
-            'and fixed target. Write your first unedited answer using response-template.json.\n\n'
-            'No gold answer is included in this task package. For Lean, do not execute untrusted '
-            'submissions on the host: an isolated fixed-target verifier is not supplied.\n'
+            '# ' + row['title'] + '\n\nRead prompt.json. Preserve the task identity and ' + identity_key
+            + '. Write your first unedited answer using response-template.json; keep any assumptions and fixed target.\n\n'
+            'No gold answer is included in this task package.\n'
+            + ('The operator must provision the isolated Linux Docker/Landrun fixed-target verifier separately. '
+               'It is not included in this ZIP or hosted by the site. Never run untrusted Lean on the host.\n'
+               if track == 'lean' else '')
         ).encode('utf-8')
         index.append({'id': row['id'], 'track': track, 'family': row['family'],
                       'level': row['level'], 'library_domains': row['library_domains'],
-                      'binding_sha256': row['binding_sha256'], 'task_file': stem + '/task.json',
+                      **identity, 'task_file': stem + '/task.json',
                       'prompt_file': prompt_path, 'verifier': verifier})
         if track != 'graph-json':
             core = by_id[row['id']]
@@ -263,19 +341,21 @@ def task_assets(cores: list[dict], graphs: list[dict]) -> dict[str, bytes]:
                              'messages': [{'role': 'user', 'content': encoded(row).decode('utf-8')},
                                           {'role': 'assistant', 'content': answer}]})
     for core in cores:
-        node = 'decl:' + core['declaration']
+        kind, node = graph_anchor(core['declaration'], core['source_file'], graph_ids)
         related = [{'declaration': d['declaration'], 'role': 'additional-formal-support-not-aligned-QA'}
                    for d in core.get('supporting_declarations', [])]
         related += [{'declaration': d['declaration'], 'role': 'owned-textbook-core-answer', 'supports': d['supports']}
                     for d in core.get('textbook_exercise', {}).get('answer_declarations', [])]
         positions.append({'id': core['id'], 'node_id': node, 'source_file': core['source_file'],
+                          'anchor_kind': kind,
                           'declaration': core['declaration'], 'binding_sha256': core['binding_sha256'],
-                          'graph_url': '../../../underlying-lean-graph/index.html?focus=' + quote(node, safe=''),
+                          'graph_url': ('../../../underlying-lean-graph/index.html?focus=' + quote(node, safe='')
+                                        if node is not None else None),
                           'aligned_fixed_lean_task': has_lean(core), 'audience': 'expert-review-not-model-input',
                           'related_owned_results': related,
-                          'boundary': core['boundary'],
+                          'boundary': mathematical_scope(core),
                           'edge_semantics': 'position only; no inferred proof-dependency or necessity'})
-    assets['task-index.json'] = encoded({'schema_version': 1, 'name': 'SamplingOptimisationGeometryBench',
+    assets['task-index.json'] = encoded({'schema_version': 2, 'name': 'SamplingOptimisationGeometryBench',
         'catalog_version': load()['version'], 'split': 'public-dev', 'hidden_test': False,
         'tasks': index, 'note': 'Only currently editorially admitted tasks. Family identity is not a train/test split.'})
     # The model-facing ZIP contains no gold, expert source anchors or review reports.
@@ -319,7 +399,7 @@ def selected_graph_tasks(graphs: list[dict], metadata: dict) -> list[dict]:
     return [known[i] for i in identities]
 
 
-def export(output: Path, cores: list[dict] | None = None) -> None:
+def export(output: Path, cores: list[dict] | None = None, *, graph_ids: set[str] | None = None) -> None:
     cores = cores or materialize()
     graphs = curriculum.graph_items()
     review = editorial_review(cores)
@@ -327,13 +407,16 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     graph_review = sog_bench_graph_review.summary(graphs)
     reviewed_graphs=[g for g in graphs if graph_review['items'][g['id']]['editorial'] in {'accepted','accepted-after-repair'}]
     reviewed = [c for c in cores if review['items'][c['id']]['editorial'] in {'accepted', 'accepted-after-repair'}]
-    task_files = task_assets(reviewed, reviewed_graphs)
+    task_files = task_assets(reviewed, reviewed_graphs, graph_ids=graph_ids)
+    import sog_bench_graph_slices
+    compiler_snapshots = sog_bench_graph_slices.snapshots()
     expected = {'questions.jsonl', 'reference.jsonl', 'manifest.json', 'README.md',
                 'editorial-review.json', 'graph-editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 'reviewed-graph-questions.jsonl','reviewed-graph-reference.jsonl',
-                'EVALUATION.md', 'ECOSYSTEM.md', 'HARBOR.md', 'TEXTBOOK_EXERCISES.md', 'textbook-exercise-map.json', 'examples/prose-run.json',
-                'compiled-transport-graph.json', 'compiled-flow-graph.json',
+                'EVALUATION.md', 'FAMILY_ISOLATION.md', 'ECOSYSTEM.md', 'HARBOR.md', 'TEXTBOOK_EXERCISES.md',
+                'textbook-exercise-map.json', 'examples/prose-run.json',
+                *compiler_snapshots,
                 *project_licensing.LICENSE_FILES, *task_files,
                 *('lean/' + c['id'] + '-support.lean' for c in cores if c.get('support_source_view')),
                 *('lean/' + c['id'] + suffix for c in cores if has_lean(c) for suffix in ('-task.lean.txt', '-reference.lean'))}
@@ -347,6 +430,15 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     output.mkdir(parents=True, exist_ok=True)
     write = lambda path, value: (output / path).write_bytes(value)
     jsonl = lambda rows: ''.join(json.dumps(r, ensure_ascii=False, sort_keys=True) + '\n' for r in rows).encode()
+    def operator_guide(name):
+        # Keep repository-only setup and audit links useful after download.
+        # None of these operator guides are inside the prompt-only ZIP.
+        url = 'https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/'
+        text = (DATA.parent / name).read_text(encoding='utf-8')
+        text = re.sub(r'\]\(((?:reviews|lean-runtime)/[^)]+)\)',
+                      lambda m: f']({url}benchmarks/samplingoptimisationgeometrybench/{m[1]})', text)
+        text = re.sub(r'\]\(\.\./\.\./((?:docs|runs)/[^)]+)\)', r'](' + url + r'\1)', text)
+        return text.encode('utf-8')
     write('questions.jsonl', jsonl(prompts(cores)))
     for name, content in task_files.items():
         (output / name).parent.mkdir(parents=True, exist_ok=True)
@@ -354,10 +446,8 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('reference.jsonl', jsonl(cores))
     write('editorial-review.json', encoded(review))
     write('graph-editorial-review.json', encoded(graph_review))
-    import sog_bench_compiled_graph
-    write('compiled-transport-graph.json',encoded(sog_bench_compiled_graph.recorded()[2]))
-    write('compiled-flow-graph.json',encoded(sog_bench_compiled_graph.recorded(
-        sog_bench_compiled_graph.FLOW_SPEC,sog_bench_compiled_graph.FLOW_SNAPSHOT)[2]))
+    for name, snapshot in compiler_snapshots.items():
+        write(name, encoded(snapshot))
     write('reviewed-questions.jsonl', jsonl(prompts(reviewed)))
     write('reviewed-reference.jsonl', jsonl(reviewed))
     write('graph-questions.jsonl', jsonl(curriculum.graph_prompts(graphs)))
@@ -368,7 +458,9 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('coverage.json', encoded(coverage(cores, graphs)))
     write('GOAL.md', (DATA.parent / 'GOAL.md').read_bytes())
     write('EVALUATION.md', (DATA.parent / 'EVALUATION.md').read_bytes())
-    write('ECOSYSTEM.md', (DATA.parent / 'ECOSYSTEM.md').read_bytes())
+    # Public operator instructions only; never enumerate or read reservations.
+    write('FAMILY_ISOLATION.md', (DATA.parent / 'FAMILY_ISOLATION.md').read_bytes())
+    write('ECOSYSTEM.md', operator_guide('ECOSYSTEM.md'))
     write('HARBOR.md', (DATA.parent / 'HARBOR.md').read_bytes())
     # Source intake is documentation, not an admitted QA or copied source text.
     write('TEXTBOOK_EXERCISES.md', (DATA.parent / 'TEXTBOOK_EXERCISES.md').read_bytes())
@@ -387,13 +479,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
         write('lean/' + c['id'] + '-reference.lean', c['lean_reference'].encode())
     for name in project_licensing.LICENSE_FILES:
         write(name, (ROOT / name).read_bytes())
-    guide = (DATA.parent / 'README.md').read_text(encoding='utf-8')
-    # Audit records deliberately stay out of ML/reference bundles. Their
-    # repository-relative links must still work in the downloaded guide.
-    guide = re.sub(r'\]\((reviews/[^)]+)\)',
-                   r'](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/benchmarks/samplingoptimisationgeometrybench/\1)',
-                   guide)
-    write('README.md', guide.encode('utf-8'))
+    write('README.md', operator_guide('README.md'))
     manifest = {'name': 'SamplingOptimisationGeometryBench', 'version': load()['version'],
                 'split': 'public-dev', 'cores': len(cores), 'qa_views': len(prompts(cores)), 'graph_tasks': len(graphs),
                 'track_counts': {t: sum(t in c['track_levels'] for c in cores) for t in TRACKS},
@@ -404,7 +490,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
                 'numbered_textbook_exercises': len(exercises),
                 'editorial_admitted_numbered_exercises': sum(
                     any(q['editorial'] in {'accepted', 'accepted-after-repair'} for q in e['questions']) for e in exercises),
-                'prose_scoring': 'offline human-attested rubric records; execution and judgments not automatically verified',
+                'prose_scoring': 'offline human-attested single or panel rubric records; execution and judgments not automatically verified',
                 'editorial_accepted_cores': len(reviewed),
                 'editorial_review_complete_for_current_mathematical_cores': bool(cores) and len(reviewed) == len(cores),
                 'review_kind': 'AI editorial review, not full Lean coverage or canonical theorem publication',
@@ -498,9 +584,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=('check', 'export', 'check-lean', 'coverage', 'grade-graph'))
     parser.add_argument('--output', type=Path, default=ROOT / '.astis/sog-bench-export')
+    parser.add_argument('--graph-index', type=Path, help='For export: actual generated underlying-lean-graph.json')
     parser.add_argument('--submissions', type=Path, help='First-attempt structured graph responses only; never executable code')
     parser.add_argument('--run-metadata', type=Path, help='Required provenance for a graph score report')
+    parser.add_argument('--legacy-graph-bindings', action='store_true',
+                        help='Replay archived graph responses with the old operator binding, not a new trial')
     args = parser.parse_args()
+    if args.graph_index is not None and args.command != 'export':
+        parser.error('--graph-index applies only to export')
+    if args.legacy_graph_bindings and args.command != 'grade-graph':
+        parser.error('--legacy-graph-bindings applies only to grade-graph')
     cores = materialize()
     graphs = curriculum.graph_items()
     if args.command == 'coverage':
@@ -509,14 +602,18 @@ def main() -> int:
     if args.command == 'grade-graph':
         if not args.submissions or not args.run_metadata:
             parser.error('grade-graph requires --submissions and --run-metadata')
-        metadata = json.loads(args.run_metadata.read_text(encoding='utf-8'))
+        metadata = curriculum.parse_graph_record(args.run_metadata.read_text(encoding='utf-8'))
         curriculum.validate_run_metadata(metadata)
         graphs = selected_graph_tasks(graphs, metadata)
-        rows = [json.loads(line) for line in args.submissions.read_text(encoding='utf-8').splitlines() if line.strip()]
-        report = {**curriculum.grade_graph(graphs, rows), 'run_metadata': metadata,
+        rows = [curriculum.parse_graph_record(line)
+                for line in args.submissions.read_text(encoding='utf-8').splitlines() if line.strip()]
+        bound = curriculum.bind_graph_submissions(graphs, rows, allow_legacy=args.legacy_graph_bindings)
+        report = {**curriculum.grade_graph(graphs, bound), 'run_metadata': metadata,
                   'catalog_version': load()['version'], 'raw_submissions': rows,
                   'frozen_graph_items': graphs,
                   'question_bindings': {g['id']: g['binding_sha256'] for g in graphs},
+                  'public_prompt_bindings': {g['id']: curriculum.graph_prompt(g)['prompt_sha256'] for g in graphs},
+                  'legacy_graph_binding_used': any('binding_sha256' in row for row in rows),
                   'grader_sha256_lf': text_hash(ROOT / 'tools/sog_bench_curriculum.py'),
                   'execution_policy_verified': False}
         report['selection_scope'] = ('predeclared-task-subset; not a full-suite score'
@@ -531,7 +628,7 @@ def main() -> int:
     if args.command == 'check-lean':
         return check_lean(cores)
     if args.command == 'export':
-        export(args.output, cores)
+        export(args.output, cores, graph_ids=graph_index_ids(args.graph_index) if args.graph_index else None)
     reviewed = editorial_review(cores)['accepted_cores']
     import sog_bench_graph_review
     graph_accepted=sog_bench_graph_review.summary(graphs)['accepted_tasks']

@@ -24,7 +24,7 @@ def configuration() -> dict:
     if data['schema_version'] != 1 or [c['id'] for c in data['collections']] != ['sampling', 'optimisation', 'geometry']:
         raise ValueError('Bench navigation requires the three canonical collections')
     if set().union(*(set(c['domains']) for c in data['collections'])) != domains:
-        raise ValueError('Bench navigation must cover precisely the canonical seven domains')
+        raise ValueError('Bench navigation must cover precisely the canonical curriculum domains')
     return data
 
 
@@ -68,7 +68,7 @@ def home(cores: list[dict], graphs: list[dict]) -> str:
         '<p class="sog-caption">Public-dev collections overlap. No held-out test or measured leaderboard is claimed.</p>'
         + fold('Coverage, downloads and readiness',
             f'<p>{len(cores)} mathematical cores · {len(bench.prompts(cores))} mathematical QA views · {len(graphs)} structural tasks.</p>'
-            '<p><a href="curriculum/index.html">Seven-domain L1–L5 coverage</a> · <a href="natural-language/index.html">Natural-language QA</a> · <a href="lean/index.html">Lean QA</a> · <a href="graph-json/index.html">Graph QA</a></p>'
+            '<p><a href="curriculum/index.html">L1–L5 coverage by domain</a> · <a href="domains/lower-bounds.html">Lower Bounds</a> · <a href="natural-language/index.html">Natural-language QA</a> · <a href="lean/index.html">Lean QA</a> · <a href="graph-json/index.html">Graph QA</a></p>'
             '<p><a href="downloads/questions.jsonl" download>Prompt-only JSONL</a> · <a href="downloads/reviewed-questions.jsonl" download>editorially reviewed prompts</a> · <a href="downloads/manifest.json">Version and hashes</a> · <a href="pilot.zip" download>Download the full pilot</a></p>'
             '<p>Reviewed subsets use content-bound AI editorial acceptance, not empirical difficulty calibration or a certificate for arbitrary submitted proofs.</p>'
             '<p>Natural-language scoring needs mathematical assessment. Graph JSON and the experimental fixed-target Linux Lean CLI have different contracts; neither supplies a measured model score. Hosted Lean execution, empirical calibration and private families remain open.</p>')
@@ -82,6 +82,9 @@ def home(cores: list[dict], graphs: list[dict]) -> str:
 
 def collection_page(cores: list[dict], collection: dict) -> str:
     selected = members(cores, collection)
+    domain_names = bench.curriculum.curriculum()['domains']
+    domain_links = ', '.join('<a href="../domains/' + escape(d) + '.html">' + escape(domain_names[d]) + '</a>'
+                             for d in collection['domains'])
     rows = []
     for core in selected:
         tracks = ' · '.join(('NL' if t == 'natural-language' else 'Lean') + ' ' + level for t, level in core['track_levels'].items())
@@ -97,7 +100,7 @@ def collection_page(cores: list[dict], collection: dict) -> str:
         + ''.join(rows) + '<p class="sog-caption" data-sog-list-status role="status"></p>'
         '<button class="sog-show-more" type="button" data-sog-show-more hidden>Show more tasks</button></section>'
         + fold('Scope and difficulty', '<p>These are views of the same catalog, not new datasets. A cross-listed core keeps its identity, family, split and source binding. NL/Lean levels are provisional, not empirically calibrated.</p>'
-            '<p>Topics: ' + ', '.join(escape(bench.curriculum.curriculum()['domains'][d]) for d in collection['domains']) + '.</p>') + '</article>')
+            '<p>Topics: ' + domain_links + '.</p>') + '</article>')
 
 
 def collection_assets(downloads: Path, cores: list[dict], collection: dict) -> dict[str, bytes]:

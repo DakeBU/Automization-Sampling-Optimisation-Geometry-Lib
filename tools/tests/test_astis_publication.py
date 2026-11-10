@@ -254,6 +254,29 @@ class PublicationTest(unittest.TestCase):
         self.assertIn('TODO — not closed by these contributions', text)
         self.assertIn('A deliberately unbound proof obligation', text)
 
+    def test_theorem_first_reader_folds_definition_without_dropping_lean(self):
+        import publication_reader
+        item = next(i for i in p.load() if i['id'] == 'slc-lsi-energy-truncation')
+        text = publication_reader.source_card(item, 'proofs/source-slc-lsi-energy-truncation.html')
+        ns = 'AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.'
+        self.assertLess(text.index(f'data-authored-declaration="{ns}energyTruncation_gaussian_bound"'),
+                        text.index(f'data-authored-declaration="{ns}energyTruncation"'))
+        self.assertEqual(text.count('data-authored-declaration='), 2)
+        self.assertIn('<details class="reader-ledger reader-prerequisite">', text)
+        self.assertIn('Definition used above:', text)
+        self.assertNotIn('<details open', text)
+        self.assertNotIn('<h1>', text)
+        self.assertEqual(text.count('data-inline-lean='), 4)
+
+    def test_generic_reader_links_separate_literal_adapter_without_copying_it(self):
+        import publication_reader
+        item = next(i for i in p.load() if i['id'] == 'slc-lsi-gaussian-odd-load')
+        text = publication_reader.source_card(item, 'proofs/source-slc-lsi-gaussian-odd-load.html')
+        self.assertIn('href="../proofs/source-slc-lsi-energy-truncation.html"', text)
+        self.assertIn('Separate source adapter:', text)
+        self.assertEqual(text.count('data-authored-declaration='), 1)
+        self.assertNotIn('data-authored-declaration="AutoSamplingTheory.ExampleCases.', text)
+
     def test_reader_labels_verified_prerequisites_without_claiming_a_proof_edge(self):
         import publication_reader
         item = copy.deepcopy(self.item)
@@ -380,6 +403,37 @@ class PublicationTest(unittest.TestCase):
         self.assertEqual(reader.validate_graph(graph, site, [self.item]), [])
         self.assertIn(reader.REFERENCE_EDGE, {e['relation'] for e in graph['edges']})
         self.assertNotIn('depends-on', {e['relation'] for e in graph['edges']})
+
+    def test_chapter_source_cards_load_the_standalone_proof_layout_once(self):
+        import publication_reader as reader
+        rel = 'libraries/statistical-optimal-transport/chapter-01.html'
+        html = '<html><head></head><body><main></main></body></html>'
+        result = reader.with_publication_styles(html, rel)
+        self.assertIn('href="../../assets/proof-readers.css"', result.split('</head>')[0])
+        self.assertEqual(reader.with_publication_styles(result, rel), result)
+
+    def test_nonregistry_graph_node_requires_current_gate_and_verified_cell(self):
+        import publication_reader as reader
+        from underlying_lean_graph_model import GraphBuilder
+        declaration = self.data['declarations'][self.name]
+        entry = {k: getattr(declaration, k) for k in ('full_name', 'module', 'source_file', 'source_line')}
+        with patch.object(reader.publication, 'load', return_value=[self.item]), \
+                patch.object(reader.publication, 'inputs', return_value=self.data), \
+                patch.object(reader.astis_site, 'source_digest', return_value='current'):
+            for status, drift, verified, digest, expected in (
+                    ('Compiled', False, True, 'current', 'compiled'),
+                    ('Partial', False, True, 'current', 'partial'),
+                    ('Compiled', True, True, 'current', 'partial'),
+                    ('Compiled', False, False, 'current', 'partial'),
+                    ('Compiled', False, True, 'stale', 'partial')):
+                builder = GraphBuilder()
+                record = {**entry, 'local_status': status}
+                if drift:
+                    record['source_line'] += 1
+                with patch.object(reader.publication, 'verified_binding', return_value=verified):
+                    reader.project_graph(builder, site={'declarations': [record],
+                        'gate': {'passed': True, 'current': True, 'source_digest': digest}})
+                self.assertEqual(builder.nodes['decl:' + self.name]['status'], expected)
 
     def test_textbook_section_keeps_reader_path_and_uses_owning_chapter_graph(self):
         import publication_reader as reader

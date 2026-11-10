@@ -63,6 +63,60 @@ class ReadableMathTests(unittest.TestCase):
     def test_ambiguous_unbalanced_notation_is_left_literal(self):
         self.assertNotIn('sog-inline-math', reader.inline_prose('∇f(x'))
 
+    def test_long_inline_inequality_reflows_without_changing_mathematics(self):
+        chain = r'\(\beta-\alpha\le\beta|1-h\alpha|+\alpha|1-h\beta|\le(\alpha+\beta)M\)'
+        rendered = reader.prose('Use ' + chain + ' here.')
+        self.assertIn(r'\[\begin{aligned}&amp;\beta-\alpha\\&amp;\le\beta|1-h\alpha|+\alpha|1-h\beta|'
+                      r'\\&amp;\le(\alpha+\beta)M\end{aligned}\]', rendered)
+        self.assertIn(r'\le(\alpha+\beta)M.\end{aligned}\]', reader.prose('Use ' + chain + '. Next.'))
+        self.assertIn(r'\(a\le b\le c\)', reader.prose(r'\(a\le b\le c\)'))
+        self.assertNotIn(r'\begin{aligned}', reader.prose(chr(96) + chain + chr(96)))
+        mixed = chain.replace(r'\le(', r'\ge(')
+        self.assertIn(mixed, reader.prose(mixed))
+
+
+class NumberedExerciseReaderTests(unittest.TestCase):
+    def test_lower_bounds_domain_has_a_real_route_without_fake_task_counts(self):
+        with self.subTest('routes'):
+            config = reader.bench_portals.configuration()
+            sources = [c for c in config['collections'] if 'lower-bounds' in c['domains']]
+            self.assertEqual([c['id'] for c in sources], ['sampling', 'optimisation'])
+            for collection in sources:
+                page = reader.bench_portals.collection_page([], collection)
+                self.assertIn('href="../domains/lower-bounds.html"', page)
+        page = reader.browse_page([], 'lower-bounds', domain=True)
+        self.assertIn('href="../../../lower-bounds/index.html"', page)
+        self.assertIn('explicit coverage gap', page)
+        self.assertIn('stated oracle model', page)
+
+    def test_single_source_exercise_distinguishes_fixed_task_from_owned_answer(self):
+        owned = 'AutoSamplingTheory.TechnicalLemmas.Measure.Example.answer'
+        exercise = {'book': {'title': 'Synthetic exercise source', 'pdf_url': 'https://example.invalid/book.pdf',
+                             'authors': ['Fixture Author'], 'edition': 'Pinned fixture', 'rights_boundary': 'Example only.'},
+                    'number': '6', 'book_page': 44, 'pdf_page': 50, 'wording_status': 'Original restatement.',
+                    'source_statement': 'Prove the conclusion.', 'source_assumptions': ['Let the hypotheses hold.'],
+                    'parts': [{'id': 'bound', 'label': 'Bound'}],
+                    'answer_declarations': [{'declaration': owned, 'supports': ['bound']}],
+                    'context_notes': [], 'unformalized_context': ['No optimizer conclusion.']}
+        paired = reader.exercise_panel({'textbook_exercise': exercise, 'lean_enabled': True}, False)
+        self.assertIn('fixed Lean task covers the mathematical conclusion only', paired)
+        self.assertIn('No current aggregate owned-answer build receipt', paired)
+        self.assertIn('book.pdf#page=50', paired)
+        self.assertNotIn('not a new proof, an equivalent Lean challenge', paired)
+        prose = reader.exercise_panel({'textbook_exercise': exercise, 'lean_enabled': False}, True)
+        self.assertIn('not a new proof, an equivalent Lean challenge', prose)
+        self.assertNotIn('separate fixed Lean task', prose)
+
+    def test_source_only_graph_target_never_counts_as_compiled(self):
+        owned = 'AutoSamplingTheory.TechnicalLemmas.Measure.Example.answer'
+        key = 'decl:' + owned
+        node = {'kind': 'declaration', 'url': 'declarations/answer.html', 'status': 'partial'}
+        self.assertTrue(reader.has_exercise_graph_target({key: node}, owned, checked=False))
+        self.assertFalse(reader.has_exercise_graph_target({key: node}, owned, checked=True))
+        for altered in ({'kind': 'module'}, {'status': 'todo'}, {'url': ''}):
+            self.assertFalse(reader.has_exercise_graph_target({key: {**node, **altered}}, owned, checked=False))
+        self.assertTrue(reader.has_exercise_graph_target({key: {**node, 'status': 'compiled'}}, owned, checked=True))
+
 
 class TaskPackageTests(unittest.TestCase):
     @classmethod
@@ -92,11 +146,48 @@ class TaskPackageTests(unittest.TestCase):
             self.assertNotIn('training-pairs.jsonl', names)
             self.assertNotIn('expert-graph-positions.json', names)
             self.assertNotIn('harbor-graph-tasks.zip', names)
+            self.assertFalse(any('/oracle/' in n or '/verifier/' in n for n in names))
             self.assertFalse(any('reference.lean' in n or 'reviews/' in n for n in names))
             manifest = json.loads(bundle.read('task-files.sha256.json'))
             self.assertEqual(set(manifest['files']), names - {'task-files.sha256.json'})
             for name, expected in manifest['files'].items():
                 self.assertEqual(hashlib.sha256(bundle.read(name)).hexdigest(), expected)
+
+    def test_graph_agent_files_use_only_public_prompt_identity(self):
+        index = json.loads(self.assets['task-index.json'])
+        self.assertEqual(index['schema_version'], 2)
+        graph_rows = {row['id']: row for row in index['tasks'] if row['track'] == 'graph-json'}
+        with zipfile.ZipFile(io.BytesIO(self.assets['agent-tasks.zip'])) as bundle:
+            for item in self.graphs:
+                row = graph_rows[item['id']]
+                public = bench.curriculum.graph_prompt(item)['prompt_sha256']
+                self.assertEqual(row['prompt_sha256'], public)
+                self.assertNotIn('binding_sha256', row)
+                prefix = row['prompt_file'].removesuffix('/prompt.json') + '/'
+                for name in bundle.namelist():
+                    self.assertNotIn(item['binding_sha256'].encode(), bundle.read(name), name)
+                for suffix in ('prompt.json', 'response-template.json', 'task.json'):
+                    data = json.loads(bundle.read(prefix + suffix))
+                    self.assertNotIn('binding_sha256', data)
+                    self.assertEqual(data['prompt_sha256'], public)
+
+    def test_lean_descriptor_identifies_the_operator_runtime_not_the_prose_grader(self):
+        rows = json.loads(self.assets['task-index.json'])['tasks']
+        for row in rows:
+            env = json.loads(self.assets[row['task_file']])['environment']
+            if row['track'] != 'lean':
+                self.assertNotIn('verifier_policy_sha256_lf', env)
+                continue
+            self.assertIn('operator-provisioned Linux Docker/Landrun', row['verifier'])
+            self.assertEqual(env['evaluator_source_sha256_lf'],
+                             bench.text_hash(ROOT / 'tools/sog_bench_lean.py'))
+            self.assertEqual(env['verifier_policy_sha256_lf'],
+                             bench.text_hash(bench.DATA.parent / 'lean-runtime/policy.json'))
+            self.assertIs(env['verifier_included'], False)
+            self.assertIs(env['hosted_execution'], False)
+            instruction = self.assets[row['task_file'].replace('/task.json', '/instruction.md')]
+            self.assertIn(b'Never run untrusted Lean on the host', instruction)
+            self.assertNotIn(b'not implemented', instruction)
 
     def test_training_and_expert_data_preserve_original_identity_and_scope(self):
         training = [json.loads(line) for line in self.assets['training-pairs.jsonl'].splitlines()]
@@ -109,8 +200,24 @@ class TaskPackageTests(unittest.TestCase):
             self.assertIn('never an unseen test', row['usage'])
         positions = json.loads(self.assets['expert-graph-positions.json'])
         self.assertEqual(len(positions), len(self.cores))
-        self.assertTrue(all(p['node_id'].startswith('decl:AutoSamplingTheory.') for p in positions))
+        self.assertTrue(all(p['anchor_kind'] == 'not-checked' and p['node_id'] is None
+                            and p['graph_url'] is None for p in positions))
+        self.assertTrue(all(p['declaration'].startswith('AutoSamplingTheory.') for p in positions))
         self.assertTrue(all(p['audience'] == 'expert-review-not-model-input' for p in positions))
+
+    def test_expert_positions_share_the_actual_graph_and_do_not_invent_links(self):
+        module_core, exact_core, absent_core = self.cores[:3]
+        module = 'module:' + module_core['source_file'].removesuffix('.lean').replace('/', '.')
+        exact = 'decl:' + exact_core['declaration']
+        assets = bench.task_assets([module_core, exact_core, absent_core], [], graph_ids={module, exact})
+        rows = json.loads(assets['expert-graph-positions.json'])
+        self.assertEqual([(p['anchor_kind'], p['node_id']) for p in rows],
+                         [('owning-module', module), ('declaration', exact), ('not-indexed', None)])
+        self.assertIsNone(rows[2]['graph_url'])
+        self.assertIn('focus=module%3A', rows[0]['graph_url'])
+        self.assertIn('focus=decl%3A', rows[1]['graph_url'])
+        self.assertEqual(bench.graph_anchor(module_core['declaration'], module_core['source_file'],
+                                           {module, 'decl:' + module_core['declaration']})[0], 'declaration')
 
     def test_package_bytes_are_repeatable(self):
         self.assertEqual(self.assets, bench.task_assets(self.cores, self.graphs))

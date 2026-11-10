@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "scope": "independent AI paired QA editorial review; not canonical theorem publication",
+  "actor_identity": "agent-task:/root/bench_random_scan_source_review_v2",
+  "input_packet_sha256": "753e4d275965b861639482f851723ffb07483d014c0b773151ac81baf34d2787",
+  "items": {
+    "sogb-043": {
+      "binding_sha256": "5c46feb64a63f5ab75555a234572f43805a176988734c852b859dff75a91aa8d",
+      "context_sha256": "89c63faeb43fc5a085c60286cb702c6431683c56a63a54600b171e5227c476a9",
+      "formal_scope": "conclusion-only",
+      "semantic_slots": {
+        "objects": "Matches the blind reconstruction: the parameter n, the probability law μ on Boolean configurations, and the actual kernel randomScan μ formed from the library's conditional heat-bath components for that same μ. This is not a free kernel satisfying an extra premise.",
+        "domains": "Matches: n is natural, the configurations are functions Fin (n + 1) → Bool with the discrete measurable structure, and the sets and integration variables are on this cube. Lean uses nonnegative extended-real integrals; the bounded real set integrals in prose have the same values.",
+        "quantifiers": "Matches: for all n : ℕ and all μ carrying the probability instance, reversibility quantifies over every measurable pair A, B, hence every pair of subsets. The auxiliary proof ranges over every x, y, including null atoms; the supplied transition formula is restricted to positive starts, not the conclusion.",
+        "assumptions": "Matches: μ has total mass 1, and no full support, atom positivity or fiber positivity is a hypothesis of the fixed Lean target. The positive-start singleton formula is a proved property of the actual kernel, not an additional Lean binder. The library supplies conditional versions on null fibers without requiring a normalized-fiber formula there.",
+        "conclusion": "Matches the exact source and blind reconstruction: the set-lintegral of x ↦ randomScan μ x B over A equals that of y ↦ randomScan μ y A over B. The Lean goal is only Kernel.IsReversible (randomScan μ) μ, not a conjunction with the prose's intermediate singleton balance and convergence discussion.",
+        "senses": "Matches: one uniformly selected coordinate is resampled in one step, not a sweep. Reversibility is weighted set-flux symmetry, not equality of raw transitions, irreducibility, convergence, or mixing.",
+        "constants": "Matches: there are n + 1 Boolean coordinates, with constant site weight 1/(n + 1), and μ has total mass 1. In the n = 0 boundary the retained tuple is empty and the single site has weight 1. The two 1/2 masses in the prose counterexample specialize n = 1 and are not theorem constants."
+      },
+      "mathematics_checks": [
+        "Recomputed the core and context bindings from the packet and cited local source closure using the repository policy, and checked the LF-normalized source hash. RandomScanHeatBathReversibility.lean:54–56 has the exact fixed target, with no altered assumptions, kernel, or conclusion. Mathlib's Kernel.IsReversible unfolds to the stated set-lintegral equality.",
+        "RandomScanHeatBath.lean:21–31 gives the literal fixed uniform mixture of Markov kernels; :38–77 proves the positive-start singleton law. Fin.succAbove enumerates exactly the sites other than i. Each retained fiber contains its start, so when that atom is positive the fiber mass is positive and finite (at most 1). No null-start formula is used or needed.",
+        "If both atom masses are zero the fluxes vanish. If only x is null, the flux starting at x vanishes and every allowed site term from y into x has numerator zero; reverse the names for the other case. If both atoms are supported, site compatibility is symmetric, compatible fibers coincide, and the unaveraged weighted terms have the same product numerator and denominator. Their common uniform weight is unchanged. This covers x = y and n = 0.",
+        "The two set fluxes are finite double sums; exchanging summation order after applying singleton symmetry is valid, including for empty sets. KernelReversibility.lean:19–35 independently proves the needed atomic-to-set-lintegral bridge on countable measurable-singleton spaces, with instances available here. The prose invariance consequence follows using A = X and K(y,X) = 1.",
+        "For the target (δ_00 + δ_11)/2, at either supported state each retained fiber contains exactly one supported point. In particular K(00,{00}) = 1; starting there the law remains δ_00 at every step, different from μ already on {00}. This refutes convergence even from some supported start. Tests/RandomScanHeatBathReversibility.lean:128–158 checks the two-bit absorbing-state facts and the one-site target; :26–36 checks the generic set identity and consumes the separate invariance consequence.",
+        "The task and reference use the same two explicit imports and fixed statement. The eight-module local ancestor closure of the task excludes RandomScanHeatBathReversibility and its private balance proof. An independent compiler probe in the task import environment confirmed the fully qualified target name is unknown there. The private helper in the reference is a replay of the earlier source proof, not a task import or a new assumption. Under Lean 4.33.0, lake env lean --stdin accepted the exact trusted reference; lake env lean accepted the cited reversibility source and Tests/RandomScanHeatBathReversibility.lean. The reference helper, cited target and atomic bridge have only propext, Classical.choice and Quot.sound in the axiom prints. These are focused trusted-code checks, not a model run."
+      ],
+      "scoring_checks": [
+        "The four one-point rows separately assess null-mass safety, supported-state balance under the actual uniform mixture, the passage to set fluxes, and the failure of the convergence implication. The authored proof earns all four points. The set-flux and counterexample rows already allow equivalent valid arguments.",
+        "Row 1 unnecessarily mandates using the supplied law at the supported atom to justify the reverse transition. The question does not require that route. For a concrete complete alternative, draw X from μ and fix a selected site i. Condition on R = X_{-i}; given any r with positive marginal probability, the original bit and the resampled bit are independent draws from the same conditional law. Thus the singleton pair flux at a common r is P(R=r) p_r(x_i) p_r(y_i), symmetric in x and y. Pairs with unequal retained tuples are impossible, marginal-null r contributes no flux, and a null atom on a positive fiber has zero conditional mass. Uniform averaging gives all singleton balances, which can then be used in the same set-sum argument and followed by the same valid counterexample. This proof does not justify the reverse transition by applying the supplied pointwise positive-start law, so the literal first row could withhold credit from a complete proof.",
+        "Natural-language L3 is supported by the zero-mass and compatible-fiber cases, conversion of singleton balances to set fluxes, and a counterexample using the actual kernel. The finite law is given and no L4 domain, integrability, or error adapter is required.",
+        "Lean L3 is supported independently by the null and positive cases, correspondence between off-site agreement and retained tuples, and finite-sum algebra. The permitted bridge completes the final step directly; its use and the number of imports are not evidence for L4. This is an editorial level assessment, not empirical calibration."
+      ],
+      "remaining_unformalized": [
+        "The aligned target certifies only the reversibility conclusion. The reference proves singleton balance as a private ingredient, not a separately graded output, and the target does not check the candidate's prose proof, its proof route, or the natural-language rubric.",
+        "The prose derivation of invariance and the counterexample's full iteration/nonconvergence reasoning are not target goals. Local tests separately consume an invariance theorem and verify the key two-bit absorbing-state facts, without adding a formal convergence claim to this pair.",
+        "The target does not give irreducibility, ergodicity, mixing, query cost, or a theorem for arbitrary Gibbs updates."
+      ],
+      "verdict": "repair-required",
+      "repair_requests": [
+        "Make a rubric-only repair to the first one-point criterion so that it credits any valid argument covering all null-atom fluxes, without applying the supplied positive-start law outside its domain. For example: 'Justifies equality of the singleton fluxes whenever either atom has zero mass, without applying the supplied positive-start law at a null start. Explicit cases or an equivalent uniform argument covering the null cases earn credit.' Retain the point value, remaining criteria, question, formula proof, source, L3 labels and fixed Lean target."
+      ]
+    }
+  }
+}

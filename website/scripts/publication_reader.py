@@ -90,7 +90,16 @@ def source_card(item: dict, page: str) -> str:
         obligations.append(f'<li><span class="status status-{color}">{label}</span> '
                            f'{escape(o["label"])}</li>')
     lessons = []
-    for b in item['bindings']:
+    related = next((row for row in publication.load()
+                    if row['id'] == item.get('related_proof_item')), None)
+    related_link = (f'<p class="reader-scope-note">Separate source adapter: '
+                    f'<a href="{astis_site.relative_prefix(page)}{source_proof_path(related)}">'
+                    + escape(related['title']) + '</a>. Its own proof and evidence are recorded there.</p>'
+                    if related else '')
+    theorem_first = item.get('reader_layout') == 'theorem-first'
+    reader_bindings = (sorted(item['bindings'], key=lambda b: b['role'] != 'proof-edge')
+                       if theorem_first else item['bindings'])
+    for b in reader_bindings:
         name = b['declaration']
         audit = data['audits'].get(b.get('audit_id'), {})
         debt = b.get('legacy_audit_debt', {})
@@ -115,6 +124,10 @@ def source_card(item: dict, page: str) -> str:
         rendered = rendered.replace('<h1>', '<h2>').replace('</h1>', '</h2>')
         rendered = rendered.replace('href="index.html">Teaching coverage',
                                     f'href="{astis_site.relative_prefix(page)}lessons/index.html">Teaching coverage')
+        if theorem_first and b['role'] == 'prerequisite':
+            rendered = ('<details class="reader-ledger reader-prerequisite">'
+                        '<summary>Definition used above: ' + escape(lesson['title'])
+                        + '</summary>' + rendered + '</details>')
         lessons.append(rendered)
     return (f'<section id="{escape(item["id"])}" data-publication-item="{escape(item["id"])}">'
             f'<h2>{escape(item["title"])}</h2><p>{escape(source.get("attribution", ""))}</p>'
@@ -125,6 +138,7 @@ def source_card(item: dict, page: str) -> str:
                if progressive else '<h3>Complete source statement (Samplinglib restatement)</h3>')
             + f'<p>{escape(item["statement"])}</p>' + astis_site.list_html(item['assumptions']) + formulae
             + ('</details>' if progressive else '')
+            + related_link
             + '<h2>Read the formalized proofs</h2><p>Each statement and proof below has its own closed Lean disclosure. '
             'Samplinglib parents, Mathlib calls and external mathematical sources are distinguished in each proof.</p>'
             + ''.join(lessons)
@@ -134,6 +148,20 @@ def source_card(item: dict, page: str) -> str:
 
 def source_proof_path(item: dict) -> str:
     return 'proofs/source-' + astis_site.slugify(item['id']) + '.html'
+
+
+def publication_stylesheet(page: str) -> str:
+    return astis_site.relative_prefix(page) + 'assets/proof-readers.css'
+
+
+def with_publication_styles(text: str, page: str) -> str:
+    """Chapter source cards use the same proof layout as stand-alone lessons."""
+    href = publication_stylesheet(page)
+    if f'href="{href}"' in text:
+        return text
+    if '</head>' not in text:
+        raise ValueError(f'{page}: missing head for publication styles')
+    return text.replace('</head>', f'<link rel="stylesheet" href="{escape(href)}">\n</head>', 1)
 
 
 def companion_publication_block(items: list[dict], page: str) -> str:
@@ -200,7 +228,7 @@ def enrich_site(output: Path) -> None:
                 text = text.replace('</main>', block + '</main>', 1)
         else:
             block = ''.join(source_card(i, rel) for i in ordered)
-            text = text.replace('</main>', block + '</main>', 1)
+            text = with_publication_styles(text.replace('</main>', block + '</main>', 1), rel)
         path.write_text(text, encoding='utf-8', newline='\n')
         index = path.parent / 'index.html'
         if index.exists():
@@ -218,17 +246,33 @@ def enrich_site(output: Path) -> None:
     (output / 'data/publication-progress.json').write_text(json.dumps(projection, indent=2), encoding='utf-8')
 
 
-def project_graph(builder) -> None:
-    """Project source containers and missing mapped nodes; never upgrade proof badges."""
+def current_compiler_inventory(site: dict) -> bool:
+    gate = site.get('gate', {})
+    return (gate.get('passed') is True and gate.get('current') is True
+            and gate.get('source_digest') == astis_site.source_digest())
+
+
+def project_graph(builder, *, site: dict | None = None) -> None:
+    """Project source containers and new mapped nodes without rewriting existing badges."""
     data = publication.inputs()
+    inventory = {d['full_name']: d for d in (site or {}).get('declarations', [])}
+    current_gate = current_compiler_inventory(site or {})
     for item in publication.load():
         for binding in item['bindings']:
             decl = data['declarations'][binding['declaration']]
             ident = 'decl:' + decl.full_name
             if ident not in builder.nodes:
-                # Mapping alone cannot confer a compiled badge or Registry count.
-                builder.add(ident, 'declaration', decl.full_name, status='partial',
-                            subtitle='Source-present publication; compiled badge not inferred',
+                recorded = inventory.get(decl.full_name, {})
+                # Mapping alone confers nothing. Only use current generated
+                # compiler evidence for this exact source and verified Cell.
+                compiled = (current_gate and recorded.get('local_status') == 'Compiled'
+                            and all(recorded.get(k) == getattr(decl, k)
+                                    for k in ('module', 'source_file', 'source_line'))
+                            and publication.verified_binding(binding, data))
+                builder.add(ident, 'declaration', decl.full_name,
+                            status='compiled' if compiled else 'partial',
+                            subtitle=('Compiled by current repository gate; source and chapter scope separate'
+                                      if compiled else 'Source-present publication; compiled badge not inferred'),
                             url=astis_site.declaration_path(decl))
             # Open the authored mathematics, with adjacent exact Lean and source
             # links. The existing node identity and evidence status stay intact.
@@ -286,6 +330,7 @@ def validate_graph(graph: dict, site: dict, items: list[dict] | None = None) -> 
     registry = {d['local_decl']: d for d in site.get('registry_declarations', [])}
     modules = {m['name']: m for m in site.get('modules', [])}
     targets = {b['declaration'] for i in items for b in i['bindings']}
+    current_gate = current_compiler_inventory(site)
 
     def require_edge(a, b, relation):
         if (a, b, relation) not in edges:
@@ -308,7 +353,7 @@ def validate_graph(graph: dict, site: dict, items: list[dict] | None = None) -> 
             if imported in modules:
                 require_edge('module:' + imported, module_id, 'imports')
         if nodes[ident].get('status') == 'compiled' and not (
-            decl.get('local_status') == 'Compiled'
+            (current_gate and decl.get('local_status') == 'Compiled')
             or registry.get(name, {}).get('status') == 'formalizedLocal'
         ):
             errors.append(f'Graph contribution has unsupported compiled badge: {name}')
@@ -359,6 +404,8 @@ def validate_site(output: Path) -> list[str]:
             # Moving a proof out of the index may never drop its source ledger,
             # exact authored mathematics, audit or adjacent Lean.
             text = target.read_text(encoding='utf-8')
+        elif f'href="{publication_stylesheet(item["chapter_path"])}"' not in text:
+            errors.append(f'{path.name}: publication proof layout stylesheet missing')
         for marker in (f'data-publication-item="{item["id"]}"', 'Encoder–denoiser:',
                        'Source assumptions versus formal assumptions'):
             if marker not in text:

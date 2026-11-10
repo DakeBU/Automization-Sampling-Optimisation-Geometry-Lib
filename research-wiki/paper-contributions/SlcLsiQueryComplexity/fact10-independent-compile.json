@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "reviewer": "independent-agent:/root/gaussian_load_compiler_source_review",
+  "stage": "independent-compiler-and-mathematical-proof-review",
+  "reviewed_at_utc": "2026-11-09T08:43:28Z",
+  "checked_commit": "3890056ea8529ea9de8aaaa46a6f67cba0b7c0d6",
+  "verdict": "PASS",
+  "source_fidelity_verdict": "NOT_EVALUATED_IN_THIS_STAGE",
+  "scope": [
+    "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianOddLoad.lean",
+    "Tests/GaussianOddLoad.lean"
+  ],
+  "input_sha256_raw_file_bytes": {
+    "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianOddLoad.lean": "aa0b5512344331884a60d82843a750a0c0172d0f58b677abc7ccd8b411d88783",
+    "Tests/GaussianOddLoad.lean": "d05473ef591b0b119548e88d1316529839f7317c9f21661a185c66430a698154",
+    "lean-toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "lake-manifest.json": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37"
+  },
+  "environment": {
+    "lean": "Lean 4.33.0; x86_64-w64-windows-gnu; commit d8b18978322de05a8f3dba51ef03cf5461676c17; Release",
+    "mathlib_commit": "db584cd6d46c92f209a44c0f1c829460d327499d",
+    "all_nine_dependency_checkout_heads_match_fixed_manifest": true,
+    "isolated_output_directory": ".astis/gaussian-load-independent",
+    "search_path": "Absolute isolated output directory first, then each .lake/packages/*/.lake/build/lib/lean in this worktree; no project .lake/build/lib/lean and no collaborator checkout path",
+    "cache_boundary": "Existing dependency caches read only. Target production olean freshly compiled from checked source, then focused tests and stdin probes consume that isolated olean. Dependency olean caches were not rebuilt or independently audited in full."
+  },
+  "checks": [
+    {
+      "command": "git diff --exit-code 3890056ea8529ea9de8aaaa46a6f67cba0b7c0d6 -- AutoSamplingTheory/TechnicalLemmas/Probability/GaussianOddLoad.lean Tests/GaussianOddLoad.lean lean-toolchain lake-manifest.json",
+      "exit_code": 0,
+      "result": "Candidate inputs unchanged from reviewed commit."
+    },
+    {
+      "command": "lean -o .astis/gaussian-load-independent/AutoSamplingTheory/TechnicalLemmas/Probability/GaussianOddLoad.olean AutoSamplingTheory/TechnicalLemmas/Probability/GaussianOddLoad.lean",
+      "exit_code": 0,
+      "diagnostics": []
+    },
+    {
+      "command": "lean -o .astis/gaussian-load-independent/Tests/GaussianOddLoad.olean Tests/GaussianOddLoad.lean",
+      "exit_code": 0,
+      "result": "Exact full signature assignment, linear U=id endpoint a=1, v=0 bound, and U=0/beta=0/a=0 tests compile."
+    },
+    {
+      "command": "lean --stdin with independent signature/axiom/endpoint probes",
+      "exit_code": 0,
+      "result": "Printed explicit @signature; checked a=0 integrability for arbitrary admissible U, simultaneous integrability and bound <=1 for v=0 and any a in [0,1], and derivation beta>=0 solely from hbound. No production Lean files edited."
+    },
+    {
+      "command": "tools.astis.forbidden_pattern_hits scoped to the two candidate files, using the repository comment/string stripping and forbidden regex",
+      "exit_code": 0,
+      "hits": []
+    },
+    {
+      "command": "Additional scoped rg scan for native_decide, unsafe, partial, set_option, False.elim, nomatch, implemented_by, extern, axiom, constant, postulate, sorry, admit, Prop := True, := trivial",
+      "result": "Only the deliberate #print axioms command in Tests matched; no proof closure or bypass."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "exact_elaborated_statement": "forall {U : Real -> Real} {beta a : Real} (v : NNReal), Measurable U -> Function.Odd U -> (forall y : Real, |U y| <= beta * |y|) -> a in Set.Icc 0 1 -> Integrable (fun y => Real.exp (-a * U y)) (ProbabilityTheory.gaussianReal 0 v) /\\ integral (fun y => Real.exp (-a * U y)) (ProbabilityTheory.gaussianReal 0 v) <= Real.exp (beta ^ 2 * (v : Real) / 2)",
+  "binder_audit": {
+    "exact_public_binders": ["U : Real -> Real", "beta : Real", "a : Real", "v : NNReal", "Measurable U", "Function.Odd U", "forall y, abs (U y) <= beta * abs y", "a in [0,1]"],
+    "extra_binders": [],
+    "no_supplied_integrability_or_mgf_or_symmetry_or_positive_variance": true,
+    "project_owned_predicate_aliases_in_signature": [],
+    "source_classification": "Deferred to fresh anti-anchored source packet; no pre-proof statement verdict or seal verdict consulted."
+  },
+  "mathematical_obligations": [
+    "Nonnegative beta is derived at y=1 from 0<=abs(U 1)<=beta; beta<0 is impossible under the global bound.",
+    "For a in [0,1], abs(a*U y)=a*abs(U y)<=abs(U y)<=beta*abs(y)=abs(beta*y). Both closed endpoints are allowed.",
+    "The two Gaussian exponentials exp(beta*y) and exp(-beta*y) are integrable by Mathlib integrable_exp_mul_gaussianReal, valid also at v=0.",
+    "exp(abs(a*U y)) is dominated pointwise by exp(beta*y)+exp(-beta*y), by the sign split on beta*y. Measurability follows from hU and composition. Both exp(a*U y) and exp(-a*U y) are integrable by this common domination, preventing default Bochner-integral semantics from faking the result.",
+    "The centered Gaussian is invariant under y->-y by gaussianReal_map_neg, including zero variance. integral_map plus oddness proves equality of the two exponential integrals, with measurability supplied internally.",
+    "Both nonlinear and linear cosh functions are integrable by sum and division of the exponential integrability proofs. Averaging the symmetric exponential pair identifies the target expectation with the cosh expectation.",
+    "Real.cosh_le_cosh converts the absolute-value comparison into the pointwise cosh inequality. integral_mono is used with both integrability witnesses.",
+    "The Gaussian MGF at beta and -beta gives exp(v*beta^2/2) for both terms. The sign and variance normalization are correct; final algebra yields exp(beta^2*v/2)."
+  ],
+  "axioms": ["propext", "Classical.choice", "Quot.sound"],
+  "findings": [],
+  "limitations": [
+    "This is focused compiler and proof verification, not an aggregate Lake/ASTIS/publication acceptance run.",
+    "Compiler PASS does not certify source fidelity, pre-proof seal provenance, literal truncated load instantiation, conditional expectation iteration, Fact 10 in full, or the paper's lower bound.",
+    "No Registry, source metadata, Frontier Cell, ledger, target Lean, or collaborator-owned checkout was edited."
+  ],
+  "anti_anchoring": {
+    "prior_statement_review_or_seal_verdict_read": false,
+    "semantic_audit_fragment_read": false,
+    "decoder_packet_or_result_read": false,
+    "prior_semantic_or_source_verdict_read": false,
+    "fresh_reviewer_packet_read_during_compiler_stage": false
+  }
+}

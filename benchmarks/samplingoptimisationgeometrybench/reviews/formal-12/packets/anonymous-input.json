@@ -1,0 +1,27 @@
+{
+  "cases": [
+    {
+      "case": "case-1",
+      "context": "open MeasureTheory\nopen scoped InnerProductSpace ENNReal",
+      "definition_context": [
+        "E and H are real inner-product spaces. E is finite-dimensional with its Borel measurable structure, and H is complete. E →L[ℝ] H denotes continuous real linear maps; D(w).adjoint denotes the Hilbert adjoint.",
+        "HasFDerivAt F (D w) w and HasGradientAt f g w mean genuine ambient Fréchet derivative and gradient at w, not totalized fallback values. The integral is the Bochner integral, with the explicit Integrable claim in the conclusion.",
+        "IsProbabilityMeasure μ asserts unit total mass. anonymous_constant_1 takes a nonnegative extended cost on pairs and two measures; it is the infimum of the extended integrals of that cost over measures with the two prescribed coordinate marginals. An empty feasible set has infimum ∞.",
+        "Real.arccos is real inverse cosine. ENNReal.ofReal maps reals into [0,∞], clipping negative inputs to zero. A real exponent 1/2 is the square root here. ENNReal.toReal agrees with the finite value and sends ∞ to zero; it does not certify finiteness."
+      ],
+      "statement": "example\n    {E H : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]\n    (F : E → H) (D : E → E →L[ℝ] H)\n    (hF : ∀ w, HasFDerivAt F (D w) w)\n    (M₁ M₂ : ℝ) (hM₁ : 0 ≤ M₁) (hM₂ : 0 ≤ M₂)\n    (hBound : ∀ w : E, ‖w‖ ≤ 1 → ‖D w‖ ≤ M₁)\n    (hLip : ∀ w u : E, ‖w‖ ≤ 1 → ‖u‖ ≤ 1 → ‖D w-D u‖ ≤ M₂*‖w-u‖)\n    (y : H) :\n    let S := {w : E // ‖w‖ = 1}\n    let K : S → H := fun w => F w.1\n    let c : S × S → ℝ := fun z => Real.arccos ⟪z.1.1,z.2.1⟫_ℝ\n    let m : Measure S → H := fun μ => ∫ w, K w ∂μ\n    let V : Measure S → E → ℝ := fun μ w => 2 * ⟪m μ-y,F w⟫_ℝ\n    let G : Measure S → E → E := fun μ w =>\n      (2 : ℝ) • ((D w).adjoint (m μ-y) - ⟪(D w).adjoint (m μ-y),w⟫_ℝ • w)\n    let Q : Measure S → Measure S → ℝ≥0∞ := fun μ ν =>\n      anonymous_constant_1\n        (fun z => ENNReal.ofReal ((c z)^2)) μ ν\n    ∃ C₁ C₂ : ℝ, 0 < C₁ ∧ 0 < C₂ ∧\n      (∀ μ : Measure S, IsProbabilityMeasure μ →\n        Integrable K μ ∧\n        (∀ w : E, HasGradientAt (V μ) ((2 : ℝ) • (D w).adjoint (m μ-y)) w) ∧\n        ∀ w : S, ⟪w.1,G μ w.1⟫_ℝ = 0 ∧ ‖G μ w.1‖ ≤ C₁) ∧\n      ∀ μ ν : Measure S, IsProbabilityMeasure μ → IsProbabilityMeasure ν →\n        Q μ ν ≠ ∞ ∧ ∀ w u : S,\n          ‖G μ w.1-G ν u.1‖ ≤\n            C₂ * ((Q μ ν ^ (1 / 2 : ℝ)).toReal + c (w,u)) "
+    }
+  ],
+  "compiler_version": "Lean 4.33.0",
+  "instruction": "From these anonymous Lean signatures and definition context only, reconstruct the precise mathematical propositions in all seven slots. Do not inspect project files, sources, filenames, question/answer text, prior audits or repair proposals. Report implicit quantification, typeclass assumptions and what the conclusions do not say. No source-fidelity verdict is requested.",
+  "requested_slots": [
+    "objects",
+    "domains",
+    "quantifiers",
+    "assumptions",
+    "conclusion",
+    "senses",
+    "constants"
+  ],
+  "schema_version": 1
+}

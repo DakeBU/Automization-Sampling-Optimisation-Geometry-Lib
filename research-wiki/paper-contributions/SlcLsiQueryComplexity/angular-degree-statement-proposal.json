@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "status": "PROPOSED_BEFORE_PROOF",
+  "source_url": "https://arxiv.org/html/2611.05813v1#S4.E15",
+  "source_edition": "arXiv:2611.05813v1",
+  "source_pdf_sha256": "05520f2a491fedc6ceecc7eb0f3d0c1b23275faceb9da1d9cfa6db421aab4f0e",
+  "source_scope": "Section4.1.1 angular functions: K,P,S, unit tensor psi, Eq14 amplitude, Eq15 degree component and its immediately stated centered Gaussian law. Not the joint coefficient construction or the sum over degrees.",
+  "namespace": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree",
+  "file": "AutoSamplingTheory/ExampleCases/SlcLsiQueryComplexity/AngularDegree.lean",
+  "definition_kind": "literal-coordinate-realization",
+  "definition": "noncomputable def angularDegreeComponent (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (p : {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n    (ξ : EuclideanSpace ℝ\n      ((Fin p.val × (Σ j : Fin (h - i.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)) : ℝ :=\n  let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n  let a : ℝ := 1 / ((p.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n    Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n  Real.sqrt n.val * a * ∑ c, ξ c * ∏ s, u s.2.1 (c s)",
+  "signature": "theorem angularDegreeComponent_hasLaw (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (p : {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n    (hu : ∀ j, ‖u j‖ = 1) :\n    let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a : ℝ := 1 / ((p.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n    HasLaw (angularDegreeComponent n h i p u)\n      (gaussianReal 0 (((n.val : ℝ) * a ^ 2).toNNReal)) (stdGaussian _)",
+  "signature_probe": "Ignored .astis/AngularDegreeSignature.lean elaborated the exact literal definition and target proposition under Lean4.33.0/pinned Mathlib, exit0 on 2026-11-09. There is no theorem proof, axiom or sorry in the probe.",
+  "binder_audit": {
+    "TYPING": ["EuclideanSpace uses the entrywise Euclidean norm, not the sup norm.", "The probability space is the actual coefficient block with its standard Gaussian measure, not an arbitrary variable given its desired law."],
+    "STANDING": ["Positive integer n; natural level depth h; i ranges from0 throughh.", "p is an even integer in4..P with P=2^(64(h+1)).", "Unit directions are supplied for precisely the trailing blocks i..h."],
+    "SOURCE": ["hu is the source's sphere condition on directions."],
+    "EXCESS": [],
+    "derived_not_assumed": ["The coordinate tensor has norm1.", "Its entrywise linear functional is measurable.", "The Gaussian coefficient evaluation has mean0 and variance n*a^2.", "The coordinate realization has the source tensor dimension n^(p*S).", "The NNReal variance coercion does not truncate a negative real: n*a^2 is nonnegative."]
+  },
+  "definition_audit": {
+    "slot_type": "Fin p × (Σ j:Fin(h-i+1), Fin(K^j)): first choose one of p copies of psi, then a trailing block and one of its K^j repetitions.",
+    "coordinate_type": "A map from slots to Fin n selects one coordinate in each tensor factor. Its cardinality is n^(p*S_i); establish the slot/coordinate cardinalities internally.",
+    "feature_entry": "The product over slots is exactly the entry of psi_i(u_i,...,u_h) tensor-powered p times. The sum against xi is the source entrywise inner product, with literal sqrt(n)*a_i,p scaling.",
+    "source_domain": "The formula extends polynomially to arbitrary directions, but the law theorem uses only unit directions as in the source. No norm assertion is made off the source sphere domain.",
+    "parameter_scope": "The scalar law also covers positive n and depth0 outside the eventual sufficiently-large-n regime; this is a stated harmless generalization, not a main lower-bound parameter claim. All K,P,S,a formulas and degree restrictions are retained."
+  },
+  "source_regions": [
+    {"id":"tensor-indexing", "locator":"Section4.1.1 paragraph defining psi_i", "status":"NODE", "meaning":"Literal ordered repeated coordinate product, with correct tensor dimension."},
+    {"id":"unit-feature", "locator":"psi_i described as a unit tensor; immediately after Eq15", "status":"NODE", "meaning":"Derive the squared norm of the finite tensor product from the input unit norms, not from an extra hypothesis."},
+    {"id":"amplitude", "locator":"Eq14", "status":"NODE", "meaning":"Retain the exact p^4*S_i^2*sqrt((h-i+1)*log(2*P*S_i)) denominator."},
+    {"id":"gaussian-law", "locator":"Eq15 and following sentence", "status":"NODE", "meaning":"Measurable linear evaluation of the standard Gaussian tensor has the stated centered normal law with variance n*a_i,p^2."},
+    {"id":"all-coefficients", "locator":"Joint Euclidean coefficient space and mu_n following Eq15", "status":"EXCLUDED", "reason":"This packet treats one actual coefficient block. Joint block law, projection identities and independence across i,p remain separate."},
+    {"id":"degree-sum-field", "locator":"Eq15 F_i=sum_p F_i,p; Eq16 radial cutoff", "status":"EXCLUDED", "reason":"The summed angular field, radial cutoff, zero-block convention and its variance are later adapters."},
+    {"id":"conditioning-and-moments", "locator":"Section6.2 after Fact10", "status":"EXCLUDED", "reason":"No adaptive gate, conditional expectation, level iteration, Tonelli or normalizer moment is claimed."}
+  ],
+  "reuse_search": ["Current ASTIS SlcLsiQueryComplexity modules and source Frontier Cells: no angular degree component or competing claim found; issue388 current comments checked.", "Mathlib Gaussian.Multivariate: stdGaussian, isGaussian_stdGaussian, integral_strongDual_stdGaussian, variance_dual_stdGaussian; Gaussian.Basic IsGaussian.map_eq_gaussianReal.", "Mathlib Fintype.prod_sum and EuclideanSpace entrywise inner/norm APIs supply the finite tensor norm calculation; no generic Gaussian-law wrapper is needed.", "Samplinglib StdGaussianMoment supplies a norm-square expectation, not the literal source polynomial law; GaussianConditionalKernel is a different PBPS tilt and is not a substitute."],
+  "proof_plan": ["Audit the finite slot/cardinality realization of psi_i tensor-powered p times.", "Use the product-of-sums identity to derive feature norm1 from the unit directions.", "Identify the literal coordinate sum as the continuous linear inner-product functional with the scaled feature.", "Reuse Mathlib standard-Gaussian linear mean/variance and map law; simplify the scale exactly to n*a^2.", "Package measurability and the map equality as HasLaw; do not add either as a premise."],
+  "consumer": "Actual degree-summed angular field law, then radial field law and coefficient freezing in the Lemma6.2 conditional level iteration. These consumers are planned source obligations, not existing declarations.",
+  "truth_boundary": "One literal Eq15 degree-component law under its actual standard-Gaussian coefficient block. Not the full coefficient product law, field sum, conditional iteration, Lemma6.2, admissibility, or any main query lower bound.",
+  "review_requested": "Independent pre-proof source/binder/definition/topology review, including coordinate tensor representation and exact amplitude. No production proof has been implemented. This proposal does not reserve the stabilization queue or alter PR394."
+}

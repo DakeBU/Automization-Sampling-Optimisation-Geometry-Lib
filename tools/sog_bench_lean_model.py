@@ -16,7 +16,7 @@ import urllib.request
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import sog_bench_lean_workspace as workspace
-import sog_bench_lean_retrieval as retrieval
+import sog_bench_lean_statement_lookup as retrieval
 
 runtime = workspace.runtime
 WIRE_BYTES = 2 * 1024 * 1024

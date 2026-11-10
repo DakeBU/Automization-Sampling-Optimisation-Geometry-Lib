@@ -1,0 +1,134 @@
+{
+  "author_identity": "agent-task:root",
+  "cases": {
+    "case-1": {
+      "binding_sha256": "4044e79291b9fe3f78581d186a8f71930cc1ec1bc618ca280c826b10d32625dc",
+      "core_id": "sogb-046"
+    }
+  },
+  "context_bindings": {
+    "sogb-046": "725e83c13110b3b0c1a3b3db7c241bb802fbafaa0a9d8068f3a1de440a3d2b5a"
+  },
+  "decoder_identity": "agent-task:/root/semantic_decode_4d7a",
+  "decoder_input_sha256": "f52fa3007cf5d8c11595982a6bb497f26b61948092197771277ea767097ad4cd",
+  "decoder_output_sha256": "1f37466d05ecc2b745697fadd3c42cbc187def1dad66b0f994b1220cb449c670",
+  "instruction": "Independently audit each authored question, formula proof, rubric and actual local declaration. Compare all seven slots to the blind reconstruction. The authored support, status and formal-coverage language are claims to audit, not preferred verdicts. No previous source verdict or repair proposal is supplied. Record precise conclusion-only formal coverage and remaining unformalized explanation; accept, request repair or reject with mathematical and scoring evidence. This is Bench editorial review, not canonical theorem publication or model measurement.",
+  "mathematical_cores": [
+    {
+      "additional_source_declarations": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent.quadratic_eigenmode",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep.optimal_gradient_step"
+      ],
+      "assumptions": [
+        "Let \\(0<\\alpha\\le\\beta\\) be lower and upper curvature bounds for the class. They need not both be tight for any particular witness.",
+        "The method takes a fixed scalar step \\(h\\in\\mathbb R\\) at every iteration. Start at \\(x_0=1\\). The iteration count \\(N\\) may be zero."
+      ],
+      "binding_sha256": "4044e79291b9fe3f78581d186a8f71930cc1ec1bc618ca280c826b10d32625dc",
+      "boundary": "Selected method-specific distance obstruction only. No full Exercise 3.3, sharpness of other Section 3 estimates, oracle-complexity lower bound, adaptive-step result, new library theorem or graph task. Draft pending independent editorial review; never include in canonical exports yet.",
+      "context": "open Set InnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness.exists_quadratic_worst_case",
+      "decoder_definitions": [
+        "On the real line the gradient is the ordinary derivative, inner product is multiplication, and the norm is absolute value.",
+        "ContDiff ℝ 2 denotes twice continuous differentiability. StrongConvexOn univ a f means f minus (a/2) times the square norm is convex on the whole real line. IsMinOn f univ z denotes a global minimizer.",
+        "T^[N] denotes N-fold iteration of T, with T^[0] the identity. Natural-number powers include exponent zero."
+      ],
+      "dependencies": {
+        "astis": [
+          "QuadraticGradientDescent.quadratic_eigenmode",
+          "GradientDescentOptimalStep.optimal_gradient_step"
+        ],
+        "mathlib": [
+          "StrongConvexOn",
+          "HasDerivAt.hasGradientAt",
+          "Function.iterate",
+          "pow_le_pow_left₀"
+        ]
+      },
+      "difficulty": "multi-step proof and diagnosis",
+      "difficulty_reason": "Choose the adversarial curvature after the constant step is fixed, check class membership, solve the iteration, and separate the minimax scalar inequality from any claim about more general algorithms. The Lean target reuses the scalar eigenmode and optimal-step inequalities; the labels are provisional and require independent review.",
+      "domain": "Lower Bounds",
+      "family": "chewi-opt-v1-exercise-3-3",
+      "id": "sogb-046",
+      "imports": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep",
+        "Mathlib.Analysis.Calculus.Deriv.Pow"
+      ],
+      "lean_explanation": "The fixed proposition constructs the endpoint quadratic and certifies its smoothness, convexity, quadratic upper model, minimizer, and exact iterates. Lean uses the existing quadratic eigenmode theorem for the recurrence and the optimal-step theorem for the scalar minimax comparison; the prose also gives a direct triangle-inequality route. The warning about adaptive and arbitrary algorithms is not a separate Lean conclusion.",
+      "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep\nimport Mathlib.Analysis.Calculus.Deriv.Pow\n\nopen Set InnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep\nexample {α β : ℝ} (hα : 0 < α) (hαβ : α ≤ β) (h : ℝ) :\n    ∃ μ : ℝ, (μ = α ∨ μ = β) ∧ 0 < μ ∧\n      let f : ℝ → ℝ := fun x => μ * x ^ 2 / 2\n      ContDiff ℝ 2 f ∧ StrongConvexOn univ α f ∧\n      (∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2) ∧\n      IsMinOn f univ 0 ∧\n      ∀ N : ℕ,\n        ‖(fun x => x - h * gradient f x)^[N] 1‖ = (max |1 - h * α| |1 - h * β|) ^ N ∧\n        ((β - α) / (α + β)) ^ N ≤ ‖(fun x => x - h * gradient f x)^[N] 1‖ ∧\n        ‖(fun x => x - (2 / (α + β)) * gradient f x)^[N] 1‖ =\n          ((β - α) / (α + β)) ^ N := by\n  obtain ⟨μ, hm, he⟩ : ∃ μ : ℝ, (μ = α ∨ μ = β) ∧\n      |1 - h * μ| = max |1 - h * α| |1 - h * β| := by\n    by_cases hc : |1 - h * α| ≤ |1 - h * β|\n    · exact ⟨β, Or.inr rfl, (max_eq_right hc).symm⟩\n    · exact ⟨α, Or.inl rfl, (max_eq_left (le_of_not_ge hc)).symm⟩\n  have ham : α ≤ μ := by rcases hm with rfl | rfl <;> order\n  have hmb : μ ≤ β := by rcases hm with rfl | rfl <;> order\n  have hmpos : 0 < μ := hα.trans_le ham\n  let f : ℝ → ℝ := fun x => μ * x ^ 2 / 2\n  have hf : ContDiff ℝ 2 f := (contDiff_const.mul (contDiff_id.pow 2)).div_const 2\n  have hg (x : ℝ) : gradient f x = μ * x := by\n    have hd : HasDerivAt f (μ * x) x := by\n      convert (((hasDerivAt_id x).pow 2).const_mul μ).div_const (2 : ℝ) using 1 <;> first | rfl | (simp only [id_eq]; ring)\n    exact hd.hasGradientAt.gradient\n  have hc : StrongConvexOn univ α f := by\n    apply StrongConvexOn.mono ham\n    rw [strongConvexOn_iff_convex]\n    have hz : (fun x : ℝ => f x - μ / 2 * ‖x‖ ^ 2) = fun _ => 0 := by\n      funext x; simp [f, Real.norm_eq_abs, sq_abs]; ring\n    rw [hz]; exact convexOn_const _ convex_univ\n  have hu : ∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2 := by\n    intro x y\n    rw [hg]; simp only [f, Real.inner_apply, Real.norm_eq_abs, sq_abs]\n    nlinarith [mul_nonneg (sub_nonneg.mpr hmb) (sq_nonneg (y-x))]\n  have hmin : IsMinOn f univ 0 := by\n    intro x _\n    change μ * (0 : ℝ) ^ 2 / 2 ≤ μ * x ^ 2 / 2\n    simpa using div_nonneg (mul_nonneg hmpos.le (sq_nonneg x)) (by norm_num : (0 : ℝ) ≤ 2)\n  have hn (t : ℝ) (N : ℕ) :\n      ‖(fun x => x - t * gradient f x)^[N] 1‖ = |1 - t * μ| ^ N := by\n    have hs : (μ • (1 : ℝ →L[ℝ] ℝ)).IsSymmetric := by\n      intro x y; simp [mul_comm, mul_left_comm]\n    have heig : (μ • (1 : ℝ →L[ℝ] ℝ)) 1 = μ • (1 : ℝ) := by simp\n    have hr := (quadratic_eigenmode (μ • (1 : ℝ →L[ℝ] ℝ)) hs heig t N).2.1\n    have heq : (fun z : ℝ => inner ℝ z ((μ • (1 : ℝ →L[ℝ] ℝ)) z) / 2) = f := by\n      funext z; simp [f]; ring\n    simpa only [heq, smul_eq_mul, norm_one, mul_one] using hr\n  have hβ : 0 < β := hα.trans_le hαβ\n  have hD : 0 < α + β := add_pos hα hβ\n  have hq : 0 ≤ (β - α) / (α + β) := div_nonneg (sub_nonneg.mpr hαβ) hD.le\n  have hlow := (optimal_gradient_step hf hc hα.le hβ hαβ hu 0 1).2 h\n  have hbal : |1 - 2 / (α + β) * μ| = (β - α) / (α + β) := by\n    rcases hm with hma | hmb\n    · rw [hma]\n      have ha : 1 - 2 / (α + β) * α = (β - α) / (α + β) := by field_simp; ring\n      rw [ha, abs_of_nonneg hq]\n    · rw [hmb]\n      have hb : 1 - 2 / (α + β) * β = -((β - α) / (α + β)) := by field_simp; ring\n      rw [hb, abs_neg, abs_of_nonneg hq]\n  refine ⟨μ, hm, hmpos, hf, hc, hu, hmin, ?_⟩\n  intro N\n  rw [hn h N, hn (2 / (α + β)) N, he, hbal]\n  exact ⟨rfl, pow_le_pow_left₀ hq hlow N, rfl⟩\n",
+      "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep\nimport Mathlib.Analysis.Calculus.Deriv.Pow\n\nopen Set InnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep\nexample {α β : ℝ} (hα : 0 < α) (hαβ : α ≤ β) (h : ℝ) :\n    ∃ μ : ℝ, (μ = α ∨ μ = β) ∧ 0 < μ ∧\n      let f : ℝ → ℝ := fun x => μ * x ^ 2 / 2\n      ContDiff ℝ 2 f ∧ StrongConvexOn univ α f ∧\n      (∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2) ∧\n      IsMinOn f univ 0 ∧\n      ∀ N : ℕ,\n        ‖(fun x => x - h * gradient f x)^[N] 1‖ = (max |1 - h * α| |1 - h * β|) ^ N ∧\n        ((β - α) / (α + β)) ^ N ≤ ‖(fun x => x - h * gradient f x)^[N] 1‖ ∧\n        ‖(fun x => x - (2 / (α + β)) * gradient f x)^[N] 1‖ =\n          ((β - α) / (α + β)) ^ N := by\n  -- Replace this comment with your proof.\n",
+      "library_domains": [
+        "lower-bounds",
+        "optimisation"
+      ],
+      "question": "For every fixed step \\(h\\), find a single positive quadratic \\(f(x)=\\mu x^2/2\\) with \\(\\mu\\in\\{\\alpha,\\beta\\}\\), valid for every iteration count. Verify class membership and that zero minimizes this quadratic. Show that the distance from zero at step \\(N\\) is \\(\\big(\\max\\{|1-h\\alpha|,|1-h\\beta|\\}\\big)^N\\). Prove this is at least \\(q^N\\), where \\(q=(\\beta-\\alpha)/(\\alpha+\\beta)\\), and that changing only the step to \\(2/(\\alpha+\\beta)\\) gives \\(q^N\\) on that same objective. Explain why this does not establish a lower bound for adaptive or arbitrary first-order methods.",
+      "rubric": [
+        {
+          "criterion": "Chooses the endpoint after fixing the step but before choosing N, and proves that the positive quadratic belongs to the stated class and has minimizer zero.",
+          "points": 1
+        },
+        {
+          "criterion": "Solves the actual iteration from one and proves the exact endpoint-envelope distance for all N, including zero.",
+          "points": 1
+        },
+        {
+          "criterion": "Derives the uniform factor lower bound and equality for the balanced step on the same witness. An equivalent valid minimax derivation is accepted.",
+          "points": 1
+        },
+        {
+          "criterion": "Separates class curvature bounds from tight witness constants and explains why the result is only a fixed-step obstruction, not a general oracle lower bound.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "calculation",
+        "assumption-audit",
+        "semantic-boundary"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentSharpness.lean",
+      "source_line": 23,
+      "source_note": "Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1, §3 Exercises 3.2–3.3 (https://arxiv.org/html/2605.07006v1#S3). This is original ASTIS wording for the selected, already owned fixed-step distance component, publication item chewi-opt-v1-exercise-3-3-fixed-step-sharpness. Not the full exercise; no source prose, pages or figures are redistributed. Retain LICENSE and NOTICE for the Lean reference. Related variants stay in the same public family.",
+      "source_sha256_lf": "9740fd20073c225c4d2f8efcc3ae4f9a9eaceb7f121c086a3b82923bc8f2eb3d",
+      "split": "public-dev",
+      "steps": [
+        "With the step fixed, choose \\(\\mu\\) at an endpoint attaining \\(M=\\max\\{|1-h\\alpha|,|1-h\\beta|\\}\\). Since \\(\\alpha\\le\\mu\\le\\beta\\), the quadratic is smooth with derivative \\(\\mu x\\) and constant second derivative \\(\\mu\\); it is \\(\\alpha\\)-strongly convex, satisfies the upper quadratic model with \\(\\beta\\), and has unique minimizer zero because \\(\\mu>0\\). The curvature bounds are class bounds, not its intrinsic pair of sharp constants.",
+        "The actual iteration is \\(x_{n+1}=(1-h\\mu)x_n\\). Induction gives \\(x_N=(1-h\\mu)^N\\) and hence \\( |x_N|=M^N\\), including \\(N=0\\). The endpoint selection did not depend on \\(N\\).",
+        "The signed residuals satisfy \\[\\beta(1-h\\alpha)-\\alpha(1-h\\beta)=\\beta-\\alpha.\\] By the triangle inequality, \\(\\beta-\\alpha\\le\\beta|1-h\\alpha|+\\alpha|1-h\\beta|\\le(\\alpha+\\beta)M\\). Divide by the positive denominator and take nonnegative integer powers. For the balanced step the endpoint residuals are \\(q\\) and \\(-q\\), so the same witness has distance \\(q^N\\) there. Equal endpoint bounds give \\(q=0\\); at \\(N=0\\) the distance is still one.",
+        "The conclusion compares fixed scalar steps on a class of objectives. It does not compare adaptive steps or a richer oracle algorithm. On these scalar witnesses a method that has learned \\(\\mu\\) could pick \\(1/\\mu\\) instead, so the fixed-step argument alone cannot rule out faster adaptive behavior. It also does not assert convergence for negative or zero \\(h\\)."
+      ],
+      "supporting_declarations": [
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent.quadratic_eigenmode",
+          "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticGradientDescent.lean",
+          "source_line": 49,
+          "source_sha256_lf": "fbb313c98ea41622fcc08583fc160f3cd24956c7342ab126fe83d0cd1d692530"
+        },
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep.optimal_gradient_step",
+          "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentOptimalStep.lean",
+          "source_line": 102,
+          "source_sha256_lf": "856f336591e9cd23a69b827d5c438ec70628e530974c4b63981e6b13cd77dc83"
+        }
+      ],
+      "title": "An endpoint quadratic witnesses the fixed-step gradient-descent lower bound",
+      "track_levels": {
+        "lean": "L3",
+        "natural-language": "L3"
+      }
+    }
+  ],
+  "reconstructions": {
+    "case-1": {
+      "assumptions": "The only input hypotheses are 0 < α and α ≤ β; hence β and α + β are positive. Equality α = β is allowed. The input step size h is an arbitrary real number: it need not be positive, small, or contractive. The properties of μ and f are proved under these hypotheses, not supplied as additional inputs.",
+      "conclusion": "For the positive endpoint witness μ, the quadratic f is twice continuously differentiable and α-strongly convex on ℝ; for every real x, y, it satisfies f(y) ≤ f(x) + f′(x)(y − x) + (β/2)|y − x|²; and 0 is a global minimizer of f. Set ρ = max{|1 − hα|, |1 − hβ|}, q = (β − α)/(α + β), and h_* = 2/(α + β). For every N ∈ ℕ, |T_h^N(1)| = ρ^N, q^N ≤ |T_h^N(1)|, and |T_{h_*}^N(1)| = q^N. Here T_s^N means N-fold composition, and the last equality concerns the same quadratic as the first two claims.",
+      "constants": "The witness curvature is exactly an endpoint α or β; the quadratic coefficient is μ/2, the strong-convexity adjustment uses α/2, and the upper model uses β/2. The initial point is exactly 1 and the specified minimizer is 0. The prescribed comparison step is 2/(α + β), the exact fixed-h factor for the chosen witness is max{|1 − hα|, |1 − hβ|}, and the lower-bound and comparison factor is (β − α)/(α + β) ∈ [0, 1). No strict inequality between α and β or uniqueness of the endpoint choice is asserted.",
+      "domains": "All scalars α, β, h, μ and all arguments x, y are real. The function and each iteration map are from ℝ to ℝ; the domain of convexity and minimization is all of ℝ. The iteration count N ranges over ℕ including 0. The statement uses the standard real topology, norm, and real inner product on ℝ and the usual natural-number powers of real numbers, with no extra typeclass parameters for an ambient space or field.",
+      "objects": "The parameters α and β specify the strong-convexity modulus and the coefficient of the upper quadratic model, respectively. The arbitrary constant step size is h. The existential witness is a single positive curvature μ chosen from {α, β}, defining the real quadratic f(x) = μ x²/2 with gradient f′(x) = μx. For a constant real step s, write T_s(x) = x − s f′(x) = (1 − sμ)x. Both runs use this same f, start at 1, and compare distance to the minimizer 0.",
+      "quantifiers": "For every pair of real parameters α and β (implicit Lean arguments) satisfying 0 < α and α ≤ β, and for every real h, there exists a real μ such that μ equals α or β and μ > 0. This one witness, which may depend on α, β, and h, defines f before the universally quantified x and y in the upper-model condition and before the universally quantified N in the three iteration claims. The same witness serves all N and both step sizes; there is no separate existential choice for each N or each run.",
+      "senses": "Strong convexity means that x ↦ f(x) − (α/2)|x|² is convex on ℝ. The upper model is the stated all-pairs inequality with an ordinary derivative and multiplication in place of the inner product. Global minimizer means f(0) ≤ f(x) for every real x. The measured error is absolute distance to 0, not squared distance or objective-value gap. At N = 0 each iteration is the identity, and both factors to the zeroth power are 1 even if the base is 0. This is an existential endpoint-quadratic example for each fixed h, not a claim that every admissible function obeys these exact distances, that all h yield convergence, that a single witness works for every h, or that it characterizes variable-step methods or arbitrary-dimensional problems."
+    }
+  },
+  "schema_version": 1,
+  "scope": "independent AI paired QA editorial review; not canonical theorem publication"
+}

@@ -1,0 +1,118 @@
+{
+  "author_identity": "agent-task:root",
+  "cases": {
+    "case-1": {
+      "binding_sha256": "36c0c5af0efab97686233c37692eea44d55a351498de03e3f959d24536a9743f",
+      "core_id": "sogb-044"
+    }
+  },
+  "context_bindings": {
+    "sogb-044": "85fbfbdd18e1ff9455df9626a5249e9c980b4fc75f66fc414439aa4210ab8df5"
+  },
+  "decoder_identity": "agent-task:/root/bench_retained_kernel_blind_decoder",
+  "decoder_input_sha256": "dc6b2a6a1e7ecf003c0d91c3710ad70abe4f0f9e1606e1aedab5e28b440ea1d4",
+  "decoder_output_sha256": "cf4b97b2eb85fec0cd2fc1436f953ce4176ebe8ccc4a5f21a784a1543bb8ad5b",
+  "instruction": "Independently audit each authored question, formula proof, rubric and actual local declaration. Compare all seven slots to the blind reconstruction. The authored support, status and formal-coverage language are claims to audit, not preferred verdicts. No previous source verdict or repair proposal is supplied. Record precise conclusion-only formal coverage and remaining unformalized explanation; accept, request repair or reject with mathematical and scoring evidence. This is Bench editorial review, not canonical theorem publication or model measurement.",
+  "mathematical_cores": [
+    {
+      "assumptions": [
+        "Let \\(A,B\\) be measurable spaces. Let \\(\\mu\\) be an s-finite measure on \\(A\\), \\(R\\) an s-finite kernel from \\(A\\) to \\(B\\), and \\(F\\) a jointly measurable s-finite kernel from \\(A\\times B\\) to \\(B\\). Write \\(P=\\mu\\otimes R\\) for the comp-product, the joint measure with iterated integral under \\(R(a,db)\\,\\mu(da)\\). No probability or finite total mass is assumed.",
+        "At \\(z=(a,b)\\), the joint update \\(K\\) retains \\(a\\) and draws the new second coordinate from \\(F(a,b)\\). For \\(\\mu\\)-almost every \\(a\\), assume the entire fiber kernel \\(b\\mapsto F(a,b)\\) is reversible under \\(R(a)\\). All flux integrals are extended nonnegative integrals."
+      ],
+      "binding_sha256": "36c0c5af0efab97686233c37692eea44d55a351498de03e3f959d24536a9743f",
+      "boundary": "This proves reversibility for an actual retained-coordinate kernel and given s-finite comp-product, with the stated a.e. fiber hypothesis. It does not construct a disintegration, prove invariance without Markovness, conjugate coordinates, supply an L² operator, or prove PBPS invariance, convergence, cost or a whole paper. Existing finite conditional-resampling invariance is a related public variant, not the same formal conclusion.",
+      "context": "open MeasureTheory ProbabilityTheory Filter\nopen scoped ENNReal",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelRetainedReversibility.retained_coordinate_isReversible",
+      "decoder_definitions": [
+        "SFinite μ means μ is a countable sum of finite measures. IsSFiniteKernel means the corresponding countable decomposition as finite kernels. These are not probability, sigma-finiteness or finite total mass hypotheses.",
+        "A Kernel X Y assigns a measure on Y to each x with measurable event evaluations. F.comap (fun b => (a,b)) restricts the jointly measurable update to the measurable inclusion of the fiber with fixed first coordinate a.",
+        "μ ⊗ₘ R is the comp-product joint measure whose nonnegative integral integrates b against R a and then a against μ. ×ₖ is the pointwise product of kernels. Kernel.deterministic Prod.fst measurable_fst returns a Dirac mass at the input first coordinate, so its product with F retains that coordinate.",
+        "Kernel.IsReversible K μ means for every pair of measurable sets S,T equality of the extended nonnegative flux integrals from S to T and from T to S. It does not require Markovness, finite flux or invariance."
+      ],
+      "dependencies": {
+        "astis": [],
+        "mathlib": [
+          "MeasureTheory.Measure.lintegral_compProd",
+          "MeasureTheory.lintegral_indicator",
+          "MeasureTheory.lintegral_congr_ae",
+          "ProbabilityTheory.Kernel.deterministic_prod_apply'",
+          "ProbabilityTheory.Kernel.IsReversible",
+          "measurable_prodMk_left"
+        ]
+      },
+      "difficulty": "advanced",
+      "difficulty_reason": "The proof combines genuine interfaces: derive measurable sections and a measurable joint indicator, evaluate the deterministic product kernel on arbitrary joint events, disintegrate the nonnegative joint flux as an iterated comp-product integral, then lift almost-everywhere fiber reversibility. There is no finite-state sum and no integrability shortcut.",
+      "domain": "sampling",
+      "family": "conditional-resampling-invariance",
+      "id": "sogb-044",
+      "imports": [
+        "Mathlib.Probability.Kernel.Invariance",
+        "Mathlib.Probability.Kernel.Composition.MeasureCompProd"
+      ],
+      "lean_explanation": "The private reference helper rewrites the joint set integral using `lintegral_indicator`, applies `Measure.lintegral_compProd`, then checks the indicator values inside and outside the measurable section. `Kernel.deterministic_prod_apply'` evaluates the second-coordinate event. The final theorem rewrites the two fluxes by that identity, uses `lintegral_congr_ae`, and specializes the fiber hypothesis using measurability of the sections. The fixed target is joint reversibility; the source tests separately check reversibility of the zero update. The noninvariance conclusion in the prose is not another goal.",
+      "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport Mathlib.Probability.Kernel.Invariance\nimport Mathlib.Probability.Kernel.Composition.MeasureCompProd\n\nopen MeasureTheory ProbabilityTheory Filter\nopen scoped ENNReal\nprivate theorem retained_flux\n    {A B : Type*} [MeasurableSpace A] [MeasurableSpace B]\n    (μ : Measure A) [SFinite μ]\n    (R : Kernel A B) [IsSFiniteKernel R]\n    (F : Kernel (A × B) B) [IsSFiniteKernel F]\n    {S T : Set (A × B)} (hS : MeasurableSet S) (hT : MeasurableSet T) :\n    (∫⁻ z in S, ((Kernel.deterministic Prod.fst measurable_fst) ×ₖ F) z T\n      ∂(μ ⊗ₘ R)) =\n    ∫⁻ a, ∫⁻ b in Prod.mk a ⁻¹' S, F (a, b) (Prod.mk a ⁻¹' T) ∂R a ∂μ := by\n  rw [← lintegral_indicator hS]\n  rw [Measure.lintegral_compProd\n    ((((Kernel.deterministic Prod.fst measurable_fst) ×ₖ F).measurable_coe hT).indicator hS)]\n  apply lintegral_congr\n  intro a\n  rw [← lintegral_indicator (hS.preimage measurable_prodMk_left)]\n  apply lintegral_congr\n  intro b\n  by_cases hab : (a, b) ∈ S\n  · rw [Set.indicator_of_mem hab,\n      Set.indicator_of_mem (show b ∈ Prod.mk a ⁻¹' S from hab)]\n    exact Kernel.deterministic_prod_apply' measurable_fst F (a, b) hT\n  · rw [Set.indicator_of_notMem hab,\n      Set.indicator_of_notMem (show b ∉ Prod.mk a ⁻¹' S from hab)]\n\nexample\n    {A B : Type*} [MeasurableSpace A] [MeasurableSpace B]\n    (μ : Measure A) [SFinite μ]\n    (R : Kernel A B) [IsSFiniteKernel R]\n    (F : Kernel (A × B) B) [IsSFiniteKernel F]\n    (hF : ∀ᵐ a ∂μ, (F.comap (fun b => (a, b))\n      (measurable_const.prodMk measurable_id)).IsReversible (R a)) :\n    ((Kernel.deterministic Prod.fst measurable_fst) ×ₖ F).IsReversible (μ ⊗ₘ R) := by\n  intro S T hS hT\n  rw [retained_flux μ R F hS hT, retained_flux μ R F hT hS]\n  apply lintegral_congr_ae\n  filter_upwards [hF] with a ha\n  exact ha (hS.preimage measurable_prodMk_left) (hT.preimage measurable_prodMk_left)\n",
+      "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport Mathlib.Probability.Kernel.Invariance\nimport Mathlib.Probability.Kernel.Composition.MeasureCompProd\n\nopen MeasureTheory ProbabilityTheory Filter\nopen scoped ENNReal\nexample\n    {A B : Type*} [MeasurableSpace A] [MeasurableSpace B]\n    (μ : Measure A) [SFinite μ]\n    (R : Kernel A B) [IsSFiniteKernel R]\n    (F : Kernel (A × B) B) [IsSFiniteKernel F]\n    (hF : ∀ᵐ a ∂μ, (F.comap (fun b => (a, b))\n      (measurable_const.prodMk measurable_id)).IsReversible (R a)) :\n    ((Kernel.deterministic Prod.fst measurable_fst) ×ₖ F).IsReversible (μ ⊗ₘ R) := by\n  -- Replace this comment with your proof.\n",
+      "library_domains": [
+        "mcmc",
+        "samplewiki"
+      ],
+      "question": "Prove that \\(K\\) is reversible under \\(P\\) on arbitrary measurable joint sets, not only rectangles. Justify measurability and the change to fiber integrals, and explain why the conclusion does not imply invariance of \\(P\\) without a Markov-kernel hypothesis.",
+      "reference_helpers": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.KernelRetainedReversibility.retained_flux"
+      ],
+      "rubric": [
+        {
+          "criterion": "Establishes measurable joint event evaluations and measurable sections, and uses the actual retained-coordinate update to identify the section of the target event. Equivalent correct measurability arguments receive credit.",
+          "points": 1
+        },
+        {
+          "criterion": "Derives the fiber flux identity for arbitrary measurable joint events using the nonnegative comp-product integral or a valid equivalent argument, without hidden probability, finite-flux or rectangle-only restrictions.",
+          "points": 1
+        },
+        {
+          "criterion": "Applies the given a.e. fiber reversibility to the variable measurable sections and integrates the swapped fluxes to obtain joint reversibility, with no unsupported exchange of a.e. and event quantifiers.",
+          "points": 1
+        },
+        {
+          "criterion": "Separates reversible flux from invariant measure without Markov normalization, with the zero-update counterexample or another valid argument showing that reversibility alone does not give invariance.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "composition",
+        "assumption-audit",
+        "counterexample"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelRetainedReversibility.lean",
+      "source_line": 55,
+      "source_note": "Original ASTIS QA over the owned Apache-2.0 retained-coordinate balance theorem; retain LICENSE and NOTICE. The local KernelRetainedReversibility tests exercise the full s-finite interface and the zero update and zero input measure. It is a generic reusable producer for the MCMC/SampleWiki route, not a reproduction of a paper claim. Conservatively shares the public conditional-resampling-invariance family with other retained-coordinate kernel exercises; no hidden test status.",
+      "source_sha256_lf": "5844e8355e4c9efbb140807975f75e7641e2c4bbefe75300889eccc1418240b2",
+      "split": "public-dev",
+      "steps": [
+        "Fix measurable \\(S,T\\subseteq A\\times B\\), and write \\(S_a=\\{b:(a,b)\\in S\\}\\), likewise \\(T_a\\). These are measurable by preimage under \\(b\\mapsto(a,b)\\). The retained coordinate is deterministic, hence \\(K((a,b),T)=F(a,b)(T_a)\\). Joint measurability of \\(z\\mapsto K(z,T)\\) follows from the kernel structure, so multiplying by \\(\\mathbf 1_S\\) preserves measurability.",
+        "Use the nonnegative comp-product integral identity on this indicator times kernel evaluation. For fixed \\(a\\), the joint indicator becomes \\(\\mathbf 1_{S_a}\\), so \\[\\begin{aligned}&\\int_S K(z,T)\\,dP(z)\\\\&=\\int_A\\left[\\int_{S_a}F(a,b)(T_a)\\,dR(a)(b)\\right]d\\mu(a).\\end{aligned}\\] This uses measurable sections and the deterministic update, not a product-measure independence assumption. No finite flux is required.",
+        "At almost every \\(a\\), apply the given fiber reversibility to \\(S_a,T_a\\): it equates the inner flux with the flux from \\(T_a\\) to \\(S_a\\). Integrate this almost-everywhere equality and use the comp-product calculation in reverse with \\(S,T\\) exchanged. Thus \\(\\int_S K(z,T)\\,dP(z)=\\int_T K(z,S)\\,dP(z)\\). The assumption concerns the whole fiber kernel on one full-measure set, so the sections may depend on \\(a\\).",
+        "If \\(K\\) is Markov, setting \\(S=A\\times B\\) gives invariance because \\(K(z,A\\times B)=1\\). Without that normalization, the conclusion is only flux symmetry. On one-point spaces with unit mass and zero update \\(F=0\\), all fluxes vanish in both directions, yet composing with \\(K=0\\) gives the zero measure rather than \\(P\\)."
+      ],
+      "title": "Lift fiberwise detailed balance to a retained-coordinate kernel",
+      "track_levels": {
+        "lean": "L4",
+        "natural-language": "L4"
+      }
+    }
+  ],
+  "reconstructions": {
+    "case-1": {
+      "assumptions": "Assume SFinite μ and IsSFiniteKernel R and F: μ is a countable sum of finite measures, and each kernel has a countable decomposition as finite kernels. In addition, for μ-almost every a and all measurable U,V ⊆ B, the integral of F(a,b)(V) over b in U against R(a) equals the integral of F(a,b)(U) over b in V against R(a). The comap along the measurable inclusion b ↦ (a,b) makes this an assertion of reversibility for the fiber kernel on B.",
+      "conclusion": "K = (Kernel.deterministic Prod.fst measurable_fst) ×ₖ F is reversible with respect to M = μ ⊗ₘ R. Precisely, for all measurable S,T ⊆ A × B, the nonnegative integral of K(x)(T) over x in S against M equals the nonnegative integral of K(x)(S) over x in T against M. Here K(a,b)(T) = F(a,b)({b′ : (a,b′) ∈ T}), since the first coordinate is retained.",
+      "constants": "No free numerical constants, rates, bounds or time parameters occur. Prod.fst is the first-coordinate projection, and Kernel.deterministic Prod.fst is the unit Dirac measure δ_a at the input's first coordinate. The comap uses the constant map with value a paired with the identity on B; ×ₖ forms the pointwise product of kernels, and ⊗ₘ is measure–kernel comp-product, not a product with an a-independent measure.",
+      "domains": "The indices a range over A and the fiber states b over B. R(a) and F(a,b) are measures on B. M is on A × B with the product measurable structure, and K is a kernel from A × B to A × B. Fiber flux tests use measurable U,V ⊆ B, while joint flux tests use arbitrary measurable S,T ⊆ A × B. All flux integrals take values in the extended nonnegative reals.",
+      "objects": "A and B are arbitrary types equipped with measurable spaces. The data are a measure μ on A, a kernel R from A to B, and a kernel F from A × B to B. For fixed a, write R(a) for the measure on B given by R and F_a(b) = F(a,b) for the fiber kernel obtained by comap along b ↦ (a,b). The joint measure M = μ ⊗ₘ R integrates first against R(a) in b and then against μ in a. The retained-coordinate kernel is K(a,b) = δ_a ⊗ F(a,b).",
+      "quantifiers": "Universally quantify the two types, their measurable-space instances, the measure μ and its SFinite instance, and the kernels R,F and their IsSFiniteKernel instances. For any hypothesis hF, its premise holds for μ-almost every a, with every pair of measurable U,V ⊆ B quantified inside the almost-everywhere condition. The conclusion is for every pair of measurable S,T ⊆ A × B, not just measurable rectangles.",
+      "senses": "Reversibility here is symmetry of measurable-set flux in the extended nonnegative reals, so equality can include two infinite fluxes. The premise is μ-almost everywhere in a, not pointwise at every a. Neither probability normalization nor Markovness, finite total mass, finite flux, sigma-finiteness, or invariance is asserted. The joint measure uses a potentially a-dependent R(a), and the conclusion does not assert independence of the coordinates."
+    }
+  },
+  "schema_version": 1,
+  "scope": "independent AI paired QA editorial review; not canonical theorem publication"
+}

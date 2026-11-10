@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.AffinePerturbationKL.klDiv_affine_perturbation_second_order",
+      "title": "Exercise 1.7: the actual affine-law KL expansion (1.E.1)",
+      "statement": "Let μ be a probability measure on a measurable space and f a real a.e. strongly measurable, a.e. uniformly bounded observable with zero μ-mean. Define the actual tilted measure by withDensity of the nonnegative-real image of 1+εf. For all sufficiently small real |ε|, including zero, this is a probability measure and its canonical extended-real KL relative to μ is finite. The real value of that finite KL is ε² times one half of the integral of f², plus a remainder that is little-o of ε² in the full neighborhood of zero.",
+      "formula": "\\begin{gathered}\\nu_\\varepsilon=(1+\\varepsilon f)\\mu,\\qquad \\mathrm{KL}(\\nu_\\varepsilon\\|\\mu)<\\infty,\\\\\\mathrm{KL}(\\nu_\\varepsilon\\|\\mu)=\\frac{\\varepsilon^2}{2}\\int f^2\\,d\\mu+o(\\varepsilon^2).\\end{gathered}",
+      "assumptions": [
+        "μ is a probability measure on an arbitrary measurable space; no geometry, finite-dimensionality or support assumption is used.",
+        "f is a.e. strongly measurable, |f| ≤ M a.e. for a fixed real M, and its integral is zero. Boundedness on the probability space gives integrability; the public conclusion derives positivity and mass one rather than assuming them.",
+        "Smallness is a two-sided real neighborhood, including ε=0. The affine density is implemented with ENNReal.ofReal; eventual a.e. positivity ensures this does not truncate the relevant density."
+      ],
+      "steps": [
+        {
+          "title": "Construct the probability law",
+          "text": "Essential boundedness puts the affine density in [1/2,3/2] a.e. for small |ε|, including the degenerate bound M=0. Centering and reference probability give mass one. The density is positive a.e.; withDensity of its ENNReal image yields the actual probability measure and its a.e. Radon–Nikodym derivative.",
+          "formula": "\\begin{gathered}p_\\varepsilon=1+\\varepsilon f,\\quad \\tfrac12\\le p_\\varepsilon\\le\\tfrac32\\ \\text{a.e.},\\\\\\int p_\\varepsilon\\,d\\mu=1,\\quad d\\nu_\\varepsilon=p_\\varepsilon\\,d\\mu.\\end{gathered}",
+          "lean": "The owned actual-law parent proves positivity, normalization and the canonical KL identity; the upper bound is used in its proof, not assumed by the new theorem."
+        },
+        {
+          "title": "Prove finite extended-real KL first",
+          "text": "The canonical KL is the nonnegative-real image of the compensated integral, which is finite. That establishes KL < ∞ independently of toReal. Nonnegativity of k makes its integral nonnegative, so the real KL then equals the actual real integral.",
+          "formula": "\\begin{gathered}k(t)=t\\log t+1-t,\\\\K_\\varepsilon^{\\mathrm{ext}}=\\operatorname{ofReal}\\!\\left(\\int k(p_\\varepsilon)\\,d\\mu\\right)<\\infty,\\\\K_\\varepsilon=(K_\\varepsilon^{\\mathrm{ext}})_{\\mathbb R}=\\int k(p_\\varepsilon)\\,d\\mu.\\end{gathered}",
+          "lean": "Use ENNReal.ofReal_lt_top and ENNReal.toReal_ofReal with integral_nonneg_of_ae; toReal ∞ = 0 is never used to justify finiteness."
+        },
+        {
+          "title": "Use the compensated-integral limit",
+          "text": "At 1, k and its first derivative vanish. Taylor's integral remainder divides by ε² only off zero; the positive segment gives the f² envelope, and the limit is f²/2. The analytic parent proves this scalar coefficient and domination, then passes the integral to the limit.",
+          "formula": "\\begin{gathered}\\frac{k(1+\\varepsilon f)}{\\varepsilon^2}=f^2\\int_0^1\\frac{1-s}{1+s\\varepsilon f}\\,ds,\\\\0\\le\\frac{k(1+\\varepsilon f)}{\\varepsilon^2}\\le f^2,\\\\\\frac{K_\\varepsilon}{\\varepsilon^2}\\to\\frac12\\int f^2\\,d\\mu.\\end{gathered}",
+          "lean": "tendsto_integral_klFun_one_add_mul_div_sq supplies the punctured integral limit; congr' substitutes the eventual real KL identity."
+        },
+        {
+          "title": "Include the exact zero endpoint",
+          "text": "At ε=0 the density is one, so the tilted law equals μ and its KL is zero. The remainder vanishes there. Combine the punctured quotient limit with the exact endpoint to obtain little-o on the full neighborhood.",
+          "formula": "\\begin{gathered}R_\\varepsilon=K_\\varepsilon-\\frac{\\varepsilon^2}{2}\\int f^2\\,d\\mu,\\\\R_0=0,\\qquad R_\\varepsilon=o(\\varepsilon^2).\\end{gathered}",
+          "lean": "withDensity_one, klDiv_self, nhdsNE_sup_pure and Asymptotics.isLittleO_of_tendsto discharge the full-neighborhood conclusion."
+        }
+      ],
+      "lean_statement": "The result is the conjunction of eventual probability and finite extended-real KL, and a real little-o expansion for that actual law. The probability and finiteness conjunct is not replaced by a real-valued bound.",
+      "lean_proof": "Use the canonical actual-law identity, transfer the independent compensated integral limit, and prove the zero endpoint before converting the vanishing quotient into little-o.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedPerturbationLaw.eventually_isProbabilityMeasure_and_klDiv_eq_one_add_mul",
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq"
+      ],
+      "mathlib_dependencies": [
+        "ENNReal.ofReal_lt_top",
+        "ENNReal.toReal_ofReal",
+        "MeasureTheory.withDensity_one",
+        "InformationTheory.klDiv_self",
+        "Asymptotics.isLittleO_of_tendsto"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf#page=55",
+          "label": "Chewi, Exercise 1.7 / (1.E.1)",
+          "scope": "The actual affine-law KL expansion."
+        },
+        {
+          "url": "https://chewisinho.github.io/main.pdf#page=62",
+          "label": "Chewi, Corollary 2.1.2",
+          "scope": "Uses the KL expansion; no transport conclusion or compiled consumer is claimed."
+        }
+      ],
+      "boundary": "The actual-law quadratic KL expansion and eventual finite probability are proved. Corollary 2.1.2 is a source consumer only; no transport inequality, T2, PI, Fisher or form-domain conclusion is proved here.",
+      "tests": [
+        "lake env lean Tests/Shared/AffinePerturbationKL.lean"
+      ]
+    }
+  ]
+}

@@ -191,3 +191,37 @@ The [public-dev one-shot capture](../../../runs/20261110-bench-local-lean-first/
 is a separate, pinned Qwen answer on a fixed target. Its CI verification
 reuses the same isolation but does not replay a live model/tool conversation.
 It sends the exact captured text, including any formatting mistakes.
+
+### Opt-in local model with live feedback
+
+For a real credential-free trial, the existing **Bench isolated Lean
+runtime trials** workflow has a manual `local_model_pilot` option. Ordinary
+PR, push, and unselected manual runs do not download model weights or run
+inference. Select the exact branch when dispatching. This optional job is
+separate from the required software trials and never deploys Pages.
+
+The pilot uses the same pinned public Qwen2.5-0.5B-Instruct Safetensors as
+the one-shot capture, verified against all eight recorded file hashes.
+The host provisions the model and CPU packages; inference loads only local
+files with remote code disabled. The isolated verifier does not receive
+the weights, host credentials, or a shell command from the model. Only the
+fixed prompt-only Lean prefix, its first body, and the bounded check
+diagnostic are model inputs. The text is appended unedited, even if it
+contains Markdown or otherwise fails.
+
+On an already prepared Linux host, the equivalent foreground command is:
+
+```bash
+python tools/sog_bench_lean_local.py \
+  --task .astis/lean-local-tasks/sogb-015 --stage .astis/lean-local-stage \
+  --runtime .astis/lean-local-runtime --model-directory .astis/lean-local-weights \
+  --output .astis/lean-local-evidence
+```
+
+The operator schedules one check and then one immutable final for one
+public-dev target; this measures response to feedback, **not autonomous
+tool selection**. The evidence binds both token/message records to the
+exact submitted files and the first native diagnostic. A setup or transport
+failure retains the selected target but produces no score. Report only
+what the actual artifact shows, not a held-out result, a calibration run,
+or a claim that a proof was repaired merely because feedback was delivered.

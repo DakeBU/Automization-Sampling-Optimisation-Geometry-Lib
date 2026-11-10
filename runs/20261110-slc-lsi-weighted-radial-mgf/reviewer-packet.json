@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-c4b0f7dd757435a1",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "/root",
+    "blind_decoder": "/root/anonymous_20261110_i",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "slc-lsi-complexity-2026",
+    "anchor": "§6.1 Gaussian variance calculation immediately before Eq. (51), and Eq. (51)",
+    "original_text": "Faithful restatement of the fixed-point Gaussian calculation and Eq. (51). Fix one deterministic x of n-dimensional blocks and the deterministic source weights beta_i. Under the original unconditioned joint standard Gaussian of all ordered coefficients, let H_i(x) be the literal angular degree sum on the normalized x tail times the exact Eq. (16) cutoff, zero if a participating block is zero. The sum W=∑_i beta_i H_i(x) is centered Gaussian with variance V=n∑_i beta_i² C_i(x)² v_i, where v_i=∑_p a_i,p² with the exact Eq. (14) amplitudes. The source's expectation m(x) of exp(-W) is finite and equals exp(V/2). The source uses positive recursively determined weights and prescribed depth at sufficiently large n; the isolated finite identity extends to deterministic real weights and any positive n and natural depth. Only the coefficient law is integrated here, not the spatial law or an event restriction.",
+    "text_sha256": "7315a179f1ac4f121e1cee49efb35bd126c319a0b8d534fd68020b968bbb2351"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF.weightedRadialLevels_gaussian_mgf",
+    "file": "AutoSamplingTheory/ExampleCases/SlcLsiQueryComplexity/WeightedRadialMGF.lean",
+    "statement": "let g := fun (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (p : {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n    (ξ : EuclideanSpace ℝ\n      ((Fin p.val × (Σ j : Fin (h - i.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)) ↦\n  let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n  let a : ℝ := 1 / ((p.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n    Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n  Real.sqrt n.val * a * ∑ c, ξ c * ∏ s, u s.2.1 (c s)\n;\n∀ (n : ℕ+) (h : ℕ)\n    (β : Fin (h + 1) → ℝ)\n    (x : Fin (h + 1) → EuclideanSpace ℝ (Fin n.val)),\n    let L := Fin (h + 1)\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := L × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let E := fun b : B ↦ EuclideanSpace ℝ (C b)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S := fun i : L ↦ ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun (i : L) (p : P) ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S i : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S i)))\n    let χ := fun r : ℝ ↦\n      expNegInvGlue (r - 13 / 20) /\n        (expNegInvGlue (r - 13 / 20) + expNegInvGlue (7 / 10 - r)) *\n      (expNegInvGlue (1 - r) /\n        (expNegInvGlue (1 - r) + expNegInvGlue (r - 19 / 20)))\n    let tail := fun (i : L) (j : Fin (h - i.val + 1)) ↦ x ⟨i.val + j.val, by omega⟩\n    let c := fun i : L ↦ ∏ j, χ (‖tail i j‖ / Real.sqrt n.val)\n    let field := fun (i : L) (z : (p : P) → E (i, p)) ↦\n      if ∃ j, tail i j = 0 then 0 else\n        c i * ∑ p : P, g n h i (degree p)\n          (fun j ↦ NormedSpace.normalize (tail i j)) (z p)\n    let Ω := EuclideanSpace ℝ (Σ b : B, C b)\n    let H := fun (ξ : Ω) (i : L) ↦ field i\n      (fun p ↦ WithLp.toLp 2 (fun k : C (i, p) ↦ ξ ⟨(i, p), k⟩))\n    let μ := stdGaussian Ω\n    let W := fun ξ : Ω ↦ ∑ i : L, β i * H ξ i\n    let V := (n.val : ℝ) * ∑ i : L, β i ^ 2 * (c i) ^ 2 * ∑ p : P, (a i p) ^ 2\n    HasLaw W (gaussianReal 0 V.toNNReal) μ ∧\n      Integrable (fun ξ ↦ Real.exp (-W ξ)) μ ∧\n      (∫ ξ, Real.exp (-W ξ) ∂μ) = Real.exp (V / 2)",
+    "statement_sha256": "12388bec66002cf4fa8bd277228a881821391b76e94eb2426e70d4716942ef51",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let n be a positive integer and h a nonnegative integer. Write [k] = {0,…,k−1}, L = [h+1], Q = 2^(64(h+1)), R = 2^(74(h+1)), and P = {p ∈ ℕ : p is even and 4 ≤ p ≤ Q}. Fix arbitrary deterministic real weights β_i and vectors x_i ∈ ℝ^[n] for i ∈ L, with the Euclidean norm on ℝ^[n].\n\nFor i ∈ L set m_i = h−i+1, J_i = [m_i], and S_i = ∑_{j∈J_i} R^j. For p ∈ P define\na_{i,p} = 1 / (p^4 S_i^2 √(m_i log(2 Q S_i))),\nwhere log is the natural logarithm. Define the slot set D_{i,p} = [p] × {(j,t) : j ∈ J_i, t ∈ [R^j]}, the coordinate set C_{i,p} = {k : D_{i,p} → [n]}, and the real Euclidean coefficient block E_{i,p} = ℝ^{C_{i,p}}. The block labels are B = L × P. Let Ω = ℝ^{⨆_{(i,p)∈B} C_{i,p}} with its Euclidean norm, and let μ be the centered identity-covariance Gaussian probability measure on Ω. For ξ ∈ Ω, let ξ_{i,p} ∈ E_{i,p} be its coordinate restriction to block (i,p), with no rescaling.\n\nFor u = (u_j)_{j∈J_i} with u_j ∈ ℝ^[n] and z ∈ E_{i,p}, define the contraction\ng_{i,p}(u,z) = √n a_{i,p} ∑_{k∈C_{i,p}} z(k) ∏_{(ℓ,j,t)∈D_{i,p}} u_j(k(ℓ,j,t)).\nLet φ(t) = exp(−1/t) for t > 0 and φ(t) = 0 for t ≤ 0. For r ∈ ℝ set\nχ(r) = [φ(r−13/20) / (φ(r−13/20)+φ(7/10−r))] · [φ(1−r) / (φ(1−r)+φ(r−19/20))].\nDefine the tail at level i by y_{i,j} = x_{i+j} for j ∈ J_i and the multiplier c_i = ∏_{j∈J_i} χ(‖y_{i,j}‖/√n). Define H_i(ξ) = 0 if any y_{i,j} is zero. Otherwise let u^{(i)}_j = y_{i,j}/‖y_{i,j}‖ and set H_i(ξ) = c_i ∑_{p∈P} g_{i,p}(u^{(i)},ξ_{i,p}).\n\nSet W(ξ) = ∑_{i∈L} β_i H_i(ξ) and V = n ∑_{i∈L} β_i^2 c_i^2 (∑_{p∈P} a_{i,p}^2). Then V ≥ 0, W is μ-almost-everywhere measurable, and its pushforward W♯μ is the centered real Gaussian law of variance V (the point mass at zero when V = 0). The function ξ ↦ exp(−W(ξ)) is Bochner integrable under μ, and ∫_Ω exp(−W(ξ)) dμ(ξ) = exp(V/2).",
+    "text_sha256": "be78e3c1ffd4b0c5bc6fbdadbe2b947ff8914c1ac5303289487164b3e5890ad3",
+    "decoder": "/root/anonymous_20261110_i",
+    "decoder_packet_sha256": "227acdb4894185ec1ebc655c12282f4e6fff5f8f3acd6a5e8c480add707501be",
+    "decoder_run_sha256": "53909076d4bce337c288a936e8e3e6b375082291ed9cdd128cc21cfbb85923d3",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "df33353fc807dea0c3edc61e6b342e6ada986d4851b45782bc185198f312c77a",
+  "candidate_publication_context": {
+    "file": "05eccbc51fe3c2b18ec89ab83aef63d3091c8e77e56e0fcf488a84e95259568f",
+    "current_lean_module": "/-\nCopyright (c) 2026 Samplinglib contributors. All rights reserved.\nReleased under Apache 2.0 license as described in the file LICENSE.\n-/\nimport AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels\n\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Classical\nopen AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree\nopen scoped NNReal\n\n/-!\n# Actual fixed-location weighted Gaussian and its exponential moment\n\nZhou–Suzuki, arXiv:2611.05813v1 (CC BY 4.0), the variance calculation\nimmediately before Eq. (51) and Eq. (51) itself. This integrates only the\ncoefficient sample, not the location. The source weights are deterministic;\narbitrary real weights give the same isolated finite-dimensional identity.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF\n\nopen RadialLevels\n\n/-- The literal weighted field sum is centered Gaussian with the exact source\nvariance, and its negative exponential is integrable with the Eq. (51) mean. -/\ntheorem weightedRadialLevels_gaussian_mgf (n : ℕ+) (h : ℕ)\n    (β : Fin (h + 1) → ℝ)\n    (x : Fin (h + 1) → EuclideanSpace ℝ (Fin n.val)) :\n    let L := Fin (h + 1)\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := L × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let E := fun b : B ↦ EuclideanSpace ℝ (C b)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S := fun i : L ↦ ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun (i : L) (p : P) ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S i : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S i)))\n    let χ := fun r : ℝ ↦\n      expNegInvGlue (r - 13 / 20) /\n        (expNegInvGlue (r - 13 / 20) + expNegInvGlue (7 / 10 - r)) *\n      (expNegInvGlue (1 - r) /\n        (expNegInvGlue (1 - r) + expNegInvGlue (r - 19 / 20)))\n    let tail := fun (i : L) (j : Fin (h - i.val + 1)) ↦ x ⟨i.val + j.val, by omega⟩\n    let c := fun i : L ↦ ∏ j, χ (‖tail i j‖ / Real.sqrt n.val)\n    let field := fun (i : L) (z : (p : P) → E (i, p)) ↦\n      if ∃ j, tail i j = 0 then 0 else\n        c i * ∑ p : P, angularDegreeComponent n h i (degree p)\n          (fun j ↦ NormedSpace.normalize (tail i j)) (z p)\n    let Ω := EuclideanSpace ℝ (Σ b : B, C b)\n    let H := fun (ξ : Ω) (i : L) ↦ field i\n      (fun p ↦ WithLp.toLp 2 (fun k : C (i, p) ↦ ξ ⟨(i, p), k⟩))\n    let μ := stdGaussian Ω\n    let W := fun ξ : Ω ↦ ∑ i : L, β i * H ξ i\n    let V := (n.val : ℝ) * ∑ i : L, β i ^ 2 * (c i) ^ 2 * ∑ p : P, (a i p) ^ 2\n    HasLaw W (gaussianReal 0 V.toNNReal) μ ∧\n      Integrable (fun ξ ↦ Real.exp (-W ξ)) μ ∧\n      (∫ ξ, Real.exp (-W ξ) ∂μ) = Real.exp (V / 2) := by\n  intro L P B C E degree S a χ tail c field Ω H μ W V\n  let v := fun i : L ↦ ∑ p : P, (a i p) ^ 2\n  let σ := fun i : L ↦ (n.val : ℝ) * (c i) ^ 2 * v i\n  let ν := fun i : L ↦ gaussianReal 0 (σ i).toNNReal\n  let X := fun (i : L) (ξ : Ω) ↦ β i * H ξ i\n  have hJoint : HasLaw H (Measure.pi ν) μ := radialLevels_hasLaw n h x\n  have hMarginal (i : L) : HasLaw (fun ξ ↦ H ξ i) (ν i) μ := by\n    have hEval := measurePreserving_eval (μ := ν) i\n    have h := hEval.fun_comp_hasLaw hJoint\n    exact h\n  have hIndep : iIndepFun (fun i ξ ↦ H ξ i) μ :=\n    (iIndepFun_iff_hasLaw_pi_pi hMarginal).2 hJoint\n  have hXIndep : iIndepFun X μ :=\n    hIndep.comp (fun i (z : ℝ) ↦ β i * z) (fun _ ↦ measurable_const.mul measurable_id)\n  have hScale (i : L) :\n      HasLaw (X i) (gaussianReal 0\n        (NNReal.mk (β i ^ 2) (sq_nonneg (β i)) * (σ i).toNNReal)) μ := by\n    simpa only [mul_zero] using gaussianReal_const_mul (hMarginal i) (β i)\n  have hGauss (i : L) : HasGaussianLaw (X i) μ := (hScale i).hasGaussianLaw\n  have hSum : HasGaussianLaw W μ := hXIndep.hasGaussianLaw_fun_sum hGauss\n  have hMean : ∫ ξ, W ξ ∂μ = 0 := by\n    change (∫ ξ, ∑ i : L, X i ξ ∂μ) = 0\n    rw [integral_finsetSum _ (fun i _ ↦ (hGauss i).integrable)]\n    simp only [fun i ↦ (hScale i).integral_eq, integral_id_gaussianReal, Finset.sum_const_zero]\n  have hn : 0 ≤ (n.val : ℝ) := Nat.cast_nonneg _\n  have hv (i : L) : 0 ≤ v i := Finset.sum_nonneg fun p _ ↦ sq_nonneg (a i p)\n  have hσ (i : L) : 0 ≤ σ i := mul_nonneg (mul_nonneg hn (sq_nonneg (c i))) (hv i)\n  have hVar : Var[W; μ] = V := by\n    have hPointwise : W = ∑ i : L, X i := by\n      funext ξ\n      change (∑ i : L, X i ξ) = (∑ i : L, X i) ξ\n      exact (Finset.sum_apply ξ Finset.univ X).symm\n    change Var[W; μ] = (n.val : ℝ) * ∑ i : L, β i ^ 2 * (c i) ^ 2 * v i\n    rw [hPointwise, IndepFun.variance_sum (X := X) (s := Finset.univ)\n      (fun i _ ↦ (hGauss i).memLp_two)\n      (fun i _ j _ hij ↦ hXIndep.indepFun hij), Finset.mul_sum]\n    refine Finset.sum_congr rfl fun i _ ↦ ?_\n    rw [(hScale i).variance_eq, variance_id_gaussianReal, NNReal.coe_mul, NNReal.coe_mk,\n      Real.coe_toNNReal _ (hσ i)]\n    change β i ^ 2 * ((n.val : ℝ) * (c i) ^ 2 * v i) =\n      (n.val : ℝ) * (β i ^ 2 * (c i) ^ 2 * v i)\n    ring\n  have hW : HasLaw W (gaussianReal 0 V.toNNReal) μ :=\n    ⟨hSum.aemeasurable, by rw [hSum.map_eq_gaussianReal, hMean, hVar]⟩\n  have hV : 0 ≤ V := mul_nonneg hn\n    (Finset.sum_nonneg fun i _ ↦\n      mul_nonneg (mul_nonneg (sq_nonneg (β i)) (sq_nonneg (c i))) (hv i))\n  have hMGF : mgf W μ (-1) = Real.exp (V / 2) := by\n    rw [mgf_gaussianReal hW.map_eq, Real.coe_toNNReal _ hV]\n    congr 1\n    ring\n  have hInt : Integrable (fun ξ ↦ Real.exp (-W ξ)) μ := by\n    have h := (mgf_pos_iff (μ := μ) (X := W) (t := -1)).1\n      (hMGF.symm ▸ Real.exp_pos _)\n    simpa only [neg_one_mul] using h\n  exact ⟨hW, hInt, by simpa only [mgf, neg_one_mul] using hMGF⟩\n\nend AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "slc-lsi-complexity-2026",
+      "url": "https://arxiv.org/html/2611.05813v1#S6.E51",
+      "anchor": "§6.1 Gaussian variance calculation immediately before Eq. (51), and Eq. (51)",
+      "edition": "arXiv:2611.05813v1",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, CC BY 4.0. Samplinglib makes the fixed-location law and integrability explicit."
+    },
+    "statement": "Fix a deterministic spatial point and deterministic level weights. Under the original joint Gaussian law of the actual coefficient vector, the weighted radial sum W is centered Gaussian with exact variance V. Its negative exponential is integrable and has expectation exp(V/2). This is the fixed-location quantity m(x) in Eq. (51).",
+    "formulae": [
+      {
+        "label": "Exact cutoff from footnote 2 and Eq. (16)",
+        "tex": "\\begin{gathered}\\rho(t)=\\begin{cases}e^{-1/t}&t>0\\\\0&t\\le0,\\end{cases}\\\\ \\chi(r)=\\frac{\\rho(r-0.65)}{\\rho(r-0.65)+\\rho(0.70-r)}\n\\frac{\\rho(1-r)}{\\rho(1-r)+\\rho(r-0.95)},\\qquad C_i(x)=\\prod_{j=i}^h\\chi\\!\\left(\\frac{\\|x_j\\|}{\\sqrt n}\\right).\\end{gathered}"
+      },
+      {
+        "label": "Angular model and variance scale",
+        "tex": "\\begin{gathered}K=2^{74(h+1)},\\quad P=2^{64(h+1)},\\quad S_i=\\sum_{j=0}^{h-i}K^j,\\quad \\mathcal P=\\{4,6,\\ldots,P\\},\\\\ a_{i,p}=\\frac1{p^4S_i^2\\sqrt{(h-i+1)\\log(2PS_i)}},\\quad v_i=\\sum_{p\\in\\mathcal P}a_{i,p}^2,\\\\ \\psi_i(u)=\\bigotimes_{j=i}^h u_j^{\\otimes K^{j-i}},\\qquad F_i^\\Xi(u)=\\sum_{p\\in\\mathcal P}\\sqrt n\\,a_{i,p}\\langle\\Xi_{i,p},\\psi_i(u)^{\\otimes p}\\rangle.\\end{gathered}"
+      },
+      {
+        "label": "Actual one-point law",
+        "tex": "\\begin{gathered}H_i^\\Xi(x)=\\begin{cases}0 & \\exists j\\ge i:\\ x_j=0,\\\\C_i(x)\\,F_i^\\Xi((x_j/\\|x_j\\|)_{j=i}^h)&\\text{otherwise},\\end{cases}\\\\ H_i^\\Xi(x)\\sim\\mathcal N(0,n C_i(x)^2 v_i),\\qquad \\mathcal N(0,0)=\\delta_0.\\end{gathered}"
+      },
+      {
+        "label": "Weighted Gaussian and exact Eq. (51) expectation",
+        "tex": "\\begin{gathered} W=\\sum_{i=0}^h\\beta_iH_i^\\Xi(x),\\qquad V=n\\sum_{i=0}^h\\beta_i^2C_i(x)^2v_i,\\\\ W\\sim\\mathcal N(0,V),\\qquad m(x)=\\mathbb E_{\\Xi\\sim\\mu_n}[e^{-W}]=e^{V/2}.\\end{gathered}"
+      }
+    ],
+    "assumptions": [
+      "The actual fields all use the same fixed location and the original unconditioned coefficient vector. Ordered tensor degrees, cutoffs, exact amplitudes, and the zero-block convention are unchanged.",
+      "The paper prescribes deterministic positive weights by Eq. (18) and large n with a particular depth. This finite identity holds for arbitrary deterministic real weights and all positive n and natural h; no admissibility or recursive weight estimate is generalized.",
+      "Only the coefficient vector is integrated. Zero variance is allowed. No spatial regularity, restriction to a good event, conditional law, or exponential moment is assumed."
+    ],
+    "obligations": [
+      {
+        "id": "actual-weighted-law",
+        "label": "Derive the centered weighted law with the exact variance from the actual joint model"
+      },
+      {
+        "id": "actual-exponential-mean",
+        "label": "Prove the exponential integrable and compute the expectation in Eq. (51)"
+      }
+    ],
+    "lesson": {
+      "reading_layout": "progressive",
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF.weightedRadialLevels_gaussian_mgf",
+      "title": "Compute the fixed-location linear exponential weight",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S6.E51",
+          "label": "Zhou–Suzuki, Eq. (51)",
+          "scope": "Weighted Gaussian law and coefficient expectation at fixed x."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiWeightedRadialMGF"
+      ],
+      "assumptions": [
+        "The actual fields all use the same fixed location and the original unconditioned coefficient vector. Ordered tensor degrees, cutoffs, exact amplitudes, and the zero-block convention are unchanged.",
+        "The paper prescribes deterministic positive weights by Eq. (18) and large n with a particular depth. This finite identity holds for arbitrary deterministic real weights and all positive n and natural h; no admissibility or recursive weight estimate is generalized.",
+        "Only the coefficient vector is integrated. Zero variance is allowed. No spatial regularity, restriction to a good event, conditional law, or exponential moment is assumed."
+      ],
+      "statement": "Fix a deterministic spatial point and deterministic level weights. Under the original joint Gaussian law of the actual coefficient vector, the weighted radial sum W is centered Gaussian with exact variance V. Its negative exponential is integrable and has expectation exp(V/2). This is the fixed-location quantity m(x) in Eq. (51).",
+      "formula": "\\begin{gathered} W=\\sum_{i=0}^h\\beta_iH_i^\\Xi(x),\\qquad V=n\\sum_{i=0}^h\\beta_i^2C_i(x)^2v_i,\\\\ W\\sim\\mathcal N(0,V),\\qquad m(x)=\\mathbb E_{\\Xi\\sim\\mu_n}[e^{-W}]=e^{V/2}.\\end{gathered}",
+      "reader_note": "The paper uses this quantity as a reference scale for the masses. At this point it is not an equality to the nonlinear gated weight at every sample. The later space integral and first-moment comparisons need separate arguments.",
+      "steps": [
+        {
+          "title": "Scale independent levels",
+          "text": "At a fixed location the actual radial levels have their joint product law. Deterministic multiplication preserves independence. Each scaled level remains centered Gaussian and its variance is multiplied by the square of its weight, even if that weight is zero.",
+          "formula": "\\beta_iH_i^\\Xi(x)\\sim \\mathcal N(0,\\beta_i^2 n C_i(x)^2 v_i).",
+          "lean": "Recover the component laws and iIndepFun from radialLevels_hasLaw, then use measurable scalar multiplication and gaussianReal_const_mul."
+        },
+        {
+          "title": "Add means and variances",
+          "text": "Independent Gaussian variables have a Gaussian sum. Their finite first and second moments justify summing the means and variances. All mixed covariances vanish; the result is centered and its variance is the stated finite sum.",
+          "formula": "\\mathbb EW=0,\\qquad \\operatorname{Var}(W)=\\sum_i\\beta_i^2 n C_i(x)^2v_i=V.",
+          "lean": "Mathlib's independent Gaussian finite-sum theorem supplies Gaussianity. The laws give the required moments. The proof computes the mean and variance and removes the nonnegative coercion using a sum of squares."
+        },
+        {
+          "title": "Evaluate at minus one and verify finiteness",
+          "text": "A centered Gaussian with variance V has MGF exp(t²V/2); put t=−1. The formula also holds at V=0, when the random variable is zero almost surely. The strictly positive MGF verifies that the exponential is integrable in the formal real-integral convention.",
+          "formula": "\\mathbb E[e^{-W}]=\\operatorname{MGF}_W(-1)=e^{V/2},\\qquad e^{-W}\\in L^1(\\mu_n).",
+          "lean": "mgf_gaussianReal uses the exact pushforward law. mgf_pos_iff gives integrability since the coefficient probability measure is nonzero, and neg_one_mul matches the exponent in Eq. (51)."
+        }
+      ],
+      "lean_statement": "HasLaw records the actual weighted pushforward, and Integrable is a separate conjunct before the displayed real-integral equality. The source constant is V/2, without a norm or factorization bound.",
+      "lean_proof": "Product-law projections → deterministic Gaussian scaling → independent Gaussian sum with exact moments → the Gaussian MGF at −1. The source's degree-wise calculation is kept separate from the Lean reuse of the already verified grouped law.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels.radialLevels_hasLaw"
+      ],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.gaussianReal_const_mul",
+        "ProbabilityTheory.iIndepFun.hasGaussianLaw_fun_sum",
+        "ProbabilityTheory.IndepFun.variance_sum",
+        "ProbabilityTheory.mgf_gaussianReal",
+        "ProbabilityTheory.mgf_pos_iff"
+      ],
+      "dependency_notes": "Samplinglib supplies the actual fixed-location joint field; generic probability facts are from pinned Mathlib. No Gaussian sum or MGF wrapper is registered separately."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF.weightedRadialLevels_gaussian_mgf",
+      "role": "proof-edge",
+      "supports": [
+        "actual-weighted-law",
+        "actual-exponential-mean"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Large n, prescribed h and deterministic positive weights β_i from Eq. (18).",
+        "lean": "Any positive n, natural h and deterministic real weights for this identity."
+      },
+      {
+        "source": "The actual linear radial field at fixed x under μ_n.",
+        "lean": "The same literal radial tails and coefficient model, with variance-zero factors retained."
+      },
+      {
+        "source": "Eq. (51) writes a finite expectation.",
+        "lean": "Integrability is an explicit conclusion under the actual Gaussian law."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "55cd4fba1c615ec7c00f3b3a5ade46cc9d22027203a1e5fd803ac6433be86dfd"
+}

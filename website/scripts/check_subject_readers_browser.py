@@ -59,6 +59,8 @@ def main() -> None:
          'AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel.radialLevel_hasLaw'),
         ('slc-lsi-radial-levels', 'radialLevels_hasLaw', 'radial-levels',
          'AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels.radialLevels_hasLaw'),
+        ('slc-lsi-weighted-radial-mgf', 'weightedRadialLevels_gaussian_mgf', 'weighted-radial-mgf',
+         'AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF.weightedRadialLevels_gaussian_mgf'),
     )
     assert {case[3] for case in proof_cases} <= reviewed
     try:

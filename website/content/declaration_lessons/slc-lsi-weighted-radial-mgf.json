@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "reading_layout": "progressive",
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF.weightedRadialLevels_gaussian_mgf",
+      "title": "Compute the fixed-location linear exponential weight",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S6.E51",
+          "label": "Zhou–Suzuki, Eq. (51)",
+          "scope": "Weighted Gaussian law and coefficient expectation at fixed x."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiWeightedRadialMGF"
+      ],
+      "boundary": "One fixed-location linear Gaussian sum and its Eq. (51) exponential expectation. No spatial integration M, cutoff or gate bound, nonlinear load identity outside the good event, conditional or tilted law, mass estimate or lower bound.",
+      "assumptions": [
+        "The actual fields all use the same fixed location and the original unconditioned coefficient vector. Ordered tensor degrees, cutoffs, exact amplitudes, and the zero-block convention are unchanged.",
+        "The paper prescribes deterministic positive weights by Eq. (18) and large n with a particular depth. This finite identity holds for arbitrary deterministic real weights and all positive n and natural h; no admissibility or recursive weight estimate is generalized.",
+        "Only the coefficient vector is integrated. Zero variance is allowed. No spatial regularity, restriction to a good event, conditional law, or exponential moment is assumed."
+      ],
+      "statement": "Fix a deterministic spatial point and deterministic level weights. Under the original joint Gaussian law of the actual coefficient vector, the weighted radial sum W is centered Gaussian with exact variance V. Its negative exponential is integrable and has expectation exp(V/2). This is the fixed-location quantity m(x) in Eq. (51).",
+      "formula": "\\begin{gathered} W=\\sum_{i=0}^h\\beta_iH_i^\\Xi(x),\\qquad V=n\\sum_{i=0}^h\\beta_i^2C_i(x)^2v_i,\\\\ W\\sim\\mathcal N(0,V),\\qquad m(x)=\\mathbb E_{\\Xi\\sim\\mu_n}[e^{-W}]=e^{V/2}.\\end{gathered}",
+      "reader_note": "The paper uses this quantity as a reference scale for the masses. At this point it is not an equality to the nonlinear gated weight at every sample. The later space integral and first-moment comparisons need separate arguments.",
+      "steps": [
+        {
+          "title": "Scale independent levels",
+          "text": "At a fixed location the actual radial levels have their joint product law. Deterministic multiplication preserves independence. Each scaled level remains centered Gaussian and its variance is multiplied by the square of its weight, even if that weight is zero.",
+          "formula": "\\beta_iH_i^\\Xi(x)\\sim \\mathcal N(0,\\beta_i^2 n C_i(x)^2 v_i).",
+          "lean": "Recover the component laws and iIndepFun from radialLevels_hasLaw, then use measurable scalar multiplication and gaussianReal_const_mul."
+        },
+        {
+          "title": "Add means and variances",
+          "text": "Independent Gaussian variables have a Gaussian sum. Their finite first and second moments justify summing the means and variances. All mixed covariances vanish; the result is centered and its variance is the stated finite sum.",
+          "formula": "\\mathbb EW=0,\\qquad \\operatorname{Var}(W)=\\sum_i\\beta_i^2 n C_i(x)^2v_i=V.",
+          "lean": "Mathlib's independent Gaussian finite-sum theorem supplies Gaussianity. The laws give the required moments. The proof computes the mean and variance and removes the nonnegative coercion using a sum of squares."
+        },
+        {
+          "title": "Evaluate at minus one and verify finiteness",
+          "text": "A centered Gaussian with variance V has MGF exp(t²V/2); put t=−1. The formula also holds at V=0, when the random variable is zero almost surely. The strictly positive MGF verifies that the exponential is integrable in the formal real-integral convention.",
+          "formula": "\\mathbb E[e^{-W}]=\\operatorname{MGF}_W(-1)=e^{V/2},\\qquad e^{-W}\\in L^1(\\mu_n).",
+          "lean": "mgf_gaussianReal uses the exact pushforward law. mgf_pos_iff gives integrability since the coefficient probability measure is nonzero, and neg_one_mul matches the exponent in Eq. (51)."
+        }
+      ],
+      "lean_statement": "HasLaw records the actual weighted pushforward, and Integrable is a separate conjunct before the displayed real-integral equality. The source constant is V/2, without a norm or factorization bound.",
+      "lean_proof": "Product-law projections → deterministic Gaussian scaling → independent Gaussian sum with exact moments → the Gaussian MGF at −1. The source's degree-wise calculation is kept separate from the Lean reuse of the already verified grouped law.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels.radialLevels_hasLaw"
+      ],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.gaussianReal_const_mul",
+        "ProbabilityTheory.iIndepFun.hasGaussianLaw_fun_sum",
+        "ProbabilityTheory.IndepFun.variance_sum",
+        "ProbabilityTheory.mgf_gaussianReal",
+        "ProbabilityTheory.mgf_pos_iff"
+      ],
+      "dependency_notes": "Samplinglib supplies the actual fixed-location joint field; generic probability facts are from pinned Mathlib. No Gaussian sum or MGF wrapper is registered separately."
+    }
+  ]
+}

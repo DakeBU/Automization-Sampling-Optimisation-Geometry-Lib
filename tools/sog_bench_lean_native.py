@@ -465,6 +465,57 @@ def stdio_bridge_trial(root: Path):
         raise SystemExit(1)
 
 
+def graph_stdio_trial(root: Path):
+    """A controlled interleaving on the actual compiled slice and Lean verifier."""
+    import io
+    import sog_bench_lean_stdio as bridge
+    retrieval = bridge.retrieval
+    identity, graph_id = 'sogb-046', 'sogb-g010'
+    task = root / 'tasks' / identity
+    output = root / 'graph-stdio-trial'
+    output.mkdir(exist_ok=False)
+    child = output / 'workspace'
+    manifest = bridge.workspace.start(task=task, stage=root / 'stages' / identity,
+        prepared=root, output=child, max_checks=1,
+        provenance={'kind': 'controlled-software-fixture', 'transport': retrieval.PROFILE,
+                    'retrieval_profile': retrieval.RETRIEVAL, 'tools': retrieval.TOOLS,
+                    'graph_task_id': graph_id, 'max_graph_lookups': 2})
+    expected = ('AutoSamplingTheory.TechnicalLemmas.Analysis.'
+                'QuadraticGradientDescent.quadratic_eigenmode')
+    trusted = (task / 'oracle/Solution.lean.txt').read_bytes()
+    frames = [{'action': 'find', 'query': 'eigenmode'},
+              {'action': 'check', 'source': 'theorem sogBenchTarget : True := by trivial\n'},
+              {'action': 'inspect', 'id': expected},
+              {'action': 'submit', 'source': trusted.decode('utf-8')},
+              {'action': 'submit', 'source': 'must not be read'}]
+    transcript = output / 'transcript'
+    emitted = []
+    trajectory = bridge.collect(child, transcript, io.BytesIO(b''.join(map(bridge.line, frames))),
+                                lambda raw: emitted.append(json.loads(raw)))
+    events = bridge.workspace.history(child)[1]
+    choice = json.loads((transcript / 'selection.json').read_bytes())
+    replay = bridge.audit_graph_output(transcript)
+    passed = (len(emitted) == 5 and len(events) == 2 and
+              emitted[1]['observation']['matches'][0]['id'] == expected and
+              emitted[3]['observation']['parents'][0].endswith('.quadratic_gradient_iterate') and
+              'Challenge and solution theorem statement do not match' in emitted[2]['feedback']['diagnostic'] and
+              events[0]['result']['kind'] == 'proof-rejected' and
+              events[1]['result']['kind'] == 'accepted' and
+              events[1]['result']['submission_sha256'] == runtime.bench.sha(trusted) and
+              trajectory['graph_lookups'] == 2 and trajectory['lean_actions'] == 2 and
+              replay['graph_lookups'] == 2 and
+              trajectory['final_accepted'] and choice['graph_retrieval']['graph_task_id'] == graph_id and
+              not (transcript / '0005-request.bin').exists())
+    summary = {'schema_version': 1, 'kind': 'controlled-native-graph-lean-bridge-fixture',
+               'id': identity, 'binding_sha256': manifest['binding_sha256'], 'graph_task_id': graph_id,
+               'passed': passed, 'trajectory': trajectory, 'graph_replay': replay,
+               'provider_calls': 0, 'model_measurement': False}
+    bridge.workspace.write_new(output / 'summary.json', summary)
+    print(json.dumps(summary), flush=True)
+    if not passed:
+        raise SystemExit(1)
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='cmd',required=True)
     x=sub.add_parser('prepare');x.add_argument('--output',type=Path,required=True)
@@ -473,13 +524,15 @@ def main():
     x=sub.add_parser('workspace-trials');x.add_argument('--runtime',type=Path,required=True)
     x=sub.add_parser('model-bridge-trials');x.add_argument('--runtime',type=Path,required=True)
     x=sub.add_parser('stdio-bridge-trial');x.add_argument('--runtime',type=Path,required=True)
+    x=sub.add_parser('graph-stdio-trial');x.add_argument('--runtime',type=Path,required=True)
     args=parser.parse_args()
     if args.cmd=='prepare':prepare(args.output.resolve())
     elif args.cmd=='trials':trials(args.runtime.resolve(),args.task_id)
     elif args.cmd=='hostile-trials':hostile_trials(args.runtime.resolve())
     elif args.cmd=='workspace-trials':workspace_trials(args.runtime.resolve())
     elif args.cmd=='model-bridge-trials':model_bridge_trials(args.runtime.resolve())
-    else:stdio_bridge_trial(args.runtime.resolve())
+    elif args.cmd=='stdio-bridge-trial':stdio_bridge_trial(args.runtime.resolve())
+    else:graph_stdio_trial(args.runtime.resolve())
 
 
 if __name__=='__main__':main()

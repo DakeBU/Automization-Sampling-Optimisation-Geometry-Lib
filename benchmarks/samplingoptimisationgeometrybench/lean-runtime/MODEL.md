@@ -192,6 +192,55 @@ is a separate, pinned Qwen answer on a fixed target. Its CI verification
 reuses the same isolation but does not replay a live model/tool conversation.
 It sends the exact captured text, including any formatting mistakes.
 
+### Agent-selected graph lookup plus Lean
+
+For a separate public-dev condition, set the following fields when starting
+the same fixed-target workspace. This example pairs `sogb-046` with
+`sogb-g010`. For a declared model run also record the actual provider,
+model, version, decoding and seed as above. Use a fresh workspace per
+condition; this does not change the target, allowed imports or first-final rule.
+
+```json
+{
+  "transport": "fixed-target-lean-graph-jsonl-v1",
+  "retrieval_profile": "same-family-imported-compiled-slice-v1",
+  "tools": ["lean_workspace", "compiled_graph_lookup"],
+  "graph_task_id": "sogb-g010",
+  "max_graph_lookups": 2
+}
+```
+
+Use the same JSONL command. The external agent may choose
+`{"action":"find","query":"eigenmode"}`, `{"action":"inspect","id":"…"}`,
+`check`, `submit` or `stop`; no order is prescribed. Searches only see
+selected declarations whose actual owning modules are in the fixed local
+import closure. The admitted graph task must be in the same public-dev
+family. The answer owner is excluded, along with edges to excluded nodes;
+no reference proof, graph answer, full graph, source path or file contents
+are returned. The optional graph tool is distinct from general library search.
+The operator stage’s local module inventory and sources must match the
+current fixed closure; stale stages are rejected before emitting a prompt.
+
+Invalid lookups count toward the declared graph budget. Graph and Lean calls
+are separately counted; neither changes the first-final denominator.
+Only Lean actions enter the verifier workspace. On the operator side,
+`selection.json` binds the reviewed graph, projection, stage, implementation and
+budget; `graph-projection.json` plus hashed request/observation files record
+exactly what was searched and returned. Share only the prompt/feedback wire
+with the agent, not these directories. Edges mean selected compiled-body
+occurrences, not necessity or the full dependency closure.
+
+`python tools/sog_bench_lean_stdio.py --audit-graph-output PATH` replays the
+archived lookup replies against the selected projection and lookup
+implementation. It does not rerun Lean or authenticate an operator.
+
+The `graph-stdio-trial` native CI fixture interleaves real graph responses
+with changed-target rejection and acceptance of a trusted first final.
+The actions are scripted; the fixture is not evidence of model-selected
+tools, proof repair, held-out accuracy or calibration. For a real comparison,
+freeze task families and record both prompt-only and graph-assisted conditions,
+including every selected target, raw model response and native outcome.
+
 ### Opt-in local model with live feedback
 
 For a real credential-free trial, the existing **Bench isolated Lean

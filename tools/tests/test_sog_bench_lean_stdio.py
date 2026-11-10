@@ -15,6 +15,7 @@ from tools.tests import test_sog_bench_lean_model as fixture
 
 workspace = bridge.workspace
 runtime = bridge.runtime
+retrieval = bridge.retrieval
 
 
 class StdioBridgeTests(unittest.TestCase):
@@ -36,6 +37,98 @@ class StdioBridgeTests(unittest.TestCase):
               patch.object(runtime, 'run_submission', side_effect=fixture.ModelBridgeTests.fake_verifier) as native):
             result = bridge.collect(self.directory, self.output, stream, emit or outputs.append)
         return result, [json.loads(x) for x in outputs], native.call_count
+
+    def use_graph(self, budget=2):
+        provenance = {'kind': 'controlled-software-fixture', 'transport': retrieval.PROFILE,
+                      'retrieval_profile': retrieval.RETRIEVAL, 'tools': retrieval.TOOLS,
+                      'graph_task_id': 'sogb-g010', 'max_graph_lookups': budget}
+        with patch.object(fixture, 'provenance', return_value=provenance):
+            self.directory = fixture.ModelBridgeTests().make_workspace(self.root / 'graph')
+        node = 'Samplinglib.fixture'
+        graph = {'nodes': [node], 'node_labels': {node: 'Fixture lemma'}, 'edges': [],
+                 'statement_profiles': {node: []}}
+        binding = {'projection_sha256': bridge.bench.sha(bridge.bench.encoded(graph)),
+                   'graph_task_id': provenance['graph_task_id'], 'max_graph_lookups': budget,
+                   'stage_sha256': bridge.bench.sha((self.root / 'graph/stage/stage.json').read_bytes()),
+                   'projection_source_sha256_lf': bridge.bench.text_hash(Path(retrieval.__file__)),
+                   'lookup_source_sha256_lf': bridge.bench.text_hash(Path(retrieval.search.__file__))}
+        selected = patch.object(retrieval, 'prepare', return_value=(graph, binding))
+        self.addCleanup(selected.stop)
+        selected.start()
+        return node
+
+    def test_agent_chooses_graph_and_lean_actions_with_independent_budgets(self):
+        node = self.use_graph()
+        result, outputs, calls = self.run_bridge(
+            {'action': 'find', 'query': 'fixture'},
+            {'action': 'check', 'source': 'controlled fixture'},
+            {'action': 'inspect', 'id': node},
+            {'action': 'submit', 'source': 'controlled first final'},
+            {'action': 'inspect', 'id': node})
+        self.assertEqual([x['kind'] for x in outputs], ['fixed-target-lean-prompt',
+            'compiled-graph-feedback', 'lean-workspace-feedback', 'compiled-graph-feedback',
+            'lean-workspace-feedback'])
+        self.assertEqual(outputs[0]['profile'], retrieval.PROFILE)
+        self.assertNotIn(node, str(outputs[0]))
+        self.assertNotIn('PRIVATE GOLD', str(outputs))
+        self.assertEqual((outputs[1]['observation']['remaining_lookups'],
+                          outputs[3]['observation']['remaining_lookups']), (1, 0))
+        self.assertEqual(outputs[3]['observation']['id'], node)
+        self.assertEqual((result['graph_lookups'], result['lean_actions'], calls,
+                          result['final_outcome']), (2, 2, 2, 'accepted'))
+        self.assertFalse((self.output / '0005-request.bin').exists())
+        evidence = json.loads((self.directory / 'external-evidence.json').read_bytes())
+        self.assertEqual(evidence['facts']['graph_projection_sha256'],
+                         bridge.bench.sha((self.output / 'graph-projection.json').read_bytes()))
+        self.assertEqual(evidence['facts']['archived_files_sha256']['0003-graph.json'],
+                         bridge.bench.sha((self.output / '0003-graph.json').read_bytes()))
+        self.assertEqual(bridge.audit_graph_output(self.output)['graph_lookups'], 2)
+        (self.output / '0003-graph.json').write_bytes(b'{}\n')
+        with self.assertRaisesRegex(ValueError, 'digest drift'):
+            bridge.audit_graph_output(self.output)
+
+    def test_invalid_lookup_counts_without_leaking_and_cannot_extend_budget(self):
+        self.use_graph(budget=1)
+        result, outputs, calls = self.run_bridge(
+            {'action': 'find', 'query': 'fixture', 'file': 'oracle/gold.txt'},
+            {'action': 'find', 'query': 'fixture'},
+            {'action': 'submit', 'source': 'must not be read'})
+        self.assertEqual(outputs[1]['observation'], {'kind': 'invalid-lookup', 'remaining_lookups': 0})
+        self.assertNotIn('gold.txt', str(outputs))
+        self.assertEqual((result['stop'], result['final_outcome'], result['graph_lookups'], calls),
+                         ('graph-budget-exhausted', 'no-final-submission', 1, 0))
+        self.assertFalse((self.output / '0003-request.bin').exists())
+
+    def test_base_transport_rejects_graph_commands(self):
+        result, outputs, calls = self.run_bridge({'action': 'find', 'query': 'anything'})
+        self.assertEqual((result['stop'], len(outputs), calls), ('invalid-JSONL-request', 1, 0))
+        self.assertNotIn('max_graph_lookups', outputs[0])
+
+    def test_replay_hashes_invalid_utf8_terminal_evidence(self):
+        self.use_graph()
+        result, _, calls = self.run_bridge({'action': 'find', 'query': 'fixture'}, b'\xff\n')
+        self.assertEqual((result['stop'], calls), ('invalid-JSONL-request', 0))
+        self.assertEqual(bridge.audit_graph_output(self.output)['graph_lookups'], 1)
+
+    def test_replay_hashes_oversized_prefix_cut_at_multibyte_boundary(self):
+        self.use_graph()
+        result, _, calls = self.run_bridge({'action': 'find', 'query': 'fixture'},
+                                            b'x' * bridge.MAX_REQUEST + 'é'.encode() + b'\n')
+        self.assertEqual((result['stop'], calls), ('request-wire-limit', 0))
+        self.assertTrue((self.output / '0002-request.bin').read_bytes().endswith(b'\xc3'))
+        self.assertEqual(bridge.audit_graph_output(self.output)['graph_lookups'], 1)
+
+    def test_stage_change_between_graph_lookup_and_lean_never_dispatches(self):
+        self.use_graph()
+        def change_stage(raw):
+            if json.loads(raw)['kind'] == 'compiled-graph-feedback':
+                path = self.root / 'graph/stage/stage.json'
+                path.write_bytes(path.read_bytes() + b'\n')
+        result, _, calls = self.run_bridge({'action': 'find', 'query': 'fixture'},
+                                            {'action': 'submit', 'source': 'must not be executed'},
+                                            emit=change_stage)
+        self.assertEqual((result['final_outcome'], self.end()['reason'], calls),
+                         ('infrastructure-error', 'verifier-infrastructure', 0))
 
     def end(self):
         return json.loads((self.directory / 'external-end.json').read_bytes())

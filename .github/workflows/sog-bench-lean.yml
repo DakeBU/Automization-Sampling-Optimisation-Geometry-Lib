@@ -59,7 +59,7 @@ jobs:
           go-version: '1.27.3'
           cache: false
       - name: Test packet and isolation argument contracts
-        run: python -m unittest tools.tests.test_sog_bench_lean tools.tests.test_sog_bench_lean_model tools.tests.test_sog_bench_lean_external tools.tests.test_sog_bench_lean_stdio tools.tests.test_sog_bench_lean_capture tools.tests.test_sog_bench_lean_local
+        run: python -m unittest tools.tests.test_sog_bench_lean tools.tests.test_sog_bench_lean_model tools.tests.test_sog_bench_lean_external tools.tests.test_sog_bench_lean_stdio tools.tests.test_sog_bench_lean_retrieval tools.tests.test_sog_bench_lean_capture tools.tests.test_sog_bench_lean_local
       - uses: leanprover/lean-action@v1
         with:
           auto-config: false
@@ -80,6 +80,8 @@ jobs:
         run: python tools/sog_bench_lean_native.py model-bridge-trials --runtime .astis/lean-native
       - name: Reject a changed target through the credential-free JSONL bridge
         run: python tools/sog_bench_lean_native.py stdio-bridge-trial --runtime .astis/lean-native
+      - name: Interleave bounded graph lookup and real Lean verification
+        run: python tools/sog_bench_lean_native.py graph-stdio-trial --runtime .astis/lean-native
       - name: Verify the frozen real one-shot model answer, without repair
         run: >-
           python tools/sog_bench_lean_capture.py verify
@@ -104,6 +106,7 @@ jobs:
             .astis/lean-native/model-bridge-trials.json
             .astis/lean-native/model-bridge-trials
             .astis/lean-native/stdio-bridge-trial
+            .astis/lean-native/graph-stdio-trial
             .astis/lean-native/model-first-capture
             .astis/lean-native/image-id
             .astis/lean-native/trials

@@ -7,6 +7,7 @@ on:
       - 'benchmarks/samplingoptimisationgeometrybench/lean-runtime/**'
       - 'benchmarks/samplingoptimisationgeometrybench/cores.json'
       - 'benchmarks/samplingoptimisationgeometrybench/reviews/**'
+      - 'runs/20261110-bench-local-lean-first/**'
       - 'tools/sog_bench.py'
       - 'AutoSamplingTheory/**'
       - 'lean-toolchain'
@@ -21,6 +22,7 @@ on:
       - 'benchmarks/samplingoptimisationgeometrybench/lean-runtime/**'
       - 'benchmarks/samplingoptimisationgeometrybench/cores.json'
       - 'benchmarks/samplingoptimisationgeometrybench/reviews/**'
+      - 'runs/20261110-bench-local-lean-first/**'
       - 'tools/sog_bench.py'
       - 'AutoSamplingTheory/**'
       - 'lean-toolchain'
@@ -51,7 +53,7 @@ jobs:
           go-version: '1.27.3'
           cache: false
       - name: Test packet and isolation argument contracts
-        run: python -m unittest tools.tests.test_sog_bench_lean tools.tests.test_sog_bench_lean_model tools.tests.test_sog_bench_lean_external tools.tests.test_sog_bench_lean_stdio
+        run: python -m unittest tools.tests.test_sog_bench_lean tools.tests.test_sog_bench_lean_model tools.tests.test_sog_bench_lean_external tools.tests.test_sog_bench_lean_stdio tools.tests.test_sog_bench_lean_capture
       - uses: leanprover/lean-action@v1
         with:
           auto-config: false
@@ -72,6 +74,15 @@ jobs:
         run: python tools/sog_bench_lean_native.py model-bridge-trials --runtime .astis/lean-native
       - name: Reject a changed target through the credential-free JSONL bridge
         run: python tools/sog_bench_lean_native.py stdio-bridge-trial --runtime .astis/lean-native
+      - name: Verify the frozen real one-shot model answer, without repair
+        run: >-
+          python tools/sog_bench_lean_capture.py verify
+          --capture runs/20261110-bench-local-lean-first/raw
+          --receipt-sha256 17162dc147147f1e6b7849d4528f3d0f5f5b4dc1266b7d2eb532076428d1fa5c
+          --task .astis/lean-native/tasks/sogb-015
+          --stage .astis/lean-native/stages/sogb-015
+          --runtime .astis/lean-native
+          --output .astis/lean-native/model-first-capture
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -87,6 +98,7 @@ jobs:
             .astis/lean-native/model-bridge-trials.json
             .astis/lean-native/model-bridge-trials
             .astis/lean-native/stdio-bridge-trial
+            .astis/lean-native/model-first-capture
             .astis/lean-native/image-id
             .astis/lean-native/trials
           retention-days: 14

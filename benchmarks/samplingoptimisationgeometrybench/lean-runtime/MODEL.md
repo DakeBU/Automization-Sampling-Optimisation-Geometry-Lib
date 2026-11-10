@@ -186,3 +186,8 @@ Unit tests use a mocked verifier and the native CI canary uses a scripted
 wrong target, not a model. Neither is a model score. A model's fixed-target
 answer is verified only if the real isolated comparator/kernel path produces
 that result; generating or archiving candidate text is not verification.
+
+The [public-dev one-shot capture](../../../runs/20261110-bench-local-lean-first/README.md)
+is a separate, pinned Qwen answer on a fixed target. Its CI verification
+reuses the same isolation but does not replay a live model/tool conversation.
+It sends the exact captured text, including any formatting mistakes.

@@ -562,6 +562,120 @@ class BenchTests(unittest.TestCase):
         for url in ('javascript:bad', 'https://user:secret@example.org/book.pdf', 'https://example.org/ bad'):
             self.assertFalse(exercises.primary_url(url))
 
+    def _component_exercise_fixture(self):
+        data = json.loads(exercises.DATA.read_text(encoding='utf-8'))
+        row = data['exercises'][0]
+        book = data['books'][row['book_id']]
+        existing = json.loads((ROOT / row.pop('publication_file')).read_text(encoding='utf-8'))
+        original = next(item for item in existing['items'] if item['id'] == row['id'])
+        docs, refs = {}, []
+        for i, binding in enumerate(original['bindings'], 1):
+            rel = f'website/content/publications/exercise-component-fixture-{i}.json'
+            ident = f'exercise-component-fixture-{i}'
+            item = {**deepcopy(original), 'id': ident, 'title': f'Component {i}',
+                    'statement': f'Statement belonging only to component {i}.',
+                    'assumptions': [f'Assumptions belonging only to component {i}.'],
+                    'obligations': [{'id': 'shared-part-label', 'label': f'Represented part {i}'}],
+                    'bindings': [{**deepcopy(binding), 'role': 'proof-edge', 'supports': ['shared-part-label']}]}
+            item['source'].update(url=book['pdf_url'] + '#page=23', pdf_sha256=book['pdf_sha256'])
+            docs[ROOT / rel] = {'schema_version': 1, 'items': [item]}
+            refs.append({'publication_file': rel, 'item_id': ident})
+        self.assertEqual(len(refs), 2)
+        row['publication_components'] = refs
+        return data, row['id'], docs
+
+    def _resolve_component_fixture(self, data, identity, docs):
+        original = Path.read_text
+        with patch.object(Path, 'read_text', lambda p, *a, **kw:
+                          bench.encoded(docs[p]).decode() if p in docs else original(p, *a, **kw)):
+            return exercises.resolve(identity, bench.astis_site._SOURCE_BY_NAME, data)
+
+    def test_distinct_numbered_exercise_components_keep_separate_scope_and_prompt_only_source(self):
+        data, identity, docs = self._component_exercise_fixture()
+        result = self._resolve_component_fixture(data, identity, docs)
+        self.assertNotIn('source_assumptions', result)
+        self.assertNotIn('source_statement', result)
+        self.assertEqual([a['component_id'] for a in result['answer_declarations']],
+                         [c['item_id'] for c in result['source_components']])
+        ids = [part['id'] for part in result['parts']]
+        self.assertEqual(len(set(ids)), 2)
+        self.assertEqual([a['supports'][0] for a in result['answer_declarations']], ids)
+        html = reader.exercise_panel({'textbook_exercise': result,
+                                      'declaration': result['answer_declarations'][1]['declaration']}, False)
+        self.assertIn('Represented source parts and exact Lean scope', html)
+        self.assertNotIn('all requested parts', html)
+        self.assertLess(html.index('<summary>Component 2</summary>'), html.index('<summary>Component 1</summary>'))
+        self.assertEqual(html.count('Source component for this question'), 1)
+        for i, answer in enumerate(result['answer_declarations'], 1):
+            self.assertIn(f'<summary>Component {i}</summary>', html)
+            self.assertIn(f'Assumptions belonging only to component {i}.', html)
+            self.assertIn('focus=decl%3A' + answer['declaration'], html)
+        prompt = json.dumps(exercises.source_prompt(result))
+        self.assertIn('3.2', prompt)
+        for secret in ('source_components', 'exercise-component-fixture-', 'Assumptions belonging',
+                       'answer_declarations', *(a['declaration'] for a in result['answer_declarations'])):
+            self.assertNotIn(secret, prompt)
+        changed = deepcopy(docs)
+        next(iter(changed.values()))['items'][0]['statement'] += ' Revised wording.'
+        revised = self._resolve_component_fixture(data, identity, changed)
+        self.assertNotEqual(result['source_entry_sha256'], revised['source_entry_sha256'])
+        self.assertEqual(exercises.compile_contexts([{'textbook_exercise': result}]),
+                         exercises.compile_contexts([{'textbook_exercise': revised}]))
+
+    def test_component_acceptance_does_not_spread_to_other_parts(self):
+        data, identity, docs = self._component_exercise_fixture()
+        exercise = self._resolve_component_fixture(data, identity, docs)
+        cores = [{'id': f'sogb-fixture-{i}', 'textbook_exercise': exercise, 'declaration': row['declaration'],
+                  'track_levels': {'natural-language': 'L3'}} for i, row in enumerate(exercise['answer_declarations'])]
+        reviews = {c['id']: {'editorial': state} for c, state in zip(cores, ['accepted', 'stale'], strict=True)}
+        rows = exercises.projection(cores, reviews, compiled=False)
+        first, second = (c['item_id'] for c in exercise['source_components'])
+        self.assertEqual(rows[0]['represented_components_with_accepted_qa'], [first])
+        self.assertEqual([q['component_id'] for q in rows[0]['questions']], [first, second])
+        self.assertFalse(rows[0]['owned_answer_build_recorded'])
+        with patch.object(bench, 'editorial_review', return_value={'items': reviews}):
+            html = reader.exercise_index(cores, False)
+        self.assertIn('1 of 2 represented source components', html)
+        self.assertIn('>Component 2</a> · stale', html)
+        with self.assertRaisesRegex(ValueError, 'exactly one owned answer anchor'):
+            exercises.projection([{**cores[0], 'declaration': 'Unowned'}], reviews, compiled=False)
+
+    def test_numbered_exercise_components_refuse_ambiguous_scope_or_unbound_sources(self):
+        data, identity, docs = self._component_exercise_fixture()
+        for defect in ('both-mappings', 'duplicate-component', 'outside-path', 'missing-file',
+                       'missing-boundary', 'wrong-pdf', 'wrong-url', 'wrong-page', 'wrong-exercise', 'missing-part',
+                       'prerequisite-only', 'duplicate-answer'):
+            with self.subTest(defect=defect):
+                changed, files = deepcopy(data), deepcopy(docs)
+                row = changed['exercises'][0]
+                first, second = [p['items'][0] for p in files.values()]
+                if defect == 'both-mappings':
+                    row['publication_file'] = 'website/content/publications/optimisation.json'
+                elif defect == 'duplicate-component':
+                    row['publication_components'][1] = row['publication_components'][0]
+                elif defect == 'outside-path':
+                    row['publication_components'][0]['publication_file'] = '../elsewhere.json'
+                elif defect == 'missing-file':
+                    row['publication_components'][0]['publication_file'] = 'website/content/publications/not-present.json'
+                elif defect == 'missing-boundary':
+                    row['unformalized_context'] = []
+                elif defect == 'wrong-pdf':
+                    first['source']['pdf_sha256'] = '0' * 64
+                elif defect == 'wrong-url':
+                    first['source']['url'] = 'https://example.org/another-book.pdf'
+                elif defect == 'wrong-page':
+                    first['source']['url'] = first['source']['url'].replace('#page=23', '#page=24')
+                elif defect == 'wrong-exercise':
+                    first['source']['anchor'] = 'Exercise 3.3'
+                elif defect == 'missing-part':
+                    first['obligations'].append({'id': 'unmapped', 'label': 'Unmapped conclusion'})
+                elif defect == 'prerequisite-only':
+                    first['bindings'][0]['role'] = 'prerequisite'
+                elif defect == 'duplicate-answer':
+                    first['bindings'][0]['declaration'] = second['bindings'][0]['declaration']
+                with self.assertRaises(ValueError):
+                    self._resolve_component_fixture(changed, identity, files)
+
     def test_exercise_prose_changes_do_not_recompile_unchanged_owned_answers(self):
         data = deepcopy(bench.load())
         identity = 'sogb-030'

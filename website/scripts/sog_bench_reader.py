@@ -211,13 +211,16 @@ def exercise_panel(core: dict, checked: bool) -> str:
     if not exercise:
         return ''
     source = exercise['book']
-    parts = []
+    component_mode = bool(exercise.get('source_components'))
+    parts = {}
     for part in exercise['parts']:
         declarations = [d for d in exercise['answer_declarations'] if part['id'] in d['supports']]
         links = ' · '.join('<a href="../../underlying-lean-graph/index.html?focus='
-                          + quote('decl:' + d['declaration'], safe='') + '"><code>'
-                          + escape(d['declaration']) + '</code></a>' for d in declarations)
-        parts.append('<li>' + escape(part['label']) + '<br>' + links + '</li>')
+                          + quote('decl:' + d['declaration'], safe='') + '" title="'
+                          + escape(d['declaration']) + '"><code>'
+                          + escape(d['declaration'].rsplit('.', 1)[-1] if component_mode else d['declaration'])
+                          + '</code></a>' for d in declarations)
+        parts[part['id']] = '<li>' + escape(part['label']) + '<br>' + links + '</li>'
     build = ('Current trusted build records the named owned answer modules and transitive axiom checks.'
              if checked else 'No current aggregate owned-answer build receipt is recorded in this build.')
     pdf = source['pdf_url'] + '#page='
@@ -225,21 +228,43 @@ def exercise_panel(core: dict, checked: bool) -> str:
     if 'pdf_page_end' in exercise:
         source_links += (' · <a href="' + escape(pdf + str(exercise['pdf_page_end']))
                          + '">Last source page</a>')
-    return (prose('Numbered textbook exercise · ' + source['title'] + ' · Exercise ' + exercise['number'])
-        + fold('Original exercise, all requested parts and exact Lean scope',
+    if component_mode:
+        from sog_bench_exercises import question_component
+
+        scope_label = 'Represented source parts and exact Lean scope'
+        source_blocks = '<h3>Separate mathematical results and their assumptions</h3>'
+        current = question_component(exercise, core['declaration'])
+        components = sorted(exercise['source_components'], key=lambda row: row['item_id'] != current)
+        for component in components:
+            source_blocks += fold(component['title'],
+                ('<p class="sog-caption">Source component for this question</p>' if component['item_id'] == current else '')
+                + prose(component['statement'])
+                + ''.join(prose(r'\[' + formula['tex'] + r'\]') for formula in component['formulae'])
+                + ''.join(prose(s) for s in component['assumptions'])
+                + '<p><a href="' + escape(component['source']['url']) + '">Component source</a></p>'
+                + '<h4>Owned answers for this part</h4><ol>'
+                + ''.join(parts[i] for i in component['part_ids']) + '</ol>')
+    else:
+        scope_label = 'Original exercise, all requested parts and exact Lean scope'
+        source_blocks = ('<h3>Original exercise · faithful ASTIS restatement</h3>'
+            + prose(exercise['source_statement'])
+            + ''.join(prose(s) for s in exercise['source_assumptions'])
+            + '<h3>Requested parts and owned answers</h3><ol>' + ''.join(parts.values()) + '</ol>')
+    heading = prose('Numbered textbook exercise · ' + source['title'] + ' · Exercise ' + exercise['number'])
+    details = fold(scope_label,
             prose(', '.join(source['authors']) + ' · ' + source['edition'] +
                   ' · ' + exercise_pages(exercise))
             + '<p>' + source_links + ' · '
             '<a href="textbook-exercises/index.html">Numbered exercise directory</a></p>'
             + prose(exercise['wording_status'])
-            + '<h3>Original exercise · faithful ASTIS restatement</h3>'
-            + prose(exercise['source_statement'])
-            + ''.join(prose(s) for s in exercise['source_assumptions'])
-            + '<h3>Requested parts and owned answers</h3><ol>' + ''.join(parts) + '</ol>'
+            + source_blocks
             + ''.join(prose(s) for s in exercise['context_notes'])
             + '<h3>Remaining formal boundary</h3>' + ''.join(prose(s) for s in exercise['unformalized_context'])
-            + prose(build + ' This is owned core-answer reuse, not a new proof, an equivalent Lean challenge or full textbook certification.')
-            + prose(source['rights_boundary'])))
+            + prose(build + (' These Lean results cover only the named components; compilation and QA admission are separate.'
+                             if component_mode else ' This is owned core-answer reuse, not a new proof, an equivalent Lean challenge or full textbook certification.'))
+            + prose(source['rights_boundary']))
+    return heading + ('<div class="sog-exercise-scope">' + details + '</div>'
+                      if component_mode else details)
 
 
 def exercise_index(cores: list[dict], checked: bool) -> str:
@@ -247,11 +272,15 @@ def exercise_index(cores: list[dict], checked: bool) -> str:
     rows = sog_bench_exercises.projection(cores, bench.editorial_review(cores)['items'], checked)
     cards = []
     for row in rows:
+        labels = {component['item_id']: component['title'] for component in row.get('source_components', [])}
         questions = ''.join('<li><a href="../' + q['core_id'] + '.html">'
-                           + escape(q['core_id']) + '</a> · ' + escape(q['editorial']) + '</li>' for q in row['questions'])
+                           + escape(labels.get(q.get('component_id'), q['core_id'])) + '</a> · '
+                           + escape(q['editorial']) + '</li>' for q in row['questions'])
+        editorial = (prose(str(len(row['represented_components_with_accepted_qa'])) + ' of ' + str(len(labels))
+                     + ' represented source components have an accepted question.') if labels else '')
         cards.append('<section><h2>' + escape(row['book']['title']) + ' · Exercise '
                      + escape(row['number']) + '</h2>' + prose(row['book']['edition'] +
-                       ' · ' + exercise_pages(row)) + '<ul>' + questions + '</ul>'
+                       ' · ' + exercise_pages(row)) + '<ul>' + questions + '</ul>' + editorial
                      + prose('Named owned answer declarations: ' + str(len(row['answer_declarations']))
                              + '. Current trusted module build recorded: ' + str(checked).lower() + '.')
                      + ''.join(prose(s) for s in row['unformalized_context']) + '</section>')

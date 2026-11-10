@@ -12,6 +12,10 @@ import Tests.Shared.BoundedDensityPerturbation
 import Tests.Shared.BoundedPerturbationEnergy
 import Tests.Shared.CompactGradientSqrtPerturbation
 import Tests.Shared.BoundedPerturbationLaw
+import Tests.Shared.AffinePerturbationKL
+import Tests.Shared.LogSobolevCutoff
+import Tests.Shared.LogSobolevCutoffDomain
+import Tests.Shared.CompactLogSobolevPoincare
 import Tests.GaussianLipschitzExponential
 import Tests.StandardizedRGOPositionFisher
 import Tests.FullRangeProximalGaussianOracle

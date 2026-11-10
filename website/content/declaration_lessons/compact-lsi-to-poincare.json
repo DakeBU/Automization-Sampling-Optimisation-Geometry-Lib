@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactLogSobolevPoincare.variance_le_of_compact_logSobolev",
+      "title": "Exercise 1.7: compact Euclidean log-Sobolev implies Poincaré",
+      "statement": "Let μ be a Borel probability measure on a finite-dimensional complete real Hilbert space and let C be fixed. Suppose every compactly supported smooth real test v satisfies the function-form LSI with coefficient 2C. Then every compactly supported smooth real f satisfies variance at most C times its gradient energy. The integrability of f, its centered square and its squared gradient norm is part of the conclusion, not a premise. No centering of f or sign restriction on C is assumed. This is the compact Euclidean implication, not the closed-form or abstract semigroup statement.",
+      "formula": "\\begin{gathered}\\operatorname{Ent}_\\mu(v^2)\\le 2C\\int\\|\\nabla v\\|^2\\,d\\mu\\quad(v\\in C_c^\\infty)\\\\\\Downarrow\\\\\\operatorname{Var}_\\mu(f)\\le C\\int\\|\\nabla f\\|^2\\,d\\mu\\quad(f\\in C_c^\\infty).\\end{gathered}",
+      "assumptions": [
+        "μ is a Borel probability on a finite-dimensional complete real Hilbert space, and C is a fixed real coefficient. Compact smooth inputs have genuine integrable mass, entropy integrand and gradient energy here; 0 log 0 is interpreted as zero.",
+        "For every compactly supported C-infinity real v, the homogeneous entropy of v² is bounded by 2C times its squared-gradient integral. The premise does not extend to arbitrary noncompact tests by fiat.",
+        "The target f is real, compactly supported and C-infinity, with no centering or supplied integrability. Compactness of the centered function is not assumed."
+      ],
+      "steps": [
+        {
+          "title": "Center without preserving support",
+          "text": "Compact support and continuity make f bounded and integrable. Probability normalization makes the centered function mean-zero. Subtracting a constant can destroy compact support of the function, but the derivative retains compact support.",
+          "formula": "\\begin{gathered}g=f-\\int f\\,d\\mu,\\\\\\int g\\,d\\mu=0,\\qquad Dg=Df.\\end{gathered}",
+          "lean": "integral_sub and fderiv_sub_const establish the two identities; hgsq is obtained from the actual bounded-function L² proof."
+        },
+        {
+          "title": "Justify the noncompact square-root test",
+          "text": "For sufficiently small absolute parameter, bounded g makes the affine density lie between one half and three halves. Its square root is smooth. Mass and entropy integrands are integrable by boundedness, and the genuine gradient energy is integrable by the derivative formula and the compact support of Df. The previously proved cutoff extension, rather than the compact premise alone, makes this test legitimate.",
+          "formula": "\\begin{gathered}p_\\varepsilon=1+\\varepsilon g,\\quad u_\\varepsilon=\\sqrt{p_\\varepsilon},\\\\\\nabla u_\\varepsilon=\\frac{\\varepsilon\\,\\nabla g}{2\\sqrt{p_\\varepsilon}}.\\end{gathered}",
+          "lean": "eventually_contDiff_and_integrable_sqrt_perturbation produces the actual domains; the Riesz norm identity converts derivative to gradient; logSobolev_of_compact_smooth_tests applies the extension."
+        },
+        {
+          "title": "Normalize and compensate",
+          "text": "The affine density has mass one. The homogeneous entropy normalization vanishes, and the integrated linear compensation also cancels. This step compares real integrals, not Radon–Nikodym laws.",
+          "formula": "\\begin{gathered}\\int p_\\varepsilon\\,d\\mu=1,\\quad k(t)=t\\log t+1-t,\\\\\\operatorname{Ent}_\\mu(u_\\varepsilon^2)=\\int k(p_\\varepsilon)\\,d\\mu\\\\\\le2C\\int\\|\\nabla u_\\varepsilon\\|^2\\,d\\mu.\\end{gathered}",
+          "lean": "hmass and hkl derive both cancellations from integrable terms."
+        },
+        {
+          "title": "Divide by ε² and take the two limits",
+          "text": "For nonzero ε divide by its positive square. Taylor's integral remainder for k at 1 bounds its quotient by g² and gives pointwise limit g²/2. The energy quotient is bounded by half the squared gradient of g and tends to a quarter of it. Dominated convergence applies to both. Closedness of real order keeps the same constant; no division by C is used.",
+          "formula": "\\begin{gathered}\\frac{\\int k(p_\\varepsilon)\\,d\\mu}{\\varepsilon^2}\\to\\frac12\\int g^2\\,d\\mu,\\\\\\frac{\\int\\|\\nabla u_\\varepsilon\\|^2\\,d\\mu}{\\varepsilon^2}\\to\\frac14\\int\\|\\nabla f\\|^2\\,d\\mu.\\end{gathered}",
+          "lean": "The compiled entropy and energy limit parents are independent; le_of_tendsto_of_tendsto gives the final comparison, and the Admissible conjunct uses the three established integrabilities."
+        }
+      ],
+      "lean_statement": "Admissible is an output: integrability of the original observable, its centered square, and its squared gradient norm. The variance and energy definitions are exactly the displayed integrals.",
+      "lean_proof": "Center the compact function, justify the true noncompact square-root domain, cancel the mass-one terms, and pass the scaled entropy and energy inequalities to the punctured limit.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.CompactGradientSqrtPerturbation.eventually_contDiff_and_integrable_sqrt_perturbation",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy.eventually_integrable_and_tendsto_sqrt_perturbation_energy",
+        "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff.logSobolev_of_compact_smooth_tests",
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.integral_sub",
+        "fderiv_sub_const",
+        "InnerProductSpace.toDual",
+        "le_of_tendsto_of_tendsto"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf#page=55",
+          "label": "Chewi, Exercise 1.7",
+          "scope": "Direct linearization request."
+        },
+        {
+          "url": "https://chewisinho.github.io/main.pdf#page=60",
+          "label": "Chewi, §2.1.1",
+          "scope": "Compact Euclidean test classes and constants; the explicit analytic proof is original ASTIS exposition."
+        }
+      ],
+      "boundary": "Compact Euclidean smooth-test implication only. Admissibility is derived. No extension to a maximal closed form, abstract reversible semigroup, equality of optimal constants, or actual-law KL expansion is claimed by this declaration.",
+      "tests": [
+        "lake env lean Tests/Shared/CompactLogSobolevPoincare.lean"
+      ]
+    }
+  ]
+}

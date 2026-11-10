@@ -180,4 +180,19 @@ a matched comparison. Keep both profiles separate and do not infer unseen
 generalization, calibrated difficulty, Lean capability or authenticated model
 performance from this public-dev graph-only pilot.
 
+To verify a complete archive without credentials or new model calls:
+
+```bash
+python tools/sog_bench_graph_model_replay.py --task-id sogb-g007 --run .astis/sog-bench/runs/my-graph-model-comparison
+```
+
+Use the checkout bound in the original selection. Replay leaves the archive
+unchanged and regenerates both condition prompts, every request, lookup
+observation, first-final score and the comparison manifest from the recorded
+response bytes. A re-signed hash list does not bypass these comparisons. A
+complete HTTP error receipt stays unscored; if the transport saved no bounded
+raw response, the archive cannot be fully replayed and must not acquire a
+score. This verifies internal consistency, not provider authenticity or an
+independent second model run.
+
 See [README](README.md), [curriculum](curriculum.json), [continuing Goal](GOAL.md) and [license scope](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/LICENSE_SCOPE.md).

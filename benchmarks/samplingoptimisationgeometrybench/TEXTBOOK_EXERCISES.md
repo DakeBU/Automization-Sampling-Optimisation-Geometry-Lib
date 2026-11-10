@@ -78,6 +78,16 @@ The primary PDF contains no permission established here to redistribute its
 prose as ML data. Keep the cached PDF/page renders out of exports and author
 original mathematical statements and answers with exact correspondence.
 
+For exercises with separate canonical source components, use
+`publication_components` instead of `publication_file`. Each entry names a
+`{publication_file, item_id}` with a proof-edge binding to the same pinned
+book, chapter, and exercise. Do not conjoin distinct assumptions. The reader
+lists the component corresponding to the current question's answer anchor
+first; its source, hypotheses and graph links stay separate. An accepted
+question credits only its component, not the other components or the
+exercise's remaining mathematical obligations. All views share one source
+family. Agent prompts receive only the bibliography.
+
 ## Transport intake: Chapter 1, Exercise 6
 
 The next transport exercise candidate is Chapter 1, §1.8, no. 6 of

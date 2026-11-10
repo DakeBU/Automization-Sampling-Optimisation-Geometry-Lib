@@ -107,6 +107,27 @@ class GraphReviewTests(unittest.TestCase):
                 self.assertTrue(all(row['editorial'] == ('stale' if identity in originals else 'pending')
                                     for identity, row in rows.items()))
 
+    def test_only_exact_lower_bounds_addition_preserves_older_domain_policy(self):
+        path = bench.curriculum.BASE / 'curriculum.json'
+        active = path.read_text(encoding='utf-8')
+        self.assertEqual(active.count(review.LOWER_BOUNDS_ADDITION), 1)
+        previous = active.replace(review.LOWER_BOUNDS_ADDITION, '', 1)
+        archived = json.loads((review.CURRENT_ROUND / 'input.json').read_bytes())['policy_sha256_lf']
+        self.assertEqual(bench.sha(previous.encode()), archived)
+        domains = review.reviewed_policy_domains(archived, bench.text_hash(path))
+        self.assertEqual(domains, set(json.loads(previous)['domains']))
+        self.assertNotIn('lower-bounds', domains)
+        with tempfile.TemporaryDirectory() as tmp, patch.object(bench.curriculum, 'BASE', Path(tmp)):
+            target = Path(tmp) / 'curriculum.json'
+            for altered in (active.replace('Lower Bounds', 'Lower Bounds and Oracles'),
+                            active.replace('Log-Concave Sampling', 'Sampling'),
+                            active.replace('Author-assigned', 'Empirically assigned'),
+                            active.replace(review.LOWER_BOUNDS_ADDITION,
+                                           review.LOWER_BOUNDS_ADDITION + '    "extra": "Extra",\n')):
+                with self.subTest(policy=bench.sha(altered.encode())):
+                    target.write_bytes(altered.encode())
+                    self.assertFalse(review.reviewed_policy_domains(archived, bench.text_hash(target)))
+
     def test_author_input_hash_necessity_and_open_repairs_cannot_self_admit(self):
         for case in ('actor','hash','necessity','repair','evidence'):
             with tempfile.TemporaryDirectory() as tmp:

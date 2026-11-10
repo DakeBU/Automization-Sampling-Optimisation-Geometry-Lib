@@ -299,6 +299,7 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(current['editorial_accepted_mathematical_cores'], len(self.cores))
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
+        self.assertEqual(graph_review.summary(graphs)['accepted_tasks'], len(graphs))
         authored_domains = set(bench.curriculum.curriculum()['domains']) - {'lower-bounds'}
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, authored_domains)
         self.assertNotIn('OpenAI', json.dumps(coverage))

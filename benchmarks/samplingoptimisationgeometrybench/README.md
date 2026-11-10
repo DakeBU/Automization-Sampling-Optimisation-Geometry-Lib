@@ -163,6 +163,8 @@ the complete reference and audit the unchanged target separately.
 
 [Graph round 6](reviews/graph-6/README.md) adds the convex-flow slice and statement-occurrence query, but independently identifies incomplete import-closure pinning on its non-anchor midpoint branch. Its failed admission evidence, old extractor and snapshots are preserved. [Round 7](reviews/graph-7/README.md) freshly audits the corrected current scope; its actual report, not the fact that a replay ran, determines current acceptance. Old rounds remain historical, not silently rebound to new fingerprints.
 
+The addition of the empty Lower Bounds domain does not re-review or rebind the earlier graph questions. The validator can reconstruct the exact previously reviewed policy bytes by deleting that one domain entry; only the original domains are covered by the old decision. Task, answer, graph, scorer and reviewed public prompt bindings still have to match. Any other policy edit or a new Lower Bounds graph question needs applicable review.
+
 ## Difficulty and subject coverage
 
 The eight domain indexes include the cross-library [Lower Bounds route](../../docs/lower-bounds-reader.md). It separates method-specific obstructions from claims quantified over an explicit oracle class. Shared questions can appear in several indexes without multiplying the global count. `python tools/sog_bench.py coverage` computes the domain × L1–L5 × track matrix. An empty cell is a visible gap, not a request for filler or a completion percentage. Lower Bounds has no admitted question yet; its source links do not change the existing catalog.

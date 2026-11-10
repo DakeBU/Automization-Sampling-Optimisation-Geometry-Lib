@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 import hashlib
 import json
@@ -27,10 +28,14 @@ GRAPH_SPECS = (f"{DIRECTORY}/graph_tasks.json", *(
     f"{DIRECTORY}/{compiled_slices.spec_name(s)}" for s in compiled_slices.LEGACY_LABELS))
 MAX_BYTES = 8 * 1024 * 1024
 MAX_REVISIONS = 512
+MAX_REVIEW_BYTES = 64 * 1024
+MAX_REVIEW_FILES = 128
 IDENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 HEX = re.compile(r"[0-9a-f]{64}")
 COMMIT = re.compile(r"[0-9a-f]{40}")
 ACTOR = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/@-]{0,127}")
+REVIEW_SCOPE = "private-family editorial review; not identity authentication"
+REVIEW_CHECKS = {"originality", "public_lineage", "rights", "target_alignment"}
 
 
 class GuardError(ValueError):
@@ -309,7 +314,67 @@ def check_reservation(data: dict, public: Exposure) -> dict:
             "issues": dict(sorted(issues.items())), "no_known_conflict": not bool(issues)}
 
 
-def private_input(path: Path, repo: Path) -> dict:
+def family_review_binding(family: dict) -> str:
+    """Bind exact family metadata without recursively binding the review digest."""
+    prov = {k: v for k, v in family["provenance"].items() if k != "review_sha256"}
+    return digest(canonical({**family, "provenance": prov}))
+
+
+def check_review_evidence(data: dict, raw_reviews: Iterable[bytes], public_hash: str) -> dict:
+    """Bind supplied local review bytes to already validated private metadata."""
+    hash_id(public_hash)
+    issues: Counter = Counter()
+    by_digest = {}
+    count = 0
+    for raw in raw_reviews:
+        count += 1
+        require(count <= MAX_REVIEW_FILES and 0 < len(raw) <= MAX_REVIEW_BYTES, "private-review-input-limit")
+        key = digest(raw)
+        if key in by_digest:
+            issues["repeated-review-file"] += 1
+            continue
+        row = parse(raw)
+        exact_keys(row, {"schema_version", "scope", "reviewer", "public_history_sha256",
+                         "family_binding_sha256", "verdict", "checks"}, "review-file-schema")
+        require(type(row["schema_version"]) is int and row["schema_version"] == 1
+                and row["scope"] == REVIEW_SCOPE and row["verdict"] in ("accept", "reject"),
+                "review-file-schema")
+        require(type(row["reviewer"]) is str and ACTOR.fullmatch(row["reviewer"]) is not None,
+                "invalid-review-identity")
+        hash_id(row["public_history_sha256"])
+        hash_id(row["family_binding_sha256"])
+        exact_keys(row["checks"], REVIEW_CHECKS, "review-check-schema")
+        require(all(type(note) is str and bool(note.strip()) for note in row["checks"].values()),
+                "review-check-schema")
+        by_digest[key] = {k: row[k] for k in
+                          ("reviewer", "public_history_sha256", "family_binding_sha256", "verdict")}
+    claimed = set()
+    for family in data["families"]:
+        prov = family["provenance"]
+        key = prov["review_sha256"]
+        if key in claimed:
+            issues["repeated-review-claim"] += 1
+        claimed.add(key)
+        row = by_digest.get(key)
+        if row is None:
+            issues["missing-review-file"] += 1
+            continue
+        if row["reviewer"] != prov["reviewer"]:
+            issues["reviewer-mismatch"] += 1
+        if row["public_history_sha256"] != public_hash:
+            issues["review-public-history-drift"] += 1
+        if row["family_binding_sha256"] != family_review_binding(family):
+            issues["review-family-binding-drift"] += 1
+        if row["verdict"] != "accept":
+            issues["review-not-accepted"] += 1
+    unused = len(by_digest.keys() - claimed)
+    if unused:
+        issues["unclaimed-review-file"] += unused
+    return {"review_files_supplied": count, "all_review_files_bound": not bool(issues),
+            "issues": dict(sorted(issues.items()))}
+
+
+def private_bytes(path: Path, repo: Path, max_bytes: int = MAX_BYTES) -> bytes:
     try:
         path, repo = path.resolve(strict=True), repo.resolve()
         if path.is_relative_to(repo):
@@ -319,25 +384,48 @@ def private_input(path: Path, repo: Path) -> dict:
             # check-ignore with no --no-index rejects tracked inputs.
             git_bytes(repo, "check-ignore", "-q", "--", rel.as_posix(),
                       failure="reservation-must-stay-ignored")
-        require(path.is_file() and path.stat().st_size <= MAX_BYTES, "reservation-input-size")
-        return parse(path.read_bytes())
+        require(path.is_file() and 0 < path.stat().st_size <= max_bytes, "reservation-input-size")
+        with path.open("rb") as stream:
+            raw = stream.read(max_bytes + 1)
+        require(0 < len(raw) <= max_bytes, "reservation-input-size")
+        return raw
     except OSError as exc:
         raise GuardError("reservation-input-unavailable") from exc
+
+
+def private_input(path: Path, repo: Path) -> dict:
+    return parse(private_bytes(path, repo))
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--public-tip", action="append", required=True, help="Exact known-public commit; repeat for exposed PR/retired tips")
     parser.add_argument("--reservation", type=Path, help="Private metadata outside repo or under ignored .astis; omit for inventory only")
+    parser.add_argument("--review-file", action="append", type=Path, default=[],
+                        help="Exact private reviewer report; repeat once per reserved family")
     args = parser.parse_args()
+    if args.review_file and args.reservation is None:
+        parser.error("--review-file requires --reservation")
     try:
         found, report = inventory(ROOT, args.public_tip, observation_only=args.reservation is None)
         report["scope"] = "Declared public exposure only; no secrecy, originality or contamination certificate"
+        decision = 0
         if args.reservation is not None:
-            result = check_reservation(private_input(args.reservation, ROOT), found)
+            private = private_input(args.reservation, ROOT)
+            result = check_reservation(private, found)
             report["private_check"] = result
+            decision = 0 if result["no_known_conflict"] else 1
+            if args.review_file:
+                require(len(args.review_file) <= MAX_REVIEW_FILES, "private-review-input-limit")
+                raws = (private_bytes(path, ROOT, MAX_REVIEW_BYTES) for path in args.review_file)
+                evidence = check_review_evidence(private, raws, report["public_history_sha256"])
+                report["private_review_check"] = evidence
+                if not evidence["all_review_files_bound"]:
+                    decision = 1
+            else:
+                report["private_review_check"] = {"status": "metadata-only; no reviewer bytes checked"}
         print(json.dumps(report, ensure_ascii=False, sort_keys=True))
-        return 1 if args.reservation is not None and not result["no_known_conflict"] else 0
+        return decision
     except GuardError as exc:
         print(json.dumps({"error": str(exc), "scope": "No reservation decision"}), file=sys.stderr)
         return 2

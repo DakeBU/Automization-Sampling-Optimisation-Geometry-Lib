@@ -80,6 +80,14 @@ not proof of review or a rights grant.
 python tools/sog_bench_split_guard.py --public-tip PUBLIC_RELEASE_SHA --public-tip PUBLIC_PR_SHA --reservation PRIVATE_METADATA_PATH
 ```
 
+Without review files this is metadata-only. For the separate final local
+preflight, follow the
+[review-evidence protocol](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/docs/bench-private-family-review.md)
+and supply one `--review-file` per family. The guard verifies exact review
+bytes against the family and declared public-history digests; it does not
+authenticate the reviewer or establish secrecy. Positive review evidence
+cannot override an observed public collision.
+
 Exit `0` means no known conflict within the declared inputs; `1` means a
 collision or provenance-policy failure; `2` means the check did not produce a
 decision. Output contains only aggregate counts, public history evidence and

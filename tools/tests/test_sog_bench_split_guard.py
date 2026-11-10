@@ -1,9 +1,12 @@
 """Synthetic reservation data only; these are not hidden benchmark items."""
 import copy
+from contextlib import redirect_stdout
+import io
 import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -13,6 +16,7 @@ from tools import sog_bench_split_guard as guard
 
 PDF = "a" * 64
 OTHER_PDF = "b" * 64
+PUBLIC_HISTORY = "f" * 64
 
 
 def public_core(**changes):
@@ -44,6 +48,17 @@ def reservation(**changes):
                        "original_independent_family_attested": True},
     }
     return {"schema_version": 1, "split": "private-test", "families": [{**family, **changes}]}
+
+
+def synthetic_review(data, public_hash=PUBLIC_HISTORY, **changes):
+    family = data["families"][0]
+    packet = {"schema_version": 1, "scope": guard.REVIEW_SCOPE,
+              "reviewer": family["provenance"]["reviewer"], "public_history_sha256": public_hash,
+              "family_binding_sha256": guard.family_review_binding(family), "verdict": "accept",
+              "checks": {name: "Synthetic fixture note, not a real review." for name in guard.REVIEW_CHECKS}}
+    raw = guard.canonical({**packet, **changes})
+    family["provenance"]["review_sha256"] = guard.digest(raw)
+    return raw
 
 
 class ReservationGateTests(unittest.TestCase):
@@ -136,6 +151,44 @@ class ReservationGateTests(unittest.TestCase):
             self.exposed.add_graph_ids({"core_id": "missing", "tasks": [
                 {"id": "graph-missing-core"}]}, public)
 
+    def test_review_evidence_binds_exact_bytes_family_and_public_history(self):
+        data = reservation()
+        raw = synthetic_review(data)
+        report = guard.check_review_evidence(data, [raw], PUBLIC_HISTORY)
+        self.assertEqual(report, {"review_files_supplied": 1, "all_review_files_bound": True, "issues": {}})
+        self.assertEqual(guard.check_review_evidence(data, [raw + b" "], PUBLIC_HISTORY)["issues"],
+                         {"missing-review-file": 1, "unclaimed-review-file": 1})
+        self.assertEqual(guard.check_review_evidence(data, [raw], OTHER_PDF)["issues"],
+                         {"review-public-history-drift": 1})
+        data["families"][0]["tasks"][0]["id"] = "changed-private-target"
+        self.assertEqual(guard.check_review_evidence(data, [raw], PUBLIC_HISTORY)["issues"],
+                         {"review-family-binding-drift": 1})
+
+    def test_review_evidence_cannot_be_reused_or_replace_a_positive_verdict(self):
+        data = reservation()
+        raw = synthetic_review(data, reviewer="other-actor", verdict="reject")
+        self.assertEqual(guard.check_review_evidence(data, [raw, raw], PUBLIC_HISTORY)["issues"],
+                         {"repeated-review-file": 1, "review-not-accepted": 1, "reviewer-mismatch": 1})
+        other = copy.deepcopy(data["families"][0])
+        other.update(family="different-private-family",
+                     tasks=[{"id": "other-private-target", "nl_prompt_sha256": "e" * 64}])
+        data["families"].append(other)
+        issues = guard.check_review_evidence(data, [raw], PUBLIC_HISTORY)["issues"]
+        self.assertEqual(issues["repeated-review-claim"], 1)
+        self.assertEqual(issues["review-family-binding-drift"], 1)
+
+    def test_review_evidence_rejects_unrecognized_or_empty_review_fields(self):
+        data = reservation()
+        for fields in ({"answer": "synthetic fixture"}, {"checks": {}}, {"schema_version": True},
+                       {"checks": {name: " " for name in guard.REVIEW_CHECKS}}):
+            with self.subTest(fields=fields), self.assertRaises(guard.GuardError):
+                guard.check_review_evidence(data, [synthetic_review(data, **fields)], PUBLIC_HISTORY)
+        raw = synthetic_review(data)
+        for rows in ([b""], [b" " * (guard.MAX_REVIEW_BYTES + 1)],
+                     (raw for _ in range(guard.MAX_REVIEW_FILES + 1))):
+            with self.assertRaisesRegex(guard.GuardError, "^private-review-input-limit$"):
+                guard.check_review_evidence(data, rows, PUBLIC_HISTORY)
+
 
 @unittest.skipUnless(shutil.which("git"), "Git executable needed for history and path fixtures")
 class GitExposureTests(unittest.TestCase):
@@ -216,6 +269,40 @@ class GitExposureTests(unittest.TestCase):
         tip = self.commit(guard.CATALOG, guard.GRAPH_INDEX)
         with self.assertRaisesRegex(guard.GuardError, "public-git-object-unavailable"):
             guard.inventory(self.repo, [tip])
+
+    def test_cli_checks_exact_private_review_without_printing_private_values(self):
+        self.write(guard.CATALOG, catalog(public_core()))
+        tip = self.commit(guard.CATALOG)
+        _, exposure = guard.inventory(self.repo, [tip])
+        data = reservation(family="sensitive-synthetic-family")
+        raw = synthetic_review(data, exposure["public_history_sha256"])
+        with tempfile.TemporaryDirectory() as tmp:
+            reservation_path, review_path = Path(tmp)/"private-a.json", Path(tmp)/"private-b.json"
+            reservation_path.write_bytes(guard.canonical(data))
+            review_path.write_bytes(raw)
+            args = ["sog_bench_split_guard.py", "--public-tip", tip, "--reservation", str(reservation_path)]
+            for extra, code, expected in (
+                    ([], 0, {"status": "metadata-only; no reviewer bytes checked"}),
+                    (["--review-file", str(review_path)], 0,
+                     {"review_files_supplied": 1, "all_review_files_bound": True, "issues": {}})):
+                output = io.StringIO()
+                with patch.object(guard, "ROOT", self.repo), patch.object(sys, "argv", args + extra), redirect_stdout(output):
+                    self.assertEqual(guard.main(), code)
+                line = output.getvalue()
+                for private in ("sensitive-synthetic-family", "candidate-one", str(review_path), guard.digest(raw)):
+                    self.assertNotIn(private, line)
+                self.assertEqual(json.loads(line)["private_review_check"], expected)
+            # Positive review bytes must not override an actual public collision.
+            data["families"][0]["family"] = "public-family"
+            raw = synthetic_review(data, exposure["public_history_sha256"])
+            reservation_path.write_bytes(guard.canonical(data))
+            review_path.write_bytes(raw)
+            output = io.StringIO()
+            with patch.object(guard, "ROOT", self.repo), patch.object(sys, "argv", args + ["--review-file", str(review_path)]), redirect_stdout(output):
+                self.assertEqual(guard.main(), 1)
+            report = json.loads(output.getvalue())
+            self.assertTrue(report["private_review_check"]["all_review_files_bound"])
+            self.assertEqual(report["private_check"]["issues"], {"known-public-families": 1})
 
     def test_retired_family_introduced_in_merge_resolution_is_still_public(self):
         initial = catalog(public_core())

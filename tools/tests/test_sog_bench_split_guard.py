@@ -192,6 +192,31 @@ class GitExposureTests(unittest.TestCase):
         with self.assertRaisesRegex(guard.GuardError, "public-git-object-unavailable"):
             guard.inventory(self.repo, ["0" * 40])
 
+    def test_registered_compiler_slice_changes_remain_visible_after_retirement(self):
+        self.write(guard.CATALOG, catalog(public_core()))
+        self.commit(guard.CATALOG)
+        spec = f"{guard.DIRECTORY}/compiled_new_slice_graph_tasks.json"
+        self.write(guard.GRAPH_INDEX, {"schema_version": 1, "slices": ["new-slice"]})
+        self.write(spec, {"core_id": "dev-one", "tasks": [{"id": "graph-first"}]})
+        self.commit(guard.GRAPH_INDEX, spec)
+        self.write(spec, {"core_id": "dev-one", "tasks": [{"id": "graph-retired"}]})
+        self.commit(spec)  # The slice file changes, with no catalog or index change.
+        self.write(spec, {"core_id": "dev-one", "tasks": [{"id": "graph-final"}]})
+        tip = self.commit(spec)
+        found, receipt = guard.inventory(self.repo, [tip])
+        self.assertEqual(receipt["public_snapshots"], 4)
+        self.assertTrue({"graph-first", "graph-retired", "graph-final"} <= found.task_ids)
+        reserved = reservation(tasks=[{"id": "graph-retired", "nl_prompt_sha256": "c" * 64}])
+        self.assertEqual(guard.check_reservation(reserved, found)["issues"],
+                         {"known-public-task_ids": 1})
+
+    def test_registered_compiler_slice_missing_from_a_public_commit_fails_closed(self):
+        self.write(guard.CATALOG, catalog(public_core()))
+        self.write(guard.GRAPH_INDEX, {"schema_version": 1, "slices": ["not-present"]})
+        tip = self.commit(guard.CATALOG, guard.GRAPH_INDEX)
+        with self.assertRaisesRegex(guard.GuardError, "public-git-object-unavailable"):
+            guard.inventory(self.repo, [tip])
+
     def test_retired_family_introduced_in_merge_resolution_is_still_public(self):
         initial = catalog(public_core())
         self.write(guard.CATALOG, initial)

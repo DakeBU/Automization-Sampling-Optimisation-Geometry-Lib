@@ -109,10 +109,11 @@ class BenchTests(unittest.TestCase):
             manifest = json.loads((output / 'manifest.json').read_text())
             self.assertEqual(manifest['qa_views'], sum(len(c['track_levels']) for c in self.cores))
             self.assertEqual(manifest['numbered_textbook_exercises'], 3)
-            self.assertEqual(manifest['graph_tasks'], 7)
+            self.assertEqual(manifest['graph_tasks'], len(bench.curriculum.graph_items()))
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
             self.assertTrue((output/'compiled-flow-graph.json').is_file())
+            self.assertTrue((output/'compiled-exercise17-graph.json').is_file())
             self.assertIn('content-bound', manifest['independent_semantic_review'])
             self.assertEqual(manifest['editorial_accepted_graph_tasks'], graph_review.summary(bench.curriculum.graph_items())['accepted_tasks'])
             self.assertIn('human-attested', manifest['prose_scoring'])
@@ -753,10 +754,9 @@ class BenchTests(unittest.TestCase):
 
     def test_structural_graph_answers_sources_and_no_gold_in_prompts(self):
         graphs = bench.curriculum.graph_items()
-        self.assertEqual(len(graphs), 7)
         self.assertTrue(all(g['family'] == 'pl-gradient-iteration' for g in graphs[:3]))
         self.assertTrue(all(g['family'] == 'coupling-gluing-triangle' for g in graphs[3:5]))
-        self.assertTrue(all(g['family'] == 'convex-flow-first-order-rate' for g in graphs[5:]))
+        self.assertTrue(all(g['family'] == 'convex-flow-first-order-rate' for g in graphs[5:7]))
         self.assertTrue(all('answer' not in p for p in bench.curriculum.graph_prompts(graphs)))
         self.assertEqual(len(graphs[0]['context']['nodes']), 3)
         self.assertEqual(len(graphs[0]['context']['edges']), 2)
@@ -765,6 +765,19 @@ class BenchTests(unittest.TestCase):
             self.assertFalse(g['answer']['entails_mathematical_necessity'])
             self.assertNotIn('atlas', json.dumps(g).lower())
             self.assertIn('source_sha256_lf', g['context'])
+
+    def test_exercise17_graph_explains_indirect_path_in_reference_not_prompt(self):
+        graph = next(g for g in bench.curriculum.graph_items() if g['id'] == 'sogb-g008')
+        core = next(c for c in self.cores if c['id'] == 'sogb-039')
+        self.assertEqual(graph['family'], core['family'])
+        self.assertEqual(graph['answer']['nodes'], [core['declaration']])
+        self.assertNotIn([core['declaration'], graph['remove']], graph['context']['edges'])
+        page = reader.graph_page(graph)
+        self.assertIn('compiled-exercise17-graph.json', page)
+        self.assertIn('sogb-040.html', page)
+        self.assertIn('Compact Euclidean Poincaré conclusion → Compact-test LSI extension → Three cutoff limits', page)
+        self.assertIn('Shared immediate proof-body parent(s): Compensated entropy integral limit', page)
+        self.assertNotIn('Selected path:', json.dumps(bench.curriculum.graph_prompts([graph])))
 
     def test_graph_grader_rejects_duplicates_stale_context_and_implicit_selection(self):
         graphs = bench.curriculum.graph_items()

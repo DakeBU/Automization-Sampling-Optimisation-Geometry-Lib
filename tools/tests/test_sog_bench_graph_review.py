@@ -35,14 +35,28 @@ class GraphReviewTests(unittest.TestCase):
 
     def test_current_summary_keeps_structural_and_empirical_truth_separate(self):
         summary = review.summary(self.items)
-        self.assertEqual(summary['total_tasks'],7)
-        self.assertEqual(summary['accepted_tasks'],7)
+        self.assertEqual(summary['total_tasks'],len(self.items))
+        self.assertEqual(summary['accepted_tasks'],len(self.items))
         self.assertEqual(summary['items']['sogb-g003']['editorial'],'accepted')
         self.assertEqual(summary['admission_round'],'graph-7')
         self.assertFalse(summary['difficulty_calibrated'])
         self.assertFalse(summary['model_performance_measured'])
         self.assertEqual(self.items[2]['level'],'L1')
         self.assertTrue(all(not row.get('mathematical_necessity_certified',False) for row in summary['items'].values()))
+
+    def test_disjoint_extension_keeps_base_verdicts_and_cannot_rebind_an_old_item(self):
+        by_id = review.summary(self.items)['items']
+        self.assertEqual(by_id['sogb-g008']['editorial'], 'accepted')
+        self.assertEqual(by_id['sogb-g008']['review_round'], 'graph-extension-exercise17')
+        base = review.apply_repair(self.items, review.statuses(self.items, review.CURRENT_ROUND),
+                                   review.CURRENT_REPAIR_ROUND, review.CURRENT_ROUND)
+        self.assertEqual({key: by_id[key] for key in base if key != 'sogb-g008'},
+                         {key: row for key, row in base.items() if key != 'sogb-g008'})
+        with self.assertRaisesRegex(ValueError, 'cannot supersede or overlap'):
+            review.extension_statuses(self.items, review.ROUND.parent, {'sogb-g008'})
+        changed = deepcopy(self.items)
+        next(x for x in changed if x['id'] == 'sogb-g008')['question'] += ' Changed.'
+        self.assertEqual(review.summary(changed)['items']['sogb-g008']['editorial'], 'stale')
 
     def test_content_or_source_changes_stale_only_affected_item(self):
         for key,value in (('question','Different question'), ('level','L5'), ('answer',{'nodes':[]})):
@@ -63,7 +77,10 @@ class GraphReviewTests(unittest.TestCase):
                 result[key]='changed'
                 return result
             with patch.object(review,'payload',side_effect=changed):
-                self.assertTrue(all(row['editorial']=='stale' for row in review.statuses(self.items,review.CURRENT_ROUND).values()))
+                rows = review.statuses(self.items, review.CURRENT_ROUND)
+                self.assertEqual(rows['sogb-g008']['editorial'], 'pending')
+                self.assertTrue(all(row['editorial'] == 'stale' for identity, row in rows.items()
+                                    if identity != 'sogb-g008'))
 
     def test_author_input_hash_necessity_and_open_repairs_cannot_self_admit(self):
         for case in ('actor','hash','necessity','repair','evidence'):

@@ -79,6 +79,12 @@ edges show the actual common helper and its PBPS consumer path.
 pair in the existing public coupling family. Its Lean task is a foundation
 reconstruction, not a new library result or an independent test family.
 
+[Exercise 1.7 structural review](reviews/graph-extension-exercise17/README.md)
+accepts a separate L2 graph question: the two compiled routes share the
+compensated entropy limit, while only the compact Poincaré branch reaches
+the selected cutoff limits. This is a property of the supplied slice,
+not mathematical necessity or full-closure independence.
+
 Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Structural graph editorial decisions are recorded separately; empirical difficulty calibration remains open. Existing theorem review does not certify a new question.
 
 ## Review evidence and scope

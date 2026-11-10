@@ -13,11 +13,18 @@ import subprocess
 import sys
 import unicodedata
 
+if __package__:
+    from . import sog_bench_graph_slices as compiled_slices
+else:
+    import sog_bench_graph_slices as compiled_slices
+
 ROOT = Path(__file__).resolve().parents[1]
-CATALOG = "benchmarks/samplingoptimisationgeometrybench/cores.json"
-EXERCISES = "benchmarks/samplingoptimisationgeometrybench/textbook_exercises.json"
-GRAPH_SPECS = tuple(f"benchmarks/samplingoptimisationgeometrybench/{name}.json" for name in (
-    "graph_tasks", "compiled_graph_tasks", "compiled_flow_graph_tasks"))
+DIRECTORY = "benchmarks/samplingoptimisationgeometrybench"
+CATALOG = f"{DIRECTORY}/cores.json"
+EXERCISES = f"{DIRECTORY}/textbook_exercises.json"
+GRAPH_INDEX = f"{DIRECTORY}/{compiled_slices.INDEX}"
+GRAPH_SPECS = (f"{DIRECTORY}/graph_tasks.json", *(
+    f"{DIRECTORY}/{compiled_slices.spec_name(s)}" for s in compiled_slices.LEGACY_LABELS))
 MAX_BYTES = 8 * 1024 * 1024
 MAX_REVISIONS = 512
 IDENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
@@ -187,7 +194,8 @@ def inventory(repo: Path, public_tips: list[str], *, observation_only: bool = Fa
     raw_history = git_bytes(repo, "log", "--full-history", "--diff-merges=separate", "--no-patch",
                             "--no-renames", "--no-show-signature", "--no-notes", "--no-color",
                             "--no-decorate", "--diff-filter=AM", "--format=%H",
-                            *tips, "--", CATALOG, EXERCISES, *GRAPH_SPECS)
+                            *tips, "--", CATALOG, EXERCISES, GRAPH_INDEX, *GRAPH_SPECS,
+                            f":(glob){DIRECTORY}/compiled_*_graph_tasks.json")
     try:
         history = raw_history.decode("ascii").split()
     except UnicodeDecodeError as exc:
@@ -205,7 +213,16 @@ def inventory(repo: Path, public_tips: list[str], *, observation_only: bool = Fa
         exercise_bytes = (git_bytes(repo, "show", f"{rev}:{EXERCISES}")
                           if any("textbook_exercise_id" in r for r in rows) else None)
         graph_paths = git_bytes(repo, "ls-tree", "-r", "--name-only", rev, "--",
-                               *GRAPH_SPECS).decode("ascii").splitlines()
+                               GRAPH_INDEX, *GRAPH_SPECS).decode("ascii").splitlines()
+        index_bytes = None
+        if GRAPH_INDEX in graph_paths:
+            index_bytes = git_bytes(repo, "show", f"{rev}:{GRAPH_INDEX}")
+            try:
+                registered = compiled_slices.labels(parse(index_bytes))
+            except ValueError as exc:
+                raise GuardError("invalid-public-graph-index") from exc
+            graph_paths = [p for p in graph_paths if p == GRAPH_SPECS[0]]
+            graph_paths.extend(f"{DIRECTORY}/{compiled_slices.spec_name(s)}" for s in registered)
         graphs = {path: git_bytes(repo, "show", f"{rev}:{path}") for path in graph_paths}
         try:
             found.add_catalog(data, parse(exercise_bytes) if exercise_bytes is not None else None)
@@ -213,8 +230,10 @@ def inventory(repo: Path, public_tips: list[str], *, observation_only: bool = Fa
                 found.add_graph_ids(parse(graph), data)
         except (KeyError, TypeError, AttributeError) as exc:
             raise GuardError("invalid-public-catalog-data") from exc
-        receipts.append([rev, digest(blob), digest(exercise_bytes) if exercise_bytes else None,
-                         {path: digest(graph) for path, graph in graphs.items()}])
+        graph_hashes = {path: digest(graph) for path, graph in graphs.items()}
+        if index_bytes is not None:
+            graph_hashes[GRAPH_INDEX] = digest(index_bytes)
+        receipts.append([rev, digest(blob), digest(exercise_bytes) if exercise_bytes else None, graph_hashes])
     require(bool(found.families), "no-public-families")
     return found, {"declared_public_tips": len(tips), "public_snapshots": len(receipts),
                    "history_status": ("shallow-observation-only" if shallow == b"true"

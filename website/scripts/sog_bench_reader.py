@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import shutil
+from textwrap import wrap
 
 import astis_site
 import source_lineage
@@ -522,9 +523,22 @@ def graph_page(item: dict) -> str:
     evidence = graph_review.summary(bench.curriculum.graph_items())['items'][item['id']]
     status = '<p>Current editorial status: <strong>' + escape(evidence['editorial']) + '</strong>. This is AI review of structural QA, not a theorem or calibrated difficulty.</p>'
     status += '<ul>' + ''.join('<li>' + escape(s) + '</li>' for s in evidence.get('issues', []) + evidence.get('remaining_limits', [])) + '</ul>'
-    status += '<p><a href="downloads/graph-editorial-review.json">Exact review bindings and report hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews/'+graph_review.CURRENT_ROUND.name+'">Current independent review and explicit historical supersession</a></p>'
+    round_name = evidence.get('review_round', graph_review.CURRENT_ROUND.name)
+    status += '<p><a href="downloads/graph-editorial-review.json">Exact review bindings and report hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews/'+escape(round_name)+'">Independent review for this question</a></p>'
     compiled=item['context']['kind']=='compiled-proof-body-constant-occurrences'
-    artifact='compiled-flow-graph.json' if item['core_id']=='sogb-023' else 'compiled-transport-graph.json'
+    trace = ''
+    if compiled:
+        import sog_bench_graph_slices
+        artifact=sog_bench_graph_slices.artifact_for(item['id'])
+        if 'remove' in item:
+            paths, shared = sog_bench_graph_slices.reference_paths(item)
+            labels = item['context']['node_labels']
+            trace = ''.join('<p>Selected path: ' + escape(' → '.join(labels[n] for n in path))
+                            + '.</p>' for path in paths)
+            if len(item['targets']) > 1 and shared:
+                trace += ('<p>Shared immediate proof-body parent(s): '
+                          + escape(', '.join(labels[n] for n in shared))
+                          + '. Sharing a parent alone does not imply a directed path between the targets.</p>')
     provenance=('<p>This is a recorded source-bound compiler snapshot. CI separately replays the trusted extractor. It is not a fresh Lean run in this browser, a full proof closure or a minimal-premise certificate. Unique proof constants do not count runtime invocations, recursive calls or oracle queries.</p><p><a href="downloads/'+artifact+'">Recorded compiler slice and provenance</a></p>') if compiled else '<p>This graph scans source import declarations, not theorem proof bodies.</p>'
     profiles=''
     if item.get('required_statement_constants'):
@@ -551,7 +565,7 @@ def graph_page(item: dict) -> str:
         + fold('Independent structural review and limits', status)
         + fold('Evidence kind and source scope', provenance+prose(item['context']['truth_boundary']))
         + fold('Exact JSON snapshot and response schema', '<pre><code class="language-json">' + escape(json.dumps(prompt, indent=2)) + '</code></pre>')
-        + fold('Reference structural answer · 2 checks, 1 point', '<pre><code>' + escape(json.dumps(item['answer'], indent=2)) + '</code></pre>'
+        + fold('Reference structural answer · 2 checks, 1 point', trace + '<pre><code>' + escape(json.dumps(item['answer'], indent=2)) + '</code></pre>'
             '<p>One point requires both the exact structural node set and a false mathematical-necessity certification. The constant boundary answer earns no standalone credit. Edges have only the stated evidence kind. Neither a positive path nor an absent induced path proves mathematical necessity or full-closure independence.</p>')
         + '<p>No model score, theorem-equivalence certificate or calibrated difficulty is asserted.</p></article>')
 
@@ -619,15 +633,34 @@ def import_figure(graph: dict) -> str:
     height = 100 + highest * 130
     positions = {n: ((i + 1) * width / (len(group) + 1), 45 + (highest - r) * 130)
                  for r, group in groups.items() for i, n in enumerate(group)}
-    box_width=250
+    labels={n:graph.get('node_labels',{}).get(n,n.rsplit('.',1)[-1]) for n in nodes}
+    lines={n:[label] for n,label in labels.items()}
+    box_width,box_height=250,44
     if compiled:
-        box_width=220
-        width=max(660,250*max(map(len,groups.values()),default=1)+40)
-        positions={n:((width-(len(group)*box_width+(len(group)-1)*30))/2+box_width/2+i*250,
-                      45+(highest-r)*130) for r,group in groups.items() for i,n in enumerate(group)}
+        # Keep exact reviewed labels at a readable size instead of shrinking
+        # the text. Compact wrapped cards keep a four-node row visible on
+        # desktop; mobile retains the existing horizontal scroll.
+        lines={n:wrap(label,width=20,break_long_words=False,break_on_hyphens=False)
+               for n,label in labels.items()}
+        longest=max((len(line) for label in lines.values() for line in label),default=0)
+        box_width=max(172,8*longest+14)
+        box_height=max(44,15*max(map(len,lines.values()),default=1)+14)
+        gap,pitch=20,box_width+20
+        width=max(660,pitch*max(map(len,groups.values()),default=1)+4)
+        height=box_height+56+highest*130
+        positions={n:((width-(len(group)*box_width+(len(group)-1)*gap))/2+box_width/2+i*pitch,
+                      box_height/2+23+(highest-r)*130)
+                   for r,group in groups.items() for i,n in enumerate(group)}
+    half=box_height/2
     style='' if compiled else 'stroke-dasharray="5 4"'
-    paths = ''.join(f'<path d="M {positions[a][0]} {positions[a][1]+22} L {positions[b][0]} {positions[b][1]-22}" stroke="#657080" {style} fill="none" marker-end="url(#sog-arrow)"/>' for a, b in edges)
-    boxes = ''.join(f'<g><title>{escape(n)}</title><rect x="{x-box_width/2}" y="{y-22}" width="{box_width}" height="44" rx="6" fill="#f5f6f8" stroke="#657080"/><text x="{x}" y="{y+4}" text-anchor="middle" font-size="14" fill="#17212f">{escape(graph.get("node_labels",{}).get(n,n.rsplit(".",1)[-1]))}</text></g>' for n, (x, y) in positions.items())
+    paths = ''.join(f'<path d="M {positions[a][0]} {positions[a][1]+half} L {positions[b][0]} {positions[b][1]-half}" stroke="#657080" {style} fill="none" marker-end="url(#sog-arrow)"/>' for a, b in edges)
+    def box(n,x,y):
+        first_y=y+4-(len(lines[n])-1)*7.5
+        content=' '.join(f'<tspan x="{x}" dy="{0 if i==0 else 15}">{escape(line)}</tspan>'
+                         for i,line in enumerate(lines[n]))
+        return (f'<g><title>{escape(n)}</title><rect x="{x-box_width/2}" y="{y-half}" width="{box_width}" height="{box_height}" rx="6" fill="#f5f6f8" stroke="#657080"/>'
+                f'<text x="{x}" y="{first_y}" text-anchor="middle" font-size="14" fill="#17212f" aria-label="{escape(labels[n])}">{content}</text></g>')
+    boxes=''.join(box(n,x,y) for n,(x,y) in positions.items())
     label='Selected compiled proof-body occurrences; not full closure or mathematical necessity' if compiled else 'Source-scanned import graph; arrows point to imported modules, not theorem implication'
     caption='Solid arrows: selected theorem constants occur in the compiled proof bodies, including proof-term annotations. Other constants and private auxiliaries are omitted; a missing path is not full-closure independence.' if compiled else 'Dashed arrows: source-scanned imports in the supplied slice. The shared module occurs once.'
     return (f'<figure class="sog-graph"><svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" role="img" aria-label="{label}" viewBox="0 0 {width} {height}">'

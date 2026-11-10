@@ -149,6 +149,28 @@ def apply_repair(items: list[dict], rows: dict, directory: Path = REPAIR_ROUND, 
     return rows
 
 
+def extension_statuses(items: list[dict], directory: Path, already_bound: set[str]) -> dict:
+    """Admit disjoint, independently reviewed additions without renewing old bindings."""
+    seen, result = set(already_bound), {}
+    for extension in sorted(directory.glob('graph-extension-*')):
+        report_path = extension/'source-review.json'
+        if not report_path.is_file():
+            continue
+        if extension.is_symlink() or report_path.is_symlink() or (extension/'input.json').is_symlink():
+            raise ValueError('Graph extension evidence must be repository files')
+        packet = json.loads((extension/'input.json').read_text(encoding='utf-8'))
+        report = json.loads(report_path.read_text(encoding='utf-8'))
+        bound = {row['id'] for row in packet['items']}
+        if (not bound or seen & bound or packet.get('supersedes_rounds') != []
+                or report.get('supersedes_rounds') != []):
+            raise ValueError('A graph extension cannot supersede or overlap a frozen question')
+        checked = statuses(items, extension)
+        result.update({identity: {**checked[identity], 'review_round': extension.name}
+                       for identity in bound & checked.keys()})
+        seen.update(bound)
+    return result
+
+
 def summary(items: list[dict]) -> dict:
     if (CURRENT_ROUND/'source-review.json').is_file():
         packet=json.loads((CURRENT_ROUND/'input.json').read_text(encoding='utf-8'))
@@ -157,9 +179,12 @@ def summary(items: list[dict]) -> dict:
             raise ValueError('Current whole-scope graph review needs explicit historical supersession')
         rows=apply_repair(items,statuses(items,CURRENT_ROUND),CURRENT_REPAIR_ROUND,CURRENT_ROUND)
         admission_round=CURRENT_ROUND.name
+        already_bound = {row['id'] for row in packet['items']}
     else:
         rows=apply_repair(items,statuses(items))
         admission_round='historical-only; new policy/content requires fresh review'
+        already_bound = {identity for identity, row in rows.items() if row['editorial'] != 'pending'}
+    rows.update(extension_statuses(items, ROUND.parent, already_bound))
     accepted = sum(row['editorial'] in {'accepted','accepted-after-repair'} for row in rows.values())
     return {'scope':SCOPE, 'accepted_tasks':accepted, 'total_tasks':len(items),
             'editorial_status':'complete-for-current-tasks' if items and accepted==len(items) else ('partial' if accepted else 'pending'),

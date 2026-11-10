@@ -367,13 +367,15 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     reviewed_graphs=[g for g in graphs if graph_review['items'][g['id']]['editorial'] in {'accepted','accepted-after-repair'}]
     reviewed = [c for c in cores if review['items'][c['id']]['editorial'] in {'accepted', 'accepted-after-repair'}]
     task_files = task_assets(reviewed, reviewed_graphs)
+    import sog_bench_graph_slices
+    compiler_snapshots = sog_bench_graph_slices.snapshots()
     expected = {'questions.jsonl', 'reference.jsonl', 'manifest.json', 'README.md',
                 'editorial-review.json', 'graph-editorial-review.json', 'reviewed-questions.jsonl', 'reviewed-reference.jsonl',
                 'curriculum.json', 'coverage.json', 'graph-questions.jsonl', 'graph-reference.jsonl', 'GOAL.md',
                 'reviewed-graph-questions.jsonl','reviewed-graph-reference.jsonl',
                 'EVALUATION.md', 'FAMILY_ISOLATION.md', 'ECOSYSTEM.md', 'HARBOR.md', 'TEXTBOOK_EXERCISES.md',
                 'textbook-exercise-map.json', 'examples/prose-run.json',
-                'compiled-transport-graph.json', 'compiled-flow-graph.json',
+                *compiler_snapshots,
                 *project_licensing.LICENSE_FILES, *task_files,
                 *('lean/' + c['id'] + '-support.lean' for c in cores if c.get('support_source_view')),
                 *('lean/' + c['id'] + suffix for c in cores if has_lean(c) for suffix in ('-task.lean.txt', '-reference.lean'))}
@@ -403,10 +405,8 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('reference.jsonl', jsonl(cores))
     write('editorial-review.json', encoded(review))
     write('graph-editorial-review.json', encoded(graph_review))
-    import sog_bench_compiled_graph
-    write('compiled-transport-graph.json',encoded(sog_bench_compiled_graph.recorded()[2]))
-    write('compiled-flow-graph.json',encoded(sog_bench_compiled_graph.recorded(
-        sog_bench_compiled_graph.FLOW_SPEC,sog_bench_compiled_graph.FLOW_SNAPSHOT)[2]))
+    for name, snapshot in compiler_snapshots.items():
+        write(name, encoded(snapshot))
     write('reviewed-questions.jsonl', jsonl(prompts(reviewed)))
     write('reviewed-reference.jsonl', jsonl(reviewed))
     write('graph-questions.jsonl', jsonl(curriculum.graph_prompts(graphs)))

@@ -39,6 +39,11 @@ claim that a container image or provider execution was reproduced.
 proof, rubric, editorial report, training pair or expert-only source anchor.
 Individual task files can also be fetched through the static website API.
 Read the prompt and declared tool policy, then preserve the first raw response.
+For Lean tasks the descriptor fingerprints the fixed-target evaluator and
+its policy, not the prose grader. The operator provisions the separate
+[isolated Linux workspace](lean-runtime/WORKSPACE.md); the prompt ZIP supplies
+neither verifier nor hosted execution. Its tool/retrieval declarations are
+not evidence that a run occurred or that retrieval was enforced.
 
 ## Training and contamination
 

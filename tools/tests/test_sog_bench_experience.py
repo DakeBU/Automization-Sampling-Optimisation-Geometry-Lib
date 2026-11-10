@@ -92,11 +92,30 @@ class TaskPackageTests(unittest.TestCase):
             self.assertNotIn('training-pairs.jsonl', names)
             self.assertNotIn('expert-graph-positions.json', names)
             self.assertNotIn('harbor-graph-tasks.zip', names)
+            self.assertFalse(any('/oracle/' in n or '/verifier/' in n for n in names))
             self.assertFalse(any('reference.lean' in n or 'reviews/' in n for n in names))
             manifest = json.loads(bundle.read('task-files.sha256.json'))
             self.assertEqual(set(manifest['files']), names - {'task-files.sha256.json'})
             for name, expected in manifest['files'].items():
                 self.assertEqual(hashlib.sha256(bundle.read(name)).hexdigest(), expected)
+
+    def test_lean_descriptor_identifies_the_operator_runtime_not_the_prose_grader(self):
+        rows = json.loads(self.assets['task-index.json'])['tasks']
+        for row in rows:
+            env = json.loads(self.assets[row['task_file']])['environment']
+            if row['track'] != 'lean':
+                self.assertNotIn('verifier_policy_sha256_lf', env)
+                continue
+            self.assertIn('operator-provisioned Linux Docker/Landrun', row['verifier'])
+            self.assertEqual(env['evaluator_source_sha256_lf'],
+                             bench.text_hash(ROOT / 'tools/sog_bench_lean.py'))
+            self.assertEqual(env['verifier_policy_sha256_lf'],
+                             bench.text_hash(bench.DATA.parent / 'lean-runtime/policy.json'))
+            self.assertIs(env['verifier_included'], False)
+            self.assertIs(env['hosted_execution'], False)
+            instruction = self.assets[row['task_file'].replace('/task.json', '/instruction.md')]
+            self.assertIn(b'Never run untrusted Lean on the host', instruction)
+            self.assertNotIn(b'not implemented', instruction)
 
     def test_training_and_expert_data_preserve_original_identity_and_scope(self):
         training = [json.loads(line) for line in self.assets['training-pairs.jsonl'].splitlines()]

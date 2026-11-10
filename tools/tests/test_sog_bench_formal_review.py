@@ -55,7 +55,8 @@ class PairedReviewTests(unittest.TestCase):
 
     def test_actual_distinct_actor_evidence_admits_one_conclusion_only_pair(self):
         rows = formal.statuses(self.cores)
-        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028','sogb-032','sogb-037','sogb-038','sogb-039','sogb-040'})
+        first_round = {'sogb-001', 'sogb-002', 'sogb-003'}
+        self.assertEqual(set(rows), {c['id'] for c in self.cores if bench.has_lean(c)} - first_round)
         self.assertEqual(rows['sogb-015']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-015']['formal_alignment'], 'conclusion-only')
         self.assertTrue(rows['sogb-015']['remaining_unformalized'])
@@ -63,11 +64,25 @@ class PairedReviewTests(unittest.TestCase):
         self.assertEqual(rows['sogb-032']['formal_alignment'], 'conclusion-only')
         self.assertEqual(rows['sogb-038']['editorial'], 'accepted-after-repair')
         self.assertEqual(rows['sogb-038']['formal_alignment'], 'conclusion-only')
-        for identity in ('sogb-039', 'sogb-040'):
+        for identity in ('sogb-039', 'sogb-040', 'sogb-041'):
             self.assertEqual(rows[identity]['editorial'], 'accepted')
             self.assertEqual(rows[identity]['formal_alignment'], 'conclusion-only')
             self.assertTrue(rows[identity]['remaining_unformalized'])
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 38)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], len(self.cores))
+
+    def test_product_coupling_preserves_the_exact_preflight_and_repaired_review(self):
+        directory = formal.REVIEWS / 'formal-16'
+        previous = directory / 'preflight-v1'
+        packet = json.loads((previous / 'packets/reviewer-input.json').read_text(encoding='utf-8'))
+        old = packet['mathematical_cores'][0]
+        new = next(c for c in self.cores if c['id'] == 'sogb-041')
+        self.assertEqual(formal.round_statuses([old], previous)['sogb-041']['editorial'], 'repair-required')
+        self.assertEqual(formal.round_statuses([new], previous)['sogb-041']['editorial'], 'stale')
+        self.assertEqual(formal.round_statuses([new], directory)['sogb-041']['editorial'], 'accepted')
+        self.assertEqual(old['lean_task'], new['lean_task'])
+        self.assertEqual(old['lean_reference'], new['lean_reference'])
+        self.assertEqual(old['question'], new['question'])
+        self.assertEqual(old['rubric'], new['rubric'])
 
     def test_common_kernel_review_preserves_rejected_predecessor(self):
         directory = formal.REVIEWS / 'formal-13'

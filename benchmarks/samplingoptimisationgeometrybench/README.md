@@ -56,6 +56,7 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-038 | MCMC / Discrete Sampling | Prove fixed-mixture invariance and test the state-independent-weight assumption (L3) | Reconstruct the nonnegative finite-sum proof for an arbitrary invariant measure (L3) |
 | sogb-039 | Log-Concave Sampling | Exercise 1.7: derive compact Euclidean Poincaré with the same constant from compact smooth log-Sobolev (L4) | Derive genuine admissibility and the compact Poincaré conclusion, without a full form-domain claim (L4) |
 | sogb-040 | Log-Concave Sampling | Exercise 1.7: construct a local affine probability law and expand its finite KL (L3) | Reconstruct the actual-law quadratic KL result with the full-neighborhood remainder (L3) |
+| sogb-041 | Statistical Optimal Transport | Compute both product-law marginals and identify the mass-one factor in each (L2) | Unpack the local coupling predicate and apply the two direct Mathlib identities (L1) |
 
 These four reviewed additions retain their existing public IDs. StatOT
 Exercise 6 (`sogb-031`) remains on its separate proof-and-publication route.
@@ -73,6 +74,10 @@ the common-suffix proof is recorded separately from graph-task admission.
 two-state counterexample is prose only, and the source helper is folded into
 the trusted answer rather than supplied to the learner. Selected compiled
 edges show the actual common helper and its PBPS consumer path.
+
+[Formal round 16](reviews/formal-16/README.md) accepts the product-coupling
+pair in the existing public coupling family. Its Lean task is a foundation
+reconstruction, not a new library result or an independent test family.
 
 Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Structural graph editorial decisions are recorded separately; empirical difficulty calibration remains open. Existing theorem review does not certify a new question.
 

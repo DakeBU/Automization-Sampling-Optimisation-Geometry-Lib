@@ -247,6 +247,11 @@ def task_assets(cores: list[dict], graphs: list[dict]) -> dict[str, bytes]:
     assets, index, training, positions = {}, [], [], []
     by_id = {c['id']: c for c in cores}
     rows = prompts(cores) + curriculum.graph_prompts(graphs)
+    evaluators = {'natural-language': 'tools/sog_bench_prose.py',
+                  'lean': 'tools/sog_bench_lean.py',
+                  'graph-json': 'tools/sog_bench_curriculum.py'}
+    evaluator_hashes = {track: text_hash(ROOT / path) for track, path in evaluators.items()}
+    lean_policy_hash = text_hash(DATA.parent / 'lean-runtime/policy.json')
     for row in rows:
         track = row.get('track', 'graph-json')
         stem = 'tasks/' + row['id'] + '/' + track
@@ -258,13 +263,16 @@ def task_assets(cores: list[dict], graphs: list[dict]) -> dict[str, bytes]:
         else:
             response.update(track=track, response='')
             verifier = ('actual-human-rubric' if track == 'natural-language'
-                        else 'isolated-fixed-target-verifier-required; not implemented')
+                        else 'isolated-fixed-target-lean; operator-provisioned Linux Docker/Landrun')
         environment = {'python': '3.11+', 'lean_toolchain': (ROOT / 'lean-toolchain').read_text().strip(),
                        'mathlib_manifest_sha256_lf': text_hash(ROOT / 'lake-manifest.json'),
                        'runner_source_sha256_lf': text_hash(ROOT / 'tools/sog_bench.py'),
-                       'evaluator_source_sha256_lf': text_hash(ROOT / ('tools/sog_bench_curriculum.py' if track == 'graph-json' else 'tools/sog_bench_prose.py')),
+                       'evaluator_source_sha256_lf': evaluator_hashes[track],
                        'arbitrary_submission_execution': False,
                        'retrieval_policy': 'declare before collection; not enforced by this package'}
+        if track == 'lean':
+            environment.update(verifier_policy_sha256_lf=lean_policy_hash,
+                               verifier_included=False, hosted_execution=False)
         descriptor = {'schema_version': 1, 'id': row['id'], 'track': track,
                       'family': row['family'], 'split': row['split'], 'binding_sha256': row['binding_sha256'],
                       'prompt_file': 'prompt.json', 'response_template': 'response-template.json',
@@ -276,8 +284,10 @@ def task_assets(cores: list[dict], graphs: list[dict]) -> dict[str, bytes]:
         assets[stem + '/instruction.md'] = (
             '# ' + row['title'] + '\n\nRead prompt.json. Preserve the task identity, binding, assumptions '
             'and fixed target. Write your first unedited answer using response-template.json.\n\n'
-            'No gold answer is included in this task package. For Lean, do not execute untrusted '
-            'submissions on the host: an isolated fixed-target verifier is not supplied.\n'
+            'No gold answer is included in this task package.\n'
+            + ('The operator must provision the isolated Linux Docker/Landrun fixed-target verifier separately. '
+               'It is not included in this ZIP or hosted by the site. Never run untrusted Lean on the host.\n'
+               if track == 'lean' else '')
         ).encode('utf-8')
         index.append({'id': row['id'], 'track': track, 'family': row['family'],
                       'level': row['level'], 'library_domains': row['library_domains'],
@@ -377,6 +387,15 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     output.mkdir(parents=True, exist_ok=True)
     write = lambda path, value: (output / path).write_bytes(value)
     jsonl = lambda rows: ''.join(json.dumps(r, ensure_ascii=False, sort_keys=True) + '\n' for r in rows).encode()
+    def operator_guide(name):
+        # Keep repository-only setup and audit links useful after download.
+        # None of these operator guides are inside the prompt-only ZIP.
+        url = 'https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/'
+        text = (DATA.parent / name).read_text(encoding='utf-8')
+        text = re.sub(r'\]\(((?:reviews|lean-runtime)/[^)]+)\)',
+                      lambda m: f']({url}benchmarks/samplingoptimisationgeometrybench/{m[1]})', text)
+        text = re.sub(r'\]\(\.\./\.\./((?:docs|runs)/[^)]+)\)', r'](' + url + r'\1)', text)
+        return text.encode('utf-8')
     write('questions.jsonl', jsonl(prompts(cores)))
     for name, content in task_files.items():
         (output / name).parent.mkdir(parents=True, exist_ok=True)
@@ -400,7 +419,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
     write('EVALUATION.md', (DATA.parent / 'EVALUATION.md').read_bytes())
     # Public operator instructions only; never enumerate or read reservations.
     write('FAMILY_ISOLATION.md', (DATA.parent / 'FAMILY_ISOLATION.md').read_bytes())
-    write('ECOSYSTEM.md', (DATA.parent / 'ECOSYSTEM.md').read_bytes())
+    write('ECOSYSTEM.md', operator_guide('ECOSYSTEM.md'))
     write('HARBOR.md', (DATA.parent / 'HARBOR.md').read_bytes())
     # Source intake is documentation, not an admitted QA or copied source text.
     write('TEXTBOOK_EXERCISES.md', (DATA.parent / 'TEXTBOOK_EXERCISES.md').read_bytes())
@@ -419,13 +438,7 @@ def export(output: Path, cores: list[dict] | None = None) -> None:
         write('lean/' + c['id'] + '-reference.lean', c['lean_reference'].encode())
     for name in project_licensing.LICENSE_FILES:
         write(name, (ROOT / name).read_bytes())
-    guide = (DATA.parent / 'README.md').read_text(encoding='utf-8')
-    # Audit records deliberately stay out of ML/reference bundles. Their
-    # repository-relative links must still work in the downloaded guide.
-    guide = re.sub(r'\]\((reviews/[^)]+)\)',
-                   r'](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/benchmarks/samplingoptimisationgeometrybench/\1)',
-                   guide)
-    write('README.md', guide.encode('utf-8'))
+    write('README.md', operator_guide('README.md'))
     manifest = {'name': 'SamplingOptimisationGeometryBench', 'version': load()['version'],
                 'split': 'public-dev', 'cores': len(cores), 'qa_views': len(prompts(cores)), 'graph_tasks': len(graphs),
                 'track_counts': {t: sum(t in c['track_levels'] for c in cores) for t in TRACKS},

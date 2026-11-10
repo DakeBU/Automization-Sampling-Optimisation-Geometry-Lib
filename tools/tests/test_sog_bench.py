@@ -27,8 +27,10 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 38)
-        self.assertEqual(len(prompts), 56)
+        declared = bench.load()['cores']
+        self.assertEqual([c['id'] for c in self.cores], [c['id'] for c in declared])
+        self.assertCountEqual([(r['id'], r['track']) for r in prompts],
+                              [(c['id'], track) for c in declared for track in c['track_levels']])
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -105,7 +107,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 56)
+            self.assertEqual(manifest['qa_views'], sum(len(c['track_levels']) for c in self.cores))
             self.assertEqual(manifest['numbered_textbook_exercises'], 3)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
@@ -127,6 +129,10 @@ class BenchTests(unittest.TestCase):
             guide = (output/'README.md').read_text(encoding='utf-8')
             self.assertNotIn('](reviews/', guide)
             self.assertIn('/blob/main/benchmarks/samplingoptimisationgeometrybench/reviews/formal-3/README.md', guide)
+            ecosystem = (output/'ECOSYSTEM.md').read_text(encoding='utf-8')
+            for text in (guide, ecosystem):
+                self.assertNotIn('](lean-runtime/', text)
+                self.assertIn('/blob/main/benchmarks/samplingoptimisationgeometrybench/lean-runtime/WORKSPACE.md', text)
             self.assertFalse((output/'reviews').exists())  # Historical rejected text is audit-only.
             for name, digest in manifest['files'].items():
                 self.assertEqual(digest, bench.sha((output / name).read_bytes()))
@@ -261,7 +267,7 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 38)
+        self.assertEqual(coverage['unique_mathematical_cores'], len(bench.load()['cores']))
         self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
                          {'samplewiki', 'mcmc'})
         self.assertEqual([c['id'] for c in self.cores if c['track_levels'].get('natural-language') == 'L5'],
@@ -270,7 +276,7 @@ class BenchTests(unittest.TestCase):
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 38)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], len(self.cores))
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -278,6 +284,19 @@ class BenchTests(unittest.TestCase):
         for domain in bench.curriculum.curriculum()['domains']:
             self.assertTrue(any(domain in c['library_domains'] and c['track_levels'].get('natural-language') == 'L1' for c in self.cores))
             self.assertTrue(any(domain in c['library_domains'] and bench.has_lean(c) for c in self.cores))
+
+    def test_product_coupling_is_an_original_foundation_view_of_a_public_family(self):
+        by_id = {c['id']: c for c in self.cores}
+        core = by_id['sogb-041']
+        self.assertEqual(core['track_levels'], {'natural-language': 'L2', 'lean': 'L1'})
+        self.assertEqual(core['family'], by_id['sogb-012']['family'])
+        self.assertEqual(core['family'], by_id['sogb-015']['family'])
+        self.assertFalse(bench.has_lean(by_id['sogb-012']))
+        self.assertNotIn('textbook_exercise', core)
+        self.assertTrue(core['declaration'].endswith('.Transport.isCoupling_prod'))
+        self.assertIn('MeasureTheory.SFinite', core['dependencies']['mathlib'])
+        self.assertIn('constructor <;> simp', core['lean_reference'])
+        self.assertNotIn('constructor <;> simp', core['lean_task'])
 
     def test_compiler_scope_tracks_real_imports_and_pins_not_unrelated_modules(self):
         selected = [c for c in self.cores if c['id'] == 'sogb-016']

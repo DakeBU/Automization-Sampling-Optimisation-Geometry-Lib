@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.19.0-dev",
+  "version": "0.20.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -1231,6 +1231,75 @@
         "lean": "L3",
         "natural-language": "L3"
       }
+    },
+    {
+      "id": "sogb-041",
+      "family": "coupling-swap-near-optimality",
+      "domain": "transport",
+      "library_domains": [
+        "statistical-optimal-transport"
+      ],
+      "track_levels": {
+        "lean": "L1",
+        "natural-language": "L2"
+      },
+      "difficulty": "foundation",
+      "difficulty_reason": "The prose track derives the two coordinate pushforwards on measurable rectangles. The Lean track reads one coupling definition and recognizes the two directly applicable product-marginal identities; no measure extensionality or optimizer argument is needed.",
+      "skills": [
+        "definition",
+        "calculation",
+        "proof"
+      ],
+      "title": "Constructing a coupling by taking the product law",
+      "assumptions": [
+        "Let \\(X, Y\\) be arbitrary measurable spaces and \\(\\mu,\\nu\\) probability measures on them, respectively. Equip \\(X\\times Y\\) with the product measurable structure."
+      ],
+      "question": "Show that \\(\\mu\\otimes\\nu\\) is a coupling of \\(\\mu\\) and \\(\\nu\\). Compute its two coordinate pushforwards, pointing out which of the two probability normalizations is used in each computation. Does this verify cost optimality?",
+      "steps": [
+        "Write \\(\\gamma=\\mu\\otimes\\nu\\). A coupling has the prescribed first and second coordinate pushforwards. Both projections \\(\\pi_X,\\pi_Y\\) are measurable. Check the two measures on every measurable subset of their respective spaces.",
+        "For measurable \\(A\\subseteq X\\), the first projection has inverse image \\(A\\times Y\\). Use the product formula and \\(\\nu(Y)=1\\): \\[\\begin{aligned}\\big((\\pi_X)_\\#\\gamma\\big)(A)&=\\gamma(A\\times Y)\\\\&=\\mu(A)\\,\\nu(Y)=\\mu(A).\\end{aligned}\\]",
+        "For measurable \\(B\\subseteq Y\\), the second projection has inverse image \\(X\\times B\\). Here it is \\(\\mu(X)=1\\) that is used: \\[\\begin{aligned}\\big((\\pi_Y)_\\#\\gamma\\big)(B)&=\\gamma(X\\times B)\\\\&=\\mu(X)\\,\\nu(B)=\\nu(B).\\end{aligned}\\]",
+        "These two identities show feasibility. They contain no transport cost or comparison with another coupling, and do not verify cost optimality."
+      ],
+      "rubric": [
+        {
+          "criterion": "Uses the two coordinate pushforwards as the coupling criterion, with the correct order.",
+          "points": 1
+        },
+        {
+          "criterion": "Establishes the first marginal, using the mass-one property of ν (explicitly or by a correct standard product-marginal identity that identifies this premise).",
+          "points": 1
+        },
+        {
+          "criterion": "Establishes the second marginal, using the mass-one property of μ (explicitly or by a correct standard product-marginal identity that identifies this premise).",
+          "points": 1
+        },
+        {
+          "criterion": "Distinguishes the exhibited feasible coupling from a claim of optimality.",
+          "points": 1
+        }
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.isCoupling_prod",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Measure/Transport.lean",
+      "context": "open MeasureTheory\nnamespace AutoSamplingTheory.TechnicalLemmas.Measure.Transport\ndef IsCoupling {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]\n    (γ : Measure (α × β)) (μ : Measure α) (ν : Measure β) : Prop :=\n  γ.fst = μ ∧ γ.snd = ν\nend AutoSamplingTheory.TechnicalLemmas.Measure.Transport\nopen AutoSamplingTheory.TechnicalLemmas.Measure.Transport\n",
+      "decoder_definitions": [
+        "For a measure on a product of measurable spaces, fst and snd are its pushforwards under the first and second projection. For the probability measures in this signature, the product measure assigns the product of the two marginal masses to measurable rectangles.",
+        "IsProbabilityMeasure is a Prop-valued typeclass stating that the measure has total mass one. IsCoupling γ μ ν is the conjunction of the two displayed pushforward equalities in the definition in the given Lean context."
+      ],
+      "lean_explanation": "The task supplies the exact local IsCoupling definition, not the answer theorem. The existing proof uses constructor to split the two marginal equalities; simp then applies the Mathlib lemmas Measure.fst_prod and Measure.snd_prod. Both lemmas require the second factor to be s-finite (a countable sum of finite measures); Lean obtains that instance from ν being a probability measure. For the mass-one simplification itself, the first identity uses ν being a probability and the second uses μ being a probability. An explicit proof can apply the two lemmas directly instead of simp.",
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.IsCoupling"
+        ],
+        "mathlib": [
+          "MeasureTheory.Measure.fst_prod",
+          "MeasureTheory.Measure.snd_prod",
+          "MeasureTheory.IsProbabilityMeasure",
+          "MeasureTheory.SFinite"
+        ]
+      },
+      "boundary": "The Lean conclusion is feasibility for the product law on arbitrary measurable spaces; it is not an optimal transport result. It does not mechanize the commentary about which assumptions are logically minimal. This is a narrow reconstruction of a real reusable local declaration, not a new Registry leaf or a formalization of the whole introductory coupling question.",
+      "source_note": "Original ASTIS exercise using the local product-coupling theorem (the feasibility witness for the Kantorovich problem in Chewi, Definition 1.3.1). It is not a copied textbook exercise. It shares the public coupling-swap-near-optimality family with the existing definition and mass-recovery items."
     }
   ]
 }

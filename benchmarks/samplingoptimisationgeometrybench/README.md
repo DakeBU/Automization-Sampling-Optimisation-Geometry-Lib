@@ -54,6 +54,8 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-035 | SampleWiki / MCMC | Transfer stopped work by a pathwise likelihood budget and refute the ideal-average substitute (L5) | TV comparison and single-phase work bounds are support only |
 | sogb-037 | MCMC / SampleWiki | Prove factor-one TV contraction under a common Markov kernel and test sharpness and the common-kernel assumption (L3) | Reconstruct the layer-cake argument for actual composed event masses (L3) |
 | sogb-038 | MCMC / Discrete Sampling | Prove fixed-mixture invariance and test the state-independent-weight assumption (L3) | Reconstruct the nonnegative finite-sum proof for an arbitrary invariant measure (L3) |
+| sogb-039 | Log-Concave Sampling | Exercise 1.7: derive compact Euclidean Poincaré with the same constant from compact smooth log-Sobolev (L4) | Derive genuine admissibility and the compact Poincaré conclusion, without a full form-domain claim (L4) |
+| sogb-040 | Log-Concave Sampling | Exercise 1.7: construct a local affine probability law and expand its finite KL (L3) | Reconstruct the actual-law quadratic KL result with the full-neighborhood remainder (L3) |
 
 These four reviewed additions retain their existing public IDs. StatOT
 Exercise 6 (`sogb-031`) remains on its separate proof-and-publication route.

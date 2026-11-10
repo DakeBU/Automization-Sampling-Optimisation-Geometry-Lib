@@ -42,7 +42,7 @@ Hilbert-space distinction. This is an NL exercise with owned Lean answers,
 not another fixed Lean reconstruction task. Both source pages were rendered
 and checked against the original wording; no source prose is reproduced.
 
-## Next real source route: Log-Concave Sampling Exercise 1.7
+## Log-Concave Sampling Exercise 1.7: two distinct conclusions
 
 The pinned August 20, 2026 edition has 333 pages and SHA-256
 `8818e8fb40c07bd70651bafe10e8ec4500197c836928330b90025ca47da52fae`.
@@ -51,12 +51,15 @@ is on printed p.43 / PDF p.55. Corollary 2.1.2 explicitly reuses the same
 expansion on printed p.50 / PDF p.62. The entire relevant exercise page and
 the PI/LSI conventions were inspected, not just a search snippet.
 
-This is **not another admitted QA**. The first actual prerequisite is tracked by
-`ASTIS-SHARED-bounded-density-kl-linearization`: the compensated-entropy integral
-limit for a finite measure and a uniformly a.e.-bounded measurable real test.
-Its exact Lean signature, actual compiler checks, semantic audit and later
-integration state are separate evidence. Do not infer a full exercise answer
-from that prerequisite.
+The two Bench questions share one public-development family. `sogb-039`
+asks for the compact Euclidean Poincaré implication (L4 in both tracks);
+`sogb-040` asks for the actual affine probability law and its finite KL
+expansion (L3 in both tracks). The Lean targets certify those conclusions,
+not a whole-exercise abstract form-domain result. The two proofs share the
+compensated-entropy integral limit; the Poincaré proof does not use the
+actual-law KL theorem. See [the independent reviews](reviews/formal-15/README.md).
+The levels are provisional and the current compiler and editorial states
+are reported separately by the generated exercise map.
 
 The immutable source-only proposal/review and corrected successor are retained
 under `proof-obligations/chewi-exercise-1-7/`. Their topology review is not a

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.18.0-dev",
+  "version": "0.19.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -1089,6 +1089,148 @@
       },
       "boundary": "The aligned Lean conclusion is the fixed-weight invariant-measure equality only. The state-dependent counterexample is prose, not a separate Lean claim. Markovness of the fixed mixture from Markov components is a distinct library lemma; neither result gives reversibility or mixing. This question shares the public random-scan family because the uniform mixture law in sogb-013 is the same construction specialized to a coordinate index.",
       "source_note": "Original question and counterexample over the project-owned KernelMixture.finiteMixture_invariant and its pointwise evaluation helper. The tracked ActualAugmentedKernelInvariance module uses this invariant-mixture lemma in its conditional mixture proof; RandomScanHeatBath uses the same pointwise mixture evaluation. This is an audit of a generic reusable argument, not a quotation or formalization claim about the full PBPS algorithm. Only project-original and Mathlib API material is used."
+    },
+    {
+      "assumptions": [
+        "Use exactly the mathematical premises in the question or fixed Lean target."
+      ],
+      "boundary": "Compact Euclidean smooth-test implication only. Admissibility is derived. No extension to a maximal closed form, abstract reversible semigroup, equality of optimal constants, or actual-law KL expansion is claimed by this declaration.",
+      "context": "set_option autoImplicit false\nnoncomputable section\nopen MeasureTheory Filter\nopen scoped Topology ContDiff RealInnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.CompactGradientSqrtPerturbation\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient (continuous_gradient_of_contDiff_one)\nopen AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation\nopen AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactLogSobolevPoincare.variance_le_of_compact_logSobolev",
+      "decoder_definitions": [
+        "The embedded infinite natural differentiability index denotes all finite derivative orders, not analyticity.",
+        "Poincare.Admissible μ f means that f, its squared centered value, and its squared genuine gradient norm are all integrable. Poincare.variance is the integral of the squared centered value; Poincare.dirichletEnergy is the integral of the squared gradient norm."
+      ],
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.CompactGradientSqrtPerturbation.eventually_contDiff_and_integrable_sqrt_perturbation",
+          "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy.eventually_integrable_and_tendsto_sqrt_perturbation_energy",
+          "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff.logSobolev_of_compact_smooth_tests",
+          "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq"
+        ],
+        "mathlib": [
+          "MeasureTheory.integral_sub",
+          "fderiv_sub_const",
+          "InnerProductSpace.toDual",
+          "le_of_tendsto_of_tendsto"
+        ]
+      },
+      "difficulty_reason": "Legitimate square-root LSI domain and two distinct dominated limits.",
+      "domain": "sampling",
+      "family": "chewi-lcs-2026-08-20-exercise-1-7",
+      "id": "sogb-039",
+      "lean_explanation": "Center the compact function, justify the true noncompact square-root domain, cancel the mass-one terms, and pass the scaled entropy and energy inequalities to the punctured limit.",
+      "library_domains": [
+        "log-concave-sampling"
+      ],
+      "question": "Let \\(\\mu\\) be a Borel probability measure on a finite-dimensional real\nHilbert space. For every compactly supported smooth real \\(v\\), assume\n\\[\n  \\operatorname{Ent}_\\mu(v^2)\\le 2C\\int\\|\\nabla v\\|^2\\,d\\mu,\n  \\qquad\n  \\operatorname{Ent}_\\mu(q)=\\int q\\log q\\,d\\mu\n        -\\Big(\\int q\\,d\\mu\\Big)\\log\\Big(\\int q\\,d\\mu\\Big),\n\\]\nwhere \\(0\\log0=0\\) and \\(C\\) is fixed. Prove by linearization that every\ncompactly supported smooth \\(f\\) satisfies\n\\[\n  \\operatorname{Var}_\\mu(f)\\le C\\int\\|\\nabla f\\|^2\\,d\\mu.\n\\]\nUse the square root of a mass-one affine perturbation built from \\(f\\).\nJustify its admissibility as an LSI test and justify the integrals and\nlimits. In particular, establish integrability of \\(f\\), its squared centered\nvalue, and \\(\\|\\nabla f\\|^2\\); do not assume that \\(f\\) already has mean zero.",
+      "rubric": [
+        {
+          "criterion": "Integrability and centering: Establishes integrability of the original \\(f\\), its centered square, and \\(\\|\\nabla f\\|^2\\); centers \\(f\\) and proves mass one for a positive small affine perturbation. One argument may cover multiple integrability obligations. Derivative support is a valid route, not a mandatory phrase.",
+          "points": 1
+        },
+        {
+          "criterion": "Legitimate LSI test domain: Justifies the use of the actual square-root test via cutoffs or another valid domain argument without assuming a stronger LSI. In a library-assisted run, an allowed domain extension plus checked hypotheses suffices.",
+          "points": 1
+        },
+        {
+          "criterion": "Entropy limit: Justifies entropy normalization, cancellation of the linear term, and the \\(1/2\\) coefficient using domination or an equivalent integrated uniform remainder. Direct expansion of \\(p\\log p\\) is as valid as compensation.",
+          "points": 1
+        },
+        {
+          "criterion": "Energy limit and PI: Justifies the genuine square-root energy limit with coefficient \\(1/4\\), passes the inequality using only positive squared parameters, recovers the original variance/gradient, and obtains \\(C\\) with no stronger premise.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "assumption-audit",
+        "composition"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactLogSobolevPoincare.lean",
+      "source_note": "Exercise 1.7, printed p.43 / PDF p.55; compact Euclidean test classes and normalization in §2.1.1, printed pp.48–49 / PDF pp.60–61",
+      "steps": [
+        "Center without preserving support: Compact support and continuity make f bounded and integrable. Probability normalization makes the centered function mean-zero. Subtracting a constant can destroy compact support of the function, but the derivative retains compact support. \\[\\begin{gathered}g=f-\\int f\\,d\\mu,\\\\\\int g\\,d\\mu=0,\\qquad Dg=Df.\\end{gathered}\\]",
+        "Justify the noncompact square-root test: For sufficiently small absolute parameter, bounded g makes the affine density lie between one half and three halves. Its square root is smooth. Mass and entropy integrands are integrable by boundedness, and the genuine gradient energy is integrable by the derivative formula and the compact support of Df. The previously proved cutoff extension, rather than the compact premise alone, makes this test legitimate. \\[\\begin{gathered}p_\\varepsilon=1+\\varepsilon g,\\quad u_\\varepsilon=\\sqrt{p_\\varepsilon},\\\\\\nabla u_\\varepsilon=\\frac{\\varepsilon\\,\\nabla g}{2\\sqrt{p_\\varepsilon}}.\\end{gathered}\\]",
+        "Normalize and compensate: The affine density has mass one. The homogeneous entropy normalization vanishes, and the integrated linear compensation also cancels. This step compares real integrals, not Radon–Nikodym laws. \\[\\begin{gathered}\\int p_\\varepsilon\\,d\\mu=1,\\quad k(t)=t\\log t+1-t,\\\\\\operatorname{Ent}_\\mu(u_\\varepsilon^2)=\\int k(p_\\varepsilon)\\,d\\mu\\\\\\le2C\\int\\|\\nabla u_\\varepsilon\\|^2\\,d\\mu.\\end{gathered}\\]",
+        "Divide by ε² and take the two limits: For nonzero ε divide by its positive square. Taylor's integral remainder for k at 1 bounds its quotient by g² and gives pointwise limit g²/2. The energy quotient is bounded by half the squared gradient of g and tends to a quarter of it. Dominated convergence applies to both. Closedness of real order keeps the same constant; no division by C is used. \\[\\begin{gathered}\\frac{\\int k(p_\\varepsilon)\\,d\\mu}{\\varepsilon^2}\\to\\frac12\\int g^2\\,d\\mu,\\\\\\frac{\\int\\|\\nabla u_\\varepsilon\\|^2\\,d\\mu}{\\varepsilon^2}\\to\\frac14\\int\\|\\nabla f\\|^2\\,d\\mu.\\end{gathered}\\]"
+      ],
+      "textbook_exercise_id": "chewi-lcs-2026-08-20-exercise-1-7",
+      "title": "Exercise 1.7: compact Euclidean log-Sobolev implies Poincaré",
+      "track_levels": {
+        "lean": "L4",
+        "natural-language": "L4"
+      }
+    },
+    {
+      "assumptions": [
+        "Use exactly the mathematical premises in the question or fixed Lean target."
+      ],
+      "boundary": "The actual-law quadratic KL expansion and eventual finite probability are proved. Corollary 2.1.2 is a source consumer only; no transport inequality, T2, PI, Fisher or form-domain conclusion is proved here.",
+      "context": "set_option autoImplicit false\nnoncomputable section\nopen MeasureTheory Filter\nopen scoped Topology Asymptotics\nopen AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation\nopen AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedPerturbationLaw",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.InformationTheory.AffinePerturbationKL.klDiv_affine_perturbation_second_order",
+      "decoder_definitions": [
+        "withDensity constructs the measure with the given nonnegative extended-real density relative to the reference measure. ENNReal.ofReal sends negative inputs to zero. The real value of an extended-real divergence is an ordinary divergence only when finiteness is known."
+      ],
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedPerturbationLaw.eventually_isProbabilityMeasure_and_klDiv_eq_one_add_mul",
+          "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation.tendsto_integral_klFun_one_add_mul_div_sq"
+        ],
+        "mathlib": [
+          "ENNReal.ofReal_lt_top",
+          "ENNReal.toReal_ofReal",
+          "MeasureTheory.withDensity_one",
+          "InformationTheory.klDiv_self",
+          "Asymptotics.isLittleO_of_tendsto"
+        ]
+      },
+      "difficulty_reason": "Actual-law normalization, finite KL and a two-sided remainder.",
+      "domain": "sampling",
+      "family": "chewi-lcs-2026-08-20-exercise-1-7",
+      "id": "sogb-040",
+      "lean_explanation": "Use the canonical actual-law identity, transfer the independent compensated integral limit, and prove the zero endpoint before converting the vanishing quotient into little-o.",
+      "library_domains": [
+        "log-concave-sampling"
+      ],
+      "question": "Let \\(\\mu\\) be a probability measure on a measurable space, and let \\(f\\) be\na real a.e. strongly measurable function such that \\(|f|\\le M\\) almost\neverywhere for some finite \\(M\\) and \\(\\int f\\,d\\mu=0\\). For real\n\\(\\varepsilon\\), put \\(d\\nu_\\varepsilon=(1+\\varepsilon f)_+\\,d\\mu\\).\n\nFor probability laws, use canonical extended-real KL: it is \\(+\\infty\\)\nwithout absolute continuity; otherwise it is the extended integral\n\\(\\int r\\log r\\,d\\mu\\), where \\(r=d\\nu/d\\mu\\) and \\(0\\log0=0\\).\nProve that for all sufficiently small \\(|\\varepsilon|\\), including zero,\n\\(\\nu_\\varepsilon\\) is a probability and its canonical KL relative to\n\\(\\mu\\) is finite. For its ordinary real value \\(K_\\varepsilon\\) after\nthis finiteness is established, prove\n\\[\n K_\\varepsilon=\\frac{\\varepsilon^2}{2}\\int f^2\\,d\\mu+o(\\varepsilon^2)\n \\qquad(\\varepsilon\\to0).\n\\]\nAccount for the actual probability law and justify passing the expansion\nthrough the integral. The limit is two-sided.",
+      "rubric": [
+        {
+          "criterion": "Local law: Justifies a measurable density up to a null set, eventual a.e. positivity including degenerate bounds, exact mass one, absolute continuity and the actual density relative to \\(\\mu\\). An argument uniform in the bound need not treat \\(M=0\\) separately.",
+          "points": 1
+        },
+        {
+          "criterion": "Finite canonical KL: Establishes the genuine extended-real finiteness from the domain and integrability of the density entropy, or an equivalent valid formula, before interpreting the real value. An identity for a totalized real conversion alone is insufficient.",
+          "points": 1
+        },
+        {
+          "criterion": "Quadratic coefficient: Cancels the integrated linear term (with or without a compensated function) and establishes the \\(1/2\\) coefficient with a legitimate integrable envelope or uniform remainder. Finiteness alone is not this limit.",
+          "points": 1
+        },
+        {
+          "criterion": "Full remainder: Proves the two-sided little-o and the zero remainder at \\(\\nu_0=\\mu\\); a proof applying the positive-side estimate also to \\(-f\\) is valid. An all-small-parameters argument may include zero implicitly. A quotient value assigned at zero is not convergence evidence.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "assumption-audit",
+        "composition"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/InformationTheory/AffinePerturbationKL.lean",
+      "source_note": "Exercise 1.7 / (1.E.1), printed p.43 / PDF p.55; explicit consumer Corollary 2.1.2, printed p.50 / PDF p.62",
+      "steps": [
+        "Construct the probability law: Essential boundedness puts the affine density in [1/2,3/2] a.e. for small |ε|, including the degenerate bound M=0. Centering and reference probability give mass one. The density is positive a.e.; withDensity of its ENNReal image yields the actual probability measure and its a.e. Radon–Nikodym derivative. \\[\\begin{gathered}p_\\varepsilon=1+\\varepsilon f,\\quad \\tfrac12\\le p_\\varepsilon\\le\\tfrac32\\ \\text{a.e.},\\\\\\int p_\\varepsilon\\,d\\mu=1,\\quad d\\nu_\\varepsilon=p_\\varepsilon\\,d\\mu.\\end{gathered}\\]",
+        "Prove finite extended-real KL first: The canonical KL is the nonnegative-real image of the compensated integral, which is finite. That establishes KL < ∞ independently of toReal. Nonnegativity of k makes its integral nonnegative, so the real KL then equals the actual real integral. \\[\\begin{gathered}k(t)=t\\log t+1-t,\\\\K_\\varepsilon^{\\mathrm{ext}}=\\operatorname{ofReal}\\!\\left(\\int k(p_\\varepsilon)\\,d\\mu\\right)<\\infty,\\\\K_\\varepsilon=(K_\\varepsilon^{\\mathrm{ext}})_{\\mathbb R}=\\int k(p_\\varepsilon)\\,d\\mu.\\end{gathered}\\]",
+        "Use the compensated-integral limit: At 1, k and its first derivative vanish. Taylor's integral remainder divides by ε² only off zero; the positive segment gives the f² envelope, and the limit is f²/2. The analytic parent proves this scalar coefficient and domination, then passes the integral to the limit. \\[\\begin{gathered}\\frac{k(1+\\varepsilon f)}{\\varepsilon^2}=f^2\\int_0^1\\frac{1-s}{1+s\\varepsilon f}\\,ds,\\\\0\\le\\frac{k(1+\\varepsilon f)}{\\varepsilon^2}\\le f^2,\\\\\\frac{K_\\varepsilon}{\\varepsilon^2}\\to\\frac12\\int f^2\\,d\\mu.\\end{gathered}\\]",
+        "Include the exact zero endpoint: At ε=0 the density is one, so the tilted law equals μ and its KL is zero. The remainder vanishes there. Combine the punctured quotient limit with the exact endpoint to obtain little-o on the full neighborhood. \\[\\begin{gathered}R_\\varepsilon=K_\\varepsilon-\\frac{\\varepsilon^2}{2}\\int f^2\\,d\\mu,\\\\R_0=0,\\qquad R_\\varepsilon=o(\\varepsilon^2).\\end{gathered}\\]"
+      ],
+      "textbook_exercise_id": "chewi-lcs-2026-08-20-exercise-1-7",
+      "title": "Exercise 1.7: the actual affine-law KL expansion (1.E.1)",
+      "track_levels": {
+        "lean": "L3",
+        "natural-language": "L3"
+      }
     }
   ]
 }

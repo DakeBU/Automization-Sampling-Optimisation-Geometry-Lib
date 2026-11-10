@@ -55,7 +55,7 @@ class PairedReviewTests(unittest.TestCase):
 
     def test_actual_distinct_actor_evidence_admits_one_conclusion_only_pair(self):
         rows = formal.statuses(self.cores)
-        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028','sogb-032','sogb-037','sogb-038'})
+        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028','sogb-032','sogb-037','sogb-038','sogb-039','sogb-040'})
         self.assertEqual(rows['sogb-015']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-015']['formal_alignment'], 'conclusion-only')
         self.assertTrue(rows['sogb-015']['remaining_unformalized'])
@@ -63,7 +63,11 @@ class PairedReviewTests(unittest.TestCase):
         self.assertEqual(rows['sogb-032']['formal_alignment'], 'conclusion-only')
         self.assertEqual(rows['sogb-038']['editorial'], 'accepted-after-repair')
         self.assertEqual(rows['sogb-038']['formal_alignment'], 'conclusion-only')
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 36)
+        for identity in ('sogb-039', 'sogb-040'):
+            self.assertEqual(rows[identity]['editorial'], 'accepted')
+            self.assertEqual(rows[identity]['formal_alignment'], 'conclusion-only')
+            self.assertTrue(rows[identity]['remaining_unformalized'])
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 38)
 
     def test_common_kernel_review_preserves_rejected_predecessor(self):
         directory = formal.REVIEWS / 'formal-13'

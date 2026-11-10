@@ -27,8 +27,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 36)
-        self.assertEqual(len(prompts), 52)
+        self.assertEqual(len(self.cores), 38)
+        self.assertEqual(len(prompts), 56)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -40,7 +40,7 @@ class BenchTests(unittest.TestCase):
     def test_prompt_export_has_no_answers_rubrics_or_reference_proofs(self):
         allowed = {'id', 'family', 'domain', 'library_domains', 'skills', 'title', 'split', 'assumptions', 'binding_sha256', 'track', 'level', 'question'}
         for row in bench.prompts(self.cores):
-            self.assertEqual(set(row), allowed | ({'exercise_source'} if row['id'] in {'sogb-029', 'sogb-030'} else set()))
+            self.assertEqual(set(row), allowed | ({'exercise_source'} if row['id'] in {'sogb-029', 'sogb-030', 'sogb-039', 'sogb-040'} else set()))
             self.assertNotIn(':= by\n  intro', row['question'])
         self.assertTrue(all('-- Replace this comment' in r['question']
                             for r in bench.prompts(self.cores) if r['track'] == 'lean'))
@@ -105,7 +105,8 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 52)
+            self.assertEqual(manifest['qa_views'], 56)
+            self.assertEqual(manifest['numbered_textbook_exercises'], 3)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -260,7 +261,7 @@ class BenchTests(unittest.TestCase):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 36)
+        self.assertEqual(coverage['unique_mathematical_cores'], 38)
         self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
                          {'samplewiki', 'mcmc'})
         self.assertEqual([c['id'] for c in self.cores if c['track_levels'].get('natural-language') == 'L5'],
@@ -269,7 +270,7 @@ class BenchTests(unittest.TestCase):
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 36)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 38)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -542,6 +543,29 @@ class BenchTests(unittest.TestCase):
             exercises.checked_axioms(output.replace('Quot.sound', 'sorryAx'), names)
         with self.assertRaises(ValueError):
             exercises.checked_axioms('', names)
+
+    def test_exercise_1_7_preserves_distinct_targets_and_one_public_family(self):
+        import sog_bench_lean as runtime
+
+        cores = [c for c in self.cores if c['id'] in {'sogb-039', 'sogb-040'}]
+        self.assertEqual([c['id'] for c in cores], ['sogb-039', 'sogb-040'])
+        self.assertEqual({c['family'] for c in cores}, {'chewi-lcs-2026-08-20-exercise-1-7'})
+        self.assertEqual({c['split'] for c in cores}, {'public-dev'})
+        exercise = cores[0]['textbook_exercise']
+        self.assertEqual(exercise, cores[1]['textbook_exercise'])
+        self.assertEqual((exercise['book_page'], exercise['pdf_page']), (43, 55))
+        self.assertNotIn('source_assumptions', exercise)
+        owners = {c['source_file'].removesuffix('.lean').replace('/', '.') for c in cores}
+        self.assertEqual(len(owners), 2)
+        for core, level in zip(cores, ('L4', 'L3'), strict=True):
+            self.assertEqual(core['track_levels'], {'natural-language': level, 'lean': level})
+            self.assertFalse(owners.intersection(runtime.local_imports(core['imports'])))
+            packet = runtime.packet(core)
+            descriptor = json.loads(packet['operator.json'])
+            self.assertEqual(descriptor['binding_sha256'], core['binding_sha256'])
+            self.assertNotIn('source_components', json.loads(packet['agent/prompt.json']))
+            self.assertTrue(all(c['declaration'].encode() not in packet['agent/Solution.lean.txt'] for c in cores))
+        self.assertNotEqual(*(exercises.question_component(exercise, c['declaration']) for c in cores))
 
     def test_exercise_sources_allow_hash_pinned_primary_books_not_only_arxiv(self):
         data = json.loads(exercises.DATA.read_text(encoding='utf-8'))

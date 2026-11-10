@@ -9,6 +9,7 @@ import json
 import re
 from pathlib import Path
 import threading
+from urllib.parse import parse_qs, urlsplit
 
 from playwright.sync_api import sync_playwright
 
@@ -139,10 +140,19 @@ def main() -> None:
             page.wait_for_url('**/textbook-exercises/index.html')
             page.get_by_role('heading', name='Numbered textbook exercises', exact=True).wait_for(state='visible')
             assert page.get_by_role('heading', name='Numbered textbook exercises', exact=True).is_visible()
+            component_questions = {}
             for exercise in exercises:
                 assert exercise['parts'] and exercise['answer_declarations']
+                titles = {c['item_id']: c['title'] for c in exercise.get('source_components', [])}
                 for question in exercise['questions']:
-                    assert page.get_by_role('link', name=question['core_id'], exact=True).is_visible()
+                    identity = question['core_id']
+                    component = question.get('component_id')
+                    link = page.locator(f'a[href="../{identity}.html"]')
+                    assert link.is_visible() and link.inner_text() == titles.get(component, identity)
+                    if component:
+                        component_questions[identity] = (titles[component], {
+                            answer['declaration'] for answer in exercise['answer_declarations']
+                            if answer['component_id'] == component})
             page.screenshot(path=str(args.evidence / 'textbook-exercise-directory.png'), full_page=True)
             page.goto(base + HUB + 'index.html')
             editorial = page.request.get(base + HUB + 'downloads/editorial-review.json').json()
@@ -169,6 +179,21 @@ def main() -> None:
                 page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
                 page.evaluate('() => MathJax.startup.promise')
                 assert page.locator('details[open]').count() == 0
+                if identity in component_questions:
+                    title, declarations = component_questions[identity]
+                    scope = page.locator('.sog-exercise-scope > details')
+                    scope.locator('summary').first.click()
+                    components = scope.locator('details')
+                    assert components.first.locator('summary').inner_text() == title
+                    components.first.locator('summary').click()
+                    assert components.first.get_by_text('Source component for this question', exact=True).is_visible()
+                    actual = set()
+                    for link in components.first.locator('a[href*="underlying-lean-graph/index.html?focus="]').all():
+                        assert link.is_visible()
+                        actual.update(parse_qs(urlsplit(link.get_attribute('href')).query)['focus'])
+                    assert actual == {'decl:' + name for name in declarations}
+                    components.first.locator('summary').click()
+                    scope.locator('summary').first.click()
                 prompt=page.locator('#natural-language [data-sog-copy-prompt]')
                 expected_prompt=page.request.get(base+HUB+prompt.get_attribute('data-sog-copy-prompt')).text()
                 prompt.click()
@@ -235,7 +260,7 @@ def main() -> None:
                 for span in page.locator('[data-math-original]').all():
                     assert span.locator('mjx-container').count() == 1, (core['id'], span.get_attribute('data-math-original'))
                 check_visible_equations(page)
-                if core['id'] in {'sogb-032', 'sogb-033', 'sogb-034', 'sogb-035', 'sogb-037', 'sogb-038'}:
+                if core['id'] in {'sogb-032', 'sogb-033', 'sogb-034', 'sogb-035', 'sogb-037', 'sogb-038'} or core['id'] in component_questions:
                     page.set_viewport_size({'width': 390, 'height': 915})
                     page.reload()
                     page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')

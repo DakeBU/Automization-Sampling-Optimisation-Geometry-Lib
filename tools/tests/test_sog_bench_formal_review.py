@@ -84,6 +84,20 @@ class PairedReviewTests(unittest.TestCase):
         self.assertEqual(old['question'], new['question'])
         self.assertEqual(old['rubric'], new['rubric'])
 
+    def test_random_scan_keeps_level_review_and_exact_rubric_overlay(self):
+        directory = formal.REVIEWS / 'formal-18'
+        previous = directory / 'preflight-l4'
+        read_core = lambda root: json.loads((root / 'packets/reviewer-input.json').read_bytes())['mathematical_cores'][0]
+        original, repaired_level = read_core(previous), read_core(directory)
+        final = next(c for c in self.cores if c['id'] == 'sogb-043')
+        self.assertEqual(formal.round_statuses([original], previous)['sogb-043']['editorial'], 'repair-required')
+        self.assertEqual(formal.round_statuses([final], previous)['sogb-043']['editorial'], 'stale')
+        self.assertEqual(formal.round_statuses([final], directory)['sogb-043']['editorial'], 'accepted-after-repair')
+        self.assertEqual({k for k in final if final[k] != repaired_level[k]}, {'binding_sha256', 'rubric'})
+        self.assertEqual(final['rubric'][1:], repaired_level['rubric'][1:])
+        for key in ('lean_task', 'lean_reference', 'question', 'steps'):
+            self.assertEqual(original[key], final[key])
+
     def test_common_kernel_review_preserves_rejected_predecessor(self):
         directory = formal.REVIEWS / 'formal-13'
         previous = directory / 'predecessor-repair-required'

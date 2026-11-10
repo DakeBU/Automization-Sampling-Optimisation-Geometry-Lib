@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.24.0-dev",
+  "version": "0.25.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -1384,6 +1384,84 @@
       },
       "boundary": "This original task is about the compiled conditional ASTIS pairing estimate, not Chewi's numbered theorem. The printed optimal-map/probability specialization, equivalence of the source's score with the chosen canonical RN gradient, KL first variation, metric/law representation and existence of an optimal coupling are not proved here. An a.e. identity of functions alone is not a classical-gradient identity.",
       "source_note": "Original ASTIS exposition based on the owned CanonicalFisherTransportPairing module (Apache-2.0), motivated by the Cauchy–Schwarz line in Sinho Chewi, Log-Concave Sampling, pinned August 9, 2026 edition, proof of Theorem 8.4.1, printed p.221 / PDF p.233. See the existing Fisher transport proof reader for the immutable source link and the separate domain-mismatch audit. No textbook wording, restricted data or numbered-theorem completion is claimed."
+    },
+    {
+      "id": "sogb-043",
+      "family": "random-scan-null-atoms",
+      "domain": "sampling",
+      "library_domains": [
+        "discrete-sampling",
+        "mcmc"
+      ],
+      "track_levels": {
+        "natural-language": "L3",
+        "lean": "L3"
+      },
+      "difficulty": "intermediate",
+      "difficulty_reason": "Both tracks combine several finite proof steps: split by atom support, use the singleton law only at supported starts, identify the common retained fiber at a compatible site, and turn pairwise balance into reversibility. Lean must express the off-site equality through Fin.succAbove and rearrange the finite sum, but the final atomic-to-kernel bridge is already available without a new analytic or domain adapter.",
+      "skills": [
+        "proof",
+        "composition",
+        "assumption-audit",
+        "counterexample"
+      ],
+      "title": "From random-site conditional updates to reversibility",
+      "assumptions": [
+        "Let \\(n\\ge0\\), \\(X=\\{0,1\\}^{n+1}\\) with all subsets measurable, and \\(\\mu\\) be any probability law on \\(X\\). Write \\(\\mu(x)=\\mu(\\{x\\})\\). Let \\(K\\) be the actual uniform single-site heat-bath kernel: choose one coordinate uniformly and resample it conditionally on the retained coordinates, with the library's fixed versions on null fibers.",
+        "For site \\(i\\) let \\(x_{-i}\\) be the tuple of retained coordinates and \\(F_i(x)=\\{z\\in X:z_{-i}=x_{-i}\\}\\). At a start \\(x\\) with \\(\\mu(x)>0\\), the singleton transition is the average of the site terms \\[\\begin{aligned}K(x,\\{y\\})&=\\frac1{n+1}\\sum_{i=0}^{n}q_i(x,y),\\\\q_i(x,y)&=\\begin{cases}\\mu(y)/\\mu(F_i(x))& x_{-i}=y_{-i},\\\\0&\\text{otherwise.}\\end{cases}\\end{aligned}\\] No formula at a null start is assumed. The sum is over the single chosen coordinate, not a full sweep."
+      ],
+      "question": "Prove singleton detailed balance and use it to prove reversibility of \\(K\\) for \\(\\mu\\): for all \\(A,B\\subseteq X\\), \\[\\begin{aligned}\\int_A K(x,B)\\,d\\mu(x)\\\\=\\int_B K(y,A)\\,d\\mu(y).\\end{aligned}\\] Do not assume full support. Does this imply convergence to \\(\\mu\\) from every start? Justify your answer.",
+      "steps": [
+        "Define \\(J(x,y)=\\mu(x)K(x,\\{y\\})\\). If both atom masses vanish, both fluxes are zero. If \\(\\mu(x)=0<\\mu(y)\\), use the singleton formula at \\(y\\), never at \\(x\\). Each fiber \\(F_i(y)\\) contains \\(y\\) and therefore has positive mass; every allowed summand has numerator \\(\\mu(x)=0\\). Thus \\(K(y,\\{x\\})=0\\) and \\(J(x,y)=J(y,x)=0\\). The case with \\(x,y\\) reversed follows by interchanging them.",
+        "If both masses are positive, each retained fiber of either start has positive mass. A site with \\(x_{-i}\\ne y_{-i}\\) contributes zero to both fluxes. At a compatible site, \\(F_i(x)=F_i(y)\\), so the two unaveraged flux terms agree: \\[\\begin{aligned}\\mu(x)q_i(x,y)&=\\frac{\\mu(x)\\mu(y)}{\\mu(F_i(x))}\\\\&=\\mu(y)q_i(y,x).\\end{aligned}\\] Sum over the same sites with the same weight \\(1/(n+1)\\). This proves \\(J(x,y)=J(y,x)\\) for every pair, without dividing by a null mass.",
+        "On this finite space, expand the kernel on a set as the sum of singleton masses and the integral against \\(\\mu\\) as a weighted sum. Then \\[\\begin{aligned}\\int_A K(x,B)\\,d\\mu(x)&=\\sum_{x\\in A}\\sum_{y\\in B}J(x,y)\\\\&=\\sum_{y\\in B}\\sum_{x\\in A}J(y,x)\\\\&=\\int_B K(y,A)\\,d\\mu(y).\\end{aligned}\\] The middle step uses atomic balance and reorders a finite sum. No irreducibility is needed.",
+        "Reversibility and \\(K(x,X)=1\\) give invariance by taking \\(A=X\\), not convergence from every start. For \\(n=1\\), give mass \\(1/2\\) to each of \\(00,11\\) and zero elsewhere. Each supported state is the only supported point in either of its retained fibers, so a single-site update leaves it fixed. Starting at \\(00\\) gives the same point mass at every time, distinct from \\(\\mu\\). The two positive-mass states do not communicate."
+      ],
+      "rubric": [
+        {
+          "points": 1,
+          "criterion": "Justifies balance whenever either atom has zero mass without applying a positive-start formula at a null start. Accept the supported-start calculation or any equivalent argument that accounts for null atoms or null fibers."
+        },
+        {
+          "points": 1,
+          "criterion": "For two supported atoms identifies symmetric site compatibility and equal fibers when compatible, then obtains the same weighted flux without changing the uniform averaging factor."
+        },
+        {
+          "points": 1,
+          "criterion": "Correctly converts all singleton balances to the two set-flux integrals via finite sums or an equivalent valid atomic-to-kernel argument."
+        },
+        {
+          "points": 1,
+          "criterion": "Separates invariance/reversibility from convergence from every start and justifies the failure with a correct heat-bath example or an equivalent argument."
+        }
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath.randomScan_isReversible",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/RandomScanHeatBathReversibility.lean",
+      "context": "open MeasureTheory ProbabilityTheory\nopen scoped ENNReal\nopen AutoSamplingTheory.TechnicalLemmas.Probability\nopen AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath",
+      "decoder_definitions": [
+        "Fin (n + 1) → Bool is the finite Boolean cube with n + 1 coordinates, including the single-site case n = 0; its measurable sets are all subsets.",
+        "IsProbabilityMeasure μ is the Prop-valued instance that the measure μ has total mass one; there is no full-support assumption.",
+        "randomScan μ is the actual Markov kernel given by the uniform mixture of n + 1 single-coordinate conditional heat-bath updates, with the library's fixed conditional versions on null fibers. One application is one random-site update, not a sweep.",
+        "Kernel.IsReversible K μ means that for each pair of measurable sets A,B the nonnegative integral of x ↦ K x B over A equals the nonnegative integral of y ↦ K y A over B. The conclusion is not irreducibility or a convergence statement."
+      ],
+      "reference_helpers": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath.singleton_balance"
+      ],
+      "lean_explanation": "The trusted private balance calculation separates unsupported starts and uses the exact singleton law only at supported starts. In the positive-positive case `Fin.succAbove` enumerates the coordinates except the updated site, so agreement off that site yields equality of the retained tuples and hence the fiber denominators. Distributivity and commutativity establish the flux identity without dividing by an atom mass. The last line applies the existing atomic-to-set-lintegral theorem on the finite Boolean cube. Only reversibility is the fixed Lean target. The adjacent invariance argument and example explaining nonconvergence are not additional target goals.",
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath.randomScan_apply_singleton",
+          "AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility.isReversible_of_singleton_balance"
+        ],
+        "mathlib": [
+          "Fin.succAbove_ne",
+          "Finset.mul_sum",
+          "ProbabilityTheory.Kernel.IsReversible",
+          "MeasureTheory.IsProbabilityMeasure"
+        ]
+      },
+      "boundary": "The aligned Lean target is the exact set-lintegral reversibility conclusion for this uniform kernel under its probability target. It does not verify every line of the prose, prove convergence, certify arbitrary Gibbs updates, or give a mixing, ergodicity or query-cost result. The local tests separately check the two-bit absorbing-state example and the one-site case.",
+      "source_note": "Original ASTIS exercise and solution based on the owned random-scan reversibility and positive-start singleton-law modules (Apache-2.0; retain LICENSE and NOTICE). Tests/RandomScanHeatBathReversibility.lean checks the actual kernel including null starts and a disconnected two-bit target. Shares the existing public random-scan-null-atoms family; the complete balance-to-kernel proof is a different task from sogb-006's null-atom subproblem. No copied textbook wording or numbered exercise claim."
     }
   ]
 }

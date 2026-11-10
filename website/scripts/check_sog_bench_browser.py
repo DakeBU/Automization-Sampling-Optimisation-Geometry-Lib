@@ -32,8 +32,8 @@ def math_component_shot(page, destination: Path) -> None:
         page.evaluate("() => document.querySelectorAll('[data-sog-shot-chrome]').forEach(e=>e.removeAttribute('data-sog-shot-chrome'))")
 
 
-def check_visible_equations(page, *, require_full_width: bool = False) -> None:
-    for equation in page.locator('#natural-language mjx-container[display="true"]').all():
+def check_visible_equations(page, *, require_full_width: bool = False, scope: str = '#natural-language') -> None:
+    for equation in page.locator(scope + ' mjx-container[display="true"]').all():
         # Other proof/source sections intentionally remain folded. Check their
         # equations when opened, not the zero-size boxes of closed details.
         if not equation.is_visible():
@@ -275,7 +275,7 @@ def main() -> None:
                 for span in page.locator('[data-math-original]').all():
                     assert span.locator('mjx-container').count() == 1, (core['id'], span.get_attribute('data-math-original'))
                 check_visible_equations(page)
-                if core['id'] in {'sogb-032', 'sogb-033', 'sogb-034', 'sogb-035', 'sogb-037', 'sogb-038', 'sogb-041', 'sogb-042'} or core['id'] in component_questions:
+                if core['id'] in {'sogb-032', 'sogb-033', 'sogb-034', 'sogb-035', 'sogb-037', 'sogb-038', 'sogb-041', 'sogb-042', 'sogb-043'} or core['id'] in component_questions:
                     page.set_viewport_size({'width': 390, 'height': 915})
                     page.reload()
                     page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
@@ -283,7 +283,9 @@ def main() -> None:
                     page.locator('summary', has_text='Reference mathematical proof').click()
                     assert page.locator('mjx-merror,[data-mjx-error]').count() == 0, core['id']
                     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), core['id']
-                    check_visible_equations(page, require_full_width=core['id'] in {'sogb-037', 'sogb-038', 'sogb-041', 'sogb-042'})
+                    check_visible_equations(page,
+                        require_full_width=core['id'] in {'sogb-037', 'sogb-038', 'sogb-041', 'sogb-042', 'sogb-043'},
+                        scope='.sog-reader' if core['id'] == 'sogb-043' else '#natural-language')
                     page.set_viewport_size({'width': 1400, 'height': 1000})
             for core in (c for c in reference_records if c.get('support_source_view') and (not args.core or c['id'] in args.core)):
                 identity=core['id']

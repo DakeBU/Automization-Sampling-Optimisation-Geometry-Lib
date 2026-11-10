@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import zipfile
@@ -64,6 +65,17 @@ class BenchTests(unittest.TestCase):
         self.assertIn('ENNReal.tsum_comm', self.cores[0]['lean_reference'])
         self.assertIn('by_cases hq', self.cores[1]['lean_reference'])
         self.assertIn('hV.2', self.cores[2]['lean_reference'])
+
+    def test_assigned_proof_preserves_a_term_but_rejects_unassigned_declarations(self):
+        signature, proof = bench.assigned_theorem(SimpleNamespace(kind='theorem',
+            source_text='theorem finite_balance : True :=\n  True.intro'))
+        self.assertEqual(signature, 'theorem finite_balance : True')
+        self.assertEqual(proof, ':=\n  True.intro')
+        for kind, source in (('theorem', 'theorem t : True'),
+                             ('theorem', 'theorem t : True := /- no proof -/'),
+                             ('def', 'def x : Nat := 1')):
+            with self.subTest(source=source), self.assertRaisesRegex(ValueError, 'explicit assigned proof'):
+                bench.assigned_theorem(SimpleNamespace(kind=kind, source_text=source))
 
     def test_same_file_reference_helper_is_not_in_the_learner_task(self):
         data = bench.load()
@@ -313,6 +325,21 @@ class BenchTests(unittest.TestCase):
         self.assertNotIn(core['source_file'].removesuffix('.lean').replace('/', '.'), core['imports'])
         self.assertIn('memLp_score_and_displacement', core['lean_reference'])
         self.assertNotIn('memLp_score_and_displacement', core['lean_task'])
+
+    def test_random_scan_term_proof_preserves_family_and_operator_boundary(self):
+        import sog_bench_lean as runtime
+        by_id = {c['id']: c for c in self.cores}
+        narrow, full = by_id['sogb-006'], by_id['sogb-043']
+        self.assertFalse(bench.has_lean(narrow))
+        self.assertEqual((full['family'], full['split']), (narrow['family'], narrow['split']))
+        self.assertEqual(full['track_levels'], {'natural-language': 'L3', 'lean': 'L3'})
+        owner = full['source_file'].removesuffix('.lean').replace('/', '.')
+        self.assertNotIn(owner, runtime.local_imports(full['imports']))
+        pack = runtime.packet(full)
+        self.assertIn(b'private theorem singleton_balance', pack['oracle/Solution.lean.txt'])
+        self.assertIn(b':=\n  KernelReversibility.isReversible_of_singleton_balance', pack['oracle/Solution.lean.txt'])
+        for path in ('agent/prompt.json', 'agent/Solution.lean.txt', 'verifier/Challenge.lean'):
+            self.assertNotIn(b'singleton_balance', pack[path])
 
     def test_compiler_scope_tracks_real_imports_and_pins_not_unrelated_modules(self):
         selected = [c for c in self.cores if c['id'] == 'sogb-016']

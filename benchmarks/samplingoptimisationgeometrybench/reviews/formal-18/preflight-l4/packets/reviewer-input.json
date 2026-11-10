@@ -1,0 +1,119 @@
+{
+  "author_identity": "agent-task:root",
+  "cases": {
+    "case-1": {
+      "binding_sha256": "9fcb2e0a8bb005fd831941f89bf6778f4d5b03e14d2e8bf2ea58aad19ee52340",
+      "core_id": "sogb-043"
+    }
+  },
+  "context_bindings": {
+    "sogb-043": "fdd8a9a51de951ddddb490d4853d1ba9b81bca99a80a7de00c41973771f81f0f"
+  },
+  "decoder_identity": "agent-task:/root/bench_random_scan_blind_decoder",
+  "decoder_input_sha256": "b8abbe2e0683b1c1c0a76f6541e70bd6d1b93af1d15c7f3526fc31ef44d678a3",
+  "decoder_output_sha256": "cf2a3401d6e4d9d198ea2fd1a40c4c9c65bfdf892bc4005819d0f20e29bdbc85",
+  "instruction": "Independently audit each authored question, formula proof, rubric and actual local declaration. Compare all seven slots to the blind reconstruction. The authored support, status and formal-coverage language are claims to audit, not preferred verdicts. No previous source verdict or repair proposal is supplied. Record precise conclusion-only formal coverage and remaining unformalized explanation; accept, request repair or reject with mathematical and scoring evidence. This is Bench editorial review, not canonical theorem publication or model measurement.",
+  "mathematical_cores": [
+    {
+      "assumptions": [
+        "Let \\(n\\ge0\\), \\(X=\\{0,1\\}^{n+1}\\) with all subsets measurable, and \\(\\mu\\) be any probability law on \\(X\\). Write \\(\\mu(x)=\\mu(\\{x\\})\\). Let \\(K\\) be the actual uniform single-site heat-bath kernel: choose one coordinate uniformly and resample it conditionally on the retained coordinates, with the library's fixed versions on null fibers.",
+        "For site \\(i\\) let \\(x_{-i}\\) be the tuple of retained coordinates and \\(F_i(x)=\\{z\\in X:z_{-i}=x_{-i}\\}\\). At a start \\(x\\) with \\(\\mu(x)>0\\), the singleton transition is the average of the site terms \\[\\begin{aligned}K(x,\\{y\\})&=\\frac1{n+1}\\sum_{i=0}^{n}q_i(x,y),\\\\q_i(x,y)&=\\begin{cases}\\mu(y)/\\mu(F_i(x))& x_{-i}=y_{-i},\\\\0&\\text{otherwise.}\\end{cases}\\end{aligned}\\] No formula at a null start is assumed. The sum is over the single chosen coordinate, not a full sweep."
+      ],
+      "binding_sha256": "9fcb2e0a8bb005fd831941f89bf6778f4d5b03e14d2e8bf2ea58aad19ee52340",
+      "boundary": "The aligned Lean target is the exact set-lintegral reversibility conclusion for this uniform kernel under its probability target. It does not verify every line of the prose, prove convergence, certify arbitrary Gibbs updates, or give a mixing, ergodicity or query-cost result. The local tests separately check the two-bit absorbing-state example and the one-site case.",
+      "context": "open MeasureTheory ProbabilityTheory\nopen scoped ENNReal\nopen AutoSamplingTheory.TechnicalLemmas.Probability\nopen AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath.randomScan_isReversible",
+      "decoder_definitions": [
+        "Fin (n + 1) → Bool is the finite Boolean cube with n + 1 coordinates, including the single-site case n = 0; its measurable sets are all subsets.",
+        "IsProbabilityMeasure μ is the Prop-valued instance that the measure μ has total mass one; there is no full-support assumption.",
+        "randomScan μ is the actual Markov kernel given by the uniform mixture of n + 1 single-coordinate conditional heat-bath updates, with the library's fixed conditional versions on null fibers. One application is one random-site update, not a sweep.",
+        "Kernel.IsReversible K μ means that for each pair of measurable sets A,B the nonnegative integral of x ↦ K x B over A equals the nonnegative integral of y ↦ K y A over B. The conclusion is not irreducibility or a convergence statement."
+      ],
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath.randomScan_apply_singleton",
+          "AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility.isReversible_of_singleton_balance"
+        ],
+        "mathlib": [
+          "Fin.succAbove_ne",
+          "Finset.mul_sum",
+          "ProbabilityTheory.Kernel.IsReversible",
+          "MeasureTheory.IsProbabilityMeasure"
+        ]
+      },
+      "difficulty": "advanced",
+      "difficulty_reason": "The written proof combines null/positive atom cases, a matching-fiber calculation and a finite double sum from the given singleton formula. The Lean task must additionally build the exact symmetry and equality of the two Fin.succAbove-indexed retained tuples, distribute the extended-nonnegative flux over a finite sum and feed the resulting universally quantified balance into a separate kernel-reversibility interface. It cannot call the completed theorem.",
+      "domain": "sampling",
+      "family": "random-scan-null-atoms",
+      "id": "sogb-043",
+      "imports": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility"
+      ],
+      "lean_explanation": "The trusted private balance calculation separates unsupported starts and uses the exact singleton law only at supported starts. In the positive-positive case `Fin.succAbove` enumerates the coordinates except the updated site, so agreement off that site yields equality of the retained tuples and hence the fiber denominators. Distributivity and commutativity establish the flux identity without dividing by an atom mass. The last line applies the existing atomic-to-set-lintegral theorem on the finite Boolean cube. Only reversibility is the fixed Lean target. The adjacent invariance argument and example explaining nonconvergence are not additional target goals.",
+      "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath\nimport AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility\n\nopen MeasureTheory ProbabilityTheory\nopen scoped ENNReal\nopen AutoSamplingTheory.TechnicalLemmas.Probability\nopen AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath\nprivate theorem singleton_balance {n : ℕ} (μ : Measure (Fin (n + 1) → Bool))\n    [IsProbabilityMeasure μ] (x y : Fin (n + 1) → Bool) :\n    μ {x} * randomScan μ x {y} = μ {y} * randomScan μ y {x} := by\n  classical\n  have hz (a b : Fin (n + 1) → Bool) (ha : μ {a} = 0) :\n      μ {a} * randomScan μ a {b} = μ {b} * randomScan μ b {a} := by\n    by_cases hb : μ {b} = 0\n    · simp only [ha, hb, zero_mul]\n    · rw [randomScan_apply_singleton μ b a hb]\n      simp only [ha, zero_mul, mul_zero, ite_self, Finset.sum_const_zero]\n  by_cases hx : μ {x} = 0\n  · exact hz x y hx\n  by_cases hy : μ {y} = 0\n  · exact (hz y x hy).symm\n  rw [randomScan_apply_singleton μ x y hx, randomScan_apply_singleton μ y x hy]\n  simp only [← mul_assoc]\n  rw [mul_comm (μ {x}) (n + 1 : ℝ≥0∞)⁻¹,\n    mul_comm (μ {y}) (n + 1 : ℝ≥0∞)⁻¹, mul_assoc, mul_assoc]\n  congr 1\n  rw [Finset.mul_sum, Finset.mul_sum]\n  apply Finset.sum_congr rfl\n  intro i _\n  have hsym : (∀ j, j ≠ i → y j = x j) ↔ (∀ j, j ≠ i → x j = y j) :=\n    ⟨fun h j hj => (h j hj).symm, fun h j hj => (h j hj).symm⟩\n  by_cases h : ∀ j, j ≠ i → y j = x j\n  · have hf : (fun j => y (i.succAbove j)) = (fun j => x (i.succAbove j)) :=\n      funext (fun j => h _ (Fin.succAbove_ne _ _))\n    simp only [if_pos h, if_pos (hsym.mp h), hf]\n    ac_rfl\n  · simp only [if_neg h, if_neg (mt hsym.mpr h), mul_zero]\n\nexample {n : ℕ} (μ : Measure (Fin (n + 1) → Bool))\n    [IsProbabilityMeasure μ] : Kernel.IsReversible (randomScan μ) μ :=\n  KernelReversibility.isReversible_of_singleton_balance _ μ (singleton_balance μ)\n",
+      "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath\nimport AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility\n\nopen MeasureTheory ProbabilityTheory\nopen scoped ENNReal\nopen AutoSamplingTheory.TechnicalLemmas.Probability\nopen AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath\nexample {n : ℕ} (μ : Measure (Fin (n + 1) → Bool))\n    [IsProbabilityMeasure μ] : Kernel.IsReversible (randomScan μ) μ := by\n  -- Replace this comment with your proof.\n",
+      "library_domains": [
+        "discrete-sampling",
+        "mcmc"
+      ],
+      "question": "Prove singleton detailed balance and use it to prove reversibility of \\(K\\) for \\(\\mu\\): for all \\(A,B\\subseteq X\\), \\[\\begin{aligned}\\int_A K(x,B)\\,d\\mu(x)\\\\=\\int_B K(y,A)\\,d\\mu(y).\\end{aligned}\\] Do not assume full support. Does this imply convergence to \\(\\mu\\) from every start? Justify your answer.",
+      "reference_helpers": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.RandomScanHeatBath.singleton_balance"
+      ],
+      "rubric": [
+        {
+          "criterion": "Covers both-null and single-null cases without using the positive-start law at a null atom, and justifies the vanishing reverse transition using the law at the supported atom.",
+          "points": 1
+        },
+        {
+          "criterion": "For two supported atoms identifies symmetric site compatibility and equal fibers when compatible, then obtains the same weighted flux without changing the uniform averaging factor.",
+          "points": 1
+        },
+        {
+          "criterion": "Correctly converts all singleton balances to the two set-flux integrals via finite sums or an equivalent valid atomic-to-kernel argument.",
+          "points": 1
+        },
+        {
+          "criterion": "Separates invariance/reversibility from convergence from every start and justifies the failure with a correct heat-bath example or an equivalent argument.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "composition",
+        "assumption-audit",
+        "counterexample"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/RandomScanHeatBathReversibility.lean",
+      "source_line": 54,
+      "source_note": "Original ASTIS exercise and solution based on the owned random-scan reversibility and positive-start singleton-law modules (Apache-2.0; retain LICENSE and NOTICE). Tests/RandomScanHeatBathReversibility.lean checks the actual kernel including null starts and a disconnected two-bit target. Shares the existing public random-scan-null-atoms family; the complete balance-to-kernel proof is a different task from sogb-006's null-atom subproblem. No copied textbook wording or numbered exercise claim.",
+      "source_sha256_lf": "9e4e6b3d792884660e1b9da65f804e7e497e046f3986613731dd9289ad026ac8",
+      "split": "public-dev",
+      "steps": [
+        "Define \\(J(x,y)=\\mu(x)K(x,\\{y\\})\\). If both atom masses vanish, both fluxes are zero. If \\(\\mu(x)=0<\\mu(y)\\), use the singleton formula at \\(y\\), never at \\(x\\). Each fiber \\(F_i(y)\\) contains \\(y\\) and therefore has positive mass; every allowed summand has numerator \\(\\mu(x)=0\\). Thus \\(K(y,\\{x\\})=0\\) and \\(J(x,y)=J(y,x)=0\\). The case with \\(x,y\\) reversed follows by interchanging them.",
+        "If both masses are positive, each retained fiber of either start has positive mass. A site with \\(x_{-i}\\ne y_{-i}\\) contributes zero to both fluxes. At a compatible site, \\(F_i(x)=F_i(y)\\), so the two unaveraged flux terms agree: \\[\\begin{aligned}\\mu(x)q_i(x,y)&=\\frac{\\mu(x)\\mu(y)}{\\mu(F_i(x))}\\\\&=\\mu(y)q_i(y,x).\\end{aligned}\\] Sum over the same sites with the same weight \\(1/(n+1)\\). This proves \\(J(x,y)=J(y,x)\\) for every pair, without dividing by a null mass.",
+        "On this finite space, expand the kernel on a set as the sum of singleton masses and the integral against \\(\\mu\\) as a weighted sum. Then \\[\\begin{aligned}\\int_A K(x,B)\\,d\\mu(x)&=\\sum_{x\\in A}\\sum_{y\\in B}J(x,y)\\\\&=\\sum_{y\\in B}\\sum_{x\\in A}J(y,x)\\\\&=\\int_B K(y,A)\\,d\\mu(y).\\end{aligned}\\] The middle step uses atomic balance and reorders a finite sum. No irreducibility is needed.",
+        "Reversibility and \\(K(x,X)=1\\) give invariance by taking \\(A=X\\), not convergence from every start. For \\(n=1\\), give mass \\(1/2\\) to each of \\(00,11\\) and zero elsewhere. Each supported state is the only supported point in either of its retained fibers, so a single-site update leaves it fixed. Starting at \\(00\\) gives the same point mass at every time, distinct from \\(\\mu\\). The two positive-mass states do not communicate."
+      ],
+      "title": "From random-site conditional updates to reversibility",
+      "track_levels": {
+        "lean": "L4",
+        "natural-language": "L3"
+      }
+    }
+  ],
+  "reconstructions": {
+    "case-1": {
+      "assumptions": "The typeclass assumption IsProbabilityMeasure μ says μ has total mass 1. There is no full-support or positive-mass assumption on configurations or conditioning fibers. The kernel uses the fixed conditional versions supplied by its definition on null fibers.",
+      "conclusion": "For K = randomScan μ, the nonnegative integral ∫⁻ x in A, K x B ∂μ equals ∫⁻ y in B, K y A ∂μ for all measurable A, B ⊆ X. Thus the specified kernel is reversible with respect to μ.",
+      "constants": "There are n + 1 coordinates, each given mixture weight 1/(n + 1), and each coordinate takes one of the two Boolean values. The total probability mass is 1. The case n = 0 is included and has one coordinate, selected with weight 1.",
+      "domains": "n is in ℕ. The coordinate set Fin (n + 1) has n + 1 elements, and X consists of all configurations with those coordinates taking values in Bool. Every subset of X is measurable; both variables of integration range over X, and the integrals take values in the extended nonnegative reals.",
+      "objects": "A natural number n, a probability measure μ on the Boolean cube X = Fin (n + 1) → Bool, and the actual Markov kernel K = randomScan μ on X. Each component update keeps all other coordinates fixed and resamples the selected coordinate from its conditional law under μ given those coordinates.",
+      "quantifiers": "For every n : ℕ (an implicit Lean parameter) and every measure μ : Measure X equipped with an IsProbabilityMeasure μ instance, the identity holds for every pair of measurable sets A, B ⊆ X. In this space that means every pair of subsets.",
+      "senses": "This is the measurable-set formulation of one-step detailed balance for the actual random-scan kernel with respect to the same μ used to define it. One step updates one uniformly chosen coordinate, not a full sweep. The statement does not assert irreducibility or convergence."
+    }
+  },
+  "schema_version": 1,
+  "scope": "independent AI paired QA editorial review; not canonical theorem publication"
+}

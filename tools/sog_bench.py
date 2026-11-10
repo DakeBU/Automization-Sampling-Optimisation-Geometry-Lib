@@ -69,12 +69,14 @@ def load() -> dict:
     return data
 
 
-def tactic_declaration(declaration) -> tuple[str, str]:
+def assigned_theorem(declaration) -> tuple[str, str]:
+    """Preserve an explicit source proof (term or tactic), not an equation block."""
     # The canonical scanner can retain trailing namespace closures or the next docstring.
     code = re.split(r'\nend(?:\s|$)', declaration.source_text, maxsplit=1)[0]
     signature, proof = inline_lean.split_statement(inline_lean.display_source(code).strip())
-    if declaration.kind not in {'theorem', 'lemma'} or not proof.startswith(':= by'):
-        raise ValueError('Pilot requires an explicit tactic-proof theorem')
+    if (declaration.kind not in {'theorem', 'lemma'} or not proof.startswith(':=')
+            or not astis_site.sanitize_lean(proof[2:]).strip()):
+        raise ValueError('Bench requires a theorem with an explicit assigned proof')
     return signature, proof
 
 
@@ -95,7 +97,7 @@ def reference_helper_source(core: dict, target, known: dict) -> str:
         raise ValueError('Reference helpers must be earlier checked source in the same file and namespace')
     pieces = []
     for d in helpers:
-        signature, proof = tactic_declaration(d)
+        signature, proof = assigned_theorem(d)
         if not re.match(r'^(?:private\s+)?(?:theorem|lemma)\s+' + re.escape(d.short_name) + r'\b', signature):
             raise ValueError('Unsupported reference helper declaration form')
         pieces.append(('' if signature.startswith('private ') else 'private ') + signature + ' ' + proof)
@@ -144,7 +146,7 @@ def materialize(data: dict | None = None) -> list[dict]:
             bound['binding_sha256'] = sha(encoded(bound))
             result.append(bound)
             continue
-        signature, proof = tactic_declaration(declaration)
+        signature, proof = assigned_theorem(declaration)
         target = re.sub(r'^(?:theorem|lemma)\s+' + re.escape(declaration.short_name), 'example', signature, count=1)
         if target == signature:
             raise ValueError('Could not form the fixed anonymous target')

@@ -45,6 +45,11 @@ its policy, not the prose grader. The operator provisions the separate
 neither verifier nor hosted execution. Its tool/retrieval declarations are
 not evidence that a run occurred or that retrieval was enforced.
 
+The fixed Lean template always has a `by` proof slot. Its trusted reference
+keeps the checked source theorem's assigned proof, whether the source uses a
+term or tactic mode. Any necessary private reference helpers stay in the
+reference only, not in the prompt, template, or verifier statement baseline.
+
 ## Training and contamination
 
 `training-pairs.jsonl` is a separate messages-format export of reviewed original

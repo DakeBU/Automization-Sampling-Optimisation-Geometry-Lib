@@ -58,8 +58,7 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-040 | Log-Concave Sampling | Exercise 1.7: construct a local affine probability law and expand its finite KL (L3) | Reconstruct the actual-law quadratic KL result with the full-neighborhood remainder (L3) |
 | sogb-041 | Statistical Optimal Transport | Compute both product-law marginals and identify the mass-one factor in each (L2) | Unpack the local coupling predicate and apply the two direct Mathlib identities (L1) |
 | sogb-042 | Log-Concave Sampling / Statistical Optimal Transport | Lift the score and displacement to an arbitrary coupling, then justify the finite optimal-cost substitution (L4) | Reconstruct the conditional Fisher–transport pairing bound without the answer owner (L4) |
-
-[Formal round 17](reviews/formal-17/README.md) checks the exact Fisher–transport pair and its scope; it is not a numbered Chewi exercise or a new library theorem.
+| sogb-043 | Discrete Sampling / MCMC | Derive full random-scan detailed balance and set-flux reversibility; separate invariance from convergence (L3) | Reconstruct the actual kernel reversibility using supported starts, retained fibers and the atomic-balance bridge (L3) |
 
 These four reviewed additions retain their existing public IDs. StatOT
 Exercise 6 (`sogb-031`) remains on its separate proof-and-publication route.
@@ -81,6 +80,14 @@ edges show the actual common helper and its PBPS consumer path.
 [Formal round 16](reviews/formal-16/README.md) accepts the product-coupling
 pair in the existing public coupling family. Its Lean task is a foundation
 reconstruction, not a new library result or an independent test family.
+
+[Formal round 17](reviews/formal-17/README.md) checks the exact Fisher–transport
+pair and its scope; it is not a numbered Chewi exercise or a new library theorem.
+
+[Formal round 18](reviews/formal-18/README.md) checks the full random-scan
+reversibility pair. It retains the rejected L4 proposal and credits equivalent
+null-atom arguments without changing the fixed Lean conclusion. The smaller
+null-atom question remains in the same public family.
 
 [Exercise 1.7 structural review](reviews/graph-extension-exercise17/README.md)
 accepts a separate L2 graph question: the two compiled routes share the

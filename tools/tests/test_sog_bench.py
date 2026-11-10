@@ -358,6 +358,26 @@ class BenchTests(unittest.TestCase):
         for path in ('agent/prompt.json', 'agent/Solution.lean.txt', 'verifier/Challenge.lean'):
             self.assertNotIn(b'retained_flux', pack[path])
 
+    def test_positive_fiber_reconstructs_finite_target_conditioning(self):
+        import sog_bench_lean as runtime
+        by_id = {c['id']: c for c in self.cores}
+        scan, fiber = by_id['sogb-043'], by_id['sogb-045']
+        self.assertEqual((fiber['family'], fiber['split']), (scan['family'], scan['split']))
+        self.assertEqual(fiber['track_levels'], {'natural-language': 'L4', 'lean': 'L4'})
+        for binder in ('[IsFiniteMeasure μ]', '[StandardBorelSpace (X i)]',
+                       '[Nonempty (X i)]', '[MeasurableSingletonClass', '≠ 0'):
+            self.assertIn(binder, fiber['lean_task'])
+        self.assertNotIn('IsProbabilityMeasure', fiber['lean_task'])
+        owner = fiber['source_file'].removesuffix('.lean').replace('/', '.')
+        self.assertNotIn(owner, runtime.local_imports(fiber['imports']))
+        pack = runtime.packet(fiber)
+        self.assertIn(b'condDistrib_apply_of_ne_zero', pack['oracle/Solution.lean.txt'])
+        for path in ('agent/prompt.json', 'agent/Solution.lean.txt', 'verifier/Challenge.lean'):
+            self.assertNotIn(b'heatBath_eq_cond', pack[path])
+        graph = next(item for item in bench.curriculum.graph_items() if item['id'] == 'sogb-g009')
+        self.assertIn(fiber['declaration'], graph['context']['nodes'])
+        self.assertIn('sogb-045.html', reader.graph_page(graph))
+
     def test_compiler_scope_tracks_real_imports_and_pins_not_unrelated_modules(self):
         selected = [c for c in self.cores if c['id'] == 'sogb-016']
         actual_hash = bench.text_hash

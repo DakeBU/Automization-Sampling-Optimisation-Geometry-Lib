@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.27.0-dev",
+  "version": "0.28.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -1539,6 +1539,86 @@
       },
       "boundary": "This proves reversibility for an actual retained-coordinate kernel and given s-finite comp-product, with the stated a.e. fiber hypothesis. It does not construct a disintegration, prove invariance without Markovness, conjugate coordinates, supply an L² operator, or prove PBPS invariance, convergence, cost or a whole paper. Existing finite conditional-resampling invariance is a related public variant, not the same formal conclusion.",
       "source_note": "Original ASTIS QA over the owned Apache-2.0 retained-coordinate balance theorem; retain LICENSE and NOTICE. The local KernelRetainedReversibility tests exercise the full s-finite interface and the zero update and zero input measure. It is a generic reusable producer for the MCMC/SampleWiki route, not a reproduction of a paper claim. Conservatively shares the public conditional-resampling-invariance family with other retained-coordinate kernel exercises; no hidden test status."
+    },
+    {
+      "id": "sogb-045",
+      "family": "random-scan-null-atoms",
+      "domain": "sampling",
+      "library_domains": [
+        "discrete-sampling",
+        "mcmc"
+      ],
+      "track_levels": {
+        "natural-language": "L4",
+        "lean": "L4"
+      },
+      "difficulty": "advanced",
+      "difficulty_reason": "Both tracks join the measurable regrouping of a dependent product, positivity of a pushforward atom, the finite-measure conditional law on that atom and a pullback identity for every measurable event. Lean must justify the measurability and dependent retained-tuple identities rather than assume the singleton transition formula.",
+      "skills": [
+        "proof",
+        "composition",
+        "assumption-audit",
+        "counterexample"
+      ],
+      "title": "When a coordinate heat bath is a normalized restriction",
+      "assumptions": [
+        "Let \\(n\\ge0\\) and \\(X=\\prod_{j=0}^{n}X_j\\) be a product of measurable coordinate spaces. Fix a site \\(i\\). The selected space \\(X_i\\) is nonempty and standard Borel; the retained tuple space \\(X_{-i}\\) has measurable singletons. The coordinate spaces need not be finite.",
+        "Let \\(\\mu\\) be a finite measure on \\(X\\), not necessarily a probability. For the start \\(x\\in X\\), put \\(F_x=\\{y\\in X:y_{-i}=x_{-i}\\}\\) and assume \\(\\mu(F_x)>0\\). The actual heat-bath update \\(K_i\\) regroups the tuple as \\((x_{-i},x_i)\\), retains its first component, resamples the selected component from the conditional distribution of the regrouped target given the retained tuple, and transports back."
+      ],
+      "question": "Show that for every measurable \\(S\\subseteq X\\), \\[K_i(x,S)=\\frac{\\mu(F_x\\cap S)}{\\mu(F_x)}.\\] Justify the use of the positive-atom conditional law and the pullback of the numerator, including measurability. If \\(\\mu\\) is a probability, does \\(x\\sim\\mu\\) necessarily give a positive-mass fiber almost surely? Explain.",
+      "steps": [
+        "Let \\(e:X\\to X_{-i}\\times X_i\\) be the measurable regrouping equivalence, \\(\\nu=e_\\#\\mu\\), and \\(r=(ex)_1\\). Write \\(\\nu_1\\) for the first marginal of \\(\\nu\\). The retained singleton \\(\\{r\\}\\) is measurable and its pullback along the retained projection is \\(F_x\\), so \\[\\nu_1(\\{r\\})=\\mu(F_x)>0.\\] This mass is also finite.",
+        "For measurable \\(S\\), let \\(S_r=\\{b\\in X_i:e^{-1}(r,b)\\in S\\}\\). The insertion \\(b\\mapsto(r,b)\\) and \\(e^{-1}\\) are measurable, so \\(S_r\\) is measurable. Since the first coordinate stays \\(r\\), the update mass of \\(S\\) is the conditional law of the second coordinate at \\(r\\), evaluated on \\(S_r\\). The positive-atom conditional formula under the finite law \\(\\nu\\) gives \\[K_i(x,S)=\\frac{\\nu(\\{r\\}\\times S_r)}{\\nu_1(\\{r\\})}.\\]",
+        "Pull the measurable rectangle back along \\(e\\). If \\((ey)_1=r\\), then \\(e^{-1}(r,(ey)_2)=y\\); therefore \\((ey)_2\\in S_r\\) exactly when \\(y\\in S\\) on this fiber. Hence \\[e^{-1}(\\{r\\}\\times S_r)=F_x\\cap S.\\] The numerator is \\(\\mu(F_x\\cap S)\\). The resulting ratio is the normalized restriction and the equality holds as measures by extensionality.",
+        "No. Take two coordinates, with a uniform law on \\([0,1]\\) for the retained real coordinate and a fixed Boolean value for the selected coordinate. The retained marginal has no atoms, so every retained fiber has mass zero, including the fibers of all sampled states. This shows that the positive-fiber formula has no conclusion there; it does not show that the heat-bath kernel is undefined."
+      ],
+      "rubric": [
+        {
+          "points": 1,
+          "criterion": "Identifies the measurable regrouping and proves that the retained marginal atom has the same positive finite mass as the original fiber, or establishes the equivalent conditioning event directly."
+        },
+        {
+          "points": 1,
+          "criterion": "Justifies the relevant measurable section and derives the actual update mass using a valid positive-atom conditional-law argument. Equivalent uses of disintegration or conditional probability are accepted."
+        },
+        {
+          "points": 1,
+          "criterion": "Shows that the conditioned numerator is precisely the mass of the original event intersected with the fiber, and concludes equality with the normalized restriction on all measurable events."
+        },
+        {
+          "points": 1,
+          "criterion": "Gives a correct nonatomic retained-marginal example or equivalent argument refuting automatic positive-fiber mass, without treating the zero-mass case as failure of the kernel."
+        }
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath.heatBath_eq_cond",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/CoordinateHeatBathConditional.lean",
+      "context": "open MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.TechnicalLemmas.Probability\nopen AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath\nvariable {n : ℕ}",
+      "decoder_definitions": [
+        "Fin (n + 1) is a nonempty finite site set. The dependent product contains one value from each coordinate space; i.succAbove enumerates the sites other than i. The retained tuple at x consists of exactly those other values.",
+        "IsFiniteMeasure μ means finite total mass, not mass one. StandardBorelSpace and Nonempty are required only for the selected coordinate; the retained tuple space has measurable singletons.",
+        "heatBath X μ i is the actual kernel built by measurably regrouping the retained tuple and selected coordinate, pushing forward μ, applying a one-block conditional update that retains the tuple, and transporting back. Applied at x it is a measure on the original product.",
+        "cond μ F is the conditional measure on F; for a measurable positive-mass F under this finite measure it assigns to a measurable event S the mass μ(F ∩ S) divided by μ(F). The side condition is nonzero measure of the whole retained fiber at x, not nonzero mass of the state singleton."
+      ],
+      "lean_explanation": "The proof uses the measurable dependent-product regrouping and two `Measure.map_apply` rewrites to obtain a nonzero marginal atom. It compares the two measures on an arbitrary measurable event using `Measure.ext`. Kernel map/comap, the Dirac-product formula and `condDistrib_apply_of_ne_zero` reduce the update to the positive-atom ratio. The last set-extensionality calculation pulls that numerator back: when the first component equals the retained tuple, insertion followed by the inverse regrouping recovers the original point. The fixed Lean target is the positive-fiber measure equality; the nonatomic example is not an additional target.",
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath.heatBath",
+          "AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath.heatBathSnd_apply"
+        ],
+        "mathlib": [
+          "MeasurableEquiv.piFinSuccAbove",
+          "MeasurableEquiv.prodComm",
+          "MeasureTheory.Measure.map_apply",
+          "MeasureTheory.Measure.ext",
+          "ProbabilityTheory.Kernel.map_apply",
+          "ProbabilityTheory.Kernel.comap_apply",
+          "MeasureTheory.Measure.dirac_prod",
+          "ProbabilityTheory.condDistrib_apply_of_ne_zero",
+          "ProbabilityTheory.cond_apply'"
+        ]
+      },
+      "boundary": "The result identifies the actual fixed-site law on positive retained fibers. It does not identify a pointwise normalized restriction on a zero-mass fiber, derive the randomized-site update, or prove invariance, reversibility, irreducibility, or mixing. The nonatomic example is explanatory.",
+      "source_note": "Original ASTIS exercise over the owned Apache-2.0 CoordinateHeatBathConditional theorem and its existing kernel definition; retain LICENSE and NOTICE. Tests/CoordinateHeatBathConditional.lean checks the actual law and its domain. This producer is used by the random-scan singleton formula; the full conditional-law proof is different from the earlier public family exercises that take that formula as input. No copied book text or hidden-test claim."
     }
   ]
 }

@@ -60,6 +60,7 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-042 | Log-Concave Sampling / Statistical Optimal Transport | Lift the score and displacement to an arbitrary coupling, then justify the finite optimal-cost substitution (L4) | Reconstruct the conditional Fisher–transport pairing bound without the answer owner (L4) |
 | sogb-043 | Discrete Sampling / MCMC | Derive full random-scan detailed balance and set-flux reversibility; separate invariance from convergence (L3) | Reconstruct the actual kernel reversibility using supported starts, retained fibers and the atomic-balance bridge (L3) |
 | sogb-044 | MCMC / SampleWiki | Lift fiber detailed balance using measurable sections and nonnegative iterated integrals; distinguish reversibility from invariance (L4) | Reconstruct the s-finite retained-coordinate result without a probability or Markov assumption (L4) |
+| sogb-045 | Discrete Sampling / MCMC | Derive the positive-fiber heat-bath law and explain why sampling can land on a zero-mass fiber (L4) | Reconstruct the fixed-site measure identity via measurable regrouping and the positive marginal atom (L4) |
 
 These four reviewed additions retain their existing public IDs. StatOT
 Exercise 6 (`sogb-031`) remains on its separate proof-and-publication route.
@@ -94,6 +95,11 @@ null-atom question remains in the same public family.
 reversibility pair on arbitrary measurable joint events. The Lean target is
 joint reversibility only; it does not add Markov normalization, invariance,
 or an application to a specific sampling algorithm.
+
+[Formal round 20](reviews/formal-20/README.md) checks the positive-fiber
+heat-bath law on a dependent product. The fixed Lean target is measure
+equality at a positive retained fiber; the nonatomic counterexample
+remains an explanatory question.
 
 [Exercise 1.7 structural review](reviews/graph-extension-exercise17/README.md)
 accepts a separate L2 graph question: the two compiled routes share the

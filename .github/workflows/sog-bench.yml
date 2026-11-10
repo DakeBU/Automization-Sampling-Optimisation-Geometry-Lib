@@ -15,6 +15,7 @@ on:
       - 'lean-toolchain'
       - 'lake-manifest.json'
       - 'lakefile.lean'
+      - '.github/actions/setup-pinned-lean/**'
       - '.github/workflows/sog-bench.yml'
   push:
     branches: [main]
@@ -31,6 +32,7 @@ on:
       - 'lean-toolchain'
       - 'lake-manifest.json'
       - 'lakefile.lean'
+      - '.github/actions/setup-pinned-lean/**'
       - '.github/workflows/sog-bench.yml'
   workflow_dispatch:
 
@@ -60,12 +62,7 @@ jobs:
           python3 -m unittest tools.tests.test_bench_reader_hierarchy
           python3 tools/sog_bench.py coverage
           python3 tools/sog_bench.py export
-      - uses: leanprover/lean-action@v1
-        with:
-          auto-config: false
-          build: false
-          test: false
-          use-mathlib-cache: true
+      - uses: ./.github/actions/setup-pinned-lean
       - name: Compile trusted references with the repository toolchain
         run: python3 tools/sog_bench.py check-lean
       - name: Replay the trusted compiled proof-body graph

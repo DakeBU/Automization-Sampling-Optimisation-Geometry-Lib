@@ -7,6 +7,7 @@ import AutoSamplingTheory.Probability
 import AutoSamplingTheory.SALD
 import AutoSamplingTheory.SDE
 import AutoSamplingTheory.TechnicalLemmas
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureWasserstein
 import AutoSamplingTheory.TechnicalLemmas.SALDExtracted
 
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.BlockFamily

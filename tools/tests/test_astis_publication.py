@@ -404,6 +404,37 @@ class PublicationTest(unittest.TestCase):
         self.assertIn(reader.REFERENCE_EDGE, {e['relation'] for e in graph['edges']})
         self.assertNotIn('depends-on', {e['relation'] for e in graph['edges']})
 
+    def test_chapter_source_cards_load_the_standalone_proof_layout_once(self):
+        import publication_reader as reader
+        rel = 'libraries/statistical-optimal-transport/chapter-01.html'
+        html = '<html><head></head><body><main></main></body></html>'
+        result = reader.with_publication_styles(html, rel)
+        self.assertIn('href="../../assets/proof-readers.css"', result.split('</head>')[0])
+        self.assertEqual(reader.with_publication_styles(result, rel), result)
+
+    def test_nonregistry_graph_node_requires_current_gate_and_verified_cell(self):
+        import publication_reader as reader
+        from underlying_lean_graph_model import GraphBuilder
+        declaration = self.data['declarations'][self.name]
+        entry = {k: getattr(declaration, k) for k in ('full_name', 'module', 'source_file', 'source_line')}
+        with patch.object(reader.publication, 'load', return_value=[self.item]), \
+                patch.object(reader.publication, 'inputs', return_value=self.data), \
+                patch.object(reader.astis_site, 'source_digest', return_value='current'):
+            for status, drift, verified, digest, expected in (
+                    ('Compiled', False, True, 'current', 'compiled'),
+                    ('Partial', False, True, 'current', 'partial'),
+                    ('Compiled', True, True, 'current', 'partial'),
+                    ('Compiled', False, False, 'current', 'partial'),
+                    ('Compiled', False, True, 'stale', 'partial')):
+                builder = GraphBuilder()
+                record = {**entry, 'local_status': status}
+                if drift:
+                    record['source_line'] += 1
+                with patch.object(reader.publication, 'verified_binding', return_value=verified):
+                    reader.project_graph(builder, site={'declarations': [record],
+                        'gate': {'passed': True, 'current': True, 'source_digest': digest}})
+                self.assertEqual(builder.nodes['decl:' + self.name]['status'], expected)
+
     def test_textbook_section_keeps_reader_path_and_uses_owning_chapter_graph(self):
         import publication_reader as reader
         section = 'textbook/chapter-99/section-99-1.html'

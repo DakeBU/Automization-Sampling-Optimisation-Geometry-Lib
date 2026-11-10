@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzLower.expectation_sub_le_linearCost_and_le_wassersteinDistance",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzLower",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Measure/WassersteinLipschitzLower.lean",
+      "short_name": "expectation_sub_le_linearCost_and_le_wassersteinDistance",
+      "title": "Use a Lipschitz observable to lower-bound transport",
+      "classification": "Explicit completion of the source lower hint",
+      "statement": "For any two real probability laws with finite second moment, the expectation gap of a real 1-Lipschitz function is at most the linear transport cost, which is at most the quadratic Wasserstein distance.",
+      "formula": "\\mathbb E_\\mu f-\\mathbb E_\\nu f\\le W_1(\\mu,\\nu)\\le W_2(\\mu,\\nu).",
+      "assumptions": [
+        "The laws are Borel probability measures on the real line with finite second moments, and the real test function is 1-Lipschitz. It need not be bounded or vanish at zero.",
+        "Finite mass is used both to integrate a constant and to normalize the Cauchy–Schwarz inequality. The second-moment assumption makes the marginal expectations legitimate; no optimal coupling is needed."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Make the expectations meaningful",
+          "text": "Subtract the value at zero. The Lipschitz condition bounds the centered function by absolute displacement from zero. Each law has finite second moment and unit mass, so the centered function is integrable; adding back the finite constant preserves integrability.",
+          "formula": "|f(x)-f(0)|\\le |x|,\\qquad \\mathbb E_\\rho |x|\\le (\\mathbb E_\\rho |x|^2)^{1/2}.",
+          "lean": "The Mathlib Lipschitz composition lemma gives MemLp of the centered function. MemLp.integrable on a finite measure and integrable_const handle the two summands."
+        },
+        {
+          "number": 2,
+          "title": "Lower-bound every feasible cost",
+          "text": "For an arbitrary coupling, project onto its two marginals to rewrite the difference of expectations as one joint integral. Each pullback is integrable. Bound the integrand by its absolute value and then by the cost. Take the infimum after establishing this for every plan.",
+          "formula": "\\mathbb E_\\mu f-\\mathbb E_\\nu f=\\int(f(x)-f(y))\\,d\\gamma\\le\\int |x-y|\\,d\\gamma.",
+          "lean": "The two Samplinglib measure-preserving projection lemmas supply the change of measure. Lean compares the nonnegative part of the real difference to the extended nonnegative cost, which is equivalent to the desired real one-sided bound."
+        },
+        {
+          "number": 3,
+          "title": "Compare first and second moments under the same plan",
+          "text": "Each coupling has unit mass by its first marginal. Use Cauchy–Schwarz with the constant one, then take the quadratic infimum. If W₁ were larger than W₂, a plan whose root cost lies strictly below W₁ would contradict the preceding bound. This is valid without existence of a minimizer.",
+          "formula": "W_1\\le\\int |x-y|\\,d\\gamma\\le\\left(\\int |x-y|^2\\,d\\gamma\\right)^{1/2},\\qquad W_1\\le W_2.",
+          "lean": "The Samplinglib strict infimum selection lemma supplies the plan in the contradiction. Mathlib's nonnegative Hölder inequality with p=q=2 compares its two actual costs."
+        },
+        {
+          "number": 4,
+          "title": "Apply the lower comparison to the exercise",
+          "text": "The two mixture means are zero and m/2. Evaluate with the test f(x)=−x to obtain a positive difference m/2. Combine with the separate common-noise coupling of cost m². Only this last specialization uses the concrete Gaussian means.",
+          "formula": "\\tfrac m2=\\mathbb E_\\mu(-x)-\\mathbb E_\\nu(-x)\\le W_1(\\mu,\\nu)\\le W_2(\\mu,\\nu)\\le m,\\quad m>0.",
+          "lean": "The focused example establishes probability normalization, finite second moments and the means of both mixtures, then consumes the new lower comparison and the existing upper witness. It is not a separate public theorem."
+        }
+      ],
+      "lean_statement": "Compare the clipped expectation gap and the literal ENNReal Kantorovich cost to Samplinglib’s quadratic Wasserstein distance.",
+      "lean_proof": "Center the Lipschitz observable to justify the two marginal expectations. Pull them back to each coupling, then take the linear infimum. To compare the costs use Hölder on a probability coupling arbitrarily close to the quadratic infimum.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost_eq_sInf",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.isProbabilityMeasure_of_isCoupling_left",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost_le_lintegral_of_isCoupling",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.CouplingQuadraticIntegrability.measurePreserving_fst_of_isCoupling",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.CouplingQuadraticIntegrability.measurePreserving_snd_of_isCoupling",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace.exists_isCoupling_sqrt_lintegral_lt_of_wassersteinDistance_lt"
+      ],
+      "mathlib_dependencies": [
+        "LipschitzWith.comp_memLp",
+        "MeasureTheory.MemLp.integrable",
+        "MeasureTheory.MeasurePreserving.integrable_comp_of_integrable",
+        "MeasureTheory.integral_map",
+        "MeasureTheory.integral_sub",
+        "MeasureTheory.ofReal_integral_norm_eq_lintegral_enorm",
+        "ENNReal.lintegral_mul_le_Lp_mul_Lq"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/st_flour.pdf#page=50",
+          "label": "Statistical Optimal Transport §1.8 Exercise 6, printed p.44 / PDF p.50",
+          "scope": "Attributed paraphrase and explicit proof of the two lower comparisons."
+        },
+        {
+          "url": "https://chewisinho.github.io/st_flour.pdf#page=23",
+          "label": "Statistical Optimal Transport §1.2, printed p.17 / PDF p.23",
+          "scope": "Finite-moment Wasserstein domain and Lp ordering."
+        }
+      ],
+      "boundary": [
+        "The real P₂ lower comparison is a one-sided bound through the literal linear-cost infimum, not Kantorovich–Rubinstein duality. The focused test assembles the two-sided estimate for the given Gaussians; no optimizer, Bench admission, or graph certificate is claimed."
+      ],
+      "tests": {
+        "file": "Tests/Shared/WassersteinLipschitzLower.lean",
+        "scope": "Uses the actual Gaussian mixtures with m>0, proving normalization, second moments and means before deriving both distance inequalities."
+      }
+    }
+  ]
+}

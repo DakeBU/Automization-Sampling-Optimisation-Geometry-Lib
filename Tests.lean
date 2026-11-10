@@ -194,6 +194,8 @@ import Tests.StoppingTime
 import Tests.TimeMeasureRealBridge
 import Tests.Transport
 import Tests.WassersteinSpace
+import Tests.Shared.GaussianMixtureCoupling
+import Tests.Shared.WassersteinLipschitzLower
 import Tests.AccumulatedEnergy
 import Tests.LocalProgressiveL2
 import Tests.PrefixIntegral

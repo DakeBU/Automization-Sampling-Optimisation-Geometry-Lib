@@ -341,6 +341,23 @@ class BenchTests(unittest.TestCase):
         for path in ('agent/prompt.json', 'agent/Solution.lean.txt', 'verifier/Challenge.lean'):
             self.assertNotIn(b'singleton_balance', pack[path])
 
+    def test_retained_kernel_keeps_sfinite_and_ae_fiber_boundary(self):
+        import sog_bench_lean as runtime
+        by_id = {c['id']: c for c in self.cores}
+        base, lift = by_id['sogb-021'], by_id['sogb-044']
+        self.assertEqual((lift['family'], lift['split']), (base['family'], base['split']))
+        self.assertEqual(lift['track_levels'], {'natural-language': 'L4', 'lean': 'L4'})
+        self.assertEqual(set(lift['library_domains']), {'mcmc', 'samplewiki'})
+        self.assertFalse(runtime.local_imports(lift['imports']))
+        for binder in ('[SFinite μ]', '[IsSFiniteKernel R]', '[IsSFiniteKernel F]', '∀ᵐ a ∂μ'):
+            self.assertIn(binder, lift['lean_task'])
+        self.assertNotIn('IsMarkovKernel', lift['lean_task'])
+        self.assertNotIn('IsProbabilityMeasure', lift['lean_task'])
+        pack = runtime.packet(lift)
+        self.assertIn(b'private theorem retained_flux', pack['oracle/Solution.lean.txt'])
+        for path in ('agent/prompt.json', 'agent/Solution.lean.txt', 'verifier/Challenge.lean'):
+            self.assertNotIn(b'retained_flux', pack[path])
+
     def test_compiler_scope_tracks_real_imports_and_pins_not_unrelated_modules(self):
         selected = [c for c in self.cores if c['id'] == 'sogb-016']
         actual_hash = bench.text_hash

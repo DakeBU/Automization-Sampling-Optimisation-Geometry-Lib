@@ -50,8 +50,10 @@ class GraphReviewTests(unittest.TestCase):
         self.assertEqual(by_id['sogb-g008']['review_round'], 'graph-extension-exercise17')
         base = review.apply_repair(self.items, review.statuses(self.items, review.CURRENT_ROUND),
                                    review.CURRENT_REPAIR_ROUND, review.CURRENT_ROUND)
-        self.assertEqual({key: by_id[key] for key in base if key != 'sogb-g008'},
-                         {key: row for key, row in base.items() if key != 'sogb-g008'})
+        bound_ids = {row['id'] for row in json.loads(
+            (review.CURRENT_ROUND / 'input.json').read_bytes())['items']}
+        self.assertEqual({key: by_id[key] for key in bound_ids},
+                         {key: base[key] for key in bound_ids})
         with self.assertRaisesRegex(ValueError, 'cannot supersede or overlap'):
             review.extension_statuses(self.items, review.ROUND.parent, {'sogb-g008'})
         changed = deepcopy(self.items)

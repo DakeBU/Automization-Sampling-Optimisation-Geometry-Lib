@@ -432,6 +432,39 @@ def model_bridge_trials(root: Path):
     if not summary['passed']:raise SystemExit(1)
 
 
+def stdio_bridge_trial(root: Path):
+    """One real verifier invocation through JSONL; its input is scripted."""
+    import io
+    import sog_bench_lean_stdio as bridge
+    identity = json.loads((root / 'software-trials.json').read_bytes())['selected_task_ids'][0]
+    output = root / 'stdio-bridge-trial'
+    output.mkdir(exist_ok=False)
+    child = output / 'workspace'
+    bridge.workspace.start(task=root / 'tasks' / identity, stage=root / 'stages' / identity,
+        prepared=root, output=child, max_checks=0,
+        provenance={'kind': 'controlled-software-fixture', 'transport': bridge.PROFILE,
+                    'retrieval_profile': bridge.RETRIEVAL, 'tools': ['lean_workspace']})
+    wrong_target = bridge.line({'action': 'submit', 'source': 'theorem sogBenchTarget : True := by trivial\n'})
+    second_frame = bridge.line({'action': 'submit', 'source': 'this frame must not be read'})
+    emitted = []
+    trajectory = bridge.collect(child, output / 'transcript',
+                                io.BytesIO(wrong_target + second_frame), emitted.append)
+    events = bridge.workspace.history(child)[1]
+    result = events[0]['result']
+    passed = (len(events) == 1 and len(emitted) == 2
+              and trajectory['final_outcome'] == 'proof-rejected'
+              and 'Challenge and solution theorem statement do not match' in json.loads(emitted[1])['feedback']['diagnostic']
+              and result['submission_sha256'] == runtime.bench.sha(b'theorem sogBenchTarget : True := by trivial\n')
+              and not (output / 'transcript/0002-request.bin').exists())
+    summary = {'schema_version': 1, 'kind': 'controlled-native-jsonl-bridge-fixture',
+               'id': identity, 'passed': passed, 'final_outcome': trajectory['final_outcome'],
+               'provider_calls': 0, 'model_measurement': False}
+    (output / 'summary.json').write_bytes(runtime.bench.encoded(summary))
+    print(json.dumps(summary), flush=True)
+    if not passed:
+        raise SystemExit(1)
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='cmd',required=True)
     x=sub.add_parser('prepare');x.add_argument('--output',type=Path,required=True)
@@ -439,12 +472,14 @@ def main():
     x=sub.add_parser('hostile-trials');x.add_argument('--runtime',type=Path,required=True)
     x=sub.add_parser('workspace-trials');x.add_argument('--runtime',type=Path,required=True)
     x=sub.add_parser('model-bridge-trials');x.add_argument('--runtime',type=Path,required=True)
+    x=sub.add_parser('stdio-bridge-trial');x.add_argument('--runtime',type=Path,required=True)
     args=parser.parse_args()
     if args.cmd=='prepare':prepare(args.output.resolve())
     elif args.cmd=='trials':trials(args.runtime.resolve(),args.task_id)
     elif args.cmd=='hostile-trials':hostile_trials(args.runtime.resolve())
     elif args.cmd=='workspace-trials':workspace_trials(args.runtime.resolve())
-    else:model_bridge_trials(args.runtime.resolve())
+    elif args.cmd=='model-bridge-trials':model_bridge_trials(args.runtime.resolve())
+    else:stdio_bridge_trial(args.runtime.resolve())
 
 
 if __name__=='__main__':main()

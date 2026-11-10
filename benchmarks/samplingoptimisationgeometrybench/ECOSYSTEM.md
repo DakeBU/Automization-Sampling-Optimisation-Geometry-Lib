@@ -84,7 +84,9 @@ from actual provider use. The optional [model bridge](lean-runtime/MODEL.md)
 remains staged: code review and synthetic API-shaped fixtures do not establish
 a real provider handshake or model measurement. An authorized provider/model
 and spending policy are required before paid calls. No API key is bundled in
-the static website or portable agent inputs.
+the static website or portable agent inputs. A [credential-free JSONL transport](lean-runtime/MODEL.md#credential-free-jsonl-transport)
+also accepts a local agent's requests; it still requires the isolated Linux
+verifier, and its software fixtures are not model scores.
 
 Use [EVALUATION.md](EVALUATION.md) for the existing commands, response schemas,
 first-attempt denominator, provenance fields and human-grading procedure.

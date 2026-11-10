@@ -1,4 +1,8 @@
-# Optional model-to-compiler bridge — staged, not yet accepted
+# Optional model-to-compiler bridges — staged, not yet accepted
+
+The [credential-free JSONL transport](#credential-free-jsonl-transport) can
+connect an operator's local model or another agent without a Responses API
+account. Both transports use the same isolated Lean workspace and verifier.
 
 `tools/sog_bench_lean_model.py` connects one explicitly selected Responses API
 model to an existing pristine fixed-target compiler workspace. This is a finite
@@ -136,3 +140,49 @@ malicious-operator protection, calibrated difficulty, a private-family test or a
 model ranking. `model_measurement` and `provenance_authenticated` remain false.
 Actual API/native evidence and review are separate from the existing native08
 software-fixture acceptance. No new question, theorem or Registry credit follows.
+
+## Credential-free JSONL transport
+
+`tools/sog_bench_lean_stdio.py` is a foreground pipe to the same fixed-target
+workspace. It does **not** launch an agent or model, read weights, install a
+runtime, make network calls, run host Lean or accept commands or filenames.
+It requires the prepared Linux Docker/Landrun runtime from [WORKSPACE.md](WORKSPACE.md).
+In the workspace provenance, record your actual local model/version,
+decoding and seed, set `"tools":["lean_workspace"]`,
+`"retrieval_profile":"provided-prompt-template-only"` and
+`"transport":"fixed-target-lean-jsonl-v1"`. Use
+`controlled-software-fixture` for scripted inputs. For multiple targets,
+freeze them all with `suite-start` before feeding any model.
+
+```bash
+python tools/sog_bench_lean_stdio.py --workspace .astis/my-lean-suite/tasks/sogb-001 --output .astis/my-jsonl-transcript
+```
+
+The first stdout line is the prompt and checked source template. Forward that
+line and subsequent bounded feedback only; do not mount the workspace,
+operator archive or repository as solver context. Send exactly one UTF-8 JSON
+line for each `{"action":"check","source":"complete Lean file"}` or
+`{"action":"submit","source":"complete Lean file"}`. Checks are bounded and
+never count as finals. The first well-shaped submit is immutable, including a
+verifier rejection or an invalid source. A malformed frame stops collection.
+No extra command, shell, retrieval or
+network tool is offered by this pipe. The operator controls any separate
+model process and must not run manual workspace actions concurrently. The
+pipe waits for input; set any inference/transport deadline in that operator
+process, separately from the verifier's resource limits.
+
+If the agent intentionally ends without a final, send
+`{"action":"stop","reason":"model-no-final"}` (or `model-output-budget`).
+Bare EOF, an unterminated frame, or a broken transport is infrastructure,
+not an observed model stop. A genuine observed native final keeps its exact
+outcome even if the feedback pipe closes. The collector reserves before
+emitting the prompt, records bounded raw requests and feedback, and uses the
+existing external termination and suite accounting. Do not retry an
+interrupted collection, delete its reservation, or replace its first final.
+Review partial evidence after stopping the pipe. Exit code zero means the
+collector completed its protocol, not that Lean accepted the proof.
+
+Unit tests use a mocked verifier and the native CI canary uses a scripted
+wrong target, not a model. Neither is a model score. A model's fixed-target
+answer is verified only if the real isolated comparator/kernel path produces
+that result; generating or archiving candidate text is not verification.

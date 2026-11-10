@@ -27,7 +27,7 @@ def aware_time(value: str) -> datetime:
     return result
 
 
-def validate_metadata(metadata: dict, cores: list[dict]) -> list[str]:
+def validate_metadata(metadata: dict, cores: list[dict], *, prompt_profile: str = 'catalog-question') -> list[str]:
     if not isinstance(metadata, dict):
         raise ValueError('Run metadata must be a JSON object')
     for key in ('run_id', 'model', 'model_version'):
@@ -35,9 +35,9 @@ def validate_metadata(metadata: dict, cores: list[dict]) -> list[str]:
             raise ValueError('Record run identity and actual model/version')
     aware_time(metadata.get('created_at'))
     if (metadata.get('track') != 'natural-language'
-            or metadata.get('prompt_profile') != 'catalog-question'
+            or metadata.get('prompt_profile') != prompt_profile
             or metadata.get('attempt_policy') != 'first-attempt'):
-        raise ValueError('Only first-attempt catalog-question prose runs are supported')
+        raise ValueError('A first-attempt prose run with the expected prompt profile is required')
     if metadata.get('retrieval_profile') not in {'closed-book', 'open-library', 'given-source-packet'}:
         raise ValueError('Explicitly record the allowed retrieval profile')
     if not isinstance(metadata.get('tools'), list) or not all(isinstance(t, str) for t in metadata['tools']):
@@ -113,6 +113,20 @@ def register_plan(cores: list[dict], metadata: dict, output: Path) -> str:
     return bench.sha(plan)
 
 
+def judgment_template(cores: list[dict], responses: list[dict], packet_sha256: str) -> dict:
+    by_id = {c['id']: c for c in cores}
+    return {'schema_version': 1, 'packet_sha256': packet_sha256,
+            'grader_kind': 'human', 'grader_id': '', 'adjudicated_at': '',
+            'independent_initial_grade_attested': False,
+            'items': {row['id']: {'binding_sha256': by_id[row['id']]['binding_sha256'],
+                                 'response_sha256': bench.sha(row['response'].encode('utf-8')),
+                                 'criteria': [{'criterion': i+1,
+                                               'criterion_text': criterion['criterion'],
+                                               'score': None, 'rationale': ''}
+                                              for i, criterion in enumerate(by_id[row['id']]['rubric'])]}
+                      for row in responses if row['response'].strip()}}
+
+
 def prepare(cores: list[dict], submissions: list[dict], metadata: dict, output: Path,
             *, plan_bytes: bytes | None = None, expected_plan_sha256: str | None = None) -> None:
     if (plan_bytes is None) != (expected_plan_sha256 is None):
@@ -120,7 +134,6 @@ def prepare(cores: list[dict], submissions: list[dict], metadata: dict, output: 
     if plan_bytes is not None and bench.sha(plan_bytes) != expected_plan_sha256:
         raise ValueError('The plan does not match the separately recorded SHA-256')
     identities, selected, eligibility = select_admitted(cores, metadata)
-    by_id = {c['id']: c for c in selected}
     responses = validate_responses(cores, submissions, identities)
     if output.exists() and any(output.iterdir()):
         raise ValueError('Use a fresh run directory; no existing files will be overwritten')
@@ -142,16 +155,7 @@ def prepare(cores: list[dict], submissions: list[dict], metadata: dict, output: 
                 'files': {name: bench.sha(content) for name, content in files.items()},
                 'execution_verified': False, 'selection_timing_verified': False,
                 'retrieval_profile_enforced': False, 'purpose': 'user-supplied run archive, not measured platform execution'}
-    worksheet = {'schema_version': 1, 'packet_sha256': manifest['files']['rubric-packet.json'],
-                 'grader_kind': 'human', 'grader_id': '', 'adjudicated_at': '',
-                 'independent_initial_grade_attested': False,
-                 'items': {identity: {'binding_sha256': by_id[identity]['binding_sha256'],
-                                     'response_sha256': bench.sha(row['response'].encode('utf-8')),
-                                     'criteria': [{'criterion': i+1,
-                                                   'criterion_text': by_id[identity]['rubric'][i]['criterion'],
-                                                   'score': None, 'rationale': ''}
-                                                  for i in range(4)]}
-                           for identity, row in responses.items() if row['response'].strip()}}
+    worksheet = judgment_template(selected, list(responses.values()), manifest['files']['rubric-packet.json'])
     output.mkdir(parents=True, exist_ok=True)
     for name, content in files.items():
         (output/name).write_bytes(content)
@@ -275,7 +279,7 @@ def grade_snapshot(snapshot: tuple[dict, dict, str], judgment: dict) -> dict:
                         'nonempty': identity in nonempty, 'criteria': scores,
                         'points': sum(c['score'] for c in scores), 'max_points': 4})
     return {'schema_version': 1, 'scope': 'human-attested prose rubric record; not automatically verified mathematics',
-            'run_metadata': packet['run_metadata'], 'catalog_version': packet['catalog_version'], 'split': 'public-dev',
+            'run_metadata': packet['run_metadata'], 'catalog_version': packet['catalog_version'], 'split': packet['split'],
             'results': results, **totals(results), 'breakdown': breakdown(results),
             'manifest_sha256': manifest_sha,
             'registered_plan_sha256': packet.get('registered_plan_sha256'), 'selection_timing_verified': False,

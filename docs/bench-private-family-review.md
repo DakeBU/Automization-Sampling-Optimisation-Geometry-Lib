@@ -102,8 +102,8 @@ be overwritten. Do not put payloads in shell arguments or CI.
    (repeat once per family) and `--prose-prompts PROMPTS.jsonl`. Schema-1
    metadata-only reviews are rejected in this mode. A stale review, changed
    proof/rubric, unreserved task or known public collision cannot emit prompts.
-3. Only send the resulting `PROMPTS.jsonl` to the model during the declared
-   evaluation. Each row has task ID, assumption and question text, the tool
+3. Only send a prompt-only JSONL (prefer the registered plan below) to the
+   model during the declared evaluation. Each row has task ID, assumption and question text, the tool
    policy, track/split, and a digest of **only the prompt fields**. No answer,
    answer-derived digest, family label or reviewer fields are generated; the
    reviewer must also check that free-text prompt fields contain no answer.
@@ -111,6 +111,57 @@ be overwritten. Do not put payloads in shell arguments or CI.
    source/solution/rubric is for operators and graders, never the tested model.
 
 This gate does not register a real private family by itself, execute a model,
-score responses, claim unseen generalization, or support private Lean/graph
-tasks. The public prose scorer and training exports must not consume these
-files. Repository tests use synthetic packets only.
+claim unseen generalization, or support private Lean/graph tasks. The public
+prose commands and training exports must not consume these files. Repository
+tests use synthetic packets only.
+
+## Record and score a private prose run
+
+Use `tools/sog_bench_private_prose.py` on the operator's machine. This is an
+offline, manual-capture workflow, not a provider client or a hosted judge.
+The plan and archive commands take the same admission flags in both calls:
+one or more `--public-tip SHA`, `--reservation RESERVATION.json`,
+`--prose-packet TASKS.json` and one `--review-file REVIEW.json` per family.
+All directories and files below are private local paths; only the prompt-only
+file is a model input.
+
+1. Run `plan` with the admission flags, `--run-metadata META.json` and
+   `--output PLAN_DIR`. Use the [public prose run metadata keys](../benchmarks/samplingoptimisationgeometrybench/EVALUATION.md)
+   with `prompt_profile: "private-prose-prompt-v1"`. Record the actual model
+   version, intended first-attempt settings and ordered `task_ids` before
+   collection. Every selected task must have the same declared retrieval
+   profile and tool list as the run. Keep `PLAN_DIR/plan.sha256` separately
+   from the editable inputs, then use only `PLAN_DIR/prompts.jsonl` for the
+   model. Do not share `plan.json` or the plan digest with the solver.
+2. Capture responses as `{"schema_version":1,"plan_sha256":"...","responses":[...]}`.
+   The **operator** copies the separately pinned plan digest into the
+   envelope. Each response row has `id`, `prompt_sha256` from the actual
+   prompt row, `track: "natural-language"`, `attempt: 1` and `response` text.
+   Omit unanswered rows (or record empty text); do not drop those tasks from
+   the selection. Preserve the original provider transcript separately if
+   available. Run `archive` with the same admission flags, `--plan
+   PLAN_DIR/plan.json`, `--plan-digest PINNED_PLAN.sha256`, `--prompts
+   PLAN_DIR/prompts.jsonl`, `--responses RESPONSES.json` and `--output
+   ARCHIVE_DIR`. The command revalidates the review and compares the exact
+   prompt bytes and plan. Any changed selection, policy, review or prompt
+   needs a fresh plan, not a retroactive repair.
+3. Keep `ARCHIVE_DIR/archive.sha256` separately. Give the exact private
+   `archive.json` and `adjudication-template.json` to the human grader, not
+   the solver. The named grader saves a separate judgment with all four
+   0/1 criteria and reasons for every nonempty response. Use:
+
+   ```text
+   python tools/sog_bench_private_prose.py score --archive ARCHIVE_DIR/archive.json --archive-digest PINNED_ARCHIVE.sha256 --judgment JUDGMENT.json --output SCORE.json
+   ```
+
+   Scoring replays the archived rubric; it does not silently use a new
+   catalog. Missing answers remain in the denominator. Use a new output
+   path for any replay. Retain the tool version, original admission inputs
+   and private receipts for auditing; hashes detect drift against a
+   separately recorded copy, not who created it or when.
+
+Local stdout/stderr gives status only. The archive, worksheets and score
+contain sensitive data and must not be published. Run conditions and human
+judgments are operator-supplied, not authenticated or automatically verified.
+This pipeline alone supplies neither a measured result nor evidence that a
+model never saw a question. Private Lean and graph evaluation remain separate.

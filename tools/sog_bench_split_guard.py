@@ -388,6 +388,12 @@ def check_review_evidence(data: dict, raw_reviews: Iterable[bytes], public_hash:
 PROSE_INPUT_FIELDS = ("id", "assumptions", "question", "retrieval_profile", "allowed_tools")
 
 
+def prose_prompt(task: dict) -> dict:
+    fields = {k: task[k] for k in PROSE_INPUT_FIELDS}
+    return {**fields, "track": "natural-language", "split": "private-test",
+            "prompt_sha256": digest(canonical(fields))}
+
+
 def private_prose_packet(reservation: dict, packet: dict) -> tuple[dict[str, str], bytes]:
     """Bind canonical private tasks to an already validated prose-only reservation."""
     exact_keys(packet, {"schema_version", "split", "tasks"}, "private-prose-schema")
@@ -424,9 +430,7 @@ def private_prose_packet(reservation: dict, packet: dict) -> tuple[dict[str, str
         require(task["retrieval_profile"] in ("closed-book", "open-library"), "private-prose-retrieval-profile")
         require(prompt_digest(task["assumptions"], task["question"]) == prompt, "private-prose-prompt-drift")
         groups[family].append(task)
-        public_fields = {k: task[k] for k in PROSE_INPUT_FIELDS}
-        prompts.append({**public_fields, "track": "natural-language", "split": "private-test",
-                        "prompt_sha256": digest(canonical(public_fields))})
+        prompts.append(prose_prompt(task))
     require(not expected, "private-prose-task-set-mismatch")
     bindings = {family: digest(canonical({"schema_version": 1, "split": "private-test",
                                          "tasks": sorted(tasks, key=lambda t: t["id"])}))

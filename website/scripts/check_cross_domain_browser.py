@@ -209,13 +209,16 @@ def main() -> None:
                 # put this same selected card far down a tall viewport, then
                 # restore it. A small default source slice must still exercise
                 # two-axis framing even when platform file order changes.
+                # Move below the actual extent so a tall real slice cannot
+                # leave another card on top of this synthetic fixture.
                 original_geometry = page.evaluate('''() => {
                     const svg=document.querySelector('[data-graph-svg]');
                     const node=svg.querySelector('.ulg-node.selected');
                     const saved={transform:node.getAttribute('transform'),height:svg.dataset.worldHeight};
                     const x=node.transform.baseVal.consolidate().matrix.e;
-                    node.setAttribute('transform', `translate(${x} 3000)`);
-                    svg.dataset.worldHeight='4000';
+                    const y=Math.max(3000, Number(saved.height)+1000);
+                    node.setAttribute('transform', `translate(${x} ${y})`);
+                    svg.dataset.worldHeight=String(y+1000);
                     window.dispatchEvent(new Event('resize'));
                     return saved;
                 }''')

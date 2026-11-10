@@ -115,6 +115,6 @@ transport lemma is not a substitute. No QA or Lean coverage is claimed yet.
 3. Supply a complete stepwise formula proof. Compare all requested subparts with the exact compiled declarations and existing graph nodes. Reuse existing proofs; new substantive gaps follow normal theorem publication and independent semantic review.
 4. Add a content-bound Bench rubric/review and family assignment. Distinguish an existing compiled exercise answer from a separately aligned Lean reconstruction challenge. Source/answer/graph/compiler/editorial statuses are separate.
 5. Validate source links, code copy/download, tests, graph ownership and readable mathematics. Only admitted QA enters the reviewed prompt/reference export. Exercise variants/subparts/derived questions stay together for contamination control.
-6. Continue the same process for *Log-Concave Sampling*, the cited *Statistical Optimal Transport* route and suitable exercises elsewhere in the seven domains. This first reuse lead is not coverage of those books.
+6. Continue the same process for *Log-Concave Sampling*, the cited *Statistical Optimal Transport* route and suitable exercises elsewhere in the curriculum. This first reuse lead is not coverage of those books.
 
 The reference answer should be complete, independently checked and easy to study; equivalent valid proofs receive credit. No unmeasured claim that an answer is uniquely “best” is made.

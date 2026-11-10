@@ -280,10 +280,13 @@ class BenchTests(unittest.TestCase):
         with patch.object(bench, 'RECEIPT', round_dir / 'trusted-reference-receipt.json'):
             self.assertTrue(bench.receipt_current([core]))
 
-    def test_seven_domain_five_level_matrix_does_not_invent_coverage(self):
+    def test_eight_domain_five_level_matrix_does_not_invent_coverage(self):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
-        self.assertEqual(len(coverage['cells']), 35)
+        self.assertEqual(len(coverage['cells']), 40)
+        lower = [c for c in coverage['cells'] if c['domain'] == 'lower-bounds']
+        self.assertEqual({c['level'] for c in lower}, {'L1', 'L2', 'L3', 'L4', 'L5'})
+        self.assertTrue(all(c['gap'] and not any(c['draft_views'].values()) for c in lower))
         self.assertEqual(coverage['unique_mathematical_cores'], len(bench.load()['cores']))
         self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
                          {'samplewiki', 'mcmc'})
@@ -296,9 +299,10 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(current['editorial_accepted_mathematical_cores'], len(self.cores))
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
-        self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
+        authored_domains = set(bench.curriculum.curriculum()['domains']) - {'lower-bounds'}
+        self.assertEqual({d for c in self.cores for d in c['library_domains']}, authored_domains)
         self.assertNotIn('OpenAI', json.dumps(coverage))
-        for domain in bench.curriculum.curriculum()['domains']:
+        for domain in authored_domains:
             self.assertTrue(any(domain in c['library_domains'] and c['track_levels'].get('natural-language') == 'L1' for c in self.cores))
             self.assertTrue(any(domain in c['library_domains'] and bench.has_lean(c) for c in self.cores))
 

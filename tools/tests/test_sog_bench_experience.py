@@ -65,6 +65,19 @@ class ReadableMathTests(unittest.TestCase):
 
 
 class NumberedExerciseReaderTests(unittest.TestCase):
+    def test_lower_bounds_domain_has_a_real_route_without_fake_task_counts(self):
+        with self.subTest('routes'):
+            config = reader.bench_portals.configuration()
+            sources = [c for c in config['collections'] if 'lower-bounds' in c['domains']]
+            self.assertEqual([c['id'] for c in sources], ['sampling', 'optimisation'])
+            for collection in sources:
+                page = reader.bench_portals.collection_page([], collection)
+                self.assertIn('href="../domains/lower-bounds.html"', page)
+        page = reader.browse_page([], 'lower-bounds', domain=True)
+        self.assertIn('href="../../../lower-bounds/index.html"', page)
+        self.assertIn('explicit coverage gap', page)
+        self.assertIn('stated oracle model', page)
+
     def test_single_source_exercise_distinguishes_fixed_task_from_owned_answer(self):
         owned = 'AutoSamplingTheory.TechnicalLemmas.Measure.Example.answer'
         exercise = {'book': {'title': 'Synthetic exercise source', 'pdf_url': 'https://example.invalid/book.pdf',

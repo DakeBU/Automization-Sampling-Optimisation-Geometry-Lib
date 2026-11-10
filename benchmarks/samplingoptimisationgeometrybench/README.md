@@ -136,7 +136,7 @@ Actual numbered exercises from the cited Chewi textbooks are explicit source-bou
 
 The first entry, sogb-029, is Chewi Optimization Exercise 3.2. Its complete authored formula answer reuses the existing [source/solution window](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/libraries/optimisation/chapter-03.html#chewi-opt-v1-exercise-3-2), two actual owned core-answer declarations and their graph nodes. It has no separate fixed Lean reconstruction task. The Hilbert/parameter extensions and unformalized contextual material remain explicit; neither code existence nor source intake is whole-exercise certification.
 
-[Exercise provenance and contribution rules](TEXTBOOK_EXERCISES.md) describe the source audit. Canonical book pins are in textbook_exercises.json; source parts/answers are reused from the existing publication record. Generated textbook-exercise-map.json separates editorial state, owned core-answer compilation and available QA tracks. Other Chewi textbooks and all seven domains remain required scope.
+[Exercise provenance and contribution rules](TEXTBOOK_EXERCISES.md) describe the source audit. Canonical book pins are in textbook_exercises.json; source parts/answers are reused from the existing publication record. Generated textbook-exercise-map.json separates editorial state, owned core-answer compilation and available QA tracks. Other Chewi textbooks and all eight domains remain required scope.
 
 [Round 2](reviews/round-2/README.md) independently checks the seven L1 natural-language questions. Its input contains no equivalent Lean target, so its acceptance cannot create a formal QA view. The `prose-packet` route explicitly rejects paired tasks, which still require anonymous decoding. Separate review rounds compose only for disjoint cores; changed content becomes stale and overlapping decisions require an explicit supersession policy.
 
@@ -165,7 +165,7 @@ the complete reference and audit the unchanged target separately.
 
 ## Difficulty and subject coverage
 
-The seven domain indexes follow the seven library routes; shared questions can appear in several indexes without multiplying the global count. `python tools/sog_bench.py coverage` computes the domain × L1–L5 × track matrix. An empty cell is a visible gap, not a request for filler or a completion percentage.
+The eight domain indexes include the cross-library [Lower Bounds route](../../docs/lower-bounds-reader.md). It separates method-specific obstructions from claims quantified over an explicit oracle class. Shared questions can appear in several indexes without multiplying the global count. `python tools/sog_bench.py coverage` computes the domain × L1–L5 × track matrix. An empty cell is a visible gap, not a request for filler or a completion percentage. Lower Bounds has no admitted question yet; its source links do not change the existing catalog.
 
 | Level | Reasoning target |
 |---|---|
@@ -225,7 +225,7 @@ Open `_site/benchmarks/samplingoptimisationgeometrybench/index.html` through a l
 - `graph-editorial-review.json`: separately bound structural editorial decisions, not theorem/proof certification;
 - `compiled-transport-graph.json`: recorded selected proof-body occurrences, source/toolchain/generator fingerprints and approved foundational axioms; fresh compiler replay is a separate CI gate;
 - `EVALUATION.md` / `examples/prose-run.json`: offline first-answer recording and human-rubric scoring instructions/template;
-- `curriculum.json` / `coverage.json`: seven domains, five levels, separate draft track counts and gaps;
+- `curriculum.json` / `coverage.json`: eight domains, five levels, separate draft track counts and gaps;
 - `lean/*-task.lean.txt`: imports/context and a fixed target with a comment slot; fill the slot with a proof, then save as `.lean`;
 - `lean/*-reference.lean`: runnable references extracted from the existing library proof;
 - `manifest.json`: version, core/family/split identities, LF-normalized source hashes, exact toolchain/Mathlib manifest hashes and export file hashes;

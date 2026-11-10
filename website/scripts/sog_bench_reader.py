@@ -520,8 +520,12 @@ def browse_page(cores: list[dict], key: str, *, domain: bool) -> str:
         + escape(' / '.join(t + ': ' + l for t, l in c['track_levels'].items())) + '</li>' for c in selected)
     graphs = [g for g in bench.curriculum.graph_items() if (key in g['library_domains'] if domain else g['level'] == key)]
     graph_rows = ''.join('<li><a href="../' + g['id'] + '.html">' + escape(g['title']) + '</a> · ' + g['level'] + '</li>' for g in graphs)
+    introduction = ('<p>Separate sharpness for a specified method from a lower bound for every algorithm in a stated oracle model. '
+                    'Read the <a href="../../../lower-bounds/index.html">Lower Bounds research guide</a> for the source and graph context. '
+                    'A linked result is not automatically a Bench question or a complete lower-bound proof.</p>'
+                    if domain and key == 'lower-bounds' else '')
     return (f'<article class="sog-reader" {MARKER}><p><a href="../curriculum/index.html">Curriculum</a></p><h1>' + escape(title)
-        + '</h1><h2>Mathematical QA</h2>' + ('<ul>' + rows + '</ul>' if rows else '<p>No authored question at this tier yet. This is an explicit coverage gap.</p>')
+        + '</h1>' + introduction + '<h2>Mathematical QA</h2>' + ('<ul>' + rows + '</ul>' if rows else '<p>No authored question at this tier yet. This is an explicit coverage gap.</p>')
         + '<h2>Structural graph QA</h2>' + ('<ul>' + graph_rows + '</ul>' if graphs else '<p>No structural question in this slice yet.</p>')
         + '<p>Difficulty is provisional. Each question discloses its own current editorial status; empirical calibration remains pending.</p></article>')
 

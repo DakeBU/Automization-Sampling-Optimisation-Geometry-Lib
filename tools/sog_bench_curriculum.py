@@ -17,8 +17,12 @@ def digest(value) -> str:
 
 def curriculum() -> dict:
     data = json.loads((BASE / 'curriculum.json').read_text(encoding='utf-8'))
-    if data['schema_version'] != 1 or set(data['levels']) != {f'L{i}' for i in range(1, 6)} or len(data['domains']) != 7:
-        raise ValueError('Expected the seven-domain, five-level curriculum')
+    domains = data['domains']
+    if (data['schema_version'] != 1 or set(data['levels']) != {f'L{i}' for i in range(1, 6)}
+            or not isinstance(domains, dict) or not domains
+            or any(not re.fullmatch(r'[a-z][a-z0-9]*(?:-[a-z0-9]+)*', key)
+                   or not isinstance(label, str) or not label.strip() for key, label in domains.items())):
+        raise ValueError('Expected named curriculum domains and exactly levels L1–L5')
     return data
 
 

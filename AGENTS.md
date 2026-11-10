@@ -43,7 +43,7 @@ Sampling-Optimisation-Geometry-Bench has three peer subject doors; Benchmarks
 and Libraries are sibling shelves, with visible Lean/Functor graph entrances.
 Visual redesign, Graph JSON trials and trusted references do not substitute for
 the required actual Agentic Lean evaluation environment. Use the
-single curriculum/catalog for seven-domain placement, track-specific L1–L5
+single curriculum/catalog for eight-domain placement (including Lower Bounds), track-specific L1–L5
 levels, explicit missing Lean alignments, family/split identity and source-hashed
 graph QA. Bench development is not paper/theorem completion or Registry credit.
 Never feed restricted ATLAS material, its index, projections or derivatives to

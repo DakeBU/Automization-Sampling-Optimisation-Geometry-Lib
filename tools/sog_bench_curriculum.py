@@ -125,8 +125,39 @@ def graph_items() -> list[dict]:
     return rows
 
 
+def graph_prompt(item: dict) -> dict:
+    """Identify only the visible task, never commit to a small answer space."""
+    required = ('id', 'core_id', 'family', 'title', 'library_domains', 'track', 'level',
+                'split', 'skills', 'question', 'targets', 'context', 'graph_sha256', 'answer_schema')
+    optional = ('remove', 'required_statement_constants')
+    prompt = {k: item[k] for k in required}
+    prompt.update({k: item[k] for k in optional if k in item})
+    return {**prompt, 'prompt_sha256': digest(prompt)}
+
+
 def graph_prompts(items: list[dict]) -> list[dict]:
-    return [{k: v for k, v in row.items() if k not in {'answer', 'review_status', 'reference_status'}} for row in items]
+    return [graph_prompt(item) for item in items]
+
+
+def bind_graph_submissions(items: list[dict], rows: list[dict], *, allow_legacy: bool = False) -> list[dict]:
+    """Operator-side translation after capture; preserve the frozen gold scorer."""
+    by_id = {item['id']: item for item in items}
+    out = []
+    for row in rows:
+        identity = row.get('id') if isinstance(row, dict) else None
+        if not isinstance(identity, str) or identity not in by_id:
+            raise ValueError('Unknown graph response identity')
+        item = by_id[identity]
+        common = {'id', 'attempt', 'answer'}
+        if allow_legacy and set(row) == common | {'binding_sha256'}:
+            out.append(dict(row))  # grade_graph still checks the exact historical binding.
+            continue
+        if (set(row) != common | {'prompt_sha256'}
+                or row['prompt_sha256'] != graph_prompt(item)['prompt_sha256']):
+            raise ValueError('Response does not identify the exact public graph prompt')
+        out.append({k: row[k] for k in ('id', 'attempt', 'answer')} |
+                   {'binding_sha256': item['binding_sha256']})
+    return out
 
 
 def coverage(cores: list[dict], graphs: list[dict], reviews: dict | None = None) -> dict:

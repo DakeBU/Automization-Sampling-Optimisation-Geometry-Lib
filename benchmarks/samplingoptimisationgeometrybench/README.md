@@ -262,6 +262,22 @@ Graph answers have exactly `nodes` (distinct snapshot node IDs: module IDs in im
 python tools/sog_bench.py grade-graph --submissions responses.jsonl --run-metadata run.json --output .astis/my-graph-run
 ```
 
-Each response supplies `id`, the prompt's `binding_sha256`, `attempt: 1` and `answer`. Run metadata requires `run_id`, `model`, `model_version`, `created_at`, `prompt_profile: "given-snapshot"`, `attempt_policy: "first-attempt"`, `tools` and `seed`. Unknown/duplicate IDs, stale bindings, Boolean attempts and alternate attempt policies are rejected. Missing answers remain in the denominator with zero credit. The score archive retains the full frozen structural items, not just a digest requiring a changing live catalog. Retain raw prompts/responses, timing/tokens and grader versions for experiments. Reference self-tests are software tests, not measured model performance. Human-attested prose recording and the experimental fixed-target Lean CLI have separate contracts; authenticated model evaluation and general hosted Lean execution remain open.
+Each graph response supplies `id`, the visible prompt's `prompt_sha256`,
+`attempt: 1` and `answer`. The fingerprint hashes only the visible question;
+the verifier attaches the answer-bound `binding_sha256` after capturing the
+response. Do not pass the internal binding to the solver: on a small graph it
+allows guessing a finite set of answers and comparing hashes. Old response
+envelopes can be scored only with `--legacy-graph-bindings` for archival
+replay, not as fresh prompt-only measurements.
+
+Run metadata requires `run_id`, `model`, `model_version`, `created_at`,
+`prompt_profile: "given-snapshot"`, `attempt_policy: "first-attempt"`,
+`tools` and `seed`. Unknown/duplicate IDs, stale fingerprints, Boolean
+attempts and alternate attempt policies are rejected. Missing answers remain
+in the denominator with zero credit. The score archive retains the full
+frozen structural items and raw responses, so it is operator material. Retain
+timing/tokens and grader versions for experiments. Reference self-tests are
+software tests, not measured model performance. Human-attested prose and
+the isolated fixed-target Lean CLI have separate contracts.
 
 Only original/permission-cleared material may enter ML training or evaluation exports. Do not use restricted ATLAS-derived indexes, source text, projections or derivatives in this benchmark. The root Apache-2.0 grant does not relicense external books, papers, code or data; retain their applicable notices. This pilot exports original QA, aligned local target proofs and explicitly selected notice-preserving supporting modules, not external datasets or transitive source trees. Historical review packets retain rejected wording for audit and are **not reference-answer gold**; use the derived reviewed-reference export instead. Dependencies remain installed under their own licenses.

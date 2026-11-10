@@ -5,6 +5,7 @@ import argparse
 import inspect
 import json
 from pathlib import Path
+import re
 
 import sog_bench as bench
 import sog_bench_review as review
@@ -53,6 +54,12 @@ def statuses(items: list[dict], directory: Path = ROUND) -> dict:
     frozen = {item['id']:item for item in packet['items']}
     if len(frozen) != len(packet['items']) or set(report['items']) != set(frozen):
         raise ValueError('Review every frozen graph question exactly once')
+    projection = packet.get('public_projection_sha256')
+    if projection is not None and (
+            not isinstance(projection, dict) or set(projection) != set(frozen)
+            or any(not isinstance(value, str) or not re.fullmatch('[0-9a-f]{64}', value)
+                   for value in projection.values())):
+        raise ValueError('A projection-bound review must pin the exact visible prompt for every frozen item')
     current = payload(items)
     # Each frozen row already binds its full graph, question, label and answer.
     # Editing another task in the specification must not stale this task.
@@ -74,6 +81,8 @@ def statuses(items: list[dict], directory: Path = ROUND) -> dict:
             raise ValueError('Unresolved structural/rubric repairs cannot be accepted')
         clean_item = {k:v for k,v in item.items() if k not in {'review_status','reference_status'}}
         stale = not global_current or clean_item != frozen[identity]
+        if projection is not None:
+            stale |= projection[identity] != bench.sha(bench.encoded(bench.curriculum.graph_prompt(item)))
         result[identity] = {'editorial': 'stale' if stale else ('accepted' if row['verdict']=='accept' else row['verdict']),
                             'issues': row['repair_requests'], 'remaining_limits': row['remaining_limits'],
                             'reviewer':report['actor_identity'], 'report_sha256':bench.sha(report_path.read_bytes()),

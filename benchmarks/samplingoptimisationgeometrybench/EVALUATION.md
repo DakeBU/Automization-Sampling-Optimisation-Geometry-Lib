@@ -111,6 +111,12 @@ stay in that selected denominator; unselected submissions are rejected. A subset
 report is explicitly labelled as such, never a full-suite score. Omitting
 `task_ids` preserves the older all-current-graph-tasks behavior.
 
+Graph answers echo the visible question's `prompt_sha256` (see the graph
+`response-template.json`), not the operator's answer-bound digest. The
+score archive binds the first captured response to the exact frozen reference.
+The explicit `--legacy-graph-bindings` switch is for reproducing old scores;
+old visible bindings do not meet this prompt-only contract.
+
 - **Graph JSON:** `python tools/sog_bench.py grade-graph --submissions graph-responses.jsonl --run-metadata graph-run.json --output .astis/my-graph-run` deterministically checks an exact source-hashed structural snapshot. Its metadata uses `prompt_profile: "given-snapshot"`. Reference self-tests are software tests, not measured model performance. See the [graph policy](README.md#graph-questions-and-scoring).
 - **Graph lookup:** the [bounded retrieval condition](#graph-lookup-without-the-snapshot) uses the same tasks and scorer, but the model must request its own evidence. Report the two conditions separately, not as independent questions or a combined score.
 - **Native graph environment:** [HARBOR.md](HARBOR.md) supplies the optional Harbor task exporter, pinned runtime and separate JSON verifier. Oracle/nop rewards test the integration only; a paid-agent setup, trajectory and provider run must be separately evidenced before reporting model performance. The full operator package includes answers, unlike `agent-tasks.zip`.

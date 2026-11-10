@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from sog_bench_curriculum import grade_graph
+from sog_bench_curriculum import bind_graph_submissions, grade_graph
 from bench_bounded_io import InputRejected, MAX_BYTES, MAX_RECEIPT_BYTES, read_bounded
 from collect_answer import POLICY, REJECTIONS
 
@@ -25,9 +25,9 @@ def invalid_constant(value):
 
 def parse_answer(raw):
     row = json.loads(raw.decode('utf-8'), object_pairs_hook=unique_object, parse_constant=invalid_constant)
-    if not isinstance(row, dict) or set(row) != {'id', 'binding_sha256', 'attempt', 'answer'}:
+    if not isinstance(row, dict) or set(row) != {'id', 'prompt_sha256', 'attempt', 'answer'}:
         raise ValueError('Expected the exact response envelope')
-    if not isinstance(row['id'], str) or not isinstance(row['binding_sha256'], str) or type(row['attempt']) is not int:
+    if not isinstance(row['id'], str) or not isinstance(row['prompt_sha256'], str) or type(row['attempt']) is not int:
         raise ValueError('Invalid response identity, binding or attempt type')
     return row, hashlib.sha256(raw).hexdigest()
 
@@ -40,7 +40,7 @@ def assess_bytes(question, raw):
     """Grade the exact captured bytes, never a second file read."""
     try:
         row, digest = parse_answer(raw)
-        result = grade_graph([question], [row])
+        result = grade_graph([question], bind_graph_submissions([question], [row]))
         return {'reward': result['points'], 'response_sha256': digest, 'result': result}
     except (ValueError, UnicodeError, RecursionError) as exc:
         return {'reward': 0, 'answer_error': type(exc).__name__,

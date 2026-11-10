@@ -170,6 +170,11 @@ def main() -> None:
             page.goto(base + HUB + 'index.html')
             editorial = page.request.get(base + HUB + 'downloads/editorial-review.json').json()
             graph_records=[json.loads(line) for line in page.request.get(base+HUB+'downloads/graph-questions.jsonl').text().splitlines()]
+            for graph_prompt in graph_records:
+                assert not {'answer', 'binding_sha256'} & graph_prompt.keys()
+                visible = {k: v for k, v in graph_prompt.items() if k != 'prompt_sha256'}
+                assert graph_prompt['prompt_sha256'] == hashlib.sha256(
+                    json.dumps(visible, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
             compiled_graphs={r['id']+'.html':r for r in graph_records if r['context']['kind']=='compiled-proof-body-constant-occurrences'}
             assert len(graph_records)==manifest['graph_tasks']
             page.get_by_text('Coverage, downloads and readiness',exact=True).click()

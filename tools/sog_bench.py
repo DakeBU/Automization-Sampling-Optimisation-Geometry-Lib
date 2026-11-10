@@ -283,7 +283,9 @@ def task_assets(cores: list[dict], graphs: list[dict], *, graph_ids: set[str] | 
         track = row.get('track', 'graph-json')
         stem = 'tasks/' + row['id'] + '/' + track
         prompt_path = stem + '/prompt.json'
-        response = {'id': row['id'], 'binding_sha256': row['binding_sha256'], 'attempt': 1}
+        identity_key = 'prompt_sha256' if track == 'graph-json' else 'binding_sha256'
+        identity = {identity_key: row[identity_key]}
+        response = {'id': row['id'], **identity, 'attempt': 1}
         if track == 'graph-json':
             response['answer'] = {'nodes': [], 'entails_mathematical_necessity': False}
             verifier = 'exact-snapshot-json; Python3.11+; no submission code execution'
@@ -300,8 +302,8 @@ def task_assets(cores: list[dict], graphs: list[dict], *, graph_ids: set[str] | 
         if track == 'lean':
             environment.update(verifier_policy_sha256_lf=lean_policy_hash,
                                verifier_included=False, hosted_execution=False)
-        descriptor = {'schema_version': 1, 'id': row['id'], 'track': track,
-                      'family': row['family'], 'split': row['split'], 'binding_sha256': row['binding_sha256'],
+        descriptor = {'schema_version': 2 if track == 'graph-json' else 1, 'id': row['id'], 'track': track,
+                      'family': row['family'], 'split': row['split'], **identity,
                       'prompt_file': 'prompt.json', 'response_template': 'response-template.json',
                       'environment': environment, 'verifier': verifier,
                       'hidden_test': False, 'measured_model_result': False}
@@ -309,8 +311,8 @@ def task_assets(cores: list[dict], graphs: list[dict], *, graph_ids: set[str] | 
         assets[stem + '/task.json'] = encoded(descriptor)
         assets[stem + '/response-template.json'] = encoded(response)
         assets[stem + '/instruction.md'] = (
-            '# ' + row['title'] + '\n\nRead prompt.json. Preserve the task identity, binding, assumptions '
-            'and fixed target. Write your first unedited answer using response-template.json.\n\n'
+            '# ' + row['title'] + '\n\nRead prompt.json. Preserve the task identity and ' + identity_key
+            + '. Write your first unedited answer using response-template.json; keep any assumptions and fixed target.\n\n'
             'No gold answer is included in this task package.\n'
             + ('The operator must provision the isolated Linux Docker/Landrun fixed-target verifier separately. '
                'It is not included in this ZIP or hosted by the site. Never run untrusted Lean on the host.\n'
@@ -318,7 +320,7 @@ def task_assets(cores: list[dict], graphs: list[dict], *, graph_ids: set[str] | 
         ).encode('utf-8')
         index.append({'id': row['id'], 'track': track, 'family': row['family'],
                       'level': row['level'], 'library_domains': row['library_domains'],
-                      'binding_sha256': row['binding_sha256'], 'task_file': stem + '/task.json',
+                      **identity, 'task_file': stem + '/task.json',
                       'prompt_file': prompt_path, 'verifier': verifier})
         if track != 'graph-json':
             core = by_id[row['id']]
@@ -343,7 +345,7 @@ def task_assets(cores: list[dict], graphs: list[dict], *, graph_ids: set[str] | 
                           'related_owned_results': related,
                           'boundary': core['boundary'],
                           'edge_semantics': 'position only; no inferred proof-dependency or necessity'})
-    assets['task-index.json'] = encoded({'schema_version': 1, 'name': 'SamplingOptimisationGeometryBench',
+    assets['task-index.json'] = encoded({'schema_version': 2, 'name': 'SamplingOptimisationGeometryBench',
         'catalog_version': load()['version'], 'split': 'public-dev', 'hidden_test': False,
         'tasks': index, 'note': 'Only currently editorially admitted tasks. Family identity is not a train/test split.'})
     # The model-facing ZIP contains no gold, expert source anchors or review reports.
@@ -575,9 +577,13 @@ def main() -> int:
     parser.add_argument('--graph-index', type=Path, help='For export: actual generated underlying-lean-graph.json')
     parser.add_argument('--submissions', type=Path, help='First-attempt structured graph responses only; never executable code')
     parser.add_argument('--run-metadata', type=Path, help='Required provenance for a graph score report')
+    parser.add_argument('--legacy-graph-bindings', action='store_true',
+                        help='Replay archived graph responses with the old operator binding, not a new trial')
     args = parser.parse_args()
     if args.graph_index is not None and args.command != 'export':
         parser.error('--graph-index applies only to export')
+    if args.legacy_graph_bindings and args.command != 'grade-graph':
+        parser.error('--legacy-graph-bindings applies only to grade-graph')
     cores = materialize()
     graphs = curriculum.graph_items()
     if args.command == 'coverage':
@@ -590,10 +596,13 @@ def main() -> int:
         curriculum.validate_run_metadata(metadata)
         graphs = selected_graph_tasks(graphs, metadata)
         rows = [json.loads(line) for line in args.submissions.read_text(encoding='utf-8').splitlines() if line.strip()]
-        report = {**curriculum.grade_graph(graphs, rows), 'run_metadata': metadata,
+        bound = curriculum.bind_graph_submissions(graphs, rows, allow_legacy=args.legacy_graph_bindings)
+        report = {**curriculum.grade_graph(graphs, bound), 'run_metadata': metadata,
                   'catalog_version': load()['version'], 'raw_submissions': rows,
                   'frozen_graph_items': graphs,
                   'question_bindings': {g['id']: g['binding_sha256'] for g in graphs},
+                  'public_prompt_bindings': {g['id']: curriculum.graph_prompt(g)['prompt_sha256'] for g in graphs},
+                  'legacy_graph_binding_used': any('binding_sha256' in row for row in rows),
                   'grader_sha256_lf': text_hash(ROOT / 'tools/sog_bench_curriculum.py'),
                   'execution_policy_verified': False}
         report['selection_scope'] = ('predeclared-task-subset; not a full-suite score'

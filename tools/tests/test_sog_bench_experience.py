@@ -99,6 +99,24 @@ class TaskPackageTests(unittest.TestCase):
             for name, expected in manifest['files'].items():
                 self.assertEqual(hashlib.sha256(bundle.read(name)).hexdigest(), expected)
 
+    def test_graph_agent_files_use_only_public_prompt_identity(self):
+        index = json.loads(self.assets['task-index.json'])
+        self.assertEqual(index['schema_version'], 2)
+        graph_rows = {row['id']: row for row in index['tasks'] if row['track'] == 'graph-json'}
+        with zipfile.ZipFile(io.BytesIO(self.assets['agent-tasks.zip'])) as bundle:
+            for item in self.graphs:
+                row = graph_rows[item['id']]
+                public = bench.curriculum.graph_prompt(item)['prompt_sha256']
+                self.assertEqual(row['prompt_sha256'], public)
+                self.assertNotIn('binding_sha256', row)
+                prefix = row['prompt_file'].removesuffix('/prompt.json') + '/'
+                for name in bundle.namelist():
+                    self.assertNotIn(item['binding_sha256'].encode(), bundle.read(name), name)
+                for suffix in ('prompt.json', 'response-template.json', 'task.json'):
+                    data = json.loads(bundle.read(prefix + suffix))
+                    self.assertNotIn('binding_sha256', data)
+                    self.assertEqual(data['prompt_sha256'], public)
+
     def test_lean_descriptor_identifies_the_operator_runtime_not_the_prose_grader(self):
         rows = json.loads(self.assets['task-index.json'])['tasks']
         for row in rows:

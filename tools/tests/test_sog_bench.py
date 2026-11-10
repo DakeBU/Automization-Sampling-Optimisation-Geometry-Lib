@@ -816,7 +816,8 @@ class BenchTests(unittest.TestCase):
         self.assertTrue(all(g['family'] == 'pl-gradient-iteration' for g in graphs[:3]))
         self.assertTrue(all(g['family'] == 'coupling-gluing-triangle' for g in graphs[3:5]))
         self.assertTrue(all(g['family'] == 'convex-flow-first-order-rate' for g in graphs[5:7]))
-        self.assertTrue(all('answer' not in p for p in bench.curriculum.graph_prompts(graphs)))
+        self.assertTrue(all(not {'answer', 'binding_sha256'} & p.keys()
+                            for p in bench.curriculum.graph_prompts(graphs)))
         self.assertEqual(len(graphs[0]['context']['nodes']), 3)
         self.assertEqual(len(graphs[0]['context']['edges']), 2)
         self.assertEqual(len(graphs[2]['answer']['nodes']), 2)
@@ -824,6 +825,39 @@ class BenchTests(unittest.TestCase):
             self.assertFalse(g['answer']['entails_mathematical_necessity'])
             self.assertNotIn('atlas', json.dumps(g).lower())
             self.assertIn('source_sha256_lf', g['context'])
+
+    def test_public_graph_fingerprint_is_independent_of_the_answer(self):
+        graphs = bench.curriculum.graph_items()
+        for item in graphs:
+            public = bench.curriculum.graph_prompt(item)
+            visible = {k: v for k, v in public.items() if k != 'prompt_sha256'}
+            self.assertEqual(public['prompt_sha256'], bench.curriculum.digest(visible))
+            self.assertEqual(item['binding_sha256'], bench.curriculum.digest(
+                {'prompt': visible, 'answer': item['answer']}))
+            different = {**item['answer'],
+                         'entails_mathematical_necessity': not item['answer']['entails_mathematical_necessity']}
+            alternate = {**item, 'answer': different, 'binding_sha256': bench.curriculum.digest(
+                {'prompt': visible, 'answer': different})}
+            self.assertNotEqual(item['binding_sha256'], alternate['binding_sha256'])
+            self.assertEqual(bench.curriculum.graph_prompt(alternate), public)
+            self.assertNotEqual(bench.curriculum.graph_prompt({**item, 'question': item['question'] + ' Change.'}),
+                                public)
+
+    def test_graph_capture_translates_only_the_exact_public_prompt(self):
+        item = bench.curriculum.graph_items()[0]
+        row = {'id': item['id'], 'attempt': 1, 'answer': item['answer'],
+               'prompt_sha256': bench.curriculum.graph_prompt(item)['prompt_sha256']}
+        original = deepcopy(row)
+        legacy = {k: v for k, v in row.items() if k != 'prompt_sha256'} | {'binding_sha256': item['binding_sha256']}
+        canonical = bench.curriculum.bind_graph_submissions([item], [row])
+        self.assertEqual(canonical, [legacy])
+        self.assertEqual(row, original)
+        self.assertEqual(bench.curriculum.grade_graph([item], canonical)['points'], 1)
+        self.assertEqual(bench.curriculum.bind_graph_submissions([item], [legacy], allow_legacy=True), [legacy])
+        for bad in (legacy, {**row, 'prompt_sha256': item['binding_sha256']},
+                    {**row, 'binding_sha256': item['binding_sha256']}, {**row, 'id': []}):
+            with self.assertRaises(ValueError):
+                bench.curriculum.bind_graph_submissions([item], [bad])
 
     def test_exercise17_graph_explains_indirect_path_in_reference_not_prompt(self):
         graph = next(g for g in bench.curriculum.graph_items() if g['id'] == 'sogb-g008')

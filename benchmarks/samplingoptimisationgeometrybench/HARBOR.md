@@ -75,16 +75,24 @@ not a missing-artifact transfer failure. Missing/failed native trials remain
 visible and cannot pass the complete-run check.
 
 The output is parsed only as bounded UTF-8 JSON. Oversized/special/symlink files,
-duplicate keys, non-finite values, stale bindings, invalid schemas and missing
+duplicate keys, non-finite values, stale prompt fingerprints, invalid schemas and missing
 answers fail. No `eval`, submitted Python, shell or Lean is run by the verifier.
 The reward is exactly the canonical structural-set-and-truth-boundary point;
 imports/constant occurrences never certify mathematical necessity.
 
-## Version 2: bound the declared answer before transfer
+## Version 3: separate the public prompt identity
 
-The agent still writes `/output/answer.json`; the question, valid answer schema,
-identity, family, split and canonical score do not change. Native task package
-version 2 changes the transfer protocol, not the mathematical benchmark item.
+The agent's instruction, task metadata, prompt and response envelope now use
+`prompt_sha256`, derived entirely from the visible question. The verifier
+attaches the internal answer-bound digest after collection. This prevents
+using the old digest as a finite-answer guessing oracle. It does not change
+the canonical scoring rule or make these public-dev answers private. Old
+version-2 runs remain archives, not compliant prompt-only measurements.
+
+## Bounded transfer (introduced in version 2)
+
+The agent still writes `/output/answer.json`. The collection protocol and
+bounded raw transport introduced in version 2 are unchanged in version 3.
 
 A trusted `[[verifier.collect]]` hook runs as root **before** Harbor downloads
 declared artifacts. Its code is root-owned in the image, and `/handoff` is

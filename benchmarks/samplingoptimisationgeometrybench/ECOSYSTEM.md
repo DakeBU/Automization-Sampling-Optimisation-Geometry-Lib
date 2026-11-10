@@ -22,6 +22,11 @@ tasks/<core-id>/<track>/
   response-template.json
 ```
 
+Index schema 2 distinguishes graph `prompt_sha256` (hash of the visible
+prompt only) from mathematical-view `binding_sha256`. The graph descriptor
+and response template use only the public fingerprint; the graph grader
+associates the internal answer binding on the operator side after collection.
+
 `task.json` separates the instruction from the environment and verifier contract.
 It pins Lean 4.33.0, the Mathlib manifest and evaluator source hashes, names the
 actual scoring mode, and explicitly denies an arbitrary-submission executor.

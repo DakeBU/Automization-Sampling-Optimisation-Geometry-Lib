@@ -492,7 +492,10 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
                           + support['source_sha256_lf'] + '</code></li>')
     if support_links:
         dependencies += '<h3>Additional source-bound support (not full QA certification)</h3><ul>' + support_links + '</ul>'
-    related=[g for g in (bench.curriculum.graph_items() if structural is None else structural) if g.get('core_id')==core['id']]
+    related = [g for g in (bench.curriculum.graph_items() if structural is None else structural)
+               if g.get('core_id') == core['id'] or
+               (g['context']['kind'] == 'compiled-proof-body-constant-occurrences'
+                and core['declaration'] in g['context']['nodes'])]
     graph_links=('<p>Structural questions about this proof context (not equivalent mathematical tasks): '+
                  ' · '.join('<a href="'+g['id']+'.html">'+escape(g['title'])+'</a>' for g in related)+'</p>') if related else ''
     graph_position = ('<aside class="sog-graph-position" data-lean-graph-position="' + escape(graph_id or '') + '">'

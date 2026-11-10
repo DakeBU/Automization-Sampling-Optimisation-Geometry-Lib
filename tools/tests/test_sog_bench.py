@@ -290,7 +290,7 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L2'),
                          {'natural-language': 0, 'lean': 0, 'graph-json': 1})
         self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L3'),
-                         {'natural-language': 1, 'lean': 1, 'graph-json': 0})
+                         {'natural-language': 2, 'lean': 2, 'graph-json': 0})
         self.assertEqual(coverage['unique_mathematical_cores'], len(bench.load()['cores']))
         self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
                          {'samplewiki', 'mcmc'})
@@ -313,7 +313,7 @@ class BenchTests(unittest.TestCase):
             self.assertTrue(any(domain in c['library_domains'] and bench.has_lean(c) for c in self.cores))
 
     def test_lower_bounds_pair_is_an_exact_reviewed_fixed_step_component(self):
-        item, = [c for c in self.cores if 'lower-bounds' in c['library_domains']]
+        item = next(c for c in self.cores if c['id'] == 'sogb-046')
         self.assertEqual((item['id'], item['family']), ('sogb-046', 'chewi-opt-v1-exercise-3-3'))
         self.assertEqual(item['track_levels'], {'natural-language': 'L3', 'lean': 'L3'})
         self.assertNotIn('textbook_exercise', item)  # Not coverage of every source part.
@@ -330,6 +330,28 @@ class BenchTests(unittest.TestCase):
         graph, = [g for g in bench.curriculum.graph_items() if g['core_id'] == item['id']]
         self.assertEqual((graph['id'], graph['family'], graph['split'], graph['level']),
                          ('sogb-g010', item['family'], item['split'], 'L2'))
+
+    def test_horizon_gap_is_a_separate_reviewed_component_of_the_same_family(self):
+        import sog_bench_lean as runtime
+        by_id = {c['id']: c for c in self.cores}
+        distance, gap = by_id['sogb-046'], by_id['sogb-047']
+        self.assertEqual((gap['family'], gap['split']), (distance['family'], distance['split']))
+        self.assertNotEqual(gap['declaration'], distance['declaration'])
+        self.assertNotIn('textbook_exercise', gap)
+        self.assertEqual(gap['track_levels'], {'natural-language': 'L3', 'lean': 'L3'})
+        self.assertNotIn(gap['source_file'].removesuffix('.lean').replace('/', '.'),
+                         runtime.local_imports(gap['imports']))
+        self.assertIn('one_add_mul_sub_le_pow', gap['lean_reference'])
+        self.assertNotIn('one_add_mul_sub_le_pow', gap['lean_task'])
+        self.assertIn('norm, or energy argument', gap['rubric'][1]['criterion'])
+        row = bench.editorial_review(self.cores)['items'][gap['id']]
+        self.assertEqual((row['editorial'], row['formal_alignment']),
+                         ('accepted-after-repair', 'conclusion-only'))
+        graph = next(g for g in bench.curriculum.graph_items() if g['id'] == 'sogb-g010')
+        self.assertEqual(graph['core_id'], distance['id'])
+        self.assertIn(gap['declaration'], graph['context']['nodes'])
+        self.assertIn('sogb-g010.html', reader.core_page(gap, False, structural=[graph], review_row=row))
+        self.assertIn('sogb-047.html', reader.graph_page(graph))
 
     def test_product_coupling_is_an_original_foundation_view_of_a_public_family(self):
         by_id = {c['id']: c for c in self.cores}
@@ -406,6 +428,8 @@ class BenchTests(unittest.TestCase):
         graph = next(item for item in bench.curriculum.graph_items() if item['id'] == 'sogb-g009')
         self.assertIn(fiber['declaration'], graph['context']['nodes'])
         self.assertIn('sogb-045.html', reader.graph_page(graph))
+        self.assertNotEqual(graph['core_id'], fiber['id'])
+        self.assertIn('sogb-g009.html', reader.core_page(fiber, False, structural=[graph]))
 
     def test_compiler_scope_tracks_real_imports_and_pins_not_unrelated_modules(self):
         selected = [c for c in self.cores if c['id'] == 'sogb-016']

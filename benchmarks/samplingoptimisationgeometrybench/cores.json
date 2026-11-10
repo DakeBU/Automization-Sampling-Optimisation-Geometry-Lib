@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.30.0-dev",
+  "version": "0.31.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -1693,6 +1693,83 @@
         "The conclusion compares fixed scalar steps on a class of objectives. It does not compare adaptive steps or a richer oracle algorithm. On these scalar witnesses a method that has learned \\(\\mu\\) could pick \\(1/\\mu\\) instead, so the fixed-step argument alone cannot rule out faster adaptive behavior. It also does not assert convergence for negative or zero \\(h\\)."
       ],
       "title": "An endpoint quadratic witnesses the fixed-step gradient-descent lower bound",
+      "track_levels": {
+        "lean": "L3",
+        "natural-language": "L3"
+      }
+    },
+    {
+      "additional_source_declarations": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness.exists_quadratic_worst_case"
+      ],
+      "assumptions": [
+        "Fix a real upper smoothness bound \\(\\beta>0\\). Gradient descent on \\(\\mathbb R\\) uses step \\(1/\\beta\\), starts at \\(x_0=1\\), and runs for \\(N\\in\\mathbb N\\) steps.",
+        "The witness may depend on \\(N\\). The objective must be a quadratic \\(f(x)=\\mu x^2/2\\) with \\(0<\\mu\\le\\beta\\). The number \\(\\beta\\) is an upper bound, not necessarily its sharp smoothness constant."
+      ],
+      "boundary": "Selected function-value order component only. Neither all of Exercise 3.3 nor an optimal leading constant, a fixed-objective reciprocal lower tail, an adaptive-step bound, or a first-order oracle lower bound is asserted. The extra fixed-objective asymptotic argument is prose-only.",
+      "context": "open Set InnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness\nset_option backward.isDefEq.respectTransparency false in",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexGradientGapSharpness.quadratic_gap_lower_bound",
+      "decoder_definitions": [
+        "On the real line, gradient equals the ordinary derivative, the inner product is multiplication, and the norm is absolute value.",
+        "ContDiff ℝ 2 means twice continuous differentiability. StrongConvexOn univ a f means f minus (a/2) times the square norm is convex on the whole space. IsMinOn f univ z says that z is a global minimizer.",
+        "The notation T^[N] denotes the N-fold iterate with T^[0] the identity. The exponent 2 * N is a natural number; in denominators N is cast to a real."
+      ],
+      "dependencies": {
+        "astis": [
+          "GradientDescentSharpness.exists_quadratic_worst_case"
+        ],
+        "mathlib": [
+          "StrongConvexOn",
+          "Function.iterate",
+          "one_add_mul_sub_le_pow",
+          "Real.norm_eq_abs",
+          "pow_mul"
+        ]
+      },
+      "difficulty": "multi-step proof and quantifier audit",
+      "difficulty_reason": "Select a curvature for the given horizon, establish the exact iterate and value, bound the remaining power uniformly, and distinguish the class-level lower rate from the asymptotic behavior of every fixed positive scalar quadratic. The Lean track reconstructs the finite-horizon witness and power estimate, not the additional asymptotic comparison. Levels are provisional.",
+      "domain": "Lower Bounds",
+      "family": "chewi-opt-v1-exercise-3-3",
+      "id": "sogb-047",
+      "lean_explanation": "The fixed Lean target gives the explicit curvature and the global quadratic model, minimizer, exact gap and finite-horizon lower inequality. Its proof uses the equal-endpoint specialization of the existing distance witness to obtain the norm of the iterate, then squares that norm and applies the Bernoulli inequality in Mathlib. The solution above takes a direct scalar recurrence route. The fixed-objective little-o comparison is an explanatory question, not an additional Lean theorem in this packet.",
+      "library_domains": [
+        "lower-bounds",
+        "optimisation"
+      ],
+      "question": "For the prescribed horizon \\(N\\), construct such a quadratic. Verify its differentiability, strong convexity with modulus \\(\\mu\\), upper quadratic model with coefficient \\(\\beta/2\\), and minimizer zero. Prove that its actual function-value gap at step \\(N\\) is \\[\\frac{\\beta}{4(N+1)}\\left(1-\\frac{1}{2(N+1)}\\right)^{2N},\\] and that it is at least \\(\\beta/(16(N+1))\\). Explain why this rules out a faster uniform order for this method and class, but gives no fixed positive scalar quadratic with a reciprocal tail. Justify that last distinction by analyzing a fixed \\(\\mu\\in(0,\\beta]\\).",
+      "rubric": [
+        {
+          "criterion": "Constructs a valid horizon-dependent witness and verifies positivity, the exact class membership conditions, and global minimizer zero. Any equivalent witness establishing the requested conclusion is allowed.",
+          "points": 1
+        },
+        {
+          "criterion": "Proves the exact squared-power gap for the specified gradient-descent trajectory initialized at one. Any valid derivation, including an iterate, norm, or energy argument, is accepted.",
+          "points": 1
+        },
+        {
+          "criterion": "Uses a valid nonnegative power estimate (Bernoulli or equivalent) to prove the stated finite-horizon constant.",
+          "points": 1
+        },
+        {
+          "criterion": "Correctly distinguishes a uniform class lower bound from a pointwise tail, justifying the faster asymptotics of a fixed positive scalar quadratic (including the zero-multiplier case).",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "calculation",
+        "assumption-audit",
+        "semantic-boundary"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexGradientGapSharpness.lean",
+      "source_note": "Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1, Chapter 3, Exercise 3.3 and the convex specialization of Theorem 3.4 at h=1/β (https://arxiv.org/html/2605.07006v1#S3); canonical publication item chewi-opt-v1-exercise-3-3-convex-gap-sharpness. This is original ASTIS wording and proof of one class-level sharpness component, not the full exercise or copied book text. The existing Lean result is project-owned; retain LICENSE and NOTICE. Tests/Shared/ConvexGradientGapSharpness.lean exercises the actual lower bound.",
+      "steps": [
+        "Put \\(D=N+1\\) and choose \\(\\mu=\\beta/(2D)\\) after fixing \\(N\\). Then \\(0<\\mu\\le\\beta\\), and \\(f'(x)=\\mu x\\), \\(f''(x)=\\mu\\). The identity \\[f(y)-f(x)-f'(x)(y-x)=\\frac{\\mu}{2}(y-x)^2\\] proves strong convexity and the upper model. The positive quadratic has unique minimizer zero.",
+        "One step multiplies the iterate by \\(q=1-\\mu/\\beta=1-1/(2D)\\). Induction gives \\(x_N=q^N\\); the convention \\(q^0=1\\) includes \\(N=0\\). Hence \\[f(x_N)-f(0)=\\frac{\\mu}{2}q^{2N}=\\frac{\\beta}{4D}q^{2N}.\\]",
+        "Since \\(q\\ge 0\\), Bernoulli's inequality gives \\[q^N\\ge 1-\\frac{N}{2D}=\\frac{D+1}{2D}\\ge\\frac12.\\] Squaring and multiplying by \\(\\beta/(4D)>0\\) gives the stated \\(\\beta/(16D)\\) bound. This argument also covers \\(N=0\\).",
+        "For \\(N\\ge1\\), the exhibited gap is at least \\(\\beta/(32N)\\). This matches the order of the source upper bound \\(\\beta/(2N)\\) at initial distance one. Thus no upper bound of order \\(o(\\beta/(N+1))\\) can hold uniformly over the class for this step and initialization. With any one fixed \\(0<\\mu\\le\\beta\\), the multiplier \\(r=1-\\mu/\\beta\\) satisfies \\(0\\le r<1\\). If \\(r=0\\), the gap vanishes after one step. Otherwise the ratio of consecutive terms of \\((n+1)r^{2n}\\) tends to \\(r^2<1\\), so from some index onward it is bounded by a constant strictly smaller than one; the terms tend to zero. The gap \\(\\mu r^{2n}/2\\) is therefore \\(o(1/(n+1))\\) on every fixed such quadratic. There is no contradiction: the lower witness changes with the horizon."
+      ],
+      "title": "A horizon-dependent quadratic makes the gradient-descent value rate sharp in order",
       "track_levels": {
         "lean": "L3",
         "natural-language": "L3"

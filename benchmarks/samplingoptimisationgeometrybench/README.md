@@ -62,6 +62,7 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-044 | MCMC / SampleWiki | Lift fiber detailed balance using measurable sections and nonnegative iterated integrals; distinguish reversibility from invariance (L4) | Reconstruct the s-finite retained-coordinate result without a probability or Markov assumption (L4) |
 | sogb-045 | Discrete Sampling / MCMC | Derive the positive-fiber heat-bath law and explain why sampling can land on a zero-mass fiber (L4) | Reconstruct the fixed-site measure identity via measurable regrouping and the positive marginal atom (L4) |
 | sogb-046 | Lower Bounds / Optimisation | Construct a quadratic worst case for a fixed step and delimit the algorithm class (L3) | Reconstruct the endpoint witness, exact iterates and minimax factor (L3) |
+| sogb-047 | Lower Bounds / Optimisation | Derive the exact value gap and distinguish a horizon-dependent lower bound from a fixed-objective tail (L3) | Reconstruct the finite-horizon witness, class checks and power lower bound (L3) |
 
 These four reviewed additions retain their existing public IDs. StatOT
 Exercise 6 (`sogb-031`) remains on its separate proof-and-publication route.
@@ -120,6 +121,11 @@ one-step upper bound, but the fixed-step witness uses only the scalar minimax
 part of the intermediate theorem. This is a graph task in the existing
 Exercise 3.3 family, not a new proof of an oracle lower bound or a completed
 numbered exercise.
+
+[Formal round 22](reviews/formal-22/README.md) adds the function-value
+order witness from the same Exercise 3.3 family. The question separates
+the uniform lower bound from faster decay on each fixed positive scalar
+quadratic. Only the finite-horizon claims are checked by the fixed Lean task.
 
 Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Structural graph editorial decisions are recorded separately; empirical difficulty calibration remains open. Existing theorem review does not certify a new question.
 

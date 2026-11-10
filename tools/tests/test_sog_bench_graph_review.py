@@ -93,6 +93,22 @@ class GraphReviewTests(unittest.TestCase):
                           side_effect=lambda item: {**actual(item), 'changed_projection': True}):
             self.assertEqual(review.statuses(self.items, path)[identity]['editorial'], 'stale')
 
+    def test_lower_bounds_extension_binds_first_answer_and_visible_prompt(self):
+        directory = review.ROUND.parent / 'graph-extension-lower-bounds'
+        identity = 'sogb-g010'
+        graph = next(item for item in self.items if item['id'] == identity)
+        packet = json.loads((directory / 'input.json').read_bytes())
+        public = (directory / 'public-prompt.json').read_bytes()
+        blind = (directory / 'blind-answer.json').read_bytes()
+        self.assertEqual(public, bench.encoded(bench.curriculum.graph_prompt(graph)))
+        self.assertEqual(bench.sha(public), packet['public_projection_sha256'][identity])
+        self.assertEqual(bench.sha(blind),
+                         'b0565ac0819d11d4ec2246451297a7c0626376add939b702d319cf8923ccf787')
+        self.assertEqual(json.loads(blind), graph['answer'])
+        status = review.summary(self.items)['items'][identity]
+        self.assertEqual((status['editorial'], status['review_round'], status['mathematical_necessity_certified']),
+                         ('accepted', directory.name, False))
+
     def test_policy_or_scorer_changes_stale_every_original_decision(self):
         actual=review.payload
         originals = {row['id'] for row in json.loads(

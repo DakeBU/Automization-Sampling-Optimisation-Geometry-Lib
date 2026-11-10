@@ -263,6 +263,16 @@ def graph_index_ids(path: Path) -> set[str]:
     return ids
 
 
+def mathematical_scope(core: dict) -> str:
+    """Keep historical staging text out of current reader and expert scope.
+
+    The frozen input still carries the exact author's note. Admission is
+    derived from reviews, never from prose in that input.
+    """
+    return core['boundary'].removesuffix(
+        ' Draft pending independent editorial review; never include in canonical exports yet.')
+
+
 def task_assets(cores: list[dict], graphs: list[dict], *, graph_ids: set[str] | None = None) -> dict[str, bytes]:
     """Portable agent inputs, separate training pairs and expert-only anchors.
 
@@ -343,7 +353,7 @@ def task_assets(cores: list[dict], graphs: list[dict], *, graph_ids: set[str] | 
                                         if node is not None else None),
                           'aligned_fixed_lean_task': has_lean(core), 'audience': 'expert-review-not-model-input',
                           'related_owned_results': related,
-                          'boundary': core['boundary'],
+                          'boundary': mathematical_scope(core),
                           'edge_semantics': 'position only; no inferred proof-dependency or necessity'})
     assets['task-index.json'] = encoded({'schema_version': 2, 'name': 'SamplingOptimisationGeometryBench',
         'catalog_version': load()['version'], 'split': 'public-dev', 'hidden_test': False,

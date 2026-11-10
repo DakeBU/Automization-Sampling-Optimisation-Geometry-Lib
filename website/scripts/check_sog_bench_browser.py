@@ -169,6 +169,7 @@ def main() -> None:
             page.screenshot(path=str(args.evidence / 'textbook-exercise-directory.png'), full_page=True)
             page.goto(base + HUB + 'index.html')
             editorial = page.request.get(base + HUB + 'downloads/editorial-review.json').json()
+            graph_editorial = page.request.get(base + HUB + 'downloads/graph-editorial-review.json').json()['items']
             graph_records=[json.loads(line) for line in page.request.get(base+HUB+'downloads/graph-questions.jsonl').text().splitlines()]
             for graph_prompt in graph_records:
                 assert not {'answer', 'binding_sha256'} & graph_prompt.keys()
@@ -350,8 +351,7 @@ def main() -> None:
                     assert page.locator('.sog-graph svg rect').count() == 3
                     page.locator('.sog-graph').screenshot(path=str(args.evidence / 'import-slice-desktop.png'))
                     page.locator('summary', has_text='Independent structural review and limits').click()
-                    evidence=page.request.get(base + HUB + 'downloads/graph-editorial-review.json').json()
-                    assert evidence['items']['sogb-g003']['editorial'] in page.locator('article.sog-reader').inner_text()
+                    assert graph_editorial['sogb-g003']['editorial'] in page.locator('article.sog-reader').inner_text()
                 if tail == 'evaluation/guide.html':
                     assert 'not automatically verified mathematics' in page.locator('article.sog-reader').inner_text()
                     assert page.locator('details[open]').count()==0
@@ -400,6 +400,27 @@ def main() -> None:
                     assert hashlib.sha256(raw).hexdigest()==graph['snapshot_sha256']
                     source_link=page.get_by_role('link',name='Read the source mathematical proof and optional Lean')
                     assert source_link.get_attribute('href')==compiled_graphs[tail]['core_id']+'.html'
+                    lookup=page.locator('details', has=page.locator('summary', has_text='Try this as a bounded search task'))
+                    identity = compiled_graphs[tail]['id']
+                    if graph_editorial[identity]['editorial'] in ('accepted', 'accepted-after-repair'):
+                        assert lookup.count() == 1 and lookup.get_attribute('open') is None
+                        lookup.locator('summary').click()
+                        assert lookup.locator('code', has_text=f'run --task-id {identity} --max-lookups 8').is_visible()
+                        assert lookup.get_by_role('link', name='JSONL tool and scoring protocol').is_visible()
+                        lookup.locator('summary').click()
+                    else:
+                        assert lookup.count() == 0
+                    if identity == 'sogb-g010':
+                        assert page.locator('.sog-graph svg').evaluate('svg => svg.width.baseVal.value < 440')
+                        positions = page.locator('details', has=page.locator('summary', has_text='Locate these declarations in the Lean Graph'))
+                        positions.locator('summary').click()
+                        assert {parse_qs(urlsplit(link.get_attribute('href')).query)['focus'][0]
+                                for link in positions.locator('a').all()} == {'decl:' + name for name in graph['nodes']}
+                        positions.locator('summary').click()
+                        reference = page.locator('details', has=page.locator('summary', has_text='Reference structural answer'))
+                        reference.locator('summary').click()
+                        assert reference.get_by_text('Selected path: Horizon-dependent value-gap witness → Fixed-step distance witness → Balanced step and scalar minimax bound → One-step endpoint upper bound.', exact=True).is_visible()
+                        reference.locator('summary').click()
                 page.set_viewport_size({'width': 412, 'height': 915})
                 page.wait_for_timeout(400)  # Let the existing sidebar resize transition finish.
                 page.evaluate('() => { document.activeElement?.blur(); window.scrollTo({top:0, behavior:"instant"}); }')

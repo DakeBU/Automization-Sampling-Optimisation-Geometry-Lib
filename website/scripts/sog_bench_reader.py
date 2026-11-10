@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import shutil
 from textwrap import wrap
+from urllib.parse import quote
 
 import astis_site
 import source_lineage
@@ -515,7 +516,7 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
         + formal_view
         + fold('Why this difficulty?', prose(core['difficulty_reason']))
         + review_panel(core, review_row)
-        + graph_links + '<section><h2>What this does—and does not—verify</h2>' + prose(core['boundary'])
+        + graph_links + '<section><h2>What this does—and does not—verify</h2>' + prose(bench.mathematical_scope(core))
         + '<p>Existing library mathematics reused; no new mathematical leaf or paper-completion credit. The editorial panel records the exact current review scope and remaining unformalized explanation.</p></section>'
         + fold('Sources, graph location and dependencies', prose(core['source_note'])
             + '<p><a href="' + escape(href) + '">Exact local source and full context</a>' + graph_detail
@@ -559,7 +560,7 @@ def browse_page(cores: list[dict], key: str, *, domain: bool) -> str:
         + '<p>Difficulty is provisional. Each question discloses its own current editorial status; empirical calibration remains pending.</p></article>')
 
 
-def graph_page(item: dict) -> str:
+def graph_page(item: dict, graph_ids: set[str] | None = None) -> str:
     prompt = bench.curriculum.graph_prompts([item])[0]
     evidence = graph_review.summary(bench.curriculum.graph_items())['items'][item['id']]
     status = '<p>Current editorial status: <strong>' + escape(evidence['editorial']) + '</strong>. This is AI review of structural QA, not a theorem or calibrated difficulty.</p>'
@@ -569,6 +570,8 @@ def graph_page(item: dict) -> str:
     status += '<p><a href="downloads/graph-editorial-review.json">Exact review bindings and report hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews/'+escape(round_name)+'">Independent review for this question</a></p>'
     compiled=item['context']['kind']=='compiled-proof-body-constant-occurrences'
     trace = ''
+    lookup = ''
+    positions = ''
     if compiled:
         import sog_bench_graph_slices
         artifact=sog_bench_graph_slices.artifact_for(item['id'])
@@ -581,6 +584,29 @@ def graph_page(item: dict) -> str:
                 trace += ('<p>Shared immediate proof-body parent(s): '
                           + escape(', '.join(labels[n] for n in shared))
                           + '. Sharing a parent alone does not imply a directed path between the targets.</p>')
+        if evidence['editorial'] in {'accepted', 'accepted-after-repair'} and item['split'] == 'public-dev':
+            run_dir = '.astis/sog-bench/runs/' + item['id'] + '-lookup'
+            commands = (
+                'python tools/sog_bench_graph_search.py run --task-id ' + item['id']
+                + ' --max-lookups 8 --output ' + run_dir + '\n'
+                + 'python tools/sog_bench_graph_search.py replay --run ' + run_dir
+            )
+            lookup = fold('Try this as a bounded search task',
+                '<p>From the repository root, run the first command and send the emitted prompt to the solver. '
+                'It receives the question and the results of its own <code>find</code> or <code>inspect</code> requests, '
+                'not the diagram, answer, or repository. Submit one final; invalid lookups spend budget. '
+                'The second command replays the recorded interaction.</p>'
+                + astis_site.code_html(commands, 'bash')
+                + '<p><a href="downloads/EVALUATION.md#graph-lookup-without-the-snapshot">JSONL tool and scoring protocol</a>. '
+                'This is a local operator workflow, not live Lean verification or an unseen test.</p>')
+        if graph_ids is not None:
+            positions = fold('Locate these declarations in the Lean Graph',
+                '<p>Open an exact declaration node to inspect its source and wider context. '
+                'A node location is not another occurrence edge.</p><ul>' + ''.join(
+                    '<li>' + (f'<a href="../../underlying-lean-graph/index.html?focus={quote("decl:" + node, safe="")}">{escape(label)}</a>'
+                              if 'decl:' + node in graph_ids else
+                              escape(label) + ' · declaration not indexed') + '</li>'
+                    for node, label in item['context']['node_labels'].items()) + '</ul>')
     provenance=('<p>This is a recorded source-bound compiler snapshot. CI separately replays the trusted extractor. It is not a fresh Lean run in this browser, a full proof closure or a minimal-premise certificate. Unique proof constants do not count runtime invocations, recursive calls or oracle queries.</p><p><a href="downloads/'+artifact+'">Recorded compiler slice and provenance</a></p>') if compiled else '<p>This graph scans source import declarations, not theorem proof bodies.</p>'
     profiles=''
     if item.get('required_statement_constants'):
@@ -604,6 +630,8 @@ def graph_page(item: dict) -> str:
         + import_figure(item['context'])
         + profiles
         + background
+        + lookup
+        + positions
         + fold('Independent structural review and limits', status)
         + fold('Evidence kind and source scope', provenance+prose(item['context']['truth_boundary']))
         + fold('Exact JSON snapshot and response schema',
@@ -691,7 +719,8 @@ def import_figure(graph: dict) -> str:
         box_width=max(172,8*longest+14)
         box_height=max(44,15*max(map(len,lines.values()),default=1)+14)
         gap,pitch=20,box_width+20
-        width=max(660,pitch*max(map(len,groups.values()),default=1)+4)
+        columns=max(map(len,groups.values()),default=1)
+        width=max(240, pitch*columns-gap+12)
         height=box_height+56+highest*130
         positions={n:((width-(len(group)*box_width+(len(group)-1)*gap))/2+box_width/2+i*pitch,
                       box_height/2+23+(highest-r)*130)
@@ -747,7 +776,7 @@ def enrich_site(output: Path) -> None:
     pages.append(('textbook-exercises/index.html', 'Numbered textbook exercises', exercise_index(cores, checked)))
     pages += [('domains/' + key + '.html', title, browse_page(cores, key, domain=True)) for key, title in policy['domains'].items()]
     pages += [('levels/' + key + '.html', key, browse_page(cores, key, domain=False)) for key in policy['levels']]
-    pages += [(g['id'] + '.html', g['title'], graph_page(g)) for g in graphs]
+    pages += [(g['id'] + '.html', g['title'], graph_page(g, graph_ids)) for g in graphs]
     graph_index=graph_index_page(graphs)
     pages.append(('graph-json/index.html', 'Structured graph QA', graph_index))
     for tail, title, body in pages:
@@ -821,7 +850,7 @@ def validate_site(output: Path) -> list[str]:
                      'curriculum/index.html': curriculum_page(cores),
                      **{'domains/' + d + '.html': browse_page(cores, d, domain=True) for d in policy['domains']},
                      **{'levels/' + l + '.html': browse_page(cores, l, domain=False) for l in policy['levels']},
-                     **{g['id'] + '.html': graph_page(g) for g in graphs}}
+                     **{g['id'] + '.html': graph_page(g, ids) for g in graphs}}
     for rel, body in current_pages.items():
         path = output / HUB / rel
         if path.exists() and body not in path.read_text(encoding='utf-8'):

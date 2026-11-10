@@ -113,6 +113,14 @@ adds a separate L2 question on which selected heat-bath proofs reach the
 one-block pointwise law. Its operator-only witness explains a path hidden by
 omitting a private helper, without altering the public slice or its score.
 
+[Lower Bounds structural review](reviews/graph-extension-lower-bounds/README.md)
+adds a provisional L2 search/graph question on the fixed-step and
+horizon-dependent quadratic witnesses. Its compiled path reaches the
+one-step upper bound, but the fixed-step witness uses only the scalar minimax
+part of the intermediate theorem. This is a graph task in the existing
+Exercise 3.3 family, not a new proof of an oracle lower bound or a completed
+numbered exercise.
+
 Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Structural graph editorial decisions are recorded separately; empirical difficulty calibration remains open. Existing theorem review does not certify a new question.
 
 ## Review evidence and scope

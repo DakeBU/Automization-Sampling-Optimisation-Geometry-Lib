@@ -286,7 +286,9 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(len(coverage['cells']), 40)
         lower = [c for c in coverage['cells'] if c['domain'] == 'lower-bounds']
         self.assertEqual({c['level'] for c in lower}, {'L1', 'L2', 'L3', 'L4', 'L5'})
-        self.assertTrue(all(c['gap'] and not any(c['draft_views'].values()) for c in lower if c['level'] != 'L3'))
+        self.assertTrue(all(c['gap'] and not any(c['draft_views'].values()) for c in lower if c['level'] not in {'L2', 'L3'}))
+        self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L2'),
+                         {'natural-language': 0, 'lean': 0, 'graph-json': 1})
         self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L3'),
                          {'natural-language': 1, 'lean': 1, 'graph-json': 0})
         self.assertEqual(coverage['unique_mathematical_cores'], len(bench.load()['cores']))
@@ -322,7 +324,12 @@ class BenchTests(unittest.TestCase):
         self.assertEqual((review_row['editorial'], review_row['formal_alignment']),
                          ('accepted-after-repair', 'conclusion-only'))
         self.assertTrue(review_row['prior_review_report_sha256'])
-        self.assertFalse(any(g['core_id'] == item['id'] for g in bench.curriculum.graph_items()))
+        self.assertIn('never include in canonical exports yet.', item['boundary'])
+        self.assertNotIn('canonical exports', bench.mathematical_scope(item))
+        self.assertIn('oracle-complexity lower bound', bench.mathematical_scope(item))
+        graph, = [g for g in bench.curriculum.graph_items() if g['core_id'] == item['id']]
+        self.assertEqual((graph['id'], graph['family'], graph['split'], graph['level']),
+                         ('sogb-g010', item['family'], item['split'], 'L2'))
 
     def test_product_coupling_is_an_original_foundation_view_of_a_public_family(self):
         by_id = {c['id']: c for c in self.cores}

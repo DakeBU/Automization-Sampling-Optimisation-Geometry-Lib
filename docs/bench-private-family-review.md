@@ -62,3 +62,55 @@ or family IDs are printed.
 This is consistency evidence for the declared scope, not a secrecy guarantee,
 a reviewer signature, a certificate of independence from all public content,
 or a substitute for source fidelity and fixed-target compiler tests.
+
+## Bind actual private prose tasks before delivering prompts
+
+The schema-1 review above covers reservation metadata. It does **not** let an
+operator hand questions to a model. For an offline **prose-only** evaluation
+input, store an additional private JSON object with `schema_version: 1`,
+`split: "private-test"`, and `tasks` containing exactly the reserved task IDs.
+Each row has these fields:
+
+| Fields | Contract |
+| --- | --- |
+| `id`, `family` | Exact reservation IDs, one row per task. |
+| `domain`, `level`, `skills` | Names from the current Bench curriculum; level is provisional, skills are a nonempty list. |
+| `assumptions`, `question` | Complete hypothesis strings and question; the gate recomputes the normalized reservation fingerprint. |
+| `retrieval_profile`, `allowed_tools` | `closed-book` or `open-library`, plus the declared tool list; not a tool sandbox. |
+| `source_notes`, `proof_steps`, `rubric` | Private source/rights and dependency notes, complete formula proof as a list of steps, four distinct one-point criteria. |
+
+Keep the reservation, task packet and all outputs in a private directory with
+appropriate local access controls (preferably outside any checkout or sync
+folder). The tool checks that paths in this repository stay in ignored `.astis`
+and creates new files with owner-only POSIX permissions. It does not manage
+directory permissions, Windows ACLs or other repositories/sync folders.
+Use a new output file in an existing private directory. No existing file will
+be overwritten. Do not put payloads in shell arguments or CI.
+
+1. Add `--prose-packet TASKS.json --prose-review-request REQUEST.json` to the
+   reservation command with exact known public tips. The request has one
+   **unsigned** entry per family. The reviewer must inspect the actual packet
+   and reservation, not just the request. They complete each entry's `review`
+   object (schema 2, including `prose_packet_sha256`) and save that object in
+   their own file. A local parser cannot authenticate this person or verify the
+   claims in their review. The proof, rubric, source notes, exact prompt and
+   tool policy all participate in the family packet digest. JSON layout and
+   task-row ordering do not.
+2. Bind the raw bytes of each completed review in the corresponding
+   reservation row as before. Use the same public tips and packet. Replace
+   `--prose-review-request REQUEST.json` with `--review-file REVIEW.json`
+   (repeat once per family) and `--prose-prompts PROMPTS.jsonl`. Schema-1
+   metadata-only reviews are rejected in this mode. A stale review, changed
+   proof/rubric, unreserved task or known public collision cannot emit prompts.
+3. Only send the resulting `PROMPTS.jsonl` to the model during the declared
+   evaluation. Each row has task ID, assumption and question text, the tool
+   policy, track/split, and a digest of **only the prompt fields**. No answer,
+   answer-derived digest, family label or reviewer fields are generated; the
+   reviewer must also check that free-text prompt fields contain no answer.
+   Keep the output private; releasing it makes the questions exposed. The private
+   source/solution/rubric is for operators and graders, never the tested model.
+
+This gate does not register a real private family by itself, execute a model,
+score responses, claim unseen generalization, or support private Lean/graph
+tasks. The public prose scorer and training exports must not consume these
+files. Repository tests use synthetic packets only.

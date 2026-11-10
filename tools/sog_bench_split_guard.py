@@ -16,8 +16,10 @@ import unicodedata
 
 if __package__:
     from . import sog_bench_graph_slices as compiled_slices
+    from .sog_bench_curriculum import curriculum
 else:
     import sog_bench_graph_slices as compiled_slices
+    from sog_bench_curriculum import curriculum
 
 ROOT = Path(__file__).resolve().parents[1]
 DIRECTORY = "benchmarks/samplingoptimisationgeometrybench"
@@ -320,7 +322,8 @@ def family_review_binding(family: dict) -> str:
     return digest(canonical({**family, "provenance": prov}))
 
 
-def check_review_evidence(data: dict, raw_reviews: Iterable[bytes], public_hash: str) -> dict:
+def check_review_evidence(data: dict, raw_reviews: Iterable[bytes], public_hash: str,
+                          *, prose_bindings: dict[str, str] | None = None) -> dict:
     """Bind supplied local review bytes to already validated private metadata."""
     hash_id(public_hash)
     issues: Counter = Counter()
@@ -334,9 +337,13 @@ def check_review_evidence(data: dict, raw_reviews: Iterable[bytes], public_hash:
             issues["repeated-review-file"] += 1
             continue
         row = parse(raw)
-        exact_keys(row, {"schema_version", "scope", "reviewer", "public_history_sha256",
-                         "family_binding_sha256", "verdict", "checks"}, "review-file-schema")
-        require(type(row["schema_version"]) is int and row["schema_version"] == 1
+        keys = {"schema_version", "scope", "reviewer", "public_history_sha256",
+                "family_binding_sha256", "verdict", "checks"}
+        if prose_bindings is not None:
+            keys.add("prose_packet_sha256")
+        exact_keys(row, keys, "review-file-schema")
+        require(type(row["schema_version"]) is int
+                and row["schema_version"] == (1 if prose_bindings is None else 2)
                 and row["scope"] == REVIEW_SCOPE and row["verdict"] in ("accept", "reject"),
                 "review-file-schema")
         require(type(row["reviewer"]) is str and ACTOR.fullmatch(row["reviewer"]) is not None,
@@ -348,6 +355,8 @@ def check_review_evidence(data: dict, raw_reviews: Iterable[bytes], public_hash:
                 "review-check-schema")
         by_digest[key] = {k: row[k] for k in
                           ("reviewer", "public_history_sha256", "family_binding_sha256", "verdict")}
+        if prose_bindings is not None:
+            by_digest[key]["prose_packet_sha256"] = hash_id(row["prose_packet_sha256"])
     claimed = set()
     for family in data["families"]:
         prov = family["provenance"]
@@ -365,6 +374,8 @@ def check_review_evidence(data: dict, raw_reviews: Iterable[bytes], public_hash:
             issues["review-public-history-drift"] += 1
         if row["family_binding_sha256"] != family_review_binding(family):
             issues["review-family-binding-drift"] += 1
+        if prose_bindings is not None and row["prose_packet_sha256"] != prose_bindings[family["family"]]:
+            issues["review-prose-packet-drift"] += 1
         if row["verdict"] != "accept":
             issues["review-not-accepted"] += 1
     unused = len(by_digest.keys() - claimed)
@@ -374,22 +385,88 @@ def check_review_evidence(data: dict, raw_reviews: Iterable[bytes], public_hash:
             "issues": dict(sorted(issues.items()))}
 
 
+PROSE_INPUT_FIELDS = ("id", "assumptions", "question", "retrieval_profile", "allowed_tools")
+
+
+def private_prose_packet(reservation: dict, packet: dict) -> tuple[dict[str, str], bytes]:
+    """Bind canonical private tasks to an already validated prose-only reservation."""
+    exact_keys(packet, {"schema_version", "split", "tasks"}, "private-prose-schema")
+    require(type(packet["schema_version"]) is int and packet["schema_version"] == 1
+            and packet["split"] == "private-test", "private-prose-schema")
+    expected = {}
+    groups = {}
+    for family in reservation["families"]:
+        name = family["family"]
+        groups[name] = []
+        for task in family["tasks"]:
+            exact_keys(task, {"id", "nl_prompt_sha256"}, "private-packet-requires-prose-only")
+            expected[task["id"]] = (name, task["nl_prompt_sha256"])
+    plan = curriculum()
+    prompts = []
+    for task in sequence(packet["tasks"], "private-prose-tasks", nonempty=True):
+        exact_keys(task, {*PROSE_INPUT_FIELDS, "family", "domain", "level", "skills", "source_notes",
+                          "proof_steps", "rubric"}, "private-prose-task-schema")
+        identifier(task["id"])
+        identifier(task["family"])
+        require(task["id"] in expected, "private-prose-task-set-mismatch")
+        family, prompt = expected.pop(task["id"])
+        require(task["family"] == family, "private-prose-family-mismatch")
+        for key, options in (("domain", plan["domains"]), ("level", plan["levels"])):
+            require(type(task[key]) is str and task[key] in options, "private-prose-curriculum")
+        skills = sequence(task["skills"], "private-prose-curriculum", nonempty=True)
+        require(all(type(s) is str and s in plan["skills"] for s in skills)
+                and len(set(skills)) == len(skills), "private-prose-curriculum")
+        for field in ("assumptions", "proof_steps", "rubric", "allowed_tools"):
+            rows = sequence(task[field], "private-prose-text-list", nonempty=field == "proof_steps")
+            require(all(type(s) is str and bool(s.strip()) for s in rows), "private-prose-text-list")
+        require(len(task["rubric"]) == len(set(task["rubric"])) == 4, "private-prose-four-rubric-points")
+        require(type(task["source_notes"]) is str and bool(task["source_notes"].strip()), "private-prose-source-notes")
+        require(task["retrieval_profile"] in ("closed-book", "open-library"), "private-prose-retrieval-profile")
+        require(prompt_digest(task["assumptions"], task["question"]) == prompt, "private-prose-prompt-drift")
+        groups[family].append(task)
+        public_fields = {k: task[k] for k in PROSE_INPUT_FIELDS}
+        prompts.append({**public_fields, "track": "natural-language", "split": "private-test",
+                        "prompt_sha256": digest(canonical(public_fields))})
+    require(not expected, "private-prose-task-set-mismatch")
+    bindings = {family: digest(canonical({"schema_version": 1, "split": "private-test",
+                                         "tasks": sorted(tasks, key=lambda t: t["id"])}))
+                for family, tasks in groups.items()}
+    return bindings, b"".join(canonical(prompt) + b"\n" for prompt in sorted(prompts, key=lambda p: p["id"]))
+
+
+def require_private_path(path: Path, repo: Path) -> None:
+    if path.is_relative_to(repo):
+        rel = path.relative_to(repo)
+        require(bool(rel.parts) and rel.parts[0] == ".astis", "reservation-must-stay-out-of-tracked-paths")
+        # check-ignore with no --no-index rejects tracked paths.
+        git_bytes(repo, "check-ignore", "-q", "--", rel.as_posix(),
+                  failure="reservation-must-stay-ignored")
+
+
+def write_private_output(path: Path, repo: Path, raw: bytes) -> None:
+    """Require a fresh destination in a private, already existing directory."""
+    require(bool(path.name) and path.name not in (".", "..") and ":" not in path.name,
+            "invalid-private-output-name")
+    try:
+        target = path.parent.resolve(strict=True) / path.name
+        require_private_path(target, repo.resolve())
+        flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, "O_BINARY", 0)
+        with os.fdopen(os.open(target, flags, 0o600), "wb") as stream:
+            stream.write(raw)
+    except (OSError, RuntimeError) as exc:
+        raise GuardError("private-output-unavailable-or-exists") from exc
+
+
 def private_bytes(path: Path, repo: Path, max_bytes: int = MAX_BYTES) -> bytes:
     try:
         path, repo = path.resolve(strict=True), repo.resolve()
-        if path.is_relative_to(repo):
-            rel = path.relative_to(repo)
-            require(bool(rel.parts) and rel.parts[0] == ".astis",
-                    "reservation-must-stay-out-of-tracked-paths")
-            # check-ignore with no --no-index rejects tracked inputs.
-            git_bytes(repo, "check-ignore", "-q", "--", rel.as_posix(),
-                      failure="reservation-must-stay-ignored")
+        require_private_path(path, repo)
         require(path.is_file() and 0 < path.stat().st_size <= max_bytes, "reservation-input-size")
         with path.open("rb") as stream:
             raw = stream.read(max_bytes + 1)
         require(0 < len(raw) <= max_bytes, "reservation-input-size")
         return raw
-    except OSError as exc:
+    except (OSError, RuntimeError) as exc:
         raise GuardError("reservation-input-unavailable") from exc
 
 
@@ -403,9 +480,17 @@ def main() -> int:
     parser.add_argument("--reservation", type=Path, help="Private metadata outside repo or under ignored .astis; omit for inventory only")
     parser.add_argument("--review-file", action="append", type=Path, default=[],
                         help="Exact private reviewer report; repeat once per reserved family")
+    parser.add_argument("--prose-packet", type=Path, help="Private actual tasks, proofs and rubrics to bind")
+    outputs = parser.add_mutually_exclusive_group()
+    outputs.add_argument("--prose-review-request", type=Path, help="Write an unsigned private review request")
+    outputs.add_argument("--prose-prompts", type=Path, help="Write a private prompt-only JSONL after full evidence checks")
     args = parser.parse_args()
-    if args.review_file and args.reservation is None:
-        parser.error("--review-file requires --reservation")
+    if (args.review_file or args.prose_packet) and args.reservation is None:
+        parser.error("--review-file and --prose-packet require --reservation")
+    if (args.prose_review_request or args.prose_prompts) and args.prose_packet is None:
+        parser.error("Private prose outputs require --prose-packet")
+    if args.prose_prompts and not args.review_file:
+        parser.error("Private prose prompt output requires --review-file")
     try:
         found, report = inventory(ROOT, args.public_tip, observation_only=args.reservation is None)
         report["scope"] = "Declared public exposure only; no secrecy, originality or contamination certificate"
@@ -415,15 +500,35 @@ def main() -> int:
             result = check_reservation(private, found)
             report["private_check"] = result
             decision = 0 if result["no_known_conflict"] else 1
-            if args.review_file:
+            prose_bindings = None
+            if args.prose_packet and not decision:
+                prose_bindings, prompts = private_prose_packet(private, private_input(args.prose_packet, ROOT))
+                report["private_prose_check"] = {"task_packet_bound_to_reservation": True,
+                                                 "schema_version": 1, "prompt_file_written": False}
+            if args.review_file and args.prose_packet and decision:
+                report["private_review_check"] = {"status": "skipped after public collision or policy failure"}
+            elif args.review_file:
                 require(len(args.review_file) <= MAX_REVIEW_FILES, "private-review-input-limit")
                 raws = (private_bytes(path, ROOT, MAX_REVIEW_BYTES) for path in args.review_file)
-                evidence = check_review_evidence(private, raws, report["public_history_sha256"])
+                evidence = check_review_evidence(private, raws, report["public_history_sha256"],
+                                                 prose_bindings=prose_bindings)
                 report["private_review_check"] = evidence
                 if not evidence["all_review_files_bound"]:
                     decision = 1
             else:
-                report["private_review_check"] = {"status": "metadata-only; no reviewer bytes checked"}
+                status = "prose packet checked" if prose_bindings is not None else "metadata-only"
+                report["private_review_check"] = {"status": f"{status}; no reviewer bytes checked"}
+            if not decision and args.prose_review_request:
+                request = {"status": "unsigned; not review evidence", "families": [
+                    {"family": row["family"], "review": {"schema_version": 2, "scope": REVIEW_SCOPE,
+                     "reviewer": row["provenance"]["reviewer"], "public_history_sha256": report["public_history_sha256"],
+                     "family_binding_sha256": family_review_binding(row), "prose_packet_sha256": prose_bindings[row["family"]],
+                     "verdict": "", "checks": {name: "" for name in REVIEW_CHECKS}}}
+                    for row in private["families"]]}
+                write_private_output(args.prose_review_request, ROOT, canonical(request) + b"\n")
+            if not decision and args.prose_prompts:
+                write_private_output(args.prose_prompts, ROOT, prompts)
+                report["private_prose_check"]["prompt_file_written"] = True
         print(json.dumps(report, ensure_ascii=False, sort_keys=True))
         return decision
     except GuardError as exc:

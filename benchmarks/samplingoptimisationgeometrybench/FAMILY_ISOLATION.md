@@ -88,6 +88,11 @@ bytes against the family and declared public-history digests; it does not
 authenticate the reviewer or establish secrecy. Positive review evidence
 cannot override an observed public collision.
 
+For prose-only operator evaluation, use the same protocol's schema-2
+`--prose-packet` gate to bind the actual hypotheses, question, proof, rubric
+and tool policy to the private review. Only then can `--prose-prompts` write
+a fresh local prompt-only file. This is not a released split or scoring run.
+
 Exit `0` means no known conflict within the declared inputs; `1` means a
 collision or provenance-policy failure; `2` means the check did not produce a
 decision. Output contains only aggregate counts, public history evidence and

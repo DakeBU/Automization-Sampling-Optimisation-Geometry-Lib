@@ -9,6 +9,10 @@ or establish that a model has not seen an item.
    including exposed PR and retired tips. Keep the returned
    `public_history_sha256`. A shallow checkout provides observation only;
    a reservation requires available non-shallow history and its catalog objects.
+   The [v0.27 public receipt](../benchmarks/samplingoptimisationgeometrybench/reviews/exposure-v027/README.md)
+   is a reproducible example using exact declared tips and a blob-filtered
+   acquisition of the missing history. Recompute exposure for any actual
+   reservation; do not use that dated receipt as an exhaustive tip list.
 2. Prepare the reservation outside the repository or in ignored `.astis`.
    A distinct reviewer examines the actual private prompts, solutions, source
    and public-family comparisons. The reviewer records the binding and four

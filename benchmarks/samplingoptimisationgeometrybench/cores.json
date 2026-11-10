@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.17.0-dev",
+  "version": "0.18.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -1046,6 +1046,49 @@
       },
       "boundary": "The Lean target covers the eventwise output inequality only, not the prose counterexamples. The shared-kernel hypothesis is necessary in general; even with it, factor one does not give strict contraction, a convergence rate, warmness, or a transfer of unbounded expected work. The exercise uses the same public family as the finite adaptive error and stopped-cost audits, without treating them as independent held-out questions.",
       "source_note": "Original QA over the existing Samplinglib-owned eventwise contraction. Its actual local consumer KernelHybridTelescope.abs_real_comp_commonSuffix_sub_le_integral_eventBound calls it before re-associating composition. Chen–Chewi–Lu–Zhang, Smoothed Picard Hamiltonian Monte Carlo, arXiv:2609.06906v1 §7.2, proof of Theorem 1.3, uses precisely the common-kernel TV step to transfer proxy input accuracy; this exercise supplies the abstract step, not the actual PBPS composition or its query estimate. The source proof uses Mathlib's public Layercake and measure APIs; upstream credit for its tail-integrability pattern is retained in the owner module. No paper text or restricted material is copied."
+    },
+    {
+      "id": "sogb-038",
+      "family": "random-scan-null-atoms",
+      "domain": "mcmc",
+      "library_domains": ["mcmc", "discrete-sampling"],
+      "track_levels": {"natural-language": "L3", "lean": "L3"},
+      "difficulty": "intermediate",
+      "difficulty_reason": "Coordinate the actual kernel composition, constant-density evaluation, nonnegative finite-sum integration and normalization. The prose also distinguishes the row normalization and stationarity of a state-dependent selection rule.",
+      "skills": ["proof", "assumption-audit", "counterexample"],
+      "title": "When mixing invariant kernels preserves their common target",
+      "assumptions": [
+        "Let X be any measurable space, I a finite index type, and μ any measure on X. Each K_i is an s-finite kernel from X to X and preserves μ: \\(\\mu K_i=\\mu\\), with composition defined on measurable events by nonnegative integration. Neither μ nor the component kernels are assumed to be probabilities in the main claim.",
+        "Fix finite nonnegative weights w_i independent of x, with \\(\\sum_{i\\in I}w_i=1\\). The mixed kernel is the finite sum of the component kernels scaled by the constant densities w_i, so \\(K_w(x,T)=\\sum_i w_i K_i(x,T)\\) on measurable output events T. The s-finite kernel assumption is the `withDensity` API premise used for this construction."
+      ],
+      "question": "Prove \\(\\mu K_w=\\mu\\) on every measurable event, allowing infinite event masses and zero weights. Then give a finite-state example where each component is a Markov kernel with the same invariant probability, and strictly positive weights normalize at every current state, but the state-dependent mixture fails to preserve that probability. Identify which step of the fixed-weight proof fails.",
+      "steps": [
+        "Fix a measurable output event T. Each map \\(x\\mapsto K_i(x,T)\\) is measurable. A fixed w_i is a measurable constant density, so the value of the scaled kernel on T is exactly \\(w_i K_i(x,T)\\); the definition is not using the nonmeasurable-density fallback. The finite sum is a kernel with measurable event evaluations.",
+        "Use the definition of the composed measure and finite additivity of the nonnegative integral for measurable summands. Since each coefficient is constant in x, \\[\\begin{aligned}(\\mu K_w)(T)&=\\int_X\\sum_i w_iK_i(x,T)\\,d\\mu(x)\\\\&=\\sum_i w_i\\int_X K_i(x,T)\\,d\\mu(x).\\end{aligned}\\] These are extended nonnegative quantities, not differences of potentially infinite numbers. No integrability as a finite real number is needed.",
+        "Use \\(\\mu K_i=\\mu\\) in each integral. The result is \\(\\sum_i w_i\\mu(T)=(\\sum_i w_i)\\mu(T)=\\mu(T)\\). Distributivity is in the extended nonnegative reals, where a zero weight contributes zero even for infinite event mass. The conclusion holds on all measurable T, hence as a measure equality.",
+        "On \\(X=\\{0,1\\}\\) with its discrete measurable structure, take the identity kernel I and the deterministic flip F, both of which preserve the uniform probability π. Give I weight \\(3/4\\) at 0 and \\(1/4\\) at 1; give F the complementary weights. Both rows then put mass \\(3/4\\) at 0 and \\(1/4\\) at 1. This is still a Markov kernel, but \\((\\pi K)(\\{0\\})=3/4\\ne 1/2=\\pi(\\{0\\})\\). The factors now depend on the input integrated against π, so they cannot in general be pulled outside the integrals."
+      ],
+      "rubric": [
+        {"points": 1, "criterion": "Identifies the actual fixed mixture and composed measure through their measurable event formulas or an equivalent justified measure-level representation. Justifies the relevant measurability rather than assuming an unsupported linearity rule."},
+        {"points": 1, "criterion": "Moves the finite sum and the constant weights through nonnegative integrals, or gives a valid equivalent argument without assuming finite event mass."},
+        {"points": 1, "criterion": "Uses the common component invariance as needed and the exact normalization to conclude equality of measures. A valid proof may omit the zero-weight terms."},
+        {"points": 1, "criterion": "Gives any valid counterexample with strictly positive normalized state-dependent weights, checks common component invariance and failure for the mixture, and locates the invalid constant-weight step."}
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_invariant",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/KernelMixture.lean",
+      "context": "open MeasureTheory ProbabilityTheory\nopen scoped ENNReal NNReal\n\nvariable {ι α β : Type*} [Fintype ι] [MeasurableSpace α] [MeasurableSpace β]\n\nnoncomputable def finiteMixture (w : ι → ℝ≥0) (κ : ι → Kernel α β)\n    [∀ i, IsSFiniteKernel (κ i)] : Kernel α β :=\n  ∑ i, (κ i).withDensity (fun _ _ => (w i : ℝ≥0∞))\n",
+      "decoder_definitions": [
+        "A kernel assigns a measure measurably to each source state. IsSFiniteKernel is the s-finite kernel condition for the constant-density construction; it is not a finiteness premise on the standalone measure μ or a probability normalization.",
+        "For a measurable event T, μ.bind K T is the nonnegative integral of K(x,T) against μ. K.Invariant μ is the measure equality μ.bind K = μ. Applying withDensity to a constant nonnegative density scales the kernel by that constant."
+      ],
+      "reference_helpers": ["AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_apply"],
+      "lean_explanation": "The task exposes the actual constant-density finiteMixture definition but imports neither the target module nor its mixture evaluation lemma. The trusted answer reproduces that earlier lemma as a private local helper, then uses Measure.bind_apply and the finite-sum/constant lintegral rules before rewriting by each hκ. The proof casts the normalization from NNReal to ENNReal and concludes on each measurable set. The helper proof is not in the learner prompt.",
+      "dependencies": {
+        "astis": ["AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture.finiteMixture_apply"],
+        "mathlib": ["ProbabilityTheory.Kernel.withDensity_apply", "MeasureTheory.Measure.bind_apply", "MeasureTheory.lintegral_finsetSum", "MeasureTheory.lintegral_const_mul"]
+      },
+      "boundary": "The aligned Lean conclusion is the fixed-weight invariant-measure equality only. The state-dependent counterexample is prose, not a separate Lean claim. Markovness of the fixed mixture from Markov components is a distinct library lemma; neither result gives reversibility or mixing. This question shares the public random-scan family because the uniform mixture law in sogb-013 is the same construction specialized to a coordinate index.",
+      "source_note": "Original question and counterexample over the project-owned KernelMixture.finiteMixture_invariant and its pointwise evaluation helper. The tracked ActualAugmentedKernelInvariance module uses this invariant-mixture lemma in its conditional mixture proof; RandomScanHeatBath uses the same pointwise mixture evaluation. This is an audit of a generic reusable argument, not a quotation or formalization claim about the full PBPS algorithm. Only project-original and Mathlib API material is used."
     }
   ]
 }

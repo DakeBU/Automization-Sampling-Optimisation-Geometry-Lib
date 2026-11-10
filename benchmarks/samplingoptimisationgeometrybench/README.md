@@ -53,6 +53,7 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-034 | SampleWiki / MCMC | Compute exact binary hybrid gaps and refute an incorrectly weighted adjacent bound (L2) | Generic kernel averaging and telescope are support only |
 | sogb-035 | SampleWiki / MCMC | Transfer stopped work by a pathwise likelihood budget and refute the ideal-average substitute (L5) | TV comparison and single-phase work bounds are support only |
 | sogb-037 | MCMC / SampleWiki | Prove factor-one TV contraction under a common Markov kernel and test sharpness and the common-kernel assumption (L3) | Reconstruct the layer-cake argument for actual composed event masses (L3) |
+| sogb-038 | MCMC / Discrete Sampling | Prove fixed-mixture invariance and test the state-independent-weight assumption (L3) | Reconstruct the nonnegative finite-sum proof for an arbitrary invariant measure (L3) |
 
 These four reviewed additions retain their existing public IDs. StatOT
 Exercise 6 (`sogb-031`) remains on its separate proof-and-publication route.
@@ -65,6 +66,11 @@ with its aligned Lean target. The mathematical reader explains why the same
 superlevel tests work for both inputs. The Lean result does not formalize the
 prose counterexamples or transfer unbounded work. Its real compiled use in
 the common-suffix proof is recorded separately from graph-task admission.
+
+[Formal round 14](reviews/formal-14/README.md) adds the fixed-weight pair. Its
+two-state counterexample is prose only, and the source helper is folded into
+the trusted answer rather than supplied to the learner. Selected compiled
+edges show the actual common helper and its PBPS consumer path.
 
 Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Structural graph editorial decisions are recorded separately; empirical difficulty calibration remains open. Existing theorem review does not certify a new question.
 
@@ -95,6 +101,13 @@ The first entry, sogb-029, is Chewi Optimization Exercise 3.2. Its complete auth
 [Round 2](reviews/round-2/README.md) independently checks the seven L1 natural-language questions. Its input contains no equivalent Lean target, so its acceptance cannot create a formal QA view. The `prose-packet` route explicitly rejects paired tasks, which still require anonymous decoding. Separate review rounds compose only for disjoint cores; changed content becomes stale and overlapping decisions require an explicit supersession policy.
 
 [Formal round 3](reviews/formal-3/README.md) covers the coupling-normalization pair. New paired batches use `tools/sog_bench_formal_review.py`: select aligned `--ids`, prepare a fresh anonymous `decoder-packet --round ...`, obtain a genuinely independent decoder report, then prepare `reviewer-packet --round ...` for a distinct source reviewer. Each core supplies minimal plain-string `decoder_definitions`; source identities, answers, proofs and previous verdicts must stay out of decoder input. The generated anonymous target retains the actual given definition while removing owning namespace labels. Never alter an earlier report or mint another ID to evade its review. Disjoint `reviews/formal-*` rounds are discovered automatically; input preparation cannot create admission.
+
+If the exact target proof uses an earlier tactic theorem from its own module,
+list that source declaration in `reference_helpers`. The builder reproduces it
+as a private local proof in the trusted reference only. This does not import the
+owning module, add a premise, or expose the helper proof to the learner or blind
+decoder. Preserve any source-specific notices in the reference context. Compile
+the complete reference and audit the unchanged target separately.
 
 [Formal round 5](reviews/formal-5/README.md) applies the same workflow to the sphere and conditional-kernel pairs. The unchanged anonymous input and actual decoder report from initial staging round 4 are reused after a bibliography-only correction; no new decoding or changed mathematical target is claimed.
 

@@ -139,6 +139,25 @@ def graph_prompts(items: list[dict]) -> list[dict]:
     return [graph_prompt(item) for item in items]
 
 
+def parse_graph_record(raw: str) -> dict:
+    """Preserve one unambiguous object; never let last-key-wins change an attempt."""
+    def unique(pairs):
+        out = {}
+        for key, value in pairs:
+            if key in out:
+                raise ValueError('Duplicate key in graph JSON')
+            out[key] = value
+        return out
+
+    def nonfinite(value):
+        raise ValueError('Non-finite graph JSON number: ' + value)
+
+    value = json.loads(raw, object_pairs_hook=unique, parse_constant=nonfinite)
+    if not isinstance(value, dict):
+        raise ValueError('Expected one graph JSON object')
+    return value
+
+
 def bind_graph_submissions(items: list[dict], rows: list[dict], *, allow_legacy: bool = False) -> list[dict]:
     """Operator-side translation after capture; preserve the frozen gold scorer."""
     by_id = {item['id']: item for item in items}

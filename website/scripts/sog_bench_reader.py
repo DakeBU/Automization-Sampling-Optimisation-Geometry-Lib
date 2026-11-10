@@ -523,7 +523,8 @@ def graph_page(item: dict) -> str:
     prompt = bench.curriculum.graph_prompts([item])[0]
     evidence = graph_review.summary(bench.curriculum.graph_items())['items'][item['id']]
     status = '<p>Current editorial status: <strong>' + escape(evidence['editorial']) + '</strong>. This is AI review of structural QA, not a theorem or calibrated difficulty.</p>'
-    status += '<ul>' + ''.join('<li>' + escape(s) + '</li>' for s in evidence.get('issues', []) + evidence.get('remaining_limits', [])) + '</ul>'
+    status += '<p>Limits recorded at the time of the review:</p><ul>' + ''.join(
+        '<li>' + escape(s) + '</li>' for s in evidence.get('issues', []) + evidence.get('remaining_limits', [])) + '</ul>'
     round_name = evidence.get('review_round', graph_review.CURRENT_ROUND.name)
     status += '<p><a href="downloads/graph-editorial-review.json">Exact review bindings and report hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews/'+escape(round_name)+'">Independent review for this question</a></p>'
     compiled=item['context']['kind']=='compiled-proof-body-constant-occurrences'
@@ -565,7 +566,10 @@ def graph_page(item: dict) -> str:
         + background
         + fold('Independent structural review and limits', status)
         + fold('Evidence kind and source scope', provenance+prose(item['context']['truth_boundary']))
-        + fold('Exact JSON snapshot and response schema', '<pre><code class="language-json">' + escape(json.dumps(prompt, indent=2)) + '</code></pre>')
+        + fold('Exact JSON snapshot and response schema',
+            '<p>The supplied-snapshot response identifies this visible prompt with <code>prompt_sha256</code>. '
+            'The current CLI rejects duplicate JSON keys before scoring; this does not authenticate who answered or when.</p>'
+            '<pre><code class="language-json">' + escape(json.dumps(prompt, indent=2)) + '</code></pre>')
         + fold('Reference structural answer · 2 checks, 1 point', trace + '<pre><code>' + escape(json.dumps(item['answer'], indent=2)) + '</code></pre>'
             '<p>One point requires both the exact structural node set and a false mathematical-necessity certification. The constant boundary answer earns no standalone credit. Edges have only the stated evidence kind. Neither a positive path nor an absent induced path proves mathematical necessity or full-closure independence.</p>')
         + '<p>No model score, theorem-equivalence certificate or calibrated difficulty is asserted.</p></article>')

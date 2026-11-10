@@ -114,6 +114,8 @@ report is explicitly labelled as such, never a full-suite score. Omitting
 Graph answers echo the visible question's `prompt_sha256` (see the graph
 `response-template.json`), not the operator's answer-bound digest. The
 score archive binds the first captured response to the exact frozen reference.
+Duplicate JSON keys (including within answers) and non-finite constants are
+rejected instead of silently normalized.
 The explicit `--legacy-graph-bindings` switch is for reproducing old scores;
 old visible bindings do not meet this prompt-only contract.
 

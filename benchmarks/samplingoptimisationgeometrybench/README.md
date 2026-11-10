@@ -101,6 +101,11 @@ compensated entropy limit, while only the compact Poincaré branch reaches
 the selected cutoff limits. This is a property of the supplied slice,
 not mathematical necessity or full-closure independence.
 
+[Random-scan structural review](reviews/graph-extension-random-scan/README.md)
+adds a separate L2 question on which selected heat-bath proofs reach the
+one-block pointwise law. Its operator-only witness explains a path hidden by
+omitting a private helper, without altering the public slice or its score.
+
 Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Structural graph editorial decisions are recorded separately; empirical difficulty calibration remains open. Existing theorem review does not certify a new question.
 
 ## Review evidence and scope
@@ -252,7 +257,14 @@ The second slice is extracted by `tools/sog_bench_compiled_graph.py` from the **
 
 `compiled_flow_graph_tasks.json` selects another bounded compiler slice linked to sogb-023: curve slope limit → strong-convexity adapter → actual flow/gradient-pairing proofs, contrasted with the existing midpoint branch. g006 queries paths; g007 combines a path query with exact whitelisted constants emitted by `info.type.getUsedConstants`. These are direct occurrences in the **unexpanded elaborated statement**, not binder-role classification, an inferred hypothesis list or a full type closure. The flow statement contains `Differentiable`, while its proof obtains a genuine gradient; absence of direct `HasGradientAt` is not absence of a gradient. Profiles are a separate table, never extra proof edges or new Mathlib-owned blue nodes. Both new labels are provisional L2, not inherited from the L4 source exercise.
 
-Both snapshots pin the union of **all selected modules' local import closures**, including selected branches outside the anchor's ancestry. This source-code closure is distinct from the displayed induced theorem graph, which still omits constants. `check --slice all` (the default) freshly replays both; `--slice transport` and `--slice convex-flow` focus a trusted diagnostic. New selector/profile/source changes require regenerated records and appropriate fresh editorial evidence. Mathematical cores, structural views and source families are counted separately; these graphs create no theorem or Registry credit.
+Every registered snapshot pins the union of **all selected modules' local import
+closures**, including selected branches outside the anchor's ancestry. This
+source-code closure is distinct from the displayed induced theorem graph,
+which still omits constants. Run `python tools/sog_bench_graph_slices.py check`
+to replay every registered slice. The older compiler CLI's
+`--slice transport` and `--slice convex-flow` remain focused diagnostics.
+Selector, profile or source changes require regenerated records and suitable
+fresh editorial evidence. These graphs create no theorem or Registry credit.
 
 To update this eligible slice after a reviewed source change, run `python tools/sog_bench_compiled_graph.py refresh`, then `check` and obtain a fresh content-bound editorial review where required. Refresh creates neither a review verdict nor Registry credit. It compiles only trusted allowlisted source imports and a generated environment inspector—never model submissions. No mixed upstream or restricted ATLAS graph is read or exported. Source-proof/hypergraph questions and deeper mathematical graph audits still need separate evidence and review.
 

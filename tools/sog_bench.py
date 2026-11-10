@@ -592,10 +592,11 @@ def main() -> int:
     if args.command == 'grade-graph':
         if not args.submissions or not args.run_metadata:
             parser.error('grade-graph requires --submissions and --run-metadata')
-        metadata = json.loads(args.run_metadata.read_text(encoding='utf-8'))
+        metadata = curriculum.parse_graph_record(args.run_metadata.read_text(encoding='utf-8'))
         curriculum.validate_run_metadata(metadata)
         graphs = selected_graph_tasks(graphs, metadata)
-        rows = [json.loads(line) for line in args.submissions.read_text(encoding='utf-8').splitlines() if line.strip()]
+        rows = [curriculum.parse_graph_record(line)
+                for line in args.submissions.read_text(encoding='utf-8').splitlines() if line.strip()]
         bound = curriculum.bind_graph_submissions(graphs, rows, allow_legacy=args.legacy_graph_bindings)
         report = {**curriculum.grade_graph(graphs, bound), 'run_metadata': metadata,
                   'catalog_version': load()['version'], 'raw_submissions': rows,

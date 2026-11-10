@@ -69,8 +69,32 @@ class GraphReviewTests(unittest.TestCase):
         changed[0]['context']['source_sha256_lf']['changed']='source'
         self.assertEqual(review.statuses(changed,review.CURRENT_ROUND)['sogb-g001']['editorial'],'stale')
 
+    def test_random_scan_extension_pins_the_safe_visible_projection(self):
+        path = review.ROUND.parent / 'graph-extension-random-scan'
+        old = path / 'preflight-answer-binding'
+        identity = 'sogb-g009'
+        graph = next(item for item in self.items if item['id'] == identity)
+        accepted = review.summary(self.items)['items'][identity]
+        self.assertEqual((accepted['editorial'], accepted['review_round']), ('accepted', path.name))
+        self.assertEqual(review.statuses(self.items, old)[identity]['editorial'], 'repair-required')
+        self.assertEqual(graph['family'], 'random-scan-null-atoms')
+        self.assertEqual((len(graph['context']['nodes']), len(graph['context']['edges'])), (8, 5))
+        self.assertEqual({name.rsplit('.', 1)[-1] for name in graph['answer']['nodes']},
+                         {'randomScan_apply_singleton', 'heatBath_ae_apply_eq'})
+        packet = json.loads((path / 'input.json').read_bytes())
+        self.assertEqual(bench.text_hash(path / 'PrivateBalanceTrace.lean'),
+                         packet['proof_occurrence_witness']['probe_sha256_lf'])
+        self.assertEqual(graph['context']['snapshot_sha256'],
+                         packet['proof_occurrence_witness']['public_snapshot_sha256'])
+        actual = bench.curriculum.graph_prompt
+        with patch.object(bench.curriculum, 'graph_prompt',
+                          side_effect=lambda item: {**actual(item), 'changed_projection': True}):
+            self.assertEqual(review.statuses(self.items, path)[identity]['editorial'], 'stale')
+
     def test_policy_or_scorer_changes_stale_every_original_decision(self):
         actual=review.payload
+        originals = {row['id'] for row in json.loads(
+            (review.CURRENT_ROUND / 'input.json').read_bytes())['items']}
         for key in ('policy_sha256_lf','scorer_source'):
             def changed(items):
                 result=actual(items)
@@ -78,9 +102,8 @@ class GraphReviewTests(unittest.TestCase):
                 return result
             with patch.object(review,'payload',side_effect=changed):
                 rows = review.statuses(self.items, review.CURRENT_ROUND)
-                self.assertEqual(rows['sogb-g008']['editorial'], 'pending')
-                self.assertTrue(all(row['editorial'] == 'stale' for identity, row in rows.items()
-                                    if identity != 'sogb-g008'))
+                self.assertTrue(all(row['editorial'] == ('stale' if identity in originals else 'pending')
+                                    for identity, row in rows.items()))
 
     def test_author_input_hash_necessity_and_open_repairs_cannot_self_admit(self):
         for case in ('actor','hash','necessity','repair','evidence'):

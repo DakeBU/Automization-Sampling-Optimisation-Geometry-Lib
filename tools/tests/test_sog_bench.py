@@ -859,6 +859,13 @@ class BenchTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 bench.curriculum.bind_graph_submissions([item], [bad])
 
+    def test_offline_graph_parser_never_collapses_ambiguous_attempts(self):
+        self.assertEqual(bench.curriculum.parse_graph_record('{"attempt":1}'), {'attempt': 1})
+        for raw in ('{"attempt":2,"attempt":1}', '{"answer":{"nodes":[],"nodes":["other"]}}',
+                    '{"attempt":NaN}', '{"attempt":Infinity}', '{}{}', '[]'):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                bench.curriculum.parse_graph_record(raw)
+
     def test_exercise17_graph_explains_indirect_path_in_reference_not_prompt(self):
         graph = next(g for g in bench.curriculum.graph_items() if g['id'] == 'sogb-g008')
         core = next(c for c in self.cores if c['id'] == 'sogb-039')

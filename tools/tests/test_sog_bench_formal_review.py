@@ -64,7 +64,7 @@ class PairedReviewTests(unittest.TestCase):
         self.assertEqual(rows['sogb-032']['formal_alignment'], 'conclusion-only')
         self.assertEqual(rows['sogb-038']['editorial'], 'accepted-after-repair')
         self.assertEqual(rows['sogb-038']['formal_alignment'], 'conclusion-only')
-        for identity in ('sogb-039', 'sogb-040', 'sogb-041'):
+        for identity in ('sogb-039', 'sogb-040', 'sogb-041', 'sogb-042'):
             self.assertEqual(rows[identity]['editorial'], 'accepted')
             self.assertEqual(rows[identity]['formal_alignment'], 'conclusion-only')
             self.assertTrue(rows[identity]['remaining_unformalized'])

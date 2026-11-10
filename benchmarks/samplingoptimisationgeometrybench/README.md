@@ -57,6 +57,9 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-039 | Log-Concave Sampling | Exercise 1.7: derive compact Euclidean Poincaré with the same constant from compact smooth log-Sobolev (L4) | Derive genuine admissibility and the compact Poincaré conclusion, without a full form-domain claim (L4) |
 | sogb-040 | Log-Concave Sampling | Exercise 1.7: construct a local affine probability law and expand its finite KL (L3) | Reconstruct the actual-law quadratic KL result with the full-neighborhood remainder (L3) |
 | sogb-041 | Statistical Optimal Transport | Compute both product-law marginals and identify the mass-one factor in each (L2) | Unpack the local coupling predicate and apply the two direct Mathlib identities (L1) |
+| sogb-042 | Log-Concave Sampling / Statistical Optimal Transport | Lift the score and displacement to an arbitrary coupling, then justify the finite optimal-cost substitution (L4) | Reconstruct the conditional Fisher–transport pairing bound without the answer owner (L4) |
+
+[Formal round 17](reviews/formal-17/README.md) checks the exact Fisher–transport pair and its scope; it is not a numbered Chewi exercise or a new library theorem.
 
 These four reviewed additions retain their existing public IDs. StatOT
 Exercise 6 (`sogb-031`) remains on its separate proof-and-publication route.

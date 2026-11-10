@@ -303,6 +303,17 @@ class BenchTests(unittest.TestCase):
         self.assertIn('constructor <;> simp', core['lean_reference'])
         self.assertNotIn('constructor <;> simp', core['lean_task'])
 
+    def test_fisher_pairing_keeps_the_domain_and_hides_answer_helpers(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-042')
+        self.assertEqual(core['track_levels'], {'natural-language': 'L4', 'lean': 'L4'})
+        self.assertEqual(set(core['library_domains']), {'log-concave-sampling', 'statistical-optimal-transport'})
+        self.assertNotIn('textbook_exercise', core)
+        self.assertIn('SmoothFiniteScoreDomain', core['lean_task'])
+        self.assertIn('IsQuadraticOptimalCoupling', core['lean_task'])
+        self.assertNotIn(core['source_file'].removesuffix('.lean').replace('/', '.'), core['imports'])
+        self.assertIn('memLp_score_and_displacement', core['lean_reference'])
+        self.assertNotIn('memLp_score_and_displacement', core['lean_task'])
+
     def test_compiler_scope_tracks_real_imports_and_pins_not_unrelated_modules(self):
         selected = [c for c in self.cores if c['id'] == 'sogb-016']
         actual_hash = bench.text_hash

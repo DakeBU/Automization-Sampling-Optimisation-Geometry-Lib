@@ -26,3 +26,23 @@ comparator/kernel verifier as other fixed-target attempts. The step's
 rejection is a measured rejection for this one public-dev answer, not failed
 evaluation infrastructure. This one answer is not a model ranking, pass rate,
 benchmark calibration, or a native agentic feedback demonstration.
+
+## Actual isolated verifier outcome
+
+[Run 42804230206](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/runs/42804230206)
+on exact draft head `8065d4f63c9531cbefbc173ee6082c9e2bf4a7d1` passed the
+software gate. Its distinct one-shot outcome is **proof-rejected (0/1)**.
+The compiler found an unsolved goal and a literal Markdown-fence syntax
+error; the external comparator was therefore not reached. The verifier
+record has no interruption, sandbox failure, or infrastructure exception.
+
+These are the unchanged bytes of the [outcome](native-v030/outcome.json),
+[verifier result](native-v030/result.json) and
+[bounded compiler diagnostic](native-v030/compiler-diagnostic.bin)
+from [GitHub artifact 13760828883](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/runs/42804230206/artifacts/13760828883).
+The downloaded ZIP SHA-256 matched GitHub's reported
+`11ed2c665c063ae54ed7211d4696e5683e8ac66339f8fb0a25f3dcaa670d7836`.
+The native candidate hash matches the frozen capture, the verifier result
+hash matches the outcome, and the diagnostic hash matches the result.
+Do not infer a model pass from green CI or interpret this single
+public-dev rejection as a general score.

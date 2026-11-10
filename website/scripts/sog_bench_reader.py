@@ -96,9 +96,11 @@ def prose(text: str, *, paragraph: bool = True) -> str:
         for i, span in enumerate(spans))
     # Stack independent comma-separated display identities, without changing
     # the audited source strings or shrinking their mobile math fonts.
-    def stack(match):
+    def stack(match, *, inline=False):
         body = match.group(1)
         if r'\begin{' in body:
+            if inline:
+                return match.group(0)
             # One common authored alignment: equality of two absolute values
             # followed by an estimate. Put each complete sized expression on
             # its own row without modifying the underlying gold formula.
@@ -142,6 +144,20 @@ def prose(text: str, *, paragraph: bool = True) -> str:
                     relations.append((index, relation.group()))
                 if char == '+' and not in_norm and (index == 0 or body[index-1] not in '^_\\'):
                     plus.append(index)
+        if inline:
+            # Keep long inline monotone chains readable at normal size. The
+            # authored comparison terms are unchanged; only their rows move.
+            if (len(body.strip()) >= 64 and len(relations) >= 2
+                    and not (parts or depth or group_depth or sized_depth or in_norm)
+                    and relations[0][1] != '='
+                    and all(op[:3] == relations[0][1][:3] for _, op in relations)
+                    and not any(token in body for token in (':=', '&', r'\quad', r'\left', r'\right', r'\\',
+                                                              r'\lvert', r'\rvert', r'\lVert', r'\rVert'))):
+                bounds = [0, *(pos for pos, _ in relations), len(body)]
+                rows = [body[i:j].strip() for i, j in zip(bounds, bounds[1:])]
+                if all(row and row.count('|') % 2 == 0 for row in rows):
+                    return r'\[\begin{aligned}&' + r'\\&'.join(rows) + r'\end{aligned}\]'
+            return match.group(0)
         if not parts:
             # A long equality followed by monotone comparisons can wrap at
             # the top-level relations, but sizing pairs stay on one line.
@@ -191,6 +207,19 @@ def prose(text: str, *, paragraph: bool = True) -> str:
         parts.append(body[start:])
         return r'\[\begin{gathered}' + r'\\'.join(parts) + r'\end{gathered}\]'
     rendered = re.sub(r'\\\[(.*?)\\\]', stack, text, flags=re.S)
+    if paragraph:
+        def reflow_inline(match):
+            if match.group(1) is None:
+                return match.group(0)
+            equation = stack(match, inline=True)
+            closing = r'\end{aligned}\]'
+            if match.group(2) and equation.endswith(closing):
+                # Keep a trailing sentence mark on the last equation row.
+                return equation.removesuffix(closing) + match.group(2) + closing
+            return equation
+
+        rendered = re.sub(r'\\\[[\s\S]*?\\\]|\$\$[\s\S]*?\$\$|\$[^$\n]+?\$|\x60[^\x60\n]+\x60|\\\(([\s\S]*?)\\\)([.,;:]?)',
+                          reflow_inline, rendered)
     content = inline_prose(rendered)
     return '<p>' + content + '</p>' if paragraph else content
 

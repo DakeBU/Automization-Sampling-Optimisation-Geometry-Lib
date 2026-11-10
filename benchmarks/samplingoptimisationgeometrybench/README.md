@@ -61,6 +61,7 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-043 | Discrete Sampling / MCMC | Derive full random-scan detailed balance and set-flux reversibility; separate invariance from convergence (L3) | Reconstruct the actual kernel reversibility using supported starts, retained fibers and the atomic-balance bridge (L3) |
 | sogb-044 | MCMC / SampleWiki | Lift fiber detailed balance using measurable sections and nonnegative iterated integrals; distinguish reversibility from invariance (L4) | Reconstruct the s-finite retained-coordinate result without a probability or Markov assumption (L4) |
 | sogb-045 | Discrete Sampling / MCMC | Derive the positive-fiber heat-bath law and explain why sampling can land on a zero-mass fiber (L4) | Reconstruct the fixed-site measure identity via measurable regrouping and the positive marginal atom (L4) |
+| sogb-046 | Lower Bounds / Optimisation | Construct a quadratic worst case for a fixed step and delimit the algorithm class (L3) | Reconstruct the endpoint witness, exact iterates and minimax factor (L3) |
 
 These four reviewed additions retain their existing public IDs. StatOT
 Exercise 6 (`sogb-031`) remains on its separate proof-and-publication route.
@@ -167,7 +168,7 @@ The addition of the empty Lower Bounds domain does not re-review or rebind the e
 
 ## Difficulty and subject coverage
 
-The eight domain indexes include the cross-library [Lower Bounds route](../../docs/lower-bounds-reader.md). It separates method-specific obstructions from claims quantified over an explicit oracle class. Shared questions can appear in several indexes without multiplying the global count. `python tools/sog_bench.py coverage` computes the domain × L1–L5 × track matrix. An empty cell is a visible gap, not a request for filler or a completion percentage. Lower Bounds has no admitted question yet; its source links do not change the existing catalog.
+The eight domain indexes include the cross-library [Lower Bounds route](../../docs/lower-bounds-reader.md). It separates method-specific obstructions from claims quantified over an explicit oracle class. Shared questions can appear in several indexes without multiplying the global count. `python tools/sog_bench.py coverage` computes the domain × L1–L5 × track matrix. An empty cell is a visible gap, not a request for filler or a completion percentage. The first Lower Bounds pair covers a fixed-step method only; the oracle-model track remains open. [Formal round 21](reviews/formal-21/README.md) preserves the original rubric objection and a distinct review of its exact repair.
 
 | Level | Reasoning target |
 |---|---|

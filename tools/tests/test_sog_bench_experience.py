@@ -63,6 +63,17 @@ class ReadableMathTests(unittest.TestCase):
     def test_ambiguous_unbalanced_notation_is_left_literal(self):
         self.assertNotIn('sog-inline-math', reader.inline_prose('∇f(x'))
 
+    def test_long_inline_inequality_reflows_without_changing_mathematics(self):
+        chain = r'\(\beta-\alpha\le\beta|1-h\alpha|+\alpha|1-h\beta|\le(\alpha+\beta)M\)'
+        rendered = reader.prose('Use ' + chain + ' here.')
+        self.assertIn(r'\[\begin{aligned}&amp;\beta-\alpha\\&amp;\le\beta|1-h\alpha|+\alpha|1-h\beta|'
+                      r'\\&amp;\le(\alpha+\beta)M\end{aligned}\]', rendered)
+        self.assertIn(r'\le(\alpha+\beta)M.\end{aligned}\]', reader.prose('Use ' + chain + '. Next.'))
+        self.assertIn(r'\(a\le b\le c\)', reader.prose(r'\(a\le b\le c\)'))
+        self.assertNotIn(r'\begin{aligned}', reader.prose(chr(96) + chain + chr(96)))
+        mixed = chain.replace(r'\le(', r'\ge(')
+        self.assertIn(mixed, reader.prose(mixed))
+
 
 class NumberedExerciseReaderTests(unittest.TestCase):
     def test_lower_bounds_domain_has_a_real_route_without_fake_task_counts(self):

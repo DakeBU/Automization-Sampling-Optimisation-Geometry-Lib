@@ -286,7 +286,9 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(len(coverage['cells']), 40)
         lower = [c for c in coverage['cells'] if c['domain'] == 'lower-bounds']
         self.assertEqual({c['level'] for c in lower}, {'L1', 'L2', 'L3', 'L4', 'L5'})
-        self.assertTrue(all(c['gap'] and not any(c['draft_views'].values()) for c in lower))
+        self.assertTrue(all(c['gap'] and not any(c['draft_views'].values()) for c in lower if c['level'] != 'L3'))
+        self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L3'),
+                         {'natural-language': 1, 'lean': 1, 'graph-json': 0})
         self.assertEqual(coverage['unique_mathematical_cores'], len(bench.load()['cores']))
         self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
                          {'samplewiki', 'mcmc'})
@@ -300,12 +302,27 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual(graph_review.summary(graphs)['accepted_tasks'], len(graphs))
-        authored_domains = set(bench.curriculum.curriculum()['domains']) - {'lower-bounds'}
+        authored_domains = set(bench.curriculum.curriculum()['domains'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, authored_domains)
         self.assertNotIn('OpenAI', json.dumps(coverage))
         for domain in authored_domains:
-            self.assertTrue(any(domain in c['library_domains'] and c['track_levels'].get('natural-language') == 'L1' for c in self.cores))
+            if domain != 'lower-bounds':
+                self.assertTrue(any(domain in c['library_domains'] and c['track_levels'].get('natural-language') == 'L1' for c in self.cores))
             self.assertTrue(any(domain in c['library_domains'] and bench.has_lean(c) for c in self.cores))
+
+    def test_lower_bounds_pair_is_an_exact_reviewed_fixed_step_component(self):
+        item, = [c for c in self.cores if 'lower-bounds' in c['library_domains']]
+        self.assertEqual((item['id'], item['family']), ('sogb-046', 'chewi-opt-v1-exercise-3-3'))
+        self.assertEqual(item['track_levels'], {'natural-language': 'L3', 'lean': 'L3'})
+        self.assertNotIn('textbook_exercise', item)  # Not coverage of every source part.
+        self.assertNotIn(item['source_file'].removesuffix('.lean').replace('/', '.'), item['imports'])
+        self.assertIn('does not give a lower bound for adaptive', item['rubric'][3]['criterion'])
+        self.assertNotIn('tight', item['rubric'][3]['criterion'])
+        review_row = bench.editorial_review(self.cores)['items'][item['id']]
+        self.assertEqual((review_row['editorial'], review_row['formal_alignment']),
+                         ('accepted-after-repair', 'conclusion-only'))
+        self.assertTrue(review_row['prior_review_report_sha256'])
+        self.assertFalse(any(g['core_id'] == item['id'] for g in bench.curriculum.graph_items()))
 
     def test_product_coupling_is_an_original_foundation_view_of_a_public_family(self):
         by_id = {c['id']: c for c in self.cores}

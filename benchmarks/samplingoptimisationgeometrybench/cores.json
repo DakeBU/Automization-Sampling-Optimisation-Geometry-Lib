@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.28.0-dev",
+  "version": "0.29.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -1619,6 +1619,84 @@
       },
       "boundary": "The result identifies the actual fixed-site law on positive retained fibers. It does not identify a pointwise normalized restriction on a zero-mass fiber, derive the randomized-site update, or prove invariance, reversibility, irreducibility, or mixing. The nonatomic example is explanatory.",
       "source_note": "Original ASTIS exercise over the owned Apache-2.0 CoordinateHeatBathConditional theorem and its existing kernel definition; retain LICENSE and NOTICE. Tests/CoordinateHeatBathConditional.lean checks the actual law and its domain. This producer is used by the random-scan singleton formula; the full conditional-law proof is different from the earlier public family exercises that take that formula as input. No copied book text or hidden-test claim."
+    },
+    {
+      "additional_source_declarations": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent.quadratic_eigenmode",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep.optimal_gradient_step"
+      ],
+      "assumptions": [
+        "Let \\(0<\\alpha\\le\\beta\\) be lower and upper curvature bounds for the class. They need not both be tight for any particular witness.",
+        "The method takes a fixed scalar step \\(h\\in\\mathbb R\\) at every iteration. Start at \\(x_0=1\\). The iteration count \\(N\\) may be zero."
+      ],
+      "boundary": "Selected method-specific distance obstruction only. No full Exercise 3.3, sharpness of other Section 3 estimates, oracle-complexity lower bound, adaptive-step result, new library theorem or graph task. Draft pending independent editorial review; never include in canonical exports yet.",
+      "context": "open Set InnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticGradientDescent\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentOptimalStep",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness.exists_quadratic_worst_case",
+      "decoder_definitions": [
+        "On the real line the gradient is the ordinary derivative, inner product is multiplication, and the norm is absolute value.",
+        "ContDiff ℝ 2 denotes twice continuous differentiability. StrongConvexOn univ a f means f minus (a/2) times the square norm is convex on the whole real line. IsMinOn f univ z denotes a global minimizer.",
+        "T^[N] denotes N-fold iteration of T, with T^[0] the identity. Natural-number powers include exponent zero."
+      ],
+      "dependencies": {
+        "astis": [
+          "QuadraticGradientDescent.quadratic_eigenmode",
+          "GradientDescentOptimalStep.optimal_gradient_step"
+        ],
+        "mathlib": [
+          "StrongConvexOn",
+          "HasDerivAt.hasGradientAt",
+          "Function.iterate",
+          "pow_le_pow_left₀"
+        ]
+      },
+      "difficulty": "multi-step proof and diagnosis",
+      "difficulty_reason": "Choose the adversarial curvature after the constant step is fixed, check class membership, solve the iteration, and separate the minimax scalar inequality from any claim about more general algorithms. The Lean target reuses the scalar eigenmode and optimal-step inequalities; the labels are provisional and require independent review.",
+      "domain": "Lower Bounds",
+      "family": "chewi-opt-v1-exercise-3-3",
+      "id": "sogb-046",
+      "lean_explanation": "The fixed proposition constructs the endpoint quadratic and certifies its smoothness, convexity, quadratic upper model, minimizer, and exact iterates. Lean uses the existing quadratic eigenmode theorem for the recurrence and the optimal-step theorem for the scalar minimax comparison; the prose also gives a direct triangle-inequality route. The warning about adaptive and arbitrary algorithms is not a separate Lean conclusion.",
+      "library_domains": [
+        "lower-bounds",
+        "optimisation"
+      ],
+      "question": "For every fixed step \\(h\\), find a single positive quadratic \\(f(x)=\\mu x^2/2\\) with \\(\\mu\\in\\{\\alpha,\\beta\\}\\), valid for every iteration count. Verify class membership and that zero minimizes this quadratic. Show that the distance from zero at step \\(N\\) is \\(\\big(\\max\\{|1-h\\alpha|,|1-h\\beta|\\}\\big)^N\\). Prove this is at least \\(q^N\\), where \\(q=(\\beta-\\alpha)/(\\alpha+\\beta)\\), and that changing only the step to \\(2/(\\alpha+\\beta)\\) gives \\(q^N\\) on that same objective. Explain why this does not establish a lower bound for adaptive or arbitrary first-order methods.",
+      "rubric": [
+        {
+          "criterion": "Chooses the endpoint after fixing the step but before choosing N, and proves that the positive quadratic belongs to the stated class and has minimizer zero.",
+          "points": 1
+        },
+        {
+          "criterion": "Solves the actual iteration from one and proves the exact endpoint-envelope distance for all N, including zero.",
+          "points": 1
+        },
+        {
+          "criterion": "Derives the uniform factor lower bound and equality for the balanced step on the same witness. An equivalent valid minimax derivation is accepted.",
+          "points": 1
+        },
+        {
+          "criterion": "Explains why the result is a fixed-step obstruction and does not give a lower bound for adaptive or arbitrary first-order methods.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "calculation",
+        "assumption-audit",
+        "semantic-boundary"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentSharpness.lean",
+      "source_note": "Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1, §3 Exercises 3.2–3.3 (https://arxiv.org/html/2605.07006v1#S3). This is original ASTIS wording for the selected, already owned fixed-step distance component, publication item chewi-opt-v1-exercise-3-3-fixed-step-sharpness. Not the full exercise; no source prose, pages or figures are redistributed. Retain LICENSE and NOTICE for the Lean reference. Related variants stay in the same public family.",
+      "steps": [
+        "With the step fixed, choose \\(\\mu\\) at an endpoint attaining \\(M=\\max\\{|1-h\\alpha|,|1-h\\beta|\\}\\). Since \\(\\alpha\\le\\mu\\le\\beta\\), the quadratic is smooth with derivative \\(\\mu x\\) and constant second derivative \\(\\mu\\); it is \\(\\alpha\\)-strongly convex, satisfies the upper quadratic model with \\(\\beta\\), and has unique minimizer zero because \\(\\mu>0\\). The curvature bounds are class bounds, not its intrinsic pair of sharp constants.",
+        "The actual iteration is \\(x_{n+1}=(1-h\\mu)x_n\\). Induction gives \\(x_N=(1-h\\mu)^N\\) and hence \\( |x_N|=M^N\\), including \\(N=0\\). The endpoint selection did not depend on \\(N\\).",
+        "The signed residuals satisfy \\[\\beta(1-h\\alpha)-\\alpha(1-h\\beta)=\\beta-\\alpha.\\] By the triangle inequality, \\(\\beta-\\alpha\\le\\beta|1-h\\alpha|+\\alpha|1-h\\beta|\\le(\\alpha+\\beta)M\\). Divide by the positive denominator and take nonnegative integer powers. For the balanced step the endpoint residuals are \\(q\\) and \\(-q\\), so the same witness has distance \\(q^N\\) there. Equal endpoint bounds give \\(q=0\\); at \\(N=0\\) the distance is still one.",
+        "The conclusion compares fixed scalar steps on a class of objectives. It does not compare adaptive steps or a richer oracle algorithm. On these scalar witnesses a method that has learned \\(\\mu\\) could pick \\(1/\\mu\\) instead, so the fixed-step argument alone cannot rule out faster adaptive behavior. It also does not assert convergence for negative or zero \\(h\\)."
+      ],
+      "title": "An endpoint quadratic witnesses the fixed-step gradient-descent lower bound",
+      "track_levels": {
+        "lean": "L3",
+        "natural-language": "L3"
+      }
     }
   ]
 }

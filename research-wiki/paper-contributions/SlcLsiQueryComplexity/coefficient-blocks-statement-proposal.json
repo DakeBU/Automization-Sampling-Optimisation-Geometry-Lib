@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "status": "PROPOSED_BEFORE_PROOF",
+  "source_url": "https://arxiv.org/html/2611.05813v1#S4.E15",
+  "source_edition": "arXiv:2611.05813v1",
+  "source_pdf_sha256": "05520f2a491fedc6ceecc7eb0f3d0c1b23275faceb9da1d9cfa6db421aab4f0e",
+  "source_scope": "Section 4.1.1, Angular functions: allowed (i,p), independent tensor coefficients, and joint Euclidean direct sum and standard Gaussian following Eq15.",
+  "namespace": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks",
+  "file": "AutoSamplingTheory/ExampleCases/SlcLsiQueryComplexity/CoefficientBlocks.lean",
+  "signature": "theorem jointCoefficientBlocks_hasLaw (n : ℕ+) (h : ℕ) :\n    let B := Fin (h + 1) × {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let blocks := fun (ξ : EuclideanSpace ℝ (Σ b : B, C b)) (b : B) ↦\n      (WithLp.toLp 2 (fun c : C b ↦ ξ ⟨b, c⟩) : EuclideanSpace ℝ (C b))\n    HasLaw blocks (Measure.pi fun b : B ↦ stdGaussian (EuclideanSpace ℝ (C b)))\n      (stdGaussian (EuclideanSpace ℝ (Σ b : B, C b)))",
+  "signature_probe": "Ignored .astis/JointCoefficientSignature.lean elaborates the exact proposition as a Prop-valued definition, no theorem proof or fake closure. Lean4.33.0, pinned Mathlib db584cd6. First import read error cleared after focused Lake build of Mathlib.Probability.ProductMeasure (2986 jobs); exact probe exited 0.",
+  "binder_audit": {
+    "TYPING": [
+      "n:ℕ+ is the coordinate dimension; h:ℕ is depth. Fin(h+1) represents exactly the levels 0..h.",
+      "p is bounded in Fin(P+1), then restricted to even p≥4; this is precisely the finite set 4,6,…,P (P=2^(64(h+1))).",
+      "Each C(b) is the ordered coordinate type already used by the individual component: one coordinate in Fin n for each slot of the p repeated tensor copies. B and C are local let binders, not supplied witnesses."
+    ],
+    "STANDING": [
+      "The source eventually relates h to sufficiently large n; the isolated representation identity allows any positive n and natural h, without extending hard-family admissibility."
+    ],
+    "SOURCE": [],
+    "EXCESS": [],
+    "derived_not_assumed": [
+      "Measurability of the grouping map, joint pushforward equality to the product of block stdGaussians, hence all block marginals and mutual independence."
+    ]
+  },
+  "definition_audit": {
+    "definition_kind": "literal-coordinate-realization",
+    "body": "No new public definition. The let-bound map takes ξ at ⟨b,c⟩ and wraps each coordinate array into EuclideanSpace. The inverse flattens a family x by evaluating x(b)(c). The same coordinates are used once each, so the Euclidean norm agrees with the direct-sum norm; there is no rotation, rescaling or symmetrization.",
+    "carrier": "Block slot count is p*S_i and C(b) has n^(p*S_i) coordinates, as in the compiled prior cardinality check. The sigma index retains both level and degree; natural subtraction h-i is exact since i≤h."
+  },
+  "source_regions": [
+    {
+      "id": "block-index",
+      "locator": "§4.1.1 Angular functions, K,P,S_i and permitted (i,p)",
+      "status": "NODE",
+      "meaning": "Keep the exact degree and ordered tensor carrier."
+    },
+    {
+      "id": "joint-space",
+      "locator": "§4.1.1 joint Euclidean direct-sum display following Eq15",
+      "status": "NODE",
+      "meaning": "The sigma coordinate index realizes the Euclidean direct sum."
+    },
+    {
+      "id": "joint-law",
+      "locator": "§4.1.1 independent tensor draws and sentence giving μ_n",
+      "status": "NODE",
+      "meaning": "Under inverse coordinate grouping, the standard Gaussian on the direct sum is exactly the product of standard Gaussians in the blocks."
+    },
+    {
+      "id": "grouping-measure",
+      "locator": "Implicit regrouping in joint-law sentence",
+      "status": "SOURCE_GAP",
+      "meaning": "Expand the canonical entrywise grouping and finite product measure pushforward, with measurable maps; no extra hypothesis."
+    },
+    {
+      "id": "component-and-amplitude",
+      "locator": "§4.1.1 Eq14, Eq15 and individual scalar law",
+      "status": "EXCLUDED",
+      "reason": "Previously verified AngularDegree handles the degree component. The current packet does not recompute the amplitude or scalar law."
+    },
+    {
+      "id": "radial-and-gates",
+      "locator": "§4.1.1 Eq16–19",
+      "status": "EXCLUDED",
+      "reason": "Radial cutoff, degree sum, zero-block convention, energy scale and gate products are different source obligations."
+    },
+    {
+      "id": "conditional-and-admissible",
+      "locator": "§4.1.2 admissibility, §5.3.1 prefix simulation and §6.2 Lemma6.2",
+      "status": "EXCLUDED",
+      "reason": "These use the unconditioned coefficient model but also need restriction/grouping, field laws and conditional/measurability proofs; no conditioned-on-admissibility law is asserted."
+    }
+  ],
+  "source_edges": [
+    {
+      "parents": [
+        "block-index"
+      ],
+      "consumer": "joint-space",
+      "use_site": "direct-sum display after Eq15"
+    },
+    {
+      "parents": [
+        "joint-space",
+        "grouping-measure"
+      ],
+      "consumer": "joint-law",
+      "use_site": "identification of μ_n after joint-space display"
+    }
+  ],
+  "reuse_search": [
+    "No duplicate coefficient splitting declaration/claim in local ASTIS, relevant live Frontier Cells, remote SLC branches or issue388.",
+    "Pinned Mathlib map_pi_eq_stdGaussian supplies the coordinate Gaussian, infinitePi_eq_pi and infinitePi_map_piCurry supply regrouping, pi_map_pi transports blockwise, and measurePreserving_eval / iIndepFun_iff_map_fun_eq_pi_map are downstream consumers of equality.",
+    "Use the existing product-measure API rather than porting or proving a generic new finite product theorem. No current two-route case for a new shared Gaussian wrapper."
+  ],
+  "proof_plan": [
+    "Express standard Gaussian on the flat ordered coordinates as the pushforward of product N(0,1) by toLp.",
+    "Group scalar coordinates by the same sigma index using measurable currying and the finite instances of Mathlib's product regrouping theorem.",
+    "Wrap each grouped block in EuclideanSpace, use product pushforward and the coordinate standard Gaussian result, and check the two maps equal entrywise.",
+    "Exercise product evaluation and iIndepFun on the exact source carriers in focused tests."
+  ],
+  "truth_boundary": "Only the joint unconditioned coefficient model and its marginals/mutual independence. Not the angular degree sum, cutoff field, lower-level filtration, adaptive conditional laws, admissibility, moments or main bounds.",
+  "consumer": "§5.3.1 prefix coefficient law and §6.2 Lemma6.2 tilted scalar density product and conditional level iteration. These are planned formal consumers, not completed theorem edges.",
+  "review_requested": "Independent pre-proof Statement Seal and source-only topology review. No production proof written; no stabilization reservation."
+}

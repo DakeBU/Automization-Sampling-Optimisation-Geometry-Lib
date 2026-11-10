@@ -2,6 +2,9 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationE
 import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedPerturbationLaw
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.AffinePerturbationKL
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactLogSobolevPoincare
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient
@@ -18,6 +21,15 @@ import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereGradient
 import AutoSamplingTheory.TechnicalLemmas.Geometry.CurveExtension
 import AutoSamplingTheory.TechnicalLemmas.Geometry.AffineGradient
 import AutoSamplingTheory.Core
+import AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
@@ -156,6 +168,16 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "analysis.normalized-bad-mass",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass.bad_mass_ratio_bounds",
+    upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Section 6.4 Fact 12, equation (60)",
+    upstreamFile := "https://arxiv.org/html/2611.05813v1#Thmfact12",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["normalization", "mass", "sqrt", "lower-bound"],
+    saldUse := "Planned Theorem 7 consumer: normalized good/bad random masses after actual normalizer and moment estimates",
+    note := "Both scalar inequalities with nonnegative masses and strictly positive total mass, including either individual zero case. Independent source and compiler review passed; random-mass integration and oracle/query lower bounds are not claimed."
+  },
   {
     key := "analysis.radial-gradient-laplacian",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.RadialCalculus.radial_gradient_laplacian",
@@ -3674,6 +3696,36 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "lsi.cutoff.mass-entropy-energy-limits",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff.cutoff_integral_limits",
+    upstreamDecl := "Chewi, Log-Concave Sampling, §2.1.1: cutoff convergence supporting the density argument",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/LogSobolevCutoff.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["FI", "CALC", "REG", "cutoff", "gradient", "dominated-convergence"],
+    saldUse := "One shared producer for the Gaussian LSI proof and the compact-test LSI extension; not a SALD closure",
+    note := "Extracts the previously private three-limit proof. The measure, function L2, genuine-gradient L2 and entropy integrability are explicit; the limiting statements need neither finite dimension nor compact balls."
+  },
+  {
+    key := "lsi.compact-smooth.analytic-domain-extension",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff.logSobolev_of_compact_smooth_tests",
+    upstreamDecl := "Chewi, Log-Concave Sampling, §2.1.1: sufficient smooth test-domain extension",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/LogSobolevCutoff.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["FI", "CALC", "REG", "log-Sobolev", "compact-support", "domain"],
+    saldUse := "Apply the compact-test premise to genuine cutoff products before passing to the original analytic-domain test",
+    note := "Finite dimension supplies compact cutoff support. The analytic inputs make the particular cutoff integrals genuine; the arbitrary-measure compact premise uses totalized integrals. This is not a full closed form-domain extension."
+  },
+  {
+    key := "poincare.compact-smooth.of-logSobolev",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactLogSobolevPoincare.variance_le_of_compact_logSobolev",
+    upstreamDecl := "Chewi, Log-Concave Sampling, Exercise 1.7: compact Euclidean Poincare implication",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactLogSobolevPoincare.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["FI", "CALC", "REG", "Poincare", "log-Sobolev", "linearization"],
+    saldUse := "Derive admissibility and the same variance constant from the compact smooth function-form LSI",
+    note := "Centers the observable internally, then supplies actual perturbation domains and combines the gradient-energy and compensated entropy limits. No abstract form or semigroup result, optimal constant equality, or actual-law KL premise."
+  },
+  {
     key := "entropy.measureDomination"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.entropy_le_mul_of_measure_le"
     upstreamDecl := "Canonical finite-integral supporting core for bounded perturbation"
@@ -5289,6 +5341,86 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+    {
+      key := "probability.slc-lsi-weighted-radial-mgf",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF.weightedRadialLevels_gaussian_mgf",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Eq51 and the weighted fixed-location variance calculation",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S6.E51",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "weighted-sum", "MGF", "integrability", "lower-bound"],
+      saldUse := "Exact actual coefficient expectation and its integrability before the spatial normalizer",
+      note := "Independently compiled and source-reviewed at 9792e5925. Under the original ordered coefficient law at a fixed location, the exact weighted field sum is centered Gaussian, including zero variance, and its negative exponential is integrable with the Eq51 expectation. No spatial integral, conditional law, target mass or lower bound."
+    },
+    {
+      key := "probability.slc-lsi-joint-radial-levels-law",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels.radialLevels_hasLaw",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Lemma4.4 and fixed-location calculation before Eq51",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S6.E51",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "product-measure", "independence", "radial-cutoff", "lower-bound"],
+      saldUse := "Actual joint radial vector for the weighted Gaussian sum and Eq51",
+      note := "Independently compiled and source-reviewed at 678f1751c. Regroups the actual degree-block product by level, then maps each group to its scalar radial field with the exact variance and zero-variance branch. No conditioning, cross-location law, moment estimate, or lower bound."
+    },
+    {
+      key := "probability.slc-lsi-radial-level-law",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel.radialLevel_hasLaw",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Eq16 footnote2 and fixed-location marginal in §6.2",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E16",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "radial-cutoff", "HasLaw", "lower-bound"],
+      saldUse := "Actual one-location field for the joint level law and Eq51; no prefix conditioning",
+      note := "Independently compiled and source-reviewed at 0ffcf29fd. Exact shell quotients and zero-block convention on the actual coefficient measure give the Gaussian marginal with variance n*C_i(x)^2*v_i, including the zero-variance Dirac law. Reuses the fixed-level angular sum. No spatial regularity, joint or conditional law, mass estimate, or main lower bound."
+    },
+    {
+      key := "probability.slc-lsi-angular-degree-sum-law",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum.angularDegreeSum_hasLaw",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Section4.1.1 Eq14/15 uncut finite-sum consequence",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E15",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "tensor", "independence", "HasLaw", "lower-bound"],
+      saldUse := "Used by the actual fixed-location radial field law; no conditioning or mass estimate",
+      note := "Independently compiled and source-reviewed at 3292867e2. On the actual joint coefficient model and fixed deterministic unit directions, sum the source degree evaluations, deriving measurability, independence, mean zero and exact variance n times the sum of squared amplitudes. Calls the actual component and coefficient-block laws. No cutoff, adaptive or conditional law, Eq51, or lower bound."
+    },
+    {
+      key := "probability.slc-lsi-joint-coefficient-law",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks.jointCoefficientBlocks_hasLaw",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Section4.1.1 joint Euclidean coefficient law following Eq15",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E15",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "product-measure", "tensor", "lower-bound"],
+      saldUse := "Used by the actual fixed-level angular degree sum; planned coefficient prefix and conditional level iteration",
+      note := "Independently compiled and source-reviewed at dac19f45c. Exact entrywise grouping of the unconditioned joint Euclidean standard Gaussian gives the product of block standard Gaussians. Tests derive every marginal and mutual independence. No supplied law or independence; no degree sum, radial field, adaptive conditioning, admissibility, or main lower bound."
+    },
+    {
+      key := "probability.slc-lsi-angular-degree-law",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent_hasLaw",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Eq14/15 and pointwise Gaussian-law sentence",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S4.E15",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "tensor", "HasLaw", "lower-bound"],
+      saldUse := "Used by the actual fixed-level angular degree sum; radial extension and Lemma6.2 conditional iteration remain separate",
+      note := "Independently compiled/source-reviewed at 8d7bd9f49. Actual ordered tensor polynomial with exact source amplitude under one stdGaussian block; derives normalization, measurability and variance from fixed unit directions. Positive dimension and natural depth are an explicit isolated generalization. Definition and three private helpers receive no extra leaf credit. This declaration concerns one degree only; it asserts no adaptive, radial or conditional law, or main lower bound."
+    },
+    {
+      key := "probability.slc-lsi-literal-energy-truncation",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation_gaussian_bound",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 footnote3, Eq17 and Fact10",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#Thmfact10",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "cutoff", "integrability", "exponential", "lower-bound"],
+      saldUse := "Actual scalar energy load; planned conditional level iteration in Lemma6.2",
+      note := "Independently compiled/source-reviewed at c873bd3f8. Literal integral cutoff, positive source parameters, arbitrary measurable-space Gaussian variable including variance zero. Derives load properties and integrability internally; reuses canonical Cutoff and GaussianOddLoad. Definition is a prerequisite, not another leaf. Parameter recursion, conditional iteration, hard-family admissibility and main lower bounds remain open."
+    },
+  {
+    key := "probability.gaussian-odd-load",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad.gaussian_odd_load_bound",
+    upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Section 6.2 Fact 10 symmetry/cosh ingredient",
+    upstreamFile := "https://arxiv.org/html/2611.05813v1#Thmfact10",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Gaussian", "integrability", "symmetry", "exponential", "lower-bound"],
+      saldUse := "Consumed by EnergyTruncation.energyTruncation_gaussian_bound; then planned Lemma6.2 first-moment bound",
+      note := "Independent compiler and source review at 3890056ea: measurable odd sublinear load, a in [0,1], nonnegative Gaussian variance including zero; derive exponential integrability and exact exp(beta^2 v/2) comparison. Reuses Mathlib MGF. Generic analytic ingredient only; literal Ui is a separate source adapter. Conditional iteration, normalizer moments and query main results remain open."
+  },
   {
     key := "gaussian-polynomial-l2-differentiation",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_frechet_derivative",
@@ -5432,6 +5564,16 @@ def probabilityMemory : List LemmaMemoryEntry := [
 ]
 
 def klDensityMemory : List LemmaMemoryEntry := [
+  {
+    key := "kl-density.affine-probability.second-order-expansion",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.AffinePerturbationKL.klDiv_affine_perturbation_second_order",
+    upstreamDecl := "Chewi, Log-Concave Sampling, Exercise 1.7 / (1.E.1); source use in Corollary 2.1.2",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/InformationTheory/AffinePerturbationKL.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["MEAS", "FI", "CALC", "KL", "withDensity", "linearization"],
+    saldUse := "Combine the actual finite probability KL identity with the compensated integral limit and the exact zero endpoint",
+    note := "Actual affine probability law and finite KL near zero, with the quadratic coefficient and full-neighborhood little-o remainder. No Fisher, Poincare, T2, or compiled Corollary 2.1.2 consumer."
+  },
   {
     key := "kl-density.bounded-actual-perturbation-law",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedPerturbationLaw.eventually_isProbabilityMeasure_and_klDiv_eq_one_add_mul",

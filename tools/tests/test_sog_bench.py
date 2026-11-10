@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import zipfile
@@ -27,8 +28,10 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 31)
-        self.assertEqual(len(prompts), 45)
+        declared = bench.load()['cores']
+        self.assertEqual([c['id'] for c in self.cores], [c['id'] for c in declared])
+        self.assertCountEqual([(r['id'], r['track']) for r in prompts],
+                              [(c['id'], track) for c in declared for track in c['track_levels']])
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -39,10 +42,8 @@ class BenchTests(unittest.TestCase):
 
     def test_prompt_export_has_no_answers_rubrics_or_reference_proofs(self):
         allowed = {'id', 'family', 'domain', 'library_domains', 'skills', 'title', 'split', 'assumptions', 'binding_sha256', 'track', 'level', 'question'}
-        exercise_ids = {c['id'] for c in self.cores if c.get('textbook_exercise')}
-        self.assertEqual(exercise_ids, {'sogb-029', 'sogb-030', 'sogb-031'})
         for row in bench.prompts(self.cores):
-            self.assertEqual(set(row), allowed | ({'exercise_source'} if row['id'] in exercise_ids else set()))
+            self.assertEqual(set(row), allowed | ({'exercise_source'} if row['id'] in {'sogb-029', 'sogb-030', 'sogb-031', 'sogb-039', 'sogb-040'} else set()))
             self.assertNotIn(':= by\n  intro', row['question'])
         self.assertTrue(all('-- Replace this comment' in r['question']
                             for r in bench.prompts(self.cores) if r['track'] == 'lean'))
@@ -65,6 +66,44 @@ class BenchTests(unittest.TestCase):
         self.assertIn('by_cases hq', self.cores[1]['lean_reference'])
         self.assertIn('hV.2', self.cores[2]['lean_reference'])
 
+    def test_assigned_proof_preserves_a_term_but_rejects_unassigned_declarations(self):
+        signature, proof = bench.assigned_theorem(SimpleNamespace(kind='theorem',
+            source_text='theorem finite_balance : True :=\n  True.intro'))
+        self.assertEqual(signature, 'theorem finite_balance : True')
+        self.assertEqual(proof, ':=\n  True.intro')
+        for kind, source in (('theorem', 'theorem t : True'),
+                             ('theorem', 'theorem t : True := /- no proof -/'),
+                             ('def', 'def x : Nat := 1')):
+            with self.subTest(source=source), self.assertRaisesRegex(ValueError, 'explicit assigned proof'):
+                bench.assigned_theorem(SimpleNamespace(kind=kind, source_text=source))
+
+    def test_same_file_reference_helper_is_not_in_the_learner_task(self):
+        data = bench.load()
+        module = 'AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture'
+        helper = module + '.finiteMixture_apply'
+        raw = {**data['cores'][0], 'id': 'sogb-helper-fixture', 'context': '',
+               'declaration': module + '.finiteMixture_invariant',
+               'source_file': module.replace('.', '/') + '.lean', 'reference_helpers': [helper]}
+        core = bench.materialize({**data, 'cores': [raw]})[0]
+        self.assertIn('private theorem finiteMixture_apply', core['lean_reference'])
+        self.assertIn('Kernel.withDensity_apply', core['lean_reference'])
+        self.assertNotIn('finiteMixture_apply', core['lean_task'])
+        self.assertNotIn('import ' + module, core['lean_reference'])
+        for prompt in bench.prompts([core]):
+            self.assertNotIn('reference_helpers', prompt)
+            self.assertNotIn('finiteMixture_apply', prompt['question'])
+        import sog_bench_lean
+        runtime = sog_bench_lean.packet(core)
+        self.assertIn(b'private theorem finiteMixture_apply', runtime['oracle/Solution.lean.txt'])
+        for name in ('agent/prompt.json', 'agent/Solution.lean.txt', 'verifier/Challenge.lean'):
+            self.assertNotIn(b'finiteMixture_apply', runtime[name])
+        for invalid in ([], [helper, helper], [raw['declaration']], [data['cores'][0]['declaration']],
+                        [module + '.finiteMixture'], [module + '.finiteMixture_isMarkovKernel', helper]):
+            with self.assertRaises(ValueError):
+                bench.materialize({**data, 'cores': [{**raw, 'reference_helpers': invalid}]})
+        with self.assertRaises(ValueError):
+            bench.materialize({**data, 'cores': [{**raw, 'lean_enabled': False}]})
+
     def test_binding_changes_with_prose_or_context(self):
         for key in ('question', 'context', 'boundary'):
             changed = deepcopy(bench.load())
@@ -80,15 +119,20 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 45)
-            self.assertEqual(manifest['graph_tasks'], 7)
+            self.assertEqual(manifest['qa_views'], sum(len(c['track_levels']) for c in self.cores))
+            self.assertEqual(manifest['numbered_textbook_exercises'], 4)
+            self.assertEqual(manifest['graph_tasks'], len(bench.curriculum.graph_items()))
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
             self.assertTrue((output/'compiled-flow-graph.json').is_file())
+            self.assertTrue((output/'compiled-exercise17-graph.json').is_file())
             self.assertIn('content-bound', manifest['independent_semantic_review'])
             self.assertEqual(manifest['editorial_accepted_graph_tasks'], graph_review.summary(bench.curriculum.graph_items())['accepted_tasks'])
             self.assertIn('human-attested', manifest['prose_scoring'])
             self.assertTrue((output/'EVALUATION.md').is_file())
+            self.assertEqual((output/'FAMILY_ISOLATION.md').read_bytes(), (bench.DATA.parent/'FAMILY_ISOLATION.md').read_bytes())
+            self.assertIn('](FAMILY_ISOLATION.md)', (output/'EVALUATION.md').read_text(encoding='utf-8'))
+            self.assertIn('href="../downloads/FAMILY_ISOLATION.md"', reader.evaluation_guide())
             self.assertTrue((output/'TEXTBOOK_EXERCISES.md').is_file())
             self.assertIn('source intake is not QA admission', manifest['textbook_exercise_programme'])
             intake = (output/'TEXTBOOK_EXERCISES.md').read_text(encoding='utf-8')
@@ -98,6 +142,10 @@ class BenchTests(unittest.TestCase):
             guide = (output/'README.md').read_text(encoding='utf-8')
             self.assertNotIn('](reviews/', guide)
             self.assertIn('/blob/main/benchmarks/samplingoptimisationgeometrybench/reviews/formal-3/README.md', guide)
+            ecosystem = (output/'ECOSYSTEM.md').read_text(encoding='utf-8')
+            for text in (guide, ecosystem):
+                self.assertNotIn('](lean-runtime/', text)
+                self.assertIn('/blob/main/benchmarks/samplingoptimisationgeometrybench/lean-runtime/WORKSPACE.md', text)
             self.assertFalse((output/'reviews').exists())  # Historical rejected text is audit-only.
             for name, digest in manifest['files'].items():
                 self.assertEqual(digest, bench.sha((output / name).read_bytes()))
@@ -185,36 +233,216 @@ class BenchTests(unittest.TestCase):
                 self.assertEqual('data-lean-copy-status' in rendered, bool(core.get('support_source_view')))
             self.assertNotIn('<details open', rendered)
             self.assertIn('focus=decl%3A', rendered)
-            fallback = reader.core_page(core, False, set())
+            module = 'module:' + core['source_file'].removesuffix('.lean').replace('/', '.')
+            fallback = reader.core_page(core, False, {module})
             self.assertIn('focus=module%3A', fallback)
             self.assertIn('declaration not yet indexed', fallback)
+            unindexed = reader.core_page(core, False, set())
+            self.assertIn('Not indexed in Lean Graph', unindexed)
+            self.assertNotIn('focus=module%3A', unindexed)
 
     def test_display_identity_linebreaks_preserve_source_and_avoid_nested_tex(self):
         source = r'Proof \[a=b,\qquad c=d\] done.'
         rendered = reader.prose(source)
         self.assertIn(r'\begin{gathered}a=b,\\ c=d\end{gathered}', rendered)
         self.assertEqual(source, r'Proof \[a=b,\qquad c=d\] done.')
-        for nested in (r'\[\text{a,\qquad b}=c\]', r'\[\begin{aligned}a&=b,\qquad c&=d\end{aligned}\]'):
+        wrapped = "\\[a=b,\n  \\qquad c=d\n    -e\\]"
+        self.assertIn(r'\begin{gathered}a=b,\\ c=d\\    -e\end{gathered}', reader.prose(wrapped))
+        for nested in (r'\[\text{a,\qquad b}=c\]', r'\[\begin{aligned}a&=b,\qquad c&=d\end{aligned}\]',
+                       r'\[f(a,\qquad b)=c\]', "\\[a=(b\n  -c)\\]", "\\[a=\\|b\n  -c\\|\\]",
+                       "\\[a=\\left|b\n  -c\\right|\\]", "\\[a \\le\n  -c\\]", r'\[a=b,\qquad \]'):
             self.assertNotIn(r'\begin{gathered}', reader.prose(nested))
 
-    def test_seven_domain_five_level_matrix_does_not_invent_coverage(self):
+    def test_stopped_work_display_wraps_without_changing_the_bound_text(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-035')
+        before = bench.encoded(core)
+        assumption = next(a for a in core['assumptions'] if r'\eta_t(h)' in a)
+        estimate = next(s for s in core['steps'] if r'\left|\mathbb E_Q W' in s)
+        self.assertIn(r'\begin{aligned}&amp;\eta_t(h)\\&amp;=\sum',
+                      reader.prose(assumption, paragraph=False))
+        self.assertIn(r'\right|\\&amp;=\left|', reader.prose(estimate))
+        self.assertEqual(bench.encoded(core), before)
+
+    def test_common_kernel_reference_retains_credit_but_not_answer_in_prompt(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-037')
+        self.assertEqual(core['family'], 'adaptive-hybrid-cost-boundary')
+        self.assertEqual(core['track_levels'], {'natural-language': 'L3', 'lean': 'L3'})
+        reference = core['lean_reference']
+        self.assertIn('Copyright (c) 2023 Kalle Kytölä.', reference)
+        self.assertIn('Mathlib/MeasureTheory/Measure/LevyProkhorovMetric.lean', reference)
+        self.assertIn('integral_eq_integral_Ioc_meas_le', reference)
+        for row in bench.prompts([core]):
+            self.assertNotIn('have htail', row['question'])
+            self.assertNotIn('integral_eq_integral_Ioc_meas_le', row['question'])
+        step = next(s for s in core['steps'] if r'\begin{aligned}D_T' in s)
+        self.assertIn(r'\\ &amp;\le\delta', reader.prose(step))
+        round_dir = bench.DATA.parent / 'reviews/formal-13'
+        with patch.object(bench, 'RECEIPT', round_dir / 'trusted-reference-receipt.json'):
+            self.assertTrue(bench.receipt_current([core]))
+
+    def test_eight_domain_five_level_matrix_does_not_invent_coverage(self):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
-        self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 31)
-        self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
+        self.assertEqual(len(coverage['cells']), 40)
+        lower = [c for c in coverage['cells'] if c['domain'] == 'lower-bounds']
+        self.assertEqual({c['level'] for c in lower}, {'L1', 'L2', 'L3', 'L4', 'L5'})
+        self.assertTrue(all(c['gap'] and not any(c['draft_views'].values()) for c in lower if c['level'] not in {'L2', 'L3'}))
+        self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L2'),
+                         {'natural-language': 0, 'lean': 0, 'graph-json': 1})
+        self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L3'),
+                         {'natural-language': 3, 'lean': 2, 'graph-json': 0})
+        self.assertEqual(coverage['unique_mathematical_cores'], len(bench.load()['cores']))
+        self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
+                         {'samplewiki', 'mcmc'})
+        self.assertEqual([c['id'] for c in self.cores if c['track_levels'].get('natural-language') == 'L5'],
+                         ['sogb-035'])
         self.assertFalse(any(c['track_levels'].get('lean') == 'L5' for c in self.cores))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 31)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], len(self.cores))
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
-        self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
+        self.assertEqual(graph_review.summary(graphs)['accepted_tasks'], len(graphs))
+        authored_domains = set(bench.curriculum.curriculum()['domains'])
+        self.assertEqual({d for c in self.cores for d in c['library_domains']}, authored_domains)
         self.assertNotIn('OpenAI', json.dumps(coverage))
-        for domain in bench.curriculum.curriculum()['domains']:
-            self.assertTrue(any(domain in c['library_domains'] and c['track_levels'].get('natural-language') == 'L1' for c in self.cores))
+        for domain in authored_domains:
+            if domain != 'lower-bounds':
+                self.assertTrue(any(domain in c['library_domains'] and c['track_levels'].get('natural-language') == 'L1' for c in self.cores))
             self.assertTrue(any(domain in c['library_domains'] and bench.has_lean(c) for c in self.cores))
+
+    def test_lower_bounds_pair_is_an_exact_reviewed_fixed_step_component(self):
+        item = next(c for c in self.cores if c['id'] == 'sogb-046')
+        self.assertEqual((item['id'], item['family']), ('sogb-046', 'chewi-opt-v1-exercise-3-3'))
+        self.assertEqual(item['track_levels'], {'natural-language': 'L3', 'lean': 'L3'})
+        self.assertNotIn('textbook_exercise', item)  # Not coverage of every source part.
+        self.assertNotIn(item['source_file'].removesuffix('.lean').replace('/', '.'), item['imports'])
+        self.assertIn('does not give a lower bound for adaptive', item['rubric'][3]['criterion'])
+        self.assertNotIn('tight', item['rubric'][3]['criterion'])
+        review_row = bench.editorial_review(self.cores)['items'][item['id']]
+        self.assertEqual((review_row['editorial'], review_row['formal_alignment']),
+                         ('accepted-after-repair', 'conclusion-only'))
+        self.assertTrue(review_row['prior_review_report_sha256'])
+        self.assertIn('never include in canonical exports yet.', item['boundary'])
+        self.assertNotIn('canonical exports', bench.mathematical_scope(item))
+        self.assertIn('oracle-complexity lower bound', bench.mathematical_scope(item))
+        graph, = [g for g in bench.curriculum.graph_items() if g['core_id'] == item['id']]
+        self.assertEqual((graph['id'], graph['family'], graph['split'], graph['level']),
+                         ('sogb-g010', item['family'], item['split'], 'L2'))
+
+    def test_horizon_gap_is_a_separate_reviewed_component_of_the_same_family(self):
+        import sog_bench_lean as runtime
+        by_id = {c['id']: c for c in self.cores}
+        distance, gap = by_id['sogb-046'], by_id['sogb-047']
+        self.assertEqual((gap['family'], gap['split']), (distance['family'], distance['split']))
+        self.assertNotEqual(gap['declaration'], distance['declaration'])
+        self.assertNotIn('textbook_exercise', gap)
+        self.assertEqual(gap['track_levels'], {'natural-language': 'L3', 'lean': 'L3'})
+        self.assertNotIn(gap['source_file'].removesuffix('.lean').replace('/', '.'),
+                         runtime.local_imports(gap['imports']))
+        self.assertIn('one_add_mul_sub_le_pow', gap['lean_reference'])
+        self.assertNotIn('one_add_mul_sub_le_pow', gap['lean_task'])
+        self.assertIn('norm, or energy argument', gap['rubric'][1]['criterion'])
+        row = bench.editorial_review(self.cores)['items'][gap['id']]
+        self.assertEqual((row['editorial'], row['formal_alignment']),
+                         ('accepted-after-repair', 'conclusion-only'))
+        graph = next(g for g in bench.curriculum.graph_items() if g['id'] == 'sogb-g010')
+        self.assertEqual(graph['core_id'], distance['id'])
+        self.assertIn(gap['declaration'], graph['context']['nodes'])
+        self.assertIn('sogb-g010.html', reader.core_page(gap, False, structural=[graph], review_row=row))
+        self.assertIn('sogb-047.html', reader.graph_page(graph))
+
+    def test_single_query_lower_bound_is_only_aligned_to_natural_language(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-048')
+        self.assertEqual(core['track_levels'], {'natural-language': 'L3'})
+        self.assertFalse(bench.has_lean(core))
+        self.assertNotIn('textbook_exercise', core)
+        self.assertTrue(core['support_source_view'])
+        self.assertTrue(core['declaration'].endswith(
+            '.QuadraticRegularizationFirstOrder.curvature_gradient_and_smoothness'))
+        self.assertNotIn(core['id'], {g['core_id'] for g in bench.curriculum.graph_items()})
+        row = bench.editorial_review(self.cores)['items'][core['id']]
+        self.assertEqual((row['editorial'], row['formal_alignment'], row['issues']),
+                         ('accepted', 'no-aligned-view', []))
+
+    def test_product_coupling_is_an_original_foundation_view_of_a_public_family(self):
+        by_id = {c['id']: c for c in self.cores}
+        core = by_id['sogb-041']
+        self.assertEqual(core['track_levels'], {'natural-language': 'L2', 'lean': 'L1'})
+        self.assertEqual(core['family'], by_id['sogb-012']['family'])
+        self.assertEqual(core['family'], by_id['sogb-015']['family'])
+        self.assertFalse(bench.has_lean(by_id['sogb-012']))
+        self.assertNotIn('textbook_exercise', core)
+        self.assertTrue(core['declaration'].endswith('.Transport.isCoupling_prod'))
+        self.assertIn('MeasureTheory.SFinite', core['dependencies']['mathlib'])
+        self.assertIn('constructor <;> simp', core['lean_reference'])
+        self.assertNotIn('constructor <;> simp', core['lean_task'])
+
+    def test_fisher_pairing_keeps_the_domain_and_hides_answer_helpers(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-042')
+        self.assertEqual(core['track_levels'], {'natural-language': 'L4', 'lean': 'L4'})
+        self.assertEqual(set(core['library_domains']), {'log-concave-sampling', 'statistical-optimal-transport'})
+        self.assertNotIn('textbook_exercise', core)
+        self.assertIn('SmoothFiniteScoreDomain', core['lean_task'])
+        self.assertIn('IsQuadraticOptimalCoupling', core['lean_task'])
+        self.assertNotIn(core['source_file'].removesuffix('.lean').replace('/', '.'), core['imports'])
+        self.assertIn('memLp_score_and_displacement', core['lean_reference'])
+        self.assertNotIn('memLp_score_and_displacement', core['lean_task'])
+
+    def test_random_scan_term_proof_preserves_family_and_operator_boundary(self):
+        import sog_bench_lean as runtime
+        by_id = {c['id']: c for c in self.cores}
+        narrow, full = by_id['sogb-006'], by_id['sogb-043']
+        self.assertFalse(bench.has_lean(narrow))
+        self.assertEqual((full['family'], full['split']), (narrow['family'], narrow['split']))
+        self.assertEqual(full['track_levels'], {'natural-language': 'L3', 'lean': 'L3'})
+        owner = full['source_file'].removesuffix('.lean').replace('/', '.')
+        self.assertNotIn(owner, runtime.local_imports(full['imports']))
+        pack = runtime.packet(full)
+        self.assertIn(b'private theorem singleton_balance', pack['oracle/Solution.lean.txt'])
+        self.assertIn(b':=\n  KernelReversibility.isReversible_of_singleton_balance', pack['oracle/Solution.lean.txt'])
+        for path in ('agent/prompt.json', 'agent/Solution.lean.txt', 'verifier/Challenge.lean'):
+            self.assertNotIn(b'singleton_balance', pack[path])
+
+    def test_retained_kernel_keeps_sfinite_and_ae_fiber_boundary(self):
+        import sog_bench_lean as runtime
+        by_id = {c['id']: c for c in self.cores}
+        base, lift = by_id['sogb-021'], by_id['sogb-044']
+        self.assertEqual((lift['family'], lift['split']), (base['family'], base['split']))
+        self.assertEqual(lift['track_levels'], {'natural-language': 'L4', 'lean': 'L4'})
+        self.assertEqual(set(lift['library_domains']), {'mcmc', 'samplewiki'})
+        self.assertFalse(runtime.local_imports(lift['imports']))
+        for binder in ('[SFinite μ]', '[IsSFiniteKernel R]', '[IsSFiniteKernel F]', '∀ᵐ a ∂μ'):
+            self.assertIn(binder, lift['lean_task'])
+        self.assertNotIn('IsMarkovKernel', lift['lean_task'])
+        self.assertNotIn('IsProbabilityMeasure', lift['lean_task'])
+        pack = runtime.packet(lift)
+        self.assertIn(b'private theorem retained_flux', pack['oracle/Solution.lean.txt'])
+        for path in ('agent/prompt.json', 'agent/Solution.lean.txt', 'verifier/Challenge.lean'):
+            self.assertNotIn(b'retained_flux', pack[path])
+
+    def test_positive_fiber_reconstructs_finite_target_conditioning(self):
+        import sog_bench_lean as runtime
+        by_id = {c['id']: c for c in self.cores}
+        scan, fiber = by_id['sogb-043'], by_id['sogb-045']
+        self.assertEqual((fiber['family'], fiber['split']), (scan['family'], scan['split']))
+        self.assertEqual(fiber['track_levels'], {'natural-language': 'L4', 'lean': 'L4'})
+        for binder in ('[IsFiniteMeasure μ]', '[StandardBorelSpace (X i)]',
+                       '[Nonempty (X i)]', '[MeasurableSingletonClass', '≠ 0'):
+            self.assertIn(binder, fiber['lean_task'])
+        self.assertNotIn('IsProbabilityMeasure', fiber['lean_task'])
+        owner = fiber['source_file'].removesuffix('.lean').replace('/', '.')
+        self.assertNotIn(owner, runtime.local_imports(fiber['imports']))
+        pack = runtime.packet(fiber)
+        self.assertIn(b'condDistrib_apply_of_ne_zero', pack['oracle/Solution.lean.txt'])
+        for path in ('agent/prompt.json', 'agent/Solution.lean.txt', 'verifier/Challenge.lean'):
+            self.assertNotIn(b'heatBath_eq_cond', pack[path])
+        graph = next(item for item in bench.curriculum.graph_items() if item['id'] == 'sogb-g009')
+        self.assertIn(fiber['declaration'], graph['context']['nodes'])
+        self.assertIn('sogb-045.html', reader.graph_page(graph))
+        self.assertNotEqual(graph['core_id'], fiber['id'])
+        self.assertIn('sogb-g009.html', reader.core_page(fiber, False, structural=[graph]))
 
     def test_compiler_scope_tracks_real_imports_and_pins_not_unrelated_modules(self):
         selected = [c for c in self.cores if c['id'] == 'sogb-016']
@@ -376,6 +604,19 @@ class BenchTests(unittest.TestCase):
         self.assertIn('chapter-03.html#chewi-opt-v1-exercise-3-2', page)
         self.assertIn('Exercise 3.2', next(c['title'] for c in self.cores if c['id'] == 'sogb-029'))
 
+    def test_statot_numbered_exercise_preserves_the_two_actual_bounds(self):
+        import sog_bench_formal_review as formal
+        core = next(c for c in self.cores if c['id'] == 'sogb-031')
+        ex = core['textbook_exercise']
+        self.assertEqual((ex['number'], ex['book_page'], ex['pdf_page']), ('6', 44, 50))
+        self.assertEqual(len(ex['parts']), 2)
+        self.assertTrue(bench.has_lean(core))
+        self.assertNotIn(core['source_file'].removesuffix('.lean').replace('/', '.'), core['imports'])
+        row = formal.statuses(self.cores)[core['id']]
+        self.assertEqual((row['editorial'], row['formal_alignment']), ('accepted', 'conclusion-only'))
+        with self.assertRaisesRegex(ValueError, 'every source part'):
+            formal.require_full_exercise_review(core, {})
+
     def test_numbered_exercise_has_exact_source_parts_and_only_bibliography_in_prompts(self):
         core = next(c for c in self.cores if c['id'] == 'sogb-029')
         ex = core['textbook_exercise']
@@ -414,30 +655,6 @@ class BenchTests(unittest.TestCase):
             self.assertNotIn(name, json.dumps(prompt))
         self.assertEqual(exercises.probe([core]).count('#print axioms '), 3)
 
-    def test_paired_statot_exercise_distinguishes_owned_answer_and_fixed_target(self):
-        import sog_bench_lean as runtime
-        core = next(c for c in self.cores if c['id'] == 'sogb-031')
-        self.assertTrue(bench.has_lean(core))
-        prompts = bench.prompts([core])
-        self.assertEqual({p['track'] for p in prompts}, {'natural-language', 'lean'})
-        self.assertTrue(all(p['family'] == core['textbook_exercise']['id'] for p in prompts))
-        self.assertTrue(all(p['exercise_source']['book_page'] == 44
-                            and p['exercise_source']['pdf_page'] == 50 for p in prompts))
-        answer, = core['textbook_exercise']['answer_declarations']
-        self.assertEqual(set(answer['supports']), {'lower-actual-mixtures', 'upper-actual-mixtures'})
-        self.assertEqual(answer['declaration'], core['declaration'])
-        module = core['source_file'].removesuffix('.lean').replace('/', '.')
-        self.assertNotIn(module, runtime.local_imports(core['imports']))
-        packet = runtime.packet(core)
-        self.assertNotIn(core['declaration'].encode(), packet['agent/prompt.json'])
-        self.assertNotIn(b'rcases', packet['agent/Solution.lean.txt'])
-        self.assertIn(b'Replace this comment with your proof', packet['agent/Solution.lean.txt'])
-        page = reader.core_page(core, False, {'decl:' + core['declaration']})
-        self.assertIn('The separate fixed Lean task certifies the conclusion only', page)
-        self.assertIn('Original exercise, all requested parts and exact Lean scope', page)
-        self.assertIn('st_flour.pdf#page=50', page)
-        self.assertIn('Lean question', page)
-
     def test_long_trial_step_equality_aligns_without_changing_gold(self):
         core = next(c for c in self.cores if c['id'] == 'sogb-030')
         step = core['steps'][1]
@@ -448,28 +665,6 @@ class BenchTests(unittest.TestCase):
         for tex in (r'A\le B+\frac{1234567890}{1234567890}+(X=Y)',
                     r'A\le B+\frac{1234567890}{1234567890}+L:=X'):
             self.assertNotIn(r'\begin{aligned}', reader.prose(r'\[' + tex + 'a'*90 + r'\]'))
-
-    def test_gaussian_coupling_chain_stacks_without_changing_gold(self):
-        core = next(c for c in self.cores if c['id'] == 'sogb-031')
-        step = core['steps'][1]
-        rendered = reader.prose(step)
-        self.assertIn(r'\begin{aligned}&amp;\mathbb E_', rendered)
-        self.assertIn(r'\\&amp;=\int(f(x)-f(y))', rendered)
-        self.assertIn(r'\\&amp;\le\left(\int |x-y|^2\,d\gamma\right)^{1/2}', rendered)
-        self.assertNotIn(r'\begin{aligned}', step)
-        self.assertNotIn(r'\begin{aligned}', reader.prose(
-            r'\[A=B\le C\ge ' + 'x'*130 + r'\]'))
-
-    def test_exercise_graph_address_does_not_imply_current_compilation(self):
-        name = next(c for c in self.cores if c['id'] == 'sogb-031')['declaration']
-        identity = 'decl:' + name
-        node = {'kind': 'declaration', 'status': 'partial', 'url': 'lessons/example.html'}
-        self.assertTrue(reader.has_exercise_graph_target({identity: node}, name))
-        self.assertTrue(reader.has_exercise_graph_target({identity: dict(node, status='compiled')}, name))
-        self.assertFalse(reader.has_exercise_graph_target({identity: dict(node, status='planned')}, name))
-        self.assertFalse(reader.has_exercise_graph_target({identity: dict(node, url='')}, name))
-        self.assertFalse(reader.has_exercise_graph_target({identity: dict(node, kind='module')}, name))
-        self.assertFalse(reader.has_exercise_graph_target({'decl:Another.theorem': node}, name))
 
     def test_multipage_exercise_rejects_incomplete_reversed_or_untyped_ranges(self):
         known = bench.astis_site._SOURCE_BY_NAME
@@ -527,6 +722,29 @@ class BenchTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             exercises.checked_axioms('', names)
 
+    def test_exercise_1_7_preserves_distinct_targets_and_one_public_family(self):
+        import sog_bench_lean as runtime
+
+        cores = [c for c in self.cores if c['id'] in {'sogb-039', 'sogb-040'}]
+        self.assertEqual([c['id'] for c in cores], ['sogb-039', 'sogb-040'])
+        self.assertEqual({c['family'] for c in cores}, {'chewi-lcs-2026-08-20-exercise-1-7'})
+        self.assertEqual({c['split'] for c in cores}, {'public-dev'})
+        exercise = cores[0]['textbook_exercise']
+        self.assertEqual(exercise, cores[1]['textbook_exercise'])
+        self.assertEqual((exercise['book_page'], exercise['pdf_page']), (43, 55))
+        self.assertNotIn('source_assumptions', exercise)
+        owners = {c['source_file'].removesuffix('.lean').replace('/', '.') for c in cores}
+        self.assertEqual(len(owners), 2)
+        for core, level in zip(cores, ('L4', 'L3'), strict=True):
+            self.assertEqual(core['track_levels'], {'natural-language': level, 'lean': level})
+            self.assertFalse(owners.intersection(runtime.local_imports(core['imports'])))
+            packet = runtime.packet(core)
+            descriptor = json.loads(packet['operator.json'])
+            self.assertEqual(descriptor['binding_sha256'], core['binding_sha256'])
+            self.assertNotIn('source_components', json.loads(packet['agent/prompt.json']))
+            self.assertTrue(all(c['declaration'].encode() not in packet['agent/Solution.lean.txt'] for c in cores))
+        self.assertNotEqual(*(exercises.question_component(exercise, c['declaration']) for c in cores))
+
     def test_exercise_sources_allow_hash_pinned_primary_books_not_only_arxiv(self):
         data = json.loads(exercises.DATA.read_text(encoding='utf-8'))
         book = data['books']['chewi-optimization-v1']
@@ -546,13 +764,127 @@ class BenchTests(unittest.TestCase):
         for url in ('javascript:bad', 'https://user:secret@example.org/book.pdf', 'https://example.org/ bad'):
             self.assertFalse(exercises.primary_url(url))
 
+    def _component_exercise_fixture(self):
+        data = json.loads(exercises.DATA.read_text(encoding='utf-8'))
+        row = data['exercises'][0]
+        book = data['books'][row['book_id']]
+        existing = json.loads((ROOT / row.pop('publication_file')).read_text(encoding='utf-8'))
+        original = next(item for item in existing['items'] if item['id'] == row['id'])
+        docs, refs = {}, []
+        for i, binding in enumerate(original['bindings'], 1):
+            rel = f'website/content/publications/exercise-component-fixture-{i}.json'
+            ident = f'exercise-component-fixture-{i}'
+            item = {**deepcopy(original), 'id': ident, 'title': f'Component {i}',
+                    'statement': f'Statement belonging only to component {i}.',
+                    'assumptions': [f'Assumptions belonging only to component {i}.'],
+                    'obligations': [{'id': 'shared-part-label', 'label': f'Represented part {i}'}],
+                    'bindings': [{**deepcopy(binding), 'role': 'proof-edge', 'supports': ['shared-part-label']}]}
+            item['source'].update(url=book['pdf_url'] + '#page=23', pdf_sha256=book['pdf_sha256'])
+            docs[ROOT / rel] = {'schema_version': 1, 'items': [item]}
+            refs.append({'publication_file': rel, 'item_id': ident})
+        self.assertEqual(len(refs), 2)
+        row['publication_components'] = refs
+        return data, row['id'], docs
+
+    def _resolve_component_fixture(self, data, identity, docs):
+        original = Path.read_text
+        with patch.object(Path, 'read_text', lambda p, *a, **kw:
+                          bench.encoded(docs[p]).decode() if p in docs else original(p, *a, **kw)):
+            return exercises.resolve(identity, bench.astis_site._SOURCE_BY_NAME, data)
+
+    def test_distinct_numbered_exercise_components_keep_separate_scope_and_prompt_only_source(self):
+        data, identity, docs = self._component_exercise_fixture()
+        result = self._resolve_component_fixture(data, identity, docs)
+        self.assertNotIn('source_assumptions', result)
+        self.assertNotIn('source_statement', result)
+        self.assertEqual([a['component_id'] for a in result['answer_declarations']],
+                         [c['item_id'] for c in result['source_components']])
+        ids = [part['id'] for part in result['parts']]
+        self.assertEqual(len(set(ids)), 2)
+        self.assertEqual([a['supports'][0] for a in result['answer_declarations']], ids)
+        html = reader.exercise_panel({'textbook_exercise': result,
+                                      'declaration': result['answer_declarations'][1]['declaration']}, False)
+        self.assertIn('Represented source parts and exact Lean scope', html)
+        self.assertNotIn('all requested parts', html)
+        self.assertLess(html.index('<summary>Component 2</summary>'), html.index('<summary>Component 1</summary>'))
+        self.assertEqual(html.count('Source component for this question'), 1)
+        for i, answer in enumerate(result['answer_declarations'], 1):
+            self.assertIn(f'<summary>Component {i}</summary>', html)
+            self.assertIn(f'Assumptions belonging only to component {i}.', html)
+            self.assertIn('focus=decl%3A' + answer['declaration'], html)
+        prompt = json.dumps(exercises.source_prompt(result))
+        self.assertIn('3.2', prompt)
+        for secret in ('source_components', 'exercise-component-fixture-', 'Assumptions belonging',
+                       'answer_declarations', *(a['declaration'] for a in result['answer_declarations'])):
+            self.assertNotIn(secret, prompt)
+        changed = deepcopy(docs)
+        next(iter(changed.values()))['items'][0]['statement'] += ' Revised wording.'
+        revised = self._resolve_component_fixture(data, identity, changed)
+        self.assertNotEqual(result['source_entry_sha256'], revised['source_entry_sha256'])
+        self.assertEqual(exercises.compile_contexts([{'textbook_exercise': result}]),
+                         exercises.compile_contexts([{'textbook_exercise': revised}]))
+
+    def test_component_acceptance_does_not_spread_to_other_parts(self):
+        data, identity, docs = self._component_exercise_fixture()
+        exercise = self._resolve_component_fixture(data, identity, docs)
+        cores = [{'id': f'sogb-fixture-{i}', 'textbook_exercise': exercise, 'declaration': row['declaration'],
+                  'track_levels': {'natural-language': 'L3'}} for i, row in enumerate(exercise['answer_declarations'])]
+        reviews = {c['id']: {'editorial': state} for c, state in zip(cores, ['accepted', 'stale'], strict=True)}
+        rows = exercises.projection(cores, reviews, compiled=False)
+        first, second = (c['item_id'] for c in exercise['source_components'])
+        self.assertEqual(rows[0]['represented_components_with_accepted_qa'], [first])
+        self.assertEqual([q['component_id'] for q in rows[0]['questions']], [first, second])
+        self.assertFalse(rows[0]['owned_answer_build_recorded'])
+        with patch.object(bench, 'editorial_review', return_value={'items': reviews}):
+            html = reader.exercise_index(cores, False)
+        self.assertIn('1 of 2 represented source components', html)
+        self.assertIn('>Component 2</a> · stale', html)
+        with self.assertRaisesRegex(ValueError, 'exactly one owned answer anchor'):
+            exercises.projection([{**cores[0], 'declaration': 'Unowned'}], reviews, compiled=False)
+
+    def test_numbered_exercise_components_refuse_ambiguous_scope_or_unbound_sources(self):
+        data, identity, docs = self._component_exercise_fixture()
+        for defect in ('both-mappings', 'duplicate-component', 'outside-path', 'missing-file',
+                       'missing-boundary', 'wrong-pdf', 'wrong-url', 'wrong-page', 'wrong-exercise', 'missing-part',
+                       'prerequisite-only', 'duplicate-answer'):
+            with self.subTest(defect=defect):
+                changed, files = deepcopy(data), deepcopy(docs)
+                row = changed['exercises'][0]
+                first, second = [p['items'][0] for p in files.values()]
+                if defect == 'both-mappings':
+                    row['publication_file'] = 'website/content/publications/optimisation.json'
+                elif defect == 'duplicate-component':
+                    row['publication_components'][1] = row['publication_components'][0]
+                elif defect == 'outside-path':
+                    row['publication_components'][0]['publication_file'] = '../elsewhere.json'
+                elif defect == 'missing-file':
+                    row['publication_components'][0]['publication_file'] = 'website/content/publications/not-present.json'
+                elif defect == 'missing-boundary':
+                    row['unformalized_context'] = []
+                elif defect == 'wrong-pdf':
+                    first['source']['pdf_sha256'] = '0' * 64
+                elif defect == 'wrong-url':
+                    first['source']['url'] = 'https://example.org/another-book.pdf'
+                elif defect == 'wrong-page':
+                    first['source']['url'] = first['source']['url'].replace('#page=23', '#page=24')
+                elif defect == 'wrong-exercise':
+                    first['source']['anchor'] = 'Exercise 3.3'
+                elif defect == 'missing-part':
+                    first['obligations'].append({'id': 'unmapped', 'label': 'Unmapped conclusion'})
+                elif defect == 'prerequisite-only':
+                    first['bindings'][0]['role'] = 'prerequisite'
+                elif defect == 'duplicate-answer':
+                    first['bindings'][0]['declaration'] = second['bindings'][0]['declaration']
+                with self.assertRaises(ValueError):
+                    self._resolve_component_fixture(changed, identity, files)
+
     def test_exercise_prose_changes_do_not_recompile_unchanged_owned_answers(self):
         data = deepcopy(bench.load())
-        candidate = next(c for c in data['cores'] if c['id'] == 'sogb-030')
-        candidate['question'] += ' Extra unaudited clause.'
+        identity = 'sogb-030'
+        next(c for c in data['cores'] if c['id'] == identity)['question'] += ' Extra unaudited clause.'
         changed = bench.materialize(data)
-        binding = lambda rows: next(c['binding_sha256'] for c in rows if c['id'] == candidate['id'])
-        self.assertNotEqual(binding(changed), binding(self.cores))
+        self.assertNotEqual(next(c for c in changed if c['id'] == identity)['binding_sha256'],
+                            next(c for c in self.cores if c['id'] == identity)['binding_sha256'])
         self.assertEqual(bench.environment_digest(changed), bench.environment_digest(self.cores))
         self.assertEqual(exercises.compile_contexts(changed), exercises.compile_contexts(self.cores))
 
@@ -580,11 +912,11 @@ class BenchTests(unittest.TestCase):
 
     def test_structural_graph_answers_sources_and_no_gold_in_prompts(self):
         graphs = bench.curriculum.graph_items()
-        self.assertEqual(len(graphs), 7)
         self.assertTrue(all(g['family'] == 'pl-gradient-iteration' for g in graphs[:3]))
         self.assertTrue(all(g['family'] == 'coupling-gluing-triangle' for g in graphs[3:5]))
-        self.assertTrue(all(g['family'] == 'convex-flow-first-order-rate' for g in graphs[5:]))
-        self.assertTrue(all('answer' not in p for p in bench.curriculum.graph_prompts(graphs)))
+        self.assertTrue(all(g['family'] == 'convex-flow-first-order-rate' for g in graphs[5:7]))
+        self.assertTrue(all(not {'answer', 'binding_sha256'} & p.keys()
+                            for p in bench.curriculum.graph_prompts(graphs)))
         self.assertEqual(len(graphs[0]['context']['nodes']), 3)
         self.assertEqual(len(graphs[0]['context']['edges']), 2)
         self.assertEqual(len(graphs[2]['answer']['nodes']), 2)
@@ -592,6 +924,59 @@ class BenchTests(unittest.TestCase):
             self.assertFalse(g['answer']['entails_mathematical_necessity'])
             self.assertNotIn('atlas', json.dumps(g).lower())
             self.assertIn('source_sha256_lf', g['context'])
+
+    def test_public_graph_fingerprint_is_independent_of_the_answer(self):
+        graphs = bench.curriculum.graph_items()
+        for item in graphs:
+            public = bench.curriculum.graph_prompt(item)
+            visible = {k: v for k, v in public.items() if k != 'prompt_sha256'}
+            self.assertEqual(public['prompt_sha256'], bench.curriculum.digest(visible))
+            self.assertEqual(item['binding_sha256'], bench.curriculum.digest(
+                {'prompt': visible, 'answer': item['answer']}))
+            different = {**item['answer'],
+                         'entails_mathematical_necessity': not item['answer']['entails_mathematical_necessity']}
+            alternate = {**item, 'answer': different, 'binding_sha256': bench.curriculum.digest(
+                {'prompt': visible, 'answer': different})}
+            self.assertNotEqual(item['binding_sha256'], alternate['binding_sha256'])
+            self.assertEqual(bench.curriculum.graph_prompt(alternate), public)
+            self.assertNotEqual(bench.curriculum.graph_prompt({**item, 'question': item['question'] + ' Change.'}),
+                                public)
+
+    def test_graph_capture_translates_only_the_exact_public_prompt(self):
+        item = bench.curriculum.graph_items()[0]
+        row = {'id': item['id'], 'attempt': 1, 'answer': item['answer'],
+               'prompt_sha256': bench.curriculum.graph_prompt(item)['prompt_sha256']}
+        original = deepcopy(row)
+        legacy = {k: v for k, v in row.items() if k != 'prompt_sha256'} | {'binding_sha256': item['binding_sha256']}
+        canonical = bench.curriculum.bind_graph_submissions([item], [row])
+        self.assertEqual(canonical, [legacy])
+        self.assertEqual(row, original)
+        self.assertEqual(bench.curriculum.grade_graph([item], canonical)['points'], 1)
+        self.assertEqual(bench.curriculum.bind_graph_submissions([item], [legacy], allow_legacy=True), [legacy])
+        for bad in (legacy, {**row, 'prompt_sha256': item['binding_sha256']},
+                    {**row, 'binding_sha256': item['binding_sha256']}, {**row, 'id': []}):
+            with self.assertRaises(ValueError):
+                bench.curriculum.bind_graph_submissions([item], [bad])
+
+    def test_offline_graph_parser_never_collapses_ambiguous_attempts(self):
+        self.assertEqual(bench.curriculum.parse_graph_record('{"attempt":1}'), {'attempt': 1})
+        for raw in ('{"attempt":2,"attempt":1}', '{"answer":{"nodes":[],"nodes":["other"]}}',
+                    '{"attempt":NaN}', '{"attempt":Infinity}', '{}{}', '[]'):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                bench.curriculum.parse_graph_record(raw)
+
+    def test_exercise17_graph_explains_indirect_path_in_reference_not_prompt(self):
+        graph = next(g for g in bench.curriculum.graph_items() if g['id'] == 'sogb-g008')
+        core = next(c for c in self.cores if c['id'] == 'sogb-039')
+        self.assertEqual(graph['family'], core['family'])
+        self.assertEqual(graph['answer']['nodes'], [core['declaration']])
+        self.assertNotIn([core['declaration'], graph['remove']], graph['context']['edges'])
+        page = reader.graph_page(graph)
+        self.assertIn('compiled-exercise17-graph.json', page)
+        self.assertIn('sogb-040.html', page)
+        self.assertIn('Compact Euclidean Poincaré conclusion → Compact-test LSI extension → Three cutoff limits', page)
+        self.assertIn('Shared immediate proof-body parent(s): Compensated entropy integral limit', page)
+        self.assertNotIn('Selected path:', json.dumps(bench.curriculum.graph_prompts([graph])))
 
     def test_graph_grader_rejects_duplicates_stale_context_and_implicit_selection(self):
         graphs = bench.curriculum.graph_items()

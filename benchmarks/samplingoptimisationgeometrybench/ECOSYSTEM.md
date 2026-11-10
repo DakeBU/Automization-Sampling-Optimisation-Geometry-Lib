@@ -22,6 +22,11 @@ tasks/<core-id>/<track>/
   response-template.json
 ```
 
+Index schema 2 distinguishes graph `prompt_sha256` (hash of the visible
+prompt only) from mathematical-view `binding_sha256`. The graph descriptor
+and response template use only the public fingerprint; the graph grader
+associates the internal answer binding on the operator side after collection.
+
 `task.json` separates the instruction from the environment and verifier contract.
 It pins Lean 4.33.0, the Mathlib manifest and evaluator source hashes, names the
 actual scoring mode, and explicitly denies an arbitrary-submission executor.
@@ -39,6 +44,16 @@ claim that a container image or provider execution was reproduced.
 proof, rubric, editorial report, training pair or expert-only source anchor.
 Individual task files can also be fetched through the static website API.
 Read the prompt and declared tool policy, then preserve the first raw response.
+For Lean tasks the descriptor fingerprints the fixed-target evaluator and
+its policy, not the prose grader. The operator provisions the separate
+[isolated Linux workspace](lean-runtime/WORKSPACE.md); the prompt ZIP supplies
+neither verifier nor hosted execution. Its tool/retrieval declarations are
+not evidence that a run occurred or that retrieval was enforced.
+
+The fixed Lean template always has a `by` proof slot. Its trusted reference
+keeps the checked source theorem's assigned proof, whether the source uses a
+term or tactic mode. Any necessary private reference helpers stay in the
+reference only, not in the prompt, template, or verifier statement baseline.
 
 ## Training and contamination
 
@@ -58,7 +73,7 @@ source mapping does not grant permission to copy its prose into ML data.
 | Track | Available path | Not certified |
 | --- | --- | --- |
 | Natural language | Freeze answers with `sog_bench_prose.py prepare`; actual human rubric assessment; archive with `score` | Automatic semantic correctness, authenticated model/human execution |
-| Graph JSON | `sog_bench.py grade-graph` scores the exact frozen structural question | Mathematical necessity, full proof closure, unseen generalization |
+| Graph JSON | `sog_bench.py grade-graph` scores a frozen snapshot; the [paired JSONL suite](EVALUATION.md#paired-suites-across-families-any-jsonl-agent) preselects the same tasks for snapshot and bounded-search conditions and replays each recorded first answer | Mathematical necessity, full proof closure, unseen generalization |
 | Native graph trials | `sog_bench_harbor.py export`; Harbor oracle/nop fixtures in separate Docker verification; inspect the dedicated CI result | A model measurement, all paid-agent compatibility, arbitrary Lean execution, exhaustive security verification |
 | Trusted Lean references | `sog_bench.py check-lean` compiles the aligned references using the pinned project | Arbitrary submitted-code safety, source equivalence or model performance |
 | Fixed-target Agentic Lean tools | Experimental [Linux compiler workspace](lean-runtime/WORKSPACE.md): bounded checks, one immutable final, official target/axiom comparison and fresh kernel replay; controlled native acceptance is independently reviewed | General hosted execution, exhaustive security, authenticated model performance or unseen generalization |
@@ -69,7 +84,9 @@ from actual provider use. The optional [model bridge](lean-runtime/MODEL.md)
 remains staged: code review and synthetic API-shaped fixtures do not establish
 a real provider handshake or model measurement. An authorized provider/model
 and spending policy are required before paid calls. No API key is bundled in
-the static website or portable agent inputs.
+the static website or portable agent inputs. A [credential-free JSONL transport](lean-runtime/MODEL.md#credential-free-jsonl-transport)
+also accepts a local agent's requests; it still requires the isolated Linux
+verifier, and its software fixtures are not model scores.
 
 Use [EVALUATION.md](EVALUATION.md) for the existing commands, response schemas,
 first-attempt denominator, provenance fields and human-grading procedure.
@@ -82,7 +99,13 @@ to its actual declaration, or explicitly labelled owning-module fallback.
 The expert directory lists each core once, with exact sources, additional owned
 support/numbered-exercise answer parts, and coverage boundaries.
 `expert-graph-positions.json` exposes those source-derived identities separately
-from model inputs. It exports owned result anchors, never the full mixed graph.
+from model inputs. The site checks each location against its actual graph;
+an indexed module does not mean its declaration is indexed. Standalone
+`sog_bench.py export` leaves `node_id` and `graph_url` null unless supplied
+the generated graph via `--graph-index PATH`. The `anchor_kind` distinguishes
+declaration, owning module, not indexed, and not checked. The exact declaration
+and source file remain present even when no graph position is available.
+The export never supplies the full mixed graph.
 
 A position is not an implication edge. Only the separately replayed compiler
 slices carry selected proof-body occurrences; import scans and conceptual

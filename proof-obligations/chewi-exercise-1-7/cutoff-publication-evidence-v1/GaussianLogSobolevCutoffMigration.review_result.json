@@ -1,0 +1,55 @@
+{
+  "semantic_slots": {
+    "objects": {
+      "original": "A finite-dimensional complete real Hilbert space E with its Borel measurable structure, the literal measure ProbabilityTheory.stdGaussian E, a signed real function f on E, its actual Riesz gradient ∇f, and the zero-continuous entropy integrand Φ(t)=t log t on t≥0.",
+      "reconstructed": "A finite-dimensional real Hilbert space with its Borel σ-algebra, the centered identity-covariance Gaussian probability measure, a real-valued twice continuously differentiable function, its Hilbert-valued gradient, and h(t)=t log t for positive t with h(0)=0.",
+      "relation": "equivalent",
+      "evidence": "GaussianLogSobolev.lean:20–35 binds the specific stdGaussian E and gradient f. Mathlib db584cd6, Mathlib/Probability/Distributions/Gaussian/Multivariate.lean:66–123, defines stdGaussian by pushing independent variance-one coordinates through the orthonormal basis and proves Gaussianity, zero mean, probability mass one, and covariance bilinear form equal to the inner product. This is the decoder's Gaussian, not a law passed as a parameter. The shared energy proof uses the inverse of InnerProductSpace.toDual on fderiv, identifying the stated gradient with the Hilbert gradient."
+    },
+    "domains": {
+      "original": "The noncompact/global C² function class on E with f∈L²(γ), actual ∇f∈L²(γ;E), and Φ(f²)∈L¹(γ). This is a sufficient analytic domain for the companion background; not all weak W¹,² functions.",
+      "reconstructed": "Twice continuously differentiable f:E→ℝ with f and ∇f square-integrable and h(f²) integrable under the same Gaussian.",
+      "relation": "same",
+      "evidence": "ContDiff ℝ 2 f is global, not on a compact set or γ-a.e. in place of a differentiable representative. The next three binders in GaussianLogSobolev.lean:24–28 are exactly MemLp f 2 γ, MemLp (gradient f) 2 γ and Integrable (f² log f²) γ. LogSobolevCutoff.lean:125–163 uses continuity and the L²-to-square-L¹ lemmas to make the masses and entropy limits genuine real integrals. The energy integrability is likewise derived and used at lines 136 and 165–184."
+    },
+    "quantifiers": {
+      "original": "For every compatible finite-dimensional real Hilbert/Borel E, including rank zero, and every signed global C² f in those domains. There is no selected dimension, positive-mass restriction, or restriction to density square roots.",
+      "reconstructed": "Let E be a finite-dimensional real Hilbert space with its Borel σ-algebra and let f satisfy the displayed domains; no nonzero-dimension, positive-mass or sign qualifier.",
+      "relation": "explicit-elaboration",
+      "evidence": "GaussianLogSobolev.lean:20–28 quantifies E via the real inner product, completeness, finite-dimensionality and Borel instances, then universally binds f and its four hypotheses. Completeness is contained in 'Hilbert'; the Borel instance says the supplied measurable structure agrees with the Borel σ-algebra. FiniteDimensional imposes no lower bound on finrank, so the decoder's unqualified statement retains the expressly mentioned rank-zero case."
+    },
+    "assumptions": {
+      "original": "Only the compatible ambient Hilbert/Borel structure and the four analytic predicates (global C², f and its true gradient in L², and entropy-integrand L¹). No positivity of f or its mass, normalization, compact support of f, inequality premise, cutoff certificate or approximate/repaired density.",
+      "reconstructed": "The same space, C² and the three actual integrability conditions, with no additional premise.",
+      "relation": "same",
+      "evidence": "The public Gaussian binder list terminates at hentropy (GaussianLogSobolev.lean:21–28). The proof calls cutoff_integral_limits with γ, f and exactly those four inputs, obtains the three limits, and derives compact support only for each χₙf (lines 35–47). The measure-generic provider assumes neither that μ is Gaussian nor a limit or LSI certificate. The adjacent smooth-test extension is not called, so its C∞ and supplied compact-test LSI hypotheses do not leak into the Gaussian theorem."
+    },
+    "conclusion": {
+      "original": "The homogeneous inequality Entγ(f²)=∫Φ(f²)dγ−Φ(∫f²dγ) ≤ 2∫‖∇f‖²dγ for the actual f, with Φ(0)=0 and the uncut actual mass.",
+      "reconstructed": "∫h(f²)dγ−h(∫f²dγ)≤2∫‖∇f‖²dγ with h(0)=0.",
+      "relation": "explicit-elaboration",
+      "evidence": "GaussianLogSobolev.lean:29–32 expands Φ on both terms as t * Real.log t. The input is nonnegative both pointwise and after integration; on positive t this agrees with h, and at zero the product is zero. GaussianLogSobolev.lean:48–50 uses continuous_mul_log at the actual limiting mass, never dividing by mass or taking log of f itself. This matches the lesson formula and the decoder without assuming f≥0 or unit mass."
+    },
+    "scopes": {
+      "original": "An ASTIS-authored sufficient noncompact C² function-LSI background result for the Gaussian LSI invocation in SPHMC arXiv:2609.06906v1, Lemma 4.2 proof, (4.6) and the following paragraph. The full printed W₂ estimate, separate Gaussian Talagrand/T2, coherent canonical posterior KL/Fisher bridge, weak W¹,² extension and downstream paper results are not this theorem.",
+      "reconstructed": "A function-LSI for the declared Gaussian and C² analytic domain, not a transport bound, a posterior KL/Fisher assertion, a theorem about general measures, or a claim of a weak Sobolev extension. A source-blind statement does not carry the attribution or proof route.",
+      "relation": "equivalent",
+      "evidence": "At https://arxiv.org/html/2609.06906v1#S4.E6 the authors standardize the RGO around its proximal point, give the density proportional to exp(−‖u‖²/2−ρᵧ(u)), and attribute the first W₂ inequality jointly to Gaussian LSI and standard-Gaussian Talagrand. They attribute the next steps separately to the Lipschitz gradient vanishing at zero and to an integration-by-parts moment bound. The cited anchor is a use site, not a statement of this C² cutoff theorem. The proof binding supports only noncompact-gaussian-lsi. Tests/GaussianLogSobolev.lean's actual_posterior_noncompact_lsi uses the actual domain theorem at its own proximal witness, not a KL/Fisher identity or a transport conclusion."
+    },
+    "constant_dependencies": {
+      "original": "Exactly 2 for the identity-covariance Gaussian with no dimension, f or radius dependence. The cutoff derivative has an internal constant C chosen before the radii. A future normalized square-root-density identification would yield the factor 1/2 in KL versus Fisher, not a claimed conclusion here.",
+      "reconstructed": "Exactly 2 multiplying the actual gradient energy, with no other parameter in the statement.",
+      "relation": "same",
+      "evidence": "The compact inequality for the same stdGaussian has coefficient 2 (GaussianCompactHilbertLogSobolev.lean:43–55). The C obtained from radialSmoothCutoff_fderiv_bound before the energy dominated convergence argument is used only in the dominator 2‖∇f‖²+2C²f² (LogSobolevCutoff.lean:165–184); the Gaussian final proof takes he.const_mul 2. At the paper use site the formal arithmetic one would need separately is ∇√q=−½√q∇ρ, so 2∫‖∇√q‖²dγ=(1/2)∫‖∇ρ‖²q dγ, and Talagrand would supply the separate factor 2 in W₂²≤2 KL. The review does not assert a checked bridge."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "reviewer": "agent-task:/root/gaussian_migration_source_review_20261109",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Independent review of the new packet without a prior verdict, review, repair or audit. Checked the primary arXiv v1 HTML, Lemma 4.2 proof around (4.6), lines 443–449, not merely the packet attribution: https://arxiv.org/html/2609.06906v1#S4.E6. Equivalence is to the pinned authored sufficient C² background statement, not to the paper's printed W₂ display. The whole on-disk GaussianLogSobolev.lean matches the packet's current_lean_module exactly after newline normalization (SHA-256 6645c2ce9aa5bd6303f65dd2047a0afa5666403ed9948ca6aa4e6dbc5e733998). Compared against origin/main 6c61cb13dcf3c96c7c4d84246327aa42e18a6746: from its Gaussian theorem declaration through module end the text is unchanged; the former private limits result now resolves through the import/open of LogSobolevCutoff. I compared the four helper proof bodies and the limits proof body against LogSobolevCutoff.lean (LF-normalized SHA-256 25d865b9f731b83fa0af7fd32c183c2630c9fa86f5e36c4d8c1b4cddcd088cbc): all five bodies match. The old limits theorem was already measure-generic and explicitly omitted finite-dimensionality; the extraction makes it public in its own module without adding hypotheses or changing its three targets. The Gaussian instantiation and finite-dimensional compact-support step remain as before. The walkthrough agrees step by step: Rₙ=n+1 and χₙf; local χₙ=1 on a neighborhood yields eventual actual gradient equality; the product identity at a=χₙ², q=f² gives |Φ(aq)|≤|Φ(q)|+q including zeros; pointwise convergence and a.e. strong measurability feed the three dominated convergence proofs with q, |Φ(q)|+q, and 2‖∇f‖²+2C²q. Each compact C² inequality uses the same γ and coefficient, then continuous mass correction and closed order give the asserted limit. The downstream test forms the raw f=exp(−ρ/2)/√Z at the domain producer's witness, transports entropy integrability along f²=q and applies the Gaussian theorem with no cutoff certificate or upper η bound; it is not part of the theorem's proof and gives no canonical same-witness KL/Fisher, Gaussian T2, (4.6), main/error/composition or cost completion. Lean compilation is packet evidence, not the basis for this review; I did not independently rerun a build.",
+  "reviewer_packet_sha256": "938b094297befc19e8ef6e45f92aef7e90afc97fd0be270bfcb467c3db869876",
+  "review_run_sha256": "8437bb52e0352fca74fc53cbf5e9b328e75784cea7afe9e154c36344eee432a8"
+}

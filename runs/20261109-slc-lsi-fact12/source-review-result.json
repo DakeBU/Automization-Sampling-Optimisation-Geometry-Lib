@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "reviewer": "/root/fact12_compiler_source_review",
+  "reviewer_role": "independent source-facing reviewer; previously performed the separate bounded compiler review, not the formalizer or blind decoder",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "reviewed_commit": "32c6bb6bedbedf05a5ae0e64794df019bf36440c",
+  "reviewer_packet_sha256": "7a5b9922ceececb0f0af683653de046a8b036a2126480b4a2c32878ae6c296b0",
+  "reviewer_packet_file_sha256": "bb184c9bed0610e3ee4ff152fbd73b7c797576bfbcd1596d8a5cf35a57ecfa35",
+  "publication_binding_sha256": "bee8726d60eac1b27a88fae51c7ad50144508f656cbf5e02e65aac2bd81c479d",
+  "anti_anchoring": {
+    "prior_semantic_audit_read": false,
+    "prior_semantic_slots_read": false,
+    "prior_deltas_read": false,
+    "prior_verdicts_read": false,
+    "prior_repairs_read": false,
+    "preproof_reviews_read": false,
+    "decoder_files_read": false,
+    "source_visible": true,
+    "blind_reconstruction_read_only_from_fresh_reviewer_packet": true,
+    "note": "This source-review stage began only after the independent compiler report was saved. The prior compiler verdict did not establish or substitute for source fidelity."
+  },
+  "input_artifacts": [
+    "runs/20261109-slc-lsi-fact12/reviewer-packet.json",
+    "AutoSamplingTheory/TechnicalLemmas/Analysis/NormalizedMass.lean",
+    "Tests/NormalizedMass.lean",
+    "https://arxiv.org/html/2611.05813v1#Thmfact12"
+  ],
+  "semantic_slots": {
+    "objects": {
+      "original": "The two scalar quantities g and b.",
+      "reconstructed": "Universally bound g and b of type Real.",
+      "relation": "same",
+      "evidence": "Each source variable maps one-to-one to a theorem parameter. No probability space, good-event set, or mass-normalizing construction is substituted for either scalar."
+    },
+    "domains": {
+      "original": "Nonnegative real scalar inputs with positive total.",
+      "reconstructed": "g,b : Real with hg : 0 <= g, hb : 0 <= b and hpos : 0 < g+b.",
+      "relation": "explicit-elaboration",
+      "evidence": "The real scalar reading of the displayed square root and ordered inequalities is made explicit by Real. This neither restricts the scalars to probabilities nor imposes upper bounds or a unit total."
+    },
+    "quantifiers": {
+      "original": "Every pair satisfying the stated conditions.",
+      "reconstructed": "forall {g b : Real}, hg -> hb -> hpos -> the two inequalities.",
+      "relation": "same",
+      "evidence": "Implicit Lean argument braces affect elaboration, not universal quantification. The anonymous proposition in Tests/NormalizedMass.lean checks this exact quantifier order and does not hide an existence premise."
+    },
+    "assumptions": {
+      "original": "g >= 0, b >= 0, g+b > 0.",
+      "reconstructed": "Exactly those three inequalities, supplied as hg, hb and hpos.",
+      "relation": "same",
+      "evidence": "The primary source states all three explicitly. Neither g>0 nor b>0 is required. The proof's unused hb is still a retained public source binder, not a secretly dropped premise."
+    },
+    "conclusion": {
+      "original": "b/(g+b) <= b+(1-sqrt(g))^2 <= b+(1-g)^2.",
+      "reconstructed": "The conjunction of the first comparison and the second comparison, with exactly the same middle term.",
+      "relation": "equivalent",
+      "evidence": "A chained pair of comparisons means both adjacent inequalities. constructor proves both branches; the separate transitivity test also obtains the endpoint bound. No coefficient, direction or exponent changes."
+    },
+    "scopes": {
+      "original": "A deterministic scalar fact; ordinary division and the nonnegative real square root.",
+      "reconstructed": "Pointwise real arithmetic using totalized Lean division and Real.sqrt under the stated domain guards.",
+      "relation": "explicit-elaboration",
+      "evidence": "hpos makes g+b nonzero, and hg gives (Real.sqrt g)^2=g. Hence neither division at zero nor sqrt at a negative argument affects this claim. The theorem makes no almost-everywhere, expectation or asymptotic assertion."
+    },
+    "constant_dependencies": {
+      "original": "Only numerical constants 0, 1 and exponent 2; no auxiliary varying constant.",
+      "reconstructed": "The same fixed numerals and coefficient one.",
+      "relation": "same",
+      "evidence": "There is no dimension, tolerance, normalizer, hidden universal C or dependence on g,b in an unspecified coefficient. No normalization g+b=1 or smallness premise enters the proof."
+    }
+  },
+  "deltas": [],
+  "repairs": [],
+  "verdict": "equivalent-after-elaboration",
+  "source_evidence": {
+    "url": "https://arxiv.org/html/2611.05813v1#Thmfact12",
+    "edition": "arXiv:2611.05813v1",
+    "anchor": "Section 6.4, Fact 12, equation (60), complete immediate proof",
+    "web_lines": "1750-1758",
+    "access_method": "Direct primary-source web open followed by find for Fact 12",
+    "claim_boundary": "Entire deterministic Fact 12 only; no certification of Theorem 7 or its probabilistic application."
+  },
+  "proof_and_lesson_review": {
+    "status": "accepted-for-this-scalar-fact",
+    "step_checks": [
+      {
+        "step": "Safe denominator and square root",
+        "finding": "The lesson's t=g+b>0, s=sqrt(g)>=0, s^2=g follow directly from the three theorem binders and Real.sqrt APIs. Neither the lesson nor the code divides by g."
+      },
+      {
+        "step": "First bound",
+        "finding": "Independent algebra: b+(1-s)^2-b/t = b+1-2s+g-b/t = t-2s+g/t = (t-s)^2/t. Every equality uses t=g+b and s^2=g, with t>0 for division. Nonnegative numerator over positive denominator gives the claimed sign. hdiff and sub_nonneg.mp implement precisely this reasoning."
+      },
+      {
+        "step": "Second bound",
+        "finding": "Independent algebra: (1-s)(1+s)=1-g. Since s>=0, 1+s>0 and (1+s)^2>=1. Squaring the factorization and dividing by the latter square yields (1-s)^2=(1-g)^2/(1+s)^2 <= (1-g)^2. Adding b gives the second branch. hfactor, hid and div_le_self carry the stated conditions."
+      }
+    ],
+    "comparison_with_immediate_source_proof": "The source's two square identities and the candidate lesson's two algebraic steps coincide. The lesson explicitly discharges the positivity and factorization details rather than adding source hypotheses.",
+    "nonblocking_observation": "The hb unused-variable warning is genuine and remains intentionally unchanged; it is not a missing proof obligation.",
+    "zero_case_checks": [
+      "g=0,b>0 is allowed. The first comparison is 1<=b+1, and the second is equality.",
+      "b=0,g>0 is allowed. The first comparison is nonnegativity of a square, and the second uses the same factorization.",
+      "g=b=0 is excluded in both source and Lean. Totalized 0/0 cannot silently expand the source theorem.",
+      "Negative g is excluded, so Real.sqrt's negative-input fallback to zero is irrelevant."
+    ]
+  },
+  "binding_checks": {
+    "packet_hash_recomputed": true,
+    "canonical_packet_hash_method": "SHA-256 of compact sorted-key UTF-8 JSON, ensure_ascii=false, excluding packet_sha256",
+    "current_module_text_equals_packet": true,
+    "module_sha256": "f52590cfc6586d340a5bf7ca180f3bfbc8f9cbb0b23d9a54fad299db210814f3",
+    "tests_sha256": "a3334e5d2648e2ed4216da87dec026bb689a3b2aa6b45907bce69ee127ddfa77",
+    "toolchain_hash_matches_packet": true,
+    "dependency_manifest_hash_matches_packet": true,
+    "source_text_hash_matches_packet": true,
+    "lean_statement_hash_matches_packet": true,
+    "blind_reconstruction_text_hash_matches_packet": true
+  },
+  "review_evidence": "Read the fresh anti-anchored reviewer packet, independently opened https://arxiv.org/html/2611.05813v1#Thmfact12, and inspected Fact 12 with its immediate proof (web lines 1750-1758). Compared every semantic slot against the actual primary-source conditions and equation, not just the packet paraphrase. Independently checked each authored lesson identity, sign condition, denominator and zero boundary against current Lean code. Verified the canonical packet hash and current code/toolchain/manifest bindings. The source is faithfully represented after explicit Real typing and expansion of a chained inequality into a conjunction. No semantic repair is needed.",
+  "limitations": [
+    "Source-facing acceptance is bounded to Fact 12 and its immediate proof; Theorem 7, random masses, moments and source assumptions needed for that application remain separate.",
+    "Decoder blindness is reported by the fresh packet and was not independently re-investigated by reading decoder files, which were deliberately withheld.",
+    "This report does not publish VERIFIED, modify the semantic registry, or establish aggregate repository/publication/website acceptance."
+  ],
+  "review_run_sha256": "fc07a352ffd825f8d940c749d29c48cc7525505b164675fe0a6c803bc1a7633f"
+}

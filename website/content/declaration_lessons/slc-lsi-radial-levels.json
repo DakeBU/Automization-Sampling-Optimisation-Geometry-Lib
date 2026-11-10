@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "reading_layout": "progressive",
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels.radialLevels_hasLaw",
+      "title": "Regroup the coefficient product and evaluate each level",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S6.SS1",
+          "label": "Zhou–Suzuki, §6.1 before Eq. (51)",
+          "scope": "Unconditioned product law of all levels at the same fixed location; no weights yet."
+        },
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S4.E16",
+          "label": "Zhou–Suzuki, Eq. (16) and footnote 2",
+          "scope": "Literal radial factors and the associated level fields."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiRadialLevels"
+      ],
+      "boundary": "Fixed-location joint law of the actual scalar levels. Not joint in x, not a proof of the weighted Gaussian law or MGF in Eq. (51), not earlier coefficient sigma-field independence or a conditional expectation identity, and no mass estimate or lower bound.",
+      "assumptions": [
+        "The paper takes n large and chooses h from n. This isolated finite product law holds for every positive n and natural h; it does not extend admissibility or the lower-bound regime.",
+        "Each level uses the tail x_i,…,x_h of the same fixed deterministic x and only its own coefficient blocks, one ordered tensor block for each permitted even p. The cutoff and zero-block extension are literal.",
+        "The only randomness is the unconditioned joint Euclidean coefficient Gaussian. The marginal variances need not be positive. No property of a trajectory, adaptive query, or conditioning event is assumed."
+      ],
+      "statement": "Fix one deterministic spatial point x=(x₀,…,xₕ). Draw the actual full ordered coefficient vector from its unconditioned standard Gaussian law. The vector of scalar radial fields at x has the product of the centered Gaussian laws with variances n C_i(x)² v_i. In particular the fields are mutually independent, including any point-mass factors.",
+      "formula": "\\mathcal L_{\\Xi\\sim\\mu_n}\\big((H_i^\\Xi(x))_{i=0}^h\\big)=\\bigotimes_{i=0}^{h}\\mathcal N(0,nC_i(x)^2v_i),\\qquad \\mathcal N(0,0)=\\delta_0.",
+      "reader_note": "Exact Gaussian marginals alone would not determine the joint law. The extra information here is that each level reads a disjoint group of coefficient blocks under a known joint product measure.",
+      "steps": [
+        {
+          "title": "Group coefficients by level without resampling",
+          "text": "The original Euclidean Gaussian has independent tensor blocks labelled by (i,p). Relabel the same blocks as a tuple of level groups. The product over (i,p) becomes a product over levels of products over degrees. All ordered tensor entries remain unchanged.",
+          "formula": "\\bigotimes_{(i,p)}\\nu_{i,p}\\quad\\longmapsto\\quad \\bigotimes_{i=0}^{h}\\left(\\bigotimes_{p\\in\\mathcal P}\\nu_{i,p}\\right),\\qquad \\nu_{i,p}=\\mathcal N(0,I_{i,p}).",
+          "lean": "jointCoefficientBlocks_hasLaw supplies the original product. The measurable coordinate equivalence turns a pair index into a tagged index, then piCurry and the product law move the grouping without changing coordinates."
+        },
+        {
+          "title": "Evaluate one measurable field per group",
+          "text": "Freeze the full spatial point. At a level with a zero participating block the field is the constant zero map; otherwise it is the sum of fixed linear coefficient evaluations times the deterministic cutoff. Evaluating each group separately preserves the product of their pushforwards.",
+          "formula": "\\big(\\prod_i T_i\\big)_{\\#}\\!\\left(\\bigotimes_i\\nu_i\\right)=\\bigotimes_i (T_i)_{\\#}\\nu_i,\\qquad \\nu_i=\\bigotimes_{p\\in\\mathcal P}\\nu_{i,p}.",
+          "lean": "The zero test depends on x alone. In the other case the polynomial is a finite sum of coordinate projections multiplied by fixed scalars. Mathlib's pi_map_pi transports the grouped measure."
+        },
+        {
+          "title": "Identify each exact Gaussian factor",
+          "text": "Project to one level and use the already established one-point law on the same coefficient vector. Since the group projection has the same marginal measure, its field pushforward is exactly that Gaussian. This also covers cutoff zero and zero blocks, without a Gaussian density for a Dirac factor.",
+          "formula": "(T_i)_{\\#}\\nu_i=\\mathcal N(0,nC_i(x)^2 v_i).",
+          "lean": "Product evaluation gives each coefficient-group law, then radialLevel_hasLaw identifies the corresponding scalar law. The integer slot count cast to the reals equals the real sum of the same integer powers, using Nat.cast_sum and Nat.cast_pow; no amplitude changes. Rewriting each factor gives the exact product. The focused test recovers iIndepFun for the literal fields."
+        }
+      ],
+      "lean_statement": "HasLaw asserts a.e. measurability and the exact equality of the vector pushforward to the finite product. The index of the trailing direction is relative to the chosen level; the fields all share the same spatial point and coefficient draw.",
+      "lean_proof": "The implementation starts from the coefficient product and maps it levelwise. The source presents independent degree fields and then takes level sums; both arguments give the same scalar product law.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegree.angularDegreeComponent",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks.jointCoefficientBlocks_hasLaw",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel.radialLevel_hasLaw"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Measure.pi_map_piCongrLeft",
+        "MeasureTheory.Measure.infinitePi_map_piCurry",
+        "MeasureTheory.Measure.pi_map_pi",
+        "MeasureTheory.measurePreserving_eval",
+        "ProbabilityTheory.HasLaw.comp"
+      ],
+      "dependency_notes": "The two actual model laws are Samplinglib-owned. Mathlib supplies reindexing and product pushforward. The later weighted-sum MGF and the coefficient-prefix argument need their own declarations."
+    }
+  ]
+}

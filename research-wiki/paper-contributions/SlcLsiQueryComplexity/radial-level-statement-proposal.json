@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "status": "PROPOSED_BEFORE_PROOF",
+  "source_url": "https://arxiv.org/html/2611.05813v1#S4.E16",
+  "source_edition": "arXiv:2611.05813v1",
+  "source_pdf_sha256": "05520f2a491fedc6ceecc7eb0f3d0c1b23275faceb9da1d9cfa6db421aab4f0e",
+  "source_scope": "§4.1.1 Eq. (13), (14)–(16), footnote 2; §4.2 Lemma 4.4 one-location ingredients and §6.1 variance calculation before Eq. (51). Only one fixed-location scalar level law.",
+  "namespace": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel",
+  "file": "AutoSamplingTheory/ExampleCases/SlcLsiQueryComplexity/RadialLevel.lean",
+  "signature": "theorem radialLevel_hasLaw (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (x : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val)) :\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := Fin (h + 1) × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun p : P ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n    let χ := fun r : ℝ ↦\n      expNegInvGlue (r - 13 / 20) /\n        (expNegInvGlue (r - 13 / 20) + expNegInvGlue (7 / 10 - r)) *\n      (expNegInvGlue (1 - r) /\n        (expNegInvGlue (1 - r) + expNegInvGlue (r - 19 / 20)))\n    let c := ∏ j, χ (‖x j‖ / Real.sqrt n.val)\n    let F := fun (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n        (ξ : EuclideanSpace ℝ (Σ b : B, C b)) ↦ ∑ p : P,\n      angularDegreeComponent n h i (degree p) u\n        (WithLp.toLp 2 (fun c : C (i, p) ↦ ξ ⟨(i, p), c⟩))\n    let H := fun ξ ↦ if ∃ j, x j = 0 then 0\n      else c * F (fun j ↦ NormedSpace.normalize (x j)) ξ\n    HasLaw H (gaussianReal 0 (((n.val : ℝ) * c ^ 2 * ∑ p : P, (a p) ^ 2).toNNReal))\n      (stdGaussian (EuclideanSpace ℝ (Σ b : B, C b)))",
+  "binder_audit": {
+    "TYPING": [
+      "n positive, h natural, i within levels 0..h. x contains exactly the trailing spatial blocks x_i,…,x_h; preceding blocks are not arguments of H_i.",
+      "Full unconditioned ordered coefficient carrier and exact allowed degree subtype as in the checked angular law."
+    ],
+    "STANDING": [
+      "The paper takes large n and a prescribed h(n); this isolated one-point identity is valid for all positive n and natural h, without extending hard-family admissibility."
+    ],
+    "SOURCE": [],
+    "EXCESS": [],
+    "derived_not_assumed": [
+      "Unit normalized directions on the nonzero branch; C_i=0 if one trailing block is zero; measurability of H_i as a function of coefficients at this fixed location; exact Gaussian law, including variance zero."
+    ]
+  },
+  "definition_audit": {
+    "definition_kind": "literal",
+    "body": "No new public definition. The local χ is the literal product of the two unscaled expNegInvGlue = rho quotients in footnote 2 with exact rational breakpoints; replacing each by a rescaled smoothTransition would change the exponent and is not done. The local c is Eq. (16), the product at ‖x_j‖/sqrt(n). The local F is exactly Eq. (15). H is zero if a participating block is zero, else c times F evaluated at the normalized trailing blocks. For nonzero inputs Mathlib normalize is division by the norm, not random normalization."
+  },
+  "source_regions": [
+    {
+      "id": "angular-model",
+      "locator": "§4.1.1 Eq. (14)–(15) and coefficient paragraphs",
+      "status": "NODE",
+      "meaning": "Actual angular component and sum under the unconditioned coefficient model."
+    },
+    {
+      "id": "radial-factor",
+      "locator": "§4.1.1 Eq. (16), footnote 2",
+      "status": "NODE",
+      "meaning": "Literal rho quotients at the exact breakpoints and product over trailing locations only."
+    },
+    {
+      "id": "field-zero-extension",
+      "locator": "§4.1.1 Eq. (13) field and zero-block convention; §4.2 Lemma 4.4 kernel zero convention",
+      "status": "NODE",
+      "meaning": "At a zero participating block the level field is zero. Else multiply its deterministic radial factor and angular sum."
+    },
+    {
+      "id": "source-fixed-point-components",
+      "locator": "§6.1 paragraph immediately before Eq. (51), using §4.2 Lemma 4.4",
+      "status": "NODE",
+      "meaning": "Actual radial degree values at fixed x are independent centered Gaussians with variances n*C_i(x)^2*a_i,p^2; v_i is the sum of a_i,p^2."
+    },
+    {
+      "id": "one-level-sum-law",
+      "locator": "Implicit per-level consequence of the radial component statement preceding Eq. (51)",
+      "status": "NODE",
+      "meaning": "The one-level field has law N(0,n*C_i(x)^2*v_i), with a Dirac law when the level vanishes deterministically."
+    },
+    {
+      "id": "scalar-degenerate-bookkeeping",
+      "locator": "Implicit scalar specialization, Eq. (13), (16), and variance discussion before (51)",
+      "status": "SOURCE_GAP",
+      "meaning": "Make the nonzero-direction normalization and exact zero-block scaling/Dirac identities explicit, without assuming c>0."
+    },
+    {
+      "id": "out-of-scope",
+      "locator": "Footnote 2 smoothness/support/derivative estimates; Lemma 4.3; Lemma 4.4 general covariance and independence; Eq. (51); §6.2 and later",
+      "status": "EXCLUDED",
+      "reason": "No support/regularity bound, process, two-point or derivative covariance, multi-level independence, exponential moment, conditional iteration, mass bound or query bound is proved."
+    }
+  ],
+  "source_edges": [
+    {
+      "parents": [
+        "angular-model",
+        "radial-factor"
+      ],
+      "consumer": "field-zero-extension",
+      "use_site": "Eq. (13) defines the field from the angular and radial objects, with the zero convention."
+    },
+    {
+      "parents": [
+        "source-fixed-point-components",
+        "field-zero-extension",
+        "scalar-degenerate-bookkeeping"
+      ],
+      "consumer": "one-level-sum-law",
+      "use_site": "Isolate one unweighted level of the Gaussian-variance calculation before Eq. (51). The author goes from radial component laws to the weighted sum across levels."
+    }
+  ],
+  "alternative_implementation": "Equivalent one-point route: sum the uncut components first using the existing angularDegreeSum_hasLaw, then scale by a deterministic c. This implementation order is not asserted to be the source's proof order.",
+  "reuse_search": [
+    "Samplinglib: exact AngularDegree and AngularDegreeSum, Cutoff and EnergyTruncation, local Cells, open PRs and issue 388. No duplicate level theorem. No re-use of a differently normalized χ.",
+    "Pinned Mathlib: expNegInvGlue and its nonpositive zero; NormedSpace.normalize and norm_normalize; gaussianReal_const_mul, gaussianReal_zero_var, hasLaw_dirac_of_ae_eq. No new shared probability wrapper."
+  ],
+  "truth_boundary": "One fixed deterministic trailing location, one scalar unconditioned radial level, actual law including zero blocks and other c=0. No covariance, spatial regularity, adaptive or conditional law, moment estimate, or main bound.",
+  "consumer": "§6.2 applies Fact 10 to H_k at fixed x after fixing earlier coefficients. This supplies the unconditioned one-point input; earlier-level independence/conditioning and the recursive integral remain distinct. Eq. (51) still requires weighted multi-level aggregation and the MGF."
+}

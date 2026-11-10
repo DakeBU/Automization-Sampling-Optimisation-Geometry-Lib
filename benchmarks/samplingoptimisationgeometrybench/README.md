@@ -47,8 +47,92 @@ by the native Graph JSON adapter or by compiling trusted reference solutions.
 | sogb-027 | Discrete Sampling / Log-Concave Sampling | Derive finite-cube log-Sobolev by conditional entropy, RMS contraction and dimension induction; diagnose the conditional-mean shortcut (L3) | Not aligned; full substantive induction is available as supporting source, not a final-call wrapper task |
 | sogb-028 | Log-Concave Sampling / Discrete Sampling | Produce homogeneous entropy and full-flip limits, track 16BK/√m and 1/2×4=2, including zero mass (L4) | Compose the actual finite-law/entropy/flip producers and pass inequalities through real limits (L3) |
 | sogb-029 | Optimisation · actual Chewi Exercise 3.2 | Complete the Hessian/FTC and balanced-step minimax argument; distinguish the uniform bound from an individual optimum (L3) | No fixed challenge; two named owned core answers are separately compiled and axiom-checked |
-| sogb-030 | Optimisation · actual Chewi Exercise 3.1 | Explain the affine tilt, summed inequalities and optimum substitution (L3) | Named owned answer; no separate fixed challenge |
-| sogb-031 | Statistical Optimal Transport · actual Exercise 6 | Prove a lower bound valid for every coupling and construct a common-noise coupling for the upper bound (L3) | Reconstruct the same two-sided bound from the lower and upper producers; not the entire prose proof (L3) |
+| sogb-030 | Optimisation · actual Chewi Exercise 3.1 | Derive cocoercivity and gradient Lipschitzness from the quadratic upper model (L3) | Three separately checked owned answer parts; no fixed challenge |
+| sogb-031 | Statistical Optimal Transport · Exercise 6 | Prove the lower bound by the difference of means and the upper bound by an explicit Gaussian-mixture coupling (L3) | Reassemble the exact bounds from two imported producers, without the assembled answer (L3) |
+| sogb-032 | Riemannian Optimisation / Statistical Optimal Transport | Bound changes to a sphere-projected feature gradient when its law and point change (L4) | Compose the angular, Bochner-mean and tangent-gradient producers without importing the answer (L4) |
+| sogb-033 | Riemannian Optimisation / Statistical Optimal Transport | Contrast finite angular cost with infinite intrinsic path cost on the two-point sphere (L2) | Angular cost and transport definitions are support only |
+| sogb-034 | SampleWiki / MCMC | Compute exact binary hybrid gaps and refute an incorrectly weighted adjacent bound (L2) | Generic kernel averaging and telescope are support only |
+| sogb-035 | SampleWiki / MCMC | Transfer stopped work by a pathwise likelihood budget and refute the ideal-average substitute (L5) | TV comparison and single-phase work bounds are support only |
+| sogb-037 | MCMC / SampleWiki | Prove factor-one TV contraction under a common Markov kernel and test sharpness and the common-kernel assumption (L3) | Reconstruct the layer-cake argument for actual composed event masses (L3) |
+| sogb-038 | MCMC / Discrete Sampling | Prove fixed-mixture invariance and test the state-independent-weight assumption (L3) | Reconstruct the nonnegative finite-sum proof for an arbitrary invariant measure (L3) |
+| sogb-039 | Log-Concave Sampling | Exercise 1.7: derive compact Euclidean Poincaré with the same constant from compact smooth log-Sobolev (L4) | Derive genuine admissibility and the compact Poincaré conclusion, without a full form-domain claim (L4) |
+| sogb-040 | Log-Concave Sampling | Exercise 1.7: construct a local affine probability law and expand its finite KL (L3) | Reconstruct the actual-law quadratic KL result with the full-neighborhood remainder (L3) |
+| sogb-041 | Statistical Optimal Transport | Compute both product-law marginals and identify the mass-one factor in each (L2) | Unpack the local coupling predicate and apply the two direct Mathlib identities (L1) |
+| sogb-042 | Log-Concave Sampling / Statistical Optimal Transport | Lift the score and displacement to an arbitrary coupling, then justify the finite optimal-cost substitution (L4) | Reconstruct the conditional Fisher–transport pairing bound without the answer owner (L4) |
+| sogb-043 | Discrete Sampling / MCMC | Derive full random-scan detailed balance and set-flux reversibility; separate invariance from convergence (L3) | Reconstruct the actual kernel reversibility using supported starts, retained fibers and the atomic-balance bridge (L3) |
+| sogb-044 | MCMC / SampleWiki | Lift fiber detailed balance using measurable sections and nonnegative iterated integrals; distinguish reversibility from invariance (L4) | Reconstruct the s-finite retained-coordinate result without a probability or Markov assumption (L4) |
+| sogb-045 | Discrete Sampling / MCMC | Derive the positive-fiber heat-bath law and explain why sampling can land on a zero-mass fiber (L4) | Reconstruct the fixed-site measure identity via measurable regrouping and the positive marginal atom (L4) |
+| sogb-046 | Lower Bounds / Optimisation | Construct a quadratic worst case for a fixed step and delimit the algorithm class (L3) | Reconstruct the endpoint witness, exact iterates and minimax factor (L3) |
+| sogb-047 | Lower Bounds / Optimisation | Derive the exact value gap and distinguish a horizon-dependent lower bound from a fixed-objective tail (L3) | Reconstruct the finite-horizon witness, class checks and power lower bound (L3) |
+| sogb-048 | Lower Bounds / Optimisation | Match both coordinates of one exact first-order reply; derive the quantitative gap and explain how a known optimum changes the information model (L3) | Analytic quadratic support only; the oracle argument has no aligned Lean task |
+
+These reviewed additions retain their existing public IDs. StatOT Exercise 6
+reuses the independently reviewed owned answer; see [formal round 11](reviews/formal-11/README.md).
+See [formal round 12](reviews/formal-12/README.md),
+[prose round 9](reviews/prose-9/README.md) and
+[prose round 10](reviews/prose-10/README.md) for the exact independent reports.
+
+[Prose round 11](reviews/prose-11/README.md) adds an original one-query
+indistinguishability problem. Unlike the fixed-step questions, it permits an
+arbitrary deterministic query and output. The compiled graph anchor supports
+the quadratic analysis, not the oracle lower bound or a multi-query claim.
+
+[Formal round 13](reviews/formal-13/README.md) pairs the eventwise TV proof
+with its aligned Lean target. The mathematical reader explains why the same
+superlevel tests work for both inputs. The Lean result does not formalize the
+prose counterexamples or transfer unbounded work. Its real compiled use in
+the common-suffix proof is recorded separately from graph-task admission.
+
+[Formal round 14](reviews/formal-14/README.md) adds the fixed-weight pair. Its
+two-state counterexample is prose only, and the source helper is folded into
+the trusted answer rather than supplied to the learner. Selected compiled
+edges show the actual common helper and its PBPS consumer path.
+
+[Formal round 16](reviews/formal-16/README.md) accepts the product-coupling
+pair in the existing public coupling family. Its Lean task is a foundation
+reconstruction, not a new library result or an independent test family.
+
+[Formal round 17](reviews/formal-17/README.md) checks the exact Fisher–transport
+pair and its scope; it is not a numbered Chewi exercise or a new library theorem.
+
+[Formal round 18](reviews/formal-18/README.md) checks the full random-scan
+reversibility pair. It retains the rejected L4 proposal and credits equivalent
+null-atom arguments without changing the fixed Lean conclusion. The smaller
+null-atom question remains in the same public family.
+
+[Formal round 19](reviews/formal-19/README.md) checks the retained-coordinate
+reversibility pair on arbitrary measurable joint events. The Lean target is
+joint reversibility only; it does not add Markov normalization, invariance,
+or an application to a specific sampling algorithm.
+
+[Formal round 20](reviews/formal-20/README.md) checks the positive-fiber
+heat-bath law on a dependent product. The fixed Lean target is measure
+equality at a positive retained fiber; the nonatomic counterexample
+remains an explanatory question.
+
+[Exercise 1.7 structural review](reviews/graph-extension-exercise17/README.md)
+accepts a separate L2 graph question: the two compiled routes share the
+compensated entropy limit, while only the compact Poincaré branch reaches
+the selected cutoff limits. This is a property of the supplied slice,
+not mathematical necessity or full-closure independence.
+
+[Random-scan structural review](reviews/graph-extension-random-scan/README.md)
+adds a separate L2 question on which selected heat-bath proofs reach the
+one-block pointwise law. Its operator-only witness explains a path hidden by
+omitting a private helper, without altering the public slice or its score.
+
+[Lower Bounds structural review](reviews/graph-extension-lower-bounds/README.md)
+adds a provisional L2 search/graph question on the fixed-step and
+horizon-dependent quadratic witnesses. Its compiled path reaches the
+one-step upper bound, but the fixed-step witness uses only the scalar minimax
+part of the intermediate theorem. This is a graph task in the existing
+Exercise 3.3 family, not a new proof of an oracle lower bound or a completed
+numbered exercise.
+
+[Formal round 22](reviews/formal-22/README.md) adds the function-value
+order witness from the same Exercise 3.3 family. The question separates
+the uniform lower bound from faster decay on each fixed positive scalar
+quadratic. Only the finite-horizon claims are checked by the fixed Lean task.
 
 Mathematical cores and QA views are counted separately. A supporting theorem is not an equivalent Lean question. Paired views share identity, family, assumptions and public-dev split. The Lean target certifies only its stated conclusion, not every explanatory sentence. Questions/answers are original exposition, not copied textbook passages. Current independent AI editorial eligibility is derived from frozen reports and exact bindings, not this table; revised questions or sources can make earlier acceptance stale. Structural graph editorial decisions are recorded separately; empirical difficulty calibration remains open. Existing theorem review does not certify a new question.
 
@@ -74,13 +158,18 @@ Actual numbered exercises from the cited Chewi textbooks are explicit source-bou
 
 The first entry, sogb-029, is Chewi Optimization Exercise 3.2. Its complete authored formula answer reuses the existing [source/solution window](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/libraries/optimisation/chapter-03.html#chewi-opt-v1-exercise-3-2), two actual owned core-answer declarations and their graph nodes. It has no separate fixed Lean reconstruction task. The Hilbert/parameter extensions and unformalized contextual material remain explicit; neither code existence nor source intake is whole-exercise certification.
 
-sogb-031 is the first numbered exercise with both an original mathematical answer and a distinct fixed Lean challenge. Its source view links both hints to the owned exercise theorem in the Lean graph, while the challenge excludes that assembled answer from its import closure. Both views stay in one public-dev source family; they are not independent samples or held-out items. See [formal round 11](reviews/formal-11/README.md) for the exact review boundary.
-
-[Exercise provenance and contribution rules](TEXTBOOK_EXERCISES.md) describe the source audit. Canonical book pins are in textbook_exercises.json; source parts/answers are reused from the existing publication record. Generated textbook-exercise-map.json separates editorial state, owned core-answer compilation and available QA tracks. Other Chewi textbooks and all seven domains remain required scope.
+[Exercise provenance and contribution rules](TEXTBOOK_EXERCISES.md) describe the source audit. Canonical book pins are in textbook_exercises.json; source parts/answers are reused from the existing publication record. Generated textbook-exercise-map.json separates editorial state, owned core-answer compilation and available QA tracks. Other Chewi textbooks and all eight domains remain required scope.
 
 [Round 2](reviews/round-2/README.md) independently checks the seven L1 natural-language questions. Its input contains no equivalent Lean target, so its acceptance cannot create a formal QA view. The `prose-packet` route explicitly rejects paired tasks, which still require anonymous decoding. Separate review rounds compose only for disjoint cores; changed content becomes stale and overlapping decisions require an explicit supersession policy.
 
 [Formal round 3](reviews/formal-3/README.md) covers the coupling-normalization pair. New paired batches use `tools/sog_bench_formal_review.py`: select aligned `--ids`, prepare a fresh anonymous `decoder-packet --round ...`, obtain a genuinely independent decoder report, then prepare `reviewer-packet --round ...` for a distinct source reviewer. Each core supplies minimal plain-string `decoder_definitions`; source identities, answers, proofs and previous verdicts must stay out of decoder input. The generated anonymous target retains the actual given definition while removing owning namespace labels. Never alter an earlier report or mint another ID to evade its review. Disjoint `reviews/formal-*` rounds are discovered automatically; input preparation cannot create admission.
+
+If the exact target proof uses an earlier tactic theorem from its own module,
+list that source declaration in `reference_helpers`. The builder reproduces it
+as a private local proof in the trusted reference only. This does not import the
+owning module, add a premise, or expose the helper proof to the learner or blind
+decoder. Preserve any source-specific notices in the reference context. Compile
+the complete reference and audit the unchanged target separately.
 
 [Formal round 5](reviews/formal-5/README.md) applies the same workflow to the sphere and conditional-kernel pairs. The unchanged anonymous input and actual decoder report from initial staging round 4 are reused after a bibliography-only correction; no new decoding or changed mathematical target is claimed.
 
@@ -96,9 +185,11 @@ sogb-031 is the first numbered exercise with both an original mathematical answe
 
 [Graph round 6](reviews/graph-6/README.md) adds the convex-flow slice and statement-occurrence query, but independently identifies incomplete import-closure pinning on its non-anchor midpoint branch. Its failed admission evidence, old extractor and snapshots are preserved. [Round 7](reviews/graph-7/README.md) freshly audits the corrected current scope; its actual report, not the fact that a replay ran, determines current acceptance. Old rounds remain historical, not silently rebound to new fingerprints.
 
+The addition of the empty Lower Bounds domain does not re-review or rebind the earlier graph questions. The validator can reconstruct the exact previously reviewed policy bytes by deleting that one domain entry; only the original domains are covered by the old decision. Task, answer, graph, scorer and reviewed public prompt bindings still have to match. Any other policy edit or a new Lower Bounds graph question needs applicable review.
+
 ## Difficulty and subject coverage
 
-The seven domain indexes follow the seven library routes; shared questions can appear in several indexes without multiplying the global count. `python tools/sog_bench.py coverage` computes the domain × L1–L5 × track matrix. An empty cell is a visible gap, not a request for filler or a completion percentage.
+The eight domain indexes include the cross-library [Lower Bounds route](../../docs/lower-bounds-reader.md). It separates method-specific obstructions from claims quantified over an explicit oracle class. Shared questions can appear in several indexes without multiplying the global count. `python tools/sog_bench.py coverage` computes the domain × L1–L5 × track matrix. An empty cell is a visible gap, not a request for filler or a completion percentage. The first Lower Bounds pair covers a fixed-step method only; the oracle-model track remains open. [Formal round 21](reviews/formal-21/README.md) preserves the original rubric objection and a distinct review of its exact repair.
 
 | Level | Reasoning target |
 |---|---|
@@ -108,7 +199,7 @@ The seven domain indexes follow the seven library routes; shared questions can a
 | L4 | Cross-module composition with actual inputs, domains, integrability and errors |
 | L5 | Source-grounded research audit or proof transfer with failure boundaries |
 
-Labels are author-assigned and **not empirically calibrated**. Natural-language and Lean views have their own labels; code length, tokens, import depth and graph distance are not difficulty. Independent review rejected the proposed L5 label of the weak-convexity transfer audit and requested L4: source inspection and originality alone do not establish research-level difficulty. L5 remains a gap, not an invented solution to an open problem. Import structure, elaborated declaration dependencies, reviewed source-proof routes and conceptual mechanisms are distinct evidence types.
+Labels are provisional and **not empirically calibrated**. Natural-language and Lean views have their own labels; code length, tokens, import depth and graph distance are not difficulty. Independent review lowered the weak-convexity transfer audit to L4. The stopped-work audit adds one natural-language L5 core shared by SampleWiki and MCMC; it does not fill any L5 Lean cell or prove a cost transfer for either actual sampler. Import structure, elaborated declaration dependencies, reviewed source-proof routes and conceptual mechanisms are distinct evidence types.
 
 ## Try it
 
@@ -158,7 +249,7 @@ Open `_site/benchmarks/samplingoptimisationgeometrybench/index.html` through a l
 - `graph-editorial-review.json`: separately bound structural editorial decisions, not theorem/proof certification;
 - `compiled-transport-graph.json`: recorded selected proof-body occurrences, source/toolchain/generator fingerprints and approved foundational axioms; fresh compiler replay is a separate CI gate;
 - `EVALUATION.md` / `examples/prose-run.json`: offline first-answer recording and human-rubric scoring instructions/template;
-- `curriculum.json` / `coverage.json`: seven domains, five levels, separate draft track counts and gaps;
+- `curriculum.json` / `coverage.json`: eight domains, five levels, separate draft track counts and gaps;
 - `lean/*-task.lean.txt`: imports/context and a fixed target with a comment slot; fill the slot with a proof, then save as `.lean`;
 - `lean/*-reference.lean`: runnable references extracted from the existing library proof;
 - `manifest.json`: version, core/family/split identities, LF-normalized source hashes, exact toolchain/Mathlib manifest hashes and export file hashes;
@@ -196,7 +287,14 @@ The second slice is extracted by `tools/sog_bench_compiled_graph.py` from the **
 
 `compiled_flow_graph_tasks.json` selects another bounded compiler slice linked to sogb-023: curve slope limit → strong-convexity adapter → actual flow/gradient-pairing proofs, contrasted with the existing midpoint branch. g006 queries paths; g007 combines a path query with exact whitelisted constants emitted by `info.type.getUsedConstants`. These are direct occurrences in the **unexpanded elaborated statement**, not binder-role classification, an inferred hypothesis list or a full type closure. The flow statement contains `Differentiable`, while its proof obtains a genuine gradient; absence of direct `HasGradientAt` is not absence of a gradient. Profiles are a separate table, never extra proof edges or new Mathlib-owned blue nodes. Both new labels are provisional L2, not inherited from the L4 source exercise.
 
-Both snapshots pin the union of **all selected modules' local import closures**, including selected branches outside the anchor's ancestry. This source-code closure is distinct from the displayed induced theorem graph, which still omits constants. `check --slice all` (the default) freshly replays both; `--slice transport` and `--slice convex-flow` focus a trusted diagnostic. New selector/profile/source changes require regenerated records and appropriate fresh editorial evidence. Mathematical cores, structural views and source families are counted separately; these graphs create no theorem or Registry credit.
+Every registered snapshot pins the union of **all selected modules' local import
+closures**, including selected branches outside the anchor's ancestry. This
+source-code closure is distinct from the displayed induced theorem graph,
+which still omits constants. Run `python tools/sog_bench_graph_slices.py check`
+to replay every registered slice. The older compiler CLI's
+`--slice transport` and `--slice convex-flow` remain focused diagnostics.
+Selector, profile or source changes require regenerated records and suitable
+fresh editorial evidence. These graphs create no theorem or Registry credit.
 
 To update this eligible slice after a reviewed source change, run `python tools/sog_bench_compiled_graph.py refresh`, then `check` and obtain a fresh content-bound editorial review where required. Refresh creates neither a review verdict nor Registry credit. It compiles only trusted allowlisted source imports and a generated environment inspector—never model submissions. No mixed upstream or restricted ATLAS graph is read or exported. Source-proof/hypergraph questions and deeper mathematical graph audits still need separate evidence and review.
 
@@ -206,6 +304,22 @@ Graph answers have exactly `nodes` (distinct snapshot node IDs: module IDs in im
 python tools/sog_bench.py grade-graph --submissions responses.jsonl --run-metadata run.json --output .astis/my-graph-run
 ```
 
-Each response supplies `id`, the prompt's `binding_sha256`, `attempt: 1` and `answer`. Run metadata requires `run_id`, `model`, `model_version`, `created_at`, `prompt_profile: "given-snapshot"`, `attempt_policy: "first-attempt"`, `tools` and `seed`. Unknown/duplicate IDs, stale bindings, Boolean attempts and alternate attempt policies are rejected. Missing answers remain in the denominator with zero credit. The score archive retains the full frozen structural items, not just a digest requiring a changing live catalog. Retain raw prompts/responses, timing/tokens and grader versions for experiments. Reference self-tests are software tests, not measured model performance. Human-attested prose recording and the experimental fixed-target Lean CLI have separate contracts; authenticated model evaluation and general hosted Lean execution remain open.
+Each graph response supplies `id`, the visible prompt's `prompt_sha256`,
+`attempt: 1` and `answer`. The fingerprint hashes only the visible question;
+the verifier attaches the answer-bound `binding_sha256` after capturing the
+response. Do not pass the internal binding to the solver: on a small graph it
+allows guessing a finite set of answers and comparing hashes. Old response
+envelopes can be scored only with `--legacy-graph-bindings` for archival
+replay, not as fresh prompt-only measurements.
+
+Run metadata requires `run_id`, `model`, `model_version`, `created_at`,
+`prompt_profile: "given-snapshot"`, `attempt_policy: "first-attempt"`,
+`tools` and `seed`. Unknown/duplicate IDs, stale fingerprints, Boolean
+attempts and alternate attempt policies are rejected. Missing answers remain
+in the denominator with zero credit. The score archive retains the full
+frozen structural items and raw responses, so it is operator material. Retain
+timing/tokens and grader versions for experiments. Reference self-tests are
+software tests, not measured model performance. Human-attested prose and
+the isolated fixed-target Lean CLI have separate contracts.
 
 Only original/permission-cleared material may enter ML training or evaluation exports. Do not use restricted ATLAS-derived indexes, source text, projections or derivatives in this benchmark. The root Apache-2.0 grant does not relicense external books, papers, code or data; retain their applicable notices. This pilot exports original QA, aligned local target proofs and explicitly selected notice-preserving supporting modules, not external datasets or transitive source trees. Historical review packets retain rejected wording for audit and are **not reference-answer gold**; use the derived reviewed-reference export instead. Dependencies remain installed under their own licenses.

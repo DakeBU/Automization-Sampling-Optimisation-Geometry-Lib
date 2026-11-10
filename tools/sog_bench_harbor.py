@@ -29,21 +29,21 @@ def task_files(item: dict, fixture: str | None = None) -> dict[str, bytes]:
     if not re.fullmatch(r'sogb-g\d{3}', identity):
         raise ValueError('Only existing structural graph identities are supported')
     prompt = bench.curriculum.graph_prompts([item])[0]
-    answer = {'id': identity, 'binding_sha256': item['binding_sha256'], 'attempt': 1,
+    answer = {'id': identity, 'prompt_sha256': prompt['prompt_sha256'], 'attempt': 1,
               'answer': item['answer']}
     config = f'''schema_version = "1.4"
 artifacts = ["/handoff/answer.bin", "/handoff/collection.json"]
 
 [task]
 name = "samplinglib/{identity}"
-version = "2"
+version = "3"
 description = "Public-dev structural QA; not mathematical proof or Lean submission grading"
 
 [metadata]
 family = {json.dumps(item['family'])}
 split = "public-dev"
 track = "graph-json"
-binding_sha256 = "{item['binding_sha256']}"
+prompt_sha256 = "{prompt['prompt_sha256']}"
 provisional_level = "{item['level']}"
 measured_model_result = false
 network_contract = "Docker compose network_mode:none; Harbor public means no additional egress controller"
@@ -81,7 +81,7 @@ USER bench
         'Write one UTF-8 JSON object to `/output/answer.json` (at most 65536 bytes):\n\n```json\n'
         + json.dumps({**answer, 'answer': {'nodes': [], 'entails_mathematical_necessity': False}}, indent=2)
         + '\n```\n\nThe empty node list above is a response-format example, not an answer. '
-        'Keep the exact identity, binding and attempt=1. No other files are accepted as answers. '
+        'Keep the exact identity, public prompt fingerprint and attempt=1. No other files are accepted as answers. '
         'Do not execute Lean. The task is public-dev, and its published solution is not a held-out test.\n')
     files = {
         'instruction.md': instruction.encode(), 'task.toml': config.encode(),

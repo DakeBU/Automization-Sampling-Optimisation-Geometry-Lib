@@ -15,6 +15,7 @@ on:
       - 'lean-toolchain'
       - 'lake-manifest.json'
       - 'lakefile.lean'
+      - '.github/actions/setup-pinned-lean/**'
       - '.github/workflows/sog-bench.yml'
   push:
     branches: [main]
@@ -31,6 +32,7 @@ on:
       - 'lean-toolchain'
       - 'lake-manifest.json'
       - 'lakefile.lean'
+      - '.github/actions/setup-pinned-lean/**'
       - '.github/workflows/sog-bench.yml'
   workflow_dispatch:
 
@@ -49,6 +51,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Test held-out family preflight with synthetic histories only
+        run: python3 -m unittest tools.tests.test_sog_bench_split_guard tools.tests.test_sog_bench_private_prose
+      - name: Test bounded compiled-graph lookup and transcript replay
+        run: python3 -m unittest tools.tests.test_sog_bench_graph_search tools.tests.test_sog_bench_graph_model tools.tests.test_sog_bench_graph_model_replay tools.tests.test_sog_bench_graph_suite
       - name: Validate paired QA and prompt-only exports
         run: |
           python3 -m unittest tools.tests.test_sog_bench tools.tests.test_sog_bench_review tools.tests.test_sog_bench_formal_review tools.tests.test_sog_bench_graph_review tools.tests.test_sog_bench_compiled_graph tools.tests.test_sog_bench_prose tools.tests.test_sog_bench_experience
@@ -56,16 +62,11 @@ jobs:
           python3 -m unittest tools.tests.test_bench_reader_hierarchy
           python3 tools/sog_bench.py coverage
           python3 tools/sog_bench.py export
-      - uses: leanprover/lean-action@v1
-        with:
-          auto-config: false
-          build: false
-          test: false
-          use-mathlib-cache: true
+      - uses: ./.github/actions/setup-pinned-lean
       - name: Compile trusted references with the repository toolchain
         run: python3 tools/sog_bench.py check-lean
       - name: Replay the trusted compiled proof-body graph
-        run: python3 tools/sog_bench_compiled_graph.py check --slice all
+        run: python3 tools/sog_bench_graph_slices.py check
       - name: Compile the not-yet-admitted coupling task candidate
         run: lake env lean benchmarks/samplingoptimisationgeometrybench/candidates/coupling-mass.lean
       - name: Refresh export with the current trusted build record

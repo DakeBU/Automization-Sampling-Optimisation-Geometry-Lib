@@ -4,11 +4,33 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 
 import sog_bench as bench
 import sog_bench_review as review
 
 SCOPE = 'independent AI paired QA editorial review; not canonical theorem publication'
+FULL_EXERCISE_SCOPE = 'owned core answer plus conclusion-only fixed target; not full explanatory certification'
+
+
+def complete_exercise(core: dict) -> dict | None:
+    exercise = core.get('textbook_exercise')
+    return exercise if exercise and not exercise.get('source_components') else None
+
+
+def require_full_exercise_review(core: dict, row: dict) -> None:
+    exercise = complete_exercise(core)
+    if exercise is None:
+        return
+    parts = {p['id'] for p in exercise['parts']}
+    for key, required in (('exercise_semantic_slots', set(review.SLOTS)),
+                          ('exercise_part_checks', parts)):
+        actual = row.get(key)
+        if (not isinstance(actual, dict) or set(actual) != required
+                or not all(isinstance(s, str) and s.strip() for s in actual.values())):
+            raise ValueError('A complete paired exercise requires every source part and semantic slot')
+    if row.get('exercise_coverage_scope') != FULL_EXERCISE_SCOPE:
+        raise ValueError('A complete paired exercise requires an exact fixed-conclusion coverage boundary')
 REVIEWS = bench.DATA.parent / 'reviews'
 
 
@@ -24,6 +46,24 @@ def decoder_payload(cores: list[dict]) -> tuple[dict, dict]:
         context = '\n'.join(line for line in context.splitlines()
                             if not line.strip().startswith(('namespace AutoSamplingTheory', 'end AutoSamplingTheory', 'open AutoSamplingTheory')))
         target = 'example' + core['lean_task'].split('\nexample', 1)[1].rsplit(':= by', 1)[0]
+        # A fully qualified definition in the actual target is not an import
+        # shortcut. Keep it in the real task, but hide its identity from the
+        # decoder. Only replace whole, hash-bound supporting constants; the
+        # source reviewer still sees the original target and alias order.
+        symbols = core.get('decoder_symbols', [])
+        known = {d['declaration'] for d in core.get('supporting_declarations', [])}
+        if (not isinstance(symbols, list) or not all(
+                isinstance(name, str) and name in known and
+                re.fullmatch(r'AutoSamplingTheory(?:\.[A-Za-z_][A-Za-z_0-9]*)+', name)
+                for name in symbols) or len(symbols) != len(set(symbols))):
+            raise ValueError('Decoder aliases must name distinct, hash-bound owned constants')
+        for symbol_index, name in enumerate(symbols, start=1):
+            label = f'anonymous_constant_{symbol_index}'
+            if label in target or label in context:
+                raise ValueError('Decoder alias collides with the real signature')
+            target, count = re.subn(r'(?<![\w.])' + re.escape(name) + r'(?![\w.])', label, target)
+            if not count or not any(label in definition for definition in definitions):
+                raise ValueError('Each decoder alias needs a target occurrence and a definition')
         alias = f'case-{index + 1}'
         cases.append({'case': alias, 'context': context, 'statement': target, 'definition_context': definitions})
         mapping[alias] = {'core_id': core['id'], 'binding_sha256': core['binding_sha256']}
@@ -81,12 +121,16 @@ def prepare_reviewer(cores: list[dict], directory: Path) -> None:
               'cases': mapping['cases'], 'reconstructions': decoded['cases'], 'mathematical_cores': frozen,
               'context_bindings': {c['id']: review.context_binding(c) for c in frozen},
               'instruction': 'Independently audit each authored question, formula proof, rubric and actual local declaration. Compare all seven slots to the blind reconstruction. The authored support, status and formal-coverage language are claims to audit, not preferred verdicts. No previous source verdict or repair proposal is supplied. Record precise conclusion-only formal coverage and remaining unformalized explanation; accept, request repair or reject with mathematical and scoring evidence. This is Bench editorial review, not canonical theorem publication or model measurement.'}
-    if any(c.get('textbook_exercise') for c in frozen):
-        packet['instruction'] += (
-            ' For a numbered exercise, independently compare the primary source in all seven '
-            'exercise_semantic_slots, audit each canonical part in exercise_part_checks, '
-            'and use this exact exercise_coverage_scope: ' + review.PAIRED_EXERCISE_SCOPE + '.')
     destination = directory / 'packets/reviewer-input.json'
+    if any(c.get('decoder_symbols') for c in frozen):
+        packet['instruction'] += (
+            ' Verify each anonymous constant, in decoder_symbols list order, against the '
+            'actual imported definition, including its domain, quantifiers and empty-set behavior.')
+    if any(complete_exercise(c) for c in frozen):
+        packet['instruction'] += (
+            ' For a complete numbered exercise compare every primary-source semantic slot in '
+            'exercise_semantic_slots and each canonical part in exercise_part_checks; '
+            'exercise_coverage_scope is exactly: ' + FULL_EXERCISE_SCOPE + '.')
     if destination.exists():
         raise ValueError('Never overwrite a source-review packet')
     destination.write_bytes(bench.encoded(packet))
@@ -129,7 +173,7 @@ def round_statuses(cores: list[dict], directory: Path) -> dict:
         for key in ('mathematics_checks', 'scoring_checks', 'remaining_unformalized'):
             if not isinstance(row[key], list) or not row[key] or not all(isinstance(s, str) and s.strip() for s in row[key]):
                 raise ValueError('Paired acceptance needs mathematical/rubric evidence and explicit formal limits')
-        review.require_exercise_review(original, row, scope=review.PAIRED_EXERCISE_SCOPE)
+        require_full_exercise_review(original, row)
         if row['verdict'] not in {'accept', 'repair-required', 'reject'} or not isinstance(row['repair_requests'], list):
             raise ValueError('Invalid paired-QA editorial decision')
         if row['verdict'] == 'accept' and row['repair_requests']:

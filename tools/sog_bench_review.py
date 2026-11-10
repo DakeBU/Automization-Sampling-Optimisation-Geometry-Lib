@@ -350,25 +350,6 @@ def apply_scoped_repair(cores: list[dict], directory: Path, packet: dict, report
             'remaining_unformalized': row['remaining_unformalized']}
 
 
-PROSE_EXERCISE_SCOPE = 'owned core answer reuse; not full exercise/formal QA certification'
-PAIRED_EXERCISE_SCOPE = 'owned core answer plus conclusion-only fixed target; not full explanatory certification'
-
-
-def require_exercise_review(core: dict, row: dict, *, scope: str) -> None:
-    exercise = core.get('textbook_exercise')
-    if not exercise:
-        return
-    parts = {part['id'] for part in exercise['parts']}
-    slots = row.get('exercise_semantic_slots')
-    checks = row.get('exercise_part_checks')
-    if (not isinstance(slots, dict) or set(slots) != set(SLOTS)
-            or not all(isinstance(s, str) and s.strip() for s in slots.values())
-            or not isinstance(checks, dict) or set(checks) != parts
-            or not all(isinstance(s, str) and s.strip() for s in checks.values())
-            or row.get('exercise_coverage_scope') != scope):
-        raise ValueError('Numbered exercise review must audit every source part, seven slots and exact formal-coverage boundary')
-
-
 def prose_statuses(cores: list[dict], directory: Path = PROSE_ROUND) -> dict:
     report_path = directory / 'source-review.json'
     if not report_path.is_file():
@@ -397,7 +378,15 @@ def prose_statuses(cores: list[dict], directory: Path = PROSE_ROUND) -> dict:
         for key in ('mathematics_checks', 'support_checks', 'scoring_checks', 'source_assumption_differences', 'remaining_unformalized'):
             if not isinstance(row[key], list) or not row[key] or not all(isinstance(s, str) and s.strip() for s in row[key]):
                 raise ValueError('NL editorial review needs explicit mathematics, support, rubric and scope evidence')
-        require_exercise_review(original, row, scope=PROSE_EXERCISE_SCOPE)
+        if original.get('textbook_exercise'):
+            exercise = original['textbook_exercise']
+            parts = {part['id'] for part in exercise['parts']}
+            if (set(row.get('exercise_semantic_slots', {})) != set(SLOTS)
+                    or not all(isinstance(s, str) and s.strip() for s in row['exercise_semantic_slots'].values())
+                    or set(row.get('exercise_part_checks', {})) != parts
+                    or not all(isinstance(s, str) and s.strip() for s in row['exercise_part_checks'].values())
+                    or row.get('exercise_coverage_scope') != 'owned core answer reuse; not full exercise/formal QA certification'):
+                raise ValueError('Numbered exercise review must audit every source part, seven slots and exact formal-coverage boundary')
         if row['verdict'] not in {'accept', 'repair-required', 'reject'} or not isinstance(row['repair_requests'], list):
             raise ValueError('Invalid NL editorial verdict or repair requests')
         if row['verdict'] == 'accept' and row['repair_requests']:

@@ -1,0 +1,126 @@
+{
+  "author_identity": "agent-task:root",
+  "cases": {
+    "case-1": {
+      "binding_sha256": "895940395a831949dcd85313af626bb3d8cca7f7658649fcfd8fd8ebf5126abe",
+      "core_id": "sogb-047"
+    }
+  },
+  "context_bindings": {
+    "sogb-047": "8de9b6890c5d4c5f8e110d298514b389345c78854146111553a95385a47135ca"
+  },
+  "decoder_identity": "agent-task:/root/horizon_blind_decoder_248e",
+  "decoder_input_sha256": "79adf13c584f24bd284aa4d6a38b8683630547319bbfba279359b39232ce16dd",
+  "decoder_output_sha256": "392fabac664f4959fdab827438e4fea97b1b4cf22d04cc7c781ea6598917f7c9",
+  "instruction": "Independently audit each authored question, formula proof, rubric and actual local declaration. Compare all seven slots to the blind reconstruction. The authored support, status and formal-coverage language are claims to audit, not preferred verdicts. No previous source verdict or repair proposal is supplied. Record precise conclusion-only formal coverage and remaining unformalized explanation; accept, request repair or reject with mathematical and scoring evidence. This is Bench editorial review, not canonical theorem publication or model measurement.",
+  "mathematical_cores": [
+    {
+      "additional_source_declarations": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness.exists_quadratic_worst_case"
+      ],
+      "assumptions": [
+        "Fix a real upper smoothness bound \\(\\beta>0\\). Gradient descent on \\(\\mathbb R\\) uses step \\(1/\\beta\\), starts at \\(x_0=1\\), and runs for \\(N\\in\\mathbb N\\) steps.",
+        "The witness may depend on \\(N\\). The objective must be a quadratic \\(f(x)=\\mu x^2/2\\) with \\(0<\\mu\\le\\beta\\). The number \\(\\beta\\) is an upper bound, not necessarily its sharp smoothness constant."
+      ],
+      "binding_sha256": "895940395a831949dcd85313af626bb3d8cca7f7658649fcfd8fd8ebf5126abe",
+      "boundary": "Selected function-value order component only. Neither all of Exercise 3.3 nor an optimal leading constant, a fixed-objective reciprocal lower tail, an adaptive-step bound, or a first-order oracle lower bound is asserted. The extra fixed-objective asymptotic argument is prose-only.",
+      "context": "open Set InnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness\nset_option backward.isDefEq.respectTransparency false in",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexGradientGapSharpness.quadratic_gap_lower_bound",
+      "decoder_definitions": [
+        "On the real line, gradient equals the ordinary derivative, the inner product is multiplication, and the norm is absolute value.",
+        "ContDiff ℝ 2 means twice continuous differentiability. StrongConvexOn univ a f means f minus (a/2) times the square norm is convex on the whole space. IsMinOn f univ z says that z is a global minimizer.",
+        "The notation T^[N] denotes the N-fold iterate with T^[0] the identity. The exponent 2 * N is a natural number; in denominators N is cast to a real."
+      ],
+      "dependencies": {
+        "astis": [
+          "GradientDescentSharpness.exists_quadratic_worst_case"
+        ],
+        "mathlib": [
+          "StrongConvexOn",
+          "Function.iterate",
+          "one_add_mul_sub_le_pow",
+          "Real.norm_eq_abs",
+          "pow_mul"
+        ]
+      },
+      "difficulty": "multi-step proof and quantifier audit",
+      "difficulty_reason": "Select a curvature for the given horizon, establish the exact iterate and value, bound the remaining power uniformly, and distinguish the class-level lower rate from the asymptotic behavior of every fixed positive scalar quadratic. The Lean track reconstructs the finite-horizon witness and power estimate, not the additional asymptotic comparison. Levels are provisional.",
+      "domain": "Lower Bounds",
+      "family": "chewi-opt-v1-exercise-3-3",
+      "id": "sogb-047",
+      "imports": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness",
+        "Mathlib.Algebra.Order.Ring.Pow"
+      ],
+      "lean_explanation": "The fixed Lean target gives the explicit curvature and the global quadratic model, minimizer, exact gap and finite-horizon lower inequality. Its proof uses the equal-endpoint specialization of the existing distance witness to obtain the norm of the iterate, then squares that norm and applies the Bernoulli inequality in Mathlib. The solution above takes a direct scalar recurrence route. The fixed-objective little-o comparison is an explanatory question, not an additional Lean theorem in this packet.",
+      "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness\nimport Mathlib.Algebra.Order.Ring.Pow\n\nopen Set InnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness\nset_option backward.isDefEq.respectTransparency false in\nexample {β : ℝ} (hβ : 0 < β) (N : ℕ) :\n    let μ := β / (2 * ((N : ℝ) + 1))\n    let f : ℝ → ℝ := fun x => μ * x ^ 2 / 2\n    0 < μ ∧ ContDiff ℝ 2 f ∧ StrongConvexOn univ μ f ∧\n      (∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2) ∧\n      IsMinOn f univ 0 ∧\n      let z := (fun x => x - (1 / β) * gradient f x)^[N] 1\n      f z - f 0 = β / (4 * ((N : ℝ) + 1)) *\n        (1 - 1 / (2 * ((N : ℝ) + 1))) ^ (2 * N) ∧\n      β / (16 * ((N : ℝ) + 1)) ≤ f z - f 0 := by\n  let D : ℝ := (N : ℝ) + 1\n  have hD : 0 < D := by dsimp [D]; positivity\n  have hD1 : 1 ≤ D := by dsimp [D]; exact le_add_of_nonneg_left (Nat.cast_nonneg N)\n  let μ := β / (2 * D)\n  have hμ : 0 < μ := div_pos hβ (by positivity)\n  have hμβ : μ ≤ β := by\n    apply (div_le_iff₀ (by positivity : 0 < 2 * D)).mpr\n    nlinarith\n  obtain ⟨ν, hν, _, hf, hc, hu, hm, hn⟩ :=\n    exists_quadratic_worst_case hμ (le_refl μ) (1 / β)\n  have hv : ν = μ := hν.elim id id\n  subst ν\n  let f : ℝ → ℝ := fun x => μ * x ^ 2 / 2\n  let q : ℝ := 1 - 1 / (2 * D)\n  have hq : 0 ≤ q := by\n    have : 1 / (2 * D) ≤ 1 := (div_le_one (by positivity)).mpr (by linarith)\n    dsimp [q]; linarith\n  have he : 1 - 1 / β * μ = q := by\n    dsimp [μ, q]; field_simp\n  have hn' : ‖(fun x => x - (1 / β) * gradient f x)^[N] 1‖ = q ^ N := by\n    simpa only [max_self, he, abs_of_nonneg hq] using (hn N).1\n  have hpow : 1 / 2 ≤ q ^ N := by\n    have hb := one_add_mul_sub_le_pow (by linarith : -1 ≤ q) N\n    have heq : 1 + (N : ℝ) * (q - 1) = (D + 1) / (2 * D) := by\n      dsimp [q, D]; field_simp; ring\n    rw [heq] at hb\n    have : (1 : ℝ) / 2 ≤ (D + 1) / (2 * D) := by\n      apply (le_div_iff₀ (by positivity)).mpr\n      linarith\n    exact this.trans hb\n  have huβ : ∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2 := by\n    intro x y\n    have hh : f y ≤ f x + inner ℝ (gradient f x) (y - x) + μ / 2 * ‖y - x‖ ^ 2 := hu x y\n    nlinarith [mul_nonneg (sub_nonneg.mpr hμβ) (sq_nonneg ‖y - x‖)]\n  change 0 < μ ∧ _ ∧ _ ∧ _ ∧ _ ∧ _\n  refine ⟨hμ, hf, hc, huβ, hm, ?_⟩\n  dsimp only\n  have hvalue : f ((fun x => x - (1 / β) * gradient f x)^[N] 1) - f 0 =\n      β / (4 * D) * (q ^ N) ^ 2 := by\n    have hs : ((fun x => x - (1 / β) * gradient f x)^[N] 1) ^ 2 = (q ^ N) ^ 2 := by\n      simpa only [Real.norm_eq_abs, abs_mul_abs_self, sq] using congrArg (fun r : ℝ => r * r) hn'\n    change μ * _ ^ 2 / 2 - μ * 0 ^ 2 / 2 = _\n    rw [hs]\n    dsimp [μ]; field_simp; ring\n  rw [hvalue]\n  change β / (4 * D) * (q ^ N) ^ 2 = β / (4 * D) * q ^ (2 * N) ∧\n    β / (16 * D) ≤ β / (4 * D) * (q ^ N) ^ 2\n  constructor\n  · rw [Nat.mul_comm 2 N, pow_mul]\n  · have hs : (1 : ℝ) / 4 ≤ (q ^ N) ^ 2 := by nlinarith\n    have := mul_le_mul_of_nonneg_left hs (by positivity : 0 ≤ β / (4 * D))\n    convert this using 1 <;> first | rfl | (field_simp; ring)\n",
+      "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness\nimport Mathlib.Algebra.Order.Ring.Pow\n\nopen Set InnerProductSpace\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness\nset_option backward.isDefEq.respectTransparency false in\nexample {β : ℝ} (hβ : 0 < β) (N : ℕ) :\n    let μ := β / (2 * ((N : ℝ) + 1))\n    let f : ℝ → ℝ := fun x => μ * x ^ 2 / 2\n    0 < μ ∧ ContDiff ℝ 2 f ∧ StrongConvexOn univ μ f ∧\n      (∀ x y, f y ≤ f x + inner ℝ (gradient f x) (y - x) + β / 2 * ‖y - x‖ ^ 2) ∧\n      IsMinOn f univ 0 ∧\n      let z := (fun x => x - (1 / β) * gradient f x)^[N] 1\n      f z - f 0 = β / (4 * ((N : ℝ) + 1)) *\n        (1 - 1 / (2 * ((N : ℝ) + 1))) ^ (2 * N) ∧\n      β / (16 * ((N : ℝ) + 1)) ≤ f z - f 0 := by\n  -- Replace this comment with your proof.\n",
+      "library_domains": [
+        "lower-bounds",
+        "optimisation"
+      ],
+      "question": "For the prescribed horizon \\(N\\), construct such a quadratic. Verify its differentiability, strong convexity with modulus \\(\\mu\\), upper quadratic model with coefficient \\(\\beta/2\\), and minimizer zero. Prove that its actual function-value gap at step \\(N\\) is \\[\\frac{\\beta}{4(N+1)}\\left(1-\\frac{1}{2(N+1)}\\right)^{2N},\\] and that it is at least \\(\\beta/(16(N+1))\\). Explain why this rules out a faster uniform order for this method and class, but gives no fixed positive scalar quadratic with a reciprocal tail. Justify that last distinction by analyzing a fixed \\(\\mu\\in(0,\\beta]\\).",
+      "rubric": [
+        {
+          "criterion": "Constructs a valid horizon-dependent witness and verifies positivity, the exact class membership conditions, and global minimizer zero. Any equivalent witness establishing the requested conclusion is allowed.",
+          "points": 1
+        },
+        {
+          "criterion": "Derives the actual recurrence from one and its exact squared-power value gap at the given horizon.",
+          "points": 1
+        },
+        {
+          "criterion": "Uses a valid nonnegative power estimate (Bernoulli or equivalent) to prove the stated finite-horizon constant.",
+          "points": 1
+        },
+        {
+          "criterion": "Correctly distinguishes a uniform class lower bound from a pointwise tail, justifying the faster asymptotics of a fixed positive scalar quadratic (including the zero-multiplier case).",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "calculation",
+        "assumption-audit",
+        "semantic-boundary"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/ConvexGradientGapSharpness.lean",
+      "source_line": 20,
+      "source_note": "Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1, Chapter 3, Exercise 3.3 and the convex specialization of Theorem 3.4 at h=1/β (https://arxiv.org/html/2605.07006v1#S3); canonical publication item chewi-opt-v1-exercise-3-3-convex-gap-sharpness. This is original ASTIS wording and proof of one class-level sharpness component, not the full exercise or copied book text. The existing Lean result is project-owned; retain LICENSE and NOTICE. Tests/Shared/ConvexGradientGapSharpness.lean exercises the actual lower bound.",
+      "source_sha256_lf": "10cff35e12c204c6db998a1a9944a702950e8424187ee10ec349de33d4ae1a83",
+      "split": "public-dev",
+      "steps": [
+        "Put \\(D=N+1\\) and choose \\(\\mu=\\beta/(2D)\\) after fixing \\(N\\). Then \\(0<\\mu\\le\\beta\\), and \\(f'(x)=\\mu x\\), \\(f''(x)=\\mu\\). The identity \\[f(y)-f(x)-f'(x)(y-x)=\\frac{\\mu}{2}(y-x)^2\\] proves strong convexity and the upper model. The positive quadratic has unique minimizer zero.",
+        "One step multiplies the iterate by \\(q=1-\\mu/\\beta=1-1/(2D)\\). Induction gives \\(x_N=q^N\\); the convention \\(q^0=1\\) includes \\(N=0\\). Hence \\[f(x_N)-f(0)=\\frac{\\mu}{2}q^{2N}=\\frac{\\beta}{4D}q^{2N}.\\]",
+        "Since \\(q\\ge 0\\), Bernoulli's inequality gives \\[q^N\\ge 1-\\frac{N}{2D}=\\frac{D+1}{2D}\\ge\\frac12.\\] Squaring and multiplying by \\(\\beta/(4D)>0\\) gives the stated \\(\\beta/(16D)\\) bound. This argument also covers \\(N=0\\).",
+        "For \\(N\\ge1\\), the exhibited gap is at least \\(\\beta/(32N)\\). This matches the order of the source upper bound \\(\\beta/(2N)\\) at initial distance one. Thus no upper bound of order \\(o(\\beta/(N+1))\\) can hold uniformly over the class for this step and initialization. With any one fixed \\(0<\\mu\\le\\beta\\), the multiplier \\(r=1-\\mu/\\beta\\) satisfies \\(0\\le r<1\\). If \\(r=0\\), the gap vanishes after one step. Otherwise the ratio of consecutive terms of \\((n+1)r^{2n}\\) tends to \\(r^2<1\\), so from some index onward it is bounded by a constant strictly smaller than one; the terms tend to zero. The gap \\(\\mu r^{2n}/2\\) is therefore \\(o(1/(n+1))\\) on every fixed such quadratic. There is no contradiction: the lower witness changes with the horizon."
+      ],
+      "supporting_declarations": [
+        {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.GradientDescentSharpness.exists_quadratic_worst_case",
+          "source_file": "AutoSamplingTheory/TechnicalLemmas/Analysis/GradientDescentSharpness.lean",
+          "source_line": 23,
+          "source_sha256_lf": "9740fd20073c225c4d2f8efcc3ae4f9a9eaceb7f121c086a3b82923bc8f2eb3d"
+        }
+      ],
+      "title": "A horizon-dependent quadratic makes the gradient-descent value rate sharp in order",
+      "track_levels": {
+        "lean": "L3",
+        "natural-language": "L3"
+      }
+    }
+  ],
+  "reconstructions": {
+    "case-1": {
+      "assumptions": "The sole hypothesis is 0 < β; N is unrestricted within ℕ. There are no additional variable typeclass assumptions: the ordered, normed, real-inner-product and real-calculus structures are the standard ones on ℝ. The positivity of μ, regularity, strong convexity, the upper inequality, and minimization are conclusions, not assumptions.",
+      "conclusion": "All of the following hold jointly: μ > 0; f is twice continuously differentiable; f is μ-strongly convex on ℝ, meaning x ↦ f(x) − (μ/2)|x|² is convex there; for all real x,y, f(y) ≤ f(x) + f′(x)(y−x) + (β/2)|y−x|²; 0 is a global minimizer of f; and, for z = T^[N](1), f(z) − f(0) = [β/(4(N+1))] [1 − 1/(2(N+1))]^(2N) and β/(16(N+1)) ≤ f(z) − f(0).",
+      "constants": "μ = β/(2(N+1)); f(x) = (μ/2)x²; the upper quadratic coefficient is β/2; the update step is 1/β; the start is 1 and the reference minimizer is 0. The gap has prefactor β/(4(N+1)), base 1 − 1/(2(N+1)), and exponent 2N; the lower bound is β/(16(N+1)).",
+      "domains": "β, μ, x, y, z, and all objective values are real. Both f and T are maps ℝ → ℝ. Differentiability, strong convexity, the quadratic upper inequality, and minimization are all on the whole real line. N is a natural number, including 0; N is cast to ℝ in real denominators, while 2N is a natural exponent. The gradient is the ordinary real derivative, the real inner product is multiplication, and the real norm is absolute value.",
+      "objects": "A real parameter β; a natural iteration horizon N; the derived real μ = β/(2(N+1)); the function f(x) = μx²/2; the update T(x) = x − (1/β)f′(x); and the point z = T^[N](1). The reference point is 0 and the quantity measured is f(z) − f(0).",
+      "quantifiers": "For every implicit β : ℝ, given an explicit proof hβ of 0 < β, and for every explicit N : ℕ. Within the quadratic upper inequality, x and y are independently universally quantified over ℝ. The minimizer condition compares f(0) with f(w) for every w ∈ ℝ. The let-bound μ, f, and z are determined by β and N, not additional universally quantified or existentially chosen inputs.",
+      "senses": "This is an exact finite-horizon objective-gap identity and lower bound for the specified quadratic and the specified gradient iteration, initialized at 1 and using step 1/β. T^[N] means exactly N compositions, with T^[0] the identity. The quadratic may vary with N through μ; there is no claim that one fixed quadratic realizes this lower bound at every horizon. There is no universal bound over arbitrary objectives, initial points, step sizes, or algorithms, nor a claim about distance to the minimizer, gradient size, or the sharpness of β or of the lower-bound constant."
+    }
+  },
+  "schema_version": 1,
+  "scope": "independent AI paired QA editorial review; not canonical theorem publication"
+}

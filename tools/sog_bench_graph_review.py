@@ -5,6 +5,7 @@ import argparse
 import inspect
 import json
 from pathlib import Path
+import re
 
 import sog_bench as bench
 import sog_bench_review as review
@@ -16,6 +17,33 @@ REPAIR_SCOPE = 'independent AI graph-difficulty repair review; not empirical cal
 CURRENT_ROUND = ROUND.parent/'graph-7'
 CURRENT_REPAIR_ROUND = ROUND.parent/'graph-8'
 SUPERSEDES = ['graph-1','graph-2','graph-3','graph-4','graph-5','graph-6']
+LOWER_BOUNDS_ADDITION = '    "lower-bounds": "Lower Bounds",\n'
+
+
+def reviewed_policy_domains(reviewed_sha: str, active_sha: str) -> frozenset[str]:
+    """Recognize an exact graph-review policy or the one audited additive delta.
+
+    Reconstruct the old *bytes* from the current policy; no review hash is
+    rewritten. Only tasks placed entirely in the previously reviewed domains
+    can reuse that review. Other curriculum changes still require review.
+    """
+    active = (bench.curriculum.BASE / 'curriculum.json').read_text(encoding='utf-8')
+    if bench.sha(active.encode()) != active_sha:
+        return frozenset()
+    policy = json.loads(active)
+    if reviewed_sha == active_sha:
+        return frozenset(policy['domains'])
+    if active.count(LOWER_BOUNDS_ADDITION) != 1:
+        return frozenset()
+    previous = active.replace(LOWER_BOUNDS_ADDITION, '', 1)
+    if bench.sha(previous.encode()) != reviewed_sha:
+        return frozenset()
+    old_policy = json.loads(previous)
+    old_domains = old_policy['domains']
+    if ('lower-bounds' in old_domains or policy != {
+            **old_policy, 'domains': {**old_domains, 'lower-bounds': 'Lower Bounds'}}):
+        return frozenset()
+    return frozenset(old_domains)
 
 
 def payload(items: list[dict]) -> dict:
@@ -53,10 +81,17 @@ def statuses(items: list[dict], directory: Path = ROUND) -> dict:
     frozen = {item['id']:item for item in packet['items']}
     if len(frozen) != len(packet['items']) or set(report['items']) != set(frozen):
         raise ValueError('Review every frozen graph question exactly once')
+    projection = packet.get('public_projection_sha256')
+    if projection is not None and (
+            not isinstance(projection, dict) or set(projection) != set(frozen)
+            or any(not isinstance(value, str) or not re.fullmatch('[0-9a-f]{64}', value)
+                   for value in projection.values())):
+        raise ValueError('A projection-bound review must pin the exact visible prompt for every frozen item')
     current = payload(items)
     # Each frozen row already binds its full graph, question, label and answer.
     # Editing another task in the specification must not stale this task.
-    global_current = all(packet[key] == current[key] for key in ('policy_sha256_lf','scorer_source'))
+    domains = reviewed_policy_domains(packet['policy_sha256_lf'], current['policy_sha256_lf'])
+    scorer_current = packet['scorer_source'] == current['scorer_source']
     for item in items:
         identity = item['id']
         row = report['items'].get(identity)
@@ -73,7 +108,9 @@ def statuses(items: list[dict], directory: Path = ROUND) -> dict:
         if row['verdict']=='accept' and row['repair_requests']:
             raise ValueError('Unresolved structural/rubric repairs cannot be accepted')
         clean_item = {k:v for k,v in item.items() if k not in {'review_status','reference_status'}}
-        stale = not global_current or clean_item != frozen[identity]
+        stale = not (scorer_current and domains and set(item['library_domains']) <= domains) or clean_item != frozen[identity]
+        if projection is not None:
+            stale |= projection[identity] != bench.sha(bench.encoded(bench.curriculum.graph_prompt(item)))
         result[identity] = {'editorial': 'stale' if stale else ('accepted' if row['verdict']=='accept' else row['verdict']),
                             'issues': row['repair_requests'], 'remaining_limits': row['remaining_limits'],
                             'reviewer':report['actor_identity'], 'report_sha256':bench.sha(report_path.read_bytes()),
@@ -137,7 +174,8 @@ def apply_repair(items: list[dict], rows: dict, directory: Path = REPAIR_ROUND, 
         raise ValueError('An unresolved repair cannot be accepted, even if its content is stale')
     current = payload(items)
     present = next((row for row in current['items'] if row['id']==identity),None)
-    if (present!=after or current['policy_sha256_lf']!=proposal['policy_sha256_lf']
+    domains = reviewed_policy_domains(proposal['policy_sha256_lf'], current['policy_sha256_lf'])
+    if (present!=after or not domains or not set(after['library_domains']) <= domains
             or current['scorer_source']!=proposal['scorer_source']):
         rows[identity]={'editorial':'stale'}
     elif report['verdict']=='accept':
@@ -149,6 +187,28 @@ def apply_repair(items: list[dict], rows: dict, directory: Path = REPAIR_ROUND, 
     return rows
 
 
+def extension_statuses(items: list[dict], directory: Path, already_bound: set[str]) -> dict:
+    """Admit disjoint, independently reviewed additions without renewing old bindings."""
+    seen, result = set(already_bound), {}
+    for extension in sorted(directory.glob('graph-extension-*')):
+        report_path = extension/'source-review.json'
+        if not report_path.is_file():
+            continue
+        if extension.is_symlink() or report_path.is_symlink() or (extension/'input.json').is_symlink():
+            raise ValueError('Graph extension evidence must be repository files')
+        packet = json.loads((extension/'input.json').read_text(encoding='utf-8'))
+        report = json.loads(report_path.read_text(encoding='utf-8'))
+        bound = {row['id'] for row in packet['items']}
+        if (not bound or seen & bound or packet.get('supersedes_rounds') != []
+                or report.get('supersedes_rounds') != []):
+            raise ValueError('A graph extension cannot supersede or overlap a frozen question')
+        checked = statuses(items, extension)
+        result.update({identity: {**checked[identity], 'review_round': extension.name}
+                       for identity in bound & checked.keys()})
+        seen.update(bound)
+    return result
+
+
 def summary(items: list[dict]) -> dict:
     if (CURRENT_ROUND/'source-review.json').is_file():
         packet=json.loads((CURRENT_ROUND/'input.json').read_text(encoding='utf-8'))
@@ -157,9 +217,12 @@ def summary(items: list[dict]) -> dict:
             raise ValueError('Current whole-scope graph review needs explicit historical supersession')
         rows=apply_repair(items,statuses(items,CURRENT_ROUND),CURRENT_REPAIR_ROUND,CURRENT_ROUND)
         admission_round=CURRENT_ROUND.name
+        already_bound = {row['id'] for row in packet['items']}
     else:
         rows=apply_repair(items,statuses(items))
         admission_round='historical-only; new policy/content requires fresh review'
+        already_bound = {identity for identity, row in rows.items() if row['editorial'] != 'pending'}
+    rows.update(extension_statuses(items, ROUND.parent, already_bound))
     accepted = sum(row['editorial'] in {'accepted','accepted-after-repair'} for row in rows.values())
     return {'scope':SCOPE, 'accepted_tasks':accepted, 'total_tasks':len(items),
             'editorial_status':'complete-for-current-tasks' if items and accepted==len(items) else ('partial' if accepted else 'pending'),

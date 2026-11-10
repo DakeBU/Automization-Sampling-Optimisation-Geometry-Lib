@@ -90,7 +90,16 @@ def source_card(item: dict, page: str) -> str:
         obligations.append(f'<li><span class="status status-{color}">{label}</span> '
                            f'{escape(o["label"])}</li>')
     lessons = []
-    for b in item['bindings']:
+    related = next((row for row in publication.load()
+                    if row['id'] == item.get('related_proof_item')), None)
+    related_link = (f'<p class="reader-scope-note">Separate source adapter: '
+                    f'<a href="{astis_site.relative_prefix(page)}{source_proof_path(related)}">'
+                    + escape(related['title']) + '</a>. Its own proof and evidence are recorded there.</p>'
+                    if related else '')
+    theorem_first = item.get('reader_layout') == 'theorem-first'
+    reader_bindings = (sorted(item['bindings'], key=lambda b: b['role'] != 'proof-edge')
+                       if theorem_first else item['bindings'])
+    for b in reader_bindings:
         name = b['declaration']
         audit = data['audits'].get(b.get('audit_id'), {})
         debt = b.get('legacy_audit_debt', {})
@@ -115,6 +124,10 @@ def source_card(item: dict, page: str) -> str:
         rendered = rendered.replace('<h1>', '<h2>').replace('</h1>', '</h2>')
         rendered = rendered.replace('href="index.html">Teaching coverage',
                                     f'href="{astis_site.relative_prefix(page)}lessons/index.html">Teaching coverage')
+        if theorem_first and b['role'] == 'prerequisite':
+            rendered = ('<details class="reader-ledger reader-prerequisite">'
+                        '<summary>Definition used above: ' + escape(lesson['title'])
+                        + '</summary>' + rendered + '</details>')
         lessons.append(rendered)
     return (f'<section id="{escape(item["id"])}" data-publication-item="{escape(item["id"])}">'
             f'<h2>{escape(item["title"])}</h2><p>{escape(source.get("attribution", ""))}</p>'
@@ -125,6 +138,7 @@ def source_card(item: dict, page: str) -> str:
                if progressive else '<h3>Complete source statement (Samplinglib restatement)</h3>')
             + f'<p>{escape(item["statement"])}</p>' + astis_site.list_html(item['assumptions']) + formulae
             + ('</details>' if progressive else '')
+            + related_link
             + '<h2>Read the formalized proofs</h2><p>Each statement and proof below has its own closed Lean disclosure. '
             'Samplinglib parents, Mathlib calls and external mathematical sources are distinguished in each proof.</p>'
             + ''.join(lessons)

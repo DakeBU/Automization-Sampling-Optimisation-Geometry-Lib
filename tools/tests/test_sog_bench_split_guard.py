@@ -1,0 +1,480 @@
+"""Synthetic reservation data only; these are not hidden benchmark items."""
+import copy
+from contextlib import redirect_stderr, redirect_stdout
+import io
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+from tools import sog_bench_split_guard as guard
+
+
+PDF = "a" * 64
+OTHER_PDF = "b" * 64
+PUBLIC_HISTORY = "f" * 64
+
+
+def public_core(**changes):
+    core = {
+        "id": "dev-one", "family": "public-family",
+        "assumptions": ["A", "B"], "question": "Synthetic public text",
+        "declaration": "Synthetic.Public.answer",
+    }
+    return {**core, **changes}
+
+
+def catalog(*rows, schema=2):
+    return {"schema_version": schema, "name": "SamplingOptimisationGeometryBench",
+            "split": "public-dev", "cores": list(rows)}
+
+
+def exercises(pdf=PDF):
+    return {"schema_version": 1, "books": {"book": {"pdf_sha256": pdf}},
+            "exercises": [{"id": "source-old", "book_id": "book", "chapter": "01", "number": "6"}]}
+
+
+def reservation(**changes):
+    family = {
+        "family": "candidate-family", "aliases": [], "derived_from_families": [],
+        "source_exercise_ids": [], "numbered_sources": [],
+        "tasks": [{"id": "candidate-one", "nl_prompt_sha256": "c" * 64}],
+        "provenance": {"author": "author", "reviewer": "reviewer", "review_sha256": "d" * 64,
+                       "rights": "project-original", "uses_restricted_material": False,
+                       "original_independent_family_attested": True},
+    }
+    return {"schema_version": 1, "split": "private-test", "families": [{**family, **changes}]}
+
+
+def synthetic_review(data, public_hash=PUBLIC_HISTORY, **changes):
+    family = data["families"][0]
+    packet = {"schema_version": 1, "scope": guard.REVIEW_SCOPE,
+              "reviewer": family["provenance"]["reviewer"], "public_history_sha256": public_hash,
+              "family_binding_sha256": guard.family_review_binding(family), "verdict": "accept",
+              "checks": {name: "Synthetic fixture note, not a real review." for name in guard.REVIEW_CHECKS}}
+    raw = guard.canonical({**packet, **changes})
+    family["provenance"]["review_sha256"] = guard.digest(raw)
+    return raw
+
+
+def synthetic_prose():
+    task = {"id": "candidate-one", "family": "candidate-family", "domain": "mcmc", "level": "L4",
+            "skills": ["assumption-audit"], "source_notes": "Synthetic source and rights note",
+            "assumptions": ["A", "B"], "question": "Synthetic nonpublic prompt",
+            "retrieval_profile": "open-library", "allowed_tools": ["library search"],
+            "proof_steps": ["Synthetic operator-only proof"], "rubric": [f"Criterion {n}" for n in range(4)]}
+    packet = {"schema_version": 1, "split": "private-test", "tasks": [task]}
+    data = reservation(tasks=[{"id": task["id"], "nl_prompt_sha256":
+                               guard.prompt_digest(task["assumptions"], task["question"])}])
+    return data, packet
+
+
+class ReservationGateTests(unittest.TestCase):
+    def setUp(self):
+        self.exposed = guard.Exposure()
+        public = catalog(public_core(textbook_exercise_id="source-old"))
+        self.exposed.add_catalog(public, exercises())
+        self.exposed.add_graph_ids({"core_id": "dev-one", "tasks": [{"id": "dev-graph"}]}, public)
+
+    def test_fresh_synthetic_reservation_reports_only_aggregate_fields(self):
+        item = reservation()
+        report = guard.check_reservation(item, self.exposed)
+        self.assertEqual(report, {"reservation_families": 1, "reservation_tasks": 1,
+                                  "issues": {}, "no_known_conflict": True})
+        self.assertNotIn(item["families"][0]["family"], json.dumps(report))
+        self.assertNotIn(item["families"][0]["tasks"][0]["nl_prompt_sha256"], json.dumps(report))
+
+    def test_exact_prompt_family_source_answer_and_graph_id_leaks_are_distinct(self):
+        item = reservation(
+            aliases=["PUBLIC-FAMILY"], derived_from_families=["public-family"],
+            source_exercise_ids=["SOURCE-OLD"],
+            numbered_sources=[{"pdf_sha256": PDF, "chapter": "1", "number": "6"}],
+            tasks=[{"id": "dev-graph",
+                    "nl_prompt_sha256": guard.prompt_digest([" B ", "A"], " Synthetic  public text\n"),
+                    "lean_answer_declaration": "Synthetic.Public.answer"}],
+        )
+        report = guard.check_reservation(item, self.exposed)
+        self.assertFalse(report["no_known_conflict"])
+        self.assertEqual(report["issues"], {
+            "known-public-answer_declarations": 1, "known-public-exercise_ids": 1,
+            "known-public-families": 1, "known-public-numbered_sources": 1,
+            "known-public-prompt_digests": 1, "known-public-task_ids": 1, "public-lineage": 1,
+        })
+
+    def test_unknown_and_cross_family_lineage_fail_and_same_family_alias_can_group(self):
+        clean = reservation(aliases=["same-family-v0"], derived_from_families=["same-family-v0"])
+        self.assertTrue(guard.check_reservation(clean, self.exposed)["no_known_conflict"])
+        bad = reservation(derived_from_families=["unknown-lineage", "other-private"])
+        other = copy.deepcopy(bad["families"][0])
+        other.update(family="other-private", derived_from_families=[],
+                     tasks=[{"id": "other-task", "nl_prompt_sha256": "e" * 64}])
+        bad["families"].append(other)
+        report = guard.check_reservation(bad, self.exposed)
+        self.assertEqual(report["issues"], {"unresolved-or-cross-family-lineage": 2})
+
+    def test_duplicates_and_nonindependent_or_restricted_provenance_rejected(self):
+        item = reservation()
+        other = copy.deepcopy(item["families"][0])
+        other["provenance"].update(reviewer="AUTHOR", uses_restricted_material=True,
+                                   original_independent_family_attested=False)
+        item["families"].append(other)
+        report = guard.check_reservation(item, self.exposed)
+        self.assertEqual(report["issues"], {
+            "missing-independence-attestation": 1, "no-distinct-reviewer": 1,
+            "repeated-private-families": 1, "repeated-private-prompt_digests": 1,
+            "repeated-private-task_ids": 1, "rights-or-restricted-material": 1,
+        })
+
+    def test_shared_prose_support_is_not_mistaken_for_an_aligned_answer(self):
+        self.exposed.add_catalog(catalog(public_core(
+            id="prose", family="prose-family", lean_enabled=False,
+            declaration="Synthetic.Public.supportOnly")), None)
+        fresh = reservation(tasks=[{"id": "candidate-lean",
+                                    "lean_answer_declaration": "Synthetic.Public.supportOnly"}])
+        self.assertTrue(guard.check_reservation(fresh, self.exposed)["no_known_conflict"])
+
+    def test_duplicate_keys_extra_fields_and_empty_reservations_fail_closed(self):
+        with self.assertRaisesRegex(guard.GuardError, "duplicate-json-key"):
+            guard.parse(b'{"schema_version":1,"schema_version":2}')
+        malformed = reservation()
+        malformed["families"][0]["tasks"][0]["answer"] = "fixture-sensitive-value"
+        with self.assertRaisesRegex(guard.GuardError, "^private-task-schema$"):
+            guard.check_reservation(malformed, self.exposed)
+        with self.assertRaisesRegex(guard.GuardError, "reservation-needs-families"):
+            guard.check_reservation({"schema_version": 1, "split": "private-test", "families": []}, self.exposed)
+        with self.assertRaisesRegex(guard.GuardError, "not-a-known-public-catalog"):
+            guard.Exposure().add_catalog({"schema_version": 2, "split": "private-test"}, None)
+
+    def test_prompt_hash_preserves_math_case_and_normalizes_unicode_and_spacing(self):
+        self.assertEqual(guard.prompt_digest(["B", "Cafe\u0301"], "x  = y"),
+                         guard.prompt_digest(["Café", " B "], "x =\ny"))
+        self.assertNotEqual(guard.prompt_digest([], "X = y"), guard.prompt_digest([], "x = y"))
+
+    def test_graph_binding_must_agree_with_current_catalog_family(self):
+        public = catalog(public_core())
+        with self.assertRaisesRegex(guard.GuardError, "public-graph-family-mismatch"):
+            self.exposed.add_graph_ids({"core_id": "dev-one", "tasks": [
+                {"id": "graph-wrong-family", "family": "unrelated"}]}, public)
+        with self.assertRaisesRegex(guard.GuardError, "public-graph-core-not-found"):
+            self.exposed.add_graph_ids({"core_id": "missing", "tasks": [
+                {"id": "graph-missing-core"}]}, public)
+
+    def test_review_evidence_binds_exact_bytes_family_and_public_history(self):
+        data = reservation()
+        raw = synthetic_review(data)
+        report = guard.check_review_evidence(data, [raw], PUBLIC_HISTORY)
+        self.assertEqual(report, {"review_files_supplied": 1, "all_review_files_bound": True, "issues": {}})
+        self.assertEqual(guard.check_review_evidence(data, [raw + b" "], PUBLIC_HISTORY)["issues"],
+                         {"missing-review-file": 1, "unclaimed-review-file": 1})
+        self.assertEqual(guard.check_review_evidence(data, [raw], OTHER_PDF)["issues"],
+                         {"review-public-history-drift": 1})
+        data["families"][0]["tasks"][0]["id"] = "changed-private-target"
+        self.assertEqual(guard.check_review_evidence(data, [raw], PUBLIC_HISTORY)["issues"],
+                         {"review-family-binding-drift": 1})
+
+    def test_review_evidence_cannot_be_reused_or_replace_a_positive_verdict(self):
+        data = reservation()
+        raw = synthetic_review(data, reviewer="other-actor", verdict="reject")
+        self.assertEqual(guard.check_review_evidence(data, [raw, raw], PUBLIC_HISTORY)["issues"],
+                         {"repeated-review-file": 1, "review-not-accepted": 1, "reviewer-mismatch": 1})
+        other = copy.deepcopy(data["families"][0])
+        other.update(family="different-private-family",
+                     tasks=[{"id": "other-private-target", "nl_prompt_sha256": "e" * 64}])
+        data["families"].append(other)
+        issues = guard.check_review_evidence(data, [raw], PUBLIC_HISTORY)["issues"]
+        self.assertEqual(issues["repeated-review-claim"], 1)
+        self.assertEqual(issues["review-family-binding-drift"], 1)
+
+    def test_review_evidence_rejects_unrecognized_or_empty_review_fields(self):
+        data = reservation()
+        for fields in ({"answer": "synthetic fixture"}, {"checks": {}}, {"schema_version": True},
+                       {"checks": {name: " " for name in guard.REVIEW_CHECKS}}):
+            with self.subTest(fields=fields), self.assertRaises(guard.GuardError):
+                guard.check_review_evidence(data, [synthetic_review(data, **fields)], PUBLIC_HISTORY)
+        raw = synthetic_review(data)
+        for rows in ([b""], [b" " * (guard.MAX_REVIEW_BYTES + 1)],
+                     (raw for _ in range(guard.MAX_REVIEW_FILES + 1))):
+            with self.assertRaisesRegex(guard.GuardError, "^private-review-input-limit$"):
+                guard.check_review_evidence(data, rows, PUBLIC_HISTORY)
+
+    def test_prose_review_binds_proof_rubric_tool_policy_and_exact_prompt(self):
+        data, packet = synthetic_prose()
+        family = data["families"][0]["family"]
+        bindings, prompts = guard.private_prose_packet(data, packet)
+        legacy = synthetic_review(data)
+        with self.assertRaisesRegex(guard.GuardError, "^review-file-schema$"):
+            guard.check_review_evidence(data, [legacy], PUBLIC_HISTORY, prose_bindings=bindings)
+        raw = synthetic_review(data, schema_version=2, prose_packet_sha256=bindings[family])
+        self.assertTrue(guard.check_review_evidence(data, [raw], PUBLIC_HISTORY,
+                                                   prose_bindings=bindings)["all_review_files_bound"])
+        for field, value, same_prompts in (
+                ("proof_steps", ["Changed proof"], True),
+                ("rubric", ["First", "Second", "Third", "Fourth"], True),
+                ("allowed_tools", [], False),
+                ("question", "Synthetic  nonpublic prompt", False)):
+            changed = copy.deepcopy(packet)
+            changed["tasks"][0][field] = value
+            drift, revised_prompts = guard.private_prose_packet(data, changed)
+            self.assertEqual(revised_prompts == prompts, same_prompts)
+            self.assertEqual(guard.check_review_evidence(data, [raw], PUBLIC_HISTORY, prose_bindings=drift)["issues"],
+                             {"review-prose-packet-drift": 1})
+
+    def test_prose_packet_rejects_false_prompt_fingerprints_and_partial_selection(self):
+        data, packet = synthetic_prose()
+        for field, value, error in (("question", "Completely different text", "private-prose-prompt-drift"),
+                                    ("id", "different-task", "private-prose-task-set-mismatch"),
+                                    ("family", "other-family", "private-prose-family-mismatch"),
+                                    ("rubric", ["Same"] * 4, "private-prose-four-rubric-points"),
+                                    ("level", "L6", "private-prose-curriculum")):
+            with self.subTest(field=field), self.assertRaisesRegex(guard.GuardError, f"^{error}$"):
+                guard.private_prose_packet(data, {**packet, "tasks": [{**packet["tasks"][0], field: value}]})
+        row = data["families"][0]["tasks"][0]
+        data["families"][0]["tasks"].append({**row, "id": "other-task"})
+        with self.assertRaisesRegex(guard.GuardError, "^private-prose-task-set-mismatch$"):
+            guard.private_prose_packet(data, packet)
+        row["lean_answer_declaration"] = "Synthetic.Private.answer"
+        with self.assertRaisesRegex(guard.GuardError, "^private-packet-requires-prose-only$"):
+            guard.private_prose_packet(data, packet)
+
+
+@unittest.skipUnless(shutil.which("git"), "Git executable needed for history and path fixtures")
+class GitExposureTests(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.repo = Path(directory.name)
+        self.git("init", "-q")
+        self.git("config", "user.name", "Synthetic Test")
+        self.git("config", "user.email", "synthetic@example.invalid")
+        self.git("config", "commit.gpgsign", "false")
+
+    def git(self, *args):
+        return subprocess.check_output(["git", *args], cwd=self.repo, stderr=subprocess.STDOUT).strip()
+
+    def write(self, relative, data):
+        p = self.repo / relative
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(guard.canonical(data) if not isinstance(data, bytes) else data)
+        return p
+
+    def commit(self, *files):
+        self.git("add", "--", *files)
+        self.git("commit", "-qm", "synthetic catalog snapshot")
+        return self.git("rev-parse", "HEAD").decode()
+
+    def test_git_history_detects_retired_catalogs_and_map_only_or_graph_only_changes(self):
+        self.write(guard.CATALOG, catalog(public_core(textbook_exercise_id="source-old"), schema=1))
+        self.write(guard.EXERCISES, exercises())
+        first = self.commit(guard.CATALOG, guard.EXERCISES)
+        self.write(guard.EXERCISES, exercises(OTHER_PDF))
+        self.commit(guard.EXERCISES)
+        graph = guard.GRAPH_SPECS[0]
+        self.write(graph, {"tasks": [{"id": "graph-retired", "family": "old-graph-family"}]})
+        self.commit(graph)
+        self.write(graph, {"tasks": [{"id": "graph-current", "family": "new-graph-family"}]})
+        self.write(guard.CATALOG, catalog(public_core(id="dev-two", family="renamed", question="New text")))
+        final = self.commit(graph, guard.CATALOG)
+        found, receipt = guard.inventory(self.repo, [final])
+        self.assertEqual(receipt["public_snapshots"], 4)
+        self.assertEqual(receipt["history_status"], "not-shallow-declared-tips-only")
+        self.assertEqual(receipt["public_history_sha256"],
+                         guard.inventory(self.repo, [final, final])[1]["public_history_sha256"])
+        self.assertNotEqual(receipt["public_history_sha256"],
+                            guard.inventory(self.repo, [first])[1]["public_history_sha256"])
+        self.assertTrue({"dev-one", "dev-two", "graph-retired", "graph-current"} <= found.task_ids)
+        self.assertEqual(found.numbered_sources, {(PDF, "1", "6"), (OTHER_PDF, "1", "6")})
+
+    def test_unavailable_declared_tip_and_non_commit_inputs_fail(self):
+        self.write(guard.CATALOG, catalog(public_core()))
+        self.commit(guard.CATALOG)
+        with self.assertRaisesRegex(guard.GuardError, "declare-exact-public-commit-ids"):
+            guard.inventory(self.repo, ["HEAD"])
+        with self.assertRaisesRegex(guard.GuardError, "public-git-object-unavailable"):
+            guard.inventory(self.repo, ["0" * 40])
+
+    def test_registered_compiler_slice_changes_remain_visible_after_retirement(self):
+        self.write(guard.CATALOG, catalog(public_core()))
+        self.commit(guard.CATALOG)
+        spec = f"{guard.DIRECTORY}/compiled_new_slice_graph_tasks.json"
+        self.write(guard.GRAPH_INDEX, {"schema_version": 1, "slices": ["new-slice"]})
+        self.write(spec, {"core_id": "dev-one", "tasks": [{"id": "graph-first"}]})
+        self.commit(guard.GRAPH_INDEX, spec)
+        self.write(spec, {"core_id": "dev-one", "tasks": [{"id": "graph-retired"}]})
+        self.commit(spec)  # The slice file changes, with no catalog or index change.
+        self.write(spec, {"core_id": "dev-one", "tasks": [{"id": "graph-final"}]})
+        tip = self.commit(spec)
+        found, receipt = guard.inventory(self.repo, [tip])
+        self.assertEqual(receipt["public_snapshots"], 4)
+        self.assertTrue({"graph-first", "graph-retired", "graph-final"} <= found.task_ids)
+        reserved = reservation(tasks=[{"id": "graph-retired", "nl_prompt_sha256": "c" * 64}])
+        self.assertEqual(guard.check_reservation(reserved, found)["issues"],
+                         {"known-public-task_ids": 1})
+
+    def test_registered_compiler_slice_missing_from_a_public_commit_fails_closed(self):
+        self.write(guard.CATALOG, catalog(public_core()))
+        self.write(guard.GRAPH_INDEX, {"schema_version": 1, "slices": ["not-present"]})
+        tip = self.commit(guard.CATALOG, guard.GRAPH_INDEX)
+        with self.assertRaisesRegex(guard.GuardError, "public-git-object-unavailable"):
+            guard.inventory(self.repo, [tip])
+
+    def test_cli_checks_exact_private_review_without_printing_private_values(self):
+        self.write(guard.CATALOG, catalog(public_core()))
+        tip = self.commit(guard.CATALOG)
+        _, exposure = guard.inventory(self.repo, [tip])
+        data = reservation(family="sensitive-synthetic-family")
+        raw = synthetic_review(data, exposure["public_history_sha256"])
+        with tempfile.TemporaryDirectory() as tmp:
+            reservation_path, review_path = Path(tmp)/"private-a.json", Path(tmp)/"private-b.json"
+            reservation_path.write_bytes(guard.canonical(data))
+            review_path.write_bytes(raw)
+            args = ["sog_bench_split_guard.py", "--public-tip", tip, "--reservation", str(reservation_path)]
+            for extra, code, expected in (
+                    ([], 0, {"status": "metadata-only; no reviewer bytes checked"}),
+                    (["--review-file", str(review_path)], 0,
+                     {"review_files_supplied": 1, "all_review_files_bound": True, "issues": {}})):
+                output = io.StringIO()
+                with patch.object(guard, "ROOT", self.repo), patch.object(sys, "argv", args + extra), redirect_stdout(output):
+                    self.assertEqual(guard.main(), code)
+                line = output.getvalue()
+                for private in ("sensitive-synthetic-family", "candidate-one", str(review_path), guard.digest(raw)):
+                    self.assertNotIn(private, line)
+                self.assertEqual(json.loads(line)["private_review_check"], expected)
+            # Positive review bytes must not override an actual public collision.
+            data["families"][0]["family"] = "public-family"
+            raw = synthetic_review(data, exposure["public_history_sha256"])
+            reservation_path.write_bytes(guard.canonical(data))
+            review_path.write_bytes(raw)
+            output = io.StringIO()
+            with patch.object(guard, "ROOT", self.repo), patch.object(sys, "argv", args + ["--review-file", str(review_path)]), redirect_stdout(output):
+                self.assertEqual(guard.main(), 1)
+            report = json.loads(output.getvalue())
+            self.assertTrue(report["private_review_check"]["all_review_files_bound"])
+            self.assertEqual(report["private_check"]["issues"], {"known-public-families": 1})
+
+    def test_private_prose_cli_requires_review_and_writes_only_prompt_fields(self):
+        self.write(guard.CATALOG, catalog(public_core()))
+        tip = self.commit(guard.CATALOG)
+        data, packet = synthetic_prose()
+        with tempfile.TemporaryDirectory() as tmp:
+            private = Path(tmp)
+            reservation_path, packet_path, review_path, request_path, prompts_path = (
+                private / name for name in ("r.json", "p.json", "v.json", "req.json", "prompts.jsonl"))
+            reservation_path.write_bytes(guard.canonical(data))
+            packet_path.write_bytes(guard.canonical(packet))
+            argv = ["guard", "--public-tip", tip, "--reservation", str(reservation_path), "--prose-packet", str(packet_path)]
+
+            def run(extra):
+                out, err = io.StringIO(), io.StringIO()
+                with patch.object(guard, "ROOT", self.repo), patch.object(sys, "argv", argv + extra), \
+                        redirect_stdout(out), redirect_stderr(err):
+                    code = guard.main()
+                for secret in (str(private), "candidate-one", "candidate-family", "Synthetic nonpublic prompt",
+                               "Synthetic operator-only proof", "Criterion 0"):
+                    self.assertNotIn(secret, out.getvalue() + err.getvalue())
+                return code, json.loads((out.getvalue() or err.getvalue()))
+
+            self.assertEqual(run(["--prose-review-request", str(request_path)])[0], 0)
+            request = json.loads(request_path.read_bytes())
+            self.assertEqual(request["status"], "unsigned; not review evidence")
+            draft = request["families"][0]["review"]
+            self.assertEqual(draft["verdict"], "")
+            self.assertFalse(prompts_path.exists())
+            # This deliberately synthetic review is not an actual admission.
+            raw = synthetic_review(data, draft["public_history_sha256"], schema_version=2,
+                                   prose_packet_sha256=draft["prose_packet_sha256"])
+            reservation_path.write_bytes(guard.canonical(data))
+            review_path.write_bytes(raw)
+            command = ["--review-file", str(review_path), "--prose-prompts", str(prompts_path)]
+            stale = copy.deepcopy(packet)
+            stale["tasks"][0]["proof_steps"] = ["Changed proof"]
+            packet_path.write_bytes(guard.canonical(stale))
+            code, report = run(command)
+            self.assertEqual(code, 1)
+            self.assertEqual(report["private_review_check"]["issues"], {"review-prose-packet-drift": 1})
+            self.assertFalse(prompts_path.exists())
+            packet_path.write_bytes(guard.canonical(packet))
+            code, report = run(command)
+            self.assertEqual(code, 0)
+            self.assertTrue(report["private_prose_check"]["prompt_file_written"])
+            prompt_bytes = prompts_path.read_bytes()
+            prompt = json.loads(prompt_bytes)
+            self.assertEqual(set(prompt), set(guard.PROSE_INPUT_FIELDS) | {"split", "track", "prompt_sha256"})
+            self.assertEqual(prompt["prompt_sha256"], guard.digest(guard.canonical(
+                {k: packet["tasks"][0][k] for k in guard.PROSE_INPUT_FIELDS})))
+            self.assertEqual(run(command)[0], 2)
+            self.assertEqual(prompts_path.read_bytes(), prompt_bytes)
+            collision = private / "collision.jsonl"
+            data["families"][0]["aliases"] = ["public-family"]
+            reservation_path.write_bytes(guard.canonical(data))
+            self.assertEqual(run(command[:-1] + [str(collision)])[0], 1)
+            self.assertFalse(collision.exists())
+
+    def test_retired_family_introduced_in_merge_resolution_is_still_public(self):
+        initial = catalog(public_core())
+        self.write(guard.CATALOG, initial)
+        base = self.commit(guard.CATALOG)
+        primary = self.git("branch", "--show-current").decode()
+        self.git("switch", "-c", "synthetic-side", base)
+        self.write("side.txt", b"Side branch only\n")
+        self.commit("side.txt")
+        self.git("switch", primary)
+        self.write("main.txt", b"Main branch only\n")
+        self.commit("main.txt")
+        self.git("merge", "--no-ff", "--no-commit", "synthetic-side")
+        merge_only = public_core(id="dev-merge-only", family="merge-only-family",
+                                 question="Synthetic merge-only prompt",
+                                 declaration="Synthetic.MergeOnly.answer")
+        self.write(guard.CATALOG, catalog(public_core(), merge_only))
+        exposed_merge = self.commit(guard.CATALOG)
+        self.assertEqual(len(self.git("rev-list", "--parents", "-n", "1", exposed_merge).split()), 3)
+        self.write(guard.CATALOG, initial)
+        tip = self.commit(guard.CATALOG)
+
+        found, receipt = guard.inventory(self.repo, [tip])
+        self.assertIn("dev-merge-only", found.task_ids)
+        self.assertIn("Synthetic.MergeOnly.answer", found.answer_declarations)
+        self.assertEqual(receipt["public_snapshots"], 3)
+        result = guard.check_reservation(reservation(aliases=["merge-only-family"]), found)
+        self.assertEqual(result["issues"], {"known-public-families": 1})
+
+    def test_shallow_history_never_allows_a_reservation(self):
+        self.write(guard.CATALOG, catalog(public_core()))
+        tip = self.commit(guard.CATALOG)
+        actual_git = guard.git_bytes
+        def shallow(repo, *args, **kwargs):
+            return b"true\n" if args == ("rev-parse", "--is-shallow-repository") else actual_git(repo, *args, **kwargs)
+        with patch.object(guard, "git_bytes", side_effect=shallow):
+            with self.assertRaisesRegex(guard.GuardError, "shallow-public-history"):
+                guard.inventory(self.repo, [tip])
+            _, result = guard.inventory(self.repo, [tip], observation_only=True)
+        self.assertEqual(result["history_status"], "shallow-observation-only")
+        self.assertNotIn("private_check", result)
+
+    def test_reservation_path_must_be_ignored_and_not_tracked(self):
+        self.write(".gitignore", b"/.astis/\n")
+        ordinary = self.write("ordinary.json", reservation())
+        hidden = self.write(".astis/local.json", reservation())
+        self.assertEqual(guard.private_input(hidden, self.repo), reservation())
+        with self.assertRaisesRegex(guard.GuardError, "reservation-must-stay-out-of-tracked-paths"):
+            guard.private_input(ordinary, self.repo)
+        self.git("add", "-f", "--", ".astis/local.json")
+        with self.assertRaisesRegex(guard.GuardError, "reservation-must-stay-ignored"):
+            guard.private_input(hidden, self.repo)
+        with self.assertRaisesRegex(guard.GuardError, "reservation-must-stay-out-of-tracked-paths"):
+            guard.write_private_output(self.repo / "export.jsonl", self.repo, b"fixture")
+        with self.assertRaisesRegex(guard.GuardError, "reservation-must-stay-ignored"):
+            guard.write_private_output(hidden, self.repo, b"fixture")
+        ignored = self.repo / ".astis" / "new.jsonl"
+        guard.write_private_output(ignored, self.repo, b"fixture")
+        self.assertEqual(ignored.read_bytes(), b"fixture")
+        if os.name == "posix":
+            self.assertEqual(ignored.stat().st_mode & 0o077, 0)
+
+
+if __name__ == "__main__":
+    unittest.main()

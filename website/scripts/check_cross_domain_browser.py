@@ -24,6 +24,37 @@ sys.path.insert(0, str(ROOT / 'tools'))
 import publication_reader
 
 
+def check_lean_disclosures(page, context: str) -> int:
+    """Read each adjacent Lean fold through visible, possibly nested summaries.
+
+    Theorem-first readers intentionally hide prerequisite definitions. Opening
+    their parent ledgers is a reader action, not a reason to skip their Lean.
+    Keep the last fold open for the caller's screenshot.
+    """
+    folds = page.locator('details.inline-lean-statement, details.inline-lean-proof')
+    assert folds.count() > 0, context
+    assert folds.evaluate_all('nodes => nodes.every(node => !node.open)'), context
+    for index in range(folds.count()):
+        fold = folds.nth(index)
+        # ancestor is a reverse XPath axis: last() selects the outermost closed
+        # ancestor, whose summary can be clicked without force or DOM mutation.
+        parents = fold.locator('xpath=ancestor::details[not(@open)][last()]')
+        while parents.count():
+            closed = fold.locator('xpath=ancestor::details[not(@open)]')
+            before = closed.count()
+            parents.first.locator(':scope > summary').click()
+            assert closed.count() == before - 1, context
+        fold.locator(':scope > summary').click()
+        assert fold.evaluate('node => node.open'), context
+        code = fold.locator('pre code.language-lean')
+        assert code.count() > 0 and code.first.is_visible(), context
+        assert code.first.inner_text().strip(), context
+        if index + 1 < folds.count():
+            fold.locator(':scope > summary').click()
+            assert not fold.evaluate('node => node.open'), context
+    return folds.count()
+
+
 def main() -> None:
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',default=str(ROOT/'_site'))
@@ -178,13 +209,16 @@ def main() -> None:
                 # put this same selected card far down a tall viewport, then
                 # restore it. A small default source slice must still exercise
                 # two-axis framing even when platform file order changes.
+                # Move below the actual extent so a tall real slice cannot
+                # leave another card on top of this synthetic fixture.
                 original_geometry = page.evaluate('''() => {
                     const svg=document.querySelector('[data-graph-svg]');
                     const node=svg.querySelector('.ulg-node.selected');
                     const saved={transform:node.getAttribute('transform'),height:svg.dataset.worldHeight};
                     const x=node.transform.baseVal.consolidate().matrix.e;
-                    node.setAttribute('transform', `translate(${x} 3000)`);
-                    svg.dataset.worldHeight='4000';
+                    const y=Math.max(3000, Number(saved.height)+1000);
+                    node.setAttribute('transform', `translate(${x} ${y})`);
+                    svg.dataset.worldHeight=String(y+1000);
                     window.dispatchEvent(new Event('resize'));
                     return saved;
                 }''')
@@ -276,12 +310,11 @@ def main() -> None:
             if not args.offline_dom:
                 page.wait_for_selector('mjx-container', timeout=30000)
                 assert page.locator('mjx-merror').count() == 0
-            page.locator('details.inline-lean-proof > summary').last.click()
-            assert page.locator('details.inline-lean-proof[open] code.language-lean').count() == 1
+            checked_folds = check_lean_disclosures(page, opt_path)
             assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
             page.screenshot(path=str(evidence/'optimisation-proof-mobile.png'))
             report['optimisation_publication'] = {'partial': True, 'source_complete': False,
-                'adjacent_lean': True, 'mobile_overflow': False}
+                'adjacent_lean': True, 'checked_lean_folds': checked_folds, 'mobile_overflow': False}
             # Every companion binding must have adjacent, initially folded Lean.
             # Derive the inventory from publications; do not freeze a leaf count.
             goto('example-cases/samplewiki.html')
@@ -377,6 +410,7 @@ def main() -> None:
                 selected.extend(i for i in group if i['id'] == 'shared-retained-kernel-reversibility'
                                 and i not in selected)
                 checked = []
+                checked_folds = {}
                 for item in selected:
                     focused = publication_reader.source_proof_path(item)
                     goto(focused)
@@ -395,12 +429,13 @@ def main() -> None:
                         assert page.locator('mjx-container').count() > 0, focused
                         assert page.locator('mjx-merror').count() == 0, focused
                     assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1'), focused
-                    page.locator('details.inline-lean-proof > summary').last.click()
-                    assert page.locator('details.inline-lean-proof[open] code.language-lean').count() == 1, focused
+                    checked_folds[focused] = check_lean_disclosures(page, focused)
+                    assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1'), focused
                     page.screenshot(path=str(evidence/(item['id']+'-proof-mobile.png')))
                     checked.append(focused)
                 report['companion_publications'].append({'path': rel, 'declarations': expected,
                     'browser_sampled_readers': checked, 'all_targets_statically_validated': True,
+                    'checked_lean_folds': checked_folds,
                     'adjacent_lean': True, 'mobile_overflow': False})
             assert not report['runtime_errors'],report['runtime_errors']
             browser.close()

@@ -17,6 +17,107 @@ def primary_url(value) -> bool:
     return parsed.scheme == 'https' and bool(parsed.hostname) and parsed.username is None and parsed.password is None
 
 
+def publication_item(rel: str, identity: str, row: dict, book: dict) -> dict:
+    if not isinstance(rel, str):
+        raise ValueError('Use a canonical local publication record')
+    path = Path(rel)
+    if (path.is_absolute() or '..' in path.parts or '\\' in rel
+            or not rel.startswith('website/content/publications/') or path.suffix != '.json'
+            or not (ROOT / path).resolve().is_relative_to((ROOT / 'website/content/publications').resolve())):
+        raise ValueError('Use a canonical local publication record')
+    try:
+        publication = json.loads((ROOT / rel).read_text(encoding='utf-8'))
+    except FileNotFoundError as exc:
+        raise ValueError('Missing canonical exercise publication file: ' + rel) from exc
+    if publication.get('schema_version') != 1:
+        raise ValueError('Unsupported publication schema for numbered exercise')
+    entries = [item for item in publication['items'] if item['id'] == identity]
+    if len(entries) != 1:
+        raise ValueError('Missing canonical exercise publication')
+    item = entries[0]
+    if (item['source']['edition'] != book['edition']
+            or not re.search(r'\bExercise\s*' + re.escape(row['number']) + r'(?![\w]|\.[A-Za-z0-9])',
+                             item['source']['anchor'])
+            or str(item['chapter']).lstrip('0') != str(row['chapter']).lstrip('0')):
+        raise ValueError('Canonical source edition/number/chapter mismatch')
+    return item
+
+
+def answer_parts(item: dict, known: dict, *, component: bool = False) -> tuple[list[dict], list[dict]]:
+    import sog_bench as bench
+    obligations = item['obligations']
+    parts = {p['id'] for p in obligations}
+    if component and (not parts or len(parts) != len(obligations)
+                      or not all(re.fullmatch(r'[a-z0-9-]+', p) for p in parts)):
+        raise ValueError('An exercise component needs distinct nonempty source parts')
+    prefix = item['id'] + ':' if component else ''
+    sources = []
+    covered = set()
+    for binding in item['bindings']:
+        name = binding['declaration']
+        declaration = known.get(name)
+        if (declaration is None or declaration.has_placeholder
+                or not name.startswith('AutoSamplingTheory.TechnicalLemmas.')
+                or not re.fullmatch(r'[A-Za-z0-9_.]+', name)
+                or not binding['supports'] or not set(binding['supports']) <= parts
+                or not binding['audit_id']
+                or (component and binding.get('role') != 'proof-edge')):
+            raise ValueError('Each exercise part needs actual owned, source-bound declarations')
+        covered.update(binding['supports'])
+        answer = {'declaration': name, 'source_file': declaration.source_file,
+                  'source_line': declaration.source_line,
+                  'source_sha256_lf': bench.text_hash(ROOT / declaration.source_file),
+                  'supports': [prefix + p for p in binding['supports']], 'cell': binding['cell'],
+                  'audit_id': binding['audit_id'], 'boundary': binding['boundary'],
+                  'assumption_deltas': binding['assumption_deltas']}
+        if component:
+            answer['component_id'] = item['id']
+        sources.append(answer)
+    if covered != parts:
+        raise ValueError('Unmapped source exercise part; partial coverage cannot disappear')
+    return ([{**p, 'id': prefix + p['id']} for p in obligations] if component else obligations), sources
+
+
+def resolve_components(row: dict, book: dict, known: dict) -> dict:
+    """Join bibliographic identity without conjoining the components' hypotheses."""
+    import sog_bench as bench
+    refs = row['publication_components']
+    if (not isinstance(refs, list) or len(refs) < 2
+            or any(not isinstance(r, dict) or set(r) != {'publication_file', 'item_id'}
+                   or not isinstance(r['item_id'], str) or not re.fullmatch(r'[a-z0-9-]+', r['item_id']) for r in refs)
+            or len({r['item_id'] for r in refs}) != len(refs)):
+        raise ValueError('Expected at least two distinct canonical exercise components')
+    boundary = row.get('unformalized_context')
+    if not isinstance(boundary, list) or not boundary or not all(isinstance(s, str) and s.strip() for s in boundary):
+        raise ValueError('A component exercise must state its remaining source boundary')
+    components, parts, answers = [], [], []
+    pdf = book['pdf_url'].split('#', 1)[0]
+    book_urls = {book[k].split('#', 1)[0] for k in ('pdf_url', 'html_url') if k in book}
+    start = row['pdf_page']
+    pages = {f'page={n}' for n in range(start, row.get('pdf_page_end', start) + 1)}
+    for ref in refs:
+        item = publication_item(ref['publication_file'], ref['item_id'], row, book)
+        source = item['source']
+        if (source.get('pdf_sha256') != book['pdf_sha256'] or not primary_url(source.get('url'))
+                or source['url'].split('#', 1)[0] not in book_urls):
+            raise ValueError('Every exercise component must match the pinned primary book')
+        base, _, anchor = source['url'].partition('#')
+        if base == pdf and anchor not in pages:
+            raise ValueError('Every PDF component link must land on a declared exercise page')
+        item_parts, item_answers = answer_parts(item, known, component=True)
+        parts.extend(item_parts)
+        answers.extend(item_answers)
+        components.append({**ref, 'item_sha256': bench.sha(bench.encoded(item)),
+                           'title': item['title'], 'source': source, 'statement': item['statement'],
+                           'assumptions': item['assumptions'], 'formulae': item.get('formulae', []),
+                           'part_ids': [p['id'] for p in item_parts]})
+    if len({a['declaration'] for a in answers}) != len(answers):
+        raise ValueError('Exercise components must not repeat an owned answer declaration')
+    component_pins = [{k: c[k] for k in ('publication_file', 'item_id', 'item_sha256')} for c in components]
+    return {'source_components': components, 'parts': parts, 'answer_declarations': answers,
+            'source_entry_sha256': bench.sha(bench.encoded({'exercise-components-v1': component_pins}))}
+
+
 def resolve(identity: str, known: dict, data: dict | None = None) -> dict:
     import sog_bench as bench
     data = json.loads(DATA.read_text(encoding='utf-8')) if data is None else data
@@ -58,46 +159,17 @@ def resolve(identity: str, known: dict, data: dict | None = None) -> dict:
     number = row['number']
     if not re.fullmatch(r'[A-Z0-9]+(?:\.[A-Za-z0-9]+)*', number):
         raise ValueError('Invalid source exercise number')
-    rel = row['publication_file']
-    path = Path(rel)
-    if (path.is_absolute() or '..' in path.parts or '\\' in rel
-            or not rel.startswith('website/content/publications/') or path.suffix != '.json'):
-        raise ValueError('Use a canonical local publication record')
-    publication = json.loads((ROOT / rel).read_text(encoding='utf-8'))
-    entries = [p for p in publication['items'] if p['id'] == identity]
-    if len(entries) != 1:
-        raise ValueError('Missing canonical exercise publication')
-    item = entries[0]
-    if (item['source']['edition'] != book['edition']
-            or not re.search(r'\bExercise\s*' + re.escape(number) + r'(?![\w]|\.[A-Za-z0-9])', item['source']['anchor'])
-            or str(item['chapter']).lstrip('0') != str(row['chapter']).lstrip('0')):
-        raise ValueError('Canonical source edition/number/chapter mismatch')
-    parts = {p['id'] for p in item['obligations']}
-    sources = []
-    covered = set()
-    for binding in item['bindings']:
-        name = binding['declaration']
-        declaration = known.get(name)
-        if (declaration is None or declaration.has_placeholder
-                or not name.startswith('AutoSamplingTheory.TechnicalLemmas.')
-                or not re.fullmatch(r'[A-Za-z0-9_.]+', name)
-                or not binding['supports'] or not set(binding['supports']) <= parts
-                or not binding['audit_id']):
-            raise ValueError('Each exercise part needs actual owned, source-bound declarations')
-        covered.update(binding['supports'])
-        sources.append({'declaration': name, 'source_file': declaration.source_file,
-                        'source_line': declaration.source_line,
-                        'source_sha256_lf': bench.text_hash(ROOT / declaration.source_file),
-                        'supports': binding['supports'], 'cell': binding['cell'],
-                        'audit_id': binding['audit_id'], 'boundary': binding['boundary'],
-                        'assumption_deltas': binding['assumption_deltas']})
-    if covered != parts:
-        raise ValueError('Unmapped source exercise part; partial coverage cannot disappear')
-    return {**row, 'book': book, 'source_entry_sha256': bench.sha(bench.encoded(item)),
-            'wording_status': 'original faithful mathematical restatement; not reproduced source prose',
+    common = {**row, 'book': book,
+              'wording_status': 'original faithful mathematical restatement; not reproduced source prose'}
+    if ('publication_file' in row) == ('publication_components' in row):
+        raise ValueError('Select exactly one exercise publication mapping form')
+    if 'publication_components' in row:
+        return {**common, **resolve_components(row, book, known)}
+    item = publication_item(row['publication_file'], identity, row, book)
+    parts, sources = answer_parts(item, known)
+    return {**common, 'source_entry_sha256': bench.sha(bench.encoded(item)),
             'canonical_source': item['source'], 'source_statement': item['statement'],
-            'source_assumptions': item['assumptions'], 'parts': item['obligations'],
-            'answer_declarations': sources}
+            'source_assumptions': item['assumptions'], 'parts': parts, 'answer_declarations': sources}
 
 
 def answers(cores: list[dict]) -> dict:
@@ -151,8 +223,18 @@ def source_prompt(exercise: dict) -> dict:
             'wording_status': exercise['wording_status']}
 
 
+def question_component(exercise: dict, declaration: str) -> str:
+    """Return the one source component owning this question's answer anchor."""
+    matches = [row['component_id'] for row in exercise['answer_declarations'] if row['declaration'] == declaration]
+    if len(matches) != 1:
+        raise ValueError('Component question needs exactly one owned answer anchor')
+    return matches[0]
+
+
 def projection(cores: list[dict], reviews: dict, compiled: bool) -> list[dict]:
     """Per-question editorial state, source mapping and compile scope stay separate."""
+    from sog_bench_review import accepted
+
     rows = {}
     for core in cores:
         exercise = core.get('textbook_exercise')
@@ -161,7 +243,12 @@ def projection(cores: list[dict], reviews: dict, compiled: bool) -> list[dict]:
         entry = rows.setdefault(exercise['id'], {
             **exercise, 'questions': [], 'owned_answer_build_recorded': compiled,
             'formal_scope': 'named owned core answers; not full exercise/formal QA certification'})
-        entry['questions'].append({'core_id': core['id'],
-            'editorial': reviews[core['id']]['editorial'],
-            'tracks': core['track_levels']})
+        question = {'core_id': core['id'], 'editorial': reviews[core['id']]['editorial'], 'tracks': core['track_levels']}
+        if exercise.get('source_components'):
+            question['component_id'] = question_component(exercise, core['declaration'])
+        entry['questions'].append(question)
+    for entry in rows.values():
+        if entry.get('source_components'):
+            represented = {q['component_id'] for q in entry['questions'] if accepted(q)}
+            entry['represented_components_with_accepted_qa'] = sorted(represented)
     return [rows[key] for key in sorted(rows)]

@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "status": "PROPOSED_BEFORE_PROOF",
+  "source_url": "https://arxiv.org/html/2611.05813v1#S4.E15",
+  "source_edition": "arXiv:2611.05813v1",
+  "source_pdf_sha256": "05520f2a491fedc6ceecc7eb0f3d0c1b23275faceb9da1d9cfa6db421aab4f0e",
+  "source_scope": "§4.1.1 Eq. (14)–(15): one fixed level and deterministic unit directions, under the unconditioned joint coefficient law. This isolates an unnamed scalar Gaussian consequence; it is not Lemma 4.4 or Eq. (51).",
+  "namespace": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum",
+  "file": "AutoSamplingTheory/ExampleCases/SlcLsiQueryComplexity/AngularDegreeSum.lean",
+  "signature": "theorem angularDegreeSum_hasLaw (n : ℕ+) (h : ℕ) (i : Fin (h + 1))\n    (u : Fin (h - i.val + 1) → EuclideanSpace ℝ (Fin n.val))\n    (hu : ∀ j, ‖u j‖ = 1) :\n    let P := {p : Fin (2 ^ (64 * (h + 1)) + 1) // Even p.val ∧ 4 ≤ p.val}\n    let B := Fin (h + 1) × P\n    let C := fun b : B ↦\n      ((Fin b.2.val.val × (Σ j : Fin (h - b.1.val + 1),\n        Fin ((2 ^ (74 * (h + 1))) ^ j.val))) → Fin n.val)\n    let degree := fun p : P ↦\n      (⟨p.val.val, p.property.1, p.property.2, Nat.le_of_lt_succ p.val.isLt⟩ :\n        {p : ℕ // Even p ∧ 4 ≤ p ∧ p ≤ 2 ^ (64 * (h + 1))})\n    let S : ℕ := ∑ j : Fin (h - i.val + 1), (2 ^ (74 * (h + 1))) ^ j.val\n    let a := fun p : P ↦ 1 / ((p.val.val : ℝ) ^ 4 * (S : ℝ) ^ 2 *\n      Real.sqrt ((h - i.val + 1 : ℕ) * Real.log (2 * (2 : ℝ) ^ (64 * (h + 1)) * S)))\n    let F := fun (ξ : EuclideanSpace ℝ (Σ b : B, C b)) ↦ ∑ p : P,\n      angularDegreeComponent n h i (degree p) u\n        (WithLp.toLp 2 (fun c : C (i, p) ↦ ξ ⟨(i, p), c⟩))\n    HasLaw F (gaussianReal 0 (((n.val : ℝ) * ∑ p : P, (a p) ^ 2).toNNReal))\n      (stdGaussian (EuclideanSpace ℝ (Σ b : B, C b)))",
+  "binder_audit": {
+    "TYPING": [
+      "n positive; h natural; i in 0..h; u contains exactly the trailing directions.",
+      "P indexes exactly the even p between 4 and 2^(64(h+1)); B and C preserve the actual ordered tensor carrier."
+    ],
+    "STANDING": [
+      "The source relates depth to sufficiently large dimension. The isolated scalar identity needs no such relation and does not generalize admissibility."
+    ],
+    "SOURCE": [
+      "Each deterministic trailing vector lies on the unit sphere, represented by hu."
+    ],
+    "EXCESS": [],
+    "derived_not_assumed": [
+      "Block independence and marginals, measurability of the scalar sum, square integrability and exact Gaussian law."
+    ]
+  },
+  "definition_audit": {
+    "definition_kind": "literal",
+    "body": "No new public definition. F is the literal sum of existing angularDegreeComponent values on the exact (i,p) block. The degree adapter only changes the finite-index presentation, retaining the same ordered degree. No fallback, conditioning or radial factor."
+  },
+  "source_regions": [
+    {
+      "id": "literal-degrees",
+      "locator": "§4.1.1 Eq. (14)–(15)",
+      "status": "NODE",
+      "meaning": "Exact amplitudes, ordered tensor coordinates and sum over the finite allowed degrees."
+    },
+    {
+      "id": "scalar-law",
+      "locator": "§4.1.1 paragraph after Eq. (15)",
+      "status": "NODE",
+      "meaning": "For a fixed tuple of unit directions each block evaluation is centered Gaussian with variance n a_{i,p}²."
+    },
+    {
+      "id": "joint-coefficients",
+      "locator": "§4.1.1 independent blocks and joint-law paragraph after Eq. (15)",
+      "status": "NODE",
+      "meaning": "Unconditioned standard Gaussian on the Euclidean direct sum of all blocks."
+    },
+    {
+      "id": "finite-sum-law",
+      "locator": "Implicit fixed-level uncut consequence of §4.1.1 Eq. (15) and its adjacent scalar-law and independent-coefficient paragraphs",
+      "status": "NODE",
+      "meaning": "Combine the literal sum, scalar laws and independent coefficients; exact variance n v_i, with v_i as defined in §6.1."
+    },
+    {
+      "id": "finite-sum-expansion",
+      "locator": "Omitted finite-sum law after the uncut degree-sum definition and actual Gaussian laws in §4.1.1",
+      "status": "SOURCE_GAP",
+      "meaning": "Expand measurability under block projection, preservation of independence and addition of variances. This is omitted detail, not an invalid source claim."
+    },
+    {
+      "id": "radial-and-tilt",
+      "locator": "§4.1.1 Eq. (16)–(19), §4.2 Lemma 4.4 and §6.1 Eq. (51)",
+      "status": "EXCLUDED",
+      "reason": "No cutoff, two-point or process law, derivative, weighted multi-level sum, moment or recursive argument is claimed."
+    }
+  ],
+  "source_edges": [
+    {
+      "parents": [
+        "literal-degrees",
+        "scalar-law",
+        "joint-coefficients",
+        "finite-sum-expansion"
+      ],
+      "consumer": "finite-sum-law",
+      "use_site": "Reconstruct the implicit one-level consequence of Eq. (15) on its uncut domain; this is not a direct source edge into Eq. (51)"
+    }
+  ],
+  "reuse_search": [
+    "Samplinglib: existing AngularDegree and CoefficientBlocks, local Frontier Cells and public issue 388 / open PRs; no duplicate actual fixed-level degree-sum claim.",
+    "Mathlib: finite product evaluation, iIndepFun restriction and composition, HasGaussianLaw finite sum, integral_finset_sum and IndepFun.variance_sum. No need for an external port or generic wrapper."
+  ],
+  "truth_boundary": "Unconditioned one-level angular degree sum at deterministic unit directions. No independence claim for selected/adaptive directions; no radial factor, covariance kernel, conditional level iteration, mass estimate or lower bound.",
+  "consumer": "Notation matches v_i in §6.1. Eq. (51) and §6.2 Fact 10 use the radial H_i, so they are downstream source uses only through a separate actual radial/zero-block bridge; neither calls this uncut statement directly."
+}

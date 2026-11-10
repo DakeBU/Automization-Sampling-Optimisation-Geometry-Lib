@@ -47,7 +47,10 @@ material stay outside prompt-only packages. Keep restricted ATLAS material out.
 
 Build the existing static site; do not introduce a disconnected frontend or
 another manually maintained theorem-status list. Collection membership comes
-from website/content/bench_navigation.json and the canonical seven-domain catalog.
+from website/content/bench_navigation.json and the canonical eight-domain catalog.
+Lower Bounds is one cross-cutting domain within SamplingBench and
+OptimisationBench, not a fourth portal or a second proof registry. Its domain
+page links to the research reader and shows any missing tracks as gaps.
 Counts and links are computed from real records. Preserve source/review bindings.
 
 Check all three collection routes, collection overlap/identity, task search and

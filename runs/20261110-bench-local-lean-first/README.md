@@ -46,3 +46,25 @@ The native candidate hash matches the frozen capture, the verifier result
 hash matches the outcome, and the diagnostic hash matches the result.
 Do not infer a model pass from green CI or interpret this single
 public-dev rejection as a general score.
+
+## Live-feedback diagnostic (separate attempt)
+
+[Manual run 42810480612](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/runs/42810480612)
+on draft head `af0e7348e968bacb64d243c978ec4f2098c2cad2` completed the
+opt-in Qwen CPU pilot. The first native compiler diagnostic was delivered
+to the model before its second generation. The check and final were both
+`proof-rejected`; the model emitted the same 21 output tokens and identical
+proof-body bytes on both turns. The unedited final scores **0/1**. This is
+not evidence of successful repair, autonomous tool selection, search,
+or a matched estimate of the effect of feedback.
+
+The [exact native evidence ZIP](live-v031-evidence.zip) is the unchanged
+[GitHub artifact 13761959492](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/runs/42810480612/artifacts/13761959492),
+SHA-256 `51bfb9bce9ca3edb2c99ebd9f750aae1a149a79a78ff805add159a53d783a6c6`.
+Read `lean-local-evidence/pilot-result.json` first. Independent of the log
+summary, local readback verified the artifact digest, selected run and
+trajectory, both model record hashes, the first compiler diagnostic and
+its exact inclusion in the second model message, and both submitted source
+hashes. All archive members are data; do not execute a captured proof or
+treat an infrastructure exception as a failed proof. The pipeline used
+Lean 4.33.0 and no paid provider API.

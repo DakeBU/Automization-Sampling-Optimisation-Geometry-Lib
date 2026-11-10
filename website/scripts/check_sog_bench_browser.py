@@ -31,7 +31,7 @@ def math_component_shot(page, destination: Path) -> None:
         page.evaluate("() => document.querySelectorAll('[data-sog-shot-chrome]').forEach(e=>e.removeAttribute('data-sog-shot-chrome'))")
 
 
-def check_visible_equations(page) -> None:
+def check_visible_equations(page, *, require_full_width: bool = False) -> None:
     for equation in page.locator('#natural-language mjx-container[display="true"]').all():
         # Other proof/source sections intentionally remain folded. Check their
         # equations when opened, not the zero-size boxes of closed details.
@@ -43,6 +43,11 @@ def check_visible_equations(page) -> None:
           const hit=document.elementFromPoint((r.left+r.right)/2,(r.top+r.bottom)/2);
           return r.width>0 && r.height>0 && (hit===e || e.contains(hit));
         }"""), 'Rendered equation is obscured in the actual viewport'
+        if require_full_width:
+            assert equation.evaluate("""e => {
+              const outer=e.getBoundingClientRect(), math=e.querySelector('mjx-math').getBoundingClientRect();
+              return math.left >= outer.left-1 && math.right <= outer.right+1;
+            }"""), 'Rendered equation requires horizontal scrolling'
 
 
 def main() -> None:
@@ -185,6 +190,13 @@ def main() -> None:
                 page.wait_for_function('Array.from(document.querySelectorAll("[data-lean-copy-status]")).some(n=>n.textContent==="Copied")')
                 copied = page.evaluate('() => navigator.clipboard.readText()')
                 assert 'example' in copied and 'sorry' not in copied
+                if identity == 'sogb-038':
+                    assert 'private theorem finiteMixture_apply' in copied
+                    task = page.request.get(base + HUB + 'downloads/lean/sogb-038-task.lean.txt')
+                    reference = page.request.get(base + HUB + 'downloads/lean/sogb-038-reference.lean')
+                    assert task.status == reference.status == 200
+                    assert 'finiteMixture_apply' not in task.text()
+                    assert copied.replace('\r\n', '\n').strip() == reference.text().replace('\r\n', '\n').strip()
                 assert not page.evaluate('document.documentElement.scrollWidth > innerWidth + 1')
                 page.screenshot(path=str(args.evidence / (identity + '-proof-desktop.png')), full_page=True)
                 page.locator('summary', has_text='How the Lean proof follows these steps').click()
@@ -223,6 +235,16 @@ def main() -> None:
                 for span in page.locator('[data-math-original]').all():
                     assert span.locator('mjx-container').count() == 1, (core['id'], span.get_attribute('data-math-original'))
                 check_visible_equations(page)
+                if core['id'] in {'sogb-032', 'sogb-033', 'sogb-034', 'sogb-035', 'sogb-037', 'sogb-038'}:
+                    page.set_viewport_size({'width': 390, 'height': 915})
+                    page.reload()
+                    page.wait_for_function('Boolean(window.MathJax?.startup?.promise)')
+                    page.evaluate('() => MathJax.startup.promise')
+                    page.locator('summary', has_text='Reference mathematical proof').click()
+                    assert page.locator('mjx-merror,[data-mjx-error]').count() == 0, core['id']
+                    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), core['id']
+                    check_visible_equations(page, require_full_width=core['id'] in {'sogb-037', 'sogb-038'})
+                    page.set_viewport_size({'width': 1400, 'height': 1000})
             for core in (c for c in reference_records if c.get('support_source_view') and (not args.core or c['id'] in args.core)):
                 identity=core['id']
                 for width,height,suffix in ((1400,1000,'desktop'),(412,915,'mobile')):
@@ -287,6 +309,11 @@ def main() -> None:
                     assert 'not automatically verified mathematics' in page.locator('article.sog-reader').inner_text()
                     assert page.locator('details[open]').count()==0
                     page.locator('summary', has_text='Commands and input formats').click()
+                    assert page.locator('pre code', has_text='sog_bench_prose.py plan --run-metadata').is_visible()
+                    protocol = page.request.get(base + HUB + 'downloads/EVALUATION.md')
+                    assert protocol.status == 200
+                    assert hashlib.sha256(protocol.body()).hexdigest() == manifest['files']['EVALUATION.md']
+                    assert all(flag in protocol.text() for flag in ('--plan-sha256', 'selection_timing_verified', 'score-panel'))
                     with page.expect_download() as metadata_download:
                         page.get_by_role('link',name='Run-metadata template',exact=True).click()
                     template=json.loads(Path(metadata_download.value.path()).read_text(encoding='utf-8'))

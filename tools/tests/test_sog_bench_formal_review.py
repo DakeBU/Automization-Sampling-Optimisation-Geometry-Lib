@@ -55,11 +55,39 @@ class PairedReviewTests(unittest.TestCase):
 
     def test_actual_distinct_actor_evidence_admits_one_conclusion_only_pair(self):
         rows = formal.statuses(self.cores)
-        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028'})
+        self.assertEqual(set(rows), {'sogb-015','sogb-016','sogb-017','sogb-018','sogb-019','sogb-021','sogb-022','sogb-023','sogb-025','sogb-028','sogb-032','sogb-037','sogb-038'})
         self.assertEqual(rows['sogb-015']['editorial'], 'accepted')
         self.assertEqual(rows['sogb-015']['formal_alignment'], 'conclusion-only')
         self.assertTrue(rows['sogb-015']['remaining_unformalized'])
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 30)
+        self.assertEqual(rows['sogb-032']['editorial'], 'accepted')
+        self.assertEqual(rows['sogb-032']['formal_alignment'], 'conclusion-only')
+        self.assertEqual(rows['sogb-038']['editorial'], 'accepted-after-repair')
+        self.assertEqual(rows['sogb-038']['formal_alignment'], 'conclusion-only')
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 36)
+
+    def test_common_kernel_review_preserves_rejected_predecessor(self):
+        directory = formal.REVIEWS / 'formal-13'
+        previous = directory / 'predecessor-repair-required'
+        packet = json.loads((previous / 'packets/reviewer-input.json').read_text(encoding='utf-8'))
+        self.assertEqual(formal.round_statuses(packet['mathematical_cores'], previous)['sogb-037']['editorial'],
+                         'repair-required')
+        self.assertEqual(formal.round_statuses(self.cores, previous)['sogb-037']['editorial'], 'stale')
+        accepted = formal.round_statuses(self.cores, directory)['sogb-037']
+        self.assertEqual(accepted['editorial'], 'accepted')
+        self.assertEqual(accepted['formal_alignment'], 'conclusion-only')
+
+    def test_sphere_bound_uses_only_the_reviewed_anonymous_alias(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-032')
+        directory = formal.REVIEWS/'formal-12'
+        packet, _ = formal.decoder_payload([core])
+        self.assertIn('anonymous_constant_1', packet['cases'][0]['statement'])
+        self.assertNotIn('AutoSamplingTheory', json.dumps(packet))
+        for symbols in ([core['declaration']], core['decoder_symbols'] * 2):
+            with self.assertRaises(ValueError):
+                formal.decoder_payload([{**core, 'decoder_symbols': symbols}])
+        changed = deepcopy(bench.load())
+        next(c for c in changed['cores'] if c['id'] == core['id'])['question'] += ' Unreviewed conclusion.'
+        self.assertEqual(formal.round_statuses(bench.materialize(changed), directory)[core['id']]['editorial'], 'stale')
 
     def test_transport_join_has_its_own_blind_reconstruction_and_source_boundaries(self):
         core=next(c for c in self.cores if c['id']=='sogb-018')

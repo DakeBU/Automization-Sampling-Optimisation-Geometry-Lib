@@ -27,8 +27,8 @@ class BenchTests(unittest.TestCase):
 
     def test_available_views_share_core_family_and_split_without_fake_pairs(self):
         prompts = bench.prompts(self.cores)
-        self.assertEqual(len(self.cores), 30)
-        self.assertEqual(len(prompts), 43)
+        self.assertEqual(len(self.cores), 36)
+        self.assertEqual(len(prompts), 52)
         for core in self.cores:
             views = [r for r in prompts if r['id'] == core['id']]
             self.assertEqual({r['track'] for r in views}, set(core['track_levels']))
@@ -63,6 +63,33 @@ class BenchTests(unittest.TestCase):
         self.assertIn('by_cases hq', self.cores[1]['lean_reference'])
         self.assertIn('hV.2', self.cores[2]['lean_reference'])
 
+    def test_same_file_reference_helper_is_not_in_the_learner_task(self):
+        data = bench.load()
+        module = 'AutoSamplingTheory.TechnicalLemmas.Probability.KernelMixture'
+        helper = module + '.finiteMixture_apply'
+        raw = {**data['cores'][0], 'id': 'sogb-helper-fixture', 'context': '',
+               'declaration': module + '.finiteMixture_invariant',
+               'source_file': module.replace('.', '/') + '.lean', 'reference_helpers': [helper]}
+        core = bench.materialize({**data, 'cores': [raw]})[0]
+        self.assertIn('private theorem finiteMixture_apply', core['lean_reference'])
+        self.assertIn('Kernel.withDensity_apply', core['lean_reference'])
+        self.assertNotIn('finiteMixture_apply', core['lean_task'])
+        self.assertNotIn('import ' + module, core['lean_reference'])
+        for prompt in bench.prompts([core]):
+            self.assertNotIn('reference_helpers', prompt)
+            self.assertNotIn('finiteMixture_apply', prompt['question'])
+        import sog_bench_lean
+        runtime = sog_bench_lean.packet(core)
+        self.assertIn(b'private theorem finiteMixture_apply', runtime['oracle/Solution.lean.txt'])
+        for name in ('agent/prompt.json', 'agent/Solution.lean.txt', 'verifier/Challenge.lean'):
+            self.assertNotIn(b'finiteMixture_apply', runtime[name])
+        for invalid in ([], [helper, helper], [raw['declaration']], [data['cores'][0]['declaration']],
+                        [module + '.finiteMixture'], [module + '.finiteMixture_isMarkovKernel', helper]):
+            with self.assertRaises(ValueError):
+                bench.materialize({**data, 'cores': [{**raw, 'reference_helpers': invalid}]})
+        with self.assertRaises(ValueError):
+            bench.materialize({**data, 'cores': [{**raw, 'lean_enabled': False}]})
+
     def test_binding_changes_with_prose_or_context(self):
         for key in ('question', 'context', 'boundary'):
             changed = deepcopy(bench.load())
@@ -78,7 +105,7 @@ class BenchTests(unittest.TestCase):
             bench.export(output, self.cores)
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
-            self.assertEqual(manifest['qa_views'], 43)
+            self.assertEqual(manifest['qa_views'], 52)
             self.assertEqual(manifest['graph_tasks'], 7)
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -87,6 +114,9 @@ class BenchTests(unittest.TestCase):
             self.assertEqual(manifest['editorial_accepted_graph_tasks'], graph_review.summary(bench.curriculum.graph_items())['accepted_tasks'])
             self.assertIn('human-attested', manifest['prose_scoring'])
             self.assertTrue((output/'EVALUATION.md').is_file())
+            self.assertEqual((output/'FAMILY_ISOLATION.md').read_bytes(), (bench.DATA.parent/'FAMILY_ISOLATION.md').read_bytes())
+            self.assertIn('](FAMILY_ISOLATION.md)', (output/'EVALUATION.md').read_text(encoding='utf-8'))
+            self.assertIn('href="../downloads/FAMILY_ISOLATION.md"', reader.evaluation_guide())
             self.assertTrue((output/'TEXTBOOK_EXERCISES.md').is_file())
             self.assertIn('source intake is not QA admission', manifest['textbook_exercise_programme'])
             intake = (output/'TEXTBOOK_EXERCISES.md').read_text(encoding='utf-8')
@@ -192,20 +222,54 @@ class BenchTests(unittest.TestCase):
         rendered = reader.prose(source)
         self.assertIn(r'\begin{gathered}a=b,\\ c=d\end{gathered}', rendered)
         self.assertEqual(source, r'Proof \[a=b,\qquad c=d\] done.')
-        for nested in (r'\[\text{a,\qquad b}=c\]', r'\[\begin{aligned}a&=b,\qquad c&=d\end{aligned}\]'):
+        wrapped = "\\[a=b,\n  \\qquad c=d\n    -e\\]"
+        self.assertIn(r'\begin{gathered}a=b,\\ c=d\\    -e\end{gathered}', reader.prose(wrapped))
+        for nested in (r'\[\text{a,\qquad b}=c\]', r'\[\begin{aligned}a&=b,\qquad c&=d\end{aligned}\]',
+                       r'\[f(a,\qquad b)=c\]', "\\[a=(b\n  -c)\\]", "\\[a=\\|b\n  -c\\|\\]",
+                       "\\[a=\\left|b\n  -c\\right|\\]", "\\[a \\le\n  -c\\]", r'\[a=b,\qquad \]'):
             self.assertNotIn(r'\begin{gathered}', reader.prose(nested))
+
+    def test_stopped_work_display_wraps_without_changing_the_bound_text(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-035')
+        before = bench.encoded(core)
+        assumption = next(a for a in core['assumptions'] if r'\eta_t(h)' in a)
+        estimate = next(s for s in core['steps'] if r'\left|\mathbb E_Q W' in s)
+        self.assertIn(r'\begin{aligned}&amp;\eta_t(h)\\&amp;=\sum',
+                      reader.prose(assumption, paragraph=False))
+        self.assertIn(r'\right|\\&amp;=\left|', reader.prose(estimate))
+        self.assertEqual(bench.encoded(core), before)
+
+    def test_common_kernel_reference_retains_credit_but_not_answer_in_prompt(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-037')
+        self.assertEqual(core['family'], 'adaptive-hybrid-cost-boundary')
+        self.assertEqual(core['track_levels'], {'natural-language': 'L3', 'lean': 'L3'})
+        reference = core['lean_reference']
+        self.assertIn('Copyright (c) 2023 Kalle Kytölä.', reference)
+        self.assertIn('Mathlib/MeasureTheory/Measure/LevyProkhorovMetric.lean', reference)
+        self.assertIn('integral_eq_integral_Ioc_meas_le', reference)
+        for row in bench.prompts([core]):
+            self.assertNotIn('have htail', row['question'])
+            self.assertNotIn('integral_eq_integral_Ioc_meas_le', row['question'])
+        step = next(s for s in core['steps'] if r'\begin{aligned}D_T' in s)
+        self.assertIn(r'\\ &amp;\le\delta', reader.prose(step))
+        round_dir = bench.DATA.parent / 'reviews/formal-13'
+        with patch.object(bench, 'RECEIPT', round_dir / 'trusted-reference-receipt.json'):
+            self.assertTrue(bench.receipt_current([core]))
 
     def test_seven_domain_five_level_matrix_does_not_invent_coverage(self):
         graphs = bench.curriculum.graph_items()
         coverage = bench.curriculum.coverage(self.cores, graphs)
         self.assertEqual(len(coverage['cells']), 35)
-        self.assertEqual(coverage['unique_mathematical_cores'], 30)
-        self.assertTrue(all(c['gap'] for c in coverage['cells'] if c['level'] == 'L5'))
+        self.assertEqual(coverage['unique_mathematical_cores'], 36)
+        self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
+                         {'samplewiki', 'mcmc'})
+        self.assertEqual([c['id'] for c in self.cores if c['track_levels'].get('natural-language') == 'L5'],
+                         ['sogb-035'])
         self.assertFalse(any(c['track_levels'].get('lean') == 'L5' for c in self.cores))
         self.assertTrue(all(c['independently_reviewed'] == 0 for c in coverage['cells']))
         self.assertEqual(coverage['mathematical_editorial_status'], 'pending')
         current = bench.coverage(self.cores, graphs)
-        self.assertEqual(current['editorial_accepted_mathematical_cores'], 30)
+        self.assertEqual(current['editorial_accepted_mathematical_cores'], 36)
         self.assertEqual(current['mathematical_editorial_status'], 'complete-for-current-cores')
         self.assertEqual(current['graph_editorial_status'], graph_review.summary(graphs)['editorial_status'])
         self.assertEqual({d for c in self.cores for d in c['library_domains']}, set(bench.curriculum.curriculum()['domains']))
@@ -500,9 +564,11 @@ class BenchTests(unittest.TestCase):
 
     def test_exercise_prose_changes_do_not_recompile_unchanged_owned_answers(self):
         data = deepcopy(bench.load())
-        data['cores'][-1]['question'] += ' Extra unaudited clause.'
+        identity = 'sogb-030'
+        next(c for c in data['cores'] if c['id'] == identity)['question'] += ' Extra unaudited clause.'
         changed = bench.materialize(data)
-        self.assertNotEqual(changed[-1]['binding_sha256'], self.cores[-1]['binding_sha256'])
+        self.assertNotEqual(next(c for c in changed if c['id'] == identity)['binding_sha256'],
+                            next(c for c in self.cores if c['id'] == identity)['binding_sha256'])
         self.assertEqual(bench.environment_digest(changed), bench.environment_digest(self.cores))
         self.assertEqual(exercises.compile_contexts(changed), exercises.compile_contexts(self.cores))
 

@@ -1,0 +1,310 @@
+{
+  "semantic_slots": {
+    "objects": {
+      "original": "The literal real-valued energy U, formed from rho, its even quotient kernel, and the oriented primitive.",
+      "reconstructed": "F uses g=expNegInvGlue with the same two branches and exactly the same quotient, integral and scale.",
+      "relation": "same",
+      "evidence": "Footnote3 and Eq17 agree with the entire energyTruncation body. Pinned SmoothTransition.lean:39 defines expNegInvGlue as 0 for x<=0 and exp(-x^-1) otherwise; -x^-1=-1/x."
+    },
+    "domains": {
+      "original": "n is a positive integer; beta and lambda are strictly positive real numbers; y and the integration variable range over all real numbers.",
+      "reconstructed": "PNat for n, strict-positive real subtypes for beta and lam, unrestricted real y.",
+      "relation": "same",
+      "evidence": "The definition admits n=1 and arbitrarily small positive beta/lambda, but none of n=0,beta=0,lambda=0. Its denominator in the kernel is positive for every s, including |s|=1 and |s|=2."
+    },
+    "quantifiers": {
+      "original": "For every allowed parameter tuple and every real input, define a single function value.",
+      "reconstructed": "A total function on exactly that positive-parameter product carrier, not an existence theorem or arbitrary witness.",
+      "relation": "same",
+      "evidence": "The lambda body and public binders are explicit; no existential choice of U, phi or cutoff is supplied."
+    },
+    "assumptions": {
+      "original": "Only positive source parameter conventions are required for this definition; no random variable, gate or analytic property is an input.",
+      "reconstructed": "Positivity is encoded in the carriers, with no additional proof premises.",
+      "relation": "same",
+      "evidence": "There are no bundled project-owned proposition assumptions. The source rho's zero branch is its literal definition, not an off-source default at forbidden scale parameters."
+    },
+    "conclusion": {
+      "original": "Define U(y)=(n beta^2/lambda) times the oriented integral of the rho quotient from 0 to lambda*y/(n*beta); no estimate is claimed.",
+      "reconstructed": "The same value is returned; the blind reconstruction explicitly says this is a definition, not a theorem.",
+      "relation": "same",
+      "evidence": "Direct body comparison, expanded expNegInvGlue and signed interval endpoints establish literal equality. The binding is prerequisite supporting literal-load only."
+    },
+    "scopes": {
+      "original": "Ordinary real integral oriented from zero, so negative inputs reverse its sign.",
+      "reconstructed": "Real Lebesgue intervalIntegral, with the sign convention for all endpoints.",
+      "relation": "explicit-elaboration",
+      "evidence": "The kernel is continuous by its canonical cutoff identity; hence it is interval-integrable on every finite interval. Totalization does not alter the source's ordinary integral. No conditional expectation occurs."
+    },
+    "constant_dependencies": {
+      "original": "Only n,beta,lambda enter the two scale factors; no hidden constants or variance appear.",
+      "reconstructed": "Exactly n*beta^2/lam and lam/(n*beta), with no other parameter.",
+      "relation": "same",
+      "evidence": "The literal body contains no ambient constants or recursion. The shared publication item also contains a theorem, but this target's own lesson/binding claims no Gaussian estimate."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "reviewer": "/root/energy_truncation_compiler_source_review",
+  "independent_from_formalizer": true,
+  "independent_from_decoder": true,
+  "review_evidence": "Independent anti-anchored review of the fresh packet, primary arXiv v1 source, exact whole Lean module, actual focused Tests, authored lesson and pinned dependencies. All seven slots were compared mathematically; compiler results are recorded separately and are not used to infer source fidelity. See reviewed_context, input_evidence, helper_review and source_scope_review. No earlier semantic/source verdict or statement-review verdict was an input.",
+  "review_run_sha256": "d9bb6f11299a99f4d92b6b7c8dcd6fc9e31e7603bc7ef6719b52562096cc0e7f",
+  "reviewer_packet_sha256": "c32fe4d467b26481c239f20c7d2912b71eb70dfdf0e4cb26627ad334a0b530d5",
+  "reviewed_context": {
+    "candidate_commit": "c873bd3f828ea112a53d62fdc5e9a5f59c04f129",
+    "worktree": "D:/Users/HUAWEI/Desktop/Github/Auto-Sampling-Theory-In-Sleep/.astis/lower-bounds-hub",
+    "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation",
+    "publication_binding_sha256": "d0f2c548607cf8d34173b37fc996a0cc57b5c1ad696237ef7489eee103ade6e8",
+    "publication_context_sha256": "de07f54cfb05e1474884c8d57176352f64a6b9983f10a981168ac16484149b46",
+    "current_whole_module_and_lesson_match_packet": true,
+    "candidate_publication_context": {
+      "file": "21ec028d6b00f09ad6c046b5dce06af2e318074d60b2aa4b31b64ad78bc4e738",
+      "current_lean_module": "/-\nCopyright (c) 2026 Samplinglib contributors. All rights reserved.\nReleased under Apache 2.0 license as described in the file LICENSE.\n-/\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff\nimport AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad\nimport Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus\nimport Mathlib.Probability.HasLaw\nimport Mathlib.Data.PNat.Basic\n\n/-!\n# The literal energy truncation and its Gaussian bound\n\nZhou–Suzuki, arXiv:2611.05813v1 (CC BY 4.0), footnote 3, Eq. (17), and Fact 10.\nThe definition uses the source's rho quotient, not an abstract odd load. Its\npositive parameter types exclude off-source zero-denominator defaults. The\nproof identifies the integrand with the existing canonical cutoff and derives\nall hypotheses of the Gaussian comparison internally. This does not construct\nthe recursive amplitudes, coefficient fields, or conditional iteration of\nLemma 6.2, nor prove the main sampling query lower bounds.\n-/\n\nopen MeasureTheory\nopen scoped NNReal\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff\nopen AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad\n\nnamespace AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation\n\n/-- The literal source energy truncation on positive source parameters.\n`expNegInvGlue` is rho and the interval integral is oriented. -/\nnoncomputable def energyTruncation (n : ℕ+) (β lam : {r : ℝ // 0 < r}) (y : ℝ) : ℝ :=\n  (n : ℝ) * (β : ℝ) ^ 2 / (lam : ℝ) *\n    ∫ s in (0 : ℝ)..((lam : ℝ) * y / ((n : ℝ) * (β : ℝ))),\n      expNegInvGlue (2 - |s|) /\n        (expNegInvGlue (2 - |s|) + expNegInvGlue (|s| - 1))\n\nprivate theorem kernel_eq_cutoff (s : ℝ) :\n    expNegInvGlue (2 - |s|) /\n      (expNegInvGlue (2 - |s|) + expNegInvGlue (|s| - 1)) = smoothUnitCutoff s := by\n  have harg : 1 - (2 - |s|) = |s| - 1 := by ring\n  have hden : 0 < expNegInvGlue (2 - |s|) + expNegInvGlue (|s| - 1) := by\n    simpa only [harg] using Real.smoothTransition.pos_denom (2 - |s|)\n  rw [div_eq_iff hden.ne', smoothUnitCutoff_eq_smoothTransition,\n    Real.smoothTransition, harg, div_mul_cancel₀ _ hden.ne']\n\nprivate theorem primitive_continuous :\n    Continuous (fun t : ℝ ↦ ∫ s in (0 : ℝ)..t, smoothUnitCutoff s) :=\n  (intervalIntegral.differentiable_integral_of_continuous\n    smoothUnitCutoff_contDiff.continuous).continuous\n\nprivate theorem primitive_odd (t : ℝ) :\n    (∫ s in (0 : ℝ)..(-t), smoothUnitCutoff s) =\n      -(∫ s in (0 : ℝ)..t, smoothUnitCutoff s) := by\n  have heven (s : ℝ) : smoothUnitCutoff (-s) = smoothUnitCutoff s := by\n    simp only [smoothUnitCutoff_eq_smoothTransition, abs_neg]\n  have h := intervalIntegral.integral_comp_neg (f := smoothUnitCutoff) (a := 0) (b := t)\n  simp only [heven, neg_zero] at h\n  rw [intervalIntegral.integral_symm, ← h]\n\nprivate theorem primitive_abs_le (t : ℝ) :\n    |∫ s in (0 : ℝ)..t, smoothUnitCutoff s| ≤ |t| := by\n  have h := intervalIntegral.norm_integral_le_of_norm_le_const\n    (a := 0) (b := t) (C := 1) (f := smoothUnitCutoff) (fun s _ ↦ by\n      rw [Real.norm_eq_abs, abs_of_nonneg (smoothUnitCutoff_mem_Icc s).1]\n      exact (smoothUnitCutoff_mem_Icc s).2)\n  simpa only [Real.norm_eq_abs, sub_zero, one_mul] using h\n\nprivate theorem load_eq (n : ℕ+) (β lam : {r : ℝ // 0 < r}) (y : ℝ) :\n    energyTruncation n β lam y = (n : ℝ) * (β : ℝ) ^ 2 / (lam : ℝ) *\n      ∫ s in (0 : ℝ)..((lam : ℝ) * y / ((n : ℝ) * (β : ℝ))), smoothUnitCutoff s := by\n  simp only [energyTruncation, kernel_eq_cutoff]\n\nprivate theorem load_continuous (n : ℕ+) (β lam : {r : ℝ // 0 < r}) :\n    Continuous (energyTruncation n β lam) := by\n  simp_rw [show energyTruncation n β lam = fun y ↦ (n : ℝ) * (β : ℝ) ^ 2 / (lam : ℝ) *\n      ∫ s in (0 : ℝ)..((lam : ℝ) * y / ((n : ℝ) * (β : ℝ))), smoothUnitCutoff s\n    from funext (load_eq n β lam)]\n  exact continuous_const.mul (primitive_continuous.comp (by fun_prop))\n\nprivate theorem load_odd (n : ℕ+) (β lam : {r : ℝ // 0 < r}) :\n    Function.Odd (energyTruncation n β lam) := by\n  intro y\n  simp only [load_eq, mul_neg, neg_div, primitive_odd, mul_neg]\n\nprivate theorem load_abs_le (n : ℕ+) (β lam : {r : ℝ // 0 < r}) (y : ℝ) :\n    |energyTruncation n β lam y| ≤ (β : ℝ) * |y| := by\n  have hn : (0 : ℝ) < n := by exact_mod_cast n.pos\n  have hβ : (0 : ℝ) < β := β.property\n  have hlam : (0 : ℝ) < lam := lam.property\n  rw [load_eq, abs_mul, abs_of_pos (div_pos (mul_pos hn (sq_pos_of_pos hβ)) hlam)]\n  calc\n    _ ≤ (n : ℝ) * (β : ℝ) ^ 2 / (lam : ℝ) *\n        |(lam : ℝ) * y / ((n : ℝ) * (β : ℝ))| :=\n      mul_le_mul_of_nonneg_left (primitive_abs_le _) (by positivity)\n    _ = (β : ℝ) * |y| := by\n      rw [abs_div, abs_mul, abs_mul, abs_of_pos hn, abs_of_pos hβ, abs_of_pos hlam]\n      field_simp\n\n/-- Fact 10 for the literal source load, including exponential integrability and\narbitrary underlying probability space. Zero Gaussian variance is allowed. -/\ntheorem energyTruncation_gaussian_bound {Ω : Type*} [MeasurableSpace Ω]\n    (P : Measure Ω) (n : ℕ+) (β lam : {r : ℝ // 0 < r}) {Y : Ω → ℝ}\n    (v : ℝ≥0) (hY : ProbabilityTheory.HasLaw Y (ProbabilityTheory.gaussianReal 0 v) P)\n    {a : ℝ} (ha : a ∈ Set.Icc (0 : ℝ) 1) :\n    Integrable (fun ω ↦ Real.exp (-a * energyTruncation n β lam (Y ω))) P ∧\n      (∫ ω, Real.exp (-a * energyTruncation n β lam (Y ω)) ∂P) ≤\n        Real.exp ((β : ℝ) ^ 2 * ProbabilityTheory.variance Y P / 2) := by\n  obtain ⟨hint, hbound⟩ := gaussian_odd_load_bound (β := (β : ℝ)) v\n    (load_continuous n β lam).measurable (load_odd n β lam) (load_abs_le n β lam) ha\n  have hi : Integrable (fun ω ↦ Real.exp (-a * energyTruncation n β lam (Y ω))) P := by\n    have hm : Integrable (fun y ↦ Real.exp (-a * energyTruncation n β lam y)) (P.map Y) := by\n      rwa [hY.map_eq]\n    exact hm.comp_aemeasurable hY.aemeasurable\n  refine ⟨hi, ?_⟩\n  have heq := hY.integral_comp hint.aestronglyMeasurable\n  have hv : ProbabilityTheory.variance Y P = (v : ℝ) := by\n    rw [hY.variance_eq, ProbabilityTheory.variance_id_gaussianReal]\n  simpa only [Function.comp_def, hv] using heq.trans_le hbound\n\nend AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation\n",
+      "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "source": {
+        "id": "slc-lsi-complexity-2026",
+        "url": "https://arxiv.org/html/2611.05813v1#Thmfact10",
+        "anchor": "Section4.1.1 footnote3 and Eq17; Section6.2 Fact10",
+        "edition": "arXiv:2611.05813v1",
+        "wording_status": "faithful paraphrase",
+        "attribution": "Huanjian Zhou and Taiji Suzuki, CC BY4.0. ASTIS adaptation and formalization; no endorsement implied."
+      },
+      "statement": "For positive integer n and positive β,λ, define ρ(t)=exp(−1/t) for t>0 and zero otherwise, φ(t)=∫₀ᵗ ρ(2−|s|)/(ρ(2−|s|)+ρ(|s|−1)) ds, and U(y)=nβ²/λ·φ(λy/(nβ)). If Y is centered Gaussian, possibly degenerate, and a∈[0,1], then exp(−aU(Y)) is integrable and E exp(−aU(Y))≤exp(β² Var(Y)/2). This scalar statement permits any positive β,λ; the paper's recursive choices are a later instantiation.",
+      "formulae": [
+        {
+          "label": "Literal energy load",
+          "tex": "\\begin{gathered} k(s)=\\frac{\\rho(2-|s|)}{\\rho(2-|s|)+\\rho(|s|-1)},\\quad \\varphi(t)=\\int_0^t k(s)\\,ds,\\\\ U(y)=\\frac{n\\beta^2}{\\lambda}\\varphi\\!\\left(\\frac{\\lambda y}{n\\beta}\\right).\\end{gathered}"
+        },
+        {
+          "label": "Fact10",
+          "tex": "\\mathbb E e^{-aU(Y)}\\le \\exp\\!\\left(\\frac{\\beta^2\\operatorname{Var}(Y)}{2}\\right)."
+        }
+      ],
+      "assumptions": [
+        "n≥1 integer; β>0, λ>0.",
+        "Y has a centered Gaussian probability law, including variance zero.",
+        "The deterministic gate a lies in [0,1]."
+      ],
+      "obligations": [
+        {
+          "id": "literal-load",
+          "label": "Define exactly the source load on positive parameters"
+        },
+        {
+          "id": "derived-load-properties",
+          "label": "Derive measurability, oddness and sublinearity from the integral"
+        },
+        {
+          "id": "actual-gaussian-bound",
+          "label": "Prove integrability and the bound on any Gaussian probability space"
+        }
+      ],
+      "lesson": {
+        "reading_layout": "progressive",
+        "sources": [
+          {
+            "url": "https://arxiv.org/html/2611.05813v1#Thmfact10",
+            "label": "Zhou–Suzuki, footnote3, Eq17 and Fact10",
+            "scope": "Literal scalar load and its Gaussian comparison only."
+          }
+        ],
+        "tests": [
+          "lake build Tests.SlcLsiEnergyTruncation"
+        ],
+        "assumptions": [
+          "n≥1 integer; β>0, λ>0.",
+          "The input y ranges over all real numbers. No random variable or gate is part of this definition."
+        ],
+        "kind": "definition",
+        "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation",
+        "title": "The paper's energy truncation",
+        "statement": "Integrate the even unit cutoff from zero to the input, then rescale by positive n, β and λ. This is the literal function U from the source, not a freely chosen odd function.",
+        "formula": "\\begin{gathered} k(s)=\\frac{\\rho(2-|s|)}{\\rho(2-|s|)+\\rho(|s|-1)},\\quad \\varphi(t)=\\int_0^t k(s)\\,ds,\\\\ U(y)=\\frac{n\\beta^2}{\\lambda}\\varphi\\!\\left(\\frac{\\lambda y}{n\\beta}\\right).\\end{gathered}",
+        "reader_note": "This definition is a prerequisite, not a new proved inequality. All parameters have positive types; there is no fallback at zero.",
+        "steps": [
+          {
+            "title": "Use the exact smooth cutoff",
+            "text": "The source function ρ is Mathlib's expNegInvGlue. Substituting z=2−|s| in smoothTransition gives 1−z=|s|−1, so the quotient is the existing smoothUnitCutoff. Its denominator is strictly positive everywhere; its value lies in [0,1] and it is even.",
+            "formula": "k(s)=\\operatorname{smoothTransition}(2-|s|)=\\operatorname{smoothUnitCutoff}(s),\\qquad 0\\le k(s)\\le1.",
+            "lean": "The definition writes the rho quotient literally. A private proof identifies it with Cutoff.smoothUnitCutoff using smoothUnitCutoff_eq_smoothTransition and Real.smoothTransition.pos_denom."
+          },
+          {
+            "title": "Integrate and rescale",
+            "text": "The integral is oriented: for negative t, integration from zero to t reverses sign. Continuity of the kernel ensures ordinary interval integrability. Positive parameters make both scaling factors well-defined.",
+            "formula": "\\varphi(t)=\\int_0^t k(s)\\,ds,\\qquad U(y)=\\frac{n\\beta^2}{\\lambda}\\varphi\\!\\left(\\frac{\\lambda y}{n\\beta}\\right).",
+            "lean": "ℕ+ encodes a positive integer. Each subtype {r : ℝ // 0 < r} carries a real value together with its positivity proof. intervalIntegral uses signed endpoints, not an unordered interval."
+          }
+        ],
+        "lean_statement": "The public carrier admits only positive n, β and lam and arbitrary real y. The Lean binder lam denotes the source's λ.",
+        "lean_proof": "Definitions compute mathematical objects; they do not themselves prove estimates. The adjacent theorem proves the properties actually needed for Fact10 from this body.",
+        "astis_dependencies": [],
+        "mathlib_dependencies": [
+          "expNegInvGlue",
+          "intervalIntegral"
+        ],
+        "dependency_notes": "The body is a literal source formula. The following theorem reuses Samplinglib's canonical cutoff; source text is attributed separately from code provenance."
+      },
+      "binding": {
+        "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation",
+        "role": "prerequisite",
+        "supports": [
+          "literal-load"
+        ]
+      },
+      "candidate_assumptions": [
+        {
+          "source": "n positive integer and β_i,λ positive in the standing construction",
+          "lean": "n:ℕ+; β and lam:{r:ℝ // 0<r}"
+        },
+        {
+          "source": "φ is the footnote3 oriented integral of the rho quotient; U_i is Eq17",
+          "lean": "Literal expNegInvGlue quotient and interval integral"
+        }
+      ]
+    }
+  },
+  "input_evidence": {
+    "files": [
+      {
+        "path": "runs/20261109-slc-lsi-energy-truncation/definition-reviewer-packet.json",
+        "sha256": "fb977f1ff635527892d2c0d6a032c618ee3ff924e94042ea8fc9a295470e7982"
+      },
+      {
+        "path": "AutoSamplingTheory/ExampleCases/SlcLsiQueryComplexity/EnergyTruncation.lean",
+        "sha256": "21ec028d6b00f09ad6c046b5dce06af2e318074d60b2aa4b31b64ad78bc4e738"
+      },
+      {
+        "path": "Tests/SlcLsiEnergyTruncation.lean",
+        "sha256": "b48f039629dff2e6a1f39567a67fefdc3c9c757ad42c235a9fb4f8cacb622ec2"
+      },
+      {
+        "path": "website/content/declaration_lessons/slc-lsi-energy-truncation.json",
+        "sha256": "ba744fd18363a837f29e7532e51d01a7fd5352af092775fe3001a56f86931cbb"
+      },
+      {
+        "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/Calculus/Cutoff.lean",
+        "sha256": "2e931c85c06a0a5ad815a396e7b9e678dc5fb0fd8bcdf6ba6ab2eabe2cde1706"
+      },
+      {
+        "path": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianOddLoad.lean",
+        "sha256": "aa0b5512344331884a60d82843a750a0c0172d0f58b677abc7ccd8b411d88783"
+      },
+      {
+        "path": ".lake/packages/mathlib/Mathlib/Analysis/SpecialFunctions/SmoothTransition.lean",
+        "sha256": "41c4fb6eed4032dec075a90f619fd8038e517fb4cf021b2961e481dac5346bcc"
+      },
+      {
+        "path": ".lake/packages/mathlib/Mathlib/Probability/HasLaw.lean",
+        "sha256": "3fd202322317b1699c20beee8747e943231e6ece2ea26ef855485af0fb5fb4b2"
+      },
+      {
+        "path": "lean-toolchain",
+        "sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b"
+      },
+      {
+        "path": "lake-manifest.json",
+        "sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37"
+      }
+    ],
+    "source": {
+      "url": "https://arxiv.org/html/2611.05813v1",
+      "edition": "arXiv:2611.05813v1",
+      "access_date": "2026-11-09",
+      "locations": [
+        "Section 4.1.1 footnote 3 and Eq. (17), including positive parameter conventions immediately after Eq. (17)",
+        "Section 6.2 pre-Fact 10 scaling display, Fact 10 statement and proof",
+        "Section 6.2 immediately following Fact 10: conditional product recursion and Tonelli consumer"
+      ],
+      "method": "Primary HTML read independently; Eq. (17)'s formula also appears explicitly in the Section 6.2 pre-Fact 10 paragraph. No previous verdict or source-review artifact was consulted."
+    },
+    "protocols": [
+      "AGENTS.md",
+      ".agents/skills/astis-semantic-roundtrip/SKILL.md",
+      "docs/theorem-publication-protocol.md",
+      "docs/proof-digestion-protocol.md",
+      "docs/evidence-routed-memory-protocol.md"
+    ],
+    "packet_canonical_hash_recomputed": true,
+    "excluded_inputs": [
+      "prior source verdicts",
+      "statement-review verdict",
+      "old source reviews",
+      "formalizer's private rationale"
+    ]
+  },
+  "helper_review": {
+    "scope": "All eight private declarations in the exact current whole module; no separate public mathematical credit.",
+    "public_owner": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation_gaussian_bound",
+    "helpers": [
+      {
+        "name": "kernel_eq_cutoff",
+        "check": "At z=2-|s|, 1-z=|s|-1. smoothTransition.pos_denom gives strict positivity for every real s; denominator clearing is therefore legitimate and equality with smoothUnitCutoff holds globally."
+      },
+      {
+        "name": "primitive_continuous",
+        "check": "The canonical cutoff is ContDiff, hence continuous; differentiable_integral_of_continuous yields continuity of its variable-endpoint oriented primitive."
+      },
+      {
+        "name": "primitive_odd",
+        "check": "The cutoff is even by the smoothTransition representation and abs_neg. integral_comp_neg followed by integral_symm proves the sign reversal for both signs of t, including zero."
+      },
+      {
+        "name": "primitive_abs_le",
+        "check": "The pointwise range [0,1] bounds the norm by 1. The oriented integral norm estimate gives |primitive(t)| <= |t|, without restricting t to nonnegative values."
+      },
+      {
+        "name": "load_eq",
+        "check": "Pointwise kernel equality rewrites the literal body, not a new freely chosen load or assumption."
+      },
+      {
+        "name": "load_continuous",
+        "check": "Composition of the continuous primitive with the real-linear scaled input and multiplication by the constant prefactor supplies continuity and thus measurability."
+      },
+      {
+        "name": "load_odd",
+        "check": "The linear input sends -y to the negative endpoint; primitive_odd and scalar multiplication give actual oddness of the literal function."
+      },
+      {
+        "name": "load_abs_le",
+        "check": "Positivity is extracted from PNat and the two strict-positive subtypes. The positive outer scale times the primitive estimate cancels n and lambda, giving beta*|y| exactly; all field denominators are nonzero."
+      }
+    ],
+    "result": "accepted"
+  },
+  "source_scope_review": {
+    "source_nodes": [
+      "footnote3: rho and literal even cutoff primitive",
+      "Eq17: positive scalar rescaling",
+      "Section6.2 pre-Fact10: oddness and linear absolute bound",
+      "Fact10: frozen deterministic gate, centered Gaussian symmetry, cosh comparison, Gaussian MGF"
+    ],
+    "source_edges": [
+      "footnote3 -> Eq17 (definition of U_i)",
+      "footnote3 properties + Eq17 positivity -> pre-Fact10 scaling estimate",
+      "oddness + absolute estimate + Gaussian symmetry/MGF -> Fact10",
+      "Fact10 -> later conditional product recursion (planned consumer, not proved here)"
+    ],
+    "excluded_with_reason": [
+      "The recursive beta_i choice of Eq. (18), its well-definedness and admissibility estimates are not proved here.",
+      "The plateau, global cap and higher derivative properties listed after footnote 3 are outside this scalar bound's proved obligations; only the properties consumed by Fact 10 are established.",
+      "Radial cutoffs, tensor coefficient fields, their Gaussian laws/independence and the gates are not constructed.",
+      "The conditional product factorization/iteration after Fact 10, integration in x via Tonelli, all three first-moment estimates of Lemma 6.2 and all main sampling lower bounds remain separate.",
+      "No aggregate repository gate, merge, whole-paper completion, purification or independent global source-topology seal is asserted."
+    ],
+    "raw_source_generalization": "The original construction selects beta_i and lambda recursively. The packet explicitly abstracts the scalar formula to arbitrary positive beta,lambda. The Fact10 proof uses only their positivity and exact scaling; no recursive identity is dropped from a required scalar premise. This is an explicit parameter generalization, not a claim that the recursive construction has been formalized.",
+    "status": "bounded source/Lean/exposition correspondence accepted; not a global topology lifecycle certificate"
+  },
+  "authored_lesson_review": {
+    "kind": "definition",
+    "accepted": true,
+    "definition_and_theorem_kept_separate": true,
+    "actual_lesson_file": "website/content/declaration_lessons/slc-lsi-energy-truncation.json",
+    "actual_lesson_sha256": "ba744fd18363a837f29e7532e51d01a7fd5352af092775fe3001a56f86931cbb",
+    "boundary_outside_packet_projection_checked": true,
+    "notes": "The actual authored unit matches every field of the packet's lesson projection. Its additional boundary field explicitly leaves recursive parameters, higher smoothness/cap/plateau claims, coefficient fields, conditional iteration, Lemma6.2 and main results open. Both explanatory steps are justified: kernel equality/positivity/evenness/range and oriented integration/scaling. The definition's empty ASTIS dependency list correctly describes the literal body; canonical cutoff reuse belongs to the adjacent proof."
+  },
+  "compilation_evidence": "runs/20261109-slc-lsi-energy-truncation/independent-compile-review.json"
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "reading_layout": "progressive",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#S4.E15",
+          "label": "Zhou–Suzuki, §4.1.1, coefficient direct sum and law",
+          "scope": "Unconditioned joint coefficient construction."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiCoefficientBlocks"
+      ],
+      "boundary": "Unconditioned joint coefficient law and its block marginals and mutual independence only. Degree sums, radial/zero-block fields, adaptive and conditional laws, admissibility, normalizer moments and all main lower bounds remain open.",
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks.jointCoefficientBlocks_hasLaw",
+      "title": "Split the joint Gaussian into its coefficient blocks",
+      "assumptions": [
+        "In the paper n is sufficiently large and h=floor((log n)^(1/3)/32). The isolated finite law holds for all positive integer n and natural h; admissibility is not generalized.",
+        "The independent standard Gaussian tensor blocks range over levels i=0,…,h and even degrees p=4,6,…,P. Each block retains the ordered tensor carrier with n^(pS_i) coordinates.",
+        "The law is unconditioned. The family carrier has the product measurable structure; the Euclidean geometry is on the ℓ² direct sum, not the default dependent-function norm."
+      ],
+      "statement": "Under the actual joint standard Gaussian, each coordinate block has its standard Gaussian law, and the entire family has their product law. This is mutual independence, not only zero covariance or pairwise independence.",
+      "formula": "\\operatorname{group}_{\\#}\\mathcal N(0,I_{\\mathcal G_n})=\\bigotimes_{b\\in B}\\mathcal N(0,I_{E_b}).",
+      "reader_note": "The paper goes from independent draws to a single Euclidean vector. The Lean law uses the inverse entrywise map. Neither orientation changes a coordinate or a variance.",
+      "steps": [
+        {
+          "title": "Identify the ordered direct-sum coordinates",
+          "text": "Let b=(i,p). Each tensor slot is a choice of a copy of the trailing tensor, then a trailing block and one of its repeated factors. A coordinate chooses one of n entries in each slot. Tag it by b so that grouping and flattening are inverse, with no duplicate or lost coordinate.",
+          "formula": "\\begin{gathered}K=2^{74(h+1)},\\quad P=2^{64(h+1)},\\quad S_i=\\sum_{j=0}^{h-i}K^j,\\\\ T_b=\\{(r,j,k):0\\le r<p,\\ 0\\le j\\le h-i,\\ 0\\le k<K^j\\},\\\\ C_b=\\{c:T_b\\to\\{0,\\ldots,n-1\\}\\},\\quad E_b=\\mathbb R^{C_b},\\quad |C_b|=n^{pS_i},\\\\ \\mathcal G_n=\\bigoplus_{b\\in B}E_b,\\qquad \\operatorname{group}(\\xi)_b(c)=\\xi_{(b,c)}.\\end{gathered}",
+          "lean": "Fin(P+1) keeps the upper endpoint P, and the subtype retains the lower endpoint and parity. The dependent sum Σ b, C b realizes the flat coordinate index. WithLp.toLp 2 wraps each coordinate array, rather than applying a stochastic transformation."
+        },
+        {
+          "title": "Group independent scalar coordinates",
+          "text": "On the flat Euclidean space the standard Gaussian is the scalar standard-normal product, written in Euclidean coordinates. The grouping map partitions this product into the same blocks. On measurable rectangles both sides give the product of exactly the same scalar probabilities.",
+          "formula": "\\gamma=\\mathcal N(0,1),\\qquad \\operatorname{split}_{\\#}\\left(\\bigotimes_{(b,c)}\\gamma\\right)=\\bigotimes_{b\\in B}\\left(\\bigotimes_{c\\in C_b}\\gamma\\right).",
+          "lean": "map_pi_eq_stdGaussian realizes the flat Gaussian. MeasurableEquiv.piCurry regroups the sigma-indexed array; infinitePi_map_piCurry and infinitePi_eq_pi give the identity for these finite index types."
+        },
+        {
+          "title": "Read the marginals and independence",
+          "text": "Wrap each scalar block into its Euclidean carrier. A coordinatewise pushforward of a product is the product of the corresponding pushforwards, so each block becomes a standard Gaussian. Product evaluation gives the marginals; the same joint identity proves mutual independence for all blocks together.",
+          "formula": "\\operatorname{group}_{\\#}\\mathcal N(0,I_{\\mathcal G_n})=\\bigotimes_{b\\in B}\\mathcal N(0,I_{E_b}).",
+          "lean": "Measure.pi_map_pi performs the blockwise pushforward. Each map in the composition is measurable, and hCompose identifies the composition entrywise with the stated map. The focused test applies measurePreserving_eval and iIndepFun_iff_map_fun_eq_pi_map to the actual theorem."
+        }
+      ],
+      "lean_statement": "HasLaw includes almost-everywhere measurability and the exact pushforward measure identity. No marginal, independence, norm equality or assumed coefficient law is a public premise.",
+      "lean_proof": "Three moves: represent the flat Gaussian by scalar coordinates, regroup those coordinates, and transport every grouped product to the Euclidean block Gaussian. The only probability infrastructure is from pinned Mathlib; the paper-specific contribution is its exact ordered carrier and law.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.map_pi_eq_stdGaussian",
+        "MeasurableEquiv.piCurry",
+        "MeasureTheory.Measure.infinitePi_map_piCurry",
+        "MeasureTheory.Measure.infinitePi_eq_pi",
+        "MeasureTheory.Measure.pi_map_pi",
+        "MeasureTheory.Measure.map_map"
+      ],
+      "dependency_notes": "No extra ASTIS wrapper is introduced. The earlier scalar angular theorem uses the same tensor carrier but is not called by this proof. The prefix law, degree-summed field and conditional level iteration are future consumers."
+    }
+  ]
+}

@@ -30,6 +30,30 @@ calculations go behind descriptive disclosures or focused pages. Never put all
 Lean in a detached final appendix: keep each exact statement/proof fold beside
 the corresponding authored mathematical proof. Avoid duplicated full proof DOM.
 
+### Two lower-bound questions, one shared graph
+
+Lower Bounds first splits by the quantified algorithm class, not by textbook:
+**algorithm-specific** (MALA, specified leapfrog HMC, midpoint schemes and
+method sharpness) versus **general within an explicit oracle model** (optimisation,
+Gaussian query complexity and nonlinear SLC/LSI targets). A general oracle
+claim still has information, randomization, adaptivity, initialization and cost
+restrictions; it is not an unrestricted impossibility theorem.
+
+Method readers link back to the matching algorithm chapters (Chewi5.2,7.5,7.6)
+and the existing Methods × targets nodes. Reversible-kernel/Dirichlet conventions
+connect MCMC and discrete sampling; integrator recurrences connect numerical
+upper/lower analyses; information restriction and separation connect oracle
+arguments across optimisation and sampling. These reading relations do not add
+solid Lean implications. Reuse an exact declaration only when the hypotheses
+and actual call are present; compare mechanisms in reviewed Functor adapters.
+
+Initial primary reading references are Lee–Shen–Tian (NeurIPS2021,
+arXiv2106.05480) and Wu–Schmidler–Chen (arXiv2109.13055v2 / JMLR2022).
+Their MALA/HMC lower bounds are reading/formalization targets, not newly admitted
+proofs. Warmness regimes, relaxation versus mixing time, fixed versus randomized
+trajectory policies and gradient queries per transition must stay distinct.
+Do not transfer a leapfrog bound to SPHMC merely because both names contain HMC.
+
 ## Zhou–Suzuki, arXiv:2611.05813v1
 
 Source/title/authors/license/PDF fingerprint and the three restatements live once
@@ -62,13 +86,22 @@ or a Statement Seal. Before a main theorem is sealed, enumerate its substantive
 source proof regions and cited/approximation steps, then obtain independent
 topology review. Preserve exact quantifiers, measures, constants and domains.
 
-First candidate: Fact 12, §6.4, Eq. (60). For nonnegative real g,b with g+b>0,
-prove both inequalities `b/(g+b) ≤ b+(1-sqrt g)^2 ≤ b+(1-g)^2`.
-Its real consumer is Theorem 7's good-mass/partition-function argument. Search
-local/Mathlib scalar APIs and active cells before claiming it. This document
-does not claim a declaration, compile, or review. The subsequent integral and
-random-normalizer applications must prove their own measurability, positivity
-and moment bounds; those do not become extra premises of Theorem 7.
+The first integrated packet is Fact 12, §6.4, Eq. (60): for nonnegative real
+g,b with g+b>0, `b/(g+b) ≤ b+(1-sqrt g)^2 ≤ b+(1-g)^2`. PR #392 merged this
+one independently reviewed scalar edge; its Cell and publication binding retain
+the actual evidence. PR #393 merged the Gaussian symmetry/cosh ingredient of
+Fact 10 in the existing Probability layer. The subsequent literal positive-scale
+truncation and actual-Gaussian-variable adapter have passed independent review;
+their integration/merge/purification state is read from the canonical Cell, not
+inferred from this route description. On a proof page, show the theorem and its
+three mathematical moves first; keep the full construction in a named, initially
+closed definition fold, with exact Lean adjacent to both explanation layers.
+See `research-wiki/paper-contributions/SlcLsiQueryComplexity/energy-truncation-integration.md`
+for the next boundary: actual coefficient law → conditional level iteration →
+actual normalizer moments → Theorem 7's normalization argument. These remaining
+arrows are a plan until the corresponding Lean declarations actually call each other.
+The subsequent applications must prove their own measurability, positivity,
+independence and moment bounds; those do not become extra premises of Theorem 7.
 
 ## Discrete Sampling work, without duplicate foundations
 

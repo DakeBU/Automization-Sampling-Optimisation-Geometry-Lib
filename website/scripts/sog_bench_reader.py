@@ -85,7 +85,7 @@ def inline_prose(text: str) -> str:
     return ''.join(parts)
 
 
-def prose(text: str) -> str:
+def prose(text: str, *, paragraph: bool = True) -> str:
     # Render unambiguous exponential tokens in otherwise plain prose. Leave
     # existing math spans untouched; this is presentation, not a gold rewrite.
     spans = re.split(r'(\\\[.*?\\\]|\\\(.*?\\\))', text, flags=re.S)
@@ -98,21 +98,61 @@ def prose(text: str) -> str:
     def stack(match):
         body = match.group(1)
         if r'\begin{' in body:
+            # One common authored alignment: equality of two absolute values
+            # followed by an estimate. Put each complete sized expression on
+            # its own row without modifying the underlying gold formula.
+            prefix = r'\begin{aligned}'
+            if body.startswith(prefix):
+                first, newline, rest = body[len(prefix):].partition(r'\\')
+                lhs, relation, rhs = first.partition('&=')
+                if (newline and relation and len(first) >= 80 and '&' not in rhs
+                        and all(s.strip().startswith(r'\left|') and s.strip().endswith(r'\right|')
+                                and s.count(r'\left') == s.count(r'\right') for s in (lhs, rhs))):
+                    return r'\[' + prefix + '&' + lhs + r'\\&=' + rhs + newline + rest + r'\]'
             return match.group(0)
-        depth, group_depth, start, parts, relations = 0, 0, 0, [], []
+        depth, group_depth, sized_depth, start, parts, relations, plus = 0, 0, 0, 0, [], [], []
+        in_norm = False
         for index, char in enumerate(body):
             if char in '{}' and (index == 0 or body[index-1] != '\\'):
                 depth += 1 if char == '{' else -1
             if depth == 0 and char in '()[]':
                 group_depth += 1 if char in '([' else -1
-            if depth == 0 and body.startswith(r',\qquad', index):
-                parts.append(body[start:index+1])
-                start = index + len(r',\qquad')
+            if depth == 0 and char == '\\':
+                delimiter = re.match(r'\\(left|right)(?![A-Za-z])', body[index:])
+                if delimiter:
+                    sized_depth += 1 if delimiter.group(1) == 'left' else -1
+            if depth == group_depth == 0 and body.startswith(r'\|', index):
+                in_norm = not in_norm
+            if depth == group_depth == sized_depth == 0 and not in_norm and index >= start:
+                separator = re.match(r',\s*\\qquad\b', body[index:]) if char == ',' else None
+                if separator:
+                    parts.append(body[start:index+1])
+                    start = index + separator.end()
+                elif char == '\n' and re.match(r'\n[ \t]+[+-]', body[index:]):
+                    prefix = body[start:index].rstrip()
+                    if (prefix and not re.search(r'(?:[=+\-&^_,<>]|\\(?:leq?|geq?|sim|to|approx|cdot|times|pm|mp))$', prefix)
+                            and not re.search(r'(?<!\\)\|', body)):
+                        # Preserve an authored top-level signed continuation.
+                        parts.append(body[start:index])
+                        start = index + 1
             if depth == group_depth == 0:
                 relation = re.match(r'\\(?:leq?|geq?)(?![A-Za-z])|=', body[index:])
                 if relation:
                     relations.append((index, relation.group()))
+                if char == '+' and not in_norm and (index == 0 or body[index-1] not in '^_\\'):
+                    plus.append(index)
         if not parts:
+            # A long equality followed by monotone comparisons can wrap at
+            # the top-level relations, but sizing pairs stay on one line.
+            if (len(body.strip()) > 120 and len(relations) >= 3
+                    and relations[0][1] == '=' and relations[1][1] != '='
+                    and all(op[:3] == relations[1][1][:3] for _, op in relations[1:])
+                    and not any(token in body for token in (':=', '&', r'\quad', r'\\'))):
+                bounds = [0, *(pos for pos, _ in relations), len(body)]
+                rows = [body[i:j].strip() for i, j in zip(bounds, bounds[1:])]
+                if all(row.count(r'\left') == row.count(r'\right') and row.count(r'\|') % 2 == 0
+                       for row in rows):
+                    return r'\[\begin{aligned}&' + r'\\&'.join(rows) + r'\end{aligned}\]'
             # A long "A ≤ B = C" derivation can put the simplification
             # on its own row at normal font size. Keep other display math
             # intact (in particular, do not split assignments or tuples).
@@ -122,11 +162,36 @@ def prose(text: str) -> str:
                 i, j = (pos for pos, _ in relations)
                 return (r'\[\begin{aligned}' + body[:i] + '&' + body[i:j]
                         + r'\\&' + body[j:] + r'\end{aligned}\]')
+            # Reflow the long sphere norm and the visible sum without editing
+            # frozen proof prose or breaking inside grouped delimiters.
+            if (len(body.strip()) >= 50 and len(relations) <= 1 and not in_norm
+                    and not any(token in body for token in (':=', '&', r'\quad', r'\left', r'\right', r'\\',
+                                    r'\langle', r'\rangle', r'\lvert', r'\rvert', r'\lVert', r'\rVert'))
+                    and not re.search(r'(?<!\\)\|', body)):
+                breaks = []
+                if relations:
+                    pos, op = relations[0]
+                    # Also allow a short left-hand symbol followed by a long
+                    # sum/product/integral, e.g. conditional chi-square.
+                    if body.lstrip().startswith(r'\|') or (
+                            op == '=' and pos <= 24 and
+                            re.match(r'\s*\\(?:sum|prod|int)(?![A-Za-z])', body[pos+1:])):
+                        breaks.append(pos)
+                if len(plus) == 1 and plus[0] > (relations[0][0] if relations else 0):
+                    breaks.append(plus[0])
+                if breaks:
+                    bounds = [0, *breaks, len(body)]
+                    rows = [body[i:j].strip() for i, j in zip(bounds, bounds[1:])]
+                    if all(row and row.count(r'\|') % 2 == 0 for row in rows):
+                        return r'\[\begin{aligned}&' + r'\\&'.join(rows) + r'\end{aligned}\]'
+            return match.group(0)
+        if not body[start:].strip():
             return match.group(0)
         parts.append(body[start:])
         return r'\[\begin{gathered}' + r'\\'.join(parts) + r'\end{gathered}\]'
     rendered = re.sub(r'\\\[(.*?)\\\]', stack, text, flags=re.S)
-    return '<p>' + inline_prose(rendered) + '</p>'
+    content = inline_prose(rendered)
+    return '<p>' + content + '</p>' if paragraph else content
 
 
 def fold(title: str, content: str) -> str:
@@ -320,7 +385,8 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
         graph_id = 'module:' + declaration.module
         graph_label = 'Locate the owning module (declaration not yet indexed in this graph)'
     status = 'Trusted reference compilation recorded for this source state.' if checked else 'No current trusted-reference compiler receipt recorded in this build.'
-    assumptions = '<ul>' + ''.join('<li>' + inline_prose(s) + '</li>' for s in core['assumptions']) + '</ul>'
+    assumptions = '<ul>' + ''.join('<li>' + prose(s, paragraph=False) + '</li>'
+                                   for s in core['assumptions']) + '</ul>'
     proof = '<ol>' + ''.join('<li>' + prose(s) + '</li>' for s in core['steps']) + '</ol>'
     rubric = '<ol>' + ''.join('<li>' + inline_prose(r['criterion']) + ' (1 point)</li>' for r in core['rubric']) + '</ol>'
     support_title = ('Owned Lean answer and proof-step correspondence' if core.get('textbook_exercise')
@@ -467,22 +533,26 @@ def evaluation_page() -> str:
 
 def evaluation_guide() -> str:
     prepare = 'python tools/sog_bench_prose.py prepare --submissions responses.jsonl --run-metadata run.json --output .astis/sog-bench/runs/my-run'
+    plan = 'python tools/sog_bench_prose.py plan --run-metadata run.json --output .astis/sog-bench/runs/my-plan'
     score = 'python tools/sog_bench_prose.py score --packet .astis/sog-bench/runs/my-run --adjudication completed.json --output .astis/sog-bench/runs/my-run-score.json'
     return (f'<article class="sog-reader" {MARKER}><p><a href="../index.html">Bench</a></p><h1>Run and assess answers</h1>'
         '<p class="lede">Keep the question, first answer and judgment traceable.</p>'
-        '<p>Offline human-attested prose scoring is available. No model performance has been measured; no AI API or untrusted-Lean executor is connected.</p>'
+        '<p>Offline human-attested prose scoring is available. The website does not execute model requests or submitted Lean. No model performance has been measured.</p>'
         '<ol><li><strong>Choose first.</strong> Select core IDs, model/version, retrieval policy and tools before collecting answers. Give the model only the prompt-only records.</li>'
         '<li><strong>Freeze the run.</strong> Save raw first responses and metadata. The recorder binds prompts, references, rubric and answers by SHA-256; missing answers stay in the denominator.</li>'
         '<li><strong>Have a human assess it.</strong> Fill each frozen rubric criterion with 0/1 and a reason. The report records those judgments, not automatically verified mathematics or authenticated grader identity.</li></ol>'
         + fold('Commands and input formats',
-            '<p>From the repository root, Python 3.11+:</p><pre><code>' + escape(prepare) + '</code></pre>'
+            '<p>Before collecting answers, seal the selected prompts and run conditions (Python 3.11+):</p><pre><code>' + escape(plan) + '</code></pre>'
+            '<p>Keep its digest separately and attach it to the answer archive as described in the full protocol. For an exploratory run without a plan:</p><pre><code>' + escape(prepare) + '</code></pre>'
             '<p>Copy the generated adjudication-template.json to completed.json. An actual human supplies grader identity, timestamp and all four criterion judgments per nonempty answer.</p>'
             '<pre><code>' + escape(score) + '</code></pre>'
+            '<p>For double grading, retain both independent worksheets and have a third human resolve only disagreements. Reports distinguish selected cores, equal-weight families and provisional levels.</p>'
             '<p><a href="../downloads/examples/prose-run.json" download>Run-metadata template</a> · <a href="../downloads/EVALUATION.md">Complete recording and scoring instructions</a></p>')
         + fold('Other tracks and scientific limits',
             '<p>Graph JSON has deterministic exact-snapshot scoring; it certifies no mathematical necessity. Lean reference compilation checks trusted references only, not arbitrary submissions.</p>'
             '<p>Human assessments require actual mathematical checking. No keyword grader or unvalidated AI grader is supplied. Run execution, retrieval compliance and human identity are not authenticated by this recorder.</p>'
-            '<p>All current tasks are public-dev. These records cannot demonstrate unseen generalization, difficulty calibration or private-family evaluation. A paired core is not two independent samples.</p>')
+            '<p>All current tasks are public-dev. These records cannot demonstrate unseen generalization, difficulty calibration or private-family evaluation. A paired core is not two independent samples.</p>'
+            '<p><a href="../downloads/FAMILY_ISOLATION.md">Held-out family preflight and limitations</a></p>')
         + '<p><a href="../downloads/reviewed-questions.jsonl" download>Reviewed prompt-only tasks</a> · <a href="../downloads/EVALUATION.md">Full protocol</a> · <a href="../graph-json/index.html">Structural graph QA</a></p></article>')
 
 

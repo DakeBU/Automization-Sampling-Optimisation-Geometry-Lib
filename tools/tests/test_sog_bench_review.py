@@ -89,8 +89,8 @@ class EditorialReviewTests(unittest.TestCase):
             bench.export(target, with_draft)
             questions = [json.loads(line) for line in (target/'reviewed-questions.jsonl').read_text(encoding='utf-8').splitlines()]
             refs = [json.loads(line) for line in (target/'reviewed-reference.jsonl').read_text(encoding='utf-8').splitlines()]
-            self.assertEqual(len(questions), 43)
-            self.assertEqual(len(refs), 30)
+            self.assertEqual(len(questions), 52)
+            self.assertEqual(len(refs), 36)
             self.assertEqual({q['id'] for q in questions}, {c['id'] for c in refs})
             self.assertTrue(all('steps' not in q and 'lean_reference' not in q for q in questions))
             self.assertNotIn('sogb-999', {q['id'] for q in questions})
@@ -100,7 +100,21 @@ class EditorialReviewTests(unittest.TestCase):
         self.assertEqual(set(rows), {f'sogb-{i:03d}' for i in range(8,15)})
         self.assertTrue(all(review.accepted(row) for row in rows.values()))
         self.assertTrue(all(row['formal_alignment'] == 'no-aligned-view' for row in rows.values()))
-        self.assertEqual(review.summary(self.cores)['accepted_cores'], 30)
+        self.assertEqual(review.summary(self.cores)['accepted_cores'], 36)
+
+    def test_three_new_prose_views_do_not_inherit_lean_alignment(self):
+        for round_name, expected in (('prose-9', {'sogb-033', 'sogb-034'}), ('prose-10', {'sogb-035'})):
+            directory = review.BASE/'reviews'/round_name
+            rows = review.prose_statuses(self.cores, directory)
+            self.assertEqual(set(rows), expected)
+            self.assertTrue(all(row['editorial'] == 'accepted' and row['formal_alignment'] == 'no-aligned-view'
+                                for row in rows.values()))
+            changed = deepcopy(self.cores)
+            for core in changed:
+                if core['id'] in expected:
+                    core['binding_sha256'] = 'different-problem'
+            self.assertTrue(all(row['editorial'] == 'stale'
+                                for row in review.prose_statuses(changed, directory).values()))
 
     def test_uncountable_event_review_is_unpaired_and_separately_content_bound(self):
         directory=review.BASE/'reviews/prose-4'

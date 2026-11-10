@@ -30,6 +30,7 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.FundamentalSolution
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.PoissonKernel
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalFlux
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Harmonic.SphericalMeanValue
+import AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexAEDifferentiable
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ConvexSubgradient
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod

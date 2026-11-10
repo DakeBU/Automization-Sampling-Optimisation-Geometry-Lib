@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "scope": "independent AI paired QA editorial review; not canonical theorem publication",
+  "actor_identity": "agent-task:/root/bench_mixture_review_af23",
+  "input_packet_sha256": "af2386f1dd8185662ecc6c56fab25014dd6e69718ac12a531c0049fbc7fdd95f",
+  "items": {
+    "sogb-038": {
+      "binding_sha256": "d0f3bc7999282b5d9958762cae63e8efca5d862d6c9399de882019a983cdfb7a",
+      "context_sha256": "cee16b66d1cad9294a9fc85c787c87d3f3b702b1a96f3f89fae235435fd33926",
+      "formal_scope": "conclusion-only",
+      "semantic_slots": {
+        "objects": "Match: KernelMixture.lean:27-35 defines the finite sum of constant-density components and identifies each source state's mixture measure as the sum of scaled measures. Its measurable-event evaluation gives the authored formula.",
+        "domains": "Match: Fintype index, arbitrary measurable state space, arbitrary measure on that space. The general definition and helper permit a separate measurable output type; the theorem specializes to endokernels. Weights are finite NNReal values; density and event arithmetic use ENNReal.",
+        "quantifiers": "Match: universal in all stated types, instances, weights, components and measures. Both component hypotheses cover all indices even at zero weight; sums range over the whole finite type, and equality holds on every measurable event.",
+        "assumptions": "Match: normalization and component invariance, with IsSFiniteKernel for each component because Kernel.withDensity requires it. It is not a premise on the measure or a claim about necessity for other constructions. No Markov, probability, finite-mass, s-finite-target or nonemptiness premise; normalization rules out an empty index.",
+        "conclusion": "Match for the fixed-weight clause: KernelMixture.lean:60-63, the anonymized learner example and the reconstruction all assert mixture invariance, definitionally mu.bind (finiteMixture w kappa) = mu. The second, state-dependent counterexample clause is not asserted in Lean.",
+        "senses": "Match: invariance means equality after integrating, not equality at each state, probability normalization, detailed balance or convergence. Nonnegative integration allows infinite masses; the weights are constant in source and output, and this is one-way preservation only.",
+        "constants": "Match: sum_i w_i = 1 in NNReal is the sole numerical hypothesis and casts to ENNReal at lines 64-65. Zero weights are allowed. The prose fractions are witness choices, not formal constants."
+      },
+      "mathematics_checks": [
+        "Verified reviewer packet hash, core digest, local context digest, decoder ancestry, exact reference digest against its compilation receipt, and LF source digest 0ecff43c5aa377a6ba92233d13c37808a703ef4b0c52be89396e6fc87ffb64fd at the tracked source anchor, KernelMixture.lean:60.",
+        "For measurable T the kernel event evaluations are measurable. The uncurried constant density is measurable so the totalized fallback is not used. Kernel.withDensity_apply and MeasureTheory.withDensity_const give the scaled measures at lines 33-40; evaluation of the finite sum gives the claimed weighted event values.",
+        "At lines 66-79, extensionality and Measure.bind_apply reduce the claim to an integral on a measurable T. Finite nonnegative linearity applies to the measurable weighted terms; constant pullout gives sum_i w_i (mu.bind kappa_i)(T). Substitute common invariance and use ENNReal distributivity and normalization. No finite integrability, subtraction or cancellation is needed, and zero times infinity is zero.",
+        "Identity and flip on the discrete two-point space are measurable Markov kernels preserving uniform probability (each is a permutation). The respective weights at 0 and 1 are (3/4,1/4) and (1/4,3/4), strictly positive and normalized. Both mixed rows are (3/4,1/4), so uniform initial mass at {0} becomes 3/4 instead of 1/2. Finite-sum integration remains valid; pulling a state-varying weight outside the integral fails.",
+        "Exact source comparison: the context contains the actual mixture definition, the learner has only the unchanged anonymous theorem and a proof hole, and the trusted reference reproduces the earlier finiteMixture_apply proof privately, then the actual target proof. Both import only the three declared Mathlib modules. The owning module is absent and the helper is absent from the learner and blind input. This is open-library reconstruction; reference compilation does not certify learner submissions.",
+        "Actual tracked consumers: ActualAugmentedKernelInvariance.lean:90-111 identifies the conditional mixture, rewrites using the evaluation helper at 106 and applies finiteMixture_invariant at 110-111 to R y. RandomScanHeatBath.lean:21-24 defines randomScan via finiteMixture and its singleton proof calls finiteMixture_apply at 47; that is not an invariance-theorem call.",
+        "The source note matches the original tracked source and original question/witness, with Mathlib APIs and PBPS as a local consumer only. No contrary file-level notice appears. LICENSE, LICENSE_SCOPE.md and NOTICE document the Apache-2.0 project-original grant; the extracted reference marks the reuse and distribution must retain applicable notices. Mathlib keeps its own license; no paper expression or restricted dataset is used."
+      ],
+      "scoring_checks": [
+        "Four one-point outcomes are appropriate. Criterion 2 correctly permits equivalent nonnegative arguments without finite-mass assumptions. Criterion 4 correctly allows any valid strict-positivity witness and requires row normalization, component invariance, failure of mixture invariance, and diagnosis of the invalid step.",
+        "Criterion 1 literally calls for both event formulas; the question asks for equality on every measurable event, not a specific proof format. A correct measure-level proof can identify the constant-density kernels and invoke justified fixed-coefficient linearity of kernel-to-measure composition without explicitly writing the two event formulas. Equivalent justified representation should earn the point, not an unproved assertion of linearity.",
+        "Criterion 3 literally requires using all component invariance identities. A valid proof restricts to J = {i : w_i > 0}, omitting zero measures outside J even at infinite event mass, and still has sum over J = 1. It uses only the invariance identities on J; that must earn credit without weakening the formally stated hypotheses.",
+        "Provisional NL L3 is justified by the measurable-kernel proof plus witness and diagnosis. Provisional Lean L3 is independently justified by reconstructing the absent pointwise helper, applying measure extensionality and bind, and aligning finite measurable lintegral identities with NNReal-to-ENNReal normalization. It does not count the prose example, imports, proof length or any empirical calibration.",
+        "Public-dev random-scan-null-atoms is justified: public sogb-013 exposes the same fixed-mixture law for uniform coordinate weights, and its source defines it using this exact finiteMixture. The current task is not an independent held-out family. MCMC is primary, with Discrete Sampling a natural additional route."
+      ],
+      "remaining_unformalized": [
+        "The two-state identity/flip construction, positive input-dependent weights, row-stochastic and noninvariance computations, and the prose diagnosis are not claims in the Lean target.",
+        "The target is only fixed-mixture invariance. The pointwise law is an auxiliary checked reference helper, not another learner target; the prose explanation of the withDensity API and infinite-mass arithmetic is not independently graded by Lean.",
+        "Markovness is the separate KernelMixture.lean:44-53 theorem. Neither the target nor the consumer citations certify reversibility, convergence, cost, a general state-dependent criterion, or full PBPS."
+      ],
+      "verdict": "repair-required",
+      "repair_requests": [
+        "Rubric criterion 1: permit a correct equivalent measure-level identification of the fixed mixture and composition with relevant measurability justified, in place of explicitly writing both measurable-event formulas.",
+        "Rubric criterion 3: use common invariance as needed and exact normalization, expressly allowing zero-weight terms to be omitted. Preserve the points, source hypotheses, question, proof, family, difficulty and fixed Lean target."
+      ]
+    }
+  }
+}

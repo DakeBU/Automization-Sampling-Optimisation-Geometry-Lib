@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "reading_layout": "progressive",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#Thmfact10",
+          "label": "Zhou–Suzuki, footnote3, Eq17 and Fact10",
+          "scope": "Literal scalar load and its Gaussian comparison only."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiEnergyTruncation"
+      ],
+      "boundary": "This is the literal scalar energy load and Fact10. The recursive selection of amplitudes, higher smoothness/cap/plateau properties, coefficient fields and conditional product iteration are separate. Lemma6.2 and all main lower bounds remain open.",
+      "assumptions": [
+        "n≥1 integer; β>0, λ>0.",
+        "The input y ranges over all real numbers. No random variable or gate is part of this definition."
+      ],
+      "kind": "definition",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation",
+      "title": "The paper's energy truncation",
+      "statement": "Integrate the even unit cutoff from zero to the input, then rescale by positive n, β and λ. This is the literal function U from the source, not a freely chosen odd function.",
+      "formula": "\\begin{gathered} k(s)=\\frac{\\rho(2-|s|)}{\\rho(2-|s|)+\\rho(|s|-1)},\\quad \\varphi(t)=\\int_0^t k(s)\\,ds,\\\\ U(y)=\\frac{n\\beta^2}{\\lambda}\\varphi\\!\\left(\\frac{\\lambda y}{n\\beta}\\right).\\end{gathered}",
+      "reader_note": "This definition is a prerequisite, not a new proved inequality. All parameters have positive types; there is no fallback at zero.",
+      "steps": [
+        {
+          "title": "Use the exact smooth cutoff",
+          "text": "The source function ρ is Mathlib's expNegInvGlue. Substituting z=2−|s| in smoothTransition gives 1−z=|s|−1, so the quotient is the existing smoothUnitCutoff. Its denominator is strictly positive everywhere; its value lies in [0,1] and it is even.",
+          "formula": "k(s)=\\operatorname{smoothTransition}(2-|s|)=\\operatorname{smoothUnitCutoff}(s),\\qquad 0\\le k(s)\\le1.",
+          "lean": "The definition writes the rho quotient literally. A private proof identifies it with Cutoff.smoothUnitCutoff using smoothUnitCutoff_eq_smoothTransition and Real.smoothTransition.pos_denom."
+        },
+        {
+          "title": "Integrate and rescale",
+          "text": "The integral is oriented: for negative t, integration from zero to t reverses sign. Continuity of the kernel ensures ordinary interval integrability. Positive parameters make both scaling factors well-defined.",
+          "formula": "\\varphi(t)=\\int_0^t k(s)\\,ds,\\qquad U(y)=\\frac{n\\beta^2}{\\lambda}\\varphi\\!\\left(\\frac{\\lambda y}{n\\beta}\\right).",
+          "lean": "ℕ+ encodes a positive integer. Each subtype {r : ℝ // 0 < r} carries a real value together with its positivity proof. intervalIntegral uses signed endpoints, not an unordered interval."
+        }
+      ],
+      "lean_statement": "The public carrier admits only positive n, β and lam and arbitrary real y. The Lean binder lam denotes the source's λ.",
+      "lean_proof": "Definitions compute mathematical objects; they do not themselves prove estimates. The adjacent theorem proves the properties actually needed for Fact10 from this body.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "expNegInvGlue",
+        "intervalIntegral"
+      ],
+      "dependency_notes": "The body is a literal source formula. The following theorem reuses Samplinglib's canonical cutoff; source text is attributed separately from code provenance."
+    },
+    {
+      "reading_layout": "progressive",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2611.05813v1#Thmfact10",
+          "label": "Zhou–Suzuki, footnote3, Eq17 and Fact10",
+          "scope": "Literal scalar load and its Gaussian comparison only."
+        }
+      ],
+      "tests": [
+        "lake build Tests.SlcLsiEnergyTruncation"
+      ],
+      "boundary": "This is the literal scalar energy load and Fact10. The recursive selection of amplitudes, higher smoothness/cap/plateau properties, coefficient fields and conditional product iteration are separate. Lemma6.2 and all main lower bounds remain open.",
+      "assumptions": [
+        "n≥1 integer; β>0, λ>0.",
+        "Y has a centered Gaussian probability law, including variance zero.",
+        "The deterministic gate a lies in [0,1]."
+      ],
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation_gaussian_bound",
+      "title": "Gaussian bound for the actual truncated load",
+      "statement": "For positive integer n and positive β,λ, define ρ(t)=exp(−1/t) for t>0 and zero otherwise, φ(t)=∫₀ᵗ ρ(2−|s|)/(ρ(2−|s|)+ρ(|s|−1)) ds, and U(y)=nβ²/λ·φ(λy/(nβ)). If Y is centered Gaussian, possibly degenerate, and a∈[0,1], then exp(−aU(Y)) is integrable and E exp(−aU(Y))≤exp(β² Var(Y)/2). This scalar statement permits any positive β,λ; the paper's recursive choices are a later instantiation.",
+      "formula": "\\mathbb E e^{-aU(Y)}\\le \\exp\\!\\left(\\frac{\\beta^2\\operatorname{Var}(Y)}{2}\\right).",
+      "reader_note": "No oddness, continuity, sublinearity or integrability hypothesis is supplied: the proof derives all of them from the literal source function.",
+      "steps": [
+        {
+          "title": "Derive the primitive's properties",
+          "text": "The even kernel k is continuous and between zero and one. Replacing s by −s in the oriented integral gives φ(−t)=−φ(t). The integral norm bound gives |φ(t)|≤|t| for both signs of t. The fundamental theorem of calculus gives continuity, hence measurability.",
+          "formula": "\\varphi(-t)=-\\varphi(t),\\qquad |\\varphi(t)|\\le \\int_{\\min(0,t)}^{\\max(0,t)}1\\,ds=|t|.",
+          "lean": "Private helpers use the existing cutoff's continuity and range; integral_comp_neg handles the sign reversal, norm_integral_le_of_norm_le_const gives the bound, and differentiable_integral_of_continuous gives continuity."
+        },
+        {
+          "title": "Scale without losing the constant",
+          "text": "Both scale factors are positive. Oddness is preserved under scaling, and the factors n and λ cancel exactly in the absolute-value estimate. Composition and multiplication preserve continuity.",
+          "formula": "\\begin{aligned}|U(y)|&\\le\\frac{n\\beta^2}{\\lambda}\\left|\\frac{\\lambda y}{n\\beta}\\right|\\\\&=\\frac{n\\beta^2}{\\lambda}\\frac{\\lambda|y|}{n\\beta}=\\beta|y|.\\end{aligned}",
+          "lean": "Positivity is extracted from the parameter types. Field cancellation is justified by nonzero n, β and lam; these are not silently assumed by automation."
+        },
+        {
+          "title": "Apply the Gaussian comparison and transport the law",
+          "text": "The established load properties satisfy the reviewed odd-load comparison: symmetry turns the exponential into cosh, sublinearity compares with the linear load, and the Gaussian MGF gives exp(β²v/2). The HasLaw hypothesis transports both the integral and integrability to Y's probability space. The same law identity yields Var(Y)=v, including v=0.",
+          "formula": "\\begin{gathered}\\int e^{-aU(y)}\\,\\mathcal N(0,v)(dy)\\le e^{\\beta^2v/2},\\\\\\mathbb E_P e^{-aU(Y)}=\\int e^{-aU(y)}\\,\\mathcal N(0,v)(dy),\\qquad \\operatorname{Var}_P(Y)=v.\\end{gathered}",
+          "lean": "gaussian_odd_load_bound is the existing Samplinglib parent. HasLaw.integral_comp and Integrable.comp_aemeasurable transport actual integrability, while HasLaw.variance_eq and variance_id_gaussianReal identify the variance. No conditional expectation is involved."
+        }
+      ],
+      "lean_statement": "HasLaw includes a.e. measurability of Y and equality of its pushforward measure to gaussianReal 0 v. It also forces P to be a probability measure, so no redundant instance or moment assumption appears.",
+      "lean_proof": "The private calculations construct the hypotheses of the existing Gaussian comparison inside the proof. The public result contains actual Bochner integrability as well as the bound; totalized integrals do not replace analytical obligations.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.smoothUnitCutoff_eq_smoothTransition",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.smoothUnitCutoff_contDiff",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Cutoff.smoothUnitCutoff_mem_Icc",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianOddLoad.gaussian_odd_load_bound",
+        "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation.energyTruncation"
+      ],
+      "mathlib_dependencies": [
+        "Real.smoothTransition.pos_denom",
+        "intervalIntegral.integral_comp_neg",
+        "intervalIntegral.norm_integral_le_of_norm_le_const",
+        "intervalIntegral.differentiable_integral_of_continuous",
+        "ProbabilityTheory.HasLaw.integral_comp",
+        "ProbabilityTheory.HasLaw.variance_eq",
+        "ProbabilityTheory.variance_id_gaussianReal",
+        "MeasureTheory.Integrable.comp_aemeasurable"
+      ],
+      "dependency_notes": "The cutoff and Gaussian comparison are ASTIS-owned existing parents; interval calculus and law transport are pinned Mathlib. Conditional factorization is a planned consumer, not a solid current Lean edge."
+    }
+  ]
+}

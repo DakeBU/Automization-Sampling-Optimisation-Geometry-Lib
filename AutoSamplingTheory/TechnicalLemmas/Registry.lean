@@ -29,6 +29,7 @@ import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.CoefficientBlocks
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.AngularDegreeSum
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevel
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels
+import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Integrability
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SubgradientMethod
 import AutoSamplingTheory.TechnicalLemmas.Analysis.GradientAECongruence
@@ -5340,6 +5341,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+    {
+      key := "probability.slc-lsi-weighted-radial-mgf",
+      localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF.weightedRadialLevels_gaussian_mgf",
+      upstreamDecl := "Zhou-Suzuki arXiv:2611.05813v1 Eq51 and the weighted fixed-location variance calculation",
+      upstreamFile := "https://arxiv.org/html/2611.05813v1#S6.E51",
+      status := LemmaMemoryStatus.formalizedLocal,
+      tags := ["Gaussian", "weighted-sum", "MGF", "integrability", "lower-bound"],
+      saldUse := "Exact actual coefficient expectation and its integrability before the spatial normalizer",
+      note := "Independently compiled and source-reviewed at 9792e5925. Under the original ordered coefficient law at a fixed location, the exact weighted field sum is centered Gaussian, including zero variance, and its negative exponential is integrable with the Eq51 expectation. No spatial integral, conditional law, target mass or lower bound."
+    },
     {
       key := "probability.slc-lsi-joint-radial-levels-law",
       localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.RadialLevels.radialLevels_hasLaw",

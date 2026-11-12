@@ -5,6 +5,7 @@ import Tests.GaussianPolynomialRidge
 import Tests.QuadraticFeatureRisk
 import Tests.BoundedPerturbation
 import Tests.Shared.SphereRayleigh
+import Tests.Shared.SphereRayleighHessian
 import Tests.Shared.SphereGradient
 import Tests.Shared.CurveExtension
 import Tests.Shared.AffineGradient

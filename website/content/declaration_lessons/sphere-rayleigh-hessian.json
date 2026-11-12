@@ -1,0 +1,253 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension",
+      "kind": "def",
+      "title": "Extend the actual half-Rayleigh gradient off the sphere",
+      "statement": "Use the ambient extension G(y) = Ay − ⟨y,Ay⟩y of the induced gradient of the half-normalized symmetric Rayleigh quadratic on the unit sphere.",
+      "formula": "G(y)=Ay-\\langle y,Ay\\rangle y.",
+      "assumptions": [
+        "E is a real inner-product space and A is continuous real-linear. The expression is defined at every ambient point. Symmetry and unit norm are used later when identifying the induced gradient."
+      ],
+      "steps": [
+        {
+          "title": "Use the same expression off the sphere",
+          "text": "For unit y this removes the normal component of Ay. Defining the same polynomial at all y gives an ambient extension; it need not be tangent away from the sphere.",
+          "formula": "P_y(Ay)=Ay-\\langle y,Ay\\rangle y\\quad(\\|y\\|=1).",
+          "lean": "The definition names the actual polynomial, with no choice of an arbitrary gradient field."
+        }
+      ],
+      "boundary": [
+        "A construction, not a differentiability or gradient equality theorem by itself."
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "ContinuousLinearMap",
+        "inner"
+      ],
+      "lean_statement": "A map from the real ambient inner-product space to itself.",
+      "lean_proof": "A transparent formula; its derivative is checked in the Hessian calculation.",
+      "sources": [
+        {
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+          "label": "Boumal, §5.5 (printed p. 96 / PDF p. 112)",
+          "scope": "Original ASTIS exposition of Corollary 5.16, Example 5.17 and Exercise 5.18; no textbook prose, PDF, or figures redistributed."
+        },
+        {
+          "path": "Tests/Shared/SphereRayleighHessian.lean",
+          "label": "Focused sphere Hessian tests",
+          "scope": "Checks zero and negative tangential curvature and the one-dimensional exercise conclusion; prints the three theorem axiom traces."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighTangentHessian",
+      "kind": "def",
+      "title": "Project the gradient derivative to the same tangent plane",
+      "statement": "For a continuous real-linear operator A on a real inner-product space and a unit point x, restrict the ambient derivative of the stated polynomial extension to vectors perpendicular to x and project its output onto that same tangent plane. In the finite-dimensional symmetric source setting, the extension is the actual sphere gradient and this operator is the induced Hessian.",
+      "formula": "K_x=x^\\perp,\\qquad H_x=P_x\\circ DG(x)\\circ \\iota_{K_x}.",
+      "assumptions": [
+        "A is arbitrary continuous real-linear on a real inner-product space; this construction needs neither symmetry nor finite dimension. The point x is unit, and the input and output both lie in the ambient orthogonal tangent plane.",
+        "The span of the single vector admits orthogonal projection. The definition uses fderiv; genuine differentiability is supplied by the proof of the evaluation theorem."
+      ],
+      "steps": [
+        {
+          "title": "Restrict, differentiate, and project",
+          "text": "Start with an actual tangent vector and include it in the ambient space. Apply the derivative of the chosen extension, then project back; the ambient derivative alone can have a normal component.",
+          "formula": "u\\in K_x\\ \\longmapsto\\ P_x(DG(x)[u])\\in K_x.",
+          "lean": "Compose K.subtypeL, fderiv of the checked extension, and K.orthogonalProjectionOnto."
+        }
+      ],
+      "boundary": [
+        "Outside the symmetric source setting, this constructs a projected derivative of the stated polynomial, not a claim that it is the objective Hessian. No general connection or Hessian API is asserted."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension"
+      ],
+      "mathlib_dependencies": [
+        "fderiv",
+        "Submodule.subtypeL",
+        "Submodule.orthogonalProjectionOnto"
+      ],
+      "lean_statement": "A continuous linear endomorphism of the orthogonal tangent subtype.",
+      "lean_proof": "Compose inclusion, Fréchet derivative and orthogonal projection.",
+      "sources": [
+        {
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+          "label": "Boumal, §5.5 (printed p. 96 / PDF p. 112)",
+          "scope": "Original ASTIS exposition of Corollary 5.16, Example 5.17 and Exercise 5.18; no textbook prose, PDF, or figures redistributed."
+        },
+        {
+          "path": "Tests/Shared/SphereRayleighHessian.lean",
+          "label": "Focused sphere Hessian tests",
+          "scope": "Checks zero and negative tangential curvature and the one-dimensional exercise conclusion; prints the three theorem axiom traces."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_gradient_pairing",
+      "kind": "theorem",
+      "title": "The extension represents the genuine half-Rayleigh gradient",
+      "statement": "For a symmetric linear operator on a real Euclidean space, the half-normalized quadratic restricted to the unit sphere is differentiable. Its induced gradient at a unit point x is the tangent vector Ax − ⟨x,Ax⟩x, representing the actual restricted differential with the ambient inner product and the differential of inclusion.",
+      "formula": "d(F|_S)_x[w]=\\langle d\\iota_x[w],G(x)\\rangle,\\qquad G(x)\\in x^\\perp.",
+      "assumptions": [
+        "A is a symmetric continuous real-linear operator and x lies on the unit sphere in finite-dimensional E.",
+        "The chart parameter n satisfies dim E=n+1, permitting n=0. The inner product is the ambient one pulled back along the actual sphere inclusion."
+      ],
+      "steps": [
+        {
+          "title": "Construct the genuine restricted differential",
+          "text": "The ambient half quadratic is differentiable by the real inner-product product rule. The sphere inclusion is smooth, so their composition is genuinely differentiable.",
+          "formula": "F|_S=F\\circ\\iota,\\qquad F(y)=\\tfrac12\\langle y,Ay\\rangle.",
+          "lean": "The proof produces MDifferentiableAt from the ambient derivative and contMDiff_coe_sphere; it does not infer differentiability from a totalized differential."
+        },
+        {
+          "title": "Apply the existing Rayleigh characterization at A/2",
+          "text": "The unhalved quadratic for the symmetric operator B=A/2 is the half quadratic for A. Its known induced tangent representative equals G after the factor of two cancels. Unit norm directly verifies G is tangent.",
+          "formula": "2(Bx-\\langle x,Bx\\rangle x)=Ax-\\langle x,Ax\\rangle x.",
+          "lean": "Use sphere_rayleigh_characterization with B and the explicit candidate in the tangent subtype."
+        }
+      ],
+      "boundary": [
+        "No default chart-metric identification or ambient stationarity premise."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension",
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh.sphere_rayleigh_characterization"
+      ],
+      "mathlib_dependencies": [
+        "contMDiff_coe_sphere",
+        "HasFDerivAt.inner",
+        "DifferentiableAt.comp_mdifferentiableAt",
+        "Submodule.mem_orthogonal_singleton_iff_inner_right"
+      ],
+      "lean_statement": "Genuine manifold differentiability, tangency of the representative and its pairing with the inclusion derivative.",
+      "lean_proof": "Compose actual differentiability witnesses and instantiate the prior unique tangent representative with the scaled operator.",
+      "sources": [
+        {
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+          "label": "Boumal, §5.5 (printed p. 96 / PDF p. 112)",
+          "scope": "Original ASTIS exposition of Corollary 5.16, Example 5.17 and Exercise 5.18; no textbook prose, PDF, or figures redistributed."
+        },
+        {
+          "path": "Tests/Shared/SphereRayleighHessian.lean",
+          "label": "Focused sphere Hessian tests",
+          "scope": "Checks zero and negative tangential curvature and the one-dimensional exercise conclusion; prints the three theorem axiom traces."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_tangent_hessian_apply",
+      "kind": "theorem",
+      "title": "Compute the sphere Hessian and its tangent quadratic form",
+      "statement": "For any continuous real-linear A and unit x, the derivative of the stated extension, projected to the tangent plane, has the displayed operator and form on every tangent u. For symmetric A the extension represents the actual sphere gradient, so this is the Hessian of the half-Rayleigh objective.",
+      "formula": "H_xu=P_x(Au)-\\langle x,Ax\\rangle u,\\qquad \\langle u,H_xu\\rangle=\\langle u,Au\\rangle-\\langle x,Ax\\rangle\\|u\\|^2.",
+      "assumptions": [
+        "The point is unit and u is in the tangent subtype x⊥.",
+        "No symmetry or finite-dimensional hypothesis is needed for the analytic formula of this specific projected derivative. Symmetry is the source hypothesis under which the separately proved gradient pairing identifies it with the objective Hessian."
+      ],
+      "steps": [
+        {
+          "title": "Differentiate the extension before projecting",
+          "text": "Differentiate Ay and the product of the scalar quadratic with y. The scalar derivative has two terms because y occurs on both sides of the inner product. The extension is a smooth polynomial of a continuous linear map and a continuous bilinear pairing.",
+          "formula": "DG(x)[u]=Au-\\bigl(\\langle u,Ax\\rangle+\\langle x,Au\\rangle\\bigr)x-\\langle x,Ax\\rangle u.",
+          "lean": "The private half_rayleigh_gradient_extension_derivative proves ContDiff and an exact HasFDerivAt at every ambient point with the inner-product and scalar-multiplication rules."
+        },
+        {
+          "title": "The projection kills exactly the normal term",
+          "text": "The tangent plane is orthogonal to x. Its orthogonal projection kills x and fixes every tangent u. Pairing the projected Au with a tangent u leaves that inner product unchanged.",
+          "formula": "H_xu=P_x(Au)-\\lambda u,\\qquad \\langle u,H_xu\\rangle=\\langle u,Au\\rangle-\\lambda\\|u\\|^2.",
+          "lean": "The public evaluation theorem replaces fderiv using the genuine derivative witness, then uses the projection identities for x and for the tangent subtype."
+        }
+      ],
+      "boundary": [
+        "No general Levi–Civita theorem, ambient PSD premise or new geodesic criterion."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension",
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighTangentHessian"
+      ],
+      "mathlib_dependencies": [
+        "HasFDerivAt.inner",
+        "HasFDerivAt.fun_smul",
+        "HasFDerivAt.fderiv",
+        "Submodule.orthogonalProjectionOnto_orthogonalComplement_singleton_eq_zero",
+        "Submodule.inner_orthogonalProjectionOnto_eq_of_mem_left"
+      ],
+      "lean_statement": "An equality in the tangent subtype and its ambient scalar pairing identity.",
+      "lean_proof": "Prove the actual ambient Fréchet derivative, then project and use orthogonality.",
+      "sources": [
+        {
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+          "label": "Boumal, §5.5 (printed p. 96 / PDF p. 112)",
+          "scope": "Original ASTIS exposition of Corollary 5.16, Example 5.17 and Exercise 5.18; no textbook prose, PDF, or figures redistributed."
+        },
+        {
+          "path": "Tests/Shared/SphereRayleighHessian.lean",
+          "label": "Focused sphere Hessian tests",
+          "scope": "Checks zero and negative tangential curvature and the one-dimensional exercise conclusion; prints the three theorem axiom traces."
+        }
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_second_order_stationary_min",
+      "kind": "theorem",
+      "title": "Exercise 5.18 · Tangent curvature certifies the least eigenvalue",
+      "statement": "For a real symmetric operator on a finite-dimensional Euclidean space, restrict the half-normalized quadratic to the unit sphere with its induced metric. If the sphere gradient at a unit point x is zero and the induced Hessian is positive semidefinite on every tangent direction there, then x minimizes the restriction globally and is a nonzero eigenvector at the least eigenvalue of the operator.",
+      "formula": "G(x)=0,\\quad \\langle u,H_xu\\rangle\\ge0\\ (u\\perp x)\\quad\\Longrightarrow\\quad F(x)\\le F(y)\\ (\\|y\\|=1),\\quad Ax=\\lambda x,\\quad \\lambda=\\min\\operatorname{eig}(A).",
+      "assumptions": [
+        "E is finite-dimensional and real with its inner-product norm; A is symmetric and x is a unit sphere point.",
+        "The Hessian is the induced tangent operator of Example 5.17. PSD holds on every tangent direction, including zero. No eigengap, simple spectrum, or ambient PSD is assumed."
+      ],
+      "steps": [
+        {
+          "title": "Translate stationarity to the eigenvector equation",
+          "text": "The chosen extension equals the actual induced gradient on the sphere. At x, its vanishing gives Ax equal to the Rayleigh coefficient times x; unit norm certifies x is nonzero.",
+          "formula": "\\lambda=\\langle x,Ax\\rangle,\\qquad G(x)=0\\ \\Longrightarrow\\ Ax=\\lambda x.",
+          "lean": "The terminal proof unfolds the exact gradient expression with sub_eq_zero.mp. The separate checked pairing certifies its source meaning, not a direct proof-body call."
+        },
+        {
+          "title": "Compare with any point on the sphere",
+          "text": "For a unit y, subtract its component along x. The remainder is tangent, its squared norm is one minus the squared component, and symmetry plus the eigenvector equation kills the mixed term.",
+          "formula": "\\begin{aligned}a&=\\langle x,y\\rangle,\\quad u=y-ax,\\quad a^2+\\|u\\|^2=1,\\\\ 2(F(y)-F(x))&=a^2\\lambda+\\langle u,Au\\rangle-\\lambda\\\\&=\\langle u,Au\\rangle-\\lambda\\|u\\|^2=\\langle u,H_xu\\rangle\\ge0.\\end{aligned}",
+          "lean": "The proof constructs u as a member of the orthogonal subtype and rewrites the PSD premise with sphere_half_rayleigh_tangent_hessian_apply. It expands the norm and energy exactly before a real polynomial inequality closes the comparison."
+        },
+        {
+          "title": "The attained eigenvalue is least",
+          "text": "Normalize any nonzero eigenvector to a unit vector z. It keeps its eigenvalue, and its objective value is half that eigenvalue. Comparing at x gives leastness without diagonalizing A.",
+          "formula": "Az=\\mu z,\\quad\\|z\\|=1\\quad\\Longrightarrow\\quad F(z)=\\mu/2\\ge F(x)=\\lambda/2.",
+          "lean": "Mathlib's HasEigenvalue supplies a nonzero eigenvector. The proof normalizes it, then applies the already obtained IsMinOn inequality."
+        }
+      ],
+      "boundary": [
+        "This is global optimality for the symmetric quadratic on the unit sphere, not arbitrary nonconvex sphere objectives, a rate, or a general manifold result.",
+        "The half normalization is literal. The least-eigenvalue conclusion means actual attainment and comparison with every real eigenvalue, not uniqueness."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension",
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighTangentHessian",
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_tangent_hessian_apply"
+      ],
+      "mathlib_dependencies": [
+        "norm_add_sq_real",
+        "Submodule.mem_orthogonal_singleton_iff_inner_right",
+        "Module.End.mem_eigenspace_iff",
+        "Module.End.HasEigenvalue.exists_hasEigenvector"
+      ],
+      "lean_statement": "A true sphere minimum, an actual nonzero eigenvector at the Rayleigh coefficient, and a universal comparison with all real eigenvalues.",
+      "lean_proof": "Use orthogonal decomposition and symmetry to identify the global objective gap with the given tangent Hessian form, then compare with normalized eigenvectors.",
+      "sources": [
+        {
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+          "label": "Boumal, §5.5 (printed p. 96 / PDF p. 112)",
+          "scope": "Original ASTIS exposition of Corollary 5.16, Example 5.17 and Exercise 5.18; no textbook prose, PDF, or figures redistributed."
+        },
+        {
+          "path": "Tests/Shared/SphereRayleighHessian.lean",
+          "label": "Focused sphere Hessian tests",
+          "scope": "Checks zero and negative tangential curvature and the one-dimensional exercise conclusion; prints the three theorem axiom traces."
+        }
+      ]
+    }
+  ]
+}

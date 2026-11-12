@@ -1,0 +1,1127 @@
+{
+  "audits": [
+    {
+      "id": "ASTIS-RT-20261112-BoumalRayleighGradientExtension",
+      "state": "source-reviewed",
+      "source": {
+        "source_id": "boumal-2023-prepublication-sha256-95e9c219",
+        "anchor": "Boumal, §5.5, Example 5.17, explicit smooth gradient extension; printed p. 96 / PDF p. 112",
+        "original_text": "Use the ambient extension G(y) = Ay − ⟨y,Ay⟩y of the induced gradient of the half-normalized symmetric Rayleigh quadratic on the unit sphere.",
+        "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+        "text_sha256": "974b64fd5911944c1059cca59f250479501c4f0d63ea511b3a0dcf8b00c75e41"
+      },
+      "lean": {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension",
+        "file": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereRayleighHessian.lean",
+        "statement": "{E : Type u_1} →\n  [inst : NormedAddCommGroup E] → [inst_1 : InnerProductSpace ℝ E] → (E →L[ℝ] E) → E → E",
+        "compiled": true,
+        "formalizer": "astis-sog-bench-boumal-20261112-writer",
+        "decoder_context": [
+          "Exact definition body (with function name omitted): fun {E} [NormedAddCommGroup E] [InnerProductSpace ℝ E] A y => A y - inner ℝ y (A y) • y",
+          "The first operand is a continuous real-linear operator on the ambient space; inner ℝ is the real inner product."
+        ],
+        "statement_sha256": "7beb6412cbdfd84b7199e119897fb4db864c514df8e81b3af8a1348ca788b21e"
+      },
+      "verdict": "domain-mismatch",
+      "publication_binding_sha256": "f33e1d21cfac1f7ef0ced729030a88f7c531ddef8eedf9a32355e61669eac587",
+      "publication_context": {
+        "file": "e9143f2f81001cc2932762161ff30d290d584fe9ea4d0dcf70df1b8111c1c7a3",
+        "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh\n\n/-!\n# The half-Rayleigh objective: sphere Hessian and global optimality\n\nBoumal, §5.5, Corollary 5.16, Example 5.17 and Exercise 5.18 (printed p. 96\nof the pre-publication PDF). The induced Hessian here is the tangent\nprojection of the genuine derivative of the actual sphere gradient extension.\nThe final comparison is specific to the half-normalized symmetric quadratic;\nit is not a second-order sufficiency theorem for arbitrary sphere objectives.\n-/\n\nnoncomputable section\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian\n\nopen Metric InnerProductSpace\nopen scoped Manifold InnerProductSpace ContDiff\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n\n/-- Ambient extension of the half-Rayleigh gradient on the unit sphere. -/\ndef halfRayleighGradientExtension (A : E →L[ℝ] E) (y : E) : E :=\n  A y - ⟪y, A y⟫_ℝ • y\n\n/-- The polynomial extension is smooth and its derivative is genuine at every point. -/\nprivate theorem half_rayleigh_gradient_extension_derivative (A : E →L[ℝ] E) :\n    ContDiff ℝ ∞ (halfRayleighGradientExtension A) ∧\n    ∀ x : E, HasFDerivAt (halfRayleighGradientExtension A)\n      (A - (⟪x, A x⟫_ℝ • ContinuousLinearMap.id ℝ E +\n        (innerSL ℝ (A x) + (innerSL ℝ x).comp A).smulRight x)) x := by\n  refine ⟨?_, fun x => ?_⟩\n  · change ContDiff ℝ ∞ (fun y : E => A y - ⟪y, A y⟫_ℝ • y)\n    exact A.contDiff.sub ((contDiff_id.inner ℝ A.contDiff).smul contDiff_id)\n  · have hq : HasFDerivAt (fun y : E => ⟪y, A y⟫_ℝ)\n        (innerSL ℝ (A x) + (innerSL ℝ x).comp A) x := by\n      have hlin : (fderivInnerCLM ℝ (x, A x)).comp ((ContinuousLinearMap.id ℝ E).prod A) =\n          innerSL ℝ (A x) + (innerSL ℝ x).comp A := by\n        apply ContinuousLinearMap.ext\n        intro u\n        simp [real_inner_comm, add_comm]\n      rw [← hlin]\n      exact (hasFDerivAt_id x).inner ℝ A.hasFDerivAt\n    exact A.hasFDerivAt.fun_sub (hq.fun_smul (hasFDerivAt_id x))\n\n/-- Source-specific projected derivative, restricted and corestricted to the actual\northogonal tangent plane. This is not a general manifold connection. -/\ndef halfRayleighTangentHessian (A : E →L[ℝ] E) (x : sphere (0 : E) 1) :\n    (ℝ ∙ (x : E))ᗮ →L[ℝ] (ℝ ∙ (x : E))ᗮ :=\n  let K := (ℝ ∙ (x : E))ᗮ\n  K.orthogonalProjectionOnto.comp\n    ((fderiv ℝ (halfRayleighGradientExtension A) (x : E)).comp K.subtypeL)\n\n/-- On the sphere the extension is the induced gradient of the literal half quadratic.\nThe manifold differentiability witness is supplied alongside the pairing. -/\ntheorem sphere_half_rayleigh_gradient_pairing\n    [FiniteDimensional ℝ E] (n : ℕ) [Fact (Module.finrank ℝ E = n + 1)]\n    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1) :\n    MDifferentiableAt (𝓡 n) 𝓘(ℝ, ℝ)\n      (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) x ∧\n    halfRayleighGradientExtension A (x : E) ∈ (ℝ ∙ (x : E))ᗮ ∧\n    ∀ w : TangentSpace (𝓡 n) x,\n      mvfderiv (𝓡 n)\n        (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) x w =\n        ⟪mvfderiv (𝓡 n) ((↑) : sphere (0 : E) 1 → E) x w,\n          halfRayleighGradientExtension A (x : E)⟫_ℝ := by\n  have hx : ‖(x : E)‖ = 1 := mem_sphere_zero_iff_norm.mp x.property\n  have hco := (contMDiff_coe_sphere (n := n) (m := 1) x).mdifferentiableAt one_ne_zero\n  have hamb : DifferentiableAt ℝ (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ) (x : E) :=\n    ((hasFDerivAt_id (x : E)).inner ℝ A.hasFDerivAt).differentiableAt.const_mul _\n  have ht : halfRayleighGradientExtension A (x : E) ∈ (ℝ ∙ (x : E))ᗮ := by\n    rw [Submodule.mem_orthogonal_singleton_iff_inner_right]\n    simp [halfRayleighGradientExtension, inner_sub_right, real_inner_smul_right, hx]\n  refine ⟨hamb.comp_mdifferentiableAt hco, ht, ?_⟩\n  let B : E →L[ℝ] E := (1 / 2 : ℝ) • A\n  have hB : B.IsSymmetric := by\n    intro y z\n    change ⟪(1 / 2 : ℝ) • A y, z⟫_ℝ = ⟪y, (1 / 2 : ℝ) • A z⟫_ℝ\n    rw [real_inner_smul_left, real_inner_smul_right]\n    exact congrArg ((1 / 2 : ℝ) * ·) (hA y z)\n  have hF :\n      (fun y : sphere (0 : E) 1 => ⟪(y : E), B (y : E)⟫_ℝ) =\n        (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) := by\n    funext y\n    simp [B, real_inner_smul_right]\n  let z : (ℝ ∙ (x : E))ᗮ := ⟨_, ht⟩\n  have hscale : (z : E) =\n      (2 : ℝ) • (B (x : E) - ⟪(x : E), B (x : E)⟫_ℝ • (x : E)) := by\n    change halfRayleighGradientExtension A (x : E) = _\n    norm_num [halfRayleighGradientExtension, B, real_inner_smul_right, smul_sub,\n      smul_smul, ← mul_assoc]\n  rw [← hF]\n  exact (sphere_rayleigh_characterization n B hB x z).mpr hscale\n\n/-- Projecting kills the normal part of the genuine derivative; the remaining\ntangent operator and its quadratic form are the two displayed formulas. -/\ntheorem sphere_half_rayleigh_tangent_hessian_apply\n    (A : E →L[ℝ] E) (x : sphere (0 : E) 1) (u : (ℝ ∙ (x : E))ᗮ) :\n    halfRayleighTangentHessian A x u =\n      (ℝ ∙ (x : E))ᗮ.orthogonalProjectionOnto (A (u : E)) -\n        ⟪(x : E), A (x : E)⟫_ℝ • u ∧\n    ⟪(u : E), (halfRayleighTangentHessian A x u : E)⟫_ℝ =\n      ⟪(u : E), A (u : E)⟫_ℝ - ⟪(x : E), A (x : E)⟫_ℝ * ‖(u : E)‖ ^ 2 := by\n  let K := (ℝ ∙ (x : E))ᗮ\n  have hvalue : halfRayleighTangentHessian A x u =\n      K.orthogonalProjectionOnto (A (u : E)) - ⟪(x : E), A (x : E)⟫_ℝ • u := by\n    change K.orthogonalProjectionOnto\n      (fderiv ℝ (halfRayleighGradientExtension A) (x : E) (u : E)) = _\n    rw [((half_rayleigh_gradient_extension_derivative A).2 (x : E)).fderiv]\n    simp [K, Submodule.orthogonalProjectionOnto_orthogonalComplement_singleton_eq_zero]\n  refine ⟨hvalue, ?_⟩\n  rw [hvalue]\n  change ⟪u, K.orthogonalProjectionOnto (A (u : E)) - ⟪(x : E), A (x : E)⟫_ℝ • u⟫_ℝ = _\n  rw [inner_sub_right, K.inner_orthogonalProjectionOnto_eq_of_mem_left, real_inner_smul_right]\n  change _ - _ * ⟪(u : E), (u : E)⟫_ℝ = _\n  rw [real_inner_self_eq_norm_sq]\n\n/-- At a second-order stationary point of the half-Rayleigh objective, the\nactual tangent Hessian controls all differences in objective value. -/\ntheorem sphere_half_rayleigh_second_order_stationary_min\n    [FiniteDimensional ℝ E]\n    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1)\n    (hgrad : halfRayleighGradientExtension A (x : E) = 0)\n    (hpsd : ∀ u : (ℝ ∙ (x : E))ᗮ, 0 ≤\n      ⟪(u : E), (halfRayleighTangentHessian A x u : E)⟫_ℝ) :\n    let lam := ⟪(x : E), A (x : E)⟫_ℝ\n    IsMinOn (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ) (sphere (0 : E) 1) (x : E) ∧\n      Module.End.HasEigenvector A.toLinearMap lam (x : E) ∧\n      ∀ μ : ℝ, Module.End.HasEigenvalue A.toLinearMap μ → lam ≤ μ := by\n  let lam := ⟪(x : E), A (x : E)⟫_ℝ\n  have hx : ‖(x : E)‖ = 1 := mem_sphere_zero_iff_norm.mp x.property\n  have hxne : (x : E) ≠ 0 := by\n    intro hz\n    simp [hz] at hx\n  have hAx : A (x : E) = lam • (x : E) := sub_eq_zero.mp hgrad\n  have hmin : IsMinOn (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ)\n      (sphere (0 : E) 1) (x : E) := by\n    intro y hy\n    change (1 / 2 : ℝ) * lam ≤ (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ\n    let a := ⟪(x : E), y⟫_ℝ\n    let v := y - a • (x : E)\n    have hdecomp : y = a • (x : E) + v := by\n      dsimp only [v]\n      abel\n    have horth : ⟪(x : E), v⟫_ℝ = 0 := by\n      simp [v, inner_sub_right, real_inner_smul_right, hx, a]\n    let u : (ℝ ∙ (x : E))ᗮ :=\n      ⟨v, Submodule.mem_orthogonal_singleton_iff_inner_right.mpr horth⟩\n    have hvpos := hpsd u\n    rw [(sphere_half_rayleigh_tangent_hessian_apply A x u).2] at hvpos\n    change 0 ≤ ⟪v, A v⟫_ℝ - lam * ‖v‖ ^ 2 at hvpos\n    have hnorm : a ^ 2 + ‖v‖ ^ 2 = 1 := calc\n      _ = ‖a • (x : E) + v‖ ^ 2 := by\n        rw [norm_add_sq_real, norm_smul, Real.norm_eq_abs,\n          real_inner_smul_left, hx, horth, mul_one, sq_abs]\n        ring\n      _ = 1 := by rw [← hdecomp, mem_sphere_zero_iff_norm.mp hy, one_pow]\n    have hcross : ⟪(x : E), A v⟫_ℝ = 0 := calc\n      _ = ⟪A (x : E), v⟫_ℝ := (hA (x : E) v).symm\n      _ = 0 := by rw [hAx, real_inner_smul_left, horth, mul_zero]\n    have hcross' : ⟪v, A (x : E)⟫_ℝ = 0 := by\n      rw [real_inner_comm, hAx, real_inner_smul_left, horth, mul_zero]\n    have henergy : ⟪y, A y⟫_ℝ = a ^ 2 * lam + ⟪v, A v⟫_ℝ := calc\n      _ = ⟪a • (x : E) + v, A (a • (x : E) + v)⟫_ℝ :=\n        congrArg (fun z => ⟪z, A z⟫_ℝ) hdecomp\n      _ = _ := by\n        simp [map_add, map_smul, inner_add_left, inner_add_right,\n          real_inner_smul_left, real_inner_smul_right, hcross, hcross', lam]\n        ring\n    have hscale : lam * (a ^ 2 + ‖v‖ ^ 2) = lam := by rw [hnorm, mul_one]\n    nlinarith only [henergy, hscale, hvpos]\n  refine ⟨hmin, ⟨Module.End.mem_eigenspace_iff.mpr hAx, hxne⟩, ?_⟩\n  intro μ hμ\n  obtain ⟨v, hv⟩ := hμ.exists_hasEigenvector\n  have hvnorm : 0 < ‖v‖ := norm_pos_iff.mpr hv.2\n  let z := ‖v‖⁻¹ • v\n  have hznorm : ‖z‖ = 1 := by\n    dsimp only [z]\n    rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hvnorm),\n      inv_mul_cancel₀ hvnorm.ne']\n  have hAv : A v = μ • v := hv.apply_eq_smul\n  have hAz : A z = μ • z := by\n    dsimp only [z]\n    rw [map_smul, hAv, smul_smul, smul_smul, mul_comm]\n  have hzval : ⟪z, A z⟫_ℝ = μ := by\n    rw [hAz, real_inner_smul_right, real_inner_self_eq_norm_sq, hznorm, one_pow, mul_one]\n  have hc := hmin (mem_sphere_zero_iff_norm.mpr hznorm)\n  change (1 / 2 : ℝ) * lam ≤ (1 / 2 : ℝ) * ⟪z, A z⟫_ℝ at hc\n  rw [hzval] at hc\n  linarith only [hc]\n\nend AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian\n",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "source": {
+          "id": "boumal-2023-prepublication-sha256-95e9c219",
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+          "edition": "2023 pre-publication snapshot (367 PDF pages; SHA-256 95e9c219298bcf718493885ba6f00cbcc95474e34fa8e4b0bf363e6e07f1b71b)",
+          "anchor": "§5.5, Corollary 5.16 and Example 5.17 (printed p. 96 / PDF p. 112)",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Nicolas Boumal. ASTIS-authored restatement and solution; no source prose, figures, or PDF redistributed. The source PDF is marked free for personal use only."
+        },
+        "statement": "For the half-normalized symmetric Rayleigh quadratic on a finite-dimensional Euclidean unit sphere, the induced gradient is Ax−⟨x,Ax⟩x. Differentiate its smooth ambient extension and project to the tangent plane. On a tangent vector u the Hessian is Pₓ(Au)−⟨x,Ax⟩u.",
+        "formulae": [
+          {
+            "label": "Extension",
+            "tex": "G(y)=Ay-\\langle y,Ay\\rangle y."
+          },
+          {
+            "label": "Actual ambient derivative",
+            "tex": "DG(x)[u]=Au-\\bigl(\\langle u,Ax\\rangle+\\langle x,Au\\rangle\\bigr)x-\\langle x,Ax\\rangle u."
+          },
+          {
+            "label": "Tangent operator and form",
+            "tex": "H_xu=P_x(Au)-\\lambda u,\\qquad \\langle u,H_xu\\rangle=\\langle u,Au\\rangle-\\lambda\\|u\\|^2."
+          }
+        ],
+        "assumptions": [
+          "A is a symmetric continuous real-linear operator and x lies on the unit sphere in finite-dimensional E.",
+          "The chart parameter n satisfies dim E=n+1, permitting n=0. The inner product is the ambient one pulled back along the actual sphere inclusion."
+        ],
+        "obligations": [
+          {
+            "id": "extension",
+            "label": "Define the exact smooth gradient extension."
+          },
+          {
+            "id": "projected-tangent-operator",
+            "label": "Use the tangent subtype for both input and output of the projected derivative."
+          },
+          {
+            "id": "actual-gradient",
+            "label": "Identify the extension with the genuine induced gradient of the half quadratic."
+          },
+          {
+            "id": "operator-and-form",
+            "label": "Differentiate the extension and project to obtain the exact Hessian operator and quadratic form."
+          }
+        ],
+        "lesson": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension",
+          "kind": "def",
+          "title": "Extend the actual half-Rayleigh gradient off the sphere",
+          "statement": "Use the ambient extension G(y) = Ay − ⟨y,Ay⟩y of the induced gradient of the half-normalized symmetric Rayleigh quadratic on the unit sphere.",
+          "formula": "G(y)=Ay-\\langle y,Ay\\rangle y.",
+          "assumptions": [
+            "E is a real inner-product space and A is continuous real-linear. The expression is defined at every ambient point. Symmetry and unit norm are used later when identifying the induced gradient."
+          ],
+          "steps": [
+            {
+              "title": "Use the same expression off the sphere",
+              "text": "For unit y this removes the normal component of Ay. Defining the same polynomial at all y gives an ambient extension; it need not be tangent away from the sphere.",
+              "formula": "P_y(Ay)=Ay-\\langle y,Ay\\rangle y\\quad(\\|y\\|=1).",
+              "lean": "The definition names the actual polynomial, with no choice of an arbitrary gradient field."
+            }
+          ],
+          "astis_dependencies": [],
+          "mathlib_dependencies": [
+            "ContinuousLinearMap",
+            "inner"
+          ],
+          "lean_statement": "A map from the real ambient inner-product space to itself.",
+          "lean_proof": "A transparent formula; its derivative is checked in the Hessian calculation.",
+          "sources": [
+            {
+              "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+              "label": "Boumal, §5.5 (printed p. 96 / PDF p. 112)",
+              "scope": "Original ASTIS exposition of Corollary 5.16, Example 5.17 and Exercise 5.18; no textbook prose, PDF, or figures redistributed."
+            },
+            {
+              "path": "Tests/Shared/SphereRayleighHessian.lean",
+              "label": "Focused sphere Hessian tests",
+              "scope": "Checks zero and negative tangential curvature and the one-dimensional exercise conclusion; prints the three theorem axiom traces."
+            }
+          ]
+        },
+        "binding": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension",
+          "role": "prerequisite",
+          "supports": [
+            "extension"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "source": "The example uses the polynomial extension for symmetric matrices in finite Euclidean space.",
+            "lean": "The polynomial itself is defined on every real inner-product space for any continuous linear A."
+          }
+        ]
+      },
+      "source_review": {
+        "state": "accepted",
+        "reviewer": "source_compiler_boumal518_20261112",
+        "independent_from_formalizer": true,
+        "independent_from_decoder": true,
+        "evidence": "Accepted independent review of the documented generalization and its exact source specialization; domain-mismatch describes the enlarged full declaration and is not a blocking delta. The polynomial is a reviewed broader prerequisite. The exact source specialization uses the finite-dimensional symmetric half-Rayleigh data. Classification receipt: runs/20261112-boumal-rayleigh-hessian/source-review-domain-run.txt. The original mathematical and compiler evidence and all seven slot classifications are unchanged.",
+        "review_run_sha256": "806b336b88945c4b328fb52650baf475e5d46212802409bc8e582ca2a58dc332",
+        "reviewer_packet_sha256": "95e215a3939f959b9a6c85537a136ea00ef17323493ff699cb560f515928b96e",
+        "run_artifact": "runs/20261112-boumal-rayleigh-hessian/source-review-domain-run.txt",
+        "packet_artifact": "runs/20261112-boumal-rayleigh-hessian/reviewer-input-1.json",
+        "result_artifact": "runs/20261112-boumal-rayleigh-hessian/reviewer-result-1-domain.json"
+      },
+      "reconstruction": {
+        "text": "Let E be a real inner product space and A a continuous real-linear endomorphism of E. Define the ambient map G_A:E→E by G_A(y)=Ay−⟨y,Ay⟩y for every y∈E. This is a definition on all of E.",
+        "text_sha256": "3836a4bba05b15ee43912619e5a3403d06bb590e4353e54e1073aeba00b1f191",
+        "decoder": "blind_decoder_a423",
+        "decoder_run_sha256": "6a572ae463f4f17bfe7cb3883289b4834b0b82f03ac5f7558baa77d7cce453df",
+        "source_text_visible": false,
+        "lean_statement_sha256": "7beb6412cbdfd84b7199e119897fb4db864c514df8e81b3af8a1348ca788b21e",
+        "decoder_packet_sha256": "21754b16de82472ad804d4a11699b12a6f3f130dba175b414e10e09508713718",
+        "input_artifacts": [
+          "lean-statement",
+          "approved-definition-context"
+        ],
+        "run_artifact": "runs/semantic-roundtrip/blind/7beb6412cbdfd84b/decoder-run.txt"
+      },
+      "semantic_slots": {
+        "objects": {
+          "original": "Example 5.17’s chosen polynomial extension of the induced gradient of the half quadratic.",
+          "reconstructed": "halfRayleighGradientExtension is the polynomial family attached to a continuous linear A.",
+          "relation": "equivalent",
+          "evidence": "Lean definition and fresh #print both give Ay − ⟨y,Ay⟩y, exactly the chosen source expression."
+        },
+        "domains": {
+          "original": "The extension is defined on the ambient real Euclidean space, rather than only on the sphere.",
+          "reconstructed": "G_A:E→E for every real inner-product space E.",
+          "relation": "different",
+          "evidence": "The ambient rather than tangent-valued output agrees; E is deliberately more general than finite Euclidean R^d."
+        },
+        "quantifiers": {
+          "original": "For a given source symmetric A, all ambient y occur in the extension.",
+          "reconstructed": "For every continuous real-linear A and every y in E.",
+          "relation": "explicit-elaboration",
+          "evidence": "The Lean parameters make the pointwise family explicit; the A and E enlargements are noted separately."
+        },
+        "assumptions": {
+          "original": "Finite Euclidean space and symmetric A for the source identification as a sphere gradient extension.",
+          "reconstructed": "The polynomial needs only a real inner product and continuous linear A; its identification is separately restricted to the source case.",
+          "relation": "weaker-in-lean",
+          "evidence": "The exact lesson and candidate assumption text distinguish the weaker construction hypotheses from symmetry and unit norm for gradient identification."
+        },
+        "conclusion": {
+          "original": "A smooth ambient extension that agrees with the actual induced gradient on the sphere.",
+          "reconstructed": "The selected polynomial formula, with smoothness and restricted gradient agreement certified by separate declarations in the same module.",
+          "relation": "explicit-elaboration",
+          "evidence": "Private half_rayleigh_gradient_extension_derivative provides ContDiff infinity everywhere; sphere_half_rayleigh_gradient_pairing proves tangency and the true differential pairing."
+        },
+        "scopes": {
+          "original": "A chosen extension, not an intrinsic tangent field off the sphere and not a uniqueness assertion.",
+          "reconstructed": "The ambient map is unrestricted in y; reader notes tangency is not required away from the sphere.",
+          "relation": "same",
+          "evidence": "For unit y, projection removes ⟨y,Ay⟩y; the projected Ay is the actual gradient for the symmetric half quadratic."
+        },
+        "constant_dependencies": {
+          "original": "Only y and A enter the Rayleigh coefficient; the objective’s factor 1/2 cancels in its derivative.",
+          "reconstructed": "No new constant or parameter; the body uses A, the real inner product, and y.",
+          "relation": "same",
+          "evidence": "The half scaling is verified by instantiating the unhalved characterization at A/2."
+        }
+      },
+      "deltas": [
+        {
+          "slot": "domains",
+          "severity": "informational",
+          "description": "The polynomial’s ambient domain is deliberately generalized to real inner-product spaces; this is not a universal gradient identification.",
+          "evidence": "Example 5.17 and the definition’s scope; the exact lesson states the generalized domain."
+        },
+        {
+          "slot": "assumptions",
+          "severity": "informational",
+          "description": "Symmetry and finite dimension are unnecessary for the polynomial definition and its smoothness, but the genuine source gradient identification is only credited on the source restriction.",
+          "evidence": "Private derivative and public pairing use different binders."
+        },
+        {
+          "slot": "scopes",
+          "severity": "informational",
+          "description": "Clarify the reader’s shared test citation: the dimension-one example explicitly asserts eigenvectorhood and leastness, not IsMinOn in its own conclusion.",
+          "evidence": "Tests/Shared/SphereRayleighHessian.lean, dimension-one example ends with the terminal theorem’s .2. The generic theorem proves the minimum in dimension one as well."
+        }
+      ],
+      "repairs": []
+    },
+    {
+      "id": "ASTIS-RT-20261112-BoumalRayleighProjectedHessian",
+      "state": "source-reviewed",
+      "source": {
+        "source_id": "boumal-2023-prepublication-sha256-95e9c219",
+        "anchor": "Boumal, §5.5, Corollary 5.16 and Example 5.17, projected derivative with tangent domain and codomain; printed p. 96 / PDF p. 112",
+        "original_text": "At a unit sphere point x, restrict the derivative of the smooth ambient extension of the induced gradient to vectors perpendicular to x and orthogonally project its output onto that same tangent plane. This is the embedded-sphere realization of the Hessian operator.",
+        "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+        "text_sha256": "850b0dc90644b2e34afa26d4bfe2c32f13b54a93b0753ca70e61bbe6c1710c90"
+      },
+      "lean": {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighTangentHessian",
+        "file": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereRayleighHessian.lean",
+        "statement": "{E : Type u_1} →\n  [inst : NormedAddCommGroup E] →\n    [inst_1 : InnerProductSpace ℝ E] → (E →L[ℝ] E) → (x : ↑(Metric.sphere 0 1)) → ↥(ℝ ∙ ↑x)ᗮ →L[ℝ] ↥(ℝ ∙ ↑x)ᗮ",
+        "compiled": true,
+        "formalizer": "astis-sog-bench-boumal-20261112-writer",
+        "decoder_context": [
+          "Exact definition body (with function name omitted): fun {E} [NormedAddCommGroup E] [InnerProductSpace ℝ E] A x =>\n  let K := (ℝ ∙ ↑x)ᗮ;\n  K.orthogonalProjectionOnto ∘SL fderiv ℝ (halfRayleighGradientExtension A) ↑x ∘SL K.subtypeL",
+          "The function halfRayleighGradientExtension A is the ambient map y ↦ A y − ⟪y,A y⟫ y.",
+          "Metric.sphere 0 1 is the unit sphere; ↑x is the underlying ambient vector. The subtype ↥(ℝ ∙ ↑x)ᗮ consists of all vectors orthogonal to x. Inner products and norms are ambient real inner products and norms.",
+          "fderiv is the ambient Fréchet derivative API; the definition alone does not assert existence."
+        ],
+        "statement_sha256": "c215a9479e054559899dfda97632cf88f40dce76c86e90a20c65dac292ad882c"
+      },
+      "verdict": "domain-mismatch",
+      "publication_binding_sha256": "9010c6b07d7b4300908f86fbaba12154a79e830a149e0f24df702fe8bf7409e1",
+      "publication_context": {
+        "file": "e9143f2f81001cc2932762161ff30d290d584fe9ea4d0dcf70df1b8111c1c7a3",
+        "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh\n\n/-!\n# The half-Rayleigh objective: sphere Hessian and global optimality\n\nBoumal, §5.5, Corollary 5.16, Example 5.17 and Exercise 5.18 (printed p. 96\nof the pre-publication PDF). The induced Hessian here is the tangent\nprojection of the genuine derivative of the actual sphere gradient extension.\nThe final comparison is specific to the half-normalized symmetric quadratic;\nit is not a second-order sufficiency theorem for arbitrary sphere objectives.\n-/\n\nnoncomputable section\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian\n\nopen Metric InnerProductSpace\nopen scoped Manifold InnerProductSpace ContDiff\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n\n/-- Ambient extension of the half-Rayleigh gradient on the unit sphere. -/\ndef halfRayleighGradientExtension (A : E →L[ℝ] E) (y : E) : E :=\n  A y - ⟪y, A y⟫_ℝ • y\n\n/-- The polynomial extension is smooth and its derivative is genuine at every point. -/\nprivate theorem half_rayleigh_gradient_extension_derivative (A : E →L[ℝ] E) :\n    ContDiff ℝ ∞ (halfRayleighGradientExtension A) ∧\n    ∀ x : E, HasFDerivAt (halfRayleighGradientExtension A)\n      (A - (⟪x, A x⟫_ℝ • ContinuousLinearMap.id ℝ E +\n        (innerSL ℝ (A x) + (innerSL ℝ x).comp A).smulRight x)) x := by\n  refine ⟨?_, fun x => ?_⟩\n  · change ContDiff ℝ ∞ (fun y : E => A y - ⟪y, A y⟫_ℝ • y)\n    exact A.contDiff.sub ((contDiff_id.inner ℝ A.contDiff).smul contDiff_id)\n  · have hq : HasFDerivAt (fun y : E => ⟪y, A y⟫_ℝ)\n        (innerSL ℝ (A x) + (innerSL ℝ x).comp A) x := by\n      have hlin : (fderivInnerCLM ℝ (x, A x)).comp ((ContinuousLinearMap.id ℝ E).prod A) =\n          innerSL ℝ (A x) + (innerSL ℝ x).comp A := by\n        apply ContinuousLinearMap.ext\n        intro u\n        simp [real_inner_comm, add_comm]\n      rw [← hlin]\n      exact (hasFDerivAt_id x).inner ℝ A.hasFDerivAt\n    exact A.hasFDerivAt.fun_sub (hq.fun_smul (hasFDerivAt_id x))\n\n/-- Source-specific projected derivative, restricted and corestricted to the actual\northogonal tangent plane. This is not a general manifold connection. -/\ndef halfRayleighTangentHessian (A : E →L[ℝ] E) (x : sphere (0 : E) 1) :\n    (ℝ ∙ (x : E))ᗮ →L[ℝ] (ℝ ∙ (x : E))ᗮ :=\n  let K := (ℝ ∙ (x : E))ᗮ\n  K.orthogonalProjectionOnto.comp\n    ((fderiv ℝ (halfRayleighGradientExtension A) (x : E)).comp K.subtypeL)\n\n/-- On the sphere the extension is the induced gradient of the literal half quadratic.\nThe manifold differentiability witness is supplied alongside the pairing. -/\ntheorem sphere_half_rayleigh_gradient_pairing\n    [FiniteDimensional ℝ E] (n : ℕ) [Fact (Module.finrank ℝ E = n + 1)]\n    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1) :\n    MDifferentiableAt (𝓡 n) 𝓘(ℝ, ℝ)\n      (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) x ∧\n    halfRayleighGradientExtension A (x : E) ∈ (ℝ ∙ (x : E))ᗮ ∧\n    ∀ w : TangentSpace (𝓡 n) x,\n      mvfderiv (𝓡 n)\n        (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) x w =\n        ⟪mvfderiv (𝓡 n) ((↑) : sphere (0 : E) 1 → E) x w,\n          halfRayleighGradientExtension A (x : E)⟫_ℝ := by\n  have hx : ‖(x : E)‖ = 1 := mem_sphere_zero_iff_norm.mp x.property\n  have hco := (contMDiff_coe_sphere (n := n) (m := 1) x).mdifferentiableAt one_ne_zero\n  have hamb : DifferentiableAt ℝ (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ) (x : E) :=\n    ((hasFDerivAt_id (x : E)).inner ℝ A.hasFDerivAt).differentiableAt.const_mul _\n  have ht : halfRayleighGradientExtension A (x : E) ∈ (ℝ ∙ (x : E))ᗮ := by\n    rw [Submodule.mem_orthogonal_singleton_iff_inner_right]\n    simp [halfRayleighGradientExtension, inner_sub_right, real_inner_smul_right, hx]\n  refine ⟨hamb.comp_mdifferentiableAt hco, ht, ?_⟩\n  let B : E →L[ℝ] E := (1 / 2 : ℝ) • A\n  have hB : B.IsSymmetric := by\n    intro y z\n    change ⟪(1 / 2 : ℝ) • A y, z⟫_ℝ = ⟪y, (1 / 2 : ℝ) • A z⟫_ℝ\n    rw [real_inner_smul_left, real_inner_smul_right]\n    exact congrArg ((1 / 2 : ℝ) * ·) (hA y z)\n  have hF :\n      (fun y : sphere (0 : E) 1 => ⟪(y : E), B (y : E)⟫_ℝ) =\n        (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) := by\n    funext y\n    simp [B, real_inner_smul_right]\n  let z : (ℝ ∙ (x : E))ᗮ := ⟨_, ht⟩\n  have hscale : (z : E) =\n      (2 : ℝ) • (B (x : E) - ⟪(x : E), B (x : E)⟫_ℝ • (x : E)) := by\n    change halfRayleighGradientExtension A (x : E) = _\n    norm_num [halfRayleighGradientExtension, B, real_inner_smul_right, smul_sub,\n      smul_smul, ← mul_assoc]\n  rw [← hF]\n  exact (sphere_rayleigh_characterization n B hB x z).mpr hscale\n\n/-- Projecting kills the normal part of the genuine derivative; the remaining\ntangent operator and its quadratic form are the two displayed formulas. -/\ntheorem sphere_half_rayleigh_tangent_hessian_apply\n    (A : E →L[ℝ] E) (x : sphere (0 : E) 1) (u : (ℝ ∙ (x : E))ᗮ) :\n    halfRayleighTangentHessian A x u =\n      (ℝ ∙ (x : E))ᗮ.orthogonalProjectionOnto (A (u : E)) -\n        ⟪(x : E), A (x : E)⟫_ℝ • u ∧\n    ⟪(u : E), (halfRayleighTangentHessian A x u : E)⟫_ℝ =\n      ⟪(u : E), A (u : E)⟫_ℝ - ⟪(x : E), A (x : E)⟫_ℝ * ‖(u : E)‖ ^ 2 := by\n  let K := (ℝ ∙ (x : E))ᗮ\n  have hvalue : halfRayleighTangentHessian A x u =\n      K.orthogonalProjectionOnto (A (u : E)) - ⟪(x : E), A (x : E)⟫_ℝ • u := by\n    change K.orthogonalProjectionOnto\n      (fderiv ℝ (halfRayleighGradientExtension A) (x : E) (u : E)) = _\n    rw [((half_rayleigh_gradient_extension_derivative A).2 (x : E)).fderiv]\n    simp [K, Submodule.orthogonalProjectionOnto_orthogonalComplement_singleton_eq_zero]\n  refine ⟨hvalue, ?_⟩\n  rw [hvalue]\n  change ⟪u, K.orthogonalProjectionOnto (A (u : E)) - ⟪(x : E), A (x : E)⟫_ℝ • u⟫_ℝ = _\n  rw [inner_sub_right, K.inner_orthogonalProjectionOnto_eq_of_mem_left, real_inner_smul_right]\n  change _ - _ * ⟪(u : E), (u : E)⟫_ℝ = _\n  rw [real_inner_self_eq_norm_sq]\n\n/-- At a second-order stationary point of the half-Rayleigh objective, the\nactual tangent Hessian controls all differences in objective value. -/\ntheorem sphere_half_rayleigh_second_order_stationary_min\n    [FiniteDimensional ℝ E]\n    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1)\n    (hgrad : halfRayleighGradientExtension A (x : E) = 0)\n    (hpsd : ∀ u : (ℝ ∙ (x : E))ᗮ, 0 ≤\n      ⟪(u : E), (halfRayleighTangentHessian A x u : E)⟫_ℝ) :\n    let lam := ⟪(x : E), A (x : E)⟫_ℝ\n    IsMinOn (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ) (sphere (0 : E) 1) (x : E) ∧\n      Module.End.HasEigenvector A.toLinearMap lam (x : E) ∧\n      ∀ μ : ℝ, Module.End.HasEigenvalue A.toLinearMap μ → lam ≤ μ := by\n  let lam := ⟪(x : E), A (x : E)⟫_ℝ\n  have hx : ‖(x : E)‖ = 1 := mem_sphere_zero_iff_norm.mp x.property\n  have hxne : (x : E) ≠ 0 := by\n    intro hz\n    simp [hz] at hx\n  have hAx : A (x : E) = lam • (x : E) := sub_eq_zero.mp hgrad\n  have hmin : IsMinOn (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ)\n      (sphere (0 : E) 1) (x : E) := by\n    intro y hy\n    change (1 / 2 : ℝ) * lam ≤ (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ\n    let a := ⟪(x : E), y⟫_ℝ\n    let v := y - a • (x : E)\n    have hdecomp : y = a • (x : E) + v := by\n      dsimp only [v]\n      abel\n    have horth : ⟪(x : E), v⟫_ℝ = 0 := by\n      simp [v, inner_sub_right, real_inner_smul_right, hx, a]\n    let u : (ℝ ∙ (x : E))ᗮ :=\n      ⟨v, Submodule.mem_orthogonal_singleton_iff_inner_right.mpr horth⟩\n    have hvpos := hpsd u\n    rw [(sphere_half_rayleigh_tangent_hessian_apply A x u).2] at hvpos\n    change 0 ≤ ⟪v, A v⟫_ℝ - lam * ‖v‖ ^ 2 at hvpos\n    have hnorm : a ^ 2 + ‖v‖ ^ 2 = 1 := calc\n      _ = ‖a • (x : E) + v‖ ^ 2 := by\n        rw [norm_add_sq_real, norm_smul, Real.norm_eq_abs,\n          real_inner_smul_left, hx, horth, mul_one, sq_abs]\n        ring\n      _ = 1 := by rw [← hdecomp, mem_sphere_zero_iff_norm.mp hy, one_pow]\n    have hcross : ⟪(x : E), A v⟫_ℝ = 0 := calc\n      _ = ⟪A (x : E), v⟫_ℝ := (hA (x : E) v).symm\n      _ = 0 := by rw [hAx, real_inner_smul_left, horth, mul_zero]\n    have hcross' : ⟪v, A (x : E)⟫_ℝ = 0 := by\n      rw [real_inner_comm, hAx, real_inner_smul_left, horth, mul_zero]\n    have henergy : ⟪y, A y⟫_ℝ = a ^ 2 * lam + ⟪v, A v⟫_ℝ := calc\n      _ = ⟪a • (x : E) + v, A (a • (x : E) + v)⟫_ℝ :=\n        congrArg (fun z => ⟪z, A z⟫_ℝ) hdecomp\n      _ = _ := by\n        simp [map_add, map_smul, inner_add_left, inner_add_right,\n          real_inner_smul_left, real_inner_smul_right, hcross, hcross', lam]\n        ring\n    have hscale : lam * (a ^ 2 + ‖v‖ ^ 2) = lam := by rw [hnorm, mul_one]\n    nlinarith only [henergy, hscale, hvpos]\n  refine ⟨hmin, ⟨Module.End.mem_eigenspace_iff.mpr hAx, hxne⟩, ?_⟩\n  intro μ hμ\n  obtain ⟨v, hv⟩ := hμ.exists_hasEigenvector\n  have hvnorm : 0 < ‖v‖ := norm_pos_iff.mpr hv.2\n  let z := ‖v‖⁻¹ • v\n  have hznorm : ‖z‖ = 1 := by\n    dsimp only [z]\n    rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hvnorm),\n      inv_mul_cancel₀ hvnorm.ne']\n  have hAv : A v = μ • v := hv.apply_eq_smul\n  have hAz : A z = μ • z := by\n    dsimp only [z]\n    rw [map_smul, hAv, smul_smul, smul_smul, mul_comm]\n  have hzval : ⟪z, A z⟫_ℝ = μ := by\n    rw [hAz, real_inner_smul_right, real_inner_self_eq_norm_sq, hznorm, one_pow, mul_one]\n  have hc := hmin (mem_sphere_zero_iff_norm.mpr hznorm)\n  change (1 / 2 : ℝ) * lam ≤ (1 / 2 : ℝ) * ⟪z, A z⟫_ℝ at hc\n  rw [hzval] at hc\n  linarith only [hc]\n\nend AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian\n",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "source": {
+          "id": "boumal-2023-prepublication-sha256-95e9c219",
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+          "edition": "2023 pre-publication snapshot (367 PDF pages; SHA-256 95e9c219298bcf718493885ba6f00cbcc95474e34fa8e4b0bf363e6e07f1b71b)",
+          "anchor": "§5.5, Corollary 5.16 and Example 5.17 (printed p. 96 / PDF p. 112)",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Nicolas Boumal. ASTIS-authored restatement and solution; no source prose, figures, or PDF redistributed. The source PDF is marked free for personal use only."
+        },
+        "statement": "For the half-normalized symmetric Rayleigh quadratic on a finite-dimensional Euclidean unit sphere, the induced gradient is Ax−⟨x,Ax⟩x. Differentiate its smooth ambient extension and project to the tangent plane. On a tangent vector u the Hessian is Pₓ(Au)−⟨x,Ax⟩u.",
+        "formulae": [
+          {
+            "label": "Extension",
+            "tex": "G(y)=Ay-\\langle y,Ay\\rangle y."
+          },
+          {
+            "label": "Actual ambient derivative",
+            "tex": "DG(x)[u]=Au-\\bigl(\\langle u,Ax\\rangle+\\langle x,Au\\rangle\\bigr)x-\\langle x,Ax\\rangle u."
+          },
+          {
+            "label": "Tangent operator and form",
+            "tex": "H_xu=P_x(Au)-\\lambda u,\\qquad \\langle u,H_xu\\rangle=\\langle u,Au\\rangle-\\lambda\\|u\\|^2."
+          }
+        ],
+        "assumptions": [
+          "A is a symmetric continuous real-linear operator and x lies on the unit sphere in finite-dimensional E.",
+          "The chart parameter n satisfies dim E=n+1, permitting n=0. The inner product is the ambient one pulled back along the actual sphere inclusion."
+        ],
+        "obligations": [
+          {
+            "id": "extension",
+            "label": "Define the exact smooth gradient extension."
+          },
+          {
+            "id": "projected-tangent-operator",
+            "label": "Use the tangent subtype for both input and output of the projected derivative."
+          },
+          {
+            "id": "actual-gradient",
+            "label": "Identify the extension with the genuine induced gradient of the half quadratic."
+          },
+          {
+            "id": "operator-and-form",
+            "label": "Differentiate the extension and project to obtain the exact Hessian operator and quadratic form."
+          }
+        ],
+        "lesson": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighTangentHessian",
+          "kind": "def",
+          "title": "Project the gradient derivative to the same tangent plane",
+          "statement": "For a continuous real-linear operator A on a real inner-product space and a unit point x, restrict the ambient derivative of the stated polynomial extension to vectors perpendicular to x and project its output onto that same tangent plane. In the finite-dimensional symmetric source setting, the extension is the actual sphere gradient and this operator is the induced Hessian.",
+          "formula": "K_x=x^\\perp,\\qquad H_x=P_x\\circ DG(x)\\circ \\iota_{K_x}.",
+          "assumptions": [
+            "A is arbitrary continuous real-linear on a real inner-product space; this construction needs neither symmetry nor finite dimension. The point x is unit, and the input and output both lie in the ambient orthogonal tangent plane.",
+            "The span of the single vector admits orthogonal projection. The definition uses fderiv; genuine differentiability is supplied by the proof of the evaluation theorem."
+          ],
+          "steps": [
+            {
+              "title": "Restrict, differentiate, and project",
+              "text": "Start with an actual tangent vector and include it in the ambient space. Apply the derivative of the chosen extension, then project back; the ambient derivative alone can have a normal component.",
+              "formula": "u\\in K_x\\ \\longmapsto\\ P_x(DG(x)[u])\\in K_x.",
+              "lean": "Compose K.subtypeL, fderiv of the checked extension, and K.orthogonalProjectionOnto."
+            }
+          ],
+          "astis_dependencies": [
+            "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension"
+          ],
+          "mathlib_dependencies": [
+            "fderiv",
+            "Submodule.subtypeL",
+            "Submodule.orthogonalProjectionOnto"
+          ],
+          "lean_statement": "A continuous linear endomorphism of the orthogonal tangent subtype.",
+          "lean_proof": "Compose inclusion, Fréchet derivative and orthogonal projection.",
+          "sources": [
+            {
+              "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+              "label": "Boumal, §5.5 (printed p. 96 / PDF p. 112)",
+              "scope": "Original ASTIS exposition of Corollary 5.16, Example 5.17 and Exercise 5.18; no textbook prose, PDF, or figures redistributed."
+            },
+            {
+              "path": "Tests/Shared/SphereRayleighHessian.lean",
+              "label": "Focused sphere Hessian tests",
+              "scope": "Checks zero and negative tangential curvature and the one-dimensional exercise conclusion; prints the three theorem axiom traces."
+            }
+          ]
+        },
+        "binding": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighTangentHessian",
+          "role": "prerequisite",
+          "supports": [
+            "projected-tangent-operator"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "source": "For the finite-dimensional symmetric half quadratic, the source projects the derivative of the actual gradient extension and acts only on tangent directions.",
+            "lean": "For any continuous real-linear A on a real inner-product space, compose tangent inclusion, fderiv of the stated polynomial and orthogonal projection."
+          }
+        ]
+      },
+      "source_review": {
+        "state": "accepted",
+        "reviewer": "source_compiler_boumal518_20261112",
+        "independent_from_formalizer": true,
+        "independent_from_decoder": true,
+        "evidence": "Accepted independent review of the documented generalization and its exact source specialization; domain-mismatch describes the enlarged full declaration and is not a blocking delta. The revised definition is a reviewed broader prerequisite, with the genuine Hessian identification explicitly restricted to the finite-dimensional symmetric source. Classification receipt: runs/20261112-boumal-rayleigh-hessian/source-review-domain-run.txt. The original mathematical and compiler evidence and all seven slot classifications are unchanged.",
+        "review_run_sha256": "806b336b88945c4b328fb52650baf475e5d46212802409bc8e582ca2a58dc332",
+        "reviewer_packet_sha256": "9d7df049d6bcde3b3c54e0d44d72e9322ccbab0fc1a65c1dd8ba3ec960ce85f0",
+        "run_artifact": "runs/20261112-boumal-rayleigh-hessian/source-review-domain-run.txt",
+        "packet_artifact": "runs/20261112-boumal-rayleigh-hessian/reviewer-input-2-revised.json",
+        "result_artifact": "runs/20261112-boumal-rayleigh-hessian/reviewer-result-2-revised-domain.json"
+      },
+      "reconstruction": {
+        "text": "Let E be a real inner product space, A a continuous real-linear endomorphism, and x a point of the unit sphere in E. Put K=(ℝx)⊥ and G_A(y)=Ay−⟨y,Ay⟩y. Define a continuous real-linear map H_{A,x}:K→K by composing the inclusion K→E, Lean's ambient Fréchet derivative operator fderiv applied to G_A at x, and the orthogonal projection E→K, in that order. The definition does not assert differentiability.",
+        "text_sha256": "e11e724d4a628b456d7d5a95aa39788e707a5db3a23e998abeecafce75f98675",
+        "decoder": "blind_decoder_a423",
+        "decoder_run_sha256": "24719055d2a5f943b7bfc53d8ecdf1251bce507faa32ce8fd71febfa5f4e976e",
+        "source_text_visible": false,
+        "lean_statement_sha256": "c215a9479e054559899dfda97632cf88f40dce76c86e90a20c65dac292ad882c",
+        "decoder_packet_sha256": "b994e7209f816cc2f7dc3882b40c85adc02987b0c4a81f446ca0a04b074c938c",
+        "input_artifacts": [
+          "lean-statement",
+          "approved-definition-context"
+        ],
+        "run_artifact": "runs/semantic-roundtrip/blind/c215a9479e054559/decoder-run.txt"
+      },
+      "semantic_slots": {
+        "objects": {
+          "original": "Corollary 5.16’s projected derivative of an extension of a genuine gradient, specialized to Example 5.17’s polynomial.",
+          "reconstructed": "The continuous-linear projected derivative of the chosen polynomial.",
+          "relation": "equivalent",
+          "evidence": "In the symmetric finite-Euclidean case these are the same construction. The packet binds a specialization, not a general formalization of the corollary."
+        },
+        "domains": {
+          "original": "For x on the finite Euclidean unit sphere, an operator from its orthogonal tangent plane back to that plane.",
+          "reconstructed": "K=(ℝx)⊥→L[ℝ]K for any real inner-product E and unit x.",
+          "relation": "different",
+          "evidence": "The revised statement and assumptions now distinguish the arbitrary real inner-product analytic domain from finite Euclidean source geometry; input/output K agree on the source restriction."
+        },
+        "quantifiers": {
+          "original": "Each unit x and each tangent input u for the source symmetric A.",
+          "reconstructed": "Each unit x and tangent u for each continuous A.",
+          "relation": "explicit-elaboration",
+          "evidence": "The definition packages all u into the linear map rather than taking u as a separate theorem binder."
+        },
+        "assumptions": {
+          "original": "Smooth genuine gradient extension, symmetric A and finite Euclidean ambient for Example 5.17.",
+          "reconstructed": "Any continuous real-linear A on E. A separate private theorem proves actual smoothness without extra hypotheses.",
+          "relation": "weaker-in-lean",
+          "evidence": "Projection to the complement of a one-dimensional span requires no ambient completeness. Genuine differentiation is discharged in the module, not added as a binder."
+        },
+        "conclusion": {
+          "original": "Hess f(x)[u] equals projected derivative, as a tangent vector.",
+          "reconstructed": "This specific map is P_K ∘ fderiv(G_A,x) ∘ inclusion, with checked differentiability separately.",
+          "relation": "equivalent",
+          "evidence": "The body definition matches the source restriction; the evaluation theorem rewrites fderiv using exact HasFDerivAt."
+        },
+        "scopes": {
+          "original": "Induced Hessian interpretation in the symmetric finite-dimensional setup; Corollary 5.16 is general but not the object of this definition.",
+          "reconstructed": "A broad analytic definition, with the Hessian interpretation explicitly limited to the finite-dimensional symmetric source setting.",
+          "relation": "same",
+          "evidence": "The revised statement expressly reserves the induced-Hessian identification for the finite-dimensional symmetric case; the formula-level generalization remains visible."
+        },
+        "constant_dependencies": {
+          "original": "x determines the tangent projector; the extension is fixed by A, with normalization inherited from F.",
+          "reconstructed": "A, x, and canonical projection of the complement of span{x}; no external gradient field or connection parameter.",
+          "relation": "same",
+          "evidence": "The exact #print composes the actual K inclusion, ambient fderiv of the fixed G_A, and projection onto K."
+        }
+      },
+      "deltas": [
+        {
+          "slot": "domains",
+          "severity": "informational",
+          "description": "The analytic construction deliberately generalizes the ambient space and A; the revised reader and ledger now disclose that scope and delimit the genuine source Hessian interpretation.",
+          "evidence": "The revised lesson and candidate assumption text explicitly distinguish arbitrary real inner-product spaces and continuous linear A from finite Euclidean symmetric source data."
+        },
+        {
+          "slot": "scopes",
+          "severity": "informational",
+          "description": "The declaration is a concrete projected derivative, not a general manifold-Hessian formalization and not a blanket nonsymmetric Hessian identification.",
+          "evidence": "The revised source restriction matches Corollary 5.16 and Example 5.17; the original receipt’s skew-map example still separates the two scopes."
+        },
+        {
+          "slot": "scopes",
+          "severity": "informational",
+          "description": "Clarify the reader’s shared test citation: the dimension-one example explicitly asserts eigenvectorhood and leastness, not IsMinOn in its own conclusion.",
+          "evidence": "Tests/Shared/SphereRayleighHessian.lean, dimension-one example ends with the terminal theorem’s .2. The generic theorem proves the minimum in dimension one as well."
+        }
+      ],
+      "repairs": []
+    },
+    {
+      "id": "ASTIS-RT-20261112-BoumalRayleighGradientPairing",
+      "state": "source-reviewed",
+      "source": {
+        "source_id": "boumal-2023-prepublication-sha256-95e9c219",
+        "anchor": "Boumal, §5.5, Example 5.17, induced gradient; Example 3.62, unhalved antecedent; printed p. 96 / PDF p. 112",
+        "original_text": "For a symmetric linear operator on a real Euclidean space, the half-normalized quadratic restricted to the unit sphere is differentiable. Its induced gradient at a unit point x is the tangent vector Ax − ⟨x,Ax⟩x, representing the actual restricted differential with the ambient inner product and the differential of inclusion.",
+        "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+        "text_sha256": "1e9f5e537719381f8874dace60b58bba8a0a5098d7c637fb5199d5f3da597f0c"
+      },
+      "lean": {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_gradient_pairing",
+        "file": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereRayleighHessian.lean",
+        "statement": "∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E]\n  [FiniteDimensional ℝ E] (n : ℕ) [inst_3 : Fact (Module.finrank ℝ E = n + 1)] (A : E →L[ℝ] E),\n  (↑A).IsSymmetric →\n    ∀ (x : ↑(Metric.sphere 0 1)),\n      (MDiffAt fun y => 1 / 2 * inner ℝ (↑y) (A ↑y)) x ∧\n        halfRayleighGradientExtension A ↑x ∈ (ℝ ∙ ↑x)ᗮ ∧\n          ∀ (w : TangentSpace (modelWithCornersSelf ℝ (EuclideanSpace ℝ (Fin n))) x),\n            ((d% fun y => 1 / 2 * inner ℝ (↑y) (A ↑y)) x) w =\n              inner ℝ ((d% Subtype.val x) w) (halfRayleighGradientExtension A ↑x)",
+        "compiled": true,
+        "formalizer": "astis-sog-bench-boumal-20261112-writer",
+        "decoder_context": [
+          "The function halfRayleighGradientExtension A is the ambient map y ↦ A y − ⟪y,A y⟫ y.",
+          "Metric.sphere 0 1 is the unit sphere; ↑x is the underlying ambient vector. The subtype ↥(ℝ ∙ ↑x)ᗮ consists of all vectors orthogonal to x. Inner products and norms are ambient real inner products and norms.",
+          "MDiffAt means genuine manifold differentiability. The d% expressions are manifold differentials, of the restricted function and of the inclusion Subtype.val respectively. The tangent chart space is the model of dimension n for a sphere in dimension n+1."
+        ],
+        "statement_sha256": "61ab79523e25073875fcfd5d913b63ae325e1e5230015b6c7cf02a635a1a405c"
+      },
+      "verdict": "equivalent-after-elaboration",
+      "publication_binding_sha256": "480054c77f97b1eb6aae355f1d24d08300c35c0e5f6965ece02e110fa44100e7",
+      "publication_context": {
+        "file": "e9143f2f81001cc2932762161ff30d290d584fe9ea4d0dcf70df1b8111c1c7a3",
+        "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh\n\n/-!\n# The half-Rayleigh objective: sphere Hessian and global optimality\n\nBoumal, §5.5, Corollary 5.16, Example 5.17 and Exercise 5.18 (printed p. 96\nof the pre-publication PDF). The induced Hessian here is the tangent\nprojection of the genuine derivative of the actual sphere gradient extension.\nThe final comparison is specific to the half-normalized symmetric quadratic;\nit is not a second-order sufficiency theorem for arbitrary sphere objectives.\n-/\n\nnoncomputable section\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian\n\nopen Metric InnerProductSpace\nopen scoped Manifold InnerProductSpace ContDiff\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n\n/-- Ambient extension of the half-Rayleigh gradient on the unit sphere. -/\ndef halfRayleighGradientExtension (A : E →L[ℝ] E) (y : E) : E :=\n  A y - ⟪y, A y⟫_ℝ • y\n\n/-- The polynomial extension is smooth and its derivative is genuine at every point. -/\nprivate theorem half_rayleigh_gradient_extension_derivative (A : E →L[ℝ] E) :\n    ContDiff ℝ ∞ (halfRayleighGradientExtension A) ∧\n    ∀ x : E, HasFDerivAt (halfRayleighGradientExtension A)\n      (A - (⟪x, A x⟫_ℝ • ContinuousLinearMap.id ℝ E +\n        (innerSL ℝ (A x) + (innerSL ℝ x).comp A).smulRight x)) x := by\n  refine ⟨?_, fun x => ?_⟩\n  · change ContDiff ℝ ∞ (fun y : E => A y - ⟪y, A y⟫_ℝ • y)\n    exact A.contDiff.sub ((contDiff_id.inner ℝ A.contDiff).smul contDiff_id)\n  · have hq : HasFDerivAt (fun y : E => ⟪y, A y⟫_ℝ)\n        (innerSL ℝ (A x) + (innerSL ℝ x).comp A) x := by\n      have hlin : (fderivInnerCLM ℝ (x, A x)).comp ((ContinuousLinearMap.id ℝ E).prod A) =\n          innerSL ℝ (A x) + (innerSL ℝ x).comp A := by\n        apply ContinuousLinearMap.ext\n        intro u\n        simp [real_inner_comm, add_comm]\n      rw [← hlin]\n      exact (hasFDerivAt_id x).inner ℝ A.hasFDerivAt\n    exact A.hasFDerivAt.fun_sub (hq.fun_smul (hasFDerivAt_id x))\n\n/-- Source-specific projected derivative, restricted and corestricted to the actual\northogonal tangent plane. This is not a general manifold connection. -/\ndef halfRayleighTangentHessian (A : E →L[ℝ] E) (x : sphere (0 : E) 1) :\n    (ℝ ∙ (x : E))ᗮ →L[ℝ] (ℝ ∙ (x : E))ᗮ :=\n  let K := (ℝ ∙ (x : E))ᗮ\n  K.orthogonalProjectionOnto.comp\n    ((fderiv ℝ (halfRayleighGradientExtension A) (x : E)).comp K.subtypeL)\n\n/-- On the sphere the extension is the induced gradient of the literal half quadratic.\nThe manifold differentiability witness is supplied alongside the pairing. -/\ntheorem sphere_half_rayleigh_gradient_pairing\n    [FiniteDimensional ℝ E] (n : ℕ) [Fact (Module.finrank ℝ E = n + 1)]\n    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1) :\n    MDifferentiableAt (𝓡 n) 𝓘(ℝ, ℝ)\n      (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) x ∧\n    halfRayleighGradientExtension A (x : E) ∈ (ℝ ∙ (x : E))ᗮ ∧\n    ∀ w : TangentSpace (𝓡 n) x,\n      mvfderiv (𝓡 n)\n        (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) x w =\n        ⟪mvfderiv (𝓡 n) ((↑) : sphere (0 : E) 1 → E) x w,\n          halfRayleighGradientExtension A (x : E)⟫_ℝ := by\n  have hx : ‖(x : E)‖ = 1 := mem_sphere_zero_iff_norm.mp x.property\n  have hco := (contMDiff_coe_sphere (n := n) (m := 1) x).mdifferentiableAt one_ne_zero\n  have hamb : DifferentiableAt ℝ (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ) (x : E) :=\n    ((hasFDerivAt_id (x : E)).inner ℝ A.hasFDerivAt).differentiableAt.const_mul _\n  have ht : halfRayleighGradientExtension A (x : E) ∈ (ℝ ∙ (x : E))ᗮ := by\n    rw [Submodule.mem_orthogonal_singleton_iff_inner_right]\n    simp [halfRayleighGradientExtension, inner_sub_right, real_inner_smul_right, hx]\n  refine ⟨hamb.comp_mdifferentiableAt hco, ht, ?_⟩\n  let B : E →L[ℝ] E := (1 / 2 : ℝ) • A\n  have hB : B.IsSymmetric := by\n    intro y z\n    change ⟪(1 / 2 : ℝ) • A y, z⟫_ℝ = ⟪y, (1 / 2 : ℝ) • A z⟫_ℝ\n    rw [real_inner_smul_left, real_inner_smul_right]\n    exact congrArg ((1 / 2 : ℝ) * ·) (hA y z)\n  have hF :\n      (fun y : sphere (0 : E) 1 => ⟪(y : E), B (y : E)⟫_ℝ) =\n        (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) := by\n    funext y\n    simp [B, real_inner_smul_right]\n  let z : (ℝ ∙ (x : E))ᗮ := ⟨_, ht⟩\n  have hscale : (z : E) =\n      (2 : ℝ) • (B (x : E) - ⟪(x : E), B (x : E)⟫_ℝ • (x : E)) := by\n    change halfRayleighGradientExtension A (x : E) = _\n    norm_num [halfRayleighGradientExtension, B, real_inner_smul_right, smul_sub,\n      smul_smul, ← mul_assoc]\n  rw [← hF]\n  exact (sphere_rayleigh_characterization n B hB x z).mpr hscale\n\n/-- Projecting kills the normal part of the genuine derivative; the remaining\ntangent operator and its quadratic form are the two displayed formulas. -/\ntheorem sphere_half_rayleigh_tangent_hessian_apply\n    (A : E →L[ℝ] E) (x : sphere (0 : E) 1) (u : (ℝ ∙ (x : E))ᗮ) :\n    halfRayleighTangentHessian A x u =\n      (ℝ ∙ (x : E))ᗮ.orthogonalProjectionOnto (A (u : E)) -\n        ⟪(x : E), A (x : E)⟫_ℝ • u ∧\n    ⟪(u : E), (halfRayleighTangentHessian A x u : E)⟫_ℝ =\n      ⟪(u : E), A (u : E)⟫_ℝ - ⟪(x : E), A (x : E)⟫_ℝ * ‖(u : E)‖ ^ 2 := by\n  let K := (ℝ ∙ (x : E))ᗮ\n  have hvalue : halfRayleighTangentHessian A x u =\n      K.orthogonalProjectionOnto (A (u : E)) - ⟪(x : E), A (x : E)⟫_ℝ • u := by\n    change K.orthogonalProjectionOnto\n      (fderiv ℝ (halfRayleighGradientExtension A) (x : E) (u : E)) = _\n    rw [((half_rayleigh_gradient_extension_derivative A).2 (x : E)).fderiv]\n    simp [K, Submodule.orthogonalProjectionOnto_orthogonalComplement_singleton_eq_zero]\n  refine ⟨hvalue, ?_⟩\n  rw [hvalue]\n  change ⟪u, K.orthogonalProjectionOnto (A (u : E)) - ⟪(x : E), A (x : E)⟫_ℝ • u⟫_ℝ = _\n  rw [inner_sub_right, K.inner_orthogonalProjectionOnto_eq_of_mem_left, real_inner_smul_right]\n  change _ - _ * ⟪(u : E), (u : E)⟫_ℝ = _\n  rw [real_inner_self_eq_norm_sq]\n\n/-- At a second-order stationary point of the half-Rayleigh objective, the\nactual tangent Hessian controls all differences in objective value. -/\ntheorem sphere_half_rayleigh_second_order_stationary_min\n    [FiniteDimensional ℝ E]\n    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1)\n    (hgrad : halfRayleighGradientExtension A (x : E) = 0)\n    (hpsd : ∀ u : (ℝ ∙ (x : E))ᗮ, 0 ≤\n      ⟪(u : E), (halfRayleighTangentHessian A x u : E)⟫_ℝ) :\n    let lam := ⟪(x : E), A (x : E)⟫_ℝ\n    IsMinOn (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ) (sphere (0 : E) 1) (x : E) ∧\n      Module.End.HasEigenvector A.toLinearMap lam (x : E) ∧\n      ∀ μ : ℝ, Module.End.HasEigenvalue A.toLinearMap μ → lam ≤ μ := by\n  let lam := ⟪(x : E), A (x : E)⟫_ℝ\n  have hx : ‖(x : E)‖ = 1 := mem_sphere_zero_iff_norm.mp x.property\n  have hxne : (x : E) ≠ 0 := by\n    intro hz\n    simp [hz] at hx\n  have hAx : A (x : E) = lam • (x : E) := sub_eq_zero.mp hgrad\n  have hmin : IsMinOn (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ)\n      (sphere (0 : E) 1) (x : E) := by\n    intro y hy\n    change (1 / 2 : ℝ) * lam ≤ (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ\n    let a := ⟪(x : E), y⟫_ℝ\n    let v := y - a • (x : E)\n    have hdecomp : y = a • (x : E) + v := by\n      dsimp only [v]\n      abel\n    have horth : ⟪(x : E), v⟫_ℝ = 0 := by\n      simp [v, inner_sub_right, real_inner_smul_right, hx, a]\n    let u : (ℝ ∙ (x : E))ᗮ :=\n      ⟨v, Submodule.mem_orthogonal_singleton_iff_inner_right.mpr horth⟩\n    have hvpos := hpsd u\n    rw [(sphere_half_rayleigh_tangent_hessian_apply A x u).2] at hvpos\n    change 0 ≤ ⟪v, A v⟫_ℝ - lam * ‖v‖ ^ 2 at hvpos\n    have hnorm : a ^ 2 + ‖v‖ ^ 2 = 1 := calc\n      _ = ‖a • (x : E) + v‖ ^ 2 := by\n        rw [norm_add_sq_real, norm_smul, Real.norm_eq_abs,\n          real_inner_smul_left, hx, horth, mul_one, sq_abs]\n        ring\n      _ = 1 := by rw [← hdecomp, mem_sphere_zero_iff_norm.mp hy, one_pow]\n    have hcross : ⟪(x : E), A v⟫_ℝ = 0 := calc\n      _ = ⟪A (x : E), v⟫_ℝ := (hA (x : E) v).symm\n      _ = 0 := by rw [hAx, real_inner_smul_left, horth, mul_zero]\n    have hcross' : ⟪v, A (x : E)⟫_ℝ = 0 := by\n      rw [real_inner_comm, hAx, real_inner_smul_left, horth, mul_zero]\n    have henergy : ⟪y, A y⟫_ℝ = a ^ 2 * lam + ⟪v, A v⟫_ℝ := calc\n      _ = ⟪a • (x : E) + v, A (a • (x : E) + v)⟫_ℝ :=\n        congrArg (fun z => ⟪z, A z⟫_ℝ) hdecomp\n      _ = _ := by\n        simp [map_add, map_smul, inner_add_left, inner_add_right,\n          real_inner_smul_left, real_inner_smul_right, hcross, hcross', lam]\n        ring\n    have hscale : lam * (a ^ 2 + ‖v‖ ^ 2) = lam := by rw [hnorm, mul_one]\n    nlinarith only [henergy, hscale, hvpos]\n  refine ⟨hmin, ⟨Module.End.mem_eigenspace_iff.mpr hAx, hxne⟩, ?_⟩\n  intro μ hμ\n  obtain ⟨v, hv⟩ := hμ.exists_hasEigenvector\n  have hvnorm : 0 < ‖v‖ := norm_pos_iff.mpr hv.2\n  let z := ‖v‖⁻¹ • v\n  have hznorm : ‖z‖ = 1 := by\n    dsimp only [z]\n    rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hvnorm),\n      inv_mul_cancel₀ hvnorm.ne']\n  have hAv : A v = μ • v := hv.apply_eq_smul\n  have hAz : A z = μ • z := by\n    dsimp only [z]\n    rw [map_smul, hAv, smul_smul, smul_smul, mul_comm]\n  have hzval : ⟪z, A z⟫_ℝ = μ := by\n    rw [hAz, real_inner_smul_right, real_inner_self_eq_norm_sq, hznorm, one_pow, mul_one]\n  have hc := hmin (mem_sphere_zero_iff_norm.mpr hznorm)\n  change (1 / 2 : ℝ) * lam ≤ (1 / 2 : ℝ) * ⟪z, A z⟫_ℝ at hc\n  rw [hzval] at hc\n  linarith only [hc]\n\nend AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian\n",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "source": {
+          "id": "boumal-2023-prepublication-sha256-95e9c219",
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+          "edition": "2023 pre-publication snapshot (367 PDF pages; SHA-256 95e9c219298bcf718493885ba6f00cbcc95474e34fa8e4b0bf363e6e07f1b71b)",
+          "anchor": "§5.5, Corollary 5.16 and Example 5.17 (printed p. 96 / PDF p. 112)",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Nicolas Boumal. ASTIS-authored restatement and solution; no source prose, figures, or PDF redistributed. The source PDF is marked free for personal use only."
+        },
+        "statement": "For the half-normalized symmetric Rayleigh quadratic on a finite-dimensional Euclidean unit sphere, the induced gradient is Ax−⟨x,Ax⟩x. Differentiate its smooth ambient extension and project to the tangent plane. On a tangent vector u the Hessian is Pₓ(Au)−⟨x,Ax⟩u.",
+        "formulae": [
+          {
+            "label": "Extension",
+            "tex": "G(y)=Ay-\\langle y,Ay\\rangle y."
+          },
+          {
+            "label": "Actual ambient derivative",
+            "tex": "DG(x)[u]=Au-\\bigl(\\langle u,Ax\\rangle+\\langle x,Au\\rangle\\bigr)x-\\langle x,Ax\\rangle u."
+          },
+          {
+            "label": "Tangent operator and form",
+            "tex": "H_xu=P_x(Au)-\\lambda u,\\qquad \\langle u,H_xu\\rangle=\\langle u,Au\\rangle-\\lambda\\|u\\|^2."
+          }
+        ],
+        "assumptions": [
+          "A is a symmetric continuous real-linear operator and x lies on the unit sphere in finite-dimensional E.",
+          "The chart parameter n satisfies dim E=n+1, permitting n=0. The inner product is the ambient one pulled back along the actual sphere inclusion."
+        ],
+        "obligations": [
+          {
+            "id": "extension",
+            "label": "Define the exact smooth gradient extension."
+          },
+          {
+            "id": "projected-tangent-operator",
+            "label": "Use the tangent subtype for both input and output of the projected derivative."
+          },
+          {
+            "id": "actual-gradient",
+            "label": "Identify the extension with the genuine induced gradient of the half quadratic."
+          },
+          {
+            "id": "operator-and-form",
+            "label": "Differentiate the extension and project to obtain the exact Hessian operator and quadratic form."
+          }
+        ],
+        "lesson": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_gradient_pairing",
+          "kind": "theorem",
+          "title": "The extension represents the genuine half-Rayleigh gradient",
+          "statement": "For a symmetric linear operator on a real Euclidean space, the half-normalized quadratic restricted to the unit sphere is differentiable. Its induced gradient at a unit point x is the tangent vector Ax − ⟨x,Ax⟩x, representing the actual restricted differential with the ambient inner product and the differential of inclusion.",
+          "formula": "d(F|_S)_x[w]=\\langle d\\iota_x[w],G(x)\\rangle,\\qquad G(x)\\in x^\\perp.",
+          "assumptions": [
+            "A is a symmetric continuous real-linear operator and x lies on the unit sphere in finite-dimensional E.",
+            "The chart parameter n satisfies dim E=n+1, permitting n=0. The inner product is the ambient one pulled back along the actual sphere inclusion."
+          ],
+          "steps": [
+            {
+              "title": "Construct the genuine restricted differential",
+              "text": "The ambient half quadratic is differentiable by the real inner-product product rule. The sphere inclusion is smooth, so their composition is genuinely differentiable.",
+              "formula": "F|_S=F\\circ\\iota,\\qquad F(y)=\\tfrac12\\langle y,Ay\\rangle.",
+              "lean": "The proof produces MDifferentiableAt from the ambient derivative and contMDiff_coe_sphere; it does not infer differentiability from a totalized differential."
+            },
+            {
+              "title": "Apply the existing Rayleigh characterization at A/2",
+              "text": "The unhalved quadratic for the symmetric operator B=A/2 is the half quadratic for A. Its known induced tangent representative equals G after the factor of two cancels. Unit norm directly verifies G is tangent.",
+              "formula": "2(Bx-\\langle x,Bx\\rangle x)=Ax-\\langle x,Ax\\rangle x.",
+              "lean": "Use sphere_rayleigh_characterization with B and the explicit candidate in the tangent subtype."
+            }
+          ],
+          "astis_dependencies": [
+            "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension",
+            "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh.sphere_rayleigh_characterization"
+          ],
+          "mathlib_dependencies": [
+            "contMDiff_coe_sphere",
+            "HasFDerivAt.inner",
+            "DifferentiableAt.comp_mdifferentiableAt",
+            "Submodule.mem_orthogonal_singleton_iff_inner_right"
+          ],
+          "lean_statement": "Genuine manifold differentiability, tangency of the representative and its pairing with the inclusion derivative.",
+          "lean_proof": "Compose actual differentiability witnesses and instantiate the prior unique tangent representative with the scaled operator.",
+          "sources": [
+            {
+              "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+              "label": "Boumal, §5.5 (printed p. 96 / PDF p. 112)",
+              "scope": "Original ASTIS exposition of Corollary 5.16, Example 5.17 and Exercise 5.18; no textbook prose, PDF, or figures redistributed."
+            },
+            {
+              "path": "Tests/Shared/SphereRayleighHessian.lean",
+              "label": "Focused sphere Hessian tests",
+              "scope": "Checks zero and negative tangential curvature and the one-dimensional exercise conclusion; prints the three theorem axiom traces."
+            }
+          ]
+        },
+        "binding": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_gradient_pairing",
+          "role": "proof-edge",
+          "supports": [
+            "actual-gradient"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "source": "The half-normalized symmetric quadratic with the induced metric on a finite Euclidean sphere.",
+            "lean": "A symmetric continuous linear A, finite-dimensional E and dim E=n+1, with actual manifold differentiability and inclusion pairing."
+          }
+        ]
+      },
+      "source_review": {
+        "state": "accepted",
+        "reviewer": "source_compiler_boumal518_20261112",
+        "independent_from_formalizer": true,
+        "independent_from_decoder": true,
+        "evidence": "Independent source and compiler receipt: runs/20261112-boumal-rayleigh-hessian/source-review-run.txt. Exact source PDF, module and focused test were pinned. Direct Lean checks, focused Lake build and fresh occurrence probe passed; compilation is separate from the source judgment. Accept after chart elaboration and checked normalization at A/2. The antecedent is separately located on printed 44 (PDF 60).",
+        "review_run_sha256": "edff81b3b5843ccee7aa6a7fade8c6f2ebe7e72cbd507e11607337928c4b256b",
+        "reviewer_packet_sha256": "456f3ca7ae118d1f09f25d3680dee1674043d67f0791a97bf45919ddac14f73c",
+        "run_artifact": "runs/20261112-boumal-rayleigh-hessian/source-review-run.txt",
+        "packet_artifact": "runs/20261112-boumal-rayleigh-hessian/reviewer-input-3.json",
+        "result_artifact": "runs/20261112-boumal-rayleigh-hessian/reviewer-result-3.json"
+      },
+      "reconstruction": {
+        "text": "Let E be a finite-dimensional real inner product space of dimension n+1, with n a natural number, and let A be a symmetric continuous real-linear endomorphism of E. Write S for the unit sphere, ι:S→E for its inclusion, f(y)=½⟨ι(y),Aι(y)⟩, and G_A(z)=Az−⟨z,Az⟩z. At every x∈S, f is manifold differentiable, G_A(ι(x)) is orthogonal to ι(x), and for every w in the manifold tangent space T_xS modeled on real Euclidean n-space, d f_x(w)=⟨d ι_x(w),G_A(ι(x))⟩. The two differentials are manifold differentials.",
+        "text_sha256": "5a3ba070b1fc3210b73f1d799f1a616c66a574560590d466ca2d2eff6503b2d7",
+        "decoder": "blind_decoder_a423",
+        "decoder_run_sha256": "bffae890987971cbb7e008c2c9a433ddbec292184a799580259fadbaa7c4971b",
+        "source_text_visible": false,
+        "lean_statement_sha256": "61ab79523e25073875fcfd5d913b63ae325e1e5230015b6c7cf02a635a1a405c",
+        "decoder_packet_sha256": "cee6eb3047dc52e332400ca275dd228afe91f2ff18684e8095bcbaf87312f3ff",
+        "input_artifacts": [
+          "lean-statement",
+          "approved-definition-context"
+        ],
+        "run_artifact": "runs/semantic-roundtrip/blind/61ab79523e250738/decoder-run.txt"
+      },
+      "semantic_slots": {
+        "objects": {
+          "original": "The restricted half quadratic and its induced gradient in Example 5.17; Example 3.62 is the unhalved antecedent.",
+          "reconstructed": "Literal half quadratic, its actual manifold differential, and the explicitly tangent representative G_A.",
+          "relation": "equivalent",
+          "evidence": "The Lean theorem includes manifold differentiability and uses the derivative of sphere inclusion in the pairing."
+        },
+        "domains": {
+          "original": "Finite real Euclidean space and the unit sphere with induced metric; tangent directions are in x⊥.",
+          "reconstructed": "Finite real inner-product E and a sphere chart of dimension n, with the inclusion differential identifying the actual tangent plane.",
+          "relation": "explicit-elaboration",
+          "evidence": "SphereGradient uses range_mvfderiv_subtypeVal = x⊥. The ambient metric is pulled back along that derivative, not replaced by a chart inner product."
+        },
+        "quantifiers": {
+          "original": "Any unit x and all tangent directions.",
+          "reconstructed": "Every unit x and every w in the manifold tangent space at x.",
+          "relation": "equivalent",
+          "evidence": "The inclusion differential ranges over x⊥; no direction is lost or added."
+        },
+        "assumptions": {
+          "original": "A is symmetric and x is on the unit sphere in finite Euclidean dimension d.",
+          "reconstructed": "A is symmetric continuous linear, E is finite-dimensional, and dim E=n+1 for the chart.",
+          "relation": "explicit-elaboration",
+          "evidence": "Finite-dimensional linear maps are continuous. A unit point implies d≥1; n=d−1 can be 0, so the chart fact adds no geometric assumption."
+        },
+        "conclusion": {
+          "original": "The genuine induced gradient is Ax−⟨x,Ax⟩x, the representative of the restricted differential.",
+          "reconstructed": "Manifold differentiability, G_A∈x⊥, and the differential pairing for every w.",
+          "relation": "equivalent",
+          "evidence": "The proof constructs the composition differentiability witness, proves tangency, and invokes the checked unhalved representative characterization at A/2."
+        },
+        "scopes": {
+          "original": "The half-normalized Example 5.17 uses the metric induced from the ambient inner product.",
+          "reconstructed": "The literal half restricted objective and an extrinsic representative at x, not an arbitrary differentiable field.",
+          "relation": "same",
+          "evidence": "The pairing uses dι_x, so it is the defining induced gradient pairing. Example 3.62’s factor two is not imported unscaled."
+        },
+        "constant_dependencies": {
+          "original": "The half factor belongs to the objective; the gradient has no leading factor two.",
+          "reconstructed": "Let B=A/2 only in the proof; 2(Bx−⟨x,Bx⟩x)=G_A(x).",
+          "relation": "same",
+          "evidence": "The candidate lesson accurately describes cancellation with the literal source normalization."
+        }
+      },
+      "deltas": [
+        {
+          "slot": "domains",
+          "severity": "informational",
+          "description": "The explicit chart dimension is a model/typing elaboration, including n=0, not a new source hypothesis.",
+          "evidence": "A unit x implies dim E≥1; choose n=dim E−1."
+        },
+        {
+          "slot": "scopes",
+          "severity": "informational",
+          "description": "Distinguish the primary printed p.96/PDF p.112 from the unhalved antecedent’s own printed p.44/PDF p.60 in bibliographic wording.",
+          "evidence": "Both pages checked in the hash-pinned PDF; the primary Example 5.17 anchor is correct."
+        },
+        {
+          "slot": "scopes",
+          "severity": "informational",
+          "description": "Clarify the reader’s shared test citation: the dimension-one example explicitly asserts eigenvectorhood and leastness, not IsMinOn in its own conclusion.",
+          "evidence": "Tests/Shared/SphereRayleighHessian.lean, dimension-one example ends with the terminal theorem’s .2. The generic theorem proves the minimum in dimension one as well."
+        }
+      ],
+      "repairs": []
+    },
+    {
+      "id": "ASTIS-RT-20261112-BoumalRayleighHessianFormula",
+      "state": "source-reviewed",
+      "source": {
+        "source_id": "boumal-2023-prepublication-sha256-95e9c219",
+        "anchor": "Boumal, §5.5, Example 5.17, projected operator and its tangent quadratic form; printed p. 96 / PDF p. 112",
+        "original_text": "For the half-normalized symmetric Rayleigh quadratic and a tangent vector u at a unit point x, the induced Hessian sends u to Pₓ(Au) − ⟨x,Ax⟩u, where Pₓ projects onto the tangent plane. Its quadratic form on u is ⟨u,Au⟩ − ⟨x,Ax⟩‖u‖².",
+        "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+        "text_sha256": "11fb97f20a577917b44477412bb844bccd191cee5495056ab2117c35b78a208e"
+      },
+      "lean": {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_tangent_hessian_apply",
+        "file": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereRayleighHessian.lean",
+        "statement": "∀ {E : Type u_1} [inst : NormedAddCommGroup E]\n  [inst_1 : InnerProductSpace ℝ E] (A : E →L[ℝ] E) (x : ↑(Metric.sphere 0 1)) (u : ↥(ℝ ∙ ↑x)ᗮ),\n  (halfRayleighTangentHessian A x) u = (ℝ ∙ ↑x)ᗮ.orthogonalProjectionOnto (A ↑u) - inner ℝ (↑x) (A ↑x) • u ∧\n    inner ℝ ↑u ↑((halfRayleighTangentHessian A x) u) = inner ℝ (↑u) (A ↑u) - inner ℝ (↑x) (A ↑x) * ‖↑u‖ ^ 2",
+        "compiled": true,
+        "formalizer": "astis-sog-bench-boumal-20261112-writer",
+        "decoder_context": [
+          "The function halfRayleighGradientExtension A is the ambient map y ↦ A y − ⟪y,A y⟫ y.",
+          "For K = (ℝ ∙ ↑x)ᗮ, halfRayleighTangentHessian A x is the continuous linear map K → K obtained by inclusion in the ambient space, applying the ambient Fréchet derivative of halfRayleighGradientExtension A at ↑x, then orthogonally projecting to K.",
+          "Metric.sphere 0 1 is the unit sphere; ↑x is the underlying ambient vector. The subtype ↥(ℝ ∙ ↑x)ᗮ consists of all vectors orthogonal to x. Inner products and norms are ambient real inner products and norms."
+        ],
+        "statement_sha256": "09515c521a3bab405c6cd1976fd9e26d7fd0d9b21acaea74915e2530e0baa724"
+      },
+      "verdict": "domain-mismatch",
+      "publication_binding_sha256": "16796cf3e5438373d825648e9831e215bae638836b802835873b3817bd31fdb5",
+      "publication_context": {
+        "file": "e9143f2f81001cc2932762161ff30d290d584fe9ea4d0dcf70df1b8111c1c7a3",
+        "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh\n\n/-!\n# The half-Rayleigh objective: sphere Hessian and global optimality\n\nBoumal, §5.5, Corollary 5.16, Example 5.17 and Exercise 5.18 (printed p. 96\nof the pre-publication PDF). The induced Hessian here is the tangent\nprojection of the genuine derivative of the actual sphere gradient extension.\nThe final comparison is specific to the half-normalized symmetric quadratic;\nit is not a second-order sufficiency theorem for arbitrary sphere objectives.\n-/\n\nnoncomputable section\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian\n\nopen Metric InnerProductSpace\nopen scoped Manifold InnerProductSpace ContDiff\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n\n/-- Ambient extension of the half-Rayleigh gradient on the unit sphere. -/\ndef halfRayleighGradientExtension (A : E →L[ℝ] E) (y : E) : E :=\n  A y - ⟪y, A y⟫_ℝ • y\n\n/-- The polynomial extension is smooth and its derivative is genuine at every point. -/\nprivate theorem half_rayleigh_gradient_extension_derivative (A : E →L[ℝ] E) :\n    ContDiff ℝ ∞ (halfRayleighGradientExtension A) ∧\n    ∀ x : E, HasFDerivAt (halfRayleighGradientExtension A)\n      (A - (⟪x, A x⟫_ℝ • ContinuousLinearMap.id ℝ E +\n        (innerSL ℝ (A x) + (innerSL ℝ x).comp A).smulRight x)) x := by\n  refine ⟨?_, fun x => ?_⟩\n  · change ContDiff ℝ ∞ (fun y : E => A y - ⟪y, A y⟫_ℝ • y)\n    exact A.contDiff.sub ((contDiff_id.inner ℝ A.contDiff).smul contDiff_id)\n  · have hq : HasFDerivAt (fun y : E => ⟪y, A y⟫_ℝ)\n        (innerSL ℝ (A x) + (innerSL ℝ x).comp A) x := by\n      have hlin : (fderivInnerCLM ℝ (x, A x)).comp ((ContinuousLinearMap.id ℝ E).prod A) =\n          innerSL ℝ (A x) + (innerSL ℝ x).comp A := by\n        apply ContinuousLinearMap.ext\n        intro u\n        simp [real_inner_comm, add_comm]\n      rw [← hlin]\n      exact (hasFDerivAt_id x).inner ℝ A.hasFDerivAt\n    exact A.hasFDerivAt.fun_sub (hq.fun_smul (hasFDerivAt_id x))\n\n/-- Source-specific projected derivative, restricted and corestricted to the actual\northogonal tangent plane. This is not a general manifold connection. -/\ndef halfRayleighTangentHessian (A : E →L[ℝ] E) (x : sphere (0 : E) 1) :\n    (ℝ ∙ (x : E))ᗮ →L[ℝ] (ℝ ∙ (x : E))ᗮ :=\n  let K := (ℝ ∙ (x : E))ᗮ\n  K.orthogonalProjectionOnto.comp\n    ((fderiv ℝ (halfRayleighGradientExtension A) (x : E)).comp K.subtypeL)\n\n/-- On the sphere the extension is the induced gradient of the literal half quadratic.\nThe manifold differentiability witness is supplied alongside the pairing. -/\ntheorem sphere_half_rayleigh_gradient_pairing\n    [FiniteDimensional ℝ E] (n : ℕ) [Fact (Module.finrank ℝ E = n + 1)]\n    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1) :\n    MDifferentiableAt (𝓡 n) 𝓘(ℝ, ℝ)\n      (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) x ∧\n    halfRayleighGradientExtension A (x : E) ∈ (ℝ ∙ (x : E))ᗮ ∧\n    ∀ w : TangentSpace (𝓡 n) x,\n      mvfderiv (𝓡 n)\n        (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) x w =\n        ⟪mvfderiv (𝓡 n) ((↑) : sphere (0 : E) 1 → E) x w,\n          halfRayleighGradientExtension A (x : E)⟫_ℝ := by\n  have hx : ‖(x : E)‖ = 1 := mem_sphere_zero_iff_norm.mp x.property\n  have hco := (contMDiff_coe_sphere (n := n) (m := 1) x).mdifferentiableAt one_ne_zero\n  have hamb : DifferentiableAt ℝ (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ) (x : E) :=\n    ((hasFDerivAt_id (x : E)).inner ℝ A.hasFDerivAt).differentiableAt.const_mul _\n  have ht : halfRayleighGradientExtension A (x : E) ∈ (ℝ ∙ (x : E))ᗮ := by\n    rw [Submodule.mem_orthogonal_singleton_iff_inner_right]\n    simp [halfRayleighGradientExtension, inner_sub_right, real_inner_smul_right, hx]\n  refine ⟨hamb.comp_mdifferentiableAt hco, ht, ?_⟩\n  let B : E →L[ℝ] E := (1 / 2 : ℝ) • A\n  have hB : B.IsSymmetric := by\n    intro y z\n    change ⟪(1 / 2 : ℝ) • A y, z⟫_ℝ = ⟪y, (1 / 2 : ℝ) • A z⟫_ℝ\n    rw [real_inner_smul_left, real_inner_smul_right]\n    exact congrArg ((1 / 2 : ℝ) * ·) (hA y z)\n  have hF :\n      (fun y : sphere (0 : E) 1 => ⟪(y : E), B (y : E)⟫_ℝ) =\n        (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) := by\n    funext y\n    simp [B, real_inner_smul_right]\n  let z : (ℝ ∙ (x : E))ᗮ := ⟨_, ht⟩\n  have hscale : (z : E) =\n      (2 : ℝ) • (B (x : E) - ⟪(x : E), B (x : E)⟫_ℝ • (x : E)) := by\n    change halfRayleighGradientExtension A (x : E) = _\n    norm_num [halfRayleighGradientExtension, B, real_inner_smul_right, smul_sub,\n      smul_smul, ← mul_assoc]\n  rw [← hF]\n  exact (sphere_rayleigh_characterization n B hB x z).mpr hscale\n\n/-- Projecting kills the normal part of the genuine derivative; the remaining\ntangent operator and its quadratic form are the two displayed formulas. -/\ntheorem sphere_half_rayleigh_tangent_hessian_apply\n    (A : E →L[ℝ] E) (x : sphere (0 : E) 1) (u : (ℝ ∙ (x : E))ᗮ) :\n    halfRayleighTangentHessian A x u =\n      (ℝ ∙ (x : E))ᗮ.orthogonalProjectionOnto (A (u : E)) -\n        ⟪(x : E), A (x : E)⟫_ℝ • u ∧\n    ⟪(u : E), (halfRayleighTangentHessian A x u : E)⟫_ℝ =\n      ⟪(u : E), A (u : E)⟫_ℝ - ⟪(x : E), A (x : E)⟫_ℝ * ‖(u : E)‖ ^ 2 := by\n  let K := (ℝ ∙ (x : E))ᗮ\n  have hvalue : halfRayleighTangentHessian A x u =\n      K.orthogonalProjectionOnto (A (u : E)) - ⟪(x : E), A (x : E)⟫_ℝ • u := by\n    change K.orthogonalProjectionOnto\n      (fderiv ℝ (halfRayleighGradientExtension A) (x : E) (u : E)) = _\n    rw [((half_rayleigh_gradient_extension_derivative A).2 (x : E)).fderiv]\n    simp [K, Submodule.orthogonalProjectionOnto_orthogonalComplement_singleton_eq_zero]\n  refine ⟨hvalue, ?_⟩\n  rw [hvalue]\n  change ⟪u, K.orthogonalProjectionOnto (A (u : E)) - ⟪(x : E), A (x : E)⟫_ℝ • u⟫_ℝ = _\n  rw [inner_sub_right, K.inner_orthogonalProjectionOnto_eq_of_mem_left, real_inner_smul_right]\n  change _ - _ * ⟪(u : E), (u : E)⟫_ℝ = _\n  rw [real_inner_self_eq_norm_sq]\n\n/-- At a second-order stationary point of the half-Rayleigh objective, the\nactual tangent Hessian controls all differences in objective value. -/\ntheorem sphere_half_rayleigh_second_order_stationary_min\n    [FiniteDimensional ℝ E]\n    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1)\n    (hgrad : halfRayleighGradientExtension A (x : E) = 0)\n    (hpsd : ∀ u : (ℝ ∙ (x : E))ᗮ, 0 ≤\n      ⟪(u : E), (halfRayleighTangentHessian A x u : E)⟫_ℝ) :\n    let lam := ⟪(x : E), A (x : E)⟫_ℝ\n    IsMinOn (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ) (sphere (0 : E) 1) (x : E) ∧\n      Module.End.HasEigenvector A.toLinearMap lam (x : E) ∧\n      ∀ μ : ℝ, Module.End.HasEigenvalue A.toLinearMap μ → lam ≤ μ := by\n  let lam := ⟪(x : E), A (x : E)⟫_ℝ\n  have hx : ‖(x : E)‖ = 1 := mem_sphere_zero_iff_norm.mp x.property\n  have hxne : (x : E) ≠ 0 := by\n    intro hz\n    simp [hz] at hx\n  have hAx : A (x : E) = lam • (x : E) := sub_eq_zero.mp hgrad\n  have hmin : IsMinOn (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ)\n      (sphere (0 : E) 1) (x : E) := by\n    intro y hy\n    change (1 / 2 : ℝ) * lam ≤ (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ\n    let a := ⟪(x : E), y⟫_ℝ\n    let v := y - a • (x : E)\n    have hdecomp : y = a • (x : E) + v := by\n      dsimp only [v]\n      abel\n    have horth : ⟪(x : E), v⟫_ℝ = 0 := by\n      simp [v, inner_sub_right, real_inner_smul_right, hx, a]\n    let u : (ℝ ∙ (x : E))ᗮ :=\n      ⟨v, Submodule.mem_orthogonal_singleton_iff_inner_right.mpr horth⟩\n    have hvpos := hpsd u\n    rw [(sphere_half_rayleigh_tangent_hessian_apply A x u).2] at hvpos\n    change 0 ≤ ⟪v, A v⟫_ℝ - lam * ‖v‖ ^ 2 at hvpos\n    have hnorm : a ^ 2 + ‖v‖ ^ 2 = 1 := calc\n      _ = ‖a • (x : E) + v‖ ^ 2 := by\n        rw [norm_add_sq_real, norm_smul, Real.norm_eq_abs,\n          real_inner_smul_left, hx, horth, mul_one, sq_abs]\n        ring\n      _ = 1 := by rw [← hdecomp, mem_sphere_zero_iff_norm.mp hy, one_pow]\n    have hcross : ⟪(x : E), A v⟫_ℝ = 0 := calc\n      _ = ⟪A (x : E), v⟫_ℝ := (hA (x : E) v).symm\n      _ = 0 := by rw [hAx, real_inner_smul_left, horth, mul_zero]\n    have hcross' : ⟪v, A (x : E)⟫_ℝ = 0 := by\n      rw [real_inner_comm, hAx, real_inner_smul_left, horth, mul_zero]\n    have henergy : ⟪y, A y⟫_ℝ = a ^ 2 * lam + ⟪v, A v⟫_ℝ := calc\n      _ = ⟪a • (x : E) + v, A (a • (x : E) + v)⟫_ℝ :=\n        congrArg (fun z => ⟪z, A z⟫_ℝ) hdecomp\n      _ = _ := by\n        simp [map_add, map_smul, inner_add_left, inner_add_right,\n          real_inner_smul_left, real_inner_smul_right, hcross, hcross', lam]\n        ring\n    have hscale : lam * (a ^ 2 + ‖v‖ ^ 2) = lam := by rw [hnorm, mul_one]\n    nlinarith only [henergy, hscale, hvpos]\n  refine ⟨hmin, ⟨Module.End.mem_eigenspace_iff.mpr hAx, hxne⟩, ?_⟩\n  intro μ hμ\n  obtain ⟨v, hv⟩ := hμ.exists_hasEigenvector\n  have hvnorm : 0 < ‖v‖ := norm_pos_iff.mpr hv.2\n  let z := ‖v‖⁻¹ • v\n  have hznorm : ‖z‖ = 1 := by\n    dsimp only [z]\n    rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hvnorm),\n      inv_mul_cancel₀ hvnorm.ne']\n  have hAv : A v = μ • v := hv.apply_eq_smul\n  have hAz : A z = μ • z := by\n    dsimp only [z]\n    rw [map_smul, hAv, smul_smul, smul_smul, mul_comm]\n  have hzval : ⟪z, A z⟫_ℝ = μ := by\n    rw [hAz, real_inner_smul_right, real_inner_self_eq_norm_sq, hznorm, one_pow, mul_one]\n  have hc := hmin (mem_sphere_zero_iff_norm.mpr hznorm)\n  change (1 / 2 : ℝ) * lam ≤ (1 / 2 : ℝ) * ⟪z, A z⟫_ℝ at hc\n  rw [hzval] at hc\n  linarith only [hc]\n\nend AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian\n",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "source": {
+          "id": "boumal-2023-prepublication-sha256-95e9c219",
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+          "edition": "2023 pre-publication snapshot (367 PDF pages; SHA-256 95e9c219298bcf718493885ba6f00cbcc95474e34fa8e4b0bf363e6e07f1b71b)",
+          "anchor": "§5.5, Corollary 5.16 and Example 5.17 (printed p. 96 / PDF p. 112)",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Nicolas Boumal. ASTIS-authored restatement and solution; no source prose, figures, or PDF redistributed. The source PDF is marked free for personal use only."
+        },
+        "statement": "For the half-normalized symmetric Rayleigh quadratic on a finite-dimensional Euclidean unit sphere, the induced gradient is Ax−⟨x,Ax⟩x. Differentiate its smooth ambient extension and project to the tangent plane. On a tangent vector u the Hessian is Pₓ(Au)−⟨x,Ax⟩u.",
+        "formulae": [
+          {
+            "label": "Extension",
+            "tex": "G(y)=Ay-\\langle y,Ay\\rangle y."
+          },
+          {
+            "label": "Actual ambient derivative",
+            "tex": "DG(x)[u]=Au-\\bigl(\\langle u,Ax\\rangle+\\langle x,Au\\rangle\\bigr)x-\\langle x,Ax\\rangle u."
+          },
+          {
+            "label": "Tangent operator and form",
+            "tex": "H_xu=P_x(Au)-\\lambda u,\\qquad \\langle u,H_xu\\rangle=\\langle u,Au\\rangle-\\lambda\\|u\\|^2."
+          }
+        ],
+        "assumptions": [
+          "A is a symmetric continuous real-linear operator and x lies on the unit sphere in finite-dimensional E.",
+          "The chart parameter n satisfies dim E=n+1, permitting n=0. The inner product is the ambient one pulled back along the actual sphere inclusion."
+        ],
+        "obligations": [
+          {
+            "id": "extension",
+            "label": "Define the exact smooth gradient extension."
+          },
+          {
+            "id": "projected-tangent-operator",
+            "label": "Use the tangent subtype for both input and output of the projected derivative."
+          },
+          {
+            "id": "actual-gradient",
+            "label": "Identify the extension with the genuine induced gradient of the half quadratic."
+          },
+          {
+            "id": "operator-and-form",
+            "label": "Differentiate the extension and project to obtain the exact Hessian operator and quadratic form."
+          }
+        ],
+        "lesson": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_tangent_hessian_apply",
+          "kind": "theorem",
+          "title": "Compute the sphere Hessian and its tangent quadratic form",
+          "statement": "For any continuous real-linear A and unit x, the derivative of the stated extension, projected to the tangent plane, has the displayed operator and form on every tangent u. For symmetric A the extension represents the actual sphere gradient, so this is the Hessian of the half-Rayleigh objective.",
+          "formula": "H_xu=P_x(Au)-\\langle x,Ax\\rangle u,\\qquad \\langle u,H_xu\\rangle=\\langle u,Au\\rangle-\\langle x,Ax\\rangle\\|u\\|^2.",
+          "assumptions": [
+            "The point is unit and u is in the tangent subtype x⊥.",
+            "No symmetry or finite-dimensional hypothesis is needed for the analytic formula of this specific projected derivative. Symmetry is the source hypothesis under which the separately proved gradient pairing identifies it with the objective Hessian."
+          ],
+          "steps": [
+            {
+              "title": "Differentiate the extension before projecting",
+              "text": "Differentiate Ay and the product of the scalar quadratic with y. The scalar derivative has two terms because y occurs on both sides of the inner product. The extension is a smooth polynomial of a continuous linear map and a continuous bilinear pairing.",
+              "formula": "DG(x)[u]=Au-\\bigl(\\langle u,Ax\\rangle+\\langle x,Au\\rangle\\bigr)x-\\langle x,Ax\\rangle u.",
+              "lean": "The private half_rayleigh_gradient_extension_derivative proves ContDiff and an exact HasFDerivAt at every ambient point with the inner-product and scalar-multiplication rules."
+            },
+            {
+              "title": "The projection kills exactly the normal term",
+              "text": "The tangent plane is orthogonal to x. Its orthogonal projection kills x and fixes every tangent u. Pairing the projected Au with a tangent u leaves that inner product unchanged.",
+              "formula": "H_xu=P_x(Au)-\\lambda u,\\qquad \\langle u,H_xu\\rangle=\\langle u,Au\\rangle-\\lambda\\|u\\|^2.",
+              "lean": "The public evaluation theorem replaces fderiv using the genuine derivative witness, then uses the projection identities for x and for the tangent subtype."
+            }
+          ],
+          "astis_dependencies": [
+            "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension",
+            "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighTangentHessian"
+          ],
+          "mathlib_dependencies": [
+            "HasFDerivAt.inner",
+            "HasFDerivAt.fun_smul",
+            "HasFDerivAt.fderiv",
+            "Submodule.orthogonalProjectionOnto_orthogonalComplement_singleton_eq_zero",
+            "Submodule.inner_orthogonalProjectionOnto_eq_of_mem_left"
+          ],
+          "lean_statement": "An equality in the tangent subtype and its ambient scalar pairing identity.",
+          "lean_proof": "Prove the actual ambient Fréchet derivative, then project and use orthogonality.",
+          "sources": [
+            {
+              "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+              "label": "Boumal, §5.5 (printed p. 96 / PDF p. 112)",
+              "scope": "Original ASTIS exposition of Corollary 5.16, Example 5.17 and Exercise 5.18; no textbook prose, PDF, or figures redistributed."
+            },
+            {
+              "path": "Tests/Shared/SphereRayleighHessian.lean",
+              "label": "Focused sphere Hessian tests",
+              "scope": "Checks zero and negative tangential curvature and the one-dimensional exercise conclusion; prints the three theorem axiom traces."
+            }
+          ]
+        },
+        "binding": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_tangent_hessian_apply",
+          "role": "proof-edge",
+          "supports": [
+            "operator-and-form"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "source": "The Hessian formula is given for the symmetric quadratic on the finite Euclidean sphere.",
+            "lean": "The projected derivative formula is computed for arbitrary continuous real-linear A on a real inner-product space."
+          }
+        ]
+      },
+      "source_review": {
+        "state": "accepted",
+        "reviewer": "source_compiler_boumal518_20261112",
+        "independent_from_formalizer": true,
+        "independent_from_decoder": true,
+        "evidence": "Accepted independent review of the documented generalization and its exact source specialization; domain-mismatch describes the enlarged full declaration and is not a blocking delta. The broader operator/form computation is accepted as a source proof edge by specialization, not as an induced Hessian identification on its full domain. Classification receipt: runs/20261112-boumal-rayleigh-hessian/source-review-domain-run.txt. The original mathematical and compiler evidence and all seven slot classifications are unchanged.",
+        "review_run_sha256": "806b336b88945c4b328fb52650baf475e5d46212802409bc8e582ca2a58dc332",
+        "reviewer_packet_sha256": "fe5ab58959ac5f5020eced3e015b62238eb7aca0f2fffd98e4a28fabd2873dd0",
+        "run_artifact": "runs/20261112-boumal-rayleigh-hessian/source-review-domain-run.txt",
+        "packet_artifact": "runs/20261112-boumal-rayleigh-hessian/reviewer-input-4-revised.json",
+        "result_artifact": "runs/20261112-boumal-rayleigh-hessian/reviewer-result-4-revised-domain.json"
+      },
+      "reconstruction": {
+        "text": "Let E be a real inner product space, A a continuous real-linear endomorphism, x a unit vector, and u in K=(ℝx)⊥. Let P_K:E→K be the orthogonal projection and let H_{A,x}:K→K be the inclusion–ambient derivative–projection construction for G_A(y)=Ay−⟨y,Ay⟩y at x. Writing ū for the ambient vector underlying u, the following two identities hold: H_{A,x}u=P_K(Aū)−⟨x,Ax⟩u in K, and ⟨ū,(H_{A,x}u)̄⟩=⟨ū,Aū⟩−⟨x,Ax⟩‖ū‖² in ℝ, with the output of H coerced into E in the inner product.",
+        "text_sha256": "f730b454461a782e09886d5ea7472555f5d42d4fa7dbee852ad5c022eb5b2847",
+        "decoder": "blind_decoder_a423",
+        "decoder_run_sha256": "bb76f02bda02cb50854dcfd4480170c00513c978aa51e1ea3cebeb45ced45df7",
+        "source_text_visible": false,
+        "lean_statement_sha256": "09515c521a3bab405c6cd1976fd9e26d7fd0d9b21acaea74915e2530e0baa724",
+        "decoder_packet_sha256": "10b16d259702f2470130e580bd8784355d7f023a6f57e181cd68056bbbb04011",
+        "input_artifacts": [
+          "lean-statement",
+          "approved-definition-context"
+        ],
+        "run_artifact": "runs/semantic-roundtrip/blind/09515c521a3bab40/decoder-run.txt"
+      },
+      "semantic_slots": {
+        "objects": {
+          "original": "Induced Hessian of the symmetric half quadratic and its tangent scalar form.",
+          "reconstructed": "Projected derivative of G_A and its tangent scalar pairing, identified with the source Hessian only on the source restriction.",
+          "relation": "equivalent",
+          "evidence": "The lesson distinguishes the analytic operator formula from the source interpretation; the underlying operator is not generally a gradient Hessian for nonsymmetric A."
+        },
+        "domains": {
+          "original": "Real finite Euclidean sphere; input and output both belong to x⊥.",
+          "reconstructed": "Real inner-product E with unit x and tangent subtype K as both domain and codomain.",
+          "relation": "different",
+          "evidence": "Same tangent type on the source case; ambient finite dimensionality is deliberately not needed for the computed formula."
+        },
+        "quantifiers": {
+          "original": "Each unit x and each tangent u for a symmetric A.",
+          "reconstructed": "Each unit x and tangent u for any continuous linear A.",
+          "relation": "explicit-elaboration",
+          "evidence": "The theorem packages the two identities for every u; the enlargement in A is a disclosed generalization."
+        },
+        "assumptions": {
+          "original": "Symmetric A and finite Euclidean E for the Riemannian Hessian of the source objective.",
+          "reconstructed": "No symmetry or finite dimension for the projected-derivative formula. Genuine differentiation is proved.",
+          "relation": "weaker-in-lean",
+          "evidence": "The computation drops the assumptions legitimately. The revised reader identifies symmetry as the source hypothesis rather than asserting pointwise necessity."
+        },
+        "conclusion": {
+          "original": "H_xu=P_x(Au)−λu and the corresponding tangent quadratic form, with λ=⟨x,Ax⟩.",
+          "reconstructed": "Equality in K and the exact ambient scalar identity.",
+          "relation": "equivalent",
+          "evidence": "Exact HasFDerivAt witness justifies fderiv; projection kills the normal x term and preserves the tangent pairing."
+        },
+        "scopes": {
+          "original": "Example 5.17’s operator is a tangent endomorphism; PSD in Exercise 5.18 uses its tangent pairing.",
+          "reconstructed": "The generalized calculation for G_A is not a theorem about an arbitrary manifold Hessian or about the Hessian of a nonsymmetric quadratic.",
+          "relation": "same",
+          "evidence": "The reader separates the analytic formula from its source interpretation. The pairing proves G is the gradient; Corollary 5.16 identifies its projected derivative as the Hessian."
+        },
+        "constant_dependencies": {
+          "original": "λ=⟨x,Ax⟩ depends only on A and x; no free choice or extra factor two.",
+          "reconstructed": "The code and main reader formula spell out the coefficient; a proof-step display abbreviates it by λ.",
+          "relation": "same",
+          "evidence": "The source normalization is fixed by Example 5.17; λ could be introduced explicitly before the shorthand display."
+        }
+      },
+      "deltas": [
+        {
+          "slot": "domains",
+          "severity": "informational",
+          "description": "The formula-level theorem deliberately generalizes to arbitrary real inner-product spaces.",
+          "evidence": "The projection is to the orthogonal complement of a finite-dimensional line; no global completeness is required."
+        },
+        {
+          "slot": "assumptions",
+          "severity": "informational",
+          "description": "The revised wording no longer asserts blanket necessity of symmetry. For expository precision distinguish gradient identification from the separate Hessian identification.",
+          "evidence": "The genuine pairing identifies G as the source gradient; the actual derivative and Corollary 5.16 then identify its tangent projection as the source Hessian."
+        },
+        {
+          "slot": "constant_dependencies",
+          "severity": "informational",
+          "description": "Define λ=⟨x,Ax⟩ before the abbreviated reader formula.",
+          "evidence": "The main formula and Lean statement spell out the coefficient, so this is only local reader shorthand."
+        },
+        {
+          "slot": "scopes",
+          "severity": "informational",
+          "description": "Clarify the reader’s shared test citation: the dimension-one example explicitly asserts eigenvectorhood and leastness, not IsMinOn in its own conclusion.",
+          "evidence": "Tests/Shared/SphereRayleighHessian.lean, dimension-one example ends with the terminal theorem’s .2. The generic theorem proves the minimum in dimension one as well."
+        }
+      ],
+      "repairs": []
+    },
+    {
+      "id": "ASTIS-RT-20261112-BoumalRayleighExercise518",
+      "state": "source-reviewed",
+      "source": {
+        "source_id": "boumal-2023-prepublication-sha256-95e9c219",
+        "anchor": "Boumal, §5.5, Exercise 5.18, with the half-normalized Example 5.17 setup; printed p. 96 / PDF p. 112",
+        "original_text": "For a real symmetric operator on a finite-dimensional Euclidean space, restrict the half-normalized quadratic to the unit sphere with its induced metric. If the sphere gradient at a unit point x is zero and the induced Hessian is positive semidefinite on every tangent direction there, then x minimizes the restriction globally and is a nonzero eigenvector at the least eigenvalue of the operator.",
+        "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+        "text_sha256": "a8f85b6f3afb22235247d42bff7a8de3f1a3fe25e3b394354510e6a14cebe274"
+      },
+      "lean": {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_second_order_stationary_min",
+        "file": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereRayleighHessian.lean",
+        "statement": "∀ {E : Type u_1} [inst : NormedAddCommGroup E]\n  [inst_1 : InnerProductSpace ℝ E] [FiniteDimensional ℝ E] (A : E →L[ℝ] E),\n  (↑A).IsSymmetric →\n    ∀ (x : ↑(Metric.sphere 0 1)),\n      halfRayleighGradientExtension A ↑x = 0 →\n        (∀ (u : ↥(ℝ ∙ ↑x)ᗮ), 0 ≤ inner ℝ ↑u ↑((halfRayleighTangentHessian A x) u)) →\n          have lam := inner ℝ (↑x) (A ↑x);\n          IsMinOn (fun y => 1 / 2 * inner ℝ y (A y)) (Metric.sphere 0 1) ↑x ∧\n            Module.End.HasEigenvector (↑A) lam ↑x ∧ ∀ (μ : ℝ), Module.End.HasEigenvalue (↑A) μ → lam ≤ μ",
+        "compiled": true,
+        "formalizer": "astis-sog-bench-boumal-20261112-writer",
+        "decoder_context": [
+          "The function halfRayleighGradientExtension A is the ambient map y ↦ A y − ⟪y,A y⟫ y.",
+          "For K = (ℝ ∙ ↑x)ᗮ, halfRayleighTangentHessian A x is the continuous linear map K → K obtained by inclusion in the ambient space, applying the ambient Fréchet derivative of halfRayleighGradientExtension A at ↑x, then orthogonally projecting to K.",
+          "Metric.sphere 0 1 is the unit sphere; ↑x is the underlying ambient vector. The subtype ↥(ℝ ∙ ↑x)ᗮ consists of all vectors orthogonal to x. Inner products and norms are ambient real inner products and norms.",
+          "IsMinOn compares the value at the indicated point to every point in the stated set. HasEigenvector asserts a nonzero vector with the eigenvalue equation. HasEigenvalue means existence of a nonzero eigenvector for that scalar. The printed have lam introduces a local definitional binding, not a premise."
+        ],
+        "statement_sha256": "e61bb4168491daece774958bde01c0c972577b05ebba2368156c8a2cf83ab3c8"
+      },
+      "verdict": "equivalent-after-elaboration",
+      "publication_binding_sha256": "68cd2122096407a59e598bdc89bf5f110a5b01c659c0554cf3c8dcdbf11020ff",
+      "publication_context": {
+        "file": "e9143f2f81001cc2932762161ff30d290d584fe9ea4d0dcf70df1b8111c1c7a3",
+        "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh\n\n/-!\n# The half-Rayleigh objective: sphere Hessian and global optimality\n\nBoumal, §5.5, Corollary 5.16, Example 5.17 and Exercise 5.18 (printed p. 96\nof the pre-publication PDF). The induced Hessian here is the tangent\nprojection of the genuine derivative of the actual sphere gradient extension.\nThe final comparison is specific to the half-normalized symmetric quadratic;\nit is not a second-order sufficiency theorem for arbitrary sphere objectives.\n-/\n\nnoncomputable section\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian\n\nopen Metric InnerProductSpace\nopen scoped Manifold InnerProductSpace ContDiff\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n\n/-- Ambient extension of the half-Rayleigh gradient on the unit sphere. -/\ndef halfRayleighGradientExtension (A : E →L[ℝ] E) (y : E) : E :=\n  A y - ⟪y, A y⟫_ℝ • y\n\n/-- The polynomial extension is smooth and its derivative is genuine at every point. -/\nprivate theorem half_rayleigh_gradient_extension_derivative (A : E →L[ℝ] E) :\n    ContDiff ℝ ∞ (halfRayleighGradientExtension A) ∧\n    ∀ x : E, HasFDerivAt (halfRayleighGradientExtension A)\n      (A - (⟪x, A x⟫_ℝ • ContinuousLinearMap.id ℝ E +\n        (innerSL ℝ (A x) + (innerSL ℝ x).comp A).smulRight x)) x := by\n  refine ⟨?_, fun x => ?_⟩\n  · change ContDiff ℝ ∞ (fun y : E => A y - ⟪y, A y⟫_ℝ • y)\n    exact A.contDiff.sub ((contDiff_id.inner ℝ A.contDiff).smul contDiff_id)\n  · have hq : HasFDerivAt (fun y : E => ⟪y, A y⟫_ℝ)\n        (innerSL ℝ (A x) + (innerSL ℝ x).comp A) x := by\n      have hlin : (fderivInnerCLM ℝ (x, A x)).comp ((ContinuousLinearMap.id ℝ E).prod A) =\n          innerSL ℝ (A x) + (innerSL ℝ x).comp A := by\n        apply ContinuousLinearMap.ext\n        intro u\n        simp [real_inner_comm, add_comm]\n      rw [← hlin]\n      exact (hasFDerivAt_id x).inner ℝ A.hasFDerivAt\n    exact A.hasFDerivAt.fun_sub (hq.fun_smul (hasFDerivAt_id x))\n\n/-- Source-specific projected derivative, restricted and corestricted to the actual\northogonal tangent plane. This is not a general manifold connection. -/\ndef halfRayleighTangentHessian (A : E →L[ℝ] E) (x : sphere (0 : E) 1) :\n    (ℝ ∙ (x : E))ᗮ →L[ℝ] (ℝ ∙ (x : E))ᗮ :=\n  let K := (ℝ ∙ (x : E))ᗮ\n  K.orthogonalProjectionOnto.comp\n    ((fderiv ℝ (halfRayleighGradientExtension A) (x : E)).comp K.subtypeL)\n\n/-- On the sphere the extension is the induced gradient of the literal half quadratic.\nThe manifold differentiability witness is supplied alongside the pairing. -/\ntheorem sphere_half_rayleigh_gradient_pairing\n    [FiniteDimensional ℝ E] (n : ℕ) [Fact (Module.finrank ℝ E = n + 1)]\n    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1) :\n    MDifferentiableAt (𝓡 n) 𝓘(ℝ, ℝ)\n      (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) x ∧\n    halfRayleighGradientExtension A (x : E) ∈ (ℝ ∙ (x : E))ᗮ ∧\n    ∀ w : TangentSpace (𝓡 n) x,\n      mvfderiv (𝓡 n)\n        (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) x w =\n        ⟪mvfderiv (𝓡 n) ((↑) : sphere (0 : E) 1 → E) x w,\n          halfRayleighGradientExtension A (x : E)⟫_ℝ := by\n  have hx : ‖(x : E)‖ = 1 := mem_sphere_zero_iff_norm.mp x.property\n  have hco := (contMDiff_coe_sphere (n := n) (m := 1) x).mdifferentiableAt one_ne_zero\n  have hamb : DifferentiableAt ℝ (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ) (x : E) :=\n    ((hasFDerivAt_id (x : E)).inner ℝ A.hasFDerivAt).differentiableAt.const_mul _\n  have ht : halfRayleighGradientExtension A (x : E) ∈ (ℝ ∙ (x : E))ᗮ := by\n    rw [Submodule.mem_orthogonal_singleton_iff_inner_right]\n    simp [halfRayleighGradientExtension, inner_sub_right, real_inner_smul_right, hx]\n  refine ⟨hamb.comp_mdifferentiableAt hco, ht, ?_⟩\n  let B : E →L[ℝ] E := (1 / 2 : ℝ) • A\n  have hB : B.IsSymmetric := by\n    intro y z\n    change ⟪(1 / 2 : ℝ) • A y, z⟫_ℝ = ⟪y, (1 / 2 : ℝ) • A z⟫_ℝ\n    rw [real_inner_smul_left, real_inner_smul_right]\n    exact congrArg ((1 / 2 : ℝ) * ·) (hA y z)\n  have hF :\n      (fun y : sphere (0 : E) 1 => ⟪(y : E), B (y : E)⟫_ℝ) =\n        (fun y : sphere (0 : E) 1 => (1 / 2 : ℝ) * ⟪(y : E), A (y : E)⟫_ℝ) := by\n    funext y\n    simp [B, real_inner_smul_right]\n  let z : (ℝ ∙ (x : E))ᗮ := ⟨_, ht⟩\n  have hscale : (z : E) =\n      (2 : ℝ) • (B (x : E) - ⟪(x : E), B (x : E)⟫_ℝ • (x : E)) := by\n    change halfRayleighGradientExtension A (x : E) = _\n    norm_num [halfRayleighGradientExtension, B, real_inner_smul_right, smul_sub,\n      smul_smul, ← mul_assoc]\n  rw [← hF]\n  exact (sphere_rayleigh_characterization n B hB x z).mpr hscale\n\n/-- Projecting kills the normal part of the genuine derivative; the remaining\ntangent operator and its quadratic form are the two displayed formulas. -/\ntheorem sphere_half_rayleigh_tangent_hessian_apply\n    (A : E →L[ℝ] E) (x : sphere (0 : E) 1) (u : (ℝ ∙ (x : E))ᗮ) :\n    halfRayleighTangentHessian A x u =\n      (ℝ ∙ (x : E))ᗮ.orthogonalProjectionOnto (A (u : E)) -\n        ⟪(x : E), A (x : E)⟫_ℝ • u ∧\n    ⟪(u : E), (halfRayleighTangentHessian A x u : E)⟫_ℝ =\n      ⟪(u : E), A (u : E)⟫_ℝ - ⟪(x : E), A (x : E)⟫_ℝ * ‖(u : E)‖ ^ 2 := by\n  let K := (ℝ ∙ (x : E))ᗮ\n  have hvalue : halfRayleighTangentHessian A x u =\n      K.orthogonalProjectionOnto (A (u : E)) - ⟪(x : E), A (x : E)⟫_ℝ • u := by\n    change K.orthogonalProjectionOnto\n      (fderiv ℝ (halfRayleighGradientExtension A) (x : E) (u : E)) = _\n    rw [((half_rayleigh_gradient_extension_derivative A).2 (x : E)).fderiv]\n    simp [K, Submodule.orthogonalProjectionOnto_orthogonalComplement_singleton_eq_zero]\n  refine ⟨hvalue, ?_⟩\n  rw [hvalue]\n  change ⟪u, K.orthogonalProjectionOnto (A (u : E)) - ⟪(x : E), A (x : E)⟫_ℝ • u⟫_ℝ = _\n  rw [inner_sub_right, K.inner_orthogonalProjectionOnto_eq_of_mem_left, real_inner_smul_right]\n  change _ - _ * ⟪(u : E), (u : E)⟫_ℝ = _\n  rw [real_inner_self_eq_norm_sq]\n\n/-- At a second-order stationary point of the half-Rayleigh objective, the\nactual tangent Hessian controls all differences in objective value. -/\ntheorem sphere_half_rayleigh_second_order_stationary_min\n    [FiniteDimensional ℝ E]\n    (A : E →L[ℝ] E) (hA : A.IsSymmetric) (x : sphere (0 : E) 1)\n    (hgrad : halfRayleighGradientExtension A (x : E) = 0)\n    (hpsd : ∀ u : (ℝ ∙ (x : E))ᗮ, 0 ≤\n      ⟪(u : E), (halfRayleighTangentHessian A x u : E)⟫_ℝ) :\n    let lam := ⟪(x : E), A (x : E)⟫_ℝ\n    IsMinOn (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ) (sphere (0 : E) 1) (x : E) ∧\n      Module.End.HasEigenvector A.toLinearMap lam (x : E) ∧\n      ∀ μ : ℝ, Module.End.HasEigenvalue A.toLinearMap μ → lam ≤ μ := by\n  let lam := ⟪(x : E), A (x : E)⟫_ℝ\n  have hx : ‖(x : E)‖ = 1 := mem_sphere_zero_iff_norm.mp x.property\n  have hxne : (x : E) ≠ 0 := by\n    intro hz\n    simp [hz] at hx\n  have hAx : A (x : E) = lam • (x : E) := sub_eq_zero.mp hgrad\n  have hmin : IsMinOn (fun y : E => (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ)\n      (sphere (0 : E) 1) (x : E) := by\n    intro y hy\n    change (1 / 2 : ℝ) * lam ≤ (1 / 2 : ℝ) * ⟪y, A y⟫_ℝ\n    let a := ⟪(x : E), y⟫_ℝ\n    let v := y - a • (x : E)\n    have hdecomp : y = a • (x : E) + v := by\n      dsimp only [v]\n      abel\n    have horth : ⟪(x : E), v⟫_ℝ = 0 := by\n      simp [v, inner_sub_right, real_inner_smul_right, hx, a]\n    let u : (ℝ ∙ (x : E))ᗮ :=\n      ⟨v, Submodule.mem_orthogonal_singleton_iff_inner_right.mpr horth⟩\n    have hvpos := hpsd u\n    rw [(sphere_half_rayleigh_tangent_hessian_apply A x u).2] at hvpos\n    change 0 ≤ ⟪v, A v⟫_ℝ - lam * ‖v‖ ^ 2 at hvpos\n    have hnorm : a ^ 2 + ‖v‖ ^ 2 = 1 := calc\n      _ = ‖a • (x : E) + v‖ ^ 2 := by\n        rw [norm_add_sq_real, norm_smul, Real.norm_eq_abs,\n          real_inner_smul_left, hx, horth, mul_one, sq_abs]\n        ring\n      _ = 1 := by rw [← hdecomp, mem_sphere_zero_iff_norm.mp hy, one_pow]\n    have hcross : ⟪(x : E), A v⟫_ℝ = 0 := calc\n      _ = ⟪A (x : E), v⟫_ℝ := (hA (x : E) v).symm\n      _ = 0 := by rw [hAx, real_inner_smul_left, horth, mul_zero]\n    have hcross' : ⟪v, A (x : E)⟫_ℝ = 0 := by\n      rw [real_inner_comm, hAx, real_inner_smul_left, horth, mul_zero]\n    have henergy : ⟪y, A y⟫_ℝ = a ^ 2 * lam + ⟪v, A v⟫_ℝ := calc\n      _ = ⟪a • (x : E) + v, A (a • (x : E) + v)⟫_ℝ :=\n        congrArg (fun z => ⟪z, A z⟫_ℝ) hdecomp\n      _ = _ := by\n        simp [map_add, map_smul, inner_add_left, inner_add_right,\n          real_inner_smul_left, real_inner_smul_right, hcross, hcross', lam]\n        ring\n    have hscale : lam * (a ^ 2 + ‖v‖ ^ 2) = lam := by rw [hnorm, mul_one]\n    nlinarith only [henergy, hscale, hvpos]\n  refine ⟨hmin, ⟨Module.End.mem_eigenspace_iff.mpr hAx, hxne⟩, ?_⟩\n  intro μ hμ\n  obtain ⟨v, hv⟩ := hμ.exists_hasEigenvector\n  have hvnorm : 0 < ‖v‖ := norm_pos_iff.mpr hv.2\n  let z := ‖v‖⁻¹ • v\n  have hznorm : ‖z‖ = 1 := by\n    dsimp only [z]\n    rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hvnorm),\n      inv_mul_cancel₀ hvnorm.ne']\n  have hAv : A v = μ • v := hv.apply_eq_smul\n  have hAz : A z = μ • z := by\n    dsimp only [z]\n    rw [map_smul, hAv, smul_smul, smul_smul, mul_comm]\n  have hzval : ⟪z, A z⟫_ℝ = μ := by\n    rw [hAz, real_inner_smul_right, real_inner_self_eq_norm_sq, hznorm, one_pow, mul_one]\n  have hc := hmin (mem_sphere_zero_iff_norm.mpr hznorm)\n  change (1 / 2 : ℝ) * lam ≤ (1 / 2 : ℝ) * ⟪z, A z⟫_ℝ at hc\n  rw [hzval] at hc\n  linarith only [hc]\n\nend AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian\n",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "source": {
+          "id": "boumal-2023-prepublication-sha256-95e9c219",
+          "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+          "edition": "2023 pre-publication snapshot (367 PDF pages; SHA-256 95e9c219298bcf718493885ba6f00cbcc95474e34fa8e4b0bf363e6e07f1b71b)",
+          "anchor": "§5.5, Exercise 5.18 continuing Example 5.17 (printed p. 96 / PDF p. 112)",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Nicolas Boumal. ASTIS-authored restatement and solution; no source prose, figures, or PDF redistributed. The source PDF is marked free for personal use only."
+        },
+        "statement": "For a real symmetric operator on a finite-dimensional Euclidean space, restrict the half-normalized quadratic to the unit sphere with its induced metric. If the sphere gradient at a unit point x is zero and the induced Hessian is positive semidefinite on every tangent direction there, then x minimizes the restriction globally and is a nonzero eigenvector at the least eigenvalue of the operator.",
+        "formulae": [
+          {
+            "label": "Source conclusion",
+            "tex": "G(x)=0,\\quad \\langle u,H_xu\\rangle\\ge0\\ (u\\perp x)\\quad\\Longrightarrow\\quad F(x)\\le F(y)\\ (\\|y\\|=1),\\quad Ax=\\lambda x,\\quad \\lambda=\\min\\operatorname{eig}(A)."
+          },
+          {
+            "label": "The objective gap is a tangent quadratic form",
+            "tex": "\\begin{aligned}a&=\\langle x,y\\rangle,\\quad u=y-ax,\\quad a^2+\\|u\\|^2=1,\\\\ 2(F(y)-F(x))&=a^2\\lambda+\\langle u,Au\\rangle-\\lambda\\\\&=\\langle u,Au\\rangle-\\lambda\\|u\\|^2=\\langle u,H_xu\\rangle\\ge0.\\end{aligned}"
+          }
+        ],
+        "assumptions": [
+          "E is finite-dimensional and real with its inner-product norm; A is symmetric and x is a unit sphere point.",
+          "The Hessian is the induced tangent operator of Example 5.17. PSD holds on every tangent direction, including zero. No eigengap, simple spectrum, or ambient PSD is assumed."
+        ],
+        "obligations": [
+          {
+            "id": "global-and-least",
+            "label": "Use tangent PSD at stationarity to prove global minimization and an attained least eigenvalue."
+          }
+        ],
+        "lesson": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_second_order_stationary_min",
+          "kind": "theorem",
+          "title": "Exercise 5.18 · Tangent curvature certifies the least eigenvalue",
+          "statement": "For a real symmetric operator on a finite-dimensional Euclidean space, restrict the half-normalized quadratic to the unit sphere with its induced metric. If the sphere gradient at a unit point x is zero and the induced Hessian is positive semidefinite on every tangent direction there, then x minimizes the restriction globally and is a nonzero eigenvector at the least eigenvalue of the operator.",
+          "formula": "G(x)=0,\\quad \\langle u,H_xu\\rangle\\ge0\\ (u\\perp x)\\quad\\Longrightarrow\\quad F(x)\\le F(y)\\ (\\|y\\|=1),\\quad Ax=\\lambda x,\\quad \\lambda=\\min\\operatorname{eig}(A).",
+          "assumptions": [
+            "E is finite-dimensional and real with its inner-product norm; A is symmetric and x is a unit sphere point.",
+            "The Hessian is the induced tangent operator of Example 5.17. PSD holds on every tangent direction, including zero. No eigengap, simple spectrum, or ambient PSD is assumed."
+          ],
+          "steps": [
+            {
+              "title": "Translate stationarity to the eigenvector equation",
+              "text": "The chosen extension equals the actual induced gradient on the sphere. At x, its vanishing gives Ax equal to the Rayleigh coefficient times x; unit norm certifies x is nonzero.",
+              "formula": "\\lambda=\\langle x,Ax\\rangle,\\qquad G(x)=0\\ \\Longrightarrow\\ Ax=\\lambda x.",
+              "lean": "The terminal proof unfolds the exact gradient expression with sub_eq_zero.mp. The separate checked pairing certifies its source meaning, not a direct proof-body call."
+            },
+            {
+              "title": "Compare with any point on the sphere",
+              "text": "For a unit y, subtract its component along x. The remainder is tangent, its squared norm is one minus the squared component, and symmetry plus the eigenvector equation kills the mixed term.",
+              "formula": "\\begin{aligned}a&=\\langle x,y\\rangle,\\quad u=y-ax,\\quad a^2+\\|u\\|^2=1,\\\\ 2(F(y)-F(x))&=a^2\\lambda+\\langle u,Au\\rangle-\\lambda\\\\&=\\langle u,Au\\rangle-\\lambda\\|u\\|^2=\\langle u,H_xu\\rangle\\ge0.\\end{aligned}",
+              "lean": "The proof constructs u as a member of the orthogonal subtype and rewrites the PSD premise with sphere_half_rayleigh_tangent_hessian_apply. It expands the norm and energy exactly before a real polynomial inequality closes the comparison."
+            },
+            {
+              "title": "The attained eigenvalue is least",
+              "text": "Normalize any nonzero eigenvector to a unit vector z. It keeps its eigenvalue, and its objective value is half that eigenvalue. Comparing at x gives leastness without diagonalizing A.",
+              "formula": "Az=\\mu z,\\quad\\|z\\|=1\\quad\\Longrightarrow\\quad F(z)=\\mu/2\\ge F(x)=\\lambda/2.",
+              "lean": "Mathlib's HasEigenvalue supplies a nonzero eigenvector. The proof normalizes it, then applies the already obtained IsMinOn inequality."
+            }
+          ],
+          "astis_dependencies": [
+            "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension",
+            "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighTangentHessian",
+            "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_tangent_hessian_apply"
+          ],
+          "mathlib_dependencies": [
+            "norm_add_sq_real",
+            "Submodule.mem_orthogonal_singleton_iff_inner_right",
+            "Module.End.mem_eigenspace_iff",
+            "Module.End.HasEigenvalue.exists_hasEigenvector"
+          ],
+          "lean_statement": "A true sphere minimum, an actual nonzero eigenvector at the Rayleigh coefficient, and a universal comparison with all real eigenvalues.",
+          "lean_proof": "Use orthogonal decomposition and symmetry to identify the global objective gap with the given tangent Hessian form, then compare with normalized eigenvectors.",
+          "sources": [
+            {
+              "url": "https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112",
+              "label": "Boumal, §5.5 (printed p. 96 / PDF p. 112)",
+              "scope": "Original ASTIS exposition of Corollary 5.16, Example 5.17 and Exercise 5.18; no textbook prose, PDF, or figures redistributed."
+            },
+            {
+              "path": "Tests/Shared/SphereRayleighHessian.lean",
+              "label": "Focused sphere Hessian tests",
+              "scope": "Checks zero and negative tangential curvature and the one-dimensional exercise conclusion; prints the three theorem axiom traces."
+            }
+          ]
+        },
+        "binding": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_second_order_stationary_min",
+          "role": "proof-edge",
+          "supports": [
+            "global-and-least"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "source": "Stationary induced gradient and PSD induced Hessian at a unit point imply global minimality and smallest-eigenvalue membership.",
+            "lean": "The certified ambient gradient representative vanishes; PSD is quantified on every actual tangent u. IsMinOn and HasEigenvector plus leastness are separate conclusions."
+          }
+        ]
+      },
+      "source_review": {
+        "state": "accepted",
+        "reviewer": "source_compiler_boumal518_20261112",
+        "independent_from_formalizer": true,
+        "independent_from_decoder": true,
+        "evidence": "Independent source and compiler receipt: runs/20261112-boumal-rayleigh-hessian/source-review-run.txt. Exact source PDF, module and focused test were pinned. Direct Lean checks, focused Lake build and fresh occurrence probe passed; compilation is separate from the source judgment. Accept the source implication, including dimension one, with an attained minimum eigenvalue. The checked orthogonal-decomposition proof and the source interpretation of its premises are separate.",
+        "review_run_sha256": "edff81b3b5843ccee7aa6a7fade8c6f2ebe7e72cbd507e11607337928c4b256b",
+        "reviewer_packet_sha256": "925c048a802df569b18b28f20d6463f7479e055f30ffe58df28fd2e9c0459697",
+        "run_artifact": "runs/20261112-boumal-rayleigh-hessian/source-review-run.txt",
+        "packet_artifact": "runs/20261112-boumal-rayleigh-hessian/reviewer-input-5.json",
+        "result_artifact": "runs/20261112-boumal-rayleigh-hessian/reviewer-result-5.json"
+      },
+      "reconstruction": {
+        "text": "Let E be a finite-dimensional real inner product space and A a symmetric continuous real-linear endomorphism. Let x be a unit vector and K=(ℝx)⊥. Write G_A(y)=Ay−⟨y,Ay⟩y and H_{A,x} for the map K→K obtained by inclusion into E, applying the ambient Fréchet derivative operator to G_A at x, and orthogonally projecting back to K. Assume G_A(x)=0 and ⟨u,H_{A,x}u⟩≥0 for every u∈K, using the ambient inner product. Set λ=⟨x,Ax⟩. Then x globally minimizes y↦½⟨y,Ay⟩ on the unit sphere, x is a nonzero eigenvector of A with eigenvalue λ, and λ≤μ for every real eigenvalue μ of A.",
+        "text_sha256": "a2b48e8575d98c032c127fac8af9dfa56866352ec5ae7005aa2cb2b83aa123db",
+        "decoder": "blind_decoder_a423",
+        "decoder_run_sha256": "337c49057577db51d127fa3896a30da576b2b98597be478f5cf533c44ea85382",
+        "source_text_visible": false,
+        "lean_statement_sha256": "e61bb4168491daece774958bde01c0c972577b05ebba2368156c8a2cf83ab3c8",
+        "decoder_packet_sha256": "3b970c29c748f45cd1794e7adf233f008c452a52beebb031f88e9f49cb978702",
+        "input_artifacts": [
+          "lean-statement",
+          "approved-definition-context"
+        ],
+        "run_artifact": "runs/semantic-roundtrip/blind/e61bb4168491daec/decoder-run.txt"
+      },
+      "semantic_slots": {
+        "objects": {
+          "original": "A stationary point of the induced half-Rayleigh gradient, its PSD tangent Hessian, and the smallest eigenvalue of symmetric A.",
+          "reconstructed": "G_A=0, a tangent projected-derivative PSD predicate, IsMinOn, a real eigenvector and universal eigenvalue comparison.",
+          "relation": "equivalent",
+          "evidence": "The genuine pairing and projected-derivative theorem give the source meaning of the representatives under symmetry, independently of direct proof-body use."
+        },
+        "domains": {
+          "original": "Real finite Euclidean E, sphere of unit vectors, tangent directions at x, and the eigenvalues of symmetric A.",
+          "reconstructed": "Finite-dimensional real inner-product E, sphere subtype, orthogonal tangent subtype, and real Module.End eigenvalues.",
+          "relation": "equivalent",
+          "evidence": "The ambient real operator is symmetric; the real least eigenvalue matches the source, and the sphere instance makes x nonzero."
+        },
+        "quantifiers": {
+          "original": "One arbitrary unit x with stationarity and PSD on every tangent u; compare globally and select the least eigenvalue.",
+          "reconstructed": "For all eligible A and unit x, if the conditions hold then for every unit y the minimum inequality holds and for every eigenvalue μ, λ≤μ.",
+          "relation": "explicit-elaboration",
+          "evidence": "IsMinOn quantifies over all unit y; HasEigenvector at λ ensures the eigenvalue in the bound is attained."
+        },
+        "assumptions": {
+          "original": "Symmetric A, induced metric, zero gradient and PSD on the whole tangent plane.",
+          "reconstructed": "The same assumptions through checked concrete representatives; no chart fact, eigengap, nonzero tangent direction or strict positivity.",
+          "relation": "equivalent",
+          "evidence": "The omitted chart parameter is recoverable as dim E−1 whenever x exists. K={0} in dimension one, so the argument still applies."
+        },
+        "conclusion": {
+          "original": "Global minimizer and nonzero eigenvector at the smallest eigenvalue.",
+          "reconstructed": "IsMinOn ∧ HasEigenvector A λ x ∧ (∀ μ, HasEigenvalue A μ → λ≤μ).",
+          "relation": "equivalent",
+          "evidence": "The proof first bounds all unit y using their tangent decompositions, then normalizes nonzero eigenvectors to get the eigenvalue comparisons."
+        },
+        "scopes": {
+          "original": "Exercise 5.18 is an implication for this quadratic, not a generic sufficiency statement for second-order stationarity.",
+          "reconstructed": "The terminal theorem retains the same local-to-global and objective scope, with a self-contained orthogonal-decomposition solution.",
+          "relation": "same",
+          "evidence": "Zero tangent curvature, repeated eigenvalues and dimension one cause no division by tangent norm."
+        },
+        "constant_dependencies": {
+          "original": "The same Rayleigh coefficient is x’s eigenvalue and the least value in the spectrum; the objective is half normalized.",
+          "reconstructed": "λ=⟨x,Ax⟩, with no factor in the eigenvalue or tangent form; the objective gap is twice the half-objective difference.",
+          "relation": "same",
+          "evidence": "The proof compares F(z)=μ/2 at normalized eigenvectors with F(x)=λ/2; no additional constants are introduced."
+        }
+      },
+      "deltas": [
+        {
+          "slot": "constant_dependencies",
+          "severity": "informational",
+          "description": "Lean makes attainment and leastness explicit; λ is not an arbitrary lower bound on the spectrum.",
+          "evidence": "HasEigenvector at λ and universal comparison with all real eigenvalues reproduce the source conclusion."
+        },
+        {
+          "slot": "scopes",
+          "severity": "informational",
+          "description": "Clarify the reader’s shared test citation: the dimension-one example explicitly asserts eigenvectorhood and leastness, not IsMinOn in its own conclusion.",
+          "evidence": "Tests/Shared/SphereRayleighHessian.lean, dimension-one example ends with the terminal theorem’s .2. The generic theorem proves the minimum in dimension one as well."
+        }
+      ],
+      "repairs": []
+    }
+  ]
+}

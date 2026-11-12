@@ -128,6 +128,23 @@ Lean reconstruction task. The question makes no value-gap, unrestricted
 oracle, or randomized-algorithm claim. No textbook prose or PDF enters the
 corpus.
 
+## Riemannian Optimisation Exercise 5.18: from tangent curvature to a global minimum
+
+[Boumal, §5.5, printed p. 96 / PDF p. 112](https://www.nicolasboumal.net/book/IntroOptimManifolds_Boumal_2023.pdf#page=112)
+asks why zero sphere gradient and positive semidefinite tangent Hessian imply
+global optimality for the half-normalized symmetric Rayleigh quadratic.
+The solution compares an arbitrary unit point by projecting its difference
+from the stationary point to the tangent plane. Its objective gap becomes
+exactly half the corresponding tangent Hessian form. Normalizing other
+eigenvectors then identifies the attained least eigenvalue.
+
+The Geometry question sogb-050 uses a supplied Hessian formula from Example 5.17.
+It has one public-development family and one L3 natural-language view, with an
+exact owned Lean answer but no aligned Lean task or graph QA. The
+[independent editorial review](reviews/prose-13/README.md) credits valid spectral
+proofs as well as the supplied orthogonal decomposition. Neither a general
+Riemannian connection nor a source-text/PDF redistribution is claimed.
+
 ## Admission checklist
 
 1. Pin the actual work, author(s), edition/hash, number/subparts and both page conventions; inspect the relevant page, not only a search snippet.

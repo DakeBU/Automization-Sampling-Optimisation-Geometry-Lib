@@ -110,6 +110,12 @@ heat-bath law on a dependent product. The fixed Lean target is measure
 equality at a positive retained fiber; the nonatomic counterexample
 remains an explanatory question.
 
+[Formal round 23](reviews/formal-23/README.md) pairs a formula proof of the
+three log-Sobolev cutoff limits with their exact Lean target. It stays in
+the Exercise 1.7 public family without adding a numbered exercise part.
+The cutoff estimates do not require finite dimension; compactness is a
+separate step in the later LSI extension.
+
 [Exercise 1.7 structural review](reviews/graph-extension-exercise17/README.md)
 accepts a separate L2 graph question: the two compiled routes share the
 compensated entropy limit, while only the compact Poincaré branch reaches

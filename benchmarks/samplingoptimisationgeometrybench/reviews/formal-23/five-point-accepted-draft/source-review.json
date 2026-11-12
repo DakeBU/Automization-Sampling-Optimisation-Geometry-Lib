@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "scope": "independent AI paired QA editorial review; not canonical theorem publication",
+  "actor_identity": "agent-task:cutoff_limits_bench_exact",
+  "input_packet_sha256": "78c085793fa7311fc67d128b533566e1da5df6d520f2f20582d626cbd62eacd5",
+  "items": {
+    "sogb-052": {
+      "binding_sha256": "365ad745a95bfc87fac52dec5e527da1cc0f41a6ffaf3a713738949f4ae70d8d",
+      "context_sha256": "fbb77b90ea6a7cb33fbcc87f9fb8ce14561eff4c1a5f61d932d254229fd99df3",
+      "formal_scope": "conclusion-only",
+      "semantic_slots": {
+        "objects": "Matches the blind reconstruction: E is a real Hilbert space with its Borel structure, μ is a measure on E, f is real-valued, and f_n is exactly radialSmoothCutoff ((n : ℝ) + 1) times f. The gradient is the inverse Riesz image of the Fréchet derivative, hence E-valued, not a coordinate or weak gradient.",
+        "assumptions": "Matches ContDiff ℝ 2, MemLp at exponent 2 for f and its gradient, and absolute integrability of Φ(f²). The L² premises include a.e. strong measurability. No finite dimension, separability of E, or finiteness, σ-finiteness, normalization or absolute continuity of μ is imposed. Cutoff properties are supplied facts about the fixed library function, not extra assumptions on f or μ.",
+        "conclusion": "The three scalar limits of ∫ f_n², ∫ Φ(f_n²), and ∫ ‖∇f_n‖² have exactly the corresponding values for f, as in the reconstructed conjunction. The prompt additionally requests explicit uniform integrable envelopes, measurability, and an explanation of the hypothesis boundary; those are not extra conjuncts in Lean.",
+        "constants": "The positive real radius is n+1, with n+1 ≥ 1, plateau radius n+1 and outer radius 2(n+1). The range is [0,1]. The library gives a single positive C controlling all x and all R>0 by C/R; the prose permits a nonnegative bound A, which that witness satisfies. Neither the envelope coefficients nor the derivative-bound witness are parameters of the three limits.",
+        "domains": "All functions are defined globally on E, n ranges over ℕ including zero, and the scale is real. The mass, signed entropy integrand, and squared Hilbert-gradient norm are real-valued, and all three integrals are over E against the same μ. Topological support is bounded by the closed 2R-ball, not asserted compact.",
+        "quantifiers": "For every displayed real complete Hilbert/Borel carrier, every measure μ and every f on that carrier satisfying the premises, the three limits hold for the same fixed cutoff sequence. A common index for three error bounds can be obtained by a finite maximum; there is no uniform convergence over f, μ or E and no quantification over alternative cutoff families or radii.",
+        "senses": "Each limit is Tendsto from atTop on ℕ to the usual real neighborhood filter. The real Lebesgue/Bochner integrals are genuine finite values on the proved domain. Real.log in the displayed product agrees with the zero extension Φ at zero; this is the signed unnormalized integrand, not entropy after subtracting the mass term or a KL divergence. The target asserts neither a rate nor separate pointwise, norm or compact-support conclusions."
+      },
+      "mathematics_checks": [
+        "The question and assumptions specify the fixed approximants, cutoff properties, integrability and zero convention without requiring the reader to look up Chewi or reconstruct a Lean definition. For R>‖x‖, the ball about x of radius R−‖x‖ lies in the plateau, so the functions agree there and their genuine derivatives agree at x. Global C² of f and smoothness of the cutoff give continuous f_n and ∇f_n; their three scalar integrands are Borel and strongly measurable since ℝ is separable, independently of separability of E or finiteness of μ.",
+        "The mass envelope 0≤f_n²≤f² is integrable by MemLp at 2. For a=χ² and q=f², Φ(aq)=aΦ(q)+qΦ(a) also holds if either factor is zero. The tangent inequality a log a≥a−1 and nonpositivity on [0,1] yield |Φ(a)|≤1. Hence |Φ(f_n²)|≤|Φ(f²)|+f², with both terms integrable. At q=1 and 0<a<1 the left side is positive while |Φ(q)|=0, so the stated pitfall is real.",
+        "The product rule and Riesz isometry give ‖∇f_n‖≤‖∇f‖+A|f| because A/(n+1)≤A. Squaring with (u+v)²≤2u²+2v² gives 2‖∇f‖²+2A²f², integrable by the two L² premises. The neighborhood argument gives eventual equality for each x, not differentiation through a pointwise limit. The three envelopes give integrability at every n, and scalar dominated convergence does not require finite or σ-finite μ.",
+        "The LF SHA-256 of LogSobolevCutoff.lean matches the packet. The theorem starts at line 112; its signature agrees exactly with the fixed example after renaming, and the trusted example has the source proof body. The four source-private helper declarations have matching bodies in the trusted reference only. The fixed task exposes the six dependency imports and the statement, with neither target-module import nor helper names or proofs. The two ASTIS dependency modules are themselves upstream imports of the target, not access to the target proof.",
+        "Chewi §2.1.1, printed pp. 48–49/PDF pp. 60–61, states PI/LSI on compactly supported smooth Euclidean tests and notes omitted density arguments. Printed p. 43/PDF p. 55 gives Exercise 1.7, the LSI-to-PI linearization with its KL expansion hint, not this triple limit. Attribution as an original ASTIS density exercise is accurate. The local extension at line 191 uses cutoff_integral_limits and finite-dimensional compact support; Tests/Shared/LogSobolevCutoff.lean checks the square-root test handoff. LogSobolevCutoffDomain.lean illustrates why compact support alone does not guarantee integrability for arbitrary Borel μ; here the explicit envelopes supply it."
+      ],
+      "scoring_checks": [
+        "The five one-point criteria cover measurability and pointwise convergence, mass domination, zero-safe absolute entropy domination, gradient domination, and passing the three limits with correct scope. They reward distinct mathematical work and do not require a numerical cutoff constant, a particular entropy-envelope coefficient, or Lean tactic syntax.",
+        "A proof using the product rule with χ_R(x)→1 and ‖∇χ_R(x)‖→0 also establishes genuine pointwise gradient convergence, provided it explains why the cutoff values alone do not. A sharper entropy envelope or equivalent Fréchet-derivative calculation meets the corresponding criteria; a signed bound is insufficient.",
+        "L4 is defensible on each track independently. In prose the signed dilation term, the local-versus-pointwise derivative issue, and integrability for arbitrary μ must be solved together; a one-line invocation of dominated convergence misses substantive work. In Lean the solver must assemble separate measurable and integrable domination obligations, a zero-safe log identity, the Riesz/product-rule energy bound, and neighborhood-to-atTop gradient equality without access to the four exact helper proofs. Difficulty comes from composing these obligations, not proof length."
+      ],
+      "remaining_unformalized": [
+        "The assessed Lean target is only the conjunction of the three Tendsto statements with its displayed premises and fixed sequence. Intermediate measurability, integrability, domination and eventual gradient equality appear in the trusted proof but are not standalone assessed conclusions or a prescribed proof method.",
+        "The prose comparison with value-only cutoff convergence, the explicit f²=1 counterexample to entropy-only domination, and the explanation of the downstream finite-dimensional compactness requirement are not separate Lean targets.",
+        "The normalized function-form LSI extension, the square-root perturbation/KL linearization and Exercise 1.7, and any closed Sobolev or Dirichlet form domain extension are outside this review's formal coverage."
+      ],
+      "verdict": "accept",
+      "repair_requests": []
+    }
+  }
+}

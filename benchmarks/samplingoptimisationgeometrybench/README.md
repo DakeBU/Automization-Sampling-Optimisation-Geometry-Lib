@@ -116,6 +116,12 @@ the Exercise 1.7 public family without adding a numbered exercise part.
 The cutoff estimates do not require finite dimension; compactness is a
 separate step in the later LSI extension.
 
+[The feature-law graph extension](reviews/graph-extension-feature-law/README.md)
+shows a concrete shared dependency across geometry and transport: the
+Bochner mean route and the Wasserstein lower comparison both use
+probability normalization of a coupling. The new L2 question compares
+direct and transitive occurrences without claiming mathematical necessity.
+
 For numbered exercises, a current named-answer compiler receipt is shown
 on the exact declaration's Lean Graph detail card. It certifies the scoped
 Lean compilation and axiom check, not a repository-wide gate or an

@@ -108,6 +108,26 @@ the assembled result is `m/2 ≤ W₂ ≤ m` for `m > 0`.
 The independent paired review applies to the fixed final inequalities.
 It does not give an exact distance, an optimal plan, or a held-out score.
 
+## Optimisation Exercise 4.1: a gradient span cannot reach the tail
+
+[Exercise 4.1, printed/PDF p. 28](https://arxiv.org/pdf/2605.07006v1#page=28)
+uses the pinned Chewi optimisation edition above. The quantifiers and
+algorithm restriction come from Definition 4.3 and Theorem 4.4 on p. 26.
+The path-quadratic calculation and prefix induction are on p. 27; the
+affine minimizer continues onto p. 28. Definition 1.12 and (1.7), p. 11,
+require both continuous differentiability and the global upper model.
+
+The Lower Bounds question sogb-049 uses one public-development family
+and the same fixed translated witness before all trajectories. The owned
+theorem proves its class membership, affine minimizer and a squared-distance
+factor of one eighth by comparing the untouched tail to the full initial
+norm. That constant is a valid explicit choice, not a number stated in the
+exercise. See the [independent Bench review](reviews/prose-12/README.md).
+The full Lean answer can be read and downloaded; it is not another aligned
+Lean reconstruction task. The question makes no value-gap, unrestricted
+oracle, or randomized-algorithm claim. No textbook prose or PDF enters the
+corpus.
+
 ## Admission checklist
 
 1. Pin the actual work, author(s), edition/hash, number/subparts and both page conventions; inspect the relevant page, not only a search snippet.

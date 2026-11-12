@@ -42,8 +42,9 @@ class BenchTests(unittest.TestCase):
 
     def test_prompt_export_has_no_answers_rubrics_or_reference_proofs(self):
         allowed = {'id', 'family', 'domain', 'library_domains', 'skills', 'title', 'split', 'assumptions', 'binding_sha256', 'track', 'level', 'question'}
+        exercise_ids = {core['id'] for core in self.cores if core.get('textbook_exercise')}
         for row in bench.prompts(self.cores):
-            self.assertEqual(set(row), allowed | ({'exercise_source'} if row['id'] in {'sogb-029', 'sogb-030', 'sogb-031', 'sogb-039', 'sogb-040'} else set()))
+            self.assertEqual(set(row), allowed | ({'exercise_source'} if row['id'] in exercise_ids else set()))
             self.assertNotIn(':= by\n  intro', row['question'])
         self.assertTrue(all('-- Replace this comment' in r['question']
                             for r in bench.prompts(self.cores) if r['track'] == 'lean'))
@@ -104,6 +105,42 @@ class BenchTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             bench.materialize({**data, 'cores': [{**raw, 'lean_enabled': False}]})
 
+    def test_lower_bounds_numbered_answer_does_not_create_a_lean_task(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-049')
+        self.assertEqual(core['family'], 'chewi-opt-v1-exercise-4-1')
+        self.assertEqual((core['textbook_exercise']['book_page'],
+                          core['textbook_exercise']['pdf_page']), (28, 28))
+        self.assertEqual(set(core['track_levels']), {'natural-language'})
+        self.assertEqual(core['lean_task'], '')
+        self.assertEqual(core['lean_reference'], '')
+        self.assertIn('theorem exercise_4_1', core['support_lean_source'])
+        self.assertEqual({a['declaration'] for a in core['textbook_exercise']['answer_declarations']},
+                         {core['declaration']})
+        prompts = bench.prompts([core])
+        self.assertEqual([p['track'] for p in prompts], ['natural-language'])
+        self.assertNotIn('answer_declarations', prompts[0]['exercise_source'])
+        self.assertNotIn('support_lean_source', prompts[0])
+        self.assertNotIn('theorem exercise_4_1', prompts[0]['question'])
+
+        catalog = bench.load()
+        raw = next(row for row in catalog['cores'] if row['id'] == core['id'])
+        for invalid in ({**raw, 'textbook_exercise_id': ''},
+                        {**raw, 'support_source_view': False},
+                        {**raw, 'lean_enabled': True, 'support_source_view': False},
+                        {**raw, 'source_file': raw['source_file'].replace('LowerBounds', 'Other')},
+                        {**raw, 'source_file': raw['source_file'].replace('LowerBounds', 'LowerBounds/..')},
+                        {**raw, 'source_file': 'research-wiki/retrieval-index/atlas-v1/input.lean'}):
+            with self.subTest(invalid=invalid['source_file']), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / 'cores.json'
+                path.write_bytes(bench.encoded({**catalog, 'cores': [invalid]}))
+                with patch.object(bench, 'DATA', path), self.assertRaises(ValueError):
+                    bench.load()
+        for invalid in ({**raw, 'textbook_exercise_id': ''},
+                        {**raw, 'family': 'different-source-family'},
+                        {**raw, 'lean_enabled': True, 'support_source_view': False}):
+            with self.assertRaises(ValueError):
+                bench.materialize({**catalog, 'cores': [invalid]})
+
     def test_binding_changes_with_prose_or_context(self):
         for key in ('question', 'context', 'boundary'):
             changed = deepcopy(bench.load())
@@ -120,7 +157,8 @@ class BenchTests(unittest.TestCase):
             self.assertEqual(before, {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob('*') if p.is_file()})
             manifest = json.loads((output / 'manifest.json').read_text())
             self.assertEqual(manifest['qa_views'], sum(len(c['track_levels']) for c in self.cores))
-            self.assertEqual(manifest['numbered_textbook_exercises'], 4)
+            self.assertEqual(manifest['numbered_textbook_exercises'],
+                             len({c['textbook_exercise_id'] for c in self.cores if c.get('textbook_exercise')}))
             self.assertEqual(manifest['graph_tasks'], len(bench.curriculum.graph_items()))
             self.assertEqual(len(manifest['graph_evidence_kinds']),2)
             self.assertTrue((output/'compiled-transport-graph.json').is_file())
@@ -290,7 +328,7 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L2'),
                          {'natural-language': 0, 'lean': 0, 'graph-json': 1})
         self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L3'),
-                         {'natural-language': 3, 'lean': 2, 'graph-json': 0})
+                         {'natural-language': 4, 'lean': 2, 'graph-json': 0})
         self.assertEqual(coverage['unique_mathematical_cores'], len(bench.load()['cores']))
         self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
                          {'samplewiki', 'mcmc'})

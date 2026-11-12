@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.33.0-dev",
+  "version": "0.34.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -1926,6 +1926,79 @@
       "lean_explanation": "Only the analytic quadratic adapter is formally linked. Apply the owned quadratic-regularization theorem on the real line with a constant base function, base smoothness zero, center m and regularization coefficient μ. Its conclusion supplies differentiability, curvature, gradient and the μ-Lipschitz estimate. The two-instance construction, indistinguishable replies, algorithmic lower bound and known-optimum comparison are not aligned Lean tasks here.",
       "boundary": "Original deterministic one-query exercise. It is not an exact minimax constant, a many-query or randomized oracle lower bound, or a numbered exercise from the book. Unknown additive offsets are part of the stated information model. The Lean graph points to an analytic supporting result only; neither the oracle argument nor the stronger-information comparison is formalized in this packet.",
       "source_note": "Original ASTIS question and solution. Background: Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1, §1.1 first-order oracle and §4 lower-bound framework (https://arxiv.org/html/2605.07006v1#S1.SS1 and https://arxiv.org/html/2605.07006v1#S4); the supporting quadratic-regularization declaration comes from the analytic part of Lemma 4.2, not from a formal oracle lower-bound theorem. Retain Apache-2.0 LICENSE and NOTICE for the support source. No copied textbook wording or hidden-test claim."
+    },
+    {
+      "id": "sogb-049",
+      "family": "chewi-opt-v1-exercise-4-1",
+      "textbook_exercise_id": "chewi-opt-v1-exercise-4-1",
+      "domain": "Lower Bounds",
+      "library_domains": [
+        "lower-bounds",
+        "optimisation"
+      ],
+      "title": "A gradient span cannot reach the hidden tail of the minimizer",
+      "difficulty": "multi-step proof and algorithm-model audit",
+      "difficulty_reason": "L3: combine elementary Euclidean calculus, a prefix-support induction over the actual gradient span, and a finite sum-of-squares comparison for one explicit witness. No cross-module assumption or domain adapter is required. This is an editorial, not an empirically calibrated, level.",
+      "track_levels": {
+        "natural-language": "L3"
+      },
+      "lean_enabled": false,
+      "support_source_view": true,
+      "skills": [
+        "proof",
+        "calculation",
+        "composition",
+        "assumption-audit",
+        "semantic-boundary"
+      ],
+      "source_file": "AutoSamplingTheory/ExampleCases/LowerBounds/GradientSpanDistance.lean",
+      "declaration": "AutoSamplingTheory.ExampleCases.LowerBounds.GradientSpanDistance.exercise_4_1",
+      "assumptions": [
+        "Let \\(D,N\\in\\mathbb N\\) with \\(1\\le N\\) and \\(2N+1\\le D\\), \\(\\beta>0\\), and a prescribed \\(x_0\\in\\mathbb R^D\\). For \\(v=y-x_0\\) use the fixed path quadratic \\[f(y)=\\frac{\\beta}{4}\\left[\\frac{v_1^2+\\sum_{k=1}^{D-1}(v_k-v_{k+1})^2+v_D^2}{2}-v_1\\right].\\]",
+        "Consider any sequence with initial point \\(x_0\\) and \\(x_{n+1}-x_0\\in\\operatorname{span}_{\\mathbb R}\\{\\nabla f(x_0),\\ldots,\\nabla f(x_n)\\}\\) for all \\(n\\). This is the run-level restriction on the deterministic algorithms in the source. The gradients refer to the displayed objective, not independent oracle data."
+      ],
+      "question": "Verify that this same \\(f\\) is convex, continuously differentiable and satisfies the global quadratic upper model with modulus \\(\\beta\\). Identify its affine-profile minimizer \\(x_\\star\\), then prove \\(\\|x_N-x_\\star\\|^2\\ge\\frac18\\|x_0-x_\\star\\|^2\\) for every such sequence. Explain what the algorithm assumption rules out.",
+      "steps": [
+        "Set \\(z_0=1,\\ z_{D+1}=0\\), and \\(z_k=y_k-(x_0)_k\\) for interior \\(k\\). Then \\(f(y)=\\frac{\\beta}{8}[\\sum_{k=0}^{D}(z_k-z_{k+1})^2-1]\\): expanding the first edge gives the linear term and expanding the last gives the right endpoint square. This is a polynomial, hence \\(C^1\\), and a positive sum of squares of affine functions plus a constant, hence convex. For a direction \\(h\\), pad it by zero at both endpoints to get \\(w\\). Expanding the squares gives \\[f(y+h)-f(y)-\\langle\\nabla f(y),h\\rangle=\\frac{\\beta}{8}\\sum_{k=0}^D(w_k-w_{k+1})^2\\le\\frac{\\beta}{2}\\|h\\|^2.\\] The inequality uses \\((a-b)^2\\le2a^2+2b^2\\) on each edge, with each interior coordinate appearing twice.",
+        "Differentiating the two incident edges gives \\((\\nabla f(y))_k=\\frac{\\beta}{4}(2z_k-z_{k-1}-z_{k+1})\\). The profile \\(z_k^\\star=1-k/(D+1)\\) has the required two endpoints and equal successive differences. Thus at \\(x_\\star=x_0+(z_k^\\star)_{k=1}^D\\) every gradient entry vanishes, so convexity yields minimization. Equivalently, the energy expansion around this profile has vanishing cross term since the perturbation's edge differences telescope between two zeros.",
+        "Define \\(q(v)=f(x_0+v)\\) and \\(V_r=\\{v:v_k=0\\text{ for }k>r\\}\\). Translation has identity derivative, so \\(\\nabla q(x_n-x_0)=\\nabla f(x_n)\\). The coordinate gradient formula gives \\(\\nabla q(v)\\in V_{r+1}\\) when \\(v\\in V_r\\): beyond \\(r+1\\) both neighbors and the current coordinate vanish (including the artificial right endpoint). The centered start is zero. If all centered iterates through \\(n\\) belong to their respective \\(V_j\\), all the corresponding gradients lie in \\(V_{n+1}\\) by nesting. The affine span rule puts the centered next iterate in that same subspace. In particular \\(x_N-x_0\\in V_N\\).",
+        "Put \\(T=D-N\\). The last \\(T\\) coordinates are untouched; their error squares contribute at least \\((D+1)^{-2}\\sum_{j=1}^{T}j^2\\), reindexing the affine tail in reverse. The initial squared distance is \\((D+1)^{-2}\\sum_{j=1}^D j^2>0\\). The standard finite square-sum identity gives \\[\\frac{\\sum_{j=1}^{T}j^2}{\\sum_{j=1}^{D}j^2}=\\frac{T}{D}\\frac{T+1}{D+1}\\frac{2T+1}{2D+1}\\ge\\frac18,\\] since \\(2T\\ge D\\) makes all three factors at least \\(1/2\\). Coordinates within the span cannot reduce the tail error. A method permitted to choose points outside the accumulated gradient span is not covered, regardless of what other information it has."
+      ],
+      "rubric": [
+        {
+          "points": 1,
+          "criterion": "Certifies the exact translated objective is convex and continuously differentiable and derives the global β upper model with the correct coefficient. The Hessian estimate or an equivalent exact-remainder argument is valid."
+        },
+        {
+          "points": 1,
+          "criterion": "Identifies the prescribed-start affine minimizer and justifies actual global minimization using the endpoints and profile, not stationarity alone without convexity or another valid minimization proof."
+        },
+        {
+          "points": 1,
+          "criterion": "Derives the genuine gradient support expansion and applies the actual affine span rule with correct initial centering and nesting. Direct calculation for the translated objective or an explicit chain-rule transport is valid."
+        },
+        {
+          "points": 1,
+          "criterion": "Compares the untouched tail with the full initial squared norm to obtain 1/8 or stronger, with the dimensional regime and gradient-span restriction explicit. Any valid tail argument earns full credit."
+        }
+      ],
+      "dependencies": {
+        "astis": [
+          "Gradient.fderiv_apply_eq_inner_gradient_of_differentiableAt",
+          "Gradient.fderiv_apply_coordinate_eq_gradient_coordinate_of_differentiableAt",
+          "StrongConvexGradientConverse.strongConvexOn_of_gradient_inner_lower_bound"
+        ],
+        "mathlib": [
+          "ContDiff.comp",
+          "HasFDerivAt.comp",
+          "Submodule.span_le",
+          "EuclideanSpace.real_norm_sq_eq",
+          "Equiv.sum_comp"
+        ]
+      },
+      "lean_explanation": "The owned declaration proves the full displayed finite witness and comparison. The exact folded module uses a padded energy, constructs the continuous derivative, proves the affine minimizer by a telescoping energy identity, then transports the true gradients and bounds the reversed finite sum. It is the compiled answer, not a fixed Lean reconstruction challenge.",
+      "boundary": "The factor 1/8 is sufficient, not a sharp or source-printed constant. This is the squared-distance bound for the actual fixed gradient-span witness, not the objective-value theorem, Exercise 4.2, or an unrestricted/randomized oracle lower bound. No separately aligned Lean challenge or graph QA for this exercise.",
+      "source_note": "Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1, §4.2 Exercise 4.1, printed/PDF p. 28 (https://arxiv.org/pdf/2605.07006v1#page=28), inheriting Definition 4.3, the witness of Theorem 4.4 and Definition 1.12. Original ASTIS wording and solution, no textbook passages or PDF distributed; retain Apache-2.0 LICENSE and NOTICE for owned Lean. Same family for all future views and variants."
     }
   ]
 }

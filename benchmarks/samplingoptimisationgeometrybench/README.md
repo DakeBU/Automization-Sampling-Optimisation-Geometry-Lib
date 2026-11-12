@@ -156,6 +156,11 @@ The Bernoulli/Gaussian pair is one conservative public family. Its NL finite-cub
 
 Actual numbered exercises from the cited Chewi textbooks are explicit source-bound entries, alongside original library-grounded QA. Their current editorial admission, exact source parts and owned-answer build records are generated in the numbered-exercise directory and downloadable map, not asserted by this prose. Each needs verified edition/number/pages/subparts, an original complete mathematical answer, independent review and actual Lean/graph/test links. Partial coverage stays partial; alternative valid proofs receive credit. No uniquely “best” answer claim is made.
 
+[Prose round 12](reviews/prose-12/README.md) adds Optimization Exercise 4.1
+to Lower Bounds: the same translated path quadratic obstructs the distance
+progress of a gradient-span method. It has an exact owned Lean answer and an
+independently reviewed L3 natural-language task, not a fixed Lean challenge.
+
 The first entry, sogb-029, is Chewi Optimization Exercise 3.2. Its complete authored formula answer reuses the existing [source/solution window](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/libraries/optimisation/chapter-03.html#chewi-opt-v1-exercise-3-2), two actual owned core-answer declarations and their graph nodes. It has no separate fixed Lean reconstruction task. The Hilbert/parameter extensions and unformalized contextual material remain explicit; neither code existence nor source intake is whole-exercise certification.
 
 [Exercise provenance and contribution rules](TEXTBOOK_EXERCISES.md) describe the source audit. Canonical book pins are in textbook_exercises.json; source parts/answers are reused from the existing publication record. Generated textbook-exercise-map.json separates editorial state, owned core-answer compilation and available QA tracks. Other Chewi textbooks and all eight domains remain required scope.

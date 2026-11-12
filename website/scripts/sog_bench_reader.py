@@ -750,13 +750,42 @@ def import_figure(graph: dict) -> str:
         gap,pitch=20,box_width+20
         columns=max(map(len,groups.values()),default=1)
         width=max(240, pitch*columns-gap+12)
-        height=box_height+56+highest*130
+        row_pitch=max(130,box_height+32)
+        height=box_height+56+highest*row_pitch
         positions={n:((width-(len(group)*box_width+(len(group)-1)*gap))/2+box_width/2+i*pitch,
-                      box_height/2+23+(highest-r)*130)
+                      box_height/2+23+(highest-r)*row_pitch)
                    for r,group in groups.items() for i,n in enumerate(group)}
     half=box_height/2
     style='' if compiled else 'stroke-dasharray="5 4"'
-    paths = ''.join(f'<path d="M {positions[a][0]} {positions[a][1]+half} L {positions[b][0]} {positions[b][1]-half}" stroke="#657080" {style} fill="none" marker-end="url(#sog-arrow)"/>' for a, b in edges)
+
+    def arrow(a, b):
+        sx, sy = positions[a][0], positions[a][1] + half
+        tx, ty = positions[b][0], positions[b][1] - half
+        points = [(sx, sy)]
+        # A direct reference may skip ranks. Keep an unobstructed straight
+        # arrow; otherwise pass each intermediate row through a free lane.
+        if compiled and ranks[a] - ranks[b] > 1:
+            def straight_x(y):
+                return sx + (tx - sx) * (y - sy) / (ty - sy)
+
+            lanes, obstructed = [], False
+            for r in range(ranks[a] - 1, ranks[b], -1):
+                row = [positions[n] for n in groups[r]]
+                y = row[0][1]
+                boxes = [(x - box_width/2 - 4, x + box_width/2 + 4) for x, _ in row]
+                left, right = sorted((straight_x(y - half), straight_x(y + half)))
+                obstructed |= any(left < hi and right > lo for lo, hi in boxes)
+                gaps = zip([1, *(hi for _, hi in boxes)], [*(lo for lo, _ in boxes), width - 1])
+                desired = straight_x(y)
+                lane = min((min(max(desired, lo), hi) for lo, hi in gaps if lo <= hi),
+                           key=lambda x: abs(x - desired))
+                lanes.extend([(lane, y - half - 8), (lane, y + half + 8)])
+            if obstructed:
+                points.extend(lanes)
+        points.append((tx, ty))
+        return 'M ' + ' L '.join(f'{x} {y}' for x, y in points)
+
+    paths = ''.join(f'<path d="{arrow(a, b)}" stroke="#657080" {style} fill="none" marker-end="url(#sog-arrow)"/>' for a, b in edges)
     def box(n,x,y):
         first_y=y+4-(len(lines[n])-1)*7.5
         content=' '.join(f'<tspan x="{x}" dy="{0 if i==0 else 15}">{escape(line)}</tspan>'

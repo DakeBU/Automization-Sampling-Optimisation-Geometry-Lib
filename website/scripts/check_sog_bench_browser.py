@@ -308,7 +308,13 @@ def main() -> None:
                         for answer in exercise['answer_declarations']:
                             graph_link = page.get_by_role('link', name=answer['declaration'], exact=True)
                             assert graph_link.is_visible()
-                            assert 'underlying-lean-graph/index.html?focus=' in graph_link.get_attribute('href')
+                            graph_href = graph_link.get_attribute('href')
+                            assert 'underlying-lean-graph/index.html?focus=' in graph_href
+                            assert parse_qs(urlsplit(graph_href).query) == {
+                                'focus': ['decl:' + answer['declaration']],
+                                'view': ['lean'],
+                                'q': [answer['declaration']],
+                            }, 'Owned answer opens the exact filtered Lean slice'
                         assert 'not an equivalent Lean challenge' in page.locator('article.sog-reader').inner_text()
                         page.locator('summary', has_text='Original exercise, all requested parts and exact Lean scope').click()
                     page.locator('summary',has_text='Reference mathematical proof').click()

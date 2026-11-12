@@ -1,0 +1,6 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexityOperations
+
+#check AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexityOperations.add
+#check AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexityOperations.constant_zero
+#check AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexityOperations.add_zero_right
+#check AutoSamplingTheory.TechnicalLemmas.Geometry.GeodesicConvexityOperations.add_constant_right

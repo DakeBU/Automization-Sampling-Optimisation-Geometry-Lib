@@ -463,11 +463,12 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
     anchor_kind, graph_id = bench.graph_anchor(core['declaration'], core['source_file'], graph_ids)
     anchor_label = {'declaration': 'Declaration anchor', 'owning-module': 'Owning-module anchor',
                     'not-indexed': 'Not indexed in Lean Graph', 'not-checked': 'Graph position not checked'}[anchor_kind]
+    owned_original = bench.ORIGINAL_EXAMPLE_ANSWERS.get(core['source_file']) == core['declaration']
     graph_label = ('Locate the existing Lean declaration' if anchor_kind == 'declaration'
                    else 'Locate the owning module (declaration not yet indexed in this graph)')
     graph_href = ('../../underlying-lean-graph/index.html?focus=' + quote(graph_id, safe='')
                   if graph_id is not None else None)
-    if core.get('textbook_exercise') and anchor_kind == 'declaration':
+    if (core.get('textbook_exercise') or owned_original) and anchor_kind == 'declaration':
         graph_href = owned_answer_graph_href(core['declaration'])
     graph_short = f'<a href="{graph_href}">Lean Graph ↗</a> · ' if graph_href else ''
     graph_detail = f' · <a href="{graph_href}">{graph_label}</a>' if graph_href else ' · ' + anchor_label
@@ -496,9 +497,12 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
                + '<p><a href="downloads/lean/' + core['id'] + '-task.lean.txt" download>Download task template</a></p>')
         + fold('Reference Lean and explanation', lean) + prose(status) + '</section>') if bench.has_lean(core) else (
         '<section id="lean"><h2>' + ('Owned Lean core answers · no fixed reconstruction challenge'
-            if core.get('textbook_exercise') else 'Lean view: not yet aligned') + '</h2>' + lean
+            if core.get('textbook_exercise') else 'Owned Lean example · no fixed reconstruction challenge'
+            if owned_original else 'Lean view: not yet aligned') + '</h2>' + lean
         + ('<p>Named owned core answers and their exact domain are separate from full explanatory coverage or a fixed reconstruction challenge.</p>'
-           if core.get('textbook_exercise') else '<p>This support theorem does not certify the complete QA or its explanatory counterexamples.</p>')
+           if core.get('textbook_exercise') else
+           '<p>The owned declaration proves the concrete witness. This is a reference answer, not a separately aligned Lean task or a score.</p>'
+           if owned_original else '<p>This support theorem does not certify the complete QA or its explanatory counterexamples.</p>')
         + '</section>')
     dependencies = ''.join('<h3>' + label + '</h3><ul>' + ''.join('<li><code>' + escape(n) + '</code></li>' for n in core['dependencies'][key]) + '</ul>'
                            for key, label in (('astis', 'ASTIS definitions / proof calls' if bench.has_lean(core) else 'ASTIS formal support (not an equivalent QA)'), ('mathlib', 'Mathlib facts / definitions')))
@@ -518,7 +522,8 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
                  ' · '.join('<a href="'+g['id']+'.html">'+escape(g['title'])+'</a>' for g in related)+'</p>') if related else ''
     graph_position = ('<aside class="sog-graph-position" data-lean-graph-position="' + escape(graph_id or '') + '">'
         '<p class="sog-graph-short">' + graph_short + '<a href="' + escape(href) + '">Source ↗</a>'
-        + '<small>' + ('Aligned fixed target' if bench.has_lean(core) else 'Supporting Lean only') + ' · '
+        + '<small>' + ('Aligned fixed target' if bench.has_lean(core) else
+            'Owned example answer' if owned_original else 'Supporting Lean only') + ' · '
         + anchor_label + '</small></p>'
         + fold('Graph location and verification scope', '<h2>' + escape(declaration.short_name) + '</h2>'
             + prose('Aligned fixed Lean task; its conclusion does not certify every explanatory claim.'
@@ -538,7 +543,9 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
         + fold('Why this difficulty?', prose(core['difficulty_reason']))
         + review_panel(core, review_row)
         + graph_links + '<section><h2>What this does—and does not—verify</h2>' + prose(bench.mathematical_scope(core))
-        + '<p>Existing library mathematics reused; no new mathematical leaf or paper-completion credit. The editorial panel records the exact current review scope and remaining unformalized explanation.</p></section>'
+        + ('<p>This original worked example does not add a Registry leaf or close any paper theorem.</p>'
+           if owned_original else '<p>Existing library mathematics reused; no new mathematical leaf or paper-completion credit.</p>')
+        + '<p>The editorial panel records the exact current review scope and remaining unformalized explanation.</p></section>'
         + fold('Sources, graph location and dependencies', prose(core['source_note'])
             + '<p><a href="' + escape(href) + '">Exact local source and full context</a>' + graph_detail
             + '</p><p><code>' + escape(core['declaration']) + '</code></p>'

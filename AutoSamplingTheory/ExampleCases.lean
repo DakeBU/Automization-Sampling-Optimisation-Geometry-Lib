@@ -159,6 +159,7 @@ import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.InitialGibbsPhaseTransp
 import AutoSamplingTheory.ExampleCases.SmoothedPicardHMC.ClippedGradientProgram
 import AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.EnergyTruncation
 import AutoSamplingTheory.ExampleCases.LowerBounds.GradientSpanDistance
+import AutoSamplingTheory.ExampleCases.DiscreteSampling.OrderedHeatBath
 
 /-!
 # ASTIS example cases

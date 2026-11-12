@@ -26,6 +26,7 @@ import astis_frontier_cells
 import astis_semantic_roundtrip as roundtrip
 
 CONTENT = ROOT / 'website/content/publications'
+ORIGINAL_WORKED_EXAMPLE_SCOPE = 'original-worked-example'
 MIGRATION_BASE = '5c6adf3b812f3ba9315c92ba78a4ff59ccc2a53e'
 LEGACY_FILE_SHA = '6efa3254bc53f8bd93423d56c79f38b90af35f0097e1223940c328861b336c17'
 REGISTRY_DATA_NAMES = frozenset(('sltSourceAnchor analysisMemory gaussianMemory taylorMemory '
@@ -171,6 +172,10 @@ def validate(items: list[dict] | None = None, data: dict | None = None,
                 errors.append(f'{ident}: source.{key} missing')
         if source.get('wording_status') not in {'faithful paraphrase', 'licensed original', 'short quotation'}:
             errors.append(f'{ident}: invalid wording status')
+        if 'publication_scope' in source and (
+                source['publication_scope'] != ORIGINAL_WORKED_EXAMPLE_SCOPE
+                or source.get('wording_status') != 'licensed original'):
+            errors.append(f'{ident}: original worked example scope requires licensed original wording')
         if not str(source.get('url', '')).startswith('https://'):
             errors.append(f'{ident}: source must be HTTPS')
         for key in ('chapter_path',):
@@ -245,6 +250,7 @@ def verified_binding(binding: dict, data: dict | None = None) -> bool:
 def chapter_progress(library: str, chapter: str | None = None) -> dict:
     data = inputs()
     bindings = [b for i in load() if i['library'] == library
+                and i['source'].get('publication_scope') != ORIGINAL_WORKED_EXAMPLE_SCOPE
                 and (chapter is None or i['chapter'] == chapter) for b in i['bindings']]
     proved, prerequisites = set(), set()
     for b in bindings:

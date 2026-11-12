@@ -106,6 +106,8 @@ class NumberedExerciseReaderTests(unittest.TestCase):
         prose = reader.exercise_panel({'textbook_exercise': exercise, 'lean_enabled': False}, True)
         self.assertIn('not an equivalent Lean challenge', prose)
         self.assertNotIn('separate fixed Lean task', prose)
+        self.assertIn('underlying-lean-graph/index.html?focus=decl%3A' + owned
+                      + '&amp;view=lean&amp;q=' + owned, prose)
 
     def test_source_only_graph_target_never_counts_as_compiled(self):
         owned = 'AutoSamplingTheory.TechnicalLemmas.Measure.Example.answer'

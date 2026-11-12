@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.34.0-dev",
+  "version": "0.35.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -1999,6 +1999,75 @@
       "lean_explanation": "The owned declaration proves the full displayed finite witness and comparison. The exact folded module uses a padded energy, constructs the continuous derivative, proves the affine minimizer by a telescoping energy identity, then transports the true gradients and bounds the reversed finite sum. It is the compiled answer, not a fixed Lean reconstruction challenge.",
       "boundary": "The factor 1/8 is sufficient, not a sharp or source-printed constant. This is the squared-distance bound for the actual fixed gradient-span witness, not the objective-value theorem, Exercise 4.2, or an unrestricted/randomized oracle lower bound. No separately aligned Lean challenge or graph QA for this exercise.",
       "source_note": "Sinho Chewi, Lectures on Optimization, arXiv:2605.07006v1, §4.2 Exercise 4.1, printed/PDF p. 28 (https://arxiv.org/pdf/2605.07006v1#page=28), inheriting Definition 4.3, the witness of Theorem 4.4 and Definition 1.12. Original ASTIS wording and solution, no textbook passages or PDF distributed; retain Apache-2.0 LICENSE and NOTICE for owned Lean. Same family for all future views and variants."
+    },
+    {
+      "id": "sogb-050",
+      "family": "boumal-5-18-sphere-rayleigh-global-minimum",
+      "textbook_exercise_id": "boumal-5-18-sphere-rayleigh-global-minimum",
+      "domain": "geometry",
+      "library_domains": [
+        "riemannian-optimization"
+      ],
+      "title": "When does tangent curvature certify a global minimum?",
+      "difficulty": "multi-step proof",
+      "difficulty_reason": "Proposed L3: use the supplied sphere-specific Hessian formula, choose a tangent decomposition of every comparison point, and turn objective minimality into spectral leastness. The item does not require reconstructing a general manifold derivative API or finding a long cross-module proof route. Editorial level, not measured calibration.",
+      "track_levels": {
+        "natural-language": "L3"
+      },
+      "lean_enabled": false,
+      "support_source_view": true,
+      "skills": [
+        "proof",
+        "calculation",
+        "composition",
+        "assumption-audit"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereRayleighHessian.lean",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_second_order_stationary_min",
+      "assumptions": [
+        "Let \\(E\\) be a finite-dimensional real inner-product space, \\(A:E\\to E\\) symmetric and \\(S=\\{y:\\|y\\|=1\\}\\) with the induced metric. Use \\(F(y)=\\tfrac12\\langle y,Ay\\rangle\\) on \\(S\\). Fix \\(x\\in S\\), set \\(\\lambda=\\langle x,Ax\\rangle\\) and \\(P_xv=v-\\langle x,v\\rangle x\\).",
+        "The actual sphere gradient at \\(x\\) is \\(Ax-\\lambda x\\); on \\(x^\\perp\\) the induced Hessian is \\(H_xu=P_x(Au)-\\lambda u\\). Assume the gradient is zero and \\(\\langle u,H_xu\\rangle\\ge0\\) for every \\(u\\perp x\\)."
+      ],
+      "question": "Prove that \\(x\\) globally minimizes \\(F\\) on \\(S\\), and that \\(x\\) is an eigenvector of \\(A\\) whose eigenvalue is the least one. Explain why the Hessian premise only needs tangent directions.",
+      "steps": [
+        "Stationarity gives \\(Ax=\\lambda x\\). Since \\(x\\) is unit, it is a nonzero eigenvector at the Rayleigh coefficient \\(\\lambda\\).",
+        "Take any unit \\(y\\), set \\(a=\\langle x,y\\rangle\\) and \\(u=y-ax\\). Then \\(u\\perp x\\) and \\(a^2+\\|u\\|^2=1\\). Symmetry gives \\(\\langle x,Au\\rangle=\\langle Ax,u\\rangle=0\\); hence both mixed terms in the quadratic expansion vanish.",
+        "The objective gap becomes a form on the actual tangent remainder: \\[\\begin{aligned}2(F(y)-F(x))&=a^2\\lambda+\\langle u,Au\\rangle-\\lambda\\\\&=\\langle u,Au\\rangle-\\lambda\\|u\\|^2\\\\&=\\langle u,H_xu\\rangle\\ge0.\\end{aligned}\\] Pairing \\(u\\) with \\(P_x(Au)\\) equals pairing \\(u\\) with \\(Au\\) because \\(u\\) is tangent. This works for every comparison point, including \\(y=\\pm x\\), with no ambient PSD condition.",
+        "For any real eigenvalue \\(\\mu\\), normalize a corresponding nonzero eigenvector to unit \\(z\\). Then \\(F(z)=\\mu/2\\). Global minimality implies \\(\\lambda/2=F(x)\\le F(z)=\\mu/2\\), proving leastness without assuming a gap."
+      ],
+      "rubric": [
+        {
+          "points": 1,
+          "criterion": "Obtains the genuine stationary eigenvector equation at the Rayleigh coefficient and notes that the unit point is a nonzero eigenvector."
+        },
+        {
+          "points": 1,
+          "criterion": "Establishes a valid comparison mechanism. For a tangent decomposition, justify orthogonality and cancellation of its mixed terms; for a different valid proof, justify the corresponding step (for example, that an eigenvector at a strictly smaller eigenvalue is tangent). No mixed-term calculation is required for a proof that does not use one."
+        },
+        {
+          "points": 1,
+          "criterion": "Relates the global objective comparison to the given tangent PSD premise with correct normalization; a valid alternative sufficiency argument earns full credit."
+        },
+        {
+          "points": 1,
+          "criterion": "Proves that the attained eigenvalue is least by normalizing arbitrary eigenvectors or another valid spectral comparison. Does not assume an eigengap or uniqueness."
+        }
+      ],
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension",
+          "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighTangentHessian",
+          "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_tangent_hessian_apply"
+        ],
+        "mathlib": [
+          "norm_add_sq_real",
+          "Submodule.mem_orthogonal_singleton_iff_inner_right",
+          "Module.End.HasEigenvalue.exists_hasEigenvector"
+        ]
+      },
+      "lean_explanation": "The folded owned module proves genuine differentiability and the sphere-gradient pairing separately. The private derivative proof and the public projection formula identify the true tangent operator; the terminal theorem uses that formula in the objective comparison. The gradient pairing is a source interpretation edge, not a terminal proof-body dependency. This is a reference answer, not a fixed Lean challenge.",
+      "boundary": "Only the half-normalized symmetric quadratic on the unit sphere, no arbitrary manifold sufficiency, no eigengap, no claim that every stationary point minimizes. No aligned Lean task or graph QA; the owned answer still has its exact declaration and graph link.",
+      "source_note": "Nicolas Boumal, An Introduction to Optimization on Smooth Manifolds, reviewed pre-publication PDF, §5.5 Example 5.17 and Exercise 5.18, printed p. 96 / PDF p. 112. Original ASTIS mathematical restatement and solution, no source text, page render, or PDF distributed. The owned Lean retains the repository license and notices."
     }
   ]
 }

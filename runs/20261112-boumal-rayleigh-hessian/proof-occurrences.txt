@@ -1,0 +1,41 @@
+@halfRayleighGradientExtension : {E : Type u_1} →
+  [inst : NormedAddCommGroup E] → [inst_1 : InnerProductSpace ℝ E] → (E →L[ℝ] E) → E → E
+@halfRayleighTangentHessian : {E : Type u_1} →
+  [inst : NormedAddCommGroup E] →
+    [inst_1 : InnerProductSpace ℝ E] → (E →L[ℝ] E) → (x : ↑(Metric.sphere 0 1)) → ↥(ℝ ∙ ↑x)ᗮ →L[ℝ] ↥(ℝ ∙ ↑x)ᗮ
+@sphere_half_rayleigh_gradient_pairing : ∀ {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E]
+  [FiniteDimensional ℝ E] (n : ℕ) [inst_3 : Fact (Module.finrank ℝ E = n + 1)] (A : E →L[ℝ] E),
+  (↑A).IsSymmetric →
+    ∀ (x : ↑(Metric.sphere 0 1)),
+      (MDiffAt fun y => 1 / 2 * inner ℝ (↑y) (A ↑y)) x ∧
+        halfRayleighGradientExtension A ↑x ∈ (ℝ ∙ ↑x)ᗮ ∧
+          ∀ (w : TangentSpace (modelWithCornersSelf ℝ (EuclideanSpace ℝ (Fin n))) x),
+            ((d% fun y => 1 / 2 * inner ℝ (↑y) (A ↑y)) x) w =
+              inner ℝ ((d% Subtype.val x) w) (halfRayleighGradientExtension A ↑x)
+@sphere_half_rayleigh_tangent_hessian_apply : ∀ {E : Type u_1} [inst : NormedAddCommGroup E]
+  [inst_1 : InnerProductSpace ℝ E] (A : E →L[ℝ] E) (x : ↑(Metric.sphere 0 1)) (u : ↥(ℝ ∙ ↑x)ᗮ),
+  (halfRayleighTangentHessian A x) u = (ℝ ∙ ↑x)ᗮ.orthogonalProjectionOnto (A ↑u) - inner ℝ (↑x) (A ↑x) • u ∧
+    inner ℝ ↑u ↑((halfRayleighTangentHessian A x) u) = inner ℝ (↑u) (A ↑u) - inner ℝ (↑x) (A ↑x) * ‖↑u‖ ^ 2
+@sphere_half_rayleigh_second_order_stationary_min : ∀ {E : Type u_1} [inst : NormedAddCommGroup E]
+  [inst_1 : InnerProductSpace ℝ E] [FiniteDimensional ℝ E] (A : E →L[ℝ] E),
+  (↑A).IsSymmetric →
+    ∀ (x : ↑(Metric.sphere 0 1)),
+      halfRayleighGradientExtension A ↑x = 0 →
+        (∀ (u : ↥(ℝ ∙ ↑x)ᗮ), 0 ≤ inner ℝ ↑u ↑((halfRayleighTangentHessian A x) u)) →
+          have lam := inner ℝ (↑x) (A ↑x);
+          IsMinOn (fun y => 1 / 2 * inner ℝ y (A y)) (Metric.sphere 0 1) ↑x ∧
+            Module.End.HasEigenvector (↑A) lam ↑x ∧ ∀ (μ : ℝ), Module.End.HasEigenvalue (↑A) μ → lam ≤ μ
+def AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighGradientExtension.{u_1} : {E :
+    Type u_1} →
+  [inst : NormedAddCommGroup E] → [inst_1 : InnerProductSpace ℝ E] → (E →L[ℝ] E) → E → E :=
+fun {E} [NormedAddCommGroup E] [InnerProductSpace ℝ E] A y => A y - inner ℝ y (A y) • y
+def AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.halfRayleighTangentHessian.{u_1} : {E :
+    Type u_1} →
+  [inst : NormedAddCommGroup E] →
+    [inst_1 : InnerProductSpace ℝ E] → (E →L[ℝ] E) → (x : ↑(Metric.sphere 0 1)) → ↥(ℝ ∙ ↑x)ᗮ →L[ℝ] ↥(ℝ ∙ ↑x)ᗮ :=
+fun {E} [NormedAddCommGroup E] [InnerProductSpace ℝ E] A x =>
+  let K := (ℝ ∙ ↑x)ᗮ;
+  K.orthogonalProjectionOnto ∘SL fderiv ℝ (halfRayleighGradientExtension A) ↑x ∘SL K.subtypeL
+Direct proof-body occurrence: AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_gradient_pairing → AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleigh.sphere_rayleigh_characterization
+Direct proof-body occurrence: AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_second_order_stationary_min → AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_tangent_hessian_apply
+Private proof-body occurrence: AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.sphere_half_rayleigh_tangent_hessian_apply → _private.AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.0.AutoSamplingTheory.TechnicalLemmas.Geometry.SphereRayleighHessian.half_rayleigh_gradient_extension_derivative

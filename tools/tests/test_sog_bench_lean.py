@@ -25,6 +25,23 @@ def core():
 
 
 class LeanRuntimeTests(unittest.TestCase):
+    def test_native_behaviour_preparation_follows_the_statement_lookup_target(self):
+        import sog_bench_lean_statement_lookup as lookup
+
+        expected = ['sogb-001', 'sogb-002', 'sogb-015', lookup.TARGET_ID,
+                    native.GRAPH_BRIDGE_TASK_ID]
+        self.assertEqual(native.behaviour_task_ids(), expected)
+        self.assertEqual(len(set(expected)), len(expected))
+        argv = ['native', 'trials', '--runtime', '.astis/behaviour-fixture-test']
+        root = Path(argv[-1]).resolve()
+        with patch.object(lookup, 'TARGET_ID', 'sogb-901'), patch.object(native, 'trials') as run:
+            with patch.object(sys, 'argv', [*argv, '--behaviour-fixtures']):
+                native.main()
+            run.assert_called_once_with(root, [*expected[:3], 'sogb-901', expected[-1]])
+        with patch.object(native, 'trials') as run, patch.object(sys, 'argv', argv):
+            native.main()
+            run.assert_called_once_with(root, None)
+
     @unittest.skipUnless(sys.platform=='linux','POSIX cache modes require Linux')
     def test_private_mode_public_cache_is_copied_without_changing_original_inode(self):
         with tempfile.TemporaryDirectory() as tmp:

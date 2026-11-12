@@ -64,6 +64,19 @@ def packet(core: dict) -> dict[str, bytes]:
             raise ValueError('Expected exactly one canonical anonymous task')
         return result
     task, oracle = named(core['lean_task']), named(core['lean_reference'])
+    if core.get('reference_helpers'):
+        target_start = '\ntheorem ' + p['target_name']
+        task_prefix, task_marker, _ = task.partition(target_start)
+        oracle_prefix, oracle_marker, oracle_body = oracle.partition(target_start)
+        if not task_marker or not oracle_marker or not oracle_prefix.startswith(task_prefix + '\n'):
+            raise ValueError('Private reference helpers require a shared fixed-target context')
+        helpers = oracle_prefix[len(task_prefix) + 1:] + '\n'
+        if re.search(r'(?m)^variable\b', helpers):
+            # Extracted helper blocks can redeclare section variables, changing
+            # generated universe names even when the printed target is unchanged.
+            # Keep that context local; helper declarations remain usable by the
+            # proof, but the comparator sees the same target as in Challenge.
+            oracle = task_prefix + '\nsection\n' + helpers + 'end' + oracle_marker + oracle_body
     slot = 'by\n  -- Replace this comment with your proof.\n'
     if not task.endswith(slot):
         raise ValueError('Unexpected canonical proof slot')

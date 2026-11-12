@@ -1,6 +1,6 @@
 # Run and assess the public development tasks
 
-This is a reproducible **recording and human-grading workflow**, not an AI execution service, a private test set or an automatic correctness certificate. Public references may already be in a model's training data. No measured model scores are published.
+This is a reproducible **recording and human-grading workflow**, not an AI execution service, a private test set or an automatic correctness certificate. Public references may already be in a model's training data. No leaderboard or held-out scores are published. The single archived local-model Lean feedback diagnostic is separately identified and [can be replayed offline](#offline-replay-of-the-recorded-lean-diagnostic).
 
 ## 1. Choose the tasks and allowed tools
 
@@ -127,6 +127,25 @@ old visible bindings do not meet this prompt-only contract.
 - **Difficulty:** labels are provisional editorial judgments, not empirical calibration. Module-import distance does not measure mathematical depth. A review correction can lower a label without adding a question or proving mathematics.
 - **Training/test separation:** all these families are public-dev. The [held-out family preflight](FAMILY_ISOLATION.md) checks a local reservation against declared public history; it is not a released test split or contamination guarantee. Never relabel a public variant as unseen. Restricted ATLAS material, indexes and derivatives must not enter this workflow.
 - **Exports:** references and prompts are separated, but the full pilot ZIP contains both. Give models the prompt-only file, not the ZIP. Frozen review reports remain audit-only and are excluded from training/reference bundles.
+
+### Offline replay of the recorded Lean diagnostic
+
+From the repository root on Windows or Linux:
+
+```bash
+python tools/sog_bench_pilot_replay.py --check-current-task
+```
+
+This reads the [committed live-v031 archive and its provenance](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/runs/20261110-bench-local-lean-first),
+checks its published digest, replays the two native verdicts from their
+framed outputs, and verifies the unedited submissions and the actual
+diagnostic delivered to the second model turn. The optional flag also
+checks that the current fixed task matches the archived prompt, template,
+and task packet. The recorded result is 0/1 on one public-dev target:
+identical output token IDs and proof body on both turns. Replay does not
+run Lean, load weights, verify inference or authenticate an operator. The
+check and submit were operator-scheduled, with no matched no-feedback
+control. Do not use the evidence ZIP as model input.
 
 ### Graph lookup without the snapshot
 

@@ -129,11 +129,14 @@ def source_card(item: dict, page: str) -> str:
                         '<summary>Definition used above: ' + escape(lesson['title'])
                         + '</summary>' + rendered + '</details>')
         lessons.append(rendered)
+    original_example = source.get('publication_scope') == publication.ORIGINAL_WORKED_EXAMPLE_SCOPE
     return (f'<section id="{escape(item["id"])}" data-publication-item="{escape(item["id"])}">'
             f'<h2>{escape(item["title"])}</h2><p>{escape(source.get("attribution", ""))}</p>'
             '<p>' + declaration_lessons.source_citation_anchor(
                 {'url': source['url'], 'label': source['edition'] + ' · ' + source['anchor']}, page)
             + f' · {escape(source["wording_status"])}</p>'
+            + ('<p>Original worked example; not counted towards textbook proof coverage.</p>'
+               if original_example else '')
             + ('<details class="reader-ledger"><summary>Complete source statement and conditions</summary>'
                if progressive else '<h3>Complete source statement (Samplinglib restatement)</h3>')
             + f'<p>{escape(item["statement"])}</p>' + astis_site.list_html(item['assumptions']) + formulae

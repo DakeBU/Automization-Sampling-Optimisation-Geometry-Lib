@@ -22,6 +22,10 @@ DATA = ROOT / 'benchmarks/samplingoptimisationgeometrybench/cores.json'
 RECEIPT = ROOT / '.astis/sog-bench/reference-check.json'
 TRACKS = ('natural-language', 'lean')
 OWNED_EXERCISE_EXAMPLE_ROOT = 'AutoSamplingTheory/ExampleCases/LowerBounds/'
+ORIGINAL_EXAMPLE_ANSWERS = {
+    'AutoSamplingTheory/ExampleCases/DiscreteSampling/OrderedHeatBath.lean':
+        'AutoSamplingTheory.ExampleCases.DiscreteSampling.OrderedHeatBath.ordered_heat_bath_invariant_not_reversible',
+}
 
 
 def owned_exercise_example_source(source_file: str) -> bool:
@@ -30,6 +34,29 @@ def owned_exercise_example_source(source_file: str) -> bool:
             and re.fullmatch(r'[A-Za-z0-9_/]+\.lean', source_file) is not None
             and (ROOT / source_file).resolve().is_relative_to(
                 ROOT / OWNED_EXERCISE_EXAMPLE_ROOT))
+
+
+def check_core_source(core: dict, split: str) -> None:
+    """Allowlist original owned answers without widening Lean task inputs."""
+    source = core['source_file']
+    path = Path(source)
+    if path.is_absolute() or '..' in path.parts or '\\' in source:
+        raise ValueError('Source path must be repository-relative')
+    if source.startswith('AutoSamplingTheory/TechnicalLemmas/'):
+        return
+    if owned_exercise_example_source(source):
+        if core.get('textbook_exercise_id') and core.get('support_source_view') is True and not has_lean(core):
+            return
+        raise ValueError('Owned example answers are not independent Lean tasks')
+    original = ORIGINAL_EXAMPLE_ANSWERS.get(source)
+    if (original is not None and core.get('declaration') == original
+            and split == 'public-dev' and core.get('lean_enabled') is False
+            and core.get('support_source_view') is True
+            and set(core.get('track_levels', {})) == {'natural-language'}
+            and 'textbook_exercise_id' not in core
+            and (ROOT / path).resolve().is_relative_to(ROOT / 'AutoSamplingTheory/ExampleCases')):
+        return
+    raise ValueError('Non-technical source requires an approved owned supporting answer')
 
 
 def sha(data: bytes) -> str:
@@ -70,14 +97,7 @@ def load() -> dict:
             raise ValueError('Missing assumptions, proof steps or four-point rubric')
         if any(row['points'] != 1 or not row['criterion'] for row in core['rubric']):
             raise ValueError('Each rubric criterion has one point')
-        source = Path(core['source_file'])
-        if source.is_absolute() or '..' in source.parts or '\\' in core['source_file']:
-            raise ValueError('Source path must be repository-relative')
-        if not core['source_file'].startswith('AutoSamplingTheory/TechnicalLemmas/'):
-            if not (owned_exercise_example_source(core['source_file'])
-                    and core.get('textbook_exercise_id')
-                    and core.get('support_source_view') is True and not has_lean(core)):
-                raise ValueError('Non-technical source requires an owned numbered-exercise answer')
+        check_core_source(core, data['split'])
     return data
 
 
@@ -121,10 +141,7 @@ def materialize(data: dict | None = None) -> list[dict]:
     known = astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
     result = []
     for core in data['cores']:
-        if owned_exercise_example_source(core['source_file']) and not (
-                core.get('textbook_exercise_id') and core.get('support_source_view') is True
-                and not has_lean(core)):
-            raise ValueError('Owned example answers are not independent Lean tasks')
+        check_core_source(core, data['split'])
         declaration = known.get(core['declaration'])
         if declaration is None or declaration.source_file != core['source_file'] or declaration.has_placeholder:
             raise ValueError('Unresolved or unfinished reference declaration: ' + core['declaration'])

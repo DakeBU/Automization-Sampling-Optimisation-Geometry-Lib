@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.35.0-dev",
+  "version": "0.36.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -2068,6 +2068,76 @@
       "lean_explanation": "The folded owned module proves genuine differentiability and the sphere-gradient pairing separately. The private derivative proof and the public projection formula identify the true tangent operator; the terminal theorem uses that formula in the objective comparison. The gradient pairing is a source interpretation edge, not a terminal proof-body dependency. This is a reference answer, not a fixed Lean challenge.",
       "boundary": "Only the half-normalized symmetric quadratic on the unit sphere, no arbitrary manifold sufficiency, no eigengap, no claim that every stationary point minimizes. No aligned Lean task or graph QA; the owned answer still has its exact declaration and graph link.",
       "source_note": "Nicolas Boumal, An Introduction to Optimization on Smooth Manifolds, reviewed pre-publication PDF, §5.5 Example 5.17 and Exercise 5.18, printed p. 96 / PDF p. 112. Original ASTIS mathematical restatement and solution, no source text, page render, or PDF distributed. The owned Lean retains the repository license and notices."
+    },
+    {
+      "id": "sogb-051",
+      "family": "random-scan-null-atoms",
+      "domain": "sampling",
+      "library_domains": [
+        "discrete-sampling",
+        "mcmc"
+      ],
+      "title": "Can a sweep of reversible heat-bath updates lose reversibility?",
+      "difficulty": "multi-step proof and counterexample",
+      "difficulty_reason": "Proposed L3: identify the exact conditional kernels, combine factor balance with sweep invariance, and distinguish weighted flux from transition probability in a concrete ordered composition. Editorial, not measured calibration.",
+      "track_levels": {
+        "natural-language": "L3"
+      },
+      "lean_enabled": false,
+      "support_source_view": true,
+      "skills": [
+        "proof",
+        "calculation",
+        "composition",
+        "assumption-audit",
+        "counterexample"
+      ],
+      "source_file": "AutoSamplingTheory/ExampleCases/DiscreteSampling/OrderedHeatBath.lean",
+      "declaration": "AutoSamplingTheory.ExampleCases.DiscreteSampling.OrderedHeatBath.ordered_heat_bath_invariant_not_reversible",
+      "assumptions": [
+        "On the four states \\((x,y)\\in\\{0,1\\}^2\\), let \\(\\pi_{00}=\\pi_{11}=3/8\\) and \\(\\pi_{01}=\\pi_{10}=1/8\\).",
+        "Let \\(P_X\\) retain the second bit and redraw the first from its conditional distribution under \\(\\pi\\), and let \\(P_Y\\) retain the first and redraw the second. The kernel \\(K\\) takes one complete sweep as a step: apply \\(P_X\\) before \\(P_Y\\)."
+      ],
+      "question": "Prove that \\(P_X\\) and \\(P_Y\\) are reversible for \\(\\pi\\) and that \\(K\\) preserves \\(\\pi\\). Then give a concrete pair of states witnessing that \\(K\\) is not reversible. Explain what must be weighted when checking detailed balance.",
+      "steps": [
+        "The target sums to one and all four atoms are positive. Each fixed-coordinate fiber has mass \\(1/2\\). Thus \\(P_X((x,y),(u,v))=\\mathbf{1}_{v=y}\\,2\\pi(u,v)\\); similarly \\(P_Y((x,y),(u,v))=\\mathbf{1}_{u=x}\\,2\\pi(u,v)\\). These are actual conditional probability rows, so each sums to one.",
+        "The first update's flux \\(\\pi(x,y)P_X((x,y),(u,v))=2\\mathbf 1_{v=y}\\pi(x,y)\\pi(u,v)\\) is symmetric in the endpoints. The second update uses the same argument with the other retained coordinate. Summing detailed balance and using row mass one shows \\(\\pi P_X=\\pi=\\pi P_Y\\). Consequently \\(\\pi K=(\\pi P_X)P_Y=\\pi\\).",
+        "The only possible intermediate state for \\((x,y)\\to(u,v)\\) in this order is \\((u,y)\\), so \\(K((x,y),(u,v))=\\pi(X=u\\mid Y=y)\\pi(Y=v\\mid X=u)\\). For \\(00\\to01\\) the factors are \\(3/4,1/4\\); for \\(01\\to00\\) they are \\(1/4,3/4\\). Both transitions have probability \\(3/16\\).",
+        "Detailed balance compares \\[\\pi_{00}K(00,01)=\\frac9{128}\\ne\\frac3{128}=\\pi_{01}K(01,00).\\] Equal unweighted transition probabilities do not imply equal stationary fluxes when the starting masses differ. This violates reversibility, not invariance."
+      ],
+      "rubric": [
+        {
+          "points": 1,
+          "criterion": "Uses the actual conditional laws of the two retained-coordinate updates and justifies their positive denominators and probability rows; an equivalent exact matrix description is valid."
+        },
+        {
+          "points": 1,
+          "criterion": "Proves reversible factor balance and then invariance of the actual ordered composition. Do not infer sweep reversibility from these facts."
+        },
+        {
+          "points": 1,
+          "criterion": "Produces any valid unequal pair of weighted stationary fluxes for the stated update order, with a justified transition calculation. The reference witness pair is not required."
+        },
+        {
+          "points": 1,
+          "criterion": "Explains why detailed balance weights the transition by the stationary mass of its source, and distinguishes its failure from failure of invariance."
+        }
+      ],
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Probability.KernelReversibility.isReversible_of_singleton_balance"
+        ],
+        "mathlib": [
+          "Kernel.IsReversible.invariant",
+          "Kernel.Invariant.comp",
+          "Kernel.comp_apply'",
+          "Measure.restrict_singleton",
+          "lintegral_dirac"
+        ]
+      },
+      "lean_explanation": "The owned module defines the literal measure and actual finite Dirac-row kernels inside one theorem. Private proofs verify each conditional row and the weighted singleton witness. The public proof reuses atomic balance and composes the actual invariant kernels; it refutes the set-flux definition on singleton events. Its full module is reference material, not a fixed reconstruction task.",
+      "boundary": "This is one full sweep of the displayed two-bit Gibbs model, not an augmented scan-position chain, a theorem that every sweep is nonreversible, or a mixing comparison. No aligned Lean task, new graph QA, independent held-out family, or calibration is claimed.",
+      "source_note": "Original ASTIS example and formula proof. Background: Chen–Štefankovič–Vigoda arXiv:2307.13826v4 §1.3 (https://arxiv.org/pdf/2307.13826v4#page=5) and He–De Sa–Mitliagkas–Ré arXiv:1606.03432v1 §5 (https://arxiv.org/pdf/1606.03432v1#page=6), not sources of this witness. No paper text, figure or PDF redistributed. The owned Lean is Apache-2.0 with project notices. The public random-scan family is conservatively shared across the closely related scan-order tasks."
     }
   ]
 }

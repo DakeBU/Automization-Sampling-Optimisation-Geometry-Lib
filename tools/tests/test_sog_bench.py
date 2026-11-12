@@ -150,6 +150,38 @@ class BenchTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 bench.materialize({**catalog, 'cores': [invalid]})
 
+    def test_original_example_allowlist_is_reference_only(self):
+        source = 'AutoSamplingTheory/ExampleCases/DiscreteSampling/OrderedHeatBath.lean'
+        decl = 'AutoSamplingTheory.ExampleCases.DiscreteSampling.OrderedHeatBath.ordered_heat_bath_invariant_not_reversible'
+        catalog = bench.load()
+        raw = {**catalog['cores'][0], 'source_file': source, 'declaration': decl,
+               'lean_enabled': False, 'support_source_view': True,
+               'track_levels': {'natural-language': 'L3'}}
+        core = bench.materialize({**catalog, 'cores': [raw]})[0]
+        self.assertEqual(core['lean_task'], '')
+        self.assertEqual(core['lean_reference'], '')
+        self.assertIn('theorem ordered_heat_bath_invariant_not_reversible', core['support_lean_source'])
+        prompt, = bench.prompts([core])
+        self.assertEqual(prompt['track'], 'natural-language')
+        self.assertNotIn('support_lean_source', prompt)
+        self.assertNotIn(decl, prompt['question'])
+        page = reader.core_page(core, checked=False, graph_ids={'decl:' + decl},
+                                structural=[], review_row={'editorial': 'pending'})
+        self.assertIn('Owned Lean example · no fixed reconstruction challenge', page)
+        self.assertIn('The owned declaration proves the concrete witness.', page)
+        self.assertIn('&amp;view=lean&amp;q=' + decl, page)
+        self.assertNotIn('Download task template', page)
+        for invalid in ({**raw, 'source_file': source.replace('OrderedHeatBath', 'Other')},
+                        {**raw, 'declaration': decl + '_other'},
+                        {**raw, 'support_source_view': False},
+                        {**raw, 'lean_enabled': True},
+                        {**raw, 'track_levels': {'natural-language': 'L3', 'lean': 'L3'}},
+                        {**raw, 'textbook_exercise_id': 'fake'}):
+            with self.assertRaises(ValueError):
+                bench.materialize({**catalog, 'cores': [invalid]})
+        with self.assertRaises(ValueError):
+            bench.materialize({**catalog, 'split': 'heldout', 'cores': [raw]})
+
     def test_binding_changes_with_prose_or_context(self):
         for key in ('question', 'context', 'boundary'):
             changed = deepcopy(bench.load())
@@ -275,8 +307,12 @@ class BenchTests(unittest.TestCase):
                 self.assertIn('data-lean-copy-status', rendered)
                 self.assertIn('No current trusted-reference compiler receipt', rendered)
             else:
-                self.assertIn('Owned Lean core answers' if core.get('textbook_exercise')
-                              else 'Lean view: not yet aligned', rendered)
+                if bench.ORIGINAL_EXAMPLE_ANSWERS.get(core['source_file']) == core['declaration']:
+                    self.assertIn('The owned declaration proves the concrete witness.', rendered)
+                    self.assertNotIn('Download task template', rendered)
+                else:
+                    self.assertIn('Owned Lean core answers' if core.get('textbook_exercise')
+                                  else 'Lean view: not yet aligned', rendered)
                 self.assertEqual('data-lean-copy-status' in rendered, bool(core.get('support_source_view')))
             self.assertNotIn('<details open', rendered)
             self.assertIn('focus=decl%3A', rendered)

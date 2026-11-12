@@ -40,6 +40,17 @@ class PublicationTest(unittest.TestCase):
         self.assertFalse(empty_chapter['proof_declarations'])
         self.assertFalse(empty_chapter['source_complete'])
 
+    def test_verified_worked_example_does_not_count_as_textbook_proof(self):
+        item = copy.deepcopy(self.item)
+        item['source']['publication_scope'] = p.ORIGINAL_WORKED_EXAMPLE_SCOPE
+        item['source']['wording_status'] = 'licensed original'
+        self.assertTrue(p.verified_binding(self.binding, self.data))
+        with patch.object(p, 'load', return_value=[item]), \
+                patch.object(p, 'inputs', return_value=self.data):
+            state = p.chapter_progress('optimisation', '01')
+        self.assertEqual(state['status'], 'scaffold')
+        self.assertEqual(state['proof_declarations'], [])
+
     def test_reviewed_pullback_is_partial_not_chapter_completion(self):
         item = next(i for i in self.items
                     if i['id'] == 'chewi-opt-v1-exercise-2-3-pl-pullback')

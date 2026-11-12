@@ -8,6 +8,7 @@ import io
 import json
 import zipfile
 import hashlib
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'website/scripts')]
@@ -118,6 +119,36 @@ class NumberedExerciseReaderTests(unittest.TestCase):
         for altered in ({'kind': 'module'}, {'status': 'todo'}, {'url': ''}):
             self.assertFalse(reader.has_exercise_graph_target({key: {**node, **altered}}, owned, checked=False))
         self.assertTrue(reader.has_exercise_graph_target({key: {**node, 'status': 'compiled'}}, owned, checked=True))
+
+    def test_named_answer_probe_is_scoped_and_must_match_current_receipt(self):
+        import sog_bench_exercises as exercises
+
+        owned = 'AutoSamplingTheory.TechnicalLemmas.Measure.Example.answer'
+        key = 'decl:' + owned
+        other = 'decl:' + owned + '_unprobed'
+        source = 'AutoSamplingTheory/TechnicalLemmas/Measure/Example.lean'
+        answer = {'declaration': owned, 'source_file': source, 'source_line': 18}
+        cores = [{'textbook_exercise': {'answer_declarations': [answer]}}]
+        nodes = {ident: {'kind': 'declaration', 'url': 'declarations/answer.html',
+                         'status': 'partial'} for ident in (key, other)}
+        with patch.object(bench, 'RECEIPT', ROOT / 'lean-toolchain'), \
+                patch.object(bench, 'materialize', return_value=cores), \
+                patch.object(bench, 'receipt_current', return_value=True), \
+                patch.object(exercises, 'compile_contexts', return_value={owned: 'a' * 64}):
+            current = reader.exercise_probe_records(cores, checked=True)
+            reader.project_current_exercise_probes(nodes)
+        self.assertEqual(nodes[key]['status'], 'partial')
+        self.assertNotIn(reader.OWNED_ANSWER_PROBE, nodes[other])
+        self.assertIn('does not change the repository badge', nodes[key]['details'][0]['value'])
+        self.assertEqual(reader.validate_exercise_probes(nodes, current), [])
+        self.assertTrue(reader.has_exercise_graph_target(nodes, owned, checked=True, probe=current[key]))
+        self.assertFalse(reader.has_exercise_graph_target(nodes, owned, checked=True))
+        stale = {key: {**current[key], 'context_sha256': 'b' * 64}}
+        self.assertFalse(reader.has_exercise_graph_target(nodes, owned, checked=True, probe=stale[key]))
+        self.assertEqual(len(reader.validate_exercise_probes(nodes, stale)), 1)
+        self.assertEqual(len(reader.validate_exercise_probes(nodes, {})), 1)
+        nodes[key]['details'].clear()
+        self.assertEqual(len(reader.validate_exercise_probes(nodes, current)), 1)
 
 
 class TaskPackageTests(unittest.TestCase):

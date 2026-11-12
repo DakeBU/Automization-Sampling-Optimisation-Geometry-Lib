@@ -18,6 +18,7 @@ import bench_portals
 ROOT = Path(__file__).resolve().parents[2]
 HUB = 'benchmarks/samplingoptimisationgeometrybench/'
 MARKER = 'data-sog-bench="true"'
+OWNED_ANSWER_PROBE = 'bench_owned_answer_probe'
 
 
 _MATH_GLYPHS = {
@@ -825,11 +826,55 @@ def enrich_site(output: Path) -> None:
         'data-sog-bench-entry')
 
 
-def has_exercise_graph_target(nodes: dict, declaration: str, *, checked: bool) -> bool:
-    """Check a source-owned declaration link without promoting source-only evidence."""
+def exercise_probe_records(cores: list[dict], *, checked: bool) -> dict:
+    """Project only the named answers actually covered by the current Bench receipt."""
+    if not checked:
+        return {}
+    import sog_bench_exercises as exercises
+
+    contexts = exercises.compile_contexts(cores)
+    return {'decl:' + name: {'source_file': answer['source_file'],
+                            'source_line': answer['source_line'],
+                            'context_sha256': contexts[name]}
+            for name, answer in exercises.answers(cores).items()}
+
+
+def exercise_probe_detail(record: dict) -> dict:
+    return {
+        'label': 'Bench compilation (named answer)',
+        'value': (f"{record['source_file']}:{record['source_line']} passed the current named-answer "
+                  "compiler and axiom probe. This scoped receipt does not change the repository "
+                  "badge, proof edges, or source coverage."),
+    }
+
+
+def project_current_exercise_probes(nodes: dict) -> None:
+    if not bench.RECEIPT.is_file():
+        return
+    cores = bench.materialize()
+    for ident, record in exercise_probe_records(cores, checked=bench.receipt_current(cores)).items():
+        if has_exercise_graph_target(nodes, ident.removeprefix('decl:'), checked=False):
+            nodes[ident][OWNED_ANSWER_PROBE] = record
+            nodes[ident].setdefault('details', []).append(exercise_probe_detail(record))
+
+
+def validate_exercise_probes(nodes: dict, expected: dict) -> list[str]:
+    actual = {ident: node[OWNED_ANSWER_PROBE] for ident, node in nodes.items()
+              if OWNED_ANSWER_PROBE in node}
+    return [f'Missing or stale Bench named-answer compilation evidence: {ident}'
+            for ident in sorted(actual.keys() | expected.keys())
+            if ident not in expected or actual.get(ident) != expected[ident]
+            or exercise_probe_detail(expected[ident]) not in nodes[ident].get('details', [])]
+
+
+def has_exercise_graph_target(nodes: dict, declaration: str, *, checked: bool,
+                              probe: dict | None = None) -> bool:
+    """Accept a precise source anchor, requiring actual evidence when compiled is claimed."""
     node = nodes.get('decl:' + declaration, {})
     return (node.get('kind') == 'declaration' and bool(node.get('url'))
-            and node.get('status') in ({'compiled'} if checked else {'compiled', 'partial'}))
+            and node.get('status') in {'compiled', 'partial'}
+            and (not checked or node['status'] == 'compiled'
+                 or (probe is not None and node.get(OWNED_ANSWER_PROBE) == probe)))
 
 
 def validate_site(output: Path) -> list[str]:
@@ -844,12 +889,16 @@ def validate_site(output: Path) -> list[str]:
     if graph_path.is_file():
         nodes = {n['id']: n for n in json.loads(graph_path.read_text(encoding='utf-8'))['nodes']}
         ids = set(nodes)
+        probes = exercise_probe_records(cores, checked=checked)
+        errors.extend(validate_exercise_probes(nodes, probes))
         for core in cores:
             module = core['source_file'].removesuffix('.lean').replace('/', '.')
             if 'decl:' + core['declaration'] not in ids and 'module:' + module not in ids:
                 errors.append('Missing Bench graph target: ' + core['id'])
             for answer in core.get('textbook_exercise', {}).get('answer_declarations', []):
-                if not has_exercise_graph_target(nodes, answer['declaration'], checked=checked):
+                name = answer['declaration']
+                if not has_exercise_graph_target(nodes, name, checked=checked,
+                                                 probe=probes.get('decl:' + name)):
                     scope = 'compiled ' if checked else ''
                     errors.append('Numbered exercise requires the exact ' + scope + 'owned declaration graph node: ' + answer['declaration'])
     else:

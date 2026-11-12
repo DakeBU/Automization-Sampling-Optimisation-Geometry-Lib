@@ -35,6 +35,7 @@ import cross_domain
 import sampling_perspectives
 import samplewiki_companions
 import publication_reader
+import sog_bench_reader
 
 
 def build_graph(output: Path) -> dict[str, Any]:
@@ -57,6 +58,9 @@ def build_graph(output: Path) -> dict[str, Any]:
     # Re-project after all chapter/frontier overlays so their final progress
     # badges and source-correspondence edges use the completed graph.
     publication_reader.project_graph(builder, site=site)
+    # A fresh Bench receipt is narrower than the repository-wide graph gate.
+    # Annotate the named declarations without adding edges or changing badges.
+    sog_bench_reader.project_current_exercise_probes(builder.nodes)
     graph = builder.export()
     graph["library_scope_metadata"] = scope_metadata
     graph["companion_frontiers"] = companion_counts

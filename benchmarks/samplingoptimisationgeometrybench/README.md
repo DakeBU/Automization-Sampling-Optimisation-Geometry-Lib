@@ -116,6 +116,11 @@ the Exercise 1.7 public family without adding a numbered exercise part.
 The cutoff estimates do not require finite dimension; compactness is a
 separate step in the later LSI extension.
 
+For numbered exercises, a current named-answer compiler receipt is shown
+on the exact declaration's Lean Graph detail card. It certifies the scoped
+Lean compilation and axiom check, not a repository-wide gate or an
+additional proof edge. A source-only build does not show this receipt.
+
 [Exercise 1.7 structural review](reviews/graph-extension-exercise17/README.md)
 accepts a separate L2 graph question: the two compiled routes share the
 compensated entropy limit, while only the compact Poincaré branch reaches

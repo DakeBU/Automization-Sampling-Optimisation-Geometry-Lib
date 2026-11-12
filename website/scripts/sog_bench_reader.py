@@ -162,13 +162,17 @@ def prose(text: str, *, paragraph: bool = True) -> str:
         if not parts:
             # A long equality followed by monotone comparisons can wrap at
             # the top-level relations, but sizing pairs stay on one line.
-            if (len(body.strip()) > 120 and len(relations) >= 3
+            if (len(body.strip()) > 100 and len(relations) >= 2
                     and relations[0][1] == '=' and relations[1][1] != '='
                     and all(op[:3] == relations[1][1][:3] for _, op in relations[1:])
-                    and not any(token in body for token in (':=', '&', r'\quad', r'\\'))):
+                    and not any(token in body for token in (':=', '&', r'\quad', r'\\'))
+                    and not re.search(r'(?<!\\)\|', body)):
                 bounds = [0, *(pos for pos, _ in relations), len(body)]
                 rows = [body[i:j].strip() for i, j in zip(bounds, bounds[1:])]
-                if all(row.count(r'\left') == row.count(r'\right') and row.count(r'\|') % 2 == 0
+                pairs = ((r'\left', r'\right'), (r'\langle', r'\rangle'),
+                         (r'\lvert', r'\rvert'), (r'\lVert', r'\rVert'))
+                if all(row and row.count(r'\|') % 2 == 0
+                       and all(row.count(left) == row.count(right) for left, right in pairs)
                        for row in rows):
                     return r'\[\begin{aligned}&' + r'\\&'.join(rows) + r'\end{aligned}\]'
             # A long "A ≤ B = C" derivation can put the simplification
@@ -243,15 +247,19 @@ def exercise_panel(core: dict, checked: bool) -> str:
         return ''
     source = exercise['book']
     component_mode = bool(exercise.get('source_components'))
+    answers = exercise['answer_declarations']
+    shared_answer = not component_mode and len(answers) == 1 and len(exercise['parts']) > 1
+
+    def answer_link(declaration: str) -> str:
+        label = declaration.rsplit('.', 1)[-1] if component_mode else declaration
+        return ('<a href="../../underlying-lean-graph/index.html?focus='
+                + quote('decl:' + declaration, safe='') + '" title="' + escape(declaration)
+                + '"><code>' + escape(label) + '</code></a>')
+
     parts = {}
     for part in exercise['parts']:
-        declarations = [d for d in exercise['answer_declarations'] if part['id'] in d['supports']]
-        links = ' · '.join('<a href="../../underlying-lean-graph/index.html?focus='
-                          + quote('decl:' + d['declaration'], safe='') + '" title="'
-                          + escape(d['declaration']) + '"><code>'
-                          + escape(d['declaration'].rsplit('.', 1)[-1] if component_mode else d['declaration'])
-                          + '</code></a>' for d in declarations)
-        parts[part['id']] = '<li>' + escape(part['label']) + '<br>' + links + '</li>'
+        links = ' · '.join(answer_link(d['declaration']) for d in answers if part['id'] in d['supports'])
+        parts[part['id']] = '<li>' + escape(part['label']) + ('' if shared_answer else '<br>' + links) + '</li>'
     build = ('Current trusted build records the named owned answer modules and transitive axiom checks.'
              if checked else 'No current aggregate owned-answer build receipt is recorded in this build.')
     pdf = source['pdf_url'] + '#page='
@@ -277,17 +285,20 @@ def exercise_panel(core: dict, checked: bool) -> str:
                 + ''.join(parts[i] for i in component['part_ids']) + '</ol>')
     else:
         scope_label = 'Original exercise, all requested parts and exact Lean scope'
+        combined_answer = ('<p>One owned Lean answer covers the listed parts: '
+                           + answer_link(answers[0]['declaration']) + '.</p>') if shared_answer else ''
         source_blocks = ('<h3>Original exercise · faithful ASTIS restatement</h3>'
             + prose(exercise['source_statement'])
             + ''.join(prose(s) for s in exercise['source_assumptions'])
-            + '<h3>Requested parts and owned answers</h3><ol>' + ''.join(parts.values()) + '</ol>')
+            + '<h3>Requested parts and owned answers</h3>' + combined_answer
+            + '<ol>' + ''.join(parts.values()) + '</ol>')
     if component_mode:
         boundary = 'These Lean results cover only the named components; compilation and QA admission are separate.'
     elif bench.has_lean(core):
         boundary = ('The owned answer is a library reference, not a submission. The separate fixed Lean task '
                     'covers the mathematical conclusion only, not the full explanatory proof or textbook.')
     else:
-        boundary = ('This is owned core-answer reuse, not a new proof, an equivalent Lean challenge '
+        boundary = ('The displayed Lean is an owned answer, not an equivalent Lean challenge '
                     'or full textbook certification.')
     heading = prose('Numbered textbook exercise · ' + source['title'] + ' · Exercise ' + exercise['number'])
     details = fold(scope_label,

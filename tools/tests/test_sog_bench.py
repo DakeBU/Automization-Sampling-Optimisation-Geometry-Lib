@@ -116,6 +116,15 @@ class BenchTests(unittest.TestCase):
         self.assertIn('theorem exercise_4_1', core['support_lean_source'])
         self.assertEqual({a['declaration'] for a in core['textbook_exercise']['answer_declarations']},
                          {core['declaration']})
+        panel = reader.exercise_panel(core, checked=False)
+        self.assertEqual(panel.count(f'title="{core["declaration"]}"'), 1)
+        self.assertIn('One owned Lean answer covers the listed parts', panel)
+        for part in core['textbook_exercise']['parts']:
+            self.assertIn(part['label'], panel)
+        rendered = reader.prose(core['steps'][0])
+        self.assertIn(r'\begin{aligned}&amp;f(y+h)-f(y)-\langle\nabla f(y),h\rangle', rendered)
+        self.assertIn(r'\\&amp;=\frac{\beta}{8}', rendered)
+        self.assertIn(r'\\&amp;\le\frac{\beta}{2}\|h\|^2.\end{aligned}', rendered)
         prompts = bench.prompts([core])
         self.assertEqual([p['track'] for p in prompts], ['natural-language'])
         self.assertNotIn('answer_declarations', prompts[0]['exercise_source'])

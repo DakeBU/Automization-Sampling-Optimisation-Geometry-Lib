@@ -309,10 +309,10 @@ def main() -> None:
                             graph_link = page.get_by_role('link', name=answer['declaration'], exact=True)
                             assert graph_link.is_visible()
                             assert 'underlying-lean-graph/index.html?focus=' in graph_link.get_attribute('href')
-                        assert 'not a new proof' in page.locator('article.sog-reader').inner_text()
+                        assert 'not an equivalent Lean challenge' in page.locator('article.sog-reader').inner_text()
                         page.locator('summary', has_text='Original exercise, all requested parts and exact Lean scope').click()
                     page.locator('summary',has_text='Reference mathematical proof').click()
-                    check_visible_equations(page)
+                    check_visible_equations(page, require_full_width=identity == 'sogb-049')
                     assert page.locator('mjx-merror, [data-mjx-error]').count()==0
                     math_component_shot(page,args.evidence/(identity+'-math-'+suffix+'.png'))
                     support_title = ('Owned Lean answer and proof-step correspondence'

@@ -116,6 +116,12 @@ the Exercise 1.7 public family without adding a numbered exercise part.
 The cutoff estimates do not require finite dimension; compactness is a
 separate step in the later LSI extension.
 
+[Formal round 24](reviews/formal-24/README.md) adds a Lower Bounds /
+SampleWiki pair on separating actual Gaussian mixtures by one radial test.
+The Lean task certifies the single-block TV inequalities, not a query
+complexity bound. Its source approval is limited to one audited declaration
+and its exact import closure.
+
 For numbered exercises, a current named-answer compiler receipt is shown
 on the exact declaration's Lean Graph detail card. It certifies the scoped
 Lean compilation and axiom check, not a repository-wide gate or an

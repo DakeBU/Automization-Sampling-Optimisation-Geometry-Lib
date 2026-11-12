@@ -182,6 +182,36 @@ class BenchTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             bench.materialize({**catalog, 'split': 'heldout', 'cores': [raw]})
 
+    def test_gaussian_paired_source_permission_is_exact_and_fails_closed(self):
+        import sog_bench_review
+
+        catalog = bench.load()
+        raw = next(c for c in catalog['cores'] if c['id'] == 'sogb-053')
+        bench.check_core_source(raw, 'public-dev')
+        with self.assertRaisesRegex(ValueError, 'one exact public paired core'):
+            bench.check_core_source(raw, 'heldout')
+        for change in ({'id': 'sogb-999'}, {'family': 'different'},
+                       {'declaration': raw['declaration'] + '_other'},
+                       {'lean_enabled': False}, {'support_source_view': False},
+                       {'textbook_exercise_id': 'other'}, {'reference_helpers': []},
+                       {'additional_source_declarations': []}):
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, 'exact public paired core'):
+                bench.check_core_source({**raw, **change}, 'public-dev')
+        with self.assertRaisesRegex(ValueError, 'Non-technical source'):
+            bench.check_core_source({**raw, 'source_file': raw['source_file'].replace(
+                'SingleBlockSeparation', 'ActualTotalVariation')}, 'public-dev')
+        with patch.object(sog_bench_review, 'context_binding', return_value='changed'):
+            with self.assertRaisesRegex(ValueError, 'closure changed'):
+                bench.check_core_source(raw, 'public-dev')
+        with tempfile.TemporaryDirectory() as tmp, patch.object(bench, 'SOURCE_APPROVALS', Path(tmp)):
+            with self.assertRaisesRegex(ValueError, 'Missing Gaussian source approval'):
+                bench.check_core_source(raw, 'public-dev')
+        original_hash = bench.text_hash
+        with patch.object(bench, 'text_hash', side_effect=lambda p: (
+                'changed' if p.name == 'LICENSE_SCOPE.md' else original_hash(p))):
+            with self.assertRaisesRegex(ValueError, 'licensing/toolchain pins changed'):
+                bench.check_core_source(raw, 'public-dev')
+
     def test_binding_changes_with_prose_or_context(self):
         for key in ('question', 'context', 'boundary'):
             changed = deepcopy(bench.load())
@@ -370,11 +400,14 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(len(coverage['cells']), 40)
         lower = [c for c in coverage['cells'] if c['domain'] == 'lower-bounds']
         self.assertEqual({c['level'] for c in lower}, {'L1', 'L2', 'L3', 'L4', 'L5'})
-        self.assertTrue(all(c['gap'] and not any(c['draft_views'].values()) for c in lower if c['level'] not in {'L2', 'L3'}))
+        self.assertTrue(all(c['gap'] and not any(c['draft_views'].values())
+                            for c in lower if c['level'] in {'L1', 'L5'}))
         self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L2'),
                          {'natural-language': 0, 'lean': 0, 'graph-json': 1})
         self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L3'),
                          {'natural-language': 4, 'lean': 2, 'graph-json': 0})
+        self.assertEqual(next(c['draft_views'] for c in lower if c['level'] == 'L4'),
+                         {'natural-language': 1, 'lean': 1, 'graph-json': 0})
         self.assertEqual(coverage['unique_mathematical_cores'], len(bench.load()['cores']))
         self.assertEqual({c['domain'] for c in coverage['cells'] if c['level'] == 'L5' and not c['gap']},
                          {'samplewiki', 'mcmc'})

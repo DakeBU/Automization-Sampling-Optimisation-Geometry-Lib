@@ -17,6 +17,7 @@ import AutoSamplingTheory.TechnicalLemmas.InformationTheory.Renyi
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.SimultaneousFDivergence
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.SimultaneousFDivergenceGradient
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.SimultaneousFDivergenceIntegral
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.SimultaneousFDivergenceSpatial
 
 /-!
 # Information-theoretic technical lemma arsenal

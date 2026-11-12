@@ -19,6 +19,7 @@ import project_licensing
 import sog_bench_curriculum as curriculum
 
 DATA = ROOT / 'benchmarks/samplingoptimisationgeometrybench/cores.json'
+SOURCE_APPROVALS = DATA.parent / 'source-approvals'
 RECEIPT = ROOT / '.astis/sog-bench/reference-check.json'
 TRACKS = ('natural-language', 'lean')
 OWNED_EXERCISE_EXAMPLE_ROOT = 'AutoSamplingTheory/ExampleCases/LowerBounds/'
@@ -26,6 +27,52 @@ ORIGINAL_EXAMPLE_ANSWERS = {
     'AutoSamplingTheory/ExampleCases/DiscreteSampling/OrderedHeatBath.lean':
         'AutoSamplingTheory.ExampleCases.DiscreteSampling.OrderedHeatBath.ordered_heat_bath_invariant_not_reversible',
 }
+GAUSSIAN_SINGLE_BLOCK_SCOPE = {
+    'scope': 'bench-paired-example-source-scope-v1',
+    'id': 'sogb-053',
+    'family': 'zhou-suzuki-gaussian-determinant-sign',
+    'split': 'public-dev',
+    'source_file': 'AutoSamplingTheory/ExampleCases/GaussianComplexity/SingleBlockSeparation.lean',
+    'declaration': ('AutoSamplingTheory.ExampleCases.GaussianComplexity.'
+                    'SingleBlockSeparation.single_block_separation'),
+}
+
+
+def check_gaussian_single_block_source(core: dict, split: str) -> None:
+    """Admit one original paired core only under its exact audited closure."""
+    scope = GAUSSIAN_SINGLE_BLOCK_SCOPE
+    if (split != scope['split']
+            or any(core.get(key) != scope[key] for key in ('id', 'family', 'source_file', 'declaration'))
+            or not has_lean(core) or set(core.get('track_levels', {})) != set(TRACKS)
+            or {'textbook_exercise_id', 'support_source_view', 'additional_source_declarations',
+                'reference_helpers'} & core.keys()):
+        raise ValueError('The Gaussian example source approval is for one exact public paired core')
+    import sog_bench_review
+
+    audit_path = SOURCE_APPROVALS / 'sogb-053.json'
+    if not audit_path.is_file():
+        raise ValueError('Missing Gaussian source approval')
+    audit = json.loads(audit_path.read_text(encoding='utf-8'))
+    pins = audit['pin_sha256_lf']
+    required_pins = {'LICENSE', 'NOTICE', 'LICENSE_SCOPE.md', 'lean-toolchain', 'lake-manifest.json'}
+    if (audit['schema_version'] != 1 or audit['identity'] != scope
+            or audit['external_import_roots'] != ['Mathlib'] or set(pins) != required_pins
+            or any(text_hash(ROOT / path) != digest for path, digest in pins.items())):
+        raise ValueError('Gaussian source approval or its licensing/toolchain pins changed')
+    local_context = {}
+    for row in audit['modules']:
+        rel = row['path']
+        if (rel in local_context or re.fullmatch(r'AutoSamplingTheory/[A-Za-z0-9_/]+\.lean', rel) is None
+                or not (ROOT / rel).resolve().is_relative_to(ROOT / 'AutoSamplingTheory')):
+            raise ValueError('Gaussian source approval has an invalid local module')
+        local_context[rel] = row['sha256_lf']
+    scope_sha = sha(encoded(scope))
+    expected = sha(encoded({'binding_sha256': scope_sha, 'local_context': local_context,
+                             'toolchain': pins['lean-toolchain'], 'mathlib': pins['lake-manifest.json']}))
+    actual = sog_bench_review.context_binding({'source_file': scope['source_file'],
+                                               'binding_sha256': scope_sha})
+    if expected != audit['context_sha256'] or actual != expected:
+        raise ValueError('Gaussian source/import closure changed; renew the exact approval before reuse')
 
 
 def owned_exercise_example_source(source_file: str) -> bool:
@@ -37,12 +84,15 @@ def owned_exercise_example_source(source_file: str) -> bool:
 
 
 def check_core_source(core: dict, split: str) -> None:
-    """Allowlist original owned answers without widening Lean task inputs."""
+    """Enforce the owned source scopes without widening Lean task inputs."""
     source = core['source_file']
     path = Path(source)
     if path.is_absolute() or '..' in path.parts or '\\' in source:
         raise ValueError('Source path must be repository-relative')
     if source.startswith('AutoSamplingTheory/TechnicalLemmas/'):
+        return
+    if source == GAUSSIAN_SINGLE_BLOCK_SCOPE['source_file']:
+        check_gaussian_single_block_source(core, split)
         return
     if owned_exercise_example_source(source):
         if core.get('textbook_exercise_id') and core.get('support_source_view') is True and not has_lean(core):

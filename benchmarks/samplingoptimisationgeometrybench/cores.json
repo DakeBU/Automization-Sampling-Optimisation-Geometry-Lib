@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "SamplingOptimisationGeometryBench",
-  "version": "0.37.0-dev",
+  "version": "0.38.0-dev",
   "split": "public-dev",
   "review_status": "independent-semantic-review-pending",
   "cores": [
@@ -2221,6 +2221,82 @@
       "lean_explanation": "The target is the actual triple Tendsto for three Bochner integrals on the complete Hilbert/Borel carrier. The proof uses independent integrable envelopes and eventual gradient equality. Four earlier exact private proofs are present only in the trusted reference, not the task; the target module is not imported. The LSI extension consumes this result but is not an evaluated Lean conclusion.",
       "boundary": "This is an original exercise on a proved prerequisite, not a numbered exercise or a proof of LSI, Exercise 1.7, or a closed form domain. The formal target is the triple limit; explicit intermediate bound displays, the f²=1 pitfall, and the explanation of the downstream finite-dimension hypothesis are assessed in the prose rather than separate Lean conclusions.",
       "source_note": "Sinho Chewi, Log-Concave Sampling, Aug. 20, 2026, §2.1.1, printed pp. 48–49 / PDF pp. 60–61 (https://chewisinho.github.io/main.pdf#page=60), and the Exercise 1.7 consumer (printed p. 43 / PDF p. 55). ASTIS-original question and derivation of a sufficient density step, no reproduced textbook text, figure, or PDF. Folded Lean uses the project's licensed proof. Same family as existing Exercise 1.7 items."
+    },
+    {
+      "id": "sogb-053",
+      "family": "zhou-suzuki-gaussian-determinant-sign",
+      "domain": "sampling",
+      "library_domains": [
+        "lower-bounds",
+        "samplewiki"
+      ],
+      "title": "A radial test separates two Gaussian mixtures",
+      "difficulty": "combine an exact signed moment with a probability test and scalar estimates",
+      "difficulty_reason": "L4 on both tracks: connect the Haar sign split to actual Gaussian-mixture total variation, then combine a signed moment, a real-exponent bound and a quantitative denominator estimate. The Lean target requires the same join of existing results, not proof length.",
+      "track_levels": {
+        "natural-language": "L4",
+        "lean": "L4"
+      },
+      "skills": [
+        "proof",
+        "calculation",
+        "assumption-audit",
+        "composition"
+      ],
+      "source_file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/SingleBlockSeparation.lean",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation.single_block_separation",
+      "context": "open Matrix MeasureTheory\nopen scoped ENNReal\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\nset_option autoImplicit false",
+      "decoder_definitions": [
+        "orthogonalHaar n is normalized Haar probability on the full real orthogonal group O(n), not Haar on the special orthogonal subgroup. For each sign the specified set restriction has mass 1/2, so scaling the restricted measure by 2 gives a probability.",
+        "singleBlockPrecision κ O is the real symmetric matrix \\(A_O=((\\kappa+1)/2)I-((\\kappa-1)/4)(O+O^\\top)\\). Under the stated parameter bounds it is positive definite, so the matrix inverse in the centered multivariate Gaussian is the actual covariance.",
+        "The measure bind integrates each Borel event mass against its prior; Measure.real is the finite event mass as a real number. The set in sSup consists of all absolute differences for the same Borel event, not the L¹ distance of densities."
+      ],
+      "assumptions": [
+        "Let \\(n\\in\\mathbb N\\) with \\(n\\ge3\\) and \\(\\kappa\\in\\mathbb R\\) with \\(\\kappa\\ge4\\). Let \\(\\mu\\) be normalized Haar probability on \\(O(n)\\). For \\(b\\in\\{-1,1\\}\\), set \\(\\nu_b=2\\mu\\!\\restriction_{\\{\\det O=b\\}}\\), \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), and \\(P_b(B)=\\int \\mathcal N(0,A_O^{-1})(B)\\,d\\nu_b(O)\\) for Borel \\(B\\subseteq\\mathbb R^n\\). Use normalized event TV: \\(\\delta=\\sup_{B\\ {\\rm Borel}}|P_1(B)-P_{-1}(B)|\\).",
+        "Write \\(s=\\sqrt{\\kappa}\\), \\(q=(s-1)/(s+1)\\), \\(a=1-1/n\\), \\(r=aq\\), and \\(\\lambda_*=(4ns+(s-1)^2)/(8n(n-1))\\). Let \\(H(\\lambda)=\\int\\det O\\left(\\int e^{-\\lambda\\|x\\|^2}\\,d\\mathcal N(0,A_O^{-1})(x)\\right)d\\mu(O)\\). You may use the established Gaussian-kernel measurability and the evaluated moment (24): \\[H(\\lambda_*)=\\frac{(-1)^n q^n a^{\\,n/2}}{n(1-r^2)}.\\] These are available results, not additional hypotheses on the input."
+      ],
+      "question": "Explain how this signed moment bounds normalized event TV and prove \\[\\delta\\ge\\frac{q^n}{2+4ns/(s+1)^2}\\ge\\tfrac12 e^{-5n/s}.\\] Justify positivity of the denominators and handle \\(n/2\\) as a real exponent. You may cite the existing scalar exponential comparison on the stated domain or give a direct proof.",
+      "steps": [
+        "Left multiplication by a fixed reflection interchanges the two sign classes and preserves Haar probability, so both have mass \\(1/2\\). Orthogonality gives \\(\\langle x,Ox\\rangle\\le\\|x\\|^2\\) and hence \\(x^\\top A_Ox\\ge\\|x\\|^2\\); the Gaussian covariance is a genuine inverse. The normalized mixtures are probabilities. For \\(\\lambda\\ge0\\), \\(h(x)=e^{-\\lambda\\|x\\|^2}\\) is Borel and lies in \\([0,1]\\). The two sign classes give \\(2H(\\lambda)=\\int h\\,dP_1-\\int h\\,dP_{-1}\\). By nonnegative Tonelli, each integral is \\(\\int_0^1P_b(h>u)\\,du\\). The two event probabilities differ by at most \\(\\delta\\) for each \\(u\\), so \\(2|H(\\lambda)|\\le\\delta\\).",
+        "The parameter bounds give \\(s\\ge2\\), \\(0<a,q,r<1\\), and \\(\\lambda_*>0\\). Thus \\(n(1-r^2)>0\\). Taking the absolute value of the moment removes \\((-1)^n\\) in both parities. The tangent bound at one for the convex function \\(t\\mapsto t^{n/2}\\) on \\(t>0\\) gives \\(a^{n/2}\\ge1+\\frac n2(a-1)=\\frac12\\); it does not use integer division.",
+        "With \\(1-q^2=4s/(s+1)^2\\) and \\(n(1-a^2)=2-1/n\\), \\[0<n(1-r^2)=\\frac{4ns}{(s+1)^2}+q^2(2-1/n)\\le D,\\qquad D=2+\\frac{4ns}{(s+1)^2}.\\] Combining the moment, \\(2a^{n/2}\\ge1\\), and \\(0<n(1-r^2)\\le D\\) gives \\(\\delta\\ge q^n/D\\).",
+        "For a direct scalar proof, \\(\\log(1/q)=\\log(1+1/s)+\\log(1+1/(s-1))\\le 1/s+1/(s-1)\\le3/s\\), since \\(s\\ge2\\). Thus \\(q^n\\ge e^{-3n/s}\\). Also \\(D\\le2(1+2n/s)\\le2e^{2n/s}\\). Dividing the positive bounds yields \\(q^n/D\\ge\\tfrac12e^{-5n/s}\\)."
+      ],
+      "rubric": [
+        {
+          "points": 1,
+          "criterion": "Justifies the factor two and the normalized event TV comparison for the actual probability mixtures. A correct use of the established test bound (20), including its factor and hypotheses, or another valid bounded-test argument earns credit."
+        },
+        {
+          "points": 1,
+          "criterion": "Applies the moment with valid signs and obtains sufficient numerator control with a real exponent; no extra parity assumption. Alternative valid estimates are accepted."
+        },
+        {
+          "points": 1,
+          "criterion": "Obtains the quantitative ratio with a valid positive-denominator comparison or equivalent estimate, in the correct inequality direction."
+        },
+        {
+          "points": 1,
+          "criterion": "Obtains the exponential comparison with a valid scalar proof or a precise use of the existing result on the stated domain. The logarithmic proof above is not required."
+        }
+      ],
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.ExampleCases.GaussianComplexity.ActualTotalVariation.actual_radial_test_tv",
+          "AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian.selected_gaussian_value",
+          "AutoSamplingTheory.ExampleCases.GaussianComplexity.NumericSeparation.explicit_ratio_ge_exponential",
+          "AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedTilt.selected_tilt"
+        ],
+        "mathlib": [
+          "one_add_mul_self_le_rpow_one_add",
+          "Real.le_sqrt_of_sq_le",
+          "div_le_div_iff₀",
+          "Real.rpow_pos_of_pos"
+        ]
+      },
+      "lean_explanation": "The target uses normalized Haar restrictions and actual Gaussian measure bind, then states both inequalities. Lean reuses the proved test comparison (20), the evaluated signed moment (24) and the scalar exponential result. The local proof checks the parameter signs, applies real Bernoulli, expands the denominator, and combines the estimates. The theorem owner is not an import of the fixed task.",
+      "boundary": "The formal target certifies only the actual single-block TV chain. The independent explanations of layer cake and the alternative log inequality proof are not separate Lean conclusions. No amplification, transcript/oracle comparison, query lower bound or expected cost, numbered exercise, graph QA, or measured difficulty is claimed.",
+      "source_note": "Zhou–Suzuki, On Complexity of Gaussian Sampling, arXiv:2610.20492v1, Appendix B.2.2, Proposition B.7 (19), using (20) and (24) (https://arxiv.org/html/2610.20492v1#A2.E19). ASTIS-original question and formula proof; no paper prose, figures or PDF reproduced. Owned Lean and its audited closure retain the project's Apache-2.0 scope and original notices; Mathlib remains an external pinned dependency."
     }
   ]
 }

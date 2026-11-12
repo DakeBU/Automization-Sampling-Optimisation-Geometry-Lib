@@ -79,7 +79,9 @@ class EditorialReviewTests(unittest.TestCase):
 
     def test_reviewed_exports_cannot_silently_include_new_drafts(self):
         data = deepcopy(bench.load())
-        draft = deepcopy(data['cores'][-1])
+        # Exercise the editorial export, not a source permission keyed to an
+        # exact task identity. The last catalogue entry can require that scope.
+        draft = deepcopy(next(core for core in data['cores'] if core['id'] == 'sogb-001'))
         draft['id'] = 'sogb-999'
         draft['question'] += ' Unreviewed test-fixture revision.'
         data['cores'].append(draft)

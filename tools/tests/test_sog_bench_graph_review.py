@@ -109,6 +109,31 @@ class GraphReviewTests(unittest.TestCase):
         self.assertEqual((status['editorial'], status['review_round'], status['mathematical_necessity_certified']),
                          ('accepted', directory.name, False))
 
+    def test_feature_law_extension_distinguishes_direct_and_transitive_reuse(self):
+        import sog_bench_graph_slices as slices
+
+        identity = 'sogb-g011'
+        item = next(row for row in self.items if row['id'] == identity)
+        directory = review.ROUND.parent / 'graph-extension-feature-law'
+        self.assertEqual((item['core_id'], item['family'], item['split'], item['level']),
+                         ('sogb-032', 'sphere-feature-law-angular-transport', 'public-dev', 'L2'))
+        paths, _ = slices.reference_paths(item)
+        self.assertEqual({tuple(node.rsplit('.', 1)[-1] for node in path) for path in paths}, {
+            ('quadratic_feature_law_gradient_angular_transport_control',
+             'bounded_bochner_mean_quadratic_transport_control',
+             'isProbabilityMeasure_of_isCoupling_left'),
+            ('expectation_sub_le_linearCost_and_le_wassersteinDistance',
+             'isProbabilityMeasure_of_isCoupling_left'),
+        })
+        public = (directory / 'public-prompt.json').read_bytes()
+        self.assertEqual(public, bench.encoded(bench.curriculum.graph_prompt(item)))
+        self.assertNotIn('answer', json.loads(public))
+        self.assertEqual(json.loads((directory / 'blind-answer.json').read_bytes()), item['answer'])
+        self.assertEqual(slices.artifact_for(identity), 'compiled-feature-law-graph.json')
+        row = review.summary(self.items)['items'][identity]
+        self.assertEqual((row['editorial'], row['review_round'], row['mathematical_necessity_certified']),
+                         ('accepted', directory.name, False))
+
     def test_policy_or_scorer_changes_stale_every_original_decision(self):
         actual=review.payload
         originals = {row['id'] for row in json.loads(

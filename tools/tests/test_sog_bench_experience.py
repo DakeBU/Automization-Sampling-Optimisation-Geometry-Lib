@@ -76,6 +76,33 @@ class ReadableMathTests(unittest.TestCase):
         self.assertIn(mixed, reader.prose(mixed))
 
 
+class StructuralGraphReaderTests(unittest.TestCase):
+    def test_feature_law_arrows_do_not_pass_through_another_node(self):
+        from xml.etree import ElementTree as ET
+
+        item = next(row for row in bench.curriculum.graph_items() if row['id'] == 'sogb-g011')
+        figure = ET.fromstring(reader.import_figure(item['context']))
+        ns = {'svg': 'http://www.w3.org/2000/svg'}
+        svg = figure.find('svg:svg', ns)
+        paths = svg.findall('svg:path', ns)
+        boxes = [tuple(float(box.attrib[k]) for k in ('x', 'y', 'width', 'height'))
+                 for box in svg.findall('svg:g/svg:rect', ns)]
+        self.assertEqual(len(paths), len(item['context']['edges']))
+        self.assertEqual(len(boxes), len(item['context']['nodes']))
+        self.assertTrue(any(path.attrib['d'].count(' L ') > 1 for path in paths))
+        for path in paths:
+            pts = [tuple(map(float, point.split())) for point in path.attrib['d'][2:].split(' L ')]
+            for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+                self.assertLess(y0, y1)
+                for x, y, width, height in boxes:
+                    top = max(y0, y) + 0.001
+                    bottom = min(y1, y + height) - 0.001
+                    if top < bottom:
+                        left, right = sorted(x0 + (x1 - x0) * (t - y0) / (y1 - y0)
+                                             for t in (top, bottom))
+                        self.assertFalse(left < x + width and right > x, path.attrib['d'])
+
+
 class NumberedExerciseReaderTests(unittest.TestCase):
     def test_lower_bounds_domain_has_a_real_route_without_fake_task_counts(self):
         with self.subTest('routes'):

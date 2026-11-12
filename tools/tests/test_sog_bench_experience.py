@@ -102,9 +102,9 @@ class NumberedExerciseReaderTests(unittest.TestCase):
         self.assertIn('fixed Lean task covers the mathematical conclusion only', paired)
         self.assertIn('No current aggregate owned-answer build receipt', paired)
         self.assertIn('book.pdf#page=50', paired)
-        self.assertNotIn('not a new proof, an equivalent Lean challenge', paired)
+        self.assertNotIn('not an equivalent Lean challenge', paired)
         prose = reader.exercise_panel({'textbook_exercise': exercise, 'lean_enabled': False}, True)
-        self.assertIn('not a new proof, an equivalent Lean challenge', prose)
+        self.assertIn('not an equivalent Lean challenge', prose)
         self.assertNotIn('separate fixed Lean task', prose)
 
     def test_source_only_graph_target_never_counts_as_compiled(self):

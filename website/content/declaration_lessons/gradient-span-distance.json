@@ -1,0 +1,86 @@
+{
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.ExampleCases.LowerBounds.GradientSpanDistance.exercise_4_1",
+      "kind": "theorem",
+      "title": "Exercise 4.1 · A path quadratic hides the minimizer's tail",
+      "statement": "Fix the initial point and use the path quadratic below. It is convex and continuously differentiable, with the global upper quadratic model at modulus beta and the stated minimizer. Every gradient-span trajectory retains at least one eighth of its initial squared distance to that minimizer after N iterations.",
+      "formula": "\\|x_N-x_\\star\\|^2\\;\\ge\\;\\tfrac18\\|x_0-x_\\star\\|^2.",
+      "assumptions": [
+        "The ambient dimension is D, the iteration count satisfies 1 ≤ N and 2N+1 ≤ D, the smoothness parameter beta is positive, and the initial point is arbitrary but prescribed.",
+        "Each next iterate minus the initial point belongs to the real span of all genuine gradients at the iterates so far. The theorem quantifies over trajectories obeying that rule. In the source, these trajectories come from deterministic gradient-span algorithms.",
+        "The witness and the minimizer are fixed before choosing any trajectory. There is no caller premise about sparsity, stationarity, regularity, or the gradient field."
+      ],
+      "steps": [
+        {
+          "title": "Write the translated objective as a path energy",
+          "text": "Set v=y−x₀, pad its interior coordinates with left value one and right value zero, and call the resulting vector z. The first edge contributes the linear term and a constant, and the last edge contributes the final square. The constant is subtracted, so the two formulas below define the same function.",
+          "formula": "f(y)=\\frac{\\beta}{4}\\!\\left[\\frac{v_1^2+\\sum_{k=1}^{D-1}(v_k-v_{k+1})^2+v_D^2}{2}-v_1\\right]=\\frac{\\beta}{8}\\!\\left[\\sum_{k=0}^{D}(z_k-z_{k+1})^2-1\\right],\\qquad z_0=1,\\ z_{D+1}=0.",
+          "lean": "objective_eq_expanded identifies the literal source formula with the private padded-edge representation. The padding is implemented with Fin.cons and Fin.snoc, and WithLp.toLp 2 does not change the coordinates."
+        },
+        {
+          "title": "Certify the function class",
+          "text": "The function is polynomial in the coordinates, so its first derivative is continuous. Its first-order remainder is nonnegative because it is a sum of squares of direction differences. The direction w is padded by zero at both endpoints. Each interior coordinate enters two edges, so the bound by twice the sum of the two squares on each edge gives the coefficient beta divided by two in the global upper model.",
+          "formula": "0\\le f(y+h)-f(y)-\\langle\\nabla f(y),h\\rangle=\\frac{\\beta}{8}\\sum_{k=0}^{D}(w_k-w_{k+1})^2\\le\\frac{\\beta}{2}\\|h\\|^2.",
+          "lean": "hasFDerivAt_objective constructs the genuine derivative from coordinate continuous linear maps. contDiff_objective proves that derivative field continuous. objective_remainder and edgeEnergy_le feed convexOn_objective and translatedObjective_upper_model; the public theorem also transports C¹ by composition with the translation."
+        },
+        {
+          "title": "Choose the affine minimizer before the run",
+          "text": "The affine profile agrees with the two padded endpoints and has equal edge differences. Expand the edge energy at that profile. The cross term is a constant times the sum of the perturbation's edge differences, which telescopes to zero because the perturbation has two zero endpoints. The remaining difference of objectives is nonnegative.",
+          "formula": "z_k^\\star=1-\\frac{k}{D+1},\\qquad x_\\star=x_0+(z_k^\\star)_{k=1}^{D},\\qquad f(y)-f(x_\\star)=\\frac{\\beta}{8}\\sum_{k=0}^{D}\\big[(z_k-z_k^\\star)-(z_{k+1}-z_{k+1}^\\star)\\big]^2.",
+          "lean": "objective_sub_affineProfile proves the exact telescoping energy identity and isMinOn_affineProfile proves minimization. This is an alternative to the source's stationary linear system, not an extra assumption."
+        },
+        {
+          "title": "The span can discover at most one coordinate per step",
+          "text": "The chain rule for the translation identifies the gradient at an original iterate with that of the zero-start objective at the centered iterate. Let V_r be the vectors whose coordinates beyond r vanish. If the current centered iterate belongs to V_r, then its gradient belongs to V_(r+1), because each gradient coordinate uses only its two neighbors and itself. At the right edge the padded neighbor is zero. Starting at zero, all gradients through step n lie in V_(n+1); this subspace contains their span and therefore contains the next centered iterate.",
+          "formula": "(\\nabla f(y))_k=\\frac{\\beta}{4}(2z_k-z_{k-1}-z_{k+1}),\\qquad x_n-x_0\\in V_n.",
+          "lean": "gradient_translatedObjective transports actual gradients. gradient_objective_coordinate and gradient_mem_prefix_succ prove the support bound. mem_prefix_of_gradient_span uses nested submodules and Submodule.span_le, not a support assumption on the sequence."
+        },
+        {
+          "title": "Compare the untouched tail with the initial norm",
+          "text": "At step N the last D−N centered coordinates still vanish. Their contributions to the squared error are the squares of the corresponding coordinates of the affine minimizer. Reverse their order to obtain the ratio of two sums of squares. In its product formula, each factor is at least one half since 2(D−N)≥D. The first N error coordinates only add to the final squared distance.",
+          "formula": "\\frac{\\sum_{j=1}^{T}j^2}{\\sum_{j=1}^{D}j^2}=\\frac{T}{D}\\frac{T+1}{D+1}\\frac{2T+1}{2D+1}\\ge\\tfrac18,\\qquad T=D-N.",
+          "lean": "affineProfile_norm_sq_le reindexes the finite norm sum and applies the square-sum bound. translated_distance_lower_bound cancels the translation on both sides."
+        }
+      ],
+      "boundary": [
+        "The explicit one-eighth constant is an original valid choice for the universal comparison in Exercise 4.1. It is not claimed as sharp or quoted from the source.",
+        "This is a squared-distance statement about the fixed witness and actual affine-gradient-span iterates. It is not Theorem 4.4's function-value lower bound, Exercise 4.2, or a lower bound in an unrestricted or randomized oracle model."
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.fderiv_apply_eq_inner_gradient_of_differentiableAt",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Gradient.fderiv_apply_coordinate_eq_gradient_coordinate_of_differentiableAt",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGradientConverse.strongConvexOn_of_gradient_inner_lower_bound"
+      ],
+      "mathlib_dependencies": [
+        "ContDiff.comp",
+        "HasFDerivAt.comp",
+        "contDiff_one_iff_hasFDerivAt",
+        "ConvexOn.comp_affineMap",
+        "Submodule.span_le",
+        "EuclideanSpace.real_norm_sq_eq",
+        "Equiv.sum_comp",
+        "Fin.sum_univ_succ"
+      ],
+      "lean_statement": "A literal translated quadratic and affine minimizer on EuclideanSpace ℝ (Fin (d+1)). The output retains C¹, the exact upper model, and the run-level gradient-span bound.",
+      "lean_proof": "Identify the literal formulas with the padded-edge quadratic and affine profile. Combine the genuine derivative, convexity, smoothness and minimizer proofs with support propagation and the square-sum comparison.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/pdf/2605.07006v1#page=28",
+          "label": "Chewi, Lectures on Optimization v1, Exercise 4.1 (p. 28)",
+          "scope": "Original ASTIS restatement and solution; inherits Definition 4.3 and the path construction of Theorem 4.4 (pp. 26–28)."
+        },
+        {
+          "url": "https://arxiv.org/pdf/2605.07006v1#page=11",
+          "label": "Definition 1.12, displayed formula (1.7) (p. 11)",
+          "scope": "Continuous differentiability and the global quadratic upper model."
+        },
+        {
+          "path": "Tests/LowerBoundsGradientSpanDistance.lean",
+          "label": "Exact source-interface test",
+          "scope": "Checks the theorem against the complete literal signature and prints the kernel axioms."
+        }
+      ]
+    }
+  ]
+}

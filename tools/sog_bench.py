@@ -21,6 +21,15 @@ import sog_bench_curriculum as curriculum
 DATA = ROOT / 'benchmarks/samplingoptimisationgeometrybench/cores.json'
 RECEIPT = ROOT / '.astis/sog-bench/reference-check.json'
 TRACKS = ('natural-language', 'lean')
+OWNED_EXERCISE_EXAMPLE_ROOT = 'AutoSamplingTheory/ExampleCases/LowerBounds/'
+
+
+def owned_exercise_example_source(source_file: str) -> bool:
+    """Allow route-specific original answers without widening Lean task inputs."""
+    return (source_file.startswith(OWNED_EXERCISE_EXAMPLE_ROOT)
+            and re.fullmatch(r'[A-Za-z0-9_/]+\.lean', source_file) is not None
+            and (ROOT / source_file).resolve().is_relative_to(
+                ROOT / OWNED_EXERCISE_EXAMPLE_ROOT))
 
 
 def sha(data: bytes) -> str:
@@ -65,7 +74,10 @@ def load() -> dict:
         if source.is_absolute() or '..' in source.parts or '\\' in core['source_file']:
             raise ValueError('Source path must be repository-relative')
         if not core['source_file'].startswith('AutoSamplingTheory/TechnicalLemmas/'):
-            raise ValueError('Only the local technical-lemma owner is supported')
+            if not (owned_exercise_example_source(core['source_file'])
+                    and core.get('textbook_exercise_id')
+                    and core.get('support_source_view') is True and not has_lean(core)):
+                raise ValueError('Non-technical source requires an owned numbered-exercise answer')
     return data
 
 
@@ -109,6 +121,10 @@ def materialize(data: dict | None = None) -> list[dict]:
     known = astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
     result = []
     for core in data['cores']:
+        if owned_exercise_example_source(core['source_file']) and not (
+                core.get('textbook_exercise_id') and core.get('support_source_view') is True
+                and not has_lean(core)):
+            raise ValueError('Owned example answers are not independent Lean tasks')
         declaration = known.get(core['declaration'])
         if declaration is None or declaration.source_file != core['source_file'] or declaration.has_placeholder:
             raise ValueError('Unresolved or unfinished reference declaration: ' + core['declaration'])

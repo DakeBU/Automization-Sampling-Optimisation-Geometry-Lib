@@ -56,12 +56,16 @@ def answer_parts(item: dict, known: dict, *, component: bool = False) -> tuple[l
     for binding in item['bindings']:
         name = binding['declaration']
         declaration = known.get(name)
+        local_example = (declaration is not None
+                         and bench.owned_exercise_example_source(declaration.source_file)
+                         and name.startswith('AutoSamplingTheory.ExampleCases.LowerBounds.')
+                         and declaration.kind in {'theorem', 'lemma'})
         if (declaration is None or declaration.has_placeholder
-                or not name.startswith('AutoSamplingTheory.TechnicalLemmas.')
+                or not (name.startswith('AutoSamplingTheory.TechnicalLemmas.') or local_example)
                 or not re.fullmatch(r'[A-Za-z0-9_.]+', name)
                 or not binding['supports'] or not set(binding['supports']) <= parts
                 or not binding['audit_id']
-                or (component and binding.get('role') != 'proof-edge')):
+                or ((component or local_example) and binding.get('role') != 'proof-edge')):
             raise ValueError('Each exercise part needs actual owned, source-bound declarations')
         covered.update(binding['supports'])
         answer = {'declaration': name, 'source_file': declaration.source_file,

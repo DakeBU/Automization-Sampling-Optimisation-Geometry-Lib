@@ -147,6 +147,14 @@ run Lean, load weights, verify inference or authenticate an operator. The
 check and submit were operator-scheduled, with no matched no-feedback
 control. Do not use the evidence ZIP as model input.
 
+A [paired follow-up](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/runs/20261112-bench-lean-diagnostic-ablation)
+generated both second turns on the same pinned CPU model, holding the
+recorded first answer and failed-check status fixed. Only the diagnostic
+text was withheld in one condition. The responses were byte-identical
+to each other and to the archived final, so the record cites the same
+prior native rejection, not two fresh Lean results. This is still a
+single public-dev diagnostic, not a calibration or general effect claim.
+
 ### Graph lookup without the snapshot
 
 This experimental operator CLI selects one currently admitted compiled-body

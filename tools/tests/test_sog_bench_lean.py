@@ -120,6 +120,27 @@ class LeanRuntimeTests(unittest.TestCase):
         for path,digest in desc['files'].items():
             self.assertEqual(runtime.bench.sha(files[path]),digest)
 
+    def test_only_the_oracle_isolates_private_helper_section_variables(self):
+        c = core()
+        c['reference_helpers'] = ['h']
+        prefix = 'import Mathlib.Data.Nat.Basic\nvariable {E : Type*}\n'
+        target = 'example\n    (x : E) : x = x := by\n'
+        c['lean_task'] = prefix + target + '  -- Replace this comment with your proof.\n'
+        plain = 'private theorem h (x : E) : x = x := rfl\n'
+        c['lean_reference'] = prefix + plain + target + '  exact h x\n'
+        before = self.packet(c)
+        self.assertNotIn(b'\nsection\n', before['oracle/Solution.lean.txt'])
+
+        redeclaring = 'variable {E : Type*}\n' + plain
+        c['lean_reference'] = prefix + redeclaring + target + '  exact h x\n'
+        after = self.packet(c)
+        self.assertEqual(after['agent/Solution.lean.txt'], before['agent/Solution.lean.txt'])
+        self.assertEqual(after['verifier/Challenge.lean'], before['verifier/Challenge.lean'])
+        self.assertEqual(after['oracle/Solution.lean.txt'].decode(),
+                         prefix + 'section\n' + redeclaring + 'end\n'
+                         + target.replace('example', 'theorem sogBenchTarget') + '  exact h x\n')
+        self.assertEqual(json.loads(after['operator.json'])['binding_sha256'], c['binding_sha256'])
+
     def test_non_aligned_or_ambiguous_or_changed_slot_rejected(self):
         for key,value in [('lean_enabled',False),('lean_task','example : True := by trivial'),
                           ('lean_reference','example : True := by trivial\nexample : True := by trivial')]:

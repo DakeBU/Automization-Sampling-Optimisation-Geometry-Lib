@@ -13,6 +13,18 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 import sog_bench_lean as runtime
 
 
+GRAPH_BRIDGE_TASK_ID = 'sogb-046'
+
+
+def behaviour_task_ids() -> list[str]:
+    """Prepare every task read by the native behaviour lane."""
+    from sog_bench_lean_statement_lookup import TARGET_ID as lookup_task_id
+
+    # Two workspace/transport seeds, the pinned capture, and the lookup and
+    # graph fixture targets. Read the latter from the code that consumes them.
+    return ['sogb-001', 'sogb-002', 'sogb-015', lookup_task_id, GRAPH_BRIDGE_TASK_ID]
+
+
 def command(argv,cwd=None):
     print(json.dumps({'trusted_preparation_command':[str(a) for a in argv]}),flush=True)
     subprocess.run([str(a) for a in argv],cwd=cwd,check=True,timeout=1200)
@@ -530,7 +542,7 @@ def graph_stdio_trial(root: Path):
     import io
     import sog_bench_lean_stdio as bridge
     retrieval = bridge.retrieval
-    identity, graph_id = 'sogb-046', 'sogb-g010'
+    identity, graph_id = GRAPH_BRIDGE_TASK_ID, 'sogb-g010'
     task = root / 'tasks' / identity
     output = root / 'graph-stdio-trial'
     output.mkdir(exist_ok=False)
@@ -579,7 +591,10 @@ def graph_stdio_trial(root: Path):
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='cmd',required=True)
     x=sub.add_parser('prepare');x.add_argument('--output',type=Path,required=True)
-    x=sub.add_parser('trials');x.add_argument('--runtime',type=Path,required=True);x.add_argument('--task-id',action='append')
+    x=sub.add_parser('trials');x.add_argument('--runtime',type=Path,required=True)
+    selection=x.add_mutually_exclusive_group()
+    selection.add_argument('--task-id',action='append')
+    selection.add_argument('--behaviour-fixtures',action='store_true')
     x=sub.add_parser('hostile-trials');x.add_argument('--runtime',type=Path,required=True)
     x=sub.add_parser('workspace-trials');x.add_argument('--runtime',type=Path,required=True)
     x=sub.add_parser('model-bridge-trials');x.add_argument('--runtime',type=Path,required=True)
@@ -587,7 +602,8 @@ def main():
     x=sub.add_parser('graph-stdio-trial');x.add_argument('--runtime',type=Path,required=True)
     args=parser.parse_args()
     if args.cmd=='prepare':prepare(args.output.resolve())
-    elif args.cmd=='trials':trials(args.runtime.resolve(),args.task_id)
+    elif args.cmd=='trials':
+        trials(args.runtime.resolve(), behaviour_task_ids() if args.behaviour_fixtures else args.task_id)
     elif args.cmd=='hostile-trials':hostile_trials(args.runtime.resolve())
     elif args.cmd=='workspace-trials':workspace_trials(args.runtime.resolve())
     elif args.cmd=='model-bridge-trials':model_bridge_trials(args.runtime.resolve())

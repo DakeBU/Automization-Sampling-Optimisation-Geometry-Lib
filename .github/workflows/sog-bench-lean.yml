@@ -41,12 +41,19 @@ concurrency:
   group: sog-lean-${{ github.ref }}-${{ inputs.local_model_pilot && 'local-model' || 'software' }}
   cancel-in-progress: true
 jobs:
-  native-runtime:
+  native-lanes:
+    name: native-runtime / ${{ matrix.lane }}
     if: ${{ github.event_name != 'workflow_dispatch' || !inputs.local_model_pilot }}
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [catalogue, behaviour]
     runs-on: ubuntu-24.04
-    # The all-target replay at 3526e21b took nearly the previous job window.
-    # Allow CI headroom for the extra paired task, not extra submission time.
+    # Bound each runner separately, not the submitted Lean resource policy.
     timeout-minutes: 65
+    outputs:
+      catalogue_ready: ${{ steps.catalogue-evidence.outputs.ready }}
+      behaviour_ready: ${{ steps.behaviour-evidence.outputs.ready }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -71,18 +78,28 @@ jobs:
       - name: Build pinned official tools and record immutable runtime
         run: python tools/sog_bench_lean_native.py prepare --output .astis/lean-native
       - name: Actually test every admitted aligned target and negative software fixtures
+        if: matrix.lane == 'catalogue'
         run: python tools/sog_bench_lean_native.py trials --runtime .astis/lean-native
+      - name: Verify the fixed targets needed by the behaviour fixtures
+        if: matrix.lane == 'behaviour'
+        run: python tools/sog_bench_lean_native.py trials --runtime .astis/lean-native --behaviour-fixtures
       - name: Actually probe denied I/O and bounded resource and input failures
+        if: matrix.lane == 'behaviour'
         run: python tools/sog_bench_lean_native.py hostile-trials --runtime .astis/lean-native
       - name: Replay compiler feedback and immutable first-final accounting
+        if: matrix.lane == 'behaviour'
         run: python tools/sog_bench_lean_native.py workspace-trials --runtime .astis/lean-native
       - name: Exercise scripted model interface and canonical infrastructure rollup
+        if: matrix.lane == 'behaviour'
         run: python tools/sog_bench_lean_native.py model-bridge-trials --runtime .astis/lean-native
       - name: Reject a changed target through the credential-free JSONL bridge
+        if: matrix.lane == 'behaviour'
         run: python tools/sog_bench_lean_native.py stdio-bridge-trial --runtime .astis/lean-native
       - name: Interleave bounded graph lookup and real Lean verification
+        if: matrix.lane == 'behaviour'
         run: python tools/sog_bench_lean_native.py graph-stdio-trial --runtime .astis/lean-native
       - name: Verify the frozen real one-shot model answer, without repair
+        if: matrix.lane == 'behaviour'
         run: >-
           python tools/sog_bench_lean_capture.py verify
           --capture runs/20261110-bench-local-lean-first/raw
@@ -91,10 +108,32 @@ jobs:
           --stage .astis/lean-native/stages/sogb-015
           --runtime .astis/lean-native
           --output .astis/lean-native/model-first-capture
+      - name: Seal the catalogue receipt
+        id: catalogue-evidence
+        if: matrix.lane == 'catalogue'
+        shell: bash
+        run: |
+          test -s .astis/lean-native/software-trials.json
+          printf 'ready=true\n' >> "$GITHUB_OUTPUT"
+      - name: Seal the behaviour receipts
+        id: behaviour-evidence
+        if: matrix.lane == 'behaviour'
+        shell: bash
+        run: |
+          root=.astis/lean-native
+          test -s "$root/software-trials.json"
+          test -s "$root/hostile-trials.json"
+          test -s "$root/workspace-trials.json"
+          test -s "$root/model-bridge-trials.json"
+          test -s "$root/stdio-bridge-trial/summary.json"
+          test -s "$root/graph-stdio-trial/summary.json"
+          test -s "$root/model-first-capture/outcome.json"
+          printf 'ready=true\n' >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: sog-lean-native-software-evidence
+          name: sog-lean-native-${{ matrix.lane }}-software-evidence
+          if-no-files-found: error
           path: |
             .astis/lean-native/preparation-inputs.json
             .astis/lean-native/preparation.json
@@ -111,6 +150,24 @@ jobs:
             .astis/lean-native/image-id
             .astis/lean-native/trials
           retention-days: 14
+  native-runtime:
+    # Preserve the existing required check. A skipped/cancelled lane is not
+    # success, and neither lane may stand in for the other.
+    if: ${{ always() && (github.event_name != 'workflow_dispatch' || !inputs.local_model_pilot) }}
+    needs: [native-lanes]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require both native lanes and their receipts
+        shell: bash
+        env:
+          LANES_RESULT: ${{ needs.native-lanes.result }}
+          CATALOGUE_READY: ${{ needs.native-lanes.outputs.catalogue_ready }}
+          BEHAVIOUR_READY: ${{ needs.native-lanes.outputs.behaviour_ready }}
+        run: |
+          test "$LANES_RESULT" = success
+          test "$CATALOGUE_READY" = true
+          test "$BEHAVIOUR_READY" = true
   live-local-model-pilot:
     # A PR or push never starts downloads/inference for this diagnostic.
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.local_model_pilot }}

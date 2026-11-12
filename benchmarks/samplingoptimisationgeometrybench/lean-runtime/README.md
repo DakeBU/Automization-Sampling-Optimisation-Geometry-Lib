@@ -154,6 +154,17 @@ native evidence. Preserve the first failed run and diagnose before retrying.
 Local Windows tests only exercise packaging/contracts; they never execute hostile
 Lean. The host intentionally lacks a usable Docker/WSL runtime.
 
+The workflow separates the catalogue and behaviour trials into two runners at
+the same revision. The catalogue lane still verifies **every** admitted Lean
+target and the five proof negatives. The behaviour lane verifies the five
+targets its checks use, including the statement-lookup target selected by
+the model-interface fixture itself. It then runs the same I/O, resource,
+workspace, JSONL, graph, and frozen-answer replays. Its subset receipt does
+not certify the whole catalogue. Read the `sog-lean-native-catalogue-software-evidence` and
+`sog-lean-native-behaviour-software-evidence` artifacts together; the
+`native-runtime` check requires both lanes to succeed and emit their receipts.
+The split addresses the hosted job deadline, not any submitted proof limit.
+
 The first complete native pass is head72d5322d, run42010581633: all13 aligned
 reference targets and all5 semantic/axiom negatives passed. Raw results, including
 the earlier failures, are retained under runs/20261105-bench-lean-runtime. This is

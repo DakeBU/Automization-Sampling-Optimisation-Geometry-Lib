@@ -6,25 +6,28 @@ import Mathlib.MeasureTheory.Measure.Real
 import Mathlib.Tactic.FieldSimp
 import Mathlib.Tactic.Linarith
 import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
+import Mathlib.MeasureTheory.Integral.Bochner.SumMeasure
+import Mathlib.Data.Fin.Tuple.Basic
+import Mathlib.Tactic.Ring
+import Mathlib.Probability.Process.Stopping
 
 /-!
 # From conditional likelihood budgets to an unbounded real work bound
 
 Trusted candidate for the positive side of the public `sogb-035` exercise.
-The generic probability-space proof verifies predictable normalization of
-the squared likelihoods, extends compatible prefix integrals to the full
-law, and transfers real L² observables with the variance factor in the exercise.
-The concrete finite-prefix filtration uses Mathlib's finite-coordinate
-construction with the empty prefix at time zero.
+The generic stages check the predictable compensator, full-space density,
+and variance estimate. The binary specialization proves the needed prefix
+and conditional-square identities from actual cylinder masses and normalized
+conditional tables. It preserves zero-mass support, uses the same stopping
+time under both laws, and handles exceptional infinite work via a finite
+representative justified by the ideal second moment and absolute continuity.
 
-This file assumes the exact conditional second-moment and prefix integral
-identities. It does not derive them from the exercise's binary conditional
-tables or construct the raw likelihood-ratio process. Work is represented
-here by a real-valued L² function; the full exercise's a.e. choice of a
-finite representative for an extended-valued charge is not built here.
-Absolute continuity implies null-event transfer; it does not construct the
-stopping rule. No aligned task, admission, native verifier result, model
-score, Registry leaf or paper result follows from this candidate.
+The path laws are supplied with their conditional tables, as in the exercise;
+no existence theorem for an arbitrary table is needed. The positive result
+does not require deterministic padding, so it applies to the padded case
+without another assumption. The existing finite counterexample candidate is
+separate. This is neither an aligned task nor an independent review,
+runtime acceptance, score, Registry leaf, or paper result.
 -/
 
 namespace SamplingOptimisationGeometryBench.ConditionalBudgetTransfer
@@ -77,6 +80,7 @@ theorem exists_full_density_of_prefix_integrals {Ω : Type*} [m : MeasurableSpac
     (hR : ∀ n, eLpNorm (X n) 2 P ≤ R)
     (hQ : ∀ n s, MeasurableSet[ℱ n] s → (∫ x in s, X n x ∂P) = Q.real s) :
     ∃ L : Ω → ℝ, StronglyMeasurable L ∧ 0 ≤ᵐ[P] L ∧ MemLp L 2 P ∧
+      (∀ᵐ x ∂P, Tendsto (fun n => X n x) atTop (𝓝 (L x))) ∧
       (∫ x, (L x)^2 ∂P) ≤ (R : ℝ)^2 ∧ (∫ x, L x ∂P) = 1 ∧
       Q = P.withDensity (fun x => ENNReal.ofReal (L x)) ∧ Q ≪ P := by
   have hXm (n : ℕ) : AEStronglyMeasurable (X n) P :=
@@ -132,7 +136,7 @@ theorem exists_full_density_of_prefix_integrals {Ω : Type*} [m : MeasurableSpac
     (fun s hs => by
       obtain ⟨n, hn⟩ := Set.mem_iUnion.mp hs
       exact hDp n s hn) (hDp 0 Set.univ MeasurableSet.univ)
-  refine ⟨L, Filtration.stronglyMeasurable_limit_process', hLnn, hL, hLsq,
+  refine ⟨L, Filtration.stronglyMeasurable_limit_process', hLnn, hL, ht, hLsq,
     hmass, hQD, ?_⟩
   rw [hQD]
   exact withDensity_absolutelyContinuous P _
@@ -198,14 +202,17 @@ theorem work_bound_of_prefix_norm {Ω : Type*} [m : MeasurableSpace Ω]
     (hB : ∀ n, eLpNorm (X n) 2 P ≤ ENNReal.ofReal (Real.exp (B / 2)))
     (hQ : ∀ n s, MeasurableSet[ℱ n] s → (∫ x in s, X n x ∂P) = Q.real s)
     (W : Ω → ℝ) (hW : MemLp W 2 P) :
-    Q ≪ P ∧ Integrable W Q ∧
+    ∃ L : Ω → ℝ, StronglyMeasurable L ∧ 0 ≤ᵐ[P] L ∧ MemLp L 2 P ∧
+      (∀ᵐ x ∂P, Tendsto (fun n => X n x) atTop (𝓝 (L x))) ∧
+      (∫ x, (L x)^2 ∂P) ≤ Real.exp B ∧ (∫ x, L x ∂P) = 1 ∧
+      Q = P.withDensity (fun x => ENNReal.ofReal (L x)) ∧ Q ≪ P ∧ Integrable W Q ∧
       |(∫ x, W x ∂Q) - (∫ x, W x ∂P)| ≤ Real.sqrt ((Real.exp B - 1) * variance W P) := by
   let R : ℝ≥0 := ⟨Real.exp (B / 2), (Real.exp_pos _).le⟩
   have hRe : (R : ℝ≥0∞) = ENNReal.ofReal (Real.exp (B / 2)) :=
     (ENNReal.ofReal_eq_coe_nnreal (Real.exp_pos _).le).symm
   have hR (n : ℕ) : eLpNorm (X n) 2 P ≤ R := by
     simpa only [hRe] using hB n
-  obtain ⟨L, hLm, hLnn, hL, hLsq, hLmean, hQD, hQP⟩ :=
+  obtain ⟨L, hLm, hLnn, hL, ht, hLsq, hLmean, hQD, hQP⟩ :=
     exists_full_density_of_prefix_integrals P Q ℱ hgen X hX hnn R hR hQ
   obtain ⟨hWQ, hcost⟩ := abs_integral_sub_le_of_square_integrable_density
     P Q hLm.measurable hLnn hL hW hLmean hQD
@@ -217,7 +224,7 @@ theorem work_bound_of_prefix_norm {Ω : Type*} [m : MeasurableSpace Ω]
   have hvar : variance L P ≤ Real.exp B - 1 := by
     rw [variance_eq_sub hL, hLmean, one_pow]
     exact sub_le_sub_right (hLsq.trans_eq hexp) 1
-  exact ⟨hQP, hWQ, hcost.trans (Real.sqrt_le_sqrt
+  exact ⟨L, hLm, hLnn, hL, ht, hLsq.trans_eq hexp, hLmean, hQD, hQP, hWQ, hcost.trans (Real.sqrt_le_sqrt
     (mul_le_mul_of_nonneg_right hvar (variance_nonneg W P)))⟩
 
 /-- Stage n sees exactly coordinates 0 through n−1, including the empty history
@@ -327,7 +334,10 @@ theorem work_bound_of_conditional_budget {Ω : Type*} [m : MeasurableSpace Ω]
     (B : ℝ) (hB : ∀ n, ∀ᵐ x ∂P, ∑ k ∈ Finset.range n, η k x ≤ B)
     (hQ : ∀ n s, MeasurableSet[ℱ n] s → (∫ x in s, X n x ∂P) = Q.real s)
     (W : Ω → ℝ) (hW : MemLp W 2 P) :
-    Q ≪ P ∧ Integrable W Q ∧
+    ∃ L : Ω → ℝ, StronglyMeasurable L ∧ 0 ≤ᵐ[P] L ∧ MemLp L 2 P ∧
+      (∀ᵐ x ∂P, Tendsto (fun n => X n x) atTop (𝓝 (L x))) ∧
+      (∫ x, (L x)^2 ∂P) ≤ Real.exp B ∧ (∫ x, L x ∂P) = 1 ∧
+      Q = P.withDensity (fun x => ENNReal.ofReal (L x)) ∧ Q ≪ P ∧ Integrable W Q ∧
       |(∫ x, W x ∂Q) - (∫ x, W x ∂P)| ≤ Real.sqrt ((Real.exp B - 1) * variance W P) := by
   have hS := integral_sq_le_exp_of_pathwise_conditional_budget P ℱ X η hη hη₀ hXi
     hinit hcond B hB
@@ -382,3 +392,352 @@ info: 'SamplingOptimisationGeometryBench.ConditionalBudgetTransfer.work_bound_of
 #print axioms work_bound_of_conditional_budget
 
 end SamplingOptimisationGeometryBench.ConditionalBudgetTransfer
+
+namespace SamplingOptimisationGeometryBench.BinaryPrefixLikelihood
+open MeasureTheory Set Filter
+open scoped BigOperators ENNReal Topology
+open ProbabilityTheory
+
+noncomputable section
+
+abbrev Path := ℕ → Bool
+abbrev History (n : ℕ) := Fin n → Bool
+abbrev Table := (n : ℕ) → History n → Bool → ℝ
+
+def readPrefix (n : ℕ) (x : Path) : History n := fun i => x i
+
+theorem measurable_readPrefix (n : ℕ) : Measurable (readPrefix n) :=
+  measurable_pi_lambda _ fun i => measurable_pi_apply (i : ℕ)
+
+abbrev historyFiltration : Filtration ℕ (inferInstance : MeasurableSpace Path) :=
+  ConditionalBudgetTransfer.historyFiltration (fun _ => Bool)
+
+private theorem historyFiltration_eq_comap (n : ℕ) :
+    historyFiltration n = MeasurableSpace.comap (readPrefix n) inferInstance := by
+  let H := (Finset.range n : Set ℕ)
+  let forward : (H → Bool) → History n :=
+    fun y i => y ⟨i, Finset.mem_range.mpr i.isLt⟩
+  let backward : History n → H → Bool :=
+    fun y i => y ⟨i, Finset.mem_range.mp i.property⟩
+  change (Filtration.piFinset (X := fun _ : ℕ => Bool)) (Finset.range n) = _
+  rw [Filtration.piFinset_eq_comap_restrict]
+  have h₁ : readPrefix n = forward ∘ H.domRestrict := rfl
+  have h₂ : H.domRestrict = backward ∘ readPrefix n := rfl
+  apply le_antisymm
+  · conv_lhs => rw [h₂, ← MeasurableSpace.comap_comp]
+    exact MeasurableSpace.comap_mono (measurable_of_finite backward).comap_le
+  · conv_lhs => rw [h₁, ← MeasurableSpace.comap_comp]
+    exact MeasurableSpace.comap_mono (measurable_of_finite forward).comap_le
+
+def cylinder (n : ℕ) (h : History n) : Set Path := readPrefix n ⁻¹' {h}
+
+def mass (M : Measure Path) (n : ℕ) (h : History n) : ℝ := M.real (cylinder n h)
+
+theorem mass_nonneg (M : Measure Path) (n : ℕ) (h : History n) : 0 ≤ mass M n h :=
+  ENNReal.toReal_nonneg
+
+@[simp] theorem mass_zero_length (M : Measure Path) [IsProbabilityMeasure M]
+    (h : History 0) : mass M 0 h = 1 := by
+  have he : cylinder 0 h = Set.univ := by
+    ext x
+    exact iff_of_true (Subsingleton.elim (readPrefix 0 x) h) trivial
+  simp [mass, he, measureReal_def]
+
+/-- The transition entries realize the next-cylinder masses of the actual law. -/
+def Realizes (M : Measure Path) (t : Table) : Prop :=
+  ∀ n h b, mass M (n+1) (Fin.snoc h b) = mass M n h * t n h b
+
+def Supports (P : Measure Path) (p q : Table) : Prop :=
+  ∀ n h b, 0 < mass P n h → p n h b = 0 → q n h b = 0
+
+theorem prefix_support (P Q : Measure Path) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
+    {p q : Table} (hP : Realizes P p) (hQ : Realizes Q q) (hs : Supports P p q) :
+    ∀ n h, mass P n h = 0 → mass Q n h = 0 := by
+  intro n
+  induction n with
+  | zero =>
+    intro h h0
+    simp at h0
+  | succ n ih =>
+    intro h h0
+    rw [← Fin.snoc_init_self h] at h0 ⊢
+    rw [hP] at h0
+    rw [hQ]
+    rcases mul_eq_zero.mp h0 with hm | hp
+    · rw [ih _ hm, zero_mul]
+    · by_cases hm : mass P n (Fin.init h) = 0
+      · rw [ih _ hm, zero_mul]
+      · have hmp : 0 < mass P n (Fin.init h) :=
+          lt_of_le_of_ne (mass_nonneg P n _) (fun he => hm he.symm)
+        rw [hs n (Fin.init h) (h (Fin.last n)) hmp hp, mul_zero]
+
+def ratio (P Q : Measure Path) (n : ℕ) (h : History n) : ℝ :=
+  mass Q n h / mass P n h
+
+def likelihood (P Q : Measure Path) (n : ℕ) (x : Path) : ℝ :=
+  ratio P Q n (readPrefix n x)
+
+private theorem measurable_readPrefix_filtration (n : ℕ) :
+    Measurable[historyFiltration n] (readPrefix n) := by
+  rw [historyFiltration_eq_comap]
+  exact Measurable.of_comap_le le_rfl
+
+theorem stronglyAdapted_likelihood (P Q : Measure Path) :
+    StronglyAdapted historyFiltration (likelihood P Q) :=
+  fun n => ((measurable_of_finite (ratio P Q n)).comp (measurable_readPrefix_filtration n)).stronglyMeasurable
+
+theorem likelihood_nonneg (P Q : Measure Path) (n : ℕ) (x : Path) :
+    0 ≤ likelihood P Q n x := div_nonneg (mass_nonneg _ _ _) (mass_nonneg _ _ _)
+
+theorem likelihood_zero (P Q : Measure Path) [IsProbabilityMeasure P] [IsProbabilityMeasure Q] :
+    likelihood P Q 0 = 1 := by
+  funext x
+  simp [likelihood, ratio]
+
+theorem integrable_prefix (M : Measure Path) [IsFiniteMeasure M] (n : ℕ) (f : History n → ℝ) :
+    Integrable (fun x => f (readPrefix n x)) M := by
+  exact (Integrable.of_finite (f := f) (μ := M.map (readPrefix n))).comp_measurable
+    (measurable_readPrefix n)
+
+theorem setIntegral_prefix (M : Measure Path) [IsFiniteMeasure M] (n : ℕ)
+    (A : Finset (History n)) (f : History n → ℝ) :
+    (∫ x in readPrefix n ⁻¹' (A : Set (History n)), f (readPrefix n x) ∂M) =
+      ∑ h ∈ A, mass M n h * f h := by
+  have hf := (Integrable.of_finite (f := f) (μ := M.map (readPrefix n)))
+  rw [← setIntegral_map A.finite_toSet.measurableSet hf.aestronglyMeasurable
+    (measurable_readPrefix n).aemeasurable, setIntegral_finset A hf.integrableOn]
+  simp [mass, cylinder, measureReal_def, Measure.map_apply (measurable_readPrefix n),
+    smul_eq_mul]
+
+theorem prefix_density_integral (P Q : Measure Path)
+    [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
+    {p q : Table} (hP : Realizes P p) (hQ : Realizes Q q) (hs : Supports P p q)
+    (n : ℕ) (S : Set Path) (hS : MeasurableSet[historyFiltration n] S) :
+    (∫ x in S, likelihood P Q n x ∂P) = Q.real S := by
+  classical
+  rw [historyFiltration_eq_comap] at hS
+  obtain ⟨A, _, rfl⟩ := hS
+  let t : Finset (History n) := Finset.univ.filter fun h => h ∈ A
+  have ht : (t : Set (History n)) = A := by ext h; simp [t]
+  rw [← ht]
+  change (∫ x in readPrefix n ⁻¹' (t : Set (History n)), ratio P Q n (readPrefix n x) ∂P) =
+    Q.real (readPrefix n ⁻¹' (t : Set (History n)))
+  rw [setIntegral_prefix]
+  have hsum := setIntegral_prefix Q n t (fun _ => (1 : ℝ))
+  rw [setIntegral_const, smul_eq_mul, mul_one] at hsum
+  rw [hsum]
+  apply Finset.sum_congr rfl
+  intro h _
+  rw [mul_one]
+  by_cases h0 : mass P n h = 0
+  · simp [ratio, h0, prefix_support P Q hP hQ hs n h h0]
+  · unfold ratio
+    field_simp
+
+/--
+info: 'SamplingOptimisationGeometryBench.BinaryPrefixLikelihood.prefix_density_integral' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms prefix_density_integral
+
+private def appendEquiv (n : ℕ) : History n × Bool ≃ History (n+1) :=
+  (Equiv.prodComm (History n) Bool).trans (Fin.snocEquiv fun _ => Bool)
+
+private theorem prefix_eq_succ_preimage (n : ℕ) (A : Finset (History n)) :
+    readPrefix (n+1) ⁻¹' (((A.product (Finset.univ : Finset Bool)).map
+      (appendEquiv n).toEmbedding : Finset (History (n+1))) : Set (History (n+1))) =
+      readPrefix n ⁻¹' (A : Set (History n)) := by
+  ext x
+  change readPrefix (n+1) x ∈ (A.product (Finset.univ : Finset Bool)).map
+    (appendEquiv n).toEmbedding ↔ readPrefix n x ∈ A
+  constructor
+  · intro hx
+    obtain ⟨⟨h,b⟩, hp, he⟩ := Finset.mem_map.mp hx
+    have hE : Fin.snoc h b = readPrefix (n+1) x := he
+    have hpref : h = readPrefix n x := by
+      have h' := congrArg Fin.init hE
+      rw [Fin.init_snoc] at h'
+      exact h'
+    exact hpref ▸ (Finset.mem_product.mp hp).1
+  · intro hx
+    refine Finset.mem_map.mpr ⟨(readPrefix n x, x n),
+      Finset.mem_product.mpr ⟨hx, Finset.mem_univ _⟩, ?_⟩
+    change Fin.snoc (readPrefix n x) (x n) = readPrefix (n+1) x
+    exact Fin.snoc_init_self (readPrefix (n+1) x)
+
+private theorem setIntegral_next_prefix (M : Measure Path) [IsFiniteMeasure M] (n : ℕ)
+    (A : Finset (History n)) (f : History (n+1) → ℝ) :
+    (∫ x in readPrefix n ⁻¹' (A : Set (History n)), f (readPrefix (n+1) x) ∂M) =
+      ∑ h ∈ A, ∑ b : Bool, mass M (n+1) (Fin.snoc h b) * f (Fin.snoc h b) := by
+  rw [← prefix_eq_succ_preimage, setIntegral_prefix, Finset.sum_map,
+    Finset.product_eq_sprod, Finset.sum_product]
+  rfl
+
+def chiSquare (p q : Bool → ℝ) : ℝ := ∑ b, (q b - p b)^2 / p b
+
+def conditionalBudget (P : Measure Path) (p q : Table) (n : ℕ) (h : History n) : ℝ :=
+  if mass P n h = 0 then 0 else chiSquare (p n h) (q n h)
+
+def budgetProcess (P : Measure Path) (p q : Table) (n : ℕ) (x : Path) : ℝ :=
+  conditionalBudget P p q n (readPrefix n x)
+
+theorem budgetProcess_nonneg (P : Measure Path) {p q : Table}
+    (hp : ∀ n h b, 0 ≤ p n h b) (n : ℕ) (x : Path) : 0 ≤ budgetProcess P p q n x := by
+  unfold budgetProcess conditionalBudget
+  split_ifs
+  · exact le_rfl
+  · exact Finset.sum_nonneg fun b _ => div_nonneg (sq_nonneg _) (hp _ _ b)
+
+theorem stronglyAdapted_budgetProcess (P : Measure Path) (p q : Table) :
+    StronglyAdapted historyFiltration (budgetProcess P p q) :=
+  fun n => ((measurable_of_finite (conditionalBudget P p q n)).comp
+    (measurable_readPrefix_filtration n)).stronglyMeasurable
+
+private theorem sum_sq_ratio (p q : Bool → ℝ)
+    (hp : ∑ b, p b = 1) (hq : ∑ b, q b = 1)
+    (hs : ∀ b, p b = 0 → q b = 0) :
+    (∑ b, p b * (q b / p b)^2) = 1 + chiSquare p q := by
+  have h (b : Bool) : p b * (q b / p b)^2 =
+      (q b - p b)^2 / p b + 2 * q b - p b := by
+    by_cases hb : p b = 0
+    · simp [hb, hs b hb]
+    · field_simp [hb]
+      ring
+  simp only [h, Finset.sum_sub_distrib, Finset.sum_add_distrib, ← Finset.mul_sum, hp, hq,
+    chiSquare]
+  ring
+
+private theorem ratio_snoc (P Q : Measure Path) {p q : Table}
+    (hP : Realizes P p) (hQ : Realizes Q q) (n : ℕ) (h : History n) (b : Bool) :
+    ratio P Q (n+1) (Fin.snoc h b) = ratio P Q n h * (q n h b / p n h b) := by
+  simp only [ratio, hP n h b, hQ n h b, mul_div_mul_comm]
+
+private theorem next_sq_atom_sum (P Q : Measure Path) {p q : Table}
+    (hP : Realizes P p) (hQ : Realizes Q q) (hs : Supports P p q)
+    (hp : ∀ n h, ∑ b, p n h b = 1) (hq : ∀ n h, ∑ b, q n h b = 1)
+    (n : ℕ) (h : History n) :
+    (∑ b : Bool, mass P (n+1) (Fin.snoc h b) * (ratio P Q (n+1) (Fin.snoc h b))^2) =
+      mass P n h * ((ratio P Q n h)^2 * (1 + conditionalBudget P p q n h)) := by
+  by_cases hz : mass P n h = 0
+  · simp [hP n h, hz]
+  · have hpos : 0 < mass P n h := lt_of_le_of_ne (mass_nonneg _ _ _) (fun he => hz he.symm)
+    calc
+      _ = (mass P n h * (ratio P Q n h)^2) *
+          (∑ b, p n h b * (q n h b / p n h b)^2) := by
+        rw [Finset.mul_sum]
+        apply Finset.sum_congr rfl
+        intro b _
+        rw [hP, ratio_snoc P Q hP hQ]
+        ring
+      _ = _ := by
+        rw [sum_sq_ratio _ _ (hp n h) (hq n h) (fun b => hs n h b hpos)]
+        simp only [conditionalBudget, if_neg hz, mul_assoc]
+
+/-- The actual conditional square moment on binary histories. Its proof uses
+the true laws' transition cylinder identities and does not divide by a
+positive-probability assertion for a null prefix. -/
+theorem conditional_sq_likelihood (P Q : Measure Path)
+    [IsProbabilityMeasure P] {p q : Table}
+    (hP : Realizes P p) (hQ : Realizes Q q) (hs : Supports P p q)
+    (hp : ∀ n h, ∑ b, p n h b = 1) (hq : ∀ n h, ∑ b, q n h b = 1) (n : ℕ) :
+    P[(fun x => (likelihood P Q (n+1) x)^2) | historyFiltration n] =ᵐ[P]
+      fun x => (likelihood P Q n x)^2 * (1 + budgetProcess P p q n x) := by
+  let f : History (n+1) → ℝ := fun h => (ratio P Q (n+1) h)^2
+  let g : History n → ℝ := fun h => (ratio P Q n h)^2 * (1 + conditionalBudget P p q n h)
+  have hG : StronglyMeasurable[historyFiltration n] (fun x => g (readPrefix n x)) :=
+    ((measurable_of_finite g).comp (measurable_readPrefix_filtration n)).stronglyMeasurable
+  refine (ae_eq_condExp_of_forall_setIntegral_eq (historyFiltration.le n)
+    (integrable_prefix P (n+1) f) (fun _ _ _ => (integrable_prefix P n g).integrableOn)
+    ?_ hG.aestronglyMeasurable).symm
+  intro S hS _
+  classical
+  rw [historyFiltration_eq_comap] at hS
+  obtain ⟨A, _, rfl⟩ := hS
+  let t : Finset (History n) := Finset.univ.filter fun h => h ∈ A
+  have ht : (t : Set (History n)) = A := by ext h; simp [t]
+  rw [← ht, setIntegral_prefix, setIntegral_next_prefix]
+  exact Finset.sum_congr rfl fun h _ => (next_sq_atom_sum P Q hP hQ hs hp hq n h).symm
+
+/--
+info: 'SamplingOptimisationGeometryBench.BinaryPrefixLikelihood.conditional_sq_likelihood' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms conditional_sq_likelihood
+
+/-- The finite-termination event is measurable for the actual prefix filtration. -/
+private theorem measurableSet_finite_stop {τ : Path → WithTop ℕ}
+    (hτ : IsStoppingTime historyFiltration τ) : MeasurableSet {x | τ x ≠ ⊤} := by
+  have he : {x | τ x ≠ ⊤} = ⋃ n : ℕ, {x | τ x ≤ n} := by
+    ext x
+    simp only [Set.mem_ofPred_eq, Set.mem_iUnion]
+    constructor
+    · intro hx
+      obtain ⟨n, hn⟩ := WithTop.ne_top_iff_exists.mp hx
+      exact ⟨n, hn.ge⟩
+    · rintro ⟨n, hn⟩
+      exact ne_top_of_le_ne_top (by simp) hn
+  rw [he]
+  exact MeasurableSet.iUnion fun n => historyFiltration.le n _ (hτ.measurableSet_le n)
+
+/-- The exact positive side of sogb-035 on actual binary path measures.
+A common deterministic post-stop suffix is allowed but not needed for the
+bound; the same stopping time is tested under the two laws. -/
+theorem binary_stopped_work_transfer (P Q : Measure Path)
+    [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
+    (p q : Table) (hP : Realizes P p) (hQ : Realizes Q q) (hs : Supports P p q)
+    (hp : ∀ n h, (∀ b, 0 ≤ p n h b) ∧ ∑ b, p n h b = 1)
+    (hq : ∀ n h, (∀ b, 0 ≤ q n h b) ∧ ∑ b, q n h b = 1)
+    (B : ℝ) (hB : ∀ n, ∀ᵐ x ∂P, ∑ k ∈ Finset.range n, budgetProcess P p q k x ≤ B)
+    (τ : Path → WithTop ℕ) (hτ : IsStoppingTime historyFiltration τ)
+    (hτP : ∀ᵐ x ∂P, τ x ≠ ⊤) (W : Path → ℝ≥0∞) (hW : Measurable W)
+    (hW2 : (∫⁻ x, W x ^ 2 ∂P) < ∞) :
+    ∃ L : Path → ℝ, StronglyMeasurable L ∧ 0 ≤ᵐ[P] L ∧ MemLp L 2 P ∧
+      (∀ᵐ x ∂P, Tendsto (fun n => likelihood P Q n x) atTop (𝓝 (L x))) ∧
+      (∫ x, (L x)^2 ∂P) ≤ Real.exp B ∧ (∫ x, L x ∂P) = 1 ∧
+      Q = P.withDensity (fun x => ENNReal.ofReal (L x)) ∧ Q ≪ P ∧
+      MeasurableSet {x | τ x ≠ ⊤} ∧ (∀ᵐ x ∂Q, τ x ≠ ⊤) ∧
+      (∫⁻ x, W x ∂P) < ∞ ∧ (∫⁻ x, W x ∂Q) < ∞ ∧
+      |(∫⁻ x, W x ∂Q).toReal - (∫⁻ x, W x ∂P).toReal| ≤
+        Real.sqrt ((Real.exp B - 1) * variance (fun x => (W x).toReal) P) := by
+  let V : Path → ℝ := fun x => (W x).toReal
+  have hWsq : Measurable (fun x => (W x)^2) := hW.pow_const _
+  have hV : MemLp V 2 P := by
+    refine (memLp_two_iff_integrable_sq hW.ennreal_toReal.aestronglyMeasurable).2 ?_
+    simpa only [ENNReal.toReal_pow] using
+      integrable_toReal_of_lintegral_ne_top hWsq.aemeasurable hW2.ne
+  have hfinP : ∀ᵐ x ∂P, W x < ∞ := by
+    filter_upwards [ae_lt_top' hWsq.aemeasurable hW2.ne] with x hx
+    by_contra! hn
+    have he : W x = ∞ := top_le_iff.mp hn
+    simp [he] at hx
+  obtain ⟨L, hLm, hL0, hL2, hlim, hLsq, hmean, hDQ, hQP, hVQ, hcost⟩ :=
+    ConditionalBudgetTransfer.work_bound_of_conditional_budget P Q historyFiltration
+      (ConditionalBudgetTransfer.iSup_historyFiltration (fun _ => Bool))
+      (likelihood P Q) (budgetProcess P p q) (stronglyAdapted_likelihood P Q)
+      (fun n => Eventually.of_forall (likelihood_nonneg P Q n))
+      (stronglyAdapted_budgetProcess P p q)
+      (budgetProcess_nonneg P fun n h => (hp n h).1)
+      (fun n => integrable_prefix P n (fun h => (ratio P Q n h)^2))
+      (Filter.EventuallyEq.of_eq (likelihood_zero P Q))
+      (conditional_sq_likelihood P Q hP hQ hs (fun n h => (hp n h).2)
+        (fun n h => (hq n h).2))
+      B hB (prefix_density_integral P Q hP hQ hs) V hV
+  have hfinQ : ∀ᵐ x ∂Q, W x < ∞ := hQP.ae_le hfinP
+  have hreal (M : Measure Path) (hf : ∀ᵐ x ∂M, W x < ∞) (hi : Integrable V M) :
+      (∫⁻ x, W x ∂M) < ∞ := by
+    rw [← lintegral_congr_ae (ofReal_toReal_ae_eq hf),
+      ← ofReal_integral_eq_lintegral_ofReal hi (Eventually.of_forall fun _ => ENNReal.toReal_nonneg)]
+    exact ENNReal.ofReal_lt_top
+  refine ⟨L, hLm, hL0, hL2, hlim, hLsq, hmean, hDQ, hQP,
+    measurableSet_finite_stop hτ, hQP.ae_le hτP,
+    hreal P hfinP (hV.integrable (by norm_num)), hreal Q hfinQ hVQ, ?_⟩
+  rw [← integral_toReal hW.aemeasurable hfinQ, ← integral_toReal hW.aemeasurable hfinP]
+  exact hcost
+
+/--
+info: 'SamplingOptimisationGeometryBench.BinaryPrefixLikelihood.binary_stopped_work_transfer' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms binary_stopped_work_transfer
+end
+end SamplingOptimisationGeometryBench.BinaryPrefixLikelihood

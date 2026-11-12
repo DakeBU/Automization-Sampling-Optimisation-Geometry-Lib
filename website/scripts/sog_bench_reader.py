@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import re
 import shutil
+from textwrap import wrap
+from urllib.parse import quote
 
 import astis_site
 import source_lineage
@@ -95,9 +97,11 @@ def prose(text: str, *, paragraph: bool = True) -> str:
         for i, span in enumerate(spans))
     # Stack independent comma-separated display identities, without changing
     # the audited source strings or shrinking their mobile math fonts.
-    def stack(match):
+    def stack(match, *, inline=False):
         body = match.group(1)
         if r'\begin{' in body:
+            if inline:
+                return match.group(0)
             # One common authored alignment: equality of two absolute values
             # followed by an estimate. Put each complete sized expression on
             # its own row without modifying the underlying gold formula.
@@ -141,6 +145,20 @@ def prose(text: str, *, paragraph: bool = True) -> str:
                     relations.append((index, relation.group()))
                 if char == '+' and not in_norm and (index == 0 or body[index-1] not in '^_\\'):
                     plus.append(index)
+        if inline:
+            # Keep long inline monotone chains readable at normal size. The
+            # authored comparison terms are unchanged; only their rows move.
+            if (len(body.strip()) >= 64 and len(relations) >= 2
+                    and not (parts or depth or group_depth or sized_depth or in_norm)
+                    and relations[0][1] != '='
+                    and all(op[:3] == relations[0][1][:3] for _, op in relations)
+                    and not any(token in body for token in (':=', '&', r'\quad', r'\left', r'\right', r'\\',
+                                                              r'\lvert', r'\rvert', r'\lVert', r'\rVert'))):
+                bounds = [0, *(pos for pos, _ in relations), len(body)]
+                rows = [body[i:j].strip() for i, j in zip(bounds, bounds[1:])]
+                if all(row and row.count('|') % 2 == 0 for row in rows):
+                    return r'\[\begin{aligned}&' + r'\\&'.join(rows) + r'\end{aligned}\]'
+            return match.group(0)
         if not parts:
             # A long equality followed by monotone comparisons can wrap at
             # the top-level relations, but sizing pairs stay on one line.
@@ -190,6 +208,19 @@ def prose(text: str, *, paragraph: bool = True) -> str:
         parts.append(body[start:])
         return r'\[\begin{gathered}' + r'\\'.join(parts) + r'\end{gathered}\]'
     rendered = re.sub(r'\\\[(.*?)\\\]', stack, text, flags=re.S)
+    if paragraph:
+        def reflow_inline(match):
+            if match.group(1) is None:
+                return match.group(0)
+            equation = stack(match, inline=True)
+            closing = r'\end{aligned}\]'
+            if match.group(2) and equation.endswith(closing):
+                # Keep a trailing sentence mark on the last equation row.
+                return equation.removesuffix(closing) + match.group(2) + closing
+            return equation
+
+        rendered = re.sub(r'\\\[[\s\S]*?\\\]|\$\$[\s\S]*?\$\$|\$[^$\n]+?\$|\x60[^\x60\n]+\x60|\\\(([\s\S]*?)\\\)([.,;:]?)',
+                          reflow_inline, rendered)
     content = inline_prose(rendered)
     return '<p>' + content + '</p>' if paragraph else content
 
@@ -211,13 +242,16 @@ def exercise_panel(core: dict, checked: bool) -> str:
     if not exercise:
         return ''
     source = exercise['book']
-    parts = []
+    component_mode = bool(exercise.get('source_components'))
+    parts = {}
     for part in exercise['parts']:
         declarations = [d for d in exercise['answer_declarations'] if part['id'] in d['supports']]
         links = ' · '.join('<a href="../../underlying-lean-graph/index.html?focus='
-                          + quote('decl:' + d['declaration'], safe='') + '"><code>'
-                          + escape(d['declaration']) + '</code></a>' for d in declarations)
-        parts.append('<li>' + escape(part['label']) + '<br>' + links + '</li>')
+                          + quote('decl:' + d['declaration'], safe='') + '" title="'
+                          + escape(d['declaration']) + '"><code>'
+                          + escape(d['declaration'].rsplit('.', 1)[-1] if component_mode else d['declaration'])
+                          + '</code></a>' for d in declarations)
+        parts[part['id']] = '<li>' + escape(part['label']) + '<br>' + links + '</li>'
     build = ('Current trusted build records the named owned answer modules and transitive axiom checks.'
              if checked else 'No current aggregate owned-answer build receipt is recorded in this build.')
     pdf = source['pdf_url'] + '#page='
@@ -225,21 +259,50 @@ def exercise_panel(core: dict, checked: bool) -> str:
     if 'pdf_page_end' in exercise:
         source_links += (' · <a href="' + escape(pdf + str(exercise['pdf_page_end']))
                          + '">Last source page</a>')
-    return (prose('Numbered textbook exercise · ' + source['title'] + ' · Exercise ' + exercise['number'])
-        + fold('Original exercise, all requested parts and exact Lean scope',
+    if component_mode:
+        from sog_bench_exercises import question_component
+
+        scope_label = 'Represented source parts and exact Lean scope'
+        source_blocks = '<h3>Separate mathematical results and their assumptions</h3>'
+        current = question_component(exercise, core['declaration'])
+        components = sorted(exercise['source_components'], key=lambda row: row['item_id'] != current)
+        for component in components:
+            source_blocks += fold(component['title'],
+                ('<p class="sog-caption">Source component for this question</p>' if component['item_id'] == current else '')
+                + prose(component['statement'])
+                + ''.join(prose(r'\[' + formula['tex'] + r'\]') for formula in component['formulae'])
+                + ''.join(prose(s) for s in component['assumptions'])
+                + '<p><a href="' + escape(component['source']['url']) + '">Component source</a></p>'
+                + '<h4>Owned answers for this part</h4><ol>'
+                + ''.join(parts[i] for i in component['part_ids']) + '</ol>')
+    else:
+        scope_label = 'Original exercise, all requested parts and exact Lean scope'
+        source_blocks = ('<h3>Original exercise · faithful ASTIS restatement</h3>'
+            + prose(exercise['source_statement'])
+            + ''.join(prose(s) for s in exercise['source_assumptions'])
+            + '<h3>Requested parts and owned answers</h3><ol>' + ''.join(parts.values()) + '</ol>')
+    if component_mode:
+        boundary = 'These Lean results cover only the named components; compilation and QA admission are separate.'
+    elif bench.has_lean(core):
+        boundary = ('The owned answer is a library reference, not a submission. The separate fixed Lean task '
+                    'covers the mathematical conclusion only, not the full explanatory proof or textbook.')
+    else:
+        boundary = ('This is owned core-answer reuse, not a new proof, an equivalent Lean challenge '
+                    'or full textbook certification.')
+    heading = prose('Numbered textbook exercise · ' + source['title'] + ' · Exercise ' + exercise['number'])
+    details = fold(scope_label,
             prose(', '.join(source['authors']) + ' · ' + source['edition'] +
                   ' · ' + exercise_pages(exercise))
             + '<p>' + source_links + ' · '
             '<a href="textbook-exercises/index.html">Numbered exercise directory</a></p>'
             + prose(exercise['wording_status'])
-            + '<h3>Original exercise · faithful ASTIS restatement</h3>'
-            + prose(exercise['source_statement'])
-            + ''.join(prose(s) for s in exercise['source_assumptions'])
-            + '<h3>Requested parts and owned answers</h3><ol>' + ''.join(parts) + '</ol>'
+            + source_blocks
             + ''.join(prose(s) for s in exercise['context_notes'])
             + '<h3>Remaining formal boundary</h3>' + ''.join(prose(s) for s in exercise['unformalized_context'])
-            + prose(build + ' This is owned core-answer reuse, not a new proof, an equivalent Lean challenge or full textbook certification.')
-            + prose(source['rights_boundary'])))
+            + prose(build + ' ' + boundary)
+            + prose(source['rights_boundary']))
+    return heading + ('<div class="sog-exercise-scope">' + details + '</div>'
+                      if component_mode else details)
 
 
 def exercise_index(cores: list[dict], checked: bool) -> str:
@@ -247,11 +310,15 @@ def exercise_index(cores: list[dict], checked: bool) -> str:
     rows = sog_bench_exercises.projection(cores, bench.editorial_review(cores)['items'], checked)
     cards = []
     for row in rows:
+        labels = {component['item_id']: component['title'] for component in row.get('source_components', [])}
         questions = ''.join('<li><a href="../' + q['core_id'] + '.html">'
-                           + escape(q['core_id']) + '</a> · ' + escape(q['editorial']) + '</li>' for q in row['questions'])
+                           + escape(labels.get(q.get('component_id'), q['core_id'])) + '</a> · '
+                           + escape(q['editorial']) + '</li>' for q in row['questions'])
+        editorial = (prose(str(len(row['represented_components_with_accepted_qa'])) + ' of ' + str(len(labels))
+                     + ' represented source components have an accepted question.') if labels else '')
         cards.append('<section><h2>' + escape(row['book']['title']) + ' · Exercise '
                      + escape(row['number']) + '</h2>' + prose(row['book']['edition'] +
-                       ' · ' + exercise_pages(row)) + '<ul>' + questions + '</ul>'
+                       ' · ' + exercise_pages(row)) + '<ul>' + questions + '</ul>' + editorial
                      + prose('Named owned answer declarations: ' + str(len(row['answer_declarations']))
                              + '. Current trusted module build recorded: ' + str(checked).lower() + '.')
                      + ''.join(prose(s) for s in row['unformalized_context']) + '</section>')
@@ -315,6 +382,12 @@ def training_guide() -> str:
 
 def experts_page(cores: list[dict], graph_ids: set[str], known: dict) -> str:
     from urllib.parse import quote
+    def graph_link(decl):
+        kind, node = bench.graph_anchor(decl.full_name, decl.source_file, graph_ids)
+        if node is None:
+            return 'Graph not indexed'
+        label = 'Declaration in Lean Graph' if kind == 'declaration' else 'Owning module in Lean Graph'
+        return '<a href="../../../underlying-lean-graph/index.html?focus=' + quote(node, safe='') + '">' + label + '</a>'
     sections = []
     for domain, label in bench.curriculum.curriculum()['domains'].items():
         rows = []
@@ -322,23 +395,16 @@ def experts_page(cores: list[dict], graph_ids: set[str], known: dict) -> str:
             if domain != c['library_domains'][0]:
                 continue
             decl = known[c['declaration']]
-            node = 'decl:' + c['declaration']
-            if node not in graph_ids:
-                node = 'module:' + decl.module
             href, _ = astis_site.source_href(decl, from_path=HUB + 'experts/index.html')
             additional = []
             related = c.get('supporting_declarations', []) + c.get('textbook_exercise', {}).get('answer_declarations', [])
             for result in {r['declaration']: r for r in related}.values():
                 target = known[result['declaration']]
-                result_node = 'decl:' + target.full_name
-                if result_node not in graph_ids:
-                    result_node = 'module:' + target.module
                 result_href, _ = astis_site.source_href(target, from_path=HUB + 'experts/index.html')
-                additional.append('<li><code>' + escape(target.short_name) + '</code> · <a href="../../../underlying-lean-graph/index.html?focus='
-                    + quote(result_node, safe='') + '">Graph</a> · <a href="' + escape(result_href) + '">Source</a></li>')
+                additional.append('<li><code>' + escape(target.short_name) + '</code> · ' + graph_link(target)
+                    + ' · <a href="' + escape(result_href) + '">Source</a></li>')
             rows.append('<li id="' + c['id'] + '"><a href="../' + c['id'] + '.html">' + escape(c['title']) + '</a>'
-                '<p><code>' + escape(decl.short_name) + '</code> · '
-                '<a href="../../../underlying-lean-graph/index.html?focus=' + quote(node, safe='') + '">Graph position</a> · '
+                '<p><code>' + escape(decl.short_name) + '</code> · ' + graph_link(decl) + ' · '
                 '<a href="' + escape(href) + '">Exact source</a></p>'
                 '<p class="sog-caption">' + ('Aligned Lean task; explanatory scope is separate.' if bench.has_lean(c)
                                               else 'Formal support, not an aligned fixed Lean task.') + '</p>'
@@ -378,12 +444,15 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
     known = known or astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
     declaration = known[core['declaration']]
     href, _ = astis_site.source_href(declaration, from_path=rel)
-    graph_id = 'decl:' + core['declaration']
-    if graph_id in (graph_ids or set()):
-        graph_label = 'Locate the existing Lean declaration'
-    else:
-        graph_id = 'module:' + declaration.module
-        graph_label = 'Locate the owning module (declaration not yet indexed in this graph)'
+    anchor_kind, graph_id = bench.graph_anchor(core['declaration'], core['source_file'], graph_ids)
+    anchor_label = {'declaration': 'Declaration anchor', 'owning-module': 'Owning-module anchor',
+                    'not-indexed': 'Not indexed in Lean Graph', 'not-checked': 'Graph position not checked'}[anchor_kind]
+    graph_label = ('Locate the existing Lean declaration' if anchor_kind == 'declaration'
+                   else 'Locate the owning module (declaration not yet indexed in this graph)')
+    graph_href = ('../../underlying-lean-graph/index.html?focus=' + quote(graph_id, safe='')
+                  if graph_id is not None else None)
+    graph_short = f'<a href="{graph_href}">Lean Graph ↗</a> · ' if graph_href else ''
+    graph_detail = f' · <a href="{graph_href}">{graph_label}</a>' if graph_href else ' · ' + anchor_label
     status = 'Trusted reference compilation recorded for this source state.' if checked else 'No current trusted-reference compiler receipt recorded in this build.'
     assumptions = '<ul>' + ''.join('<li>' + prose(s, paragraph=False) + '</li>'
                                    for s in core['assumptions']) + '</ul>'
@@ -423,14 +492,16 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
                           + support['source_sha256_lf'] + '</code></li>')
     if support_links:
         dependencies += '<h3>Additional source-bound support (not full QA certification)</h3><ul>' + support_links + '</ul>'
-    related=[g for g in (bench.curriculum.graph_items() if structural is None else structural) if g.get('core_id')==core['id']]
+    related = [g for g in (bench.curriculum.graph_items() if structural is None else structural)
+               if g.get('core_id') == core['id'] or
+               (g['context']['kind'] == 'compiled-proof-body-constant-occurrences'
+                and core['declaration'] in g['context']['nodes'])]
     graph_links=('<p>Structural questions about this proof context (not equivalent mathematical tasks): '+
                  ' · '.join('<a href="'+g['id']+'.html">'+escape(g['title'])+'</a>' for g in related)+'</p>') if related else ''
-    graph_position = ('<aside class="sog-graph-position" data-lean-graph-position="' + escape(graph_id) + '">'
-        '<p class="sog-graph-short"><a href="../../underlying-lean-graph/index.html?focus='
-        + quote(graph_id, safe='') + '">Lean Graph ↗</a> · <a href="' + escape(href) + '">Source ↗</a>'
+    graph_position = ('<aside class="sog-graph-position" data-lean-graph-position="' + escape(graph_id or '') + '">'
+        '<p class="sog-graph-short">' + graph_short + '<a href="' + escape(href) + '">Source ↗</a>'
         + '<small>' + ('Aligned fixed target' if bench.has_lean(core) else 'Supporting Lean only') + ' · '
-        + ('Declaration anchor' if graph_id.startswith('decl:') else 'Owning-module anchor') + '</small></p>'
+        + anchor_label + '</small></p>'
         + fold('Graph location and verification scope', '<h2>' + escape(declaration.short_name) + '</h2>'
             + prose('Aligned fixed Lean task; its conclusion does not certify every explanatory claim.'
                     if bench.has_lean(core) else 'Library support only: this question has no aligned fixed Lean reconstruction task.')
@@ -448,11 +519,11 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
         + formal_view
         + fold('Why this difficulty?', prose(core['difficulty_reason']))
         + review_panel(core, review_row)
-        + graph_links + '<section><h2>What this does—and does not—verify</h2>' + prose(core['boundary'])
+        + graph_links + '<section><h2>What this does—and does not—verify</h2>' + prose(bench.mathematical_scope(core))
         + '<p>Existing library mathematics reused; no new mathematical leaf or paper-completion credit. The editorial panel records the exact current review scope and remaining unformalized explanation.</p></section>'
         + fold('Sources, graph location and dependencies', prose(core['source_note'])
-            + '<p><a href="' + escape(href) + '">Exact local source and full context</a> · <a href="../../underlying-lean-graph/index.html?focus='
-            + quote(graph_id, safe='') + '">' + graph_label + '</a></p><p><code>' + escape(core['declaration']) + '</code></p>'
+            + '<p><a href="' + escape(href) + '">Exact local source and full context</a>' + graph_detail
+            + '</p><p><code>' + escape(core['declaration']) + '</code></p>'
             + dependencies + '<p>Binding SHA-256: <code>' + core['binding_sha256'] + '</code></p>')
         + '</article>')
 
@@ -482,20 +553,63 @@ def browse_page(cores: list[dict], key: str, *, domain: bool) -> str:
         + escape(' / '.join(t + ': ' + l for t, l in c['track_levels'].items())) + '</li>' for c in selected)
     graphs = [g for g in bench.curriculum.graph_items() if (key in g['library_domains'] if domain else g['level'] == key)]
     graph_rows = ''.join('<li><a href="../' + g['id'] + '.html">' + escape(g['title']) + '</a> · ' + g['level'] + '</li>' for g in graphs)
+    introduction = ('<p>Separate sharpness for a specified method from a lower bound for every algorithm in a stated oracle model. '
+                    'Read the <a href="../../../lower-bounds/index.html">Lower Bounds research guide</a> for the source and graph context. '
+                    'A linked result is not automatically a Bench question or a complete lower-bound proof.</p>'
+                    if domain and key == 'lower-bounds' else '')
     return (f'<article class="sog-reader" {MARKER}><p><a href="../curriculum/index.html">Curriculum</a></p><h1>' + escape(title)
-        + '</h1><h2>Mathematical QA</h2>' + ('<ul>' + rows + '</ul>' if rows else '<p>No authored question at this tier yet. This is an explicit coverage gap.</p>')
+        + '</h1>' + introduction + '<h2>Mathematical QA</h2>' + ('<ul>' + rows + '</ul>' if rows else '<p>No authored question at this tier yet. This is an explicit coverage gap.</p>')
         + '<h2>Structural graph QA</h2>' + ('<ul>' + graph_rows + '</ul>' if graphs else '<p>No structural question in this slice yet.</p>')
         + '<p>Difficulty is provisional. Each question discloses its own current editorial status; empirical calibration remains pending.</p></article>')
 
 
-def graph_page(item: dict) -> str:
+def graph_page(item: dict, graph_ids: set[str] | None = None) -> str:
     prompt = bench.curriculum.graph_prompts([item])[0]
     evidence = graph_review.summary(bench.curriculum.graph_items())['items'][item['id']]
     status = '<p>Current editorial status: <strong>' + escape(evidence['editorial']) + '</strong>. This is AI review of structural QA, not a theorem or calibrated difficulty.</p>'
-    status += '<ul>' + ''.join('<li>' + escape(s) + '</li>' for s in evidence.get('issues', []) + evidence.get('remaining_limits', [])) + '</ul>'
-    status += '<p><a href="downloads/graph-editorial-review.json">Exact review bindings and report hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews/'+graph_review.CURRENT_ROUND.name+'">Current independent review and explicit historical supersession</a></p>'
+    status += '<p>Limits recorded at the time of the review:</p><ul>' + ''.join(
+        '<li>' + escape(s) + '</li>' for s in evidence.get('issues', []) + evidence.get('remaining_limits', [])) + '</ul>'
+    round_name = evidence.get('review_round', graph_review.CURRENT_ROUND.name)
+    status += '<p><a href="downloads/graph-editorial-review.json">Exact review bindings and report hashes</a> · <a href="https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/reviews/'+escape(round_name)+'">Independent review for this question</a></p>'
     compiled=item['context']['kind']=='compiled-proof-body-constant-occurrences'
-    artifact='compiled-flow-graph.json' if item['core_id']=='sogb-023' else 'compiled-transport-graph.json'
+    trace = ''
+    lookup = ''
+    positions = ''
+    if compiled:
+        import sog_bench_graph_slices
+        artifact=sog_bench_graph_slices.artifact_for(item['id'])
+        if 'remove' in item:
+            paths, shared = sog_bench_graph_slices.reference_paths(item)
+            labels = item['context']['node_labels']
+            trace = ''.join('<p>Selected path: ' + escape(' → '.join(labels[n] for n in path))
+                            + '.</p>' for path in paths)
+            if len(item['targets']) > 1 and shared:
+                trace += ('<p>Shared immediate proof-body parent(s): '
+                          + escape(', '.join(labels[n] for n in shared))
+                          + '. Sharing a parent alone does not imply a directed path between the targets.</p>')
+        if evidence['editorial'] in {'accepted', 'accepted-after-repair'} and item['split'] == 'public-dev':
+            run_dir = '.astis/sog-bench/runs/' + item['id'] + '-lookup'
+            commands = (
+                'python tools/sog_bench_graph_search.py run --task-id ' + item['id']
+                + ' --max-lookups 8 --output ' + run_dir + '\n'
+                + 'python tools/sog_bench_graph_search.py replay --run ' + run_dir
+            )
+            lookup = fold('Try this as a bounded search task',
+                '<p>From the repository root, run the first command and send the emitted prompt to the solver. '
+                'It receives the question and the results of its own <code>find</code> or <code>inspect</code> requests, '
+                'not the diagram, answer, or repository. Submit one final; invalid lookups spend budget. '
+                'The second command replays the recorded interaction.</p>'
+                + astis_site.code_html(commands, 'bash')
+                + '<p><a href="downloads/EVALUATION.md#graph-lookup-without-the-snapshot">JSONL tool and scoring protocol</a>. '
+                'This is a local operator workflow, not live Lean verification or an unseen test.</p>')
+        if graph_ids is not None:
+            positions = fold('Locate these declarations in the Lean Graph',
+                '<p>Open an exact declaration node to inspect its source and wider context. '
+                'A node location is not another occurrence edge.</p><ul>' + ''.join(
+                    '<li>' + (f'<a href="../../underlying-lean-graph/index.html?focus={quote("decl:" + node, safe="")}">{escape(label)}</a>'
+                              if 'decl:' + node in graph_ids else
+                              escape(label) + ' · declaration not indexed') + '</li>'
+                    for node, label in item['context']['node_labels'].items()) + '</ul>')
     provenance=('<p>This is a recorded source-bound compiler snapshot. CI separately replays the trusted extractor. It is not a fresh Lean run in this browser, a full proof closure or a minimal-premise certificate. Unique proof constants do not count runtime invocations, recursive calls or oracle queries.</p><p><a href="downloads/'+artifact+'">Recorded compiler slice and provenance</a></p>') if compiled else '<p>This graph scans source import declarations, not theorem proof bodies.</p>'
     profiles=''
     if item.get('required_statement_constants'):
@@ -519,10 +633,15 @@ def graph_page(item: dict) -> str:
         + import_figure(item['context'])
         + profiles
         + background
+        + lookup
+        + positions
         + fold('Independent structural review and limits', status)
         + fold('Evidence kind and source scope', provenance+prose(item['context']['truth_boundary']))
-        + fold('Exact JSON snapshot and response schema', '<pre><code class="language-json">' + escape(json.dumps(prompt, indent=2)) + '</code></pre>')
-        + fold('Reference structural answer · 2 checks, 1 point', '<pre><code>' + escape(json.dumps(item['answer'], indent=2)) + '</code></pre>'
+        + fold('Exact JSON snapshot and response schema',
+            '<p>The supplied-snapshot response identifies this visible prompt with <code>prompt_sha256</code>. '
+            'The current CLI rejects duplicate JSON keys before scoring; this does not authenticate who answered or when.</p>'
+            '<pre><code class="language-json">' + escape(json.dumps(prompt, indent=2)) + '</code></pre>')
+        + fold('Reference structural answer · 2 checks, 1 point', trace + '<pre><code>' + escape(json.dumps(item['answer'], indent=2)) + '</code></pre>'
             '<p>One point requires both the exact structural node set and a false mathematical-necessity certification. The constant boundary answer earns no standalone credit. Edges have only the stated evidence kind. Neither a positive path nor an absent induced path proves mathematical necessity or full-closure independence.</p>')
         + '<p>No model score, theorem-equivalence certificate or calibrated difficulty is asserted.</p></article>')
 
@@ -590,15 +709,35 @@ def import_figure(graph: dict) -> str:
     height = 100 + highest * 130
     positions = {n: ((i + 1) * width / (len(group) + 1), 45 + (highest - r) * 130)
                  for r, group in groups.items() for i, n in enumerate(group)}
-    box_width=250
+    labels={n:graph.get('node_labels',{}).get(n,n.rsplit('.',1)[-1]) for n in nodes}
+    lines={n:[label] for n,label in labels.items()}
+    box_width,box_height=250,44
     if compiled:
-        box_width=220
-        width=max(660,250*max(map(len,groups.values()),default=1)+40)
-        positions={n:((width-(len(group)*box_width+(len(group)-1)*30))/2+box_width/2+i*250,
-                      45+(highest-r)*130) for r,group in groups.items() for i,n in enumerate(group)}
+        # Keep exact reviewed labels at a readable size instead of shrinking
+        # the text. Compact wrapped cards keep a four-node row visible on
+        # desktop; mobile retains the existing horizontal scroll.
+        lines={n:wrap(label,width=20,break_long_words=False,break_on_hyphens=False)
+               for n,label in labels.items()}
+        longest=max((len(line) for label in lines.values() for line in label),default=0)
+        box_width=max(172,8*longest+14)
+        box_height=max(44,15*max(map(len,lines.values()),default=1)+14)
+        gap,pitch=20,box_width+20
+        columns=max(map(len,groups.values()),default=1)
+        width=max(240, pitch*columns-gap+12)
+        height=box_height+56+highest*130
+        positions={n:((width-(len(group)*box_width+(len(group)-1)*gap))/2+box_width/2+i*pitch,
+                      box_height/2+23+(highest-r)*130)
+                   for r,group in groups.items() for i,n in enumerate(group)}
+    half=box_height/2
     style='' if compiled else 'stroke-dasharray="5 4"'
-    paths = ''.join(f'<path d="M {positions[a][0]} {positions[a][1]+22} L {positions[b][0]} {positions[b][1]-22}" stroke="#657080" {style} fill="none" marker-end="url(#sog-arrow)"/>' for a, b in edges)
-    boxes = ''.join(f'<g><title>{escape(n)}</title><rect x="{x-box_width/2}" y="{y-22}" width="{box_width}" height="44" rx="6" fill="#f5f6f8" stroke="#657080"/><text x="{x}" y="{y+4}" text-anchor="middle" font-size="14" fill="#17212f">{escape(graph.get("node_labels",{}).get(n,n.rsplit(".",1)[-1]))}</text></g>' for n, (x, y) in positions.items())
+    paths = ''.join(f'<path d="M {positions[a][0]} {positions[a][1]+half} L {positions[b][0]} {positions[b][1]-half}" stroke="#657080" {style} fill="none" marker-end="url(#sog-arrow)"/>' for a, b in edges)
+    def box(n,x,y):
+        first_y=y+4-(len(lines[n])-1)*7.5
+        content=' '.join(f'<tspan x="{x}" dy="{0 if i==0 else 15}">{escape(line)}</tspan>'
+                         for i,line in enumerate(lines[n]))
+        return (f'<g><title>{escape(n)}</title><rect x="{x-box_width/2}" y="{y-half}" width="{box_width}" height="{box_height}" rx="6" fill="#f5f6f8" stroke="#657080"/>'
+                f'<text x="{x}" y="{first_y}" text-anchor="middle" font-size="14" fill="#17212f" aria-label="{escape(labels[n])}">{content}</text></g>')
+    boxes=''.join(box(n,x,y) for n,(x,y) in positions.items())
     label='Selected compiled proof-body occurrences; not full closure or mathematical necessity' if compiled else 'Source-scanned import graph; arrows point to imported modules, not theorem implication'
     caption='Solid arrows: selected theorem constants occur in the compiled proof bodies, including proof-term annotations. Other constants and private auxiliaries are omitted; a missing path is not full-closure independence.' if compiled else 'Dashed arrows: source-scanned imports in the supplied slice. The shared module occurs once.'
     return (f'<figure class="sog-graph"><svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" role="img" aria-label="{label}" viewBox="0 0 {width} {height}">'
@@ -612,10 +751,10 @@ def enrich_site(output: Path) -> None:
     known = astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
     astis_site._SOURCE_BY_NAME=known
     checked = bench.receipt_current(cores)
-    graph_ids = {n['id'] for n in json.loads((output / 'data/underlying-lean-graph.json').read_text(encoding='utf-8'))['nodes']}
+    graph_ids = bench.graph_index_ids(output / 'data/underlying-lean-graph.json')
     target = output / HUB
     target.mkdir(parents=True, exist_ok=True)
-    bench.export(target / 'downloads', cores)
+    bench.export(target / 'downloads', cores, graph_ids=graph_ids)
     bench.archive_bytes(target / 'downloads', target / 'pilot.zip')
     for collection in bench_portals.configuration()['collections']:
         folder = target / collection['id']
@@ -640,7 +779,7 @@ def enrich_site(output: Path) -> None:
     pages.append(('textbook-exercises/index.html', 'Numbered textbook exercises', exercise_index(cores, checked)))
     pages += [('domains/' + key + '.html', title, browse_page(cores, key, domain=True)) for key, title in policy['domains'].items()]
     pages += [('levels/' + key + '.html', key, browse_page(cores, key, domain=False)) for key in policy['levels']]
-    pages += [(g['id'] + '.html', g['title'], graph_page(g)) for g in graphs]
+    pages += [(g['id'] + '.html', g['title'], graph_page(g, graph_ids)) for g in graphs]
     graph_index=graph_index_page(graphs)
     pages.append(('graph-json/index.html', 'Structured graph QA', graph_index))
     for tail, title, body in pages:
@@ -661,6 +800,13 @@ def enrich_site(output: Path) -> None:
         'data-sog-bench-entry')
 
 
+def has_exercise_graph_target(nodes: dict, declaration: str, *, checked: bool) -> bool:
+    """Check a source-owned declaration link without promoting source-only evidence."""
+    node = nodes.get('decl:' + declaration, {})
+    return (node.get('kind') == 'declaration' and bool(node.get('url'))
+            and node.get('status') in ({'compiled'} if checked else {'compiled', 'partial'}))
+
+
 def validate_site(output: Path) -> list[str]:
     errors = []
     cores = bench.materialize()
@@ -678,9 +824,9 @@ def validate_site(output: Path) -> list[str]:
             if 'decl:' + core['declaration'] not in ids and 'module:' + module not in ids:
                 errors.append('Missing Bench graph target: ' + core['id'])
             for answer in core.get('textbook_exercise', {}).get('answer_declarations', []):
-                node = nodes.get('decl:' + answer['declaration'])
-                if not node or node.get('status') != 'compiled':
-                    errors.append('Numbered exercise requires the actual compiled owned graph node: ' + answer['declaration'])
+                if not has_exercise_graph_target(nodes, answer['declaration'], checked=checked):
+                    scope = 'compiled ' if checked else ''
+                    errors.append('Numbered exercise requires the exact ' + scope + 'owned declaration graph node: ' + answer['declaration'])
     else:
         errors.append('Bench requires the canonical Lean graph')
     policy = bench.curriculum.curriculum()
@@ -707,7 +853,7 @@ def validate_site(output: Path) -> list[str]:
                      'curriculum/index.html': curriculum_page(cores),
                      **{'domains/' + d + '.html': browse_page(cores, d, domain=True) for d in policy['domains']},
                      **{'levels/' + l + '.html': browse_page(cores, l, domain=False) for l in policy['levels']},
-                     **{g['id'] + '.html': graph_page(g) for g in graphs}}
+                     **{g['id'] + '.html': graph_page(g, ids) for g in graphs}}
     for rel, body in current_pages.items():
         path = output / HUB / rel
         if path.exists() and body not in path.read_text(encoding='utf-8'):
@@ -720,7 +866,7 @@ def validate_site(output: Path) -> list[str]:
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
         export = Path(tmp) / 'export'
-        bench.export(export, cores)
+        bench.export(export, cores, graph_ids=ids)
         for source in export.rglob('*'):
             if source.is_file():
                 target = output / HUB / 'downloads' / source.relative_to(export)

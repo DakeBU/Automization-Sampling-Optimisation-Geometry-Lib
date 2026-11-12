@@ -1,6 +1,18 @@
 # Continuing Bench Goal
 
-Build a source-grounded AI knowledge/reasoning benchmark over Samplinglib's seven subject libraries. The active Goal lives in the current human chat; this file is its durable handoff, not a parallel scheduler. Preserve all unrelated mathematical frontiers and collaborator files.
+Build a source-grounded AI knowledge/reasoning benchmark across eight domains:
+Log-Concave Sampling, SampleWiki, Optimisation, Riemannian Optimisation,
+Statistical Optimal Transport, Discrete Sampling, Lower Bounds, and MCMC.
+The active Goal lives in the current human chat; this file is its durable
+handoff, not a parallel scheduler. Preserve unrelated frontiers and collaborator files.
+
+Lower Bounds was added to the Goal on 2026-11-10. Seven-domain references in
+the historical checkpoints below predate this addition. Use the cross-library
+[Lower Bounds research route](../../docs/lower-bounds-reader.md), preserving
+the distinction between method-specific sharpness and an oracle-model lower
+bound with explicit information, algorithm and cost assumptions. This domain
+starts with visible coverage gaps; an existing proof or reader link is not
+an admitted QA task. Keep existing core bindings and split identities intact.
 
 ## Current owner priority: a usable research benchmark (2026-11-05)
 
@@ -19,7 +31,7 @@ fixed-target Agentic Lean submission environment, including target/axiom checks,
 failure accounting, compiler interaction and hostile/incorrect software fixtures;
 (3) support real declared model runs and mathematical grading with honest
 provenance, contamination and calibration boundaries; (4) continue broader
-seven-domain reasoning depth and actual textbook exercises. Graph JSON trials
+reasoning depth across the curriculum and actual textbook exercises. Graph JSON trials
 and trusted-reference compilation are not an Agentic Lean benchmark. A portable
 ZIP, API-shaped metadata or a redesigned landing page does not complete this Goal.
 Do not spend this reader/evaluator phase manufacturing further background wrappers.

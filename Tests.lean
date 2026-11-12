@@ -12,6 +12,10 @@ import Tests.Shared.BoundedDensityPerturbation
 import Tests.Shared.BoundedPerturbationEnergy
 import Tests.Shared.CompactGradientSqrtPerturbation
 import Tests.Shared.BoundedPerturbationLaw
+import Tests.Shared.AffinePerturbationKL
+import Tests.Shared.LogSobolevCutoff
+import Tests.Shared.LogSobolevCutoffDomain
+import Tests.Shared.CompactLogSobolevPoincare
 import Tests.GaussianLipschitzExponential
 import Tests.StandardizedRGOPositionFisher
 import Tests.FullRangeProximalGaussianOracle
@@ -190,6 +194,8 @@ import Tests.StoppingTime
 import Tests.TimeMeasureRealBridge
 import Tests.Transport
 import Tests.WassersteinSpace
+import Tests.Shared.GaussianMixtureCoupling
+import Tests.Shared.WassersteinLipschitzLower
 import Tests.AccumulatedEnergy
 import Tests.LocalProgressiveL2
 import Tests.PrefixIntegral

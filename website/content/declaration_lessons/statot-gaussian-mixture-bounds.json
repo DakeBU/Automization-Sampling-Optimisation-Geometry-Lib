@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureWasserstein.wassersteinDistance_gaussianMixtures_bounds",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureWasserstein",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianMixtureWasserstein.lean",
+      "short_name": "wassersteinDistance_gaussianMixtures_bounds",
+      "title": "The same two Gaussian mixtures: every-plan lower bound and one-plan upper bound",
+      "classification": "Exact exercise answer with explicit sufficient constants",
+      "statement": "For every real m>0, the quadratic Wasserstein distance between the actual two unit-variance real Gaussian mixtures with respective weights (1/2,1/2) and (1/4,3/4) at −m and m lies between m/2 and m.",
+      "formula": "m/2\\le W_2(\\mu,\\nu)\\le m\\qquad(m>0).",
+      "assumptions": [
+        "The ambient space is the real Borel line. Gₐ is a Gaussian probability law of mean a and variance one. The mixture weights and centers are literal and only m>0 is required.",
+        "Both mixtures have finite second moments, as required by the Wasserstein domain. This is proved from the Gaussian components, not assumed. A witness for an upper bound need not be optimal."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Check the two laws and their moments",
+          "text": "Each component is a probability law of finite second moment. The positive weights in each row sum to one, so both weighted sums are probability laws with finite second moments. In particular their first moments exist.",
+          "formula": "\\mathbb E_{G_a}X^2=1+a^2,\\qquad \\mu(\\mathbb R)=\\nu(\\mathbb R)=1.",
+          "lean": "Mathlib supplies probability for each gaussianReal, membership of the identity in L² and the Gaussian first moments. The proof checks the ENNReal weights and uses finite measure scaling and addition of integrable functions."
+        },
+        {
+          "number": 2,
+          "title": "Bound all couplings with a signed test",
+          "text": "For any real 1-Lipschitz f, its growth from f(0) and the finite second moments ensure integrability. Pull the two expectations back along the marginals of an arbitrary coupling. Lipschitzness bounds the signed joint integrand by the displacement. Because every coupling has total mass one, Cauchy–Schwarz bounds the linear cost by the root quadratic cost. Taking the infima in order gives the two comparisons.",
+          "formula": "\\mathbb E_\\mu f-\\mathbb E_\\nu f\\le W_1(\\mu,\\nu)\\le W_2(\\mu,\\nu).",
+          "lean": "The existing Samplinglib theorem WassersteinLipschitzLower proves both comparisons. It handles integrability and marginal pullback rather than assuming an optimal plan or dual attainment."
+        },
+        {
+          "number": 3,
+          "title": "Evaluate the right sign of the mean gap",
+          "text": "The first mixture has mean zero. The second has mean m/2 because three quarters of its mass is on the Gaussian centered at m. Use f(x)=−x, not x, for the displayed orientation of the expectation difference.",
+          "formula": "\\mathbb E_\\mu X=0,\\qquad \\mathbb E_\\nu X=m/2,\\qquad m/2=\\mathbb E_\\mu(-X)-\\mathbb E_\\nu(-X)\\le W_2(\\mu,\\nu).",
+          "lean": "integral_add_measure, integral_smul_measure and integral_id_gaussianReal compute both means. The proof verifies the Lipschitz condition for the negative identity, then composes the two existing lower inequalities."
+        },
+        {
+          "number": 4,
+          "title": "Construct one feasible plan for the upper side",
+          "text": "Let Qₐ,ᵦ be the law of (Z+a,Z+b) with a common standard normal draw Z. The affine maps are Borel and the two marginals are Gₐ and Gᵦ. Keep a quarter at the left center and a half at the right center. Move the remaining quarter from left to right. The first marginal receives two left quarters; the second receives one left quarter and the remaining three quarters at the right. Shared noise cancels, so only the move contributes to the quadratic cost.",
+          "formula": "\\gamma=\\tfrac14Q_{-m,-m}+\\tfrac14Q_{-m,m}+\\tfrac12Q_{m,m},\\qquad \\int |x-y|^2\\,d\\gamma=\\tfrac14(2m)^2=m^2.",
+          "lean": "The Samplinglib GaussianMixtureCoupling theorem constructs the actual plan and proves the marginal equalities and cost. The assembly consumes the witness, not just an assumed cost bound."
+        },
+        {
+          "number": 5,
+          "title": "Take the quadratic infimum, then undo the square",
+          "text": "The infimum of quadratic costs is at most the cost of this specific feasible plan. Taking nonnegative square roots gives the desired upper bound for m>0. Together with the lower side this proves the comparison with constants independent of m.",
+          "formula": "W_2(\\mu,\\nu)^2\\le m^2\\ \\Longrightarrow\\ W_2(\\mu,\\nu)\\le m.",
+          "lean": "Samplinglib’s squared infimum bridge transfers the witness cost to the distance. Mathlib’s strictly increasing positive power on ENNReal turns the squared comparison into the stated upper bound."
+        }
+      ],
+      "lean_statement": "For every positive real m and the two literal Mathlib Gaussian mixtures, the quadratic Wasserstein distance is between the ENNReal embeddings of m/2 and m.",
+      "lean_proof": "Normalize the weighted probability measures and show their second moments. Compute their mean gap and use the negative identity in the lower comparison. Apply the existing exact-cost witness and squared infimum bridge, then undo the square.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureCoupling.exists_gaussian_mixture_coupling_cost",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzLower.expectation_sub_le_linearCost_and_le_wassersteinDistance",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance_sq_le_lintegral_of_isCoupling"
+      ],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.memLp_id_gaussianReal'",
+        "ProbabilityTheory.integral_id_gaussianReal",
+        "MeasureTheory.memLp_two_iff_integrable_sq",
+        "MeasureTheory.integral_add_measure",
+        "MeasureTheory.integral_smul_measure",
+        "ENNReal.rpow_le_rpow_iff"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/st_flour.pdf#page=50",
+          "label": "Statistical Optimal Transport, Chapter 1 §1.8 Exercise 6, printed p.44 / PDF p.50",
+          "scope": "Original restatement and full mathematical solution of the two-sided comparison."
+        },
+        {
+          "url": "https://chewisinho.github.io/st_flour.pdf#page=23",
+          "label": "Statistical Optimal Transport §1.2, printed p.17 / PDF p.23",
+          "scope": "Finite-moment conventions and Wasserstein ordering."
+        }
+      ],
+      "boundary": [
+        "Only the named two-sided comparison for the specified positive parameter and literal measures. No optimal constants, exact distance, optimizer, dual equality, aligned Lean challenge, Bench admission or integrated release."
+      ],
+      "tests": {
+        "file": "Tests/Shared/WassersteinLipschitzLower.lean",
+        "scope": "The focused example consumes the named theorem on both literal mixtures under only m>0. It does not supply a coupling, a moment bound, or either inequality."
+      }
+    }
+  ]
+}

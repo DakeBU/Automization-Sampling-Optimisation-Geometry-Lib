@@ -33,6 +33,12 @@ def response(action='submit', source='unit fixture; never executed', identity='o
         'usage': {'output_tokens': 1}}
 
 
+def lookup_response(query, identity='search'):
+    item = response(identity=identity)
+    item['output'][-1].update(name=model.retrieval.TOOL['name'], arguments=json.dumps({'query': query}))
+    return item
+
+
 class FixtureProvider:
     kind = 'controlled-unit-fixture-not-an-api-or-model'
 
@@ -115,6 +121,85 @@ class ModelBridgeTests(unittest.TestCase):
                 self.assertEqual(runtime.bench.sha((output / path).read_bytes()), digest)
             with self.assertRaises(ValueError):
                 self.run_fixture(directory, root / 'retry', FixtureProvider(response()))
+
+    def test_baseline_cannot_lookup_even_with_a_well_formed_query(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); directory = self.make_workspace(root)
+            provider = FixtureProvider(lookup_response('gluing'))
+            result = self.run_fixture(directory, root / 'transcript', provider)
+            self.assertEqual(result['lookup_calls_returned'], 0)
+            self.assertEqual(result['final_outcome'], 'no-final-submission')
+            self.assertEqual(workspace.history(directory)[1], [])
+
+    def test_real_source_projection_and_lookup_trajectory(self):
+        retrieval = model.retrieval
+        corpus = retrieval.build()
+        self.assertEqual({row['declaration'] for row in corpus['rows']}, retrieval.ALLOW)
+        self.assertEqual(len(corpus['rows']), 12)
+        self.assertNotIn('wassersteinDistance_lt_add_of_lt', json.dumps(corpus))
+        self.assertNotIn('isProbabilityMeasure_of_isCoupling_left', json.dumps(corpus))
+        for row in corpus['rows']:
+            self.assertRegex(row['statement'], r'^(theorem|lemma) ')
+            self.assertNotIn(':= by', row['statement'])
+            self.assertNotIn('proof', row)
+            self.assertEqual(row['source_sha256_lf'],
+                             runtime.bench.text_hash(runtime.ROOT / row['source_file']))
+        self.assertEqual(retrieval.search(corpus, 'xqzunknown')['hits'], [])
+        exact = 'AutoSamplingTheory.TechnicalLemmas.Measure.TransportGluing.exists_gluing_of_isCoupling'
+        self.assertEqual(retrieval.search(corpus, exact)['hits'][0]['declaration'], exact)
+        self.assertLessEqual(len(retrieval.search(corpus, 'cost edge coupling')['hits']), 3)
+        for query in ('', '   ', '../oracle', 'https://example.test', 'a'*241, 'x\nmatch'):
+            self.assertFalse(retrieval.valid_query(query), query)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); directory = self.make_workspace(root, identity=retrieval.TARGET_ID)
+            raw = runtime.bench.encoded(corpus)
+            lookup = root / 'lookup.json'; lookup.write_bytes(raw)
+            path = directory / 'session.json'; manifest = json.loads(path.read_bytes())
+            manifest['binding_sha256'] = corpus['task_binding_sha256']
+            manifest['provenance'].update(tools=['lean_workspace', retrieval.TOOL['name']],
+                retrieval_profile=retrieval.PROFILE, max_searches=1,
+                retrieval_corpus_sha256=runtime.bench.sha(raw))
+            path.write_bytes(runtime.bench.encoded(manifest))
+            output = root / 'transcript'
+            with patch.object(runtime, 'checked_packet'), patch.object(
+                    runtime, 'run_submission', side_effect=self.fake_verifier) as native, patch.object(
+                    retrieval, 'build', return_value=corpus):
+                # Even an operator-signed injection must match the canonical
+                # source projection, not just the operator's claimed digest.
+                foreign = {**corpus, 'rows': [*corpus['rows'], {'statement': 'PRIVATE GOLD'}]}
+                tampered = runtime.bench.encoded(foreign); lookup.write_bytes(tampered)
+                manifest['provenance']['retrieval_corpus_sha256'] = runtime.bench.sha(tampered)
+                path.write_bytes(runtime.bench.encoded(manifest))
+                no_calls = FixtureProvider(response())
+                with self.assertRaisesRegex(ValueError, 'canonical eligible'):
+                    model.run(directory, output, model=MODEL, max_output_tokens=TOKENS,
+                              provider=no_calls, lookup_corpus=lookup)
+                self.assertEqual(no_calls.requests, [])
+                self.assertFalse(output.exists())
+                lookup.write_bytes(raw)
+                manifest['provenance']['retrieval_corpus_sha256'] = runtime.bench.sha(raw)
+                path.write_bytes(runtime.bench.encoded(manifest))
+                provider = FixtureProvider(lookup_response(exact), response('check', identity='check'),
+                                           response(identity='final'))
+                result = model.run(directory, output, model=MODEL, max_output_tokens=TOKENS,
+                                   provider=provider, lookup_corpus=lookup)
+            self.assertEqual(native.call_count, 2)
+            self.assertEqual(result['lookup_calls_returned'], 1)
+            self.assertEqual(result['api_turns_reserved'], 3)
+            self.assertTrue(result['final_accepted'])
+            self.assertFalse(result['model_measurement'])
+            self.assertEqual((output / 'lookup-corpus.json').read_bytes(), raw)
+            self.assertEqual([e['action'] for e in workspace.history(directory)[1]], ['check', 'submit'])
+            self.assertEqual(provider.requests[0]['tool_choice'], 'required')
+            self.assertEqual([t['name'] for t in provider.requests[1]['tools']], ['lean_workspace'])
+            self.assertNotIn(exact, json.dumps(provider.requests[0]['input']))
+            lookup_output = next(i for i in provider.requests[1]['input']
+                                 if i.get('call_id') == 'call-search' and i.get('type') == 'function_call_output')
+            feedback = json.loads(lookup_output['output'])
+            self.assertEqual(feedback['hits'][0]['declaration'], exact)
+            self.assertEqual(feedback['corpus_sha256'], runtime.bench.sha(raw))
+            self.assertNotIn('PRIVATE GOLD', json.dumps(provider.requests))
+            self.assertNotIn(str(root), json.dumps(provider.requests))
 
     def test_model_source_is_only_verifier_data_and_invalid_final_stays_selected(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -1,0 +1,234 @@
+{
+  "id": "ASTIS-RT-20261109-StatOTGaussianMixtureWasserstein",
+  "state": "accepted",
+  "reconstruction": {
+    "text": "For every real number m > 0, let Gₐ be the Borel Gaussian probability measure on ℝ with mean a and variance 1. Set μ = ½G₋ₘ + ½Gₘ and ν = ¼G₋ₘ + ¾Gₘ. Then m/2 ≤ W₂(μ, ν) ≤ m, where W₂(μ, ν) is the square root of the infimum of ∫ |x − y|² dπ(x, y) over all Borel probability measures π on ℝ² with first marginal μ and second marginal ν. The two real bounds are viewed as nonnegative extended real numbers.",
+    "text_sha256": "dd9d7c076ff8edb62c8b814edf84e4a1cde979f70d3414f8077ab38e51547fa0",
+    "decoder": "agent-task:/root/blind_3c12bd6e0b516743",
+    "decoder_run_sha256": "ff3ad1285c21069d0a624c71d3cb042a9a3b62e428ce6e4cf26cfd6ff57242f7",
+    "decoder_packet_sha256": "9886f6d7ae55866553a4aab4a2c81ba85a5a9741ec1a51a3b7e3ec7c3d2efca5",
+    "source_text_visible": false,
+    "lean_statement_sha256": "3c12bd6e0b516743df35bdddcabc4993d62b599e417dbcb088a0273ba068d094",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "runs/blind/ASTIS-BLIND-3c12bd6e0b516743.result.json"
+  },
+  "source": {
+    "source_id": "statot-exercise-1-6-gaussian-mixture-bounds",
+    "anchor": "Statistical Optimal Transport, Chapter 1 §1.8 Exercise 6, printed p.44 / PDF p.50",
+    "url": "https://chewisinho.github.io/st_flour.pdf#page=50",
+    "original_text": "Original mathematical restatement of Exercise 6: for every real m>0 let G_a be the real Gaussian probability law of mean a and variance one. Let μ=(1/2)G_{−m}+(1/2)G_m and ν=(1/4)G_{−m}+(3/4)G_m. The quadratic Wasserstein distance is at least m/2 and at most m. These constants witness the source comparison up to universal constants, not their optimality. The proof uses a lower bound via the signed Lipschitz expectation difference and an explicit upper coupling, on the finite-moment domain.",
+    "text_sha256": "b843411c87f7a3c63ceb99f046e262eace50a3729d706082157cf39b610c5e6f"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureWasserstein.wassersteinDistance_gaussianMixtures_bounds",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianMixtureWasserstein.lean",
+    "statement": "∀ (m : ℝ) (_hm : 0 < m),\n    let μ := (1 / 2 : ℝ≥0∞) • gaussianReal (-m) 1 + (1 / 2 : ℝ≥0∞) • gaussianReal m 1\n    let ν := (1 / 4 : ℝ≥0∞) • gaussianReal (-m) 1 + (3 / 4 : ℝ≥0∞) • gaussianReal m 1\n    ENNReal.ofReal (m / 2) ≤ WassersteinSpace.wassersteinDistance μ ν ∧\n      WassersteinSpace.wassersteinDistance μ ν ≤ ENNReal.ofReal m",
+    "statement_sha256": "3c12bd6e0b516743df35bdddcabc4993d62b599e417dbcb088a0273ba068d094",
+    "formalizer": "root_statot_gaussian_mixture_wasserstein_20261109",
+    "compiled": true,
+    "compiler_evidence": "Lean 4.33.0 focused compile and literal source-law consumer, 3639 jobs, standard axioms only: runs/20261109-statot-gaussian-mixture-bounds/focused-receipt.json.",
+    "decoder_context": [
+      "gaussianReal a v is the actual real Borel Gaussian probability measure with mean a and variance v.",
+      "Weighted sums here are scalar multiples and addition of measures, not a new variable or a joint law.",
+      "WassersteinSpace.wassersteinDistance is the square root of the infimum of integrated squared norm displacement over measures with the specified two marginals.",
+      "ENNReal.ofReal embeds nonnegative real numbers without change."
+    ]
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "agent-task:/root/statot_assembled_source",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "fbbeb5c30284825123c902b3d2563070662ad1eab367681009685fa673ca7b01",
+    "evidence": "Independently inspected the pinned primary PDF visually (printed pp.15–18, 44/PDF pp.21–24, 50; SHA256 639ff16e79f4a32ade9c0595b0ed1d95490eb7e402949168895b6a6194a9c02f) and the exact Lean module (SHA256 0a4b69dce1ef7b8ad9c60fad9529db2d8cc2adbab2c47f3c5f442671cfb0f753). The signed gap uses actual integrable first moments 0 and m/2. For every coupling, the marginals fix the signed gap for a 1-Lipschitz test, the gap is bounded by the linear cost, and Cauchy–Schwarz for a probability plan bounds that cost by the root quadratic cost. The candidate's common-noise plan with weights (1/4,1/4,1/2) on (−m,−m), (−m,m), (m,m) has first marginal (1/2,1/2), second (1/4,3/4), and only the middle component contributes cost m². The Lean assembly uses the imported exact-cost witness, and its squared inequality is undone using hm.le and the monotone ENNReal power. The reader formula E_{G_a} X²=1+a² is mathematically valid; the Lean step needs and proves finiteness rather than proving this exact formula. The matching focused test and build receipt/log show kernel acceptance with propext, Classical.choice, and Quot.sound only; the test proves no auxiliary premises. No mathematical blockers. Reader citation precision only: cite §1.2 printed pp.15–16/PDF pp.21–22 for the domain and definition, and printed p.17/PDF p.23 for ordering. Exercise 6 supplies the statement and hint; the numeric bounds and full proof are the expansion, not printed on the exercise page.",
+    "review_run_sha256": "69417db832f35fc87209d16ad70237bf3d5e09486636ae9698340dff7a2f1a0f",
+    "run_artifact": "runs/20261109-statot-gaussian-mixture-bounds/source-review.result.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Two real Gaussian probability mixtures at centers −m and +m, with unit component variance: μ has weights (1/2,1/2) and ν has weights (1/4,3/4), in that order.",
+      "reconstructed": "Exactly those two Borel laws, locally defined using ENNReal scalars and gaussianReal at means −m and m with variance parameter 1.",
+      "relation": "same",
+      "evidence": "Exercise 6 on printed p.44/PDF p.50 and Lean lines 20–24 agree component by component. Lines 26–37 prove the two sums of weights are one and instantiate probability for the actual two mixtures."
+    },
+    "domains": {
+      "original": "W₂ on finite-second-moment probability laws on the real line, computed over probability couplings with the prescribed marginals.",
+      "reconstructed": "The quadratic distance on the stated real Borel laws, described as the square root of the coupling cost infimum. Lean expresses the distance and inequalities in ENNReal.",
+      "relation": "explicit-elaboration",
+      "evidence": "§1.2, printed pp.15–16/PDF pp.21–22, gives the P₂ domain and infimum/attained minimum of the rooted costs; the root commutes with the cost infimum. Lines 39–44 and 67–68 establish L² membership for both laws, and lines 73–77 prove the distance finite. On these finite nonnegative quantities the ENNReal embeddings preserve the comparisons."
+    },
+    "quantifiers": {
+      "original": "The comparison holds for all real m>0 with comparison constants chosen independently of m. In the lower-bound hint the signed inequality holds for every real 1-Lipschitz test function.",
+      "reconstructed": "For each positive real m, both bounds hold with fixed coefficients. The reader proof explains the generic every-test/every-plan lower argument and specializes it to f(x)=−x.",
+      "relation": "explicit-elaboration",
+      "evidence": "Lean line 20 universally binds m and its positivity proof. Lines 64–72 apply the reusable Lipschitz comparison; the particular test is not an additional hypothesis and the named exercise result need not quantify it in the conclusion."
+    },
+    "assumptions": {
+      "original": "m>0; the Gaussian parameters and weights define the two laws. The finite-moment convention is satisfied by these laws.",
+      "reconstructed": "The sole explicit premise is 0<m. Probability and finite second moments are established in the body; there are no supplied moment, mean, coupling, or optimality hypotheses.",
+      "relation": "same",
+      "evidence": "Lines 20–24 give the full public signature; lines 26–62 perform normalization, integrability, and mean work on the defined measures. Focused test lines 9–14 consume the theorem under only the displayed m>0 premise."
+    },
+    "conclusion": {
+      "original": "W₂(μ,ν) ≍ m, namely a two-sided comparison with positive finite uniform constants, not an exact distance.",
+      "reconstructed": "m/2 ≤ W₂(μ,ν) ≤ m, with both real endpoints embedded using ENNReal.ofReal.",
+      "relation": "explicit-elaboration",
+      "evidence": "The named theorem supplies concrete witnesses to the comparison and matches the packet's explicit mathematical restatement and the blind reconstruction. The conjunction has the correct inequality directions and uses W₂, not W₂²."
+    },
+    "scopes": {
+      "original": "The fixed Exercise 6 measures and comparison; the hint separates a lower bound via the signed Lipschitz gap from an upper bound via an exhibited coupling.",
+      "reconstructed": "The same specific pair of measures. The lower argument applies to every feasible plan before taking infima; the upper argument uses one explicit feasible plan, with no optimality claim.",
+      "relation": "same",
+      "evidence": "Lean lines 64–72 invoke the signed lower chain, with f(x)=−x giving a positive gap, and lines 73–77 obtain a witness with exact cost and apply the squared-infimum bridge. The candidate proof preserves the orientations and different plan quantifiers."
+    },
+    "constant_dependencies": {
+      "original": "Comparison constants are uniform in m for this fixed unit-variance, fixed-weight family; the source does not specify their values or ask for sharpness.",
+      "reconstructed": "The explicit constants 1/2 and 1 work for every m>0 and are not asserted to be sharp.",
+      "relation": "explicit-elaboration",
+      "evidence": "The actual signed mean difference is m/2; the exhibited cost is (1/4)(2m)²=m². These prove sufficient constants without determining the optimum or making a sharpness assertion."
+    }
+  },
+  "verdict": "equivalent-after-elaboration",
+  "deltas": [],
+  "repairs": [],
+  "publication_binding_sha256": "3ac268c17378d50c321bed66bbf80e42c16cbdcba5283321e994a8bb7a8c4145",
+  "publication_context": {
+    "file": "0a4b69dce1ef7b8ad9c60fad9529db2d8cc2adbab2c47f3c5f442671cfb0f753",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureCoupling\nimport AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzLower\nimport Mathlib.MeasureTheory.Function.L2Space\n\n/-!\n# Quadratic transport between the exercise's reweighted Gaussian mixtures\n\nThe signed mean difference gives a lower bound on every coupling, whereas\none common-noise plan supplies the upper bound. No optimizer is required.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureWasserstein\n\nopen MeasureTheory ProbabilityTheory\nopen scoped ENNReal\n\n/-- Statistical Optimal Transport, Chapter 1, Exercise 6. For the literal\nunit-variance mixtures and positive center separation parameter, the\nquadratic Wasserstein distance lies between `m / 2` and `m`. -/\ntheorem wassersteinDistance_gaussianMixtures_bounds (m : ℝ) (hm : 0 < m) :\n    let μ := (1 / 2 : ℝ≥0∞) • gaussianReal (-m) 1 + (1 / 2 : ℝ≥0∞) • gaussianReal m 1\n    let ν := (1 / 4 : ℝ≥0∞) • gaussianReal (-m) 1 + (3 / 4 : ℝ≥0∞) • gaussianReal m 1\n    ENNReal.ofReal (m / 2) ≤ WassersteinSpace.wassersteinDistance μ ν ∧\n      WassersteinSpace.wassersteinDistance μ ν ≤ ENNReal.ofReal m := by\n  intro μ ν\n  have hhalf : (1 / 2 : ℝ≥0∞) + 1 / 2 = 1 := by\n    rw [ENNReal.div_add_div_same, show (1 : ℝ≥0∞) + 1 = 2 by norm_num,\n      ENNReal.div_self (by norm_num) (by simp)]\n  have hquarter : (1 / 4 : ℝ≥0∞) + 3 / 4 = 1 := by\n    rw [ENNReal.div_add_div_same, show (1 : ℝ≥0∞) + 3 = 4 by norm_num,\n      ENNReal.div_self (by norm_num) (by simp)]\n  have probability (a b : ℝ≥0∞) (hab : a + b = 1) :\n      IsProbabilityMeasure (a • gaussianReal (-m) 1 + b • gaussianReal m 1) := by\n    refine ⟨?_⟩\n    simpa only [Measure.add_apply, Measure.smul_apply, smul_eq_mul, measure_univ, mul_one] using hab\n  let : IsProbabilityMeasure μ := probability _ _ hhalf\n  let : IsProbabilityMeasure ν := probability _ _ hquarter\n  have hthree : (3 / 4 : ℝ≥0∞) ≠ ∞ := ENNReal.div_ne_top (by norm_num) (by norm_num)\n  have g₂ (a : ℝ) : Integrable (fun x : ℝ => x ^ 2) (gaussianReal a 1) :=\n    (memLp_id_gaussianReal' (μ := a) (v := 1) 2 (by simp)).integrable_sq\n  have moment (a b : ℝ≥0∞) (ha : a ≠ ∞) (hb : b ≠ ∞) :\n      MemLp (id : ℝ → ℝ) 2 (a • gaussianReal (-m) 1 + b • gaussianReal m 1) := by\n    apply (memLp_two_iff_integrable_sq measurable_id.aestronglyMeasurable).2\n    exact ((g₂ (-m)).smul_measure ha).add_measure ((g₂ m).smul_measure hb)\n  have g₁ (a : ℝ) : Integrable (fun x : ℝ => x) (gaussianReal a 1) :=\n    (memLp_id_gaussianReal' (μ := a) (v := 1) 2 (by simp)).integrable (by norm_num)\n  have mean (a b : ℝ≥0∞) (ha : a ≠ ∞) (hb : b ≠ ∞) :\n      (∫ x : ℝ, x ∂(a • gaussianReal (-m) 1 + b • gaussianReal m 1)) =\n        a.toReal * (-m) + b.toReal * m := by\n    rw [integral_add_measure ((g₁ (-m)).smul_measure ha) ((g₁ m).smul_measure hb),\n      integral_smul_measure, integral_smul_measure, integral_id_gaussianReal,\n      integral_id_gaussianReal, smul_eq_mul, smul_eq_mul]\n  have hμmean : (∫ x : ℝ, x ∂μ) = 0 := by\n    dsimp [μ]\n    rw [mean _ _ (by simp) (by simp)]\n    simp only [ENNReal.toReal_div, ENNReal.toReal_one, ENNReal.toReal_ofNat]\n    ring\n  have hνmean : (∫ x : ℝ, x ∂ν) = m / 2 := by\n    dsimp [ν]\n    rw [mean _ _ (by simp) hthree]\n    simp only [ENNReal.toReal_div, ENNReal.toReal_one, ENNReal.toReal_ofNat]\n    ring\n  constructor\n  · have hneg : LipschitzWith 1 (fun x : ℝ => -x) := LipschitzWith.mk_one fun x y => by\n      simpa only [Real.dist_eq, neg_sub_neg, abs_sub_comm] using\n        (le_refl |x - y|)\n    have h := WassersteinLipschitzLower.expectation_sub_le_linearCost_and_le_wassersteinDistance\n      μ ν (moment _ _ (by simp) (by simp)) (moment _ _ (by simp) hthree) _ hneg\n    have hbound := h.1.trans h.2\n    change ENNReal.ofReal ((∫ x : ℝ, -x ∂μ) - (∫ x : ℝ, -x ∂ν)) ≤ _ at hbound\n    simpa only [integral_neg (fun x : ℝ => x), hμmean, hνmean, neg_zero, zero_sub,\n      neg_neg] using hbound\n  · obtain ⟨γ, hγ, hcost⟩ := GaussianMixtureCoupling.exists_gaussian_mixture_coupling_cost m\n    have hs : WassersteinSpace.wassersteinDistance μ ν ^ 2 ≤ ENNReal.ofReal (m ^ 2) :=\n      (WassersteinSpace.wassersteinDistance_sq_le_lintegral_of_isCoupling μ ν γ hγ).trans_eq hcost\n    apply (ENNReal.rpow_le_rpow_iff (z := 2) (by norm_num)).1\n    rwa [ENNReal.rpow_two, ENNReal.rpow_two, ← ENNReal.ofReal_pow hm.le]\n\nend AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureWasserstein\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://chewisinho.github.io/st_flour.pdf#page=50",
+      "edition": "Public 290-page PDF, July 2024 preface, SHA256 639ff16e79f4a32ade9c0595b0ed1d95490eb7e402949168895b6a6194a9c02f",
+      "anchor": "Statistical Optimal Transport, Chapter 1 §1.8 Exercise 6, printed p.44 / PDF p.50",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Sinho Chewi, Jonathan Niles-Weed and Philippe Rigollet, Statistical Optimal Transport. Samplinglib's original mathematical restatement and proof expansion; no reproduction of textbook prose or implied endorsement.",
+      "pdf_sha256": "639ff16e79f4a32ade9c0595b0ed1d95490eb7e402949168895b6a6194a9c02f"
+    },
+    "statement": "For every real m>0, the quadratic Wasserstein distance between the actual two unit-variance real Gaussian mixtures with respective weights (1/2,1/2) and (1/4,3/4) at −m and m lies between m/2 and m.",
+    "formulae": [
+      {
+        "label": "The two literal laws",
+        "tex": "G_a=\\mathcal N(a,1),\\qquad \\mu=\\tfrac12G_{-m}+\\tfrac12G_m,\\qquad \\nu=\\tfrac14G_{-m}+\\tfrac34G_m."
+      },
+      {
+        "label": "Uniform two-sided bound",
+        "tex": "m/2\\le W_2(\\mu,\\nu)\\le m\\qquad(m>0)."
+      }
+    ],
+    "assumptions": [
+      "The ambient space is the real Borel line. Gₐ is a Gaussian probability law of mean a and variance one. The mixture weights and centers are literal and only m>0 is required.",
+      "Both mixtures have finite second moments, as required by the Wasserstein domain. This is proved from the Gaussian components, not assumed. A witness for an upper bound need not be optimal."
+    ],
+    "obligations": [
+      {
+        "id": "lower-actual-mixtures",
+        "label": "Use the signed expectation gap for the actual mixtures to obtain W₂≥m/2"
+      },
+      {
+        "id": "upper-actual-mixtures",
+        "label": "Use the explicit feasible plan to obtain W₂≤m"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureWasserstein.wassersteinDistance_gaussianMixtures_bounds",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureWasserstein",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianMixtureWasserstein.lean",
+      "short_name": "wassersteinDistance_gaussianMixtures_bounds",
+      "title": "The same two Gaussian mixtures: every-plan lower bound and one-plan upper bound",
+      "classification": "Exact exercise answer with explicit sufficient constants",
+      "statement": "For every real m>0, the quadratic Wasserstein distance between the actual two unit-variance real Gaussian mixtures with respective weights (1/2,1/2) and (1/4,3/4) at −m and m lies between m/2 and m.",
+      "formula": "m/2\\le W_2(\\mu,\\nu)\\le m\\qquad(m>0).",
+      "assumptions": [
+        "The ambient space is the real Borel line. Gₐ is a Gaussian probability law of mean a and variance one. The mixture weights and centers are literal and only m>0 is required.",
+        "Both mixtures have finite second moments, as required by the Wasserstein domain. This is proved from the Gaussian components, not assumed. A witness for an upper bound need not be optimal."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Check the two laws and their moments",
+          "text": "Each component is a probability law of finite second moment. The positive weights in each row sum to one, so both weighted sums are probability laws with finite second moments. In particular their first moments exist.",
+          "formula": "\\mathbb E_{G_a}X^2=1+a^2,\\qquad \\mu(\\mathbb R)=\\nu(\\mathbb R)=1.",
+          "lean": "Mathlib supplies probability for each gaussianReal, membership of the identity in L² and the Gaussian first moments. The proof checks the ENNReal weights and uses finite measure scaling and addition of integrable functions."
+        },
+        {
+          "number": 2,
+          "title": "Bound all couplings with a signed test",
+          "text": "For any real 1-Lipschitz f, its growth from f(0) and the finite second moments ensure integrability. Pull the two expectations back along the marginals of an arbitrary coupling. Lipschitzness bounds the signed joint integrand by the displacement. Because every coupling has total mass one, Cauchy–Schwarz bounds the linear cost by the root quadratic cost. Taking the infima in order gives the two comparisons.",
+          "formula": "\\mathbb E_\\mu f-\\mathbb E_\\nu f\\le W_1(\\mu,\\nu)\\le W_2(\\mu,\\nu).",
+          "lean": "The existing Samplinglib theorem WassersteinLipschitzLower proves both comparisons. It handles integrability and marginal pullback rather than assuming an optimal plan or dual attainment."
+        },
+        {
+          "number": 3,
+          "title": "Evaluate the right sign of the mean gap",
+          "text": "The first mixture has mean zero. The second has mean m/2 because three quarters of its mass is on the Gaussian centered at m. Use f(x)=−x, not x, for the displayed orientation of the expectation difference.",
+          "formula": "\\mathbb E_\\mu X=0,\\qquad \\mathbb E_\\nu X=m/2,\\qquad m/2=\\mathbb E_\\mu(-X)-\\mathbb E_\\nu(-X)\\le W_2(\\mu,\\nu).",
+          "lean": "integral_add_measure, integral_smul_measure and integral_id_gaussianReal compute both means. The proof verifies the Lipschitz condition for the negative identity, then composes the two existing lower inequalities."
+        },
+        {
+          "number": 4,
+          "title": "Construct one feasible plan for the upper side",
+          "text": "Let Qₐ,ᵦ be the law of (Z+a,Z+b) with a common standard normal draw Z. The affine maps are Borel and the two marginals are Gₐ and Gᵦ. Keep a quarter at the left center and a half at the right center. Move the remaining quarter from left to right. The first marginal receives two left quarters; the second receives one left quarter and the remaining three quarters at the right. Shared noise cancels, so only the move contributes to the quadratic cost.",
+          "formula": "\\gamma=\\tfrac14Q_{-m,-m}+\\tfrac14Q_{-m,m}+\\tfrac12Q_{m,m},\\qquad \\int |x-y|^2\\,d\\gamma=\\tfrac14(2m)^2=m^2.",
+          "lean": "The Samplinglib GaussianMixtureCoupling theorem constructs the actual plan and proves the marginal equalities and cost. The assembly consumes the witness, not just an assumed cost bound."
+        },
+        {
+          "number": 5,
+          "title": "Take the quadratic infimum, then undo the square",
+          "text": "The infimum of quadratic costs is at most the cost of this specific feasible plan. Taking nonnegative square roots gives the desired upper bound for m>0. Together with the lower side this proves the comparison with constants independent of m.",
+          "formula": "W_2(\\mu,\\nu)^2\\le m^2\\ \\Longrightarrow\\ W_2(\\mu,\\nu)\\le m.",
+          "lean": "Samplinglib’s squared infimum bridge transfers the witness cost to the distance. Mathlib’s strictly increasing positive power on ENNReal turns the squared comparison into the stated upper bound."
+        }
+      ],
+      "lean_statement": "For every positive real m and the two literal Mathlib Gaussian mixtures, the quadratic Wasserstein distance is between the ENNReal embeddings of m/2 and m.",
+      "lean_proof": "Normalize the weighted probability measures and show their second moments. Compute their mean gap and use the negative identity in the lower comparison. Apply the existing exact-cost witness and squared infimum bridge, then undo the square.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureCoupling.exists_gaussian_mixture_coupling_cost",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinLipschitzLower.expectation_sub_le_linearCost_and_le_wassersteinDistance",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.WassersteinSpace.wassersteinDistance_sq_le_lintegral_of_isCoupling"
+      ],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.memLp_id_gaussianReal'",
+        "ProbabilityTheory.integral_id_gaussianReal",
+        "MeasureTheory.memLp_two_iff_integrable_sq",
+        "MeasureTheory.integral_add_measure",
+        "MeasureTheory.integral_smul_measure",
+        "ENNReal.rpow_le_rpow_iff"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/st_flour.pdf#page=50",
+          "label": "Statistical Optimal Transport, Chapter 1 §1.8 Exercise 6, printed p.44 / PDF p.50",
+          "scope": "Original restatement and full mathematical solution of the two-sided comparison."
+        },
+        {
+          "url": "https://chewisinho.github.io/st_flour.pdf#page=23",
+          "label": "Statistical Optimal Transport §1.2, printed p.17 / PDF p.23",
+          "scope": "Finite-moment conventions and Wasserstein ordering."
+        }
+      ],
+      "tests": {
+        "file": "Tests/Shared/WassersteinLipschitzLower.lean",
+        "scope": "The focused example consumes the named theorem on both literal mixtures under only m>0. It does not supply a coupling, a moment bound, or either inequality."
+      }
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianMixtureWasserstein.wassersteinDistance_gaussianMixtures_bounds",
+      "role": "proof-edge",
+      "supports": [
+        "lower-actual-mixtures",
+        "upper-actual-mixtures"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Real Gaussian components of variance one centered at −m and m, weights as printed, and m>0.",
+        "lean": "The same real laws and weights are local definitions. The only explicit hypothesis is m>0."
+      }
+    ]
+  }
+}

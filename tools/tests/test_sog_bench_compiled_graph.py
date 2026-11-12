@@ -185,8 +185,8 @@ class CompiledGraphTests(unittest.TestCase):
             out=Path(tmp)/'export';bench.export(out)
             questions=[json.loads(line) for line in (out/'reviewed-graph-questions.jsonl').read_text(encoding='utf-8').splitlines()]
             refs=[json.loads(line) for line in (out/'reviewed-graph-reference.jsonl').read_text(encoding='utf-8').splitlines()]
-            self.assertEqual(len(questions),7)
-            self.assertEqual(len(refs),7)
+            self.assertCountEqual([row['id'] for row in questions], [row['id'] for row in graphs])
+            self.assertCountEqual([row['id'] for row in refs], [row['id'] for row in graphs])
             self.assertNotIn('sogb-g999',{r['id'] for r in questions})
             self.assertTrue(all('answer' not in r for r in questions))
 

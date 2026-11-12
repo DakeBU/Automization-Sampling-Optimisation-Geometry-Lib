@@ -2,6 +2,9 @@ import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationE
 import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedPerturbationLaw
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.AffinePerturbationKL
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff
+import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactLogSobolevPoincare
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient
@@ -3693,6 +3696,36 @@ def measureMemory : List LemmaMemoryEntry := [
 
 def functionalInequalityMemory : List LemmaMemoryEntry := [
   {
+    key := "lsi.cutoff.mass-entropy-energy-limits",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff.cutoff_integral_limits",
+    upstreamDecl := "Chewi, Log-Concave Sampling, §2.1.1: cutoff convergence supporting the density argument",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/LogSobolevCutoff.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["FI", "CALC", "REG", "cutoff", "gradient", "dominated-convergence"],
+    saldUse := "One shared producer for the Gaussian LSI proof and the compact-test LSI extension; not a SALD closure",
+    note := "Extracts the previously private three-limit proof. The measure, function L2, genuine-gradient L2 and entropy integrability are explicit; the limiting statements need neither finite dimension nor compact balls."
+  },
+  {
+    key := "lsi.compact-smooth.analytic-domain-extension",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.LogSobolevCutoff.logSobolev_of_compact_smooth_tests",
+    upstreamDecl := "Chewi, Log-Concave Sampling, §2.1.1: sufficient smooth test-domain extension",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/LogSobolevCutoff.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["FI", "CALC", "REG", "log-Sobolev", "compact-support", "domain"],
+    saldUse := "Apply the compact-test premise to genuine cutoff products before passing to the original analytic-domain test",
+    note := "Finite dimension supplies compact cutoff support. The analytic inputs make the particular cutoff integrals genuine; the arbitrary-measure compact premise uses totalized integrals. This is not a full closed form-domain extension."
+  },
+  {
+    key := "poincare.compact-smooth.of-logSobolev",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CompactLogSobolevPoincare.variance_le_of_compact_logSobolev",
+    upstreamDecl := "Chewi, Log-Concave Sampling, Exercise 1.7: compact Euclidean Poincare implication",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/FunctionalInequalities/CompactLogSobolevPoincare.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["FI", "CALC", "REG", "Poincare", "log-Sobolev", "linearization"],
+    saldUse := "Derive admissibility and the same variance constant from the compact smooth function-form LSI",
+    note := "Centers the observable internally, then supplies actual perturbation domains and combines the gradient-energy and compensated entropy limits. No abstract form or semigroup result, optimal constant equality, or actual-law KL premise."
+  },
+  {
     key := "entropy.measureDomination"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.BoundedPerturbation.entropy_le_mul_of_measure_le"
     upstreamDecl := "Canonical finite-integral supporting core for bounded perturbation"
@@ -5531,6 +5564,16 @@ def probabilityMemory : List LemmaMemoryEntry := [
 ]
 
 def klDensityMemory : List LemmaMemoryEntry := [
+  {
+    key := "kl-density.affine-probability.second-order-expansion",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.AffinePerturbationKL.klDiv_affine_perturbation_second_order",
+    upstreamDecl := "Chewi, Log-Concave Sampling, Exercise 1.7 / (1.E.1); source use in Corollary 2.1.2",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/InformationTheory/AffinePerturbationKL.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["MEAS", "FI", "CALC", "KL", "withDensity", "linearization"],
+    saldUse := "Combine the actual finite probability KL identity with the compensated integral limit and the exact zero endpoint",
+    note := "Actual affine probability law and finite KL near zero, with the quadratic coefficient and full-neighborhood little-o remainder. No Fisher, Poincare, T2, or compiled Corollary 2.1.2 consumer."
+  },
   {
     key := "kl-density.bounded-actual-perturbation-law",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedPerturbationLaw.eventually_isProbabilityMeasure_and_klDiv_eq_one_add_mul",

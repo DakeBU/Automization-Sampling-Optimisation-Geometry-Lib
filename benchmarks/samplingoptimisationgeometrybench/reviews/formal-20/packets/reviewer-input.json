@@ -1,0 +1,121 @@
+{
+  "author_identity": "agent-task:root",
+  "cases": {
+    "case-1": {
+      "binding_sha256": "d45d13472cf6f4399e18d10322567e200bc464ed3059b3a4199b3ac608119c64",
+      "core_id": "sogb-045"
+    }
+  },
+  "context_bindings": {
+    "sogb-045": "38f6032fcdcb3aae8a6bc062f8b4b477718fcab9eaea8d40da26ad196baee93b"
+  },
+  "decoder_identity": "agent-task:/root/bench_positive_fiber_blind_decoder",
+  "decoder_input_sha256": "e170150f62f1331bc7e413167e30d9d0c1bc6cc6ba63072548aa35bee63c4261",
+  "decoder_output_sha256": "359bc19de035b9477f86cab7694286bdb8e858420a8350b8873b03c312fab62e",
+  "instruction": "Independently audit each authored question, formula proof, rubric and actual local declaration. Compare all seven slots to the blind reconstruction. The authored support, status and formal-coverage language are claims to audit, not preferred verdicts. No previous source verdict or repair proposal is supplied. Record precise conclusion-only formal coverage and remaining unformalized explanation; accept, request repair or reject with mathematical and scoring evidence. This is Bench editorial review, not canonical theorem publication or model measurement.",
+  "mathematical_cores": [
+    {
+      "assumptions": [
+        "Let \\(n\\ge0\\) and \\(X=\\prod_{j=0}^{n}X_j\\) be a product of measurable coordinate spaces. Fix a site \\(i\\). The selected space \\(X_i\\) is nonempty and standard Borel; the retained tuple space \\(X_{-i}\\) has measurable singletons. The coordinate spaces need not be finite.",
+        "Let \\(\\mu\\) be a finite measure on \\(X\\), not necessarily a probability. For the start \\(x\\in X\\), put \\(F_x=\\{y\\in X:y_{-i}=x_{-i}\\}\\) and assume \\(\\mu(F_x)>0\\). The actual heat-bath update \\(K_i\\) regroups the tuple as \\((x_{-i},x_i)\\), retains its first component, resamples the selected component from the conditional distribution of the regrouped target given the retained tuple, and transports back."
+      ],
+      "binding_sha256": "d45d13472cf6f4399e18d10322567e200bc464ed3059b3a4199b3ac608119c64",
+      "boundary": "The result identifies the actual fixed-site law on positive retained fibers. It does not identify a pointwise normalized restriction on a zero-mass fiber, derive the randomized-site update, or prove invariance, reversibility, irreducibility, or mixing. The nonatomic example is explanatory.",
+      "context": "open MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.TechnicalLemmas.Probability\nopen AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath\nvariable {n : ℕ}",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath.heatBath_eq_cond",
+      "decoder_definitions": [
+        "Fin (n + 1) is a nonempty finite site set. The dependent product contains one value from each coordinate space; i.succAbove enumerates the sites other than i. The retained tuple at x consists of exactly those other values.",
+        "IsFiniteMeasure μ means finite total mass, not mass one. StandardBorelSpace and Nonempty are required only for the selected coordinate; the retained tuple space has measurable singletons.",
+        "heatBath X μ i is the actual kernel built by measurably regrouping the retained tuple and selected coordinate, pushing forward μ, applying a one-block conditional update that retains the tuple, and transporting back. Applied at x it is a measure on the original product.",
+        "cond μ F is the conditional measure on F; for a measurable positive-mass F under this finite measure it assigns to a measurable event S the mass μ(F ∩ S) divided by μ(F). The side condition is nonzero measure of the whole retained fiber at x, not nonzero mass of the state singleton."
+      ],
+      "dependencies": {
+        "astis": [
+          "AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath.heatBath",
+          "AutoSamplingTheory.TechnicalLemmas.Probability.HeatBath.heatBathSnd_apply"
+        ],
+        "mathlib": [
+          "MeasurableEquiv.piFinSuccAbove",
+          "MeasurableEquiv.prodComm",
+          "MeasureTheory.Measure.map_apply",
+          "MeasureTheory.Measure.ext",
+          "ProbabilityTheory.Kernel.map_apply",
+          "ProbabilityTheory.Kernel.comap_apply",
+          "MeasureTheory.Measure.dirac_prod",
+          "ProbabilityTheory.condDistrib_apply_of_ne_zero",
+          "ProbabilityTheory.cond_apply'"
+        ]
+      },
+      "difficulty": "advanced",
+      "difficulty_reason": "Both tracks join the measurable regrouping of a dependent product, positivity of a pushforward atom, the finite-measure conditional law on that atom and a pullback identity for every measurable event. Lean must justify the measurability and dependent retained-tuple identities rather than assume the singleton transition formula.",
+      "domain": "sampling",
+      "family": "random-scan-null-atoms",
+      "id": "sogb-045",
+      "imports": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath",
+        "Mathlib.Probability.ConditionalProbability"
+      ],
+      "lean_explanation": "The proof uses the measurable dependent-product regrouping and two `Measure.map_apply` rewrites to obtain a nonzero marginal atom. It compares the two measures on an arbitrary measurable event using `Measure.ext`. Kernel map/comap, the Dirac-product formula and `condDistrib_apply_of_ne_zero` reduce the update to the positive-atom ratio. The last set-extensionality calculation pulls that numerator back: when the first component equals the retained tuple, insertion followed by the inverse regrouping recovers the original point. The fixed Lean target is the positive-fiber measure equality; the nonatomic example is not an additional target.",
+      "lean_reference": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath\nimport Mathlib.Probability.ConditionalProbability\n\nopen MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.TechnicalLemmas.Probability\nopen AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath\nvariable {n : ℕ}\nexample (X : Fin (n + 1) → Type*) [∀ j, MeasurableSpace (X j)]\n    (μ : Measure (∀ j, X j)) [IsFiniteMeasure μ]\n    (i : Fin (n + 1)) [StandardBorelSpace (X i)] [Nonempty (X i)]\n    [MeasurableSingletonClass (∀ j : Fin n, X (i.succAbove j))]\n    (x : ∀ j, X j)\n    (hx : μ {y | (fun j => y (i.succAbove j)) = (fun j => x (i.succAbove j))} ≠ 0) :\n    heatBath X μ i x =\n      cond μ {y | (fun j => y (i.succAbove j)) = (fun j => x (i.succAbove j))} := by\n  let e := (MeasurableEquiv.piFinSuccAbove X i).trans MeasurableEquiv.prodComm\n  have hm : (μ.map e).map Prod.fst {(e x).1} ≠ 0 := by\n    rwa [Measure.map_apply measurable_fst (measurableSet_singleton _),\n      Measure.map_apply e.measurable (measurable_fst (measurableSet_singleton _))]\n  apply Measure.ext\n  intro s hs\n  change (((HeatBath.heatBathSnd (μ.map e)).comap e e.measurable).map e.symm x) s = _\n  rw [Kernel.map_apply _ e.symm.measurable, Kernel.comap_apply,\n    HeatBath.heatBathSnd_apply, Measure.dirac_prod,\n    Measure.map_map e.symm.measurable measurable_prodMk_left,\n    Measure.map_apply (e.symm.measurable.comp measurable_prodMk_left) hs,\n    condDistrib_apply_of_ne_zero measurable_snd _ hm]\n  simp only [Prod.eta, Measure.map_id']\n  rw [Measure.map_apply e.measurable\n    ((measurableSet_singleton _).prod ((e.symm.measurable.comp measurable_prodMk_left) hs)),\n    Measure.map_apply measurable_fst (measurableSet_singleton _),\n    Measure.map_apply e.measurable (measurable_fst (measurableSet_singleton _)),\n    cond_apply' hs]\n  congr 1\n  congr 1\n  ext y\n  change ((e y).1 = (e x).1 ∧ e.symm ((e x).1, (e y).2) ∈ s) ↔\n    ((e y).1 = (e x).1 ∧ y ∈ s)\n  constructor\n  · rintro ⟨hy, hys⟩\n    refine ⟨hy, ?_⟩\n    simpa only [← hy, Prod.eta, e.symm_apply_apply] using hys\n  · rintro ⟨hy, hys⟩\n    refine ⟨hy, ?_⟩\n    simpa only [← hy, Prod.eta, e.symm_apply_apply] using hys\n",
+      "lean_task": "/- SamplingOptimisationGeometryBench public-dev reference.\n   Reuses the existing project proof; retain LICENSE and NOTICE. -/\nimport AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath\nimport Mathlib.Probability.ConditionalProbability\n\nopen MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.TechnicalLemmas.Probability\nopen AutoSamplingTheory.TechnicalLemmas.Probability.CoordinateHeatBath\nvariable {n : ℕ}\nexample (X : Fin (n + 1) → Type*) [∀ j, MeasurableSpace (X j)]\n    (μ : Measure (∀ j, X j)) [IsFiniteMeasure μ]\n    (i : Fin (n + 1)) [StandardBorelSpace (X i)] [Nonempty (X i)]\n    [MeasurableSingletonClass (∀ j : Fin n, X (i.succAbove j))]\n    (x : ∀ j, X j)\n    (hx : μ {y | (fun j => y (i.succAbove j)) = (fun j => x (i.succAbove j))} ≠ 0) :\n    heatBath X μ i x =\n      cond μ {y | (fun j => y (i.succAbove j)) = (fun j => x (i.succAbove j))} := by\n  -- Replace this comment with your proof.\n",
+      "library_domains": [
+        "discrete-sampling",
+        "mcmc"
+      ],
+      "question": "Show that for every measurable \\(S\\subseteq X\\), \\[K_i(x,S)=\\frac{\\mu(F_x\\cap S)}{\\mu(F_x)}.\\] Justify the use of the positive-atom conditional law and the pullback of the numerator, including measurability. If \\(\\mu\\) is a probability, does \\(x\\sim\\mu\\) necessarily give a positive-mass fiber almost surely? Explain.",
+      "rubric": [
+        {
+          "criterion": "Identifies the measurable regrouping and proves that the retained marginal atom has the same positive finite mass as the original fiber, or establishes the equivalent conditioning event directly.",
+          "points": 1
+        },
+        {
+          "criterion": "Justifies the relevant measurable section and derives the actual update mass using a valid positive-atom conditional-law argument. Equivalent uses of disintegration or conditional probability are accepted.",
+          "points": 1
+        },
+        {
+          "criterion": "Shows that the conditioned numerator is precisely the mass of the original event intersected with the fiber, and concludes equality with the normalized restriction on all measurable events.",
+          "points": 1
+        },
+        {
+          "criterion": "Gives a correct nonatomic retained-marginal example or equivalent argument refuting automatic positive-fiber mass, without treating the zero-mass case as failure of the kernel.",
+          "points": 1
+        }
+      ],
+      "skills": [
+        "proof",
+        "composition",
+        "assumption-audit",
+        "counterexample"
+      ],
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/CoordinateHeatBathConditional.lean",
+      "source_line": 21,
+      "source_note": "Original ASTIS exercise over the owned Apache-2.0 CoordinateHeatBathConditional theorem and its existing kernel definition; retain LICENSE and NOTICE. Tests/CoordinateHeatBathConditional.lean checks the actual law and its domain. This producer is used by the random-scan singleton formula; the full conditional-law proof is different from the earlier public family exercises that take that formula as input. No copied book text or hidden-test claim.",
+      "source_sha256_lf": "f46810ed241b0883d33b0a8db517fe88646ebd97fdf4df670ce766f9b0d83174",
+      "split": "public-dev",
+      "steps": [
+        "Let \\(e:X\\to X_{-i}\\times X_i\\) be the measurable regrouping equivalence, \\(\\nu=e_\\#\\mu\\), and \\(r=(ex)_1\\). Write \\(\\nu_1\\) for the first marginal of \\(\\nu\\). The retained singleton \\(\\{r\\}\\) is measurable and its pullback along the retained projection is \\(F_x\\), so \\[\\nu_1(\\{r\\})=\\mu(F_x)>0.\\] This mass is also finite.",
+        "For measurable \\(S\\), let \\(S_r=\\{b\\in X_i:e^{-1}(r,b)\\in S\\}\\). The insertion \\(b\\mapsto(r,b)\\) and \\(e^{-1}\\) are measurable, so \\(S_r\\) is measurable. Since the first coordinate stays \\(r\\), the update mass of \\(S\\) is the conditional law of the second coordinate at \\(r\\), evaluated on \\(S_r\\). The positive-atom conditional formula under the finite law \\(\\nu\\) gives \\[K_i(x,S)=\\frac{\\nu(\\{r\\}\\times S_r)}{\\nu_1(\\{r\\})}.\\]",
+        "Pull the measurable rectangle back along \\(e\\). If \\((ey)_1=r\\), then \\(e^{-1}(r,(ey)_2)=y\\); therefore \\((ey)_2\\in S_r\\) exactly when \\(y\\in S\\) on this fiber. Hence \\[e^{-1}(\\{r\\}\\times S_r)=F_x\\cap S.\\] The numerator is \\(\\mu(F_x\\cap S)\\). The resulting ratio is the normalized restriction and the equality holds as measures by extensionality.",
+        "No. Take two coordinates, with a uniform law on \\([0,1]\\) for the retained real coordinate and a fixed Boolean value for the selected coordinate. The retained marginal has no atoms, so every retained fiber has mass zero, including the fibers of all sampled states. This shows that the positive-fiber formula has no conclusion there; it does not show that the heat-bath kernel is undefined."
+      ],
+      "title": "When a coordinate heat bath is a normalized restriction",
+      "track_levels": {
+        "lean": "L4",
+        "natural-language": "L4"
+      }
+    }
+  ],
+  "reconstructions": {
+    "case-1": {
+      "assumptions": "Each X(j) has a MeasurableSpace instance. μ has IsFiniteMeasure, i.e. μ(Ω) < ∞, not necessarily μ(Ω) = 1. The selected X(i) is StandardBorelSpace and Nonempty. The retained-tuple space has MeasurableSingletonClass, so the fiber is measurable as the preimage of the singleton {r_i(x)} under the measurable retained-coordinate map. The explicit premise hx is μ(F_i(x)) ≠ 0, hence 0 < μ(F_i(x)) < ∞.",
+      "conclusion": "At the given x, heatBath X μ i x = cond μ F_i(x) as measures on Ω. Equivalently, for every measurable S ⊆ Ω, the transition measure assigns S the mass μ(F_i(x) ∩ S) / μ(F_i(x)). In particular the transition measure assigns mass one to the entire fiber.",
+      "constants": "There are n + 1 sites and n retained sites, with no restriction excluding n = 0. The explicit mass threshold is 0 and the hypothesis is strict positivity, with no uniform positive lower bound. The normalization divisor is the actual fiber mass μ(F_i(x)), not the total mass or a fixed numerical constant; mass one is a consequence of the conditional normalization.",
+      "domains": "n ∈ ℕ; j ranges over Fin(n + 1) for the coordinate family and over Fin(n) for the retained tuple. The map i.succAbove identifies Fin(n) with the sites other than i. The domain and output state space of the kernel are Ω with its dependent-product measurable structure; the retained-tuple space is ∏_{j∈Fin(n)} X(i.succAbove j). The kernel evaluated at x and cond μ F_i(x) are both measures on Ω.",
+      "objects": "A finite site set I = Fin(n + 1), a family of coordinate spaces X(j), their dependent product Ω = ∏_{j∈I} X(j), a measure μ on Ω, a selected site i ∈ I, a configuration x ∈ Ω, and the actual heat-bath kernel heatBath X μ i. The retained-coordinate map r_i sends y to (y(i.succAbove j))_{j∈Fin(n)}, and F_i(x) = {y ∈ Ω : r_i(y) = r_i(x)} is its fiber at x.",
+      "quantifiers": "For every implicit n ∈ ℕ, every such family X with measurable structures, every finite measure μ on Ω, every site i with the indicated typeclass instances, and every configuration x ∈ Ω, if μ(F_i(x)) ≠ 0, then the stated equality holds. In the eventwise formulation the identity holds for every measurable S ⊆ Ω, at each x satisfying that premise, not merely almost everywhere.",
+      "senses": "The fiber fixes all coordinates other than i and does not fix the selected coordinate. The nonzero premise is about the entire retained fiber, not the singleton {x}. HeatBath is the particular kernel built via measurable regrouping, pushforward, a one-block conditional update preserving the retained tuple, and transport back, not an unspecified version. The equality is pointwise under the positive-fiber premise and is an equality of full-state measures, not just a selected-coordinate marginal. It gives no claim here about null fibers, the mass of {x}, or μ being a probability measure."
+    }
+  },
+  "schema_version": 1,
+  "scope": "independent AI paired QA editorial review; not canonical theorem publication"
+}

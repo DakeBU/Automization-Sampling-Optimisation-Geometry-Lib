@@ -7,6 +7,7 @@ on:
       - 'benchmarks/samplingoptimisationgeometrybench/lean-runtime/**'
       - 'benchmarks/samplingoptimisationgeometrybench/cores.json'
       - 'benchmarks/samplingoptimisationgeometrybench/reviews/**'
+      - 'runs/20261110-bench-local-lean-first/**'
       - 'tools/sog_bench.py'
       - 'AutoSamplingTheory/**'
       - 'lean-toolchain'
@@ -21,6 +22,7 @@ on:
       - 'benchmarks/samplingoptimisationgeometrybench/lean-runtime/**'
       - 'benchmarks/samplingoptimisationgeometrybench/cores.json'
       - 'benchmarks/samplingoptimisationgeometrybench/reviews/**'
+      - 'runs/20261110-bench-local-lean-first/**'
       - 'tools/sog_bench.py'
       - 'AutoSamplingTheory/**'
       - 'lean-toolchain'
@@ -28,15 +30,23 @@ on:
       - 'lakefile.lean'
       - '.github/workflows/sog-bench-lean.yml'
   workflow_dispatch:
+    inputs:
+      local_model_pilot:
+        description: 'Run the opt-in pinned CPU model with live isolated Lean feedback (public-dev)'
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
-  group: sog-lean-${{ github.ref }}
+  group: sog-lean-${{ github.ref }}-${{ inputs.local_model_pilot && 'local-model' || 'software' }}
   cancel-in-progress: true
 jobs:
   native-runtime:
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.local_model_pilot }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # The all-target replay at 3526e21b took nearly the previous job window.
+    # Allow CI headroom for the extra paired task, not extra submission time.
+    timeout-minutes: 65
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,7 +59,7 @@ jobs:
           go-version: '1.27.3'
           cache: false
       - name: Test packet and isolation argument contracts
-        run: python -m unittest tools.tests.test_sog_bench_lean tools.tests.test_sog_bench_lean_model tools.tests.test_sog_bench_lean_external
+        run: python -m unittest tools.tests.test_sog_bench_lean tools.tests.test_sog_bench_lean_model tools.tests.test_sog_bench_lean_external tools.tests.test_sog_bench_lean_stdio tools.tests.test_sog_bench_lean_retrieval tools.tests.test_sog_bench_lean_capture tools.tests.test_sog_bench_lean_local
       - uses: leanprover/lean-action@v1
         with:
           auto-config: false
@@ -68,6 +78,19 @@ jobs:
         run: python tools/sog_bench_lean_native.py workspace-trials --runtime .astis/lean-native
       - name: Exercise scripted model interface and canonical infrastructure rollup
         run: python tools/sog_bench_lean_native.py model-bridge-trials --runtime .astis/lean-native
+      - name: Reject a changed target through the credential-free JSONL bridge
+        run: python tools/sog_bench_lean_native.py stdio-bridge-trial --runtime .astis/lean-native
+      - name: Interleave bounded graph lookup and real Lean verification
+        run: python tools/sog_bench_lean_native.py graph-stdio-trial --runtime .astis/lean-native
+      - name: Verify the frozen real one-shot model answer, without repair
+        run: >-
+          python tools/sog_bench_lean_capture.py verify
+          --capture runs/20261110-bench-local-lean-first/raw
+          --receipt-sha256 17162dc147147f1e6b7849d4528f3d0f5f5b4dc1266b7d2eb532076428d1fa5c
+          --task .astis/lean-native/tasks/sogb-015
+          --stage .astis/lean-native/stages/sogb-015
+          --runtime .astis/lean-native
+          --output .astis/lean-native/model-first-capture
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -82,6 +105,66 @@ jobs:
             .astis/lean-native/workspace-trials
             .astis/lean-native/model-bridge-trials.json
             .astis/lean-native/model-bridge-trials
+            .astis/lean-native/stdio-bridge-trial
+            .astis/lean-native/graph-stdio-trial
+            .astis/lean-native/model-first-capture
             .astis/lean-native/image-id
             .astis/lean-native/trials
+          retention-days: 14
+  live-local-model-pilot:
+    # A PR or push never starts downloads/inference for this diagnostic.
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.local_model_pilot }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache: false
+      - uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          use-mathlib-cache: true
+      - name: Prepare the same pinned isolation and one checked public-dev target
+        run: |
+          lake build Mathlib.MeasureTheory.Measure.Prod
+          python tools/sog_bench_lean_native.py prepare --output .astis/lean-local-runtime
+          python tools/sog_bench_lean.py export --output .astis/lean-local-tasks --task-id sogb-015
+          python tools/sog_bench_lean.py stage --task .astis/lean-local-tasks/sogb-015 --output .astis/lean-local-stage
+      - name: Provision the pinned public CPU model and inference dependencies
+        run: |
+          mkdir -p .astis/lean-local-weights .astis/lean-local-host
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch==2.13.0+cpu'
+          python -m pip install 'transformers==5.11.0' 'safetensors==0.8.0'
+          python -m pip freeze > .astis/lean-local-host/pip-freeze.txt
+          docker version > .astis/lean-local-host/docker-version.txt
+          for asset in LICENSE config.json generation_config.json merges.txt model.safetensors tokenizer.json tokenizer_config.json vocab.json; do
+            curl --fail --silent --show-error --location --proto '=https' --connect-timeout 20 --max-time 600 --max-filesize 1050000000 \
+              --output ".astis/lean-local-weights/$asset" \
+              "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/resolve/7ae557604adf67be50417f59c2c2f167def9a775/$asset"
+          done
+      - name: Generate, receive isolated feedback, then submit once
+        run: >-
+          python tools/sog_bench_lean_local.py
+          --task .astis/lean-local-tasks/sogb-015
+          --stage .astis/lean-local-stage
+          --runtime .astis/lean-local-runtime
+          --model-directory .astis/lean-local-weights
+          --output .astis/lean-local-evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sog-lean-local-model-public-dev-evidence
+          path: |
+            .astis/lean-local-evidence
+            .astis/lean-local-host
+            .astis/lean-local-runtime/preparation.json
           retention-days: 14

@@ -76,6 +76,42 @@ class GraphSearchTests(unittest.TestCase):
         result, _, _ = self.exercise({**final, 'answer': {**answer, 'entails_mathematical_necessity': True}}, final)
         self.assertEqual(result['score']['points'], 0)
 
+    def test_lower_bounds_route_is_solvable_from_bounded_observations(self):
+        item = search.admitted('sogb-g010')
+        start = search.prompt(item, 5)
+        parents, calls = {}, []
+        def reaches(node):
+            if node == start['remove']:
+                return True
+            if node not in parents:
+                call = {'action': 'inspect', 'id': node}
+                calls.append(call)
+                parents[node] = search.lookup(item, call)['parents']
+            return any(reaches(parent) for parent in parents[node])
+        nodes = [node for node in start['targets'] if reaches(node)]
+        self.assertEqual({n.rsplit('.', 1)[-1] for n in nodes}, {
+            'quadratic_gap_lower_bound', 'exists_quadratic_worst_case', 'optimal_gradient_step'})
+        self.assertEqual(len(calls), 5)
+        final = {'action': 'submit', 'answer': {
+            'nodes': nodes, 'entails_mathematical_necessity': False}}
+        with tempfile.TemporaryDirectory() as directory:
+            trace = Path(directory) / 'trace'
+            raw = b''.join(search.line(call) for call in [*calls, final])
+            report = search.archive(item, 5, trace, io.BytesIO(raw), lambda _: None)
+            self.assertEqual(report, search.replay(trace, item))
+            self.assertEqual(report['score']['points'], 1)
+            budget_stop = search.run_trial(item, 4, io.BytesIO(raw), lambda _: None, lambda _: None)
+            self.assertEqual(budget_stop['termination'], 'lookup-budget-exhausted-no-final')
+            self.assertEqual(budget_stop['score']['max_points'], 1)
+            self.assertEqual(budget_stop['score']['points'], 0)
+        # Gold is an operator concern. Swapping it must not change initial
+        # task data or any tool response, even when the answer changes.
+        alternate = {**item, 'answer': {'nodes': [], 'entails_mathematical_necessity': True},
+                     'binding_sha256': 'not-visible-to-the-solver'}
+        self.assertEqual(start, search.prompt(alternate, 5))
+        self.assertEqual([search.lookup(item, c) for c in calls],
+                         [search.lookup(alternate, c) for c in calls])
+
     def test_invalid_request_is_bounded_and_does_not_reset_selection(self):
         result, observations, events = self.exercise(
             b'{"action":"find","query":"Convex","query":"Gradient"}\n', b'\xff\n',

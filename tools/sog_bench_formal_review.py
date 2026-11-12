@@ -10,6 +10,27 @@ import sog_bench as bench
 import sog_bench_review as review
 
 SCOPE = 'independent AI paired QA editorial review; not canonical theorem publication'
+FULL_EXERCISE_SCOPE = 'owned core answer plus conclusion-only fixed target; not full explanatory certification'
+
+
+def complete_exercise(core: dict) -> dict | None:
+    exercise = core.get('textbook_exercise')
+    return exercise if exercise and not exercise.get('source_components') else None
+
+
+def require_full_exercise_review(core: dict, row: dict) -> None:
+    exercise = complete_exercise(core)
+    if exercise is None:
+        return
+    parts = {p['id'] for p in exercise['parts']}
+    for key, required in (('exercise_semantic_slots', set(review.SLOTS)),
+                          ('exercise_part_checks', parts)):
+        actual = row.get(key)
+        if (not isinstance(actual, dict) or set(actual) != required
+                or not all(isinstance(s, str) and s.strip() for s in actual.values())):
+            raise ValueError('A complete paired exercise requires every source part and semantic slot')
+    if row.get('exercise_coverage_scope') != FULL_EXERCISE_SCOPE:
+        raise ValueError('A complete paired exercise requires an exact fixed-conclusion coverage boundary')
 REVIEWS = bench.DATA.parent / 'reviews'
 
 
@@ -105,6 +126,11 @@ def prepare_reviewer(cores: list[dict], directory: Path) -> None:
         packet['instruction'] += (
             ' Verify each anonymous constant, in decoder_symbols list order, against the '
             'actual imported definition, including its domain, quantifiers and empty-set behavior.')
+    if any(complete_exercise(c) for c in frozen):
+        packet['instruction'] += (
+            ' For a complete numbered exercise compare every primary-source semantic slot in '
+            'exercise_semantic_slots and each canonical part in exercise_part_checks; '
+            'exercise_coverage_scope is exactly: ' + FULL_EXERCISE_SCOPE + '.')
     if destination.exists():
         raise ValueError('Never overwrite a source-review packet')
     destination.write_bytes(bench.encoded(packet))
@@ -147,6 +173,7 @@ def round_statuses(cores: list[dict], directory: Path) -> dict:
         for key in ('mathematics_checks', 'scoring_checks', 'remaining_unformalized'):
             if not isinstance(row[key], list) or not row[key] or not all(isinstance(s, str) and s.strip() for s in row[key]):
                 raise ValueError('Paired acceptance needs mathematical/rubric evidence and explicit formal limits')
+        require_full_exercise_review(original, row)
         if row['verdict'] not in {'accept', 'repair-required', 'reject'} or not isinstance(row['repair_requests'], list):
             raise ValueError('Invalid paired-QA editorial decision')
         if row['verdict'] == 'accept' and row['repair_requests']:

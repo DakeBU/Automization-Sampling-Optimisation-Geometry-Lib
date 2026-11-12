@@ -41,6 +41,10 @@ class HarborGraphTests(unittest.TestCase):
             prompt = json.loads(files['environment/prompt.json'])
             self.assertEqual(prompt, adapter.bench.curriculum.graph_prompts([item])[0])
             self.assertNotIn('answer', prompt)
+            self.assertNotIn('binding_sha256', prompt)
+            for name, contents in files.items():
+                if name.startswith('environment/') or name in {'instruction.md', 'task.toml'}:
+                    self.assertNotIn(item['binding_sha256'].encode(), contents, name)
             self.assertEqual(files['tests/sog_bench_curriculum.py'], (ROOT / 'tools/sog_bench_curriculum.py').read_bytes().replace(b'\r\n', b'\n'))
             self.assertEqual(json.loads(files['tests/question.json']), item)
             self.assertEqual(set(n for n in files if n.startswith('environment/')),
@@ -55,7 +59,9 @@ class HarborGraphTests(unittest.TestCase):
             config = tomllib.loads(files['task.toml'].decode())
             self.assertEqual(config['schema_version'], '1.4')
             self.assertEqual(config['artifacts'], ['/handoff/answer.bin', '/handoff/collection.json'])
-            self.assertEqual(config['task']['version'], '2')
+            self.assertEqual(config['task']['version'], '3')
+            self.assertEqual(config['metadata']['prompt_sha256'],
+                             adapter.bench.curriculum.graph_prompt(item)['prompt_sha256'])
             self.assertEqual(config['verifier']['collect'], [{'command': 'python -I /app/collect_answer.py',
                 'service': 'main', 'user': 'root', 'timeout_sec': 5}])
             self.assertEqual(config['environment']['network_mode'], 'public')
@@ -71,6 +77,20 @@ class HarborGraphTests(unittest.TestCase):
             self.assertIn(b'touch /output/agent-marker', files['solution/solve.sh'])
             self.assertIn(b'test ! -e /output/agent-marker', files['tests/test.sh'])
 
+    def test_solver_assets_are_identical_for_alternate_gold(self):
+        item = self.items[0]
+        prompt = adapter.bench.curriculum.graph_prompt(item)
+        visible = {k: v for k, v in prompt.items() if k != 'prompt_sha256'}
+        other = {**item['answer'], 'entails_mathematical_necessity': True}
+        changed = {**item, 'answer': other, 'binding_sha256': adapter.bench.curriculum.digest(
+            {'prompt': visible, 'answer': other})}
+        first, second = adapter.task_files(item), adapter.task_files(changed)
+        self.assertNotEqual(first['tests/question.json'], second['tests/question.json'])
+        self.assertNotEqual(first['solution/answer.json'], second['solution/answer.json'])
+        for name, payload in first.items():
+            if name.startswith('environment/') or name in {'task.toml', 'instruction.md'}:
+                self.assertEqual(payload, second[name], name)
+
     def test_all_original_reference_answers_agree_with_the_actual_scorer(self):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / 'answer.json'
@@ -79,7 +99,10 @@ class HarborGraphTests(unittest.TestCase):
                 path.write_bytes(answer)
                 report = verifier.assess(item, path)
                 self.assertEqual(report['reward'], 1)
-                self.assertEqual(report['result'], adapter.bench.curriculum.grade_graph([item], [json.loads(answer)]))
+                row = json.loads(answer)
+                self.assertNotIn('binding_sha256', row)
+                self.assertEqual(report['result'], adapter.bench.curriculum.grade_graph([item],
+                    adapter.bench.curriculum.bind_graph_submissions([item], [row])))
                 self.assertEqual(report['response_sha256'], hashlib.sha256(answer).hexdigest())
 
     def test_invalid_data_zeroes_without_executing_any_submission(self):
@@ -87,11 +110,14 @@ class HarborGraphTests(unittest.TestCase):
         answer = json.loads(adapter.task_files(item)['solution/answer.json'])
         invalid = [b'', b'\xff', b'{}', b'[]', b'{"x":1,"x":2}', b'{"x":NaN}', b'[' * 2000,
                    b' ' * (verifier.MAX_BYTES + 1)]
-        for key, value in [('id', []), ('id', 'sogb-g999'), ('binding_sha256', 'stale'),
+        for key, value in [('id', []), ('id', 'sogb-g999'), ('prompt_sha256', 'stale'),
                            ('attempt', True), ('attempt', 2), ('answer', {'nodes': [], 'entails_mathematical_necessity': True})]:
             row = copy.deepcopy(answer)
             row[key] = value
             invalid.append(json.dumps(row).encode())
+        legacy = {k: v for k, v in answer.items() if k != 'prompt_sha256'}
+        invalid.append(json.dumps({**legacy, 'binding_sha256': item['binding_sha256']}).encode())
+
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / 'answer.json'
             self.assertEqual(verifier.assess(item, path)['reward'], 0)

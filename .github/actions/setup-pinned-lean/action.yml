@@ -1,0 +1,32 @@
+name: Set up checksum-pinned Lean and Mathlib
+description: Install the official Lean 4.33.0 Linux release and restore the pinned Lake dependencies.
+runs:
+  using: composite
+  steps:
+    - name: Verify and install the official Lean distribution
+      shell: bash
+      run: |
+        python3 -m unittest discover -s "$GITHUB_ACTION_PATH" -p 'test_*.py'
+        python3 "$GITHUB_ACTION_PATH/install.py"
+    - name: Restore the Lake dependency cache
+      id: lake-cache
+      uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
+      with:
+        path: .lake
+        key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ github.sha }}
+        restore-keys: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
+    - name: Fetch pinned Mathlib artifacts
+      shell: bash
+      run: |
+        if [[ ! -v MATHLIB_CACHE_GET_URL ]]; then
+          export MATHLIB_CACHE_GET_URL=https://cache.mathlib.org/mathlib4
+        elif [[ -z "$MATHLIB_CACHE_GET_URL" ]]; then
+          unset MATHLIB_CACHE_GET_URL
+        fi
+        lake exe cache get
+    - name: Save the Lake dependency cache
+      if: steps.lake-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5
+      with:
+        path: .lake
+        key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ github.sha }}

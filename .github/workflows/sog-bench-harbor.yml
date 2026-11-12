@@ -51,7 +51,7 @@ jobs:
           docker version > .astis/harbor/docker-version.txt
       - name: Validate with the actual Harbor schema
         run: |
-          python -c "from pathlib import Path; from harbor.models.task.task import Task; tasks=list(Path('.astis/harbor/tasks').glob('sogb-g*')); assert len(tasks)==7; [Task(p) for p in tasks]"
+          python -c "import json; from pathlib import Path; from harbor.models.task.task import Task; root=Path('.astis/harbor/tasks'); ids=json.loads((root/'adapter-manifest.json').read_text())['task_ids']; assert ids and len(ids)==len(set(ids)) and set(ids)=={p.name for p in root.iterdir() if p.is_dir()}; [Task(root / i) for i in ids]"
       - name: Run native oracle and no-answer fixtures (not model measurements)
         env:
           HARBOR_TELEMETRY: '0'
@@ -63,8 +63,12 @@ jobs:
           done
       - name: Require every selected native trial and exact positive/negative outcomes
         run: |
-          python tools/sog_bench_harbor.py check-job --job .astis/harbor/jobs/graph-oracle --expect-reward 1 --task-id sogb-g001 --task-id sogb-g002 --task-id sogb-g003 --task-id sogb-g004 --task-id sogb-g005 --task-id sogb-g006 --task-id sogb-g007
-          python tools/sog_bench_harbor.py check-job --job .astis/harbor/jobs/graph-nop --expect-reward 0 --task-id sogb-g001 --task-id sogb-g002 --task-id sogb-g003 --task-id sogb-g004 --task-id sogb-g005 --task-id sogb-g006 --task-id sogb-g007
+          selected=$(python -c "import json; from pathlib import Path; print(' '.join(json.loads(Path('.astis/harbor/tasks/adapter-manifest.json').read_text())['task_ids']))")
+          read -r -a ids <<< "$selected"
+          task_args=()
+          for id in "${ids[@]}"; do task_args+=(--task-id "$id"); done
+          python tools/sog_bench_harbor.py check-job --job .astis/harbor/jobs/graph-oracle --expect-reward 1 "${task_args[@]}"
+          python tools/sog_bench_harbor.py check-job --job .astis/harbor/jobs/graph-nop --expect-reward 0 "${task_args[@]}"
           python tools/sog_bench_harbor.py check-job --job .astis/harbor/jobs/transport-oversize --expect-reward 0 --expect-rejection too-large --task-id sogb-g001
           python tools/sog_bench_harbor.py check-job --job .astis/harbor/jobs/transport-symlink --expect-reward 0 --expect-rejection symlink --task-id sogb-g001
           python tools/sog_bench_harbor.py check-job --job .astis/harbor/jobs/transport-fifo --expect-reward 0 --expect-rejection not-regular --task-id sogb-g001

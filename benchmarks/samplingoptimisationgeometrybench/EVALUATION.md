@@ -111,10 +111,19 @@ stay in that selected denominator; unselected submissions are rejected. A subset
 report is explicitly labelled as such, never a full-suite score. Omitting
 `task_ids` preserves the older all-current-graph-tasks behavior.
 
+Graph answers echo the visible question's `prompt_sha256` (see the graph
+`response-template.json`), not the operator's answer-bound digest. The
+score archive binds the first captured response to the exact frozen reference.
+Duplicate JSON keys (including within answers) and non-finite constants are
+rejected instead of silently normalized.
+The explicit `--legacy-graph-bindings` switch is for reproducing old scores;
+old visible bindings do not meet this prompt-only contract.
+
 - **Graph JSON:** `python tools/sog_bench.py grade-graph --submissions graph-responses.jsonl --run-metadata graph-run.json --output .astis/my-graph-run` deterministically checks an exact source-hashed structural snapshot. Its metadata uses `prompt_profile: "given-snapshot"`. Reference self-tests are software tests, not measured model performance. See the [graph policy](README.md#graph-questions-and-scoring).
 - **Graph lookup:** the [bounded retrieval condition](#graph-lookup-without-the-snapshot) uses the same tasks and scorer, but the model must request its own evidence. Report the two conditions separately, not as independent questions or a combined score.
 - **Native graph environment:** [HARBOR.md](HARBOR.md) supplies the optional Harbor task exporter, pinned runtime and separate JSON verifier. Oracle/nop rewards test the integration only; a paid-agent setup, trajectory and provider run must be separately evidenced before reporting model performance. The full operator package includes answers, unlike `agent-tasks.zip`.
 - **Lean:** `python tools/sog_bench.py check-lean` compiles trusted extracted references only. For submitted tactics on admitted fixed targets, use the separate [experimental isolated Linux CLI](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/benchmarks/samplingoptimisationgeometrybench/lean-runtime) under its documented resource, tool and submission limits. This is not a hosted service, unrestricted Lean execution, or measured model performance.
+- **Agent-selected tools:** compare the statement-lookup API condition and the bounded compiler-graph JSONL condition separately; see the [model bridge guide](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/benchmarks/samplingoptimisationgeometrybench/lean-runtime/MODEL.md). Scripted native trials are not model scores.
 - **Difficulty:** labels are provisional editorial judgments, not empirical calibration. Module-import distance does not measure mathematical depth. A review correction can lower a label without adding a question or proving mathematics.
 - **Training/test separation:** all these families are public-dev. The [held-out family preflight](FAMILY_ISOLATION.md) checks a local reservation against declared public history; it is not a released test split or contamination guarantee. Never relabel a public variant as unseen. Restricted ATLAS material, indexes and derivatives must not enter this workflow.
 - **Exports:** references and prompts are separated, but the full pilot ZIP contains both. Give models the prompt-only file, not the ZIP. Frozen review reports remain audit-only and are excluded from training/reference bundles.
@@ -157,6 +166,45 @@ The pipe CLI does not call a provider, execute Lean or constrain a separate
 agent process outside the pipe. Do not give the agent a shell in the operator
 checkout. The controlled tool tests do not establish model performance.
 
+#### Paired suites across families (any JSONL agent)
+
+Use `tools/sog_bench_graph_suite.py` to freeze both conditions before
+collecting any responses. Select one admitted compiled-body question per
+family. Record the agent and revision plus decoding/retrieval settings in a
+local JSON file, for example
+`{"kind":"declared-agent","agent":"your-agent","revision":"exact-revision","settings":{"seed":17}}`.
+Use `controlled-software-fixture` instead for scripted inputs.
+
+```bash
+python tools/sog_bench_graph_suite.py plan --suite .astis/my-paired-run --task-id sogb-g007 --task-id sogb-g010 --max-lookups 8 --provenance provenance.json
+python tools/sog_bench_graph_suite.py record --suite .astis/my-paired-run --plan-sha256 SAVED_DIGEST --task-id sogb-g007 --profile given-snapshot
+python tools/sog_bench_graph_suite.py record --suite .astis/my-paired-run --plan-sha256 SAVED_DIGEST --task-id sogb-g007 --profile bounded-compiled-graph-lookup-v1
+python tools/sog_bench_graph_suite.py account --suite .astis/my-paired-run --plan-sha256 SAVED_DIGEST
+```
+
+Save the printed selection digest and the repository revision separately;
+replay against the same task and tool versions. Run each selected task in each
+condition in a **fresh conversation**; do not give an agent the suite directory,
+other condition's trace, reference, or score. Forward only stdout and send
+one action JSON line at a time. The supplied-snapshot condition accepts
+no lookups. `record` reserves the case before reading its first response and
+will not overwrite an unfinished case or a final. Keep input and output logs
+private to the operator unless the agent's terms and the task's rights allow
+publication.
+
+After collectors stop, `account` replays exact raw actions and observations,
+including the first final if any. Its report includes the preselected
+denominator for both conditions, separately identifies exact replayed pairs,
+and retains unstarted and interrupted archives as unscored (`null`). An
+observed EOF without a final is a replayed outcome, not an omitted task.
+The JSONL recorder cannot tell whether EOF came from a model stop or a
+transport failure. Use a transport-aware adapter when that distinction
+matters, and do not report a provider or operator failure as a model miss.
+No survivor-only percentage is emitted. This verifies the operator archive,
+not the identity, chronology or retrieval compliance of an external agent.
+Use the same prompts, model and tool policy if comparing results; even a
+complete public-dev run is not evidence of held-out generalization.
+
 #### Optional foreground model comparison
 
 With `OPENAI_API_KEY` configured outside Git, the separate adapter can run
@@ -179,5 +227,20 @@ missing or invalid model finals remain selected. A partial comparison is not
 a matched comparison. Keep both profiles separate and do not infer unseen
 generalization, calibrated difficulty, Lean capability or authenticated model
 performance from this public-dev graph-only pilot.
+
+To verify a complete archive without credentials or new model calls:
+
+```bash
+python tools/sog_bench_graph_model_replay.py --task-id sogb-g007 --run .astis/sog-bench/runs/my-graph-model-comparison
+```
+
+Use the checkout bound in the original selection. Replay leaves the archive
+unchanged and regenerates both condition prompts, every request, lookup
+observation, first-final score and the comparison manifest from the recorded
+response bytes. A re-signed hash list does not bypass these comparisons. A
+complete HTTP error receipt stays unscored; if the transport saved no bounded
+raw response, the archive cannot be fully replayed and must not acquire a
+score. This verifies internal consistency, not provider authenticity or an
+independent second model run.
 
 See [README](README.md), [curriculum](curriculum.json), [continuing Goal](GOAL.md) and [license scope](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/LICENSE_SCOPE.md).

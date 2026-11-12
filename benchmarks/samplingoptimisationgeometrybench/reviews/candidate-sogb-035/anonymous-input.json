@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "scope": "source-blind reconstruction of two compiled mathematical propositions; no adjudication",
+  "compiler_version": "Lean 4.33.0",
+  "statements": [
+    "statement_A\n  (P Q : MeasureTheory.Measure S)\n  [MeasureTheory.IsProbabilityMeasure P] [MeasureTheory.IsProbabilityMeasure Q]\n  (p q : T)\n  (hP : R₁ P p)\n  (hQ : R₁ Q q)\n  (hs : R₂ P p q)\n  (hp :\n    ∀ (n : ℕ) (h : H n),\n      (∀ (b : Bool), 0 ≤ p n h b) ∧ ∑ b, p n h b = 1)\n  (hq :\n    ∀ (n : ℕ) (h : H n),\n      (∀ (b : Bool), 0 ≤ q n h b) ∧ ∑ b, q n h b = 1)\n  (B : ℝ)\n  (hB :\n    ∀ (n : ℕ),\n      ∀ᵐ (x : S) ∂P,\n        ∑ k ∈ Finset.range n, E P p q k x ≤ B)\n  (τ : S → WithTop ℕ)\n  (hτ : MeasureTheory.IsStoppingTime F τ)\n  (hτP : ∀ᵐ (x : S) ∂P, τ x ≠ ⊤)\n  (W : S → ENNReal) (hW : Measurable W)\n  (hW2 : ∫⁻ (x : S), W x ^ 2 ∂P < ⊤) :\n  ∃ L,\n    MeasureTheory.StronglyMeasurable L ∧\n      0 ≤ᵐ[P] L ∧\n        MeasureTheory.MemLp L 2 P ∧\n          (∀ᵐ (x : S) ∂P,\n              Filter.Tendsto (fun n => D P Q n x)\n                Filter.atTop (nhds (L x))) ∧\n            ∫ (x : S), L x ^ 2 ∂P ≤ Real.exp B ∧\n              ∫ (x : S), L x ∂P = 1 ∧\n                (Q = P.withDensity fun x => ENNReal.ofReal (L x)) ∧\n                  Q.AbsolutelyContinuous P ∧\n                    MeasurableSet {x | τ x ≠ ⊤} ∧\n                      (∀ᵐ (x : S) ∂Q, τ x ≠ ⊤) ∧\n                        ∫⁻ (x : S), W x ∂P < ⊤ ∧\n                          ∫⁻ (x : S), W x ∂Q < ⊤ ∧\n                            |(∫⁻ (x : S), W x ∂Q).toReal -\n                                  (∫⁻ (x : S),\n                                      W x ∂P).toReal| ≤\n                              √((Real.exp B - 1) * ProbabilityTheory.variance (fun x => (W x).toReal) P)",
+    "statement_B (m : ℝ)\n  (hm : 2 ≤ m) :\n  have p := (m ^ 2)⁻¹;\n  have q := m⁻¹;\n  have pt := U p p;\n  have qt := U q 1;\n  ∃ P Q,\n    MeasureTheory.IsProbabilityMeasure P ∧\n      MeasureTheory.IsProbabilityMeasure Q ∧\n        R₁ P pt ∧\n          R₁ Q qt ∧\n            R₂ P pt qt ∧\n              (∀ (n : ℕ) (h : H n),\n                  (∀ (b : Bool), 0 ≤ pt n h b) ∧ ∑ b, pt n h b = 1) ∧\n                (∀ (n : ℕ) (h : H n),\n                    (∀ (b : Bool), 0 ≤ qt n h b) ∧ ∑ b, qt n h b = 1) ∧\n                  (MeasureTheory.IsStoppingTime\n                      F fun x => 2) ∧\n                    (∀ᵐ (x : S) ∂P, ∀ k ≥ 2, x k = false) ∧\n                      (∀ᵐ (x : S) ∂Q,\n                          ∀ k ≥ 2, x k = false) ∧\n                        (∀ (n : ℕ),\n                            ∑ k ∈ Finset.range n,\n                                ∫ (x : S),\n                                  E P pt qt k\n                                    x ∂P <\n                              2) ∧\n                          Measurable (C m) ∧\n                            ∫⁻ (x : S),\n                                  C m x ^ 2 ∂P =\n                                1 ∧\n                              ∫⁻ (x : S),\n                                  C m x ∂Q =\n                                ENNReal.ofReal m"
+  ],
+  "definition_context": [
+    "S is ℕ → Bool with the product measurable space, Bool has the discrete measurable space. H n is Fin n → Bool, and T is (n : ℕ) → H n → Bool → ℝ. The prefix at n reads coordinates 0 through n−1, so the prefix at 0 is empty. F n is the σ-algebra pulled back by that prefix map.",
+    "Write a(M,n,h) for Measure.real of the event that the length-n prefix equals h under M. R₁ M t means a(M,n+1,snoc(h,b)) = a(M,n,h) * t n h b for every n,h,b. R₂ P p q means at every history with a(P,n,h)>0, p n h b=0 implies q n h b=0.",
+    "For the observed prefix h, D P Q n x is a(Q,n,h)/a(P,n,h), using Lean's real division by zero equals zero. E P p q n x is zero if a(P,n,h)=0, otherwise ∑ over b∈Bool of (q n h b−p n h b)²/p n h b, with the same real division convention.",
+    "U u v is a table: the probability assigned to true is u at depth zero; at depth one it is v when the first bit is true and zero otherwise; at depths at least two it is zero. The probability assigned to false is one minus the probability assigned to true.",
+    "C m x is ENNReal.ofReal of m² if the first two bits are both true, and zero otherwise. It is a terminal charge, not a count of observations.",
+    "Q.AbsolutelyContinuous P means every P-null set is Q-null. ∫⁻ is the nonnegative extended Lebesgue integral; .toReal maps ⊤ to zero, so notice which conclusions first prove finiteness. ProbabilityTheory.variance is the variance of the real observable under the displayed measure."
+  ],
+  "requested_slots": [
+    "objects",
+    "domains",
+    "quantifiers",
+    "assumptions",
+    "conclusion",
+    "senses",
+    "constants"
+  ],
+  "instruction": "Read only this packet. Independently reconstruct both Lean propositions and their exclusions, including scopes and distinct P/Q integrability and stopping facts. Do not inspect repository files, question or proof text, external sources, identities, other reviews, or previous verdicts. No theorem equivalence or publication verdict is requested."
+}

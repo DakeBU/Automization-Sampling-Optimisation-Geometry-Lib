@@ -156,10 +156,11 @@ Lean. The host intentionally lacks a usable Docker/WSL runtime.
 
 The workflow separates the catalogue and behaviour trials into two runners at
 the same revision. The catalogue lane still verifies **every** admitted Lean
-target and the five proof negatives. The behaviour lane verifies the four
-targets its checks use, then runs the same I/O, resource, workspace, JSONL,
-graph, and frozen-answer replays. Its subset receipt does not certify the
-whole catalogue. Read the `sog-lean-native-catalogue-software-evidence` and
+target and the five proof negatives. The behaviour lane verifies the five
+targets its checks use, including the statement-lookup target selected by
+the model-interface fixture itself. It then runs the same I/O, resource,
+workspace, JSONL, graph, and frozen-answer replays. Its subset receipt does
+not certify the whole catalogue. Read the `sog-lean-native-catalogue-software-evidence` and
 `sog-lean-native-behaviour-software-evidence` artifacts together; the
 `native-runtime` check requires both lanes to succeed and emit their receipts.
 The split addresses the hosted job deadline, not any submitted proof limit.

@@ -240,7 +240,7 @@ def exercise_pages(exercise: dict) -> str:
     return 'printed ' + pages('book_page') + ' / PDF ' + pages('pdf_page')
 
 
-def owned_answer_graph_href(declaration: str) -> str:
+def focused_declaration_graph_href(declaration: str) -> str:
     """Open the readable, filtered Lean slice instead of the full overview."""
     from urllib.parse import quote
     return ('../../underlying-lean-graph/index.html?focus=' + quote('decl:' + declaration, safe='')
@@ -258,7 +258,7 @@ def exercise_panel(core: dict, checked: bool) -> str:
 
     def answer_link(declaration: str) -> str:
         label = declaration.rsplit('.', 1)[-1] if component_mode else declaration
-        return ('<a href="' + owned_answer_graph_href(declaration) + '" title="' + escape(declaration)
+        return ('<a href="' + focused_declaration_graph_href(declaration) + '" title="' + escape(declaration)
                 + '"><code>' + escape(label) + '</code></a>')
 
     parts = {}
@@ -468,8 +468,8 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
                    else 'Locate the owning module (declaration not yet indexed in this graph)')
     graph_href = ('../../underlying-lean-graph/index.html?focus=' + quote(graph_id, safe='')
                   if graph_id is not None else None)
-    if (core.get('textbook_exercise') or owned_original) and anchor_kind == 'declaration':
-        graph_href = owned_answer_graph_href(core['declaration'])
+    if anchor_kind == 'declaration':
+        graph_href = focused_declaration_graph_href(core['declaration'])
     graph_short = f'<a href="{graph_href}">Lean Graph ↗</a> · ' if graph_href else ''
     graph_detail = f' · <a href="{graph_href}">{graph_label}</a>' if graph_href else ' · ' + anchor_label
     status = 'Trusted reference compilation recorded for this source state.' if checked else 'No current trusted-reference compiler receipt recorded in this build.'

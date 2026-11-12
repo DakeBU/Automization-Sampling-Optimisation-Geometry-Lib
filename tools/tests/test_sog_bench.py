@@ -316,6 +316,7 @@ class BenchTests(unittest.TestCase):
                 self.assertEqual('data-lean-copy-status' in rendered, bool(core.get('support_source_view')))
             self.assertNotIn('<details open', rendered)
             self.assertIn('focus=decl%3A', rendered)
+            self.assertIn('&amp;view=lean&amp;q=' + core['declaration'], rendered)
             module = 'module:' + core['source_file'].removesuffix('.lean').replace('/', '.')
             fallback = reader.core_page(core, False, {module})
             self.assertIn('focus=module%3A', fallback)
@@ -839,6 +840,8 @@ class BenchTests(unittest.TestCase):
         state = bench.editorial_review([cutoff])['items'][cutoff['id']]
         self.assertEqual((state['editorial'], state['formal_alignment']),
                          ('accepted-after-repair', 'conclusion-only'))
+        page = reader.core_page(cutoff, True, {'decl:' + cutoff['declaration']}, review_row=state)
+        self.assertIn('&amp;view=lean&amp;q=' + cutoff['declaration'], page)
         owner = cutoff['source_file'].removesuffix('.lean').replace('/', '.')
         self.assertNotIn(owner, runtime.local_imports(cutoff['imports']))
         packet = runtime.packet(cutoff)

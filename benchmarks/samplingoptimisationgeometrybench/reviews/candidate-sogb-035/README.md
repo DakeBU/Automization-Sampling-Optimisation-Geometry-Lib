@@ -14,7 +14,8 @@ its family, or any admitted task, calibration, or model score.
 - [Target-design preflight](target-preflight.json) records a local prototype,
   not the final solver packet. Its proofless environment did not contain
   either answer declaration. A separate trusted assembly compiled both
-  obligations without importing their completed modules.
+  obligations without importing their completed modules. Comparing those
+  environments matched all 21 selected model and target expressions.
 
 The positive candidate gives a full-path density and the stated variance
 bound for extended work; it proves a.e. convergence to an \(L^2\) density,
@@ -32,3 +33,6 @@ reference and proof helpers separate. Editorial alignment of the exact
 challenge, native isolated acceptance, and empirical difficulty are still
 pending. The roughly 218 MB local owner export and the 57,138-byte local
 reference are sizing evidence only, not an isolated verifier receipt.
+The existing native exporter only accepts an admitted exact catalogue
+packet. Do not relabel this prototype as admitted to force a run; a
+pre-admission fixed-oracle check must preserve that public export guard.

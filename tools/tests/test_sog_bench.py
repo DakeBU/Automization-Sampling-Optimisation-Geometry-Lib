@@ -307,8 +307,12 @@ class BenchTests(unittest.TestCase):
                 self.assertIn('data-lean-copy-status', rendered)
                 self.assertIn('No current trusted-reference compiler receipt', rendered)
             else:
-                self.assertIn('Owned Lean core answers' if core.get('textbook_exercise')
-                              else 'Lean view: not yet aligned', rendered)
+                if bench.ORIGINAL_EXAMPLE_ANSWERS.get(core['source_file']) == core['declaration']:
+                    self.assertIn('The owned declaration proves the concrete witness.', rendered)
+                    self.assertNotIn('Download task template', rendered)
+                else:
+                    self.assertIn('Owned Lean core answers' if core.get('textbook_exercise')
+                                  else 'Lean view: not yet aligned', rendered)
                 self.assertEqual('data-lean-copy-status' in rendered, bool(core.get('support_source_view')))
             self.assertNotIn('<details open', rendered)
             self.assertIn('focus=decl%3A', rendered)

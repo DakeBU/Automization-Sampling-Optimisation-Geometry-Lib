@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "scope": "independent AI paired QA editorial review; not canonical theorem publication",
+  "actor_identity": "agent-task:lsi_four_point_review",
+  "input_packet_sha256": "4adfecccbd6960a139fec6892c3b1988b995316f97b9ce1b723807a443c6f2af",
+  "items": {
+    "sogb-052": {
+      "binding_sha256": "7453fca8dc7377891fce76d57c12205b5131b9a78f678ce98ab41297f64cdbbb",
+      "context_sha256": "438ee5db36fafe5b45cd0ec1924e8f891aada2001785851671e6bb45d8b35de3",
+      "formal_scope": "conclusion-only",
+      "semantic_slots": {
+        "objects": "Matches the blind reconstruction and the source declaration: a real Hilbert carrier with its Borel measurable structure, one Borel measure μ, a real-valued f, the genuine Riesz gradient, and the fixed approximation f_n = radialSmoothCutoff (n + 1) · f.",
+        "domains": "All x lie in E, n ranges over the natural numbers including zero, and the radii are positive reals. All three scalar integrands and integral values are real, the gradient takes values in E, and every integral uses the same measure over E. No compact-subdomain integration is stipulated.",
+        "quantifiers": "The complete real inner-product Borel space, μ, and f satisfying the premises are arbitrary. All three limits concern the same sequence as n tends to infinity, with no uniformity over the ambient spaces, measures, or functions. The imported cutoff is fixed, not universally quantified over alternative choices.",
+        "assumptions": "ContDiff ℝ 2 f, both MemLp at exponent 2 premises (including a.e. strong measurability), and absolute integrability of the signed log integrand match the stated C²/L²/L¹ premises. The cutoff facts come from the library, not extra theorem binders. Neither finite dimension, separability, finite total mass, σ-finiteness, probability normalization, nor absolute continuity of μ is required.",
+        "conclusion": "The three conjuncts of cutoff_integral_limits are exactly the limits of the integrals of f_n², Φ(f_n²), and ‖∇f_n‖² to their uncut counterparts. The prose adds requests to justify the proof and scope, but the Lean target has no independent proposition for these requests.",
+        "senses": "Each Lean Tendsto uses atTop on ℕ and the real neighborhood of the indicated integral. The real-valued Bochner integrals use the signed, zero-extended Φ(q) = q log q, not normalized entropy or KL. Local equality and pointwise convergence are proof ingredients, not additional assertions of the signature; no rate, L² convergence, or functional inequality is asserted.",
+        "constants": "Cutoff.lean defines the radial profile as smoothUnitCutoff (‖x‖ / R) and proves the [0,1] range, the one region at radius R, vanishing at and beyond radius 2R, smoothness, and a first-derivative bound A/R with A independent of x and R. The radius n+1 is fixed and at least 1. The L² exponents, squares, and C² order agree with the declaration. No explicit cutoff constant is needed in the conclusion."
+      },
+      "mathematics_checks": [
+        "Chewi, Log-Concave Sampling (2026-08-20), §2.1.1, printed pp. 48–49 / PDF pp. 60–61, gives the compact smooth LSI test class and notes a density extension without providing this argument. Exercise 1.7, printed p. 43 / PDF p. 55, instead asks for LSI-to-Poincaré linearization and gives the KL expansion hint (1.E.1). The packet correctly labels the Hilbert/measure-generic triple limit an original sufficient approximation step, not that exercise or a proof of the textbook inequality.",
+        "At each fixed x, n+1 > ‖x‖ places x in the open ball where the cutoff is locally 1, so f_n and f agree near x and hence have the same genuine derivative at x. Mere pointwise convergence of cutoff values does not justify differentiating the limit. Continuity of the C² functions and their gradients, the norm, and the zero-extended Φ implies Borel measurability of the scalar integrands. Scalar strong measurability follows without separability of E.",
+        "Mass is nonnegative and bounded by f². For entropy the zero-safe identity Φ(aq) = a Φ(q) + q Φ(a) gives |Φ(aq)| ≤ |Φ(q)| + q for 0 ≤ a ≤ 1 and q ≥ 0; a log a ≥ a−1, and a log a ≤ 0. Both terms in the envelope are integrable. At q = 1 and 0 < a < 1 the naive envelope |Φ(q)| fails.",
+        "The reference energy estimate correctly uses the derivative product rule, Riesz isometry, and A/(n+1) ≤ A to obtain 2‖∇f‖² + 2A²f², integrable by the two L² premises. Pointwise convergence and these envelopes give all three limits by dominated convergence on an arbitrary measure space. Compactness of closed bounded balls is only used in the later finite-dimensional compact-test extension, not the triple limit.",
+        "The LF-normalized hash of LogSobolevCutoff.lean matches the packet. Its line 112 theorem has the same signature as the fixed Lean example, and the reference example matches the named theorem body with the same four private helper proofs. The task does not import the target module. Tests/Shared/LogSobolevCutoff.lean inspects the cutoff theorem's axioms and exercises its downstream compact-test extension; that test's finite-dimensional and finite-measure assumptions are not assumptions of the paired theorem. This is a source comparison, not a fresh compiler or axiom replay."
+      ],
+      "scoring_checks": [
+        "The four criteria are worth one point each and total four. They partition the requested mass/measurability, entropy, energy, and limit/scope work; no separate point is needed for the reference's entropy counterexample or the downstream LSI explanation.",
+        "Point 1 checks the common scalar measurability and pointwise cutoff limit, plus the elementary L² mass domination. Eventual equality, plain pointwise convergence of cutoff values times f, and a.e. strong measurability sufficient for the integral proof need no particular theorem name; an equivalent bound based on the same integrable square suffices.",
+        "Point 2 correctly demands control of the magnitude of the signed entropy integrand, not only an upper bound, and accepts any valid integrable uniform envelope. Zero cases may be covered by continuous extension or directly by an estimate valid on all of [0,1] × [0,∞); an explicit factor split is not needed when the estimate already covers them. Two-sided bounds that entail an absolute envelope also meet the criterion.",
+        "Point 3 checks the right mathematical obligations but prescribes the gradient product rule for the envelope, even though the prompt asks for an envelope rather than a method. Its alternative-argument clause modifies only pointwise convergence. For example, the cutoff is A/(n+1)-Lipschitz by the line-segment mean-value estimate. Taking the local slope of |f_n(y)−f_n(x)| ≤ |f(y)−f(x)| + |f(x)|·|χ_{n+1}(y)−χ_{n+1}(x)| yields ‖Df_n(x)‖ ≤ ‖Df(x)‖ + A|f(x)| via differentiability and gives an integrable energy bound without invoking a derivative product-rule identity. Together with local agreement this fully answers the prompt, but the literal criterion can withhold a whole point.",
+        "Point 4 appropriately accepts dominated convergence or an equally valid passage of all three limits. It tests only why neither finite mass nor finite dimension enters these limits; compactness in the downstream LSI theorem is useful context, not a required part of the answer."
+      ],
+      "remaining_unformalized": [
+        "The fixed conclusion does not separately certify the natural-language derivation, measurability explanation, proposed uniform envelopes, zero-factor discussion, or the distinction between local agreement and pointwise convergence. These do appear as reasoning obligations or lemmas in the reference proof, not additional target conjuncts.",
+        "The absent finite-measure and finite-dimension binders are visible in the target, but explaining why they are unnecessary here and why compact cutoff support is used downstream is prose assessment. Normalized entropy, extension of LSI itself, closed form domains, and the full Exercise 1.7 conclusion are outside this item."
+      ],
+      "verdict": "repair-required",
+      "repair_requests": [
+        "Keep four one-point criteria. Make point 3's envelope assessment route-neutral: require a justified n-independent integrable envelope for the squared genuine gradient from the stated assumptions, treating the product rule and derivative bound as one sufficient route and accepting any equally valid estimate. Retain the requirement for a justified energy pointwise limit and for distinguishing it from mere convergence of cutoff values. No change to the prompt, mathematics, source attribution, or Lean target is required."
+      ]
+    }
+  }
+}

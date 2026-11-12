@@ -316,6 +316,7 @@ class BenchTests(unittest.TestCase):
                 self.assertEqual('data-lean-copy-status' in rendered, bool(core.get('support_source_view')))
             self.assertNotIn('<details open', rendered)
             self.assertIn('focus=decl%3A', rendered)
+            self.assertIn('&amp;view=lean&amp;q=' + core['declaration'], rendered)
             module = 'module:' + core['source_file'].removesuffix('.lean').replace('/', '.')
             fallback = reader.core_page(core, False, {module})
             self.assertIn('focus=module%3A', fallback)
@@ -827,6 +828,32 @@ class BenchTests(unittest.TestCase):
             self.assertNotIn('source_components', json.loads(packet['agent/prompt.json']))
             self.assertTrue(all(c['declaration'].encode() not in packet['agent/Solution.lean.txt'] for c in cores))
         self.assertNotEqual(*(exercises.question_component(exercise, c['declaration']) for c in cores))
+
+    def test_lsi_cutoff_pair_is_not_a_numbered_exercise_or_an_answer_import(self):
+        import sog_bench_lean as runtime
+
+        cutoff = next(c for c in self.cores if c['id'] == 'sogb-052')
+        source = next(c for c in self.cores if c['id'] == 'sogb-039')
+        self.assertEqual((cutoff['family'], cutoff['split']), (source['family'], source['split']))
+        self.assertNotIn('textbook_exercise', cutoff)
+        self.assertEqual(cutoff['track_levels'], {'natural-language': 'L4', 'lean': 'L4'})
+        state = bench.editorial_review([cutoff])['items'][cutoff['id']]
+        self.assertEqual((state['editorial'], state['formal_alignment']),
+                         ('accepted-after-repair', 'conclusion-only'))
+        page = reader.core_page(cutoff, True, {'decl:' + cutoff['declaration']}, review_row=state)
+        self.assertIn('&amp;view=lean&amp;q=' + cutoff['declaration'], page)
+        owner = cutoff['source_file'].removesuffix('.lean').replace('/', '.')
+        self.assertNotIn(owner, runtime.local_imports(cutoff['imports']))
+        packet = runtime.packet(cutoff)
+        learner = packet['agent/Solution.lean.txt'] + packet['agent/prompt.json']
+        self.assertNotIn(b'FiniteDimensional', packet['agent/Solution.lean.txt'])
+        self.assertNotIn(b'IsFiniteMeasure', packet['agent/Solution.lean.txt'])
+        self.assertNotIn(cutoff['declaration'].encode(), learner)
+        self.assertEqual(len(cutoff['reference_helpers']), 4)
+        for helper in cutoff['reference_helpers']:
+            name = helper.rsplit('.', 1)[-1].encode()
+            self.assertNotIn(name, learner)
+            self.assertIn(b'private theorem ' + name, packet['oracle/Solution.lean.txt'])
 
     def test_exercise_sources_allow_hash_pinned_primary_books_not_only_arxiv(self):
         data = json.loads(exercises.DATA.read_text(encoding='utf-8'))

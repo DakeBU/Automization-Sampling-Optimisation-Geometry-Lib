@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-53234be074cd4392",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀         {d q : ℕ} (hq : 2 * q + 1 < d) ,\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let X : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => ρ⁻¹ • (w i • Z i ω)\n  ∀ s : ℝ, 0 < s → ∀ i : Fin d,\n    (NormedSpace.exp\n        ((Real.exp s - s - 1) • (∫ ω, X i ω * X i ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef\n",
+    "statement_sha256": "53234be074cd4392dc943aa4c18eeade15e21ac909c6d5b334b85a863725203f",
+    "compiled": true,
+    "approved_definition_context": [
+      "Matrix is the finite real square-matrix algebra. Matrix multiplication is ordinary multiplication, scalar multiplication is real scalar multiplication, and 1 is the identity matrix.",
+      "For a real square matrix, IsHermitian means that its transpose equals itself. PosSemidef means full positive semidefiniteness, including self-adjointness and nonnegativity of the quadratic form on every real vector; it is not entrywise order.",
+      "NormedSpace.exp is the convergent matrix-algebra power-series exponential, not entrywise exponential. Real.exp is the scalar exponential. The matrix norm topology is the real Euclidean operator-norm topology.",
+      "Fin n is the finite set of natural numbers less than n, with zero-based i.val. EuclideanSpace real (Fin n) has its Euclidean norm and Borel structure. WithLp.toLp 2 and WithLp.ofLp wrap and unwrap the same coordinates.",
+      "stdGaussian is the centered Gaussian probability measure with identity covariance. Measure.pi is the displayed finite product measure on the function space. No conditioning is implicit in a displayed measure or integral.",
+      "Real.log is the natural logarithm and Real.sqrt is the nonnegative square root. Real inverses are totalized at zero. A cutoff using less-than-or-equal includes equality.",
+      "Matrix.vecMulVec u v has entry u_i v_j. The Kronecker product has entry A_(i,k) B_(j,l) at paired row (i,j) and column (k,l), with exactly the displayed factor order.",
+      "Integrals are Bochner integrals in the finite matrix space, totalized to zero for nonintegrable functions. Reconstruct the proposition as written without adding integrability premises or conclusions. Each let definition scopes over the full following proposition."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "86a47d3256fd4839a875da32b06db9eb20ddfaa201965f9051d4d086499100ae"
+}

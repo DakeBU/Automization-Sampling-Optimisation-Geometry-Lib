@@ -1,0 +1,57 @@
+{
+  "id": "ASTIS-RT-20261114-HuanjianMatrixBernsteinWeightedMgfPrivate",
+  "state": "draft",
+  "base_commit": "107eb7d0b519bc77c96e0a9d5ff7df24854bb80b",
+  "source": {
+    "source_id": "gaussian2610.20492v1-C2-weighted-private-mgf",
+    "anchor": "Authored exact weighted single-summand specialization; source C.2 Ex107-112 and Ex121 use context",
+    "original_text": "For natural d,q with 2q+1<d, use Ω=(ℝ^d)^(q+1) and its original product standard-Gaussian probability measure μ. Define the inclusive row-truncated Kronecker summands Y_i, their actual means M_i=∫Y_i dμ, Z_i=Y_i−M_i, ρ=2(q+1)(L+1)/d, w_i=cos((2q+1)θ_i), and X_i=ρ⁻¹ w_i Z_i exactly as in the sealed signature. Then for every s>0 and every row i, ∫exp(sX_i) dμ≼exp((exp(s)−s−1)∫X_i² dμ). The case q=0 is retained. All regularity, normalization positivity, centering and spectral-cap facts are internal proof obligations, not additional theorem premises.",
+    "text_sha256": "299d274adaaa7b4e7ea5cb5c3923b977c2376fec0b274d950d1376e980bd1ee5",
+    "wording_status": "authored faithful restatement pending independent source review"
+  },
+  "lean": {
+    "declaration": "_private.Tests.GaussianComplexityBernsteinWeightedMgf.0.AutoSamplingTheory.Tests.GaussianComplexityBernsteinWeightedMgf.actual_source_weighted_normalized_single_summand_mgf",
+    "file": "Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+    "statement": "∀         {d q : ℕ} (hq : 2 * q + 1 < d) ,\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let X : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => ρ⁻¹ • (w i • Z i ω)\n  ∀ s : ℝ, 0 < s → ∀ i : Fin d,\n    (NormedSpace.exp\n        ((Real.exp s - s - 1) • (∫ ω, X i ω * X i ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef\n",
+    "statement_sha256": "53234be074cd4392dc943aa4c18eeade15e21ac909c6d5b334b85a863725203f",
+    "compiled": true,
+    "formalizer": "huanjian_20261114_matrix_bernstein_mgf",
+    "statement_formation_only": {
+      "receipt": ".astis/huanjian-resume-20261103/20261114T064942986057Z-weighted-mgf-v1-proof-free-statement-formation.receipt.json",
+      "receipt_sha256": "5a0a3ae0b3e45187944680955bd221240ec607b6f60c9ba5d7e6bb4c07e3292a",
+      "exit_code": 0,
+      "warnings": "unused binders in Prop-valued type formation, no target proof"
+    },
+    "statement_digest_scope": "Exact proof-bearing sealed binders and conclusion, rewritten as a universal proposition; source-file proof was actually compiled. Independent native full-type/value check is pending.",
+    "decoder_context": [
+      "Matrix is the finite real square-matrix algebra. Matrix multiplication is ordinary multiplication, scalar multiplication is real scalar multiplication, and 1 is the identity matrix.",
+      "For a real square matrix, IsHermitian means that its transpose equals itself. PosSemidef means full positive semidefiniteness, including self-adjointness and nonnegativity of the quadratic form on every real vector; it is not entrywise order.",
+      "NormedSpace.exp is the convergent matrix-algebra power-series exponential, not entrywise exponential. Real.exp is the scalar exponential. The matrix norm topology is the real Euclidean operator-norm topology.",
+      "Fin n is the finite set of natural numbers less than n, with zero-based i.val. EuclideanSpace real (Fin n) has its Euclidean norm and Borel structure. WithLp.toLp 2 and WithLp.ofLp wrap and unwrap the same coordinates.",
+      "stdGaussian is the centered Gaussian probability measure with identity covariance. Measure.pi is the displayed finite product measure on the function space. No conditioning is implicit in a displayed measure or integral.",
+      "Real.log is the natural logarithm and Real.sqrt is the nonnegative square root. Real inverses are totalized at zero. A cutoff using less-than-or-equal includes equality.",
+      "Matrix.vecMulVec u v has entry u_i v_j. The Kronecker product has entry A_(i,k) B_(j,l) at paired row (i,j) and column (k,l), with exactly the displayed factor order.",
+      "Integrals are Bochner integrals in the finite matrix space, totalized to zero for nonintegrable functions. Reconstruct the proposition as written without adding integrability premises or conclusions. Each let definition scopes over the full following proposition."
+    ],
+    "code_sha256": "42f372143ffe52e4372271d09fbc6b67391739f2fe2a5fbfffe6cd9fa586936e"
+  },
+  "repairs": [],
+  "source_review": {
+    "state": "pending"
+  },
+  "verdict": "pending",
+  "candidate_commit": "4869db55d340cee39f0ba4d49fb0a7a4309ba2d6",
+  "publication_binding_sha256": null,
+  "publication_context": null,
+  "reconstruction": null,
+  "deltas": [],
+  "deltas_pending": true,
+  "no_independent_acceptance_claim": true,
+  "blind_packet_status": "Fresh canonical anonymous packet exported; independent decoding pending.",
+  "private_consumer": true,
+  "owner_public_declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf.centered_bounded_matrix_mgf",
+  "separate_public_node": false,
+  "separate_public_binding": false,
+  "scope_boundary": "Candidate public result P is the complete real normalized individual-matrix expectation MGF assertion of Tropp Lemma6.7, with explicit source-standing regularity. Candidate private T specializes P to cosine-weighted normalized summands of the literal original unconditional Gaussian product experiment, with actual inclusive cutoff, actual unconditional means and the actual matrix second moment. No public node or separate publication edge is assigned to T. No sum-tail, Lieb/master-tail, full matrix Bernstein, FactC6, Lemma4.4, main bounds, oracle, TV, precision, query cap/cost, production website, purification or Goal completion. The original shared stabilization owner remains STABILIZING; this draft does not take ownership or change old R13 P/T.",
+  "root_build_scope": "Actual build HEAD107eb7d0 with these exact source bytes; the bytes were subsequently frozen at candidate4869. No retroactive ROOT build at4869 is claimed."
+}

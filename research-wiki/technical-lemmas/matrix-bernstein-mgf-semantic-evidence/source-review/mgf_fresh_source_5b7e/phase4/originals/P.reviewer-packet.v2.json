@@ -1,0 +1,840 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-7ea19eb7d035784a",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "huanjian_20261114_matrix_bernstein_mgf",
+    "blind_decoder": "/root/decoder_9ac3",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "tropp2011-normalized-real-centered-bounded-matrix-mgf",
+    "anchor": "Lemma6.7 statement and proof pp25-26; §2.2 standing expectation regularity p7; §2.3 transfer rule(2.2) p7; §2.4 I+A≼exp(A)(2.3) p8",
+    "original_text": "Let (Ω,Σ,μ) be a probability space, let I be a finite nonempty index set, and let X:Ω→Mat_I(ℝ). Give real matrices the Euclidean operator-norm topology and use the Bochner integral and matrix-algebra power-series exponential. Suppose X is almost-everywhere strongly measurable, X and the ordinary matrix square X² are integrable, X=Xᵀ almost everywhere, I−X is positive semidefinite almost everywhere, and ∫X dμ=0. Then for every real s>0, exp((exp(s)−s−1)∫X² dμ)−∫exp(sX) dμ is positive semidefinite. The explicit regularity hypotheses expand Tropp§2.2 standing expectations. The claim is the real normalized individual-matrix form of Lemma6.7.",
+    "text_sha256": "5ceaeed34af335442d85f4a11ffe0c5c5a99d68d038ae52a9d6de33987d5d35c"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf.centered_bounded_matrix_mgf",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+    "statement": "∀     {Ω : Type v} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (X : Ω → Matrix ι ι ℝ)\n    (hX : AEStronglyMeasurable X μ)\n    (hintX : Integrable X μ)\n    (hintSq : Integrable (fun ω => X ω * X ω) μ)\n    (hherm : ∀ᵐ ω ∂μ, (X ω).IsHermitian)\n    (hcap : ∀ᵐ ω ∂μ, (1 - X ω).PosSemidef)\n    (hzero : (∫ ω, X ω ∂μ) = 0)\n    {s : ℝ} (hs : 0 < s) ,\n    (NormedSpace.exp ((Real.exp s - s - 1) • (∫ ω, X ω * X ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X ω) ∂μ).PosSemidef\n",
+    "statement_sha256": "5c56b22f3fd734708df5920f77ccde4076c6b7dc6f1be8612277efd480aa4fd3",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "# 数学重构\n\n## 对象与所有定义\n\n概率实验由样本空间 Ω、其给定的 σ-代数和概率测度 μ 构成。令 I 表示签名中的有限非空指标类型 ι，令 n=|I|；这里 n 只是解释矩阵大小的记号。随机对象 X 把每个 ω∈Ω 映为一个 I×I 实矩阵。X(ω)² 指矩阵乘积 X(ω)X(ω)，其 (a,b) 元为 ∑_{c∈I}X(ω)_{a,c}X(ω)_{c,b}，不是把每个矩阵元素平方。\n\n为叙述结论，记 V=∫_Ω X(ω)² dμ(ω)，α(s)=e^s−s−1，以及 M_s=exp(α(s)V)−∫_Ω exp(sX(ω)) dμ(ω)。这些记号是本重构引入的缩写；输入本身没有 let 绑定。V 的 (a,b) 元为 ∫_Ω∑_{c∈I}X(ω)_{a,c}X(ω)_{c,b} dμ(ω)。所有积分均为所给有限维实矩阵空间中的 Bochner 积分。实数 e^s 使用标量指数函数；矩阵 exp(A)=∑_{m=0}^∞ A^m/m!，其中 A^0=I_n、其余幂用通常矩阵乘法。标量 s 和 α(s) 乘矩阵时，乘的是每个矩阵元素；矩阵指数本身不是逐元素指数。\n\n## 取值域\n\nΩ 是任意给定的可测空间；μ 是其上的概率测度，故 μ(Ω)=1。I 是任意具有有限枚举、可判定相等关系且非空的类型；n≥1。所有矩阵属于 M_I(ℝ)，所有检验二次型的向量属于 ℝ^I。矩阵空间使用有限维实欧氏算子范数拓扑，概率积分和几乎处处语句均相对于 μ。参数 s 是实数。签名中的 universe 参数仅决定承载类型的宇宙层级，不增加数学约束。\n\n## 量词\n\n对每一个可测空间 Ω、每一个在其上的概率测度 μ、每一个这样的有限非空指标类型 I，以及每一个满足下一槽全部假设的映射 X:Ω→M_I(ℝ)，对每一个实数 s>0，都有下一结论。μ、I、X 可以任意选取，但在评价这个 s 的结论时固定。结论中正半定性要求对每一个实向量 v∈ℝ^I 检验二次型。两条几乎处处假设分别各自在 μ-几乎处处的 ω 上成立；它们的零测例外集合不必预先相同。\n\n## 明确假设与推导性质的边界\n\n签名明确给定以下假设：\n\n1. X 相对于 μ 几乎处处强可测，即存在一个强可测函数，与 X 在 μ-几乎处处相等。\n2. X 是 μ 下 Bochner 可积的矩阵值函数。\n3. ω↦X(ω)X(ω) 也是 μ 下 Bochner 可积的矩阵值函数。\n4. 对 μ-几乎每个 ω，X(ω)^T=X(ω)。实矩阵的 IsHermitian 在这里就是对称性。\n5. 对 μ-几乎每个 ω，I_n−X(ω) 正半定。完整展开为：I_n−X(ω) 自伴，并且对每个 v∈ℝ^I，∑_{a,b∈I}v_a(δ_{a,b}−X(ω)_{a,b})v_b≥0；δ 是单位矩阵的元素。这是矩阵的上界 X(ω)≼I_n，不是逐元素不等式。\n6. ∫_Ω X(ω) dμ(ω)=0，其中右边是零矩阵。\n7. s>0。\n\n除可测结构、概率测度及有限非空指标结构外，没有额外的独立性、分布、维数大小、下谱界或逐元素界假设。第 5 条没有直接给出 −I_n≼X(ω) 或 ‖X(ω)‖≤1。签名也未单独给出 ω↦exp(sX(ω)) 的可积性假设。由对称性、平方可积性及积分性质可以推出 V 对称且正半定；由 s>0 可以推出 α(s)>0。这些是可推导性质，不是额外列出的假设，也不是把结论替换为这些性质。\n\n## 结论\n\n矩阵 M_s 正半定，即\n\nexp((e^s−s−1)∫_Ω X(ω)X(ω) dμ(ω)) − ∫_Ω exp(sX(ω)) dμ(ω) ≽ 0。\n\n完整地说，M_s^T=M_s，并且对每个 v∈ℝ^I，∑_{a,b∈I}v_a(M_s)_{a,b}v_b≥0。因此也可写作 ∫_Ω exp(sX(ω)) dμ(ω)≼exp((e^s−s−1)V)，其中 ≼ 是由完整正半定性定义的矩阵序。结论是上述整个矩阵差的正半定性，没有取迹、行列式、最大特征值、逐元素比较或概率尾界。它针对一个随机矩阵 X 及其二阶矩，不包含多个随机矩阵的求和。\n\n## 作用域与运算解释\n\nμ 同时控制几乎处处强可测、两条可积性假设、两条几乎处处矩阵假设以及全部积分。每个积分中的 ω 是绑定的样本变量。矩阵乘法中的求和指标 c 和二次型中的 a,b 是有限集合 I 上的局部绑定指标。s 在整个结论内固定，且在积分之外；没有把 s 作为随机变量。符号 1 在 I_n−X 中是单位矩阵，标量表达式 e^s−s−1 中的 1 是实数一；0 在均值假设中是零矩阵。没有条件分布、条件期望、权重重定义或未展开的 let 对象。本重构引入的 V、α(s)、M_s 只缩写已显示的表达式，不改变其作用域或量词。\n\n## 常数依赖\n\n数值常数 0 和 1 固定；矩阵单位元及零矩阵的大小由 I 决定。α(s)=e^s−s−1 只依赖 s；V 由 Ω 的可测结构、μ、I 和 X 决定，并不依赖 s；M_s 由这些对象和 s 决定。不存在额外的未指定常数、隐含维数因子、可优化参数或依赖某个未给定分布的常数。\n",
+    "text_sha256": "fd8a5f03881dee06f166eff202ea5951236e907611c13c53687f419dd6e56a83",
+    "decoder": "/root/decoder_9ac3",
+    "decoder_packet_sha256": "8a3bbd8c61d0ecac5b0ae82280ed66fc478e794c7da321ed978abdc6aaf0fcba",
+    "decoder_run_sha256": "1d0fe1fe4da6700e76e4d8a82ea4e38617312ba823f9188c8e96743811b22967",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "e13089b48a45d5a2956287438f19cbc06c56dc62203347274c4342e424aa5319",
+  "candidate_publication_context": {
+    "file": "b46bb5a3eabbcadf31fee93d48c1fbabf9b5b42cf717a8a17c8c8cfdd210a3f3",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential\nimport AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral\n\n/-! The real normalized single-matrix expectation MGF step of Tropp Lemma 6.7.\nRegularity expands his section 2.2 standing convention. This is not a sum tail.\n-/\nopen MeasureTheory\nopen scoped BigOperators Matrix.Norms.L2Operator MatrixOrder\nnoncomputable section\nuniverse u v\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf\n\nprivate lemma capped_matrix_exp_norm_le\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) (hcap : (1 - A).PosSemidef)\n    {s : ℝ} (hs : 0 < s) : ‖NormedSpace.exp (s • A)‖ ≤ Real.exp s := by\n  have hSA : IsSelfAdjoint A := hA.isSelfAdjoint\n  have hspec : ∀ x ∈ spectrum ℝ A, x ≤ 1 :=\n    (CFC.le_one_iff (R := ℝ) A hSA).mp (Matrix.le_iff.mpr hcap)\n  have heq : cfc (fun x : ℝ => Real.exp (s * x)) A = NormedSpace.exp (s • A) := by\n    calc\n      _ = cfc Real.exp (s • A) := cfc_comp_const_mul s Real.exp A (by fun_prop) hSA\n      _ = _ := CFC.real_exp_eq_normedSpace_exp ((IsSelfAdjoint.all s).smul hSA)\n  rw [← heq]\n  apply norm_cfc_le (Real.exp_nonneg s)\n  intro x hx\n  rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]\n  apply Real.exp_le_exp.mpr\n  simpa only [mul_one] using mul_le_mul_of_nonneg_left (hspec x hx) hs.le\n\nprivate lemma exp_sub_one_add_posSemidef\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) :\n    (NormedSpace.exp A - (1 + A)).PosSemidef := by\n  have hSA : IsSelfAdjoint A := hA.isSelfAdjoint\n  have hfc : cfc (fun x : ℝ => 1 + x) A ≤ cfc Real.exp A :=\n    cfc_mono (a := A) (fun x _ => by linarith [Real.add_one_le_exp x])\n      (by fun_prop) (by fun_prop)\n  have hlin : cfc (fun x : ℝ => 1 + x) A = (1 : Matrix ι ι ℝ) + A := by\n    rw [cfc_add (a := A) (fun _ : ℝ => 1) (fun x : ℝ => x) (by fun_prop) (by fun_prop),\n      cfc_const (R := ℝ) 1 A hSA, cfc_id' ℝ A hSA, map_one]\n  exact Matrix.le_iff.mp\n    (by simpa only [hlin, CFC.real_exp_eq_normedSpace_exp hSA] using hfc)\n\n/-- Real normalized bounded Bernstein MGF, with almost-sure one-sided cap. -/\ntheorem centered_bounded_matrix_mgf\n    {Ω : Type v} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (X : Ω → Matrix ι ι ℝ)\n    (hX : AEStronglyMeasurable X μ)\n    (hintX : Integrable X μ)\n    (hintSq : Integrable (fun ω => X ω * X ω) μ)\n    (hherm : ∀ᵐ ω ∂μ, (X ω).IsHermitian)\n    (hcap : ∀ᵐ ω ∂μ, (1 - X ω).PosSemidef)\n    (hzero : (∫ ω, X ω ∂μ) = 0)\n    {s : ℝ} (hs : 0 < s) :\n    (NormedSpace.exp ((Real.exp s - s - 1) • (∫ ω, X ω * X ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X ω) ∂μ).PosSemidef\n := by\n  classical\n  let M := Matrix ι ι ℝ\n  let g : ℝ := Real.exp s - s - 1\n  let C : M := g • (∫ ω, X ω * X ω ∂μ)\n  have hcontExp : Continuous (NormedSpace.exp : M → M) :=\n    continuous_iff_continuousAt.mpr fun A =>\n      (NormedSpace.exp_analytic (𝕂 := ℝ) A).continuousAt\n  have hmeasExp : AEStronglyMeasurable (fun ω => NormedSpace.exp (s • X ω)) μ :=\n    hcontExp.comp_aestronglyMeasurable (hX.const_smul s)\n  have hintExp : Integrable (fun ω => NormedSpace.exp (s • X ω)) μ := by\n    apply Integrable.of_bound hmeasExp (Real.exp s)\n    filter_upwards [hherm, hcap] with ω hh hc\n    exact capped_matrix_exp_norm_le _ hh hc hs\n  have hsqPSD : ∀ᵐ ω ∂μ, (X ω * X ω).PosSemidef := by\n    filter_upwards [hherm] with ω hh\n    have heq : Matrix.conjTranspose (X ω) = X ω := hh\n    simpa only [heq] using Matrix.posSemidef_conjTranspose_mul_self (X ω)\n  have hcovPSD :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef\n      (fun ω => X ω * X ω) hintSq hsqPSD\n  have hg : 0 ≤ g := by dsimp only [g]; linarith [Real.add_one_le_exp s]\n  have hCPSD : C.PosSemidef := hcovPSD.smul hg\n  let Q : Ω → M := fun ω => (1 : M) + s • X ω + g • (X ω * X ω)\n  let F : Ω → M := fun ω => Q ω - NormedSpace.exp (s • X ω)\n  have hintOne : Integrable (fun _ : Ω => (1 : M)) μ := integrable_const _\n  have honeMean : (∫ _ : Ω, (1 : M) ∂μ) = 1 := by simp\n  have hintQ : Integrable Q μ := (hintOne.add (hintX.smul s)).add (hintSq.smul g)\n  have hintF : Integrable F μ := hintQ.sub hintExp\n  have hQmean : (∫ ω, Q ω ∂μ) = (1 : M) + C := by\n    dsimp only [Q, C]\n    have hsum :\n        (∫ ω, (1 : M) + s • X ω + g • (X ω * X ω) ∂μ) =\n          (∫ ω, (1 : M) + s • X ω ∂μ) + (∫ ω, g • (X ω * X ω) ∂μ) := by\n      simpa only [Pi.add_apply, Pi.smul_apply] using\n        integral_add (hintOne.add (hintX.smul s)) (hintSq.smul g)\n    have hsumOne :\n        (∫ ω, (1 : M) + s • X ω ∂μ) =\n          (∫ _ : Ω, (1 : M) ∂μ) + (∫ ω, s • X ω ∂μ) := by\n      simpa only [Pi.add_apply, Pi.smul_apply] using integral_add hintOne (hintX.smul s)\n    rw [hsum, hsumOne, integral_smul s X,\n      integral_smul g (fun ω => X ω * X ω), honeMean, hzero]\n    simp only [smul_zero, add_zero]\n  have hFmean : (∫ ω, F ω ∂μ) = (1 : M) + C - ∫ ω, NormedSpace.exp (s • X ω) ∂μ := by\n    change (∫ ω, Q ω - NormedSpace.exp (s • X ω) ∂μ) = _\n    rw [integral_sub hintQ hintExp, hQmean]\n  have hFPSD : ∀ᵐ ω ∂μ, (F ω).PosSemidef := by\n    filter_upwards [hherm, hcap] with ω hh hc\n    exact AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound\n      (X ω) hh hc hs\n  have hupperPSD :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef\n      F hintF hFPSD\n  rw [hFmean] at hupperPSD\n  have hlowerPSD := exp_sub_one_add_posSemidef C hCPSD.isHermitian\n  change (NormedSpace.exp C - ∫ ω, NormedSpace.exp (s • X ω) ∂μ).PosSemidef\n  have halg : NormedSpace.exp C - (∫ ω, NormedSpace.exp (s • X ω) ∂μ) =\n      (NormedSpace.exp C - (1 + C)) +\n        ((1 + C) - ∫ ω, NormedSpace.exp (s • X ω) ∂μ) := by abel\n  rw [halg]\n  exact hlowerPSD.add hupperPSD\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://tropp.caltech.edu/papers/Tro11-User-Friendly-preprint.pdf#page=25",
+      "edition": "Author preprint revised15June2011; pinned PDF SHA256 f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+      "anchor": "Lemma6.7 statement and proof pp25-26; §2.2 standing expectation regularity p7; §2.3 transfer rule(2.2) p7; §2.4 I+A≼exp(A)(2.3) p8",
+      "label": "Tropp, real normalized individual matrix Bernstein MGF",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Joel A. Tropp, User-Friendly Tail Bounds for Sums of Random Matrices, author preprint revised15June2011.",
+      "scope": "Complete real normalized individual-matrix MGF restriction of Lemma6.7. Tropp is independently matched background; the Gaussian paper does not supply this citation."
+    },
+    "statement": "Let (Ω,Σ,μ) be a probability space, let I be a finite nonempty index set, and let X:Ω→Mat_I(ℝ). Give real matrices the Euclidean operator-norm topology and use the Bochner integral and matrix-algebra power-series exponential. Suppose X is almost-everywhere strongly measurable, X and the ordinary matrix square X² are integrable, X=Xᵀ almost everywhere, I−X is positive semidefinite almost everywhere, and ∫X dμ=0. Then for every real s>0, exp((exp(s)−s−1)∫X² dμ)−∫exp(sX) dμ is positive semidefinite. The explicit regularity hypotheses expand Tropp§2.2 standing expectations. The claim is the real normalized individual-matrix form of Lemma6.7.",
+    "formulae": [
+      {
+        "label": "Complete real normalized individual-matrix MGF",
+        "tex": "\\mathbb E_\\mu e^{sX}\\preceq\\exp\\!\\left((e^s-s-1)\\,\\mathbb E_\\mu X^2\\right),\\qquad s>0."
+      }
+    ],
+    "assumptions": [
+      "Public scope: a probability space \\((\\Omega,\\Sigma,\\mu)\\), a finite nonempty index set \\(\\mathcal I\\), and a real random square matrix \\(X:\\Omega\\to\\operatorname{Mat}_{\\mathcal I}(\\mathbb R)\\). The integral is Bochner integration and \\(e^A\\) is the matrix-algebra power series. The order \\(U\\preceq V\\) means that \\(V-U\\) is positive semidefinite as a full quadratic form.",
+      "Public hypotheses: \\(X=X^\\top\\) and \\(X\\preceq I\\) almost surely, \\(\\int X\\,d\\mu=0\\), and \\(s>0\\). The cap is one-sided. The matrix need not be positive semidefinite and negative eigenvalues are unrestricted.",
+      "Explicit source-standing regularity: \\(X\\) is almost-everywhere strongly measurable, \\(\\int\\|X\\|\\,d\\mu<\\infty\\), and \\(\\int\\|X^2\\|\\,d\\mu<\\infty\\). These make Tropp§2.2's sufficiently-regular expectation convention explicit for the actual first and second matrix expectations. The exponential integrability needed in the proof is derived from the cap.",
+      "\\(X^2=X\\cdot X\\) is the ordinary matrix square. The exponent uses its actual matrix expectation \\(\\int X^2\\,d\\mu\\), with coefficient \\(e^s-s-1\\). No scalar variance proxy or matrix covariance upper cover replaces that expectation."
+    ],
+    "obligations": [
+      {
+        "id": "real-centered-bounded-single-matrix-mgf",
+        "label": "The normalized real individual-MGF assertion of Tropp Lemma6.7."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf.centered_bounded_matrix_mgf",
+      "title": "Centered bounded real matrix MGF",
+      "statement": "A centered self-adjoint real random matrix with upper cap identity satisfies an individual matrix MGF bound for every positive parameter.",
+      "formula": "\\mathbb E_\\mu e^{sX}\\preceq\\exp\\!\\left((e^s-s-1)\\,\\mathbb E_\\mu X^2\\right),\\qquad s>0.",
+      "assumptions": [
+        "Public scope: a probability space \\((\\Omega,\\Sigma,\\mu)\\), a finite nonempty index set \\(\\mathcal I\\), and a real random square matrix \\(X:\\Omega\\to\\operatorname{Mat}_{\\mathcal I}(\\mathbb R)\\). The integral is Bochner integration and \\(e^A\\) is the matrix-algebra power series. The order \\(U\\preceq V\\) means that \\(V-U\\) is positive semidefinite as a full quadratic form.",
+        "Public hypotheses: \\(X=X^\\top\\) and \\(X\\preceq I\\) almost surely, \\(\\int X\\,d\\mu=0\\), and \\(s>0\\). The cap is one-sided. The matrix need not be positive semidefinite and negative eigenvalues are unrestricted.",
+        "Explicit source-standing regularity: \\(X\\) is almost-everywhere strongly measurable, \\(\\int\\|X\\|\\,d\\mu<\\infty\\), and \\(\\int\\|X^2\\|\\,d\\mu<\\infty\\). These make Tropp§2.2's sufficiently-regular expectation convention explicit for the actual first and second matrix expectations. The exponential integrability needed in the proof is derived from the cap.",
+        "\\(X^2=X\\cdot X\\) is the ordinary matrix square. The exponent uses its actual matrix expectation \\(\\int X^2\\,d\\mu\\), with coefficient \\(e^s-s-1\\). No scalar variance proxy or matrix covariance upper cover replaces that expectation.",
+        "Private application: \\(d,q\\in\\mathbb N\\), \\(2q+1<d\\), \\(r=q+1\\), \\(\\Omega=(\\mathbb R^d)^r\\), and \\(\\mu=\\gamma_d^{\\otimes r}\\), where \\(\\gamma_d=N(0,I_d)\\). Every expectation below uses this original unconditional law. The case \\(q=0\\) is retained.",
+        "For source rows \\(i=1,\\ldots,d\\), set \\(\\Phi_i(\\omega)=(\\omega_b(i))_{b=0}^q\\), \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\theta_i,\\ldots,\\sqrt2\\cos(q\\theta_i))\\), and \\(L=2r+3\\log(1000d)\\). Lean uses source index \\(i.val+1\\).",
+        "Set \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{\\|\\Phi_i\\|^2\\le L\\}}\\), \\(M_i=\\int Y_i\\,d\\mu\\), \\(Z_i=Y_i-M_i\\), \\(\\rho=2r(L+1)/d\\), \\(w_i=\\cos((2q+1)\\theta_i)\\), and \\(X_i=\\rho^{-1}w_iZ_i\\). The cutoff includes equality, and the paired matrix index has Gaussian coordinate first and feature coordinate second.",
+        "The private consumer has only the dimensional premise \\(2q+1<d\\). It derives \\(\\rho>0\\), regularity, centering, self-adjointness and the cap internally. The deterministic cosine can be negative; its absolute value is controlled by1. The positive Laplace parameter \\(s\\) is distinct from the grid angles \\(\\theta_i\\)."
+      ],
+      "reader_note": "The first three steps prove the public individual-MGF bound. The last three give its complete private cosine-weighted original-Gaussian application under the same unconditional law.",
+      "steps": [
+        {
+          "title": "Control the exponential on one self-adjoint spectrum",
+          "text": "For a self-adjoint A≼I, the spectrum lies below1. On that same spectrum, exp(sx)≤exp(s), so continuous functional calculus bounds the matrix exponential norm. A second scalar comparison, 1+x≤exp(x), gives I+H≼exp(H) for a self-adjoint H. Both arguments compare scalar functions of one fixed matrix.",
+          "formula": "A\\preceq I,\\ s>0\\ \\Longrightarrow\\ \\|e^{sA}\\|\\le e^s,\\qquad H=H^\\top\\ \\Longrightarrow\\ I+H\\preceq e^H.",
+          "lean": "import AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential\nimport AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral\n\n/-! The real normalized single-matrix expectation MGF step of Tropp Lemma 6.7.\nRegularity expands his section 2.2 standing convention. This is not a sum tail.\n-/\nopen MeasureTheory\nopen scoped BigOperators Matrix.Norms.L2Operator MatrixOrder\nnoncomputable section\nuniverse u v\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf\n\nprivate lemma capped_matrix_exp_norm_le\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) (hcap : (1 - A).PosSemidef)\n    {s : ℝ} (hs : 0 < s) : ‖NormedSpace.exp (s • A)‖ ≤ Real.exp s := by\n  have hSA : IsSelfAdjoint A := hA.isSelfAdjoint\n  have hspec : ∀ x ∈ spectrum ℝ A, x ≤ 1 :=\n    (CFC.le_one_iff (R := ℝ) A hSA).mp (Matrix.le_iff.mpr hcap)\n  have heq : cfc (fun x : ℝ => Real.exp (s * x)) A = NormedSpace.exp (s • A) := by\n    calc\n      _ = cfc Real.exp (s • A) := cfc_comp_const_mul s Real.exp A (by fun_prop) hSA\n      _ = _ := CFC.real_exp_eq_normedSpace_exp ((IsSelfAdjoint.all s).smul hSA)\n  rw [← heq]\n  apply norm_cfc_le (Real.exp_nonneg s)\n  intro x hx\n  rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]\n  apply Real.exp_le_exp.mpr\n  simpa only [mul_one] using mul_le_mul_of_nonneg_left (hspec x hx) hs.le\n\nprivate lemma exp_sub_one_add_posSemidef\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) :\n    (NormedSpace.exp A - (1 + A)).PosSemidef := by\n  have hSA : IsSelfAdjoint A := hA.isSelfAdjoint\n  have hfc : cfc (fun x : ℝ => 1 + x) A ≤ cfc Real.exp A :=\n    cfc_mono (a := A) (fun x _ => by linarith [Real.add_one_le_exp x])\n      (by fun_prop) (by fun_prop)\n  have hlin : cfc (fun x : ℝ => 1 + x) A = (1 : Matrix ι ι ℝ) + A := by\n    rw [cfc_add (a := A) (fun _ : ℝ => 1) (fun x : ℝ => x) (by fun_prop) (by fun_prop),\n      cfc_const (R := ℝ) 1 A hSA, cfc_id' ℝ A hSA, map_one]\n  exact Matrix.le_iff.mp\n    (by simpa only [hlin, CFC.real_exp_eq_normedSpace_exp hSA] using hfc)\n\n",
+          "lean_source_path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+          "lean_source": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+            "commit": "4869db55d340cee39f0ba4d49fb0a7a4309ba2d6",
+            "file_sha256": "b46bb5a3eabbcadf31fee93d48c1fbabf9b5b42cf717a8a17c8c8cfdd210a3f3",
+            "LF_lines_1based": [
+              1,
+              44
+            ],
+            "decoded_char_span": [
+              0,
+              2124
+            ],
+            "raw_UTF8_byte_span": [
+              0,
+              2186
+            ],
+            "span_convention": "Lines inclusive and 1-based; character/codepoint and UTF8-byte offsets 0-based half-open; newline bytes retained.",
+            "start_line_column0": [
+              1,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              45,
+              0
+            ],
+            "span_sha256": "046df386ea1c3dcfb1a217cda6e01fb6652237dc727b218f872fc7c9982b71d8",
+            "download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+            "download_filename": "MatrixBernsteinMgf.lean"
+          },
+          "lean_download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+          "source_attribution": [
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 7,
+              "region": "§2.3 spectral transfer and the scalar-to-matrix convention",
+              "qualification": "Printed PDF page is primary; its page locator is not a PDF byte-range claim.",
+              "derived_page_text": ".astis/huanjian-gc-bernstein-mgf-preparation-20261114/Tropp-pdf-page-7.text.txt",
+              "derived_page_text_sha256": "e3a653abb254029365a4992e740a92acdfdd90b5db1de588b44da7f3b75172f7"
+            },
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 8,
+              "region": "Eq(2.3), I+A≼exp(A)",
+              "qualification": "Printed PDF page is primary; its page locator is not a PDF byte-range claim."
+            }
+          ],
+          "scope": "public P"
+        },
+        {
+          "title": "Make the actual matrix expectations well-defined",
+          "text": "Write g=exp(s)−s−1 and C=g EμX². Continuity of the matrix exponential and the cap bound give its measurability and integrability under the probability law. Since X is self-adjoint, X²=XᵀX is positive semidefinite almost surely. The canonical positive-integral theorem and g≥0 therefore make C positive semidefinite, hence self-adjoint. The assumed integrability of X and X² also makes the quadratic majorant and its difference from exp(sX) integrable.",
+          "formula": "\\|e^{sX}\\|\\le e^s\\ \\mu\\text{-a.e.},\\quad X^2=X^\\top X\\succeq0,\\quad g=e^s-s-1\\ge0,\\quad C=g\\,\\mathbb E_\\mu X^2\\succeq0.",
+          "lean": "/-- Real normalized bounded Bernstein MGF, with almost-sure one-sided cap. -/\ntheorem centered_bounded_matrix_mgf\n    {Ω : Type v} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (X : Ω → Matrix ι ι ℝ)\n    (hX : AEStronglyMeasurable X μ)\n    (hintX : Integrable X μ)\n    (hintSq : Integrable (fun ω => X ω * X ω) μ)\n    (hherm : ∀ᵐ ω ∂μ, (X ω).IsHermitian)\n    (hcap : ∀ᵐ ω ∂μ, (1 - X ω).PosSemidef)\n    (hzero : (∫ ω, X ω ∂μ) = 0)\n    {s : ℝ} (hs : 0 < s) :\n    (NormedSpace.exp ((Real.exp s - s - 1) • (∫ ω, X ω * X ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X ω) ∂μ).PosSemidef\n := by\n  classical\n  let M := Matrix ι ι ℝ\n  let g : ℝ := Real.exp s - s - 1\n  let C : M := g • (∫ ω, X ω * X ω ∂μ)\n  have hcontExp : Continuous (NormedSpace.exp : M → M) :=\n    continuous_iff_continuousAt.mpr fun A =>\n      (NormedSpace.exp_analytic (𝕂 := ℝ) A).continuousAt\n  have hmeasExp : AEStronglyMeasurable (fun ω => NormedSpace.exp (s • X ω)) μ :=\n    hcontExp.comp_aestronglyMeasurable (hX.const_smul s)\n  have hintExp : Integrable (fun ω => NormedSpace.exp (s • X ω)) μ := by\n    apply Integrable.of_bound hmeasExp (Real.exp s)\n    filter_upwards [hherm, hcap] with ω hh hc\n    exact capped_matrix_exp_norm_le _ hh hc hs\n  have hsqPSD : ∀ᵐ ω ∂μ, (X ω * X ω).PosSemidef := by\n    filter_upwards [hherm] with ω hh\n    have heq : Matrix.conjTranspose (X ω) = X ω := hh\n    simpa only [heq] using Matrix.posSemidef_conjTranspose_mul_self (X ω)\n  have hcovPSD :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef\n      (fun ω => X ω * X ω) hintSq hsqPSD\n  have hg : 0 ≤ g := by dsimp only [g]; linarith [Real.add_one_le_exp s]\n  have hCPSD : C.PosSemidef := hcovPSD.smul hg\n  let Q : Ω → M := fun ω => (1 : M) + s • X ω + g • (X ω * X ω)\n  let F : Ω → M := fun ω => Q ω - NormedSpace.exp (s • X ω)\n  have hintOne : Integrable (fun _ : Ω => (1 : M)) μ := integrable_const _\n  have honeMean : (∫ _ : Ω, (1 : M) ∂μ) = 1 := by simp\n  have hintQ : Integrable Q μ := (hintOne.add (hintX.smul s)).add (hintSq.smul g)\n  have hintF : Integrable F μ := hintQ.sub hintExp\n",
+          "lean_source_path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+          "lean_source": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+            "commit": "4869db55d340cee39f0ba4d49fb0a7a4309ba2d6",
+            "file_sha256": "b46bb5a3eabbcadf31fee93d48c1fbabf9b5b42cf717a8a17c8c8cfdd210a3f3",
+            "LF_lines_1based": [
+              45,
+              87
+            ],
+            "decoded_char_span": [
+              2124,
+              4293
+            ],
+            "raw_UTF8_byte_span": [
+              2186,
+              4505
+            ],
+            "span_convention": "Lines inclusive and 1-based; character/codepoint and UTF8-byte offsets 0-based half-open; newline bytes retained.",
+            "start_line_column0": [
+              45,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              88,
+              0
+            ],
+            "span_sha256": "aa2eae1946db94cdeca499d4f42b79d96a3f41aae09ed7b9ee5b5716a76de54e",
+            "download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+            "download_filename": "MatrixBernsteinMgf.lean"
+          },
+          "lean_download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+          "source_attribution": [
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 7,
+              "region": "§2.2 standing regularity for expectations and almost-sure matrix relations",
+              "qualification": "Printed PDF page is primary; its page locator is not a PDF byte-range claim.",
+              "derived_page_text": ".astis/huanjian-gc-bernstein-mgf-preparation-20261114/Tropp-pdf-page-7.text.txt",
+              "derived_page_text_sha256": "e3a653abb254029365a4992e740a92acdfdd90b5db1de588b44da7f3b75172f7"
+            },
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 26,
+              "region": "Actual second-matrix expectation in the first display",
+              "qualification": "Printed PDF page is primary; its page locator is not a PDF byte-range claim.",
+              "derived_page_text": ".astis/huanjian-gc-bernstein-mgf-preparation-20261114/Tropp-pdf-page-26.text.txt",
+              "derived_page_text_sha256": "58402f19b75e68f87b9a63e2cde819cc7e2bc1487963d97dba528782fe8138cf"
+            }
+          ],
+          "scope": "public P"
+        },
+        {
+          "title": "Integrate the quadratic majorant and cancel the first moment",
+          "text": "Apply the existing canonical exponential-quadratic bound to X(ω) almost surely. Positivity of Bochner integration preserves its PSD difference. Linearity, μ(Ω)=1 and EμX=0 turn the expected majorant into I+C. Finally add the PSD differences exp(C)−(I+C) and (I+C)−Eμexp(sX). This gives the complete real normalized individual-MGF comparison with the actual second moment.",
+          "formula": "\\mathbb E_\\mu e^{sX}\\preceq I+s\\mathbb E_\\mu X+g\\mathbb E_\\mu X^2=I+C\\preceq e^C,\\qquad e^C-\\mathbb E_\\mu e^{sX}=(e^C-I-C)+(I+C-\\mathbb E_\\mu e^{sX})\\succeq0.",
+          "lean": "  have hQmean : (∫ ω, Q ω ∂μ) = (1 : M) + C := by\n    dsimp only [Q, C]\n    have hsum :\n        (∫ ω, (1 : M) + s • X ω + g • (X ω * X ω) ∂μ) =\n          (∫ ω, (1 : M) + s • X ω ∂μ) + (∫ ω, g • (X ω * X ω) ∂μ) := by\n      simpa only [Pi.add_apply, Pi.smul_apply] using\n        integral_add (hintOne.add (hintX.smul s)) (hintSq.smul g)\n    have hsumOne :\n        (∫ ω, (1 : M) + s • X ω ∂μ) =\n          (∫ _ : Ω, (1 : M) ∂μ) + (∫ ω, s • X ω ∂μ) := by\n      simpa only [Pi.add_apply, Pi.smul_apply] using integral_add hintOne (hintX.smul s)\n    rw [hsum, hsumOne, integral_smul s X,\n      integral_smul g (fun ω => X ω * X ω), honeMean, hzero]\n    simp only [smul_zero, add_zero]\n  have hFmean : (∫ ω, F ω ∂μ) = (1 : M) + C - ∫ ω, NormedSpace.exp (s • X ω) ∂μ := by\n    change (∫ ω, Q ω - NormedSpace.exp (s • X ω) ∂μ) = _\n    rw [integral_sub hintQ hintExp, hQmean]\n  have hFPSD : ∀ᵐ ω ∂μ, (F ω).PosSemidef := by\n    filter_upwards [hherm, hcap] with ω hh hc\n    exact AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound\n      (X ω) hh hc hs\n  have hupperPSD :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef\n      F hintF hFPSD\n  rw [hFmean] at hupperPSD\n  have hlowerPSD := exp_sub_one_add_posSemidef C hCPSD.isHermitian\n  change (NormedSpace.exp C - ∫ ω, NormedSpace.exp (s • X ω) ∂μ).PosSemidef\n  have halg : NormedSpace.exp C - (∫ ω, NormedSpace.exp (s • X ω) ∂μ) =\n      (NormedSpace.exp C - (1 + C)) +\n        ((1 + C) - ∫ ω, NormedSpace.exp (s • X ω) ∂μ) := by abel\n  rw [halg]\n  exact hlowerPSD.add hupperPSD\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf\n",
+          "lean_source_path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+          "lean_source": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+            "commit": "4869db55d340cee39f0ba4d49fb0a7a4309ba2d6",
+            "file_sha256": "b46bb5a3eabbcadf31fee93d48c1fbabf9b5b42cf717a8a17c8c8cfdd210a3f3",
+            "LF_lines_1based": [
+              88,
+              121
+            ],
+            "decoded_char_span": [
+              4293,
+              5992
+            ],
+            "raw_UTF8_byte_span": [
+              4505,
+              6334
+            ],
+            "span_convention": "Lines inclusive and 1-based; character/codepoint and UTF8-byte offsets 0-based half-open; newline bytes retained.",
+            "start_line_column0": [
+              88,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              122,
+              0
+            ],
+            "span_sha256": "4d00e7ab48d0e5ffd06488def8bfefa5e077e25acb9fcc89735e9c9f41aa56bb",
+            "download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+            "download_filename": "MatrixBernsteinMgf.lean"
+          },
+          "lean_download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+          "source_attribution": [
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 25,
+              "region": "Final deterministic quadratic bound, supplied by canonical R13",
+              "qualification": "Printed PDF page is primary; its page locator is not a PDF byte-range claim.",
+              "derived_page_text": ".astis/huanjian-gc-bernstein-mgf-preparation-20261114/Tropp-pdf-page-25.text.txt",
+              "derived_page_text_sha256": "df35dad4692eeaea0e875e4c1af61d9f95949a75662dc81a15a5eb40eae6b90b"
+            },
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 26,
+              "region": "Lemma6.7 expectation and Eq(2.3) closing step",
+              "qualification": "Printed PDF page is primary; its page locator is not a PDF byte-range claim.",
+              "derived_page_text": ".astis/huanjian-gc-bernstein-mgf-preparation-20261114/Tropp-pdf-page-26.text.txt",
+              "derived_page_text_sha256": "58402f19b75e68f87b9a63e2cde819cc7e2bc1487963d97dba528782fe8138cf"
+            }
+          ],
+          "scope": "public P"
+        },
+        {
+          "title": "Retain the original Gaussian experiment and its source radius",
+          "text": "Use the original product Gaussian law, the inclusive row cutoff and the actual means defined above. The canonical radius theorem bounds Y_i and M_i, while the canonical centered-structure theorem supplies measurability, integrability, centering and Hermitianity of Z_i. From 2q+1<d obtain d≥2 and positivity of the displayed scale. The triangle inequality then gives a uniform centered radius. The module also proves the spectral adapter that converts a Hermitian norm cap into I−A≽0.",
+          "formula": "\\|Y_i\\|\\le\\frac{2rL}{d},\\qquad\\|M_i\\|\\le\\frac{2r}{d},\\qquad\\|Z_i\\|\\le\\|Y_i\\|+\\|M_i\\|\\le\\rho=\\frac{2r(L+1)}d>0.",
+          "lean": "import AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure\n\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix.Norms.L2Operator MatrixOrder\nnoncomputable section\nuniverse u\nnamespace AutoSamplingTheory.Tests.GaussianComplexityBernsteinWeightedMgf\n\nprivate lemma one_sub_posSemidef_of_norm_le_one\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) (hn : ‖A‖ ≤ 1) :\n    (1 - A).PosSemidef := by\n  have hspec : ∀ x ∈ spectrum ℝ A, x ≤ 1 := by\n    intro x hx\n    exact (Real.le_norm_self x).trans\n      ((IsometricContinuousFunctionalCalculus.norm_spectrum_le A hx hA.isSelfAdjoint).trans hn)\n  exact Matrix.le_iff.mp ((CFC.le_one_iff (R := ℝ) A hA.isSelfAdjoint).mpr hspec)\n\nprivate theorem actual_source_weighted_normalized_single_summand_mgf\n        {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let X : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => ρ⁻¹ • (w i • Z i ω)\n  ∀ s : ℝ, 0 < s → ∀ i : Fin d,\n    (NormedSpace.exp\n        ((Real.exp s - s - 1) • (∫ ω, X i ω * X i ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef\n := by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let X : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => ρ⁻¹ • (w i • Z i ω)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  letI : MeasurableSpace M := borel M\n  letI : BorelSpace M := ⟨rfl⟩\n  letI : IsProbabilityMeasure μ := by\n    dsimp only [μ]\n    infer_instance\n  change ∀ s : ℝ, 0 < s → ∀ i : Fin d,\n    (NormedSpace.exp ((Real.exp s - s - 1) • (∫ ω, X i ω * X i ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef\n  have radius :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds\n      (d := d) (q := q) hq\n  change (∀ j : Fin d, ∀ ω : Ω, ‖Y j ω‖ ≤ 2 * r * L / (d : ℝ)) ∧\n    (∀ j : Fin d, ‖mean j‖ ≤ 2 * r / (d : ℝ)) at radius\n  have hstructure :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure\n      (d := d) (q := q) hq\n  change (∀ j : Fin d, Measurable (Z j)) ∧ iIndepFun Z μ ∧\n    (∀ j : Fin d, Integrable (Z j) μ) ∧\n    (∀ j : Fin d, (∫ ω, Z j ω ∂μ) = 0) ∧\n    (∀ j : Fin d, ∀ ω : Ω, (Z j ω).IsHermitian) at hstructure\n  rcases hstructure with ⟨hmeasZ, _, hintZ, hzeroZ, hhermZ⟩\n  have hd2 : 2 ≤ d := by omega\n  have hd2R : (2 : ℝ) ≤ (d : ℝ) := by exact_mod_cast hd2\n  have hdpos : (0 : ℝ) < d := by linarith\n  have hrpos : 0 < r := by dsimp only [r]; positivity\n  have hlog : 0 ≤ Real.log (1000 * (d : ℝ)) := Real.log_nonneg (by nlinarith)\n  have hLpos : 0 < L + 1 := by dsimp only [L]; nlinarith\n  have hρpos : 0 < ρ := by dsimp only [ρ]; positivity\n  have hnormZ (j : Fin d) (ω : Ω) : ‖Z j ω‖ ≤ ρ := by\n    change ‖Y j ω - mean j‖ ≤ ρ\n    calc\n      _ ≤ ‖Y j ω‖ + ‖mean j‖ := norm_sub_le _ _\n      _ ≤ 2 * r * L / (d : ℝ) + 2 * r / (d : ℝ) :=\n        add_le_add (radius.1 j ω) (radius.2 j)\n      _ = ρ := by dsimp only [ρ]; ring\n",
+          "lean_source_path": "Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+          "lean_source": {
+            "path": "Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+            "commit": "4869db55d340cee39f0ba4d49fb0a7a4309ba2d6",
+            "file_sha256": "42f372143ffe52e4372271d09fbc6b67391739f2fe2a5fbfffe6cd9fa586936e",
+            "LF_lines_1based": [
+              1,
+              119
+            ],
+            "decoded_char_span": [
+              0,
+              5674
+            ],
+            "raw_UTF8_byte_span": [
+              0,
+              6134
+            ],
+            "span_convention": "Lines inclusive and 1-based; character/codepoint and UTF8-byte offsets 0-based half-open; newline bytes retained.",
+            "start_line_column0": [
+              1,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              120,
+              0
+            ],
+            "span_sha256": "e4b8363173e4162ef2e2b587144f463ea4c87180504bc126c0f53fea9952d448",
+            "download_path": "downloads/lean/Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+            "download_filename": "GaussianComplexityBernsteinWeightedMgf.lean"
+          },
+          "lean_download_path": "downloads/lean/Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+          "source_attribution": [
+            {
+              "origin": "PRIMARY_APPLICATION",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "source_id": "A3.Ex85",
+              "role": "Exact feature vector and physical Gaussian-row coordinate definitions.",
+              "decoded_char_span": [
+                732653,
+                734303
+              ],
+              "raw_UTF8_byte_span": [
+                740104,
+                741765
+              ],
+              "LF_lines_1based": [
+                3319,
+                3325
+              ],
+              "span_sha256": "fc46424d064a72e91ad1a57987e6371dcddb652d50913b4c95b6cb929646caeb"
+            },
+            {
+              "origin": "PRIMARY_APPLICATION",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "source_id": "A3.SS2.p1.2",
+              "role": "Original Gaussian row-law statement and matrix-row construction; not a replacement conditional experiment.",
+              "decoded_char_span": [
+                734304,
+                736211
+              ],
+              "raw_UTF8_byte_span": [
+                741766,
+                743691
+              ],
+              "LF_lines_1based": [
+                3326,
+                3328
+              ],
+              "span_sha256": "4655b2f9e5c4af1d9aea218c6c72d10d9c4ad91e511b0516e4ffd5b01334a4cd"
+            },
+            {
+              "origin": "PRIMARY_APPLICATION",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "source_id": "A3.SS2.p4.1",
+              "role": "Exact midpoint-angle convention recalled in the source cosine-frame proof.",
+              "decoded_char_span": [
+                748503,
+                750233
+              ],
+              "raw_UTF8_byte_span": [
+                756106,
+                757853
+              ],
+              "LF_lines_1based": [
+                3378,
+                3380
+              ],
+              "span_sha256": "189496f2fe2fbdb5d58d95b4f702fde49eff33fdb14abc4d4cfa4dad7369590e"
+            },
+            {
+              "origin": "PRIMARY_APPLICATION",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "source_id": "A3.SS2.p10.1",
+              "role": "Exact row squared radius and truncation threshold L definitions.",
+              "decoded_char_span": [
+                787449,
+                789339
+              ],
+              "raw_UTF8_byte_span": [
+                795496,
+                797408
+              ],
+              "LF_lines_1based": [
+                3533,
+                3537
+              ],
+              "span_sha256": "7c98f1337ff1a132ca3c79699a8884f23980c05bbefd7393b54a92179ab5184d"
+            },
+            {
+              "origin": "PRIMARY_APPLICATION",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "source_id": "A3.Ex107",
+              "role": "Literal inclusive row-truncated Kronecker matrix Y_i formula only.",
+              "decoded_char_span": [
+                796275,
+                797498
+              ],
+              "raw_UTF8_byte_span": [
+                804420,
+                805656
+              ],
+              "LF_lines_1based": [
+                3572,
+                3578
+              ],
+              "span_sha256": "aa8878824a99bc9a00a98697189eda90e41c1f9996d9f10b237c86ec044ce0dd"
+            },
+            {
+              "origin": "PRIMARY_APPLICATION",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "source_id": "A3.SS2.p13.1",
+              "role": "Exact actual centering definition Z_i=Y_i−E Y_i.",
+              "decoded_char_span": [
+                804268,
+                805333
+              ],
+              "raw_UTF8_byte_span": [
+                812512,
+                813592
+              ],
+              "LF_lines_1based": [
+                3609,
+                3611
+              ],
+              "span_sha256": "1b1b8bb54870393dad4c65cd9d40302f08eeb4cd62d74d53d8d5ac9bf28df69f"
+            },
+            {
+              "origin": "PRIMARY_APPLICATION",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "source_id": "A3.Ex111",
+              "role": "Source operator-norm bounds for Y_i and its actual expectation.",
+              "decoded_char_span": [
+                805334,
+                807441
+              ],
+              "raw_UTF8_byte_span": [
+                813593,
+                815738
+              ],
+              "LF_lines_1based": [
+                3612,
+                3618
+              ],
+              "span_sha256": "a98249c1333c2dd2b532311800cb19ce6893451f3e39a4ba78af50caf3294182"
+            },
+            {
+              "origin": "PRIMARY_APPLICATION",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "source_id": "A3.Ex112",
+              "role": "Centered source radius R_star=2r(L+1)/d.",
+              "decoded_char_span": [
+                807537,
+                808631
+              ],
+              "raw_UTF8_byte_span": [
+                815834,
+                816940
+              ],
+              "LF_lines_1based": [
+                3620,
+                3626
+              ],
+              "span_sha256": "7c0862579e0fb13f56317421cda9b6054680e327fba2f20dde74c3a0f3f40905"
+            }
+          ],
+          "scope": "associated private T; no separate public node"
+        },
+        {
+          "title": "Control the signed cosine through the norm cap",
+          "text": "The deterministic weight w_i=cos((2q+1)θ_i) can be negative, but |w_i|≤1. Multiply norms to obtain ‖w_iZ_i‖≤ρ and then normalize by the already positive ρ. Real scalar multiplication preserves self-adjointness. The resulting Hermitian norm cap implies X_i≼I through the spectral adapter. No one-sided matrix inequality is multiplied by a possibly negative cosine.",
+          "formula": "|w_i|\\le1,\\qquad\\|w_iZ_i\\|=|w_i|\\,\\|Z_i\\|\\le\\rho,\\qquad X_i=\\rho^{-1}w_iZ_i,\\quad\\|X_i\\|\\le1,\\quad X_i=X_i^\\top,\\quad X_i\\preceq I.",
+          "lean": "  have hnormW (j : Fin d) (ω : Ω) : ‖w j • Z j ω‖ ≤ ρ := by\n    rw [norm_smul, Real.norm_eq_abs]\n    have hw : |w j| ≤ 1 := Real.abs_cos_le_one _\n    calc\n      |w j| * ‖Z j ω‖ ≤ 1 * ρ :=\n        mul_le_mul hw (hnormZ j ω) (norm_nonneg _) (by positivity)\n      _ = ρ := one_mul _\n  have hnormX (j : Fin d) (ω : Ω) : ‖X j ω‖ ≤ 1 := by\n    change ‖ρ⁻¹ • (w j • Z j ω)‖ ≤ 1\n    rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hρpos)]\n    calc\n      _ ≤ ρ⁻¹ * ρ := mul_le_mul_of_nonneg_left (hnormW j ω) (inv_nonneg.mpr hρpos.le)\n      _ = 1 := inv_mul_cancel₀ (ne_of_gt hρpos)\n  have hhermX (j : Fin d) (ω : Ω) : (X j ω).IsHermitian := by\n    change (ρ⁻¹ • (w j • Z j ω)).IsHermitian\n    exact ((IsSelfAdjoint.all (ρ⁻¹ : ℝ)).smul\n      ((IsSelfAdjoint.all (w j)).smul (hhermZ j ω).isSelfAdjoint)).isHermitian\n  have hcapX (j : Fin d) (ω : Ω) : (1 - X j ω).PosSemidef :=\n    one_sub_posSemidef_of_norm_le_one _ (hhermX j ω) (hnormX j ω)\n",
+          "lean_source_path": "Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+          "lean_source": {
+            "path": "Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+            "commit": "4869db55d340cee39f0ba4d49fb0a7a4309ba2d6",
+            "file_sha256": "42f372143ffe52e4372271d09fbc6b67391739f2fe2a5fbfffe6cd9fa586936e",
+            "LF_lines_1based": [
+              120,
+              138
+            ],
+            "decoded_char_span": [
+              5674,
+              6616
+            ],
+            "raw_UTF8_byte_span": [
+              6134,
+              7161
+            ],
+            "span_convention": "Lines inclusive and 1-based; character/codepoint and UTF8-byte offsets 0-based half-open; newline bytes retained.",
+            "start_line_column0": [
+              120,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              139,
+              0
+            ],
+            "span_sha256": "77c6497c38baf68cac0a164521bc564cb5d1f0313a922b824fad18801245c50a",
+            "download_path": "downloads/lean/Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+            "download_filename": "GaussianComplexityBernsteinWeightedMgf.lean"
+          },
+          "lean_download_path": "downloads/lean/Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+          "source_attribution": [
+            {
+              "origin": "PRIMARY_APPLICATION",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "source_id": "A3.Ex112",
+              "role": "Source radius reused by the authored weighted adapter",
+              "decoded_char_span": [
+                807537,
+                808631
+              ],
+              "raw_UTF8_byte_span": [
+                815834,
+                816940
+              ],
+              "LF_lines_1based": [
+                3620,
+                3626
+              ],
+              "span_sha256": "7c0862579e0fb13f56317421cda9b6054680e327fba2f20dde74c3a0f3f40905"
+            },
+            {
+              "origin": "PRIMARY_APPLICATION",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "source_id": "A3.SS2.p15.2",
+              "role": "Weighted-tail use context only; the full tail remains deferred",
+              "decoded_char_span": [
+                827661,
+                828334
+              ],
+              "raw_UTF8_byte_span": [
+                836207,
+                836889
+              ],
+              "LF_lines_1based": [
+                3712,
+                3713
+              ],
+              "span_sha256": "ff0326dd9ae000e039b67f8c855e76da09988f9825a32cd662f9bc6c26327d97"
+            }
+          ],
+          "scope": "associated private T; no separate public node"
+        },
+        {
+          "title": "Discharge the private regularity and apply the public MGF node",
+          "text": "Deterministic scalar multiplication transfers the actual centered-structure regularity to X_i. Linearity of the same unconditional integral gives EμX_i=0. Measurability and ‖X_i‖≤1 imply integrability of the actual square, since ‖X_i²‖≤1. Apply the new public MGF theorem with those internally proved facts. Its exponent retains Eμ(X_i²); no covariance cover is substituted inside exp.",
+          "formula": "\\mathbb E_\\mu X_i=0,\\qquad\\|X_i^2\\|\\le\\|X_i\\|^2\\le1,\\qquad\\mathbb E_\\mu e^{sX_i}\\preceq\\exp\\!\\left((e^s-s-1)\\,\\mathbb E_\\mu X_i^2\\right)\\quad(s>0).",
+          "lean": "  intro s hs i\n  have hmeasX : Measurable (X i) := by\n    change Measurable (fun ω : Ω => ρ⁻¹ • (w i • Z i ω))\n    exact ((hmeasZ i).const_smul (w i)).const_smul (ρ⁻¹ : ℝ)\n  have hintX : Integrable (X i) μ := by\n    change Integrable (fun ω : Ω => ρ⁻¹ • (w i • Z i ω)) μ\n    exact ((hintZ i).smul (w i)).smul (ρ⁻¹ : ℝ)\n  have hzeroW : (∫ ω, w i • Z i ω ∂μ) = 0 := by\n    rw [integral_smul (w i) (Z i), hzeroZ i, smul_zero]\n  have hzeroX : (∫ ω, X i ω ∂μ) = 0 := by\n    change (∫ ω, ρ⁻¹ • (w i • Z i ω) ∂μ) = 0\n    rw [integral_smul (ρ⁻¹) (fun ω : Ω => w i • Z i ω), hzeroW, smul_zero]\n  have hintSq : Integrable (fun ω : Ω => X i ω * X i ω) μ := by\n    apply Integrable.of_bound (hmeasX.mul hmeasX).aestronglyMeasurable 1\n    exact ae_of_all _ fun ω => (norm_mul_le _ _).trans\n      (by nlinarith [hnormX i ω, norm_nonneg (X i ω)])\n  exact AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf.centered_bounded_matrix_mgf\n    μ (X i) hmeasX.aestronglyMeasurable hintX hintSq\n    (ae_of_all _ (hhermX i)) (ae_of_all _ (hcapX i)) hzeroX hs\n\nend AutoSamplingTheory.Tests.GaussianComplexityBernsteinWeightedMgf\n",
+          "lean_source_path": "Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+          "lean_source": {
+            "path": "Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+            "commit": "4869db55d340cee39f0ba4d49fb0a7a4309ba2d6",
+            "file_sha256": "42f372143ffe52e4372271d09fbc6b67391739f2fe2a5fbfffe6cd9fa586936e",
+            "LF_lines_1based": [
+              139,
+              159
+            ],
+            "decoded_char_span": [
+              6616,
+              7735
+            ],
+            "raw_UTF8_byte_span": [
+              7161,
+              8365
+            ],
+            "span_convention": "Lines inclusive and 1-based; character/codepoint and UTF8-byte offsets 0-based half-open; newline bytes retained.",
+            "start_line_column0": [
+              139,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              160,
+              0
+            ],
+            "span_sha256": "2537ea105e1c82956b8901f656ef26f65744b13069b057bf4c6a72db36d941f4",
+            "download_path": "downloads/lean/Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+            "download_filename": "GaussianComplexityBernsteinWeightedMgf.lean"
+          },
+          "lean_download_path": "downloads/lean/Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+          "source_attribution": [
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 26,
+              "region": "Individual MGF comparison instantiated in the authored private consumer",
+              "qualification": "Printed PDF page is primary; its page locator is not a PDF byte-range claim.",
+              "derived_page_text": ".astis/huanjian-gc-bernstein-mgf-preparation-20261114/Tropp-pdf-page-26.text.txt",
+              "derived_page_text_sha256": "58402f19b75e68f87b9a63e2cde819cc7e2bc1487963d97dba528782fe8138cf"
+            },
+            {
+              "origin": "PRIMARY_APPLICATION",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "source_id": "A3.SS2.p15.2",
+              "role": "Original +cos weighted use context, with the sum-tail conclusion deferred",
+              "decoded_char_span": [
+                827661,
+                828334
+              ],
+              "raw_UTF8_byte_span": [
+                836207,
+                836889
+              ],
+              "LF_lines_1based": [
+                3712,
+                3713
+              ],
+              "span_sha256": "ff0326dd9ae000e039b67f8c855e76da09988f9825a32cd662f9bc6c26327d97"
+            }
+          ],
+          "scope": "associated private T; no separate public node"
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
+      ],
+      "mathlib_dependencies": [
+        "CFC.le_one_iff",
+        "cfc_comp_const_mul",
+        "CFC.real_exp_eq_normedSpace_exp",
+        "norm_cfc_le",
+        "cfc_mono",
+        "cfc_add",
+        "cfc_const",
+        "cfc_id'",
+        "Matrix.le_iff",
+        "NormedSpace.exp_analytic",
+        "Integrable.of_bound",
+        "Matrix.posSemidef_conjTranspose_mul_self",
+        "Real.add_one_le_exp",
+        "integrable_const",
+        "integral_add",
+        "integral_smul",
+        "integral_sub"
+      ],
+      "dependency_notes": "Public P directly calls exactly canonical R13 and RealMatrixPositiveIntegral.integral_posSemidef; its two private spectral lemmas are implementation support. Private T directly calls P, actual_source_truncated_matrix_norm_bounds and actual_source_centered_matrix_structure. The consumer extracts the parent’s measurability, integrability, centering and Hermitianity; its independence component is unused for this individual-MGF theorem. Private T additionally uses Real.abs_cos_le_one, the spectral norm estimate, scalar-integral linearity and norm-based integrability. Gaussian parents are not parents of generic P.",
+      "lean_statement": "Exact finite-nonempty real random-matrix MGF statement, with probability and source-standing regularity explicit. The complete private application statement remains in step4.",
+      "lean_proof": "Three folds retain all121 public-module lines and three retain all159 private-module lines, byte-exact from the frozen proof snapshot. Exact proof source and full module context remain accessible.",
+      "sources": [
+        {
+          "url": "https://tropp.caltech.edu/papers/Tro11-User-Friendly-preprint.pdf#page=25",
+          "edition": "Author preprint revised15June2011; pinned PDF SHA256 f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+          "anchor": "Lemma6.7 statement and proof pp25-26; §2.2 standing expectation regularity p7; §2.3 transfer rule(2.2) p7; §2.4 I+A≼exp(A)(2.3) p8",
+          "label": "Tropp, real normalized individual matrix Bernstein MGF",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Joel A. Tropp, User-Friendly Tail Bounds for Sums of Random Matrices, author preprint revised15June2011.",
+          "scope": "Complete real normalized individual-matrix MGF restriction of Lemma6.7. Tropp is independently matched background; the Gaussian paper does not supply this citation."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+          "line": 46,
+          "label": "Exact public individual-matrix MGF theorem",
+          "scope": "Complete real normalized individual MGF only."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex107",
+          "label": "Exact truncated-matrix formula",
+          "scope": "Source formula for Y_i with the inclusive own-row cutoff; original row law, L and actual centering have their separate direct source anchors below."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex112",
+          "label": "Original source radius",
+          "scope": "Canonical norm/radius inputs used internally by the private consumer."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p15.2",
+          "label": "Cosine-weighted Bernstein use context",
+          "scope": "Authored intermediate +cos individual-MGF specialization; the full weighted tail remains deferred."
+        },
+        {
+          "path": "Tests/GaussianComplexityBernsteinWeightedMgf.lean",
+          "line": 21,
+          "label": "Complete private weighted original-Gaussian consumer",
+          "scope": "Associated private application, with its own correct source/download path and no separate public-node credit."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex85",
+          "label": "Feature and physical row coordinates",
+          "scope": "Exact t_i and gamma_i coordinate definitions."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p1.2",
+          "label": "Original Gaussian row experiment",
+          "scope": "Source row Gaussian-law statement, not a conditioned law."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p10.1",
+          "label": "Truncation threshold and row radius",
+          "scope": "Exact L=2r+3log(1000d) and R_i=||gamma_i||²."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p13.1",
+          "label": "Actual centering definition",
+          "scope": "Z_i=Y_i−E Y_i under the original expectation."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p4.1",
+          "label": "Midpoint angles",
+          "scope": "theta_i=(i−1/2)pi/d in the source cosine-frame proof."
+        }
+      ],
+      "tests": [
+        "lake env lean AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean",
+        "lake build Tests.GaussianComplexityBernsteinWeightedMgf"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf.centered_bounded_matrix_mgf",
+      "role": "proof-edge",
+      "supports": [
+        "real-centered-bounded-single-matrix-mgf"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Tropp Lemma6.7 concerns a self-adjoint random matrix and a one-sided largest-eigenvalue cap1; the selected source claim is its real normalized restriction.",
+        "lean": "X : Ω → Matrix ι ι ℝ on a finite nonempty index; hherm almost everywhere; hcap : PosSemidef(1−X) almost everywhere."
+      },
+      {
+        "source": "Tropp§2.2 works with a probability law and sufficiently regular random variables so the indicated expectations are defined, with random-matrix relations understood almost surely.",
+        "lean": "μ : Measure Ω with IsProbabilityMeasure μ; hX : AEStronglyMeasurable X μ; hintX : Integrable X μ; hintSq : Integrable (fun ω => X ω * X ω) μ."
+      },
+      {
+        "source": "E X=0 and every positive real Laplace parameter; actual E(X²) with coefficient exp(s)−s−1.",
+        "lean": "hzero equates the actual Bochner integral to zero; hs : 0<s; the conclusion is the full PSD difference with precisely ∫X*X."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "f29441d1e885c086ba1841402d3816aaa6703eff0d3b650029c2527448f78cd5"
+}

@@ -54,7 +54,10 @@ that neither completed answer is in the challenge.
 
 The separate **Bench fixed candidate pre-admission** workflow prepares the
 ordinary pinned Linux runtime and runs `verify --runtime … --output …` on a
-fresh directory. It requires the complete reference to pass, and requires
+fresh directory. The trusted preparation first builds the exact Mathlib
+imports with Lake, including dependency traces that a direct Lean check
+does not write; it does not make the runtime dependency mount writable.
+It requires the complete reference to pass, and requires
 the pinned Comparator to reject (1) a proof of only the positive conclusion,
 (2) the same target name with its negative proposition replaced by `True`,
 and (3) a proof hole. The receipt records each classification and expected

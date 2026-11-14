@@ -183,17 +183,26 @@ def freeze(output: Path) -> dict:
     return record
 
 
-def check_local(output: Path) -> None:
+def check_local(output: Path, *, build_imports: bool = False) -> None:
     """Elaborate only owned generated inputs, in separate Lean environments."""
     freeze(output)
     output = output.resolve()
+    modules = (("Challenge", "stage/Challenge.lean"), ("Solution", "fixtures/reference.lean.txt"))
+    if build_imports:
+        # Direct lean does not materialize Lake's dependency traces. Finish
+        # trusted imports (including ProofWidgets) before the readonly snapshot.
+        imports = sorted({module for _, source in modules for module in re.findall(
+            r"(?m)^import (Mathlib\.[\w.]+)$", (output / source).read_text(encoding="utf-8"))})
+        if not imports:
+            raise ValueError("Missing trusted Mathlib imports")
+        subprocess.run(["lake", "build", *imports], cwd=runtime.ROOT, check=True)
     env = dict(os.environ)
     # Supply the two fresh oleans in addition to Lake's package search path.
     paths = subprocess.check_output(["lake", "env", sys.executable, "-c",
                                     "import os; print(os.environ['LEAN_PATH'])"],
                                    cwd=runtime.ROOT, text=True)
     env["LEAN_PATH"] = os.pathsep.join((str(output), paths.strip()))
-    for name, source in (("Challenge", "stage/Challenge.lean"), ("Solution", "fixtures/reference.lean.txt")):
+    for name, source in modules:
         subprocess.run(["lake", "env", "lean", "-o", str(output / f"{name}.olean"),
                         str(output / source)], cwd=runtime.ROOT, check=True)
     # Use Lean's environment API, not printing/reparsing types. The two modules
@@ -243,6 +252,9 @@ def main() -> int:
     for name in ("freeze", "check-local", "verify"):
         command = sub.add_parser(name)
         command.add_argument("--output", required=True, type=Path)
+        if name == "check-local":
+            command.add_argument("--build-imports", action="store_true",
+                                 help="Materialize trusted Lake dependency traces before native snapshot")
         if name == "verify":
             command.add_argument("--runtime", required=True, type=Path)
     args = parser.parse_args()
@@ -250,7 +262,7 @@ def main() -> int:
         print(json.dumps(freeze(args.output), sort_keys=True))
         return 0
     if args.command == "check-local":
-        check_local(args.output)
+        check_local(args.output, build_imports=args.build_imports)
         return 0
     return 0 if verify(args.runtime, args.output) else 1
 

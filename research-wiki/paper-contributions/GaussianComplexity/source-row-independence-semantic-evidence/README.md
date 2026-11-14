@@ -1,0 +1,9 @@
+# Actual Gaussian row independence and truncated matrix images
+
+The public theorem proves full joint independence of the literal physical rows of the original independent-column Gaussian experiment. The real private consumer proves both measurability and full independence of the exact closed-cutoff Ex107 matrix images under that same measure. The standing source range and q=0 are preserved; the same existing canonical row-law node is reused.
+
+Both actual sealed targets compiled on their first implementation attempt and passed the strict literal kernel applications. Independent raw/type/topology, whole-module, source-blind decoding and anti-anchored source review passed. The separate fresh native actor compiled all three ASTIS modules from empty ASTIS outputs and checked all owned types/bodies/axioms. Its six production static folds and full81-line private source export include original blankT60. Native compile credit is66e0bb9; the sole normal independent VERIFIED event is carried at91c5dee8, preserving all20 original PLOCAL fields and raw bytes.
+
+Prior API exposure and every rejected formation, namespace, native setup, verifier precheck and root custody check are retained with their actual scope. No successful ledger transition was replayed. Static rendering does not grant actual desktop/mobile/MathJax/source-index/globalgraph/copy/download delivery, serialized integration or purification. Original stabilization ownership is still unreleased at the last actual remote observation.
+
+Next: actual source-experiment truncated matrix means and both actual finite-sum expectations. Exact literal statements are sealed, with independent source type/topology work in progress; no new target proof is claimed. Both main lower bounds and remaining oracle/precision/TV/cap/cost obligations remain unfinished.

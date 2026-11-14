@@ -1,0 +1,197 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SHARED-MATRIX-BERNSTEIN-EXPONENTIAL-QUADRATIC",
+  "route": "shared",
+  "mode": "faithfulPaper",
+  "title": "Shared real matrix Bernstein exponential-quadratic bound with actual Gaussian MGF consumer",
+  "source_anchor": "Tropp author preprint last revised15June2011, Lemma6.7 deterministic proof p25 and expectation step p26; standing definitions/regularity/functional calculus p7-8. Independently matched to uncited Gaussian2610.20492v1 C.2 Ex121; actual Gaussian consumer uses original Ex107-112 definitions and source radius. Both exact source hashes sealed.",
+  "target_statement": "{ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian)\n    (hA_le : (1 - A).PosSemidef) {s : ℝ} (hs : 0 < s) :\n  ((1 : Matrix ι ι ℝ) + s • A + (Real.exp s - s - 1) • (A * A) -\n    NormedSpace.exp (s • A)).PosSemidef\n\nExact private original-Gaussian single-summand MGF consumer\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let X : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => ρ⁻¹ • Z i ω\n  ∀ s : ℝ, 0 < s → ∀ i : Fin d,\n    (NormedSpace.exp\n        ((Real.exp s - s - 1) • (∫ ω, X i ω * X i ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef\n",
+  "status": "claimed",
+  "owner_id": "huanjian_20261114_matrix_bernstein_exponential",
+  "advance_id": "ASTIS-SA-20261114-MatrixBernsteinExponentialQuadratic",
+  "parents": [],
+  "consumers": [
+    "AutoSamplingTheory.Tests.GaussianComplexityBernsteinMgf.actual_source_normalized_single_summand_mgf",
+    "AutoSamplingTheory.Tests.GaussianComplexityBernsteinWeightedMgf.actual_source_weighted_normalized_single_summand_mgf"
+  ],
+  "consumer_scope": {
+    "current_exact_consumer": {
+      "name": "AutoSamplingTheory.Tests.GaussianComplexityBernsteinMgf.actual_source_normalized_single_summand_mgf",
+      "state": "PLANNED_LITERAL_SEALED_PRIVATE_T;not_yet_compiled"
+    },
+    "second_source_required_route": {
+      "name": "AutoSamplingTheory.Tests.GaussianComplexityBernsteinWeightedMgf.actual_source_weighted_normalized_single_summand_mgf",
+      "state": "FUTURE_UNIMPLEMENTED_SOURCE_APPLICATION_ONLY;not_an_additional_current_target",
+      "source": "GaussianC.2Ex121 second, cosine-weighted tail; the same deterministic source exp bound is needed for its normalized summands."
+    },
+    "compiled_consumer_credit": false,
+    "separate_random_families_not_joint_independence": true
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib/ASTIS: bounded names and existing sealed-header audit found no exact exp-quadratic or normalized matrix-MGF replacement. Existing actual source mean/radius/structure and RealMatrixPositiveIntegral interfaces are canonical and directly available.",
+      "Mathlib: bounded signature search across the pinned matrix/algebra/probability scope found matrix-exp identities, scalar MGFs and rank-one moments, but no exact replacement within the inspected scope. This is not a global absence claim.",
+      "Samplinglib private visibility: R10/R11 source-qualified aliases fail ordinary #check, while a successful ordinary-import TYPE-ONLY diagnostic finds exact compiled private names and sealed types. Malformed numeric-name syntax is retained separately. No private theorem is declared absent/unproved.",
+      "Reuse supported public Y/actual-mean norm bounds, actual centered structure and PSD-integral floor; derive centered normalized radius inside the actual consumer. No private-proof reconstruction or duplicate public radius wrapper."
+    ],
+    "classification": "adapt",
+    "decision": "new_canonical_shared",
+    "canonical_declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound",
+    "canonical_shared_cell": "ASTIS-SHARED-MATRIX-BERNSTEIN-EXPONENTIAL-QUADRATIC"
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib/ASTIS: bounded names and existing sealed-header audit found no exact exp-quadratic or normalized matrix-MGF replacement. Existing actual source mean/radius/structure and RealMatrixPositiveIntegral interfaces are canonical and directly available.",
+      "Mathlib: bounded signature search across the pinned matrix/algebra/probability scope found matrix-exp identities, scalar MGFs and rank-one moments, but no exact replacement within the inspected scope. This is not a global absence claim.",
+      "Samplinglib private visibility: R10/R11 source-qualified aliases fail ordinary #check, while a successful ordinary-import TYPE-ONLY diagnostic finds exact compiled private names and sealed types. Malformed numeric-name syntax is retained separately. No private theorem is declared absent/unproved.",
+      "Reuse supported public Y/actual-mean norm bounds, actual centered structure and PSD-integral floor; derive centered normalized radius inside the actual consumer. No private-proof reconstruction or duplicate public radius wrapper."
+    ],
+    "reused_declarations": [],
+    "planned_existing_P_parents": [],
+    "planned_private_T_parents": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
+    ],
+    "new_shared_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound"
+    ],
+    "known_consumers": [],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityBernsteinMgf.actual_source_normalized_single_summand_mgf",
+      "AutoSamplingTheory.Tests.GaussianComplexityBernsteinWeightedMgf.actual_source_weighted_normalized_single_summand_mgf"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "One generic canonical exp bound serves the actual sealed unweighted Gaussian MGF consumer and the source-required future cosine-weighted route. These are two actual source families, not claimed compiled routes. Keep any radius derivation internal and reuse existing public upper bounds.",
+    "private_canonical_nodes_retained_without_false_formal_parent": true
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "Contract planned only: concise attributed real deterministic statement, complete formula proof and exact initially folded P/T; source/native/runtime/publication acceptance pending."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound"
+    ],
+    "visual_review": "Planned one generic shared canonical producer and its actual private source-family consumer. Future weighted source application is planned only. No compiled/root/global graph acceptance."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "All actual proof-free exp/namespace typing, private-name parser/visibility and source-use-edge record iterations preserved. Exact mathematical P/T unchanged; no target proof route attempted or discarded.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "One ROOT proof worker. Independent raw SG, distinct raw TC and body-free interface audit have distinct review roles; no parallel mathematical proof routes.",
+      "shared_verified_context_digest": "c3103a9e8d08fea6c83f35201fce953af4dd93e88a1a3d7d647fc4deaaddeb7a"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "No competing mathematical proof routes."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "Tropp revised2011 PDF SHA f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86; Gaussian2610.20492v1 HTML SHA 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "TroppLemma6.7p25-26; source§2.1-2.3p7-8; GaussianC.2Ex107-112 and uncitedEx121use",
+    "detail_status": "omitted",
+    "gap": "Source calls the scalar remainder monotonicity a calculus exercise. Spectral transfer/series-exp compatibility, actual Gaussian radius normalization/regularity and PSD expectation must be proved or canonically reused; Lieb/master-tail remain separate downstream gaps, not P/T premises.",
+    "consulted": [
+      {
+        "source": "Pinned Tropp author preprint, independently matched external background; not attributed as a supplied Gaussian citation.",
+        "anchor": "Lemma6.7 deterministic inequality and expectation proof; §2.2 standing regularity; §2.3 transfer and I+C<=exp(C).",
+        "hypothesis_adapter": "P explicit real restriction with one-sided PSD(I-A) and positive s; T original unconditional Gaussian construction with sole hq and all s>0. All stochastic well-posedness and normalization facts are internal, q0 retained."
+      }
+    ],
+    "fidelity_boundary": "Only the real finite-nonempty self-adjoint deterministic proof component of Tropp Lemma6.7: A<=I implies exp(sA)<=I+sA+(exp(s)-s-1)A^2 for s>0, expressed by full Matrix.PosSemidef. The exact private consumer is the original unconditioned product-Gaussian truncated/centered Z_i, normalized by actual rho=2r(L+1)/d, and its actual single-summand MGF comparison. All radius positivity, centering, regularity/integrability, PSD expectation and exp adapters are internal proof obligations, never supplied certificates or extra Gaussian binders. The real restriction is explicit; this is not the full complex Tropp theorem. No Bernstein sum tail/event probability, full C6/Lemma4.4/main lowerbound, oracle/TV/precision/query-cap/cost, public private-consumer API, integration/publication/purification or whole-Goal credit. Tropp is an independently matched external background source, not a citation provided by the Gaussian paper."
+  },
+  "statement_seal": {
+    "status": "EXACT_PROP_TYPES_FORMED;INDEPENDENT_SEAL_ONLY_ACCEPTED;FULL_SOURCE_TOPOLOGY_PENDING;UNPROVED",
+    "file": "research-wiki/technical-lemmas/matrix-bernstein-exponential-statement-seal.json",
+    "sha256": "c3103a9e8d08fea6c83f35201fce953af4dd93e88a1a3d7d647fc4deaaddeb7a",
+    "signature_sha256": "28bd25d83b8ffbd643fb8087e24a149efada562832005bcd30e3e2017d502be6",
+    "private_consumer_signature_sha256": "c80f983130011e185c0be6d1acd1522a0c35bed4b58accaff0bcbcd88dc6ec9f"
+  },
+  "evidence": {
+    "normal_API_calls": 0,
+    "new_target_proof_calls": 0,
+    "formalizer_API_pristine": false,
+    "draft_metadata_only": true,
+    "source_admission": "PENDING_DISTINCT_FOCUSED_SOURCE_SUPPLEMENT_RECHECK",
+    "actual_literal_formation": {
+      "receipt": ".astis/huanjian-resume-20261103/20261113T153825760629Z-unclaimed-bernstein-exponential-v2-correct-exp-and-namespace-literal-Prop-formation.receipt.json",
+      "exit_code": 0,
+      "log_sha256": "d6d027519b075f4e1c51e4ab3bb9ffc1bfde4a648e47d1ffe354a070e4cbcc17",
+      "warnings": "hA,hA_le,hs,hq unused only in proposition formation; retained source binders, no theorem proof supplied."
+    },
+    "actual_definition_typing": {
+      "receipt": ".astis/huanjian-resume-20261103/20261113T153934555446Z-unclaimed-bernstein-exp-PSD-rational-algebra-generic-definition-typing-only.receipt.json",
+      "exit_code": 0,
+      "log_sha256": "d068e3e6e33c8a668e6b83216e686eac208c2bec2400a14458d14157c4dcd8e1",
+      "generic_instances": [
+        "Matrix.instAlgebra for Algebra ℚ (Matrix ι ι ℝ)",
+        "Matrix.instL2OpNormedRing",
+        "Matrix.instCompleteSpace ι ι ℝ"
+      ],
+      "no_junk_exp_branch": "Actual generic rational matrix Algebra instance exists; exp is the matrix algebra series, not its no-rational-algebra junk branch."
+    }
+  },
+  "blocked": {},
+  "owned_files": [
+    "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinExponential.lean",
+    "Tests/GaussianComplexityBernsteinMgf.lean",
+    "research-wiki/frontier-cells/ASTIS-SHARED-MATRIX-BERNSTEIN-EXPONENTIAL-QUADRATIC.json",
+    "research-wiki/technical-lemmas/matrix-bernstein-exponential-statement-seal.json",
+    "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-matrix-bernstein-exponential.json",
+    "website/content/publications/huanjian-matrix-bernstein-exponential.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-matrix-bernstein-exponential.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Registry.lean",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json",
+    "website/static/proof-readers.css",
+    "website/static/source-lineage.css"
+  ],
+  "truth_boundary": "Only the real finite-nonempty self-adjoint deterministic proof component of Tropp Lemma6.7: A<=I implies exp(sA)<=I+sA+(exp(s)-s-1)A^2 for s>0, expressed by full Matrix.PosSemidef. The exact private consumer is the original unconditioned product-Gaussian truncated/centered Z_i, normalized by actual rho=2r(L+1)/d, and its actual single-summand MGF comparison. All radius positivity, centering, regularity/integrability, PSD expectation and exp adapters are internal proof obligations, never supplied certificates or extra Gaussian binders. The real restriction is explicit; this is not the full complex Tropp theorem. No Bernstein sum tail/event probability, full C6/Lemma4.4/main lowerbound, oracle/TV/precision/query-cap/cost, public private-consumer API, integration/publication/purification or whole-Goal credit. Tropp is an independently matched external background source, not a citation provided by the Gaussian paper.",
+  "conceptual_mirror_audit": {
+    "status": "pending",
+    "discovery_ids": []
+  },
+  "reservation_only": "UNCLAIMED_DRAFT_METADATA_ONLY; NO frontier/ledger write, proof or intake."
+}

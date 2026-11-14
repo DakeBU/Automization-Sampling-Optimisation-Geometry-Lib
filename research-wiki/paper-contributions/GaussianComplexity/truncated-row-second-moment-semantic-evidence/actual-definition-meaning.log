@@ -1,0 +1,64 @@
+def ProbabilityTheory.stdGaussian.{u_2} : (E : Type u_2) →
+  [inst : NormedAddCommGroup E] →
+    [inst_1 : InnerProductSpace ℝ E] → [FiniteDimensional ℝ E] → [inst : MeasurableSpace E] → Measure E :=
+fun E [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] =>
+  Measure.map (fun x => ∑ i, x i • (stdOrthonormalBasis ℝ E) i) (Measure.pi fun x => gaussianReal 0 1)
+@[reducible] def EuclideanSpace.{u_7, u_8} : Type u_7 → Type u_8 → Type (max u_7 u_8) :=
+fun 𝕜 n => PiLp 2 fun x => 𝕜
+@[reducible] def WithLp.ofLp.{u_1} : {p : ENNReal} → {V : Type u_1} → WithLp p V → V :=
+fun p V self => self.1
+def Matrix.vecMulVec.{v, u_2, u_3} : {m : Type u_2} →
+  {n : Type u_3} → {α : Type v} → [Mul α] → (m → α) → (n → α) → Matrix m n α :=
+fun {m} {n} {α} [Mul α] w v => Matrix.of fun x y => w x * v y
+def Matrix.kronecker.{u_3, u_9, u_10, u_11, u_12} : {α : Type u_3} →
+  {l : Type u_9} →
+    {m : Type u_10} →
+      {n : Type u_11} → {p : Type u_12} → [Mul α] → Matrix l m α → Matrix n p α → Matrix (l × n) (m × p) α :=
+fun {α} {l} {m} {n} {p} [Mul α] => Matrix.kroneckerMap fun x1 x2 => x1 * x2
+def Set.indicator.{u_1, u_3} : {α : Type u_1} → {M : Type u_3} → [Zero M] → Set α → (α → M) → α → M :=
+fun {α} {M} [Zero M] s f x => if x ∈ s then f x else 0
+def MeasureTheory.Integrable.{u_5, u_8} : {ε : Type u_5} →
+  [inst : TopologicalSpace ε] →
+    [ContinuousENorm ε] →
+      {α : Type u_8} → {x : MeasurableSpace α} → (α → ε) → autoParam (Measure α) Integrable._auto_1 → Prop :=
+fun {ε} [TopologicalSpace ε] [ContinuousENorm ε] {α} {x} f μ => AEStronglyMeasurable f μ ∧ HasFiniteIntegral f μ
+@[irreducible] def MeasureTheory.integral.{u_6, u_7} : {α : Type u_6} →
+  {G : Type u_7} →
+    [inst : NormedAddCommGroup G] → [NormedSpace ℝ G] → {x : MeasurableSpace α} → Measure α → (α → G) → G :=
+wrapped✝.1
+@[instance_reducible] def Matrix.instL2OpNormedAddCommGroup.{u_1, u_2, u_3} : {𝕜 : Type u_1} →
+  {m : Type u_2} →
+    {n : Type u_3} → [RCLike 𝕜] → [Fintype m] → [Fintype n] → [DecidableEq n] → NormedAddCommGroup (Matrix m n 𝕜) :=
+fun {𝕜} {m} {n} [RCLike 𝕜] [Fintype m] [Fintype n] [DecidableEq n] =>
+  { toNorm := Matrix.l2OpNormedAddCommGroupAux.toNorm, toAddCommGroup := Matrix.addCommGroup,
+    toMetricSpace := Matrix.instL2OpMetricSpace, dist_eq := ⋯ }
+@[instance_reducible] def Matrix.l2OpNormedAddCommGroupAux.{u_1, u_2, u_3} : {𝕜 : Type u_1} →
+  {m : Type u_2} →
+    {n : Type u_3} → [RCLike 𝕜] → [Fintype m] → [Fintype n] → [DecidableEq n] → NormedAddCommGroup (Matrix m n 𝕜) :=
+fun {𝕜} {m} {n} [RCLike 𝕜] [Fintype m] [Fintype n] [DecidableEq n] =>
+  NormedAddCommGroup.induced (Matrix m n 𝕜) (EuclideanSpace 𝕜 n →L[𝕜] EuclideanSpace 𝕜 m)
+    (Matrix.toEuclideanLin.trans LinearMap.toContinuousLinearMap) ⋯
+def Matrix.toEuclideanCLM.{u_1, u_3} : {𝕜 : Type u_1} →
+  {n : Type u_3} →
+    [inst : RCLike 𝕜] →
+      [inst_1 : Fintype n] → [DecidableEq n] → Matrix n n 𝕜 ≃⋆ₐ[𝕜] EuclideanSpace 𝕜 n →L[𝕜] EuclideanSpace 𝕜 n :=
+fun {𝕜} {n} [RCLike 𝕜] [Fintype n] [DecidableEq n] =>
+  (LinearMap.toMatrixOrthonormal (EuclideanSpace.basisFun n 𝕜)).symm.trans
+    (let __src := LinearMap.toContinuousLinearMap;
+    { toFun := (↑__src).toFun, invFun := __src.invFun, left_inv := ⋯, right_inv := ⋯, map_mul' := ⋯, map_add' := ⋯,
+      map_star' := ⋯, map_smul' := ⋯ })
+def Matrix.{u, u', v} : Type u → Type u' → Type v → Type (max u u' v) :=
+fun m n α => m → n → α
+def Matrix.of.{v, u_2, u_3} : {m : Type u_2} → {n : Type u_3} → {α : Type v} → (m → n → α) ≃ Matrix m n α :=
+fun {m} {n} {α} => Equiv.refl (m → n → α)
+@[instance_reducible] def Matrix.one.{v, u_3} : {n : Type u_3} →
+  {α : Type v} → [DecidableEq n] → [Zero α] → [One α] → One (Matrix n n α) :=
+fun {n} {α} [DecidableEq n] [Zero α] [One α] => { one := Matrix.diagonal fun x => 1 }
+def Matrix.diagonal.{v, u_3} : {n : Type u_3} → {α : Type v} → [DecidableEq n] → [Zero α] → (n → α) → Matrix n n α :=
+fun {n} {α} [DecidableEq n] [Zero α] d => Matrix.of fun i j => if i = j then d i else 0
+@[instance_reducible] def Matrix.instL2OpNormedSpace.{u_1, u_2, u_3} : {𝕜 : Type u_1} →
+  {m : Type u_2} →
+    {n : Type u_3} →
+      [inst : RCLike 𝕜] →
+        [inst_1 : Fintype m] → [inst_2 : Fintype n] → [inst_3 : DecidableEq n] → NormedSpace 𝕜 (Matrix m n 𝕜) :=
+fun {𝕜} {m} {n} [RCLike 𝕜] [Fintype m] [Fintype n] [DecidableEq n] => { toModule := Matrix.module, norm_smul_le := ⋯ }

@@ -1,0 +1,138 @@
+"""Record exactly one normal local proof transition with its complete original payload."""
+from pathlib import Path
+import hashlib
+import json
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, 'tools')
+import astis_advance as advance
+import astis_frontier_cells as frontier
+import astis_publication as publication
+
+workspace = Path(__file__).resolve().parent.relative_to(Path.cwd())
+evidence = Path('research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence')
+cell_path = Path('research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-weighted-cosine-frame.json')
+ledger = Path('runs/substantive_advances.jsonl')
+target = 'ASTIS-SA-20261112-GaussianComplexityWeightedCosineFrame'
+owner = 'huanjian_gc_20261112_weighted_cosine_frame'
+sha = lambda raw: hashlib.sha256(raw).hexdigest()
+dump = lambda value: (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode()
+
+
+def create(path, raw):
+    with path.open('xb') as out:
+        out.write(raw)
+
+
+def git(*args):
+    return subprocess.check_output(['git', *args])
+
+
+head = git('rev-parse', 'HEAD').decode().strip()
+assert head == '48023c9e2f6c8f822050a64b7462b7e66f549ba1'
+assert not git('diff', 'HEAD', '--name-only') and not git('diff', '--cached', '--name-only')
+candidate = json.loads((workspace / 'actual-immutable-math-candidate.json').read_bytes())
+math_commit = candidate['mathematical_candidate']
+assert math_commit == '401a3e1faa08fe2173d52017672831d2edbad38f'
+seal = json.loads((workspace / 'statement-seal-v1.json').read_bytes())
+draft = json.loads((evidence / 'publication-draft-record.json').read_bytes())
+P, T = [Path(seal[key]['planned_file']) for key in ('producer', 'actual_private_consumer')]
+assert sha(P.read_bytes()) == draft['producer_sha256'] and sha(T.read_bytes()) == draft['private_consumer_sha256']
+for path in (P, T):
+    assert git('show', f'{math_commit}:{path}') == path.read_bytes()
+before = ledger.read_bytes()
+states = advance._replay_advances([json.loads(line) for line in before.splitlines()])
+assert states[target]['state'] == 'EXPLORING' and states[target]['owner_id'] == owner
+baseline = json.loads((workspace / 'preproof-baseline.private.json').read_bytes())
+assert {key:value for key,value in states.items() if key != target} == baseline['all_foreign_states']
+for path, digest in baseline['all_existing_frontier_hashes'].items():
+    assert sha(Path(path).read_bytes()) == digest
+discovery_bytes = Path('runs/substantive_discoveries.jsonl').read_bytes()
+assert discovery_bytes == git('show', f'{head}:runs/substantive_discoveries.jsonl')
+cell = json.loads(cell_path.read_bytes())
+assert cell['status'] == 'claimed' and cell['evidence']['independent_verification'] == ''
+assert cell['conceptual_mirror_audit']['status'] == 'none-found'
+assert cell['conceptual_mirror_audit']['existing_validated_mirrors'][0]['identity_unchanged']
+checks = [draft['build'], draft['kernel']]
+for item in checks:
+    path = Path(item['path'])
+    receipt = json.loads(path.read_bytes())
+    assert sha(path.read_bytes()) == item['sha256'] and receipt['exit_code'] == 0
+    assert sha(Path(receipt['log']).read_bytes()) == item['log_sha256'] == receipt['log_sha256']
+source_receipt_path = Path('.astis/huanjian-resume-20261103/20261112T043719708390Z-weighted-cosine-frame-original-independent-source-review-carrier.receipt.json')
+source_receipt_raw = source_receipt_path.read_bytes()
+source_receipt = json.loads(source_receipt_raw)
+assert source_receipt['exit_code'] == 0 and source_receipt['head_after'] == head
+assert sha(Path(source_receipt['log']).read_bytes()) == source_receipt['log_sha256']
+source_attachment_run = {'path': str(source_receipt_path), 'sha256': sha(source_receipt_raw), 'log_sha256': source_receipt['log_sha256']}
+name = seal['producer']['name']
+publication.check_advance([name], reviewed=True)
+assert not frontier.validate_cells(frontier.load_cells())
+boundary = seal['scope_boundary']
+result = {
+    'result_kind': 'theorem-edge', 'theorem_delta': seal['producer']['signature'],
+    'lean_files': [str(P), str(T)], 'lean_declarations': [name], 'publication_declarations': [name],
+    'focused_checks': checks, 'truth_boundary': boundary,
+    'mathematical_candidate': math_commit, 'source_review_metadata_commit': head,
+    'independent_source_attachment_actual_run': source_attachment_run,
+    'actual_compiled_parent_edges': draft['actual_public_ASTIS_parents'],
+    'actual_private_consumer': seal['actual_private_consumer']['signature'],
+    'publication_binding_sha256': draft['publication_binding_sha256'],
+    'independent_source_review': cell['evidence']['independent_source_review'],
+    'conceptual_mirror_audit': cell['conceptual_mirror_audit'],
+    'owned_theorems': {'handwritten': 2, 'generated_reachable_internal': 3},
+    'kernel_type_check': 'Both exact literal Props accepted by actual kernel theorem applications, monomorphic; raw Expr equality false. All five owned declarations are closed and reachable with standard axioms only.',
+    'formalizer_preseal_API_pristine': False,
+    'preseal_exposure': seal['preseal_exposure'],
+    'proof_iteration': {
+        'diagnoses': str(evidence / 'local-attempt-diagnoses.json'),
+        'producer_initial_failures': 3, 'consumer_initial_failures': 1,
+        'final_build': draft['build'], 'final_kernel': draft['kernel'],
+        'source_types_changed': False,
+    },
+    'reader_boundary': cell['reader_contract']['status'],
+}
+create(workspace / 'local-proof-transition-attempted.once.json', dump({
+    'advance_id': target, 'before_ledger_sha256': sha(before), 'math_candidate': math_commit,
+    'metadata_commit': head, 'from_state': 'EXPLORING', 'to_state': 'PROVED_LOCAL',
+}))
+advance.transition_advance(target, 'PROVED_LOCAL', worker_id=owner, evidence=result)
+after = ledger.read_bytes()
+assert after.startswith(before)
+append = after[len(before):]
+assert len(append.splitlines()) == 1
+event = json.loads(append)
+assert event['advance_id'] == target and event['worker_id'] == owner
+assert event['to_state'] == 'PROVED_LOCAL' and event['evidence'] == result
+now = advance._replay_advances([json.loads(line) for line in after.splitlines()])
+assert now[target]['state'] == 'PROVED_LOCAL'
+assert {key:value for key,value in states.items() if key != target} == {key:value for key,value in now.items() if key != target}
+cell['status'] = 'proved_locally'
+cell['truth_boundary'] = boundary
+cell.pop('reservation_only', None)
+cell['statement_seal']['status'] = 'EXACT_UNCHANGED_TYPES_COMPILED;INDEPENDENT_SOURCE_ACCEPTED;FINAL_NATIVE_VERIFICATION_PENDING'
+cell['evidence']['focused_checks'] = checks
+cell['evidence']['actual_PROVED_LOCAL_append_sha256'] = sha(append)
+cell['learning_contract']['failure_class'] = 'IMPLEMENTATION_FAILED'
+cell['learning_contract']['salvage'] = {
+    'required': True, 'status': 'completed',
+    'reason': 'Corrected recorded API and custody-harness issues; exact source types preserved and both actual declarations compiled.',
+    'promoted_fragments': [name], 'discarded_fragments': [],
+}
+cell_path.write_bytes(dump(cell))
+assert not frontier.validate_cells(frontier.load_cells())
+create(evidence / 'actual-PROVED_LOCAL-append.exact.jsonl', append)
+create(evidence / 'actual-PROVED_LOCAL-evidence.full.json', dump(result))
+for path, digest in baseline['all_existing_frontier_hashes'].items():
+    assert sha(Path(path).read_bytes()) == digest
+assert Path('runs/substantive_discoveries.jsonl').read_bytes() == discovery_bytes
+assert set(git('diff', 'HEAD', '--name-only').decode().splitlines()) == {str(cell_path), str(ledger)}
+print(json.dumps({
+    'state': 'PROVED_LOCAL', 'math_candidate': math_commit, 'source_metadata_commit': head,
+    'append_sha256': sha(append), 'full_original_payload_sha256': sha(dump(result)),
+    'foreign_full_states_preserved': len(states) - 1,
+    'older_frontier_regular_files_preserved': len(baseline['all_existing_frontier_hashes']),
+    'root_VERIFIED_calls': 0, 'formalizer_API_pristine': False,
+}))

@@ -1,0 +1,119 @@
+"""Record the compiled result in the owning worker lane."""
+from pathlib import Path
+import hashlib
+import json
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, 'tools')
+import astis_advance as advance
+import astis_frontier_cells as frontiers
+import astis_publication as publication
+
+workspace = Path(__file__).resolve().parent.relative_to(Path.cwd())
+evidence = Path('research-wiki/paper-contributions/GaussianComplexity/truncated-radial-moment-semantic-evidence')
+cell_path = Path('research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-truncated-radial-moment.json')
+ledger = Path('runs/substantive_advances.jsonl')
+sha = lambda data: hashlib.sha256(data).hexdigest()
+dump = lambda value: (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode()
+
+
+def create(path, data):
+    with path.open('xb') as output:
+        output.write(data)
+
+
+candidate = json.loads((workspace / 'actual-immutable-math-candidate.json').read_bytes())
+commit = candidate['mathematical_candidate']
+assert subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip() == commit
+assert not subprocess.check_output(['git', 'diff', 'HEAD', '--name-only'])
+draft = json.loads((evidence / 'publication-draft-record.json').read_bytes())
+seal = json.loads((workspace / 'statement-seal-v1.json').read_bytes())
+producer, consumer = [seal[key]['planned_file'] for key in ['producer', 'actual_private_consumer']]
+assert sha(Path(producer).read_bytes()) == draft['producer_sha256']
+assert sha(Path(consumer).read_bytes()) == draft['private_consumer_sha256']
+for filename in [producer, consumer]:
+    assert subprocess.check_output(['git', 'show', f'{commit}:{filename}']) == Path(filename).read_bytes()
+
+before = ledger.read_bytes()
+states = advance._replay_advances([json.loads(line) for line in before.splitlines()])
+advance_id = 'ASTIS-SA-20261110-GaussianComplexityTruncatedRadialMoment'
+owner = 'huanjian_gc_20261110_truncated_radial_moment'
+assert states[advance_id]['state'] == 'EXPLORING' and states[advance_id]['owner_id'] == owner
+cell_before = cell_path.read_bytes()
+cell = json.loads(cell_before)
+name = seal['producer']['name']
+boundary = (
+    'Compiled the source standard-Gaussian single-row strict-tail first moment at r=q+1 '
+    'and L=2r+3 log(1000d), with its exact layer integral and (L+3)/(1000d) bound. '
+    'The actual private consumer obtains the scalar range, complementary first-moment '
+    'identity and (L+3)/(1000rd) bias bound. q=0 is included. Row-family transport, '
+    'truncated matrix covariance, concentration, full Lemma 4.4, both main lower bounds, '
+    'oracle and cost adapters, source verification, public integration and purification '
+    'remain separate.'
+)
+discovery_path = Path('runs/substantive_discoveries.jsonl')
+discovery = advance._replay_discoveries([json.loads(line) for line in discovery_path.read_bytes().splitlines()])
+assert cell['conceptual_mirror_audit']['discovery_ids'] == ['ASTIS-DISC-20261111-GaussianRowKernelDoobLayerCake']
+assert discovery['ASTIS-DISC-20261111-GaussianRowKernelDoobLayerCake']['status'] == 'validated'
+assert not frontiers.validate_cells(frontiers.load_cells())
+publication.check_advance([name], reviewed=False)
+checks = [draft['build'], draft['kernel']]
+for check in checks:
+    path = Path(check['path'])
+    receipt = json.loads(path.read_bytes())
+    assert receipt['exit_code'] == 0 and sha(path.read_bytes()) == check['sha256']
+    assert sha(Path(receipt['log']).read_bytes()) == check['log_sha256']
+
+result = {
+    'result_kind': 'theorem-edge', 'theorem_delta': seal['producer']['signature'],
+    'lean_files': [producer, consumer], 'lean_declarations': [name], 'publication_declarations': [name],
+    'focused_checks': checks, 'truth_boundary': boundary, 'mathematical_candidate': commit,
+    'actual_compiled_parent_edges': draft['actual_public_ASTIS_parents'],
+    'actual_private_consumer': seal['actual_private_consumer']['signature'],
+    'publication_binding_sha256': draft['publication_binding_sha256'],
+    'conceptual_mirror_audit': cell['conceptual_mirror_audit'],
+    'owned_theorems': {'handwritten': 2, 'generated_reachable_internal': 1},
+    'type_check': 'Both independent literal types accepted by the kernel. Raw Expr structural equality was false.',
+    'proof_iteration': 'The initial producer check failed on the shifted tail and positivity proof. A later check compiled the producer and reported an unknown division rewrite in the private consumer. The original failures and source versions are preserved in the local-build archive. The sealed types are unchanged.',
+    'reader_boundary': cell['reader_contract']['status'],
+}
+create(workspace / 'local-proof-transition-attempted.once.json', dump({
+    'advance_id': advance_id, 'math_commit': commit, 'before_ledger_sha256': sha(before),
+    'state_before': 'EXPLORING', 'actual_requested_transition': 'PROVED_LOCAL',
+}))
+advance.transition_advance(advance_id, 'PROVED_LOCAL', worker_id=owner, evidence=result)
+after = ledger.read_bytes()
+assert after.startswith(before)
+append = after[len(before):]
+assert len(append.splitlines()) == 1
+event = json.loads(append)
+assert event['advance_id'] == advance_id and event['worker_id'] == owner
+assert event['to_state'] == 'PROVED_LOCAL' and event['evidence'] == result
+new_states = advance._replay_advances([json.loads(line) for line in after.splitlines()])
+assert new_states[advance_id]['state'] == 'PROVED_LOCAL'
+assert {k: v for k, v in new_states.items() if k != advance_id} == {
+    k: v for k, v in states.items() if k != advance_id}
+
+cell['status'] = 'proved_locally'
+cell['truth_boundary'] = boundary
+cell.pop('reservation_only', None)
+cell['statement_seal']['status'] = 'EXACT_UNCHANGED_TYPES_COMPILED;INDEPENDENT_POSTPROOF_REVIEW_PENDING'
+cell['evidence']['focused_checks'] = checks
+cell['evidence']['actual_PROVED_LOCAL_append_sha256'] = sha(append)
+cell['evidence']['independent_verification'] = ''
+cell['learning_contract']['failure_class'] = 'IMPLEMENTATION_FAILED'
+cell['learning_contract']['salvage'] = {
+    'required': True, 'status': 'completed', 'reason': result['proof_iteration'],
+    'promoted_fragments': [name], 'discarded_fragments': [],
+}
+cell_path.write_bytes(dump(cell))
+assert not frontiers.validate_cells(frontiers.load_cells())
+create(evidence / 'actual-PROVED_LOCAL-append.exact.jsonl', append)
+create(evidence / 'actual-PROVED_LOCAL-evidence.full.json', dump(result))
+assert set(subprocess.check_output(['git', 'diff', 'HEAD', '--name-only'], text=True).splitlines()) == {
+    str(cell_path), str(ledger)}
+print(json.dumps({'state': 'PROVED_LOCAL', 'mathematical_candidate': commit,
+                  'append_sha256': sha(append), 'foreign_states_preserved': len(states) - 1,
+                  'whole_frontier_format_passed': True, 'independent_verification_pending': True}))

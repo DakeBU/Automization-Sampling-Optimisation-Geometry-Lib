@@ -1,0 +1,146 @@
+{
+  "publication_binding_sha256": "fdfc58efe464c10868cac35682d8bd5202e0fc69f46880f957582e707b667265",
+  "publication_context": {
+    "file": "9c96a4b80420bf114e700ed61f4adf88f79b85d24c4d21848e466d67b93ba431",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.AffinityTensorization\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity\nimport Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv\nopen Matrix MeasureTheory ProbabilityTheory\nopen scoped ENNReal BigOperators\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.TVAmplification\nset_option autoImplicit false\n/-!\n# Actual Gaussian-mixture TV amplification\n\nZhou--Suzuki, arXiv:2610.20492v1, Appendix B.2.3 Ex72 (final inequality).\nThe laws below are the actual determinant-component matrix-prior Gaussian\nbinds, and TV is the measurable-event supremum. Their probability and\nabsolute-continuity certificates identify event masses with genuine L1\nRN-density integrals. The shared normalized-density comparison, actual Ex71\ntensorization and actual Eq25 single-block estimate imply the stated bound.\nNo supplied density, integrability, probability or scalar-affinity premise\nis added. The canonical producers include the zero-residual convention.\nThe oracle/query lower bounds remain separate.\n-/\ntheorem actual_averaged_tv_lower_bound {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ) :\n    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _\n    let μ := orthogonalHaar n\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let Dpos := (Measure.pi (fun _ : Fin (d / n) => νpos)).map (blockPrecision κ)\n    let Dneg := (Measure.pi (fun _ : Fin (d / n) => νneg)).map (blockPrecision κ)\n    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=\n      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n    let Mpos := Dpos.bind γ\n    let Mneg := Dneg.bind γ\n    let δ : ℝ := sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin d)),\n      MeasurableSet B ∧ z = |Mpos.real B - Mneg.real B|}\n    1 - Real.exp (-(((d / n : ℕ) : ℝ) / 8) *\n      Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ≤ δ := by\n  classical\n  dsimp only\n  let : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _\n  let μ := orthogonalHaar n\n  let νpos := (2 : ℝ≥0∞) • μ.restrict\n    {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n  let νneg := (2 : ℝ≥0∞) • μ.restrict\n    {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n  let Dpos := (Measure.pi (fun _ : Fin (d / n) => νpos)).map (blockPrecision κ)\n  let Dneg := (Measure.pi (fun _ : Fin (d / n) => νneg)).map (blockPrecision κ)\n  let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=\n    fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n  let Mpos := Dpos.bind γ\n  let Mneg := Dneg.bind γ\n  let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n    fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n      (2 * Real.pi) ^ ((n : ℝ) / 2) *\n      Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n        (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n  let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos\n  let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg\n  let a : ℝ := ∫ x, Real.sqrt (qpos x * qneg x)\n  let F : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    Real.sqrt (((Mpos.rnDeriv volume) x).toReal * ((Mneg.rnDeriv volume) x).toReal)\n\n  let δ : ℝ := sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin d)),\n    MeasurableSet B ∧ z = |Mpos.real B - Mneg.real B|}\n  let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x => (Mpos.rnDeriv volume x).toReal\n  let g : EuclideanSpace ℝ (Fin d) → ℝ := fun x => (Mneg.rnDeriv volume x).toReal\n  -- Actual law probability is a canonical Ex6 output, not a new premise.\n  have hp := AveragedBlockLaw.actual_averaged_block_product hn hnd hκ (b := 1) (Or.inl rfl)\n  have hm := AveragedBlockLaw.actual_averaged_block_product hn hnd hκ (b := -1) (Or.inr rfl)\n  let : IsProbabilityMeasure Mpos := hp.2.2.2.1\n  let : IsProbabilityMeasure Mneg := hm.2.2.2.1\n  have ht := AffinityTensorization.actual_affinity_tensorization hn hnd hκ\n  have hb := SingleBlockAffinity.single_block_affinity_bound hn hκ\n  dsimp only at ht hb\n  -- RN integration over these actual finite laws has no infinity fallback.\n  have hf0 (x) : 0 ≤ f x := ENNReal.toReal_nonneg\n  have hg0 (x) : 0 ≤ g x := ENNReal.toReal_nonneg\n  have hfm : Measurable f := (Measure.measurable_rnDeriv Mpos volume).ennreal_toReal\n  have hgm : Measurable g := (Measure.measurable_rnDeriv Mneg volume).ennreal_toReal\n  have hfi : Integrable f volume := Measure.integrable_toReal_rnDeriv\n  have hgi : Integrable g volume := Measure.integrable_toReal_rnDeriv\n  have hf1 : (∫ x, f x) = 1 := by\n    calc\n      _ = Mpos.real Set.univ := Measure.integral_toReal_rnDeriv ht.1\n      _ = 1 := by simp [measureReal_def]\n  have hg1 : (∫ x, g x) = 1 := by\n    calc\n      _ = Mneg.real Set.univ := Measure.integral_toReal_rnDeriv ht.2.1\n      _ = 1 := by simp [measureReal_def]\n  have hc := AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity.normalized_density_tv_affinity\n    volume hf0 hg0 hfm hgm hfi hgi hf1 hg1\n  dsimp only at hc\n  -- Identify exactly the event supremum used in the source definition of TV.\n  have hset : {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin d)), MeasurableSet B ∧\n      z = |(∫ x in B, f x) - (∫ x in B, g x)|} =\n      {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin d)), MeasurableSet B ∧\n      z = |Mpos.real B - Mneg.real B|} := by\n    ext z\n    constructor <;> rintro ⟨B, hB, hz⟩\n    · exact ⟨B, hB, (by rw [Measure.setIntegral_toReal_rnDeriv ht.1,\n        Measure.setIntegral_toReal_rnDeriv ht.2.1] at hz; exact hz)⟩\n    · exact ⟨B, hB, (by rw [Measure.setIntegral_toReal_rnDeriv ht.1,\n        Measure.setIntegral_toReal_rnDeriv ht.2.1]; exact hz)⟩\n  have htv : 1 - (∫ x, F x) ≤ δ := by\n    have h := hc.2.2.2.2.1\n    rw [hset] at h\n    exact h\n  -- Eq25 controls the true block affinity; Ex71 lifts it to the actual laws.\n  have ha := hb.2.2.2.2.1.trans hb.2.2.2.2.2\n  have hpow : a ^ (d / n) ≤ Real.exp\n      (-(((d / n : ℕ) : ℝ) / 8) * Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) := by\n    calc\n      _ ≤ (Real.exp (-(1 / 8 : ℝ) *\n          Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ))) ^ (d / n) :=\n        pow_le_pow_left₀ hb.2.1 ha (d / n)\n      _ = _ := by\n        rw [← Real.exp_nat_mul]\n        congr 1\n        ring\n  rw [ht.2.2.2] at htv\n  exact (sub_le_sub_left hpow 1).trans htv\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.TVAmplification\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A2.Ex72",
+      "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "S2.Ex2 TV convention; S2 standing model; S3.E4-E6; A2.E25 actual single-block bound; A2.Ex70-Ex72; A2.SS2.SSS3.p3.3 omitted-zero-residual convention.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. The selected claim is the final inequality in Ex72. ASTIS makes the actual-law probability and RN integration adapters explicit.",
+      "scope": "Actual averaged Gaussian target TV has the exact exponential lower bound in Ex72. Oracle/query lower bounds and the fixed-spectrum route remain separate."
+    },
+    "statement": "The total variation distance between the actual averaged Gaussian targets has the following explicit lower bound. \\operatorname{TV}(\\bar\\pi_+,\\bar\\pi_-)\\ge1-\\exp\\!\\left[-\\frac{\\lfloor d/n\\rfloor}{8}\\exp\\!\\left(-\\frac{10n}{\\sqrt\\kappa}\\right)\\right]. \\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\ge4\\); set \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\). Both endpoint inequalities are inclusive. For normalized full orthogonal Haar probability \\(\\mu_n\\), let \\(\\nu_\\pm=2\\mu_n|_{\\{\\det O=\\pm1\\}}\\). Define \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), \\(\\mathcal D_\\pm=(\\boldsymbol O\\mapsto\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r))_\\#\\nu_\\pm^{\\otimes k}\\), and the actual averaged targets \\(\\bar\\pi_\\pm=\\int\\mathcal N(0,A^{-1})\\,d\\mathcal D_\\pm(A)\\). Each product uses one common sign. Total variation uses the source probability convention \\(\\delta=\\sup_{B\\text{ measurable}}|\\bar\\pi_+(B)-\\bar\\pi_-(B)|=\\frac12\\int|f-g|\\,dx\\). In Lean, each event mass is \\(M_\\pm.\\mathrm{real}(B)=\\operatorname{toReal}(M_\\pm(B))\\); the actual laws are proved to be probabilities internally, so all event masses are finite. Nonempty/bounded event-supremum and mass-one density obligations are discharged by the canonical normalized-density theorem. The proof uses actual ambient RN densities \\(f=d\\bar\\pi_+/dx\\), \\(g=d\\bar\\pi_-/dx\\), and actual block affinity \\(a=\\int\\sqrt{p_+p_-}\\). Absolute continuity, L1, normalization, the exact tensorization \\(\\int\\sqrt{fg}=a^k\\), and Eq25 are derived from existing canonical producers. They are not supplied as additional hypotheses. The residual factor is included for \\(r>0\\); for \\(r=0\\), it is the zero-dimensional unit factor from the existing actual product-law and affinity producers. The theorem imposes no positive-remainder condition and includes all source-domain endpoints.",
+    "formulae": [
+      {
+        "label": "Actual averaged-target TV lower bound",
+        "tex": "\\operatorname{TV}(\\bar\\pi_+,\\bar\\pi_-)\\ge1-\\exp\\!\\left[-\\frac{\\lfloor d/n\\rfloor}{8}\\exp\\!\\left(-\\frac{10n}{\\sqrt\\kappa}\\right)\\right]."
+      }
+    ],
+    "assumptions": [
+      "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\ge4\\); set \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\). Both endpoint inequalities are inclusive.",
+      "For normalized full orthogonal Haar probability \\(\\mu_n\\), let \\(\\nu_\\pm=2\\mu_n|_{\\{\\det O=\\pm1\\}}\\). Define \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), \\(\\mathcal D_\\pm=(\\boldsymbol O\\mapsto\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r))_\\#\\nu_\\pm^{\\otimes k}\\), and the actual averaged targets \\(\\bar\\pi_\\pm=\\int\\mathcal N(0,A^{-1})\\,d\\mathcal D_\\pm(A)\\). Each product uses one common sign.",
+      "Total variation uses the source probability convention \\(\\delta=\\sup_{B\\text{ measurable}}|\\bar\\pi_+(B)-\\bar\\pi_-(B)|=\\frac12\\int|f-g|\\,dx\\). In Lean, each event mass is \\(M_\\pm.\\mathrm{real}(B)=\\operatorname{toReal}(M_\\pm(B))\\); the actual laws are proved to be probabilities internally, so all event masses are finite. Nonempty/bounded event-supremum and mass-one density obligations are discharged by the canonical normalized-density theorem.",
+      "The proof uses actual ambient RN densities \\(f=d\\bar\\pi_+/dx\\), \\(g=d\\bar\\pi_-/dx\\), and actual block affinity \\(a=\\int\\sqrt{p_+p_-}\\). Absolute continuity, L1, normalization, the exact tensorization \\(\\int\\sqrt{fg}=a^k\\), and Eq25 are derived from existing canonical producers. They are not supplied as additional hypotheses.",
+      "The residual factor is included for \\(r>0\\); for \\(r=0\\), it is the zero-dimensional unit factor from the existing actual product-law and affinity producers. The theorem imposes no positive-remainder condition and includes all source-domain endpoints."
+    ],
+    "obligations": [
+      {
+        "id": "actual-tv-amplification-ex72",
+        "label": "Actual common-sign averaged Gaussian laws satisfy the exact final Ex72 exponential TV lower bound."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.TVAmplification.actual_averaged_tv_lower_bound",
+      "title": "Actual Gaussian TV amplification (Ex72)",
+      "reader_note": "The main bound is shown first; actual laws, source assumptions, proof steps and exact Lean are folded below.",
+      "statement": "The total variation distance between the actual averaged Gaussian targets has the following explicit lower bound.",
+      "formula": "\\operatorname{TV}(\\bar\\pi_+,\\bar\\pi_-)\\ge1-\\exp\\!\\left[-\\frac{\\lfloor d/n\\rfloor}{8}\\exp\\!\\left(-\\frac{10n}{\\sqrt\\kappa}\\right)\\right].",
+      "assumptions": [
+        "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\ge4\\); set \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\). Both endpoint inequalities are inclusive.",
+        "For normalized full orthogonal Haar probability \\(\\mu_n\\), let \\(\\nu_\\pm=2\\mu_n|_{\\{\\det O=\\pm1\\}}\\). Define \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), \\(\\mathcal D_\\pm=(\\boldsymbol O\\mapsto\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r))_\\#\\nu_\\pm^{\\otimes k}\\), and the actual averaged targets \\(\\bar\\pi_\\pm=\\int\\mathcal N(0,A^{-1})\\,d\\mathcal D_\\pm(A)\\). Each product uses one common sign.",
+        "Total variation uses the source probability convention \\(\\delta=\\sup_{B\\text{ measurable}}|\\bar\\pi_+(B)-\\bar\\pi_-(B)|=\\frac12\\int|f-g|\\,dx\\). In Lean, each event mass is \\(M_\\pm.\\mathrm{real}(B)=\\operatorname{toReal}(M_\\pm(B))\\); the actual laws are proved to be probabilities internally, so all event masses are finite. Nonempty/bounded event-supremum and mass-one density obligations are discharged by the canonical normalized-density theorem.",
+        "The proof uses actual ambient RN densities \\(f=d\\bar\\pi_+/dx\\), \\(g=d\\bar\\pi_-/dx\\), and actual block affinity \\(a=\\int\\sqrt{p_+p_-}\\). Absolute continuity, L1, normalization, the exact tensorization \\(\\int\\sqrt{fg}=a^k\\), and Eq25 are derived from existing canonical producers. They are not supplied as additional hypotheses.",
+        "The residual factor is included for \\(r>0\\); for \\(r=0\\), it is the zero-dimensional unit factor from the existing actual product-law and affinity producers. The theorem imposes no positive-remainder condition and includes all source-domain endpoints."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(\\delta,k,r\\)",
+          "text": "TV is the supremum of actual probability differences over measurable events. Natural division selects the number of full common-sign blocks.",
+          "formula": "\\delta=\\sup_{B\\ \\mathrm{measurable}}|\\bar\\pi_+(B)-\\bar\\pi_-(B)|,\\quad k=\\lfloor d/n\\rfloor,\\quad r=d\\bmod n."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Establish probability and actual RN densities",
+          "text": "The existing actual averaged block-law theorem supplies probability for both full-dimensional Gaussian binds. The actual affinity theorem supplies absolute continuity. RN integration for finite measures over sigma-finite Euclidean volume then gives nonnegative measurable genuine L1 densities of unit mass, with no infinite-value real-conversion shortcut.",
+          "formula": "f=\\operatorname{toReal}\\frac{d\\bar\\pi_+}{dx},\\quad g=\\operatorname{toReal}\\frac{d\\bar\\pi_-}{dx},\\qquad f,g\\ge0,\\quad f,g\\in L^1,\\quad\\int f=\\int g=1.",
+          "lean": "hp/hm consume AveragedBlockLaw.actual_averaged_block_product. ht consumes AffinityTensorization.actual_affinity_tensorization. hfi/hgi and hf1/hg1 use Measure.integrable_toReal_rnDeriv and Measure.integral_toReal_rnDeriv with actual probability instances."
+        },
+        {
+          "title": "Identify the exact event TV",
+          "text": "For every measurable event, the integral of its RN density equals the actual law probability. This identifies the source event supremum with the same event supremum in the canonical normalized-density comparison. That theorem proves nonemptiness, boundedness and the exact factor one half; the totalized supremum is not used without its valid domain.",
+          "formula": "\\int_B f\\,dx=\\bar\\pi_+(B),\\quad\\int_B g\\,dx=\\bar\\pi_-(B),\\qquad\\delta=\\frac12\\int|f-g|\\,dx.",
+          "lean": "hset is equality of the two actual event-discrepancy sets, using Measure.setIntegral_toReal_rnDeriv for both AC laws. hc is the same canonical DensityAffinity.normalized_density_tv_affinity node already used by earlier packets."
+        },
+        {
+          "title": "Apply the overlap–affinity comparison",
+          "text": "The source writes TV as one minus overlap and bounds min(f,g) by sqrt(fg). The shared density theorem proves the equivalent pointwise inequality f+g-2sqrt(fg)<=|f-g|, integrates genuine L1 functions and uses their unit masses and the exact half-L1 TV identity. It therefore gives the same lower comparison for these actual laws. The displayed overlap formula explains this equivalence; no separate newly exported min-integral identity is claimed.",
+          "formula": "1-\\delta=\\int\\min(f,g)\\,dx\\le\\int\\sqrt{fg}\\,dx,\\qquad1-\\int\\sqrt{fg}\\,dx\\le\\delta.",
+          "lean": "hc.2.2.2.2.1 and hset give htv. The canonical producer proves the pointwise comparison by cases f<=g, followed by integral_mono and normalization. This is an explicit equivalent algebraic route to the source overlap comparison."
+        },
+        {
+          "title": "Use actual tensorization and the single-block bound",
+          "text": "The actual affinity theorem identifies the ambient affinity with a^k, including zero residual dimension. Eq25 controls that same actual block affinity. Nonnegativity allows monotonicity of natural powers; the exponential power identity gives the exact coefficient and sign in the source bound.",
+          "formula": "\\int\\sqrt{fg}=a^k\\le\\left(e^{-\\frac18e^{-10n/\\sqrt\\kappa}}\\right)^k=e^{-\\frac{k}{8}e^{-10n/\\sqrt\\kappa}}.",
+          "lean": "ht.2.2.2 is the actual Ex71 equality. hb is SingleBlockAffinity.single_block_affinity_bound; ha composes its final two inequalities. hpow uses pow_le_pow_left₀, Real.exp_nat_mul and ring."
+        },
+        {
+          "title": "Conclude actual TV separation",
+          "text": "Subtract the affinity upper bound from one and combine it with the actual-TV lower comparison. The focused consumer shows that an explicit block-count/condition-number threshold makes the actual law TV at least one half; it is not a statement about a scalar substitute or about query costs.",
+          "formula": "\\delta\\ge1-e^{-\\frac{k}{8}e^{-10n/\\sqrt\\kappa}},\\qquad\\frac{k}{8}e^{-10n/\\sqrt\\kappa}\\ge\\log2\\Longrightarrow\\delta\\ge\\frac12.",
+          "lean": "The final rw substitutes ht.2.2.2 into htv, then sub_le_sub_left hpow 1 and trans close the sealed theorem. Tests.GaussianComplexityTVAmplification is the actual-law fixed-accuracy consumer."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw.actual_averaged_block_product",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.AffinityTensorization.actual_affinity_tensorization",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity.single_block_affinity_bound",
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity.normalized_density_tv_affinity"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Measure.integrable_toReal_rnDeriv",
+        "MeasureTheory.Measure.integral_toReal_rnDeriv",
+        "MeasureTheory.Measure.setIntegral_toReal_rnDeriv",
+        "MeasureTheory.Measure.measurable_rnDeriv",
+        "pow_le_pow_left₀",
+        "Real.exp_nat_mul"
+      ],
+      "lean_statement": "Exactly the preproof sealed final-Ex72 inequality. Source bounds 3<=n<=d and kappa>=4 are the only logical premises.",
+      "lean_proof": "The exact complete production theorem is extracted beside the proof; all mathematical ingredients are canonical dependencies or internal proofs.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.Ex72",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S2.Ex2 TV convention; S2 standing model; S3.E4-E6; A2.E25 actual single-block bound; A2.Ex70-Ex72; A2.SS2.SSS3.p3.3 omitted-zero-residual convention.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. The selected claim is the final inequality in Ex72. ASTIS makes the actual-law probability and RN integration adapters explicit.",
+          "scope": "Actual averaged Gaussian target TV has the exact exponential lower bound in Ex72. Oracle/query lower bounds and the fixed-spectrum route remain separate.",
+          "label": "Zhou–Suzuki, Appendix B.2.3 Ex72"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityTVAmplification"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.TVAmplification.actual_averaged_tv_lower_bound",
+      "role": "proof-edge",
+      "supports": [
+        "actual-tv-amplification-ex72"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Standing source domain 3<=n<=d, kappa>=4, k=floor(d/n).",
+        "lean": "Exactly those bounds, actual two common-sign Haar-component matrix priors and their Gaussian binds."
+      },
+      {
+        "source": "TV is the probability convention sup over measurable event discrepancies, equal to one half L1; Ex72 gives the final explicit lower bound.",
+        "lean": "sSup of |Mpos.real B-Mneg.real B| over measurable B; actual probability and RN integration establish the same finite event probabilities internally."
+      },
+      {
+        "source": "Ex72 uses the min-overlap identity, min<=sqrt, Ex71 tensorization and Eq25.",
+        "lean": "The canonical normalized-density theorem supplies the algebraically equivalent half-L1 lower comparison; exact actual tensorization and the actual block bound then give the same coefficient."
+      }
+    ]
+  }
+}

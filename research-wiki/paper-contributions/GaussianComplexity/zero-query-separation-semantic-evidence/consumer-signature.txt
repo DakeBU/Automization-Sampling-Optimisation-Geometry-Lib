@@ -1,0 +1,15 @@
+private theorem no_common_zero_query_output {d : ℕ} (hd : 1 ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ) (ρ : ProbabilityMeasure (EuclideanSpace ℝ (Fin d))) :
+  let A₁ : Matrix (Fin d) (Fin d) ℝ :=
+    Matrix.diagonal (fun i => if i.val = 0 then κ else 1)
+  let ν₀ : Measure (EuclideanSpace ℝ (Fin d)) :=
+    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d))
+      (1 : Matrix (Fin d) (Fin d) ℝ)⁻¹
+  let ν₁ : Measure (EuclideanSpace ℝ (Fin d)) :=
+    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A₁⁻¹
+  let Δ : Measure (EuclideanSpace ℝ (Fin d)) →
+      Measure (EuclideanSpace ℝ (Fin d)) → ℝ := fun μ ν =>
+    sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin d)),
+      MeasurableSet B ∧ z = |μ.real B - ν.real B|}
+  ¬ (Δ (ρ : Measure (EuclideanSpace ℝ (Fin d))) ν₀ ≤ (1 : ℝ) / 16 ∧
+    Δ (ρ : Measure (EuclideanSpace ℝ (Fin d))) ν₁ ≤ (1 : ℝ) / 16)

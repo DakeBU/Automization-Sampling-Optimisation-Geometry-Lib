@@ -1,0 +1,65 @@
+import datetime, hashlib, json, os, pathlib, subprocess, sys
+
+ROOT = pathlib.Path('/Users/zhouhuanjian/ASTIS-GC')
+sys.path.insert(0, str(ROOT))
+from tools import astis_advance as a
+
+PRIVATE = ROOT / '.astis/semantic-neutral-20261112/wf_src_91c4/phase5'
+EVIDENCE = ROOT / 'research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence'
+RUN = EVIDENCE / 'normal-verification/wf_src_91c4'
+TARGET = 'ASTIS-SA-20261112-GaussianComplexityWeightedCosineFrame'
+VERIFIER = '/root/weighted_frame_fresh_source_91c4'
+HELD = '58594412c907ab5b29f50107b0b83f337d8b10f3'
+
+def sha(b): return hashlib.sha256(b).hexdigest()
+
+baseline = json.loads((PRIVATE / 'preservation-baseline.private.json').read_text())
+freeze = json.loads((RUN / 'pre-call-freeze.json').read_text())
+decision = EVIDENCE / 'actual-VERIFIED-independent-decision.json'
+payload = EVIDENCE / 'actual-VERIFIED-evidence.full.json'
+assert sha(decision.read_bytes()) == freeze['decision']['sha256']
+assert sha(payload.read_bytes()) == freeze['verified_evidence_input']['sha256']
+assert subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT).decode().strip() == HELD
+assert sha(subprocess.check_output(['git', 'ls-files', '--stage', '-z'], cwd=ROOT)) == baseline['tracked_index_sha256']
+ledger = ROOT / 'runs/substantive_advances.jsonl'
+prefix = ledger.read_bytes()
+assert len(prefix) == baseline['ledger_bytes'] and sha(prefix) == baseline['ledger_sha256']
+states = a._replay_advances([json.loads(line) for line in prefix.splitlines() if line.strip()])
+assert states[TARGET]['state'] == 'PROVED_LOCAL' and states[TARGET]['owner_id'] != VERIFIER
+assert not any(json.loads(line).get('advance_id') == TARGET and json.loads(line).get('to_state') == 'VERIFIED' for line in prefix.splitlines())
+cell = ROOT / baseline['cell_path']
+cell_before = cell.read_bytes()
+assert sha(cell_before) == baseline['cell_bytes_sha256']
+cell_after = json.loads(cell_before)
+assert cell_after['status'] == 'proved_locally' and cell_after['evidence']['independent_verification'] == ''
+cell_after['status'] = 'independently_verified'
+cell_after['evidence']['independent_verification'] = str(decision.relative_to(ROOT))
+prepared_cell = PRIVATE / 'prepared-cell.private.json'
+prepared_cell.write_text(json.dumps(cell_after, ensure_ascii=False, indent=2) + '\n')
+evidence = json.loads(payload.read_text())
+original = json.loads((EVIDENCE / 'actual-PROVED_LOCAL-evidence.full.json').read_text())
+assert all(evidence[k] == v for k, v in original.items())
+marker = {'api': 'tools.astis_advance.transition_advance', 'advance_id': TARGET, 'to_state': 'VERIFIED', 'worker_id': VERIFIER, 'attempt_count': 1, 'started_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'decision_sha256': sha(decision.read_bytes()), 'evidence_sha256': sha(payload.read_bytes()), 'before_ledger_bytes': len(prefix), 'before_ledger_sha256': sha(prefix), 'no_retry_policy': 'Do not invoke VERIFIED again even if later receipt/report steps fail.'}
+with (RUN / 'normal-transition.attempted.once.json').open('x') as stream:
+    json.dump(marker, stream, ensure_ascii=False, indent=2)
+    stream.write('\n')
+print('NORMAL_TRANSITION_API_CALL_BEGIN', flush=True)
+a.transition_advance(TARGET, 'VERIFIED', worker_id=VERIFIER,
+    modes=('independent-verification', 'source-review', 'kernel-audit'), evidence=evidence,
+    path=ledger, discovery_path=ROOT / 'runs/substantive_discoveries.jsonl')
+print('NORMAL_TRANSITION_API_RETURNED_SUCCESS', flush=True)
+after = ledger.read_bytes()
+assert after.startswith(prefix)
+appended = after[len(prefix):]
+assert len(appended.splitlines()) == 1
+event = json.loads(appended)
+assert event['advance_id'] == TARGET and event['from_state'] == 'PROVED_LOCAL' and event['to_state'] == 'VERIFIED'
+assert event['worker_id'] == VERIFIER and event['evidence'] == evidence
+with (EVIDENCE / 'actual-VERIFIED-append.exact.jsonl').open('xb') as stream:
+    stream.write(appended)
+replayed = a._replay_advances([json.loads(line) for line in after.splitlines() if line.strip()])[TARGET]
+assert replayed['state'] == 'VERIFIED'
+assert all(replayed['latest_evidence'][k] == v for k, v in original.items())
+assert cell.read_bytes() == cell_before
+os.replace(prepared_cell, cell)
+print(json.dumps({'normal_transition_calls': 1, 'state': replayed['state'], 'append_bytes': len(appended), 'append_sha256': sha(appended), 'cell_status': json.loads(cell.read_text())['status'], 'only_cell_value_changes': ['status', 'evidence.independent_verification']}), flush=True)

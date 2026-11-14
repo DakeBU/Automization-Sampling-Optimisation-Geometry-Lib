@@ -1,0 +1,62 @@
+protected def Finset.sum.{u_1, u_3} : {ι : Type u_1} → {M : Type u_3} → [AddCommMonoid M] → Finset ι → (ι → M) → M :=
+fun {ι} {M} [AddCommMonoid M] s f => (Multiset.map f s.val).sum
+def Finset.univ.{u_1} : {α : Type u_1} → [Fintype α] → Finset α :=
+fun {α} [Fintype α] => Fintype.elems
+def ProbabilityTheory.stdGaussian.{u_2} : (E : Type u_2) →
+  [inst : NormedAddCommGroup E] →
+    [inst_1 : InnerProductSpace ℝ E] → [FiniteDimensional ℝ E] → [inst : MeasurableSpace E] → Measure E :=
+fun E [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] =>
+  Measure.map (fun x => ∑ i, x i • (stdOrthonormalBasis ℝ E) i) (Measure.pi fun x => gaussianReal 0 1)
+@[reducible] def EuclideanSpace.{u_7, u_8} : Type u_7 → Type u_8 → Type (max u_7 u_8) :=
+fun 𝕜 n => PiLp 2 fun x => 𝕜
+@[reducible] def WithLp.ofLp.{u_1} : {p : ENNReal} → {V : Type u_1} → WithLp p V → V :=
+fun p V self => self.1
+def Matrix.vecMulVec.{v, u_2, u_3} : {m : Type u_2} →
+  {n : Type u_3} → {α : Type v} → [Mul α] → (m → α) → (n → α) → Matrix m n α :=
+fun {m} {n} {α} [Mul α] w v => Matrix.of fun x y => w x * v y
+def Matrix.kronecker.{u_3, u_9, u_10, u_11, u_12} : {α : Type u_3} →
+  {l : Type u_9} →
+    {m : Type u_10} →
+      {n : Type u_11} → {p : Type u_12} → [Mul α] → Matrix l m α → Matrix n p α → Matrix (l × n) (m × p) α :=
+fun {α} {l} {m} {n} {p} [Mul α] => Matrix.kroneckerMap fun x1 x2 => x1 * x2
+def Matrix.kroneckerMap.{u_3, u_5, u_7, u_9, u_10, u_11, u_12} : {α : Type u_3} →
+  {β : Type u_5} →
+    {γ : Type u_7} →
+      {l : Type u_9} →
+        {m : Type u_10} →
+          {n : Type u_11} → {p : Type u_12} → (α → β → γ) → Matrix l m α → Matrix n p β → Matrix (l × n) (m × p) γ :=
+fun {α} {β} {γ} {l} {m} {n} {p} f A B => Matrix.of fun i j => f (A i.1 j.1) (B i.2 j.2)
+@[instance_reducible] def Matrix.smul.{v, u_2, u_3, u_7} : {m : Type u_2} →
+  {n : Type u_3} → {R : Type u_7} → {α : Type v} → [SMul R α] → SMul R (Matrix m n α) :=
+fun {m} {n} {R} {α} [SMul R α] => { smul := fun a b i => a • b i }
+def Matrix.PosSemidef.{u_2, u_3} : {n : Type u_2} →
+  {R : Type u_3} → [inst : Ring R] → [PartialOrder R] → [StarRing R] → Matrix n n R → Prop :=
+fun {n} {R} [Ring R] [PartialOrder R] [StarRing R] M =>
+  M.IsHermitian ∧ ∀ (x : n →₀ R), 0 ≤ x.sum fun i xi => x.sum fun j xj => star xi * M i j * xj
+def Matrix.IsHermitian.{u_1, u_4} : {α : Type u_1} → {n : Type u_4} → [Star α] → Matrix n n α → Prop :=
+fun {α} {n} [Star α] A => A.conjTranspose = A
+def Set.indicator.{u_1, u_3} : {α : Type u_1} → {M : Type u_3} → [Zero M] → Set α → (α → M) → α → M :=
+fun {α} {M} [Zero M] s f x => if x ∈ s then f x else 0
+def MeasureTheory.Integrable.{u_5, u_8} : {ε : Type u_5} →
+  [inst : TopologicalSpace ε] →
+    [ContinuousENorm ε] →
+      {α : Type u_8} → {x : MeasurableSpace α} → (α → ε) → autoParam (Measure α) Integrable._auto_1 → Prop :=
+fun {ε} [TopologicalSpace ε] [ContinuousENorm ε] {α} {x} f μ => AEStronglyMeasurable f μ ∧ HasFiniteIntegral f μ
+@[irreducible] def MeasureTheory.integral.{u_6, u_7} : {α : Type u_6} →
+  {G : Type u_7} →
+    [inst : NormedAddCommGroup G] → [NormedSpace ℝ G] → {x : MeasurableSpace α} → Measure α → (α → G) → G :=
+wrapped✝.1
+@[instance_reducible] def Matrix.instL2OpNormedAddCommGroup.{u_1, u_2, u_3} : {𝕜 : Type u_1} →
+  {m : Type u_2} →
+    {n : Type u_3} → [RCLike 𝕜] → [Fintype m] → [Fintype n] → [DecidableEq n] → NormedAddCommGroup (Matrix m n 𝕜) :=
+fun {𝕜} {m} {n} [RCLike 𝕜] [Fintype m] [Fintype n] [DecidableEq n] =>
+  { toNorm := Matrix.l2OpNormedAddCommGroupAux.toNorm, toAddCommGroup := Matrix.addCommGroup,
+    toMetricSpace := Matrix.instL2OpMetricSpace, dist_eq := ⋯ }
+@[instance_reducible] def Matrix.instL2OpNormedSpace.{u_1, u_2, u_3} : {𝕜 : Type u_1} →
+  {m : Type u_2} →
+    {n : Type u_3} →
+      [inst : RCLike 𝕜] →
+        [inst_1 : Fintype m] → [inst_2 : Fintype n] → [inst_3 : DecidableEq n] → NormedSpace 𝕜 (Matrix m n 𝕜) :=
+fun {𝕜} {m} {n} [RCLike 𝕜] [Fintype m] [Fintype n] [DecidableEq n] => { toModule := Matrix.module, norm_smul_le := ⋯ }
+Matrix.instHMulOfFintypeOfMulOfAddCommMonoid
+Matrix.smul

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-2a7df37880b4fe5e",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ),\n    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let B : Matrix.orthogonalGroup (Fin n) ℝ → Matrix (Fin n) (Fin n) ℝ :=\n      fun O => ((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) -\n        ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) +\n          (O : Matrix (Fin n) (Fin n) ℝ).transpose)\n    let μ := (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ)))\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let Dpos := (Measure.pi (fun _ : Fin (d / n) => νpos)).map (fun Os : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ => Matrix.reindex e e\n      (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => B (Os j))) 0 0\n        (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)))\n    let Dneg := (Measure.pi (fun _ : Fin (d / n) => νneg)).map (fun Os : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ => Matrix.reindex e e\n      (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => B (Os j))) 0 0\n        (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)))\n    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=\n      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n    let Mpos := Dpos.bind γ\n    let Mneg := Dneg.bind γ\n    let δ : ℝ := sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin d)),\n      MeasurableSet B ∧ z = |Mpos.real B - Mneg.real B|}\n    1 - Real.exp (-(((d / n : ℕ) : ℝ) / 8) *\n      Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ≤ δ\n",
+    "statement_sha256": "2a7df37880b4fe5e9ea8ef1c83f7fb7721d6d2be0709032cc22aee2656434f48",
+    "compiled": true,
+    "approved_definition_context": [
+      "EuclideanSpace real (Fin m) is real m-dimensional Euclidean space with its usual Borel structure; Fin m indexes coordinates from zero. WithLp.toLp 2 and WithLp.ofLp preserve the entries. Ordinary finite function spaces and products carry product Borel structures and their usual default product norms.",
+      "Matrix.orthogonalGroup (Fin n) real is the full real orthogonal matrix group, with its usual topology and Borel structure, including either determinant sign. Matrix.PosDef means a real symmetric positive-definite matrix.",
+      "Measure.haarMeasure K is the canonical Haar measure normalized on the positive compact set K. TopologicalSpace.PositiveCompacts top is the entire compact group, so this constructor is its normalized Haar probability. Measure.restrict restricts a measure to a set; real nonnegative-infinite scalar multiplication has its usual meaning.",
+      "Matrix.reindex e e M has entries M (e.symm i) (e.symm j). Matrix.blockDiagonal f uses pairs (local coordinate, block index) and is zero between different blocks. Matrix.fromBlocks is the displayed two-by-two block assembly. finProdFinEquiv sends (a,b) to a times the cardinality of the second factor plus b; finSumFinEquiv concatenates its summands.",
+      "multivariateGaussian mean m covariance C is the pushforward of stdGaussian by z -> m + Matrix.toEuclideanCLM (CFC.sqrt C) z. The covariance interpretation holds when C is positive semidefinite; otherwise this total constructor defaults to a point mass. Matrix inverse is totalized at singular matrices.",
+      "stdGaussian is the standard Gaussian obtained by independent scalar standard normal coordinates in an orthonormal basis. On a zero-dimensional Euclidean space it is the probability point mass at its sole vector.",
+      "Measure.map is measurable pushforward; Measure.bind integrates the displayed measure-valued family. Measure.pi and Measure.prod are actual finite independent and binary products. IsProbabilityMeasure means total mass one, and the almost-everywhere quantifier is with respect to its displayed measure. Natural division and remainder and real scalar arithmetic have their ordinary Lean meanings.",
+      "volume denotes canonical Euclidean Lebesgue measure; on ordinary finite function spaces and products it is the product of the component volumes. MeasurePreserving f mu nu means f is measurable and its pushforward sends mu exactly to nu.",
+      "Real Bochner integration is totalized (zero on nonintegrable input). Integrable denotes genuine L1 with respect to the displayed measure. Measurable is Borel measurability on these carriers. volume.withDensity (ofReal q) is the nonnegative density measure. ENNReal.ofReal truncates negative real inputs to zero; pointwise q nonnegativity is separately asserted. Real square root, exponential, norm and real powers have their usual Lean meanings.",
+      "Measure.real mu S means ENNReal.toReal (mu S), where finite values have their ordinary real values and infinity converts to zero. sSup of a set of real values is its least upper bound when the set is nonempty and bounded above; on an empty or unbounded set its total definition does not assert a probability-distance meaning. MeasurableSet denotes the given Borel event structure. These conventions alone do not assert finiteness, normalization, nonemptiness or boundedness."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "8bd0247cc231c16d77468c9ec2d88019ba20632c550406ecb81ba896fbb65784"
+}

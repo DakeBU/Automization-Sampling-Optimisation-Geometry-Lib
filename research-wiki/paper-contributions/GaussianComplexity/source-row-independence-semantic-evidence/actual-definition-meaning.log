@@ -1,0 +1,100 @@
+def ProbabilityTheory.iIndepFun.{u_1, u_2, u_6} : {Ω : Type u_1} →
+  {ι : Type u_2} →
+    {_mΩ : MeasurableSpace.{u_1} Ω} →
+      {β : ι → Type u_6} →
+        [m : (x : ι) → MeasurableSpace.{u_6} (β x)] →
+          ((x : ι) → Ω → β x) → autoParam.{u_1 + 1} (Measure.{u_1} Ω) iIndepFun._auto_1 → Prop :=
+fun {Ω} {ι} {_mΩ} {β} [(x : ι) → MeasurableSpace.{u_6} (β x)] f μ =>
+  Kernel.iIndepFun.{0, u_1, u_2, u_6} f (Kernel.const.{0, u_1} Unit μ) (Measure.dirac.{0} ())
+def ProbabilityTheory.iIndep.{u_1, u_2} : {Ω : Type u_1} →
+  {ι : Type u_2} →
+    (ι → MeasurableSpace.{u_1} Ω) →
+      {_mΩ : MeasurableSpace.{u_1} Ω} → autoParam.{u_1 + 1} (Measure.{u_1} Ω) iIndep._auto_1 → Prop :=
+fun {Ω} {ι} m {_mΩ} μ => Kernel.iIndep.{0, u_1, u_2} m (Kernel.const.{0, u_1} Unit μ) (Measure.dirac.{0} ())
+def ProbabilityTheory.iIndepSets.{u_1, u_2} : {Ω : Type u_1} →
+  {ι : Type u_2} →
+    {_mΩ : MeasurableSpace.{u_1} Ω} →
+      (ι → Set.{u_1} (Set.{u_1} Ω)) → autoParam.{u_1 + 1} (Measure.{u_1} Ω) iIndepSets._auto_1 → Prop :=
+fun {Ω} {ι} {_mΩ} π μ => Kernel.iIndepSets.{0, u_1, u_2} π (Kernel.const.{0, u_1} Unit μ) (Measure.dirac.{0} ())
+def ProbabilityTheory.Kernel.iIndepFun.{u_1, u_2, u_3, u_8} : {α : Type u_1} →
+  {Ω : Type u_2} →
+    {ι : Type u_3} →
+      {mα : MeasurableSpace.{u_1} α} →
+        {mΩ : MeasurableSpace.{u_2} Ω} →
+          {β : ι → Type u_8} →
+            [m : (x : ι) → MeasurableSpace.{u_8} (β x)] →
+              ((x : ι) → Ω → β x) →
+                Kernel.{u_1, u_2} α Ω → autoParam.{u_1 + 1} (Measure.{u_1} α) Kernel.iIndepFun._auto_1 → Prop :=
+fun {α} {Ω} {ι} {mα} {mΩ} {β} [m : (x : ι) → MeasurableSpace.{u_8} (β x)] f κ μ =>
+  Kernel.iIndep.{u_1, u_2, u_3} (fun x => MeasurableSpace.comap.{u_2, u_8} (f x) (m x)) κ μ
+def ProbabilityTheory.Kernel.iIndep.{u_1, u_2, u_3} : {α : Type u_1} →
+  {Ω : Type u_2} →
+    {ι : Type u_3} →
+      {_mα : MeasurableSpace.{u_1} α} →
+        (ι → MeasurableSpace.{u_2} Ω) →
+          {_mΩ : MeasurableSpace.{u_2} Ω} →
+            Kernel.{u_1, u_2} α Ω → autoParam.{u_1 + 1} (Measure.{u_1} α) Kernel.iIndep._auto_1 → Prop :=
+fun {α} {Ω} {ι} {_mα} m {_mΩ} κ μ =>
+  Kernel.iIndepSets.{u_1, u_2, u_3} (fun x => Set.ofPred.{u_2} fun s => MeasurableSet.{u_2} s) κ μ
+def ProbabilityTheory.Kernel.iIndepSets.{u_1, u_2, u_3} : {α : Type u_1} →
+  {Ω : Type u_2} →
+    {ι : Type u_3} →
+      {_mα : MeasurableSpace.{u_1} α} →
+        {_mΩ : MeasurableSpace.{u_2} Ω} →
+          (ι → Set.{u_2} (Set.{u_2} Ω)) →
+            Kernel.{u_1, u_2} α Ω → autoParam.{u_1 + 1} (Measure.{u_1} α) Kernel.iIndepSets._auto_1 → Prop :=
+fun {α} {Ω} {ι} {_mα} {_mΩ} π κ μ =>
+  ∀ (s : Finset.{u_3} ι) {f : ι → Set.{u_2} Ω},
+    (∀ (i : ι), Membership.mem.{u_3, u_3} s i → Membership.mem.{u_2, u_2} (π i) (f i)) →
+      ∀ᵐ (a : α) ∂μ, Eq.{1} ((κ a) (⋂ i, ⋂ (_ : Membership.mem.{u_3, u_3} s i), f i)) (∏ i ∈ s, (κ a) (f i))
+def ProbabilityTheory.Kernel.const.{u_4, u_5} : (α : Type u_4) →
+  {β : Type u_5} →
+    [inst : MeasurableSpace.{u_4} α] → {x : MeasurableSpace.{u_5} β} → Measure.{u_5} β → Kernel.{u_4, u_5} α β :=
+fun α {β} [MeasurableSpace.{u_4} α] {x} μβ => Kernel.mk.{u_4, u_5} (fun x => μβ) ⋯
+def MeasureTheory.Measure.dirac.{u_1} : {α : Type u_1} → [inst : MeasurableSpace.{u_1} α] → α → Measure.{u_1} α :=
+fun {α} [MeasurableSpace.{u_1} α] a => OuterMeasure.toMeasure.{u_1} (OuterMeasure.dirac.{u_1} a) ⋯
+@[instance_reducible] protected def MeasurableSpace.comap.{u_1, u_2} : {α : Type u_1} →
+  {β : Type u_2} → (α → β) → MeasurableSpace.{u_2} β → MeasurableSpace.{u_1} α :=
+fun {α} {β} f m =>
+  MeasurableSpace.mk.{u_1} (fun s => ∃ s', MeasurableSet.{u_2} s' ∧ Eq.{u_1 + 1} (Set.preimage.{u_1, u_2} f s') s) ⋯ ⋯ ⋯
+@[instance_reducible] def MeasurableSpace.pi.{u_4, u_6} : {δ : Type u_4} →
+  {X : δ → Type u_6} → [m : (a : δ) → MeasurableSpace.{u_6} (X a)] → MeasurableSpace.{max u_4 u_6} ((a : δ) → X a) :=
+fun {δ} {X} [m : (a : δ) → MeasurableSpace.{u_6} (X a)] =>
+  ⨆ a, MeasurableSpace.comap.{max u_4 u_6, u_6} (fun b => b a) (m a)
+def Matrix.{u, u', v} : Type u → Type u' → Type v → Type (max u u' v) :=
+fun m n α => m → n → α
+def Matrix.vecMulVec.{v, u_2, u_3} : {m : Type u_2} →
+  {n : Type u_3} → {α : Type v} → [Mul.{v} α] → (m → α) → (n → α) → Matrix.{u_2, u_3, v} m n α :=
+fun {m} {n} {α} [Mul.{v} α] w v => Matrix.of.{v, u_2, u_3} fun x y => HMul.hMul.{v, v, v} (w x) (v y)
+def Matrix.kronecker.{u_3, u_9, u_10, u_11, u_12} : {α : Type u_3} →
+  {l : Type u_9} →
+    {m : Type u_10} →
+      {n : Type u_11} →
+        {p : Type u_12} →
+          [Mul.{u_3} α] →
+            Matrix.{u_9, u_10, u_3} l m α →
+              Matrix.{u_11, u_12, u_3} n p α →
+                Matrix.{max u_11 u_9, max u_12 u_10, u_3} (Prod.{u_9, u_11} l n) (Prod.{u_10, u_12} m p) α :=
+fun {α} {l} {m} {n} {p} [Mul.{u_3} α] =>
+  Matrix.kroneckerMap.{u_3, u_3, u_3, u_9, u_10, u_11, u_12} fun x1 x2 => HMul.hMul.{u_3, u_3, u_3} x1 x2
+@[reducible] def EuclideanSpace.{u_7, u_8} : Type u_7 → Type u_8 → Type (max u_7 u_8) :=
+fun 𝕜 n => PiLp.{u_8, u_7} 2 fun x => 𝕜
+constructor WithLp.toLp.{u_1} : (p : ENNReal) → {V : Type u_1} → V → WithLp.{u_1} p V
+def ProbabilityTheory.stdGaussian.{u_2} : (E : Type u_2) →
+  [inst : NormedAddCommGroup.{u_2} E] →
+    [inst_1 : InnerProductSpace.{0, u_2} ℝ E] →
+      [FiniteDimensional.{0, u_2} ℝ E] → [inst : MeasurableSpace.{u_2} E] → Measure.{u_2} E :=
+fun E [NormedAddCommGroup.{u_2} E] [InnerProductSpace.{0, u_2} ℝ E] [FiniteDimensional.{0, u_2} ℝ E]
+    [MeasurableSpace.{u_2} E] =>
+  Measure.map.{0, u_2} (fun x => ∑ i, HSMul.hSMul.{0, u_2, u_2} (x i) ((stdOrthonormalBasis.{0, u_2} ℝ E) i))
+    (Measure.pi.{0, 0} fun x => gaussianReal 0 1)
+@[irreducible] protected def MeasureTheory.Measure.pi.{u_4, u_5} : {ι : Type u_4} →
+  {α : ι → Type u_5} →
+    [Fintype.{u_4} ι] →
+      [inst : (i : ι) → MeasurableSpace.{u_5} (α i)] →
+        ((i : ι) → Measure.{u_5} (α i)) → Measure.{max u_4 u_5} ((i : ι) → α i) :=
+Measure.wrapped✝.{u_5, u_4}.1
+WithLp.measurableSpace.{0} 2 ((i : Fin d) → (fun x => ℝ) i)
+MeasurableSpace.pi.{0, 0}
+Measure.pi.instIsProbabilityMeasure.{0, 0} fun x => stdGaussian.{0} (EuclideanSpace.{0, 0} ℝ (Fin d))
+sigmaFinite_of_locallyFinite.{0}

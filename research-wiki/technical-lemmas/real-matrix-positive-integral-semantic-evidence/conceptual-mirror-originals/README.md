@@ -1,0 +1,1 @@
+Independent per-SAU conceptual audit from the sole bounded packet. Read per-sau-results.json, both SAU audit files, existing-identities-preservation.json and inputs-and-exposure.json. Existing metadata/status records are preserved in exact raw input snapshots. No discovery/advance or other shared state is changed. No source/type/graph originals are altered.

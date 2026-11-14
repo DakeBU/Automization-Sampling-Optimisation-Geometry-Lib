@@ -1,0 +1,274 @@
+{
+  "id": "ASTIS-RT-20261111-HuanjianGaussianTruncatedRowMoment",
+  "state": "source-reviewed",
+  "source": {
+    "source_id": "arxiv2610.20492v1-c2-truncated-row-second-moment",
+    "url": "https://arxiv.org/html/2610.20492v1#A3.Ex108",
+    "anchor": "Appendix C.2 Ex108 and p12.m5; Ex107 definition; p1/p10, S4.E11 and C.2p5 index conventions",
+    "original_text": "For a standard Gaussian row in dimension \\(r=q+1\\), put \\(R=\\|Z\\|^2\\) and \\(L=2r+3\\log(1000d)\\). Its unnormalized retained second moment is \\(\\mathbb E[ZZ^\\top\\mathbf1_{\\{R\\le L\\}}]=aI_r\\), where \\(a=\\mathbb E[R\\mathbf1_{\\{R\\le L\\}}]/r\\), in the standing range \\(2q+1<d\\).",
+    "text_sha256": "ba2177d8c3a12d475bda546948583ce587d738a3cb9b3f185bbd06c99209b7ea",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumTruncatedRowMoment.lean",
+    "statement": "∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let μ : Measure E := stdGaussian E\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ := (∫ x, Set.indicator {y : E | R y ≤ L} R x ∂μ) / r\n  let G : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)\n  let kept : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    Set.indicator {y : E | R y ≤ L} G\n  Integrable kept μ ∧\n    (∫ x, kept x ∂μ) = a • (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ)\n",
+    "statement_sha256": "a3b9e565bb5a35a97844e557617e6a4b9dbb4a33a139de6a3df786a12b610bf6",
+    "formalizer": "huanjian_gc_20261111_truncated_row_moment",
+    "compiled": true,
+    "decoder_context": [
+      "EuclideanSpace real Fin n is ordinary real Euclidean n-space with its Euclidean norm and Borel measurable structure. stdGaussian is the canonical centered law with variance-one independent orthonormal coordinates.",
+      "WithLp.ofLp exposes the coordinate vector. Matrix m n real is a finite real array. Matrix.vecMulVec w v has entry w_i v_j, so its repeated-vector case is the rank-one matrix of coordinate products.",
+      "Matrix.one is the identity matrix. Scalar multiplication multiplies every matrix entry. The chosen norm is the Euclidean L2 operator norm on finite matrices, with the usual finite-dimensional topology.",
+      "Set.indicator retains the indicated function on its set and is zero elsewhere. Integrable means a.e. strong measurability and finite norm integral in the indicated measure. All integrals are real or matrix Bochner integrals.",
+      "The real dimension r is the cast of the positive natural dimension q+1. Real.log is the natural logarithm on positive arguments. The displayed integral defining the real scalar uses the original Gaussian measure."
+    ]
+  },
+  "reconstruction": {
+    "text": "# Independent reconstruction from the supplied Lean statement\n\nFor every pair of natural numbers \\(d,q\\in\\mathbb N\\) such that\n\\[\n2q+1<d,\n\\]\nput \\(n=q+1\\) and let \\(r=n\\), regarded as a real number. Thus \\(n\\geq1\\), so division by \\(r\\) is well defined. Let\n\\[\nE=\\mathbb R^{n},\\qquad \\mu=N(0,I_n)\n\\]\nbe Euclidean space with its Euclidean norm and Borel measurable structure, equipped with the centered standard Gaussian probability measure whose orthonormal coordinates are independent with variance one. Define\n\\[\nR(x)=\\|x\\|_2^2=\\sum_{i=0}^{q}x_i^2,\n\\qquad\nL=2r+3\\log(1000d),\n\\qquad\nA=\\{x\\in E:R(x)\\leq L\\},\n\\]\nwhere \\(d\\) is cast to a real number inside the logarithm and \\(\\log\\) is the natural logarithm. The stated hypothesis implies \\(d\\geq2q+2>0\\), so its logarithm argument is positive. Define the real scalar\n\\[\na=\\frac1r\\int_E \\mathbf1_A(x)R(x)\\,d\\mu(x).\n\\]\nFor each \\(x\\in E\\), form the \\(n\\times n\\) real matrices\n\\[\nG(x)=xx^{\\mathsf T},\\qquad\nK(x)=\\mathbf1_A(x)G(x).\n\\]\nTheir row and column indices are \\(i,j\\in\\{0,\\ldots,q\\}\\), and explicitly\n\\[\nG(x)_{ij}=x_i x_j,\\qquad\nK(x)_{ij}=\n\\begin{cases}\nx_i x_j,&\\|x\\|_2^2\\leq L,\\\\\n0,&\\|x\\|_2^2>L.\n\\end{cases}\n\\]\n\nThe theorem asserts both of the following:\n\n1. The matrix-valued function \\(K\\) is integrable with respect to \\(\\mu\\): it is almost everywhere strongly measurable and\n   \\[\n   \\int_E\\|K(x)\\|_{\\mathrm{op}}\\,d\\mu(x)<\\infty,\n   \\]\n   where \\(\\|\\cdot\\|_{\\mathrm{op}}\\) is the Euclidean \\(L^2\\) operator norm on these finite matrices.\n2. Its matrix Bochner integral is the scalar multiple of the identity\n   \\[\n   \\boxed{\\displaystyle\n   \\int_E \\mathbf1_{\\{\\|x\\|_2^2\\leq L\\}}(x)\\,xx^{\\mathsf T}\\,d\\mu(x)\n   =\\left(\\frac1{q+1}\\int_E\n      \\mathbf1_{\\{\\|x\\|_2^2\\leq L\\}}(x)\\,\\|x\\|_2^2\\,d\\mu(x)\\right)I_{q+1}.}\n   \\]\n   Equivalently, for every \\(i,j\\in\\{0,\\ldots,q\\}\\),\n   \\[\n   \\int_E\\mathbf1_A(x)x_i x_j\\,d\\mu(x)\n   =\\begin{cases}a,&i=j,\\\\0,&i\\ne j.\\end{cases}\n   \\]\n\nEvery integral is taken with respect to the original Gaussian measure over all of \\(E\\). The indicator sets the integrand to zero outside \\(A\\); it includes points with \\(R(x)=L\\). The scalar normalization is division by the real dimension \\(r=q+1\\), and there is no division by \\(\\mu(A)\\). The real scalar integral is a real Bochner integral, and the matrix integral is a Bochner integral in the finite-dimensional real matrix space. The identity matrix has diagonal entries one and off-diagonal entries zero; scalar multiplication multiplies all entries.\n\nThe only quantified parameters are \\(d\\) and \\(q\\), and the only additional assumption is \\(2q+1<d\\). All displayed objects \\(E,\\mu,r,R,L,a,G,K,A,n\\) are determined by those parameters and the definitions above. In particular, \\(d\\) enters through the numerical hypothesis and the cutoff \\(L\\); the coordinate dimension is \\(q+1\\). The assertions of integrability and the integral identity hold for every such pair of parameters, with no further assumptions.\n",
+    "text_sha256": "1e3f6eac0e0a6aae6d2076b76efe255304e4e039d1e5a4a9ae77693e23a509b6",
+    "decoder": "/root/neutral_decoder_9d31",
+    "decoder_run_sha256": "2d7ce8d60dd3cac3110f297c24d6be3f94cbe126d78656ab3457f101d6291237",
+    "decoder_packet_sha256": "10e4dd12d8114270012c84dbe529c2c3035810cbf1add08bb69ebc784fcec0b6",
+    "source_text_visible": false,
+    "lean_statement_sha256": "a3b9e565bb5a35a97844e557617e6a4b9dbb4a33a139de6a3df786a12b610bf6",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/truncated-row-second-moment-semantic-evidence/decoder-original-run.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "The source row gamma_i is a standard real Gaussian vector in r=q+1 coordinates. Its unnormalized retained outer product has coefficient a=E[R_i 1_{R_i<=L}]/r. The application is the single matrix Y_i=(1/d)(gamma_i gamma_i^T tensor t_i t_i^T)1_{R_i<=L}.",
+      "reconstructed": "The decoder recovers E=R^(q+1), canonical standard Gaussian mu, R(x)=||x||^2, G(x)=xx^T, K=1_{R<=L}G and the same a. The candidate private module uses the same Gaussian factor and literal source feature factor in Y.",
+      "relation": "equivalent",
+      "evidence": "Raw Ex108 and Ex107/p12.m5 match producer lines22-33 and private-module lines21-38. WithLp.ofLp exposes coordinates; vecMulVec is the real outer product; Matrix.one is the identity. The decoder local name n=q+1 is a harmless local dimension alias, not the source high-frequency n=2q+1."
+    },
+    "domains": {
+      "original": "Nonnegative integer query count q, integer d with 2q+1<d, r=q+1>=1; source rows 1,...,d and Gaussian labels1,...,r; feature frequencies0,...,q; real r-by-r row matrices and real r^2-by-r^2 tensor matrices.",
+      "reconstructed": "Natural d,q; EuclideanSpace real Fin(q+1), with finite matrix indices; i:Fin d in the private application. The decoder correctly states q+1>=1 and d>=2q+2.",
+      "relation": "explicit-elaboration",
+      "evidence": "Source S4.Thmtheorem4 q>=0,2q+1<d and preceding explicit integer q context; source p1 r=q+1 and Ex85. The source row index is i.val+1 while feature frequencies are k.val. The exact theta=(i.val+1/2)*pi/d equals source ((i_source-1/2)*pi)/d. Newly checked bounded p5.m2 explicitly lists0,...,q. q=0/r=1 remains admitted."
+    },
+    "quantifiers": {
+      "original": "For fixed source-valid d,q and common standard Gaussian row marginal, the same defined a works for every source row; the individual Y_i mean uses the fixed deterministic feature of that row.",
+      "reconstructed": "For every natural d,q satisfying hq, the producer proves the canonical one-row identity; for every i:Fin d, the private consumer proves the corresponding deterministic tensor mean under that same canonical marginal.",
+      "relation": "equivalent",
+      "evidence": "Producer21-33 and private20-38 are unchanged from Phase2. Common a has no i argument. The marginal identities have the same law-level quantification. No claim is made that these modules construct the original joint Gaussian family or formally transport its row maps to mu; that bridge remains outside the accepted scope."
+    },
+    "assumptions": {
+      "original": "The source standing range and standard Gaussian row law; fixed finite deterministic cosine feature for the application. Measurability, moment integrability and radial invariance are background consequences, not new caller premises.",
+      "reconstructed": "The only proposition binder is hq:2*q+1<d. All Gaussian objects are literal lets under canonical mu. Integrability is a conclusion, not a premise. The exact source theta/t vector is defined in the private application.",
+      "relation": "explicit-elaboration",
+      "evidence": "No covariance identity, retained expectation, moment, invariance, norm bound or good-event hypothesis is supplied by a caller. Producer50-58 invokes an existing Gaussian radius-integrability theorem;93-145 derives canonical symmetry consequences. Private63-81 materially consumes producer integrability and equality. Cross-row independence is ambient source context and unnecessary for these two marginal means."
+    },
+    "conclusion": {
+      "original": "Exact equality E[gamma_i gamma_i^T 1_{R_i<=L}]=aI_r and exact individual mean E[Y_i]=(a/d)(I_r tensor t_i t_i^T). These expectations are finite in the ordinary source sense.",
+      "reconstructed": "The decoder gives the same exact unnormalized retained matrix equality and explicitly states matrix integrability. The private application gives integrability of Y and the literal a/d ordered tensor equality.",
+      "relation": "explicit-elaboration",
+      "evidence": "Producer proves matrix integrability82-84, coefficient by retained trace148-172, and matrix equality173-180. Private76/80 uses moment.1;81 uses moment.2;82-85 obtains exact a/d scaling. Additional integrability is explicit source-implicit regularity in the conclusion, not a changed hypothesis. Range a in[0,1] and Ex109 are not claimed here."
+    },
+    "scopes": {
+      "original": "Original Gaussian measure, unnormalized multiplication by closed-event indicator R<=L, finite real matrix expectation; source t zeroth coordinate1 and positive cosine coordinates sqrt(2)cos(k theta).",
+      "reconstructed": "The decoder correctly recovers the original measure, inclusive boundary, no division by retention probability, and finite-dimensional Bochner integrals with the Euclidean L2 matrix operator norm. The candidate lesson and complete private fold preserve the literal midpoint feature and gamma-first Kronecker order.",
+      "relation": "explicit-elaboration",
+      "evidence": "Canonical definition packet and exact norm scope reviewed in Phase2; producer57 establishes scalar retained integrability and82 matrix integrability, preventing totalized-integral zero fallback. Private56,65-71 preserves the indicator under the continuous linear image. Canonical row-law source correspondence is accepted; joint input-law transport, aggregate frame and concentration claims are excluded."
+    },
+    "constant_dependencies": {
+      "original": "r=q+1, L=2r+3log(1000d), a=E[R1_{R<=L}]/r, matrix scaling1/d; a is common across rows because marginal law and cutoff are common. The deterministic row has frequency-zero coordinate1 and sqrt(2) on positive frequencies.",
+      "reconstructed": "Exactly these r,L,a and scalar factors appear in producer and private consumer. The decoder correctly separates ambient d from row dimension q+1 and states no unspecified constants or retention-probability normalization.",
+      "relation": "same",
+      "evidence": "Exact lets22-31 and private23-37, trace r>0 at producer160-172, final scalar algebra private82-85. All5 adjacent code folds are exact copies of already reviewed blocks; no extra constant or coefficient is introduced by candidate prose."
+    }
+  },
+  "deltas": [
+    {
+      "id": "explicit-matrix-integrability",
+      "slot": "conclusion",
+      "classification": "source-implicit",
+      "blocking": false,
+      "source": "The paper uses ordinary finite expectations without a separate integrability assertion.",
+      "lean": "Both matrix integrabilities are explicit proved conclusions; retained scalar integrability is internally established.",
+      "resolution": "Faithful analytic elaboration; no additional source assumption or repair.",
+      "severity": "informational",
+      "description": "The Lean producer and private consumer make the source-implicit finite matrix expectations explicit as proved integrability conclusions; no caller integrability premise is added.",
+      "evidence": "Frozen Phase3 full-module review: producer lines50-58 proves radial and retained-scalar integrability;59-84 proves actual matrix integrability; private lines76 and80 use moment.1. These match the Phase1 finite-expectation source reading and the exact five folds rechecked in Phase4."
+    },
+    {
+      "id": "canonical-marginal-representation",
+      "slot": "scopes",
+      "classification": "source-implicit",
+      "blocking": false,
+      "source": "The source writes gamma_i inside an original joint Gaussian family.",
+      "lean": "The scoped declarations integrate a generic standard row on canonical EuclideanSpace with stdGaussian; the private source row index only determines t_i.",
+      "resolution": "Equivalent law-level marginal formulas. Original-family pushforward/integral transport and one-based row/Gaussian-label adapters remain explicit integration obligations outside these statements, not missing source-facing premises.",
+      "severity": "informational",
+      "description": "The accepted formulas use the canonical standard Gaussian marginal. Transport from the original source Gaussian row family remains an explicit integration boundary outside these declarations, with no additional source premise.",
+      "evidence": "Frozen Phase2/Phase3 reviews: producer22-33 fixes stdGaussian E; private21-38 uses that same marginal and literal indexed t_i. Phase4 independently verified source-map scope, paper Ex108/Ex107/p12.m5, and source rows/Gaussian labels via Fin successors with zero-based feature frequencies."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "reviewer": "/root/radial_cov_fresh_source_42df",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "evidence": "research-wiki/paper-contributions/GaussianComplexity/truncated-row-second-moment-semantic-evidence/independent-source-review-original.json",
+    "review_run_sha256": "86207f4e0ddacfd449765baa82e5b2e5364eb9cf42a81b4705d707dd4ce3c74f",
+    "reviewer_packet_sha256": "c7580b10335851b283623638ef1b70e025547a4ee134c481acd75c5deae81b8b",
+    "publication_binding_sha256": "cc869c78be53c6197a600c399d0c9822665e9125b4c3db9a7437283903d94382",
+    "state": "accepted"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "cc869c78be53c6197a600c399d0c9822665e9125b4c3db9a7437283903d94382",
+  "publication_context": {
+    "file": "1a97dd98ecc4e3965db20a91c1d22ca8520406ea22cbbfbd631579522d071310",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment\nimport Mathlib.Analysis.CStarAlgebra.Matrix\nimport Mathlib.MeasureTheory.SpecificCodomains.Pi\nimport Mathlib.LinearAlgebra.Matrix.Kronecker\n\n/-!\n# The unnormalized truncated second moment of a Gaussian row\n\nAppendix C.2 uses the canonical standard row law and the closed retained ball.\nThe coefficient is the retained radial moment divided by the dimension.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped Matrix.Norms.L2Operator\nset_option autoImplicit false\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment\n\ntheorem actual_truncated_row_second_moment\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let μ : Measure E := stdGaussian E\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ := (∫ x, Set.indicator {y : E | R y ≤ L} R x ∂μ) / r\n  let G : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)\n  let kept : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    Set.indicator {y : E | R y ≤ L} G\n  Integrable kept μ ∧\n    (∫ x, kept x ∂μ) = a • (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ) := by\n  classical\n  dsimp only\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let μ : Measure E := stdGaussian E\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ := (∫ x, Set.indicator {y : E | R y ≤ L} R x ∂μ) / r\n  let G : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)\n  let good : Set E := {x | R x ≤ L}\n  let kept : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ := good.indicator G\n  let entry (i j : Fin (q + 1)) (x : E) : ℝ := kept x i j\n  have good_measurable : MeasurableSet good := by\n    dsimp [good, R]\n    exact measurableSet_le (by fun_prop) measurable_const\n  have radius_integrable : Integrable R μ :=\n    (AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian\n      (E := E)).1\n  have entry_formula (i j : Fin (q + 1)) :\n      entry i j = good.indicator (fun x : E => x i * x j) := by\n    funext x\n    by_cases hx : x ∈ good <;> simp [entry, kept, G, Matrix.vecMulVec, hx]\n  have retained_radius_integrable : Integrable (good.indicator R) μ :=\n    radius_integrable.indicator good_measurable\n  have entry_integrable (i j : Fin (q + 1)) : Integrable (entry i j) μ := by\n    rw [entry_formula]\n    have continuous_product : Continuous (fun x : E => x i * x j) :=\n      (PiLp.continuous_apply 2 (fun _ : Fin (q + 1) => ℝ) i).mul\n        (PiLp.continuous_apply 2 (fun _ : Fin (q + 1) => ℝ) j)\n    apply retained_radius_integrable.mono'\n      (continuous_product.aestronglyMeasurable.indicator good_measurable)\n    filter_upwards with x\n    by_cases hx : x ∈ good\n    · simp only [Set.indicator_of_mem hx]\n      calc\n        ‖x i * x j‖ = ‖x i‖ * ‖x j‖ := norm_mul _ _\n        _ ≤ ‖x‖ * ‖x‖ :=\n          mul_le_mul (PiLp.norm_apply_le x i) (PiLp.norm_apply_le x j)\n            (norm_nonneg _) (norm_nonneg _)\n        _ = R x := by simp [R, pow_two]\n    · simp [Set.indicator_of_notMem hx]\n  let rows : E → Fin (q + 1) → Fin (q + 1) → ℝ := fun x i j => entry i j x\n  have rows_integrable : Integrable rows μ :=\n    Integrable.of_eval (fun i => Integrable.of_eval (fun j => entry_integrable i j))\n  let ofRows : (Fin (q + 1) → Fin (q + 1) → ℝ) ≃L[ℝ]\n      Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    (Matrix.ofLinearEquiv ℝ).toContinuousLinearEquiv\n  have kept_integrable : Integrable kept μ := by\n    change Integrable (fun x => ofRows (rows x)) μ\n    exact ofRows.toContinuousLinearMap.integrable_comp rows_integrable\n  have integral_entry (i j : Fin (q + 1)) :\n      (∫ x, kept x ∂μ) i j = ∫ x, entry i j x ∂μ := by\n    have transport := ofRows.integral_comp_comm rows (μ := μ)\n    change (∫ x, kept x ∂μ) = ofRows (∫ x, rows x ∂μ) at transport\n    rw [transport]\n    change ((∫ x, rows x ∂μ) i) j = _\n    rw [MeasureTheory.eval_integral (fun i => rows_integrable.eval i) i]\n    exact MeasureTheory.eval_integral (fun j => entry_integrable i j) j\n  have invariant_integral (e : E ≃ₗᵢ[ℝ] E) (i j : Fin (q + 1)) :\n      (∫ x, entry i j (e x) ∂μ) = ∫ x, entry i j x ∂μ := by\n    have law : Measure.map e μ = μ := stdGaussian_map e\n    have hmeas : AEStronglyMeasurable (entry i j) (Measure.map e μ) := by\n      rw [law]\n      exact (entry_integrable i j).aestronglyMeasurable\n    have transport := integral_map e.continuous.measurable.aemeasurable hmeas\n    rw [law] at transport\n    exact transport.symm\n\n  -- A sign change cancels every off-diagonal entry.\n  have off_diagonal (i j : Fin (q + 1)) (hij : i ≠ j) :\n      (∫ x, entry i j x ∂μ) = 0 := by\n    let flip : E ≃ₗᵢ[ℝ] E :=\n      LinearIsometryEquiv.piLpCongrRight 2 fun k : Fin (q + 1) =>\n        if k = i then LinearIsometryEquiv.neg ℝ else LinearIsometryEquiv.refl ℝ ℝ\n    have flip_apply (x : E) (k : Fin (q + 1)) :\n        flip x k = if k = i then -x k else x k := by\n      change (if k = i then (LinearIsometryEquiv.neg ℝ : ℝ ≃ₗᵢ[ℝ] ℝ)\n        else LinearIsometryEquiv.refl ℝ ℝ) (x k) = _\n      split_ifs <;> rfl\n    have flip_entry (x : E) : entry i j (flip x) = -entry i j x := by\n      simp only [entry_formula]\n      have radius_eq : R (flip x) = R x := congrArg (fun t : ℝ => t ^ 2) (flip.norm_map x)\n      by_cases hx : x ∈ good\n      · have hfx : flip x ∈ good := by simpa [good, radius_eq] using hx\n        simp [Set.indicator_of_mem hx, Set.indicator_of_mem hfx, flip_apply, hij.symm]\n      · have hfx : flip x ∉ good := by simpa [good, radius_eq] using hx\n        simp [Set.indicator_of_notMem hx, Set.indicator_of_notMem hfx]\n    have h := invariant_integral flip i j\n    simp_rw [flip_entry] at h\n    rw [integral_neg] at h\n    linarith\n\n  -- Swapping two coordinates makes all diagonal expectations equal.\n  have diagonal_equal (i j : Fin (q + 1)) :\n      (∫ x, entry i i x ∂μ) = ∫ x, entry j j x ∂μ := by\n    let swap : E ≃ₗᵢ[ℝ] E :=\n      LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (Equiv.swap i j)\n    have swap_apply (x : E) : swap x i = x j := by\n      change x ((Equiv.swap i j).symm i) = x j\n      simp\n    have swap_entry (x : E) : entry i i (swap x) = entry j j x := by\n      simp only [entry_formula]\n      have radius_eq : R (swap x) = R x := congrArg (fun t : ℝ => t ^ 2) (swap.norm_map x)\n      by_cases hx : x ∈ good\n      · have hsx : swap x ∈ good := by simpa [good, radius_eq] using hx\n        simp [Set.indicator_of_mem hx, Set.indicator_of_mem hsx, swap_apply]\n      · have hsx : swap x ∉ good := by simpa [good, radius_eq] using hx\n        simp [Set.indicator_of_notMem hx, Set.indicator_of_notMem hsx]\n    have h := invariant_integral swap i i\n    simp_rw [swap_entry] at h\n    exact h.symm\n\n  -- The trace is the retained squared radius, so its coefficient is a.\n  have trace_pointwise (x : E) :\n      (∑ i : Fin (q + 1), entry i i x) = good.indicator R x := by\n    simp_rw [entry_formula]\n    by_cases hx : x ∈ good\n    · simp only [Set.indicator_of_mem hx]\n      simpa [R, pow_two] using (EuclideanSpace.real_norm_sq_eq x).symm\n    · simp [Set.indicator_of_notMem hx]\n  have trace_integral :\n      (∑ i : Fin (q + 1), ∫ x, entry i i x ∂μ) = ∫ x, good.indicator R x ∂μ := by\n    rw [← integral_finsetSum _ (fun i _ => entry_integrable i i)]\n    apply integral_congr_ae\n    exact Filter.Eventually.of_forall trace_pointwise\n  have r_positive : 0 < r := by\n    dsimp [r]\n    exact_mod_cast Nat.succ_pos q\n  have diagonal_value (i : Fin (q + 1)) : (∫ x, entry i i x ∂μ) = a := by\n    have trace_eq := trace_integral\n    have sum_equal :\n        (∑ j : Fin (q + 1), ∫ x, entry j j x ∂μ) = r * (∫ x, entry i i x ∂μ) := by\n      simp_rw [diagonal_equal _ i]\n      simp [r]\n    rw [sum_equal] at trace_eq\n    change (∫ x, entry i i x ∂μ) = (∫ x, good.indicator R x ∂μ) / r\n    apply (eq_div_iff (ne_of_gt r_positive)).2\n    nlinarith [trace_eq]\n  refine ⟨kept_integrable, ?_⟩\n  change (∫ x, kept x ∂μ) = a • (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ)\n  ext i j\n  rw [integral_entry]\n  by_cases hij : i = j\n  · subst j\n    simpa using diagonal_value i\n  · simpa [hij] using off_diagonal i j\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A3.Ex108",
+      "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "Appendix C.2 Ex108 and p12.m5; Ex107 definition; p1/p10, S4.E11 and C.2p5 index conventions",
+      "wording_status": "faithful paraphrase",
+      "attribution": "On Complexity of Gaussian Sampling, arXiv:2610.20492v1.",
+      "scope": "Unnormalized retained row second moment and the immediate single-row matrix expectation."
+    },
+    "statement": "At the cutoff \\(L=2r+3\\log(1000d)\\), the retained standard-Gaussian second moment is \\(aI_r\\).",
+    "formulae": [
+      {
+        "label": "Retained second moment and coefficient",
+        "tex": "\\begin{aligned}\\mathbb E[ZZ^\\top\\mathbf1_{\\{R\\le L\\}}]&=aI_r,\\\\a&=\\frac{\\mathbb E[R\\mathbf1_{\\{R\\le L\\}}]}r.\\end{aligned}"
+      },
+      {
+        "label": "Actual single-row matrix mean",
+        "tex": "\\begin{aligned}Y_i&=\\frac1d(ZZ^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{R\\le L\\}},\\\\\\mathbb E Y_i&=\\frac ad(I_r\\otimes t_it_i^\\top).\\end{aligned}"
+      }
+    ],
+    "assumptions": [
+      "Let \\(d,q\\in\\mathbb N\\) satisfy \\(2q+1<d\\), and set \\(r=q+1\\). The case \\(q=0\\) has \\(r=1\\).",
+      "The row has the canonical law \\(Z\\sim N(0,I_r)\\), with \\(R=\\|Z\\|^2\\). Retain the closed event \\(R\\le L\\).",
+      "The expectation uses the original Gaussian measure. The coefficient \\(a\\) is the retained radial moment divided by \\(r\\). Both matrix integrability conclusions are proved using the Euclidean operator norm.",
+      "For the private application use \\(\\theta_j=(j-\\tfrac12)\\pi/d\\), \\(j=1,\\ldots,d\\), and \\(t_j=(1,\\sqrt2\\cos\\theta_j,\\ldots,\\sqrt2\\cos(q\\theta_j))\\). Lean uses \\(j=i.val+1\\) for \\(i\\in\\mathrm{Fin}(d)\\) and zero-based feature frequencies."
+    ],
+    "obligations": [
+      {
+        "id": "c2-truncated-row-second-moment",
+        "label": "The Ex108 matrix second moment with the actual p12.m5 consumer."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment",
+      "title": "The truncated second moment of a Gaussian row",
+      "reader_note": "Open the assumptions and source steps for the exact objects and Lean.",
+      "statement": "At the cutoff \\(L=2r+3\\log(1000d)\\), the retained standard-Gaussian second moment is \\(aI_r\\).",
+      "formula": "\\begin{aligned}\\mathbb E[ZZ^\\top\\mathbf1_{\\{R\\le L\\}}]&=aI_r,\\\\a&=\\frac{\\mathbb E[R\\mathbf1_{\\{R\\le L\\}}]}r.\\end{aligned}",
+      "assumptions": [
+        "Let \\(d,q\\in\\mathbb N\\) satisfy \\(2q+1<d\\), and set \\(r=q+1\\). The case \\(q=0\\) has \\(r=1\\).",
+        "The row has the canonical law \\(Z\\sim N(0,I_r)\\), with \\(R=\\|Z\\|^2\\). Retain the closed event \\(R\\le L\\).",
+        "The expectation uses the original Gaussian measure. The coefficient \\(a\\) is the retained radial moment divided by \\(r\\). Both matrix integrability conclusions are proved using the Euclidean operator norm.",
+        "For the private application use \\(\\theta_j=(j-\\tfrac12)\\pi/d\\), \\(j=1,\\ldots,d\\), and \\(t_j=(1,\\sqrt2\\cos\\theta_j,\\ldots,\\sqrt2\\cos(q\\theta_j))\\). Lean uses \\(j=i.val+1\\) for \\(i\\in\\mathrm{Fin}(d)\\) and zero-based feature frequencies."
+      ],
+      "steps": [
+        {
+          "title": "Establish the scalar and matrix integrals",
+          "text": "The canonical Gaussian squared-norm moment is integrable. Restrict it to the retained ball. Every retained coordinate product is dominated by that retained squared radius. Finite coordinate integrability and the continuous linear equivalence from arrays to matrices give the matrix integral and its entrywise evaluation.",
+          "formula": "|Z_kZ_\\ell|\\mathbf1_{\\{R\\le L\\}}\\le R\\mathbf1_{\\{R\\le L\\}},\\qquad R\\mathbf1_{\\{R\\le L\\}}\\in L^1.",
+          "lean": "  classical\n  dsimp only\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let μ : Measure E := stdGaussian E\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ := (∫ x, Set.indicator {y : E | R y ≤ L} R x ∂μ) / r\n  let G : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)\n  let good : Set E := {x | R x ≤ L}\n  let kept : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ := good.indicator G\n  let entry (i j : Fin (q + 1)) (x : E) : ℝ := kept x i j\n  have good_measurable : MeasurableSet good := by\n    dsimp [good, R]\n    exact measurableSet_le (by fun_prop) measurable_const\n  have radius_integrable : Integrable R μ :=\n    (AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian\n      (E := E)).1\n  have entry_formula (i j : Fin (q + 1)) :\n      entry i j = good.indicator (fun x : E => x i * x j) := by\n    funext x\n    by_cases hx : x ∈ good <;> simp [entry, kept, G, Matrix.vecMulVec, hx]\n  have retained_radius_integrable : Integrable (good.indicator R) μ :=\n    radius_integrable.indicator good_measurable\n  have entry_integrable (i j : Fin (q + 1)) : Integrable (entry i j) μ := by\n    rw [entry_formula]\n    have continuous_product : Continuous (fun x : E => x i * x j) :=\n      (PiLp.continuous_apply 2 (fun _ : Fin (q + 1) => ℝ) i).mul\n        (PiLp.continuous_apply 2 (fun _ : Fin (q + 1) => ℝ) j)\n    apply retained_radius_integrable.mono'\n      (continuous_product.aestronglyMeasurable.indicator good_measurable)\n    filter_upwards with x\n    by_cases hx : x ∈ good\n    · simp only [Set.indicator_of_mem hx]\n      calc\n        ‖x i * x j‖ = ‖x i‖ * ‖x j‖ := norm_mul _ _\n        _ ≤ ‖x‖ * ‖x‖ :=\n          mul_le_mul (PiLp.norm_apply_le x i) (PiLp.norm_apply_le x j)\n            (norm_nonneg _) (norm_nonneg _)\n        _ = R x := by simp [R, pow_two]\n    · simp [Set.indicator_of_notMem hx]\n  let rows : E → Fin (q + 1) → Fin (q + 1) → ℝ := fun x i j => entry i j x\n  have rows_integrable : Integrable rows μ :=\n    Integrable.of_eval (fun i => Integrable.of_eval (fun j => entry_integrable i j))\n  let ofRows : (Fin (q + 1) → Fin (q + 1) → ℝ) ≃L[ℝ]\n      Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    (Matrix.ofLinearEquiv ℝ).toContinuousLinearEquiv\n  have kept_integrable : Integrable kept μ := by\n    change Integrable (fun x => ofRows (rows x)) μ\n    exact ofRows.toContinuousLinearMap.integrable_comp rows_integrable\n  have integral_entry (i j : Fin (q + 1)) :\n      (∫ x, kept x ∂μ) i j = ∫ x, entry i j x ∂μ := by\n    have transport := ofRows.integral_comp_comm rows (μ := μ)\n    change (∫ x, kept x ∂μ) = ofRows (∫ x, rows x ∂μ) at transport\n    rw [transport]\n    change ((∫ x, rows x ∂μ) i) j = _\n    rw [MeasureTheory.eval_integral (fun i => rows_integrable.eval i) i]\n    exact MeasureTheory.eval_integral (fun j => entry_integrable i j) j\n"
+        },
+        {
+          "title": "Cancel the off-diagonal entries",
+          "text": "A linear isometry preserves the standard Gaussian law and the radial cutoff. Flip the sign of coordinate k while keeping a distinct coordinate fixed. The corresponding retained product changes sign, so its expectation is zero.",
+          "formula": "\\mathbb E[Z_kZ_\\ell\\mathbf1_{\\{R\\le L\\}}]=0\\qquad(k\\ne\\ell).",
+          "lean": "  have invariant_integral (e : E ≃ₗᵢ[ℝ] E) (i j : Fin (q + 1)) :\n      (∫ x, entry i j (e x) ∂μ) = ∫ x, entry i j x ∂μ := by\n    have law : Measure.map e μ = μ := stdGaussian_map e\n    have hmeas : AEStronglyMeasurable (entry i j) (Measure.map e μ) := by\n      rw [law]\n      exact (entry_integrable i j).aestronglyMeasurable\n    have transport := integral_map e.continuous.measurable.aemeasurable hmeas\n    rw [law] at transport\n    exact transport.symm\n\n  -- A sign change cancels every off-diagonal entry.\n  have off_diagonal (i j : Fin (q + 1)) (hij : i ≠ j) :\n      (∫ x, entry i j x ∂μ) = 0 := by\n    let flip : E ≃ₗᵢ[ℝ] E :=\n      LinearIsometryEquiv.piLpCongrRight 2 fun k : Fin (q + 1) =>\n        if k = i then LinearIsometryEquiv.neg ℝ else LinearIsometryEquiv.refl ℝ ℝ\n    have flip_apply (x : E) (k : Fin (q + 1)) :\n        flip x k = if k = i then -x k else x k := by\n      change (if k = i then (LinearIsometryEquiv.neg ℝ : ℝ ≃ₗᵢ[ℝ] ℝ)\n        else LinearIsometryEquiv.refl ℝ ℝ) (x k) = _\n      split_ifs <;> rfl\n    have flip_entry (x : E) : entry i j (flip x) = -entry i j x := by\n      simp only [entry_formula]\n      have radius_eq : R (flip x) = R x := congrArg (fun t : ℝ => t ^ 2) (flip.norm_map x)\n      by_cases hx : x ∈ good\n      · have hfx : flip x ∈ good := by simpa [good, radius_eq] using hx\n        simp [Set.indicator_of_mem hx, Set.indicator_of_mem hfx, flip_apply, hij.symm]\n      · have hfx : flip x ∉ good := by simpa [good, radius_eq] using hx\n        simp [Set.indicator_of_notMem hx, Set.indicator_of_notMem hfx]\n    have h := invariant_integral flip i j\n    simp_rw [flip_entry] at h\n    rw [integral_neg] at h\n    linarith\n"
+        },
+        {
+          "title": "Identify a common diagonal expectation",
+          "text": "The coordinate-swap isometry preserves the law and retained event. It interchanges the squared coordinates in the integral. The equality holds for every pair of indices and includes the single-coordinate case.",
+          "formula": "\\mathbb E[Z_k^2\\mathbf1_{\\{R\\le L\\}}]=\\mathbb E[Z_\\ell^2\\mathbf1_{\\{R\\le L\\}}].",
+          "lean": "  -- Swapping two coordinates makes all diagonal expectations equal.\n  have diagonal_equal (i j : Fin (q + 1)) :\n      (∫ x, entry i i x ∂μ) = ∫ x, entry j j x ∂μ := by\n    let swap : E ≃ₗᵢ[ℝ] E :=\n      LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (Equiv.swap i j)\n    have swap_apply (x : E) : swap x i = x j := by\n      change x ((Equiv.swap i j).symm i) = x j\n      simp\n    have swap_entry (x : E) : entry i i (swap x) = entry j j x := by\n      simp only [entry_formula]\n      have radius_eq : R (swap x) = R x := congrArg (fun t : ℝ => t ^ 2) (swap.norm_map x)\n      by_cases hx : x ∈ good\n      · have hsx : swap x ∈ good := by simpa [good, radius_eq] using hx\n        simp [Set.indicator_of_mem hx, Set.indicator_of_mem hsx, swap_apply]\n      · have hsx : swap x ∉ good := by simpa [good, radius_eq] using hx\n        simp [Set.indicator_of_notMem hx, Set.indicator_of_notMem hsx]\n    have h := invariant_integral swap i i\n    simp_rw [swap_entry] at h\n    exact h.symm\n"
+        },
+        {
+          "title": "Use the trace to determine the coefficient",
+          "text": "Write c for the common diagonal expectation. The sum of squared coordinates is R. Integrating this finite sum gives r c equal to the retained radial expectation. Divide by the positive dimension and combine the diagonal and off-diagonal entries.",
+          "formula": "r c=\\mathbb E[R\\mathbf1_{\\{R\\le L\\}}],\\qquad c=a,\\qquad \\mathbb E[ZZ^\\top\\mathbf1_{\\{R\\le L\\}}]=aI_r.",
+          "lean": "  -- The trace is the retained squared radius, so its coefficient is a.\n  have trace_pointwise (x : E) :\n      (∑ i : Fin (q + 1), entry i i x) = good.indicator R x := by\n    simp_rw [entry_formula]\n    by_cases hx : x ∈ good\n    · simp only [Set.indicator_of_mem hx]\n      simpa [R, pow_two] using (EuclideanSpace.real_norm_sq_eq x).symm\n    · simp [Set.indicator_of_notMem hx]\n  have trace_integral :\n      (∑ i : Fin (q + 1), ∫ x, entry i i x ∂μ) = ∫ x, good.indicator R x ∂μ := by\n    rw [← integral_finsetSum _ (fun i _ => entry_integrable i i)]\n    apply integral_congr_ae\n    exact Filter.Eventually.of_forall trace_pointwise\n  have r_positive : 0 < r := by\n    dsimp [r]\n    exact_mod_cast Nat.succ_pos q\n  have diagonal_value (i : Fin (q + 1)) : (∫ x, entry i i x ∂μ) = a := by\n    have trace_eq := trace_integral\n    have sum_equal :\n        (∑ j : Fin (q + 1), ∫ x, entry j j x ∂μ) = r * (∫ x, entry i i x ∂μ) := by\n      simp_rw [diagonal_equal _ i]\n      simp [r]\n    rw [sum_equal] at trace_eq\n    change (∫ x, entry i i x ∂μ) = (∫ x, good.indicator R x ∂μ) / r\n    apply (eq_div_iff (ne_of_gt r_positive)).2\n    nlinarith [trace_eq]\n  refine ⟨kept_integrable, ?_⟩\n  change (∫ x, kept x ∂μ) = a • (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ)\n  ext i j\n  rw [integral_entry]\n  by_cases hij : i = j\n  · subst j\n    simpa using diagonal_value i\n  · simpa [hij] using off_diagonal i j\n"
+        },
+        {
+          "title": "Compute the actual matrix summand mean",
+          "text": "For a fixed source row, tensoring with its deterministic rank-one feature matrix and scaling by 1/d form a continuous linear map. The map commutes with the retained indicator and Bochner integral. Apply both components of the producer to obtain integrability and the exact mean. This fold contains the complete private application.",
+          "formula": "\\begin{aligned}Y_i&=\\frac1d(ZZ^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{R\\le L\\}},\\\\\\mathbb E Y_i&=\\frac ad(I_r\\otimes t_it_i^\\top).\\end{aligned}",
+          "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment\n\n/-!\n# The actual expected truncated Gaussian matrix summand\n\nThis source application uses the one-row second moment and the deterministic\nmidpoint cosine feature. All matrix integrals use the Euclidean operator norm.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped Matrix.Norms.L2Operator\nset_option autoImplicit false\n\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumTruncatedRowMoment\n\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment\n\nprivate theorem actual_truncated_matrix_summand_mean\n    {d q : ℕ} (hq : 2 * q + 1 < d) (i : Fin d) :\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let μ : Measure E := stdGaussian E\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ := (∫ x, Set.indicator {y : E | R y ≤ L} R x ∂μ) / r\n  let θ : Fin d → ℝ := fun j => ((j.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun j k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ j)\n  let G : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)\n  let Y : E → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    Set.indicator {y : E | R y ≤ L}\n      (fun x => (d : ℝ)⁻¹ • Matrix.kronecker (G x) (Matrix.vecMulVec (t i) (t i)))\n  Integrable Y μ ∧\n    (∫ x, Y x ∂μ) =\n      (a / (d : ℝ)) • Matrix.kronecker\n        (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ) (Matrix.vecMulVec (t i) (t i)) := by\n  classical\n  dsimp only\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let μ : Measure E := stdGaussian E\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ := (∫ x, Set.indicator {y : E | R y ≤ L} R x ∂μ) / r\n  let θ : Fin d → ℝ := fun j => ((j.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun j k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ j)\n  let G : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)\n  let good : Set E := {y : E | R y ≤ L}\n  let kept : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ := good.indicator G\n  let Y : E → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    good.indicator\n      (fun x => (d : ℝ)⁻¹ • Matrix.kronecker (G x) (Matrix.vecMulVec (t i) (t i)))\n  let M := Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ\n  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let feature : M := Matrix.vecMulVec (t i) (t i)\n  let tensor : M →ₗ[ℝ] N :=\n    (Matrix.kroneckerBilinear : M →ₗ[ℝ] M →ₗ[ℝ] N).flip feature\n  let scaled : M →L[ℝ] N := (d : ℝ)⁻¹ • tensor.toContinuousLinearMap\n  have moment := actual_truncated_row_second_moment (d := d) (q := q) hq\n  change Integrable kept μ ∧ (∫ x, kept x ∂μ) = a • (1 : M) at moment\n  have summand_as_linear_image : Y = fun x => scaled (kept x) := by\n    funext x\n    change good.indicator (fun x => (d : ℝ)⁻¹ • Matrix.kronecker (G x) feature) x =\n      (d : ℝ)⁻¹ • Matrix.kronecker (good.indicator G x) feature\n    by_cases hx : x ∈ good\n    · simp [Set.indicator_of_mem hx]\n    · simp [Set.indicator_of_notMem hx]\n  change Integrable Y μ ∧\n    (∫ x, Y x ∂μ) = (a / (d : ℝ)) • Matrix.kronecker (1 : M) feature\n  refine ⟨?_, ?_⟩\n  · rw [summand_as_linear_image]\n    exact scaled.integrable_comp moment.1\n  · calc\n      (∫ x, Y x ∂μ) = scaled (∫ x, kept x ∂μ) := by\n        rw [summand_as_linear_image]\n        exact scaled.integral_comp_comm moment.1\n      _ = scaled (a • (1 : M)) := congrArg scaled moment.2\n      _ = a • scaled (1 : M) := scaled.map_smul a (1 : M)\n      _ = (a / (d : ℝ)) • Matrix.kronecker (1 : M) feature := by\n        change a • ((d : ℝ)⁻¹ • Matrix.kronecker (1 : M) feature) = _\n        simp only [smul_smul, div_eq_mul_inv]\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumTruncatedRowMoment\n"
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+      ],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.stdGaussian_map",
+        "LinearIsometryEquiv.piLpCongrRight",
+        "LinearIsometryEquiv.piLpCongrLeft",
+        "LinearIsometryEquiv.neg",
+        "MeasureTheory.integral_map",
+        "MeasureTheory.Integrable.mono'",
+        "MeasureTheory.Integrable.indicator",
+        "MeasureTheory.Integrable.of_eval",
+        "MeasureTheory.eval_integral",
+        "Matrix.ofLinearEquiv",
+        "LinearEquiv.toContinuousLinearEquiv",
+        "ContinuousLinearMap.integrable_comp",
+        "ContinuousLinearMap.integral_comp_comm",
+        "ContinuousLinearEquiv.integral_comp_comm",
+        "EuclideanSpace.real_norm_sq_eq",
+        "MeasureTheory.integral_finsetSum",
+        "Matrix.kroneckerBilinear"
+      ],
+      "dependency_notes": "The producer consumes integrability from the canonical Gaussian norm moment. Gaussian isometry invariance, finite-dimensional matrix integration and the trace identify the matrix. The private application consumes the producer through a continuous linear Kronecker map.",
+      "lean_statement": "Integrability and the exact retained second moment under the actual standard row law.",
+      "lean_proof": "Prove entry integrability, use sign and coordinate symmetries, determine the trace coefficient, and transport through the deterministic tensor map.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex108",
+          "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Appendix C.2 Ex108 and p12.m5; Ex107 definition; p1/p10, S4.E11 and C.2p5 index conventions",
+          "wording_status": "faithful paraphrase",
+          "attribution": "On Complexity of Gaussian Sampling, arXiv:2610.20492v1.",
+          "scope": "Unnormalized retained row second moment and the immediate single-row matrix expectation.",
+          "label": "Appendix C.2 truncated second moment and single-row matrix mean"
+        },
+        {
+          "path": "Tests/GaussianComplexityFixedSpectrumTruncatedRowMoment.lean",
+          "line": 19,
+          "label": "Complete private matrix-mean proof",
+          "scope": "Exact one-row application with the source cosine feature and normalization."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumTruncatedRowMoment"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment",
+      "role": "proof-edge",
+      "supports": [
+        "c2-truncated-row-second-moment"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "A standard r-dimensional Gaussian row, with r=q+1 and the standing source range.",
+        "lean": "The canonical standard Gaussian on EuclideanSpace real Fin(q+1), including q=0 and 2q+1<d."
+      },
+      {
+        "source": "The retained unnormalized matrix expectation equals a I_r.",
+        "lean": "The matrix integrability is also a proved conclusion, using the Euclidean operator norm."
+      },
+      {
+        "source": "The immediate Y_i mean tensors with the deterministic cosine row and scales by 1/d.",
+        "lean": "The private application uses the literal midpoint cosine feature and derives the expected tensor matrix."
+      }
+    ]
+  }
+}

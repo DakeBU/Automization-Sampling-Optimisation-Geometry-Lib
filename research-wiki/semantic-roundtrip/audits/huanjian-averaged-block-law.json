@@ -1,0 +1,288 @@
+{
+  "id": "ASTIS-RT-20261106-HuanjianAveragedBlockLaw",
+  "state": "source-reviewed",
+  "source": {
+    "source_id": "arxiv2610.20492v1-ActualAveragedBlockLaw",
+    "anchor": "Section2 S2.p2.1 and actual Gaussian target; Section3.1 Eq4-Eq6 and zero residual S3.SS1.p3.2; AppendixB.3 regularity. Ex70-72 are downstream context.",
+    "original_text": "Under the common-sign independent block prior, the actual averaged Gaussian target factors into the product of the actual single-block mixtures and the residual standard Gaussian. \\mathrm{split}_{\\#}\\bar\\pi_b=P_b^{\\otimes k}\\otimes\\mathcal N(0,I_r). \\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), with inclusive endpoints. Put \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\). Fix one \\(b\\in\\{-1,+1\\}\\). For full real orthogonal Haar probability \\(\\mu_n\\), set \\(\\nu_b=2\\mu_n|_{\\{\\det O=b\\}}\\), and draw the blocks independently from this same fixed law. The signs are not drawn independently. The literal precision matrices are \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\) and \\(A_{\\boldsymbol O}=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\). The actual matrix prior is \\(\\mathcal D_b=(\\boldsymbol O\\mapsto A_{\\boldsymbol O})_{\\#}\\nu_b^{\\otimes k}\\). The actual laws are \\(P_b=\\int\\mathcal N(0,A_O^{-1})\\,d\\nu_b(O)\\) and \\(\\bar\\pi_b=\\int\\mathcal N(0,A^{-1})\\,d\\mathcal D_b(A)\\). These are bind-mixtures of the canonical Gaussian constructor. They are not defined to be the claimed product. The matrix carrier uses its usual finite-dimensional Borel structure. The theorem proves that \\(\\mathcal D_b\\), \\(P_b\\) and \\(\\bar\\pi_b\\) are probabilities, and that \\(A\\succ0\\) for \\(\\mathcal D_b\\)-almost every \\(A\\). Positive definiteness, Gaussian-kernel measurability and mixture factorization are conclusions or internal producers, never caller hypotheses. The split takes consecutive coordinates \\((x_j)_i=x_{jn+i}\\) and \\(z_t=x_{kn+t}\\) in zero-based indices. It is the same coordinate bijection used by the literal block precision. No isometry for the ordinary product norm is asserted. If \\(r=0\\), the residual is the unique probability point mass on the zero-dimensional space; its unit factor agrees with the source omission convention.",
+    "text_sha256": "86b8042926157e073bb217b95bd9db8a795a57f4d9c776e87dd78c7e29f1fb2f",
+    "url": "https://arxiv.org/html/2610.20492v1#S3.E6",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw.actual_averaged_block_product",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/AveragedBlockLaw.lean",
+    "statement": "∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ) {b : ℝ} (hb : b = 1 ∨ b = -1),\n    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let split : EuclideanSpace ℝ (Fin d) →\n        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=\n      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),\n        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))\n    let ν := (2 : ℝ≥0∞) • (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))).restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = b}\n    let D := (Measure.pi (fun _ : Fin (d / n) => ν)).map (fun O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ => Matrix.reindex e e (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • (((O j) : Matrix (Fin n) (Fin n) ℝ) + ((O j) : Matrix (Fin n) (Fin n) ℝ).transpose)))) 0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)))\n    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=\n      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n    let P := ν.bind (fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n      (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))⁻¹)\n    IsProbabilityMeasure D ∧ (∀ᵐ A ∂D, A.PosDef) ∧\n      IsProbabilityMeasure P ∧ IsProbabilityMeasure (D.bind γ) ∧\n      (D.bind γ).map split = (Measure.pi (fun _ : Fin (d / n) => P)).prod\n        (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))\n",
+    "statement_sha256": "e2639fc30c7c7745b8aba3231a8c78ba1d5f83e9f7620353920c5786137aa997",
+    "formalizer": "huanjian_gc_20261106_eq6",
+    "compiled": true,
+    "decoder_context": [
+      "EuclideanSpace real (Fin m) is real m-dimensional Euclidean space with its usual Borel structure; Fin m indexes coordinates from zero. WithLp.toLp 2 and WithLp.ofLp preserve the entries. Ordinary finite function spaces and products carry product Borel structures and their usual default product norms.",
+      "Matrix.orthogonalGroup (Fin n) real is the full real orthogonal matrix group, with its usual topology and Borel structure, including either determinant sign. Matrix.PosDef means a real symmetric positive-definite matrix.",
+      "Measure.haarMeasure K is the canonical Haar measure normalized on the positive compact set K. TopologicalSpace.PositiveCompacts top is the entire compact group, so this constructor is its normalized Haar probability. Measure.restrict restricts a measure to a set; real nonnegative-infinite scalar multiplication has its usual meaning.",
+      "Matrix.reindex e e M has entries M (e.symm i) (e.symm j). Matrix.blockDiagonal f uses pairs (local coordinate, block index) and is zero between different blocks. Matrix.fromBlocks is the displayed two-by-two block assembly. finProdFinEquiv sends (a,b) to a times the cardinality of the second factor plus b; finSumFinEquiv concatenates its summands.",
+      "multivariateGaussian mean m covariance C is the pushforward of stdGaussian by z -> m + Matrix.toEuclideanCLM (CFC.sqrt C) z. The covariance interpretation holds when C is positive semidefinite; otherwise this total constructor defaults to a point mass. Matrix inverse is totalized at singular matrices.",
+      "stdGaussian is the standard Gaussian obtained by independent scalar standard normal coordinates in an orthonormal basis. On a zero-dimensional Euclidean space it is the probability point mass at its sole vector.",
+      "Measure.map is measurable pushforward; Measure.bind integrates the displayed measure-valued family. Measure.pi and Measure.prod are actual finite independent and binary products. IsProbabilityMeasure means total mass one, and the almost-everywhere quantifier is with respect to its displayed measure. Natural division and remainder and real scalar arithmetic have their ordinary Lean meanings."
+    ]
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Real orthogonal blocks; exact affine precision A_O; exact ordered block diagonal A_boldO; conditional Haar probability mu_(n,b); matrix prior D_b as its product pushforward; actual centered Gaussian targets pi_A; single-block mixture P_b; full mixture bar_pi_b; residual standard Gaussian. Definition semantics must be expanded, not inferred from labels.",
+      "reconstructed": "The reconstruction uses the exact affine B(O), ordered block precision, twice-restricted full Haar probability, its k-fold product pushforward D, canonical inverse-precision Gaussian gamma, and literal bind mixtures P and mu. These are the actual source objects, not free density variables or a product-law definition.",
+      "relation": "explicit-elaboration",
+      "evidence": "Compared against raw-source prefreeze before actual-file/parent review. Raw anchors: S2.p2.1; S2.SS0.SSS0.Px1.p1.2; S3.E4-E6. The reconstruction uses the exact affine B(O), ordered block precision, twice-restricted full Haar probability, its k-fold product pushforward D, canonical inverse-precision Gaussian gamma, and literal bind mixtures P and mu. These are the actual source objects, not free density variables or a product-law definition."
+    },
+    "domains": {
+      "original": "Source Eq6 domain is kappa>=4, integer 3<=n<=d, k=floor(d/n), fixed sign b=+/-1, O_j in real O(n), targets on real Euclidean spaces with Borel probability laws. k>=1; residual r=d-kn>=0 includes r=0 by omission. Block-coordinate reindexing must preserve the actual full Euclidean law. Any extension outside this source domain is a separately identified generalization.",
+      "reconstructed": "Natural d,n with 3<=n<=d, real kappa>=4, b=1 or -1, and real orthogonal matrices match exactly. q=d div n and r=d mod n equal the source floor/remainder. The Borel carrier is the source Euclidean one. All inclusive endpoints and r=0 are present.",
+      "relation": "same",
+      "evidence": "Compared against raw-source prefreeze before actual-file/parent review. Raw anchors: S3.SS1.p1.1; S3.SS1.p3.2. Natural d,n with 3<=n<=d, real kappa>=4, b=1 or -1, and real orthogonal matrices match exactly. q=d div n and r=d mod n equal the source floor/remainder. The Borel carrier is the source Euclidean one. All inclusive endpoints and r=0 are present."
+    },
+    "quantifiers": {
+      "original": "For every admissible d,n,kappa and for each fixed b in {-1,+1}, draw the k O_j independently with the same mu_(n,b), then take the pushforward matrix law and average its Gaussian target. Equality is equality of probability measures, hence holds on every Borel event. There is no existential replacement family, no selected favorable prior, no almost-everywhere replacement of the law, and no universal mixed-sign pattern in Eq6.",
+      "reconstructed": "The candidate is universal in all admissible d,n,kappa,b, fixing one b before the product prior. q and r are definitions, not existential parameters. No T, oddness condition or epsilon is added. The measure identity applies to all Borel events.",
+      "relation": "same",
+      "evidence": "Compared against raw-source prefreeze before actual-file/parent review. Raw anchors: S3.SS1.p1.1-p3.2. The candidate is universal in all admissible d,n,kappa,b, fixing one b before the product prior. q and r are definitions, not existential parameters. No T, oddness condition or epsilon is added. The measure identity applies to all Borel events."
+    },
+    "assumptions": {
+      "original": "Only the stated source parameter domain, orthogonal input carrier and specified independent same-sign conditional Haar prior. Symmetry, positive definiteness, spectral bounds, Gaussian probability/kernel measurability, normalization, and product/mixture interchange needed for the equality must follow from definitions/background or be actual proved dependencies. They cannot be inserted as extra public gates/certificates/results. The source supplies no pre-assumed Eq6 density factorization, product law, or affinity identity.",
+      "reconstructed": "The displayed statement has only hn,hnd,hkappa,hb. Orthogonality is the carrier and Borel sigma-algebras are typing. Prior probability, positive support, mixture probability, measurability and factorization are conclusions or claimed internal producers, not public assumptions. Whether those claims hold is reserved for actual-module review.",
+      "relation": "same",
+      "evidence": "Compared against raw-source prefreeze before actual-file/parent review. Raw anchors: S3.SS1.p1.1-p3.1; A2.E26; A2.Ex74. The displayed statement has only hn,hnd,hkappa,hb. Orthogonality is the carrier and Borel sigma-algebras are typing. Prior probability, positive support, mixture probability, measurability and factorization are conclusions or claimed internal producers, not public assumptions. Whether those claims hold is reserved for actual-module review."
+    },
+    "conclusion": {
+      "original": "bar_pi_b := E_(A~D_b)[pi_A] = P_b^(tensor k) tensor N(0,I_r), with r=0 omission, for the actual matrix law and actual Gaussian targets defined by Eqs4-5. This is a probability-law identity, not merely a relation between free normalized densities or an implication conditional on having the product density.",
+      "reconstructed": "The exact probability-law equality is expressed after the canonical contiguous-coordinate split. Under that bijection it is exactly the raw Eq6 product law. The additional probability and D-a.e. positive-definite conjuncts expose properties of the actual source distributions and B3 support, and do not weaken Eq6.",
+      "relation": "equivalent",
+      "evidence": "Compared against raw-source prefreeze before actual-file/parent review. Raw anchors: S3.E6; A2.Ex70; A2.SS3. The exact probability-law equality is expressed after the canonical contiguous-coordinate split. Under that bijection it is exactly the raw Eq6 product law. The additional probability and D-a.e. positive-definite conjuncts expose properties of the actual source distributions and B3 support, and do not weaken Eq6."
+    },
+    "scopes": {
+      "original": "The common sign is fixed before the independent block draws. Independence is conditional on/fiberwise in that sign; averaging over an additional common random sign generally destroys unconditional block independence and gives a mixture of products. Gaussian target averaging occurs after matrix-prior formation. The optional residual Gaussian is independent and identical under both signs. A standard canonical identification or proved transport between block and flat coordinates is legitimate; arbitrary reinterpretation of the target is not. p_b and bar_p_b downstream denote actual densities of P_b and bar_pi_b.",
+      "reconstructed": "All block laws use one fixed sign b. The product prior yields conditional/fiberwise independence in that sign, with a common independent residual. The total Gaussian constructor/inverse is only interpreted as the source Gaussian on proved positive-definite source support. The zero-dimensional Gaussian is the probability unit, equivalent to omission; no isometry assertion is made for the ordinary product norm.",
+      "relation": "explicit-elaboration",
+      "evidence": "Compared against raw-source prefreeze before actual-file/parent review. Raw anchors: S2.p2.1; S3.SS1.p2.1; S3.SS1.p3.2; A2.SS2.SSS3.p3.3. All block laws use one fixed sign b. The product prior yields conditional/fiberwise independence in that sign, with a common independent residual. The total Gaussian constructor/inverse is only interpreted as the source Gaussian on proved positive-definite source support. The zero-dimensional Gaussian is the probability unit, equivalent to omission; no isometry assertion is made for the ordinary product norm."
+    },
+    "constant_dependencies": {
+      "original": "Eq6 is an exact equality with no unspecified constants, approximation error, asymptotic threshold, auxiliary regularity parameter or witness-dependent bound. n,d,kappa and sign b determine all laws; k and r are fixed by d,n. Query budget T and epsilon are consumers of the construction, not new dependencies of the identity. Numerical constants in downstream separation/Eq25 belong to those results and must not become Eq6 premises.",
+      "reconstructed": "The equality contains no numerical error, unspecified constant, asymptotic threshold or auxiliary regularity parameter. All laws depend only on d,n,kappa,b and the fixed canonical constructions. Downstream separation constants and query budget do not enter the statement.",
+      "relation": "same",
+      "evidence": "Compared against raw-source prefreeze before actual-file/parent review. Raw anchors: S3.E4-E6. The equality contains no numerical error, unspecified constant, asymptotic threshold or auxiliary regularity parameter. All laws depend only on d,n,kappa,b and the fixed canonical constructions. Downstream separation constants and query budget do not enter the statement."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "conclusion",
+      "severity": "informational",
+      "description": "Raw Eq6 equality in R^d is written as pushforward by the explicit contiguous block-coordinate bijection.",
+      "evidence": "The source uses exactly these ordered block coordinates; actual-module review must confirm the split matches the precision reindexing. Verified against actual source/parents and independent direct Lean checks in research-wiki/paper-contributions/GaussianComplexity/averaged-block-law-semantic-evidence/fresh-source-module-review/fresh-wholemodule-parent-reader-review.json."
+    },
+    {
+      "slot": "conclusion",
+      "severity": "informational",
+      "description": "Prior/mixture probability and D-a.e. positive-definite support are additional conclusions.",
+      "evidence": "Source distributions are probabilities by their meanings, and B3 proves deterministic regularity of all image matrices. No new public premise is introduced. Verified against actual source/parents and independent direct Lean checks in research-wiki/paper-contributions/GaussianComplexity/averaged-block-law-semantic-evidence/fresh-source-module-review/fresh-wholemodule-parent-reader-review.json."
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "The omitted r=0 Gaussian factor is represented by the unique probability measure on the zero-dimensional Euclidean space.",
+      "evidence": "A product with a one-point probability space realizes the source omission under the canonical coordinate identification. Verified against actual source/parents and independent direct Lean checks in research-wiki/paper-contributions/GaussianComplexity/averaged-block-law-semantic-evidence/fresh-source-module-review/fresh-wholemodule-parent-reader-review.json."
+    },
+    {
+      "slot": "objects",
+      "severity": "informational",
+      "description": "The Gaussian constructor and matrix inverse are total outside the positive-definite source support.",
+      "evidence": "D-a.e. positive-definite support is asserted, and the literal block precisions are positive definite for every source tuple. The source-facing mixture never assigns positive weight to fallback semantics if the actual-module proof validates these claims. Verified against actual source/parents and independent direct Lean checks in research-wiki/paper-contributions/GaussianComplexity/averaged-block-law-semantic-evidence/fresh-source-module-review/fresh-wholemodule-parent-reader-review.json."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "OpenAI Codex agent task /root/eq6_fresh_source_module_review; exact backend model identifier is not exposed. Distinct from formalizer and source-blind decoder.",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "90fe267ec15537e216b458a39dc7d671468cf004cf82e45aa76f4c6b49695a8e",
+    "evidence": "Accepted only for exact immutable candidate 98cc6c8953d38dd54bc4e4ef7a547fd68a381ac8 / production 4d1116c69da67e0d993fa502685cc83cf3a9650ea47da749b8ac3ed3a18f19c5. Raw-source prefreeze 8f683ca2d8852a067858e6fa9d101ebddc5b7f9dd86f1277ac0c26b3ec955bc4 preceded the anti-anchored seven-slot freeze 265cb74f488176fe678bc328de0f8e74f707d051b5ef4df81cfd7687284baf2c. Actual whole-module/parent/Tests/source typing and direct Lean checks plus static reader review found no blocker; report research-wiki/paper-contributions/GaussianComplexity/averaged-block-law-semantic-evidence/fresh-source-module-review/fresh-wholemodule-parent-reader-review.json SHA256 021beec31dedd613aeeb76fa299ff79eb46d84b20ef27800f07bcdbfcad4be99. Independent run research-wiki/paper-contributions/GaussianComplexity/averaged-block-law-semantic-evidence/fresh-source-module-review/fresh-review-run.json canonical SHA256 0776e427c8956dd926e32cd282714b0f1922cc3019dfcd92b103737f71972e1b; physical raw SHA256 69963808cbde9859c7aea9c35ca3f6ee562697aa46462f6175719e80a33369ea. Cache replay is distinguished from actual direct source runs. No root/Registry/global gate/browser/live/VERIFIED claim.",
+    "review_run_sha256": "0776e427c8956dd926e32cd282714b0f1922cc3019dfcd92b103737f71972e1b",
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/averaged-block-law-semantic-evidence/fresh-source-module-review/fresh-source-review-result.json",
+    "run_record_artifact": "research-wiki/paper-contributions/GaussianComplexity/averaged-block-law-semantic-evidence/fresh-source-module-review/fresh-review-run.json",
+    "reviewer_packet_physical_raw_sha256": "a0ec8b2b5d0459c91a71f30a65d70b9e2abc88b3e60ec865a2631387118eb7e5",
+    "review_run_physical_raw_sha256": "69963808cbde9859c7aea9c35ca3f6ee562697aa46462f6175719e80a33369ea",
+    "result_physical_raw_sha256": "025e295cfa2f00c3fc89f52df1e22c39e1c7a424938337460536dcc50a6e9e33",
+    "checked_commit": "98cc6c8953d38dd54bc4e4ef7a547fd68a381ac8"
+  },
+  "publication_binding_sha256": "908c5e4bfdd5276ce6be52f2458c3ad4f45e6a8c1e19c62fd11e81e498a15f7e",
+  "publication_context": {
+    "file": "4d1116c69da67e0d993fa502685cc83cf3a9650ea47da749b8ac3ed3a18f19c5",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws\nimport Mathlib.Probability.Independence.Integration\nopen Matrix MeasureTheory ProbabilityTheory\nopen scoped ENNReal\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws\n\n/-!\n# Actual prior-averaged Gaussian block law\n\nZhou--Suzuki arXiv:2610.20492v1, Section 3.1 Eq6. The matrix prior is the\nactual pushforward of independent blocks with one common determinant sign.\nThe actual Gaussian bind is transported through the literal contiguous split.\nPositive-definite support, normalization, measurable-family and averaging\nproducers are proved internally. Density/tensorization/amplification and the\nmain oracle lower bounds are distinct downstream obligations.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw\nset_option autoImplicit false\n\ntheorem actual_averaged_block_product {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ) {b : ℝ} (hb : b = 1 ∨ b = -1) :\n    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let split : EuclideanSpace ℝ (Fin d) →\n        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=\n      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),\n        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))\n    let ν := (2 : ℝ≥0∞) • (orthogonalHaar n).restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = b}\n    let D := (Measure.pi (fun _ : Fin (d / n) => ν)).map (blockPrecision κ)\n    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=\n      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n    let P := ν.bind (fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n      (singleBlockPrecision κ O)⁻¹)\n    IsProbabilityMeasure D ∧ (∀ᵐ A ∂D, A.PosDef) ∧\n      IsProbabilityMeasure P ∧ IsProbabilityMeasure (D.bind γ) ∧\n      (D.bind γ).map split = (Measure.pi (fun _ : Fin (d / n) => P)).prod\n        (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))\n := by\n  classical\n  dsimp only\n  let : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _\n  let : BorelSpace (Matrix (Fin d) (Fin d) ℝ) := ⟨rfl⟩\n  let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n    ((Equiv.sumCongr\n      ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n      (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n      (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n  let split : EuclideanSpace ℝ (Fin d) →\n      (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=\n    fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),\n      WithLp.toLp 2 (fun i => x (e (Sum.inr i))))\n  let G := Matrix.orthogonalGroup (Fin n) ℝ\n  let E := EuclideanSpace ℝ (Fin d)\n  let En := EuclideanSpace ℝ (Fin n)\n  let Er := EuclideanSpace ℝ (Fin (d % n))\n  let ν := (2 : ℝ≥0∞) • (orthogonalHaar n).restrict\n    {O : G | (O : Matrix (Fin n) (Fin n) ℝ).det = b}\n  let f : (Fin (d / n) → G) → Matrix (Fin d) (Fin d) ℝ := blockPrecision κ\n  let ρ := Measure.pi (fun _ : Fin (d / n) => ν)\n  let D := ρ.map f\n  let γ : Matrix (Fin d) (Fin d) ℝ → Measure E := fun A => multivariateGaussian (0 : E) A⁻¹\n  let νr := stdGaussian Er\n  let γn : G → Measure (EuclideanSpace ℝ (Fin n)) := fun O =>\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin n)) (singleBlockPrecision κ O)⁻¹\n  have hpriors := component_probabilities (lt_of_lt_of_le (by decide : 0 < 3) hn)\n  have hν : IsProbabilityMeasure ν := by\n    rcases hb with rfl | rfl\n    · exact hpriors.2.2.1\n    · exact hpriors.2.2.2\n  let : IsProbabilityMeasure ν := hν\n  have hf : Continuous f := by\n    dsimp only [f]\n    unfold blockPrecision singleBlockPrecision\n    fun_prop\n  have hfM : Measurable f := hf.measurable\n  have hD : IsProbabilityMeasure D := Measure.isProbabilityMeasure_map hfM.aemeasurable\n  have hpos (O : Fin (d / n) → G) : (f O).PosDef := by\n    have hr := blockPrecision_regular hn hnd hκ O\n    apply Matrix.posDef_iff_dotProduct_mulVec.mpr\n    refine ⟨hr.1, fun v hv => ?_⟩\n    have hdot : 0 < v ⬝ᵥ v := by\n      simpa only [star_trivial] using (dotProduct_star_self_pos_iff.mpr hv)\n    simpa only [star_trivial] using lt_of_lt_of_le hdot (hr.2 v).1\n  have hcompact : IsCompact (Set.range f) := isCompact_range hf\n  have hrange : ∀ᵐ A ∂D, A ∈ Set.range f := by\n    rw [ae_iff]\n    change (ρ.map f) (Set.range f)ᶜ = 0\n    rw [Measure.map_apply hfM hcompact.isClosed.measurableSet.compl]\n    simp\n  have hDpos : ∀ᵐ A ∂D, A.PosDef := hrange.mono (by rintro A ⟨O, rfl⟩; exact hpos O)\n  let q : Matrix (Fin d) (Fin d) ℝ → E → ℝ := fun A x =>\n    Real.sqrt A.det / (2 * Real.pi) ^ ((d : ℝ) / 2) *\n      Real.exp (-((WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x)) / 2)\n  let δ : Matrix (Fin d) (Fin d) ℝ → Measure E := fun A =>\n    (volume : Measure E).withDensity (fun x => ENNReal.ofReal (q A x))\n  have hq : Continuous (Function.uncurry q) := by dsimp only [q, E]; fun_prop\n  have hδ : Measurable δ := measurable_withDensity (ENNReal.measurable_ofReal.comp hq.measurable)\n  have hγ : AEMeasurable γ D := hδ.aemeasurable.congr (hDpos.mono fun A hA =>\n    (multivariateGaussian_eq_withDensity_of_posDef A hA).symm)\n  have hP : IsProbabilityMeasure (ν.bind γn) := by\n    have hl := actual_mixture_laws hn hκ\n    rcases hb with rfl | rfl\n    · exact hl.2.1\n    · exact hl.2.2.1\n  let P := ν.bind γn\n  let : IsProbabilityMeasure P := hP\n  let : IsProbabilityMeasure D := hD\n  have hγn : Measurable γn := (actual_mixture_laws hn hκ).1\n  have hγf : Measurable (fun O => γ (f O)) := by\n    have heq : (fun O => γ (f O)) = δ ∘ f := by\n      funext O\n      exact multivariateGaussian_eq_withDensity_of_posDef _ (hpos O)\n    rw [heq]\n    exact hδ.comp hfM\n  let F := (Fin (d / n) → En) × Er\n  let Tlin : E →ₗ[ℝ] F :=\n    { toFun := split\n      map_add' := by intro x y; ext i j <;> rfl\n      map_smul' := by intro a x; ext i j <;> rfl }\n  have hsplit : Measurable split := Tlin.toContinuousLinearMap.continuous.measurable\n  have hc (O : Fin (d / n) → G) : (γ (f O)).map split =\n      (Measure.pi (fun j => γn (O j))).prod νr :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw.actual_conditional_block_product\n      hn hnd hκ O\n  have hfull : Measurable (fun O => (γ (f O)).map split) :=\n    (Measure.measurable_map split hsplit).comp hγf\n  have hπeq (O : Fin (d / n) → G) :\n      ((γ (f O)).map split).map Prod.fst = Measure.pi (fun j => γn (O j)) := by\n    rw [hc, Measure.map_fst_prod]\n    simp only [measure_univ, one_smul]\n  have hπ : Measurable (fun O : Fin (d / n) → G => Measure.pi (fun j => γn (O j))) := by\n    have heq : (fun O => ((γ (f O)).map split).map Prod.fst) =\n        (fun O : Fin (d / n) → G => Measure.pi (fun j => γn (O j))) := funext hπeq\n    rw [← heq]\n    exact (Measure.measurable_map Prod.fst measurable_fst).comp hfull\n  have hprod : Measurable (fun O : Fin (d / n) → G =>\n      (Measure.pi (fun j => γn (O j))).prod νr) := by\n    have heq : (fun O => (γ (f O)).map split) =\n        (fun O : Fin (d / n) → G => (Measure.pi (fun j => γn (O j))).prod νr) := funext hc\n    rw [← heq]\n    exact hfull\n  have hblocks : ρ.bind (fun O => Measure.pi (fun j => γn (O j))) =\n      Measure.pi (fun _ : Fin (d / n) => P) := by\n    symm\n    apply Measure.pi_eq\n    intro s hs\n    rw [Measure.bind_apply (MeasurableSet.univ_pi hs) hπ.aemeasurable]\n    simp_rw [Measure.pi_pi]\n    let X : Fin (d / n) → G → ℝ≥0∞ := fun j O => γn O (s j)\n    have hX (j : Fin (d / n)) : Measurable (X j) := (Measure.measurable_coe (hs j)).comp hγn\n    have hI := iIndepFun_pi (μ := fun _ : Fin (d / n) => ν) (X := X)\n      (fun j => (hX j).aemeasurable)\n    have hfac := lintegral_prod_eq_prod_lintegral_of_indepFun Finset.univ\n      (fun j (O : Fin (d / n) → G) => X j (O j)) hI\n      (fun j => (hX j).comp (measurable_pi_apply j))\n    change (∫⁻ O, ∏ j, X j (O j) ∂ρ) = ∏ j, P (s j)\n    rw [hfac]\n    apply Finset.prod_congr rfl\n    intro j hj\n    calc\n      (∫⁻ O, X j (O j) ∂ρ) = ∫⁻ O, X j O ∂ν :=\n        (measurePreserving_eval (fun _ : Fin (d / n) => ν) j).lintegral_comp (hX j)\n      _ = P (s j) := (Measure.bind_apply (hs j) hγn.aemeasurable).symm\n  have hjoint : ρ.bind (fun O => (Measure.pi (fun j => γn (O j))).prod νr) =\n      (Measure.pi (fun _ : Fin (d / n) => P)).prod νr := by\n    symm\n    apply Measure.prod_eq\n    intro s t hs ht\n    rw [Measure.bind_apply (hs.prod ht) hprod.aemeasurable]\n    simp_rw [Measure.prod_prod]\n    have heval : Measurable (fun O : Fin (d / n) → G =>\n        (Measure.pi (fun j => γn (O j))) s) := (Measure.measurable_coe hs).comp hπ\n    rw [lintegral_mul_const (μ := ρ) (f := fun O : Fin (d / n) → G =>\n      (Measure.pi (fun j => γn (O j))) s) (νr t) heval,\n      ← Measure.bind_apply hs hπ.aemeasurable, hblocks]\n  have hback : D.bind γ = ρ.bind (fun O => γ (f O)) := by\n    change Measure.join ((ρ.map f).map γ) = Measure.join (ρ.map (fun O => γ (f O)))\n    rw [hγ.map_map_of_aemeasurable hfM.aemeasurable]\n    rfl\n  have hpush : (D.bind γ).map split =\n      ρ.bind (fun O => (Measure.pi (fun j => γn (O j))).prod νr) := by\n    rw [hback]\n    ext s hs\n    rw [Measure.map_apply hsplit hs,\n      Measure.bind_apply (hsplit hs) hγf.aemeasurable,\n      Measure.bind_apply hs hprod.aemeasurable]\n    apply lintegral_congr_ae\n    exact Filter.Eventually.of_forall fun O => by\n      have h := congrArg (fun μ => μ s) (hc O)\n      rw [Measure.map_apply hsplit hs] at h\n      exact h\n  have htarget : IsProbabilityMeasure (D.bind γ) :=\n    isProbabilityMeasure_bind hγ (Filter.Eventually.of_forall fun A => by dsimp only [γ]; infer_instance)\n  change IsProbabilityMeasure D ∧ (∀ᵐ A ∂D, A.PosDef) ∧ IsProbabilityMeasure P ∧\n    IsProbabilityMeasure (D.bind γ) ∧ (D.bind γ).map split =\n      (Measure.pi (fun _ : Fin (d / n) => P)).prod νr\n  exact ⟨hD, hDpos, hP, htarget, hpush.trans hjoint⟩\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#S3.E6",
+      "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "Section2 S2.p2.1 and actual Gaussian target; Section3.1 Eq4-Eq6 and zero residual S3.SS1.p3.2; AppendixB.3 regularity. Ex70-72 are downstream context.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Eq6 prints the averaged product law; ASTIS supplies its omitted measurable-family, matrix-prior transport and independent-averaging details.",
+      "scope": "The actual common-sign prior-averaged law, with explicit coordinate pushforward, probabilities and positive support. No main lower-bound or density/amplification credit."
+    },
+    "statement": "Under the common-sign independent block prior, the actual averaged Gaussian target factors into the product of the actual single-block mixtures and the residual standard Gaussian. \\mathrm{split}_{\\#}\\bar\\pi_b=P_b^{\\otimes k}\\otimes\\mathcal N(0,I_r). \\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), with inclusive endpoints. Put \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\). Fix one \\(b\\in\\{-1,+1\\}\\). For full real orthogonal Haar probability \\(\\mu_n\\), set \\(\\nu_b=2\\mu_n|_{\\{\\det O=b\\}}\\), and draw the blocks independently from this same fixed law. The signs are not drawn independently. The literal precision matrices are \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\) and \\(A_{\\boldsymbol O}=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\). The actual matrix prior is \\(\\mathcal D_b=(\\boldsymbol O\\mapsto A_{\\boldsymbol O})_{\\#}\\nu_b^{\\otimes k}\\). The actual laws are \\(P_b=\\int\\mathcal N(0,A_O^{-1})\\,d\\nu_b(O)\\) and \\(\\bar\\pi_b=\\int\\mathcal N(0,A^{-1})\\,d\\mathcal D_b(A)\\). These are bind-mixtures of the canonical Gaussian constructor. They are not defined to be the claimed product. The matrix carrier uses its usual finite-dimensional Borel structure. The theorem proves that \\(\\mathcal D_b\\), \\(P_b\\) and \\(\\bar\\pi_b\\) are probabilities, and that \\(A\\succ0\\) for \\(\\mathcal D_b\\)-almost every \\(A\\). Positive definiteness, Gaussian-kernel measurability and mixture factorization are conclusions or internal producers, never caller hypotheses. The split takes consecutive coordinates \\((x_j)_i=x_{jn+i}\\) and \\(z_t=x_{kn+t}\\) in zero-based indices. It is the same coordinate bijection used by the literal block precision. No isometry for the ordinary product norm is asserted. If \\(r=0\\), the residual is the unique probability point mass on the zero-dimensional space; its unit factor agrees with the source omission convention.",
+    "formulae": [
+      {
+        "label": "Actual prior-averaged joint law",
+        "tex": "\\mathrm{split}_{\\#}\\bar\\pi_b=P_b^{\\otimes k}\\otimes\\mathcal N(0,I_r)."
+      }
+    ],
+    "assumptions": [
+      "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), with inclusive endpoints. Put \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\).",
+      "Fix one \\(b\\in\\{-1,+1\\}\\). For full real orthogonal Haar probability \\(\\mu_n\\), set \\(\\nu_b=2\\mu_n|_{\\{\\det O=b\\}}\\), and draw the blocks independently from this same fixed law. The signs are not drawn independently.",
+      "The literal precision matrices are \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\) and \\(A_{\\boldsymbol O}=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\). The actual matrix prior is \\(\\mathcal D_b=(\\boldsymbol O\\mapsto A_{\\boldsymbol O})_{\\#}\\nu_b^{\\otimes k}\\).",
+      "The actual laws are \\(P_b=\\int\\mathcal N(0,A_O^{-1})\\,d\\nu_b(O)\\) and \\(\\bar\\pi_b=\\int\\mathcal N(0,A^{-1})\\,d\\mathcal D_b(A)\\). These are bind-mixtures of the canonical Gaussian constructor. They are not defined to be the claimed product.",
+      "The matrix carrier uses its usual finite-dimensional Borel structure. The theorem proves that \\(\\mathcal D_b\\), \\(P_b\\) and \\(\\bar\\pi_b\\) are probabilities, and that \\(A\\succ0\\) for \\(\\mathcal D_b\\)-almost every \\(A\\). Positive definiteness, Gaussian-kernel measurability and mixture factorization are conclusions or internal producers, never caller hypotheses.",
+      "The split takes consecutive coordinates \\((x_j)_i=x_{jn+i}\\) and \\(z_t=x_{kn+t}\\) in zero-based indices. It is the same coordinate bijection used by the literal block precision. No isometry for the ordinary product norm is asserted. If \\(r=0\\), the residual is the unique probability point mass on the zero-dimensional space; its unit factor agrees with the source omission convention."
+    ],
+    "obligations": [
+      {
+        "id": "actual-common-sign-prior-averaged-eq6",
+        "label": "The actual matrix-prior Gaussian average has the Eq6 independent-block product law, with true probability and positive support."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw.actual_averaged_block_product",
+      "title": "The actual common-sign averaged Gaussian law (Eq6)",
+      "reader_note": "The averaged joint law is shown first; all objects, source assumptions, proof steps and exact Lean are folded below.",
+      "statement": "Under the common-sign independent block prior, the actual averaged Gaussian target factors into the product of the actual single-block mixtures and the residual standard Gaussian.",
+      "formula": "\\mathrm{split}_{\\#}\\bar\\pi_b=P_b^{\\otimes k}\\otimes\\mathcal N(0,I_r).",
+      "assumptions": [
+        "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), with inclusive endpoints. Put \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\).",
+        "Fix one \\(b\\in\\{-1,+1\\}\\). For full real orthogonal Haar probability \\(\\mu_n\\), set \\(\\nu_b=2\\mu_n|_{\\{\\det O=b\\}}\\), and draw the blocks independently from this same fixed law. The signs are not drawn independently.",
+        "The literal precision matrices are \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\) and \\(A_{\\boldsymbol O}=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\). The actual matrix prior is \\(\\mathcal D_b=(\\boldsymbol O\\mapsto A_{\\boldsymbol O})_{\\#}\\nu_b^{\\otimes k}\\).",
+        "The actual laws are \\(P_b=\\int\\mathcal N(0,A_O^{-1})\\,d\\nu_b(O)\\) and \\(\\bar\\pi_b=\\int\\mathcal N(0,A^{-1})\\,d\\mathcal D_b(A)\\). These are bind-mixtures of the canonical Gaussian constructor. They are not defined to be the claimed product.",
+        "The matrix carrier uses its usual finite-dimensional Borel structure. The theorem proves that \\(\\mathcal D_b\\), \\(P_b\\) and \\(\\bar\\pi_b\\) are probabilities, and that \\(A\\succ0\\) for \\(\\mathcal D_b\\)-almost every \\(A\\). Positive definiteness, Gaussian-kernel measurability and mixture factorization are conclusions or internal producers, never caller hypotheses.",
+        "The split takes consecutive coordinates \\((x_j)_i=x_{jn+i}\\) and \\(z_t=x_{kn+t}\\) in zero-based indices. It is the same coordinate bijection used by the literal block precision. No isometry for the ordinary product norm is asserted. If \\(r=0\\), the residual is the unique probability point mass on the zero-dimensional space; its unit factor agrees with the source omission convention."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(\\nu_b,\\mathcal D_b,P_b,\\bar\\pi_b\\)",
+          "text": "All priors and target laws are the displayed actual restriction, pushforward and bind constructions. One fixed common sign is used across independently drawn blocks.",
+          "formula": "\\mathcal D_b=f_{\\#}\\nu_b^{\\otimes k},\\qquad P_b=\\nu_b\\mathbin{\\mathrm{bind}}(O\\mapsto\\mathcal N(0,A_O^{-1})),\\qquad\\bar\\pi_b=\\mathcal D_b\\mathbin{\\mathrm{bind}}(A\\mapsto\\mathcal N(0,A^{-1}))."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Construct the true common-sign prior and its positive support",
+          "text": "The existing component-probability theorem normalizes the twice-restricted Haar laws. Their finite product is a probability, and the continuous literal block-precision map gives the actual matrix prior. The lower quadratic bound makes every image matrix positive definite. Its compact image has full prior mass, proving the almost-everywhere domain conclusion.",
+          "formula": "\\nu_b(O(n))=1,\\quad\\mathcal D_b=f_{\\#}\\nu_b^{\\otimes k},\\quad I\\preceq f(\\boldsymbol O)\\preceq\\kappa I\\quad\\Longrightarrow\\quad\\mathcal D_b\\{A:A\\succ0\\}=1.",
+          "lean": "hν calls component_probabilities; hf unfolds the unchanged precision formulas. hpos uses blockPrecision_regular; hcompact/hrange/hDpos prove the actual pushforward support, and hD proves probability."
+        },
+        {
+          "title": "Produce measurability on the actual Gaussian domain",
+          "text": "Use the existing positive-definite precision-density theorem. The displayed density is jointly continuous as a real formula and defines a measurable withDensity family. On the actual positive-definite support it equals the canonical Gaussian. This proves almost-everywhere measurability under the matrix prior and pointwise family measurability along the block construction. The auxiliary density is not a new target definition, and no equality outside the positive-definite domain is used.",
+          "formula": "q(A,x)=\\frac{\\sqrt{\\det A}}{(2\\pi)^{d/2}}e^{-x^\\top Ax/2},\\qquad A\\succ0\\Longrightarrow\\mathcal N(0,A^{-1})=q(A,\\cdot)\\,dx.",
+          "lean": "q, δ, hq and hδ use measurable_withDensity. hγ and hγf call the same canonical multivariateGaussian_eq_withDensity_of_posDef on hDpos/hpos. hγn and hP reuse actual_mixture_laws. The constructor fallback is outside these proved source domains."
+        },
+        {
+          "title": "Reuse the fixed-tuple joint-law theorem",
+          "text": "Apply the one existing conditional block-product node at every tuple. The whole joint equality is retained. Its first projection also supplies measurability of the block-product kernel, so no product-kernel measurability assumption is added.",
+          "formula": "\\mathrm{split}_{\\#}\\mathcal N(0,A_{\\boldsymbol O}^{-1})=\\left(\\bigotimes_{j=1}^k\\mathcal N(0,A_{O_j}^{-1})\\right)\\otimes\\mathcal N(0,I_r).",
+          "lean": "hc is an actual call to GaussianBlockLaw.actual_conditional_block_product. Tlin/hsplit give the exact measurable split; hfull, hπeq, hπ and hprod transport the actual kernels. This does not reproduce the conditional proof or create another canonical node."
+        },
+        {
+          "title": "Average independent blocks and keep the residual factor",
+          "text": "On every measurable block rectangle, the product-kernel value is the product of its single-block values. The nonnegative integral product identity for independent coordinate variables and the evaluation pushforwards reduce this to the product of the true mixture values. Rectangle uniqueness identifies the block measures. The binary-product rectangle calculation then carries the common residual Gaussian through the same average. No finite real integral or independence estimate is supplied as a premise.",
+          "formula": "\\int\\prod_{j=1}^k\\gamma_{O_j}(B_j)\\,d\\nu_b^{\\otimes k}=\\prod_{j=1}^k\\int\\gamma_O(B_j)\\,d\\nu_b(O)=\\prod_{j=1}^kP_b(B_j).",
+          "lean": "hblocks uses iIndepFun_pi, lintegral_prod_eq_prod_lintegral_of_indepFun, measurePreserving_eval, bind_apply and Measure.pi_eq. hjoint uses Measure.prod_eq and lintegral_mul_const. These are actual nonnegative finite-product integrations, including the zero-dimensional probability factor."
+        },
+        {
+          "title": "Transport the actual matrix-prior average and consume it",
+          "text": "The pushforward-bind identity rewrites the actual average over matrices as the average of the prescribed full Gaussian over independent block tuples. Push the average through the measurable split and apply the conditional theorem and the preceding product calculation. The actual mixture is a probability. The focused consumer pushes this same full matrix-prior average to any block and to the residual, obtaining their genuine laws for every allowed parameter and either common sign.",
+          "formula": "\\mathrm{split}_{\\#}\\!\\left(\\int\\pi_A\\,d\\mathcal D_b(A)\\right)=\\int\\mathrm{split}_{\\#}\\pi_{f(\\boldsymbol O)}\\,d\\nu_b^{\\otimes k}=P_b^{\\otimes k}\\otimes\\mathcal N(0,I_r).",
+          "lean": "hback is the real map-map/bind transport using hγ and hfM. hpush evaluates the real coordinate pushforward with hc, and htarget proves probability via isProbabilityMeasure_bind. Tests.GaussianComplexityAveragedBlockLaw derives the actual block-mixture and residual marginal equalities from this joint law."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents.component_probabilities",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws.actual_mixture_laws",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw.actual_conditional_block_product"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.measurable_withDensity",
+        "MeasureTheory.Measure.isProbabilityMeasure_map",
+        "MeasureTheory.Measure.measurable_map",
+        "MeasureTheory.Measure.bind_apply",
+        "AEMeasurable.map_map_of_aemeasurable",
+        "ProbabilityTheory.iIndepFun_pi",
+        "ProbabilityTheory.lintegral_prod_eq_prod_lintegral_of_indepFun",
+        "MeasureTheory.measurePreserving_eval",
+        "MeasureTheory.Measure.pi_eq",
+        "MeasureTheory.Measure.prod_eq",
+        "MeasureTheory.lintegral_mul_const",
+        "MeasureTheory.isProbabilityMeasure_bind"
+      ],
+      "lean_statement": "Exactly the preproof sealed source-domain signature with explicit Borel typing; producer facts are not caller hypotheses.",
+      "lean_proof": "The exact sole production theorem proof is extracted below; local have-regions and existing canonical parents receive no duplicate source credit.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S3.E6",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Section2 S2.p2.1 and actual Gaussian target; Section3.1 Eq4-Eq6 and zero residual S3.SS1.p3.2; AppendixB.3 regularity. Ex70-72 are downstream context.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Eq6 prints the averaged product law; ASTIS supplies its omitted measurable-family, matrix-prior transport and independent-averaging details.",
+          "scope": "The actual common-sign prior-averaged law, with explicit coordinate pushforward, probabilities and positive support. No main lower-bound or density/amplification credit.",
+          "label": "Zhou–Suzuki, Section3.1 Eq6"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityAveragedBlockLaw"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw.actual_averaged_block_product",
+      "role": "proof-edge",
+      "supports": [
+        "actual-common-sign-prior-averaged-eq6"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Section3.1 fixes kappa>=4,3<=n<=d and b in {-1,+1}.",
+        "lean": "Exactly these inequalities and the same numerical common sign; no query-budget restriction or independent per-block signs."
+      },
+      {
+        "source": "D_b is the law of the actual block precision for independent conditioned Haar blocks; Eq6 averages pi_A under D_b.",
+        "lean": "D is literally the product-prior map through canonical blockPrecision; gamma is the actual inverse-precision Gaussian; D.bind gamma is the average. Probability, D-a.e.PD and kernel measurability are proved."
+      },
+      {
+        "source": "Ambient contiguous block coordinates are implicit; r=d-kn, with the residual factor omitted when kn=d.",
+        "lean": "The exact previous coordinate split is used with r=d%n and the unique zero-dimensional probability factor. Ordinary product Borel structures, no isometry claim."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "For every pair of natural numbers d and n, given 3 ≤ n and n ≤ d, for every real κ with 4 ≤ κ, and for every real b with b = 1 or b = −1, make the following definitions. The quantifier order in the displayed statement is d, n, the two dimension hypotheses, κ, its lower-bound hypothesis, b, and its sign hypothesis. There are no existentially quantified parameters.\n\nPut q = d div n and r = d mod n. Thus d = qn + r, q ≥ 1, and 0 ≤ r < n. Write E_m = ℝ^m with coordinates indexed by Fin m = {0,…,m−1}, its Euclidean structure, and its usual Borel σ-algebra. The real d-by-d matrix space also carries its Borel σ-algebra. All finite function spaces and products below carry their usual product Borel structures.\n\nLet O(n) be the full real orthogonal matrix group, containing both determinant signs, and let H_n be its Haar measure normalized to have mass one on the entire compact group. Define the finite measure ν on O(n) by\n    ν(S) = 2 H_n(S ∩ {O ∈ O(n) : det O = b})\nfor measurable S. This is restriction to the determinant-b set followed by multiplication by the real nonnegative-infinite scalar 2; the definition is not an additional sampling hypothesis.\n\nFor O ∈ O(n), define the real n-by-n matrix\n    B(O) = ((κ + 1)/2) I_n − ((κ − 1)/4)(O + Oᵀ).\nFor a family (O_j)_{j∈Fin q}, define A(O_0,…,O_{q−1}) as the d-by-d block matrix whose first q consecutive blocks are B(O_0),…,B(O_{q−1}), each of size n, and whose final block is I_r. All entries between distinct blocks are zero. More explicitly, A_{jn+i,kn+ℓ} is B(O_j)_{iℓ} if j = k and is zero if j ≠ k, for j,k ∈ Fin q and i,ℓ ∈ Fin n; A_{qn+s,qn+t} = δ_{st} for s,t ∈ Fin r; and entries between the first qn coordinates and the final r coordinates are zero. This ordering is exactly the reindexing obtained from the bijection e : ((Fin n × Fin q) ⊕ Fin r) → Fin d with e(inl(i,j)) = jn+i and e(inr(s)) = qn+s.\n\nLet D be the pushforward of the finite product measure ν^{⊗q} under the map (O_j)_j ↦ A(O_0,…,O_{q−1}). Thus D is a measure on the Borel space of all real d-by-d matrices.\n\nUse G_m(C) to denote the total multivariateGaussian constructor with mean 0 ∈ E_m and matrix argument C: it is the pushforward of the standard Gaussian on E_m under z ↦ (CFC.sqrt C)z. Its covariance interpretation is C when C is positive semidefinite, and the approved definition specifies a point mass otherwise. All matrix inverses used here are the totalized matrix inverse, including at singular matrices. Define the measure-valued function γ on every real d-by-d matrix by\n    γ(A) = G_d(A⁻¹).\nDefine the measure P on E_n and the measure μ on E_d by the measure integrals\n    P = ∫_{O∈O(n)} G_n(B(O)⁻¹) ν(dO),\n    μ = ∫_A γ(A) D(dA) = D.bind γ.\nThese integrals are the displayed Measure.bind constructions.\n\nDefine the coordinate splitting map\n    split : E_d → (Fin q → E_n) × E_r\nby\n    split(x) = (((x_{jn+i})_{i∈Fin n})_{j∈Fin q}, (x_{qn+s})_{s∈Fin r}).\nThe WithLp conversions in the displayed definition preserve all these coordinate entries. The target has the finite function-space and product Borel structures and their usual default product norms; the assertion below is an equality of measures on this target.\n\nThen all of the following hold, as a conjunction:\n(1) D is a probability measure.\n(2) For D-almost every real d-by-d matrix A, A is real symmetric positive definite.\n(3) P is a probability measure.\n(4) μ = D.bind γ is a probability measure.\n(5) The pushforward of μ under split satisfies the exact measure identity\n    split_* μ = P^{⊗q} ⊗ stdGaussian(E_r).\nHere P^{⊗q} is the actual finite independent product of q copies of P, and the rightmost product is the binary product with the standard Gaussian on E_r. Equivalently, under this pushforward law, the q displayed n-coordinate blocks have the independent common law P, and their joint law is independent of the final r-coordinate standard Gaussian. The positivity assertion has only the D-almost-everywhere scope stated in (2); on that set γ(A) has the usual centered Gaussian interpretation with covariance A⁻¹.\n\nThe lower endpoints n = 3 and κ = 4 are allowed, as is d = n. A zero remainder r = 0 is allowed: E_0 contains only its zero vector and stdGaussian(E_0) is the probability point mass at that vector. There is no upper bound on κ and no restriction on the remainder beyond natural division. The same b and κ are used for every block. No unspecified constant, asymptotic estimate, additional dimension hypothesis, metric identity, or pointwise-in-A positivity conclusion occurs in the proposition.",
+    "text_sha256": "d4c386028d50b005b8fee5fa943b6d622cc85068005ef56b036bf320498de586",
+    "decoder": "OpenAI Codex, GPT-6-based agent; agent task /root/decode_817463; exact backend model identifier is not exposed to this agent.",
+    "decoder_run_sha256": "520451a79b51705981c22f27700a55c7988e46624e70aef428d0a12eaec66074",
+    "decoder_packet_sha256": "e01dbe7269c55923a5c761215b522eb663236fccc3d573c5832999c8d92a8ffb",
+    "source_text_visible": false,
+    "lean_statement_sha256": "e2639fc30c7c7745b8aba3231a8c78ba1d5f83e9f7620353920c5786137aa997",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/averaged-block-law-semantic-evidence/anonymous-decoder/output.json",
+    "run_record_artifact": "research-wiki/paper-contributions/GaussianComplexity/averaged-block-law-semantic-evidence/anonymous-decoder/run_record.json",
+    "physical_decoder_input_artifacts": [
+      "/private/tmp/reconstruct-817463/input.json"
+    ],
+    "raw_input_file_sha256": "279caec1042296bbe0f6e4bb9fd46ca57995433672f1eb4680c3a584e817e4e1",
+    "raw_output_file_sha256": "f783acfaac10b7521fe99d15c4310c64434b470a6c868617f61b39b1acba107d",
+    "raw_run_record_file_sha256": "98bdb3f10b9f3781c09a089f16d1b058214603cc18a2c71aeb112df8c788a7ff"
+  }
+}

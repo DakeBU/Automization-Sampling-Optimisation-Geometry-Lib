@@ -1,0 +1,7 @@
+# Reproduce in a fresh private output directory
+
+Use exactly the pinned candidate and dependency package HEADs in input-manifest.json; require the native Lean binary hash. The run.py receipts name actual argv/cwd/LEAN_PATH and original streams for every check. These are read-only source checks plus private artifacts.
+
+prepare.py derives the5-module local import closure and freezes candidate bytes; build.py compiles all5 into an empty private output and runs the exact supplied probe. make_inspector.py / prepare_v2.py / prepare_native_v3.py retain the original verifier failures and produce the accepted InspectAllV2.lean / IndependentLiteralCheckV3.lean. Use the actual successful receipt commands, not the rejected V1/V2 literal invocation. check_native_v3.py summarizes the successful native dump. locators.py and reader_static_v3.py check the bounded static source map and production renderer output. supplement.py binds runtime to candidate; finalize.py seals scope. Paths are absolute in original receipts because they describe the actual run; portable hashes and source inputs permit relocating the scripts after adjusting ROOT-derived targets.
+
+Do not reuse ASTIS cached oleans or infer source fidelity/VERIFIED/publication/integration from this capsule. The complete31MB native dump and built oleans are omitted from the portable archive, recorded by hash, and regenerate from the included Lean inspection sources and fresh compile commands. Dependency caches/binaries are not bundled.

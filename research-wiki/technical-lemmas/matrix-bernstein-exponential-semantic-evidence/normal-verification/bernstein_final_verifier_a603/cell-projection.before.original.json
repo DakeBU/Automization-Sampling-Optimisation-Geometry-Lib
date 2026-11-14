@@ -1,0 +1,975 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SHARED-MATRIX-BERNSTEIN-EXPONENTIAL-QUADRATIC",
+  "route": "shared",
+  "mode": "faithfulPaper",
+  "title": "Shared real matrix Bernstein exponential-quadratic bound with actual Gaussian MGF consumer",
+  "source_anchor": "Tropp author preprint last revised15June2011, Lemma6.7 deterministic proof p25 and expectation step p26; standing definitions/regularity/functional calculus p7-8. Independently matched to uncited Gaussian2610.20492v1 C.2 Ex121; actual Gaussian consumer uses original Ex107-112 definitions and source radius. Both exact source hashes sealed.",
+  "target_statement": "{ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian)\n    (hA_le : (1 - A).PosSemidef) {s : ℝ} (hs : 0 < s) :\n  ((1 : Matrix ι ι ℝ) + s • A + (Real.exp s - s - 1) • (A * A) -\n    NormedSpace.exp (s • A)).PosSemidef\n\nExact private original-Gaussian single-summand MGF consumer\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let X : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => ρ⁻¹ • Z i ω\n  ∀ s : ℝ, 0 < s → ∀ i : Fin d,\n    (NormedSpace.exp\n        ((Real.exp s - s - 1) • (∫ ω, X i ω * X i ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef\n",
+  "status": "proved_locally",
+  "owner_id": "huanjian_20261114_matrix_bernstein_exponential",
+  "advance_id": "ASTIS-SA-20261114-MatrixBernsteinExponentialQuadratic",
+  "parents": [],
+  "consumers": [
+    "AutoSamplingTheory.Tests.GaussianComplexityBernsteinMgf.actual_source_normalized_single_summand_mgf",
+    "AutoSamplingTheory.Tests.GaussianComplexityBernsteinWeightedMgf.actual_source_weighted_normalized_single_summand_mgf"
+  ],
+  "consumer_scope": {
+    "current_exact_consumer": {
+      "name": "AutoSamplingTheory.Tests.GaussianComplexityBernsteinMgf.actual_source_normalized_single_summand_mgf",
+      "state": "ACTUAL_PRIVATE_COMPILED;INDEPENDENT_NATIVE_AND_SEMANTIC_PENDING"
+    },
+    "second_source_required_route": {
+      "name": "AutoSamplingTheory.Tests.GaussianComplexityBernsteinWeightedMgf.actual_source_weighted_normalized_single_summand_mgf",
+      "state": "FUTURE_UNIMPLEMENTED_SOURCE_APPLICATION_ONLY;not_an_additional_current_target",
+      "source": "GaussianC.2Ex121 second, cosine-weighted tail; the same deterministic source exp bound is needed for its normalized summands."
+    },
+    "compiled_consumer_credit": true,
+    "separate_random_families_not_joint_independence": true
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib/ASTIS: bounded names and existing sealed-header audit found no exact exp-quadratic or normalized matrix-MGF replacement. Existing actual source mean/radius/structure and RealMatrixPositiveIntegral interfaces are canonical and directly available.",
+      "Mathlib: bounded signature search across the pinned matrix/algebra/probability scope found matrix-exp identities, scalar MGFs and rank-one moments, but no exact replacement within the inspected scope. This is not a global absence claim.",
+      "Samplinglib private visibility: R10/R11 source-qualified aliases fail ordinary #check, while a successful ordinary-import TYPE-ONLY diagnostic finds exact compiled private names and sealed types. Malformed numeric-name syntax is retained separately. No private theorem is declared absent/unproved.",
+      "Reuse supported public Y/actual-mean norm bounds, actual centered structure and PSD-integral floor; derive centered normalized radius inside the actual consumer. No private-proof reconstruction or duplicate public radius wrapper."
+    ],
+    "classification": "adapt",
+    "decision": "new_canonical_shared",
+    "canonical_declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound",
+    "canonical_shared_cell": "ASTIS-SHARED-MATRIX-BERNSTEIN-EXPONENTIAL-QUADRATIC"
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib/ASTIS: bounded names and existing sealed-header audit found no exact exp-quadratic or normalized matrix-MGF replacement. Existing actual source mean/radius/structure and RealMatrixPositiveIntegral interfaces are canonical and directly available.",
+      "Mathlib: bounded signature search across the pinned matrix/algebra/probability scope found matrix-exp identities, scalar MGFs and rank-one moments, but no exact replacement within the inspected scope. This is not a global absence claim.",
+      "Samplinglib private visibility: R10/R11 source-qualified aliases fail ordinary #check, while a successful ordinary-import TYPE-ONLY diagnostic finds exact compiled private names and sealed types. Malformed numeric-name syntax is retained separately. No private theorem is declared absent/unproved.",
+      "Reuse supported public Y/actual-mean norm bounds, actual centered structure and PSD-integral floor; derive centered normalized radius inside the actual consumer. No private-proof reconstruction or duplicate public radius wrapper."
+    ],
+    "reused_declarations": [],
+    "planned_existing_P_parents": [],
+    "planned_private_T_parents": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
+    ],
+    "new_shared_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound"
+    ],
+    "known_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityBernsteinMgf.actual_source_normalized_single_summand_mgf"
+    ],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityBernsteinWeightedMgf.actual_source_weighted_normalized_single_summand_mgf"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "One generic canonical exp bound has the actual privately compiled original-Gaussian unweighted MGF consumer; the distinct source-required cosine-weighted application remains explicitly future/unimplemented. Internal radius derivation uses existing public bounds; no extra public wrapper.",
+    "private_canonical_nodes_retained_without_false_formal_parent": true,
+    "actual_private_consumer_parents": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
+    ]
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "Original v3 FAIL and isolated C2 v5 PASS plus graph supplement independently accepted; production/shared integration and purification held."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound"
+    ],
+    "visual_review": "Actual isolated graph runtime and original independent review bound; no production graph admission."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "All actual proof/API/native harness/metadata/reader failures and originals retained; no source binder or definition changed. Every handwritten proof component is material; compiler-generated support is not an extra public node.",
+      "promoted_fragments": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound"
+      ],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "One ROOT proof worker. Independent raw SG, distinct raw TC and body-free interface audit have distinct review roles; no parallel mathematical proof routes.",
+      "shared_verified_context_digest": "c3103a9e8d08fea6c83f35201fce953af4dd93e88a1a3d7d647fc4deaaddeb7a"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "No competing mathematical proof routes."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "Tropp revised2011 PDF SHA f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86; Gaussian2610.20492v1 HTML SHA 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "TroppLemma6.7p25-26; source§2.1-2.3p7-8; GaussianC.2Ex107-112 and uncitedEx121use",
+    "detail_status": "omitted",
+    "gap": "Source calls the scalar remainder monotonicity a calculus exercise. Spectral transfer/series-exp compatibility, actual Gaussian radius normalization/regularity and PSD expectation must be proved or canonically reused; Lieb/master-tail remain separate downstream gaps, not P/T premises.",
+    "consulted": [
+      {
+        "source": "Pinned Tropp author preprint, independently matched external background; not attributed as a supplied Gaussian citation.",
+        "anchor": "Lemma6.7 deterministic inequality and expectation proof; §2.2 standing regularity; §2.3 transfer and I+C<=exp(C).",
+        "hypothesis_adapter": "P explicit real restriction with one-sided PSD(I-A) and positive s; T original unconditional Gaussian construction with sole hq and all s>0. All stochastic well-posedness and normalization facts are internal, q0 retained."
+      }
+    ],
+    "fidelity_boundary": "Only the real finite-nonempty self-adjoint deterministic proof component of Tropp Lemma6.7: A<=I implies exp(sA)<=I+sA+(exp(s)-s-1)A^2 for s>0, expressed by full Matrix.PosSemidef. The exact private consumer is the original unconditioned product-Gaussian truncated/centered Z_i, normalized by actual rho=2r(L+1)/d, and its actual single-summand MGF comparison. All radius positivity, centering, regularity/integrability, PSD expectation and exp adapters are internal proof obligations, never supplied certificates or extra Gaussian binders. The real restriction is explicit; this is not the full complex Tropp theorem. No Bernstein sum tail/event probability, full C6/Lemma4.4/main lowerbound, oracle/TV/precision/query-cap/cost, public private-consumer API, integration/publication/purification or whole-Goal credit. Tropp is an independently matched external background source, not a citation provided by the Gaussian paper."
+  },
+  "statement_seal": {
+    "status": "EXACT_UNCHANGED_P_T;LOCAL_COMPILED;INDEPENDENT_SOURCE_NATIVE_AND_ISOLATED_RUNTIME_READER_ACCEPTED;INTEGRATION_HELD",
+    "file": "research-wiki/technical-lemmas/matrix-bernstein-exponential-statement-seal.json",
+    "sha256": "c3103a9e8d08fea6c83f35201fce953af4dd93e88a1a3d7d647fc4deaaddeb7a",
+    "signature_sha256": "28bd25d83b8ffbd643fb8087e24a149efada562832005bcd30e3e2017d502be6",
+    "private_consumer_signature_sha256": "c80f983130011e185c0be6d1acd1522a0c35bed4b58accaff0bcbcd88dc6ec9f"
+  },
+  "evidence": {
+    "normal_API_calls": 4,
+    "formalizer_API_pristine": false,
+    "source_admission": {
+      "file": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/preproof-source-admission.json",
+      "sha256": "2e059c4326e9f35662995957a0aee5c2e1d76a693a5e696fab9d64d6363463b5"
+    },
+    "actual_literal_formation": {
+      "receipt": ".astis/huanjian-resume-20261103/20261113T153825760629Z-unclaimed-bernstein-exponential-v2-correct-exp-and-namespace-literal-Prop-formation.receipt.json",
+      "exit_code": 0,
+      "log_sha256": "d6d027519b075f4e1c51e4ab3bb9ffc1bfde4a648e47d1ffe354a070e4cbcc17",
+      "warnings": "hA,hA_le,hs,hq unused only in proposition formation; retained source binders, no theorem proof supplied."
+    },
+    "actual_definition_typing": {
+      "receipt": ".astis/huanjian-resume-20261103/20261113T153934555446Z-unclaimed-bernstein-exp-PSD-rational-algebra-generic-definition-typing-only.receipt.json",
+      "exit_code": 0,
+      "log_sha256": "d068e3e6e33c8a668e6b83216e686eac208c2bec2400a14458d14157c4dcd8e1",
+      "generic_instances": [
+        "Matrix.instAlgebra for Algebra ℚ (Matrix ι ι ℝ)",
+        "Matrix.instL2OpNormedRing",
+        "Matrix.instCompleteSpace ι ι ℝ"
+      ],
+      "no_junk_exp_branch": "Actual generic rational matrix Algebra instance exists; exp is the matrix algebra series, not its no-rational-algebra junk branch."
+    },
+    "actual_environment": {
+      "file": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/actual-environment-before-intake.original.json",
+      "sha256": "cc01b1c56d4b18fa74f749955f168364eef3050b0dded4996b29f21916c75dcf"
+    },
+    "local_math_candidate": {
+      "file": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/local-math-candidate.json",
+      "sha256": "f51838dd94c04ecff8f67524391b7fb2603dbc261a210526f5ec2a0e2f120468",
+      "independent_native": "PASS actual immutable0ff complete native closure and proof values",
+      "independent_semantic": "accepted exact P real component and private authored actual-Gaussian specialization"
+    },
+    "new_target_proof_calls_at_intake": 0,
+    "independent_source_review": {
+      "reviewer": "/root/bernstein_exp_fresh_61a9",
+      "source_reader_commit": "9a8b163f4753a1329dbc0435c1e7f810f729c349",
+      "P_decision": "equivalent-after-elaboration",
+      "private_T_decision": "equivalent-after-elaboration",
+      "P_publication_binding_sha256": "039a91f41fb14176849c877a897f6d47ca6f50b60f2bef5e29407854f044610b",
+      "private_T_binding_sha256": "714028d34ed54e7aa4e143c3adddc5576af8b85915f5ab00a7ceca5101ce368d",
+      "review_run": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/source-review/bernstein_exp_fresh_61a9/source-reader-review.run.v2.json",
+      "review_run_sha256": "c0d561fe1f9d150670e554fb6ba1fc7574b6f62e5533dbc4c442cf153b4dbe49",
+      "complete_code_first_judgment": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/source-review/bernstein_exp_fresh_61a9/PT-whole-module-code-judgment.v1.json",
+      "complete_code_first_sha256": "f67ac23fe192d56e50603d29f00b93cdd37de6dd22e20a33e2b216610b4371c1",
+      "raw_and_whole_code_before_outcomes_and_reconstructions": true,
+      "all_code_lines_exact_in_seven_folds": 388,
+      "locator_correction": "Only T source locator54->57; v1 originals retained, v2 independently rebound.",
+      "runtime_reader": "pending separate original/candidate ROOT-primary browser check and independent screenshot review",
+      "archive": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/source-review/bernstein_exp_fresh_61a9/chosen-originals.v1.tar.gz",
+      "archive_sha256": "b7f92c0f50512871f5be13ead69565c7b19806dbeb8e47944172f1ecb29ab093"
+    },
+    "focused_checks": [
+      {
+        "file": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/math-originals/actual-runs/20261113T171720282143Z-matrix-bernstein-fifth-actual-Gaussian-MGF-explicit-integral-scalar-instantiations.receipt.json",
+        "sha256": "4676ba3912c2286dea079ee884584303029f56d027182428b2bc58b66c490070",
+        "command": [
+          "lake",
+          "build",
+          "Tests.GaussianComplexityBernsteinMgf"
+        ],
+        "exit_code": 0,
+        "log_sha256": "41c286b0e2e581ff022bc13c6c950da81a5b0efe929e386eead7b95662720197",
+        "executed_HEAD": "ba438e3085775662a027d68093f5864645566de7"
+      },
+      {
+        "file": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/math-originals/actual-runs/20261113T171903121371Z-matrix-bernstein-actual-universal-P-T-values-sealed-kernel-owned-inventory-q0.receipt.json",
+        "sha256": "5c1fc3c1b1cf109637f993d34865d7e5e44f7fc213411925c4af5a6481750151",
+        "command": [
+          "lake",
+          "env",
+          "lean",
+          ".astis/huanjian-gc-bernstein-mgf-preparation-20261114/FinalBernsteinKernelProbe.lean"
+        ],
+        "exit_code": 0,
+        "log_sha256": "261a63ba0b4c401daf4c5f9ab60d2b49f6d338fcada3723d64efa9f8015f9d3e",
+        "executed_HEAD": "ba438e3085775662a027d68093f5864645566de7"
+      }
+    ],
+    "actual_PROVED_LOCAL_append_sha256": "11bc772c3efb23f113947f24ff6e2c9ec7fda47ed8398a726b95f05d43e5f679",
+    "independent_native_math": {
+      "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/native-mathematics-report.v1.json",
+      "sha256": "b65ea8f10740af2fad395ef448c9d0e87f92dc5646a1b3a313e5efdda356bc69"
+    },
+    "actual_canonical_parent_witnesses": {
+      "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/actual-canonical-parent-supplement.v1.json",
+      "sha256": "ce0c6fc6de645fec235b3b69a66a59baa58433d7c195a76f516f024ba2bef624"
+    },
+    "actual_reader_evidence": {
+      "actual_reader_candidate_commit": "9a8b163f4753a1329dbc0435c1e7f810f729c349",
+      "original": {
+        "actual_checks": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/actual-checks.json",
+          "sha256": "2c59e330141418ae36b6377b6e7aa21fc431b1e4cd8af7cea8793188656f4ee5"
+        },
+        "process_receipt": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-process-v3/original/process-receipt.json",
+          "sha256": "341928425d7f31c99232e2073f020d104ccfae2c1825fda1e8db30d40525a645"
+        },
+        "contract": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-contract.v3.json",
+          "sha256": "16262cb1ae4f9b2cca8967d4a1e181506f87ea3d7d218f3acfa8866f398fe591"
+        },
+        "wrapper": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/primary_browser_wrapper_v3.py",
+          "sha256": "957363c6dea4a0693e814e9c43c5e02fdd30da2b7bc5f3cf463ecf8233e9e684"
+        },
+        "checker_exit": 1,
+        "raw_streams": {
+          "stdout": {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-process-v3/original/stdout.raw",
+            "sha256": "8b920eceffc0de0a6511659df718e31361b4f1f7b6f115be78b40767cf15d005"
+          },
+          "stderr": {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-process-v3/original/stderr.raw",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "screenshots": [
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-proof-initial.png",
+            "sha256": "376610e997fc26b691218b05ca0129129bd104d6392d682fcb2de0ffe9d12593"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-step-1.png",
+            "sha256": "297c6cb7e44c0f19eeb90d793d47286b4110ed616bb2e5c6356fea5374e93aa9"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-step-2.png",
+            "sha256": "973e2d689d1056a9adc046c83c013a3b12b159753dfbbeb4eda6dc74d0001d97"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-step-3.png",
+            "sha256": "d22286fc0580b39d890aa4164cf1a875f55c7d3ae80ca8de8c08c1817c71a7a8"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-step-4.png",
+            "sha256": "6a65b4dedb4368ce48a0afa71709b8b29f4280be3e170a4ac56577a58e997ac9"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-step-5.png",
+            "sha256": "5b31a00a4d3368b249fa3a95de99f342dda86ce32a63664eb549569120ac8924"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-step-6.png",
+            "sha256": "1be6ca125f35303c954fc7f0d3356422898b313de0b00fedb9710e0a2b57b1fc"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-step-7.png",
+            "sha256": "b7810c035282057434a793e7cda7df9a95c2ea6e924505e8f7273351195380cb"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-source-table-right.png",
+            "sha256": "6deed54a60136acade3fd01c5796e6167e8f81025713514a0d3db091dc6440c8"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-source-P-anchor.png",
+            "sha256": "483849fc9f1b7d250d84d6c2e4139cee55183a2ab95e73e8fb06a284dc602a7e"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-source-P-full.png",
+            "sha256": "ac3c7648eee4df36d1ee1045ce7088b18feebee130f288e375677458dad14a1f"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-source-P-glyph-segment-0.png",
+            "sha256": "163b8e96feb282b4de184f7d209ebc8c9691660fb5dda0d6c68cefa2b130ad5a"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-source-T-anchor.png",
+            "sha256": "c405ed6e32a9ce160232797ed0f010656d69cf05e9d12e8e4bd64d9527eafd61"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-source-T-full.png",
+            "sha256": "c85bd317439df5edd10e098abc834874504af1c47aead482548dcd831c345561"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-source-T-glyph-segment-0.png",
+            "sha256": "8cc715af228008a6501efdadd6dd8e82307ff6e3e62a9a71b0c84a593ab82187"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-source-T-glyph-segment-1.png",
+            "sha256": "8cc715af228008a6501efdadd6dd8e82307ff6e3e62a9a71b0c84a593ab82187"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/desktop-graph-exact-one-hop.png",
+            "sha256": "5ac6ca704f49919dfc7f41076adc2f367887333f9e88bfd100f64bc5d0d50294"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-proof-initial.png",
+            "sha256": "b3d7456658cd3596589516ffe8a358cdcdaee7dcbbce25250b112c83c7f76c5c"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-step-1.png",
+            "sha256": "27b0aa171a569640a8f27659fa16970ecef56c14fe53ca724696ebf8ee5ba063"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-step-2.png",
+            "sha256": "efd7106177191a88f4ec459bea0b7961ea5f959d5e901c51eda41ddc3ed5ea37"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-step-3.png",
+            "sha256": "6de4d696a7ac5bb95b721754d67271b6ae5d96da789d60827869a7d52c46bcd2"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-step-4.png",
+            "sha256": "f1ee868ec4841de07109fa6cb7a8c219848606f470c4fe7cfaef70139c653eeb"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-step-5.png",
+            "sha256": "e02af44d1b1c6da00eb02fd84a6e28020bbd556c86bb33fdbf9a59fcac4e49ab"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-step-6.png",
+            "sha256": "2baf0775685b445425be0ff18bf873ac428f2df75f40679e4e1e2bd64015d861"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-step-7.png",
+            "sha256": "926cc4080d58dd70ff83297b5ce9d4a3332f84d91142870be0604b99e966f2f6"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-source-table-right.png",
+            "sha256": "cf0302ba88eff521c0eb85c4b0451cca1fa53791ce1337fb1b05085891d2fc56"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-source-P-anchor.png",
+            "sha256": "be23e9a190bd9cb26933f44a192464964ee801326f49cf9d1d5d5fb27b9c61a8"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-source-P-full.png",
+            "sha256": "161fb1241b3ea8b05632364df6e450a9725b3ce322dc901415f9839bd81e5c54"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-source-P-glyph-segment-0.png",
+            "sha256": "eb9a06eed8a2c5c1b2bbe9a69ad4e04d12bbdba56b281d1efa274fa00f0d1b05"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-source-P-glyph-segment-1.png",
+            "sha256": "eb9a06eed8a2c5c1b2bbe9a69ad4e04d12bbdba56b281d1efa274fa00f0d1b05"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-source-P-glyph-segment-2.png",
+            "sha256": "eb9a06eed8a2c5c1b2bbe9a69ad4e04d12bbdba56b281d1efa274fa00f0d1b05"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-source-T-anchor.png",
+            "sha256": "baa649d7056b9782bc06691d393b596c6286a3b24ae1c030600ee61ecd1be846"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-source-T-full.png",
+            "sha256": "d97070b34c221913271dba2b8502189ac1095c788f2f95ebb374600fb8cc7411"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-source-T-glyph-segment-0.png",
+            "sha256": "2ef7eb7460ddd77ef798a012e2440270662120c10c7a5b05d2966abc89c3ec83"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-source-T-glyph-segment-1.png",
+            "sha256": "2ef7eb7460ddd77ef798a012e2440270662120c10c7a5b05d2966abc89c3ec83"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-source-T-glyph-segment-2.png",
+            "sha256": "2ef7eb7460ddd77ef798a012e2440270662120c10c7a5b05d2966abc89c3ec83"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-source-T-glyph-segment-3.png",
+            "sha256": "2ef7eb7460ddd77ef798a012e2440270662120c10c7a5b05d2966abc89c3ec83"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/original/mobile-graph-exact-one-hop.png",
+            "sha256": "02516a2cb55fd09749f8d8e5fc6aad469dc66e1957f14f0b9a5fa88f3864cfe3"
+          }
+        ]
+      },
+      "isolated_candidate": {
+        "actual_checks": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/actual-checks.json",
+          "sha256": "22c4b9b5435891139431095aa1b3e997b44954f7fa3bccb6fb22de6f01b786b7"
+        },
+        "process_receipt": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-process-v5/candidate/process-receipt.json",
+          "sha256": "7e19766890e456ab2421525c9c3b6d587af45cd7d9f746e4659e614987589080"
+        },
+        "contract": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-contract.v5.json",
+          "sha256": "65f0e0b952dea8e1606e1d940babba8cb1c7be8ba8030ff4ee0aea5921be009d"
+        },
+        "wrapper": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/primary_browser_wrapper_v5.py",
+          "sha256": "a203e0801283cf3cecd44ed9ca444121232b1c24eb561c644f3a65cb6f78815e"
+        },
+        "checker_exit": 0,
+        "raw_streams": {
+          "stdout": {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-process-v5/candidate/stdout.raw",
+            "sha256": "54e476504838712cb400eee23af2a67f9555686a14cedf7cd30e80d3e29588c9"
+          },
+          "stderr": {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-process-v5/candidate/stderr.raw",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "screenshots": [
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-proof-initial.png",
+            "sha256": "7afc23b6df84fa7c2a2a9b61ac3ba4911fccc5d471003922a684237db454c020"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-step-1.png",
+            "sha256": "297c6cb7e44c0f19eeb90d793d47286b4110ed616bb2e5c6356fea5374e93aa9"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-step-2.png",
+            "sha256": "42ec0b04fa428b24fa9fa7a216dfd807af7d831dac43992965364ab0efc802d6"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-step-3.png",
+            "sha256": "d22286fc0580b39d890aa4164cf1a875f55c7d3ae80ca8de8c08c1817c71a7a8"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-step-4.png",
+            "sha256": "6a65b4dedb4368ce48a0afa71709b8b29f4280be3e170a4ac56577a58e997ac9"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-step-5.png",
+            "sha256": "6089a738167eedfc9320038697eb660d65427b1cc82b518544f1c37776d36001"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-step-6.png",
+            "sha256": "e261eb10df7cc495cca2ede24fdba4e47080bbdb906920d82151cc64c5783426"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-step-7.png",
+            "sha256": "7826f87867643c550c3ffbe37b57cb338e110c43674ba65bc43340792886ca44"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-source-table-right.png",
+            "sha256": "dfb7895d2cfbdf7dd470b3452d60131140b7ac750c9cb8323c34b4a6d8bf7060"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-source-P-anchor.png",
+            "sha256": "529959e472b97e48e1e76422366e550ad7cc5b9326962d369586dabf4aed9562"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-source-P-full.png",
+            "sha256": "42541d6f9b7b66efe35cee101eeef4965f65fa1c151c335e68d95c76f938c0aa"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-source-P-glyph-segment-0.png",
+            "sha256": "463d5796c475713b7457d0e861170908666bcf5db6902864b185130a67e86c9b"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-source-T-anchor.png",
+            "sha256": "6f1f64c657502b1a1ac392cf35cc409fb97c4e125acf7de240bab07def8568cb"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-source-T-full.png",
+            "sha256": "e8f8419014b015b46ba0af8107807d3a56da40a714800328b43b1bea7e99e1ba"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-source-T-glyph-segment-0.png",
+            "sha256": "a59ce0c2d6e2689fffda6ef95c63bfca286f52d6af8bf0b75fc49ef808a50238"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-source-T-glyph-segment-1.png",
+            "sha256": "27c12a5869b68f4e8e44042b8b0d63931930aaf9183bc16656c275ad11702a49"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-graph-exact-one-hop.png",
+            "sha256": "f3441f7ec7ae622f3a7c53400c428aa7c43edafb52293521f37dff371a414d61"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-graph-detail-header.png",
+            "sha256": "b6ef271a038f888f0bb9d507947ab622ae0366e4396fe10480b0ce5cc3d2c24d"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/desktop-graph-detail-reader-and-edges.png",
+            "sha256": "cd0c38263235ccbff758244c4d5a5d215eb591424962f69e846b145290100871"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-proof-initial.png",
+            "sha256": "b3d7456658cd3596589516ffe8a358cdcdaee7dcbbce25250b112c83c7f76c5c"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-step-1.png",
+            "sha256": "27b0aa171a569640a8f27659fa16970ecef56c14fe53ca724696ebf8ee5ba063"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-step-2.png",
+            "sha256": "efd7106177191a88f4ec459bea0b7961ea5f959d5e901c51eda41ddc3ed5ea37"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-step-3.png",
+            "sha256": "d736ae52241fcdecf05e7f28ecbbc8eba4d66818d1559689ed2ed631311d8dd7"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-step-4.png",
+            "sha256": "b5ea075728377ba026545d3f60c59e3d306abce7908bfb6771876ab4d0087d1d"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-step-5.png",
+            "sha256": "65db7e4b38ed39dc4707c8732b23fbdc8c9156bfa93eb2004ab718c5fe1c1634"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-step-6.png",
+            "sha256": "af0d866075515431fbd46d3e6d018bbac180782932a8c1d814bab9cff65114c8"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-step-7.png",
+            "sha256": "6bb84a5750d9fb844de62ec41225c798a199cce25d59060435849972be8da057"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-source-table-right.png",
+            "sha256": "7b8545e885f673d1b72666c0db425c23d0ff39252b0fe4ea39afcb44c7f84bde"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-formula-0-right-end.png",
+            "sha256": "b502045cd4da3047bc6a86ada0eef67df6bdab9d6c8271da12ade16717d9a6b8"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-formula-1-right-end.png",
+            "sha256": "c9f3847bfe723a2174c6b34ad9b4fddd212dd04fb60e01fa44d59ec29e25da06"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-formula-2-right-end.png",
+            "sha256": "ba752daeed96fcd83c6b82e6172051b6d831b54d286245976f2e0a9fd481d890"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-formula-3-right-end.png",
+            "sha256": "4a2285b4b3f2c1592270a272b2831c4c29181f8475d142b8a99d0f1abbf1e838"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-formula-5-right-end.png",
+            "sha256": "70102c9e798c9911f4537a669cebd9ea36b201ee1b0c97bf29931d1f15b8649d"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-formula-6-right-end.png",
+            "sha256": "7ec74fb02fd67992a9800351ebbb62ea29050359796cf619c9651acc24f7564d"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-formula-7-right-end.png",
+            "sha256": "a383c4855e3ceefa76d9b808ea504d15988ab4604cc8618428329bbc6b721154"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-formula-8-right-end.png",
+            "sha256": "039e99813ac3dce1b880610cdc6f087a7571fa153cd49c2c2565f35f959f523f"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-source-P-anchor.png",
+            "sha256": "d80cd83782e24aa0984b5f61865f26f8bab60a59071078e1118110f6884876fc"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-source-P-full.png",
+            "sha256": "a51d5185c3fcf788c20955abfcbed7f22b8745b89f04d2393346af7c31a0c232"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-source-P-glyph-segment-0.png",
+            "sha256": "4463498614ac1d7f49949aacf84364c5ffc4f6a29572f2d7fee4485b6a4306d6"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-source-P-glyph-segment-1.png",
+            "sha256": "9fdf2cffa739331b2427d1d3cb8187c49b6b4e63f3b46b824bb76a28c74a7ed4"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-source-P-glyph-segment-2.png",
+            "sha256": "d8c59f3c5d61348b04e890ca8fab836fa784041130ee64a9a0c307c111cbea7c"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-source-T-anchor.png",
+            "sha256": "a99a63ba867e4eb3aec0e3c08872aa7635554253c7d63ce249ad7c6c7b1dc8be"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-source-T-full.png",
+            "sha256": "901011c71fc2e8bd97902a3538bcfe2d54cb51381b416d6835e5d4b2f4d4fde0"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-source-T-glyph-segment-0.png",
+            "sha256": "18eeb990683b894b4cb56d06b42ee8ec8a2e55be1c0ed34b34bfffb27282457c"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-source-T-glyph-segment-1.png",
+            "sha256": "8f5e4c28e4907d113a26f77c21df981b4cbedfcebeba4e7036156b3a3a916084"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-source-T-glyph-segment-2.png",
+            "sha256": "1e7d146204abf0c86b015df2cce49b1095170cfe9fa00aae46dd7dec9cd63de4"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-source-T-glyph-segment-3.png",
+            "sha256": "235b411153102ecb0e7edf0f567c9a0246e952e81989fe075331c4dd34552016"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-graph-exact-one-hop.png",
+            "sha256": "f0fb7095621df780b435a5d31f4220e10569358daaf5e57d17c14514d5a66251"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-graph-detail-header.png",
+            "sha256": "b1d7dcc1323d111a29ab9992d8b0c71e45156fa3e7acd5f000e86c6573b473e7"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v5/candidate/mobile-graph-detail-reader-and-edges.png",
+            "sha256": "deb0a27f3f168dec599359007568dba14475328a5354ce579734d594eb7e361b"
+          }
+        ]
+      },
+      "graph_zoom_supplement": {
+        "actual_checks": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/actual-checks.json",
+          "sha256": "c313cbb71ead4e2486deb54957797e5c348170c061fc01c685375124dfb6e89c"
+        },
+        "process_receipt": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-process/candidate/process-receipt.json",
+          "sha256": "367805e3e0a5d88b5ee2cb4cd878af4f606c4b707443569c632d2456692fb6d1"
+        },
+        "contract": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-contract.json",
+          "sha256": "e2397ec7db5845440235d20120fe978319a9222aedd70aea9b7b6338c4042f26"
+        },
+        "wrapper": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/primary_graph_zoom_supplement.py",
+          "sha256": "5fc8895cdae381ee61e8db16ca7a58580ca2481cc925c27bd4043fdbbd1859e2"
+        },
+        "checker_exit": 0,
+        "raw_streams": {
+          "stdout": {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-process/candidate/stdout.raw",
+            "sha256": "b4f69d1db9bcbb27572bc54d7f9f736ac5ba2362eaf67d7734bae38fa1ce3419"
+          },
+          "stderr": {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-process/candidate/stderr.raw",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "screenshots": [
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/desktop-readable-selected-public-node.png",
+            "sha256": "db0124a24c14555af4e500dd34f17806566ab67cbff902e4cffd4cad2e5dc4cd"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/desktop-readable-adjacent-node-0.png",
+            "sha256": "2aded333246dd1af49ab3524b83a5d55e95e3d35d6ceab600d01c6281675d064"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/desktop-readable-adjacent-node-1.png",
+            "sha256": "8a72dea3f2c7ad2ceb21078dcdf118ebd889c329b77c8f482baf78de859a1669"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/desktop-readable-formal-edge.png",
+            "sha256": "1da43764a8609317935ad40815cb97b73d88de613f603c66d306c455a2308084"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/desktop-readable-overlay-edge.png",
+            "sha256": "38c9a57902c4621a0a071958ba0e5f828b7118e3e08f365ba3b8f77fb8388814"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/desktop-readable-reader-and-edge-details.png",
+            "sha256": "7cf11b5de38400031abf8df9fd9efc78a1111530be5df43b3b494aeb7260b046"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/mobile-readable-selected-public-node.png",
+            "sha256": "79fc1ceae8ba5bf4cfb5a53aaaf149a9ad649d213024d8502c7baf1c80094fdd"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/mobile-readable-adjacent-node-0.png",
+            "sha256": "361bb9652fd5b836cf05c77bc3a37e403caddebdb96746c7dc7eabfabfa4a0ca"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/mobile-readable-adjacent-node-1.png",
+            "sha256": "e83d34cc08661a20225b70120c47804acde257e4f48c3f17660409a61c17b2f9"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/mobile-readable-formal-edge.png",
+            "sha256": "597ace5086294fc14a33ba9b237249b534baa611cb348bc466b15b71fc83be03"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/mobile-readable-overlay-edge.png",
+            "sha256": "07bda19d6a6439e4749b6201e4043d4675fb627320b4b87d735cf572d57265cd"
+          },
+          {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-graph-zoom-output/candidate/mobile-readable-reader-and-edge-details.png",
+            "sha256": "10d6cfb0689631335439584e61766e6fed80018f1ce067e6375ce7912c76af45"
+          }
+        ]
+      },
+      "independent_runtime_review": {
+        "artifact": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_fresh_61a9/presentation-runtime-review-final/independent-runtime-review.final.json",
+          "sha256": "2fdf71894795203e022c0ad64278b36913ad986a7d1e91f93540564553a8ac9b"
+        },
+        "accepted": true
+      },
+      "production_shared_files_changed": false,
+      "exact_full_source_folds": {
+        "P_lines": 148,
+        "T_lines": 240,
+        "folds": 7
+      },
+      "scope_boundary": "Original v3 FAIL and isolated C2 v5 PASS plus graph supplement independently accepted; production/shared integration and purification held.",
+      "graph_boundary": "Actual isolated graph runtime and original independent review bound; no production graph admission.",
+      "preserved_predecessors": {
+        "candidate_v3_font_FAIL": {
+          "actual_checks": {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/actual-checks.json",
+            "sha256": "f36c3d9a4917682160d70c7c6e70fb980f98454c52dc664349a7bdd3fcedb3db"
+          },
+          "process_receipt": {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-process-v3/candidate/process-receipt.json",
+            "sha256": "efe9ef3e454a9e0b1a5379645710c1f60cbd2fdb749b7df394a536fb09802e55"
+          },
+          "contract": {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-contract.v3.json",
+            "sha256": "16262cb1ae4f9b2cca8967d4a1e181506f87ea3d7d218f3acfa8866f398fe591"
+          },
+          "wrapper": {
+            "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/primary_browser_wrapper_v3.py",
+            "sha256": "957363c6dea4a0693e814e9c43c5e02fdd30da2b7bc5f3cf463ecf8233e9e684"
+          },
+          "checker_exit": 1,
+          "raw_streams": {
+            "stdout": {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-process-v3/candidate/stdout.raw",
+              "sha256": "453ca190ed80831254356a216c395ebd318a74eb82fcc92d5ba71f6b6d4676a8"
+            },
+            "stderr": {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-process-v3/candidate/stderr.raw",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "screenshots": [
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-proof-initial.png",
+              "sha256": "7afc23b6df84fa7c2a2a9b61ac3ba4911fccc5d471003922a684237db454c020"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-step-1.png",
+              "sha256": "297c6cb7e44c0f19eeb90d793d47286b4110ed616bb2e5c6356fea5374e93aa9"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-step-2.png",
+              "sha256": "42ec0b04fa428b24fa9fa7a216dfd807af7d831dac43992965364ab0efc802d6"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-step-3.png",
+              "sha256": "d22286fc0580b39d890aa4164cf1a875f55c7d3ae80ca8de8c08c1817c71a7a8"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-step-4.png",
+              "sha256": "6a65b4dedb4368ce48a0afa71709b8b29f4280be3e170a4ac56577a58e997ac9"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-step-5.png",
+              "sha256": "6089a738167eedfc9320038697eb660d65427b1cc82b518544f1c37776d36001"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-step-6.png",
+              "sha256": "e261eb10df7cc495cca2ede24fdba4e47080bbdb906920d82151cc64c5783426"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-step-7.png",
+              "sha256": "7826f87867643c550c3ffbe37b57cb338e110c43674ba65bc43340792886ca44"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-source-table-right.png",
+              "sha256": "dfb7895d2cfbdf7dd470b3452d60131140b7ac750c9cb8323c34b4a6d8bf7060"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-source-P-anchor.png",
+              "sha256": "529959e472b97e48e1e76422366e550ad7cc5b9326962d369586dabf4aed9562"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-source-P-full.png",
+              "sha256": "42541d6f9b7b66efe35cee101eeef4965f65fa1c151c335e68d95c76f938c0aa"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-source-P-glyph-segment-0.png",
+              "sha256": "463d5796c475713b7457d0e861170908666bcf5db6902864b185130a67e86c9b"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-source-T-anchor.png",
+              "sha256": "1cba3867323281980620d6b62a7bedfaef30dfc7b132ca06a495d766d2455bd6"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-source-T-full.png",
+              "sha256": "264f8c6ec97f3601dc7732c75a5c0bcf422f2ef4165890e8cd52312482ad44cd"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-source-T-glyph-segment-0.png",
+              "sha256": "a59ce0c2d6e2689fffda6ef95c63bfca286f52d6af8bf0b75fc49ef808a50238"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-source-T-glyph-segment-1.png",
+              "sha256": "27c12a5869b68f4e8e44042b8b0d63931930aaf9183bc16656c275ad11702a49"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/desktop-graph-exact-one-hop.png",
+              "sha256": "5ac6ca704f49919dfc7f41076adc2f367887333f9e88bfd100f64bc5d0d50294"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-proof-initial.png",
+              "sha256": "b3d7456658cd3596589516ffe8a358cdcdaee7dcbbce25250b112c83c7f76c5c"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-step-1.png",
+              "sha256": "27b0aa171a569640a8f27659fa16970ecef56c14fe53ca724696ebf8ee5ba063"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-step-2.png",
+              "sha256": "efd7106177191a88f4ec459bea0b7961ea5f959d5e901c51eda41ddc3ed5ea37"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-step-3.png",
+              "sha256": "d736ae52241fcdecf05e7f28ecbbc8eba4d66818d1559689ed2ed631311d8dd7"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-step-4.png",
+              "sha256": "b5ea075728377ba026545d3f60c59e3d306abce7908bfb6771876ab4d0087d1d"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-step-5.png",
+              "sha256": "65db7e4b38ed39dc4707c8732b23fbdc8c9156bfa93eb2004ab718c5fe1c1634"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-step-6.png",
+              "sha256": "af0d866075515431fbd46d3e6d018bbac180782932a8c1d814bab9cff65114c8"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-step-7.png",
+              "sha256": "6bb84a5750d9fb844de62ec41225c798a199cce25d59060435849972be8da057"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-source-table-right.png",
+              "sha256": "7b8545e885f673d1b72666c0db425c23d0ff39252b0fe4ea39afcb44c7f84bde"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-source-P-anchor.png",
+              "sha256": "d80cd83782e24aa0984b5f61865f26f8bab60a59071078e1118110f6884876fc"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-source-P-full.png",
+              "sha256": "beab1261ff15e95deb005e16c682d5bca669dd53874aa52a67bb7c6c80c461e0"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-source-P-glyph-segment-0.png",
+              "sha256": "4463498614ac1d7f49949aacf84364c5ffc4f6a29572f2d7fee4485b6a4306d6"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-source-P-glyph-segment-1.png",
+              "sha256": "9fdf2cffa739331b2427d1d3cb8187c49b6b4e63f3b46b824bb76a28c74a7ed4"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-source-P-glyph-segment-2.png",
+              "sha256": "d8c59f3c5d61348b04e890ca8fab836fa784041130ee64a9a0c307c111cbea7c"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-source-T-anchor.png",
+              "sha256": "7cc1ab8fc7a42864be051ee8f71aa98b5bf44364117ecb8b19e5fba859530dbe"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-source-T-full.png",
+              "sha256": "a1140c25aa786935c7479e84a48a084a4d47c85b050da2c76f0380ae18523df0"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-source-T-glyph-segment-0.png",
+              "sha256": "18eeb990683b894b4cb56d06b42ee8ec8a2e55be1c0ed34b34bfffb27282457c"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-source-T-glyph-segment-1.png",
+              "sha256": "8f5e4c28e4907d113a26f77c21df981b4cbedfcebeba4e7036156b3a3a916084"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-source-T-glyph-segment-2.png",
+              "sha256": "1e7d146204abf0c86b015df2cce49b1095170cfe9fa00aae46dd7dec9cd63de4"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-source-T-glyph-segment-3.png",
+              "sha256": "235b411153102ecb0e7edf0f567c9a0246e952e81989fe075331c4dd34552016"
+            },
+            {
+              "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v3/candidate/mobile-graph-exact-one-hop.png",
+              "sha256": "02516a2cb55fd09749f8d8e5fc6aad469dc66e1957f14f0b9a5fa88f3864cfe3"
+            }
+          ]
+        },
+        "original_v2_ENV_BLOCKED_without_reader_verdict": {
+          "path": ".astis/semantic-neutral-20261114/bernstein_exp_native_72c4/root-primary-browser-output-v2/original/actual-checks.json",
+          "sha256": "bb61427c53d23bdfcc666d11235861f34ec240efb8fa7165810e97ccb07e513d"
+        }
+      }
+    }
+  },
+  "blocked": {},
+  "owned_files": [
+    "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinExponential.lean",
+    "Tests/GaussianComplexityBernsteinMgf.lean",
+    "research-wiki/frontier-cells/ASTIS-SHARED-MATRIX-BERNSTEIN-EXPONENTIAL-QUADRATIC.json",
+    "research-wiki/technical-lemmas/matrix-bernstein-exponential-statement-seal.json",
+    "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-matrix-bernstein-exponential.json",
+    "website/content/publications/huanjian-matrix-bernstein-exponential.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-matrix-bernstein-exponential.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Registry.lean",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json",
+    "website/static/proof-readers.css",
+    "website/static/source-lineage.css"
+  ],
+  "truth_boundary": "Only the real finite-nonempty self-adjoint deterministic proof component of Tropp Lemma6.7: A<=I implies exp(sA)<=I+sA+(exp(s)-s-1)A^2 for s>0, expressed by full Matrix.PosSemidef. The exact private consumer is the original unconditioned product-Gaussian truncated/centered Z_i, normalized by actual rho=2r(L+1)/d, and its actual single-summand MGF comparison. All radius positivity, centering, regularity/integrability, PSD expectation and exp adapters are internal proof obligations, never supplied certificates or extra Gaussian binders. The real restriction is explicit; this is not the full complex Tropp theorem. No Bernstein sum tail/event probability, full C6/Lemma4.4/main lowerbound, oracle/TV/precision/query-cap/cost, public private-consumer API, integration/publication/purification or whole-Goal credit. Tropp is an independently matched external background source, not a citation provided by the Gaussian paper. Actual complete P/T source bodies compiled, independently rebuilt/kernel/source reviewed, with isolated actual desktop/mobile/source/download/graph reader accepted. Original production-rendered reader defect and isolated candidate overlay remain distinct; shared integration and purification remain held.",
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "evidence": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/conceptual-mirror-audit.authored-v1.json",
+    "independent_review": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/source-review/bernstein_exp_fresh_61a9/source-reader-review.run.v2.json",
+    "independent_run_sha256": "c0d561fe1f9d150670e554fb6ba1fc7574b6f62e5533dbc4c442cf153b4dbe49",
+    "scope": "Scoped scalar/CFC/PSD expectation mechanism audit; no new cross-domain transport and no formal edge inferred from similarity."
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "preproof-selective-types-and-definitions-v1",
+  "source_raw_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+  "producer": {
+    "name": "AutoSamplingTheory.ExampleCases.GaussianComplexity.ZeroQuerySeparation.actual_zero_query_gaussian_event_gap",
+    "planned_file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/ZeroQuerySeparation.lean",
+    "signature": "theorem actual_zero_query_gaussian_event_gap {d : ℕ} (hd : 1 ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ) :\n  let A₁ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => if i.val = 0 then κ else 1)\n  let ν₀ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d))\n      (1 : Matrix (Fin d) (Fin d) ℝ)⁻¹\n  let ν₁ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A₁⁻¹\n  let B : Set (EuclideanSpace ℝ (Fin d)) :=\n    {x | |WithLp.ofLp x (⟨0, hd⟩ : Fin d)| ≤ (1 : ℝ) / 2}\n  (1 : ℝ) / 8 < ν₁.real B - ν₀.real B\n",
+    "signature_sha256": "4ba0bf2c4e5430eef1b6e9e7a84c37586a30f52fb91f23c15718b50c3e9c49cc"
+  },
+  "private_consumer": {
+    "name": "no_common_zero_query_output",
+    "planned_file": "Tests/GaussianComplexityZeroQuerySeparation.lean",
+    "signature": "private theorem no_common_zero_query_output {d : ℕ} (hd : 1 ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ) (ρ : ProbabilityMeasure (EuclideanSpace ℝ (Fin d))) :\n  let A₁ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => if i.val = 0 then κ else 1)\n  let ν₀ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d))\n      (1 : Matrix (Fin d) (Fin d) ℝ)⁻¹\n  let ν₁ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A₁⁻¹\n  let Δ : Measure (EuclideanSpace ℝ (Fin d)) →\n      Measure (EuclideanSpace ℝ (Fin d)) → ℝ := fun μ ν =>\n    sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin d)),\n      MeasurableSet B ∧ z = |μ.real B - ν.real B|}\n  ¬ (Δ (ρ : Measure (EuclideanSpace ℝ (Fin d))) ν₀ ≤ (1 : ℝ) / 16 ∧\n    Δ (ρ : Measure (EuclideanSpace ℝ (Fin d))) ν₁ ≤ (1 : ℝ) / 16)\n",
+    "signature_sha256": "cd3d42543dbafc3199f3709827aceb6807b921445826fdb2fe3b05b9d163476b"
+  },
+  "approved_minimal_definition_context": [
+    {
+      "name": "multivariateGaussian",
+      "meaning": "Actual standard Gaussian pushforward by mean plus covariance square-root CLM. On-domain positive covariance is necessary; non-PSD Dirac fallback is not the source target and must be excluded internally.",
+      "file": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Multivariate.lean",
+      "whole_file_sha256": "1fec35cf781da1009c37db80a96b05d70f2296ca7768e19bfc0b6314c9b43d49",
+      "exact_excerpt": "/-- Multivariate Gaussian measure on `EuclideanSpace ℝ ι` with mean `μ` and covariance\nmatrix `S`. This only makes sense when `S` is positive semidefinite,\nas then `CFC.sqrt S * CFC.sqrt S = S`. Otherwise `CFC.sqrt S = 0`, and\n`multivariateGaussian μ S = Measure.dirac μ` (see `multivariateGaussian_of_not_posSemidef`). -/\nnoncomputable\ndef multivariateGaussian (μ : EuclideanSpace ℝ ι) (S : Matrix ι ι ℝ) :\n    Measure (EuclideanSpace ℝ ι) :=\n  (stdGaussian (EuclideanSpace ℝ ι)).map (fun x ↦ μ + toEuclideanCLM (𝕜 := ℝ) (CFC.sqrt S) x)\n",
+      "excerpt_sha256": "0d32e6c37ec13dc0bdbce701ed77a7e2da591a748c8d8f92eb81a72cc2228171"
+    },
+    {
+      "name": "ProbabilityMeasure",
+      "meaning": "Actual subtype of measures with total mass one, coerced to its underlying Measure. Rho is an arbitrary common probability output distribution, never a supplied desired bound or Gaussian certificate.",
+      "file": ".lake/packages/mathlib/Mathlib/MeasureTheory/Measure/ProbabilityMeasure.lean",
+      "whole_file_sha256": "ececad97c60703de0e0ee2f47bca44a017aa8537f7186412f69b169f026e92fd",
+      "exact_excerpt": "/-- Probability measures are defined as the subtype of measures that have the property of being\nprobability measures (i.e., their total mass is one). -/\ndef ProbabilityMeasure (Ω : Type*) [MeasurableSpace Ω] : Type _ :=\n  { μ : Measure Ω // IsProbabilityMeasure μ }\n\nnamespace ProbabilityMeasure\n\nvariable {Ω : Type*} [MeasurableSpace Ω]\n\ninstance [Inhabited Ω] : Inhabited (ProbabilityMeasure Ω) :=\n  ⟨⟨Measure.dirac default, Measure.dirac.isProbabilityMeasure⟩⟩\n\n/-- Coercion from `MeasureTheory.ProbabilityMeasure Ω` to `MeasureTheory.Measure Ω`. -/\n@[coe]\ndef toMeasure : ProbabilityMeasure Ω → Measure Ω := Subtype.val\n\n/-- A probability measure can be interpreted as a measure. -/\ninstance : Coe (ProbabilityMeasure Ω) (MeasureTheory.Measure Ω) := { coe := toMeasure }\n",
+      "excerpt_sha256": "68c3199355a9632c9226c178f1156a2cc98f7f8008141392efa4ab31ec4fe2a1"
+    }
+  ],
+  "standard_notation_context": {
+    "Matrix_inverse": "Actual square Matrix inverse, not entrywise inverse. Off-invertible totalization is not a source-domain hypothesis; proper on-domain inverse/covariance facts must be proved internally.",
+    "Fin_coordinate": "Fin d zero coordinate is <0,hd> using the supplied d>=1 proof; scalar absolute value of its actual Euclidean WithLp.ofLp coordinate.",
+    "Measure_real": "Real actual event mass obtained by ENNReal.toReal. All used Gaussian and common rho measures are probability measures on the ordinary Euclidean Borel space.",
+    "local_Delta": "Literal real supremum of absolute real mass differences over all measurable events, with no factor2. The type asserts only its displayed probability-law instances; it does not certify a general TV formula on arbitrary infinite measures."
+  },
+  "exposure_boundary": "Only literal types and minimal meaning-carrying definitions/standard notation. Full seal, process/planning, root binder classifications, proposed proof route, old graphs/verdicts and implementation are withheld until independent mathematical freeze."
+}

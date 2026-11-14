@@ -1,0 +1,99 @@
+import concurrent.futures, datetime, hashlib, json, os, pathlib, stat, subprocess, sys, time
+
+ROOT = pathlib.Path('/Users/zhouhuanjian/ASTIS-GC')
+sys.path.insert(0, str(ROOT))
+from tools import astis_advance as a
+PRIVATE = ROOT / '.astis/semantic-neutral-20261112/wf_src_91c4/phase5'
+EVIDENCE = ROOT / 'research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence'
+RUN = EVIDENCE / 'normal-verification/wf_src_91c4'
+TARGET = 'ASTIS-SA-20261112-GaussianComplexityWeightedCosineFrame'
+
+def sha(b): return hashlib.sha256(b).hexdigest()
+def canon(x): return json.dumps(x, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()
+def digest_file(path):
+    h = hashlib.sha256()
+    with path.open('rb') as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b''): h.update(block)
+    return h.hexdigest()
+def tracked_entry(name):
+    path = ROOT / name
+    info = path.lstat()
+    if stat.S_ISLNK(info.st_mode): return name, {'kind': 'symlink', 'target': os.readlink(path), 'mode': stat.S_IMODE(info.st_mode)}
+    if stat.S_ISREG(info.st_mode): return name, {'kind': 'regular', 'bytes': info.st_size, 'mode': stat.S_IMODE(info.st_mode), 'sha256': digest_file(path)}
+    return name, {'kind': 'other', 'mode': info.st_mode}
+def save(path, value): path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n')
+
+baseline = json.loads((PRIVATE / 'preservation-baseline.private.json').read_text())
+assert subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT).decode().strip() == baseline['head']
+current = a.DEFAULT_ADVANCE_LEDGER.read_bytes()
+assert len(current) > baseline['ledger_bytes'] and sha(current[:baseline['ledger_bytes']]) == baseline['ledger_sha256']
+append = current[baseline['ledger_bytes']:]
+assert len(append.splitlines()) == 1 and append == (EVIDENCE / 'actual-VERIFIED-append.exact.jsonl').read_bytes()
+states = a._replay_advances([json.loads(x) for x in current.splitlines() if x.strip()])
+assert states[TARGET]['state'] == 'VERIFIED'
+foreign = {k: v for k, v in states.items() if k != TARGET}
+assert len(foreign) == 304 and foreign == baseline['foreign_states']
+discovery = a.DEFAULT_DISCOVERY_LEDGER.read_bytes()
+discovery_states = a._replay_discoveries([json.loads(x) for x in discovery.splitlines() if x.strip()])
+assert len(discovery_states) == 43 and discovery_states == baseline['discovery_states']
+assert len(discovery) == baseline['discovery_bytes'] and sha(discovery) == baseline['discovery_sha256']
+frontiers = {str(p.relative_to(ROOT)): digest_file(p) for p in (ROOT / 'research-wiki/frontier-cells').rglob('*') if p.is_file() and not p.is_symlink() and str(p.relative_to(ROOT)) != baseline['cell_path']}
+assert len(frontiers) == 464 and frontiers == baseline['older_frontier_hashes']
+index = subprocess.check_output(['git', 'ls-files', '--stage', '-z'], cwd=ROOT)
+assert sha(index) == baseline['tracked_index_sha256']
+names = [x.decode() for x in subprocess.check_output(['git', 'ls-files', '-z'], cwd=ROOT).split(b'\0') if x]
+assert set(names) == set(baseline['tracked_paths'])
+tracked = {}
+print(json.dumps({'postcheck': 'hashing-all-tracked-paths', 'count': len(names)}), flush=True)
+with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
+    for i, (name, entry) in enumerate(pool.map(tracked_entry, names), 1):
+        tracked[name] = entry
+        if i % 25000 == 0: print(json.dumps({'tracked_rehashed': i}), flush=True)
+changed = sorted(name for name in names if tracked[name] != baseline['tracked_paths'][name])
+assert changed == sorted(baseline['allowed_tracked_mutations']), changed
+cell = json.loads((ROOT / baseline['cell_path']).read_text())
+assert cell['status'] == 'independently_verified'
+decision_path = str((EVIDENCE / 'actual-VERIFIED-independent-decision.json').relative_to(ROOT))
+assert cell['evidence']['independent_verification'] == decision_path
+restored = json.loads(json.dumps(cell))
+restored['status'] = baseline['cell']['status']
+restored['evidence']['independent_verification'] = baseline['cell']['evidence']['independent_verification']
+assert restored == baseline['cell']
+original_payload_file = EVIDENCE / 'actual-PROVED_LOCAL-evidence.full.json'
+original_append_file = EVIDENCE / 'actual-PROVED_LOCAL-append.exact.jsonl'
+assert digest_file(original_payload_file) == baseline['original_plocal_payload_sha256']
+assert digest_file(original_append_file) == baseline['original_plocal_append_sha256']
+original = json.loads(original_payload_file.read_text())
+verified_payload_file = EVIDENCE / 'actual-VERIFIED-evidence.full.json'
+verified_payload = json.loads(verified_payload_file.read_text())
+assert states[TARGET]['latest_evidence'] == verified_payload
+assert all(verified_payload[k] == v for k, v in original.items())
+old_events = [line for line in current.splitlines(keepends=True) if json.loads(line).get('advance_id') == TARGET and json.loads(line).get('to_state') == 'PROVED_LOCAL']
+assert len(old_events) == 1 and old_events[0] == original_append_file.read_bytes()
+verified_events = [x for x in current.splitlines() if json.loads(x).get('advance_id') == TARGET and json.loads(x).get('to_state') == 'VERIFIED']
+assert len(verified_events) == 1
+receipt = json.loads((RUN / 'normal-transition.receipt.json').read_text())
+assert receipt['exit_code'] == 0
+for stream in ['stdout', 'stderr']:
+    path = ROOT / receipt[stream]['path']
+    assert path.stat().st_size == receipt[stream]['bytes'] and digest_file(path) == receipt[stream]['sha256']
+assert (RUN / 'normal-transition.stdout').read_text().count('NORMAL_TRANSITION_API_CALL_BEGIN') == 1
+assert (RUN / 'normal-transition.stdout').read_text().count('NORMAL_TRANSITION_API_RETURNED_SUCCESS') == 1
+assert json.loads((RUN / 'normal-transition.attempted.once.json').read_text())['attempt_count'] == 1
+
+argv = ['/opt/anaconda3/bin/python', '-B', 'tools/astis_frontier_cells.py', 'check']
+started = datetime.datetime.now(datetime.timezone.utc).isoformat()
+tick = time.monotonic()
+result = subprocess.run(argv, cwd=ROOT, capture_output=True)
+streams = {}
+for stream, data in [('stdout', result.stdout), ('stderr', result.stderr)]:
+    path = RUN / ('post-frontier-check.' + stream)
+    with path.open('xb') as out: out.write(data)
+    streams[stream] = {'path': str(path.relative_to(ROOT)), 'bytes': len(data), 'sha256': sha(data)}
+post_receipt = {'argv': argv, 'cwd': str(ROOT), 'started_utc': started, 'elapsed_seconds': time.monotonic() - tick, 'exit_code': result.returncode, 'head_before': baseline['head'], 'head_after': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT).decode().strip(), **streams}
+save(RUN / 'post-frontier-check.receipt.json', post_receipt)
+assert result.returncode == 0, result.stderr.decode(errors='replace')
+assert post_receipt['head_after'] == baseline['head']
+report = {'kind': 'Original independent normal-verification transaction and complete preservation postcheck', 'verifier_id': '/root/weighted_frame_fresh_source_91c4', 'advance_id': TARGET, 'completed_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'state': states[TARGET]['state'], 'actual_normal_API_subprocess_exit_code': receipt['exit_code'], 'normal_transition_calls': 1, 'root_VERIFIED_calls': 0, 'head_unchanged': baseline['head'], 'compiled_credit_commit': '401a3e1faa08fe2173d52017672831d2edbad38f', 'metadata_transfer_only_through_585': True, 'actual_append': {'path': str((EVIDENCE / 'actual-VERIFIED-append.exact.jsonl').relative_to(ROOT)), 'bytes': len(append), 'sha256': sha(append)}, 'actual_full_VERIFIED_payload': {'path': str(verified_payload_file.relative_to(ROOT)), 'bytes': verified_payload_file.stat().st_size, 'sha256': digest_file(verified_payload_file)}, 'original_PLOCAL': {'append_sha256': baseline['original_plocal_append_sha256'], 'full_payload_sha256': baseline['original_plocal_payload_sha256'], 'raw_append_byte_exact_in_ledger': True, 'original_artifacts_byte_exact': True, 'all_payload_fields_preserved_in_normal_VERIFIED_evidence_and_replay': True}, 'preservation': {'full_current_append_only_prefix_bytes': baseline['ledger_bytes'], 'full_current_append_only_prefix_sha256': baseline['ledger_sha256'], 'prefix_preserved_exactly': True, 'all304_foreign_replay_states_preserved': True, 'foreign_states_aggregate_before_after_sha256': sha(canon(foreign)), 'all43_discovery_states_and_full_ledger_bytes_preserved': True, 'discovery_state_aggregate_before_after_sha256': sha(canon(discovery_states)), 'discovery_ledger_bytes': len(discovery), 'discovery_ledger_sha256': sha(discovery), 'all464_older_regular_frontier_files_including_README_preserved': True, 'older_frontier_aggregate_before_after_sha256': sha(canon(frontiers)), 'all129700_tracked_paths_hashed_before_and_after': True, 'tracked_index_unchanged_sha256': sha(index), 'only_changed_tracked_paths': changed, 'authorized_ledger_path_in_allowlist': 'runs/substantive_advances.jsonl', 'all_other_tracked_path_contents_types_modes_preserved': True, 'only_changed_cell_value_paths': ['status', 'evidence.independent_verification'], 'cell_all_other_values_preserved': True, 'foreign_snapshot_exported': False}, 'post_frontier_validation': {'receipt': str((RUN / 'post-frontier-check.receipt.json').relative_to(ROOT)), 'receipt_sha256': digest_file(RUN / 'post-frontier-check.receipt.json'), 'exit_code': result.returncode, 'stdout': result.stdout.decode()}, 'transition_receipt': {'path': str((RUN / 'normal-transition.receipt.json').relative_to(ROOT)), 'sha256': digest_file(RUN / 'normal-transition.receipt.json')}, 'decision': {'path': decision_path, 'sha256': digest_file(EVIDENCE / 'actual-VERIFIED-independent-decision.json')}, 'HOLD': ['Original-family row-law/expectation transport, centered variance, concentration, main bounds.', 'Whole root Tests/site/public desktop/mobile/graph/copy/download/integration/purification.'], 'no_new_math_source_VERIFIED_browser_or_wholepaper_completion_inferred': True, 'no_commit_or_other_transition': True}
+save(RUN / 'preservation-and-postcheck-report.json', report)
+print(json.dumps({'postchecks': 'PASS', 'state': report['state'], 'calls': 1, 'changed_tracked_paths': changed, 'frontier_exit': result.returncode, 'report_sha256': digest_file(RUN / 'preservation-and-postcheck-report.json')}), flush=True)

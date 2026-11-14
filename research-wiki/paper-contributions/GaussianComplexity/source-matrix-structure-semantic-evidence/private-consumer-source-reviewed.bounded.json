@@ -1,0 +1,640 @@
+{
+  "id": "ASTIS-RT-20261113-HuanjianGaussianSourceMatrixStructurePrivateConsumer",
+  "state": "accepted",
+  "source": {
+    "source_id": "c2-private-weighted-centered-matrix-structure",
+    "anchor": "Appendix C.2 p15.1 first assertion; p13.1 centered and p13.3 weighted sequences; original experiment p1, inclusive cutoff Ex107, actual mean p12.4; Lemma4.4 regime",
+    "original_text": "For all natural d,q with 2q+1<d, put r=q+1, including q=0. On Omega=(R^d)^r with mu the product of r independent standard d-dimensional Gaussian column laws, let Phi_i be the actual physical row. Put theta_i=(i-1/2)pi/d, t_i=(1,sqrt(2)cos(theta_i),...,sqrt(2)cos(q theta_i)), and L=2r+3log(1000d). Define Yi=d^(-1)(Phi_i Phi_i-transpose tensor t_i t_i-transpose) when norm(Phi_i)^2<=L and zero otherwise. The cutoff is inclusive and local to row i. Let Mi be the actual Bochner integral of Yi under this same original unconditional mu, and Zi=Yi-Mi. Matrix measurability uses the standard finite-coordinate Borel structure; norms use real Euclidean operator norms. Put wi=cos((2q+1)theta_i) and Xi=wi Zi. Each Xi is measurable. The entire family (Xi) indexed by i is jointly independent under mu. Each Xi is Bochner integrable, its actual integral under mu is zero, and Xi(omega) is Hermitian for every i and every omega. Weights may be zero or negative. These are the corresponding prerequisites for the weighted matrix Bernstein step, without any combined-family independence or concentration conclusion.",
+    "text_sha256": "f539d940ec8428cb63060285d443976dcdc3264783cac9dce1e833967f013374"
+  },
+  "lean": {
+    "declaration": "_private.Tests.GaussianComplexityFixedSpectrumSourceMatrixStructure.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixStructure.actual_source_weighted_centered_matrix_structure",
+    "file": "Tests/GaussianComplexityFixedSpectrumSourceMatrixStructure.lean",
+    "statement": "∀     {d q : ℕ} (hq : 2 * q + 1 < d) ,\n  letI : MeasurableSpace\n      (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) :=\n    borel (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let X : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => w i • Z i ω\n  (∀ i : Fin d, Measurable (X i)) ∧\n    iIndepFun X μ ∧\n    (∀ i : Fin d, Integrable (X i) μ) ∧\n    (∀ i : Fin d, (∫ ω, X i ω ∂μ) = 0) ∧\n    (∀ i : Fin d, ∀ ω : Ω, (X i ω).IsHermitian)\n",
+    "statement_sha256": "c5ec0d4eac73ca6bfc5bd00040f5a05e93f8e2e9a0be8923b955a75bc1f708e5",
+    "compiled": true,
+    "formalizer": "huanjian_gc_20261113_source_matrix_structure",
+    "decoder_context": [
+      "Fin n is the finite set of natural numbers less than n. Natural numbers are embedded into the real numbers by the usual coercion.",
+      "EuclideanSpace real (Fin n) is real n-dimensional Euclidean space, with Euclidean norm and its Borel sigma algebra. WithLp.toLp 2 wraps a coordinate function as a Euclidean vector, and WithLp.ofLp recovers the same coordinates.",
+      "stdGaussian is the centered Gaussian probability measure with identity covariance. Measure.pi is the finite product measure on the displayed function space.",
+      "Real.log denotes the natural logarithm and Real.sqrt the nonnegative square root. An if-condition using less-than-or-equal includes equality.",
+      "Matrix.vecMulVec u v has entry u_i times v_j. Matrix.kronecker A B has entry A_(i,k) times B_(j,l) at row (i,j) and column (k,l). Scalar multiplication and subtraction are ordinary real matrix operations.",
+      "The local letI fixes the measurable space of the finite real matrices to borel of their topology. Their topology is the ordinary finite coordinate topology. The opened L2 operator norm convention gives the norm of the matrix action between real Euclidean spaces and preserves that topology.",
+      "Measurable means measurable for the displayed domain and codomain sigma algebras. iIndepFun f mu means the entire displayed indexed family of random functions is jointly independent under mu, not only pairwise independent.",
+      "Integrable f mu means Bochner integrable, including almost-everywhere strong measurability and finite integral of the norm. The integral notation is the Bochner integral; it is totalized to zero for nonintegrable functions. Reconstruct each asserted integrability and integral equality exactly as displayed.",
+      "For real matrices, A.IsHermitian means A equals its transpose (equivalently its conjugate transpose, since real conjugation is trivial). This is a symmetry condition."
+    ]
+  },
+  "repairs": [],
+  "candidate_commit": "9ed997b7fda8631deb5bc1397d021495d53c4d41",
+  "publication_binding_sha256": "15c913b0928ce9f863cc93f3ee1dfe6b0c349649a813db91d09657968e68106b",
+  "publication_context": {
+    "canonical_public_producer_context": {
+      "file": "b1d08b92b84b3d1b6d8fc53ebad7b991d9aa99ccfd955d51b96f3e2db52dfff6",
+      "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowIndependence\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean\n\n/-! Actual original-experiment centered matrix structure. All measurability,\nintegrability, independence, zero-mean and Hermitian obligations are discharged\ninternally under the sole original source condition. -/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix Kronecker Matrix.Norms.L2Operator\nset_option autoImplicit false\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure\n\ntheorem actual_source_centered_matrix_structure\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  letI : MeasurableSpace\n      (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) :=\n    borel (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  (∀ i : Fin d, Measurable (Z i)) ∧\n    iIndepFun Z μ ∧\n    (∀ i : Fin d, Integrable (Z i) μ) ∧\n    (∀ i : Fin d, (∫ ω, Z i ω ∂μ) = 0) ∧\n    (∀ i : Fin d, ∀ ω : Ω, (Z i ω).IsHermitian)\n := by\n  classical\n  dsimp only\n  let : MeasurableSpace\n      (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) :=\n    borel (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let : BorelSpace (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) := ⟨rfl⟩\n\n  let : IsProbabilityMeasure μ := by dsimp only [μ]; infer_instance\n  change (∀ i : Fin d, Measurable (Z i)) ∧ iIndepFun Z μ ∧\n    (∀ i : Fin d, Integrable (Z i) μ) ∧\n    (∀ i : Fin d, (∫ ω, Z i ω ∂μ) = 0) ∧\n    (∀ i : Fin d, ∀ ω : Ω, (Z i ω).IsHermitian)\n  let F : Fin d → E → Matrix (Fin (q + 1) × Fin (q + 1))\n      (Fin (q + 1) × Fin (q + 1)) ℝ := fun i x =>\n    if ‖x‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec x.ofLp x.ofLp) (Matrix.vecMulVec (t i) (t i))\n    else 0\n  have row_law (i : Fin d) : MeasurePreserving (row i) μ (stdGaussian E) :=\n    FixedSpectrumSourceRowLaw.actual_source_row_marginal_law hq i\n  have row_independent : iIndepFun row μ :=\n    FixedSpectrumSourceRowIndependence.actual_source_rows_independent hq\n  have cutoff : MeasurableSet {x : E | ‖x‖ ^ 2 ≤ L} :=\n    measurableSet_le (by fun_prop) measurable_const\n  have coordinate (k : Fin (q + 1)) : Continuous (fun x : E => x k) := by\n    dsimp [E]\n    fun_prop\n  have F_measurable (i : Fin d) : Measurable (F i) := by\n    apply Measurable.ite cutoff\n    · apply Continuous.measurable\n      apply continuous_pi\n      intro u\n      apply continuous_pi\n      intro v\n      change Continuous (fun x : E =>\n        (d : ℝ)⁻¹ * ((x u.1 * x v.1) * (t i u.2 * t i v.2)))\n      exact continuous_const.mul\n        (((coordinate u.1).mul (coordinate v.1)).mul continuous_const)\n    · exact measurable_const\n  have translated_measurable (i : Fin d) :\n      Measurable (fun x : E => F i x - mean i) :=\n    (F_measurable i).sub measurable_const\n  have Z_measurable (i : Fin d) : Measurable (Z i) :=\n    (translated_measurable i).comp (row_law i).measurable\n  have Z_independent : iIndepFun Z μ :=\n    row_independent.comp (fun i x => F i x - mean i) translated_measurable\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  have hm := FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means\n    (d := d) (q := q) hq\n  change (∀ i : Fin d, Integrable (Y i) μ) ∧\n    (∀ i : Fin d, mean i = (a / (d : ℝ)) • Matrix.kronecker\n      (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ)\n      (Matrix.vecMulVec (t i) (t i))) at hm\n  have Y_hermitian (i : Fin d) (ω : Ω) : (Y i ω).IsHermitian := by\n    change (Y i ω).conjTranspose = Y i ω\n    by_cases hx : ‖row i ω‖ ^ 2 ≤ L\n    · ext u v\n      simp only [Y, if_pos hx, Matrix.conjTranspose_apply, Matrix.smul_apply,\n        Matrix.kronecker, Matrix.kroneckerMap_apply, Matrix.vecMulVec_apply,\n        smul_eq_mul, star_trivial]\n      ring\n    · simp [Y, hx]\n  have mean_hermitian (i : Fin d) : (mean i).IsHermitian := by\n    rw [hm.2 i]\n    change ((a / (d : ℝ)) • Matrix.kronecker\n      (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ)\n      (Matrix.vecMulVec (t i) (t i))).conjTranspose = _\n    ext u v\n    simp [Matrix.conjTranspose_apply, Matrix.one_apply, Matrix.kronecker, Matrix.kroneckerMap,\n      Matrix.vecMulVec, eq_comm, mul_comm]\n  have Z_integrable (i : Fin d) : Integrable (Z i) μ :=\n    (hm.1 i).sub (integrable_const _)\n  have Z_mean_zero (i : Fin d) : (∫ ω, Z i ω ∂μ) = 0 := by\n    change (∫ ω, Y i ω - mean i ∂μ) = 0\n    rw [integral_sub (hm.1 i) (integrable_const _)]\n    simp [mean]\n  exact ⟨Z_measurable, Z_independent, Z_integrable, Z_mean_zero,\n    fun i ω => (Y_hermitian i ω).sub (mean_hermitian i)⟩\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure\n",
+      "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "source": {
+        "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p15",
+        "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+        "anchor": "Appendix C.2 p15.1 first assertion; p13.1 centered and p13.3 weighted sequences; original experiment p1, inclusive cutoff Ex107, actual mean p12.4; Lemma4.4 regime",
+        "label": "Appendix C.2: structure of the two actual matrix sequences",
+        "wording_status": "faithful paraphrase with explicit analytic prerequisites",
+        "attribution": "On Complexity of Gaussian Sampling, arXiv:2610.20492v1.",
+        "scope": "Public centered structure; complete private weighted consumer. The following matrix Bernstein inequality remains separate."
+      },
+      "statement": "The actual centered Gaussian matrix sequence is measurable, jointly independent, integrable, mean zero and pointwise self-adjoint. Its cosine-weighted sequence has the same properties.",
+      "formulae": [
+        {
+          "label": "Public centered structure",
+          "tex": "\\begin{gathered}(Z_i)_{i=1}^{d}\\ \\text{independent},\\qquad Z_i\\ \\text{measurable and Bochner integrable},\\\\ \\mathbb E_\\mu Z_i=0,\\qquad Z_i(\\omega)^\\top=Z_i(\\omega)\\quad(1\\le i\\le d,\\ \\omega\\in\\Omega).\\end{gathered}"
+        }
+      ],
+      "assumptions": [
+        "Let \\(d,q\\in\\mathbb N\\) satisfy \\(2q+1<d\\), and put \\(r=q+1\\). The case \\(q=0\\) is included.",
+        "Use \\(\\Omega=(\\mathbb R^d)^r\\) and \\(\\mu=\\gamma_d^{\\otimes r}\\), where \\(\\gamma_d=N(0,I_d)\\). The physical row \\(\\Phi_i=(\\omega_{1,i},\\ldots,\\omega_{r,i})\\) comes from these original Gaussian columns.",
+        "Put \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\theta_i,\\ldots,\\sqrt2\\cos(q\\theta_i))\\), and \\(L=2r+3\\log(1000d)\\). For a Lean index \\(j:\\mathrm{Fin}\\,d\\), the corresponding source index is \\(j.val+1\\).",
+        "Define \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{\\|\\Phi_i\\|^2\\le L\\}}\\), \\(M_i=\\int Y_i\\,d\\mu\\), and \\(Z_i=Y_i-M_i\\). The cutoff is closed and specific to row \\(i\\); all integrals use the same original unconditional \\(\\mu\\).",
+        "Matrices have the standard finite-coordinate Borel structure and real Euclidean operator norm topology. The local Lean measurable-space definition fixes this standard structure; it is not a caller-supplied assumption.",
+        "The only proposition input is \\(2q+1<d\\). Measurability, integrability, independence, actual centering and symmetry are proved internally. In the private consumer \\(X_i=w_iZ_i\\), \\(w_i=\\cos((2q+1)\\theta_i)\\) may be zero or negative."
+      ],
+      "obligations": [
+        {
+          "id": "c2-actual-centered-matrix-structure",
+          "label": "Actual centered matrix structure with explicit analytic prerequisites."
+        }
+      ],
+      "lesson": {
+        "kind": "theorem",
+        "reading_layout": "progressive",
+        "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure",
+        "title": "Actual centered matrix structure",
+        "reader_note": "The displayed formula is the public centered theorem. The final two proof steps give its complete private cosine-weighted consumer.",
+        "statement": "The actual centered Gaussian matrix sequence is measurable, jointly independent, integrable, mean zero and pointwise self-adjoint. Its cosine-weighted sequence has the same properties.",
+        "formula": "\\begin{gathered}(Z_i)_{i=1}^{d}\\ \\text{independent},\\qquad Z_i\\ \\text{measurable and Bochner integrable},\\\\ \\mathbb E_\\mu Z_i=0,\\qquad Z_i(\\omega)^\\top=Z_i(\\omega)\\quad(1\\le i\\le d,\\ \\omega\\in\\Omega).\\end{gathered}",
+        "assumptions": [
+          "Let \\(d,q\\in\\mathbb N\\) satisfy \\(2q+1<d\\), and put \\(r=q+1\\). The case \\(q=0\\) is included.",
+          "Use \\(\\Omega=(\\mathbb R^d)^r\\) and \\(\\mu=\\gamma_d^{\\otimes r}\\), where \\(\\gamma_d=N(0,I_d)\\). The physical row \\(\\Phi_i=(\\omega_{1,i},\\ldots,\\omega_{r,i})\\) comes from these original Gaussian columns.",
+          "Put \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\theta_i,\\ldots,\\sqrt2\\cos(q\\theta_i))\\), and \\(L=2r+3\\log(1000d)\\). For a Lean index \\(j:\\mathrm{Fin}\\,d\\), the corresponding source index is \\(j.val+1\\).",
+          "Define \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{\\|\\Phi_i\\|^2\\le L\\}}\\), \\(M_i=\\int Y_i\\,d\\mu\\), and \\(Z_i=Y_i-M_i\\). The cutoff is closed and specific to row \\(i\\); all integrals use the same original unconditional \\(\\mu\\).",
+          "Matrices have the standard finite-coordinate Borel structure and real Euclidean operator norm topology. The local Lean measurable-space definition fixes this standard structure; it is not a caller-supplied assumption.",
+          "The only proposition input is \\(2q+1<d\\). Measurability, integrability, independence, actual centering and symmetry are proved internally. In the private consumer \\(X_i=w_iZ_i\\), \\(w_i=\\cos((2q+1)\\theta_i)\\) may be zero or negative."
+        ],
+        "steps": [
+          {
+            "title": "Fix the actual experiment and standard matrix Borel structure",
+            "text": "Retain the literal original product probability, physical rows, cosine features and inclusive local truncation. Define the deterministic mean as the actual Bochner integral of that same summand. The finite matrix Borel instance is fixed by a definition; probability and Borel compatibility are internal typing facts.",
+            "formula": "\\mu=\\gamma_d^{\\otimes r},\\qquad M_i=\\int_\\Omega Y_i\\,d\\mu,\\qquad Z_i=Y_i-M_i.",
+            "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowIndependence\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean\n\n/-! Actual original-experiment centered matrix structure. All measurability,\nintegrability, independence, zero-mean and Hermitian obligations are discharged\ninternally under the sole original source condition. -/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix Kronecker Matrix.Norms.L2Operator\nset_option autoImplicit false\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure\n\ntheorem actual_source_centered_matrix_structure\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  letI : MeasurableSpace\n      (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) :=\n    borel (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  (∀ i : Fin d, Measurable (Z i)) ∧\n    iIndepFun Z μ ∧\n    (∀ i : Fin d, Integrable (Z i) μ) ∧\n    (∀ i : Fin d, (∫ ω, Z i ω ∂μ) = 0) ∧\n    (∀ i : Fin d, ∀ ω : Ω, (Z i ω).IsHermitian)\n := by\n  classical\n  dsimp only\n  let : MeasurableSpace\n      (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) :=\n    borel (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let : BorelSpace (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) := ⟨rfl⟩\n\n  let : IsProbabilityMeasure μ := by dsimp only [μ]; infer_instance\n  change (∀ i : Fin d, Measurable (Z i)) ∧ iIndepFun Z μ ∧\n    (∀ i : Fin d, Integrable (Z i) μ) ∧\n    (∀ i : Fin d, (∫ ω, Z i ω ∂μ) = 0) ∧\n    (∀ i : Fin d, ∀ ω : Ω, (Z i ω).IsHermitian)\n"
+          },
+          {
+            "title": "Transport row independence through the measurable truncated map",
+            "text": "The canonical row law supplies measurability of each physical row, and the canonical joint row law supplies independence of the whole row family. The closed squared-radius event is measurable and every tensor coordinate is a continuous polynomial in the row coordinates. Subtracting a fixed actual mean gives an index-specific measurable map; joint independence is preserved under these separate maps.",
+            "formula": "F_i(x)=d^{-1}(xx^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{\\|x\\|^2\\le L\\}},\\quad Z_i=F_i(\\Phi_i)-M_i,\\quad(\\Phi_i)_i\\text{ independent}\\Longrightarrow(Z_i)_i\\text{ independent}.",
+            "lean": "  let F : Fin d → E → Matrix (Fin (q + 1) × Fin (q + 1))\n      (Fin (q + 1) × Fin (q + 1)) ℝ := fun i x =>\n    if ‖x‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec x.ofLp x.ofLp) (Matrix.vecMulVec (t i) (t i))\n    else 0\n  have row_law (i : Fin d) : MeasurePreserving (row i) μ (stdGaussian E) :=\n    FixedSpectrumSourceRowLaw.actual_source_row_marginal_law hq i\n  have row_independent : iIndepFun row μ :=\n    FixedSpectrumSourceRowIndependence.actual_source_rows_independent hq\n  have cutoff : MeasurableSet {x : E | ‖x‖ ^ 2 ≤ L} :=\n    measurableSet_le (by fun_prop) measurable_const\n  have coordinate (k : Fin (q + 1)) : Continuous (fun x : E => x k) := by\n    dsimp [E]\n    fun_prop\n  have F_measurable (i : Fin d) : Measurable (F i) := by\n    apply Measurable.ite cutoff\n    · apply Continuous.measurable\n      apply continuous_pi\n      intro u\n      apply continuous_pi\n      intro v\n      change Continuous (fun x : E =>\n        (d : ℝ)⁻¹ * ((x u.1 * x v.1) * (t i u.2 * t i v.2)))\n      exact continuous_const.mul\n        (((coordinate u.1).mul (coordinate v.1)).mul continuous_const)\n    · exact measurable_const\n  have translated_measurable (i : Fin d) :\n      Measurable (fun x : E => F i x - mean i) :=\n    (F_measurable i).sub measurable_const\n  have Z_measurable (i : Fin d) : Measurable (Z i) :=\n    (translated_measurable i).comp (row_law i).measurable\n  have Z_independent : iIndepFun Z μ :=\n    row_independent.comp (fun i x => F i x - mean i) translated_measurable\n"
+          },
+          {
+            "title": "Use the actual integrable mean and prove pointwise symmetry",
+            "text": "The existing actual-mean theorem gives genuine integrability of Yi and its radial formula. Real outer products and their tensor product are symmetric on the retained branch; outside it Yi is zero. The evaluated mean is also symmetric, so centering preserves self-adjointness. This chooses the radial-mean route; a separate direct integral-symmetry route is not an extra requirement.",
+            "formula": "a=\\frac1r\\int_{\\mathbb R^r}\\|x\\|^2\\mathbf1_{\\{\\|x\\|^2\\le L\\}}\\,d\\gamma_r,\\qquad M_i=\\frac ad(I_r\\otimes t_it_i^\\top),\\qquad Y_i^\\top=Y_i,\\quad M_i^\\top=M_i.",
+            "lean": "  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  have hm := FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means\n    (d := d) (q := q) hq\n  change (∀ i : Fin d, Integrable (Y i) μ) ∧\n    (∀ i : Fin d, mean i = (a / (d : ℝ)) • Matrix.kronecker\n      (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ)\n      (Matrix.vecMulVec (t i) (t i))) at hm\n  have Y_hermitian (i : Fin d) (ω : Ω) : (Y i ω).IsHermitian := by\n    change (Y i ω).conjTranspose = Y i ω\n    by_cases hx : ‖row i ω‖ ^ 2 ≤ L\n    · ext u v\n      simp only [Y, if_pos hx, Matrix.conjTranspose_apply, Matrix.smul_apply,\n        Matrix.kronecker, Matrix.kroneckerMap_apply, Matrix.vecMulVec_apply,\n        smul_eq_mul, star_trivial]\n      ring\n    · simp [Y, hx]\n  have mean_hermitian (i : Fin d) : (mean i).IsHermitian := by\n    rw [hm.2 i]\n    change ((a / (d : ℝ)) • Matrix.kronecker\n      (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ)\n      (Matrix.vecMulVec (t i) (t i))).conjTranspose = _\n    ext u v\n    simp [Matrix.conjTranspose_apply, Matrix.one_apply, Matrix.kronecker, Matrix.kroneckerMap,\n      Matrix.vecMulVec, eq_comm, mul_comm]\n"
+          },
+          {
+            "title": "Prove true zero mean under the original probability",
+            "text": "Subtracting a constant from the already integrable Yi proves integrability of Zi. Since the original measure is a probability, the integral of the constant Mi is Mi. Bochner linearity therefore gives the actual zero-mean identity. Combine this with measurability, joint independence and pointwise symmetry.",
+            "formula": "\\int_\\Omega Z_i\\,d\\mu=\\int_\\Omega Y_i\\,d\\mu-\\mu(\\Omega)M_i=M_i-M_i=0,\\qquad Z_i(\\omega)^\\top=Z_i(\\omega).",
+            "lean": "  have Z_integrable (i : Fin d) : Integrable (Z i) μ :=\n    (hm.1 i).sub (integrable_const _)\n  have Z_mean_zero (i : Fin d) : (∫ ω, Z i ω ∂μ) = 0 := by\n    change (∫ ω, Y i ω - mean i ∂μ) = 0\n    rw [integral_sub (hm.1 i) (integrable_const _)]\n    simp [mean]\n  exact ⟨Z_measurable, Z_independent, Z_integrable, Z_mean_zero,\n    fun i ω => (Y_hermitian i ω).sub (mean_hermitian i)⟩\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure\n"
+          },
+          {
+            "title": "Consume all centered properties for the weighted family",
+            "text": "The complete private theorem retains the identical experiment, actual mean and cutoff, and calls the public theorem. It defines the literal deterministic source frequency and weights. Measurability is preserved by fixed real scalar multiplication; the remaining four assertions use their respective public conjuncts in the next step.",
+            "formula": "w_i=\\cos((2q+1)\\theta_i),\\qquad X_i=w_iZ_i.",
+            "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure\n\n/-! Private genuine consumer: the literal deterministic cosine-weighted family\nretains all five actual centered structural properties. No combined-family\nindependence, nonzero/sign weight assumption or concentration is claimed. -/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity\nopen scoped BigOperators Matrix Kronecker Matrix.Norms.L2Operator\nset_option autoImplicit false\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixStructure\n\nprivate theorem actual_source_weighted_centered_matrix_structure\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  letI : MeasurableSpace\n      (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) :=\n    borel (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let X : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => w i • Z i ω\n  (∀ i : Fin d, Measurable (X i)) ∧\n    iIndepFun X μ ∧\n    (∀ i : Fin d, Integrable (X i) μ) ∧\n    (∀ i : Fin d, (∫ ω, X i ω ∂μ) = 0) ∧\n    (∀ i : Fin d, ∀ ω : Ω, (X i ω).IsHermitian)\n := by\n  classical\n  dsimp only\n  let : MeasurableSpace\n      (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) :=\n    borel (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let X : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => w i • Z i ω\n  let : BorelSpace (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) := ⟨rfl⟩\n\n  change (∀ i : Fin d, Measurable (X i)) ∧ iIndepFun X μ ∧\n    (∀ i : Fin d, Integrable (X i) μ) ∧\n    (∀ i : Fin d, (∫ ω, X i ω ∂μ) = 0) ∧\n    (∀ i : Fin d, ∀ ω : Ω, (X i ω).IsHermitian)\n  have hp := FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure\n    (d := d) (q := q) hq\n  change (∀ i : Fin d, Measurable (Z i)) ∧ iIndepFun Z μ ∧\n    (∀ i : Fin d, Integrable (Z i) μ) ∧\n    (∀ i : Fin d, (∫ ω, Z i ω ∂μ) = 0) ∧\n    (∀ i : Fin d, ∀ ω : Ω, (Z i ω).IsHermitian) at hp\n  refine ⟨?_, ?_, ?_, ?_, ?_⟩\n  · intro i\n    exact (measurable_const : Measurable (fun _ : Ω => w i)).smul (hp.1 i)\n"
+          },
+          {
+            "title": "Preserve independence, integrability, zero mean and symmetry",
+            "text": "Apply joint independence preservation to the index-specific measurable maps A↦wiA. Fixed scalar multiplication preserves Bochner integrability and commutes with its integral, and real scalars preserve self-adjointness. None of these steps requires nonzero or positive weights. The two families are treated separately; no independence of their union is asserted.",
+            "formula": "(X_i)_i\\text{ independent},\\qquad\\mathbb E_\\mu X_i=w_i\\mathbb E_\\mu Z_i=0,\\qquad X_i(\\omega)^\\top=w_iZ_i(\\omega)^\\top=X_i(\\omega).",
+            "lean": "  · exact hp.2.1.comp\n      (fun i (A : Matrix (Fin (q + 1) × Fin (q + 1))\n        (Fin (q + 1) × Fin (q + 1)) ℝ) => w i • A)\n      (fun i => (measurable_const : Measurable\n        (fun _ : Matrix (Fin (q + 1) × Fin (q + 1))\n          (Fin (q + 1) × Fin (q + 1)) ℝ => w i)).smul measurable_id)\n  · intro i\n    exact (hp.2.2.1 i).smul (w i)\n  · intro i\n    dsimp only [X]\n    rw [integral_smul, hp.2.2.2.1 i, smul_zero]\n  · intro i ω\n    exact (hp.2.2.2.2 i ω).smul (isSelfAdjoint_iff.mpr rfl)\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixStructure\n"
+          }
+        ],
+        "astis_dependencies": [
+          "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+          "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw.actual_source_row_marginal_law",
+          "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowIndependence.actual_source_rows_independent"
+        ],
+        "mathlib_dependencies": [
+          "ProbabilityTheory.iIndepFun.comp",
+          "Measurable.ite",
+          "Continuous.measurable",
+          "MeasureTheory.Integrable.sub",
+          "MeasureTheory.integral_sub",
+          "MeasureTheory.integral_const",
+          "Matrix.IsHermitian.sub",
+          "MeasureTheory.Integrable.smul",
+          "MeasureTheory.integral_smul",
+          "Matrix.IsHermitian.smul"
+        ],
+        "dependency_notes": "P materially calls exactly the three listed canonical declarations. Private T calls P only, using all five outputs. Shared source mechanisms and source-only topology are separate from compiled proof dependencies.",
+        "lean_statement": "Public centered structure under the original source regime; all five exact assertions appear in the adjacent complete Lean declaration.",
+        "lean_proof": "Four proof steps reproduce every line of the public module; two further steps reproduce every line of the private weighted consumer.",
+        "sources": [
+          {
+            "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p15",
+            "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+            "anchor": "Appendix C.2 p15.1 first assertion; p13.1 centered and p13.3 weighted sequences; original experiment p1, inclusive cutoff Ex107, actual mean p12.4; Lemma4.4 regime",
+            "label": "Appendix C.2: structure of the two actual matrix sequences",
+            "wording_status": "faithful paraphrase with explicit analytic prerequisites",
+            "attribution": "On Complexity of Gaussian Sampling, arXiv:2610.20492v1.",
+            "scope": "Public centered structure; complete private weighted consumer. The following matrix Bernstein inequality remains separate."
+          },
+          {
+            "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixStructure.lean",
+            "line": 13,
+            "label": "Complete exact public centered structure theorem",
+            "scope": "Public P proves the five centered structural properties under the original Gaussian experiment. The complete private Tests consumer proves the corresponding five properties of the cosine-weighted family and uses every output of P; it receives no public API or separate canonical node credit. Independence is asserted for each indexed family separately. Matrix Bernstein tails, full Lemma4.4 and both main lower bounds, actual oracle/precision/TV/dimension-condition-number/worst-query-cap/expected-cost adapters, serialized main/site/source-index/globalgraph integration and purification remain separate obligations."
+          },
+          {
+            "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p13",
+            "label": "Definitions of the centered and cosine-weighted sequences",
+            "scope": "The source definitions used by both actual families."
+          },
+          {
+            "path": "Tests/GaussianComplexityFixedSpectrumSourceMatrixStructure.lean",
+            "line": 13,
+            "label": "Complete exact private weighted structure consumer",
+            "scope": "Private real implementation consumer; no separate public API credit."
+          }
+        ],
+        "tests": [
+          "lake build Tests.GaussianComplexityFixedSpectrumSourceMatrixStructure"
+        ]
+      },
+      "binding": {
+        "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure",
+        "role": "proof-edge",
+        "supports": [
+          "c2-actual-centered-matrix-structure"
+        ]
+      },
+      "candidate_assumptions": [
+        {
+          "source": "Original independent standard Gaussian columns and2q+1<d, with q a nonnegative integer.",
+          "lean": "Exact original product experiment, actual rows/cutoff/mean, sole hq premise, q0 included."
+        },
+        {
+          "source": "The two sequences consist of independent centered self-adjoint matrices.",
+          "lean": "Each family separately satisfies joint independence and true integral-zero symmetry, with measurability and Bochner integrability proved explicitly. Standard Matrix Borel structure is definitionally fixed."
+        }
+      ]
+    },
+    "private_consumer": {
+      "file": "Tests/GaussianComplexityFixedSpectrumSourceMatrixStructure.lean",
+      "file_sha256": "3bd0697423c61e4eadc530be53b0d402bf7bafeddb2272ff24c01f7ecfe7a7be",
+      "whole_module_text": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure\n\n/-! Private genuine consumer: the literal deterministic cosine-weighted family\nretains all five actual centered structural properties. No combined-family\nindependence, nonzero/sign weight assumption or concentration is claimed. -/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity\nopen scoped BigOperators Matrix Kronecker Matrix.Norms.L2Operator\nset_option autoImplicit false\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixStructure\n\nprivate theorem actual_source_weighted_centered_matrix_structure\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  letI : MeasurableSpace\n      (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) :=\n    borel (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let X : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => w i • Z i ω\n  (∀ i : Fin d, Measurable (X i)) ∧\n    iIndepFun X μ ∧\n    (∀ i : Fin d, Integrable (X i) μ) ∧\n    (∀ i : Fin d, (∫ ω, X i ω ∂μ) = 0) ∧\n    (∀ i : Fin d, ∀ ω : Ω, (X i ω).IsHermitian)\n := by\n  classical\n  dsimp only\n  let : MeasurableSpace\n      (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) :=\n    borel (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let X : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => w i • Z i ω\n  let : BorelSpace (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) := ⟨rfl⟩\n\n  change (∀ i : Fin d, Measurable (X i)) ∧ iIndepFun X μ ∧\n    (∀ i : Fin d, Integrable (X i) μ) ∧\n    (∀ i : Fin d, (∫ ω, X i ω ∂μ) = 0) ∧\n    (∀ i : Fin d, ∀ ω : Ω, (X i ω).IsHermitian)\n  have hp := FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure\n    (d := d) (q := q) hq\n  change (∀ i : Fin d, Measurable (Z i)) ∧ iIndepFun Z μ ∧\n    (∀ i : Fin d, Integrable (Z i) μ) ∧\n    (∀ i : Fin d, (∫ ω, Z i ω ∂μ) = 0) ∧\n    (∀ i : Fin d, ∀ ω : Ω, (Z i ω).IsHermitian) at hp\n  refine ⟨?_, ?_, ?_, ?_, ?_⟩\n  · intro i\n    exact (measurable_const : Measurable (fun _ : Ω => w i)).smul (hp.1 i)\n  · exact hp.2.1.comp\n      (fun i (A : Matrix (Fin (q + 1) × Fin (q + 1))\n        (Fin (q + 1) × Fin (q + 1)) ℝ) => w i • A)\n      (fun i => (measurable_const : Measurable\n        (fun _ : Matrix (Fin (q + 1) × Fin (q + 1))\n          (Fin (q + 1) × Fin (q + 1)) ℝ => w i)).smul measurable_id)\n  · intro i\n    exact (hp.2.2.1 i).smul (w i)\n  · intro i\n    dsimp only [X]\n    rw [integral_smul, hp.2.2.2.1 i, smul_zero]\n  · intro i ω\n    exact (hp.2.2.2.2 i ω).smul (isSelfAdjoint_iff.mpr rfl)\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixStructure\n",
+      "statement_sha256": "c5ec0d4eac73ca6bfc5bd00040f5a05e93f8e2e9a0be8923b955a75bc1f708e5",
+      "placement": "private actual Tests consumer, no public API/canonical publication node"
+    },
+    "source_lean_correspondence": {
+      "kind": "Authored exact source-to-code map, not an independent fidelity verdict",
+      "raw_source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "source_span_helper_origin": ".astis/huanjian-real-matrix-positive-integral-20261112/make_source_lean_map.generated.py",
+      "exact_helper_prefix_sha256": "fea553f61e0e845b4bbaaaeb577900ff9e274bd6a884327f045ea05a348cb4ef",
+      "mappings": [
+        {
+          "source": [
+            {
+              "source_id": "S4.Thmtheorem4.p1",
+              "char_start": 230581,
+              "char_end": 236865,
+              "raw_utf8_start": 232635,
+              "raw_utf8_end": 238980,
+              "lf_line_start": 1209,
+              "lf_column0_start": 0,
+              "lf_line_end": 1230,
+              "span_sha256": "00f66fac7ae3cca6c10e5cfeb93cf22f9622867593ccd7c9cbc09cde73fb9737",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.SS2.p1",
+              "char_start": 731718,
+              "char_end": 736218,
+              "raw_utf8_start": 739163,
+              "raw_utf8_end": 743698,
+              "lf_line_start": 3317,
+              "lf_column0_start": 0,
+              "lf_line_end": 3329,
+              "span_sha256": "4b07cd73f4561d56956c212747af710882b47f8d70253b679ed93e1cda9eafbc",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.Ex107.m1",
+              "char_start": 796493,
+              "char_end": 797416,
+              "raw_utf8_start": 804638,
+              "raw_utf8_end": 805574,
+              "lf_line_start": 3576,
+              "lf_column0_start": 42,
+              "lf_line_end": 3576,
+              "span_sha256": "2fccd6d10267f830c08762305aaf43245b495034c893dc8ae6191f8196ebbf0b",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.SS2.p13.1",
+              "char_start": 804268,
+              "char_end": 805333,
+              "raw_utf8_start": 812512,
+              "raw_utf8_end": 813592,
+              "lf_line_start": 3609,
+              "lf_column0_start": 0,
+              "lf_line_end": 3611,
+              "span_sha256": "1b1b8bb54870393dad4c65cd9d40302f08eeb4cd62d74d53d8d5ac9bf28df69f",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixStructure.lean",
+              "file_sha256": "b1d08b92b84b3d1b6d8fc53ebad7b991d9aa99ccfd955d51b96f3e2db52dfff6",
+              "LF_lines_1based": [
+                1,
+                79
+              ],
+              "raw_UTF8_byte_span": [
+                0,
+                4100
+              ],
+              "decoded_char_span": [
+                0,
+                3824
+              ],
+              "span_sha256": "a3195816ec4bbf72bece0df4568f47dfb12e0f76a9322f2fd5b38bea3710fcd3"
+            },
+            {
+              "path": "Tests/GaussianComplexityFixedSpectrumSourceMatrixStructure.lean",
+              "file_sha256": "3bd0697423c61e4eadc530be53b0d402bf7bafeddb2272ff24c01f7ecfe7a7be",
+              "LF_lines_1based": [
+                1,
+                90
+              ],
+              "raw_UTF8_byte_span": [
+                0,
+                4782
+              ],
+              "decoded_char_span": [
+                0,
+                4434
+              ],
+              "span_sha256": "1fe133dc540f40127252c379384e44cf4708590a52c5645a56117217f2f8c4d1"
+            }
+          ],
+          "meaning": "Literal source regime, original Gaussian columns and physical rows, standard finite-matrix Borel definition, closed row cutoff and actual unconditional mean.",
+          "attribution": "EXACT_SOURCE_REALIZATION_WITH_INTERNAL_STANDARD_TYPING"
+        },
+        {
+          "source": [
+            {
+              "source_id": "A3.SS2.p1.2",
+              "char_start": 734304,
+              "char_end": 736211,
+              "raw_utf8_start": 741766,
+              "raw_utf8_end": 743691,
+              "lf_line_start": 3326,
+              "lf_column0_start": 0,
+              "lf_line_end": 3328,
+              "span_sha256": "4655b2f9e5c4af1d9aea218c6c72d10d9c4ad91e511b0516e4ffd5b01334a4cd",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.Ex107.m1",
+              "char_start": 796493,
+              "char_end": 797416,
+              "raw_utf8_start": 804638,
+              "raw_utf8_end": 805574,
+              "lf_line_start": 3576,
+              "lf_column0_start": 42,
+              "lf_line_end": 3576,
+              "span_sha256": "2fccd6d10267f830c08762305aaf43245b495034c893dc8ae6191f8196ebbf0b",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.SS2.p15.1",
+              "char_start": 825371,
+              "char_end": 825913,
+              "raw_utf8_start": 833889,
+              "raw_utf8_end": 834431,
+              "lf_line_start": 3701,
+              "lf_column0_start": 0,
+              "lf_line_end": 3704,
+              "span_sha256": "c66ebf0d9d047461bb527ceaa9e4e9ce0de3c839faf407b33c27a0e7dbb3e8e5",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixStructure.lean",
+              "file_sha256": "b1d08b92b84b3d1b6d8fc53ebad7b991d9aa99ccfd955d51b96f3e2db52dfff6",
+              "LF_lines_1based": [
+                80,
+                113
+              ],
+              "raw_UTF8_byte_span": [
+                4100,
+                5650
+              ],
+              "decoded_char_span": [
+                3824,
+                5337
+              ],
+              "span_sha256": "8d4203da4eadc745f93878edfb61f14ae7d97e21cfeaf63887069fe87ecc30a5"
+            }
+          ],
+          "meaning": "Canonical actual-row marginal and joint independence, continuous tensor coordinates and closed measurable cutoff, then deterministic measurable centering of separate rows.",
+          "attribution": "SOURCE_STRUCTURE_WITH_INTERNAL_MEASURABILITY_APPLICABILITY"
+        },
+        {
+          "source": [
+            {
+              "source_id": "A3.Ex108.m1",
+              "char_start": 797826,
+              "char_end": 799038,
+              "raw_utf8_start": 805984,
+              "raw_utf8_end": 807216,
+              "lf_line_start": 3584,
+              "lf_column0_start": 42,
+              "lf_line_end": 3584,
+              "span_sha256": "6103859bdba850100c42c7b4895af4d903b82aaae259b310ff03817195e3f2f6",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.SS2.p12.4",
+              "char_start": 801436,
+              "char_end": 802634,
+              "raw_utf8_start": 809637,
+              "raw_utf8_end": 810855,
+              "lf_line_start": 3596,
+              "lf_column0_start": 0,
+              "lf_line_end": 3598,
+              "span_sha256": "01320d3f3efa02c471b490a5ea1e87bc49d9ae19600779171fba4180913f5cbc",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.SS2.p15.1",
+              "char_start": 825371,
+              "char_end": 825913,
+              "raw_utf8_start": 833889,
+              "raw_utf8_end": 834431,
+              "lf_line_start": 3701,
+              "lf_column0_start": 0,
+              "lf_line_end": 3704,
+              "span_sha256": "c66ebf0d9d047461bb527ceaa9e4e9ce0de3c839faf407b33c27a0e7dbb3e8e5",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixStructure.lean",
+              "file_sha256": "b1d08b92b84b3d1b6d8fc53ebad7b991d9aa99ccfd955d51b96f3e2db52dfff6",
+              "LF_lines_1based": [
+                114,
+                138
+              ],
+              "raw_UTF8_byte_span": [
+                5650,
+                6869
+              ],
+              "decoded_char_span": [
+                5337,
+                6507
+              ],
+              "span_sha256": "8a79cd6a207e54cbeb8cdd2b7e1e046455c2bf921f2656ea8c3873d92a34a81f"
+            }
+          ],
+          "meaning": "Consume actual Yi integrability and exact radial mean; prove pointwise summand and mean symmetry. Selected radial OR route, not an extra premise or dual-route requirement.",
+          "attribution": "SOURCE_RADIAL_MEAN_AND_INTERNAL_HERMITIAN_ALGEBRA"
+        },
+        {
+          "source": [
+            {
+              "source_id": "A3.SS2.p13.1",
+              "char_start": 804268,
+              "char_end": 805333,
+              "raw_utf8_start": 812512,
+              "raw_utf8_end": 813592,
+              "lf_line_start": 3609,
+              "lf_column0_start": 0,
+              "lf_line_end": 3611,
+              "span_sha256": "1b1b8bb54870393dad4c65cd9d40302f08eeb4cd62d74d53d8d5ac9bf28df69f",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.SS2.p15.1",
+              "char_start": 825371,
+              "char_end": 825913,
+              "raw_utf8_start": 833889,
+              "raw_utf8_end": 834431,
+              "lf_line_start": 3701,
+              "lf_column0_start": 0,
+              "lf_line_end": 3704,
+              "span_sha256": "c66ebf0d9d047461bb527ceaa9e4e9ce0de3c839faf407b33c27a0e7dbb3e8e5",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixStructure.lean",
+              "file_sha256": "b1d08b92b84b3d1b6d8fc53ebad7b991d9aa99ccfd955d51b96f3e2db52dfff6",
+              "LF_lines_1based": [
+                139,
+                148
+              ],
+              "raw_UTF8_byte_span": [
+                6869,
+                7364
+              ],
+              "decoded_char_span": [
+                6507,
+                6981
+              ],
+              "span_sha256": "8e0c9d340b05602fe78594548c37fe11c8344547484ca952448927b6c5bda6c0"
+            }
+          ],
+          "meaning": "True integrability and actual zero mean follow under original probability before assembling all five outputs.",
+          "attribution": "SOURCE_CENTERING_WITH_INTERNAL_BOCHNER_CONTRACTS"
+        },
+        {
+          "source": [
+            {
+              "source_id": "A3.SS2.p13.3",
+              "char_start": 808632,
+              "char_end": 809763,
+              "raw_utf8_start": 816941,
+              "raw_utf8_end": 818086,
+              "lf_line_start": 3627,
+              "lf_column0_start": 0,
+              "lf_line_end": 3628,
+              "span_sha256": "90552f46e3780daec283f41c59301461e83af174b74b421a41621da764d015f6",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.SS2.p15.1",
+              "char_start": 825371,
+              "char_end": 825913,
+              "raw_utf8_start": 833889,
+              "raw_utf8_end": 834431,
+              "lf_line_start": 3701,
+              "lf_column0_start": 0,
+              "lf_line_end": 3704,
+              "span_sha256": "c66ebf0d9d047461bb527ceaa9e4e9ce0de3c839faf407b33c27a0e7dbb3e8e5",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "Tests/GaussianComplexityFixedSpectrumSourceMatrixStructure.lean",
+              "file_sha256": "3bd0697423c61e4eadc530be53b0d402bf7bafeddb2272ff24c01f7ecfe7a7be",
+              "LF_lines_1based": [
+                91,
+                108
+              ],
+              "raw_UTF8_byte_span": [
+                4782,
+                5497
+              ],
+              "decoded_char_span": [
+                4434,
+                5127
+              ],
+              "span_sha256": "883277b0c400a90e4bab8f3ffa26168a9fbdd6796df86a8651702888bef0d1f8"
+            }
+          ],
+          "meaning": "Private real weighted consumer applies all five outputs to the actual deterministic cosine scalars. Zero and negative weights retained, each family separately jointly independent.",
+          "attribution": "SOURCE_WEIGHTED_STRUCTURE_PRIVATE_CONSUMER"
+        }
+      ],
+      "code_files": [
+        {
+          "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixStructure.lean",
+          "sha256": "b1d08b92b84b3d1b6d8fc53ebad7b991d9aa99ccfd955d51b96f3e2db52dfff6"
+        },
+        {
+          "path": "Tests/GaussianComplexityFixedSpectrumSourceMatrixStructure.lean",
+          "sha256": "3bd0697423c61e4eadc530be53b0d402bf7bafeddb2272ff24c01f7ecfe7a7be"
+        }
+      ],
+      "source_graph_boundary": "Accepted preproof source-only v3 graph and distinct topology challenge are preserved. Mapping selects radial-mean symmetry OR route. No source outline edge is asserted to be a Lean implication.",
+      "formal_parents": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw.actual_source_row_marginal_law",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowIndependence.actual_source_rows_independent"
+      ],
+      "private_T_parent": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure",
+      "remaining_boundary": "Public P proves the five centered structural properties under the original Gaussian experiment. The complete private Tests consumer proves the corresponding five properties of the cosine-weighted family and uses every output of P; it receives no public API or separate canonical node credit. Independence is asserted for each indexed family separately. Matrix Bernstein tails, full Lemma4.4 and both main lower bounds, actual oracle/precision/TV/dimension-condition-number/worst-query-cap/expected-cost adapters, serialized main/site/source-index/globalgraph integration and purification remain separate obligations."
+    }
+  },
+  "reconstruction": {
+    "text": "For every pair of natural numbers d and q and every hypothesis hq that\n2q + 1 < d, make the following local choices and definitions. The variables d\nand q are implicit parameters in the displayed Lean universal quantifier. In\nparticular q may be zero; equivalently, the stated natural-number bound is\nd >= 2q + 2, so every allowed d is positive.\n\nGive the real matrix space with both its row and column index set equal to\nFin(q + 1) x Fin(q + 1) the Borel sigma algebra of its ordinary finite\ncoordinate topology. The matrix norm convention is the operator norm of the\nmatrix acting between the corresponding real Euclidean spaces; this norm\npreserves that topology.\n\nLet D = R^d and E = R^(q + 1), each with its Euclidean norm and Borel sigma\nalgebra. Let Omega = (Fin(q + 1) -> D). Equip Omega with the finite product\nsigma algebra and the measure\n\n    mu = product over b in Fin(q + 1) of stdGaussian(D),\n\nwhere stdGaussian(D) is the centered Gaussian probability measure on D with\nidentity covariance. Thus an element omega of Omega assigns a vector\nomega(b) in D to each b in Fin(q + 1).\n\nDefine the real numbers\n\n    r = q + 1,\n    L = 2r + 3 log(1000d),\n\nwhere the natural numbers are embedded in R and log is the natural\nlogarithm. For each i in Fin d, whose natural-number value is denoted i,\nput\n\n    theta_i = (i + 1 - 1/2) pi / d = (i + 1/2) pi / d.\n\nDefine the coordinate function t_i : Fin(q + 1) -> R by\n\n    t_i(k) = 1                         if the value of k is 0,\n             sqrt(2) cos(k theta_i)    otherwise.\n\nHere k in the second line is the real embedding of its natural-number\nvalue, and sqrt is the nonnegative square root. For each i in Fin d and\neach omega in Omega, define the Euclidean vector row_i(omega) in E by\n\n    row_i(omega)_b = omega(b)_i,    b in Fin(q + 1).\n\nThis is the Euclidean-space wrapping WithLp.toLp 2 of the displayed\ncoordinate function; WithLp.ofLp recovers these same coordinates.\n\nWrite M for the real matrices whose row and column indices both range over\nFin(q + 1) x Fin(q + 1). For each i in Fin d define Y_i : Omega -> M by\n\n    Y_i(omega) = (1/d) [row_i(omega) row_i(omega)^T]\n                            tensor [t_i t_i^T]\n                    if ||row_i(omega)||_2^2 <= L,\n                 0  otherwise.\n\nThe tensor here is the matrix Kronecker product: at row (a,b) and column\n(c,e), its entry before multiplication by 1/d is\nrow_i(omega)_a row_i(omega)_c t_i(b) t_i(e). Each outer product uses the\ncoordinate functions, as in Matrix.vecMulVec. The cutoff includes equality,\nand the zero in the other branch is the zero matrix in M.\n\nFor every i in Fin d, define\n\n    mean_i = integral over Omega of Y_i(omega) dmu(omega),\n    Z_i(omega) = Y_i(omega) - mean_i,\n    w_i = cos((2q + 1) theta_i),\n    X_i(omega) = w_i Z_i(omega).\n\nThe number 2q + 1 in the definition of w_i is formed as a natural number\nand then embedded in R. All displayed matrix integrals are Bochner\nintegrals in M with the matrix norm convention above. The integral notation\nis totalized to zero for nonintegrable functions; the definitions alone do\nnot add an asserted integrability hypothesis or conclusion for Y_i.\n\nThen all five of the following assertions hold together:\n\n1. For every i in Fin d, X_i is measurable from Omega with its displayed\n   product sigma algebra to M with the locally fixed Borel sigma algebra.\n2. The entire indexed family (X_i)_(i in Fin d) is jointly independent under\n   mu (the assertion iIndepFun X mu).\n3. For every i in Fin d, X_i is Bochner integrable with respect to mu. This\n   includes almost-everywhere strong measurability and a finite integral of\n   its matrix norm.\n4. For every i in Fin d,\n\n       integral over Omega of X_i(omega) dmu(omega) = 0 in M.\n\n5. For every i in Fin d and every omega in Omega, X_i(omega) is Hermitian.\n   Since the entries are real, this means exactly that X_i(omega) equals\n   its transpose. This last quantifier is over every omega, rather than\n   only mu-almost every omega.\n\nFor q = 0, Fin(q + 1) has its single coordinate k = 0, so the piecewise\ndefinition of t_i uses only its value 1. This case is included whenever\nd >= 2; no separate assertion is made for parameters outside 2q + 1 < d.\n\nAmbiguity: none remains given the supplied approved definition context.\n",
+    "text_sha256": "4f3fb664a3b0e0c763e5052cecc18e9b2303254d8eac6abf56a48caef75ad7ef",
+    "decoder": "neutral_decode_96ec",
+    "decoder_run_sha256": "4f3fb664a3b0e0c763e5052cecc18e9b2303254d8eac6abf56a48caef75ad7ef",
+    "decoder_packet_sha256": "25421929f7279b151b643f5fc20b8e7f39c75278870ba2091788a15003356942",
+    "source_text_visible": false,
+    "lean_statement_sha256": "c5ec0d4eac73ca6bfc5bd00040f5a05e93f8e2e9a0be8923b955a75bc1f708e5",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-structure-semantic-evidence/decoder-originals/anon_96ec/result.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual truncated tensor Yi=d^(-1)(gamma_i gamma_i^T tensor ti ti^T) 1_{||gamma_i||^2<=L}; Mi is actual E_mu Yi; Zi=Yi-Mi. Weighted source family is Xi=cos((2q+1)theta_i)Zi.",
+      "reconstructed": "The anonymous reconstruction defines the same actual physical rows from independent Gaussian columns, same tensor ordering, cutoff, same-mu mean and centered matrices. It then defines the identical deterministic frequency and real weighted Xi.",
+      "relation": "equivalent",
+      "evidence": "Raw C.2 p1/Ex85, p12.1/Ex107, p13.1 and p13.3; whole statements and decoder entry formulas agree including pair-index order. Definitions of mean are direct actual integrals, not radial proxies."
+    },
+    "domains": {
+      "original": "Natural q>=0 and 2q+1<d; r=q+1, d source rows; real Euclidean Gaussian columns/rows; real r^2 by r^2 matrices with ordinary finite-dimensional Borel/integral meaning.",
+      "reconstructed": "d,q are Nat; I=Fin(q+1), J=Fin d; Omega=I->EuclideanSpace Real(Fin d); matrix indices I x I; local matrix borel fixed over standard product topology with L2 operator norm.",
+      "relation": "explicit-elaboration",
+      "evidence": "Fin indexing is a finite-coordinate realization of the same source domain. hq gives d>=2 and r>=1, including q=0. Fixed Mathlib product topology and L2 operator norm have the same topology/uniformity; local borel is standard typing, not a new hypothesis."
+    },
+    "quantifiers": {
+      "original": "For every admissible d,q, every index in the selected sequence has the structural properties; independence concerns the entire finite i-family and self-adjointness is pointwise.",
+      "reconstructed": "Universal d,q,hq govern every let definition and all five conjuncts; integrability/zero mean/measurability for every Fin d index, iIndepFun for the whole X_i=cos((2q+1)theta_i) Z_i family, Hermitian symmetry for every index and every outcome.",
+      "relation": "same",
+      "evidence": "Raw first assertion C.2 p15.1 applies to each of the two sequences separately. Reconstruction preserves full family independence rather than pairwise only, and pointwise symmetry rather than an event-dependent conclusion. No combined-family independence or identically distributed assertion occurs."
+    },
+    "assumptions": {
+      "original": "Source natural parameter regime and the original independent standard Gaussian column experiment, with deterministic source features/cutoff. No assumed independence/mean/integrability/symmetry certificate.",
+      "reconstructed": "Only d,q:Nat and hq:2*q+1<d are proposition/parameter binders. Product mu and every object are fixed let definitions; local letI borel is a fixed definition.",
+      "relation": "explicit-elaboration",
+      "evidence": "All analytic and probabilistic properties are derived internally in the whole modules, using actual row-law, row-independence and mean parents. No caller-supplied Borel class, covariance, alternate law, good-event conditioning, q>0 or sign/nonzero-weight premise is present."
+    },
+    "conclusion": {
+      "original": "The selected actual sequence is independent, centered and self-adjoint, with the analytic prerequisites for these source assertions made explicit.",
+      "reconstructed": "Five simultaneous claims for X_i=cos((2q+1)theta_i) Z_i: measurability, iIndepFun under actual mu, Bochner integrability, actual integral equal to zero, and Hermitian matrices for every sample.",
+      "relation": "explicit-elaboration",
+      "evidence": "Matches the source p15.1 structure statement and its standard well-defined expectation prerequisites. Full source modules discharge actual Yi integrability, then Zi and weighted Xi integrability; no totalized-zero artifact. No concentration estimate, tail, PSD or oracle conclusion is added."
+    },
+    "scopes": {
+      "original": "Inclusive row-local cutoff; same original unconditional mu throughout; deterministic actual mean; separate independence of each family; real self-adjointness.",
+      "reconstructed": "The complete lets are inside all d,q,hq quantifiers. Cutoff condition is <=; matrix mean and selected family integrals use the same mu. The decoder correctly describes general Bochner integral totalization but asserts only the displayed conclusions.",
+      "relation": "explicit-elaboration",
+      "evidence": "Independent whole-module review proves Yi genuinely integrable before centering, resolving the reconstruction's implementation caveat without changing its proposition. Actual expectation therefore agrees with source expectation. Real Hermitian means ordinary transpose symmetry. All maps permit wi=0 or wi<0, with no scalar inversion."
+    },
+    "constant_dependencies": {
+      "original": "r=q+1, n=2q+1, theta_i=(i-1/2)pi/d, ti constant-coordinate 1 and sqrt2 cos(k theta_i), L=2r+3log(1000d), normalization d^(-1). No concentration C or tau-smallness for this structure claim.",
+      "reconstructed": "Exactly the same constants and parameter dependencies; Fin index j corresponds to source j.val+1. wi=cos((2q+1)theta_i) is deterministic in d,q,i.",
+      "relation": "same",
+      "evidence": "Every coefficient, coercion and log/sqrt convention matches the raw source and decoded definition. Only d,q and index enter the deterministic data; no additional numerical constant, hidden parameter, positive q, or positive/nonzero cosine restriction."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "structure_src_c24d",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "65d41bd42f43f130fbaa4688705b67f2941512ab5216144cd8e2cdf967cf5879",
+    "evidence": "Independent raw-first source freeze preceded all candidate access; whole-code/source judgment preceded packets and compiler metadata. Reviewed pinned original SHA 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915, both complete immutable modules and necessary parent/standard Mathlib meanings, then canonical fresh anti-anchored v3 source/reconstruction/publication packets. Actual source/statement/reconstruction hashes and anonymous decoder custody independently agree. No ROOT compiler/kernel/native logs or earlier source verdicts were used. T checks only the complete private weighted consumer; no public API credit. Current authored exposition/source-map/conceptual review accepted; the index wording ambiguity is corrected and packet bindings refreshed. Review run artifact: .astis/semantic-neutral-20261113/structure_src_c24d/T-source-review-run.v3.json; run SHA-256 437573b855fd74811ba019ea18aafb563d0c662e5dcbe4076a9203dc788e66e6.",
+    "review_run_sha256": "437573b855fd74811ba019ea18aafb563d0c662e5dcbe4076a9203dc788e66e6",
+    "run_artifact": ".astis/semantic-neutral-20261113/structure_src_c24d/T-source-review-run.v3.json"
+  },
+  "actual_math_commit": "9ed997b7fda8631deb5bc1397d021495d53c4d41",
+  "reader_commit": "37c228612fc3773c0dc1021cb6d7128cd0b55cfa",
+  "independent_original_overlay": {
+    "path": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-structure-semantic-evidence/source-review/structure_src_c24d/T-audit-overlay.v3.json",
+    "sha256": "1de251e339ded3cd805788e0fc135fb06c3db6b5f1c061c6efaebae9e25a3821"
+  }
+}

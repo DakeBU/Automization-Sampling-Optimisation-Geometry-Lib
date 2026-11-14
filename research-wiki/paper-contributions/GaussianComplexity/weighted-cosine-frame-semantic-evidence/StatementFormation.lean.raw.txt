@@ -1,0 +1,43 @@
+import Mathlib
+open MeasureTheory ProbabilityTheory
+open scoped Matrix.Norms.L2Operator
+set_option autoImplicit false
+
+def ProducerStatement : Prop := ∀ {d q : ℕ} (hq : 2 * q + 1 < d),
+  let r : ℝ := ((q + 1 : ℕ) : ℝ)
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>
+    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)
+  let S : Fin d → ℝ := fun i => ∑ k : Fin (q + 1), (t i k) ^ 2
+  let feature : Fin d → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=
+    fun i => Matrix.vecMulVec (t i) (t i)
+  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ
+  let B : N := ((r + 2) / (d : ℝ) ^ 2) •
+    ∑ i : Fin d, S i • Matrix.kronecker (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ) (feature i)
+  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)
+  Matrix.PosSemidef (C • (1 : N) - B)
+
+#check ProducerStatement
+
+def ConsumerStatement : Prop := ∀ {d q : ℕ} (hq : 2 * q + 1 < d),
+  let E := EuclideanSpace ℝ (Fin (q + 1))
+  let μ : Measure E := stdGaussian E
+  let r : ℝ := ((q + 1 : ℕ) : ℝ)
+  let R : E → ℝ := fun x => ‖x‖ ^ 2
+  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>
+    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)
+  let G : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=
+    fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)
+  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ
+  let Y : Fin d → E → N := fun i =>
+    Set.indicator {x : E | R x ≤ L}
+      (fun x => (d : ℝ)⁻¹ • Matrix.kronecker (G x) (Matrix.vecMulVec (t i) (t i)))
+  let secondSum : N := ∑ i : Fin d, (∫ x, Y i x * Y i x ∂μ)
+  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)
+  (∀ i : Fin d, Integrable (fun x => Y i x * Y i x) μ) ∧
+    Matrix.PosSemidef (C • (1 : N) - secondSum)
+
+#check ConsumerStatement
+

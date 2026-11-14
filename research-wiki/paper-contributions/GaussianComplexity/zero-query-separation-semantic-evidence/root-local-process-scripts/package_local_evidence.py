@@ -1,0 +1,31 @@
+from pathlib import Path
+import sys,json
+sys.dont_write_bytecode=True;sys.path.insert(0,'.astis/huanjian-gc-fixed-spectrum-detector-20261110')
+from lossless_frozen_bundle import archive_exact,put_new,sha
+W=Path(__file__).resolve().parent.relative_to(Path.cwd());E=Path('research-wiki/paper-contributions/GaussianComplexity/zero-query-separation-semantic-evidence');R=Path('.astis/huanjian-resume-20261103')
+dump=lambda x:(json.dumps(x,ensure_ascii=False,indent=2)+'\n').encode()
+source={}
+for d in ['.astis/semantic-neutral-20261110/z_sg_7d14a2','.astis/semantic-neutral-20261110/z_sg_7d14a2_phase2','.astis/semantic-neutral-20261110/z_sg_7d14a2_scope_label_successor','.astis/semantic-neutral-20261110/z_tc_38cf91']:
+    for p in sorted(Path(d).rglob('*')):
+        if p.is_file() and not p.is_symlink():
+            assert p.stat().st_mode&0o777==0o444 and not p.name.endswith('.private.json'),p
+            source[str(p)]=p.read_bytes()
+pre=archive_exact(source,E/'independent-preproof-source-topology-all-phases.lossless-file-bytes.tar.gz');put_new(E/'independent-preproof-source-topology-archive.json',dump(pre))
+files={}
+for p in sorted(R.glob('*zero-query*.receipt.json')):
+    x=json.loads(p.read_bytes());lp=Path(x['log']);b=lp.read_bytes();assert sha(b)==x['log_sha256'];files[str(p)]=p.read_bytes();files[str(lp.relative_to(Path.cwd()) if lp.is_absolute() else lp)]=b
+selected=['preseal-planning.json','actual-environment-before-seal.json','latest-main-owner-after-target-law-complete-carry.json','producer-signature.draft.txt','consumer-signature.draft.txt','statement-seal-v1.json','strict-statement-projection.json','root-confirmed-actual-intake-success.json','normal-intake-attempted.once.json','seal_statements.py','reserve_frontier_no_intake.py','admit_normal_intake_prepared.py','author_publication.py','author-payload.json','package_correspondence.py','check_isolated_static_reader.py','package_local_evidence.py']
+selected += [f'producer-attempt-v{i}.raw.lean.txt' for i in range(1,6)]+[f'consumer-attempt-v{i}.raw.lean.txt' for i in range(1,3)]+[f'kernel-attempt-v{i}.raw.lean.txt' for i in range(1,3)]
+for n in selected:
+    p=W/n;files[str(p)]=p.read_bytes()
+for p in sorted((W/'isolated-static-reader-current').rglob('*')):
+    if p.is_file():files[str(p)]=p.read_bytes()
+local=archive_exact(files,E/'actual-local-checks-and-authoring.lossless-file-bytes.tar.gz');put_new(E/'actual-local-checks-lossless-archive.json',dump(local))
+memory=[]
+for f in ['Libraries/conceptual-mirror-protocol.json','website/content/graph_memory_index.json','website/content/functor_hypergraph.json','Libraries/frontloaded-shared-spine.json']:
+    p=Path(f);json.loads(p.read_bytes());memory.append({'path':f,'sha256':sha(p.read_bytes())})
+audit={'status':'none-found','discovery_ids':[],'scope':'No NEW conceptual transport: the existing family:gaussian-oracle-hardness / transport:gaussian-hidden-information already records indistinguishable outputs versus target tests. This packet supplies a concrete actual two-Gaussian test component; exact Gaussian/scalar/measure primitives remain their canonical compiled nodes.','existing_family_mechanism_instance':{'hypotheses':'d>=1,kappa>=4; actual precision I and diag(kappa,1,...,1); arbitrary common probability output rho only in the private application.','critical_estimate':'pi1(B)-pi0(B)>1/8=2*(1/16) for B={|x0|<=1/2}; actual event differences are bounded by the real measurable-event TV suprema.','conclusion':'The two TV errors of a common rho cannot both be <=1/16.','failure_boundary':'The matrices have different spectra, so free spectrum access can distinguish the two inputs before any oracle query. Actual zero-query Borel seed/output common law and source admissibility/accuracy/cap adapters must be produced separately. No determinant-Haar/Krylov/adaptive/global query or expected-cost implication is certified.','source_mapping':['S2','S3.SS3.SSS0.Px1.p1.1','S3.Ex3'],'graph_classification':'Existing typed conceptual family incidence only; no new solid Lean edge, equivalence/functor certificate or global graph write. Any new displayed module incidence remains a later integration/review matter.'},'exact_formal_ASTIS_parents':json.loads((E/'actual-kernel-owned-inventory.json').read_bytes())['actual_first_public_ASTIS_parents'],'existing_memory_inputs':memory,'new_graph_or_discovery_ledger_write':False}
+put_new(E/'postproof-conceptual-mirror-audit.json',dump(audit))
+diagnostics={'class':'IMPLEMENTATION_FAILED','no_mathematical_refutation_or_source_invalidity':True,'unchanged_exact_statement_seal_sha256':sha((W/'statement-seal-v1.json').read_bytes()),'attempts':[{'attempt':'producer1','diagnosis':'Bare lambda glyph is a reserved Lean token; renamed only proof-local eigenvalue identifier.'},{'attempt':'producer2','diagnosis':'NNReal notation scope and interval-volume finiteness automation were missing; opened notation and supplied explicit canonical Lebesgue finite-mass fact.'},{'attempt':'producer3','diagnosis':'Scalar variance nonnegative-real coercion retained a let alias; explicitly unfolded the actual v definition.'},{'attempt':'producer4','diagnosis':'Actual full proof passed; first kernel found3 reachable declarations including a generated abs_le equality conversion.'},{'attempt':'producer5','diagnosis':'Directly reused canonical abs_le; real module-pair rebuild and strict all-owned kernel passed with2 handwritten roots and0 generated helpers. First3-declaration evidence retained; no postmerge PURIFIED claim.'},{'attempt':'consumer1','diagnosis':'fun_prop needed explicit EuclideanSpace type instead of proof-local E alias; no statement/regularity assumption changed.'},{'attempt':'consumer2','diagnosis':'Actual complete private proof passed with the producer genuinely used in the endpoint contradiction.'}],'archive':local['archive'],'all_original_failures_and_successes_byte_exact':True,'no_sourceV_global_or_Goal_credit':True}
+put_new(E/'actual-attempts-and-canonicalization-diagnostic.json',dump(diagnostics))
+print(json.dumps({'preproof_original_files':pre['file_count'],'preproof_archive_sha256':pre['sha256'],'actual_local_files':local['file_count'],'actual_local_archive_sha256':local['sha256'],'private_foreign_baselines_never_archived':True}))

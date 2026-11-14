@@ -1,0 +1,15 @@
+Independent native and static reader verification
+
+Candidate compiled: `401a3e1faa08fe2173d52017672831d2edbad38f`. Later metadata HEAD `c2612017fdee89bfb33d94a8a46037313d504a77` has identical bytes for all 20 relevant inputs and renderer files. No new compilation is credited to that HEAD.
+
+PASS: six modules compiled topologically from frozen candidate bytes into an initially empty private olean directory; LEAN_PATH contained only that directory and pinned dependency caches. Actual Lean4.33.0 arm64 binary reports commit d8b18978322de05a8f3dba51ef03cf5461676c17. Manifest `b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37` and all nine exact clean dependency HEADs were independently checked twice.
+
+Native inspection covers44 owned constants across all six modules, including all38 compiler auxiliaries. Full types and proof bodies have no pretty ellipses; all axiom closures are subsets of propext, Classical.choice and Quot.sound. All six authored declarations are reachable from the private consumer. Seven unreachable GridAlias simp auxiliaries are listed separately; this is not a purification acceptance. The producer directly consumes the canonical cosine-frame theorem; the private consumer directly consumes the producer and canonical radial fourth matrix moment.
+
+Actual private name: `_private.Tests.GaussianComplexityFixedSpectrumWeightedFrameBound.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumWeightedFrameBound.actual_uncentered_second_moment_sum_bound`. Both exact frozen literal propositions were separately kernel-applied without extra hypotheses. Whole-module token scans are clean. The consumer proves each square integrable and uses unnormalized canonical marginal expectations; no original-family, centering or concentration credit is inferred.
+
+Static reader PASS: actual production render_unit/export_sources/render_source_module reproduce binding `dafe229bd9184d3640797f51b3dfd581c8408ede198d973d58ba3cd8af7becdd`. All six adjacent Lean step folds are exact source substrings and initially closed. The private module has181 lines and starts its theorem atL14. Its four folds preserve every nonblank source line, omitting one blank separator only. Assumptions, formulas and exact local source/download anchors were checked. The shared site was not generated. Current theme reference is hashed and retained solely for bounded source-page shell generation.
+
+HOLD: real desktop/mobile browser and MathJax layout, full source-index and graph delivery, graph interaction/layout, copy/download runtime, public/integrated delivery, whole-repository gates, source semantic/topology acceptance, and post-merge purification. Infrastructure/API/test-harness failures are retained with typed reasons in report.json and never treated as mathematical refutation.
+
+Reproducible native/static evidence and exact command streams are under receipts/, with frozen inputs, versioned drivers, full bounded native exports and hashes. Initial interactive read-only views remain in the tool transcript; the single truncated preliminary inventory was not acceptance evidence. No source or shared metadata was edited by this verifier.

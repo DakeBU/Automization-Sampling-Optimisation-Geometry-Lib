@@ -1,0 +1,57 @@
+.astis/huanjian-gc-source-matrix-variance-20261112/CenteredVarianceDraft.lean:112:8: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  ∫ (a : Ω), (((fun ω => Y i ω * Y i ω) - fun x => Y i x * mean i) - fun x => mean i * Y i x) a + mean i * mean i ∂μ
+in the target expression
+  ∫ (ω : Ω), Y i ω * Y i ω - Y i ω * mean i - mean i * Y i ω + mean i * mean i ∂μ =
+    ∫ (ω : Ω), Y i ω * Y i ω ∂μ - mean i * mean i
+
+d q : ℕ
+hq : 2 * q + 1 < d
+D : Type := EuclideanSpace ℝ (Fin d)
+E : Type := EuclideanSpace ℝ (Fin (q + 1))
+Ω : Type := Fin (q + 1) → D
+μ : Measure Ω := Measure.pi fun x => stdGaussian D
+r : ℝ := ↑(q + 1)
+L : ℝ := 2 * r + 3 * Real.log (1000 * ↑d)
+θ : Fin d → ℝ := fun i => (↑↑i + 1 - 1 / 2) * Real.pi / ↑d
+t : Fin d → Fin (q + 1) → ℝ := fun i k => if ↑k = 0 then 1 else √2 * Real.cos (↑↑k * θ i)
+row : Fin d → Ω → E := fun i ω => WithLp.toLp 2 fun b => (ω b).ofLp i
+Y : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=
+  fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (↑d)⁻¹ • (Matrix.vecMulVec (row i ω).ofLp (row i ω).ofLp).kronecker (Matrix.vecMulVec (t i) (t i))
+    else 0
+mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i => ∫ (ω : Ω), Y i ω ∂μ
+Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω => Y i ω - mean i
+w : Fin d → ℝ := fun i => Real.cos (↑(2 * q + 1) * θ i)
+C : ℝ := 2 * r * (r + 2) / ↑d
+N : Type := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ
+raw :
+  (∀ (i : Fin d), Integrable (fun ω => Y i ω * Y i ω) μ) ∧ Matrix.PosSemidef (C • 1 - ∑ i, ∫ (ω : Ω), Y i ω * Y i ω ∂μ)
+first :
+  let D := EuclideanSpace ℝ (Fin d);
+  let E := EuclideanSpace ℝ (Fin (q + 1));
+  let Ω := Fin (q + 1) → D;
+  have μ := Measure.pi fun x => stdGaussian D;
+  have r := ↑(q + 1);
+  have L := 2 * r + 3 * Real.log (1000 * ↑d);
+  have a := (∫ (x : E), {y | ‖y‖ ^ 2 ≤ L}.indicator (fun y => ‖y‖ ^ 2) x ∂stdGaussian E) / r;
+  have θ := fun i => (↑↑i + 1 - 1 / 2) * Real.pi / ↑d;
+  have t := fun i k => if ↑k = 0 then 1 else √2 * Real.cos (↑↑k * θ i);
+  have row := fun i ω => WithLp.toLp 2 fun b => (ω b).ofLp i;
+  have Y := fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (↑d)⁻¹ • (Matrix.vecMulVec (row i ω).ofLp (row i ω).ofLp).kronecker (Matrix.vecMulVec (t i) (t i))
+    else 0;
+  (∀ (i : Fin d), Integrable (Y i) μ) ∧
+    ∀ (i : Fin d), ∫ (ω : Ω), Y i ω ∂μ = (a / ↑d) • Matrix.kronecker 1 (Matrix.vecMulVec (t i) (t i))
+Y_integrable : ∀ (i : Fin d), Integrable (Y i) μ
+Y_positive : ∀ (i : Fin d) (ω : Ω), (Y i ω).PosSemidef
+mean_positive : ∀ (i : Fin d), (mean i).PosSemidef
+Z_hermitian : ∀ (i : Fin d) (ω : Ω), (Z i ω).IsHermitian
+Z_square_positive : ∀ (i : Fin d) (ω : Ω), (Z i ω * Z i ω).PosSemidef
+expansion :
+  ∀ (i : Fin d), (fun ω => Z i ω * Z i ω) = fun ω => Y i ω * Y i ω - Y i ω * mean i - mean i * Y i ω + mean i * mean i
+Z_square_integrable : ∀ (i : Fin d), Integrable (fun ω => Z i ω * Z i ω) μ
+i : Fin d
+⊢ ∫ (ω : Ω), Y i ω * Y i ω - Y i ω * mean i - mean i * Y i ω + mean i * mean i ∂μ =
+    ∫ (ω : Ω), Y i ω * Y i ω ∂μ - mean i * mean i

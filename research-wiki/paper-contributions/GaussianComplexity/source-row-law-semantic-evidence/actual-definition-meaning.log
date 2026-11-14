@@ -1,0 +1,37 @@
+structure MeasureTheory.MeasurePreserving.{u_1, u_2} {α : Type u_1} {β : Type u_2} [MeasurableSpace α]
+  [MeasurableSpace β] (f : α → β) (μa : Measure α := by volume_tac) (μb : Measure β := by volume_tac) : Prop
+number of parameters: 7
+fields:
+  MeasureTheory.MeasurePreserving.measurable : Measurable f
+  MeasureTheory.MeasurePreserving.map_eq : Measure.map f μa = μb
+constructor:
+  MeasureTheory.MeasurePreserving.mk.{u_1, u_2} {α : Type u_1} {β : Type u_2} [MeasurableSpace α] [MeasurableSpace β]
+    {f : α → β} {μa : autoParam (Measure α) MeasurePreserving._auto_1}
+    {μb : autoParam (Measure β) MeasurePreserving._auto_3} (measurable : Measurable f)
+    (map_eq : Measure.map f μa = μb) : MeasurePreserving f μa μb
+@[irreducible] protected def MeasureTheory.Measure.pi.{u_4, u_5} : {ι : Type u_4} →
+  {α : ι → Type u_5} →
+    [Fintype ι] → [inst : (i : ι) → MeasurableSpace (α i)] → ((i : ι) → Measure (α i)) → Measure ((i : ι) → α i) :=
+Measure.wrapped✝.1
+@[reducible] def EuclideanSpace.{u_7, u_8} : Type u_7 → Type u_8 → Type (max u_7 u_8) :=
+fun 𝕜 n => PiLp 2 fun x => 𝕜
+constructor WithLp.toLp.{u_1} : (p : ENNReal) → {V : Type u_1} → V → WithLp p V
+def ProbabilityTheory.stdGaussian.{u_2} : (E : Type u_2) →
+  [inst : NormedAddCommGroup E] →
+    [inst_1 : InnerProductSpace ℝ E] → [FiniteDimensional ℝ E] → [inst : MeasurableSpace E] → Measure E :=
+fun E [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] =>
+  Measure.map (fun x => ∑ i, x i • (stdOrthonormalBasis ℝ E) i) (Measure.pi fun x => gaussianReal 0 1)
+def Measurable.{u_1, u_2} : {α : Type u_1} →
+  {β : Type u_2} → [MeasurableSpace α] → [MeasurableSpace β] → (α → β) → Prop :=
+fun {α} {β} [MeasurableSpace α] [MeasurableSpace β] f => ∀ ⦃t : Set β⦄, MeasurableSet t → MeasurableSet (f ⁻¹' t)
+@[instance_reducible] def MeasurableSpace.pi.{u_4, u_6} : {δ : Type u_4} →
+  {X : δ → Type u_6} → [m : (a : δ) → MeasurableSpace (X a)] → MeasurableSpace ((a : δ) → X a) :=
+fun {δ} {X} [m : (a : δ) → MeasurableSpace (X a)] => ⨆ a, MeasurableSpace.comap (fun b => b a) (m a)
+protected def ENNReal.ofReal : ℝ → ENNReal :=
+fun r => ↑r.toNNReal
+def Real.toNNReal : ℝ → NNReal :=
+fun r => NNReal.mk (max r 0) ⋯
+EuclideanSpace.real_norm_sq_eq.{u_7} {n : Type u_7} [Fintype n] (x : EuclideanSpace ℝ n) : ‖x‖ ^ 2 = ∑ i, x.ofLp i ^ 2
+isProbabilityMeasure_stdGaussian
+sigmaFinite_of_locallyFinite
+Measure.pi.instIsProbabilityMeasure fun x => stdGaussian (EuclideanSpace ℝ (Fin d))

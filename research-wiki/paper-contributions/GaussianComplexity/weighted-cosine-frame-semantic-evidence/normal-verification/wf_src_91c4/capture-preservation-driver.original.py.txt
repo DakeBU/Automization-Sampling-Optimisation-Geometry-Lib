@@ -1,0 +1,69 @@
+import concurrent.futures, datetime, hashlib, json, os, pathlib, stat, subprocess
+from tools import astis_advance as a
+
+ROOT = pathlib.Path('/Users/zhouhuanjian/ASTIS-GC')
+PRIVATE = ROOT / '.astis/semantic-neutral-20261112/wf_src_91c4/phase5'
+TARGET = 'ASTIS-SA-20261112-GaussianComplexityWeightedCosineFrame'
+CELL = 'research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-weighted-cosine-frame.json'
+EXPECTED = '58594412c907ab5b29f50107b0b83f337d8b10f3'
+
+def sha(data): return hashlib.sha256(data).hexdigest()
+def canon(value): return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
+def digest_file(path):
+    h = hashlib.sha256()
+    with path.open('rb') as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b''): h.update(block)
+    return h.hexdigest()
+def tracked_entry(name):
+    path = ROOT / name
+    info = path.lstat()
+    if stat.S_ISLNK(info.st_mode):
+        return name, {'kind': 'symlink', 'target': os.readlink(path), 'mode': stat.S_IMODE(info.st_mode)}
+    if stat.S_ISREG(info.st_mode):
+        return name, {'kind': 'regular', 'bytes': info.st_size, 'mode': stat.S_IMODE(info.st_mode), 'sha256': digest_file(path)}
+    return name, {'kind': 'other', 'mode': info.st_mode}
+
+assert subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT).decode().strip() == EXPECTED
+ledger = a.DEFAULT_ADVANCE_LEDGER.read_bytes()
+events = [json.loads(x) for x in ledger.splitlines() if x.strip()]
+states = a._replay_advances(events)
+assert states[TARGET]['state'] == 'PROVED_LOCAL'
+foreign = {k: v for k, v in states.items() if k != TARGET}
+discovery = a.DEFAULT_DISCOVERY_LEDGER.read_bytes()
+discovery_states = a._replay_discoveries([json.loads(x) for x in discovery.splitlines() if x.strip()])
+old = json.loads((ROOT / '.astis/huanjian-gc-weighted-cosine-frame-20261112/preproof-baseline.private.json').read_text())
+old_discoveries = json.loads((ROOT / '.astis/huanjian-gc-weighted-cosine-frame-20261112/preproof-discoveries.private.json').read_text())
+assert len(foreign) == 304 and foreign == old['all_foreign_states']
+assert len(discovery_states) == 43 and discovery_states == old_discoveries['full_states']
+assert len(discovery) == old_discoveries['ledger_bytes'] and sha(discovery) == old_discoveries['ledger_sha256']
+assert sha(ledger[:old['ledger_bytes']]) == old['ledger_sha256']
+frontiers = {str(p.relative_to(ROOT)): digest_file(p) for p in (ROOT / 'research-wiki/frontier-cells').rglob('*') if p.is_file() and not p.is_symlink() and str(p.relative_to(ROOT)) != CELL}
+assert len(old['all_existing_frontier_hashes']) == 464
+assert frontiers == old['all_existing_frontier_hashes']
+index = subprocess.check_output(['git', 'ls-files', '--stage', '-z'], cwd=ROOT)
+names = [x.decode() for x in subprocess.check_output(['git', 'ls-files', '-z'], cwd=ROOT).split(b'\0') if x]
+print(json.dumps({'stage': 'hashing-all-current-tracked-paths', 'count': len(names), 'foreign_advances': len(foreign), 'discoveries': len(discovery_states), 'older_frontier_regular_files': len(frontiers)}), flush=True)
+tracked = {}
+with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
+    for i, (name, entry) in enumerate(pool.map(tracked_entry, names), 1):
+        tracked[name] = entry
+        if i % 25000 == 0: print(json.dumps({'tracked_hashed': i}), flush=True)
+cell_bytes = (ROOT / CELL).read_bytes()
+cell = json.loads(cell_bytes)
+assert cell['status'] == 'proved_locally' and cell['evidence']['independent_verification'] == ''
+payload_path = ROOT / 'research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/actual-PROVED_LOCAL-evidence.full.json'
+payload_bytes = payload_path.read_bytes()
+assert sha(payload_bytes) == '7197dccba70a57ac69b2b0002ff43b989bcd237e1701a86f3b283003a6ca30cd'
+plines = [line for line in ledger.splitlines(keepends=True) if json.loads(line).get('advance_id') == TARGET and json.loads(line).get('to_state') == 'PROVED_LOCAL']
+assert len(plines) == 1 and sha(plines[0]) == '0a6dc377671410a9265b81d4a09ddfe4b7988952bdf4552dffea2497d9ec8966'
+assert json.loads(plines[0])['evidence'] == json.loads(payload_bytes)
+assert states[TARGET]['latest_evidence'] == json.loads(payload_bytes)
+baseline = {'captured_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'head': EXPECTED, 'target': TARGET, 'ledger_bytes': len(ledger), 'ledger_sha256': sha(ledger), 'foreign_states': foreign, 'discovery_bytes': len(discovery), 'discovery_sha256': sha(discovery), 'discovery_states': discovery_states, 'older_frontier_hashes': frontiers, 'tracked_index_sha256': sha(index), 'tracked_index_bytes': len(index), 'tracked_paths': tracked, 'cell_path': CELL, 'cell': cell, 'cell_bytes_sha256': sha(cell_bytes), 'original_plocal_payload_sha256': sha(payload_bytes), 'original_plocal_append_sha256': sha(plines[0]), 'allowed_tracked_mutations': [CELL, 'runs/substantive_advances.jsonl']}
+out = PRIVATE / 'preservation-baseline.private.json'
+out.write_text(json.dumps(baseline, ensure_ascii=False, sort_keys=True, indent=2) + '\n')
+(PRIVATE / 'advance-ledger-prefix.private.bin').write_bytes(ledger)
+(PRIVATE / 'cell-before.private.json').write_bytes(cell_bytes)
+summary = {'baseline_private_path': str(out.relative_to(ROOT)), 'baseline_private_sha256': digest_file(out), 'head': EXPECTED, 'foreign_advance_count': len(foreign), 'foreign_advance_aggregate_sha256': sha(canon(foreign)), 'discovery_count': len(discovery_states), 'discovery_state_aggregate_sha256': sha(canon(discovery_states)), 'discovery_ledger_bytes': len(discovery), 'discovery_ledger_sha256': sha(discovery), 'older_frontier_regular_count_including_README': len(frontiers), 'older_frontier_aggregate_sha256': sha(canon(frontiers)), 'tracked_path_count': len(tracked), 'tracked_path_aggregate_sha256': sha(canon(tracked)), 'tracked_index_sha256': sha(index), 'advance_ledger_prefix_bytes': len(ledger), 'advance_ledger_prefix_sha256': sha(ledger), 'original_plocal_append_sha256': sha(plines[0]), 'original_plocal_payload_sha256': sha(payload_bytes), 'preproof_preservation_checks': 'All exact preproof foreign states, discovery bytes/states and464 older frontier files match.', 'allowed_tracked_mutations': baseline['allowed_tracked_mutations'], 'foreign_snapshot_exported': False}
+(PRIVATE / 'preservation-baseline-summary.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2) + '\n')
+assert subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT).decode().strip() == EXPECTED
+print(json.dumps({'baseline_complete': True, 'tracked_paths': len(tracked), 'private_sha256': summary['baseline_private_sha256']}), flush=True)

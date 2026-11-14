@@ -1,0 +1,233 @@
+ORIGINAL .lake/packages/mathlib/Mathlib/LinearAlgebra/Matrix/PosDef.lean LINES 1-165
+/-
+Copyright (c) 2022 Alexander Bentkamp. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Alexander Bentkamp, Mohanad Ahmed
+-/
+module
+
+public import Mathlib.Algebra.CharP.Invertible
+public import Mathlib.Algebra.Order.Ring.Star
+public import Mathlib.Data.Real.Star
+public import Mathlib.LinearAlgebra.Matrix.BilinearForm
+public import Mathlib.LinearAlgebra.Matrix.DotProduct
+public import Mathlib.LinearAlgebra.Matrix.Hermitian
+public import Mathlib.LinearAlgebra.Matrix.Vec
+public import Mathlib.LinearAlgebra.QuadraticForm.Basic
+
+/-! # Positive Definite Matrices
+
+This file defines positive (semi)definite matrices and connects the notion to positive definiteness
+of quadratic forms.
+In `Mathlib/Analysis/Matrix/Order.lean`, positive semi-definiteness is used to define the partial
+order on matrices on `ℝ` or `ℂ`.
+
+## Main definitions
+
+* `Matrix.PosSemidef` : a matrix `M : Matrix n n R` is positive semidefinite if it is Hermitian
+  and `xᴴMx` is nonnegative for all `x`.
+* `Matrix.PosDef` : a matrix `M : Matrix n n R` is positive definite if it is Hermitian and `xᴴMx`
+  is greater than zero for all nonzero `x`.
+
+## Main results
+
+* `Matrix.PosSemidef.fromBlocks₁₁` and `Matrix.PosSemidef.fromBlocks₂₂`: If a matrix `A` is
+  positive definite, then `[A B; Bᴴ D]` is positive semidefinite if and only if `D - Bᴴ A⁻¹ B` is
+  positive semidefinite.
+* `Matrix.PosDef.isUnit`: A positive definite matrix in a field is invertible.
+-/
+
+@[expose] public section
+
+-- TODO:
+-- assert_not_exists MonoidAlgebra
+assert_not_exists NormedGroup
+
+open Matrix
+
+namespace Matrix
+
+variable {m n R R' : Type*}
+variable [Ring R] [PartialOrder R] [StarRing R]
+variable [CommRing R'] [PartialOrder R'] [StarRing R']
+
+/-!
+## Positive semidefinite matrices
+-/
+
+/-- A matrix `M : Matrix n n R` is positive semidefinite if it is Hermitian and `xᴴ * M * x` is
+nonnegative for all `x` of finite support. -/
+def PosSemidef (M : Matrix n n R) : Prop :=
+  M.IsHermitian ∧ ∀ x : n →₀ R, 0 ≤ x.sum fun i xi ↦ x.sum fun j xj ↦ star xi * M i j * xj
+
+protected theorem PosSemidef.diagonal [StarOrderedRing R] [DecidableEq n] {d : n → R} (h : 0 ≤ d) :
+    PosSemidef (diagonal d) where
+  left := isHermitian_diagonal_of_self_adjoint _ <| funext fun i => IsSelfAdjoint.of_nonneg (h i)
+  right x := by
+    -- TODO: positivity
+    refine Finsupp.sum_nonneg fun i _ ↦ Finsupp.sum_nonneg fun j _ ↦ ?_
+    simp +contextual [diagonal, apply_ite, star_left_conjugate_nonneg (h _)]
+
+/-- A diagonal matrix is positive semidefinite iff its diagonal entries are nonnegative. -/
+@[simp] lemma posSemidef_diagonal_iff [StarOrderedRing R] [DecidableEq n] {d : n → R} :
+    PosSemidef (diagonal d) ↔ ∀ i, 0 ≤ d i :=
+  ⟨fun ⟨_, hP⟩ i ↦ by simpa using hP (.single i 1), .diagonal⟩
+
+namespace PosSemidef
+
+theorem isHermitian {M : Matrix n n R} (hM : M.PosSemidef) : M.IsHermitian :=
+  hM.1
+
+theorem submatrix {M : Matrix n n R} (hM : M.PosSemidef) (e : m → n) :
+    (M.submatrix e e).PosSemidef := by
+  refine ⟨hM.1.submatrix _, fun x ↦ ?_⟩
+  simpa [Finsupp.sum_mapDomain_index, add_mul, mul_add] using hM.2 <| x.mapDomain e
+
+theorem transpose {M : Matrix n n R'} (hM : M.PosSemidef) : Mᵀ.PosSemidef := by
+  have (a b c : R') : a * b * c = c * b * a := by ring
+  refine ⟨hM.1.transpose, fun x => ?_⟩
+  rw [Finsupp.sum_comm]
+  simpa [Finsupp.sum_mapRange_index, this] using hM.2 (Finsupp.mapRange star (star_zero R') x)
+
+@[simp]
+theorem _root_.Matrix.posSemidef_transpose_iff {M : Matrix n n R'} : Mᵀ.PosSemidef ↔ M.PosSemidef :=
+  ⟨.transpose, .transpose⟩
+
+theorem conjTranspose {M : Matrix n n R} (hM : M.PosSemidef) : Mᴴ.PosSemidef := hM.1.symm ▸ hM
+
+@[simp]
+theorem _root_.Matrix.posSemidef_conjTranspose_iff {M : Matrix n n R} :
+    Mᴴ.PosSemidef ↔ M.PosSemidef :=
+  ⟨(by simpa using ·.conjTranspose), .conjTranspose⟩
+
+protected lemma add [AddLeftMono R] {A : Matrix m m R} {B : Matrix m m R}
+    (hA : A.PosSemidef) (hB : B.PosSemidef) : (A + B).PosSemidef :=
+  ⟨hA.isHermitian.add hB.isHermitian, fun x => by
+    simpa [mul_add, add_mul] using add_nonneg (hA.2 x) (hB.2 x)⟩
+
+protected theorem smul {α : Type*} [CommSemiring α] [PartialOrder α] [StarRing α]
+    [StarOrderedRing α] [Algebra α R] [StarModule α R] [PosSMulMono α R] {x : Matrix n n R}
+    (hx : x.PosSemidef) {a : α} (ha : 0 ≤ a) : (a • x).PosSemidef := by
+  refine ⟨IsSelfAdjoint.smul (.of_nonneg ha) hx.1, fun y => ?_⟩
+  simpa [mul_smul_comm, smul_mul_assoc, ← Finsupp.smul_sum] using smul_nonneg ha (hx.2 _)
+
+protected lemma zero : PosSemidef (0 : Matrix n n R) := ⟨isHermitian_zero, by simp⟩
+
+protected lemma one [StarOrderedRing R] [DecidableEq n] : PosSemidef (1 : Matrix n n R) :=
+  ⟨isHermitian_one, fun x => Finsupp.sum_nonneg fun i _ ↦ Finsupp.sum_nonneg fun j _ ↦ by
+    obtain rfl | hij := eq_or_ne i j <;> simp [*]⟩
+
+protected theorem natCast [StarOrderedRing R] [DecidableEq n] (d : ℕ) :
+    PosSemidef (d : Matrix n n R) :=
+  ⟨isHermitian_natCast _, fun x => Finsupp.sum_nonneg fun i _ ↦ Finsupp.sum_nonneg fun j _ ↦ by
+    obtain rfl | hij := eq_or_ne i j <;> simp [← diagonal_natCast', star_left_conjugate_nonneg, *]⟩
+
+protected theorem ofNat [StarOrderedRing R] [DecidableEq n] (d : ℕ) [d.AtLeastTwo] :
+    PosSemidef (ofNat(d) : Matrix n n R) :=
+  .natCast d
+
+protected theorem intCast [StarOrderedRing R] [DecidableEq n] (d : ℤ) (hd : 0 ≤ d) :
+    PosSemidef (d : Matrix n n R) :=
+  ⟨isHermitian_intCast _, fun x => Finsupp.sum_nonneg fun i _ ↦ Finsupp.sum_nonneg fun j _ ↦ by
+    obtain rfl | hij := eq_or_ne i j <;> simp [← diagonal_intCast', star_left_conjugate_nonneg, *]⟩
+
+@[simp]
+protected theorem _root_.Matrix.posSemidef_intCast_iff
+    [StarOrderedRing R] [DecidableEq n] [Nonempty n] [Nontrivial R] (d : ℤ) :
+    PosSemidef (d : Matrix n n R) ↔ 0 ≤ d := by simp [← diagonal_intCast']
+
+lemma diag_nonneg {A : Matrix n n R} (hA : A.PosSemidef) {i : n} : 0 ≤ A i i := by
+  simpa using hA.2 <| .single i 1
+
+end PosSemidef
+
+@[simp]
+theorem posSemidef_submatrix_equiv {M : Matrix n n R} (e : m ≃ n) :
+    (M.submatrix e e).PosSemidef ↔ M.PosSemidef :=
+  ⟨fun h => by simpa using h.submatrix e.symm, fun h => h.submatrix _⟩
+
+theorem posSemidef_sum {ι : Type*} [AddLeftMono R]
+    {x : ι → Matrix n n R} (s : Finset ι) (h : ∀ i ∈ s, PosSemidef (x i)) :
+    PosSemidef (∑ i ∈ s, x i) := by
+  refine ⟨isSelfAdjoint_sum s fun _ hi => h _ hi |>.1, fun y => ?_⟩
+  simp [sum_apply, Finset.mul_sum, Finset.sum_mul, Finsupp.sum_finsetSum_comm,
+    Finset.sum_nonneg fun _ hi => (h _ hi).2 _]
+
+/-!
+## Positive definite matrices
+-/
+
+/-- A matrix `M : Matrix n n R` is positive definite if it is Hermitian
+and `xᴴMx` is greater than zero for all nonzero `x`. -/
+def PosDef (M : Matrix n n R) :=
+  M.IsHermitian ∧ ∀ ⦃x : n →₀ R⦄, x ≠ 0 → 0 < x.sum fun i xi ↦ x.sum fun j xj ↦ star xi * M i j * xj
+
+namespace PosDef
+
+
+ORIGINAL .lake/packages/mathlib/Mathlib/LinearAlgebra/Matrix/PosDef.lean LINES 280-315
+@[simp]
+theorem _root_.Matrix.posDef_conjTranspose_iff {M : Matrix n n R} : Mᴴ.PosDef ↔ M.PosDef :=
+  ⟨(by simpa using ·.conjTranspose), .conjTranspose⟩
+
+lemma diag_pos [Nontrivial R] {A : Matrix n n R} (hA : A.PosDef) {i : n} : 0 < A i i := by
+  simpa [trace] using hA.2 (x := Finsupp.single i 1)
+
+end PosDef
+
+/-!
+## Finite positive semidefinite matrices
+-/
+
+variable [Fintype n] [Fintype m]
+
+/-- A finite matrix `M : Matrix n n R` is positive semidefinite iff it is
+Hermitian and `xᴴ * M * x` is nonnegative for all `x`. -/
+theorem posSemidef_iff_dotProduct_mulVec {M : Matrix n n R} :
+    M.PosSemidef ↔ M.IsHermitian ∧ ∀ x, 0 ≤ star x ⬝ᵥ (M *ᵥ x) := by
+  simp [PosSemidef, ← Finsupp.equivFunOnFinite.forall_congr_right, dotProduct, mulVec,
+    Finsupp.sum_fintype, Finset.mul_sum, mul_assoc]
+
+namespace PosSemidef
+
+@[simp]
+theorem dotProduct_mulVec_nonneg {M : Matrix n n R} (hM : M.PosSemidef) :
+    ∀ x : n → R, 0 ≤ star x ⬝ᵥ (M *ᵥ x) := (posSemidef_iff_dotProduct_mulVec.mp hM).2
+
+lemma of_dotProduct_mulVec_nonneg {M : Matrix n n R} (hM1 : M.IsHermitian)
+    (hM2 : ∀ x, 0 ≤ star x ⬝ᵥ (M *ᵥ x)) : M.PosSemidef :=
+  posSemidef_iff_dotProduct_mulVec.mpr ⟨hM1, hM2⟩
+
+omit [Fintype m] in variable [Finite m] in
+lemma conjTranspose_mul_mul_same {A : Matrix n n R} (hA : PosSemidef A) (B : Matrix n m R) :
+    PosSemidef (Bᴴ * A * B) := by
+  have := Fintype.ofFinite m
+
+ORIGINAL .lake/packages/mathlib/Mathlib/LinearAlgebra/Matrix/PosDef.lean LINES 398-423
+    Units.mul_inv, mul_one, star_one, one_mul] at this
+
+/-- For an invertible matrix `U`, `U * x * star U` is positive semi-definite iff `x` is.
+This works on any ⋆-ring with a partial order.
+
+See `IsUnit.star_right_conjugate_nonneg_iff` for a similar statement for star-ordered rings. -/
+theorem IsUnit.posSemidef_star_right_conjugate_iff (hU : IsUnit U) :
+    PosSemidef (U * x * star U) ↔ x.PosSemidef := by
+  simpa using hU.star.posSemidef_star_left_conjugate_iff
+
+end conjugate
+
+omit [Fintype n] [Fintype m] in variable [Finite n] [Finite m] in
+/-- The matrix `vecMulVec a (star a)` is always positive semi-definite. -/
+theorem posSemidef_vecMulVec_self_star [StarOrderedRing R] (a : n → R) :
+    (vecMulVec a (star a)).PosSemidef := by
+  simp [vecMulVec_eq Unit, ← conjTranspose_replicateCol, posSemidef_self_mul_conjTranspose]
+
+omit [Fintype n] in variable [Finite n] in
+/-- The matrix `vecMulVec (star a) a` is always positive semi-definite. -/
+theorem posSemidef_vecMulVec_star_self [StarOrderedRing R] (a : n → R) :
+    (vecMulVec (star a) a).PosSemidef := by
+  simp [vecMulVec_eq Unit, ← conjTranspose_replicateRow, posSemidef_conjTranspose_mul_self]
+
+/-!
+## Finite Positive definite matrices
+

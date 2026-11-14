@@ -1,0 +1,73 @@
+AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixStructure.lean:48:2: warning: Try this: 
+  letI̵
+
+The goal is a proposition, so `let` is preferred over `letI`.
+The difference between `let` and `letI` is that `letI` inlines the value.
+But this is not relevant for proofs because of proof irrelevance.
+
+Note: This linter can be disabled with `set_option linter.style.haveILetI false`
+AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixStructure.lean:73:2: warning: Try this: 
+  letI̵
+
+The goal is a proposition, so `let` is preferred over `letI`.
+The difference between `let` and `letI` is that `letI` inlines the value.
+But this is not relevant for proofs because of proof irrelevance.
+
+Note: This linter can be disabled with `set_option linter.style.haveILetI false`
+AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixStructure.lean:75:2: warning: Try this: 
+  letI̵
+
+The goal is a proposition, so `let` is preferred over `letI`.
+The difference between `let` and `letI` is that `letI` inlines the value.
+But this is not relevant for proofs because of proof irrelevance.
+
+Note: This linter can be disabled with `set_option linter.style.haveILetI false`
+AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixStructure.lean:101:6: error: Application type mismatch: The argument
+  x
+has type
+  E
+but is expected to have type
+  WithLp ?p ?V
+in the application
+  x.ofLp
+AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixStructure.lean:127:60: error: unsolved goals
+d q : ℕ
+hq : 2 * q + 1 < d
+this✝¹ : MeasurableSpace (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) :=
+  borel (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)
+D : Type := EuclideanSpace ℝ (Fin d)
+E : Type := EuclideanSpace ℝ (Fin (q + 1))
+Ω : Type := Fin (q + 1) → D
+μ : Measure Ω := Measure.pi fun x => stdGaussian D
+r : ℝ := ↑(q + 1)
+L : ℝ := 2 * r + 3 * Real.log (1000 * ↑d)
+θ : Fin d → ℝ := fun i => (↑↑i + 1 - 1 / 2) * Real.pi / ↑d
+t : Fin d → Fin (q + 1) → ℝ := fun i k => if ↑k = 0 then 1 else √2 * Real.cos (↑↑k * θ i)
+row : Fin d → Ω → E := fun i ω => WithLp.toLp 2 fun b => (ω b).ofLp i
+Y : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=
+  fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (↑d)⁻¹ • (Matrix.vecMulVec (row i ω).ofLp (row i ω).ofLp).kronecker (Matrix.vecMulVec (t i) (t i))
+    else 0
+mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i => ∫ (ω : Ω), Y i ω ∂μ
+Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω => Y i ω - mean i
+this✝ : BorelSpace (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) := { measurable_eq := rfl }
+this : IsProbabilityMeasure μ := id inferInstance
+F : Fin d → E → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=
+  fun i x =>
+    if ‖x‖ ^ 2 ≤ L then (↑d)⁻¹ • (Matrix.vecMulVec x.ofLp x.ofLp).kronecker (Matrix.vecMulVec (t i) (t i)) else 0
+row_law : ∀ (i : Fin d), MeasurePreserving (row i) μ (stdGaussian E)
+row_independent : iIndepFun row μ
+cutoff : MeasurableSet {x | ‖x‖ ^ 2 ≤ L}
+F_measurable : ∀ (i : Fin d), Measurable (F i)
+translated_measurable : ∀ (i : Fin d), Measurable fun x => F i x - mean i
+Z_measurable : ∀ (i : Fin d), Measurable (Z i)
+Z_independent : iIndepFun Z μ
+a : ℝ := (∫ (x : E), {y | ‖y‖ ^ 2 ≤ L}.indicator (fun y => ‖y‖ ^ 2) x ∂stdGaussian E) / r
+hm :
+  (∀ (i : Fin d), Integrable (Y i) μ) ∧
+    ∀ (i : Fin d), mean i = (a / ↑d) • Matrix.kronecker 1 (Matrix.vecMulVec (t i) (t i))
+Y_hermitian : ∀ (i : Fin d) (ω : Ω), (Y i ω).IsHermitian
+i : Fin d
+u v : Fin (q + 1) × Fin (q + 1)
+⊢ (1 u.1 v.1 = 1 v.1 u.1 ∨ 0 = t i u.2 ∨ 0 = t i v.2) ∨ 0 = a / ↑d

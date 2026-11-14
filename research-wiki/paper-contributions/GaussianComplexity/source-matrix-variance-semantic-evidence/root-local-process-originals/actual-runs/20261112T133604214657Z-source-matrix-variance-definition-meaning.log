@@ -1,0 +1,98 @@
+def Matrix.{u, u', v} : Type u → Type u' → Type v → Type (max u u' v) :=
+fun m n α => m → n → α
+.astis/huanjian-gc-source-matrix-variance-20261112/DefinitionMeaning.lean:10:7: error(lean.unknownIdentifier): Unknown constant `Matrix.mul`
+def Matrix.PosSemidef.{u_2, u_3} : {n : Type u_2} →
+  {R : Type u_3} →
+    [inst : Ring.{u_3} R] → [PartialOrder.{u_3} R] → [StarRing.{u_3} R] → Matrix.{u_2, u_2, u_3} n n R → Prop :=
+fun {n} {R} [Ring.{u_3} R] [PartialOrder.{u_3} R] [StarRing.{u_3} R] M =>
+  Matrix.IsHermitian.{u_3, u_2} M ∧
+    ∀ (x : Finsupp.{u_2, u_3} n R),
+      LE.le.{u_3} 0
+        (Finsupp.sum.{u_2, u_3, u_3} x fun i xi =>
+          Finsupp.sum.{u_2, u_3, u_3} x fun j xj =>
+            HMul.hMul.{u_3, u_3, u_3} (HMul.hMul.{u_3, u_3, u_3} (star.{u_3} xi) (M i j)) xj)
+def Matrix.IsHermitian.{u_1, u_4} : {α : Type u_1} →
+  {n : Type u_4} → [Star.{u_1} α] → Matrix.{u_4, u_4, u_1} n n α → Prop :=
+fun {α} {n} [Star.{u_1} α] A => Eq.{max (u_1 + 1) (u_4 + 1)} (Matrix.conjTranspose.{u_1, u_4, u_4} A) A
+def Matrix.conjTranspose.{v, u_2, u_3} : {m : Type u_2} →
+  {n : Type u_3} → {α : Type v} → [Star.{v} α] → Matrix.{u_2, u_3, v} m n α → Matrix.{u_3, u_2, v} n m α :=
+fun {m} {n} {α} [Star.{v} α] M => Matrix.map.{v, v, u_3, u_2} (Matrix.transpose.{v, u_2, u_3} M) star.{v}
+def Matrix.vecMulVec.{v, u_2, u_3} : {m : Type u_2} →
+  {n : Type u_3} → {α : Type v} → [Mul.{v} α] → (m → α) → (n → α) → Matrix.{u_2, u_3, v} m n α :=
+fun {m} {n} {α} [Mul.{v} α] w v => Matrix.of.{v, u_2, u_3} fun x y => HMul.hMul.{v, v, v} (w x) (v y)
+def Matrix.kronecker.{u_3, u_9, u_10, u_11, u_12} : {α : Type u_3} →
+  {l : Type u_9} →
+    {m : Type u_10} →
+      {n : Type u_11} →
+        {p : Type u_12} →
+          [Mul.{u_3} α] →
+            Matrix.{u_9, u_10, u_3} l m α →
+              Matrix.{u_11, u_12, u_3} n p α →
+                Matrix.{max u_11 u_9, max u_12 u_10, u_3} (Prod.{u_9, u_11} l n) (Prod.{u_10, u_12} m p) α :=
+fun {α} {l} {m} {n} {p} [Mul.{u_3} α] =>
+  Matrix.kroneckerMap.{u_3, u_3, u_3, u_9, u_10, u_11, u_12} fun x1 x2 => HMul.hMul.{u_3, u_3, u_3} x1 x2
+def Matrix.kroneckerMap.{u_3, u_5, u_7, u_9, u_10, u_11, u_12} : {α : Type u_3} →
+  {β : Type u_5} →
+    {γ : Type u_7} →
+      {l : Type u_9} →
+        {m : Type u_10} →
+          {n : Type u_11} →
+            {p : Type u_12} →
+              (α → β → γ) →
+                Matrix.{u_9, u_10, u_3} l m α →
+                  Matrix.{u_11, u_12, u_5} n p β →
+                    Matrix.{max u_11 u_9, max u_12 u_10, u_7} (Prod.{u_9, u_11} l n) (Prod.{u_10, u_12} m p) γ :=
+fun {α} {β} {γ} {l} {m} {n} {p} f A B =>
+  Matrix.of.{u_7, max u_11 u_9, max u_10 u_12} fun i j => f (A i.1 j.1) (B i.2 j.2)
+def MeasureTheory.Integrable.{u_5, u_8} : {ε : Type u_5} →
+  [inst : TopologicalSpace.{u_5} ε] →
+    [ContinuousENorm.{u_5} ε] →
+      {α : Type u_8} →
+        {x : MeasurableSpace.{u_8} α} → (α → ε) → autoParam.{u_8 + 1} (Measure.{u_8} α) Integrable._auto_1 → Prop :=
+fun {ε} [TopologicalSpace.{u_5} ε] [ContinuousENorm.{u_5} ε] {α} {x} f μ =>
+  AEStronglyMeasurable.{u_8, u_5} f μ ∧ HasFiniteIntegral.{u_8, u_5} f μ
+def MeasureTheory.HasFiniteIntegral.{u_1, u_4} : {α : Type u_1} →
+  {ε : Type u_4} →
+    [ENorm.{u_4} ε] →
+      {x : MeasurableSpace.{u_1} α} →
+        (α → ε) → autoParam.{u_1 + 1} (Measure.{u_1} α) HasFiniteIntegral._auto_1 → Prop :=
+fun {α} {ε} [ENorm.{u_4} ε] {x} f μ => LT.lt.{0} (∫⁻ (a : α), enorm.{u_4} (f a) ∂μ) Top.top.{0}
+def MeasureTheory.AEStronglyMeasurable.{u_1, u_2} : {α : Type u_1} →
+  {β : Type u_2} →
+    [TopologicalSpace.{u_2} β] →
+      [m : MeasurableSpace.{u_1} α] →
+        {m₀ : MeasurableSpace.{u_1} α} →
+          (α → β) → autoParam.{u_1 + 1} (Measure.{u_1} α) AEStronglyMeasurable._auto_1 → Prop :=
+fun {α} {β} [TopologicalSpace.{u_2} β] [MeasurableSpace.{u_1} α] {m₀} f μ =>
+  ∃ g, StronglyMeasurable.{u_1, u_2} g ∧ f =ᵐ[μ] g
+@[irreducible] def MeasureTheory.integral.{u_6, u_7} : {α : Type u_6} →
+  {G : Type u_7} →
+    [inst : NormedAddCommGroup.{u_7} G] →
+      [NormedSpace.{0, u_7} ℝ G] → {x : MeasurableSpace.{u_6} α} → Measure.{u_6} α → (α → G) → G :=
+wrapped✝.{u_7, u_6}.1
+def Set.indicator.{u_1, u_3} : {α : Type u_1} → {M : Type u_3} → [Zero.{u_3} M] → Set.{u_1} α → (α → M) → α → M :=
+fun {α} {M} [Zero.{u_3} M] s f x => ite.{u_3 + 1} (Membership.mem.{u_1, u_1} s x) (f x) 0
+@[reducible] def EuclideanSpace.{u_7, u_8} : Type u_7 → Type u_8 → Type (max u_7 u_8) :=
+fun 𝕜 n => PiLp.{u_8, u_7} 2 fun x => 𝕜
+constructor WithLp.toLp.{u_1} : (p : ENNReal) → {V : Type u_1} → V → WithLp.{u_1} p V
+def ProbabilityTheory.stdGaussian.{u_2} : (E : Type u_2) →
+  [inst : NormedAddCommGroup.{u_2} E] →
+    [inst_1 : InnerProductSpace.{0, u_2} ℝ E] →
+      [FiniteDimensional.{0, u_2} ℝ E] → [inst : MeasurableSpace.{u_2} E] → Measure.{u_2} E :=
+fun E [NormedAddCommGroup.{u_2} E] [InnerProductSpace.{0, u_2} ℝ E] [FiniteDimensional.{0, u_2} ℝ E]
+    [MeasurableSpace.{u_2} E] =>
+  Measure.map.{0, u_2} (fun x => ∑ i, HSMul.hSMul.{0, u_2, u_2} (x i) ((stdOrthonormalBasis.{0, u_2} ℝ E) i))
+    (Measure.pi.{0, 0} fun x => gaussianReal 0 1)
+@[irreducible] protected def MeasureTheory.Measure.pi.{u_4, u_5} : {ι : Type u_4} →
+  {α : ι → Type u_5} →
+    [Fintype.{u_4} ι] →
+      [inst : (i : ι) → MeasurableSpace.{u_5} (α i)] →
+        ((i : ι) → Measure.{u_5} (α i)) → Measure.{max u_4 u_5} ((i : ι) → α i) :=
+Measure.wrapped✝.{u_5, u_4}.1
+Matrix.instMulOfFintypeOfAddCommMonoid.{0, 0}
+Matrix.instL2OpNormedRing.{0, 0}
+Matrix.instL2OpNormedSpace.{0, 0, 0}
+Matrix.instCompleteSpace.{0, 0, 0} (Prod.{0, 0} (Fin (HAdd.hAdd.{0, 0, 0} q 1)) (Fin (HAdd.hAdd.{0, 0, 0} q 1)))
+  (Prod.{0, 0} (Fin (HAdd.hAdd.{0, 0, 0} q 1)) (Fin (HAdd.hAdd.{0, 0, 0} q 1))) ℝ
+Measure.pi.instIsProbabilityMeasure.{0, 0} fun x => stdGaussian.{0} (EuclideanSpace.{0, 0} ℝ (Fin d))
+sigmaFinite_of_locallyFinite.{0}

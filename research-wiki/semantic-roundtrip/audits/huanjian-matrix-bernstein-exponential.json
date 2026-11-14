@@ -1,0 +1,269 @@
+{
+  "id": "ASTIS-RT-20261114-HuanjianMatrixBernsteinExponential",
+  "state": "source-reviewed",
+  "source": {
+    "source_id": "tropp2011-real-deterministic-exponential-quadratic",
+    "anchor": "Tropp2011Lemma6.7p25-26; explicit real deterministic component and separately authored original-Gaussian single-summand specialization only",
+    "original_text": "Real deterministic proof component of Tropp Lemma6.7 (author preprint revised15June2011, p25, with functional-calculus conventions p7-8): for every finite nonempty real square matrix A, if A is self-adjoint, I-A is positive semidefinite, and s>0, then I+sA+(exp(s)-s-1)A^2-exp(sA) is positive semidefinite. The upper spectral cap is one-sided; no lower eigenvalue bound, positivity of A, or two-sided norm bound is assumed. This is the real restriction of that deterministic component, not the full complex random-matrix MGF theorem.",
+    "text_sha256": "f7cd651c373f2e59ea6e30884764e5c5a1d51d9bea5345de542fb30f1bf4f548"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinExponential.lean",
+    "statement": "∀ {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian)\n    (hA_le : (1 - A).PosSemidef) {s : ℝ} (hs : 0 < s) ,\n  ((1 : Matrix ι ι ℝ) + s • A + (Real.exp s - s - 1) • (A * A) -\n    NormedSpace.exp (s • A)).PosSemidef\n",
+    "statement_sha256": "ac9ee4c7c949bb22920aee7204bea46ae15c3074902fd1334b6cb89c5ea12a5e",
+    "compiled": true,
+    "formalizer": "huanjian_20261114_matrix_bernstein_exponential",
+    "decoder_context": [
+      "The type variable ranges over a finite nonempty index set; Fintype supplies its finite enumeration and DecidableEq decidable equality. The universe variable only specifies the universe of that index type.",
+      "Matrix is the finite real matrix algebra on the displayed index set. Matrix multiplication is ordinary algebra multiplication, scalar multiplication is real scalar multiplication, and 1 is the identity matrix.",
+      "For a real square matrix, IsHermitian means that its transpose equals itself. PosSemidef means positive semidefinite in the full quadratic-form sense, including self-adjointness; it is not an entrywise inequality.",
+      "NormedSpace.exp on this real matrix algebra is its convergent matrix power-series exponential. It is not the entrywise real exponential. Real.exp is the scalar real exponential.",
+      "The active matrix norm is the Euclidean L2 operator norm, with the ordinary finite-coordinate topology. The scalar real matrix algebra and rational-algebra structure are the standard ones."
+    ]
+  },
+  "repairs": [],
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/bernstein_exp_fresh_61a9",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "0520c2fae77a4cc1d34cb8046e1c45314f4f16ef9f936090140b47ebdc32cf80",
+    "evidence": "Independent v2 metadata-successor review at reader commit 9a8b163f4753a1329dbc0435c1e7f810f729c349. Exactly the T lesson source locator changed54->57; recursive comparison proves all other source/Lean statements, assumptions, prose, formulae, complete7code folds, source map and anonymous reconstructions unchanged. Original v1 source review and all7slot evidence preserved at run017b1f6d576dee1cd0a3d3f35305f26ba03fb38dc3ea2fdfbaf1cd7ddf292122. The unchanged scoped equivalent-after-elaboration conclusions are rebound to this exact v2 canonical packet/publication context by .astis/semantic-neutral-20261114/bernstein_exp_fresh_61a9/source-reader-review.run.v2.json, SHA256 c0d561fe1f9d150670e554fb6ba1fc7574b6f62e5533dbc4c442cf153b4dbe49. The minor locator note is resolved. No source-statement repair, compiler/native evidence, new peer verdict or runtime review is involved; P real deterministic/T private authored actual-Gaussian individual-MGF scope remains unchanged.",
+    "review_run_sha256": "c0d561fe1f9d150670e554fb6ba1fc7574b6f62e5533dbc4c442cf153b4dbe49",
+    "run_artifact": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/source-review/bernstein_exp_fresh_61a9/source-reader-review.run.v2.json"
+  },
+  "verdict": "equivalent-after-elaboration",
+  "candidate_commit": "0ff1e2227b8e5a45a6a73906582ef042bd0d73ff",
+  "publication_binding_sha256": "039a91f41fb14176849c877a897f6d47ca6f50b60f2bef5e29407854f044610b",
+  "publication_context": {
+    "file": "7fc1996495b439c1b0aa53a3e69b6b4547952a42ee5f721834b6a1092430f6cc",
+    "current_lean_module": "import Mathlib\n\n/-! Real matrix exponential estimates for the deterministic step of Tropp's\nbounded Bernstein MGF argument (author preprint, Lemma 6.7, pp. 25–26).\nThe actual Gaussian single-summand consumer has its own original probability law.\n-/\n\nopen MeasureTheory\nopen scoped BigOperators Matrix.Norms.L2Operator\n\nnoncomputable section\n\nuniverse u\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential\n\nprivate lemma exponential_remainder_integral (k : ℝ) :\n    Real.exp k - 1 - k =\n      k ^ 2 * ∫ t in (0 : ℝ)..1, (1 - t) * Real.exp (k * t) := by\n  have hd : ∀ t : ℝ,\n      HasDerivAt (fun u : ℝ => Real.exp (k * u)) (k * Real.exp (k * t)) t := by\n    intro t\n    exact ((hasDerivAt_const_mul k (x := t)).exp).congr_deriv (mul_comm _ _)\n  have hv : ∀ t : ℝ,\n      HasDerivAt (fun u : ℝ => k * Real.exp (k * u))\n        (k ^ 2 * Real.exp (k * t)) t := by\n    intro t\n    exact (hd t).const_mul k |>.congr_deriv (by ring)\n  have hke : IntervalIntegrable (fun t : ℝ => k * Real.exp (k * t)) volume 0 1 :=\n    (by fun_prop : Continuous (fun t : ℝ => k * Real.exp (k * t))).intervalIntegrable _ _\n  have he : (∫ t in (0 : ℝ)..1, k * Real.exp (k * t)) = Real.exp k - 1 := by\n    simpa only [mul_one, mul_zero, Real.exp_zero] using\n      intervalIntegral.integral_eq_sub_of_hasDerivAt (fun t _ => hd t) hke\n  have hp := intervalIntegral.integral_mul_deriv_eq_deriv_mul_of_hasDerivAt\n    (u := fun t : ℝ => 1 - t) (v := fun t : ℝ => k * Real.exp (k * t))\n    (u' := fun _ : ℝ => -1) (v' := fun t : ℝ => k ^ 2 * Real.exp (k * t))\n    (a := (0 : ℝ)) (b := 1)\n    (by fun_prop) (by fun_prop)\n    (fun t _ => ((hasDerivAt_const t (1 : ℝ)).sub (hasDerivAt_id t)).congr_deriv (by ring))\n    (fun t _ => hv t)\n    ((by fun_prop : Continuous (fun _ : ℝ => (-1 : ℝ))).intervalIntegrable _ _)\n    ((by fun_prop : Continuous (fun t : ℝ => k ^ 2 * Real.exp (k * t))).intervalIntegrable _ _)\n  have hfactor :\n      (∫ t in (0 : ℝ)..1, (1 - t) * (k ^ 2 * Real.exp (k * t))) =\n        k ^ 2 * ∫ t in (0 : ℝ)..1, (1 - t) * Real.exp (k * t) := by\n    calc\n      _ = ∫ t in (0 : ℝ)..1, k ^ 2 * ((1 - t) * Real.exp (k * t)) :=\n        intervalIntegral.integral_congr (fun t _ => by ring)\n      _ = _ := intervalIntegral.integral_const_mul _ _\n  rw [hfactor] at hp\n  simp only [sub_self, zero_mul, sub_zero, mul_zero, Real.exp_zero, mul_one, one_mul,\n    neg_one_mul, intervalIntegral.integral_neg, he] at hp\n  linarith\n\nprivate def remainderKernel (k : ℝ) : ℝ :=\n  ∫ t in (0 : ℝ)..1, (1 - t) * Real.exp (k * t)\n\nprivate lemma remainderKernel_monotone : Monotone remainderKernel := by\n  intro x y hxy\n  unfold remainderKernel\n  apply intervalIntegral.integral_mono_on zero_le_one\n    ((by fun_prop : Continuous (fun t : ℝ => (1 - t) * Real.exp (x * t))).intervalIntegrable _ _)\n    ((by fun_prop : Continuous (fun t : ℝ => (1 - t) * Real.exp (y * t))).intervalIntegrable _ _)\n  intro t ht\n  exact mul_le_mul_of_nonneg_left\n    (Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_right hxy ht.1)) (sub_nonneg.mpr ht.2)\n\nprivate lemma remainderKernel_zero : remainderKernel 0 = 1 / 2 := by\n  simp only [remainderKernel, zero_mul, Real.exp_zero, mul_one]\n  rw [intervalIntegral.integral_sub]\n  · norm_num [intervalIntegral.integral_const, integral_id]\n  · exact continuous_const.intervalIntegrable _ _\n  · exact continuous_id.intervalIntegrable _ _\n\nprivate def bernsteinRemainder (s x : ℝ) : ℝ :=\n  if x = 0 then s ^ 2 / 2 else (Real.exp (s * x) - s * x - 1) / x ^ 2\n\nprivate lemma bernsteinRemainder_eq_kernel (s x : ℝ) :\n    bernsteinRemainder s x = s ^ 2 * remainderKernel (s * x) := by\n  by_cases hx : x = 0\n  · subst x\n    simp [bernsteinRemainder, remainderKernel_zero, div_eq_mul_inv]\n  · rw [bernsteinRemainder, if_neg hx]\n    apply (div_eq_iff (pow_ne_zero 2 hx)).2\n    calc\n      Real.exp (s * x) - s * x - 1 = Real.exp (s * x) - 1 - s * x := by ring\n      _ = (s * x) ^ 2 * remainderKernel (s * x) := exponential_remainder_integral _\n      _ = (s ^ 2 * remainderKernel (s * x)) * x ^ 2 := by ring\n\nprivate lemma bernsteinRemainder_monotone {s : ℝ} (hs : 0 < s) :\n    Monotone (bernsteinRemainder s) := by\n  intro x y hxy\n  rw [bernsteinRemainder_eq_kernel, bernsteinRemainder_eq_kernel]\n  exact mul_le_mul_of_nonneg_left\n    (remainderKernel_monotone (mul_le_mul_of_nonneg_left hxy hs.le)) (sq_nonneg s)\n\nprivate lemma bernsteinRemainder_mul_sq (s x : ℝ) :\n    bernsteinRemainder s x * x ^ 2 = Real.exp (s * x) - s * x - 1 := by\n  by_cases hx : x = 0\n  · subst x\n    simp [bernsteinRemainder]\n  · rw [bernsteinRemainder, if_neg hx]\n    field_simp\n\nprivate lemma bernstein_scalar_bound {s : ℝ} (hs : 0 < s) {x : ℝ} (hx : x ≤ 1) :\n    Real.exp (s * x) ≤ 1 + s * x + (Real.exp s - s - 1) * x ^ 2 := by\n  have hone : bernsteinRemainder s 1 = Real.exp s - s - 1 := by\n    simp [bernsteinRemainder]\n  have h := mul_le_mul_of_nonneg_right (bernsteinRemainder_monotone hs hx) (sq_nonneg x)\n  rw [bernsteinRemainder_mul_sq, hone] at h\n  linarith\n\nopen scoped MatrixOrder in\n/-- The deterministic real-matrix inequality in the proof of Tropp's Lemma 6.7.\nThe upper spectral cap is one-sided; negative eigenvalues are unrestricted. -/\ntheorem bernstein_exponential_quadratic_bound\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian)\n    (hA_le : (1 - A).PosSemidef) {s : ℝ} (hs : 0 < s) :\n    ((1 : Matrix ι ι ℝ) + s • A + (Real.exp s - s - 1) • (A * A) -\n      NormedSpace.exp (s • A)).PosSemidef := by\n  have hSA : IsSelfAdjoint A := hA.isSelfAdjoint\n  have hle : A ≤ 1 := Matrix.le_iff.mpr hA_le\n  have hspec : ∀ x ∈ spectrum ℝ A, x ≤ 1 :=\n    (CFC.le_one_iff (R := ℝ) A hSA).mp hle\n  have hfc : cfc (fun x : ℝ => Real.exp (s * x)) A ≤\n      cfc (fun x : ℝ => 1 + s * x + (Real.exp s - s - 1) * (x * x)) A := by\n    exact cfc_mono (a := A)\n      (fun x hx => by simpa only [pow_two] using bernstein_scalar_bound hs (hspec x hx))\n      (by fun_prop) (by fun_prop)\n  have hleft : cfc (fun x : ℝ => Real.exp (s * x)) A = NormedSpace.exp (s • A) := by\n    calc\n      _ = cfc Real.exp (s • A) := cfc_comp_const_mul s Real.exp A (by fun_prop) hSA\n      _ = _ := CFC.real_exp_eq_normedSpace_exp ((IsSelfAdjoint.all s).smul hSA)\n  have hright :\n      cfc (fun x : ℝ => 1 + s * x + (Real.exp s - s - 1) * (x * x)) A =\n        (1 : Matrix ι ι ℝ) + s • A + (Real.exp s - s - 1) • (A * A) := by\n    rw [cfc_add (a := A) (fun x : ℝ => 1 + s * x)\n        (fun x : ℝ => (Real.exp s - s - 1) * (x * x)) (by fun_prop) (by fun_prop),\n      cfc_add (a := A) (fun _ : ℝ => 1) (fun x : ℝ => s * x) (by fun_prop) (by fun_prop),\n      cfc_const (R := ℝ) 1 A hSA,\n      cfc_const_mul_id s A hSA,\n      cfc_const_mul (Real.exp s - s - 1) (fun x : ℝ => x * x) A (by fun_prop),\n      cfc_mul (fun x : ℝ => x) (fun x : ℝ => x) A (by fun_prop) (by fun_prop),\n      cfc_id' ℝ A hSA, map_one]\n  exact Matrix.le_iff.mp (by simpa only [hleft, hright] using hfc)\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://tropp.caltech.edu/papers/Tro11-User-Friendly-preprint.pdf#page=25",
+      "edition": "Author preprint revised15June2011; pinned PDF SHA256 f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+      "anchor": "Lemma6.7 deterministic proof p25; expectation step p26; standing regularity and functional calculus §2.2-2.3 p7-8",
+      "label": "Tropp, bounded Bernstein MGF: real deterministic proof component",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Joel A. Tropp, User-Friendly Tail Bounds for Sums of Random Matrices, author preprint revised15June2011.",
+      "scope": "Only the real finite-nonempty deterministic exponential-quadratic component. Tropp is independently matched external background, not a citation supplied by the Gaussian paper."
+    },
+    "statement": "A self-adjoint real matrix bounded above by the identity satisfies the exponential quadratic bound for every positive parameter.",
+    "formulae": [
+      {
+        "label": "One-sided real matrix exponential quadratic bound",
+        "tex": "A=A^\\top,\\quad A\\preceq I,\\quad s>0\\quad\\Longrightarrow\\quad e^{sA}\\preceq I+sA+(e^s-s-1)A^2."
+      }
+    ],
+    "assumptions": [
+      "The public result concerns a real square matrix on any finite nonempty index set. The order \\(U\\preceq V\\) means that \\(V-U\\) is positive semidefinite as a full quadratic form. The matrix exponential is the matrix-algebra power series.",
+      "The public mathematical hypotheses are precisely \\(A=A^\\top\\), \\(I-A\\succeq0\\), and \\(s>0\\). The cap is one-sided; negative eigenvalues are unrestricted. Finite enumeration and decidable equality supply the Lean matrix index structure.",
+      "Private actual-use scope: take \\(d,q\\in\\mathbb N\\), \\(2q+1<d\\), \\(r=q+1\\), \\(\\Omega=(\\mathbb R^d)^r\\), and the original unconditional measure \\(\\mu=\\gamma_d^{\\otimes r}\\), where \\(\\gamma_j=N(0,I_j)\\). The case \\(q=0\\) is included.",
+      "For source indices \\(i=1,\\ldots,d\\), let \\(\\Phi_i=(\\omega_b(i))_{b=0}^q\\), \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\theta_i,\\ldots,\\sqrt2\\cos(q\\theta_i))\\), and \\(L=2r+3\\log(1000d)\\). Lean uses source index \\(i.val+1\\).",
+      "Set \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{\\|\\Phi_i\\|^2\\le L\\}}\\), \\(M_i=\\int Y_i\\,d\\mu\\), \\(Z_i=Y_i-M_i\\), \\(\\rho=2r(L+1)/d\\), and \\(X_i=\\rho^{-1}Z_i\\). The paired matrix index lists the Gaussian coordinate first and the feature coordinate second. Norms use the real Euclidean operator norm with its standard Borel structure.",
+      "For this private consumer, the sole dimension hypothesis and these literal definitions determine every object. Positivity of \\(\\rho\\), centering, Hermitian structure, measurability, integrability and the spectral cap are proved internally. All expectations use the same original \\(\\mu\\); no all-row good event or conditional law is introduced."
+    ],
+    "obligations": [
+      {
+        "id": "real-deterministic-exponential-quadratic",
+        "label": "Real deterministic component used in the individual matrix MGF proof."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound",
+      "title": "Real matrix exponential quadratic bound",
+      "reader_note": "The first four steps prove the public deterministic inequality. The last three give its complete private actual-Gaussian individual MGF consumer; they do not assert a Bernstein sum tail.",
+      "statement": "A self-adjoint real matrix bounded above by the identity satisfies the exponential quadratic bound for every positive parameter.",
+      "formula": "A=A^\\top,\\quad A\\preceq I,\\quad s>0\\quad\\Longrightarrow\\quad e^{sA}\\preceq I+sA+(e^s-s-1)A^2.",
+      "assumptions": [
+        "The public result concerns a real square matrix on any finite nonempty index set. The order \\(U\\preceq V\\) means that \\(V-U\\) is positive semidefinite as a full quadratic form. The matrix exponential is the matrix-algebra power series.",
+        "The public mathematical hypotheses are precisely \\(A=A^\\top\\), \\(I-A\\succeq0\\), and \\(s>0\\). The cap is one-sided; negative eigenvalues are unrestricted. Finite enumeration and decidable equality supply the Lean matrix index structure.",
+        "Private actual-use scope: take \\(d,q\\in\\mathbb N\\), \\(2q+1<d\\), \\(r=q+1\\), \\(\\Omega=(\\mathbb R^d)^r\\), and the original unconditional measure \\(\\mu=\\gamma_d^{\\otimes r}\\), where \\(\\gamma_j=N(0,I_j)\\). The case \\(q=0\\) is included.",
+        "For source indices \\(i=1,\\ldots,d\\), let \\(\\Phi_i=(\\omega_b(i))_{b=0}^q\\), \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\theta_i,\\ldots,\\sqrt2\\cos(q\\theta_i))\\), and \\(L=2r+3\\log(1000d)\\). Lean uses source index \\(i.val+1\\).",
+        "Set \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{\\|\\Phi_i\\|^2\\le L\\}}\\), \\(M_i=\\int Y_i\\,d\\mu\\), \\(Z_i=Y_i-M_i\\), \\(\\rho=2r(L+1)/d\\), and \\(X_i=\\rho^{-1}Z_i\\). The paired matrix index lists the Gaussian coordinate first and the feature coordinate second. Norms use the real Euclidean operator norm with its standard Borel structure.",
+        "For this private consumer, the sole dimension hypothesis and these literal definitions determine every object. Positivity of \\(\\rho\\), centering, Hermitian structure, measurability, integrability and the spectral cap are proved internally. All expectations use the same original \\(\\mu\\); no all-row good event or conditional law is introduced."
+      ],
+      "steps": [
+        {
+          "title": "Expand the scalar remainder without dividing at zero",
+          "text": "The source leaves monotonicity of the removable scalar remainder as a calculus exercise. Apply the fundamental theorem of calculus and integration by parts to the exponential. The resulting integral identity holds for every real k, including zero.",
+          "formula": "e^k-1-k=k^2K(k),\\qquad K(k)=\\int_0^1(1-t)e^{kt}\\,dt.",
+          "lean": "import Mathlib\n\n/-! Real matrix exponential estimates for the deterministic step of Tropp's\nbounded Bernstein MGF argument (author preprint, Lemma 6.7, pp. 25–26).\nThe actual Gaussian single-summand consumer has its own original probability law.\n-/\n\nopen MeasureTheory\nopen scoped BigOperators Matrix.Norms.L2Operator\n\nnoncomputable section\n\nuniverse u\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential\n\nprivate lemma exponential_remainder_integral (k : ℝ) :\n    Real.exp k - 1 - k =\n      k ^ 2 * ∫ t in (0 : ℝ)..1, (1 - t) * Real.exp (k * t) := by\n  have hd : ∀ t : ℝ,\n      HasDerivAt (fun u : ℝ => Real.exp (k * u)) (k * Real.exp (k * t)) t := by\n    intro t\n    exact ((hasDerivAt_const_mul k (x := t)).exp).congr_deriv (mul_comm _ _)\n  have hv : ∀ t : ℝ,\n      HasDerivAt (fun u : ℝ => k * Real.exp (k * u))\n        (k ^ 2 * Real.exp (k * t)) t := by\n    intro t\n    exact (hd t).const_mul k |>.congr_deriv (by ring)\n  have hke : IntervalIntegrable (fun t : ℝ => k * Real.exp (k * t)) volume 0 1 :=\n    (by fun_prop : Continuous (fun t : ℝ => k * Real.exp (k * t))).intervalIntegrable _ _\n  have he : (∫ t in (0 : ℝ)..1, k * Real.exp (k * t)) = Real.exp k - 1 := by\n    simpa only [mul_one, mul_zero, Real.exp_zero] using\n      intervalIntegral.integral_eq_sub_of_hasDerivAt (fun t _ => hd t) hke\n  have hp := intervalIntegral.integral_mul_deriv_eq_deriv_mul_of_hasDerivAt\n    (u := fun t : ℝ => 1 - t) (v := fun t : ℝ => k * Real.exp (k * t))\n    (u' := fun _ : ℝ => -1) (v' := fun t : ℝ => k ^ 2 * Real.exp (k * t))\n    (a := (0 : ℝ)) (b := 1)\n    (by fun_prop) (by fun_prop)\n    (fun t _ => ((hasDerivAt_const t (1 : ℝ)).sub (hasDerivAt_id t)).congr_deriv (by ring))\n    (fun t _ => hv t)\n    ((by fun_prop : Continuous (fun _ : ℝ => (-1 : ℝ))).intervalIntegrable _ _)\n    ((by fun_prop : Continuous (fun t : ℝ => k ^ 2 * Real.exp (k * t))).intervalIntegrable _ _)\n  have hfactor :\n      (∫ t in (0 : ℝ)..1, (1 - t) * (k ^ 2 * Real.exp (k * t))) =\n        k ^ 2 * ∫ t in (0 : ℝ)..1, (1 - t) * Real.exp (k * t) := by\n    calc\n      _ = ∫ t in (0 : ℝ)..1, k ^ 2 * ((1 - t) * Real.exp (k * t)) :=\n        intervalIntegral.integral_congr (fun t _ => by ring)\n      _ = _ := intervalIntegral.integral_const_mul _ _\n  rw [hfactor] at hp\n  simp only [sub_self, zero_mul, sub_zero, mul_zero, Real.exp_zero, mul_one, one_mul,\n    neg_one_mul, intervalIntegral.integral_neg, he] at hp\n  linarith\n\nprivate def remainderKernel (k : ℝ) : ℝ :=\n  ∫ t in (0 : ℝ)..1, (1 - t) * Real.exp (k * t)\n"
+        },
+        {
+          "title": "Prove monotonicity on the whole real line",
+          "text": "On the interval of integration, both t and1−t are nonnegative. The exponential integrand therefore increases with k. Also K(0)=1/2. The source remainder equals s²K(sx) at every real x, including its specified value at zero. Since s>0, it is increasing across negative, zero and positive x.",
+          "formula": "f_s(x)=\\begin{cases}(e^{sx}-sx-1)/x^2,&x\\ne0,\\\\s^2/2,&x=0,\\end{cases}\\qquad f_s(x)=s^2K(sx),\\quad f_s(x)x^2=e^{sx}-sx-1.",
+          "lean": "\nprivate lemma remainderKernel_monotone : Monotone remainderKernel := by\n  intro x y hxy\n  unfold remainderKernel\n  apply intervalIntegral.integral_mono_on zero_le_one\n    ((by fun_prop : Continuous (fun t : ℝ => (1 - t) * Real.exp (x * t))).intervalIntegrable _ _)\n    ((by fun_prop : Continuous (fun t : ℝ => (1 - t) * Real.exp (y * t))).intervalIntegrable _ _)\n  intro t ht\n  exact mul_le_mul_of_nonneg_left\n    (Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_right hxy ht.1)) (sub_nonneg.mpr ht.2)\n\nprivate lemma remainderKernel_zero : remainderKernel 0 = 1 / 2 := by\n  simp only [remainderKernel, zero_mul, Real.exp_zero, mul_one]\n  rw [intervalIntegral.integral_sub]\n  · norm_num [intervalIntegral.integral_const, integral_id]\n  · exact continuous_const.intervalIntegrable _ _\n  · exact continuous_id.intervalIntegrable _ _\n\nprivate def bernsteinRemainder (s x : ℝ) : ℝ :=\n  if x = 0 then s ^ 2 / 2 else (Real.exp (s * x) - s * x - 1) / x ^ 2\n\nprivate lemma bernsteinRemainder_eq_kernel (s x : ℝ) :\n    bernsteinRemainder s x = s ^ 2 * remainderKernel (s * x) := by\n  by_cases hx : x = 0\n  · subst x\n    simp [bernsteinRemainder, remainderKernel_zero, div_eq_mul_inv]\n  · rw [bernsteinRemainder, if_neg hx]\n    apply (div_eq_iff (pow_ne_zero 2 hx)).2\n    calc\n      Real.exp (s * x) - s * x - 1 = Real.exp (s * x) - 1 - s * x := by ring\n      _ = (s * x) ^ 2 * remainderKernel (s * x) := exponential_remainder_integral _\n      _ = (s ^ 2 * remainderKernel (s * x)) * x ^ 2 := by ring\n\nprivate lemma bernsteinRemainder_monotone {s : ℝ} (hs : 0 < s) :\n    Monotone (bernsteinRemainder s) := by\n  intro x y hxy\n  rw [bernsteinRemainder_eq_kernel, bernsteinRemainder_eq_kernel]\n  exact mul_le_mul_of_nonneg_left\n    (remainderKernel_monotone (mul_le_mul_of_nonneg_left hxy hs.le)) (sq_nonneg s)\n\nprivate lemma bernsteinRemainder_mul_sq (s x : ℝ) :\n    bernsteinRemainder s x * x ^ 2 = Real.exp (s * x) - s * x - 1 := by\n  by_cases hx : x = 0\n  · subst x\n    simp [bernsteinRemainder]\n  · rw [bernsteinRemainder, if_neg hx]\n    field_simp\n\n"
+        },
+        {
+          "title": "Use only the upper scalar cap",
+          "text": "For every x≤1, multiply f_s(x)≤f_s(1) by the nonnegative x² and rearrange. This requires no lower bound on x. The same inequality holds at x=0 with the removable value already proved.",
+          "formula": "x\\le1\\Longrightarrow e^{sx}\\le1+sx+(e^s-s-1)x^2.",
+          "lean": "private lemma bernstein_scalar_bound {s : ℝ} (hs : 0 < s) {x : ℝ} (hx : x ≤ 1) :\n    Real.exp (s * x) ≤ 1 + s * x + (Real.exp s - s - 1) * x ^ 2 := by\n  have hone : bernsteinRemainder s 1 = Real.exp s - s - 1 := by\n    simp [bernsteinRemainder]\n  have h := mul_le_mul_of_nonneg_right (bernsteinRemainder_monotone hs hx) (sq_nonneg x)\n  rw [bernsteinRemainder_mul_sq, hone] at h\n  linarith\n\n"
+        },
+        {
+          "title": "Transfer the scalar comparison to the same self-adjoint matrix",
+          "text": "The matrix cap places its real spectrum below1. Continuous functional calculus transfers the scalar inequality on that spectrum. Expand the polynomial side and identify the exponential functional calculus with the convergent matrix-algebra exponential. This is a scalar comparison on one matrix; operator monotonicity of the exponential is not used.",
+          "formula": "\\sigma(A)\\subset(-\\infty,1]\\quad\\Longrightarrow\\quad e^{sA}\\preceq I+sA+(e^s-s-1)A^2.",
+          "lean": "open scoped MatrixOrder in\n/-- The deterministic real-matrix inequality in the proof of Tropp's Lemma 6.7.\nThe upper spectral cap is one-sided; negative eigenvalues are unrestricted. -/\ntheorem bernstein_exponential_quadratic_bound\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian)\n    (hA_le : (1 - A).PosSemidef) {s : ℝ} (hs : 0 < s) :\n    ((1 : Matrix ι ι ℝ) + s • A + (Real.exp s - s - 1) • (A * A) -\n      NormedSpace.exp (s • A)).PosSemidef := by\n  have hSA : IsSelfAdjoint A := hA.isSelfAdjoint\n  have hle : A ≤ 1 := Matrix.le_iff.mpr hA_le\n  have hspec : ∀ x ∈ spectrum ℝ A, x ≤ 1 :=\n    (CFC.le_one_iff (R := ℝ) A hSA).mp hle\n  have hfc : cfc (fun x : ℝ => Real.exp (s * x)) A ≤\n      cfc (fun x : ℝ => 1 + s * x + (Real.exp s - s - 1) * (x * x)) A := by\n    exact cfc_mono (a := A)\n      (fun x hx => by simpa only [pow_two] using bernstein_scalar_bound hs (hspec x hx))\n      (by fun_prop) (by fun_prop)\n  have hleft : cfc (fun x : ℝ => Real.exp (s * x)) A = NormedSpace.exp (s • A) := by\n    calc\n      _ = cfc Real.exp (s • A) := cfc_comp_const_mul s Real.exp A (by fun_prop) hSA\n      _ = _ := CFC.real_exp_eq_normedSpace_exp ((IsSelfAdjoint.all s).smul hSA)\n  have hright :\n      cfc (fun x : ℝ => 1 + s * x + (Real.exp s - s - 1) * (x * x)) A =\n        (1 : Matrix ι ι ℝ) + s • A + (Real.exp s - s - 1) • (A * A) := by\n    rw [cfc_add (a := A) (fun x : ℝ => 1 + s * x)\n        (fun x : ℝ => (Real.exp s - s - 1) * (x * x)) (by fun_prop) (by fun_prop),\n      cfc_add (a := A) (fun _ : ℝ => 1) (fun x : ℝ => s * x) (by fun_prop) (by fun_prop),\n      cfc_const (R := ℝ) 1 A hSA,\n      cfc_const_mul_id s A hSA,\n      cfc_const_mul (Real.exp s - s - 1) (fun x : ℝ => x * x) A (by fun_prop),\n      cfc_mul (fun x : ℝ => x) (fun x : ℝ => x) A (by fun_prop) (by fun_prop),\n      cfc_id' ℝ A hSA, map_one]\n  exact Matrix.le_iff.mp (by simpa only [hleft, hright] using hfc)\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential\n"
+        },
+        {
+          "title": "Normalize the actual original Gaussian summand",
+          "text": "The complete private module first proves three spectral adapters: a Hermitian matrix of norm at most1 has upper cap1; that cap bounds the norm of exp(sA) by exp(s); and I+C≼exp(C) holds for every Hermitian C. Then retain the literal Gaussian experiment and actual Bochner means. The canonical radius and centered-structure results give the two source norm bounds and centering. Derive the positive source radius and the normalized cap internally.",
+          "formula": "\\|Y_i\\|\\le\\frac{2rL}{d},\\quad\\|M_i\\|\\le\\frac{2r}{d}\\quad\\Longrightarrow\\quad\\|Z_i\\|\\le\\rho=\\frac{2r(L+1)}d>0,\\quad\\|X_i\\|\\le1,\\quad X_i=X_i^\\top,\\quad X_i\\preceq I.",
+          "lean": "import AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential\nimport AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure\n\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix.Norms.L2Operator MatrixOrder\n\nnoncomputable section\n\nuniverse u\n\nnamespace AutoSamplingTheory.Tests.GaussianComplexityBernsteinMgf\n\nprivate lemma one_sub_posSemidef_of_norm_le_one\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) (hn : ‖A‖ ≤ 1) :\n    (1 - A).PosSemidef := by\n  have hspec : ∀ x ∈ spectrum ℝ A, x ≤ 1 := by\n    intro x hx\n    exact (Real.le_norm_self x).trans\n      ((IsometricContinuousFunctionalCalculus.norm_spectrum_le A hx hA.isSelfAdjoint).trans hn)\n  exact Matrix.le_iff.mp ((CFC.le_one_iff (R := ℝ) A hA.isSelfAdjoint).mpr hspec)\n\nprivate lemma capped_matrix_exp_norm_le\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) (hcap : (1 - A).PosSemidef)\n    {s : ℝ} (hs : 0 < s) : ‖NormedSpace.exp (s • A)‖ ≤ Real.exp s := by\n  have hSA : IsSelfAdjoint A := hA.isSelfAdjoint\n  have hspec : ∀ x ∈ spectrum ℝ A, x ≤ 1 :=\n    (CFC.le_one_iff (R := ℝ) A hSA).mp (Matrix.le_iff.mpr hcap)\n  have heq : cfc (fun x : ℝ => Real.exp (s * x)) A = NormedSpace.exp (s • A) := by\n    calc\n      _ = cfc Real.exp (s • A) := cfc_comp_const_mul s Real.exp A (by fun_prop) hSA\n      _ = _ := CFC.real_exp_eq_normedSpace_exp ((IsSelfAdjoint.all s).smul hSA)\n  rw [← heq]\n  apply norm_cfc_le (Real.exp_nonneg s)\n  intro x hx\n  rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]\n  apply Real.exp_le_exp.mpr\n  simpa only [mul_one] using mul_le_mul_of_nonneg_left (hspec x hx) hs.le\n\nprivate lemma exp_sub_one_add_posSemidef\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) :\n    (NormedSpace.exp A - (1 + A)).PosSemidef := by\n  have hSA : IsSelfAdjoint A := hA.isSelfAdjoint\n  have hfc : cfc (fun x : ℝ => 1 + x) A ≤ cfc Real.exp A :=\n    cfc_mono (a := A) (fun x _ => by linarith [Real.add_one_le_exp x])\n      (by fun_prop) (by fun_prop)\n  have hlin : cfc (fun x : ℝ => 1 + x) A = (1 : Matrix ι ι ℝ) + A := by\n    rw [cfc_add (a := A) (fun _ : ℝ => 1) (fun x : ℝ => x) (by fun_prop) (by fun_prop),\n      cfc_const (R := ℝ) 1 A hSA, cfc_id' ℝ A hSA, map_one]\n  exact Matrix.le_iff.mp\n    (by simpa only [hlin, CFC.real_exp_eq_normedSpace_exp hSA] using hfc)\n\nprivate theorem actual_source_normalized_single_summand_mgf\n        {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let X : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => ρ⁻¹ • Z i ω\n  ∀ s : ℝ, 0 < s → ∀ i : Fin d,\n    (NormedSpace.exp\n        ((Real.exp s - s - 1) • (∫ ω, X i ω * X i ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef\n := by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let X : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => ρ⁻¹ • Z i ω\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  letI : MeasurableSpace M := borel M\n  letI : BorelSpace M := ⟨rfl⟩\n  letI : IsProbabilityMeasure μ := by\n    dsimp only [μ]\n    infer_instance\n  change ∀ s : ℝ, 0 < s → ∀ i : Fin d,\n    (NormedSpace.exp ((Real.exp s - s - 1) • (∫ ω, X i ω * X i ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef\n  have radius :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds\n      (d := d) (q := q) hq\n  change (∀ j : Fin d, ∀ ω : Ω, ‖Y j ω‖ ≤ 2 * r * L / (d : ℝ)) ∧\n    (∀ j : Fin d, ‖mean j‖ ≤ 2 * r / (d : ℝ)) at radius\n  have hstructure :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure\n      (d := d) (q := q) hq\n  change (∀ j : Fin d, Measurable (Z j)) ∧ iIndepFun Z μ ∧\n    (∀ j : Fin d, Integrable (Z j) μ) ∧\n    (∀ j : Fin d, (∫ ω, Z j ω ∂μ) = 0) ∧\n    (∀ j : Fin d, ∀ ω : Ω, (Z j ω).IsHermitian) at hstructure\n  rcases hstructure with ⟨hmeasZ, _, hintZ, hzeroZ, hhermZ⟩\n  have hd2 : 2 ≤ d := by omega\n  have hd2R : (2 : ℝ) ≤ (d : ℝ) := by exact_mod_cast hd2\n  have hdpos : (0 : ℝ) < d := by linarith\n  have hrpos : 0 < r := by dsimp only [r]; positivity\n  have hlog : 0 ≤ Real.log (1000 * (d : ℝ)) := Real.log_nonneg (by nlinarith)\n  have hLpos : 0 < L + 1 := by dsimp only [L]; nlinarith\n  have hρpos : 0 < ρ := by dsimp only [ρ]; positivity\n  have hnormZ (j : Fin d) (ω : Ω) : ‖Z j ω‖ ≤ ρ := by\n    change ‖Y j ω - mean j‖ ≤ ρ\n    calc\n      _ ≤ ‖Y j ω‖ + ‖mean j‖ := norm_sub_le _ _\n      _ ≤ 2 * r * L / (d : ℝ) + 2 * r / (d : ℝ) :=\n        add_le_add (radius.1 j ω) (radius.2 j)\n      _ = ρ := by dsimp only [ρ]; ring\n  have hnormX (j : Fin d) (ω : Ω) : ‖X j ω‖ ≤ 1 := by\n    change ‖ρ⁻¹ • Z j ω‖ ≤ 1\n    rw [norm_smul, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr hρpos)]\n    calc\n      _ ≤ ρ⁻¹ * ρ := mul_le_mul_of_nonneg_left (hnormZ j ω) (inv_nonneg.mpr hρpos.le)\n      _ = 1 := inv_mul_cancel₀ (ne_of_gt hρpos)\n  have hhermX (j : Fin d) (ω : Ω) : (X j ω).IsHermitian := by\n    change (ρ⁻¹ • Z j ω).IsHermitian\n    exact ((IsSelfAdjoint.all (ρ⁻¹ : ℝ)).smul (hhermZ j ω).isSelfAdjoint).isHermitian\n  have hcapX (j : Fin d) (ω : Ω) : (1 - X j ω).PosSemidef :=\n    one_sub_posSemidef_of_norm_le_one _ (hhermX j ω) (hnormX j ω)\n  intro s hs i\n  let g : ℝ := Real.exp s - s - 1\n  let C : M := g • (∫ ω, X i ω * X i ω ∂μ)\n"
+        },
+        {
+          "title": "Discharge the expectations and second-moment meaning",
+          "text": "The canonical centered structure yields measurable, integrable, zero-mean X_i. Measurability and the uniform bounds make X_i² and exp(sX_i) Bochner integrable. Each square is positive semidefinite, so the canonical positive-integral theorem gives the same property for its actual expectation. Thus C is positive semidefinite and hence Hermitian. This is an internal fact; the preceding generic inequality I+C≼exp(C) needs only Hermitian C.",
+          "formula": "\\mathbb E_\\mu X_i=0,\\quad\\|X_i^2\\|\\le1,\\quad\\|e^{sX_i}\\|\\le e^s,\\qquad g=e^s-s-1\\ge0,\\quad C=g\\,\\mathbb E_\\mu X_i^2\\succeq0.",
+          "lean": "  have hmeasX : Measurable (X i) := by\n    change Measurable (fun ω : Ω => ρ⁻¹ • Z i ω)\n    exact (hmeasZ i).const_smul (ρ⁻¹ : ℝ)\n  have hintX : Integrable (X i) μ := by\n    change Integrable (fun ω : Ω => ρ⁻¹ • Z i ω) μ\n    exact (hintZ i).smul (ρ⁻¹ : ℝ)\n  have hzeroX : (∫ ω, X i ω ∂μ) = 0 := by\n    change (∫ ω, ρ⁻¹ • Z i ω ∂μ) = 0\n    rw [integral_smul, hzeroZ i, smul_zero]\n  have hintSq : Integrable (fun ω : Ω => X i ω * X i ω) μ := by\n    apply Integrable.of_bound (hmeasX.mul hmeasX).aestronglyMeasurable 1\n    exact ae_of_all _ fun ω => (norm_mul_le _ _).trans (by nlinarith [hnormX i ω, norm_nonneg (X i ω)])\n  have hcontExp : Continuous (NormedSpace.exp : M → M) :=\n    continuous_iff_continuousAt.mpr fun A =>\n      (NormedSpace.exp_analytic (𝕂 := ℝ) A).continuousAt\n  have hmeasExp : Measurable (fun ω : Ω => NormedSpace.exp (s • X i ω)) :=\n    hcontExp.measurable.comp (hmeasX.const_smul s)\n  have hintExp : Integrable (fun ω : Ω => NormedSpace.exp (s • X i ω)) μ := by\n    apply Integrable.of_bound hmeasExp.aestronglyMeasurable (Real.exp s)\n    exact ae_of_all _ fun ω => capped_matrix_exp_norm_le _ (hhermX i ω) (hcapX i ω) hs\n  have hsqPSD : ∀ᵐ ω ∂μ, (X i ω * X i ω).PosSemidef := by\n    apply ae_of_all\n    intro ω\n    have hh : Matrix.conjTranspose (X i ω) = X i ω := hhermX i ω\n    simpa only [hh] using Matrix.posSemidef_conjTranspose_mul_self (X i ω)\n  have hcovPSD :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef\n      (fun ω : Ω => X i ω * X i ω) hintSq hsqPSD\n  have hg : 0 ≤ g := by dsimp only [g]; linarith [Real.add_one_le_exp s]\n  have hCPSD : C.PosSemidef := hcovPSD.smul hg\n  let Q : Ω → M := fun ω => (1 : M) + s • X i ω + g • (X i ω * X i ω)\n  let F : Ω → M := fun ω => Q ω - NormedSpace.exp (s • X i ω)\n"
+        },
+        {
+          "title": "Integrate the quadratic bound and close the individual MGF comparison",
+          "text": "Apply the public bound pointwise to the same actual X_i. The difference is positive semidefinite and integrable, so its actual expectation is positive semidefinite. Finite linearity and the derived zero mean remove the linear term. Finally add the two positive semidefinite differences for the expectation bound and I+C≼exp(C). This proves the private individual comparison for every s>0 and each i under the original measure.",
+          "formula": "\\mathbb E_\\mu e^{sX_i}\\preceq I+g\\,\\mathbb E_\\mu X_i^2\\preceq e^{g\\mathbb E_\\mu X_i^2},\\qquad e^C-\\mathbb E_\\mu e^{sX_i}=(e^C-I-C)+(I+C-\\mathbb E_\\mu e^{sX_i})\\succeq0.",
+          "lean": "  have hintOne : Integrable (fun _ : Ω => (1 : M)) μ := integrable_const _\n  have honeMean : (∫ _ : Ω, (1 : M) ∂μ) = 1 := by simp\n  have hintQ : Integrable Q μ := (hintOne.add (hintX.smul s)).add (hintSq.smul g)\n  have hintF : Integrable F μ := hintQ.sub hintExp\n  have hQmean : (∫ ω, Q ω ∂μ) = (1 : M) + C := by\n    dsimp only [Q, C]\n    have hsum :\n        (∫ ω, (1 : M) + s • X i ω + g • (X i ω * X i ω) ∂μ) =\n          (∫ ω, (1 : M) + s • X i ω ∂μ) + (∫ ω, g • (X i ω * X i ω) ∂μ) := by\n      simpa only [Pi.add_apply, Pi.smul_apply] using\n        integral_add (hintOne.add (hintX.smul s)) (hintSq.smul g)\n    have hsumOne :\n        (∫ ω, (1 : M) + s • X i ω ∂μ) =\n          (∫ _ : Ω, (1 : M) ∂μ) + (∫ ω, s • X i ω ∂μ) := by\n      simpa only [Pi.add_apply, Pi.smul_apply] using integral_add hintOne (hintX.smul s)\n    rw [hsum, hsumOne, integral_smul s (X i),\n      integral_smul g (fun ω : Ω => X i ω * X i ω), honeMean, hzeroX]\n    simp only [smul_zero, add_zero]\n  have hFmean : (∫ ω, F ω ∂μ) = (1 : M) + C - ∫ ω, NormedSpace.exp (s • X i ω) ∂μ := by\n    change (∫ ω, Q ω - NormedSpace.exp (s • X i ω) ∂μ) = _\n    rw [integral_sub hintQ hintExp, hQmean]\n  have hFPSD : ∀ᵐ ω ∂μ, (F ω).PosSemidef := by\n    apply ae_of_all\n    intro ω\n    change ((1 : M) + s • X i ω + g • (X i ω * X i ω) -\n      NormedSpace.exp (s • X i ω)).PosSemidef\n    exact AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound\n      _ (hhermX i ω) (hcapX i ω) hs\n  have hupperPSD :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef\n      F hintF hFPSD\n  rw [hFmean] at hupperPSD\n  have hlowerPSD := exp_sub_one_add_posSemidef C hCPSD.isHermitian\n  change (NormedSpace.exp C - ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef\n  have halg : NormedSpace.exp C - (∫ ω, NormedSpace.exp (s • X i ω) ∂μ) =\n      (NormedSpace.exp C - (1 + C)) +\n        ((1 + C) - ∫ ω, NormedSpace.exp (s • X i ω) ∂μ) := by abel\n  rw [halg]\n  exact hlowerPSD.add hupperPSD\n\nend AutoSamplingTheory.Tests.GaussianComplexityBernsteinMgf\n"
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "intervalIntegral.integral_eq_sub_of_hasDerivAt",
+        "intervalIntegral.integral_mul_deriv_eq_deriv_mul_of_hasDerivAt",
+        "intervalIntegral.integral_mono_on",
+        "CFC.le_one_iff",
+        "cfc_mono",
+        "cfc_comp_const_mul",
+        "CFC.real_exp_eq_normedSpace_exp",
+        "cfc_add",
+        "cfc_mul",
+        "Matrix.le_iff"
+      ],
+      "dependency_notes": "P calls no pre-existing ASTIS declaration; its seven private lemmas and two private scalar definitions are internal implementation support. The actual private consumer materially calls exactly P, actualSourceRadius, actualCenteredStructure and the canonical PSD Bochner-integral theorem. Its additional Mathlib adapters include norm_cfc_le, NormedSpace.exp_analytic, Integrable.of_bound, integral_smul/integral_add/integral_sub, and Real.add_one_le_exp. Source-derived and future-use edges remain distinct from those actual compiled parents.",
+      "lean_statement": "Exact generic real finite-nonempty Hermitian/upper-cap/positive-s bound, with the complete private actual-use statement retained in step5.",
+      "lean_proof": "Four folds preserve all148 public-file lines; three further folds preserve all240 private-file lines exactly once.",
+      "sources": [
+        {
+          "url": "https://tropp.caltech.edu/papers/Tro11-User-Friendly-preprint.pdf#page=25",
+          "edition": "Author preprint revised15June2011; pinned PDF SHA256 f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+          "anchor": "Lemma6.7 deterministic proof p25; expectation step p26; standing regularity and functional calculus §2.2-2.3 p7-8",
+          "label": "Tropp, bounded Bernstein MGF: real deterministic proof component",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Joel A. Tropp, User-Friendly Tail Bounds for Sums of Random Matrices, author preprint revised15June2011.",
+          "scope": "Only the real finite-nonempty deterministic exponential-quadratic component. Tropp is independently matched external background, not a citation supplied by the Gaussian paper."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinExponential.lean",
+          "line": 116,
+          "label": "Exact public deterministic matrix theorem",
+          "scope": "Public real deterministic component only."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex112",
+          "label": "Original Gaussian source radius and normalization",
+          "scope": "Literal Gaussian definitions and R_*; source Ex121 invokes Bernstein without supplying the Tropp citation."
+        },
+        {
+          "path": "Tests/GaussianComplexityBernsteinMgf.lean",
+          "line": 57,
+          "label": "Complete private actual-Gaussian individual MGF consumer",
+          "scope": "Authored original-experiment specialization; no probability or separate public-node credit."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityBernsteinMgf"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinExponential.bernstein_exponential_quadratic_bound",
+      "role": "proof-edge",
+      "supports": [
+        "real-deterministic-exponential-quadratic"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The proof of Lemma6.7 uses the deterministic cap X≼I for self-adjoint matrices in a complex finite-dimensional setting.",
+        "lean": "A is real Hermitian on any finite nonempty index set, with full PSD(I-A) and s>0."
+      },
+      {
+        "source": "The scalar remainder has value s²/2 at zero and is increasing on the real line.",
+        "lean": "The integral representation proves this across all real arguments, including negative eigenvalues and zero."
+      },
+      {
+        "source": "Gaussian source summands are actually centered, bounded by R_*, and live under their original law.",
+        "lean": "The private consumer keeps sole hq and the literal original definitions, derives rho positivity and all regularity/cap/centering/PSD adapters inside its proof."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "For every finite nonempty index type \\(\\mathcal I\\), equipped with a finite enumeration and decidable equality, let \\(\\operatorname{Mat}_{\\mathcal I}(\\mathbb R)\\) denote the real square matrices whose rows and columns are indexed by \\(\\mathcal I\\), and let \\(I_{\\mathcal I}\\) denote its identity matrix. For every \\(A\\in\\operatorname{Mat}_{\\mathcal I}(\\mathbb R)\\) such that\n\\[\nA^{\\mathsf T}=A,\n\\qquad\nI_{\\mathcal I}-A\\succeq0,\n\\]\nand every real number \\(s\\) satisfying \\(0<s\\),\n\\[\nI_{\\mathcal I}+sA+(e^s-s-1)(A A)-\\exp(sA)\\succeq0.\n\\]\n\nHere products of matrices are ordinary matrix products, and scalar multiples are real scalar multiples. For any real square matrix \\(M\\) on this index type, \\(M\\succeq0\\) means that \\(M^{\\mathsf T}=M\\) and \\(x^{\\mathsf T}Mx\\ge0\\) for every real coordinate vector \\(x\\in\\mathbb R^{\\mathcal I}\\). The matrix exponential is the convergent power series\n\\[\n\\exp(M)=\\sum_{n=0}^{\\infty}\\frac{M^n}{n!},\n\\qquad M^0=I_{\\mathcal I},\n\\]\nin the real matrix algebra with its Euclidean \\(L^2\\) operator norm and ordinary finite-coordinate topology. The scalar \\(e^s\\) is the real scalar exponential. The index type is required to be nonempty; the proposition does not include an empty index type.\n",
+    "text_sha256": "e17e01feefb1000c0f755916a30d940fe3b7803adb181ee2320073ec28bc8953",
+    "decoder": "neutral_decode_9b71",
+    "decoder_run_sha256": "728e0b143e8c16bcab6f3e2926427f10d0c9e818281b27e1cdcbc46b164804b3",
+    "decoder_packet_sha256": "bd4d4115ad885729227a62d33470d0669c3837ef7d4522d84b3fbe6a59a2c22a",
+    "source_text_visible": false,
+    "lean_statement_sha256": "ac9ee4c7c949bb22920aee7204bea46ae15c3074902fd1334b6cb89c5ea12a5e",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/decoder-originals/anon_9b71/output/P/result.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Finite nonempty real square matrix A, identity I, positive scalar s, ordinary matrix exponential and full PSD order.",
+      "reconstructed": "The decoder gives Mat_I(R), its identity, ordinary matrix/scalar products, matrix power-series exponential and the full quadratic-form definition of PSD.",
+      "relation": "explicit-elaboration",
+      "evidence": "Exact Lean Matrix i i R, IsHermitian, PosSemidef and NormedSpace.exp match the raw-source real deterministic component. Independent P code review confirmed full quadratic-form order and spectral/series exponential semantics, not entrywise operations."
+    },
+    "domains": {
+      "original": "Finite positive matrix dimension; A real self-adjoint; the spectral cap is only A<=I; s>0.",
+      "reconstructed": "Finite nonempty index set with Fintype/decidable equality; A^T=A, I-A PSD and s>0; empty dimension expressly excluded.",
+      "relation": "equivalent",
+      "evidence": "PSD(I-A) is the same upper spectral cap. No lower spectral or norm bound appears. This is the pinned real restriction of Tropp's complex source convention, disclosed as such; no claim of full complex coverage is accepted."
+    },
+    "quantifiers": {
+      "original": "For every finite nonempty real square matrix satisfying symmetry/cap, for every positive real s, the deterministic bound holds.",
+      "reconstructed": "For every finite nonempty index type, every such A and every s>0, the same PSD difference holds.",
+      "relation": "equivalent",
+      "evidence": "Lean universally quantifies index type/structures, A and s. Reordering independent carrier/parameter binders does not change dependency scope; no existential witness or realization-dependent constant is introduced."
+    },
+    "assumptions": {
+      "original": "Exactly real finite-positive-dimension typing, A=A^T, I-A PSD and s>0.",
+      "reconstructed": "Exactly the same symmetry, upper cap, positivity of s and Lean finite-index structures.",
+      "relation": "equivalent",
+      "evidence": "All binders in the exact declaration were read. There is no expectation, integrability, independence, Gaussianity, PSD(A), norm(A)<=1, proof-result or desired-bound premise. Private source remainder calculus is discharged inside P, not added as an ingredient binder."
+    },
+    "conclusion": {
+      "original": "I+sA+(exp(s)-s-1)A^2-exp(sA) is PSD.",
+      "reconstructed": "I+sA+(e^s-s-1)(AA)-exp(sA) is PSD.",
+      "relation": "same",
+      "evidence": "The exact coefficient, sA, ordinary matrix square, identity, subtraction orientation and PSD difference agree. Source deterministic inequality exp(sA)<=majorant is equivalent to this difference."
+    },
+    "scopes": {
+      "original": "A deterministic real proof component of Tropp6.7, not the full complex random-MGF theorem. The exponential is spectral/power-series matrix exponential and the cap is one-sided.",
+      "reconstructed": "The reconstruction expressly gives real full-matrix order, the convergent algebra power series with the Euclidean operator norm and ordinary finite-coordinate topology.",
+      "relation": "explicit-elaboration",
+      "evidence": "The underlying Mathlib definitions were inspected before reconstruction exposure. All self-adjoint/continuous branches are active; no CFC or rational-algebra fallback is used. The proof compares scalar functions of one A; no operator exponential monotonicity is asserted. Decoder expansion is accurate, not an extra source assumption."
+    },
+    "constant_dependencies": {
+      "original": "Cap1 and exact coefficient exp(s)-s-1; no dimension factor or unspecified constant.",
+      "reconstructed": "Same coefficient, same cap1; finite index size contributes no numerical constant.",
+      "relation": "same",
+      "evidence": "The theorem contains no arbitrary C, dimension factor, trace normalization or changed scalar coefficient. Every positive s is allowed."
+    }
+  },
+  "deltas": [],
+  "reader_commit": "9a8b163f4753a1329dbc0435c1e7f810f729c349",
+  "actual_math_commit": "0ff1e2227b8e5a45a6a73906582ef042bd0d73ff",
+  "independent_original_overlay": {
+    "path": "research-wiki/technical-lemmas/matrix-bernstein-exponential-semantic-evidence/source-review/bernstein_exp_fresh_61a9/P.audit-overlay.v2.json",
+    "sha256": "d978366e3c5c286670e2ca09fba0da80298b6d15563f905b0abb0aa2fb5037fb"
+  }
+}

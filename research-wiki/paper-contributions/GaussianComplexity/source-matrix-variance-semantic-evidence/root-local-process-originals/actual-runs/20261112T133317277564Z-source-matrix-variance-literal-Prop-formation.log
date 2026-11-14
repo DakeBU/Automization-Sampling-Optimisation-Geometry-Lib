@@ -1,0 +1,51 @@
+.astis/huanjian-gc-source-matrix-variance-20261112/StatementFormation.lean:13:15: warning: Variable name `hq` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hq
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+.astis/huanjian-gc-source-matrix-variance-20261112/StatementFormation.lean:39:15: warning: Variable name `hq` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hq
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+def producerProp : {d q : ℕ} → 2 * q + 1 < d → Prop :=
+fun {d q} hq =>
+  let D := EuclideanSpace ℝ (Fin d);
+  let E := EuclideanSpace ℝ (Fin (q + 1));
+  let Ω := Fin (q + 1) → D;
+  have μ := Measure.pi fun x => stdGaussian D;
+  have r := ↑(q + 1);
+  have L := 2 * r + 3 * Real.log (1000 * ↑d);
+  have θ := fun i => (↑↑i + 1 - 1 / 2) * Real.pi / ↑d;
+  have t := fun i k => if ↑k = 0 then 1 else √2 * Real.cos (↑↑k * θ i);
+  have row := fun i ω => WithLp.toLp 2 fun b => (ω b).ofLp i;
+  have Y := fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (↑d)⁻¹ • (Matrix.vecMulVec (row i ω).ofLp (row i ω).ofLp).kronecker (Matrix.vecMulVec (t i) (t i))
+    else 0;
+  have C := 2 * r * (r + 2) / ↑d;
+  (∀ (i : Fin d), Integrable (fun ω => Y i ω * Y i ω) μ) ∧ (C • 1 - ∑ i, ∫ (ω : Ω), Y i ω * Y i ω ∂μ).PosSemidef
+def consumerProp : {d q : ℕ} → 2 * q + 1 < d → Prop :=
+fun {d q} hq =>
+  let D := EuclideanSpace ℝ (Fin d);
+  let E := EuclideanSpace ℝ (Fin (q + 1));
+  let Ω := Fin (q + 1) → D;
+  have μ := Measure.pi fun x => stdGaussian D;
+  have r := ↑(q + 1);
+  have L := 2 * r + 3 * Real.log (1000 * ↑d);
+  have θ := fun i => (↑↑i + 1 - 1 / 2) * Real.pi / ↑d;
+  have t := fun i k => if ↑k = 0 then 1 else √2 * Real.cos (↑↑k * θ i);
+  have row := fun i ω => WithLp.toLp 2 fun b => (ω b).ofLp i;
+  have Y := fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (↑d)⁻¹ • (Matrix.vecMulVec (row i ω).ofLp (row i ω).ofLp).kronecker (Matrix.vecMulVec (t i) (t i))
+    else 0;
+  have mean := fun i => ∫ (ω : Ω), Y i ω ∂μ;
+  have Z := fun i ω => Y i ω - mean i;
+  have w := fun i => Real.cos (↑(2 * q + 1) * θ i);
+  have C := 2 * r * (r + 2) / ↑d;
+  (∀ (i : Fin d), Integrable (fun ω => Z i ω * Z i ω) μ) ∧
+    (∀ (i : Fin d), Integrable (fun ω => w i • Z i ω * w i • Z i ω) μ) ∧
+      ‖∑ i, ∫ (ω : Ω), Z i ω * Z i ω ∂μ‖ ≤ C ∧ ‖∑ i, ∫ (ω : Ω), w i • Z i ω * w i • Z i ω ∂μ‖ ≤ C

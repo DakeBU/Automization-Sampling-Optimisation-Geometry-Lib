@@ -1,0 +1,314 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-3aaf7b88a7f23fa5",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "huanjian_gc_20261112_source_matrix_variance",
+    "blind_decoder": "/root/neutral_decode_d204",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "c2-actual-source-uncentered-second-moments",
+    "anchor": "Appendix C.2 p14 Ex113-117, actual Ex107 local cutoff, original p1 product experiment and Fact C.5 unweighted frame",
+    "original_text": "For natural d,q with 2q+1<d set r=q+1. Take exactly r independent standard d-dimensional Gaussian columns with their product probability measure mu. Let gamma_i be their actual physical row. Put theta_i=(i-1/2)pi/d, t_i=(1,sqrt(2)cos(theta_i),...,sqrt(2)cos(q theta_i)), R_i=norm(gamma_i)^2 and L=2r+3log(1000d). Define Y_i as inverse-d times gamma_i gamma_i-transpose tensor t_i t_i-transpose on the closed event R_i<=L, and zero outside. Every actual ordinary matrix square Y_i squared is Bochner integrable. The sum over physical rows of its actual expectations is bounded above in full PSD order by (2r(r+2)/d) times the identity matrix of size r squared. This binding stops at the uncentered bound of Ex115-117. Centered variance, weighted centered variance and matrix concentration are separate unfinished claims.",
+    "text_sha256": "747004f95eba62ac7477c1d0d86b0eeb61b925875f5f8f242492fbfc47a6ea1a"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance.actual_source_truncated_matrix_second_moments",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixVariance.lean",
+    "statement": "∀     {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n  (∀ i : Fin d, Integrable (fun ω => Y i ω * Y i ω) μ) ∧\n    Matrix.PosSemidef\n      (C • (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) -\n        ∑ i : Fin d, ∫ ω, Y i ω * Y i ω ∂μ)\n",
+    "statement_sha256": "2d76387ed1de506f61c88897dc7978c31b22f826bfa47b44127d31a78b161326",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "# Reconstructed mathematical statement\n\nFor every pair of natural numbers d and q such that 2q + 1 < d, make the following definitions. All coordinate indices are zero-based. Write J = {0,...,d−1} and I = {0,...,q}, let D = R^d and E = R^(q+1) with their Euclidean norms and Borel structures, and let Ω = I → D. Give Ω the product probability measure μ consisting of one standard Gaussian law on D for each b in I. Thus a sample ω assigns a vector ω(b) in R^d to each b in I; these vectors are independent centered Gaussian vectors with identity covariance.\n\nLet r be the real number q+1, and define the real numbers\n\n    L = 2r + 3 log(1000d),\n    C = 2r(r+2)/d,\n\nwhere log is the natural logarithm and natural-number parameters are embedded in R in scalar formulas. For each i in J, set\n\n    θ_i = (i + 1 − 1/2)π/d = (i + 1/2)π/d,\n    t_i(0) = 1,\n    t_i(k) = sqrt(2) cos(kθ_i)  for k = 1,...,q.\n\nHere sqrt(2) is the nonnegative square root; when q = 0, only the coordinate t_i(0) occurs. For ω in Ω, define the row vector x_i(ω) in E by\n\n    x_i(ω)_b = ω(b)_i  for b in I.\n\nDefine the real matrix Y_i(ω), with both its rows and columns indexed by I × I, by\n\n    Y_i(ω) = (1/d) (x_i(ω)x_i(ω)^T) ⊗ (t_i t_i^T)\n                 if ||x_i(ω)||_2^2 ≤ L,\n             0   if ||x_i(ω)||_2^2 > L.\n\nThe outer products and Kronecker product here mean exactly that, on the first branch, the entry in row (b,k) and column (c,l) is\n\n    (1/d) x_i(ω)_b x_i(ω)_c t_i(k)t_i(l),\n\nfor every b,c,k,l in I. On the second branch, every entry is zero. Equality at the truncation threshold is included in the first branch.\n\nThen both of the following assertions hold:\n\n1. For every i in J, the matrix-valued function ω ↦ Y_i(ω)Y_i(ω) is Bochner integrable with respect to μ. More explicitly, it is almost everywhere strongly measurable and its operator norm has finite integral. The product is ordinary matrix multiplication, so this is the integrability of the matrix square, not of the entrywise square.\n2. With Id denoting the identity matrix on the paired index set I × I, the matrix\n\n       C Id − Σ_{i=0}^{d−1} ∫_Ω Y_i(ω)Y_i(ω) dμ(ω)\n\n   is symmetric positive semidefinite. Equivalently,\n\n       Σ_{i=0}^{d−1} ∫_Ω Y_i(ω)^2 dμ(ω) ≼ [2(q+1)(q+3)/d] Id,\n\n   where ≼ is the positive-semidefinite order on real matrices: the difference on the right minus the left is symmetric and has nonnegative quadratic form on every vector in R^(I × I). All matrix integrals in these assertions are Bochner integrals in the complete Euclidean operator norm.\n\n# Seven-slot analysis\n\n## 1. objects\n\nThe fixed objects are D = R^d, E = R^(q+1), the sample space Ω = {0,...,q} → D, the finite product standard Gaussian measure μ, the real scalar r = q+1, the real scalars L and C, angles θ_i, deterministic cosine vectors t_i, coordinate-row random vectors x_i, and random real matrices Y_i indexed in both directions by {0,...,q} × {0,...,q}. The vector x_i is precisely the Euclidean vector with coordinates ω(b)_i; the WithLp wrappers do not change those coordinates. The outer products and Kronecker product have the paired-index ordering stated in the reconstructed theorem.\n\n## 2. domains\n\nThe parameters d and q are natural numbers, including zero before the hypothesis is imposed. The hypothesis forces d ≥ 2q+2; q = 0 is allowed. Coordinate indices i range from 0 through d−1. Indices b,c,k,l range from 0 through q, including both endpoints. Samples ω belong to Ω. The vectors x_i and t_i lie in E; Y_i has (q+1)^2 rows and columns and real entries. All scalar formulas use the usual embedding of natural numbers into R. Euclidean norms are used for vectors, and the complete Euclidean operator norm is used for matrix Bochner integrability.\n\n## 3. quantifiers\n\nFor every pair of natural numbers d and q satisfying 2q+1 < d, form all displayed objects by their fixed definitions. The first conclusion holds for every i in {0,...,d−1}. The second conclusion concerns the finite sum over that same entire index set. Positive semidefiniteness includes symmetry and the nonnegative quadratic-form condition for every real vector indexed by {0,...,q} × {0,...,q}. No constant, truncation level, angle, or vector is existentially chosen.\n\n## 4. assumptions\n\nThe sole mathematical hypothesis on the parameters is the strict inequality 2q+1 < d. The Gaussian law, product sample measure, cosine vectors, truncation level, and matrices are definitions, not additional hypotheses. Integrability is an asserted output. The condition ||x_i(ω)||_2^2 ≤ L is the branch condition defining Y_i at each sample, including equality; it is not an assumption that samples satisfy that condition.\n\n## 5. conclusion\n\nFor each i, the matrix-valued function ω ↦ Y_i(ω)Y_i(ω), with ordinary matrix multiplication, is Bochner integrable against μ: it is almost everywhere strongly measurable and the integral of its operator norm is finite. In addition, C times the identity matrix minus the sum over all i of the Bochner integrals of Y_i(ω)Y_i(ω) is a real symmetric positive semidefinite matrix. Equivalently, the sum of these matrix second moments is at most C times the identity in the positive-semidefinite order. This is a deterministic order statement about integrated matrix squares, not a pointwise or probability bound. The explicit integrability assertion ensures these are integrable Bochner integrals rather than reliance on totalized nonintegrable integrals.\n\n## 6. scopes\n\nThe universal parameter quantifiers and their strict dimension hypothesis enclose every local definition and both conjuncts of the conclusion. One common Ω and μ is used for all i. The angles and cosine vectors are deterministic; x_i and Y_i depend on ω. The truncation branch applies separately to each i and ω, using the squared norm of that row, with the zero matrix on the complementary event ||x_i(ω)||_2^2 > L. In the second conclusion, each product Y_i(ω)Y_i(ω) is integrated before the finite sum is taken. The identity has the paired index set {0,...,q} × {0,...,q}. No almost-sure qualifier weakens the resulting deterministic matrix order assertion.\n\n## 7. constant_dependencies\n\nThe scalar r = q+1 depends only on q. The truncation level is exactly L = 2r + 3 log(1000d), with natural logarithm, and depends only on d and q. The bound is exactly C = 2r(r+2)/d, depending only on d and q. The numbers 2, 3, and 1000, the factor sqrt(2), the half-grid shift 1/2, and π are fixed constants. The angles θ_i depend only on i and d; the cosine coordinate t_i(k) is fixed by i,k,d, with k ranging through 0,...,q. No scalar constant depends on ω or is left unspecified.\n",
+    "text_sha256": "4ac774369cb4172253000f5c71b7658584c9888657075b6349bbbf2a18518d26",
+    "decoder": "/root/neutral_decode_d204",
+    "decoder_packet_sha256": "f3781ac7521d1dffd7a3b451629329d467b8f73a9a6465a73216da90df506f19",
+    "decoder_run_sha256": "55db3b687c9579ec2ed7b784898f1d932a77b2d956a69befb10d4f7d41f90f2e",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "5fce0acc605c694686137fbb379769bdaef1a30b6a26a09ae9a1d48aa96ca0f2",
+  "candidate_publication_context": {
+    "file": "d9db32e38f18f1f92a94c82886063181375a9e214f7d44ce1bca2a240586ace6",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumRadialFourthMoment\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumWeightedFrameBound\n\n/-! Actual source-experiment uncentered squared moments, arXiv2610.20492v1 C.2.\nThe original column-product law, physical rows and closed cutoff stay literal.\nThe shared positivity-integral node is used on a genuinely integrable pointwise\nPSD majorant residual; no moment/positivity certificate is a source input. -/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix.Norms.L2Operator\nopen AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral\nset_option autoImplicit false\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance\n\ntheorem actual_source_truncated_matrix_second_moments\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n  (∀ i : Fin d, Integrable (fun ω => Y i ω * Y i ω) μ) ∧\n    Matrix.PosSemidef\n      (C • (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) -\n        ∑ i : Fin d, ∫ ω, Y i ω * Y i ω ∂μ)\n:= by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n\n  let ν : Measure E := stdGaussian E\n  let M := Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ\n  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let G : E → M := fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)\n  let weighted : E → M := fun x => R x • G x\n  let feature : Fin d → M := fun i => Matrix.vecMulVec (t i) (t i)\n  let S : Fin d → ℝ := fun i => ∑ k : Fin (q + 1), (t i k) ^ 2\n  let K : Fin d → N := fun i => Matrix.kronecker (1 : M) (feature i)\n  let α : ℝ := (r + 2) / (d : ℝ) ^ 2\n  let B : N := α • (∑ i : Fin d, S i • K i)\n  let good : Fin d → Set Ω := fun i => {ω | ‖row i ω‖ ^ 2 ≤ L}\n  let squared : Fin d → Ω → N := fun i ω => Y i ω * Y i ω\n  let c : Fin d → ℝ := fun i => S i / (d : ℝ) ^ 2\n  let tensor : Fin d → M →ₗ[ℝ] N := fun i =>\n    (Matrix.kroneckerBilinear : M →ₗ[ℝ] M →ₗ[ℝ] N).flip (feature i)\n  let scaled : Fin d → M →L[ℝ] N := fun i => c i • (tensor i).toContinuousLinearMap\n  let W : Fin d → Ω → N := fun i ω => scaled i (weighted (row i ω))\n\n  -- Canonical fourth moment, transported by the actual physical row map.\n  have moment := FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix\n    (d := d) (q := q) hq\n  change Integrable weighted ν ∧ (∫ x, weighted x ∂ν) = (r + 2) • (1 : M) at moment\n  have row_law (i : Fin d) : MeasurePreserving (row i) μ ν :=\n    FixedSpectrumSourceRowLaw.actual_source_row_marginal_law hq i\n  have actual_weighted_integrable (i : Fin d) :\n      Integrable (fun ω => weighted (row i ω)) μ :=\n    (row_law i).integrable_comp_of_integrable moment.1\n  have actual_weighted_mean (i : Fin d) :\n      (∫ ω, weighted (row i ω) ∂μ) = (r + 2) • (1 : M) := by\n    have measurable_on_map : AEStronglyMeasurable weighted (Measure.map (row i) μ) := by\n      rw [(row_law i).map_eq]\n      exact moment.1.aestronglyMeasurable\n    have transport := integral_map (row_law i).measurable.aemeasurable measurable_on_map\n    rw [(row_law i).map_eq] at transport\n    exact transport.symm.trans moment.2\n  have W_integrable (i : Fin d) : Integrable (W i) μ :=\n    (scaled i).integrable_comp (actual_weighted_integrable i)\n  have good_measurable (i : Fin d) : MeasurableSet (good i) := by\n    dsimp only [good]\n    exact measurableSet_le ((row_law i).measurable.norm.pow_const 2) measurable_const\n\n  -- Both ordinary rank-one squares, retaining the actual row's own cutoff.\n  have rank_square (v : Fin (q + 1) → ℝ) :\n      Matrix.vecMulVec v v * Matrix.vecMulVec v v =\n        (∑ k : Fin (q + 1), (v k) ^ 2) • Matrix.vecMulVec v v := by\n    rw [Matrix.vecMulVec_mul_vecMulVec, Matrix.vecMulVec_smul]\n    congr 1\n    simp [dotProduct, pow_two]\n  have gram_square (x : E) : G x * G x = R x • G x := by\n    have h := rank_square (WithLp.ofLp x)\n    have radius_sum : (∑ k : Fin (q + 1), (x k) ^ 2) = R x :=\n      (EuclideanSpace.real_norm_sq_eq x).symm\n    simpa only [radius_sum] using h\n  have feature_square (i : Fin d) : feature i * feature i = S i • feature i :=\n    rank_square (t i)\n  have squared_as_indicator (i : Fin d) : squared i = (good i).indicator (W i) := by\n    funext ω\n    by_cases hω : ω ∈ good i\n    · have hcut : ‖row i ω‖ ^ 2 ≤ L := hω\n      simp only [squared, Y, if_pos hcut, Set.indicator_of_mem hω]\n      change ((d : ℝ)⁻¹ • Matrix.kronecker (G (row i ω)) (feature i)) *\n        ((d : ℝ)⁻¹ • Matrix.kronecker (G (row i ω)) (feature i)) =\n          c i • Matrix.kronecker (R (row i ω) • G (row i ω)) (feature i)\n      dsimp only [Matrix.kronecker]\n      rw [smul_mul_assoc, mul_smul_comm, ← Matrix.mul_kronecker_mul,\n        gram_square (row i ω), feature_square i]\n      ext a b\n      change (d : ℝ)⁻¹ * ((d : ℝ)⁻¹ *\n        ((R (row i ω) * G (row i ω) a.1 b.1) * (S i * feature i a.2 b.2))) =\n          c i * ((R (row i ω) * G (row i ω) a.1 b.1) * feature i a.2 b.2)\n      dsimp [c]\n      simp only [div_eq_mul_inv]\n      ring\n    · have hcut : ¬ ‖row i ω‖ ^ 2 ≤ L := hω\n      simp [squared, Y, hcut, Set.indicator_of_notMem hω]\n  have squared_integrable (i : Fin d) : Integrable (squared i) μ := by\n    rw [squared_as_indicator i]\n    exact (W_integrable i).indicator (good_measurable i)\n\n  -- The actual untruncated majorant is a nonnegative rank-one matrix.\n  have W_positive (i : Fin d) (ω : Ω) : (W i ω).PosSemidef := by\n    let x := row i ω\n    let v : Fin (q + 1) × Fin (q + 1) → ℝ := fun a => x a.1 * t i a.2\n    have rank_positive : (Matrix.vecMulVec v v).PosSemidef := by\n      simpa only [star_trivial] using Matrix.posSemidef_vecMulVec_self_star v\n    have W_rank : W i ω = (c i * R x) • Matrix.vecMulVec v v := by\n      ext a b\n      change c i * (R x * (x a.1 * x b.1) * (t i a.2 * t i b.2)) =\n        (c i * R x) * ((x a.1 * t i a.2) * (x b.1 * t i b.2))\n      ring\n    rw [W_rank]\n    exact rank_positive.smul (mul_nonneg\n      (div_nonneg (Finset.sum_nonneg (fun _ _ => sq_nonneg _)) (sq_nonneg _))\n      (sq_nonneg ‖x‖))\n  have residual_positive (ω : Ω) :\n      ((∑ i : Fin d, W i ω) - ∑ i : Fin d, squared i ω).PosSemidef := by\n    rw [← Finset.sum_sub_distrib]\n    apply Matrix.posSemidef_sum Finset.univ\n    intro i _\n    rw [squared_as_indicator i]\n    by_cases hω : ω ∈ good i\n    · simpa [Set.indicator_of_mem hω] using (Matrix.PosSemidef.zero : (0 : N).PosSemidef)\n    · simpa [Set.indicator_of_notMem hω] using W_positive i ω\n  have W_sum_integrable : Integrable (fun ω => ∑ i : Fin d, W i ω) μ :=\n    integrable_finsetSum Finset.univ (fun i _ => W_integrable i)\n  have squared_sum_integrable : Integrable (fun ω => ∑ i : Fin d, squared i ω) μ :=\n    integrable_finsetSum Finset.univ (fun i _ => squared_integrable i)\n  have integrated_residual :\n      (∫ ω, (∑ i : Fin d, W i ω) - ∑ i : Fin d, squared i ω ∂μ).PosSemidef :=\n    integral_posSemidef _ (W_sum_integrable.sub squared_sum_integrable)\n      (Filter.Eventually.of_forall residual_positive)\n\n  -- Exact tensor/scalar means and the existing canonical weighted-frame bound.\n  have W_mean (i : Fin d) : (∫ ω, W i ω ∂μ) = α • (S i • K i) := by\n    calc\n      (∫ ω, W i ω ∂μ) = scaled i (∫ ω, weighted (row i ω) ∂μ) :=\n        (scaled i).integral_comp_comm (actual_weighted_integrable i)\n      _ = scaled i ((r + 2) • (1 : M)) := congrArg (scaled i) (actual_weighted_mean i)\n      _ = α • (S i • K i) := by\n        change c i • Matrix.kronecker ((r + 2) • (1 : M)) (feature i) =\n          α • (S i • Matrix.kronecker (1 : M) (feature i))\n        dsimp only [Matrix.kronecker]\n        rw [Matrix.smul_kronecker, smul_smul, smul_smul]\n        congr 1\n        dsimp [c, α]\n        simp only [div_eq_mul_inv]\n        ring\n  have W_sum_mean : (∫ ω, ∑ i : Fin d, W i ω ∂μ) = B := by\n    rw [integral_finsetSum Finset.univ (fun i _ => W_integrable i)]\n    simp_rw [W_mean]\n    exact Finset.smul_sum.symm\n  rw [integral_sub W_sum_integrable squared_sum_integrable, W_sum_mean,\n    integral_finsetSum Finset.univ (fun i _ => squared_integrable i)] at integrated_residual\n  have deterministic := FixedSpectrumWeightedFrameBound.actual_weighted_cosine_coefficient_bound\n    (d := d) (q := q) hq\n  have angle_old (i : Fin d) :\n      ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ) = θ i := by\n    dsimp [θ]\n    ring\n  dsimp only at deterministic\n  simp_rw [angle_old] at deterministic\n  change (C • (1 : N) - B).PosSemidef at deterministic\n  change (∀ i : Fin d, Integrable (squared i) μ) ∧\n    (C • (1 : N) - ∑ i : Fin d, ∫ ω, squared i ω ∂μ).PosSemidef\n  refine ⟨squared_integrable, ?_⟩\n  convert deterministic.add integrated_residual using 1\n  abel\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p14",
+      "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "Appendix C.2 p14 Ex113-117, actual Ex107 local cutoff, original p1 product experiment and Fact C.5 unweighted frame",
+      "wording_status": "faithful paraphrase",
+      "attribution": "On Complexity of Gaussian Sampling, arXiv:2610.20492v1.",
+      "scope": "Actual uncentered squared-moment sum only; p14 centered/weighted conclusions and p15 Bernstein remain separate."
+    },
+    "statement": "Every actual squared truncated summand is integrable, and the sum of its expectations has the exact source PSD upper bound.",
+    "formulae": [
+      {
+        "label": "Actual Gaussian truncated matrix second moments",
+        "tex": "Y_i^2\\in L^1(\\mu)\\quad(1\\le i\\le d),\\qquad\\sum_{i=1}^d\\mathbb E_\\mu[Y_i^2]\\preceq\\frac{2r(r+2)}d I_{r^2}."
+      }
+    ],
+    "assumptions": [
+      "Let \\(d,q\\in\\mathbb N\\) satisfy \\(2q+1<d\\), and put \\(r=q+1\\). The case \\(q=0\\) is included. All denominator positivity follows internally.",
+      "Use exactly \\(\\Omega=(\\mathbb R^d)^r\\), \\(\\mu=\\gamma_d^{\\otimes r}\\), and the actual physical row \\(\\Phi_i(\\omega)=(\\omega_{1,i},\\ldots,\\omega_{r,i})\\), with \\(\\gamma_j=N(0,I_j)\\). No replacement row experiment or caller law certificate is used.",
+      "Put \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\theta_i,\\ldots,\\sqrt2\\cos(q\\theta_i))\\), \\(R_i=\\|\\Phi_i\\|^2\\) and \\(L=2r+3\\log(1000d)\\). Source physical index \\(i\\) corresponds to \\(i.val+1\\).",
+      "The literal matrix is \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{R_i\\le L\\}}\\), with the Gaussian coordinate first in each paired Kronecker index. Each row keeps its own inclusive cutoff, under the same unconditional original law.",
+      "Squares use ordinary matrix multiplication, and expectations are actual Bochner integrals in the Euclidean operator norm. Every squared summand is proved integrable. Full Hermitian/quadratic PSD is used throughout.",
+      "The only source proposition input is \\(2q+1<d\\). Row law, fourth moment, frame, integrability, and the uncentered squared-moment PSD estimate are proved internally. Joint independence, exact first-mean/a identities, \\(\\tau\\), \\(\\kappa\\), and Bernstein assumptions are not inputs."
+    ],
+    "obligations": [
+      {
+        "id": "c2-actual-source-uncentered-second-moments",
+        "label": "Every actual squared truncated summand is integrable, and the sum of its expectations has the exact source PSD upper bound."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance.actual_source_truncated_matrix_second_moments",
+      "title": "Actual Gaussian truncated matrix second moments",
+      "reader_note": "The main statement is the public uncentered producer. The final three proof steps give its complete actual centered and cosine-weighted private consumer, under the same source conditions.",
+      "statement": "Every actual squared truncated summand is integrable, and the sum of its expectations has the exact source PSD upper bound.",
+      "formula": "Y_i^2\\in L^1(\\mu)\\quad(1\\le i\\le d),\\qquad\\sum_{i=1}^d\\mathbb E_\\mu[Y_i^2]\\preceq\\frac{2r(r+2)}d I_{r^2}.",
+      "assumptions": [
+        "Let \\(d,q\\in\\mathbb N\\) satisfy \\(2q+1<d\\), and put \\(r=q+1\\). The case \\(q=0\\) is included. All denominator positivity follows internally.",
+        "Use exactly \\(\\Omega=(\\mathbb R^d)^r\\), \\(\\mu=\\gamma_d^{\\otimes r}\\), and the actual physical row \\(\\Phi_i(\\omega)=(\\omega_{1,i},\\ldots,\\omega_{r,i})\\), with \\(\\gamma_j=N(0,I_j)\\). No replacement row experiment or caller law certificate is used.",
+        "Put \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\theta_i,\\ldots,\\sqrt2\\cos(q\\theta_i))\\), \\(R_i=\\|\\Phi_i\\|^2\\) and \\(L=2r+3\\log(1000d)\\). Source physical index \\(i\\) corresponds to \\(i.val+1\\).",
+        "The literal matrix is \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{R_i\\le L\\}}\\), with the Gaussian coordinate first in each paired Kronecker index. Each row keeps its own inclusive cutoff, under the same unconditional original law.",
+        "Squares use ordinary matrix multiplication, and expectations are actual Bochner integrals in the Euclidean operator norm. Every squared summand is proved integrable. Full Hermitian/quadratic PSD is used throughout.",
+        "The only source proposition input is \\(2q+1<d\\). Row law, fourth moment, frame, integrability, and the uncentered squared-moment PSD estimate are proved internally. Joint independence, exact first-mean/a identities, \\(\\tau\\), \\(\\kappa\\), and Bernstein assumptions are not inputs."
+      ],
+      "steps": [
+        {
+          "title": "Transport the canonical fourth moment to the actual physical rows",
+          "text": "Keep the complete original source statement and experiment. Reuse the canonical actual-row law and the existing integrable radial fourth-moment matrix. The noninjective row pushforward transports that moment to the actual same product measure. A fixed continuous tensor map yields the untruncated majorants and their integrability; the actual row cutoff is measurable.",
+          "formula": "(\\Phi_i)_\\#\\mu=\\gamma_r,\\qquad\\mathbb E_{\\gamma_r}[\\|x\\|^2xx^\\top]=(r+2)I_r,\\quad W_i=\\frac{\\|t_i\\|^2}{d^2}(R_i\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top).",
+          "lean": "import AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumRadialFourthMoment\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumWeightedFrameBound\n\n/-! Actual source-experiment uncentered squared moments, arXiv2610.20492v1 C.2.\nThe original column-product law, physical rows and closed cutoff stay literal.\nThe shared positivity-integral node is used on a genuinely integrable pointwise\nPSD majorant residual; no moment/positivity certificate is a source input. -/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix.Norms.L2Operator\nopen AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral\nset_option autoImplicit false\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance\n\ntheorem actual_source_truncated_matrix_second_moments\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n  (∀ i : Fin d, Integrable (fun ω => Y i ω * Y i ω) μ) ∧\n    Matrix.PosSemidef\n      (C • (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) -\n        ∑ i : Fin d, ∫ ω, Y i ω * Y i ω ∂μ)\n:= by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n\n  let ν : Measure E := stdGaussian E\n  let M := Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ\n  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let G : E → M := fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)\n  let weighted : E → M := fun x => R x • G x\n  let feature : Fin d → M := fun i => Matrix.vecMulVec (t i) (t i)\n  let S : Fin d → ℝ := fun i => ∑ k : Fin (q + 1), (t i k) ^ 2\n  let K : Fin d → N := fun i => Matrix.kronecker (1 : M) (feature i)\n  let α : ℝ := (r + 2) / (d : ℝ) ^ 2\n  let B : N := α • (∑ i : Fin d, S i • K i)\n  let good : Fin d → Set Ω := fun i => {ω | ‖row i ω‖ ^ 2 ≤ L}\n  let squared : Fin d → Ω → N := fun i ω => Y i ω * Y i ω\n  let c : Fin d → ℝ := fun i => S i / (d : ℝ) ^ 2\n  let tensor : Fin d → M →ₗ[ℝ] N := fun i =>\n    (Matrix.kroneckerBilinear : M →ₗ[ℝ] M →ₗ[ℝ] N).flip (feature i)\n  let scaled : Fin d → M →L[ℝ] N := fun i => c i • (tensor i).toContinuousLinearMap\n  let W : Fin d → Ω → N := fun i ω => scaled i (weighted (row i ω))\n\n  -- Canonical fourth moment, transported by the actual physical row map.\n  have moment := FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix\n    (d := d) (q := q) hq\n  change Integrable weighted ν ∧ (∫ x, weighted x ∂ν) = (r + 2) • (1 : M) at moment\n  have row_law (i : Fin d) : MeasurePreserving (row i) μ ν :=\n    FixedSpectrumSourceRowLaw.actual_source_row_marginal_law hq i\n  have actual_weighted_integrable (i : Fin d) :\n      Integrable (fun ω => weighted (row i ω)) μ :=\n    (row_law i).integrable_comp_of_integrable moment.1\n  have actual_weighted_mean (i : Fin d) :\n      (∫ ω, weighted (row i ω) ∂μ) = (r + 2) • (1 : M) := by\n    have measurable_on_map : AEStronglyMeasurable weighted (Measure.map (row i) μ) := by\n      rw [(row_law i).map_eq]\n      exact moment.1.aestronglyMeasurable\n    have transport := integral_map (row_law i).measurable.aemeasurable measurable_on_map\n    rw [(row_law i).map_eq] at transport\n    exact transport.symm.trans moment.2\n  have W_integrable (i : Fin d) : Integrable (W i) μ :=\n    (scaled i).integrable_comp (actual_weighted_integrable i)\n  have good_measurable (i : Fin d) : MeasurableSet (good i) := by\n    dsimp only [good]\n    exact measurableSet_le ((row_law i).measurable.norm.pow_const 2) measurable_const\n"
+        },
+        {
+          "title": "Compute both ordinary rank-one squares and prove squared integrability",
+          "text": "Use the Gaussian and feature rank-one square identities and Kronecker multiplication. The literal squared matrix is exactly its untruncated majorant retained on its own closed cutoff. Indicator integrability therefore follows from actual majorant integrability.",
+          "formula": "(xx^\\top)^2=\\|x\\|^2xx^\\top,\\quad(t_it_i^\\top)^2=\\|t_i\\|^2t_it_i^\\top,\\quad Y_i^2=W_i\\mathbf1_{\\{R_i\\le L\\}}.",
+          "lean": "\n  -- Both ordinary rank-one squares, retaining the actual row's own cutoff.\n  have rank_square (v : Fin (q + 1) → ℝ) :\n      Matrix.vecMulVec v v * Matrix.vecMulVec v v =\n        (∑ k : Fin (q + 1), (v k) ^ 2) • Matrix.vecMulVec v v := by\n    rw [Matrix.vecMulVec_mul_vecMulVec, Matrix.vecMulVec_smul]\n    congr 1\n    simp [dotProduct, pow_two]\n  have gram_square (x : E) : G x * G x = R x • G x := by\n    have h := rank_square (WithLp.ofLp x)\n    have radius_sum : (∑ k : Fin (q + 1), (x k) ^ 2) = R x :=\n      (EuclideanSpace.real_norm_sq_eq x).symm\n    simpa only [radius_sum] using h\n  have feature_square (i : Fin d) : feature i * feature i = S i • feature i :=\n    rank_square (t i)\n  have squared_as_indicator (i : Fin d) : squared i = (good i).indicator (W i) := by\n    funext ω\n    by_cases hω : ω ∈ good i\n    · have hcut : ‖row i ω‖ ^ 2 ≤ L := hω\n      simp only [squared, Y, if_pos hcut, Set.indicator_of_mem hω]\n      change ((d : ℝ)⁻¹ • Matrix.kronecker (G (row i ω)) (feature i)) *\n        ((d : ℝ)⁻¹ • Matrix.kronecker (G (row i ω)) (feature i)) =\n          c i • Matrix.kronecker (R (row i ω) • G (row i ω)) (feature i)\n      dsimp only [Matrix.kronecker]\n      rw [smul_mul_assoc, mul_smul_comm, ← Matrix.mul_kronecker_mul,\n        gram_square (row i ω), feature_square i]\n      ext a b\n      change (d : ℝ)⁻¹ * ((d : ℝ)⁻¹ *\n        ((R (row i ω) * G (row i ω) a.1 b.1) * (S i * feature i a.2 b.2))) =\n          c i * ((R (row i ω) * G (row i ω) a.1 b.1) * feature i a.2 b.2)\n      dsimp [c]\n      simp only [div_eq_mul_inv]\n      ring\n    · have hcut : ¬ ‖row i ω‖ ^ 2 ≤ L := hω\n      simp [squared, Y, hcut, Set.indicator_of_notMem hω]\n  have squared_integrable (i : Fin d) : Integrable (squared i) μ := by\n    rw [squared_as_indicator i]\n    exact (W_integrable i).indicator (good_measurable i)\n"
+        },
+        {
+          "title": "Apply the shared node to the actual PSD residual",
+          "text": "The untruncated majorant is a nonnegative multiple of the actual tensor-vector outer product. Thus W_i minus Y_i squared is PSD pointwise. Prove both finite sums integrable and call the shared lemma on their actual difference. This does not assume pointwise PSD of the final C I minus the random square sum.",
+          "formula": "W_i-Y_i^2\\succeq0,\\qquad\\int\\!\\left(\\sum_iW_i-\\sum_iY_i^2\\right)d\\mu\\succeq0.",
+          "lean": "\n  -- The actual untruncated majorant is a nonnegative rank-one matrix.\n  have W_positive (i : Fin d) (ω : Ω) : (W i ω).PosSemidef := by\n    let x := row i ω\n    let v : Fin (q + 1) × Fin (q + 1) → ℝ := fun a => x a.1 * t i a.2\n    have rank_positive : (Matrix.vecMulVec v v).PosSemidef := by\n      simpa only [star_trivial] using Matrix.posSemidef_vecMulVec_self_star v\n    have W_rank : W i ω = (c i * R x) • Matrix.vecMulVec v v := by\n      ext a b\n      change c i * (R x * (x a.1 * x b.1) * (t i a.2 * t i b.2)) =\n        (c i * R x) * ((x a.1 * t i a.2) * (x b.1 * t i b.2))\n      ring\n    rw [W_rank]\n    exact rank_positive.smul (mul_nonneg\n      (div_nonneg (Finset.sum_nonneg (fun _ _ => sq_nonneg _)) (sq_nonneg _))\n      (sq_nonneg ‖x‖))\n  have residual_positive (ω : Ω) :\n      ((∑ i : Fin d, W i ω) - ∑ i : Fin d, squared i ω).PosSemidef := by\n    rw [← Finset.sum_sub_distrib]\n    apply Matrix.posSemidef_sum Finset.univ\n    intro i _\n    rw [squared_as_indicator i]\n    by_cases hω : ω ∈ good i\n    · simpa [Set.indicator_of_mem hω] using (Matrix.PosSemidef.zero : (0 : N).PosSemidef)\n    · simpa [Set.indicator_of_notMem hω] using W_positive i ω\n  have W_sum_integrable : Integrable (fun ω => ∑ i : Fin d, W i ω) μ :=\n    integrable_finsetSum Finset.univ (fun i _ => W_integrable i)\n  have squared_sum_integrable : Integrable (fun ω => ∑ i : Fin d, squared i ω) μ :=\n    integrable_finsetSum Finset.univ (fun i _ => squared_integrable i)\n  have integrated_residual :\n      (∫ ω, (∑ i : Fin d, W i ω) - ∑ i : Fin d, squared i ω ∂μ).PosSemidef :=\n    integral_posSemidef _ (W_sum_integrable.sub squared_sum_integrable)\n      (Filter.Eventually.of_forall residual_positive)\n\n"
+        },
+        {
+          "title": "Evaluate the majorant mean and consume the canonical frame bound",
+          "text": "Commute the fixed continuous tensor maps and finite sums with the actual integrals. The transported fourth moment evaluates the majorant expectation. Normalize the algebraically equal midpoint-grid expressions and apply the existing weighted coefficient bound, then add the integrated PSD residual to obtain the stated uncentered bound.",
+          "formula": "\\mathbb E_\\mu W_i=\\frac{(r+2)\\|t_i\\|^2}{d^2}(I_r\\otimes t_it_i^\\top),\\qquad\\sum_i\\mathbb E_\\mu W_i\\preceq\\frac{2r(r+2)}dI_{r^2}.",
+          "lean": "  -- Exact tensor/scalar means and the existing canonical weighted-frame bound.\n  have W_mean (i : Fin d) : (∫ ω, W i ω ∂μ) = α • (S i • K i) := by\n    calc\n      (∫ ω, W i ω ∂μ) = scaled i (∫ ω, weighted (row i ω) ∂μ) :=\n        (scaled i).integral_comp_comm (actual_weighted_integrable i)\n      _ = scaled i ((r + 2) • (1 : M)) := congrArg (scaled i) (actual_weighted_mean i)\n      _ = α • (S i • K i) := by\n        change c i • Matrix.kronecker ((r + 2) • (1 : M)) (feature i) =\n          α • (S i • Matrix.kronecker (1 : M) (feature i))\n        dsimp only [Matrix.kronecker]\n        rw [Matrix.smul_kronecker, smul_smul, smul_smul]\n        congr 1\n        dsimp [c, α]\n        simp only [div_eq_mul_inv]\n        ring\n  have W_sum_mean : (∫ ω, ∑ i : Fin d, W i ω ∂μ) = B := by\n    rw [integral_finsetSum Finset.univ (fun i _ => W_integrable i)]\n    simp_rw [W_mean]\n    exact Finset.smul_sum.symm\n  rw [integral_sub W_sum_integrable squared_sum_integrable, W_sum_mean,\n    integral_finsetSum Finset.univ (fun i _ => squared_integrable i)] at integrated_residual\n  have deterministic := FixedSpectrumWeightedFrameBound.actual_weighted_cosine_coefficient_bound\n    (d := d) (q := q) hq\n  have angle_old (i : Fin d) :\n      ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ) = θ i := by\n    dsimp [θ]\n    ring\n  dsimp only at deterministic\n  simp_rw [angle_old] at deterministic\n  change (C • (1 : N) - B).PosSemidef at deterministic\n  change (∀ i : Fin d, Integrable (squared i) μ) ∧\n    (C • (1 : N) - ∑ i : Fin d, ∫ ω, squared i ω ∂μ).PosSemidef\n  refine ⟨squared_integrable, ?_⟩\n  convert deterministic.add integrated_residual using 1\n  abel\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance\n"
+        },
+        {
+          "title": "Form the actual centered matrices",
+          "text": "The separately stated private consumer uses the same original experiment and exact cutoff. Write Mi for the actual expectation of Yi and Zi=Yi-Mi. The existing actual first-moment producer supplies Yi integrability; the uncentered producer supplies Yi-square integrability. Each actual Yi is a nonnegative paired rank-one matrix. Apply the same canonical PSD-integral theorem to obtain full PSD of Mi. Hence Zi is Hermitian and its ordinary square is PSD. All application premises are proved internally.",
+          "formula": "M_i=\\mathbb E_\\mu Y_i,\\quad Z_i=Y_i-M_i,\\quad Y_i\\in L^1(\\mu),\\quad Y_i\\succeq0,\\ M_i\\succeq0,\\ Z_i^2\\succeq0.",
+          "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean\nimport Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Isometric\nimport Mathlib.Tactic.NoncommRing\n\n/-! Actual original-experiment centered and deterministic cosine-weighted\nmatrix variance bounds, arXiv2610.20492v1 C.2 Ex118/120. This private consumer\nmaterially uses the canonical public uncentered producer, actual first moments\nand shared real PSD-integral node. Both product integrals are justified without\nmatrix commutativity; real CFC yields the actual L2 operator norms. No matrix\nconcentration, oracle reduction or main lower bound is claimed here. -/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix.Norms.L2Operator MatrixOrder\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity\nopen AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral\nset_option autoImplicit false\n\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixVariance\n\nprivate theorem actual_source_centered_variance_bounds\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n  (∀ i : Fin d, Integrable (fun ω => Z i ω * Z i ω) μ) ∧\n    (∀ i : Fin d, Integrable (fun ω => (w i • Z i ω) * (w i • Z i ω)) μ) ∧\n    ‖∑ i : Fin d, ∫ ω, Z i ω * Z i ω ∂μ‖ ≤ C ∧\n    ‖∑ i : Fin d, ∫ ω, (w i • Z i ω) * (w i • Z i ω) ∂μ‖ ≤ C\n := by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n\n  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  have raw := FixedSpectrumSourceMatrixVariance.actual_source_truncated_matrix_second_moments hq\n  change (∀ i : Fin d, Integrable (fun ω => Y i ω * Y i ω) μ) ∧\n    (C • (1 : N) - ∑ i : Fin d, ∫ ω, Y i ω * Y i ω ∂μ).PosSemidef at raw\n  have first := FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means hq\n  have Y_integrable (i : Fin d) : Integrable (Y i) μ := first.1 i\n  have Y_positive (i : Fin d) (ω : Ω) : (Y i ω).PosSemidef := by\n    by_cases hc : ‖row i ω‖ ^ 2 ≤ L\n    · let v : Fin (q + 1) × Fin (q + 1) → ℝ := fun a => row i ω a.1 * t i a.2\n      have rank_positive : (Matrix.vecMulVec v v).PosSemidef := by\n        simpa only [star_trivial] using Matrix.posSemidef_vecMulVec_self_star v\n      have rank_eq : Y i ω = (d : ℝ)⁻¹ • Matrix.vecMulVec v v := by\n        simp only [Y, if_pos hc]\n        ext a b\n        change (d : ℝ)⁻¹ * ((row i ω a.1 * row i ω b.1) * (t i a.2 * t i b.2)) =\n          (d : ℝ)⁻¹ * ((row i ω a.1 * t i a.2) * (row i ω b.1 * t i b.2))\n        ring\n      rw [rank_eq]\n      exact rank_positive.smul (inv_nonneg.mpr (Nat.cast_nonneg d))\n    · simpa only [Y, if_neg hc] using (Matrix.PosSemidef.zero : (0 : N).PosSemidef)\n  have mean_positive (i : Fin d) : (mean i).PosSemidef :=\n    integral_posSemidef (Y i) (Y_integrable i) (Filter.Eventually.of_forall (Y_positive i))\n  have Z_hermitian (i : Fin d) (ω : Ω) : (Z i ω).IsHermitian :=\n    (Y_positive i ω).isHermitian.sub (mean_positive i).isHermitian\n  have Z_square_positive (i : Fin d) (ω : Ω) : (Z i ω * Z i ω).PosSemidef := by\n    simpa only [(Z_hermitian i ω).eq] using Matrix.posSemidef_conjTranspose_mul_self (Z i ω)\n"
+        },
+        {
+          "title": "Center without assuming matrices commute",
+          "text": "Expand the ordinary square with both cross terms Yi Mi and Mi Yi. Fixed right and left multiplication preserve actual integrability and commute separately with the Bochner integral. The probability integral of the constant Mi squared supplies the remaining term. Thus each centered square is integrable and its expectation is the uncentered second moment minus Mi squared. Integrate PSD centered squares and add the PSD sum of mean squares to the already proved uncentered comparison.",
+          "formula": "\\mathbb E_\\mu[Z_i^2]=\\mathbb E_\\mu[Y_i^2]-M_i^2,\\qquad A_i:=\\mathbb E_\\mu[Z_i^2],\\qquad0\\preceq\\sum_i A_i\\preceq C I_{r^2},\\quad C=\\frac{2r(r+2)}d.",
+          "lean": "  have expansion (i : Fin d) :\n      (fun ω => Z i ω * Z i ω) = fun ω =>\n        ((Y i ω * Y i ω - Y i ω * mean i) - mean i * Y i ω) + mean i * mean i := by\n    funext ω\n    dsimp only [Z]\n    noncomm_ring\n  have Z_square_integrable (i : Fin d) : Integrable (fun ω => Z i ω * Z i ω) μ := by\n    rw [expansion]\n    exact (((raw.1 i).sub ((Y_integrable i).mul_const (mean i))).sub\n      ((Y_integrable i).const_mul (mean i))).add (integrable_const _)\n  have centered_mean (i : Fin d) :\n      (∫ ω, Z i ω * Z i ω ∂μ) = (∫ ω, Y i ω * Y i ω ∂μ) - mean i * mean i := by\n    rw [expansion]\n    have hsub1 : Integrable (fun ω => Y i ω * Y i ω - Y i ω * mean i) μ :=\n      (raw.1 i).sub ((Y_integrable i).mul_const (mean i))\n    have hsub2 : Integrable (fun ω => Y i ω * Y i ω - Y i ω * mean i - mean i * Y i ω) μ :=\n      hsub1.sub ((Y_integrable i).const_mul (mean i))\n    rw [integral_add hsub2\n      (integrable_const (mean i * mean i) : Integrable (fun _ : Ω => mean i * mean i) μ)]\n    rw [integral_sub hsub1 ((Y_integrable i).const_mul (mean i))]\n    rw [integral_sub (raw.1 i) ((Y_integrable i).mul_const (mean i))]\n    rw [integral_mul_const_of_integrable (Y_integrable i),\n      integral_const_mul_of_integrable (Y_integrable i)]\n    simp only [integral_const, probReal_univ, one_smul]\n    change (((∫ ω, Y i ω * Y i ω ∂μ) - mean i * mean i) - mean i * mean i) +\n      mean i * mean i = _\n    abel\n  let A : Fin d → N := fun i => ∫ ω, Z i ω * Z i ω ∂μ\n  have A_positive (i : Fin d) : (A i).PosSemidef :=\n    integral_posSemidef _ (Z_square_integrable i)\n      (Filter.Eventually.of_forall (Z_square_positive i))\n  have A_sum_positive : (∑ i : Fin d, A i).PosSemidef :=\n    Matrix.posSemidef_sum Finset.univ (fun i _ => A_positive i)\n  have mean_square_positive (i : Fin d) : (mean i * mean i).PosSemidef := by\n    simpa only [(mean_positive i).isHermitian.eq] using\n      Matrix.posSemidef_conjTranspose_mul_self (mean i)\n  have centered_sum : (∑ i : Fin d, A i) =\n      (∑ i : Fin d, ∫ ω, Y i ω * Y i ω ∂μ) - ∑ i : Fin d, mean i * mean i := by\n    simp only [A, centered_mean, Finset.sum_sub_distrib]\n  have A_sum_upper : (C • (1 : N) - ∑ i : Fin d, A i).PosSemidef := by\n    have h := raw.2.add (Matrix.posSemidef_sum Finset.univ (fun i _ => mean_square_positive i))\n    rw [centered_sum]\n    convert h using 1; abel\n"
+        },
+        {
+          "title": "Weight by the actual cosine and bound the real operator norms",
+          "text": "For the exact deterministic wi=cos((2q+1)theta_i), the range of cosine gives 0<=wi squared<=1. The ordinary weighted square is wi squared times Zi squared, so its actual integrability and expectation follow. The residual sum of (1-wi squared)Ai is PSD. Both expectation sums are therefore full PSD matrices bounded above by C times the identity. Real continuous functional calculus places their real spectra in [0,C] and bounds their actual Euclidean operator norms. This is the private centered/weighted consequence, separate from P public uncentered conclusion.",
+          "formula": "w_i=\\cos((2q+1)\\theta_i),\\quad0\\le w_i^2\\le1,\\quad\\mathbb E_\\mu[(w_i Z_i)^2]=w_i^2 A_i,\\quad\\left\\|\\sum_i A_i\\right\\|\\le C,\\quad\\left\\|\\sum_i\\mathbb E_\\mu[(w_i Z_i)^2]\\right\\|\\le C.",
+          "lean": "\n  -- Weighting uses the actual deterministic cosine, hence 0 <= w_i^2 <= 1.\n  have weight_le (i : Fin d) : (w i) ^ 2 ≤ 1 := by\n    have hi := Real.cos_le_one (((2 * q + 1 : ℕ) : ℝ) * θ i)\n    have lo := Real.neg_one_le_cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n    change (Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)) ^ 2 ≤ 1\n    nlinarith\n  have weighted_square (i : Fin d) (ω : Ω) :\n      (w i • Z i ω) * (w i • Z i ω) = (w i) ^ 2 • (Z i ω * Z i ω) := by\n    simp only [smul_mul_smul_comm, pow_two]\n  have weighted_integrable (i : Fin d) :\n      Integrable (fun ω => (w i • Z i ω) * (w i • Z i ω)) μ := by\n    simp_rw [weighted_square]\n    exact (Z_square_integrable i).smul ((w i) ^ 2)\n  have weighted_mean (i : Fin d) :\n      (∫ ω, (w i • Z i ω) * (w i • Z i ω) ∂μ) = (w i) ^ 2 • A i := by\n    simp_rw [weighted_square]\n    exact integral_smul _ _\n  have weighted_sum_positive : (∑ i : Fin d, (w i) ^ 2 • A i).PosSemidef :=\n    Matrix.posSemidef_sum Finset.univ (fun i _ => (A_positive i).smul (sq_nonneg _))\n  have weighted_residual_positive :\n      ((∑ i : Fin d, A i) - ∑ i : Fin d, (w i) ^ 2 • A i).PosSemidef := by\n    have h := Matrix.posSemidef_sum Finset.univ\n      (fun i _ => (A_positive i).smul (sub_nonneg.mpr (weight_le i)))\n    convert h using 1\n    simp only [sub_smul, one_smul, Finset.sum_sub_distrib]\n  have weighted_sum_upper :\n      (C • (1 : N) - ∑ i : Fin d, (w i) ^ 2 • A i).PosSemidef := by\n    have h := A_sum_upper.add weighted_residual_positive\n    convert h using 1; abel\n\n  -- The real matrix operator norm follows from real CFC and full PSD order.\n  have C_nonneg : 0 ≤ C := by\n    dsimp only [C, r]\n    positivity\n  have real_norm_bound (B : N) (hB : B.PosSemidef)\n      (hupper : (C • (1 : N) - B).PosSemidef) : ‖B‖ ≤ C := by\n    have hsa : IsSelfAdjoint B := hB.isHermitian.isSelfAdjoint\n    have hlo : 0 ≤ B := Matrix.nonneg_iff_posSemidef.mpr hB\n    have hup : B ≤ algebraMap ℝ N C := by\n      apply Matrix.le_iff.mpr\n      simpa only [Algebra.algebraMap_eq_smul_one] using hupper\n    have slo := (StarOrderedRing.nonneg_iff_spectrum_nonneg (R := ℝ) B hsa).mp hlo\n    have sup := (le_algebraMap_iff_spectrum_le (R := ℝ) (a := B) hsa).mp hup\n    have hn : ‖cfc (id : ℝ → ℝ) B‖ ≤ C := norm_cfc_le C_nonneg (by\n      intro x hx\n      simpa only [id_eq, Real.norm_eq_abs, abs_of_nonneg (slo x hx)] using sup x hx)\n    simpa only [cfc_id ℝ B hsa] using hn\n  change (∀ i : Fin d, Integrable (fun ω => Z i ω * Z i ω) μ) ∧\n    (∀ i : Fin d, Integrable (fun ω => (w i • Z i ω) * (w i • Z i ω)) μ) ∧\n    ‖∑ i : Fin d, A i‖ ≤ C ∧\n    ‖∑ i : Fin d, ∫ ω, (w i • Z i ω) * (w i • Z i ω) ∂μ‖ ≤ C\n  refine ⟨Z_square_integrable, weighted_integrable,\n    real_norm_bound _ A_sum_positive A_sum_upper, ?_⟩\n  simp_rw [weighted_mean]\n  exact real_norm_bound _ weighted_sum_positive weighted_sum_upper\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixVariance\n"
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw.actual_source_row_marginal_law",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumWeightedFrameBound.actual_weighted_cosine_coefficient_bound",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.MeasurePreserving.integrable_comp_of_integrable",
+        "MeasureTheory.integral_map",
+        "ContinuousLinearMap.integrable_comp",
+        "ContinuousLinearMap.integral_comp_comm",
+        "Matrix.kroneckerBilinear",
+        "Matrix.vecMulVec_mul_vecMulVec",
+        "Matrix.mul_kronecker_mul",
+        "MeasureTheory.Integrable.indicator",
+        "MeasureTheory.integrable_finsetSum",
+        "MeasureTheory.integral_finsetSum",
+        "MeasureTheory.integral_sub"
+      ],
+      "dependency_notes": "Public P materially calls exactly the same four canonical ASTIS parents listed above. The separate private consumer calls P, FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means and RealMatrixPositiveIntegral.integral_posSemidef. Its external providers include both integrable fixed-product integral rules, integral_add/sub, probReal_univ, Matrix.posSemidef_conjTranspose_mul_self, Matrix.nonneg_iff_posSemidef, le_algebraMap_iff_spectrum_le, StarOrderedRing.nonneg_iff_spectrum_nonneg, norm_cfc_le and cfc_id over the real L2Operator MatrixOrder instances. These private-consumer references are not additional direct P parents or public theorem credit; every common declaration stays one canonical node.",
+      "lean_statement": "Every actual squared truncated summand is integrable, and the sum of its expectations has the exact source PSD upper bound.",
+      "lean_proof": "Seven source-ordered formula steps with exact adjacent Lean: the first four reproduce the complete public uncentered module, and the last three reproduce the complete private centered/weighted consumer module.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p14",
+          "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Appendix C.2 p14 Ex113-117, actual Ex107 local cutoff, original p1 product experiment and Fact C.5 unweighted frame",
+          "wording_status": "faithful paraphrase",
+          "attribution": "On Complexity of Gaussian Sampling, arXiv:2610.20492v1.",
+          "scope": "Actual uncentered squared-moment sum only; p14 centered/weighted conclusions and p15 Bernstein remain separate.",
+          "label": "Appendix C.2 p14 Ex113-117, actual Ex107 local cutoff, original p1 product experiment and Fact C.5 unweighted frame"
+        },
+        {
+          "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixVariance.lean",
+          "line": 19,
+          "label": "Complete exact compiled declaration source",
+          "scope": "Only the actual original-column uncentered squared-moment integrability and PSD bound are proved here. The exact original R9 producer signature is unchanged, including q=0 and sole source inequality2q+1<d. The new shared positivity interface is materially called on an internally integrable pointwise PSD residual. The real centered and cosine-weighted centered variance operator-norm consumer is still unimplemented and the full R9 SAU remains EXPLORING. No Bernstein, full Lemma4.4, ambient transfer, main lower bound, exact oracle/TV/precision/cap/cost, serialized integration, actual public-reader delivery or purification credit is claimed."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex118",
+          "label": "Centered variance comparison Ex118",
+          "scope": "Private actual consumer only, following the public uncentered producer."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex120",
+          "label": "Cosine-weighted centered comparison Ex120",
+          "scope": "Private actual consumer only; p15 concentration excluded."
+        },
+        {
+          "path": "Tests/GaussianComplexityFixedSpectrumSourceMatrixVariance.lean",
+          "line": 22,
+          "label": "Complete private actual centered and weighted consumer",
+          "scope": "Exact closed statement and proof of actual square integrability and both operator-norm bounds; no public provider or separate declaration credit."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumSourceMatrixVariance"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance.actual_source_truncated_matrix_second_moments",
+      "role": "proof-edge",
+      "supports": [
+        "c2-actual-source-uncentered-second-moments"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Original independent standard Gaussian columns, natural q>=0 and2q+1<d, actual physical rows and exact source midpoint features/local cutoff.",
+        "lean": "Literal canonical column-product realization, actual row projections and exact inclusive truncated matrices, including q=0."
+      },
+      {
+        "source": "Ex115-117 integrate actual ordinary Y_i squared and derive the upper PSD coefficient2r(r+2)/d.",
+        "lean": "All actual squared maps are Bochner integrable as explicit outputs, and the full Hermitian/quadratic PSD difference is proved."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "3748665bd4391d7c0c2110d105399bc579fb98d93dcd788537cf6de163f5ff69"
+}

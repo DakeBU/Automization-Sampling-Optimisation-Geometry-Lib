@@ -1,0 +1,9 @@
+Incremental-reader-v3c only. Exact capture and seal timestamps are recorded in those artifacts; no individual read times are invented.
+
+1. Received narrowly bounded author-scope change task after finalv3b source seal3be3c1de. Did not reopen proofs, newcompiler/strict/native receipts, currentcanonical frontier/audit state, other T reviews or rootdrafts.
+2. Exclusive new directory, captured current2anti/supplement/2author rawfiles before new prose comparison. New mathematical content is not assumed: all mathematical source/code/decoder fields were equality/hash reused.
+3. Read and compared exactly the two authorfield before/after strings using git-show e654/1d0 and frozen ownv3b originals. No other authorfield differs. Independently assessed stablepublicP/privateT range and separationofverificationevidence as accurate and no change to mathematical meaning.
+4. Recomputed canonical anti hashes and full currentP binding00bdeee2, distinguished reducedcontext, checked bothpackets exactcontext. All mathsource/Lean/reconstruction/reviewcontract fields unchanged. T supplement only parentbinding/contextscope changed.
+5. CurrentP/T files byteequal at mathematicale654 andreader1d0; unchanged7fold concatenations exact. Mapping3963dcbf and8P/T originaldecoderfiles remain byteequal to previous owned snapshots. This is hash/equality reuse, not repeatedsemanticproof/decoder/25span review.
+6. Copied complete seven slots andinformational deltas byte-identically; wrote fullnewP overlay andprivate-onlyT decision, eachnewreport/fullrun/source_review.evidence with separateactualmath/readercommits andnewpacket/fullbinding/runhash. Bothpure-schema packetregenerations exact, no registry/gate/API call.
+7. No process failure occurred in this incrementalphase. Priorfailures/v3a blocker/mappingbookkeeping remain in referencedimmutableold custody, not erased. Freezeincrementaloriginals/report/run/overlay/seal andstop.

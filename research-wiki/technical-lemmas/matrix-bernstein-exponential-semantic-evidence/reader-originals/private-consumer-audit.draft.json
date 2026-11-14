@@ -1,0 +1,37 @@
+{
+  "id": "ASTIS-RT-20261114-HuanjianMatrixBernsteinExponentialPrivateConsumer",
+  "state": "draft",
+  "source": {
+    "source_id": "gaussian-original-normalized-single-summand-mgf-authored-specialization",
+    "anchor": "Tropp2011Lemma6.7p25-26; explicit real deterministic component and separately authored original-Gaussian single-summand specialization only",
+    "original_text": "Authored private actual-Gaussian specialization of the normalized single-matrix MGF comparison in Tropp Lemma6.7 p25-26, independently matched external background for the uncited Bernstein invocation in Gaussian2610.20492v1 AppendixC.2Ex121. For every natural d,q with2q+1<d, includingq0, r=q+1 and Omega=(R^d)^r with the original unconditional product mu of r standard d-dimensional Gaussian column laws. The physical row Phi_i has coordinates omega_b(i). Define theta_i=(i-1/2)pi/d for source indicesi=1,...,d, t_i=(1,sqrt(2)cos(theta_i),...,sqrt(2)cos(q theta_i)), L=2r+3log(1000d), and Y_i=d^(-1)(Phi_i Phi_i^T tensor t_i t_i^T) on the inclusive own-row cutoff norm(Phi_i)^2<=L, zero otherwise. Define the actual mean_i=integral Y_i dmu, Z_i=Y_i-mean_i, rho=2r(L+1)/d, and X_i=rho^(-1)Z_i. Then for every real s>0 and each physical row i, exp((exp(s)-s-1) integral X_i^2 dmu)-integral exp(sX_i) dmu is positive semidefinite. rho positivity, zero mean, Hermitian structure, measurability/integrability, norm/spectral cap and expectation adapters are internally discharged, not extra theorem binders. No good-event conditioning, arbitrary replacement means, Bernstein sum tail, probability conclusion, weighted result or public consumer API is asserted.",
+    "text_sha256": "acde5d2cb303f1170ae88bba73dd1ef937b4535ad90c43abbc039c70c82b9db3"
+  },
+  "lean": {
+    "declaration": "_private.Tests.GaussianComplexityBernsteinMgf.0.AutoSamplingTheory.Tests.GaussianComplexityBernsteinMgf.actual_source_normalized_single_summand_mgf",
+    "file": "Tests/GaussianComplexityBernsteinMgf.lean",
+    "statement": "∀     {d q : ℕ} (hq : 2 * q + 1 < d) ,\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let X : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => ρ⁻¹ • Z i ω\n  ∀ s : ℝ, 0 < s → ∀ i : Fin d,\n    (NormedSpace.exp\n        ((Real.exp s - s - 1) • (∫ ω, X i ω * X i ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef\n",
+    "statement_sha256": "49c7cb92bbe925ab2086be5af4e9c7010b40091bcd2ef6ba71b8367c88bf68d3",
+    "compiled": true,
+    "formalizer": "huanjian_20261114_matrix_bernstein_exponential",
+    "decoder_context": [
+      "Matrix is the finite real matrix algebra on the displayed index set. Matrix multiplication is ordinary algebra multiplication, scalar multiplication is real scalar multiplication, and 1 is the identity matrix.",
+      "For a real square matrix, IsHermitian means that its transpose equals itself. PosSemidef means positive semidefinite in the full quadratic-form sense, including self-adjointness; it is not an entrywise inequality.",
+      "NormedSpace.exp on this real matrix algebra is its convergent matrix power-series exponential. It is not the entrywise real exponential. Real.exp is the scalar real exponential.",
+      "The active matrix norm is the Euclidean L2 operator norm, with the ordinary finite-coordinate topology. The scalar real matrix algebra and rational-algebra structure are the standard ones.",
+      "Fin n is the finite set of natural numbers strictly less than n; i.val is its zero-based natural index. Natural numbers embed into real numbers in the usual way.",
+      "EuclideanSpace real (Fin n) is real n-dimensional Euclidean space with its Euclidean norm and Borel structure. WithLp.toLp 2 wraps coordinates as a Euclidean vector, and WithLp.ofLp recovers the same coordinates.",
+      "stdGaussian is the centered Gaussian probability measure with identity covariance. Measure.pi is the displayed finite product measure on the function space. A measure in a displayed integral is exactly that measure, without implicit conditioning.",
+      "Real.log is the natural logarithm and Real.sqrt is the nonnegative real square root. An if-test written with less-than-or-equal includes equality. Real inverses are totalized at zero in the usual field convention.",
+      "Matrix.vecMulVec u v has entry u_i v_j. The Kronecker product has entry A_(i,k) B_(j,l) at row (i,j) and column (k,l); the paired indices preserve this displayed order.",
+      "The displayed integrals are Bochner integrals in the corresponding finite matrix space. Their definition is totalized to zero for a nonintegrable integrand. Reconstruct the displayed proposition without adding integrability premises or conclusions.",
+      "All local let definitions have the scope of the full subsequent proposition. Each universal real parameter and each finite row index has exactly the order displayed."
+    ]
+  },
+  "repairs": [],
+  "source_review": {
+    "state": "pending"
+  },
+  "verdict": "pending",
+  "candidate_commit": "0ff1e2227b8e5a45a6a73906582ef042bd0d73ff"
+}

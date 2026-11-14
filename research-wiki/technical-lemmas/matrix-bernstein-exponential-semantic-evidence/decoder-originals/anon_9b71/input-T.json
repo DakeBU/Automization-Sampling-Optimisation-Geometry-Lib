@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-49c7cb92bbe925ab",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀     {d q : ℕ} (hq : 2 * q + 1 < d) ,\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let X : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => ρ⁻¹ • Z i ω\n  ∀ s : ℝ, 0 < s → ∀ i : Fin d,\n    (NormedSpace.exp\n        ((Real.exp s - s - 1) • (∫ ω, X i ω * X i ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef\n",
+    "statement_sha256": "49c7cb92bbe925ab2086be5af4e9c7010b40091bcd2ef6ba71b8367c88bf68d3",
+    "compiled": true,
+    "approved_definition_context": [
+      "Matrix is the finite real matrix algebra on the displayed index set. Matrix multiplication is ordinary algebra multiplication, scalar multiplication is real scalar multiplication, and 1 is the identity matrix.",
+      "For a real square matrix, IsHermitian means that its transpose equals itself. PosSemidef means positive semidefinite in the full quadratic-form sense, including self-adjointness; it is not an entrywise inequality.",
+      "NormedSpace.exp on this real matrix algebra is its convergent matrix power-series exponential. It is not the entrywise real exponential. Real.exp is the scalar real exponential.",
+      "The active matrix norm is the Euclidean L2 operator norm, with the ordinary finite-coordinate topology. The scalar real matrix algebra and rational-algebra structure are the standard ones.",
+      "Fin n is the finite set of natural numbers strictly less than n; i.val is its zero-based natural index. Natural numbers embed into real numbers in the usual way.",
+      "EuclideanSpace real (Fin n) is real n-dimensional Euclidean space with its Euclidean norm and Borel structure. WithLp.toLp 2 wraps coordinates as a Euclidean vector, and WithLp.ofLp recovers the same coordinates.",
+      "stdGaussian is the centered Gaussian probability measure with identity covariance. Measure.pi is the displayed finite product measure on the function space. A measure in a displayed integral is exactly that measure, without implicit conditioning.",
+      "Real.log is the natural logarithm and Real.sqrt is the nonnegative real square root. An if-test written with less-than-or-equal includes equality. Real inverses are totalized at zero in the usual field convention.",
+      "Matrix.vecMulVec u v has entry u_i v_j. The Kronecker product has entry A_(i,k) B_(j,l) at row (i,j) and column (k,l); the paired indices preserve this displayed order.",
+      "The displayed integrals are Bochner integrals in the corresponding finite matrix space. Their definition is totalized to zero for a nonintegrable integrand. Reconstruct the displayed proposition without adding integrability premises or conclusions.",
+      "All local let definitions have the scope of the full subsequent proposition. Each universal real parameter and each finite row index has exactly the order displayed."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "4ae12ae5445102af4c006b2799b3a490ba806fc9290b086587eb290ad507c2d7"
+}

@@ -1,0 +1,28 @@
+import datetime, hashlib, json, pathlib, subprocess, sys, time
+
+ROOT = pathlib.Path('/Users/zhouhuanjian/ASTIS-GC')
+RUN = ROOT / 'research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/normal-verification/wf_src_91c4'
+driver = RUN / 'transition_once.py.txt'
+argv = ['/opt/anaconda3/bin/python', '-B', str(driver.relative_to(ROOT))]
+assert not (RUN / 'normal-transition.attempted.once.json').exists()
+assert not (RUN / 'normal-transition.receipt.json').exists()
+started = datetime.datetime.now(datetime.timezone.utc).isoformat()
+before = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT).decode().strip()
+tick = time.monotonic()
+try:
+    result = subprocess.run(argv, cwd=ROOT, capture_output=True)
+except OSError as exc:
+    result = subprocess.CompletedProcess(argv, 126, b'', (type(exc).__name__ + ': ' + str(exc) + '\n').encode())
+streams = {}
+for name, data in [('stdout', result.stdout), ('stderr', result.stderr)]:
+    path = RUN / ('normal-transition.' + name)
+    with path.open('xb') as stream: stream.write(data)
+    streams[name] = {'path': str(path.relative_to(ROOT)), 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
+receipt = {'kind': 'Original actual normal-transition subprocess outcome; no retry', 'argv': argv, 'cwd': str(ROOT), 'started_utc': started, 'elapsed_seconds': time.monotonic() - tick, 'exit_code': result.returncode, 'head_before': before, 'head_after': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT).decode().strip(), 'driver_sha256': hashlib.sha256(driver.read_bytes()).hexdigest(), **streams}
+with (RUN / 'normal-transition.receipt.json').open('x') as stream:
+    json.dump(receipt, stream, ensure_ascii=False, indent=2)
+    stream.write('\n')
+print(json.dumps(receipt, ensure_ascii=False, indent=2))
+print(result.stdout.decode(errors='replace'))
+print(result.stderr.decode(errors='replace'), file=sys.stderr)
+sys.exit(result.returncode)

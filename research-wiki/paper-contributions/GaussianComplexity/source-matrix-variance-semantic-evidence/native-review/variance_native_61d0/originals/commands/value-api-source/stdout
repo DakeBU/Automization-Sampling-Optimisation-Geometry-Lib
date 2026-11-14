@@ -1,0 +1,44 @@
+
+def type (d : ConstantInfo) : Expr :=
+  d.toConstantVal.type
+
+/--
+Returns the value of a definition. With `allowOpaque := true`, values
+of theorems and opaque declarations are also returned.
+-/
+def value? (info : ConstantInfo) (allowOpaque := false) : Option Expr :=
+  match info with
+  | .defnInfo {value, ..}   => some value
+  | .thmInfo  {value, ..}   => if allowOpaque then some value else none
+  | .opaqueInfo {value, ..} => if allowOpaque then some value else none
+  | _                       => none
+
+/--
+Returns `true` if this declaration as a value for the purpose of reduction
+and type-checking, i.e. is a definition.
+With `allowOpaque := true`, theorems and opaque declarations are also considered to have values.
+-/
+def hasValue (info : ConstantInfo) (allowOpaque := false) : Bool :=
+  match info with
+  | .defnInfo _   => true
+  | .thmInfo  _   => allowOpaque
+  | .opaqueInfo _ => allowOpaque
+  | _             => false
+
+/--
+Returns the value of a definition. With `allowOpaque := true`, values
+of theorems and opaque declarations are also returned.
+-/
+def value! (info : ConstantInfo) (allowOpaque := false) : Expr :=
+  match info with
+  | .defnInfo {value, ..}   => value
+  | .thmInfo  {value, ..}   => if allowOpaque then value else panic! "declaration with value expected"
+  | .opaqueInfo {value, ..} => if allowOpaque then value else panic! "declaration with value expected"
+  | _                       => panic! s!"declaration with value expected, but {info.name} has none"
+
+def hints : ConstantInfo → ReducibilityHints
+  | .defnInfo {hints, ..} => hints
+  | _                     => .opaque
+
+def isCtor : ConstantInfo → Bool
+  | .ctorInfo _ => true

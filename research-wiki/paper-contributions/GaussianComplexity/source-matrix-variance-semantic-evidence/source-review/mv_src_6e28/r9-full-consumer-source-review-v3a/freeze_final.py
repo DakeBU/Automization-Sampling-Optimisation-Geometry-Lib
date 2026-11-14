@@ -1,0 +1,35 @@
+from pathlib import Path
+import json,hashlib,subprocess
+from datetime import datetime,timezone
+R=Path('/Users/zhouhuanjian/ASTIS-GC');O=R/'.astis/semantic-neutral-20261112/mv_src_6e28';B=O/'r9-full-consumer-source-review-v3a';V=B/'v3b';DEST='research-wiki/paper-contributions/GaussianComplexity/source-matrix-variance-semantic-evidence/source-review/mv_src_6e28/r9-full-consumer-source-review-v3a'
+def h(a):return hashlib.sha256(a).hexdigest()
+def rec(p):
+ a=p.read_bytes();return {'path':str(p.relative_to(R)),'bytes':len(a),'sha256':h(a)}
+def wr(n,d):
+ with (B/n).open('x') as f:f.write(json.dumps(d,indent=2,ensure_ascii=False)+'\n')
+# Recheck exact old originals and exact candidate inputs before final custody freeze.
+old=json.loads((O/'final-anti-anchored-phase/portable-custody-manifest.json').read_bytes())['records'];records=[]
+for x in old:
+ p=R/x['source_path'];a=p.read_bytes();assert len(a)==x['bytes'] and h(a)==x['sha256'];records.append(dict(x))
+p=O/'final-anti-anchored-phase/portable-custody-manifest.json';x=rec(p);records.append({'source_path':x['path'],'destination_path':'research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/source-review/mv_src_6e28/originals/final-anti-anchored-phase/portable-custody-manifest.json','bytes':x['bytes'],'sha256':x['sha256'],'copy_rule':'Existing immutable previous source custody; leave unchanged if already exact.'})
+T=O/'r9-centered-whole-code-only-v1';tp=json.loads((T/'portable-custody-manifest.json').read_bytes());td={x['source_path']:x['destination_path'] for x in tp['records']};troot='research-wiki/paper-contributions/GaussianComplexity/source-matrix-variance-semantic-evidence/source-review/mv_src_6e28/r9-centered-whole-code-only-v1/'
+for p in sorted(q for q in T.rglob('*') if q.is_file()):
+ x=rec(p);records.append({'source_path':x['path'],'destination_path':td.get(x['path'],troot+str(p.relative_to(T))),'bytes':x['bytes'],'sha256':x['sha256'],'copy_rule':'Exact original T code-only phase bytes; no rewriting previous seal/chronology/read scope.'})
+checks=json.loads((V/'immutable-candidate-byte-checks.json').read_bytes());C=checks['candidate_commit']
+for x in checks['records']:
+ a=(R/x['path']).read_bytes();assert h(a)==x['sha256'] and a==subprocess.check_output(['git','show',C+':'+x['path']],cwd=R)
+for x in json.loads((B/'initial-capture.json').read_bytes())['records']:
+ # V3a mutable author original is intentionally preserved in own snapshot, not required equal v3b current.
+ a=(R/x['snapshot_path']).read_bytes();assert h(a)==x['sha256'] and len(a)==x['bytes']
+wr('original-integrity-checks.json',{'all_prior140_originals_unchanged':True,'T_whole_code_seal_unchanged':h((T/'WHOLE-CODE-FROZEN.json').read_bytes())=='3632ed19876d0c30660801c7e3dcfcdcfaa164aa1e7191c712931e43c1988d52','immutable_candidate8_selected_files_equal':True,'v3a_snapshots_unchanged_not_reaccepted':True,'no_full_S_native_normalV_private_guard_dump_exported':True})
+core=sorted(p for p in B.rglob('*') if p.is_file())
+result={'schema_version':1,'phase':'R9_FULL_CONSUMER_SOURCE_REVIEW_FINAL','reviewer':'/root/mv_fresh_source_6e28','candidate_commit':C,'version_accepted':'v3b only','v3a':'not accepted; original blockercc64e91c and exact inputs preserved','P':{'scope':'Public unchanged uncentered theorem, newly fullprivateconsumer reader context','state':'source-reviewed','child_source_review':'accepted','verdict':'equivalent-after-elaboration','overlay':rec(V/'P/canonical-audit-overlay.portable.json'),'run':rec(V/'P/reviewer-run.json'),'report':rec(V/'P/review-report.md')},'T':{'scope':'Private implementation source fidelity only; no separate public binding/provider/node/registry','state':'source-reviewed-private-implementation-only','child_source_review':'accepted','verdict':'equivalent-after-elaboration','decision':rec(V/'T/private-consumer-source-decision.portable.json'),'run':rec(V/'T/reviewer-run.json'),'report':rec(V/'T/review-report.md')},'parent_P_publication_binding':'bcd7e854e2c26d8201cbc6a25fc23d7acbdcf9866b0d8e799bdda8d88eb39a90','all7folds_exact_full_P216_T206':True,'all25map_spans_exact_T_nonblank_covered':True,'original_decoder_bytes_unchanged':True,'T_compiler_strict_native_receipts_read':False,'compiled_booleans_visible_not_evidence':True,'normal_API_calls':0,'canonical_ledger_C_registry_git_shared_mutations':False,'all_core_outputs':[rec(p) for p in core],'remaining_HOLD':['T public API placement','main consumer','p15 concentration','main lower bounds/oracle/TV/precision/query-cap/cost adapters','native/browser evidence and acceptance separate','serialized integration/publication','purification','wholeGoal'],'later_terminal_manifest_seal_and_portable_index_external_hash':True}
+wr('source-review-result.json',result)
+wr('originals-manifest.json',{'files':[rec(p) for p in sorted(q for q in B.rglob('*') if q.is_file())],'self_hash_external':True})
+wr('FINAL-SOURCE-FROZEN.json',{'phase':'R9_FULL_CONSUMER_SOURCE_REVIEW_FROZEN','frozen_utc':datetime.now(timezone.utc).isoformat(),'reviewer':'/root/mv_fresh_source_6e28','candidate_commit':C,'P_v3b':'source-reviewed/accepted/equivalent-after-elaboration: public uncentered only','T_v3b':'source-reviewed/accepted/equivalent-after-elaboration: private implementation only','v3a_not_accepted':True,'result':rec(B/'source-review-result.json'),'originals_manifest':rec(B/'originals-manifest.json'),'P_run_sha256':result['P']['run']['sha256'],'T_run_sha256':result['T']['run']['sha256'],'normal_API_calls':0,'compiler_or_strict_results_read':False,'prior_freezes_unchanged':True,'remaining_HOLD':result['remaining_HOLD'],'self_hash_external':True})
+for p in sorted(q for q in B.rglob('*') if q.is_file()):
+ x=rec(p);records.append({'source_path':x['path'],'destination_path':DEST+'/'+str(p.relative_to(B)),'bytes':x['bytes'],'sha256':x['sha256'],'copy_rule':'Exact original only; do not rewrite independent run/decision/hash/exposure. T supplement is not a public registry/declaration record.'})
+assert len({r['source_path'] for r in records})==len(records)
+wr('portable-custody-manifest.json',{'schema_version':1,'kind':'complete-original-source-phase-byte-transfer','records':records,'files':len(records),'bytes':sum(x['bytes'] for x in records),'includes':['original raw/type/sharedtype/P-Swhole/earlier source-originals','complete T whole-code-only phase including late envelopes','full v3a original inputs/blocker/maps/checks','v3b final inputs/decisions/reports/runs/checks/seal'],'excluded':['S native2GB local gzip','S normalV full private foreign/control/index snapshots'],'copy_private_T_decision_to_evidence_only_never_public_registry':True,'self_hash_external':True,'later_freeze_command_receipt_stdout_stderr_and_postseal_index':'Externally indexed/copy separately; no recursive self-hash.'})
+for p in [B/'FINAL-SOURCE-FROZEN.json',B/'source-review-result.json',B/'portable-custody-manifest.json',V/'P/canonical-audit-overlay.portable.json',V/'T/private-consumer-source-decision.portable.json']:
+ print(json.dumps(rec(p)))

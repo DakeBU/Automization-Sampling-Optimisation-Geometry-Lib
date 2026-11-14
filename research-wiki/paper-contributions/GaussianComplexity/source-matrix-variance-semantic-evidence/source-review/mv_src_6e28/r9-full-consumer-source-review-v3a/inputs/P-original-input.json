@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-2d76387ed1de506f",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀     {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n  (∀ i : Fin d, Integrable (fun ω => Y i ω * Y i ω) μ) ∧\n    Matrix.PosSemidef\n      (C • (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) -\n        ∑ i : Fin d, ∫ ω, Y i ω * Y i ω ∂μ)\n",
+    "statement_sha256": "2d76387ed1de506f61c88897dc7978c31b22f826bfa47b44127d31a78b161326",
+    "compiled": true,
+    "approved_definition_context": [
+      "Fin n is the finite index set of natural numbers less than n. Natural numbers embed into real numbers in the usual way.",
+      "EuclideanSpace real (Fin n) is real n-dimensional Euclidean space with its Euclidean norm and Borel structure. WithLp.toLp 2 wraps a coordinate function as that vector and WithLp.ofLp recovers the same coordinates.",
+      "stdGaussian on finite-dimensional real Euclidean space is the centered Gaussian probability law with identity covariance. Measure.pi is the finite product measure with its product measurable structure.",
+      "Real.log is the natural logarithm and Real.sqrt the nonnegative square root. An if-expression with a real inequality uses that exact condition, including equality in a less-than-or-equal condition.",
+      "Matrix.vecMulVec u v has entry u_i times v_j. Matrix.kronecker A B has paired indices with entry A_(i,k) times B_(j,l) at ((i,j),(k,l)). Matrix multiplication is ordinary finite matrix multiplication, not entrywise multiplication. The symbol 1 is the identity matrix.",
+      "Matrix.PosSemidef A includes both Hermitian symmetry and nonnegative quadratic form for all finitely supported vectors; on a finite real index set this is ordinary symmetric positive semidefiniteness.",
+      "Matrix integrals use the complete Euclidean operator norm and the Bochner integral. Integrable means almost-everywhere strong measurability and finite extended-norm integral; it is an asserted output wherever displayed. The integral is totalized to zero when not integrable, so the explicit integrability outputs are substantive."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "f3781ac7521d1dffd7a3b451629329d467b8f73a9a6465a73216da90df506f19"
+}

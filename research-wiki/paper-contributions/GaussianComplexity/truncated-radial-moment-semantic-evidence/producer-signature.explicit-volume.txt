@@ -1,0 +1,10 @@
+{d q : ℕ} (hq : 2 * q + 1 < d) :
+  let E := EuclideanSpace ℝ (Fin (q + 1))
+  let μ : Measure E := stdGaussian E
+  let R : E → ℝ := fun x => ‖x‖ ^ 2
+  let L : ℝ := 2 * ((q + 1 : ℕ) : ℝ) + 3 * Real.log (1000 * (d : ℝ))
+  let badMoment : E → ℝ := Set.indicator {x : E | L < R x} R
+  let tail : ℝ → ℝ := fun s => (μ {x : E | L + s < R x}).toReal
+  Integrable badMoment μ ∧ IntegrableOn tail (Set.Ioi (0 : ℝ)) (volume : Measure ℝ) ∧
+    (∫ x, badMoment x ∂μ) = L * tail 0 + (∫ s in Set.Ioi (0 : ℝ), tail s ∂volume) ∧
+    (∫ x, badMoment x ∂μ) ≤ (L + 3) / (1000 * (d : ℝ))

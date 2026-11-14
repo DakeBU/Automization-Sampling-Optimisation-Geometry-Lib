@@ -1,0 +1,26 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.AffinityTensorization
+
+open Matrix MeasureTheory ProbabilityTheory
+open scoped ENNReal BigOperators
+open AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily
+set_option autoImplicit false
+
+noncomputable def sealedTarget {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ) : Prop :=
+    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _
+    let μ := orthogonalHaar n
+    let νpos := (2 : ℝ≥0∞) • μ.restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}
+    let νneg := (2 : ℝ≥0∞) • μ.restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}
+    let Dpos := (Measure.pi (fun _ : Fin (d / n) => νpos)).map (blockPrecision κ)
+    let Dneg := (Measure.pi (fun _ : Fin (d / n) => νneg)).map (blockPrecision κ)
+    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=
+      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+    let Mpos := Dpos.bind γ
+    let Mneg := Dneg.bind γ
+    let δ : ℝ := sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin d)),
+      MeasurableSet B ∧ z = |Mpos.real B - Mneg.real B|}
+    1 - Real.exp (-(((d / n : ℕ) : ℝ) / 8) *
+      Real.exp (-(10 * (n : ℝ)) / Real.sqrt κ)) ≤ δ

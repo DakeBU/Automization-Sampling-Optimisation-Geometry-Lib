@@ -1,0 +1,43 @@
+import Mathlib
+
+open MeasureTheory ProbabilityTheory
+open scoped Matrix.Norms.L2Operator
+
+def ProducerStatement : Prop :=
+  ∀ {d q : ℕ} (hq : 2 * q + 1 < d),
+  let E := EuclideanSpace ℝ (Fin (q + 1))
+  let μ : Measure E := stdGaussian E
+  let r : ℝ := ((q + 1 : ℕ) : ℝ)
+  let R : E → ℝ := fun x => ‖x‖ ^ 2
+  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))
+  let a : ℝ := (∫ x, Set.indicator {y : E | R y ≤ L} R x ∂μ) / r
+  let G : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=
+    fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)
+  let kept : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=
+    Set.indicator {y : E | R y ≤ L} G
+  Integrable kept μ ∧
+    (∫ x, kept x ∂μ) = a • (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ)
+
+def ConsumerStatement : Prop :=
+  ∀ {d q : ℕ} (hq : 2 * q + 1 < d) (i : Fin d),
+  let E := EuclideanSpace ℝ (Fin (q + 1))
+  let μ : Measure E := stdGaussian E
+  let r : ℝ := ((q + 1 : ℕ) : ℝ)
+  let R : E → ℝ := fun x => ‖x‖ ^ 2
+  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))
+  let a : ℝ := (∫ x, Set.indicator {y : E | R y ≤ L} R x ∂μ) / r
+  let θ : Fin d → ℝ := fun j => ((j.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let t : Fin d → Fin (q + 1) → ℝ := fun j k =>
+    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ j)
+  let G : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=
+    fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)
+  let Y : E → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=
+    Set.indicator {y : E | R y ≤ L}
+      (fun x => (d : ℝ)⁻¹ • Matrix.kronecker (G x) (Matrix.vecMulVec (t i) (t i)))
+  Integrable Y μ ∧
+    (∫ x, Y x ∂μ) =
+      (a / (d : ℝ)) • Matrix.kronecker
+        (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ) (Matrix.vecMulVec (t i) (t i))
+
+#check ProducerStatement
+#check ConsumerStatement

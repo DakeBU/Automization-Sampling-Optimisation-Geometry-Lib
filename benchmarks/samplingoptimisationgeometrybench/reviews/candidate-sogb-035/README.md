@@ -27,12 +27,37 @@ likelihood/work assumptions—remains prose only. The omitted common
 post-stop padding premise is unnecessary for the positive bound; the
 negative witness does realize that padding.
 
-A future fixed challenge must retain **both** mathematical outcomes. Give
-the solver definitions, not the assembled answers; keep the trusted
-reference and proof helpers separate. Editorial alignment of the exact
-challenge, native isolated acceptance, and empirical difficulty are still
-pending. The roughly 218 MB local owner export and the 57,138-byte local
-reference are sizing evidence only, not an isolated verifier receipt.
+The fixed candidate below retains **both** mathematical outcomes and keeps
+the trusted reference and proof helpers separate from the solver definitions.
+Editorial alignment of the exact challenge, native isolated acceptance, and
+empirical difficulty are still pending. The roughly 218 MB local owner
+export and the 57,138-byte prototype reference are sizing evidence only,
+not an isolated verifier receipt.
 The existing native exporter only accepts an admitted exact catalogue
 packet. Do not relabel this prototype as admitted to force a run; a
 pre-admission fixed-oracle check must preserve that public export guard.
+
+### Reproduce the fixed candidate check
+
+```sh
+python tools/sog_bench_candidate_native.py freeze --output .astis/sogb-035-frozen
+python tools/sog_bench_candidate_native.py check-local --output .astis/sogb-035-local
+```
+
+The generator checks the frozen reviewer input, exact prose core, owned Lean
+sources and pinned toolchain/manifest. It extracts only the shared model and
+the two full signatures for the solver; the reference proofs are not staged.
+`check-local` elaborates only the owned generated challenge and reference on
+the host. It checks the reference's axioms, compares 21 definition expressions
+and the exact fixed theorem type in separate Lean environments, and checks
+that neither completed answer is in the challenge.
+
+The separate **Bench fixed candidate pre-admission** workflow prepares the
+ordinary pinned Linux runtime and runs `verify --runtime … --output …` on a
+fresh directory. It requires the complete reference to pass, and requires
+the pinned Comparator to reject (1) a proof of only the positive conclusion,
+(2) the same target name with its negative proposition replaced by `True`,
+and (3) a proof hole. The receipt records each classification and expected
+diagnostic. Resource failures are not proof rejections or model scores.
+This candidate-only workflow accepts no external solution file and cannot
+admit, score, or export the item through the public catalogue.

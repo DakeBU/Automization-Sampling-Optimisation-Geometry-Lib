@@ -35,7 +35,7 @@ The provenance file lists the explicit omissions and archive replacements.
 
 ## Incremental local-proof progress — 2026-11-14
 
-The latest owned delta is copied with exact Git objects/modes from local source
+At the preceding local-proof publication, the owned delta was copied with exact Git objects/modes from local source
 `56f8aa2e11a1f16a38245139418ce76e819a4e10`. It adds the real normalized single-matrix MGF
 and the actual original-Gaussian cosine-weighted consumer, with original
 compilation, independent native/source/seven-slot evidence and a normal
@@ -43,8 +43,33 @@ PROVED_LOCAL transition. The two canonical ledgers retain their complete initial
 public bytes as prefixes and append only this advance and its typed conceptual
 mechanism record. Existing private snapshot omissions/projections are unchanged.
 
-This is local-proof progress. Actual isolated reader/browser acceptance and an
-independent proof VERIFIED transition are still pending. No main integration,
+At that publication, actual isolated reader/browser acceptance and an
+independent proof VERIFIED transition were still pending. The later update below
+records their bounded acceptance. No main integration,
 production-site publication, full matrix-sum tail, C6, either main lower bound,
 purification or whole-Goal completion is claimed. Original build identities and
 file hashes stay recorded; the new public export identity is not claimed built.
+
+## Independent local verification and isolated reader — 2026-11-14
+
+The next exact owned delta comes from local source `2da2ccccfd1429aab18007e06895a1eb7cc58066`.
+An independent verifier recorded exactly one normal VERIFIED transition for
+MatrixBernsteinMgf at frozen carrier `6abc79ed4c012c1d506c17b9824257769c18c635`. All24 original
+PROVED_LOCAL fields remain unchanged inside that record; separate post-PL
+evidence supplies the actual current reader acceptance. Mathematical sources and
+lesson/publication payloads retain their previous exact bytes. The original
+Lean/native build identities remain recorded; this public export is not claimed
+newly built.
+
+Actual desktop/mobile viewport checks and an independent PNG review accepted the
+exact isolated reader-v2/native-v4 workflows: folded statements/proofs/code,
+source anchors, complete source and copy/download, formulas/tables, source-index
+and bounded graph/parent navigation. Default graph fit is small; zoomed SVG
+labels may be truncated, so complete identifiers use the detail inspector. No
+physical touch or production-site/post-V-status pixels are claimed. All failed
+predecessors and exact originals remain in explicit lossless containers.
+
+Shared main/Registry/global graph/production-site integration is still held by
+the original stabilization lane. Full independent-sum/Lieb/master-tail/Bernstein,
+C6/Lemma4.4, both main lower bounds and actual oracle/TV/precision/cap/cost
+adapters, post-merge purification and whole-Goal completion remain unfinished.

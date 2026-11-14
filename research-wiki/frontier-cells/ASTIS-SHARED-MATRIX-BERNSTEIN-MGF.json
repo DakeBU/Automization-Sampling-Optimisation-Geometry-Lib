@@ -7,7 +7,7 @@
   "source_anchor": "Tropp, User-Friendly Tail Bounds for Sums of Random Matrices, author preprint last revised15June2011, Lemma6.7 single-matrix MGF statement/proof pp25-26; §2.2 standing random-matrix expectation regularity and §2.3 spectral/order conventions pp7-8. Independently matched external background for uncited Gaussian2610.20492v1 AppendixC.2 Ex121 weighted Bernstein use; literal Gaussian experiment and normalization use Ex107-112. Exact source pins come from the current Statement Seal.",
   "target_statement": "    {Ω : Type v} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (X : Ω → Matrix ι ι ℝ)\n    (hX : AEStronglyMeasurable X μ)\n    (hintX : Integrable X μ)\n    (hintSq : Integrable (fun ω => X ω * X ω) μ)\n    (hherm : ∀ᵐ ω ∂μ, (X ω).IsHermitian)\n    (hcap : ∀ᵐ ω ∂μ, (1 - X ω).PosSemidef)\n    (hzero : (∫ ω, X ω ∂μ) = 0)\n    {s : ℝ} (hs : 0 < s) :\n    (NormedSpace.exp ((Real.exp s - s - 1) • (∫ ω, X ω * X ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X ω) ∂μ).PosSemidef\n",
   "private_consumer_statement": "        {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let X : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => ρ⁻¹ • (w i • Z i ω)\n  ∀ s : ℝ, 0 < s → ∀ i : Fin d,\n    (NormedSpace.exp\n        ((Real.exp s - s - 1) • (∫ ω, X i ω * X i ω ∂μ)) -\n      ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef\n",
-  "status": "proved_locally",
+  "status": "independently_verified",
   "owner_id": "huanjian_20261114_matrix_bernstein_mgf",
   "advance_id": "ASTIS-SA-20261114-MatrixBernsteinMgf",
   "base_commit": "107eb7d0b519bc77c96e0a9d5ff7df24854bb80b",
@@ -22,7 +22,7 @@
   "consumer_scope": {
     "current_candidate": {
       "name": "AutoSamplingTheory.Tests.GaussianComplexityBernsteinWeightedMgf.actual_source_weighted_normalized_single_summand_mgf",
-      "state": "ACTUAL_PRIVATE_COMPILED; INDEPENDENT_POSTPROOF_REVIEW_PENDING",
+      "state": "ACTUAL_PRIVATE_COMPILED; INDEPENDENT_NATIVE_SOURCE_AND_SCOPED_READER_ACCEPTED; INCLUDED_IN_ONE_NORMAL_V_WITH_NO_SEPARATE_PUBLIC_NODE",
       "public_node": false
     },
     "second_realistic_consumer": {
@@ -72,14 +72,16 @@
     "new_shared_declarations": [
       "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf.centered_bounded_matrix_mgf"
     ],
-    "known_consumers": [],
+    "known_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityBernsteinWeightedMgf.actual_source_weighted_normalized_single_summand_mgf"
+    ],
     "planned_consumers": [
-      "AutoSamplingTheory.Tests.GaussianComplexityBernsteinWeightedMgf.actual_source_weighted_normalized_single_summand_mgf",
       "Planned unweighted Gaussian C.2 Ex121 Bernstein integration using the same generic MGF node; no new consumer declaration or actual call is claimed."
     ],
     "no_duplicate_wrapper": true,
     "decision_reason": "The new node adds genuine expectation/centering MGF content above the existing deterministic bound. Keep deterministic R13 canonical and unchanged; private original-Gaussian weighted instantiation and future unweighted integration are distinct realistic uses.",
-    "actual_parent_calls_pending": true
+    "actual_parent_calls_pending": false,
+    "actual_parent_witness": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/native-originals/weighted_mgf_native_8c2d/actual-canonical-parent-witnesses.v1.json"
   },
   "reader_contract": {
     "reference_standard": "textbook/chapter-01/section-1-3.html",
@@ -89,7 +91,7 @@
     "hidden_assumptions_visible": true,
     "lean_collapsed": true,
     "external_dependencies_visible": true,
-    "status": "Exact authored v2 content/locators and separately repaired source map accepted independently; actual isolated browser/runtime pending, original production renderer unchanged."
+    "status": "Authored-v2 source/whole-code/seven-slot review and actual isolated reader-v2/browser-v4 accepted independently. Production/shared integration and post-merge purification remain held."
   },
   "graph_contribution": {
     "lean_view": "new-node",
@@ -100,9 +102,9 @@
     "focus_targets": [
       "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf.centered_bounded_matrix_mgf"
     ],
-    "visual_review": "Not performed; metadata draft only. No generated graph/site changed.",
+    "visual_review": "Actual desktop/mobile existing-UI zoom, detail inspector, source-index and parent navigation accepted in the bounded fixture. Default-fit labels are small; zoomed SVG labels can be truncated, so complete identifiers are read in the detail inspector. No global graph or production acceptance.",
     "candidate_only": true,
-    "functor_view_semantics": "Normal raw conceptual-mirror Discovery published; independent validation and global stabilization pending. Not a formal Lean transport edge."
+    "functor_view_semantics": "Typed conceptual mechanism normally published and independently validated; global stabilization held. No formal transport, theorem equivalence or certified functor."
   },
   "learning_contract": {
     "control_plane_math_authority": false,
@@ -113,14 +115,14 @@
     "salvage": {
       "required": true,
       "status": "completed",
-      "reason": "v1 reader citation-role mistakes were repaired in a separately reviewed exact v2. A metadata-generator assumption-equality preflight failed before production write; corrected by preserving P-only assumptions. No mathematical code/interface was changed, retired, or discarded.",
+      "reason": "Original source-locator repair, failed report-writer, original renderer defects, candidate highlighter anchor loss and LF measurement failure all remain immutable originals. Minimal separately reviewed repairs changed no mathematical statement, source binder, definition, proof or raw source byte.",
       "promoted_fragments": [],
       "discarded_fragments": []
     },
     "parallelism": {
       "decision": "serial",
       "direction_fingerprints": [],
-      "expected_information_gain": "ROOT is the sole proof worker; this task prepares schema/reader drafts and does not run a second proof route.",
+      "expected_information_gain": "One ROOT mathematical proof worker; independent source graph, distinct topology challenge, source-blind decoder, source-first whole-code/reader reviewer, native verifier and bounded publication-safety roles addressed distinct uncertainty.",
       "shared_verified_context_digest": ""
     },
     "cross_route_blind_spot_audit": {
@@ -136,15 +138,15 @@
       "exposition_evidence": "",
       "source_expansion_nodes": [],
       "lean_expansion_nodes": [],
-      "assumptions_preserved": false,
-      "boundary_preserved": false
+      "assumptions_preserved": true,
+      "boundary_preserved": true
     }
   },
   "source_detail_audit": {
     "primary_edition": "Tropp revised2011 PDF SHA256 f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86; Gaussian2610.20492v1 HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
     "primary_anchor": "Tropp Lemma6.7 pp25-26 and §2.2-2.3 pp7-8; Gaussian C.2 Ex107-112, weighted Ex121 use context",
     "detail_status": "omitted",
-    "gap": "Source-topology and TC admission are pending. Do not turn integrability, cap normalization, centering or positive-expectation proof ingredients into T binders; no source coverage percentage or Lean route is certified.",
+    "gap": "The bounded real normalized single-matrix MGF and its original-Gaussian fixed +cos consumer now have independently reviewed source expansion and compiled proof. The source paper does not name Tropp here; this is explicitly matched external background. Independent-sum/Lieb/master-tail, full Bernstein/C6 and main lower bounds remain outside this cell.",
     "consulted": [
       {
         "source": "Pinned current Statement Seal and Tropp author-preprint attribution",
@@ -279,7 +281,7 @@
     }
   },
   "source_proof_coverage": {
-    "status": "Independent preproof topology/coverage admitted; all new Lean proof obligations remain open.",
+    "status": "Bounded P/T source obligations discharged by actual code, source-first whole-module review, blind decoding and seven-slot review; no full sum-tail/C6 closure.",
     "inventory": [
       {
         "file": ".astis/semantic-neutral-20261114/weighted_mgf_source_graph_c4e8/phase2.coverage.v2.json",
@@ -298,7 +300,12 @@
         "sha256": "809ad616133e30ec8c5b96aa794a1e6d95624b7661873afe1a391b011c1ea66e"
       }
     ],
-    "source_gaps": [
+    "source_gaps": [],
+    "alternative_routes": [
+      "Generic P must follow expanded lemma proof; T may reuse completed generic P. No black-box circular proof of P."
+    ],
+    "portable_originals_custody": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/preproof-originals-custody.v1.json",
+    "historical_preproof_source_gap_ids": [
       "GAP.gaussian-regularity",
       "GAP.gaussian-centered",
       "GAP.cap-normalization",
@@ -309,10 +316,18 @@
       "GAP.P-integral-algebra",
       "GAP.P-interface-adapters"
     ],
-    "alternative_routes": [
-      "Generic P must follow expanded lemma proof; T may reuse completed generic P. No black-box circular proof of P."
-    ],
-    "portable_originals_custody": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/preproof-originals-custody.v1.json"
+    "discharge_evidence": {
+      "reviewer": "mgf_fresh_source_5b7e",
+      "source_first_then_whole_code_then_reader_then_decoder": true,
+      "P_verdict": "equivalent-after-elaboration",
+      "private_T_verdict": "equivalent-after-elaboration",
+      "P_binding_sha256": "e13089b48a45d5a2956287438f19cbc06c56dc62203347274c4342e424aa5319",
+      "private_T_binding_sha256": "b4515c605e006f7ab445ec00ba78c92f9790005a8e433dcba9b735f5d59dd303",
+      "exact_chosen_originals_manifest": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/source-review/mgf_fresh_source_5b7e/public-chosen-originals.manifest.through-phase4.json",
+      "manifest_sha256": "2549201d96092036c9dc4ca0ca399a4a96317185656d751d436348300c7ebcbc",
+      "v1_reader_source_map_problem_and_v2_accepted_repair_retained": true,
+      "runtime_review": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/reader-current-acceptance.v1.json"
+    }
   },
   "proof_digestion": {
     "existing_substrate": [
@@ -320,13 +335,13 @@
       "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
     ],
     "bookkeeping": [
-      "proposed expectation, centering, real exponential and weighted normalization adapters; actual implementation pending"
+      "Actual Bochner integral algebra and centering in P; actual unconditional Gaussian row/cutoff/radius/regularity, signed-cosine norm cap and normalization in private T. All are implementation proof components, not extra T hypotheses."
     ],
     "new_reusable": [
       "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixBernsteinMgf.centered_bounded_matrix_mgf"
     ],
     "new_topology": [],
-    "status": "candidate decomposition, not reviewed proof inventory"
+    "status": "Actual P/T proof inventories and canonical parent calls independently checked; compiler-generated support and private T receive no extra public lemma credit. Post-merge purification remains separate."
   },
   "purification": {
     "status": "pending",
@@ -343,13 +358,39 @@
       "exit_code": 0,
       "warnings": "unused binders in Prop-valued type formation, no target proof"
     },
-    "focused_checks": [],
-    "new_target_proof": null,
+    "focused_checks": [
+      {
+        "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/root-actual-runs/20261114T071253513761Z-matrix-mgf-first-actual-generic-expectation-proof.receipt.json",
+        "sha256": "f74161c894ebfac56748e447297b03ac21f4821561071f966c75cd1ea87881d9",
+        "executed_HEAD": "107eb7d0b519bc77c96e0a9d5ff7df24854bb80b",
+        "exit_code": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command": [
+          "lake",
+          "env",
+          "lean",
+          "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixBernsteinMgf.lean"
+        ]
+      },
+      {
+        "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/root-actual-runs/20261114T071353370414Z-matrix-mgf-first-actual-cosine-weighted-Gaussian-consumer.receipt.json",
+        "sha256": "95d4a6914b0041f725d005352179344140c4692b615d8f5bf9ca2a7f50778b15",
+        "executed_HEAD": "107eb7d0b519bc77c96e0a9d5ff7df24854bb80b",
+        "exit_code": 0,
+        "log_sha256": "0549752b9a97a721953cf69da4183e6653b81a628a5c952aec9be9b1eacca0c6",
+        "command": [
+          "lake",
+          "build",
+          "Tests.GaussianComplexityBernsteinWeightedMgf"
+        ]
+      }
+    ],
+    "new_target_proof": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/mathematical-candidate.json",
     "source_topology": "Independently admitted; exact report references above.",
     "TC": "Independently admitted; no postproof verification implied.",
-    "independent_semantic": "pending",
-    "independent_native": "pending",
-    "independent_reader": "pending",
+    "independent_semantic": "P and private T equivalent-after-elaboration with no deltas/repairs; exact independent originals retained.",
+    "independent_native": "Actual immutable4869 type/value/kernel and literal P/T/q0 probes accepted; no retroactive build claim at metadata or public export identities.",
+    "independent_reader": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/reader-current-acceptance.v1.json",
     "normal_API_calls_by_metadata_task": 0,
     "preproof_admission": {
       "kind": "ACTUAL_INDEPENDENT_PREPROOF_ADMISSION; no target proof",
@@ -397,7 +438,7 @@
       "exact_chosen_originals_manifest": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/source-review/mgf_fresh_source_5b7e/public-chosen-originals.manifest.through-phase4.json",
       "manifest_sha256": "2549201d96092036c9dc4ca0ca399a4a96317185656d751d436348300c7ebcbc",
       "v1_reader_source_map_problem_and_v2_accepted_repair_retained": true,
-      "runtime_review": "pending separate exact overlay/browser evidence"
+      "runtime_review": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/reader-current-acceptance.v1.json"
     },
     "independent_native_review": {
       "report": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/native-originals/weighted_mgf_native_8c2d/native-mathematics-report.v1.json",
@@ -416,7 +457,185 @@
         "sha256": "f84628ef85c6533e49783f5fe7ecfdebc3f1edecbd96e1a8f3f1d845176f68ff"
       },
       "normal_calls": 1
-    }
+    },
+    "actual_isolated_reader": {
+      "status": "ACCEPTED_ISOLATED_READER_ONLY",
+      "mathematical_candidate": "4869db55d340cee39f0ba4d49fb0a7a4309ba2d6",
+      "mathematical_and_authored_v2_metadata_bytes_changed_by_runtime_repairs": false,
+      "reader_preview_manifest_sha256": "c93f60d6b51a0da491bd748d54bdbc68fbdbc2f86653de5914539afb2aaee7d1",
+      "actual_v4": {
+        "exit_code": 0,
+        "failures": 0,
+        "checks": 343,
+        "screenshots": 86,
+        "actual_checks_sha256": "dd84dcee1105f455b1dd273f21187e8fe5c2539b515f8a1580b8888c614dd492",
+        "process_receipt_sha256": "2cbc3228118bc7aabbd3c9e86c0ed87284171dfd490327b0b7198fed15df184b",
+        "native_runtime_archive": "reader-runtime-originals/native-runtime.selected.v1.tar.gz",
+        "checks_member": "browser-output-v4/candidate/actual-checks.json",
+        "process_member": "browser-process-v4/candidate/process-receipt.json",
+        "actual_invoker": "ROOT; actual exec session10914 completion chunk22d418",
+        "script_and_contract_author_and_interpreter": "Independent native actor gaussian_push_audit_c7b1 / weighted_mgf_native_8c2d"
+      },
+      "independent_visual_review": {
+        "accepted": true,
+        "actor": "mgf_fresh_source_5b7e",
+        "personally_viewed_PNGs": 54,
+        "archive": "reader-runtime-originals/fresh-reader-review.selected.v1.tar.gz",
+        "report_member": "phase12_final_native_visual/final-reader-v4-independent-review.md",
+        "report_sha256": "86a8b1353191201fada6cfa7ff961784796c07f81a39b0eb6fa6cb651f0bf9b6",
+        "verdict_member": "phase12_final_native_visual/current-reader-independent-verdict.json",
+        "verdict_sha256": "34b2134fe658637b075ce07632d17ec660458553d3c3263d489ad6b57b9e7aca"
+      },
+      "tested_scope": "Exact responsive Chrome desktop1440x1000/mobile390x844 fixture; main/formula rendering, initially folded proofs/code, six P/P/P/T/T/T source/copy/full-download actions, full280 source lines, anchors, actual last-glyph scroll/header geometry, source-index and bounded graph/parent navigation.",
+      "graph_boundary": "existing UI zoom/pan plus full-ID detail inspector/source-index; SVG ellipses and mobile clipping retained",
+      "preserved_failures": [
+        "v1 real Chrome reporter KeyError with original24 PNGs and no reconstructed flags",
+        "v2 original renderer162checks/15failures and candidate228checks/12anchor failures",
+        "v3 actual343checks/8LF measurement failures/86PNG; all original flags remain unchanged"
+      ],
+      "excluded_claims": [
+        "production/shared renderer, CSS, global graph or website acceptance",
+        "default-fit or complete SVG-label readability",
+        "physical phone/touch testing",
+        "runtime rendering of all step_source attribution metadata",
+        "post-V status pixels",
+        "a build at metadata/public export identities",
+        "full Bernstein/C6/main bounds, purification or whole-Goal completion"
+      ],
+      "normal_proof_V_at_this_snapshot": 0,
+      "portable_custody": "Actor-selected originals are later ROOT lossless containers with explicit manifests; no new review is created by packaging."
+    },
+    "focused_checks_bundle": {
+      "ROOT_actual": [
+        {
+          "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/root-actual-runs/20261114T071253513761Z-matrix-mgf-first-actual-generic-expectation-proof.receipt.json",
+          "sha256": "f74161c894ebfac56748e447297b03ac21f4821561071f966c75cd1ea87881d9",
+          "executed_HEAD": "107eb7d0b519bc77c96e0a9d5ff7df24854bb80b",
+          "exit_code": 0,
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/root-actual-runs/20261114T071353370414Z-matrix-mgf-first-actual-cosine-weighted-Gaussian-consumer.receipt.json",
+          "sha256": "95d4a6914b0041f725d005352179344140c4692b615d8f5bf9ca2a7f50778b15",
+          "executed_HEAD": "107eb7d0b519bc77c96e0a9d5ff7df24854bb80b",
+          "exit_code": 0,
+          "log_sha256": "0549752b9a97a721953cf69da4183e6653b81a628a5c952aec9be9b1eacca0c6"
+        }
+      ],
+      "independent_native": {
+        "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/native-originals/weighted_mgf_native_8c2d/native-mathematics-report.v1.json",
+        "sha256": "3ad775cf4b663ede38e4804cfe407f16a284fe669a2f5236756e34bfb83a881a"
+      },
+      "four_actual_metadata_CLI_gates": [
+        {
+          "gate": "publication",
+          "receipt": {
+            "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/metadata-gates-held-2cc25/20261114T080457260180Z-matrix-mgf-held-metadata-publication-gate.receipt.json",
+            "sha256": "45616dff7bf040ac53cb806a155e58ae4873ae94ec1523e529226774279fe2dc"
+          },
+          "actual_log_gzip": {
+            "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/metadata-gates-held-2cc25/20261114T080457260180Z-matrix-mgf-held-metadata-publication-gate.log.gz",
+            "sha256": "66c462255f80be641a2f90902425a2ab6462a02f8947a2ef2e5857fb1b643a86"
+          },
+          "decoded_log_sha256": "5ad91ddd6611e2a54641f5c7737974f7de64585d51986481415a3a10a8ae79e2",
+          "actual_command": [
+            "python3",
+            "tools/astis_publication.py",
+            "check",
+            "--base",
+            "107eb7d0b519bc77c96e0a9d5ff7df24854bb80b"
+          ],
+          "exit_code": 0,
+          "checked_metadata_commit": "2cc25fcf58e8917109a8529f3839fbb9521ee1df"
+        },
+        {
+          "gate": "contributor",
+          "receipt": {
+            "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/metadata-gates-held-2cc25/20261114T080457260349Z-matrix-mgf-held-metadata-contributor-gate.receipt.json",
+            "sha256": "16369a741b5087aceb28dff7674c626cfaea5dcfd46ecaee44e204f4ef04b8d4"
+          },
+          "actual_log_gzip": {
+            "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/metadata-gates-held-2cc25/20261114T080457260349Z-matrix-mgf-held-metadata-contributor-gate.log.gz",
+            "sha256": "0f992f86b285c1542b40c3660d4f5a2aee00dc9e5e2f70a3c5e93bb08ba91ea5"
+          },
+          "decoded_log_sha256": "67110301646107d0b82e3a48996df6103527c9b2a89871ad3c91120f1cf6fef1",
+          "actual_command": [
+            "python3",
+            "tools/astis_contributor_contract.py",
+            "check",
+            "--base",
+            "107eb7d0b519bc77c96e0a9d5ff7df24854bb80b"
+          ],
+          "exit_code": 0,
+          "checked_metadata_commit": "2cc25fcf58e8917109a8529f3839fbb9521ee1df"
+        },
+        {
+          "gate": "semantic",
+          "receipt": {
+            "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/metadata-gates-held-2cc25/20261114T080457260377Z-matrix-mgf-held-metadata-semantic-gate.receipt.json",
+            "sha256": "f164c31addca04dd255f32e18141bece86bc8c1fac293592f10c37dfd6ccb39b"
+          },
+          "actual_log_gzip": {
+            "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/metadata-gates-held-2cc25/20261114T080457260377Z-matrix-mgf-held-metadata-semantic-gate.log.gz",
+            "sha256": "e62f3db1d414cfbb879880c68714c3c781d19df913026002be9e224c9a5425e6"
+          },
+          "decoded_log_sha256": "402bca4d9acbc4e9d5478d0e458da5b1e1fa15cee53b4bab5d5c0387e96625d9",
+          "actual_command": [
+            "python3",
+            "tools/astis_semantic_roundtrip.py",
+            "check"
+          ],
+          "exit_code": 0,
+          "checked_metadata_commit": "2cc25fcf58e8917109a8529f3839fbb9521ee1df"
+        },
+        {
+          "gate": "frontier",
+          "receipt": {
+            "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/metadata-gates-held-2cc25/20261114T080457260348Z-matrix-mgf-held-metadata-frontier-gate.receipt.json",
+            "sha256": "c673e7c91f9afa878bdd2bef5c070c9f2cdc9f0dbbe9b65e9827f4cd6b3f521c"
+          },
+          "actual_log_gzip": {
+            "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/metadata-gates-held-2cc25/20261114T080457260348Z-matrix-mgf-held-metadata-frontier-gate.log.gz",
+            "sha256": "b798f1249c687f8a23262683995f682a6dde617babdc76b7042895a6adc41bf4"
+          },
+          "decoded_log_sha256": "7b2774335feae587c171a074404318e37b638f514cb9a6791467eeea4d72eeef",
+          "actual_command": [
+            "python3",
+            "tools/astis_frontier_cells.py",
+            "check"
+          ],
+          "exit_code": 0,
+          "checked_metadata_commit": "2cc25fcf58e8917109a8529f3839fbb9521ee1df"
+        }
+      ]
+    },
+    "metadata_envelope_repair": "Initial pre-V frontier check correctly rejected a dictionary copied from the richer PL focused_checks bundle where the frontier schema requires a list. Actual ROOT receipt records are now the list; the complete bundle and original PL bytes remain unchanged. No check or proof was rerun or fabricated by this envelope repair.",
+    "independent_verification": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/normal-verification/gaussian_push_audit_c7b1/VERIFIED-evidence.full.v2.json",
+    "actual_normal_VERIFIED": {
+      "verifier_id": "/root/gaussian_push_audit_c7b1",
+      "verified_commit": "6abc79ed4c012c1d506c17b9824257769c18c635",
+      "normal_API_calls": 1,
+      "ROOT_API_calls": 0,
+      "payload": {
+        "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/normal-verification/gaussian_push_audit_c7b1/VERIFIED-evidence.full.v2.json",
+        "sha256": "ae0004612dbe6c05a7861b51dd3a8416162cce31697670d413b164b456e5ff39"
+      },
+      "exact_append": {
+        "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/normal-verification/gaussian_push_audit_c7b1/VERIFIED-exact-canonical-append.jsonl",
+        "sha256": "4e55fac68014ab22c212ddeee4d53cd7027b402dce93149efd9728e612c3e27f"
+      },
+      "actual_process_receipt": {
+        "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/normal-verification/gaussian_push_audit_c7b1/normal-V-actual-process-receipt.v1.json",
+        "sha256": "16e8e0b9846eb615571717160afeac2a28d6f931d678d1caae8e092ac745d8cc"
+      },
+      "selected_originals_archive": {
+        "file": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/normal-verification/gaussian_push_audit_c7b1/selected-independent-V-originals.v1.tar.gz",
+        "sha256": "9c4568a60e173af6c320eb01f0f01f2ebbebfaa92a4c5adbb3e9f8097d885591",
+        "members": 15
+      },
+      "scope": "Bounded P/T local mathematical component and exact isolated reader acceptance only; original build identities and historical PL pending-reader snapshot preserved; production/main/purification/whole Goal remain separate."
+    },
+    "verification_locator_schema_repair": "The current frontier schema requires a nonempty string locator in independent_verification; the full unchanged structured record remains actual_normal_VERIFIED. The rejected dictionary envelope and actual gate failure are preserved. This changes no independent verdict, API event, theorem, proof or evidence original."
   },
   "blocked": {},
   "owned_files": [
@@ -463,10 +682,10 @@
     "evidence": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/conceptual-mirror-proposal.authored-v1.json",
     "scope": "Source-backed mechanism only, no new formal implication or certified functor; exact canonical P node retained.",
     "normal_raw_Discovery_calls": 1,
-    "independent_validation": "pending",
+    "independent_validation": "Actual normal raw-to-validated Discovery by mgf_fresh_source_5b7e; global integration held.",
     "creator_did_not_validate": true,
     "independent_source_review": "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/source-review/mgf_fresh_source_5b7e/phase3/conceptual-mirror-review.authored-v1.json",
     "normal_independent_validation": "Actual one Discovery raw→validated by mgf_fresh_source_5b7e; exact original append/receipts are in the selected source artifacts, not a proof VERIFIED transition."
   },
-  "phase_snapshot": "Normal PROVED_LOCAL; complete independent code/source/seven-slot and authored-v2 content accepted. Isolated actual presentation runtime and independent proof VERIFIED still pending."
+  "phase_snapshot": "One normal PROVED_LOCAL and one actual independent normal VERIFIED at frozen6abc. Public P and private actual-Gaussian fixed +cos T accepted within the exact recorded scope. Native/compiler evidence remains tied to original4869/earlier exact worktree hashes. Shared original-owner main/site integration, full matrix-sum Bernstein/C6/main bounds and post-merge purification remain unfinished."
 }

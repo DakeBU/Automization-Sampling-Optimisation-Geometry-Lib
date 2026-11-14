@@ -95,3 +95,30 @@ verification and old public ledger bytes remain unchanged.
 Full independent-sum/Lieb/master-tail/Bernstein, C6/Lemma4.4, both main lower
 bounds, oracle/TV/precision/query-cap/expected-cost adaptation, main/site
 integration, purification and whole-Goal completion remain unfinished.
+
+
+## Matrix Laplace-tail source/native and local admission — 2026-11-14
+
+This exact owned increment records one normal PROVED_LOCAL for the new real
+matrix Laplace-tail theorem. Its immutable mathematical source1d110 was rebuilt
+independently across the11 actual ASTIS/Tests modules; literal P/T, q=0,
+q=0/d=2 and all four signed-weighted cases, full type/value graphs and the kernel
+checks passed with only the three standard axioms. The current authored-v4
+statement, complete modules, source correspondence and seven semantic slots
+were independently reviewed. The original complex source, real specialization
+and disclosed scalar extended-expectation completion remain distinguished.
+
+The full original24-field local-admission evidence and exact normal append are
+retained. The typed scalar/selfadjoint conceptual mechanism was independently
+validated once; it is not a formal transport. The stronger all-real/strict-trace/
+explicit-dimension-cap background node remains open beyond the positive-parameter
+consumer. No full matrix Bernstein/C6 or main lower bound is claimed.
+
+Current exact reader/runtime and independent visual acceptance remain pending,
+as does proof VERIFIED. Current v4 served bytes match the v3 fixture exactly;
+this identity does not invent a new browser run or acceptance. No production
+site, main/shared graph integration, purification or whole-Goal completion is
+claimed. The old plain warning log is retained in immutable b3da history and
+resolved by an exact lossless gzip custody record in the current tree; raw
+warning bytes were not trimmed. The public snapshot identity is not claimed
+newly Lean-built. Original execution and immutable-source identities remain.

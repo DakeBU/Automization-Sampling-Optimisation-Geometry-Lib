@@ -1,0 +1,21 @@
+{
+  "candidate_commit": "1d1103af694b9663a72b0d610004ed85c7c6b527",
+  "targets": [
+    {
+      "role": "P",
+      "source_sha256": "4924fede99548f6aab4f63605d2beed9dc435d6338a61d89ee301d9e83733749",
+      "sealed_literal_sha256": "2555d44b4290cf066eb5231d86dcc61a3fcb9a5c0eda0b3c5cd808bc540c7a70",
+      "source_declaration_signature": "\n    {Ω : Type v} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (X : Ω → Matrix ι ι ℝ)\n    (hX : AEStronglyMeasurable X μ)\n    (hherm : ∀ᵐ ω ∂μ, (X ω).IsHermitian)\n    (t : ℝ) :\n    μ {ω | t ≤ sSup (spectrum ℝ (X ω))} ≤\n      ⨅ s : {s : ℝ // 0 < s},\n        ENNReal.ofReal (Real.exp (-(s.val * t))) *\n          ∫⁻ ω, ENNReal.ofReal (Matrix.trace (NormedSpace.exp (s.val • X ω))) ∂μ",
+      "exact_kernel_type_check_in_command": "raw-kernel-audit"
+    },
+    {
+      "role": "T",
+      "source_sha256": "9ecf723f0487ddf50cb1d7c3102ebc04b58c472e56d2b16b186d91bc91cc6aac",
+      "sealed_literal_sha256": "bf9bc736d9963c0c97ae3d3de2835ba0a9f82291991123507c1e8ebcc4ac075a",
+      "source_declaration_signature": " :\n∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  ∀ s : ℝ, 0 < s → ∀ a : ℝ, ∀ useCos minus : Bool,\n    μ {ω | a ≤ sSup (spectrum ℝ (S useCos minus ω))} ≤\n      ENNReal.ofReal\n        (Real.exp (-(s * a)) *\n          ∫ ω, Matrix.trace (NormedSpace.exp (s • S useCos minus ω)) ∂μ)",
+      "exact_kernel_type_check_in_command": "raw-kernel-audit"
+    }
+  ],
+  "actual_value_rechecked_against_literal_type": "pending raw-kernel-audit",
+  "T_private": true
+}

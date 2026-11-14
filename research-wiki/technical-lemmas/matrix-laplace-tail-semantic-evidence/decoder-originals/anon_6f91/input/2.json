@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-bf9bc736d9963c0c",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  ∀ s : ℝ, 0 < s → ∀ a : ℝ, ∀ useCos minus : Bool,\n    μ {ω | a ≤ sSup (spectrum ℝ (S useCos minus ω))} ≤\n      ENNReal.ofReal\n        (Real.exp (-(s * a)) *\n          ∫ ω, Matrix.trace (NormedSpace.exp (s • S useCos minus ω)) ∂μ)\n",
+    "statement_sha256": "bf9bc736d9963c0c97ae3d3de2835ba0a9f82291991123507c1e8ebcc4ac075a",
+    "compiled": true,
+    "approved_definition_context": [
+      "The universes specify carrier levels only. The displayed measure and sigma-algebra form a probability experiment. The finite nonempty index type has a finite enumeration and decidable equality.",
+      "Matrix is the real finite square-matrix algebra. Multiplication and the power-series exponential NormedSpace.exp use ordinary matrix multiplication; Real.exp is scalar exponential. Matrix.trace is the unnormalized sum of diagonal entries. The topology is the Euclidean operator-norm topology.",
+      "For a real matrix IsHermitian means transpose equals itself. The real spectrum is the set of real scalars for which scalar identity minus the matrix is not invertible. sSup is the real conditional supremum; on the finite nonempty Hermitian spectrum it is the largest algebraic eigenvalue, with no absolute value.",
+      "AEStronglyMeasurable means equal almost everywhere to a strongly measurable function under the displayed measure. The AE filter and the set measure refer to that same measure, including possible null exceptional points.",
+      "ENNReal is the extended nonnegative reals, with top equal to positive infinity. ofReal maps a real value to its nonnegative part. The symbol lintegral is the nonnegative Lebesgue integral, allowed to be infinity. The indexed infimum runs over every positive real parameter, without asserting existence of an optimizer.",
+      "EuclideanSpace with Fin n is the real Euclidean space of dimension n. WithLp.toLp 2 and WithLp.ofLp change representation between Euclidean coordinates and coordinate functions, without changing those coordinates.",
+      "stdGaussian on a real finite-dimensional Euclidean space is the centered Gaussian probability measure with identity covariance. Measure.pi over a finite index forms its product law. Every displayed mean is a Bochner integral under that displayed unconditional product measure.",
+      "Matrix.vecMulVec is the outer product of the two displayed coordinate vectors. Matrix.kronecker uses ordered pairs: the first coordinate comes from its first matrix factor. The cutoff if branches use the inclusive displayed inequality and the actual zero matrix otherwise.",
+      "The two Boolean values are universally quantified choices. The displayed conditionals choose the deterministic weights and global scalar sign. Fin d indices range from zero through d−1 and the displayed angle includes the explicit offset."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "a7c56c8599818bae0f47f6039cb848bd1b58ec8543127994fff130bdc52468b0"
+}

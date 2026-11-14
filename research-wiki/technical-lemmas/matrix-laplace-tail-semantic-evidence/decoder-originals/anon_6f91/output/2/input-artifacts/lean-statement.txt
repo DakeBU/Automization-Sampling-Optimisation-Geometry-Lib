@@ -1,0 +1,31 @@
+∀ {d q : ℕ} (hq : 2 * q + 1 < d),
+  let D := EuclideanSpace ℝ (Fin d)
+  let E := EuclideanSpace ℝ (Fin (q + 1))
+  let Ω := Fin (q + 1) → D
+  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)
+  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ
+  let r : ℝ := ((q + 1 : ℕ) : ℝ)
+  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))
+  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)
+  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>
+    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)
+  let row : Fin d → Ω → E := fun i ω =>
+    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)
+  let Y : Fin d → Ω → M := fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (d : ℝ)⁻¹ • Matrix.kronecker
+        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))
+        (Matrix.vecMulVec (tvec i) (tvec i))
+    else 0
+  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ
+  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i
+  let w : Bool → Fin d → ℝ := fun useCos i =>
+    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1
+  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1
+  let S : Bool → Bool → Ω → M := fun useCos minus ω =>
+    sign minus • ∑ i : Fin d, w useCos i • Z i ω
+  ∀ s : ℝ, 0 < s → ∀ a : ℝ, ∀ useCos minus : Bool,
+    μ {ω | a ≤ sSup (spectrum ℝ (S useCos minus ω))} ≤
+      ENNReal.ofReal
+        (Real.exp (-(s * a)) *
+          ∫ ω, Matrix.trace (NormedSpace.exp (s • S useCos minus ω)) ∂μ)

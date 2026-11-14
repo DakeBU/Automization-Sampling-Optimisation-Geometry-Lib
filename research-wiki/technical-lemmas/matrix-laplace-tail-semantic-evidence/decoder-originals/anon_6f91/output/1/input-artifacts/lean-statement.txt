@@ -1,0 +1,10 @@
+∀ {Ω : Type v} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]
+    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]
+    (X : Ω → Matrix ι ι ℝ)
+    (hX : AEStronglyMeasurable X μ)
+    (hherm : ∀ᵐ ω ∂μ, (X ω).IsHermitian)
+    (t : ℝ),
+    μ {ω | t ≤ sSup (spectrum ℝ (X ω))} ≤
+      ⨅ s : {s : ℝ // 0 < s},
+        ENNReal.ofReal (Real.exp (-(s.val * t))) *
+          ∫⁻ ω, ENNReal.ofReal (Matrix.trace (NormedSpace.exp (s.val • X ω))) ∂μ

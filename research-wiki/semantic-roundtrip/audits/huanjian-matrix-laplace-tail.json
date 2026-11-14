@@ -1,0 +1,711 @@
+{
+  "id": "ASTIS-RT-20261114-HuanjianMatrixLaplaceTail",
+  "state": "source-reviewed",
+  "base_commit": "2da2ccccfd1429aab18007e06895a1eb7cc58066",
+  "candidate_commit": "1d1103af694b9663a72b0d610004ed85c7c6b527",
+  "source": {
+    "source_id": "tropp2011-real-extended-spectral-laplace-tail",
+    "anchor": "Proposition 3.1 statement p9 and proof pp9–10; §§2.1–2.4 pp7–8; §3.1 expectation-domain caveat p9",
+    "original_text": "Let X be a self-adjoint random matrix on a probability space. For every real threshold t, its largest-eigenvalue upper-tail probability is bounded by infimum over positive s of exp(−st) times the expected unnormalized trace of exp(sX). The selected formal version restricts to finite nonempty real matrices, makes almost-sure measurability/self-adjointness explicit, and permits a nonnegative scalar extended expectation as a disclosed domain completion. Tropp §3.1 notes that the matrix MGF need not exist for every parameter; the completion does not claim that all matrix MGFs are finite.",
+    "text_sha256": "bed627e8e42bef705ecfe6e8cdd6229183786f5dd6bb0413d92e6af5afc778e1"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail.max_eigenvalue_tail_le_iInf_trace_exp",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+    "statement": "∀ {Ω : Type v} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (X : Ω → Matrix ι ι ℝ)\n    (hX : AEStronglyMeasurable X μ)\n    (hherm : ∀ᵐ ω ∂μ, (X ω).IsHermitian)\n    (t : ℝ),\n    μ {ω | t ≤ sSup (spectrum ℝ (X ω))} ≤\n      ⨅ s : {s : ℝ // 0 < s},\n        ENNReal.ofReal (Real.exp (-(s.val * t))) *\n          ∫⁻ ω, ENNReal.ofReal (Matrix.trace (NormedSpace.exp (s.val • X ω))) ∂μ\n",
+    "statement_sha256": "2555d44b4290cf066eb5231d86dcc61a3fcb9a5c0eda0b3c5cd808bc540c7a70",
+    "compiled": true,
+    "formalizer": "huanjian_20261114_matrix_laplace_tail",
+    "decoder_context": [
+      "The universes specify carrier levels only. The displayed measure and sigma-algebra form a probability experiment. The finite nonempty index type has a finite enumeration and decidable equality.",
+      "Matrix is the real finite square-matrix algebra. Multiplication and the power-series exponential NormedSpace.exp use ordinary matrix multiplication; Real.exp is scalar exponential. Matrix.trace is the unnormalized sum of diagonal entries. The topology is the Euclidean operator-norm topology.",
+      "For a real matrix IsHermitian means transpose equals itself. The real spectrum is the set of real scalars for which scalar identity minus the matrix is not invertible. sSup is the real conditional supremum; on the finite nonempty Hermitian spectrum it is the largest algebraic eigenvalue, with no absolute value.",
+      "AEStronglyMeasurable means equal almost everywhere to a strongly measurable function under the displayed measure. The AE filter and the set measure refer to that same measure, including possible null exceptional points.",
+      "ENNReal is the extended nonnegative reals, with top equal to positive infinity. ofReal maps a real value to its nonnegative part. The symbol lintegral is the nonnegative Lebesgue integral, allowed to be infinity. The indexed infimum runs over every positive real parameter, without asserting existence of an optimizer."
+    ],
+    "compiler_evidence": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/local-mathematics-checkpoint.v1.json"
+  },
+  "reconstruction": {
+    "text": "# 匿名 packet 1：独立数学重构\n\n## 对象 / objects\n\n给定同一概率实验上的实随机方阵 \\(X\\)。记 \\(n=|\\iota|\\)，于是 \\(X(\\omega)\\) 是 \\(n\\times n\\) 矩阵。其矩阵指数使用通常的矩阵乘法：\n\\[\ne^{sX(\\omega)}=\\sum_{m=0}^{\\infty}\\frac{s^m X(\\omega)^m}{m!},\\qquad X(\\omega)^0=I_n.\n\\]\n这里 \\(\\operatorname{tr}A=\\sum_{i\\in\\iota}A_{ii}\\)，没有除以 \\(n\\)。对任一矩阵 \\(A\\)，令\n\\[\n\\Lambda(A)=\\sup_{\\mathbb R}\\{\\lambda\\in\\mathbb R:\\lambda I_n-A\\text{ 不可逆}\\},\n\\]\n其中这个上确界严格取 Lean 中实数条件上确界 `sSup` 的意义。\n\n## 定义域 / domains\n\n\\(\\Omega\\) 是任意类型，带一个可测空间结构；\\(\\mu\\) 是其上的概率测度。\\(\\iota\\) 是有限、非空且有可判定相等关系的任意指标类型，故 \\(n\\ge1\\)。\\(X:\\Omega\\to\\mathbb R^{\\iota\\times\\iota}\\)。阈值 \\(t\\in\\mathbb R\\)，变换参数 \\(s\\in(0,\\infty)\\)。方阵空间的拓扑是所给的欧氏算子范数拓扑。概率和最后的比较在扩展非负实数 \\([0,\\infty]\\) 中进行。\n\n## 量词 / quantifiers\n\n对每个这样的 \\(\\Omega\\)、可测空间结构、\\(\\mu\\)、\\(\\iota\\)、\\(X\\) 以及下面两项假设的见证，并对每一个实数 \\(t\\)，下述结论成立。结论右侧的下确界遍历全部严格正实数 \\(s\\)，不只遍历某个选定序列，也不声称下确界由某个 \\(s\\) 取得。类型宇宙仅决定载体所在层级。\n\n## 输入假设、可推性质与未给定内容 / assumptions\n\n输入假设是：\\(\\mu(\\Omega)=1\\)；\\(X\\) 对 \\(\\mu\\) 几乎处处强可测，即它与某个强可测函数几乎处处相等；并且 \\(X(\\omega)^T=X(\\omega)\\) 对 \\(\\mu\\) 几乎处处的 \\(\\omega\\) 成立。有限非空指标、可判定相等关系和可测空间结构也是输入数据。\n\n从实对称性可推得：几乎处处的实谱有限、非空，\\(\\Lambda(X(\\omega))\\) 是最大的代数特征值；矩阵指数的迹在这些点为正。它们不是额外的输入假设。输入没有要求 \\(X\\) 可积、指数矩可积、正半定、均值为零、独立，亦未要求处处对称。\n\n## 结论 / conclusion\n\n对任意 \\(t\\in\\mathbb R\\)，\n\\[\n\\mu\\{\\omega:t\\le\\Lambda(X(\\omega))\\}\n\\le\n\\inf_{s>0}\\left[\n e^{-st}\\int_{\\Omega}^{+}\n \\max\\!\\left\\{\\operatorname{tr}\\left(\\sum_{m=0}^{\\infty}\\frac{s^mX(\\omega)^m}{m!}\\right),0\\right\\}\\,d\\mu(\\omega)\n\\right].\n\\]\n这里 \\(\\int^+\\) 是非负 Lebesgue 积分，值允许为 \\(+\\infty\\)。这精确展开了 RHS 中两个 `ENNReal.ofReal`：\\(e^{-st}>0\\)，故外面的标量变换不改变它；迹的变换取其实数非负部分。等价地，在忽略对称性不成立的零测集之后，左侧是最大代数特征值至少为 \\(t\\) 的概率，右侧的积分是指数迹的非负期望。未断言该期望有限，也未提供更进一步的数值估计。\n\n## 作用域及含义 / scopes-senses\n\n所有事件、几乎处处条件及积分均相对于同一个 \\(\\mu\\)。几乎处处对称并不把 \\(X\\) 在异常零测集上的实际取值替换掉：字面事件在这些点仍使用 \\(\\Lambda=sSup\\) 的定义；这些点不改变其测度。在对称点，最大特征值没有取绝对值，亦不是谱半径或算子范数。阈值条件为包含端点的 \\(t\\le\\Lambda\\)，且允许 \\(t\\le0\\)。右侧是先对每个 \\(s\\) 积分再对 \\(s>0\\) 取下确界。指数中的 \\(sX\\) 是实标量与矩阵的逐项标量乘法，而幂和指数中的乘法是矩阵乘法。没有 `let` 或布尔分支需要额外解释。\n\n## 常数依赖 / constant-dependencies\n\n该陈述没有待选择的常数，也没有显式额外维数因子。\\(n\\) 通过矩阵大小及未归一化迹进入右侧。对固定的概率空间与 \\(X\\)，每个待估阈值 \\(t\\) 有自己的 \\(\\inf_{s>0}\\)；允许所选近似最优 \\(s\\) 依赖 \\(t\\)、\\(X\\) 的分布及维数，但没有断言最优参数存在。所有固定数值均已在指数、迹和积分的定义中显示。\n",
+    "text_sha256": "613f393f29055371fcf97a3c9fcb0893a665aa7fe8f05a2f2200c94468d615ce",
+    "decoder": "/root/decoder_6f91",
+    "decoder_run_sha256": "da2d952db90619343c805a7cb913e0d8412cfa4a1bf975f0447b0422f59a801f",
+    "decoder_packet_sha256": "635ccd1001e0048f5d9f52f884d74d3ebebe1ddde7c25a7d29181216c15c92e4",
+    "source_text_visible": false,
+    "lean_statement_sha256": "2555d44b4290cf066eb5231d86dcc61a3fcb9a5c0eda0b3c5cd808bc540c7a70",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/decoder-originals/anon_6f91/output/1/result.json"
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/laplace_fresh_source_8d2a",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "12e23984b7e23fc2b7d00c86a5b42c559286f3fd86e9b2cfa3e543bf92c913f3",
+    "review_run_sha256": "2ab74cb19b977b0a199116a4362ced3c4d1c250cecceb78fb8498fc208f724f2",
+    "run_artifact": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/source-review/laplace_fresh_source_8d2a/phase3_v4/P.review-run.json",
+    "evidence": "/Users/zhouhuanjian/ASTIS-GC/.astis/semantic-neutral-20261114/laplace_fresh_source_8d2a/phase3_v4/P.review-run.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Raw Tropp Proposition3.1 concerns a finite square self-adjoint random matrix, complex by §2.1. The selected source item expressly specializes to finite nonempty real matrices.",
+      "reconstructed": "The decoder reconstructs a real n×n random matrix with finite nonempty index, ordinary matrix powers/exponential and unnormalized trace, and real spectral supremum Λ(A).",
+      "relation": "explicit-elaboration",
+      "evidence": "Phase1 frozen source reconstruction, Tropp pp7–10; decoder output1 Objects/Domains; current P lines23–60. The disclosed real carrier is retained. No full-complex equivalence is claimed.",
+      "status": "accepted-within-declared-scope",
+      "source_meaning": "Raw Tropp Proposition3.1 concerns a finite square self-adjoint random matrix, complex by §2.1. The selected source item expressly specializes to finite nonempty real matrices.",
+      "reconstructed_meaning": "The decoder reconstructs a real n×n random matrix with finite nonempty index, ordinary matrix powers/exponential and unnormalized trace, and real spectral supremum Λ(A)."
+    },
+    "domains": {
+      "original": "All real thresholds; positive real Laplace parameters. Selected public source item discloses a nonnegative scalar extended-expectation completion, whereas raw Tropp only states expectation under standing regularity and warns in §3.1 about MGF nonexistence.",
+      "reconstructed": "The decoder puts t∈ℝ, s∈(0,∞), X on a probability experiment, and comparison in [0,∞]. It reconstructs the nonnegative integral and does not assume it finite.",
+      "relation": "explicit-elaboration",
+      "evidence": "Decoder output1 Domains/Conclusion explicitly allows +∞; current P uses subtype 0<s and lintegral. Current lesson assumptions state this is a domain completion and not a source definition of ENNReal or an extended matrix expectation.",
+      "status": "accepted-within-declared-scope",
+      "source_meaning": "All real thresholds; positive real Laplace parameters. Selected public source item discloses a nonnegative scalar extended-expectation completion, whereas raw Tropp only states expectation under standing regularity and warns in §3.1 about MGF nonexistence.",
+      "reconstructed_meaning": "The decoder puts t∈ℝ, s∈(0,∞), X on a probability experiment, and comparison in [0,∞]. It reconstructs the nonnegative integral and does not assume it finite."
+    },
+    "quantifiers": {
+      "original": "For every allowed random matrix and every real t, the bound is the infimum over all positive real parameters, with no optimizer assertion.",
+      "reconstructed": "The decoder states every carrier/measure/index/X/assumption witness and every real t, and the full infimum over all s>0 without attainment.",
+      "relation": "same",
+      "evidence": "Tropp Prop3.1 statement and p10 final sentence; decoder output1 Quantifiers and Constant-dependencies; P lines55–67. No positivity condition on t or restricted sequence of s is introduced.",
+      "status": "accepted-within-declared-scope",
+      "source_meaning": "For every allowed random matrix and every real t, the bound is the infimum over all positive real parameters, with no optimizer assertion.",
+      "reconstructed_meaning": "The decoder states every carrier/measure/index/X/assumption witness and every real t, and the full infimum over all s>0 without attainment."
+    },
+    "assumptions": {
+      "original": "Random self-adjoint matrix plus probability and §2.2 sufficient regularity/AE convention. The selected source item makes AE strong measurability and AE real self-adjointness explicit, with typing data.",
+      "reconstructed": "Decoder separates probability, AE strong measurability and AE symmetry as inputs; finite index/decidability are carrier data. It lists finite/infinite moment, integrability, PSD, centering, independence and everywhere symmetry as not required.",
+      "relation": "explicit-elaboration",
+      "evidence": "Phase1 standing-convention reconstruction; decoder output1 Assumptions; P exact binders. The helper spectral positivity is a derived fact, not an extra theorem-shaped premise. No binder contains a prior tail conclusion.",
+      "status": "accepted-within-declared-scope",
+      "source_meaning": "Random self-adjoint matrix plus probability and §2.2 sufficient regularity/AE convention. The selected source item makes AE strong measurability and AE real self-adjointness explicit, with typing data.",
+      "reconstructed_meaning": "Decoder separates probability, AE strong measurability and AE symmetry as inputs; finite index/decidability are carrier data. It lists finite/infinite moment, integrability, PSD, centering, independence and everywhere symmetry as not required."
+    },
+    "conclusion": {
+      "original": "Largest algebraic eigenvalue upper-tail at inclusive threshold is ≤inf_{s>0} exp(-st) times expected unnormalized trace exponential, in the advertised real/scalar-completed sense.",
+      "reconstructed": "The decoder displays μ{t≤Λ(X)}≤inf_{s>0} exp(-st)∫⁺max{tr(exp(sX)),0}; it explains ofReal and identifies Λ with the algebraic maximum on the AE symmetric domain.",
+      "relation": "equivalent",
+      "evidence": "Source pointwise trace positivity makes nonnegative-part integral equal to the intended scalar completed expectation AE. Decoder output1 Conclusion; P lines63–67 and AE comparison/Markov body. The strictly positive finite coefficient causes no 0·∞ ambiguity.",
+      "status": "accepted-within-declared-scope",
+      "source_meaning": "Largest algebraic eigenvalue upper-tail at inclusive threshold is ≤inf_{s>0} exp(-st) times expected unnormalized trace exponential, in the advertised real/scalar-completed sense.",
+      "reconstructed_meaning": "The decoder displays μ{t≤Λ(X)}≤inf_{s>0} exp(-st)∫⁺max{tr(exp(sX)),0}; it explains ofReal and identifies Λ with the algebraic maximum on the AE symmetric domain."
+    },
+    "scopes": {
+      "original": "All events/expectations use the same probability law; matrix exponential and ordinary trace have spectral meanings; λmax has no absolute value and is not the operator norm. Source self-adjointness may be AE.",
+      "reconstructed": "Decoder retains one μ, literal sSup on exceptional points, matrix multiplication in all powers, unnormalized trace, inclusive event, integral-before-infimum order and AE-domain interpretation.",
+      "relation": "equivalent",
+      "evidence": "Decoder output1 Objects/Scopes; phase1 standard definitions; P entire module. The null exceptional self-adjoint set cannot change event measure. No measurable eigenbasis premise or general non-Hermitian largest-eigenvalue claim is inferred.",
+      "status": "accepted-within-declared-scope",
+      "source_meaning": "All events/expectations use the same probability law; matrix exponential and ordinary trace have spectral meanings; λmax has no absolute value and is not the operator norm. Source self-adjointness may be AE.",
+      "reconstructed_meaning": "Decoder retains one μ, literal sSup on exceptional points, matrix multiplication in all powers, unnormalized trace, inclusive event, integral-before-infimum order and AE-domain interpretation."
+    },
+    "constant_dependencies": {
+      "original": "The probability bridge has no dimension prefactor or extra universal constant; dimension enters through the unnormalized trace.",
+      "reconstructed": "Decoder states there is no selected constant, no explicit added dimension factor and no minimizer, while an approximately optimizing s can depend on t and the law/dimension.",
+      "relation": "same",
+      "evidence": "Tropp Prop3.1 has no d prefactor; decoder output1 Constant-dependencies; P RHS has only exp(-st) and trace-exponential integral. Independent-sum MGF/variance/Bernstein constants are outside this statement.",
+      "status": "accepted-within-declared-scope",
+      "source_meaning": "The probability bridge has no dimension prefactor or extra universal constant; dimension enters through the unnormalized trace.",
+      "reconstructed_meaning": "Decoder states there is no selected constant, no explicit added dimension factor and no minimizer, while an approximately optimizing s can depend on t and the law/dimension."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "scope_boundary": "This packet proves the real extended-expectation Laplace-tail reduction and its private finite-Bochner-expectation application to all four literal signed Gaussian sums. It does not bound their trace MGF, prove Lieb/independent-sum master-tail or Bernstein, close C6/Lemma4.4 or either main lower bound, or supply the strict-norm union bridge, oracle/TV/precision/query-cap/expected-cost adapters. Main/site/global graph integration, purification and whole-Goal acceptance remain separate.",
+  "publication_binding_sha256": "159708e68a0601d85a6081464aa654ea80b7b58cbf0fa41ac697a03fcd8e4346",
+  "publication_context": {
+    "file": "4924fede99548f6aab4f63605d2beed9dc435d6338a61d89ee301d9e83733749",
+    "current_lean_module": "import Mathlib.Analysis.CStarAlgebra.Matrix\nimport Mathlib.Analysis.Matrix.HermitianFunctionalCalculus\nimport Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.ExpLog.Basic\nimport Mathlib.MeasureTheory.Integral.Lebesgue.Markov\nimport Mathlib.MeasureTheory.Measure.Typeclasses.Probability\nimport Mathlib.MeasureTheory.Function.StronglyMeasurable.AEStronglyMeasurable\n\n/-! Real finite-dimensional specialization of Tropp, Proposition 3.1\n(author preprint, pp. 9–10). The trace is unnormalized and the largest\neigenvalue is algebraic, rather than the operator norm. The scalar expectation\nis an extended nonnegative integral, so positive parameters with infinite\nexpectation remain legitimate terms of the infimum. This domain completion\ndoes not assert existence of a Bochner matrix moment generating function. -/\n\nopen MeasureTheory Unitary\nopen scoped BigOperators Matrix.Norms.L2Operator ENNReal\n\nnoncomputable section\nuniverse u v\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail\n\nprivate lemma trace_exp_eq_sum\n    {ι : Type u} [Fintype ι] [DecidableEq ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) (s : ℝ) :\n    Matrix.trace (NormedSpace.exp (s • A)) =\n      ∑ i, Real.exp (s * hA.eigenvalues i) := by\n  have heq : cfc (fun x : ℝ => Real.exp (s * x)) A = NormedSpace.exp (s • A) := by\n    calc\n      _ = cfc Real.exp (s • A) :=\n        cfc_comp_const_mul s Real.exp A (by fun_prop) hA.isSelfAdjoint\n      _ = _ := CFC.real_exp_eq_normedSpace_exp\n        ((IsSelfAdjoint.all s).smul hA.isSelfAdjoint)\n  rw [← heq, hA.cfc_eq, Matrix.IsHermitian.cfc,\n    conjStarAlgAut_apply, Matrix.trace_mul_cycle, coe_star_mul_self,\n    one_mul, Matrix.trace_diagonal]\n  simp\n\nprivate lemma exp_max_eigenvalue_le_trace_exp\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) (s : ℝ) :\n    Real.exp (s * sSup (spectrum ℝ A)) ≤ Matrix.trace (NormedSpace.exp (s • A)) := by\n  rw [trace_exp_eq_sum A hA s]\n  have hmem : sSup (spectrum ℝ A) ∈ spectrum ℝ A := by\n    rw [hA.spectrum_real_eq_range_eigenvalues]\n    exact (Set.range_nonempty _).csSup_mem (Set.finite_range _)\n  rw [hA.spectrum_real_eq_range_eigenvalues] at hmem\n  obtain ⟨i, hi⟩ := hmem\n  rw [hA.spectrum_real_eq_range_eigenvalues, ← hi]\n  exact Finset.single_le_sum\n    (f := fun j => Real.exp (s * hA.eigenvalues j))\n    (fun j _ => Real.exp_nonneg _) (Finset.mem_univ i)\n\n/-- The matrix Laplace tail bound with AE Hermiticity and extended expectation.\nNo centering, independence, variance, or one-sided matrix cap is required. -/\ntheorem max_eigenvalue_tail_le_iInf_trace_exp\n    {Ω : Type v} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (X : Ω → Matrix ι ι ℝ)\n    (hX : AEStronglyMeasurable X μ)\n    (hherm : ∀ᵐ ω ∂μ, (X ω).IsHermitian)\n    (t : ℝ) :\n    μ {ω | t ≤ sSup (spectrum ℝ (X ω))} ≤\n      ⨅ s : {s : ℝ // 0 < s},\n        ENNReal.ofReal (Real.exp (-(s.val * t))) *\n          ∫⁻ ω, ENNReal.ofReal (Matrix.trace (NormedSpace.exp (s.val • X ω))) ∂μ := by\n  classical\n  apply le_iInf\n  intro s\n  let F : Ω → ℝ≥0∞ := fun ω =>\n    ENNReal.ofReal (Matrix.trace (NormedSpace.exp (s.val • X ω)))\n  have hcontExp : Continuous (NormedSpace.exp : Matrix ι ι ℝ → Matrix ι ι ℝ) :=\n    continuous_iff_continuousAt.mpr fun A =>\n      (NormedSpace.exp_analytic (𝕂 := ℝ) A).continuousAt\n  have hcontTrace : Continuous (Matrix.trace : Matrix ι ι ℝ → ℝ) :=\n    (Matrix.traceLinearMap ι ℝ ℝ).continuous_of_finiteDimensional\n  have hF : AEMeasurable F μ :=\n    ENNReal.measurable_ofReal.comp_aemeasurable\n      ((hcontTrace.comp hcontExp).comp_aestronglyMeasurable\n        (hX.const_smul s.val)).aemeasurable\n  have hinc : {ω | t ≤ sSup (spectrum ℝ (X ω))} ≤ᵐ[μ]\n      {ω | ENNReal.ofReal (Real.exp (s.val * t)) ≤ F ω} := by\n    filter_upwards [hherm] with ω hh ht\n    apply ENNReal.ofReal_le_ofReal\n    exact (Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_left ht s.property.le)).trans\n      (exp_max_eigenvalue_le_trace_exp _ hh s.val)\n  calc\n    _ ≤ μ {ω | ENNReal.ofReal (Real.exp (s.val * t)) ≤ F ω} := measure_mono_ae hinc\n    _ ≤ (∫⁻ ω, F ω ∂μ) / ENNReal.ofReal (Real.exp (s.val * t)) :=\n      meas_ge_le_lintegral_div hF\n        (by simp only [ne_eq, ENNReal.ofReal_eq_zero]; exact not_le.mpr (Real.exp_pos _))\n        ENNReal.ofReal_ne_top\n    _ = _ := by\n      rw [div_eq_mul_inv, ← ENNReal.ofReal_inv_of_pos (Real.exp_pos _), ← Real.exp_neg]\n      exact mul_comm _ _\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://tropp.caltech.edu/papers/Tro11-User-Friendly-preprint.pdf#page=9",
+      "edition": "Author preprint revised 15 June 2011; pinned PDF SHA256 f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+      "anchor": "Proposition 3.1 statement p9 and proof pp9–10; §§2.1–2.4 pp7–8; §3.1 expectation-domain caveat p9",
+      "label": "Tropp, matrix Laplace transform tail bound",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Joel A. Tropp, User-Friendly Tail Bounds for Sums of Random Matrices, author preprint revised 15 June 2011.",
+      "scope": "Real finite-dimensional specialization with a disclosed nonnegative scalar extended-expectation domain completion. Independently matched background; no explicit Tropp citation is supplied by the Gaussian paper."
+    },
+    "statement": "Let X be a self-adjoint random matrix on a probability space. For every real threshold t, its largest-eigenvalue upper-tail probability is bounded by infimum over positive s of exp(−st) times the expected unnormalized trace of exp(sX). The selected formal version restricts to finite nonempty real matrices, makes almost-sure measurability/self-adjointness explicit, and permits a nonnegative scalar extended expectation as a disclosed domain completion. Tropp §3.1 notes that the matrix MGF need not exist for every parameter; the completion does not claim that all matrix MGFs are finite.",
+    "formulae": [
+      {
+        "label": "Real extended-expectation Laplace tail",
+        "tex": "\\mu\\{\\lambda_{\\max}(X)\\ge t\\}\\le\\inf_{s>0}e^{-st}\\,\\overline{\\mathbb E}_{\\mu}\\operatorname{tr}e^{sX},\\qquad t\\in\\mathbb R."
+      }
+    ],
+    "assumptions": [
+      "Let \\((\\Omega,\\Sigma,\\mu)\\) be a probability space, let \\(\\mathcal I\\) be finite and nonempty, and let \\(X:\\Omega\\to\\operatorname{Mat}_{\\mathcal I}(\\mathbb R)\\) be almost-everywhere strongly measurable and self-adjoint almost everywhere. The threshold \\(t\\) is any real number.",
+      "\\(\\lambda_{\\max}\\) denotes the algebraically largest real eigenvalue on the self-adjoint domain; it is not the operator norm. The trace is the ordinary unnormalized trace, and \\(e^A\\) is the matrix-algebra power-series exponential.",
+      "The bar on \\(\\overline{\\mathbb E}\\) means a nonnegative scalar integral, permitted to be \\(+\\infty\\). The real coefficient \\(e^{-st}\\) is finite and strictly positive for every \\(s>0\\). This is an explicit domain completion of the source inequality, not a claim that the source defines ENNReal or that every matrix MGF exists as a Bochner integral.",
+      "Neither centering, independence, a norm cap nor a variance bound is a premise of the public theorem. Almost-everywhere event comparison handles the null exceptional self-adjoint set; no separate eigenbasis selector or general eigenvalue measurability theorem is claimed."
+    ],
+    "obligations": [
+      {
+        "id": "real-spectral-laplace-tail",
+        "label": "The real largest-eigenvalue trace-exponential tail reduction, with the disclosed scalar extended-expectation completion."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail.max_eigenvalue_tail_le_iInf_trace_exp",
+      "title": "Real matrix Laplace tail",
+      "statement": "The largest-eigenvalue tail is bounded by the optimized expected trace exponential.",
+      "formula": "\\mu\\{\\lambda_{\\max}(X)\\ge t\\}\\le\\inf_{s>0}e^{-st}\\,\\overline{\\mathbb E}_{\\mu}\\operatorname{tr}e^{sX},\\qquad t\\in\\mathbb R.",
+      "assumptions": [
+        "Let \\((\\Omega,\\Sigma,\\mu)\\) be a probability space, let \\(\\mathcal I\\) be finite and nonempty, and let \\(X:\\Omega\\to\\operatorname{Mat}_{\\mathcal I}(\\mathbb R)\\) be almost-everywhere strongly measurable and self-adjoint almost everywhere. The threshold \\(t\\) is any real number.",
+        "\\(\\lambda_{\\max}\\) denotes the algebraically largest real eigenvalue on the self-adjoint domain; it is not the operator norm. The trace is the ordinary unnormalized trace, and \\(e^A\\) is the matrix-algebra power-series exponential.",
+        "The bar on \\(\\overline{\\mathbb E}\\) means a nonnegative scalar integral, permitted to be \\(+\\infty\\). The real coefficient \\(e^{-st}\\) is finite and strictly positive for every \\(s>0\\). This is an explicit domain completion of the source inequality, not a claim that the source defines ENNReal or that every matrix MGF exists as a Bochner integral.",
+        "Neither centering, independence, a norm cap nor a variance bound is a premise of the public theorem. Almost-everywhere event comparison handles the null exceptional self-adjoint set; no separate eigenbasis selector or general eigenvalue measurability theorem is claimed.",
+        "For the private application let \\(d,q\\in\\mathbb N\\), \\(2q+1<d\\), \\(r=q+1\\), \\(\\Omega=(\\mathbb R^d)^r\\), and \\(\\mu=\\gamma_d^{\\otimes r}\\), with \\(\\gamma_d=N(0,I_d)\\). The case \\(q=0\\) remains included. Every mean and probability uses this original unconditional law.",
+        "For physical rows \\(i=1,\\ldots,d\\), set \\(\\alpha_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\alpha_i,\\ldots,\\sqrt2\\cos(q\\alpha_i))\\), \\(\\Phi_i=(\\omega_b(i))_{b=0}^q\\), and \\(L=2r+3\\log(1000d)\\). Lean represents physical row \\(i\\) by \\(i.val+1\\).",
+        "Set \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{\\|\\Phi_i\\|^2\\le L\\}}\\) and \\(Z_i=Y_i-\\mathbb E_\\mu Y_i\\). The cutoff includes equality and uses the same row; the paired index has Gaussian coordinate first, feature coordinate second. The matrices have size \\(r^2\\times r^2\\).",
+        "Choose either \\(w_i=1\\) or \\(w_i=\\cos((2q+1)\\alpha_i)\\), and either global sign \\(\\varepsilon\\in\\{-1,1\\}\\). The consumer handles all four matrices \\(S=\\varepsilon\\sum_iw_iZ_i\\), every \\(s>0\\) and every \\(a\\in\\mathbb R\\). Actual trace-exponential integrability and positivity are derived inside the proof. No equality of the laws or MGFs of \\(S\\) and \\(-S\\) is assumed."
+      ],
+      "reader_note": "The first three steps prove the public tail reduction. The last three apply it to all four literal signed Gaussian sums, deriving their finite trace expectations internally.",
+      "steps": [
+        {
+          "title": "One positive eigenvalue term is bounded by the trace",
+          "text": "Diagonalize a fixed real self-adjoint matrix. Functional calculus and cyclicity of the unnormalized trace identify the trace exponential with the sum of scalar exponentials. The finite nonempty real spectrum attains its largest element, and its positive exponential is one summand. This pointwise comparison holds for every real s; positivity of s is used later to compare threshold events.",
+          "formula": "\\operatorname{tr}e^{sA}=\\sum_{j\\in\\mathcal I}e^{s\\lambda_j(A)}\\ge e^{s\\lambda_{\\max}(A)}.",
+          "lean": "import Mathlib.Analysis.CStarAlgebra.Matrix\nimport Mathlib.Analysis.Matrix.HermitianFunctionalCalculus\nimport Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.ExpLog.Basic\nimport Mathlib.MeasureTheory.Integral.Lebesgue.Markov\nimport Mathlib.MeasureTheory.Measure.Typeclasses.Probability\nimport Mathlib.MeasureTheory.Function.StronglyMeasurable.AEStronglyMeasurable\n\n/-! Real finite-dimensional specialization of Tropp, Proposition 3.1\n(author preprint, pp. 9–10). The trace is unnormalized and the largest\neigenvalue is algebraic, rather than the operator norm. The scalar expectation\nis an extended nonnegative integral, so positive parameters with infinite\nexpectation remain legitimate terms of the infimum. This domain completion\ndoes not assert existence of a Bochner matrix moment generating function. -/\n\nopen MeasureTheory Unitary\nopen scoped BigOperators Matrix.Norms.L2Operator ENNReal\n\nnoncomputable section\nuniverse u v\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail\n\nprivate lemma trace_exp_eq_sum\n    {ι : Type u} [Fintype ι] [DecidableEq ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) (s : ℝ) :\n    Matrix.trace (NormedSpace.exp (s • A)) =\n      ∑ i, Real.exp (s * hA.eigenvalues i) := by\n  have heq : cfc (fun x : ℝ => Real.exp (s * x)) A = NormedSpace.exp (s • A) := by\n    calc\n      _ = cfc Real.exp (s • A) :=\n        cfc_comp_const_mul s Real.exp A (by fun_prop) hA.isSelfAdjoint\n      _ = _ := CFC.real_exp_eq_normedSpace_exp\n        ((IsSelfAdjoint.all s).smul hA.isSelfAdjoint)\n  rw [← heq, hA.cfc_eq, Matrix.IsHermitian.cfc,\n    conjStarAlgAut_apply, Matrix.trace_mul_cycle, coe_star_mul_self,\n    one_mul, Matrix.trace_diagonal]\n  simp\n\nprivate lemma exp_max_eigenvalue_le_trace_exp\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) (s : ℝ) :\n    Real.exp (s * sSup (spectrum ℝ A)) ≤ Matrix.trace (NormedSpace.exp (s • A)) := by\n  rw [trace_exp_eq_sum A hA s]\n  have hmem : sSup (spectrum ℝ A) ∈ spectrum ℝ A := by\n    rw [hA.spectrum_real_eq_range_eigenvalues]\n    exact (Set.range_nonempty _).csSup_mem (Set.finite_range _)\n  rw [hA.spectrum_real_eq_range_eigenvalues] at hmem\n  obtain ⟨i, hi⟩ := hmem\n  rw [hA.spectrum_real_eq_range_eigenvalues, ← hi]\n  exact Finset.single_le_sum\n    (f := fun j => Real.exp (s * hA.eigenvalues j))\n    (fun j _ => Real.exp_nonneg _) (Finset.mem_univ i)\n\n",
+          "lean_source_path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+          "lean_source": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+            "commit": "1d1103af694b9663a72b0d610004ed85c7c6b527",
+            "file_sha256": "4924fede99548f6aab4f63605d2beed9dc435d6338a61d89ee301d9e83733749",
+            "LF_lines_1based": [
+              1,
+              52
+            ],
+            "decoded_char_span": [
+              0,
+              2412
+            ],
+            "raw_UTF8_byte_span": [
+              0,
+              2463
+            ],
+            "span_convention": "Lines inclusive and 1-based; character/codepoint and UTF8-byte offsets 0-based half-open; newline bytes retained.",
+            "start_line_column0": [
+              1,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              53,
+              0
+            ],
+            "span_sha256": "76d21696a8a78be2606caa6b54b70eea44536eedf2bd01783fbce7ede6d60e2f",
+            "download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+            "download_filename": "MatrixLaplaceTail.lean"
+          },
+          "lean_download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+          "source_attribution": [
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 7,
+              "region": "§§2.1–2.3 spectrum, trace and scalar functional calculus",
+              "qualification": "Printed-page locator, not a claim about a PDF byte span."
+            },
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 10,
+              "region": "Prop3.1 proof: spectral mapping and largest eigenvalue versus trace",
+              "qualification": "Printed-page locator, not a claim about a PDF byte span."
+            }
+          ],
+          "scope": "public P"
+        },
+        {
+          "title": "Use the positive trace observable on the almost-sure domain",
+          "text": "Fix s>0. Continuity of the matrix exponential and trace makes their scalar composition almost-everywhere measurable. Outside the null exceptional set, λmax(X)≥t implies exp(st)≤tr exp(sX). Compare the event measures almost everywhere. This avoids assuming a measurable eigenbasis or replacing λmax by the norm.",
+          "formula": "\\{\\lambda_{\\max}(X)\\ge t\\}\\subseteq_{\\mu\\text{-a.e.}}\\{e^{st}\\le\\operatorname{tr}e^{sX}\\}.",
+          "lean": "/-- The matrix Laplace tail bound with AE Hermiticity and extended expectation.\nNo centering, independence, variance, or one-sided matrix cap is required. -/\ntheorem max_eigenvalue_tail_le_iInf_trace_exp\n    {Ω : Type v} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (X : Ω → Matrix ι ι ℝ)\n    (hX : AEStronglyMeasurable X μ)\n    (hherm : ∀ᵐ ω ∂μ, (X ω).IsHermitian)\n    (t : ℝ) :\n    μ {ω | t ≤ sSup (spectrum ℝ (X ω))} ≤\n      ⨅ s : {s : ℝ // 0 < s},\n        ENNReal.ofReal (Real.exp (-(s.val * t))) *\n          ∫⁻ ω, ENNReal.ofReal (Matrix.trace (NormedSpace.exp (s.val • X ω))) ∂μ := by\n  classical\n  apply le_iInf\n  intro s\n  let F : Ω → ℝ≥0∞ := fun ω =>\n    ENNReal.ofReal (Matrix.trace (NormedSpace.exp (s.val • X ω)))\n  have hcontExp : Continuous (NormedSpace.exp : Matrix ι ι ℝ → Matrix ι ι ℝ) :=\n    continuous_iff_continuousAt.mpr fun A =>\n      (NormedSpace.exp_analytic (𝕂 := ℝ) A).continuousAt\n  have hcontTrace : Continuous (Matrix.trace : Matrix ι ι ℝ → ℝ) :=\n    (Matrix.traceLinearMap ι ℝ ℝ).continuous_of_finiteDimensional\n  have hF : AEMeasurable F μ :=\n    ENNReal.measurable_ofReal.comp_aemeasurable\n      ((hcontTrace.comp hcontExp).comp_aestronglyMeasurable\n        (hX.const_smul s.val)).aemeasurable\n  have hinc : {ω | t ≤ sSup (spectrum ℝ (X ω))} ≤ᵐ[μ]\n      {ω | ENNReal.ofReal (Real.exp (s.val * t)) ≤ F ω} := by\n    filter_upwards [hherm] with ω hh ht\n    apply ENNReal.ofReal_le_ofReal\n    exact (Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_left ht s.property.le)).trans\n      (exp_max_eigenvalue_le_trace_exp _ hh s.val)\n",
+          "lean_source_path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+          "lean_source": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+            "commit": "1d1103af694b9663a72b0d610004ed85c7c6b527",
+            "file_sha256": "4924fede99548f6aab4f63605d2beed9dc435d6338a61d89ee301d9e83733749",
+            "LF_lines_1based": [
+              53,
+              85
+            ],
+            "decoded_char_span": [
+              2412,
+              4040
+            ],
+            "raw_UTF8_byte_span": [
+              2463,
+              4201
+            ],
+            "span_convention": "Lines inclusive and 1-based; character/codepoint and UTF8-byte offsets 0-based half-open; newline bytes retained.",
+            "start_line_column0": [
+              53,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              86,
+              0
+            ],
+            "span_sha256": "36fd0871a59d8b034befbf39c502c6ecfd26a40146d3537f27dd32158867b9bd",
+            "download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+            "download_filename": "MatrixLaplaceTail.lean"
+          },
+          "lean_download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+          "source_attribution": [
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 9,
+              "region": "Prop3.1 fixed positive parameter and Markov reduction",
+              "qualification": "Printed-page locator, not a claim about a PDF byte span."
+            },
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 10,
+              "region": "Prop3.1 trace domination",
+              "qualification": "Printed-page locator, not a claim about a PDF byte span."
+            }
+          ],
+          "scope": "public P"
+        },
+        {
+          "title": "Apply scalar Markov and take the positive-parameter infimum",
+          "text": "Apply nonnegative Markov to ofReal(tr exp(sX)) at the finite positive threshold exp(st). Divide by that threshold and rewrite its reciprocal as exp(−st). This combines the two elementary source comparisons by applying Markov directly to the trace exponential. Every s>0 gives a bound, so take their infimum. Infinite expectations remain valid terms and do not create a zero-times-infinity case.",
+          "formula": "\\mu\\{\\lambda_{\\max}(X)\\ge t\\}\\le e^{-st}\\overline{\\mathbb E}_\\mu\\operatorname{tr}e^{sX}\\quad(s>0).",
+          "lean": "  calc\n    _ ≤ μ {ω | ENNReal.ofReal (Real.exp (s.val * t)) ≤ F ω} := measure_mono_ae hinc\n    _ ≤ (∫⁻ ω, F ω ∂μ) / ENNReal.ofReal (Real.exp (s.val * t)) :=\n      meas_ge_le_lintegral_div hF\n        (by simp only [ne_eq, ENNReal.ofReal_eq_zero]; exact not_le.mpr (Real.exp_pos _))\n        ENNReal.ofReal_ne_top\n    _ = _ := by\n      rw [div_eq_mul_inv, ← ENNReal.ofReal_inv_of_pos (Real.exp_pos _), ← Real.exp_neg]\n      exact mul_comm _ _\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail\n",
+          "lean_source_path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+          "lean_source": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+            "commit": "1d1103af694b9663a72b0d610004ed85c7c6b527",
+            "file_sha256": "4924fede99548f6aab4f63605d2beed9dc435d6338a61d89ee301d9e83733749",
+            "LF_lines_1based": [
+              86,
+              96
+            ],
+            "decoded_char_span": [
+              4040,
+              4550
+            ],
+            "raw_UTF8_byte_span": [
+              4201,
+              4733
+            ],
+            "span_convention": "Lines inclusive and 1-based; character/codepoint and UTF8-byte offsets 0-based half-open; newline bytes retained.",
+            "start_line_column0": [
+              86,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              97,
+              0
+            ],
+            "span_sha256": "b3c0d1f139bbf292cc5fc53a83fd028fc7796f309f84be1de895a39b6398a1da",
+            "download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+            "download_filename": "MatrixLaplaceTail.lean"
+          },
+          "lean_download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+          "source_attribution": [
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 9,
+              "region": "Prop3.1 Markov bound and parameter optimization; §3.1 expectation caveat",
+              "qualification": "Printed-page locator, not a claim about a PDF byte span."
+            },
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 10,
+              "region": "Completion of Prop3.1 proof",
+              "qualification": "Printed-page locator, not a claim about a PDF byte span."
+            }
+          ],
+          "scope": "public P"
+        },
+        {
+          "title": "Keep the literal four Gaussian sums and their finite-dimensional semantics",
+          "text": "The application uses the original product Gaussian experiment, inclusive own-row truncation, actual unconditional means, both deterministic weights and both global signs. Its two private analytic helpers prove an exponential norm bound from a Hermitian norm bound and nonnegativity of the trace exponential by functional calculus. Their estimates are internal proof ingredients.",
+          "formula": "S=\\varepsilon\\sum_{i=1}^dw_iZ_i,\\quad w_i\\in\\{1,\\cos((2q+1)\\alpha_i)\\},\\quad\\varepsilon\\in\\{-1,1\\}.",
+          "lean": "import AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure\nimport Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap\n\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix.Norms.L2Operator MatrixOrder ENNReal\nnoncomputable section\nuniverse u\nnamespace AutoSamplingTheory.Tests.GaussianComplexityLaplaceTail\n\nprivate lemma hermitian_exp_norm_le\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) {C s : ℝ}\n    (hn : ‖A‖ ≤ C) (hs : 0 < s) :\n    ‖NormedSpace.exp (s • A)‖ ≤ Real.exp (s * C) := by\n  have heq : cfc (fun x : ℝ => Real.exp (s * x)) A = NormedSpace.exp (s • A) := by\n    calc\n      _ = cfc Real.exp (s • A) :=\n        cfc_comp_const_mul s Real.exp A (by fun_prop) hA.isSelfAdjoint\n      _ = _ := CFC.real_exp_eq_normedSpace_exp\n        ((IsSelfAdjoint.all s).smul hA.isSelfAdjoint)\n  rw [← heq]\n  apply norm_cfc_le (Real.exp_nonneg _)\n  intro x hx\n  rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]\n  exact Real.exp_le_exp.mpr (mul_le_mul_of_nonneg_left\n    ((Real.le_norm_self x).trans\n      ((IsometricContinuousFunctionalCalculus.norm_spectrum_le A hx hA.isSelfAdjoint).trans hn))\n    hs.le)\n\nprivate lemma hermitian_trace_exp_nonneg\n    {ι : Type u} [Fintype ι] [DecidableEq ι]\n    (A : Matrix ι ι ℝ) (hA : A.IsHermitian) (s : ℝ) :\n    0 ≤ Matrix.trace (NormedSpace.exp (s • A)) := by\n  have hSA := (IsSelfAdjoint.all s).smul hA.isSelfAdjoint\n  have hnonneg : (0 : Matrix ι ι ℝ) ≤ cfc Real.exp (s • A) :=\n    cfc_nonneg (fun x _ => Real.exp_nonneg x)\n  rw [CFC.real_exp_eq_normedSpace_exp hSA] at hnonneg\n  have hPSD : (NormedSpace.exp (s • A)).PosSemidef := by\n    simpa only [sub_zero] using Matrix.le_iff.mp hnonneg\n  exact hPSD.trace_nonneg\n\nprivate theorem actual_source_four_sums_laplace_tail :\n∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  ∀ s : ℝ, 0 < s → ∀ a : ℝ, ∀ useCos minus : Bool,\n    μ {ω | a ≤ sSup (spectrum ℝ (S useCos minus ω))} ≤\n      ENNReal.ofReal\n        (Real.exp (-(s * a)) *\n          ∫ ω, Matrix.trace (NormedSpace.exp (s • S useCos minus ω)) ∂μ)\n := by\n",
+          "lean_source_path": "Tests/GaussianComplexityLaplaceTail.lean",
+          "lean_source": {
+            "path": "Tests/GaussianComplexityLaplaceTail.lean",
+            "commit": "1d1103af694b9663a72b0d610004ed85c7c6b527",
+            "file_sha256": "9ecf723f0487ddf50cb1d7c3102ebc04b58c472e56d2b16b186d91bc91cc6aac",
+            "LF_lines_1based": [
+              1,
+              76
+            ],
+            "decoded_char_span": [
+              0,
+              3516
+            ],
+            "raw_UTF8_byte_span": [
+              0,
+              3721
+            ],
+            "span_convention": "Lines inclusive and 1-based; character/codepoint and UTF8-byte offsets 0-based half-open; newline bytes retained.",
+            "start_line_column0": [
+              1,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              77,
+              0
+            ],
+            "span_sha256": "1847f4ff9dd0ddb3efb4fa256f71a97ac72e86deacc8ad11964e9f40770f16ac",
+            "download_path": "downloads/lean/Tests/GaussianComplexityLaplaceTail.lean",
+            "download_filename": "GaussianComplexityLaplaceTail.lean"
+          },
+          "lean_download_path": "downloads/lean/Tests/GaussianComplexityLaplaceTail.lean",
+          "source_attribution": [
+            {
+              "origin": "PRIMARY",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A3.Ex85",
+              "anchor": "A3.Ex85",
+              "region": "Feature vectors and physical Gaussian rows"
+            },
+            {
+              "origin": "PRIMARY",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A3.Ex107",
+              "anchor": "A3.Ex107",
+              "region": "Literal truncated rank-one Kronecker matrices"
+            },
+            {
+              "origin": "PRIMARY",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p13.1",
+              "anchor": "A3.SS2.p13.1",
+              "region": "Actual centering"
+            },
+            {
+              "origin": "PRIMARY",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p15.2",
+              "anchor": "A3.SS2.p15.2",
+              "region": "Cosine-weighted concentration context"
+            },
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 7,
+              "region": "Scalar spectral functional calculus",
+              "qualification": "Printed-page locator, not a claim about a PDF byte span."
+            }
+          ],
+          "scope": "associated private T"
+        },
+        {
+          "title": "Reuse genuine source structure and radius to bound all four sums",
+          "text": "The canonical source-structure parent supplies measurability and Hermiticity under the original experiment; its own mean-integrability prerequisites are already proved in its dependency closure. The source-radius parent supplies the truncated matrix and actual mean bounds. Triangle and scalar norm inequalities give a finite uniform bound for each weighted signed sum. Independence and centering from the structure package are not used by this probability reduction.",
+          "formula": "\\rho=\\frac{2r(L+1)}d,\\qquad\\|Z_i\\|\\le\\rho,\\qquad\\|S\\|\\le d\\rho.",
+          "lean": "  classical\n  intro d q hq\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  letI : MeasurableSpace M := borel M\n  letI : BorelSpace M := ⟨rfl⟩\n  letI : IsProbabilityMeasure μ := by\n    dsimp only [μ]\n    infer_instance\n  change ∀ s : ℝ, 0 < s → ∀ a : ℝ, ∀ useCos minus : Bool,\n    μ {ω | a ≤ sSup (spectrum ℝ (S useCos minus ω))} ≤\n      ENNReal.ofReal (Real.exp (-(s * a)) *\n        ∫ ω, Matrix.trace (NormedSpace.exp (s • S useCos minus ω)) ∂μ)\n  have hstructure :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure\n      (d := d) (q := q) hq\n  change (∀ j : Fin d, Measurable (Z j)) ∧ iIndepFun Z μ ∧\n    (∀ j : Fin d, Integrable (Z j) μ) ∧\n    (∀ j : Fin d, (∫ ω, Z j ω ∂μ) = 0) ∧\n    (∀ j : Fin d, ∀ ω : Ω, (Z j ω).IsHermitian) at hstructure\n  rcases hstructure with ⟨hmeasZ, _, _, _, hhermZ⟩\n  have radius :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds\n      (d := d) (q := q) hq\n  change (∀ j : Fin d, ∀ ω : Ω, ‖Y j ω‖ ≤ 2 * r * L / (d : ℝ)) ∧\n    (∀ j : Fin d, ‖mean j‖ ≤ 2 * r / (d : ℝ)) at radius\n  have hd2 : 2 ≤ d := by omega\n  have hd2R : (2 : ℝ) ≤ (d : ℝ) := by exact_mod_cast hd2\n  have hdpos : (0 : ℝ) < d := by linarith\n  have hrpos : 0 < r := by dsimp only [r]; positivity\n  have hlog : 0 ≤ Real.log (1000 * (d : ℝ)) := Real.log_nonneg (by nlinarith)\n  have hLpos : 0 < L + 1 := by dsimp only [L]; nlinarith\n  have hnormZ (j : Fin d) (ω : Ω) : ‖Z j ω‖ ≤ ρ := by\n    change ‖Y j ω - mean j‖ ≤ ρ\n    calc\n      _ ≤ ‖Y j ω‖ + ‖mean j‖ := norm_sub_le _ _\n      _ ≤ 2 * r * L / (d : ℝ) + 2 * r / (d : ℝ) :=\n        add_le_add (radius.1 j ω) (radius.2 j)\n      _ = ρ := by dsimp only [ρ]; ring\n  have hw (useCos : Bool) (j : Fin d) : ‖w useCos j‖ ≤ 1 := by\n    by_cases h : useCos = true\n    · simpa only [w, if_pos h, Real.norm_eq_abs] using Real.abs_cos_le_one\n        (((2 * q + 1 : ℕ) : ℝ) * α j)\n    · simp only [w, if_neg h, norm_one, le_refl]\n  have hnormS (useCos minus : Bool) (ω : Ω) : ‖S useCos minus ω‖ ≤ (d : ℝ) * ρ := by\n    have hsign : ‖sign minus‖ = 1 := by cases minus <;> norm_num [sign]\n    change ‖sign minus • ∑ j : Fin d, w useCos j • Z j ω‖ ≤ _\n    rw [norm_smul, hsign, one_mul]\n    calc\n      _ ≤ ∑ j : Fin d, ‖w useCos j • Z j ω‖ := norm_sum_le _ _\n      _ ≤ ∑ _ : Fin d, ρ := Finset.sum_le_sum fun j _ => by\n        rw [norm_smul]\n        exact (mul_le_mul (hw useCos j) (hnormZ j ω) (norm_nonneg _) (by norm_num)).trans_eq\n          (one_mul _)\n      _ = (d : ℝ) * ρ := by simp\n  have hmeasS (useCos minus : Bool) : Measurable (S useCos minus) := by\n    exact (Finset.measurable_sum _ (fun j _ => (hmeasZ j).const_smul (w useCos j))).const_smul\n      (sign minus)\n  have hhermS (useCos minus : Bool) (ω : Ω) : (S useCos minus ω).IsHermitian := by\n    exact ((IsSelfAdjoint.all (sign minus)).smul\n      (isSelfAdjoint_sum _ fun j _ =>\n        (IsSelfAdjoint.all (w useCos j)).smul (hhermZ j ω).isSelfAdjoint)).isHermitian\n  intro s hs a useCos minus\n",
+          "lean_source_path": "Tests/GaussianComplexityLaplaceTail.lean",
+          "lean_source": {
+            "path": "Tests/GaussianComplexityLaplaceTail.lean",
+            "commit": "1d1103af694b9663a72b0d610004ed85c7c6b527",
+            "file_sha256": "9ecf723f0487ddf50cb1d7c3102ebc04b58c472e56d2b16b186d91bc91cc6aac",
+            "LF_lines_1based": [
+              77,
+              164
+            ],
+            "decoded_char_span": [
+              3516,
+              7836
+            ],
+            "raw_UTF8_byte_span": [
+              3721,
+              8377
+            ],
+            "span_convention": "Lines inclusive and 1-based; character/codepoint and UTF8-byte offsets 0-based half-open; newline bytes retained.",
+            "start_line_column0": [
+              77,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              165,
+              0
+            ],
+            "span_sha256": "b8dcbf06b4be18d74211c600bf29963d0ee15b4d730a1dff06468ed3420311c9",
+            "download_path": "downloads/lean/Tests/GaussianComplexityLaplaceTail.lean",
+            "download_filename": "GaussianComplexityLaplaceTail.lean"
+          },
+          "lean_download_path": "downloads/lean/Tests/GaussianComplexityLaplaceTail.lean",
+          "source_attribution": [
+            {
+              "origin": "PRIMARY",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A3.Ex111",
+              "anchor": "A3.Ex111",
+              "region": "Exact separate truncated-matrix norm and actual-mean norm estimates"
+            },
+            {
+              "origin": "PRIMARY",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A3.Ex112",
+              "anchor": "A3.Ex112",
+              "region": "Centered-matrix radius after subtracting the actual mean"
+            },
+            {
+              "origin": "PRIMARY",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p13.1",
+              "anchor": "A3.SS2.p13.1",
+              "region": "Centered matrices"
+            },
+            {
+              "origin": "PRIMARY",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p15.2",
+              "anchor": "A3.SS2.p15.2",
+              "region": "Bounded cosine weighting"
+            }
+          ],
+          "scope": "associated private T"
+        },
+        {
+          "title": "Prove the actual trace expectation finite and apply the public theorem",
+          "text": "For each fixed positive s, functional calculus and the uniform bound yield ||exp(sS)||≤exp(sdρ). Hence the matrix exponential is Bochner integrable, and the continuous linear trace map gives scalar trace integrability. Its nonnegativity then converts the nonnegative integral to ofReal of the actual Bochner expectation. Specialize the public infimum at this s to obtain the four-family conclusion with no integrability premise added.",
+          "formula": "\\|e^{sS}\\|\\le e^{sd\\rho},\\quad\\operatorname{tr}e^{sS}\\ge0,\\quad\\mu\\{\\lambda_{\\max}(S)\\ge a\\}\\le e^{-sa}\\mathbb E_\\mu\\operatorname{tr}e^{sS}.",
+          "lean": "  have hcontExp : Continuous (NormedSpace.exp : M → M) :=\n    continuous_iff_continuousAt.mpr fun A =>\n      (NormedSpace.exp_analytic (𝕂 := ℝ) A).continuousAt\n  have hintExp : Integrable (fun ω => NormedSpace.exp (s • S useCos minus ω)) μ := by\n    apply Integrable.of_bound\n      (hcontExp.comp_aestronglyMeasurable\n        ((hmeasS useCos minus).aestronglyMeasurable.const_smul s))\n      (Real.exp (s * ((d : ℝ) * ρ)))\n    exact ae_of_all _ fun ω => hermitian_exp_norm_le _ (hhermS useCos minus ω)\n      (hnormS useCos minus ω) hs\n  have hintTrace : Integrable\n      (fun ω => Matrix.trace (NormedSpace.exp (s • S useCos minus ω))) μ :=\n    (Matrix.traceLinearMap _ ℝ ℝ).toContinuousLinearMap.integrable_comp hintExp\n  have htraceNonneg : ∀ᵐ ω ∂μ,\n      0 ≤ Matrix.trace (NormedSpace.exp (s • S useCos minus ω)) :=\n    ae_of_all _ fun ω => hermitian_trace_exp_nonneg _ (hhermS useCos minus ω) s\n  have htail :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail.max_eigenvalue_tail_le_iInf_trace_exp\n      μ (S useCos minus) (hmeasS useCos minus).aestronglyMeasurable\n      (ae_of_all _ (hhermS useCos minus)) a\n  calc\n    _ ≤ ENNReal.ofReal (Real.exp (-(s * a))) *\n        ∫⁻ ω, ENNReal.ofReal (Matrix.trace (NormedSpace.exp (s • S useCos minus ω))) ∂μ :=\n      htail.trans (iInf_le _ (⟨s, hs⟩ : {x : ℝ // 0 < x}))\n    _ = _ := by\n      rw [← ofReal_integral_eq_lintegral_ofReal hintTrace htraceNonneg,\n        ← ENNReal.ofReal_mul (Real.exp_nonneg _)]\n\nend AutoSamplingTheory.Tests.GaussianComplexityLaplaceTail\n",
+          "lean_source_path": "Tests/GaussianComplexityLaplaceTail.lean",
+          "lean_source": {
+            "path": "Tests/GaussianComplexityLaplaceTail.lean",
+            "commit": "1d1103af694b9663a72b0d610004ed85c7c6b527",
+            "file_sha256": "9ecf723f0487ddf50cb1d7c3102ebc04b58c472e56d2b16b186d91bc91cc6aac",
+            "LF_lines_1based": [
+              165,
+              193
+            ],
+            "decoded_char_span": [
+              7836,
+              9371
+            ],
+            "raw_UTF8_byte_span": [
+              8377,
+              9978
+            ],
+            "span_convention": "Lines inclusive and 1-based; character/codepoint and UTF8-byte offsets 0-based half-open; newline bytes retained.",
+            "start_line_column0": [
+              165,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              194,
+              0
+            ],
+            "span_sha256": "a0670ea02496fc78d42d9ceca49269a0386f1794109c8bd7b91636d223247bae",
+            "download_path": "downloads/lean/Tests/GaussianComplexityLaplaceTail.lean",
+            "download_filename": "GaussianComplexityLaplaceTail.lean"
+          },
+          "lean_download_path": "downloads/lean/Tests/GaussianComplexityLaplaceTail.lean",
+          "source_attribution": [
+            {
+              "origin": "INDEPENDENTLY_MATCHED_EXTERNAL_PRIMARY",
+              "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+              "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "printed_page": 9,
+              "region": "Prop3.1 fixed-parameter tail reduction",
+              "qualification": "Printed-page locator, not a claim about a PDF byte span."
+            },
+            {
+              "origin": "PRIMARY",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A3.Ex121",
+              "anchor": "A3.Ex121",
+              "region": "Source ordinary centered-sum strict norm tail context; complete strict-norm union bound remains outside this packet"
+            },
+            {
+              "origin": "PRIMARY",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p15.2",
+              "anchor": "A3.SS2.p15.2",
+              "region": "Weighted centered-sum tail context"
+            }
+          ],
+          "scope": "associated private T"
+        }
+      ],
+      "dependencies": [],
+      "mathlib_dependencies": [
+        "Matrix.IsHermitian.cfc_eq",
+        "Matrix.IsHermitian.spectrum_real_eq_range_eigenvalues",
+        "Matrix.trace_mul_cycle",
+        "Matrix.trace_diagonal",
+        "Set.Nonempty.csSup_mem",
+        "Finset.single_le_sum",
+        "NormedSpace.exp_analytic",
+        "MeasureTheory.measure_mono_ae",
+        "MeasureTheory.meas_ge_le_lintegral_div",
+        "ENNReal.ofReal_inv_of_pos",
+        "Real.exp_neg"
+      ],
+      "dependency_notes": "Public P has no ASTIS mathematical parent; its two private spectral helpers depend only on Mathlib. Private T directly calls P and the canonical actual_source_truncated_matrix_norm_bounds and actual_source_centered_matrix_structure. Its internal exponential bound is used only for integrability, not as a variance or Bernstein estimate. Its proof uses the actual finite Bochner expectation; no independent-sum MGF multiplication, Lieb theorem, operator monotonicity, or symmetry of signed laws is invoked.",
+      "lean_statement": "Exact finite nonempty real random-matrix signature, all real thresholds and every positive Laplace parameter; the literal private four-family signature is in step4.",
+      "lean_proof": "The six exact spans partition all96 public-module lines and all193 private-module lines, with imports, parameters and complete bodies retained from the frozen mathematical commit.",
+      "sources": [
+        {
+          "url": "https://tropp.caltech.edu/papers/Tro11-User-Friendly-preprint.pdf#page=9",
+          "edition": "Author preprint revised 15 June 2011; pinned PDF SHA256 f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+          "anchor": "Proposition 3.1 statement p9 and proof pp9–10; §§2.1–2.4 pp7–8; §3.1 expectation-domain caveat p9",
+          "label": "Tropp, matrix Laplace transform tail bound",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Joel A. Tropp, User-Friendly Tail Bounds for Sums of Random Matrices, author preprint revised 15 June 2011.",
+          "scope": "Real finite-dimensional specialization with a disclosed nonnegative scalar extended-expectation domain completion. Independently matched background; no explicit Tropp citation is supplied by the Gaussian paper."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+          "line": 55,
+          "label": "Exact public matrix Laplace-tail theorem",
+          "scope": "Exact complete public probability-tail theorem, with its matrix and measure semantics."
+        },
+        {
+          "path": "Tests/GaussianComplexityLaplaceTail.lean",
+          "line": 44,
+          "label": "Complete private four-family original-Gaussian application",
+          "scope": "Associated private original-Gaussian four-family consumer; no separate public node."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex85",
+          "label": "Feature and Gaussian row coordinates",
+          "scope": "Literal feature vectors and row coordinates used in the private consumer."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p1.2",
+          "label": "Original Gaussian law",
+          "scope": "Original unconditional product-Gaussian row experiment."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p4.1",
+          "label": "Midpoint angles",
+          "scope": "Physical-row midpoint angles used in the cosine weights and feature vectors."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p10.1",
+          "label": "Truncation threshold",
+          "scope": "Exact cutoff threshold L and physical-row squared norm."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex107",
+          "label": "Inclusive own-row truncation",
+          "scope": "Inclusive own-row truncated rank-one Kronecker definition."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p13.1",
+          "label": "Actual centering",
+          "scope": "Actual unconditional centering Zi=Yi−EYi."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex111",
+          "label": "Separate truncated-matrix and actual-mean norm estimates",
+          "scope": "Exact two source inputs reused through the canonical radius parent."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex112",
+          "label": "Radius inputs",
+          "scope": "Centered-matrix radius bound; the separate Y and actual-mean inputs are in Ex111."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex121",
+          "label": "Ordinary strict norm tail context",
+          "scope": "Source strict norm tail context; the complete two-sided norm/union bridge remains deferred."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p15.2",
+          "label": "Weighted concentration context",
+          "scope": "Cosine-weighted concentration context; the full Bernstein MGF/tail estimate remains deferred."
+        }
+      ],
+      "tests": [
+        "lake env lean AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+        "lake build AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail Tests.GaussianComplexityLaplaceTail"
+      ],
+      "astis_dependencies": []
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail.max_eigenvalue_tail_le_iInf_trace_exp",
+      "role": "proof-edge",
+      "supports": [
+        "real-spectral-laplace-tail"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "A self-adjoint random matrix; ordinary trace and largest algebraic eigenvalue.",
+        "lean": "Finite nonempty real matrices; AE Hermitian; sSup of the real spectrum; ordinary Matrix.trace and matrix-algebra exponential."
+      },
+      {
+        "source": "Probability and §2.2 standing regularity, with random-matrix relations understood almost surely.",
+        "lean": "IsProbabilityMeasure μ, AEStronglyMeasurable X μ and AE Hermiticity."
+      },
+      {
+        "source": "Prop3.1 expectation bound; §3.1 warns that some positive parameters can lack a matrix MGF.",
+        "lean": "A nonnegative scalar lintegral valued in ENNReal; no generic Bochner-integrability premise."
+      },
+      {
+        "source": "Every real t and infimum over positive real parameters.",
+        "lean": "t : ℝ and an iInf over {s : ℝ // 0<s}."
+      }
+    ]
+  },
+  "independent_scope_verdict": {
+    "accepted_scope": "Selected finite nonempty real matrix specialization with AE regularity and disclosed nonnegative scalar extended-expectation completion of the Laplace probability bridge.",
+    "not_accepted_as": [
+      "Literal identity with the full complex Tropp Proposition3.1",
+      "A claim that Tropp defines ENNReal or that every matrix Bochner MGF exists",
+      "Independent-sum MGF/master-tail/Bernstein or a two-sided operator-norm result"
+    ],
+    "raw_source_scope_deltas": [
+      {
+        "slot": "objects",
+        "type": "disclosed-real-specialization",
+        "blocking": false,
+        "detail": "Raw source convention is complex self-adjoint; selected formal carrier is real."
+      },
+      {
+        "slot": "domains",
+        "type": "disclosed-scalar-domain-completion",
+        "blocking": false,
+        "detail": "The formal nonnegative scalar expectation may be infinite; raw source regularity/MGF caveat is retained without attributing ENNReal to the author."
+      }
+    ]
+  },
+  "source_review_original_custody": {
+    "original_result": ".astis/semantic-neutral-20261114/laplace_fresh_source_8d2a/phase3_v3/P.source-review.json",
+    "portable_exact_result": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/source-review/laplace_fresh_source_8d2a/phase3_v4/P.source-review.json",
+    "portable_exact_run": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/source-review/laplace_fresh_source_8d2a/phase3_v4/P.review-run.json",
+    "result_sha256": "0425d59cd747e381e2d163866f1c135e95b67d7f386cf04065566f4a037c81ae",
+    "copy_is_not_reauthored_reviewer_evidence": true
+  },
+  "reader_acceptance": "PENDING actual native browser and independent visual review; source review alone is not reader acceptance"
+}

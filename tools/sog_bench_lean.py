@@ -384,6 +384,21 @@ def run_submission(*, task: Path, stage_dir: Path, submission: Path,
     for name in ('Challenge.lean','config.json'):
         if (stage_dir/name).read_bytes()!=(task/'verifier'/name).read_bytes():
             raise ValueError('Trusted challenge/config does not match the current task')
+    return _run_bound_submission(identity=core['id'], binding_sha256=core['binding_sha256'],
+        packet_sha256=bench.sha((task/'operator.json').read_bytes()), stage_dir=stage_dir,
+        submission=submission, runtime=runtime, output=output)
+
+
+def _run_bound_submission(*, identity: str, binding_sha256: str, packet_sha256: str,
+                          stage_dir: Path, submission: Path, runtime: Path, output: Path) -> dict:
+    """Private transport for a caller-validated stage and immutable runtime.
+
+    Public callers must go through run_submission's current admission and
+    artifact checks. The only other caller generates sealed operator fixtures.
+    """
+    if sys.platform!='linux' or shutil.which('docker') is None:
+        raise RuntimeError('Linux Docker is required; never execute submitted Lean on the host')
+    if output.exists(): raise ValueError('A run evidence directory cannot be overwritten')
     # Stage and runtime are operator-controlled artifacts, NOT agent directories.
     # The bounded reader is reused, rather than reading a symlink/FIFO or an
     # unbounded file before transfer to the isolated process.
@@ -393,8 +408,8 @@ def run_submission(*, task: Path, stage_dir: Path, submission: Path,
         # Retain the selected attempt without claiming execution, acceptance or
         # a digest of bytes we intentionally did NOT read. Collection/runtime
         # failures must not silently disappear from a model-run denominator.
-        report={'schema_version':1,'id':core['id'],'binding_sha256':core['binding_sha256'],
-            'task_packet_sha256':bench.sha((task/'operator.json').read_bytes()),
+        report={'schema_version':1,'id':identity,'binding_sha256':binding_sha256,
+            'task_packet_sha256':packet_sha256,
             'policy_sha256':bench.sha(bench.encoded(p)),
             'runtime_receipt_sha256':bench.sha((runtime/'preparation.json').read_bytes()),
             'verifier_source_sha256_lf':bench.text_hash(Path(__file__)),
@@ -444,9 +459,9 @@ def run_submission(*, task: Path, stage_dir: Path, submission: Path,
     diagnostic=b''.join(chunks)[:p['limits']['diagnostic_bytes']]
     (output/'compiler-diagnostic.bin').write_bytes(diagnostic)
     kind=classify(proc.returncode,native,state,interrupted,phase)
-    report={'schema_version':1,'id':core['id'],'binding_sha256':core['binding_sha256'],
+    report={'schema_version':1,'id':identity,'binding_sha256':binding_sha256,
         'submission_sha256':bench.sha(raw),'policy_sha256':bench.sha(bench.encoded(p)),
-        'task_packet_sha256':bench.sha((task/'operator.json').read_bytes()),
+        'task_packet_sha256':packet_sha256,
         'runtime_receipt_sha256':bench.sha((runtime/'preparation.json').read_bytes()),
         'verifier_source_sha256_lf':bench.text_hash(Path(__file__)),
         'compiler_diagnostic_sha256':bench.sha(diagnostic),

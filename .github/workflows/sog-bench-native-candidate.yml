@@ -1,0 +1,58 @@
+name: Bench fixed candidate pre-admission
+on:
+  pull_request:
+    paths:
+      - 'tools/sog_bench_candidate_native.py'
+      - 'tools/tests/test_sog_bench_candidate_native.py'
+      - 'tools/bench/CheckStoppedWorkCandidate.lean'
+      - '.github/workflows/sog-bench-native-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sog-bench-native-candidate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  fixed-candidate:
+    # No candidate runtime execution on third-party forks.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check the sealed fixture and the public admission boundary
+        run: python -m unittest tools.tests.test_sog_bench_candidate_native
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache: false
+      - uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: false
+          test: false
+          use-mathlib-cache: true
+      - name: Match the elaborated trusted model definitions and theorem type
+        run: python tools/sog_bench_candidate_native.py check-local --build-imports --output .astis/sogb-035-local
+      - name: Prepare the existing pinned Docker, Landrun and Comparator stack
+        run: python tools/sog_bench_lean_native.py prepare --output .astis/lean-native-candidate
+      - name: Run only the fixed trusted reference and three rejection controls
+        run: >-
+          python tools/sog_bench_candidate_native.py verify
+          --runtime .astis/lean-native-candidate
+          --output .astis/native-candidate-sogb-035
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sogb-035-fixed-candidate-software-evidence
+          if-no-files-found: warn
+          path: |
+            .astis/lean-native-candidate/preparation-inputs.json
+            .astis/lean-native-candidate/preparation.json
+            .astis/native-candidate-sogb-035/
+          retention-days: 14

@@ -1,0 +1,325 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-de665b6b84701e2d",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "huanjian_gc_20261110_fixed_spectrum_variances",
+    "blind_decoder": "/root/decoder_9ca721",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "arxiv2610.20492v1-actual-gaussian-quadratic-variances",
+    "anchor": "S4.Thmtheorem5.p1.2; A3.SS3.p8.1/Ex148/Ex149/p8.2; standing S4 fixed-spectrum family. Ex25 variance clause is a separate private numerical application only.",
+    "original_text": "For the actual inverse-precision Gaussian, both quadratic observables are square integrable and have these exact variances and bounds. \\operatorname{Var}(\\|U\\|^2)=2\\sum_i\\lambda_i^{-2}\\le2M,\\qquad\\operatorname{Var}(Q(U))=2\\sum_i\\frac{\\cos^2(n\\theta_i)}{\\lambda_i^2}\\le2M\\le\\frac{2d}{\\sqrt\\kappa}. Fix \\(d\\in\\mathbb N\\), \\(d\\ge2\\), \\(\\kappa\\in\\mathbb R\\), \\(\\kappa\\ge2\\), and \\(n\\in\\mathbb N\\) with \\(1\\le n<d\\). Set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+((\\kappa-1)/2)\\cos\\theta_i\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean indexes by \\(i\\in\\mathrm{Fin}\\,d\\), using \\((i.\\mathrm{val}+1/2)\\pi/d\\). Let \\(U\\sim N(0,\\Lambda^{-1})\\) in standard real Euclidean space, \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\), and \\(M=\\mathbb E\\|U\\|^2\\). The Gaussian matrix argument is covariance; \\(\\Lambda\\) is precision. Coordinate independence, fourth moments, all square integrability, positivity and inverse identities are proved internally. Real variance is the standard centered second moment, with the displayed square integrability conclusions excluding its infinite-variance default-zero convention.",
+    "text_sha256": "d115e32649ff3b2ba4ea3cf5c06dcbbfb8357bc5667a22439150845260a60084"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumVariances.actual_diagonal_gaussian_quadratic_variances",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumVariances.lean",
+    "statement": "∀ {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)\n    (n : ℕ) (hn : 1 ≤ n) (hnd : n < d),\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n  MemLp (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) 2 μ ∧\n  MemLp Q 2 μ ∧\n  Var[fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2; μ] =\n    2 * ∑ i : Fin d, 1 / (eigenvalue i) ^ 2 ∧\n  Var[Q; μ] = 2 * ∑ i : Fin d, (Real.cos ((n : ℝ) * θ i)) ^ 2 / (eigenvalue i) ^ 2 ∧\n  Var[fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2; μ] ≤ 2 * M ∧\n  Var[Q; μ] ≤ 2 * M ∧\n  2 * M ≤ 2 * (d : ℝ) / Real.sqrt κ\n",
+    "statement_sha256": "e72c27e801f97a76f681608b09c9c7cc069c29e55b6adf837d95b54d480e33b8",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "# Anonymous mathematical reconstruction\n\nFor every natural number \\(d\\ge 2\\), every real number \\(\\kappa\\ge 2\\), and every natural number \\(n\\) satisfying \\(1\\le n<d\\), make the following definitions. Coordinates are indexed by \\(i\\in\\{0,1,\\ldots,d-1\\}\\), and all sums below run over precisely that index set.\n\nDefine\n\\[\n\\theta_i=\\frac{(i+\\tfrac12)\\pi}{d},\\qquad\n\\lambda_i=\\frac{\\kappa+1}{2}+\\frac{\\kappa-1}{2}\\cos\\theta_i,\n\\qquad\n\\Lambda=\\operatorname{diag}(\\lambda_0,\\ldots,\\lambda_{d-1}).\n\\]\nLet \\(\\mu\\) be the centered multivariate Gaussian measure on the usual real Euclidean space \\(\\mathbb R^d\\) with covariance matrix \\(\\Lambda^{-1}\\). In terms of the supplied definition, this is the image of the standard Gaussian under\n\\[\nz\\longmapsto (\\Lambda^{-1})^{1/2}z.\n\\]\nThe supplied matrix square root is the functional-calculus square root on the positive semidefinite domain and is zero outside that domain. Matrix and scalar inverses use their standard totalized conventions.\n\nFor \\(x=(x_0,\\ldots,x_{d-1})\\in\\mathbb R^d\\), set\n\\[\nS(x)=\\|x\\|^2=\\sum_{i=0}^{d-1}x_i^2,\n\\qquad\nQ(x)=\\sum_{i=0}^{d-1}\\cos(n\\theta_i)x_i^2,\n\\qquad\nM=\\int_{\\mathbb R^d}S(x)\\,d\\mu(x).\n\\]\nThe norm here is the usual Euclidean norm, and the displayed integral is the real Bochner integral.\n\nThen all of the following statements hold simultaneously:\n\n1. \\(S\\in L^2(\\mu)\\), including almost-everywhere strong measurability.\n2. \\(Q\\in L^2(\\mu)\\), including almost-everywhere strong measurability.\n3. \\(\\displaystyle \\operatorname{Var}_{\\mu}(S)=2\\sum_{i=0}^{d-1}\\frac{1}{\\lambda_i^2}\\).\n4. \\(\\displaystyle \\operatorname{Var}_{\\mu}(Q)=2\\sum_{i=0}^{d-1}\\frac{\\cos^2(n\\theta_i)}{\\lambda_i^2}\\).\n5. \\(\\operatorname{Var}_{\\mu}(S)\\le 2M\\).\n6. \\(\\operatorname{Var}_{\\mu}(Q)\\le 2M\\).\n7. \\(\\displaystyle 2M\\le \\frac{2d}{\\sqrt{\\kappa}}\\).\n\nHere \\(\\operatorname{Var}_{\\mu}(f)\\) has the supplied precise convention: take the extended nonnegative integral of the squared norm of \\(f-\\int f\\,d\\mu\\), then apply \\(\\mathrm{ENNReal.toReal}\\), which sends infinity to zero. The two explicit \\(L^2\\) assertions are part of the conclusion and establish finite variance for the observables at issue.\n\nThe quantifiers cover every admissible triple \\((d,\\kappa,n)\\); there are no existential parameters or additional hypotheses. The definitions are local to each such triple, and every displayed assertion uses those same definitions and the same measure. The angles depend on \\(d\\); the eigenvalues, matrix, measure, and \\(M\\) depend on \\((d,\\kappa)\\); \\(S\\) depends on its dimension; and \\(Q\\) depends on \\((d,n)\\). The sole numerical factor in the variance formulas and bounds is the explicit constant \\(2\\), independent of all parameters. No assertion about an original source's identity, wording, or correspondence is made.\n",
+    "text_sha256": "2762ba46ddfc0258fa0f7ca08ebabfba2dc404ece3477e23d0ae5f0e3543979a",
+    "decoder": "/root/decoder_9ca721",
+    "decoder_packet_sha256": "bdb84ebc873ad6436424aa02c1f38c8b13fdffe58759fd53daa1f1191503364b",
+    "decoder_run_sha256": "1c207b78dd35b87cc99db6c3ed0fabb4579afd36d7bc83138f398d0aed4a0612",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "72fa4768af87a32f8f5eb62eff4d47313dbd3f13f9bcc01d96e9cadb9b43e321",
+  "candidate_publication_context": {
+    "file": "a0cac62a7737a4412ca663638a0e5e077f7b3581bb3ce4aab85684326487ec30",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumExactMeans\nimport Mathlib.Probability.Moments.MGFAnalytic\nimport Mathlib.Probability.Distributions.Gaussian.HasGaussianLaw.Independence\n\n/-!\n# Actual diagonal Gaussian quadratic variances\n\nZhou--Suzuki arXiv:2610.20492v1, Appendix C.3, Ex148--149 and p8.2.\nFourth moments, square integrability and coordinate independence are proved\ninternally for the literal inverse-precision Gaussian. The private test uses\nboth quadratic variances in the numerical contrast variance bound of Ex25.\nThe full rotated sampling test and main lower bounds remain separate.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators ENNReal NNReal Topology\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGaussianMoments\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumExactMeans\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumVariances\n\nprivate theorem centered_gaussian_fourth (v : ℝ≥0) :\n    (∫ x : ℝ, x ^ 4 ∂gaussianReal 0 v) = 3 * (v : ℝ) ^ 2 := by\n  let f : ℝ → ℝ := fun t => Real.exp ((v : ℝ) * t ^ 2 / 2)\n  have hf (t : ℝ) : HasDerivAt f ((v : ℝ) * t * f t) t := by\n    convert ((((hasDerivAt_id t).pow 2).const_mul (v : ℝ)).div_const 2).exp using 1 <;>\n      (dsimp [f] <;> ring)\n  have h0 : deriv f = fun t => (v : ℝ) * t * f t := funext (fun t => (hf t).deriv)\n  have h1 : deriv (fun t => (v : ℝ) * t * f t) =\n      fun t => ((v : ℝ) + (v : ℝ) ^ 2 * t ^ 2) * f t := by\n    funext t\n    have hp := ((hasDerivAt_id t).const_mul (v : ℝ)).mul (hf t)\n    exact (hp.congr_deriv (by dsimp; ring)).deriv\n  have h2 : deriv (fun t => ((v : ℝ) + (v : ℝ) ^ 2 * t ^ 2) * f t) =\n      fun t => (3 * (v : ℝ) ^ 2 * t + (v : ℝ) ^ 3 * t ^ 3) * f t := by\n    funext t\n    have hp := ((hasDerivAt_const t (v : ℝ)).add\n      (((hasDerivAt_id t).pow 2).const_mul ((v : ℝ) ^ 2))).mul (hf t)\n    exact (hp.congr_deriv (by dsimp; ring)).deriv\n  have h3 : deriv (fun t => (3 * (v : ℝ) ^ 2 * t + (v : ℝ) ^ 3 * t ^ 3) * f t) =\n      fun t => (3 * (v : ℝ) ^ 2 + 6 * (v : ℝ) ^ 3 * t ^ 2 + (v : ℝ) ^ 4 * t ^ 4) * f t := by\n    funext t\n    have hp := (((hasDerivAt_id t).const_mul (3 * (v : ℝ) ^ 2)).add\n      (((hasDerivAt_id t).pow 3).const_mul ((v : ℝ) ^ 3))).mul (hf t)\n    exact (hp.congr_deriv (by dsimp; ring)).deriv\n  have hiter : iteratedDeriv 4 f = deriv (deriv (deriv (deriv f))) := by\n    rw [show (4 : ℕ) = 3 + 1 from rfl, iteratedDeriv_succ,\n      show (3 : ℕ) = 2 + 1 from rfl, iteratedDeriv_succ,\n      show (2 : ℕ) = 1 + 1 from rfl, iteratedDeriv_succ,\n      show (1 : ℕ) = 0 + 1 from rfl, iteratedDeriv_succ, iteratedDeriv_zero]\n  have hvalue : iteratedDeriv 4 f 0 = 3 * (v : ℝ) ^ 2 := by\n    rw [hiter, h0, h1, h2, h3]\n    simp [f]\n  have hmgf : mgf id (gaussianReal 0 v) = f := by\n    change mgf (fun x : ℝ => x) (gaussianReal 0 v) = _\n    simpa only [zero_mul, zero_add] using\n      (mgf_fun_id_gaussianReal (μ := 0) (v := v))\n  have hint : (0 : ℝ) ∈ interior (integrableExpSet id (gaussianReal 0 v)) := by\n    simp [integrableExpSet_id_gaussianReal]\n  have hm := iteratedDeriv_mgf_zero hint 4\n  rw [hmgf] at hm\n  exact hm.symm.trans hvalue\n\nprivate theorem centered_gaussian_square_L2 (v : ℝ≥0) :\n    MemLp (fun x : ℝ => x ^ 2) 2 (gaussianReal 0 v) := by\n  have hint : (0 : ℝ) ∈ interior (integrableExpSet id (gaussianReal 0 v)) := by\n    simp [integrableExpSet_id_gaussianReal]\n  have hi := integrable_pow_of_mem_interior_integrableExpSet hint 4\n  apply (memLp_two_iff_integrable_sq_norm (by fun_prop)).2\n  simpa only [Pi.pow_apply, id_eq, Real.norm_eq_abs, sq_abs, ← pow_mul] using hi\n\nprivate theorem centered_gaussian_square_variance (v : ℝ≥0) :\n    Var[fun x : ℝ => x ^ 2; gaussianReal 0 v] = 2 * (v : ℝ) ^ 2 := by\n  have hm2 : (∫ x : ℝ, x ^ 2 ∂gaussianReal 0 v) = (v : ℝ) := by\n    have hv := variance_id_gaussianReal (μ := 0) (v := v)\n    rw [variance_eq_integral (by fun_prop)] at hv\n    simpa only [integral_id_gaussianReal, sub_zero, id_eq] using hv\n  rw [variance_eq_sub (centered_gaussian_square_L2 v)]\n  change (∫ x : ℝ, (x ^ 2) ^ 2 ∂gaussianReal 0 v) -\n    (∫ x : ℝ, x ^ 2 ∂gaussianReal 0 v) ^ 2 = _\n  simp only [← pow_mul, hm2, centered_gaussian_fourth]\n  ring\n\ntheorem actual_diagonal_gaussian_quadratic_variances {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)\n    (n : ℕ) (hn : 1 ≤ n) (hnd : n < d) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n  MemLp (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) 2 μ ∧\n  MemLp Q 2 μ ∧\n  Var[fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2; μ] =\n    2 * ∑ i : Fin d, 1 / (eigenvalue i) ^ 2 ∧\n  Var[Q; μ] = 2 * ∑ i : Fin d, (Real.cos ((n : ℝ) * θ i)) ^ 2 / (eigenvalue i) ^ 2 ∧\n  Var[fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2; μ] ≤ 2 * M ∧\n  Var[Q; μ] ≤ 2 * M ∧\n  2 * M ≤ 2 * (d : ℝ) / Real.sqrt κ := by\n  classical\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) := multivariateGaussian 0 Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n  change MemLp (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) 2 μ ∧\n    MemLp Q 2 μ ∧\n    Var[fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2; μ] =\n      2 * ∑ i : Fin d, 1 / (eigenvalue i) ^ 2 ∧\n    Var[Q; μ] = 2 * ∑ i : Fin d, (Real.cos ((n : ℝ) * θ i)) ^ 2 / (eigenvalue i) ^ 2 ∧\n    Var[fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2; μ] ≤ 2 * M ∧\n    Var[Q; μ] ≤ 2 * M ∧ 2 * M ≤ 2 * (d : ℝ) / Real.sqrt κ\n  have heigenlower (i : Fin d) : 1 ≤ eigenvalue i := by\n    dsimp [eigenvalue]\n    have h := mul_nonneg (by linarith : 0 ≤ κ - 1)\n      (by linarith [Real.neg_one_le_cos (θ i)] : 0 ≤ 1 + Real.cos (θ i))\n    nlinarith\n  have heigenpos (i : Fin d) : 0 < eigenvalue i := by linarith [heigenlower i]\n  have heigenne (i : Fin d) : eigenvalue i ≠ 0 := ne_of_gt (heigenpos i)\n  have hΛpos : Λ.PosDef := Matrix.PosDef.diagonal heigenpos\n  have hinv : Λ⁻¹ = Matrix.diagonal (fun i => (eigenvalue i)⁻¹) := by\n    apply Matrix.inv_eq_left_inv\n    change Matrix.diagonal (fun i => (eigenvalue i)⁻¹) * Matrix.diagonal eigenvalue = 1\n    ext i j\n    by_cases hij : i = j\n    · subst j\n      simp [heigenne]\n    · simp [hij]\n  have hcoord (i : Fin d) :\n      MemLp (fun x : EuclideanSpace ℝ (Fin d) => (x i) ^ 2) 2 μ ∧\n      Var[fun x : EuclideanSpace ℝ (Fin d) => (x i) ^ 2; μ] =\n        2 * ((eigenvalue i)⁻¹) ^ 2 := by\n    have hentry : (Λ⁻¹ : Matrix (Fin d) (Fin d) ℝ) i i = (eigenvalue i)⁻¹ := by\n      rw [hinv]\n      simp\n    have hmp := measurePreserving_eval_multivariateGaussian\n      (μ := (0 : EuclideanSpace ℝ (Fin d))) hΛpos.inv.posSemidef (i := i)\n    simp only [PiLp.zero_apply, hentry] at hmp\n    have hnonneg : 0 ≤ (eigenvalue i)⁻¹ := inv_nonneg.mpr (heigenpos i).le\n    refine ⟨(centered_gaussian_square_L2 _).comp_measurePreserving hmp, ?_⟩\n    rw [hmp.variance_fun_comp (f := fun t : ℝ => t ^ 2) (by fun_prop),\n      centered_gaussian_square_variance,\n      Real.coe_toNNReal _ hnonneg]\n  have hjoint : HasGaussianLaw\n      (fun x : EuclideanSpace ℝ (Fin d) => fun i : Fin d => x i) μ := by\n    exact (IsGaussian.hasGaussianLaw_id (μ := μ)).map_equiv_fun\n      (PiLp.continuousLinearEquiv 2 ℝ (fun _ : Fin d => ℝ))\n  have hindep : iIndepFun (fun i : Fin d => fun x : EuclideanSpace ℝ (Fin d) => x i) μ := by\n    apply hjoint.iIndepFun_of_covariance_eq_zero\n    intro i j hij\n    rw [covariance_eval_multivariateGaussian hΛpos.inv.posSemidef, hinv]\n    simp [hij]\n  have hweighted (a : Fin d → ℝ) :\n      MemLp (fun x : EuclideanSpace ℝ (Fin d) => ∑ i : Fin d, a i * (x i) ^ 2) 2 μ ∧\n      Var[fun x : EuclideanSpace ℝ (Fin d) => ∑ i : Fin d, a i * (x i) ^ 2; μ] =\n        2 * ∑ i : Fin d, (a i) ^ 2 / (eigenvalue i) ^ 2 := by\n    have hl2 (i : Fin d) : MemLp (fun x : EuclideanSpace ℝ (Fin d) => a i * (x i) ^ 2) 2 μ :=\n      (hcoord i).1.const_mul _\n    refine ⟨memLp_finsetSum _ (fun i _ => hl2 i), ?_⟩\n    have hpair : Set.Pairwise (↑(Finset.univ : Finset (Fin d)))\n        (fun i j => IndepFun (fun x : EuclideanSpace ℝ (Fin d) => a i * (x i) ^ 2)\n          (fun x => a j * (x j) ^ 2) μ) := by\n      intro i _ j _ hij\n      exact (hindep.indepFun hij).comp\n        (φ := fun t : ℝ => a i * t ^ 2) (ψ := fun t : ℝ => a j * t ^ 2)\n        (by fun_prop) (by fun_prop)\n    have hv := IndepFun.variance_sum (fun i _ => hl2 i) hpair\n    have hfun : (∑ i : Fin d, fun x : EuclideanSpace ℝ (Fin d) => a i * (x i) ^ 2) =\n        (fun x => ∑ i : Fin d, a i * (x i) ^ 2) := by\n      funext x\n      simp only [Finset.sum_apply]\n    rw [hfun] at hv\n    rw [hv, Finset.mul_sum]\n    apply Finset.sum_congr rfl\n    intro i _\n    rw [variance_const_mul, (hcoord i).2, div_eq_mul_inv, inv_pow]\n    ring\n  have hnorm : (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) =\n      (fun x => ∑ i : Fin d, (x i) ^ 2) := funext EuclideanSpace.real_norm_sq_eq\n  have hnormw := hweighted (fun _ => 1)\n  simp only [one_mul, one_pow] at hnormw\n  rw [← hnorm] at hnormw\n  have hQw := hweighted (fun i => Real.cos ((n : ℝ) * θ i))\n  have hmean : M = ∑ i : Fin d, (eigenvalue i)⁻¹ :=\n    (actual_diagonal_gaussian_quadratic_means hd hκ n hn hnd).2.2.1\n  have hinvupper (i : Fin d) : (eigenvalue i)⁻¹ ≤ 1 :=\n    (inv_le_one₀ (heigenpos i)).2 (heigenlower i)\n  have hsqinv (i : Fin d) : 1 / (eigenvalue i) ^ 2 ≤ (eigenvalue i)⁻¹ := by\n    have hp : 0 ≤ (eigenvalue i)⁻¹ := inv_nonneg.mpr (heigenpos i).le\n    have h := mul_le_mul_of_nonneg_left (hinvupper i) hp\n    simpa only [div_eq_mul_inv, one_mul, inv_pow, pow_two, mul_one, mul_inv_rev] using h\n  have hcosbound (i : Fin d) :\n      (Real.cos ((n : ℝ) * θ i)) ^ 2 / (eigenvalue i) ^ 2 ≤ (eigenvalue i)⁻¹ := by\n    calc\n      _ ≤ 1 / (eigenvalue i) ^ 2 :=\n        div_le_div_of_nonneg_right (Real.cos_sq_le_one _) (sq_nonneg _)\n      _ ≤ _ := hsqinv i\n  have hnormbound : Var[fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2; μ] ≤ 2 * M := by\n    rw [hnormw.2, hmean]\n    exact mul_le_mul_of_nonneg_left (Finset.sum_le_sum (fun i _ => hsqinv i)) (by norm_num)\n  have hQbound : Var[Q; μ] ≤ 2 * M := by\n    rw [hQw.2, hmean]\n    exact mul_le_mul_of_nonneg_left (Finset.sum_le_sum (fun i _ => hcosbound i)) (by norm_num)\n  have hclosed := actual_diagonal_gaussian_exact_means hd hκ n hn hnd\n  let r : ℝ := (Real.sqrt κ - 1) / (Real.sqrt κ + 1)\n  have hm : M = ((d : ℝ) / Real.sqrt κ) *\n      ((1 - r ^ (2 * d)) / (1 + r ^ (2 * d))) := hclosed.2.2.1\n  have hsqrt : 1 < Real.sqrt κ := by\n    nlinarith [Real.sqrt_nonneg κ, Real.sq_sqrt (by linarith : 0 ≤ κ)]\n  have hr0 : 0 < r := div_pos (by linarith) (by linarith)\n  have hscale : 0 ≤ (d : ℝ) / Real.sqrt κ := div_nonneg (Nat.cast_nonneg _) (by linarith)\n  have hpow : 0 ≤ r ^ (2 * d) := pow_nonneg hr0.le _\n  have hden : 0 < 1 + r ^ (2 * d) := by positivity\n  have hMupper : M ≤ (d : ℝ) / Real.sqrt κ := by\n    rw [hm]\n    exact mul_le_of_le_one_right hscale ((div_le_one hden).2 (by linarith))\n  refine ⟨hnormw.1, hQw.1, hnormw.2, hQw.2, hnormbound, hQbound, ?_⟩\n  calc\n    2 * M ≤ 2 * ((d : ℝ) / Real.sqrt κ) := mul_le_mul_of_nonneg_left hMupper (by norm_num)\n    _ = 2 * (d : ℝ) / Real.sqrt κ := by ring\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumVariances\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A3.Ex148",
+      "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "S4.Thmtheorem5.p1.2; A3.SS3.p8.1/Ex148/Ex149/p8.2; standing S4 fixed-spectrum family. Ex25 variance clause is a separate private numerical application only.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+      "scope": "Actual diagonal quadratic variance identities/bounds; the private numerical contrast is not a claim of the full source sampling test."
+    },
+    "statement": "For the actual inverse-precision Gaussian, both quadratic observables are square integrable and have these exact variances and bounds. \\operatorname{Var}(\\|U\\|^2)=2\\sum_i\\lambda_i^{-2}\\le2M,\\qquad\\operatorname{Var}(Q(U))=2\\sum_i\\frac{\\cos^2(n\\theta_i)}{\\lambda_i^2}\\le2M\\le\\frac{2d}{\\sqrt\\kappa}. Fix \\(d\\in\\mathbb N\\), \\(d\\ge2\\), \\(\\kappa\\in\\mathbb R\\), \\(\\kappa\\ge2\\), and \\(n\\in\\mathbb N\\) with \\(1\\le n<d\\). Set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+((\\kappa-1)/2)\\cos\\theta_i\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean indexes by \\(i\\in\\mathrm{Fin}\\,d\\), using \\((i.\\mathrm{val}+1/2)\\pi/d\\). Let \\(U\\sim N(0,\\Lambda^{-1})\\) in standard real Euclidean space, \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\), and \\(M=\\mathbb E\\|U\\|^2\\). The Gaussian matrix argument is covariance; \\(\\Lambda\\) is precision. Coordinate independence, fourth moments, all square integrability, positivity and inverse identities are proved internally. Real variance is the standard centered second moment, with the displayed square integrability conclusions excluding its infinite-variance default-zero convention.",
+    "formulae": [
+      {
+        "label": "Actual Gaussian quadratic variances",
+        "tex": "\\operatorname{Var}(\\|U\\|^2)=2\\sum_i\\lambda_i^{-2}\\le2M,\\qquad\\operatorname{Var}(Q(U))=2\\sum_i\\frac{\\cos^2(n\\theta_i)}{\\lambda_i^2}\\le2M\\le\\frac{2d}{\\sqrt\\kappa}."
+      }
+    ],
+    "assumptions": [
+      "Fix \\(d\\in\\mathbb N\\), \\(d\\ge2\\), \\(\\kappa\\in\\mathbb R\\), \\(\\kappa\\ge2\\), and \\(n\\in\\mathbb N\\) with \\(1\\le n<d\\).",
+      "Set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+((\\kappa-1)/2)\\cos\\theta_i\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean indexes by \\(i\\in\\mathrm{Fin}\\,d\\), using \\((i.\\mathrm{val}+1/2)\\pi/d\\).",
+      "Let \\(U\\sim N(0,\\Lambda^{-1})\\) in standard real Euclidean space, \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\), and \\(M=\\mathbb E\\|U\\|^2\\). The Gaussian matrix argument is covariance; \\(\\Lambda\\) is precision.",
+      "Coordinate independence, fourth moments, all square integrability, positivity and inverse identities are proved internally. Real variance is the standard centered second moment, with the displayed square integrability conclusions excluding its infinite-variance default-zero convention."
+    ],
+    "obligations": [
+      {
+        "id": "actual-square-integrability",
+        "label": "Both actual quadratic observables belong to L2."
+      },
+      {
+        "id": "exact-quadratic-variances",
+        "label": "Both exact finite variance sums hold for the literal Gaussian."
+      },
+      {
+        "id": "variance-mean-bounds",
+        "label": "Both variances≤2M and2M≤2d/sqrtκ, with M the actual integral."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumVariances.actual_diagonal_gaussian_quadratic_variances",
+      "title": "Actual Gaussian quadratic variances",
+      "reader_note": "Exact variances and their upper bounds come first. The domain, formula proof and exact Lean are folded beside the statement.",
+      "statement": "For the actual inverse-precision Gaussian, both quadratic observables are square integrable and have these exact variances and bounds.",
+      "formula": "\\operatorname{Var}(\\|U\\|^2)=2\\sum_i\\lambda_i^{-2}\\le2M,\\qquad\\operatorname{Var}(Q(U))=2\\sum_i\\frac{\\cos^2(n\\theta_i)}{\\lambda_i^2}\\le2M\\le\\frac{2d}{\\sqrt\\kappa}.",
+      "assumptions": [
+        "Fix \\(d\\in\\mathbb N\\), \\(d\\ge2\\), \\(\\kappa\\in\\mathbb R\\), \\(\\kappa\\ge2\\), and \\(n\\in\\mathbb N\\) with \\(1\\le n<d\\).",
+        "Set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+((\\kappa-1)/2)\\cos\\theta_i\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean indexes by \\(i\\in\\mathrm{Fin}\\,d\\), using \\((i.\\mathrm{val}+1/2)\\pi/d\\).",
+        "Let \\(U\\sim N(0,\\Lambda^{-1})\\) in standard real Euclidean space, \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\), and \\(M=\\mathbb E\\|U\\|^2\\). The Gaussian matrix argument is covariance; \\(\\Lambda\\) is precision.",
+        "Coordinate independence, fourth moments, all square integrability, positivity and inverse identities are proved internally. Real variance is the standard centered second moment, with the displayed square integrability conclusions excluding its infinite-variance default-zero convention."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(U,Q,M\\)",
+          "text": "The actual Gaussian vector, cosine quadratic observable and its actual squared-norm mean.",
+          "formula": "U\\sim N(0,\\Lambda^{-1}),\\quad Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2,\\quad M=\\mathbb E\\|U\\|^2."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Establish the actual covariance and marginals",
+          "text": "The cosine bound gives each precision eigenvalue at least one. The inverse matrix is therefore the diagonal reciprocal spectrum, and is positive definite. Each coordinate projection preserves measure to the centered scalar Gaussian with variance the reciprocal eigenvalue.",
+          "formula": "1\\le\\lambda_i,\\qquad\\Lambda^{-1}=\\operatorname{diag}(\\lambda_i^{-1}),\\qquad U_i\\sim N(0,\\lambda_i^{-1}).",
+          "detail": "heigenlower/heigenpos/hinv discharge the literal covariance semantics. hmp is the actual coordinate pushforward, not a supplied law certificate.",
+          "lean": "  have heigenlower (i : Fin d) : 1 ≤ eigenvalue i := by\n    dsimp [eigenvalue]\n    have h := mul_nonneg (by linarith : 0 ≤ κ - 1)\n      (by linarith [Real.neg_one_le_cos (θ i)] : 0 ≤ 1 + Real.cos (θ i))\n    nlinarith\n  have heigenpos (i : Fin d) : 0 < eigenvalue i := by linarith [heigenlower i]\n  have heigenne (i : Fin d) : eigenvalue i ≠ 0 := ne_of_gt (heigenpos i)\n  have hΛpos : Λ.PosDef := Matrix.PosDef.diagonal heigenpos\n  have hinv : Λ⁻¹ = Matrix.diagonal (fun i => (eigenvalue i)⁻¹) := by\n    apply Matrix.inv_eq_left_inv\n    change Matrix.diagonal (fun i => (eigenvalue i)⁻¹) * Matrix.diagonal eigenvalue = 1\n    ext i j\n    by_cases hij : i = j\n    · subst j\n      simp [heigenne]\n    · simp [hij]\n"
+        },
+        {
+          "title": "Derive the fourth moment and the square variance",
+          "text": "Differentiate the scalar Gaussian moment generating function four times at zero. Its exponential integrability also supplies the fourth absolute moment and hence square integrability of the square. The second moment follows from the standard scalar Gaussian variance and zero mean. Subtracting the squared second moment gives the square variance, including the zero variance scalar case.",
+          "formula": "\\mathbb E e^{tG}=e^{vt^2/2},\\quad\\mathbb E G^4=3v^2,\\quad\\mathbb E G^2=v,\\quad\\operatorname{Var}(G^2)=3v^2-v^2=2v^2.",
+          "detail": "The three private scalar providers use actual MGF derivatives and integrable powers. hcoord transfers both L2 and variance along the actual measure-preserving projection; no moment assumption is added.",
+          "lean": "private theorem centered_gaussian_fourth (v : ℝ≥0) :\n    (∫ x : ℝ, x ^ 4 ∂gaussianReal 0 v) = 3 * (v : ℝ) ^ 2 := by\n  let f : ℝ → ℝ := fun t => Real.exp ((v : ℝ) * t ^ 2 / 2)\n  have hf (t : ℝ) : HasDerivAt f ((v : ℝ) * t * f t) t := by\n    convert ((((hasDerivAt_id t).pow 2).const_mul (v : ℝ)).div_const 2).exp using 1 <;>\n      (dsimp [f] <;> ring)\n  have h0 : deriv f = fun t => (v : ℝ) * t * f t := funext (fun t => (hf t).deriv)\n  have h1 : deriv (fun t => (v : ℝ) * t * f t) =\n      fun t => ((v : ℝ) + (v : ℝ) ^ 2 * t ^ 2) * f t := by\n    funext t\n    have hp := ((hasDerivAt_id t).const_mul (v : ℝ)).mul (hf t)\n    exact (hp.congr_deriv (by dsimp; ring)).deriv\n  have h2 : deriv (fun t => ((v : ℝ) + (v : ℝ) ^ 2 * t ^ 2) * f t) =\n      fun t => (3 * (v : ℝ) ^ 2 * t + (v : ℝ) ^ 3 * t ^ 3) * f t := by\n    funext t\n    have hp := ((hasDerivAt_const t (v : ℝ)).add\n      (((hasDerivAt_id t).pow 2).const_mul ((v : ℝ) ^ 2))).mul (hf t)\n    exact (hp.congr_deriv (by dsimp; ring)).deriv\n  have h3 : deriv (fun t => (3 * (v : ℝ) ^ 2 * t + (v : ℝ) ^ 3 * t ^ 3) * f t) =\n      fun t => (3 * (v : ℝ) ^ 2 + 6 * (v : ℝ) ^ 3 * t ^ 2 + (v : ℝ) ^ 4 * t ^ 4) * f t := by\n    funext t\n    have hp := (((hasDerivAt_id t).const_mul (3 * (v : ℝ) ^ 2)).add\n      (((hasDerivAt_id t).pow 3).const_mul ((v : ℝ) ^ 3))).mul (hf t)\n    exact (hp.congr_deriv (by dsimp; ring)).deriv\n  have hiter : iteratedDeriv 4 f = deriv (deriv (deriv (deriv f))) := by\n    rw [show (4 : ℕ) = 3 + 1 from rfl, iteratedDeriv_succ,\n      show (3 : ℕ) = 2 + 1 from rfl, iteratedDeriv_succ,\n      show (2 : ℕ) = 1 + 1 from rfl, iteratedDeriv_succ,\n      show (1 : ℕ) = 0 + 1 from rfl, iteratedDeriv_succ, iteratedDeriv_zero]\n  have hvalue : iteratedDeriv 4 f 0 = 3 * (v : ℝ) ^ 2 := by\n    rw [hiter, h0, h1, h2, h3]\n    simp [f]\n  have hmgf : mgf id (gaussianReal 0 v) = f := by\n    change mgf (fun x : ℝ => x) (gaussianReal 0 v) = _\n    simpa only [zero_mul, zero_add] using\n      (mgf_fun_id_gaussianReal (μ := 0) (v := v))\n  have hint : (0 : ℝ) ∈ interior (integrableExpSet id (gaussianReal 0 v)) := by\n    simp [integrableExpSet_id_gaussianReal]\n  have hm := iteratedDeriv_mgf_zero hint 4\n  rw [hmgf] at hm\n  exact hm.symm.trans hvalue\n\nprivate theorem centered_gaussian_square_L2 (v : ℝ≥0) :\n    MemLp (fun x : ℝ => x ^ 2) 2 (gaussianReal 0 v) := by\n  have hint : (0 : ℝ) ∈ interior (integrableExpSet id (gaussianReal 0 v)) := by\n    simp [integrableExpSet_id_gaussianReal]\n  have hi := integrable_pow_of_mem_interior_integrableExpSet hint 4\n  apply (memLp_two_iff_integrable_sq_norm (by fun_prop)).2\n  simpa only [Pi.pow_apply, id_eq, Real.norm_eq_abs, sq_abs, ← pow_mul] using hi\n\nprivate theorem centered_gaussian_square_variance (v : ℝ≥0) :\n    Var[fun x : ℝ => x ^ 2; gaussianReal 0 v] = 2 * (v : ℝ) ^ 2 := by\n  have hm2 : (∫ x : ℝ, x ^ 2 ∂gaussianReal 0 v) = (v : ℝ) := by\n    have hv := variance_id_gaussianReal (μ := 0) (v := v)\n    rw [variance_eq_integral (by fun_prop)] at hv\n    simpa only [integral_id_gaussianReal, sub_zero, id_eq] using hv\n  rw [variance_eq_sub (centered_gaussian_square_L2 v)]\n  change (∫ x : ℝ, (x ^ 2) ^ 2 ∂gaussianReal 0 v) -\n    (∫ x : ℝ, x ^ 2 ∂gaussianReal 0 v) ^ 2 = _\n  simp only [← pow_mul, hm2, centered_gaussian_fourth]\n  ring\n"
+        },
+        {
+          "title": "Prove independence and sum the weighted square variances",
+          "text": "The whole coordinate vector is jointly Gaussian. Its distinct-coordinate covariances are zero because the actual covariance matrix is diagonal, so the coordinates are independent. Measurable weighted squaring preserves pairwise independence. Finite-sum L2 closure and independent variance addition give the formula for every real coordinate weight.",
+          "formula": "\\operatorname{Var}\\!\\left(\\sum_i a_iU_i^2\\right)=\\sum_i a_i^2\\operatorname{Var}(U_i^2)=2\\sum_i\\frac{a_i^2}{\\lambda_i^2}.",
+          "detail": "hjoint/hindep establish joint Gaussianity and actual independence. hpair uses measurable composition; hl2 supplies every finite-variance prerequisite to IndepFun.variance_sum. hfun identifies function-valued and pointwise sums exactly.",
+          "lean": "  have hcoord (i : Fin d) :\n      MemLp (fun x : EuclideanSpace ℝ (Fin d) => (x i) ^ 2) 2 μ ∧\n      Var[fun x : EuclideanSpace ℝ (Fin d) => (x i) ^ 2; μ] =\n        2 * ((eigenvalue i)⁻¹) ^ 2 := by\n    have hentry : (Λ⁻¹ : Matrix (Fin d) (Fin d) ℝ) i i = (eigenvalue i)⁻¹ := by\n      rw [hinv]\n      simp\n    have hmp := measurePreserving_eval_multivariateGaussian\n      (μ := (0 : EuclideanSpace ℝ (Fin d))) hΛpos.inv.posSemidef (i := i)\n    simp only [PiLp.zero_apply, hentry] at hmp\n    have hnonneg : 0 ≤ (eigenvalue i)⁻¹ := inv_nonneg.mpr (heigenpos i).le\n    refine ⟨(centered_gaussian_square_L2 _).comp_measurePreserving hmp, ?_⟩\n    rw [hmp.variance_fun_comp (f := fun t : ℝ => t ^ 2) (by fun_prop),\n      centered_gaussian_square_variance,\n      Real.coe_toNNReal _ hnonneg]\n  have hjoint : HasGaussianLaw\n      (fun x : EuclideanSpace ℝ (Fin d) => fun i : Fin d => x i) μ := by\n    exact (IsGaussian.hasGaussianLaw_id (μ := μ)).map_equiv_fun\n      (PiLp.continuousLinearEquiv 2 ℝ (fun _ : Fin d => ℝ))\n  have hindep : iIndepFun (fun i : Fin d => fun x : EuclideanSpace ℝ (Fin d) => x i) μ := by\n    apply hjoint.iIndepFun_of_covariance_eq_zero\n    intro i j hij\n    rw [covariance_eval_multivariateGaussian hΛpos.inv.posSemidef, hinv]\n    simp [hij]\n  have hweighted (a : Fin d → ℝ) :\n      MemLp (fun x : EuclideanSpace ℝ (Fin d) => ∑ i : Fin d, a i * (x i) ^ 2) 2 μ ∧\n      Var[fun x : EuclideanSpace ℝ (Fin d) => ∑ i : Fin d, a i * (x i) ^ 2; μ] =\n        2 * ∑ i : Fin d, (a i) ^ 2 / (eigenvalue i) ^ 2 := by\n    have hl2 (i : Fin d) : MemLp (fun x : EuclideanSpace ℝ (Fin d) => a i * (x i) ^ 2) 2 μ :=\n      (hcoord i).1.const_mul _\n    refine ⟨memLp_finsetSum _ (fun i _ => hl2 i), ?_⟩\n    have hpair : Set.Pairwise (↑(Finset.univ : Finset (Fin d)))\n        (fun i j => IndepFun (fun x : EuclideanSpace ℝ (Fin d) => a i * (x i) ^ 2)\n          (fun x => a j * (x j) ^ 2) μ) := by\n      intro i _ j _ hij\n      exact (hindep.indepFun hij).comp\n        (φ := fun t : ℝ => a i * t ^ 2) (ψ := fun t : ℝ => a j * t ^ 2)\n        (by fun_prop) (by fun_prop)\n    have hv := IndepFun.variance_sum (fun i _ => hl2 i) hpair\n    have hfun : (∑ i : Fin d, fun x : EuclideanSpace ℝ (Fin d) => a i * (x i) ^ 2) =\n        (fun x => ∑ i : Fin d, a i * (x i) ^ 2) := by\n      funext x\n      simp only [Finset.sum_apply]\n    rw [hfun] at hv\n    rw [hv, Finset.mul_sum]\n    apply Finset.sum_congr rfl\n    intro i _\n    rw [variance_const_mul, (hcoord i).2, div_eq_mul_inv, inv_pow]\n    ring\n"
+        },
+        {
+          "title": "Specialize and compare with the actual mean",
+          "text": "Choose all weights equal to one for the squared norm, then cosine weights for Q. Because each reciprocal eigenvalue lies in [0,1], its square is at most itself. Cosine squared is at most one. The canonical actual Gaussian mean theorem identifies the resulting reciprocal sum with M.",
+          "formula": "\\lambda_i^{-2}\\le\\lambda_i^{-1},\\quad\\cos^2(n\\theta_i)\\lambda_i^{-2}\\le\\lambda_i^{-1},\\quad M=\\sum_i\\lambda_i^{-1}.",
+          "detail": "hnorm and hweighted give both exact formulas and both MemLp2 outputs; hmean/hinvupper/hsqinv/hcosbound materially produce the two 2M comparisons.",
+          "lean": "  have hnorm : (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) =\n      (fun x => ∑ i : Fin d, (x i) ^ 2) := funext EuclideanSpace.real_norm_sq_eq\n  have hnormw := hweighted (fun _ => 1)\n  simp only [one_mul, one_pow] at hnormw\n  rw [← hnorm] at hnormw\n  have hQw := hweighted (fun i => Real.cos ((n : ℝ) * θ i))\n  have hmean : M = ∑ i : Fin d, (eigenvalue i)⁻¹ :=\n    (actual_diagonal_gaussian_quadratic_means hd hκ n hn hnd).2.2.1\n  have hinvupper (i : Fin d) : (eigenvalue i)⁻¹ ≤ 1 :=\n    (inv_le_one₀ (heigenpos i)).2 (heigenlower i)\n  have hsqinv (i : Fin d) : 1 / (eigenvalue i) ^ 2 ≤ (eigenvalue i)⁻¹ := by\n    have hp : 0 ≤ (eigenvalue i)⁻¹ := inv_nonneg.mpr (heigenpos i).le\n    have h := mul_le_mul_of_nonneg_left (hinvupper i) hp\n    simpa only [div_eq_mul_inv, one_mul, inv_pow, pow_two, mul_one, mul_inv_rev] using h\n  have hcosbound (i : Fin d) :\n      (Real.cos ((n : ℝ) * θ i)) ^ 2 / (eigenvalue i) ^ 2 ≤ (eigenvalue i)⁻¹ := by\n    calc\n      _ ≤ 1 / (eigenvalue i) ^ 2 :=\n        div_le_div_of_nonneg_right (Real.cos_sq_le_one _) (sq_nonneg _)\n      _ ≤ _ := hsqinv i\n  have hnormbound : Var[fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2; μ] ≤ 2 * M := by\n    rw [hnormw.2, hmean]\n    exact mul_le_mul_of_nonneg_left (Finset.sum_le_sum (fun i _ => hsqinv i)) (by norm_num)\n  have hQbound : Var[Q; μ] ≤ 2 * M := by\n    rw [hQw.2, hmean]\n    exact mul_le_mul_of_nonneg_left (Finset.sum_le_sum (fun i _ => hcosbound i)) (by norm_num)\n"
+        },
+        {
+          "title": "Use the closed mean for the dimension bound",
+          "text": "The existing exact mean formula gives the final upper bound independently of the variance calculation. Its geometric ratio is positive; the ratio displayed below is at most one. Square-root positivity and all denominator conditions follow internally from the original domain.",
+          "formula": "r=\\frac{\\sqrt\\kappa-1}{\\sqrt\\kappa+1},\\qquad M=\\frac d{\\sqrt\\kappa}\\frac{1-r^{2d}}{1+r^{2d}}\\le\\frac d{\\sqrt\\kappa}.",
+          "detail": "hclosed actually calls the canonical ExactMeans declaration; hm/hpow/hden/hMupper derive the mean upper bound without a new public premise.",
+          "lean": "  have hclosed := actual_diagonal_gaussian_exact_means hd hκ n hn hnd\n  let r : ℝ := (Real.sqrt κ - 1) / (Real.sqrt κ + 1)\n  have hm : M = ((d : ℝ) / Real.sqrt κ) *\n      ((1 - r ^ (2 * d)) / (1 + r ^ (2 * d))) := hclosed.2.2.1\n  have hsqrt : 1 < Real.sqrt κ := by\n    nlinarith [Real.sqrt_nonneg κ, Real.sq_sqrt (by linarith : 0 ≤ κ)]\n  have hr0 : 0 < r := div_pos (by linarith) (by linarith)\n  have hscale : 0 ≤ (d : ℝ) / Real.sqrt κ := div_nonneg (Nat.cast_nonneg _) (by linarith)\n  have hpow : 0 ≤ r ^ (2 * d) := pow_nonneg hr0.le _\n  have hden : 0 < 1 + r ^ (2 * d) := by positivity\n  have hMupper : M ≤ (d : ℝ) / Real.sqrt κ := by\n    rw [hm]\n    exact mul_le_of_le_one_right hscale ((div_le_one hden).2 (by linarith))\n  refine ⟨hnormw.1, hQw.1, hnormw.2, hQw.2, hnormbound, hQbound, ?_⟩\n  calc\n    2 * M ≤ 2 * ((d : ℝ) / Real.sqrt κ) := mul_le_mul_of_nonneg_left hMupper (by norm_num)\n    _ = 2 * (d : ℝ) / Real.sqrt κ := by ring\n"
+        },
+        {
+          "title": "Consume both variances in the actual contrast",
+          "text": "In the private numerical application, assume explicitly 0≤τ≤1/2 and put X=(−1)^nQ(U), N=‖U‖², Z=X−2τN. Both new L2 outputs give Z square integrable and justify covariance expansion. Positivity of Var(X+N), together with both 2M bounds, bounds the cross term. This is the centered L2/Young estimate at the common bound 2M; it yields the same factored upper estimate as the source triangle argument, without assuming X and N independent.",
+          "formula": "\\begin{gathered}-2\\operatorname{Cov}(X,N)\\le\\operatorname{Var}(X)+\\operatorname{Var}(N)\\le4M,\\\\\\operatorname{Var}(Z)\\le2M+8\\tau M+8\\tau^2M=2M(1+2\\tau)^2\\le8M.\\end{gathered}",
+          "detail": "The complete exact private Test module is folded here. hX/hZ use both L2 conclusions; hcross and htriangle use both 2M conclusions. The sign square is one. This explicit assumed τ domain is confined to a private non-Anchor numerical generalization: concrete query threshold, odd mode, rotated target law, mean separation and Chebyshev event remain outside this result.",
+          "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumVariances\n\n/-!\nActual consumer of both quadratic L2 results and both variance<=2M bounds.\nThis is a private numerical generalization of the variance clause of Ex25:\ntau is explicitly assumed to lie in [0,1/2]. It is not a public source Anchor,\na concrete query threshold, an orthogonally rotated law or a sampling lower\nbound. No independence between Q and norm squared is asserted or used.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumVariances\n\nprivate theorem actual_gaussian_contrast_variance_le {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)\n    (n : ℕ) (hn : 1 ≤ n) (hnd : n < d) (τ : ℝ) (hτ0 : 0 ≤ τ) (hτ1 : τ ≤ 1 / 2) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n  let Z : EuclideanSpace ℝ (Fin d) → ℝ := fun x => (-1 : ℝ) ^ n * Q x - 2 * τ * ‖x‖ ^ 2\n  MemLp Z 2 μ ∧ Var[Z; μ] ≤ 8 * M := by\n  classical\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) := multivariateGaussian 0 Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n  let N : EuclideanSpace ℝ (Fin d) → ℝ := fun x => ‖x‖ ^ 2\n  let X : EuclideanSpace ℝ (Fin d) → ℝ := fun x => (-1 : ℝ) ^ n * Q x\n  let Z : EuclideanSpace ℝ (Fin d) → ℝ := fun x => (-1 : ℝ) ^ n * Q x - 2 * τ * ‖x‖ ^ 2\n  change MemLp Z 2 μ ∧ Var[Z; μ] ≤ 8 * M\n  rcases actual_diagonal_gaussian_quadratic_variances hd hκ n hn hnd with\n    ⟨hN, hQ, _, _, hNbound, hQbound, _⟩\n  have hX : MemLp X 2 μ := hQ.const_mul _\n  have hZ : MemLp Z 2 μ := hX.sub (hN.const_mul (2 * τ))\n  have hsign : ((-1 : ℝ) ^ n) ^ 2 = 1 := by\n    rw [← pow_mul, Nat.mul_comm, pow_mul]\n    norm_num\n  have hXvar : Var[X; μ] = Var[Q; μ] := by\n    change Var[fun x => (-1 : ℝ) ^ n * Q x; μ] = _\n    rw [variance_const_mul, hsign, one_mul]\n  have hXbound : Var[X; μ] ≤ 2 * M := by rw [hXvar]; exact hQbound\n  have hM : 0 ≤ M := by linarith [variance_nonneg N μ]\n  -- Centered L2 estimate: positivity of Var(X+N) bounds the cross term.\n  -- Both L2 inputs are needed by variance_fun_add and variance_fun_sub.\n  have hcross : -2 * cov[X, N; μ] ≤ 4 * M := by\n    have h := variance_nonneg (fun x => X x + N x) μ\n    rw [variance_fun_add hX hN] at h\n    linarith\n  have hZvar : Var[Z; μ] = Var[X; μ] - 4 * τ * cov[X, N; μ] +\n      4 * τ ^ 2 * Var[N; μ] := by\n    have h := variance_fun_sub hX (hN.const_mul (2 * τ))\n    rw [variance_const_mul (2 * τ) N μ,\n      covariance_const_mul_right (2 * τ)] at h\n    change Var[Z; μ] = _ at h\n    rw [h]\n    ring\n  have htriangle : Var[Z; μ] ≤ 2 * M * (1 + 2 * τ) ^ 2 := by\n    calc\n      _ = Var[X; μ] + (2 * τ) * (-2 * cov[X, N; μ]) +\n          (4 * τ ^ 2) * Var[N; μ] := by rw [hZvar]; ring\n      _ ≤ 2 * M + (2 * τ) * (4 * M) + (4 * τ ^ 2) * (2 * M) := by\n        exact add_le_add\n          (add_le_add hXbound (mul_le_mul_of_nonneg_left hcross (by positivity)))\n          (mul_le_mul_of_nonneg_left hNbound (by positivity))\n      _ = _ := by ring\n  have hτsq : (1 + 2 * τ) ^ 2 ≤ 4 := by nlinarith\n  refine ⟨hZ, htriangle.trans ?_⟩\n  calc\n    2 * M * (1 + 2 * τ) ^ 2 ≤ 2 * M * 4 :=\n      mul_le_mul_of_nonneg_left hτsq (by positivity)\n    _ = 8 * M := by ring\n"
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGaussianMoments.actual_diagonal_gaussian_quadratic_means",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumExactMeans.actual_diagonal_gaussian_exact_means"
+      ],
+      "mathlib_dependencies": [
+        "iteratedDeriv_mgf_zero",
+        "mgf_fun_id_gaussianReal",
+        "integrable_pow_of_mem_interior_integrableExpSet",
+        "memLp_two_iff_integrable_sq_norm",
+        "variance_id_gaussianReal",
+        "variance_eq_sub",
+        "measurePreserving_eval_multivariateGaussian",
+        "MeasurePreserving.variance_fun_comp",
+        "HasGaussianLaw.iIndepFun_of_covariance_eq_zero",
+        "covariance_eval_multivariateGaussian",
+        "IndepFun.comp",
+        "IndepFun.variance_sum",
+        "memLp_finsetSum",
+        "variance_const_mul",
+        "variance_fun_add",
+        "variance_fun_sub"
+      ],
+      "lean_statement": "Exactly the sealed d≥2,κ≥2,Nat1≤n<d with literal actual Gaussian covariance Λ inverse. L2, both exact variances and all upper bounds are conclusions.",
+      "lean_proof": "Three actual scalar Gaussian moment providers, actual diagonal marginals/independence, genuine weighted-square finite variance addition, two comparisons to the actual mean, then canonical closed mean. Both L2 and both2M results are used by the private contrast.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex148",
+          "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S4.Thmtheorem5.p1.2; A3.SS3.p8.1/Ex148/Ex149/p8.2; standing S4 fixed-spectrum family. Ex25 variance clause is a separate private numerical application only.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+          "scope": "Actual diagonal quadratic variance identities/bounds; the private numerical contrast is not a claim of the full source sampling test.",
+          "label": "Zhou–Suzuki Appendix C.3 quadratic variance calculation"
+        },
+        {
+          "path": "Tests/GaussianComplexityFixedSpectrumVariances.lean",
+          "line": 16,
+          "label": "Complete Lean module of the private contrast variance application",
+          "scope": "Implementation context only; no additional public source Anchor or Registry node."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumVariances"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumVariances.actual_diagonal_gaussian_quadratic_variances",
+      "role": "proof-edge",
+      "supports": [
+        "actual-square-integrability",
+        "exact-quadratic-variances",
+        "variance-mean-bounds"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The fixed cosine hard family has d≥2,κ≥2 and integer1≤n<d.",
+        "lean": "Exactly d:Nat,hd:2≤d,κ:Real,hκ:2≤κ,n:Nat,hn:1≤n,hnd:n<d."
+      },
+      {
+        "source": "U is the actual centered Gaussian with covariance Λ inverse; norm squared and U-transpose D_n U are the observables.",
+        "lean": "Literal multivariateGaussian0 Λ inverse, Euclidean norm squared, and actual coordinate cosine quadratic."
+      },
+      {
+        "source": "Gaussian coordinate fourth moments and independence yield the two finite variance sums.",
+        "lean": "MGF-derived fourth moment, actual square L2 and zero-covariance jointly Gaussian independence; weighted square measurable composition and finite independent variance sum."
+      },
+      {
+        "source": "The two sums are bounded by2M, and the exact mean gives2M≤2d/sqrtκ.",
+        "lean": "Reciprocal/cosine square estimates and canonical actual mean plus exact closed mean."
+      },
+      {
+        "source": "Ex25 uses centered L2 triangle at the common2M bound for a concrete source threshold.",
+        "lean": "Private non-Anchor numerical consumer explicitly assumes real0≤τ≤1/2 and gives actual MemLp Z2 and VarZ≤8M using both new L2 and both2M bounds."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "ee286072f5ecae1a87e1d3ebb906aa0bca5a0d2ed3449f51806db3c30b0e1a32"
+}

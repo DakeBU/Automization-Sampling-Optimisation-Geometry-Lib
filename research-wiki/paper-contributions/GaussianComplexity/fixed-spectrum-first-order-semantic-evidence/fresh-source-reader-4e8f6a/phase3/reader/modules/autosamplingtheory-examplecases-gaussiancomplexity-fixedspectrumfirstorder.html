@@ -1,0 +1,96 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Exact module source</title><link rel="stylesheet" href="../assets/site.css"><link rel="stylesheet" href="../assets/proof-readers.css"><link rel="stylesheet" href="../assets/reader-contract-final.css"><link rel="stylesheet" href="../assets/textbook-math-contract.css">
+<style>body{margin:0;background:#f5f7fb;color:#17243a}main{max-width:1100px;margin:auto;padding:24px 28px 80px}.review-only{padding:14px 18px;background:#fff4cf;border:1px solid #d6ad32;border-radius:8px;margin-bottom:24px}.code-block{overflow:auto}.reader-main-equation{font-size:1.12rem}.module-links a{margin-right:1rem}details{margin-bottom:12px}pre code .line{display:block}a{overflow-wrap:anywhere}</style>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script src="../assets/math-reader.js"></script><script defer src="../assets/vendor/mathjax@3.2.2/tex-mml-chtml.js"></script><script defer src="../assets/site.js"></script></head><body><main id="content"><div class="review-only"><strong>Independent source review only</strong><br>Owned static artifact for immutable candidate 9d306d837fbddf1518b0035494baaf5c21c24488. This is not current canonical rootGate, deployed site, Chrome acceptance or publication approval.</div><p><a href="../index.html">Return to owned mathematical lesson</a></p><h1>AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder</h1><p>Exact complete checkout bytes; no code truncation.</p><p><a href="../downloads/lean/AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumFirstOrder.lean" download>Download exact module (.lean)</a></p><span id="decl-autosamplingtheory-examplecases-gaussiancomplexity-fixedspectrumfirstord-793b07fd5f"></span><pre class="code-block" id="complete-module-source"><code>import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility
+import Mathlib.Analysis.Calculus.Gradient.Basic
+import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Analysis.CStarAlgebra.Matrix
+import Mathlib.Analysis.InnerProductSpace.Calculus
+import Mathlib.Analysis.InnerProductSpace.Adjoint
+import Mathlib.Tactic.Ring
+
+open Matrix InnerProductSpace
+set_option autoImplicit false
+
+/-!
+# Actual fixed-spectrum first-order replies
+
+Zhou--Suzuki arXiv:2610.20492v1, Section2 Equation1, Section4.1
+Equation11 and the ordinary quadratic-calculus meaning in AppendixC.4.
+For the literal cosine-grid precision and every full real orthogonal O,
+the exact precision-matvec reply is the genuine Euclidean gradient.
+Derivative existence is produced before identifying the total gradient.
+The actual centered potential value is recovered from that same reply.
+
+The focused Test combines this result with the identical canonical same-O
+affine precision provider. No operational query count, adaptive transcript,
+Gaussian target/TV, finite-precision or expected-cost transport is asserted.
+The remaining C4 regularity/minimizer and both main bounds are separate.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder
+
+theorem actual_first_order_query {d : ℕ} (hd : 2 ≤ d)
+    {κ : ℝ} (hκ : 2 ≤ κ)
+    (O : Matrix.orthogonalGroup (Fin d) ℝ) :
+    let θ : Fin d → ℝ := fun i =&gt; ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+    let A : Matrix (Fin d) (Fin d) ℝ :=
+      (O : Matrix (Fin d) (Fin d) ℝ) *
+        Matrix.diagonal (fun i =&gt; (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *
+        (O : Matrix (Fin d) (Fin d) ℝ).transpose
+    let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =&gt;
+      (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2
+    let query : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=
+      fun x =&gt; WithLp.toLp 2 (A *ᵥ WithLp.ofLp x)
+    ∀ x : EuclideanSpace ℝ (Fin d),
+      HasGradientAt f (query x) x ∧
+      (f x, gradient f x) = (inner ℝ x (query x) / 2, query x) := by
+  classical
+  dsimp only
+  let θ : Fin d → ℝ := fun i =&gt; ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let A : Matrix (Fin d) (Fin d) ℝ :=
+    (O : Matrix (Fin d) (Fin d) ℝ) *
+      Matrix.diagonal (fun i =&gt; (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *
+      (O : Matrix (Fin d) (Fin d) ℝ).transpose
+  let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =&gt;
+    (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2
+  let query : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=
+    fun x =&gt; WithLp.toLp 2 (A *ᵥ WithLp.ofLp x)
+  let E := EuclideanSpace ℝ (Fin d)
+  let H : E →L[ℝ] E := Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) A
+  -- The actual family&#x27;s existing canonical producer supplies symmetry.
+  have hA : A.IsHermitian :=
+    (FixedSpectrumAdmissibility.actual_precision_admissible hd hκ O).1.1
+  have hself : IsSelfAdjoint A := hA
+  have hH : H.IsSymmetric :=
+    ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric.mp
+      (hself.map (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d)))
+  have hquery (x : E) : query x = H x := rfl
+  have hf : f = fun y : E =&gt; (1 / 2 : ℝ) * inner ℝ y (H y) := by
+    funext y
+    dsimp only [f]
+    rw [show inner ℝ y (H y) = (WithLp.ofLp y) ⬝ᵥ (A *ᵥ WithLp.ofLp y) from
+      Matrix.inner_toEuclideanCLM A y y]
+    ring
+  -- Differentiate the actual function and identify its Riesz functional.
+  have hgrad (y : E) : HasGradientAt f (H y) y := by
+    have hraw := ((hasFDerivAt_id y).inner ℝ H.hasFDerivAt).const_mul (1 / 2 : ℝ)
+    have hlin : (1 / 2 : ℝ) •
+        ((fderivInnerCLM ℝ (y, H y)).comp ((ContinuousLinearMap.id ℝ E).prod H)) =
+        toDual ℝ E (H y) := by
+      ext v
+      change (1 / 2 : ℝ) * (inner ℝ y (H v) + inner ℝ v (H y)) = inner ℝ (H y) v
+      rw [← hH.apply_clm y v, (real_inner_comm v (H y)).symm]
+      ring
+    apply hasGradientAt_iff_hasFDerivAt.mpr
+    rw [hf, ← hlin]
+    exact hraw
+  intro x
+  have hg : HasGradientAt f (query x) x := (hquery x).symm ▸ hgrad x
+  refine ⟨hg, Prod.ext ?_ hg.gradient⟩
+  change f x = inner ℝ x (query x) / 2
+  rw [hquery]
+  exact congrArg (fun t : ℝ =&gt; t / 2) (Matrix.inner_toEuclideanCLM A x x).symm
+
+end AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder
+</code></pre></main></body></html>

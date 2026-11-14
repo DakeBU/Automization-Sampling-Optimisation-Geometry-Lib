@@ -1,0 +1,53 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities
+import Mathlib.MeasureTheory.Measure.Haar.NormedSpace
+
+open MeasureTheory
+open scoped ENNReal
+
+example (n k : ℕ) : MeasurePreserving
+    (fun f : (Fin n × Fin k → ℝ) => fun j i => f (i,j)) volume volume := by
+  classical
+  let L : (Fin n × Fin k → ℝ) ≃ₗ[ℝ] (Fin k → Fin n → ℝ) :=
+    { toFun := fun f j i => f (i,j)
+      invFun := fun f ij => f ij.2 ij.1
+      left_inv := fun _ => rfl
+      right_inv := fun _ => rfl
+      map_add' := fun _ _ => rfl
+      map_smul' := fun _ _ => rfl }
+  have hLm : Measurable L := L.toContinuousLinearEquiv.continuous.measurable
+  have : Measure.IsAddHaarMeasure (volume : Measure (Fin n → ℝ)) := inferInstance
+  have : Measure.IsAddHaarMeasure (volume : Measure (Fin k → Fin n → ℝ)) :=
+    Measure.pi.isAddHaarMeasure (fun _ : Fin k => (volume : Measure (Fin n → ℝ)))
+  let : Measure.IsAddHaarMeasure
+      ((volume : Measure (Fin n × Fin k → ℝ)).map L) := inferInstance
+  have hc := Measure.isAddLeftInvariant_eq_smul
+    ((volume : Measure (Fin n × Fin k → ℝ)).map L)
+    (volume : Measure (Fin k → Fin n → ℝ))
+  have hflat : (volume : Measure (Fin n × Fin k → ℝ)) (Set.Icc 0 1) = 1 := by
+    simp [← Set.pi_univ_Icc, volume_pi_pi]
+  have hnested : (volume : Measure (Fin k → Fin n → ℝ)) (Set.Icc 0 1) = 1 := by
+    simp [← Set.pi_univ_Icc, volume_pi_pi]
+  have hpre : L ⁻¹' Set.Icc 0 1 = Set.Icc 0 1 := by
+    ext f
+    change ((∀ j i, 0 ≤ f (i,j)) ∧ (∀ j i, f (i,j) ≤ 1)) ↔
+      ((∀ ij, 0 ≤ f ij) ∧ (∀ ij, f ij ≤ 1))
+    constructor
+    · rintro ⟨h0,h1⟩
+      exact ⟨fun ij => h0 ij.2 ij.1, fun ij => h1 ij.2 ij.1⟩
+    · rintro ⟨h0,h1⟩
+      exact ⟨fun j i => h0 (i,j), fun j i => h1 (i,j)⟩
+  have heval := congrArg (fun M : Measure (Fin k → Fin n → ℝ) => M (Set.Icc 0 1)) hc
+  rw [Measure.map_apply hLm measurableSet_Icc, hpre, hflat,
+    Measure.smul_apply, hnested] at heval
+  have heval' : (1 : ℝ≥0∞) =
+      (((volume : Measure (Fin n × Fin k → ℝ)).map L).addHaarScalarFactor
+        (volume : Measure (Fin k → Fin n → ℝ)) : ℝ≥0∞) := by
+    simpa only [ENNReal.smul_def, smul_eq_mul, mul_one] using heval
+  have hc1 : ((volume : Measure (Fin n × Fin k → ℝ)).map L).addHaarScalarFactor
+      (volume : Measure (Fin k → Fin n → ℝ)) = 1 := ENNReal.coe_eq_one.mp heval'.symm
+  have hLfun : (L : (Fin n × Fin k → ℝ) → (Fin k → Fin n → ℝ)) =
+      (fun f j i => f (i,j)) := rfl
+  refine ⟨hLm, ?_⟩
+  rw [hc1, one_smul, hLfun] at hc
+  exact hc

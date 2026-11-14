@@ -1,0 +1,45 @@
+
+-/
+
+@[expose] public section
+
+open Filter Asymptotics ContinuousLinearMap Set Metric Topology NNReal ENNReal
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+
+noncomputable section TVS
+/-!
+## Definitions valid in an arbitrary topological vector space
+-/
+
+variable {E : Type*} [AddCommGroup E] [Module 𝕜 E] [TopologicalSpace E]
+variable {F : Type*} [AddCommGroup F] [Module 𝕜 F] [TopologicalSpace F]
+
+/-- A function `f` has the continuous linear map `f'` as derivative along the filter `L` if
+`f x₁ = f x₂ + f' (x₁ - x₂) + o (x₁ - x₂)` when `x = (x₁, x₂)` converges along the filter `L`.
+This definition is designed to be specialized
+
+- for `L = 𝓝 (x, x)` (in `HasStrictFDerivAt`),
+  giving rise to the derivative in the sense of strict differentiability;
+- for `L = 𝓝 x ×ˢ pure x` (in `HasFDerivAt`), giving rise to the usual notion of Fréchet derivative;
+- for `L = 𝓝[s] x ×ˢ pure x` (in `HasFDerivWithinAt`),
+  giving rise to the notion of Fréchet derivative along the set `s`.
+-/
+@[mk_iff hasFDerivAtFilter_iff_isLittleOTVS]
+structure HasFDerivAtFilter (f : E → F) (f' : E →L[𝕜] F) (L : Filter (E × E)) : Prop where
+  of_isLittleOTVS ::
+    isLittleOTVS : (fun p ↦ f p.1 - f p.2 - f' (p.1 - p.2)) =o[𝕜; L] (fun p ↦ p.1 - p.2)
+
+/-- A function `f` has the continuous linear map `f'` as derivative at `x` within a set `s` if
+`f x' = f x + f' (x' - x) + o (x' - x)` when `x'` tends to `x` inside `s`. -/
+@[fun_prop]
+def HasFDerivWithinAt (f : E → F) (f' : E →L[𝕜] F) (s : Set E) (x : E) :=
+  HasFDerivAtFilter f f' (𝓝[s] x ×ˢ pure x)
+
+/-- A function `f` has the continuous linear map `f'` as derivative at `x` if
+`f x' = f x + f' (x' - x) + o (x' - x)` when `x'` tends to `x`. -/
+@[fun_prop]
+def HasFDerivAt (f : E → F) (f' : E →L[𝕜] F) (x : E) :=
+  HasFDerivAtFilter f f' (𝓝 x ×ˢ pure x)
+
+/-- A function `f` has derivative `f'` at `a` in the sense of *strict differentiability*

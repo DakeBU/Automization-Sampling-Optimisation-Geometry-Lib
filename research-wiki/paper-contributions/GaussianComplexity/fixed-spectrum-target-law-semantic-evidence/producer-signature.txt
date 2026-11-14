@@ -1,0 +1,12 @@
+theorem actual_rotated_gaussian_target {d : ℕ} (hd : 2 ≤ d)
+    {κ : ℝ} (hκ : 2 ≤ κ) (O : Matrix.orthogonalGroup (Fin d) ℝ) :
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let Λ : Matrix (Fin d) (Fin d) ℝ :=
+    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))
+  let A : Matrix (Fin d) (Fin d) ℝ :=
+    (O : Matrix (Fin d) (Fin d) ℝ) * Λ *
+      (O : Matrix (Fin d) (Fin d) ℝ).transpose
+  let R : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=
+    fun z => WithLp.toLp 2 ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ WithLp.ofLp z)
+  (multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹).map R =
+    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹

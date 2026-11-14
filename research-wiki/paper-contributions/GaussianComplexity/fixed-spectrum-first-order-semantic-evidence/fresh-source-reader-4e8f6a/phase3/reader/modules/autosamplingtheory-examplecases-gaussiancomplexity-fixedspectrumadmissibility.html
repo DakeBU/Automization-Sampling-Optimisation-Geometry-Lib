@@ -1,0 +1,89 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Exact module source</title><link rel="stylesheet" href="../assets/site.css"><link rel="stylesheet" href="../assets/proof-readers.css"><link rel="stylesheet" href="../assets/reader-contract-final.css"><link rel="stylesheet" href="../assets/textbook-math-contract.css">
+<style>body{margin:0;background:#f5f7fb;color:#17243a}main{max-width:1100px;margin:auto;padding:24px 28px 80px}.review-only{padding:14px 18px;background:#fff4cf;border:1px solid #d6ad32;border-radius:8px;margin-bottom:24px}.code-block{overflow:auto}.reader-main-equation{font-size:1.12rem}.module-links a{margin-right:1rem}details{margin-bottom:12px}pre code .line{display:block}a{overflow-wrap:anywhere}</style>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script src="../assets/math-reader.js"></script><script defer src="../assets/vendor/mathjax@3.2.2/tex-mml-chtml.js"></script><script defer src="../assets/site.js"></script></head><body><main id="content"><div class="review-only"><strong>Independent source review only</strong><br>Owned static artifact for immutable candidate 9d306d837fbddf1518b0035494baaf5c21c24488. This is not current canonical rootGate, deployed site, Chrome acceptance or publication approval.</div><p><a href="../index.html">Return to owned mathematical lesson</a></p><h1>AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility</h1><p>Exact complete checkout bytes; no code truncation.</p><p><a href="../downloads/lean/AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumAdmissibility.lean" download>Download exact module (.lean)</a></p><span id="decl-autosamplingtheory-examplecases-gaussiancomplexity-fixedspectrumadmissib-1e0cd5a25d"></span><pre class="code-block" id="complete-module-source"><code>import Mathlib.Algebra.Order.Star.Real
+import Mathlib.LinearAlgebra.UnitaryGroup
+import Mathlib.LinearAlgebra.Matrix.PosDef
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+import Mathlib.Tactic.Linarith
+open Matrix
+set_option autoImplicit false
+/-!
+# Actual cosine-grid precision admissibility
+
+Zhou--Suzuki, arXiv:2610.20492v1, Eq11 and Lemma4.6. The literal
+cosine-grid precision is used for every full real orthogonal O, with exactly
+source d&gt;=2 and kappa&gt;=2. The two matrix differences are positive semidefinite
+in quadratic-form order, and positive definiteness is produced internally.
+The source dimension binder is deliberately retained even though the scalar
+cosine envelope and matrix bound proof work for every choice of angles.
+
+The actual inverse-precision Gaussian law-density consumer is in the focused
+Test and reuses the existing canonical GaussianPrecisionDensity leaf. No
+calculus, known-normalizer product, moment/Krylov, algorithm/TV/cost transport
+or main-lower-bound completion is asserted by this pointwise matrix result.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility
+theorem actual_precision_admissible {d : ℕ} (hd : 2 ≤ d)
+    {κ : ℝ} (hκ : 2 ≤ κ)
+    (O : Matrix.orthogonalGroup (Fin d) ℝ) :
+    let θ : Fin d → ℝ := fun i =&gt; ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+    let A : Matrix (Fin d) (Fin d) ℝ :=
+      (O : Matrix (Fin d) (Fin d) ℝ) *
+        Matrix.diagonal (fun i =&gt; (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *
+        (O : Matrix (Fin d) (Fin d) ℝ).transpose
+    A.PosDef ∧ (A - 1).PosSemidef ∧
+      (κ • (1 : Matrix (Fin d) (Fin d) ℝ) - A).PosSemidef := by
+  classical
+  let θ : Fin d → ℝ := fun i =&gt; ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let diagonalValue : Fin d → ℝ := fun i =&gt;
+    (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)
+  let U : Matrix (Fin d) (Fin d) ℝ := O
+  let L : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal diagonalValue
+  let A : Matrix (Fin d) (Fin d) ℝ := U * L * U.transpose
+  change A.PosDef ∧ (A - 1).PosSemidef ∧
+    (κ • (1 : Matrix (Fin d) (Fin d) ℝ) - A).PosSemidef
+  have hcoef : 0 ≤ (κ - 1) / 2 := by linarith
+  have hvalue (i : Fin d) : 1 ≤ diagonalValue i ∧ diagonalValue i ≤ κ := by
+    have hlo := mul_le_mul_of_nonneg_left (Real.neg_one_le_cos (θ i)) hcoef
+    have hhi := mul_le_mul_of_nonneg_left (Real.cos_le_one (θ i)) hcoef
+    dsimp only [diagonalValue]
+    constructor &lt;;&gt; nlinarith
+  have hO : U * U.transpose = 1 := by
+    simpa only [U] using
+      (Matrix.mem_orthogonalGroup_iff (n := Fin d) (R := ℝ)).mp O.property
+  have hstar : U.conjTranspose = U.transpose := by
+    ext i j
+    simp
+  have hdiaglo : Matrix.diagonal (fun i =&gt; diagonalValue i - 1) = L - 1 := by
+    ext i j
+    by_cases hij : i = j &lt;;&gt; simp [L, hij]
+  have hdiaghi : Matrix.diagonal (fun i =&gt; κ - diagonalValue i) = κ • 1 - L := by
+    ext i j
+    by_cases hij : i = j &lt;;&gt;
+      simp [L, hij, smul_eq_mul]
+  have hlow : (Matrix.diagonal (fun i =&gt; diagonalValue i - 1)).PosSemidef :=
+    Matrix.PosSemidef.diagonal (fun i =&gt; sub_nonneg.mpr (hvalue i).1)
+  have hhigh : (Matrix.diagonal (fun i =&gt; κ - diagonalValue i)).PosSemidef :=
+    Matrix.PosSemidef.diagonal (fun i =&gt; sub_nonneg.mpr (hvalue i).2)
+  have hloweq : U * Matrix.diagonal (fun i =&gt; diagonalValue i - 1) * U.transpose =
+      A - 1 := by
+    dsimp only [A]
+    rw [hdiaglo, Matrix.mul_sub, Matrix.sub_mul, Matrix.mul_one, hO]
+  have hhigheq : U * Matrix.diagonal (fun i =&gt; κ - diagonalValue i) * U.transpose =
+      κ • 1 - A := by
+    dsimp only [A]
+    rw [hdiaghi, Matrix.mul_sub, Matrix.sub_mul, Matrix.mul_smul,
+      Matrix.mul_one, Matrix.smul_mul, hO]
+  have hAlo : (A - 1).PosSemidef := by
+    rw [← hloweq]
+    simpa only [hstar] using hlow.mul_mul_conjTranspose_same U
+  have hAhi : (κ • (1 : Matrix (Fin d) (Fin d) ℝ) - A).PosSemidef := by
+    rw [← hhigheq]
+    simpa only [hstar] using hhigh.mul_mul_conjTranspose_same U
+  have hpos := Matrix.PosDef.posSemidef_add hAlo
+    (Matrix.PosDef.one : (1 : Matrix (Fin d) (Fin d) ℝ).PosDef)
+  exact ⟨by simpa only [sub_add_cancel] using hpos, hAlo, hAhi⟩
+end AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility
+</code></pre></main></body></html>

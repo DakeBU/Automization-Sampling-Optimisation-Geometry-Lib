@@ -1,0 +1,18 @@
+private theorem actual_gaussian_cosine_alias_series {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)
+    (n : ℕ) (hn : 1 ≤ n) (hnd : n < d) :
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)
+  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue
+  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=
+    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹
+  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>
+    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2
+  let r : ℝ := (Real.sqrt κ - 1) / (Real.sqrt κ + 1)
+  let a : ℤ → ℝ := fun k =>
+    if (2 * (d : ℤ)) ∣ k then (-1 : ℝ) ^ (k / (2 * (d : ℤ))) else 0
+  Summable (fun j : ℕ => (-r) ^ (j + 1) *
+    (a (((j + 1 : ℕ) : ℤ) - (n : ℤ)) + a (((j + 1 : ℕ) : ℤ) + (n : ℤ)))) ∧
+  Integrable Q μ ∧
+  (∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ) =
+    ((d : ℝ) / Real.sqrt κ) * ∑' j : ℕ, (-r) ^ (j + 1) *
+      (a (((j + 1 : ℕ) : ℤ) - (n : ℤ)) + a (((j + 1 : ℕ) : ℤ) + (n : ℤ)))

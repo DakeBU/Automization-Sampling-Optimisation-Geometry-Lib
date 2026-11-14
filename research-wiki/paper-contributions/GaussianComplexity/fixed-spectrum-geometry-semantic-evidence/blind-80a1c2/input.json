@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-be1d161ba7bcd793",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ),\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) *\n      Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n  ContDiff ℝ ∞ f ∧\n    (∀ x : EuclideanSpace ℝ (Fin d),\n      HasFDerivAt (gradient f) (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) A) x) ∧\n    StrongConvexOn (Set.univ : Set (EuclideanSpace ℝ (Fin d))) 1 f ∧\n    (∀ x y : EuclideanSpace ℝ (Fin d),\n      ‖gradient f x - gradient f y‖ ≤ κ * ‖x - y‖) ∧\n    f 0 = 0 ∧\n    (∀ x : EuclideanSpace ℝ (Fin d), IsMinOn f Set.univ x ↔ x = 0)\n",
+    "statement_sha256": "be1d161ba7bcd793361caac3ec131e76166116cd93b1636058b4f36195c7bb1d",
+    "compiled": true,
+    "approved_definition_context": [
+      "Fin d has values zero through d minus one; casts, halves, real division and cosine have their usual finite real meanings. All theta/A/f lets are literal definitions, not new quantified hypotheses.",
+      "Matrix.orthogonalGroup over real is the full real square orthogonal group: transpose is inverse in both orders and either determinant sign is allowed.",
+      "EuclideanSpace real (Fin d) is the real L2 coordinate space. WithLp.toLp2 and ofLp preserve coordinates. The continuous linear map associated to a matrix sends a vector to toLp2 of matrix times its coordinate vector.",
+      "ContDiff real infinity means globally continuous derivatives of every finite order, distinct from analytic omega. HasFDerivAt is genuine real Frechet derivative existence at the stated point.",
+      "gradient is the inverse Riesz image of the total Frechet derivative. Its conventional default at nondifferentiable points is not an existence witness; the assertion also includes global smoothness and the genuine derivative of the gradient.",
+      "StrongConvexOn univ with modulus one means convexity with Jensen correction a*b*norm(x-y)^2/2 for nonnegative a,b summing to one. The norm inequality shown is global Euclidean gradient Lipschitzness.",
+      "IsMinOn f univ x means f(x)<=f(y) for every y. Its biconditional with x=0 includes existence at0 and uniqueness, while the separate zero-value conjunct fixes the minimum value."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "c196feaa2f8da545f1e8774785a51e6d59d26e4b43dc1229f7975516b4877e16"
+}

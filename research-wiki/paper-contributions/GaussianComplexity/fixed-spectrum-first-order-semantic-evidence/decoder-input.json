@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-dc3170cedef73b28",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ),\n    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n    let A : Matrix (Fin d) (Fin d) ℝ :=\n      (O : Matrix (Fin d) (Fin d) ℝ) *\n        Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *\n        (O : Matrix (Fin d) (Fin d) ℝ).transpose\n    let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n    let query : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=\n      fun x => WithLp.toLp 2 (A *ᵥ WithLp.ofLp x)\n    ∀ x : EuclideanSpace ℝ (Fin d),\n      HasGradientAt f (query x) x ∧\n      (f x, gradient f x) = (inner ℝ x (query x) / 2, query x)\n",
+    "statement_sha256": "dc3170cedef73b28a9d2dcd17cd1507c9116089d24bc70910fcbc51a890d7135",
+    "compiled": true,
+    "approved_definition_context": [
+      "Fin d is the finite coordinate type whose natural values are zero through d minus one. Natural-to-real casts, the half, division and trigonometric expressions here have their usual real meanings.",
+      "Matrix.orthogonalGroup (Fin d) real is the full real orthogonal group: transpose is the inverse in both orders. It permits either determinant sign. The diagonal, multiplication, transpose, dot product and mulVec are ordinary finite real matrix operations.",
+      "EuclideanSpace real (Fin d) is the real coordinate vector space with its Euclidean inner product and norm. WithLp.ofLp and WithLp.toLp 2 preserve the same vector coordinates. inner real is the usual symmetric real Euclidean inner product.",
+      "HasGradientAt f v x means genuine real Frechet differentiability at x with derivative the Riesz functional h maps to inner real v h. It is a proposition, distinct from the value of a totalized gradient function.",
+      "gradient f x is the inverse Riesz image of the total fderiv real f x; fderiv uses the conventional zero fallback where no derivative exists. The displayed HasGradientAt is a conjunct of the assertion. The identifiers theta, A, f and query are local let definitions, not further quantified inputs."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "3a46747a45e2faec9985325b4ca350eea512be012259d6b087ae4bf678ffa70f"
+}

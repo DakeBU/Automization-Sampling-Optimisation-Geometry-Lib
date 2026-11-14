@@ -1,0 +1,51 @@
+{
+  "state": "SOURCE_TYPE_RECONSTRUCTION_ONLY_NO_IMPLEMENTATION_NATIVE_OR_PRIOR_VERDICT",
+  "canonical_reviewer_packet_sha256": "87e0d4528bfb55d403f04a0a9a7181326dbd92bf1431d92a5c355dd699471767",
+  "full_packet_raw_sha256": "7825279129ff5d926b4c2a206e80854cbab2810fbcd7459137982a6bc8dec999",
+  "publication_binding_sha256": "3f8f86b61bf73df0bf7a51f989239ca2246fa5c88de21364b468816869ee86bc",
+  "source": {
+    "source_id": "arxiv2610.20492v1-orthogonal-gaussian-target-law-auxiliary",
+    "anchor": "Eq11; Section4.2 Lemma4.5 coordinate-law explanation S4.SS2.SSS0.Px3.p2.1; AppendixC.3 norm component; A3.SS4.p3.1 target definition",
+    "original_text": "Orthogonal rotation carries the literal diagonal inverse-precision Gaussian exactly to the Gaussian target of the conjugated precision. (R_O)_\\#N(0,\\Lambda^{-1})=N\\!\\left(0,(O\\Lambda O^\\top)^{-1}\\right),\\qquad R_Oz=Oz. \\(d\\in\\mathbb N\\), \\(d\\ge2\\), and \\(\\kappa\\in\\mathbb R\\), \\(\\kappa\\ge2\\). This is the hard-family law auxiliary; the full lower-bound parameter regime is handled separately. For paper indices \\(i=1,\\ldots,d\\), \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean uses the same grid with zero-based Fin d indices. \\(O\\in O(d)\\) is any fixed real orthogonal matrix, with either determinant sign; \\(A=O\\Lambda O^\\top\\). The claim is pointwise in this fixed basis, with no joint or conditional-law assertion for a random basis. \\(\\Lambda\\) and \\(A\\) are precision matrices. Their matrix inverses are the covariances in the actual Gaussian constructors. Positive definiteness is supplied internally by the existing admissibility theorem, rather than by an added premise.",
+    "text_sha256": "888763790e2e306bfac0e10aed9be2dbe7cda6398fe5c7a547668238f84ff0a4"
+  },
+  "source_wording_status": "Faithful attributed auxiliary-contract paraphrase; original_text is not a verbatim quote. Independently compare against raw first-phase source.",
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTargetLaw.actual_rotated_gaussian_target",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumTargetLaw.lean",
+    "statement": "∀ {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ) (O : Matrix.orthogonalGroup (Fin d) ℝ),\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let Λ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Λ *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let R : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=\n    fun z => WithLp.toLp 2 ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ WithLp.ofLp z)\n  (multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹).map R =\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n",
+    "statement_sha256": "f53b64002b52696a8b17d4a6daff1b52ca160b82b4c2a0db0999c8236822f02f",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every natural number $d\\ge 2$, every real number $\\kappa\\ge 2$, and every real orthogonal $d\\times d$ matrix $O$, use coordinates indexed by $i\\in\\{0,\\ldots,d-1\\}$ in the ordinary Euclidean space $E=\\mathbb R^d$. Orthogonality means $O^{\\mathsf T}O=OO^{\\mathsf T}=I_d$; there is no determinant-one restriction.\n\nDefine, for each such index,\n\\[\n\\theta_i=\\frac{(i+\\tfrac12)\\pi}{d},\\qquad\n\\lambda_i=\\frac{\\kappa+1}{2}+\\frac{\\kappa-1}{2}\\cos(\\theta_i).\n\\]\nLet $\\Lambda=\\operatorname{diag}(\\lambda_0,\\ldots,\\lambda_{d-1})$, let $A=O\\Lambda O^{\\mathsf T}$, and define the map $R_O:E\\to E$ by $R_O(z)=Oz$, using the usual matrix-vector product. The conversions between bundled Euclidean vectors and coordinate functions in the statement only implement this ordinary map.\n\nFor a positive semidefinite matrix $S$, write $\\gamma_{0,S}$ for the Gaussian probability measure obtained by sending the standard covariance-one Euclidean Gaussian through $x\\mapsto\\sqrt S\\,x$; its mean is the zero vector and its covariance matrix is $S$. The matrices $\\Lambda$ and $A$ above are positive definite under the stated hypotheses, so their inverses are positive definite and this meaning applies to both measures below.\n\nThen the pushforward equality of probability measures on $E$ is\n\\[\n(R_O)_\\#\\gamma_{0,\\Lambda^{-1}}=\\gamma_{0,A^{-1}}.\n\\]\nIn particular, for every Borel set $B\\subseteq E$,\n\\[\n\\gamma_{0,\\Lambda^{-1}}\\bigl(\\{z\\in E:Oz\\in B\\}\\bigr)\n=\\gamma_{0,A^{-1}}(B).\n\\]\nThe map $R_O$ is continuous and linear, hence measurable, so this is the usual measure pushforward. Both $\\Lambda^{-1}$ and $A^{-1}$ denote square-matrix inverses, while the fractions in the definitions of $\\theta_i$ and $\\lambda_i$ are real scalar divisions. All definitions are local to each universally chosen triple $(d,\\kappa,O)$; no additional parameters or existential constants occur.\n",
+    "text_sha256": "47a675dad1d1a572cd394b3387321fc6ea3b5605cb5ed2721b81c61db95818be",
+    "decoder": "/root/neutral_decoder_6c2d91",
+    "decoder_packet_sha256": "f0acd5de9e4f74e38da2be8d81e91364e9dee5e8192e21cc027c18358e6db167",
+    "decoder_run_sha256": "1d339b91d072785d328383f9439ae20179145459ddef3dfe95b8310ec62260f0",
+    "source_text_visible": false
+  },
+  "roles": {
+    "formalizer": "huanjian_gc_20261110_fixed_spectrum_target_law",
+    "blind_decoder": "/root/neutral_decoder_6c2d91",
+    "reviewer_must_differ_from_both": true
+  },
+  "approved_definition_context": [
+    "Natural dimensions use Fin d={0,...,d-1}. All displayed casts, real fractions, pi and cosine have their standard meanings.",
+    "EuclideanSpace Real(Fin d) is the finite real Euclidean space with its ordinary L2 norm. WithLp.toLp 2 and WithLp.ofLp convert between its bundled form and coordinate functions.",
+    "Matrix.orthogonalGroup(Fin d) Real is the full real orthogonal group. Its real matrix transpose is its inverse on both sides; it imposes no determinant1 condition. Matrix multiplication and mulVec are the usual exact operations.",
+    "Matrix.diagonal has the displayed diagonal and zero off it. An inverse of a displayed square matrix is the existing nonsingular matrix inverse; it is distinct from a real scalar reciprocal.",
+    "multivariateGaussian m S is the existing Gaussian probability measure obtained by mapping the standard covariance-one Euclidean Gaussian by x->m+sqrt(S)x. For positive semidefinite S its mean is m and covariance matrix is S. A non-positive-semidefinite parameter uses the documented zero-square-root Dirac fallback.",
+    "Measure.map f denotes pushforward by f when f is measurable. Universal quantification and local let definitions have their usual dependent meanings; the displayed coordinate matvec is a continuous linear map."
+  ],
+  "private_consumer_exact_signature": "private theorem actual_target_gaussian_norm_mean {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ) (O : Matrix.orthogonalGroup (Fin d) ℝ) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let Λ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Λ *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n  Integrable (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) μ ∧\n    (∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ) =\n      ∑ i : Fin d, ((κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))⁻¹\n",
+  "source_private_scope": "Actual target Gaussian norm-square L1 and finite inverse-spectrum mean only; no closed-M, full frequency moments, target pass probability or lower-bound claim.",
+  "not_supplied": [
+    "implementation Lean/proof bodies",
+    "authored proof/step code/exposition",
+    "source-to-Lean correspondence",
+    "native/kernel/actual parent verdict",
+    "source graph/topology/repair/process verdicts",
+    "prior semantic slots/deltas/repairs"
+  ]
+}

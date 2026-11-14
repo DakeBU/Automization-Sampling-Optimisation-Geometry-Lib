@@ -1,0 +1,14 @@
+private theorem actual_gaussian_closed_means_bias_ratio {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)
+    (n : ℕ) (hn : 1 ≤ n) (hnd : n < d) :
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)
+  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue
+  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=
+    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹
+  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>
+    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2
+  let r : ℝ := (Real.sqrt κ - 1) / (Real.sqrt κ + 1)
+  let m : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ
+  let b : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ
+  0 < m ∧ m ≤ (d : ℝ) / Real.sqrt κ ∧ 0 < (-1 : ℝ) ^ n * b ∧
+  |b| / m = r ^ n * ((1 - r ^ (2 * (d - n))) / (1 - r ^ (2 * d)))

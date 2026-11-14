@@ -1,0 +1,322 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-d5117d18c550dd4c",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "huanjian_gc_20261110_fixed_spectrum_signal_strength",
+    "blind_decoder": "/root/decoder_e5297c",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "arxiv2610.20492v1-actual-source-signal-strength",
+    "anchor": "S4.SS3.SSS0.Px2.p1-p2; unnumbered M lower estimates; signal branch of S4.Ex24; C3. Private actual-law zero-threshold adaptation only.",
+    "original_text": "In the original uniform query regime, the actual target Gaussian has a norm mean and normalized-bias signal bounded below at the displayed rates. M\\ge\\frac{d}{2\\sqrt\\kappa}\\ge\\frac12d^{(1+\\delta)/2},\\qquad M\\beta^2\\ge\\frac{B^2}{2}\\sqrt d,\\qquad B=(1-e^{-4})e^{-3}. Fix a real \\(\\delta\\) with \\(0<\\delta<1\\). There exists one natural \\(d_0(\\delta)\\), chosen before every varying dimension, condition parameter and query cap. For every natural \\(d\\ge d_0(\\delta)\\), real \\(2\\le\\kappa\\le d^{1-\\delta}\\), and natural \\(q\\ge0\\) with \\(q\\le(\\delta/256)\\sqrt\\kappa\\log d\\), set \\(n=2q+1\\). The cap includes \\(q=0\\) and has the source integer-cap meaning; no expected-cost adapter is asserted. Use the literal midpoint precision spectrum \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean reindexes the same grid by zero-based \\(\\mathrm{Fin}\\,d\\). Let \\(U\\sim N(0,\\Lambda^{-1})\\), \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\), \\(M=\\mathbb E\\|U\\|^2\\), and \\(\\beta=|\\mathbb E Q(U)|/M\\). These are actual integrals under the same Gaussian; the covariance is inverse precision. Lean \\(b\\) denotes the source \\(\\mu_n\\), while Lean \\(B\\) denotes the source positive constant \\(b\\). \\(M>0\\), \\(\\beta>0\\), dimension/mode/gap validity, finite moments and all power/log/square-root domains are conclusions or internally supplied canonical facts. No moment, law, growth, gap, signal or probability certificate is an extra input.",
+    "text_sha256": "bede23114a674d1bf3308209d491ed4fc66efc9e870f1593a33a50dc55e386a4"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSignalStrength.eventual_actual_gaussian_signal_strength",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSignalStrength.lean",
+    "statement": "∀ {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ < 1),\n  ∃ d₀ : ℕ, ∀ (d : ℕ), d₀ ≤ d → ∀ (κ : ℝ), 2 ≤ κ →\n    κ ≤ (d : ℝ) ^ (1 - δ) → ∀ (q : ℕ),\n    (q : ℝ) ≤ (δ / 256) * Real.sqrt κ * Real.log (d : ℝ) →\n    let n : ℕ := 2 * q + 1\n    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n    let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n    let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n    let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n      multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹\n    let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n    let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n    let b : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ\n    let β : ℝ := |b| / M\n    let B : ℝ := (1 - Real.exp (-4)) * Real.exp (-3)\n    0 < M ∧ 0 < β ∧ (d : ℝ) / (2 * Real.sqrt κ) ≤ M ∧\n      (d : ℝ) ^ ((1 + δ) / 2) / 2 ≤ M ∧\n      (B ^ 2 / 2) * Real.sqrt (d : ℝ) ≤ M * β ^ 2\n",
+    "statement_sha256": "3cc6f8081bef67019de2fdb7c4dfa1f887cc613023ba91fe73f6f7bf1189de1c",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every real number δ with 0 < δ < 1, there exists a natural number d₀, depending only on δ, such that the following holds for every natural number d ≥ d₀, every real number κ satisfying 2 ≤ κ ≤ d^(1 − δ), and every natural number q satisfying q ≤ (δ/256)√κ log d. Natural numbers include zero, and d and q in these real expressions are cast to the reals.\n\nSet n = 2q + 1. For each i ∈ Fin d, identified with its integer value i = 0, …, d − 1, define θᵢ = (i + 1/2)π/d and λᵢ = (κ + 1)/2 + ((κ − 1)/2) cos θᵢ. Let Λ be the real d by d diagonal matrix with diagonal entries λᵢ, and let μ = multivariateGaussian(0, Λ⁻¹) on d-dimensional real Euclidean space. Here the inverse and Gaussian measure have exactly the supplied standard totalized meanings: the Gaussian is obtained from the standard Gaussian by the affine map whose linear part is CFC.sqrt(Λ⁻¹).\n\nFor x in that Euclidean space, with ordinary coordinates xᵢ, set Q(x) = ∑ᵢ cos(nθᵢ)xᵢ². Define M = ∫ ‖x‖² dμ(x), b = ∫ Q(x) dμ(x), β = |b|/M, and B = (1 − exp(−4)) exp(−3). The norm is the full Euclidean norm, and the integrals are the real Bochner integrals with the supplied totalized conventions. Then all five assertions hold:\nM > 0,\nβ > 0,\nd/(2√κ) ≤ M,\nd^((1 + δ)/2)/2 ≤ M,\nand (B²/2)√d ≤ Mβ².\nAll displayed divisions, logarithms, square roots, real powers, and arithmetic use the supplied real conventions; n in cos(nθᵢ) is cast to the reals.",
+    "text_sha256": "40a28047a12b20cb58ba450a33f1219c7291e8e6ecdc05aa9b77bdd0dae549f9",
+    "decoder": "/root/decoder_e5297c",
+    "decoder_packet_sha256": "93cdb9a25d4d79c0fa365437fc859052fea99cb5cc6006c1779ce779ccf967d9",
+    "decoder_run_sha256": "fcc114cd45aae53287cb04fc69f364c2ebd158ddeaf0968a5c73f738804c6c2c",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "aa982161b75c7550ba8168b07d4c45218f497e7463c99e250d66012c622de195",
+  "candidate_publication_context": {
+    "file": "7a62be2339dd92f4dd96a068f321c46ceed3f71ceb9b555c8f5d16a7af2b3430",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumBias\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumModeGap\n\n/-!\nActual diagonal-Gaussian norm and normalized-bias signal strength from the\nunnumbered target-side estimates of Section4.3 and the signal branch of Eq24.\nOne output threshold precedes all varying dimensions, condition parameters\nand natural query caps in the original scalar regime. Moment/gap/positivity\ncertificates are internal proofs. The radius-tail estimate uses a sufficient\nelementary exponential route, not a separate emitted copy of C.3 log bounds.\nConcrete tau, shifted/rotated detector events, algorithmic laws, oracle/TV/cost\nadapters, both main lower bounds and global reader acceptance remain open.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumModeGap\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumBias\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumExactMeans\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSignalStrength\n\nprivate theorem spectral_tail_le_third {κ : ℝ} (hκ : 2 ≤ κ)\n    (d : ℕ) (hd : Real.sqrt κ ≤ (d : ℝ)) :\n    let r : ℝ := (Real.sqrt κ - 1) / (Real.sqrt κ + 1)\n    0 ≤ r ∧ r ^ (2 * d) ≤ (1 : ℝ) / 3 := by\n  let s : ℝ := Real.sqrt κ\n  let r : ℝ := (s - 1) / (s + 1)\n  change 0 ≤ r ∧ r ^ (2 * d) ≤ (1 : ℝ) / 3\n  have hs : 0 < s := Real.sqrt_pos.2 (by linarith)\n  have hs1 : 1 ≤ s := Real.le_sqrt_of_sq_le (by nlinarith)\n  have hr0 : 0 ≤ r := div_nonneg (by linarith) (by linarith)\n  have hrlin : r ≤ 1 - 1 / s := by\n    calc\n      _ ≤ (s - 1) / s := div_le_div_of_nonneg_left (by linarith) hs (by linarith)\n      _ = _ := by field_simp\n  have hrexp : r ≤ Real.exp (-(1 / s)) := by\n    have h := Real.add_one_le_exp (-(1 / s))\n    linarith\n  have hp := pow_le_pow_left₀ hr0 hrexp (2 * d)\n  have hexponent : ((2 * d : ℕ) : ℝ) * (-(1 / s)) ≤ (-2 : ℝ) := by\n    have hds : s ≤ (d : ℝ) := hd\n    have hcast : ((2 * d : ℕ) : ℝ) = 2 * (d : ℝ) := by push_cast; rfl\n    rw [hcast]\n    have hdiv : (2 : ℝ) ≤ 2 * (d : ℝ) / s := by\n      apply (le_div_iff₀ hs).2\n      nlinarith\n    calc\n      _ = -(2 * (d : ℝ) / s) := by ring\n      _ ≤ -2 := neg_le_neg hdiv\n  have hexp3 : (3 : ℝ) ≤ Real.exp 2 := by\n    have h := Real.add_one_le_exp (2 : ℝ)\n    norm_num at h\n    exact h\n  have hexp : Real.exp (-2) ≤ (1 : ℝ) / 3 := by\n    rw [Real.exp_neg]\n    simpa only [one_div] using\n      (inv_le_inv₀ (Real.exp_pos (2 : ℝ)) (by norm_num : (0 : ℝ) < 3)).2 hexp3\n  refine ⟨hr0, ?_⟩\n  calc\n    _ ≤ (Real.exp (-(1 / s))) ^ (2 * d) := hp\n    _ = Real.exp (((2 * d : ℕ) : ℝ) * (-(1 / s))) :=\n      (Real.exp_nat_mul _ _).symm\n    _ ≤ Real.exp (-2) := Real.exp_le_exp.mpr hexponent\n    _ ≤ _ := hexp\n\nprivate theorem source_norm_scale_lower {d : ℕ} (hd : 0 < (d : ℝ))\n    {δ κ : ℝ} (hκ0 : 0 < κ) (hκcap : κ ≤ (d : ℝ) ^ (1 - δ)) :\n    (d : ℝ) ^ ((1 + δ) / 2) / 2 ≤ (d : ℝ) / (2 * Real.sqrt κ) := by\n  have hs : 0 < Real.sqrt κ := Real.sqrt_pos.2 hκ0\n  have hroot : Real.sqrt κ ≤ (d : ℝ) ^ ((1 - δ) / 2) := by\n    calc\n      _ ≤ Real.sqrt ((d : ℝ) ^ (1 - δ)) := Real.sqrt_le_sqrt hκcap\n      _ = _ := by\n        rw [Real.sqrt_eq_rpow, ← Real.rpow_mul hd.le]\n        congr 1\n        ring\n  apply (le_div_iff₀ (by positivity : 0 < 2 * Real.sqrt κ)).2\n  have hmul := mul_le_mul_of_nonneg_left hroot\n    (Real.rpow_nonneg hd.le ((1 + δ) / 2))\n  have heq : (d : ℝ) ^ ((1 + δ) / 2) * (d : ℝ) ^ ((1 - δ) / 2) = (d : ℝ) := by\n    rw [← Real.rpow_add hd, show ((1 + δ) / 2 + (1 - δ) / 2 : ℝ) = 1 by ring,\n      Real.rpow_one]\n  rw [heq] at hmul\n  nlinarith\n\ntheorem eventual_actual_gaussian_signal_strength {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ < 1) :\n  ∃ d₀ : ℕ, ∀ (d : ℕ), d₀ ≤ d → ∀ (κ : ℝ), 2 ≤ κ →\n    κ ≤ (d : ℝ) ^ (1 - δ) → ∀ (q : ℕ),\n    (q : ℝ) ≤ (δ / 256) * Real.sqrt κ * Real.log (d : ℝ) →\n    let n : ℕ := 2 * q + 1\n    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n    let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n    let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n    let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n      multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹\n    let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n    let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n    let b : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ\n    let β : ℝ := |b| / M\n    let B : ℝ := (1 - Real.exp (-4)) * Real.exp (-3)\n    0 < M ∧ 0 < β ∧ (d : ℝ) / (2 * Real.sqrt κ) ≤ M ∧\n      (d : ℝ) ^ ((1 + δ) / 2) / 2 ≤ M ∧\n      (B ^ 2 / 2) * Real.sqrt (d : ℝ) ≤ M * β ^ 2\n := by\n  rcases eventual_source_query_mode_gap hδ0 hδ1 with ⟨D, hD⟩\n  refine ⟨D, ?_⟩\n  intro d hd κ hκ hκcap q hq\n  let n : ℕ := 2 * q + 1\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) := multivariateGaussian 0 Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n  let b : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ\n  let β : ℝ := |b| / M\n  let C : ℝ := 1 - Real.exp (-4)\n  let B : ℝ := C * Real.exp (-3)\n  change 0 < M ∧ 0 < β ∧ (d : ℝ) / (2 * Real.sqrt κ) ≤ M ∧\n    (d : ℝ) ^ ((1 + δ) / 2) / 2 ≤ M ∧\n    (B ^ 2 / 2) * Real.sqrt (d : ℝ) ≤ M * β ^ 2\n  have hadm := hD d hd κ hκ hκcap q hq\n  change 2 ≤ d ∧ 1 ≤ n ∧ n < d ∧ Real.sqrt κ ≤ (d : ℝ) - (n : ℝ) at hadm\n  rcases hadm with ⟨hd2, hn1, hnd, hgap⟩\n  rcases actual_diagonal_gaussian_exponential_bias hd2 hκ n hn1 hnd hgap with\n    ⟨hMpos, hsignpos, hlow, _hupp⟩\n  change 0 < M at hMpos\n  change 0 < (-1 : ℝ) ^ n * b at hsignpos\n  change C * Real.exp (-3 * (n : ℝ) / Real.sqrt κ) ≤ β at hlow\n  have hdpos : 0 < (d : ℝ) := by exact_mod_cast (by omega : 0 < d)\n  have hd1 : (1 : ℝ) ≤ (d : ℝ) := by exact_mod_cast (by omega : 1 ≤ d)\n  have hlog0 : 0 ≤ Real.log (d : ℝ) := Real.log_nonneg hd1\n  have hspos : 0 < Real.sqrt κ := Real.sqrt_pos.2 (by linarith)\n  have hsone : (1 : ℝ) ≤ Real.sqrt κ := Real.le_sqrt_of_sq_le (by nlinarith)\n  have hds : Real.sqrt κ ≤ (d : ℝ) := by\n    have hn0 : (0 : ℝ) ≤ (n : ℝ) := Nat.cast_nonneg _\n    linarith\n  let r : ℝ := (Real.sqrt κ - 1) / (Real.sqrt κ + 1)\n  rcases spectral_tail_le_third hκ d hds with ⟨hr0, htail⟩\n  change 0 ≤ r at hr0\n  change r ^ (2 * d) ≤ (1 : ℝ) / 3 at htail\n  have hclosed := actual_diagonal_gaussian_exact_means hd2 hκ n hn1 hnd\n  have hMformula : M = ((d : ℝ) / Real.sqrt κ) *\n      ((1 - r ^ (2 * d)) / (1 + r ^ (2 * d))) := hclosed.2.2.1\n  have hu0 : 0 ≤ r ^ (2 * d) := pow_nonneg hr0 _\n  have hden : 0 < 1 + r ^ (2 * d) := by positivity\n  have hcorrection : (1 : ℝ) / 2 ≤ (1 - r ^ (2 * d)) / (1 + r ^ (2 * d)) := by\n    apply (le_div_iff₀ hden).2\n    nlinarith\n  have hMlower : (d : ℝ) / (2 * Real.sqrt κ) ≤ M := by\n    rw [hMformula]\n    calc\n      _ = ((d : ℝ) / Real.sqrt κ) * (1 / 2) := by ring\n      _ ≤ _ := mul_le_mul_of_nonneg_left hcorrection (by positivity)\n  have hMpower : (d : ℝ) ^ ((1 + δ) / 2) / 2 ≤ M :=\n    (source_norm_scale_lower hdpos (by linarith : 0 < κ) hκcap).trans hMlower\n  have hbne : b ≠ 0 := by\n    intro h\n    rw [h, mul_zero] at hsignpos\n    exact (lt_irrefl 0) hsignpos\n  have hβpos : 0 < β := div_pos (abs_pos.mpr hbne) hMpos\n  have hqr : (q : ℝ) / Real.sqrt κ ≤ (δ / 256) * Real.log (d : ℝ) := by\n    apply (div_le_iff₀ hspos).2\n    calc\n      _ ≤ (δ / 256) * Real.sqrt κ * Real.log (d : ℝ) := hq\n      _ = _ := by ring\n  have h3s : 3 / Real.sqrt κ ≤ (3 : ℝ) := by\n    apply (div_le_iff₀ hspos).2\n    nlinarith\n  have hncalc : 3 * (n : ℝ) / Real.sqrt κ =\n      6 * ((q : ℝ) / Real.sqrt κ) + 3 / Real.sqrt κ := by\n    simp only [n, Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat]\n    ring\n  have hns : 3 * (n : ℝ) / Real.sqrt κ ≤\n      3 + (3 * δ / 128) * Real.log (d : ℝ) := by\n    calc\n      _ = 6 * ((q : ℝ) / Real.sqrt κ) + 3 / Real.sqrt κ := hncalc\n      _ ≤ 6 * ((δ / 256) * Real.log (d : ℝ)) + 3 :=\n        add_le_add (mul_le_mul_of_nonneg_left hqr (by norm_num)) h3s\n      _ = _ := by ring\n  have hrelax : 3 + (3 * δ / 128) * Real.log (d : ℝ) ≤\n      3 + (δ / 4) * Real.log (d : ℝ) := by\n    have hc : 3 * δ / 128 ≤ δ / 4 := by nlinarith\n    exact add_le_add le_rfl (mul_le_mul_of_nonneg_right hc hlog0)\n  have hexponent : -3 + Real.log (d : ℝ) * (-δ / 4) ≤\n      -3 * (n : ℝ) / Real.sqrt κ := by\n    calc\n      _ = -(3 + (δ / 4) * Real.log (d : ℝ)) := by ring\n      _ ≤ -(3 * (n : ℝ) / Real.sqrt κ) := neg_le_neg (hns.trans hrelax)\n      _ = _ := by ring\n  have he4 : Real.exp (-4) < 1 := by\n    simpa only [Real.exp_zero] using Real.exp_lt_exp.mpr (by norm_num : (-4 : ℝ) < 0)\n  have hCpos : 0 < C := by dsimp [C]; linarith\n  have hBpos : 0 < B := mul_pos hCpos (Real.exp_pos _)\n  have hpoly : B * (d : ℝ) ^ (-δ / 4) ≤ β := by\n    calc\n      _ = C * (Real.exp (-3) * Real.exp (Real.log (d : ℝ) * (-δ / 4))) := by\n        rw [Real.rpow_def_of_pos hdpos]\n        ring\n      _ = C * Real.exp (-3 + Real.log (d : ℝ) * (-δ / 4)) := by rw [Real.exp_add]\n      _ ≤ C * Real.exp (-3 * (n : ℝ) / Real.sqrt κ) :=\n        mul_le_mul_of_nonneg_left (Real.exp_le_exp.mpr hexponent) hCpos.le\n      _ ≤ β := hlow\n  have hpoly0 : 0 ≤ B * (d : ℝ) ^ (-δ / 4) := by positivity\n  have hsquare : (B * (d : ℝ) ^ (-δ / 4)) ^ 2 ≤ β ^ 2 :=\n    pow_le_pow_left₀ hpoly0 hpoly 2\n  have hsignal := mul_le_mul hMpower hsquare\n    (sq_nonneg (B * (d : ℝ) ^ (-δ / 4))) hMpos.le\n  have hpowerproduct : (d : ℝ) ^ ((1 + δ) / 2) * ((d : ℝ) ^ (-δ / 4)) ^ 2 =\n      Real.sqrt (d : ℝ) := by\n    rw [← Real.rpow_mul_natCast hdpos.le, ← Real.rpow_add hdpos]\n    rw [show ((1 + δ) / 2 + (-δ / 4) * (2 : ℕ) : ℝ) = 1 / 2 by push_cast; ring]\n    exact (Real.sqrt_eq_rpow (d : ℝ)).symm\n  have hsignalidentity : (d : ℝ) ^ ((1 + δ) / 2) / 2 *\n      (B * (d : ℝ) ^ (-δ / 4)) ^ 2 = (B ^ 2 / 2) * Real.sqrt (d : ℝ) := by\n    rw [mul_pow]\n    calc\n      _ = (B ^ 2 / 2) * ((d : ℝ) ^ ((1 + δ) / 2) * ((d : ℝ) ^ (-δ / 4)) ^ 2) := by ring\n      _ = _ := by rw [hpowerproduct]\n  refine ⟨hMpos, hβpos, hMlower, hMpower, ?_⟩\n  calc\n    _ = (d : ℝ) ^ ((1 + δ) / 2) / 2 * (B * (d : ℝ) ^ (-δ / 4)) ^ 2 := hsignalidentity.symm\n    _ ≤ M * β ^ 2 := hsignal\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSignalStrength\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#S4.SS3.SSS0.Px2.p2",
+      "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "S4.SS3.SSS0.Px2.p1-p2; unnumbered M lower estimates; signal branch of S4.Ex24; C3. Private actual-law zero-threshold adaptation only.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "On Complexity of Gaussian Sampling, arXiv2610.20492v1.",
+      "scope": "Selected actual target numerical norm/signal prerequisite, not full Ex24/Ex26 or Theorem4.1."
+    },
+    "statement": "In the original uniform query regime, the actual target Gaussian has a norm mean and normalized-bias signal bounded below at the displayed rates. M\\ge\\frac{d}{2\\sqrt\\kappa}\\ge\\frac12d^{(1+\\delta)/2},\\qquad M\\beta^2\\ge\\frac{B^2}{2}\\sqrt d,\\qquad B=(1-e^{-4})e^{-3}. Fix a real \\(\\delta\\) with \\(0<\\delta<1\\). There exists one natural \\(d_0(\\delta)\\), chosen before every varying dimension, condition parameter and query cap. For every natural \\(d\\ge d_0(\\delta)\\), real \\(2\\le\\kappa\\le d^{1-\\delta}\\), and natural \\(q\\ge0\\) with \\(q\\le(\\delta/256)\\sqrt\\kappa\\log d\\), set \\(n=2q+1\\). The cap includes \\(q=0\\) and has the source integer-cap meaning; no expected-cost adapter is asserted. Use the literal midpoint precision spectrum \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean reindexes the same grid by zero-based \\(\\mathrm{Fin}\\,d\\). Let \\(U\\sim N(0,\\Lambda^{-1})\\), \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\), \\(M=\\mathbb E\\|U\\|^2\\), and \\(\\beta=|\\mathbb E Q(U)|/M\\). These are actual integrals under the same Gaussian; the covariance is inverse precision. Lean \\(b\\) denotes the source \\(\\mu_n\\), while Lean \\(B\\) denotes the source positive constant \\(b\\). \\(M>0\\), \\(\\beta>0\\), dimension/mode/gap validity, finite moments and all power/log/square-root domains are conclusions or internally supplied canonical facts. No moment, law, growth, gap, signal or probability certificate is an extra input.",
+    "formulae": [
+      {
+        "label": "Actual norm and normalized-bias signal lower bounds",
+        "tex": "M\\ge\\frac{d}{2\\sqrt\\kappa}\\ge\\frac12d^{(1+\\delta)/2},\\qquad M\\beta^2\\ge\\frac{B^2}{2}\\sqrt d,\\qquad B=(1-e^{-4})e^{-3}."
+      }
+    ],
+    "assumptions": [
+      "Fix a real \\(\\delta\\) with \\(0<\\delta<1\\). There exists one natural \\(d_0(\\delta)\\), chosen before every varying dimension, condition parameter and query cap.",
+      "For every natural \\(d\\ge d_0(\\delta)\\), real \\(2\\le\\kappa\\le d^{1-\\delta}\\), and natural \\(q\\ge0\\) with \\(q\\le(\\delta/256)\\sqrt\\kappa\\log d\\), set \\(n=2q+1\\). The cap includes \\(q=0\\) and has the source integer-cap meaning; no expected-cost adapter is asserted.",
+      "Use the literal midpoint precision spectrum \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean reindexes the same grid by zero-based \\(\\mathrm{Fin}\\,d\\).",
+      "Let \\(U\\sim N(0,\\Lambda^{-1})\\), \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\), \\(M=\\mathbb E\\|U\\|^2\\), and \\(\\beta=|\\mathbb E Q(U)|/M\\). These are actual integrals under the same Gaussian; the covariance is inverse precision. Lean \\(b\\) denotes the source \\(\\mu_n\\), while Lean \\(B\\) denotes the source positive constant \\(b\\).",
+      "\\(M>0\\), \\(\\beta>0\\), dimension/mode/gap validity, finite moments and all power/log/square-root domains are conclusions or internally supplied canonical facts. No moment, law, growth, gap, signal or probability certificate is an extra input."
+    ],
+    "obligations": [
+      {
+        "id": "actual-source-norm-lower",
+        "label": "Actual M>=d/(2sqrt kappa)>=d^((1+delta)/2)/2 with one original-regime threshold."
+      },
+      {
+        "id": "actual-source-signal-strength",
+        "label": "Actual M beta squared>=B squaredsqrt(d)/2 with exact source constant, no extra moment/signal assumption."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSignalStrength.eventual_actual_gaussian_signal_strength",
+      "title": "Actual Gaussian norm and bias signal strength",
+      "reader_note": "The actual norm/signal conclusion comes first. The complete regime, literal law, formula proof and exact Lean are folded beside it.",
+      "statement": "In the original uniform query regime, the actual target Gaussian has a norm mean and normalized-bias signal bounded below at the displayed rates.",
+      "formula": "M\\ge\\frac{d}{2\\sqrt\\kappa}\\ge\\frac12d^{(1+\\delta)/2},\\qquad M\\beta^2\\ge\\frac{B^2}{2}\\sqrt d,\\qquad B=(1-e^{-4})e^{-3}.",
+      "assumptions": [
+        "Fix a real \\(\\delta\\) with \\(0<\\delta<1\\). There exists one natural \\(d_0(\\delta)\\), chosen before every varying dimension, condition parameter and query cap.",
+        "For every natural \\(d\\ge d_0(\\delta)\\), real \\(2\\le\\kappa\\le d^{1-\\delta}\\), and natural \\(q\\ge0\\) with \\(q\\le(\\delta/256)\\sqrt\\kappa\\log d\\), set \\(n=2q+1\\). The cap includes \\(q=0\\) and has the source integer-cap meaning; no expected-cost adapter is asserted.",
+        "Use the literal midpoint precision spectrum \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean reindexes the same grid by zero-based \\(\\mathrm{Fin}\\,d\\).",
+        "Let \\(U\\sim N(0,\\Lambda^{-1})\\), \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\), \\(M=\\mathbb E\\|U\\|^2\\), and \\(\\beta=|\\mathbb E Q(U)|/M\\). These are actual integrals under the same Gaussian; the covariance is inverse precision. Lean \\(b\\) denotes the source \\(\\mu_n\\), while Lean \\(B\\) denotes the source positive constant \\(b\\).",
+        "\\(M>0\\), \\(\\beta>0\\), dimension/mode/gap validity, finite moments and all power/log/square-root domains are conclusions or internally supplied canonical facts. No moment, law, growth, gap, signal or probability certificate is an extra input."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(M,\\beta,B\\)",
+          "text": "Actual same-law norm mean, normalized cosine bias, and the fixed source positive constant. Positivity is proved.",
+          "formula": "M=\\mathbb E\\|U\\|^2,\\quad\\beta=|\\mathbb E Q(U)|/M,\\quad B=(1-e^{-4})e^{-3}."
+        },
+        {
+          "symbol": "\\(r,s,n\\)",
+          "text": "Literal radius, condition square root and the source odd query mode.",
+          "formula": "s=\\sqrt\\kappa,\\quad r=\\frac{s-1}{s+1},\\quad n=2q+1."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Fix one valid source regime and the actual law",
+          "text": "Apply the canonical uniform mode/gap result before varying κ and q. It supplies d≥2, 1≤n<d and d−n≥√κ. The actual Gaussian bias theorem then supplies the positive norm mean and signed cosine mean under the literal inverse-precision Gaussian.",
+          "formula": "\\exists D(\\delta)\\ \\forall d\\ge D(\\delta),\\kappa,q:\\quad 1\\le n<d,\\quad d-n\\ge\\sqrt\\kappa,\\quad M>0,\\quad(-1)^n\\mathbb E Q(U)>0.",
+          "detail": "All four validity outputs are passed internally to canonical Bias. No dimension/gap certificate is assumed, and the same δ-only threshold precedes every admitted κ/q.",
+          "lean": "  rcases eventual_source_query_mode_gap hδ0 hδ1 with ⟨D, hD⟩\n  refine ⟨D, ?_⟩\n  intro d hd κ hκ hκcap q hq\n  let n : ℕ := 2 * q + 1\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) := multivariateGaussian 0 Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n  let b : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ\n  let β : ℝ := |b| / M\n  let C : ℝ := 1 - Real.exp (-4)\n  let B : ℝ := C * Real.exp (-3)\n  change 0 < M ∧ 0 < β ∧ (d : ℝ) / (2 * Real.sqrt κ) ≤ M ∧\n    (d : ℝ) ^ ((1 + δ) / 2) / 2 ≤ M ∧\n    (B ^ 2 / 2) * Real.sqrt (d : ℝ) ≤ M * β ^ 2\n  have hadm := hD d hd κ hκ hκcap q hq\n  change 2 ≤ d ∧ 1 ≤ n ∧ n < d ∧ Real.sqrt κ ≤ (d : ℝ) - (n : ℝ) at hadm\n  rcases hadm with ⟨hd2, hn1, hnd, hgap⟩\n  rcases actual_diagonal_gaussian_exponential_bias hd2 hκ n hn1 hnd hgap with\n    ⟨hMpos, hsignpos, hlow, _hupp⟩\n  change 0 < M at hMpos\n  change 0 < (-1 : ℝ) ^ n * b at hsignpos\n  change C * Real.exp (-3 * (n : ℝ) / Real.sqrt κ) ≤ β at hlow\n  have hdpos : 0 < (d : ℝ) := by exact_mod_cast (by omega : 0 < d)\n  have hd1 : (1 : ℝ) ≤ (d : ℝ) := by exact_mod_cast (by omega : 1 ≤ d)\n  have hlog0 : 0 ≤ Real.log (d : ℝ) := Real.log_nonneg hd1\n  have hspos : 0 < Real.sqrt κ := Real.sqrt_pos.2 (by linarith)\n  have hsone : (1 : ℝ) ≤ Real.sqrt κ := Real.le_sqrt_of_sq_le (by nlinarith)\n  have hds : Real.sqrt κ ≤ (d : ℝ) := by\n    have hn0 : (0 : ℝ) ≤ (n : ℝ) := Nat.cast_nonneg _\n    linarith\n"
+        },
+        {
+          "title": "Bound the finite spectral tail",
+          "text": "Write s=√κ and r=(s−1)/(s+1). Since s≥1, r≤1−1/s≤exp(−1/s). Raising this nonnegative inequality to 2d, using d≥s, and exp(2)≥3 gives r^(2d)≤1/3. This sufficient elementary exponential route proves the needed tail without re-emitting C.3 logarithmic bounds.",
+          "formula": "0\\le r\\le1-\\frac1s\\le e^{-1/s},\\qquad r^{2d}\\le e^{-2d/s}\\le e^{-2}\\le\\frac13.",
+          "detail": "The complete private spectral_tail_le_third provider is folded here. Its source condition d≥√κ is derived from the canonical finite gap at the actual call site. Its input domain is not a new public premise.",
+          "lean": "private theorem spectral_tail_le_third {κ : ℝ} (hκ : 2 ≤ κ)\n    (d : ℕ) (hd : Real.sqrt κ ≤ (d : ℝ)) :\n    let r : ℝ := (Real.sqrt κ - 1) / (Real.sqrt κ + 1)\n    0 ≤ r ∧ r ^ (2 * d) ≤ (1 : ℝ) / 3 := by\n  let s : ℝ := Real.sqrt κ\n  let r : ℝ := (s - 1) / (s + 1)\n  change 0 ≤ r ∧ r ^ (2 * d) ≤ (1 : ℝ) / 3\n  have hs : 0 < s := Real.sqrt_pos.2 (by linarith)\n  have hs1 : 1 ≤ s := Real.le_sqrt_of_sq_le (by nlinarith)\n  have hr0 : 0 ≤ r := div_nonneg (by linarith) (by linarith)\n  have hrlin : r ≤ 1 - 1 / s := by\n    calc\n      _ ≤ (s - 1) / s := div_le_div_of_nonneg_left (by linarith) hs (by linarith)\n      _ = _ := by field_simp\n  have hrexp : r ≤ Real.exp (-(1 / s)) := by\n    have h := Real.add_one_le_exp (-(1 / s))\n    linarith\n  have hp := pow_le_pow_left₀ hr0 hrexp (2 * d)\n  have hexponent : ((2 * d : ℕ) : ℝ) * (-(1 / s)) ≤ (-2 : ℝ) := by\n    have hds : s ≤ (d : ℝ) := hd\n    have hcast : ((2 * d : ℕ) : ℝ) = 2 * (d : ℝ) := by push_cast; rfl\n    rw [hcast]\n    have hdiv : (2 : ℝ) ≤ 2 * (d : ℝ) / s := by\n      apply (le_div_iff₀ hs).2\n      nlinarith\n    calc\n      _ = -(2 * (d : ℝ) / s) := by ring\n      _ ≤ -2 := neg_le_neg hdiv\n  have hexp3 : (3 : ℝ) ≤ Real.exp 2 := by\n    have h := Real.add_one_le_exp (2 : ℝ)\n    norm_num at h\n    exact h\n  have hexp : Real.exp (-2) ≤ (1 : ℝ) / 3 := by\n    rw [Real.exp_neg]\n    simpa only [one_div] using\n      (inv_le_inv₀ (Real.exp_pos (2 : ℝ)) (by norm_num : (0 : ℝ) < 3)).2 hexp3\n  refine ⟨hr0, ?_⟩\n  calc\n    _ ≤ (Real.exp (-(1 / s))) ^ (2 * d) := hp\n    _ = Real.exp (((2 * d : ℕ) : ℝ) * (-(1 / s))) :=\n      (Real.exp_nat_mul _ _).symm\n    _ ≤ Real.exp (-2) := Real.exp_le_exp.mpr hexponent\n    _ ≤ _ := hexp\n"
+        },
+        {
+          "title": "Convert the original condition cap to the norm power scale",
+          "text": "Square-root monotonicity and positive-base real powers give √κ≤d^((1−δ)/2). Multiplying by d^((1+δ)/2), the exponents add to one. Division by the proved positive square root yields the source comparison of the two norm scales.",
+          "formula": "\\sqrt\\kappa\\le d^{(1-\\delta)/2},\\qquad d^{(1+\\delta)/2}d^{(1-\\delta)/2}=d,\\qquad\\frac12d^{(1+\\delta)/2}\\le\\frac d{2\\sqrt\\kappa}.",
+          "detail": "The complete private source_norm_scale_lower provider is shown. Its positive-domain and real-power identities are internally instantiated from the source regime; no exponent comparison callback is a theorem input.",
+          "lean": "private theorem source_norm_scale_lower {d : ℕ} (hd : 0 < (d : ℝ))\n    {δ κ : ℝ} (hκ0 : 0 < κ) (hκcap : κ ≤ (d : ℝ) ^ (1 - δ)) :\n    (d : ℝ) ^ ((1 + δ) / 2) / 2 ≤ (d : ℝ) / (2 * Real.sqrt κ) := by\n  have hs : 0 < Real.sqrt κ := Real.sqrt_pos.2 hκ0\n  have hroot : Real.sqrt κ ≤ (d : ℝ) ^ ((1 - δ) / 2) := by\n    calc\n      _ ≤ Real.sqrt ((d : ℝ) ^ (1 - δ)) := Real.sqrt_le_sqrt hκcap\n      _ = _ := by\n        rw [Real.sqrt_eq_rpow, ← Real.rpow_mul hd.le]\n        congr 1\n        ring\n  apply (le_div_iff₀ (by positivity : 0 < 2 * Real.sqrt κ)).2\n  have hmul := mul_le_mul_of_nonneg_left hroot\n    (Real.rpow_nonneg hd.le ((1 + δ) / 2))\n  have heq : (d : ℝ) ^ ((1 + δ) / 2) * (d : ℝ) ^ ((1 - δ) / 2) = (d : ℝ) := by\n    rw [← Real.rpow_add hd, show ((1 + δ) / 2 + (1 - δ) / 2 : ℝ) = 1 by ring,\n      Real.rpow_one]\n  rw [heq] at hmul\n  nlinarith\n"
+        },
+        {
+          "title": "Apply the exact actual Gaussian norm formula",
+          "text": "Canonical ExactMeans identifies M with d/√κ times (1−r^(2d))/(1+r^(2d)). The denominator is positive, and the tail bound makes the correction factor at least one half. Combining this with the previous power comparison proves both actual M lower bounds.",
+          "formula": "M=\\frac d{\\sqrt\\kappa}\\frac{1-r^{2d}}{1+r^{2d}}\\ge\\frac d{2\\sqrt\\kappa}\\ge\\frac12d^{(1+\\delta)/2}.",
+          "detail": "The exact formula is obtained from the canonical theorem for the same μ and actual integral M. hcorrection/hMlower/hMpower perform the genuine normalization algebra, rather than bounding a substituted proxy.",
+          "lean": "  have hMformula : M = ((d : ℝ) / Real.sqrt κ) *\n      ((1 - r ^ (2 * d)) / (1 + r ^ (2 * d))) := hclosed.2.2.1\n  have hu0 : 0 ≤ r ^ (2 * d) := pow_nonneg hr0 _\n  have hden : 0 < 1 + r ^ (2 * d) := by positivity\n  have hcorrection : (1 : ℝ) / 2 ≤ (1 - r ^ (2 * d)) / (1 + r ^ (2 * d)) := by\n    apply (le_div_iff₀ hden).2\n    nlinarith\n  have hMlower : (d : ℝ) / (2 * Real.sqrt κ) ≤ M := by\n    rw [hMformula]\n    calc\n      _ = ((d : ℝ) / Real.sqrt κ) * (1 / 2) := by ring\n      _ ≤ _ := mul_le_mul_of_nonneg_left hcorrection (by positivity)\n  have hMpower : (d : ℝ) ^ ((1 + δ) / 2) / 2 ≤ M :=\n    (source_norm_scale_lower hdpos (by linarith : 0 < κ) hκcap).trans hMlower\n"
+        },
+        {
+          "title": "Combine the source bias rate with the norm mean",
+          "text": "The original q cap gives 3n/√κ≤3+(3δ/128)log d≤3+(δ/4)log d. The canonical actual exponential bias therefore yields β≥B d^(−δ/4)>0. Square this nonnegative lower bound and multiply by the positive norm lower bound. The real-power exponents reduce exactly to one half.",
+          "formula": "\\beta\\ge Bd^{-\\delta/4}>0,\\qquad M\\beta^2\\ge\\frac12d^{(1+\\delta)/2}(Bd^{-\\delta/4})^2=\\frac{B^2}{2}\\sqrt d.",
+          "detail": "hqr/hncalc/hns retain 3δ/128 before its relaxation. The exp/rpow conversion is guarded by d>0, and hpowerproduct/hsignalidentity establish the exact product. The public theorem also returns M>0 and β>0. This is only the signal branch of Ex24; no τ/β estimate is emitted.",
+          "lean": "  have hbne : b ≠ 0 := by\n    intro h\n    rw [h, mul_zero] at hsignpos\n    exact (lt_irrefl 0) hsignpos\n  have hβpos : 0 < β := div_pos (abs_pos.mpr hbne) hMpos\n  have hqr : (q : ℝ) / Real.sqrt κ ≤ (δ / 256) * Real.log (d : ℝ) := by\n    apply (div_le_iff₀ hspos).2\n    calc\n      _ ≤ (δ / 256) * Real.sqrt κ * Real.log (d : ℝ) := hq\n      _ = _ := by ring\n  have h3s : 3 / Real.sqrt κ ≤ (3 : ℝ) := by\n    apply (div_le_iff₀ hspos).2\n    nlinarith\n  have hncalc : 3 * (n : ℝ) / Real.sqrt κ =\n      6 * ((q : ℝ) / Real.sqrt κ) + 3 / Real.sqrt κ := by\n    simp only [n, Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat]\n    ring\n  have hns : 3 * (n : ℝ) / Real.sqrt κ ≤\n      3 + (3 * δ / 128) * Real.log (d : ℝ) := by\n    calc\n      _ = 6 * ((q : ℝ) / Real.sqrt κ) + 3 / Real.sqrt κ := hncalc\n      _ ≤ 6 * ((δ / 256) * Real.log (d : ℝ)) + 3 :=\n        add_le_add (mul_le_mul_of_nonneg_left hqr (by norm_num)) h3s\n      _ = _ := by ring\n  have hrelax : 3 + (3 * δ / 128) * Real.log (d : ℝ) ≤\n      3 + (δ / 4) * Real.log (d : ℝ) := by\n    have hc : 3 * δ / 128 ≤ δ / 4 := by nlinarith\n    exact add_le_add le_rfl (mul_le_mul_of_nonneg_right hc hlog0)\n  have hexponent : -3 + Real.log (d : ℝ) * (-δ / 4) ≤\n      -3 * (n : ℝ) / Real.sqrt κ := by\n    calc\n      _ = -(3 + (δ / 4) * Real.log (d : ℝ)) := by ring\n      _ ≤ -(3 * (n : ℝ) / Real.sqrt κ) := neg_le_neg (hns.trans hrelax)\n      _ = _ := by ring\n  have he4 : Real.exp (-4) < 1 := by\n    simpa only [Real.exp_zero] using Real.exp_lt_exp.mpr (by norm_num : (-4 : ℝ) < 0)\n  have hCpos : 0 < C := by dsimp [C]; linarith\n  have hBpos : 0 < B := mul_pos hCpos (Real.exp_pos _)\n  have hpoly : B * (d : ℝ) ^ (-δ / 4) ≤ β := by\n    calc\n      _ = C * (Real.exp (-3) * Real.exp (Real.log (d : ℝ) * (-δ / 4))) := by\n        rw [Real.rpow_def_of_pos hdpos]\n        ring\n      _ = C * Real.exp (-3 + Real.log (d : ℝ) * (-δ / 4)) := by rw [Real.exp_add]\n      _ ≤ C * Real.exp (-3 * (n : ℝ) / Real.sqrt κ) :=\n        mul_le_mul_of_nonneg_left (Real.exp_le_exp.mpr hexponent) hCpos.le\n      _ ≤ β := hlow\n  have hpoly0 : 0 ≤ B * (d : ℝ) ^ (-δ / 4) := by positivity\n  have hsquare : (B * (d : ℝ) ^ (-δ / 4)) ^ 2 ≤ β ^ 2 :=\n    pow_le_pow_left₀ hpoly0 hpoly 2\n  have hsignal := mul_le_mul hMpower hsquare\n    (sq_nonneg (B * (d : ℝ) ^ (-δ / 4))) hMpos.le\n  have hpowerproduct : (d : ℝ) ^ ((1 + δ) / 2) * ((d : ℝ) ^ (-δ / 4)) ^ 2 =\n      Real.sqrt (d : ℝ) := by\n    rw [← Real.rpow_mul_natCast hdpos.le, ← Real.rpow_add hdpos]\n    rw [show ((1 + δ) / 2 + (-δ / 4) * (2 : ℕ) : ℝ) = 1 / 2 by push_cast; ring]\n    exact (Real.sqrt_eq_rpow (d : ℝ)).symm\n  have hsignalidentity : (d : ℝ) ^ ((1 + δ) / 2) / 2 *\n      (B * (d : ℝ) ^ (-δ / 4)) ^ 2 = (B ^ 2 / 2) * Real.sqrt (d : ℝ) := by\n    rw [mul_pow]\n    calc\n      _ = (B ^ 2 / 2) * ((d : ℝ) ^ ((1 + δ) / 2) * ((d : ℝ) ^ (-δ / 4)) ^ 2) := by ring\n      _ = _ := by rw [hpowerproduct]\n  refine ⟨hMpos, hβpos, hMlower, hMpower, ?_⟩\n  calc\n    _ = (d : ℝ) ^ ((1 + δ) / 2) / 2 * (B * (d : ℝ) ^ (-δ / 4)) ^ 2 := hsignalidentity.symm\n    _ ≤ M * β ^ 2 := hsignal\n"
+        },
+        {
+          "title": "Use the signal in a genuine uniform probability estimate",
+          "text": "Choose one natural N≥40/B² before varying κ/q, and enlarge the output threshold by N² and the canonical mode threshold. Then Mβ²≥20. For the actual signed statistic X=(−1)^nQ(U), its mean is βM>0 and its variance is at most 2M. Chebyshev bounds the zero-threshold bad event by 2/(Mβ²)≤1/10. The full private Test is folded here.",
+          "formula": "\\sqrt d\\ge N\\ge\\frac{40}{B^2}\\Longrightarrow M\\beta^2\\ge20,\\qquad\\mathbb P\\{(-1)^nQ(U)\\le0\\}\\le\\frac{2}{M\\beta^2}\\le\\frac1{10}.",
+          "detail": "This is a private NON-ANCHOR actual diagonal-law consumer. It materializes the new signal bound and genuine MemLp/variance/Chebyshev/finite-ofReal facts. The source detector subtracts 2τ‖U‖² and is rotated; neither that shifted event nor full Ex26 follows from this zero-threshold result.",
+          "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSignalStrength\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumVariances\n\n/-!\nPrivate NON-ANCHOR actual-law numerical consumer of the new signal strength.\nOne enlarged delta-only output threshold gives signed-Q<=0 probability<=1/10\nfor every original admitted condition/query cap. Actual moments, variance,\nsign and finite-measure conversion are proved internally. This is a ZERO\nthreshold, diagonal-law event; concrete tau, the shifted rotated detector,\nfull Ex26, algorithms/oracle/TV/cost and main lower bounds remain open.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSignalStrength\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumModeGap\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumBias\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumVariances\n\nprivate theorem actual_gaussian_source_query_zero_event_le_tenth {δ : ℝ}\n    (hδ0 : 0 < δ) (hδ1 : δ < 1) :\n  ∃ d₀ : ℕ, ∀ (d : ℕ), d₀ ≤ d → ∀ (κ : ℝ), 2 ≤ κ →\n    κ ≤ (d : ℝ) ^ (1 - δ) → ∀ (q : ℕ),\n    (q : ℝ) ≤ (δ / 256) * Real.sqrt κ * Real.log (d : ℝ) →\n    let n : ℕ := 2 * q + 1\n    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n    let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n    let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n    let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n      multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹\n    let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n    (μ {x | (-1 : ℝ) ^ n * Q x ≤ 0}).toReal ≤ (1 : ℝ) / 10\n := by\n  let B : ℝ := (1 - Real.exp (-4)) * Real.exp (-3)\n  have he4 : Real.exp (-4) < 1 := by\n    simpa only [Real.exp_zero] using Real.exp_lt_exp.mpr (by norm_num : (-4 : ℝ) < 0)\n  have hBpos : 0 < B := mul_pos (by linarith) (Real.exp_pos _)\n  obtain ⟨N, hN⟩ := exists_nat_ge (40 / B ^ 2)\n  rcases eventual_actual_gaussian_signal_strength hδ0 hδ1 with ⟨D, hD⟩\n  rcases eventual_source_query_mode_gap hδ0 hδ1 with ⟨K, hK⟩\n  refine ⟨max D (max K (N ^ 2)), ?_⟩\n  intro d hd κ hκ hκcap q hq\n  have hdD : D ≤ d := (le_max_left D (max K (N ^ 2))).trans hd\n  have hdKN : max K (N ^ 2) ≤ d := (le_max_right D (max K (N ^ 2))).trans hd\n  have hdK : K ≤ d := (le_max_left K (N ^ 2)).trans hdKN\n  have hdN : N ^ 2 ≤ d := (le_max_right K (N ^ 2)).trans hdKN\n  let n : ℕ := 2 * q + 1\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) := multivariateGaussian 0 Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n  let b : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ\n  let β : ℝ := |b| / M\n  let X : EuclideanSpace ℝ (Fin d) → ℝ := fun x => (-1 : ℝ) ^ n * Q x\n  let m : ℝ := (-1 : ℝ) ^ n * b\n  change (μ {x | X x ≤ 0}).toReal ≤ (1 : ℝ) / 10\n  have hadm := hK d hdK κ hκ hκcap q hq\n  change 2 ≤ d ∧ 1 ≤ n ∧ n < d ∧ Real.sqrt κ ≤ (d : ℝ) - (n : ℝ) at hadm\n  rcases hadm with ⟨hd2, hn1, hnd, hgap⟩\n  have hs := hD d hdD κ hκ hκcap q hq\n  change 0 < M ∧ 0 < β ∧ (d : ℝ) / (2 * Real.sqrt κ) ≤ M ∧\n    (d : ℝ) ^ ((1 + δ) / 2) / 2 ≤ M ∧\n    (B ^ 2 / 2) * Real.sqrt (d : ℝ) ≤ M * β ^ 2 at hs\n  rcases hs with ⟨hMpos, _hβpos, _hMlower, _hMpower, hproduct⟩\n  have hNsq : (N : ℝ) ^ 2 ≤ (d : ℝ) := by exact_mod_cast hdN\n  have hNsqrt : (N : ℝ) ≤ Real.sqrt (d : ℝ) := Real.le_sqrt_of_sq_le hNsq\n  have hthreshold : (20 : ℝ) ≤ (B ^ 2 / 2) * Real.sqrt (d : ℝ) := by\n    have ht := mul_le_mul_of_nonneg_left (hN.trans hNsqrt)\n      (by positivity : 0 ≤ B ^ 2 / 2)\n    have heq : (B ^ 2 / 2) * (40 / B ^ 2) = (20 : ℝ) := by\n      field_simp [ne_of_gt hBpos]; ring\n    rw [heq] at ht\n    exact ht\n  have hsignal : (20 : ℝ) ≤ M * β ^ 2 := hthreshold.trans hproduct\n  rcases actual_diagonal_gaussian_exponential_bias hd2 hκ n hn1 hnd hgap with\n    ⟨_hMposBias, hmpos, _hlow, _hupp⟩\n  change 0 < m at hmpos\n  rcases actual_diagonal_gaussian_quadratic_variances hd2 hκ n hn1 hnd with\n    ⟨_hNmem, hQmem, _hNexact, _hQexact, _hNbound, hQbound, _hMupper⟩\n  have hX : MemLp X 2 μ := hQmem.const_mul _\n  have hmean : (∫ x, X x ∂μ) = m := by exact integral_const_mul _ _\n  have habs : |b| = m := by\n    calc\n      |b| = |(-1 : ℝ) ^ n * b| := by rw [abs_mul, abs_neg_one_pow, one_mul]\n      _ = _ := abs_of_pos hmpos\n  have hmeanRatio : m = β * M := by\n    dsimp [β]\n    rw [habs]\n    exact (div_mul_cancel₀ m (ne_of_gt hMpos)).symm\n  have hmeansq : m ^ 2 = (M * β ^ 2) * M := by rw [hmeanRatio]; ring\n  have hlarge : 20 * M ≤ m ^ 2 := by\n    have h := mul_le_mul_of_nonneg_right hsignal hMpos.le\n    rw [← hmeansq] at h\n    exact h\n  have hsign : ((-1 : ℝ) ^ n) ^ 2 = 1 := by\n    rw [← pow_mul, Nat.mul_comm, pow_mul]\n    norm_num\n  have hV : Var[X; μ] ≤ 2 * M := by\n    change Var[fun x => (-1 : ℝ) ^ n * Q x; μ] ≤ _\n    rw [variance_const_mul, hsign, one_mul]\n    exact hQbound\n  have hsub : {x | X x ≤ 0} ⊆ {x | m ≤ |X x - (∫ y, X y ∂μ)|} := by\n    intro x hx\n    change X x ≤ 0 at hx\n    change m ≤ |X x - (∫ y, X y ∂μ)|\n    rw [hmean, abs_of_nonpos (by linarith : X x - m ≤ 0)]\n    linarith\n  have hc := meas_ge_le_variance_div_sq hX hmpos\n  have hm : μ {x | X x ≤ 0} ≤ ENNReal.ofReal (Var[X; μ] / m ^ 2) :=\n    (measure_mono hsub).trans (by simpa only [hmean] using hc)\n  have hprob : (μ {x | X x ≤ 0}).toReal ≤ Var[X; μ] / m ^ 2 := by\n    calc\n      _ ≤ (ENNReal.ofReal (Var[X; μ] / m ^ 2)).toReal :=\n        ENNReal.toReal_mono ENNReal.ofReal_ne_top hm\n      _ = _ := ENNReal.toReal_ofReal (div_nonneg (variance_nonneg _ _) (sq_nonneg _))\n  calc\n    _ ≤ Var[X; μ] / m ^ 2 := hprob\n    _ ≤ 2 * M / m ^ 2 := div_le_div_of_nonneg_right hV (sq_nonneg m)\n    _ ≤ (1 : ℝ) / 10 := by\n      apply (div_le_iff₀ (sq_pos_of_pos hmpos)).2\n      nlinarith\n"
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumModeGap.eventual_source_query_mode_gap",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumBias.actual_diagonal_gaussian_exponential_bias",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumExactMeans.actual_diagonal_gaussian_exact_means"
+      ],
+      "mathlib_dependencies": [
+        "Real.add_one_le_exp",
+        "Real.exp_nat_mul",
+        "Real.exp_neg",
+        "Real.sqrt_le_sqrt",
+        "Real.sqrt_eq_rpow",
+        "Real.rpow_mul",
+        "Real.rpow_add",
+        "Real.rpow_mul_natCast",
+        "exists_nat_ge",
+        "ProbabilityTheory.meas_ge_le_variance_div_sq"
+      ],
+      "lean_statement": "Exactly fixed0<δ<1; one existential natural threshold before all original d/κ/q; literal inverse-precision Gaussian, actual integral M,b,beta=abs(b)/M and exact B. M/beta positivity and both norm/signal inequalities are conclusions, not added premises.",
+      "lean_proof": "Canonical mode/gap and actual means/bias are composed with an internally proved radius tail and guarded real-power identities. The complete private consumer derives one uniform numerical cutoff, actual signed mean/variance and a real Chebyshev probability bound.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S4.SS3.SSS0.Px2.p2",
+          "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S4.SS3.SSS0.Px2.p1-p2; unnumbered M lower estimates; signal branch of S4.Ex24; C3. Private actual-law zero-threshold adaptation only.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "On Complexity of Gaussian Sampling, arXiv2610.20492v1.",
+          "scope": "Selected actual target numerical norm/signal prerequisite, not full Ex24/Ex26 or Theorem4.1.",
+          "label": "Section4.3 actual target M lower and Ex24 signal branch"
+        },
+        {
+          "path": "Tests/GaussianComplexityFixedSpectrumSignalStrength.lean",
+          "line": 21,
+          "label": "Complete private actual-law zero-event probability application",
+          "scope": "Private implementation context only; no original shifted detector or new public Anchor/Registry node."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumSignalStrength"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSignalStrength.eventual_actual_gaussian_signal_strength",
+      "role": "prerequisite",
+      "supports": [
+        "actual-source-norm-lower",
+        "actual-source-signal-strength"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Fixed delta in(0,1), sufficiently large d depending only on delta, uniformly2<=kappa<=d^(1-delta) and naturalq under the exactdelta/256sqrt(kappa)logd cap.",
+        "lean": "Same scalar prefix; exists naturald0 afterdelta beforeALLd,kappa,q, withliteraln=2q+1."
+      },
+      {
+        "source": "M=E norm(U)^2 and beta=abs(E Q(U))/M under the actual diagonal inverse-precision Gaussian.",
+        "lean": "Literal midpoint Fin d spectrum, multivariateGaussian0Lambda inverse and actual Bochner integrals. M>0,beta>0 are outputs."
+      },
+      {
+        "source": "Unnamed M>=d/(2sqrt(kappa))>=d^((1+delta)/2)/2 and Ex24 signal M beta squared>=B squaredsqrt(d)/2.",
+        "lean": "Exactly both actual M lower inequalities and signal constant B=(1-exp(-4))*exp(-3)."
+      },
+      {
+        "source": "The source tail uses a weakening of its C3 radius exponential estimate.",
+        "lean": "Internal sufficient elementary route r<=1-1/s<=exp(-1/s), r^(2d)<=exp(-2)<=1/3; actual norm correction and exact power comparison."
+      },
+      {
+        "source": "Original Ex26 treats a shifted,rotated statistic with concrete tau and strength threshold320.",
+        "lean": "Separate PRIVATE actual diagonal Gaussian zero-threshold event, internally enlarged uniform cutoff and probability<=1/10."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "992f9be35a150ec4fd8f75bfc19adce51a93bfc19574b07d27c35eb1ca0cb3a0"
+}

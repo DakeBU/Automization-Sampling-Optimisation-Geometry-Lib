@@ -1,0 +1,27 @@
+616:                 errors.append(_at(audit_id, "equivalent-after-elaboration has non-equivalent slots: " + ", ".join(bad)))
+617: 
+618:         review = audit.get("source_review")
+619:         if not isinstance(review, dict):
+620:             errors.append(_at(audit_id, "source_review must be an object"))
+621:             review = {}
+622:         review_state = review.get("state")
+623:         if review_state not in REVIEW_STATES:
+624:             errors.append(_at(audit_id, f"source_review.state must be one of {sorted(REVIEW_STATES)}"))
+625:         if review_state != "pending":
+626:             reviewer = review.get("reviewer")
+627:             if not _nonempty(reviewer):
+628:                 errors.append(_at(audit_id, "reviewed audit needs source_review.reviewer"))
+629:             if review.get("independent_from_formalizer") is not True:
+630:                 errors.append(_at(audit_id, "source reviewer must be independent from the formalizer"))
+631:             if review.get("independent_from_decoder") is not True:
+632:                 errors.append(_at(audit_id, "source reviewer must be independent from the blind decoder"))
+633:             if reviewer in {lean.get("formalizer"), reconstruction.get("decoder")}:
+634:                 errors.append(_at(audit_id, "source reviewer identity must differ from formalizer and decoder"))
+635:             if not _nonempty(review.get("evidence")):
+636:                 errors.append(_at(audit_id, "reviewed audit needs source_review.evidence"))
+637:             if not _hash(review.get("review_run_sha256")):
+638:                 errors.append(_at(audit_id, "reviewed audit needs source_review.review_run_sha256"))
+639:             expected_review_packet = semantic_reviewer_packet(audit).get("packet_sha256")
+640:             if review.get("reviewer_packet_sha256") != expected_review_packet:
+641:                 errors.append(_at(audit_id, "source_review.reviewer_packet_sha256 does not match the canonical reviewer packet"))
+642:         if state in {"source-reviewed", "accepted"} and review_state != "accepted":

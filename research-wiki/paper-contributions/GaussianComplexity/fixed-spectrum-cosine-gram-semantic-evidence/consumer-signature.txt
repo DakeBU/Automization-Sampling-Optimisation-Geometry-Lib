@@ -1,0 +1,17 @@
+private theorem actual_gaussian_gram_means {d q : ℕ} (hq : 2 * q + 1 < d) :
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let t : Matrix (Fin d) (Fin (q + 1)) ℝ := fun i k =>
+    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)
+  let D : Matrix (Fin d) (Fin d) ℝ :=
+    Matrix.diagonal (fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i))
+  let μ : Measure (EuclideanSpace ℝ (Fin d × Fin (q + 1))) :=
+    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d × Fin (q + 1)))
+      (1 : Matrix (Fin d × Fin (q + 1)) (Fin d × Fin (q + 1)) ℝ)
+  let B : EuclideanSpace ℝ (Fin d × Fin (q + 1)) →
+      Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun x i a =>
+    (Real.sqrt (d : ℝ))⁻¹ * WithLp.ofLp x (i, a.1) * t i a.2
+  ∀ a b : Fin (q + 1) × Fin (q + 1),
+    Integrable (fun x => ((B x).transpose * B x) a b) μ ∧
+    Integrable (fun x => ((B x).transpose * D * B x) a b) μ ∧
+    (∫ x, ((B x).transpose * B x) a b ∂μ) = (if a = b then 1 else 0) ∧
+    (∫ x, ((B x).transpose * D * B x) a b ∂μ) = 0

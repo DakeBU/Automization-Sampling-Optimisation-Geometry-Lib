@@ -1,0 +1,31 @@
+--- .astis/huanjian-gc-fixed-spectrum-normalizer-integration-20261108/independent-reader/check_final_reader_v4.py
++++ .astis/huanjian-gc-fixed-spectrum-normalizer-integration-20261108/independent-reader/check_final_reader_v5.py
+@@ -364,6 +364,28 @@
+             assert 'Compiled' in debt_text and 'gaussian-precision-density-existing-canonical' in debt_text
+             no_page_overflow(page)
+             warning = page.locator('h2').filter(has_text='Proof architecture')
++            assert warning.count() == 1
++            # The real reading-mode control exposes the CSS-hidden formalization
++            # lens. Its handler opens the lens; reopen it through the real summary.
++            lean_mode = page.locator('.lean-learning-studio button[data-reading-mode="lean"]')
++            assert lean_mode.count() == 1 and lean_mode.is_visible()
++            lean_mode.click()
++            assert lean_mode.get_attribute('aria-pressed') == 'true'
++            ancestors = warning.locator('xpath=ancestor::details')
++            assert ancestors.count() == 1
++            lens = ancestors.first
++            assert 'formalization-lens' in lens.get_attribute('class').split()
++            summary = lens.locator(':scope > summary')
++            assert summary.count() == 1 and summary.is_visible()
++            if lens.get_attribute('open') is not None:
++                summary.click()
++                assert lens.get_attribute('open') is None
++            summary.click()
++            assert lens.get_attribute('open') is not None and warning.is_visible()
++            debt_paragraph = warning.locator('xpath=following-sibling::p[1]')
++            assert debt_paragraph.count() == 1 and debt_paragraph.is_visible()
++            for phrase in ('Compilation-only admission of the existing canonical density', 'historical source/publication audit debt', 'proved_locally without independent verification', 'no old sourceV or completed audit is claimed'):
++                assert phrase in debt_paragraph.text_content(), phrase
+             warning.scroll_into_view_if_needed()
+             screenshot(page, f'canonical-GPD-{width}-debt-card')
+             report['GPD_debt_cards'].append({'width': width, 'canonical_declaration': CANONICAL_GAUSSIAN, 'route': debt_card_href, 'native_canonical_reader_click': True, 'canonical_reader_route': canonical_reader_href, 'native_inventory_card_click': True, 'actual_visible_warning_checked': True, 'old_sourceV_or_publication_credit': False})

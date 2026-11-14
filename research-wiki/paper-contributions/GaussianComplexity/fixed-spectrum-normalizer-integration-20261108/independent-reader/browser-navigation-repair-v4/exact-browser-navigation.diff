@@ -1,0 +1,25 @@
+--- .astis/huanjian-gc-fixed-spectrum-normalizer-integration-20261108/independent-reader/check_final_reader_v2.py
++++ .astis/huanjian-gc-fixed-spectrum-normalizer-integration-20261108/independent-reader/check_final_reader_v4.py
+@@ -344,12 +344,16 @@
+             debt_link.click()
+             page.wait_for_load_state('domcontentloaded')
+             assert page.locator(f'article[data-authored-declaration="{CANONICAL_GAUSSIAN}"]').count() == 1
+-            # Publication navigation intentionally preserves the historical authored reader.
+-            # The separate canonical Registry card is reachable through the inventory map.
+-            assert page.goto(base + 'implementation-map.html', wait_until='domcontentloaded').status == 200
+-            inventory_route = 'theorems/' + astis_site.slugify(CANONICAL_GAUSSIAN) + '.html'
+-            inventory_link = page.locator(f'a[href="{inventory_route}"]')
+-            assert inventory_link.count() == 1
++            # Preserve the preceding native historical-reader click. The actual
++            # Declaration Catalog links to this canonical compiled Registry card.
++            inventory_rows = [row for row in json.loads((SITE / 'data/site-data.json').read_bytes())['registry_declarations'] if row['local_decl'] == CANONICAL_GAUSSIAN]
++            assert len(inventory_rows) == 1
++            inventory_route = inventory_rows[0]['card']
++            assert page.goto(base + 'declarations/index.html', wait_until='domcontentloaded').status == 200
++            page.locator('#declaration-search').fill(CANONICAL_GAUSSIAN)
++            inventory_link = page.locator(f'#declaration-table a[href="../{inventory_route}"]')
++            assert inventory_link.count() == 1 and inventory_link.is_visible()
++            assert urljoin(page.url, inventory_link.get_attribute('href')) == urljoin(base, inventory_route)
+             inventory_link.scroll_into_view_if_needed()
+             debt_card_href = inventory_link.get_attribute('href')
+             inventory_link.click()

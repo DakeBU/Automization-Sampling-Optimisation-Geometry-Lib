@@ -1,0 +1,14 @@
+example {d : ℕ} (hd : 2 ≤ d)
+    {κ : ℝ} (hκ : 2 ≤ κ)
+    (O : Matrix.orthogonalGroup (Fin d) ℝ) :
+    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+    let diagonalValue : Fin d → ℝ := fun i =>
+      (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)
+    let A : Matrix (Fin d) (Fin d) ℝ :=
+      (O : Matrix (Fin d) (Fin d) ℝ) * Matrix.diagonal diagonalValue *
+        (O : Matrix (Fin d) (Fin d) ℝ).transpose
+    ProbabilityTheory.multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹ =
+      (volume : Measure (EuclideanSpace ℝ (Fin d))).withDensity (fun x =>
+        ENNReal.ofReal (Real.sqrt (∏ i : Fin d, diagonalValue i) /
+          (2 * Real.pi) ^ ((d : ℝ) / 2) *
+          Real.exp (-((WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x)) / 2)))

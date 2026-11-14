@@ -1,0 +1,15 @@
+# Independent normal VERIFIED result
+
+`ASTIS-SA-20261112-GaussianComplexitySourceMatrixMean` is actually **VERIFIED** by `/root/mm_fresh_source_8c31` through one normal `transition_advance` call, exit 0. The actual ledger append was read back before the two authorized C-field changes. The successful API was never replayed.
+
+Mathematical/native candidate: `5fb1440f771bdae77ad31f27b2275447fe3e89e5`. Held metadata HEAD: `94116ada2dad7de1d31ca9c67189ee734a72ed16`, unchanged. No fresh compile credit is assigned to the later metadata HEAD. The independent source v2 review and the native 7-module/39-full-closed-type-and-body review are accepted in their recorded bounded scopes. All 50 relevant inputs, the actual binary and all 9 clean package revisions match. The 816509484-byte local full-body dump was independently stream-hashed and is not exported.
+
+The four original final gates at the held HEAD were exit 0. This verifier's actual precheck, pre-frontier, normal API, outcome/readback, post-frontier and postcheck all returned exit 0. Own normal-verification failures: none. The original producer first build 0, consumer historical 1/1/0, strict probe 0, native verifier/probe/preparer failures and the source v1 schema correction remain in their original records and labels.
+
+Actual physical inventory is **468 regular frontier files**, comprising this C and **467 other files including README**, rather than the checker's 464 registered-cell count. All 307 foreign advances' complete states, all 43 discoveries' complete states and raw bytes, the entire advance-ledger prior raw prefix, all other frontier file bytes/modes, and all other tracked bytes/modes are unchanged. The tracked inventory contains 130418 files; only the permitted C and the single-append advance ledger changed bytes, with their modes/index identities preserved. HEAD and actual refs remain local main `a7cc97fc2376896ad6a666b87ca611dc4b815a49` and origin/main `4db0f863340a1710446c86a6e9db1994cd8bceb3`.
+
+The original source v1 package's 67 files and v2 package's 78 files remain byte-identical. The original 20 PROVED_LOCAL payload fields are all inline, unchanged, in the actual VERIFIED payload, with the original raw payload/append separately preserved. Only C.status and its existing evidence.independent_verification changed; every other C field and byte outside those textual substitutions is unchanged.
+
+The full normal API stdout/stderr/receipt, exact actual append/full payload, scripts, inputs, exposures, pre/post digest-only preservation and independent decision are carried by this package. No full foreign/control/private snapshot is exported. See the portable manifest and external seal for exact file counts and hashes.
+
+No owner release, stabilization, Git commit/push, registry/source/shared/site modification, integration, whole Goal completion, browser/mobile/MathJax runtime, public delivery or purification is authorized or credited. Return originals to the coordinator and leave remaining integration/reader work with its authorized owner. Do not replay the successful API.

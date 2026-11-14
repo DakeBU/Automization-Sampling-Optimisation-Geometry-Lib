@@ -1,0 +1,209 @@
+{
+  "id": "ASTIS-RT-20261110-HuanjianFixedSpectrumModeGap",
+  "state": "draft",
+  "source": {
+    "source_id": "arxiv2610.20492v1-uniform-source-query-mode-gap",
+    "url": "https://arxiv.org/html/2610.20492v1#S4.SS3.SSS0.Px1.p1.1",
+    "anchor": "S4.SS3.p2.1/p3.1; S4.SS3.SSS0.Px1.p1.1-p1.2 and Px2.p2.1. Private actual-law numerical Ex23 component and Px2.p2.2.",
+    "original_text": "One natural dimension threshold makes the source mode and spectral gap valid uniformly over the original condition-number and integer query-cap range. \\exists d_0(\\delta)\\ \\forall d\\ge d_0(\\delta)\\ \\forall\\kappa,q\\text{ in the stated range}:\\quad d\\ge2,\\qquad 1\\le n=2q+1<d,\\qquad d-n\\ge\\sqrt\\kappa. Fix \\(\\delta\\in\\mathbb R\\) with \\(0<\\delta<1\\). The natural threshold is an existential output, chosen after this fixed parameter and before all dimensions, condition parameters and query caps. It depends only on \\(\\delta\\). For every natural \\(d\\ge d_0(\\delta)\\), take a real \\(\\kappa\\) with \\(2\\le\\kappa\\le d^{1-\\delta}\\), and a natural \\(q\\ge0\\) satisfying \\(q\\le(\\delta/256)\\sqrt\\kappa\\log d\\). The case \\(q=0\\) is included. Set \\(n=2q+1\\) as a natural number. In the gap inequality, dimension and mode are cast to the reals before subtraction. All powers with real exponents are standard real powers. The scalar \\(q\\) is the integer cap appearing in the source query regime. This numerical prerequisite does not define an algorithm, prove an oracle lower bound, or adapt expected cost to a deterministic worst-case cap. No TV precision or algorithmic conclusion is asserted. Dimension positivity, logarithm and real-power domains, mode range and the real gap are proved internally. No gap, asymptotic bound, threshold callback, moment or law certificate is an extra input.",
+    "text_sha256": "48392d6a06202040ab9528662d43503ef574aed7c044728fadfa2fcdd36af5d5",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumModeGap.eventual_source_query_mode_gap",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumModeGap.lean",
+    "statement": "∀ {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ < 1),\n  ∃ d₀ : ℕ, ∀ (d : ℕ), d₀ ≤ d → ∀ (κ : ℝ), 2 ≤ κ →\n    κ ≤ (d : ℝ) ^ (1 - δ) → ∀ (q : ℕ),\n    (q : ℝ) ≤ (δ / 256) * Real.sqrt κ * Real.log (d : ℝ) →\n    let n : ℕ := 2 * q + 1\n    2 ≤ d ∧ 1 ≤ n ∧ n < d ∧ Real.sqrt κ ≤ (d : ℝ) - (n : ℝ)\n",
+    "statement_sha256": "169c85266f0d16e947cbcdbc5fe1c064d3b83a2a3e8eb14ed19a1e3313c2b976",
+    "formalizer": "huanjian_gc_20261110_fixed_spectrum_mode_gap",
+    "compiled": true,
+    "decoder_context": [
+      "The natural numbers include zero. All arrows and universal/existential quantifiers have their usual dependent type meanings; an existential witness is part of the conclusion, not an additional input assumption.",
+      "Real.log, Real.sqrt and real powers are standard real functions. For a positive base x, the real power x^r is exp(log(x)*r). Square root is the nonnegative square root. The standard totalized functions also have their literal off-positive-domain definitions.",
+      "Explicit casts of natural numbers to real numbers are the usual inclusion. Subtraction between real casts is real subtraction; the local expression2*q+1 is formed in the natural numbers. The displayed constants have their literal rational values."
+    ]
+  },
+  "reconstruction": {},
+  "semantic_slots": {},
+  "deltas": [],
+  "verdict": "pending",
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "17f6c8d330b1ce2529a881860aa6175821cfeb6dd8b69566c44ac720f8104e18",
+  "publication_context": {
+    "file": "eff7c19d0592251a41ad89c45cf025f4b0b06af516c5901e6b0603fc16fa61e2",
+    "current_lean_module": "import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics\nimport Mathlib.Tactic\n\n/-!\n# Uniform source-query mode and spectral gap\n\nZhou--Suzuki arXiv:2610.20492v1, Section4.3: Px1.p1.1--p1.2\nand Px2.p2.1. One natural threshold works uniformly over the original\ncondition-number and integer query-cap ranges. The canonical logarithmic\nlittle-o estimate supplies the threshold; all dimension/mode/gap facts\nare conclusions. This is a numerical prerequisite, not an oracle theorem.\n-/\nopen Filter Asymptotics\nnoncomputable section\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumModeGap\n\ntheorem eventual_source_query_mode_gap {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ < 1) :\n  ∃ d₀ : ℕ, ∀ (d : ℕ), d₀ ≤ d → ∀ (κ : ℝ), 2 ≤ κ →\n    κ ≤ (d : ℝ) ^ (1 - δ) → ∀ (q : ℕ),\n    (q : ℝ) ≤ (δ / 256) * Real.sqrt κ * Real.log (d : ℝ) →\n    let n : ℕ := 2 * q + 1\n    2 ≤ d ∧ 1 ≤ n ∧ n < d ∧ Real.sqrt κ ≤ (d : ℝ) - (n : ℝ) := by\n\n  have hlo : (fun d : ℕ => Real.log (d : ℝ)) =o[Filter.atTop]\n      (fun d : ℕ => (d : ℝ) ^ (1 / 2 : ℝ)) :=\n    (isLittleO_log_rpow_atTop (by norm_num : (0 : ℝ) < 1 / 2)).comp_tendsto\n      tendsto_natCast_atTop_atTop\n  have hlogevent : ∀ᶠ d : ℕ in Filter.atTop, Real.log (d : ℝ) ≤ Real.sqrt (d : ℝ) := by\n    filter_upwards [hlo.def (by norm_num : (0 : ℝ) < 1)] with d hd\n    have hd' : |Real.log (d : ℝ)| ≤ (d : ℝ) ^ (1 / 2 : ℝ) := by\n      simpa only [Real.norm_eq_abs, one_mul,\n        abs_of_nonneg (Real.rpow_nonneg (Nat.cast_nonneg d) _)] using hd\n    exact (le_abs_self _).trans (hd'.trans_eq (Real.sqrt_eq_rpow _).symm)\n  rcases Filter.eventually_atTop.1 hlogevent with ⟨D, hD⟩\n  refine ⟨max D 4, ?_⟩\n  intro d hd κ hκ hκcap q hq\n  change 2 ≤ d ∧ 1 ≤ 2 * q + 1 ∧ 2 * q + 1 < d ∧\n    Real.sqrt κ ≤ (d : ℝ) - ((2 * q + 1 : ℕ) : ℝ)\n  have hd4nat : 4 ≤ d := (le_max_right D 4).trans hd\n  have hd4 : (4 : ℝ) ≤ (d : ℝ) := by exact_mod_cast hd4nat\n  have hd0 : (0 : ℝ) ≤ (d : ℝ) := Nat.cast_nonneg d\n  have hd1 : (1 : ℝ) ≤ (d : ℝ) := by linarith\n  have hlog : Real.log (d : ℝ) ≤ Real.sqrt (d : ℝ) :=\n    hD d ((le_max_left D 4).trans hd)\n  have hlog0 : 0 ≤ Real.log (d : ℝ) := Real.log_nonneg hd1\n  have hκd : κ ≤ (d : ℝ) := hκcap.trans (by\n    simpa only [Real.rpow_one] using\n      Real.rpow_le_rpow_of_exponent_le hd1 (by linarith : 1 - δ ≤ (1 : ℝ)))\n  have hsκ : Real.sqrt κ ≤ Real.sqrt (d : ℝ) := Real.sqrt_le_sqrt hκd\n  have hδscale : δ / 256 ≤ (1 / 256 : ℝ) := by linarith\n  have hcoeff : (δ / 256) * Real.sqrt κ ≤ (1 / 256 : ℝ) * Real.sqrt (d : ℝ) :=\n    (mul_le_mul_of_nonneg_right hδscale (Real.sqrt_nonneg κ)).trans\n      (mul_le_mul_of_nonneg_left hsκ (by norm_num))\n  have hq' : (q : ℝ) ≤ (1 / 256 : ℝ) * Real.sqrt (d : ℝ) * Real.log (d : ℝ) :=\n    hq.trans (mul_le_mul_of_nonneg_right hcoeff hlog0)\n  have hqsmall : (q : ℝ) ≤ (d : ℝ) / 256 := by\n    calc\n      _ ≤ (1 / 256 : ℝ) * Real.sqrt (d : ℝ) * Real.log (d : ℝ) := hq'\n      _ ≤ (1 / 256 : ℝ) * Real.sqrt (d : ℝ) * Real.sqrt (d : ℝ) :=\n        mul_le_mul_of_nonneg_left hlog (by positivity)\n      _ = _ := by nlinarith [Real.sq_sqrt hd0]\n  have hs2 : (2 : ℝ) ≤ Real.sqrt (d : ℝ) := by\n    nlinarith [Real.sq_sqrt hd0, Real.sqrt_nonneg (d : ℝ)]\n  have hsD : Real.sqrt (d : ℝ) ≤ (d : ℝ) / 2 := by\n    nlinarith [Real.sq_sqrt hd0,\n      mul_nonneg (Real.sqrt_nonneg (d : ℝ)) (sub_nonneg.mpr hs2)]\n  have hncast : ((2 * q + 1 : ℕ) : ℝ) = 2 * (q : ℝ) + 1 := by norm_num\n  have hgap : Real.sqrt κ ≤ (d : ℝ) - ((2 * q + 1 : ℕ) : ℝ) := by\n    rw [hncast]\n    linarith\n  have hsκpos : 0 < Real.sqrt κ := Real.sqrt_pos.2 (by linarith)\n  have hndreal : ((2 * q + 1 : ℕ) : ℝ) < (d : ℝ) := by linarith\n  have hnd : 2 * q + 1 < d := by exact_mod_cast hndreal\n  exact ⟨by omega, by omega, hnd, hgap⟩\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumModeGap\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#S4.SS3.SSS0.Px1.p1.1",
+      "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "S4.SS3.p2.1/p3.1; S4.SS3.SSS0.Px1.p1.1-p1.2 and Px2.p2.1. Private actual-law numerical Ex23 component and Px2.p2.2.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+      "scope": "Numerical mode/gap prerequisite extracted from the original uniform source scalar regime, not Theorem4.1 or an oracle/TV/cost result."
+    },
+    "statement": "One natural dimension threshold makes the source mode and spectral gap valid uniformly over the original condition-number and integer query-cap range. \\exists d_0(\\delta)\\ \\forall d\\ge d_0(\\delta)\\ \\forall\\kappa,q\\text{ in the stated range}:\\quad d\\ge2,\\qquad 1\\le n=2q+1<d,\\qquad d-n\\ge\\sqrt\\kappa. Fix \\(\\delta\\in\\mathbb R\\) with \\(0<\\delta<1\\). The natural threshold is an existential output, chosen after this fixed parameter and before all dimensions, condition parameters and query caps. It depends only on \\(\\delta\\). For every natural \\(d\\ge d_0(\\delta)\\), take a real \\(\\kappa\\) with \\(2\\le\\kappa\\le d^{1-\\delta}\\), and a natural \\(q\\ge0\\) satisfying \\(q\\le(\\delta/256)\\sqrt\\kappa\\log d\\). The case \\(q=0\\) is included. Set \\(n=2q+1\\) as a natural number. In the gap inequality, dimension and mode are cast to the reals before subtraction. All powers with real exponents are standard real powers. The scalar \\(q\\) is the integer cap appearing in the source query regime. This numerical prerequisite does not define an algorithm, prove an oracle lower bound, or adapt expected cost to a deterministic worst-case cap. No TV precision or algorithmic conclusion is asserted. Dimension positivity, logarithm and real-power domains, mode range and the real gap are proved internally. No gap, asymptotic bound, threshold callback, moment or law certificate is an extra input.",
+    "formulae": [
+      {
+        "label": "Uniform source query-mode and spectral gap",
+        "tex": "\\exists d_0(\\delta)\\ \\forall d\\ge d_0(\\delta)\\ \\forall\\kappa,q\\text{ in the stated range}:\\quad d\\ge2,\\qquad 1\\le n=2q+1<d,\\qquad d-n\\ge\\sqrt\\kappa."
+      }
+    ],
+    "assumptions": [
+      "Fix \\(\\delta\\in\\mathbb R\\) with \\(0<\\delta<1\\). The natural threshold is an existential output, chosen after this fixed parameter and before all dimensions, condition parameters and query caps. It depends only on \\(\\delta\\).",
+      "For every natural \\(d\\ge d_0(\\delta)\\), take a real \\(\\kappa\\) with \\(2\\le\\kappa\\le d^{1-\\delta}\\), and a natural \\(q\\ge0\\) satisfying \\(q\\le(\\delta/256)\\sqrt\\kappa\\log d\\). The case \\(q=0\\) is included.",
+      "Set \\(n=2q+1\\) as a natural number. In the gap inequality, dimension and mode are cast to the reals before subtraction. All powers with real exponents are standard real powers.",
+      "The scalar \\(q\\) is the integer cap appearing in the source query regime. This numerical prerequisite does not define an algorithm, prove an oracle lower bound, or adapt expected cost to a deterministic worst-case cap. No TV precision or algorithmic conclusion is asserted.",
+      "Dimension positivity, logarithm and real-power domains, mode range and the real gap are proved internally. No gap, asymptotic bound, threshold callback, moment or law certificate is an extra input."
+    ],
+    "obligations": [
+      {
+        "id": "uniform-source-query-mode",
+        "label": "One δ-only natural threshold yields positive dimension and1≤n=2q+1<d over every admittedκ/q."
+      },
+      {
+        "id": "uniform-source-spectral-gap",
+        "label": "The same threshold uniformly gives the exact real gap d−n≥sqrtκ."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumModeGap.eventual_source_query_mode_gap",
+      "title": "Uniform validity of the source query mode and spectral gap",
+      "reader_note": "The uniform mode/gap conclusion comes first. The complete scalar regime, formula proof and exact Lean are folded beside it.",
+      "statement": "One natural dimension threshold makes the source mode and spectral gap valid uniformly over the original condition-number and integer query-cap range.",
+      "formula": "\\exists d_0(\\delta)\\ \\forall d\\ge d_0(\\delta)\\ \\forall\\kappa,q\\text{ in the stated range}:\\quad d\\ge2,\\qquad 1\\le n=2q+1<d,\\qquad d-n\\ge\\sqrt\\kappa.",
+      "assumptions": [
+        "Fix \\(\\delta\\in\\mathbb R\\) with \\(0<\\delta<1\\). The natural threshold is an existential output, chosen after this fixed parameter and before all dimensions, condition parameters and query caps. It depends only on \\(\\delta\\).",
+        "For every natural \\(d\\ge d_0(\\delta)\\), take a real \\(\\kappa\\) with \\(2\\le\\kappa\\le d^{1-\\delta}\\), and a natural \\(q\\ge0\\) satisfying \\(q\\le(\\delta/256)\\sqrt\\kappa\\log d\\). The case \\(q=0\\) is included.",
+        "Set \\(n=2q+1\\) as a natural number. In the gap inequality, dimension and mode are cast to the reals before subtraction. All powers with real exponents are standard real powers.",
+        "The scalar \\(q\\) is the integer cap appearing in the source query regime. This numerical prerequisite does not define an algorithm, prove an oracle lower bound, or adapt expected cost to a deterministic worst-case cap. No TV precision or algorithmic conclusion is asserted.",
+        "Dimension positivity, logarithm and real-power domains, mode range and the real gap are proved internally. No gap, asymptotic bound, threshold callback, moment or law certificate is an extra input."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(\\delta,d,\\kappa,q,n\\)",
+          "text": "Fixed source exponent, dimension, condition parameter, natural query cap and literal odd mode.",
+          "formula": "0<\\delta<1,\\quad2\\le\\kappa\\le d^{1-\\delta},\\quad q\\in\\mathbb N,\\quad q\\le\\frac\\delta{256}\\sqrt\\kappa\\log d,\\quad n=2q+1."
+        },
+        {
+          "symbol": "\\(U,Q,M,b\\)",
+          "text": "Private application only: the same actual diagonal inverse-precision Gaussian and cosine quadratic as the canonical bias theorem. Lean uses the zero-based Fin d indexing of the displayed source family.",
+          "formula": "\\theta_i=(i-\\tfrac12)\\pi/d,\\quad\\lambda_i=\\frac{\\kappa+1}2+\\frac{\\kappa-1}2\\cos\\theta_i,\\quad\\Lambda=\\operatorname{diag}(\\lambda_i),\\quad U\\sim N(0,\\Lambda^{-1}),\\quad Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2,\\quad M=\\mathbb E\\|U\\|^2,\\quad b=\\mathbb E Q(U)."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Choose one threshold before varying the scalar parameters",
+          "text": "Use the canonical logarithmic little-o estimate and compose it with the natural-number inclusion. Taking its unit bound gives log d≤√d for all sufficiently large natural d. Intersect this tail with d≥4 by taking a maximum. This single threshold is fixed before κ and q vary.",
+          "formula": "\\log x=o(x^{1/2}),\\qquad \\log d\\le\\sqrt d\\quad(d\\ge D),\\qquad d_0=\\max\\{D,4\\}.",
+          "detail": "hlo is the actual canonical isLittleO_log_rpow_atTop composed with tendsto_natCast_atTop_atTop. hlogevent takes its positive unit bound, handles the absolute values and identifies real half-powers with square roots. No supplied eventual estimate or pointwise threshold is assumed.",
+          "lean": "  have hlo : (fun d : ℕ => Real.log (d : ℝ)) =o[Filter.atTop]\n      (fun d : ℕ => (d : ℝ) ^ (1 / 2 : ℝ)) :=\n    (isLittleO_log_rpow_atTop (by norm_num : (0 : ℝ) < 1 / 2)).comp_tendsto\n      tendsto_natCast_atTop_atTop\n  have hlogevent : ∀ᶠ d : ℕ in Filter.atTop, Real.log (d : ℝ) ≤ Real.sqrt (d : ℝ) := by\n    filter_upwards [hlo.def (by norm_num : (0 : ℝ) < 1)] with d hd\n    have hd' : |Real.log (d : ℝ)| ≤ (d : ℝ) ^ (1 / 2 : ℝ) := by\n      simpa only [Real.norm_eq_abs, one_mul,\n        abs_of_nonneg (Real.rpow_nonneg (Nat.cast_nonneg d) _)] using hd\n    exact (le_abs_self _).trans (hd'.trans_eq (Real.sqrt_eq_rpow _).symm)\n  rcases Filter.eventually_atTop.1 hlogevent with ⟨D, hD⟩\n  refine ⟨max D 4, ?_⟩\n  intro d hd κ hκ hκcap q hq\n  change 2 ≤ d ∧ 1 ≤ 2 * q + 1 ∧ 2 * q + 1 < d ∧\n    Real.sqrt κ ≤ (d : ℝ) - ((2 * q + 1 : ℕ) : ℝ)\n"
+        },
+        {
+          "title": "Obtain a uniform condition-parameter envelope",
+          "text": "For d≥4 and δ>0, monotonicity of real powers in the exponent gives d^(1−δ)≤d. Thus every admitted κ has √κ≤√d. The logarithm is nonnegative on this domain.",
+          "formula": "\\kappa\\le d^{1-\\delta}\\le d,\\qquad\\sqrt\\kappa\\le\\sqrt d,\\qquad\\log d\\ge0.",
+          "detail": "hd4nat/hd4/hd0/hd1 establish the actual natural/real domain. hκd uses the exact source κ cap and hδ0; hsκ uses square-root monotonicity. This sufficient envelope is derived, never an added κ≤d hypothesis.",
+          "lean": "  have hd4nat : 4 ≤ d := (le_max_right D 4).trans hd\n  have hd4 : (4 : ℝ) ≤ (d : ℝ) := by exact_mod_cast hd4nat\n  have hd0 : (0 : ℝ) ≤ (d : ℝ) := Nat.cast_nonneg d\n  have hd1 : (1 : ℝ) ≤ (d : ℝ) := by linarith\n  have hlog : Real.log (d : ℝ) ≤ Real.sqrt (d : ℝ) :=\n    hD d ((le_max_left D 4).trans hd)\n  have hlog0 : 0 ≤ Real.log (d : ℝ) := Real.log_nonneg hd1\n  have hκd : κ ≤ (d : ℝ) := hκcap.trans (by\n    simpa only [Real.rpow_one] using\n      Real.rpow_le_rpow_of_exponent_le hd1 (by linarith : 1 - δ ≤ (1 : ℝ)))\n  have hsκ : Real.sqrt κ ≤ Real.sqrt (d : ℝ) := Real.sqrt_le_sqrt hκd\n"
+        },
+        {
+          "title": "Control every admitted integer query cap",
+          "text": "Use δ<1 and the nonnegative square-root and logarithm factors to relax the source q cap to a common envelope. The chosen logarithmic bound and (√d)²=d then give q≤d/256. The original δ-dependent cap remains available for the later bias calculation.",
+          "formula": "q\\le\\frac\\delta{256}\\sqrt\\kappa\\log d\\le\\frac1{256}\\sqrt d\\log d\\le\\frac d{256}.",
+          "detail": "hδscale/hcoeff/hq′/hqsmall are genuine scalar inequalities over the whole parameter range. No integer rounding or expected-cost interpretation is introduced.",
+          "lean": "  have hδscale : δ / 256 ≤ (1 / 256 : ℝ) := by linarith\n  have hcoeff : (δ / 256) * Real.sqrt κ ≤ (1 / 256 : ℝ) * Real.sqrt (d : ℝ) :=\n    (mul_le_mul_of_nonneg_right hδscale (Real.sqrt_nonneg κ)).trans\n      (mul_le_mul_of_nonneg_left hsκ (by norm_num))\n  have hq' : (q : ℝ) ≤ (1 / 256 : ℝ) * Real.sqrt (d : ℝ) * Real.log (d : ℝ) :=\n    hq.trans (mul_le_mul_of_nonneg_right hcoeff hlog0)\n  have hqsmall : (q : ℝ) ≤ (d : ℝ) / 256 := by\n    calc\n      _ ≤ (1 / 256 : ℝ) * Real.sqrt (d : ℝ) * Real.log (d : ℝ) := hq'\n      _ ≤ (1 / 256 : ℝ) * Real.sqrt (d : ℝ) * Real.sqrt (d : ℝ) :=\n        mul_le_mul_of_nonneg_left hlog (by positivity)\n      _ = _ := by nlinarith [Real.sq_sqrt hd0]\n"
+        },
+        {
+          "title": "Derive the exact natural mode range and real gap",
+          "text": "For d≥4, √d≤d/2. Since n=2q+1, the preceding query envelope gives n≤d/128+1. These estimates imply n+√κ≤d. Finally κ≥2 makes √κ strictly positive, giving n<d; q being natural gives n≥1.",
+          "formula": "n+\\sqrt\\kappa\\le\\frac d{128}+1+\\frac d2\\le d,\\qquad\\sqrt\\kappa>0\\Longrightarrow n<d.",
+          "detail": "hs2/hsD use the actual square-root square identity and d≥4. hncast/hgap/hndreal/hnd keep natural arithmetic separate from real subtraction. The full output tuple is constructed; none is a public premise.",
+          "lean": "  have hs2 : (2 : ℝ) ≤ Real.sqrt (d : ℝ) := by\n    nlinarith [Real.sq_sqrt hd0, Real.sqrt_nonneg (d : ℝ)]\n  have hsD : Real.sqrt (d : ℝ) ≤ (d : ℝ) / 2 := by\n    nlinarith [Real.sq_sqrt hd0,\n      mul_nonneg (Real.sqrt_nonneg (d : ℝ)) (sub_nonneg.mpr hs2)]\n  have hncast : ((2 * q + 1 : ℕ) : ℝ) = 2 * (q : ℝ) + 1 := by norm_num\n  have hgap : Real.sqrt κ ≤ (d : ℝ) - ((2 * q + 1 : ℕ) : ℝ) := by\n    rw [hncast]\n    linarith\n  have hsκpos : 0 < Real.sqrt κ := Real.sqrt_pos.2 (by linarith)\n  have hndreal : ((2 * q + 1 : ℕ) : ℝ) < (d : ℝ) := by linarith\n  have hnd : 2 * q + 1 < d := by exact_mod_cast hndreal\n  exact ⟨by omega, by omega, hnd, hgap⟩\n"
+        },
+        {
+          "title": "Apply the new validity facts to the actual Gaussian bias",
+          "text": "In the private application, use the new threshold and all four dimension/mode/gap outputs to call the canonical actual diagonal-Gaussian bias theorem. It supplies the positive actual norm mean M, positive signed quadratic mean and the lower exponential normalized bias. The original q cap, together with √κ≥1, gives the precise source exponent comparison.",
+          "formula": "\\frac{3n}{\\sqrt\\kappa}=\\frac{6q+3}{\\sqrt\\kappa}\\le3+\\frac{3\\delta}{128}\\log d\\le3+\\frac\\delta4\\log d.",
+          "detail": "The private Test really uses eventual_source_query_mode_gap to supply hd2,hn1,hnd,hgap, then actual_diagonal_gaussian_exponential_bias. hqr/hncalc/hns/hrelax/hexponent keep the source coefficient3δ/128 distinct from its weaker δ/4 bound. This is a numerical actual-law application, with no rotated/algorithmic event.",
+          "lean": "  have hqr : (q : ℝ) / Real.sqrt κ ≤ (δ / 256) * Real.log (d : ℝ) := by\n    apply (div_le_iff₀ hspos).2\n    calc\n      _ ≤ (δ / 256) * Real.sqrt κ * Real.log (d : ℝ) := hq\n      _ = _ := by ring\n  have h3s : 3 / Real.sqrt κ ≤ (3 : ℝ) := by\n    apply (div_le_iff₀ hspos).2\n    nlinarith\n  have hncalc : 3 * (n : ℝ) / Real.sqrt κ =\n      6 * ((q : ℝ) / Real.sqrt κ) + 3 / Real.sqrt κ := by\n    simp only [n, Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat]\n    ring\n  have hns : 3 * (n : ℝ) / Real.sqrt κ ≤\n      3 + (3 * δ / 128) * Real.log (d : ℝ) := by\n    calc\n      _ = 6 * ((q : ℝ) / Real.sqrt κ) + 3 / Real.sqrt κ := hncalc\n      _ ≤ 6 * ((δ / 256) * Real.log (d : ℝ)) + 3 :=\n        add_le_add (mul_le_mul_of_nonneg_left hqr (by norm_num)) h3s\n      _ = _ := by ring\n  have hrelax : 3 + (3 * δ / 128) * Real.log (d : ℝ) ≤\n      3 + (δ / 4) * Real.log (d : ℝ) := by\n    have hc : 3 * δ / 128 ≤ δ / 4 := by nlinarith\n    exact add_le_add le_rfl (mul_le_mul_of_nonneg_right hc hlog0)\n  have hexponent : -3 + Real.log (d : ℝ) * (-δ / 4) ≤\n      -3 * (n : ℝ) / Real.sqrt κ := by\n    calc\n      _ = -(3 + (δ / 4) * Real.log (d : ℝ)) := by ring\n      _ ≤ -(3 * (n : ℝ) / Real.sqrt κ) := neg_le_neg (hns.trans hrelax)\n      _ = _ := by ring\n"
+        },
+        {
+          "title": "Convert the exponential estimate into the source polynomial rate",
+          "text": "Set C=1−e^(−4)>0. For the actual positive dimension, the real-power identity gives d^(−δ/4)=exp(−(δ/4)log d). Monotonicity of exp and the preceding exponent comparison yield the exact normalized-bias rate. The full private implementation is included beside this step.",
+          "formula": "\\begin{gathered}U\\sim N(0,\\Lambda^{-1}),\\quad M=\\mathbb E\\|U\\|^2,\\quad b=\\mathbb E Q(U),\\\\(1-e^{-4})e^{-3}d^{-\\delta/4}\\le (1-e^{-4})e^{-3n/\\sqrt\\kappa}\\le\\frac{|b|}{M},\\qquad M>0,\\quad(-1)^n b>0.\\end{gathered}",
+          "detail": "The complete Test is folded here. Its C positivity and positive-d rpow conversion are internal. This private NON-ANCHOR implements the actual diagonal-law numerical Ex23 component; concrete τ, shifted events, rotated law, algorithmic probability, oracle/TV/cost and both main lower bounds remain outside.",
+          "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumModeGap\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumBias\n\n/-!\nPrivate actual diagonal-Gaussian source-mode application of Section4.3 Ex23.\nThe new uniform dimension/mode/gap conclusions supply the actual Bias inputs;\nthe original q-cap gives the polynomial rate with exact constant\n(1-exp(-4))*exp(-3). This numerical component is NON-ANCHOR. Concrete tau,\nshifted events, rotated algorithmic laws, TV/oracle/cost and main bounds\nremain separate obligations.\n-/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumModeGap\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumBias\n\nprivate theorem actual_gaussian_source_query_bias_power_lower {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ < 1) :\n  ∃ d₀ : ℕ, ∀ (d : ℕ), d₀ ≤ d → ∀ (κ : ℝ), 2 ≤ κ →\n    κ ≤ (d : ℝ) ^ (1 - δ) → ∀ (q : ℕ),\n    (q : ℝ) ≤ (δ / 256) * Real.sqrt κ * Real.log (d : ℝ) →\n    let n : ℕ := 2 * q + 1\n    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n    let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n    let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n    let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n      multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹\n    let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n    let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n    let b : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ\n    0 < M ∧ 0 < (-1 : ℝ) ^ n * b ∧\n      ((1 - Real.exp (-4)) * Real.exp (-3)) * (d : ℝ) ^ (-δ / 4) ≤ |b| / M := by\n\n  rcases eventual_source_query_mode_gap hδ0 hδ1 with ⟨D, hD⟩\n  refine ⟨D, ?_⟩\n  intro d hd κ hκ hκcap q hq\n  let n : ℕ := 2 * q + 1\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) := multivariateGaussian 0 Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n  let b : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ\n  let C : ℝ := 1 - Real.exp (-4)\n  change 0 < M ∧ 0 < (-1 : ℝ) ^ n * b ∧\n    (C * Real.exp (-3)) * (d : ℝ) ^ (-δ / 4) ≤ |b| / M\n  have hadm := hD d hd κ hκ hκcap q hq\n  change 2 ≤ d ∧ 1 ≤ n ∧ n < d ∧ Real.sqrt κ ≤ (d : ℝ) - (n : ℝ) at hadm\n  rcases hadm with ⟨hd2, hn1, hnd, hgap⟩\n  rcases actual_diagonal_gaussian_exponential_bias hd2 hκ n hn1 hnd hgap with\n    ⟨hMpos, hBpos, hlow, _hupp⟩\n  refine ⟨hMpos, hBpos, ?_⟩\n  have hdpos : 0 < (d : ℝ) := by exact_mod_cast (by omega : 0 < d)\n  have hd1 : (1 : ℝ) ≤ (d : ℝ) := by exact_mod_cast (by omega : 1 ≤ d)\n  have hlog0 : 0 ≤ Real.log (d : ℝ) := Real.log_nonneg hd1\n  have hspos : 0 < Real.sqrt κ := Real.sqrt_pos.2 (by linarith)\n  have hsone : (1 : ℝ) ≤ Real.sqrt κ := Real.le_sqrt_of_sq_le (by nlinarith)\n  have hqr : (q : ℝ) / Real.sqrt κ ≤ (δ / 256) * Real.log (d : ℝ) := by\n    apply (div_le_iff₀ hspos).2\n    calc\n      _ ≤ (δ / 256) * Real.sqrt κ * Real.log (d : ℝ) := hq\n      _ = _ := by ring\n  have h3s : 3 / Real.sqrt κ ≤ (3 : ℝ) := by\n    apply (div_le_iff₀ hspos).2\n    nlinarith\n  have hncalc : 3 * (n : ℝ) / Real.sqrt κ =\n      6 * ((q : ℝ) / Real.sqrt κ) + 3 / Real.sqrt κ := by\n    simp only [n, Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat]\n    ring\n  have hns : 3 * (n : ℝ) / Real.sqrt κ ≤\n      3 + (3 * δ / 128) * Real.log (d : ℝ) := by\n    calc\n      _ = 6 * ((q : ℝ) / Real.sqrt κ) + 3 / Real.sqrt κ := hncalc\n      _ ≤ 6 * ((δ / 256) * Real.log (d : ℝ)) + 3 :=\n        add_le_add (mul_le_mul_of_nonneg_left hqr (by norm_num)) h3s\n      _ = _ := by ring\n  have hrelax : 3 + (3 * δ / 128) * Real.log (d : ℝ) ≤\n      3 + (δ / 4) * Real.log (d : ℝ) := by\n    have hc : 3 * δ / 128 ≤ δ / 4 := by nlinarith\n    exact add_le_add le_rfl (mul_le_mul_of_nonneg_right hc hlog0)\n  have hexponent : -3 + Real.log (d : ℝ) * (-δ / 4) ≤\n      -3 * (n : ℝ) / Real.sqrt κ := by\n    calc\n      _ = -(3 + (δ / 4) * Real.log (d : ℝ)) := by ring\n      _ ≤ -(3 * (n : ℝ) / Real.sqrt κ) := neg_le_neg (hns.trans hrelax)\n      _ = _ := by ring\n  have he4 : Real.exp (-4) < 1 := by\n    simpa only [Real.exp_zero] using Real.exp_lt_exp.mpr (by norm_num : (-4 : ℝ) < 0)\n  have hC0 : 0 ≤ C := by dsimp [C]; linarith\n  calc\n    _ = C * (Real.exp (-3) * Real.exp (Real.log (d : ℝ) * (-δ / 4))) := by\n      rw [Real.rpow_def_of_pos hdpos]\n      ring\n    _ = C * Real.exp (-3 + Real.log (d : ℝ) * (-δ / 4)) := by rw [Real.exp_add]\n    _ ≤ C * Real.exp (-3 * (n : ℝ) / Real.sqrt κ) :=\n      mul_le_mul_of_nonneg_left (Real.exp_le_exp.mpr hexponent) hC0\n    _ ≤ |b| / M := hlow\n"
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "isLittleO_log_rpow_atTop",
+        "Asymptotics.IsLittleO.comp_tendsto",
+        "Asymptotics.IsLittleO.def",
+        "tendsto_natCast_atTop_atTop",
+        "Filter.eventually_atTop",
+        "Real.rpow_le_rpow_of_exponent_le",
+        "Real.sqrt_eq_rpow",
+        "Real.sqrt_le_sqrt",
+        "Real.sq_sqrt",
+        "Real.log_nonneg"
+      ],
+      "lean_statement": "Exactly fixed0<δ<1; an existential natural threshold BEFORE all d,κ,q; originalκ/q regime; literal n=2q+1. Dimension/mode/gap are conclusions. No growth or witness callback is assumed.",
+      "lean_proof": "Canonical logarithmic little-o composed with natural casts yields one threshold; source κ/q ranges give uniform envelopes and actual real/natural mode/gap conclusions. The private actual-law consumer additionally calls canonical Bias and derives the exact Ex23 polynomial factor through source exponent and positive-base rpow/exp algebra.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S4.SS3.SSS0.Px1.p1.1",
+          "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S4.SS3.p2.1/p3.1; S4.SS3.SSS0.Px1.p1.1-p1.2 and Px2.p2.1. Private actual-law numerical Ex23 component and Px2.p2.2.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+          "scope": "Numerical mode/gap prerequisite extracted from the original uniform source scalar regime, not Theorem4.1 or an oracle/TV/cost result.",
+          "label": "Zhou–Suzuki Section4.3 uniform source-mode/gap reasoning"
+        },
+        {
+          "path": "Tests/GaussianComplexityFixedSpectrumModeGap.lean",
+          "line": 18,
+          "label": "Complete private actual Gaussian source-mode polynomial-bias application",
+          "scope": "Implementation context for the numerical Ex23 component only; no additional public Anchor or Registry node."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumModeGap"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumModeGap.eventual_source_query_mode_gap",
+      "role": "prerequisite",
+      "supports": [
+        "uniform-source-query-mode",
+        "uniform-source-spectral-gap"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Fixδ∈(0,1); all sufficiently large d depending only onδ; uniformly2≤κ≤d^(1−δ) and integerq≥0 withq≤(δ/256)sqrtκ logd.",
+        "lean": "Exactly fixedδ:Real,hδ0:0<δ,hδ1:δ<1; existsd0:Nat then∀d≥d0∀κ withbothsourceguards∀q:Nat withtheexactsourceqcap."
+      },
+      {
+        "source": "The mode is n=2q+1 and the large-d reasoning gives n<d and d−n≥sqrtκ.",
+        "lean": "Literal natural n=2*q+1; outputs2≤d,1≤n,n<d andsqrtκ≤(d:Real)−(n:Real)."
+      },
+      {
+        "source": "The author states uniform little-o/large-d consequences under the sourceκ/q bounds.",
+        "lean": "Uses canonical log=o(sqrt) after natural casts, one common max threshold, and the sufficient envelopeκ≤d to derive the selected finite mode/gap facts."
+      },
+      {
+        "source": "Section4.3 also has algorithmic/oracle/TV hypotheses and laterτ,shifted-event and cost obligations.",
+        "lean": "This public declaration is a scalar prerequisite only; it does not quantify an algorithm or assert a TV/cost lower bound."
+      },
+      {
+        "source": "Ex23 obtains β≥(1−exp(−4))exp(−3)d^(−δ/4) for the actual target cosine/norm means in the source mode.",
+        "lean": "Private NON-ANCHOR actual diagonal-Gaussian integrals M,b and n=2q+1 satisfy M>0,signedb>0 and the exact polynomial normalized-bias lower bound."
+      }
+    ]
+  }
+}

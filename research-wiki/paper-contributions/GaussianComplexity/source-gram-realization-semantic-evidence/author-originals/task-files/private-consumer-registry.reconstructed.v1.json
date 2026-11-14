@@ -1,0 +1,689 @@
+{
+  "schema_version": 1,
+  "audits": [
+    {
+      "id": "ASTIS-RT-20261113-HuanjianGaussianSourceGramRealizationPrivateConsumer",
+      "state": "blind-reconstructed",
+      "source": {
+        "source_id": "c2-private-deterministic-gram-deviation-generalization",
+        "anchor": "AppendixC.2 p17 Ex125/126, with original p1/frame/cutoff/actualmean definitions; private all-real-threshold scope explicitly authored generalization",
+        "original_text": "For natural d,q satisfying2q+1<d, put r=q+1, including q=0. Use Omega=(R^d)^r and the original product mu of r independent standard d-dimensional Gaussian column laws. Phi_i is the physical row with coordinates omega(b)_i. Put theta_i=(i-1/2)pi/d, t_i=(1,sqrt(2)cos(theta_i),...,sqrt(2)cos(q theta_i)), L=2r+3log(1000d), and w_i=cos((2q+1)theta_i). Define Yi=d^(-1)(Phi_i Phi_i^T tensor t_i t_i^T) on norm(Phi_i)^2<=L and zero otherwise; Mi is its actual Bochner integral under the same original unconditional mu, Zi=Yi-Mi. Put a=r^(-1) integral norm(x)^2 times the inclusive cutoff indicator under the standard r-dimensional Gaussian. Define the actual d by r^2 matrix B by B_(i,(b,k))=sqrt(d)^(-1) Phi_i(b)t_i(k), with Gaussian index first, and let G be the event that every actual row satisfies its inclusive cutoff. Authored private deterministic generalization of the Ex126 implication: for every real threshold Delta and every original sample omega, if omega belongs to G and both norm(sum_i Zi(omega))<=Delta and norm(sum_i wi Zi(omega))<=Delta, then norm(B(omega)^T B(omega)-I_(r^2))<=Delta+(1-a) and norm(B(omega)^T diag(w) B(omega))<=Delta. Norms are real Euclidean operator norms. The source numeric positive threshold is one instance; the private generalization quantifies over all real thresholds, with negative-threshold antecedents impossible. No event probability or new public API is claimed.",
+        "text_sha256": "a9603c48c1759e48d15a4093e4c91567d318725c1e3b2ca8f829b3f33fd4135e"
+      },
+      "lean": {
+        "declaration": "_private.Tests.GaussianComplexityFixedSpectrumSourceGramRealization.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceGramRealization.actual_source_gram_deviation_bounds",
+        "file": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+        "statement": "∀     {d q : ℕ} (hq : 2 * q + 1 < d) ,\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  ∀ Δ : ℝ, ∀ ω : Ω, G ω →\n    ((‖∑ i : Fin d, Z i ω‖ ≤ Δ) ∧\n      (‖∑ i : Fin d, w i • Z i ω‖ ≤ Δ)) →\n    ((‖(B ω).transpose * B ω -\n        (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)‖\n        ≤ Δ + (1 - a)) ∧\n      (‖(B ω).transpose * Matrix.diagonal w * B ω‖ ≤ Δ))\n",
+        "statement_sha256": "161f506151129e88edb86492667d0ffa57d3876ca423d7f46ea0b6c9aebf9e95",
+        "compiled": true,
+        "formalizer": "huanjian_gc_20261113_source_gram_realization",
+        "decoder_context": [
+          "Fin n is the finite set of natural numbers strictly less than n; i.val is the zero-based natural value of i. Natural numbers embed into the reals in the usual way.",
+          "EuclideanSpace real (Fin n) is real n-dimensional Euclidean space with its Euclidean norm and Borel structure. WithLp.toLp 2 wraps a coordinate function as a Euclidean vector; WithLp.ofLp recovers its same coordinates.",
+          "stdGaussian is the centered Gaussian probability law with identity covariance. Measure.pi is the displayed finite product measure on the corresponding function space.",
+          "Real.log is the natural logarithm; Real.sqrt is the nonnegative square root. Set.indicator S f is f on S and zero off S. An if-condition written with less-than-or-equal includes equality.",
+          "Matrix is the displayed finite real matrix space. Matrix.vecMulVec u v has entry u_i v_j. Matrix.kronecker A B has entry A_(i,k) B_(j,l) at row (i,j) and column (k,l). transpose interchanges matrix indices; multiplication is ordinary matrix multiplication.",
+          "Matrix.diagonal w has diagonal entry w_i and every off-diagonal entry zero. The matrix 1 is the identity on its displayed finite index set. Scalar multiplication, subtraction and finite sums have their usual real matrix meanings.",
+          "All matrix norms use the real Euclidean L2 operator norm of the displayed matrix action; they are not entrywise or coordinate sup norms. This norm has the standard finite-coordinate topology.",
+          "The integral notation is the Bochner integral in the displayed space. It is totalized to zero when its integrand is not integrable. Reconstruct the literal assertions as displayed; do not add an integrability hypothesis or conclusion.",
+          "A local function G from the sample space to Prop defines a condition on a sample. The arrow following G omega is logical implication, with all subsequent conjunctions under its scope."
+        ]
+      },
+      "repairs": [],
+      "source_review": {
+        "state": "pending"
+      },
+      "verdict": "pending",
+      "candidate_commit": "60ec0e083261dfa71f009bdd5d8c9e63b1425bb7",
+      "publication_context": {
+        "canonical_public_producer_context": {
+          "file": "b68d9d7d6e385355391a8bf93653e9bbee1843be897f63563e0aa8af0e91d537",
+          "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram\n\n/-! Actual original-experiment centered Gram realizations on the literal closed\nall-row cutoff event. Actual means and cosine-frame sums are internal inputs;\nno arbitrary B, mean, Gram, frame, bias or probability certificate is supplied. -/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix Kronecker Matrix.Norms.L2Operator\nset_option autoImplicit false\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization\n\ntheorem actual_source_centered_gram_realizations\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  ∀ ω : Ω, G ω →\n    ((∑ i : Fin d, Z i ω) =\n      (B ω).transpose * B ω - a •\n        (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)) ∧\n    ((∑ i : Fin d, w i • Z i ω) =\n      (B ω).transpose * Matrix.diagonal w * B ω)\n := by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Matrix (Fin d) (Fin (q + 1)) ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  let M := Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ\n  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let feature : Fin d → M := fun i => Matrix.vecMulVec (t i) (t i)\n  let tensor : M →ₗ[ℝ] N :=\n    (Matrix.kroneckerBilinear : M →ₗ[ℝ] M →ₗ[ℝ] N) (1 : M)\n  let K : Fin d → N := fun i => tensor (feature i)\n  have moments := FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means\n    (d := d) (q := q) hq\n  change (∀ i : Fin d, Integrable (Y i) μ) ∧\n    (∀ i : Fin d, (∫ ω, Y i ω ∂μ) = (a / (d : ℝ)) • K i) at moments\n  have half_grid (i : Fin d) :\n      ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ) = θ i := by\n    dsimp only [θ]\n    ring\n  have frame := FixedSpectrumCosineGram.actual_cosine_frame_gram (d := d) (q := q) hq\n  dsimp only at frame\n  simp_rw [half_grid] at frame\n  change t.transpose * t = (d : ℝ) • (1 : M) ∧\n    t.transpose * Matrix.diagonal w * t = 0 ∧ _ at frame\n  have gram : (∑ i : Fin d, feature i) = (d : ℝ) • (1 : M) := by\n    ext j k\n    calc\n      (∑ i : Fin d, feature i) j k = ∑ i : Fin d, t i j * t i k :=\n        Matrix.sum_apply j k Finset.univ feature\n      _ = ((d : ℝ) • (1 : M)) j k := by\n        simpa only [Matrix.mul_apply, Matrix.transpose_apply] using\n          congrFun (congrFun frame.1 j) k\n  have weighted_gram : (∑ i : Fin d, w i • feature i) = 0 := by\n    ext j k\n    have weighted_entry := congrFun (congrFun frame.2.1 j) k\n    change (∑ i : Fin d, (t.transpose * Matrix.diagonal w) j i * t i k) = 0 at weighted_entry\n    simp only [Matrix.mul_diagonal, Matrix.transpose_apply] at weighted_entry\n    calc\n      (∑ i : Fin d, w i • feature i) j k = ∑ i : Fin d, w i * (t i j * t i k) :=\n        Matrix.sum_apply j k Finset.univ (fun i => w i • feature i)\n      _ = ∑ i : Fin d, t i j * w i * t i k := by\n        apply Finset.sum_congr rfl\n        intro i _\n        ring\n      _ = (0 : M) j k := weighted_entry\n  have tensor_one : tensor (1 : M) = (1 : N) := by\n    change Matrix.kronecker (1 : M) (1 : M) = (1 : N)\n    dsimp only [Matrix.kronecker]\n    exact Matrix.one_kronecker_one\n  have tensor_gram : (∑ i : Fin d, K i) = (d : ℝ) • (1 : N) := by\n    calc\n      (∑ i : Fin d, K i) = tensor (∑ i : Fin d, feature i) := (map_sum tensor _ _).symm\n      _ = (d : ℝ) • tensor (1 : M) := by rw [gram, map_smul]\n      _ = (d : ℝ) • (1 : N) := by rw [tensor_one]\n  have weighted_tensor : (∑ i : Fin d, w i • K i) = 0 := by\n    calc\n      (∑ i : Fin d, w i • K i) = tensor (∑ i : Fin d, w i • feature i) := by\n        simp only [map_sum, map_smul]\n        rfl\n      _ = 0 := by rw [weighted_gram, map_zero]\n  have hd : (d : ℝ) ≠ 0 := by exact_mod_cast (show d ≠ 0 by omega)\n  have mean_sum : (∑ i : Fin d, ∫ ω, Y i ω ∂μ) = a • (1 : N) := by\n    calc\n      (∑ i : Fin d, ∫ ω, Y i ω ∂μ) = (a / (d : ℝ)) • (∑ i : Fin d, K i) := by\n        simp_rw [moments.2]\n        exact Finset.smul_sum.symm\n      _ = a • (1 : N) := by\n        rw [tensor_gram, smul_smul, div_mul_cancel₀ a hd]\n  have weighted_mean_sum : (∑ i : Fin d, w i • (∫ ω, Y i ω ∂μ)) = 0 := by\n    calc\n      (∑ i : Fin d, w i • (∫ ω, Y i ω ∂μ)) =\n          (a / (d : ℝ)) • (∑ i : Fin d, w i • K i) := by\n        rw [Finset.smul_sum]\n        apply Finset.sum_congr rfl\n        intro i _\n        rw [moments.2 i]\n        exact smul_comm _ _ _\n      _ = 0 := by rw [weighted_tensor, smul_zero]\n  have inv_sqrt_square :\n      (Real.sqrt (d : ℝ))⁻¹ * (Real.sqrt (d : ℝ))⁻¹ = (d : ℝ)⁻¹ := by\n    calc\n      _ = ((Real.sqrt (d : ℝ)) ^ 2)⁻¹ := by rw [pow_two, mul_inv]\n      _ = _ := by rw [Real.sq_sqrt (by positivity)]\n  have actual_row_outer (i : Fin d) (ω : Ω) (hi : ‖row i ω‖ ^ 2 ≤ L)\n      (u v : Fin (q + 1) × Fin (q + 1)) :\n      B ω i u * B ω i v = Y i ω u v := by\n    calc\n      _ = ((Real.sqrt (d : ℝ))⁻¹ * (Real.sqrt (d : ℝ))⁻¹) *\n          ((row i ω u.1 * row i ω v.1) * (t i u.2 * t i v.2)) := by\n        dsimp only [B]\n        ring\n      _ = _ := by\n        rw [inv_sqrt_square]\n        simp only [Y, if_pos hi, Matrix.smul_apply, Matrix.kronecker,\n          Matrix.kroneckerMap_apply, Matrix.vecMulVec_apply, smul_eq_mul]\n  have actual_gram (ω : Ω) (hG : G ω) :\n      (B ω).transpose * B ω = ∑ i : Fin d, Y i ω := by\n    ext u v\n    simp only [Matrix.mul_apply, Matrix.transpose_apply, Matrix.sum_apply]\n    apply Finset.sum_congr rfl\n    intro i _\n    exact actual_row_outer i ω (hG i) u v\n  have actual_weighted_gram (ω : Ω) (hG : G ω) :\n      (B ω).transpose * Matrix.diagonal w * B ω = ∑ i : Fin d, w i • Y i ω := by\n    ext u v\n    change (∑ i : Fin d, ((B ω).transpose * Matrix.diagonal w) u i * B ω i v) =\n      (∑ i : Fin d, w i • Y i ω) u v\n    simp only [Matrix.mul_diagonal, Matrix.transpose_apply,\n      Matrix.sum_apply, Matrix.smul_apply, smul_eq_mul]\n    apply Finset.sum_congr rfl\n    intro i _\n    calc\n      B ω i u * w i * B ω i v = w i * (B ω i u * B ω i v) := by ring\n      _ = w i * Y i ω u v := by rw [actual_row_outer i ω (hG i) u v]\n  change ∀ ω : Ω, G ω →\n    ((∑ i : Fin d, Z i ω) = (B ω).transpose * B ω - a • (1 : N)) ∧\n    ((∑ i : Fin d, w i • Z i ω) = (B ω).transpose * Matrix.diagonal w * B ω)\n  intro ω hG\n  constructor\n  · calc\n      (∑ i : Fin d, Z i ω) = (∑ i : Fin d, Y i ω) - a • (1 : N) := by\n        simp only [Z, mean, Finset.sum_sub_distrib, mean_sum]\n      _ = _ := by rw [actual_gram ω hG]\n  · calc\n      (∑ i : Fin d, w i • Z i ω) =\n          (∑ i : Fin d, w i • Y i ω) - (∑ i : Fin d, w i • mean i) := by\n        simp only [Z, smul_sub, Finset.sum_sub_distrib]\n      _ = (∑ i : Fin d, w i • Y i ω) := by\n        change (∑ i : Fin d, w i • Y i ω) -\n          (∑ i : Fin d, w i • (∫ ω, Y i ω ∂μ)) = _\n        rw [weighted_mean_sum, sub_zero]\n      _ = _ := (actual_weighted_gram ω hG).symm\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization\n",
+          "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+          "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+          "source": {
+            "url": "https://arxiv.org/html/2610.20492v1#A3.Ex125",
+            "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+            "anchor": "Appendix C.2 p17 Ex125, with original p1/frame/cutoff/actual-mean definitions; Ex126 supplies the private deterministic norm consumer",
+            "label": "Actual source centered Gram identities (Ex125)",
+            "wording_status": "faithful paraphrase",
+            "attribution": "On Complexity of Gaussian Sampling, arXiv:2610.20492v1.",
+            "scope": "Public actual identities on the original truncation event. The final two proof steps give a private, explicitly generalized deterministic Ex126 consumer."
+          },
+          "statement": "On the original all-row truncation event, the actual centered matrix sums equal the actual unweighted and cosine-weighted Gram matrices.",
+          "formulae": [
+            {
+              "label": "Actual centered Gram identities on the source event",
+              "tex": "\\begin{gathered}\\omega\\in\\mathcal T:\\qquad\\sum_i Z_i=B^\\top B-aI_{r^2},\\\\ \\sum_i w_iZ_i=B^\\top D_nB.\\end{gathered}"
+            }
+          ],
+          "assumptions": [
+            "Let \\(d,q\\in\\mathbb N\\), \\(2q+1<d\\), \\(r=q+1\\), and \\(n=2q+1\\). The case \\(q=0\\) is included; needed positivity follows internally.",
+            "On \\(\\Omega=(\\mathbb R^d)^r\\), use the original probability \\(\\mu=\\gamma_d^{\\otimes r}\\), with \\(\\gamma_j=N(0,I_j)\\). The actual physical row is \\(\\Phi_i=(\\omega_{1,i},\\ldots,\\omega_{r,i})\\).",
+            "Put \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\theta_i,\\ldots,\\sqrt2\\cos(q\\theta_i))\\), \\(L=2r+3\\log(1000d)\\), and \\(w_i=\\cos(n\\theta_i)\\). For a Lean row index \\(j:\\mathrm{Fin}\\,d\\), the source row index is \\(j.val+1\\).",
+            "Define \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{\\|\\Phi_i\\|^2\\le L\\}}\\), \\(M_i=\\int Y_i\\,d\\mu\\), and \\(Z_i=Y_i-M_i\\). All means use the same original unconditional \\(\\mu\\). The canonical actual-mean theorem establishes integrability internally.",
+            "Define the actual scalar \\(a=r^{-1}\\int_{\\mathbb R^r}\\|x\\|^2\\mathbf1_{\\{\\|x\\|^2\\le L\\}}\\,d\\gamma_r(x)\\). The actual matrix has entries \\(B_{i,(b,k)}=d^{-1/2}\\Phi_i(b)t_i(k)\\), with the Gaussian coordinate first. Put \\(D_n=\\operatorname{diag}(w_i)\\).",
+            "The source event \\(\\mathcal T=\\{\\omega:\\|\\Phi_i(\\omega)\\|^2\\le L\\text{ for every }i\\}\\) is denoted \\(G\\) in Lean. The public conclusion is pointwise on this inclusive event. Matrix norms are real Euclidean operator norms.",
+            "Private consumer only: for every real \\(\\Delta\\), let \\(\\mathcal E_\\Delta=\\{\\|\\sum_iZ_i\\|_{\\rm op}\\le\\Delta,\\ \\|\\sum_iw_iZ_i\\|_{\\rm op}\\le\\Delta\\}\\). The norm conclusion is on \\(\\mathcal T\\cap\\mathcal E_\\Delta\\). This explicitly generalizes the source numeric threshold to an arbitrary real threshold; it does not assert the probability of either event."
+          ],
+          "obligations": [
+            {
+              "id": "c2-actual-centered-gram-realization",
+              "label": "Actual eventwise centered and weighted Gram realization."
+            }
+          ],
+          "lesson": {
+            "kind": "theorem",
+            "reading_layout": "progressive",
+            "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations",
+            "title": "Actual centered Gaussian Gram realization",
+            "reader_note": "The main statement and first four steps are public Ex125. The final two steps reproduce a complete private actual Ex126 consumer, with its all-real-threshold deterministic generalization explicitly scoped.",
+            "statement": "On the original all-row truncation event, the actual centered matrix sums equal the actual unweighted and cosine-weighted Gram matrices.",
+            "formula": "\\begin{gathered}\\omega\\in\\mathcal T:\\qquad\\sum_i Z_i=B^\\top B-aI_{r^2},\\\\ \\sum_i w_iZ_i=B^\\top D_nB.\\end{gathered}",
+            "assumptions": [
+              "Let \\(d,q\\in\\mathbb N\\), \\(2q+1<d\\), \\(r=q+1\\), and \\(n=2q+1\\). The case \\(q=0\\) is included; needed positivity follows internally.",
+              "On \\(\\Omega=(\\mathbb R^d)^r\\), use the original probability \\(\\mu=\\gamma_d^{\\otimes r}\\), with \\(\\gamma_j=N(0,I_j)\\). The actual physical row is \\(\\Phi_i=(\\omega_{1,i},\\ldots,\\omega_{r,i})\\).",
+              "Put \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\theta_i,\\ldots,\\sqrt2\\cos(q\\theta_i))\\), \\(L=2r+3\\log(1000d)\\), and \\(w_i=\\cos(n\\theta_i)\\). For a Lean row index \\(j:\\mathrm{Fin}\\,d\\), the source row index is \\(j.val+1\\).",
+              "Define \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{\\|\\Phi_i\\|^2\\le L\\}}\\), \\(M_i=\\int Y_i\\,d\\mu\\), and \\(Z_i=Y_i-M_i\\). All means use the same original unconditional \\(\\mu\\). The canonical actual-mean theorem establishes integrability internally.",
+              "Define the actual scalar \\(a=r^{-1}\\int_{\\mathbb R^r}\\|x\\|^2\\mathbf1_{\\{\\|x\\|^2\\le L\\}}\\,d\\gamma_r(x)\\). The actual matrix has entries \\(B_{i,(b,k)}=d^{-1/2}\\Phi_i(b)t_i(k)\\), with the Gaussian coordinate first. Put \\(D_n=\\operatorname{diag}(w_i)\\).",
+              "The source event \\(\\mathcal T=\\{\\omega:\\|\\Phi_i(\\omega)\\|^2\\le L\\text{ for every }i\\}\\) is denoted \\(G\\) in Lean. The public conclusion is pointwise on this inclusive event. Matrix norms are real Euclidean operator norms.",
+              "Private consumer only: for every real \\(\\Delta\\), let \\(\\mathcal E_\\Delta=\\{\\|\\sum_iZ_i\\|_{\\rm op}\\le\\Delta,\\ \\|\\sum_iw_iZ_i\\|_{\\rm op}\\le\\Delta\\}\\). The norm conclusion is on \\(\\mathcal T\\cap\\mathcal E_\\Delta\\). This explicitly generalizes the source numeric threshold to an arbitrary real threshold; it does not assert the probability of either event."
+            ],
+            "steps": [
+              {
+                "title": "Retain the original Gaussian experiment and actual matrix",
+                "text": "Define the actual physical rows, closed row cutoff, Bochner means and source coefficient, then form the rectangular B from those same rows and features. The source event is a condition on the original sample; the underlying probability is unchanged.",
+                "formula": "B_{i,(b,k)}=\\frac{\\Phi_i(b)t_i(k)}{\\sqrt d},\\qquad M_i=\\int Y_i\\,d\\mu,\\quad Z_i=Y_i-M_i.",
+                "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram\n\n/-! Actual original-experiment centered Gram realizations on the literal closed\nall-row cutoff event. Actual means and cosine-frame sums are internal inputs;\nno arbitrary B, mean, Gram, frame, bias or probability certificate is supplied. -/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix Kronecker Matrix.Norms.L2Operator\nset_option autoImplicit false\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization\n\ntheorem actual_source_centered_gram_realizations\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  ∀ ω : Ω, G ω →\n    ((∑ i : Fin d, Z i ω) =\n      (B ω).transpose * B ω - a •\n        (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)) ∧\n    ((∑ i : Fin d, w i • Z i ω) =\n      (B ω).transpose * Matrix.diagonal w * B ω)\n := by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Matrix (Fin d) (Fin (q + 1)) ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n"
+              },
+              {
+                "title": "Assemble the actual mean and weighted mean",
+                "text": "Call the canonical actual-mean theorem and the canonical cosine-frame theorem. An internal arithmetic equality aligns the two identical midpoint-index conventions. Finite linearity of the fixed map A↦Ir⊗A transports the feature sums. Since d>0, the actual mean sums are aI and zero; these are derived facts, not caller certificates.",
+                "formula": "M_i=\\frac ad(I_r\\otimes t_it_i^\\top),\\quad\\sum_it_it_i^\\top=dI_r,\\quad\\sum_iw_it_it_i^\\top=0,\\qquad\\sum_iM_i=aI_{r^2},\\quad\\sum_iw_iM_i=0.",
+                "lean": "  let M := Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ\n  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let feature : Fin d → M := fun i => Matrix.vecMulVec (t i) (t i)\n  let tensor : M →ₗ[ℝ] N :=\n    (Matrix.kroneckerBilinear : M →ₗ[ℝ] M →ₗ[ℝ] N) (1 : M)\n  let K : Fin d → N := fun i => tensor (feature i)\n  have moments := FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means\n    (d := d) (q := q) hq\n  change (∀ i : Fin d, Integrable (Y i) μ) ∧\n    (∀ i : Fin d, (∫ ω, Y i ω ∂μ) = (a / (d : ℝ)) • K i) at moments\n  have half_grid (i : Fin d) :\n      ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ) = θ i := by\n    dsimp only [θ]\n    ring\n  have frame := FixedSpectrumCosineGram.actual_cosine_frame_gram (d := d) (q := q) hq\n  dsimp only at frame\n  simp_rw [half_grid] at frame\n  change t.transpose * t = (d : ℝ) • (1 : M) ∧\n    t.transpose * Matrix.diagonal w * t = 0 ∧ _ at frame\n  have gram : (∑ i : Fin d, feature i) = (d : ℝ) • (1 : M) := by\n    ext j k\n    calc\n      (∑ i : Fin d, feature i) j k = ∑ i : Fin d, t i j * t i k :=\n        Matrix.sum_apply j k Finset.univ feature\n      _ = ((d : ℝ) • (1 : M)) j k := by\n        simpa only [Matrix.mul_apply, Matrix.transpose_apply] using\n          congrFun (congrFun frame.1 j) k\n  have weighted_gram : (∑ i : Fin d, w i • feature i) = 0 := by\n    ext j k\n    have weighted_entry := congrFun (congrFun frame.2.1 j) k\n    change (∑ i : Fin d, (t.transpose * Matrix.diagonal w) j i * t i k) = 0 at weighted_entry\n    simp only [Matrix.mul_diagonal, Matrix.transpose_apply] at weighted_entry\n    calc\n      (∑ i : Fin d, w i • feature i) j k = ∑ i : Fin d, w i * (t i j * t i k) :=\n        Matrix.sum_apply j k Finset.univ (fun i => w i • feature i)\n      _ = ∑ i : Fin d, t i j * w i * t i k := by\n        apply Finset.sum_congr rfl\n        intro i _\n        ring\n      _ = (0 : M) j k := weighted_entry\n  have tensor_one : tensor (1 : M) = (1 : N) := by\n    change Matrix.kronecker (1 : M) (1 : M) = (1 : N)\n    dsimp only [Matrix.kronecker]\n    exact Matrix.one_kronecker_one\n  have tensor_gram : (∑ i : Fin d, K i) = (d : ℝ) • (1 : N) := by\n    calc\n      (∑ i : Fin d, K i) = tensor (∑ i : Fin d, feature i) := (map_sum tensor _ _).symm\n      _ = (d : ℝ) • tensor (1 : M) := by rw [gram, map_smul]\n      _ = (d : ℝ) • (1 : N) := by rw [tensor_one]\n  have weighted_tensor : (∑ i : Fin d, w i • K i) = 0 := by\n    calc\n      (∑ i : Fin d, w i • K i) = tensor (∑ i : Fin d, w i • feature i) := by\n        simp only [map_sum, map_smul]\n        rfl\n      _ = 0 := by rw [weighted_gram, map_zero]\n  have hd : (d : ℝ) ≠ 0 := by exact_mod_cast (show d ≠ 0 by omega)\n  have mean_sum : (∑ i : Fin d, ∫ ω, Y i ω ∂μ) = a • (1 : N) := by\n    calc\n      (∑ i : Fin d, ∫ ω, Y i ω ∂μ) = (a / (d : ℝ)) • (∑ i : Fin d, K i) := by\n        simp_rw [moments.2]\n        exact Finset.smul_sum.symm\n      _ = a • (1 : N) := by\n        rw [tensor_gram, smul_smul, div_mul_cancel₀ a hd]\n  have weighted_mean_sum : (∑ i : Fin d, w i • (∫ ω, Y i ω ∂μ)) = 0 := by\n    calc\n      (∑ i : Fin d, w i • (∫ ω, Y i ω ∂μ)) =\n          (a / (d : ℝ)) • (∑ i : Fin d, w i • K i) := by\n        rw [Finset.smul_sum]\n        apply Finset.sum_congr rfl\n        intro i _\n        rw [moments.2 i]\n        exact smul_comm _ _ _\n      _ = 0 := by rw [weighted_tensor, smul_zero]\n"
+              },
+              {
+                "title": "Expand the actual Gram entries on the inclusive event",
+                "text": "Square the real inverse-square-root normalization. On the retained branch each product of B-row entries is exactly the corresponding actual Yi entry. Every row satisfies that branch on T. The ordinary matrix product and diagonal multiplication therefore give both Gram sums, with the original paired-index order.",
+                "formula": "\\frac1{\\sqrt d}\\frac1{\\sqrt d}=\\frac1d,\\qquad\\omega\\in\\mathcal T\\Longrightarrow B^\\top B=\\sum_iY_i,\\quad B^\\top D_nB=\\sum_iw_iY_i.",
+                "lean": "  have inv_sqrt_square :\n      (Real.sqrt (d : ℝ))⁻¹ * (Real.sqrt (d : ℝ))⁻¹ = (d : ℝ)⁻¹ := by\n    calc\n      _ = ((Real.sqrt (d : ℝ)) ^ 2)⁻¹ := by rw [pow_two, mul_inv]\n      _ = _ := by rw [Real.sq_sqrt (by positivity)]\n  have actual_row_outer (i : Fin d) (ω : Ω) (hi : ‖row i ω‖ ^ 2 ≤ L)\n      (u v : Fin (q + 1) × Fin (q + 1)) :\n      B ω i u * B ω i v = Y i ω u v := by\n    calc\n      _ = ((Real.sqrt (d : ℝ))⁻¹ * (Real.sqrt (d : ℝ))⁻¹) *\n          ((row i ω u.1 * row i ω v.1) * (t i u.2 * t i v.2)) := by\n        dsimp only [B]\n        ring\n      _ = _ := by\n        rw [inv_sqrt_square]\n        simp only [Y, if_pos hi, Matrix.smul_apply, Matrix.kronecker,\n          Matrix.kroneckerMap_apply, Matrix.vecMulVec_apply, smul_eq_mul]\n  have actual_gram (ω : Ω) (hG : G ω) :\n      (B ω).transpose * B ω = ∑ i : Fin d, Y i ω := by\n    ext u v\n    simp only [Matrix.mul_apply, Matrix.transpose_apply, Matrix.sum_apply]\n    apply Finset.sum_congr rfl\n    intro i _\n    exact actual_row_outer i ω (hG i) u v\n  have actual_weighted_gram (ω : Ω) (hG : G ω) :\n      (B ω).transpose * Matrix.diagonal w * B ω = ∑ i : Fin d, w i • Y i ω := by\n    ext u v\n    change (∑ i : Fin d, ((B ω).transpose * Matrix.diagonal w) u i * B ω i v) =\n      (∑ i : Fin d, w i • Y i ω) u v\n    simp only [Matrix.mul_diagonal, Matrix.transpose_apply,\n      Matrix.sum_apply, Matrix.smul_apply, smul_eq_mul]\n    apply Finset.sum_congr rfl\n    intro i _\n    calc\n      B ω i u * w i * B ω i v = w i * (B ω i u * B ω i v) := by ring\n      _ = w i * Y i ω u v := by rw [actual_row_outer i ω (hG i) u v]\n"
+              },
+              {
+                "title": "Center by the actual means",
+                "text": "Subtract the two actual mean sums from the two actual Gram sums. This proves both public identities. The unweighted identity is algebraically equivalent to the paper’s BᵀB−I form, with the negative bias correction retained.",
+                "formula": "\\sum_iZ_i=B^\\top B-aI,\\quad\\sum_iw_iZ_i=B^\\top D_nB,\\qquad B^\\top B-I=\\sum_iZ_i-(1-a)I.",
+                "lean": "  change ∀ ω : Ω, G ω →\n    ((∑ i : Fin d, Z i ω) = (B ω).transpose * B ω - a • (1 : N)) ∧\n    ((∑ i : Fin d, w i • Z i ω) = (B ω).transpose * Matrix.diagonal w * B ω)\n  intro ω hG\n  constructor\n  · calc\n      (∑ i : Fin d, Z i ω) = (∑ i : Fin d, Y i ω) - a • (1 : N) := by\n        simp only [Z, mean, Finset.sum_sub_distrib, mean_sum]\n      _ = _ := by rw [actual_gram ω hG]\n  · calc\n      (∑ i : Fin d, w i • Z i ω) =\n          (∑ i : Fin d, w i • Y i ω) - (∑ i : Fin d, w i • mean i) := by\n        simp only [Z, smul_sub, Finset.sum_sub_distrib]\n      _ = (∑ i : Fin d, w i • Y i ω) := by\n        change (∑ i : Fin d, w i • Y i ω) -\n          (∑ i : Fin d, w i • (∫ ω, Y i ω ∂μ)) = _\n        rw [weighted_mean_sum, sub_zero]\n      _ = _ := (actual_weighted_gram ω hG).symm\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization\n"
+              },
+              {
+                "title": "Consume the identities and derive the needed bias bound",
+                "text": "The complete private consumer keeps the literal original objects and calls P. The canonical standard Gaussian norm-square theorem supplies integrability and integral r. The retained squared radius is bounded by the full squared radius, so its actual integral is at most r. Since r>0, derive a≤1 internally. No numeric concentration threshold or probability certificate enters this argument.",
+                "formula": "\\int\\|x\\|^2\\mathbf1_{\\{\\|x\\|^2\\le L\\}}\\,d\\gamma_r\\le\\int\\|x\\|^2\\,d\\gamma_r=r,\\qquad a\\le1.",
+                "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization\nimport AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment\n\n/-! Private real Ex126 consumer. On the literal original good event and actual\ncentered-sum deviation event, derive actual Gram norm bounds. The real threshold\nis an explicit deterministic generalization; no event probability is claimed. -/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity\nopen scoped BigOperators Matrix Kronecker Matrix.Norms.L2Operator\nset_option autoImplicit false\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceGramRealization\n\nprivate theorem actual_source_gram_deviation_bounds\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  ∀ Δ : ℝ, ∀ ω : Ω, G ω →\n    ((‖∑ i : Fin d, Z i ω‖ ≤ Δ) ∧\n      (‖∑ i : Fin d, w i • Z i ω‖ ≤ Δ)) →\n    ((‖(B ω).transpose * B ω -\n        (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)‖\n        ≤ Δ + (1 - a)) ∧\n      (‖(B ω).transpose * Matrix.diagonal w * B ω‖ ≤ Δ))\n := by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  have hp := FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations\n    (d := d) (q := q) hq\n  change (∀ ω : Ω, G ω →\n    ((∑ i : Fin d, Z i ω) = (B ω).transpose * B ω - a • (1 : N)) ∧\n    ((∑ i : Fin d, w i • Z i ω) =\n      (B ω).transpose * Matrix.diagonal w * B ω)) at hp\n  have hr : 0 < r := by dsimp [r]; positivity\n  have moment := AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian\n    (E := E)\n  have hgood : MeasurableSet {y : E | ‖y‖ ^ 2 ≤ L} :=\n    measurableSet_le (by fun_prop) measurable_const\n  have hret := moment.1.indicator hgood\n  have hretle : (∫ x : E, {y : E | ‖y‖ ^ 2 ≤ L}.indicator\n      (fun y => ‖y‖ ^ 2) x ∂stdGaussian E) ≤ r := by\n    calc\n      _ ≤ ∫ x : E, ‖x‖ ^ 2 ∂stdGaussian E := by\n        apply integral_mono hret moment.1\n        intro x\n        by_cases hx : ‖x‖ ^ 2 ≤ L\n        · simp [Set.indicator, hx]\n        · simpa [Set.indicator, hx] using sq_nonneg ‖x‖\n      _ = r := by simpa [E, r] using moment.2\n  have ha1 : a ≤ 1 := (div_le_one hr).2 hretle\n"
+              },
+              {
+                "title": "Obtain the actual eventwise Gram-deviation bounds",
+                "text": "The identity matrix has Euclidean operator norm1 because r² is positive. Thus the actual bias matrix has norm1−a. Combine the exact bias identity with triangle inequality and the two actual centered-sum deviation antecedents. The statement quantifies over every real threshold; for negative thresholds the norm antecedent cannot hold. This proves a deterministic implication, with no event-probability conclusion.",
+                "formula": "\\omega\\in\\mathcal T\\cap\\mathcal E_\\Delta\\Longrightarrow\\begin{cases}\\|B^\\top B-I\\|_{\\rm op}\\le\\Delta+(1-a),\\\\\\|B^\\top D_nB\\|_{\\rm op}\\le\\Delta.\\end{cases}",
+                "lean": "  have identity_norm : ‖(1 : N)‖ = 1 := norm_one\n  have bias_norm : ‖(1 - a) • (1 : N)‖ = 1 - a := by\n    rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (sub_nonneg.mpr ha1),\n      identity_norm, mul_one]\n  have actual_bias_identity (ω : Ω) (hG : G ω) :\n      (B ω).transpose * B ω - (1 : N) =\n        (∑ i : Fin d, Z i ω) - (1 - a) • (1 : N) := by\n    rw [(hp ω hG).1]\n    have split_identity : a • (1 : N) + (1 - a) • (1 : N) = (1 : N) := by\n      rw [← add_smul, show a + (1 - a) = (1 : ℝ) by ring, one_smul]\n    calc\n      _ = (B ω).transpose * B ω - (a • (1 : N) + (1 - a) • (1 : N)) := by\n        rw [split_identity]\n      _ = _ := by abel\n  change ∀ Δ : ℝ, ∀ ω : Ω, G ω →\n    ((‖∑ i : Fin d, Z i ω‖ ≤ Δ) ∧ (‖∑ i : Fin d, w i • Z i ω‖ ≤ Δ)) →\n    ((‖(B ω).transpose * B ω - (1 : N)‖ ≤ Δ + (1 - a)) ∧\n      (‖(B ω).transpose * Matrix.diagonal w * B ω‖ ≤ Δ))\n  intro Δ ω hG hΔ\n  constructor\n  · calc\n      ‖(B ω).transpose * B ω - (1 : N)‖ =\n          ‖(∑ i : Fin d, Z i ω) - (1 - a) • (1 : N)‖ := by\n        rw [actual_bias_identity ω hG]\n      _ ≤ ‖∑ i : Fin d, Z i ω‖ + ‖(1 - a) • (1 : N)‖ := norm_sub_le _ _\n      _ = ‖∑ i : Fin d, Z i ω‖ + (1 - a) := by rw [bias_norm]\n      _ ≤ Δ + (1 - a) := add_le_add hΔ.1 (le_refl (1 - a))\n  · rw [← (hp ω hG).2]\n    exact hΔ.2\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceGramRealization\n"
+              }
+            ],
+            "astis_dependencies": [
+              "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+              "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram"
+            ],
+            "mathlib_dependencies": [
+              "Matrix.kroneckerBilinear",
+              "Matrix.one_kronecker_one",
+              "Matrix.mul_diagonal",
+              "Matrix.sum_apply",
+              "Real.sq_sqrt",
+              "Finset.smul_sum",
+              "Finset.sum_sub_distrib",
+              "LinearMap.map_sum",
+              "LinearMap.map_smul",
+              "MeasureTheory.Integrable.indicator",
+              "MeasureTheory.integral_mono",
+              "norm_one",
+              "norm_sub_le"
+            ],
+            "dependency_notes": "P materially calls exactly actualMatrixMean and CosineGram. The private consumer calls P and the one canonical standard Gaussian norm-square moment declaration. Existing private aggregate-mean tests remain intact; no new public aggregate-mean node is created. Source topology and conceptual correspondences are distinct from compiled proof dependencies.",
+            "lean_statement": "Actual eventwise centered/unweighted and weighted Gram identities under the literal source regime.",
+            "lean_proof": "Four steps preserve all208 public lines, followed by two steps preserving all136 private-consumer lines, exactly once.",
+            "sources": [
+              {
+                "url": "https://arxiv.org/html/2610.20492v1#A3.Ex125",
+                "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                "anchor": "Appendix C.2 p17 Ex125, with original p1/frame/cutoff/actual-mean definitions; Ex126 supplies the private deterministic norm consumer",
+                "label": "Actual source centered Gram identities (Ex125)",
+                "wording_status": "faithful paraphrase",
+                "attribution": "On Complexity of Gaussian Sampling, arXiv:2610.20492v1.",
+                "scope": "Public actual identities on the original truncation event. The final two proof steps give a private, explicitly generalized deterministic Ex126 consumer."
+              },
+              {
+                "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+                "line": 13,
+                "label": "Complete exact public actual Gram theorem",
+                "scope": "Public P is the actual deterministic Ex125 realization on the original inclusive event, under the sole source dimension regime. Private T proves the actual eventwise Ex126 norm implication for every real threshold; this is an explicitly labelled authored deterministic generalization, with no public API or separate canonical node credit. Neither event probability nor a Bernstein bound is asserted. Full FactC6/Lemma4.4/Krylov/main lower bounds, actual oracle/precision/TV/dimension-condition-number/worst-query-cap/expected-cost adapters, serialized main/site/source-index/globalgraph integration and purification remain separate."
+              },
+              {
+                "url": "https://arxiv.org/html/2610.20492v1#A3.Ex126",
+                "label": "Source eventwise Gram-deviation implication (private consumer)",
+                "scope": "Private consumer explicitly generalizes the numeric source threshold to every real threshold; no probability or public API credit."
+              },
+              {
+                "path": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+                "line": 14,
+                "label": "Complete private deterministic norm consumer",
+                "scope": "Private actual implementation consumer; full definition and event antecedents preserved."
+              }
+            ],
+            "tests": [
+              "lake build Tests.GaussianComplexityFixedSpectrumSourceGramRealization"
+            ]
+          },
+          "binding": {
+            "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations",
+            "role": "proof-edge",
+            "supports": [
+              "c2-actual-centered-gram-realization"
+            ]
+          },
+          "candidate_assumptions": [
+            {
+              "source": "Original natural q>=0 and2q+1<d, actual Gaussian columns/rows/features/cutoff/means/B; Ex125 holds on the literal truncation event.",
+              "lean": "Exactly those literal objects, sole hq input, q0 retained and original G conclusion antecedent."
+            },
+            {
+              "source": "Actual aggregate means, exact frame sums and real inverse-square-root Gram normalization are used in the source identity.",
+              "lean": "They are proved internally from existing canonical actual-mean/frame declarations and ordinary matrix/scalar algebra."
+            }
+          ]
+        },
+        "private_consumer": {
+          "file": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+          "file_sha256": "ac57194ab0cff3708609549581146a1fca91ec31dea2d6fbce95260158e616e5",
+          "whole_module_text": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization\nimport AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment\n\n/-! Private real Ex126 consumer. On the literal original good event and actual\ncentered-sum deviation event, derive actual Gram norm bounds. The real threshold\nis an explicit deterministic generalization; no event probability is claimed. -/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity\nopen scoped BigOperators Matrix Kronecker Matrix.Norms.L2Operator\nset_option autoImplicit false\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceGramRealization\n\nprivate theorem actual_source_gram_deviation_bounds\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  ∀ Δ : ℝ, ∀ ω : Ω, G ω →\n    ((‖∑ i : Fin d, Z i ω‖ ≤ Δ) ∧\n      (‖∑ i : Fin d, w i • Z i ω‖ ≤ Δ)) →\n    ((‖(B ω).transpose * B ω -\n        (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)‖\n        ≤ Δ + (1 - a)) ∧\n      (‖(B ω).transpose * Matrix.diagonal w * B ω‖ ≤ Δ))\n := by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  have hp := FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations\n    (d := d) (q := q) hq\n  change (∀ ω : Ω, G ω →\n    ((∑ i : Fin d, Z i ω) = (B ω).transpose * B ω - a • (1 : N)) ∧\n    ((∑ i : Fin d, w i • Z i ω) =\n      (B ω).transpose * Matrix.diagonal w * B ω)) at hp\n  have hr : 0 < r := by dsimp [r]; positivity\n  have moment := AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian\n    (E := E)\n  have hgood : MeasurableSet {y : E | ‖y‖ ^ 2 ≤ L} :=\n    measurableSet_le (by fun_prop) measurable_const\n  have hret := moment.1.indicator hgood\n  have hretle : (∫ x : E, {y : E | ‖y‖ ^ 2 ≤ L}.indicator\n      (fun y => ‖y‖ ^ 2) x ∂stdGaussian E) ≤ r := by\n    calc\n      _ ≤ ∫ x : E, ‖x‖ ^ 2 ∂stdGaussian E := by\n        apply integral_mono hret moment.1\n        intro x\n        by_cases hx : ‖x‖ ^ 2 ≤ L\n        · simp [Set.indicator, hx]\n        · simpa [Set.indicator, hx] using sq_nonneg ‖x‖\n      _ = r := by simpa [E, r] using moment.2\n  have ha1 : a ≤ 1 := (div_le_one hr).2 hretle\n  have identity_norm : ‖(1 : N)‖ = 1 := norm_one\n  have bias_norm : ‖(1 - a) • (1 : N)‖ = 1 - a := by\n    rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (sub_nonneg.mpr ha1),\n      identity_norm, mul_one]\n  have actual_bias_identity (ω : Ω) (hG : G ω) :\n      (B ω).transpose * B ω - (1 : N) =\n        (∑ i : Fin d, Z i ω) - (1 - a) • (1 : N) := by\n    rw [(hp ω hG).1]\n    have split_identity : a • (1 : N) + (1 - a) • (1 : N) = (1 : N) := by\n      rw [← add_smul, show a + (1 - a) = (1 : ℝ) by ring, one_smul]\n    calc\n      _ = (B ω).transpose * B ω - (a • (1 : N) + (1 - a) • (1 : N)) := by\n        rw [split_identity]\n      _ = _ := by abel\n  change ∀ Δ : ℝ, ∀ ω : Ω, G ω →\n    ((‖∑ i : Fin d, Z i ω‖ ≤ Δ) ∧ (‖∑ i : Fin d, w i • Z i ω‖ ≤ Δ)) →\n    ((‖(B ω).transpose * B ω - (1 : N)‖ ≤ Δ + (1 - a)) ∧\n      (‖(B ω).transpose * Matrix.diagonal w * B ω‖ ≤ Δ))\n  intro Δ ω hG hΔ\n  constructor\n  · calc\n      ‖(B ω).transpose * B ω - (1 : N)‖ =\n          ‖(∑ i : Fin d, Z i ω) - (1 - a) • (1 : N)‖ := by\n        rw [actual_bias_identity ω hG]\n      _ ≤ ‖∑ i : Fin d, Z i ω‖ + ‖(1 - a) • (1 : N)‖ := norm_sub_le _ _\n      _ = ‖∑ i : Fin d, Z i ω‖ + (1 - a) := by rw [bias_norm]\n      _ ≤ Δ + (1 - a) := add_le_add hΔ.1 (le_refl (1 - a))\n  · rw [← (hp ω hG).2]\n    exact hΔ.2\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceGramRealization\n",
+          "statement_sha256": "161f506151129e88edb86492667d0ffa57d3876ca423d7f46ea0b6c9aebf9e95",
+          "placement": "Private real-Delta deterministic generalization, not publicAPI or probability theorem"
+        },
+        "source_lean_correspondence": {
+          "kind": "Authored exact source-to-code map, not an independent fidelity verdict",
+          "raw_source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "source_span_helper_origin": ".astis/huanjian-gc-source-matrix-structure-20261113/source_span_helpers.exact-prefix.original.py",
+          "source_span_helper_sha256": "fea553f61e0e845b4bbaaaeb577900ff9e274bd6a884327f045ea05a348cb4ef",
+          "mappings": [
+            {
+              "source": [
+                {
+                  "source_id": "S4.Thmtheorem4.p1",
+                  "char_start": 230581,
+                  "char_end": 236865,
+                  "raw_utf8_start": 232635,
+                  "raw_utf8_end": 238980,
+                  "lf_line_start": 1209,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 1230,
+                  "span_sha256": "00f66fac7ae3cca6c10e5cfeb93cf22f9622867593ccd7c9cbc09cde73fb9737",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.SS2.p1",
+                  "char_start": 731718,
+                  "char_end": 736218,
+                  "raw_utf8_start": 739163,
+                  "raw_utf8_end": 743698,
+                  "lf_line_start": 3317,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3329,
+                  "span_sha256": "4b07cd73f4561d56956c212747af710882b47f8d70253b679ed93e1cda9eafbc",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.Ex85",
+                  "char_start": 732653,
+                  "char_end": 734303,
+                  "raw_utf8_start": 740104,
+                  "raw_utf8_end": 741765,
+                  "lf_line_start": 3319,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3325,
+                  "span_sha256": "fc46424d064a72e91ad1a57987e6371dcddb652d50913b4c95b6cb929646caeb",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.Ex107",
+                  "char_start": 796275,
+                  "char_end": 797498,
+                  "raw_utf8_start": 804420,
+                  "raw_utf8_end": 805656,
+                  "lf_line_start": 3572,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3578,
+                  "span_sha256": "aa8878824a99bc9a00a98697189eda90e41c1f9996d9f10b237c86ec044ce0dd",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.SS2.p13.1",
+                  "char_start": 804268,
+                  "char_end": 805333,
+                  "raw_utf8_start": 812512,
+                  "raw_utf8_end": 813592,
+                  "lf_line_start": 3609,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3611,
+                  "span_sha256": "1b1b8bb54870393dad4c65cd9d40302f08eeb4cd62d74d53d8d5ac9bf28df69f",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.SS2.p13.3",
+                  "char_start": 808632,
+                  "char_end": 809763,
+                  "raw_utf8_start": 816941,
+                  "raw_utf8_end": 818086,
+                  "lf_line_start": 3627,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3628,
+                  "span_sha256": "90552f46e3780daec283f41c59301461e83af174b74b421a41621da764d015f6",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                }
+              ],
+              "lean": [
+                {
+                  "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+                  "file_sha256": "b68d9d7d6e385355391a8bf93653e9bbee1843be897f63563e0aa8af0e91d537",
+                  "LF_lines_1based": [
+                    1,
+                    79
+                  ],
+                  "raw_UTF8_byte_span": [
+                    0,
+                    4256
+                  ],
+                  "decoded_char_span": [
+                    0,
+                    3941
+                  ],
+                  "span_sha256": "c8be21cc4346fc134343e3b3bf184fcc6410392f664e851d8d422503c64c09f7"
+                },
+                {
+                  "path": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+                  "file_sha256": "ac57194ab0cff3708609549581146a1fca91ec31dea2d6fbce95260158e616e5",
+                  "LF_lines_1based": [
+                    1,
+                    88
+                  ],
+                  "raw_UTF8_byte_span": [
+                    0,
+                    4784
+                  ],
+                  "decoded_char_span": [
+                    0,
+                    4403
+                  ],
+                  "span_sha256": "63a5f8ca5ea4621f5984c60a97c4c7d61a9f1308dcf9d1e7e619f0d0abb0be3c"
+                }
+              ],
+              "meaning": "Literal source range, original product measure/rows, actual unconditional means/radial coefficient, actual rectangularB and inclusiveG.",
+              "attribution": "EXACT_SOURCE_REALIZATION"
+            },
+            {
+              "source": [
+                {
+                  "source_id": "A3.SS2.p12",
+                  "char_start": 796105,
+                  "char_end": 804228,
+                  "raw_utf8_start": 804250,
+                  "raw_utf8_end": 812472,
+                  "lf_line_start": 3570,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3607,
+                  "span_sha256": "3f2c83ee54eabdf9f98dd13156bea1fa63d7b2c95440208964402849c77c236d",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.Thmtheorem5",
+                  "char_start": 739301,
+                  "char_end": 743586,
+                  "raw_utf8_start": 746809,
+                  "raw_utf8_end": 751148,
+                  "lf_line_start": 3340,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3360,
+                  "span_sha256": "594da771a3b0a9077a24d6d235c11fc6634678161134e92a2b363c16a26c2626",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.Ex125",
+                  "char_start": 834169,
+                  "char_end": 836021,
+                  "raw_utf8_start": 842805,
+                  "raw_utf8_end": 844686,
+                  "lf_line_start": 3746,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3752,
+                  "span_sha256": "4aeed5cc673a5d53e21c8743db9e407f597744bdd0f5e7c3ce857cbca541b7c1",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                }
+              ],
+              "lean": [
+                {
+                  "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+                  "file_sha256": "b68d9d7d6e385355391a8bf93653e9bbee1843be897f63563e0aa8af0e91d537",
+                  "LF_lines_1based": [
+                    80,
+                    152
+                  ],
+                  "raw_UTF8_byte_span": [
+                    4256,
+                    7763
+                  ],
+                  "decoded_char_span": [
+                    3941,
+                    7262
+                  ],
+                  "span_sha256": "c84a9fedb68e7ea00a4d9e3d2b9a2cd876fe0afc65a6b2fc2ee2d4eab316d2f0"
+                }
+              ],
+              "meaning": "Existing actual mean and source cosine frame, internal theta transport and finite Kronecker linearity derive actual mean sums aI and weighted0.",
+              "attribution": "SOURCE_ACTUAL_MEAN_FRAME_ASSEMBLY"
+            },
+            {
+              "source": [
+                {
+                  "source_id": "A3.Ex85",
+                  "char_start": 732653,
+                  "char_end": 734303,
+                  "raw_utf8_start": 740104,
+                  "raw_utf8_end": 741765,
+                  "lf_line_start": 3319,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3325,
+                  "span_sha256": "fc46424d064a72e91ad1a57987e6371dcddb652d50913b4c95b6cb929646caeb",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.Ex107",
+                  "char_start": 796275,
+                  "char_end": 797498,
+                  "raw_utf8_start": 804420,
+                  "raw_utf8_end": 805656,
+                  "lf_line_start": 3572,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3578,
+                  "span_sha256": "aa8878824a99bc9a00a98697189eda90e41c1f9996d9f10b237c86ec044ce0dd",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.Ex125",
+                  "char_start": 834169,
+                  "char_end": 836021,
+                  "raw_utf8_start": 842805,
+                  "raw_utf8_end": 844686,
+                  "lf_line_start": 3746,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3752,
+                  "span_sha256": "4aeed5cc673a5d53e21c8743db9e407f597744bdd0f5e7c3ce857cbca541b7c1",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                }
+              ],
+              "lean": [
+                {
+                  "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+                  "file_sha256": "b68d9d7d6e385355391a8bf93653e9bbee1843be897f63563e0aa8af0e91d537",
+                  "LF_lines_1based": [
+                    153,
+                    188
+                  ],
+                  "raw_UTF8_byte_span": [
+                    7763,
+                    9417
+                  ],
+                  "decoded_char_span": [
+                    7262,
+                    8837
+                  ],
+                  "span_sha256": "4f0a58a8006da852372aa41c72a7a8f2198a98486fca65eb7aedff9551231abe"
+                }
+              ],
+              "meaning": "Internal inverse-sqrt normalization and actual row-coordinate Gram algebra; inclusiveG removes each own-row cutoff; exact weighted diagonal multiplication.",
+              "attribution": "SOURCE_GRAM_REALIZATION_WITH_INTERNAL_ALGEBRA"
+            },
+            {
+              "source": [
+                {
+                  "source_id": "A3.SS2.p17.1",
+                  "char_start": 833748,
+                  "char_end": 834168,
+                  "raw_utf8_start": 842381,
+                  "raw_utf8_end": 842804,
+                  "lf_line_start": 3744,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3745,
+                  "span_sha256": "8d6366bcbe42e6bc7b6234c6d408a667384cec42437827439aac218f764e7690",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.Ex125",
+                  "char_start": 834169,
+                  "char_end": 836021,
+                  "raw_utf8_start": 842805,
+                  "raw_utf8_end": 844686,
+                  "lf_line_start": 3746,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3752,
+                  "span_sha256": "4aeed5cc673a5d53e21c8743db9e407f597744bdd0f5e7c3ce857cbca541b7c1",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                }
+              ],
+              "lean": [
+                {
+                  "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+                  "file_sha256": "b68d9d7d6e385355391a8bf93653e9bbee1843be897f63563e0aa8af0e91d537",
+                  "LF_lines_1based": [
+                    189,
+                    208
+                  ],
+                  "raw_UTF8_byte_span": [
+                    9417,
+                    10355
+                  ],
+                  "decoded_char_span": [
+                    8837,
+                    9704
+                  ],
+                  "span_sha256": "484988efb73d272db45d4592e7396bd512352abbe7f557e3962b01e24f88294c"
+                }
+              ],
+              "meaning": "Subtract actual aggregate means, retaining the exact source negative bias sign.",
+              "attribution": "SOURCE_CENTERED_SUM_IDENTITIES"
+            },
+            {
+              "source": [
+                {
+                  "source_id": "A3.SS2.p12",
+                  "char_start": 796105,
+                  "char_end": 804228,
+                  "raw_utf8_start": 804250,
+                  "raw_utf8_end": 812472,
+                  "lf_line_start": 3570,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3607,
+                  "span_sha256": "3f2c83ee54eabdf9f98dd13156bea1fa63d7b2c95440208964402849c77c236d",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.SS2.p17.2",
+                  "char_start": 836022,
+                  "char_end": 836758,
+                  "raw_utf8_start": 844687,
+                  "raw_utf8_end": 845430,
+                  "lf_line_start": 3753,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3755,
+                  "span_sha256": "5829032dee131b10412e5ebcf29f3d32e8932884450369f54e13b22996020c43",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.Ex126",
+                  "char_start": 836759,
+                  "char_end": 838245,
+                  "raw_utf8_start": 845431,
+                  "raw_utf8_end": 846945,
+                  "lf_line_start": 3756,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3762,
+                  "span_sha256": "5004f3126cf3fb00b48f815b006a0477b06cabeb9f1d2ebc06b7c1b112326b63",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                }
+              ],
+              "lean": [
+                {
+                  "path": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+                  "file_sha256": "ac57194ab0cff3708609549581146a1fca91ec31dea2d6fbce95260158e616e5",
+                  "LF_lines_1based": [
+                    89,
+                    105
+                  ],
+                  "raw_UTF8_byte_span": [
+                    4784,
+                    5605
+                  ],
+                  "decoded_char_span": [
+                    4403,
+                    5178
+                  ],
+                  "span_sha256": "13b34e47b392a86290143d92fbc11808cd6cbea7acefdfac662f0a97fe9b42de"
+                }
+              ],
+              "meaning": "Canonical true Gaussian norm-square integrability and moment r plus retained-radius domination derive only the upper coefficient bound needed by the norm consumer.",
+              "attribution": "AUTHORED_INTERNAL_APPLICABILITY_OF_CANONICAL_GAUSSIAN_MOMENT"
+            },
+            {
+              "source": [
+                {
+                  "source_id": "A3.SS2.p17.2",
+                  "char_start": 836022,
+                  "char_end": 836758,
+                  "raw_utf8_start": 844687,
+                  "raw_utf8_end": 845430,
+                  "lf_line_start": 3753,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3755,
+                  "span_sha256": "5829032dee131b10412e5ebcf29f3d32e8932884450369f54e13b22996020c43",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                },
+                {
+                  "source_id": "A3.Ex126",
+                  "char_start": 836759,
+                  "char_end": 838245,
+                  "raw_utf8_start": 845431,
+                  "raw_utf8_end": 846945,
+                  "lf_line_start": 3756,
+                  "lf_column0_start": 0,
+                  "lf_line_end": 3762,
+                  "span_sha256": "5004f3126cf3fb00b48f815b006a0477b06cabeb9f1d2ebc06b7c1b112326b63",
+                  "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "origin": "PRIMARY_APPLICATION"
+                }
+              ],
+              "lean": [
+                {
+                  "path": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+                  "file_sha256": "ac57194ab0cff3708609549581146a1fca91ec31dea2d6fbce95260158e616e5",
+                  "LF_lines_1based": [
+                    106,
+                    136
+                  ],
+                  "raw_UTF8_byte_span": [
+                    5605,
+                    7107
+                  ],
+                  "decoded_char_span": [
+                    5178,
+                    6536
+                  ],
+                  "span_sha256": "c491334b6d5c97ceac4577bc2eebd82bc2d3ccde61ad756d55dbaaab08345c4e"
+                }
+              ],
+              "meaning": "Private actual norm consumer uses P and internally discharged bias norm; arbitraryrealDelta is explicitly a deterministic generalization, not the source numeric threshold or a probability assertion.",
+              "attribution": "PRIVATE_DETERMINISTIC_SOURCE_CONSUMER_GENERALIZATION"
+            }
+          ],
+          "code_files": [
+            {
+              "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+              "sha256": "b68d9d7d6e385355391a8bf93653e9bbee1843be897f63563e0aa8af0e91d537"
+            },
+            {
+              "path": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+              "sha256": "ac57194ab0cff3708609549581146a1fca91ec31dea2d6fbce95260158e616e5"
+            }
+          ],
+          "canonical_P_parents": [
+            "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+            "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram"
+          ],
+          "private_T_parents": [
+            "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations",
+            "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+          ],
+          "source_graph_boundary": "Accepted independent source-only graph/coverage and distinct topology challenge preserved; source-only edges are not compiled implications. Only needed upper a bound is used by T.",
+          "private_generalization": "All-real threshold deterministic implication explicitly authored; source numeric threshold is a special instance, no probability credit.",
+          "remaining_boundary": "Public P is the actual deterministic Ex125 realization on the original inclusive event, under the sole source dimension regime. Private T proves the actual eventwise Ex126 norm implication for every real threshold; this is an explicitly labelled authored deterministic generalization, with no public API or separate canonical node credit. Neither event probability nor a Bernstein bound is asserted. Full FactC6/Lemma4.4/Krylov/main lower bounds, actual oracle/precision/TV/dimension-condition-number/worst-query-cap/expected-cost adapters, serialized main/site/source-index/globalgraph integration and purification remain separate."
+        }
+      },
+      "publication_binding_sha256": "8f36ed7177688cea5368203a3f29d1e6dee360cf0bd6292740f4931b8d55c1ee",
+      "reconstruction": {
+        "text": "For every pair of natural numbers \\(d,q\\), and every hypothesis \\(h_q:2q+1<d\\), make the following local definitions. All indices below are zero-based: \\(\\operatorname{Fin}(n)=\\{0,\\ldots,n-1\\}\\).\n\nLet\n\\[\nD=\\operatorname{EuclideanSpace}_{\\mathbb R}(\\operatorname{Fin}(d)),\\qquad\nE=\\operatorname{EuclideanSpace}_{\\mathbb R}(\\operatorname{Fin}(q+1)),\\qquad\n\\Omega=\\operatorname{Fin}(q+1)\\to D.\n\\]\nThus \\(D\\) and \\(E\\) are real Euclidean spaces of dimensions \\(d\\) and \\(q+1\\), respectively. Write \\(\\gamma_D=\\mathrm{stdGaussian}(D)\\) and \\(\\gamma_E=\\mathrm{stdGaussian}(E)\\) for the centered Gaussian probability measures with identity covariance on those spaces. Define the measure on \\(\\Omega\\) by\n\\[\n\\mu=\\bigotimes_{b\\in\\operatorname{Fin}(q+1)}\\gamma_D.\n\\]\nLet the real numbers \\(r,L\\) be\n\\[\nr=(q+1)\\in\\mathbb R,\\qquad L=2r+3\\log(1000d),\n\\]\nwhere the natural numbers in real expressions are embedded into \\(\\mathbb R\\), and \\(\\log\\) is the natural logarithm. For \\(i\\in\\operatorname{Fin}(d)\\), define\n\\[\n\\theta_i=\\frac{(i+1-\\tfrac12)\\pi}{d}.\n\\]\nDefine \\(t:\\operatorname{Fin}(d)\\to\\operatorname{Fin}(q+1)\\to\\mathbb R\\) by\n\\[\nt_{i,k}=\\begin{cases}\n1,&k=0,\\\\\n\\sqrt{2}\\cos(k\\theta_i),&k\\ne0.\n\\end{cases}\n\\]\nFor each \\(i\\in\\operatorname{Fin}(d)\\) and \\(\\omega\\in\\Omega\\), let\n\\[\n\\operatorname{row}_i(\\omega)\n=\\bigl(\\omega(b)_i\\bigr)_{b\\in\\operatorname{Fin}(q+1)}\\in E.\n\\]\nThis is precisely the Euclidean vector obtained by applying \\(\\mathrm{WithLp.toLp}\\,2\\) to the displayed coordinate function; \\(\\mathrm{WithLp.ofLp}\\) recovers those same coordinates.\n\nDefine \\(Y_i(\\omega)\\) to be a real square matrix with both its row and column index sets equal to\n\\(\\operatorname{Fin}(q+1)\\times\\operatorname{Fin}(q+1)\\), hence with dimension \\((q+1)^2\\) by \\((q+1)^2\\), as follows:\n\\[\nY_i(\\omega)=\n\\begin{cases}\n d^{-1}\\bigl[\\operatorname{row}_i(\\omega)\\operatorname{row}_i(\\omega)^{\\mathsf T}\\bigr]\n \\otimes\\bigl[t_i t_i^{\\mathsf T}\\bigr],\n &\\|\\operatorname{row}_i(\\omega)\\|_2^2\\le L,\\\\\n 0,&\\|\\operatorname{row}_i(\\omega)\\|_2^2>L.\n\\end{cases}\n\\]\nHere the first outer product uses the coordinates recovered by \\(\\mathrm{WithLp.ofLp}\\), the second uses the coordinate function \\(t_i\\), and \\(\\otimes\\) is the matrix Kronecker product in this order. Explicitly, at row \\((b,k)\\) and column \\((c,\\ell)\\), the entry in the first branch is\n\\[\n d^{-1}\\,\\omega(b)_i\\,\\omega(c)_i\\,t_{i,k}\\,t_{i,\\ell}.\n\\]\nThe cutoff includes equality. Let\n\\[\n\\operatorname{mean}_i=\\int_{\\Omega}Y_i(\\omega)\\,d\\mu(\\omega),\\qquad\nZ_i(\\omega)=Y_i(\\omega)-\\operatorname{mean}_i,\n\\]\nwith both matrices having that same pair index set. Define the real number\n\\[\na=\\frac{1}{r}\\int_E\n \\mathbf 1_{\\{y\\in E:\\|y\\|_2^2\\le L\\}}(x)\\,\\|x\\|_2^2\\,d\\gamma_E(x).\n\\]\nThe indicator is zero outside the displayed set and includes its boundary. Define \\(w:\\operatorname{Fin}(d)\\to\\mathbb R\\) by\n\\[\nw_i=\\cos\\bigl((2q+1)\\theta_i\\bigr).\n\\]\nFor each \\(\\omega\\in\\Omega\\), define the real matrix \\(B(\\omega)\\), with row index set \\(\\operatorname{Fin}(d)\\) and column index set \\(\\operatorname{Fin}(q+1)\\times\\operatorname{Fin}(q+1)\\), by\n\\[\n B(\\omega)_{i,(b,k)}=(\\sqrt d)^{-1}\\,\n \\bigl(\\operatorname{row}_i(\\omega)\\bigr)_b\\,t_{i,k}.\n\\]\nSquare roots are nonnegative square roots. Define the condition\n\\[\nG(\\omega)\\quad\\Longleftrightarrow\\quad\n \\text{for every }i\\in\\operatorname{Fin}(d),\\quad\n \\|\\operatorname{row}_i(\\omega)\\|_2^2\\le L.\n\\]\n\nThen, for every real number \\(\\Delta\\) and every \\(\\omega\\in\\Omega\\), if \\(G(\\omega)\\) holds, the following implication holds:\n\\[\n\\left(\n \\left\\|\\sum_{i\\in\\operatorname{Fin}(d)}Z_i(\\omega)\\right\\|_{\\mathrm{op}}\\le\\Delta\n \\quad\\text{and}\\quad\n \\left\\|\\sum_{i\\in\\operatorname{Fin}(d)}w_i Z_i(\\omega)\\right\\|_{\\mathrm{op}}\\le\\Delta\n\\right)\n\\quad\\Longrightarrow\\quad\n\\left(\n \\left\\|B(\\omega)^{\\mathsf T}B(\\omega)-I\\right\\|_{\\mathrm{op}}\n \\le\\Delta+(1-a)\n \\quad\\text{and}\\quad\n \\left\\|B(\\omega)^{\\mathsf T}\\operatorname{diag}(w)B(\\omega)\\right\\|_{\\mathrm{op}}\n \\le\\Delta\n\\right).\n\\]\nIn the conclusion, \\(I\\) is the identity matrix on\n\\(\\operatorname{Fin}(q+1)\\times\\operatorname{Fin}(q+1)\\), and \\(\\operatorname{diag}(w)\\) is the \\(d\\)-by-\\(d\\) matrix whose diagonal entries are \\(w_i\\) and whose other entries are zero. Matrix products are ordinary matrix products; \\(w_i Z_i(\\omega)\\) is real scalar multiplication. Every matrix norm displayed is the operator norm for the action between the corresponding Euclidean coordinate spaces. Every row-vector norm is the Euclidean norm.\n\nBoth integrals are Bochner integrals in their displayed spaces and are interpreted as zero if the integrand is not integrable; no integrability hypothesis or conclusion is imposed. The two norm inequalities in the antecedent must hold together, and the two norm inequalities in the conclusion are both under the hypotheses \\(G(\\omega)\\) and that conjunction. No nonnegativity assumption is placed on \\(\\Delta\\). The natural-number case \\(q=0\\) is included whenever \\(1<d\\).\n",
+        "text_sha256": "da3761ec4bac3d45bc2c0d25cd5abba2a4c242a19a206044e16d8b23a847daf5",
+        "decoder": "neutral_decode_b83d",
+        "decoder_run_sha256": "5e598606c25975b06ab40e0236acf4f3c3fbe56649442099518f5e0b25705800",
+        "decoder_packet_sha256": "479402893dc8e6bd1fa458f1186771cd786d59fdb752bcb9dbfb3b5e87cc2ccd",
+        "source_text_visible": false,
+        "lean_statement_sha256": "161f506151129e88edb86492667d0ffa57d3876ca423d7f46ea0b6c9aebf9e95",
+        "input_artifacts": [
+          "lean-statement",
+          "approved-definition-context"
+        ],
+        "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/decoder-originals/anon_b83d/result.json"
+      }
+    }
+  ]
+}

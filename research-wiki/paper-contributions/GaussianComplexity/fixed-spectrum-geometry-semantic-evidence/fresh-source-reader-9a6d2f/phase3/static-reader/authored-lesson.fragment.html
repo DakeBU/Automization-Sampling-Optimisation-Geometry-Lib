@@ -1,0 +1,135 @@
+<article class="proof-reader reader-progressive" data-authored-declaration="AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGeometry.actual_potential_geometry"><div class="eyebrow">Samplinglib mathematical lesson</div><h1>Actual fixed-spectrum potential geometry</h1><section class="reader-first-pass" aria-label="First reading"><div class="reader-first-pass-label">Read this first</div><h2>Mathematical statement</h2><p class="reader-claim">The actual quadratic is globally C∞, 1-strongly convex and κ-smooth, with zero minimum uniquely at the origin.</p><div class="proof-reader-equation reader-main-equation">\[D(\nabla f_A)(x)=A.\]</div><details class="inline-lean inline-lean-statement" data-inline-lean="AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGeometry.actual_potential_geometry" data-lean-code-panel><summary>Lean statement · actual_potential_geometry</summary><p>The literal source family with exactly d&gt;=2,kappa&gt;=2/full real O; smoothness, genuine Hessian, strong convexity, gradient bound,zero value and unique global minimizer are all outputs.</p><p>Braces mark parameters Lean can infer; square brackets request structures such as a measurable space or probability measure. Named hypotheses are mathematical premises, not facts established by this declaration. Section parameters are described in the mathematical hypotheses above; the module link retains their exact source context.</p><div class="lean-source-actions"><button type="button" data-lean-copy>Copy statement</button><a href="../downloads/lean/AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumGeometry.lean" download="FixedSpectrumGeometry.lean">Download module (.lean)</a><span role="status" aria-live="polite" data-lean-copy-status></span></div><pre class="code-block"><code class="language-lean">theorem actual_potential_geometry {d : ℕ} (hd : 2 ≤ d)
+    {κ : ℝ} (hκ : 2 ≤ κ)
+    (O : Matrix.orthogonalGroup (Fin d) ℝ) :
+  let θ : Fin d → ℝ := fun i =&gt; ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let A : Matrix (Fin d) (Fin d) ℝ :=
+    (O : Matrix (Fin d) (Fin d) ℝ) *
+      Matrix.diagonal (fun i =&gt; (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *
+      (O : Matrix (Fin d) (Fin d) ℝ).transpose
+  let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =&gt;
+    (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2
+  ContDiff ℝ ∞ f ∧
+    (∀ x : EuclideanSpace ℝ (Fin d),
+      HasFDerivAt (gradient f) (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) A) x) ∧
+    StrongConvexOn (Set.univ : Set (EuclideanSpace ℝ (Fin d))) 1 f ∧
+    (∀ x y : EuclideanSpace ℝ (Fin d),
+      ‖gradient f x - gradient f y‖ ≤ κ * ‖x - y‖) ∧
+    f 0 = 0 ∧
+    (∀ x : EuclideanSpace ℝ (Fin d), IsMinOn f Set.univ x ↔ x = 0)</code></pre><p><a href="../modules/autosamplingtheory-examplecases-gaussiancomplexity-fixedspectrumgeometry.html#complete-module-source">Exact module and namespace context</a></p></details><p class="reader-scope-note">The geometric conclusion is shown first; the full family, assumptions, formula proof and exact Lean are folded below.</p></section><details class="reader-ledger assumption-ledger"><summary>Full assumptions and notation</summary><h3>All objects and hypotheses</h3><ul><li>Let \(d\in\mathbb N\) with \(d\ge2\), let \(\kappa\in\mathbb R\) with \(\kappa\ge2\), and fix any full real \(O\in O(d)\), including either determinant sign.</li><li>For \(i=1,\ldots,d\), set \(\theta_i=(i-\tfrac12)\pi/d\), \(\lambda_i=(\kappa+1)/2+(\kappa-1)\cos\theta_i/2\), and \(A=O\operatorname{diag}(\lambda_i)O^\top\). The zero-based Lean coordinate \(j\) represents \(i=j.\mathrm{val}+1\).</li><li>The potential is literally \(f_A(x)=x^\top Ax/2\) on all Euclidean \(\mathbb R^d\), with no additive shift. All spatial points and pairs are arbitrary.</li><li>The Hessian is the genuine real Fréchet derivative of the Euclidean gradient. Strong convexity uses the modulus \(r^2/2\); smoothness means \(\|\nabla f_A(x)-\nabla f_A(y)\|\le\kappa\|x-y\|\).</li><li>Symmetry, spectral bounds, differentiability, Hessian, convexity, norm bounds and minimizer properties are produced internally. They are not extra caller assumptions. Haar randomness, seeds and query budgets are outside this local statement.</li></ul><h3>Notation and interpretation</h3><dl><dt>\(H,f_A\)</dt><dd><p>The exact precision action on the Euclidean carrier and the same centered source quadratic.</p><div class="proof-reader-equation">\[Hx=Ax,\qquad f_A(x)=\tfrac12\langle x,Hx\rangle.\]</div></dd></dl></details><h2>Mathematical proof</h2><p class="reader-expand-hint">Open a step to read its argument and formula.</p><details class="proof-reader-step reader-proof-disclosure"><summary>1. Write the same quadratic and establish smoothness</summary><div class="reader-step-body"><p>Represent the actual matrix action by its continuous linear map H. Its coordinates and Euclidean inner product give the same potential. The identity map, H, inner product and scalar multiplication are smooth of every finite order.</p><div class="proof-reader-equation">\[Hx=Ax,\qquad f_A(x)=\tfrac12\langle x,Hx\rangle\in C^\infty.\]</div><details><summary>Corresponding Lean step</summary><p>hf is the coordinate identity from Matrix.inner_toEuclideanCLM. hcinfty uses ContDiff.inner and ContDiff.mul on the actual f; infinity is ordinary C-infinity, distinct from analytic omega.</p></details></div></details><details class="proof-reader-step reader-proof-disclosure"><summary>2. Differentiate the genuine gradient</summary><div class="reader-step-body"><p>The existing exact first-order result constructs the actual gradient Ax at every point. Its equality with the fixed linear map H turns the derivative of the gradient into H itself.</p><div class="proof-reader-equation">\[\nabla f_A(x)=Hx,\qquad D(\nabla f_A)(x)[v]=Hv.\]</div><details><summary>Corresponding Lean step</summary><p>hgrad invokes canonical actual_first_order_query, hg identifies the total gradient after genuine existence, and hhessian rewrites by that identity before applying H.hasFDerivAt.</p></details></div></details><details class="proof-reader-step reader-proof-disclosure"><summary>3. Use the produced lower and upper quadratic bounds</summary><div class="reader-step-body"><p>Apply the existing actual admissibility theorem to the literal source matrix. Positive semidefiniteness of A−I and κI−A gives both Euclidean quadratic inequalities. No matrix certificate is supplied by the caller.</p><div class="proof-reader-equation">\[\|v\|^2\le\langle v,Hv\rangle\le\kappa\|v\|^2.\]</div><details><summary>Corresponding Lean step</summary><p>hA is the canonical actual_precision_admissible result. hquad converts its PSD outputs through the exact CLM action; hlower and hupper use inner_self_eq_norm_sq. The source strict grid prefix remains a separate source route; these closed bounds are already supplied by the canonical parent.</p></details></div></details><details class="proof-reader-step reader-proof-disclosure"><summary>4. Obtain the source strong-convexity constant</summary><div class="reader-step-body"><p>Linearity converts the lower quadratic bound into quantitative monotonicity of the genuine gradient. The existing canonical gradient criterion gives strong convexity with modulus one, including the required one-half normalization.</p><div class="proof-reader-equation">\[\langle\nabla f_A(y)-\nabla f_A(x),y-x\rangle\ge\|y-x\|^2.\]</div><details><summary>Corresponding Lean step</summary><p>hstrong actually invokes StrongConvexGradientConverse.strongConvexOn_of_gradient_inner_lower_bound with produced hgrad and hlower. This is a sufficient implementation route; the author’s Hessian route remains distinct in the source graph. It adds no assumption or constant.</p></details></div></details><details class="proof-reader-step reader-proof-disclosure"><summary>5. Control the Euclidean gradient norm</summary><div class="reader-step-body"><p>For a self-adjoint operator, the absolute Rayleigh quotients determine the operator norm. The upper quadratic bound and nonnegativity bound that norm by κ. Apply it to x−y to obtain the source Lipschitz gradient inequality.</p><div class="proof-reader-equation">\[\|H\|\le\kappa,\qquad\|\nabla f_A(x)-\nabla f_A(y)\|\le\kappa\|x-y\|.\]</div><details><summary>Corresponding Lean step</summary><p>hnorm uses ContinuousLinearMap.norm_eq_iSup_rayleighQuotient, handling the zero vector separately. hsmooth uses H.le_opNorm. This is the induced Euclidean operator norm, with no coordinate/Frobenius norm or dimension factor.</p></details></div></details><details class="proof-reader-step reader-proof-disclosure"><summary>6. Identify the global minimizer</summary><div class="reader-step-body"><p>The literal formula gives value zero at the origin. The lower quadratic bound makes the value strictly positive at every other point, so the origin is a global minimizer and every global minimizer equals it.</p><div class="proof-reader-equation">\[f_A(0)=0,\qquad f_A(x)\ge\tfrac12\|x\|^2&gt;0\quad(x\ne0).\]</div><details><summary>Corresponding Lean step</summary><p>hzero, hnonneg and hpositive prove actual values. isMinOn_iff turns the final biconditional into comparison with every global competitor; the reverse implication supplies existence at zero as well as uniqueness.</p></details></div></details><details class="proof-reader-step reader-proof-disclosure"><summary>7. Consume regularity for the actual fixed-input oracle</summary><div class="reader-step-body"><p>The private Test uses the new scalar smoothness and genuine gradient derivative to obtain continuity. It separately identifies that gradient with the same actual Ax reply, then proves the ordered value/reply pair Borel measurable for this fixed input.</p><div class="proof-reader-equation">\[x\longmapsto\bigl(f_A(x),Ax\bigr)\quad\text{is Borel measurable}.\]</div><details><summary>Corresponding Lean step</summary><p>hscalar consumes the new producer C-infinity output; hgradient consumes its HasFDerivAt output. hquery uses canonical actual_first_order_query, and Continuous.borel_measurable finishes the actual pair. The compiled private proof has exactly new geometry and canonical first-order parents; it is not a public or Registry node. This source-model bridge does not establish joint-in-O or adaptive histories.</p></details></div></details><section class="lean-verification"><h2>Lean verification</h2><details class="inline-lean inline-lean-proof" data-inline-lean="AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGeometry.actual_potential_geometry" data-lean-code-panel><summary>Lean proof · actual_potential_geometry</summary><p>The adjacent exact source uses three canonical ASTIS parents and standard Euclidean calculus, PSD and Rayleigh facts. The private actual Borel consumer genuinely uses the new regularity result plus the canonical actual first-order identity; it adds no public node or operational theorem.</p><p>Braces mark parameters Lean can infer; square brackets request structures such as a measurable space or probability measure. Named hypotheses are mathematical premises, not facts established by this declaration. Section parameters are described in the mathematical hypotheses above; the module link retains their exact source context.</p><div class="lean-source-actions"><button type="button" data-lean-copy>Copy declaration</button><a href="../downloads/lean/AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumGeometry.lean" download="FixedSpectrumGeometry.lean">Download module (.lean)</a><span role="status" aria-live="polite" data-lean-copy-status></span></div><pre class="code-block"><code class="language-lean">theorem actual_potential_geometry {d : ℕ} (hd : 2 ≤ d)
+    {κ : ℝ} (hκ : 2 ≤ κ)
+    (O : Matrix.orthogonalGroup (Fin d) ℝ) :
+  let θ : Fin d → ℝ := fun i =&gt; ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let A : Matrix (Fin d) (Fin d) ℝ :=
+    (O : Matrix (Fin d) (Fin d) ℝ) *
+      Matrix.diagonal (fun i =&gt; (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *
+      (O : Matrix (Fin d) (Fin d) ℝ).transpose
+  let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =&gt;
+    (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2
+  ContDiff ℝ ∞ f ∧
+    (∀ x : EuclideanSpace ℝ (Fin d),
+      HasFDerivAt (gradient f) (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) A) x) ∧
+    StrongConvexOn (Set.univ : Set (EuclideanSpace ℝ (Fin d))) 1 f ∧
+    (∀ x y : EuclideanSpace ℝ (Fin d),
+      ‖gradient f x - gradient f y‖ ≤ κ * ‖x - y‖) ∧
+    f 0 = 0 ∧
+    (∀ x : EuclideanSpace ℝ (Fin d), IsMinOn f Set.univ x ↔ x = 0) := by
+  classical
+  dsimp only
+  let θ : Fin d → ℝ := fun i =&gt; ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let A : Matrix (Fin d) (Fin d) ℝ :=
+    (O : Matrix (Fin d) (Fin d) ℝ) *
+      Matrix.diagonal (fun i =&gt; (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *
+      (O : Matrix (Fin d) (Fin d) ℝ).transpose
+  let E := EuclideanSpace ℝ (Fin d)
+  let f : E → ℝ := fun x =&gt; (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2
+  let H : E →L[ℝ] E := Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) A
+  have hA : A.PosDef ∧ (A - 1).PosSemidef ∧
+      (κ • (1 : Matrix (Fin d) (Fin d) ℝ) - A).PosSemidef :=
+    FixedSpectrumAdmissibility.actual_precision_admissible hd hκ O
+  have hself : IsSelfAdjoint A := hA.1.1
+  have hH : H.IsSymmetric :=
+    ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric.mp
+      (hself.map (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d)))
+  have hf : f = fun y : E =&gt; (1 / 2 : ℝ) * inner ℝ y (H y) := by
+    funext y
+    dsimp only [f]
+    rw [show inner ℝ y (H y) = (WithLp.ofLp y) ⬝ᵥ (A *ᵥ WithLp.ofLp y) from
+      Matrix.inner_toEuclideanCLM A y y]
+    ring
+  have hgrad (x : E) : HasGradientAt f (H x) x :=
+    (FixedSpectrumFirstOrder.actual_first_order_query hd hκ O x).1
+  have hg : gradient f = fun x : E =&gt; H x := funext fun x =&gt; (hgrad x).gradient
+  have hcinfty : ContDiff ℝ ∞ f := by
+    rw [hf]
+    have hi : ContDiff ℝ ∞ (fun y : E =&gt; inner ℝ y (H y)) :=
+      contDiff_id.inner ℝ H.contDiff
+    exact (contDiff_const : ContDiff ℝ ∞ (fun _ : E =&gt; (1 / 2 : ℝ))).mul hi
+  have hhessian (x : E) : HasFDerivAt (gradient f) H x := by
+    rw [hg]
+    exact H.hasFDerivAt
+  have hquad (M : Matrix (Fin d) (Fin d) ℝ) (hM : M.PosSemidef) (x : E) :
+      0 ≤ inner ℝ x (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) M x) := by
+    rw [Matrix.inner_toEuclideanCLM]
+    simpa only [star_trivial] using hM.dotProduct_mulVec_nonneg (WithLp.ofLp x)
+  have hlower (x : E) : ‖x‖ ^ 2 ≤ inner ℝ x (H x) := by
+    have h := hquad (A - 1) hA.2.1 x
+    rw [map_sub, map_one] at h
+    simp only [_root_.sub_apply, one_apply_eq_self,
+      inner_sub_right, real_inner_self_eq_norm_sq] at h
+    change 0 ≤ inner ℝ x (H x) - ‖x‖ ^ 2 at h
+    linarith
+  have hupper (x : E) : inner ℝ x (H x) ≤ κ * ‖x‖ ^ 2 := by
+    have h := hquad (κ • (1 : Matrix (Fin d) (Fin d) ℝ) - A) hA.2.2 x
+    rw [map_sub, map_smul, map_one] at h
+    simp only [_root_.sub_apply, _root_.smul_apply,
+      one_apply_eq_self, inner_sub_right, inner_smul_right,
+      real_inner_self_eq_norm_sq] at h
+    change 0 ≤ κ * ‖x‖ ^ 2 - inner ℝ x (H x) at h
+    linarith
+  have hκ0 : 0 ≤ κ := le_trans (by norm_num) hκ
+  have hnorm : ‖H‖ ≤ κ := by
+    rw [H.norm_eq_iSup_rayleighQuotient hH]
+    apply ciSup_le
+    intro x
+    change |inner ℝ (H x) x / ‖x‖ ^ 2| ≤ κ
+    rw [real_inner_comm x (H x)]
+    have hnonneg : 0 ≤ inner ℝ x (H x) := le_trans (sq_nonneg _) (hlower x)
+    rw [abs_of_nonneg (div_nonneg hnonneg (sq_nonneg _))]
+    by_cases hx : x = 0
+    · simpa [hx] using hκ0
+    · exact (div_le_iff₀ (sq_pos_of_pos (norm_pos_iff.mpr hx))).2 (hupper x)
+  have hstrong : StrongConvexOn (Set.univ : Set E) 1 f := by
+    apply AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGradientConverse.strongConvexOn_of_gradient_inner_lower_bound
+      convex_univ (fun x _ =&gt; hgrad x)
+    intro x _ y _
+    simp only [one_mul]
+    change ‖y - x‖ ^ 2 ≤ inner ℝ (H y - H x) (y - x)
+    rw [← H.map_sub, real_inner_comm]
+    exact hlower (y - x)
+  have hsmooth (x y : E) : ‖gradient f x - gradient f y‖ ≤ κ * ‖x - y‖ := by
+    rw [hg, ← H.map_sub]
+    exact (H.le_opNorm (x - y)).trans
+      (mul_le_mul_of_nonneg_right hnorm (norm_nonneg _))
+  have hzero : f 0 = 0 := by simp [f]
+  have hnonneg (x : E) : 0 ≤ f x := by
+    rw [hf]
+    nlinarith [hlower x, sq_nonneg ‖x‖]
+  have hpositive (x : E) (hx : x ≠ 0) : 0 &lt; f x := by
+    rw [hf]
+    nlinarith [hlower x, sq_pos_of_pos (norm_pos_iff.mpr hx)]
+  refine ⟨hcinfty, hhessian, hstrong, hsmooth, hzero, ?_⟩
+  intro x
+  constructor
+  · intro hmin
+    by_contra hx
+    have hle : f x ≤ f 0 := (isMinOn_iff.mp hmin) 0 (Set.mem_univ _)
+    rw [hzero] at hle
+    exact (not_le_of_gt (hpositive x hx)) hle
+  · rintro rfl
+    apply isMinOn_iff.mpr
+    intro y _
+    change f 0 ≤ f y
+    rw [hzero]
+    exact hnonneg y
+
+end AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGeometry</code></pre><p><a href="../modules/autosamplingtheory-examplecases-gaussiancomplexity-fixedspectrumgeometry.html#complete-module-source">Exact module and namespace context</a></p></details></section><details class="reader-ledger boundary-ledger"><summary>Scope and omitted-condition boundaries</summary><ul><li>Selected actual C4 geometric conclusions and a genuine fixed-input actual reply Borel consumer are established locally. The source strict angle/cosine prefix remains a separate source route; closed bounds are reused from canonical admissibility. Joint random-input/adaptive/seed/transcript/output-law semantics, TV and finite-precision adapters, deterministic worst-query caps and explicit expected-cost accounting, both full main lower bounds, remote acceptance and postmerge purification/Exposition Seal remain separate.</li></ul></details><details class="proof-reader-provenance reader-ledger"><summary>Sources, dependencies, and reuse</summary><h2>Source and reuse</h2><h3>Samplinglib parents called</h3><ul><li><a href="../modules/autosamplingtheory-examplecases-gaussiancomplexity-fixedspectrumadmissibility.html#decl-autosamplingtheory-examplecases-gaussiancomplexity-fixedspectrumadmissib-1e0cd5a25d"><code>AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible</code></a></li><li><a href="../modules/autosamplingtheory-examplecases-gaussiancomplexity-fixedspectrumfirstorder.html#decl-autosamplingtheory-examplecases-gaussiancomplexity-fixedspectrumfirstord-793b07fd5f"><code>AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder.actual_first_order_query</code></a></li><li><a href="../modules/autosamplingtheory-technicallemmas-analysis-strongconvexgradientconverse.html#decl-autosamplingtheory-technicallemmas-analysis-strongconvexgradientconverse-5e7faa1c37"><code>AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGradientConverse.strongConvexOn_of_gradient_inner_lower_bound</code></a></li></ul><h3>Mathlib API called (external library)</h3><ul><li>Matrix.inner_toEuclideanCLM</li><li>Matrix.PosSemidef.dotProduct_mulVec_nonneg</li><li>HasGradientAt.gradient</li><li>ContDiff.inner</li><li>ContDiff.mul</li><li>ContinuousLinearMap.hasFDerivAt</li><li>ContinuousLinearMap.norm_eq_iSup_rayleighQuotient</li><li>ContinuousLinearMap.le_opNorm</li><li>isMinOn_iff</li></ul><h3>Mathematical sources</h3><ul><li><a href="https://arxiv.org/html/2610.20492v1#A3.SS4">Zhou–Suzuki Eq11, AppendixC.4 and Section2 model</a> — Actual literal potential C4 geometry. Fixed-input Borel reply is a separately proved source-model background bridge, not a numbered C4 assertion or a complete adaptive algorithm.</li></ul><p>Samplinglib prose is not a quotation or a source-equivalence certificate. Definitions and aliases are explained as constructions, not counted as new mathematical proofs.</p></details></article>

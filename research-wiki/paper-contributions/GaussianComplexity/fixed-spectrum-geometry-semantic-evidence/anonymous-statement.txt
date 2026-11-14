@@ -1,0 +1,18 @@
+∀ {d : ℕ} (hd : 2 ≤ d)
+    {κ : ℝ} (hκ : 2 ≤ κ)
+    (O : Matrix.orthogonalGroup (Fin d) ℝ),
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let A : Matrix (Fin d) (Fin d) ℝ :=
+    (O : Matrix (Fin d) (Fin d) ℝ) *
+      Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *
+      (O : Matrix (Fin d) (Fin d) ℝ).transpose
+  let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>
+    (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2
+  ContDiff ℝ ∞ f ∧
+    (∀ x : EuclideanSpace ℝ (Fin d),
+      HasFDerivAt (gradient f) (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) A) x) ∧
+    StrongConvexOn (Set.univ : Set (EuclideanSpace ℝ (Fin d))) 1 f ∧
+    (∀ x y : EuclideanSpace ℝ (Fin d),
+      ‖gradient f x - gradient f y‖ ≤ κ * ‖x - y‖) ∧
+    f 0 = 0 ∧
+    (∀ x : EuclideanSpace ℝ (Fin d), IsMinOn f Set.univ x ↔ x = 0)

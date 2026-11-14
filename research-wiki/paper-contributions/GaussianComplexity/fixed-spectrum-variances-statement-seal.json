@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "seal_id": "GC-FIXED-SPECTRUM-VARIANCES-20261110-v2",
+  "state": "EXACT_SIGNATURES_UNCHANGED_PRIVATE_NON_ANCHOR_DOMAIN_CORRECTED_INDEPENDENT_RECHECK_PENDING_NO_TARGET_PROOF",
+  "source": {
+    "title": "On Complexity of Gaussian Sampling",
+    "version": "arXiv2610.20492v1",
+    "raw": {
+      "path": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+      "sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "bytes": 951991
+    },
+    "standing_anchors": [
+      "S4.SS1.p1.1",
+      "S4.E11",
+      "S4.Thmtheorem5.p1.1"
+    ],
+    "producer_anchors": [
+      "S4.Thmtheorem5.p1.2",
+      "A3.SS3.p8.1",
+      "A3.Ex148",
+      "A3.Ex149",
+      "A3.SS3.p8.2"
+    ],
+    "consumer_anchors": [
+      "S4.EGx2",
+      "S4.Thmtheorem4.p1.2",
+      "S4.SS3.SSS0.Px2.p2.3",
+      "S4.SS3.SSS0.Px2.p3.1",
+      "S4.Ex25"
+    ],
+    "scope": "Actual diagonal Gaussian squared-norm/cosine-quadratic L2, exact variances and2M<=2d/sqrt(kappa), consumed in actual diagonal contrast Z variance<=8M. No full mean-separation/Chebyshev/rotated-target/algorithm result."
+  },
+  "producer": {
+    "name": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumVariances.actual_diagonal_gaussian_quadratic_variances",
+    "planned_file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumVariances.lean",
+    "signature": "theorem actual_diagonal_gaussian_quadratic_variances {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)\n    (n : ℕ) (hn : 1 ≤ n) (hnd : n < d) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n  MemLp (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) 2 μ ∧\n  MemLp Q 2 μ ∧\n  Var[fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2; μ] =\n    2 * ∑ i : Fin d, 1 / (eigenvalue i) ^ 2 ∧\n  Var[Q; μ] = 2 * ∑ i : Fin d, (Real.cos ((n : ℝ) * θ i)) ^ 2 / (eigenvalue i) ^ 2 ∧\n  Var[fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2; μ] ≤ 2 * M ∧\n  Var[Q; μ] ≤ 2 * M ∧\n  2 * M ≤ 2 * (d : ℝ) / Real.sqrt κ\n",
+    "signature_sha256": "f50522ee008465b5b71e626aefdf25cb48c61377b85cb4545d76099a808d14ec",
+    "definition_kind": "literal",
+    "public_ASTIS_parents": "Not asserted before proof; canonical GaussianMoments and ExactMeans are available actual substrates, never added hypotheses."
+  },
+  "actual_private_consumer": {
+    "name": "actual_gaussian_contrast_variance_le",
+    "planned_file": "Tests/GaussianComplexityFixedSpectrumVariances.lean",
+    "signature": "private theorem actual_gaussian_contrast_variance_le {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)\n    (n : ℕ) (hn : 1 ≤ n) (hnd : n < d) (τ : ℝ) (hτ0 : 0 ≤ τ) (hτ1 : τ ≤ 1 / 2) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ\n  let Z : EuclideanSpace ℝ (Fin d) → ℝ := fun x => (-1 : ℝ) ^ n * Q x - 2 * τ * ‖x‖ ^ 2\n  MemLp Z 2 μ ∧ Var[Z; μ] ≤ 8 * M\n",
+    "signature_sha256": "452584c79fa900334f60d073de72607eadbc221f913ade78050765fcf2d9c9b2",
+    "definition_kind": "literal",
+    "scope_difference": "Private local numeric generalization of the variance clause of Ex25 to arbitrary0<=tau<=1/2 and all source positive modes. It does not assert concrete tau_dq, n=2q+1, actual rotated Y law, positive mean, good-event probability, source query conditions or full Theorem4.1. Those applications must derive original conditions and actual transport internally.",
+    "actual_use_required": "Materially use BOTH new actual variance/L2 outputs in the centered L2 triangle/covariance estimate, yielding actual MemLp Z2 and VarZ<=8M. No free M/Q laws, moment/independence/variance certificate as input, no wrapper or check-only consumer.",
+    "role": "private Internal Provider / local numerical generalization; NOT a paper source Anchor",
+    "is_source_anchor": false,
+    "Registry_node": false
+  },
+  "binder_audit": [
+    {
+      "owner": "producer",
+      "binder": "d:Nat",
+      "class": "TYPING",
+      "reason": "Real finite Euclidean dimension carrier."
+    },
+    {
+      "owner": "producer",
+      "binder": "hd:2<=d",
+      "class": "STANDING",
+      "reason": "Source hard-family S4.E11 domain."
+    },
+    {
+      "owner": "producer",
+      "binder": "kappa:Real",
+      "class": "TYPING",
+      "reason": "Real condition parameter."
+    },
+    {
+      "owner": "producer",
+      "binder": "hkappa:2<=kappa",
+      "class": "STANDING",
+      "reason": "Source hard family and Lemma4.5 range."
+    },
+    {
+      "owner": "producer",
+      "binder": "n:Nat",
+      "class": "TYPING",
+      "reason": "Source positive integer mode carrier."
+    },
+    {
+      "owner": "producer",
+      "binder": "hn:1<=n",
+      "class": "SOURCE",
+      "reason": "Exact positive mode in Lemma4.5/C8."
+    },
+    {
+      "owner": "producer",
+      "binder": "hnd:n<d",
+      "class": "SOURCE",
+      "reason": "Exact source upper mode bound."
+    }
+  ],
+  "EXCESS_public_binders": [],
+  "definition_audit": [
+    {
+      "object": "theta/eigenvalue/Lambda/mu/Q/M",
+      "kind": "literal",
+      "meaning": "Exact midpoint spectrum, diagonal precision, actual covarianceLambda inverse Gaussian and real coordinate quadratic; M is actual norm-square integral. Source one-based index is Fin i.val+1. No default/characterized surrogate."
+    },
+    {
+      "object": "real variance and evariance",
+      "kind": "literal standard Mathlib",
+      "meaning": "evariance is actual lintegral squared centered norm; variance is evariance.toReal. Since toReal(infinity)=0, square integrability of each actual quadratic is produced as MemLp2, not assumed or bypassed. Finite-variance/centering identities must be justified internally.",
+      "definition_excerpt": {
+        "path": ".astis/huanjian-gc-fixed-spectrum-variances-20261110/standard-variance-definition.txt",
+        "sha256": "0a96d4e478a60ce0ddae616a4eeda5a5c3313a8ff39088701450ee649b4efa18",
+        "bytes": 926
+      }
+    },
+    {
+      "object": "MemLp2",
+      "kind": "standard Mathlib L2",
+      "meaning": "Actual square-integrability under the displayed probability measure, as an output for norm-square/Q/Z. No free fourth-moment certificate or L2 premise."
+    },
+    {
+      "object": "Z and tau",
+      "kind": "literal local numerical adapter",
+      "meaning": "Z(x)=(-1)^n Q(x)-2*tau*norm(x)^2 under the same fixed actual diagonal Gaussian. Scalar guard0<=tau<=1/2 is explicit only on the private variance consumer; it does not legalize additional main/source-Anchor hypotheses or a rotated-law callback."
+    }
+  ],
+  "internal_dependencies_not_premises": [
+    "Actual coordinate Gaussian laws and correct inverse diagonal covariance",
+    "Coordinate fourth moments and actual square-integrability",
+    "Independence or zero mixed centered-square covariance, internally justified from actual diagonal Gaussian",
+    "Exact actual variance sum identities for both quadratics",
+    "Eigenvalues>=1 and reciprocal-square bounds",
+    "Canonical actual expectation-to-grid and closed M upper bound reuse",
+    "Actual centered L2 triangle/Cauchy estimate for the genuine contrast, sign invariance and scalar8M bound"
+  ],
+  "shared_floor_audit": {
+    "searched_before_seal": [
+      "Existing GaussianComplexity public declaration/filename and frontier inventories; no actual Gaussian quadratic variance node found",
+      "Shared EmpiricalCovariance unit-rank-one moment/preconcentration target/reuse metadata: bounded unit-vector operators, not the actual Gaussian fourth-moment/variance target",
+      "Pinned Mathlib Variance literal definitions and accidentally broad declaration-name/initial-signature inventory; no new target proof bodies read"
+    ],
+    "classification": "provisional-adapt",
+    "decision": "Reuse exact existing canonical APIs after independent preproof admission; any genuinely missing generic multi-public-consumer leaf requires shared-cell protocol, not private duplicate APIs."
+  },
+  "statement_formation": {
+    "receipt": {
+      "path": ".astis/huanjian-resume-20261103/20261109T192128778578Z-variances-literal-statement-type-formation-only-v1.receipt.json",
+      "sha256": "0991710a71afae3dbb7aaf75cd369c2efce5f3fc2b80c6782c5810b3d68c2711",
+      "bytes": 781
+    },
+    "exit_code": 0,
+    "proof_credit": false,
+    "warning_scope": "Unused proof binders in Prop-valued formation definitions only."
+  },
+  "preseal_exposure": "Root read the pinned raw C3 and S4 source, existing independently verified GaussianMoments/C7/GridAlias/ExactMeans proofs and current sourceV context while finishing the prior packet. For this new packet root inspected the literal variance/evariance definitions, and an overly broad rg intended for definition audit also printed variance API declaration names and initial signature lines (no theorem proof bodies). This accidental preseal API-inventory exposure is disclosed; no zero-API-exposure claim and no new target Lean proof implementation or fourth-moment/independence proof/API retrieval has occurred. Root also read only target titles/reuse metadata for unit-vector EmpiricalCovariance shared cells (different objects, not duplicate Gaussian fourth moments), plus existing local filename/name inventories. Source graph and topology roles will derive raw-first without these implementation/API inventories. No mathematical target proof or target proof body was authored before this seal.",
+  "coordination_boundary": [
+    {
+      "ref": "origin/main",
+      "head": "4fec24eee29e405dba87ba38c1f62b64e929d5a1",
+      "ledger_sha256": "e6f231cb8838061dbe161107c5d142d0ecf4fec953f4943b428e51aa057d6c65",
+      "STAB": {
+        "ASTIS-SA-20261110-SlcLsiAngularDegreeSum": {
+          "state": "STABILIZING",
+          "owner_id": "/root",
+          "updated_at": "2026-11-09T17:04:37+00:00"
+        }
+      }
+    },
+    {
+      "ref": "origin/codex/slc-lsi-angular-degree-sum",
+      "head": "09a0026ae90de69aaa3f537baab4e25c55ca7b6f",
+      "ledger_sha256": "e6f231cb8838061dbe161107c5d142d0ecf4fec953f4943b428e51aa057d6c65",
+      "STAB": {
+        "ASTIS-SA-20261110-SlcLsiAngularDegreeSum": {
+          "state": "STABILIZING",
+          "owner_id": "/root",
+          "updated_at": "2026-11-09T17:04:37+00:00"
+        }
+      }
+    },
+    {
+      "ref": "origin/codex/slc-lsi-radial-level-release",
+      "head": "4f3632c4f6cde6419398e248ba468311e910cec8",
+      "ledger_sha256": "b31fce9aada213f5106680c026c6fdc4eaa6baaff022f26e9b046a223287d623",
+      "STAB": {
+        "ASTIS-SA-20261110-SlcLsiRadialLevel": {
+          "state": "STABILIZING",
+          "owner_id": "/root",
+          "updated_at": "2026-11-09T18:18:43+00:00"
+        }
+      }
+    }
+  ],
+  "truth_boundary": "Only selected actual Gaussian fourth-moment/L2/variance components and genuine private diagonal-contrast variance use. Exact root proof/independent sourceV/integration/site/remote/purification remain separate. Exponential bias, complete Lemma4.5/orthogonal transport/Krylov/adaptive/private-seed/history/output, exact oracle/TV/precision/deterministic worstcap/explicit expected-cost adapters and both full main lower bounds remain open.",
+  "roles": "One root mathematical worker; independent raw-first source graph then distinct topology/binder/definition challenge must admit exact seal before further target proof/API retrieval. Source-only phase1 reviewer is distinct; no sourceV self-certification.",
+  "no_new_SAU_claim_target_proof_or_sourceV": true,
+  "predecessor": {
+    "path": ".astis/huanjian-gc-fixed-spectrum-variances-20261110/statement-seal-v1.json",
+    "sha256": "88802d72f44960bfd5be0c45b50a6e81f044dfd20b42d4b2109c821f43b8a0e5",
+    "bytes": 14185
+  },
+  "independent_scope_correction_basis": {
+    "path": ".astis/huanjian-gc-fixed-spectrum-variances-20261110/independent-topology-challenge/phase2a-statement-judgment-v1.md",
+    "sha256": "e78f9fa719f03ad2b1c57fe21f64ec042c355217f36d7af8d722dbc244396d54",
+    "bytes": 7994
+  },
+  "private_internal_provider_audit": {
+    "name": "actual_gaussian_contrast_variance_le",
+    "role": "private non-Anchor local numerical generalization",
+    "exact_signature_unchanged": true,
+    "full_source_object_domain": "d:Nat,2<=d;kappa:Real,2<=kappa;n:Nat,1<=n<d exactly as the public producer, with literal identical Gaussian/quadratic/mean objects.",
+    "tau_carrier": {
+      "binder": "tau:Real",
+      "semantic_role": "arbitrary real scalar carrier in this private generalized application",
+      "source_anchor_classification": null
+    },
+    "private_assumed_domain_hypotheses": [
+      {
+        "binder": "htau0:0<=tau",
+        "predicate": "0 ≤ τ",
+        "source_anchor_classification": null,
+        "assumed_in_private": true,
+        "proved_fact": false,
+        "inherited_by_public_anchor": false,
+        "semantic_role": "explicit assumed numeric-adapter domain hypothesis"
+      },
+      {
+        "binder": "htau1:tau<=1/2",
+        "predicate": "τ ≤ 1 / 2",
+        "source_anchor_classification": null,
+        "assumed_in_private": true,
+        "proved_fact": false,
+        "inherited_by_public_anchor": false,
+        "semantic_role": "explicit assumed numeric-adapter domain hypothesis"
+      }
+    ],
+    "taxonomy_boundary": "These are not a sixth paper-Anchor bin, nor SOURCE/STANDING/TYPING/RULED paper premises or proved facts. Inserted into the public paper Anchor, they would be EXCESS and rejected. Both remain explicit assumptions only of this private non-Anchor application.",
+    "actual_source_application_boundary": "The concrete tau_dq,n=2q+1, original large-d/query/TV conditions and rotated-target transport must be derived internally before applying this helper in a full source theorem. Mean separation uses tau<=beta/4 and the probability step uses M*beta^2>=320; neither is claimed here.",
+    "consumer_use_required": "Materially use BOTH new actual variance/L2 outputs in the centered L2 triangle/covariance estimate, yielding actual MemLp Z2 and VarZ<=8M. No free M/Q laws, moment/independence/variance certificate as input, no wrapper or check-only consumer."
+  },
+  "source_scope_correction_not_Lean_or_paper_statement_change": true
+}

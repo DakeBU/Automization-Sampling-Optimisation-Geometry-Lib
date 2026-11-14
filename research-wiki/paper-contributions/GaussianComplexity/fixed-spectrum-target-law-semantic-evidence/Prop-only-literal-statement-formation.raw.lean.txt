@@ -1,0 +1,33 @@
+import Mathlib.LinearAlgebra.UnitaryGroup
+import Mathlib.Probability.Distributions.Gaussian.Multivariate
+open Matrix MeasureTheory ProbabilityTheory
+open scoped BigOperators
+set_option autoImplicit false
+noncomputable section
+
+def MatrixLawShape {d : ℕ} (hd : 2 ≤ d)
+    {κ : ℝ} (hκ : 2 ≤ κ) (O : Matrix.orthogonalGroup (Fin d) ℝ) : Prop :=
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let Λ : Matrix (Fin d) (Fin d) ℝ :=
+    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))
+  let A : Matrix (Fin d) (Fin d) ℝ :=
+    (O : Matrix (Fin d) (Fin d) ℝ) * Λ *
+      (O : Matrix (Fin d) (Fin d) ℝ).transpose
+  let R : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=
+    fun z => WithLp.toLp 2 ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ WithLp.ofLp z)
+  (multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹).map R =
+    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+
+def NormMeanShape {d : ℕ} (hd : 2 ≤ d)
+    {κ : ℝ} (hκ : 2 ≤ κ) (O : Matrix.orthogonalGroup (Fin d) ℝ) : Prop :=
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let Λ : Matrix (Fin d) (Fin d) ℝ :=
+    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))
+  let A : Matrix (Fin d) (Fin d) ℝ :=
+    (O : Matrix (Fin d) (Fin d) ℝ) * Λ *
+      (O : Matrix (Fin d) (Fin d) ℝ).transpose
+  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=
+    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+  Integrable (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) μ ∧
+    (∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ) =
+      ∑ i : Fin d, ((κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))⁻¹

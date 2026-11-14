@@ -1,0 +1,603 @@
+{
+  "id": "ASTIS-RT-20261113-HuanjianGaussianSourceMatrixRadiusPrivateConsumer",
+  "state": "draft",
+  "source": {
+    "source_id": "c2-private-centered-summand-radius",
+    "anchor": "Appendix C.2 p13 Ex111-112; literal p1 product experiment, Ex107 cutoff, p12 actual mean, Fact C.5 frame",
+    "original_text": "For all natural d,q with 2q+1<d put r=q+1. On the original r independent standard d-dimensional Gaussian columns with product probability mu, let Phi_i be their actual physical row. Put theta_i=(i-1/2)pi/d, t_i=(1,sqrt(2)cos(theta_i),...,sqrt(2)cos(q theta_i)), and L=2r+3log(1000d). Define Yi=d^(-1)(Phi_i Phi_i-transpose tensor t_i t_i-transpose) on the inclusive event norm(Phi_i)^2<=L and zero otherwise. All matrix norms are real Euclidean operator norms and means are actual Bochner integrals under mu. The case q=0 is included. Let Mi be the actual integral of Yi under mu, Zi=Yi-Mi, wi=cos((2q+1)theta_i), and Rstar=2r(L+1)/d. For every i and sample omega, both norm(Zi(omega))<=Rstar and norm(wi Zi(omega))<=Rstar. This is the exact Ex112 and following weighted centered-radius consequence.",
+    "text_sha256": "fd67b13f89e8c5735a48f9ab61b464fe55f76ffce01e40395db24d6f6166455e"
+  },
+  "lean": {
+    "declaration": "_private.Tests.GaussianComplexityFixedSpectrumSourceMatrixRadius.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixRadius.actual_source_centered_summand_radius",
+    "file": "Tests/GaussianComplexityFixedSpectrumSourceMatrixRadius.lean",
+    "statement": "∀     {d q : ℕ} (hq : 2 * q + 1 < d) ,\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  (∀ i : Fin d, ∀ ω : Ω, ‖Z i ω‖ ≤ Rstar) ∧\n    (∀ i : Fin d, ∀ ω : Ω, ‖w i • Z i ω‖ ≤ Rstar)\n",
+    "statement_sha256": "bae3298a138e618d5b12dac499cb3239cf202a8db26bea881e1345af1867ade7",
+    "compiled": true,
+    "formalizer": "huanjian_gc_20261113_source_matrix_radius",
+    "decoder_context": [
+      "Fin n is the finite index set of natural numbers less than n. Natural numbers embed into real numbers in the usual way.",
+      "EuclideanSpace real (Fin n) is real n-dimensional Euclidean space with its Euclidean norm and Borel structure. WithLp.toLp 2 wraps a coordinate function as that vector and WithLp.ofLp recovers its same coordinates.",
+      "stdGaussian on finite-dimensional real Euclidean space is the centered Gaussian probability law with identity covariance. Measure.pi is the finite product measure with its product measurable structure.",
+      "Real.log is the natural logarithm and Real.sqrt the nonnegative square root. The displayed less-than-or-equal branch includes equality.",
+      "Matrix.vecMulVec u v has entry u_i times v_j. Matrix.kronecker A B at row (i,j) and column (k,l) has entry A_(i,k) times B_(j,l). Scalar multiplication and subtraction have their ordinary real matrix meaning.",
+      "Every displayed matrix norm is the real Euclidean operator norm, namely the norm of its action between the Euclidean spaces on the displayed paired index set, not an entrywise or supremum norm.",
+      "Matrix expectations are Bochner integrals. This integral is totalized to zero when its integrand is not integrable; the displayed proposition must be reconstructed as written, without adding an integrability premise or assertion."
+    ]
+  },
+  "repairs": [],
+  "candidate_commit": "4c3251454100a4591113b16ed119fdf758c876b7",
+  "publication_binding_sha256": "adc42e51853af91f06f778920b598bbbf0d20ec3dcb2dcbd6c84d104d69da7bc",
+  "publication_context": {
+    "canonical_public_producer_context": {
+      "file": "b81c079a78e08325cea951c38a62520e3c5dea19309673f02e050009d3483d31",
+      "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram\nimport AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment\nimport Mathlib.Analysis.CStarAlgebra.Matrix\nimport Mathlib.Analysis.InnerProductSpace.LinearMap\n\n/-!\n# Actual truncated Gaussian summand and mean norms\n\nThe literal original product experiment and closed cutoff are unchanged.\nAll moment, sign and operator-norm estimates are internal proof obligations.\n-/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix Kronecker Matrix.Norms.L2Operator\nset_option autoImplicit false\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius\n\nprivate theorem matrix_outer_norm {n : Type*} [Fintype n] [DecidableEq n]\n    (u : EuclideanSpace ℝ n) :\n    ‖Matrix.vecMulVec u.ofLp u.ofLp‖ = ‖u‖ ^ 2 := by\n  have he : Matrix.toEuclideanLin.symm\n      (InnerProductSpace.rankOne ℝ u u : EuclideanSpace ℝ n →ₗ[ℝ] EuclideanSpace ℝ n) =\n      Matrix.vecMulVec u.ofLp u.ofLp := by\n    simpa only [star_trivial] using InnerProductSpace.symm_toEuclideanLin_rankOne u u\n  have hl : Matrix.toEuclideanLin (Matrix.vecMulVec u.ofLp u.ofLp) =\n      (InnerProductSpace.rankOne ℝ u u : EuclideanSpace ℝ n →ₗ[ℝ] EuclideanSpace ℝ n) := by\n    rw [← he, LinearEquiv.apply_symm_apply]\n  have hc : Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ) (Matrix.vecMulVec u.ofLp u.ofLp) =\n      InnerProductSpace.rankOne ℝ u u := by\n    apply ContinuousLinearMap.ext\n    intro x\n    exact congrArg (fun f : EuclideanSpace ℝ n →ₗ[ℝ] EuclideanSpace ℝ n => f x) hl\n  rw [Matrix.cstar_norm_def, hc, InnerProductSpace.norm_rankOne, ← pow_two]\n\nprivate theorem rankone_tensor_norm {m n : Type*} [Fintype m] [Fintype n]\n    [DecidableEq m] [DecidableEq n]\n    (u : EuclideanSpace ℝ m) (v : EuclideanSpace ℝ n) :\n    ‖Matrix.kronecker (Matrix.vecMulVec u.ofLp u.ofLp)\n        (Matrix.vecMulVec v.ofLp v.ofLp)‖ = ‖u‖ ^ 2 * ‖v‖ ^ 2 := by\n  let z : EuclideanSpace ℝ (m × n) := WithLp.toLp 2 (fun ij => u ij.1 * v ij.2)\n  have hz : Matrix.kronecker (Matrix.vecMulVec u.ofLp u.ofLp)\n      (Matrix.vecMulVec v.ofLp v.ofLp) = Matrix.vecMulVec z.ofLp z.ofLp := by\n    ext i j\n    dsimp [Matrix.kronecker, Matrix.kroneckerMap, Matrix.vecMulVec, z]\n    ring\n  rw [hz, matrix_outer_norm, EuclideanSpace.norm_sq_eq, EuclideanSpace.norm_sq_eq,\n    EuclideanSpace.norm_sq_eq, Fintype.sum_prod_type]\n  simp only [z, Real.norm_eq_abs, sq_abs, mul_pow]\n  rw [Finset.sum_mul_sum]\n\nprivate theorem identity_rankone_norm {m n : Type*} [Fintype m] [Fintype n]\n    [DecidableEq m] [DecidableEq n] [Nonempty m] (v : n → ℝ) :\n    ‖Matrix.kronecker (1 : Matrix m m ℝ) (Matrix.vecMulVec v v)‖ =\n      ∑ j : n, (v j) ^ 2 := by\n  classical\n  let F : Matrix n n ℝ := Matrix.vecMulVec v v\n  let K : Matrix (m × n) (m × n) ℝ := Matrix.kronecker (1 : Matrix m m ℝ) F\n  let S : ℝ := ∑ j : n, (v j) ^ 2\n  change ‖K‖ = S\n  have hS : 0 ≤ S := Finset.sum_nonneg (fun _ _ => sq_nonneg _)\n  have hF : F * F = S • F := by\n    ext j k\n    change (∑ a : n, (v j * v a) * (v a * v k)) =\n      (∑ a : n, (v a) ^ 2) * (v j * v k)\n    rw [Finset.sum_mul]\n    apply Finset.sum_congr rfl\n    intro a _\n    ring\n  have hstar : K.conjTranspose = K := by\n    dsimp only [K, Matrix.kronecker]\n    rw [Matrix.conjTranspose_kronecker, Matrix.conjTranspose_one]\n    simp [F]\n  have hKsq : K * K = S • K := by\n    dsimp only [K, Matrix.kronecker]\n    rw [← Matrix.mul_kronecker_mul, Matrix.one_mul, hF, Matrix.kronecker_smul]\n  have hn : S * ‖K‖ = ‖K‖ * ‖K‖ := by\n    have h := Matrix.l2_opNorm_conjTranspose_mul_self K\n    rw [hstar, hKsq, norm_smul, Real.norm_eq_abs, abs_of_nonneg hS] at h\n    exact h\n  by_cases hv : v = 0\n  · simp [K, F, S, hv]\n  · obtain ⟨j, hj⟩ : ∃ j : n, v j ≠ 0 := by\n      by_contra! h\n      exact hv (funext h)\n    let i : m := Classical.choice inferInstance\n    have hKne : K ≠ 0 := by\n      intro hzero\n      have hentry := congrArg\n        (fun A : Matrix (m × n) (m × n) ℝ => A (i, j) (i, j)) hzero\n      have hsq : v j * v j = 0 := by\n        simpa [K, F, Matrix.kronecker, Matrix.vecMulVec] using hentry\n      exact (mul_ne_zero hj hj) hsq\n    have hnorm : ‖K‖ ≠ 0 := norm_ne_zero_iff.mpr hKne\n    have hp : (‖K‖ - S) * ‖K‖ = 0 := by nlinarith [hn]\n    rcases mul_eq_zero.mp hp with hs | hz\n    · exact sub_eq_zero.mp hs\n    · exact (hnorm hz).elim\n\n\ntheorem actual_source_truncated_matrix_norm_bounds\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  (∀ i : Fin d, ∀ ω : Ω, ‖Y i ω‖ ≤ 2 * r * L / (d : ℝ)) ∧\n    (∀ i : Fin d, ‖∫ ω, Y i ω ∂μ‖ ≤ 2 * r / (d : ℝ))\n := by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let S : Fin d → ℝ := fun i => ∑ k : Fin (q + 1), (t i k) ^ 2\n  let F : Fin d → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    fun i => Matrix.vecMulVec (t i) (t i)\n  let K : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => Matrix.kronecker (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ) (F i)\n  let a : ℝ := (∫ x : E, {y : E | ‖y‖ ^ 2 ≤ L}.indicator\n    (fun y => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  change (∀ i : Fin d, ∀ ω : Ω, ‖Y i ω‖ ≤ 2 * r * L / (d : ℝ)) ∧\n    (∀ i : Fin d, ‖∫ ω, Y i ω ∂μ‖ ≤ 2 * r / (d : ℝ))\n  have hd : (0 : ℝ) < (d : ℝ) := by exact_mod_cast (show 0 < d by omega)\n  have hr : 0 < r := by dsimp [r]; positivity\n  have hscale : (1 : ℝ) ≤ 1000 * (d : ℝ) := by\n    have hd2 : (2 : ℝ) ≤ (d : ℝ) := by exact_mod_cast (show 2 ≤ d by omega)\n    linarith\n  have hL : 0 ≤ L := by\n    have hlog := Real.log_nonneg hscale\n    dsimp only [L]\n    linarith\n  have hS0 (i : Fin d) : 0 ≤ S i := Finset.sum_nonneg (fun _ _ => sq_nonneg _)\n  have frame := FixedSpectrumCosineGram.actual_cosine_frame_gram (d := d) (q := q) hq\n  have hS (i : Fin d) : S i ≤ 2 * r := by\n    simpa only [S, t, θ, r, Nat.cast_add, Nat.cast_one, add_sub_assoc,\n      show (1 : ℝ) - 1 / 2 = 1 / 2 by norm_num] using frame.2.2 i\n  have hm := FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means\n    (d := d) (q := q) hq\n  change (∀ i : Fin d, Integrable (Y i) μ) ∧\n    (∀ i : Fin d, (∫ ω, Y i ω ∂μ) = (a / (d : ℝ)) • K i) at hm\n  have moment := AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian\n    (E := E)\n  have hgood : MeasurableSet {y : E | ‖y‖ ^ 2 ≤ L} :=\n    measurableSet_le (by fun_prop) measurable_const\n  have hret := moment.1.indicator hgood\n  have hret0 : 0 ≤ ∫ x : E, {y : E | ‖y‖ ^ 2 ≤ L}.indicator\n      (fun y => ‖y‖ ^ 2) x ∂stdGaussian E := by\n    apply integral_nonneg\n    intro x\n    by_cases hx : ‖x‖ ^ 2 ≤ L\n    · simpa [Set.indicator, hx] using sq_nonneg ‖x‖\n    · simp [Set.indicator, hx]\n  have hretle : (∫ x : E, {y : E | ‖y‖ ^ 2 ≤ L}.indicator\n      (fun y => ‖y‖ ^ 2) x ∂stdGaussian E) ≤ r := by\n    calc\n      _ ≤ ∫ x : E, ‖x‖ ^ 2 ∂stdGaussian E := by\n        apply integral_mono hret moment.1\n        intro x\n        by_cases hx : ‖x‖ ^ 2 ≤ L\n        · simp [Set.indicator, hx]\n        · simpa [Set.indicator, hx] using sq_nonneg ‖x‖\n      _ = r := by simpa [E, r] using moment.2\n  have ha0 : 0 ≤ a := div_nonneg hret0 hr.le\n  have ha1 : a ≤ 1 := (div_le_one hr).2 hretle\n  have hK (i : Fin d) : ‖K i‖ = S i := identity_rankone_norm\n    (m := Fin (q + 1)) (t i)\n  constructor\n  · intro i ω\n    have htnorm : ‖(WithLp.toLp 2 (t i) : E)‖ ^ 2 = S i := by\n      simp [EuclideanSpace.norm_sq_eq, S, Real.norm_eq_abs, sq_abs]\n    have hTensor : ‖Matrix.kronecker\n        (Matrix.vecMulVec (row i ω).ofLp (row i ω).ofLp)\n        (Matrix.vecMulVec (t i) (t i))‖ = ‖row i ω‖ ^ 2 * S i := by\n      simpa only [WithLp.ofLp_toLp, htnorm] using\n        rankone_tensor_norm (row i ω) (WithLp.toLp 2 (t i) : E)\n    by_cases hx : ‖row i ω‖ ^ 2 ≤ L\n    · dsimp only [Y]\n      rw [if_pos hx, norm_smul, Real.norm_eq_abs,\n        abs_of_nonneg (inv_nonneg.mpr hd.le), hTensor]\n      calc\n        _ ≤ (d : ℝ)⁻¹ * (L * (2 * r)) :=\n          mul_le_mul_of_nonneg_left (mul_le_mul hx (hS i) (hS0 i) hL)\n            (inv_nonneg.mpr hd.le)\n        _ = 2 * r * L / (d : ℝ) := by rw [div_eq_mul_inv]; ring\n    · simp only [Y, if_neg hx, norm_zero]\n      exact div_nonneg (mul_nonneg (mul_nonneg (by norm_num) hr.le) hL) hd.le\n  · intro i\n    rw [hm.2 i, norm_smul, Real.norm_eq_abs,\n      abs_of_nonneg (div_nonneg ha0 hd.le), hK]\n    calc\n      _ ≤ (1 / (d : ℝ)) * (2 * r) :=\n        mul_le_mul ((div_le_div_iff_of_pos_right hd).2 ha1) (hS i) (hS0 i)\n          (div_nonneg zero_le_one hd.le)\n      _ = 2 * r / (d : ℝ) := by ring\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius\n",
+      "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+      "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+      "source": {
+        "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p13",
+        "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+        "anchor": "Appendix C.2 p13 Ex111-112; literal p1 product experiment, Ex107 cutoff, p12 actual mean, Fact C.5 frame",
+        "wording_status": "faithful paraphrase",
+        "attribution": "On Complexity of Gaussian Sampling, arXiv:2610.20492v1.",
+        "scope": "Public uncentered summand and actual mean operator norms; centered and cosine-weighted radius is a separately labelled private consumer."
+      },
+      "statement": "Every actual truncated Gaussian summand and its actual mean satisfy the two operator-norm bounds.",
+      "formulae": [
+        {
+          "label": "Actual Gaussian summand and mean operator norms",
+          "tex": "\\|Y_i(\\omega)\\|_{\\rm op}\\le\\frac{2rL}{d},\\qquad\\|\\mathbb E_\\mu Y_i\\|_{\\rm op}\\le\\frac{2r}{d}\\quad(1\\le i\\le d,\\ \\omega\\in\\Omega)."
+        }
+      ],
+      "assumptions": [
+        "Let \\(d,q\\in\\mathbb N\\) satisfy \\(2q+1<d\\), and put \\(r=q+1\\). This includes \\(q=0\\). Positivity of \\(d,r,L\\) is derived internally.",
+        "Use the original space \\(\\Omega=(\\mathbb R^d)^r\\) with \\(\\mu=\\gamma_d^{\\otimes r}\\), where \\(\\gamma_j=N(0,I_j)\\). The physical row is \\(\\Phi_i(\\omega)=(\\omega_{1,i},\\ldots,\\omega_{r,i})\\).",
+        "Put \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\theta_i,\\ldots,\\sqrt2\\cos(q\\theta_i))\\), and \\(L=2r+3\\log(1000d)\\). Source index \\(i\\) is Lean index \\(i.val+1\\).",
+        "Define \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{\\|\\Phi_i\\|^2\\le L\\}}\\). The cutoff is inclusive and row-specific. The Gaussian coordinate comes first in the paired matrix index.",
+        "Norms are the real Euclidean operator norm of the \\(r^2\\times r^2\\) matrices. Expectations are actual Bochner integrals on the same original \\(\\mu\\); the existing actual-mean theorem proves integrability internally.",
+        "The only proposition input is \\(2q+1<d\\). The feature bound, retained-moment coefficient \\(0\\le a\\le1\\), rank-one norm identities and actual mean estimate are proved inside the proof, with no certificate assumptions."
+      ],
+      "obligations": [
+        {
+          "id": "c2-actual-summand-mean-operator-norms",
+          "label": "Every actual truncated Gaussian summand and its actual mean satisfy the two operator-norm bounds."
+        }
+      ],
+      "lesson": {
+        "kind": "theorem",
+        "reading_layout": "progressive",
+        "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds",
+        "title": "Actual Gaussian summand and mean operator norms",
+        "reader_note": "The main statement is the public summand/mean producer. The final two proof steps contain its complete private centered and cosine-weighted radius consumer, under the same source condition.",
+        "statement": "Every actual truncated Gaussian summand and its actual mean satisfy the two operator-norm bounds.",
+        "formula": "\\|Y_i(\\omega)\\|_{\\rm op}\\le\\frac{2rL}{d},\\qquad\\|\\mathbb E_\\mu Y_i\\|_{\\rm op}\\le\\frac{2r}{d}\\quad(1\\le i\\le d,\\ \\omega\\in\\Omega).",
+        "assumptions": [
+          "Let \\(d,q\\in\\mathbb N\\) satisfy \\(2q+1<d\\), and put \\(r=q+1\\). This includes \\(q=0\\). Positivity of \\(d,r,L\\) is derived internally.",
+          "Use the original space \\(\\Omega=(\\mathbb R^d)^r\\) with \\(\\mu=\\gamma_d^{\\otimes r}\\), where \\(\\gamma_j=N(0,I_j)\\). The physical row is \\(\\Phi_i(\\omega)=(\\omega_{1,i},\\ldots,\\omega_{r,i})\\).",
+          "Put \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\theta_i,\\ldots,\\sqrt2\\cos(q\\theta_i))\\), and \\(L=2r+3\\log(1000d)\\). Source index \\(i\\) is Lean index \\(i.val+1\\).",
+          "Define \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{\\|\\Phi_i\\|^2\\le L\\}}\\). The cutoff is inclusive and row-specific. The Gaussian coordinate comes first in the paired matrix index.",
+          "Norms are the real Euclidean operator norm of the \\(r^2\\times r^2\\) matrices. Expectations are actual Bochner integrals on the same original \\(\\mu\\); the existing actual-mean theorem proves integrability internally.",
+          "The only proposition input is \\(2q+1<d\\). The feature bound, retained-moment coefficient \\(0\\le a\\le1\\), rank-one norm identities and actual mean estimate are proved inside the proof, with no certificate assumptions."
+        ],
+        "steps": [
+          {
+            "title": "Identify the actual Euclidean operator norms",
+            "text": "Identify a real outer-product matrix with its canonical Euclidean rank-one continuous map. Flatten the tensor of two outer products to the outer product of the paired vector. For an identity tensor feature outer product, use its symmetric square identity and a nonzero diagonal witness; the zero feature is handled separately. Nonemptiness needed by this generic identity holds automatically for the actual positive size r.",
+            "formula": "\\|uu^\\top\\|=\\|u\\|^2,\\quad\\|uu^\\top\\otimes vv^\\top\\|=\\|u\\|^2\\|v\\|^2,\\quad\\|I_r\\otimes tt^\\top\\|=\\|t\\|^2.",
+            "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram\nimport AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment\nimport Mathlib.Analysis.CStarAlgebra.Matrix\nimport Mathlib.Analysis.InnerProductSpace.LinearMap\n\n/-!\n# Actual truncated Gaussian summand and mean norms\n\nThe literal original product experiment and closed cutoff are unchanged.\nAll moment, sign and operator-norm estimates are internal proof obligations.\n-/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix Kronecker Matrix.Norms.L2Operator\nset_option autoImplicit false\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius\n\nprivate theorem matrix_outer_norm {n : Type*} [Fintype n] [DecidableEq n]\n    (u : EuclideanSpace ℝ n) :\n    ‖Matrix.vecMulVec u.ofLp u.ofLp‖ = ‖u‖ ^ 2 := by\n  have he : Matrix.toEuclideanLin.symm\n      (InnerProductSpace.rankOne ℝ u u : EuclideanSpace ℝ n →ₗ[ℝ] EuclideanSpace ℝ n) =\n      Matrix.vecMulVec u.ofLp u.ofLp := by\n    simpa only [star_trivial] using InnerProductSpace.symm_toEuclideanLin_rankOne u u\n  have hl : Matrix.toEuclideanLin (Matrix.vecMulVec u.ofLp u.ofLp) =\n      (InnerProductSpace.rankOne ℝ u u : EuclideanSpace ℝ n →ₗ[ℝ] EuclideanSpace ℝ n) := by\n    rw [← he, LinearEquiv.apply_symm_apply]\n  have hc : Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ) (Matrix.vecMulVec u.ofLp u.ofLp) =\n      InnerProductSpace.rankOne ℝ u u := by\n    apply ContinuousLinearMap.ext\n    intro x\n    exact congrArg (fun f : EuclideanSpace ℝ n →ₗ[ℝ] EuclideanSpace ℝ n => f x) hl\n  rw [Matrix.cstar_norm_def, hc, InnerProductSpace.norm_rankOne, ← pow_two]\n\nprivate theorem rankone_tensor_norm {m n : Type*} [Fintype m] [Fintype n]\n    [DecidableEq m] [DecidableEq n]\n    (u : EuclideanSpace ℝ m) (v : EuclideanSpace ℝ n) :\n    ‖Matrix.kronecker (Matrix.vecMulVec u.ofLp u.ofLp)\n        (Matrix.vecMulVec v.ofLp v.ofLp)‖ = ‖u‖ ^ 2 * ‖v‖ ^ 2 := by\n  let z : EuclideanSpace ℝ (m × n) := WithLp.toLp 2 (fun ij => u ij.1 * v ij.2)\n  have hz : Matrix.kronecker (Matrix.vecMulVec u.ofLp u.ofLp)\n      (Matrix.vecMulVec v.ofLp v.ofLp) = Matrix.vecMulVec z.ofLp z.ofLp := by\n    ext i j\n    dsimp [Matrix.kronecker, Matrix.kroneckerMap, Matrix.vecMulVec, z]\n    ring\n  rw [hz, matrix_outer_norm, EuclideanSpace.norm_sq_eq, EuclideanSpace.norm_sq_eq,\n    EuclideanSpace.norm_sq_eq, Fintype.sum_prod_type]\n  simp only [z, Real.norm_eq_abs, sq_abs, mul_pow]\n  rw [Finset.sum_mul_sum]\n\nprivate theorem identity_rankone_norm {m n : Type*} [Fintype m] [Fintype n]\n    [DecidableEq m] [DecidableEq n] [Nonempty m] (v : n → ℝ) :\n    ‖Matrix.kronecker (1 : Matrix m m ℝ) (Matrix.vecMulVec v v)‖ =\n      ∑ j : n, (v j) ^ 2 := by\n  classical\n  let F : Matrix n n ℝ := Matrix.vecMulVec v v\n  let K : Matrix (m × n) (m × n) ℝ := Matrix.kronecker (1 : Matrix m m ℝ) F\n  let S : ℝ := ∑ j : n, (v j) ^ 2\n  change ‖K‖ = S\n  have hS : 0 ≤ S := Finset.sum_nonneg (fun _ _ => sq_nonneg _)\n  have hF : F * F = S • F := by\n    ext j k\n    change (∑ a : n, (v j * v a) * (v a * v k)) =\n      (∑ a : n, (v a) ^ 2) * (v j * v k)\n    rw [Finset.sum_mul]\n    apply Finset.sum_congr rfl\n    intro a _\n    ring\n  have hstar : K.conjTranspose = K := by\n    dsimp only [K, Matrix.kronecker]\n    rw [Matrix.conjTranspose_kronecker, Matrix.conjTranspose_one]\n    simp [F]\n  have hKsq : K * K = S • K := by\n    dsimp only [K, Matrix.kronecker]\n    rw [← Matrix.mul_kronecker_mul, Matrix.one_mul, hF, Matrix.kronecker_smul]\n  have hn : S * ‖K‖ = ‖K‖ * ‖K‖ := by\n    have h := Matrix.l2_opNorm_conjTranspose_mul_self K\n    rw [hstar, hKsq, norm_smul, Real.norm_eq_abs, abs_of_nonneg hS] at h\n    exact h\n  by_cases hv : v = 0\n  · simp [K, F, S, hv]\n  · obtain ⟨j, hj⟩ : ∃ j : n, v j ≠ 0 := by\n      by_contra! h\n      exact hv (funext h)\n    let i : m := Classical.choice inferInstance\n    have hKne : K ≠ 0 := by\n      intro hzero\n      have hentry := congrArg\n        (fun A : Matrix (m × n) (m × n) ℝ => A (i, j) (i, j)) hzero\n      have hsq : v j * v j = 0 := by\n        simpa [K, F, Matrix.kronecker, Matrix.vecMulVec] using hentry\n      exact (mul_ne_zero hj hj) hsq\n    have hnorm : ‖K‖ ≠ 0 := norm_ne_zero_iff.mpr hKne\n    have hp : (‖K‖ - S) * ‖K‖ = 0 := by nlinarith [hn]\n    rcases mul_eq_zero.mp hp with hs | hz\n    · exact sub_eq_zero.mp hs\n    · exact (hnorm hz).elim\n\n\n"
+          },
+          {
+            "title": "Retain the literal experiment and derive the coefficient range",
+            "text": "Use the canonical cosine frame to bound the squared feature norm. The actual first-moment theorem gives integrability and the precise radial mean. The retained scalar squared radius lies pointwise between zero and the full Gaussian squared radius; integrating and using the canonical second moment yields 0≤a≤1. These are internal deductions under the original source condition.",
+            "formula": "S_i=\\|t_i\\|^2\\le2r,\\quad a=\\frac1r\\int\\|x\\|^2\\mathbf1_{\\{\\|x\\|^2\\le L\\}}d\\gamma_r\\in[0,1],\\quad\\mathbb E_\\mu Y_i=\\frac ad(I_r\\otimes t_it_i^\\top).",
+            "lean": "theorem actual_source_truncated_matrix_norm_bounds\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  (∀ i : Fin d, ∀ ω : Ω, ‖Y i ω‖ ≤ 2 * r * L / (d : ℝ)) ∧\n    (∀ i : Fin d, ‖∫ ω, Y i ω ∂μ‖ ≤ 2 * r / (d : ℝ))\n := by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let S : Fin d → ℝ := fun i => ∑ k : Fin (q + 1), (t i k) ^ 2\n  let F : Fin d → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    fun i => Matrix.vecMulVec (t i) (t i)\n  let K : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => Matrix.kronecker (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ) (F i)\n  let a : ℝ := (∫ x : E, {y : E | ‖y‖ ^ 2 ≤ L}.indicator\n    (fun y => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  change (∀ i : Fin d, ∀ ω : Ω, ‖Y i ω‖ ≤ 2 * r * L / (d : ℝ)) ∧\n    (∀ i : Fin d, ‖∫ ω, Y i ω ∂μ‖ ≤ 2 * r / (d : ℝ))\n  have hd : (0 : ℝ) < (d : ℝ) := by exact_mod_cast (show 0 < d by omega)\n  have hr : 0 < r := by dsimp [r]; positivity\n  have hscale : (1 : ℝ) ≤ 1000 * (d : ℝ) := by\n    have hd2 : (2 : ℝ) ≤ (d : ℝ) := by exact_mod_cast (show 2 ≤ d by omega)\n    linarith\n  have hL : 0 ≤ L := by\n    have hlog := Real.log_nonneg hscale\n    dsimp only [L]\n    linarith\n  have hS0 (i : Fin d) : 0 ≤ S i := Finset.sum_nonneg (fun _ _ => sq_nonneg _)\n  have frame := FixedSpectrumCosineGram.actual_cosine_frame_gram (d := d) (q := q) hq\n  have hS (i : Fin d) : S i ≤ 2 * r := by\n    simpa only [S, t, θ, r, Nat.cast_add, Nat.cast_one, add_sub_assoc,\n      show (1 : ℝ) - 1 / 2 = 1 / 2 by norm_num] using frame.2.2 i\n  have hm := FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means\n    (d := d) (q := q) hq\n  change (∀ i : Fin d, Integrable (Y i) μ) ∧\n    (∀ i : Fin d, (∫ ω, Y i ω ∂μ) = (a / (d : ℝ)) • K i) at hm\n  have moment := AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian\n    (E := E)\n  have hgood : MeasurableSet {y : E | ‖y‖ ^ 2 ≤ L} :=\n    measurableSet_le (by fun_prop) measurable_const\n  have hret := moment.1.indicator hgood\n  have hret0 : 0 ≤ ∫ x : E, {y : E | ‖y‖ ^ 2 ≤ L}.indicator\n      (fun y => ‖y‖ ^ 2) x ∂stdGaussian E := by\n    apply integral_nonneg\n    intro x\n    by_cases hx : ‖x‖ ^ 2 ≤ L\n    · simpa [Set.indicator, hx] using sq_nonneg ‖x‖\n    · simp [Set.indicator, hx]\n  have hretle : (∫ x : E, {y : E | ‖y‖ ^ 2 ≤ L}.indicator\n      (fun y => ‖y‖ ^ 2) x ∂stdGaussian E) ≤ r := by\n    calc\n      _ ≤ ∫ x : E, ‖x‖ ^ 2 ∂stdGaussian E := by\n        apply integral_mono hret moment.1\n        intro x\n        by_cases hx : ‖x‖ ^ 2 ≤ L\n        · simp [Set.indicator, hx]\n        · simpa [Set.indicator, hx] using sq_nonneg ‖x‖\n      _ = r := by simpa [E, r] using moment.2\n  have ha0 : 0 ≤ a := div_nonneg hret0 hr.le\n  have ha1 : a ≤ 1 := (div_le_one hr).2 hretle\n  have hK (i : Fin d) : ‖K i‖ = S i := identity_rankone_norm\n    (m := Fin (q + 1)) (t i)\n"
+          },
+          {
+            "title": "Bound the truncated summand on both cutoff branches",
+            "text": "On the retained event apply the exact paired rank-one norm and the feature bound. Outside the closed retained event the actual summand is zero. Derived positivity makes the same upper bound valid on both branches.",
+            "formula": "\\|Y_i\\|=\\frac{\\|\\Phi_i\\|^2S_i}{d}\\mathbf1_{\\{\\|\\Phi_i\\|^2\\le L\\}}\\le\\frac{2rL}{d}.",
+            "lean": "  constructor\n  · intro i ω\n    have htnorm : ‖(WithLp.toLp 2 (t i) : E)‖ ^ 2 = S i := by\n      simp [EuclideanSpace.norm_sq_eq, S, Real.norm_eq_abs, sq_abs]\n    have hTensor : ‖Matrix.kronecker\n        (Matrix.vecMulVec (row i ω).ofLp (row i ω).ofLp)\n        (Matrix.vecMulVec (t i) (t i))‖ = ‖row i ω‖ ^ 2 * S i := by\n      simpa only [WithLp.ofLp_toLp, htnorm] using\n        rankone_tensor_norm (row i ω) (WithLp.toLp 2 (t i) : E)\n    by_cases hx : ‖row i ω‖ ^ 2 ≤ L\n    · dsimp only [Y]\n      rw [if_pos hx, norm_smul, Real.norm_eq_abs,\n        abs_of_nonneg (inv_nonneg.mpr hd.le), hTensor]\n      calc\n        _ ≤ (d : ℝ)⁻¹ * (L * (2 * r)) :=\n          mul_le_mul_of_nonneg_left (mul_le_mul hx (hS i) (hS0 i) hL)\n            (inv_nonneg.mpr hd.le)\n        _ = 2 * r * L / (d : ℝ) := by rw [div_eq_mul_inv]; ring\n    · simp only [Y, if_neg hx, norm_zero]\n      exact div_nonneg (mul_nonneg (mul_nonneg (by norm_num) hr.le) hL) hd.le\n"
+          },
+          {
+            "title": "Evaluate and bound the actual mean norm",
+            "text": "Apply the identity-tensor rank-one norm to the evaluated actual Bochner mean. Use the internally derived coefficient range and feature bound.",
+            "formula": "\\|\\mathbb E_\\mu Y_i\\|=\\frac{aS_i}{d}\\le\\frac{2r}{d}.",
+            "lean": "  · intro i\n    rw [hm.2 i, norm_smul, Real.norm_eq_abs,\n      abs_of_nonneg (div_nonneg ha0 hd.le), hK]\n    calc\n      _ ≤ (1 / (d : ℝ)) * (2 * r) :=\n        mul_le_mul ((div_le_div_iff_of_pos_right hd).2 ha1) (hS i) (hS0 i)\n          (div_nonneg zero_le_one hd.le)\n      _ = 2 * r / (d : ℝ) := by ring\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius\n"
+          },
+          {
+            "title": "Consume both estimates in the actual centered radius",
+            "text": "The complete private consumer defines Mi as the actual integral of Yi and Zi=Yi−Mi on the same original product measure. Triangle inequality and both public estimates give the exact source Rstar. No arbitrary mean, replacement law or norm certificate is supplied.",
+            "formula": "M_i=\\mathbb E_\\mu Y_i,\\quad Z_i=Y_i-M_i,\\qquad\\|Z_i\\|\\le\\frac{2rL}{d}+\\frac{2r}{d}=R_*:=\\frac{2r(L+1)}d.",
+            "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius\n\n/-!\n# Actual centered and cosine-weighted summand radius\n\nThis private mathematical consumer uses both actual norm estimates, the literal\nBochner mean, and the original product experiment. It is not a public API or a\nmatrix Bernstein/concentration theorem.\n-/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity\nopen scoped BigOperators Matrix Kronecker Matrix.Norms.L2Operator\nset_option autoImplicit false\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixRadius\n\nprivate theorem actual_source_centered_summand_radius\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  (∀ i : Fin d, ∀ ω : Ω, ‖Z i ω‖ ≤ Rstar) ∧\n    (∀ i : Fin d, ∀ ω : Ω, ‖w i • Z i ω‖ ≤ Rstar)\n := by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  change (∀ i : Fin d, ∀ ω : Ω, ‖Z i ω‖ ≤ Rstar) ∧\n    (∀ i : Fin d, ∀ ω : Ω, ‖w i • Z i ω‖ ≤ Rstar)\n  have bounds := FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds\n    (d := d) (q := q) hq\n  change (∀ i : Fin d, ∀ ω : Ω, ‖Y i ω‖ ≤ 2 * r * L / (d : ℝ)) ∧\n    (∀ i : Fin d, ‖∫ ω, Y i ω ∂μ‖ ≤ 2 * r / (d : ℝ)) at bounds\n  have hz (i : Fin d) (ω : Ω) : ‖Z i ω‖ ≤ Rstar := by\n    dsimp only [Z, mean]\n    calc\n      ‖Y i ω - ∫ ω, Y i ω ∂μ‖ ≤ ‖Y i ω‖ + ‖∫ ω, Y i ω ∂μ‖ := norm_sub_le _ _\n      _ ≤ 2 * r * L / (d : ℝ) + 2 * r / (d : ℝ) :=\n        add_le_add (bounds.1 i ω) (bounds.2 i)\n      _ = Rstar := by dsimp only [Rstar]; ring\n"
+          },
+          {
+            "title": "Retain the radius after the deterministic cosine weight",
+            "text": "In the same private theorem use the deterministic source frequency n=2q+1 and |cos(nθi)|≤1. The weighted and unweighted assertions hold for every sample, including samples outside the row cutoff.",
+            "formula": "w_i=\\cos((2q+1)\\theta_i),\\qquad\\|w_iZ_i\\|=|w_i|\\|Z_i\\|\\le R_*.",
+            "lean": "  constructor\n  · exact hz\n  · intro i ω\n    rw [norm_smul, Real.norm_eq_abs]\n    calc\n      |w i| * ‖Z i ω‖ ≤ 1 * ‖Z i ω‖ :=\n        mul_le_mul_of_nonneg_right (Real.abs_cos_le_one _) (norm_nonneg _)\n      _ = ‖Z i ω‖ := one_mul _\n      _ ≤ Rstar := hz i ω\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixRadius\n"
+          }
+        ],
+        "astis_dependencies": [
+          "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+          "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram",
+          "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+        ],
+        "mathlib_dependencies": [
+          "Matrix.cstar_norm_def",
+          "InnerProductSpace.norm_rankOne",
+          "InnerProductSpace.symm_toEuclideanLin_rankOne",
+          "Matrix.l2_opNorm_conjTranspose_mul_self",
+          "Matrix.conjTranspose_kronecker",
+          "Matrix.mul_kronecker_mul",
+          "EuclideanSpace.norm_sq_eq",
+          "MeasureTheory.Integrable.indicator",
+          "MeasureTheory.integral_mono",
+          "MeasureTheory.integral_nonneg"
+        ],
+        "dependency_notes": "P materially calls exactly the three listed canonical ASTIS parents. Its three private representation/algebra helpers share the public module review and create no extra public node. Private T calls P only; triangle inequality, norm_smul and Real.abs_cos_le_one discharge its remaining estimates. These are not additional P parents.",
+        "lean_statement": "Every actual truncated Gaussian summand and its actual mean satisfy the two operator-norm bounds.",
+        "lean_proof": "Four source-ordered steps reproduce the entire public module, followed by two steps reproducing the entire private consumer.",
+        "sources": [
+          {
+            "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p13",
+            "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+            "anchor": "Appendix C.2 p13 Ex111-112; literal p1 product experiment, Ex107 cutoff, p12 actual mean, Fact C.5 frame",
+            "wording_status": "faithful paraphrase",
+            "attribution": "On Complexity of Gaussian Sampling, arXiv:2610.20492v1.",
+            "scope": "Public uncentered summand and actual mean operator norms; centered and cosine-weighted radius is a separately labelled private consumer."
+          },
+          {
+            "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixRadius.lean",
+            "line": 101,
+            "label": "Complete exact public summand/mean theorem",
+            "scope": "Public P proves the actual pointwise truncated-summand norm and actual-mean norm only. Its private Tests consumer proves centered and cosine-weighted centered radius 2r(L+1)/d in the same literal experiment, including q=0. The private theorem is not a public API or separate canonical node. Matrix concentration, full Lemma4.4, both main lower bounds, exact oracle/precision/TV/dimension-condition-number/worst-query-cap/expected-cost adapters, serialized main/site/source-index/globalgraph integration and purification are separate obligations."
+          },
+          {
+            "url": "https://arxiv.org/html/2610.20492v1#A3.Ex112",
+            "label": "Exact centered radius and following cosine-weighted bound",
+            "scope": "Private consumer only."
+          },
+          {
+            "path": "Tests/GaussianComplexityFixedSpectrumSourceMatrixRadius.lean",
+            "line": 17,
+            "label": "Complete exact private centered/weighted consumer",
+            "scope": "Private real consumer; no separate public declaration credit."
+          }
+        ],
+        "tests": [
+          "lake build Tests.GaussianComplexityFixedSpectrumSourceMatrixRadius"
+        ]
+      },
+      "binding": {
+        "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds",
+        "role": "proof-edge",
+        "supports": [
+          "c2-actual-summand-mean-operator-norms"
+        ]
+      },
+      "candidate_assumptions": [
+        {
+          "source": "Original independent standard Gaussian columns, natural q≥0 and2q+1<d, actual rows, exact midpoint features and inclusive local cutoff.",
+          "lean": "Literal original product experiment and exact same row matrices, including q=0; sole hq proposition input."
+        },
+        {
+          "source": "Ex111 uses the actual radial mean and 0≤a≤1, the feature estimate, and exact real operator norms.",
+          "lean": "Canonical mean and second-moment results are consumed internally; all needed signs, nonemptiness, coefficient range and norm identities are proved internally."
+        }
+      ]
+    },
+    "private_consumer": {
+      "file": "Tests/GaussianComplexityFixedSpectrumSourceMatrixRadius.lean",
+      "file_sha256": "2984ec31b11fa446b6f8330cb964cb72d49252590f950acd88104c9e9a4e6dca",
+      "whole_module_text": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius\n\n/-!\n# Actual centered and cosine-weighted summand radius\n\nThis private mathematical consumer uses both actual norm estimates, the literal\nBochner mean, and the original product experiment. It is not a public API or a\nmatrix Bernstein/concentration theorem.\n-/\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity\nopen scoped BigOperators Matrix Kronecker Matrix.Norms.L2Operator\nset_option autoImplicit false\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixRadius\n\nprivate theorem actual_source_centered_summand_radius\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  (∀ i : Fin d, ∀ ω : Ω, ‖Z i ω‖ ≤ Rstar) ∧\n    (∀ i : Fin d, ∀ ω : Ω, ‖w i • Z i ω‖ ≤ Rstar)\n := by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  change (∀ i : Fin d, ∀ ω : Ω, ‖Z i ω‖ ≤ Rstar) ∧\n    (∀ i : Fin d, ∀ ω : Ω, ‖w i • Z i ω‖ ≤ Rstar)\n  have bounds := FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds\n    (d := d) (q := q) hq\n  change (∀ i : Fin d, ∀ ω : Ω, ‖Y i ω‖ ≤ 2 * r * L / (d : ℝ)) ∧\n    (∀ i : Fin d, ‖∫ ω, Y i ω ∂μ‖ ≤ 2 * r / (d : ℝ)) at bounds\n  have hz (i : Fin d) (ω : Ω) : ‖Z i ω‖ ≤ Rstar := by\n    dsimp only [Z, mean]\n    calc\n      ‖Y i ω - ∫ ω, Y i ω ∂μ‖ ≤ ‖Y i ω‖ + ‖∫ ω, Y i ω ∂μ‖ := norm_sub_le _ _\n      _ ≤ 2 * r * L / (d : ℝ) + 2 * r / (d : ℝ) :=\n        add_le_add (bounds.1 i ω) (bounds.2 i)\n      _ = Rstar := by dsimp only [Rstar]; ring\n  constructor\n  · exact hz\n  · intro i ω\n    rw [norm_smul, Real.norm_eq_abs]\n    calc\n      |w i| * ‖Z i ω‖ ≤ 1 * ‖Z i ω‖ :=\n        mul_le_mul_of_nonneg_right (Real.abs_cos_le_one _) (norm_nonneg _)\n      _ = ‖Z i ω‖ := one_mul _\n      _ ≤ Rstar := hz i ω\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixRadius\n",
+      "statement_sha256": "bae3298a138e618d5b12dac499cb3239cf202a8db26bea881e1345af1867ade7",
+      "placement": "private Tests implementation consumer, not public API/canonical publication node"
+    },
+    "source_lean_correspondence": {
+      "kind": "Authored source-to-code correspondence, not an independent fidelity verdict",
+      "raw_source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "source_span_helper_origin": ".astis/huanjian-real-matrix-positive-integral-20261112/make_source_lean_map.generated.py",
+      "source_span_helper_origin_sha256": "05d7ba451153cf1da406191046844e9bb3765b2dd44dc07c5bdcc7d3d1b0ed98",
+      "exact_helper_prefix_sha256": "fea553f61e0e845b4bbaaaeb577900ff9e274bd6a884327f045ea05a348cb4ef",
+      "mappings": [
+        {
+          "source": [
+            {
+              "source_id": "S4.Thmtheorem4.p1",
+              "char_start": 230581,
+              "char_end": 236865,
+              "raw_utf8_start": 232635,
+              "raw_utf8_end": 238980,
+              "lf_line_start": 1209,
+              "lf_column0_start": 0,
+              "lf_line_end": 1230,
+              "span_sha256": "00f66fac7ae3cca6c10e5cfeb93cf22f9622867593ccd7c9cbc09cde73fb9737",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.SS2.p1",
+              "char_start": 731718,
+              "char_end": 736218,
+              "raw_utf8_start": 739163,
+              "raw_utf8_end": 743698,
+              "lf_line_start": 3317,
+              "lf_column0_start": 0,
+              "lf_line_end": 3329,
+              "span_sha256": "4b07cd73f4561d56956c212747af710882b47f8d70253b679ed93e1cda9eafbc",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.Ex107.m1",
+              "char_start": 796493,
+              "char_end": 797416,
+              "raw_utf8_start": 804638,
+              "raw_utf8_end": 805574,
+              "lf_line_start": 3576,
+              "lf_column0_start": 42,
+              "lf_line_end": 3576,
+              "span_sha256": "2fccd6d10267f830c08762305aaf43245b495034c893dc8ae6191f8196ebbf0b",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixRadius.lean",
+              "file_sha256": "b81c079a78e08325cea951c38a62520e3c5dea19309673f02e050009d3483d31",
+              "LF_lines_1based": [
+                101,
+                162
+              ],
+              "raw_UTF8_byte_span": [
+                4593,
+                7764
+              ],
+              "decoded_char_span": [
+                4435,
+                7340
+              ],
+              "span_sha256": "cb8dae72476831facbe6480a20a6e182f9c47411e7cb5f938cfcf0dc213c98ff"
+            },
+            {
+              "path": "Tests/GaussianComplexityFixedSpectrumSourceMatrixRadius.lean",
+              "file_sha256": "2984ec31b11fa446b6f8330cb964cb72d49252590f950acd88104c9e9a4e6dca",
+              "LF_lines_1based": [
+                1,
+                73
+              ],
+              "raw_UTF8_byte_span": [
+                0,
+                3642
+              ],
+              "decoded_char_span": [
+                0,
+                3366
+              ],
+              "span_sha256": "e09a251f7004d16074b9165b0fd4d079d0050c3d6bdfadfc8423033b35d9e6a4"
+            }
+          ],
+          "meaning": "Sole source range, literal original column-product space/measure and physical rows, exact midpoint features, inclusive row cutoff, actual integral mean and centered matrices. The actual frequency is2q+1; all scalar signs and nonemptiness are internal.",
+          "attribution": "EXACT_SOURCE_REALIZATION"
+        },
+        {
+          "source": [
+            {
+              "source_id": "A3.Ex111.m1",
+              "char_start": 805552,
+              "char_end": 807359,
+              "raw_utf8_start": 813811,
+              "raw_utf8_end": 815656,
+              "lf_line_start": 3616,
+              "lf_column0_start": 42,
+              "lf_line_end": 3616,
+              "span_sha256": "4291721de7a99ff3bf8d67e6adafda30cb03842745e709681a8e8141951e38fb",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixRadius.lean",
+              "file_sha256": "b81c079a78e08325cea951c38a62520e3c5dea19309673f02e050009d3483d31",
+              "LF_lines_1based": [
+                1,
+                51
+              ],
+              "raw_UTF8_byte_span": [
+                0,
+                2643
+              ],
+              "decoded_char_span": [
+                0,
+                2569
+              ],
+              "span_sha256": "32dd81d49d7fec71feb3372c77fe08cee19f7c32c4721a41940d2e3082cdb42f"
+            }
+          ],
+          "meaning": "The source exact tensor rank-one norm is implemented by the canonical real Euclidean rankOne norm, flattened paired vectors and exact squared-norm product. No new generic paper result or extra source assumption.",
+          "attribution": "AUTHORED_REPRESENTATION_ADAPTER_USING_CANONICAL_MATHLIB"
+        },
+        {
+          "source": [
+            {
+              "source_id": "A3.Ex111.m1",
+              "char_start": 805552,
+              "char_end": 807359,
+              "raw_utf8_start": 813811,
+              "raw_utf8_end": 815656,
+              "lf_line_start": 3616,
+              "lf_column0_start": 42,
+              "lf_line_end": 3616,
+              "span_sha256": "4291721de7a99ff3bf8d67e6adafda30cb03842745e709681a8e8141951e38fb",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixRadius.lean",
+              "file_sha256": "b81c079a78e08325cea951c38a62520e3c5dea19309673f02e050009d3483d31",
+              "LF_lines_1based": [
+                52,
+                100
+              ],
+              "raw_UTF8_byte_span": [
+                2643,
+                4593
+              ],
+              "decoded_char_span": [
+                2569,
+                4435
+              ],
+              "span_sha256": "9e4201b2294b5ed5e43bbf9a7023278e0acf0b88d249c7aebb96721ae52c8e07"
+            }
+          ],
+          "meaning": "The identity tensor feature outer product is selfadjoint with square S times itself. The canonical real matrix C-star norm identity and an actual nonzero diagonal witness yield its exact operator norm S; zero features handled separately. The generic first index must be nonempty, automatically satisfied by Fin(q+1).",
+          "attribution": "AUTHORED_INTERNAL_REAL_NORM_IDENTITY"
+        },
+        {
+          "source": [
+            {
+              "source_id": "A3.SS2.p12",
+              "char_start": 796105,
+              "char_end": 804228,
+              "raw_utf8_start": 804250,
+              "raw_utf8_end": 812472,
+              "lf_line_start": 3570,
+              "lf_column0_start": 0,
+              "lf_line_end": 3607,
+              "span_sha256": "3f2c83ee54eabdf9f98dd13156bea1fa63d7b2c95440208964402849c77c236d",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.Ex111.m1",
+              "char_start": 805552,
+              "char_end": 807359,
+              "raw_utf8_start": 813811,
+              "raw_utf8_end": 815656,
+              "lf_line_start": 3616,
+              "lf_column0_start": 42,
+              "lf_line_end": 3616,
+              "span_sha256": "4291721de7a99ff3bf8d67e6adafda30cb03842745e709681a8e8141951e38fb",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixRadius.lean",
+              "file_sha256": "b81c079a78e08325cea951c38a62520e3c5dea19309673f02e050009d3483d31",
+              "LF_lines_1based": [
+                163,
+                196
+              ],
+              "raw_UTF8_byte_span": [
+                7764,
+                9468
+              ],
+              "decoded_char_span": [
+                7340,
+                8941
+              ],
+              "span_sha256": "c184ec955f28bb545155f26452f38b853873b636f6e45e992f5eca6be8858c4d"
+            }
+          ],
+          "meaning": "Reuse the canonical feature bound and actual mean theorem. Internally bound the retained-radius integral between0 and the full standard Gaussian second moment r, giving0<=a<=1. Actual mean integrability is provided by the existing mean theorem, not assumed.",
+          "attribution": "SOURCE_MEAN_AND_FEATURE_WITH_INTERNAL_MOMENT_APPLICABILITY"
+        },
+        {
+          "source": [
+            {
+              "source_id": "A3.Ex111.m1",
+              "char_start": 805552,
+              "char_end": 807359,
+              "raw_utf8_start": 813811,
+              "raw_utf8_end": 815656,
+              "lf_line_start": 3616,
+              "lf_column0_start": 42,
+              "lf_line_end": 3616,
+              "span_sha256": "4291721de7a99ff3bf8d67e6adafda30cb03842745e709681a8e8141951e38fb",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixRadius.lean",
+              "file_sha256": "b81c079a78e08325cea951c38a62520e3c5dea19309673f02e050009d3483d31",
+              "LF_lines_1based": [
+                197,
+                216
+              ],
+              "raw_UTF8_byte_span": [
+                9468,
+                10441
+              ],
+              "decoded_char_span": [
+                8941,
+                9878
+              ],
+              "span_sha256": "f1e14e165ebd05f47dd64ede4454354c3eaa8a4742c99c7b9d4587e33e3cf368"
+            }
+          ],
+          "meaning": "Exact rank-one tensor norm on the inclusive retained branch and actual zero on its complementary branch yield the pointwise norm bound2rL/d. All signs derive from hq.",
+          "attribution": "SOURCE_POINTWISE_SUMMAND_BOUND"
+        },
+        {
+          "source": [
+            {
+              "source_id": "A3.Ex111.m1",
+              "char_start": 805552,
+              "char_end": 807359,
+              "raw_utf8_start": 813811,
+              "raw_utf8_end": 815656,
+              "lf_line_start": 3616,
+              "lf_column0_start": 42,
+              "lf_line_end": 3616,
+              "span_sha256": "4291721de7a99ff3bf8d67e6adafda30cb03842745e709681a8e8141951e38fb",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixRadius.lean",
+              "file_sha256": "b81c079a78e08325cea951c38a62520e3c5dea19309673f02e050009d3483d31",
+              "LF_lines_1based": [
+                217,
+                226
+              ],
+              "raw_UTF8_byte_span": [
+                10441,
+                10840
+              ],
+              "decoded_char_span": [
+                9878,
+                10270
+              ],
+              "span_sha256": "fe957b38279d2d7963efb3453d2f1abf21386379a6b576904e3981bc686c2873"
+            }
+          ],
+          "meaning": "Evaluate the actual mean, use exact identity-tensor norm, coefficient a<=1 and feature sum<=2r to obtain actual mean norm<=2r/d.",
+          "attribution": "SOURCE_ACTUAL_MEAN_NORM_BOUND"
+        },
+        {
+          "source": [
+            {
+              "source_id": "A3.SS2.p13",
+              "char_start": 804229,
+              "char_end": 809770,
+              "raw_utf8_start": 812473,
+              "raw_utf8_end": 818093,
+              "lf_line_start": 3608,
+              "lf_column0_start": 0,
+              "lf_line_end": 3629,
+              "span_sha256": "8972c1e0948cb89ac310f36272c33d25e4a5cf20c409527c22221da4f7742d22",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            },
+            {
+              "source_id": "A3.Ex112.m1",
+              "char_start": 807755,
+              "char_end": 808549,
+              "raw_utf8_start": 816052,
+              "raw_utf8_end": 816858,
+              "lf_line_start": 3624,
+              "lf_column0_start": 42,
+              "lf_line_end": 3624,
+              "span_sha256": "f03389cbedfe388a70b30b14ea4beff376a839dc1482b1304719ed632bd486ea",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "Tests/GaussianComplexityFixedSpectrumSourceMatrixRadius.lean",
+              "file_sha256": "2984ec31b11fa446b6f8330cb964cb72d49252590f950acd88104c9e9a4e6dca",
+              "LF_lines_1based": [
+                74,
+                86
+              ],
+              "raw_UTF8_byte_span": [
+                3642,
+                4305
+              ],
+              "decoded_char_span": [
+                3366,
+                3948
+              ],
+              "span_sha256": "8919f79a657f22b511e8044faa8896e17e41fdda3cc9330bbcb89a48e359bb36"
+            }
+          ],
+          "meaning": "Private genuine consumer calls both outputs of P on the same original experiment; triangle inequality gives exact2r(L+1)/d for every sample of actual Zi.",
+          "attribution": "SOURCE_CENTERED_RADIUS_PRIVATE_CONSUMER"
+        },
+        {
+          "source": [
+            {
+              "source_id": "A3.SS2.p13",
+              "char_start": 804229,
+              "char_end": 809770,
+              "raw_utf8_start": 812473,
+              "raw_utf8_end": 818093,
+              "lf_line_start": 3608,
+              "lf_column0_start": 0,
+              "lf_line_end": 3629,
+              "span_sha256": "8972c1e0948cb89ac310f36272c33d25e4a5cf20c409527c22221da4f7742d22",
+              "file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "origin": "PRIMARY_APPLICATION"
+            }
+          ],
+          "lean": [
+            {
+              "path": "Tests/GaussianComplexityFixedSpectrumSourceMatrixRadius.lean",
+              "file_sha256": "2984ec31b11fa446b6f8330cb964cb72d49252590f950acd88104c9e9a4e6dca",
+              "LF_lines_1based": [
+                87,
+                95
+              ],
+              "raw_UTF8_byte_span": [
+                4305,
+                4638
+              ],
+              "decoded_char_span": [
+                3948,
+                4259
+              ],
+              "span_sha256": "a83e8b1903574330fc37d4db9f4c23cc9a9dafac828c3baec8bac5c9367483ce"
+            }
+          ],
+          "meaning": "The same private theorem uses |cos((2q+1)theta_i)|<=1 and norm_smul for actual weighted Zi. No concentration or public API credit.",
+          "attribution": "SOURCE_COSINE_WEIGHTED_RADIUS_PRIVATE_CONSUMER"
+        }
+      ],
+      "code_files": [
+        {
+          "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixRadius.lean",
+          "sha256": "b81c079a78e08325cea951c38a62520e3c5dea19309673f02e050009d3483d31"
+        },
+        {
+          "path": "Tests/GaussianComplexityFixedSpectrumSourceMatrixRadius.lean",
+          "sha256": "2984ec31b11fa446b6f8330cb964cb72d49252590f950acd88104c9e9a4e6dca"
+        }
+      ],
+      "source_graph_boundary": "Independent preproof sourcegraphv2 and distinct topology challenge are unchanged. New map links the actual final code; source overlays are not formal Lean implications.",
+      "formal_parent_scope": "P has actualMean, cosineFrame, stdGaussianSecondMoment only; T calls P only. No duplicate canonical nodes.",
+      "remaining_boundary": "Matrix Bernstein, full Lemma4.4/main lower bounds, oracle/precision/TV/cap/cost, full site integration and purification remain open."
+    }
+  }
+}

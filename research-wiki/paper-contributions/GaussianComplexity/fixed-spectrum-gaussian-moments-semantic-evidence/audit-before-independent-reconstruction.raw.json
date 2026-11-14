@@ -1,0 +1,191 @@
+{
+  "id": "ASTIS-RT-20261110-HuanjianFixedSpectrumGaussianMoments",
+  "state": "draft",
+  "source": {
+    "source_id": "arxiv2610.20492v1-actual-diagonal-gaussian-means",
+    "url": "https://arxiv.org/html/2610.20492v1#A3.Ex140",
+    "anchor": "A3.SS3.p4.1/A3.Ex140; standing family S4.SS1.p1.1/S4.E11; actual law and integer range S4.Thmtheorem5.p1.1. Private Gaussian alias-series precursor A3.SS3.p4.2,p6.1/A3.Ex144.",
+    "original_text": "Under the actual centered Gaussian with diagonal inverse-precision covariance, the squared norm and cosine quadratic form have the reciprocal-spectrum means below. Both integrands are integrable. \\mathbb E\\|U\\|^2=\\sum_{i=1}^{d}\\lambda_i^{-1},\\qquad\\mathbb E[U^\\top D_nU]=\\sum_{i=1}^{d}\\frac{\\cos(n\\theta_i)}{\\lambda_i}. Fix integers \\(d\\ge2\\) and \\(1\\le n<d\\), and a real parameter \\(\\kappa\\ge2\\). Lean represents the positive integer mode by a natural number with these exact bounds. For \\(i=1,\\ldots,d\\), set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). The Lean index is \\(i\\in\\mathrm{Fin}\\,d\\), so its angle is \\((i.\\mathrm{val}+1/2)\\pi/d\\). Let \\(U\\sim N(0,\\Lambda^{-1})\\) in real Euclidean space and \\(D_n=\\operatorname{diag}(\\cos(n\\theta_i))\\). The measure is literally \\(\\mathrm{multivariateGaussian}\\,0\\,\\Lambda^{-1}\\); its matrix argument is covariance, while \\(\\Lambda\\) is precision. The displayed quadratic form has coordinate presentation \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\): multiplication by a diagonal matrix scales its ith coordinate, and the dot product then gives this sum. No arbitrary law, covariance witness or moment certificate is supplied.",
+    "text_sha256": "e2c4f71db5a65a9627ec03e44ce23666fa6e6407fac49332975efee66302ff41",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGaussianMoments.actual_diagonal_gaussian_quadratic_means",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumGaussianMoments.lean",
+    "statement": "∀ {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)\n    (n : ℕ) (hn : 1 ≤ n) (hnd : n < d),\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  Integrable (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) μ ∧\n  Integrable Q μ ∧\n  (∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ) = (∑ i : Fin d, (eigenvalue i)⁻¹) ∧\n  (∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ) =\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) / eigenvalue i\n",
+    "statement_sha256": "e663f53ddf082d6c01c3b1319ed4faf69cc964190d2913f1d549ee583dfd052e",
+    "formalizer": "huanjian_gc_20261110_fixed_spectrum_gaussian_moments",
+    "compiled": true,
+    "decoder_context": [
+      "Fin d is the standard finite index type with values zero through d minus one; the displayed sums run over every coordinate.",
+      "EuclideanSpace Real (Fin d) has its usual Euclidean norm. WithLp.ofLp exposes the real coordinate vector, and Matrix.diagonal is the ordinary diagonal matrix.",
+      "ProbabilityTheory.multivariateGaussian m S is the image of the standard Gaussian by x↦m+toEuclideanCLM(CFC.sqrt S)x. The argument S is covariance on its positive semidefinite domain; the standard totalized square root is zero outside that domain.",
+      "Matrix inverse and real inverse are standard totalized inverses. Integrable is actual Bochner integrability under the displayed measure, and the integral is the real Bochner integral. The proposition asserts integrability as part of its conclusion.",
+      "Real.cos, Real.pi, casts to reals, natural exponents and all finite sums have their standard meanings."
+    ]
+  },
+  "reconstruction": {},
+  "semantic_slots": {},
+  "deltas": [],
+  "verdict": "pending",
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "2655cf5a3fbfa207235ae9875da824cecbed933f9913668f842db888e90c2f80",
+  "publication_context": {
+    "file": "6fb5f83f8c392814246dd39c1f95201215407fd8e14243f3b0e1e6e7895a847d",
+    "current_lean_module": "import Mathlib.Probability.Distributions.Gaussian.Multivariate\nimport Mathlib.Tactic.Linarith\n\n/-!\n# Actual diagonal inverse-precision Gaussian quadratic means\n\nZhou--Suzuki, arXiv:2610.20492v1, Appendix C.3, Ex140.\nThe literal Gaussian measure has covariance Lambda inverse. Positivity,\ncoordinate second moments and both integrability facts are proved internally.\nThe focused test consumes these means in the actual Gaussian cosine alias\nseries; closed C8 sums, fourth moments, variance and bias are separate.\n-/\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGaussianMoments\n\ntheorem actual_diagonal_gaussian_quadratic_means {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)\n    (n : ℕ) (hn : 1 ≤ n) (hnd : n < d) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  Integrable (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) μ ∧\n  Integrable Q μ ∧\n  (∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ) = (∑ i : Fin d, (eigenvalue i)⁻¹) ∧\n  (∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ) =\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) / eigenvalue i := by\n  classical\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) := multivariateGaussian 0 Λ⁻¹\n  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2\n  change Integrable (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) μ ∧\n    Integrable Q μ ∧\n    (∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ) = (∑ i : Fin d, (eigenvalue i)⁻¹) ∧\n    (∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ) =\n      ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) / eigenvalue i\n  have heigenlower (i : Fin d) : 1 ≤ eigenvalue i := by\n    dsimp [eigenvalue]\n    have h := mul_nonneg (by linarith : 0 ≤ κ - 1)\n      (by linarith [Real.neg_one_le_cos (θ i)] : 0 ≤ 1 + Real.cos (θ i))\n    nlinarith\n  have heigenpos (i : Fin d) : 0 < eigenvalue i := by linarith [heigenlower i]\n  have heigenne (i : Fin d) : eigenvalue i ≠ 0 := ne_of_gt (heigenpos i)\n  have hΛpos : Λ.PosDef := Matrix.PosDef.diagonal heigenpos\n  have hinv : Λ⁻¹ = Matrix.diagonal (fun i => (eigenvalue i)⁻¹) := by\n    apply Matrix.inv_eq_left_inv\n    change Matrix.diagonal (fun i => (eigenvalue i)⁻¹) * Matrix.diagonal eigenvalue = 1\n    ext i j\n    by_cases hij : i = j\n    · subst j\n      simp [heigenne]\n    · simp [hij]\n  have hcoordL2 (i : Fin d) : MemLp (fun x : EuclideanSpace ℝ (Fin d) => x i) 2 μ :=\n    IsGaussian.memLp_dual μ (EuclideanSpace.proj i) 2 (by simp)\n  have hcoordint (i : Fin d) :\n      Integrable (fun x : EuclideanSpace ℝ (Fin d) => (x i) ^ 2) μ :=\n    (hcoordL2 i).integrable_sq\n  have hmean (i : Fin d) : (∫ x : EuclideanSpace ℝ (Fin d), x i ∂μ) = 0 := by\n    calc\n      _ = (EuclideanSpace.proj i) (∫ x : EuclideanSpace ℝ (Fin d), x ∂μ) :=\n        (EuclideanSpace.proj (𝕜 := ℝ) i).integral_comp_comm\n          (μ := μ) (φ := fun x : EuclideanSpace ℝ (Fin d) => x)\n          IsGaussian.integrable_fun_id\n      _ = 0 := by simp [μ]\n  have hmoment (i : Fin d) :\n      (∫ x : EuclideanSpace ℝ (Fin d), (x i) ^ 2 ∂μ) = (eigenvalue i)⁻¹ := by\n    have hentry : (Λ⁻¹ : Matrix (Fin d) (Fin d) ℝ) i i = (eigenvalue i)⁻¹ := by\n      rw [hinv]\n      simp\n    have hv : Var[fun x : EuclideanSpace ℝ (Fin d) => x i; μ] = (eigenvalue i)⁻¹ :=\n      (variance_eval_multivariateGaussian (μ := (0 : EuclideanSpace ℝ (Fin d)))\n        hΛpos.inv.posSemidef i).trans hentry\n    rw [variance_eq_integral (hcoordL2 i).aemeasurable] at hv\n    simpa only [hmean, sub_zero] using hv\n  have hnorm : (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) =\n      (fun x => ∑ i : Fin d, (x i) ^ 2) :=\n    funext EuclideanSpace.real_norm_sq_eq\n  have hnormint : Integrable (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) μ := by\n    rw [hnorm]\n    exact integrable_finsetSum _ (fun i _ => hcoordint i)\n  have hQint : Integrable Q μ :=\n    integrable_finsetSum _ (fun i _ => (hcoordint i).const_mul _)\n  refine ⟨hnormint, hQint, ?_, ?_⟩\n  · rw [hnorm, integral_finsetSum _ (fun i _ => hcoordint i)]\n    exact Finset.sum_congr rfl (fun i _ => hmoment i)\n  · change (∫ x : EuclideanSpace ℝ (Fin d),\n      ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (x i) ^ 2 ∂μ) = _\n    rw [integral_finsetSum _ (fun i _ => (hcoordint i).const_mul _)]\n    apply Finset.sum_congr rfl\n    intro i _\n    rw [integral_const_mul, hmoment]\n    exact (div_eq_mul_inv _ _).symm\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGaussianMoments\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A3.Ex140",
+      "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "A3.SS3.p4.1/A3.Ex140; standing family S4.SS1.p1.1/S4.E11; actual law and integer range S4.Thmtheorem5.p1.1. Private Gaussian alias-series precursor A3.SS3.p4.2,p6.1/A3.Ex144.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+      "scope": "Two actual Gaussian means reduced to reciprocal grid sums, with implicit integrability made explicit as outputs. The private consumer gives the Gaussian alias-supported series, not closed FactC8 or full Lemma4.5."
+    },
+    "statement": "Under the actual centered Gaussian with diagonal inverse-precision covariance, the squared norm and cosine quadratic form have the reciprocal-spectrum means below. Both integrands are integrable. \\mathbb E\\|U\\|^2=\\sum_{i=1}^{d}\\lambda_i^{-1},\\qquad\\mathbb E[U^\\top D_nU]=\\sum_{i=1}^{d}\\frac{\\cos(n\\theta_i)}{\\lambda_i}. Fix integers \\(d\\ge2\\) and \\(1\\le n<d\\), and a real parameter \\(\\kappa\\ge2\\). Lean represents the positive integer mode by a natural number with these exact bounds. For \\(i=1,\\ldots,d\\), set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). The Lean index is \\(i\\in\\mathrm{Fin}\\,d\\), so its angle is \\((i.\\mathrm{val}+1/2)\\pi/d\\). Let \\(U\\sim N(0,\\Lambda^{-1})\\) in real Euclidean space and \\(D_n=\\operatorname{diag}(\\cos(n\\theta_i))\\). The measure is literally \\(\\mathrm{multivariateGaussian}\\,0\\,\\Lambda^{-1}\\); its matrix argument is covariance, while \\(\\Lambda\\) is precision. The displayed quadratic form has coordinate presentation \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\): multiplication by a diagonal matrix scales its ith coordinate, and the dot product then gives this sum. No arbitrary law, covariance witness or moment certificate is supplied.",
+    "formulae": [
+      {
+        "label": "Actual Gaussian expectation-to-grid means",
+        "tex": "\\mathbb E\\|U\\|^2=\\sum_{i=1}^{d}\\lambda_i^{-1},\\qquad\\mathbb E[U^\\top D_nU]=\\sum_{i=1}^{d}\\frac{\\cos(n\\theta_i)}{\\lambda_i}."
+      }
+    ],
+    "assumptions": [
+      "Fix integers \\(d\\ge2\\) and \\(1\\le n<d\\), and a real parameter \\(\\kappa\\ge2\\). Lean represents the positive integer mode by a natural number with these exact bounds.",
+      "For \\(i=1,\\ldots,d\\), set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). The Lean index is \\(i\\in\\mathrm{Fin}\\,d\\), so its angle is \\((i.\\mathrm{val}+1/2)\\pi/d\\).",
+      "Let \\(U\\sim N(0,\\Lambda^{-1})\\) in real Euclidean space and \\(D_n=\\operatorname{diag}(\\cos(n\\theta_i))\\). The measure is literally \\(\\mathrm{multivariateGaussian}\\,0\\,\\Lambda^{-1}\\); its matrix argument is covariance, while \\(\\Lambda\\) is precision.",
+      "The displayed quadratic form has coordinate presentation \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\): multiplication by a diagonal matrix scales its ith coordinate, and the dot product then gives this sum. No arbitrary law, covariance witness or moment certificate is supplied."
+    ],
+    "obligations": [
+      {
+        "id": "actual-norm-mean",
+        "label": "Actual Gaussian squared-norm mean is the reciprocal spectrum sum."
+      },
+      {
+        "id": "actual-cosine-quadratic-mean",
+        "label": "Actual cosine quadratic mean is the weighted reciprocal spectrum sum."
+      },
+      {
+        "id": "actual-integrability",
+        "label": "Both actual Gaussian integrands are integrable."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGaussianMoments.actual_diagonal_gaussian_quadratic_means",
+      "title": "Actual Gaussian quadratic means on the cosine spectrum",
+      "reader_note": "The two expectation identities appear first. Parameters, actual measure, formula proof and exact Lean are folded beside them.",
+      "statement": "Under the actual centered Gaussian with diagonal inverse-precision covariance, the squared norm and cosine quadratic form have the reciprocal-spectrum means below. Both integrands are integrable.",
+      "formula": "\\mathbb E\\|U\\|^2=\\sum_{i=1}^{d}\\lambda_i^{-1},\\qquad\\mathbb E[U^\\top D_nU]=\\sum_{i=1}^{d}\\frac{\\cos(n\\theta_i)}{\\lambda_i}.",
+      "assumptions": [
+        "Fix integers \\(d\\ge2\\) and \\(1\\le n<d\\), and a real parameter \\(\\kappa\\ge2\\). Lean represents the positive integer mode by a natural number with these exact bounds.",
+        "For \\(i=1,\\ldots,d\\), set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). The Lean index is \\(i\\in\\mathrm{Fin}\\,d\\), so its angle is \\((i.\\mathrm{val}+1/2)\\pi/d\\).",
+        "Let \\(U\\sim N(0,\\Lambda^{-1})\\) in real Euclidean space and \\(D_n=\\operatorname{diag}(\\cos(n\\theta_i))\\). The measure is literally \\(\\mathrm{multivariateGaussian}\\,0\\,\\Lambda^{-1}\\); its matrix argument is covariance, while \\(\\Lambda\\) is precision.",
+        "The displayed quadratic form has coordinate presentation \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\): multiplication by a diagonal matrix scales its ith coordinate, and the dot product then gives this sum. No arbitrary law, covariance witness or moment certificate is supplied."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(\\mu,\\ M,\\ \\mu_n\\)",
+          "text": "The fixed Gaussian measure and its two genuine integrals; neither integrand is defined to equal a deterministic sum.",
+          "formula": "\\mu=N(0,\\Lambda^{-1}),\\quad M=\\int\\|x\\|^2\\,d\\mu,\\quad\\mu_n=\\int Q(x)\\,d\\mu."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Establish the intended inverse-precision domain",
+          "text": "The cosine lower bound and κ≥2 give λ_i≥1. Thus Λ is positive definite. Multiplying the diagonal reciprocal matrix by Λ gives the identity, which proves the actual matrix inverse formula. This avoids relying on the totalized inverse outside its invertible domain; the covariance is positive definite as well.",
+          "formula": "\\lambda_i\\ge\\frac{\\kappa+1}{2}-\\frac{\\kappa-1}{2}=1,\\qquad\\Lambda^{-1}=\\operatorname{diag}(\\lambda_i^{-1})\\succ0.",
+          "lean": "heigenlower/heigenpos produce positivity from Real.neg_one_le_cos. hΛpos uses Matrix.PosDef.diagonal, and hΛpos.inv.posSemidef supplies the covariance API domain. hinv uses Matrix.inv_eq_left_inv and an actual diagonal multiplication identity, with heigenne discharging every cancellation."
+        },
+        {
+          "title": "Obtain actual Gaussian coordinate second moments",
+          "text": "Coordinate projections are continuous linear functionals of the fixed Gaussian measure, so each belongs to L². Its mean is zero by commuting the projection with the vector integral. Mathlib evaluates its variance as the diagonal covariance entry. Centering therefore identifies the actual second moment with λ_i⁻¹.",
+          "formula": "\\mathbb E U_i=0,\\qquad U_i\\in L^2,\\qquad\\mathbb E U_i^2=\\operatorname{Var}(U_i)=(\\Lambda^{-1})_{ii}=\\lambda_i^{-1}.",
+          "lean": "hcoordL2 calls IsGaussian.memLp_dual for EuclideanSpace.proj. hmean uses ContinuousLinearMap.integral_comp_comm and integral_id_multivariateGaussian. hmoment uses variance_eval_multivariateGaussian, variance_eq_integral, the zero mean and hinv. hcoordint is the produced integrability of each coordinate square."
+        },
+        {
+          "title": "Integrate the two finite coordinate sums",
+          "text": "The Euclidean norm squared is the sum of coordinate squares. Q is the literal finite diagonal quadratic sum defined above. Finite sums and constant multiples of integrable functions are integrable; finite integral linearity and the coordinate second moments give both means. No independence or fourth moments are needed here.",
+          "formula": "\\|x\\|^2=\\sum_i x_i^2,\\quad Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2,\\quad\\int\\sum_i c_ix_i^2\\,d\\mu=\\sum_i c_i\\int x_i^2\\,d\\mu.",
+          "lean": "hnorm is EuclideanSpace.real_norm_sq_eq. hnormint and hQint use integrable_finsetSum and Integrable.const_mul, then integral_finsetSum and integral_const_mul justify the two actual Bochner integral equalities. The source-domain hd/hn/hnd remain in the exact sealed interface even though this analytic proof works for a larger range."
+        },
+        {
+          "title": "Pass the actual Gaussian mean to the cosine expansion",
+          "text": "For the private consumer, define r and the integer alias coefficient beside the series below. The new producer first supplies Q-integrability and the actual Gaussian expectation-to-grid identity. C7 supplies the normalized reciprocal spectrum and absolute convergence at each grid point. Since the cosine weight has absolute value at most one, the weighted series is summable and the finite grid sum can be exchanged with it.",
+          "formula": "\\begin{gathered}r=\\frac{\\sqrt\\kappa-1}{\\sqrt\\kappa+1},\\quad A_d(k)=\\begin{cases}(-1)^{k/(2d)},&2d\\mid k,\\\\0,&2d\\nmid k,\\end{cases}\\quad k\\in\\mathbb Z,\\\\\\mu_n=\\mathbb E Q(U)=\\frac1{\\sqrt\\kappa}\\left[\\sum_i\\cos(n\\theta_i)+2\\sum_{j\\ge1}(-r)^j\\sum_i\\cos(n\\theta_i)\\cos(j\\theta_i)\\right].\\end{gathered}",
+          "lean": "The private actual_gaussian_cosine_alias_series calls actual_diagonal_gaussian_quadratic_means in hactual; its integrability and expectation equality are used in the final result. Canonical actual_inverse_spectrum_cosine_expansion supplies heq/habs. hmajor/hsgnorm prove weighted absolute convergence and Summable.tsum_finsetSum is the scalar finite-grid exchange, separate from the Gaussian finite-integral linearity above."
+        },
+        {
+          "title": "Evaluate the two signed alias modes",
+          "text": "The range 1≤n<d makes the constant grid mode zero. Product-to-sum and the all-integer midpoint alias identity evaluate the remaining two inner sums. Each contributes d times A_d, giving the displayed factor d/√κ. Summability of the supported series is produced. In Lean j≥1 is represented by Nat j+1, cast to Int before subtracting n, so negative shifted modes remain intact.",
+          "formula": "\\mathbb E Q(U)=\\frac d{\\sqrt\\kappa}\\sum_{j\\ge1}(-r)^j\\bigl[A_d(j-n)+A_d(j+n)\\bigr],\\qquad\\sum_{j\\ge1}\\left|(-r)^j\\bigl[A_d(j-n)+A_d(j+n)\\bigr]\\right|<\\infty.",
+          "lean": "hcos calls canonical actual_midpoint_grid_cosine_alias at n and at both integer shifts. hnnon/hzero discharge the low-mode guard, hprod is product-to-sum, and hterm proves 2G_j=dF_j. hFpoint transports summability to F and hseries/hexchange finish the equality. The compiled private consumer has exactly the new Gaussian means, C7 and GridAlias as public ASTIS parents after generated auxiliaries are expanded."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Matrix.PosDef.diagonal",
+        "Matrix.PosDef.inv",
+        "Matrix.inv_eq_left_inv",
+        "IsGaussian.memLp_dual",
+        "MeasureTheory.MemLp.integrable_sq",
+        "ContinuousLinearMap.integral_comp_comm",
+        "ProbabilityTheory.integral_id_multivariateGaussian",
+        "ProbabilityTheory.variance_eval_multivariateGaussian",
+        "ProbabilityTheory.variance_eq_integral",
+        "EuclideanSpace.real_norm_sq_eq",
+        "MeasureTheory.integrable_finsetSum",
+        "MeasureTheory.integral_finsetSum",
+        "MeasureTheory.integral_const_mul",
+        "Real.neg_one_le_cos"
+      ],
+      "lean_statement": "Exactly the sealed d>=2, κ>=2, Nat mode1<=n<d; literal midpoint spectrum, diagonal precision, actual multivariateGaussian covariance Λ inverse and coordinate Q. Both integrability facts and both expectation identities are conclusions.",
+      "lean_proof": "Positive diagonal and actual inverse are internal. Actual Gaussian L², centering and covariance produce coordinate moments; finite integral linearity gives both means. The private consumer materially joins this new node to canonical C7 and all-integer GridAlias.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex140",
+          "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "A3.SS3.p4.1/A3.Ex140; standing family S4.SS1.p1.1/S4.E11; actual law and integer range S4.Thmtheorem5.p1.1. Private Gaussian alias-series precursor A3.SS3.p4.2,p6.1/A3.Ex144.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+          "scope": "Two actual Gaussian means reduced to reciprocal grid sums, with implicit integrability made explicit as outputs. The private consumer gives the Gaussian alias-supported series, not closed FactC8 or full Lemma4.5.",
+          "label": "Zhou–Suzuki Appendix C.3 actual Gaussian moments and alias-series use"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumGaussianMoments"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGaussianMoments.actual_diagonal_gaussian_quadratic_means",
+      "role": "proof-edge",
+      "supports": [
+        "actual-norm-mean",
+        "actual-cosine-quadratic-mean",
+        "actual-integrability"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "d>=2, κ>=2 and positive integer1<=n<d in the literal hard family.",
+        "lean": "Exactly d:Nat, hd:2<=d, κ:Real, hκ:2<=κ, n:Nat, hn:1<=n, hnd:n<d."
+      },
+      {
+        "source": "U~N(0,Λ^-1), with Λ the diagonal cosine precision; M=E||U||² and μ_n=E[U^T D_n U].",
+        "lean": "Literal multivariateGaussian0 Λ^-1 on real Euclidean space; actual norm² and coordinate presentation Q=Σcos(nθ_i)x_i²."
+      },
+      {
+        "source": "Since E U_i²=1/λ_i, finite sums give Ex140.",
+        "lean": "Both integrability facts are outputs; coordinate L², zero mean, covariance and actual finite-integral linearity are proved inside."
+      },
+      {
+        "source": "C7 and the finite cosine aliases yield the weighted μ_n series before the tail resummations.",
+        "lean": "Private actual Gaussian Q-integrability and integral alias-series equality, with Summable produced and Int subtraction before evaluating shifts."
+      }
+    ]
+  }
+}

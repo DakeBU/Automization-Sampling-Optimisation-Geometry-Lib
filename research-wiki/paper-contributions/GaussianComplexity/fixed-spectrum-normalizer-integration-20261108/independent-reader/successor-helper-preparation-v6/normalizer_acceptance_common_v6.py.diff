@@ -1,0 +1,110 @@
+--- .astis/huanjian-gc-fixed-spectrum-normalizer-integration-20261108/independent-reader/normalizer_acceptance_common_v2.py
++++ .astis/huanjian-gc-fixed-spectrum-normalizer-integration-20261108/independent-reader/normalizer_acceptance_common_v6.py
+@@ -5,7 +5,7 @@
+ R=Path('/Users/zhouhuanjian/ASTIS-GC')
+ S=R/'.astis/huanjian-gc-fixed-spectrum-normalizer-integration-20261108/independent-reader'
+ O=R/'research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-normalizer-integration-20261108/independent-reader'
+-P=O/'proposal-v2'
++P=O/'proposal-v3'
+ ACTOR='/root/norm_integration_reader'
+ ADV='ASTIS-SA-20261108-GaussianComplexityFixedSpectrumNormalizer'
+ OWNER='huanjian_gc_20261108_fixed_spectrum_normalizer'
+@@ -18,10 +18,18 @@
+ GPD='AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef'
+ PARENTS=[ADMISS,DET,GPD]
+ CONSUMER=PARENTS+[DECL]
+-REPORT_SHA='64b266f7c9f9bbd3cfe6421346022c78f2f841ab5122d8b1e6dee64288cc3920'
+-FREEZE_SHA='cb1f1630c6877efb3c48cccd5bb0f2e8c1439ef4e7db8dc30c9abab745738927'
++REPORT_SHA='6b86afe6caeaf8e1cc83fc782b1221c7b316edfa20f2439cd204d840da4bc87a'
++FREEZE_SHA='3b31e3d6e2dc762d0f8628766f1485e4d15bc7f87f5db73922e30a28a75960a8'
+ AUDIT='research-wiki/semantic-roundtrip/audits/huanjian-fixed-spectrum-normalizer.json'
+-CHECKER=S/'check_final_reader_v2.py'
++CHECKER=S/'check_final_reader_v6.py'
++CSS_PATH='website/static/information-architecture.css'
++CSS_BEFORE='fff8768ceacf00e973d4170751b75a0bc1e6cd9c16b2765a24e45b22f1aabd3e'
++CSS_AFTER='a41ffd9d41e8c281aa716fcff25e42e5cb8d14208badff456a0dff7dfbb1b766'
++CSS_BEFORE_BLOB='18dd4423e102d6463a1d121f89630c70997a2df6'
++CSS_AFTER_BLOB='ff8d37896a908294fee46ff6a09db700b549c8d1'
++OLD_READER_CORE='c8c157a69aaad4007cb801a781e980a27005bb02'
++CSS_LAYOUT_PROPOSAL={'path': 'research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-normalizer-integration-20261108/independent-reader/mobile-debt-layout-proposal-v6/proposal-report.json', 'sha256': '9e5ace010535e879abafb81ac71e0281c756d84311845d0ad15d2bd0a318eeec'}
++EXACT_C8_METADATA_PINS={'runs/substantive_advances.jsonl': 'd54fb41fe261ff947d84319a8ada83b6ec0db8d45c27ba64f60a3b9d9e820e71', 'runs/substantive_discoveries.jsonl': '6a5a1f0ba4225e15ec2e5826e2774090820185479214eb024caa397f3bf339e6', 'research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-normalizer.json': '6fead305d38586bdbd5d32c2541416509008e7803465a1929bfb7bb3326b479c', 'research-wiki/paper-contributions/GaussianComplexity/README.md': '7833c17d75451ace5ddab23594dbe0a8b2d158c097aef620e33cf594401b3cd8'}
+ HEX64=re.compile(r'[0-9a-f]{64}\Z'); COMMIT=re.compile(r'[0-9a-f]{40}\Z')
+ sha=lambda b:hashlib.sha256(b).hexdigest()
+ canon=lambda x:json.dumps(x,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
+@@ -58,6 +66,13 @@
+  assert HEX64.fullmatch(a['browser_checker_sha256']) and sha(CHECKER.read_bytes())==a['browser_checker_sha256']
+  assert a['source_verifier_to_preserve'] not in (ACTOR,OWNER,'/root')
+  assert a['integration_owner'] not in (ACTOR,a['source_verifier_to_preserve'])
++ assert a['accepted_immutable_core'] != OLD_READER_CORE
++ cmd('git','merge-base','--is-ancestor',OLD_READER_CORE,a['accepted_immutable_core'])
++ assert a['layout_exception_proposal'] == CSS_LAYOUT_PROPOSAL
++ layout=json_ref(CSS_LAYOUT_PROPOSAL)
++ assert layout['path']==CSS_PATH and layout['before_sha256']==CSS_BEFORE and layout['after_sha256']==CSS_AFTER
++ # CSS is excluded by the unchanged source_digest definition; do not invent a new value.
++ assert a['source_digest']=='92a908be0defdf1b5994f5ff4fe8a0e545cdca0f6c229cd1141c36338129bd21'
+  return a,ref
+ def source_lineage(a):
+  adv,_,_=modules();core=a['accepted_immutable_core'];l=a['source_lineage'];checked=l['checked_commit'];first=l['source_V_first_commit'];accepted=l['accepted_audit_first_commit']
+@@ -103,19 +118,30 @@
+   assert now==expected;counts[path]=len(now)
+  protected=json.loads(unpack(p['protected_foreign_content']))
+  for path,row in protected.items():
+-  q=R/path;raw=os.fsencode(os.readlink(q)) if q.is_symlink() else q.read_bytes();assert sha(raw)==row['sha256'] and len(raw)==row['bytes'],path
++  q=R/path;raw=os.fsencode(os.readlink(q)) if q.is_symlink() else q.read_bytes()
++  if path==CSS_PATH:
++   layout=json_ref(CSS_LAYOUT_PROPOSAL)
++   assert row['sha256']==CSS_BEFORE and row['bytes']==layout['before_archive']['raw_bytes']
++   assert unpack(layout['before_archive'])==gitraw(OLD_READER_CORE,CSS_PATH)
++   assert raw==unpack(layout['after_archive'])==gitraw(core,CSS_PATH) and sha(raw)==CSS_AFTER
++  else:assert sha(raw)==row['sha256'] and len(raw)==row['bytes'],path
+  current={}
+  for line in cmd('git','ls-files','--stage','-z').split(b'\0'):
+   if line:
+    md,path=line.split(b'\t',1);mode,blob,stage=md.decode().split();assert stage=='0';current[os.fsdecode(path)]=[mode,blob]
+- for path,row in json.loads(unpack(p['protected_git_objects'])).items():assert current.get(path)==row,path
++ for path,row in json.loads(unpack(p['protected_git_objects'])).items():
++  if path==CSS_PATH:
++   assert row==['100644',CSS_BEFORE_BLOB] and current.get(path)==['100644',CSS_AFTER_BLOB]
++  else:assert current.get(path)==row,path
++ for path,digest in EXACT_C8_METADATA_PINS.items():
++  assert sha((R/path).read_bytes())==digest and gitraw(core,path)==(R/path).read_bytes(),path
+  for field in ['foreign_frontiers','older_GaussianComplexity_evidence']:
+   for path,digest in json.loads(unpack(p[field])).items():assert sha((R/path).read_bytes())==digest,path
+  expectedfrontiers=json.loads(unpack(p['foreign_frontiers']))
+  currentfrontiers={rel(q):sha(q.read_bytes()) for q in (R/'research-wiki/frontier-cells').glob('*.json') if q.stem!=CELL}
+  assert currentfrontiers==expectedfrontiers
+  atlas=(R/'.atlas-upstream').stat();expected=p['untracked_Atlas'];assert (atlas.st_dev,atlas.st_ino,atlas.st_mtime_ns)==(expected['device'],expected['inode'],expected['mtime_ns'])
+- return {'six_after_payloads_exact':True,'foreign_counts':counts,'all442_old_frontiers_and_older_GC_evidence_preserved':True,'all_foreign_tracked_bytes_preserved':True,'models_unchanged':p['unchanged_models'],'GPD_source_publication_debt_preserved':True,'README_protected':p['README_preservation']}
++ return {'six_after_payloads_exact':True,'foreign_counts':counts,'all442_old_frontiers_and_older_GC_evidence_preserved':True,'all_foreign_tracked_bytes_preserved':False,'all_other_foreign_tracked_bytes_preserved':True,'qualified_exact_one_line_layout_exception':{'path':CSS_PATH,'before_sha256':CSS_BEFORE,'after_sha256':CSS_AFTER,'before_blob':CSS_BEFORE_BLOB,'after_blob':CSS_AFTER_BLOB,'proposal':CSS_LAYOUT_PROPOSAL},'all443_frontier_bytes_preserved':True,'all_c8_ledger_and_README_bytes_preserved':True,'models_unchanged':p['unchanged_models'],'GPD_source_publication_debt_preserved':True,'README_protected':p['README_preservation']}
+ def authorized_context(a):return {'sourceV_lineage':source_lineage(a),'protection':protections(a)}
+ def actual_checks(a):
+  _,_,site=modules();core=a['accepted_immutable_core'];gate=json_ref(a['actual_gate']);meta=json_ref(a['site_metadata'])
+@@ -145,6 +171,14 @@
+    names.add(f'actual-{w}-{n}.png')
+   for n in [f'case-boundary-{w}',f'source-index-{w}',*[f'canonical-parent{i}-{w}-graph-native-parent-click' for i in range(1,4)],f'canonical-Gaussian-{w}-graph-focused',f'canonical-GPD-{w}-debt-card',f'existing-conceptual-{w}-unchanged']:names.add(n+'.png')
+  assert len(names)==46;return names
++def validate_ordinary_bounds(g,width):
++ assert g['viewport_width']==width and g['viewport_height'] in (844,1000)
++ for key in ['article','paragraph']:
++  box=g[key];assert box['left']>=-1 and box['right']<=width+1 and box['width']>0
++ assert g['text_rects'] and g['vertical_scope']=='Full warning paragraph; whole article remains vertically scrollable.'
++ for box in g['text_rects']:
++  assert box['left']>=-1 and box['right']<=width+1
++  assert box['top']>=g['unobscured_top']-1 and box['bottom']<=g['viewport_height']+1
+ def browser_evidence(a):
+  b=json_ref(a['browser_report']);p=resolve(a['browser_report']['path']);assert p.name=='report.json' and p.parent.is_relative_to(S/'browser')
+  assert b['status']=='passed' and b['errors']==[] and b['head']==b['actual_gate_commit']==b['site_commit']==a['accepted_immutable_core']
+@@ -159,6 +193,13 @@
+   else:assert re.fullmatch(r'https://github\.com/[^/]+/[^/]+/blob/'+a['accepted_immutable_core']+r'/AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumNormalizer\.lean#L\d+(?:-L\d+)?',link)
+  assert len(b['visible_source_index_clicks'])==2 and all(x['actual_click'] for x in b['visible_source_index_clicks'])
+  assert len(b['GPD_debt_cards'])==2 and all(x['actual_visible_warning_checked'] and x['native_canonical_reader_click'] and x['native_inventory_card_click'] for x in b['GPD_debt_cards'])
++ assert b['site_layout_css_sha256']==CSS_AFTER and b['input_pins'][CSS_PATH]==CSS_AFTER
++ for row in b['GPD_debt_cards']:validate_ordinary_bounds(row['ordinary_prose_bounds'],row['width'])
++ assert len(b['old_long_Lean_layout_regressions'])==2 and {r['width'] for r in b['old_long_Lean_layout_regressions']}=={1440,390}
++ for row in b['old_long_Lean_layout_regressions']:
++  assert row['declaration']=='AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity.normalized_density_tv_affinity' and row['native_learner_and_summary_clicks']
++  validate_ordinary_bounds(row['ordinary_prose_bounds'],row['width'])
++  assert row['long_Lean_code_lines']>=100 and row['local_code_geometry']['client_width']<=row['width']
+  assert len(b['screenshots'])==46 and {x['file'] for x in b['screenshots']}==expected_png_names()=={x.name for x in p.parent.glob('*.png')}
+  images=[]
+  for row in b['screenshots']:

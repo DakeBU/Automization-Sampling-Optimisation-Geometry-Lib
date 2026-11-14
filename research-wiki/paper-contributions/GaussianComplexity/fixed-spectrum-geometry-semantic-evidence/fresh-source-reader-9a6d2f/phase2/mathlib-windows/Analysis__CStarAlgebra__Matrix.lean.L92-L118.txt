@@ -1,0 +1,27 @@
+namespace Matrix
+open LinearMap
+
+variable [RCLike 𝕜]
+variable [Fintype m] [Fintype n] [DecidableEq n] [Fintype l] [DecidableEq l]
+
+/-- The natural star algebra equivalence between matrices and continuous linear endomorphisms
+of Euclidean space induced by the orthonormal basis `EuclideanSpace.basisFun`.
+
+This is a more-bundled version of `Matrix.toEuclideanLin`, for the special case of square matrices,
+followed by a more-bundled version of `LinearMap.toContinuousLinearMap`. -/
+def toEuclideanCLM :
+    Matrix n n 𝕜 ≃⋆ₐ[𝕜] (EuclideanSpace 𝕜 n →L[𝕜] EuclideanSpace 𝕜 n) :=
+  toMatrixOrthonormal (EuclideanSpace.basisFun n 𝕜) |>.symm.trans <|
+    { toContinuousLinearMap with
+      map_mul' := fun _ _ ↦ rfl
+      map_star' := adjoint_toContinuousLinearMap }
+
+lemma coe_toEuclideanCLM_eq_toEuclideanLin (A : Matrix n n 𝕜) :
+    (toEuclideanCLM (n := n) (𝕜 := 𝕜) A : _ →ₗ[𝕜] _) = toEuclideanLin A :=
+  rfl
+
+@[simp]
+lemma toEuclideanCLM_toLp (A : Matrix n n 𝕜) (x : n → 𝕜) :
+    toEuclideanCLM (n := n) (𝕜 := 𝕜) A (toLp _ x) = toLp _ (A *ᵥ x) := rfl
+
+@[simp]

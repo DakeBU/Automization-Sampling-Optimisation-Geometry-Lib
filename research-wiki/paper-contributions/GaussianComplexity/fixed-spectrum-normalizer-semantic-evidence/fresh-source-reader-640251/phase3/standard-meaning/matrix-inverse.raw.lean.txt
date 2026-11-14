@@ -1,0 +1,12 @@
+/-- The inverse of a square matrix, when it is invertible (and zero otherwise). -/
+noncomputable instance inv : Inv (Matrix n n α) :=
+  ⟨fun A => A.det⁻¹ʳ • A.adjugate⟩
+
+theorem inv_def (A : Matrix n n α) : A⁻¹ = A.det⁻¹ʳ • A.adjugate :=
+  rfl
+
+theorem nonsing_inv_apply_not_isUnit (h : ¬IsUnit A.det) : A⁻¹ = 0 := by
+  rw [inv_def, Ring.inverse_non_unit _ h, zero_smul]
+
+theorem nonsing_inv_apply (h : IsUnit A.det) : A⁻¹ = (↑h.unit⁻¹ : α) • A.adjugate := by
+  rw [inv_def, ← Ring.inverse_unit h.unit, IsUnit.unit_spec]

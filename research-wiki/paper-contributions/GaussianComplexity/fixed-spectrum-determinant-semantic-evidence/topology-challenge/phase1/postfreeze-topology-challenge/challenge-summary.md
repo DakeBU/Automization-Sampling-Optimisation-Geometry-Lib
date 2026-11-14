@@ -1,0 +1,5 @@
+The raw graph preserves every substantive C.4 clause and the correct determinant-versus-Gaussian-integral ancestry. No false AND, determinant-sign restriction, or lower-bound parameter leakage was found. Three final-packet follow-ups remain: add the diagonal-determinant finite-product bridge required by the sealed conclusion; explicitly cover or exclude the supporting conditional-Haar definition μ_{n,b}; remove or account for the unscoped S1.p1.1 anchor used by Z-meaning.
+
+The independent raw parser found no missing p/table/math ID in the inventoried roots, while semantic review still found the conditional-Haar clause issue. This illustrates why locator/DOM completeness is not semantic coverage. All20 raw paragraph/display regions were independently reread, and all five root closures were traced. No extractor rationale, structural verdict, implementation or target API/proof was read.
+
+This checkpoint is not final topology or preproof admission. It stops awaiting the exact extractor phase2 graph, coverage and sealed-type matching. The same-A density consumer remains planned and unaudited.

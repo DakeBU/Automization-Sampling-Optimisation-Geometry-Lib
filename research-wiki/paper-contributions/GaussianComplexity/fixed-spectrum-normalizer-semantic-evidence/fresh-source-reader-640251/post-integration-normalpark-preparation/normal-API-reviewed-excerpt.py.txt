@@ -1,0 +1,163 @@
+ALLOWED_ADVANCE_TRANSITIONS: dict[str, frozenset[str]] = {
+    "PROPOSED": frozenset({"CLAIMED", "BLOCKED", "QUARANTINED"}),
+    "CLAIMED": frozenset({"EXPLORING", "BLOCKED", "QUARANTINED"}),
+    "EXPLORING": frozenset({"PROVED_LOCAL", "BLOCKED", "QUARANTINED"}),
+    "PROVED_LOCAL": frozenset({"VERIFIED", "EXPLORING", "BLOCKED", "QUARANTINED"}),
+    "VERIFIED": frozenset({"STABILIZING", "EXPLORING", "BLOCKED", "QUARANTINED"}),
+    "STABILIZING": frozenset({"MERGED", "VERIFIED", "BLOCKED", "QUARANTINED"}),
+    "BLOCKED": frozenset({"CLAIMED", "EXPLORING", "QUARANTINED"}),
+    "QUARANTINED": frozenset(),
+
+def _validate_transition_evidence(
+    to_state: str, evidence: dict[str, Any], *, schema_version: int
+) -> None:
+    if to_state == "PROVED_LOCAL":
+        required = ("theorem_delta", "lean_files", "focused_checks", "truth_boundary")
+        if schema_version >= 2:
+            required += ("result_kind", "lean_declarations")
+        if schema_version >= 3:
+            required += ("conceptual_mirror_audit",)
+        if schema_version >= 4:
+            required += ("publication_declarations",)
+        missing = [key for key in required if not _meaningful(evidence.get(key))]
+        if missing:
+            raise HarnessError("PROVED_LOCAL lacks evidence: " + ", ".join(missing))
+        if schema_version >= 2 and evidence.get("result_kind") not in SUBSTANTIVE_RESULT_KINDS:
+            raise HarnessError(
+                "PROVED_LOCAL result_kind must be one of: "
+                + ", ".join(sorted(SUBSTANTIVE_RESULT_KINDS))
+            )
+        if schema_version >= 3:
+            _validate_conceptual_mirror_audit(evidence.get("conceptual_mirror_audit"))
+        if schema_version >= 4 and set(evidence['publication_declarations']) != set(evidence['lean_declarations']):
+            raise HarnessError('publication_declarations must cover exactly the proved Lean declarations')
+    elif to_state == "VERIFIED":
+        required = ("gate",)
+        if schema_version >= 2:
+            required += (
+                "verifier_id",
+                "verified_commit",
+                "source_audit",
+                "fake_closure_scan",
+            )
+        missing = [key for key in required if not _meaningful(evidence.get(key))]
+        if missing:
+            raise HarnessError("VERIFIED lacks evidence: " + ", ".join(missing))
+    elif to_state == "STABILIZING":
+        required = ("canonical_branch", "integration_owner")
+        missing = [key for key in required if not _meaningful(evidence.get(key))]
+        if missing:
+            raise HarnessError("STABILIZING lacks evidence: " + ", ".join(missing))
+
+def transition_advance(
+    advance_id: str,
+    to_state: str,
+    *,
+    worker_id: str,
+    modes: Sequence[str] = (),
+    evidence: dict[str, Any] | None = None,
+    path: Path = DEFAULT_ADVANCE_LEDGER,
+    discovery_path: Path = DEFAULT_DISCOVERY_LEDGER,
+) -> None:
+    _require_text("advance_id", advance_id)
+    _require_text("worker_id", worker_id)
+    if to_state not in ADVANCE_STATES:
+        raise HarnessError(f"unsupported substantive-advance state: {to_state}")
+    evidence = dict(evidence or {})
+    path = path.resolve()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with durable.file_lock(path):
+        records = _recover_unlocked(path)
+        state = _replay_advances(records)
+        if advance_id not in state:
+            raise HarnessError(f"unknown substantive advance: {advance_id}")
+        item = state[advance_id]
+        current = str(item.get("state", ""))
+        if to_state not in ALLOWED_ADVANCE_TRANSITIONS.get(current, frozenset()):
+            raise HarnessError(f"illegal substantive-advance transition: {current} -> {to_state}")
+        schema_version = int(item.get("schema_version", 1))
+        _validate_transition_evidence(to_state, evidence, schema_version=schema_version)
+        if schema_version >= 4 and to_state in {'PROVED_LOCAL', 'VERIFIED', 'STABILIZING'}:
+            # Carry the exact target set through transitions; no prose "site OK" bypass.
+            declarations = evidence.get('publication_declarations') or item.get('publication_declarations')
+            if not declarations:
+                raise HarnessError('publication_declarations required for reader/round-trip gate')
+            if to_state != 'PROVED_LOCAL' and set(declarations) != set(item.get('publication_declarations', [])):
+                raise HarnessError('Cannot change the publication target set after PROVED_LOCAL')
+            try:
+                from tools.astis_publication import check_advance
+            except ImportError:
+                from astis_publication import check_advance
+            try:
+                check_advance(list(declarations), reviewed=to_state != 'PROVED_LOCAL')
+            except ValueError as exc:
+                raise HarnessError(str(exc)) from exc
+        if to_state == "PROVED_LOCAL" and schema_version >= 3:
+            _validate_conceptual_mirror_audit_links(
+                advance_id,
+                evidence["conceptual_mirror_audit"],
+                discovery_path,
+            )
+        _assert_worker_lane_owner(item, current=current, to_state=to_state, worker_id=worker_id)
+
+        if schema_version >= 2 and current == "BLOCKED" and to_state == "EXPLORING":
+            raise HarnessError(
+                "a BLOCKED v2+ advance must be re-CLAIMED before EXPLORING"
+            )
+
+        if schema_version >= 2 and current == "VERIFIED" and to_state == "EXPLORING":
+            owner_id = str(item.get("owner_id", ""))
+            if owner_id and worker_id != owner_id:
+                raise HarnessError(
+                    "a VERIFIED advance may return to EXPLORING only through its owning Worker"
+                )
+
+        if to_state == "VERIFIED" and schema_version >= 2:
+            verifier_id = str(evidence.get("verifier_id", ""))
+            if verifier_id != worker_id:
+                raise HarnessError("VERIFIED worker_id must equal evidence.verifier_id")
+            owner_id = str(item.get("owner_id", ""))
+            if owner_id and verifier_id == owner_id:
+                raise HarnessError("VERIFIED must be published by an independent verifier")
+
+        if schema_version >= 2 and current == "STABILIZING" and to_state == "MERGED":
+            integration_owner = str(
+                item.get("latest_evidence", {}).get("integration_owner", "")
+            )
+            if integration_owner and worker_id != integration_owner:
+                raise HarnessError(
+                    "MERGED must be published by the current stabilization owner"
+                )
+
+        if to_state == "STABILIZING":
+            stabilizing = [
+                other
+                for other_id, other in state.items()
+                if other_id != advance_id and other.get("state") == "STABILIZING"
+            ]
+            if stabilizing:
+                owner = stabilizing[0].get("latest_evidence", {}).get(
+                    "integration_owner", "unknown"
+                )
+                raise HarnessError(
+                    "single stabilization lane already occupied "
+                    f"by {stabilizing[0].get('advance_id')} ({owner})"
+                )
+            integration_owner = str(evidence.get("integration_owner", ""))
+            if integration_owner != worker_id:
+                raise HarnessError(
+                    "STABILIZING worker_id must equal the declared integration_owner"
+                )
+
+        _append_unlocked(
+            path,
+            {
+                "schema_version": ADVANCE_SCHEMA_VERSION,
+                "event": "transition",
+                "advance_id": advance_id,
+                "from_state": current,
+                "to_state": to_state,
+                "worker_id": worker_id,
+                "modes": _as_list(modes),
+                "evidence": evidence,
+                "created_at": durable.utc_stamp(),

@@ -1,0 +1,29 @@
+lemma stdGaussian_eq_map_pi_orthonormalBasis (b : OrthonormalBasis ι ℝ E) :
+    stdGaussian E = (Measure.pi fun _ : ι ↦ gaussianReal 0 1).map (fun x ↦ ∑ i, x i • b i) := by
+  have : (fun (x : ι → ℝ) ↦ ∑ i, x i • b i) =
+      ⇑((EuclideanSpace.basisFun ι ℝ).equiv b (Equiv.refl ι)) ∘ (toLp 2) := by
+    simp_rw [← b.equiv_apply_euclideanSpace]
+    rfl
+  rw [this, ← Measure.map_map, map_pi_eq_stdGaussian, stdGaussian_map]
+  all_goals fun_prop
+
+end stdGaussian
+
+section multivariateGaussian
+
+/-! ### Multivariate Gaussian measures over `ℝⁿ` -/
+
+variable [DecidableEq ι]
+
+/-- Multivariate Gaussian measure on `EuclideanSpace ℝ ι` with mean `μ` and covariance
+matrix `S`. This only makes sense when `S` is positive semidefinite,
+as then `CFC.sqrt S * CFC.sqrt S = S`. Otherwise `CFC.sqrt S = 0`, and
+`multivariateGaussian μ S = Measure.dirac μ` (see `multivariateGaussian_of_not_posSemidef`). -/
+noncomputable
+def multivariateGaussian (μ : EuclideanSpace ℝ ι) (S : Matrix ι ι ℝ) :
+    Measure (EuclideanSpace ℝ ι) :=
+  (stdGaussian (EuclideanSpace ℝ ι)).map (fun x ↦ μ + toEuclideanCLM (𝕜 := ℝ) (CFC.sqrt S) x)
+
+lemma multivariateGaussian_of_not_posSemidef (μ : EuclideanSpace ℝ ι) {S : Matrix ι ι ℝ}
+    (hS : ¬ S.PosSemidef) : multivariateGaussian μ S = .dirac μ := by
+  rw [multivariateGaussian, CFC.sqrt, cfcₙ_apply_of_not_predicate]

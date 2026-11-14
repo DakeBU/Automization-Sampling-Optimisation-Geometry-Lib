@@ -1,0 +1,184 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-GAUSSIAN-COMPLEXITY-source-gram-realization",
+  "route": "samplewiki-route",
+  "mode": "faithfulPaper",
+  "title": "Actual centered source Gram realization with eventwise norm consumer",
+  "source_anchor": "arXiv2610.20492v1 C.2 p17 Ex125/126; original experiment, frame, inclusive cutoff and actual mean definitions. Source Bernstein/probabilities excluded.",
+  "target_statement": "    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  ∀ ω : Ω, G ω →\n    ((∑ i : Fin d, Z i ω) =\n      (B ω).transpose * B ω - a •\n        (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)) ∧\n    ((∑ i : Fin d, w i • Z i ω) =\n      (B ω).transpose * Matrix.diagonal w * B ω)\n\nPrivate deterministic actual norm consumer\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  ∀ Δ : ℝ, ∀ ω : Ω, G ω →\n    ((‖∑ i : Fin d, Z i ω‖ ≤ Δ) ∧\n      (‖∑ i : Fin d, w i • Z i ω‖ ≤ Δ)) →\n    ((‖(B ω).transpose * B ω -\n        (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)‖\n        ≤ Δ + (1 - a)) ∧\n      (‖(B ω).transpose * Matrix.diagonal w * B ω‖ ≤ Δ))\n",
+  "status": "claimed",
+  "owner_id": "huanjian_gc_20261113_source_gram_realization",
+  "advance_id": "ASTIS-SA-20261113-GaussianComplexitySourceGramRealization",
+  "parents": [
+    "ASTIS-SW-GAUSSIAN-COMPLEXITY-source-matrix-mean",
+    "ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-cosine-gram"
+  ],
+  "consumers": [
+    "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceGramRealization.actual_source_gram_deviation_bounds"
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Actual target-name and canonical-parent rg scan before intake found no existing public actual centered Gram realization; prior private aggregate-mean consumer retained and not promoted into public API.",
+      "Reuse exact actual source matrix-mean and cosine-frame Gram declarations; literal angle transport is internal, not a new hypothesis or duplicate frame theorem.",
+      "Private norm consumer reuses canonical standard Gaussian norm-square moment and actual retained-radius domination; no supplied bias/range certificate.",
+      "Source-first exact22node/15edge/9gap graph and distinct raw-first challenge cover123source locators plus72node/use-site locators; probabilities remain excluded."
+    ],
+    "classification": "adapt",
+    "decision": "reuse_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations",
+    "canonical_shared_cell": ""
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Actual target-name and canonical-parent rg scan before intake found no existing public actual centered Gram realization; prior private aggregate-mean consumer retained and not promoted into public API.",
+      "Reuse exact actual source matrix-mean and cosine-frame Gram declarations; literal angle transport is internal, not a new hypothesis or duplicate frame theorem.",
+      "Private norm consumer reuses canonical standard Gaussian norm-square moment and actual retained-radius domination; no supplied bias/range certificate.",
+      "Source-first exact22node/15edge/9gap graph and distinct raw-first challenge cover123source locators plus72node/use-site locators; probabilities remain excluded."
+    ],
+    "reused_declarations": [],
+    "planned_existing_P_parents": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram"
+    ],
+    "planned_private_T_parents": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceGramRealization.actual_source_gram_deviation_bounds"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "New actual rectangular Gaussian-feature B/Gram identities materially feed the literal source Gram-deviation norm bounds. Reuse exact mean/frame/moment nodes; no arbitrary B/mean/frame or probability certificates."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "Exact proof-free literal actual B/Gram types and independent source/binder/topology preparation accepted; P/T proof, source fidelity and reader delivery pending."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations"
+    ],
+    "visual_review": "Independent source-only actual Gram graph accepted; no compiled graph or site-runtime claim."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "All proof-free source/formation/port/custody iterations retained. No mathematical route discarded or proof attempted.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "One ROOT mathworker; distinct source extraction and independent topology challenge only.",
+      "shared_verified_context_digest": "7b2f71cf9e89a41da4f66b2b3908222c875cd2fec2f8b2ca6533fe61b3bb3ce9"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "No competing proof routes."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": false,
+      "boundary_preserved": true
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2610.20492v1 rawSHA 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "C.2 p17 Ex125/126",
+    "detail_status": "omitted",
+    "gap": "Actual B tensor/Gram coordinate algebra, inverse-sqrt normalization, actual aggregate mean/frame transport and finite-matrix identity norm are internal obligations, not caller certificates. PrivateDelta generalization explicitly excludes stochastic probability claims.",
+    "consulted": [
+      {
+        "source": "Pinned raw source with independent raw-first SG and distinct TC",
+        "anchor": "Exactv3graph/v3coverage/v2ports and frozen challenge",
+        "hypothesis_adapter": "Solehq/q0, actualoriginalmu/rows/mean/a/B, inclusiveG and actualsame-outcome deviation antecedents preserved."
+      }
+    ],
+    "fidelity_boundary": "Only original-experiment eventwise actual Gram realization on the inclusive all-row good event: sumZi=B^TB-aI and sumwiZi=B^Tdiag(w)B. Private actual Ex126 norm consequence conditions on the same-outcome actual centered-sum deviation event at arbitrary realDelta, discharging a<=1 internally. No probability of that event, Bernstein tail, full FactC6/Lemma4.4/Krylov/mainlowerbound, oracle/TV/precision/cap/cost, publicprivateconsumer API or integration/purification credit."
+  },
+  "statement_seal": {
+    "status": "EXACT_LITERAL_TYPES_FORMED;SOURCE_TYPE_TOPOLOGY_PREPARATION_ACCEPTED;UNPROVED",
+    "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-statement-seal.json",
+    "sha256": "7b2f71cf9e89a41da4f66b2b3908222c875cd2fec2f8b2ca6533fe61b3bb3ce9",
+    "signature_sha256": "0c2de4cd20931d19055e83abbde9acb2b93d65c4cd252df0148377254982a580",
+    "private_consumer_signature_sha256": "5fd6eb29c42885dff8e5341b01cfbcd7d755cb2a5bd02d20c02bc383ec03b662"
+  },
+  "evidence": {
+    "preproof_source_admission": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/preproof-source-admission.json",
+      "sha256": "79a0f11bb7d5d923c79d2996721c029bcf93256b2781cb4b4b1a50c50e0d5120"
+    },
+    "actual_literal_formation": {
+      "receipt": ".astis/huanjian-resume-20261103/20261113T083451243190Z-unclaimed-source-gram-realization-v1-literal-Prop-formation.receipt.json",
+      "receipt_sha256": "c11d7a506af4230cf125830284783eb4413a0addef60bd84ba35928747bea966",
+      "actual_executed_HEAD": "828cf84610dd7bde53cc2cc5525f4f48fa06002d",
+      "exit_code": 0,
+      "log_sha256": "15b6d904cd1c3347b1ffa99146addac4314c044e08f0543b358d23ad802e543c",
+      "kind": "Proof-free literal P/T Prop formation only",
+      "theorem_proofs": 0,
+      "warnings": "hq unused in proposition formation, retained sole source premise. No theorem proof supplied.",
+      "new_SAU_frontier_ledger_calls": 0,
+      "unclaimed_seal_sha256": "7b2f71cf9e89a41da4f66b2b3908222c875cd2fec2f8b2ca6533fe61b3bb3ce9"
+    },
+    "actual_environment": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/actual-environment-before-intake.original.json",
+      "sha256": "6f1b15f28b3fbd2d04b82db25430cd12ca997cb7e22a38205471f8d5613090a5"
+    },
+    "normal_API_calls": 0,
+    "target_proof_calls": 0,
+    "formalizer_API_pristine": false
+  },
+  "blocked": {},
+  "owned_files": [
+    "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+    "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+    "research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-source-gram-realization.json",
+    "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-statement-seal.json",
+    "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-gaussian-source-gram-realization.json",
+    "website/content/publications/huanjian-gaussian-source-gram-realization.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-gaussian-source-gram-realization.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Registry.lean",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json",
+    "website/static/proof-readers.css",
+    "website/static/source-lineage.css"
+  ],
+  "truth_boundary": "Only original-experiment eventwise actual Gram realization on the inclusive all-row good event: sumZi=B^TB-aI and sumwiZi=B^Tdiag(w)B. Private actual Ex126 norm consequence conditions on the same-outcome actual centered-sum deviation event at arbitrary realDelta, discharging a<=1 internally. No probability of that event, Bernstein tail, full FactC6/Lemma4.4/Krylov/mainlowerbound, oracle/TV/precision/cap/cost, publicprivateconsumer API or integration/purification credit.",
+  "conceptual_mirror_audit": {
+    "status": "pending",
+    "discovery_ids": []
+  },
+  "reservation_only": "Source-admitted exact type reservation, no target proof."
+}

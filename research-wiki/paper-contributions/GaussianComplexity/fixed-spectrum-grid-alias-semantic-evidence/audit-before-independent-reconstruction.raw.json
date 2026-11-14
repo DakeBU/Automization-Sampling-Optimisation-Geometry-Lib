@@ -1,0 +1,174 @@
+{
+  "id": "ASTIS-RT-20261109-HuanjianFixedSpectrumGridAlias",
+  "state": "draft",
+  "source": {
+    "source_id": "arxiv2610.20492v1-midpoint-alias",
+    "url": "https://arxiv.org/html/2610.20492v1#A3.Ex139",
+    "anchor": "A3.SS3.p3/A3.Ex139; literal grid S4.E11 and standing d S4.SS1.p1.m3. Private deterministic consumer A3.SS3.p4.2,p6.1/A3.Ex144; n range S4.Thmtheorem5.",
+    "original_text": "Every integer cosine mode on the midpoint grid vanishes except the signed aliases at multiples of twice the dimension. \\sum_{i=1}^{d}\\cos(k\\theta_i)=\\begin{cases}d(-1)^a,&k=2ad,\\ a\\in\\mathbb Z,\\\\0,&k\\notin2d\\mathbb Z.\\end{cases} Fix an integer \\(d\\ge2\\), and set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\) for \\(i=1,\\ldots,d\\). The frequency \\(k\\) is any integer, including zero and negative integers. Lean represents the source grid by \\(i\\in\\mathrm{Fin}\\,d\\) and \\(\\theta(i)=(i.\\mathrm{val}+1/2)\\pi/d\\). In the alias case, \\(a=k/(2d)\\) is the exact integer quotient. Lean uses integer powers of the nonzero real number \\(-1\\), so negative aliases retain their parity. Away from divisibility the coefficient is literally zero. The dimension, literal grid and integer frequency are the complete public inputs. Nonzero sine denominators, divisibility arithmetic and trigonometric identities are discharged inside the proof.",
+    "text_sha256": "e6e32e47c45db7e518ed4f2c24403333444026613ef92efe04cf1f891019f633",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGridAlias.actual_midpoint_grid_cosine_alias",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumGridAlias.lean",
+    "statement": "∀ {d : ℕ} (hd : 2 ≤ d) (k : ℤ),\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  (∑ i : Fin d, Real.cos ((k : ℝ) * θ i)) =\n    (d : ℝ) * (if (2 * (d : ℤ)) ∣ k then\n      (-1 : ℝ) ^ (k / (2 * (d : ℤ))) else 0)\n",
+    "statement_sha256": "08b70068857a73593fab9e27c9ab19aed6b901a163886b41a38798468e92b8e2",
+    "formalizer": "huanjian_gc_20261109_fixed_spectrum_grid_alias",
+    "compiled": true,
+    "decoder_context": [
+      "Fin d is the standard finite index type with values zero through d minus one. Its displayed sum ranges over every index exactly once.",
+      "Real.cos, Real.pi and casts from natural numbers and integers to reals have their standard meanings.",
+      "The divisor and quotient inside the conditional are integers. Divisibility has its standard integer meaning. An exponent of type Int on a real base is the standard integer power, including inverse powers at negative exponents."
+    ]
+  },
+  "reconstruction": {},
+  "semantic_slots": {},
+  "deltas": [],
+  "verdict": "pending",
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "61592fe8185d0b422b28796db4901756b74affca24e557096ab6a818c4f78a43",
+  "publication_context": {
+    "file": "c98c899bd8b596388ae433e9241a7827e01d29c3ffcc945719238fa2e96f7d60",
+    "current_lean_module": "import Mathlib.Analysis.SpecialFunctions.Trigonometric.Complex\nimport Mathlib.Algebra.BigOperators.Fin\nimport Mathlib.Tactic.FieldSimp\nimport Mathlib.Tactic.Linarith\nimport Mathlib.Tactic.NormNum\nimport Mathlib.Tactic.Ring\n\n/-! Exact midpoint-grid cosine aliases, arXiv:2610.20492v1, Appendix C.3,\nparagraph 3 / Ex139. Frequencies are arbitrary integers. The finite-grid\nGaussian expectation identification and closed moment sums are separate steps. -/\n\nopen scoped BigOperators\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGridAlias\n\n/-- The literal midpoint cosine grid vanishes off multiples of `2*d` and\nhas the signed alias value at every multiple, including negative frequencies. -/\ntheorem actual_midpoint_grid_cosine_alias {d : ℕ} (hd : 2 ≤ d) (k : ℤ) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  (∑ i : Fin d, Real.cos ((k : ℝ) * θ i)) =\n    (d : ℝ) * (if (2 * (d : ℤ)) ∣ k then\n      (-1 : ℝ) ^ (k / (2 * (d : ℤ))) else 0) := by\n  classical\n  dsimp only\n  have hd0 : (d : ℝ) ≠ 0 := by exact_mod_cast (show d ≠ 0 by omega)\n  by_cases hk : (2 * (d : ℤ)) ∣ k\n  · rw [if_pos hk]\n    let q : ℤ := k / (2 * (d : ℤ))\n    have hq : k = 2 * (d : ℤ) * q := (Int.mul_ediv_cancel' hk).symm\n    have hqr : (k : ℝ) = 2 * (d : ℝ) * (q : ℝ) := by exact_mod_cast hq\n    have hterm (i : Fin d) :\n        Real.cos ((k : ℝ) * (((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ))) =\n          (-1 : ℝ) ^ q := by\n      have hangle : (k : ℝ) * (((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)) =\n          (q : ℝ) * Real.pi + ((q * (i.val : ℤ) : ℤ) : ℝ) * (2 * Real.pi) := by\n        rw [hqr]\n        push_cast\n        field_simp\n        ring\n      rw [hangle, Real.cos_add_int_mul_two_pi, Real.cos_int_mul_pi]\n    simp_rw [hterm]\n    simp [q]\n  · rw [if_neg hk, mul_zero]\n    let a : ℝ := (k : ℝ) * Real.pi / (d : ℝ)\n    have hsin : Real.sin (a / 2) ≠ 0 := by\n      intro hz\n      obtain ⟨m, hm⟩ := Real.sin_eq_zero_iff.mp hz\n      have hm' : (m : ℝ) = (k : ℝ) / (2 * (d : ℝ)) := by\n        apply mul_right_cancel₀ Real.pi_ne_zero\n        calc\n          (m : ℝ) * Real.pi = a / 2 := hm\n          _ = ((k : ℝ) / (2 * (d : ℝ))) * Real.pi := by dsimp [a]; ring\n      have hreal : (k : ℝ) = (2 * (d : ℝ)) * (m : ℝ) := by\n        rw [hm']\n        field_simp\n      have hint : k = (2 * (d : ℤ)) * m := by exact_mod_cast hreal\n      exact hk ⟨m, hint⟩\n    have hgrid : (∑ i : Fin d,\n        Real.cos ((k : ℝ) * (((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)))) =\n        ∑ i ∈ Finset.range d, Real.cos (a * (i : ℝ) + a / 2) := by\n      rw [← Fin.sum_univ_eq_sum_range]\n      apply Finset.sum_congr rfl\n      intro i _\n      congr 1\n      dsimp [a]\n      ring\n    rw [hgrid]\n    have hsum := Real.sin_mul_sum_cos d a (a / 2)\n    have harg : (d : ℝ) * a / 2 = (k : ℝ) * Real.pi / 2 := by\n      dsimp [a]\n      field_simp\n    have harg' : ((d : ℝ) - 1) * a / 2 + a / 2 = (k : ℝ) * Real.pi / 2 := by\n      calc\n        _ = (d : ℝ) * a / 2 := by ring\n        _ = _ := harg\n    rw [harg, harg'] at hsum\n    have hzero : Real.sin ((k : ℝ) * Real.pi / 2) *\n        Real.cos ((k : ℝ) * Real.pi / 2) = 0 := by\n      have hdouble := Real.sin_two_mul ((k : ℝ) * Real.pi / 2)\n      rw [show 2 * ((k : ℝ) * Real.pi / 2) = (k : ℝ) * Real.pi by ring,\n        Real.sin_int_mul_pi] at hdouble\n      linarith\n    rw [hzero] at hsum\n    exact (mul_eq_zero.mp hsum).resolve_left hsin\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGridAlias\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A3.Ex139",
+      "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "A3.SS3.p3/A3.Ex139; literal grid S4.E11 and standing d S4.SS1.p1.m3. Private deterministic consumer A3.SS3.p4.2,p6.1/A3.Ex144; n range S4.Thmtheorem5.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+      "scope": "Exact all-integer grid identity. Private weighted alias-series use is a deterministic source-proof intermediate; Gaussian expectation identification and closed C8 means are not claimed."
+    },
+    "statement": "Every integer cosine mode on the midpoint grid vanishes except the signed aliases at multiples of twice the dimension. \\sum_{i=1}^{d}\\cos(k\\theta_i)=\\begin{cases}d(-1)^a,&k=2ad,\\ a\\in\\mathbb Z,\\\\0,&k\\notin2d\\mathbb Z.\\end{cases} Fix an integer \\(d\\ge2\\), and set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\) for \\(i=1,\\ldots,d\\). The frequency \\(k\\) is any integer, including zero and negative integers. Lean represents the source grid by \\(i\\in\\mathrm{Fin}\\,d\\) and \\(\\theta(i)=(i.\\mathrm{val}+1/2)\\pi/d\\). In the alias case, \\(a=k/(2d)\\) is the exact integer quotient. Lean uses integer powers of the nonzero real number \\(-1\\), so negative aliases retain their parity. Away from divisibility the coefficient is literally zero. The dimension, literal grid and integer frequency are the complete public inputs. Nonzero sine denominators, divisibility arithmetic and trigonometric identities are discharged inside the proof.",
+    "formulae": [
+      {
+        "label": "All-integer midpoint cosine aliases",
+        "tex": "\\sum_{i=1}^{d}\\cos(k\\theta_i)=\\begin{cases}d(-1)^a,&k=2ad,\\ a\\in\\mathbb Z,\\\\0,&k\\notin2d\\mathbb Z.\\end{cases}"
+      }
+    ],
+    "assumptions": [
+      "Fix an integer \\(d\\ge2\\), and set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\) for \\(i=1,\\ldots,d\\).",
+      "The frequency \\(k\\) is any integer, including zero and negative integers. Lean represents the source grid by \\(i\\in\\mathrm{Fin}\\,d\\) and \\(\\theta(i)=(i.\\mathrm{val}+1/2)\\pi/d\\).",
+      "In the alias case, \\(a=k/(2d)\\) is the exact integer quotient. Lean uses integer powers of the nonzero real number \\(-1\\), so negative aliases retain their parity. Away from divisibility the coefficient is literally zero.",
+      "The dimension, literal grid and integer frequency are the complete public inputs. Nonzero sine denominators, divisibility arithmetic and trigonometric identities are discharged inside the proof."
+    ],
+    "obligations": [
+      {
+        "id": "nonalias-zero",
+        "label": "Every nonmultiple of2d has zero grid cosine sum."
+      },
+      {
+        "id": "signed-alias-value",
+        "label": "Every multiple, including zero and negative frequencies, has exact signed alias value."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGridAlias.actual_midpoint_grid_cosine_alias",
+      "title": "Signed cosine aliases on the midpoint grid",
+      "reader_note": "The finite-grid identity is shown first; parameters, formula proof and exact Lean are folded below.",
+      "statement": "Every integer cosine mode on the midpoint grid vanishes except the signed aliases at multiples of twice the dimension.",
+      "formula": "\\sum_{i=1}^{d}\\cos(k\\theta_i)=\\begin{cases}d(-1)^a,&k=2ad,\\ a\\in\\mathbb Z,\\\\0,&k\\notin2d\\mathbb Z.\\end{cases}",
+      "assumptions": [
+        "Fix an integer \\(d\\ge2\\), and set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\) for \\(i=1,\\ldots,d\\).",
+        "The frequency \\(k\\) is any integer, including zero and negative integers. Lean represents the source grid by \\(i\\in\\mathrm{Fin}\\,d\\) and \\(\\theta(i)=(i.\\mathrm{val}+1/2)\\pi/d\\).",
+        "In the alias case, \\(a=k/(2d)\\) is the exact integer quotient. Lean uses integer powers of the nonzero real number \\(-1\\), so negative aliases retain their parity. Away from divisibility the coefficient is literally zero.",
+        "The dimension, literal grid and integer frequency are the complete public inputs. Nonzero sine denominators, divisibility arithmetic and trigonometric identities are discharged inside the proof."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(S_d(k)\\)",
+          "text": "The unnormalized sum on the actual d-point grid.",
+          "formula": "S_d(k)=\\sum_{i=1}^{d}\\cos(k\\theta_i)."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use the finite midpoint cosine sum",
+          "text": "Put x=kπ/(2d). The standard finite arithmetic-progression cosine identity gives a product formula. Its right side is half sin(kπ), hence zero for every integer k. This multiplication identity remains valid even when sin x vanishes.",
+          "formula": "\\sin x\\sum_{i=1}^{d}\\cos(k\\theta_i)=\\sin(k\\pi/2)\\cos(k\\pi/2)=\\tfrac12\\sin(k\\pi)=0.",
+          "lean": "hgrid transports Fin d to Finset.range d. Real.sin_mul_sum_cos, harg and harg' give the exact midpoint identity; Real.sin_two_mul and Real.sin_int_mul_pi produce hzero. No new finite-sum formula is copied into a public wrapper."
+        },
+        {
+          "title": "Eliminate every nonalias frequency",
+          "text": "If sin x were zero, x would be an integer multiple of π, forcing k to be a multiple of 2d. Therefore sin x is nonzero in the nonalias case, and the product formula forces the grid sum to vanish.",
+          "formula": "\\sin\\!\\left(\\frac{k\\pi}{2d}\\right)=0\\ \\Longrightarrow\\ k=2dm\\ (m\\in\\mathbb Z),\\qquad 2d\\nmid k\\ \\Longrightarrow\\ S_d(k)=0.",
+          "lean": "hsin uses Real.sin_eq_zero_iff, Real.pi_ne_zero and casts to produce the forbidden integer divisibility witness. The zero-product elimination uses this internally proved nonzero fact."
+        },
+        {
+          "title": "Evaluate the signed alias branch",
+          "text": "For k=2ad, use the zero-based grid index ℓ=i−1. Each angle is aπ+2aℓπ, so every cosine equals (−1)^a. Summing d identical terms gives the signed alias value. The exact integer quotient handles zero and negative a as well.",
+          "formula": "k\\theta_{\\ell+1}=a\\pi+2a\\ell\\pi,\\qquad\\cos(k\\theta_{\\ell+1})=(-1)^a,\\qquad S_d(k)=d(-1)^a.",
+          "lean": "Int.mul_ediv_cancel' yields hq and its real cast. hangle, Real.cos_add_int_mul_two_pi and Real.cos_int_mul_pi evaluate each term; the finite constant sum gives d times the value."
+        },
+        {
+          "title": "Consume C7 on the actual inverse grid",
+          "text": "For the private consumer, additionally fix κ≥2 and 1≤n<d, with the literal source λ_i and r. C7 supplies the reciprocal identity and absolute convergence at each actual grid point. Cosine weighting preserves summability, so the finite grid and infinite series can genuinely be exchanged.",
+          "formula": "\\sum_i\\frac{\\cos(n\\theta_i)}{\\lambda_i}=\\frac1{\\sqrt\\kappa}\\left[\\sum_i\\cos(n\\theta_i)+2\\sum_{j\\ge1}(-r)^j\\sum_i\\cos(n\\theta_i)\\cos(j\\theta_i)\\right].",
+          "lean": "The private actual_weighted_inverse_grid_alias_series calls the canonical C7 producer for heq/habs. hs, hsg and hsumG produce convergence; heigen normalizes the literal reciprocal eigenvalues, and Summable.tsum_finsetSum is the actual exchange. The public alias theorem itself has no κ or C7 premise."
+        },
+        {
+          "title": "Keep only the two shifted alias modes",
+          "text": "The range 1≤n<d makes the constant grid sum zero by the new alias theorem. Product-to-sum cancels C7's factor two. Apply the same all-integer theorem at j−n and j+n; each inner grid contributes d times its alias coefficient. Summability of the resulting series is produced too. All differences are formed in integers before evaluation.",
+          "formula": "A_d(k)=\\mathbf1_{2d\\mid k}(-1)^{k/(2d)},\\qquad\\sum_i\\frac{\\cos(n\\theta_i)}{\\lambda_i}=\\frac d{\\sqrt\\kappa}\\sum_{j\\ge1}(-r)^j\\bigl[A_d(j-n)+A_d(j+n)\\bigr].",
+          "lean": "hcos materializes the new producer. hnnon and hzero remove the constant; hprod uses Real.two_mul_cos_mul_cos and both integer frequencies. hterm proves 2G_j=dF_j. Nonzero d transports summability to F, and hseries plus hexchange proves the equality. The compiled private consumer has precisely C7 and the new alias as public ASTIS parents, after expanding generated local proof auxiliaries."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Real.sin_mul_sum_cos",
+        "Real.sin_eq_zero_iff",
+        "Real.sin_two_mul",
+        "Real.sin_int_mul_pi",
+        "Real.cos_add_int_mul_two_pi",
+        "Real.cos_int_mul_pi",
+        "Fin.sum_univ_eq_sum_range",
+        "Int.mul_ediv_cancel'"
+      ],
+      "lean_statement": "Exactly d:Nat with d>=2, arbitrary k:Int and the literal Fin d midpoint grid. Divisibility selects the exact integer quotient and real integer power.",
+      "lean_proof": "Guarded nonalias and alias cases use the canonical finite trigonometric product identity and integer-periodic cosine evaluation. The private actual inverse-grid consumer combines this producer with canonical C7 and genuine convergent finite-series exchange.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex139",
+          "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "A3.SS3.p3/A3.Ex139; literal grid S4.E11 and standing d S4.SS1.p1.m3. Private deterministic consumer A3.SS3.p4.2,p6.1/A3.Ex144; n range S4.Thmtheorem5.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+          "scope": "Exact all-integer grid identity. Private weighted alias-series use is a deterministic source-proof intermediate; Gaussian expectation identification and closed C8 means are not claimed.",
+          "label": "Zhou–Suzuki Appendix C.3 midpoint aliases and actual weighted use"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumGridAlias"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGridAlias.actual_midpoint_grid_cosine_alias",
+      "role": "proof-edge",
+      "supports": [
+        "nonalias-zero",
+        "signed-alias-value"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Hard-family dimension d>=2, literal midpoint grid, every integer k.",
+        "lean": "Exactly d:Nat,hd:2<=d,k:Int; Fin index i corresponds to source i+1."
+      },
+      {
+        "source": "The alias value is d(-1)^a when k=2ad with a an integer; otherwise zero.",
+        "lean": "Integer divisibility guard, exact k/(2*d) integer quotient and integer power of real -1."
+      },
+      {
+        "source": "Weighted C8 calculation uses C7, the alias at n and at integer j−n,j+n, with1<=n<d.",
+        "lean": "A private actual deterministic weighted series identity and Summable conclusion use both canonical producers. Natural series mode j+1 is cast to Int before subtraction."
+      }
+    ]
+  }
+}

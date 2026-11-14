@@ -1,0 +1,92 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.ProductDensity
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities
+import Mathlib.MeasureTheory.Measure.Haar.NormedSpace
+
+open Matrix MeasureTheory ProbabilityTheory
+open scoped ENNReal BigOperators
+open AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily
+
+
+noncomputable def expandedClaim : Prop :=
+∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ) {b : ℝ} (hb : b = 1 ∨ b = -1),
+    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    let split : EuclideanSpace ℝ (Fin d) →
+        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+    let B : Matrix.orthogonalGroup (Fin n) ℝ → Matrix (Fin n) (Fin n) ℝ :=
+      fun O => ((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) -
+      ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) +
+        (O : Matrix (Fin n) (Fin n) ℝ).transpose)
+    let ν := (2 : ℝ≥0∞) • (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))).restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = b}
+    let D := (Measure.pi (fun _ : Fin (d / n) => ν)).map (fun Os : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ => Matrix.reindex e e
+      (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => B (Os j))) 0 0
+        (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)))
+    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=
+      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=
+      fun O x => Real.sqrt (B O).det /
+        (2 * Real.pi) ^ ((n : ℝ) / 2) *
+        Real.exp (-((WithLp.ofLp x) ⬝ᵥ
+          (B O *ᵥ WithLp.ofLp x)) / 2)
+    let pb : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂ν
+    let φ : EuclideanSpace ℝ (Fin (d % n)) → ℝ :=
+      fun z => (2 * Real.pi) ^ (-((d % n : ℕ) : ℝ) / 2) * Real.exp (-‖z‖ ^ 2 / 2)
+    let q : (Fin (d / n) → EuclideanSpace ℝ (Fin n)) ×
+        EuclideanSpace ℝ (Fin (d % n)) → ℝ :=
+      fun y => (∏ j, pb (y.1 j)) * φ y.2
+    MeasurePreserving split volume volume ∧
+      (∀ y, 0 ≤ q y) ∧ Measurable q ∧ Integrable q volume ∧ (∫ y, q y) = 1 ∧
+      (D.bind γ).map split = volume.withDensity (fun y => ENNReal.ofReal (q y)) ∧
+      D.bind γ = volume.withDensity (fun x => ENNReal.ofReal (q (split x))) ∧
+      (d % n = 0 → ∀ z, φ z = 1)
+
+noncomputable def canonicalClaim : Prop :=
+∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ) {b : ℝ} (hb : b = 1 ∨ b = -1),
+    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    let split : EuclideanSpace ℝ (Fin d) →
+        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+    let ν := (2 : ℝ≥0∞) • (orthogonalHaar n).restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = b}
+    let D := (Measure.pi (fun _ : Fin (d / n) => ν)).map (blockPrecision κ)
+    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=
+      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=
+      fun O x => Real.sqrt (singleBlockPrecision κ O).det /
+        (2 * Real.pi) ^ ((n : ℝ) / 2) *
+        Real.exp (-((WithLp.ofLp x) ⬝ᵥ
+          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)
+    let pb : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂ν
+    let φ : EuclideanSpace ℝ (Fin (d % n)) → ℝ :=
+      fun z => (2 * Real.pi) ^ (-((d % n : ℕ) : ℝ) / 2) * Real.exp (-‖z‖ ^ 2 / 2)
+    let q : (Fin (d / n) → EuclideanSpace ℝ (Fin n)) ×
+        EuclideanSpace ℝ (Fin (d % n)) → ℝ :=
+      fun y => (∏ j, pb (y.1 j)) * φ y.2
+    MeasurePreserving split volume volume ∧
+      (∀ y, 0 ≤ q y) ∧ Measurable q ∧ Integrable q volume ∧ (∫ y, q y) = 1 ∧
+      (D.bind γ).map split = volume.withDensity (fun y => ENNReal.ofReal (q y)) ∧
+      D.bind γ = volume.withDensity (fun x => ENNReal.ofReal (q (split x))) ∧
+      (d % n = 0 → ∀ z, φ z = 1)
+
+example : expandedClaim ↔ canonicalClaim := Iff.rfl
+
+example : expandedClaim := by
+  intro d n hn hnd κ hκ b hb
+  exact AutoSamplingTheory.ExampleCases.GaussianComplexity.ProductDensity.actual_product_density hn hnd hκ hb

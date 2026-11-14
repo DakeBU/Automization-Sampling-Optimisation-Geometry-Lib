@@ -1,0 +1,24 @@
+number, `∞`, or `ω`.
+For `n = ∞`, we only require that this holds up to any finite order (where the neighborhood may
+depend on the finite order we consider).
+For `n = ω`, we require the function to be analytic within `s` at `x`. The precise definition we
+give (all the derivatives should be analytic) is more involved to work around issues when the space
+is not complete, but it is equivalent when the space is complete.
+
+For instance, a real function which is `C^m` on `(-1/m, 1/m)` for each natural `m`, but not
+better, is `C^∞` at `0` within `univ`.
+-/
+@[fun_prop]
+def ContDiffWithinAt (n : ℕ∞ω) (f : E → F) (s : Set E) (x : E) : Prop :=
+  match n with
+  | ω => ∃ u ∈ 𝓝[insert x s] x, ∃ p : E → FormalMultilinearSeries 𝕜 E F,
+      HasFTaylorSeriesUpToOn ω f p u ∧ ∀ i, AnalyticOn 𝕜 (fun x ↦ p x i) u
+  | (n : ℕ∞) => ∀ m : ℕ, m ≤ n → ∃ u ∈ 𝓝[insert x s] x,
+      ∃ p : E → FormalMultilinearSeries 𝕜 E F, HasFTaylorSeriesUpToOn m f p u
+
+lemma HasFTaylorSeriesUpToOn.analyticOn
+    (hf : HasFTaylorSeriesUpToOn ω f p s) (h : AnalyticOn 𝕜 (fun x ↦ p x 0) s) :
+    AnalyticOn 𝕜 f s := by
+  have : AnalyticOn 𝕜 (fun x ↦ (continuousMultilinearCurryFin0 𝕜 E F) (p x 0)) s :=
+    (LinearIsometryEquiv.analyticOnNhd _ _).comp_analyticOn
+      h (Set.mapsTo_univ _ _)

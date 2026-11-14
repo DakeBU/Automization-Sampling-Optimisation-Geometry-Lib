@@ -1,0 +1,243 @@
+{
+  "roles": "Sealed exact types, binders, literal definition semantics only. No new-target proof or prior-review verdict.",
+  "producer": {
+    "name": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+    "planned_file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixMean.lean",
+    "signature": "    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ :=\n    (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L} (fun y : E => ‖y‖ ^ 2) x\n      ∂stdGaussian E) / r\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  (∀ i : Fin d, Integrable (Y i) μ) ∧\n    ∀ i : Fin d, (∫ ω, Y i ω ∂μ) =\n      (a / (d : ℝ)) • Matrix.kronecker\n        (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ) (Matrix.vecMulVec (t i) (t i))\n",
+    "signature_sha256": "099bcbe9d6cc440754282873a7f1e1001584c3566fc771a70bf9f1a3846b85fe"
+  },
+  "actual_private_consumer": {
+    "name": "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixMean.actual_source_truncated_sum_means",
+    "planned_file": "Tests/GaussianComplexityFixedSpectrumSourceMatrixMean.lean",
+    "signature": "    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ :=\n    (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L} (fun y : E => ‖y‖ ^ 2) x\n      ∂stdGaussian E) / r\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  Integrable (fun ω => ∑ i : Fin d, Y i ω) μ ∧\n    Integrable (fun ω => ∑ i : Fin d,\n      Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i) • Y i ω) μ ∧\n    (∫ ω, ∑ i : Fin d, Y i ω ∂μ) =\n      a • (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) ∧\n    (∫ ω, ∑ i : Fin d, Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i) • Y i ω ∂μ) = 0\n",
+    "signature_sha256": "00c0b050a632e03d9b169acdb6632ae85a9ec43cc2b5e8aa26b7b6152a711b7e",
+    "consumer_edge": "Use exact actual Yi integrability and first moments with the existing canonical cosine Gram identities to derive actual unweighted and cos(n theta)-weighted sum integrability and expectations. No second canonical row-moment node."
+  },
+  "binder_audit": [
+    {
+      "binder": "d q : Nat",
+      "class": "TYPING",
+      "meaning": "Natural physical dimension and query count, q=0 retained."
+    },
+    {
+      "binder": "hq : 2*q+1<d",
+      "class": "STANDING",
+      "meaning": "Exact source range; all positive dimension/denominator facts derive internally."
+    },
+    {
+      "binder": "all local lets",
+      "class": "DEFINITION",
+      "meaning": "Fixed actual experiment, cutoff coefficient, features and Yi; no extra data or proof certificate."
+    }
+  ],
+  "output_bundle_audit": {
+    "input_bundle": false,
+    "producer": {
+      "all_actual_Y_integrable": "TARGET_CONCLUSION",
+      "all_actual_Y_first_moments": "TARGET_CONCLUSION"
+    },
+    "private_consumer": {
+      "both_actual_sums_integrable": "TARGET_CONCLUSION",
+      "actual_integral_sum_identities": "TARGET_CONCLUSION"
+    }
+  },
+  "EXCESS_public_binders": [],
+  "minimal_definition_context": {
+    "allowed_only": "Exact standard definition semantics and actual instance prints, no new target proof or certificate.",
+    "mathlib_pin": "db584cd6d46c92f209a44c0f1c829460d327499d",
+    "literal_current_prints_and_instances": "def MeasureTheory.Integrable.{u_5, u_8} : {ε : Type u_5} →\n  [inst : TopologicalSpace.{u_5} ε] →\n    [ContinuousENorm.{u_5} ε] →\n      {α : Type u_8} →\n        {x : MeasurableSpace.{u_8} α} → (α → ε) → autoParam.{u_8 + 1} (Measure.{u_8} α) Integrable._auto_1 → Prop :=\nfun {ε} [TopologicalSpace.{u_5} ε] [ContinuousENorm.{u_5} ε] {α} {x} f μ =>\n  AEStronglyMeasurable.{u_8, u_5} f μ ∧ HasFiniteIntegral.{u_8, u_5} f μ\ndef MeasureTheory.HasFiniteIntegral.{u_1, u_4} : {α : Type u_1} →\n  {ε : Type u_4} →\n    [ENorm.{u_4} ε] →\n      {x : MeasurableSpace.{u_1} α} →\n        (α → ε) → autoParam.{u_1 + 1} (Measure.{u_1} α) HasFiniteIntegral._auto_1 → Prop :=\nfun {α} {ε} [ENorm.{u_4} ε] {x} f μ => LT.lt.{0} (∫⁻ (a : α), enorm.{u_4} (f a) ∂μ) Top.top.{0}\ndef MeasureTheory.AEStronglyMeasurable.{u_1, u_2} : {α : Type u_1} →\n  {β : Type u_2} →\n    [TopologicalSpace.{u_2} β] →\n      [m : MeasurableSpace.{u_1} α] →\n        {m₀ : MeasurableSpace.{u_1} α} →\n          (α → β) → autoParam.{u_1 + 1} (Measure.{u_1} α) AEStronglyMeasurable._auto_1 → Prop :=\nfun {α} {β} [TopologicalSpace.{u_2} β] [MeasurableSpace.{u_1} α] {m₀} f μ =>\n  ∃ g, StronglyMeasurable.{u_1, u_2} g ∧ f =ᵐ[μ] g\n@[irreducible] def MeasureTheory.integral.{u_6, u_7} : {α : Type u_6} →\n  {G : Type u_7} →\n    [inst : NormedAddCommGroup.{u_7} G] →\n      [NormedSpace.{0, u_7} ℝ G] → {x : MeasurableSpace.{u_6} α} → Measure.{u_6} α → (α → G) → G :=\nwrapped✝.{u_7, u_6}.1\ndef Set.indicator.{u_1, u_3} : {α : Type u_1} → {M : Type u_3} → [Zero.{u_3} M] → Set.{u_1} α → (α → M) → α → M :=\nfun {α} {M} [Zero.{u_3} M] s f x => ite.{u_3 + 1} (Membership.mem.{u_1, u_1} s x) (f x) 0\ndef Matrix.{u, u', v} : Type u → Type u' → Type v → Type (max u u' v) :=\nfun m n α => m → n → α\ndef Matrix.vecMulVec.{v, u_2, u_3} : {m : Type u_2} →\n  {n : Type u_3} → {α : Type v} → [Mul.{v} α] → (m → α) → (n → α) → Matrix.{u_2, u_3, v} m n α :=\nfun {m} {n} {α} [Mul.{v} α] w v => Matrix.of.{v, u_2, u_3} fun x y => HMul.hMul.{v, v, v} (w x) (v y)\ndef Matrix.kronecker.{u_3, u_9, u_10, u_11, u_12} : {α : Type u_3} →\n  {l : Type u_9} →\n    {m : Type u_10} →\n      {n : Type u_11} →\n        {p : Type u_12} →\n          [Mul.{u_3} α] →\n            Matrix.{u_9, u_10, u_3} l m α →\n              Matrix.{u_11, u_12, u_3} n p α →\n                Matrix.{max u_11 u_9, max u_12 u_10, u_3} (Prod.{u_9, u_11} l n) (Prod.{u_10, u_12} m p) α :=\nfun {α} {l} {m} {n} {p} [Mul.{u_3} α] =>\n  Matrix.kroneckerMap.{u_3, u_3, u_3, u_9, u_10, u_11, u_12} fun x1 x2 => HMul.hMul.{u_3, u_3, u_3} x1 x2\ndef Matrix.kroneckerMap.{u_3, u_5, u_7, u_9, u_10, u_11, u_12} : {α : Type u_3} →\n  {β : Type u_5} →\n    {γ : Type u_7} →\n      {l : Type u_9} →\n        {m : Type u_10} →\n          {n : Type u_11} →\n            {p : Type u_12} →\n              (α → β → γ) →\n                Matrix.{u_9, u_10, u_3} l m α →\n                  Matrix.{u_11, u_12, u_5} n p β →\n                    Matrix.{max u_11 u_9, max u_12 u_10, u_7} (Prod.{u_9, u_11} l n) (Prod.{u_10, u_12} m p) γ :=\nfun {α} {β} {γ} {l} {m} {n} {p} f A B =>\n  Matrix.of.{u_7, max u_11 u_9, max u_10 u_12} fun i j => f (A i.1 j.1) (B i.2 j.2)\n@[reducible] def EuclideanSpace.{u_7, u_8} : Type u_7 → Type u_8 → Type (max u_7 u_8) :=\nfun 𝕜 n => PiLp.{u_8, u_7} 2 fun x => 𝕜\nconstructor WithLp.toLp.{u_1} : (p : ENNReal) → {V : Type u_1} → V → WithLp.{u_1} p V\ndef ProbabilityTheory.stdGaussian.{u_2} : (E : Type u_2) →\n  [inst : NormedAddCommGroup.{u_2} E] →\n    [inst_1 : InnerProductSpace.{0, u_2} ℝ E] →\n      [FiniteDimensional.{0, u_2} ℝ E] → [inst : MeasurableSpace.{u_2} E] → Measure.{u_2} E :=\nfun E [NormedAddCommGroup.{u_2} E] [InnerProductSpace.{0, u_2} ℝ E] [FiniteDimensional.{0, u_2} ℝ E]\n    [MeasurableSpace.{u_2} E] =>\n  Measure.map.{0, u_2} (fun x => ∑ i, HSMul.hSMul.{0, u_2, u_2} (x i) ((stdOrthonormalBasis.{0, u_2} ℝ E) i))\n    (Measure.pi.{0, 0} fun x => gaussianReal 0 1)\n@[irreducible] protected def MeasureTheory.Measure.pi.{u_4, u_5} : {ι : Type u_4} →\n  {α : ι → Type u_5} →\n    [Fintype.{u_4} ι] →\n      [inst : (i : ι) → MeasurableSpace.{u_5} (α i)] →\n        ((i : ι) → Measure.{u_5} (α i)) → Measure.{max u_4 u_5} ((i : ι) → α i) :=\nMeasure.wrapped✝.{u_5, u_4}.1\nMatrix.instL2OpNormedAddCommGroup.{0, 0, 0}\nMatrix.instL2OpNormedSpace.{0, 0, 0}\nMatrix.instCompleteSpace.{0, 0, 0} (Prod.{0, 0} (Fin (HAdd.hAdd.{0, 0, 0} q 1)) (Fin (HAdd.hAdd.{0, 0, 0} q 1)))\n  (Prod.{0, 0} (Fin (HAdd.hAdd.{0, 0, 0} q 1)) (Fin (HAdd.hAdd.{0, 0, 0} q 1))) ℝ\nMeasure.pi.instIsProbabilityMeasure.{0, 0} fun x => stdGaussian.{0} (EuclideanSpace.{0, 0} ℝ (Fin d))\nsigmaFinite_of_locallyFinite.{0}\n",
+    "literal_current_prints_sha256": "9de06b9542872364eebfa1f4ed3066c804786626ef30918056d0c34371dc706b",
+    "actual_current_print_receipt": {
+      "receipt": ".astis/huanjian-resume-20261103/20261112T122316201034Z-source-matrix-mean-definition-meaning.receipt.json",
+      "sha256": "4869491c6edfa7fbe24e956b894ce20e414bbe060d37da9f43de08e54ec58619",
+      "log_sha256": "9de06b9542872364eebfa1f4ed3066c804786626ef30918056d0c34371dc706b"
+    },
+    "literal_definition_excerpts": [
+      {
+        "file": ".lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/Pi.lean",
+        "file_sha256": "8751b21ac855f1a7b7c63258e8325f75b6fc236d360758b822ddf54597b118bf",
+        "lines_1based": [
+          99,
+          106
+        ],
+        "literal_source": "namespace OuterMeasure\n\n/-- `OuterMeasure.pi m` is the finite product of the outer measures `{m i | i : ι}`.\n  It is defined to be the maximal outer measure `n` with the property that\n  `n (pi univ s) ≤ ∏ i, m i (s i)`, where `pi univ s` is the product of the sets\n  `{s i | i : ι}`. -/\nprotected def pi (m : ∀ i, OuterMeasure (α i)) : OuterMeasure (∀ i, α i) :=\n  boundedBy (piPremeasure m)\n",
+        "literal_source_sha256": "8c2b97cceef865119e8689c95a054e46b56962faf36c7bdcfe6982a82632ff8f"
+      },
+      {
+        "file": ".lake/packages/mathlib/Mathlib/MeasureTheory/Constructions/Pi.lean",
+        "file_sha256": "8751b21ac855f1a7b7c63258e8325f75b6fc236d360758b822ddf54597b118bf",
+        "lines_1based": [
+          208,
+          212
+        ],
+        "literal_source": "/-- `Measure.pi μ` is the finite product of the measures `{μ i | i : ι}`.\n  It is defined to be measure corresponding to `MeasureTheory.OuterMeasure.pi`. -/\nprotected irreducible_def pi : Measure (∀ i, α i) :=\n  toMeasure (OuterMeasure.pi fun i => (μ i).toOuterMeasure) (pi_caratheodory μ)\n\n",
+        "literal_source_sha256": "cdb38f2cc57322004b347838c6f6b0c60bd49f2d2d7ed02ff5c32b0a458ed521"
+      },
+      {
+        "file": ".lake/packages/mathlib/Mathlib/MeasureTheory/Integral/Bochner/Basic.lean",
+        "file_sha256": "f81a06eab17faccbc4b671a93e7af73332f5fd3946f7690e7c2a3cfee77d28c8",
+        "lines_1based": [
+          154,
+          160
+        ],
+        "literal_source": "open scoped Classical in\n/-- The Bochner integral -/\nirreducible_def integral {_ : MeasurableSpace α} (μ : Measure α) (f : α → G) : G :=\n  if _ : CompleteSpace G then\n    if hf : Integrable f μ then L1.integral (hf.toL1 f) else 0\n  else 0\n\n",
+        "literal_source_sha256": "3e333140555c70fb9c5b1350f02e90bf644e09ae35a7ff12ee5dfe2826226642"
+      },
+      {
+        "file": ".lake/packages/mathlib/Mathlib/Analysis/CStarAlgebra/Matrix.lean",
+        "file_sha256": "79518c9e51c4d0cf4083ab69a9ac7a2817305b48db1fe6f25ae1d678e12ce223",
+        "lines_1based": [
+          137,
+          144
+        ],
+        "literal_source": "/-- An auxiliary definition used only to construct the true `NormedAddCommGroup` (and `Metric`)\nstructure provided by `Matrix.instMetricSpaceL2Op` and `Matrix.instNormedAddCommGroupL2Op`. -/\n@[instance_reducible]\ndef l2OpNormedAddCommGroupAux : NormedAddCommGroup (Matrix m n 𝕜) :=\n  @NormedAddCommGroup.induced ((Matrix m n 𝕜) ≃ₗ[𝕜] (EuclideanSpace 𝕜 n →L[𝕜] EuclideanSpace 𝕜 m)) _\n    _ _ _ ContinuousLinearMap.toNormedAddCommGroup.toNormedAddGroup _ _ <|\n    (toEuclideanLin.trans toContinuousLinearMap).injective\n\n",
+        "literal_source_sha256": "29e3a719e25ab7af06a3431fa5079843f674a7bc0bd07a2dfa37bc3c880df45e"
+      },
+      {
+        "file": ".lake/packages/mathlib/Mathlib/Analysis/CStarAlgebra/Matrix.lean",
+        "file_sha256": "79518c9e51c4d0cf4083ab69a9ac7a2817305b48db1fe6f25ae1d678e12ce223",
+        "lines_1based": [
+          175,
+          183
+        ],
+        "literal_source": "\n/-- The norm structure on `Matrix m n 𝕜` arising from the operator norm given by the identification\nwith (continuous) linear maps of `EuclideanSpace`. -/\n@[instance_reducible]\ndef instL2OpNormedAddCommGroup : NormedAddCommGroup (Matrix m n 𝕜) where\n  norm := l2OpNormedAddCommGroupAux.norm\n  dist_eq := l2OpNormedAddCommGroupAux.dist_eq\n\nscoped[Matrix.Norms.L2Operator] attribute [instance] Matrix.instL2OpNormedAddCommGroup\n",
+        "literal_source_sha256": "dca2564c513009810b4c02e6c17cdd22936b15f6e1d3a87138555503d2d09a4e"
+      },
+      {
+        "file": ".lake/packages/mathlib/Mathlib/Analysis/CStarAlgebra/Matrix.lean",
+        "file_sha256": "79518c9e51c4d0cf4083ab69a9ac7a2817305b48db1fe6f25ae1d678e12ce223",
+        "lines_1based": [
+          270,
+          274
+        ],
+        "literal_source": "\n/-- This is the same as `Matrix.l2_opNorm_def`, but with a more bundled RHS for square matrices. -/\nlemma cstar_norm_def (A : Matrix n n 𝕜) : ‖A‖ = ‖toEuclideanCLM (n := n) (𝕜 := 𝕜) A‖ := rfl\n\n/-- This is the same as `Matrix.l2_opNNNorm_def`, but with a more bundled RHS for square\n",
+        "literal_source_sha256": "257e14e6eb865233722f7c4329e2cdfd6e7d74d1b73e4c5075d5555b125d6bfe"
+      }
+    ],
+    "definition_kinds": [
+      {
+        "object": "D,E,Omega,mu,row",
+        "kind": "literal",
+        "meaning": "The original product experiment of q+1 standard d-dimensional Gaussian columns; row i collects their physical coordinate i in Euclidean(q+1)-space, under the same literal product measure."
+      },
+      {
+        "object": "r,L,a",
+        "kind": "literal",
+        "meaning": "r=q+1; L=2r+3log(1000d); a is the retained canonical row radial second moment divided by r. This scalar is a definition under stdGaussian E, not a supplied actual-row moment certificate. Its equality to every actual-row retained moment must follow internally from the canonical row law."
+      },
+      {
+        "object": "theta,t,Y",
+        "kind": "literal",
+        "meaning": "Source index i.val+1, midpoint angle (i.val+1-1/2)pi/d, feature0=1 and featurek=sqrt2cos(k theta). Yi is inverse-d times actual-row outer product Kronecker feature outer product when the actual row norm squared<=L; outside this closed cutoff it is zero."
+      },
+      {
+        "object": "Matrix carrier and norm",
+        "kind": "standard definitions and actual synthesized scope",
+        "meaning": "Paired indices are Gaussian-first in both positions. Matrix is a finite two-entry function. Integrability and Bochner integrals use the actual Matrix.Norms.L2Operator instance, identified with operators on finite Euclidean space; completeness is internally synthesized, not an extra input."
+      },
+      {
+        "object": "Integrable",
+        "kind": "expanded target predicate",
+        "meaning": "AEStronglyMeasurable and finite integral of the extended norm; the former is existence of an almost-everywhere equal strongly measurable representative. These are output obligations, never assumed. Integral notation is the Bochner integral, whose definition defaults to zero outside complete/integrable cases. The literal integrable outputs prevent using that default as a fake mean identity."
+      },
+      {
+        "object": "producer conjunction",
+        "kind": "target conclusions",
+        "meaning": "Every actual Yi is integrable and its exact matrix expectation is a/d times I tensor ti ti-transpose. This gives no scalar bias/range estimate for a, no iid claim, and no new public row-law or radial-moment theorem."
+      },
+      {
+        "object": "private consumer conjunction",
+        "kind": "target conclusions",
+        "meaning": "Both actual finite sums on the same outcome space are integrable; their Bochner expectations are a times identity and zero. The weighted sum uses precisely cos((2q+1)theta_i). These are actual integrals of sums, requiring internal integral exchange, and not caller-supplied formal mean matrices."
+      }
+    ]
+  },
+  "source": {
+    "version": "arXiv2610.20492v1",
+    "raw": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+    "raw_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "anchors": [
+      {
+        "source_id": "S4.Thmtheorem4.p1",
+        "char_start": 230581,
+        "char_end": 236865,
+        "raw_utf8_start": 232635,
+        "raw_utf8_end": 238980,
+        "lf_line_start": 1209,
+        "lf_column0_start": 0,
+        "lf_line_end": 1230,
+        "span_sha256": "00f66fac7ae3cca6c10e5cfeb93cf22f9622867593ccd7c9cbc09cde73fb9737"
+      },
+      {
+        "source_id": "A3.SS2.p1",
+        "char_start": 731718,
+        "char_end": 736218,
+        "raw_utf8_start": 739163,
+        "raw_utf8_end": 743698,
+        "lf_line_start": 3317,
+        "lf_column0_start": 0,
+        "lf_line_end": 3329,
+        "span_sha256": "4b07cd73f4561d56956c212747af710882b47f8d70253b679ed93e1cda9eafbc"
+      },
+      {
+        "source_id": "A3.SS2.p10",
+        "char_start": 787410,
+        "char_end": 792787,
+        "raw_utf8_start": 795457,
+        "raw_utf8_end": 800895,
+        "lf_line_start": 3532,
+        "lf_column0_start": 0,
+        "lf_line_end": 3556,
+        "span_sha256": "f5893d415e7a14cf7f0a8c619b6997d2b6f23c7a86573a1a370dfafc961648ee"
+      },
+      {
+        "source_id": "A3.SS2.p12",
+        "char_start": 796105,
+        "char_end": 804228,
+        "raw_utf8_start": 804250,
+        "raw_utf8_end": 812472,
+        "lf_line_start": 3570,
+        "lf_column0_start": 0,
+        "lf_line_end": 3607,
+        "span_sha256": "3f2c83ee54eabdf9f98dd13156bea1fa63d7b2c95440208964402849c77c236d"
+      },
+      {
+        "source_id": "A3.Ex107.m1",
+        "char_start": 796493,
+        "char_end": 797416,
+        "raw_utf8_start": 804638,
+        "raw_utf8_end": 805574,
+        "lf_line_start": 3576,
+        "lf_column0_start": 42,
+        "lf_line_end": 3576,
+        "span_sha256": "2fccd6d10267f830c08762305aaf43245b495034c893dc8ae6191f8196ebbf0b"
+      },
+      {
+        "source_id": "A3.Ex108.m1",
+        "char_start": 797826,
+        "char_end": 799038,
+        "raw_utf8_start": 805984,
+        "raw_utf8_end": 807216,
+        "lf_line_start": 3584,
+        "lf_column0_start": 42,
+        "lf_line_end": 3584,
+        "span_sha256": "6103859bdba850100c42c7b4895af4d903b82aaae259b310ff03817195e3f2f6"
+      },
+      {
+        "source_id": "A3.Ex110.m1",
+        "char_start": 802853,
+        "char_end": 803995,
+        "raw_utf8_start": 811074,
+        "raw_utf8_end": 812239,
+        "lf_line_start": 3603,
+        "lf_column0_start": 42,
+        "lf_line_end": 3603,
+        "span_sha256": "303b4746d0df77122b957bf682b24f3151f1706b073e989a90feb1b4da52c568"
+      }
+    ],
+    "scope": "Exact actual original-experiment Yi first moments and two finite-sum expectations from C.2 p12/Ex110."
+  },
+  "statement_seal_sha256": "b55a1acb837288d580a667903987e5f809610626eb4848c750ff8d3a6c01149b",
+  "minimal_definition_context_sha256": "92117d5029065dcbd8e1a218bb175a7c32d37e9dd34ac2f5255125e2f9c48cfa",
+  "formalizer_API_pristine": false
+}

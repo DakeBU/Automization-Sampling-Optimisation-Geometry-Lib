@@ -1,0 +1,35 @@
+open scoped ENNReal
+
+/-- A type synonym for the given `V`, associated with the L`p` norm. Note that by default this just
+forgets the norm structure on `V`; it is up to downstream users to implement the L`p` norm (for
+instance, on `Prod` and finite `Pi` types). -/
+structure WithLp (p : ℝ≥0∞) (V : Type*) where
+  /-- Converts an element of `V` to an element of `WithLp p V`. -/
+  toLp (p) ::
+  /-- Converts an element of `WithLp p V` to an element of `V`. -/
+  ofLp : V
+
+section Notation
+
+open Lean.PrettyPrinter.Delaborator
+
+/-- This prevents `toLp p x` being printed as `{ ofLp := x }` by `delabStructureInstance`. -/
+@[app_delab WithLp.toLp]
+meta def WithLp.delabToLp : Delab := delabApp
+
+end Notation
+
+variable (p : ℝ≥0∞) (K K' : Type*) {K'' : Type*} (V : Type*) {V' V'' : Type*}
+
+namespace WithLp
+
+/-- `WithLp.ofLp` and `WithLp.toLp` as an equivalence. -/
+@[simps]
+protected def equiv : WithLp p V ≃ V where
+  toFun := ofLp
+  invFun := toLp p
+  left_inv _ := rfl
+  right_inv _ := rfl
+
+@[simp]
+lemma equiv_symm_apply : ⇑(WithLp.equiv p V).symm = toLp p := rfl

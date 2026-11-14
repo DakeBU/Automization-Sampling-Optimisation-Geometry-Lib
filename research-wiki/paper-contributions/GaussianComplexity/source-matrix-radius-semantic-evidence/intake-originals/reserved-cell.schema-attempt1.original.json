@@ -1,0 +1,179 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-GAUSSIAN-COMPLEXITY-source-matrix-radius",
+  "route": "samplewiki-route",
+  "mode": "faithfulPaper",
+  "title": "Actual truncated Gaussian summand and mean norms with centered radius consumer",
+  "source_anchor": "arXiv2610.20492v1 AppendixC.2/A3.SS2.p13,Ex111/112; originalp1/p10/Ex107 experiment,p12 radial actualmean andFactC5 feature bound. p14variance andp15Bernstein excluded.",
+  "target_statement": "    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  (∀ i : Fin d, ∀ ω : Ω, ‖Y i ω‖ ≤ 2 * r * L / (d : ℝ)) ∧\n    (∀ i : Fin d, ‖∫ ω, Y i ω ∂μ‖ ≤ 2 * r / (d : ℝ))\n\nPrivate actual consumer\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  (∀ i : Fin d, ∀ ω : Ω, ‖Z i ω‖ ≤ Rstar) ∧\n    (∀ i : Fin d, ∀ ω : Ω, ‖w i • Z i ω‖ ≤ Rstar)\n",
+  "status": "claimed",
+  "owner_id": "huanjian_gc_20261113_source_matrix_radius",
+  "advance_id": "ASTIS-SA-20261113-GaussianComplexitySourceMatrixRadius",
+  "parents": [
+    "ASTIS-SW-GAUSSIAN-COMPLEXITY-source-matrix-mean",
+    "ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-cosine-gram",
+    "ASTIS-SHARED-std-gaussian-second-moment"
+  ],
+  "consumers": [
+    "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixRadius.actual_source_centered_summand_radius"
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Actual ASTIS SourceMatrixMean signature inspected/typed: genuine literalYi integrability and exact radial mean identity on originalmu. It does NOT itself return0<=a<=1; derive requiredscalar range internally using canonicalStdGaussianMoment and indicatorintegral order, never a new caller binder.",
+      "Canonical actual_cosine_frame_gram supplies uniform literalfeature squarednorm<=2r, q0included, with exact halfgrid shift reconciled internally. Reuse it instead of another publicfeature lemma.",
+      "Mathlib realfinite matrix L2Operator norm maps to EuclideanCLM; existing InnerProductSpace.norm_rankOne and symm_toEuclideanLin_rankOne, ContinuousLinearMap.opNorm_le_bound, EuclideanSpace.norm_sq_eq are realcompatible canonical APIs. Concrete scopednorm verified by realLean typeprint. No norm-kronecker provider claimed from a text search.",
+      "Complex CStarAlgebra norm-order API is not assumed applicable to realmatrices. Source/implementation route may use existingreal rankone/block norm providers; any genuinelymissingmulti-consumer generic lemma must first be given one sharedcell, never a certificateinput."
+    ],
+    "classification": "adapt",
+    "decision": "reuse_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds",
+    "canonical_shared_cell": ""
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Actual ASTIS SourceMatrixMean signature inspected/typed: genuine literalYi integrability and exact radial mean identity on originalmu. It does NOT itself return0<=a<=1; derive requiredscalar range internally using canonicalStdGaussianMoment and indicatorintegral order, never a new caller binder.",
+      "Canonical actual_cosine_frame_gram supplies uniform literalfeature squarednorm<=2r, q0included, with exact halfgrid shift reconciled internally. Reuse it instead of another publicfeature lemma.",
+      "Mathlib realfinite matrix L2Operator norm maps to EuclideanCLM; existing InnerProductSpace.norm_rankOne and symm_toEuclideanLin_rankOne, ContinuousLinearMap.opNorm_le_bound, EuclideanSpace.norm_sq_eq are realcompatible canonical APIs. Concrete scopednorm verified by realLean typeprint. No norm-kronecker provider claimed from a text search.",
+      "Complex CStarAlgebra norm-order API is not assumed applicable to realmatrices. Source/implementation route may use existingreal rankone/block norm providers; any genuinelymissingmulti-consumer generic lemma must first be given one sharedcell, never a certificateinput."
+    ],
+    "reused_declarations": [],
+    "planned_existing_parents": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixRadius.actual_source_centered_summand_radius"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Actualsource norm outputs and material literalZ/cosine radius consumer. Reuse canonical mean/frame/Gaussianmoment andrealMathliboperatornorm APIs; estimates andregularity are internallyproved edges, not theorem premises."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "Exactunproved norm/radius statements andsource/type/topology admitted. Authored formula proof andinitiallyfolded exactLean require actualproof; productiondelivery andglobalintegration remainopen."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds"
+    ],
+    "visual_review": "Source-onlyv2topology accepted; no compilednewnode orruntimegraph/reader claim. Conceptualaudit remains pending beforePL; no newcandidate asserted atintake."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "Only preproof parser/unnecessarytypequeries andROOTAPI-locator guesses failed. All originals retained; no mathematical route/statement retired andno targetproof yet.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "One ROOTprover; independent source extraction anddistincttopologychallenge own separateuncertainty.",
+      "shared_verified_context_digest": ""
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "No seriousparallelproof routes attempted."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": false,
+      "boundary_preserved": true
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2610.20492v1 rawSHA 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "C.2p13/Ex111/112 with literalp1/p10/p12 experiment andmean, FactC5; no p14/p15 claim",
+    "detail_status": "omitted",
+    "gap": "Source omits rankone/tensor norm, radial mean transport, triangle/scalar norm derivations. Five explicitSOURCE_GAP proof obligations andnineinternalports remainunproved; no false source or newhypothesis established.",
+    "consulted": [
+      {
+        "source": "Pinned rawprimary plus distinctsource-only graph/type/topologyroles",
+        "anchor": "Exact87source units andv2internalnumeric/cutoff/mean-object graph refinement",
+        "hypothesis_adapter": "Solehq andliteraloriginalproduct experiment, actualBochnermean, realL2operatornorm, closedcutoff andq0 unchanged. d/r/log/L/branch sideconditions internallydischarged."
+      }
+    ],
+    "fidelity_boundary": "Only source p13 and necessary literal definitions/prerequisites. p14 variance is a separate existing packet; p15 Bernstein, probability tails, full Lemma4.4, main lower bounds and oracle/TV/precision/cap/cost excluded. No public/private API placement or integration/purification credit."
+  },
+  "statement_seal": {
+    "status": "EXACT_TYPES_AND_DEFINITIONS;INDEPENDENT_SOURCE_TOPOLOGY_ACCEPTED;UNPROVED",
+    "file": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-radius-statement-seal.json",
+    "sha256": "49d5fa00c9ae90d65878d955fab59d6a4bc03e942501677719881f3d26bf1a72",
+    "signature_sha256": "1892e3dadd3ca32820013ea11d534614dcdc1e48d2b8acedc0859c9e66be0214",
+    "private_consumer_signature_sha256": "afa15c4d676a73be278b8bd0afd572b4f4d3fd2612d0b4d66d4f837fb1da762e"
+  },
+  "evidence": {
+    "actual_literal_formation": {
+      "receipt": ".astis/huanjian-resume-20261103/20261112T180145746523Z-unclaimed-source-matrix-radius-literal-Prop-formation.receipt.json",
+      "receipt_sha256": "13d8f0fcdf7bbe04619c0891b430cb401bcff149ff4a309060d43608001e9c67",
+      "exit_code": 0,
+      "log_sha256": "c46c7cbf5a54e48303633870e3d73c36ad1833b71ecfb1e4150707126663c085",
+      "evidence_scope": "Both complete literal Prop definitions type-check. No theorem inhabitant/proof was supplied. hq linter warning is retained because formation does not prove the bounds."
+    },
+    "actual_definition_meaning": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-radius-semantic-evidence/independent-preproof-source.original-manifest.json",
+      "source_audit_sha256": "dd1484596b083d59f3a9908235b9ee0de95d014b6ef9d98449cc5713e8b4d939"
+    },
+    "preproof_source_admission": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-radius-semantic-evidence/preproof-source-admission.json",
+      "sha256": "1401d188fb352a3d2a768d11a2d79f484261195d658fff2d9f17b1fff2f9b514"
+    },
+    "actual_environment": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-radius-semantic-evidence/actual-environment-before-intake.original.json",
+      "sha256": "a6a539989d822003b0a132fa032353be05eeb518439ff85b2ee5e4d0c570647d"
+    },
+    "normal_API_calls": 0,
+    "target_proof_calls": 0,
+    "formalizer_API_pristine": false
+  },
+  "blocked": {},
+  "owned_files": [
+    "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixRadius.lean",
+    "Tests/GaussianComplexityFixedSpectrumSourceMatrixRadius.lean",
+    "research-wiki/paper-contributions/GaussianComplexity/source-matrix-radius-statement-seal.json",
+    "research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-source-matrix-radius.json",
+    "research-wiki/paper-contributions/GaussianComplexity/source-matrix-radius-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-gaussian-source-matrix-radius.json",
+    "website/content/publications/huanjian-gaussian-source-matrix-radius.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-gaussian-source-matrix-radius.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Registry.lean",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json"
+  ],
+  "truth_boundary": "Only source p13 and necessary literal definitions/prerequisites. p14 variance is a separate existing packet; p15 Bernstein, probability tails, full Lemma4.4, main lower bounds and oracle/TV/precision/cap/cost excluded. No public/private API placement or integration/purification credit.",
+  "conceptual_mirror_audit": {
+    "status": "pending",
+    "discovery_ids": []
+  },
+  "reservation_only": "Source-admitted exacttype reservation before one normalintake; no targetproof."
+}

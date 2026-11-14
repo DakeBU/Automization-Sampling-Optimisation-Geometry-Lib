@@ -1,0 +1,159 @@
+--- a/website/scripts/declaration_lessons.py
++++ b/website/scripts/declaration_lessons.py
+@@ -8,6 +8,7 @@
+ import json
+ import hashlib
+ import re
++from urllib.parse import urlsplit
+ from html.parser import HTMLParser
+ from functools import lru_cache
+ from collections import Counter, defaultdict
+@@ -34,11 +35,24 @@
+     Local documents are copied into the same generated site for unpublished work.
+     """
+     if source.get('url'):
+-        if not source['url'].startswith('https://'):
+-            raise ValueError('Exposition sources must use HTTPS or a repository path')
+-        return source['url']
++        url = source['url']
++        if not isinstance(url, str) or any(c.isspace() or ord(c) < 32 or ord(c) == 127 for c in url):
++            raise ValueError('Exposition sources must use a valid HTTPS URL')
++        try:
++            parsed = urlsplit(url)
++            valid = parsed.scheme == 'https' and bool(parsed.hostname)
++            parsed.port  # reject malformed explicit ports as well
++        except ValueError as exc:
++            raise ValueError('Exposition sources must use a valid HTTPS URL') from exc
++        if not valid:
++            raise ValueError('Exposition sources must use a valid HTTPS URL')
++        return url
+     raw = source['path']
+     path = Path(raw)
++    if (not raw or raw != raw.strip() or raw != path.as_posix()
++            or any(c in raw for c in ':#?%')
++            or any(ord(c) < 32 or ord(c) == 127 for c in raw)):
++        raise ValueError(f'Nonportable exposition source: {raw}')
+     if raw.startswith(('/', '\\')) or '\\' in raw or path.is_absolute() or '..' in path.parts or re.match(r'^[A-Za-z]:', raw):
+         raise ValueError(f'Nonportable exposition source: {raw}')
+     if raw.startswith('.lake/packages/mathlib/'):
+@@ -116,12 +130,15 @@
+     exported = set()
+     source_lines = {}
+     for unit in units:
+-        for source in unit.get('sources', []):
++        for source in unit_source_candidates(unit):
+             source_link(source, 'lessons/index.html')  # validate even external anchors
+             raw = source.get('path', '')
+             if not raw:
+                 continue
++            source_link({"path": raw}, "lessons/index.html")  # validate any exported path, even beside a URL
+             path = ROOT / raw
++            if not raw.startswith('.lake/packages/mathlib/') and not path.resolve().is_relative_to(ROOT.resolve()):
++                raise ValueError(f'Exposition source leaves the repository: {raw}')
+             # Website-only CI has the repository but need not install Lean's
+             # dependencies. External anchors remain pinned to lake-manifest;
+             # this does not upgrade an absent Lean build to compiled status.
+@@ -130,7 +147,10 @@
+             if not path.is_file():
+                 raise ValueError(f'Missing exposition source: {raw}')
+             if raw not in source_lines:
+-                source_lines[raw] = path.read_text(encoding='utf-8').splitlines()
++                literal = path.read_bytes().decode('utf-8')
++                source_lines[raw] = literal.split('\n')
++                if source_lines[raw][-1] == '':
++                    source_lines[raw].pop()
+             lines = source_lines[raw]
+             if source.get('line') and not 1 <= source['line'] <= len(lines):
+                 raise ValueError(f'Exposition source line out of range: {source}')
+@@ -139,11 +159,16 @@
+             exported.add(raw)
+             # The exact source excerpt remains readable without leaving the site.
+             rel = 'data/lesson-sources/' + raw
+-            numbered = ''.join(f'<span id="L{i}">{base.esc(line)}</span>\n' for i, line in enumerate(lines, 1))
++            numbered = ''.join(f'<span id="L{i}">{base.esc(line.removesuffix(chr(13)))}</span>\n' for i, line in enumerate(lines, 1))
+             target = output / rel
+             target.parent.mkdir(parents=True, exist_ok=True)
+             # Keep .lean/.md anchors as HTML companion documents, not MIME-dependent files.
+-            text = base.page(raw, rel + '.html', '<h1>Exact source context</h1><pre>' + numbered + '</pre>')
++            download = ''
++            if path.suffix == '.lean':
++                target.write_bytes(path.read_bytes())
++                download = ('<p class="lean-source-actions">'
++                            f'<a href="{base.esc(target.name)}" download>Download exact Lean source</a></p>')
++            text = base.page(raw, rel + '.html', '<h1>Exact source context</h1>' + download + '<pre>' + numbered + '</pre>')
+             target.with_suffix(target.suffix + '.html').write_text(source_lineage.canonical_shell(text, rel + '.html', output), encoding='utf-8')
+ 
+ 
+@@ -185,6 +210,61 @@
+         raise ValueError(f'Unknown structure field: {parent}.{field}')
+     if not projection.get('role'):
+         raise ValueError(f'Missing projection explanation: {parent}.{field}')
++
++
++def unit_source_candidates(unit: dict) -> list[dict]:
++    """Existing explicit citations plus this unit's actual canonical module."""
++    sources = list(unit.get('sources', []))
++    declaration = inline_lean.declarations().get(unit.get('declaration', ''))
++    if declaration and not any(s.get('path') == declaration.source_file for s in sources):
++        sources.insert(0, {'path': declaration.source_file, 'line': declaration.source_line})
++    return sources
++
++
++def exact_lean_step_actions(unit: dict, step: dict, page: str) -> str:
++    """Copy literal code and link only one unambiguous exact source occurrence.
++
++    This matches bytes, never theorem names or approximate snippets. Ambiguous or
++    absent matches receive copy controls only, with no invented source routing.
++    """
++    literal = str(step.get('lean', '')).encode('utf-8')
++    if b'\n' not in literal:
++        return ''
++    copy = ('<button type="button" data-lean-copy>Copy Lean step</button>'
++            '<span role="status" aria-live="polite" data-lean-copy-status></span>')
++    matches = []
++    seen = set()
++    for source in unit_source_candidates(unit):
++        raw = source.get('path', '')
++        if source.get('url') or not raw or raw.startswith('.lake/packages/') or Path(raw).suffix != '.lean':
++            continue
++        source_link(source, page)  # validate the existing repository path first
++        if raw in seen:
++            continue
++        seen.add(raw)
++        path = ROOT / raw
++        if not path.resolve().is_relative_to(ROOT.resolve()):
++            raise ValueError(f'Exposition source leaves the repository: {raw}')
++        if not path.is_file():
++            continue
++        whole = path.read_bytes()
++        offset = whole.find(literal)
++        if offset < 0:
++            continue
++        if whole.find(literal, offset + 1) >= 0:
++            matches.extend([None, None])  # repeated source occurrences are ambiguous
++            continue
++        line = (source.get('line', 1) if whole == literal
++                else whole[:offset].count(b'\n') + 1)
++        matches.append((raw, line))
++    links = ''
++    if len(matches) == 1 and matches[0] is not None:
++        raw, line = matches[0]
++        context = source_link({'path': raw, 'line': line}, page)
++        download = base.relative_prefix(page) + 'data/lesson-sources/' + Path(raw).as_posix()
++        links = (f'<a href="{base.esc(context)}">Exact source context</a>'
++                 f'<a href="{base.esc(download)}" download>Download exact Lean source</a>')
++    return '<div class="lean-source-actions">' + copy + links + '</div>'
+ 
+ 
+ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
+@@ -211,7 +291,9 @@
+         (f'<details class="proof-reader-step reader-proof-disclosure"><summary>{i}. {base.esc(s["title"])}</summary><div class="reader-step-body">'
+          if progressive else f'<div class="proof-reader-step"><h4>{i}. {base.esc(s["title"])}</h4>')
+         + f'<p>{inline_text(s["text"])}</p><div class="proof-reader-equation">\\[{base.esc(s["formula"])}\\]</div>'
+-        '<details><summary>Corresponding Lean step</summary>'
++        + ('<details data-lean-code-panel>' if '\n' in s['lean'] else '<details>')
++        + '<summary>Corresponding Lean step</summary>'
++        + exact_lean_step_actions(unit, s, page)
+         + (base.code_html(s['lean']) if '\n' in s['lean'] else f'<p>{inline_text(s["lean"])}</p>')
+         + (f'<p>{inline_text(s["detail"])}</p>' if s.get('detail') else '') + '</details></div>'
+         + ('</details>' if progressive else '')

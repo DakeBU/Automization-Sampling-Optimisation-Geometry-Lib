@@ -1,0 +1,33 @@
+  · apply uniqueDiffOn_univ.inter u_open
+  · simpa using hu
+  · exact ⟨hx, xu⟩
+
+/-! ### Smooth functions -/
+
+variable (𝕜) in
+/-- A function is continuously differentiable up to `n` if it admits derivatives up to
+order `n`, which are continuous. Contrary to the case of definitions in domains (where derivatives
+might not be unique) we do not need to localize the definition in space or time.
+The parameter `n` belongs to `ℕ∞ω` (accessible in the `ContDiff` scope), i.e. it can be a natural
+number, `∞`, or `ω`.
+
+For `n = ω`, we require the function to be analytic. The precise
+definition we give (all the derivatives should be analytic) is more involved to work around issues
+when the space is not complete, but it is equivalent when the space is complete.
+-/
+@[fun_prop]
+def ContDiff (n : ℕ∞ω) (f : E → F) : Prop :=
+  match n with
+  | ω => ∃ p : E → FormalMultilinearSeries 𝕜 E F, HasFTaylorSeriesUpTo ⊤ f p
+      ∧ ∀ i, AnalyticOnNhd 𝕜 (fun x ↦ p x i) univ
+  | (n : ℕ∞) => ∃ p : E → FormalMultilinearSeries 𝕜 E F, HasFTaylorSeriesUpTo n f p
+
+/-- If `f` has a Taylor series up to `n`, then it is `C^n`. -/
+theorem HasFTaylorSeriesUpTo.contDiff {n : ℕ∞} {f' : E → FormalMultilinearSeries 𝕜 E F}
+    (hf : HasFTaylorSeriesUpTo n f f') : ContDiff 𝕜 n f :=
+  ⟨f', hf⟩
+
+@[simp, fun_prop] theorem contDiffOn_empty : ContDiffOn 𝕜 n f ∅ := fun _x hx ↦ hx.elim
+
+theorem contDiffOn_univ : ContDiffOn 𝕜 n f univ ↔ ContDiff 𝕜 n f := by
+  match n with

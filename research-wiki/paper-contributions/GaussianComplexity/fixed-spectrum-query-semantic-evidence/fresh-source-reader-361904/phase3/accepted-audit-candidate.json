@@ -1,0 +1,241 @@
+{
+  "id": "ASTIS-RT-20261107-HuanjianFixedSpectrumQuery",
+  "state": "accepted",
+  "source": {
+    "source_id": "arxiv2610.20492v1-ActualFixedSpectrumPrecisionReplies",
+    "url": "https://arxiv.org/html/2610.20492v1#S4.Thmtheorem2",
+    "anchor": "S4.SS1 hard family; S4.E11 literal cosine grid; S4.Thmtheorem2 Remark4.2 same-rotation affine identity and exact matrix-vector reply conversion; S2 oracle meaning.",
+    "original_text": "For the same hidden rotation, either exact precision-matvec reply reconstructs its counterpart at the same query point. \\begin{aligned}Q_\\kappa(x)&=(\\kappa-1)Q_2(x)-(\\kappa-2)x,\\\\Q_2(x)&=\\frac{Q_\\kappa(x)+(\\kappa-2)x}{\\kappa-1}.\\end{aligned} \\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Both endpoints are included. Fix one arbitrary actual \\(O\\in O(d)\\); both precision matrices use this same rotation, which remains the hidden input. For source indices \\(i=1,\\ldots,d\\), define \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i(\\eta)=(\\eta+1)/2+(\\eta-1)\\cos\\theta_i/2\\), and the actual matrices \\(A_\\eta=O\\operatorname{diag}(\\lambda_1(\\eta),\\ldots,\\lambda_d(\\eta))O^\\top\\). Lean uses zero-based indices, so its angle is \\((i.\\mathrm{val}+\\tfrac12)\\pi/d\\). The local formula is total in \\(\\eta\\); the assertions use only source-valid \\(\\eta=\\kappa\\) and \\(\\eta=2\\). The actual reply is \\(Q_\\eta(x)=A_\\eta x\\) for every \\(x\\in\\mathbb R^d\\). The subscript 2 is the reference condition number, rather than a number of calls, a transpose query or a covariance inverse. The scalar \\(\\kappa-1\\) is at least one and hence nonzero; this is derived internally from the source parameter range. Orthogonality, the scalar/diagonal/matrix affine identities and both actual reply formulas are not additional premises. The source experiment draws a Haar rotation independently of private randomness. The selected identity holds pointwise for every realization; this declaration does not assert a joint law, adaptive simulation, query cap, precision/cost comparison, Gaussian-target transport, or a separate formal spectral/positive-definite/normalizer theorem. The full fixed-spectrum lower bound retains its own fixed \\(\\delta\\in(0,1)\\), sufficiently large \\(d\\), \\(2\\le\\kappa\\le d^{1-\\delta}\\) and \\(0<\\varepsilon\\le1/10\\) conditions.",
+    "text_sha256": "b415085afbb565552ce860ff74f290ff46559b73fd662d04b83640de7658613e",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAffine.actual_affine_precision_query",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumAffine.lean",
+    "statement": "∀ {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ),\n    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n    let A : ℝ → Matrix (Fin d) (Fin d) ℝ := fun η =>\n      (O : Matrix (Fin d) (Fin d) ℝ) *\n        Matrix.diagonal (fun i => (η + 1) / 2 + (η - 1) / 2 * Real.cos (θ i)) *\n        (O : Matrix (Fin d) (Fin d) ℝ).transpose\n    let query : ℝ → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=\n      fun η x => WithLp.toLp 2 (A η *ᵥ WithLp.ofLp x)\n    ∀ x : EuclideanSpace ℝ (Fin d),\n      query κ x = (κ - 1) • query 2 x - (κ - 2) • x ∧\n      query 2 x = (κ - 1)⁻¹ • (query κ x + (κ - 2) • x)\n",
+    "statement_sha256": "21444a1168901ab62b508325f92816d18f0793f3e418fc635966e40807143054",
+    "formalizer": "huanjian_gc_20261107_fixed_spectrum_query",
+    "compiled": true,
+    "decoder_context": [
+      "EuclideanSpace real (Fin d) is real d-dimensional Euclidean inner product space with its l2 norm. Fin d indexes from zero; i.val is the natural index. WithLp.toLp 2 and WithLp.ofLp preserve entries.",
+      "Matrix.orthogonalGroup (Fin d) real is the full group of real orthogonal matrices, including either determinant sign. The transpose is the matrix inverse, and either product of a matrix with its transpose is the identity. Membership does not itself supply a probability law.",
+      "Matrix.diagonal makes a matrix with the displayed entries on the diagonal and zero elsewhere. Matrix multiplication and matrix-vector multiplication are the usual finite-sum operations; the order of the displayed factors is significant.",
+      "The symbol • is real scalar multiplication of vectors, and addition/subtraction/equality are the ordinary vector operations. A conjunction asserts both propositions for the same displayed arguments. Ordinary function application evaluates the indicated parameter.",
+      "Real.pi and Real.cos have their usual real meanings. Casts of natural indices and dimensions are their ordinary real values. Real division and reciprocal are totalized: reciprocal at zero is zero, and away from zero it is the usual inverse. These conventions alone do not prove a denominator is nonzero."
+    ]
+  },
+  "reconstruction": {
+    "text": "For every natural number d with d ≥ 2, every real number κ with κ ≥ 2, and every real orthogonal d × d matrix O (with either determinant sign), index coordinates by i ∈ Fin d, that is, integers i = 0, …, d − 1. Define\nθᵢ = (i + 1/2)π/d.\nFor each real parameter η, define\nA(η) = O diagᵢ((η + 1)/2 + ((η − 1)/2) cos θᵢ) Oᵀ,\nand define Qη : ℝᵈ → ℝᵈ by Qη(x) = A(η)x, using ordinary matrix-vector multiplication and the usual Euclidean coordinate identification.\nThen every x ∈ ℝᵈ satisfies both vector identities\nQκ(x) = (κ − 1) Q₂(x) − (κ − 2)x,\nand\nQ₂(x) = (κ − 1)⁻¹ (Qκ(x) + (κ − 2)x).\nHere scalar-vector products and vector sums and differences have their usual real meanings. The same d, κ, O, and x occur in both identities. Since κ ≥ 2, κ − 1 is nonzero and its displayed reciprocal is the usual real inverse. No probability law on O is specified.",
+    "text_sha256": "5361335a0c8bd0108137a8840760227ff719bcc71eefdd30daf7361a73261d35",
+    "decoder": "/root/decode_906213",
+    "decoder_run_sha256": "871c7bef0f2e3d57d6d10244e531fc4d0318b6935f62bf9eb6b4a9d86c8b9e3c",
+    "decoder_packet_sha256": "2dc3bb3323fa96592c235e4c218c09e247f62f899041a743e5824a6415836f45",
+    "source_text_visible": false,
+    "lean_statement_sha256": "21444a1168901ab62b508325f92816d18f0793f3e418fc635966e40807143054",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-query-semantic-evidence/blind-906213/output.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Actual deterministic cosine-grid diagonal matrices at kappa and 2, conjugated using one and the same orthogonal O; vector reply A x. Unknown-basis/known-spectrum source context is separate from probability-law transport.",
+      "reconstructed": "Decoder objects and reconstructed text identify the actual displayed matrix family and Q_eta(x)=A(eta)x, one fixed O, and the common query x. The local A : real -> Matrix is explicitly O * diagonal((eta+1)/2+(eta-1)/2*cos(theta_i)) * O.transpose. query eta x explicitly multiplies A eta by the coordinates of x and returns the same coordinates in EuclideanSpace. Both conjuncts refer to query built from that single A.",
+      "relation": "equivalent",
+      "evidence": "MATCH. No arbitrary external matrix witness, assumed affine relation, unknown project alias, surrogate query or self-referential predicate replaces the source family. The statement has no Gaussian target object, probability law or normalizer; known spectrum and unknown O are source construction/access context, not an algorithmic capability granted by the universal mathematical O binder. Phase3: entire production/Test, literal standard definitions, fresh anonymous application/axiom evidence and stock static reader were checked; see phase3 source-gap, whole-module, provenance and reader reports."
+    },
+    "domains": {
+      "original": "d is an integer >=2, kappa is real >=2, source indices j=1,...,d; O is a full real orthogonal d by d matrix, x is real d-dimensional Euclidean.",
+      "reconstructed": "Decoder preserves d>=2, kappa>=2, all Fin d coordinates, full orthogonal group of either determinant sign, and l2 EuclideanSpace. Binders are {d : natural} (hd : 2 <= d), {kappa : real} (hkappa : 2 <= kappa), O : Matrix.orthogonalGroup (Fin d) real, and x : EuclideanSpace real (Fin d). The angle is ((i.val : real)+1/2)*pi/(d : real).",
+      "relation": "explicit-elaboration",
+      "evidence": "MATCH. Put j=i.val+1; then j-1/2=i.val+1/2, so the zero-based grid is exactly the source grid. No endpoint is dropped or duplicated. The local A function is defined for all real eta, but conclusions use eta=kappa>=2 and eta=2 only. The unrestricted function domain does not claim source hard-family admissibility for eta outside the source range. Section 2 broader d>=1/kappa>=1 is not substituted. Phase3: entire production/Test, literal standard definitions, fresh anonymous application/axiom evidence and stock static reader were checked; see phase3 source-gap, whole-module, provenance and reader reports."
+    },
+    "quantifiers": {
+      "original": "For every admissible d,kappa and every fixed orthogonal O, define both actual matrices using the same O; then every x satisfies both directions. The source random draw is separate context.",
+      "reconstructed": "Decoder outer_order, inner_order, local_function_arguments, no-existentials and conjunction scope reproduce that order and sharing. Outer universal binders d,hd,kappa,hkappa,O precede local theta,A,query definitions and the universal x. A conjunction uses the same local functions, O and x. The implicit braces around d and kappa do not make them existential.",
+      "relation": "equivalent",
+      "evidence": "MATCH. This is a pointwise all-O statement, hence applies to each realization of the source Haar construction without requiring a probability premise. Neither the Lean statement nor reconstruction asserts an adaptive-algorithm coupling or distributional theorem. Absence of a Haar-law binder is appropriate for the selected pointwise algebra; it would not formalize the whole random-family definition. Phase3: entire production/Test, literal standard definitions, fresh anonymous application/axiom evidence and stock static reader were checked; see phase3 source-gap, whole-module, provenance and reader reports."
+    },
+    "assumptions": {
+      "original": "Use the actual source grid, d>=2, kappa>=2, full orthogonality and a shared O. Derive nonzero denominators; do not add source-foreign events, algorithm guarantees or main-theorem conditions.",
+      "reconstructed": "Decoder explicit assumptions, definitional assumptions and no_additional_assumptions agree. Decoder correctly notes kappa-1>=1 and d>=2. Only d>=2, kappa>=2 and orthogonal-group membership are mathematical premises. theta,A,query are let-definitions, not hypotheses. No affine-relation premise, moment/Krylov estimate, determinant-sign restriction or Gaussian regularity condition occurs.",
+      "relation": "same",
+      "evidence": "MATCH. In the reals, kappa>=2 gives kappa-1>=1>0; the reciprocal is the ordinary inverse. d>=2 also makes the real dimension denominator nonzero. Totalized reciprocal supplies no false zero-denominator shortcut within this domain. No delta, large-d threshold beyond d>=2, kappa upper cap or positive-epsilon premise is present. This observation is independent of any root assertion; the different main theorem has not itself been read or accepted. Phase3: entire production/Test, literal standard definitions, fresh anonymous application/axiom evidence and stock static reader were checked; see phase3 source-gap, whole-module, provenance and reader reports."
+    },
+    "conclusion": {
+      "original": "Both same-query vector identities: A_kappa x=(kappa-1)A_2 x-(kappa-2)x and A_2 x=(A_kappa x+(kappa-2)x)/(kappa-1).",
+      "reconstructed": "Decoder reconstructs both exact identities with the same signs, shifts, denominator and parentheses. First conjunct is query kappa x=(kappa-1) scalar query 2 x-(kappa-2) scalar x. Second is query 2 x=(kappa-1)^(-1) scalar (query kappa x+(kappa-2) scalar x). Parentheses put the entire corrected sum under the reciprocal.",
+      "relation": "equivalent",
+      "evidence": "MATCH FOR THE SELECTED MATRIX-VECTOR REPLY CLAIM. The actual cosine family is instantiated internally, rather than merely assumed to satisfy a matrix identity. The proposition does not separately conclude matrix equality or a scalar-vector value-and-gradient reply formula. These were identified as source context/derived consequences in phase one; their omission is not a delta for the explicitly selected matrix-vector fragment. Do not publish a separate matrix-equality or first-order-pair Lean completion claim from this proposition alone. Phase3: entire production/Test, literal standard definitions, fresh anonymous application/axiom evidence and stock static reader were checked; see phase3 source-gap, whole-module, provenance and reader reports."
+    },
+    "scopes": {
+      "original": "Exact algebra of precision-matrix replies at the same x, interpreted through Section 2. Keep source random construction, exact-oracle representation equivalence and later sampling lower bound distinct.",
+      "reconstructed": "Decoder scope_limit explicitly limits its reconstruction to exact vector identities; its scope records preserve matrix order and the entire reverse sum. Only equality, scalar multiplication, vector addition/subtraction, local matrix construction and matrix-vector multiplication occur. There is no sampling law, TV discrepancy, tolerance, finite-bit parameter, runtime/query-count, Borel algorithm or probability event in the statement.",
+      "relation": "explicit-elaboration",
+      "evidence": "MATCH. Section 2 identifies Ax as the exact gradient/matrix-vector reply. WithLp converts coordinates without changing them, according to the approved standard definition context. The source exact value-and-gradient reply is ((1/2)x^T A x,Ax); this theorem has only the vector component. Section 2 separately states access-representation complexity equivalence for one quadratic input. Cross-matrix reply equality is not a verified Gaussian-law, TV/error, precision, cost, adaptive simulation or main-lower-bound transport. Phase3: entire production/Test, literal standard definitions, fresh anonymous application/axiom evidence and stock static reader were checked; see phase3 source-gap, whole-module, provenance and reader reports."
+    },
+    "constant_dependencies": {
+      "original": "Angle offset exactly 1/2; coefficients kappa-1, kappa-2 and inverse(kappa-1); dimension only in grid and spaces; no unspecified constants or lower-bound thresholds.",
+      "reconstructed": "Decoder constant_dependencies distinguishes the real parameter value 2, natural dimension lower bound 2 and l2 coordinate wrapper parameter 2, and preserves all coefficients. theta uses the displayed half-grid offset, pi and real dimension division. A eta uses exactly (eta+1)/2 and (eta-1)/2. The two reply formulas use only the displayed kappa coefficients and x. No coefficient depends on O or d.",
+      "relation": "same",
+      "evidence": "MATCH. At kappa=2 the formulas reduce to identity conversion. There is no hidden kappa upper bound, delta/epsilon constant or asymptotic query term. This does not certify numerical stability, finite-precision conditioning or a bit-cost model. O remains an argument of the mathematical family, while the displayed affine converter itself uses only kappa,x and a returned vector. Phase3: entire production/Test, literal standard definitions, fresh anonymous application/axiom evidence and stock static reader were checked; see phase3 source-gap, whole-module, provenance and reader reports."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/reader_361904",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "146ae61276c657a6387e004ea2aa8ad877057608c659fc86dc22f131bc03d395",
+    "evidence": "Independent phased source-first/statement-first review plus whole production/Test, nine internal bridges, actual standard meanings/parents, fresh real focused/direct/anonymous application and critical-axiom checks, sanitized fake-closure scan, exact neutral decoder provenance, exact publication binding, and stock static reader/code extraction. See research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-query-semantic-evidence/fresh-source-reader-361904/phase3/source-review-run.json. Static only: actual root/site/browser/remote and all target-law/cost/main-theorem boundaries remain separate.",
+    "review_run_sha256": "08eed59cd169e84884516274616fd811b219c5eb6724561501e5f80b149e8662",
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-query-semantic-evidence/fresh-source-reader-361904/phase3/source-review-run.json",
+    "result_artifact": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-query-semantic-evidence/fresh-source-reader-361904/phase3/source-review-result.json"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "fafc6866bd79667295b685939cb04e42374863753ab3e205c43ce6d0780e3970",
+  "publication_context": {
+    "file": "0a46e7bae8d8a9298ba3748a7c94db2f8874f1a4b318169a315c466d86b4a56c",
+    "current_lean_module": "import Mathlib.LinearAlgebra.UnitaryGroup\nimport Mathlib.Data.Matrix.Diagonal\nimport Mathlib.Analysis.InnerProductSpace.PiL2\nimport Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic\nimport Mathlib.Tactic.FieldSimp\nimport Mathlib.Tactic.Ring\nimport Mathlib.Tactic.Linarith\nimport Mathlib.Tactic.NormNum\nopen Matrix\n/-!\n# Actual same-rotation fixed-spectrum precision replies\n\nZhou--Suzuki arXiv:2610.20492v1, Section4.1 Equation11 and Remark4.2.\nThe two precision matrices use the literal cosine grid and the SAME hidden\northogonal rotation. One exact precision-matvec reply reconstructs the other\nat the same actual point in either direction. The number2 here is the\nreference condition number, not a call count or inverse-covariance oracle.\nAll scalar/diagonal/orthogonal/conjugation/matvec and nonzero-reciprocal bridges\nare proved internally. No supplied affine identity or reply-correctness premise.\nGaussian target/covariance/TV transport, operational adaptive/cost/precision\nadapters, spectral/PosDef/normalizer background and both main lower bounds\nremain separate.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAffine\nset_option autoImplicit false\ntheorem actual_affine_precision_query {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ) :\n    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n    let A : ℝ → Matrix (Fin d) (Fin d) ℝ := fun η =>\n      (O : Matrix (Fin d) (Fin d) ℝ) *\n        Matrix.diagonal (fun i => (η + 1) / 2 + (η - 1) / 2 * Real.cos (θ i)) *\n        (O : Matrix (Fin d) (Fin d) ℝ).transpose\n    let query : ℝ → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=\n      fun η x => WithLp.toLp 2 (A η *ᵥ WithLp.ofLp x)\n    ∀ x : EuclideanSpace ℝ (Fin d),\n      query κ x = (κ - 1) • query 2 x - (κ - 2) • x ∧\n      query 2 x = (κ - 1)⁻¹ • (query κ x + (κ - 2) • x) := by\n  classical\n  dsimp only\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let A : ℝ → Matrix (Fin d) (Fin d) ℝ := fun η =>\n    (O : Matrix (Fin d) (Fin d) ℝ) *\n      Matrix.diagonal (fun i => (η + 1) / 2 + (η - 1) / 2 * Real.cos (θ i)) *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let query : ℝ → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=\n    fun η x => WithLp.toLp 2 (A η *ᵥ WithLp.ofLp x)\n  -- Align the zero-based indices with the literal one-based source grid.\n  have hdpos : (0 : ℝ) < (d : ℝ) := by\n    exact_mod_cast (lt_of_lt_of_le (by decide : (0 : ℕ) < 2) hd)\n  have hd0 : (d : ℝ) ≠ 0 := ne_of_gt hdpos\n  have hindex (i : Fin d) : θ i =\n      (((i.val : ℝ) + 1 - 1 / 2) * Real.pi) / (d : ℝ) := by\n    dsimp only [θ]\n    field_simp [hd0]; ring\n  -- Lift the actual entrywise identity through the diagonal and same O.\n  have hscalar (i : Fin d) :\n      (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i) =\n      (κ - 1) * ((2 + 1) / 2 + (2 - 1) / 2 * Real.cos (θ i)) - (κ - 2) := by\n    simp only [hindex i]\n    ring\n  have hdiag :\n      Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) =\n      (κ - 1) • Matrix.diagonal (fun i => (2 + 1) / 2 + (2 - 1) / 2 * Real.cos (θ i)) -\n        (κ - 2) • (1 : Matrix (Fin d) (Fin d) ℝ) := by\n    ext i j\n    by_cases hij : i = j\n    · subst j\n      simpa [Matrix.diagonal_apply, Matrix.one_apply] using hscalar i\n    · simp [hij]\n  -- Full orthogonal membership supplies the actual right identity.\n  have hO : (O : Matrix (Fin d) (Fin d) ℝ) *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose = 1 :=\n    (Matrix.mem_orthogonalGroup_iff (n := Fin d) (R := ℝ)).mp O.property\n  have hmatrix : A κ = (κ - 1) • A 2 - (κ - 2) • 1 := by\n    dsimp only [A]\n    rw [hdiag, Matrix.mul_sub, Matrix.sub_mul]\n    simp only [Matrix.mul_smul, Matrix.smul_mul, Matrix.mul_one, hO]\n  -- Reverse conversion uses a genuinely nonzero known scalar.\n  have hnz : κ - 1 ≠ 0 := by linarith\n  intro x\n  have hforward : query κ x = (κ - 1) • query 2 x - (κ - 2) • x := by\n    apply WithLp.ofLp_injective 2\n    change A κ *ᵥ WithLp.ofLp x =\n      (κ - 1) • (A 2 *ᵥ WithLp.ofLp x) - (κ - 2) • WithLp.ofLp x\n    rw [hmatrix]\n    simp only [Matrix.sub_mulVec, Matrix.smul_mulVec, Matrix.one_mulVec]\n  refine ⟨hforward, ?_⟩\n  change query 2 x = (κ - 1)⁻¹ • (query κ x + (κ - 2) • x)\n  rw [hforward, sub_add_cancel, smul_smul, inv_mul_cancel₀ hnz, one_smul]\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAffine\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#S4.Thmtheorem2",
+      "edition": "arXiv2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "S4.SS1 hard family; S4.E11 literal cosine grid; S4.Thmtheorem2 Remark4.2 same-rotation affine identity and exact matrix-vector reply conversion; S2 oracle meaning.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling, Section4.1 Equation11 and Remark4.2. ASTIS makes the scalar, diagonal, orthogonal, matvec and reciprocal bridges explicit.",
+      "scope": "Actual pointwise bidirectional precision replies with the same hidden rotation; full main lower bounds and all target/algorithm/cost adapters remain separate."
+    },
+    "statement": "For the same hidden rotation, either exact precision-matvec reply reconstructs its counterpart at the same query point. \\begin{aligned}Q_\\kappa(x)&=(\\kappa-1)Q_2(x)-(\\kappa-2)x,\\\\Q_2(x)&=\\frac{Q_\\kappa(x)+(\\kappa-2)x}{\\kappa-1}.\\end{aligned} \\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Both endpoints are included. Fix one arbitrary actual \\(O\\in O(d)\\); both precision matrices use this same rotation, which remains the hidden input. For source indices \\(i=1,\\ldots,d\\), define \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i(\\eta)=(\\eta+1)/2+(\\eta-1)\\cos\\theta_i/2\\), and the actual matrices \\(A_\\eta=O\\operatorname{diag}(\\lambda_1(\\eta),\\ldots,\\lambda_d(\\eta))O^\\top\\). Lean uses zero-based indices, so its angle is \\((i.\\mathrm{val}+\\tfrac12)\\pi/d\\). The local formula is total in \\(\\eta\\); the assertions use only source-valid \\(\\eta=\\kappa\\) and \\(\\eta=2\\). The actual reply is \\(Q_\\eta(x)=A_\\eta x\\) for every \\(x\\in\\mathbb R^d\\). The subscript 2 is the reference condition number, rather than a number of calls, a transpose query or a covariance inverse. The scalar \\(\\kappa-1\\) is at least one and hence nonzero; this is derived internally from the source parameter range. Orthogonality, the scalar/diagonal/matrix affine identities and both actual reply formulas are not additional premises. The source experiment draws a Haar rotation independently of private randomness. The selected identity holds pointwise for every realization; this declaration does not assert a joint law, adaptive simulation, query cap, precision/cost comparison, Gaussian-target transport, or a separate formal spectral/positive-definite/normalizer theorem. The full fixed-spectrum lower bound retains its own fixed \\(\\delta\\in(0,1)\\), sufficiently large \\(d\\), \\(2\\le\\kappa\\le d^{1-\\delta}\\) and \\(0<\\varepsilon\\le1/10\\) conditions.",
+    "formulae": [
+      {
+        "label": "Actual two-way precision reply conversion",
+        "tex": "\\begin{aligned}Q_\\kappa(x)&=(\\kappa-1)Q_2(x)-(\\kappa-2)x,\\\\Q_2(x)&=\\frac{Q_\\kappa(x)+(\\kappa-2)x}{\\kappa-1}.\\end{aligned}"
+      }
+    ],
+    "assumptions": [
+      "\\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Both endpoints are included. Fix one arbitrary actual \\(O\\in O(d)\\); both precision matrices use this same rotation, which remains the hidden input.",
+      "For source indices \\(i=1,\\ldots,d\\), define \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i(\\eta)=(\\eta+1)/2+(\\eta-1)\\cos\\theta_i/2\\), and the actual matrices \\(A_\\eta=O\\operatorname{diag}(\\lambda_1(\\eta),\\ldots,\\lambda_d(\\eta))O^\\top\\). Lean uses zero-based indices, so its angle is \\((i.\\mathrm{val}+\\tfrac12)\\pi/d\\). The local formula is total in \\(\\eta\\); the assertions use only source-valid \\(\\eta=\\kappa\\) and \\(\\eta=2\\).",
+      "The actual reply is \\(Q_\\eta(x)=A_\\eta x\\) for every \\(x\\in\\mathbb R^d\\). The subscript 2 is the reference condition number, rather than a number of calls, a transpose query or a covariance inverse.",
+      "The scalar \\(\\kappa-1\\) is at least one and hence nonzero; this is derived internally from the source parameter range. Orthogonality, the scalar/diagonal/matrix affine identities and both actual reply formulas are not additional premises.",
+      "The source experiment draws a Haar rotation independently of private randomness. The selected identity holds pointwise for every realization; this declaration does not assert a joint law, adaptive simulation, query cap, precision/cost comparison, Gaussian-target transport, or a separate formal spectral/positive-definite/normalizer theorem. The full fixed-spectrum lower bound retains its own fixed \\(\\delta\\in(0,1)\\), sufficiently large \\(d\\), \\(2\\le\\kappa\\le d^{1-\\delta}\\) and \\(0<\\varepsilon\\le1/10\\) conditions."
+    ],
+    "obligations": [
+      {
+        "id": "actual-fixed-spectrum-affine-replies",
+        "label": "The literal same-O source cosine-grid precision-matvec replies reconstruct each other in both directions."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAffine.actual_affine_precision_query",
+      "title": "Actual fixed-spectrum precision reply conversion",
+      "reader_note": "The two reply formulas are shown first; actual source matrices, domains, proof steps and exact Lean are folded below.",
+      "statement": "For the same hidden rotation, either exact precision-matvec reply reconstructs its counterpart at the same query point.",
+      "formula": "\\begin{aligned}Q_\\kappa(x)&=(\\kappa-1)Q_2(x)-(\\kappa-2)x,\\\\Q_2(x)&=\\frac{Q_\\kappa(x)+(\\kappa-2)x}{\\kappa-1}.\\end{aligned}",
+      "assumptions": [
+        "\\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Both endpoints are included. Fix one arbitrary actual \\(O\\in O(d)\\); both precision matrices use this same rotation, which remains the hidden input.",
+        "For source indices \\(i=1,\\ldots,d\\), define \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i(\\eta)=(\\eta+1)/2+(\\eta-1)\\cos\\theta_i/2\\), and the actual matrices \\(A_\\eta=O\\operatorname{diag}(\\lambda_1(\\eta),\\ldots,\\lambda_d(\\eta))O^\\top\\). Lean uses zero-based indices, so its angle is \\((i.\\mathrm{val}+\\tfrac12)\\pi/d\\). The local formula is total in \\(\\eta\\); the assertions use only source-valid \\(\\eta=\\kappa\\) and \\(\\eta=2\\).",
+        "The actual reply is \\(Q_\\eta(x)=A_\\eta x\\) for every \\(x\\in\\mathbb R^d\\). The subscript 2 is the reference condition number, rather than a number of calls, a transpose query or a covariance inverse.",
+        "The scalar \\(\\kappa-1\\) is at least one and hence nonzero; this is derived internally from the source parameter range. Orthogonality, the scalar/diagonal/matrix affine identities and both actual reply formulas are not additional premises.",
+        "The source experiment draws a Haar rotation independently of private randomness. The selected identity holds pointwise for every realization; this declaration does not assert a joint law, adaptive simulation, query cap, precision/cost comparison, Gaussian-target transport, or a separate formal spectral/positive-definite/normalizer theorem. The full fixed-spectrum lower bound retains its own fixed \\(\\delta\\in(0,1)\\), sufficiently large \\(d\\), \\(2\\le\\kappa\\le d^{1-\\delta}\\) and \\(0<\\varepsilon\\le1/10\\) conditions."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(Q_\\eta,A_\\eta\\)",
+          "text": "Actual precision reply at scalar parameter η; both κ and 2 use the same hidden rotation and deterministic angle grid.",
+          "formula": "Q_\\eta(x)=A_\\eta x,\\qquad A_\\eta=O\\operatorname{diag}(\\lambda_i(\\eta))O^\\top."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Align the actual cosine grid",
+          "text": "The zero-based coordinate i.val corresponds to source coordinate i.val+1. Derive positivity of d from the source dimension bound, then identify the two exact angle expressions. All matrices retain the same angle grid.",
+          "formula": "\\theta_i=\\frac{(i.\\mathrm{val}+1/2)\\pi}{d}=\\frac{(i.\\mathrm{val}+1-1/2)\\pi}{d}.",
+          "lean": "hdpos/hd0 derive a genuine nonzero denominator; hindex proves the exact source-index alignment."
+        },
+        {
+          "title": "Lift the scalar affine identity to the diagonal",
+          "text": "Expand the literal eigenvalue formula at κ and at 2. The entrywise affine equality lifts to the diagonal matrix by comparing equal and distinct indices; no arbitrary scalar sequence or hypothesized matrix equality is introduced.",
+          "formula": "\\lambda_i(\\kappa)=(\\kappa-1)\\lambda_i(2)-(\\kappa-2),\\qquad\\Lambda_\\kappa=(\\kappa-1)\\Lambda_2-(\\kappa-2)I_d.",
+          "lean": "hscalar uses hindex and real polynomial arithmetic; hdiag proves the actual diagonal identity entrywise."
+        },
+        {
+          "title": "Conjugate through the same hidden rotation",
+          "text": "Full orthogonal-group membership supplies OOᵀ=I. Distribute the actual matrix product and commute the known scalars through it. This yields the actual source precision identity with the same rotation on both sides.",
+          "formula": "A_\\kappa=O\\Lambda_\\kappa O^\\top=(\\kappa-1)O\\Lambda_2O^\\top-(\\kappa-2)OO^\\top=(\\kappa-1)A_2-(\\kappa-2)I_d.",
+          "lean": "hO applies the actual mem_orthogonalGroup_iff with explicit Fin d/real parameters. hmatrix consumes hdiag, matrix distribution, scalar multiplication and hO."
+        },
+        {
+          "title": "Recover each actual reply",
+          "text": "Apply that matrix equality to the actual queried vector and transport its entries through the Euclidean representation. The forward formula gives a reply at κ from the reply at 2. Rearrange it and multiply by the genuinely nonzero inverse κ−1 for the reverse formula.",
+          "formula": "\\begin{aligned}Q_\\kappa(x)&=(\\kappa-1)Q_2(x)-(\\kappa-2)x,\\\\Q_2(x)&=\\frac{Q_\\kappa(x)+(\\kappa-2)x}{\\kappa-1}.\\end{aligned}",
+          "lean": "hforward uses WithLp.ofLp_injective, sub_mulVec/smul_mulVec/one_mulVec. hnz follows from hκ. The final inverse cancellation proves the reverse equality, with no totalized-zero shortcut."
+        },
+        {
+          "title": "Compare two actual hidden inputs",
+          "text": "Instantiate the producer for O₁ and O₂ at the same x. Equal actual κ replies give equal actual reference-2 replies by the reverse maps; the forward maps give the converse. This is a genuine same-point observational consumer, separate from Gaussian target or algorithm-law transport.",
+          "formula": "Q_\\kappa^{O_1}(x)=Q_\\kappa^{O_2}(x)\\quad\\Longleftrightarrow\\quad Q_2^{O_1}(x)=Q_2^{O_2}(x).",
+          "lean": "Tests.GaussianComplexityFixedSpectrumAffine calls the producer twice and applies congrArg to each known scalar/vector reply map."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Matrix.mem_orthogonalGroup_iff",
+        "Matrix.diagonal_apply",
+        "Matrix.mul_sub",
+        "Matrix.sub_mul",
+        "Matrix.mul_smul",
+        "Matrix.smul_mul",
+        "Matrix.sub_mulVec",
+        "Matrix.smul_mulVec",
+        "Matrix.one_mulVec",
+        "WithLp.ofLp_injective",
+        "smul_smul",
+        "inv_mul_cancel₀"
+      ],
+      "lean_statement": "Exactly the sealed source-domain, literal same-O cosine-grid, bidirectional actual precision-matvec reconstruction.",
+      "lean_proof": "The exact complete production theorem is extracted adjacent to this formula proof. Every omitted standard bridge is internal; no abstract affine identity or reply-correctness premise is supplied.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S4.Thmtheorem2",
+          "edition": "arXiv2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S4.SS1 hard family; S4.E11 literal cosine grid; S4.Thmtheorem2 Remark4.2 same-rotation affine identity and exact matrix-vector reply conversion; S2 oracle meaning.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling, Section4.1 Equation11 and Remark4.2. ASTIS makes the scalar, diagonal, orthogonal, matvec and reciprocal bridges explicit.",
+          "scope": "Actual pointwise bidirectional precision replies with the same hidden rotation; full main lower bounds and all target/algorithm/cost adapters remain separate.",
+          "label": "Zhou–Suzuki, Section4.1 Eq11 and Remark4.2"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumAffine"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAffine.actual_affine_precision_query",
+      "role": "proof-edge",
+      "supports": [
+        "actual-fixed-spectrum-affine-replies"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Hard family source d>=2,kappa>=2 and same hidden orthogonal O for the κ and2 precisions.",
+        "lean": "Exactly those bounds and one actual full orthogonal-group O; literal source cosine-grid Aη and actual Euclidean queryηx."
+      },
+      {
+        "source": "Source grid indices start at1. The reply conversion is pointwise under the source random-matrix experiment.",
+        "lean": "Zero-based Fin d index i.val+1/2 gives the same source angle. Universal O covers every realization; no probability or independence conclusion is asserted."
+      },
+      {
+        "source": "One exact matrix-vector reply determines its counterpart using the same rotation.",
+        "lean": "Both actual reply formulas hold at each same x. The focused actual two-hidden-input reply-equality iff consumes them."
+      }
+    ]
+  }
+}

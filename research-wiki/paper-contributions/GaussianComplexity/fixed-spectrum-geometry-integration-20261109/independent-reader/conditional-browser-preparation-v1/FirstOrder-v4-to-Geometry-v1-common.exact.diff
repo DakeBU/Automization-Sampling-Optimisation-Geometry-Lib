@@ -1,0 +1,299 @@
+--- historical/first_order_browser_common_v4.py
++++ conditional/geometry_browser_common_v1.py
+@@ -1,133 +1,168 @@
+-"""CONDITIONAL v4 UI successor guards. Exactly one reviewed JS exception; no execution/source verdict/API here."""
+-import argparse,gzip,hashlib,json,os,re,subprocess,sys
++"""UNEXECUTED Geometry browser guards. Future actual records are required, never fabricated."""
++import argparse, ast, gzip, hashlib, json, os, re, subprocess, sys
+ from pathlib import Path
+-sys.dont_write_bytecode=True
+-R=Path('/Users/zhouhuanjian/ASTIS-GC')
+-S=R/'.astis/huanjian-gc-fixed-spectrum-first-order-integration-20261108/independent-reader'
+-PROPOSAL_REPORT_SHA='43bff1329cd5b697a845184e1ff9d27004c93d46edb2251f855c4a90d92e5604'
+-CANDIDATE='9d306d837fbddf1518b0035494baaf5c21c24488'
+-ADV='ASTIS-SA-20261108-GaussianComplexityFixedSpectrumFirstOrder'
+-OWNER='huanjian_gc_20261108_fixed_spectrum_first_order'
+-ACTOR='/root/norm_integration_reader'
+-BINDING='51d5a5e9390a0d66c2d5b72d042a042eec8d3d60433043ea3909bf9320ccb31e'
+-UI_REPAIR={'held_core': '87ecd4d421de0146a062435f63e9dcb1f815c807', 'source_path': 'website/static/underlying-lean-graph.js', 'generated_asset_path': '_site/assets/underlying-lean-graph.js', 'before_sha256': 'cb899b6cff1e241a47ee88bff0fb72d04a56af7e4134bfe30168d44a2f00c6e7', 'after_sha256': '016c11a60392c449ebb28e8bedc7d3ab69134fff8dde4b438fd06c9f6c951a3a', 'proposal': {'path': '.astis/huanjian-gc-fixed-spectrum-first-order-integration-20261108/graph-selection-repair-v3/proposal-report.json', 'sha256': 'e2c7fa2e3128d92e46cf789d370e89382a7160e01da90c3a0d227ad7b6a66f69'}, 'independent_static_review': {'path': '.astis/huanjian-gc-fixed-spectrum-first-order-integration-20261108/independent-reader/UI-camera-repair-independent-review-v3/initial-exact-v3-review.json', 'sha256': '5b488c34d9eee3bb26215b61e106d2ab8a95b6f58b2fa6ce3d4b3adc4b658a97'}, 'preservation_qualification': 'One reviewed exact graph-camera JavaScript layout exception; every other protected tracked raw file, foreign state/frontier and original sourceV/STAB binding is preserved.'}
+-sha=lambda b:hashlib.sha256(b).hexdigest()
++sys.dont_write_bytecode = True
++R = Path('/Users/zhouhuanjian/ASTIS-GC')
++S = R / '.astis/huanjian-gc-fixed-spectrum-geometry-integration-20261109/independent-reader'
++PROPOSAL_REPORT_SHA = '6f9045472dc9f11da494942d065b093efab12c2cf385f6d83a379ad771a5e904'
++CANDIDATE = 'ab8b47caed9f781191f8408154cd355c7e7c104c'
++ADV = 'ASTIS-SA-20261109-GaussianComplexityFixedSpectrumGeometry'
++OWNER = 'huanjian_gc_20261109_fixed_spectrum_geometry'
++ACTOR = '/root/geometry_integration_reader'
++BINDING = '69c4f115a417c0aea6a8ebc9384cfc66ff07e6fae92de806831b79075a4760fa'
++AUDIT = 'research-wiki/semantic-roundtrip/audits/huanjian-fixed-spectrum-geometry.json'
++FRONTIER = 'research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-geometry.json'
++sha = lambda b: hashlib.sha256(b).hexdigest()
++def git(*args):
++    return subprocess.check_output(['git', *args], cwd=R)
+ def parse_args(doc):
+- p=argparse.ArgumentParser(description=doc);p.add_argument('--authorization-json',required=True);p.add_argument('--authorization-sha256',required=True);return p.parse_args()
++    p = argparse.ArgumentParser(description=doc)
++    p.add_argument('--authorization-json', required=True)
++    p.add_argument('--authorization-sha256', required=True)
++    return p.parse_args()
+ def readref(ref):
+- p=(R/ref['path']).resolve();assert p.is_relative_to(R);raw=p.read_bytes();assert sha(raw)==ref['sha256'];return raw
++    p = (R / ref['path']).resolve()
++    assert p.is_relative_to(R)
++    raw = p.read_bytes()
++    assert re.fullmatch('[0-9a-f]{64}', ref['sha256']) and sha(raw) == ref['sha256']
++    return raw
+ def load_authorization(args):
+- ref={'path':args.authorization_json,'sha256':args.authorization_sha256};a=json.loads(readref(ref))
+- assert a['authorized_by']=='/root' and a['authorization_kind']=='fixed-spectrum-first-order-final-browser-v4-ui-repair'
+- assert a['execute_browser_authorized'] is True and a['new_source_verdict'] is False and a['parking_authorized'] is False
+- assert a['candidate_commit']==CANDIDATE and a['publication_binding_sha256']==BINDING
+- assert a['source_V_first_carrying_commit']=='f45ba48f7dc74db28f648c38c5a486615723a513' and a['source_verifier_to_preserve']=='/root/source_reader_4e8f6a'
+- assert a['source_V_append']['sha256']=='306b3ebcc5e659b5f2877a9ebe8ff010c09183a47c4b65be767b4ed489e9a99f' and a['STAB_append']['sha256']=='621a4498cd7825f10315e0948ff0cc9e82ca8dc85378fbf3453588b288b91486'
+- assert a['accepted_source_audit']['sha256']=='a14867ad5fd8723933500d4c264c91c05d6b11ef510090c3b6da216fcb402b57' and a['source_review_run']['sha256']=='c7524efc49a5193ba912807ecd56c4b2669a65a7b3f04e7af7079ccb10c289e1'
+- subprocess.check_call(['git','merge-base','--is-ancestor',a['source_V_first_carrying_commit'],a['accepted_immutable_core']],cwd=R)
+- assert a['reviewed_UI_repair']==UI_REPAIR and a['accepted_immutable_core']!=UI_REPAIR['held_core']
+- subprocess.check_call(['git','merge-base','--is-ancestor',UI_REPAIR['held_core'],a['accepted_immutable_core']],cwd=R)
+- assert a['browser_checker_sha256']==sha((S/'check_final_reader_v4.py').read_bytes()) and a['browser_common_sha256']==sha(Path(__file__).read_bytes())
+- assert re.fullmatch('[0-9a-f]{40}',a['accepted_immutable_core']) and a['accepted_immutable_core']!=CANDIDATE
+- assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=R).decode().strip()==a['accepted_immutable_core']
+- subprocess.check_call(['git','merge-base','--is-ancestor',CANDIDATE,a['accepted_immutable_core']],cwd=R)
+- return a,ref
+-def reviewed_ui_exception(a,baseline):
+- assert a['reviewed_UI_repair']==UI_REPAIR
+- proposal=json.loads(readref(UI_REPAIR['proposal']));review=json.loads(readref(UI_REPAIR['independent_static_review']))
+- assert proposal['path']==UI_REPAIR['source_path'] and proposal['held_core']==UI_REPAIR['held_core']
+- assert proposal['before_sha256']==UI_REPAIR['before_sha256'] and proposal['planned_after_sha256']==UI_REPAIR['after_sha256']
+- assert review['status']=='accepted-for-bounded-application-and-new-validation' and review['blocking_objections_to_exact_source_patch']==[]
+- assert review['proposal']==UI_REPAIR['proposal'] and review['planned_after_sha256']==UI_REPAIR['after_sha256']
+- row=baseline['protected_tracked'][UI_REPAIR['source_path']]
+- assert row['sha256']==UI_REPAIR['before_sha256'] and row['symlink'] is False
+- before=gzip.decompress(readref(proposal['before_archive']));after=gzip.decompress(readref(proposal['after_archive']))
+- assert sha(before)==UI_REPAIR['before_sha256'] and sha(after)==UI_REPAIR['after_sha256']
+- source=R/UI_REPAIR['source_path'];asset=R/UI_REPAIR['generated_asset_path']
+- assert source.is_file() and not source.is_symlink() and source.read_bytes()==after==asset.read_bytes()
+- assert subprocess.check_output(['git','show',UI_REPAIR['held_core']+':'+UI_REPAIR['source_path']],cwd=R)==before
+- assert subprocess.check_output(['git','show',a['accepted_immutable_core']+':'+UI_REPAIR['source_path']],cwd=R)==after
+- return {**UI_REPAIR,'source_generated_and_immutable_core_bytes_exact':True,'scope':'UI camera layout only; no source/math/lifecycle verdict'}
++    ref = {'path': args.authorization_json, 'sha256': args.authorization_sha256}
++    a = json.loads(readref(ref))
++    assert a['authorized_by'] == '/root' and a['authorization_kind'] == 'fixed-spectrum-geometry-final-browser-v1'
++    assert a['execute_browser_authorized'] is True and a['new_source_verdict'] is False and a['parking_authorized'] is False
++    assert a['candidate_commit'] == CANDIDATE and a['publication_binding_sha256'] == BINDING
++    assert a['browser_checker_sha256'] == sha((S / 'check_final_reader_v1.py').read_bytes())
++    assert a['browser_common_sha256'] == sha(Path(__file__).read_bytes())
++    assert re.fullmatch('[0-9a-f]{40}', a['accepted_immutable_core']) and a['accepted_immutable_core'] != CANDIDATE
++    assert git('rev-parse', 'HEAD').decode().strip() == a['accepted_immutable_core']
++    subprocess.check_call(['git', 'merge-base', '--is-ancestor', CANDIDATE, a['accepted_immutable_core']], cwd=R)
++    assert re.fullmatch('[0-9a-f]{40}', a['source_V_first_carrying_commit'])
++    subprocess.check_call(['git', 'merge-base', '--is-ancestor', a['source_V_first_carrying_commit'], a['accepted_immutable_core']], cwd=R)
++    assert a['reviewed_UI_repair'] is None  # Current inherited native-camera JS stays exact.
++    return a, ref
++def replay(ledger, discoveries):
++    tree = ast.parse((R / 'tools/astis_advance.py').read_text())
++    functions = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in {'_replay_advances', '_replay_discoveries'}]
++    assert len(functions) == 2
++    scope = {'Iterable': list, 'Any': object, 'NO_PROGRESS_FREEZE_AT': 3}
++    exec(compile(ast.Module(body=functions, type_ignores=[]), '<pure-read-only-replay>', 'exec'), scope)
++    return (scope['_replay_advances']([json.loads(x) for x in ledger.splitlines() if x.strip()]),
++            scope['_replay_discoveries']([json.loads(x) for x in discoveries.splitlines() if x.strip()]))
+ def authorized_context(a):
+- p=S/'conditional-proposal-v1/proposal-report.json';raw=p.read_bytes();assert sha(raw)==PROPOSAL_REPORT_SHA==a['proposal_report_sha256'];p=json.loads(raw)
+- assert a['candidate_source_digest']==p['candidate_source_digest']
+- assert a['source_digest']==p['predicted_source_digest_after_exact_proposed_Lean_payloads']
+- for row in p['shared_paths']:
+-  raw=(R/row['path']).read_bytes();assert sha(raw)==row['planned_after_sha256'];assert subprocess.check_output(['git','show',a['accepted_immutable_core']+':'+row['path']],cwd=R)==raw
+- b=p['protected_baseline'];br=(R/b['path']).read_bytes();assert sha(br)==b['gzip_sha256'];raw=gzip.decompress(br);assert sha(raw)==b['raw_sha256'];baseline=json.loads(raw)
+- ledger='runs/substantive_advances.jsonl'
+- ui_exception=reviewed_ui_exception(a,baseline);protected_other_count=0
+- for name,row in baseline['protected_tracked'].items():
+-  if name in [ledger,'research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-first-order.json',UI_REPAIR['source_path']]:continue
+-  q=R/name;raw=os.fsencode(os.readlink(q)) if q.is_symlink() else q.read_bytes();assert sha(raw)==row['sha256'],name
+-  protected_other_count+=1
+- assert protected_other_count==len(baseline['protected_tracked'])-3==125206
+- assert len(baseline['foreign_SAU_states'])==284 and len(baseline['all_frontier_raw_hashes'])-1==443
+- before=gzip.decompress((S/'conditional-proposal-v1/before-SAU-ledger.raw.gz').read_bytes());now=(R/ledger).read_bytes();assert now.startswith(before)
+- tail=now[len(before):].splitlines();assert len(tail)==2
+- V,stab=map(json.loads,tail);verifier=a['source_verifier_to_preserve'];assert verifier not in [OWNER,ACTOR,'/root']
+- assert V['advance_id']==stab['advance_id']==ADV and V['worker_id']==V['evidence']['verifier_id']==verifier
+- assert (V['from_state'],V['to_state'])==('PROVED_LOCAL','VERIFIED') and (stab['from_state'],stab['to_state'])==('VERIFIED','STABILIZING')
+- assert stab['worker_id']==a['integration_owner'] and a['integration_owner'] not in [OWNER,ACTOR,verifier]
+- assert V['evidence']['verified_commit']==CANDIDATE and all(V['evidence'][k] for k in ['gate','source_audit','fake_closure_scan'])
+- append=readref(a['source_V_append']);assert append==tail[0]+b'\n' and now.count(append)==1
+- assert sha(append)=='306b3ebcc5e659b5f2877a9ebe8ff010c09183a47c4b65be767b4ed489e9a99f' and readref(a['STAB_append'])==tail[1]+b'\n' and sha(tail[1]+b'\n')=='621a4498cd7825f10315e0948ff0cc9e82ca8dc85378fbf3453588b288b91486'
+- actual_execution_ref={'path': 'research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-first-order-semantic-evidence/fresh-source-reader-4e8f6a/verification-transition-execution/execution-manifest.json', 'sha256': '5d89d6ac516abf66824b90d7a12fbeb64a70c5aaa46ffb921ee97af565d01fff'}
+- assert a['source_V_actual_execution_manifest']==actual_execution_ref
+- actual_execution=json.loads(readref(actual_execution_ref));assert actual_execution['normal_API_calls']==1 and actual_execution['actor']=='/root/source_reader_4e8f6a' and actual_execution['exact_append_sha256']==sha(append)
+- audit=json.loads(readref(a['accepted_source_audit']));assert a['accepted_source_audit']['path']=='research-wiki/semantic-roundtrip/audits/huanjian-fixed-spectrum-first-order.json'
+- assert audit['state']=='accepted' and audit['publication_binding_sha256']==BINDING and audit['lean']['formalizer']==OWNER and audit['source_review']['reviewer']==verifier
+- assert sha(readref(a['source_review_run']))==audit['source_review']['review_run_sha256']
+- assert subprocess.check_output(['git','show',a['accepted_immutable_core']+':'+a['accepted_source_audit']['path']],cwd=R)==readref(a['accepted_source_audit'])
+- # The only successor frontier exception is the explicitly pinned OWN cell.
+- # All443 foreign frontiers remain covered by the full raw baseline above.
+- frontier_name='research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-first-order.json'
+- assert a['own_frontier_current']['path']==frontier_name
+- frontier_raw=readref(a['own_frontier_current']);frontier=json.loads(frontier_raw)
+- before_raw=subprocess.check_output(['git','show',CANDIDATE+':'+frontier_name],cwd=R);before_frontier=json.loads(before_raw)
+- assert sha(before_raw)==baseline['all_frontier_raw_hashes'][frontier_name]
+- assert subprocess.check_output(['git','show',a['accepted_immutable_core']+':'+frontier_name],cwd=R)==frontier_raw
+- assert frontier['cell_id']==before_frontier['cell_id']=='ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-first-order'
+- assert frontier['advance_id']==before_frontier['advance_id']==ADV and frontier['owner_id']==before_frontier['owner_id']==OWNER
+- assert frontier['status'] in ['proved_locally','independently_verified']
+- def changed_paths(x,y,path=''):
+-  if isinstance(x,dict) and isinstance(y,dict):
+-   out=[]
+-   for k in sorted(x.keys()|y.keys()):
+-    key=path+'/'+k.replace('~','~0').replace('/','~1')
+-    out.extend(changed_paths(x[k],y[k],key) if k in x and k in y else [key])
+-   return out
+-  return [] if x==y else [path]
+- delta=changed_paths(before_frontier,frontier)
+- assert delta==['/evidence/canonical_integration', '/evidence/execution_boundary', '/evidence/existing_source_V', '/evidence/independent_verification', '/evidence/source_phase_history', '/graph_contribution/visual_review', '/source_detail_audit/fidelity_boundary', '/source_detail_audit/gap', '/source_proof_coverage/independent_implementation_review', '/statement_seal/status', '/status']
+- source_frontier_raw=subprocess.check_output(['git','show','f45ba48f7dc74db28f648c38c5a486615723a513:'+frontier_name],cwd=R);assert sha(source_frontier_raw)=='0c3d5f3f3e32c2ab6d61c2287e98f03cb2124edeffdf962155a7c2394d2dee9a'
+- source_frontier=json.loads(source_frontier_raw);current_without_integration=json.loads(frontier_raw);canonical=current_without_integration['evidence'].pop('canonical_integration')
+- assert current_without_integration==source_frontier
+- assert sha(frontier_raw)=='ae7c1f5b7d59553a84966ae46b4181067fe58e014d481ee190ed2d9bc0fc7b3c' and a['own_frontier_current']['sha256']==sha(frontier_raw)
+- assert canonical=={'state': 'SOLE_STAB_EXACT_EIGHT_PATHS_APPLIED_ACTUAL_CORE_GATES_PENDING', 'owner': 'huanjian_gc_20261108_fixed_spectrum_first_order_integration', 'source_V_first_carrying_commit': 'f45ba48f7dc74db28f648c38c5a486615723a513', 'source_verifier_preserved': '/root/source_reader_4e8f6a', 'proposal_report_sha256': '43bff1329cd5b697a845184e1ff9d27004c93d46edb2251f855c4a90d92e5604', 'new_mathematical_results': 1, 'private_Test_Registry_node': False, 'same_existing_typed_bridge_supplement': True, 'cross_route_formal_transport': False, 'actual_STAB_append_sha256': '621a4498cd7825f10315e0948ff0cc9e82ca8dc85378fbf3453588b288b91486'}
+- assert canonical['actual_STAB_append_sha256']==sha(tail[1]+b'\n')
+- projection=json.loads(readref(a['own_frontier_projection_review']))
+- assert projection['authorized_by']=='/root' and projection['scope']=='mechanical-own-cell-sourceV-STAB-evidence-only'
+- assert projection['candidate_commit']==CANDIDATE and projection['advance_id']==ADV
+- assert projection['before_sha256']==sha(before_raw) and projection['after_sha256']==sha(frontier_raw)
+- assert projection['source_V_append_sha256']==sha(append) and projection['STAB_append_sha256']==sha(tail[1]+b'\n')
+- assert projection['changed_json_paths']==delta and projection['new_mathematical_or_source_verdict'] is False
+- # The exact future record pins actual events and status/evidence projection;
+- # The10 exact existing-V metadata deltas above plus ONLY the actual fixed
+- # canonical_integration record are admitted. Mathematical statements, exact
+- # seals/binders/parents and original sourcegraph remain candidate9d data;
+- # current metadata otherwise equals immutable first-V f45 byte-content data.
+- sys.path[:0]=[str(R/'tools')];import astis_advance as advance
+- states=advance.current_advances();assert states[ADV]['state']=='STABILIZING' and [k for k,v in states.items() if v['state']=='STABILIZING']==[ADV]
+- assert {k:v for k,v in states.items() if k!=ADV}==baseline['foreign_SAU_states']
+- assert advance.current_discoveries()==baseline['all_discovery_states']
+- gate=json.loads(readref(a['actual_gate']));meta=json.loads(readref(a['site_metadata']))
+- assert gate['passed'] and meta['gate']['passed'] and meta['gate']['current'] and gate['commit']==meta['git']['commit']==a['accepted_immutable_core']
+- assert gate['source_digest']==meta['source_digest']==a['source_digest']
+- required={'canonical_lean','publication','contributor','semantic','frontier','site_build','site_check','graph_check'};assert set(a['actual_checks_before_browser'])==required
+- needles={'publication':'astis_publication.py','contributor':'astis_contributor_contract.py','semantic':'astis_semantic_roundtrip.py','frontier':'astis_frontier_cells.py','site_build':'build_site.py','site_check':'check_site.py','graph_check':'graph-check'}
+- for role,ref in a['actual_checks_before_browser'].items():
+-  receipt=json.loads(readref(ref));assert receipt['exit_code']==0 and receipt['head_before']==receipt['head_after']==a['accepted_immutable_core'];log=Path(receipt['log']).read_bytes();assert sha(log)==receipt['log_sha256']
+-  if role=='canonical_lean':assert log.decode().splitlines().count('ASTIS check passed')==1 and receipt['command'][1:] in [['tools/astis.py','check'],['website/scripts/lean_gate.py']]
+-  else:assert needles[role] in str(receipt['command'])
+- return {'conditional_proposal_exact_applied':True,'original_source_verifier':verifier,'unique_original_V_append_sha256':sha(append),'sole_STAB':ADV,'foreign_tracked_raw_bytes_preserved':False,'all_other_foreign_tracked_raw_bytes_preserved':True,'protected_other_raw_files_checked':protected_other_count,'reviewed_one_path_UI_exception':ui_exception,'preservation_qualification':UI_REPAIR['preservation_qualification'],'unchanged_foreign_states':len(baseline['foreign_SAU_states']),'all_discoveries_and443_foreign_frontier_bytes_preserved':True,'own_frontier_successor':a['own_frontier_current'],'own_frontier_projection_review':a['own_frontier_projection_review'],'own_frontier_changed_paths':delta,'source_V_first_carrying_commit':'f45ba48f7dc74db28f648c38c5a486615723a513','original_sourceV_execution_manifest':actual_execution_ref,'lifecycle_API_called':False,'new_source_verdict':False,'all8_actual_receipts_exact_core_read':True}
++    proposal_raw = (S / 'conditional-proposal-v1/proposal-report.json').read_bytes()
++    assert sha(proposal_raw) == PROPOSAL_REPORT_SHA == a['proposal_report_sha256']
++    p = json.loads(proposal_raw)
++    assert a['candidate_source_digest'] == p['candidate_source_digest']
++    assert a['source_digest'] == p['predicted_source_digest_after_exact_proposed_Lean_payloads']
++    for row in p['shared_paths']:
++        raw = (R / row['path']).read_bytes()
++        assert sha(raw) == row['planned_after_sha256']
++        assert git('show', a['accepted_immutable_core'] + ':' + row['path']) == raw
++    br = p['protected_baseline']; compressed = readref({'path': br['path'], 'sha256': br['gzip_sha256']})
++    baseline_raw = gzip.decompress(compressed); assert sha(baseline_raw) == br['raw_sha256']
++    baseline = json.loads(baseline_raw)
++    # Three possible actual own metadata paths require evidence below. Nothing
++    # else is exempted from lossless foreign/current-candidate preservation.
++    ledger_name = 'runs/substantive_advances.jsonl'
++    exceptions = {ledger_name, AUDIT, FRONTIER}
++    checked = 0
++    for name, row in baseline['protected_tracked'].items():
++        if name in exceptions: continue
++        q = R / name; raw = os.fsencode(os.readlink(q)) if q.is_symlink() else q.read_bytes()
++        assert sha(raw) == row['sha256'], name
++        checked += 1
++    assert checked == len(baseline['protected_tracked']) - len(exceptions)
++    before_ledger = git('show', CANDIDATE + ':' + ledger_name)
++    assert sha(before_ledger) == baseline['all_tracked'][ledger_name]['sha256']
++    now = (R / ledger_name).read_bytes(); assert now.startswith(before_ledger)
++    tail = now[len(before_ledger):].splitlines(); assert len(tail) == 2
++    V, stab = map(json.loads, tail)
++    verifier = a['source_verifier_to_preserve']
++    assert verifier not in [OWNER, ACTOR, '/root']
++    assert V['advance_id'] == stab['advance_id'] == ADV
++    assert V['worker_id'] == V['evidence']['verifier_id'] == verifier
++    assert (V['from_state'], V['to_state']) == ('PROVED_LOCAL', 'VERIFIED')
++    assert (stab['from_state'], stab['to_state']) == ('VERIFIED', 'STABILIZING')
++    assert stab['worker_id'] == a['integration_owner'] and a['integration_owner'] not in [OWNER, ACTOR, verifier]
++    assert V['evidence']['verified_commit'] == CANDIDATE
++    assert all(V['evidence'][k] for k in ['gate', 'source_audit', 'fake_closure_scan'])
++    append = readref(a['source_V_append'])
++    assert append == tail[0] + b'\n' and now.count(append) == 1
++    assert readref(a['STAB_append']) == tail[1] + b'\n'
++    execution = json.loads(readref(a['source_V_actual_execution_manifest']))
++    assert execution['normal_API_calls'] == 1 and execution['actor'] == verifier and execution['exact_append_sha256'] == sha(append)
++    assert a['accepted_source_audit']['path'] == AUDIT
++    audit_raw = readref(a['accepted_source_audit']); audit = json.loads(audit_raw)
++    assert audit['state'] == 'accepted' and audit['publication_binding_sha256'] == BINDING
++    assert audit['lean']['formalizer'] == OWNER and audit['source_review']['reviewer'] == verifier
++    assert audit['reconstruction']['decoder'] not in [verifier, OWNER, ACTOR]
++    assert sha(readref(a['source_review_run'])) == audit['source_review']['review_run_sha256']
++    assert git('show', a['accepted_immutable_core'] + ':' + AUDIT) == audit_raw
++    assert git('show', a['source_V_first_carrying_commit'] + ':' + AUDIT) == audit_raw
++    assert append in git('show', a['source_V_first_carrying_commit'] + ':' + ledger_name)
++    assert a['own_frontier_current']['path'] == FRONTIER
++    frontier_raw = readref(a['own_frontier_current'])
++    assert git('show', a['accepted_immutable_core'] + ':' + FRONTIER) == frontier_raw
++    before_frontier_raw = git('show', CANDIDATE + ':' + FRONTIER)
++    assert sha(before_frontier_raw) == baseline['all_frontier_raw_hashes'][FRONTIER]
++    before_frontier = json.loads(before_frontier_raw); frontier = json.loads(frontier_raw)
++    # An explicitly reviewed actual mechanical metadata projection is mandatory
++    # if own frontier bytes change. This preparation creates no such projection.
++    if frontier_raw != before_frontier_raw:
++        projection = json.loads(readref(a['own_frontier_projection_review']))
++        assert projection['authorized_by'] == '/root' and projection['scope'] == 'mechanical-own-cell-sourceV-STAB-evidence-only'
++        assert projection['candidate_commit'] == CANDIDATE and projection['advance_id'] == ADV
++        assert projection['before_sha256'] == sha(before_frontier_raw) and projection['after_sha256'] == sha(frontier_raw)
++        assert projection['source_V_append_sha256'] == sha(append) and projection['STAB_append_sha256'] == sha(tail[1] + b'\n')
++        assert projection['new_mathematical_or_source_verdict'] is False
++        # Keep source math, parents, seals and coverage graph exact; only the
++        # separately reviewed metadata paths may differ, never a whole subtree.
++        def differences(x, y, path=''):
++            if isinstance(x, dict) and isinstance(y, dict):
++                out = []
++                for k in sorted(x.keys() | y.keys()):
++                    q = path + '/' + k.replace('~', '~0').replace('/', '~1')
++                    out += differences(x[k], y[k], q) if k in x and k in y else [q]
++                return out
++            return [] if x == y else [path]
++        changed = differences(before_frontier, frontier)
++        assert changed == projection['changed_json_paths']
++        permitted = {'/evidence/canonical_integration', '/evidence/execution_boundary', '/evidence/existing_source_V',
++            '/evidence/independent_verification', '/evidence/source_phase_history', '/graph_contribution/visual_review',
++            '/source_detail_audit/fidelity_boundary', '/source_detail_audit/gap',
++            '/source_proof_coverage/independent_implementation_review', '/statement_seal/status', '/status'}
++        assert set(changed) <= permitted
++    else:
++        assert a['own_frontier_projection_review'] is None
++    for key in ['cell_id', 'advance_id', 'owner_id', 'target_statement', 'parents', 'source_anchor']:
++        assert frontier[key] == before_frontier[key]
++    discovery_raw = (R / 'runs/substantive_discoveries.jsonl').read_bytes()
++    states, discoveries = replay(now, discovery_raw)
++    assert states[ADV]['state'] == 'STABILIZING' and [k for k, v in states.items() if v['state'] == 'STABILIZING'] == [ADV]
++    assert {k: v for k, v in states.items() if k != ADV} == baseline['foreign_SAU_states']
++    assert discoveries == baseline['all_discovery_states']
++    gate = json.loads(readref(a['actual_gate'])); meta = json.loads(readref(a['site_metadata']))
++    assert gate['passed'] and meta['gate']['passed'] and meta['gate']['current']
++    assert gate['commit'] == meta['git']['commit'] == a['accepted_immutable_core']
++    assert gate['source_digest'] == meta['source_digest'] == a['source_digest']
++    roles = {'canonical_lean', 'publication', 'contributor', 'semantic', 'frontier', 'site_build', 'site_check', 'graph_check'}
++    assert set(a['actual_checks_before_browser']) == roles
++    needles = {'publication': 'astis_publication.py', 'contributor': 'astis_contributor_contract.py',
++        'semantic': 'astis_semantic_roundtrip.py', 'frontier': 'astis_frontier_cells.py',
++        'site_build': 'build_site.py', 'site_check': 'check_site.py', 'graph_check': 'graph-check'}
++    for role, ref in a['actual_checks_before_browser'].items():
++        receipt = json.loads(readref(ref))
++        assert receipt['exit_code'] == 0 and receipt['head_before'] == receipt['head_after'] == a['accepted_immutable_core']
++        log = Path(receipt['log']).read_bytes(); assert sha(log) == receipt['log_sha256']
++        if role == 'canonical_lean':
++            assert log.decode().splitlines().count('ASTIS check passed') == 1
++            assert receipt['command'][1:] in [['tools/astis.py', 'check'], ['website/scripts/lean_gate.py']]
++        else:
++            assert needles[role] in str(receipt['command'])
++    return {'conditional_proposal_exact_applied': True, 'original_source_verifier': verifier,
++        'unique_original_V_append_sha256': sha(append), 'sole_STAB': ADV,
++        'foreign_tracked_raw_bytes_preserved': True, 'protected_raw_files_checked': checked,
++        'all_foreign_states_frontiers_models_and_discovery_bytes_preserved': True,
++        'own_frontier_successor': a['own_frontier_current'], 'source_V_first_carrying_commit': a['source_V_first_carrying_commit'],
++        'lifecycle_API_called': False, 'new_source_verdict': False, 'all8_actual_receipts_exact_core_read': True}

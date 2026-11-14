@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "audits": [
+    {
+      "id": "ASTIS-RT-20261113-HuanjianGaussianSourceMatrixStructurePrivateConsumer",
+      "state": "draft",
+      "source": {
+        "source_id": "c2-private-weighted-centered-matrix-structure",
+        "anchor": "Appendix C.2 p13-p14, Ex113 and weighted Ex115; original Gaussian experiment p1, cutoff Ex107, actual mean p12; Lemma4.4 regime",
+        "original_text": "For all natural d,q with 2q+1<d, put r=q+1, including q=0. On Omega=(R^d)^r with mu the product of r independent standard d-dimensional Gaussian column laws, let Phi_i be the actual physical row. Put theta_i=(i-1/2)pi/d, t_i=(1,sqrt(2)cos(theta_i),...,sqrt(2)cos(q theta_i)), and L=2r+3log(1000d). Define Yi=d^(-1)(Phi_i Phi_i-transpose tensor t_i t_i-transpose) when norm(Phi_i)^2<=L and zero otherwise. The cutoff is inclusive and local to row i. Let Mi be the actual Bochner integral of Yi under this same original unconditional mu, and Zi=Yi-Mi. Matrix measurability uses the standard finite-coordinate Borel structure; norms use real Euclidean operator norms. Put wi=cos((2q+1)theta_i) and Xi=wi Zi. Each Xi is measurable. The entire family (Xi) indexed by i is jointly independent under mu. Each Xi is Bochner integrable, its actual integral under mu is zero, and Xi(omega) is Hermitian for every i and every omega. Weights may be zero or negative. These are the corresponding prerequisites for the weighted matrix Bernstein step, without any combined-family independence or concentration conclusion.",
+        "text_sha256": "f539d940ec8428cb63060285d443976dcdc3264783cac9dce1e833967f013374"
+      },
+      "lean": {
+        "declaration": "_private.Tests.GaussianComplexityFixedSpectrumSourceMatrixStructure.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixStructure.actual_source_weighted_centered_matrix_structure",
+        "file": "Tests/GaussianComplexityFixedSpectrumSourceMatrixStructure.lean",
+        "statement": "∀     {d q : ℕ} (hq : 2 * q + 1 < d) ,\n  letI : MeasurableSpace\n      (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) :=\n    borel (Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let X : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => w i • Z i ω\n  (∀ i : Fin d, Measurable (X i)) ∧\n    iIndepFun X μ ∧\n    (∀ i : Fin d, Integrable (X i) μ) ∧\n    (∀ i : Fin d, (∫ ω, X i ω ∂μ) = 0) ∧\n    (∀ i : Fin d, ∀ ω : Ω, (X i ω).IsHermitian)\n",
+        "statement_sha256": "c5ec0d4eac73ca6bfc5bd00040f5a05e93f8e2e9a0be8923b955a75bc1f708e5",
+        "compiled": true,
+        "formalizer": "huanjian_gc_20261113_source_matrix_structure",
+        "decoder_context": [
+          "Fin n is the finite set of natural numbers less than n. Natural numbers are embedded into the real numbers by the usual coercion.",
+          "EuclideanSpace real (Fin n) is real n-dimensional Euclidean space, with Euclidean norm and its Borel sigma algebra. WithLp.toLp 2 wraps a coordinate function as a Euclidean vector, and WithLp.ofLp recovers the same coordinates.",
+          "stdGaussian is the centered Gaussian probability measure with identity covariance. Measure.pi is the finite product measure on the displayed function space.",
+          "Real.log denotes the natural logarithm and Real.sqrt the nonnegative square root. An if-condition using less-than-or-equal includes equality.",
+          "Matrix.vecMulVec u v has entry u_i times v_j. Matrix.kronecker A B has entry A_(i,k) times B_(j,l) at row (i,j) and column (k,l). Scalar multiplication and subtraction are ordinary real matrix operations.",
+          "The local letI fixes the measurable space of the finite real matrices to borel of their topology. Their topology is the ordinary finite coordinate topology. The opened L2 operator norm convention gives the norm of the matrix action between real Euclidean spaces and preserves that topology.",
+          "Measurable means measurable for the displayed domain and codomain sigma algebras. iIndepFun f mu means the entire displayed indexed family of random functions is jointly independent under mu, not only pairwise independent.",
+          "Integrable f mu means Bochner integrable, including almost-everywhere strong measurability and finite integral of the norm. The integral notation is the Bochner integral; it is totalized to zero for nonintegrable functions. Reconstruct each asserted integrability and integral equality exactly as displayed.",
+          "For real matrices, A.IsHermitian means A equals its transpose (equivalently its conjugate transpose, since real conjugation is trivial). This is a symmetry condition."
+        ]
+      },
+      "repairs": [],
+      "candidate_commit": "9ed997b7fda8631deb5bc1397d021495d53c4d41"
+    }
+  ]
+}

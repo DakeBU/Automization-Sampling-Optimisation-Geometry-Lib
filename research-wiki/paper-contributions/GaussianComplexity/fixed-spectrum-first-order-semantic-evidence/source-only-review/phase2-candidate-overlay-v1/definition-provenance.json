@@ -1,0 +1,101 @@
+{
+  "schema": "gc-source-only-phase2-definition-provenance-v1",
+  "windows": [
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/Gradient/Basic.lean",
+      "lines_inclusive": [
+        43,
+        89
+      ],
+      "window_sha256": "659f6d93dd6fe381eaaf9daa7ddd8a6a3734828db3905b1cc5ea5377cf28f720",
+      "text": "@[expose] public section\n\n@[expose] public section\n\nopen ComplexConjugate Topology InnerProductSpace Function Set\n\nnoncomputable section\n\nvariable {𝕜 F : Type*} [RCLike 𝕜]\nvariable [NormedAddCommGroup F] [InnerProductSpace 𝕜 F] [CompleteSpace F]\nvariable {f : F → 𝕜} {f' x y : F}\n\n/-- A function `f` has the gradient `f'` as derivative along the filter `L` if\n  `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` when `x'` converges along the filter `L`. -/\ndef HasGradientAtFilter (f : F → 𝕜) (f' x : F) (L : Filter F) :=\n  HasFDerivAtFilter f (toDual 𝕜 F f') (L ×ˢ pure x)\n\n/-- `f` has the gradient `f'` at the point `x` within the subset `s` if\n  `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x` inside `s`. -/\ndef HasGradientWithinAt (f : F → 𝕜) (f' : F) (s : Set F) (x : F) :=\n  HasGradientAtFilter f f' x (𝓝[s] x)\n\n/-- `f` has the gradient `f'` at the point `x` if\n  `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x`. -/\ndef HasGradientAt (f : F → 𝕜) (f' x : F) :=\n  HasGradientAtFilter f f' x (𝓝 x)\n\n/-- Gradient of `f` at the point `x` within the set `s`, if it exists.  Zero otherwise.\n\nIf the derivative exists (i.e., `∃ f', HasGradientWithinAt f f' s x`), then\n`f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x` inside `s`. -/\ndef gradientWithin (f : F → 𝕜) (s : Set F) (x : F) : F :=\n  (toDual 𝕜 F).symm (fderivWithin 𝕜 f s x)\n\n/-- Gradient of `f` at the point `x`, if it exists.  Zero otherwise.\nDenoted as `∇` within the Gradient namespace.\n\nIf the derivative exists (i.e., `∃ f', HasGradientAt f f' x`), then\n`f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x`. -/\ndef gradient (f : F → 𝕜) (x : F) : F :=\n  (toDual 𝕜 F).symm (fderiv 𝕜 f x)\n\n@[inherit_doc]\nscoped[Gradient] notation \"∇\" => gradient\n\nlocal notation \"⟪\" x \", \" y \"⟫\" => inner 𝕜 x y\n\n",
+      "purpose": "Definitions of HasGradientAtFilter, HasGradientAt, gradient and their real inner-product meaning."
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Data/Matrix/Mul.lean",
+      "lines_inclusive": [
+        72,
+        73
+      ],
+      "window_sha256": "845ac48216569b548ccb957fafad6c1307bea4e8024a0bb3aa0eb65f6207e854",
+      "text": "def dotProduct [Mul α] [AddCommMonoid α] (v w : m → α) : α :=\n  ∑ i, v i * w i\n",
+      "purpose": "dotProduct definition only."
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Data/Matrix/Mul.lean",
+      "lines_inclusive": [
+        696,
+        705
+      ],
+      "window_sha256": "e6594ead736c9ba1933aedc298e6db9775f5218a3489cef77f1adbfc6f1e5e15",
+      "text": "so that `A *ᵥ v ⬝ᵥ B *ᵥ w` is parsed as `(A *ᵥ v) ⬝ᵥ (B *ᵥ w)`.\n-/\ndef mulVec [Fintype n] (M : Matrix m n α) (v : n → α) : m → α\n  | i => (fun j => M i j) ⬝ᵥ v\n\n@[inherit_doc]\nscoped infixr:73 \" *ᵥ \" => Matrix.mulVec\n\nlemma mulVec_apply [Fintype n] (M : Matrix m n α) (v : n → α) (i : m) :\n    (M *ᵥ v) i = M.row i ⬝ᵥ v := rfl\n",
+      "purpose": "Authorized mulVec definition window; includes mulVec_apply rfl at704-705, recorded as incidental exposure."
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/LinearAlgebra/UnitaryGroup.lean",
+      "lines_inclusive": [
+        54,
+        61
+      ],
+      "window_sha256": "1f4368ddd6f1fd3cff41c014ac974c0b1199ed27998fd8b5e4bdbd101a167163",
+      "text": "variable (n : Type u) [DecidableEq n] [Fintype n]\nvariable (α : Type v) [CommRing α] [StarRing α]\n\n/-- `Matrix.unitaryGroup n` is the group of `n` by `n` matrices where the star-transpose is the\ninverse.\n-/\nabbrev unitaryGroup : Submonoid (Matrix n n α) :=\n  unitary (Matrix n n α)\n",
+      "purpose": "Necessary unitaryGroup alias and parameter context, no proof body."
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/LinearAlgebra/UnitaryGroup.lean",
+      "lines_inclusive": [
+        286,
+        295
+      ],
+      "window_sha256": "7efc778f9e96df4bde65e902977a15b60cb0663a7adc2301ae3d85204f714696",
+      "text": "variable (n) (R : Type v) [CommRing R]\n\n-- TODO: will lemmas about `Matrix.orthogonalGroup` work without making\n-- `starRingOfComm` a local instance? E.g., can we talk about unitary group and orthogonal group\n-- at the same time?\nattribute [local instance] starRingOfComm\n\n/-- `Matrix.orthogonalGroup n` is the group of `n` by `n` matrices where the transpose is the\ninverse. -/\nabbrev orthogonalGroup := unitaryGroup n R\n",
+      "purpose": "Necessary orthogonalGroup alias: transpose is inverse, no determinant-one condition."
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/Normed/Lp/WithLp.lean",
+      "lines_inclusive": [
+        38,
+        60
+      ],
+      "window_sha256": "5dcea0bf49d5ae6e78db2f09baa970b9cd91005cf9dee03c479074e409854f17",
+      "text": "TODO: is it safe to copy across the topology and uniform space structure too for all reasonable\nchoices of `V`?\n-/\n\n@[expose] public section\n\n\nopen scoped ENNReal\n\n/-- A type synonym for the given `V`, associated with the L`p` norm. Note that by default this just\nforgets the norm structure on `V`; it is up to downstream users to implement the L`p` norm (for\ninstance, on `Prod` and finite `Pi` types). -/\nstructure WithLp (p : ℝ≥0∞) (V : Type*) where\n  /-- Converts an element of `V` to an element of `WithLp p V`. -/\n  toLp (p) ::\n  /-- Converts an element of `WithLp p V` to an element of `V`. -/\n  ofLp : V\n\nsection Notation\n\nopen Lean.PrettyPrinter.Delaborator\n\n/-- This prevents `toLp p x` being printed as `{ ofLp := x }` by `delabStructureInstance`. -/\n",
+      "purpose": "WithLp structure with constructor toLp and projection ofLp; coordinate-preserving wrapper."
+    },
+    {
+      "path": ".lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/PiL2.lean",
+      "lines_inclusive": [
+        110,
+        114
+      ],
+      "window_sha256": "4acc0248167baee4eb675021828614c18b01770522be2ee08edcb836997142b4",
+      "text": "For the case when `n = Fin _`, there is `!₂[x, y, ...]` notation for building elements of this type,\nanalogous to `![x, y, ...]` notation. -/\n@[wikidata Q17295]\nabbrev EuclideanSpace (𝕜 : Type*) (n : Type*) : Type _ :=\n  PiLp 2 fun _ : n => 𝕜\n",
+      "purpose": "EuclideanSpace alias to PiLp2, necessary carrier meaning only."
+    }
+  ],
+  "definition_searches_only": [
+    "Exact-name orthogonalGroup/unitaryGroup/EuclideanSpace/WithLp definition location scans.",
+    "File-name-only lookup for WithLp/PiL2 paths. No proof API search or theorem selection."
+  ],
+  "incidental_exposure": [
+    {
+      "kind": "authorized-window-overlap",
+      "detail": "Matrix.Mul696-705 includes lemma mulVec_apply and its rfl body at704-705. This was within the expressly authorized range, not an API search; it is not used as an implementation route in this audit."
+    },
+    {
+      "kind": "extra-name-only",
+      "detail": "EuclideanSpace definition-location regex also printed alias names equiv, proj_l, proj, single, sumEquivProd and finAddEquivProd. Bodies were not opened."
+    },
+    {
+      "kind": "extra-name-only",
+      "detail": "WithLp definition-location regex also printed delabToLp, equiv, map, congr, addEquiv, linearEquiv, withLpMap and withLpCongr. Bodies were not opened."
+    },
+    {
+      "kind": "necessary-carrier-alias",
+      "detail": "EuclideanSpace PiL2:110-114 was opened only to establish PiLp2 carrier meaning. It contains no proof."
+    }
+  ],
+  "HasGradientAt_meaning": "Real HasFDerivAtFilter with toDual of the proposed vector, at the full neighborhood ofx. This genuinely asserts derivative existence.",
+  "gradient_total_definition": "Inverse Riesz of fderiv; documented zero fallback off differentiability is neutralized by the required HasGradientAt output, not assumed away.",
+  "coordinate_wrapper": "WithLp is a structure with toLp constructor and ofLp field, not a covariance transform or a basis change.",
+  "remaining_geometric_obligation": "The actual real l2 inner-product/coordinate dotProduct compatibility must be proved internally. No inner-product instance theorem or derivative lemma was retrieved here."
+}

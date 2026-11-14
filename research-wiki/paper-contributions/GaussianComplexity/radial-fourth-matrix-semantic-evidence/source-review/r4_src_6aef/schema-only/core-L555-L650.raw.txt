@@ -1,0 +1,96 @@
+        semantic_slots = audit.get("semantic_slots")
+        if state in {"semantic-diffed", "source-reviewed", "accepted", "rejected"}:
+            if not isinstance(semantic_slots, dict):
+                errors.append(_at(audit_id, "semantic_slots are required after reconstruction"))
+                semantic_slots = {}
+            missing = [slot for slot in SEMANTIC_SLOTS if slot not in semantic_slots]
+            extra = sorted(set(semantic_slots) - set(SEMANTIC_SLOTS))
+            if missing:
+                errors.append(_at(audit_id, "semantic_slots missing: " + ", ".join(missing)))
+            if extra:
+                errors.append(_at(audit_id, "semantic_slots contain unknown keys: " + ", ".join(extra)))
+            for slot in SEMANTIC_SLOTS:
+                row = semantic_slots.get(slot)
+                if not isinstance(row, dict):
+                    errors.append(_at(audit_id, f"semantic_slots.{slot} must be an object"))
+                    continue
+                if row.get("relation") not in SLOT_RELATIONS:
+                    errors.append(_at(audit_id, f"semantic_slots.{slot}.relation is invalid"))
+                for field in ("original", "reconstructed", "evidence"):
+                    if not _nonempty(row.get(field)):
+                        errors.append(_at(audit_id, f"semantic_slots.{slot}.{field} is required"))
+        elif semantic_slots not in (None, {}) and not isinstance(semantic_slots, dict):
+            errors.append(_at(audit_id, "semantic_slots must be an object"))
+
+        deltas = audit.get("deltas", [])
+        if not isinstance(deltas, list):
+            errors.append(_at(audit_id, "deltas must be a list"))
+            deltas = []
+        blocking = 0
+        for delta_index, delta in enumerate(deltas):
+            if not isinstance(delta, dict):
+                errors.append(_at(audit_id, f"deltas[{delta_index}] must be an object"))
+                continue
+            if delta.get("slot") not in SEMANTIC_SLOTS:
+                errors.append(_at(audit_id, f"deltas[{delta_index}].slot is invalid"))
+            if delta.get("severity") not in {"informational", "review", "blocking"}:
+                errors.append(_at(audit_id, f"deltas[{delta_index}].severity is invalid"))
+            if delta.get("severity") == "blocking":
+                blocking += 1
+            if not _nonempty(delta.get("description")) or not _nonempty(delta.get("evidence")):
+                errors.append(_at(audit_id, f"deltas[{delta_index}] needs description and evidence"))
+
+        verdict = audit.get("verdict", "pending")
+        if verdict not in VERDICTS:
+            errors.append(_at(audit_id, f"verdict must be one of {sorted(VERDICTS)}"))
+        if state in {"source-reviewed", "accepted", "rejected"} and verdict == "pending":
+            errors.append(_at(audit_id, f"state={state} requires a non-pending fidelity verdict"))
+        if verdict in {"exact", "equivalent-after-elaboration"} and blocking:
+            errors.append(_at(audit_id, f"{verdict} cannot coexist with blocking semantic deltas"))
+        if verdict == "exact" and isinstance(semantic_slots, dict):
+            bad = [
+                slot
+                for slot, row in semantic_slots.items()
+                if isinstance(row, dict) and row.get("relation") not in {"same", "equivalent"}
+            ]
+            if bad:
+                errors.append(_at(audit_id, "exact verdict has non-equivalent slots: " + ", ".join(bad)))
+        if verdict == "equivalent-after-elaboration" and isinstance(semantic_slots, dict):
+            allowed = {"same", "equivalent", "explicit-elaboration"}
+            bad = [slot for slot, row in semantic_slots.items() if isinstance(row, dict) and row.get("relation") not in allowed]
+            if bad:
+                errors.append(_at(audit_id, "equivalent-after-elaboration has non-equivalent slots: " + ", ".join(bad)))
+
+        review = audit.get("source_review")
+        if not isinstance(review, dict):
+            errors.append(_at(audit_id, "source_review must be an object"))
+            review = {}
+        review_state = review.get("state")
+        if review_state not in REVIEW_STATES:
+            errors.append(_at(audit_id, f"source_review.state must be one of {sorted(REVIEW_STATES)}"))
+        if review_state != "pending":
+            reviewer = review.get("reviewer")
+            if not _nonempty(reviewer):
+                errors.append(_at(audit_id, "reviewed audit needs source_review.reviewer"))
+            if review.get("independent_from_formalizer") is not True:
+                errors.append(_at(audit_id, "source reviewer must be independent from the formalizer"))
+            if review.get("independent_from_decoder") is not True:
+                errors.append(_at(audit_id, "source reviewer must be independent from the blind decoder"))
+            if reviewer in {lean.get("formalizer"), reconstruction.get("decoder")}:
+                errors.append(_at(audit_id, "source reviewer identity must differ from formalizer and decoder"))
+            if not _nonempty(review.get("evidence")):
+                errors.append(_at(audit_id, "reviewed audit needs source_review.evidence"))
+            if not _hash(review.get("review_run_sha256")):
+                errors.append(_at(audit_id, "reviewed audit needs source_review.review_run_sha256"))
+            expected_review_packet = semantic_reviewer_packet(audit).get("packet_sha256")
+            if review.get("reviewer_packet_sha256") != expected_review_packet:
+                errors.append(_at(audit_id, "source_review.reviewer_packet_sha256 does not match the canonical reviewer packet"))
+        if state in {"source-reviewed", "accepted"} and review_state != "accepted":
+            errors.append(_at(audit_id, f"state={state} requires an accepted independent source review"))
+        if state == "rejected" and review_state not in {"rejected", "needs-revision"}:
+            errors.append(_at(audit_id, "state=rejected requires a rejected or needs-revision source review"))
+
+        repairs = audit.get("repairs", [])
+        if not isinstance(repairs, list):
+            errors.append(_at(audit_id, "repairs must be a list"))
+            repairs = []

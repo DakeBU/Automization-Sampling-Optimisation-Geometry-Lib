@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "status": "SEALED_INTERFACE_BINDER_AND_MEANING_AUDIT_ACCEPTED_TOPOLOGY_PENDING",
+  "reviewer": "/root/fsq_topology_challenge",
+  "frozen_at_utc": "2026-11-07T09:28:39.924805+00:00",
+  "bindings": {
+    "phase1_path": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-query-semantic-evidence/topology-review/phase1/source-expectations.freeze.json",
+    "phase1_sha256": "fdfbd936ec861077315b9eba85acfa95b3b1898489829fde331470a558d02171",
+    "seal_path": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-query-statement-seal.json",
+    "seal_sha256": "bb3f22ae0db5d8d7a4d144e3b5b224d7f2292e059605fdbef62bf5fa7de87b17",
+    "signature_sha256": "b9bb6ca423378cd810462de01a6c3707bcb255f4f3eebdfc8c065a64c7c4c0d1",
+    "meaning_context_file": "meaning-context.snapshot.json",
+    "meaning_context_sha256": "4135f8f7891a18c0aef2414f703030df794e640f2445dd39f74227b57738b888",
+    "source_html_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "exact_signature": "theorem actual_affine_precision_query {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ) :\n    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n    let A : ℝ → Matrix (Fin d) (Fin d) ℝ := fun η =>\n      (O : Matrix (Fin d) (Fin d) ℝ) *\n        Matrix.diagonal (fun i => (η + 1) / 2 + (η - 1) / 2 * Real.cos (θ i)) *\n        (O : Matrix (Fin d) (Fin d) ℝ).transpose\n    let query : ℝ → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=\n      fun η x => WithLp.toLp 2 (A η *ᵥ WithLp.ofLp x)\n    ∀ x : EuclideanSpace ℝ (Fin d),\n      query κ x = (κ - 1) • query 2 x - (κ - 2) • x ∧\n      query 2 x = (κ - 1)⁻¹ • (query κ x + (κ - 2) • x)\n",
+  "independence": "Phase1 expectations were frozen before seal/candidate exposure. This audit compares the literal sealed signature to those frozen expectations and pinned raw source. Formalizer-provided binder/meaning prose in the seal was visible but is not independent evidence for the verdict. No implementation Lean or target proof/API search was used.",
+  "binder_audit": [
+    {
+      "input": "{d : Nat}",
+      "classification": "TYPING",
+      "expansion": "Natural finite ambient dimension, shared by grid, both matrices, O and x.",
+      "verdict": "accept"
+    },
+    {
+      "input": "(hd : 2 <= d)",
+      "classification": "SOURCE",
+      "expansion": "Exactly S4.SS1 construction dimension lower endpoint, including d=2.",
+      "verdict": "accept"
+    },
+    {
+      "input": "{kappa : Real}",
+      "classification": "TYPING",
+      "expansion": "Real condition/spectral-interval parameter.",
+      "verdict": "accept"
+    },
+    {
+      "input": "(hκ : 2 <= κ)",
+      "classification": "SOURCE",
+      "expansion": "Exactly S4.SS1 parameter lower endpoint, including kappa=2; no upper condition.",
+      "verdict": "accept"
+    },
+    {
+      "input": "(O : Matrix.orthogonalGroup (Fin d) Real)",
+      "classification": "SOURCE",
+      "expansion": "The source rotation lies in the full real O(d). orthogonalGroup is unitaryGroup under trivial scalar star; unitaryGroup is unitary matrices; carrier is transpose(O)*O=I and O*transpose(O)=I. On square finite real matrices this is equivalent to the source convention transpose(O)*O=I. No determinant-sign restriction, affine relation, spectral estimate or accessibility premise is contained.",
+      "verdict": "accept-equivalent-carrier"
+    },
+    {
+      "input": "forall x : EuclideanSpace Real (Fin d)",
+      "classification": "TYPING",
+      "expansion": "Every vector of the same finite real Euclidean carrier, represented as PiLp 2 over Fin d; no exclusion of zero.",
+      "verdict": "accept"
+    }
+  ],
+  "local_definitions_not_premises": [
+    {
+      "name": "theta",
+      "kind": "literal",
+      "body_meaning": "((i.val : Real)+1/2)*Real.pi/(d : Real)",
+      "source_match": "For source index i_source=i.val+1, i_source-1/2=i.val+1/2. All subtraction/halves are real; there is no natural truncated subtraction and no zero-based shift error.",
+      "whole_carrier": "Formula is explicit for every Fin d index. Source d>=2 keeps d nonzero; no choice/default branch."
+    },
+    {
+      "name": "A eta",
+      "kind": "literal-local-family-abbreviation",
+      "body_meaning": "O * diagonal((eta+1)/2+(eta-1)/2*cos(theta_i)) * transpose(O)",
+      "source_match": "Actual Eq.(11) rotated precision formula with exactly one O. A kappa is the selected general family and A 2 the reference family.",
+      "whole_carrier": "eta is locally real to state two instances concisely. The same explicit algebraic formula has no fallback. The conclusion evaluates only eta=kappa and eta=2, both source-valid. No assertion of positive definiteness/admissibility for all real eta is made."
+    },
+    {
+      "name": "query eta x",
+      "kind": "literal-exact-observation",
+      "body_meaning": "WithLp.toLp 2 (A eta *v WithLp.ofLp x)",
+      "source_match": "Unwrap exact Euclidean coordinates, multiply the actual precision matrix by the same x, and wrap the same coordinates. PiLp 2 is WithLp 2 of the finite function carrier; toLp/ofLp are constructor/projection and scalar/vector operations are inherited through that equivalence.",
+      "whole_carrier": "All vectors are allowed. query 2 identifies the eta=2 precision instance; it is neither an inverse-covariance observation nor two oracle calls."
+    },
+    {
+      "name": "Real reciprocal in the reverse reply",
+      "kind": "literal-library-operation-with-internal-validity",
+      "body_meaning": "(kappa-1)^(-1) scales the sum of the general reply and (kappa-2) times x.",
+      "source_match": "Exact inverse affine reply conversion. The library inverse is total, so hκ must be used internally to derive kappa-1 != 0; no public denominator premise is permitted."
+    }
+  ],
+  "seven_slot_results": {
+    "objects": {
+      "verdict": "match",
+      "evidence": "The exact literal grid, shared rotated diagonal precision family and exact actual Euclidean matvec replies occur in local lets. No arbitrary scalar-sequence or hypothesized-reply surrogate."
+    },
+    "domains": {
+      "verdict": "match",
+      "evidence": "Natural d>=2, real kappa>=2, full real O(d), all Euclidean Fin d vectors, source endpoints included."
+    },
+    "quantifiers": {
+      "verdict": "match",
+      "evidence": "d and kappa are fixed before one universal O, then all x. A and query close over that same O and same theta. The source random O is covered pointwise without requiring a Haar law or private-randomness premise."
+    },
+    "assumptions": {
+      "verdict": "match-no-EXCESS",
+      "evidence": "Only source d/kappa bounds and orthogonal source object plus typing. No affine identity, spectral bound, admissibility, Gaussian or algorithmic fact occurs as a public premise or a project-owned bundle."
+    },
+    "conclusion": {
+      "verdict": "match-selected-reply-claim",
+      "evidence": "Conjunction gives forward query(kappa,x)=(kappa-1)*query(2,x)-(kappa-2)*x and reverse query(2,x)=(kappa-1)^(-1)*(query(kappa,x)+(kappa-2)*x). The source matrix identity can be an internal dependency; it need not be an extra public conjunction when the selected anchor is its ensuing reply claim."
+    },
+    "scopes_senses": {
+      "verdict": "match",
+      "evidence": "Precision, exact real replies and same point are explicit. No Gaussian-law, covariance, TV, transcript, adaptive/Borel, fixed/expected cost, finite-precision or lower-bound claim. The local eta family abbreviation does not assert source admissibility for all eta."
+    },
+    "constant_dependencies": {
+      "verdict": "match",
+      "evidence": "Coefficients are exact kappa-1/kappa-2; denominator kappa-1. No delta, epsilon, d0, asymptotic constant, hidden large-d condition or hidden-O-dependent conversion coefficient."
+    }
+  },
+  "scope_checks": {
+    "source_d_ge_2_kappa_ge_2": "preserved exactly",
+    "main_theorem_4_1": "Separate: fixed delta in (0,1), exists d0(delta), forall integer d>=d0(delta), 2<=kappa<=d^(1-delta), 0<epsilon<=1/10. None is added to or inferred by this local theorem.",
+    "source_kappa_2_case": "A 2 uses the same theta, same O and source specialization; forward/reverse become the reference equality.",
+    "known_spectrum_background": "Read as why parameters are public and O hidden; no spectral/PD/normalizer theorem is certified here.",
+    "planned_consumer": "The sealed prose proposes an equality-of-replies iff between two actual hidden rotations O1/O2 at the same x using this producer separately for each O. This is an appropriate mathematical consumer in scope; its implementation/proof has not been inspected or certified."
+  },
+  "internal_bridge_obligations_not_public_premises": [
+    "Literal scalar specialization eta=2 and diagonal affine identity",
+    "Conjugation by one orthogonal O, including identity conjugation",
+    "Transport of matrix affine identity through action at the same vector x and WithLp coordinate representation",
+    "Derivation of kappa-1!=0 from hκ and reciprocal cancellation"
+  ],
+  "EXCESS": [],
+  "forced_statement_changes": [],
+  "binder_or_definition_blockers": [],
+  "proof_truth_boundary": "Accepted statement meaning is not a proof. No claim that any bridge compiles, no completed semantic decoder review, and no lifecycle/publication acceptance.",
+  "topology_boundary": "No final coverage/topology verdict until actual independent graph, inventory and root-closure pins arrive."
+}

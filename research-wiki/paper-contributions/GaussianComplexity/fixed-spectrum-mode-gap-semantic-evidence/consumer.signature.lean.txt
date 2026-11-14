@@ -1,0 +1,16 @@
+private theorem actual_gaussian_source_query_bias_power_lower {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ < 1) :
+  ∃ d₀ : ℕ, ∀ (d : ℕ), d₀ ≤ d → ∀ (κ : ℝ), 2 ≤ κ →
+    κ ≤ (d : ℝ) ^ (1 - δ) → ∀ (q : ℕ),
+    (q : ℝ) ≤ (δ / 256) * Real.sqrt κ * Real.log (d : ℝ) →
+    let n : ℕ := 2 * q + 1
+    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+    let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)
+    let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue
+    let μ : Measure (EuclideanSpace ℝ (Fin d)) :=
+      multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹
+    let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>
+      ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2
+    let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ
+    let b : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ
+    0 < M ∧ 0 < (-1 : ℝ) ^ n * b ∧
+      ((1 - Real.exp (-4)) * Real.exp (-3)) * (d : ℝ) ^ (-δ / 4) ≤ |b| / M

@@ -1,0 +1,285 @@
+{
+  "id": "ASTIS-RT-20261108-HuanjianFixedSpectrumFirstOrder",
+  "state": "accepted",
+  "source": {
+    "source_id": "arxiv2610.20492v1-ActualFixedSpectrumFirstOrder",
+    "url": "https://arxiv.org/html/2610.20492v1#S2.E1",
+    "anchor": "S2.E1 literal first-order observation; S4.SS1 Eq11 literal hard family; Remark4.2 same-O affine reply; C4 ordinary derivative-existence context.",
+    "original_text": "The actual precision–matrix reply is the genuine Euclidean gradient and determines the centered quadratic value. \\nabla f_A(x)=Ax,\\qquad f_A(x)=\\tfrac12\\langle x,Ax\\rangle. \\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Fix any full real \\(O\\in O(d)\\), allowing either determinant sign, and every \\(x\\in\\mathbb R^d\\). For \\(i=1,\\ldots,d\\), set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(A=A_\\kappa=O\\operatorname{diag}(\\lambda_i)O^\\top\\). The Lean index \\(j\\in\\mathrm{Fin}(d)\\) represents \\(i=j.\\mathrm{val}+1\\). The potential is exactly \\(f_A(x)=x^\\top Ax/2\\), with zero additive constant. The response is exact precision multiplication \\(q_A(x)=Ax\\), not covariance multiplication \\(A^{-1}x\\) or the primitive hidden-rotation response \\(Ox\\). The proof produces actual Fréchet derivative existence at every point, then identifies Lean’s total \\(\\mathrm{gradient}\\). Differentiability, symmetry, admissibility, a gradient certificate and reply correctness are not added assumptions. The private consumer uses the same hidden \\(O\\) for \\(A_2\\) and \\(A_\\kappa\\). It reconstructs \\(g=(\\kappa-1)A_2x-(\\kappa-2)x\\), then the actual pair \\((\\langle x,g\\rangle/2,g)\\). Reference \\(2\\) is the condition-number parameter. The selected direction has no reciprocal or inverse-reply premise. This is pointwise in the latent matrix; the mathematical parameter \\(O\\) is not an algorithmic disclosure of the eigenbasis. Random seeds, Haar laws, adaptive transcripts, query budgets and sampling accuracy are outside this statement.",
+    "text_sha256": "d83cf47ecd71aa3984d3873dacc393d4186be84df5f8c753d28b23f95a5de3c6",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder.actual_first_order_query",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumFirstOrder.lean",
+    "statement": "∀ {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ),\n    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n    let A : Matrix (Fin d) (Fin d) ℝ :=\n      (O : Matrix (Fin d) (Fin d) ℝ) *\n        Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *\n        (O : Matrix (Fin d) (Fin d) ℝ).transpose\n    let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n    let query : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=\n      fun x => WithLp.toLp 2 (A *ᵥ WithLp.ofLp x)\n    ∀ x : EuclideanSpace ℝ (Fin d),\n      HasGradientAt f (query x) x ∧\n      (f x, gradient f x) = (inner ℝ x (query x) / 2, query x)\n",
+    "statement_sha256": "dc3170cedef73b28a9d2dcd17cd1507c9116089d24bc70910fcbc51a890d7135",
+    "formalizer": "huanjian_gc_20261108_fixed_spectrum_first_order",
+    "compiled": true,
+    "decoder_context": [
+      "Fin d is the finite coordinate type whose natural values are zero through d minus one. Natural-to-real casts, the half, division and trigonometric expressions here have their usual real meanings.",
+      "Matrix.orthogonalGroup (Fin d) real is the full real orthogonal group: transpose is the inverse in both orders. It permits either determinant sign. The diagonal, multiplication, transpose, dot product and mulVec are ordinary finite real matrix operations.",
+      "EuclideanSpace real (Fin d) is the real coordinate vector space with its Euclidean inner product and norm. WithLp.ofLp and WithLp.toLp 2 preserve the same vector coordinates. inner real is the usual symmetric real Euclidean inner product.",
+      "HasGradientAt f v x means genuine real Frechet differentiability at x with derivative the Riesz functional h maps to inner real v h. It is a proposition, distinct from the value of a totalized gradient function.",
+      "gradient f x is the inverse Riesz image of the total fderiv real f x; fderiv uses the conventional zero fallback where no derivative exists. The displayed HasGradientAt is a conjunct of the assertion. The identifiers theta, A, f and query are local let definitions, not further quantified inputs."
+    ]
+  },
+  "reconstruction": {
+    "text": "For every natural number d, with an explicit proof argument hd witnessing 2 ≤ d; for every real number κ, with an explicit proof argument hκ witnessing 2 ≤ κ; and for every matrix O in the full real orthogonal group on the d coordinates, make the following local definitions.\n\nThe coordinate indices are i ∈ Fin d, with natural values i.val = 0, …, d − 1. Set\n  θ(i) = ((i.val as a real number) + 1/2) π / (d as a real number),\n  A = O diag(i ↦ (κ + 1)/2 + ((κ − 1)/2) cos(θ(i))) Oᵀ.\nLet E = EuclideanSpace ℝ (Fin d), identified with ℝ^d with its usual real Euclidean inner product. Define, for x ∈ E,\n  f(x) = ((WithLp.ofLp x) · (A (WithLp.ofLp x))) / 2,\n  query(x) = WithLp.toLp 2 (A (WithLp.ofLp x)).\nThe maps WithLp.ofLp and WithLp.toLp 2 preserve the vector coordinates, so these formulas say f(x) = xᵀAx/2 and query(x) = Ax in ordinary coordinates. The orthogonality assumption is OᵀO = OOᵀ = I and permits either determinant sign.\n\nThen for every x ∈ E both of the following assertions hold:\n1. HasGradientAt f (query(x)) x: f is genuinely real Fréchet differentiable at x, with derivative the linear functional h ↦ ⟨query(x), h⟩, for h ∈ E.\n2. The ordered-pair identity\n     (f(x), gradient f x) = (⟨x, query(x)⟩ / 2, query(x))\n   holds.\n\nHere gradient f x denotes the inverse Riesz image of the totalized real Fréchet derivative fderiv ℝ f x, with the stated zero fallback where a derivative does not exist. Assertion 1 is an explicit conjunct, so assertion 2 is accompanied by genuine differentiability at the same x. The symbols θ, A, f, and query are the local definitions above, not additional universally quantified inputs. E is only explanatory notation for the displayed Euclidean space, and h is bound only within the derivative description.\n",
+    "text_sha256": "c252bedd494363e0a001c32c6c0aed53c856e8ecaaf370843d122d52bc8c7ce2",
+    "decoder": "/root/decode_f49d8a",
+    "decoder_run_sha256": "7e57601d974bdaca871f1db47faf2ca617b55ab87c2bd23303eaa66e3c5d79f8",
+    "decoder_packet_sha256": "3a46747a45e2faec9985325b4ca350eea512be012259d6b087ae4bf678ffa70f",
+    "source_text_visible": false,
+    "lean_statement_sha256": "dc3170cedef73b28a9d2dcd17cd1507c9116089d24bc70910fcbc51a890d7135",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-first-order-semantic-evidence/blind-f49d8a/decoder-run.json",
+    "ambient_exposure_record": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-first-order-semantic-evidence/blind-f49d8a/input-exposure.json",
+    "ambient_identity_cues_disclosed": true,
+    "current_source_title_version_anchor_or_target_declaration_explicitly_supplied": false
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Frozen P2-04 exact first-order pair for f_A=xᵀAx/2, instantiated by the H4-02 cosine-grid precision. Frozen H4-04 gives matched A_2,A_κ replies using the same O.",
+      "reconstructed": "Anonymous reconstruction retains the literal local constructor, Euclidean quadratic, Ax query, genuine derivative and pair. Actual private Test constructs A_η with that same O and the forward reply g.",
+      "relation": "equivalent",
+      "evidence": "Actual source bytes, Phase1/2 freezes, complete producer/Test, kernel type log, and exact code extraction agree. No A⁻¹x or primitive Ox oracle is substituted."
+    },
+    "domains": {
+      "original": "Real R^d, d≥2, κ≥2, full O(d), one-based source indices 1,…,d.",
+      "reconstructed": "EuclideanSpace R (Fin d), all real orthogonalGroup matrices, zero-based Fin values; WithLp maps keep coordinates.",
+      "relation": "equivalent",
+      "evidence": "j=i.val+1 identifies the grid exactly. Actual orthogonalGroup meanings and explicit Fin2 determinant +1 and −1 applications were checked. No determinant-sign premise is added."
+    },
+    "quantifiers": {
+      "original": "For each local d≥2,κ≥2 and every full orthogonal O and query x, the first-order formula; for the affine component both matrices share this O.",
+      "reconstructed": "Kernel types show exactly d,hd,κ,hκ,O then local lets then all x. Actual Test retains the same O across A_η and applies actual providers at that x.",
+      "relation": "same",
+      "evidence": "Independent anonymous application and kernel type reflection succeed. No δ,d₀,q,ε,Haar,seed,transcript or algorithm quantifier is silently appended or advertised."
+    },
+    "assumptions": {
+      "original": "Local family bounds, literal quadratic and orthogonal membership. Symmetry/admissibility and gradient existence are mathematical source facts, not convenience premises.",
+      "reconstructed": "The public and private signatures have only the local source bounds and O carrier. Actual producer takes symmetry from the actual admissibility theorem internally; it constructs HasGradientAt before using total gradient.",
+      "relation": "explicit-elaboration",
+      "evidence": "Whole files and reflected types contain no supplied derivative, gradient certificate, affine identity, reply correctness, regularity or nonzero-reciprocal premise. The source bounds can be nonminimal for bare quadratic calculus without being an excess assumption."
+    },
+    "conclusion": {
+      "original": "P2-04 gradient Ax and centered value ⟨x,Ax⟩/2; C4-02 supplies ordinary differentiability context. H4-04 forward substitution composes with that formula.",
+      "reconstructed": "Public theorem returns actual HasGradientAt and exact value/gradient pair. Private Test returns these for g=(κ−1)A_2x−(κ−2)x=A_κx.",
+      "relation": "equivalent",
+      "evidence": "hraw directly differentiates the actual quadratic, hlin uses actual symmetry, hasGradientAt_iff_hasFDerivAt constructs hgrad, and hg.gradient is used only afterward. Test .1 forward identity is substituted into actual hfirst. All four actual sources freshly compile with only standard three axioms."
+    },
+    "scopes": {
+      "original": "A pointwise component of the local family and same-O algebraic reply relation; neither all C.4 nor either full lower-bound theorem.",
+      "reconstructed": "Official module, authored six-step lesson and publication boundary identify the exact local result and actual private consumer, keeping higher calculus/minimizer/normalizer/algorithm/TV/cost/remote/purification tasks separate.",
+      "relation": "same",
+      "evidence": "Phase2 matched only the anonymous producer; H4-04 forward consumer is newly inspected only in authorized Phase3. Frozen source claims remain unchanged. Owned STATIC reader is source-review-only; runtime/pixels/deployed canonical delivery are explicitly not accepted here."
+    },
+    "constant_dependencies": {
+      "original": "Local d≥2,κ≥2, coefficient 1/2, reference condition-number 2; main-theorem δ-dependent thresholds and all query/accuracy constants are outside this component.",
+      "reconstructed": "Exactly these parameters/constants. No extra regularity, tolerance, nonzero scalar or hidden bound appears in reflected types.",
+      "relation": "same",
+      "evidence": "Private consumer uses only the forward conjunct of the actual affine provider. That existing provider internally also proves reverse conversion with κ−1≠0, but this is not a new consumer premise or selected inverse-reply obligation. Reference 2 is not a call count."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "description": "Zero-based finite indices, Euclidean coordinate wrappers and genuine Frechet/Riesz derivative witness make source meaning explicit without adding premises.",
+      "evidence": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-first-order-semantic-evidence/fresh-source-reader-4e8f6a/phase3/independent_source_semantic_verdict.json; frozen Phase3 explicit-elaboration review."
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "The local family instance does not cover arbitrary admissible A or all d≥1,κ≥1 of §2. No whole C.4/main theorem/query-complexity completion is claimed.",
+      "evidence": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-first-order-semantic-evidence/fresh-source-reader-4e8f6a/phase3/independent_source_semantic_verdict.json; full source/cost/TV/reader-runtime boundary remains separate."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/source_reader_4e8f6a",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "9f6bb17d32f9661f999fb0de7aa20c2ea15d2971ef78c9e30165d0bca0b80524",
+    "reviewer_packet_raw_sha256": "0510cc019b9bcdb0b389b097a88108f3c7d0732d342174e27274dd43428f5168",
+    "review_run_sha256": "c7524efc49a5193ba912807ecd56c4b2669a65a7b3f04e7af7079ccb10c289e1",
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-first-order-semantic-evidence/fresh-source-reader-4e8f6a/phase3/review_run.json",
+    "evidence": "Independent frozen Phase3 source/module/fresh-Lean/kernel/anonymous/both-determinant-sign/fake-closure/owned-STATIC-reader review at 9d306d837fbddf1518b0035494baaf5c21c24488. Actual producer has one direct ASTIS parent; actual private Test has two; standard three axioms. Runtime/pixels/current canonical rootGate/site/Chrome acceptance is deferred. Actual scaffolding and preview transport failures plus root-interruption clarification remain preserved.",
+    "checked_candidate_commit": "9d306d837fbddf1518b0035494baaf5c21c24488",
+    "publication_binding_sha256": "51d5a5e9390a0d66c2d5b72d042a042eec8d3d60433043ea3909bf9320ccb31e",
+    "scope": "Selected local first-order producer and actual same-O forward private consumer; STATIC source-review reader only.",
+    "phase1_manifest_sha256": "cf4dd57dc05d19cb3ca6938032a7730d402aba6220a200ae4a3afe2aca721fac",
+    "phase2_manifest_sha256": "85a0e1542ce93bd0f65203f136fbe8879f2f9be1713f0c05861ab3885af5971c",
+    "phase3_manifest_sha256": "46fee361f6798fb8577c75479a563de2d30dbb2241059af624a29b3fbc4227a7",
+    "fresh_compile_receipt": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-first-order-semantic-evidence/fresh-source-reader-4e8f6a/phase3/fresh_compile_receipt.json",
+    "kernel_application_receipt": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-first-order-semantic-evidence/fresh-source-reader-4e8f6a/phase3/kernel_application_receipt.json",
+    "fake_closure_receipt": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-first-order-semantic-evidence/fresh-source-reader-4e8f6a/phase3/focused_fake_closure_receipt.json",
+    "static_reader_receipt": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-first-order-semantic-evidence/fresh-source-reader-4e8f6a/phase3/static_reader_review.json",
+    "runtime_pixel_site_acceptance": false
+  },
+  "repairs": [],
+  "publication_binding_sha256": "51d5a5e9390a0d66c2d5b72d042a042eec8d3d60433043ea3909bf9320ccb31e",
+  "publication_context": {
+    "file": "1af1a71edf059edfe10a2b5069002fe703b6f2d1a30c153951e06afd3b8e6423",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility\nimport Mathlib.Analysis.Calculus.Gradient.Basic\nimport Mathlib.Analysis.InnerProductSpace.PiL2\nimport Mathlib.Analysis.CStarAlgebra.Matrix\nimport Mathlib.Analysis.InnerProductSpace.Calculus\nimport Mathlib.Analysis.InnerProductSpace.Adjoint\nimport Mathlib.Tactic.Ring\n\nopen Matrix InnerProductSpace\nset_option autoImplicit false\n\n/-!\n# Actual fixed-spectrum first-order replies\n\nZhou--Suzuki arXiv:2610.20492v1, Section2 Equation1, Section4.1\nEquation11 and the ordinary quadratic-calculus meaning in AppendixC.4.\nFor the literal cosine-grid precision and every full real orthogonal O,\nthe exact precision-matvec reply is the genuine Euclidean gradient.\nDerivative existence is produced before identifying the total gradient.\nThe actual centered potential value is recovered from that same reply.\n\nThe focused Test combines this result with the identical canonical same-O\naffine precision provider. No operational query count, adaptive transcript,\nGaussian target/TV, finite-precision or expected-cost transport is asserted.\nThe remaining C4 regularity/minimizer and both main bounds are separate.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder\n\ntheorem actual_first_order_query {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ) :\n    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n    let A : Matrix (Fin d) (Fin d) ℝ :=\n      (O : Matrix (Fin d) (Fin d) ℝ) *\n        Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *\n        (O : Matrix (Fin d) (Fin d) ℝ).transpose\n    let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n    let query : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=\n      fun x => WithLp.toLp 2 (A *ᵥ WithLp.ofLp x)\n    ∀ x : EuclideanSpace ℝ (Fin d),\n      HasGradientAt f (query x) x ∧\n      (f x, gradient f x) = (inner ℝ x (query x) / 2, query x) := by\n  classical\n  dsimp only\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) *\n      Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n  let query : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=\n    fun x => WithLp.toLp 2 (A *ᵥ WithLp.ofLp x)\n  let E := EuclideanSpace ℝ (Fin d)\n  let H : E →L[ℝ] E := Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) A\n  -- The actual family's existing canonical producer supplies symmetry.\n  have hA : A.IsHermitian :=\n    (FixedSpectrumAdmissibility.actual_precision_admissible hd hκ O).1.1\n  have hself : IsSelfAdjoint A := hA\n  have hH : H.IsSymmetric :=\n    ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric.mp\n      (hself.map (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d)))\n  have hquery (x : E) : query x = H x := rfl\n  have hf : f = fun y : E => (1 / 2 : ℝ) * inner ℝ y (H y) := by\n    funext y\n    dsimp only [f]\n    rw [show inner ℝ y (H y) = (WithLp.ofLp y) ⬝ᵥ (A *ᵥ WithLp.ofLp y) from\n      Matrix.inner_toEuclideanCLM A y y]\n    ring\n  -- Differentiate the actual function and identify its Riesz functional.\n  have hgrad (y : E) : HasGradientAt f (H y) y := by\n    have hraw := ((hasFDerivAt_id y).inner ℝ H.hasFDerivAt).const_mul (1 / 2 : ℝ)\n    have hlin : (1 / 2 : ℝ) •\n        ((fderivInnerCLM ℝ (y, H y)).comp ((ContinuousLinearMap.id ℝ E).prod H)) =\n        toDual ℝ E (H y) := by\n      ext v\n      change (1 / 2 : ℝ) * (inner ℝ y (H v) + inner ℝ v (H y)) = inner ℝ (H y) v\n      rw [← hH.apply_clm y v, (real_inner_comm v (H y)).symm]\n      ring\n    apply hasGradientAt_iff_hasFDerivAt.mpr\n    rw [hf, ← hlin]\n    exact hraw\n  intro x\n  have hg : HasGradientAt f (query x) x := (hquery x).symm ▸ hgrad x\n  refine ⟨hg, Prod.ext ?_ hg.gradient⟩\n  change f x = inner ℝ x (query x) / 2\n  rw [hquery]\n  exact congrArg (fun t : ℝ => t / 2) (Matrix.inner_toEuclideanCLM A x x).symm\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#S2.E1",
+      "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "S2.E1 literal first-order observation; S4.SS1 Eq11 literal hard family; Remark4.2 same-O affine reply; C4 ordinary derivative-existence context.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+      "scope": "Exact pointwise fixed-spectrum first-order reply and genuine same-O forward reference-precision consumer; derivative existence is explicitly elaborated, not assumed."
+    },
+    "statement": "The actual precision–matrix reply is the genuine Euclidean gradient and determines the centered quadratic value. \\nabla f_A(x)=Ax,\\qquad f_A(x)=\\tfrac12\\langle x,Ax\\rangle. \\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Fix any full real \\(O\\in O(d)\\), allowing either determinant sign, and every \\(x\\in\\mathbb R^d\\). For \\(i=1,\\ldots,d\\), set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(A=A_\\kappa=O\\operatorname{diag}(\\lambda_i)O^\\top\\). The Lean index \\(j\\in\\mathrm{Fin}(d)\\) represents \\(i=j.\\mathrm{val}+1\\). The potential is exactly \\(f_A(x)=x^\\top Ax/2\\), with zero additive constant. The response is exact precision multiplication \\(q_A(x)=Ax\\), not covariance multiplication \\(A^{-1}x\\) or the primitive hidden-rotation response \\(Ox\\). The proof produces actual Fréchet derivative existence at every point, then identifies Lean’s total \\(\\mathrm{gradient}\\). Differentiability, symmetry, admissibility, a gradient certificate and reply correctness are not added assumptions. The private consumer uses the same hidden \\(O\\) for \\(A_2\\) and \\(A_\\kappa\\). It reconstructs \\(g=(\\kappa-1)A_2x-(\\kappa-2)x\\), then the actual pair \\((\\langle x,g\\rangle/2,g)\\). Reference \\(2\\) is the condition-number parameter. The selected direction has no reciprocal or inverse-reply premise. This is pointwise in the latent matrix; the mathematical parameter \\(O\\) is not an algorithmic disclosure of the eigenbasis. Random seeds, Haar laws, adaptive transcripts, query budgets and sampling accuracy are outside this statement.",
+    "formulae": [
+      {
+        "label": "Actual first-order reply",
+        "tex": "\\nabla f_A(x)=Ax,\\qquad f_A(x)=\\tfrac12\\langle x,Ax\\rangle."
+      }
+    ],
+    "assumptions": [
+      "\\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Fix any full real \\(O\\in O(d)\\), allowing either determinant sign, and every \\(x\\in\\mathbb R^d\\).",
+      "For \\(i=1,\\ldots,d\\), set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(A=A_\\kappa=O\\operatorname{diag}(\\lambda_i)O^\\top\\). The Lean index \\(j\\in\\mathrm{Fin}(d)\\) represents \\(i=j.\\mathrm{val}+1\\).",
+      "The potential is exactly \\(f_A(x)=x^\\top Ax/2\\), with zero additive constant. The response is exact precision multiplication \\(q_A(x)=Ax\\), not covariance multiplication \\(A^{-1}x\\) or the primitive hidden-rotation response \\(Ox\\).",
+      "The proof produces actual Fréchet derivative existence at every point, then identifies Lean’s total \\(\\mathrm{gradient}\\). Differentiability, symmetry, admissibility, a gradient certificate and reply correctness are not added assumptions.",
+      "The private consumer uses the same hidden \\(O\\) for \\(A_2\\) and \\(A_\\kappa\\). It reconstructs \\(g=(\\kappa-1)A_2x-(\\kappa-2)x\\), then the actual pair \\((\\langle x,g\\rangle/2,g)\\). Reference \\(2\\) is the condition-number parameter. The selected direction has no reciprocal or inverse-reply premise.",
+      "This is pointwise in the latent matrix; the mathematical parameter \\(O\\) is not an algorithmic disclosure of the eigenbasis. Random seeds, Haar laws, adaptive transcripts, query budgets and sampling accuracy are outside this statement."
+    ],
+    "obligations": [
+      {
+        "id": "actual-fixed-spectrum-first-order",
+        "label": "Actual literal fixed-spectrum derivative existence and exact value/gradient reply, with genuine same-O reference precision consumer."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder.actual_first_order_query",
+      "title": "Actual fixed-spectrum first-order reply",
+      "reader_note": "The exact reply formula is shown first; the full family, assumptions, formula proof and precise Lean are folded below.",
+      "statement": "The actual precision–matrix reply is the genuine Euclidean gradient and determines the centered quadratic value.",
+      "formula": "\\nabla f_A(x)=Ax,\\qquad f_A(x)=\\tfrac12\\langle x,Ax\\rangle.",
+      "assumptions": [
+        "\\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Fix any full real \\(O\\in O(d)\\), allowing either determinant sign, and every \\(x\\in\\mathbb R^d\\).",
+        "For \\(i=1,\\ldots,d\\), set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(A=A_\\kappa=O\\operatorname{diag}(\\lambda_i)O^\\top\\). The Lean index \\(j\\in\\mathrm{Fin}(d)\\) represents \\(i=j.\\mathrm{val}+1\\).",
+        "The potential is exactly \\(f_A(x)=x^\\top Ax/2\\), with zero additive constant. The response is exact precision multiplication \\(q_A(x)=Ax\\), not covariance multiplication \\(A^{-1}x\\) or the primitive hidden-rotation response \\(Ox\\).",
+        "The proof produces actual Fréchet derivative existence at every point, then identifies Lean’s total \\(\\mathrm{gradient}\\). Differentiability, symmetry, admissibility, a gradient certificate and reply correctness are not added assumptions.",
+        "The private consumer uses the same hidden \\(O\\) for \\(A_2\\) and \\(A_\\kappa\\). It reconstructs \\(g=(\\kappa-1)A_2x-(\\kappa-2)x\\), then the actual pair \\((\\langle x,g\\rangle/2,g)\\). Reference \\(2\\) is the condition-number parameter. The selected direction has no reciprocal or inverse-reply premise.",
+        "This is pointwise in the latent matrix; the mathematical parameter \\(O\\) is not an algorithmic disclosure of the eigenbasis. Random seeds, Haar laws, adaptive transcripts, query budgets and sampling accuracy are outside this statement."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(q_A,H,A_2\\)",
+          "text": "Exact precision response, the same action as a continuous linear map, and the reference-2 precision using the same hidden rotation.",
+          "formula": "q_A(x)=Hx=Ax,\\qquad A_\\eta=O\\operatorname{diag}\\!\\left(\\tfrac{\\eta+1}2+\\tfrac{\\eta-1}2\\cos\\theta_i\\right)O^\\top."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Obtain symmetry of the actual precision",
+          "text": "Use the existing canonical admissibility result for this literal source matrix. Its positive-definite output supplies Hermitian symmetry internally; no regularity certificate is assumed.",
+          "formula": "A=A^\\top,\\qquad Hx:=Ax,\\qquad \\langle Hy,v\\rangle=\\langle y,Hv\\rangle.",
+          "lean": "hA is the Hermitian projection of actual_precision_admissible hd hκ O. Mapping self-adjointness through Matrix.toEuclideanCLM gives hH. This one existing actual admissibility declaration is the sole direct ASTIS producer parent."
+        },
+        {
+          "title": "Identify the same Euclidean quadratic",
+          "text": "The matrix action and the continuous linear map have identical coordinates. The ordinary coordinate dot product therefore agrees with the Euclidean inner product for the same potential.",
+          "formula": "q_A(x)=Hx,\\qquad f_A(x)=\\tfrac12\\langle x,Hx\\rangle.",
+          "lean": "hquery is the actual coordinate-preserving map identity. Matrix.inner_toEuclideanCLM and real ring algebra establish hf, without changing f or introducing an additive constant."
+        },
+        {
+          "title": "Differentiate the actual function",
+          "text": "Differentiate the identity map and the continuous linear map, then the inner product and multiplication by one half. This directly constructs a Fréchet derivative.",
+          "formula": "Df_A(x)[v]=\\tfrac12\\bigl(\\langle x,Hv\\rangle+\\langle v,Hx\\rangle\\bigr).",
+          "lean": "hraw uses hasFDerivAt_id, H.hasFDerivAt, the canonical inner-product derivative and const_mul. This is a derivative-existence proof, not an evaluation of a default gradient."
+        },
+        {
+          "title": "Use symmetry to obtain the genuine gradient",
+          "text": "Symmetry makes the two derivative terms equal. The resulting derivative is exactly the Riesz functional associated with Hx, so the actual gradient exists and equals the response.",
+          "formula": "Df_A(x)[v]=\\langle Hx,v\\rangle,\\qquad \\operatorname{HasGradientAt}(f_A,Hx,x),\\qquad \\nabla f_A(x)=Hx.",
+          "lean": "hlin identifies the continuous linear derivative with toDual of Hx, using hH and real_inner_comm. hasGradientAt_iff_hasFDerivAt produces hgrad; hg.gradient identifies the total gradient only after existence."
+        },
+        {
+          "title": "Assemble the exact first-order reply",
+          "text": "Combine the proved gradient with the coordinate value identity. The same actual precision response determines both entries of the first-order observation.",
+          "formula": "\\bigl(f_A(x),\\nabla f_A(x)\\bigr)=\\bigl(\\tfrac12\\langle x,q_A(x)\\rangle,q_A(x)\\bigr).",
+          "lean": "Prod.ext combines the actual value equality with hg.gradient. The exact original source signature and all binders remain unchanged."
+        },
+        {
+          "title": "Consume the actual reference-precision reply",
+          "text": "In the focused Test, the existing same-rotation affine provider converts the actual A2 reply into the actual Aκ action. Substitute it into the new derivative and pair results, giving the genuine observation of the κ potential.",
+          "formula": "g=(\\kappa-1)A_2x-(\\kappa-2)x=A_\\kappa x,\\qquad \\bigl(f_{A_\\kappa}(x),\\nabla f_{A_\\kappa}(x)\\bigr)=\\bigl(\\tfrac12\\langle x,g\\rangle,g\\bigr).",
+          "lean": "The private Test actually invokes FixedSpectrumAffine.actual_affine_precision_query and the new actual_first_order_query. Its two direct kernel ASTIS parents are those exact canonical declarations. Only the forward affine output is consumed; no inverse/nonzero bridge, count assertion or extra producer premise is used."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.toEuclideanCLM",
+        "Matrix.inner_toEuclideanCLM",
+        "ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric",
+        "HasFDerivAt.inner",
+        "ContinuousLinearMap.hasFDerivAt",
+        "HasFDerivAt.const_mul",
+        "hasGradientAt_iff_hasFDerivAt",
+        "HasGradientAt.gradient",
+        "real_inner_comm"
+      ],
+      "lean_statement": "Exact literal source precision, centered potential and precision reply; genuine HasGradientAt output and actual value/gradient pair at every point.",
+      "lean_proof": "The adjacent exact source proves derivative existence through the real inner-product derivative and actual symmetry. Its single ASTIS parent is actual admissibility. The private Test separately combines new producer and canonical actual affine provider; it is not another public or Registry node.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S2.E1",
+          "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S2.E1 literal first-order observation; S4.SS1 Eq11 literal hard family; Remark4.2 same-O affine reply; C4 ordinary derivative-existence context.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+          "scope": "Exact pointwise fixed-spectrum first-order reply and genuine same-O forward reference-precision consumer; derivative existence is explicitly elaborated, not assumed.",
+          "label": "Zhou–Suzuki Eq1, Eq11 and Remark4.2"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumFirstOrder"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder.actual_first_order_query",
+      "role": "proof-edge",
+      "supports": [
+        "actual-fixed-spectrum-first-order"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Local hard family d>=2,kappa>=2/full O and literal Eq11 potential.",
+        "lean": "Exactly those inputs, every actual query x and the same literal finite cosine-grid matrix. Symmetry/admissibility/derivative/reply facts are outputs or internal actual dependencies, never extra inputs."
+      },
+      {
+        "source": "Eq1 literally states (f_A(x),gradient f_A(x))=(x^T A x/2,A x).",
+        "lean": "Produces genuine HasGradientAt and then the total-gradient/value pair for the actual source matrix."
+      },
+      {
+        "source": "Remark4.2: the same-O reference2 and kappa precision replies determine each other.",
+        "lean": "The private Test consumes the actual forward affine reply and the new gradient result to recover actual kappa derivative/value observation."
+      }
+    ]
+  },
+  "successor_provenance": {
+    "predecessor_canonical_audit_sha256": "ff19477ff58f2bedfb7790b6edd006d05b0386185011e6d21a9fa47f28651e4e",
+    "predecessor_state": "blind-reconstructed",
+    "checked_candidate_commit": "9d306d837fbddf1518b0035494baaf5c21c24488",
+    "prepared_utc": "2026-11-08T13:45:07.070519+00:00",
+    "prepared_by": "/root/source_reader_4e8f6a",
+    "proof_owner": "huanjian_gc_20261108_fixed_spectrum_first_order",
+    "chronology": "Candidate 9d306d837fbddf1518b0035494baaf5c21c24488 contains the blind-reconstructed predecessor, not this accepted audit. Independent Phase1/2/3 reviews were subsequently frozen. This exact successor is preparation only until separately authorized canonical copy and one normal PROVED_LOCAL→VERIFIED event; that future event supplies actual transition time. No retroactive claim that checked commit contained accepted source review.",
+    "normal_VERIFIED_API_already_run": false
+  }
+}

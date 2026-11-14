@@ -1,0 +1,5 @@
+The exact determinant-component statement, binder/definition meaning and effective source coverage/topology are accepted. All three stable findings DET-TOPO-1/2/3 are resolved by the frozen Phase2 overlay: explicit diagonal-product SOURCE_GAP and index composition, conditional-Haar clause exclusion, and correction of the auxiliary S1 normalizer anchor. EXCESS is empty.
+
+The literal source d≥2,κ≥2 range, full real O(d) with both determinant signs, real midpoint grid and finite product all match. Effective graph ancestry keeps the algebraic endpoint separate from the full Gaussian-integral/normalizer route; no false AND or hidden proof premise remains. All substantive C.4 source regions stay inventoried and unproved. Earlier rawsource/binder/interim freezes are unchanged.
+
+This accepts only the isolated producer source gate. The exact same-A Gaussian consumer remains unsealed, and every mathematical implementation is unproved here. No target API/proof, source-V, consumer, integration, full C.4 or known-Z approval is issued. The reviewer stops after these hashes.

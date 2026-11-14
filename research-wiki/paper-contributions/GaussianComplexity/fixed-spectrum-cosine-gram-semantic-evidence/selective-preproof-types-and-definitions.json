@@ -1,0 +1,78 @@
+{
+  "producer_signature": "theorem actual_cosine_frame_gram {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let t : Matrix (Fin d) (Fin (q + 1)) ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let D : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i))\n  t.transpose * t = (d : ℝ) • (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ) ∧\n    t.transpose * D * t = 0 ∧\n    ∀ i : Fin d, ∑ k : Fin (q + 1), (t i k) ^ 2 ≤ 2 * ((q : ℝ) + 1)\n",
+  "consumer_signature": "private theorem actual_gaussian_gram_means {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let t : Matrix (Fin d) (Fin (q + 1)) ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let D : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i))\n  let μ : Measure (EuclideanSpace ℝ (Fin d × Fin (q + 1))) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d × Fin (q + 1)))\n      (1 : Matrix (Fin d × Fin (q + 1)) (Fin d × Fin (q + 1)) ℝ)\n  let B : EuclideanSpace ℝ (Fin d × Fin (q + 1)) →\n      Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun x i a =>\n    (Real.sqrt (d : ℝ))⁻¹ * WithLp.ofLp x (i, a.1) * t i a.2\n  ∀ a b : Fin (q + 1) × Fin (q + 1),\n    Integrable (fun x => ((B x).transpose * B x) a b) μ ∧\n    Integrable (fun x => ((B x).transpose * D * B x) a b) μ ∧\n    (∫ x, ((B x).transpose * B x) a b ∂μ) = (if a = b then 1 else 0) ∧\n    (∫ x, ((B x).transpose * D * B x) a b ∂μ) = 0\n",
+  "binder_audit": [
+    {
+      "owner": "producer",
+      "binder": "d:Nat",
+      "class": "TYPING",
+      "reason": "Finite ambient Euclidean dimension."
+    },
+    {
+      "owner": "producer",
+      "binder": "q:Nat",
+      "class": "SOURCE",
+      "reason": "Source nonnegative Krylov degree; Nat encodes q>=0 includingq0."
+    },
+    {
+      "owner": "producer",
+      "binder": "hq:2*q+1<d",
+      "class": "SOURCE",
+      "reason": "Exact Lemma4.4/FactC.5 standing range. No stronger4q+1<d premise is added."
+    },
+    {
+      "owner": "private_consumer",
+      "binder": "d:Nat",
+      "class": "TYPING",
+      "reason": "Finite ambient Euclidean dimension."
+    },
+    {
+      "owner": "private_consumer",
+      "binder": "q:Nat",
+      "class": "SOURCE",
+      "reason": "Source nonnegative Krylov degree; Nat encodes q>=0 includingq0."
+    },
+    {
+      "owner": "private_consumer",
+      "binder": "hq:2*q+1<d",
+      "class": "SOURCE",
+      "reason": "Exact Lemma4.4/FactC.5 standing range. No stronger4q+1<d premise is added."
+    }
+  ],
+  "definitions": [
+    {
+      "name": "ProbabilityTheory.multivariateGaussian",
+      "definition_kind": "literal",
+      "file": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Multivariate.lean",
+      "first_line": 163,
+      "last_line_inclusive": 170,
+      "whole_file_sha256": "1fec35cf781da1009c37db80a96b05d70f2296ca7768e19bfc0b6314c9b43d49",
+      "excerpt": ".astis/huanjian-gc-fixed-spectrum-cosine-gram-20261110/multivariateGaussian-literal-definition.txt",
+      "excerpt_sha256": "0d32e6c37ec13dc0bdbce701ed77a7e2da591a748c8d8f92eb81a72cc2228171",
+      "meaning": "The actual canonical mean-plus-covariance-square-root pushforward of standardGaussian. The covariance in this consumer is literally I on Fin d x Fin(q+1); positivity/probability and actual coordinate-product moments must be derived internally, excluding any non-PSD fallback. This is not a symbolic independent-variable certificate."
+    },
+    {
+      "name": "theta/t/D",
+      "definition_kind": "literal",
+      "meaning": "All are literal let bodies in both sealed types. Fin indices start at0. r=q+1, theta_i=(i+1/2)pi/d. t_i0=1 and t_ik=sqrt2*cos(k theta_i) for k>0; D=diag(cos((2q+1)theta_i)). hq implies d>=2 and excludes denominator0. Matrix transpose is real transpose; product and scalar multiplication are ordinary matrix operations, with1 the identity."
+    },
+    {
+      "name": "B and mu",
+      "definition_kind": "literal",
+      "meaning": "mu is actual centered Gaussian of identity covariance on EuclideanSpace indexed Fin d x Fin(q+1). B(x)_{i,(a,b)}=(sqrt d)^(-1)*x_(i,a)*t_(i,b). Product indices explicitly realize r squared columns and d rows. No supplied independent-row law, covariance, expectation, integrability or moment is bundled."
+    },
+    {
+      "name": "entrywise integrability and means",
+      "definition_kind": "literal",
+      "meaning": "For every a,b in Fin r x Fin r, both actual Gram entries are Bochner integrable over the actual mu; unweighted mean is Kronecker identity, weighted mean is0. Entrywise expectation is the literal finite-dimensional matrix-expectation meaning; no conditional or adaptive random law is asserted."
+    }
+  ],
+  "literal_conventions": {
+    "ranges": "All naturals q including0; exact source2q+1<d impliesd>=2 and2(q+1)<=d. There is no kappa parameter because the cosine-frame component does not depend on kappa. Full source q range is retained.",
+    "matrix_identities": "t^T t=d I_(q+1); t^T D_(2q+1)t=0; each row squared Euclidean norm=sum squares<=2(q+1). Real transpose not conjugate transpose; realscalar d only.",
+    "Gaussian_consumer": "True joint standardGaussian in d*(q+1) coordinates, not unspecified random variables plus assumed covariance. Equality to the source independent g_a/row-law interpretation must be justified from actual law internally if used; row independence is not silently inserted as a premise.",
+    "expectation": "Entrywise Bochner integrability AND actual integral values; a totalized integral equality without integrability is insufficient.",
+    "scope_boundary": "Deterministic frame and actual Gaussian second-moment centering do not supply range(B)=Krylov, nonasymptotic op-norm concentration/absoluteC, positivity of a random Gram matrix, a Haar/adaptive/oracle/precision/TV/cap/cost adapter, either main lower bound or website delivery."
+  },
+  "source_raw_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+}

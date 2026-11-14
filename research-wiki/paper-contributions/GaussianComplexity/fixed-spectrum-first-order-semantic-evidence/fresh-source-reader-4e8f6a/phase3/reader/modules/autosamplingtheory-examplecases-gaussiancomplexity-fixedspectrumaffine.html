@@ -1,0 +1,96 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Exact module source</title><link rel="stylesheet" href="../assets/site.css"><link rel="stylesheet" href="../assets/proof-readers.css"><link rel="stylesheet" href="../assets/reader-contract-final.css"><link rel="stylesheet" href="../assets/textbook-math-contract.css">
+<style>body{margin:0;background:#f5f7fb;color:#17243a}main{max-width:1100px;margin:auto;padding:24px 28px 80px}.review-only{padding:14px 18px;background:#fff4cf;border:1px solid #d6ad32;border-radius:8px;margin-bottom:24px}.code-block{overflow:auto}.reader-main-equation{font-size:1.12rem}.module-links a{margin-right:1rem}details{margin-bottom:12px}pre code .line{display:block}a{overflow-wrap:anywhere}</style>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script src="../assets/math-reader.js"></script><script defer src="../assets/vendor/mathjax@3.2.2/tex-mml-chtml.js"></script><script defer src="../assets/site.js"></script></head><body><main id="content"><div class="review-only"><strong>Independent source review only</strong><br>Owned static artifact for immutable candidate 9d306d837fbddf1518b0035494baaf5c21c24488. This is not current canonical rootGate, deployed site, Chrome acceptance or publication approval.</div><p><a href="../index.html">Return to owned mathematical lesson</a></p><h1>AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAffine</h1><p>Exact complete checkout bytes; no code truncation.</p><p><a href="../downloads/lean/AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumAffine.lean" download>Download exact module (.lean)</a></p><span id="decl-autosamplingtheory-examplecases-gaussiancomplexity-fixedspectrumaffine-a-006eda9881"></span><pre class="code-block" id="complete-module-source"><code>import Mathlib.LinearAlgebra.UnitaryGroup
+import Mathlib.Data.Matrix.Diagonal
+import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+import Mathlib.Tactic.FieldSimp
+import Mathlib.Tactic.Ring
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.NormNum
+open Matrix
+/-!
+# Actual same-rotation fixed-spectrum precision replies
+
+Zhou--Suzuki arXiv:2610.20492v1, Section4.1 Equation11 and Remark4.2.
+The two precision matrices use the literal cosine grid and the SAME hidden
+orthogonal rotation. One exact precision-matvec reply reconstructs the other
+at the same actual point in either direction. The number2 here is the
+reference condition number, not a call count or inverse-covariance oracle.
+All scalar/diagonal/orthogonal/conjugation/matvec and nonzero-reciprocal bridges
+are proved internally. No supplied affine identity or reply-correctness premise.
+Gaussian target/covariance/TV transport, operational adaptive/cost/precision
+adapters, spectral/PosDef/normalizer background and both main lower bounds
+remain separate.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAffine
+set_option autoImplicit false
+theorem actual_affine_precision_query {d : ℕ} (hd : 2 ≤ d)
+    {κ : ℝ} (hκ : 2 ≤ κ)
+    (O : Matrix.orthogonalGroup (Fin d) ℝ) :
+    let θ : Fin d → ℝ := fun i =&gt; ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+    let A : ℝ → Matrix (Fin d) (Fin d) ℝ := fun η =&gt;
+      (O : Matrix (Fin d) (Fin d) ℝ) *
+        Matrix.diagonal (fun i =&gt; (η + 1) / 2 + (η - 1) / 2 * Real.cos (θ i)) *
+        (O : Matrix (Fin d) (Fin d) ℝ).transpose
+    let query : ℝ → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=
+      fun η x =&gt; WithLp.toLp 2 (A η *ᵥ WithLp.ofLp x)
+    ∀ x : EuclideanSpace ℝ (Fin d),
+      query κ x = (κ - 1) • query 2 x - (κ - 2) • x ∧
+      query 2 x = (κ - 1)⁻¹ • (query κ x + (κ - 2) • x) := by
+  classical
+  dsimp only
+  let θ : Fin d → ℝ := fun i =&gt; ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let A : ℝ → Matrix (Fin d) (Fin d) ℝ := fun η =&gt;
+    (O : Matrix (Fin d) (Fin d) ℝ) *
+      Matrix.diagonal (fun i =&gt; (η + 1) / 2 + (η - 1) / 2 * Real.cos (θ i)) *
+      (O : Matrix (Fin d) (Fin d) ℝ).transpose
+  let query : ℝ → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=
+    fun η x =&gt; WithLp.toLp 2 (A η *ᵥ WithLp.ofLp x)
+  -- Align the zero-based indices with the literal one-based source grid.
+  have hdpos : (0 : ℝ) &lt; (d : ℝ) := by
+    exact_mod_cast (lt_of_lt_of_le (by decide : (0 : ℕ) &lt; 2) hd)
+  have hd0 : (d : ℝ) ≠ 0 := ne_of_gt hdpos
+  have hindex (i : Fin d) : θ i =
+      (((i.val : ℝ) + 1 - 1 / 2) * Real.pi) / (d : ℝ) := by
+    dsimp only [θ]
+    field_simp [hd0]; ring
+  -- Lift the actual entrywise identity through the diagonal and same O.
+  have hscalar (i : Fin d) :
+      (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i) =
+      (κ - 1) * ((2 + 1) / 2 + (2 - 1) / 2 * Real.cos (θ i)) - (κ - 2) := by
+    simp only [hindex i]
+    ring
+  have hdiag :
+      Matrix.diagonal (fun i =&gt; (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) =
+      (κ - 1) • Matrix.diagonal (fun i =&gt; (2 + 1) / 2 + (2 - 1) / 2 * Real.cos (θ i)) -
+        (κ - 2) • (1 : Matrix (Fin d) (Fin d) ℝ) := by
+    ext i j
+    by_cases hij : i = j
+    · subst j
+      simpa [Matrix.diagonal_apply, Matrix.one_apply] using hscalar i
+    · simp [hij]
+  -- Full orthogonal membership supplies the actual right identity.
+  have hO : (O : Matrix (Fin d) (Fin d) ℝ) *
+      (O : Matrix (Fin d) (Fin d) ℝ).transpose = 1 :=
+    (Matrix.mem_orthogonalGroup_iff (n := Fin d) (R := ℝ)).mp O.property
+  have hmatrix : A κ = (κ - 1) • A 2 - (κ - 2) • 1 := by
+    dsimp only [A]
+    rw [hdiag, Matrix.mul_sub, Matrix.sub_mul]
+    simp only [Matrix.mul_smul, Matrix.smul_mul, Matrix.mul_one, hO]
+  -- Reverse conversion uses a genuinely nonzero known scalar.
+  have hnz : κ - 1 ≠ 0 := by linarith
+  intro x
+  have hforward : query κ x = (κ - 1) • query 2 x - (κ - 2) • x := by
+    apply WithLp.ofLp_injective 2
+    change A κ *ᵥ WithLp.ofLp x =
+      (κ - 1) • (A 2 *ᵥ WithLp.ofLp x) - (κ - 2) • WithLp.ofLp x
+    rw [hmatrix]
+    simp only [Matrix.sub_mulVec, Matrix.smul_mulVec, Matrix.one_mulVec]
+  refine ⟨hforward, ?_⟩
+  change query 2 x = (κ - 1)⁻¹ • (query κ x + (κ - 2) • x)
+  rw [hforward, sub_add_cancel, smul_smul, inv_mul_cancel₀ hnz, one_smul]
+end AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAffine
+</code></pre></main></body></html>

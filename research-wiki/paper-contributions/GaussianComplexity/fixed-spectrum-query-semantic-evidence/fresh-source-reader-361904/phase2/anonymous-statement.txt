@@ -1,0 +1,13 @@
+∀ {d : ℕ} (hd : 2 ≤ d)
+    {κ : ℝ} (hκ : 2 ≤ κ)
+    (O : Matrix.orthogonalGroup (Fin d) ℝ),
+    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+    let A : ℝ → Matrix (Fin d) (Fin d) ℝ := fun η =>
+      (O : Matrix (Fin d) (Fin d) ℝ) *
+        Matrix.diagonal (fun i => (η + 1) / 2 + (η - 1) / 2 * Real.cos (θ i)) *
+        (O : Matrix (Fin d) (Fin d) ℝ).transpose
+    let query : ℝ → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=
+      fun η x => WithLp.toLp 2 (A η *ᵥ WithLp.ofLp x)
+    ∀ x : EuclideanSpace ℝ (Fin d),
+      query κ x = (κ - 1) • query 2 x - (κ - 2) • x ∧
+      query 2 x = (κ - 1)⁻¹ • (query κ x + (κ - 2) • x)

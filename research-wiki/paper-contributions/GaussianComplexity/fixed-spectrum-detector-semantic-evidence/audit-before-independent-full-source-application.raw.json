@@ -1,0 +1,223 @@
+{
+  "id": "ASTIS-RT-20261110-HuanjianFixedSpectrumDetector",
+  "state": "blind-reconstructed",
+  "source": {
+    "source_id": "arxiv2610.20492v1-matrix-chebyshev-cosine-auxiliary",
+    "url": "https://arxiv.org/html/2610.20492v1#S4.SS3",
+    "anchor": "Eq11; S4.SS3.p3.1,p3.2,p4.1 intrinsic first-kind polynomial detector and cosine coordinate bridge",
+    "original_text": "The first-kind Chebyshev polynomial of the normalized hard-family precision is its same-rotation cosine diagonal. T_n\\!\\left(\\frac{2A-(\\kappa+1)I_d}{\\kappa-1}\\right)=O\\,\\operatorname{diag}\\!\\bigl(\\cos(n\\theta_i)\\bigr)O^\\top. Let \\(d\\ge2\\) be natural, \\(\\kappa\\ge2\\) real, and \\(O\\in O(d)\\) a full real orthogonal matrix. Both determinant signs are allowed. This is a fixed-input algebraic statement, with no algorithm or Haar-independence premise. Use the literal midpoint grid \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), precision eigenvalues \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\), and \\(A=O\\Lambda O^\\top\\). Lean's zero-based coordinate is \\(i_{\\rm val}+\\tfrac12\\). The auxiliary identity holds for every natural \\(n\\), including zero. The source proof specializes to \\(n=2q+1\\). \\(T_n\\) is the usual first-kind polynomial; its matrix evaluation maps real coefficients to scalar identity matrices. The private application allows every real \\(\\tau\\), with source instance \\(\\tau_{d,q}\\). Put \\(\\mu=N(0,\\Lambda^{-1})\\), \\(Rz=Oz\\), \\(S_A(x)=(-1)^n x^\\top T_n((2A-(\\kappa+1)I_d)/(\\kappa-1))x-2\\tau\\|x\\|^2\\), and \\(E_A=\\{S_A>0\\}\\). It proves Borelness and a literal \\(\\mu\\circ R^{-1}\\) event-mass equality; identifying that law with \\(\\pi_A\\) remains separate. Scalar \\((\\kappa-1)^{-1}\\) in the normalized matrix and matrix \\(\\Lambda^{-1}\\) in the Gaussian covariance are different operations. Nonzero scalar domain, orthogonal identities, continuity and measurability are produced internally. No moment, probability, rotation-law, query-budget or cost certificate is an input.",
+    "text_sha256": "0ce2311a7071af845c047e07fb9b7868e0325bcb4f3ce1a060d4341f5d7f4bff",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumDetector.actual_chebyshev_matrix_cosine",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumDetector.lean",
+    "statement": "∀ {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ) (n : ℕ),\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) *\n      Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let B : Matrix (Fin d) (Fin d) ℝ :=\n    (κ - 1)⁻¹ • ((2 : ℝ) • A - (κ + 1) • (1 : Matrix (Fin d) (Fin d) ℝ))\n  Polynomial.aeval B (Polynomial.Chebyshev.T ℝ (n : ℤ)) =\n    (O : Matrix (Fin d) (Fin d) ℝ) *\n      Matrix.diagonal (fun i => Real.cos ((n : ℝ) * θ i)) *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n",
+    "statement_sha256": "6e13c4e1f93d028f339b90fb003c968c9135d4b96e13e2d250de8ad836165d04",
+    "formalizer": "huanjian_gc_20261110_fixed_spectrum_detector",
+    "compiled": true,
+    "decoder_context": [
+      "Natural numbers include zero. Fin d is the finite set0,...,d-1; real casts and natural-to-integer casts have their standard meanings.",
+      "Matrix.orthogonalGroup(Fin d) Real is the full real orthogonal group: transpose is inverse on both sides. No determinant1 condition is part of the type. Coercion exposes the actual real matrix.",
+      "Matrix.diagonal has the displayed diagonal and zero elsewhere; matrix multiplication, identity, transpose and real scalar action are standard. A real inverse in a scalar action is the standard real reciprocal, not a matrix inverse.",
+      "Polynomial.Chebyshev.T Real k is the existing first-kind polynomial with integer index; on natural indices T0=1,T1=X,T_(m+2)=2*X*T_(m+1)-T_m. Polynomial.aeval B p evaluates p in the real matrix algebra, with real coefficients mapped to scalar identity matrices; it is not entrywise evaluation.",
+      "Real.pi and Real.cos are the standard real pi and cosine. All fractions and constants are literal real values. Universal quantification and local let definitions have their usual dependent meanings."
+    ]
+  },
+  "reconstruction": {
+    "text": "For every natural number \\(d\\) satisfying \\(2\\le d\\), every real number \\(\\kappa\\) satisfying \\(2\\le\\kappa\\), every real orthogonal \\(d\\times d\\) matrix \\(O\\), and every natural number \\(n\\), including zero, make the following local definitions. There is no determinant-one condition on \\(O\\), and there is no further bound on \\(n\\).\n\nFor each \\(i\\in\\{0,\\ldots,d-1\\}\\), put\n\\[\n\\theta_i=\\left(i+\\frac12\\right)\\frac{\\pi}{d}.\n\\]\nDefine real \\(d\\times d\\) matrices\n\\[\nA=O\\,\\operatorname{diag}\\!\\left(\\frac{\\kappa+1}{2}+\\frac{\\kappa-1}{2}\\cos\\theta_i\\right)_{i=0}^{d-1}O^{\\mathsf T},\n\\qquad\nB=\\frac{1}{\\kappa-1}\\left(2A-(\\kappa+1)I_d\\right).\n\\]\nThen\n\\[\nT_n(B)=O\\,\\operatorname{diag}\\!\\left(\\cos(n\\theta_i)\\right)_{i=0}^{d-1}O^{\\mathsf T}.\n\\]\nHere \\(T_n\\) is the real Chebyshev polynomial of the first kind at the integer index obtained by casting the natural number \\(n\\); on natural indices it satisfies \\(T_0=1\\), \\(T_1=X\\), and \\(T_{m+2}=2XT_{m+1}-T_m\\). The expression \\(T_n(B)\\) is polynomial evaluation in the real matrix algebra: each real coefficient is mapped to that coefficient times \\(I_d\\), and polynomial multiplication uses matrix multiplication. The conclusion is an equality of real matrices, not an entrywise application of the scalar polynomial. The factor \\(1/(\\kappa-1)\\) is a real scalar reciprocal. All fractions, \\(\\pi\\), and cosine have their usual real meanings; the occurrences of \\(d\\), \\(i\\), and \\(n\\) in real expressions use the standard real casts.\n",
+    "text_sha256": "4f94e2303f981c0e2d4fa3c78d17fa87b68dc4cc5cc18f1b68d322a501560166",
+    "decoder": "/root/neutral_decoder_4f92ca",
+    "decoder_run_sha256": "aaef7a460bb871f17252a6fa5c547c3b995bca0c9c49ce5667263b8474e41b11",
+    "decoder_packet_sha256": "351cd6156093dcec58f7e29d0a6a9288aa2d63f3fba82f6769be45b21d70a8bc",
+    "source_text_visible": false,
+    "lean_statement_sha256": "6e13c4e1f93d028f339b90fb003c968c9135d4b96e13e2d250de8ad836165d04",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-detector-semantic-evidence/independent-decoder-4f92ca/reconstruction.v2.json"
+  },
+  "semantic_slots": {},
+  "deltas": [],
+  "verdict": "pending",
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "5a5e5931f81293f2b4d191170a878aec1eb681cacd34554ab074bb430e6548da",
+  "publication_context": {
+    "file": "98d055da8ca5a10fe56874b19a58fb523511b9fc7c5ae13e20225e18340ed75a",
+    "current_lean_module": "import Mathlib.LinearAlgebra.UnitaryGroup\nimport Mathlib.Data.Matrix.Basic\nimport Mathlib.Algebra.Star.UnitaryStarAlgAut\nimport Mathlib.Algebra.Polynomial.AlgebraMap\nimport Mathlib.Analysis.SpecialFunctions.Trigonometric.Chebyshev.Basic\nimport Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic\nimport Mathlib.Tactic.FieldSimp\nimport Mathlib.Tactic.Ring\nimport Mathlib.Tactic.Linarith\n\nopen Matrix\nset_option autoImplicit false\n\n/-!\n# Actual fixed-spectrum matrix-Chebyshev detector\n\nZhou--Suzuki arXiv:2610.20492v1, Eq11 and Section4.3.\nThe actual affine normalized precision has the exact first-kind Chebyshev\nmatrix polynomial given by the same orthogonal conjugate cosine diagonal.\nThis auxiliary identity holds for all natural frequencies; the source uses\nn=2q+1. No Gaussian law, probability, algorithm or query bound is asserted.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumDetector\n\ntheorem actual_chebyshev_matrix_cosine {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ) (n : ℕ) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) *\n      Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let B : Matrix (Fin d) (Fin d) ℝ :=\n    (κ - 1)⁻¹ • ((2 : ℝ) • A - (κ + 1) • (1 : Matrix (Fin d) (Fin d) ℝ))\n  Polynomial.aeval B (Polynomial.Chebyshev.T ℝ (n : ℤ)) =\n    (O : Matrix (Fin d) (Fin d) ℝ) *\n      Matrix.diagonal (fun i => Real.cos ((n : ℝ) * θ i)) *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose := by\n  classical\n  dsimp only\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let Λ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Λ *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let D : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => Real.cos (θ i))\n  let B : Matrix (Fin d) (Fin d) ℝ :=\n    (κ - 1)⁻¹ • ((2 : ℝ) • A - (κ + 1) • (1 : Matrix (Fin d) (Fin d) ℝ))\n  let Φ : Matrix (Fin d) (Fin d) ℝ ≃ₐ[ℝ] Matrix (Fin d) (Fin d) ℝ :=\n    (Unitary.conjStarAlgAut ℝ (Matrix (Fin d) (Fin d) ℝ) O).toAlgEquiv\n  have hΦ (M : Matrix (Fin d) (Fin d) ℝ) :\n      Φ M = (O : Matrix (Fin d) (Fin d) ℝ) * M *\n        (O : Matrix (Fin d) (Fin d) ℝ).transpose := by\n    change (O : Matrix (Fin d) (Fin d) ℝ) * M *\n      star (O : Matrix (Fin d) (Fin d) ℝ) = _\n    simp only [Matrix.star_eq_conjTranspose, Matrix.conjTranspose_eq_transpose_of_trivial]\n  have hnz : κ - 1 ≠ 0 := by linarith\n  have hD :\n      (κ - 1)⁻¹ • ((2 : ℝ) • Λ - (κ + 1) • (1 : Matrix (Fin d) (Fin d) ℝ)) = D := by\n    ext i j\n    by_cases hij : i = j\n    · subst j\n      simp only [Matrix.smul_apply, smul_eq_mul, Matrix.sub_apply, Λ, D,\n        Matrix.diagonal_apply_eq, Matrix.one_apply_eq, mul_one]\n      field_simp [hnz]\n      ring\n    · simp [Λ, D, hij]\n  have hA : A = Φ Λ := (hΦ Λ).symm\n  have hB : B = Φ D := by\n    dsimp only [B]\n    rw [hA]\n    calc\n      (κ - 1)⁻¹ • ((2 : ℝ) • Φ Λ - (κ + 1) • (1 : Matrix (Fin d) (Fin d) ℝ)) =\n          Φ ((κ - 1)⁻¹ • ((2 : ℝ) • Λ - (κ + 1) • (1 : Matrix (Fin d) (Fin d) ℝ))) := by\n        simp only [map_smul, map_sub, map_one]\n      _ = Φ D := congrArg Φ hD\n  have hdiag : Polynomial.aeval D (Polynomial.Chebyshev.T ℝ (n : ℤ)) =\n      Matrix.diagonal (fun i => Real.cos ((n : ℝ) * θ i)) := by\n    change Polynomial.aeval ((Matrix.diagonalAlgHom (n := Fin d) (α := ℝ) ℝ) (fun i => Real.cos (θ i)))\n      (Polynomial.Chebyshev.T ℝ (n : ℤ)) = _\n    rw [Polynomial.aeval_algHom_apply, Polynomial.aeval_pi_apply]\n    change Matrix.diagonal (fun i => Polynomial.aeval (Real.cos (θ i))\n      (Polynomial.Chebyshev.T ℝ (n : ℤ))) = _\n    apply congrArg (Matrix.diagonal : (Fin d → ℝ) → Matrix (Fin d) (Fin d) ℝ)\n    funext i\n    change (Polynomial.Chebyshev.T ℝ (n : ℤ)).eval (Real.cos (θ i)) = _\n    simpa only [Int.cast_natCast] using Polynomial.Chebyshev.T_real_cos (θ i) (n : ℤ)\n  change Polynomial.aeval B (Polynomial.Chebyshev.T ℝ (n : ℤ)) = _\n  rw [hB, Polynomial.aeval_algHom_apply, hdiag, hΦ]\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumDetector\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#S4.SS3",
+      "edition": "arXiv2610.20492v1; fixed raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "Eq11; S4.SS3.p3.1,p3.2,p4.1 intrinsic first-kind polynomial detector and cosine coordinate bridge",
+      "wording_status": "faithful paraphrase",
+      "attribution": "On Complexity of Gaussian Sampling, arXiv2610.20492v1.",
+      "scope": "Explicit auxiliary matrix identity/generalization and private literal pushforward-event component, not full Theorem4.1 or Ex26."
+    },
+    "statement": "The first-kind Chebyshev polynomial of the normalized hard-family precision is its same-rotation cosine diagonal. T_n\\!\\left(\\frac{2A-(\\kappa+1)I_d}{\\kappa-1}\\right)=O\\,\\operatorname{diag}\\!\\bigl(\\cos(n\\theta_i)\\bigr)O^\\top. Let \\(d\\ge2\\) be natural, \\(\\kappa\\ge2\\) real, and \\(O\\in O(d)\\) a full real orthogonal matrix. Both determinant signs are allowed. This is a fixed-input algebraic statement, with no algorithm or Haar-independence premise. Use the literal midpoint grid \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), precision eigenvalues \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\), and \\(A=O\\Lambda O^\\top\\). Lean's zero-based coordinate is \\(i_{\\rm val}+\\tfrac12\\). The auxiliary identity holds for every natural \\(n\\), including zero. The source proof specializes to \\(n=2q+1\\). \\(T_n\\) is the usual first-kind polynomial; its matrix evaluation maps real coefficients to scalar identity matrices. The private application allows every real \\(\\tau\\), with source instance \\(\\tau_{d,q}\\). Put \\(\\mu=N(0,\\Lambda^{-1})\\), \\(Rz=Oz\\), \\(S_A(x)=(-1)^n x^\\top T_n((2A-(\\kappa+1)I_d)/(\\kappa-1))x-2\\tau\\|x\\|^2\\), and \\(E_A=\\{S_A>0\\}\\). It proves Borelness and a literal \\(\\mu\\circ R^{-1}\\) event-mass equality; identifying that law with \\(\\pi_A\\) remains separate. Scalar \\((\\kappa-1)^{-1}\\) in the normalized matrix and matrix \\(\\Lambda^{-1}\\) in the Gaussian covariance are different operations. Nonzero scalar domain, orthogonal identities, continuity and measurability are produced internally. No moment, probability, rotation-law, query-budget or cost certificate is an input.",
+    "formulae": [
+      {
+        "label": "Literal matrix-Chebyshev cosine identity",
+        "tex": "T_n\\!\\left(\\frac{2A-(\\kappa+1)I_d}{\\kappa-1}\\right)=O\\,\\operatorname{diag}\\!\\bigl(\\cos(n\\theta_i)\\bigr)O^\\top."
+      }
+    ],
+    "assumptions": [
+      "Let \\(d\\ge2\\) be natural, \\(\\kappa\\ge2\\) real, and \\(O\\in O(d)\\) a full real orthogonal matrix. Both determinant signs are allowed. This is a fixed-input algebraic statement, with no algorithm or Haar-independence premise.",
+      "Use the literal midpoint grid \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), precision eigenvalues \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\), and \\(A=O\\Lambda O^\\top\\). Lean's zero-based coordinate is \\(i_{\\rm val}+\\tfrac12\\).",
+      "The auxiliary identity holds for every natural \\(n\\), including zero. The source proof specializes to \\(n=2q+1\\). \\(T_n\\) is the usual first-kind polynomial; its matrix evaluation maps real coefficients to scalar identity matrices.",
+      "The private application allows every real \\(\\tau\\), with source instance \\(\\tau_{d,q}\\). Put \\(\\mu=N(0,\\Lambda^{-1})\\), \\(Rz=Oz\\), \\(S_A(x)=(-1)^n x^\\top T_n((2A-(\\kappa+1)I_d)/(\\kappa-1))x-2\\tau\\|x\\|^2\\), and \\(E_A=\\{S_A>0\\}\\). It proves Borelness and a literal \\(\\mu\\circ R^{-1}\\) event-mass equality; identifying that law with \\(\\pi_A\\) remains separate.",
+      "Scalar \\((\\kappa-1)^{-1}\\) in the normalized matrix and matrix \\(\\Lambda^{-1}\\) in the Gaussian covariance are different operations. Nonzero scalar domain, orthogonal identities, continuity and measurability are produced internally. No moment, probability, rotation-law, query-budget or cost certificate is an input."
+    ],
+    "obligations": [
+      {
+        "id": "matrix-chebyshev-cosine",
+        "label": "Actual normalized precision polynomial equals its same-O cosine diagonal, without supplied proof ingredients."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumDetector.actual_chebyshev_matrix_cosine",
+      "title": "The actual matrix-Chebyshev cosine identity",
+      "reader_note": "The exact matrix conclusion comes first. Conditions, formula proof and exact Lean are folded beside it; the full private Gaussian application is available at step6.",
+      "statement": "The first-kind Chebyshev polynomial of the normalized hard-family precision is its same-rotation cosine diagonal.",
+      "formula": "T_n\\!\\left(\\frac{2A-(\\kappa+1)I_d}{\\kappa-1}\\right)=O\\,\\operatorname{diag}\\!\\bigl(\\cos(n\\theta_i)\\bigr)O^\\top.",
+      "assumptions": [
+        "Let \\(d\\ge2\\) be natural, \\(\\kappa\\ge2\\) real, and \\(O\\in O(d)\\) a full real orthogonal matrix. Both determinant signs are allowed. This is a fixed-input algebraic statement, with no algorithm or Haar-independence premise.",
+        "Use the literal midpoint grid \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), precision eigenvalues \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\), and \\(A=O\\Lambda O^\\top\\). Lean's zero-based coordinate is \\(i_{\\rm val}+\\tfrac12\\).",
+        "The auxiliary identity holds for every natural \\(n\\), including zero. The source proof specializes to \\(n=2q+1\\). \\(T_n\\) is the usual first-kind polynomial; its matrix evaluation maps real coefficients to scalar identity matrices.",
+        "The private application allows every real \\(\\tau\\), with source instance \\(\\tau_{d,q}\\). Put \\(\\mu=N(0,\\Lambda^{-1})\\), \\(Rz=Oz\\), \\(S_A(x)=(-1)^n x^\\top T_n((2A-(\\kappa+1)I_d)/(\\kappa-1))x-2\\tau\\|x\\|^2\\), and \\(E_A=\\{S_A>0\\}\\). It proves Borelness and a literal \\(\\mu\\circ R^{-1}\\) event-mass equality; identifying that law with \\(\\pi_A\\) remains separate.",
+        "Scalar \\((\\kappa-1)^{-1}\\) in the normalized matrix and matrix \\(\\Lambda^{-1}\\) in the Gaussian covariance are different operations. Nonzero scalar domain, orthogonal identities, continuity and measurability are produced internally. No moment, probability, rotation-law, query-budget or cost certificate is an input."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(\\theta_i,\\lambda_i,\\Lambda,A\\)",
+          "text": "The same literal midpoint precision family and full hidden orthogonal basis.",
+          "formula": "\\theta_i=(i-\\tfrac12)\\pi/d,\\quad\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2,\\quad A=O\\Lambda O^\\top."
+        },
+        {
+          "symbol": "\\(B,D_n,S_A,E_A\\)",
+          "text": "Actual normalized matrix, cosine diagonal, intrinsic signed statistic and strict event.",
+          "formula": "B=(2A-(\\kappa+1)I_d)/(\\kappa-1),\\quad D_n=\\operatorname{diag}(\\cos(n\\theta_i)),\\quad E_A=\\{S_A>0\\}."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use the existing orthogonal conjugation automorphism",
+          "text": "The same full orthogonal matrix defines the canonical star-algebra automorphism Φ(M)=OMOᵀ. It preserves the identity, addition, scalar multiplication and polynomial evaluation. The source condition κ≥2 supplies κ−1≠0 inside the proof.",
+          "formula": "\\Phi(M)=OMO^\\top,\\qquad \\Phi(I_d)=I_d,\\qquad \\kappa-1\\ne0.",
+          "detail": "The implementation reuses Unitary.conjStarAlgAut. It creates no duplicate generic conjugation lemma, and does not restrict O to determinant1.",
+          "lean": "  let Φ : Matrix (Fin d) (Fin d) ℝ ≃ₐ[ℝ] Matrix (Fin d) (Fin d) ℝ :=\n    (Unitary.conjStarAlgAut ℝ (Matrix (Fin d) (Fin d) ℝ) O).toAlgEquiv\n  have hΦ (M : Matrix (Fin d) (Fin d) ℝ) :\n      Φ M = (O : Matrix (Fin d) (Fin d) ℝ) * M *\n        (O : Matrix (Fin d) (Fin d) ℝ).transpose := by\n    change (O : Matrix (Fin d) (Fin d) ℝ) * M *\n      star (O : Matrix (Fin d) (Fin d) ℝ) = _\n    simp only [Matrix.star_eq_conjTranspose, Matrix.conjTranspose_eq_transpose_of_trivial]\n  have hnz : κ - 1 ≠ 0 := by linarith\n"
+        },
+        {
+          "title": "Normalize the literal precision before evaluating the polynomial",
+          "text": "Calculate each diagonal entry directly from the displayed eigenvalue formula. Lift this scalar calculation through the same conjugation. This establishes the actual normalized matrix, rather than assuming its diagonalization.",
+          "formula": "\\frac{2\\lambda_i-(\\kappa+1)}{\\kappa-1}=\\cos\\theta_i,\\qquad B:=\\frac{2A-(\\kappa+1)I_d}{\\kappa-1}=\\Phi(\\operatorname{diag}(\\cos\\theta_i)).",
+          "detail": "The complete scalar/diagonal normalization and its lift are shown. No affine identity or reciprocal-domain certificate is supplied by the caller.",
+          "lean": "  have hD :\n      (κ - 1)⁻¹ • ((2 : ℝ) • Λ - (κ + 1) • (1 : Matrix (Fin d) (Fin d) ℝ)) = D := by\n    ext i j\n    by_cases hij : i = j\n    · subst j\n      simp only [Matrix.smul_apply, smul_eq_mul, Matrix.sub_apply, Λ, D,\n        Matrix.diagonal_apply_eq, Matrix.one_apply_eq, mul_one]\n      field_simp [hnz]\n      ring\n    · simp [Λ, D, hij]\n  have hA : A = Φ Λ := (hΦ Λ).symm\n  have hB : B = Φ D := by\n    dsimp only [B]\n    rw [hA]\n    calc\n      (κ - 1)⁻¹ • ((2 : ℝ) • Φ Λ - (κ + 1) • (1 : Matrix (Fin d) (Fin d) ℝ)) =\n          Φ ((κ - 1)⁻¹ • ((2 : ℝ) • Λ - (κ + 1) • (1 : Matrix (Fin d) (Fin d) ℝ))) := by\n        simp only [map_smul, map_sub, map_one]\n      _ = Φ D := congrArg Φ hD\n"
+        },
+        {
+          "title": "Evaluate through the canonical algebra maps",
+          "text": "Polynomial evaluation commutes first with Φ and then with the diagonal algebra homomorphism. Evaluation in a tuple is componentwise. Apply the existing scalar first-kind identity T_n(cos θ)=cos(nθ), with the explicit natural-to-integer index conversion, then return to O-conjugation.",
+          "formula": "T_n(B)=\\Phi\\!\\left(\\operatorname{diag}(T_n(\\cos\\theta_i))\\right)=\\Phi\\!\\left(\\operatorname{diag}(\\cos(n\\theta_i))\\right).",
+          "detail": "Polynomial.aeval_algHom_apply, Matrix.diagonalAlgHom, Polynomial.aeval_pi_apply and Polynomial.Chebyshev.T_real_cos are genuinely reused. Real matrix polynomial evaluation is not entrywise evaluation.",
+          "lean": "  have hdiag : Polynomial.aeval D (Polynomial.Chebyshev.T ℝ (n : ℤ)) =\n      Matrix.diagonal (fun i => Real.cos ((n : ℝ) * θ i)) := by\n    change Polynomial.aeval ((Matrix.diagonalAlgHom (n := Fin d) (α := ℝ) ℝ) (fun i => Real.cos (θ i)))\n      (Polynomial.Chebyshev.T ℝ (n : ℤ)) = _\n    rw [Polynomial.aeval_algHom_apply, Polynomial.aeval_pi_apply]\n    change Matrix.diagonal (fun i => Polynomial.aeval (Real.cos (θ i))\n      (Polynomial.Chebyshev.T ℝ (n : ℤ))) = _\n    apply congrArg (Matrix.diagonal : (Fin d → ℝ) → Matrix (Fin d) (Fin d) ℝ)\n    funext i\n    change (Polynomial.Chebyshev.T ℝ (n : ℤ)).eval (Real.cos (θ i)) = _\n    simpa only [Int.cast_natCast] using Polynomial.Chebyshev.T_real_cos (θ i) (n : ℤ)\n  change Polynomial.aeval B (Polynomial.Chebyshev.T ℝ (n : ℤ)) = _\n  rw [hB, Polynomial.aeval_algHom_apply, hdiag, hΦ]\n"
+        },
+        {
+          "title": "Produce the strict event's Borel property",
+          "text": "For the fixed matrix T_n(B), its quadratic form is the Euclidean inner product of x with a continuous linear image of x. The norm-square term is continuous too, so S_A is continuous and its strict positive set is Borel. The actual rotation R is a continuous linear map. This branch does not need the new cosine identity.",
+          "formula": "x^\\top T_n(B)x=\\langle x,\\operatorname{CLM}(T_n(B))x\\rangle,\\qquad S_A\\ \\text{continuous},\\qquad E_A=\\{S_A>0\\}\\ \\text{Borel}.",
+          "detail": "A typed pointwise equality connects the existing inner-product identity to the exact coordinate formula. The resulting event measurability and rotation measurability are consumed by Measure.map_apply.",
+          "lean": "  have hR : Measurable R :=\n    (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) (O : Matrix (Fin d) (Fin d) ℝ)).continuous.measurable\n  have hSc : Continuous S := by\n    have hq : Continuous (fun x : E =>\n        (WithLp.ofLp x) ⬝ᵥ (T *ᵥ WithLp.ofLp x)) := by\n      have hi : Continuous (fun x : E =>\n          inner ℝ x (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) T x)) :=\n        continuous_id.inner (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) T).continuous\n      have heq : (fun x : E =>\n          inner ℝ x (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) T x)) =\n          (fun x : E => (WithLp.ofLp x) ⬝ᵥ (T *ᵥ WithLp.ofLp x)) := by\n        funext x\n        exact Matrix.inner_toEuclideanCLM T x x\n      rw [← heq]\n      exact hi\n    exact (continuous_const.mul hq).sub (continuous_const.mul (continuous_norm.pow 2))\n  have hEvent : MeasurableSet {x : E | 0 < S x} :=\n    measurableSet_lt measurable_const hSc.measurable\n"
+        },
+        {
+          "title": "Transform the actual statistic on every vector",
+          "text": "Apply the compiled producer to the actual matrix in the private test. Orthogonality supplies OᵀOz=z. The canonical unitary continuous-linear-map theorem preserves the Euclidean norm. Bilinear transpose identities then reduce the rotated quadratic form to the coordinate cosine sum, including z=0.",
+          "formula": "S_A(Rz)=(-1)^n\\sum_i\\cos(n\\theta_i)z_i^2-2\\tau\\|z\\|^2,\\qquad \\|Rz\\|=\\|z\\|.",
+          "detail": "The private proof materially calls the new public declaration. It uses the full orthogonal group and makes no division by the squared norm, so no fallback weights or nonzero-vector premise is needed.",
+          "lean": "  have hO : (O : Matrix (Fin d) (Fin d) ℝ).transpose *\n      (O : Matrix (Fin d) (Fin d) ℝ) = 1 :=\n    (Matrix.mem_orthogonalGroup_iff' (n := Fin d) (R := ℝ)).mp O.property\n  have hundo (v : Fin d → ℝ) :\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose *ᵥ\n        ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ v) = v := by\n    rw [Matrix.mulVec_mulVec, hO, Matrix.one_mulVec]\n  have hnorm (z : E) : ‖R z‖ = ‖z‖ := by\n    exact ContinuousLinearMap.norm_map_of_mem_unitary\n      (Unitary.map_mem (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d)) O.property) z\n  have hquad (z : E) :\n      (WithLp.ofLp (R z)) ⬝ᵥ (T *ᵥ WithLp.ofLp (R z)) =\n        ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp z i) ^ 2 := by\n    rw [hT]\n    change ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ WithLp.ofLp z) ⬝ᵥ\n      (((O : Matrix (Fin d) (Fin d) ℝ) * D *\n        (O : Matrix (Fin d) (Fin d) ℝ).transpose) *ᵥ\n          ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ WithLp.ofLp z)) = _\n    rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec, hundo]\n    rw [← Matrix.dotProduct_transpose_mulVec, hundo]\n    simp only [D, dotProduct, Matrix.mulVec_diagonal]\n    apply Finset.sum_congr rfl\n    intro i _\n    ring\n  have hstat (z : E) : S (R z) =\n      (-1 : ℝ) ^ n * (∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp z i) ^ 2) -\n        2 * τ * ‖z‖ ^ 2 := by\n    dsimp only [S]\n    rw [hquad, hnorm]\n"
+        },
+        {
+          "title": "Evaluate the actual pushforward on this event",
+          "text": "Use the derived Borel and rotation properties to evaluate the actual pushforward measure on E_A. Substitute the pointwise statistic identity in its preimage. The strict inequality excludes zero on both sides; the result is an exact ENNReal mass equality with no probability estimate or toReal conversion.",
+          "formula": "(\\mu\\circ R^{-1})(E_A)=\\mu(R^{-1}E_A)=\\mu\\!\\left\\{z:(-1)^n\\sum_i\\cos(n\\theta_i)z_i^2-2\\tau\\|z\\|^2>0\\right\\}.",
+          "detail": "The complete private Test module is folded here. The actual measure is multivariateGaussian0Λ inverse. Equality with multivariateGaussian0A inverse, the target pass probability, concentration, algorithms and both main lower bounds remain separate.",
+          "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumDetector\nimport Mathlib.Probability.Distributions.Gaussian.Multivariate\nimport Mathlib.Analysis.CStarAlgebra.Matrix\nimport Mathlib.Analysis.InnerProductSpace.Adjoint\n\nopen Matrix InnerProductSpace MeasureTheory ProbabilityTheory\nset_option autoImplicit false\n\n/-!\nActual private source detector consumer. Both conjuncts are proved internally:\nthe intrinsic polynomial event is Borel, and its mass under the actual\nrotated pushforward diagonal Gaussian equals the strict diagonal event mass.\nThis does not identify that pushforward with multivariateGaussian0 A inverse\nor prove a high-probability/algorithm/query lower bound.\n-/\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumDetector\n\nprivate theorem actual_rotated_gaussian_detector_event {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ) (n : ℕ) (τ : ℝ) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let Λ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹\n  let R : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=\n    fun z => WithLp.toLp 2 ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ WithLp.ofLp z)\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Λ *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let B : Matrix (Fin d) (Fin d) ℝ :=\n    (κ - 1)⁻¹ • ((2 : ℝ) • A - (κ + 1) • (1 : Matrix (Fin d) (Fin d) ℝ))\n  let S : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    (-1 : ℝ) ^ n *\n      ((WithLp.ofLp x) ⬝ᵥ ((Polynomial.aeval B (Polynomial.Chebyshev.T ℝ (n : ℤ))) *ᵥ WithLp.ofLp x)) -\n      2 * τ * ‖x‖ ^ 2\n  MeasurableSet {x | 0 < S x} ∧\n    (μ.map R) {x | 0 < S x} =\n      μ {z | 0 < (-1 : ℝ) ^ n *\n        (∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp z i) ^ 2) -\n        2 * τ * ‖z‖ ^ 2} := by\n  classical\n  dsimp only\n  let E := EuclideanSpace ℝ (Fin d)\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let Λ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))\n  let μ : Measure E := multivariateGaussian (0 : E) Λ⁻¹\n  let R : E → E := fun z =>\n    WithLp.toLp 2 ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ WithLp.ofLp z)\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Λ *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let B : Matrix (Fin d) (Fin d) ℝ :=\n    (κ - 1)⁻¹ • ((2 : ℝ) • A - (κ + 1) • (1 : Matrix (Fin d) (Fin d) ℝ))\n  let T : Matrix (Fin d) (Fin d) ℝ :=\n    Polynomial.aeval B (Polynomial.Chebyshev.T ℝ (n : ℤ))\n  let D : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => Real.cos ((n : ℝ) * θ i))\n  let S : E → ℝ := fun x =>\n    (-1 : ℝ) ^ n * ((WithLp.ofLp x) ⬝ᵥ (T *ᵥ WithLp.ofLp x)) -\n      2 * τ * ‖x‖ ^ 2\n  have hT : T = (O : Matrix (Fin d) (Fin d) ℝ) * D *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumDetector.actual_chebyshev_matrix_cosine hd hκ O n\n  have hR : Measurable R :=\n    (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) (O : Matrix (Fin d) (Fin d) ℝ)).continuous.measurable\n  have hSc : Continuous S := by\n    have hq : Continuous (fun x : E =>\n        (WithLp.ofLp x) ⬝ᵥ (T *ᵥ WithLp.ofLp x)) := by\n      have hi : Continuous (fun x : E =>\n          inner ℝ x (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) T x)) :=\n        continuous_id.inner (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) T).continuous\n      have heq : (fun x : E =>\n          inner ℝ x (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) T x)) =\n          (fun x : E => (WithLp.ofLp x) ⬝ᵥ (T *ᵥ WithLp.ofLp x)) := by\n        funext x\n        exact Matrix.inner_toEuclideanCLM T x x\n      rw [← heq]\n      exact hi\n    exact (continuous_const.mul hq).sub (continuous_const.mul (continuous_norm.pow 2))\n  have hEvent : MeasurableSet {x : E | 0 < S x} :=\n    measurableSet_lt measurable_const hSc.measurable\n  have hO : (O : Matrix (Fin d) (Fin d) ℝ).transpose *\n      (O : Matrix (Fin d) (Fin d) ℝ) = 1 :=\n    (Matrix.mem_orthogonalGroup_iff' (n := Fin d) (R := ℝ)).mp O.property\n  have hundo (v : Fin d → ℝ) :\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose *ᵥ\n        ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ v) = v := by\n    rw [Matrix.mulVec_mulVec, hO, Matrix.one_mulVec]\n  have hnorm (z : E) : ‖R z‖ = ‖z‖ := by\n    exact ContinuousLinearMap.norm_map_of_mem_unitary\n      (Unitary.map_mem (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d)) O.property) z\n  have hquad (z : E) :\n      (WithLp.ofLp (R z)) ⬝ᵥ (T *ᵥ WithLp.ofLp (R z)) =\n        ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp z i) ^ 2 := by\n    rw [hT]\n    change ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ WithLp.ofLp z) ⬝ᵥ\n      (((O : Matrix (Fin d) (Fin d) ℝ) * D *\n        (O : Matrix (Fin d) (Fin d) ℝ).transpose) *ᵥ\n          ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ WithLp.ofLp z)) = _\n    rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec, hundo]\n    rw [← Matrix.dotProduct_transpose_mulVec, hundo]\n    simp only [D, dotProduct, Matrix.mulVec_diagonal]\n    apply Finset.sum_congr rfl\n    intro i _\n    ring\n  have hstat (z : E) : S (R z) =\n      (-1 : ℝ) ^ n * (∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp z i) ^ 2) -\n        2 * τ * ‖z‖ ^ 2 := by\n    dsimp only [S]\n    rw [hquad, hnorm]\n  change MeasurableSet {x : E | 0 < S x} ∧\n    (μ.map R) {x : E | 0 < S x} = _\n  refine ⟨hEvent, ?_⟩\n  rw [Measure.map_apply hR hEvent]\n  apply congrArg μ\n  ext z\n  change (0 < S (R z)) ↔ _\n  rw [hstat]\n  rfl\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumDetector\n"
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Unitary.conjStarAlgAut",
+        "Polynomial.aeval_algHom_apply",
+        "Matrix.diagonalAlgHom",
+        "Polynomial.aeval_pi_apply",
+        "Polynomial.Chebyshev.T_real_cos",
+        "Matrix.toEuclideanCLM",
+        "Matrix.inner_toEuclideanCLM",
+        "Unitary.map_mem",
+        "ContinuousLinearMap.norm_map_of_mem_unitary",
+        "Matrix.dotProduct_transpose_mulVec",
+        "Matrix.mulVec_mulVec",
+        "Matrix.mulVec_diagonal",
+        "Continuous.inner",
+        "MeasureTheory.Measure.map_apply"
+      ],
+      "lean_statement": "Literal hard-family matrix, full real O, d>=2,kappa>=2, every natural n; no diagonalization, moment or measurability certificate is an input.",
+      "lean_proof": "Canonical unitary conjugation and diagonal algebra maps commute with actual polynomial evaluation after explicit scalar normalization. The complete private Gaussian event application proves and consumes continuity/measurability, norm preservation and all-vector quadratic transport.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S4.SS3",
+          "edition": "arXiv2610.20492v1; fixed raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Eq11; S4.SS3.p3.1,p3.2,p4.1 intrinsic first-kind polynomial detector and cosine coordinate bridge",
+          "wording_status": "faithful paraphrase",
+          "attribution": "On Complexity of Gaussian Sampling, arXiv2610.20492v1.",
+          "scope": "Explicit auxiliary matrix identity/generalization and private literal pushforward-event component, not full Theorem4.1 or Ex26.",
+          "label": "Section4.3 intrinsic polynomial/cosine bridge"
+        },
+        {
+          "path": "Tests/GaussianComplexityFixedSpectrumDetector.lean",
+          "line": 18,
+          "label": "Complete actual private rotated-pushforward Gaussian event application",
+          "scope": "Private non-Anchor proof context; pi_A identification and high probability remain unproved."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumDetector"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumDetector.actual_chebyshev_matrix_cosine",
+      "role": "prerequisite",
+      "supports": [
+        "matrix-chebyshev-cosine"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The hard-family source uses natural n=2q+1.",
+        "lean": "The algebraic auxiliary identity holds for all natural n, including0."
+      },
+      {
+        "source": "Literal Eq11 midpoint precision with d>=2,kappa>=2 and full orthogonal O.",
+        "lean": "Identical finite grid, real ranges, full O and same conjugated precision."
+      },
+      {
+        "source": "The first-kind matrix polynomial of (2A-(kappa+1)I)/(kappa-1).",
+        "lean": "Canonical first-kind polynomial at explicit natural-to-integer index, aeval in the real matrix algebra; real scalar inverse scales the normalized matrix."
+      },
+      {
+        "source": "The source event specializes tau to tau_dq and excludes zero by strict positivity.",
+        "lean": "PRIVATE auxiliary strict-event equality for all real tau under actual mu.mapR; every vector includingzero is handled without normalized weights."
+      },
+      {
+        "source": "The full target argument additionally identifies rotated Gaussian law pi_A and proves a pass-probability lower bound.",
+        "lean": "This packet only identifies the intrinsic matrix/cosine statistic and evaluates its event under the literal pushed-forward diagonal Gaussian."
+      }
+    ]
+  }
+}

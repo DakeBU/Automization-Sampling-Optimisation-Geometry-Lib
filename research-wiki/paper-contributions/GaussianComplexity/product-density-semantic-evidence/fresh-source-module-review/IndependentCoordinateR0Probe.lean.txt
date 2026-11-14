@@ -1,0 +1,121 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.ProductDensity
+open Matrix MeasureTheory ProbabilityTheory
+open scoped ENNReal BigOperators
+open AutoSamplingTheory.ExampleCases.GaussianComplexity
+set_option autoImplicit false
+set_option maxRecDepth 3000
+
+-- Check the fully expanded anonymous signature against the actual declaration.
+example : ∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ) {b : ℝ} (hb : b = 1 ∨ b = -1),
+    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    let split : EuclideanSpace ℝ (Fin d) →
+        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+    let B : Matrix.orthogonalGroup (Fin n) ℝ → Matrix (Fin n) (Fin n) ℝ :=
+      fun O => ((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) -
+      ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) +
+        (O : Matrix (Fin n) (Fin n) ℝ).transpose)
+    let ν := (2 : ℝ≥0∞) • (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))).restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = b}
+    let D := (Measure.pi (fun _ : Fin (d / n) => ν)).map (fun Os : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ => Matrix.reindex e e
+      (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => B (Os j))) 0 0
+        (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)))
+    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=
+      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=
+      fun O x => Real.sqrt (B O).det /
+        (2 * Real.pi) ^ ((n : ℝ) / 2) *
+        Real.exp (-((WithLp.ofLp x) ⬝ᵥ
+          (B O *ᵥ WithLp.ofLp x)) / 2)
+    let pb : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂ν
+    let φ : EuclideanSpace ℝ (Fin (d % n)) → ℝ :=
+      fun z => (2 * Real.pi) ^ (-((d % n : ℕ) : ℝ) / 2) * Real.exp (-‖z‖ ^ 2 / 2)
+    let q : (Fin (d / n) → EuclideanSpace ℝ (Fin n)) ×
+        EuclideanSpace ℝ (Fin (d % n)) → ℝ :=
+      fun y => (∏ j, pb (y.1 j)) * φ y.2
+    MeasurePreserving split volume volume ∧
+      (∀ y, 0 ≤ q y) ∧ Measurable q ∧ Integrable q volume ∧ (∫ y, q y) = 1 ∧
+      (D.bind γ).map split = volume.withDensity (fun y => ENNReal.ofReal (q y)) ∧
+      D.bind γ = volume.withDensity (fun x => ENNReal.ofReal (q (split x))) ∧
+      (d % n = 0 → ∀ z, φ z = 1) := by
+  intro d n hn hnd κ hκ b hb
+  exact ProductDensity.actual_product_density hn hnd hκ hb
+
+-- Independent literal-coordinate arithmetic, for every dimension pair.
+example (d n : ℕ) (i : Fin n) (j : Fin (d / n)) :
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    (e (Sum.inl (i,j))).val = j.val * n + i.val := by
+  change i.val + n * j.val = j.val * n + i.val
+  ac_rfl
+
+example (d n : ℕ) (t : Fin (d % n)) :
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    (e (Sum.inr t)).val = (d / n) * n + t.val := by rfl
+
+-- The omitted residual has unit coordinate volume, rather than zero/infinite mass.
+example : (volume : Measure (EuclideanSpace ℝ (Fin 0))) = Measure.dirac 0 :=
+  volume_euclideanSpace_eq_dirac (Fin 0)
+example : (volume : Measure (EuclideanSpace ℝ (Fin 0))) Set.univ = 1 := by
+  rw [volume_euclideanSpace_eq_dirac]
+  simp
+example (z : EuclideanSpace ℝ (Fin 0)) :
+    (2 * Real.pi) ^ (-((0 : ℕ) : ℝ) / 2) * Real.exp (-‖z‖ ^ 2 / 2) = 1 := by
+  have hz : z = 0 := Subsingleton.elim _ _
+  simp [hz]
+example (c : ℝ) :
+    (∫ z : EuclideanSpace ℝ (Fin 0), c *
+      ((2 * Real.pi) ^ (-((0 : ℕ) : ℝ) / 2) * Real.exp (-‖z‖ ^ 2 / 2))) = c := by
+  rw [volume_euclideanSpace_eq_dirac]
+  simp
+example : stdGaussian (EuclideanSpace ℝ (Fin 0)) = Measure.dirac 0 := by
+  ext s hs
+  by_cases h0 : (0 : EuclideanSpace ℝ (Fin 0)) ∈ s
+  · have hu : s = Set.univ := by
+      ext x
+      simp only [Set.mem_univ, iff_true]
+      exact (Subsingleton.elim (0 : EuclideanSpace ℝ (Fin 0)) x) ▸ h0
+    simp [hu]
+  · have he : s = ∅ := by
+      ext x
+      simp only [Set.mem_empty_iff_false, iff_false]
+      intro hx
+      exact h0 ((Subsingleton.elim x (0 : EuclideanSpace ℝ (Fin 0))) ▸ hx)
+    simp [he]
+
+-- Inclusive endpoints, both signs, and a positive-remainder case elaborate.
+#check ProductDensity.actual_product_density (d := 3) (n := 3) (by decide) (by decide)
+  (κ := 4) (by norm_num) (b := 1) (Or.inl rfl)
+#check ProductDensity.actual_product_density (d := 6) (n := 3) (by decide) (by decide)
+  (κ := 4) (by norm_num) (b := -1) (Or.inr rfl)
+#check ProductDensity.actual_product_density (d := 7) (n := 3) (by decide) (by decide)
+  (κ := 4) (by norm_num) (b := -1) (Or.inr rfl)
+
+set_option pp.proofs false in
+#print ProductDensity.actual_product_density
+#print axioms ProductDensity.actual_product_density
+#print axioms AveragedBlockLaw.actual_averaged_block_product
+#print axioms MixtureDensities.actual_mixture_densities
+#print axioms GaussianMixtureLaws.actual_mixture_laws
+#print axioms GaussianBlockLaw.actual_conditional_block_product
+#print axioms GaussianLawDensity.gaussian_law_eq_density
+#print axioms DeterminantComponents.component_probabilities
+#print axioms AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec
+#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef
+#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity
+#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.RadonNikodym.pi_withDensity_prod
+#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.RadonNikodym.measurableEquiv_map_withDensity

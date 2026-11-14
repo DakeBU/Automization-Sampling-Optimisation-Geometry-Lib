@@ -1,0 +1,18 @@
+theorem actual_diagonal_gaussian_quadratic_variances {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)
+    (n : ℕ) (hn : 1 ≤ n) (hnd : n < d) :
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)
+  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue
+  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=
+    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹
+  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>
+    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2
+  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ
+  MemLp (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) 2 μ ∧
+  MemLp Q 2 μ ∧
+  Var[fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2; μ] =
+    2 * ∑ i : Fin d, 1 / (eigenvalue i) ^ 2 ∧
+  Var[Q; μ] = 2 * ∑ i : Fin d, (Real.cos ((n : ℝ) * θ i)) ^ 2 / (eigenvalue i) ^ 2 ∧
+  Var[fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2; μ] ≤ 2 * M ∧
+  Var[Q; μ] ≤ 2 * M ∧
+  2 * M ≤ 2 * (d : ℝ) / Real.sqrt κ

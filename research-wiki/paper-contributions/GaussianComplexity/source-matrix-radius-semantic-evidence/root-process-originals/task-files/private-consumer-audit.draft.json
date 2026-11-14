@@ -1,0 +1,29 @@
+{
+  "id": "ASTIS-RT-20261113-HuanjianGaussianSourceMatrixRadiusPrivateConsumer",
+  "state": "draft",
+  "source": {
+    "source_id": "c2-private-centered-summand-radius",
+    "anchor": "Appendix C.2 p13 Ex111-112; literal p1 product experiment, Ex107 cutoff, p12 actual mean, Fact C.5 frame",
+    "original_text": "For all natural d,q with 2q+1<d put r=q+1. On the original r independent standard d-dimensional Gaussian columns with product probability mu, let Phi_i be their actual physical row. Put theta_i=(i-1/2)pi/d, t_i=(1,sqrt(2)cos(theta_i),...,sqrt(2)cos(q theta_i)), and L=2r+3log(1000d). Define Yi=d^(-1)(Phi_i Phi_i-transpose tensor t_i t_i-transpose) on the inclusive event norm(Phi_i)^2<=L and zero otherwise. All matrix norms are real Euclidean operator norms and means are actual Bochner integrals under mu. The case q=0 is included. Let Mi be the actual integral of Yi under mu, Zi=Yi-Mi, wi=cos((2q+1)theta_i), and Rstar=2r(L+1)/d. For every i and sample omega, both norm(Zi(omega))<=Rstar and norm(wi Zi(omega))<=Rstar. This is the exact Ex112 and following weighted centered-radius consequence.",
+    "text_sha256": "fd67b13f89e8c5735a48f9ab61b464fe55f76ffce01e40395db24d6f6166455e"
+  },
+  "lean": {
+    "declaration": "_private.Tests.GaussianComplexityFixedSpectrumSourceMatrixRadius.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixRadius.actual_source_centered_summand_radius",
+    "file": "Tests/GaussianComplexityFixedSpectrumSourceMatrixRadius.lean",
+    "statement": "∀     {d q : ℕ} (hq : 2 * q + 1 < d) ,\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  (∀ i : Fin d, ∀ ω : Ω, ‖Z i ω‖ ≤ Rstar) ∧\n    (∀ i : Fin d, ∀ ω : Ω, ‖w i • Z i ω‖ ≤ Rstar)\n",
+    "statement_sha256": "bae3298a138e618d5b12dac499cb3239cf202a8db26bea881e1345af1867ade7",
+    "compiled": true,
+    "formalizer": "huanjian_gc_20261113_source_matrix_radius",
+    "decoder_context": [
+      "Fin n is the finite index set of natural numbers less than n. Natural numbers embed into real numbers in the usual way.",
+      "EuclideanSpace real (Fin n) is real n-dimensional Euclidean space with its Euclidean norm and Borel structure. WithLp.toLp 2 wraps a coordinate function as that vector and WithLp.ofLp recovers its same coordinates.",
+      "stdGaussian on finite-dimensional real Euclidean space is the centered Gaussian probability law with identity covariance. Measure.pi is the finite product measure with its product measurable structure.",
+      "Real.log is the natural logarithm and Real.sqrt the nonnegative square root. The displayed less-than-or-equal branch includes equality.",
+      "Matrix.vecMulVec u v has entry u_i times v_j. Matrix.kronecker A B at row (i,j) and column (k,l) has entry A_(i,k) times B_(j,l). Scalar multiplication and subtraction have their ordinary real matrix meaning.",
+      "Every displayed matrix norm is the real Euclidean operator norm, namely the norm of its action between the Euclidean spaces on the displayed paired index set, not an entrywise or supremum norm.",
+      "Matrix expectations are Bochner integrals. This integral is totalized to zero when its integrand is not integrable; the displayed proposition must be reconstructed as written, without adding an integrability premise or assertion."
+    ]
+  },
+  "repairs": [],
+  "candidate_commit": "4c3251454100a4591113b16ed119fdf758c876b7"
+}

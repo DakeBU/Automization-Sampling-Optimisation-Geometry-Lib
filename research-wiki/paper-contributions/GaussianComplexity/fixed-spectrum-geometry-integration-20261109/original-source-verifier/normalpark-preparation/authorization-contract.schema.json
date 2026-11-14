@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Future separate normalpark root grant; schema only, not authorization",
+  "type": "object",
+  "required": ["issuer", "action", "actor", "design_manifest_sha256", "helper_sha256", "facts_binding_sha256", "source_verified_commit", "immutable_core", "original_actual_V_sha256", "normal_API_calls_allowed"],
+  "properties": {
+    "issuer": {"const": "/root"},
+    "action": {"enum": ["authorize-normalpark-bound-preflight", "execute-normalpark-once"]},
+    "actor": {"const": "/root/source_reader_9a6d2f"},
+    "design_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "helper_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "facts_binding_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_verified_commit": {"const": "ab8b47caed9f781191f8408154cd355c7e7c104c"},
+    "immutable_core": {"const": "b3581af0fc7e517e6cf5b883f4af064ddaa72aa2"},
+    "original_actual_V_sha256": {"const": "7cd55a70605e1db1c8198f5f7a2eec6dbcb62b562becf539a80a9e5c632a501c"},
+    "normal_API_calls_allowed": {"enum": [0, 1]},
+    "bound_preflight_receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "allOf": [
+    {"if": {"properties": {"action": {"const": "authorize-normalpark-bound-preflight"}}}, "then": {"properties": {"normal_API_calls_allowed": {"const": 0}}}},
+    {"if": {"properties": {"action": {"const": "execute-normalpark-once"}}}, "then": {"required": ["bound_preflight_receipt_sha256"], "properties": {"normal_API_calls_allowed": {"const": 1}}}}
+  ],
+  "$comment": "Local acceptance and eligibility are not API grants. No authorization object is created in this design package. The actual helper checks every listed binding and, for execution, the separately frozen real preflight receipt."
+}

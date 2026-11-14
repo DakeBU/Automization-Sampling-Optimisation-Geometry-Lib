@@ -1,0 +1,167 @@
+.astis/huanjian-ex70-20261106/Full.lean:196:6: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  Measure.pi fun i => Measure.withDensity (?m.2139 i) (ENNReal.ofReal ∘ pb)
+in the target expression
+  (Measure.pi fun x => ℙ.withDensity fun x => ENNReal.ofReal (pb x)) =
+    ℙ.withDensity fun y => ENNReal.ofReal (∏ j, pb (y j))
+
+d n : ℕ
+hn : 3 ≤ n
+hnd : n ≤ d
+κ : ℝ
+hκ : 4 ≤ κ
+b : ℝ
+hb : b = 1 ∨ b = -1
+this✝³ : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel (Matrix (Fin d) (Fin d) ℝ)
+e : Fin n × Fin (d / n) ⊕ Fin (d % n) ≃ Fin d :=
+  ((((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv).sumCongr (Equiv.refl (Fin (d % n)))).trans
+        finSumFinEquiv).trans
+    (finCongr ⋯)
+split : EuclideanSpace ℝ (Fin d) → (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+  fun x => (fun j => WithLp.toLp 2 fun i => x.ofLp (e (Sum.inl (i, j))), WithLp.toLp 2 fun i => x.ofLp (e (Sum.inr i)))
+ν : Measure ↥(orthogonalGroup (Fin n) ℝ) := 2 • (orthogonalHaar n).restrict {O | (↑O).det = b}
+D : Measure (Matrix (Fin d) (Fin d) ℝ) := Measure.map (blockPrecision κ) (Measure.pi fun x => ν)
+γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) := fun A => multivariateGaussian 0 A⁻¹
+p : ↥(orthogonalGroup (Fin n) ℝ) → EuclideanSpace ℝ (Fin n) → ℝ :=
+  fun O x =>
+    √(singleBlockPrecision κ O).det / (2 * Real.pi) ^ (↑n / 2) *
+      Real.exp (-(x.ofLp ⬝ᵥ singleBlockPrecision κ O *ᵥ x.ofLp) / 2)
+pb : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ (O : ↥(orthogonalGroup (Fin n) ℝ)), p O x ∂ν
+φ : EuclideanSpace ℝ (Fin (d % n)) → ℝ := fun z => (2 * Real.pi) ^ (-↑(d % n) / 2) * Real.exp (-‖z‖ ^ 2 / 2)
+q : (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) → ℝ := fun y => (∏ j, pb (y.1 j)) * φ y.2
+this✝² : BorelSpace (Matrix (Fin d) (Fin d) ℝ) := { measurable_eq := rfl }
+k : ℕ := d / n
+En : Type := EuclideanSpace ℝ (Fin n)
+Er : Type := EuclideanSpace ℝ (Fin (d % n))
+X : Type := (Fin k → En) × Er
+cur : (Fin n × Fin k → ℝ) ≃ᵐ (Fin k → Fin n → ℝ) :=
+  let __Equiv := { toFun := fun f j i => f (i, j), invFun := fun f ij => f ij.2 ij.1, left_inv := ⋯, right_inv := ⋯ };
+  { toEquiv := __Equiv, measurable_toFun := ⋯, measurable_invFun := ⋯ }
+hcurv : MeasurePreserving ⇑cur ℙ ℙ
+em : EuclideanSpace ℝ (Fin d) ≃ᵐ X :=
+  (MeasurableEquiv.toLp 2 (Fin d → ℝ)).symm.trans
+    ((MeasurableEquiv.piCongrLeft (fun x => ℝ) e).symm.trans
+      ((MeasurableEquiv.sumPiEquivProdPi fun x => ℝ).trans
+        ((cur.prodCongr (MeasurableEquiv.refl (Fin (d % n) → ℝ))).trans
+          ((MeasurableEquiv.piCongrRight fun x => MeasurableEquiv.toLp 2 (Fin n → ℝ)).prodCongr
+            (MeasurableEquiv.toLp 2 (Fin (d % n) → ℝ))))))
+hem : ⇑em = split
+hvol : MeasurePreserving ⇑em ℙ ℙ
+hsplit : MeasurePreserving split ℙ ℙ
+P : Measure (EuclideanSpace ℝ (Fin n)) := (fun O => multivariateGaussian 0 (singleBlockPrecision κ O)⁻¹) ∘ₘ ν
+hpb :
+  (∀ (x : EuclideanSpace ℝ (Fin n)), 0 ≤ pb x) ∧
+    Measurable pb ∧
+      Integrable pb ℙ ∧ ∫ (x : EuclideanSpace ℝ (Fin n)), pb x = 1 ∧ P = ℙ.withDensity fun x => ENNReal.ofReal (pb x)
+hEq6 :
+  have e :=
+    ((((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv).sumCongr (Equiv.refl (Fin (d % n)))).trans
+          finSumFinEquiv).trans
+      (finCongr ⋯);
+  have split := fun x =>
+    (fun j => WithLp.toLp 2 fun i => x.ofLp (e (Sum.inl (i, j))), WithLp.toLp 2 fun i => x.ofLp (e (Sum.inr i)));
+  have ν := 2 • (orthogonalHaar n).restrict {O | (↑O).det = b};
+  have D := Measure.map (blockPrecision κ) (Measure.pi fun x => ν);
+  have γ := fun A => multivariateGaussian 0 A⁻¹;
+  have P := (fun O => multivariateGaussian 0 (singleBlockPrecision κ O)⁻¹) ∘ₘ ν;
+  IsProbabilityMeasure D ∧
+    (∀ᵐ (A : Matrix (Fin d) (Fin d) ℝ) ∂D, A.PosDef) ∧
+      IsProbabilityMeasure P ∧
+        IsProbabilityMeasure (γ ∘ₘ D) ∧
+          Measure.map split (γ ∘ₘ D) = (Measure.pi fun x => P).prod (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))
+this✝¹ : IsProbabilityMeasure P := hEq6.right.right.left
+this✝ : IsProbabilityMeasure (γ ∘ₘ D) := hEq6.right.right.right.left
+this : IsProbabilityMeasure (ℙ.withDensity fun x => ENNReal.ofReal (pb x)) :=
+  hpb.right.right.right.right ▸ inferInstance
+hnormal : (√(2 * Real.pi))⁻¹ ^ (d % n) = (2 * Real.pi) ^ (-↑(d % n) / 2)
+hφd : stdGaussian Er = ℙ.withDensity fun z => ENNReal.ofReal (φ z)
+hφ0 : ∀ (z : Er), 0 ≤ φ z
+hφm : Measurable φ
+hq0 : ∀ (y : X), 0 ≤ q y
+hqm : Measurable q
+⊢ (Measure.pi fun x => ℙ.withDensity fun x => ENNReal.ofReal (pb x)) =
+    ℙ.withDensity fun y => ENNReal.ofReal (∏ j, pb (y j))
+.astis/huanjian-ex70-20261106/Full.lean:230:8: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  Measure.map (⇑em) (ℙ.withDensity (ENNReal.ofReal ∘ q ∘ ⇑em))
+in the target expression
+  Measure.map (⇑em) (ℙ.withDensity fun x => ENNReal.ofReal (q (em x))) = ℙ.withDensity fun y => ENNReal.ofReal (q y)
+
+d n : ℕ
+hn : 3 ≤ n
+hnd : n ≤ d
+κ : ℝ
+hκ : 4 ≤ κ
+b : ℝ
+hb : b = 1 ∨ b = -1
+this✝³ : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel (Matrix (Fin d) (Fin d) ℝ)
+e : Fin n × Fin (d / n) ⊕ Fin (d % n) ≃ Fin d :=
+  ((((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv).sumCongr (Equiv.refl (Fin (d % n)))).trans
+        finSumFinEquiv).trans
+    (finCongr ⋯)
+split : EuclideanSpace ℝ (Fin d) → (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+  fun x => (fun j => WithLp.toLp 2 fun i => x.ofLp (e (Sum.inl (i, j))), WithLp.toLp 2 fun i => x.ofLp (e (Sum.inr i)))
+ν : Measure ↥(orthogonalGroup (Fin n) ℝ) := 2 • (orthogonalHaar n).restrict {O | (↑O).det = b}
+D : Measure (Matrix (Fin d) (Fin d) ℝ) := Measure.map (blockPrecision κ) (Measure.pi fun x => ν)
+γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) := fun A => multivariateGaussian 0 A⁻¹
+p : ↥(orthogonalGroup (Fin n) ℝ) → EuclideanSpace ℝ (Fin n) → ℝ :=
+  fun O x =>
+    √(singleBlockPrecision κ O).det / (2 * Real.pi) ^ (↑n / 2) *
+      Real.exp (-(x.ofLp ⬝ᵥ singleBlockPrecision κ O *ᵥ x.ofLp) / 2)
+pb : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ (O : ↥(orthogonalGroup (Fin n) ℝ)), p O x ∂ν
+φ : EuclideanSpace ℝ (Fin (d % n)) → ℝ := fun z => (2 * Real.pi) ^ (-↑(d % n) / 2) * Real.exp (-‖z‖ ^ 2 / 2)
+q : (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) → ℝ := fun y => (∏ j, pb (y.1 j)) * φ y.2
+this✝² : BorelSpace (Matrix (Fin d) (Fin d) ℝ) := { measurable_eq := rfl }
+k : ℕ := d / n
+En : Type := EuclideanSpace ℝ (Fin n)
+Er : Type := EuclideanSpace ℝ (Fin (d % n))
+X : Type := (Fin k → En) × Er
+cur : (Fin n × Fin k → ℝ) ≃ᵐ (Fin k → Fin n → ℝ) :=
+  let __Equiv := { toFun := fun f j i => f (i, j), invFun := fun f ij => f ij.2 ij.1, left_inv := ⋯, right_inv := ⋯ };
+  { toEquiv := __Equiv, measurable_toFun := ⋯, measurable_invFun := ⋯ }
+hcurv : MeasurePreserving ⇑cur ℙ ℙ
+em : EuclideanSpace ℝ (Fin d) ≃ᵐ X :=
+  (MeasurableEquiv.toLp 2 (Fin d → ℝ)).symm.trans
+    ((MeasurableEquiv.piCongrLeft (fun x => ℝ) e).symm.trans
+      ((MeasurableEquiv.sumPiEquivProdPi fun x => ℝ).trans
+        ((cur.prodCongr (MeasurableEquiv.refl (Fin (d % n) → ℝ))).trans
+          ((MeasurableEquiv.piCongrRight fun x => MeasurableEquiv.toLp 2 (Fin n → ℝ)).prodCongr
+            (MeasurableEquiv.toLp 2 (Fin (d % n) → ℝ))))))
+hem : ⇑em = split
+hvol : MeasurePreserving ⇑em ℙ ℙ
+hsplit : MeasurePreserving split ℙ ℙ
+P : Measure (EuclideanSpace ℝ (Fin n)) := (fun O => multivariateGaussian 0 (singleBlockPrecision κ O)⁻¹) ∘ₘ ν
+hpb :
+  (∀ (x : EuclideanSpace ℝ (Fin n)), 0 ≤ pb x) ∧
+    Measurable pb ∧
+      Integrable pb ℙ ∧ ∫ (x : EuclideanSpace ℝ (Fin n)), pb x = 1 ∧ P = ℙ.withDensity fun x => ENNReal.ofReal (pb x)
+hEq6 :
+  have e :=
+    ((((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv).sumCongr (Equiv.refl (Fin (d % n)))).trans
+          finSumFinEquiv).trans
+      (finCongr ⋯);
+  have split := fun x =>
+    (fun j => WithLp.toLp 2 fun i => x.ofLp (e (Sum.inl (i, j))), WithLp.toLp 2 fun i => x.ofLp (e (Sum.inr i)));
+  have ν := 2 • (orthogonalHaar n).restrict {O | (↑O).det = b};
+  have D := Measure.map (blockPrecision κ) (Measure.pi fun x => ν);
+  have γ := fun A => multivariateGaussian 0 A⁻¹;
+  have P := (fun O => multivariateGaussian 0 (singleBlockPrecision κ O)⁻¹) ∘ₘ ν;
+  IsProbabilityMeasure D ∧
+    (∀ᵐ (A : Matrix (Fin d) (Fin d) ℝ) ∂D, A.PosDef) ∧
+      IsProbabilityMeasure P ∧
+        IsProbabilityMeasure (γ ∘ₘ D) ∧
+          Measure.map split (γ ∘ₘ D) = (Measure.pi fun x => P).prod (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))
+this✝¹ : IsProbabilityMeasure P := hEq6.right.right.left
+this✝ : IsProbabilityMeasure (γ ∘ₘ D) := hEq6.right.right.right.left
+this : IsProbabilityMeasure (ℙ.withDensity fun x => ENNReal.ofReal (pb x)) :=
+  hpb.right.right.right.right ▸ inferInstance
+hnormal : (√(2 * Real.pi))⁻¹ ^ (d % n) = (2 * Real.pi) ^ (-↑(d % n) / 2)
+hφd : stdGaussian Er = ℙ.withDensity fun z => ENNReal.ofReal (φ z)
+hφ0 : ∀ (z : Er), 0 ≤ φ z
+hφm : Measurable φ
+hq0 : ∀ (y : X), 0 ≤ q y
+hqm : Measurable q
+hblocks : (Measure.pi fun x => P) = ℙ.withDensity fun y => ENNReal.ofReal (∏ j, pb (y j))
+hdensity : Measure.map split (γ ∘ₘ D) = ℙ.withDensity fun y => ENNReal.ofReal (q y)
+hmassNN : ∫⁻ (y : X), ENNReal.ofReal (q y) = 1
+hqi : Integrable q ℙ
+hmass : ∫ (y : (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n))), q y = 1
+⊢ Measure.map (⇑em) (ℙ.withDensity fun x => ENNReal.ofReal (q (em x))) = ℙ.withDensity fun y => ENNReal.ofReal (q y)

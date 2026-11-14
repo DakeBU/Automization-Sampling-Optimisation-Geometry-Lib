@@ -1,0 +1,41 @@
+import Mathlib.Algebra.Order.Star.Real
+import Mathlib.LinearAlgebra.UnitaryGroup
+import Mathlib.LinearAlgebra.Matrix.PosDef
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+import Mathlib.Tactic.Linarith
+open Matrix
+set_option autoImplicit false
+/-!
+# Actual cosine-grid precision admissibility
+
+Zhou--Suzuki, arXiv:2610.20492v1, Eq11 and Lemma4.6. The literal
+cosine-grid precision is used for every full real orthogonal O, with exactly
+source d>=2 and kappa>=2. The two matrix differences are positive semidefinite
+in quadratic-form order, and positive definiteness is produced internally.
+The source dimension binder is deliberately retained even though the scalar
+cosine envelope and matrix bound proof work for every choice of angles.
+
+The actual inverse-precision Gaussian law-density consumer is in the focused
+Test and reuses the existing canonical GaussianPrecisionDensity leaf. No
+calculus, known-normalizer product, moment/Krylov, algorithm/TV/cost transport
+or main-lower-bound completion is asserted by this pointwise matrix result.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility
+theorem actual_precision_admissible {d : ℕ} (hd : 2 ≤ d)
+    {κ : ℝ} (hκ : 2 ≤ κ)
+    (O : Matrix.orthogonalGroup (Fin d) ℝ) :
+    let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+    let A : Matrix (Fin d) (Fin d) ℝ :=
+      (O : Matrix (Fin d) (Fin d) ℝ) *
+        Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *
+        (O : Matrix (Fin d) (Fin d) ℝ).transpose
+    A.PosDef ∧ (A - 1).PosSemidef ∧
+      (κ • (1 : Matrix (Fin d) (Fin d) ℝ) - A).PosSemidef := by
+  classical
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let diagonalValue : Fin d → ℝ := fun i =>
+    (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)
+  let U : Matrix (Fin d) (Fin d) ℝ := O
+  let L : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal diagonalValue
+  let A : Matrix (Fin d) (Fin d) ℝ := U * L * U.transpose

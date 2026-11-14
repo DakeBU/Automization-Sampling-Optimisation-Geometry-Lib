@@ -1,0 +1,41 @@
+def _assert_worker_lane_owner(
+    item: dict[str, Any], *, current: str, to_state: str, worker_id: str
+) -> None:
+    owner_id = str(item.get("owner_id", ""))
+    if (
+        owner_id
+        and current in WORKER_LANE_STATES
+        and to_state in WORKER_LANE_TARGETS
+        and worker_id != owner_id
+    ):
+        raise HarnessError(
+            f"advance {item.get('advance_id')} is owned by {owner_id}; "
+            f"{worker_id} cannot mutate the worker lane"
+        )
+
+
+def _validate_conceptual_mirror_audit_links(
+    advance_id: str,
+    audit: dict[str, Any],
+    discovery_path: Path,
+) -> None:
+    if audit.get("status") != "candidates-published":
+        return
+    state = current_discoveries(discovery_path)
+    for discovery_id in audit.get("discovery_ids", []):
+        item = state.get(discovery_id)
+        if item is None:
+            raise HarnessError(
+                f"conceptual_mirror_audit references unknown discovery: {discovery_id}"
+            )
+        if item.get("advance_id") != advance_id:
+            raise HarnessError(
+                f"conceptual_mirror_audit discovery {discovery_id} belongs to another advance"
+            )
+        if item.get("kind") != CONCEPTUAL_MIRROR_KIND:
+            raise HarnessError(
+                f"conceptual_mirror_audit discovery {discovery_id} is not conceptual-mirror"
+            )
+
+
+def transition_advance(

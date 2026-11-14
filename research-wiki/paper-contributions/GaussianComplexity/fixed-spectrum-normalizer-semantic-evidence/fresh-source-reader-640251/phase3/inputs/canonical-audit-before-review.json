@@ -1,0 +1,199 @@
+{
+  "id": "ASTIS-RT-20261108-HuanjianFixedSpectrumNormalizer",
+  "state": "blind-reconstructed",
+  "source": {
+    "source_id": "arxiv2610.20492v1-ActualFixedSpectrumNormalizer",
+    "url": "https://arxiv.org/html/2610.20492v1#A3.SS4",
+    "anchor": "S4.SS1 Eq11/public-normalizer; S2 actual potential/target; complete AppendixC.4 Gaussian-integration component A3.Ex160.",
+    "original_text": "The actual quadratic Gaussian weight is Lebesgue integrable, with a normalizing integral determined by the displayed spectrum. w_A\\in L^1(dx),\\qquad Z_A:=\\int_{\\mathbb R^d}e^{-x^\\top A x/2}\\,dx=\\frac{(2\\pi)^{d/2}}{\\sqrt{\\prod_{i=1}^d\\lambda_i}}. \\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Fix every \\(O\\in O(d)\\), with either determinant sign. This is a pointwise assertion. For \\(i=1,\\ldots,d\\), let \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(A=O\\operatorname{diag}(\\lambda_i)O^\\top\\). Set \\(w_A(x)=e^{-x^\\top A x/2}\\). The zero-based Lean index \\(j.\\mathrm{val}\\) corresponds to \\(i=j.\\mathrm{val}+1\\). The integration base \\(dx\\) is ordinary unnormalized Euclidean Lebesgue volume. The exponent \\(d/2\\) is real, including odd dimensions. Integrability, positive definiteness, determinant/product identity and positive mass are proved internally; none is a supplied premise. The paper displays the Gaussian normalizer value. Interpreting \\(Z_A\\) as this unweighted Lebesgue integral, and exposing finite integrability explicitly, is a disclosed standard source-implicit elaboration. The actual consumer expresses the same \\(N(0,A^{-1})\\) as \\(w_A(x)/Z_A\\,dx\\), using this actual integral. Only the normalizing scalar is independent of \\(O\\); the covariance and quadratic exponent retain the actual \\(A\\).",
+    "text_sha256": "ff3e0518d6b2d6dd199c1976c1056b44faf41482c7155d34bf33b41a3a7dd5c8",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumNormalizer.actual_normalizing_integral",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumNormalizer.lean",
+    "statement": "∀ {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ),\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let diagonalValue : Fin d → ℝ := fun i =>\n    (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Matrix.diagonal diagonalValue *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let weight : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    Real.exp (- (∑ i : Fin d, x.ofLp i * (A.mulVec x.ofLp) i) / 2)\n  Integrable weight (volume : Measure (EuclideanSpace ℝ (Fin d))) ∧\n    (∫ x : EuclideanSpace ℝ (Fin d), weight x ∂volume) =\n      (2 * Real.pi) ^ ((d : ℝ) / 2) / Real.sqrt (∏ i : Fin d, diagonalValue i)\n",
+    "statement_sha256": "a7497eaf578c7fce01b6b1419bb847d0cc1b21ec4b8282b05be2d7c92d993f72",
+    "formalizer": "huanjian_gc_20261108_fixed_spectrum_normalizer",
+    "compiled": true,
+    "decoder_context": [
+      "Fin d is the finite coordinate set with natural values zero through d-1. The finite sum and product each include every coordinate once. Index and dimension casts, one half, divisions and exponents here are real operations.",
+      "Matrix.orthogonalGroup (Fin d) real is the full real orthogonal group, requiring both products with the transpose to equal identity. It permits either determinant sign and supplies no probability law or determinant-one condition. Diagonal, multiplication, transpose and mulVec are the ordinary finite matrix operations.",
+      "EuclideanSpace real (Fin d) is the real coordinate space with its Euclidean inner product and norm. WithLp.ofLp gives the same vector coordinates. The explicit volume is its unnormalized Euclidean Lebesgue measure: the standard orthonormal-basis parallelepiped has measure one. It is not Gaussian probability or normalized surface measure.",
+      "Integrable f volume means almost-everywhere strong measurability together with finite integral of the norm. It occurs in the conclusion. The displayed real Bochner integral is the actual integral of the same function against the same volume. Its conventional zero value outside integrability does not supply the separately asserted integrability conclusion.",
+      "Real.exp, Real.cos and Real.pi have their usual real meanings. Real.sqrt is the nonnegative square root, totalized as zero on nonpositive arguments. Real.rpow uses a real exponent, including odd dimensions. Division is totalized at zero; all nonzero and positivity conditions needed for the asserted value must be derived from the displayed inputs rather than supplied as further assumptions."
+    ]
+  },
+  "reconstruction": {
+    "text": "对每一个自然数 d、实数 κ 以及实 d×d 正交矩阵 O，只要 d≥2 且 κ≥2，下述结论成立。这里 O 属于完整的实正交群，因此 OOᵀ=OᵀO=I，允许 det O=1 或 det O=−1。\n\n用 i=0,1,…,d−1 标记坐标，并逐一定义\n  θ_i = (i+1/2)π/d,\n  λ_i = (κ+1)/2 + ((κ−1)/2) cos θ_i,\n  D = diag(λ_0,…,λ_{d−1}),\n  A = O D Oᵀ。\n对 x=(x_0,…,x_{d−1})∈ℝ^d，定义\n  w(x) = exp(−(1/2) Σ_{i=0}^{d−1} x_i (Ax)_i)\n       = exp(−xᵀAx/2)。\n这里的 ℝ^d 是带通常欧氏内积与范数的实坐标空间。记 dx 为该空间的未归一化欧氏 Lebesgue 测度；标准正交单位基所张成的平行多面体的体积为 1。\n\n结论是以下两个断言同时成立：\n  (1) w 对 dx 可积，即 w 几乎处处强可测且 ∫_{ℝ^d} |w(x)| dx < ∞；\n  (2) ∫_{ℝ^d} w(x) dx = (2π)^{d/2} / √(Π_{i=0}^{d−1} λ_i)。\n第二式中的幂是实数底数的实指数幂；当 d 为奇数时 d/2 仍为半整数实数，不发生自然数整除。根号取非负实平方根。积分覆盖整个 ℝ^d，没有球、球面、截断区域或额外边界条件。积分与可积性针对同一个 w 和同一个 dx。\n\nLean 中隐式写出的 d 和 κ 仍然都是全称量化的变量。hd 与 hκ 分别是 d≥2、κ≥2 的证明，并非额外数值参数。O 也全称量化：对每一个容许的 d、κ 和每一个这样的 O 都成立；没有随机抽取 O、对 O 积分或独立性条件。下标 i 的类型 Fin d 恰好给出上述 d 个坐标，每个有限和、有限积各使用每个坐标一次。x.ofLp 只是同一个欧氏向量的坐标函数；它没有改变向量、范数或测度。\n\n四个 let 都是局部定义而非另行假设或存在量词：θ 固定了半格偏移的角度；diagonalValue 就是 λ；A 固定为该对角矩阵的正交共轭；weight 固定为上述未乘任何归一化系数的指数权。它们的作用域包含整个合取结论；第二结论没有重新选择任何参数或权函数。A 的矩阵乘法顺序为 O D Oᵀ；sum 中的标量就是 xᵀAx。\n\n所有确保公式有通常数学含义的正性都可由给定输入推出，而不是额外假设：d≥2 保证 (d:ℝ)>0；0<θ_i<π；κ≥2 保证 (κ−1)/2>0。因而 −1<cos θ_i<1，并得到 1<λ_i<κ。于是 A 是实对称正定矩阵，Π_i λ_i>0，√(Π_i λ_i)>0。故 w(x)>0，且对这个非负实函数，范数的可积性就是普通的绝对可积性。还可由这些定义推出 det A=Π_i λ_i；使用 determinant 的写法只是该公式的派生等价改写，原断言显示的分母是谱值的有限积的平方根。\n\nLean 的实数除法在分母为零时有总化值；这里出现的固定分母 2 非零，维数分母 d 和最终根号分母也都已由输入保证非零。Real.sqrt 在非正输入处总化为 0；本式的根号输入严格为正，所以它取通常的正平方根。(2π)>0，故实指数幂也取通常的正底数意义。实 Bochner 积分在不满足可积性时约定为 0，但本命题另行并且同时断言可积，因此第二个结论不是靠该约定得到的空泛零值。这里不把可积性移进假设。\n\n常数和依赖关系完全显式：π、1、2 及由它们组成的 1/2 为固定普适实数；θ_i 只依赖 d 与 i；λ_i 只依赖 d、κ 与 i；D 只依赖 d、κ；A 依赖 d、κ、O；w(x) 进一步依赖 x。积分的断言值只依赖 d 与 κ，因而在给定 d、κ 后不依赖 O。不存在未给出依赖关系的正常数、误差常数、极限、近似、渐近记号或隐藏选择。该 O 不变性是积分值的性质，并不声称不同 O 给出同一个矩阵或同一个逐点权函数。\n\n命题覆盖的是上述确定谱值所产生的正交共轭族。它没有量化任意正定矩阵或任意位于某区间的谱；不能仅因这些是正定矩阵就把结论的量词扩展成所有正定矩阵。d<2、κ<2、非正交 O、复数矩阵、无限维空间和其他测度均不在此陈述的范围。κ 是实参数，并非必须为整数；在这里给出的 λ_i 严格位于 (1,κ)，故也没有把 κ 定义为 A 的精确最大特征值或精确谱条件数。陈述不主张 κ 边界达到，也不声称任意谱均可由此构造得到。\n\nw 本身是未归一化的高斯型权函数；dx 是 Lebesgue 体积。命题没有给 w 添加概率密度归一化因子，没有说积分为 1，没有指定 O 或 x 的概率分布，也没有在球面测度或高斯概率测度下取期望。它没有声称概率集中、采样复杂度、逼近误差或参数最优性。以上范围限定只说明本匿名命题实际说了什么，不判断其他命题的真伪、来源或等价性。\n\n本重构的数学内容仅来自指定 input.json 内的匿名 Lean proposition 与 approved-definition-context。未使用原始定理文字、来源标题、出处锚点、目标 Lean 声明名、证明、外部文献或历史权限标签来补充假设或扩大结论。会话中另有环境和历史权限命令标签的被动曝光，已在 input-exposure.json 中逐项记录；这不被隐藏为“零 ambient 信息”，也未被用作本重构的数学证据。\n",
+    "text_sha256": "a659390be292d9c674300a7d1910a96f344da42d57cde16a51a32798ece68e23",
+    "decoder": "/root/decode_691853",
+    "decoder_run_sha256": "e4407dee65bb58000a559e543c3795740faa02034e8057ac693853a7e53a6729",
+    "decoder_packet_sha256": "2add603422beb7a4ef0b70040e33b0de5e4f426b08def0b84fd2f8f4e016ec0f",
+    "source_text_visible": false,
+    "lean_statement_sha256": "a7497eaf578c7fce01b6b1419bb847d0cc1b21ec4b8282b05be2d7c92d993f72",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-normalizer-semantic-evidence/blind-691853/decoder-run.json",
+    "ambient_exposure_record": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-normalizer-semantic-evidence/blind-691853/input-exposure.json",
+    "ambient_identity_cues_disclosed": true,
+    "current_source_title_version_anchor_or_target_declaration_explicitly_supplied": false
+  },
+  "semantic_slots": {},
+  "deltas": [],
+  "verdict": "pending",
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "b2f41e36a9d705ff68da71f72f0ec14f1cd2ff105bcf0ae5000ef1406a5d1f41",
+  "publication_context": {
+    "file": "2a61f494afc9b6496527094edccefa39be9cd71a72b599e5fcd2ca5bc26cf4cf",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumDeterminant\nimport AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity\n\nopen Matrix MeasureTheory ProbabilityTheory\nopen scoped BigOperators\nset_option autoImplicit false\n\n/-!\n# Actual fixed-spectrum Gaussian normalizing integral\n\nZhou--Suzuki, arXiv:2610.20492v1, Eq11 and Appendix C.4 Gaussian integration.\nThe source normalizer is interpreted as the actual unweighted Euclidean\nLebesgue mass, a disclosed source-implicit standard convention. Integrability\nand the explicit value are outputs, derived from source inputs only.\nExisting canonical precision admissibility, determinant and Gaussian density\nnodes are reused; no new Gaussian constructor or normalization certificate.\nFull C.4 calculus/minimizer, moments/Krylov, actual adaptive/oracle/precision/TV/\ncost adapters and both complete main lower bounds remain separate.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumNormalizer\ntheorem actual_normalizing_integral {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let diagonalValue : Fin d → ℝ := fun i =>\n    (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Matrix.diagonal diagonalValue *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let weight : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    Real.exp (- (∑ i : Fin d, x.ofLp i * (A.mulVec x.ofLp) i) / 2)\n  Integrable weight (volume : Measure (EuclideanSpace ℝ (Fin d))) ∧\n    (∫ x : EuclideanSpace ℝ (Fin d), weight x ∂volume) =\n      (2 * Real.pi) ^ ((d : ℝ) / 2) / Real.sqrt (∏ i : Fin d, diagonalValue i) := by\n  classical\n  dsimp only\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let diagonalValue : Fin d → ℝ := fun i =>\n    (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Matrix.diagonal diagonalValue *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let weight : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    Real.exp (- (∑ i : Fin d, x.ofLp i * (A.mulVec x.ofLp) i) / 2)\n  change Integrable weight volume ∧ (∫ x, weight x) =\n    (2 * Real.pi) ^ ((d : ℝ) / 2) / Real.sqrt (∏ i, diagonalValue i)\n  have hA : A.PosDef := (FixedSpectrumAdmissibility.actual_precision_admissible hd hκ O).1\n  have hdet : A.det = ∏ i, diagonalValue i :=\n    FixedSpectrumDeterminant.actual_precision_det hd hκ O\n  let B : ℝ := (2 * Real.pi) ^ ((d : ℝ) / 2)\n  let c : ℝ := Real.sqrt A.det / B\n  have hB : 0 < B := Real.rpow_pos_of_pos (by positivity) _\n  have hsqrt : 0 < Real.sqrt A.det := Real.sqrt_pos.2 hA.det_pos\n  have hc : 0 < c := div_pos hsqrt hB\n  have hdensity : multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹ =\n      (volume : Measure (EuclideanSpace ℝ (Fin d))).withDensity\n        (fun x => ENNReal.ofReal (c * weight x)) := by\n    simpa only [c, B, weight, dotProduct] using\n      AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef A hA\n  have hmass : (∫⁻ x, ENNReal.ofReal (c * weight x)) = 1 := by\n    have h := congrArg (fun μ : Measure (EuclideanSpace ℝ (Fin d)) => μ Set.univ)\n      hdensity.symm\n    simpa only [withDensity_apply _ MeasurableSet.univ, Measure.restrict_univ,\n      measure_univ] using h\n  have hnonneg : 0 ≤ᵐ[volume] (fun x => c * weight x) :=\n    Filter.Eventually.of_forall fun x => mul_nonneg hc.le (Real.exp_nonneg _)\n  have hmeas : AEStronglyMeasurable (fun x => c * weight x) volume := by\n    have hcont : Continuous (fun x => c * weight x) := by\n      dsimp only [weight]\n      fun_prop\n    exact hcont.aestronglyMeasurable\n  have hcw : Integrable (fun x => c * weight x) volume :=\n    (lintegral_ofReal_ne_top_iff_integrable hmeas hnonneg).mp\n      (by rw [hmass]; exact ENNReal.one_ne_top)\n  have hw : Integrable weight volume :=\n    (integrable_const_mul_iff (isUnit_iff_ne_zero.mpr hc.ne') weight).mp hcw\n  have hscaled : c * (∫ x, weight x) = 1 := by\n    rw [← integral_const_mul]\n    rw [integral_eq_lintegral_of_nonneg_ae hnonneg hmeas, hmass]\n    rfl\n  refine ⟨hw, ?_⟩\n  rw [← hdet]\n  apply (eq_div_iff hsqrt.ne').2\n  have hratio : Real.sqrt A.det * (∫ x, weight x) / B = 1 := by\n    simpa only [c, div_mul_eq_mul_div] using hscaled\n  have hproduct := (div_eq_iff hB.ne').mp hratio\n  simpa only [B, one_mul, mul_comm] using hproduct\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumNormalizer\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A3.SS4",
+      "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "S4.SS1 Eq11/public-normalizer; S2 actual potential/target; complete AppendixC.4 Gaussian-integration component A3.Ex160.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. The actual integral/base measure is explicitly labeled a standard source-implicit elaboration.",
+      "scope": "Actual finite unweighted Gaussian integral and same-A normalized-law consumer. Full C4 calculus/minimizer and main lower-bound/operational adapters remain separate."
+    },
+    "statement": "The actual quadratic Gaussian weight is Lebesgue integrable, with a normalizing integral determined by the displayed spectrum. w_A\\in L^1(dx),\\qquad Z_A:=\\int_{\\mathbb R^d}e^{-x^\\top A x/2}\\,dx=\\frac{(2\\pi)^{d/2}}{\\sqrt{\\prod_{i=1}^d\\lambda_i}}. \\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Fix every \\(O\\in O(d)\\), with either determinant sign. This is a pointwise assertion. For \\(i=1,\\ldots,d\\), let \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(A=O\\operatorname{diag}(\\lambda_i)O^\\top\\). Set \\(w_A(x)=e^{-x^\\top A x/2}\\). The zero-based Lean index \\(j.\\mathrm{val}\\) corresponds to \\(i=j.\\mathrm{val}+1\\). The integration base \\(dx\\) is ordinary unnormalized Euclidean Lebesgue volume. The exponent \\(d/2\\) is real, including odd dimensions. Integrability, positive definiteness, determinant/product identity and positive mass are proved internally; none is a supplied premise. The paper displays the Gaussian normalizer value. Interpreting \\(Z_A\\) as this unweighted Lebesgue integral, and exposing finite integrability explicitly, is a disclosed standard source-implicit elaboration. The actual consumer expresses the same \\(N(0,A^{-1})\\) as \\(w_A(x)/Z_A\\,dx\\), using this actual integral. Only the normalizing scalar is independent of \\(O\\); the covariance and quadratic exponent retain the actual \\(A\\).",
+    "formulae": [
+      {
+        "label": "Actual Gaussian integral",
+        "tex": "w_A\\in L^1(dx),\\qquad Z_A:=\\int_{\\mathbb R^d}e^{-x^\\top A x/2}\\,dx=\\frac{(2\\pi)^{d/2}}{\\sqrt{\\prod_{i=1}^d\\lambda_i}}."
+      }
+    ],
+    "assumptions": [
+      "\\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Fix every \\(O\\in O(d)\\), with either determinant sign. This is a pointwise assertion.",
+      "For \\(i=1,\\ldots,d\\), let \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(A=O\\operatorname{diag}(\\lambda_i)O^\\top\\). Set \\(w_A(x)=e^{-x^\\top A x/2}\\). The zero-based Lean index \\(j.\\mathrm{val}\\) corresponds to \\(i=j.\\mathrm{val}+1\\).",
+      "The integration base \\(dx\\) is ordinary unnormalized Euclidean Lebesgue volume. The exponent \\(d/2\\) is real, including odd dimensions. Integrability, positive definiteness, determinant/product identity and positive mass are proved internally; none is a supplied premise.",
+      "The paper displays the Gaussian normalizer value. Interpreting \\(Z_A\\) as this unweighted Lebesgue integral, and exposing finite integrability explicitly, is a disclosed standard source-implicit elaboration.",
+      "The actual consumer expresses the same \\(N(0,A^{-1})\\) as \\(w_A(x)/Z_A\\,dx\\), using this actual integral. Only the normalizing scalar is independent of \\(O\\); the covariance and quadratic exponent retain the actual \\(A\\)."
+    ],
+    "obligations": [
+      {
+        "id": "actual-fixed-spectrum-normalizing-integral",
+        "label": "The actual literal source Gaussian weight is Euclidean-Lebesgue integrable and has the displayed fixed-spectrum integral."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumNormalizer.actual_normalizing_integral",
+      "title": "Actual fixed-spectrum Gaussian normalizing integral",
+      "reader_note": "The integral value is shown first; exact family, all assumptions, formula proof and precise Lean are folded below.",
+      "statement": "The actual quadratic Gaussian weight is Lebesgue integrable, with a normalizing integral determined by the displayed spectrum.",
+      "formula": "w_A\\in L^1(dx),\\qquad Z_A:=\\int_{\\mathbb R^d}e^{-x^\\top A x/2}\\,dx=\\frac{(2\\pi)^{d/2}}{\\sqrt{\\prod_{i=1}^d\\lambda_i}}.",
+      "assumptions": [
+        "\\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Fix every \\(O\\in O(d)\\), with either determinant sign. This is a pointwise assertion.",
+        "For \\(i=1,\\ldots,d\\), let \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(A=O\\operatorname{diag}(\\lambda_i)O^\\top\\). Set \\(w_A(x)=e^{-x^\\top A x/2}\\). The zero-based Lean index \\(j.\\mathrm{val}\\) corresponds to \\(i=j.\\mathrm{val}+1\\).",
+        "The integration base \\(dx\\) is ordinary unnormalized Euclidean Lebesgue volume. The exponent \\(d/2\\) is real, including odd dimensions. Integrability, positive definiteness, determinant/product identity and positive mass are proved internally; none is a supplied premise.",
+        "The paper displays the Gaussian normalizer value. Interpreting \\(Z_A\\) as this unweighted Lebesgue integral, and exposing finite integrability explicitly, is a disclosed standard source-implicit elaboration.",
+        "The actual consumer expresses the same \\(N(0,A^{-1})\\) as \\(w_A(x)/Z_A\\,dx\\), using this actual integral. Only the normalizing scalar is independent of \\(O\\); the covariance and quadratic exponent retain the actual \\(A\\)."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(w_A,Z_A,dx\\)",
+          "text": "Actual unnormalized quadratic weight, its actual integral, and unnormalized Euclidean Lebesgue volume.",
+          "formula": "w_A(x)=e^{-x^\\top A x/2},\\qquad Z_A=\\int w_A(x)\\,dx."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Obtain valid precision and its determinant",
+          "text": "Apply the existing actual admissibility and determinant results to the literal source matrix. Positive definiteness also gives a positive determinant and a valid inverse covariance.",
+          "formula": "A\\succ0,\\qquad \\det A=\\prod_i\\lambda_i>0.",
+          "lean": "hA and hdet use the identical canonical actual_precision_admissible and actual_precision_det nodes; hsqrt uses hA.det_pos. The strict historical angle/cosine route is not newly proved here."
+        },
+        {
+          "title": "Reuse the actual Gaussian density",
+          "text": "Put B=(2π)^(d/2) and c=√det(A)/B. Both are positive. The existing canonical Gaussian density identifies the actual centered inverse-precision Gaussian with the Lebesgue density c times this very weight.",
+          "formula": "B=(2\\pi)^{d/2}>0,\\quad c=\\frac{\\sqrt{\\det A}}B>0,\\quad N(0,A^{-1})(dx)=c\\,w_A(x)\\,dx.",
+          "lean": "hdensity applies the unchanged GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef to actual A and internally produced hA. The coordinate dot product and explicit finite sum are definitionally the same quadratic form."
+        },
+        {
+          "title": "Use unit probability mass to prove finite integrability",
+          "text": "The actual Gaussian has mass one. Evaluating the density identity on the whole space gives a finite nonnegative integral. Continuity supplies measurability, so this finite integral proves integrability of c times the weight. Since c is nonzero, the weight itself is integrable.",
+          "formula": "\\int^{\\! -}\\operatorname{ofReal}(c\\,w_A)\\,dx=1<\\infty\\quad\\Longrightarrow\\quad c\\,w_A\\in L^1(dx)\\quad\\Longrightarrow\\quad w_A\\in L^1(dx).",
+          "lean": "hmass uses the whole-space measure identity. hmeas and hnonneg supply the hypotheses of lintegral_ofReal_ne_top_iff_integrable; integrable_const_mul_iff yields hw. This proves finite norm-integral independently of the totalized Bochner integral value."
+        },
+        {
+          "title": "Recover the actual unweighted integral",
+          "text": "For a nonnegative measurable function, the real integral agrees with the real value of its nonnegative integral. Pull out the constant and use the unit-mass identity, then divide by the positive coefficient.",
+          "formula": "c\\int w_A\\,dx=\\int c\\,w_A\\,dx=1,\\qquad \\int w_A\\,dx=\\frac{B}{\\sqrt{\\det A}}.",
+          "lean": "hscaled uses integral_const_mul and integral_eq_lintegral_of_nonneg_ae. The nonzero square root and B justify the final real division; no integrability or normalization certificate is assumed."
+        },
+        {
+          "title": "Substitute the fixed spectral product",
+          "text": "Replace the actual determinant by its proved finite diagonal product. This gives the displayed value, independent of the orientation. Gaussian integration is implemented through the already proved density and its probability mass, an explicit implementation route for the source’s compressed Gaussian-integration step.",
+          "formula": "Z_A=\\frac{(2\\pi)^{d/2}}{\\sqrt{\\prod_i\\lambda_i}}.",
+          "lean": "The exact sealed conclusion follows by hdet and positive-denominator algebra. The existing density proof does not depend on this new theorem, so this route has no circular normalization assumption."
+        },
+        {
+          "title": "Use the new integral in the actual normalized law",
+          "text": "The focused Test substitutes this actual integral into the density of the same Gaussian. It derives strictly positive actual mass internally and uses the new producer consequentially in the denominator calculation.",
+          "formula": "N(0,A^{-1})(dx)=\\frac{w_A(x)}{\\int w_A\\,dx}\\,dx.",
+          "lean": "The compiled private Test proof contains actual_normalizing_integral, the existing actual admissibility and determinant nodes, and the same canonical Gaussian density node. Its signature matches the independently admitted consumer after erasing only the private name."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumDeterminant.actual_precision_det",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef"
+      ],
+      "mathlib_dependencies": [
+        "withDensity_apply",
+        "measure_univ",
+        "lintegral_ofReal_ne_top_iff_integrable",
+        "integrable_const_mul_iff",
+        "integral_const_mul",
+        "integral_eq_lintegral_of_nonneg_ae",
+        "Real.sqrt_pos",
+        "Real.rpow_pos_of_pos"
+      ],
+      "lean_statement": "Exactly the sealed literal source weight is Integrable and its actual volume integral equals the displayed product/sqrt expression; real d/2, source d>=2,kappa>=2 and full O.",
+      "lean_proof": "Exact production statement and proof are extracted adjacent to these steps. Existing canonical precision/determinant/density declarations are actual formal parents; finite-mass/integrability and real-normalization adapters are proved internally.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS4",
+          "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S4.SS1 Eq11/public-normalizer; S2 actual potential/target; complete AppendixC.4 Gaussian-integration component A3.Ex160.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. The actual integral/base measure is explicitly labeled a standard source-implicit elaboration.",
+          "scope": "Actual finite unweighted Gaussian integral and same-A normalized-law consumer. Full C4 calculus/minimizer and main lower-bound/operational adapters remain separate.",
+          "label": "Zhou–Suzuki Eq11 and Gaussian integration in AppendixC.4"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumNormalizer"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumNormalizer.actual_normalizing_integral",
+      "role": "proof-edge",
+      "supports": [
+        "actual-fixed-spectrum-normalizing-integral"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Local hard family d>=2,kappa>=2 and arbitrary full real O; actual grid/precision/potential.",
+        "lean": "Exactly the same inputs and literal theta/diagonalValue/A/weight. No PosDef, determinant, measurability, integrability, positive mass or normalization premise."
+      },
+      {
+        "source": "Appendix C.4 states Gaussian integration gives determinant-form Z_A and fixed-spectrum independence.",
+        "lean": "Actual unweighted Euclidean Lebesgue integral with Integrable output equals (2pi)^(real d/2)/sqrt(full diagonal product)."
+      },
+      {
+        "source": "Actual target is N(0,Ainv) for quadratic potential.",
+        "lean": "The same actual inverse-precision Gaussian equals volume.withDensity ofReal(weight/(actual integral))."
+      }
+    ]
+  }
+}

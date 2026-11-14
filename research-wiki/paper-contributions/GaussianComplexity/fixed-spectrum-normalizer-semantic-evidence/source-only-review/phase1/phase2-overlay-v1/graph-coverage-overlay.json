@@ -1,0 +1,245 @@
+{
+  "schema": "astis-source-graph-candidate-overlay/v1",
+  "version": "phase2-overlay-v1",
+  "status": "frozen source/statement mapping; no implementation or sourceV approval",
+  "base_graph_sha256": "6f24bfae1232220fed0d1c8a64cf06a1a66d078c785a6825a3b8665a41f7d4be",
+  "base_contract_sha256": "16f68911afa43e84675886fb3e53f3aa45f6ee6e106f2da4c50e2027286bc4be",
+  "base_coverage_sha256": "a81d45bae5b2e77278730afc61870d75dc4221207a2ef29805f1c020be2a6f08",
+  "base_graph_unchanged": true,
+  "candidate_signature_sha256": "3e2c0dd72fce0a272a73b4ee7d8447cde4e6ce313f7a5ccda80744f8dc8fa7f0",
+  "nodes": [
+    {
+      "id": "P.index-shift",
+      "kind": "SOURCE_GAP",
+      "statement": "Relate Fin d index j to source i=j.val+1; transport the literal grid, product and full finite sums.",
+      "source_use_site": "S4.E11",
+      "candidate_use_site": "θ and diagonalValue lets"
+    },
+    {
+      "id": "P.coordinate-quadratic",
+      "kind": "SOURCE_GAP",
+      "statement": "Expand real Matrix.mulVec and finite coordinate pairing; Σ x_i(Ax)_i=xᵀAx, so the exact candidate weight equals the source unnormalized quadratic weight.",
+      "source_use_site": "S2 quadratic / A3.SS4.p2.1",
+      "candidate_use_site": "weight let"
+    },
+    {
+      "id": "P.euclidean-volume",
+      "kind": "meaning-adapter",
+      "statement": "The candidate volume is standard Euclidean Lebesgue volume through the resolved orthonormal-basis measure instance; this explicitly realizes the phase1 source-implicit convention.",
+      "source_use_site": "A3.Ex160 (implicit normalizer convention)",
+      "candidate_use_site": "explicit volume in both output conjuncts"
+    },
+    {
+      "id": "P.literal-weight",
+      "kind": "sealed-definition-meaning",
+      "statement": "Exact candidate let-weight means exp(−xᵀAx/2) on actual Euclidean coordinates.",
+      "candidate_use_site": "weight let"
+    },
+    {
+      "id": "P.integral-meaning",
+      "kind": "sealed-conclusion-meaning",
+      "statement": "Candidate Bochner integral is the actual inferred source Lebesgue Gaussian mass.",
+      "candidate_use_site": "integral equality conjunct"
+    },
+    {
+      "id": "P.integrable-output",
+      "kind": "sealed-endpoint-obligation",
+      "statement": "AEStronglyMeasurable weight volume ∧ HasFiniteIntegral weight volume. Must be produced from source inputs, not added as premise.",
+      "source_use_site": "A3.SS4.p3.1 / A3.Ex160 Gaussian integration",
+      "candidate_use_site": "first output conjunct"
+    },
+    {
+      "id": "P.product-positive",
+      "kind": "derived-bridge-obligation",
+      "statement": "The finite product of literal λ_i is positive (indeed every λ_i>1); sqrt(product)>0.",
+      "source_use_site": "A3.SS4.p1.1 and A3.Ex160",
+      "candidate_use_site": "sqrt denominator"
+    },
+    {
+      "id": "P.power-product-sqrt",
+      "kind": "SOURCE_GAP",
+      "statement": "For positive finite spectrum, detΛ=∏λ and (2π)^(d/2)(detΛ)^(−1/2)=(2π)^((d:ℝ)/2)/sqrt(∏λ); interpret real division and positive roots.",
+      "source_use_site": "A3.Ex160 with S4.E11",
+      "candidate_use_site": "exact RHS"
+    },
+    {
+      "id": "P.value-output",
+      "kind": "sealed-endpoint-obligation",
+      "statement": "Actual integral equals (2*Real.pi)^((d:ℝ)/2)/Real.sqrt(∏ diagonalValue).",
+      "source_use_site": "A3.Ex160",
+      "candidate_use_site": "second output conjunct"
+    },
+    {
+      "id": "P.sealed-endpoint",
+      "kind": "exact-sealed-Prop",
+      "statement": "theorem actual_normalizing_integral {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)\n    (O : Matrix.orthogonalGroup (Fin d) ℝ) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let diagonalValue : Fin d → ℝ := fun i =>\n    (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Matrix.diagonal diagonalValue *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let weight : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    Real.exp (- (∑ i : Fin d, x.ofLp i * (A.mulVec x.ofLp) i) / 2)\n  Integrable weight (volume : Measure (EuclideanSpace ℝ (Fin d))) ∧\n    (∫ x : EuclideanSpace ℝ (Fin d), weight x ∂volume) =\n      (2 * Real.pi) ^ ((d : ℝ) / 2) / Real.sqrt (∏ i : Fin d, diagonalValue i)\n",
+      "signature_sha256": "3e2c0dd72fce0a272a73b4ee7d8447cde4e6ce313f7a5ccda80744f8dc8fa7f0",
+      "candidate_use_site": "whole proposition"
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "P.E01",
+      "operator": "AND",
+      "inputs": [
+        "N.theta",
+        "N.lambda",
+        "N.diagonal",
+        "N.rotation",
+        "N.quadratic",
+        "P.index-shift",
+        "P.coordinate-quadratic"
+      ],
+      "output": "P.literal-weight",
+      "consumer_use_site": "candidate weight let / source S2 quadratic"
+    },
+    {
+      "id": "P.E02",
+      "operator": "AND",
+      "inputs": [
+        "N.actual-integral",
+        "G.integral-convention",
+        "P.literal-weight",
+        "P.euclidean-volume"
+      ],
+      "output": "P.integral-meaning",
+      "consumer_use_site": "candidate explicit ∂volume at actual integral"
+    },
+    {
+      "id": "P.E03",
+      "operator": "AND",
+      "inputs": [
+        "N.symmetry",
+        "N.admissibility",
+        "P.literal-weight",
+        "P.integral-meaning",
+        "G.gaussian-integration"
+      ],
+      "output": "P.integrable-output",
+      "consumer_use_site": "first output conjunct; source A3.SS4.p3.1",
+      "conditional_discharge": [
+        "SPD comes from actual symmetry and I≼A, not a candidate assumption.",
+        "Gaussian integration must provide measurability and finite integral."
+      ]
+    },
+    {
+      "id": "P.E04",
+      "operator": "AND",
+      "inputs": [
+        "N.eigenvalue-bounds",
+        "N.diagonal-product",
+        "P.index-shift",
+        "G.det-diagonal"
+      ],
+      "output": "P.product-positive",
+      "consumer_use_site": "candidate square-root denominator",
+      "conditional_discharge": [
+        "All λ_i>1 follow internally from the source grid; d is finite and ≥2."
+      ]
+    },
+    {
+      "id": "P.E05",
+      "operator": "AND",
+      "inputs": [
+        "N.normalizer-detLambda",
+        "N.diagonal-product",
+        "P.product-positive",
+        "P.integral-meaning",
+        "G.real-half-powers",
+        "P.power-product-sqrt"
+      ],
+      "output": "P.value-output",
+      "consumer_use_site": "second output conjunct; source A3.Ex160",
+      "conditional_discharge": [
+        "N.normalizer-detLambda must retain its phase1 E11→E12→E13 source closure: Gaussian integration, determinant conjugation, substitution.",
+        "2π>0; productλ>0; square root nonzero; real d/2, all internally established."
+      ]
+    },
+    {
+      "id": "P.E06",
+      "operator": "AND",
+      "inputs": [
+        "P.integrable-output",
+        "P.value-output"
+      ],
+      "output": "P.sealed-endpoint",
+      "consumer_use_site": "top-level conjunction",
+      "conditional_discharge": [
+        "Both conjuncts are proof obligations, never alternative OR routes and never premises."
+      ]
+    }
+  ],
+  "source_closure_required": [
+    {
+      "endpoint": "P.integrable-output",
+      "base_source_branch": [
+        "N.grid-domain",
+        "N.theta",
+        "N.lambda",
+        "N.diagonal",
+        "N.rotation",
+        "N.symmetry",
+        "N.admissibility",
+        "G.gaussian-integration",
+        "G.integral-convention"
+      ],
+      "meaning": "Actual Gaussian integration must establish finite mass and measurability; no certificate assumption."
+    },
+    {
+      "endpoint": "P.value-output",
+      "base_source_branch": [
+        "N.normalizer-detA",
+        "N.det-invariance",
+        "N.normalizer-detLambda",
+        "N.diagonal-product",
+        "G.gaussian-integration",
+        "G.det-conjugation",
+        "G.det-diagonal",
+        "G.real-half-powers"
+      ],
+      "meaning": "Actual integral value, determinant invariance, diagonal product and positive-root arithmetic stay distinct. Value must not be reduced to a normalizer-defined proxy."
+    }
+  ],
+  "and_or_semantics": "No source alternative route has been added. Every overlay hyperedge is sufficient AND, and the exact endpoint is the AND of finite integrability and value. Optional source product representation becomes necessary only for this exact product/sqrt presentation; it is not retroactively made a premise of the source detA formula.",
+  "explicit_exclusions": [
+    {
+      "source_nodes": [
+        "N.smooth-hessian",
+        "N.convex-smooth",
+        "N.coercivity-zero",
+        "N.unique-minimizer"
+      ],
+      "reason": "Covered in phase1 full C4 inventory; not conclusions of this bounded producer. A proof route may reuse established generic Gaussian ingredients without this becoming whole-C4 completion."
+    },
+    {
+      "source_nodes": [
+        "N.target"
+      ],
+      "reason": "The source target identifies the potential/normalizer convention. This producer does not construct a probability measure or prove a normalized density/target-law identity."
+    },
+    {
+      "source_nodes": [
+        "N.public-known"
+      ],
+      "reason": "The exact O-independent value supports the information statement; no public-spectrum algorithm, numerical precision or cost theorem is supplied."
+    },
+    {
+      "source_regions": [
+        "S4.Thmtheorem1",
+        "S4.SS4"
+      ],
+      "reason": "All main-bound ranges, Krylov/statistic/concentration/TV/query lower bounds and proof limitations remain phase1 EXCLUDED scope context."
+    },
+    {
+      "source_regions": [
+        "S2 oracle/randomized algorithms/TV/query complexity"
+      ],
+      "reason": "Actual oracle, adaptive/precision, deterministic or expected-cost adapters and algorithm guarantees are not admitted here."
+    },
+    {
+      "object": "planned actual Gaussian-density consumer",
+      "reason": "Unsealed and unproved; separate exact-statement/definition/source gate remains required."
+    }
+  ],
+  "coverage_result": "The sealed endpoint maps to the selected Gaussian-integration subcomponent with disclosed inference and added explicit output finiteness. It does not cover all C4 or the paper. No phase1 item is relabeled, removed, or self-approved."
+}

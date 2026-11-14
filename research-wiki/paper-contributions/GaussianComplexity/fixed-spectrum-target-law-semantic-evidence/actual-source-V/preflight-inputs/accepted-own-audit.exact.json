@@ -1,0 +1,313 @@
+{
+  "id": "ASTIS-RT-20261110-HuanjianFixedSpectrumTargetLaw",
+  "state": "source-reviewed",
+  "source": {
+    "source_id": "arxiv2610.20492v1-orthogonal-gaussian-target-law-auxiliary",
+    "url": "https://arxiv.org/html/2610.20492v1#S4.SS2.SSS0.Px3",
+    "anchor": "Eq11; Section4.2 Lemma4.5 coordinate-law explanation S4.SS2.SSS0.Px3.p2.1; AppendixC.3 norm component; A3.SS4.p3.1 target definition",
+    "original_text": "Orthogonal rotation carries the literal diagonal inverse-precision Gaussian exactly to the Gaussian target of the conjugated precision. (R_O)_\\#N(0,\\Lambda^{-1})=N\\!\\left(0,(O\\Lambda O^\\top)^{-1}\\right),\\qquad R_Oz=Oz. \\(d\\in\\mathbb N\\), \\(d\\ge2\\), and \\(\\kappa\\in\\mathbb R\\), \\(\\kappa\\ge2\\). This is the hard-family law auxiliary; the full lower-bound parameter regime is handled separately. For paper indices \\(i=1,\\ldots,d\\), \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean uses the same grid with zero-based Fin d indices. \\(O\\in O(d)\\) is any fixed real orthogonal matrix, with either determinant sign; \\(A=O\\Lambda O^\\top\\). The claim is pointwise in this fixed basis, with no joint or conditional-law assertion for a random basis. \\(\\Lambda\\) and \\(A\\) are precision matrices. Their matrix inverses are the covariances in the actual Gaussian constructors. Positive definiteness is supplied internally by the existing admissibility theorem, rather than by an added premise.",
+    "text_sha256": "888763790e2e306bfac0e10aed9be2dbe7cda6398fe5c7a547668238f84ff0a4",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTargetLaw.actual_rotated_gaussian_target",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumTargetLaw.lean",
+    "statement": "∀ {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ) (O : Matrix.orthogonalGroup (Fin d) ℝ),\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let Λ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Λ *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let R : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=\n    fun z => WithLp.toLp 2 ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ WithLp.ofLp z)\n  (multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹).map R =\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n",
+    "statement_sha256": "f53b64002b52696a8b17d4a6daff1b52ca160b82b4c2a0db0999c8236822f02f",
+    "formalizer": "huanjian_gc_20261110_fixed_spectrum_target_law",
+    "compiled": true,
+    "decoder_context": [
+      "Natural dimensions use Fin d={0,...,d-1}. All displayed casts, real fractions, pi and cosine have their standard meanings.",
+      "EuclideanSpace Real(Fin d) is the finite real Euclidean space with its ordinary L2 norm. WithLp.toLp 2 and WithLp.ofLp convert between its bundled form and coordinate functions.",
+      "Matrix.orthogonalGroup(Fin d) Real is the full real orthogonal group. Its real matrix transpose is its inverse on both sides; it imposes no determinant1 condition. Matrix multiplication and mulVec are the usual exact operations.",
+      "Matrix.diagonal has the displayed diagonal and zero off it. An inverse of a displayed square matrix is the existing nonsingular matrix inverse; it is distinct from a real scalar reciprocal.",
+      "multivariateGaussian m S is the existing Gaussian probability measure obtained by mapping the standard covariance-one Euclidean Gaussian by x->m+sqrt(S)x. For positive semidefinite S its mean is m and covariance matrix is S. A non-positive-semidefinite parameter uses the documented zero-square-root Dirac fallback.",
+      "Measure.map f denotes pushforward by f when f is measurable. Universal quantification and local let definitions have their usual dependent meanings; the displayed coordinate matvec is a continuous linear map."
+    ]
+  },
+  "reconstruction": {
+    "text": "For every natural number $d\\ge 2$, every real number $\\kappa\\ge 2$, and every real orthogonal $d\\times d$ matrix $O$, use coordinates indexed by $i\\in\\{0,\\ldots,d-1\\}$ in the ordinary Euclidean space $E=\\mathbb R^d$. Orthogonality means $O^{\\mathsf T}O=OO^{\\mathsf T}=I_d$; there is no determinant-one restriction.\n\nDefine, for each such index,\n\\[\n\\theta_i=\\frac{(i+\\tfrac12)\\pi}{d},\\qquad\n\\lambda_i=\\frac{\\kappa+1}{2}+\\frac{\\kappa-1}{2}\\cos(\\theta_i).\n\\]\nLet $\\Lambda=\\operatorname{diag}(\\lambda_0,\\ldots,\\lambda_{d-1})$, let $A=O\\Lambda O^{\\mathsf T}$, and define the map $R_O:E\\to E$ by $R_O(z)=Oz$, using the usual matrix-vector product. The conversions between bundled Euclidean vectors and coordinate functions in the statement only implement this ordinary map.\n\nFor a positive semidefinite matrix $S$, write $\\gamma_{0,S}$ for the Gaussian probability measure obtained by sending the standard covariance-one Euclidean Gaussian through $x\\mapsto\\sqrt S\\,x$; its mean is the zero vector and its covariance matrix is $S$. The matrices $\\Lambda$ and $A$ above are positive definite under the stated hypotheses, so their inverses are positive definite and this meaning applies to both measures below.\n\nThen the pushforward equality of probability measures on $E$ is\n\\[\n(R_O)_\\#\\gamma_{0,\\Lambda^{-1}}=\\gamma_{0,A^{-1}}.\n\\]\nIn particular, for every Borel set $B\\subseteq E$,\n\\[\n\\gamma_{0,\\Lambda^{-1}}\\bigl(\\{z\\in E:Oz\\in B\\}\\bigr)\n=\\gamma_{0,A^{-1}}(B).\n\\]\nThe map $R_O$ is continuous and linear, hence measurable, so this is the usual measure pushforward. Both $\\Lambda^{-1}$ and $A^{-1}$ denote square-matrix inverses, while the fractions in the definitions of $\\theta_i$ and $\\lambda_i$ are real scalar divisions. All definitions are local to each universally chosen triple $(d,\\kappa,O)$; no additional parameters or existential constants occur.\n",
+    "text_sha256": "47a675dad1d1a572cd394b3387321fc6ea3b5605cb5ed2721b81c61db95818be",
+    "decoder": "/root/neutral_decoder_6c2d91",
+    "decoder_run_sha256": "1d339b91d072785d328383f9439ae20179145459ddef3dfe95b8310ec62260f0",
+    "decoder_packet_sha256": "f0acd5de9e4f74e38da2be8d81e91364e9dee5e8192e21cc027c18358e6db167",
+    "source_text_visible": false,
+    "lean_statement_sha256": "f53b64002b52696a8b17d4a6daff1b52ca160b82b4c2a0db0999c8236822f02f",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-target-law-semantic-evidence/independent-decoder-6c2d91/reconstruction.json"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "Raw S4.E11 defines the cosine-grid precision Lambda and A=O Lambda O transpose. S2 and A3.SS4.p3.1 identify the zero-mean target covariance as A inverse; the coordinate explanation uses Lambda inverse.",
+      "reconstructed": "The public type and independent reconstruction use literal zero-centered multivariate Gaussian measures with covariance Lambda inverse and A inverse, and Rz=Oz on finite real Euclidean space.",
+      "relation": "equivalent",
+      "evidence": "P complete statement and lets; actual Mathlib multivariateGaussian construction/covariance theorem; zero-based i corresponds exactly to paper i+1. Both on-domain covariances are internally proved positive definite."
+    },
+    "domains": {
+      "original": "Hard family: integer d>=2, real kappa>=2, any full real orthogonal O, ordinary Euclidean d-space; source precisions are positive definite.",
+      "reconstructed": "Nat d with 2<=d, real kappa with 2<=kappa, Matrix.orthogonalGroup(Fin d) Real, EuclideanSpace Real(Fin d).",
+      "relation": "same",
+      "evidence": "Complete P and T have no hidden section binders. Canonical orthogonalGroup equations impose neither determinant-one nor orientation condition. EuclideanSpace is PiLp 2."
+    },
+    "quantifiers": {
+      "original": "Source defines each admissible target and every-O admissibility, then explains the inverse-coordinate law for an exact target draw given the basis. The attributed auxiliary isolates the fixed-basis law.",
+      "reconstructed": "Universally each d,kappa and fixed full orthogonal O, with local literal definitions; no random-basis joint/conditional assertion, existential witness, algorithm or query parameter.",
+      "relation": "equivalent",
+      "evidence": "Raw S2 target, S4.E11, Lemma4.6, S4.SS2.SSS0.Px3.p2.1; complete P signature; inverse continuous maps O and O transpose equate the pointwise forward/backward law statements. Conditional-law construction is explicitly outside scope."
+    },
+    "assumptions": {
+      "original": "Only source hard-family ranges and orthogonal domain. Gaussian finiteness and positivity are source proof ingredients or consequences, not extra target assumptions.",
+      "reconstructed": "P and private T have exactly source dimension/conditioning bounds and full orthogonal O. Covariance validity, measurability, norm preservation, integrability and moments are derived internally.",
+      "relation": "explicit-elaboration",
+      "evidence": "P calls actual_precision_admissible at O and identity, then uses inverse positivity. T calls the public law and actual_diagonal_gaussian_quadratic_means at internally proved valid n=1. No law/moment/L1/PD binder exists."
+    },
+    "conclusion": {
+      "original": "The fixed-basis inverse-coordinate law identifies the diagonal Gaussian; raw A3.Ex140 gives diagonal norm mean sum 1/lambda_i and the coordinate explanation preserves target norm.",
+      "reconstructed": "Exact forward pushforward equality of actual Borel Gaussian probability measures. Private T concludes target norm-square Integrable and integral equal to the same finite inverse-spectrum sum.",
+      "relation": "equivalent",
+      "evidence": "P uses IsGaussian.ext with Gaussian-map instance plus complete mean/covariance-bilinear equality, not mere matching moments of arbitrary measures. T uses hLaw to rewrite both L1 and mean conjuncts, then integrable_map_measure/integral_map and norm invariance."
+    },
+    "scopes": {
+      "original": "Attributed extracted pointwise Gaussian-law auxiliary and private norm component; not all Lemma4.5, random/adaptive laws, partition-function claim, pass probability or main lower bound. Ordinary nondegenerate Gaussian meaning is source background.",
+      "reconstructed": "Same fixed-O auxiliary on actual inverse-covariance Gaussian constructors. Library non-PSD/Dirac and singular-inverse totalizations are unreachable. Private consumer remains private; actual authored boundary retains the larger-paper exclusions.",
+      "relation": "explicit-elaboration",
+      "evidence": "Actual multivariateGaussian_of_not_posSemidef and covariance theorem inspected; P supplies both hPos.inv.posSemidef arguments. A3.SS4.p3.1 is target provenance, while Ex160/p3.2 is normalizer sibling context. Full modules, six formula steps and source/publication scope inspected; no rendered reader/native acceptance implied."
+    },
+    "constant_dependencies": {
+      "original": "Same half-grid, pi, real spectral coefficients, d>=2,kappa>=2 and finite d-term inverse sum. No error constant occurs in this auxiliary.",
+      "reconstructed": "Exactly those local constants; no extra O-dependent constant, failure probability, external n/q or separation condition. Internal n=1 only extracts frequency-independent norm component.",
+      "relation": "same",
+      "evidence": "P literal formulas and T parent call hd hκ 1 with 1<=1 and 1<2<=d. Closed-M, variance and bias constants are outside the claimed result rather than altered."
+    }
+  },
+  "deltas": [
+    {
+      "slot": "objects",
+      "severity": "informational",
+      "description": "One-based paper indices are represented by zero-based Fin d indices with the identical half-grid.",
+      "evidence": "Under j=i.val+1, (j-1/2)pi/d=(i.val+1/2)pi/d; actual P/T definitions match S4.E11."
+    },
+    {
+      "slot": "conclusion",
+      "severity": "informational",
+      "description": "The auxiliary gives forward pushforward equality while the raw coordinate explanation gives inverse rotation of an exact target law.",
+      "evidence": "Both orthogonal equations are used in P; O and O transpose are inverse measurable linear maps, so the fixed-basis laws are equivalent. Actual Gaussian ext establishes full measure equality."
+    },
+    {
+      "slot": "quantifiers",
+      "severity": "informational",
+      "description": "The attributed auxiliary is pointwise for a fixed full orthogonal basis; it does not formalize the random-basis conditional experiment.",
+      "evidence": "Raw target/per-O admissibility supports each fixed basis; P/T and the authored boundary explicitly omit joint/conditional Haar and adaptive claims."
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "The canonical Gaussian constructor has an off-PSD Dirac totalization, but this is unreachable for the actual inverse precisions.",
+      "evidence": "Actual canonical fallback theorem inspected. P derives A.PosDef and Lambda.PosDef from admissibility and uses both inverse PosSemidef facts in the covariance rewrites."
+    },
+    {
+      "slot": "assumptions",
+      "severity": "informational",
+      "description": "Private target norm-square integrability is made explicit as a conclusion and transported through the genuine public law.",
+      "evidence": "T extracts hm.1, derives hmapLint, and rw [<-hLaw] rewrites both conjuncts; no L1/moment/law premise is present. Actual integral transport ends at hm.2.2.1."
+    },
+    {
+      "slot": "constant_dependencies",
+      "severity": "informational",
+      "description": "The paired diagonal moment parent is instantiated internally at frequency 1 without adding a source frequency assumption to the norm theorem.",
+      "evidence": "T proves 1<=1 by decide and 1<d via 1<2<=d; the selected parent projections are the frequency-independent norm L1 and mean."
+    },
+    {
+      "slot": "scopes",
+      "severity": "informational",
+      "description": "The publication is an attributed auxiliary paraphrase and source component, not the whole Lemma4.5 or a normalizer/main-bound result.",
+      "evidence": "Raw coordinate-law/Ex140 anchors and A3.SS4.p3.1 support the stated component. Exact lesson boundary and sole prerequisite binding retain all larger results. All 29 end-exclusive character locator hashes and six exact lesson code blocks were independently checked."
+    }
+  ],
+  "verdict": "equivalent-after-elaboration",
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "/root/targetlaw_fresh_source_9c7d21",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "87e0d4528bfb55d403f04a0a9a7181326dbd92bf1431d92a5c355dd699471767",
+    "evidence": "Independent source-first, selective-then-full-module review of immutable candidate 8ee639d3aced826aa5b4e39fa6f8bedd3b830327; original raw SHA 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915 primary; full P/T, exact canonical definitions/parents, all 29 end-exclusive Unicode character locators and six authored formula/code steps reviewed. Publication binding independently reproduced as 3f8f86b61bf73df0bf7a51f989239ca2246fa5c88de21364b468816869ee86bc. Genuine hLaw consumption of both L1 and finite mean observed. See independent_review.md and phase3_input_exposure_ledger.md for complete evidence and disclosures: prior directory names, broader pinned-raw-source scan, the authorized map old TC HOLD label, and unavoidable pretraining familiarity. No native/kernel/root-check or reader verdict was read or issued; no audit applied, no V/STAB/global credit.",
+    "review_run_sha256": "f5f3b8e590c824241e7a4691208946a4da26ed51e290c35022eff09de20d7c30",
+    "run_artifact": ".astis/semantic-neutral-20261110/tl_src_e028af/phase3/independent_review.md"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "3f8f86b61bf73df0bf7a51f989239ca2246fa5c88de21364b468816869ee86bc",
+  "publication_context": {
+    "file": "5b86b8aa5ef936e7f008c74bb8aab67a0483a61a1428a03a00790e5af6730805",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility\nimport Mathlib.Probability.Distributions.Gaussian.Multivariate\nimport Mathlib.Analysis.CStarAlgebra.Matrix\nimport Mathlib.Analysis.InnerProductSpace.Adjoint\n\nopen Matrix MeasureTheory ProbabilityTheory\nopen scoped RealInnerProductSpace\nset_option autoImplicit false\n\n/-!\n# Actual orthogonal Gaussian target law\n\nZhou--Suzuki arXiv:2610.20492v1, Section4.2 Lemma4.5 coordinate-law\nexplanation and AppendixC.3. The actual diagonal inverse-precision Gaussian\npushed by the full real orthogonal matvec is the actual target with covariance\nA inverse. This is a fixed-O full-measure identity, not a joint conditional,\nHaar/adaptive algorithm, probability, oracle or query-cost assertion.\n-/\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTargetLaw\n\ntheorem actual_rotated_gaussian_target {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ) (O : Matrix.orthogonalGroup (Fin d) ℝ) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let Λ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Λ *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let R : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) :=\n    fun z => WithLp.toLp 2 ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ WithLp.ofLp z)\n  (multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹).map R =\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n:= by\n  classical\n  dsimp only\n  let E := EuclideanSpace ℝ (Fin d)\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let Λ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))\n  let U : Matrix (Fin d) (Fin d) ℝ := O\n  let A : Matrix (Fin d) (Fin d) ℝ := U * Λ * U.transpose\n  let μ : Measure E := multivariateGaussian (0 : E) Λ⁻¹\n  let ν : Measure E := multivariateGaussian (0 : E) A⁻¹\n  let T : E →L[ℝ] E := Matrix.toEuclideanCLM (𝕜 := ℝ) U\n  have hApos : A.PosDef :=\n    (AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible hd hκ O).1\n  have hΛpos : Λ.PosDef := by\n    have h :=\n      (AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible\n        hd hκ (1 : Matrix.orthogonalGroup (Fin d) ℝ)).1\n    simpa [Λ, θ] using h\n  have hOleft : U.transpose * U = 1 :=\n    (Matrix.mem_orthogonalGroup_iff' (n := Fin d) (R := ℝ)).mp O.property\n  have hOright : U * U.transpose = 1 :=\n    (Matrix.mem_orthogonalGroup_iff (n := Fin d) (R := ℝ)).mp O.property\n  have hΛunit : IsUnit Λ.det := (Matrix.isUnit_iff_isUnit_det _).mp hΛpos.isUnit\n  have hinv : A⁻¹ = U * Λ⁻¹ * U.transpose := by\n    apply Matrix.inv_eq_left_inv\n    change (U * Λ⁻¹ * U.transpose) * (U * Λ * U.transpose) = 1\n    calc\n      _ = U * (Λ⁻¹ * (U.transpose * U) * Λ) * U.transpose := by\n        simp only [Matrix.mul_assoc]\n      _ = U * (Λ⁻¹ * Λ) * U.transpose := by rw [hOleft, Matrix.mul_one]\n      _ = 1 := by\n        rw [Matrix.nonsing_inv_mul _ hΛunit, Matrix.mul_one]\n        exact hOright\n  have hstar : T.adjoint = Matrix.toEuclideanCLM (𝕜 := ℝ) U.transpose := by\n    change star (Matrix.toEuclideanCLM (𝕜 := ℝ) U) = _\n    rw [← map_star]\n    simp only [Matrix.star_eq_conjTranspose, Matrix.conjTranspose_eq_transpose_of_trivial]\n  have hop : T * Matrix.toEuclideanCLM (𝕜 := ℝ) Λ⁻¹ * T.adjoint =\n      Matrix.toEuclideanCLM (𝕜 := ℝ) A⁻¹ := by\n    simp only [hinv, map_mul, hstar, T]\n  change μ.map T = ν\n  apply IsGaussian.ext\n  · change (∫ x, x ∂μ.map T) = ∫ x, x ∂ν\n    rw [ContinuousLinearMap.integral_id_map IsGaussian.integrable_id]\n    change T (∫ x : EuclideanSpace ℝ (Fin d), x ∂multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹) =\n      ∫ x : EuclideanSpace ℝ (Fin d), x ∂multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n    rw [integral_id_multivariateGaussian, integral_id_multivariateGaussian, map_zero]\n  · ext x y\n    rw [covarianceBilin_map IsGaussian.memLp_two_id T]\n    change covarianceBilin (multivariateGaussian (0 : E) Λ⁻¹) (T.adjoint x) (T.adjoint y) =\n      covarianceBilin (multivariateGaussian (0 : E) A⁻¹) x y\n    rw [covarianceBilin_multivariateGaussian hΛpos.inv.posSemidef,\n      covarianceBilin_multivariateGaussian hApos.inv.posSemidef]\n    rw [← Matrix.inner_toEuclideanCLM, ← Matrix.inner_toEuclideanCLM,\n      ContinuousLinearMap.adjoint_inner_left]\n    change inner ℝ x ((T * Matrix.toEuclideanCLM (𝕜 := ℝ) Λ⁻¹ * T.adjoint) y) =\n      inner ℝ x (Matrix.toEuclideanCLM (𝕜 := ℝ) A⁻¹ y)\n    rw [hop]\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTargetLaw\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#S4.SS2.SSS0.Px3",
+      "edition": "arXiv2610.20492v1; pinned raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "Eq11; Section4.2 Lemma4.5 coordinate-law explanation S4.SS2.SSS0.Px3.p2.1; AppendixC.3 norm component; A3.SS4.p3.1 target definition",
+      "wording_status": "faithful paraphrase",
+      "attribution": "On Complexity of Gaussian Sampling, arXiv2610.20492v1.",
+      "scope": "Extracted pointwise full Gaussian-law auxiliary and genuine PRIVATE target norm-L1/finite inverse-spectrum mean component; not full Lemma4.5 or Theorem4.1."
+    },
+    "statement": "Orthogonal rotation carries the literal diagonal inverse-precision Gaussian exactly to the Gaussian target of the conjugated precision. (R_O)_\\#N(0,\\Lambda^{-1})=N\\!\\left(0,(O\\Lambda O^\\top)^{-1}\\right),\\qquad R_Oz=Oz. \\(d\\in\\mathbb N\\), \\(d\\ge2\\), and \\(\\kappa\\in\\mathbb R\\), \\(\\kappa\\ge2\\). This is the hard-family law auxiliary; the full lower-bound parameter regime is handled separately. For paper indices \\(i=1,\\ldots,d\\), \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean uses the same grid with zero-based Fin d indices. \\(O\\in O(d)\\) is any fixed real orthogonal matrix, with either determinant sign; \\(A=O\\Lambda O^\\top\\). The claim is pointwise in this fixed basis, with no joint or conditional-law assertion for a random basis. \\(\\Lambda\\) and \\(A\\) are precision matrices. Their matrix inverses are the covariances in the actual Gaussian constructors. Positive definiteness is supplied internally by the existing admissibility theorem, rather than by an added premise.",
+    "formulae": [
+      {
+        "label": "Actual fixed-basis Gaussian target law",
+        "tex": "(R_O)_\\#N(0,\\Lambda^{-1})=N\\!\\left(0,(O\\Lambda O^\\top)^{-1}\\right),\\qquad R_Oz=Oz."
+      }
+    ],
+    "assumptions": [
+      "\\(d\\in\\mathbb N\\), \\(d\\ge2\\), and \\(\\kappa\\in\\mathbb R\\), \\(\\kappa\\ge2\\). This is the hard-family law auxiliary; the full lower-bound parameter regime is handled separately.",
+      "For paper indices \\(i=1,\\ldots,d\\), \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean uses the same grid with zero-based Fin d indices.",
+      "\\(O\\in O(d)\\) is any fixed real orthogonal matrix, with either determinant sign; \\(A=O\\Lambda O^\\top\\). The claim is pointwise in this fixed basis, with no joint or conditional-law assertion for a random basis.",
+      "\\(\\Lambda\\) and \\(A\\) are precision matrices. Their matrix inverses are the covariances in the actual Gaussian constructors. Positive definiteness is supplied internally by the existing admissibility theorem, rather than by an added premise."
+    ],
+    "obligations": [
+      {
+        "id": "orthogonal-target-law",
+        "label": "Actual orthogonal pushforward diagonal Gaussian equals the actual inverse-precision target; covariance facts derived internally."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTargetLaw.actual_rotated_gaussian_target",
+      "title": "The actual Gaussian target under an orthogonal eigenbasis",
+      "reader_note": "Conditions, formula steps and exact Lean open beside the concise claim. The complete private target-moment application is folded at step6.",
+      "statement": "Orthogonal rotation carries the literal diagonal inverse-precision Gaussian exactly to the Gaussian target of the conjugated precision.",
+      "formula": "(R_O)_\\#N(0,\\Lambda^{-1})=N\\!\\left(0,(O\\Lambda O^\\top)^{-1}\\right),\\qquad R_Oz=Oz.",
+      "assumptions": [
+        "\\(d\\in\\mathbb N\\), \\(d\\ge2\\), and \\(\\kappa\\in\\mathbb R\\), \\(\\kappa\\ge2\\). This is the hard-family law auxiliary; the full lower-bound parameter regime is handled separately.",
+        "For paper indices \\(i=1,\\ldots,d\\), \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). Lean uses the same grid with zero-based Fin d indices.",
+        "\\(O\\in O(d)\\) is any fixed real orthogonal matrix, with either determinant sign; \\(A=O\\Lambda O^\\top\\). The claim is pointwise in this fixed basis, with no joint or conditional-law assertion for a random basis.",
+        "\\(\\Lambda\\) and \\(A\\) are precision matrices. Their matrix inverses are the covariances in the actual Gaussian constructors. Positive definiteness is supplied internally by the existing admissibility theorem, rather than by an added premise."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(\\mu_\\Lambda,\\pi_A,R_O\\)",
+          "text": "Actual centered Gaussians on real Euclidean space and the fixed orthogonal coordinate map.",
+          "formula": "\\mu_\\Lambda=N(0,\\Lambda^{-1}),\\quad\\pi_A=N(0,A^{-1}),\\quad R_Oz=Oz."
+        },
+        {
+          "symbol": "\\(g,M\\)",
+          "text": "The squared Euclidean norm and its finite inverse-spectrum mean.",
+          "formula": "g(x)=\\|x\\|^2,\\qquad M=\\sum_{i=1}^d\\lambda_i^{-1}."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use the actual positive precision family",
+          "text": "Reuse canonical hard-family admissibility at O and at the identity basis. Both precision matrices and their inverse covariances are positive definite, so the actual Gaussian constructors have their intended covariance.",
+          "formula": "\\Lambda\\succ0,\\quad A\\succ0,\\qquad\\mu_\\Lambda=N(0,\\Lambda^{-1}),\\quad\\pi_A=N(0,A^{-1}).",
+          "lean": "  have hApos : A.PosDef :=\n    (AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible hd hκ O).1\n  have hΛpos : Λ.PosDef := by\n    have h :=\n      (AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible\n        hd hκ (1 : Matrix.orthogonalGroup (Fin d) ℝ)).1\n    simpa [Λ, θ] using h\n"
+        },
+        {
+          "title": "Identify the inverse conjugate",
+          "text": "Orthogonality cancels the two middle factors. The displayed candidate is a left inverse of A, which identifies the actual matrix inverse.",
+          "formula": "O^\\top O=OO^\\top=I_d,\\qquad(O\\Lambda^{-1}O^\\top)A=I_d,\\qquad A^{-1}=O\\Lambda^{-1}O^\\top.",
+          "lean": "  have hOleft : U.transpose * U = 1 :=\n    (Matrix.mem_orthogonalGroup_iff' (n := Fin d) (R := ℝ)).mp O.property\n  have hOright : U * U.transpose = 1 :=\n    (Matrix.mem_orthogonalGroup_iff (n := Fin d) (R := ℝ)).mp O.property\n  have hΛunit : IsUnit Λ.det := (Matrix.isUnit_iff_isUnit_det _).mp hΛpos.isUnit\n  have hinv : A⁻¹ = U * Λ⁻¹ * U.transpose := by\n    apply Matrix.inv_eq_left_inv\n    change (U * Λ⁻¹ * U.transpose) * (U * Λ * U.transpose) = 1\n    calc\n      _ = U * (Λ⁻¹ * (U.transpose * U) * Λ) * U.transpose := by\n        simp only [Matrix.mul_assoc]\n      _ = U * (Λ⁻¹ * Λ) * U.transpose := by rw [hOleft, Matrix.mul_one]\n      _ = 1 := by\n        rw [Matrix.nonsing_inv_mul _ hΛunit, Matrix.mul_one]\n        exact hOright\n"
+        },
+        {
+          "title": "Transport the covariance operator",
+          "text": "Represent the exact matvec by the canonical Euclidean continuous linear map T. Its adjoint represents the transpose matrix; the inverse identity then identifies the transported covariance operator.",
+          "formula": "Tz=Oz,\\quad T^*x=O^\\top x,\\qquad T\\,\\Lambda^{-1}T^*=A^{-1}.",
+          "lean": "  have hstar : T.adjoint = Matrix.toEuclideanCLM (𝕜 := ℝ) U.transpose := by\n    change star (Matrix.toEuclideanCLM (𝕜 := ℝ) U) = _\n    rw [← map_star]\n    simp only [Matrix.star_eq_conjTranspose, Matrix.conjTranspose_eq_transpose_of_trivial]\n  have hop : T * Matrix.toEuclideanCLM (𝕜 := ℝ) Λ⁻¹ * T.adjoint =\n      Matrix.toEuclideanCLM (𝕜 := ℝ) A⁻¹ := by\n    simp only [hinv, map_mul, hstar, T]\n"
+        },
+        {
+          "title": "Identify the full Gaussian measure",
+          "text": "A continuous linear image of a Gaussian is Gaussian. Its mean is zero, and its covariance bilinear form agrees with the actual target. Canonical uniqueness of Gaussian measures from mean and covariance gives equality of the full measures.",
+          "formula": "\\mathbb E_{T_\\#\\mu_\\Lambda}X=0,\\quad\\operatorname{Cov}_{T_\\#\\mu_\\Lambda}(x,y)=x^\\top A^{-1}y=\\operatorname{Cov}_{\\pi_A}(x,y),\\quad T_\\#\\mu_\\Lambda=\\pi_A.",
+          "lean": "  change μ.map T = ν\n  apply IsGaussian.ext\n  · change (∫ x, x ∂μ.map T) = ∫ x, x ∂ν\n    rw [ContinuousLinearMap.integral_id_map IsGaussian.integrable_id]\n    change T (∫ x : EuclideanSpace ℝ (Fin d), x ∂multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹) =\n      ∫ x : EuclideanSpace ℝ (Fin d), x ∂multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n    rw [integral_id_multivariateGaussian, integral_id_multivariateGaussian, map_zero]\n  · ext x y\n    rw [covarianceBilin_map IsGaussian.memLp_two_id T]\n    change covarianceBilin (multivariateGaussian (0 : E) Λ⁻¹) (T.adjoint x) (T.adjoint y) =\n      covarianceBilin (multivariateGaussian (0 : E) A⁻¹) x y\n    rw [covarianceBilin_multivariateGaussian hΛpos.inv.posSemidef,\n      covarianceBilin_multivariateGaussian hApos.inv.posSemidef]\n    rw [← Matrix.inner_toEuclideanCLM, ← Matrix.inner_toEuclideanCLM,\n      ContinuousLinearMap.adjoint_inner_left]\n    change inner ℝ x ((T * Matrix.toEuclideanCLM (𝕜 := ℝ) Λ⁻¹ * T.adjoint) y) =\n      inner ℝ x (Matrix.toEuclideanCLM (𝕜 := ℝ) A⁻¹ y)\n    rw [hop]\n"
+        },
+        {
+          "title": "Use the canonical latent norm moment",
+          "text": "The private application actually invokes the new law and the existing diagonal Gaussian moment theorem. Its paired API is instantiated at the internally chosen valid frequency 1 to extract the frequency-independent norm component. The orthogonal map is measurable and preserves the norm for every vector.",
+          "formula": "\\|R_Oz\\|^2=\\|z\\|^2,\\qquad \\|z\\|^2\\in L^1(\\mu_\\Lambda),\\qquad \\int\\|z\\|^2\\,d\\mu_\\Lambda=\\sum_{i=1}^d\\lambda_i^{-1}.",
+          "lean": "  have hLaw : μ.map R = ν :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTargetLaw.actual_rotated_gaussian_target hd hκ O\n  have hm :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGaussianMoments.actual_diagonal_gaussian_quadratic_means\n      hd hκ 1 (by decide) (Nat.lt_of_lt_of_le (by decide : 1 < 2) hd)\n  have hLint : Integrable g μ := hm.1\n  have hmean : (∫ x, g x ∂μ) =\n      ∑ i : Fin d, ((κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))⁻¹ := hm.2.2.1\n  have hR : Measurable R :=\n    (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) (O : Matrix (Fin d) (Fin d) ℝ)).continuous.measurable\n  have hnorm (z : E) : ‖R z‖ = ‖z‖ :=\n    ContinuousLinearMap.norm_map_of_mem_unitary\n      (Unitary.map_mem (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d)) O.property) z\n  have hg : Continuous g := continuous_norm.pow 2\n  have hcomp : g ∘ R = g := by\n    funext z\n    change ‖R z‖ ^ 2 = ‖z‖ ^ 2\n    rw [hnorm]\n  have hmapLint : Integrable g (μ.map R) :=\n    (integrable_map_measure hg.aestronglyMeasurable hR.aemeasurable).2\n      (by rw [hcomp]; exact hLint)\n"
+        },
+        {
+          "title": "Obtain the actual target norm mean",
+          "text": "Rewrite the target measure using the proved full law. Transport integrability through the measurable map, then evaluate the integral by norm preservation. The complete private Test, including its exact statement and producer call, is folded here.",
+          "formula": "\\|x\\|^2\\in L^1(\\pi_A),\\qquad\\int\\|x\\|^2\\,d\\pi_A=\\int\\|R_Oz\\|^2\\,d\\mu_\\Lambda=\\sum_{i=1}^d\\lambda_i^{-1}.",
+          "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTargetLaw\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGaussianMoments\n\nopen Matrix InnerProductSpace MeasureTheory ProbabilityTheory\nopen scoped BigOperators\nset_option autoImplicit false\n\n/-!\nActual target norm-square consumer. The full rotated Gaussian law is genuinely\nused to transport canonical diagonal L1 and the finite inverse-spectrum mean.\nNo moment/law/integrability certificate is an input. This is the norm component,\nnot all Lemma4.5, a pass probability, algorithm or query/cost assertion.\n-/\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumTargetLaw\n\nprivate theorem actual_target_gaussian_norm_mean {d : ℕ} (hd : 2 ≤ d)\n    {κ : ℝ} (hκ : 2 ≤ κ) (O : Matrix.orthogonalGroup (Fin d) ℝ) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let Λ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Λ *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n  Integrable (fun x : EuclideanSpace ℝ (Fin d) => ‖x‖ ^ 2) μ ∧\n    (∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ) =\n      ∑ i : Fin d, ((κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))⁻¹\n:= by\n  classical\n  dsimp only\n  let E := EuclideanSpace ℝ (Fin d)\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let Λ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) * Λ *\n      (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let μ : Measure E := multivariateGaussian (0 : E) Λ⁻¹\n  let ν : Measure E := multivariateGaussian (0 : E) A⁻¹\n  let R : E → E := fun z =>\n    WithLp.toLp 2 ((O : Matrix (Fin d) (Fin d) ℝ) *ᵥ WithLp.ofLp z)\n  let g : E → ℝ := fun x => ‖x‖ ^ 2\n  have hLaw : μ.map R = ν :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTargetLaw.actual_rotated_gaussian_target hd hκ O\n  have hm :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGaussianMoments.actual_diagonal_gaussian_quadratic_means\n      hd hκ 1 (by decide) (Nat.lt_of_lt_of_le (by decide : 1 < 2) hd)\n  have hLint : Integrable g μ := hm.1\n  have hmean : (∫ x, g x ∂μ) =\n      ∑ i : Fin d, ((κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i))⁻¹ := hm.2.2.1\n  have hR : Measurable R :=\n    (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) (O : Matrix (Fin d) (Fin d) ℝ)).continuous.measurable\n  have hnorm (z : E) : ‖R z‖ = ‖z‖ :=\n    ContinuousLinearMap.norm_map_of_mem_unitary\n      (Unitary.map_mem (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d)) O.property) z\n  have hg : Continuous g := continuous_norm.pow 2\n  have hcomp : g ∘ R = g := by\n    funext z\n    change ‖R z‖ ^ 2 = ‖z‖ ^ 2\n    rw [hnorm]\n  have hmapLint : Integrable g (μ.map R) :=\n    (integrable_map_measure hg.aestronglyMeasurable hR.aemeasurable).2\n      (by rw [hcomp]; exact hLint)\n  change Integrable g ν ∧ (∫ x, g x ∂ν) = _\n  rw [← hLaw]\n  refine ⟨hmapLint, ?_⟩\n  rw [integral_map hR.aemeasurable hg.aestronglyMeasurable]\n  change (∫ x, (g ∘ R) x ∂μ) = _\n  rw [hcomp]\n  exact hmean\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumTargetLaw\n"
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGaussianMoments.actual_diagonal_gaussian_quadratic_means"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.mem_orthogonalGroup_iff",
+        "Matrix.mem_orthogonalGroup_iff'",
+        "Matrix.inv_eq_left_inv",
+        "Matrix.nonsing_inv_mul",
+        "Matrix.toEuclideanCLM",
+        "ContinuousLinearMap.integral_id_map",
+        "ProbabilityTheory.integral_id_multivariateGaussian",
+        "ProbabilityTheory.covarianceBilin_map",
+        "ProbabilityTheory.covarianceBilin_multivariateGaussian",
+        "ProbabilityTheory.IsGaussian.ext",
+        "Unitary.map_mem",
+        "ContinuousLinearMap.norm_map_of_mem_unitary",
+        "MeasureTheory.integrable_map_measure",
+        "MeasureTheory.integral_map"
+      ],
+      "dependency_notes": "Canonical admissibility is the public law producer parent. Canonical diagonal moments are an additional private application parent; the new law is actually used by that application. These roles do not create a second public Anchor or a duplicate generic Gaussian node.",
+      "lean_statement": "The literal precision family, full real orthogonal matrix and actual Gaussian constructors are expanded in the exact statement. Matrix inverses are covariance parameters; no positive-definiteness, law, moment or measurability certificate is an input.",
+      "lean_proof": "The actual inverse-conjugation identity and canonical Gaussian mean/covariance uniqueness prove the full law. The complete private application derives measurable norm-preserving transport and consumes both the new law and existing latent moments.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S4.SS2.SSS0.Px3",
+          "edition": "arXiv2610.20492v1; pinned raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Eq11; Section4.2 Lemma4.5 coordinate-law explanation S4.SS2.SSS0.Px3.p2.1; AppendixC.3 norm component; A3.SS4.p3.1 target definition",
+          "wording_status": "faithful paraphrase",
+          "attribution": "On Complexity of Gaussian Sampling, arXiv2610.20492v1.",
+          "scope": "Extracted pointwise full Gaussian-law auxiliary and genuine PRIVATE target norm-L1/finite inverse-spectrum mean component; not full Lemma4.5 or Theorem4.1.",
+          "label": "Lemma4.5 coordinate-law and norm-moment source component"
+        },
+        {
+          "path": "Tests/GaussianComplexityFixedSpectrumTargetLaw.lean",
+          "line": 16,
+          "label": "Complete actual private target norm-L1 and finite-mean application",
+          "scope": "Private non-Anchor proof context; no full moment/variance/probability or complexity claim."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumTargetLaw"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTargetLaw.actual_rotated_gaussian_target",
+      "role": "prerequisite",
+      "supports": [
+        "orthogonal-target-law"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The coordinate explanation states that a target sample transformed by O transpose has the diagonal Gaussian law.",
+        "lean": "The extracted auxiliary states the forward pushforward full-measure identity for every fixed full orthogonal O."
+      },
+      {
+        "source": "The hard family uses the actual conjugated precision and its inverse covariance.",
+        "lean": "Identical midpoint grid, full real O, d>=2 and kappa>=2; proper covariance is justified by canonical admissibility inside the proof."
+      },
+      {
+        "source": "The norm component has mean equal to the finite sum of inverse eigenvalues, independent of the cosine frequency.",
+        "lean": "PRIVATE actual target norm-square Integrable output and that exact finite mean, with no frequency binder."
+      },
+      {
+        "source": "A finite Gaussian second moment is implicit in the displayed norm expectation.",
+        "lean": "The private application derives L1 from the existing actual diagonal-Gaussian theorem and measurable norm-preserving transport."
+      },
+      {
+        "source": "The complete source argument also needs quadratic moments, target pass probability, concentration, adaptive/Krylov laws and oracle/TV/cost comparisons.",
+        "lean": "This Anchor supplies only the full fixed-basis Gaussian law and its genuine private norm-moment application."
+      }
+    ]
+  }
+}

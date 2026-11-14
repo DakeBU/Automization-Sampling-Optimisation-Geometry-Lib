@@ -1,0 +1,192 @@
+{
+  "schema": "gc-source-only-phase2-binder-audit-v1",
+  "producer": [
+    {
+      "syntax": "{d : Nat}",
+      "classification": "SOURCE + TYPING",
+      "source": [
+        "S4.SS1.p1.1:s02"
+      ],
+      "meaning": "Finite real dimension; Nat and Fin d implement the source positive integer dimension."
+    },
+    {
+      "syntax": "(hd : 2 <= d)",
+      "classification": "SOURCE",
+      "source": [
+        "S4.SS1.p1.1:s02"
+      ],
+      "meaning": "Retains the exact hard-family dimension range. d!=0 needed by the grid denominator is derived, not an extra premise."
+    },
+    {
+      "syntax": "{kappa : Real}",
+      "classification": "SOURCE + TYPING",
+      "source": [
+        "S4.SS1.p1.1:s02"
+      ],
+      "meaning": "Real spectral parameter."
+    },
+    {
+      "syntax": "(hKappa : 2 <= kappa)",
+      "classification": "SOURCE",
+      "source": [
+        "S4.SS1.p1.1:s02"
+      ],
+      "meaning": "Exact hard-family parameter range; no delta/epsilon restriction is needed locally."
+    },
+    {
+      "syntax": "(O : Matrix.orthogonalGroup (Fin d) Real)",
+      "classification": "SOURCE + TYPING",
+      "source": [
+        "S2.p2.1:s01",
+        "S4.SS1.p1.2:s01",
+        "S4.Thmtheorem6.p1.1:s01"
+      ],
+      "meaning": "Arbitrary full real orthogonal matrix, not SO(d), not a single sign component and not an additional Haar-distributed random variable."
+    },
+    {
+      "syntax": "let theta i := (i.val + 1/2) * pi / d",
+      "classification": "DEFINITION",
+      "source": [
+        "S4.E11"
+      ],
+      "meaning": "Literal source half-node grid after i_source=i.val+1. Then i_source-1/2=i.val+1/2; real arithmetic, not natural-number division."
+    },
+    {
+      "syntax": "let A := O * diagonal(lambda) * O.transpose",
+      "classification": "DEFINITION",
+      "source": [
+        "S4.E11",
+        "S4.SS1.p1.2:s01"
+      ],
+      "meaning": "Actual precision matrix with literal source cosine eigenvalues; symmetry is a consequence of this definition, never an assumed binder."
+    },
+    {
+      "syntax": "let f x := dotProduct (ofLp x) (A mulVec ofLp x) / 2",
+      "classification": "DEFINITION",
+      "source": [
+        "S2.SS0.SSS0.Px1.p1.2:s01",
+        "S4.SS1.p1.2:s02",
+        "A3.SS4.p2.1:s01"
+      ],
+      "meaning": "Same source quadratic with factor1/2 and zero additive constant on all of real Euclidean space."
+    },
+    {
+      "syntax": "let query x := toLp 2 (A mulVec ofLp x)",
+      "classification": "DEFINITION",
+      "source": [
+        "S2.E1"
+      ],
+      "meaning": "Actual exact precision matrix-vector product at the same x. It is neither A-inverse covariance action nor an O-only reply."
+    },
+    {
+      "syntax": "forall x : EuclideanSpace Real (Fin d)",
+      "classification": "SOURCE + TYPING",
+      "source": [
+        "S2.SS0.SSS0.Px1.p1.2:s02",
+        "S2.E1"
+      ],
+      "meaning": "All query points including zero, not an almost-everywhere/positive-radius/nonzero query condition."
+    },
+    {
+      "syntax": "HasGradientAt f (query x) x",
+      "classification": "OUTPUT",
+      "source": [
+        "S2.E1",
+        "A3.SS4.p2.1:s01"
+      ],
+      "meaning": "Actual Frechet differentiability with derivative represented by the proposed vector via the real Riesz map. Not a supplied numerical-gradient premise."
+    },
+    {
+      "syntax": "(f x, gradient f x) = (inner Real x (query x)/2, query x)",
+      "classification": "OUTPUT",
+      "source": [
+        "S2.E1",
+        "S2.SS0.SSS0.Px1.p2.1:s02"
+      ],
+      "meaning": "True value and total mathematical gradient equal the exact reconstructed pair. HasGradientAt output discharges any otherwise-default-zero concern for total gradient."
+    }
+  ],
+  "consumer": [
+    {
+      "syntax": "d, hd, kappa, hKappa, O, theta",
+      "classification": "SOURCE + DEFINITION + TYPING",
+      "source": [
+        "S4.SS1.p1.1:s02",
+        "S4.E11",
+        "S4.Thmtheorem2.p1.1:s02"
+      ],
+      "meaning": "Same source ranges and SAME latent O for both parameter values; no independent reference rotation."
+    },
+    {
+      "syntax": "let A : Real -> Matrix := fun eta => O * diagonal(lambda_eta) * O.transpose",
+      "classification": "DEFINITION",
+      "source": [
+        "S4.E11",
+        "S4.Thmtheorem2.p1.1:s02"
+      ],
+      "meaning": "Uniform literal polynomial/cosine formula used only at eta=kappa and eta=2. The local auxiliary body also has values outside eta>=2, but no admissibility or oracle claim is made there. No invented fallback branch."
+    },
+    {
+      "syntax": "let f := quadratic of A kappa",
+      "classification": "DEFINITION",
+      "source": [
+        "S4.SS1.p1.2:s02",
+        "S2.E1"
+      ],
+      "meaning": "The actual kappa precision potential; not the reference potential and not covariance."
+    },
+    {
+      "syntax": "let referenceQuery x := toLp 2 (A 2 mulVec ofLp x)",
+      "classification": "DEFINITION",
+      "source": [
+        "S4.Thmtheorem2.p1.1:s01",
+        "S4.Thmtheorem2.p1.1:s02",
+        "S4.Thmtheorem2.p1.1:s03"
+      ],
+      "meaning": "Actual same-point A_2 precision reply, with same d, theta and O. No reply-correctness assumption is supplied."
+    },
+    {
+      "syntax": "let reconstructed x := (kappa-1) smul referenceQuery x - (kappa-2) smul x",
+      "classification": "DEFINITION",
+      "source": [
+        "S4.Thmtheorem2.p1.1:s02",
+        "S4.Thmtheorem2.p1.1:s03"
+      ],
+      "meaning": "Forward known affine arithmetic reconstructing A_kappa x from A_2 x. There is no division by kappa-1 in the exact consumer."
+    },
+    {
+      "syntax": "forall x : EuclideanSpace Real (Fin d)",
+      "classification": "SOURCE + TYPING",
+      "source": [
+        "S2.E1",
+        "S4.Thmtheorem2.p1.1:s03"
+      ],
+      "meaning": "Every point including zero; one same point in original and reconstructed quantities."
+    },
+    {
+      "syntax": "HasGradientAt f (reconstructed x) x and actual value/gradient pair equality",
+      "classification": "OUTPUT",
+      "source": [
+        "S2.E1",
+        "S4.Thmtheorem2.p1.1:s02",
+        "S4.Thmtheorem2.p1.1:s03"
+      ],
+      "meaning": "Compose actual first-order output with the affine precision reply identity; no gradient, symmetry or affine response correctness hypothesis is added."
+    }
+  ],
+  "EXCESS": [],
+  "must_not_add": [
+    "A symmetry",
+    "HasGradientAt or gradient correctness",
+    "an affine reply identity",
+    "response correctness gate",
+    "a differentiability witness",
+    "normalizer/integrability",
+    "SC/smoothness",
+    "Haar event",
+    "seed restriction",
+    "nonzero query x"
+  ],
+  "retained_source_ranges_are_not_excess": "The derivative identity may be mathematically true on larger parameter ranges, but the candidate faithfully retains the hard-family d>=2 and kappa>=2 scope.",
+  "status": "No excess input found in these exact signatures; advisory preproof audit only."
+}

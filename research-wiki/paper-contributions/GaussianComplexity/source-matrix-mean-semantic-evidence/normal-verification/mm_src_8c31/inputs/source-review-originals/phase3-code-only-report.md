@@ -1,0 +1,79 @@
+# Independent whole-code-only review — mm_src_8c31
+
+Verdict: **CODE_MEANING_COMPATIBLE; no genuine source/type/mathematical applicability blocker found in the inspected fixed code.** The supplied implementation text visibly supplies the internal obligations identified in the type-only freeze, using a sufficient combination of canonical entrywise analysis and actual-matrix continuous linear transport. This is an independent code-reading conclusion, **not a compiler claim, source-acceptance verdict, proof seal, normal VERIFIED transition, or publication/integration authorization**. No compiler or decoder result was supplied or consulted.
+
+## Exact input boundary and review coverage
+
+The primary input manifest is `code-only-inputs-v1/input-manifest.json`, SHA-256 `3557d4e704600278b8d48a790776a707a60731a41f722ed12bad1e959cbb573c`. All 14 listed complete snapshot files were byte-count/hash verified. I semantically read all seven ASTIS modules in full, including every P/T definition, binder, scoped setting, and proof body. I also read the full supplied Mathlib Multivariate Gaussian, Bochner ContinuousLinearMap, and CStarAlgebra Matrix files, and inspected the relevant definitions, scoping, hypotheses, and provider bodies in the other supplied Mathlib files. Exact semantic-read line ranges are recorded in `phase3-code-review-coverage.json`; a full-file hash verification is not represented there as a full semantic read.
+
+The canonical truncated-moment body calls `Integrable.of_eval` and `eval_integral`. Their defining file was absent from the primary packet, so I requested that exact provider without reading a live path. The separately authorized supplement manifest is `code-only-provider-supplement-v1/input-manifest.json`, SHA-256 `ce2bebf2089966181b9f31c9bd935922d3841f07f3c2811665e254a702fffb31`; the complete `SpecificCodomains__Pi.lean.raw.txt` has 2585 bytes and SHA-256 `1362dc90bb3d550d8e1daad0623051291a31e1824c3c6cb3024879cc0eaf5714`. Its full body was read. This resolved an input-coverage question, not a mathematical/source blocker.
+
+The snapshots are uncommitted worktree bytes. `90f3fe822621cba10350450798fae107b9c92335` is only the reported old HEAD/base at capture; this review does not claim that commit contains the new mathematics. The byte digests, not that HEAD, identify the reviewed P/T. An eventual immutable candidate and compiler evidence must be checked against these exact reviewed bytes.
+
+P (snapshot 00): 5992 bytes, SHA-256 `0ca68e9b4c8a229f5344f854f76775a582d2cf5347862711935cd67f215457df`.
+
+T (snapshot 01): 7657 bytes, SHA-256 `cf55f754176ca4fdafc76c764233f7b48953723d1460e7e03a45c90b89cf4e47`.
+
+Snapshot 00 lines 18–43 and snapshot 01 lines 18–45 match the earlier exact producer/private-consumer signature strings byte for byte, respectively SHA-256 `099bcbe9d6cc440754282873a7f1e1001584c3566fc771a70bf9f1a3846b85fe` and `00c0b050a632e03d9b169acdb6632ae85a9ec43cc2b5e8aa26b7b6152a711b7e`. Both whole modules set `autoImplicit false`, have no surrounding mathematical variable assumptions, and explicitly open `Matrix.Norms.L2Operator`. Every actual input remains d,q and hq. All raw/type original artifact hashes were checked and remain unchanged.
+
+## Canonical law to actual original rows: noninjective transport is applicable
+
+Snapshot 02 lines 29–52 constructs the actual row law rather than accepting it as a premise. It first identifies a standard d-dimensional Gaussian with the map of independent scalar standard Gaussians under `WithLp.toLp 2`. It then obtains the law of physical coordinate i using the ordinary product-measure evaluation map. It applies `measurePreserving_pi` across the original q+1 columns to collect the same physical coordinate from each independent column, and composes with the Euclidean wrapper map for the resulting scalar product law. Thus the row is the literal `omega b i` row in the original product experiment, not an independently substituted experiment.
+
+The supplied Mathlib Gaussian provider explicitly proves `map_pi_eq_stdGaussian` (snapshot 07 lines 137–143) and basis-independent isometric invariance `stdGaussian_map` (128–135). Product provider `measurePreserving_eval` (08:402–407) needs probability measures; standard Gaussian probability is available at 07:72–73. `measurePreserving_pi` (08:908–919) requires target factor sigma-finiteness and the per-factor measure-preserving maps; scalar Gaussian probabilities satisfy that condition. Neither construction requires the coordinate/row map to be injective. Joint independence of different rows is not a target here, and is not smuggled in as a hypothesis.
+
+P obtains `row_law i` at 00:77–78. For integrability it calls the exact `MeasurePreserving.integrable_comp_of_integrable` provider (11:388–391), which only requires a measure-preserving map and an integrable target function. For the expectation, 00:84–89 proves a.e. strong measurability under the actual mapped measure by rewriting its equality with the canonical law, then uses ordinary `MeasureTheory.integral_map`.
+
+I inspected 09:1043–1053: this ordinary `integral_map` requires `AEMeasurable row mu` and `AEStronglyMeasurable kept (map row mu)`, both supplied by the code. It has **no embedding or injectivity hypothesis**. The separately present `MeasurePreserving.integral_comp` at 09:1077–1080 does require an embedding, but is not called by P. The potential noninjective-transport mismatch is therefore absent in these bytes.
+
+## Canonical coefficient a is a genuine retained radial expectation
+
+The full canonical truncated-moment body (03:20–180) was reviewed, not accepted by its name. It uses the exact closed set `good = {x | norm(x)^2 <= L}`, the exact outer product G, and the same canonical radial integral/r as the sealed type. No moment or symmetry certificate is supplied by the caller.
+
+At 03:47–58 it proves the cutoff set measurable and obtains integrability of R(x)=norm(x)^2 from the actual standard-Gaussian moment leaf, then explicitly obtains integrability of its retained indicator. This prevents interpreting a via the scalar Bochner nonintegrable default. The full leaf 05 was read: it derives norm-square integrability from the Gaussian L2 fact, directional second moments from the covariance/mean identities, and the dimension formula by finite Parseval and an integrable finite-sum exchange. The Gaussian provider 07 contains the actual standard Gaussian definition, probability instance, Gaussian instance, zero mean, and covariance identity used there. No extra source moment assumption appears.
+
+At 03:59–75 every retained entry is dominated by retained R, using coordinate norms bounded by the Euclidean norm and explicit measurability. The proof establishes each entry's integrability. At 03:76–84 the entries are assembled in a finite ordinary Pi space and transported by `ofRows` to the actual L2Operator matrix space. The supplemental finite-Pi provider proves `Integrable.of_eval` as the reverse direction of finite-product integrability (supplement:27–44). Its finiteness hypothesis is satisfied by Fin(q+1), including q=0.
+
+At 03:93–145 the code supplies the actual radial-symmetry calculation: standard Gaussian invariance under an isometry, a coordinate sign flip killing off-diagonal entries, and coordinate swaps making diagonal expectations equal. The cutoff is invariant because these maps preserve the Euclidean norm; both branches of its closed indicator are checked. At 03:148–172 it proves the pointwise trace identity, explicitly exchanges its finite sum with the integral using the established entry integrability, and divides by r>0 to identify each diagonal value with the defined a. No distinguished-coordinate or q>0 condition is introduced. The final matrix equality uses the integrable entry calculations.
+
+This canonical coefficient is then transported to every actual row by P's common pushforward law and actual full-matrix mean transport. That is a sufficient implementation route for the target; a second public scalar-transport or row-moment theorem is not required. Mathematically the same map equality also identifies the canonical retained scalar integral with every actual retained R_i integral. The law is not merely named: 02 supplies its construction, while 03 supplies the exact canonical radial coefficient calculation.
+
+## Actual L2Operator Bochner semantics and the tensor CLM
+
+Both P/T and 03 explicitly open `Matrix.Norms.L2Operator`. The supplied full CStarAlgebra Matrix provider defines its operator norm through finite Euclidean linear maps (13:137–150, 176–186) and supplies the normed-space structure (255–260). Importantly, its metric construction preserves the existing finite-matrix topology and uniformity (155–172). Thus the standard complete finite-matrix uniform space remains complete; this agrees with the actual completeness instance already supplied in the type packet. There is no incomplete-space reinterpretation or caller norm/completeness binder.
+
+The ordinary nested function space used for `rows` in 03 is distinguished from the matrix L2Operator codomain by an explicitly typed finite-dimensional continuous linear equivalence `ofRows`. The integral-entry proof (03:85–92) uses that equivalence and then finite-Pi evaluation of the ordinary function integral. The supplement's `eval_integral` (46–51) explicitly requires coordinate integrability and complete real normed coordinate spaces; those conditions are supplied. No unjustified operation of evaluating an arbitrary Bochner integral is used.
+
+P's `tensor i` (00:91–92) has domain M = r-by-r real matrices and codomain N = paired-index r^2-by-r^2 real matrices. `kroneckerBilinear.flip (feature i)` fixes the **second** original Kronecker argument, so its variable matrix remains the Gaussian factor. This preserves the Gaussian-first tensor convention. The finite-dimensional linear map is made continuous and scaled by d^(-1) at 00:93. Its being non-surjective or potentially noninjective is immaterial: no inverse/embedding argument is used.
+
+The supplied Kronecker body is pointwise `A i.1 j.1 * B i.2 j.2` (12:54–62), and its bilinear construction is actual linearity, not an assumed tensor property (12:199–208, 288–290). P checks pointwise that this CLM image of `kept(row i omega)` equals the literal Y_i, including both sides of the **same closed cutoff** (00:94–101).
+
+`ContinuousLinearMap.integrable_comp` (11:1192–1196) derives image integrability from source integrability by the operator-norm bound; P uses it at 00:108. `ContinuousLinearMap.integral_comp_comm` (10:49–70) requires source integrability and complete source/codomain real normed spaces; P supplies the actual transported kept integrability and the concrete finite matrix spaces at 00:111–113. It then applies the actual common mean and scalar linearity. This is a sufficient route to the full matrix Bochner mean; a redundant second entrywise Y_i proof is not needed.
+
+The Bochner default at 09:156–159 is not used to close a mean. Canonical retained-radius, canonical matrix, actual row-composed matrix, image Y_i, and actual finite-sum integrabilities are visibly obtained as genuine internal steps/outputs before the relevant exchanges. No `integral_undef`, nonmeasurability, or incompleteness argument appears in the seven ASTIS bodies.
+
+## Actual deterministic sums, original normalization, and q=0
+
+T calls the actual P theorem with only hq at 01:77–80. It calls the actual deterministic cosine-frame theorem, also only with hq, at 01:85. Its `half_grid` identity explicitly rewrites the canonical grid `(i.val+1/2)*pi/d` to the sealed literal source grid `(i.val+1-1/2)*pi/d` (01:81–87). It does not shift feature indices: feature coordinate zero remains 1, and feature coordinate k.val uses cos(k.val*theta_i).
+
+I read the full cosine frame (04) and grid alias (06), not only their statements. The alias proves the literal half-grid sum, including signed multiples of 2d, by elementary trigonometric finite sums; it does not assume a Gaussian/Gram mean. The cosine frame uses it to obtain all off-alias finite cosine sums, derives pair/triple product sums, and checks the frequency inequalities from hq. Its hgram proof treats the constant coordinate separately. Its weighted proof uses n=2q+1 and the four positive frequencies below 2d. These arguments do not require q>0. When q=0 the single feature is constant, n=1, and hq gives 1<d; every invoked canonical theorem remains within its actual hypotheses.
+
+T converts the two actual frame matrix products to the desired sums of feature outer products by entrywise finite matrix multiplication (01:90–110). It forms `tensor = kroneckerBilinear I`, this time correctly fixing the **Gaussian first** identity and varying the feature factor. Linearity transports the deterministic sums, and `one_kronecker_one` supplies the full paired-index identity (01:111–125; provider 12:368–370). The only denominator cancellation uses d!=0 derived from hq (01:126–133). There is no Gram certificate argument, extra spectral condition, asymptotic q/d cap, or bias/concentration premise.
+
+## Source sum-of-expectations versus actual integrals of sums
+
+The implementation does not conflate them. T first obtains the literal sums of individual actual means and weighted actual means as `mean_sum` and `weighted_mean_sum` (01:127–143). Those are source Ex110's displayed forms. It then obtains each weighted actual matrix's integrability using the producer output and deterministic scalar multiplication (144–145), obtains both actual finite sums' integrability (150–151), and explicitly uses `integral_finsetSum` and `integral_smul` (152–156) to reach the sealed **integral-of-actual-sums** endpoint.
+
+The finite-sum provider at 11:440–450 needs all summands integrable; T supplies them. The integral finite-sum provider at 09:246–249 similarly needs all summands integrable; T supplies them for both sums. The real scalar integral operation has the appropriate normed-division-ring scope (09:270–278). Although scalar linearity itself is stated for totalized integrals, here the summand and sum integrability has independently been established, so it provides no default-zero escape.
+
+## Remaining boundary, doubts, and blockers
+
+**Genuine source/type/applicability blockers found: none. Source repairs proposed: none. Unresolved critical-provider input requests: none after the supplement.**
+
+The earlier type-stage internal obligations are visibly addressed by these actual bodies: common actual row law, genuine retained scalar/matrix integrability, radial coefficient calculation, noninjective map transport, continuous Gaussian-first tensor transport, deterministic q=0-inclusive cosine identities, and integrable actual finite-sum exchange. This is code-reading evidence, not execution evidence.
+
+I did not run Lean, inspect an elaborated proof term, read compiler receipts, calculate an axiom closure, or verify an immutable candidate commit. Therefore actual elaboration, kernel checking, exact candidate-byte binding, and any later module/publication audit remain unassessed. They must not be displayed as passed from this report. A scoped/typeclass/tactic elaboration failure, if later observed, would need its own typed diagnosis; no such failure has been supplied here and none is presumed.
+
+The inspected seven ASTIS modules contain no occurrences of `axiom`, `sorry`, `admit`, `native_decide`, `Prop := True`, or `:= trivial` in a focused token scan, and visual reading found no alternate closure/certificate trick. That bounded scan is not a compiler axiom audit. No graph, topology verdict, decoder, prior review verdict, failure diagnosis, or repair material was read. No source, production, ledger, registry, Git, or site file was modified.
+
+STOP: await the separately authorized fresh anti-anchored seven-slot/reader packet. This phase issues no final source acceptance.

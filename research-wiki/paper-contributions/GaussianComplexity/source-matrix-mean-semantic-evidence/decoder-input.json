@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-641711212f2331d0",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀     {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ :=\n    (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L} (fun y : E => ‖y‖ ^ 2) x\n      ∂stdGaussian E) / r\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  (∀ i : Fin d, Integrable (Y i) μ) ∧\n    ∀ i : Fin d, (∫ ω, Y i ω ∂μ) =\n      (a / (d : ℝ)) • Matrix.kronecker\n        (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ) (Matrix.vecMulVec (t i) (t i))\n",
+    "statement_sha256": "641711212f2331d0ebfb334052f28fcb923857276c72ce51e402b204ac24e022",
+    "compiled": true,
+    "approved_definition_context": [
+      "Fin n is the finite index set of natural numbers less than n. Natural numbers embed into real numbers in the usual way.",
+      "EuclideanSpace real (Fin n) is real n-dimensional Euclidean space with its Euclidean norm and Borel structure. WithLp.toLp 2 wraps a real coordinate function as that vector; WithLp.ofLp recovers the same coordinates.",
+      "stdGaussian on a finite-dimensional real Euclidean space is the centered Gaussian probability measure with identity covariance. Measure.pi is the finite product measure with the product measurable structure.",
+      "Set.indicator s f equals f on s and zero outside s. Real.log is the natural logarithm and Real.sqrt is the nonnegative square root.",
+      "Matrix m n real is a finite real matrix. Matrix.vecMulVec u v has entries u_i times v_j. Matrix.kronecker A B has paired indices and entry A_(i,k) times B_(j,l) at ((i,j),(k,l)). The symbol 1 is the identity matrix and scalar action multiplies every entry.",
+      "Matrix integrals use the Euclidean operator norm on the finite complete real matrix space. Integrable f mu means almost-everywhere strong measurability and finite integral of the extended norm; it is an asserted conclusion wherever displayed.",
+      "The integral notation is the Bochner integral. It is totalized to zero outside complete or integrable cases; the explicit Integrable conclusions require genuine integrability. All local lets define fixed objects, rather than additional assumptions."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "e83ed530ab35973a7b2be790aefe7e75de1246789fbad382d6f0f7c424651f80"
+}

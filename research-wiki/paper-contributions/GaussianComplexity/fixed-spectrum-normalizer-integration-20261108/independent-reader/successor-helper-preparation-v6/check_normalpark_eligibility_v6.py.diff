@@ -1,0 +1,26 @@
+--- .astis/huanjian-gc-fixed-spectrum-normalizer-integration-20261108/independent-reader/check_normalpark_eligibility_v2.py
++++ .astis/huanjian-gc-fixed-spectrum-normalizer-integration-20261108/independent-reader/check_normalpark_eligibility_v6.py
+@@ -1,17 +1,20 @@
+ """Separate future normal-parking eligibility readback; NEVER invokes a lifecycle API."""
+-from normalizer_acceptance_common_v2 import *
++from normalizer_acceptance_common_v6 import *
+ if __name__=='__main__':
+  args=parse_args(__doc__)
+  outer={'path':args.authorization_json,'sha256':args.authorization_sha256};parking=json_ref(outer)
+  assert parking['authorized_by']=='/root' and parking['authorization_kind']=='normalizer-existingV-normalpark-readonly'
+  assert parking['advance_id']==ADV and parking['new_source_verdict'] is False
+- assert parking['normal_API_transition_to_be_done_by_root_only']=='STABILIZING -> VERIFIED'
++ assert parking['normal_API_transition']=='STABILIZING -> VERIFIED'
+  contextref=parking['postcore_context'];nested=argparse.Namespace(authorization_json=contextref['path'],authorization_sha256=contextref['sha256'])
+  a,ref=load_authorization(nested);context=authorized_context(a)
++ assert parking['normal_API_transition_actor']==a['source_verifier_to_preserve']
++ original_V=json.loads(decoded_ref(a['source_lineage']['source_V_append']))
++ assert parking['preserved_original_verifier_fields']=={k:original_V['evidence'][k] for k in ['verifier_id','verified_commit','gate','source_audit','fake_closure_scan']}
+  accepted=json_ref(parking['local_reader_acceptance'])
+  assert accepted['reviewer']==ACTOR and accepted['state']=='LOCAL_INTEGRATION_READER_ACCEPTED'
+  assert accepted['accepted_immutable_core']==a['accepted_immutable_core'] and accepted['publication_binding_sha256']==BINDING and accepted['new_source_verdict'] is False
+  assert accepted['parking_authorized_or_executed'] is False and accepted['sourceV_lineage']==context['sourceV_lineage']
+  assert args.output,'Explicit fresh own output path required.'
+- result={'reviewer':ACTOR,'state':'NORMALPARK_ELIGIBILITY_REVIEWED_NOT_EXECUTED','authorization':outer,'local_reader_acceptance':parking['local_reader_acceptance'],'accepted_immutable_core':a['accepted_immutable_core'],**context,'new_source_verdict':False,'lifecycle_API_called':False,'sourceV_to_preserve':'The original accepted independent V remains the only sourceV. Root alone may use the normal API to release existing sole STAB back to VERIFIED, then independently read back preservation and ownership.','remote_release_or_publication_credited':False}
++ result={'reviewer':ACTOR,'state':'NORMALPARK_ELIGIBILITY_REVIEWED_NOT_EXECUTED','authorization':outer,'local_reader_acceptance':parking['local_reader_acceptance'],'accepted_immutable_core':a['accepted_immutable_core'],**context,'new_source_verdict':False,'lifecycle_API_called':False,'normal_API_actor_to_preserve':a['source_verifier_to_preserve'],'preserved_original_verifier_fields':parking['preserved_original_verifier_fields'],'sourceV_to_preserve':'After separate root authorization, the original independent source verifier itself may mechanically release the existing sole STAB with the normal STABILIZING-to-VERIFIED API, preserving original verifier evidence. This is not a new source verdict; original V append remains once and unchanged. This helper never calls the API.','remote_release_or_publication_credited':False}
+  print(json.dumps(write_result(args.output,result),ensure_ascii=False,indent=2))

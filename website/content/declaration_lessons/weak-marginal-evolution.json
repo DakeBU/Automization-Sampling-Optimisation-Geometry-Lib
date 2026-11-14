@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw.continuous_marginal_law_of_ae_continuous",
+      "title": "Continuous sample paths give continuous marginal laws",
+      "statement": "Let \\(\\rho_t\\) be the pushforward law of the random state at time \\(t\\). Almost-sure continuity of whole sample paths implies continuity of the map from time to marginal law in the topology of integration against bounded continuous tests.",
+      "formula": "t\\mapsto\\rho_t,\\qquad \\rho_t=(X_t)_\\#P,\\qquad t\\mapsto\\int g\\,d\\rho_t\\text{ is continuous for every bounded continuous }g.",
+      "assumptions": [
+        "Time ranges over a first-countable topological space. The sample law \\(P\\) is a probability measure on a measurable space.",
+        "The state space is topological and measurable, with measurable open sets. Each time slice \\(X_t\\) is measurable.",
+        "There is a single full-measure event on which each time path is continuous on the entire time space."
+      ],
+      "steps": [
+        {
+          "title": "Fix a time and use path continuity",
+          "text": "At any fixed time, the almost-sure path condition implies convergence to the state at that time as the time parameter approaches it.",
+          "formula": "X_u(\\omega)\\longrightarrow X_t(\\omega)\\quad(u\\to t)\\quad\\text{for }P\\text{-a.e. }\\omega.",
+          "lean": "  rw [continuous_iff_continuousAt]\n  intro t\n  have hae : ∀ᵐ ω ∂(μ : Measure Ω),\n      Tendsto (fun u => X u ω) (𝓝 t) (𝓝 (X t ω)) :=\n    hpaths.mono fun _ hω => hω.continuousAt.tendsto"
+        },
+        {
+          "title": "Pass to the laws",
+          "text": "The convergence-in-distribution theorem passes this almost-sure limit through bounded continuous tests. First countability gives a countably generated neighborhood filter.",
+          "formula": "(X_u)_\\#P\\longrightarrow(X_t)_\\#P.",
+          "lean": "  exact (tendstoInDistribution_of_ae_tendsto\n    (fun u => (hX u).aemeasurable) (hX t).aemeasurable hae).tendsto"
+        }
+      ],
+      "lean_statement": "Continuity is asserted for the actual time-slice pushforward law.",
+      "lean_proof": "The proof uses convergence in distribution at each time.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "tendstoInDistribution_of_ae_tendsto",
+        "continuous_iff_continuousAt"
+      ],
+      "boundary": "The conclusion is continuity in the weak topology of probability measures.",
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/WeakDiffusionLaw.lean",
+          "label": "Samplinglib original supplement",
+          "scope": "The exact statement and proof."
+        }
+      ],
+      "tests": [
+        "Focused Lean 4.33.0 compilation and axiom audit."
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw.weak_integral_balance_of_centered_increment",
+      "title": "Marginal balance from a centered sample increment",
+      "statement": "For each time \\(v\\), let \\(\\rho_v=(X_v)_\\#P\\). A sample increment equal almost surely to a signed time integral plus an integrable centered residual gives the following balance for the marginal expectations.",
+      "formula": "\\int g\\,d\\rho_b-\\int g\\,d\\rho_a=\\int_a^b\\int A(v,x)\\,d\\rho_v(x)\\,dv.",
+      "assumptions": [
+        "The sample law \\(P\\) is a probability measure and the state space is measurable. Each slice \\(X_v\\) is measurable for every real \\(v\\).",
+        "The real test \\(g\\) is measurable. For each time \\(v\\), the state section \\(A(v,\\cdot)\\) is measurable. The two random variables \\(g(X_a)\\) and \\(g(X_b)\\) are integrable.",
+        "The map \\((v,\\omega)\\mapsto A(v,X_v(\\omega))\\) is integrable for the time-first product of Lebesgue measure restricted to \\((\\min(a,b),\\max(a,b)]\\) and \\(P\\).",
+        "The endpoints \\(a,b\\) are arbitrary reals. The signed integral identity \\(g(X_b)-g(X_a)=\\int_a^b A(v,X_v)\\,dv+Z\\) holds almost surely, where \\(Z\\) is integrable with expectation zero.",
+        "Product integrability gives integrable spatial drift sections for almost every restricted time. Spatial integrals use Lean's totalized Bochner convention at any exceptional time."
+      ],
+      "steps": [
+        {
+          "title": "Write marginal integrals as expectations",
+          "text": "The pushforward integral formula identifies each integral over the state law with the sample expectation of the composed test.",
+          "formula": "\\int \\phi\\,d\\rho_v=\\mathbb E[\\phi(X_v)].",
+          "lean": "  have hmap (v : ℝ) {f : E → ℝ} (hf : Measurable f) :\n      (∫ x, f x ∂(μ.map (hX v).aemeasurable : Measure E)) =\n        ∫ ω, f (X v ω) ∂(μ : Measure Ω) := by\n    rw [ProbabilityMeasure.toMeasure_map]\n    exact integral_map (hX v).aemeasurable hf.aestronglyMeasurable"
+        },
+        {
+          "title": "Integrate the signed time sections",
+          "text": "Product integrability gives an integrable sample function by Fubini. The integral reverses sign when the endpoints reverse.",
+          "formula": "\\omega\\mapsto\\int_a^b A(v,X_v(\\omega))\\,dv\\quad\\text{is integrable}.",
+          "lean": "  let D : Ω → ℝ := fun ω => ∫ v in a..b, A v (X v ω)\n  have hD : Integrable D (μ : Measure Ω) := by\n    have hI := hdrift.swap.integral_prod_left\n    change Integrable (fun ω => ∫ v in Set.uIoc a b, A v (X v ω)) (μ : Measure Ω) at hI\n    by_cases hab : a ≤ b\n    · simpa only [D, intervalIntegral.integral_of_le hab, Set.uIoc_of_le hab] using hI\n    · have hba : b ≤ a := le_of_not_ge hab\n      simpa only [D, intervalIntegral.integral_of_ge hba, Set.uIoc_of_ge hba] using hI.fun_neg"
+        },
+        {
+          "title": "Center and exchange integrations",
+          "text": "Take expectations of the sample identity and use centering to remove the residual. Exchange expectation and signed time integration, then express the expectation through each marginal law.",
+          "formula": "\\int g\\,d\\rho_b-\\int g\\,d\\rho_a=\\int_a^b\\int A(v,x)\\,d\\rho_v(x)\\,dv.",
+          "lean": "  rw [hmap b hg, hmap a hg, ← integral_sub hgb hga, integral_congr_ae hinc,\n    integral_add hD hZ, hmean, add_zero]\n  simp_rw [hmap _ (hA _)]\n  exact (intervalIntegral_integral_swap hdrift).symm"
+        }
+      ],
+      "lean_statement": "The hypothesis uses restricted time-first product integrability and allows either endpoint order.",
+      "lean_proof": "The proof uses the pushforward formula and Fubini for signed interval integrals.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "integral_map",
+        "intervalIntegral_integral_swap",
+        "Integrable.integral_prod_left"
+      ],
+      "boundary": "The sample increment identity and the centered residual are supplied.",
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/WeakDiffusionLaw.lean",
+          "label": "Samplinglib original supplement",
+          "scope": "The exact statement and proof."
+        }
+      ],
+      "tests": [
+        "Focused Lean 4.33.0 compilation and axiom audit."
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw.hasDerivAt_weak_observable_of_integral_balance",
+      "title": "Differentiating a local marginal balance",
+      "statement": "For a weakly continuous curve of laws \\(\\rho_t\\), set \\(F(t)=\\int g\\,d\\rho_t\\) and \\(B(t)=\\int A(t,x)\\,d\\rho_t(x)\\). A local signed balance about \\(s\\) gives the ordinary derivative of \\(F\\) at \\(s\\).",
+      "formula": "F(u)-F(s)=\\int_s^u B(v)\\,dv\\quad(u\\text{ near }s)\\quad\\Longrightarrow\\quad F'(s)=B(s).",
+      "assumptions": [
+        "The state space is compact and topological with measurable open sets. The curve \\(t\\mapsto\\rho_t\\) consists of probability laws, is defined for real times, and is weakly continuous.",
+        "The scalar field \\(A\\) is jointly continuous on real time times state. The function \\(g\\) is real-valued, and the statement uses Lean's totalized Bochner integral. The given balance uses those same integrals.",
+        "The signed balance holds for all \\(u\\) in a neighborhood of the real time \\(s\\)."
+      ],
+      "steps": [
+        {
+          "title": "Use continuity of the averaged field",
+          "text": "Compactness of the state and weak continuity of the laws let us integrate the jointly continuous time-dependent field continuously.",
+          "formula": "B(v)=\\int A(v,x)\\,d\\rho_v(x)\\quad\\text{is continuous}.",
+          "lean": "  let B := fun v => ∫ x, A v x ∂(μ v : Measure E)\n  have hB : Continuous B := continuous_integral_of_compact hA hμ"
+        },
+        {
+          "title": "Differentiate the primitive",
+          "text": "The ordinary interval fundamental theorem gives derivative \\(B(s)\\) for the integral with fixed lower endpoint \\(s\\).",
+          "formula": "\\left.\\frac{d}{du}\\int_s^u B(v)\\,dv\\right|_{u=s}=B(s).",
+          "lean": "  have hprimitive : HasDerivAt (fun u => ∫ v in s..u, B v) (B s) s :=\n    intervalIntegral.integral_hasDerivAt_right (hB.intervalIntegrable s s)\n      hB.stronglyMeasurable.stronglyMeasurableAtFilter hB.continuousAt"
+        },
+        {
+          "title": "Use the balance in a neighborhood",
+          "text": "Adding \\(F(s)\\) to the primitive gives a function equal to \\(F\\) near \\(s\\), so the same derivative applies.",
+          "formula": "F(u)=F(s)+\\int_s^u B(v)\\,dv\\quad(u\\text{ near }s).",
+          "lean": "  apply (hprimitive.const_add (∫ x, g x ∂(μ s : Measure E))).congr_of_eventuallyEq\n  filter_upwards [hbalance] with u hu\n  change (∫ x, g x ∂(μ u : Measure E)) =\n    (∫ x, g x ∂(μ s : Measure E)) + ∫ v in s..u, B v\n  exact eq_add_of_sub_eq' hu"
+        }
+      ],
+      "lean_statement": "The premise is a neighborhood equality of the same integral expression used in the conclusion.",
+      "lean_proof": "The proof uses continuity of the averaged field and transfers the derivative by local equality.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.WeakProbabilityIntegral.continuous_integral_of_compact"
+      ],
+      "mathlib_dependencies": [
+        "intervalIntegral.integral_hasDerivAt_right",
+        "HasDerivAt.congr_of_eventuallyEq"
+      ],
+      "boundary": "This is the pointwise derivative under a jointly continuous field and a local balance on the real line.",
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/WeakDiffusionLaw.lean",
+          "label": "Samplinglib original supplement",
+          "scope": "The exact statement and proof."
+        }
+      ],
+      "tests": [
+        "Focused Lean 4.33.0 compilation and axiom audit."
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveCoefficientBounds.bounded_measurable_coefficient_along_progressive_process",
+      "kind": "theorem",
+      "title": "Bounded measurable coefficients along progressive paths",
+      "statement": "The scalar process \\(b(t,\\omega)=c(t,X_t(\\omega))\\) is strongly progressive. Its time section is integrable for every sample on the specified horizon and it has the indicated product-space \\(L^p\\) membership.",
+      "formula": "b(\\cdot,\\omega)\\in L^1(\\ell_T)\\quad(\\forall\\omega),\\qquad[(\\omega,t)\\mapsto b(t,\\omega)]\\in L^p(\\mu\\otimes\\ell_T).",
+      "assumptions": [
+        "The state space is pseudometrizable with its Borel measurable structure. The sample measure \\(\\mu\\) is finite and its filtration is indexed by nonnegative time.",
+        "The process \\(X\\) is jointly measurable and strongly progressive. The real coefficient \\(c\\) on nonnegative time times state is Borel measurable. A finite constant bounds \\(|c(t,w)|\\) for all \\(t\\le T\\) and all states \\(w\\).",
+        "The horizon \\(T\\) is nonnegative and \\(p\\) is any extended nonnegative real exponent.",
+        "The symbol \\(\\ell_T\\) denotes Lebesgue time restricted to \\([0,T]\\)."
+      ],
+      "steps": [
+        {
+          "title": "Compose on each restricted filtration product",
+          "text": "The pair \\((t,X_t)\\) is measurable on each time prefix for that prefix's sigma-algebra. Real-valued Borel measurability gives strong measurability.",
+          "formula": "b|_{[0,s]\\times\\Omega}=c\\circ(t,X_t)|_{[0,s]\\times\\Omega}.",
+          "lean": "  · intro t\n    let _ : MeasurableSpace Ω := filtration t\n    exact (hc.comp\n      ((measurable_subtype_coe.comp measurable_fst).prodMk (hProgressive t).measurable)).stronglyMeasurable",
+          "detail": "Use strong progressiveness and measurable composition on the restricted domain."
+        },
+        {
+          "title": "Apply the pointwise bound",
+          "text": "The finite horizon measure is supported in the specified interval. On the product the same time-coordinate bound holds almost everywhere, and both measures are finite.",
+          "formula": "|b(t,\\omega)|\\le C\\quad(0\\le t\\le T).",
+          "lean": "  · intro ω\n    have hm := hc.comp (measurable_id.prodMk\n      (hX.comp (measurable_id.prodMk (measurable_const (a := ω)))))\n    exact Integrable.of_bound hm.aestronglyMeasurable C\n      (htime.mono fun t ht => hC t ht (X t ω))\n  · have hXswap : Measurable (fun z : Ω × ℝ≥0 => X z.2 z.1) :=\n      hX.comp (measurable_snd.prodMk measurable_fst)\n    have hm := hc.comp (measurable_snd.prodMk hXswap)\n    change MemLp (processFunction b) p (μ.prod (TimeMeasure.upTo T))\n    exact MemLp.of_bound hm.aestronglyMeasurable C\n      ((Measure.quasiMeasurePreserving_snd.ae htime).mono fun z hz => hC z.2 hz (X z.2 z.1))",
+          "detail": "Use Integrable.of_bound and MemLp.of_bound."
+        }
+      ],
+      "lean_statement": "The product measure is ordered sample first and time second.",
+      "lean_proof": "The proof composes on the filtration prefixes and bounds the resulting sections.",
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Integrable.of_bound",
+        "MemLp.of_bound",
+        "Measure.quasiMeasurePreserving_snd"
+      ],
+      "boundary": "The coefficient bound is pointwise on the selected horizon, which yields time integrability at every sample.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ProgressiveCoefficientBounds.lean",
+          "label": "Samplinglib original supplement",
+          "scope": "The exact declaration and proof."
+        }
+      ],
+      "tests": [
+        "Focused local Lean 4.33.0 compilation and axiom audit."
+      ],
+      "reading_layout": "progressive"
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakMeasurableEvolution.marginal_balance_of_locally_bounded_generator",
+      "kind": "theorem",
+      "title": "From centered increments to a two-time marginal balance",
+      "statement": "Write \\(\\rho_t=(X_t)_\\#P\\). On the real time axis put \\(F(t)=\\int g\\,d\\rho_{t^+}\\) and \\(B(t)=\\int A(t^+,w)\\,d\\rho_{t^+}(w)\\), with \\(t^+=\\max(t,0)\\). Then \\(B\\) is locally Lebesgue integrable, and \\(F\\) is absolutely continuous on every finite nonnegative interval and satisfies the displayed identities.",
+      "formula": "F(b)-F(a)=\\int_a^b B(v)\\,dv,\\qquad F'(t)=B(t)\\quad\\text{for Lebesgue-a.e. }t>0.",
+      "assumptions": [
+        "The state space is compact and second countable with its Borel measurable structure. The sample measure \\(P\\) is a probability measure. The state process \\(X\\) is jointly measurable and the real test \\(g\\) is continuous.",
+        "The scalar field \\(A\\) is jointly measurable. For each \\(T\\ge0\\) one finite constant bounds \\(|A(t,w)|\\) for every \\(0\\le t\\le T\\) and every state \\(w\\).",
+        "For each nonnegative \\(t\\), on a full-measure event for that time, \\(g(X_t)-g(X_0)=\\int_0^t A(v,X_v)\\,dv+Z_t\\), where \\(Z_t\\) is integrable and has expectation zero. Both endpoints \\(a,b\\) in the conclusion are arbitrary nonnegative times, with the signed integral convention."
+      ],
+      "steps": [
+        {
+          "title": "Take expectations",
+          "text": "On each bounded horizon the generator along the process is jointly measurable and bounded. Use Fubini and change variables under the time-slice pushforward.",
+          "formula": "\\mathbb E[g(X_t)-g(X_0)]=\\int_0^t\\mathbb E[A(v,X_v)]\\,dv.",
+          "lean": "    obtain ⟨Z, hZi, hmean, hZ⟩ := hbalance t\n    have hinc : ∀ᵐ ω ∂(P : Measure Ω),\n        g (Y t ω) - g (Y 0 ω) =\n          (∫ v in (0 : ℝ)..(t : ℝ), A' v (Y v ω)) + Z ω := by\n      simpa [Y, A'] using hZ\n    have h := weak_integral_balance_of_centered_increment P Y hY hg.measurable hAsection\n      0 (t : ℝ) (hgi 0) (hgi t) hGi hZi hmean hinc\n    exact eq_add_of_sub_eq' h",
+          "detail": "Apply weak_integral_balance_of_centered_increment and integral_map."
+        },
+        {
+          "title": "Recover the two-time identity and absolute continuity",
+          "text": "Subtract the balances at the two endpoints. The local uniform bound transfers to \\(B\\) and makes its primitive Lipschitz on each finite horizon.",
+          "formula": "|F(b)-F(a)|\\le C_T|b-a|\\qquad(0\\le a,b\\le T).",
+          "lean": "  have hTwo (a b : ℝ≥0) : F b - F a = ∫ v in (a : ℝ)..(b : ℝ), B v := by\n    rw [← intervalIntegral.integral_interval_sub_left (hInt 0 b) (hInt 0 a), hBase a, hBase b]\n    ring\n  refine ⟨hLoc, hTwo, ?_, ?_⟩\n  · intro T\n    obtain ⟨C, hC⟩ := hBbound T\n    have hLip : LipschitzOnWith C F (Icc (0 : ℝ) (T : ℝ)) := by\n      rw [lipschitzOnWith_iff_dist_le_mul]\n      intro x hx y hy\n      have h := hTwo y.toNNReal x.toNNReal\n      rw [Real.coe_toNNReal y hy.1, Real.coe_toNNReal x hx.1] at h\n      have hBoundI : ∀ v ∈ uIoc y x, ‖B v‖ ≤ C := by\n        intro v hv\n        have hu : v ∈ uIcc y x := uIoc_subset_uIcc hv\n        have hvT : v ≤ (T : ℝ) := hu.2.trans (max_le hy.2 hx.2)\n        exact hC v (by simpa using Real.toNNReal_le_toNNReal hvT)\n      rw [Real.dist_eq, h, ← Real.norm_eq_abs, Real.dist_eq]\n      exact intervalIntegral.norm_integral_le_of_norm_le_const hBoundI\n    apply LipschitzOnWith.absolutelyContinuousOnInterval\n    rwa [uIcc_of_le T.coe_nonneg]",
+          "detail": "Use integral_interval_sub_left and LipschitzOnWith.absolutelyContinuousOnInterval."
+        },
+        {
+          "title": "Differentiate the primitive almost everywhere",
+          "text": "Lebesgue differentiation applies to the locally integrable extension of \\(B\\). Near each positive time the primitive plus the initial constant agrees with \\(F\\).",
+          "formula": "F(t)=F(0)+\\int_0^t B(v)\\,dv\\qquad(t\\ge0).",
+          "lean": "  · have hPositive : ∀ᵐ t ∂volume.restrict (Ioi (0 : ℝ)), 0 < t :=\n      ae_restrict_mem measurableSet_Ioi\n    filter_upwards [ae_restrict_of_ae (LocallyIntegrable.ae_hasDerivAt_integral hLoc), hPositive] with t ht ht0\n    apply ((ht 0).const_add (F 0)).congr_of_eventuallyEq\n    filter_upwards [Ioi_mem_nhds ht0] with r hr\n    have h := hBase r.toNNReal\n    simpa only [Real.coe_toNNReal r hr.le] using h",
+          "detail": "Use LocallyIntegrable.ae_hasDerivAt_integral and local equality on positive time."
+        }
+      ],
+      "lean_statement": "The real extensions of the pushforward expectations use nonnegative time.",
+      "lean_proof": "The proof combines the centered weak balance with Lebesgue differentiation.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw.weak_integral_balance_of_centered_increment"
+      ],
+      "mathlib_dependencies": [
+        "integral_map",
+        "LipschitzOnWith.absolutelyContinuousOnInterval",
+        "LocallyIntegrable.ae_hasDerivAt_integral"
+      ],
+      "boundary": "The ordinary derivative assertion holds for Lebesgue-almost every strictly positive real time.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/WeakMeasurableEvolution.lean",
+          "label": "Samplinglib original supplement",
+          "scope": "The exact declaration and proof."
+        }
+      ],
+      "tests": [
+        "Focused local Lean 4.33.0 compilation and axiom audit."
+      ],
+      "reading_layout": "progressive"
+    }
+  ]
+}
